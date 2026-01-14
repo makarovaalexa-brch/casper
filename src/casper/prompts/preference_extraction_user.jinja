@@ -1,0 +1,24 @@
+Extract user movie preferences from this conversation.
+
+Conversation:
+{{ conversation_turns }}
+
+Extract movie-related entities (movies, directors, actors, genres, themes) and classify by sentiment.
+
+Return JSON in this exact format:
+{
+  "liked": ["entity1", "entity2"],
+  "neutral": ["entity3"],
+  "disliked": ["entity4"]
+}
+
+Rules:
+- Only include entities explicitly mentioned by the user
+- Use exact names from conversation
+- Be conservative - only extract clear preferences
+- Return valid JSON only, no explanations
+
+{% if existing_preferences %}
+Previously extracted: {{ existing_preferences | tojson }}
+Update or add to these preferences based on new information.
+{% endif %}

@@ -1,0 +1,20 @@
+Generate a natural question to discover movie preferences.
+
+Focus on these concepts: {{ entities | join(', ') }}
+
+{% if conversation_context %}
+Conversation so far:
+{{ conversation_context }}
+{% endif %}
+
+{% if discovered_preferences %}
+Already discovered preferences:
+{% for category, items in discovered_preferences.items() %}
+{% if items %}
+{{ category }}: {{ items | join(', ') }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+Generate a specific, engaging question that explores the given concepts.
+Question:

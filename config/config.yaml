@@ -1,0 +1,124 @@
+# Main configuration file for CASPER
+
+# Project settings
+project:
+  name: casper
+  version: 0.1.0
+  seed: 42
+
+# Paths
+paths:
+  data_dir: data
+  movielens_dir: ${paths.data_dir}/movielens
+  reddit_dir: ${paths.data_dir}/reddit
+  processed_dir: ${paths.data_dir}/processed
+  experiments_dir: experiments
+  checkpoints_dir: ${paths.experiments_dir}/checkpoints
+  logs_dir: ${paths.experiments_dir}/logs
+
+# Model components
+models:
+  # Embedding space for semantic representation
+  embedding_space:
+    model_name: all-MiniLM-L6-v2  # SentenceBERT model
+    embedding_dim: 384
+    use_genome_tags: true  # Use MovieLens Genome tags (1128 rich concept tags)
+    use_movie_titles: true  # Include actual movie titles as entities
+    use_hardcoded_entities: false  # DEPRECATED: Hardcoded directors/actors/moods
+
+  # RL agent for question selection
+  actor_critic:
+    state_dim: 384  # SentenceBERT dimension
+    embedding_dim: 384
+    hidden_dim: 512
+    learning_rate: 0.001
+    exploration_noise: 0.2
+
+  # Question generator (GPT)
+  question_generator:
+    model_name: gpt-5-nano
+    max_tokens: 500  # Increased from 100: gpt-5-nano needs ~128+ reasoning tokens
+    temperature: 0.7
+
+  # Preference extractor (LLM-based)
+  preference_extractor:
+    model_name: gpt-5-nano
+    temperature: 0.3
+    max_tokens: 2000  # Increased from 300: gpt-5-nano uses ~450 reasoning tokens before output
+    categories:
+      - liked
+      - neutral
+      - disliked
+    use_json_mode: true
+
+  # Two-tower recommender
+  recommender:
+    state_dim: 384
+    embedding_dim: 128
+    learning_rate: 0.001
+    training_users: 10000  # Number of MovieLens users for recommender training (up to 162K available)
+    epochs: 20
+    batch_size: 32
+    val_split: 0.1  # Validation split for convergence monitoring
+
+  # User simulator (for RL training)
+  user_simulator:
+    model_name: gpt-5-nano
+    temperature: 0.7
+    min_ratings: 20  # Minimum ratings per MovieLens user profile
+    max_profiles: 500  # Maximum number of user profiles to create (up to 162K available)
+    rating_threshold_high: 4.0  # Movies rated >= this are considered "liked"
+    rating_threshold_low: 2.5  # Movies rated < this are considered "disliked"
+
+# Training data sources
+training_data:
+  # Supervised pretraining
+  supervised:
+    source: reddit  # Reddit movie conversations
+    split: 0.8  # train/val split
+    epochs: 10
+    batch_size: 32
+    learning_rate: 0.001
+
+  # RL training
+  reinforcement:
+    user_simulator: movielens  # MovieLens-based user simulator
+    num_episodes: 1000
+
+# Device configuration
+device: auto  # auto, cpu, cuda
+mixed_precision: false  # Use FP16 instead of FP32 (faster on GPU, uses less memory)
+
+# Logging
+logging:
+  level: INFO
+  use_wandb: true  # Weights & Biases - tracks experiments, metrics, hyperparameters (optional)
+  project_name: ${project.name}
+
+# Conversation environment
+environment:
+  max_turns: 10  # Maximum conversation turns before giving recommendations
+  success_threshold: 0.7  # NDCG@10 threshold to consider recommendation successful
+  conversation_history_length: 6  # Number of recent turns to include in state encoding (3 full exchanges)
+
+# Evaluation setup
+evaluation:
+  # Held-out evaluation: 70% train, 30% test users
+  test_split: 0.3
+
+  # Metrics for Paper 1
+  metrics:
+    - ndcg_at_10  # Primary: Recommendation accuracy on held-out test set
+    - ndcg_at_5
+    - hit_rate_at_10  # Discovery rate
+    - hit_rate_at_5
+    - mrr  # Mean reciprocal rank
+    - precision_at_10
+    - recall_at_10
+    - num_discoveries  # Number of held-out items discovered
+    - discovery_rate  # Proportion of test set discovered
+    - conversation_efficiency  # Questions needed to discover preferences
+
+  # Test datasets
+  test_sets:
+    - movielens_held_out  # Held-out MovieLens users
