@@ -89,9 +89,11 @@ class PreferenceExtractor:
             "messages": [
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": prompt}
-            ],
-            "max_completion_tokens": self.max_tokens
+            ]
         }
+
+        if self.max_tokens is not None:
+            api_params["max_tokens"] = self.max_tokens
 
         # Only add temperature for models that support it (not gpt-5-nano)
         if not self.model_name.startswith("gpt-5"):
@@ -136,63 +138,35 @@ class PreferenceExtractor:
 
         # Handle empty response after all retries
         if not content:
-            print(f"WARNING: Empty response from preference extractor after {max_retries} attempts")
-            if debug:
-                print(f"  Model: {self.model_name}")
-                print(f"  JSON mode: {self.use_json_mode}")
-                print(f"  Conversation length: {len(conversation)}")
-            return {category: [] for category in self.categories}
+            # Return "unknown" instead of empty list for better encoding
+            return {category: ["unknown"] for category in self.categories}
 
         try:
             preferences = json.loads(content)
-            if debug:
-                print(f"\nSuccessfully parsed JSON:")
-                print(f"  {preferences}")
         except json.JSONDecodeError as e:
-            print(f"WARNING: Invalid JSON from preference extractor: {content[:200]}")
-            print(f"Error: {e}")
-
-            if debug:
-                print(f"\nJSON Parse Error Details:")
-                print(f"  Error position: {e.pos}")
-                print(f"  Full content:\n{content}")
-
             # Try to extract JSON from markdown code blocks (common LLM mistake)
             if "```json" in content:
                 try:
                     json_str = content.split("```json")[1].split("```")[0].strip()
                     preferences = json.loads(json_str)
-                    if debug:
-                        print(f"  Recovered from markdown json block")
                 except:
-                    # Return empty if still can't parse
-                    if debug:
-                        print(f"  Failed to recover from markdown json block")
-                    return {category: [] for category in self.categories}
+                    # Return "unknown" instead of empty
+                    return {category: ["unknown"] for category in self.categories}
             elif "```" in content:
                 try:
                     json_str = content.split("```")[1].split("```")[0].strip()
                     preferences = json.loads(json_str)
-                    if debug:
-                        print(f"  Recovered from markdown block")
                 except:
-                    if debug:
-                        print(f"  Failed to recover from markdown block")
-                    return {category: [] for category in self.categories}
+                    # Return "unknown" instead of empty
+                    return {category: ["unknown"] for category in self.categories}
             else:
-                # Return empty if can't parse
-                if debug:
-                    print(f"  No recovery possible - returning empty")
-                return {category: [] for category in self.categories}
+                # Return "unknown" if can't parse
+                return {category: ["unknown"] for category in self.categories}
 
-        # Ensure all categories exist
+        # Ensure all categories exist - use "unknown" if missing
         for category in self.categories:
-            if category not in preferences:
-                preferences[category] = []
-
-        if debug:
-            print(f"\nFinal preferences:")
-            print(f"  {preferences}")
+            if category not in preferences or not preferences[category]:
+                preferences[category] = ["unknown"]
 
         return preferences
 

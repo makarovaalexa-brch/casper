@@ -46,15 +46,10 @@ class UserTower(nn.Module):
     def __init__(self, state_dim: int = 384, user_emb_dim: int = 128):
         super().__init__()
 
+        # Single linear layer - SentenceBERT embeddings are already good!
+        # Deep MLPs cause collapse; just project to matching dimension
         self.network = nn.Sequential(
-            nn.Linear(state_dim, 256),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(128, user_emb_dim),
-            nn.LayerNorm(user_emb_dim)  # Normalize for dot product
+            nn.Linear(state_dim, user_emb_dim)
         )
 
     def forward(self, state):
@@ -79,15 +74,10 @@ class ItemTower(nn.Module):
     def __init__(self, item_dim: int = 384, item_emb_dim: int = 128):
         super().__init__()
 
+        # Single linear layer - SentenceBERT embeddings are already good!
+        # Deep MLPs cause collapse; just project to matching dimension
         self.network = nn.Sequential(
-            nn.Linear(item_dim, 256),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(128, item_emb_dim),
-            nn.LayerNorm(item_emb_dim)  # Normalize for dot product
+            nn.Linear(item_dim, item_emb_dim)
         )
 
     def forward(self, item_features):
@@ -112,7 +102,7 @@ class TwoTowerRecommender(nn.Module):
         self,
         state_dim: int = 384,
         embedding_dim: int = 128,
-        learning_rate: float = 0.001
+        learning_rate: float = 0.0003  # CHANGED: 0.001 → 0.0003 (more stable)
     ):
         super().__init__()
 
@@ -174,22 +164,37 @@ class TwoTowerRecommender(nn.Module):
         Training step with BPR (Bayesian Personalized Ranking) loss.
 
         BPR assumes positive items should be ranked higher than negative items.
+        Supports multiple negatives per positive (batch_size * num_negatives).
 
         Args:
             user_states: [batch_size, 384] dialogue states
             positive_items: [batch_size, 384] liked movie features
-            negative_items: [batch_size, 384] disliked/random movie features
+            negative_items: [batch_size * num_negatives, 384] disliked/random movie features
 
         Returns:
             loss value
         """
-        # Get scores
-        pos_scores = self.forward(user_states, positive_items)
-        neg_scores = self.forward(user_states, negative_items)
+        batch_size = user_states.size(0)
+        num_negatives = negative_items.size(0) // batch_size
 
-        # BPR loss: encourage pos_score > neg_score
-        # loss = -log(sigmoid(pos_score - neg_score))
-        loss = -F.logsigmoid(pos_scores - neg_scores).mean()
+        # Get positive scores
+        pos_scores = self.forward(user_states, positive_items)  # [batch_size]
+
+        # Repeat user states for each negative
+        user_states_repeated = user_states.repeat_interleave(num_negatives, dim=0)  # [batch_size * num_negatives, 384]
+
+        # Get negative scores
+        neg_scores = self.forward(user_states_repeated, negative_items)  # [batch_size * num_negatives]
+
+        # Reshape to [batch_size, num_negatives]
+        neg_scores = neg_scores.view(batch_size, num_negatives)
+
+        # Expand pos_scores to compare with all negatives
+        pos_scores_expanded = pos_scores.unsqueeze(1)  # [batch_size, 1]
+
+        # BPR loss: encourage pos_score > neg_score for ALL negatives
+        # loss = -log(sigmoid(pos_score - neg_score)) averaged over all pairs
+        loss = -F.logsigmoid(pos_scores_expanded - neg_scores).mean()
 
         # Optimize
         self.optimizer.zero_grad()
@@ -198,6 +203,48 @@ class TwoTowerRecommender(nn.Module):
         self.optimizer.step()
 
         return loss.item()
+
+    def calculate_bpr_loss(
+        self,
+        user_state,
+        positive_items,
+        negative_items
+    ):
+        """
+        Calculate BPR loss WITHOUT training (for RL reward evaluation).
+
+        Args:
+            user_state: [384] single dialogue state
+            positive_items: [num_pos, 384] liked movie features
+            negative_items: [num_neg, 384] random/disliked movie features
+
+        Returns:
+            loss value (float)
+        """
+        # Ensure model is in eval mode (disables dropout for deterministic inference)
+        self.eval()
+
+        with torch.no_grad():
+            # Expand user state to match batch sizes
+            user_states_pos = user_state.unsqueeze(0).expand(len(positive_items), -1)
+            user_states_neg = user_state.unsqueeze(0).expand(len(negative_items), -1)
+
+            # Get scores
+            pos_scores = self.forward(user_states_pos, positive_items)
+            neg_scores = self.forward(user_states_neg, negative_items)
+
+            # BPR loss: -log(sigmoid(pos_score - neg_score))
+            # Average over all positive-negative pairs
+            total_loss = 0.0
+            count = 0
+            for pos_score in pos_scores:
+                for neg_score in neg_scores:
+                    total_loss += -F.logsigmoid(pos_score - neg_score).item()
+                    count += 1
+
+            avg_loss = total_loss / count if count > 0 else 0.0
+
+        return avg_loss
 
 
 class MovieCatalog:
@@ -383,71 +430,97 @@ class RecommenderTrainer:
 
     def create_training_batch(
         self,
-        conversations: List[str],
+        user_states: np.ndarray,
         liked_movies: List[List[int]],
-        batch_size: int = 32
+        disliked_movies: List[List[int]] = None,
+        batch_size: int = 32,
+        show_progress: bool = False,
+        num_negatives: int = 4
     ):
         """
-        Create training batches from conversation-movie pairs.
+        Create training batches with smart negative sampling.
 
         Args:
-            conversations: List of conversation texts
+            user_states: Pre-encoded conversation embeddings [N, 384]
             liked_movies: List of lists of liked movie IDs
+            disliked_movies: List of lists of disliked movie IDs (NEW!)
             batch_size: Batch size
+            show_progress: Show progress bar for batches
+            num_negatives: Number of negatives per positive (default: 4)
 
         Yields:
-            (user_states, positive_items, negative_items) tensors
+            (user_states_batch, positive_items, negative_items) tensors
         """
         all_movie_ids = self.movie_catalog.get_movie_ids()
+        num_batches = (len(user_states) + batch_size - 1) // batch_size
 
-        for i in range(0, len(conversations), batch_size):
-            batch_convs = conversations[i:i+batch_size]
+        iterator = range(0, len(user_states), batch_size)
+        if show_progress:
+            from tqdm import tqdm
+            iterator = tqdm(list(iterator), desc="Batches", total=num_batches, leave=True, unit="batch")
+
+        for i in iterator:
+            batch_states = user_states[i:i+batch_size]
             batch_likes = liked_movies[i:i+batch_size]
+            batch_dislikes = disliked_movies[i:i+batch_size] if disliked_movies else [[] for _ in range(len(batch_likes))]
 
-            # Encode conversations
-            user_states = self.encoder.encode(
-                batch_convs,
-                convert_to_numpy=True,
-                show_progress_bar=False
-            )
-            user_states = torch.FloatTensor(user_states)
+            batch_states_tensor = torch.FloatTensor(batch_states)
 
             # Get positive and negative items
             positive_ids = []
             negative_ids = []
 
-            for likes in batch_likes:
+            for likes, dislikes in zip(batch_likes, batch_dislikes):
                 # Sample one positive
                 pos_id = random.choice(likes) if likes else random.choice(all_movie_ids)
                 positive_ids.append(pos_id)
 
-                # Sample one negative (not in likes)
-                neg_candidates = [mid for mid in all_movie_ids if mid not in likes]
-                neg_id = random.choice(neg_candidates) if neg_candidates else random.choice(all_movie_ids)
-                negative_ids.append(neg_id)
+                # SMART NEGATIVE SAMPLING (Literature-based)
+                # Mix explicitly disliked (strong signal) + random unseen (generalization)
+                likes_set = set(likes)
+                dislikes_set = set(dislikes) if dislikes else set()
+                unseen_movies = [mid for mid in all_movie_ids if mid not in likes_set]
+
+                sampled_negatives = []
+
+                # 1. Prefer explicitly disliked movies (strongest signal!)
+                if len(dislikes) >= 2:
+                    # Sample 2 from dislikes
+                    sampled_negatives.extend(random.sample(dislikes, min(2, len(dislikes))))
+                    # Sample 2 from random unseen
+                    remaining = num_negatives - len(sampled_negatives)
+                    sampled_negatives.extend(random.sample(unseen_movies, remaining))
+                else:
+                    # Fallback: all random if not enough dislikes
+                    sampled_negatives = random.sample(unseen_movies, num_negatives)
+
+                negative_ids.extend(sampled_negatives)
 
             # Get movie features
             positive_items = self.movie_catalog.get_movie_features(positive_ids)
             negative_items = self.movie_catalog.get_movie_features(negative_ids)
 
-            yield user_states, positive_items, negative_items
+            yield batch_states_tensor, positive_items, negative_items
 
     def train(
         self,
         conversations: List[str],
         liked_movies: List[List[int]],
+        disliked_movies: List[List[int]] = None,
         epochs: int = 10,
-        batch_size: int = 32,
-        val_split: float = 0.1
+        batch_size: int = 64,  # CHANGED: 32 → 64 (less noisy gradients)
+        val_split: float = 0.1,
+        checkpoint_path: Optional[str] = None
     ):
         """
-        Train recommender on conversation data with validation monitoring.
+        Train recommender with smart negative sampling.
 
         Args:
             conversations: List of conversation texts
             liked_movies: List of lists of liked movie IDs per conversation
+            disliked_movies: List of lists of disliked movie IDs (NEW!)
             epochs: Number of training epochs
-            batch_size: Batch size
+            batch_size: Batch size (default: 64)
             val_split: Fraction of data to use for validation
         """
         from tqdm import tqdm
@@ -459,8 +532,10 @@ class RecommenderTrainer:
 
         train_convs = conversations[:n_train]
         train_likes = liked_movies[:n_train]
+        train_dislikes = disliked_movies[:n_train] if disliked_movies else None
         val_convs = conversations[n_train:]
         val_likes = liked_movies[n_train:]
+        val_dislikes = disliked_movies[n_train:] if disliked_movies else None
 
         print(f"\n{'='*60}")
         print("TRAINING TWO-TOWER RECOMMENDER")
@@ -470,16 +545,48 @@ class RecommenderTrainer:
         print(f"Epochs: {epochs}")
         print(f"Batch size: {batch_size}\n")
 
-        best_val_ndcg = 0.0
+        # Pre-encode all conversations with SentenceBERT
+        print(f"Encoding {n_train} training conversations...")
 
-        for epoch in tqdm(range(epochs), desc="Training recommender", unit="epoch"):
+        train_states = self.encoder.encode(
+            train_convs,
+            convert_to_numpy=True,
+            show_progress_bar=False,
+            batch_size=64
+        )
+
+        if n_val > 0:
+            print(f"Encoding {n_val} validation conversations...")
+            val_states = self.encoder.encode(
+                val_convs,
+                convert_to_numpy=True,
+                show_progress_bar=False,
+                batch_size=64
+            )
+
+        best_val_ndcg = 0.0
+        start_epoch = 0
+
+        # Try to resume from checkpoint
+        if checkpoint_path:
+            from pathlib import Path
+            checkpoint_file = Path(checkpoint_path)
+            if checkpoint_file.exists():
+                checkpoint = torch.load(checkpoint_file)
+                self.recommender.user_tower.load_state_dict(checkpoint['user_tower'])
+                self.recommender.item_tower.load_state_dict(checkpoint['item_tower'])
+                start_epoch = checkpoint.get('epoch', 0)
+                best_val_ndcg = checkpoint.get('best_val_ndcg', 0.0)
+                print(f"Resuming from epoch {start_epoch} (best NDCG: {best_val_ndcg:.4f})\n")
+
+        for epoch in tqdm(range(start_epoch, epochs), desc="Training recommender", unit="epoch", initial=start_epoch, total=epochs):
             # Training
             epoch_losses = []
-            for user_states, pos_items, neg_items in self.create_training_batch(
-                train_convs, train_likes, batch_size
+            for user_states_batch, pos_items, neg_items in self.create_training_batch(
+                train_states, train_likes, train_dislikes, batch_size, show_progress=False
             ):
                 loss = self.recommender.train_bpr_step(
-                    user_states, pos_items, neg_items
+                    user_states_batch, pos_items, neg_items
                 )
                 epoch_losses.append(loss)
 
@@ -487,21 +594,35 @@ class RecommenderTrainer:
 
             # Validation
             if n_val > 0:
-                val_ndcg, val_hit_rate = self._validate(val_convs, val_likes, k=10)
+                val_ndcg, val_hit_rate = self._validate(val_states, val_likes, k=10)
 
                 # Track best model
-                if val_ndcg > best_val_ndcg:
+                is_best = val_ndcg > best_val_ndcg
+                if is_best:
                     best_val_ndcg = val_ndcg
                     best_marker = " (best)"
                 else:
                     best_marker = ""
 
+                # Print epoch results so they stack for comparison
                 tqdm.write(
                     f"Epoch {epoch+1}/{epochs} - "
                     f"Loss: {avg_loss:.4f} | "
                     f"Val NDCG@10: {val_ndcg:.4f} | "
                     f"Val Hit@10: {val_hit_rate:.4f}{best_marker}"
                 )
+
+                # Save checkpoint after each epoch
+                if checkpoint_path:
+                    torch.save({
+                        'user_tower': self.recommender.user_tower.state_dict(),
+                        'item_tower': self.recommender.item_tower.state_dict(),
+                        'epoch': epoch + 1,
+                        'best_val_ndcg': best_val_ndcg,
+                        'val_ndcg': val_ndcg,
+                        'val_hit_rate': val_hit_rate,
+                        'loss': avg_loss
+                    }, checkpoint_path)
             else:
                 tqdm.write(f"Epoch {epoch+1}/{epochs} - BPR Loss: {avg_loss:.4f}")
 
@@ -510,12 +631,12 @@ class RecommenderTrainer:
         print(f"Best Val NDCG@10: {best_val_ndcg:.4f}")
         print(f"{'='*60}\n")
 
-    def _validate(self, conversations: List[str], liked_movies: List[List[int]], k: int = 10):
+    def _validate(self, user_states: np.ndarray, liked_movies: List[List[int]], k: int = 10):
         """
-        Validate recommender on held-out data.
+        Validate recommender on held-out data (batched for speed).
 
         Args:
-            conversations: Validation conversation texts
+            user_states: Pre-encoded user states [N, 384]
             liked_movies: Validation liked movie IDs
             k: Top-k for metrics
 
@@ -527,42 +648,50 @@ class RecommenderTrainer:
         ndcgs = []
         hits = []
 
-        # Encode all conversations
-        user_states = self.encoder.encode(
-            conversations,
-            convert_to_numpy=True,
-            show_progress_bar=False
-        )
-        user_states = torch.FloatTensor(user_states)
+        # Convert to tensor (already encoded!)
+        user_states_tensor = torch.FloatTensor(user_states)
 
         # Get all movie features
         all_movie_features = self.movie_catalog.get_all_movie_features()
         all_movie_ids = self.movie_catalog.get_movie_ids()
 
-        for i, target_movies in enumerate(liked_movies):
-            if not target_movies:
-                continue
+        # Batch validation for speed
+        batch_size = 100
+        for batch_start in range(0, len(user_states), batch_size):
+            batch_end = min(batch_start + batch_size, len(user_states))
+            batch_states = user_states_tensor[batch_start:batch_end]
+            batch_targets = liked_movies[batch_start:batch_end]
 
-            # Get top-k recommendations
-            scores = self.recommender.predict_scores(user_states[i], all_movie_features)
-            top_indices = torch.argsort(scores, descending=True)[:k]
-            recommended_ids = [all_movie_ids[idx] for idx in top_indices]
+            # Score all users in batch against all movies at once
+            with torch.no_grad():
+                user_tower_out = self.recommender.user_tower(batch_states)  # [batch, embed_dim]
+                item_tower_out = self.recommender.item_tower(all_movie_features)  # [num_movies, embed_dim]
+                scores = torch.matmul(user_tower_out, item_tower_out.T)  # [batch, num_movies]
 
-            # Calculate NDCG@k
-            dcg = 0.0
-            for rank, movie_id in enumerate(recommended_ids):
-                if movie_id in target_movies:
-                    dcg += 1.0 / np.log2(rank + 2)
+            # Get top-k for each user in batch
+            top_indices = torch.argsort(scores, dim=1, descending=True)[:, :k]  # [batch, k]
 
-            # IDCG (ideal)
-            ideal_relevances = [1.0] * min(len(target_movies), k)
-            idcg = sum(rel / np.log2(rank + 2) for rank, rel in enumerate(ideal_relevances))
-            ndcg = dcg / idcg if idcg > 0 else 0.0
-            ndcgs.append(ndcg)
+            for i, target_movies in enumerate(batch_targets):
+                if not target_movies:
+                    continue
 
-            # Hit rate
-            hit = 1.0 if any(mid in target_movies for mid in recommended_ids) else 0.0
-            hits.append(hit)
+                recommended_ids = [all_movie_ids[idx.item()] for idx in top_indices[i]]
+
+                # Calculate NDCG@k
+                dcg = 0.0
+                for rank, movie_id in enumerate(recommended_ids):
+                    if movie_id in target_movies:
+                        dcg += 1.0 / np.log2(rank + 2)
+
+                # IDCG (ideal)
+                ideal_relevances = [1.0] * min(len(target_movies), k)
+                idcg = sum(rel / np.log2(rank + 2) for rank, rel in enumerate(ideal_relevances))
+                ndcg = dcg / idcg if idcg > 0 else 0.0
+                ndcgs.append(ndcg)
+
+                # Hit rate
+                hit = 1.0 if any(mid in target_movies for mid in recommended_ids) else 0.0
+                hits.append(hit)
 
         return np.mean(ndcgs) if ndcgs else 0.0, np.mean(hits) if hits else 0.0
 
@@ -581,6 +710,9 @@ class RecommenderTrainer:
         Returns:
             List of (movie_id, title, score) tuples
         """
+        # Ensure model is in eval mode (disables dropout for deterministic inference)
+        self.recommender.eval()
+
         # Convert to tensor
         state_tensor = torch.FloatTensor(conversation_state)
 

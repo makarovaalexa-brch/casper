@@ -36,15 +36,15 @@ models:
 
   # Question generator (GPT)
   question_generator:
-    model_name: gpt-5-nano
-    max_tokens: 500  # Increased from 100: gpt-5-nano needs ~128+ reasoning tokens
+    model_name: gpt-4o-mini
+    max_tokens: null
     temperature: 0.7
 
   # Preference extractor (LLM-based)
   preference_extractor:
-    model_name: gpt-5-nano
+    model_name: gpt-4o-mini
     temperature: 0.3
-    max_tokens: 2000  # Increased from 300: gpt-5-nano uses ~450 reasoning tokens before output
+    max_tokens: null
     categories:
       - liked
       - neutral
@@ -55,15 +55,17 @@ models:
   recommender:
     state_dim: 384
     embedding_dim: 128
-    learning_rate: 0.001
+    learning_rate: 0.0003  # CHANGED: 0.001 → 0.0003 (more stable, literature-based)
     training_users: 10000  # Number of MovieLens users for recommender training (up to 162K available)
     epochs: 20
-    batch_size: 32
+    batch_size: 64  # CHANGED: 32 → 64 (less noisy gradients)
     val_split: 0.1  # Validation split for convergence monitoring
+    num_negatives: 4  # NEW: Number of negatives per positive (2 from dislikes + 2 random)
 
   # User simulator (for RL training)
   user_simulator:
-    model_name: gpt-5-nano
+    model_name: gpt-4o-mini
+    max_tokens: null
     temperature: 0.7
     min_ratings: 20  # Minimum ratings per MovieLens user profile
     max_profiles: 500  # Maximum number of user profiles to create (up to 162K available)

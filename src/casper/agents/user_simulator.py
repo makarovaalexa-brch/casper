@@ -62,6 +62,7 @@ class UserSimulator:
         self.model_name = model_name or sim_config['model_name']
         self.min_ratings = min_ratings or sim_config['min_ratings']
         self.max_profiles = max_profiles or sim_config['max_profiles']
+        self.max_tokens = sim_config.get('max_tokens', 16000)  # Very high for gpt-5 reasoning
 
         # Initialize OpenAI client for function calling
         self.openai_client = OpenAI()
@@ -239,8 +240,9 @@ class UserSimulator:
         user_profile: Dict,
         conversation_history: Optional[List[str]] = None,
         max_retries: int = 3,
-        use_function_calling: bool = True
-    ) -> str:
+        use_function_calling: bool = True,
+        return_tool_calls: bool = False
+    ):
         """
         Generate realistic user response with function calling to query profile.
 
@@ -255,9 +257,10 @@ class UserSimulator:
             conversation_history: Full conversation history (optional)
             max_retries: Maximum LLM retry attempts
             use_function_calling: Enable function calling (default: True)
+            return_tool_calls: If True, return (response, tool_call_logs) tuple
 
         Returns:
-            Natural language response as this user would give
+            Natural language response, or (response, tool_call_logs) if return_tool_calls=True
         """
         if not use_function_calling:
             # Fallback to old method without function calling
@@ -265,22 +268,27 @@ class UserSimulator:
                 question, user_profile, conversation_history, max_retries
             )
 
-        # Build system prompt (no need to show full ratings - LLM can query)
-        system_prompt = f"""You are a movie enthusiast participating in a conversation about your movie preferences.
+        # Build system prompt - natural and conversational like Reddit users
+        system_prompt = f"""You're a movie fan chatting about films. You've seen and rated {len(user_profile['ratings'])} movies.
 
-You have rated {len(user_profile['ratings'])} movies. You can query your ratings using the provided tools.
+CRITICAL RULES:
+1. Keep responses SHORT (2-4 sentences max, like a real chat)
+2. ONLY talk about movies you've actually seen (use tools to check!)
+3. If asked about a movie you haven't seen, just say "Haven't seen that one" - DON'T speculate or give long explanations
+4. Be honest and conversational, not an essay writer
 
-Guidelines:
-- Be conversational and natural
-- Use tools to check your ratings when relevant
-- Answer questions honestly based on your actual ratings
-- Don't make recommendations - you're here to share YOUR preferences
-- Be specific when you can (mention actual movies and ratings)
+GOOD EXAMPLES:
+- "Inception was amazing! Gave it a 5/5. Love that kind of mind-bending stuff."
+- "Haven't seen that one."
+- "Dark Knight was great, but I thought Interstellar was a bit long."
+- "Not really into rom-coms tbh."
 
-Example responses:
-- "Let me check... yes, I rated Inception 5.0, absolutely loved it!"
-- "I haven't seen that one actually"
-- "I've watched a few Nolan films - really enjoyed Interstellar and The Dark Knight"
+BAD EXAMPLES (DO NOT DO THIS):
+- Multi-paragraph essays analyzing hypothetical movies [X]
+- Detailed opinions about movies you haven't seen [X]
+- "I haven't seen it BUT let me give you a 10-paragraph analysis anyway..." [X]
+
+Keep it short, honest, and natural like texting a friend about movies.
 """
 
         # Build conversation context
@@ -355,6 +363,9 @@ Example responses:
             }
         ]
 
+        # Track tool calls for logging (if requested)
+        tool_call_logs = []
+
         # OpenAI function calling loop
         for attempt in range(max_retries):
             try:
@@ -366,7 +377,9 @@ Example responses:
                     "tool_choice": "auto"
                 }
 
-                # Only add temperature for models that support it (not gpt-5-nano)
+                # Add optional parameters
+                if self.max_tokens is not None:
+                    api_params["max_tokens"] = self.max_tokens
                 if not self.model_name.startswith("gpt-5"):
                     api_params["temperature"] = self.temperature
 
@@ -402,6 +415,14 @@ Example responses:
                         else:
                             result = {"error": f"Unknown function: {function_name}"}
 
+                        # Log tool call if requested
+                        if return_tool_calls:
+                            tool_call_logs.append({
+                                'function': function_name,
+                                'arguments': function_args,
+                                'result': result
+                            })
+
                         # Add function result to messages
                         messages.append({
                             "role": "tool",
@@ -414,16 +435,26 @@ Example responses:
                         "model": self.model_name,
                         "messages": messages
                     }
-                    # Only add temperature for models that support it (not gpt-5-nano)
+
+                    # Add optional parameters
+                    if self.max_tokens is not None:
+                        final_api_params["max_tokens"] = self.max_tokens
                     if not self.model_name.startswith("gpt-5"):
                         final_api_params["temperature"] = self.temperature
 
                     final_response = self.openai_client.chat.completions.create(**final_api_params)
-                    return final_response.choices[0].message.content.strip()
+                    final_text = final_response.choices[0].message.content.strip()
+
+                    if return_tool_calls:
+                        return final_text, tool_call_logs
+                    return final_text
 
                 else:
                     # No tool calls, return direct response
-                    return response_message.content.strip()
+                    final_text = response_message.content.strip()
+                    if return_tool_calls:
+                        return final_text, []  # Empty tool call list
+                    return final_text
 
             except Exception as e:
                 error_type = type(e).__name__

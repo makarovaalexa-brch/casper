@@ -1,20 +1,22 @@
-Generate a natural question to discover movie preferences.
+{% if not conversation_context %}
+This is the FIRST turn. Greet the user warmly and introduce yourself.
 
-Focus on these concepts: {{ entities | join(', ') }}
+Example: "Hi! I'm here to help you discover great movies. What kind of films do you enjoy?"
+
+Generate a friendly greeting (max 2 sentences):
+{% else %}
+Generate a SHORT, DIRECT question (max 1-2 sentences) to learn about user preferences.
+
+Focus on these 1-2 concepts: {{ entities[:2] | join(' or ') }}
 
 {% if conversation_context %}
-Conversation so far:
-{{ conversation_context }}
+Recent conversation:
+{{ conversation_context.split('\n')[-4:] | join('\n') }}
 {% endif %}
 
-{% if discovered_preferences %}
-Already discovered preferences:
-{% for category, items in discovered_preferences.items() %}
-{% if items %}
-{{ category }}: {{ items | join(', ') }}
-{% endif %}
-{% endfor %}
+{% if discovered_preferences and discovered_preferences.get('liked') %}
+They already mentioned liking: {{ discovered_preferences['liked'][:3] | join(', ') }}
 {% endif %}
 
-Generate a specific, engaging question that explores the given concepts.
-Question:
+Ask a SIMPLE, DIRECT question about the concepts above. DO NOT create hypothetical scenarios.
+Question:{% endif %}

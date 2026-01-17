@@ -78,15 +78,33 @@ class QuestionGenerator:
             "messages": [
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": prompt}
-            ],
-            "max_completion_tokens": self.max_tokens
+            ]
         }
 
-        # Only add temperature for models that support it (not gpt-5-nano)
+        # Add optional parameters
+        if self.max_tokens is not None:
+            api_params["max_tokens"] = self.max_tokens
         if not self.model_name.startswith("gpt-5"):
             api_params["temperature"] = self.temperature
 
-        response = openai.chat.completions.create(**api_params)
+        try:
+            response = openai.chat.completions.create(**api_params)
+            question = response.choices[0].message.content.strip()
 
-        question = response.choices[0].message.content.strip()
-        return question
+            if not question:
+                print(f"[QuestionGen] WARNING: Empty question generated!")
+                print(f"[QuestionGen]   Entities: {entities}")
+                print(f"[QuestionGen]   Model: {self.model_name}")
+                print(f"[QuestionGen]   Returning fallback question")
+                # Fallback question
+                return f"What did you think of {entities[0]}?" if entities else "What kind of movies do you enjoy?"
+
+            return question
+
+        except Exception as e:
+            print(f"[QuestionGen] ERROR: {type(e).__name__}: {e}")
+            print(f"[QuestionGen]   Entities: {entities}")
+            print(f"[QuestionGen]   Model: {self.model_name}")
+            print(f"[QuestionGen]   Returning fallback question")
+            # Fallback question
+            return f"What did you think of {entities[0]}?" if entities else "What kind of movies do you enjoy?"

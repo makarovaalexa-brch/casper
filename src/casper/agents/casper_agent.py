@@ -173,16 +173,17 @@ class CASPERAgent:
         # Encode with SentenceBERT
         return self.encoder.encode(pref_text, convert_to_numpy=True)
 
-    def ask_question(self, explore: bool = True, verbose: bool = True) -> str:
+    def ask_question(self, explore: bool = True, verbose: bool = True, return_debug_info: bool = False):
         """
         Generate next question using RL + GPT.
 
         Args:
             explore: Whether to use exploration noise in RL
             verbose: Print debug information
+            return_debug_info: If True, return (question, debug_info) tuple with RL prediction details
 
         Returns:
-            Natural language question
+            Natural language question, or (question, debug_info) if return_debug_info=True
         """
         # 1. Encode state
         state = self.encode_conversation_state()
@@ -216,6 +217,17 @@ class CASPERAgent:
 
         # 5. Update history
         self.conversation_history.append(f"Agent: {question}")
+
+        # 6. Return debug info if requested (for logging enrichment)
+        if return_debug_info:
+            debug_info = {
+                'predicted_embedding_sample': predicted_embedding[:5].tolist(),  # First 5 dims for readability
+                'nearest_entities': [
+                    {'entity': entity, 'similarity': float(score)}
+                    for entity, score in nearest_entities
+                ]
+            }
+            return question, debug_info
 
         return question
 
