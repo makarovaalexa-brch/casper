@@ -15,7 +15,10 @@ def create_recommender_training_data(
     movies_path: Path,
     genome_scores_path: Path,
     genome_tags_path: Path,
-    num_users: int
+    num_users: int,
+    include_titles: bool = True,
+    holdout_ratio: float = 0.0,
+    random_users: bool = False
 ) -> Tuple[List[str], List[List[int]], List[List[int]]]:
     """
     Create training data in PRODUCTION format.
@@ -29,6 +32,9 @@ def create_recommender_training_data(
         genome_scores_path: Path to genome-scores.csv
         genome_tags_path: Path to genome-tags.csv
         num_users: Number of top users to sample
+        include_titles: If False, exclude movie titles from state (test H1 hypothesis)
+        holdout_ratio: Fraction of liked movies to hold out from state for validation
+        random_users: If True, randomly sample users instead of taking most active
 
     Returns:
         (preference_texts, liked_movie_ids, disliked_movie_ids) tuple
@@ -53,7 +59,15 @@ def create_recommender_training_data(
     disliked_movie_ids = []  # NEW: Track explicitly disliked movies
 
     user_counts = ratings_df['userId'].value_counts()
-    sampled_users = user_counts.head(num_users).index.tolist()
+    if random_users:
+        import random
+        # Filter to users with at least 20 ratings for meaningful preferences
+        active_users = user_counts[user_counts >= 20].index.tolist()
+        sampled_users = random.sample(active_users, min(num_users, len(active_users)))
+        print(f"  Randomly sampled {len(sampled_users)} users (from {len(active_users)} active users)")
+    else:
+        sampled_users = user_counts.head(num_users).index.tolist()
+        print(f"  Selected top {len(sampled_users)} most active users")
 
     print(f"Extracting preferences from {num_users} users...")
     for user_id in tqdm(sampled_users, desc="Processing users", unit="user"):
@@ -66,8 +80,22 @@ def create_recommender_training_data(
         if len(high_ratings) < 2:
             continue
 
-        # Sample movies
-        liked_sample = high_ratings.sample(min(5, len(high_ratings)), random_state=42)
+        # Sample movies for state encoding
+        # If holdout_ratio > 0, we hold out some liked movies from the state
+        # so they can only be predicted via generalization, not memorization
+        n_liked = len(high_ratings)
+        n_holdout = int(n_liked * holdout_ratio) if holdout_ratio > 0 else 0
+        n_for_state = n_liked - n_holdout
+
+        if n_for_state < 2:
+            continue  # Need at least 2 movies for state
+
+        # Shuffle and split
+        shuffled_high = high_ratings.sample(frac=1.0, random_state=42)
+        state_movies = shuffled_high.head(min(5, n_for_state))
+        # holdout_movies = shuffled_high.tail(n_holdout) if n_holdout > 0 else pd.DataFrame()
+
+        liked_sample = state_movies
         disliked_sample = low_ratings.sample(min(3, len(low_ratings)), random_state=42) if len(low_ratings) > 0 else pd.DataFrame()
 
         liked_concepts = []
@@ -79,8 +107,9 @@ def create_recommender_training_data(
             if len(movie_row) == 0:
                 continue
 
-            title = movie_row.iloc[0]['title']
-            liked_concepts.append(title.lower())
+            if include_titles:
+                title = movie_row.iloc[0]['title']
+                liked_concepts.append(title.lower())
 
             genres_str = movie_row.iloc[0]['genres']
             if pd.notna(genres_str) and genres_str != '(no genres listed)':
@@ -104,8 +133,9 @@ def create_recommender_training_data(
                 if len(movie_row) == 0:
                     continue
 
-                title = movie_row.iloc[0]['title']
-                disliked_concepts.append(title.lower())
+                if include_titles:
+                    title = movie_row.iloc[0]['title']
+                    disliked_concepts.append(title.lower())
 
                 genres_str = movie_row.iloc[0]['genres']
                 if pd.notna(genres_str) and genres_str != '(no genres listed)':

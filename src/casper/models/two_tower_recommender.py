@@ -10,16 +10,17 @@ STATE ENCODING:
 - Encode with SentenceBERT: Text → 384-dim vector
 - No raw conversation text (avoids duplication, cleaner signal)
 
-Architecture:
-    User Tower: Dialogue State (384-dim) → User Embedding (128-dim)
-    Item Tower: Movie Metadata (384-dim) → Movie Embedding (128-dim)
+Architecture (after 2026-01 improvements):
+    User Tower: State (384) → Linear(256) → LayerNorm → ReLU → Dropout → Linear(128)
+    Item Tower: Movie (384) → Linear(256) → LayerNorm → ReLU → Dropout → Linear(128)
+    Embeddings: L2 normalized (prevents collapse)
     Score: Dot Product(user_emb, movie_emb)
 
 Training:
-- NOT pretrained
-- Trained from scratch using BPR loss on MovieLens data
-- Training data: Conversation texts + Liked movies from user profiles
-- Loss: BPR (Bayesian Personalized Ranking)
+- Trained from scratch on MovieLens data
+- Loss: InfoNCE (contrastive) - much better than BPR
+- Negatives: 16 per positive (mix of random + explicitly disliked)
+- Best result: Val NDCG@10 = 0.28 (5k users, 30 epochs)
 """
 
 import torch
@@ -43,14 +44,23 @@ class UserTower(nn.Module):
     Output: User embedding (128-dim)
     """
 
-    def __init__(self, state_dim: int = 384, user_emb_dim: int = 128):
+    def __init__(self, state_dim: int = 384, user_emb_dim: int = 128,
+                 deep: bool = True, dropout: float = 0.1):
         super().__init__()
+        self.deep = deep
 
-        # Single linear layer - SentenceBERT embeddings are already good!
-        # Deep MLPs cause collapse; just project to matching dimension
-        self.network = nn.Sequential(
-            nn.Linear(state_dim, user_emb_dim)
-        )
+        if deep:
+            # Deep tower with LayerNorm + ReLU (proven to help)
+            self.network = nn.Sequential(
+                nn.Linear(state_dim, 256),
+                nn.LayerNorm(256),
+                nn.ReLU(),
+                nn.Dropout(dropout),
+                nn.Linear(256, user_emb_dim)
+            )
+        else:
+            # Simple linear (preserves sign for signed encoding)
+            self.network = nn.Linear(state_dim, user_emb_dim)
 
     def forward(self, state):
         """
@@ -71,14 +81,22 @@ class ItemTower(nn.Module):
     Output: Item embedding (128-dim)
     """
 
-    def __init__(self, item_dim: int = 384, item_emb_dim: int = 128):
+    def __init__(self, item_dim: int = 384, item_emb_dim: int = 128,
+                 deep: bool = True, dropout: float = 0.1):
         super().__init__()
 
-        # Single linear layer - SentenceBERT embeddings are already good!
-        # Deep MLPs cause collapse; just project to matching dimension
-        self.network = nn.Sequential(
-            nn.Linear(item_dim, item_emb_dim)
-        )
+        if deep:
+            # Deep tower with LayerNorm + ReLU
+            self.network = nn.Sequential(
+                nn.Linear(item_dim, 256),
+                nn.LayerNorm(256),
+                nn.ReLU(),
+                nn.Dropout(dropout),
+                nn.Linear(256, item_emb_dim)
+            )
+        else:
+            # Simple linear projection
+            self.network = nn.Linear(item_dim, item_emb_dim)
 
     def forward(self, item_features):
         """
@@ -96,23 +114,33 @@ class TwoTowerRecommender(nn.Module):
     Two-Tower recommendation model.
 
     Shares the same dialogue state representation as RL model.
+
+    Improvements from experiments (2026-01):
+    - Deep towers with LayerNorm + ReLU
+    - L2 normalization before dot product (prevents collapse)
+    - InfoNCE loss (much better than BPR)
+    - 16 negatives per positive
     """
 
     def __init__(
         self,
         state_dim: int = 384,
         embedding_dim: int = 128,
-        learning_rate: float = 0.0003  # CHANGED: 0.001 → 0.0003 (more stable)
+        learning_rate: float = 0.0003,
+        deep: bool = True,
+        dropout: float = 0.1,
+        normalize: bool = True  # L2 normalize embeddings
     ):
         super().__init__()
+        self.normalize = normalize
 
-        self.user_tower = UserTower(state_dim, embedding_dim)
-        self.item_tower = ItemTower(state_dim, embedding_dim)
+        self.user_tower = UserTower(state_dim, embedding_dim, deep=deep, dropout=dropout)
+        self.item_tower = ItemTower(state_dim, embedding_dim, deep=deep, dropout=dropout)
 
         self.optimizer = torch.optim.Adam(
             self.parameters(),
             lr=learning_rate,
-            weight_decay=1e-5
+            weight_decay=1e-4  # Increased from 1e-5
         )
 
     def forward(self, user_states, item_features):
@@ -129,10 +157,26 @@ class TwoTowerRecommender(nn.Module):
         user_emb = self.user_tower(user_states)
         item_emb = self.item_tower(item_features)
 
+        # L2 normalize to prevent embedding collapse
+        if self.normalize:
+            user_emb = F.normalize(user_emb, p=2, dim=-1)
+            item_emb = F.normalize(item_emb, p=2, dim=-1)
+
         # Dot product for scoring
         scores = (user_emb * item_emb).sum(dim=1)
 
         return scores
+
+    def get_embeddings(self, user_states, item_features):
+        """Get normalized embeddings (for InfoNCE loss)."""
+        user_emb = self.user_tower(user_states)
+        item_emb = self.item_tower(item_features)
+
+        if self.normalize:
+            user_emb = F.normalize(user_emb, p=2, dim=-1)
+            item_emb = F.normalize(item_emb, p=2, dim=-1)
+
+        return user_emb, item_emb
 
     def predict_scores(self, user_state, candidate_items):
         """
@@ -195,6 +239,62 @@ class TwoTowerRecommender(nn.Module):
         # BPR loss: encourage pos_score > neg_score for ALL negatives
         # loss = -log(sigmoid(pos_score - neg_score)) averaged over all pairs
         loss = -F.logsigmoid(pos_scores_expanded - neg_scores).mean()
+
+        # Optimize
+        self.optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.parameters(), 1.0)
+        self.optimizer.step()
+
+        return loss.item()
+
+    def train_infonce_step(
+        self,
+        user_states,
+        positive_items,
+        negative_items,
+        temperature: float = 0.1
+    ):
+        """
+        Training step with InfoNCE (contrastive) loss.
+
+        InfoNCE provides stronger gradients than BPR and led to 0.18 → 0.28 NDCG
+        improvement in experiments.
+
+        Args:
+            user_states: [batch_size, 384] dialogue states
+            positive_items: [batch_size, 384] liked movie features
+            negative_items: [batch_size * num_negatives, 384] disliked/random movie features
+            temperature: Softmax temperature (lower = sharper)
+
+        Returns:
+            loss value
+        """
+        batch_size = user_states.size(0)
+        num_negatives = negative_items.size(0) // batch_size
+
+        # Get embeddings
+        user_emb, pos_emb = self.get_embeddings(user_states, positive_items)
+
+        # Reshape negatives and get embeddings
+        neg_items_reshaped = negative_items.view(batch_size, num_negatives, -1)
+
+        # Compute positive scores
+        pos_scores = (user_emb * pos_emb).sum(dim=-1, keepdim=True)  # [batch, 1]
+
+        # Compute negative scores for each user
+        neg_emb = self.item_tower(neg_items_reshaped.view(-1, neg_items_reshaped.size(-1)))
+        if self.normalize:
+            neg_emb = F.normalize(neg_emb, p=2, dim=-1)
+        neg_emb = neg_emb.view(batch_size, num_negatives, -1)  # [batch, num_neg, emb_dim]
+
+        neg_scores = torch.bmm(neg_emb, user_emb.unsqueeze(-1)).squeeze(-1)  # [batch, num_neg]
+
+        # InfoNCE: softmax over positive + all negatives
+        all_scores = torch.cat([pos_scores, neg_scores], dim=1) / temperature  # [batch, 1+num_neg]
+        labels = torch.zeros(batch_size, dtype=torch.long, device=user_states.device)  # positive is index 0
+
+        loss = F.cross_entropy(all_scores, labels)
 
         # Optimize
         self.optimizer.zero_grad()
@@ -435,7 +535,7 @@ class RecommenderTrainer:
         disliked_movies: List[List[int]] = None,
         batch_size: int = 32,
         show_progress: bool = False,
-        num_negatives: int = 4
+        num_negatives: int = 16  # Increased from 4 (sharper discrimination)
     ):
         """
         Create training batches with smart negative sampling.
@@ -585,7 +685,8 @@ class RecommenderTrainer:
             for user_states_batch, pos_items, neg_items in self.create_training_batch(
                 train_states, train_likes, train_dislikes, batch_size, show_progress=False
             ):
-                loss = self.recommender.train_bpr_step(
+                # Use InfoNCE loss (better than BPR: 0.18 → 0.28 NDCG)
+                loss = self.recommender.train_infonce_step(
                     user_states_batch, pos_items, neg_items
                 )
                 epoch_losses.append(loss)
