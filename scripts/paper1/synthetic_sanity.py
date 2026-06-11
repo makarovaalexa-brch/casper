@@ -234,6 +234,28 @@ def run_episode(select_fn, profile, instrument, n_turns):
     return accs, qs, ans
 
 
+def oracle_adaptive_select():
+    def f(asked, revealed, instrument):
+        if INDICATOR not in asked:
+            return INDICATOR
+        # group known from the revealed indicator answer
+        g = None
+        for e, pol in revealed:
+            if e == INDICATOR:
+                g = int(pol)
+        if g is None:
+            g = 0  # indicator was unanswerable (never happens)
+        answered_clusters = {CLUSTER_OF[e] for e, _ in revealed if e != INDICATOR}
+        for c in GROUPS[g]:
+            if c not in answered_clusters:
+                for m in range(N_MOVIES - 1):
+                    if CLUSTER_OF[m] == c and m not in asked:
+                        return m
+        rem = [i for i in range(N_MOVIES) if i not in asked]
+        return rem[0]
+    return f
+
+
 def random_select(rng):
     def f(asked, revealed, instrument):
         rem = [i for i in range(N_MOVIES) if i not in asked]
@@ -377,8 +399,17 @@ def main():
     val_profiles = gen_users(N_VAL_USERS, rng)
     eval_profiles = gen_users(N_EVAL_USERS, rng)
 
-    print("Training dual-head instrument...")
-    instrument = train_instrument(train_profiles, val_profiles)
+    cache = Path('experiments/paper1/synthetic_instrument_v6.pt')
+    if cache.exists():
+        print("Loading cached dual-head instrument...")
+        m = DualHeadSetEncoder(N_MOVIES)
+        m.load_state_dict(torch.load(cache, weights_only=False))
+        m.eval()
+        instrument = DualWrapper(m, N_MOVIES)
+    else:
+        print("Training dual-head instrument...")
+        instrument = train_instrument(train_profiles, val_profiles)
+        torch.save(instrument.model.state_dict(), cache)
 
     # ceiling gate
     oracle_accs = []
@@ -413,6 +444,7 @@ def main():
                                    np.random.default_rng(SEED + 2))
 
     policies = {
+        'oracle_adaptive': oracle_adaptive_select(),
         'random': random_select(np.random.default_rng(SEED + 3)),
         'static_oracle': static_oracle_select(),
         'greedy_infogain': greedy_select(answerability=False),
