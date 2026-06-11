@@ -125,6 +125,15 @@ def load_instruments():
     """Load all available candidate instruments as {name: (wrapper, ckpt)}."""
     instruments = {}
 
+    ckpt_path = CHECKPOINT_DIR / 'instrument_v2_onehot.pt'
+    if ckpt_path.exists():
+        ckpt = torch.load(ckpt_path, weights_only=False)
+        m = ExtrapolationModel(ckpt['n_items'])
+        m.load_state_dict(ckpt['model_state_dict'])
+        m.eval()
+        instruments['instrument_v2_onehot'] = (
+            InstrumentWrapper(m, ckpt['n_items'], ckpt.get('n_movies', 100)), ckpt)
+
     ckpt_path = CHECKPOINT_DIR / 'onehot_paper_config.pt'
     if ckpt_path.exists():
         ckpt = torch.load(ckpt_path, weights_only=False)
