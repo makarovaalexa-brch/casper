@@ -53,14 +53,15 @@ OUT = Path('C:/dev/phd/casper/experiments/paper1/synthetic_sanity.json')
 SEED = 42
 N_CLUSTERS = 8
 MOVIES_PER_CLUSTER = 12
-N_MOVIES = N_CLUSTERS * MOVIES_PER_CLUSTER
+N_MOVIES = N_CLUSTERS * MOVIES_PER_CLUSTER + 1  # +1 group-indicator entity
+INDICATOR = N_MOVIES - 1                        # always answerable
 GROUPS = {0: list(range(4)), 1: list(range(4, 8))}
 RATE_P = 0.7
 NOISE_P = 0.05
 N_TRAIN_USERS = 6000
 N_VAL_USERS = 300
 N_EVAL_USERS = 300
-N_TURNS = 6
+N_TURNS = 5
 
 rng = np.random.default_rng(SEED)
 torch.manual_seed(SEED)
@@ -72,13 +73,14 @@ def make_user(rng):
     g = int(rng.integers(2))
     polarity = {c: float(rng.integers(2)) for c in GROUPS[g]}
     vec = np.full(N_MOVIES, np.nan, dtype=np.float32)
-    for m in range(N_MOVIES):
+    for m in range(N_MOVIES - 1):
         c = CLUSTER_OF[m]
         if c in polarity and rng.random() < RATE_P:
             lab = polarity[c]
             if rng.random() < NOISE_P:
                 lab = 1.0 - lab
             vec[m] = lab
+    vec[INDICATOR] = float(g)  # group indicator: always answerable
     return vec
 
 
@@ -155,6 +157,7 @@ def train_instrument(train_profiles, val_profiles):
 
 def accuracy(preds, profile):
     filt = ~np.isnan(profile)
+    filt[INDICATOR] = False
     return float(np.mean((preds[filt] > 0.5) == profile[filt]))
 
 
