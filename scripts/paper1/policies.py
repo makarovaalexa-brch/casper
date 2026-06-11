@@ -355,3 +355,166 @@ class BotPlayV2Policy(BasePolicy):
         mask = self.torch.full((self.n_items,), float('-inf'))
         mask[rem] = 0.0
         return int(self.torch.argmax(logits + mask).item())
+
+
+# ---------------------------------------------------------------------------
+# Lineage + Bayesian baselines (Paper 1 / B2, B5)
+# ---------------------------------------------------------------------------
+
+class SCPREntropyPolicy(BasePolicy):
+    """SCPR-style weighted-entropy attribute chooser (Lei et al., KDD 2020),
+    adapted to the testbed: ask the unasked entity whose own predicted
+    rating is most uncertain under the instrument's current beliefs,
+    weighted by population answerability. Unlike greedy info-gain, no
+    lookahead -- this is the lineage's myopic heuristic."""
+    name = 'scpr_entropy'
+
+    def __init__(self, items, p_rated):
+        super().__init__(items)
+        self.p_rated = np.asarray(p_rated)
+
+    def select(self, asked, history, instrument, revealed):
+        rem = self._remaining(asked)
+        if not rem:
+            return None
+        p = instrument.predict_full(revealed)
+        p = np.clip(p, 1e-7, 1 - 1e-7)
+        ent = -(p * np.log(p) + (1 - p) * np.log(1 - p))
+        scores = self.p_rated * ent
+        scores_masked = np.full(self.n_items, -np.inf)
+        scores_masked[rem] = scores[rem]
+        return int(np.argmax(scores_masked))
+
+
+class ThompsonPolicy(BasePolicy):
+    """PEBOL-style Bayesian elicitation (Austin et al., 2024): per-entity
+    Beta beliefs over P(liked), initialised from the instrument prior,
+    updated only by the user's answers; Thompson sampling picks the next
+    query. A pure decision-theoretic baseline with no instrument lookahead."""
+    name = 'thompson'
+
+    PRIOR_STRENGTH = 4.0
+
+    def __init__(self, items):
+        super().__init__(items)
+
+    def reset(self, rng):
+        self.rng = rng
+        self.alpha = None
+        self.beta = None
+
+    def select(self, asked, history, instrument, revealed):
+        rem = self._remaining(asked)
+        if not rem:
+            return None
+        if self.alpha is None:
+            p0 = instrument.predict_full([])
+            self.alpha = 1.0 + self.PRIOR_STRENGTH * p0
+            self.beta = 1.0 + self.PRIOR_STRENGTH * (1.0 - p0)
+        # update from the latest answer
+        if history:
+            q, a = history[-1]
+            if a == 'liked':
+                self.alpha[q] += 2.0
+            elif a == 'disliked':
+                self.beta[q] += 2.0
+        theta = self.rng.beta(self.alpha, self.beta)
+        theta_masked = np.full(self.n_items, -np.inf)
+        theta_masked[rem] = theta[rem]
+        return int(np.argmax(theta_masked))
+
+
+class DQNPolicy(BasePolicy):
+    """UNICORN-style value-based policy (Deng et al., SIGIR 2021 family):
+    dueling DQN over the entity slate, trained by train_dqn_policy.py."""
+    name = 'dqn'
+
+    def __init__(self, items, checkpoint_path):
+        super().__init__(items)
+        import torch
+        import torch.nn as nn
+        self.torch = torch
+        ckpt = torch.load(checkpoint_path, weights_only=False)
+        n = self.n_items
+        state_dim = n * 3 + n
+
+        class Dueling(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.shared = nn.Sequential(nn.Linear(state_dim, 512), nn.ReLU(),
+                                            nn.Linear(512, 256), nn.ReLU())
+                self.value = nn.Linear(256, 1)
+                self.adv = nn.Linear(256, n)
+
+            def forward(self, x):
+                h = self.shared(x)
+                a = self.adv(h)
+                return self.value(h) + a - a.mean(dim=-1, keepdim=True)
+
+        self.net = Dueling()
+        self.net.load_state_dict(ckpt['q_state_dict'])
+        self.net.eval()
+
+    def _state(self, revealed, instrument):
+        s = np.zeros((self.n_items, 3), dtype=np.float32)
+        s[:, 2] = 1
+        for idx, pol in revealed:
+            s[idx, 2] = 0
+            s[idx, 1 if pol >= 0.5 else 0] = 1
+        beliefs = instrument.predict_full(revealed).astype(np.float32)
+        return np.concatenate([s.flatten(), beliefs])
+
+    def select(self, asked, history, instrument, revealed):
+        rem = self._remaining(asked)
+        if not rem:
+            return None
+        x = self.torch.from_numpy(self._state(revealed, instrument)).unsqueeze(0)
+        with self.torch.no_grad():
+            q = self.net(x)[0]
+        mask = self.torch.full((self.n_items,), float('-inf'))
+        mask[rem] = 0.0
+        return int(self.torch.argmax(q + mask).item())
+
+
+class PPOPolicy(BasePolicy):
+    """PPO policy trained by scripts/paper2/train_discrete_ppo.py."""
+    name = 'ppo'
+
+    def __init__(self, items, checkpoint_path):
+        super().__init__(items)
+        import torch
+        import torch.nn as nn
+        self.torch = torch
+        ckpt = torch.load(checkpoint_path, weights_only=False)
+        n = self.n_items
+        state_dim = n * 3 + n
+
+        class AC(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.shared = nn.Sequential(nn.Linear(state_dim, 512), nn.ReLU(),
+                                            nn.Linear(512, 256), nn.ReLU())
+                self.pi = nn.Linear(256, n)
+                self.v = nn.Linear(256, 1)
+
+        self.net = AC()
+        self.net.load_state_dict(ckpt['net_state_dict'])
+        self.net.eval()
+
+    def select(self, asked, history, instrument, revealed):
+        rem = self._remaining(asked)
+        if not rem:
+            return None
+        s = np.zeros((self.n_items, 3), dtype=np.float32)
+        s[:, 2] = 1
+        for idx, pol in revealed:
+            s[idx, 2] = 0
+            s[idx, 1 if pol >= 0.5 else 0] = 1
+        beliefs = instrument.predict_full(revealed).astype(np.float32)
+        x = self.torch.from_numpy(
+            np.concatenate([s.flatten(), beliefs])).unsqueeze(0)
+        with self.torch.no_grad():
+            logits = self.net.pi(self.net.shared(x))[0]
+        mask = self.torch.full((self.n_items,), float('-inf'))
+        mask[rem] = 0.0
+        return int(self.torch.argmax(logits + mask).item())

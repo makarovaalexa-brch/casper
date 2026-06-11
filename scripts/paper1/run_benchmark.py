@@ -75,7 +75,15 @@ def main():
         'random': lambda: P.RandomPolicy(items),
         'popularity': lambda: P.PopularityPolicy(items, p_rated),
         'greedy_infogain': lambda: P.GreedyInfoGainPolicy(items, p_rated),
+        'scpr_entropy': lambda: P.SCPREntropyPolicy(items, p_rated),
+        'thompson': lambda: P.ThompsonPolicy(items),
     }
+    dqn_path = OUT_DIR / 'dqn_policy.pt'
+    if dqn_path.exists():
+        all_policies['dqn'] = lambda: P.DQNPolicy(items, dqn_path)
+    ppo_path = Path('C:/dev/phd/casper/experiments/paper2/discrete_ppo.pt')
+    if ppo_path.exists():
+        all_policies['ppo'] = lambda: P.PPOPolicy(items, ppo_path)
     botplay_path = OUT_DIR / 'botplay_policy.pt'
     if botplay_path.exists():
         all_policies['botplay_rl'] = lambda: P.BotPlayPolicy(items, botplay_path)
