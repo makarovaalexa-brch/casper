@@ -224,3 +224,17 @@ def load_instruments():
             InstrumentWrapper(m, ckpt['n_items'], ckpt.get('n_movies', 100), emb), ckpt)
 
     return instruments
+
+
+def load_instrument_by_name(name):
+    """Load any instrument generation by checkpoint stem; returns (wrapper, ckpt)."""
+    path = CHECKPOINT_DIR / f'{name}.pt'
+    if not path.exists():
+        raise FileNotFoundError(f"Instrument checkpoint missing: {path}")
+    ckpt = torch.load(path, weights_only=False)
+    if ckpt.get('arch') == 'set_encoder':
+        return load_set_instrument(ckpt), ckpt
+    m = ExtrapolationModel(ckpt['n_items'])
+    m.load_state_dict(ckpt['model_state_dict'])
+    m.eval()
+    return InstrumentWrapper(m, ckpt['n_items'], ckpt.get('n_movies', 100)), ckpt

@@ -31,6 +31,10 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
+import sys as _sys
+_sys.path.insert(0, 'scripts/paper1')
+from test_instrument_lib import load_instruments
+
 DATA_DIR = Path('C:/dev/phd/casper/data/movielens')
 CHECKPOINT_DIR = DATA_DIR / '.cache' / 'checkpoints'
 OUT_DIR = Path('C:/dev/phd/casper/experiments/paper1')
@@ -130,7 +134,7 @@ class InstrumentWrapper:
         return out[:, -1, :self.n_movies].sigmoid().numpy().flatten()
 
 
-def load_instruments():
+def _local_load_instruments_unused():
     instruments = {}
 
     ckpt_path = CHECKPOINT_DIR / 'onehot_paper_config.pt'

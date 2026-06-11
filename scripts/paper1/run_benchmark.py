@@ -34,15 +34,9 @@ SEED = 42
 N_TURNS = 15
 
 
-def load_instrument(name='instrument_v2_onehot'):
-    path = CHECKPOINT_DIR / f'{name}.pt'
-    if not path.exists():
-        raise SystemExit(f"Instrument checkpoint missing: {path}")
-    ckpt = torch.load(path, weights_only=False)
-    m = ExtrapolationModel(ckpt['n_items'])
-    m.load_state_dict(ckpt['model_state_dict'])
-    m.eval()
-    return InstrumentWrapper(m, ckpt['n_items'], ckpt.get('n_movies', 100)), ckpt
+def load_instrument(name='instrument_v5_set'):
+    from test_instrument_lib import load_instrument_by_name
+    return load_instrument_by_name(name)
 
 
 def main():
@@ -53,7 +47,7 @@ def main():
     ap.add_argument('--llm-model', default='gpt-4o-mini')
     ap.add_argument('--policies', default=None,
                     help='comma-separated subset of policy names to run')
-    ap.add_argument('--instrument', default='instrument_v3_onehot')
+    ap.add_argument('--instrument', default='instrument_v5_set')
     args = ap.parse_args()
 
     instrument, ckpt = load_instrument(args.instrument)
