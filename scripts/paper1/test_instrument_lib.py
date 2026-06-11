@@ -232,9 +232,48 @@ def load_instrument_by_name(name):
     if not path.exists():
         raise FileNotFoundError(f"Instrument checkpoint missing: {path}")
     ckpt = torch.load(path, weights_only=False)
+    if ckpt.get('arch') == 'dual_set_encoder':
+        return load_dual_set_instrument(ckpt), ckpt
     if ckpt.get('arch') == 'set_encoder':
         return load_set_instrument(ckpt), ckpt
     m = ExtrapolationModel(ckpt['n_items'])
     m.load_state_dict(ckpt['model_state_dict'])
     m.eval()
     return InstrumentWrapper(m, ckpt['n_items'], ckpt.get('n_movies', 100)), ckpt
+
+
+class DualSetInstrumentWrapper(SetInstrumentWrapper):
+    """Dual-head set encoder: predict() returns liked beliefs (movies),
+    predict_rated() returns answerability beliefs (full slate)."""
+
+    def _forward_dual(self, revealed_list):
+        b = len(revealed_list)
+        L = max(1, max((len(r) for r in revealed_list), default=1))
+        idx = torch.zeros(b, L, dtype=torch.long)
+        pol = torch.zeros(b, L, dtype=torch.long)
+        pad = torch.ones(b, L, dtype=torch.bool)
+        for i, revealed in enumerate(revealed_list):
+            for j, (e, p) in enumerate(revealed[:self.max_reveal]):
+                idx[i, j] = int(e)
+                pol[i, j] = 1 if p >= 0.5 else 0
+                pad[i, j] = False
+        with torch.no_grad():
+            lk, rt = self.model(idx, pol, pad)
+        return torch.sigmoid(lk).numpy(), torch.sigmoid(rt).numpy()
+
+    def _forward(self, revealed_list):
+        return self._forward_dual(revealed_list)[0]
+
+    def predict_rated(self, revealed):
+        return self._forward_dual([revealed])[1][0]
+
+
+def load_dual_set_instrument(ckpt):
+    from synthetic_sanity import DualHeadSetEncoder
+    m = DualHeadSetEncoder(ckpt['n_items'], ckpt.get('d_model', 128),
+                           ckpt.get('n_heads', 4), ckpt.get('n_layers', 2))
+    m.load_state_dict(ckpt['model_state_dict'])
+    m.eval()
+    return DualSetInstrumentWrapper(m, ckpt['n_items'],
+                                    ckpt.get('n_movies', ckpt['n_items']),
+                                    ckpt.get('config', {}).get('max_reveal', 60))
