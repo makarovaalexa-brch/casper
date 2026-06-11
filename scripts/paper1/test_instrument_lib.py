@@ -121,9 +121,59 @@ class InstrumentWrapper:
         return out if full else out[:, :self.n_movies]
 
 
+class SetInstrumentWrapper:
+    """Same interface as InstrumentWrapper, for the v5 set-encoder model."""
+
+    def __init__(self, model, n_items, n_movies, max_reveal=60):
+        self.model = model
+        self.n_items = n_items
+        self.n_movies = n_movies
+        self.max_reveal = max_reveal
+
+    def _forward(self, revealed_list):
+        b = len(revealed_list)
+        L = max(1, max((len(r) for r in revealed_list), default=1))
+        idx = torch.zeros(b, L, dtype=torch.long)
+        pol = torch.zeros(b, L, dtype=torch.long)
+        pad = torch.ones(b, L, dtype=torch.bool)
+        for i, revealed in enumerate(revealed_list):
+            for j, (e, p) in enumerate(revealed[:self.max_reveal]):
+                idx[i, j] = int(e)
+                pol[i, j] = 1 if p >= 0.5 else 0
+                pad[i, j] = False
+        with torch.no_grad():
+            return torch.sigmoid(self.model(idx, pol, pad)).numpy()
+
+    def predict(self, revealed):
+        return self._forward([revealed])[0, :self.n_movies]
+
+    def predict_full(self, revealed):
+        return self._forward([revealed])[0]
+
+    def predict_batch(self, revealed_list, full=False):
+        out = self._forward(revealed_list)
+        return out if full else out[:, :self.n_movies]
+
+
+def load_set_instrument(ckpt):
+    """Construct the v5 set-encoder wrapper from a checkpoint dict."""
+    from train_instrument_v5 import SetEncoderInstrument
+    m = SetEncoderInstrument(ckpt['n_items'], ckpt.get('d_model', 128),
+                             ckpt.get('n_heads', 4), ckpt.get('n_layers', 2))
+    m.load_state_dict(ckpt['model_state_dict'])
+    m.eval()
+    return SetInstrumentWrapper(m, ckpt['n_items'], ckpt.get('n_movies', 100),
+                                ckpt.get('config', {}).get('max_reveal', 60))
+
+
 def load_instruments():
     """Load all available candidate instruments as {name: (wrapper, ckpt)}."""
     instruments = {}
+
+    ckpt_path = CHECKPOINT_DIR / 'instrument_v5_set.pt'
+    if ckpt_path.exists():
+        ckpt = torch.load(ckpt_path, weights_only=False)
+        instruments['instrument_v5_set'] = (load_set_instrument(ckpt), ckpt)
 
     ckpt_path = CHECKPOINT_DIR / 'instrument_v4_onehot.pt'
     if ckpt_path.exists():
