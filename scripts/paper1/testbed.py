@@ -160,12 +160,16 @@ class EpisodeLog:
     answers: list = field(default_factory=list)     # 'liked'/'disliked'/'unknown'
     accuracy: list = field(default_factory=list)    # per turn, incl. turn 0 prior
     bce: list = field(default_factory=list)
+    asked_scores: list = field(default_factory=list)  # instrument's pre-question
+                                                      # score for the asked entity
+                                                      # (for redundancy analysis)
 
     def to_dict(self):
         return {'uid': int(self.uid), 'questions': [int(q) for q in self.questions],
                 'answers': self.answers,
                 'accuracy': [float(a) for a in self.accuracy],
-                'bce': [float(b) for b in self.bce]}
+                'bce': [float(b) for b in self.bce],
+                'asked_scores': [float(s) for s in self.asked_scores]}
 
 
 def _movie_metrics(preds, profile, n_movies):
@@ -197,6 +201,8 @@ def run_episode(policy, user, instrument, n_turns, rng):
                           instrument=instrument, revealed=list(revealed))
         if q is None or q in asked:
             break
+        pre_full = instrument.predict_full(revealed)
+        log.asked_scores.append(float(pre_full[q]))
         a = user.answer(q)
         log.questions.append(q)
         log.answers.append(a)
