@@ -58,6 +58,7 @@ np.random.seed(SEED)
 
 
 def bce_loss(preds, profile, n_movies):
+    preds = preds[:n_movies]
     gt = profile[:n_movies]
     filt = ~np.isnan(gt)
     p = np.clip(preds[filt], 1e-7, 1 - 1e-7)
@@ -66,6 +67,7 @@ def bce_loss(preds, profile, n_movies):
 
 
 def accuracy(preds, profile, n_movies):
+    preds = preds[:n_movies]
     gt = profile[:n_movies]
     filt = ~np.isnan(gt)
     return float(np.mean((preds[filt] > 0.5) == gt[filt]))
