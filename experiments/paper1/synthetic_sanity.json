@@ -93,5 +93,31 @@
     "noise_p": 0.05,
     "n_turns": 5,
     "n_eval_users": 300
+  },
+  "reinforce_v3": {
+    "auac": 0.5910121184038042,
+    "auac_se": 0.008336433009789056,
+    "final_acc": 0.6622107818363621,
+    "branches_on_first_answer": false,
+    "t2_by_answer": {
+      "unknown": 39,
+      "disliked": 39,
+      "liked": 39
+    },
+    "unique_questions": 5,
+    "asked_indicator_rate": 0.0
+  },
+  "ppo": {
+    "auac": 0.6281783757278899,
+    "auac_se": 0.006547391625914888,
+    "final_acc": 0.7414760903343408,
+    "branches_on_first_answer": true,
+    "t2_by_answer": {
+      "unknown": 17,
+      "liked": 65,
+      "disliked": 65
+    },
+    "unique_questions": 10,
+    "asked_indicator_rate": 0.0
   }
 }
