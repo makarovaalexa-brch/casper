@@ -1,0 +1,64 @@
+{
+  "random": {
+    "auac": 0.5826324792970993,
+    "auac_se": 0.00680952838712389,
+    "final_acc_mean": null,
+    "t1_concentration": 0.03333333333333333,
+    "unique_questions": 97,
+    "t2_by_answer": {
+      "unknown": 45,
+      "liked": 85,
+      "disliked": 2
+    },
+    "branches_on_first_answer": true
+  },
+  "static_oracle": {
+    "auac": 0.5900894763440989,
+    "auac_se": 0.00650084827487143,
+    "final_acc_mean": null,
+    "t1_concentration": 1.0,
+    "unique_questions": 5,
+    "t2_by_answer": {
+      "unknown": 48,
+      "liked": 48,
+      "disliked": 48
+    },
+    "branches_on_first_answer": false
+  },
+  "greedy_infogain": {
+    "auac": 0.5536453190055545,
+    "auac_se": 0.0067052798289077105,
+    "final_acc_mean": null,
+    "t1_concentration": 1.0,
+    "unique_questions": 10,
+    "t2_by_answer": {
+      "unknown": 94,
+      "liked": 43,
+      "disliked": 40
+    },
+    "branches_on_first_answer": true
+  },
+  "reinforce_v2": {
+    "auac": 0.5770830417345485,
+    "auac_se": 0.006961449329116884,
+    "final_acc_mean": null,
+    "t1_concentration": 1.0,
+    "unique_questions": 5,
+    "t2_by_answer": {
+      "unknown": 75,
+      "liked": 75,
+      "disliked": 75
+    },
+    "branches_on_first_answer": false
+  },
+  "_oracle_ceiling": 0.904293262066985,
+  "_world": {
+    "n_clusters": 8,
+    "movies_per_cluster": 12,
+    "groups": 2,
+    "rate_p": 0.7,
+    "noise_p": 0.05,
+    "n_turns": 5,
+    "n_eval_users": 300
+  }
+}
