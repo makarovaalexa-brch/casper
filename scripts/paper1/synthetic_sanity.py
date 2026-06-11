@@ -93,7 +93,7 @@ def gen_users(n, rng):
 # ---------------------------------------------------------------------------
 
 def train_instrument(train_profiles, val_profiles):
-    model = SetEncoderInstrument(N_MOVIES, d_model=64, n_heads=4, n_layers=2)
+    model = SetEncoderInstrument(N_MOVIES, d_model=128, n_heads=4, n_layers=2)
     opt = torch.optim.Adam(model.parameters(), lr=1e-3)
 
     def batchify(profiles, bs, rng):
@@ -128,7 +128,7 @@ def train_instrument(train_profiles, val_profiles):
 
     best, best_state = float('inf'), None
     lrng = np.random.default_rng(SEED + 1)
-    for epoch in range(25):
+    for epoch in range(60):
         model.train()
         for bi, bp, pad, tgt in batchify(train_profiles, 128, lrng):
             opt.zero_grad()
@@ -322,6 +322,23 @@ def main():
     print("Training instrument...")
     instrument = train_instrument(train_profiles, val_profiles)
 
+    # Instrument ceiling gate: with oracle reveals (indicator + one movie
+    # per own-group cluster) the instrument must approach the noise ceiling,
+    # else no policy comparison on this world is meaningful.
+    oracle_accs = []
+    for profile in eval_profiles[:100]:
+        g = int(profile[INDICATOR])
+        reveals = [(INDICATOR, float(g))]
+        for c in GROUPS[g]:
+            ms = [m for m in range(N_MOVIES - 1)
+                  if CLUSTER_OF[m] == c and not np.isnan(profile[m])]
+            if ms:
+                reveals.append((ms[0], float(profile[ms[0]])))
+        oracle_accs.append(accuracy(instrument.predict(reveals), profile))
+    oracle_acc = float(np.mean(oracle_accs))
+    print(f"  ORACLE-REVEAL ceiling check: {oracle_acc:.4f} "
+          f"({'OK' if oracle_acc >= 0.85 else 'INSTRUMENT TOO WEAK'})")
+
     print("Training REINFORCE-v2 policy...")
     rl_select = train_reinforce_v2(instrument, train_profiles,
                                    np.random.default_rng(SEED + 2))
@@ -362,6 +379,7 @@ def main():
               f"(se {results[name]['auac_se']:.4f}) "
               f"branches={branches} unique_qs={results[name]['unique_questions']}")
 
+    results['_oracle_ceiling'] = oracle_acc
     results['_world'] = {
         'n_clusters': N_CLUSTERS, 'movies_per_cluster': MOVIES_PER_CLUSTER,
         'groups': 2, 'rate_p': RATE_P, 'noise_p': NOISE_P,
