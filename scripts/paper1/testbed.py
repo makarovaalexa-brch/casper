@@ -244,6 +244,43 @@ def evaluate_policy(policy, users, profiles, instrument, n_turns=15, seed=SEED,
     return logs
 
 
+def evaluate_policy_concurrent(policy_factory, users, profiles, instrument,
+                               n_turns=15, seed=SEED, max_workers=6,
+                               progress_every=25):
+    """Thread-pool evaluation for API-bound (LLM) policies.
+
+    Each worker holds its own policy instance; per-episode RNG is seeded
+    from (seed, uid) so results are reproducible regardless of scheduling.
+    """
+    import threading
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    local = threading.local()
+
+    def get_policy():
+        if not hasattr(local, 'policy'):
+            local.policy = policy_factory()
+        return local.policy
+
+    def one(uid):
+        user = SimulatedUser(uid, profiles[uid])
+        rng = np.random.default_rng((seed * 1_000_003 + int(uid)) % (2 ** 31))
+        return run_episode(get_policy(), user, instrument, n_turns, rng)
+
+    todo = [u for u in users if u in profiles]
+    logs, done = [], 0
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(one, u): u for u in todo}
+        for f in as_completed(futures):
+            logs.append(f.result())
+            done += 1
+            if progress_every and done % progress_every == 0:
+                print(f"  {done}/{len(todo)} users ({time.time() - t0:.0f}s)",
+                      flush=True)
+    return logs
+
+
 def summarize(logs, n_turns):
     """Mean per-turn curves with bootstrap CIs, AUAC, hit rate."""
     curves = []

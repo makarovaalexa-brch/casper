@@ -188,34 +188,24 @@ class LLMPolicy(BasePolicy):
                     f"Menu of entities you may ask about next:\n{self._menu(asked)}\n\n"
                     f"Choose the single most informative next question.")
         self.calls += 1
-        try:
-            if self.provider == 'anthropic':
-                resp = self.client.messages.create(
-                    model=self.model,
-                    system=self.STYLES[self.style],
-                    messages=[{'role': 'user', 'content': user_msg}],
-                    max_tokens=150,
-                )
-                text = resp.content[0].text.strip()
-            elif self.gpt5_family:
-                resp = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[{'role': 'system', 'content': self.STYLES[self.style]},
-                              {'role': 'user', 'content': user_msg}],
-                    max_completion_tokens=400,
-                )
-                text = resp.choices[0].message.content.strip()
-            else:
-                resp = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[{'role': 'system', 'content': self.STYLES[self.style]},
-                              {'role': 'user', 'content': user_msg}],
-                    max_tokens=150,
-                    temperature=0.0,
-                )
-                text = resp.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"  [{self.name}] API error: {e}")
+        text = None
+        for attempt in range(5):
+            try:
+                text = self._call(user_msg)
+                break
+            except Exception as e:
+                msg = str(e).lower()
+                transient = any(k in msg for k in
+                                ('rate limit', 'rate_limit', '429', 'overloaded',
+                                 'timeout', 'timed out', '503', '502',
+                                 'connection', 'server error', '500'))
+                if transient and attempt < 4:
+                    import time as _time
+                    _time.sleep(2 ** attempt)
+                    continue
+                print(f"  [{self.name}] API error (attempt {attempt + 1}): {e}")
+                break
+        if text is None:
             self.parse_failures += 1
             return int(self.rng.choice(rem))
 
@@ -226,12 +216,37 @@ class LLMPolicy(BasePolicy):
 
         if cand in self._name_to_idx and self._name_to_idx[cand] not in asked:
             return self._name_to_idx[cand]
-        # lenient: unique substring match among remaining
         matches = [i for i in rem if cand and cand in self.items[i][2].lower()]
         if len(matches) == 1:
             return matches[0]
         self.parse_failures += 1
         return int(self.rng.choice(rem))
+
+    def _call(self, user_msg):
+        if self.provider == 'anthropic':
+            resp = self.client.messages.create(
+                model=self.model,
+                system=self.STYLES[self.style],
+                messages=[{'role': 'user', 'content': user_msg}],
+                max_tokens=150,
+            )
+            return resp.content[0].text.strip()
+        if self.gpt5_family:
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{'role': 'system', 'content': self.STYLES[self.style]},
+                          {'role': 'user', 'content': user_msg}],
+                max_completion_tokens=400,
+            )
+            return resp.choices[0].message.content.strip()
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            messages=[{'role': 'system', 'content': self.STYLES[self.style]},
+                      {'role': 'user', 'content': user_msg}],
+            max_tokens=150,
+            temperature=0.0,
+        )
+        return resp.choices[0].message.content.strip()
 
 
 # ---------------------------------------------------------------------------

@@ -26,7 +26,8 @@ import torch
 
 from test_instrument_lib import (CHECKPOINT_DIR, ExtrapolationModel,
                                  InstrumentWrapper)
-from testbed import build_profiles, get_user_splits, evaluate_policy, summarize
+from testbed import (build_profiles, get_user_splits, evaluate_policy,
+                     evaluate_policy_concurrent, summarize)
 import policies as P
 
 OUT_DIR = Path('C:/dev/phd/casper/experiments/paper1')
@@ -94,10 +95,16 @@ def main():
 
     for pname, factory in all_policies.items():
         print(f"\n=== {pname} ({args.n_users} users x {args.n_turns} turns) ===")
-        policy = factory()
         t0 = time.time()
-        logs = evaluate_policy(policy, list(eval_users), eval_profiles, instrument,
-                               n_turns=args.n_turns, seed=SEED)
+        if pname.startswith('llm'):
+            logs = evaluate_policy_concurrent(factory, list(eval_users),
+                                              eval_profiles, instrument,
+                                              n_turns=args.n_turns, seed=SEED)
+            policy = factory()  # for metadata only
+        else:
+            policy = factory()
+            logs = evaluate_policy(policy, list(eval_users), eval_profiles,
+                                   instrument, n_turns=args.n_turns, seed=SEED)
         summary = summarize(logs, args.n_turns)
         summary['wall_seconds'] = round(time.time() - t0, 1)
         if hasattr(policy, 'parse_failures'):
