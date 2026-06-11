@@ -107,10 +107,17 @@ def build_profiles(items, user_ids=None, max_users=None,
                 attr_cnts[ai] += 1
         user_mean = rating_sum / max(rating_cnt, 1)
         has = attr_cnts >= attr_min_support
-        rel = np.full(n_items, np.nan)
-        rel[has] = attr_sums[has] / attr_cnts[has] - user_mean
-        vec[rel >= taste_margin] = 1.0
-        vec[rel <= -taste_margin] = 0.0
+        if taste_margin is None:
+            # absolute labels (>=4) with support threshold
+            means = np.full(n_items, np.nan)
+            means[has] = attr_sums[has] / attr_cnts[has]
+            vec[means >= 4.0] = 1.0
+            vec[(means < 4.0) & has] = 0.0
+        else:
+            rel = np.full(n_items, np.nan)
+            rel[has] = attr_sums[has] / attr_cnts[has] - user_mean
+            vec[rel >= taste_margin] = 1.0
+            vec[rel <= -taste_margin] = 0.0
         profiles[uid] = vec
     return profiles
 
