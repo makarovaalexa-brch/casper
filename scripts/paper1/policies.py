@@ -316,3 +316,42 @@ def compute_p_rated(profiles, user_ids):
     """Fraction of users with a non-nan label per entity."""
     vecs = np.stack([profiles[u] for u in user_ids if u in profiles])
     return (~np.isnan(vecs)).mean(axis=0)
+
+
+class BotPlayV2Policy(BasePolicy):
+    """Bot-play v2 (return-to-go, entropy-regularised, belief-state input)."""
+    name = 'botplay_rl_v2'
+
+    def __init__(self, items, checkpoint_path):
+        super().__init__(items)
+        import torch
+        import torch.nn as nn
+        self.torch = torch
+        ckpt = torch.load(checkpoint_path, weights_only=False)
+        n = self.n_items
+        self.net = nn.Sequential(
+            nn.Linear(n * 3 + n, 512), nn.ReLU(),
+            nn.Linear(512, 256), nn.ReLU(),
+            nn.Linear(256, n),
+        )
+        sd = {k.replace('net.', '', 1): v
+              for k, v in ckpt['policy_state_dict'].items()}
+        self.net.load_state_dict(sd)
+        self.net.eval()
+
+    def select(self, asked, history, instrument, revealed):
+        rem = self._remaining(asked)
+        if not rem:
+            return None
+        state = np.zeros((self.n_items, 3), dtype=np.float32)
+        state[:, 2] = 1
+        for idx, pol in revealed:
+            state[idx, 2] = 0
+            state[idx, 1 if pol >= 0.5 else 0] = 1
+        beliefs = instrument.predict_full(revealed).astype(np.float32)
+        x = np.concatenate([state.flatten(), beliefs])
+        with self.torch.no_grad():
+            logits = self.net(self.torch.from_numpy(x).unsqueeze(0))[0]
+        mask = self.torch.full((self.n_items,), float('-inf'))
+        mask[rem] = 0.0
+        return int(self.torch.argmax(logits + mask).item())

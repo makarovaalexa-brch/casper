@@ -67,7 +67,8 @@ def main():
     rng = np.random.default_rng(SEED)
     train_users = rng.choice(train_users, size=N_TRAIN_USERS, replace=False)
     print("Building train profiles...")
-    profiles = build_profiles(items, user_ids=train_users)
+    profiles = build_profiles(items, user_ids=train_users,
+                              attr_min_support=3, taste_margin=None)
     uids = [u for u in train_users if u in profiles]
     print(f"  {len(uids)} profiles")
 

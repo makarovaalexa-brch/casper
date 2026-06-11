@@ -63,9 +63,11 @@ def main():
 
     print("Building profiles (testbed users + train sample for stats)...")
     t0 = time.time()
-    eval_profiles = build_profiles(items, user_ids=eval_users)
+    eval_profiles = build_profiles(items, user_ids=eval_users,
+                                   attr_min_support=3, taste_margin=None)
     stat_users = rng.choice(train_users, size=4000, replace=False)
-    stat_profiles = build_profiles(items, user_ids=stat_users)
+    stat_profiles = build_profiles(items, user_ids=stat_users,
+                                   attr_min_support=3, taste_margin=None)
     p_rated = P.compute_p_rated(stat_profiles, stat_users)
     print(f"  {time.time() - t0:.0f}s | eval profiles: {len(eval_profiles)}")
 
@@ -77,6 +79,10 @@ def main():
     botplay_path = OUT_DIR / 'botplay_policy.pt'
     if botplay_path.exists():
         all_policies['botplay_rl'] = lambda: P.BotPlayPolicy(items, botplay_path)
+    botplay_v2_path = OUT_DIR / 'botplay_policy_v2.pt'
+    if botplay_v2_path.exists():
+        all_policies['botplay_rl_v2'] = (
+            lambda: P.BotPlayV2Policy(items, botplay_v2_path))
     if args.llm:
         if not args.confirm_llm_cost:
             raise SystemExit('LLM runs are ON HOLD: pass --confirm-llm-cost '
