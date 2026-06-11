@@ -46,7 +46,7 @@ np.random.seed(SEED)
 
 
 def load_instrument():
-    path = CHECKPOINT_DIR / 'instrument_v2_onehot.pt'
+    path = CHECKPOINT_DIR / 'instrument_v3_onehot.pt'
     if not path.exists():
         path = CHECKPOINT_DIR / 'onehot_paper_config.pt'
         print(f"WARNING: instrument v2 not found, falling back to {path.name}")
@@ -151,7 +151,7 @@ def main():
         'policy_state_dict': policy.state_dict(),
         'n_items': n_items,
         'episodes': N_EPISODES,
-        'instrument': 'instrument_v2_onehot',
+        'instrument': 'instrument_v3_onehot',
         'mean_reward_last500': float(np.mean(ep_rewards[-500:])),
     }, OUT_PATH)
     print(f"\nSaved {OUT_PATH}")

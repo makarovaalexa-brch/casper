@@ -53,7 +53,7 @@ def main():
     ap.add_argument('--llm-model', default='gpt-4o-mini')
     ap.add_argument('--policies', default=None,
                     help='comma-separated subset of policy names to run')
-    ap.add_argument('--instrument', default='instrument_v2_onehot')
+    ap.add_argument('--instrument', default='instrument_v3_onehot')
     args = ap.parse_args()
 
     instrument, ckpt = load_instrument(args.instrument)

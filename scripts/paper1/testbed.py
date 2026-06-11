@@ -42,11 +42,19 @@ INSTRUMENT_VAL_CAP = 1500  # first N of the held-out split were used for early s
 # Profiles (identical derivation to train_instrument_v2.py)
 # ---------------------------------------------------------------------------
 
-def build_profiles(items, user_ids=None, max_users=None):
+def build_profiles(items, user_ids=None, max_users=None,
+                   attr_min_support=3, taste_margin=0.25):
     """Per-user ground-truth vector over the slate: 1.0 liked / 0.0 disliked / nan unrated.
 
-    Movie label: rating >= 4. Attribute label: mean rating of matching rated
-    movies >= 4 (same derivation as instrument training).
+    Movie label: rating >= 4 (absolute, as in prior work).
+    Attribute label: TASTE-RELATIVE. In a slate of popular classics, an
+    absolute attribute label (mean matching rating >= 4) mostly encodes
+    rater harshness, not taste: disliking the horror classics correlates
+    with rating everything low. We therefore label an attribute liked /
+    disliked only when the user's mean rating on matching movies deviates
+    from their own overall slate mean by at least +-taste_margin, with at
+    least attr_min_support matching rated movies; otherwise the attribute
+    is unrated (simulator answers 'unknown').
     """
     n_items = len(items)
     movie_to_idx = {it[1]: i for i, it in enumerate(items) if it[0] == 'movie'}
@@ -88,14 +96,21 @@ def build_profiles(items, user_ids=None, max_users=None):
         vec = np.full(n_items, np.nan, dtype=np.float32)
         attr_sums = np.zeros(n_items)
         attr_cnts = np.zeros(n_items)
+        rating_sum, rating_cnt = 0.0, 0
         for r in grp.itertuples():
             idx = movie_to_idx[r.movieId]
             vec[idx] = 1.0 if r.rating >= 4 else 0.0
+            rating_sum += r.rating
+            rating_cnt += 1
             for ai in movie_attrs[r.movieId]:
                 attr_sums[ai] += r.rating
                 attr_cnts[ai] += 1
-        has = attr_cnts > 0
-        vec[has] = (attr_sums[has] / attr_cnts[has] >= 4).astype(np.float32)
+        user_mean = rating_sum / max(rating_cnt, 1)
+        has = attr_cnts >= attr_min_support
+        rel = np.full(n_items, np.nan)
+        rel[has] = attr_sums[has] / attr_cnts[has] - user_mean
+        vec[rel >= taste_margin] = 1.0
+        vec[rel <= -taste_margin] = 0.0
         profiles[uid] = vec
     return profiles
 

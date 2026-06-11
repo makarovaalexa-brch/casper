@@ -37,7 +37,7 @@ from test_instrument_lib import ExtrapolationModel
 
 DATA_DIR = Path('C:/dev/phd/casper/data/movielens')
 CHECKPOINT_DIR = DATA_DIR / '.cache' / 'checkpoints'
-OUT_PATH = CHECKPOINT_DIR / 'instrument_v2_onehot.pt'
+OUT_PATH = CHECKPOINT_DIR / 'instrument_v3_onehot.pt'
 
 SEED = 42
 N_EPOCHS = 60
@@ -109,24 +109,11 @@ train_users = shuffled[:split][:MAX_TRAIN_USERS]
 val_users = shuffled[split:][:MAX_VAL_USERS]
 print(f"Train users: {len(train_users)}, Val users: {len(val_users)}")
 
-print("Building per-user profiles (movies + derived attribute labels)...")
+print("Building per-user profiles (taste-relative attribute labels)...")
 t0 = time.time()
-profiles = {}
-keep = set(train_users) | set(val_users)
-grouped = ratings_f[ratings_f['userId'].isin(keep)].groupby('userId')
-for uid, grp in grouped:
-    vec = np.full(N_ITEMS, np.nan, dtype=np.float32)
-    attr_sums = np.zeros(N_ITEMS)
-    attr_cnts = np.zeros(N_ITEMS)
-    for r in grp.itertuples():
-        idx = movie_to_idx[r.movieId]
-        vec[idx] = 1.0 if r.rating >= 4 else 0.0
-        for ai in movie_attrs[r.movieId]:
-            attr_sums[ai] += r.rating
-            attr_cnts[ai] += 1
-    has = attr_cnts > 0
-    vec[has] = (attr_sums[has] / attr_cnts[has] >= 4).astype(np.float32)
-    profiles[uid] = vec
+from testbed import build_profiles
+keep = np.concatenate([train_users, val_users])
+profiles = build_profiles(ITEMS, user_ids=keep)
 print(f"  {time.time() - t0:.0f}s, {len(profiles)} profiles")
 
 
@@ -231,7 +218,7 @@ def main():
                 'val_loss': va_loss,
                 'epochs': epoch + 1,
                 'config': {
-                    'augmentation': 'reveal-subset log-uniform',
+                    'augmentation': 'reveal-subset log-uniform + taste-relative attr labels',
                     'attr_only_prob': ATTR_ONLY_PROB,
                     'train_users': len(train_users),
                     'seed': SEED,

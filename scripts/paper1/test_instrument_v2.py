@@ -125,6 +125,55 @@ def test_attribute_polarity(wrapper, items, attr_map):
     }
 
 
+def test_attribute_polarity_did(wrapper, items, attr_map):
+    """T1v3: difference-in-differences in score space.
+
+    A disliked attribute may legitimately shift ALL predictions down (it
+    signals a harsher rater overall); what polarity requires is that
+    MATCHING movies move by more than non-matching ones:
+        DiD(e) = [mean_match(liked) - mean_match(disliked)]
+               - [mean_other(liked) - mean_other(disliked)]  > 0
+    """
+    results = []
+    n_movies = wrapper.n_movies
+    for attr_idx, movie_idxs in attr_map.items():
+        if len(movie_idxs) < 3:
+            continue
+        liked = wrapper.predict([(attr_idx, 1.0)])
+        disliked = wrapper.predict([(attr_idx, 0.0)])
+        match = np.zeros(n_movies, dtype=bool)
+        match[movie_idxs] = True
+        d_match = float(liked[match].mean() - disliked[match].mean())
+        d_other = float(liked[~match].mean() - disliked[~match].mean())
+        results.append({
+            'attribute': items[attr_idx][2],
+            'type': items[attr_idx][0],
+            'n_movies': len(movie_idxs),
+            'delta_matching': d_match,
+            'delta_other': d_other,
+            'did': d_match - d_other,
+            'correct': d_match > d_other,
+        })
+    frac = float(np.mean([r['correct'] for r in results])) if results else np.nan
+    mean_did = float(np.mean([r['did'] for r in results])) if results else np.nan
+    by_type = {}
+    for t in ('genre', 'actor', 'director'):
+        sub = [r for r in results if r['type'] == t]
+        if sub:
+            by_type[t] = {'n': len(sub),
+                          'frac_correct': float(np.mean([r['correct'] for r in sub])),
+                          'mean_did': float(np.mean([r['did'] for r in sub]))}
+    worst = sorted(results, key=lambda r: r['did'])[:5]
+    return {
+        'n_attributes_tested': len(results),
+        'fraction_correct_direction': frac,
+        'mean_did': mean_did,
+        'by_type': by_type,
+        'worst_attributes': worst,
+        'pass': bool(frac >= 0.80),
+    }
+
+
 def test_prior_referenced_overlap(wrapper, items, attr_map, n_trials=100):
     genre_idxs = [i for i, it in enumerate(items)
                   if it[0] == 'genre' and len(attr_map.get(i, [])) >= 3]
@@ -196,10 +245,16 @@ def main():
         r = merged.get(name, {})
 
         t1v2 = test_attribute_polarity(wrapper, items, attr_map)
-        print(f"T1v2 attribute polarity: {t1v2['fraction_correct_direction']:.2%} correct "
+        print(f"T1v2 attribute polarity (rank): {t1v2['fraction_correct_direction']:.2%} correct "
               f"(mean shift {t1v2['mean_rank_shift']:+.1f} ranks, "
               f"n={t1v2['n_attributes_tested']}) pass={t1v2['pass']}")
         r['T1v2_attribute_polarity'] = t1v2
+
+        t1v3 = test_attribute_polarity_did(wrapper, items, attr_map)
+        print(f"T1v3 attribute polarity (DiD): {t1v3['fraction_correct_direction']:.2%} correct "
+              f"(mean DiD {t1v3['mean_did']:+.4f}) by_type={t1v3['by_type']} "
+              f"pass={t1v3['pass']}")
+        r['T1v3_attribute_did'] = t1v3
 
         t1b = test_prior_referenced_overlap(wrapper, items, attr_map)
         print(f"T1b prior-ref overlap: l/d={t1b['overlap_liked_disliked']:.2%} "
@@ -213,7 +268,7 @@ def main():
               f"pass={t3v2['pass']}")
         r['T3v2_multifranchise'] = t3v2
 
-        gate_keys = ['T1v2_attribute_polarity', 'T1b_prior_overlap',
+        gate_keys = ['T1v3_attribute_did', 'T1b_prior_overlap',
                      'T3v2_multifranchise', 'T2_T4_monotonicity_snr']
         passes = [r[k]['pass'] for k in gate_keys if k in r and r[k].get('pass') is not None]
         r['ACCEPTED_v2'] = all(passes)
