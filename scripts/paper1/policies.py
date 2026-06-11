@@ -150,13 +150,21 @@ class LLMPolicy(BasePolicy):
         super().__init__(items)
         self.style = style
         self.model = model
-        self.name = f'llm_{style}'
+        self.name = f'llm_{style}_{model.replace("/", "-")}'
         self.parse_failures = 0
         self.calls = 0
-        from openai import OpenAI
         from dotenv import load_dotenv
         load_dotenv(Path('C:/dev/phd/casper/.env'))
-        self.client = OpenAI()
+        self.provider = 'anthropic' if model.startswith('claude') else 'openai'
+        if self.provider == 'anthropic':
+            import anthropic
+            self.client = anthropic.Anthropic()
+        else:
+            from openai import OpenAI
+            self.client = OpenAI()
+        # GPT-5 family: max_completion_tokens instead of max_tokens, and no
+        # temperature parameter
+        self.gpt5_family = model.startswith(('gpt-5', 'o'))
         self._name_to_idx = {it[2].lower(): i for i, it in enumerate(items)}
 
     def _menu(self, asked):
@@ -181,16 +189,33 @@ class LLMPolicy(BasePolicy):
                     f"Choose the single most informative next question.")
         self.calls += 1
         try:
-            resp = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{'role': 'system', 'content': self.STYLES[self.style]},
-                          {'role': 'user', 'content': user_msg}],
-                max_tokens=150,
-                temperature=0.0,
-            )
-            text = resp.choices[0].message.content.strip()
+            if self.provider == 'anthropic':
+                resp = self.client.messages.create(
+                    model=self.model,
+                    system=self.STYLES[self.style],
+                    messages=[{'role': 'user', 'content': user_msg}],
+                    max_tokens=150,
+                )
+                text = resp.content[0].text.strip()
+            elif self.gpt5_family:
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[{'role': 'system', 'content': self.STYLES[self.style]},
+                              {'role': 'user', 'content': user_msg}],
+                    max_completion_tokens=400,
+                )
+                text = resp.choices[0].message.content.strip()
+            else:
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[{'role': 'system', 'content': self.STYLES[self.style]},
+                              {'role': 'user', 'content': user_msg}],
+                    max_tokens=150,
+                    temperature=0.0,
+                )
+                text = resp.choices[0].message.content.strip()
         except Exception as e:
-            print(f"  [llm_{self.style}] API error: {e}")
+            print(f"  [{self.name}] API error: {e}")
             self.parse_failures += 1
             return int(self.rng.choice(rem))
 

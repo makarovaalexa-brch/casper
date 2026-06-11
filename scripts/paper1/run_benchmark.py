@@ -45,6 +45,8 @@ def main():
     ap.add_argument('--n-turns', type=int, default=N_TURNS)
     ap.add_argument('--llm', action='store_true', help='include LLM policies')
     ap.add_argument('--llm-model', default='gpt-4o-mini')
+    ap.add_argument('--confirm-llm-cost', action='store_true',
+                    help='required with --llm: confirms API spend is approved')
     ap.add_argument('--policies', default=None,
                     help='comma-separated subset of policy names to run')
     ap.add_argument('--instrument', default='instrument_v5_set')
@@ -75,8 +77,12 @@ def main():
     if botplay_path.exists():
         all_policies['botplay_rl'] = lambda: P.BotPlayPolicy(items, botplay_path)
     if args.llm:
+        if not args.confirm_llm_cost:
+            raise SystemExit('LLM runs are ON HOLD: pass --confirm-llm-cost '
+                             'only after the user approves the API budget.')
+        mtag = args.llm_model.replace('/', '-')
         for style in ('vanilla', 'strategist', 'gate'):
-            all_policies[f'llm_{style}'] = (
+            all_policies[f'llm_{style}_{mtag}'] = (
                 lambda s=style: P.LLMPolicy(items, style=s, model=args.llm_model))
 
     if args.policies:
