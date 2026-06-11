@@ -139,7 +139,7 @@ class PreferenceExtractor:
         # Handle empty response after all retries
         if not content:
             # Return "unknown" instead of empty list for better encoding
-            return {category: ["unknown"] for category in self.categories}
+            return {category: [] for category in self.categories}
 
         try:
             preferences = json.loads(content)
@@ -151,22 +151,22 @@ class PreferenceExtractor:
                     preferences = json.loads(json_str)
                 except:
                     # Return "unknown" instead of empty
-                    return {category: ["unknown"] for category in self.categories}
+                    return {category: [] for category in self.categories}
             elif "```" in content:
                 try:
                     json_str = content.split("```")[1].split("```")[0].strip()
                     preferences = json.loads(json_str)
                 except:
                     # Return "unknown" instead of empty
-                    return {category: ["unknown"] for category in self.categories}
+                    return {category: [] for category in self.categories}
             else:
                 # Return "unknown" if can't parse
-                return {category: ["unknown"] for category in self.categories}
+                return {category: [] for category in self.categories}
 
         # Ensure all categories exist - use "unknown" if missing
         for category in self.categories:
             if category not in preferences or not preferences[category]:
-                preferences[category] = ["unknown"]
+                preferences[category] = []
 
         return preferences
 

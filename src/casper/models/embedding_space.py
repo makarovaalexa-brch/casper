@@ -57,39 +57,41 @@ class SentenceBERTEmbeddingSpace:
         print(f"Loaded {model_name}: {self.embedding_dim}-dim")
 
         # Extract MovieLens entities (movies, actors, directors)
-        self.movie_entities = self._extract_movielens_entities(movielens_data_path)
-        print(f"Extracted {len(self.movie_entities)} MovieLens entities")
+        self.movie_entities, self._genome_tag_count = self._extract_movielens_entities(movielens_data_path)
+        print(f"Extracted {len(self.movie_entities)} MovieLens entities ({self._genome_tag_count} genome tags)")
 
         # Pre-compute entity embeddings for fast lookup
         self._cache_entity_embeddings()
 
-    def _extract_movielens_entities(self, data_path: Optional[str]) -> List[str]:
+    def _extract_movielens_entities(self, data_path: Optional[str]) -> Tuple[List[str], int]:
         """
         Extract entities from MovieLens dataset.
 
         Entity space composition (~6,200 entities):
-        - 1,128 genome tags (rich descriptors from MovieLens)
+        - 1,128 genome tags (rich descriptors from MovieLens) - ADDED FIRST
         - ~5,000 movie titles (top-rated movies only)
         - ~50 popular directors/actors (curated list)
 
         Returns:
-            List of entity strings for semantic search
+            Tuple of (entity list, genome_tag_count) where genome tags are first
         """
         entities = []
+        genome_tag_count = 0
 
         if not data_path:
             print("Warning: No MovieLens path provided, using minimal entity set")
-            return self._get_fallback_entities()
+            return self._get_fallback_entities(), 0
 
         data_path = Path(data_path)
 
-        # 1. Load MovieLens Genome Tags (1,128 rich tags)
+        # 1. Load MovieLens Genome Tags (1,128 rich tags) - FIRST for easy identification
         genome_tags_path = data_path / "genome-tags.csv"
         if genome_tags_path.exists():
             try:
                 tags_df = pd.read_csv(genome_tags_path)
                 genome_tags = tags_df['tag'].tolist()
                 entities.extend(genome_tags)
+                genome_tag_count = len(genome_tags)  # Track count for is_broad_entity()
                 print(f"Loaded {len(genome_tags)} genome tags from MovieLens")
             except Exception as e:
                 print(f"Warning: Could not load genome tags: {e}")
@@ -146,7 +148,7 @@ class SentenceBERTEmbeddingSpace:
 
         print(f"Total entities: {len(entities)} (genome tags + movies + people)")
 
-        return entities
+        return entities, genome_tag_count
 
     def _get_fallback_entities(self) -> List[str]:
         """Minimal entity set if MovieLens data not available."""
@@ -296,5 +298,60 @@ class SentenceBERTEmbeddingSpace:
             for idx in top_indices:
                 entity = self.entity_list[idx]
                 results.append((entity, float(similarities[idx])))
+
+        return results
+
+    def is_broad_entity(self, entity: str) -> bool:
+        """
+        Check if entity is a "broad" concept (genome tag) vs specific (movie/person).
+
+        Genome tags are loaded first in entity_list, so we check by index.
+        Broad entities include genres, themes, moods, styles.
+        """
+        if entity not in self.entity_list:
+            return False
+        idx = self.entity_list.index(entity)
+        return idx < self._genome_tag_count
+
+    def find_nearest_entities_prefer_broad(
+        self,
+        embedding: np.ndarray,
+        top_k: int = 5,
+        broad_boost: float = 0.1
+    ) -> List[Tuple[str, float]]:
+        """
+        Find nearest entities with preference for broad concepts (genome tags).
+
+        Adds a similarity boost to genome tags to prefer broader concepts
+        like genres, themes, moods over specific movie titles.
+
+        Args:
+            embedding: Query embedding (384-dim)
+            top_k: How many entities to return
+            broad_boost: Similarity boost for genome tags (default 0.1)
+
+        Returns:
+            List of (entity, similarity) tuples, sorted by boosted similarity
+        """
+        # Get more candidates to rerank
+        candidates = self.find_nearest_entities(embedding, top_k=top_k * 3)
+
+        # Boost broad entities
+        boosted = []
+        for entity, sim in candidates:
+            if self.is_broad_entity(entity):
+                boosted.append((entity, sim + broad_boost, True))
+            else:
+                boosted.append((entity, sim, False))
+
+        # Sort by boosted similarity
+        boosted.sort(key=lambda x: x[1], reverse=True)
+
+        # Return top_k with original similarities for transparency
+        results = []
+        for entity, boosted_sim, is_broad in boosted[:top_k]:
+            # Return original similarity (without boost) for logging clarity
+            original_sim = boosted_sim - broad_boost if is_broad else boosted_sim
+            results.append((entity, original_sim))
 
         return results

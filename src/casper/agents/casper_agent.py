@@ -96,10 +96,16 @@ class CASPERAgent:
             self.embedding_space = SentenceBERTEmbeddingSpace(movielens_data_path)
 
         # Initialize RL agent (actor-critic)
+        # state_encoder_type: 'sbert' (default) or 'lstm' (Concept model style)
+        self.state_encoder_type = 'sbert'  # Can be changed via set_state_encoder_type()
         self.rl_agent = EmbeddingActorCritic(
             state_dim=384,  # SentenceBERT
-            embedding_dim=384  # SentenceBERT
+            embedding_dim=384,  # SentenceBERT
+            state_encoder_type=self.state_encoder_type
         )
+
+        # Track individual preference items for LSTM encoding
+        self.preference_sequence = []  # List of (item_name, rating_type) tuples
 
         # Question generator
         self.question_generator = QuestionGenerator()
@@ -141,22 +147,42 @@ class CASPERAgent:
 
         print("CASPER Agent ready")
 
+    def set_state_encoder_type(self, encoder_type: str):
+        """
+        Set the state encoder type and reinitialize RL agent.
+
+        Args:
+            encoder_type: 'sbert' (text encoding) or 'lstm' (sequence encoding)
+        """
+        if encoder_type not in ['sbert', 'lstm']:
+            raise ValueError(f"Invalid encoder type: {encoder_type}. Use 'sbert' or 'lstm'")
+
+        self.state_encoder_type = encoder_type
+        self.rl_agent = EmbeddingActorCritic(
+            state_dim=384,
+            embedding_dim=384,
+            state_encoder_type=encoder_type
+        )
+        print(f"State encoder type set to: {encoder_type}")
+
     def encode_conversation_state(self) -> np.ndarray:
         """
         Encode conversation state into embedding vector for RL.
+
+        Supports two modes:
+        1. 'sbert': Encode full preference text with SentenceBERT (original)
+        2. 'lstm': Encode sequence of (item, rating) pairs with LSTM+attention
 
         STATE = Extracted preferences only (clean, structured)
 
         LLM extracts structured preferences from conversation:
         {"liked": ["Nolan", "Inception"], "disliked": ["horror"]}
 
-        This is converted to text and encoded:
+        For SBERT mode:
         "likes: Nolan, Inception | dislikes: horror" → SentenceBERT → 384-dim
 
-        Why not include raw conversation?
-        - Preferences already extracted by LLM from conversation
-        - Including both would be duplicative ("Nolan" appears twice)
-        - Cleaner signal for RL and recommender
+        For LSTM mode:
+        [(Nolan, liked), (Inception, liked), (horror, disliked)] → LSTM+Attention → 384-dim
 
         Returns:
             384-dim state vector encoding extracted preferences
@@ -164,14 +190,34 @@ class CASPERAgent:
         if not self.discovered_preferences:
             return np.zeros(384)
 
-        # Convert structured preferences to text
-        pref_text = self.preference_extractor.preferences_to_text(self.discovered_preferences)
+        if self.state_encoder_type == 'lstm':
+            # LSTM mode: encode sequence of (item, rating) pairs
+            return self._encode_state_lstm()
+        else:
+            # SBERT mode: encode full text
+            return self._encode_state_sbert()
 
+    def _encode_state_sbert(self) -> np.ndarray:
+        """Encode state using full text SBERT encoding."""
+        pref_text = self.preference_extractor.preferences_to_text(self.discovered_preferences)
         if not pref_text:
             return np.zeros(384)
-
-        # Encode with SentenceBERT
         return self.encoder.encode(pref_text, convert_to_numpy=True)
+
+    def _encode_state_lstm(self) -> np.ndarray:
+        """Encode state using LSTM+attention over preference sequence."""
+        if not self.preference_sequence:
+            return np.zeros(384)
+
+        # Get SBERT embeddings for each item
+        items = [item for item, _ in self.preference_sequence]
+        ratings = [rating for _, rating in self.preference_sequence]
+
+        # Batch encode items
+        item_embeddings = self.encoder.encode(items, convert_to_numpy=True)
+
+        # Use RL agent's state encoder
+        return self.rl_agent.encode_state_from_sequence(item_embeddings, ratings)
 
     def ask_question(self, explore: bool = True, verbose: bool = True, return_debug_info: bool = False):
         """
@@ -185,6 +231,27 @@ class CASPERAgent:
         Returns:
             Natural language question, or (question, debug_info) if return_debug_info=True
         """
+        # Turn 1: Skip RL, use greeting template
+        is_first_turn = len(self.conversation_history) == 0
+
+        if is_first_turn:
+            # No RL on turn 1 - just generate greeting
+            question = self.question_generator.generate_question(
+                [],  # No entities for greeting
+                self.conversation_history,
+                self.discovered_preferences
+            )
+            self.conversation_history.append(f"Agent: {question}")
+
+            if verbose:
+                print(f"\nTurn 1: Greeting (no RL)")
+
+            if return_debug_info:
+                return question, {'note': 'Turn 1 greeting - RL not used'}
+            return question
+
+        # Turn 2+: Use RL to predict concept
+
         # 1. Encode state
         state = self.encode_conversation_state()
 
@@ -192,23 +259,46 @@ class CASPERAgent:
         predicted_embedding = self.rl_agent.predict_embedding(state, explore=explore)
         self.embedding_history.append(predicted_embedding)
 
-        # 3. Find nearest movie entities
-        # Movie entities include: genres (action, drama), directors (Nolan),
-        # actors (DiCaprio), moods (dark, uplifting), themes (revenge plot),
-        # technical aspects (cinematography), and actual movie titles (Inception)
-        nearest_entities = self.embedding_space.find_nearest_entities(
+        # 3. Find nearest movie entities, preferring broad concepts (genres, themes)
+        # over specific movie titles
+        nearest_entities = self.embedding_space.find_nearest_entities_prefer_broad(
             predicted_embedding,
-            top_k=3
+            top_k=10,  # Get more candidates to filter from
+            broad_boost=0.1  # Slight preference for genome tags over specific titles
         )
 
-        entity_names = [entity for entity, score in nearest_entities]
+        # Filter out entities we've already asked about this episode
+        if not hasattr(self, 'asked_entities'):
+            self.asked_entities = set()
+
+        filtered_entities = [
+            (entity, score) for entity, score in nearest_entities
+            if entity.lower() not in self.asked_entities
+        ]
+
+        # Use first non-repeated entity, or fall back to top if all repeated
+        if filtered_entities:
+            top_entity = filtered_entities[0][0]
+            nearest_entities = filtered_entities[:3]  # Keep top 3 for logging
+        else:
+            top_entity = nearest_entities[0][0] if nearest_entities else None
+
+        # Track this entity as asked
+        if top_entity:
+            self.asked_entities.add(top_entity.lower())
+
+        entity_names = [top_entity] if top_entity else []
 
         if verbose:
-            print(f"\nRL predicted embedding - Nearest entities:")
-            for entity, score in nearest_entities:
-                print(f"  {entity}: {score:.3f}")
+            print(f"\nRL predicted embedding - Nearest entities (prefer broad):")
+            for entity, score in nearest_entities[:3]:
+                is_broad = self.embedding_space.is_broad_entity(entity)
+                marker = "[BROAD]" if is_broad else "[SPECIFIC]"
+                print(f"  {marker} {entity}: {score:.3f}")
+            print(f"  Selected: {top_entity}")
+            print(f"  Already asked: {len(self.asked_entities)} entities")
 
-        # 4. Generate question from entities
+        # 4. Generate question from single entity (cleaner, single-focus question)
         question = self.question_generator.generate_question(
             entity_names,
             self.conversation_history,
@@ -221,9 +311,13 @@ class CASPERAgent:
         # 6. Return debug info if requested (for logging enrichment)
         if return_debug_info:
             debug_info = {
-                'predicted_embedding_sample': predicted_embedding[:5].tolist(),  # First 5 dims for readability
+                'selected_entity': top_entity,
                 'nearest_entities': [
-                    {'entity': entity, 'similarity': float(score)}
+                    {
+                        'entity': entity,
+                        'similarity': float(score),
+                        'is_broad': self.embedding_space.is_broad_entity(entity)
+                    }
                     for entity, score in nearest_entities
                 ]
             }
@@ -261,11 +355,32 @@ class CASPERAgent:
         self.conversation_history.append(f"User: {response}")
 
         # Extract preferences from full conversation using LLM
+        old_prefs = {
+            'liked': set(self.discovered_preferences.get('liked', [])),
+            'disliked': set(self.discovered_preferences.get('disliked', [])),
+            'not_seen': set(self.discovered_preferences.get('not_seen', [])),
+        }
+
         self.discovered_preferences = self.preference_extractor.extract_from_conversation(
             self.conversation_history,
             existing_preferences=self.discovered_preferences,
             debug=self.debug_preference_extraction
         )
+
+        # Update preference sequence for LSTM encoding (track new items only)
+        # Rating encoding: liked=[1,0,0], disliked=[0,1,0], unknown=[0,0,1]
+        if self.state_encoder_type == 'lstm':
+            new_liked = set(self.discovered_preferences.get('liked', [])) - old_prefs['liked']
+            new_disliked = set(self.discovered_preferences.get('disliked', [])) - old_prefs['disliked']
+            new_not_seen = set(self.discovered_preferences.get('not_seen', [])) - old_prefs['not_seen']
+
+            for item in new_liked:
+                self.preference_sequence.append((item, 'liked'))
+            for item in new_disliked:
+                self.preference_sequence.append((item, 'disliked'))
+            for item in new_not_seen:
+                self.preference_sequence.append((item, 'unknown'))
+            # neutral is extracted but skipped - no actionable signal for recommendations
 
         # Calculate per-turn reward if target movies provided (training mode)
         reward = 0.0
@@ -423,7 +538,9 @@ class CASPERAgent:
         """Reset conversation state for new episode."""
         self.conversation_history = []
         self.discovered_preferences = {}
+        self.preference_sequence = []  # Reset preference sequence for LSTM mode
         self.embedding_history = []
+        self.asked_entities = set()  # Track entities already asked about to avoid repetition
         self.ndcg_history = []
         self.reward_history = []
 

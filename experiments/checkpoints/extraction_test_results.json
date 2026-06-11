@@ -1,0 +1,136 @@
+{
+  "passed": 4,
+  "failed": 3,
+  "success_rate": 57.14285714285714,
+  "results": [
+    {
+      "test_name": "Explicit \"I enjoy\" and \"I'm a fan\"",
+      "passed": true,
+      "extracted": {
+        "liked": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "test_name": "Explicit \"I enjoy\" and \"soft spot for\"",
+      "passed": true,
+      "extracted": {
+        "liked": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "test_name": "Explicit \"I love\" and \"favorite\"",
+      "passed": true,
+      "extracted": {
+        "liked": [
+          "Christopher Nolan",
+          "Inception"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "test_name": "User hasn't seen (should not extract)",
+      "passed": false,
+      "extracted": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "Inception"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "issues": [
+        "Expected liked ['unknown'], got ['unknown']",
+        "Expected disliked ['unknown'], got ['unknown']",
+        "Expected all 'unknown' for unseen movie, but got: {'liked': ['unknown'], 'neutral': ['Inception'], 'disliked': ['unknown']}"
+      ]
+    },
+    {
+      "test_name": "User never seen (should not extract)",
+      "passed": false,
+      "extracted": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "The Dark Knight"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "issues": [
+        "Expected liked ['unknown'], got ['unknown']",
+        "Expected disliked ['unknown'], got ['unknown']",
+        "Expected all 'unknown' for unseen movie, but got: {'liked': ['unknown'], 'neutral': ['The Dark Knight'], 'disliked': ['unknown']}"
+      ]
+    },
+    {
+      "test_name": "User not familiar (should not extract)",
+      "passed": false,
+      "extracted": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "Nolan"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "issues": [
+        "Expected liked ['unknown'], got ['unknown']",
+        "Expected disliked ['unknown'], got ['unknown']",
+        "Expected all 'unknown' for unseen movie, but got: {'liked': ['unknown'], 'neutral': ['Nolan'], 'disliked': ['unknown']}"
+      ]
+    },
+    {
+      "test_name": "Mixed: liked and disliked in same response",
+      "passed": true,
+      "extracted": {
+        "liked": [
+          "sci-fi"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "romance"
+        ]
+      },
+      "issues": []
+    }
+  ]
+}

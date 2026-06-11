@@ -53,7 +53,8 @@ data/movielens/
 *.parquet
 
 # Model checkpoints
-experiments/checkpoints/
+experiments/checkpoints/**/*.pt
+checkpoints/*.pt
 *.pt.tmp
 *.pth.tmp
 
@@ -89,4 +90,4 @@ coverage.xml
 .idea/
 
 # Colab specific
-sample_data/
+sample_data/data/processed/*.npz

@@ -1,0 +1,107 @@
+# Quick test configuration - minimal epochs/episodes for end-to-end testing
+
+# Project settings
+project:
+  name: casper
+  version: 0.1.0
+  seed: 42
+
+# Paths
+paths:
+  data_dir: data
+  movielens_dir: ${paths.data_dir}/movielens
+  reddit_dir: ${paths.data_dir}/reddit
+  processed_dir: ${paths.data_dir}/processed
+  experiments_dir: experiments
+  checkpoints_dir: ${paths.experiments_dir}/checkpoints
+  logs_dir: ${paths.experiments_dir}/logs
+
+# Model components
+models:
+  embedding_space:
+    model_name: all-MiniLM-L6-v2
+    embedding_dim: 384
+    use_genome_tags: true
+    use_movie_titles: true
+    use_hardcoded_entities: false
+
+  actor_critic:
+    state_dim: 384
+    embedding_dim: 384
+    hidden_dim: 512
+    learning_rate: 0.001
+    exploration_noise: 0.2
+
+  question_generator:
+    model_name: gpt-5-nano
+    max_tokens: 100
+    temperature: 0.7
+
+  preference_extractor:
+    model_name: gpt-5-nano
+    temperature: 0.3
+    max_tokens: 300
+    categories:
+      - liked
+      - neutral
+      - disliked
+    use_json_mode: true
+
+  recommender:
+    state_dim: 384
+    embedding_dim: 128
+    learning_rate: 0.001
+
+  user_simulator:
+    model_name: gpt-5-nano
+    temperature: 0.7
+    min_ratings: 20
+    max_profiles: 10  # Minimal for quick test
+    rating_threshold_high: 4.0
+    rating_threshold_low: 2.5
+
+# Training data sources
+training_data:
+  supervised:
+    source: reddit
+    split: 0.8
+    epochs: 1  # MINIMAL
+    batch_size: 32
+    learning_rate: 0.001
+
+  reinforcement:
+    user_simulator: movielens
+    num_episodes: 1  # MINIMAL
+
+# Device configuration
+device: cpu
+mixed_precision: false
+
+# Logging
+logging:
+  level: INFO
+  use_wandb: false  # Disabled for quick test
+  project_name: ${project.name}
+
+# Conversation environment
+environment:
+  max_turns: 3  # Reduced for quick test
+  success_threshold: 0.7
+  conversation_history_length: 6
+
+# Evaluation setup
+evaluation:
+  test_split: 0.3
+  metrics:
+    - ndcg_at_10
+    - ndcg_at_5
+    - hit_rate_at_10
+    - hit_rate_at_5
+    - mrr
+    - precision_at_10
+    - recall_at_10
+    - num_discoveries
+    - discovery_rate
+    - conversation_efficiency
+  test_sets:
+    - movielens_held_out

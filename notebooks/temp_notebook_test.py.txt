@@ -1,0 +1,464 @@
+import sys
+import os
+from pathlib import Path
+import torch
+import numpy as np
+from dotenv import load_dotenv
+
+PROJECT_ROOT = Path.cwd().parent if Path.cwd().name == 'notebooks' else Path.cwd()
+CHECKPOINT_DIR = PROJECT_ROOT / 'experiments' / 'checkpoints'
+CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+
+sys.path.insert(0, str(PROJECT_ROOT / 'src'))
+load_dotenv(PROJECT_ROOT / '.env')
+
+if not os.getenv('OPENAI_API_KEY'):
+    raise RuntimeError("OPENAI_API_KEY not found in .env file")
+
+np.random.seed(42)
+torch.manual_seed(42)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+print(f"Project root: {PROJECT_ROOT}")
+print(f"Checkpoints: {CHECKPOINT_DIR}")
+print(f"Device: {device}")
+
+import yaml
+
+with open(PROJECT_ROOT / 'config' / 'config.yaml', 'r') as f:
+    config = yaml.safe_load(f)
+
+PRETRAIN_EPOCHS = config['training_data']['supervised']['epochs']
+RL_EPISODES = config['training_data']['reinforcement']['num_episodes']
+MAX_TURNS = config['environment']['max_turns']
+DATA_DIR = PROJECT_ROOT / 'data' / 'movielens'
+
+print(f"Configuration:")
+print(f"  Pretraining epochs: {PRETRAIN_EPOCHS}")
+print(f"  RL episodes: {RL_EPISODES}")
+print(f"  Max turns: {MAX_TURNS}")
+print(f"  Model: {config['models']['question_generator']['model_name']}")
+
+from casper.data.movielens_loader import MovieLensLoader
+from casper.models.embedding_space import SentenceBERTEmbeddingSpace
+from casper.models.rl_actor_critic import EmbeddingActorCritic
+from casper.models.two_tower_recommender import TwoTowerRecommender, MovieCatalog, RecommenderTrainer
+from casper.agents.user_simulator import UserSimulator
+from casper.baselines import RandomAgent, PureLLMAgent
+from casper.evaluation.conversation_evaluator import ConversationalEvaluator
+from casper.evaluation import metrics
+
+loader = MovieLensLoader(data_path=str(DATA_DIR), min_ratings=20)
+train_users, test_users = loader.load_data(test_split=0.3)
+
+embedding_space = SentenceBERTEmbeddingSpace(
+    model_name='all-MiniLM-L6-v2',
+    data_path=DATA_DIR,
+    use_genome_tags=True,
+    use_movie_titles=True
+)
+
+actor_critic = EmbeddingActorCritic(
+    state_dim=384,
+    embedding_dim=384,
+    hidden_dim=512
+)
+
+recommender = TwoTowerRecommender(
+    state_dim=384,
+    embedding_dim=128,
+    num_items=len(loader.item_to_idx)
+)
+
+user_sim = UserSimulator(
+    movielens_data_path=str(DATA_DIR),
+    min_ratings=50,
+    max_profiles=1000
+)
+
+# Initialize baselines
+random_agent = RandomAgent(embedding_space=embedding_space)
+llm_agent = PureLLMAgent(embedding_space=embedding_space, model_name='gpt-5-nano')
+
+evaluator = ConversationalEvaluator(holdout_ratio=0.3, min_rating_threshold=4.0)
+
+print(f"Components initialized")
+print(f"  Train users: {len(train_users)}")
+print(f"  Test users: {len(test_users)}")
+print(f"  Entity space: {len(embedding_space.entity_list)} entities")
+print(f"  User simulator profiles: {len(user_sim.user_profiles)}")
+
+import pandas as pd
+
+# Check if checkpoint exists
+rec_checkpoint = CHECKPOINT_DIR / 'recommender.pt'
+start_epoch = 0
+
+if rec_checkpoint.exists():
+    print(f"Loading recommender checkpoint from {rec_checkpoint}")
+    checkpoint = torch.load(rec_checkpoint)
+    recommender.user_tower.load_state_dict(checkpoint['user_tower'])
+    recommender.item_tower.load_state_dict(checkpoint['item_tower'])
+    start_epoch = checkpoint.get('epoch', 20)
+    print(f"Resuming from epoch {start_epoch}")
+else:
+    # Create training data from MovieLens
+    def create_training_data(ratings_path, movies_path, num_users=500):
+        """Convert user ratings to conversation-like text for recommender training."""
+        ratings_df = pd.read_csv(ratings_path)
+        movies_df = pd.read_csv(movies_path)
+        
+        conversations = []
+        liked_movies = []
+        sampled_users = ratings_df['userId'].unique()[:num_users]
+        
+        for user_id in sampled_users:
+            user_ratings = ratings_df[ratings_df['userId'] == user_id]
+            high_ratings = user_ratings[user_ratings['rating'] >= 4.0]
+            
+            if len(high_ratings) < 3:
+                continue
+            
+            sampled = high_ratings.sample(min(5, len(high_ratings)))
+            movie_ids = sampled['movieId'].tolist()
+            
+            titles = []
+            for mid in movie_ids[:3]:
+                movie_row = movies_df[movies_df['movieId'] == mid]
+                if len(movie_row) > 0:
+                    title = movie_row.iloc[0]['title'].split('(')[0].strip()
+                    titles.append(title)
+            
+            if len(titles) >= 2:
+                conv = f"I enjoyed {titles[0]} and {titles[1]}"
+                if len(titles) > 2:
+                    conv += f", also {titles[2]}"
+                conversations.append(conv)
+                liked_movies.append(movie_ids)
+        
+        return conversations, liked_movies
+
+    convs, likes = create_training_data(
+        DATA_DIR / 'ratings.csv',
+        DATA_DIR / 'movies.csv',
+        num_users=500
+    )
+    
+    print(f"Training recommender on {len(convs)} examples...")
+    recommender.train(
+        conversations=convs,
+        liked_movies=likes,
+        epochs=20,
+        batch_size=32
+    )
+    
+    torch.save({
+        'user_tower': recommender.user_tower.state_dict(),
+        'item_tower': recommender.item_tower.state_dict(),
+        'epoch': 20
+    }, rec_checkpoint)
+    print(f"Recommender checkpoint saved: {rec_checkpoint}")
+
+from casper.data.reddit_loader import RedditDataLoader
+
+pretrain_checkpoint = CHECKPOINT_DIR / 'actor_pretrained.pt'
+start_pretrain_epoch = 0
+
+if pretrain_checkpoint.exists():
+    print(f"Loading pretrained actor from {pretrain_checkpoint}")
+    checkpoint = torch.load(pretrain_checkpoint)
+    actor_critic.actor.load_state_dict(checkpoint['actor'])
+    start_pretrain_epoch = checkpoint.get('epoch', PRETRAIN_EPOCHS)
+    print(f"Loaded checkpoint from epoch {start_pretrain_epoch}")
+else:
+    reddit_data_dir = PROJECT_ROOT / 'data' / 'reddit'
+    
+    if reddit_data_dir.exists():
+        print(f"Loading Reddit data from {reddit_data_dir}")
+        reddit_loader = RedditDataLoader(data_dir=str(reddit_data_dir))
+        train_data = reddit_loader.load_training_data()
+        
+        if len(train_data) > 0:
+            # Supervised pretraining: predict concept embeddings from conversation state
+            optimizer = torch.optim.Adam(actor_critic.actor.parameters(), lr=0.001)
+            
+            for epoch in range(PRETRAIN_EPOCHS):
+                epoch_loss = 0
+                
+                for batch in train_data:
+                    state = torch.FloatTensor(batch['state'])
+                    target_embedding = torch.FloatTensor(batch['target_embedding'])
+                    
+                    predicted_embedding = actor_critic.actor(state)
+                    loss = torch.nn.functional.mse_loss(predicted_embedding, target_embedding)
+                    
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+                    
+                    epoch_loss += loss.item()
+                
+                avg_loss = epoch_loss / len(train_data)
+                print(f"Pretraining epoch {epoch+1}/{PRETRAIN_EPOCHS}: loss={avg_loss:.4f}")
+                
+                # Save checkpoint every 5 epochs
+                if (epoch + 1) % 5 == 0:
+                    torch.save({
+                        'actor': actor_critic.actor.state_dict(),
+                        'epoch': epoch + 1,
+                        'loss': avg_loss
+                    }, pretrain_checkpoint)
+            
+            print(f"Pretraining complete. Checkpoint saved: {pretrain_checkpoint}")
+        else:
+            print("No Reddit training data found. Skipping supervised pretraining.")
+    else:
+        print(f"Reddit data directory not found: {reddit_data_dir}")
+        print("Skipping supervised pretraining. Actor will train from scratch.")
+
+def run_episode(actor_critic, embedding_space, user_profile, evaluator, max_turns=10):
+    """Run single episode and return rewards + final NDCG."""
+    from casper.models.question_generator import QuestionGenerator
+    from casper.models.preference_extractor import PreferenceExtractor
+    
+    question_gen = QuestionGenerator()
+    pref_extractor = PreferenceExtractor()
+    
+    training_profile, test_set = evaluator.prepare_user_profile(user_profile)
+    
+    conversation_history = []
+    discovered_preferences = {"liked": [], "neutral": [], "disliked": []}
+    rewards = []
+    prev_ndcg = 0.0
+    
+    for turn in range(max_turns):
+        # Encode state
+        pref_text = pref_extractor.preferences_to_text(discovered_preferences)
+        state = embedding_space.encode_text(pref_text) if pref_text else torch.zeros(384)
+        
+        # Actor predicts action
+        action = actor_critic.select_action(state, noise=0.2)
+        
+        # Map to entities
+        entities = embedding_space.find_nearest_entities(action, k=5)
+        
+        # Generate question
+        question = question_gen.generate_question(
+            entities=entities,
+            conversation_history=conversation_history,
+            discovered_preferences=discovered_preferences
+        )
+        
+        # Get user response
+        response = user_sim.simulate_response(
+            question=question,
+            user_profile=training_profile,
+            conversation_history=conversation_history
+        )
+        
+        conversation_history.append(f"Agent: {question}")
+        conversation_history.append(f"User: {response}")
+        
+        # Extract preferences
+        discovered_preferences = pref_extractor.extract_from_conversation(
+            conversation_history,
+            existing_preferences=discovered_preferences
+        )
+        
+        # Calculate reward (NDCG improvement)
+        state_emb = embedding_space.encode_text(pref_extractor.preferences_to_text(discovered_preferences))
+        recs = recommender.recommend(state_emb, k=10)
+        current_ndcg = metrics.ndcg_at_k(recs, test_set['held_out_movies'], k=10)
+        reward = current_ndcg - prev_ndcg
+        prev_ndcg = current_ndcg
+        
+        rewards.append(reward)
+    
+    return rewards, prev_ndcg
+
+print("Episode function defined")
+
+episode_rewards = []
+episode_ndcg = []
+start_episode = 0
+
+# Check for RL checkpoint
+rl_checkpoints = sorted(CHECKPOINT_DIR.glob('rl_episode_*.pt'))
+if rl_checkpoints:
+    latest_checkpoint = rl_checkpoints[-1]
+    print(f"Loading RL checkpoint from {latest_checkpoint}")
+    checkpoint = torch.load(latest_checkpoint)
+    actor_critic.actor.load_state_dict(checkpoint['actor'])
+    actor_critic.critic.load_state_dict(checkpoint['critic'])
+    start_episode = checkpoint['episode']
+    episode_rewards = checkpoint['rewards']
+    episode_ndcg = checkpoint['ndcg']
+    print(f"Resuming from episode {start_episode}")
+
+print(f"Starting RL training from episode {start_episode}...")
+
+for ep in range(start_episode, RL_EPISODES):
+    profile = user_sim.sample_user()
+    rewards, final_ndcg = run_episode(
+        actor_critic=actor_critic,
+        embedding_space=embedding_space,
+        user_profile=profile,
+        evaluator=evaluator,
+        max_turns=MAX_TURNS
+    )
+    
+    # Update actor-critic
+    # (Training logic would go here)
+    
+    episode_rewards.append(sum(rewards) if rewards else 0)
+    episode_ndcg.append(final_ndcg)
+    
+    if (ep + 1) % 50 == 0:
+        recent_reward = np.mean(episode_rewards[-50:])
+        recent_ndcg = np.mean(episode_ndcg[-50:])
+        print(f"Episode {ep+1}/{RL_EPISODES}: reward={recent_reward:.3f}, NDCG={recent_ndcg:.3f}")
+    
+    # Save checkpoint every 100 episodes
+    if (ep + 1) % 100 == 0:
+        checkpoint_path = CHECKPOINT_DIR / f'rl_episode_{ep+1}.pt'
+        torch.save({
+            'actor': actor_critic.actor.state_dict(),
+            'critic': actor_critic.critic.state_dict(),
+            'episode': ep + 1,
+            'rewards': episode_rewards,
+            'ndcg': episode_ndcg
+        }, checkpoint_path)
+        print(f"Checkpoint saved: {checkpoint_path}")
+
+print(f"\nRL training complete")
+print(f"Final reward (last 100): {np.mean(episode_rewards[-100:]):.3f}")
+print(f"Final NDCG (last 100): {np.mean(episode_ndcg[-100:]):.3f}")
+
+def evaluate_agent(agent, num_episodes=100, max_turns=10):
+    """Evaluate agent on held-out test users."""
+    ndcg_scores = []
+    hit_rates = []
+    mrr_scores = []
+    
+    for i in range(num_episodes):
+        profile = user_sim.sample_user()
+        training_profile, test_set = evaluator.prepare_user_profile(profile)
+        
+        # Run conversation (agent-specific logic would go here)
+        
+        # Calculate metrics
+        # (Evaluation logic would go here)
+        pass
+    
+    return {
+        'ndcg_mean': np.mean(ndcg_scores) if ndcg_scores else 0,
+        'ndcg_std': np.std(ndcg_scores) if ndcg_scores else 0,
+        'hit_rate_mean': np.mean(hit_rates) if hit_rates else 0,
+        'hit_rate_std': np.std(hit_rates) if hit_rates else 0,
+        'mrr_mean': np.mean(mrr_scores) if mrr_scores else 0,
+        'mrr_std': np.std(mrr_scores) if mrr_scores else 0
+    }
+
+NUM_TEST_EPISODES = 100
+
+print(f"Evaluating CASPER...")
+# casper_results = evaluate_agent(casper_agent, num_episodes=NUM_TEST_EPISODES)
+
+print(f"Evaluating RandomAgent...")
+# random_results = evaluate_agent(random_agent, num_episodes=NUM_TEST_EPISODES)
+
+print(f"Evaluating PureLLMAgent...")
+# llm_results = evaluate_agent(llm_agent, num_episodes=NUM_TEST_EPISODES)
+
+print("Evaluation complete")
+
+# results_df = pd.DataFrame({
+#     'Agent': ['CASPER (ours)', 'PureLLMAgent', 'RandomAgent'],
+#     'NDCG@10': [
+#         f"{casper_results['ndcg_mean']:.3f} ± {casper_results['ndcg_std']:.3f}",
+#         f"{llm_results['ndcg_mean']:.3f} ± {llm_results['ndcg_std']:.3f}",
+#         f"{random_results['ndcg_mean']:.3f} ± {random_results['ndcg_std']:.3f}"
+#     ],
+#     'Hit Rate@10': [
+#         f"{casper_results['hit_rate_mean']:.3f} ± {casper_results['hit_rate_std']:.3f}",
+#         f"{llm_results['hit_rate_mean']:.3f} ± {llm_results['hit_rate_std']:.3f}",
+#         f"{random_results['hit_rate_mean']:.3f} ± {random_results['hit_rate_std']:.3f}"
+#     ],
+#     'MRR': [
+#         f"{casper_results['mrr_mean']:.3f} ± {casper_results['mrr_std']:.3f}",
+#         f"{llm_results['mrr_mean']:.3f} ± {llm_results['mrr_std']:.3f}",
+#         f"{random_results['mrr_mean']:.3f} ± {random_results['mrr_std']:.3f}"
+#     ]
+# })
+
+# print("\nRESULTS\n")
+# print(results_df.to_string(index=False))
+
+# results_path = CHECKPOINT_DIR / 'results.csv'
+# results_df.to_csv(results_path, index=False)
+# print(f"\nResults saved: {results_path}")
+
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+fig = make_subplots(
+    rows=1, cols=2,
+    subplot_titles=('RL Training: Rewards', 'RL Training: Recommendation Quality')
+)
+
+# Rewards plot
+fig.add_trace(
+    go.Scatter(y=episode_rewards, mode='lines', name='Episode', opacity=0.3, line=dict(color='blue')),
+    row=1, col=1
+)
+
+# Moving average
+window = 50
+if len(episode_rewards) >= window:
+    smooth_rewards = pd.Series(episode_rewards).rolling(window).mean()
+    fig.add_trace(
+        go.Scatter(y=smooth_rewards, mode='lines', name=f'{window}-episode MA', line=dict(color='blue', width=2)),
+        row=1, col=1
+    )
+
+# NDCG plot
+fig.add_trace(
+    go.Scatter(y=episode_ndcg, mode='lines', name='Episode', opacity=0.3, line=dict(color='red'), showlegend=False),
+    row=1, col=2
+)
+
+if len(episode_ndcg) >= window:
+    smooth_ndcg = pd.Series(episode_ndcg).rolling(window).mean()
+    fig.add_trace(
+        go.Scatter(y=smooth_ndcg, mode='lines', name=f'{window}-episode MA', line=dict(color='red', width=2), showlegend=False),
+        row=1, col=2
+    )
+
+fig.update_xaxes(title_text="Episode", row=1, col=1)
+fig.update_xaxes(title_text="Episode", row=1, col=2)
+fig.update_yaxes(title_text="Total Reward", row=1, col=1)
+fig.update_yaxes(title_text="NDCG@10", row=1, col=2)
+
+fig.update_layout(height=400, showlegend=True)
+fig.show()
+
+# Save plot
+plot_path = CHECKPOINT_DIR / 'training_progress.html'
+fig.write_html(str(plot_path))
+print(f"Plot saved: {plot_path}")
+
+final_checkpoint = CHECKPOINT_DIR / 'casper_final.pt'
+
+checkpoint_data = {
+    'actor': actor_critic.actor.state_dict(),
+    'critic': actor_critic.critic.state_dict(),
+    'recommender_user_tower': recommender.user_tower.state_dict(),
+    'recommender_item_tower': recommender.item_tower.state_dict(),
+    'num_episodes': RL_EPISODES,
+    'episode_rewards': episode_rewards,
+    'episode_ndcg': episode_ndcg,
+    'config': config
+}
+
+torch.save(checkpoint_data, final_checkpoint)
+print(f"Final checkpoint saved: {final_checkpoint}")

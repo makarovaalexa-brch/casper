@@ -1,13 +1,11 @@
 {% if not conversation_context %}
-This is the FIRST turn. Greet the user warmly and introduce yourself.
+This is the FIRST turn. Greet the user briefly and ask ONE simple question.
 
-Example: "Hi! I'm here to help you discover great movies. What kind of films do you enjoy?"
+Example: "Hi! What kind of movies do you enjoy?"
 
-Generate a friendly greeting (max 2 sentences):
+Generate a brief greeting with ONE question (max 10 words total):
 {% else %}
-Generate a SHORT, DIRECT question (max 1-2 sentences) to learn about user preferences.
-
-Focus on these 1-2 concepts: {{ entities[:2] | join(' or ') }}
+Generate ONE short question (max 15 words) about: {{ entities[0] if entities else 'movies' }}
 
 {% if conversation_context %}
 Recent conversation:
@@ -18,5 +16,5 @@ Recent conversation:
 They already mentioned liking: {{ discovered_preferences['liked'][:3] | join(', ') }}
 {% endif %}
 
-Ask a SIMPLE, DIRECT question about the concepts above. DO NOT create hypothetical scenarios.
+Ask ONE direct question about "{{ entities[0] if entities else 'their preferences' }}". No follow-ups.
 Question:{% endif %}

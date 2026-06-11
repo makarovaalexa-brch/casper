@@ -585,14 +585,41 @@ class RecommenderTrainer:
 
                 # 1. Prefer explicitly disliked movies (strongest signal!)
                 if len(dislikes) >= 2:
-                    # Sample 2 from dislikes
+                    # Sample up to 2 from dislikes
                     sampled_negatives.extend(random.sample(dislikes, min(2, len(dislikes))))
-                    # Sample 2 from random unseen
+                    # Sample remaining from random unseen
                     remaining = num_negatives - len(sampled_negatives)
-                    sampled_negatives.extend(random.sample(unseen_movies, remaining))
+                    if remaining > 0:
+                        if len(unseen_movies) >= remaining:
+                            sampled_negatives.extend(random.sample(unseen_movies, remaining))
+                        elif unseen_movies:
+                            # Not enough unseen - take all available + sample with replacement from dislikes
+                            sampled_negatives.extend(unseen_movies)
+                            still_needed = remaining - len(unseen_movies)
+                            if still_needed > 0:
+                                sampled_negatives.extend(random.choices(dislikes, k=still_needed))
+                        else:
+                            # No unseen movies - fill from dislikes
+                            sampled_negatives.extend(random.choices(dislikes, k=remaining))
                 else:
                     # Fallback: all random if not enough dislikes
-                    sampled_negatives = random.sample(unseen_movies, num_negatives)
+                    if len(unseen_movies) >= num_negatives:
+                        sampled_negatives = random.sample(unseen_movies, num_negatives)
+                    elif unseen_movies:
+                        # Not enough unseen - sample with replacement
+                        sampled_negatives = random.choices(unseen_movies, k=num_negatives)
+                    else:
+                        # No unseen movies at all - use dislikes or liked movies
+                        if dislikes:
+                            sampled_negatives = random.choices(dislikes, k=num_negatives)
+                        else:
+                            # Last resort: sample from all movies (user has seen everything)
+                            sampled_negatives = random.choices(all_movie_ids, k=num_negatives)
+
+                # Ensure we always have exactly num_negatives
+                while len(sampled_negatives) < num_negatives:
+                    sampled_negatives.append(random.choice(all_movie_ids))
+                sampled_negatives = sampled_negatives[:num_negatives]
 
                 negative_ids.extend(sampled_negatives)
 

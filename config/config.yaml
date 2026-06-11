@@ -47,8 +47,8 @@ models:
     max_tokens: null
     categories:
       - liked
-      - neutral
       - disliked
+      - not_seen
     use_json_mode: true
 
   # Two-tower recommender

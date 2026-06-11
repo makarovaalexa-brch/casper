@@ -1,0 +1,1356 @@
+{
+  "summary": {
+    "total": 30,
+    "improved": 27,
+    "same": 0,
+    "worse": 3,
+    "improvement_rate": 90.0,
+    "correctness_rate": 90.0
+  },
+  "detailed_results": [
+    {
+      "case_num": 1,
+      "episode": 1,
+      "turn": 1,
+      "user_response": "Hey! I really enjoy sci-fi and action movies, but I'm also a fan of thrillers. What about you?",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": true,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [
+          "i really enjoy (strong enjoyment)",
+          "fan of (fan statement)"
+        ],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now extracts to LIKED (was missing or in neutral)"
+      ]
+    },
+    {
+      "case_num": 2,
+      "episode": 1,
+      "turn": 2,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 3,
+      "episode": 1,
+      "turn": 3,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 4,
+      "episode": 1,
+      "turn": 4,
+      "user_response": "Yeah, I enjoy road trip movies! They often have great character development and fun adventures. Got any recommendations?",
+      "old_extraction": {
+        "liked": [
+          "road trip movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "road trip movies"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": true,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [
+          "i enjoy (explicit enjoyment)",
+          "great (positive adjective)"
+        ],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": true,
+      "changes": [
+        "[+] Moved from NEUTRAL to LIKED"
+      ]
+    },
+    {
+      "case_num": 5,
+      "episode": 1,
+      "turn": 5,
+      "user_response": "I thought The Suicide Squad was a fun ride! The characters were great, and I loved the humor and action. It definitely felt more cohesive than the first one.",
+      "old_extraction": {
+        "liked": [
+          "The Suicide Squad",
+          "road trip movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "The Suicide Squad"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": true,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [
+          "i love (explicit love)",
+          "great (positive adjective)"
+        ],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": true,
+      "changes": [
+        "[+] Moved from NEUTRAL to LIKED"
+      ]
+    },
+    {
+      "case_num": 6,
+      "episode": 1,
+      "turn": 6,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "The Suicide Squad",
+          "road trip movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 7,
+      "episode": 1,
+      "turn": 7,
+      "user_response": "Yeah, I really enjoy suspenseful movies! They keep me on the edge of my seat. Got any favorites?",
+      "old_extraction": {
+        "liked": [
+          "The Suicide Squad",
+          "road trip movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers",
+          "suspenseful movies"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "suspenseful movies"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": true,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [
+          "i really enjoy (strong enjoyment)",
+          "favorite (preference statement)"
+        ],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": true,
+      "changes": [
+        "[+] Moved from NEUTRAL to LIKED"
+      ]
+    },
+    {
+      "case_num": 8,
+      "episode": 1,
+      "turn": 8,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "The Suicide Squad",
+          "road trip movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers",
+          "suspenseful movies"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "We Are Marshall",
+          "The Big Kahuna"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": false,
+      "changes": [
+        "[?] Still extracting entities for unseen movie"
+      ]
+    },
+    {
+      "case_num": 9,
+      "episode": 1,
+      "turn": 9,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "The Suicide Squad",
+          "road trip movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers",
+          "suspenseful movies"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "Panic Room",
+          "Mad City"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": false,
+      "changes": [
+        "[?] Still extracting entities for unseen movie"
+      ]
+    },
+    {
+      "case_num": 10,
+      "episode": 1,
+      "turn": 10,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "The Suicide Squad",
+          "road trip movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action",
+          "thrillers",
+          "suspenseful movies"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 11,
+      "episode": 2,
+      "turn": 1,
+      "user_response": "I really enjoy sci-fi and action movies, but I also have a soft spot for thrillers. How about you?",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "sci-fi",
+          "action",
+          "thrillers"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": true,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [
+          "i really enjoy (strong enjoyment)",
+          "soft spot (preference statement)"
+        ],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now extracts to LIKED (was missing or in neutral)"
+      ]
+    },
+    {
+      "case_num": 12,
+      "episode": 2,
+      "turn": 2,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 13,
+      "episode": 2,
+      "turn": 3,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 14,
+      "episode": 2,
+      "turn": 4,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 15,
+      "episode": 2,
+      "turn": 5,
+      "user_response": "Yeah, I enjoy horror movies! They can be really thrilling and fun to watch, especially the classic ones. What about you?",
+      "old_extraction": {
+        "liked": [
+          "horror movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "horror movies"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": true,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [
+          "i enjoy (explicit enjoyment)"
+        ],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": true,
+      "changes": [
+        "[+] Moved from NEUTRAL to LIKED"
+      ]
+    },
+    {
+      "case_num": 16,
+      "episode": 2,
+      "turn": 6,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "horror movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 17,
+      "episode": 2,
+      "turn": 7,
+      "user_response": "I lean more towards space opera films! They usually have such epic stories and visuals. What about you?",
+      "old_extraction": {
+        "liked": [
+          "horror movies",
+          "space opera films"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "space opera films"
+        ],
+        "neutral": [
+          "The Swan Princess"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": false,
+      "changes": []
+    },
+    {
+      "case_num": 18,
+      "episode": 2,
+      "turn": 8,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "horror movies",
+          "space opera films"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 19,
+      "episode": 2,
+      "turn": 9,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "horror movies",
+          "space opera films"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 20,
+      "episode": 2,
+      "turn": 10,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "horror movies",
+          "space opera films"
+        ],
+        "neutral": [
+          "sci-fi",
+          "action movies",
+          "thrillers"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 21,
+      "episode": 3,
+      "turn": 1,
+      "user_response": "Hey! I really enjoy sci-fi, thrillers, and some action. How about you?",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": true,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [
+          "i really enjoy (strong enjoyment)"
+        ],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now extracts to LIKED (was missing or in neutral)"
+      ]
+    },
+    {
+      "case_num": 22,
+      "episode": 3,
+      "turn": 2,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 23,
+      "episode": 3,
+      "turn": 3,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 24,
+      "episode": 3,
+      "turn": 4,
+      "user_response": "Yeah, I like gangster movies! They often have great storytelling and complex characters. What about you?",
+      "old_extraction": {
+        "liked": [
+          "gangster movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "gangster movies"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": true,
+        "has_negative_signal": false,
+        "has_unseen_signal": false,
+        "positive_indicators": [
+          "i like (explicit like)",
+          "great (positive adjective)"
+        ],
+        "negative_indicators": [],
+        "unseen_indicators": []
+      },
+      "improved": true,
+      "changes": [
+        "[+] Moved from NEUTRAL to LIKED"
+      ]
+    },
+    {
+      "case_num": 25,
+      "episode": 3,
+      "turn": 5,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "gangster movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 26,
+      "episode": 3,
+      "turn": 6,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "gangster movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 27,
+      "episode": 3,
+      "turn": 7,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "gangster movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 28,
+      "episode": 3,
+      "turn": 8,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "gangster movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 29,
+      "episode": 3,
+      "turn": 9,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "gangster movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    },
+    {
+      "case_num": 30,
+      "episode": 3,
+      "turn": 10,
+      "user_response": "Haven't seen that one.",
+      "old_extraction": {
+        "liked": [
+          "gangster movies"
+        ],
+        "neutral": [
+          "sci-fi",
+          "thrillers",
+          "action"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "new_extraction": {
+        "liked": [
+          "unknown"
+        ],
+        "neutral": [
+          "unknown"
+        ],
+        "disliked": [
+          "unknown"
+        ]
+      },
+      "analysis": {
+        "has_positive_signal": false,
+        "has_negative_signal": false,
+        "has_unseen_signal": true,
+        "positive_indicators": [],
+        "negative_indicators": [],
+        "unseen_indicators": [
+          "haven't seen (not experienced)"
+        ]
+      },
+      "improved": true,
+      "changes": [
+        "[+] Now correctly returns all 'unknown' for unseen"
+      ]
+    }
+  ]
+}
