@@ -189,9 +189,12 @@ def random_select(rng):
 
 
 def static_oracle_select():
-    # best static interleave: one movie per cluster, clusters 0..7
-    order = [c * MOVIES_PER_CLUSTER for c in range(N_CLUSTERS)] + \
-            [c * MOVIES_PER_CLUSTER + 1 for c in range(N_CLUSTERS)]
+    # optimal static interleave: alternate groups (A,B,A,B,...) so either
+    # group's user gets ceil(T/2) own-cluster probes
+    order = []
+    for k in range(4):
+        order.append(GROUPS[0][k] * MOVIES_PER_CLUSTER)
+        order.append(GROUPS[1][k] * MOVIES_PER_CLUSTER)
 
     def f(asked, revealed, instrument):
         for e in order:
