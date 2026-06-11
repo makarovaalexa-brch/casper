@@ -146,6 +146,25 @@ class LLMPolicy(BasePolicy):
         'gate': GATE_SYSTEM,
     }
 
+    # Class-level throttle shared across threads: keeps sustained demand
+    # under the org TPM limit (200k TPM / ~1.6k tokens per call ~= 2 calls/s;
+    # 0.55s spacing leaves headroom for retries and output tokens).
+    import threading as _threading
+    _rate_lock = _threading.Lock()
+    _next_slot = [0.0]
+    MIN_CALL_INTERVAL = 0.55
+
+    @classmethod
+    def _throttle(cls):
+        import time as _time
+        with cls._rate_lock:
+            now = _time.time()
+            slot = max(now, cls._next_slot[0])
+            cls._next_slot[0] = slot + cls.MIN_CALL_INTERVAL
+        wait = slot - now
+        if wait > 0:
+            _time.sleep(wait)
+
     def __init__(self, items, style='vanilla', model='gpt-4o-mini'):
         super().__init__(items)
         self.style = style
@@ -189,8 +208,9 @@ class LLMPolicy(BasePolicy):
                     f"Choose the single most informative next question.")
         self.calls += 1
         text = None
-        for attempt in range(5):
+        for attempt in range(7):
             try:
+                self._throttle()
                 text = self._call(user_msg)
                 break
             except Exception as e:
@@ -199,7 +219,7 @@ class LLMPolicy(BasePolicy):
                                 ('rate limit', 'rate_limit', '429', 'overloaded',
                                  'timeout', 'timed out', '503', '502',
                                  'connection', 'server error', '500'))
-                if transient and attempt < 4:
+                if transient and attempt < 6:
                     import time as _time
                     _time.sleep(2 ** attempt)
                     continue
