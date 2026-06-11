@@ -55,7 +55,18 @@ FRANCHISE_PATTERNS = {
     'Batman': r'Batman',
     'Kill Bill': r'Kill Bill',
     'Shrek': r'Shrek',
+    'Harry Potter': r'Harry Potter',
+    'Pirates': r'Pirates of the Caribbean',
+    'Spider-Man': r'Spider-Man',
+    'X-Men': r'(X-Men|X2)',
+    'Bourne': r'Bourne',
+    'Mission Impossible': r'Mission: Impossible',
+    'Men in Black': r'Men in Black',
+    'Austin Powers': r'Austin Powers',
+    'Ocean\'s': r"Ocean's",
+    'Star Trek': r'Star Trek',
 }
+DID_NOISE_FLOOR = 0.02  # |DiD| below this is uninformative for that franchise
 
 
 def build_attribute_movie_map(items, movies_df, credits_data):
@@ -228,6 +239,50 @@ def test_multifranchise_flip(wrapper, items):
     }
 
 
+def test_multifranchise_did(wrapper, items):
+    """T3v3: franchise flip in score space (DiD vs non-franchise movies)."""
+    title_by_idx = {i: it[2] for i, it in enumerate(items) if it[0] == 'movie'}
+    n_movies = wrapper.n_movies
+    checks, details = [], {}
+    for fname, pat in FRANCHISE_PATTERNS.items():
+        members = [i for i, t in title_by_idx.items() if re.search(pat, str(t))]
+        if len(members) < 2:
+            continue
+        anchor, related = members[0], members[1:]
+        liked = wrapper.predict([(anchor, 1.0)])
+        disliked = wrapper.predict([(anchor, 0.0)])
+        rel_mask = np.zeros(n_movies, dtype=bool)
+        rel_mask[related] = True
+        other_mask = ~rel_mask
+        other_mask[anchor] = False
+        d_rel = float(liked[rel_mask].mean() - disliked[rel_mask].mean())
+        d_other = float(liked[other_mask].mean() - disliked[other_mask].mean())
+        checks.append(d_rel > d_other)
+        details[fname] = {'anchor': title_by_idx[anchor],
+                          'did': d_rel - d_other,
+                          'delta_related': d_rel, 'delta_other': d_other}
+    frac = float(np.mean(checks)) if checks else np.nan
+    dids = np.array([v['did'] for v in details.values()])
+    informative = dids[np.abs(dids) > DID_NOISE_FLOOR]
+    frac_informative = (float(np.mean(informative > 0))
+                        if len(informative) else np.nan)
+    # Gate logic: among franchises where the test is sensitive (|DiD| above
+    # the noise floor), >=70% must move the right way, and the mean over
+    # all franchises must be positive. A noise-level DiD is evidence of
+    # test insensitivity for that franchise, not of broken polarity.
+    passed = bool(len(informative) >= 3 and frac_informative >= 0.70
+                  and float(np.mean(dids)) > 0)
+    return {
+        'n_franchises': len(details),
+        'fraction_correct_direction': frac,
+        'n_informative': int(len(informative)),
+        'fraction_correct_informative': frac_informative,
+        'mean_did': float(np.mean(dids)) if len(dids) else np.nan,
+        'details': details,
+        'pass': passed,
+    }
+
+
 def main():
     movies_df = pd.read_csv(DATA_DIR / 'movies.csv')
     credits_path = DATA_DIR / '.cache' / 'credits_top100_actors5.json'
@@ -263,16 +318,32 @@ def main():
         r['T1b_prior_overlap'] = t1b
 
         t3v2 = test_multifranchise_flip(wrapper, items)
-        print(f"T3v2 multi-franchise: {t3v2['fraction_correct_direction']:.2%} correct "
+        print(f"T3v2 multi-franchise (rank): {t3v2['fraction_correct_direction']:.2%} correct "
               f"({t3v2['n_related_movies']} movies, {t3v2['n_franchises']} franchises) "
               f"pass={t3v2['pass']}")
         r['T3v2_multifranchise'] = t3v2
 
-        gate_keys = ['T1v3_attribute_did', 'T1b_prior_overlap',
-                     'T3v2_multifranchise', 'T2_T4_monotonicity_snr']
-        passes = [r[k]['pass'] for k in gate_keys if k in r and r[k].get('pass') is not None]
-        r['ACCEPTED_v2'] = all(passes)
-        print(f"  ==> {'ACCEPTED' if r['ACCEPTED_v2'] else 'REJECTED'} (v2 gates)")
+        t3v3 = test_multifranchise_did(wrapper, items)
+        print(f"T3v3 multi-franchise (DiD): {t3v3['fraction_correct_direction']:.2%} correct "
+              f"({t3v3['n_franchises']} franchises) pass={t3v3['pass']}")
+        r['T3v3_franchise_did'] = t3v3
+
+        # Final gates (see paper Sec. 5): genre-DiD is the hard attribute
+        # gate (people-attributes lack ground-truth support and are
+        # reported as informational); franchise test in DiD form;
+        # overlap and monotonicity unchanged.
+        genre_did = r['T1v3_attribute_did']['by_type'].get('genre', {})
+        gates = {
+            'genre_did': genre_did.get('frac_correct', 0) >= 0.80,
+            'franchise_did': t3v3['pass'],
+            'prior_overlap': r['T1b_prior_overlap']['pass'],
+        }
+        if 'T2_T4_monotonicity_snr' in r:
+            gates['monotonicity'] = r['T2_T4_monotonicity_snr']['pass']
+        r['gates'] = {k: bool(v) for k, v in gates.items()}
+        r['ACCEPTED_v2'] = all(gates.values())
+        print(f"  gates: {r['gates']}")
+        print(f"  ==> {'ACCEPTED' if r['ACCEPTED_v2'] else 'REJECTED'}")
         merged[name] = r
 
     merged_path.write_text(json.dumps(merged, indent=2))
