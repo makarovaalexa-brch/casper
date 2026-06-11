@@ -1,0 +1,254 @@
+{
+  "instrument_v5_set": {
+    "T1_polarity": {
+      "mean_overlap": 0.299,
+      "std": 0.1466253729748027,
+      "pass": true
+    },
+    "T2_T4_monotonicity_snr": {
+      "accuracy_by_timestep": {
+        "1": 0.6974573735572526,
+        "3": 0.7269400963602962,
+        "5": 0.7333231274353211,
+        "10": 0.7625446770747691,
+        "20": 0.8002614911145528,
+        "30": 0.8290292422715662,
+        "50": 0.8519866991951767
+      },
+      "std_by_timestep": {
+        "1": 0.1211698477604391,
+        "3": 0.10547641840267624,
+        "5": 0.10104230357367035,
+        "10": 0.09265730293194525,
+        "20": 0.07668310430154295,
+        "30": 0.06869835077870526,
+        "50": 0.06279721267298641
+      },
+      "spearman_rho": 1.0,
+      "total_gain_1_to_20": 0.10280411755730023,
+      "signal_to_noise_1_to_20": 1.1095090651711241,
+      "n_users": 60,
+      "pass": true
+    },
+    "T3_rating_flip": {
+      "rank_drop_when_disliked": {
+        "Star Wars: Episode V - The Empire Strikes Back (1980)": 84,
+        "Star Wars: Episode VI - Return of the Jedi (1983)": 81,
+        "Star Wars: Episode I - The Phantom Menace (1999)": 4
+      },
+      "fraction_correct_direction": 1.0,
+      "pass": true
+    },
+    "ACCEPTED": true
+  },
+  "instrument_v4_onehot": {
+    "T1_polarity": {
+      "mean_overlap": 0.282,
+      "std": 0.126,
+      "pass": true
+    },
+    "T2_T4_monotonicity_snr": {
+      "accuracy_by_timestep": {
+        "1": 0.6210035333444862,
+        "3": 0.6340576105584834,
+        "5": 0.6244649978212138,
+        "10": 0.6536201641504483,
+        "20": 0.6884474965405052,
+        "30": 0.6980737161351389,
+        "50": 0.6971961635805112
+      },
+      "std_by_timestep": {
+        "1": 0.1630605680661681,
+        "3": 0.16728649206533266,
+        "5": 0.16243066974312537,
+        "10": 0.15368836412588846,
+        "20": 0.12739477828762658,
+        "30": 0.12315192810115254,
+        "50": 0.11672314370332149
+      },
+      "spearman_rho": 0.9285714285714288,
+      "total_gain_1_to_20": 0.06744396319601897,
+      "signal_to_noise_1_to_20": 0.43883584537847387,
+      "n_users": 60,
+      "pass": true
+    },
+    "T3_rating_flip": {
+      "rank_drop_when_disliked": {
+        "Star Wars: Episode V - The Empire Strikes Back (1980)": -44,
+        "Star Wars: Episode VI - Return of the Jedi (1983)": 2,
+        "Star Wars: Episode I - The Phantom Menace (1999)": 25
+      },
+      "fraction_correct_direction": 0.6666666666666666,
+      "pass": false
+    },
+    "ACCEPTED": false
+  },
+  "instrument_v3_onehot": {
+    "T1_polarity": {
+      "mean_overlap": 0.08350000000000002,
+      "std": 0.1194895392911028,
+      "pass": true
+    },
+    "T2_T4_monotonicity_snr": {
+      "accuracy_by_timestep": {
+        "1": 0.6198429099237478,
+        "3": 0.6621972192721528,
+        "5": 0.6584753968614715,
+        "10": 0.6734406179257879,
+        "20": 0.6793523576075703,
+        "30": 0.6794097275107394,
+        "50": 0.6858627682187396
+      },
+      "std_by_timestep": {
+        "1": 0.18923542023055986,
+        "3": 0.15330802182954173,
+        "5": 0.1541472770194941,
+        "10": 0.1429372397290679,
+        "20": 0.13557371461628992,
+        "30": 0.13365930583478045,
+        "50": 0.1262786774039058
+      },
+      "spearman_rho": 0.9642857142857145,
+      "total_gain_1_to_20": 0.05950944768382249,
+      "signal_to_noise_1_to_20": 0.41633270515521625,
+      "n_users": 60,
+      "pass": true
+    },
+    "T3_rating_flip": {
+      "rank_drop_when_disliked": {
+        "Star Wars: Episode V - The Empire Strikes Back (1980)": 70,
+        "Star Wars: Episode VI - Return of the Jedi (1983)": 5,
+        "Star Wars: Episode I - The Phantom Menace (1999)": -5
+      },
+      "fraction_correct_direction": 0.6666666666666666,
+      "pass": false
+    },
+    "ACCEPTED": false
+  },
+  "instrument_v2_onehot": {
+    "T1_polarity": {
+      "mean_overlap": 0.0,
+      "std": 0.0,
+      "pass": true
+    },
+    "T2_T4_monotonicity_snr": {
+      "accuracy_by_timestep": {
+        "1": 0.6202975099630675,
+        "3": 0.6541008969590545,
+        "5": 0.6447156419957836,
+        "10": 0.671486561882255,
+        "20": 0.6736157568604071,
+        "30": 0.6802850798165693,
+        "50": 0.6888381515836308
+      },
+      "std_by_timestep": {
+        "1": 0.1769282462159944,
+        "3": 0.15945818084660898,
+        "5": 0.16544719388568954,
+        "10": 0.1444522266350056,
+        "20": 0.14199067044934185,
+        "30": 0.13208434014009807,
+        "50": 0.1204716952786845
+      },
+      "spearman_rho": 0.9642857142857145,
+      "total_gain_1_to_20": 0.05331824689733955,
+      "signal_to_noise_1_to_20": 0.3691064384356036,
+      "n_users": 60,
+      "pass": true
+    },
+    "T3_rating_flip": {
+      "rank_drop_when_disliked": {
+        "Star Wars: Episode V - The Empire Strikes Back (1980)": 28,
+        "Star Wars: Episode VI - Return of the Jedi (1983)": 50,
+        "Star Wars: Episode I - The Phantom Menace (1999)": 14
+      },
+      "fraction_correct_direction": 1.0,
+      "pass": true
+    },
+    "ACCEPTED": true
+  },
+  "onehot": {
+    "T1_polarity": {
+      "mean_overlap": 0.539,
+      "std": 0.1551740957763247,
+      "pass": false
+    },
+    "T2_T4_monotonicity_snr": {
+      "accuracy_by_timestep": {
+        "1": 0.6586568547481962,
+        "3": 0.6785749759470421,
+        "5": 0.6885887924568618,
+        "10": 0.7104057429759177,
+        "20": 0.7640044315725987,
+        "30": 0.8151580717668573,
+        "50": 0.9158833834166835
+      },
+      "std_by_timestep": {
+        "1": 0.14043848081139243,
+        "3": 0.12944457071390642,
+        "5": 0.12424028439332749,
+        "10": 0.11657393776463383,
+        "20": 0.09595504792906522,
+        "30": 0.07403916662351928,
+        "50": 0.05617297493178151
+      },
+      "spearman_rho": 1.0,
+      "total_gain_1_to_20": 0.10534757682440243,
+      "signal_to_noise_1_to_20": 0.9036975060163298,
+      "n_users": 60,
+      "pass": true
+    },
+    "T3_rating_flip": {
+      "rank_drop_when_disliked": {
+        "Star Wars: Episode V - The Empire Strikes Back (1980)": 20,
+        "Star Wars: Episode VI - Return of the Jedi (1983)": 21,
+        "Star Wars: Episode I - The Phantom Menace (1999)": 21
+      },
+      "fraction_correct_direction": 1.0,
+      "pass": true
+    },
+    "ACCEPTED": false
+  },
+  "concept": {
+    "T1_polarity": {
+      "mean_overlap": 0.6630000000000001,
+      "std": 0.14223571984561403,
+      "pass": false
+    },
+    "T2_T4_monotonicity_snr": {
+      "accuracy_by_timestep": {
+        "1": 0.5077241889348297,
+        "3": 0.5253428872426811,
+        "5": 0.5614103589146066,
+        "10": 0.6224787000565966,
+        "20": 0.7147539974368041,
+        "30": 0.7720191579558314,
+        "50": 0.8194986450997794
+      },
+      "std_by_timestep": {
+        "1": 0.06502182048654312,
+        "3": 0.07159681262046749,
+        "5": 0.07786779578445358,
+        "10": 0.0760877383307425,
+        "20": 0.08561578265017572,
+        "30": 0.08277607664794917,
+        "50": 0.08288546661817375
+      },
+      "spearman_rho": 1.0,
+      "total_gain_1_to_20": 0.2070298085019744,
+      "signal_to_noise_1_to_20": 2.7209352392897452,
+      "n_users": 60,
+      "pass": true
+    },
+    "T3_rating_flip": {
+      "rank_drop_when_disliked": {
+        "Star Wars: Episode V - The Empire Strikes Back (1980)": 20,
+        "Star Wars: Episode VI - Return of the Jedi (1983)": -6,
+        "Star Wars: Episode I - The Phantom Menace (1999)": -6
+      },
+      "fraction_correct_direction": 0.3333333333333333,
+      "pass": false
+    },
+    "ACCEPTED": false
+  }
+}
