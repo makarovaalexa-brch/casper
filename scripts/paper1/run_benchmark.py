@@ -111,10 +111,14 @@ def main():
         print(f"\n=== {pname} ({args.n_users} users x {args.n_turns} turns) ===")
         t0 = time.time()
         if pname.startswith('llm'):
+            registry = []
             logs = evaluate_policy_concurrent(factory, list(eval_users),
                                               eval_profiles, instrument,
-                                              n_turns=args.n_turns, seed=SEED)
-            policy = factory()  # for metadata only
+                                              n_turns=args.n_turns, seed=SEED,
+                                              policy_registry=registry)
+            policy = factory()  # for metadata shape
+            policy.parse_failures = sum(p.parse_failures for p in registry)
+            policy.calls = sum(p.calls for p in registry)
         else:
             policy = factory()
             logs = evaluate_policy(policy, list(eval_users), eval_profiles,

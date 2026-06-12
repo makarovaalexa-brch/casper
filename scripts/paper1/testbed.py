@@ -246,7 +246,7 @@ def evaluate_policy(policy, users, profiles, instrument, n_turns=15, seed=SEED,
 
 def evaluate_policy_concurrent(policy_factory, users, profiles, instrument,
                                n_turns=15, seed=SEED, max_workers=6,
-                               progress_every=25):
+                               progress_every=25, policy_registry=None):
     """Thread-pool evaluation for API-bound (LLM) policies.
 
     Each worker holds its own policy instance; per-episode RNG is seeded
@@ -260,6 +260,8 @@ def evaluate_policy_concurrent(policy_factory, users, profiles, instrument,
     def get_policy():
         if not hasattr(local, 'policy'):
             local.policy = policy_factory()
+            if policy_registry is not None:
+                policy_registry.append(local.policy)
         return local.policy
 
     def one(uid):
