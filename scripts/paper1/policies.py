@@ -174,8 +174,7 @@ class LLMPolicy(BasePolicy):
         with cls._cache_lock:
             cls._cache[key] = value
             with open(cls.CACHE_PATH, 'a', encoding='utf-8') as f:
-                f.write(json.dumps({'k': key, 'v': value}) + '
-')
+                f.write(json.dumps({'k': key, 'v': value}) + '\n')
 
     # Class-level throttle shared across threads: keeps sustained demand
     # under the org TPM limit (200k TPM / ~1.6k tokens per call ~= 2 calls/s;

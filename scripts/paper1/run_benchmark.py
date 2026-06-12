@@ -122,8 +122,7 @@ def main():
             with open(OUT_DIR / f'llm_transcripts_{pname}.jsonl', 'w') as tf:
                 for pol in registry:
                     for rec in pol.transcript:
-                        tf.write(json.dumps(rec) + '
-')
+                        tf.write(json.dumps(rec) + '\n')
         else:
             policy = factory()
             logs = evaluate_policy(policy, list(eval_users), eval_profiles,
