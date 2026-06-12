@@ -146,6 +146,37 @@ class LLMPolicy(BasePolicy):
         'gate': GATE_SYSTEM,
     }
 
+    # Persistent response cache: identical (model, style, prompt) calls are
+    # answered from disk -- API spend is never repeated, and parser changes
+    # can be replayed over cached responses offline.
+    import threading as _t2
+    _cache_lock = _t2.Lock()
+    _cache = None
+    CACHE_PATH = 'C:/dev/phd/casper/experiments/paper1/llm_cache.jsonl'
+
+    @classmethod
+    def _cache_get(cls, key):
+        with cls._cache_lock:
+            if cls._cache is None:
+                cls._cache = {}
+                import os
+                if os.path.exists(cls.CACHE_PATH):
+                    for line in open(cls.CACHE_PATH, encoding='utf-8'):
+                        try:
+                            rec = json.loads(line)
+                            cls._cache[rec['k']] = rec['v']
+                        except Exception:
+                            pass
+            return cls._cache.get(key)
+
+    @classmethod
+    def _cache_put(cls, key, value):
+        with cls._cache_lock:
+            cls._cache[key] = value
+            with open(cls.CACHE_PATH, 'a', encoding='utf-8') as f:
+                f.write(json.dumps({'k': key, 'v': value}) + '
+')
+
     # Class-level throttle shared across threads: keeps sustained demand
     # under the org TPM limit (200k TPM / ~1.6k tokens per call ~= 2 calls/s;
     # 0.55s spacing leaves headroom for retries and output tokens).
@@ -208,11 +239,18 @@ class LLMPolicy(BasePolicy):
                     f"Menu of entities you may ask about next:\n{self._menu(asked)}\n\n"
                     f"Choose the single most informative next question.")
         self.calls += 1
-        text = None
+        import hashlib
+        cache_key = hashlib.sha256(
+            f"{self.model}|{self.style}|{user_msg}".encode()).hexdigest()
+        text = self._cache_get(cache_key)
+        cached = text is not None
         for attempt in range(7):
+            if text is not None:
+                break
             try:
                 self._throttle()
                 text = self._call(user_msg)
+                self._cache_put(cache_key, text)
                 break
             except Exception as e:
                 msg = str(e).lower()
