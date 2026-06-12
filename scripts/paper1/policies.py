@@ -172,6 +172,7 @@ class LLMPolicy(BasePolicy):
         self.name = f'llm_{style}_{model.replace("/", "-")}'
         self.parse_failures = 0
         self.calls = 0
+        self.transcript = []   # raw model outputs + parse outcomes
         from dotenv import load_dotenv
         load_dotenv(Path('C:/dev/phd/casper/.env'))
         self.provider = 'anthropic' if model.startswith('claude') else 'openai'
