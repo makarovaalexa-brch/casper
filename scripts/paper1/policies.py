@@ -265,20 +265,67 @@ class LLMPolicy(BasePolicy):
                 break
         if text is None:
             self.parse_failures += 1
+            self.transcript.append({'n_asked': len(asked), 'raw': None,
+                                    'parsed': None, 'parsed_name': None})
             return int(self.rng.choice(rem))
 
-        m = re.search(r'CHOICE:\s*(.+)', text)
-        cand = (m.group(1) if m else text.splitlines()[-1]).strip()
-        cand = re.sub(r'\((movie|genre|actor|director)\)\s*$', '', cand).strip()
-        cand = cand.strip('"\'' ).lower()
-
-        if cand in self._name_to_idx and self._name_to_idx[cand] not in asked:
-            return self._name_to_idx[cand]
-        matches = [i for i in rem if cand and cand in self.items[i][2].lower()]
-        if len(matches) == 1:
-            return matches[0]
+        e = self._parse_choice(text, asked, rem)
+        self.transcript.append({
+            'n_asked': len(asked), 'raw': text,
+            'parsed': int(e) if e is not None else None,
+            'parsed_name': self.items[e][2] if e is not None else None,
+        })
+        if e is not None:
+            return e
         self.parse_failures += 1
         return int(self.rng.choice(rem))
+
+    @staticmethod
+    def _normalize(name):
+        n = name.lower().strip().strip('"\'')
+        n = re.sub(r'\(\d{4}\)', '', n)              # drop year
+        n = re.sub(r'[^a-z0-9, ]', ' ', n)
+        n = re.sub(r'\s+', ' ', n).strip()
+        m = re.match(r'^(.*), (the|a|an)$', n)       # 'x, the' -> 'the x'
+        if m:
+            n = f"{m.group(2)} {m.group(1)}"
+        n = re.sub(r'^(the|a|an) ', '', n)
+        return n.strip()
+
+    def _parse_choice(self, text, asked, rem):
+        m = re.search(r'CHOICE:\s*(.+)', text)
+        lines = [l for l in text.splitlines() if l.strip()]
+        for cand_src in ([m.group(1)] if m else [lines[-1], lines[0]]):
+            e = self._parse_one(cand_src.strip(), asked, rem)
+            if e is not None:
+                return e
+        return None
+
+    def _parse_one(self, cand, asked, rem):
+        cand = re.sub(r'^(do you (like|enjoy)|how about|what about|have you seen)\s*',
+                      '', cand, flags=re.I)
+        cand = re.sub(r'\((movie|genre|actor|director|tag)\)\s*$', '', cand,
+                      flags=re.I).strip()
+        cand = cand.strip(' ?.!"\'')
+        if not cand:
+            return None
+        cn = self._normalize(cand)
+        if not hasattr(self, '_norm_to_idx'):
+            self._norm_to_idx = {}
+            for i, it in enumerate(self.items):
+                self._norm_to_idx.setdefault(self._normalize(it[2]), i)
+        e = self._norm_to_idx.get(cn)
+        if e is not None and e not in asked:
+            return e
+        import difflib
+        rem_norms = {self._normalize(self.items[i][2]): i for i in rem}
+        close = difflib.get_close_matches(cn, list(rem_norms), n=1, cutoff=0.8)
+        if close:
+            return rem_norms[close[0]]
+        hits = [i for n, i in rem_norms.items() if cn and (cn in n or n in cn)]
+        if len(hits) == 1:
+            return hits[0]
+        return None
 
     def _call(self, user_msg):
         if self.provider == 'anthropic':
