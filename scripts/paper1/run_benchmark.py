@@ -152,6 +152,8 @@ def main():
     for pname, s in results.items():
         if pname.startswith('_'):
             continue
+        if 'final_accuracy' not in s:
+            continue
         print(f"{pname:<18} {s['final_accuracy']:<12.4f} {s['auac']:<10.4f} "
               f"{s.get('hit_rate', float('nan')):<10.2%}")
 
