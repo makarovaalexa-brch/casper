@@ -81,6 +81,18 @@ def main():
     ppo2 = Path('C:/dev/phd/casper/experiments/paper2/discrete_ppo_slate2.pt')
     if ppo2.exists():
         all_policies['ppo'] = lambda: P.PPOPolicy(items, ppo2)
+    ppo2d = Path('C:/dev/phd/casper/experiments/paper2/discrete_ppo_slate2_dual.pt')
+    if ppo2d.exists():
+        all_policies['ppo_dual'] = lambda: P.NetPolicy(
+            items, ppo2d, 'ppo', 'ppo_dual')
+    bp2d = EXP / 'botplay_slate2_dual.pt'
+    if bp2d.exists():
+        all_policies['botplay_dual'] = lambda: P.NetPolicy(
+            items, bp2d, 'reinforce', 'botplay_dual')
+    bp2 = EXP / 'botplay_slate2.pt'
+    if bp2.exists():
+        all_policies['botplay'] = lambda: P.NetPolicy(
+            items, bp2, 'reinforce', 'botplay')
     if args.policies:
         wanted = set(args.policies.split(','))
         all_policies = {k: v for k, v in all_policies.items() if k in wanted}

@@ -39,20 +39,43 @@ def accuracy(preds, profile, n_movies):
 
 
 class ElicitationEnv:
-    """Single-episode environment. step(entity) -> (state, reward, done)."""
+    """Single-episode environment. step(entity) -> (state, reward, done).
 
-    def __init__(self, instrument, n_items, n_turns=15):
+    instrument        -- MEASUREMENT (reward/accuracy); never changes per row
+    belief_instrument -- decision aid feeding the policy state (defaults to
+                         the measurement instrument)
+    state_mode        -- 'liked' (3n+n) or 'dual' (3n+2n, adds answerability
+                         beliefs from the belief instrument's rated head)
+    """
+
+    def __init__(self, instrument, n_items, n_turns=15,
+                 belief_instrument=None, state_mode='liked'):
         self.instrument = instrument
+        self.belief_instrument = belief_instrument or instrument
+        self.state_mode = state_mode
         self.n_items = n_items
         self.n_turns = n_turns
+
+    @property
+    def state_dim(self):
+        return self.n_items * 3 + self.n_items * (2 if self.state_mode == 'dual' else 1)
+
+    def _refresh(self):
+        self.beliefs = self.belief_instrument.predict_full(self.revealed)
+        if self.state_mode == 'dual':
+            self.rated_beliefs = self.belief_instrument.predict_rated(self.revealed)
+        if self.belief_instrument is self.instrument:
+            self.meas = self.beliefs
+        else:
+            self.meas = self.instrument.predict_full(self.revealed)
 
     def reset(self, profile):
         self.profile = profile
         self.revealed = []
         self.asked = set()
         self.t = 0
-        self.beliefs = self.instrument.predict_full(self.revealed)
-        self.loss_prev = bce_loss(self.beliefs, profile, self.instrument.n_movies)
+        self._refresh()
+        self.loss_prev = bce_loss(self.meas, profile, self.instrument.n_movies)
         return self._state()
 
     def _state(self):
@@ -61,7 +84,10 @@ class ElicitationEnv:
         for idx, pol in self.revealed:
             s[idx, 2] = 0
             s[idx, 1 if pol >= 0.5 else 0] = 1
-        return np.concatenate([s.flatten(), self.beliefs.astype(np.float32)])
+        parts = [s.flatten(), self.beliefs.astype(np.float32)]
+        if self.state_mode == 'dual':
+            parts.append(self.rated_beliefs.astype(np.float32))
+        return np.concatenate(parts)
 
     def step(self, entity):
         assert entity not in self.asked
@@ -69,8 +95,8 @@ class ElicitationEnv:
         v = self.profile[entity]
         if not np.isnan(v):
             self.revealed.append((entity, 1.0 if v >= 0.5 else 0.0))
-        self.beliefs = self.instrument.predict_full(self.revealed)
-        loss_now = bce_loss(self.beliefs, self.profile, self.instrument.n_movies)
+        self._refresh()
+        loss_now = bce_loss(self.meas, self.profile, self.instrument.n_movies)
         reward = self.loss_prev - loss_now
         self.loss_prev = loss_now
         self.t += 1
@@ -78,7 +104,7 @@ class ElicitationEnv:
         return self._state(), reward, done
 
     def episode_accuracy(self):
-        return accuracy(self.beliefs, self.profile, self.instrument.n_movies)
+        return accuracy(self.meas, self.profile, self.instrument.n_movies)
 
 
 def load_world(seed=42, n_train_users=6000, n_val_users=100, world='slate1'):

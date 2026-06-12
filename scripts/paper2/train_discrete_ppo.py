@@ -30,7 +30,8 @@ import torch.nn as nn
 from env import ElicitationEnv, load_world
 
 WORLD = os.environ.get('CASPER_WORLD', 'slate1')
-_suffix = '' if WORLD == 'slate1' else f'_{WORLD}'
+DUAL = os.environ.get('CASPER_DUAL', '0') == '1'
+_suffix = ('' if WORLD == 'slate1' else f'_{WORLD}') + ('_dual' if DUAL else '')
 OUT_PATH = Path(f'C:/dev/phd/casper/experiments/paper2/discrete_ppo{_suffix}.pt')
 OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -76,8 +77,14 @@ def masked_dist(logits, asked, n_items):
 def main():
     world = load_world(seed=SEED, world=WORLD)
     instrument, n_items = world['instrument'], world['n_items']
-    env = ElicitationEnv(instrument, n_items, N_TURNS)
-    state_dim = n_items * 3 + n_items
+    belief = None
+    if DUAL and WORLD == 'slate1':
+        from test_instrument_lib import load_instrument_by_name
+        belief, _ = load_instrument_by_name('instrument_s1_dual')
+    env = ElicitationEnv(instrument, n_items, N_TURNS,
+                         belief_instrument=belief,
+                         state_mode='dual' if DUAL else 'liked')
+    state_dim = env.state_dim
     rng = np.random.default_rng(SEED)
 
     net = ActorCritic(state_dim, n_items)
@@ -180,6 +187,8 @@ def main():
                 marker = ' *'
                 torch.save({
                     'net_state_dict': net.state_dict(),
+                    'state_mode': 'dual' if DUAL else 'liked',
+                    'state_dim': state_dim, 'world': WORLD,
                     'episodes': ep_count, 'val_auac': val,
                     'instrument': 'instrument_v5_set' if WORLD == 'slate1' else 'instrument_slate2_dual',
                 }, OUT_PATH)

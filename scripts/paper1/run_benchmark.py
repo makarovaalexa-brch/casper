@@ -84,6 +84,21 @@ def main():
     ppo_path = Path('C:/dev/phd/casper/experiments/paper2/discrete_ppo.pt')
     if ppo_path.exists():
         all_policies['ppo'] = lambda: P.PPOPolicy(items, ppo_path)
+    _dual_belief = [None]
+
+    def _get_dual_belief():
+        if _dual_belief[0] is None:
+            from test_instrument_lib import load_instrument_by_name
+            _dual_belief[0], _ = load_instrument_by_name('instrument_s1_dual')
+        return _dual_belief[0]
+    ppo_d = Path('C:/dev/phd/casper/experiments/paper2/discrete_ppo_dual.pt')
+    if ppo_d.exists():
+        all_policies['ppo_dual'] = lambda: P.NetPolicy(
+            items, ppo_d, 'ppo', 'ppo_dual', _get_dual_belief())
+    bp_d = OUT_DIR / 'botplay_dual.pt'
+    if bp_d.exists():
+        all_policies['botplay_dual'] = lambda: P.NetPolicy(
+            items, bp_d, 'reinforce', 'botplay_dual', _get_dual_belief())
     botplay_path = OUT_DIR / 'botplay_policy.pt'
     if botplay_path.exists():
         all_policies['botplay_rl'] = lambda: P.BotPlayPolicy(items, botplay_path)

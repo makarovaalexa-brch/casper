@@ -556,3 +556,68 @@ class PPOPolicy(BasePolicy):
         mask = self.torch.full((self.n_items,), float('-inf'))
         mask[rem] = 0.0
         return int(self.torch.argmax(logits + mask).item())
+
+
+def _build_policy_state(n_items, revealed, belief_instrument, dual):
+    s = np.zeros((n_items, 3), dtype=np.float32)
+    s[:, 2] = 1
+    for idx, pol in revealed:
+        s[idx, 2] = 0
+        s[idx, 1 if pol >= 0.5 else 0] = 1
+    parts = [s.flatten(),
+             belief_instrument.predict_full(revealed).astype(np.float32)]
+    if dual:
+        parts.append(belief_instrument.predict_rated(revealed).astype(np.float32))
+    return np.concatenate(parts)
+
+
+class NetPolicy(BasePolicy):
+    """Generic adapter for PPO/REINFORCE checkpoints carrying state metadata.
+    belief_instrument: decision-aid model (defaults to the harness
+    instrument); kind: 'ppo' (ActorCritic dict) or 'reinforce'."""
+
+    def __init__(self, items, checkpoint_path, kind, name,
+                 belief_instrument=None):
+        super().__init__(items)
+        import torch
+        import torch.nn as nn
+        self.torch = torch
+        self.name = name
+        ckpt = torch.load(checkpoint_path, weights_only=False)
+        self.dual = ckpt.get('state_mode') == 'dual'
+        state_dim = ckpt.get('state_dim', self.n_items * 4)
+        self.belief_instrument = belief_instrument
+        n = self.n_items
+        if kind == 'ppo':
+            class AC(nn.Module):
+                def __init__(self):
+                    super().__init__()
+                    self.shared = nn.Sequential(
+                        nn.Linear(state_dim, 512), nn.ReLU(),
+                        nn.Linear(512, 256), nn.ReLU())
+                    self.pi = nn.Linear(256, n)
+                    self.v = nn.Linear(256, 1)
+            self.net = AC()
+            self.net.load_state_dict(ckpt['net_state_dict'])
+            self._logits = lambda x: self.net.pi(self.net.shared(x))
+        else:
+            self.net = nn.Sequential(nn.Linear(state_dim, 512), nn.ReLU(),
+                                     nn.Linear(512, 256), nn.ReLU(),
+                                     nn.Linear(256, n))
+            self.net.load_state_dict(ckpt['policy_state_dict'])
+            self._logits = lambda x: self.net(x)
+        self.net.eval()
+
+    def select(self, asked, history, instrument, revealed):
+        rem = self._remaining(asked)
+        if not rem:
+            return None
+        bi = self.belief_instrument or instrument
+        x = self.torch.from_numpy(
+            _build_policy_state(self.n_items, revealed, bi, self.dual)
+        ).unsqueeze(0)
+        with self.torch.no_grad():
+            logits = self._logits(x)[0]
+        mask = self.torch.full((self.n_items,), float('-inf'))
+        mask[rem] = 0.0
+        return int(self.torch.argmax(logits + mask).item())
