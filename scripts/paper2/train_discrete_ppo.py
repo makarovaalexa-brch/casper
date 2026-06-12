@@ -32,7 +32,7 @@ OUT_PATH = Path('C:/dev/phd/casper/experiments/paper2/discrete_ppo.pt')
 OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 SEED = 42
-N_EPISODES = 30000
+N_EPISODES = 90000
 N_TURNS = 15
 GAMMA = 0.97
 LAM = 0.95

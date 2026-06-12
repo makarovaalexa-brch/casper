@@ -24,7 +24,7 @@ from env import ElicitationEnv, load_world
 OUT_PATH = Path('C:/dev/phd/casper/experiments/paper1/dqn_policy.pt')
 
 SEED = 42
-N_EPISODES = 25000
+N_EPISODES = 75000
 N_TURNS = 15
 GAMMA = 0.97
 LR = 5e-4
