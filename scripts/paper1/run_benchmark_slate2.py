@@ -78,6 +78,9 @@ def main():
         'scpr_entropy': lambda: P.SCPREntropyPolicy(items, p_rated),
         'thompson': lambda: P.ThompsonPolicy(items),
     }
+    ppo2 = Path('C:/dev/phd/casper/experiments/paper2/discrete_ppo_slate2.pt')
+    if ppo2.exists():
+        all_policies['ppo'] = lambda: P.PPOPolicy(items, ppo2)
     if args.policies:
         wanted = set(args.policies.split(','))
         all_policies = {k: v for k, v in all_policies.items() if k in wanted}

@@ -81,8 +81,10 @@ class ElicitationEnv:
         return accuracy(self.beliefs, self.profile, self.instrument.n_movies)
 
 
-def load_world(seed=42, n_train_users=6000, n_val_users=100):
+def load_world(seed=42, n_train_users=6000, n_val_users=100, world='slate1'):
     """Instrument + entity embeddings + profiles + splits, shared by trainers."""
+    if world == 'slate2':
+        return _load_world_slate2(seed, n_train_users, n_val_users)
     instrument, ckpt = load_instrument_by_name('instrument_v5_set')
     items = ckpt['items']
     n_items = len(items)
@@ -107,4 +109,31 @@ def load_world(seed=42, n_train_users=6000, n_val_users=100):
         'instrument': instrument, 'items': items, 'n_items': n_items,
         'entity_emb': entity_emb, 'profiles': profiles,
         'train_uids': train_uids, 'val_uids': val_uids,
+    }
+
+
+def _load_world_slate2(seed, n_train_users, n_val_users):
+    from train_instrument_slate2 import (build_slate, build_profiles_slate2,
+                                         MIN_USER_RATINGS)
+    instrument, ckpt = load_instrument_by_name('instrument_slate2_dual')
+    items = ckpt['items']
+    n_items = len(items)
+    _, n_movies, movie_pos, attr_of_movie, ratings_f = build_slate()
+    user_counts = ratings_f.groupby('userId').size()
+    dense = user_counts[user_counts >= MIN_USER_RATINGS].index.to_numpy()
+    np.random.seed(seed)
+    shuffled = dense.copy()
+    np.random.shuffle(shuffled)
+    split = int(0.8 * len(shuffled))
+    rng = np.random.default_rng(seed)
+    train_users = rng.choice(shuffled[:split], size=n_train_users, replace=False)
+    val_users = shuffled[split:split + n_val_users]
+    profiles = build_profiles_slate2(items, n_items, movie_pos, attr_of_movie,
+                                     ratings_f,
+                                     np.concatenate([train_users, val_users]))
+    return {
+        'instrument': instrument, 'items': items, 'n_items': n_items,
+        'entity_emb': None, 'profiles': profiles,
+        'train_uids': [u for u in train_users if u in profiles],
+        'val_uids': [u for u in val_users if u in profiles],
     }
