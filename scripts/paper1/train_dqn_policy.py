@@ -12,6 +12,7 @@ sys.path.insert(0, '.')
 sys.path.insert(0, 'scripts/paper1')
 sys.path.insert(0, 'scripts/paper2')
 
+import os
 import time
 from pathlib import Path
 
@@ -21,7 +22,9 @@ import torch.nn as nn
 
 from env import ElicitationEnv, load_world
 
-OUT_PATH = Path('C:/dev/phd/casper/experiments/paper1/dqn_policy.pt')
+WORLD = os.environ.get('CASPER_WORLD', 'slate1')
+_suffix = '' if WORLD == 'slate1' else f'_{WORLD}'
+OUT_PATH = Path(f'C:/dev/phd/casper/experiments/paper1/dqn_policy{_suffix}.pt')
 
 SEED = 42
 N_EPISODES = 75000
@@ -56,10 +59,10 @@ class Dueling(nn.Module):
 
 
 def main():
-    world = load_world(seed=SEED)
+    world = load_world(seed=SEED, world=WORLD)
     instrument, n_items = world['instrument'], world['n_items']
     env = ElicitationEnv(instrument, n_items, N_TURNS)
-    state_dim = n_items * 3 + n_items
+    state_dim = env.state_dim
     rng = np.random.default_rng(SEED)
 
     q = Dueling(state_dim, n_items)
@@ -161,7 +164,8 @@ def main():
                 mark = ' *'
                 torch.save({'q_state_dict': q.state_dict(),
                             'episodes': ep + 1, 'val_auac': v,
-                            'instrument': 'instrument_v5_set'}, OUT_PATH)
+                            'state_dim': state_dim, 'world': WORLD,
+                            'instrument': 'instrument_v5_set' if WORLD=='slate1' else 'instrument_slate2_dual'}, OUT_PATH)
             print(f"  VAL AUAC (argmax, {len(world['val_uids'])} users): "
                   f"{v:.4f}{mark}", flush=True)
 
