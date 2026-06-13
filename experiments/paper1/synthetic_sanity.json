@@ -119,5 +119,60 @@
     },
     "unique_questions": 10,
     "asked_indicator_rate": 0.0
+  },
+  "popularity": {
+    "auac": 0.5542712026625961,
+    "auac_se": 0.005455944185361081,
+    "final_acc": 0.6179909529245204,
+    "t1_concentration": 1.0,
+    "unique_questions": 5,
+    "t2_by_answer": {
+      "disliked": 87,
+      "liked": 87
+    },
+    "branches_on_first_answer": false,
+    "asked_indicator_rate": 1.0
+  },
+  "scpr_entropy": {
+    "auac": 0.6092746677609973,
+    "auac_se": 0.007118933250168877,
+    "final_acc": 0.7096751136194803,
+    "t1_concentration": 1.0,
+    "unique_questions": 24,
+    "t2_by_answer": {
+      "unknown": 47,
+      "liked": 79,
+      "disliked": 83
+    },
+    "branches_on_first_answer": true,
+    "asked_indicator_rate": 0.0
+  },
+  "thompson": {
+    "auac": 0.5882434804702614,
+    "auac_se": 0.006419521995974471,
+    "final_acc": 0.6608765459068848,
+    "t1_concentration": 0.02666666666666667,
+    "unique_questions": 96,
+    "t2_by_answer": {
+      "unknown": 30,
+      "liked": 78,
+      "disliked": 19
+    },
+    "branches_on_first_answer": true,
+    "asked_indicator_rate": 0.0
+  },
+  "dqn": {
+    "auac": 0.6227109929061088,
+    "auac_se": 0.0060896264019763375,
+    "final_acc": 0.7381400455844265,
+    "t1_concentration": 1.0,
+    "unique_questions": 53,
+    "t2_by_answer": {
+      "liked": 45,
+      "unknown": 82,
+      "disliked": 42
+    },
+    "branches_on_first_answer": true,
+    "asked_indicator_rate": 0.0
   }
 }
