@@ -38,8 +38,11 @@ ROOT = Path('C:/dev/phd/casper')
 LF = ROOT / 'data/lastfm'
 CKPT = ROOT / 'data/movielens/.cache/checkpoints'
 EXP = ROOT / 'experiments/paper1'
-PROF_NPZ = LF / 'lastfm_profiles.npz'
-INST = CKPT / 'instrument_lastfm_dual.pt'
+import os
+TARGET = os.environ.get('LASTFM_TARGET', 'median')   # 'median' or 'tercile'
+_sfx = '' if TARGET == 'median' else f'_{TARGET}'
+PROF_NPZ = LF / f'lastfm_profiles{_sfx}.npz'
+INST = CKPT / f'instrument_lastfm_dual{_sfx}.pt'
 N_ARTISTS, N_TAGS = 300, 60
 N_TARGETS = N_ARTISTS
 SEED = 42
@@ -78,12 +81,22 @@ def build():
     for uid, grp in ua_s.groupby('userID'):
         if len(grp) < 5:
             continue
-        med = grp['weight'].median()
+        w_ = grp['weight'].values
+        if TARGET == 'tercile':
+            hi, lo = np.quantile(w_, 2/3), np.quantile(w_, 1/3)
+        else:
+            hi = lo = grp['weight'].median()
         vec = np.full(n_items, np.nan, dtype=np.float32)
         tag_sum = np.zeros(n_items); tag_cnt = np.zeros(n_items)
         for r in grp.itertuples():
             i = a_idx[r.artistID]
-            lk = 1.0 if r.weight >= med else 0.0
+            if TARGET == 'tercile':
+                if r.weight >= hi: lk = 1.0
+                elif r.weight <= lo: lk = 0.0
+                else:
+                    continue   # middle => unknown (not in profile)
+            else:
+                lk = 1.0 if r.weight >= hi else 0.0
             vec[i] = lk
             for ti in art_tags[r.artistID]:
                 tag_sum[ti] += lk; tag_cnt[ti] += 1
@@ -214,7 +227,20 @@ def accept(wrapper, test):
         td = set(np.argsort(-wrapper.predict([(e, 0.0)]))[:10])
         ov.append(len(tl & td) / 10)
     res['liked_disliked_overlap'] = float(np.mean(ov))
-    res['accepted'] = bool(rho > 0.9 and np.mean(ov) < 0.5)
+    # oracle ceiling: accuracy with ALL reveals (instrument-quality gate)
+    cps, prs = [], []
+    for prof in test[:200]:
+        f = ~np.isnan(prof[:wrapper.n_movies])
+        if f.sum() == 0: continue
+        p0 = wrapper.predict([])[:wrapper.n_movies]
+        prs.append(float(np.mean((p0[f] > 0.5) == prof[:wrapper.n_movies][f])))
+        rev = [(int(e), float(prof[e])) for e in np.where(~np.isnan(prof))[0]]
+        pc = wrapper.predict(rev)[:wrapper.n_movies]
+        cps.append(float(np.mean((pc[f] > 0.5) == prof[:wrapper.n_movies][f])))
+    res['oracle_ceiling'] = float(np.mean(cps)); res['prior'] = float(np.mean(prs))
+    res['dynamic_range'] = res['oracle_ceiling'] - res['prior']
+    res['accepted'] = bool(rho > 0.9 and np.mean(ov) < 0.5 and res['oracle_ceiling'] > 0.72)
+    print(f"  ceiling={res['oracle_ceiling']:.3f} prior={res['prior']:.3f} range={res['dynamic_range']:.3f}")
     print(f"  accept: monotonic_rho={rho:.3f} overlap={res['liked_disliked_overlap']:.2f} "
           f"acc@1={means.get(1,0):.3f} acc@20={means.get(20,0):.3f} "
           f"=> accepted={res['accepted']}")
@@ -251,11 +277,11 @@ def benchmark(wrapper, items, train, test):
         s['branches'] = len(set(t2.values())) > 1
         s['t1_concentration'] = t1.most_common(1)[0][1] / len(logs)
         results[name] = s
-        with open(EXP / f'episodes_lastfm_{name}.jsonl', 'w') as f:
+        with open(EXP / f'episodes_lastfm{_sfx}_{name}.jsonl', 'w') as f:
             for l in logs: f.write(json.dumps(l.to_dict()) + '\n')
         print(f"  bench {name:<16} final={s['final_accuracy']:.4f} "
               f"AUAC={s['auac']:.4f} answer={s['hit_rate']:.0%} branches={s['branches']}")
-    (EXP / 'benchmark_lastfm.json').write_text(json.dumps(results, indent=2))
+    (EXP / f'benchmark_lastfm{_sfx}.json').write_text(json.dumps(results, indent=2))
     return results
 
 
