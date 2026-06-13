@@ -175,3 +175,134 @@ calls (each ~1.4k input / ~100 output tokens), most cacheable.
   paper.
 - Any new slate/world: train instrument -> pass acceptance gates ->
   benchmark -> audit adaptivity -> only then report.
+
+---
+
+## 8. Paper 2a — full design notes (don't lose these)
+
+**Title:** *Learning What to Ask: Continuous Semantic Action Spaces for
+Preference Elicitation in Conversational Recommendation.* System name in
+paper: **CASPER-CA**. It is the original CASPER continuous-action idea
+(the thing the user struggled with for years), rebuilt correctly.
+
+**Mechanism (what `train_continuous_policy.py` implements):**
+- Wolpertinger architecture (Dulac-Arnold et al. 2015): a DDPG/TD3 actor
+  emits a continuous *proto-action* in the SBERT entity-embedding space;
+  the k nearest unasked entities are retrieved (FAISS/cosine), the critic
+  re-ranks them, argmax is executed. k=20 currently.
+- TD3 stabilisation: twin critics, delayed actor updates, target-policy
+  smoothing — with the smoothed target action **also grounded to a real
+  entity** so target-Q stays on the embedding manifold.
+- Reward = instrument BCE-loss reduction (the IJCNN bot-play reward).
+- Free episodes from the verifiable simulator (no LLM in training loop).
+
+**The five expert-review fixes vs the original failed CASPER (V1–V3) — these
+ARE the methodological contribution, state them explicitly:**
+1. Critic re-ranking with k>1 (original used k=1 hard snap → action
+   aliasing → ill-posed critic). THE key fix.
+2. Replay stores the **executed entity's embedding**, never the
+   proto-action (original stored proto-actions → Q-targets decoupled from
+   realised actions).
+3. TD3 twin-critic/delayed-update/target-smoothing (original plain DDPG
+   was unstable).
+4. Rule-based simulator → 10^5 free episodes (original LLM-in-loop capped
+   at ~1k transitions, a 100x sample deficit).
+5. Accuracy/BCE-delta reward with SNR>1 (original NDCG-delta reward had
+   SNR≈0.025, literally unlearnable — see CASPER_Expert_Review).
+
+**Novelty framing (verified via deep-research, June 2026 — see
+LitReview_Verification doc & memory). CLAIM SURVIVES ONLY AS A COMBINATION:**
+- MUST cite **Wolpertinger (Dulac-Arnold et al. 2015, arXiv:1512.07679)**
+  as the direct mechanism ancestor — it even has a recommender demo. Do
+  not claim the continuous-action+kNN mechanism as novel.
+- Also cite **ECoC (arXiv:2408.08047)** — continuous-action RL for
+  sequential recommendation (mechanism prior art, no dialogue).
+- Nearest RL-policy+LLM-verbaliser analogues: **RSO (arXiv:2509.26093,
+  2025)** — RL planner over 13 *discrete* strategies + frozen LLM; and
+  **PPDPP (Deng et al., ICLR 2024)**. Differentiate: CASPER-CA selects
+  *entity-level question content in a continuous semantic space*, not a
+  closed strategy set.
+- Defensible claim: "first to apply Wolpertinger-style continuous
+  semantic-embedding actions to elicitation question selection in CRS,
+  with LLM verbalisation."
+- Foundation: the user's own **IJCNN 2024 paper (Makarova et al.)** —
+  REINFORCE bot-play. 2a = "same framework, modern optimiser + continuous
+  action space."
+
+**Opening experiment (already run):** PPO cracks the synthetic indicator
+world that REINFORCE cannot — proves adaptivity is learnable and that the
+*optimiser* is the boundary. This motivates CASPER-CA before MovieLens.
+
+**Ablations to run:** CASPER-CA vs discrete-PPO (RQ3: does continuous
+help?); with vs without answerability/dual beliefs in the actor state;
+**contextual-bandit (myopic) version** — because episode return =
+final − baseline telescopes, the sequential aspect may matter less than
+assumed; "when does lookahead help elicitation?" is a clean sub-question.
+
+**GOTCHAS:**
+- `env.py` `entity_emb` (SBERT action geometry) is loaded ONLY for slate1
+  (`concept_embeddings_paper_config.npy`). For slate2 it is currently
+  `None` — CASPER-CA on slate2 needs SBERT embeddings of the 380 slate2
+  entities generated first.
+- The continuous trainer has NEVER been run — smoke-test small first.
+- Expect it may tie discrete PPO on real slates (both go static). The
+  reframe ("when does a continuous semantic action space help?") is the
+  fallback and is publishable.
+
+## 9. Paper 2b — full design notes
+
+**Title:** *Verbal Bot-Play: Improving LLM Elicitation Strategies without
+Gradient Training.* System name: **CASPER-V**. The most LLM-native and
+most clearly-novel of the three; nothing in the verified literature does
+this for elicitation strategy.
+
+**Mechanism:** keep the bot-play loop EXACTLY (QBot asks, ABot answers
+from profile, reward = recommender BCE-loss reduction — identical to
+IJCNN/Paper 1), but replace DDPG/gradient policy learning with
+**prompt-space optimisation**: the QBot's *strategy system-prompt* is
+iteratively rewritten by an LLM based on which past episodes/trajectories
+scored highest (Reflexion / OPRO-style verbal reinforcement). No PyTorch
+training at all — "learning" happens in natural-language prompt space.
+
+**Why it's interesting:** (a) zero gradient training, pure LLM; (b) the
+learned artefact is a human-readable strategy prompt (interpretable);
+(c) directly tests "can an LLM be *taught* to ask strategically" vs the
+Paper 1 finding that prompt-only LLMs ask poorly.
+
+**Reuse from existing code:** the LLM cache + validated parser + transcript
+saving + throttle in `policies.py` already support it; the testbed reward
+and simulator are ready. What's missing: the optimisation meta-loop
+(generate strategy → run N episodes → score → LLM critiques & rewrites →
+keep best; archive of prompts + best-of selection).
+
+**Decision rule (from Paper 1 leaderboard):** if greedy >> prompt-only LLM
+→ 2a is the lead story (learned policy chases the greedy ceiling). If
+prompt-only LLM ≈ greedy → 2b is the lead story (cheap optimisation of an
+already-strong asker). Current provisional LLM rows are below greedy, but
+that's pending the clean LLM re-run.
+
+**Cost:** see §6 (~$200–500 publishable, ~$150 trimmed; needs work API key).
+
+## 10. Cross-cutting ideas worth preserving
+
+- **Answerability beliefs (dual head) may be the strongest cross-paper
+  contribution.** "Elicitation instruments must expose P(answerable),
+  not just P(liked), for adaptive questioning to be expressible." Spans
+  Paper 1 (discovery), 2a (actor state), 2b (could inform prompt).
+- **Free-form LLM arm (B1)** = the bridge between Paper 1 and 2a/2b: LLM
+  asks free-form, answer SBERT-mapped to nearest slate entity. Also
+  defuses the reviewer objection "you tested LLMs only on your menu."
+- **Reward telescoping** (return = final − baseline) → try the
+  contextual-bandit/myopic version everywhere before assuming the full
+  sequential MDP is needed.
+- **The static-playlist finding is a feature, not a bug** for the whole
+  programme: it explains why prior "learned elicitation" systems were
+  effectively playlists nobody audited. Lead with it.
+- **Venues:** 2a → RecSys / UMAP / ECIR / CIKM. 2b → same, or a more
+  LLM/agent-flavoured venue. Paper 1 = the resource/testbed paper that
+  both cite.
+- **LLM transcripts** (`llm_transcripts_*.jsonl`) now saved — use for
+  qualitative analysis in both Paper 1 (what LLMs ask) and 2b.
+- Reference docs with full rationale: `CASPER_Expert_Review_2026-06.md`,
+  `LitReview_Verification_and_Paper_Plan_2026-06.md`, and the memory files
+  under `~/.claude/projects/C--dev-phd/memory/`.
