@@ -1,0 +1,65 @@
+{
+  "movielens_slate1": {
+    "n_users": 3000,
+    "n_items": 187,
+    "answer_rate_mean": 0.37670766488413543,
+    "answer_rate_std": 0.1444748747866535,
+    "pair_jaccard_answerable": 0.3733686254852832,
+    "frac_users_with_likes": 0.9993333333333333,
+    "static_cov@5": 0.08175956686316721,
+    "adaptive_cov@5": 0.16577751656703957,
+    "headroom@5": 0.08401794970387236,
+    "static_cov@10": 0.1480846685701994,
+    "adaptive_cov@10": 0.3167382769897713,
+    "headroom@10": 0.16865360841957192,
+    "verdict": "MODERATE headroom -> worth training; adaptive heuristics likely help"
+  },
+  "movielens_slate2": {
+    "n_users": 3000,
+    "n_items": 379,
+    "answer_rate_mean": 0.33309674582233945,
+    "answer_rate_std": 0.12936794014130076,
+    "pair_jaccard_answerable": 0.4191297615947874,
+    "frac_users_with_likes": 0.9986666666666667,
+    "static_cov@5": 0.03620005780130851,
+    "adaptive_cov@5": 0.17271639262245259,
+    "headroom@5": 0.13651633482114406,
+    "static_cov@10": 0.0704842062220705,
+    "adaptive_cov@10": 0.31107215625810797,
+    "headroom@10": 0.24058795003603747,
+    "verdict": "MODERATE headroom -> worth training; adaptive heuristics likely help"
+  },
+  "synthetic_indicator": {
+    "n_users": 3000,
+    "n_items": 97,
+    "answer_rate_mean": 0.35748797250859116,
+    "answer_rate_std": 0.032322900385785946,
+    "pair_jaccard_answerable": 0.2826963385591305,
+    "frac_users_with_likes": 0.9933333333333333,
+    "static_cov@5": 0.08935176005194269,
+    "adaptive_cov@5": 0.3676087432829595,
+    "headroom@5": 0.27825698323101683,
+    "static_cov@10": 0.14223429413926789,
+    "adaptive_cov@10": 0.6401485081915714,
+    "headroom@10": 0.4979142140523035,
+    "verdict": "STRONG adaptivity headroom -> train learned policies"
+  },
+  "lastfm": {
+    "n_users": 1715,
+    "n_items": 300,
+    "answer_rate_mean": 0.07239650145772594,
+    "answer_rate_std": 0.03447421106344499,
+    "pair_jaccard_answerable": 0.05486953512957006,
+    "frac_users_with_likes": 1.0,
+    "static_cov@5": 0.08616982013683538,
+    "adaptive_cov@5": 0.5419263611403047,
+    "headroom@5": 0.4557565410034693,
+    "static_cov@10": 0.1485068109383255,
+    "adaptive_cov@10": 0.8335889432996292,
+    "headroom@10": 0.6850821323613037,
+    "verdict": "STRONG adaptivity headroom -> train learned policies"
+  },
+  "yelp": {
+    "error": "Yelp Open Dataset requires a signup form; no clean autonomous download. Skipping (needs manual fetch)."
+  }
+}
