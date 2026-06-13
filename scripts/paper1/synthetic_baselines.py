@@ -88,6 +88,17 @@ def make_thompson():
     return f
 
 
+def make_popularity(p_rated):
+    order = list(np.argsort(-p_rated))  # static, by population answer-rate
+
+    def f(asked, revealed, instrument):
+        for e in order:
+            if e not in asked:
+                return int(e)
+        return next(i for i in range(W.N_MOVIES) if i not in asked)
+    return f
+
+
 def train_dqn(instrument, train_profiles, val_profiles):
     n = W.N_MOVIES
     sd = R.STATE_DIM
@@ -204,6 +215,8 @@ def main():
 
     results = json.loads(OUT.read_text()) if OUT.exists() else {}
 
+    print("Popularity...")
+    results['popularity'] = eval_selectfn(make_popularity(p_rated), instrument, eval_profiles)
     print("SCPR-entropy...")
     results['scpr_entropy'] = eval_selectfn(make_scpr(p_rated), instrument, eval_profiles)
     print("Thompson...")
@@ -213,7 +226,7 @@ def main():
     results['dqn'] = eval_selectfn(dqn_sel, instrument, eval_profiles)
 
     OUT.write_text(json.dumps(results, indent=2))
-    for k in ['scpr_entropy', 'thompson', 'dqn']:
+    for k in ['popularity', 'scpr_entropy', 'thompson', 'dqn']:
         r = results[k]
         print(f"{k:<16} AUAC={r['auac']:.4f} final={r['final_acc']:.4f} "
               f"branches={r['branches_on_first_answer']} "
