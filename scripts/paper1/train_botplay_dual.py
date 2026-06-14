@@ -7,7 +7,7 @@ Run from casper root: poetry run python scripts/paper1/train_botplay_dual.py
 Output: experiments/paper1/botplay_<world><_dual>.pt
 """
 
-import sys
+import os, sys
 sys.path.insert(0, '.')
 sys.path.insert(0, 'scripts/paper1')
 sys.path.insert(0, 'scripts/paper2')
@@ -28,7 +28,7 @@ _suffix = ('' if WORLD == 'slate1' else f'_{WORLD}') + ('_dual' if DUAL else '')
 OUT_PATH = Path(f'C:/dev/phd/casper/experiments/paper1/botplay{_suffix}.pt')
 
 SEED = 42
-N_EPISODES = 30000
+N_EPISODES = int(os.environ.get('CASPER_EPISODES', 30000))
 N_TURNS = 15
 LR = 5e-4
 GAMMA = 0.97

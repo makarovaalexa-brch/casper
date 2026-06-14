@@ -7,7 +7,7 @@ Run from casper root: poetry run python scripts/paper1/train_dqn_policy.py
 Output: experiments/paper1/dqn_policy.pt
 """
 
-import sys
+import os, sys
 sys.path.insert(0, '.')
 sys.path.insert(0, 'scripts/paper1')
 sys.path.insert(0, 'scripts/paper2')
@@ -27,7 +27,7 @@ _suffix = '' if WORLD == 'slate1' else f'_{WORLD}'
 OUT_PATH = Path(f'C:/dev/phd/casper/experiments/paper1/dqn_policy{_suffix}.pt')
 
 SEED = 42
-N_EPISODES = 75000
+N_EPISODES = int(os.environ.get('CASPER_EPISODES', 75000))
 N_TURNS = 15
 GAMMA = 0.97
 LR = 5e-4

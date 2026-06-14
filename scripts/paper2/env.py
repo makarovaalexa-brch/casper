@@ -107,8 +107,41 @@ class ElicitationEnv:
         return accuracy(self.meas, self.profile, self.instrument.n_movies)
 
 
+NPZ_WORLDS = {
+    'ml_stratified': ('C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz', 'instrument_ml_stratified'),
+    'yelp_multicity': ('C:/dev/phd/casper/data/yelp/yelp_multicity_profiles.npz', 'instrument_yelp_multicity'),
+    'amazon_crossdomain': ('C:/dev/phd/casper/data/amazon/amazon_crossdomain_profiles.npz', 'instrument_amazon_crossdomain'),
+}
+
+
+def _load_npz_world(world, n_train_users, n_val_users):
+    import numpy as _np
+    from test_instrument_lib import load_instrument_by_name
+    npz_path, inst = NPZ_WORLDS[world]
+    instrument, _ = load_instrument_by_name(inst)
+    d = _np.load(npz_path, allow_pickle=True)
+    train, test = d['train'], d['test']
+    items = [tuple(x) for x in d['items'].tolist()]
+    n_items = train.shape[1]
+    # cap train users for speed parity
+    rng = _np.random.default_rng(42)
+    tr_idx = rng.choice(len(train), size=min(n_train_users, len(train)), replace=False)
+    profiles = {}
+    train_uids, val_uids = [], []
+    for i in tr_idx:
+        profiles[int(i)] = train[i]; train_uids.append(int(i))
+    for j in range(min(n_val_users, len(test))):
+        uid = 10_000_000 + j
+        profiles[uid] = test[j]; val_uids.append(uid)
+    return {'instrument': instrument, 'items': items, 'n_items': n_items,
+            'entity_emb': None, 'profiles': profiles,
+            'train_uids': train_uids, 'val_uids': val_uids}
+
+
 def load_world(seed=42, n_train_users=6000, n_val_users=100, world='slate1'):
     """Instrument + entity embeddings + profiles + splits, shared by trainers."""
+    if world in NPZ_WORLDS:
+        return _load_npz_world(world, n_train_users, n_val_users)
     if world == 'slate2':
         return _load_world_slate2(seed, n_train_users, n_val_users)
     instrument, ckpt = load_instrument_by_name('instrument_v5_set')

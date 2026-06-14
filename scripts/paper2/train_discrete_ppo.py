@@ -14,7 +14,7 @@ Run from casper root:
 Output: experiments/paper2/discrete_ppo.pt
 """
 
-import sys
+import os, sys
 sys.path.insert(0, '.')
 sys.path.insert(0, 'scripts/paper1')
 sys.path.insert(0, 'scripts/paper2')
@@ -36,7 +36,7 @@ OUT_PATH = Path(f'C:/dev/phd/casper/experiments/paper2/discrete_ppo{_suffix}.pt'
 OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 SEED = 42
-N_EPISODES = 90000
+N_EPISODES = int(os.environ.get('CASPER_EPISODES', 90000))
 N_TURNS = 15
 GAMMA = 0.97
 LAM = 0.95
