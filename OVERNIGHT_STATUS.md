@@ -113,3 +113,17 @@ RECOMMENDED NEXT STEPS (not run overnight — flagged for decision):
    remains the "adaptivity is learnable when required" proof; and the new
    "collaborative generalisation substitutes for adaptivity on real
    catalogs" is the unifying explanation.
+
+## amazon_crossdomain results
+ceiling=0.967 base=0.841 lift=+0.126
+
+| policy | final | AUAC | answer | branches |
+|---|---|---|---|---|
+| random | 0.7883 | 0.7844 | 2% | True |
+| popularity | 0.8558 | 0.8284 | 23% | False |
+| greedy_infogain | 0.8478 | 0.8239 | 20% | True |
+| greedy_answerability | 0.8632 | 0.8278 | 23% | True |
+| scpr_entropy | 0.8598 | 0.8303 | 15% | True |
+| thompson | 0.7788 | 0.7803 | 1% | True |
+
+greedy_answerability AUAC 0.8278 vs popularity 0.8284 vs random 0.7844 (answerability-routing gap -0.0006 vs static)
