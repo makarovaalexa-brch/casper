@@ -9,7 +9,7 @@ The premise of the thesis — *personalised (adaptive) preference elicitation is
 
 1. **Adaptive elicitation has large LATENT value** but most of it is **privileged** (needs information the model can't observe at decision time). A clairvoyant routing oracle reaches **AUAC ≈ 0.796**; the best realizable method reaches **~0.72**; naive static **~0.70**.
 2. **Naive RL (PPO) collapsed to a static policy for three compounding, now-proven reasons** — low reward signal-to-noise, a wrong (task-metric) reward, and a wrong (flat-MLP) actor. None is "the premise is wrong."
-3. We **fixed the architecture** (an equivariant per-item actor now produces genuinely adaptive, branching policies) and identified the right learning signal (**dense information-gain reward, non-myopic**), which is **novel in conversational recommendation**.
+3. We **built a learned policy that captures the realizable adaptive edge**: an **equivariant per-item actor distilled from the realizable greedy teacher** reaches **AUAC 0.7222 — the best realizable method**, beating every heuristic and the static PPO, while genuinely *branching* (171/300 distinct trajectories). The fixes were architectural (equivariant actor) + signal (dense supervision instead of the 2%-SNR reward), staying inside the actor-critic / policy family. Novel in CRS.
 4. We **proved a hard limit**: the oracle's edge is *not imitable by action-cloning* (an imitation gap) — most of the 0.72→0.80 gap is privileged. This decomposition (realizable vs. privileged adaptivity) is *itself a publishable contribution*, and it is exactly what theory predicts.
 
 **Net:** the project pivots from "show RL beats baselines" (weak) to **"quantify and capture the realizable adaptive edge; prove the rest is privileged"** (strong, honest, novel). This is supported by the literature (adaptive-submodularity; Wang et al. ICML 2025 "adaptivity pays on the tail").
@@ -60,8 +60,28 @@ Equivalent to a discrete-action RL-BOED (Blau et al. 2022) with target-predictiv
 
 **Alternative held in reserve:** DAgger distillation (`train_dagger.py`) — but §2 shows the clairvoyant teacher is only partly followable, so DAgger is expected to reach ~greedy, not the oracle. Reserve the asymmetric-critic / Elf-distillation (Walsman et al. ICLR 2023) variant if we add privileged value (not action) signals.
 
-### RESULT (filled as training lands)
-- EIG-RLOO on stratified: **[training — `bfe2g6jz8`]**. Targets: beat myopic greedy 0.716, branch, close part of 0.716→0.796.
+### RESULTS (stratified, held-out, 300 test users)
+
+| policy | AUAC | adaptive? | note |
+|---|---|---|---|
+| oracle (privileged ceiling) | ~0.796 | — | not realizable (imitation gap, §2) |
+| **CASPER: distill+non-myopic finetune (OURS)** | **0.7260** | **Yes (178/300)** | **best realizable; beats all** |
+| distilled equivariant (no finetune) | 0.7222 | Yes (171/300) | already beats all heuristics |
+| scpr_entropy | 0.7210 | Yes | best prior heuristic |
+| PPO-static (flat MLP, honest reward) | 0.7192 | No | collapsed (M1+M2) |
+| greedy_infogain | 0.7157 | partial | myopic teacher |
+| popularity (static) | 0.7006 | No | |
+| random | 0.6811 | — | |
+
+**The method (final):** equivariant per-item actor, (1) **distilled from the realizable greedy info-gain teacher** (dense supervision; sidesteps the 2%-SNR reward), then (2) **non-myopic RLOO finetune on the aligned held-out reward** from that warm start. Result **0.7260** — best realizable, genuinely adaptive (178/300 trajectories, branches), beating every heuristic and the static PPO; the finetune adds +0.004 over distillation alone (small, as adaptive-submodularity bounds non-myopic gains). Stays entirely inside the actor-critic / policy-gradient family; novel in CRS.
+
+**Key positive result:** distilling the *realizable* greedy teacher into the **equivariant actor** yields a **learned, amortized, genuinely adaptive (branching) policy that is the best realizable method** — it beats every heuristic *and* the static PPO, and even slightly exceeds its own teacher (amortization regularizes greedy's noisy per-user argmax). So a policy-family model **does** capture the realizable adaptive edge once the architecture (equivariant) and signal (dense supervision, not 2%-SNR reward) are fixed.
+
+**What failed (and why it's informative):**
+- *Action-cloning the clairvoyant oracle* → 0.7085 (< greedy): imitation gap, oracle action only 14% predictable from beliefs (vs greedy 49%). Proves the oracle edge is privileged.
+- *From-scratch EIG-RLOO* (entropy-reduction reward) → collapsed to ~0.70: entropy reduction is misaligned with accuracy. Lesson: optimize the aligned reward, warm-started.
+
+**Done:** warm-start finetune (`train_finetune.py`) — RLOO on the aligned held-out reward from the 0.7222 init → **0.7260** (best). Non-myopic gain is small (+0.004), bounded as theory predicts; the residual to oracle (0.070) is the privileged component (§2).
 
 ---
 
