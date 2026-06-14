@@ -67,6 +67,40 @@ def oracle_action(env, prof, nm, attr_lo):
     return cands[int(np.argmax(acc))]
 
 
+def _entropy(p):
+    p = np.clip(p, 1e-7, 1 - 1e-7)
+    return -(p * np.log(p) + (1 - p) * np.log(1 - p))
+
+
+def greedy_action(env, nm, attr_lo, p_rated):
+    """Realizable myopic info-gain over ATTRIBUTES (expected entropy reduction
+    under the instrument's beliefs; no true labels). Fast (attr-only)."""
+    asked = env.asked
+    cands = [q for q in range(attr_lo, env.n_items) if q not in asked]
+    if not cands:
+        cands = [q for q in range(env.n_items) if q not in asked]
+    cur = env.meas
+    excl = np.array([q for q in asked if q < nm], dtype=int)
+    base = np.ones(nm, bool)
+    if len(excl):
+        base[excl] = False
+    h_now = _entropy(cur[:nm])[base].sum()
+    sets = []
+    for e in cands:
+        sets.append(env.revealed + [(e, 1.0)])
+        sets.append(env.revealed + [(e, 0.0)])
+    preds = env.instrument.predict_batch(sets)            # [2*ncand, nm]
+    best_e, best_eig = cands[0], -np.inf
+    for j, e in enumerate(cands):
+        h_l = _entropy(preds[2 * j])[base].sum()
+        h_d = _entropy(preds[2 * j + 1])[base].sum()
+        p_l = float(cur[e])
+        eig = p_rated[e] * (p_l * (h_now - h_l) + (1 - p_l) * (h_now - h_d))
+        if eig > best_eig:
+            best_eig, best_e = eig, e
+    return int(best_e)
+
+
 def rollout_collect(env, profiles, uids, nm, attr_lo, chooser):
     import time
     X, A, aucs = [], [], []
@@ -124,8 +158,7 @@ def main():
     items = [tuple(x) for x in d['items'].tolist()]
     p_rated = (~np.isnan(train)).mean(0)
     if TEACHER == 'greedy':
-        gp = P.GreedyInfoGainPolicy(items, p_rated); gp.reset(rng=np.random.default_rng(0))
-        chooser = lambda env, prof: gp.select(env.asked, None, env.instrument, env.revealed)
+        chooser = lambda env, prof: greedy_action(env, nm, attr_lo, p_rated)
     else:
         chooser = lambda env, prof: oracle_action(env, prof, nm, attr_lo)
 
