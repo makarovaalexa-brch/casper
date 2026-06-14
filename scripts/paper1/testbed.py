@@ -166,6 +166,9 @@ class EpisodeLog:
     questions: list = field(default_factory=list)   # entity indices asked
     answers: list = field(default_factory=list)     # 'liked'/'disliked'/'unknown'
     accuracy: list = field(default_factory=list)    # per turn, incl. turn 0 prior
+    accuracy_heldout: list = field(default_factory=list)  # accuracy on targets the
+                                                    # policy never directly asked
+                                                    # (no target-probing free lunch)
     bce: list = field(default_factory=list)
     asked_scores: list = field(default_factory=list)  # instrument's pre-question
                                                       # score for the asked entity
@@ -175,13 +178,18 @@ class EpisodeLog:
         return {'uid': int(self.uid), 'questions': [int(q) for q in self.questions],
                 'answers': self.answers,
                 'accuracy': [float(a) for a in self.accuracy],
+                'accuracy_heldout': [float(a) for a in self.accuracy_heldout],
                 'bce': [float(b) for b in self.bce],
                 'asked_scores': [float(s) for s in self.asked_scores]}
 
 
-def _movie_metrics(preds, profile, n_movies):
+def _movie_metrics(preds, profile, n_movies, exclude=None):
     gt = profile[:n_movies]
     filt = ~np.isnan(gt)
+    if exclude:
+        for q in exclude:
+            if q < n_movies:
+                filt[q] = False
     if filt.sum() == 0:
         return np.nan, np.nan
     p = np.clip(preds[filt], 1e-7, 1 - 1e-7)
@@ -195,9 +203,12 @@ def run_episode(policy, user, instrument, n_turns, rng):
     """One elicitation dialogue. Policy sees only asked/answers, never the profile."""
     revealed = []          # [(entity_idx, polarity)] for instrument input
     log = EpisodeLog(uid=user.uid)
+    nm = instrument.n_movies
+    preds_hist = []        # per-turn target predictions, for held-out re-scoring
 
     preds = instrument.predict(revealed)
-    acc, bce = _movie_metrics(preds, user.profile, instrument.n_movies)
+    preds_hist.append(preds)
+    acc, bce = _movie_metrics(preds, user.profile, nm)
     log.accuracy.append(acc)
     log.bce.append(bce)
 
@@ -218,9 +229,18 @@ def run_episode(policy, user, instrument, n_turns, rng):
         elif a == 'disliked':
             revealed.append((q, 0.0))
         preds = instrument.predict(revealed)
-        acc, bce = _movie_metrics(preds, user.profile, instrument.n_movies)
+        preds_hist.append(preds)
+        acc, bce = _movie_metrics(preds, user.profile, nm)
         log.accuracy.append(acc)
         log.bce.append(bce)
+
+    # Held-out scoring: exclude every target the policy directly asked (at any
+    # turn) from the accuracy denominator -- so probing graded items earns no
+    # credit and the metric measures generalisation to un-asked targets.
+    asked_targets = {q for q in log.questions if q < nm}
+    for p in preds_hist:
+        ah, _ = _movie_metrics(p, user.profile, nm, exclude=asked_targets)
+        log.accuracy_heldout.append(ah)
     return log
 
 
@@ -286,10 +306,15 @@ def evaluate_policy_concurrent(policy_factory, users, profiles, instrument,
 def summarize(logs, n_turns):
     """Mean per-turn curves with bootstrap CIs, AUAC, hit rate."""
     curves = []
+    curves_h = []
     hits = []
     for lg in logs:
         c = lg.accuracy + [lg.accuracy[-1]] * (n_turns + 1 - len(lg.accuracy))
         curves.append(c[:n_turns + 1])
+        if lg.accuracy_heldout:
+            ch = lg.accuracy_heldout + \
+                [lg.accuracy_heldout[-1]] * (n_turns + 1 - len(lg.accuracy_heldout))
+            curves_h.append(ch[:n_turns + 1])
         if lg.answers:
             hits.append(np.mean([a != 'unknown' for a in lg.answers]))
     curves = np.array(curves)
@@ -303,7 +328,7 @@ def summarize(logs, n_turns):
         idx = rng.integers(0, n, n)
         finals.append(curves[idx, -1].mean())
         auacs.append(curves[idx].mean())
-    return {
+    out = {
         'n_users': n,
         'turn0_accuracy': float(mean_curve[0]),
         'final_accuracy': float(mean_curve[-1]),
@@ -315,3 +340,16 @@ def summarize(logs, n_turns):
         'hit_rate': float(np.mean(hits)) if hits else np.nan,
         'mean_curve': [float(x) for x in mean_curve],
     }
+    if curves_h:
+        ch = np.array(curves_h)
+        mean_h = np.nanmean(ch, axis=0)
+        hauacs = []
+        for _ in range(1000):
+            idx = rng.integers(0, len(ch), len(ch))
+            hauacs.append(np.nanmean(ch[idx]))
+        out['final_accuracy_heldout'] = float(mean_h[-1])
+        out['auac_heldout'] = float(np.nanmean(ch))
+        out['auac_heldout_ci95'] = [float(np.percentile(hauacs, 2.5)),
+                                    float(np.percentile(hauacs, 97.5))]
+        out['mean_curve_heldout'] = [float(x) for x in mean_h]
+    return out

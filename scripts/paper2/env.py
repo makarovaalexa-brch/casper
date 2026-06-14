@@ -12,6 +12,7 @@ Reward : per-turn reduction in the instrument's BCE on the user's rated
          movies (the bot-play reward of Makarova et al., IJCNN 2024)
 """
 
+import os
 import sys
 sys.path.insert(0, '.')
 sys.path.insert(0, 'scripts/paper1')
@@ -22,19 +23,31 @@ from test_instrument_lib import load_instrument_by_name
 from testbed import build_profiles, get_user_splits
 
 
-def bce_loss(preds, profile, n_movies):
+def bce_loss(preds, profile, n_movies, exclude=None):
     preds = preds[:n_movies]
     gt = profile[:n_movies]
     filt = ~np.isnan(gt)
+    if exclude:
+        for q in exclude:
+            if q < n_movies:
+                filt[q] = False
+    if filt.sum() == 0:
+        return 0.0
     p = np.clip(preds[filt], 1e-7, 1 - 1e-7)
     y = gt[filt]
     return float(-np.mean(y * np.log(p) + (1 - y) * np.log(1 - p)))
 
 
-def accuracy(preds, profile, n_movies):
+def accuracy(preds, profile, n_movies, exclude=None):
     preds = preds[:n_movies]
     gt = profile[:n_movies]
     filt = ~np.isnan(gt)
+    if exclude:
+        for q in exclude:
+            if q < n_movies:
+                filt[q] = False
+    if filt.sum() == 0:
+        return float('nan')
     return float(np.mean((preds[filt] > 0.5) == gt[filt]))
 
 
@@ -49,12 +62,16 @@ class ElicitationEnv:
     """
 
     def __init__(self, instrument, n_items, n_turns=15,
-                 belief_instrument=None, state_mode='liked'):
+                 belief_instrument=None, state_mode='liked', heldout=None):
         self.instrument = instrument
         self.belief_instrument = belief_instrument or instrument
         self.state_mode = state_mode
         self.n_items = n_items
         self.n_turns = n_turns
+        # held-out reward/eval: exclude directly-asked targets so probing the
+        # graded items earns no credit (matches testbed held-out scoring).
+        self.heldout = (os.environ.get('CASPER_HELDOUT', '1') == '1'
+                        if heldout is None else heldout)
 
     @property
     def state_dim(self):
@@ -69,12 +86,16 @@ class ElicitationEnv:
         else:
             self.meas = self.instrument.predict_full(self.revealed)
 
+    def _excl(self):
+        return self.asked if self.heldout else None
+
     def reset(self, profile):
         self.profile = profile
         self.revealed = []
         self.asked = set()
         self.t = 0
         self._refresh()
+        self.meas_prev = self.meas
         self.loss_prev = bce_loss(self.meas, profile, self.instrument.n_movies)
         return self._state()
 
@@ -91,20 +112,30 @@ class ElicitationEnv:
 
     def step(self, entity):
         assert entity not in self.asked
+        meas_before = self.meas
         self.asked.add(entity)
         v = self.profile[entity]
         if not np.isnan(v):
             self.revealed.append((entity, 1.0 if v >= 0.5 else 0.0))
         self._refresh()
-        loss_now = bce_loss(self.meas, self.profile, self.instrument.n_movies)
-        reward = self.loss_prev - loss_now
+        nm = self.instrument.n_movies
+        # reward = held-out loss improvement from this reveal, on a denominator
+        # held FIXED across the step (current asked-set) so the difference is
+        # not contaminated by changing which targets are scored. Probing a
+        # target excludes it from BOTH terms -> no self-credit, only its
+        # effect on the remaining (un-asked) targets is rewarded.
+        excl = self._excl()
+        loss_prev = bce_loss(meas_before, self.profile, nm, excl)
+        loss_now = bce_loss(self.meas, self.profile, nm, excl)
+        reward = loss_prev - loss_now
         self.loss_prev = loss_now
         self.t += 1
         done = self.t >= self.n_turns
         return self._state(), reward, done
 
     def episode_accuracy(self):
-        return accuracy(self.meas, self.profile, self.instrument.n_movies)
+        return accuracy(self.meas, self.profile, self.instrument.n_movies,
+                        self._excl())
 
 
 NPZ_WORLDS = {
