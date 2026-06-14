@@ -68,14 +68,19 @@ def oracle_action(env, prof, nm, attr_lo):
 
 
 def rollout_collect(env, profiles, uids, nm, attr_lo):
+    import time
     X, A, aucs = [], [], []
-    for uid in uids:
+    t0 = time.time()
+    for n, uid in enumerate(uids):
         s = env.reset(profiles[uid]); accs = [env.episode_accuracy()]
         for _ in range(N_TURNS):
             a = oracle_action(env, profiles[uid], nm, attr_lo)
             X.append(s.copy()); A.append(a)
             s, _, _ = env.step(a); accs.append(env.episode_accuracy())
         aucs.append(np.nanmean(accs))
+        if (n + 1) % 50 == 0:
+            print(f"    rollout {n+1}/{len(uids)} users, running teacher AUAC "
+                  f"{np.mean(aucs):.4f} ({time.time()-t0:.0f}s)", flush=True)
     return np.array(X, np.float32), np.array(A, np.int64), float(np.mean(aucs))
 
 
