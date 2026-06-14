@@ -61,5 +61,22 @@
   },
   "yelp": {
     "error": "Yelp Open Dataset requires a signup form; no clean autonomous download. Skipping (needs manual fetch)."
+  },
+  "amazon_crossdomain": {
+    "n_users": 3000,
+    "n_items": 648,
+    "answer_rate_mean": 0.01410236625514403,
+    "answer_rate_std": 0.0037441625536628496,
+    "pair_jaccard_answerable": 0.10375884511312568,
+    "frac_users_with_likes": 0.9913333333333333,
+    "static_cov@5": 0.24012720552061245,
+    "adaptive_cov@5": 0.6976903105356929,
+    "headroom@5": 0.4575631050150804,
+    "static_cov@10": 0.33288120357520584,
+    "adaptive_cov@10": 0.9794131356687962,
+    "headroom@10": 0.6465319320935903,
+    "verdict": "STRONG adaptivity headroom -> train learned policies",
+    "n_targets": 640,
+    "multi_cat_frac": 0.45669387257887684
   }
 }
