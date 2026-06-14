@@ -668,3 +668,36 @@ class NetPolicy(BasePolicy):
         mask = self.torch.full((self.n_items,), float('-inf'))
         mask[rem] = 0.0
         return int(self.torch.argmax(logits + mask).item())
+
+
+class GreedyAnswerabilityPolicy(BasePolicy):
+    """Greedy expected info-gain weighted by the instrument's PER-USER
+    answerability beliefs (dual-head predict_rated), not population p_rated.
+    Routes to entities THIS user can actually answer -- the policy that
+    should exploit cross-domain routing structure."""
+    name = 'greedy_answerability'
+
+    @staticmethod
+    def _entropy(p):
+        p = np.clip(p, 1e-7, 1 - 1e-7)
+        return float(-(p * np.log(p) + (1 - p) * np.log(1 - p)).sum())
+
+    def select(self, asked, history, instrument, revealed):
+        rem = self._remaining(asked)
+        if not rem:
+            return None
+        cur = instrument.predict_full(revealed)
+        p_ans = instrument.predict_rated(revealed)   # per-user answerability
+        h = self._entropy(cur[:instrument.n_movies])
+        hyps = []
+        for e in rem:
+            hyps.append(revealed + [(e, 1.0)]); hyps.append(revealed + [(e, 0.0)])
+        preds = instrument.predict_batch(hyps)
+        best_e, best = rem[0], -1e18
+        for j, e in enumerate(rem):
+            pl = float(cur[e])
+            eig = pl * (h - self._entropy(preds[2*j])) + (1-pl) * (h - self._entropy(preds[2*j+1]))
+            score = float(p_ans[e]) * eig
+            if score > best:
+                best, best_e = score, e
+        return int(best_e)
