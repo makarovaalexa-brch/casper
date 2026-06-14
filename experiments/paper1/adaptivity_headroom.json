@@ -78,5 +78,20 @@
     "verdict": "STRONG adaptivity headroom -> train learned policies",
     "n_targets": 640,
     "multi_cat_frac": 0.45669387257887684
+  },
+  "amazon_balanced": {
+    "n_users": 1416,
+    "n_items": 648,
+    "answer_rate_mean": 0.01823625061030899,
+    "answer_rate_std": 0.005668279745055028,
+    "pair_jaccard_answerable": 0.07769984610734713,
+    "frac_users_with_likes": 0.992231638418079,
+    "static_cov@5": 0.18219199281681717,
+    "adaptive_cov@5": 0.5889407361734731,
+    "headroom@5": 0.4067487433566559,
+    "static_cov@10": 0.2713297181502936,
+    "adaptive_cov@10": 0.9227608713188715,
+    "headroom@10": 0.6514311531685779,
+    "verdict": "STRONG adaptivity headroom -> train learned policies"
   }
 }

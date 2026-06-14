@@ -127,3 +127,56 @@ ceiling=0.967 base=0.841 lift=+0.126
 | thompson | 0.7788 | 0.7803 | 1% | True |
 
 greedy_answerability AUAC 0.8278 vs popularity 0.8284 vs random 0.7844 (answerability-routing gap -0.0006 vs static)
+
+## amazon_balanced results
+ceiling=0.880 base=0.831 lift=+0.050
+
+| policy | final | AUAC | answer | branches |
+|---|---|---|---|---|
+| random | 0.7752 | 0.7705 | 2% | True |
+| popularity | 0.8346 | 0.8121 | 27% | False |
+| greedy_infogain | 0.8323 | 0.8110 | 17% | True |
+| greedy_answerability | 0.8368 | 0.8136 | 22% | True |
+| scpr_entropy | 0.8481 | 0.8189 | 19% | True |
+| thompson | 0.7629 | 0.7630 | 1% | True |
+
+greedy_answerability AUAC 0.8136 vs popularity 0.8121 vs random 0.7705 (answerability-routing gap +0.0015 vs static)
+
+## FINAL SYNTHESIS (after 6 real-data configs + synthetic)
+
+Tested adaptivity across: MovieLens slate1, slate2; LastFM median, tercile;
+Amazon cross-domain; Amazon balanced. Plus the synthetic indicator world.
+
+ROBUST FINDING: on EVERY real recommendation catalog, static
+popularity-ordered elicitation is near-optimal; adaptive elicitation
+(heuristic or learned) beats it by at most ~+0.007 AUAC — never
+decisively. Adaptive wins DECISIVELY only in the synthetic world
+(balanced, disjoint, no collaborative bridge, no popularity head).
+
+WHY (mechanism, now well-supported):
+- Real user populations have a POPULARITY HEAD: dense users concentrate in
+  a few big segments, so a static order front-loads the questions most
+  users can answer AND that best predict them.
+- Collaborative generalisation lets the recommender fill in from a fixed
+  question set most of what per-user routing would capture directly.
+- Adaptive routing only helps the tail minority; averaged over users the
+  gain is marginal on accuracy.
+- Attempts to remove the head fail naturally: real datasets don't supply
+  balanced, dense, mono-segment user populations (small Amazon categories
+  have ~0 dense users; balancing collapses to the big categories).
+
+THIS IS A STRONG, HONEST, PUBLISHABLE RESULT — arguably better than
+"adaptive wins": it is surprising, robust across 2 domains x multiple
+instruments, and bounded by a clean synthetic existence proof of WHEN
+adaptivity would win. The operational value of strategy on real data is
+EFFICIENCY (2-2.5x turns-to-quality), not endpoint accuracy.
+
+RECOMMENDATION: stop manufacturing balanced real datasets (risks contrived
+setups). Frame the paper around: (1) the testbed + measurement rigour;
+(2) static-near-optimal-on-real-catalogs with the popularity-head/
+collaborative-generalisation explanation; (3) the synthetic boundary
+showing adaptivity is learnable and wins when the structure demands it;
+(4) efficiency as the real-world value. ONE remaining clean real test that
+could still show a win: YELP MULTI-CITY (cities are size-balanced AND
+geographically disjoint, unlike size-skewed Amazon categories) — but it
+needs a manual signup download (USER ACTION).
