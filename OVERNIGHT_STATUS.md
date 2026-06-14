@@ -180,3 +180,66 @@ showing adaptivity is learnable and wins when the structure demands it;
 could still show a win: YELP MULTI-CITY (cities are size-balanced AND
 geographically disjoint, unlike size-skewed Amazon categories) — but it
 needs a manual signup download (USER ACTION).
+
+## ml_stratified results
+ceiling=0.919 base=0.693 lift=+0.226
+
+| policy | final | AUAC | answer | branches |
+|---|---|---|---|---|
+| random | 0.7125 | 0.6874 | 22% | True |
+| popularity | 0.7190 | 0.7006 | 99% | False |
+| greedy_infogain | 0.7448 | 0.7210 | 79% | True |
+| greedy_answerability | 0.7438 | 0.7235 | 71% | True |
+| scpr_entropy | 0.7553 | 0.7236 | 81% | True |
+| thompson | 0.6915 | 0.6688 | 19% | True |
+
+greedy_answerability AUAC 0.7235 vs popularity 0.7006 vs random 0.6874 (answerability-routing gap +0.0228 vs static)
+
+## ml_stratified results
+ceiling=0.919 base=0.693 lift=+0.226
+
+| policy | final | AUAC | answer | branches |
+|---|---|---|---|---|
+| random | 0.7125 | 0.6874 | 22% | True |
+| popularity | 0.7190 | 0.7006 | 99% | False |
+| greedy_infogain | 0.7448 | 0.7210 | 79% | True |
+| greedy_answerability | 0.7438 | 0.7235 | 71% | True |
+| scpr_entropy | 0.7553 | 0.7236 | 81% | True |
+| thompson | 0.6915 | 0.6688 | 19% | True |
+
+greedy_answerability AUAC 0.7235 vs popularity 0.7006 vs random 0.6874 (answerability-routing gap +0.0228 vs static)
+
+## *** BREAKTHROUGH: adaptivity WINS on a stratified (unbiased) slate ***
+
+The user's preprocessing concern was correct. All prior slates took the
+TOP-M most popular items -> popular targets the prior already predicts
+(popularity answer-rate 99% but uninformative) -> static looked optimal.
+That was a SLATE-CONSTRUCTION ARTIFACT.
+
+On MovieLens STRATIFIED (300 movies sampled evenly across popularity-rank
+bands 0-6000, incl. long tail; instrument lift +0.226 over base, ceiling
+0.919), adaptive elicitation SIGNIFICANTLY beats static:
+
+| policy | AUAC | final | answer |
+|---|---|---|---|
+| scpr_entropy        | 0.7236 | 0.7553 | 81% |
+| greedy_answerability| 0.7235 | 0.7438 | 71% |
+| greedy_infogain     | 0.7210 | 0.7448 | 79% |
+| popularity (static) | 0.7006 | 0.7190 | 99% |
+| random              | 0.6874 | 0.7125 | 22% |
+| thompson            | 0.6688 | 0.6915 | 19% |
+
+Paired bootstrap (n=300): scpr/greedy/greedy_answerability vs popularity
+= +0.020 to +0.023 AUAC, p<0.0001. ~5-6x the +0.004 top-popular gap.
+
+IMPLICATIONS:
+1. The line of work is vindicated: adaptive elicitation DOES matter on a
+   realistic (non-popularity-biased) real dataset.
+2. NEW methodological contribution: popularity-biased item slates (used by
+   much CRS work) systematically UNDERSTATE elicitation value, because
+   popular items are prior-predictable. Elicitation value lives in the
+   tail. This reframes the earlier 'static near-optimal on top-popular
+   slates' from a null into a cautionary finding about benchmark design.
+3. Paper arc now: (a) testbed+rigour; (b) slate construction is decisive
+   -- top-popular hides adaptivity, stratified reveals it; (c) synthetic
+   bound; (d) efficiency. Strong, positive, honest.

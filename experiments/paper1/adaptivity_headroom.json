@@ -93,5 +93,35 @@
     "adaptive_cov@10": 0.9227608713188715,
     "headroom@10": 0.6514311531685779,
     "verdict": "STRONG adaptivity headroom -> train learned policies"
+  },
+  "movielens_stratified": {
+    "n_users": 3000,
+    "n_items": 359,
+    "answer_rate_mean": 0.21547818012999073,
+    "answer_rate_std": 0.08568048263502637,
+    "pair_jaccard_answerable": 0.48033487885948667,
+    "frac_users_with_likes": 0.997,
+    "static_cov@5": 0.06860371000656885,
+    "adaptive_cov@5": 0.2604248269550242,
+    "headroom@5": 0.19182111694845538,
+    "static_cov@10": 0.12917036473050456,
+    "adaptive_cov@10": 0.4272752799946514,
+    "headroom@10": 0.29810491526414684,
+    "verdict": "MODERATE headroom -> worth training; adaptive heuristics likely help"
+  },
+  "yelp_multicity": {
+    "n_users": 3000,
+    "n_items": 648,
+    "answer_rate_mean": 0.022378600823045266,
+    "answer_rate_std": 0.01152389653574225,
+    "pair_jaccard_answerable": 0.024864116708034085,
+    "frac_users_with_likes": 0.999,
+    "static_cov@5": 0.10856180889330277,
+    "adaptive_cov@5": 0.5305793394021197,
+    "headroom@5": 0.42201753050881685,
+    "static_cov@10": 0.1632915667344912,
+    "adaptive_cov@10": 0.8605559596830016,
+    "headroom@10": 0.6972643929485104,
+    "verdict": "STRONG adaptivity headroom -> train learned policies"
   }
 }
