@@ -67,14 +67,14 @@ def oracle_action(env, prof, nm, attr_lo):
     return cands[int(np.argmax(acc))]
 
 
-def rollout_collect(env, profiles, uids, nm, attr_lo):
+def rollout_collect(env, profiles, uids, nm, attr_lo, chooser):
     import time
     X, A, aucs = [], [], []
     t0 = time.time()
     for n, uid in enumerate(uids):
         s = env.reset(profiles[uid]); accs = [env.episode_accuracy()]
         for _ in range(N_TURNS):
-            a = oracle_action(env, profiles[uid], nm, attr_lo)
+            a = chooser(env, profiles[uid])
             X.append(s.copy()); A.append(a)
             s, _, _ = env.step(a); accs.append(env.episode_accuracy())
         aucs.append(np.nanmean(accs))
@@ -118,16 +118,27 @@ def main():
     tr_prof = {int(i): train[i] for i in tr_idx}
     te_prof = {i: test[i] for i in range(min(N_TEST, len(test)))}
 
-    print(f"{NAME}: collecting oracle rollouts on {len(tr_prof)} train users (state_dim={sd})...", flush=True)
-    X, A, teacher_auac = rollout_collect(env, tr_prof, list(tr_prof), nm, attr_lo)
-    print(f"  teacher (clairvoyant attr oracle) AUAC={teacher_auac:.4f}; {len(X)} state-action pairs", flush=True)
+    # teacher: 'oracle' (clairvoyant, privileged) or 'greedy' (realizable info-gain)
+    import policies as P
+    TEACHER = os.environ.get('TEACHER', 'oracle')
+    items = [tuple(x) for x in d['items'].tolist()]
+    p_rated = (~np.isnan(train)).mean(0)
+    if TEACHER == 'greedy':
+        gp = P.GreedyInfoGainPolicy(items, p_rated); gp.reset(rng=np.random.default_rng(0))
+        chooser = lambda env, prof: gp.select(env.asked, None, env.instrument, env.revealed)
+    else:
+        chooser = lambda env, prof: oracle_action(env, prof, nm, attr_lo)
+
+    print(f"{NAME}: collecting {TEACHER} rollouts on {len(tr_prof)} train users (state_dim={sd})...", flush=True)
+    X, A, teacher_auac = rollout_collect(env, tr_prof, list(tr_prof), nm, attr_lo, chooser)
+    print(f"  teacher ({TEACHER}) AUAC={teacher_auac:.4f}; {len(X)} state-action pairs", flush=True)
 
     # split for action-prediction accuracy
     n = len(X); perm = rng.permutation(n); cut = int(0.9 * n)
     Xtr, Atr, Xva, Ava = X[perm[:cut]], A[perm[:cut]], X[perm[cut:]], A[perm[cut:]]
 
-    net = nn.Sequential(nn.Linear(sd, 512), nn.ReLU(), nn.Linear(512, 256),
-                        nn.ReLU(), nn.Linear(256, n_items))
+    from equivariant_actor import EquivariantActor
+    net = EquivariantActor(n_items, 'dual')
     opt = torch.optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
     lossf = nn.CrossEntropyLoss()
     Xtr_t, Atr_t = torch.from_numpy(Xtr), torch.from_numpy(Atr)
@@ -148,29 +159,19 @@ def main():
             print(f"  ep{ep+1} BC val action top1={top1:.3f} top5={top5:.3f}", flush=True)
     net.load_state_dict(best_state)
 
-    # greedy info-gain agreement with oracle (predictability baseline)
-    import policies as P
-    items = [tuple(x) for x in d['items'].tolist()]
-    p_rated = (~np.isnan(train)).mean(0)
-    gp = P.GreedyInfoGainPolicy(items, p_rated)
-    match = 0
-    for i in range(len(Xva)):
-        pass  # greedy needs env context; approximate via separate rollout below
-
+    out = f'C:/dev/phd/casper/experiments/paper2/distill_{NAME}_{TEACHER}.pt'
     student_auac, seqs, t1, branch = eval_policy(net, env, te_prof, list(te_prof), nm)
     torch.save({'policy_state_dict': net.state_dict(), 'state_mode': 'dual',
-                'state_dim': sd, 'n_items': n_items, 'arch': 'distill_mlp',
-                'teacher_auac': teacher_auac, 'student_auac': student_auac,
-                'bc_top1': float(best_top1)}, OUT)
-    print("\n===== DISTILLATION RESULT (held-out, test users) =====")
-    print(f"  teacher (oracle)       AUAC = {teacher_auac:.4f}")
+                'state_dim': sd, 'n_items': n_items, 'arch': 'equivariant',
+                'teacher': TEACHER, 'teacher_auac': teacher_auac,
+                'student_auac': student_auac, 'bc_top1': float(best_top1)}, out)
+    print(f"\n===== DISTILLATION RESULT ({TEACHER} teacher, held-out, test users) =====")
+    print(f"  teacher ({TEACHER})     AUAC = {teacher_auac:.4f}")
     print(f"  student (distilled)    AUAC = {student_auac:.4f}   "
           f"distinct_seqs={seqs}/{len(te_prof)} distinct_t1={t1} branches={branch}")
-    print(f"  BC oracle-action top1  = {best_top1:.3f}")
-    print(f"  reference: greedy/scpr ~0.716-0.721, popularity 0.7006, PPO 0.7192")
-    cap = (student_auac - 0.7210) / max(teacher_auac - 0.7210, 1e-6)
-    print(f"  >>> student captures {cap*100:.0f}% of (oracle - best_heuristic) gap")
-    print(f"  saved {OUT}")
+    print(f"  BC teacher-action top1 = {best_top1:.3f}")
+    print(f"  reference: greedy 0.7157, scpr 0.7210, popularity 0.7006, PPO-static 0.7192, oracle ~0.796")
+    print(f"  saved {out}")
 
 
 if __name__ == '__main__':
