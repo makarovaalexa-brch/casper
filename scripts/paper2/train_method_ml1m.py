@@ -23,7 +23,9 @@ from equivariant_actor import EquivariantActor
 
 INST = os.environ.get('INST_NAME', 'instrument_ml1m_rank')
 NPZ = os.environ.get('DATASET_NPZ', 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz')
-T = 15; N_NEG = 50; N_TRAIN = 1500; N_TEST = 300; SEED = 42
+T = 15; N_NEG = 50; SEED = 42
+N_TRAIN = int(os.environ.get('N_TRAIN', 400)); N_TEST = int(os.environ.get('N_TEST', 150))
+DEPOCHS = int(os.environ.get('DEPOCHS', 8))
 OUT = 'C:/dev/phd/casper/experiments/paper2/method_ml1m.pt'
 torch.manual_seed(SEED); np.random.seed(SEED)
 
@@ -109,15 +111,14 @@ def main():
     actor = EquivariantActor(ni, 'dual')
     opt = torch.optim.Adam(actor.parameters(), lr=1e-3, weight_decay=1e-5)
     Xt, At = torch.from_numpy(X), torch.from_numpy(A)
-    for ep in range(40):
+    for ep in range(DEPOCHS):
         actor.train(); idx = torch.randperm(len(Xt))
-        for s in range(0, len(idx), 128):
-            b = idx[s:s + 128]
+        for s in range(0, len(idx), 256):
+            b = idx[s:s + 256]
             opt.zero_grad(); F.cross_entropy(actor(Xt[b]), At[b]).backward(); opt.step()
-        if (ep + 1) % 10 == 0:
-            with torch.no_grad():
-                acc = (actor(Xt[:2000]).argmax(1) == At[:2000]).float().mean().item()
-            print(f"    ep{ep+1} train action-acc={acc:.3f}", flush=True)
+        with torch.no_grad():
+            acc = (actor(Xt[:1000]).argmax(1) == At[:1000]).float().mean().item()
+        print(f"    ep{ep+1}/{DEPOCHS} train action-acc={acc:.3f}", flush=True)
     torch.save({'actor_state_dict': actor.state_dict(), 'arch': 'equivariant',
                 'n_items': ni}, OUT)
 
