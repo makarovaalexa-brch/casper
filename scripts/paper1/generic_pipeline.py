@@ -31,6 +31,7 @@ NPZ = Path(os.environ['DATASET_NPZ']); NAME = os.environ['DATASET_NAME']
 INST = CHECKPOINT_DIR / f"instrument_{NAME}{os.environ.get('INST_TAG','')}.pt"
 N_TURNS = 15; MAX_REVEAL = 60; SEED = 42
 D_MODEL = int(os.environ.get('D_MODEL', 128)); N_EPOCHS = int(os.environ.get('EPOCHS', 60))
+PATIENCE = int(os.environ.get('PATIENCE', 12))
 np.random.seed(SEED); torch.manual_seed(SEED)
 
 
@@ -87,7 +88,7 @@ def train(train_arr, val_arr, n_items, n_targets):
         if (ep + 1) % 3 == 0:
             torch.save({'model': model.state_dict(), 'opt': opt.state_dict(), 'ep': ep,
                         'best': best, 'best_state': bs_, 'be': be}, RESUME)
-        if ep - be >= 12: break
+        if ep - be >= PATIENCE: break
     model.load_state_dict(bs_)
     torch.save({'model_state_dict': model.state_dict(), 'arch': 'dual_set_encoder',
                 'd_model': D_MODEL, 'n_heads': 4, 'n_layers': 2, 'n_items': n_items,
