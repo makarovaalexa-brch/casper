@@ -17,8 +17,9 @@ import torch.nn.functional as F
 from synthetic_sanity import DualHeadSetEncoder
 
 NAME = os.environ.get('DATASET_NAME', 'ml_stratified')
-NPZ = {'ml_stratified': 'C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz',
-       'ml1m': 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz'}[NAME]
+NPZ = os.environ.get('DATASET_NPZ') or \
+    {'ml_stratified': 'C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz',
+     'ml1m': 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz'}.get(NAME)
 from test_instrument_lib import CHECKPOINT_DIR
 INST = CHECKPOINT_DIR / f'instrument_{NAME}_rank.pt'
 MAX_REVEAL = 60; SEED = 42; D_MODEL = int(os.environ.get('D_MODEL', 128))

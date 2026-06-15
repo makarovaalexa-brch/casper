@@ -21,7 +21,8 @@ from adaptivity_headroom import headroom, verdict
 DATA = Path('C:/dev/phd/casper/data/movielens')
 ML1M = DATA / 'ml-1m'
 EXP = Path('C:/dev/phd/casper/experiments/paper1')
-OUT = DATA / 'ml1m_profiles.npz'
+SKIP_DECADES = os.environ.get('SKIP_DECADES', '') == '1'
+OUT = DATA / ('ml1m_nd_profiles.npz' if SKIP_DECADES else 'ml1m_profiles.npz')
 USE_GENOME = os.environ.get('USE_GENOME', '1') == '1'
 N_TAGS = int(os.environ.get('N_TAGS', 60))
 MIN_USER_ITEMS = 8

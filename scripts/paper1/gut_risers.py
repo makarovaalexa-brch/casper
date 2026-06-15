@@ -15,8 +15,9 @@ from test_instrument_lib import load_instrument_by_name
 
 NAME = os.environ.get('DATASET_NAME', 'ml1m')
 INST = os.environ.get('INST_NAME', f'instrument_{NAME}_rank')
-NPZ = {'ml1m': 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz',
-       'ml_stratified': 'C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz'}[NAME]
+NPZ = os.environ.get('DATASET_NPZ') or \
+    {'ml1m': 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz',
+     'ml_stratified': 'C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz'}.get(NAME)
 
 
 def main():
