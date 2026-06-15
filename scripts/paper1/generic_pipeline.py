@@ -64,7 +64,15 @@ def train(train_arr, val_arr, n_items, n_targets):
     model = DualHeadSetEncoder(n_items, d_model=128)
     opt = torch.optim.Adam(model.parameters(), lr=5e-4)
     rng = np.random.default_rng(SEED); best, bs_, be = 1e9, None, -1; t0 = time.time()
-    for ep in range(60):
+    # checkpoint-resume: survive background-job kills (save every 3 epochs)
+    RESUME = INST.with_suffix('.resume.pt')
+    start_ep = 0
+    if RESUME.exists():
+        rc = torch.load(RESUME, weights_only=False)
+        model.load_state_dict(rc['model']); opt.load_state_dict(rc['opt'])
+        start_ep = rc['ep'] + 1; best = rc['best']; bs_ = rc['best_state']; be = rc['be']
+        print(f"  RESUME from ep{start_ep} (best {best:.4f}@{be+1})", flush=True)
+    for ep in range(start_ep, 60):
         model.train()
         for bi, bp, pad, t in batch(train_arr, 64, rng):
             opt.zero_grad(); lk, rt = model(bi, bp, pad); lf(lk, rt, t).backward(); opt.step()
@@ -74,12 +82,16 @@ def train(train_arr, val_arr, n_items, n_targets):
                 lk, rt = model(bi, bp, pad); va += lf(lk, rt, t).item(); nb += 1
         va /= max(nb, 1)
         if va < best: best, bs_, be = va, {k: v.clone() for k, v in model.state_dict().items()}, ep
-        if (ep+1) % 10 == 0: print(f"    ep{ep+1} val{va:.4f} best{best:.4f}@{be+1} {time.time()-t0:.0f}s", flush=True)
+        if (ep+1) % 5 == 0: print(f"    ep{ep+1} val{va:.4f} best{best:.4f}@{be+1} {time.time()-t0:.0f}s", flush=True)
+        if (ep + 1) % 3 == 0:
+            torch.save({'model': model.state_dict(), 'opt': opt.state_dict(), 'ep': ep,
+                        'best': best, 'best_state': bs_, 'be': be}, RESUME)
         if ep - be >= 12: break
     model.load_state_dict(bs_)
     torch.save({'model_state_dict': model.state_dict(), 'arch': 'dual_set_encoder',
                 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'n_items': n_items,
                 'n_movies': n_targets, 'val_loss': best, 'config': {'dataset': NAME, 'max_reveal': MAX_REVEAL}}, INST)
+    if RESUME.exists(): RESUME.unlink()
     print(f"  train best {best:.4f}")
 
 
@@ -158,6 +170,8 @@ def main():
         print("[train]"); train(train_arr, test_arr, n_items, n_targets)
         w = load_instrument()
         print("[accept]"); acc = accept(w, test_arr, n_targets)
+        if os.environ.get('SKIP_BENCH'):
+            print(f"[bench] skipped (SKIP_BENCH); instrument ready at {INST}"); return
         print("[bench]"); res = benchmark(w, items, train_arr, test_arr, n_targets)
         # append to status
         ga = res['greedy_answerability']['auac']; pop = res['popularity']['auac']

@@ -140,6 +140,7 @@ class ElicitationEnv:
 
 NPZ_WORLDS = {
     'ml_stratified': ('C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz', 'instrument_ml_stratified'),
+    'ml1m': ('C:/dev/phd/casper/data/movielens/ml1m_profiles.npz', 'instrument_ml1m'),
     'yelp_multicity': ('C:/dev/phd/casper/data/yelp/yelp_multicity_profiles.npz', 'instrument_yelp_multicity'),
     'amazon_crossdomain': ('C:/dev/phd/casper/data/amazon/amazon_crossdomain_profiles.npz', 'instrument_amazon_crossdomain'),
 }

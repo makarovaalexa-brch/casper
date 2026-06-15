@@ -18,6 +18,7 @@ NAME = os.environ['DATASET_NAME']
 EXP = Path('C:/dev/phd/casper/experiments/paper1')
 P2 = Path('C:/dev/phd/casper/experiments/paper2')
 NPZ = {'ml_stratified': 'C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz',
+       'ml1m': 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz',
        'yelp_multicity': 'C:/dev/phd/casper/data/yelp/yelp_multicity_profiles.npz'}[NAME]
 N_TURNS = 15; SEED = 42
 
