@@ -23,8 +23,9 @@ NPZ = os.environ.get('DATASET_NPZ',
                      {'ml1m': 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz',
                       'ml_stratified': 'C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz'}[NAME])
 INST = CHECKPOINT_DIR / f'instrument_{NAME}_rank2.pt'
-D_MODEL = int(os.environ.get('D_MODEL', 256)); EPOCHS = int(os.environ.get('EPOCHS', 150))
+D_MODEL = int(os.environ.get('D_MODEL', 128)); EPOCHS = int(os.environ.get('EPOCHS', 150))
 PATIENCE = int(os.environ.get('PATIENCE', 30)); UPE = int(os.environ.get('USERS_PER_EPOCH', 8000))
+BS = int(os.environ.get('BS', 128)); EVAL_N = int(os.environ.get('EVAL_N', 200))
 MAX_REVEAL = 60; SEED = 42
 torch.manual_seed(SEED); np.random.seed(SEED)
 
@@ -129,8 +130,8 @@ def main():
     rng = np.random.default_rng(SEED); best, be = -1, -1; t0 = time.time()
     for ep in range(EPOCHS):
         model.train(); perm = rng.permutation(len(train))[:UPE]
-        for s in range(0, len(perm), 256):
-            arr = [train[i] for i in perm[s:s + 256]]
+        for s in range(0, len(perm), BS):
+            arr = [train[i] for i in perm[s:s + BS]]
             bi, bp, pad, tgt, revt, ratedm = build_batch(arr, nt, ni, rng)
             opt.zero_grad()
             lk, rt = model(bi, bp, pad)
@@ -138,12 +139,12 @@ def main():
             loss.backward(); opt.step()
         if ep % 2 and ep < EPOCHS - 1:
             continue
-        _, fn, _, fh, rn = eval_ndcg(model, test, nt, ni, n=300)
+        _, fn, _, fh, rn = eval_ndcg(model, test, nt, ni, n=EVAL_N)
         if fn > best:
             best, be = fn, ep
             torch.save({'model_state_dict': model.state_dict(), 'arch': 'rank_two_tower',
                         'd_model': D_MODEL, 'n_items': ni, 'n_movies': nt}, INST)
-        if (ep + 1) % 10 == 0:
+        if ep < 2 or (ep + 1) % 10 == 0:
             print(f"  ep{ep+1} attr-NDCG full={fn:.4f} best={best:.4f}@{be+1} {time.time()-t0:.0f}s", flush=True)
         if ep - be >= PATIENCE:
             break
