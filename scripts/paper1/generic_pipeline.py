@@ -28,8 +28,9 @@ import policies as P
 
 ROOT = Path('C:/dev/phd/casper'); EXP = ROOT / 'experiments/paper1'
 NPZ = Path(os.environ['DATASET_NPZ']); NAME = os.environ['DATASET_NAME']
-INST = CHECKPOINT_DIR / f'instrument_{NAME}.pt'
+INST = CHECKPOINT_DIR / f"instrument_{NAME}{os.environ.get('INST_TAG','')}.pt"
 N_TURNS = 15; MAX_REVEAL = 60; SEED = 42
+D_MODEL = int(os.environ.get('D_MODEL', 128)); N_EPOCHS = int(os.environ.get('EPOCHS', 60))
 np.random.seed(SEED); torch.manual_seed(SEED)
 
 
@@ -61,7 +62,7 @@ def train(train_arr, val_arr, n_items, n_targets):
         return (per*m.float()).sum()/m.float().sum().clamp(min=1) + \
                nn.functional.binary_cross_entropy_with_logits(rt, m.float())
 
-    model = DualHeadSetEncoder(n_items, d_model=128)
+    model = DualHeadSetEncoder(n_items, d_model=D_MODEL)
     opt = torch.optim.Adam(model.parameters(), lr=5e-4)
     rng = np.random.default_rng(SEED); best, bs_, be = 1e9, None, -1; t0 = time.time()
     # checkpoint-resume: survive background-job kills (save every 3 epochs)
@@ -72,7 +73,7 @@ def train(train_arr, val_arr, n_items, n_targets):
         model.load_state_dict(rc['model']); opt.load_state_dict(rc['opt'])
         start_ep = rc['ep'] + 1; best = rc['best']; bs_ = rc['best_state']; be = rc['be']
         print(f"  RESUME from ep{start_ep} (best {best:.4f}@{be+1})", flush=True)
-    for ep in range(start_ep, 60):
+    for ep in range(start_ep, N_EPOCHS):
         model.train()
         for bi, bp, pad, t in batch(train_arr, 64, rng):
             opt.zero_grad(); lk, rt = model(bi, bp, pad); lf(lk, rt, t).backward(); opt.step()
@@ -89,7 +90,7 @@ def train(train_arr, val_arr, n_items, n_targets):
         if ep - be >= 12: break
     model.load_state_dict(bs_)
     torch.save({'model_state_dict': model.state_dict(), 'arch': 'dual_set_encoder',
-                'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'n_items': n_items,
+                'd_model': D_MODEL, 'n_heads': 4, 'n_layers': 2, 'n_items': n_items,
                 'n_movies': n_targets, 'val_loss': best, 'config': {'dataset': NAME, 'max_reveal': MAX_REVEAL}}, INST)
     if RESUME.exists(): RESUME.unlink()
     print(f"  train best {best:.4f}")
