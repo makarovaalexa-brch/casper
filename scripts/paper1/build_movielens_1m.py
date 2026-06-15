@@ -46,8 +46,8 @@ def main():
 
     genres = sorted({g for gs in movies.genres for g in str(gs).split('|')
                      if g and g != '(no genres listed)'})
-    decades = sorted({f"{int(m.group(1))//10*10}s" for t in title.values()
-                      if (m := YEAR.search(str(t)))})
+    decades = [] if SKIP_DECADES else sorted({f"{int(m.group(1))//10*10}s"
+                      for t in title.values() if (m := YEAR.search(str(t)))})
     g_in = {g: n_movies + i for i, g in enumerate(genres)}
     d_in = {dd: n_movies + len(genres) + i for i, dd in enumerate(decades)}
     base_attr = n_movies + len(genres) + len(decades)
@@ -83,7 +83,7 @@ def main():
     for m in movie_idx:
         for g in movie_genres.get(m, set()):
             if g in g_in: movie_attrs[m].append(g_in[g])
-        if m in movie_decade: movie_attrs[m].append(d_in[movie_decade[m]])
+        if movie_decade.get(m) in d_in: movie_attrs[m].append(d_in[movie_decade[m]])
     for t, ms in tag_movies.items():
         for m in ms:
             if m in movie_idx: movie_attrs[m].append(t_in[t])
