@@ -109,16 +109,19 @@ def main():
     model = DualHeadSetEncoder(ni, d_model=D_MODEL)
     opt = torch.optim.Adam(model.parameters(), lr=5e-4)
     rng = np.random.default_rng(SEED)
+    UPE = int(os.environ.get('USERS_PER_EPOCH', 8000)); BS = 256
     best, bstate, be = -1, None, -1; t0 = time.time()
     for ep in range(EPOCHS):
-        model.train(); perm = rng.permutation(len(train))
-        for s in range(0, len(perm), 64):
-            arr = [train[i] for i in perm[s:s + 64]]
+        model.train(); perm = rng.permutation(len(train))[:UPE]
+        for s in range(0, len(perm), BS):
+            arr = [train[i] for i in perm[s:s + BS]]
             bi, bp, pad, tgt, revt, ratedm = build_batch(arr, nt, ni, rng)
             opt.zero_grad()
             lk, rt = model(bi, bp, pad)
             loss = liked_rank_loss(lk, tgt, revt, nt) + F.binary_cross_entropy_with_logits(rt, ratedm)
             loss.backward(); opt.step()
+        if ep % 2 and ep < EPOCHS - 1:
+            continue
         t0n, fn, t0h, fh, rn = eval_ndcg(model, test, nt, ni, n=300)
         if fn > best:
             best, bstate, be = fn, {k: v.clone() for k, v in model.state_dict().items()}, ep
