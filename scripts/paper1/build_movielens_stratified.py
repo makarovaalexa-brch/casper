@@ -15,7 +15,7 @@ earlier null was a slate-construction artifact.
 Run: poetry run python scripts/paper1/build_movielens_stratified.py
 """
 
-import sys
+import os, sys
 sys.path.insert(0, '.'); sys.path.insert(0, 'scripts/paper1')
 import json
 from collections import defaultdict
@@ -26,11 +26,15 @@ from adaptivity_headroom import headroom, verdict
 
 DATA = Path('C:/dev/phd/casper/data/movielens')
 EXP = Path('C:/dev/phd/casper/experiments/paper1')
-OUT = DATA / 'ml_stratified_profiles.npz'
+SLATE = os.environ.get('SLATE', 'stratified')
+if SLATE == 'popular':                 # user's preference: popular-movie subset
+    OUT = DATA / 'ml_popular_profiles.npz'
+    BANDS = [(0, 300, 150), (300, 800, 100), (800, 1500, 50)]  # 300 popular-head movies
+else:
+    OUT = DATA / 'ml_stratified_profiles.npz'
+    BANDS = [(0, 100, 50), (100, 400, 60), (400, 1000, 60),
+             (1000, 2500, 60), (2500, 6000, 70)]   # 300 movies, head..tail
 SEED = 42
-# popularity-rank bands -> movies sampled per band (even across the spectrum)
-BANDS = [(0, 100, 50), (100, 400, 60), (400, 1000, 60),
-         (1000, 2500, 60), (2500, 6000, 70)]   # 300 movies, head..tail
 N_TAGS = 40
 MIN_USER_ITEMS = 8
 SEED = 42
