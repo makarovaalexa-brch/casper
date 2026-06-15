@@ -42,8 +42,11 @@ def main():
     H = -(fc * np.log2(fc) + (1 - fc) * np.log2(1 - fc))       # rating entropy
     LF = np.log1p(cnt) / np.log1p(cnt.max())
     helf = 2 * LF * H / (LF + H + 1e-9)                        # harmonic mean
-    helf_order = list(np.argsort(-np.nan_to_num(helf)))
-    pop_order = list(np.argsort(-p_rated))
+    MOVIES_ONLY = os.environ.get('MOVIES_ONLY', '1') == '1'
+    keep = (lambda arr: [e for e in arr if e < nt]) if MOVIES_ONLY else (lambda arr: arr)
+    helf_order = keep(list(np.argsort(-np.nan_to_num(helf))))
+    pop_order = keep(list(np.argsort(-p_rated)))
+    cand_items = list(range(nt)) if MOVIES_ONLY else list(range(ni))
 
     # pop-matched negatives
     pop = p_rated[:nt]; dec = np.zeros(nt, int); order = np.argsort(pop)
@@ -86,19 +89,23 @@ def main():
     # selector factories (each returns a select(asked, revealed)->item over FULL catalog)
     def rand_fac():
         r = np.random.default_rng(123)
-        return lambda asked, rev: int(r.choice([i for i in range(ni) if i not in asked]))
+        return lambda asked, rev: int(r.choice([i for i in cand_items if i not in asked]))
     def order_fac(order):
         return lambda asked, rev: next((int(e) for e in order if e not in asked), None)
     def au_fac():
         def sel(asked, rev):
             p = np.asarray(w.predict_full(rev)); r = np.asarray(w.predict_rated(rev))
             score = r * p * (1 - p)
+            if MOVIES_ONLY:
+                score[nt:] = -2
             for e in asked:
                 score[e] = -1
             return int(np.argmax(score))
         return sel
     def thom_fac():
         pol = P.ThompsonPolicy(items); pol.reset(rng=np.random.default_rng(7))
+        if MOVIES_ONLY:
+            pol.cand_pool = cand_items
         return lambda asked, rev: pol.select(asked=asked, history=None, instrument=w, revealed=rev)
 
     print(f"=== APPROPRIATE baselines, full-catalog hard-LOO ({INST}, {len(cases)} users) ===")
