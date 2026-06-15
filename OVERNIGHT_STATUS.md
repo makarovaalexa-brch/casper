@@ -243,3 +243,31 @@ IMPLICATIONS:
 3. Paper arc now: (a) testbed+rigour; (b) slate construction is decisive
    -- top-popular hides adaptivity, stratified reveals it; (c) synthetic
    bound; (d) efficiency. Strong, positive, honest.
+
+## yelp_multicity results
+ceiling=0.933 base=0.781 lift=+0.153
+
+| policy | final | AUAC | answer | branches |
+|---|---|---|---|---|
+| random | 0.7707 | 0.7713 | 2% | True |
+| popularity | 0.7715 | 0.7705 | 14% | False |
+| greedy_infogain | 0.7712 | 0.7703 | 12% | True |
+| greedy_answerability | 0.7927 | 0.7812 | 17% | True |
+| scpr_entropy | 0.7801 | 0.7737 | 11% | True |
+| thompson | 0.7690 | 0.7675 | 4% | True |
+
+greedy_answerability AUAC 0.7812 vs popularity 0.7705 vs random 0.7713 (answerability-routing gap +0.0107 vs static)
+
+## ml_stratified results
+ceiling=0.919 base=0.693 lift=+0.226
+
+| policy | final | AUAC | answer | branches |
+|---|---|---|---|---|
+| random | 0.7125 | 0.6874 | 22% | True |
+| popularity | 0.7190 | 0.7006 | 99% | False |
+| greedy_infogain | 0.7448 | 0.7210 | 79% | True |
+| greedy_answerability | 0.7438 | 0.7235 | 71% | True |
+| scpr_entropy | 0.7553 | 0.7236 | 81% | True |
+| thompson | 0.6915 | 0.6688 | 19% | True |
+
+greedy_answerability AUAC 0.7235 vs popularity 0.7006 vs random 0.6874 (answerability-routing gap +0.0228 vs static)

@@ -1,0 +1,391 @@
+---MATCH---
+tion. (2) In terms of conversa-
+tion, constraining the adjacent attributes makes the dialogue more
+coherent. In linguistics, the closer the two entities are in any two
+adjacent utterances, the more coherent the conversation will be [8].
+4.1.2 Consultation. Once a reasoning step is completed, CPR moves
+to the consultation step. The purpose of this step is to decidewhether
+to ask an attribute or to recommend items, with the goal of achieving
+successful recommendations in fewest turns. We address it as a
+reinforcement learning (RL) problem. Specifically, a policy function
+π(s) is expected to make the decision based on the global dialogue
+state s, which can include any information useful for successful
+recommendation, such as the dialogue history, the information
+of candidate items.The output action space of the policy function
+contains two choices: aask or ar ec , indicating whether to perform
+top-k recommendations or to ask an attribute in this turn. If the
+RL decision is aask , we directly take highest-scored attribute from
+Pcand , where the score is sp as defined in Eq. (2). Otherwise, we
+recommend top-k items from Vcand according to the score of sv ,
+which is defined in Eq. (1).
+It is worth mentioning that our design of RL here reflects another
+major difference with existing conversational recommendation sys-
+tems EAR [ 13] and CRM [ 24]. Although they also learn policy
+networks with RL, their policy is to decide which attribute to ask ,
+rather than our choice ofwhether to ask attribute. Which means, the
+size of their action space is|P| + 1, where|P| denotes the number
+of attributes. 
+---MATCH---
+history, the information
+of candidate items.The output action space of the policy function
+contains two choices: aask or ar ec , indicating whether to perform
+top-k recommendations or to ask an attribute in this turn. If the
+RL decision is aask , we directly take highest-scored attribute from
+Pcand , where the score is sp as defined in Eq. (2). Otherwise, we
+recommend top-k items from Vcand according to the score of sv ,
+which is defined in Eq. (1).
+It is worth mentioning that our design of RL here reflects another
+major difference with existing conversational recommendation sys-
+tems EAR [ 13] and CRM [ 24]. Although they also learn policy
+networks with RL, their policy is to decide which attribute to ask ,
+rather than our choice ofwhether to ask attribute. Which means, the
+size of their action space is|P| + 1, where|P| denotes the number
+of attributes. This greatly increases the difficulty to learn the policy
+well, especially for a large|P| , since RL is notoriously difficult to
+train when the action space is large [4]. In contrast, the action space
+of our RL is of size 2, being much easier to train.
+4.1.3 Transition. The transition step will be triggered after the
+user confirms an asked attribute pt . CPR first performs walking
+from the last confirmed attribute pt−1 to pt , forming an extended
+path P = p0, p1, ...pt−1, pt . Then, we add pt to the preferred at-
+tribute setPu. Accordingly, the candidate attribute set is updated
+byPcand =AA t\(P u∪P r e j), and the candidate item set Vcand
+is updated by keeping the items that directly link to all attributes
+in the updatedPu. Note that,
+---MATCH---
+ turn. If the
+RL decision is aask , we directly take highest-scored attribute from
+Pcand , where the score is sp as defined in Eq. (2). Otherwise, we
+recommend top-k items from Vcand according to the score of sv ,
+which is defined in Eq. (1).
+It is worth mentioning that our design of RL here reflects another
+major difference with existing conversational recommendation sys-
+tems EAR [ 13] and CRM [ 24]. Although they also learn policy
+networks with RL, their policy is to decide which attribute to ask ,
+rather than our choice ofwhether to ask attribute. Which means, the
+size of their action space is|P| + 1, where|P| denotes the number
+of attributes. This greatly increases the difficulty to learn the policy
+well, especially for a large|P| , since RL is notoriously difficult to
+train when the action space is large [4]. In contrast, the action space
+of our RL is of size 2, being much easier to train.
+4.1.3 Transition. The transition step will be triggered after the
+user confirms an asked attribute pt . CPR first performs walking
+from the last confirmed attribute pt−1 to pt , forming an extended
+path P = p0, p1, ...pt−1, pt . Then, we add pt to the preferred at-
+tribute setPu. Accordingly, the candidate attribute set is updated
+byPcand =AA t\(P u∪P r e j), and the candidate item set Vcand
+is updated by keeping the items that directly link to all attributes
+in the updatedPu. Note that, if an attribute is rejected by the user,
+we just remove it from the candidate attribute set without vertex
+transition (line 9 of Algorithm 1). After the transition, our CPR
+starts the next conversation turn, re
+---MATCH---
+tly take highest-scored attribute from
+Pcand , where the score is sp as defined in Eq. (2). Otherwise, we
+recommend top-k items from Vcand according to the score of sv ,
+which is defined in Eq. (1).
+It is worth mentioning that our design of RL here reflects another
+major difference with existing conversational recommendation sys-
+tems EAR [ 13] and CRM [ 24]. Although they also learn policy
+networks with RL, their policy is to decide which attribute to ask ,
+rather than our choice ofwhether to ask attribute. Which means, the
+size of their action space is|P| + 1, where|P| denotes the number
+of attributes. This greatly increases the difficulty to learn the policy
+well, especially for a large|P| , since RL is notoriously difficult to
+train when the action space is large [4]. In contrast, the action space
+of our RL is of size 2, being much easier to train.
+4.1.3 Transition. The transition step will be triggered after the
+user confirms an asked attribute pt . CPR first performs walking
+from the last confirmed attribute pt−1 to pt , forming an extended
+path P = p0, p1, ...pt−1, pt . Then, we add pt to the preferred at-
+tribute setPu. Accordingly, the candidate attribute set is updated
+byPcand =AA t\(P u∪P r e j), and the candidate item set Vcand
+is updated by keeping the items that directly link to all attributes
+in the updatedPu. Note that, if an attribute is rejected by the user,
+we just remove it from the candidate attribute set without vertex
+transition (line 9 of Algorithm 1). After the transition, our CPR
+starts the next conversation turn, repeating the same reasoning–
+consultation–tra
+---MATCH---
+on various
+settings. Interestingly, we can find that our SCPR shows larger
+advantage in LastFM* and Yelp* datasets, showing its validity in
+practical usage with large attribute space. This also validates our
+key design in CPR. Firstly, the graph constraint helps our model to
+eliminate many irrelevant attributes to ask, this becomes especially
+helpful when there are a large number of attributes. In contrast,
+we discover that EAR has more difficulties in asking accurate
+attributes in LastFM* and Yelp*. Secondly, our framework utilizes
+a more dedicated RL model which only decides to recommend or
+to ask, hence have better chances to learn more effective policy. At
+the same time, EAR may outperform SCPR on first few rounds, but
+it falls behind in future rounds. It is due to EAR has much larger
+action space, making it challenging for them to learn effective
+strategy to recommend while asking.
+• Interestingly, Abs Greedy can achieve the best results on the first
+few turns but plunges in further turns. The reason is that Abs
+Greedy is the only method that solely attempts to recommend
+User start
+User accept !
+SCPR  Walk 
+User accept !
+SCPR  Walk 
+Turn 2
+𝑎𝑎𝑠𝑘
+Turn 3
+𝑎𝑎𝑠𝑘
+Turn 4 𝑎𝑟𝑒𝑐
+User accept !
+SCPR  Walk 
+User reject !
+User reject !
+User reject !
+User reject !
+Turn 2
+EAR 𝑎𝑎𝑠𝑘
+Turn 3
+EAR 𝑎𝑎𝑠𝑘
+EAR
+SCPR
+Target Artist
+User Init
+𝑢: 903
+american
+post-hardcore
+metal
+𝑚𝑒𝑡𝑎𝑙𝑐𝑜𝑟𝑒
+hardcore
+seen live
+canadian
+southern rock
+alternative
+𝑆𝑝𝑖𝑛𝑒𝑠ℎ𝑎𝑛𝑘
+𝑏𝑙𝑒𝑠𝑠𝑡ℎ𝑒𝑓𝑎𝑙𝑙
+𝑇ℎ𝑒 𝐴𝑔𝑜𝑛𝑖𝑠𝑡
+𝐷𝑒𝑎𝑑 𝑎𝑛𝑑 𝐷𝑖𝑣𝑖𝑛𝑒𝑆𝑤𝑜𝑟𝑛 𝐸𝑛𝑒𝑚𝑦
+Hi! I'm looking for a 
+𝑚𝑒𝑡𝑎𝑙𝑐𝑜𝑟𝑒 music artist.
+Do you like hardcore 
+music? 
+Yes! I like it!
+Do you like post-
+---MATCH---
+r illustrations on the graph (middle).
+items to user. While Abs Greedy is continuously pushing recom-
+mendation, other methods are probably consulting user’s explicit
+feedback on attributes which in turns helps reduce candidate item
+space and help the model achieve long term reward. This also vali-
+dates our core design in SCPR – utilizing user’s explicit feedback
+on attributes.
+• The two previously proposed RL-based methods, EAR and CRM
+can both outperform max entropy in Yelp and LastFM, but achieve
+lower performance than max entropy in Yelp* and LastFM*. The
+reason is that Yelp* and LastFM* have larger attribute space (590
+and 8438 than 29 and 33). According to their model design, their
+RL model is responsible for bothwhich attribute to ask and whether
+to recommend. Therefore, they have action spaces of 590+1 dimen-
+sions and 8438+1 dimensions for Yelp* and LastFM* respectively.
+Such larger action space may bring challenges to action making.
+5.4 Evaluating Key Design in SCPR (RQ2)
+The key design of our SCPR method is that we leverage on the
+adjacent attribute constraint of the graph and a more dedicated RL
+model with smaller action space. To test the effectiveness of such
+key features, we conduct additional experiments by designing a
+variant of our SCPR model, named SCPR-v. Specifically, we replace
+our policy network with the policy network in EAR. It has the same
+state vector as EAR and the action space of the policy network
+increases from 2 to|P| + 1, meaning that the policy function is also
+responsible for deciding which attribute to ask . Note that we keep
+other components unchan
+---MATCH---
+ation, other methods are probably consulting user’s explicit
+feedback on attributes which in turns helps reduce candidate item
+space and help the model achieve long term reward. This also vali-
+dates our core design in SCPR – utilizing user’s explicit feedback
+on attributes.
+• The two previously proposed RL-based methods, EAR and CRM
+can both outperform max entropy in Yelp and LastFM, but achieve
+lower performance than max entropy in Yelp* and LastFM*. The
+reason is that Yelp* and LastFM* have larger attribute space (590
+and 8438 than 29 and 33). According to their model design, their
+RL model is responsible for bothwhich attribute to ask and whether
+to recommend. Therefore, they have action spaces of 590+1 dimen-
+sions and 8438+1 dimensions for Yelp* and LastFM* respectively.
+Such larger action space may bring challenges to action making.
+5.4 Evaluating Key Design in SCPR (RQ2)
+The key design of our SCPR method is that we leverage on the
+adjacent attribute constraint of the graph and a more dedicated RL
+model with smaller action space. To test the effectiveness of such
+key features, we conduct additional experiments by designing a
+variant of our SCPR model, named SCPR-v. Specifically, we replace
+our policy network with the policy network in EAR. It has the same
+state vector as EAR and the action space of the policy network
+increases from 2 to|P| + 1, meaning that the policy function is also
+responsible for deciding which attribute to ask . Note that we keep
+other components unchanged, including our graph constraint of
+adjacent attributes. Such constraint exerts influence on our policy
+---MATCH---
+r’s explicit feedback
+on attributes.
+• The two previously proposed RL-based methods, EAR and CRM
+can both outperform max entropy in Yelp and LastFM, but achieve
+lower performance than max entropy in Yelp* and LastFM*. The
+reason is that Yelp* and LastFM* have larger attribute space (590
+and 8438 than 29 and 33). According to their model design, their
+RL model is responsible for bothwhich attribute to ask and whether
+to recommend. Therefore, they have action spaces of 590+1 dimen-
+sions and 8438+1 dimensions for Yelp* and LastFM* respectively.
+Such larger action space may bring challenges to action making.
+5.4 Evaluating Key Design in SCPR (RQ2)
+The key design of our SCPR method is that we leverage on the
+adjacent attribute constraint of the graph and a more dedicated RL
+model with smaller action space. To test the effectiveness of such
+key features, we conduct additional experiments by designing a
+variant of our SCPR model, named SCPR-v. Specifically, we replace
+our policy network with the policy network in EAR. It has the same
+state vector as EAR and the action space of the policy network
+increases from 2 to|P| + 1, meaning that the policy function is also
+responsible for deciding which attribute to ask . Note that we keep
+other components unchanged, including our graph constraint of
+adjacent attributes. Such constraint exerts influence on our policy
+function in a straightforward way: we add a condition of "being
+one adjacent attribute" to the selection of action with maximum
+value. Therefore such SCPR-v model can be seen as an intermediate
+layer between EAR and SCPR, (1) it can be se
+---MATCH---
+bute space (590
+and 8438 than 29 and 33). According to their model design, their
+RL model is responsible for bothwhich attribute to ask and whether
+to recommend. Therefore, they have action spaces of 590+1 dimen-
+sions and 8438+1 dimensions for Yelp* and LastFM* respectively.
+Such larger action space may bring challenges to action making.
+5.4 Evaluating Key Design in SCPR (RQ2)
+The key design of our SCPR method is that we leverage on the
+adjacent attribute constraint of the graph and a more dedicated RL
+model with smaller action space. To test the effectiveness of such
+key features, we conduct additional experiments by designing a
+variant of our SCPR model, named SCPR-v. Specifically, we replace
+our policy network with the policy network in EAR. It has the same
+state vector as EAR and the action space of the policy network
+increases from 2 to|P| + 1, meaning that the policy function is also
+responsible for deciding which attribute to ask . Note that we keep
+other components unchanged, including our graph constraint of
+adjacent attributes. Such constraint exerts influence on our policy
+function in a straightforward way: we add a condition of "being
+one adjacent attribute" to the selection of action with maximum
+value. Therefore such SCPR-v model can be seen as an intermediate
+layer between EAR and SCPR, (1) it can be seen as a variant of
+SCPR where its RL model is not so dedicated, (2) it can also be seen
+as a variant of EAR where the attribute asking can be helped (if
+any) by our graph constraint. We follow the same implementation
+paradigm for SCPR-v. Due to the space limitation, we on
+---MATCH---
+policy
+function in a straightforward way: we add a condition of "being
+one adjacent attribute" to the selection of action with maximum
+value. Therefore such SCPR-v model can be seen as an intermediate
+layer between EAR and SCPR, (1) it can be seen as a variant of
+SCPR where its RL model is not so dedicated, (2) it can also be seen
+as a variant of EAR where the attribute asking can be helped (if
+any) by our graph constraint. We follow the same implementation
+paradigm for SCPR-v. Due to the space limitation, we only briefly
+report the Success Rate* comparison among SCPR-v, EAR and SCPR
+on LastFM* and Yelp* datasets which are more representative.
+We have these discoveries: (1) SCPR-v has generally worse perfor-
+mance than SCPR, since it is very challenging for decision making in
+a very large action space. It validates our design in a more dedicated
+Figure 6: Success Rate* of compared methods at different
+conversation turns on LastFM* and Yelp*(RQ2).
+RL model with small action space. Interestingly we can see that
+SCPR-v has similar performance at first few turns compared with
+SCPR, but falls behind in future turns. According to instance-level
+studies, we observe the RL component of SCPR-v adopts simple
+strategies. It asks a few attributes and recommend items at earlier
+turns than SCPR. Then with fewer attributes known, it has a larger
+candidate item space, making it harder to achieve higher SR in
+longer turns. It suggests that SCPR-v with very large action space
+has difficulty learning effective strategy for long term reward. (2)
+We can see that SCPR-v has better performance than EAR. This
+---MATCH---
+ as an intermediate
+layer between EAR and SCPR, (1) it can be seen as a variant of
+SCPR where its RL model is not so dedicated, (2) it can also be seen
+as a variant of EAR where the attribute asking can be helped (if
+any) by our graph constraint. We follow the same implementation
+paradigm for SCPR-v. Due to the space limitation, we only briefly
+report the Success Rate* comparison among SCPR-v, EAR and SCPR
+on LastFM* and Yelp* datasets which are more representative.
+We have these discoveries: (1) SCPR-v has generally worse perfor-
+mance than SCPR, since it is very challenging for decision making in
+a very large action space. It validates our design in a more dedicated
+Figure 6: Success Rate* of compared methods at different
+conversation turns on LastFM* and Yelp*(RQ2).
+RL model with small action space. Interestingly we can see that
+SCPR-v has similar performance at first few turns compared with
+SCPR, but falls behind in future turns. According to instance-level
+studies, we observe the RL component of SCPR-v adopts simple
+strategies. It asks a few attributes and recommend items at earlier
+turns than SCPR. Then with fewer attributes known, it has a larger
+candidate item space, making it harder to achieve higher SR in
+longer turns. It suggests that SCPR-v with very large action space
+has difficulty learning effective strategy for long term reward. (2)
+We can see that SCPR-v has better performance than EAR. This ad-
+vantage is due to our graph constraint on attributes that eliminates
+many irrelevant attributes, making it easier for attribute choice.
+5.5 Case Study on Explainability (RQ3)
+A
+---MATCH---
+overies: (1) SCPR-v has generally worse perfor-
+mance than SCPR, since it is very challenging for decision making in
+a very large action space. It validates our design in a more dedicated
+Figure 6: Success Rate* of compared methods at different
+conversation turns on LastFM* and Yelp*(RQ2).
+RL model with small action space. Interestingly we can see that
+SCPR-v has similar performance at first few turns compared with
+SCPR, but falls behind in future turns. According to instance-level
+studies, we observe the RL component of SCPR-v adopts simple
+strategies. It asks a few attributes and recommend items at earlier
+turns than SCPR. Then with fewer attributes known, it has a larger
+candidate item space, making it harder to achieve higher SR in
+longer turns. It suggests that SCPR-v with very large action space
+has difficulty learning effective strategy for long term reward. (2)
+We can see that SCPR-v has better performance than EAR. This ad-
+vantage is due to our graph constraint on attributes that eliminates
+many irrelevant attributes, making it easier for attribute choice.
+5.5 Case Study on Explainability (RQ3)
+Aside from the superior performance on success rate and average
+turns, our CPR is also more explainable. It conducts conversational
+recommendation by walking (reasoning) on graph, resulting in a
+path of attributes. The path brings crystally clear reasoning logic
+which is naturally explainable.
+Let’s go through an example of real interaction from LastFM* in
+Figure 5. We display the conversation histories of SCPR and EAR
+on two sides of the figure, and illustrate the whole processing in
+
+---MATCH---
+ning (CPR) framework. CPR synchronizes
+conversation with the graph-based path reasoning, making the
+utilization of attribute more explicitly hence greatly improving
+explainability for conversational recommendation. Specifically, it
+tackles what item to recommend and what attribute to ask problems
+through message propagation on the graph, leveraging on the com-
+plex interaction between attributes and items in the graph to better
+rank items and attributes. Using the graph structure, a CRS only
+transits to the adjacent attribute, reducing the attribute candidate
+space and also improving the coherence of the conversation. Also,
+since the items and attributes have been ranked during the message
+propagation, the policy network only needs to decide when to ask
+and when to recommend, reducing the action space to be2. It relieves
+the modeling load of the policy network, enabling it to be more
+robust especially when the candidate space is large.
+There are many interesting problems to be explored for CPR.
+First, CPR framework itself can be further improved. For example,
+CPR does not consider how to adapt the model when the user rejects
+a recommended item. How to effectively consider such rejected
+items would be an interesting and challenging task. Second, more
+sophisticated implementation can be considered. For example, it is
+possible to build more expressive models for attribute scoring other
+than the weighted max-entropy as adopted in this paper. Currently,
+the embeddings of items and attributes do not get updated during
+the interactive training. It would be better to build a more holistic
+mode

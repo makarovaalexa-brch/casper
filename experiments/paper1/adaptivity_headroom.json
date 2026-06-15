@@ -123,5 +123,20 @@
     "adaptive_cov@10": 0.8605559596830016,
     "headroom@10": 0.6972643929485104,
     "verdict": "STRONG adaptivity headroom -> train learned policies"
+  },
+  "ml1m": {
+    "n_users": 3000,
+    "n_items": 3784,
+    "answer_rate_mean": 0.06227193446088795,
+    "answer_rate_std": 0.05281729418392527,
+    "pair_jaccard_answerable": 0.26987233174204905,
+    "frac_users_with_likes": 0.9993333333333333,
+    "static_cov@5": 0.03411364420778886,
+    "adaptive_cov@5": 0.07837022828003884,
+    "headroom@5": 0.04425658407224998,
+    "static_cov@10": 0.06435782182995814,
+    "adaptive_cov@10": 0.15357300100769888,
+    "headroom@10": 0.08921517917774074,
+    "verdict": "LOW headroom -> static near-optimal; Tier-2 training unlikely to pay"
   }
 }
