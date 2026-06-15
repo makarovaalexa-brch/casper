@@ -28,6 +28,8 @@ class BasePolicy:
     def __init__(self, items):
         self.items = items
         self.n_items = len(items)
+        self.cand_pool = None   # optional restriction of askable candidates
+                                # (standard CRS candidate pruning for large catalogs)
 
     def reset(self, rng):
         self.rng = rng
@@ -36,7 +38,8 @@ class BasePolicy:
         raise NotImplementedError
 
     def _remaining(self, asked):
-        return [i for i in range(self.n_items) if i not in asked]
+        pool = range(self.n_items) if self.cand_pool is None else self.cand_pool
+        return [i for i in pool if i not in asked]
 
 
 class RandomPolicy(BasePolicy):

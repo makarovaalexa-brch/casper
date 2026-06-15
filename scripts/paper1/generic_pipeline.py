@@ -139,9 +139,23 @@ def benchmark(w, items, train, test, n_targets):
             'greedy_answerability': lambda: P.GreedyAnswerabilityPolicy(items),
             'scpr_entropy': lambda: P.SCPREntropyPolicy(items, p_rated),
             'thompson': lambda: P.ThompsonPolicy(items)}
+    # candidate pruning for large catalogs (standard CRS): the per-candidate
+    # heuristics score only attributes + top-CAND_CAP popular movies, else they
+    # take hours at thousands of items. Applied to greedy/scpr only.
+    CAND_CAP = int(os.environ.get('CAND_CAP', 0))
+    cand_pool = None
+    if CAND_CAP and w.n_items > CAND_CAP:
+        attrs = list(range(n_targets, w.n_items))
+        top_movies = [int(m) for m in np.argsort(-p_rated[:n_targets])[:CAND_CAP]]
+        cand_pool = sorted(set(attrs) | set(top_movies))
+        print(f"  candidate pruning: {len(cand_pool)} candidates "
+              f"({len(attrs)} attrs + top-{CAND_CAP} movies)")
+    pruned = {'greedy_infogain', 'greedy_answerability', 'scpr_entropy'}
     test = test[:300]; results = {}
     for name, fac in pols.items():
         pol = fac(); logs = []
+        if cand_pool is not None and name in pruned:
+            pol.cand_pool = cand_pool
         for i, prof in enumerate(test):
             logs.append(run_episode(pol, SimulatedUser(i, prof), w, N_TURNS,
                                     np.random.default_rng((SEED*7+i) % 2**31)))
