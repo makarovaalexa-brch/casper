@@ -94,7 +94,7 @@ def main():
         rated = [i for i in np.where(prof[:nt] == 1)[0]] + [i for i in np.where(prof[:nt] == 0)[0]]
         if len(rated) < 4:
             continue
-        askable = sorted(rated, key=lambda i: pop[i])  # tail-first
+        askable = list(rng.permutation(np.array(rated)))  # random order = best headroom
         rev = []
         for a in askable[:T]:
             X.append(state_from(rev)); A.append(int(a))
