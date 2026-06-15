@@ -22,7 +22,7 @@ import policies as P
 NAME = os.environ.get('DATASET_NAME', 'ml1m')
 INST = os.environ.get('INST_NAME', f'instrument_{NAME}_rank')
 NPZ = os.environ.get('DATASET_NPZ', 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz')
-T = 15; N_NEG = 50; N_USERS = 300; SEED = 42
+T = 15; N_NEG = int(os.environ.get('N_NEG', 50)); N_USERS = 300; SEED = 42
 
 
 def hit10(scores_cand):

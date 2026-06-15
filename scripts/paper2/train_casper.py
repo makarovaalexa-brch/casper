@@ -20,7 +20,7 @@ from equivariant_actor import EquivariantActor
 NAME = os.environ.get('DATASET_NAME', 'ml_stratified')
 INST = os.environ.get('INST_NAME', f'instrument_{NAME}_rank')
 NPZ = os.environ['DATASET_NPZ']
-T = 15; N_NEG = 50; SEED = 42
+T = 15; N_NEG = int(os.environ.get('N_NEG', 50)); SEED = 42
 N_TRAIN = int(os.environ.get('N_TRAIN', 600)); N_TEST = int(os.environ.get('N_TEST', 300))
 DEPOCHS = int(os.environ.get('DEPOCHS', 12)); TOPK = int(os.environ.get('TEACHER_POOL', 200))
 OUT = f'C:/dev/phd/casper/experiments/paper2/casper_{NAME}.pt'
