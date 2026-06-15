@@ -169,6 +169,8 @@ class EpisodeLog:
     accuracy_heldout: list = field(default_factory=list)  # accuracy on targets the
                                                     # policy never directly asked
                                                     # (no target-probing free lunch)
+    ndcg: list = field(default_factory=list)        # NDCG@10 over un-asked targets
+    hit: list = field(default_factory=list)         # Hit@10 over un-asked targets
     bce: list = field(default_factory=list)
     asked_scores: list = field(default_factory=list)  # instrument's pre-question
                                                       # score for the asked entity
@@ -179,8 +181,28 @@ class EpisodeLog:
                 'answers': self.answers,
                 'accuracy': [float(a) for a in self.accuracy],
                 'accuracy_heldout': [float(a) for a in self.accuracy_heldout],
+                'ndcg': [float(a) for a in self.ndcg],
+                'hit': [float(a) for a in self.hit],
                 'bce': [float(b) for b in self.bce],
                 'asked_scores': [float(s) for s in self.asked_scores]}
+
+
+def _ndcg_hit(preds, profile, n_movies, asked, k=10):
+    """Ranking quality over UN-asked targets; relevance = liked (label==1)."""
+    cand = [i for i in range(n_movies) if i not in asked]
+    if not cand:
+        return np.nan, np.nan
+    gt = profile[:n_movies]
+    rel = np.array([1.0 if gt[i] == 1 else 0.0 for i in cand])
+    if rel.sum() == 0:
+        return np.nan, np.nan
+    p = np.array([preds[i] for i in cand])
+    order = np.argsort(-p)[:k]
+    top = rel[order]
+    dcg = (top / np.log2(np.arange(2, len(top) + 2))).sum()
+    ideal = int(min(rel.sum(), k))
+    idcg = (1.0 / np.log2(np.arange(2, ideal + 2))).sum() if ideal > 0 else 1.0
+    return float(dcg / idcg if idcg > 0 else 0.0), float(top.any())
 
 
 def _movie_metrics(preds, profile, n_movies, exclude=None):
@@ -241,6 +263,11 @@ def run_episode(policy, user, instrument, n_turns, rng):
     for p in preds_hist:
         ah, _ = _movie_metrics(p, user.profile, nm, exclude=asked_targets)
         log.accuracy_heldout.append(ah)
+    # Ranking metrics per turn (recommend from targets not yet asked).
+    for t, p in enumerate(preds_hist):
+        asked_t = set(log.questions[:t])
+        nd, ht = _ndcg_hit(p, user.profile, nm, asked_t)
+        log.ndcg.append(nd); log.hit.append(ht)
     return log
 
 
@@ -307,6 +334,8 @@ def summarize(logs, n_turns):
     """Mean per-turn curves with bootstrap CIs, AUAC, hit rate."""
     curves = []
     curves_h = []
+    curves_nd = []
+    curves_hk = []
     hits = []
     for lg in logs:
         c = lg.accuracy + [lg.accuracy[-1]] * (n_turns + 1 - len(lg.accuracy))
@@ -315,6 +344,11 @@ def summarize(logs, n_turns):
             ch = lg.accuracy_heldout + \
                 [lg.accuracy_heldout[-1]] * (n_turns + 1 - len(lg.accuracy_heldout))
             curves_h.append(ch[:n_turns + 1])
+        if lg.ndcg:
+            cn = lg.ndcg + [lg.ndcg[-1]] * (n_turns + 1 - len(lg.ndcg))
+            curves_nd.append(cn[:n_turns + 1])
+            ck = lg.hit + [lg.hit[-1]] * (n_turns + 1 - len(lg.hit))
+            curves_hk.append(ck[:n_turns + 1])
         if lg.answers:
             hits.append(np.mean([a != 'unknown' for a in lg.answers]))
     curves = np.array(curves)
@@ -352,4 +386,17 @@ def summarize(logs, n_turns):
         out['auac_heldout_ci95'] = [float(np.percentile(hauacs, 2.5)),
                                     float(np.percentile(hauacs, 97.5))]
         out['mean_curve_heldout'] = [float(x) for x in mean_h]
+    if curves_nd:
+        cn = np.array(curves_nd); ck = np.array(curves_hk)
+        mn = np.nanmean(cn, axis=0); mk = np.nanmean(ck, axis=0)
+        ndaucs = []
+        for _ in range(1000):
+            idx = rng.integers(0, len(cn), len(cn))
+            ndaucs.append(np.nanmean(cn[idx]))
+        out['auac_ndcg'] = float(np.nanmean(cn))
+        out['auac_ndcg_ci95'] = [float(np.percentile(ndaucs, 2.5)),
+                                 float(np.percentile(ndaucs, 97.5))]
+        out['turn0_ndcg'] = float(mn[0]); out['final_ndcg'] = float(mn[-1])
+        out['turn0_hit10'] = float(mk[0]); out['final_hit10'] = float(mk[-1])
+        out['mean_curve_ndcg'] = [float(x) for x in mn]
     return out
