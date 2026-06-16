@@ -21,7 +21,8 @@ NPZ = os.environ.get('DATASET_NPZ') or \
     {'ml_stratified': 'C:/dev/phd/casper/data/movielens/ml_stratified_profiles.npz',
      'ml1m': 'C:/dev/phd/casper/data/movielens/ml1m_profiles.npz'}.get(NAME)
 from test_instrument_lib import CHECKPOINT_DIR
-INST = CHECKPOINT_DIR / f'instrument_{NAME}_rank.pt'
+INST = CHECKPOINT_DIR / f"instrument_{NAME}_rank{os.environ.get('INST_SUFFIX','')}.pt"
+CAL_WEIGHT = float(os.environ.get('CAL_WEIGHT', 0))   # add BCE calibration to liked head
 MAX_REVEAL = 60; SEED = 42; D_MODEL = int(os.environ.get('D_MODEL', 128))
 EPOCHS = int(os.environ.get('EPOCHS', 80)); PATIENCE = int(os.environ.get('PATIENCE', 20))
 ATTR_REVEAL_P = 0.5     # fraction of training reveals that are attribute-only
@@ -120,6 +121,10 @@ def main():
             opt.zero_grad()
             lk, rt = model(bi, bp, pad)
             loss = liked_rank_loss(lk, tgt, revt, nt) + F.binary_cross_entropy_with_logits(rt, ratedm)
+            if CAL_WEIGHT > 0:                      # calibrate liked head so EIG/entropy is meaningful
+                m = ~torch.isnan(tgt); t0 = torch.where(m, tgt, torch.zeros_like(tgt))
+                per = F.binary_cross_entropy_with_logits(lk[:, :nt], t0, reduction='none')
+                loss = loss + CAL_WEIGHT * (per * m.float()).sum() / m.float().sum().clamp(min=1)
             loss.backward(); opt.step()
         if ep % 2 and ep < EPOCHS - 1:
             continue
