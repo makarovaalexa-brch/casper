@@ -47,11 +47,11 @@ def ndcg(score,rel,excl):
     rs=rel if isinstance(rel,set) else set(rel)
     dcg=sum(_W10[p] for p,t in enumerate(top) if int(t) in rs)
     return dcg/(_W10[:min(10,len(rs))].sum()+1e-12)
-_rs=np.random.default_rng(123)
-def split(x):
-    items=list(dict(rat_by_u[x]))
-    if len(items)<6: return None
-    il=items[:]; _rs.shuffle(il); return set(il[:len(il)//2]), set(il[len(il)//2:])  # test, profile
+SPL={}; _rs=np.random.default_rng(123)            # FIXED per-user split, precomputed once, SHARED across all methods
+for _x in keep:
+    _items=list(dict(rat_by_u[_x]))
+    if len(_items)>=6: _il=_items[:]; _rs.shuffle(_il); SPL[_x]=(set(_il[:len(_il)//2]), set(_il[len(_il)//2:]))
+def split(x): return SPL.get(x)  # test, profile
 # ---------- 1) oracle trajectories on TRAIN users ----------
 def gen_oracle(users, maxu):
     States=[]; Acts=[]

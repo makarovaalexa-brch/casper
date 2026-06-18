@@ -33,6 +33,11 @@ for x in trU:
     for j,r in rat_by_u[x]: sm+=r; c+=1
 mu=sm/c
 Q=np.load(f'{base}/.cache/Q_svd.npy'); bi=np.load(f'{base}/.cache/bi_svd.npy')
+title={}
+with open(f'{ml}/movies.dat',encoding='latin-1') as f:
+    for line in f:
+        pp=line.strip().split('::')
+        if int(pp[0]) in iids: title[iids[int(pp[0])]]=pp[1]
 pool=np.array(np.argsort(-cnt)[:POOL]); Qp=Q[pool]; Qpt=torch.tensor(Qp)
 H5=np.zeros((ni,5)); trset=set(trU)
 for k in range(len(uu)):
@@ -45,11 +50,11 @@ _W=1./np.log2(np.arange(2,12))
 def ndcg(score,rel,excl):
     s=score.copy(); s[list(excl)]=-1e9; top=np.argpartition(-s,10)[:10]; top=top[np.argsort(-s[top])]
     return sum(_W[p] for p,t in enumerate(top) if int(t) in rel)/(_W[:min(10,len(rel))].sum()+1e-12)
-_rs=np.random.default_rng(123)
-def split(x):
-    items=list(dict(rat_by_u[x]))
-    if len(items)<6: return None
-    il=items[:]; _rs.shuffle(il); return set(il[:len(il)//2]), set(il[len(il)//2:])
+SPL={}; _rs=np.random.default_rng(123)            # FIXED per-user split, precomputed once, SHARED across all methods
+for _x in keep:
+    _items=list(dict(rat_by_u[_x]))
+    if len(_items)>=6: _il=_items[:]; _rs.shuffle(_il); SPL[_x]=(set(_il[:len(_il)//2]), set(_il[len(_il)//2:]))
+def split(x): return SPL.get(x)
 class Net(nn.Module):
     def __init__(s): super().__init__(); s.f=nn.Sequential(nn.Linear(D,256),nn.ReLU(),nn.Linear(256,256),nn.ReLU(),nn.Linear(256,D))
     def forward(s,u): return s.f(u)@Qpt.t()             # logits over pool
@@ -112,7 +117,7 @@ def evalp(kind):
         if sp is None: continue
         test,prof=sp; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
         if not tlike: continue
-        nd=np.zeros(T+1); nd[0]=ndcg(popb.copy(),tlike,prof); F=[];y=[];asked=set()
+        nd=np.zeros(T+1); nd[0]=ndcg(popb.copy(),tlike,prof); F=[];y=[];asked=set(); tr_=[]
         for t in range(1,T+1):
             u=foldin(F,y)
             if kind in ('bc','rl'):
@@ -132,6 +137,8 @@ def evalp(kind):
             asked.add(k); jj=int(pool[k]); tr=(rd[jj]-mu-bi[jj]) if jj in prof else None
             if tr is not None: F.append(Q[jj]); y.append(tr)
             nd[t]=ndcg(popb+Q@foldin(F,y),tlike,prof|{int(pool[a]) for a in asked})
+            tr_.append(f"{title.get(jj,'?')[:24]}[{'L' if (jj in prof and rd[jj]>=4) else ('D' if jj in prof else 'unseen')}]")
+        if int(os.environ.get('VERBOSE',0)) and kind=='rl' and m<int(os.environ.get('VERBOSE',0)): print(f"   [rl u{x}] "+" | ".join(tr_),flush=True)
         ND+=nd; m+=1
     return ND/m,m
 print(f"\n=== TEST (pool={POOL}, {min(NEVAL,len(te))} users) ===",flush=True)
