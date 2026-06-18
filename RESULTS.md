@@ -104,3 +104,8 @@ Status key: ✅ done · 🔄 in progress · ⬜ todo · ❌ negative/failed-to-r
 | S4 | Run all elicitation baselines on the instrument | ⬜ | ⬜ | — | — |
 | S5 | Continuous-action (Wolpertinger) policy — beat baselines | ⬜ | ⬜ | — | — |
 | S6 | Naked LLM askers as baselines | ⬜ | ⬜ | — | — |
+
+## PART C — Paper B (learned policy, S5)
+| Stage | What | Script | Status | Headline | DoD? |
+|---|---|---|---|---|---|
+| B0-BC | Oracle-imitation (behaviour cloning) of the greedy oracle | scripts/paper2/policy_bc.py | ❌ (expected negative) | Frozen calibrated instrument; state=u_t; Wolpertinger query head snapped to pool. BC reaches only ~0.11 oracle-match-acc on TRAIN (≈16× chance over pool=150) and transfers to BELOW random on TEST (policy 0.304→0.243, −0.060; HELF +0.013; random −0.004). DIAGNOSIS = IMITATION GAP: the oracle is PRIVILEGED (peeks at held-out to pick the NDCG-maximizing item), so its choices are not reproducible from observable state u_t → BC can't fit them and confident-wrong picks mislead the fold-in. Oracle = good ceiling, bad teacher. NEXT: (1) RL finetune (optimize real NDCG/Recall reward from observable state = thesis Wolpertinger method); (2) realizable teacher (amortized-EIG over belief, or Golbandi tree) then imitate. | partial |

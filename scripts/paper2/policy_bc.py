@@ -40,9 +40,13 @@ for k in range(len(uu)):
 pm=H5/np.clip(H5.sum(1,keepdims=True),1,None); ent=-(pm*np.log(pm+1e-12)).sum(1)
 lf=np.log(cnt+1)/np.log(cnt.max()+1); Hn=ent/np.log(5); helf=2*lf*Hn/(lf+Hn+1e-9)
 def foldin(F,y): F=np.array(F); return np.linalg.solve(F.T@F+LAM*np.eye(D),F.T@np.array(y,np.float32)) if len(F) else np.zeros(D)
+_W10=1./np.log2(np.arange(2,12))
 def ndcg(score,rel,excl):
-    s=score.copy(); s[list(excl)]=-1e9; top=np.argsort(-s)[:10]; rs=set(rel)
-    return sum(1./np.log2(p+2) for p,t in enumerate(top) if t in rs)/(sum(1./np.log2(p+2) for p in range(min(10,len(rel))))+1e-12)
+    s=score.copy(); s[list(excl)]=-1e9
+    top=np.argpartition(-s,10)[:10]; top=top[np.argsort(-s[top])]   # top-10 sorted (argpartition = O(n))
+    rs=rel if isinstance(rel,set) else set(rel)
+    dcg=sum(_W10[p] for p,t in enumerate(top) if int(t) in rs)
+    return dcg/(_W10[:min(10,len(rs))].sum()+1e-12)
 _rs=np.random.default_rng(123)
 def split(x):
     items=list(dict(rat_by_u[x]))
