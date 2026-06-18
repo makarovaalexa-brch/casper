@@ -72,15 +72,17 @@ for x in te:
 def ndcg(score,rel,excl):
     s=score.copy(); s[list(excl)]=-1e9; top=np.argsort(-s)[:10]; rs=set(rel)
     return sum(1./np.log2(p+2) for p,t in enumerate(top) if t in rs)/ (sum(1./np.log2(p+2) for p in range(min(10,len(rel))))+1e-12)
+gcov=item_g.sum(0); ccov=(relg>THR).sum(0)                 # attribute popularity (coverage) for the 'popular' asker
 def affinities(x, prof, rd):
-    A=[]; aff=[]
+    A=[]; aff=[]; typ=[]; cov=[]
+    pr=list(prof); resid=np.array([rd[j]-mu-bi[j] for j in pr])
     for g in range(len(GEN)):
-        gi=[j for j in prof if item_g[j,g]]
-        if len(gi)>=2: A.append(gcent[g]); aff.append(np.mean([rd[j]-mu-bi[j] for j in gi]))
+        gi=[k for k,j in enumerate(pr) if item_g[j,g]]
+        if len(gi)>=2: A.append(gcent[g]); aff.append(float(resid[gi].mean())); typ.append('g'); cov.append(gcov[g])
     for c in range(len(ctags)):
-        w=relg[list(prof),c]; sw=w.sum()
-        if (w>THR).sum()>=2: A.append(ccent[c]); aff.append(float((w*np.array([rd[j]-mu-bi[j] for j in prof])).sum()/(sw+1e-9)))
-    return A,aff
+        w=relg[pr,c]
+        if (w>THR).sum()>=2: A.append(ccent[c]); aff.append(float((w*resid).sum()/(w.sum()+1e-9))); typ.append('c'); cov.append(ccov[c])
+    return A,aff,typ,cov
 def foldin(F,y): F=np.array(F); return np.linalg.solve(F.T@F+LAM*np.eye(D),F.T@np.array(y,np.float32)) if len(F) else np.zeros(D)
 def run(mode):                       # mode: 'oracle_all','oracle_gen','oracle_con','affinity_all','item_oracle'
     ND=np.zeros(T+1); m=0
@@ -100,28 +102,31 @@ def run(mode):                       # mode: 'oracle_all','oracle_gen','oracle_c
                 if best is None: nd[t:]=nd[t-1]; break
                 asked.add(best[1]); F.append(Q[best[1]]); y.append(rd[best[1]]-mu-bi[best[1]]); nd[t]=best[0]
             ND+=nd; m+=1; continue
-        A,aff=affinities(x,prof,rd)
-        if not A: ND+=nd; m+=1; continue
-        # restrict pool
-        idxs=list(range(len(A)))
-        if mode=='oracle_gen': idxs=[i for i in idxs if i<len([1 for g in range(len(GEN)) if sum(1 for j in prof if item_g[j,g])>=2])]
+        A,aff,typ,cov=affinities(x,prof,rd)
+        if 'gen' in mode: idxs=[i for i in range(len(A)) if typ[i]=='g']
+        elif 'con' in mode: idxs=[i for i in range(len(A)) if typ[i]=='c']
+        else: idxs=list(range(len(A)))
+        if not idxs: ND+=nd; m+=1; continue
         F=[];y=[];used=set()
-        if mode=='affinity_all':
-            order=sorted(idxs,key=lambda i:-abs(aff[i]))
-            for t in range(1,T+1):
-                if t-1<len(order): F.append(A[order[t-1]]); y.append(aff[order[t-1]])
-                u=foldin(F,y); nd[t]=ndcg(popb+Q@u,tlike,prof)
-        else:                         # greedy oracle over attribute pool
-            pool=idxs
+        if mode.startswith('oracle'):                 # greedy privileged selection (ceiling)
             for t in range(1,T+1):
                 best=None
-                for i in pool:
+                for i in idxs:
                     if i in used: continue
                     u=foldin(F+[A[i]],y+[aff[i]]); a=ndcg(popb+Q@u,tlike,prof)
                     if best is None or a>best[0]: best=(a,i)
                 if best is None: nd[t:]=nd[t-1]; break
                 used.add(best[1]); F.append(A[best[1]]); y.append(aff[best[1]]); nd[t]=best[0]
+        else:                                         # CHEAP realizable askers (no peeking)
+            if mode.startswith('affinity'): order=sorted(idxs,key=lambda i:-abs(aff[i]))
+            elif mode.startswith('popular'): order=sorted(idxs,key=lambda i:-cov[i])
+            else: order=idxs[:]; rng.shuffle(order)   # random
+            for t in range(1,T+1):
+                if t-1<len(order): F.append(A[order[t-1]]); y.append(aff[order[t-1]])
+                u=foldin(F,y); nd[t]=ndcg(popb+Q@u,tlike,prof)
         ND+=nd; m+=1
     return ND/m,m
-for mode in ['affinity_all','oracle_all','item_oracle']:
+print("CHEAP realizable attribute askers vs ORACLE ceiling vs item-oracle reference:\n",flush=True)
+for mode in ['random_all','popular_all','affinity_all','affinity_gen','affinity_con',
+             'oracle_gen','oracle_con','oracle_all','item_oracle']:
     nd,m=run(mode); print(f"{mode:<14} (n={m}): "+" ".join(f"{v:.3f}" for v in nd)+f"  | delta {nd[T]-nd[0]:+.3f}",flush=True)
