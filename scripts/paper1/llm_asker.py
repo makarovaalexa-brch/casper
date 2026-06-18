@@ -74,8 +74,13 @@ def llm_call(msg):
     if _client is None:
         from dotenv import load_dotenv; load_dotenv(Path('C:/dev/phd/casper/.env'))
         from openai import OpenAI; _client=OpenAI()
+    sysmsg=('You choose questions for a movie recommender meeting a NEW user. Goal: after a few yes/no questions, '
+            'recommend movies they will love. Pick the ONE movie whose like/dislike answer best DISTINGUISHES this '
+            "user's taste from other users. Prefer divisive/taste-revealing films over universally-famous ones. "
+            'IMPORTANT: if the user has NOT SEEN your recent picks, STOP asking similar movies and PIVOT to a very '
+            'different genre/era/style so you actually learn something. Reply with ONLY the menu number.')
     r=_client.chat.completions.create(model=MODEL,messages=[
-        {'role':'system','content':'You help a movie recommender choose the most informative next question for a NEW user. Reply with ONLY the menu number of the single best movie to ask about.'},
+        {'role':'system','content':sysmsg},
         {'role':'user','content':msg}],max_tokens=10,temperature=0.0)
     return r.choices[0].message.content.strip()
 stats={'calls':0,'cached':0,'parsefail':0}
@@ -85,8 +90,11 @@ def llm_pick(history, asked):
     hist = "\n".join(f"- {menu_titles[k]}: {'liked' if v==1 else ('disliked' if v==0 else 'not seen')}" for k,v in history) or "(nothing yet)"
     mlist="\n".join(f"{k+1}. {menu_titles[k]}" for k in rem)
     msg=f"User's answers so far:\n{hist}\n\nMenu (pick one NUMBER to ask about next):\n{mlist}\n\nBest next number:"
-    key=hashlib.sha256(f"{MODEL}|{msg}".encode()).hexdigest()
+    key=hashlib.sha256(f"{MODEL}|{os.environ.get('STYLE','min')}|{msg}".encode()).hexdigest()
     txt=cache_get(key)
+    if int(os.environ.get('DUMP',0)) and history and stats.get('dumped',0)<int(os.environ.get('DUMP',0)):
+        stats['dumped']=stats.get('dumped',0)+1
+        print(f"\n----- PROMPT (cached={txt is not None}) -----\n{msg}\n----- RESPONSE: {txt!r} -----\n",flush=True)
     if txt is None:
         try: txt=llm_call(msg); cache_put(key,txt); stats['calls']+=1
         except Exception as e: print("  API err:",str(e)[:80]); return int(rng.choice(rem))
@@ -100,6 +108,7 @@ def answer(x, k, prof, rd):           # leakage-free: like/dislike if in profile
     j=menu[k]
     if j in prof and j in rd: return (1 if rd[j]>=4 else 0), (rd[j]-mu-bi[j])
     return -1, None                   # not seen -> no fold
+VERBOSE=int(os.environ.get('VERBOSE',0))
 def run(kind):
     ND=np.zeros(T+1); m=0
     for x in te[:NU_LLM]:
@@ -107,7 +116,7 @@ def run(kind):
         rd=dict(rat_by_u[x]); test,prof=SPL[x]; tlike=set(j for j in test if rd[j]>=4)
         if not tlike or not prof: continue
         nd=np.zeros(T+1); nd[0]=ndcg(popb.copy(),tlike,prof)
-        F=[];y=[];asked=set();hist=[];excl=set(prof)
+        F=[];y=[];asked=set();hist=[];excl=set(prof); trace=[]
         for t in range(1,T+1):
             if kind=='llm': k=llm_pick(hist,asked)
             elif kind=='random': rem=[z for z in range(len(menu)) if z not in asked]; k=int(rng.choice(rem)) if rem else None
@@ -123,6 +132,8 @@ def run(kind):
             asked.add(k); av,tr=answer(x,k,prof,rd); hist.append((k,av)); excl.add(menu[k])
             if tr is not None: F.append(Q[menu[k]]); y.append(tr)
             u=foldin(F,y); nd[t]=ndcg(popb+Q@u,tlike,excl)
+            trace.append(f"{menu_titles[k][:28]}[{'like' if av==1 else ('dislike' if av==0 else 'UNSEEN')}]->{nd[t]:.3f}")
+        if VERBOSE and m<VERBOSE: print(f"  [{kind} u{x}] "+" | ".join(trace),flush=True)
         ND+=nd; m+=1
     return ND/m,m
 print(f"LLM asker ({MODEL}); {min(NU_LLM,len(te))} users; T={T}; menu={len(menu)} items\n",flush=True)
