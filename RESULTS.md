@@ -222,3 +222,18 @@ CEILING (NDCG@10): q0 0.284/0.064 ; fold-FULL-profile 0.334/0.165 ; infogain@8 0
 KEY: full-profile is NOT the ceiling. Realizable adaptive @8 BEATS folding the whole profile (0.355>0.334, 0.173>0.165):
 asking the right few > ingesting everything (low-signal answers dilute u). True ceiling = oracle best-SUBSET (0.508/0.333),
 far above full-profile => elicitation is a SELECTION problem; large headroom remains (0.355->0.508).
+
+### PART G+ — is the adaptive policy DEPLOYABLE? (encoder_realizable.py) [resolves "does infogain cheat?"]
+infogain_LA (look-ahead, ranks candidates by their TRUE answer = peeks before asking, NOT deployable) vs
+infogain_EIG (DEPLOYABLE: ranks by EXPECTED coverage over unknown answer using only belief p=sig(pop+q.u);
+commits to ask, THEN folds true answer; no answer-peek, no hold-out).
+| selector | FULL +gain | TAIL +gain |
+|---|---|---|
+| random | +0.038 | +0.079 |
+| helf | +0.046 | +0.066 |
+| infogain_LA (cheat) | +0.070 | +0.109 |
+| **infogain_EIG (deployable)** | **+0.072** | **+0.111** |
+| oracle (peek hold-out) | +0.197 | +0.256 |
+=> answer look-ahead worth ~0: deployable EIG == LA, both clearly beat random/helf. Adaptive win is HONEST.
+Never uses hold-out (that's oracle, far above). Remaining idealization: candidate pool = user's rated items
+(SHARED by all baselines, so comparison fair); open-catalogue "don't know" setting = next honesty check.
