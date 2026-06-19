@@ -368,3 +368,20 @@ heavier actor-critic MIGHT eke a marginal gain, but evidence is convergent. NEXT
 the open/answerable setting (PART O: items 2.1% answerable, concepts 57%+near-item info). Feature note: set-context
 (mean cand emb + predicted-like coverage) uses BELIEF over the answerable profile set, shared with EIG; no answer/test
 peek; the answerable-set assumption is removed in the open setting (next).
+
+### PART R — BEST-SHOT to beat greedy EIG (item selection): 4 methods + literature all say greedy is the frontier
+Gave the discrete item-selection policy its genuine best shot (deep-research wf_bed70454-317: 23/25 claims verified):
+- distill EIG/oracle/blend (pointwise + set-transformer attempt): MATCH EIG (PART Q).
+- REINFORCE finetune: MATCHES EIG (PART Q).
+- 2-step LOOKAHEAD PLANNING (lookahead.py; the literature's strongest "beat greedy" method, NOCTA-style, realizable
+  belief-based): FULL q8 .371=.371; TAIL q8 .193~=.194 => MATCHES EIG.
+LITERATURE (decisive for our regime): DISCRETE short-horizon active acquisition -> greedy myopic info-gain HARD to
+beat, RL only MATCHES (Blau ICML2022: RL within ~1%/SE of myopic; Bakker NeurIPS2020: greedy "nearly on-par"). What
+beats greedy elsewhere: (a) CONTINUOUS action spaces (Blau: RL 11.73 vs myopic 7.77, huge) <- continuity is the
+determinant; (b) lookahead planning (NOCTA, but its RL baselines underperform greedy); (c) GSMRL (PPO+set-transformer
++potential info-gain shaping, +13.6% but bundled w/ generative surrogate). Our REINFORCE weakness = score-function
+variance (use PPO/pathwise). CONCLUSION (rigorous, literature-backed): EIG = realizable item-SELECTION frontier;
+matching it is justifiable. The realizable WIN is in the ACTION SPACE: CONTINUITY (continuous concept actions) is where
+non-myopic policies pay off (Blau) AND where answerability lives (PART O). One method left untried: PPO+GAE+potential
+info-gain shaping+set-transformer (GSMRL recipe) - but its discrete win was bundled w/ a generative surrogate we lack;
+convergent evidence (4 methods + lit) already conclusive. NEXT = continuous concept action space (the actual novelty).
