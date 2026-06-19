@@ -197,3 +197,12 @@ factors) is WORSE than ridge-on-Q_svd (0.294<0.305 full; 0.071<0.098 tail) => th
 FOLD-IN, not better factors (factors are co-adapted to the encoder; ridge can't exploit them). Reframes earlier
 "elicitation ~flat on full ML-1M": that was the WEAK ridge fold-in; the learned reconstruction encoder extracts a
 real +0.047 on default NDCG@10. Phase A robustly validated (full + tail, mechanism isolated).
+
+### PART F — attributes in the unified encoder (encoder_attr.py)
+Encoder trained on MIXED item+genre reveals (genre token = genre-centroid + user genre-affinity), joint factors.
+| mode | FULL q0→q8 | TAIL q0→q8 |
+|---|---|---|
+| items | 0.291→0.334 (+0.043) | 0.064→0.113 (+0.049) |
+| genres | 0.291→0.302 (+0.011) | 0.064→0.073 (+0.009) |
+Unified instrument WORKS: encoder ingests genre reveals usefully (beat popularity, monotone) with NO item regression;
+items > genres (attributes coarser/lower-ceiling, consistent with attr-oracle +0.031). Items+attributes in one encoder.
