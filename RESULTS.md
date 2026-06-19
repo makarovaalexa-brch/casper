@@ -352,3 +352,19 @@ policy. PIVOT Paper B: contribution = continuous, answerability-aware CONCEPT ac
 answerable, concepts 57% + near item-level info). EIG-style selection is fine; the novelty is WHAT it asks (concepts
 in continuous space) enabling answerable elicitation items cannot. De-risked ladder worked: cheap B1 avoided chasing
 a privileged ghost. Caveat: RL/richer policy MIGHT find a small gain over EIG on items (open, low priority).
+
+### PART Q — distill + fine-tune policy on ANSWERABLE questions: matches EIG, doesn't beat (machinery validated)
+policy_v2.py (efficient: cached EIG-rollout states with eig+oracle per-candidate values; BATCHED dense value regression
++ optional REINFORCE). CORRECTS the earlier broken distiller (insufficient features). Item action space, answerable pool.
+- SANITY: distill-EIG RECOVERS EIG (full q8 .350 vs .361; tail .163 vs .172; ~on par to q4). Machinery sound
+  (earlier "can't learn EIG" was the broken feature set, as user flagged).
+- distill-ORACLE (realizable projection): full q8 .365 (~=eig .363) but tail .159 (< eig .182). distill-BLEND same.
+  => oracle's realizable projection MATCHES eig, does NOT beat => oracle +0.27 headroom is PRIVILEGED (now rigorous,
+  not a machinery artifact).
+- RL fine-tune (REINFORCE, reward=tail NDCG, init from distill-EIG): full q8 .349 / tail .160 = MATCHES eig.
+CONCLUSION: EIG (greedy info-gain) ~= realizable item-SELECTION frontier; distillation+RL all MATCH it, none beat.
+"Matching EIG = justifiable" (user). The contribution is NOT a cleverer item policy. Caveat: RL was basic REINFORCE;
+heavier actor-critic MIGHT eke a marginal gain, but evidence is convergent. NEXT (real prize): concept ACTION SPACE in
+the open/answerable setting (PART O: items 2.1% answerable, concepts 57%+near-item info). Feature note: set-context
+(mean cand emb + predicted-like coverage) uses BELIEF over the answerable profile set, shared with EIG; no answer/test
+peek; the answerable-set assumption is removed in the open setting (next).
