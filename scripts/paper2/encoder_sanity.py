@@ -77,8 +77,9 @@ def u_of(tokens):
     arr=np.zeros((1,len(tokens),D+1),np.float32); mk=np.ones((1,len(tokens)),np.float32)
     for q,(f,v) in enumerate(tokens): arr[0,q,:D]=f; arr[0,q,D]=v
     with torch.no_grad(): return enc(torch.tensor(arr),torch.tensor(mk)).numpy()[0]
+USE_POP=int(os.environ.get('USE_POP',1))
 def top(u,k=10,excl=()):
-    sc=popb+Ql@u; sc[list(excl)]=-1e9; t=np.argpartition(-sc,k)[:k]; return t[np.argsort(-sc[t])]
+    sc=(popb+Ql@u) if USE_POP else (Ql@u).copy(); sc[list(excl)]=-1e9; t=np.argpartition(-sc,k)[:k]; return t[np.argsort(-sc[t])]
 base_top=set(int(j) for j in np.argsort(-popb)[:10])
 print("\n=== (1) GENRE PURITY: %% of top-10 in genre g after folding 'like g' (baseline = MOSTPOP top-10) ===",flush=True)
 pur=[]; basef=[]

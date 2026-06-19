@@ -260,3 +260,14 @@ rmva +.033/+.063, golbandi +.057/+.031(tail HURT), EIG(deployable) +.080/+.114, 
 A3 items .291->.334(full)/.064->.113(tail) vs genres .291->.302/.064->.073. Both work, items>genres.
 A4 ceiling FULL q0 .284 / EIG@8 .364 / full-profile .338 / oracle .514 ; TAIL .064/.177/.162/.334. EIG@8 > full-profile.
 ALL KEY RESULTS HOLD under unified model+protocol. Canonical table script = scripts/paper2/paper_a_tables.py.
+
+### PART J — SANITY CHECKS expose a real weakness NDCG hid (encoder_sanity.py)
+Genre purity (top-10 in-genre after "like g"): mean 26% w/popb, 34% w/o popb (mostpop 16%). Works: Action 100/90,
+Sci-Fi 90, Drama 70, Horror 50(w/o popb), Children's 40(w/o popb). Broken: Western 0, Documentary 0, Comedy 10, Mystery 10.
+Item coherence: Star Wars->Star Wars sequels OK, but MOST films collapse to popular blockbuster cluster (Star Wars/
+Raiders/Matrix) even w/o popb => popular items have large factor norms (blockbuster attractor).
+Polarity: "like g" vs "dislike g" in-genre gap only +4pp(w/popb)/+9pp(w/o popb) => like/dislike CONFLATION partially
+present (dislike still raises genre above baseline). DIAGNOSIS: signal is real but (1) partly popb-masked (tail metric
+shows it), (2) residual blockbuster attractor in learned factors, (3) WEAK POLARITY (core blocker, not solved).
+ACTION: scope "unified understanding" claim honestly; candidate fixes = decoder debias (factor-norm) + contrastive
+polarity training. Aggregate ranking results (esp. tail) STAND; mechanism is COARSE.
