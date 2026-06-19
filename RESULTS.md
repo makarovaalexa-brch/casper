@@ -237,3 +237,16 @@ commits to ask, THEN folds true answer; no answer-peek, no hold-out).
 => answer look-ahead worth ~0: deployable EIG == LA, both clearly beat random/helf. Adaptive win is HONEST.
 Never uses hold-out (that's oracle, far above). Remaining idealization: candidate pool = user's rated items
 (SHARED by all baselines, so comparison fair); open-catalogue "don't know" setting = next honesty check.
+
+### PART H — OPEN-CATALOGUE deployability (encoder_opencatalog.py) [closes last realizability gap]
+Ask ANY of top-1200 popular items; rated->fold true answer, else "don't know" (turn consumed). Budget=q ASKED turns.
+| policy | FULL q8 (ans) | TAIL q8 (ans) |
+|---|---|---|
+| random_cat | 0.293 (0.4) | 0.078 (0.4) |
+| pop_cat | 0.310 (1.8) | 0.084 (1.8) |
+| **eig_cat (adaptive)** | **0.314 (0.5)** | **0.099 (0.5)** |
+| eig_ans (answerability-aware) | 0.301 (1.5) | 0.093 (1.5) |
+FINDINGS: (1) adaptive eig still beats random/pop even here => deployable, not a profile-pool artifact. (2) BOTTLENECK
+shifts to ANSWERABILITY: item-asking yields <1 answer per 8 questions (most "don't know"). MOTIVATES the concept/attribute
+continuous action space (always-answerable Qs) = Paper B novelty; ties to prior answerability-belief work. Caveat:
+askable set artificially small (half profile ~7 items); real histories larger => real answer-rates higher.
