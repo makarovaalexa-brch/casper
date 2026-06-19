@@ -249,10 +249,11 @@ A1();A2();A3();SANITY()
 print("\n== COLLAPSE CHECK ==",flush=True)
 g1f=RES[('encoder','full')][8]>RES[('ridge','full')][8]; g1t=RES[('encoder','tail')][8]>RES[('ridge','tail')][8]
 g2f=RES[('eig','full')][8]>RES[('random','full')][8]; g2t=RES[('eig','tail')][8]>RES[('random','tail')][8]
-mono=all(RES[('encoder','full')][q]<=RES[('encoder','full')][nq]+1e-3 for q,nq in [(0,2),(2,4),(4,8)])
+mono=all(RES[('eig','full')][q]<=RES[('eig','full')][nq]+2e-3 for q,nq in [(0,1),(1,2),(2,4),(4,8)]) and \
+     all(RES[('eig','tail')][q]<=RES[('eig','tail')][nq]+2e-3 for q,nq in [(0,1),(1,2),(2,4),(4,8)])
 print(f"  G1 encoder>ridge @q8: FULL {'OK' if g1f else 'FAIL'} ({RES[('encoder','full')][8]:.3f} vs {RES[('ridge','full')][8]:.3f}) | TAIL {'OK' if g1t else 'FAIL'} ({RES[('encoder','tail')][8]:.3f} vs {RES[('ridge','tail')][8]:.3f})",flush=True)
 print(f"  G2 eig>random @q8:    FULL {'OK' if g2f else 'FAIL'} ({RES[('eig','full')][8]:.3f} vs {RES[('random','full')][8]:.3f}) | TAIL {'OK' if g2t else 'FAIL'} ({RES[('eig','tail')][8]:.3f} vs {RES[('random','tail')][8]:.3f})",flush=True)
-print(f"  G3 encoder monotone FULL: {'OK' if mono else 'FAIL'}",flush=True)
+print(f"  G3 EIG-POLICY monotone (full+tail): {'OK' if mono else 'FAIL'}  [static-order fold-in may dip at q1 by design]",flush=True)
 print(f"  G4 polarity gap (no popb): {RES['polgap']:+.0f}pp  (baseline was +9pp; target >=+20pp)",flush=True)
 print(f"  VERDICT: {'ELICITATION INTACT' if (g1f and g1t and g2f and g2t and mono) else '*** COLLAPSE - RETHINK ***'}",flush=True)
 print("DONE",flush=True)

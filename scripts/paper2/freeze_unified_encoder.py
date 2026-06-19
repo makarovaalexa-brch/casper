@@ -33,6 +33,9 @@ with open(f'{ml}/movies.dat',encoding='latin-1') as f:
                 if g in gid: item_g[iids[m],gid[g]]=True
 gcent=np.stack([Q[np.where(item_g[:,g])[0]].mean(0) if item_g[:,g].any() else np.zeros(D) for g in range(na)]).astype(np.float32)
 resid_by_u={x:{j:(r-mu-bi[j]) for j,r in rat_by_u[x]} for x in trU}
+POS=np.mean([resid_by_u[x][j] for x in trU[:3000] for j,r in rat_by_u[x] if r>=4])   # canonical like/dislike fold values
+NEG=np.mean([resid_by_u[x][j] for x in trU[:3000] for j,r in rat_by_u[x] if r<4])
+CL=0.2; MARGIN=0.5   # CANONICAL: EXPO negatives + contrastive value-channel polarity (CL=0.2)
 def gtok(x,avail):
     out=[]
     for g in range(na):
@@ -64,6 +67,12 @@ for ep in range(30):
     rng.shuffle(trbig)
     for b0 in range(0,len(trbig),256):
         us=trbig[b0:b0+256]; kk=int(rng.integers(1,K+1)); t,m,tg,w,se=make_batch(us,kk); u=enc(t,m); sc=u@Qp.t()
-        loss=(w*nn.functional.binary_cross_entropy_with_logits(sc,tg,reduction='none')).masked_fill(se,0.).mean(); opt.zero_grad(); loss.backward(); opt.step()
+        loss=(w*nn.functional.binary_cross_entropy_with_logits(sc,tg,reduction='none')).masked_fill(se,0.).mean()
+        jt=torch.randint(0,ni,(256,)); o=torch.ones(256,1)                    # contrastive value-channel polarity
+        tp=torch.zeros(256,1,D+1); tp[:,0,:D]=Qt[jt]; tp[:,0,D]=POS
+        tm=torch.zeros(256,1,D+1); tm[:,0,:D]=Qt[jt]; tm[:,0,D]=NEG
+        up=enc(tp,o); um=enc(tm,o); diff=(Qp[jt]*up).sum(1)-(Qp[jt]*um).sum(1)
+        loss=loss+CL*torch.nn.functional.softplus(MARGIN-diff).mean()
+        opt.zero_grad(); loss.backward(); opt.step()
 torch.save(enc.state_dict(), f'{base}/.cache/enc_unified.pt'); np.save(f'{base}/.cache/Ql_unified.npy', Qp.detach().numpy())
 print(f"SAVED enc_unified.pt + Ql_unified.npy to {base}/.cache/",flush=True)
