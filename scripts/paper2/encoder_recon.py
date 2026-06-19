@@ -79,10 +79,11 @@ enc.eval(); Ql=Qcur().detach().numpy()    # learned decoder factors (== Q_svd if
 # ---------- eval: encoder vs ridge vs popularity on tail (Cremonesi head-33%) ----------
 def foldin_ridge(F,y): F=np.array(F); return np.linalg.solve(F.T@F+LAM*np.eye(D),F.T@np.array(y,np.float32)) if len(F) else np.zeros(D)
 _W=1./np.log2(np.arange(2,12))
-def tail_ndcg(u,tlike,excl,Quse):
-    sc=(popb+Quse@u).copy(); sc[list(excl)]=-1e9; sc[headmask]=-1e9
+def ndcg_at(u,tlike,excl,Quse,tailonly):
+    sc=(popb+Quse@u).copy(); sc[list(excl)]=-1e9
+    if tailonly: sc[headmask]=-1e9; rel=set(t for t in tlike if not headmask[t])
+    else: rel=set(tlike)
     top=np.argpartition(-sc,10)[:10]; top=top[np.argsort(-sc[top])]
-    rel=set(t for t in tlike if not headmask[t])
     return sum(_W[p] for p,t in enumerate(top) if int(t) in rel)/(_W[:min(10,len(rel))].sum()+1e-12) if rel else None
 def enc_u(rev):
     toks=np.zeros((1,max(len(rev),1),D+1),np.float32); msk=np.zeros((1,max(len(rev),1)),np.float32)
@@ -92,29 +93,29 @@ _rs=np.random.default_rng(123); SPL={}
 for x in te:
     items=list(dict(rat_by_u[x]))
     if len(items)>=6: il=items[:]; _rs.shuffle(il); SPL[x]=(il[:len(il)//2], il[len(il)//2:])
-def evalq(method,Qd=8,NEVAL=300):
+def evalq(method,tailonly,NEVAL=300):
     acc={q:0. for q in [0,1,2,4,8]}; m=0
     for x in te[:NEVAL]:
         if x not in SPL: continue
         test,prof=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
-        if len(prof)<4 or not any(not headmask[t] for t in tlike): continue
+        if len(prof)<4 or not tlike: continue
+        if tailonly and not any(not headmask[t] for t in tlike): continue
         order=sorted(prof,key=lambda j:-helf[j])      # same reveal order (HELF) for fair fold-in comparison
         for q in [0,1,2,4,8]:
             rev=[(j,rd[j]-mu-bi[j]) for j in order[:q]]
             if method=='pop': u=np.zeros(D); Quse=Q
             elif method=='ridge': u=foldin_ridge([Q[j] for j,_ in rev],[r for _,r in rev]) if rev else np.zeros(D); Quse=Q
+            elif method=='ridge_ql': u=foldin_ridge([Ql[j] for j,_ in rev],[r for _,r in rev]) if rev else np.zeros(D); Quse=Ql  # ridge on encoder's learned factors (isolates fold-in vs factors)
             else: u=enc_u(rev) if rev else np.zeros(D); Quse=Ql
-            v=tail_ndcg(u,tlike,set(prof),Quse)
+            v=ndcg_at(u,tlike,set(prof),Quse,tailonly)
             if v is not None: acc[q]+=v
         m+=1
     return {q:acc[q]/m for q in acc}, m
-print("\n=== GATE eval: tail-NDCG@10 (Cremonesi head-33%), HELF reveal order ===",flush=True)
-res={}
-for meth in ['pop','ridge','encoder']:
-    r,m=evalq(meth); res[meth]=r
-    print(f"  {meth:<8}: "+" ".join(f"q{q}={r[q]:.3f}" for q in [0,1,2,4,8])+f" | n={m}",flush=True)
-e,rd_=res['encoder'],res['ridge']
-print(f"\nGATE A1 (enc>ridge & >pop @q4,q8): q4 enc {e[4]:.3f} vs ridge {rd_[4]:.3f} vs pop {res['pop'][4]:.3f}; q8 enc {e[8]:.3f} vs ridge {rd_[8]:.3f}",flush=True)
-print(f"  A1 {'PASS' if e[4]>rd_[4] and e[8]>rd_[8] and e[8]>res['pop'][8] else 'FAIL'}",flush=True)
-print(f"GATE A2 (enc>ridge @q1,q2): q1 {e[1]:.3f} vs {rd_[1]:.3f}; q2 {e[2]:.3f} vs {rd_[2]:.3f} -> {'PASS' if e[1]>=rd_[1] and e[2]>=rd_[2] else 'FAIL'}",flush=True)
-print(f"GATE A3 (encoder monotone): {'PASS' if all(e[b]>=e[a]-3e-3 for a,b in zip([0,1,2,4],[1,2,4,8])) else 'FAIL'}",flush=True)
+for tailonly in [False,True]:
+    print(f"\n=== {'TAIL (Cremonesi head-33%)' if tailonly else 'FULL CATALOGUE (default)'} NDCG@10, HELF reveal order ===",flush=True)
+    res={}
+    for meth in ['pop','ridge','ridge_ql','encoder']:
+        r,m=evalq(meth,tailonly); res[meth]=r
+        print(f"  {meth:<8}: "+" ".join(f"q{q}={r[q]:.3f}" for q in [0,1,2,4,8])+f" | n={m}",flush=True)
+    e,rd_=res['encoder'],res['ridge']
+    print(f"  encoder vs ridge @q8: {e[8]:.3f} vs {rd_[8]:.3f} ({e[8]-rd_[8]:+.3f}) | enc>ridge @q4,q8: {'YES' if e[4]>rd_[4] and e[8]>rd_[8] else 'NO'}",flush=True)

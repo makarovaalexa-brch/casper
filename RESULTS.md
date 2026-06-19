@@ -183,3 +183,17 @@ offset swamped encoder + 37:1 neg imbalance -> encoder learned nothing (worse th
 (no popb) + balance pos/neg weight. KEY: frozen-Q caps encoder at ridge (optimal linear fold-in); the win needs
 JOINT factor learning (encoder's degree of freedom ridge lacks). => reconstruction/encoder-decoder premise VALIDATED
 on the long-tail task. PROCEED to Phase B (elicitation policy on reconstruction info-gain).
+
+### PART F update — encoder improves FULL distribution too (not tail-only) + fold-in-vs-factors control
+FULL-CATALOGUE NDCG@10 (default, held-out, HELF reveal order), encoder_recon.py JOINT=1:
+| method | q0 | q1 | q4 | q8 |
+|---|---|---|---|---|
+| popularity | 0.291 | 0.291 | 0.291 | 0.291 |
+| ridge (Q_svd) | 0.291 | 0.297 | 0.302 | 0.305 (+0.014) |
+| ridge (learned Q) | 0.291 | 0.292 | 0.292 | 0.294 (+0.003) |
+| **encoder (learned Q)** | 0.291 | 0.303 | 0.319 | **0.338 (+0.047)** |
+Encoder beats ridge on FULL (+0.033 @q8, ~3× ridge's gain) AND tail (+0.021). CONTROL (ridge on encoder's learned
+factors) is WORSE than ridge-on-Q_svd (0.294<0.305 full; 0.071<0.098 tail) => the gain is the NONLINEAR ATTENTION
+FOLD-IN, not better factors (factors are co-adapted to the encoder; ridge can't exploit them). Reframes earlier
+"elicitation ~flat on full ML-1M": that was the WEAK ridge fold-in; the learned reconstruction encoder extracts a
+real +0.047 on default NDCG@10. Phase A robustly validated (full + tail, mechanism isolated).
