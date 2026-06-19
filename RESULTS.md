@@ -271,3 +271,20 @@ present (dislike still raises genre above baseline). DIAGNOSIS: signal is real b
 shows it), (2) residual blockbuster attractor in learned factors, (3) WEAK POLARITY (core blocker, not solved).
 ACTION: scope "unified understanding" claim honestly; candidate fixes = decoder debias (factor-norm) + contrastive
 polarity training. Aggregate ranking results (esp. tail) STAND; mechanism is COARSE.
+
+### PART K — ROOT-CAUSE of weak polarity / blockbuster attractor / attribute coarseness (diag_representation.py)
+Base instrument = BIASED SVD on EXPLICIT ratings 1-5 (Koren 2009): r~=mu+bu+bi+p_u.q_i, SGD on real ratings. NOT 0/1 —
+it CAN distinguish like/dislike (residual like +0.67 vs dislike -1.51; dislikes carry the STRONGER signal). Flattening
+is DOWNSTREAM:
+ H1 blockbuster attractor: NOT factor norms (corr(||Q||,pop)=+0.34, norms ~flat). REAL cause = POPULARITY FLOOR:
+    std(Q@u)=0.306 vs std(beta*popb)=14.7 @beta=8 => floor ~48x personalization spread. Taste barely reorders off
+    popularity except on the tail (head masked). 
+ H2 polarity under-trained by OBJECTIVE not data: ratings 58% like/26% neutral/16% dislike; dislikes have BIGGEST
+    residual (-1.51) but the reconstruction target = LIKES ONLY => dislikes folded as input, never as down-rank targets.
+ H3 attributes are an APPENDAGE: base factors trained on ratings ONLY; genre = centroid of item factors; works only if
+    genre clusters tightly (Children's/Horror coh .40/.37 condition; Comedy/Drama/Crime coh .17/.18/.16 diffuse=weak).
+    Genome NOT in model. Contradicts the unified-embedding novelty (attrs not first-class).
+FIXES: (A) polarity = add disliked items as explicit NEGATIVE reconstruction targets (signal is there). (B) attributes
+first-class = CO-FACTORIZE items+genres+genome into one shared embedding (=realizes the novelty; fixes diffuse genres+
+genome). (C) blockbuster = learn/lower beta or debias decoder, or keep honest tail framing. Base MF is sound; flattening
+is the floor (C) + likes-only objective (A) + centroid attrs (B).
