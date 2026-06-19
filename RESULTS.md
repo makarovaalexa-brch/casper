@@ -152,3 +152,18 @@ valid realizable-ceiling estimator — earlier "realizable≈HELF→no headroom"
 trustworthy. => REALIZABLE CEILING IS OPEN on the tail, and the prize is large (+0.26). This is the regime to build
 Paper B (learned policy): dense top-10 hid everything; the long-tail/debiased lens reveals real, large elicitation +
 selection value. User's skepticism vindicated: wrong metric/regime, not a broken field.
+
+### PART E confirmation under ESTABLISHED protocols (tail_principled.py)
+Cremonesi/Koren/Turrin RecSys2010 long-tail (head = items covering X% of interaction mass; swept) — ROBUST:
+| head mass (% items) | random Δ | HELF Δ | ORACLE Δ | oracle−HELF |
+|---|---|---|---|---|
+| 20% (2.1%) | +0.043 | +0.039 | +0.270 | +0.231 |
+| 33% (4.3%) | +0.033 | +0.042 | +0.280 | +0.238 |
+| 50% (8.8%) | +0.025 | +0.029 | +0.275 | +0.246 |
+IPS-debiased Recall@10 (Schnabel ICML2016/Yang RecSys2018, full catalogue): random/HELF +0.000, oracle +0.018 (flat).
+CONCLUSION: the tail finding REPLICATES under Cremonesi's principled head/tail split, robust across cutoffs (NOT the
+arbitrary top-300). HONEST CAVEAT: IPS-over-full-catalogue is flat — reweighting scores doesn't change which items
+reach top-10 (still blockbusters); elicitation value appears ONLY when ranking IN tail space (head excluded from
+CANDIDATES = the long-tail recommendation task). SCOPED CLAIM: on the long-tail recommendation task (Cremonesi 2010),
+elicitation has large realizable value (+0.04, robust) + large oracle headroom (+0.27); on full-cat top-N it's hidden.
+This is the citable home for Paper B (learned policy) — robust prize, open realizable ceiling.
