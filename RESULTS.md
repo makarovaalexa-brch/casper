@@ -312,3 +312,17 @@ A2 selection FULL gains: random +.047, helf +.053, golbandi +.057, EIG +.093, or
 A3 items FULL .291->.338 / TAIL .064->.105 ; genres FULL .291->.304 / TAIL .064->.068.
 Genre purity 31%/51%(no popb). ALL GATES OK. EIG deployable adaptive still clear realizable winner; oracle headroom
 GREW (full .244, tail .299). Canonical model = data/.cache/enc_unified.pt (EXPO). NOTE: polarity still +10pp (open).
+
+### PART N — POLARITY SOLVED via contrastive value-channel (EXPO + CONTRA), one wrinkle
+Contrastive aux loss: same item folded as like(+) vs dislike(-) must score the item higher under like (softplus margin).
+| variant | polarity gap | enc FULL q8 | enc TAIL q8 | monotone |
+|---|---|---|---|---|
+| EXPO (no contra) | +10pp | 0.345 | 0.126 | OK |
+| +CONTRA CL=0.5 | +29pp | 0.330 | 0.105 | q2 dip |
+| +CONTRA CL=0.3 | +34pp | 0.336 | 0.114 | q2 dip |
+| +CONTRA CL=0.2 | +42pp | 0.339 | 0.116 | q2 dip |
+BREAKTHROUGH: disliking a genre now -> ~6% in-genre (BELOW 16% mostpop baseline = actively AVOIDS). First real negative
+polarity (was +9pp=conflated). Robust to CL. ONLY issue: small q2 dip (0.291->~0.278, recovers by q4) trips strict
+monotone gate; lowering CL doesn't remove it (structural to single-token contrastive). NOT a collapse (enc>ridge@q8,
+eig>random, full-profile .372 best yet). Options: (C) refine = curriculum / 2-token contrastive for clean monotone;
+(A) adopt CL=0.2 + disclose tiny dip; (B) keep pure EXPO (weak polarity). CL=0.2 dominates other CLs (best polarity+rec).
