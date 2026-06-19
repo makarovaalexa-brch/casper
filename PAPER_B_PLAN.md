@@ -69,18 +69,90 @@ On the canonical encoder (held-out, full + long-tail):
 ---
 
 ## 3. Detailed technical plan (continuous-space construction + optimization)
-> TO BE FINALISED from the deep-research pass (run `wf_dd1ba079-acb`): Wolpertinger & successors; offline-to-online RL
-> (BC/DAgger → DDPG/TD3/SAC or PPO; AWAC/IQL/CQL); reward shaping (EIG vs end-metric vs reconstruction); credit
-> assignment over short dialogues; action masking / answerability; CRS-RL action spaces & gains; diagnostics for
-> policy collapse / imitation gap. Plan, losses, gates, ablations written here with citations once research returns.
+> Grounded in deep-research run `wf_dd1ba079-acb` (23 sources, 25/25 claims verified). Citations inline.
 
-### Design skeleton (to be expanded + lit-justified)
-- **State**: encoder user vector u_t + dialogue features (turn index, asked-set summary, belief entropy).
-- **Action**: continuous proto-concept a_t ∈ R^D → snap to top-k nearest **answerable** concepts (feasible set per
-  user/turn) → critic picks (Wolpertinger).
-- **Answer model**: simulate like/dislike/don't-know from held-in profile (answerable iff ≥k relevant items).
-- **Reward**: long-tail NDCG gain (end metric) ± dense reconstruction-info-gain shaping; discounted over ≤T turns.
-- **Training**: BC/distill pretrain on EIG (±oracle) → off-policy actor-critic finetune. Per user's request, finetune
-  **separately** on reconstruction / NDCG / Recall / RMSE and compare ALL on reconstruction + every metric (head+tail);
-  **answerable-only** actions.
-- **Gates** (reuse harness): beat deployable EIG on tail NDCG; monotone; no collapse to popular/static concept.
+### 3.0 The sober prior (read this first)
+**Beating a greedy/heuristic baseline in CRS is genuinely hard.** A *non-RL* decision tree (FacT-CRS, CIKM 2022,
+arXiv:2208.14614) **beats EAR/SCPR/UNICORN/FPAN by 10–42% SR@10**. So our deployable greedy EIG (PART G+) is a
+*strong* baseline, and RL machinery alone will not beat it. The win must come from (i) **non-myopic** credit
+assignment, (ii) **exploration** over the embedding manifold, and (iii) the **concept action space** greedy can't
+search — not from "adding DDPG." Every claim of a win must be **ablated** against same-instrument + greedy.
+
+### 3.1 Architecture — Wolpertinger actor–critic over the shared embedding (construction)
+Canonical fit: **Wolpertinger** (Dulac-Arnold et al. 2015, arXiv:1512.07679) — actor emits a proto-action in a
+continuous embedding, **kNN-snaps** to valid actions in log time, scales to ~1M actions. This *is* our
+"snap-to-nearest-askable-entity."
+- **State** `s_t` = frozen-encoder user vector `u_t` ⊕ dialogue features (turn `t`, #answered, belief summary:
+  `‖u_t‖`, predicted-like entropy, asked-set pooled embedding).
+- **Actor** `μ(s_t) → a_t ∈ R^D` (MLP): a proto-concept in the *shared* embedding (item ∪ attribute ∪ concept).
+- **Feasible set** `A_t` = **answerable, unasked** entities for this user/turn (UNICORN-style preference/entropy
+  pruning of the action space, SIGIR 2021 arXiv:2105.09710). Answerability is enforced **at snap time** (mask the
+  kNN candidate pool), the cleanest encoding of "don't-know" (research open-Q; we ablate vs a reward penalty).
+- **Snap + select (robustness)**: take top-k kNN of `a_t` in `A_t`, then **pick the highest-Q candidate** — **SAVO**
+  multi-proposal selection (Sehgal et al. RLJ/RLC 2025, arXiv:2410.11833), which directly counters Wolpertinger's
+  worst failure mode: DDPG/TD3 **stuck in multimodal-Q local optima** + irregular-manifold exploration (DGRL, arXiv
+  2602.08616; DNC, ICLR 2024 arXiv:2305.19891). (Caveat: DNC/DGRL gains shown on combinatorial/logistics, **not**
+  recsys — treat as optional, validate empirically.)
+- **Critic** `Q(s_t, e)` over the *action embedding* `e` (so it generalizes across concepts, the Wolpertinger point).
+- **Action space = first-class concepts** (couples with B0): co-factorize items+attributes+concepts into ONE trained
+  space (removes the PART-K centroid appendage), so the actor *acts* and the encoder *folds in* the same space.
+
+### 3.2 Optimization — oracle-distill, then exceed greedy (training pipeline)
+Three stages; **do not** use naive BC (error compounds **quadratically** in horizon T — Ross et al. AISTATS 2011).
+1. **Teacher rollouts**: collect trajectories from the **oracle** (privileged ceiling) and the **deployable EIG**
+   (PART G+) on train users → `(s_t, action, reward)`.
+2. **Imitation pretrain via DAgger** (Ross et al. 2011), not BC: roll out the current policy, **query the oracle on
+   policy-visited states**, aggregate, retrain → error **linear** in T (no-regret). We have a queryable oracle, so
+   DAgger is directly applicable and gives a strong, distribution-matched init.
+3. **Finetune to EXCEED the (suboptimal) teacher** — two complementary options, both avoid the documented
+   "naive offline→online collapse":
+   - **AWAC** (Nair et al. 2020, arXiv:2006.09359): advantage-weighted actor updates + off-policy value learning;
+     designed exactly for "pretrain on demos → keep improving online," sample-efficient for our short dialogues.
+   - **RLIF** (Luo et al. ICLR 2024, arXiv:2311.12996): use **oracle-intervention advantage as reward**; beats DAgger
+     2–3× *especially when the expert is suboptimal* — and our EIG teacher *is* suboptimal vs the oracle. Good fit to
+     "go past greedy."
+- **Actor update = denoised regression (DBU/DGRL)**: regress the actor toward a softmax-Q-weighted target over the
+  kNN candidates; gradient variance provably **independent of |A|** (arXiv 2602.08616) → stabilizes learning in the
+  large embedding action space and dodges the local-optima trap.
+- **Imitation-gap lens**: track learner-vs-oracle gap (Weihs et al. NeurIPS 2021 privileged-info gap; Swamy et al.
+  ICML 2021 moment-matching) to know whether the gap is closable or the oracle is fundamentally privileged.
+
+### 3.3 Reward (the genuinely open question — so we ABLATE it)
+Research did **not** resolve what beats greedy for 1–10 turn horizons. Plan = potential-based shaping (keeps the
+optimum invariant) with a head-to-head ablation, per the user's request to finetune **separately** on each objective
+and compare ALL on reconstruction + every metric (NDCG/Recall/RMSE, head+tail):
+- **R1 terminal tail-NDCG** (true objective; sparse → hard credit assignment).
+- **R2 + per-turn EIG shaping** (dense; *risk*: reproduces the greedy teacher — must show it doesn't).
+- **R3 + reconstruction-info-gain shaping** (dense, our Paper-A signal).
+- **R4 RMSE-driven** (rating reconstruction).
+Compare all four variants × {reconstruction quality, NDCG, Recall, RMSE} × {head, tail}.
+
+### 3.4 Answerability (feasible-action handling)
+- **Primary**: mask the kNN candidate pool to answerable entities (UNICORN entropy/preference pruning).
+- **Ablation**: open-catalogue asking with a "don't-know" reward penalty (PART H setting) — tests deployability when
+  the answerable set is unknown. Concepts shine here (PART O: 57% answerable vs items 2.1%).
+
+### 3.5 Anti-collapse diagnostics (our own scars + research caution)
+- **Playlist collapse** (policy ignores answers → static action sequence): monitor action diversity and
+  answer-dependence; entropy bonus; the existing **collapse-gate harness** (`eval_all.py`).
+- **Reward hacking / imitation gap**: the FacT-CRS caution → require the ablation in §3.6.
+
+### 3.6 Gates & ablations (make-or-break; reuse `eval_all.py` harness)
+- **B0** first-class concepts ≥ centroid concepts (no item regression). [enables the action space]
+- **B1** a *distilled* policy (DAgger-from-oracle, discrete over the answerable set) **beats deployable EIG** on tail
+  NDCG @q{2,4,8}. [is there learnable signal beyond greedy at all? cheapest test]
+- **B2** the *continuous* Wolpertinger+SAVO actor ≥ B1 (continuous beats discrete/greedy).
+- **B3** online finetune (AWAC/RLIF) > B2; report the 4 reward variants.
+- **B4 ABLATION (decisive)**: same instrument + greedy vs + policy — the delta is the policy's contribution, *not*
+  the encoder's. If B1 already fails → **EIG is the honest contribution**; report it and stop (anti-thrash).
+- Baselines throughout: random, HELF, Golbandi, **deployable EIG**, **oracle** ceiling. Metrics: NDCG/Recall/RMSE,
+  head+tail, per #answered.
+
+### 3.7 De-risked staged ladder (one variable at a time; stop/rethink on gate failure)
+`B0 co-factorize concepts → B1 distilled discrete policy vs EIG → B2 continuous Wolpertinger+SAVO → B3 AWAC/RLIF
+finetune (4 rewards) → B4 open-concept/free-text + long-tail vs oracle`. Each step through the collapse-gate harness.
+
+### 3.8 Key references (Paper B bib seed)
+Wolpertinger (arXiv:1512.07679) · SAVO (2410.11833) · DGRL/DBU (2602.08616) · DNC (2305.19891) · AWAC (2006.09359) ·
+DAgger (Ross 2011) · RLIF (2311.12996) · imitation gap (Swamy 2021; Weihs 2021) · UNICORN (2105.09710) ·
+ConTS (2005.12979) · FacT-CRS (2208.14614) · PEBOL (RecSys 2024). [verify each before citing in the paper]
