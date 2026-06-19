@@ -288,3 +288,17 @@ FIXES: (A) polarity = add disliked items as explicit NEGATIVE reconstruction tar
 first-class = CO-FACTORIZE items+genres+genome into one shared embedding (=realizes the novelty; fixes diffuse genres+
 genome). (C) blockbuster = learn/lower beta or debias decoder, or keep honest tail framing. Base MF is sound; flattening
 is the floor (C) + likes-only objective (A) + centroid attrs (B).
+
+### PART L — three polarity/MNAR fixes, each through the collapse-gate harness (eval_all.py / eval_all_twohead.py)
+Baseline (pol0): encoder full q8 .341/full .344, tail .119/.149; polarity gap +9pp; ALL GATES OK.
+1) GENTLE weighting (known dislike == one positive): encoder full q8 .299 (<ridge .305), TAIL ok .102; polarity +16pp;
+   but q2 dips below q0 => G1-full+G3 FAIL. BORDERLINE (polarity up, monotonicity broken).
+2) EXPO (negatives weighted by exposure propensity ~popularity; MNAR/ExpoMF): encoder full q8 .345/full .362,
+   tail .126/.159 (BETTER than baseline!); genre purity 31%/51%(no popb) (baseline 34%); eig full .385/tail .191;
+   ALL GATES OK (monotone, encoder>ridge, eig>random). Polarity gap only +10pp (NOT fixed). => CLEAN WIN for the
+   recommender + blockbuster-attractor + genre conditioning; does NOT fix polarity.
+3) TWO-HEAD (exposure x preference, pref head rated-only): COLLAPSE - pref head doesn't generalise to ranking unseen
+   (full .266<q0, tail .051<q0), polarity WORSE +2pp. G1+G3 FAIL. REJECTED.
+CONCLUSION: exposure modelling (EXPO) helps the ATTRACTOR/recommender (answers "account for watched-vs-not": YES, and
+it helps) but POLARITY is a SEPARATE unsolved problem - none of the 3 reaches +20pp. Two-head (my principled guess)
+FAILED. Next polarity lever = input-side contrastive value-channel, or disclose-and-scope. EXPO = adopt candidate.
