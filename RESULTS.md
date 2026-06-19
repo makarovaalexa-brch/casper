@@ -250,3 +250,13 @@ FINDINGS: (1) adaptive eig still beats random/pop even here => deployable, not a
 shifts to ANSWERABILITY: item-asking yields <1 answer per 8 questions (most "don't know"). MOTIVATES the concept/attribute
 continuous action space (always-answerable Qs) = Paper B novelty; ties to prior answerability-belief work. Caveat:
 askable set artificially small (half profile ~7 items); real histories larger => real answer-rates higher.
+
+### PART I — CONSOLIDATED Paper A tables (paper_a_tables.py, ONE unified encoder, ONE protocol, +ItemKNN)
+A1 fold-in NDCG/Recall (FULL): mostpop .291/.088 flat; itemknn ~flat/worse (.277 full); ridge .291->.305->.326full;
+encoder .291->.341->.344full. (TAIL): itemknn .064->.096->.116; ridge .064->.098->.127; encoder .064->.119->.149.
+=> encoder best on BOTH regimes (NDCG+Recall); ItemKNN helps tail only (neighbourhoods matter only there).
+A2 selection gains (FULL/TAIL): random +.037/+.079, pop +.043/+.057, entropy +.045/+.059, helf +.050/+.065,
+rmva +.033/+.063, golbandi +.057/+.031(tail HURT), EIG(deployable) +.080/+.114, oracle +.203/+.257. EIG clear winner.
+A3 items .291->.334(full)/.064->.113(tail) vs genres .291->.302/.064->.073. Both work, items>genres.
+A4 ceiling FULL q0 .284 / EIG@8 .364 / full-profile .338 / oracle .514 ; TAIL .064/.177/.162/.334. EIG@8 > full-profile.
+ALL KEY RESULTS HOLD under unified model+protocol. Canonical table script = scripts/paper2/paper_a_tables.py.
