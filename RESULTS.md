@@ -206,3 +206,19 @@ Encoder trained on MIXED item+genre reveals (genre token = genre-centroid + user
 | genres | 0.291→0.302 (+0.011) | 0.064→0.073 (+0.009) |
 Unified instrument WORKS: encoder ingests genre reveals usefully (beat popularity, monotone) with NO item regression;
 items > genres (attributes coarser/lower-ceiling, consistent with attr-oracle +0.031). Items+attributes in one encoder.
+
+### PART G — adaptive policy + the elicitation CEILING (encoder_adaptive.py, encoder_ceiling.py)
+SELECTION panel on the encoder (q0->q8 gain), realizable adaptive = reconstruction-coverage greedy:
+| selector | FULL +gain | TAIL +gain |
+|---|---|---|
+| random | +0.037 | +0.071 |
+| helf | +0.046 | +0.066 |
+| golbandi (adaptive tree, global pop cands) | +0.048 | +0.028 (tail HURT: head candidates) |
+| **infogain (realizable adaptive)** | **+0.070** | **+0.109** |
+| oracle (peek) | +0.197 | +0.256 |
+=> FIRST realizable selector to BEAT random/static; captures ~36%(full)/43%(tail) of oracle headroom.
+
+CEILING (NDCG@10): q0 0.284/0.064 ; fold-FULL-profile 0.334/0.165 ; infogain@8 0.355/0.173 ; oracle-best-subset 0.508/0.333.
+KEY: full-profile is NOT the ceiling. Realizable adaptive @8 BEATS folding the whole profile (0.355>0.334, 0.173>0.165):
+asking the right few > ingesting everything (low-signal answers dilute u). True ceiling = oracle best-SUBSET (0.508/0.333),
+far above full-profile => elicitation is a SELECTION problem; large headroom remains (0.355->0.508).
