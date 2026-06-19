@@ -167,3 +167,19 @@ reach top-10 (still blockbusters); elicitation value appears ONLY when ranking I
 CANDIDATES = the long-tail recommendation task). SCOPED CLAIM: on the long-tail recommendation task (Cremonesi 2010),
 elicitation has large realizable value (+0.04, robust) + large oracle headroom (+0.27); on full-cat top-N it's hidden.
 This is the citable home for Paper B (learned policy) — robust prize, open realizable ceiling.
+
+## PART F — Reconstruction encoder (Paper B Phase A) — GATES PASS
+scripts/paper2/encoder_recon.py. Learned attention fold-in trained on MASKED/SHUFFLED reveals to reconstruct the
+user's UNREVEALED likes, IPS/tail-weighted (no popb crutch, balanced pos/neg). Eval = long-tail task (Cremonesi
+head-33%), HELF reveal order, vs ridge fold-in & popularity (frozen Q_svd decoder for ridge/pop).
+| method | q0 | q1 | q2 | q4 | q8 |
+|---|---|---|---|---|---|
+| popularity | 0.064 | 0.064 | 0.064 | 0.064 | 0.064 |
+| ridge fold-in | 0.064 | 0.076 | 0.073 | 0.091 | 0.098 |
+| encoder (FROZEN Q) | 0.064 | 0.065 | 0.074 | 0.077 | 0.093 | (ties ridge — ridge is optimal linear fold-in on fixed factors)
+| **encoder (JOINT Q)** | 0.064 | **0.077** | **0.085** | **0.098** | **0.119** | (BEATS ridge +21% @q8, at every q)
+GATES: A1 (enc>ridge & >pop @q4,q8) PASS; A2 (enc>ridge @q1,q2) PASS; A3 (monotone) PASS. Bugs fixed en route: popb
+offset swamped encoder + 37:1 neg imbalance -> encoder learned nothing (worse than pop); fix = train on pure Q.u
+(no popb) + balance pos/neg weight. KEY: frozen-Q caps encoder at ridge (optimal linear fold-in); the win needs
+JOINT factor learning (encoder's degree of freedom ridge lacks). => reconstruction/encoder-decoder premise VALIDATED
+on the long-tail task. PROCEED to Phase B (elicitation policy on reconstruction info-gain).
