@@ -326,3 +326,15 @@ polarity (was +9pp=conflated). Robust to CL. ONLY issue: small q2 dip (0.291->~0
 monotone gate; lowering CL doesn't remove it (structural to single-token contrastive). NOT a collapse (enc>ridge@q8,
 eig>random, full-profile .372 best yet). Options: (C) refine = curriculum / 2-token contrastive for clean monotone;
 (A) adopt CL=0.2 + disclose tiny dip; (B) keep pure EXPO (weak polarity). CL=0.2 dominates other CLs (best polarity+rec).
+
+### PART O — Paper B motivation: ANSWERABILITY x INFO-VALUE by question type (answerability_concepts.py)
+Canonical calibrated instrument (biased-SVD + pop floor), 150 held-out users, 745 genome concepts (relevance>0.5).
+(A) ANSWER-RATE if asked at random: items 2.1% (pool 3706, ~78 in reach), genres 63.3% (18, ~11), concepts 57.3%
+    (745, ~427). => item-asking ~30x less answerable than genre/concept asking (answerability bottleneck quantified).
+(B) INFO-VALUE per ANSWERED question (oracle-greedy NDCG@10): FULL q8 items .488 / concepts .479 / genres .347;
+    TAIL q8 items .356 / concepts .331 / genres .157. => items>=concepts>>genres; fine concepts ~98% of item info,
+    genres coarse (saturate by q4).
+SYNTHESIS: items = most informative but ~unanswerable (unrealizable in cold-start); genres = answerable but coarse;
+CONCEPTS = answerable (57%) AND near item-level info (.479) = the sweet spot. Concept space is large/open/continuous
+(cannot enumerate as discrete actions) => requires a CONTINUOUS embedding action space = Paper B novelty. This is the
+quantified motivation for Paper B (ask concepts not items).
