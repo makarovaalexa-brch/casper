@@ -22,6 +22,7 @@ for x in trU:
 mu=sm/c
 Q=np.load(f'{base}/.cache/Q_svd.npy'); bi=np.load(f'{base}/.cache/bi_svd.npy'); Qt=torch.tensor(Q)
 ipsw=(1.0/np.clip((cnt/max(cnt.max(),1))**0.5,1e-3,1.0)).astype(np.float32)
+expo_prop=((cnt/max(cnt.max(),1))**0.5).astype(np.float32)                    # ADOPTED: MNAR exposure-propensity negatives
 GEN=['Action','Adventure','Animation',"Children's",'Comedy','Crime','Documentary','Drama','Fantasy','Film-Noir','Horror','Musical','Mystery','Romance','Sci-Fi','Thriller','War','Western']
 gid={g:k for k,g in enumerate(GEN)}; na=len(GEN); item_g=np.zeros((ni,na),bool)
 with open(f'{ml}/movies.dat',encoding='latin-1') as f:
@@ -55,8 +56,8 @@ def make_batch(us,kk):
         posw=0.
         for j in likes_by_u[x]:
             if not seen[b,j]: tgt[b,j]=1.;wt[b,j]=ipsw[j];posw+=ipsw[j]
-        nneg=ni-int(seen[b].sum())-int(tgt[b].sum())
-        if nneg>0: wt[b][(tgt[b]==0)&(~seen[b])]=posw/nneg
+        negmask=(tgt[b]==0)&(~seen[b])
+        if negmask.any(): pw=expo_prop[negmask]; wt[b][negmask]=posw*(pw/pw.sum())   # EXPO weighting
     return torch.tensor(toks),torch.tensor(msk),torch.tensor(tgt),torch.tensor(wt),torch.tensor(seen)
 print("training canonical unified encoder...",flush=True)
 for ep in range(30):

@@ -7,6 +7,7 @@ polarity gap, item coherence). COLLAPSE CHECK gates: encoder>ridge, eig>random, 
 """
 import os, numpy as np, torch, torch.nn as nn, scipy.linalg as sla
 POLARITY=int(os.environ.get('POLARITY',0)); COFACTOR=int(os.environ.get('COFACTOR',0)); EXPO=int(os.environ.get('EXPO',0))
+CONTRA=int(os.environ.get('CONTRA',0)); CL=float(os.environ.get('CL',0.5)); MARGIN=float(os.environ.get('MARGIN',0.5))
 base='C:/dev/phd/casper/data/movielens'; ml=f'{base}/ml-1m'; D=64; LAM=5.0; K=12; rng=np.random.default_rng(0); torch.manual_seed(0)
 U,I,R=[],[],[]
 with open(f'{ml}/ratings.dat') as f:
@@ -87,7 +88,14 @@ for ep in range(30):
     rng.shuffle(trbig)
     for b0 in range(0,len(trbig),256):
         us=trbig[b0:b0+256]; kk=int(rng.integers(1,K+1)); t,m,tg,w,se=make_batch(us,kk); u=enc(t,m); sc=u@Qp.t()
-        loss=(w*nn.functional.binary_cross_entropy_with_logits(sc,tg,reduction='none')).masked_fill(se,0.).mean(); opt.zero_grad(); loss.backward(); opt.step()
+        loss=(w*nn.functional.binary_cross_entropy_with_logits(sc,tg,reduction='none')).masked_fill(se,0.).mean()
+        if CONTRA:                                                            # value-channel polarity: like must score the item higher than dislike
+            jt=torch.randint(0,ni,(256,)); o=torch.ones(256,1)
+            tp=torch.zeros(256,1,D+1); tp[:,0,:D]=Qt[jt]; tp[:,0,D]=POS
+            tm=torch.zeros(256,1,D+1); tm[:,0,:D]=Qt[jt]; tm[:,0,D]=NEG
+            up=enc(tp,o); um=enc(tm,o); diff=(Qp[jt]*up).sum(1)-(Qp[jt]*um).sum(1)
+            loss=loss+CL*torch.nn.functional.softplus(MARGIN-diff).mean()
+        opt.zero_grad(); loss.backward(); opt.step()
 enc.eval(); Ql=Qp.detach().numpy()
 _W=1./np.log2(np.arange(2,12))
 def metr(score,tlike,excl,tailonly):

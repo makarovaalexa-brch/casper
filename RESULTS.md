@@ -302,3 +302,13 @@ Baseline (pol0): encoder full q8 .341/full .344, tail .119/.149; polarity gap +9
 CONCLUSION: exposure modelling (EXPO) helps the ATTRACTOR/recommender (answers "account for watched-vs-not": YES, and
 it helps) but POLARITY is a SEPARATE unsolved problem - none of the 3 reaches +20pp. Two-head (my principled guess)
 FAILED. Next polarity lever = input-side contrastive value-channel, or disclose-and-scope. EXPO = adopt candidate.
+
+### PART M — EXPO ADOPTED as canonical instrument (exposure-propensity negatives; supersedes PART I numbers)
+Re-freeze: freeze_unified_encoder.py now uses MNAR exposure-propensity negatives. New canonical numbers:
+A1 encoder FULL q0->q8 .291->.345 (full-profile .362) | TAIL .064->.126 (.159). Recall full .102, tail .052.
+  (ridge .305/.098; itemknn flat-full/.096-tail; mostpop .291/.064). Encoder best both regimes.
+A2 selection FULL gains: random +.047, helf +.053, golbandi +.057, EIG +.093, oracle +.244 (q8 .536).
+   TAIL gains: random +.084, helf +.076, golbandi +.039, EIG +.123 (q8 .191), oracle +.299 (q8 .366).
+A3 items FULL .291->.338 / TAIL .064->.105 ; genres FULL .291->.304 / TAIL .064->.068.
+Genre purity 31%/51%(no popb). ALL GATES OK. EIG deployable adaptive still clear realizable winner; oracle headroom
+GREW (full .244, tail .299). Canonical model = data/.cache/enc_unified.pt (EXPO). NOTE: polarity still +10pp (open).
