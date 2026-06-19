@@ -132,3 +132,23 @@ scripts/paper2/dataset_probe.py (explicit) + npz_probe.py (binary-implicit profi
 Asking answerable Q's helps (e.g. Yelp +0.04); learning WHAT to ask adds ~nil realizable value. Dense=privileged gap;
 sparse/curated=no gap or saturated; genuinely-sparse Amazon=degenerate. The Paper-B negative GENERALIZES across
 ML-1M/ML-100k/LastFM/Yelp/Amazon. (Bug fixed: SGD LR too high → NaN factors → false q1=0 collapse; LR≤0.01, 0.003 for very sparse.)
+
+## PART E — THE METRIC WAS THE PROBLEM: long-tail / debiased regime (BREAKTHROUGH)
+The dense full-catalogue NDCG@10 "no realizable value / popularity-is-ceiling" conclusion was a METRIC ARTIFACT.
+Evidence: folding a user's WHOLE profile (realizable) barely moves full-cat NDCG@10 (0.291→0.326) but clearly improves
+RMSE (0.976→0.908) — personalization IS real, just invisible in a blockbuster-saturated top-10. The TRUE-oracle's
+advantage is real on ALL metrics (NDCG +0.16, Recall@50 +0.04, RMSE −0.08), NOT a top-10 gaming artifact.
+**TAIL-RESTRICTED (exclude top-300 popular), NDCG@10 (tail_probe.py, 296 users):**
+| selector | q0 | q1 | q4 | q8 | qALL |
+|---|---|---|---|---|---|
+| random | 0.039 | 0.049 | 0.057 | 0.067 | 0.093 |
+| HELF | 0.039 | 0.053 | 0.065 | 0.070 | 0.093 |
+| realizable-oracle (pv-greedy) | 0.039 | 0.049 | 0.054 | 0.065 | 0.072 |
+| **TRUE-ORACLE** | 0.039 | **0.185** | 0.279 | **0.302** | 0.297 |
+KEYS: (1) on the tail, realizable elicitation DOUBLES NDCG (0.039→0.093) — real value, visible. (2) TRUE-oracle is
+HUGE (+0.26, ~8×; +0.15 from ONE question) — enormous selection headroom, opposite of dense. (3) the pv-greedy
+"realizable-oracle" is UNRELIABLE (0.072 < HELF 0.093 — overfits the noisy profile-internal proxy), so it is NOT a
+valid realizable-ceiling estimator — earlier "realizable≈HELF→no headroom" claims that leaned on it are NOT
+trustworthy. => REALIZABLE CEILING IS OPEN on the tail, and the prize is large (+0.26). This is the regime to build
+Paper B (learned policy): dense top-10 hid everything; the long-tail/debiased lens reveals real, large elicitation +
+selection value. User's skepticism vindicated: wrong metric/regime, not a broken field.
