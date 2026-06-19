@@ -338,3 +338,17 @@ SYNTHESIS: items = most informative but ~unanswerable (unrealizable in cold-star
 CONCEPTS = answerable (57%) AND near item-level info (.479) = the sweet spot. Concept space is large/open/continuous
 (cannot enumerate as discrete actions) => requires a CONTINUOUS embedding action space = Paper B novelty. This is the
 quantified motivation for Paper B (ask concepts not items).
+
+### PART P — B1 oracle-distillation FAILS: oracle is privileged; pivot Paper B to the concept ACTION SPACE
+policy_distill.py (frozen canonical encoder, item action space, BC from teacher):
+- distill ORACLE: BC train CE 3.64 ~= ln(30) = CHANCE (cannot learn). eval full +0.014 / tail +0.028 (< random).
+  => oracle picks depend on HELD-OUT targets => NOT a function of observable belief => unimitable (imitation gap /
+  privileged info, Weihs 2021). The +0.27 oracle headroom is LARGELY UNREALIZABLE.
+- distill EIG (realizable teacher): BC CE 2.82 (fits some) but eval full +0.019 / tail +0.045, still << EIG (+0.070/
+  +0.108). Shallow feature-policy underfits EIG's encoder-lookahead. Machinery OK (EIG more imitable than oracle).
+CONCLUSION: realizable item-SELECTION frontier ~= EIG; beating it substantially is unlikely (matches FacT-CRS:
+greedy beats RL CRS methods, arXiv 2208.14614). => The realizable prize is the ACTION SPACE, not a better item
+policy. PIVOT Paper B: contribution = continuous, answerability-aware CONCEPT action space (PART O: items 2.1%
+answerable, concepts 57% + near item-level info). EIG-style selection is fine; the novelty is WHAT it asks (concepts
+in continuous space) enabling answerable elicitation items cannot. De-risked ladder worked: cheap B1 avoided chasing
+a privileged ghost. Caveat: RL/richer policy MIGHT find a small gain over EIG on items (open, low priority).
