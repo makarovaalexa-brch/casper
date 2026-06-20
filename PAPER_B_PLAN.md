@@ -202,3 +202,35 @@ add realizable value; if it doesn't, honest fallback contribution = answerabilit
 BIB seed: PEBOL(Austin/Korikov/Sanner RecSys24), RankCrit(Li/Luo/Wu/Sanner RecSys20), ConTS(TOIS21), UNICORN(SIGIR21),
 MCMIPL(2112.11775), MIMConv-UUSFF(TOIS23), iEvaLM(2305.13112), HowReliableSimulator(WWW24 2403.16416),
 Montazeralghaem25(2510.12015), Yoon-NAACL24(2403.09738), Biyik-soft-attr(2023), Wolpertinger(1512.07679), Ng99-shaping.
+
+## 5. THOROUGH RECONSTRUCTION-FIRST TEST LADDER (one variable at a time; ultrathink June 2026)
+
+### 5.0 METRIC REFRAME (foundational, confirmed T1): predict the PROFILE, not NDCG.
+PRIMARY = profile reconstruction on the TAIL: Recall@50 (un-saturated) + recon-AUC. NDCG@10/full-AUC are popularity-
+SATURATED (q0 AUC already 0.85+) and HID the signal. Per #asked AND #answered. T1 result: elicitation ~DOUBLES tail
+Recall@50 (q0 0.107 -> 0.18-0.24) => "it works". BUT realizable selection ~= random profile-restricted; oracle ~2x
+(privileged). So selection isn't the win; ANSWERABILITY + folding + direct-embedding + objective are the levers.
+
+### 5.1 BOUNDS (goalposts every test reports): FLOOR-0 (popularity prior) ; FLOOR-rand (random answerable) ;
+realizable method ; CEIL-full (fold whole profile) ; CEIL-subset (oracle best-K, peek) ; CEIL-dir (oracle best
+direction, continuous ceiling). A method "works" if > FLOOR-rand and climbs toward CEIL.
+
+### 5.2 LADDER (tail Recall@50 + recon-AUC; one variable at a time):
+T1 [DONE] metric reframe + bounds: elicitation doubles tail recall; selection~=random; oracle 2x privileged.
+T2 [RUNNING] ANSWERABILITY (open setting): item vs concept asking, Recall@50 + answer-rate. Expect concept >> item
+   (items ~2% answerable -> wasted turns; concepts ~90%). THE answerability win, on the right metric.
+T3 CONCEPT FOLDING: retrain encoder WITH genome-concept reveals (currently OOD - trained on item+genre only) and/or
+   co-factorize concepts first-class (PART K). Gate: better concept fold -> higher concept reconstruction value.
+T4 DIRECT-EMBEDDING realizable policy (USER FAVOURITE, done right): learned actor predicts a_t in R^D, folds (a_t,
+   answer(a_t)) DIRECTLY (no snap), trained on RECONSTRUCTION objective. vs concept-snap / item / CEIL-dir. Does
+   probing arbitrary directions (active taste-space search) beat discrete asking on tail recall?
+T5 ANSWERABILITY PREDICTION (USER INSIGHT): predict P(answerable | concept popularity/coverage, prior answers);
+   answerability-aware selection (info x P(answerable)). FLOOR=ignore answerability, CEIL=oracle answerability. Does
+   predicted answerability recover most of the oracle-answerability value in the open setting?
+T6 CONCEPT-EIG PRETRAIN + RL: distill concept-EIG -> PPO+GAE+potential-info-gain-shaping, RECONSTRUCTION reward. vs
+   concept-EIG. (continuity is where non-myopic RL wins, Blau22).
+T7 SYNTHESIS: best folding (T3) + best policy (T4/T6) + answerability (T5), open setting, tail Recall@50 + NDCG/RMSE.
+
+### 5.3 ARCH VARIANTS: encoder {frozen / +concept-retrained / co-factorized}; policy {random / EIG / distilled /
+learned-continuous-actor / answerability-aware}; action {snap-concept / direct-embedding}; objective {reconstruction /
+Recall / RMSE}. Each test: report all 6 bounds, gate vs FLOOR-rand and vs CEIL, commit to RESULTS.
