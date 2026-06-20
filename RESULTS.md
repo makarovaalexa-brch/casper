@@ -430,3 +430,17 @@ on train targets but don't generalize. This is the central challenge (defines th
 wf_9304dca5-3a8 running on fixes (manifold/answerability constraints, KL-to-EIG-init, ensemble/uncertainty penalties
 MOPO/MOReL, on-manifold projection, decode-validity diagnostics). Granular plan to follow. Note: differentiable env
 confirmed (pathwise trains); the open problem is regularizing against exploitation.
+
+### PART V — generative continuous actor FAILS across SOTA fixes (degeneracy, not just exploitation)
+continuous_v2.py, pathwise differentiable actor, full+tail NDCG@10/Recall@50:
+- raw (PART U): test collapses below q0 (tail .074->.060); directions off-manifold.
+- PLAS on-manifold (G2): tail .074->.076 (flat, < random .160); detector cos-to-concept 0.475 (still off-manifold).
+- PLAS + conservative manifold penalty (G4, CONS=0.5/2.0): detector cos-to-concept 0.91-0.93 (ON-manifold!) but tail
+  DECLINES .074->.057-.059 -- STILL WORSE THAN RANDOM (.160) and greedy concept-EIG (.151, PART T).
+=> KEY: even forced ON-MANIFOLD, the pathwise actor learns a DEGENERATE policy worse than random (minimizes TRAIN recon
+but doesn't generalize). Not just model-exploitation -- a degenerate-minimum collapse. Tried raw/PLAS/conservative +
+grad-clip (research-prescribed, wf_9304dca5-3a8). VERDICT: generative continuous-embedding elicitation does NOT beat
+selection here (consistent w/ lit: generation>selection unconfirmed; + our ceiling evidence continuous-oracle~=item,
+interpolation==discrete). WORKING method = discrete concept-EIG (+0.084 tail ~= item, answerable, PART T) + interpretable
+decode (PART S). Untested: proper SHAC terminal critic (my CRITIC flag was a no-op) -- addresses gradient chaos not
+degeneracy, unlikely to rescue. Paper B = concept-EIG answerability + interpretable instrument + continuous-gen NEGATIVE.
