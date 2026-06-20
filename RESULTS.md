@@ -467,3 +467,25 @@ is a SET-DEPENDENT function of the candidate pool, NOT predictable from belief u
 STRUCTURALLY INCAPABLE of replicating EIG; replication REQUIRES a candidate-SCORER. The set-context DISTILLER recovers
 EIG to 98% on FULL (0.357 vs 0.363) => model CAN learn EIG WITH the candidate set. This is the crisp, publishable reason
 continuous-GENERATION (candidate-free) cannot match SELECTION here.
+
+### PART X — HONEST TEST of the answerability selling point (user): realistic cold-start, FULL CATALOGUE, unknown items
+Setup: cold-start (empty start), ask T=8 over FULL catalogue. ITEM question answered ONLY if user actually saw it (item in
+known-half profile); CONCEPT answered if user has >=2 items in it. Canonical keep>=5, correct EIG, frozen encoder.
+FULL (MAIN) NDCG@10 q0->q8 / answers-obtained:
+  rand_item +0.047 (0.293->0.340) ans5.2  | pop_item +0.038 (->0.331) ans7.2 | eig_item +0.038 ans7.2
+  conc_pop  -0.019 (->0.274) ans8.0 DECLINE | conc_eig -0.015 (->0.278) ans8.0 DECLINE | oracle +0.314 (->0.607)
+TAIL: rand_item +0.053 (->0.141) | pop_item +0.015 (->0.103) | conc_pop/eig DECLINE (->0.058/0.062) | oracle +0.376 (->0.464)
+ORACLE PICK COMPOSITION: items=1806 concepts=594 => 25% concepts.
+VERDICT (do NOT sell as contribution): the answerability hypothesis FAILS on ML-1M.
+ (1) Items ARE answerable on dense ML-1M (popular items 7.2/8) -> no "unknown item" gap to exploit.
+ (2) REALIZABLE concept elicitation HURTS (declines below popb baseline, full+tail) -> generic concepts bias u harmfully.
+ (3) Best REALIZABLE asker = random DIVERSE items (full 0.340, tail 0.141) > popular > EIG > all concepts. Diversity wins.
+ (4) The earlier concept-EIG "+0.084" (PART T) was PRIVILEGED: it selected concepts by coverage over the user's actual
+     profile item-set (peeks at the user). With a realizable cold-start selector (coverage over generic popular ref),
+     concepts fail. So PART T was NOT realizable.
+ (5) Concepts have LATENT value (oracle uses them 25%) BUT realizable cold-start selection cannot find the good ones.
+ (6) Huge oracle headroom (full 0.61 / tail 0.46) unrealized by ANY realizable method.
+IMPLICATION: ML-1M (dense) is the WRONG testbed for the answerability/elicitation claim; popularity+CF+diverse-sampling
+already capture the realizable signal. The user's premise ("many unknown items") needs a SPARSE/large-catalogue cold-start
+dataset where items are genuinely unanswerable. Matches memory (overnight-adaptivity: collaborative generalisation
+substitutes for adaptivity on dense catalogs; sparse/cross-domain needed as demonstrator).
