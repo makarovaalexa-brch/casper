@@ -407,3 +407,16 @@ centroid = denoised direction). Verbalization bridge is ~free.
 SYNTHESIS: Paper B headline = ANSWERABILITY (concepts answerable ~57% vs items ~2%, E1 next), MECHANISM = continuous
 concept policy (reaches open concepts, INTERPRETABLE via decode, verbalizable at ~no cost). HONEST: continuous does NOT
 beat discrete on a higher ceiling; value = answerability + open-vocab reach + interpretability/deployability.
+
+### PART T — CONCEPT-EIG WORKS (validated selector + NDCG, not AUC); continuous interpolation = discrete
+CORRECTION: earlier "concept flat" used WEAK selectors (belief-shift / coverage-over-top-recs) + AUC (saturated near 1).
+With the VALIDATED EIG (expected coverage over rest-of-profile) + NDCG@10/Recall@50, profile-restricted (recon_channels.py):
+TAIL NDCG@10 q0->q8: random 0.067->0.129(+.062) | genre ->0.099(+.032) | CONCEPT-EIG ->0.151(+.084) | item-EIG ->0.166
+(+.099) | oracle ->0.395(+.328). FULL similar (item~concept~0.346, oracle 0.564).
+WINS: (1) concept-EIG WORKS = +.084 tail = ~85% of item-EIG, clearly > random/genre. (2) fine concepts (761) >> genres
+(18): +.084 vs +.032. (3) ANSWERABILITY ARGUMENT: item-EIG (+.099) needs user's items (2% answerable, unrealizable
+cold-start); concept-EIG (+.084) needs concepts (57% answerable, realizable) => concept-EIG is the realizable cold-start
+method at ~item value via an answerable channel. = Paper B headline.
+HONEST on CONTINUOUS: direct-embedding (concepts + pairwise interpolations) == discrete concepts EXACTLY (0.151=0.151);
+interpolation adds nothing on NDCG. Continuous-space value = open-concept REACH + interpretability (decode PART S), NOT
+higher NDCG on a fixed vocab. Remaining continuous-NDCG test = finer OPEN-NL concepts than the 761 tags.
