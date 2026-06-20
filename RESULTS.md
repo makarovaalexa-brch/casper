@@ -393,3 +393,17 @@ BELOW EIG (full .345<.363; tail .141<.182). => Faithfully imitating the oracle's
 because those choices are good only WITH held-out test knowledge. The better you mimic a privileged expert, the worse
 you generalize. DEFINITIVE: oracle +0.27 headroom is privileged/unreachable; EIG is the realizable frontier. (Contrast
 PART Q pointwise MLP which underfit oracle and merely matched EIG; the expressive model exposes the privilege cleanly.)
+
+### PART S — embedding->tokens DECODE works; continuous value = answerability+interpretability, NOT ceiling
+E2' PoC (embedding_query.py): direct-embedding ORACLE ~= item ORACLE (full .541~=.536, tail .361~=.349 @1; tie @4) =>
+continuous/combination directions do NOT raise the ceiling above discrete items. Continuous value is NOT expressiveness.
+E-decode (decode_concepts.py, USER IDEA): decode a learned direction by kNN over genome-tag centroids -> tag NAMES.
+(A) INTERPRETABILITY: u_full decodes to accurate NL concepts (Blade Runner fan->[neo-noir,obsession,psychological,
+stylish]; period-romance fan->[costume drama,based on a play,passionate,literature]; Fifth Element fan->[scifi cult,
+intelligent,clever]). Embedding->tokens WORKS.
+(B) VERBALIZATION COST ~= 0 (even negative): fold raw u_full direction vs fold nearest ANSWERABLE tag: FULL .304->.323
+(cost -.019), TAIL .127->.122 (cost +.005). Decoding to a real concept RETAINS/EXCEEDS raw-direction value (concept
+centroid = denoised direction). Verbalization bridge is ~free.
+SYNTHESIS: Paper B headline = ANSWERABILITY (concepts answerable ~57% vs items ~2%, E1 next), MECHANISM = continuous
+concept policy (reaches open concepts, INTERPRETABLE via decode, verbalizable at ~no cost). HONEST: continuous does NOT
+beat discrete on a higher ceiling; value = answerability + open-vocab reach + interpretability/deployability.
