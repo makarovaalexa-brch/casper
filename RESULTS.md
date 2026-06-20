@@ -444,3 +444,12 @@ selection here (consistent w/ lit: generation>selection unconfirmed; + our ceili
 interpolation==discrete). WORKING method = discrete concept-EIG (+0.084 tail ~= item, answerable, PART T) + interpretable
 decode (PART S). Untested: proper SHAC terminal critic (my CRITIC flag was a no-op) -- addresses gradient chaos not
 degeneracy, unlikely to rescue. Paper B = concept-EIG answerability + interpretable instrument + continuous-gen NEGATIVE.
+
+### PART W — METHODOLOGY CATCH (user): continuous scripts drifted to keep>=8 likes => random inflated on FULL
+continuous_diff/v2/v3/v4 used keep>=8 likes (big profiles) -> folding 8 RANDOM items ~= EIG on popb-saturated FULL ->
+random tied/beat item-EIG on FULL (INCONSISTENT with Paper A). Bug = protocol drift (Paper A/policy_v2 use keep>=5).
+CANONICAL harness (keep>=5, policy_v2 re-run) RESTORES Paper A: FULL eig +0.078 >> random +0.043; TAIL eig +0.119 >>
+random +0.081 (random IS useless, as Paper A showed). AND distiller RECOVERS EIG: FULL q8 0.357 vs eig 0.363 (98%!),
+TAIL 0.162 vs 0.182 -> the MODEL CAN LEARN EIG (not broken; set-context scorer reproduces EIG). v4 generative emit+snap
+got only 45% EIG-agreement + below-random because it's u_t-ONLY (EIG is SET-DEPENDENT) + emit-snap != value-scoring
+(architectural, not broken). ACTION: re-run continuous actor on CANONICAL keep>=5 for valid full+tail conclusions.
