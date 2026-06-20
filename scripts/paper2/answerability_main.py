@@ -82,33 +82,35 @@ def run(mode,tail):
     for x in TE:
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
-        toks=[]; asked=set(); nans=0
+        toks=[]; asked=set(); nans=0; nq=0                          # nq = QUESTIONS ASKED (the real budget); a wasted/unanswerable ask still costs a turn
         for q in [0,2,4,8]:
-            while len(toks)<q if mode!='oracle' else (len([1 for _ in toks])<q):
+            while nq<q:
                 if mode=='rand_item':
-                    j=ITEMC[int(rng.integers(len(ITEMC)))]
-                    if j in asked: continue
-                    asked.add(j)
+                    j=int(rng.integers(ni))                         # TRUE random over the FULL catalogue (vast majority unseen -> wasted turn)
+                    if j in asked: continue                         # duplicate redraw is free (doesn't cost a turn)
+                    asked.add(j); nq+=1
                     if j in profset: toks.append((Q[j],resid[x][j])); nans+=1
-                elif mode=='pop_item':
+                elif mode=='pop_item':                              # ask globally-popular items (strong realistic baseline); wasted if THIS user didn't see it
                     cs=[j for j in ITEMC if j not in asked]
                     if not cs: break
-                    j=cs[0]; asked.add(j)
+                    j=cs[0]; asked.add(j); nq+=1
                     if j in profset: toks.append((Q[j],resid[x][j])); nans+=1
-                elif mode=='eig_item':                              # answerability-AWARE: p_seen * infogain
+                elif mode=='eig_item':                              # answerability-AWARE: p_seen * infogain; wasted if not seen
                     cs=[j for j in ITEMC if j not in asked][:500]
                     if not cs: break
-                    csa=np.array(cs); j=cs[int((p_seen[csa]*infogain_items(toks,csa)).argmax())]; asked.add(j)
+                    csa=np.array(cs); j=cs[int((p_seen[csa]*infogain_items(toks,csa)).argmax())]; asked.add(j); nq+=1
                     if j in profset: toks.append((Q[j],resid[x][j])); nans+=1
                 elif mode=='conc_pop':
-                    ci=[c for c in range(len(ctags)) if c not in asked]; ci=sorted(ci,key=lambda c:-cfreq[c])
-                    c=ci[0]; asked.add(c); inter=citems[c]&profset
+                    ci=sorted([c for c in range(len(ctags)) if c not in asked],key=lambda c:-cfreq[c])
+                    if not ci: break
+                    c=ci[0]; asked.add(c); nq+=1; inter=citems[c]&profset
                     if len(inter)>=2: toks.append((Ac[c],float(np.mean([resid[x][j] for j in inter])))); nans+=1
                 elif mode=='conc_eig':
                     ci=[c for c in range(len(ctags)) if c not in asked]
-                    ig=infogain_concepts(toks,ci); c=ci[int(ig.argmax())]; asked.add(c); inter=citems[c]&profset
+                    if not ci: break
+                    ig=infogain_concepts(toks,ci); c=ci[int(ig.argmax())]; asked.add(c); nq+=1; inter=citems[c]&profset
                     if len(inter)>=2: toks.append((Ac[c],float(np.mean([resid[x][j] for j in inter])))); nans+=1
-                elif mode=='oracle':                               # best answerable question (items OR concepts) by true held-out coverage
+                elif mode=='oracle':                               # CEILING: best ANSWERABLE question each turn (no wasted turns by construction)
                     bestv=-1;bestt=None
                     for j in [jj for jj in ITEMC if jj in profset and ('i',jj) not in asked][:150]:
                         mt=metr(enc_u(toks+[(Q[j],resid[x][j])]),tlike,profset,tail)
@@ -117,11 +119,10 @@ def run(mode,tail):
                         inter=citems[c]&profset; mt=metr(enc_u(toks+[(Ac[c],float(np.mean([resid[x][j] for j in inter])))]),tlike,profset,tail)
                         if mt and mt[0]>bestv: bestv=mt[0];bestt=('c',c)
                     if bestt is None: break
-                    asked.add(bestt); orc_pick[bestt[0]]+=1
+                    asked.add(bestt); nq+=1; orc_pick[bestt[0]]+=1
                     if bestt[0]=='i': toks.append((Q[bestt[1]],resid[x][bestt[1]]))
                     else: inter=citems[bestt[1]]&profset; toks.append((Ac[bestt[1]],float(np.mean([resid[x][j] for j in inter]))))
                     nans+=1
-                if len(asked)>200: break
             mt=metr(enc_u(toks),tlike,profset,tail)
             if mt: M[q]+=mt[0];Rc[q]+=mt[1]
         m+=1; ans_tot+=nans

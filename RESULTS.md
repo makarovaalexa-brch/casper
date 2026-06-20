@@ -489,3 +489,22 @@ IMPLICATION: ML-1M (dense) is the WRONG testbed for the answerability/elicitatio
 already capture the realizable signal. The user's premise ("many unknown items") needs a SPARSE/large-catalogue cold-start
 dataset where items are genuinely unanswerable. Matches memory (overnight-adaptivity: collaborative generalisation
 substitutes for adaptivity on dense catalogs; sparse/cross-domain needed as demonstrator).
+
+### PART X-FIX — TWO BUGS in PART X (user caught), corrected results REVERSE the read on the motivation
+Bugs in answerability_main.py: (1) loop was `while len(toks)<q` (asked until q ANSWERS accumulated, capped at 200 asks)
+=> NOT a T-question budget; "random" drew up to 200 items and folded the ~5 answerable diverse ones -> looked good.
+(2) ITEMC=top-1500 popular => "random" wasn't over the full catalogue. FIXED: budget = exactly T ASKS (nq counts every
+ask incl. wasted/unanswerable); random = TRUE uniform over full catalogue.
+CORRECTED (fair T=8 budget) FULL NDCG q0->q8 | answers/8:
+  rand_item 0.293->0.285 ans0.1 | pop_item 0.293->0.303 ans1.9 | eig_item ->0.303 ans1.9
+  conc_pop  0.293->0.274 ans8.0 | conc_eig 0.293->0.276 ans6.2 | oracle 0.293->0.607 ans8.0
+TAIL: pop_item 0.088->0.091 ans1.9 | conc_eig ->0.060 ans6.2 | oracle ->0.464 ans8.0. Oracle pick = 25% concepts.
+CORRECTED VERDICT:
+ (A) ANSWERABILITY GAP IS REAL & LARGE (user's premise HOLDS): in realistic cold-start even POPULAR items are answered
+     only 1.9/8 (this user saw few); random catalogue items 0.1/8; CONCEPTS 6-8/8. Item-asking = mostly WASTED turns.
+ (B) BUT naive concept folding HURTS reconstruction (declines full+tail) -> answerability advantage NOT converted to acc.
+ (C) Item elicitation barely helps (pop +0.010 full / +0.003 tail) because only 1.9/8 answered.
+ (D) Oracle huge (0.607/0.464), 25% concepts -> well-chosen answerable Qs have big value, UNREALIZED.
+OPEN PROBLEM (the real paper): a REALIZABLE cold-start policy that selects HELPFUL answerable concepts (naive info-gain
+picks generic concepts that hurt; privileged profile-coverage selection helps = PART T but isn't realizable). Candidate
+methods: Golbandi-style population-splitting decision tree / learned concept policy (train on train-users, no test peek).
