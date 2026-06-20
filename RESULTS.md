@@ -453,3 +453,17 @@ random +0.081 (random IS useless, as Paper A showed). AND distiller RECOVERS EIG
 TAIL 0.162 vs 0.182 -> the MODEL CAN LEARN EIG (not broken; set-context scorer reproduces EIG). v4 generative emit+snap
 got only 45% EIG-agreement + below-random because it's u_t-ONLY (EIG is SET-DEPENDENT) + emit-snap != value-scoring
 (architectural, not broken). ACTION: re-run continuous actor on CANONICAL keep>=5 for valid full+tail conclusions.
+
+### PART W2 — ROOT CAUSE of random>=EIG (corrects W): my continuous-script EIG was CRIPPLED, not just keep-filter
+continuous_v4 eig_pick had TWO bugs vs canonical policy_v2.eig_vals: (1) flat 0.5/0.5 POS/NEG weight instead of
+PER-CANDIDATE belief p=sig(popb[c]+Ql[c].u); (2) popb INSIDE the coverage sigmoid -> popularity dominates -> EIG
+degenerates toward picking POPULAR items. Fixed eig_pick to match canonical EXACTLY. RESULT (canonical keep>=5):
+FULL item-EIG +0.079 >> random +0.055 (0.363 vs 0.339); TAIL +0.119 >> +0.075 (0.183 vs 0.139) == policy_v2 exactly.
+=> EIG>>random RESTORED, Paper A holds, random useless. Anomaly was 100% my crippled EIG.
+KEY STRUCTURAL FINDING: with crippled(popular) EIG the BC generative actor matched it 45% (popular=easy low-variance
+target); with CORRECT(informative) EIG, agreement COLLAPSED to 5% (near-random) + perf ~q0. Reason: correct EIG's pick
+is a SET-DEPENDENT function of the candidate pool, NOT predictable from belief u_t alone -> BC regresses to blurry mean
+(~popular dir, ||err||~1.26) -> snaps to popular -> misses EIG's informative picks. => a u_t-ONLY GENERATIVE actor is
+STRUCTURALLY INCAPABLE of replicating EIG; replication REQUIRES a candidate-SCORER. The set-context DISTILLER recovers
+EIG to 98% on FULL (0.357 vs 0.363) => model CAN learn EIG WITH the candidate set. This is the crisp, publishable reason
+continuous-GENERATION (candidate-free) cannot match SELECTION here.

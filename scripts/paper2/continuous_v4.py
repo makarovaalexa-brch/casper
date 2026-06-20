@@ -16,7 +16,7 @@ uu=np.array([uids[x] for x in U]); ii=np.array([iids[x] for x in I])
 rat_by_u={}
 for k in range(len(uu)): rat_by_u.setdefault(uu[k],[]).append((ii[k],float(R[k])))
 likes_by_u={x:[j for j,r in v if r>=4] for x,v in rat_by_u.items()}
-keep=[x for x in range(nu) if len(likes_by_u.get(x,[]))>=8]; rng.shuffle(keep); n=len(keep); trU=keep[:int(0.8*n)]; te=keep[int(0.9*n):]
+keep=[x for x in range(nu) if len(likes_by_u.get(x,[]))>=5]; rng.shuffle(keep); n=len(keep); trU=keep[:int(0.8*n)]; te=keep[int(0.9*n):]   # CANONICAL >=5 (match policy_v2/Paper A)
 cnt=np.zeros(ni)
 for x in trU:
     for j in likes_by_u.get(x,[]): cnt[j]+=1
@@ -46,18 +46,19 @@ def enc_u_batch(revs):
     for b,rev in enumerate(revs):
         for q,(f,v) in enumerate(rev): arr[b,q,:D]=f; arr[b,q,D]=v; m[b,q]=1
     with torch.no_grad(): return enc(torch.tensor(arr),torch.tensor(m)).numpy()
-def eig_pick(toks, cset, rd, restp):                      # validated EIG: belief-weighted expected coverage over rest-of-profile
+def eig_pick(toks, cset, rd):                             # CANONICAL EIG (== policy_v2.eig_vals): per-candidate belief, coverage over remaining cands, NO popb
+    u=enc_u_np(toks); cs=np.array(cset); p=sig(popb[cs]+Ql[cs]@u)
     ul=enc_u_batch([toks+[(Q[j],POS)] for j in cset]); ud=enc_u_batch([toks+[(Q[j],NEG)] for j in cset])
-    val=0.5*sig(popb[restp]+ul@Ql[restp].T).sum(1)+0.5*sig(popb[restp]+ud@Ql[restp].T).sum(1); return cset[int(val.argmax())]
+    val=p*sig(ul@Ql[cs].T).sum(1)+(1-p)*sig(ud@Ql[cs].T).sum(1); return cset[int(val.argmax())]
 # ---- BC trajectories: (state u_t -> EIG item embedding Q[j*]) ----
 print("gen item-EIG trajectories...",flush=True); S=[];Targ=[];TT=[]
 sample=[x for x in trU if len(rat_by_u[x])>=12][:NU_TR]
 for x in sample:
-    prof=[j for j,_ in rat_by_u[x]]; restp=np.array(prof); toks=[]; asked=[]
+    prof=[j for j,_ in rat_by_u[x]]; toks=[]; asked=[]
     for t in range(T):
         cs=[j for j in prof if j not in asked]
         if not cs: break
-        j=eig_pick(toks,cs,dict(rat_by_u[x]),restp); S.append(enc_u_np(toks).astype(np.float32)); Targ.append(Q[j].astype(np.float32)); TT.append(t)
+        j=eig_pick(toks,cs,dict(rat_by_u[x])); S.append(enc_u_np(toks).astype(np.float32)); Targ.append(Q[j].astype(np.float32)); TT.append(t)
         asked.append(j); toks.append((Q[j],resid[x][j]))
 S=np.array(S);Targ=np.array(Targ);TT=np.array(TT); print(f"  {len(S)} pairs",flush=True)
 class Actor(nn.Module):
@@ -82,8 +83,8 @@ def metr(u,tlike,excl,tail):
 _rs=np.random.default_rng(123); SPL={}
 for x in te:
     its=list(dict(rat_by_u[x]))
-    if len(its)>=8: il=its[:]; _rs.shuffle(il); SPL[x]=(il[:len(il)//2], il[len(il)//2:])
-TE=[x for x in te if x in SPL][:200]
+    if len(its)>=6: il=its[:]; _rs.shuffle(il); SPL[x]=(il[:len(il)//2], il[len(il)//2:])   # CANONICAL >=6 rated (match policy_v2)
+TE=[x for x in te if x in SPL][:250]
 def emit(u,t):
     with torch.no_grad(): return actor(torch.tensor(u[None],dtype=torch.float32),torch.tensor([[t/8.,float(t)]])).numpy()[0]
 agree=[]
@@ -92,15 +93,15 @@ def run(mode,tail):
     for x in TE:
         test,prof=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4); prof=list(prof)
         if len(prof)<4 or not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
-        restp=np.array(prof); toks=[]; asked=[]
+        toks=[]; asked=[]
         for q in [0,1,2,4,8]:
             while len(toks)<q:
                 cs=[j for j in prof if j not in asked]
                 if not cs: break
                 if mode=='actorSnap':
                     a=emit(enc_u_np(toks),len(toks)); Qc=Q[cs]; pick=cs[int((Qc@a/(np.linalg.norm(Qc,axis=1)+1e-9)).argmax())]   # snap to nearest profile item
-                    if not tail and len(asked)==0: agree.append(int(pick==eig_pick(toks,cs,rd,restp)))
-                elif mode=='item': pick=eig_pick(toks,cs,rd,restp)
+                    if not tail and len(asked)==0: agree.append(int(pick==eig_pick(toks,cs,rd)))
+                elif mode=='item': pick=eig_pick(toks,cs,rd)
                 elif mode=='random': pick=cs[int(rng.integers(len(cs)))]
                 else:
                     ul=enc_u_batch([toks+[(Q[j],rd[j]-mu-bi[j])] for j in cs]); best=None
