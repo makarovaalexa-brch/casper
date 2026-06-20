@@ -385,3 +385,11 @@ matching it is justifiable. The realizable WIN is in the ACTION SPACE: CONTINUIT
 non-myopic policies pay off (Blau) AND where answerability lives (PART O). One method left untried: PPO+GAE+potential
 info-gain shaping+set-transformer (GSMRL recipe) - but its discrete win was bundled w/ a generative surrogate we lack;
 convergent evidence (4 methods + lit) already conclusive. NEXT = continuous concept action space (the actual novelty).
+
+### PART R+ — definitive privilege proof (set-transformer distill-oracle, policy_v3.py)
+Set-transformer (attention over candidates, H256/L3, soft-listwise) distilling the ORACLE: argmax-agreement with the
+ORACLE rises to 0.63 (it CAN represent the oracle's selection function — NOT a capacity/machinery limit), yet eval is
+BELOW EIG (full .345<.363; tail .141<.182). => Faithfully imitating the oracle's choices from observable state HURTS,
+because those choices are good only WITH held-out test knowledge. The better you mimic a privileged expert, the worse
+you generalize. DEFINITIVE: oracle +0.27 headroom is privileged/unreachable; EIG is the realizable frontier. (Contrast
+PART Q pointwise MLP which underfit oracle and merely matched EIG; the expressive model exposes the privilege cleanly.)
