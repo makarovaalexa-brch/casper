@@ -234,3 +234,47 @@ T7 SYNTHESIS: best folding (T3) + best policy (T4/T6) + answerability (T5), open
 ### 5.3 ARCH VARIANTS: encoder {frozen / +concept-retrained / co-factorized}; policy {random / EIG / distilled /
 learned-continuous-actor / answerability-aware}; action {snap-concept / direct-embedding}; objective {reconstruction /
 Recall / RMSE}. Each test: report all 6 bounds, gate vs FLOOR-rand and vs CEIL, commit to RESULTS.
+
+## 6. GRANULAR PLAN — generative continuous-embedding elicitation actor (deep-research wf_9304dca5-3a8, 23/23 primary-source claims)
+
+### 6.0 Why PART U failed (research confirms all three causes)
+(1) FULL-rollout BPTT through a multi-turn rollout => chaotic/exploding gradients (Suh et al. ICML2022; SHAC Xu et al.
+ICLR2022). (2) NO terminal critic => SHAC proves the value bootstrap is NOT optional. (3) NO on-manifold constraint =>
+MODEL EXPLOITATION = offline-RL extrapolation error (PLAS Zhou CoRL2020; COMBO Yu NeurIPS2021): the actor finds
+off-manifold embeddings that score high under the FROZEN encoder but are meaningless => test collapses below q0. Exactly
+what we saw.
+
+### 6.1 The method (research-prescribed): SHAC-style elicitation actor-critic
+- Action ON-MANIFOLD (fixes exploitation): either (W) Wolpertinger-ground -- emit a, snap to nearest real entity
+  embedding, fold the SNAPPED a (Dulac-Arnold 2015); or (P) PLAS-latent -- train a CVAE/decoder on REAL entity
+  embeddings, actor emits in the latent z, decode to an on-manifold a (Zhou CoRL2020; Chandak ICML2019). P allows
+  interpolation WITHIN the manifold (the genuine continuous freedom) while staying valid.
+- SHORT truncated-horizon pathwise gradient + TERMINAL CRITIC bootstrap + reparameterized noise (SVG Heess NeurIPS2015;
+  SHAC). Critic NOT optional. Reparam = differentiate the stochastic user answer.
+- CONSERVATIVE/PESSIMISTIC scoring (COMBO/MOReL) -- penalize off-support actions; provable lower bound, NO accurate
+  uncertainty needed (ensemble variance is a WEAKER guard, Lu et al. ICLR2022 contested).
+- ANSWER-MODEL TEMPERATURE: keep the similarity-weighting SOFT (smooth => pathwise gradients well-behaved; PEAKED
+  approaches argmax => near-discontinuous => the Suh/SHAC failure regime).
+
+### 6.2 GRANULAR LADDER (one variable at a time; gate vs EIG +0.099 tail; detect exploitation each step)
+G1 DIAGNOSE exploitation (cheap): decode each generated embedding to nearest real concept (distance) + train-vs-held-out
+   recon gap. Confirm PART U directions are off-manifold. [detector: decode-distance + generalization gap]
+G2 ON-MANIFOLD ACTION (the key fix): G2a Wolpertinger-snap (=> EIG-parity floor); G2b PLAS-latent (on-manifold +
+   interpolation). vs naive-raw (PART U). Gate: G2 test-NDCG no longer collapses; >= EIG-parity.
+G3 + TERMINAL CRITIC + SHORT HORIZON (SHAC): add value bootstrap, truncate. Gate: stable gradients, > G2-without-critic.
+G4 + CONSERVATIVE penalty (COMBO/MOReL-style off-support penalty). Gate: exploitation gap (train-vs-heldout) shrinks.
+G5 HORIZON CROSSOVER (research open-Q): at T<=8 with SOFT user model, is critic/truncation needed or does full-BPTT work
+   once on-manifold (G2)? Ablate full-BPTT vs SHAC.
+G6 TEMPERATURE sweep of the answer model (soft<->peaked) -- map the smooth-gradient regime.
+G7 DECISIVE GATE: best (on-manifold + critic + conservative) actor vs EIG on HELD-OUT tail NDCG/Recall, AND decoded
+   directions sensible (interpretable). BEAT EIG (+0.099) with valid/decodable actions => continuous GENERATION wins
+   (resolves the literature's open question). ELSE honest: generation only matches selection => contribution =
+   answerable concept-EIG (PART T) + interpretable continuous instrument (PART S).
+
+### 6.3 HONEST PRIOR (research + our evidence): whether GENERATION > selection/greedy-EIG is UNCONFIRMED in the
+literature (no claim survived either way). Our own evidence (continuous oracle ~= item oracle PART S; interpolation ==
+discrete PART T) says the CEILING is shared => generation likely MATCHES selection unless on-manifold realizability
+captures more of the (privileged) headroom than EIG. So G7 is genuinely open; we run it to settle it, with G2(on-manifold)
++G3(critic) being the make-or-break that PART U lacked.
+BIB: SVG(Heess NeurIPS15), Dreamer(Hafner ICLR20), SHAC(Xu ICLR22), Suh(ICML22), PLAS(Zhou CoRL20), Chandak(ICML19),
+Wolpertinger(Dulac-Arnold15), COMBO(Yu NeurIPS21), MOReL(Kidambi NeurIPS20), MOPO(Yu20), DiffusionPolicy(Chi RSS23).
