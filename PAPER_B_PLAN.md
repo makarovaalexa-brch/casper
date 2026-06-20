@@ -256,7 +256,10 @@ what we saw.
 - ANSWER-MODEL TEMPERATURE: keep the similarity-weighting SOFT (smooth => pathwise gradients well-behaved; PEAKED
   approaches argmax => near-discontinuous => the Suh/SHAC failure regime).
 
-### 6.2 GRANULAR LADDER (one variable at a time; gate vs EIG +0.099 tail; detect exploitation each step)
+### 6.2 GRANULAR LADDER (one variable at a time; gate vs EIG on BOTH full AND tail; detect exploitation each step)
+### REPORTING RULE: EVERY experiment reports FULL-catalogue AND tail, NDCG@10 + Recall@50 (Paper A reported full
+### throughout; AUC was the only saturated metric, now dropped). EIG reference (PART R/T): item-EIG full q8 ~0.35-0.37
+### (q0 ~0.29) / tail ~0.17-0.19 (q0 ~0.07); oracle full ~0.56 / tail ~0.40. A win must beat EIG on BOTH full and tail.
 G1 DIAGNOSE exploitation (cheap): decode each generated embedding to nearest real concept (distance) + train-vs-held-out
    recon gap. Confirm PART U directions are off-manifold. [detector: decode-distance + generalization gap]
 G2 ON-MANIFOLD ACTION (the key fix): G2a Wolpertinger-snap (=> EIG-parity floor); G2b PLAS-latent (on-manifold +
@@ -266,8 +269,8 @@ G4 + CONSERVATIVE penalty (COMBO/MOReL-style off-support penalty). Gate: exploit
 G5 HORIZON CROSSOVER (research open-Q): at T<=8 with SOFT user model, is critic/truncation needed or does full-BPTT work
    once on-manifold (G2)? Ablate full-BPTT vs SHAC.
 G6 TEMPERATURE sweep of the answer model (soft<->peaked) -- map the smooth-gradient regime.
-G7 DECISIVE GATE: best (on-manifold + critic + conservative) actor vs EIG on HELD-OUT tail NDCG/Recall, AND decoded
-   directions sensible (interpretable). BEAT EIG (+0.099) with valid/decodable actions => continuous GENERATION wins
+G7 DECISIVE GATE: best (on-manifold + critic + conservative) actor vs EIG on HELD-OUT full+tail NDCG@10+Recall@50, AND decoded
+   directions sensible (interpretable). BEAT EIG on BOTH full and tail with valid/decodable actions => continuous GENERATION wins
    (resolves the literature's open question). ELSE honest: generation only matches selection => contribution =
    answerable concept-EIG (PART T) + interpretable continuous instrument (PART S).
 
