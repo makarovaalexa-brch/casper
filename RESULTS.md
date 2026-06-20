@@ -420,3 +420,13 @@ method at ~item value via an answerable channel. = Paper B headline.
 HONEST on CONTINUOUS: direct-embedding (concepts + pairwise interpolations) == discrete concepts EXACTLY (0.151=0.151);
 interpolation adds nothing on NDCG. Continuous-space value = open-concept REACH + interpretability (decode PART S), NOT
 higher NDCG on a fixed vocab. Remaining continuous-NDCG test = finer OPEN-NL concepts than the 761 tags.
+
+### PART U — naive pathwise continuous actor FAILS via MODEL EXPLOITATION (continuous_diff.py)
+The real continuous method (actor emits RAW embedding a in R^D; differentiable user model rates it [sim-weighted resid];
+frozen encoder folds (a,answer); recon loss backprop'd through the multi-turn rollout = PATHWISE gradients, NOT
+EIG-imitation, NOT REINFORCE). Training recon-loss DROPS (1.40->0.98) but eval TAIL NDCG DECLINES below q0 (.074->.060;
+vs item-EIG .169, random .145). => MODEL EXPLOITATION: actor finds off-manifold directions that game the FROZEN encoder
+on train targets but don't generalize. This is the central challenge (defines the experiment program). Deep-research
+wf_9304dca5-3a8 running on fixes (manifold/answerability constraints, KL-to-EIG-init, ensemble/uncertainty penalties
+MOPO/MOReL, on-manifold projection, decode-validity diagnostics). Granular plan to follow. Note: differentiable env
+confirmed (pathwise trains); the open problem is regularizing against exploitation.
