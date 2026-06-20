@@ -156,3 +156,49 @@ finetune (4 rewards) → B4 open-concept/free-text + long-tail vs oracle`. Each 
 Wolpertinger (arXiv:1512.07679) · SAVO (2410.11833) · DGRL/DBU (2602.08616) · DNC (2305.19891) · AWAC (2006.09359) ·
 DAgger (Ross 2011) · RLIF (2311.12996) · imitation gap (Swamy 2021; Weihs 2021) · UNICORN (2105.09710) ·
 ConTS (2005.12979) · FacT-CRS (2208.14614) · PEBOL (RecSys 2024). [verify each before citing in the paper]
+
+## 4. MAIN EXPERIMENTS — answerability + continuous-space value (deep-research wf_bb2aa0ee-418)
+
+### 4.1 Setup (lit-grounded)
+- Frozen instrument = Paper A calibrated encoder (items+attributes+concepts one space; additive fold = ConTS arm space).
+- FAKE-USER concept-answer model: GRADED + profile-based + "don't know" (NOT hard-binary-from-target = the leakage pattern).
+  - answerable iff user has >=k HELD-IN profile items with concept-relevance>tau; else "don't know" (no fold).
+  - answer = graded affinity = mean debiased residual over those items (sign=like/dislike). [PEBOL graded>binary RecSys24;
+    MIMConv UUSFF inherent-interest+don't-know; MCMIPL Others/zero option]
+  - LEAKAGE CONTROL (critical, "How Reliable is Your Simulator?" WWW24: leakage inflates Recall@50 13-22%): affinity &
+    answerability from held-in profile ONLY; held-out TARGET excised from history AND simulator replies.
+- CONCEPT VOCABS (3 tiers to separate enumerable vs uncountable): genres(18 coarse) / tag-genome(~745-1128 fine,
+  enumerable) / OPEN-NL (SBERT of LLM-generated/arbitrary phrases = UNCOUNTABLE) <- where continuity is needed.
+- EVAL (RankCrit RecSys20 / PEBOL loop): random target from HELD-OUT test, ask/answer/fold <=T turns, success@N{1,5,10,20}
+  + NDCG@10(full+tail) per #ASKED, report Avg Success Rate + Session Length + ANSWER-RATE (Montazeralghaem25 precedent),
+  multiple sessions/user, leakage-excised.
+
+### 4.2 Experiments + GATES
+E1 ANSWERABILITY value: open setting (ask pool, don't-know for unanswerable). item vs genre vs concept asking (EIG-within-
+   type + learned policy). Metric NDCG/success vs #ASKED (don't-know turns COST). GATE A1: concept-asking > item-asking
+   at fixed #asked. (PART O predicts; control answer-rate, sweep tau/k.)
+E2 CONTINUOUS-space value (NOVEL — research found NO prior continuous-vs-discrete concept head-to-head): on OPEN-NL space,
+   discrete-small(genres) vs discrete-large(tag-genome enum+EIG) vs CONTINUOUS actor(emit embedding->snap nearest
+   answerable, Wolpertinger+SAVO). GATE A2: continuous > best discrete WHEN space is uncountable (open-NL). HONEST: on the
+   enumerable tag vocab continuous should ~= discrete-large (no continuity advantage there) -> continuous win REQUIRES
+   open-NL adding realizable value (the linchpin/risk).
+E3 NON-MYOPIC payoff (continuity is where RL beats greedy, Blau22): continuous learned policy (PPO+GAE + potential info-
+   gain shaping Ng99, or AWAC from concept-EIG init) vs greedy concept-EIG. GATE A3: continuous policy > greedy concept-EIG.
+
+### 4.3 Model (continuous exploration)
+State u_t + dialogue feats. Actor emits a_t in R^D -> snap to nearest ANSWERABLE concept (kNN over vocab; or all+don't-know)
+-> SAVO pick best-Q among kNN -> fold via frozen encoder. Train: distill concept-EIG (realizable) -> PPO+GAE + potential
+info-gain shaping finetune (NOT REINFORCE). Answerability = feasible-action masking (UNICORN) vs don't-know penalty (ablate).
+
+### 4.4 Variants/ablations: answer graded-vs-binary (expect graded>binary PEBOL); don't-know on/off; vocab tier;
+selector random/within-type-EIG/discrete-large/continuous; leakage full-vs-excised (expect drop, report); budget per-asked
+vs per-answered; reward terminal±shaping; tau/k sweep.
+
+### 4.5 RISK REGISTER (honest): (1) LEAKAGE = #1 threat -> excise target everywhere, report excised numbers. (2) Sim
+faithfulness: our answer model is rule-based profile-grounded; validate vs an LLM simulator on a subset (Yoon NAACL24 5-task
+spirit); state limits. (3) CONTINUOUS may only MATCH discrete-large on enumerable vocab -> continuous win NEEDS open-NL to
+add realizable value; if it doesn't, honest fallback contribution = answerability + unified graded-concept instrument
+(still novel). (4) PEBOL graded>binary was 2-1/tuning-sensitive -> replicate before relying.
+BIB seed: PEBOL(Austin/Korikov/Sanner RecSys24), RankCrit(Li/Luo/Wu/Sanner RecSys20), ConTS(TOIS21), UNICORN(SIGIR21),
+MCMIPL(2112.11775), MIMConv-UUSFF(TOIS23), iEvaLM(2305.13112), HowReliableSimulator(WWW24 2403.16416),
+Montazeralghaem25(2510.12015), Yoon-NAACL24(2403.09738), Biyik-soft-attr(2023), Wolpertinger(1512.07679), Ng99-shaping.
