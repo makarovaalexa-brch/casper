@@ -637,3 +637,14 @@ unreachable from coarse concept answers. At T2 concepts(0.773) > items(0.635) = 
 precise (concepts: fast coarse answerable; items: slow fine unanswerable). Levers to raise the 0.83 ceiling: GRADED
 concept answers (more bits/turn), finer/specific concepts, or item-level taste (warm/profile). conc_pop is the pure-cold
 realizable frontier BECAUSE of this ceiling. straight-through scorer also failed (collapsed to items, 1.4/8). 
+
+### PART AG2 — the cos~0.83 concept ceiling is FUNDAMENTAL (graded answers + personalized selection both fail to raise it)
+fold items 0.635->0.976 (converges ~1) | concepts_freq_binary 0.773->0.833 | concepts_freq_GRADED 0.776->0.819 (no help)
+| concepts_ALIGNED_binary 0.641->0.786 (personalized selection WORSE for overall taste). => 0.83 ceiling is intrinsic to
+concepts: (1) binary geometric answer already saturates the signal (graded adds nothing); (2) frequent BROAD concepts
+reconstruct overall taste better than the user's niche concepts (why conc_pop wins, adaptivity doesn't). Fine
+personalization (cos->1) needs ITEM-level info. CONCLUSION (rigorous+mechanistic): conc_pop is the realizable pure-cold
+frontier; belief-only can't beat it because concept answers are fundamentally coarse. To beat conc_pop need item-level
+fineness: (a) warm/returning user (profile -> conc_gprof +23%), or (b) sparse/large catalogue (frequent concepts weak,
+finer concepts become answerable+discriminative -> ceiling may rise). Paper B = answerability win (concepts>items) +
+this quantified answerability/fineness tradeoff + coarseness ceiling; unified continuous policy realizes the cold frontier.

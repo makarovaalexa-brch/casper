@@ -190,7 +190,7 @@ for tail in [False,True]:
     print(f"  {'tail' if tail else 'full'}: concept-enc NDCG {cn[0]:.3f} Rec {cn[1]:.3f} | unified-enc(PaperA) NDCG {un[0]:.3f} Rec {un[1]:.3f}",flush=True)
 # BELIEF CONVERGENCE: does folding T CONCEPT answers approach the true item-profile taste u*? (vs folding T ITEMS)
 print("\n=== BELIEF CONVERGENCE: cos(belief after T answers, u*=fold(full profile items)) ===",flush=True)
-for kind in ['items','concepts']:
+for kind in ['items','concepts_freq_binary','concepts_freq_graded','concepts_aligned_binary']:
     out=[]
     for Tn in [2,4,8,16,32]:
         cs=0.;m=0
@@ -199,11 +199,17 @@ for kind in ['items','concepts']:
             if len(prof)<8: continue
             ustar=enc_u([(Q[j],resid[x][j]) for j in prof])
             if kind=='items':
-                pk=prof[:Tn]; toks=[(Q[j],resid[x][j]) for j in pk]
+                toks=[(Q[j],resid[x][j]) for j in prof[:Tn]]
             else:
-                cans=user_answers(x,profset); ac=sorted(cans.keys(),key=lambda c:-cfreq[c])[:Tn]; toks=[(Ec[c],cans[c]) for c in ac]
+                ac=[c for c in range(len(ctags)) if len(citems[c]&profset)>=2]
+                if not ac: continue
+                proj={c:float(ustar@Ec[c]) for c in ac}; thr=np.mean(list(proj.values()))
+                order=sorted(ac,key=lambda c:-cfreq[c]) if 'freq' in kind else sorted(ac,key=lambda c:-abs(proj[c]-thr))
+                sel=order[:Tn]
+                if 'graded' in kind: toks=[(Ec[c], NEG+(POS-NEG)*sig(4*(proj[c]-thr))) for c in sel]   # graded answer (more bits)
+                else: toks=[(Ec[c], POS if proj[c]>thr else NEG) for c in sel]                          # binary geometric
             if not toks: continue
             uT=enc_u(toks); cs+=float(uT@ustar/((np.linalg.norm(uT)+1e-9)*(np.linalg.norm(ustar)+1e-9))); m+=1
         out.append(f"T={Tn}:{cs/m:.3f}")
-    print(f"  fold {kind:<9}: "+"  ".join(out),flush=True)
-print("  (if CONCEPTS plateau below ITEMS/1.0 -> coarse concept answers cannot reconstruct item-level taste => belief can't 'catch up')",flush=True)
+    print(f"  fold {kind:<24}: "+"  ".join(out),flush=True)
+print("  (graded>binary => answer-granularity helps; aligned>freq => selection helps; all plateau<<1 => concepts fundamentally coarse)",flush=True)
