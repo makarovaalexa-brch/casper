@@ -607,3 +607,21 @@ LEVEL priors it currently lacks -- POPULARITY + POPULATION-AVERAGE INFO-GAIN per
 user-specific, no leak) -- PLUS the per-user belief. Built continuous_policy2.py (popularity-aware + pop-info-gain scorer)
 but HOLDING the run pending a lit check (deep-research wf_d8d967ef-332) on prior art for combining population info-gain
 priors with a learned belief-conditioned policy.
+
+### PART AF — BASELINES TO IMPLEMENT LATER (from novelty deep-research wf_d8d967ef-332) -- once OURS works
+Cold-start concept(+item) elicitation baselines on the locked ruler (concept-aware enc, ANSWER=geom, full+tail, q-curve):
+  HAVE: random, conc_pop (popularity), pop_item, conc_eig (belief EIG); diagnostics conc_gprof (profile-greedy upper bound),
+        conc_gbelief, conc_oracle (test-privileged ceiling).
+  TODO (cite + implement as baselines, show OURS beats in our setting):
+   1. entropy (Rashid 2002) -- population answer-entropy per concept
+   2. popularity x entropy ; log(popularity) x entropy (Rashid 2002)
+   3. HELF (Rashid, Karypis, Riedl 2008) -- harmonic mean of normalized entropy & normalized log rating-frequency
+   4. GreedyExtend (Golbandi, Koren, Lempel 2010) -- STATIC seed set greedily minimizing POPULATION reconstruction error
+   5. Golbandi decision-tree interview (WSDM 2011) -- adaptive ternary loved/hated/unknown tree
+   6. IGCN (Rashid 2008) -- two-PHASE: non-personalized pop info-gain -> personalized after rating-count threshold (switch, not fusion)
+   7. optimal design / RMVA (Anava 2015; Fonarev) -- D-optimal seed selection
+   8. DRE (Kweon 2020) -- learned STATIC seed set (no per-user belief in selection) = the adaptivity-gap baseline
+   9. UNICORN (Deng 2021) / ConTS (Li 2021) -- unified item+attribute RL/bandit over FIXED taxonomy
+OURS = learned scorer fusing population priors (popularity + population-avg info-gain ~= "amortized HELF") + per-user belief,
+over unified continuous item+open-vocab-concept space, reconstruction-trained, adaptive. Novelty wedge vs above: feature-FUSION
+(not switch/pre-filter) + continuous open-vocab + per-user adaptivity (DRE static; IGCN switch; Golbandi discrete tree).
