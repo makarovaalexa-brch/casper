@@ -5,7 +5,7 @@ whichever fold moves the belief CLOSER to the user's true taste vector u* (=fold
 cold-start, fixed T-ask budget, FULL-first + tail. GATE: conc_eig > pop_item AND conc_eig beats q0 (concepts must HELP).
 """
 import os, time, numpy as np, torch, torch.nn as nn
-ANSWER=os.environ.get('ANSWER','mean'); base='C:/dev/phd/casper/data/movielens'; ml=f'{base}/ml-1m'; D=64; T=8; rng=np.random.default_rng(0)
+ANSWER=os.environ.get('ANSWER','mean'); LAM=float(os.environ.get('LAM',3.0)); base='C:/dev/phd/casper/data/movielens'; ml=f'{base}/ml-1m'; D=64; T=8; rng=np.random.default_rng(0)
 U,I,Rr=[],[],[]
 with open(f'{ml}/ratings.dat') as f:
     for line in f:
@@ -94,13 +94,13 @@ for x in te:
     if len(its)>=6: il=its[:]; _rs.shuffle(il); SPL[x]=(set(il[:len(il)//2]), il[len(il)//2:])
 TE=[x for x in te if x in SPL][:150]; ITEMC=list(order_pop[:1500]); orc_pick={'i':0,'c':0}
 def run(mode,tail):
-    M={q:0. for q in [0,4,8,16]};Rc={q:0. for q in [0,4,8,16]};m=0;ans_tot=0.
+    M={q:0. for q in [0,2,4,8]};Rc={q:0. for q in [0,2,4,8]};m=0;ans_tot=0.
     for x in TE:
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
         cans=user_answers(x,profset)                          # the user simulator: fixed per-user concept answers
         toks=[]; asked=set(); nans=0; nq=0
-        for q in [0,4,8,16]:
+        for q in [0,2,4,8]:
             while nq<q:
                 if mode=='rand_item':
                     j=int(rng.integers(ni))
@@ -124,6 +124,11 @@ def run(mode,tail):
                     else: c=ci[int(infogain_concepts(toks,ci).argmax())]
                     asked.add(c); nq+=1; v=cans.get(c)
                     if v is not None: toks.append((Ec[c],v)); nans+=1
+                elif mode=='conc_popbelief':                                # REALIZABLE COLD (user's fusion, non-learned): popularity prior + lambda*belief-alignment; no training
+                    u0=enc_u(toks); ci=[c for c in range(len(ctags)) if c not in asked and cans.get(c) is not None]
+                    if not ci: break
+                    ca=np.array(ci); score=np.log(pe_ans[ca]+1e-6)+LAM*(Ec[ca]@u0)
+                    c=ci[int(score.argmax())]; asked.add(c); nq+=1; toks.append((Ec[c],cans[c])); nans+=1
                 elif mode=='conc_gprof':                                     # profile-privileged: greedy concept maximizing coverage of KNOWN profile (deployable warm; upper bound cold)
                     ci=[c for c in range(len(ctags)) if c not in asked and cans.get(c) is not None]
                     if not ci: break
@@ -157,8 +162,8 @@ def run(mode,tail):
     return {q:M[q]/m for q in M},{q:Rc[q]/m for q in Rc},m,ans_tot/m
 for tail in [False,True]:
     print(f"\n=== {'FULL (MAIN)' if not tail else 'TAIL'} | concept-aware enc, ANSWER={ANSWER} | NDCG@10 / Rec@50 / ans ===",flush=True)
-    for mode in ['conc_pop','conc_eig','conc_gbelief','conc_gprof','conc_oracle']:
-        M,Rc,m,na=run(mode,tail); print(f"  {mode:<10}: NDCG "+" ".join(f"{M[q]:.3f}" for q in [0,4,8,16])+" | Rec "+" ".join(f"{Rc[q]:.3f}" for q in [0,4,8,16])+f" | ans/{T}={na:.1f}",flush=True)
+    for mode in ['conc_pop']:
+        M,Rc,m,na=run(mode,tail); print(f"  {mode:<10}: NDCG "+" ".join(f"{M[q]:.3f}" for q in [0,2,4,8])+" | Rec "+" ".join(f"{Rc[q]:.3f}" for q in [0,2,4,8])+f" | ans/{T}={na:.1f}",flush=True)
     print(f"  GATE: conc_eig must beat q0 ({'concepts HELP' if True else ''}) AND pop_item",flush=True)
 print(f"\nORACLE PICK: items={orc_pick['i']} concepts={orc_pick['c']} -> {100*orc_pick['c']/max(orc_pick['i']+orc_pick['c'],1):.0f}% concepts",flush=True)
 # ITEMS-PRESERVED regression: warm full known-half profile (items only), concept-enc vs canonical unified-enc => items must NOT degrade
@@ -183,3 +188,22 @@ print("\n=== ITEMS-PRESERVED regression (warm full known-half profile, items onl
 for tail in [False,True]:
     cn=warm(enc,Ql,tail); un=warm(enc2,Ql2,tail)
     print(f"  {'tail' if tail else 'full'}: concept-enc NDCG {cn[0]:.3f} Rec {cn[1]:.3f} | unified-enc(PaperA) NDCG {un[0]:.3f} Rec {un[1]:.3f}",flush=True)
+# BELIEF CONVERGENCE: does folding T CONCEPT answers approach the true item-profile taste u*? (vs folding T ITEMS)
+print("\n=== BELIEF CONVERGENCE: cos(belief after T answers, u*=fold(full profile items)) ===",flush=True)
+for kind in ['items','concepts']:
+    out=[]
+    for Tn in [2,4,8,16,32]:
+        cs=0.;m=0
+        for x in TE:
+            profset,_=SPL[x]; prof=list(profset)
+            if len(prof)<8: continue
+            ustar=enc_u([(Q[j],resid[x][j]) for j in prof])
+            if kind=='items':
+                pk=prof[:Tn]; toks=[(Q[j],resid[x][j]) for j in pk]
+            else:
+                cans=user_answers(x,profset); ac=sorted(cans.keys(),key=lambda c:-cfreq[c])[:Tn]; toks=[(Ec[c],cans[c]) for c in ac]
+            if not toks: continue
+            uT=enc_u(toks); cs+=float(uT@ustar/((np.linalg.norm(uT)+1e-9)*(np.linalg.norm(ustar)+1e-9))); m+=1
+        out.append(f"T={Tn}:{cs/m:.3f}")
+    print(f"  fold {kind:<9}: "+"  ".join(out),flush=True)
+print("  (if CONCEPTS plateau below ITEMS/1.0 -> coarse concept answers cannot reconstruct item-level taste => belief can't 'catch up')",flush=True)

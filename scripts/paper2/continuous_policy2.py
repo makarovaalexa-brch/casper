@@ -111,11 +111,16 @@ def prep(users):
         seen=prof; nneg=ni-len(seen)-len(held); m=torch.ones(ni); m[list(seen)]=0; wb=wt[b]; wb[(tgt[b]==0)&(m>0)]=float(posw)/max(nneg,1); wt[b]=wb
     return ANS,tgt,wt
 def rollout(users,ANS,explore=0.0):
-    B=len(users); toks=torch.zeros(B,T,D+1); tmask=torch.zeros(B,T); u=torch.zeros(B,D)
+    B=len(users); toks=torch.zeros(B,T,D+1); tmask=torch.zeros(B,T); u=torch.zeros(B,D); asked=torch.zeros(B,NP)
     for t in range(T):
         sc=scorer(u,t/8.)                                                    # (B,NP) popularity+belief-aware scores
         if explore>0: sc=sc+explore*torch.randn_like(sc)
-        w=torch.softmax(sc/TAU,1); a_used=w@POOLt; ans=(w*ANS).sum(1)
+        sc=sc.masked_fill(asked>0,-1e9)                                      # no re-asking (matches eval)
+        w_soft=torch.softmax(sc/TAU,1); idx=w_soft.argmax(1)
+        w_hard=torch.zeros_like(w_soft).scatter_(1,idx.unsqueeze(1),1.0)
+        w=w_hard+(w_soft-w_soft.detach())                                    # STRAIGHT-THROUGH: fold the single PICKED entity (hard, == eval), soft gradient
+        asked=asked+w_hard
+        a_used=w@POOLt; ans=(w*ANS).sum(1)
         toks=toks.clone(); toks[:,t,:D]=a_used; toks[:,t,D]=ans; tmask=tmask.clone(); tmask[:,t]=1; u=enc(toks,tmask)
     return u
 def recon(u,tgt,wt): s=u@Qlt.t()+popbt; bce=nn.functional.binary_cross_entropy_with_logits(s,tgt,reduction='none'); return (wt*bce).sum()/wt.sum()

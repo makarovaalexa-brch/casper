@@ -625,3 +625,15 @@ Cold-start concept(+item) elicitation baselines on the locked ruler (concept-awa
 OURS = learned scorer fusing population priors (popularity + population-avg info-gain ~= "amortized HELF") + per-user belief,
 over unified continuous item+open-vocab-concept space, reconstruction-trained, adaptive. Novelty wedge vs above: feature-FUSION
 (not switch/pre-filter) + continuous open-vocab + per-user adaptivity (DRE static; IGCN switch; Golbandi discrete tree).
+
+### PART AG — MECHANISM: concept-answer belief SATURATES at cos~0.83 with true taste (why belief-only can't catch up)
+User asked: does the belief catch up at later turns? Measured cos(belief after T answers, u*=fold(full item profile)):
+  fold ITEMS    : T2 0.635 / T4 0.755 / T8 0.873 / T16 0.953 / T32 0.976  -> CONVERGES to ~1.0 (items = fine taste)
+  fold CONCEPTS : T2 0.773 / T4 0.805 / T8 0.825 / T16 0.833 / T32 0.819  -> PLATEAUS at ~0.83 (saturates after ~8; 32 dips)
+=> Concept answers are COARSE: they reconstruct taste to ~83% FAST + answerably, then SATURATE. The belief literally
+cannot 'catch up' to item-level taste with more concept turns. This is the direct mechanism behind belief-only adaptive
+~= conc_pop and never reaching conc_gprof(0.143)/conc_oracle(0.325): fine personalization needs cos->1 (item-level taste),
+unreachable from coarse concept answers. At T2 concepts(0.773) > items(0.635) = answerability/fineness tradeoff made
+precise (concepts: fast coarse answerable; items: slow fine unanswerable). Levers to raise the 0.83 ceiling: GRADED
+concept answers (more bits/turn), finer/specific concepts, or item-level taste (warm/profile). conc_pop is the pure-cold
+realizable frontier BECAUSE of this ceiling. straight-through scorer also failed (collapsed to items, 1.4/8). 
