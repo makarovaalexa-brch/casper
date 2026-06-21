@@ -40,6 +40,14 @@ citems=[set(tagitems.get(int(t),[])) for t in ctags]; cfreq=np.array([len(s) for
 item2c=[[] for _ in range(ni)]
 for ki,t in enumerate(ctags):
     for j in tagitems.get(int(t),[]): item2c[j].append(ki)
+pe_cnt=np.zeros(len(ctags))                                   # answerability PRIOR: fraction of train users who could answer concept c
+for x in trU[:2500]:
+    cn={}
+    for j,_ in rat_by_u[x]:
+        for ki in item2c[j]: cn[ki]=cn.get(ki,0)+1
+    for ki,ct in cn.items():
+        if ct>=2: pe_cnt[ki]+=1
+pe_ans=(pe_cnt/min(len(trU),2500)).astype(np.float32)+1e-6
 print(f"  {len(ctags)} concepts, ANSWER={ANSWER} ({time.time()-t0:.0f}s)",flush=True)
 class Enc(nn.Module):
     def __init__(s):
@@ -58,18 +66,21 @@ def enc_batch(revs):
     for b,rev in enumerate(revs):
         for q,(f,v) in enumerate(rev): arr[b,q,:D]=f; arr[b,q,D]=v; m[b,q]=1
     with torch.no_grad(): return enc(torch.tensor(arr),torch.tensor(m)).numpy()
-def cfold_val(toks,c,x,profset,ustar):                       # concept answer (the user simulator)
-    inter=citems[c]&profset
-    if len(inter)<2: return None                             # unanswerable
-    if ANSWER=='mean': return float(np.mean([resid[x][j] for j in inter]))
-    up=enc_u(toks+[(Ec[c],POS)]); un=enc_u(toks+[(Ec[c],NEG)])
-    return POS if np.linalg.norm(up-ustar)<np.linalg.norm(un-ustar) else NEG   # geom: closer to true taste
+def user_answers(x,profset):                                 # the user simulator: state-independent concept answers
+    ac=[c for c in range(len(ctags)) if len(citems[c]&profset)>=2]
+    if ANSWER=='mean': return {c:float(np.mean([resid[x][j] for j in citems[c]&profset])) for c in ac}
+    ustar=enc_u([(Q[j],resid[x][j]) for j in profset])       # true taste vector from the answerable (known-half) profile
+    pr={c:float(ustar@Ec[c]) for c in ac}; thr=np.mean(list(pr.values())) if pr else 0.
+    return {c:(POS if pr[c]>thr else NEG) for c in ac}        # geom: like iff concept aligns with true taste (above this user's mean)
+def cfold_val(c,cans): return cans.get(c)                    # None if unanswerable
 def infogain_items(toks,cands):
     u=enc_u(toks); p=sig(popb[cands]+Ql[cands]@u); ul=enc_batch([toks+[(Q[j],POS)] for j in cands]); ud=enc_batch([toks+[(Q[j],NEG)] for j in cands])
     return p*sig(popb[R]+ul@Ql[R].T).sum(1)+(1-p)*sig(popb[R]+ud@Ql[R].T).sum(1)
-def infogain_concepts(toks,cidx):
+def infogain_concepts(toks,cidx):                            # PROPER answerability-aware EIG (per-candidate belief, no popb leak)
+    u=enc_u(toks); ca=np.array(cidx); pc=sig(Ec[ca]@u)                                   # per-concept belief the user likes c
     ul=enc_batch([toks+[(Ec[c],POS)] for c in cidx]); ud=enc_batch([toks+[(Ec[c],NEG)] for c in cidx])
-    return 0.5*sig(popb[R]+ul@Ql[R].T).sum(1)+0.5*sig(popb[R]+ud@Ql[R].T).sum(1)
+    cov=pc*sig(ul@Ql[R].T).sum(1)+(1-pc)*sig(ud@Ql[R].T).sum(1)                          # belief-weighted expected coverage over R
+    return pe_ans[ca]*cov                                                                 # x P(answerable): don't waste turns on un-answerable concepts
 _W=1./np.log2(np.arange(2,12))
 def metr(u,tlike,excl,tail):
     sc=(popb+Ql@u).copy(); sc[list(excl)]=-1e9
@@ -87,7 +98,7 @@ def run(mode,tail):
     for x in TE:
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
-        ustar=enc_u([(Q[j],resid[x][j]) for j in profset]) if ANSWER=='geom' else None   # true taste vector (known half)
+        cans=user_answers(x,profset)                          # the user simulator: fixed per-user concept answers
         toks=[]; asked=set(); nans=0; nq=0
         for q in [0,2,4,8]:
             while nq<q:
@@ -111,7 +122,7 @@ def run(mode,tail):
                     if not ci: break
                     if mode=='conc_pop': c=max(ci,key=lambda c:cfreq[c])
                     else: c=ci[int(infogain_concepts(toks,ci).argmax())]
-                    asked.add(c); nq+=1; v=cfold_val(toks,c,x,profset,ustar)
+                    asked.add(c); nq+=1; v=cans.get(c)
                     if v is not None: toks.append((Ec[c],v)); nans+=1
                 elif mode=='oracle':
                     bestv=-1;bestt=None
@@ -119,12 +130,12 @@ def run(mode,tail):
                         mt=metr(enc_u(toks+[(Q[j],resid[x][j])]),tlike,profset,tail)
                         if mt and mt[0]>bestv: bestv=mt[0];bestt=('i',j)
                     for c in [cc for cc in range(len(ctags)) if len(citems[cc]&profset)>=2 and ('c',cc) not in asked][:150]:
-                        v=cfold_val(toks,c,x,profset,ustar); mt=metr(enc_u(toks+[(Ec[c],v)]),tlike,profset,tail)
+                        v=cans.get(c); mt=metr(enc_u(toks+[(Ec[c],v)]),tlike,profset,tail)
                         if mt and mt[0]>bestv: bestv=mt[0];bestt=('c',c)
                     if bestt is None: break
                     asked.add(bestt); nq+=1; orc_pick[bestt[0]]+=1
                     if bestt[0]=='i': toks.append((Q[bestt[1]],resid[x][bestt[1]]))
-                    else: toks.append((Ec[bestt[1]],cfold_val(toks,bestt[1],x,profset,ustar)))
+                    else: toks.append((Ec[bestt[1]],cans.get(bestt[1])))
                     nans+=1
             mt=metr(enc_u(toks),tlike,profset,tail)
             if mt: M[q]+=mt[0];Rc[q]+=mt[1]
@@ -136,3 +147,25 @@ for tail in [False,True]:
         M,Rc,m,na=run(mode,tail); print(f"  {mode:<10}: NDCG "+" ".join(f"{M[q]:.3f}" for q in [0,2,4,8])+" | Rec "+" ".join(f"{Rc[q]:.3f}" for q in [0,2,4,8])+f" | ans/{T}={na:.1f}",flush=True)
     print(f"  GATE: conc_eig must beat q0 ({'concepts HELP' if True else ''}) AND pop_item",flush=True)
 print(f"\nORACLE PICK: items={orc_pick['i']} concepts={orc_pick['c']} -> {100*orc_pick['c']/max(orc_pick['i']+orc_pick['c'],1):.0f}% concepts",flush=True)
+# ITEMS-PRESERVED regression: warm full known-half profile (items only), concept-enc vs canonical unified-enc => items must NOT degrade
+enc2=Enc(); enc2.load_state_dict(torch.load(f'{base}/.cache/enc_unified.pt')); enc2.eval(); Ql2=np.load(f'{base}/.cache/Ql_unified.npy')
+def fold_with(encm,pairs):
+    if not pairs: return np.zeros(D)
+    arr=np.zeros((1,len(pairs),D+1),np.float32); m=np.ones((1,len(pairs)),np.float32)
+    for q,(f,v) in enumerate(pairs): arr[0,q,:D]=f; arr[0,q,D]=v
+    with torch.no_grad(): return encm(torch.tensor(arr),torch.tensor(m)).numpy()[0]
+def warm(encm,Qlm,tail):
+    M=0.;Rc=0.;m=0
+    for x in TE:
+        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+        if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
+        u=fold_with(encm,[(Q[j],resid[x][j]) for j in profset]); sc=(popb+Qlm@u).copy(); sc[list(profset)]=-1e9
+        if tail: sc[headmask]=-1e9; rel=set(t for t in tlike if not headmask[t])
+        else: rel=set(tlike)
+        if not rel: continue
+        o=np.argsort(-sc); nd=sum(_W[p] for p,t in enumerate(o[:10]) if int(t) in rel)/(_W[:min(10,len(rel))].sum()+1e-12); rc=len(set(o[:50].tolist())&rel)/len(rel); M+=nd;Rc+=rc;m+=1
+    return M/m,Rc/m
+print("\n=== ITEMS-PRESERVED regression (warm full known-half profile, items only) ===",flush=True)
+for tail in [False,True]:
+    cn=warm(enc,Ql,tail); un=warm(enc2,Ql2,tail)
+    print(f"  {'tail' if tail else 'full'}: concept-enc NDCG {cn[0]:.3f} Rec {cn[1]:.3f} | unified-enc(PaperA) NDCG {un[0]:.3f} Rec {un[1]:.3f}",flush=True)

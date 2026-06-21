@@ -529,3 +529,21 @@ CAVEATS (no overclaim): conc_POP >= conc_EIG (the info-gain selector is weak/fla
 answerable channel + honest answers are); FULL NDCG only ties; oracle headroom still large (0.59/0.44); geometric answer
 is an idealized honest-preference simulator (stress-test noisier later). Likely STRONGER on a sparse catalogue (items even
 less answerable).
+
+### PART Z — CONSISTENT concept channel (geom-trained + geom-eval) + all rechecks: answerable concepts BEAT item-asking
+Retrained concept encoder with the GEOMETRIC answer (8-ep mean warmup -> geometric; consistent train/eval). Fixed concept
+EIG (per-candidate belief, no popb leak, x P(answerable)). Realistic cold-start, fixed T=8 budget, locked 150-user split.
+FULL (MAIN) N@10/Rec@50 q8 | ans:  pop_item 0.307/0.213 (1.9) | conc_pop 0.315/0.241 (8.0) | conc_eig 0.298/0.220 (7.9) | oracle 0.587/0.277
+TAIL N@10/Rec@50 q8 | ans:        pop_item 0.085/0.136 (1.9) | conc_pop 0.116/0.153 (8.0) | conc_eig 0.098/0.151 (7.9) | oracle 0.439/0.235
+WIN: answerable-concept elicitation BEATS item-asking on tail NDCG 0.116 vs 0.085 (+36%), tail Rec 0.153 vs 0.136, full
+Rec 0.241 vs 0.213, full NDCG 0.315 vs 0.307. Item-asking starved (1.9/8 answered); concepts 8/8 fold usefully.
+RECHECKS (user-required, all after retrain):
+ - ITEMS PRESERVED: warm full-profile rec concept-enc 0.380/0.185 vs Paper-A unified-enc 0.383/0.191 (full/tail NDCG). OK.
+ - EIG: answerability fix -> conc_eig answered 7.9/8 (was 4.4), ties conc_pop @q2 then trails. Cause = info-gain optimizes
+   popularity-coverage PROXY, not user's-own-likes metric (true objective unknowable cold-start; oracle peeks). conc_pop is
+   the strong realizable selector; smarter/non-myopic selection is OPEN (oracle 22% concepts, headroom 0.59/0.44).
+ - q0=0.293 stable (popb ranking, this locked 150-user split; earlier 0.28x was a different script's sample). Protocol locked.
+Consistency lifted the win vs the earlier mismatched run (conc_pop full 0.305->0.315, tail 0.110->0.116). BOTH user fixes
+necessary (learned concept channel = OOD fix; geometric answer). Caveats: modest on full NDCG, clear tail/recall; idealized
+honest-preference user sim; single dense dataset (likely stronger on sparse catalogue). Scripts: freeze_concept_encoder.py,
+answerability_concept.py.

@@ -59,11 +59,15 @@ def gtok(x,avail):
         gi=[j for j in avail if item_g[j,g]]
         if len(gi)>=2: out.append((gcent[g],float(np.mean([resid_by_u[x][j] for j in gi])),-1))   # -1 = not a learned-concept token
     return out
-def ctok(x,avail):                                          # genome-concept tokens with mean-residual answer (concept idx kept for learned Ec)
-    cn={}
-    for j in avail:
-        for ki in item2c[j]: cn.setdefault(ki,[]).append(j)
-    out=[(ki,float(np.mean([resid_by_u[x][j] for j in js]))) for ki,js in cn.items() if len(js)>=2]
+USE_GEO=False; GEO={}
+def ctok(x,avail):                                          # genome-concept tokens; GEOMETRIC answer once warmed up (consistent w/ eval), else mean-residual
+    if USE_GEO:
+        out=[(c,v) for c,v in GEO.get(x,{}).items()]
+    else:
+        cn={}
+        for j in avail:
+            for ki in item2c[j]: cn.setdefault(ki,[]).append(j)
+        out=[(ki,float(np.mean([resid_by_u[x][j] for j in js]))) for ki,js in cn.items() if len(js)>=2]
     rng.shuffle(out); return out[:25]
 class Enc(nn.Module):
     def __init__(s):
@@ -73,6 +77,22 @@ class Enc(nn.Module):
 enc=Enc(); Qp=torch.nn.Parameter(Qt.clone()); Ec=torch.nn.Parameter(torch.tensor(Ac))   # LEARNED concept embeddings
 opt=torch.optim.Adam(list(enc.parameters())+[Qp,Ec],1e-3,weight_decay=1e-5)
 trbig=[x for x in trU if len(rat_by_u[x])>=K+1]
+def precompute_geo():                                        # GEOMETRIC answer target: like c iff aligns with true taste u*=fold(items); per-user mean threshold
+    Ecd=Ec.detach().numpy(); G={}
+    for b0 in range(0,len(trbig),512):
+        us=trbig[b0:b0+512]; mx=60; arr=np.zeros((len(us),mx,D+1),np.float32); msk=np.zeros((len(us),mx),np.float32)
+        for b,x in enumerate(us):
+            its=[j for j,_ in rat_by_u[x]][:mx]
+            for q,j in enumerate(its): arr[b,q,:D]=Q[j]; arr[b,q,D]=resid_by_u[x][j]; msk[b,q]=1
+        with torch.no_grad(): ustar=enc(torch.tensor(arr),torch.tensor(msk)).numpy()
+        for b,x in enumerate(us):
+            cn={}
+            for j,_ in rat_by_u[x]:
+                for ki in item2c[j]: cn[ki]=cn.get(ki,0)+1
+            cs=[ki for ki,nn in cn.items() if nn>=2]
+            if not cs: G[x]={}; continue
+            proj=ustar[b]@Ecd[cs].T; thr=proj.mean(); G[x]={cs[k]:(POS if proj[k]>thr else NEG) for k in range(len(cs))}
+    return G
 def make_batch(us,kk):
     F=np.zeros((len(us),kk,D),np.float32); V=np.zeros((len(us),kk),np.float32); msk=np.zeros((len(us),kk),np.float32)
     tgt=np.zeros((len(us),ni),np.float32); wt=np.ones((len(us),ni),np.float32); seen=np.zeros((len(us),ni),bool); cpos=[]
@@ -91,6 +111,8 @@ def make_batch(us,kk):
     return F,V,torch.tensor(msk),torch.tensor(tgt),torch.tensor(wt),torch.tensor(seen),cpos
 print("training concept-aware encoder...",flush=True)
 for ep in range(30):
+    globals()['USE_GEO']= ep>=8                                # 8-epoch mean-residual warmup, then GEOMETRIC answer (consistent w/ eval)
+    if USE_GEO: globals()['GEO']=precompute_geo()
     rng.shuffle(trbig)
     for b0 in range(0,len(trbig),256):
         us=trbig[b0:b0+256]; kk=int(rng.integers(1,K+1)); F,V,m,tg,w,se,cpos=make_batch(us,kk)
