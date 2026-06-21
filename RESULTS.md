@@ -508,3 +508,24 @@ CORRECTED VERDICT:
 OPEN PROBLEM (the real paper): a REALIZABLE cold-start policy that selects HELPFUL answerable concepts (naive info-gain
 picks generic concepts that hurt; privileged profile-coverage selection helps = PART T but isn't realizable). Candidate
 methods: Golbandi-style population-splitting decision tree / learned concept policy (train on train-users, no test peek).
+
+### PART Y — USER'S TWO FIXES make concept elicitation WORK (beats item-asking on tail + recall)
+Two user-identified root causes of "concepts hurt": (1) enc_unified was trained ONLY on items+18 genres, never on the 761
+genome concepts it folds at eval => OOD. FIX: freeze_concept_encoder.py trains concepts IN as a LEARNED channel (learned
+embeddings Ec init from centroid). (2) concept answer = noisy mean-residual. FIX (user's idea): GEOMETRIC answer = the
+user reports like/dislike = whichever fold moves belief CLOSER to true taste u*=fold(known-half profile). Honest user sim
+(policy never sees u*; no test leak; answerability+u* from known half, metric on held-out test).
+Realistic cold-start, fixed T=8-ask budget, full+tail (answerability_concept.py):
+                FULL NDCG q0->q8 | FULL Rec q8 || TAIL NDCG q0->q8 | TAIL Rec q8 | ans/8
+ STEP0 (enc_unified, mean): conc_pop -0.019 / conc_eig -0.017 (DECLINE, PART X-FIX)
+ STEP1 (concept-enc, mean): conc_pop 0.293->0.288 / conc_eig ->0.284 ; TAIL ->0.086/0.070  (harm REMOVED, ~flat)
+ STEP2 (concept-enc, GEOM): conc_pop 0.293->0.305 Rec0.241 | conc_eig ->0.302 || TAIL conc_pop 0.088->0.110 Rec0.157 | conc_eig ->0.094
+   baselines: pop_item/eig_item FULL ->0.307 Rec0.213 | TAIL ->0.088 Rec0.136 (1.9/8 answered) ; rand_item ->0.284/0.090 (0.1/8)
+   oracle FULL ->0.588 / TAIL ->0.439 (8/8) ; oracle pick 16% concepts.
+WINS (STEP2): conc beats item-asking on TAIL NDCG (0.110 vs 0.088, +25%), TAIL Recall (0.157 vs 0.136), FULL Recall
+(0.241 vs 0.213). FULL NDCG ~tie with pop_item. Mechanism: items ~unanswerable in cold-start (1.9/8) while concepts
+answerable (8/8) AND now fold usefully. Both fixes NECESSARY (OOD fix removes harm; geometric answer makes them help).
+CAVEATS (no overclaim): conc_POP >= conc_EIG (the info-gain selector is weak/flat-belief; selection is NOT the win - the
+answerable channel + honest answers are); FULL NDCG only ties; oracle headroom still large (0.59/0.44); geometric answer
+is an idealized honest-preference simulator (stress-test noisier later). Likely STRONGER on a sparse catalogue (items even
+less answerable).
