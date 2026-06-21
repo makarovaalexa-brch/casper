@@ -124,11 +124,18 @@ def run(mode,tail):
                     else: c=ci[int(infogain_concepts(toks,ci).argmax())]
                     asked.add(c); nq+=1; v=cans.get(c)
                     if v is not None: toks.append((Ec[c],v)); nans+=1
-                elif mode=='conc_gprof':                                     # REALIZABLE adaptive: greedy concept maximizing coverage of KNOWN profile (no test peek), personalized per user
+                elif mode=='conc_gprof':                                     # profile-privileged: greedy concept maximizing coverage of KNOWN profile (deployable warm; upper bound cold)
                     ci=[c for c in range(len(ctags)) if c not in asked and cans.get(c) is not None]
                     if not ci: break
                     ci=sorted(ci,key=lambda c:-cfreq[c])[:150]; profa=np.array(list(profset))
                     ul=enc_batch([toks+[(Ec[c],cans[c])] for c in ci]); cov=sig(popb[profa]+ul@Ql[profa].T).sum(1)
+                    c=ci[int(cov.argmax())]; asked.add(c); nq+=1; toks.append((Ec[c],cans[c])); nans+=1
+                elif mode=='conc_gbelief':                                   # REALIZABLE COLD: greedy concept covering the BELIEF's current top predictions; rank by EXPECTED answer, fold TRUE answer (no profile/test peek)
+                    u0=enc_u(toks); ref=np.array(list(order_pop[:50])) if not toks else np.argsort(-(popb+Ql@u0))[:50]
+                    ci=[c for c in range(len(ctags)) if c not in asked and cans.get(c) is not None]
+                    if not ci: break
+                    ci=sorted(ci,key=lambda c:-cfreq[c])[:150]
+                    ul=enc_batch([toks+[(Ec[c], POS if float(u0@Ec[c])>0 else NEG)] for c in ci]); cov=sig(popb[ref]+ul@Ql[ref].T).sum(1)
                     c=ci[int(cov.argmax())]; asked.add(c); nq+=1; toks.append((Ec[c],cans[c])); nans+=1
                 elif mode in ('oracle','conc_oracle'):
                     bestv=-1;bestt=None
@@ -150,7 +157,7 @@ def run(mode,tail):
     return {q:M[q]/m for q in M},{q:Rc[q]/m for q in Rc},m,ans_tot/m
 for tail in [False,True]:
     print(f"\n=== {'FULL (MAIN)' if not tail else 'TAIL'} | concept-aware enc, ANSWER={ANSWER} | NDCG@10 / Rec@50 / ans ===",flush=True)
-    for mode in ['pop_item','conc_pop','conc_eig','conc_gprof','conc_oracle']:
+    for mode in ['conc_pop','conc_eig','conc_gbelief','conc_gprof','conc_oracle']:
         M,Rc,m,na=run(mode,tail); print(f"  {mode:<10}: NDCG "+" ".join(f"{M[q]:.3f}" for q in [0,2,4,8])+" | Rec "+" ".join(f"{Rc[q]:.3f}" for q in [0,2,4,8])+f" | ans/{T}={na:.1f}",flush=True)
     print(f"  GATE: conc_eig must beat q0 ({'concepts HELP' if True else ''}) AND pop_item",flush=True)
 print(f"\nORACLE PICK: items={orc_pick['i']} concepts={orc_pick['c']} -> {100*orc_pick['c']/max(orc_pick['i']+orc_pick['c'],1):.0f}% concepts",flush=True)

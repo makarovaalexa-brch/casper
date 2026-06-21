@@ -96,8 +96,35 @@ def pool_answers(x, profset):                                                # r
 class Actor(nn.Module):
     def __init__(s): super().__init__(); s.f=nn.Sequential(nn.Linear(D+2,256),nn.ReLU(),nn.Linear(256,256),nn.ReLU(),nn.Linear(256,D))
     def forward(s,u,tt): return s.f(torch.cat([u,tt],1))
-actor=Actor(); opt=torch.optim.Adam(actor.parameters(),3e-4)
+actor=Actor(); opt=torch.optim.Adam(actor.parameters(),1e-3)
 ipsw=(1.0/np.clip((cnt/max(cnt.max(),1))**0.5,1e-3,1.0)).astype(np.float32)
+# ---- Phase BC: distill conc_gprof (personalized teacher: greedy concept covering THIS user's profile) into the belief-only actor ----
+GCACHE=f'{base}/.cache/gprof_traj.npz'
+if not os.path.exists(GCACHE) or os.environ.get('REGEN'):
+    print("gen conc_gprof teacher trajectories...",flush=True); S=[];TG=[];TT=[]
+    samp=[x for x in trU if len(rat_by_u[x])>=14][:1200]
+    for n_,x in enumerate(samp):
+        prof=[j for j,_ in rat_by_u[x]]; profset=set(prof); profa=np.array(prof)
+        ustar=enc_u_np([(Q[j],resid[x][j]) for j in prof]); ac=[c for c in range(NC) if len(citems[c]&profset)>=2]
+        if len(ac)<3: continue
+        pr={c:float(ustar@Ec[c]) for c in ac}; thr=np.mean(list(pr.values())); cans={c:(POS if pr[c]>thr else NEG) for c in ac}
+        acf=sorted(ac,key=lambda c:-cfreq[c])[:100]; toks=[]; asked=set()
+        for t in range(T):
+            ci=[c for c in acf if c not in asked]
+            if not ci: break
+            ul=enc_batch_np([toks+[(Ec[c],cans[c])] for c in ci]); cov=sig(popb[profa]+ul@Ql[profa].T).sum(1); cstar=ci[int(cov.argmax())]
+            S.append(enc_u_np(toks).astype(np.float32)); TG.append(Ec[cstar].astype(np.float32)); TT.append(t); asked.add(cstar); toks.append((Ec[cstar],cans[cstar]))
+        if (n_+1)%300==0: print(f"  gen {n_+1} ({len(S)} pairs)",flush=True)
+    S=np.array(S);TG=np.array(TG);TT=np.array(TT); np.savez(GCACHE,S=S,TG=TG,TT=TT)
+else:
+    d=np.load(GCACHE); S,TG,TT=d['S'],d['TG'],d['TT']
+print(f"  BC distil conc_gprof -> actor ({len(S)} pairs)...",flush=True)
+St=torch.tensor(S); TGt=torch.tensor(TG); TTt2=torch.stack([torch.tensor(TT/8.,dtype=torch.float32),torch.tensor(TT.astype(np.float32))],1)
+for ep in range(40):
+    idx=torch.randperm(len(St))
+    for b0 in range(0,len(St),512):
+        bb=idx[b0:b0+512]; pred=actor(St[bb],TTt2[bb]); loss=((pred-TGt[bb])**2).mean(); opt.zero_grad(); loss.backward(); opt.step()
+for g in opt.param_groups: g['lr']=3e-4                                       # lower LR for the recon finetune
 def prep(users):
     B=len(users); ANS=torch.zeros(B,NP); MSK=torch.zeros(B,NP); tgt=torch.zeros(B,ni); wt=torch.zeros(B,ni)
     for b,x in enumerate(users):
@@ -154,7 +181,7 @@ def run(mode,tail):
     for x in TE:
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
-        cans=cans_of(x,profset) if mode in('policy','conc_pop','conc_eig') else {}
+        cans=cans_of(x,profset) if mode in('policy','conc_pop','conc_eig','conc_gprof') else {}
         toks=[]; asked=set(); nq=0; nans=0
         for q in [0,2,4,8]:
             while nq<q:
@@ -175,6 +202,12 @@ def run(mode,tail):
                 elif mode=='conc_eig':
                     ci=[c for c in range(NC) if c not in asked]; c=ci[int(infogain_concepts(toks,ci,pe_ans).argmax())]; asked.add(c); nq+=1
                     if c in cans: toks.append((Ec[c],cans[c])); nans+=1
+                elif mode=='conc_gprof':                                                # personalized teacher (uses profile): the realizable-warm reference to match
+                    ci=[c for c in range(NC) if c in cans and c not in asked]
+                    if not ci: break
+                    ci=sorted(ci,key=lambda c:-cfreq[c])[:150]; profa=np.array(list(profset))
+                    ul=enc_batch_np([toks+[(Ec[c],cans[c])] for c in ci]); cov=sig(popb[profa]+ul@Ql[profa].T).sum(1)
+                    c=ci[int(cov.argmax())]; asked.add(c); nq+=1; toks.append((Ec[c],cans[c])); nans+=1
                 elif mode=='pop_item':
                     cs=[j for j in PITEMS if j not in asked]; j=cs[0]; asked.add(j); nq+=1
                     if j in profset: toks.append((Q[j],resid[x][j])); nans+=1
@@ -185,6 +218,6 @@ def run(mode,tail):
     return {q:M[q]/m for q in M},{q:Rc[q]/m for q in Rc},na/m,extra
 for tail in [False,True]:
     print(f"\n=== {'FULL (MAIN)' if not tail else 'TAIL'} | unified continuous policy | NDCG@10 / Rec@50 / ans ===",flush=True)
-    for mode in ['pop_item','conc_pop','conc_eig','policy']:
+    for mode in ['pop_item','conc_pop','conc_gprof','policy']:
         Mp,Rcp,na,extra=run(mode,tail); print(f"  {mode:<9}: NDCG "+" ".join(f"{Mp[q]:.3f}" for q in [0,2,4,8])+" | Rec "+" ".join(f"{Rcp[q]:.3f}" for q in [0,2,4,8])+f" | ans/{T}={na:.1f}{extra}",flush=True)
     print(f"  GATE: policy must beat conc_pop AND pop_item @q8",flush=True)

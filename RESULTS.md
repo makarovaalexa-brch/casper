@@ -586,3 +586,15 @@ CAVEAT (honest): conc_gprof ranks concepts using the user's KNOWN PROFILE -> dir
 (returning user w/ history); an UPPER BOUND for PURE cold-start, where a policy must infer taste from concept ANSWERS
 (the belief) alone. The continuous belief-only policy (continuous_policy.py) is at ~conc_pop (TAU=0.1 tail 0.118) and must
 be pushed toward conc_gprof. NEXT: distill conc_gprof (strong personalized teacher) into the belief-only continuous policy.
+
+### PART AD — belief-only COLD adaptive selectors all ~= conc_pop (well-tested); personalization beyond frequency needs more info
+Tested 3 realizable cold (belief-only) adaptive selectors vs conc_pop (ANSWER=geom, T=8, locked split):
+  conc_pop 0.315/0.116 | conc_eig 0.298/0.098 | conc_gbelief 0.277/0.102 | continuous policy ~0.289/~0.105  (all FULL/TAIL q8)
+  -- only PROFILE-using conc_gprof (0.330/0.143) and TEST-using conc_oracle (0.469/0.325) beat conc_pop.
+=> In PURE cold-start, frequency (conc_pop) is the realizable concept frontier; belief-only adaptivity can't beat it
+(mirrors the discrete-item EIG-frontier result). Cause = INFORMATION budget: 8 BINARY concept answers ~= 8 bits, too few
+to pinpoint a user's niche among hundreds of concepts; covering the belief's own top (gbelief) is circular/exploitative.
+conc_gprof proves the headroom is real & realizable WITH more info (profile). LEVERS to capture it realizably: (1) more
+turns / GRADED answers (more bits); (2) warm/returning-user regime (conc_gprof deployable, +23% tail); (3) sparse/large
+catalogue (frequency weaker). SOLID contributions unaffected: answerable concepts beat item-asking; unified continuous
+policy realizes the frequency frontier (matches conc_pop, beats item-asking+EIG); open-vocab bolt-on; unified item+concept space.
