@@ -124,6 +124,16 @@ def run(mode,tail):
                     else: c=ci[int(infogain_concepts(toks,ci).argmax())]
                     asked.add(c); nq+=1; v=cans.get(c)
                     if v is not None: toks.append((Ec[c],v)); nans+=1
+                elif mode=='conc_mix':                                      # COMBINATION at fixed budget: interleave popular ITEM + frequent CONCEPT
+                    if nq%2==0:
+                        cs=[j for j in order_pop[:1500] if ('i',int(j)) not in asked]
+                        if not cs: break
+                        j=int(cs[0]); asked.add(('i',j)); nq+=1
+                        if j in profset: toks.append((Q[j],resid[x][j])); nans+=1
+                    else:
+                        ci=[c for c in range(len(ctags)) if ('c',c) not in asked and cans.get(c) is not None]
+                        if not ci: break
+                        c=max(ci,key=lambda c:cfreq[c]); asked.add(('c',c)); nq+=1; toks.append((Ec[c],cans[c])); nans+=1
                 elif mode=='conc_popbelief':                                # REALIZABLE COLD (user's fusion, non-learned): popularity prior + lambda*belief-alignment; no training
                     u0=enc_u(toks); ci=[c for c in range(len(ctags)) if c not in asked and cans.get(c) is not None]
                     if not ci: break
@@ -162,7 +172,7 @@ def run(mode,tail):
     return {q:M[q]/m for q in M},{q:Rc[q]/m for q in Rc},m,ans_tot/m
 for tail in [False,True]:
     print(f"\n=== {'FULL (MAIN)' if not tail else 'TAIL'} | concept-aware enc, ANSWER={ANSWER} | NDCG@10 / Rec@50 / ans ===",flush=True)
-    for mode in ['conc_pop']:
+    for mode in ['pop_item','conc_pop','conc_mix']:
         M,Rc,m,na=run(mode,tail); print(f"  {mode:<10}: NDCG "+" ".join(f"{M[q]:.3f}" for q in [0,2,4,8])+" | Rec "+" ".join(f"{Rc[q]:.3f}" for q in [0,2,4,8])+f" | ans/{T}={na:.1f}",flush=True)
     print(f"  GATE: conc_eig must beat q0 ({'concepts HELP' if True else ''}) AND pop_item",flush=True)
 print(f"\nORACLE PICK: items={orc_pick['i']} concepts={orc_pick['c']} -> {100*orc_pick['c']/max(orc_pick['i']+orc_pick['c'],1):.0f}% concepts",flush=True)
@@ -190,26 +200,35 @@ for tail in [False,True]:
     print(f"  {'tail' if tail else 'full'}: concept-enc NDCG {cn[0]:.3f} Rec {cn[1]:.3f} | unified-enc(PaperA) NDCG {un[0]:.3f} Rec {un[1]:.3f}",flush=True)
 # BELIEF CONVERGENCE: does folding T CONCEPT answers approach the true item-profile taste u*? (vs folding T ITEMS)
 print("\n=== BELIEF CONVERGENCE: cos(belief after T answers, u*=fold(full profile items)) ===",flush=True)
-for kind in ['items','concepts_freq_binary','concepts_freq_graded','concepts_aligned_binary']:
+POPSET=set(int(j) for j in order_pop[:400])                                  # realistically-askable popular items
+for kind in ['items','concepts_freq','concepts_gprof','BOTH_pop_items+freq_concepts']:
     out=[]
     for Tn in [2,4,8,16,32]:
         cs=0.;m=0
         for x in TE:
             profset,_=SPL[x]; prof=list(profset)
             if len(prof)<8: continue
-            ustar=enc_u([(Q[j],resid[x][j]) for j in prof])
+            ustar=enc_u([(Q[j],resid[x][j]) for j in prof]); profa=np.array(prof)
             if kind=='items':
                 toks=[(Q[j],resid[x][j]) for j in prof[:Tn]]
+            elif kind=='BOTH_pop_items+freq_concepts':                        # the COMBINATION: answerable popular items (fine) + frequent concepts (coarse)
+                seen_pop=[j for j in order_pop if int(j) in POPSET and j in profset]; nit=min(len(seen_pop),max(Tn//3,1)); its=seen_pop[:nit]
+                ac=[c for c in range(len(ctags)) if len(citems[c]&profset)>=2]; proj={c:float(ustar@Ec[c]) for c in ac}; thr=np.mean(list(proj.values())) if ac else 0.
+                fc=sorted(ac,key=lambda c:-cfreq[c])[:Tn-len(its)]
+                toks=[(Q[j],resid[x][j]) for j in its]+[(Ec[c],POS if proj[c]>thr else NEG) for c in fc]
             else:
                 ac=[c for c in range(len(ctags)) if len(citems[c]&profset)>=2]
                 if not ac: continue
-                proj={c:float(ustar@Ec[c]) for c in ac}; thr=np.mean(list(proj.values()))
-                order=sorted(ac,key=lambda c:-cfreq[c]) if 'freq' in kind else sorted(ac,key=lambda c:-abs(proj[c]-thr))
-                sel=order[:Tn]
-                if 'graded' in kind: toks=[(Ec[c], NEG+(POS-NEG)*sig(4*(proj[c]-thr))) for c in sel]   # graded answer (more bits)
-                else: toks=[(Ec[c], POS if proj[c]>thr else NEG) for c in sel]                          # binary geometric
+                proj={c:float(ustar@Ec[c]) for c in ac}; thr=np.mean(list(proj.values())); cans={c:(POS if proj[c]>thr else NEG) for c in ac}
+                if kind=='concepts_freq': sel=sorted(ac,key=lambda c:-cfreq[c])[:Tn]
+                else:                                                                  # GREEDY profile-coverage order (the conc_gprof selection that WINS)
+                    sel=[]; rem=set(ac); tk=[]
+                    for _ in range(min(Tn,len(ac))):
+                        cc=list(rem); ul=enc_batch([tk+[(Ec[c],cans[c])] for c in cc]); cov=sig(popb[profa]+ul@Ql[profa].T).sum(1)
+                        b=cc[int(cov.argmax())]; sel.append(b); rem.discard(b); tk=tk+[(Ec[b],cans[b])]
+                toks=[(Ec[c],cans[c]) for c in sel]
             if not toks: continue
             uT=enc_u(toks); cs+=float(uT@ustar/((np.linalg.norm(uT)+1e-9)*(np.linalg.norm(ustar)+1e-9))); m+=1
         out.append(f"T={Tn}:{cs/m:.3f}")
-    print(f"  fold {kind:<24}: "+"  ".join(out),flush=True)
-print("  (graded>binary => answer-granularity helps; aligned>freq => selection helps; all plateau<<1 => concepts fundamentally coarse)",flush=True)
+    print(f"  fold {kind:<16}: "+"  ".join(out),flush=True)
+print("  (if concepts_gprof >> concepts_freq's 0.83 -> the ceiling is SELECTION, not fundamental coarseness => keep cracking realizable selection)",flush=True)
