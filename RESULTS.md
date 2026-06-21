@@ -573,3 +573,16 @@ reptiles'~'dinosaurs' 80%).
 free text recovers curated genome concepts WITHOUT retraining. SBERT IS used here (only for open-vocab location); core
 instrument remains MF-factor + learned concept embeddings. Novelty of this (open-vocab concept->CF fold bolt-on) = deep-
 research pending (CLAIM 2).
+
+### PART AC — PERSONALIZED concept selection BEATS popular (user was right; retract "unreachable")
+Diagnostic on the concept-aware encoder (ANSWER=geom, realistic cold-start, locked 150-user split):
+  conc_pop  : FULL 0.315 / TAIL 0.116 (non-adaptive, same concepts for all)
+  conc_gprof: FULL 0.330 / TAIL 0.143 / tailRec 0.178  (greedy concept maximizing coverage of THIS user's profile; +23% tail, +5% full)
+  conc_oracle: FULL 0.469 / TAIL 0.325 (peeks at held-out test)
+=> PERSONALIZED adaptive concept selection beats popular-for-everyone. The big conc_oracle headroom is NOT all
+privileged: a realizable-style adaptive selector (conc_gprof) captures a real chunk. EARLIER "unreachable" framing was
+WRONG (only tested weak selectors).
+CAVEAT (honest): conc_gprof ranks concepts using the user's KNOWN PROFILE -> directly deployable in WARM elicitation
+(returning user w/ history); an UPPER BOUND for PURE cold-start, where a policy must infer taste from concept ANSWERS
+(the belief) alone. The continuous belief-only policy (continuous_policy.py) is at ~conc_pop (TAU=0.1 tail 0.118) and must
+be pushed toward conc_gprof. NEXT: distill conc_gprof (strong personalized teacher) into the belief-only continuous policy.

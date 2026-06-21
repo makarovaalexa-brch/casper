@@ -124,9 +124,16 @@ def run(mode,tail):
                     else: c=ci[int(infogain_concepts(toks,ci).argmax())]
                     asked.add(c); nq+=1; v=cans.get(c)
                     if v is not None: toks.append((Ec[c],v)); nans+=1
-                elif mode=='oracle':
+                elif mode=='conc_gprof':                                     # REALIZABLE adaptive: greedy concept maximizing coverage of KNOWN profile (no test peek), personalized per user
+                    ci=[c for c in range(len(ctags)) if c not in asked and cans.get(c) is not None]
+                    if not ci: break
+                    ci=sorted(ci,key=lambda c:-cfreq[c])[:150]; profa=np.array(list(profset))
+                    ul=enc_batch([toks+[(Ec[c],cans[c])] for c in ci]); cov=sig(popb[profa]+ul@Ql[profa].T).sum(1)
+                    c=ci[int(cov.argmax())]; asked.add(c); nq+=1; toks.append((Ec[c],cans[c])); nans+=1
+                elif mode in ('oracle','conc_oracle'):
                     bestv=-1;bestt=None
-                    for j in [jj for jj in ITEMC if jj in profset and ('i',jj) not in asked][:150]:
+                    if mode=='oracle':
+                      for j in [jj for jj in ITEMC if jj in profset and ('i',jj) not in asked][:150]:
                         mt=metr(enc_u(toks+[(Q[j],resid[x][j])]),tlike,profset,tail)
                         if mt and mt[0]>bestv: bestv=mt[0];bestt=('i',j)
                     for c in [cc for cc in range(len(ctags)) if len(citems[cc]&profset)>=2 and ('c',cc) not in asked][:150]:
@@ -143,7 +150,7 @@ def run(mode,tail):
     return {q:M[q]/m for q in M},{q:Rc[q]/m for q in Rc},m,ans_tot/m
 for tail in [False,True]:
     print(f"\n=== {'FULL (MAIN)' if not tail else 'TAIL'} | concept-aware enc, ANSWER={ANSWER} | NDCG@10 / Rec@50 / ans ===",flush=True)
-    for mode in ['rand_item','pop_item','eig_item','conc_pop','conc_eig','oracle']:
+    for mode in ['pop_item','conc_pop','conc_eig','conc_gprof','conc_oracle']:
         M,Rc,m,na=run(mode,tail); print(f"  {mode:<10}: NDCG "+" ".join(f"{M[q]:.3f}" for q in [0,2,4,8])+" | Rec "+" ".join(f"{Rc[q]:.3f}" for q in [0,2,4,8])+f" | ans/{T}={na:.1f}",flush=True)
     print(f"  GATE: conc_eig must beat q0 ({'concepts HELP' if True else ''}) AND pop_item",flush=True)
 print(f"\nORACLE PICK: items={orc_pick['i']} concepts={orc_pick['c']} -> {100*orc_pick['c']/max(orc_pick['i']+orc_pick['c'],1):.0f}% concepts",flush=True)
