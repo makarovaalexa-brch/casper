@@ -94,13 +94,13 @@ for x in te:
     if len(its)>=6: il=its[:]; _rs.shuffle(il); SPL[x]=(set(il[:len(il)//2]), il[len(il)//2:])
 TE=[x for x in te if x in SPL][:150]; ITEMC=list(order_pop[:1500]); orc_pick={'i':0,'c':0}
 def run(mode,tail):
-    M={q:0. for q in [0,2,4,8]};Rc={q:0. for q in [0,2,4,8]};m=0;ans_tot=0.
+    M={q:0. for q in [0,4,8,16]};Rc={q:0. for q in [0,4,8,16]};m=0;ans_tot=0.
     for x in TE:
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
         cans=user_answers(x,profset)                          # the user simulator: fixed per-user concept answers
         toks=[]; asked=set(); nans=0; nq=0
-        for q in [0,2,4,8]:
+        for q in [0,4,8,16]:
             while nq<q:
                 if mode=='rand_item':
                     j=int(rng.integers(ni))
@@ -158,7 +158,7 @@ def run(mode,tail):
 for tail in [False,True]:
     print(f"\n=== {'FULL (MAIN)' if not tail else 'TAIL'} | concept-aware enc, ANSWER={ANSWER} | NDCG@10 / Rec@50 / ans ===",flush=True)
     for mode in ['conc_pop','conc_eig','conc_gbelief','conc_gprof','conc_oracle']:
-        M,Rc,m,na=run(mode,tail); print(f"  {mode:<10}: NDCG "+" ".join(f"{M[q]:.3f}" for q in [0,2,4,8])+" | Rec "+" ".join(f"{Rc[q]:.3f}" for q in [0,2,4,8])+f" | ans/{T}={na:.1f}",flush=True)
+        M,Rc,m,na=run(mode,tail); print(f"  {mode:<10}: NDCG "+" ".join(f"{M[q]:.3f}" for q in [0,4,8,16])+" | Rec "+" ".join(f"{Rc[q]:.3f}" for q in [0,4,8,16])+f" | ans/{T}={na:.1f}",flush=True)
     print(f"  GATE: conc_eig must beat q0 ({'concepts HELP' if True else ''}) AND pop_item",flush=True)
 print(f"\nORACLE PICK: items={orc_pick['i']} concepts={orc_pick['c']} -> {100*orc_pick['c']/max(orc_pick['i']+orc_pick['c'],1):.0f}% concepts",flush=True)
 # ITEMS-PRESERVED regression: warm full known-half profile (items only), concept-enc vs canonical unified-enc => items must NOT degrade

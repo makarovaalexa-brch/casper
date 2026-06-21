@@ -598,3 +598,12 @@ conc_gprof proves the headroom is real & realizable WITH more info (profile). LE
 turns / GRADED answers (more bits); (2) warm/returning-user regime (conc_gprof deployable, +23% tail); (3) sparse/large
 catalogue (frequency weaker). SOLID contributions unaffected: answerable concepts beat item-asking; unified continuous
 policy realizes the frequency frontier (matches conc_pop, beats item-asking+EIG); open-vocab bolt-on; unified item+concept space.
+
+### PART AE — more turns (q16) does NOT help belief-only adaptive; signal QUALITY is the lever (not budget)
+Extended eval to q16 (ANSWER=geom): conc_pop saturates (TAIL 0.116@q8 -> 0.117@q16; FULL 0.315->0.314); belief-only
+conc_gbelief stays BELOW (TAIL 0.108, FULL 0.290 @q16). conc_gprof (profile) still ahead (0.139/0.327). => the cold wall
+is NOT the turn/bit budget; it's the SIGNAL the policy uses. Validates the next lever (user): feed the policy POPULATION-
+LEVEL priors it currently lacks -- POPULARITY + POPULATION-AVERAGE INFO-GAIN per entity (HELF/Golbandi-style; not
+user-specific, no leak) -- PLUS the per-user belief. Built continuous_policy2.py (popularity-aware + pop-info-gain scorer)
+but HOLDING the run pending a lit check (deep-research wf_d8d967ef-332) on prior art for combining population info-gain
+priors with a learned belief-conditioned policy.
