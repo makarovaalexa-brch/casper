@@ -547,3 +547,15 @@ Consistency lifted the win vs the earlier mismatched run (conc_pop full 0.305->0
 necessary (learned concept channel = OOD fix; geometric answer). Caveats: modest on full NDCG, clear tail/recall; idealized
 honest-preference user sim; single dense dataset (likely stronger on sparse catalogue). Scripts: freeze_concept_encoder.py,
 answerability_concept.py.
+
+### PART AA — ONE UNIFIED MODEL serves BOTH papers (user requirement): enc_concept passes ALL Paper A gates + gives Paper B win
+User: one code/model must serve A and B; all findings hold simultaneously. VERIFIED.
+Paper A artifacts UNTOUCHED on disk (Q_svd/bi_svd 06-18, enc_unified/Ql_unified 06-19; concept files 06-21 are NEW).
+eval_all.py now supports LOAD=<name> (load saved model, no training). LOAD=concept (the unified A+B model) on Paper A gates:
+  G1 encoder>ridge: FULL OK 0.339 vs 0.305 | TAIL OK 0.117 vs 0.098
+  G2 eig>random:    FULL OK 0.364 vs 0.339 | TAIL OK 0.183 vs 0.129
+  G3 EIG monotone OK ; G4 polarity +38pp (>=20) ; genre purity 40/45% ; item coherence sane. VERDICT: ELICITATION INTACT.
+SAME model gives Paper B concept win (PART Z: conc beats item-asking, tail NDCG +36%). => ALL FINDINGS HOLD ON ONE MODEL.
+Tiny dips vs items-only enc_unified (cost of concept channel, all gates still pass w/ margin): EIG tail 0.194->0.183,
+polarity +42->+38pp, full-profile fold tail 0.157->0.154. CANONICAL = freeze_concept_encoder.py -> enc_concept (one model);
+eval_all.py LOAD=concept = Paper A gates; answerability_concept.py = Paper B. freeze_unified_encoder.py SUPERSEDED.

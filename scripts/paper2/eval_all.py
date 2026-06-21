@@ -83,20 +83,25 @@ def make_batch(us,kk):
             for j in dis_by_u[x]:
                 if not seen[b,j]: wt[b,j]=posw/npos
     return torch.tensor(toks),torch.tensor(msk),torch.tensor(tgt),torch.tensor(wt),torch.tensor(seen)
-print(f"train encoder (POLARITY={POLARITY} COFACTOR={COFACTOR})...",flush=True)
-for ep in range(30):
-    rng.shuffle(trbig)
-    for b0 in range(0,len(trbig),256):
-        us=trbig[b0:b0+256]; kk=int(rng.integers(1,K+1)); t,m,tg,w,se=make_batch(us,kk); u=enc(t,m); sc=u@Qp.t()
-        loss=(w*nn.functional.binary_cross_entropy_with_logits(sc,tg,reduction='none')).masked_fill(se,0.).mean()
-        if CONTRA:                                                            # value-channel polarity: like must score the item higher than dislike
-            jt=torch.randint(0,ni,(256,)); o=torch.ones(256,1)
-            tp=torch.zeros(256,1,D+1); tp[:,0,:D]=Qt[jt]; tp[:,0,D]=POS
-            tm=torch.zeros(256,1,D+1); tm[:,0,:D]=Qt[jt]; tm[:,0,D]=NEG
-            up=enc(tp,o); um=enc(tm,o); diff=(Qp[jt]*up).sum(1)-(Qp[jt]*um).sum(1)
-            loss=loss+CL*torch.nn.functional.softplus(MARGIN-diff).mean()
-        opt.zero_grad(); loss.backward(); opt.step()
-enc.eval(); Ql=Qp.detach().numpy()
+LOAD=os.environ.get('LOAD','')
+if LOAD:                                                                       # test a SAVED model (e.g. enc_concept = the UNIFIED A+B model) on ALL Paper A gates, no training
+    enc.load_state_dict(torch.load(f'{base}/.cache/enc_{LOAD}.pt')); enc.eval(); Ql=np.load(f'{base}/.cache/Ql_{LOAD}.npy')
+    print(f"LOADED enc_{LOAD}.pt + Ql_{LOAD}.npy (NO training) -- running Paper A gates on the {LOAD} model",flush=True)
+else:
+    print(f"train encoder (POLARITY={POLARITY} COFACTOR={COFACTOR})...",flush=True)
+    for ep in range(30):
+        rng.shuffle(trbig)
+        for b0 in range(0,len(trbig),256):
+            us=trbig[b0:b0+256]; kk=int(rng.integers(1,K+1)); t,m,tg,w,se=make_batch(us,kk); u=enc(t,m); sc=u@Qp.t()
+            loss=(w*nn.functional.binary_cross_entropy_with_logits(sc,tg,reduction='none')).masked_fill(se,0.).mean()
+            if CONTRA:                                                            # value-channel polarity: like must score the item higher than dislike
+                jt=torch.randint(0,ni,(256,)); o=torch.ones(256,1)
+                tp=torch.zeros(256,1,D+1); tp[:,0,:D]=Qt[jt]; tp[:,0,D]=POS
+                tm=torch.zeros(256,1,D+1); tm[:,0,:D]=Qt[jt]; tm[:,0,D]=NEG
+                up=enc(tp,o); um=enc(tm,o); diff=(Qp[jt]*up).sum(1)-(Qp[jt]*um).sum(1)
+                loss=loss+CL*torch.nn.functional.softplus(MARGIN-diff).mean()
+            opt.zero_grad(); loss.backward(); opt.step()
+    enc.eval(); Ql=Qp.detach().numpy()
 _W=1./np.log2(np.arange(2,12))
 def metr(score,tlike,excl,tailonly):
     sc=score.copy(); sc[list(excl)]=-1e9
