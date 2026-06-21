@@ -559,3 +559,17 @@ SAME model gives Paper B concept win (PART Z: conc beats item-asking, tail NDCG 
 Tiny dips vs items-only enc_unified (cost of concept channel, all gates still pass w/ margin): EIG tail 0.194->0.183,
 polarity +42->+38pp, full-profile fold tail 0.157->0.154. CANONICAL = freeze_concept_encoder.py -> enc_concept (one model);
 eval_all.py LOAD=concept = Paper A gates; answerability_concept.py = Paper B. freeze_unified_encoder.py SUPERSEDED.
+
+### PART AB — OPEN-VOCABULARY concept folding revived as a BOLT-ON (Paper A; frozen model untouched)
+open_concept.py: free-text concept -> SBERT(all-MiniLM-L6-v2, cached/offline) match to item docs (title+genres+genome tags)
+-> MF-factor(Q_svd) centroid of nearest items -> fold through FROZEN enc_unified -> recommend. SBERT ONLY locates items;
+the trained instrument is never changed (pure inference-time bolt-on).
+(1) ANECDOTAL retrieval is crisp: 'dinosaurs'->Carnosaur/Dinosaur/We're Back!/Theodore Rex (recommends incl. Jurassic Park);
+'samurai'->Seven Samurai/Ghost Dog/Sanjuro; 'time travel'->Somewhere in Time/BTTF II/Timecop; 'heist'->City of Industry/
+Entrapment/Newton Boys; 'courtroom drama'->The Verdict/Rainmaker/...And Justice for All. All on-concept.
+(2) PARAPHRASE robustness (non-verbatim ~ verbatim) MEAN overlap@10 = 70% (e.g. 'scary frightening'~'horror' 70%, 'prehistoric
+reptiles'~'dinosaurs' 80%).
+(3) AT SCALE: text-located concept vs genome-grounded concept overlap@10 = 50% vs random 0.2% (~250x) over 150 tags =>
+free text recovers curated genome concepts WITHOUT retraining. SBERT IS used here (only for open-vocab location); core
+instrument remains MF-factor + learned concept embeddings. Novelty of this (open-vocab concept->CF fold bolt-on) = deep-
+research pending (CLAIM 2).
