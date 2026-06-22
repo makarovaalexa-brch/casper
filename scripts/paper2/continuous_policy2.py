@@ -99,8 +99,9 @@ class Scorer(nn.Module):                                                      # 
         feat=torch.cat([emb,align,pri,ig,bnorm,tn],2); return s.f(feat).squeeze(2)
 scorer=Scorer(); opt=torch.optim.Adam(scorer.parameters(),1e-3)
 ipsw=(1.0/np.clip((cnt/max(cnt.max(),1))**0.5,1e-3,1.0)).astype(np.float32)
+ML=64
 def prep(users):
-    B=len(users); ANS=torch.zeros(B,NP); USTAR=torch.zeros(B,D); tgt=torch.zeros(B,ni); wt=torch.zeros(B,ni)
+    B=len(users); ANS=torch.zeros(B,NP); USTAR=torch.zeros(B,D); tgt=torch.zeros(B,ni); wt=torch.zeros(B,ni); LIKED=torch.zeros(B,ML,dtype=torch.long); LMASK=torch.zeros(B,ML); RNEG=torch.tensor(rng.integers(0,ni,size=(B,ML)),dtype=torch.long)  # random items ~= non-likes (ranking reward)
     for b,x in enumerate(users):
         allit=[j for j,_ in rat_by_u[x]]; rng.shuffle(allit); prof=set(allit[:max(len(allit)//2,4)]); held=[j for j in likes_by_u[x] if j not in prof] or likes_by_u[x][:1]
         for k,j in enumerate(PITEMS):
@@ -110,8 +111,9 @@ def prep(users):
         USTAR[b]=torch.tensor(enc_u_np([(Q[j],resid[x][j]) for j in prof]))     # the user vector to RECONSTRUCT (fold of known profile)
         posw=0.
         for j in held: tgt[b,j]=1.; wt[b,j]=float(ipsw[j]); posw+=float(ipsw[j])
+        for hi,j in enumerate(held[:ML]): LIKED[b,hi]=j; LMASK[b,hi]=1.          # held-out likes (for cheap coverage reward)
         seen=prof; nneg=ni-len(seen)-len(held); m=torch.ones(ni); m[list(seen)]=0; wb=wt[b]; wb[(tgt[b]==0)&(m>0)]=float(posw)/max(nneg,1); wt[b]=wb
-    return ANS,USTAR,tgt,wt
+    return ANS,USTAR,tgt,wt,LIKED,LMASK,RNEG
 def rollout(users,ANS,explore=0.0):
     B=len(users); toks=torch.zeros(B,T,D+1); tmask=torch.zeros(B,T); u=torch.zeros(B,D); asked=torch.zeros(B,NP)
     for t in range(T):
@@ -126,27 +128,55 @@ def rollout(users,ANS,explore=0.0):
         toks=toks.clone(); toks[:,t,:D]=a_used; toks[:,t,D]=ans; tmask=tmask.clone(); tmask[:,t]=1; u=enc(toks,tmask)
     return u
 def recon(u,tgt,wt): s=u@Qlt.t()+popbt; bce=nn.functional.binary_cross_entropy_with_logits(s,tgt,reduction='none'); return (wt*bce).sum()/wt.sum()
+def rollout_sample(users,ANS,LIKED,LMASK,RNEG,PEN):                           # REINFORCE: DENSE per-turn reward = D[rank-aware coverage] - PEN*(unanswered)
+    B=len(users); toks=torch.zeros(B,T,D+1); tmask=torch.zeros(B,T); u=torch.zeros(B,D); asked=torch.zeros(B,NP); ar=torch.arange(B)
+    logps=[]; rews=[]; prev=torch.zeros(B); QlL=Qlt[LIKED]; popL=popbt[LIKED]; lsum=LMASK.sum(1).clamp(min=1); QlN=Qlt[RNEG]; popN=popbt[RNEG]   # likes vs random non-likes
+    for t in range(T):
+        sc=scorer(u,t/8.).masked_fill(asked>0,-1e9); p=torch.softmax(sc/TAU,1)
+        idx=torch.multinomial(p,1).squeeze(1); logps.append(torch.log(p[ar,idx]+1e-9))
+        oh=torch.zeros_like(p).scatter_(1,idx.unsqueeze(1),1.0); asked=asked+oh
+        av=ANS[ar,idx]; unans=(av.abs()<1e-6).float()                        # ANS==0 => unanswerable/wasted ask
+        toks=toks.clone(); toks[:,t,:D]=POOLt[idx]; toks[:,t,D]=av; tmask=tmask.clone(); tmask[:,t]=1
+        with torch.no_grad():
+            u=enc(toks,tmask)
+            covL=(torch.sigmoid((u.unsqueeze(1)*QlL).sum(2)+popL)*LMASK).sum(1)/lsum
+            covN=torch.sigmoid((u.unsqueeze(1)*QlN).sum(2)+popN).mean(1)      # non-likes (penalise inflating everything)
+            cov=covL-covN; rews.append((cov-prev)-PEN*unans); prev=cov         # RANK-AWARE: likes minus non-likes
+    return u, logps, rews
 OBJ=os.environ.get('OBJ','ustar')                                            # 'ustar' = reconstruct the user embedding (user's idea); 'bce' = held-out item prediction
 trbig=[x for x in trU if len(rat_by_u[x])>=14 and len(likes_by_u[x])>=6]
-# ---- BC FLOOR: teach the scorer to reproduce conc_pop (most-frequent answerable concept each turn) so it AT LEAST matches it ----
-print("BC floor: match conc_pop...",flush=True); Sb=[];Tb=[];TTb=[]
-for x in [x for x in trbig][:1200]:
-    profset=set(j for j,_ in rat_by_u[x]); cans=cans_np(x,profset); ac=sorted(cans.keys(),key=lambda c:-cfreq[c])[:T]; toks=[]
-    for t,c in enumerate(ac):
-        Sb.append(enc_u_np(toks).astype(np.float32)); Tb.append(NI+c); TTb.append(t/8.); toks.append((Ec[c],cans[c]))
-Sbt=torch.tensor(np.array(Sb)); Tbt=torch.tensor(np.array(Tb)).long(); TTbt=torch.tensor(np.array(TTb,np.float32))
-for ep in range(25):
-    idx=torch.randperm(len(Sbt))
-    for b0 in range(0,len(Sbt),256):
-        bb=idx[b0:b0+256]; sc=scorer(Sbt[bb],TTbt[bb]); loss=nn.functional.cross_entropy(sc,Tbt[bb]); opt.zero_grad(); loss.backward(); opt.step()
-for g in opt.param_groups: g['lr']=1e-4                                       # lower LR for recon finetune from the conc_pop floor
+# ---- BC FLOOR (optional): teach the scorer to reproduce conc_pop. NOBC=1 skips it (test if the static-pop BC traps the policy) ----
+if os.environ.get('NOBC'):
+    print("NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)",flush=True)
+else:
+    print("BC floor: match conc_pop...",flush=True); Sb=[];Tb=[];TTb=[]
+    for x in [x for x in trbig][:1200]:
+        profset=set(j for j,_ in rat_by_u[x]); cans=cans_np(x,profset); ac=sorted(cans.keys(),key=lambda c:-cfreq[c])[:T]; toks=[]
+        for t,c in enumerate(ac):
+            Sb.append(enc_u_np(toks).astype(np.float32)); Tb.append(NI+c); TTb.append(t/8.); toks.append((Ec[c],cans[c]))
+    Sbt=torch.tensor(np.array(Sb)); Tbt=torch.tensor(np.array(Tb)).long(); TTbt=torch.tensor(np.array(TTb,np.float32))
+    for ep in range(25):
+        idx=torch.randperm(len(Sbt))
+        for b0 in range(0,len(Sbt),256):
+            bb=idx[b0:b0+256]; sc=scorer(Sbt[bb],TTbt[bb]); loss=nn.functional.cross_entropy(sc,Tbt[bb]); opt.zero_grad(); loss.backward(); opt.step()
+for g in opt.param_groups: g['lr']=float(os.environ.get('FTLR',5e-4))         # finetune LR from the conc_pop floor
 print(f"train scorer policy (pool={NP}, TAU={TAU}) -- finetune from conc_pop floor...",flush=True)
 for ep in range(EP):
     rng.shuffle(trbig); tot=0.;nb=0
     for b0 in range(0,len(trbig),96):
-        us=trbig[b0:b0+96]; ANS,USTAR,tgt,wt=prep(us); u=rollout(us,ANS,explore=0.1)
-        loss=(1-torch.nn.functional.cosine_similarity(u,USTAR,dim=1)).mean() if OBJ=='ustar' else recon(u,tgt,wt)   # RECONSTRUCT user embedding (bounded cos loss, stable)
-        opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(scorer.parameters(),5.0); opt.step(); tot+=loss.item();nb+=1
+        us=trbig[b0:b0+96]; ANS,USTAR,tgt,wt,LIKED,LMASK,RNEG=prep(us)
+        if OBJ=='reinforce':
+            B=len(us); u,logps,rews=rollout_sample(us,ANS,LIKED,LMASK,RNEG,float(os.environ.get('PEN',0.02)))
+            Gs=[None]*T; acc=torch.zeros(B)
+            for t in reversed(range(T)): acc=rews[t]+acc; Gs[t]=acc.clone()   # return-to-go per turn
+            loss=0.
+            for t in range(T): adv=Gs[t]-Gs[t].mean(); loss=loss-(logps[t]*adv).mean()
+            loss=loss/T; tot+=(-Gs[0].mean()).item()                          # log -total_return (more negative = better)
+        else:
+            u=rollout(us,ANS,explore=float(os.environ.get('EXPL',0.3)))
+            loss=(1-torch.nn.functional.cosine_similarity(u,USTAR,dim=1)).mean() if OBJ=='ustar' else recon(u,tgt,wt)
+            tot+=loss.item()
+        opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(scorer.parameters(),5.0); opt.step(); nb+=1
     print(f"  ep{ep+1} recon={tot/nb:.4f}",flush=True)
 scorer.eval()
 _W=1./np.log2(np.arange(2,12))

@@ -32,3 +32,18 @@ and the right training objective is to **RECONSTRUCT u*** (user embedding), not 
 ## Notes
 - "match conc_pop must be trivial" (user): O6 BC floor guarantees it; finetune must not regress below.
 - gate each: must be >= conc_pop on BOTH full+tail; log every run here.
+
+| O8 | BC floor + u*-cos, LR 5e-4, EXPL 0.3 | ~0.31 | ~0.11 | | stuck at floor |
+| O9 | BC floor + REINFORCE (cos reward) | ~conc_pop | | | cos saturates (concept ceiling) |
+| O10 | BC floor + REINFORCE (coverage reward) | ~0.31 | ~0.10 | | gameable (inflation) |
+| O11 | BC floor + dense REINFORCE (Dcov - PEN*unans) | ~conc_pop | | | flat (BC trap) |
+| O12 | **NO-BC** + dense coverage REINFORCE | 0.309 | 0.105 | 0i/all-c | LEARNS (return rises -> BC WAS trapping) but gameable coverage; eval ~conc_pop |
+| O13 | NO-BC + RANK-AWARE reward (likes - non-likes) + answerability penalty | 0.291 | 0.075 | 27i/1037c | picks some items, return rises, but TEST WORSE (tail declines) |
+
+## VERDICT (after 13 variants)
+Pure cold-start q8: NO learned policy beats conc_pop. Each user-identified bug was real & fixed (crippled EIG, BC trap,
+gameable coverage) and it STILL doesn't beat conc_pop -> training reward improves while TEST NDCG doesn't = no realizable
+signal left, NOT a bug. Lines up with the MEASURED ceiling (PART AG/AG2): concepts saturate cos 0.83, answerable items
+sparse (1.9/8) -> item+concept gain marginal at q8 (conc_mix +0.003). conc_pop is the realizable cold frontier = a CEILING
+OF THE SETTING. To beat it needs item-level fineness: (a) WARM/returning user (conc_gprof +23%), (b) higher budget, (c)
+SPARSE/large catalogue (frequency weak). NOT more policy tweaking.
