@@ -91,3 +91,5 @@ coverage.xml
 
 # Colab specific
 sample_data/data/processed/*.npz
+data/yelp/
+data/amazon/
