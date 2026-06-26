@@ -371,9 +371,27 @@ if os.environ.get('DISTILL') and not os.environ.get('LOADCK'):                  
         if ep%5==0 or ep==int(os.environ.get('DISTEP',40))-1: print(f"  DISTILL ep{ep+1} cos-loss {tl/nb:.4f}",flush=True)
     save_ck(_CK); save_ck(_CK.replace('.pt','_last.pt')); print(f"DISTILL done ({len(DK)} demos) -> {os.path.basename(_CK)}",flush=True); EP=0
 if os.environ.get('ORADISTILL') and not os.environ.get('LOADCK'):                  # PAPER C WIN-PATH: distill the PRIVILEGED concept best-subset oracle (0.389 tail) into the continuous actor. The WHOLE 0.152->0.389 gap is SELECTION (same 761 concepts, same cans answers) -> does the oracle's selection generalise from the profile?
-    _RT=os.environ.get('NORT') is None; _Wc=1./np.log2(np.arange(2,12)); _OD=f'{base}/.cache/oradistill_demos_{"tail" if _RT else "full"}.npz'
+    _RT=os.environ.get('NORT') is None; _Wc=1./np.log2(np.arange(2,12)); _RECON=os.environ.get('RECON'); GRAW=os.environ.get('GRAW')
+    _OD=f'{base}/.cache/oradistill_{"recon" if _RECON else ("tail" if _RT else "full")}_demos.npz'
     if os.path.exists(_OD) and not os.environ.get('REGEN'):
-        _z=np.load(_OD); DSb=_z['S']; DTT=_z['TT']; DK=_z['K']; print(f"ORADISTILL: loaded {len(DK)} cached oracle demos ({'tail' if _RT else 'full'})",flush=True)
+        _z=np.load(_OD); DSb=_z['S']; DTT=_z['TT']; DK=_z['K']; print(f"ORADISTILL: loaded {len(DK)} cached demos ({'RECON' if _RECON else 'NDCG'} teacher)",flush=True)
+    elif _RECON:                                                                       # LEARNABLE teacher: greedy reconstruct-u* over UNIFIED answerable pool, graded answers (target=observable profile-encoding -> no imitation gap). Candidate pre-filter (top-RECONK by |alignment|) for speed.
+        print(f"ORADISTILL: generating RECON-oracle demos (greedy min||u-u*||, GRAW={bool(GRAW)})...",flush=True)
+        DSb=[];DTT=[];DK=[]; _RK=int(os.environ.get('RECONK','40'))
+        def _gans(ustar,k): d=float(ustar@POOL[k]); return d if GRAW else (POS if d>0 else NEG)
+        for x in [x for x in trbig][:int(os.environ.get('DEMON',800))]:
+            allit=[j for j,_ in rat_by_u[x]]; rng.shuffle(allit); hh=max(len(allit)//2,4); prof=set(allit[:hh])
+            ustar=enc_u_np([(Q[j],resid[x][j]) for j in prof]); cans=cans_np(x,prof)
+            cset=list(range(NI))+[NI+c for c in cans]                                   # answerable pool: all popular items (ITEMSANS) + answerable concepts
+            toks=[]; chosen=set()
+            for t in range(T):
+                u=enc_u_np(toks); cand=sorted([k for k in cset if k not in chosen],key=lambda k:-abs(float(ustar@POOL[k])))[:_RK]
+                if not cand: break
+                best=1e9; bk=cand[0]
+                for k in cand:
+                    u2=enc_u_np(toks+[(POOL[k],_gans(ustar,k))]); d=float(np.linalg.norm(u2-ustar))
+                    if d<best: best=d; bk=k
+                DSb.append(u.astype(np.float32)); DTT.append(t/8.); DK.append(bk); chosen.add(bk); toks.append((POOL[bk],_gans(ustar,bk)))
     else:
         print(f"ORADISTILL: generating concept-oracle demos ({'tail' if _RT else 'full'}-optimised, privileged greedy over training-user held splits)...",flush=True)
         DSb=[];DTT=[];DK=[]; _nu=0
@@ -705,6 +723,153 @@ if os.environ.get('REALCONC'):                                                 #
     for m in modes:
         a=res[m]; print(f"  {m:8s}: FULL {a[0]/max(a[2],1):.4f}  TAIL {a[1]/max(a[3],1):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('FTREC'):                                                    # USER IDEA: FINE-TUNE the recommender (enc+Ql) on the ELICITATION distribution (same 8 entropy Qs, graded answers, fold-curriculum t=1..8) -> remove the OOD/partial-belief mismatch + make the entropy signal maximally useful. Frozen enc generates the ANSWER (fixed user taste); trainable enc builds the BELIEF.
+    import sys
+    enc_f=Enc(); enc_f.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc_f.eval()
+    order=sorted(range(NP),key=lambda k:-POOL_ENT[k])[:int(os.environ.get('FTQ','8'))]; Eord=torch.tensor(np.array([POOL[k] for k in order],np.float32))   # the fixed entropy questionnaire
+    for p in enc.parameters(): p.requires_grad_(True)
+    _fp=[p.detach().clone() for p in enc.parameters()]; _ANC=float(os.environ.get('FTANCHOR','0'))   # L2 anchor to frozen encoder (anti-drift regularizer)
+    Qlp=torch.nn.Parameter(torch.tensor(Ql)); popbt2=torch.tensor(popb); _Qlf0=torch.tensor(Ql)
+    opt2=torch.optim.Adam(list(enc.parameters())+[Qlp],float(os.environ.get('FTLR','1e-4')),weight_decay=float(os.environ.get('FTWD','1e-4')))
+    Eordn=np.array([POOL[k] for k in order],np.float32)
+    def prep_ft(users,cap,K=1):                                                # K = random profile/held splits per user (data augmentation vs overfit; entropy questionnaire is fixed so each split is a fresh example)
+        A=[];H=[];P=[]
+        for x in users[:cap]:
+            for _ in range(K):
+                allit=[j for j,_ in rat_by_u[x]]; rng.shuffle(allit); hh=max(len(allit)//2,4); prof=set(allit[:hh]); held=allit[hh:]
+                rd=dict(rat_by_u[x]); hl=[j for j in held if rd[j]>=4]
+                if not hl: continue
+                with torch.no_grad(): us=enc_f(*toks2t([(Q[j],resid[x][j]) for j in prof]))[0].numpy()
+                A.append((us@Eordn.T).astype(np.float32)); H.append(hl); P.append(list(prof))
+        return np.array(A,np.float32),H,P
+    if not os.environ.get('FTLOAD'):
+        print(f"FTREC: building elicited (entropy-Q, graded) data (aug K={os.environ.get('FTAUG','4')})...",flush=True)
+        trA,trH,_=prep_ft([x for x in trbig],int(os.environ.get('FTN','2500')),int(os.environ.get('FTAUG','4'))); trA=torch.tensor(trA)
+        vaA,vaH,vaP=prep_ft([x for x in te if x in _VSPL],300,1); vaA=torch.tensor(vaA)
+    def build_tok(Ab,t):
+        B=Ab.shape[0]; tok=torch.zeros(B,t,D+1); tok[:,:,:D]=Eord[:t].unsqueeze(0).expand(B,t,D).clone(); tok[:,:,D]=Ab[:,:t]; return tok,torch.ones(B,t)
+    def val_nd():
+        with torch.no_grad():
+            tok,m=build_tok(vaA,len(order)); u=enc(tok,m); sc=(u@Qlp.t()+popbt2).numpy(); nd=0.;c=0
+            for i,hl in enumerate(vaH):
+                s=sc[i].copy(); s[vaP[i]]=-1e9; o=np.argsort(-s); rel=set(hl); nd+=sum(_W[p] for p,it in enumerate(o[:10]) if int(it) in rel)/(_W[:min(10,len(rel))].sum()+1e-12); c+=1
+            return nd/c
+    _CKf=f'{base}/.cache/ftrec_best.pt'
+    if not os.environ.get('FTLOAD'): print(f"  FTREC FROZEN-baseline val-nd {val_nd():.4f} (fine-tune must beat THIS to be real)",flush=True)
+    best=-1.
+    for ep in range(0 if os.environ.get('FTLOAD') else int(os.environ.get('FTEP','40'))):
+        perm=torch.randperm(len(trA)); tl=0.;nb=0
+        for b0 in range(0,len(trA),128):
+            bb=perm[b0:b0+128]; t=int(rng.integers(1,len(order)+1)); tok,m=build_tok(trA[bb],t); u=enc(tok,m); sc=u@Qlp.t()+popbt2
+            loss=0.; _TW=os.environ.get('TAILW')
+            for ii,gi in enumerate(bb.tolist()):
+                hl=trH[gi]; pos=sc[ii,hl]; neg=sc[ii,torch.randint(0,ni,(len(hl)*5,))]
+                bpr=-torch.log(torch.sigmoid(pos.unsqueeze(1)-neg.unsqueeze(0))+1e-9).mean(1)   # per-positive BPR
+                if _TW: w=torch.tensor([float(ipsw[j]) for j in hl]); loss=loss+(bpr*w).sum()/w.sum()   # inverse-pop weight -> optimise TAIL ranking
+                else: loss=loss+bpr.mean()
+            loss=loss/len(bb)
+            if _ANC>0: loss=loss+_ANC*(sum(((p-pf)**2).sum() for p,pf in zip(enc.parameters(),_fp))+((Qlp-_Qlf0)**2).sum())   # anchor to frozen recommender
+            opt2.zero_grad(); loss.backward(); opt2.step(); tl+=float(loss);nb+=1
+        v=val_nd()
+        if v>best: best=v; torch.save({'enc':enc.state_dict(),'Ql':Qlp.detach().clone()},_CKf); _m=' *'
+        else: _m=''
+        if ep%5==0 or ep==int(os.environ.get('FTEP','40'))-1: print(f"  FTREC ep{ep+1} loss {tl/nb:.4f} val-nd {v:.4f}{_m}",flush=True)
+    ck=torch.load(_CKf); enc.load_state_dict(ck['enc']); enc.eval(); Qlf=ck['Ql'].numpy().astype(np.float32)   # eval TEST with fine-tuned recommender
+    print(f"=== FTREC eval (te[300:], same entropy+GRAW belief) | baseline 0.367/0.158 ===",flush=True)
+    nf=nt=cf=ct=0.
+    for x in TE:
+        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+        if not tlike: continue
+        with torch.no_grad():
+            usf=enc_f(*toks2t([(Q[j],resid[x][j]) for j in profset]))[0].numpy()
+            toks=[(POOL[k],float(usf@POOL[k])) for k in order]; u=enc(*toks2t(toks))[0].numpy()
+        s_full=(popb+Qlf@u).copy(); s_full[list(profset)]=-1e9
+        of=np.argsort(-s_full); relf=set(tlike); ndf=sum(_W[p] for p,it in enumerate(of[:10]) if int(it) in relf)/(_W[:min(10,len(relf))].sum()+1e-12)
+        st=s_full.copy(); st[headmask]=-1e9; relt=set(t for t in tlike if not headmask[t])
+        if relf: nf+=ndf; cf+=1
+        if relt: ot=np.argsort(-st); nt+=sum(_W[p] for p,it in enumerate(ot[:10]) if int(it) in relt)/(_W[:min(10,len(relt))].sum()+1e-12); ct+=1
+    print(f"  FTREC: FULL {nf/max(cf,1):.4f}  TAIL {nt/max(ct,1):.4f}  (val-nd peak {best:.4f})",flush=True)
+    sys.exit(0)
+if os.environ.get('READOUT'):                                                  # USER HYPOTHESIS: discriminative info is IN the belief but the RECOMMENDER readout (score=popb+Ql.u) MIS-WEIGHTS it (cos up, NDCG down). Learn a reweighting W on the ELICITED-belief distribution -> better NDCG, policy UNCHANGED. (recommender-side lever, orthogonal to the policy.)
+    import sys
+    def uent_belief(x,profset):                                                # elicited belief via the WINNER uent+GRAW (entropy selection over answerable pool, graded geometric answers)
+        ustar=enc_u_np([(Q[j],resid[x][j]) for j in profset]); order=sorted(range(NP),key=lambda k:-POOL_ENT[k]); toks=[]
+        for k in order:
+            if len(toks)>=8: break
+            toks.append((POOL[k],float(ustar@POOL[k])))
+        return enc_u_np(toks)
+    def build(users,cap):
+        U=[];Hs=[]
+        for x in users[:cap]:
+            allit=[j for j,_ in rat_by_u[x]]; rng.shuffle(allit); hh=max(len(allit)//2,4); prof=set(allit[:hh]); held=allit[hh:]
+            rd=dict(rat_by_u[x]); hl=[j for j in held if rd[j]>=4]
+            if not hl: continue
+            U.append(uent_belief(x,prof)); Hs.append(hl)
+        return np.array(U,np.float32),Hs
+    print("READOUT: building elicited beliefs (train)...",flush=True)
+    trUb,trH=build([x for x in trbig],int(os.environ.get('RDN','1500')))
+    Ut=torch.tensor(trUb); Qlt2=torch.tensor(Ql); popbt2=torch.tensor(popb); ipt=torch.tensor(ipsw.astype(np.float32))
+    TGT=torch.zeros(len(trUb),ni); WT=torch.ones(len(trUb),ni)
+    for i,hl in enumerate(trH):
+        TGT[i,hl]=1.
+        for j in hl: WT[i,j]=float(ipsw[j])
+    posw=WT*TGT; WT=WT*TGT + (1-TGT)*(posw.sum(1,keepdim=True)/max(ni,1))       # balance: total neg weight ~ total pos weight per user
+    Wm=torch.eye(D,requires_grad=True); bvec=torch.zeros(D,requires_grad=True)  # init identity => exactly the baseline at ep0
+    ro=torch.optim.Adam([Wm,bvec],float(os.environ.get('RDLR','3e-3')),weight_decay=float(os.environ.get('RDWD','1e-3')))
+    for ep in range(int(os.environ.get('RDEP','80'))):
+        perm=torch.randperm(len(Ut)); tl=0.;nb=0
+        for b0 in range(0,len(Ut),128):
+            bb=perm[b0:b0+128]; sc=(Ut[bb]@Wm.t()+bvec)@Qlt2.t()+popbt2
+            loss=(WT[bb]*nn.functional.binary_cross_entropy_with_logits(sc,TGT[bb],reduction='none')).sum()/WT[bb].sum()
+            ro.zero_grad(); loss.backward(); ro.step(); tl+=float(loss); nb+=1
+        if ep%20==0 or ep==int(os.environ.get('RDEP','80'))-1: print(f"  READOUT ep{ep+1} BCE {tl/nb:.4f}",flush=True)
+    Wd=Wm.detach().numpy().astype(np.float32); bd=bvec.detach().numpy().astype(np.float32)
+    def nd_w(u,tlike,excl,tail,useW):
+        uu=(Wd@u+bd) if useW else u; s=(popb+Ql@uu).copy(); s[list(excl)]=-1e9
+        if tail: s[headmask]=-1e9; rel=set(t for t in tlike if not headmask[t])
+        else: rel=set(tlike)
+        if not rel: return None
+        o=np.argsort(-s); return sum(_W[p] for p,t in enumerate(o[:10]) if int(t) in rel)/(_W[:min(10,len(rel))].sum()+1e-12)
+    print(f"=== READOUT eval (uent+GRAW belief, te[300:]) | baseline 0.367/0.158 ===",flush=True)
+    a=[0.,0.,0.,0.,0,0]
+    for x in TE:
+        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+        if not tlike: continue
+        u=uent_belief(x,profset)
+        f0=nd_w(u,tlike,profset,False,False); f1=nd_w(u,tlike,profset,False,True)
+        t0=nd_w(u,tlike,profset,True,False); t1=nd_w(u,tlike,profset,True,True)
+        if f0 is not None: a[0]+=f0; a[1]+=f1; a[4]+=1
+        if t0 is not None: a[2]+=t0; a[3]+=t1; a[5]+=1
+    print(f"  FULL: baseline {a[0]/a[4]:.4f} -> learned-readout {a[1]/a[4]:.4f}",flush=True)
+    print(f"  TAIL: baseline {a[2]/a[5]:.4f} -> learned-readout {a[3]/a[5]:.4f}",flush=True)
+    sys.exit(0)
+if os.environ.get('ARECON'):                                                   # OPTIMIZATION GATE: is there realizable ADAPTIVE headroom? Greedy sequential reconstruction of u* (TARGET-INDEPENDENT objective -> u* is the OBSERVABLE profile-encoding, so this oracle's selection IS learnable, unlike the NDCG oracle's). If >> static uent+GRAW 0.367/0.158 -> adaptivity is worth learning.
+    import sys
+    GRAW=os.environ.get('GRAW'); _CONLY=os.environ.get('CONLY'); _IONLY=os.environ.get('IONLY')
+    cand_all=[k for k in range(NP) if (not _CONLY or k>=NI) and (not _IONLY or k<NI)]
+    def _ans(ustar,k):
+        d=float(ustar@POOL[k]); return d if GRAW else (POS if d>0 else NEG)
+    print(f"=== ADAPTIVE-RECON oracle (greedy min||u-u*||, GRAW={bool(GRAW)}, pool={'conc' if _CONLY else 'item' if _IONLY else 'unified'}) vs static uent+GRAW 0.367/0.158, ceiling 0.407/0.21 ===",flush=True)
+    nf=nt=cf=ct=0.; ni_a=0.; nu=0
+    for x in TE:
+        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+        if not tlike: continue
+        ustar=enc_u_np([(Q[j],resid[x][j]) for j in profset]); toks=[]; chosen=set(); nia=0
+        for t in range(8):
+            best=1e9; bk=None
+            for k in cand_all:
+                if k in chosen: continue
+                u2=enc_u_np(toks+[(POOL[k],_ans(ustar,k))]); d=float(np.linalg.norm(u2-ustar))
+                if d<best: best=d; bk=k
+            if bk is None: break
+            chosen.add(bk); toks.append((POOL[bk],_ans(ustar,bk)));
+            if bk<NI: nia+=1
+        u=enc_u_np(toks); mfu=metr(u,tlike,profset,False); mta=metr(u,tlike,profset,True)
+        if mfu: nf+=mfu[0]; cf+=1
+        if mta: nt+=mta[0]; ct+=1
+        ni_a+=nia; nu+=1
+    print(f"  ADAPTIVE-RECON: FULL {nf/max(cf,1):.4f}  TAIL {nt/max(ct,1):.4f}  | items {ni_a/max(nu,1):.2f}/8  ({nu} users)",flush=True)
+    sys.exit(0)
 if os.environ.get('UNIANS'):                                                   # ON-OBJECTIVE: unified pool (items+concepts); ITEMS answerable on a CONTINUOUS scale via the GEOMETRIC derivation (no trained ABot) -> unlock the ITEM headroom. Confidence = |cos(u*,emb)|; abstain when taste-alignment too weak to derive (tunable CTAU).
     import sys
     _RT=os.environ.get('NORT') is None; _Wc=1./np.log2(np.arange(2,12))
@@ -820,17 +985,17 @@ def run(mode,tail):
                         toks.append((fe, (NEG+(POS-NEG)*(_cf+1)/2) if _GRADED else (POS if _cf>0 else NEG))); nq+=1; nans+=1; seq.append(-1)
                     else:                                                           # SNAP (Wolpertinger): nearest unasked pool entity by q.POOL, fold its real answer
                         sc=qv@(POOLn.T if os.environ.get('COSSNAP') else POOL.T)   # COSSNAP: cosine snap (norm-unbiased, matches cos-loss distillation)
-                        _ansk=(set(kk for kk in range(NI) if PITEMS[kk] in profset)|set(NI+c for c in cans)) if os.environ.get('ANSMASK') else None   # PAPER C FIX: restrict snap to ANSWERABLE entities
+                        _ansk=((set(range(NI)) if os.environ.get('ITEMSANS') else set(kk for kk in range(NI) if PITEMS[kk] in profset))|set(NI+c for c in cans)) if os.environ.get('ANSMASK') else None   # PAPER C FIX: restrict snap to ANSWERABLE entities (ITEMSANS -> all popular items answerable)
                         k=next(int(kk) for kk in np.argsort(-sc) if int(kk) not in asked and (_ansk is None or int(kk) in _ansk))
                         if first is None: first=int(k)
                         asked.add(int(k)); nq+=1; seq.append(int(k))
                         if PTYPE[k]==0:
                             j=PITEMS[k]
                             if j in profset: toks.append((Q[j],resid[x][j])); nans+=1; ni_+=1
-                            elif os.environ.get('ITEMSANS'): toks.append((Q[j],POS if float(ustar@Q[j])>0 else NEG)); nans+=1; ni_+=1   # PAPER C: popular item answerable via geometric sign
+                            elif os.environ.get('ITEMSANS'): toks.append((Q[j],float(ustar@POOL[k]) if os.environ.get('GRAW') else (POS if float(ustar@Q[j])>0 else NEG))); nans+=1; ni_+=1   # PAPER C: popular item answerable; GRAW=graded predicted-rating else sign
                         else:
                             cc=k-NI
-                            if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1; nc_+=1
+                            if cc in cans: toks.append((Ec[cc],float(ustar@POOL[k]) if os.environ.get('GRAW') else cans[cc])); nans+=1; nc_+=1   # graded concept answer under GRAW (consistency)
                 elif mode=='conc_pop':
                     ci=[c for c in range(NC) if c not in asked]; cc=max(ci,key=lambda c:cfreq[c]); asked.add(cc); nq+=1
                     if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1

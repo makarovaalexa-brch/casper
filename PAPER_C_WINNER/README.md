@@ -50,6 +50,31 @@ stacked on the simplest possible selector. Purely continuous; no new vocabulary,
   (imitation gap: tail-optimal concept not predictable from the cold-start profile).
 - ⇒ The win is **answerability + graded answers**, NOT cleverer selection or learning.
 
+## UPDATE 2026-06-26b — FTREC (recommender fine-tuned on elicitation distribution) — BIGGER WIN
+
+Stacked, seed-avg {1,2,3,7,11} on te[300:]:
+
+| Step | FULL | TAIL |
+|---|---|---|
+| CASPER-R (discrete SOTA) | 0.360 | 0.152 |
+| + continuous answer + answerable items (uent+GRAW, frozen rec) | 0.367 | 0.158 |
+| **+ elicitation-specialized recommender (FTREC)** | **0.385 ±.006** | **0.165 ±.007** |
+| **total vs CASPER-R** | **+0.025 (~7 SE)** | **+0.013 (~2.4 SE)** |
+
+**FTREC = fine-tune the recommender (encoder + Ql readout) on the ELICITATION distribution**: the same
+8 most-divisive entropy questions, graded answers, and a **fold-curriculum** (random t∈1..8 each batch)
+so it ranks well from *partial* beliefs at every turn — fixing the OOD mismatch (Paper-A rec was trained
+on full profiles). Frozen encoder generates the *answers* (user taste fixed); only the belief-builder +
+readout adapt. Overfit controlled by **data augmentation** (K=5 random splits/user), **frozen L2 anchor**,
+and **low LR** — the un-regularized version overfit (0.354), the regularized version generalizes (val AND
+test both up). Locked: `cache/ftrec_best.pt` sha `5d6406fd…`. Config: `FTAUG=5 FTLR=1e-4 FTANCHOR=1e-4 FTEP=50 FTN=2500`.
+
+Reproduce FTREC: `FTREC=1 FTAUG=5 FTLR=1e-4 FTANCHOR=1e-4 FTEP=50 python scripts/paper2/continuous_actor.py`
+(train once), then `FTREC=1 FTLOAD=1 SEED=$S ...` per seed to eval.
+
+NOTE: 7 *policy-side* learned attempts lost to the heuristic; the win came from the RECOMMENDER side
+(de-OOD via fold-curriculum), exactly as flagged — proper regularization (aug+anchor+lowLR), not a ceiling.
+
 ## Reproducer
 
 ```bash
