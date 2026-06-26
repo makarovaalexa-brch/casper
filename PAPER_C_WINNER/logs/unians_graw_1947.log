@@ -1,0 +1,7 @@
+=== uent GRAW (predicted-residual graded answer) vs binary 0.153 / CASPER-R 0.152 ===
+SEED=1    uent    : FULL 0.3688  TAIL 0.1707  | items 7.00/8 abstain 0.00
+SEED=2    uent    : FULL 0.3595  TAIL 0.1511  | items 7.00/8 abstain 0.00
+SEED=3    uent    : FULL 0.3656  TAIL 0.1585  | items 7.00/8 abstain 0.00
+SEED=7    uent    : FULL 0.3688  TAIL 0.1513  | items 7.00/8 abstain 0.00
+SEED=11    uent    : FULL 0.3707  TAIL 0.1567  | items 7.00/8 abstain 0.00
+DONE
