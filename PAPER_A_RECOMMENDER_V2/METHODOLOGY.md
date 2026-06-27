@@ -87,3 +87,23 @@ cd C:/dev/phd/casper
   first; see the ablation-replication note alongside this lock).
 - The elicitation gain is the *recommender's* contribution under a fixed simple entropy+graded policy;
   learned-policy gains on top of V2 are a separate (open) question.
+
+## 7. Policy is entropy (resolved) + consolidated comparison
+
+Learned elicitation policies were trained against V2 (the aligned/de-OOD'd recommender) two ways:
+profile-match distillation (reconstruct u*) → 0.313/0.122, and NDCG-direct REINFORCE → 0.368/0.160.
+Both LOSE to the static entropy questionnaire on V2 (0.400/0.186). Across the project ~10 learned-policy
+attempts never beat entropy. Conclusion: **the elicitation policy is near-optimally a simple static
+entropy questionnaire; the gain is the recommender, not the policy** (interpretable, robust — a feature).
+
+Consolidated (ML-1M, te[300:], NDCG@10 full / tail; CASPER-R ablations reproduce on V1):
+```
+                                          FULL    TAIL
+V1 random (concept):                      0.331   0.131
+V1 conc_pop (concept):                    0.343   0.128
+V1 entropy (CONCEPT-only, binary cans):   0.362   0.139   # the Paper-B "entropy"
+V1 CASPER-R (learned concept policy):     0.361   0.150   # = known 0.360/0.152
+V1 uent+GRAW (item-answerable, graded):   0.367   0.158
+V2 uent+GRAW (item-answerable, graded):   0.401   0.183   # +0.040/+0.033 vs CASPER-R
+V2 full-profile:                          0.428   0.230
+```
