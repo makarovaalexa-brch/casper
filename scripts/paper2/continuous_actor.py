@@ -727,6 +727,94 @@ if os.environ.get('REALCONC'):                                                 #
     for m in modes:
         a=res[m]; print(f"  {m:8s}: FULL {a[0]/max(a[2],1):.4f}  TAIL {a[1]/max(a[3],1):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('FTRA'):                                                     # USER'S DAHCR architecture: GRU(recurrent)+MHSA(attention) encoder, trained on ALL sequence lengths (1..full profile, real ratings). Goal: a GENERAL recommender (strong full-profile + robust), not narrow.
+    import sys
+    H=int(os.environ.get('RAH','128')); _CKra=f"{base}/.cache/{os.environ.get('RASAVE','ftra')}_best.pt"
+    class EncRA(nn.Module):
+        def __init__(s):
+            super().__init__(); s.inp=nn.Linear(D+1,H); s.attn=nn.MultiheadAttention(H,int(os.environ.get('RAHEADS','4')),batch_first=True); s.gru=nn.GRU(H,H,batch_first=True); s.out=nn.Linear(H,D)
+        def forward(s,t,m):
+            x=s.inp(t); a,_=s.attn(x,x,x,key_padding_mask=(m==0)); x=torch.relu(x+a)
+            o,_=s.gru(x); L=m.sum(1).long().clamp(min=1); return s.out(o[torch.arange(len(o)),L-1])
+    era=EncRA(); Qlp=torch.nn.Parameter(torch.tensor(Ql)); popbt2=torch.tensor(popb)
+    opt3=torch.optim.Adam(list(era.parameters())+[Qlp],float(os.environ.get('RALR','1e-3')),weight_decay=float(os.environ.get('RAWD','1e-5')))
+    def udat(users,cap):
+        D2=[]
+        for x in users[:cap]:
+            allit=[j for j,_ in rat_by_u[x]]; rng.shuffle(allit); hh=max(len(allit)//2,4); prof=allit[:hh]; held=allit[hh:]
+            rd=dict(rat_by_u[x]); hl=[j for j in held if rd[j]>=4]
+            if hl and len(prof)>=2: D2.append((x,prof,hl,set(prof)))
+        return D2
+    TR=udat([x for x in trbig],int(os.environ.get('RAN','2500'))); VA=udat([x for x in te if x in _VSPL],300)
+    def buildtok(items_list,xs):
+        mx=max(len(p) for p in items_list); B=len(items_list); tok=torch.zeros(B,mx,D+1); msk=torch.zeros(B,mx)
+        for b,(its,x) in enumerate(zip(items_list,xs)):
+            for q,j in enumerate(its): tok[b,q,:D]=torch.tensor(Q[j].astype(np.float32)); tok[b,q,D]=resid[x][j]; msk[b,q]=1
+        return tok,msk
+    def valnd():
+        nd=0.;c=0
+        for b0 in range(0,len(VA),128):
+            ch=VA[b0:b0+128]; tok,msk=buildtok([d[1] for d in ch],[d[0] for d in ch])
+            with torch.no_grad(): sc=(era(tok,msk)@Qlp.t()+popbt2).numpy()
+            for i,(x,prof,hl,ps) in enumerate(ch):
+                s=sc[i].copy(); s[list(ps)]=-1e9; o=np.argsort(-s); rel=set(hl); nd+=sum(_W[p] for p,it in enumerate(o[:10]) if int(it) in rel)/(_W[:min(10,len(rel))].sum()+1e-12); c+=1
+        return nd/c
+    best=-1.
+    for ep in range(0 if os.environ.get('RALOAD') else int(os.environ.get('RAEP','30'))):
+        rng.shuffle(TR); tl=0.;nb=0
+        for b0 in range(0,len(TR),128):
+            ch=TR[b0:b0+128]; its=[]; xs=[]
+            for (x,prof,hl,ps) in ch:
+                L=int(rng.integers(1,len(prof)+1)); pp=prof[:]; rng.shuffle(pp); its.append(pp[:L]); xs.append(x)   # RANDOM LENGTH = all sequences
+            tok,msk=buildtok(its,xs); sc=era(tok,msk)@Qlp.t()+popbt2; loss=0.
+            for ii,(x,prof,hl,ps) in enumerate(ch):
+                pos=sc[ii,hl]; neg=sc[ii,torch.randint(0,ni,(len(hl)*5,))]; loss=loss-torch.log(torch.sigmoid(pos.unsqueeze(1)-neg.unsqueeze(0))+1e-9).mean()
+            loss=loss/len(ch); opt3.zero_grad(); loss.backward(); opt3.step(); tl+=float(loss);nb+=1
+        v=valnd()
+        if v>best: best=v; torch.save({'era':era.state_dict(),'Ql':Qlp.detach().clone()},_CKra); _m=' *'
+        else: _m=''
+        if ep%5==0 or ep==int(os.environ.get('RAEP','30'))-1: print(f"  FTRA ep{ep+1} loss {tl/nb:.4f} val-fullprof {v:.4f}{_m}",flush=True)
+    ck=torch.load(_CKra); era.load_state_dict(ck['era']); era.eval(); Qlf=ck['Ql'].numpy().astype(np.float32)
+    nf=nt=cf=ct=0.
+    for x in TE:
+        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+        if not tlike: continue
+        tok,msk=buildtok([list(profset)],[x])
+        with torch.no_grad(): u=era(tok,msk)[0].numpy()
+        s=(popb+Qlf@u).copy(); s[list(profset)]=-1e9
+        of=np.argsort(-s); relf=set(tlike); ndf=sum(_W[p] for p,it in enumerate(of[:10]) if int(it) in relf)/(_W[:min(10,len(relf))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; relt=set(t for t in tlike if not headmask[t])
+        if relf: nf+=ndf; cf+=1
+        if relt: ot=np.argsort(-st); nt+=sum(_W[p] for p,it in enumerate(ot[:10]) if int(it) in relt)/(_W[:min(10,len(relt))].sum()+1e-12); ct+=1
+    print(f"  FTRA TEST full-profile: FULL {nf/max(cf,1):.4f}  TAIL {nt/max(ct,1):.4f}  (val peak {best:.4f}) | vs frozen 0.407/0.218, random-rec 0.393/0.187",flush=True)
+    sys.exit(0)
+if os.environ.get('ROBUST'):                                                   # ROBUSTNESS: a recommender (LOADREC, or frozen) ranking beliefs from DIFFERENT question sequences (entropy/pop/random/full-profile), FIXED user answers (original enc). Shows generality vs brittleness.
+    import sys
+    enc_a=Enc(); enc_a.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc_a.eval()   # fixed user taste (answers)
+    for p in enc_a.parameters(): p.requires_grad_(False)
+    ordE=sorted(range(NP),key=lambda k:-POOL_ENT[k])[:8]; ordP=sorted(range(NP),key=lambda k:-PRIOR[k])[:8]
+    nq=int(os.environ.get('RQ','8')); rngr=np.random.default_rng(1)
+    def belief(usf,seq): return enc_u_np([(POOL[k],float(usf@POOL[k])) for k in seq])   # graded answers via global enc (=LOADREC recommender)
+    def ndcg(u,tlike,prof,tail):
+        s=(popb+Ql@u).copy(); s[list(prof)]=-1e9
+        if tail: s[headmask]=-1e9; rel=set(t for t in tlike if not headmask[t])
+        else: rel=set(tlike)
+        if not rel: return None
+        o=np.argsort(-s); return sum(_W[p] for p,t in enumerate(o[:10]) if int(t) in rel)/(_W[:min(10,len(rel))].sum()+1e-12)
+    keys=[f'entropy{nq}','pop','random',f'random{2*nq}','fullprof']; agg={k:[0.,0.,0,0] for k in keys}
+    for x in TE:
+        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+        if not tlike: continue
+        usf=enc_a(*toks2t([(Q[j],resid[x][j]) for j in profset]))[0].numpy()
+        ev={f'entropy{nq}':belief(usf,ordE[:nq]),'pop':belief(usf,ordP[:nq]),'random':belief(usf,list(rngr.integers(0,NP,nq))),
+            f'random{2*nq}':belief(usf,list(rngr.integers(0,NP,2*nq))),'fullprof':enc_u_np([(Q[j],resid[x][j]) for j in profset])}
+        for k,u in ev.items():
+            f=ndcg(u,tlike,profset,False); t=ndcg(u,tlike,profset,True)
+            if f is not None: agg[k][0]+=f; agg[k][2]+=1
+            if t is not None: agg[k][1]+=t; agg[k][3]+=1
+    print(f"=== ROBUSTNESS [{os.path.basename(os.environ.get('LOADREC','FROZEN'))}] (fixed answers, varied sequences) ===",flush=True)
+    for k in keys: f,t,cf,ct=agg[k]; print(f"  {k:11s}: FULL {f/max(cf,1):.4f}  TAIL {t/max(ct,1):.4f}",flush=True)
+    sys.exit(0)
 if os.environ.get('POLOPT'):                                                   # STAGE 2: OPTIMISE the policy against the (de-OOD'd, policy-agnostic) recommender loaded via LOADREC. Residual-on-entropy policy + REINFORCE on true NDCG. Answers from ORIGINAL frozen 'user' enc (taste fixed); belief/rank from loaded recommender.
     import sys
     enc_a=Enc(); enc_a.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc_a.eval()   # fixed user-taste encoder (answers)
@@ -831,17 +919,18 @@ if os.environ.get('FTREC'):                                                    #
             for i,hl in enumerate(vaH):
                 s=sc[i].copy(); s[vaP[i]]=-1e9; o=np.argsort(-s); rel=set(hl); nd+=sum(_W[p] for p,it in enumerate(o[:10]) if int(it) in rel)/(_W[:min(10,len(rel))].sum()+1e-12); c+=1
             return nd/c
-    _CKf=f'{base}/.cache/ftrec_best.pt'
+    _CKf=f"{base}/.cache/{os.environ.get('FTSAVE','ftrec')}_best.pt"
     if not os.environ.get('FTLOAD'): print(f"  FTREC FROZEN-baseline val-nd {val_nd():.4f} (fine-tune must beat THIS to be real)",flush=True)
     best=-1.
     for ep in range(0 if os.environ.get('FTLOAD') else int(os.environ.get('FTEP','40'))):
         perm=torch.randperm(len(trUS)); tl=0.;nb=0
         for b0 in range(0,len(trUS),128):
-            bb=perm[b0:b0+128]; usb=trUS[bb]; t=int(rng.integers(1,9))
-            if _RP:                                                            # RANDOM policy -> recommender robust to ANY policy. RANDTEMP=temp -> sample weighted by entropy (cover divisive region, not dilute on useless entities)
+            bb=perm[b0:b0+128]; usb=trUS[bb]; t=int(rng.integers(1,int(os.environ.get('FTMAXQ','8'))+1))
+            _userand=_RP or (float(os.environ.get('RANDMIX','0'))>0 and float(rng.random())<float(os.environ.get('RANDMIX','0')))   # RANDMIX=p -> p fraction of batches use random questions (robustness), rest entropy (specialisation) = strong AND not brittle
+            if _userand:                                                       # RANDTEMP=temp -> sample weighted by entropy (cover divisive region, not dilute on useless entities)
                 if os.environ.get('RANDTEMP'): idx=torch.multinomial(torch.softmax(torch.tensor(POOL_ENT.astype(np.float32))/float(os.environ['RANDTEMP']),0).unsqueeze(0).expand(len(bb),NP),t,replacement=False)
                 else: idx=torch.randint(0,NP,(len(bb),t))
-            else: idx=ordt[:t].unsqueeze(0).expand(len(bb),t)
+            else: idx=ordt[:min(t,len(order))].unsqueeze(0).expand(len(bb),min(t,len(order)))
             tok,m=tok_from(usb,idx); sc=enc(tok,m)@Qlp.t()+popbt2
             loss=0.; _TW=os.environ.get('TAILW')
             for ii,gi in enumerate(bb.tolist()):
@@ -975,7 +1064,7 @@ if os.environ.get('UNIANS'):                                                   #
         for m in modes:
             toks=[]; chosen=set(); nit=0; nab=0
             for t in range(8):
-                cand=[k for k in range(NP) if k not in chosen]
+                cand=[k for k in range(NP) if k not in chosen and (not os.environ.get('CONLY') or k>=NI) and (not os.environ.get('IONLY') or k<NI)]
                 if not cand: break
                 if m=='uent': order=sorted(cand,key=lambda k:-POOL_ENT[k])
                 elif m=='upop': order=sorted(cand,key=lambda k:-PRIOR[k])

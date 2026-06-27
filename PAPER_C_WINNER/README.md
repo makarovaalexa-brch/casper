@@ -131,3 +131,28 @@ Env flags: `UNIANS=1` (diagnostic block), `UMODES=uent`, `GRAW=1` (graded predic
 2. Fair within-setting 2×2 (item-answerable? × graded?) on identical seeds for a clean ablation table.
 3. Answer = `u*·item` uses the profile-encoded `u*` (no held-out leak); it is a *predicted* rating,
    so the simulated user "rates" popular movies from taste — defensible iff popular⇒seen⇒answerable.
+
+## UPDATE 2026-06-27b — RECURRENT+ATTENTION RECOMMENDER (DAHCR arch) beats frozen on FULL-PROFILE
+
+User's idea (after exposing FTREC as a narrow overfit via full-profile + cross-sequence tests):
+(1) train on ALL sequence lengths (not capped at 8), (2) use the DAHCR recurrent+attention architecture
+(GRU + multi-head self-attention) to fold the profile.
+
+Result — full-profile NDCG (real ratings, the NATIVE recommendation benchmark), seed-avg {1,2,3,7,11}:
+| recommender | FULL | TAIL |
+|---|---|---|
+| frozen (Paper-A, simple attn-pool) | ~0.406 | ~0.214 |
+| **FTRA (GRU+MHSA, all sequence lengths)** | **0.4275 ±.005** | **0.2461 ±.004** |
+| (+ vs frozen) | **+0.021 (~10σ)** | **+0.032 (~16σ)** |
+
+EVERY seed beats frozen on BOTH axes. This is a GENERAL recommender improvement (full-profile), NOT a
+narrow overfit (contrast FTREC: full-profile 0.345, collapsed). Locked: cache/ftra_LOCKED.pt sha 84a94283.
+Code: FTRA block (env FTRA=1; RAH/RAHEADS/RALR/RAEP/RAN; RALOAD eval-only). Arch = Linear(D+1,H) ->
+MHSA(residual,relu) -> GRU -> last-valid-hidden -> Linear(H,D); trained variable-length (1..|profile|)
+real-rating foldings, BPR ranking loss, val-fullprof early-stop.
+
+WHY the prior fine-tunes failed and this works: FTREC/random fine-tuned on SHORT elicited beliefs ->
+forgot full-profile (OOD). FTRA trains on ALL lengths incl full profiles -> full-profile in-distribution.
+
+NEXT: unified FTRA-MIX (real-rating profiles + graded-answer question sequences incl concepts) -> one
+recommender strong on BOTH full-profile AND elicitation (test whether the better recommender carries Paper C).
