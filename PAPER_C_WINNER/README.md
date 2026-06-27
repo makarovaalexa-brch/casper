@@ -156,3 +156,19 @@ forgot full-profile (OOD). FTRA trains on ALL lengths incl full profiles -> full
 
 NEXT: unified FTRA-MIX (real-rating profiles + graded-answer question sequences incl concepts) -> one
 recommender strong on BOTH full-profile AND elicitation (test whether the better recommender carries Paper C).
+
+## UPDATE 2026-06-27c — UNIFIED RECOMMENDER (DAHCR GRU+attn, all-seq + graded-question mix) — wins BOTH
+
+Trained on real-rating profiles (all lengths) AND graded-answer question sequences (items+concepts).
+Seed-avg {1,2,3,7,11}:
+| task | unified-rec | frozen | FTREC(overfit) | CASPER-R |
+|---|---|---|---|---|
+| full-profile | **0.4275 / 0.2296** | 0.408 / 0.214 | 0.345 / 0.136 | — |
+| entropy8-elicitation | **0.4011 / 0.1831** | 0.367 / 0.158 | 0.385 / 0.165 | 0.360 / 0.152 |
+
+=> ONE recommender better than frozen on the GENERAL task (full-profile) AND lifting elicitation to the best
+ever (+0.041/+0.031 vs CASPER-R, same entropy8+graded policy). NOT a narrow overfit (FTREC died on full-profile).
+The win is the RECOMMENDER (arch + all-seq + graded-mix training), policy stays simple entropy8+graded.
+Locked: cache/ftra_mix_LOCKED.pt. Code: FTRA=1 RAMIX=0.5 (RALOAD eval). Implication: upgrades the Paper-A
+instrument -> A/B re-baselineable (NOT yet). NEXT: baselines on this rec (simple-arch variant for run() compat)
++ train continuous policy against it (de-OOD'd -> fair POLOPT retry).

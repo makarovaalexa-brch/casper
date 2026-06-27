@@ -60,7 +60,7 @@ class Enc(nn.Module):
         h=s.inp(t); a=s.att(h).squeeze(-1).masked_fill(m==0,-1e9); al=torch.softmax(a,1); return (al.unsqueeze(-1)*s.val(h)).sum(1)
 enc=Enc(); enc.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc.eval()
 if os.environ.get('LOADREC') and os.path.exists(os.environ['LOADREC']):          # swap in a FINE-TUNED recommender (enc+Ql) for ALL downstream blocks (eval policies / train policy against the de-OOD'd recommender)
-    _r=torch.load(os.environ['LOADREC']); enc.load_state_dict(_r['enc']); enc.eval()
+    _r=torch.load(os.environ['LOADREC']); enc.load_state_dict(_r['era'] if 'era' in _r else _r['enc']); enc.eval()   # 'era' = simple-attn recipe recommender (same arch as Enc); 'enc' = FTREC
     Ql=_r['Ql'].numpy().astype(np.float32); Qlt=torch.tensor(Ql)
     print(f"LOADREC: using fine-tuned recommender {os.path.basename(os.environ['LOADREC'])}",flush=True)
 for p in enc.parameters(): p.requires_grad_(False)
@@ -736,7 +736,12 @@ if os.environ.get('FTRA'):                                                     #
         def forward(s,t,m):
             x=s.inp(t); a,_=s.attn(x,x,x,key_padding_mask=(m==0)); x=torch.relu(x+a)
             o,_=s.gru(x); L=m.sum(1).long().clamp(min=1); return s.out(o[torch.arange(len(o)),L-1])
-    era=EncRA(); Qlp=torch.nn.Parameter(torch.tensor(Ql)); popbt2=torch.tensor(popb)
+    class EncS(nn.Module):                                                     # ATTRIBUTION: simple attention-pool (frozen arch), trainable, SAME recipe -> isolates architecture vs training recipe
+        def __init__(s):
+            super().__init__(); s.inp=nn.Sequential(nn.Linear(D+1,H),nn.ReLU(),nn.Linear(H,H),nn.ReLU()); s.att=nn.Linear(H,1); s.val=nn.Linear(H,D)
+        def forward(s,t,m):
+            h=s.inp(t); a=s.att(h).squeeze(-1).masked_fill(m==0,-1e9); al=torch.softmax(a,1); return (al.unsqueeze(-1)*s.val(h)).sum(1)
+    era=(EncS() if os.environ.get('ARCH')=='simple' else EncRA()); Qlp=torch.nn.Parameter(torch.tensor(Ql)); popbt2=torch.tensor(popb)
     opt3=torch.optim.Adam(list(era.parameters())+[Qlp],float(os.environ.get('RALR','1e-3')),weight_decay=float(os.environ.get('RAWD','1e-5')))
     def udat(users,cap):
         D2=[]
@@ -759,14 +764,33 @@ if os.environ.get('FTRA'):                                                     #
             for i,(x,prof,hl,ps) in enumerate(ch):
                 s=sc[i].copy(); s[list(ps)]=-1e9; o=np.argsort(-s); rel=set(hl); nd+=sum(_W[p] for p,it in enumerate(o[:10]) if int(it) in rel)/(_W[:min(10,len(rel))].sum()+1e-12); c+=1
         return nd/c
+    _RAMIX=float(os.environ.get('RAMIX','0')); _ordE=sorted(range(NP),key=lambda k:-POOL_ENT[k])
+    enc_a2=Enc(); enc_a2.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc_a2.eval()   # frozen taste for graded answers
+    for p in enc_a2.parameters(): p.requires_grad_(False)
+    def _usof(prof,x):
+        with torch.no_grad(): return enc_a2(*toks2t([(Q[j],resid[x][j]) for j in prof]))[0].numpy().astype(np.float32)
+    TRus=[_usof(d[1],d[0]) for d in TR] if _RAMIX>0 else None
+    def buildtok_graded(seqs,usl):                                            # (entity, graded answer us.entity) sequences
+        mx=max(len(s) for s in seqs); B=len(seqs); tok=torch.zeros(B,mx,D+1); msk=torch.zeros(B,mx)
+        for b,(seq,us) in enumerate(zip(seqs,usl)):
+            for q,k in enumerate(seq): tok[b,q,:D]=torch.tensor(POOL[k].astype(np.float32)); tok[b,q,D]=float(us@POOL[k]); msk[b,q]=1
+        return tok,msk
     best=-1.
     for ep in range(0 if os.environ.get('RALOAD') else int(os.environ.get('RAEP','30'))):
-        rng.shuffle(TR); tl=0.;nb=0
-        for b0 in range(0,len(TR),128):
-            ch=TR[b0:b0+128]; its=[]; xs=[]
-            for (x,prof,hl,ps) in ch:
-                L=int(rng.integers(1,len(prof)+1)); pp=prof[:]; rng.shuffle(pp); its.append(pp[:L]); xs.append(x)   # RANDOM LENGTH = all sequences
-            tok,msk=buildtok(its,xs); sc=era(tok,msk)@Qlp.t()+popbt2; loss=0.
+        oi=list(range(len(TR))); rng.shuffle(oi); tl=0.;nb=0
+        for b0 in range(0,len(oi),128):
+            bi=oi[b0:b0+128]; ch=[TR[i] for i in bi]
+            if _RAMIX>0 and float(rng.random())<_RAMIX:                       # GRADED-QUESTION batch (elicitation distribution: entropy or random Qs over items+concepts)
+                seqs=[]; usl=[]
+                for i in bi:
+                    Lq=int(rng.integers(1,9)); seqs.append(_ordE[:Lq] if float(rng.random())<0.5 else list(rng.integers(0,NP,Lq))); usl.append(TRus[i])
+                tok,msk=buildtok_graded(seqs,usl)
+            else:                                                            # REAL-RATING profile prefix (all lengths)
+                its=[]; xs=[]
+                for (x,prof,hl,ps) in ch:
+                    L=int(rng.integers(1,len(prof)+1)); pp=prof[:]; rng.shuffle(pp); its.append(pp[:L]); xs.append(x)
+                tok,msk=buildtok(its,xs)
+            sc=era(tok,msk)@Qlp.t()+popbt2; loss=0.
             for ii,(x,prof,hl,ps) in enumerate(ch):
                 pos=sc[ii,hl]; neg=sc[ii,torch.randint(0,ni,(len(hl)*5,))]; loss=loss-torch.log(torch.sigmoid(pos.unsqueeze(1)-neg.unsqueeze(0))+1e-9).mean()
             loss=loss/len(ch); opt3.zero_grad(); loss.backward(); opt3.step(); tl+=float(loss);nb+=1
@@ -775,18 +799,26 @@ if os.environ.get('FTRA'):                                                     #
         else: _m=''
         if ep%5==0 or ep==int(os.environ.get('RAEP','30'))-1: print(f"  FTRA ep{ep+1} loss {tl/nb:.4f} val-fullprof {v:.4f}{_m}",flush=True)
     ck=torch.load(_CKra); era.load_state_dict(ck['era']); era.eval(); Qlf=ck['Ql'].numpy().astype(np.float32)
-    nf=nt=cf=ct=0.
-    for x in TE:
-        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
-        if not tlike: continue
+    def evtest(make_belief,label,ref):
+        nf=nt=cf=ct=0.
+        for x in TE:
+            profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+            if not tlike: continue
+            u=make_belief(profset,x)
+            s=(popb+Qlf@u).copy(); s[list(profset)]=-1e9
+            of=np.argsort(-s); relf=set(tlike); ndf=sum(_W[p] for p,it in enumerate(of[:10]) if int(it) in relf)/(_W[:min(10,len(relf))].sum()+1e-12)
+            st=s.copy(); st[headmask]=-1e9; relt=set(t for t in tlike if not headmask[t])
+            if relf: nf+=ndf; cf+=1
+            if relt: ot=np.argsort(-st); nt+=sum(_W[p] for p,it in enumerate(ot[:10]) if int(it) in relt)/(_W[:min(10,len(relt))].sum()+1e-12); ct+=1
+        print(f"  FTRA TEST {label}: FULL {nf/max(cf,1):.4f}  TAIL {nt/max(ct,1):.4f}  | {ref}",flush=True)
+    def _bfull(profset,x):
         tok,msk=buildtok([list(profset)],[x])
-        with torch.no_grad(): u=era(tok,msk)[0].numpy()
-        s=(popb+Qlf@u).copy(); s[list(profset)]=-1e9
-        of=np.argsort(-s); relf=set(tlike); ndf=sum(_W[p] for p,it in enumerate(of[:10]) if int(it) in relf)/(_W[:min(10,len(relf))].sum()+1e-12)
-        st=s.copy(); st[headmask]=-1e9; relt=set(t for t in tlike if not headmask[t])
-        if relf: nf+=ndf; cf+=1
-        if relt: ot=np.argsort(-st); nt+=sum(_W[p] for p,it in enumerate(ot[:10]) if int(it) in relt)/(_W[:min(10,len(relt))].sum()+1e-12); ct+=1
-    print(f"  FTRA TEST full-profile: FULL {nf/max(cf,1):.4f}  TAIL {nt/max(ct,1):.4f}  (val peak {best:.4f}) | vs frozen 0.407/0.218, random-rec 0.393/0.187",flush=True)
+        with torch.no_grad(): return era(tok,msk)[0].numpy()
+    def _belic(profset,x):                                                   # entropy8 graded-answer elicitation via the trained encoder
+        us=_usof(list(profset),x); tok,msk=buildtok_graded([_ordE[:8]],[us])
+        with torch.no_grad(): return era(tok,msk)[0].numpy()
+    evtest(_bfull,f"full-profile (val peak {best:.4f})","vs frozen 0.408/0.214")
+    if _RAMIX>0 or os.environ.get('RAELIC'): evtest(_belic,"entropy8-elicitation","vs frozen-elicit 0.367/0.158, FTREC 0.385/0.165")
     sys.exit(0)
 if os.environ.get('ROBUST'):                                                   # ROBUSTNESS: a recommender (LOADREC, or frozen) ranking beliefs from DIFFERENT question sequences (entropy/pop/random/full-profile), FIXED user answers (original enc). Shows generality vs brittleness.
     import sys
