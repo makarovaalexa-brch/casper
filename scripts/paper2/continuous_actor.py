@@ -59,6 +59,10 @@ class Enc(nn.Module):
     def forward(s,t,m):
         h=s.inp(t); a=s.att(h).squeeze(-1).masked_fill(m==0,-1e9); al=torch.softmax(a,1); return (al.unsqueeze(-1)*s.val(h)).sum(1)
 enc=Enc(); enc.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc.eval()
+if os.environ.get('LOADREC') and os.path.exists(os.environ['LOADREC']):          # swap in a FINE-TUNED recommender (enc+Ql) for ALL downstream blocks (eval policies / train policy against the de-OOD'd recommender)
+    _r=torch.load(os.environ['LOADREC']); enc.load_state_dict(_r['enc']); enc.eval()
+    Ql=_r['Ql'].numpy().astype(np.float32); Qlt=torch.tensor(Ql)
+    print(f"LOADREC: using fine-tuned recommender {os.path.basename(os.environ['LOADREC'])}",flush=True)
 for p in enc.parameters(): p.requires_grad_(False)
 def sig(z): return 1/(1+np.exp(-z))
 def enc_u_np(toks):
@@ -723,6 +727,78 @@ if os.environ.get('REALCONC'):                                                 #
     for m in modes:
         a=res[m]; print(f"  {m:8s}: FULL {a[0]/max(a[2],1):.4f}  TAIL {a[1]/max(a[3],1):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('POLOPT'):                                                   # STAGE 2: OPTIMISE the policy against the (de-OOD'd, policy-agnostic) recommender loaded via LOADREC. Residual-on-entropy policy + REINFORCE on true NDCG. Answers from ORIGINAL frozen 'user' enc (taste fixed); belief/rank from loaded recommender.
+    import sys
+    enc_a=Enc(); enc_a.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc_a.eval()   # fixed user-taste encoder (answers)
+    ENTt=torch.tensor(POOL_ENT.astype(np.float32)); _TAU=float(os.environ.get('PTAU','0.5'))
+    class Pol(nn.Module):                                                      # score_k = beta*entropy_k + g(belief, entity)  (g init 0 -> pure entropy warm-start)
+        def __init__(s):
+            super().__init__(); s.g=nn.Sequential(nn.Linear(2*D,64),nn.ReLU(),nn.Linear(64,1)); s.b=nn.Parameter(torch.tensor(1.0))
+            nn.init.zeros_(s.g[-1].weight); nn.init.zeros_(s.g[-1].bias)
+        def forward(s,u):
+            B=u.shape[0]; x=torch.cat([u.unsqueeze(1).expand(B,NP,D),POOLt.unsqueeze(0).expand(B,NP,D)],2); return s.b*ENTt.unsqueeze(0)+s.g(x).squeeze(-1)
+    pol=Pol(); popt=torch.optim.Adam(pol.parameters(),float(os.environ.get('PLR','3e-5')))
+    def udata(users,cap):
+        US=[];HL=[];PR=[]
+        for x in users[:cap]:
+            allit=[j for j,_ in rat_by_u[x]]; rng.shuffle(allit); hh=max(len(allit)//2,4); prof=set(allit[:hh]); held=allit[hh:]
+            rd=dict(rat_by_u[x]); hl=[j for j in held if rd[j]>=4]
+            if not hl: continue
+            with torch.no_grad(): us=enc_a(*toks2t([(Q[j],resid[x][j]) for j in prof]))[0].numpy()
+            US.append(us.astype(np.float32)); HL.append(hl); PR.append(list(prof))
+        return torch.tensor(np.array(US,np.float32)),HL,PR
+    def rollout(usb,greedy=False):                                            # returns final belief u (B,D), logps list ; answers = usb.entity (graded), belief via loaded enc (frozen)
+        B=usb.shape[0]; toks=torch.zeros(B,T,D+1); msk=torch.zeros(B,T); u=torch.zeros(B,D); asked=torch.zeros(B,NP); ar=torch.arange(B); logps=[]
+        for t in range(T):
+            sc=pol(u).masked_fill(asked>0,-1e9); p=torch.softmax(sc/_TAU,1)
+            idx=p.argmax(1) if greedy else torch.multinomial(p,1).squeeze(1)
+            logps.append(torch.log(p[ar,idx]+1e-9)); asked=asked+torch.zeros(B,NP).scatter_(1,idx.unsqueeze(1),1.)
+            with torch.no_grad():
+                ans=(usb*POOLt[idx]).sum(1); toks=toks.clone(); toks[:,t,:D]=POOLt[idx]; toks[:,t,D]=ans; msk=msk.clone(); msk[:,t]=1; u=enc(toks,msk)
+        return u,logps
+    def nd_batch(u,HL,PR,tail):
+        s=(u@Qlt.t()+popbt).numpy(); out=np.zeros(len(HL))
+        for i in range(len(HL)):
+            ss=s[i].copy(); ss[PR[i]]=-1e9
+            if tail: ss[headmask]=-1e9; rel=set(j for j in HL[i] if not headmask[j])
+            else: rel=set(HL[i])
+            if not rel: continue
+            o=np.argsort(-ss)[:10]; out[i]=sum(_W[p] for p,it in enumerate(o) if int(it) in rel)/(_W[:min(10,len(rel))].sum()+1e-12)
+        return torch.tensor(out,dtype=torch.float32)
+    print("POLOPT: building user data...",flush=True)
+    trUS,trHL,trPR=udata([x for x in trbig],int(os.environ.get('POLN','2500')))
+    _RT=bool(os.environ.get('REWTAIL')); _EB=float(os.environ.get('PENT','0.01'))
+    VAL_U=[x for x in te if x in _VSPL][:300]                                  # honest early-stop on VAL (te[:300]); TEST = te[300:] reported at best-val ckpt
+    def evalpol(users):
+        nf=nt=cf=ct=0.
+        for x in users:
+            allit=dict(rat_by_u[x])
+            if x in SPL: profset,test=SPL[x]
+            else:
+                its=list(allit); _r2=np.random.default_rng(0); _r2.shuffle(its); profset=set(its[:len(its)//2]); test=its[len(its)//2:]
+            tlike=set(j for j in test if allit[j]>=4)
+            if not tlike: continue
+            with torch.no_grad(): usb=enc_a(*toks2t([(Q[j],resid[x][j]) for j in profset]))[0]
+            u,_=rollout(usb.unsqueeze(0),greedy=True)
+            mf=nd_batch(u,[list(tlike)],[list(profset)],False); mt=nd_batch(u,[list(tlike)],[list(profset)],True)
+            nf+=float(mf[0]); cf+=1; nt+=float(mt[0]); ct+=1
+        return nf/max(cf,1),nt/max(ct,1)
+    f0,t0=evalpol(TE); print(f"  POLOPT init (=entropy on this recommender) TEST: FULL {f0:.4f} TAIL {t0:.4f}",flush=True)
+    best=-1.; bf=bt=0.; _CKp=f'{base}/.cache/polopt_best.pt'
+    for ep in range(int(os.environ.get('POLEP','25'))):
+        perm=torch.randperm(len(trUS)); tl=0.;nb=0
+        for b0 in range(0,len(trUS),64):
+            bb=perm[b0:b0+64]; usb=trUS[bb]; u,logps=rollout(usb,greedy=False)
+            r=nd_batch(u,[trHL[i] for i in bb.tolist()],[trPR[i] for i in bb.tolist()],_RT)
+            ent=-(torch.stack(logps,1)).mean()                                # crude entropy proxy (encourage exploration)
+            adv=r-r.mean(); loss=-(torch.stack(logps,1).sum(1)*adv).mean()-_EB*ent
+            popt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(pol.parameters(),5.); popt.step(); tl+=float(r.mean());nb+=1
+        vf,vt=evalpol(VAL_U); sel=vt if _RT else vf
+        if sel>best: best=sel; tf,tt=evalpol(TE); bf,bt=tf,tt; torch.save(pol.state_dict(),_CKp); _m=f' * TEST {tf:.4f}/{tt:.4f}'
+        else: _m=''
+        print(f"  POLOPT ep{ep+1} train-NDCG {tl/nb:.4f} | VAL full {vf:.4f} tail {vt:.4f}{_m}",flush=True)
+    print(f"  POLOPT done. init TEST {f0:.4f}/{t0:.4f} -> best-val TEST {bf:.4f}/{bt:.4f}",flush=True)
+    sys.exit(0)
 if os.environ.get('FTREC'):                                                    # USER IDEA: FINE-TUNE the recommender (enc+Ql) on the ELICITATION distribution (same 8 entropy Qs, graded answers, fold-curriculum t=1..8) -> remove the OOD/partial-belief mismatch + make the entropy signal maximally useful. Frozen enc generates the ANSWER (fixed user taste); trainable enc builds the BELIEF.
     import sys
     enc_f=Enc(); enc_f.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc_f.eval()
@@ -732,25 +808,26 @@ if os.environ.get('FTREC'):                                                    #
     Qlp=torch.nn.Parameter(torch.tensor(Ql)); popbt2=torch.tensor(popb); _Qlf0=torch.tensor(Ql)
     opt2=torch.optim.Adam(list(enc.parameters())+[Qlp],float(os.environ.get('FTLR','1e-4')),weight_decay=float(os.environ.get('FTWD','1e-4')))
     Eordn=np.array([POOL[k] for k in order],np.float32)
-    def prep_ft(users,cap,K=1):                                                # K = random profile/held splits per user (data augmentation vs overfit; entropy questionnaire is fixed so each split is a fresh example)
-        A=[];H=[];P=[]
+    def prep_ft(users,cap,K=1):                                                # returns u* (frozen profile-encoding) per example; answer to ANY question = us.entity computed on the fly
+        US=[];H=[];P=[]
         for x in users[:cap]:
             for _ in range(K):
                 allit=[j for j,_ in rat_by_u[x]]; rng.shuffle(allit); hh=max(len(allit)//2,4); prof=set(allit[:hh]); held=allit[hh:]
                 rd=dict(rat_by_u[x]); hl=[j for j in held if rd[j]>=4]
                 if not hl: continue
                 with torch.no_grad(): us=enc_f(*toks2t([(Q[j],resid[x][j]) for j in prof]))[0].numpy()
-                A.append((us@Eordn.T).astype(np.float32)); H.append(hl); P.append(list(prof))
-        return np.array(A,np.float32),H,P
+                US.append(us.astype(np.float32)); H.append(hl); P.append(list(prof))
+        return torch.tensor(np.array(US,np.float32)),H,P
+    _RP=os.environ.get('RANDPOL'); ordt=torch.tensor(order)
     if not os.environ.get('FTLOAD'):
-        print(f"FTREC: building elicited (entropy-Q, graded) data (aug K={os.environ.get('FTAUG','4')})...",flush=True)
-        trA,trH,_=prep_ft([x for x in trbig],int(os.environ.get('FTN','2500')),int(os.environ.get('FTAUG','4'))); trA=torch.tensor(trA)
-        vaA,vaH,vaP=prep_ft([x for x in te if x in _VSPL],300,1); vaA=torch.tensor(vaA)
-    def build_tok(Ab,t):
-        B=Ab.shape[0]; tok=torch.zeros(B,t,D+1); tok[:,:,:D]=Eord[:t].unsqueeze(0).expand(B,t,D).clone(); tok[:,:,D]=Ab[:,:t]; return tok,torch.ones(B,t)
-    def val_nd():
+        print(f"FTREC: building data (TRAIN policy={'RANDOM (policy-agnostic)' if _RP else 'entropy-static'}, aug K={os.environ.get('FTAUG','4')})...",flush=True)
+        trUS,trH,_=prep_ft([x for x in trbig],int(os.environ.get('FTN','2500')),int(os.environ.get('FTAUG','4')))
+        vaUS,vaH,vaP=prep_ft([x for x in te if x in _VSPL],300,1)
+    def tok_from(usb,idx):                                                     # usb (B,D), idx (B,t) entity ids -> tokens (B,t,D+1) with GRADED answers us.entity
+        Eemb=POOLt[idx]; ans=(usb.unsqueeze(1)*Eemb).sum(-1); return torch.cat([Eemb,ans.unsqueeze(-1)],-1),torch.ones(idx.shape[0],idx.shape[1])
+    def val_nd():                                                             # eval ALWAYS on the deployed entropy policy (top divisive), regardless of train policy
         with torch.no_grad():
-            tok,m=build_tok(vaA,len(order)); u=enc(tok,m); sc=(u@Qlp.t()+popbt2).numpy(); nd=0.;c=0
+            idx=ordt.unsqueeze(0).expand(len(vaUS),len(order)); tok,m=tok_from(vaUS,idx); sc=(enc(tok,m)@Qlp.t()+popbt2).numpy(); nd=0.;c=0
             for i,hl in enumerate(vaH):
                 s=sc[i].copy(); s[vaP[i]]=-1e9; o=np.argsort(-s); rel=set(hl); nd+=sum(_W[p] for p,it in enumerate(o[:10]) if int(it) in rel)/(_W[:min(10,len(rel))].sum()+1e-12); c+=1
             return nd/c
@@ -758,9 +835,14 @@ if os.environ.get('FTREC'):                                                    #
     if not os.environ.get('FTLOAD'): print(f"  FTREC FROZEN-baseline val-nd {val_nd():.4f} (fine-tune must beat THIS to be real)",flush=True)
     best=-1.
     for ep in range(0 if os.environ.get('FTLOAD') else int(os.environ.get('FTEP','40'))):
-        perm=torch.randperm(len(trA)); tl=0.;nb=0
-        for b0 in range(0,len(trA),128):
-            bb=perm[b0:b0+128]; t=int(rng.integers(1,len(order)+1)); tok,m=build_tok(trA[bb],t); u=enc(tok,m); sc=u@Qlp.t()+popbt2
+        perm=torch.randperm(len(trUS)); tl=0.;nb=0
+        for b0 in range(0,len(trUS),128):
+            bb=perm[b0:b0+128]; usb=trUS[bb]; t=int(rng.integers(1,9))
+            if _RP:                                                            # RANDOM policy -> recommender robust to ANY policy. RANDTEMP=temp -> sample weighted by entropy (cover divisive region, not dilute on useless entities)
+                if os.environ.get('RANDTEMP'): idx=torch.multinomial(torch.softmax(torch.tensor(POOL_ENT.astype(np.float32))/float(os.environ['RANDTEMP']),0).unsqueeze(0).expand(len(bb),NP),t,replacement=False)
+                else: idx=torch.randint(0,NP,(len(bb),t))
+            else: idx=ordt[:t].unsqueeze(0).expand(len(bb),t)
+            tok,m=tok_from(usb,idx); sc=enc(tok,m)@Qlp.t()+popbt2
             loss=0.; _TW=os.environ.get('TAILW')
             for ii,gi in enumerate(bb.tolist()):
                 hl=trH[gi]; pos=sc[ii,hl]; neg=sc[ii,torch.randint(0,ni,(len(hl)*5,))]

@@ -75,6 +75,35 @@ Reproduce FTREC: `FTREC=1 FTAUG=5 FTLR=1e-4 FTANCHOR=1e-4 FTEP=50 python scripts
 NOTE: 7 *policy-side* learned attempts lost to the heuristic; the win came from the RECOMMENDER side
 (de-OOD via fold-curriculum), exactly as flagged — proper regularization (aug+anchor+lowLR), not a ceiling.
 
+## UPDATE 2026-06-27 — overnight optimization study (what's the win, what isn't)
+
+Goal: (a) make the recommender policy-AGNOSTIC (train on random policy), then (b) OPTIMIZE the policy on it.
+Result: both probed thoroughly; the FINAL answer is **co-designed recommender + static-entropy policy**.
+
+Recommender variants (entropy-policy eval, seed 123):
+| variant | FULL | TAIL | note |
+|---|---|---|---|
+| frozen (Paper A) | 0.367 | 0.158 | baseline |
+| **static FTREC (WINNER)** | **0.379** | **0.155** | seed-avg **0.385/0.165** |
+| uniform-random | 0.369 | 0.140 | weaker — dilution |
+| tempered-random (t=0.5) | 0.367 | 0.144 | weaker — dilution |
+| tail-weighted (inv-pop loss) | 0.358 | 0.141 | worse — unstable |
+
+=> **Specialization, not robustness, drives the gain.** Random-policy training gives no specialization (and worse
+tail). The FTREC win is the recommender learning the belief distribution it ACTUALLY sees (entropy questions).
+So the same-policy decomposition (+0.018/+0.008, identical Qs+answers, only recommender changes) is fully FAIR —
+"train the recommender for how it's used," standard practice, no co-design asterisk.
+
+Policy optimization (POLOPT = residual-on-entropy policy `score=β·POOL_ENT + g(belief,entity)`, g init 0 =
+entropy warm-start, REINFORCE on true NDCG, val-selected, against the strong de-OOD'd recommender):
+  init (entropy) 0.3791/0.1540 -> best-val 0.3784/0.1487 — **did NOT beat entropy** (explored, val fell to 0.30,
+  drifted back). 8th policy-learning negative. With oracle-distill ALSO failing, the evidence is consistent:
+  **the realizable optimal policy ≈ static entropy.** The learning lives in the RECOMMENDER + the graded ANSWER,
+  not the policy. Policy stays a simple, interpretable static questionnaire (a feature for the paper, not a bug).
+
+Code added: `POLOPT` (policy optimizer), `LOADREC=<ckpt>` (swap recommender into any block), `RANDPOL`/`RANDTEMP`
+(random/tempered-random recommender training). Winner recommender = `cache/ftrec_best.pt` sha `5d6406fd`.
+
 ## Reproducer
 
 ```bash
