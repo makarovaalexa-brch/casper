@@ -64,13 +64,21 @@ class EncRA(nn.Module):                                                         
     def forward(s,t,m):
         x=s.inp(t); a,_=s.attn(x,x,x,key_padding_mask=(m==0)); x=torch.relu(x+a)
         o,_=s.gru(x); L=m.sum(1).long().clamp(min=1); return s.out(o[torch.arange(len(o)),L-1])
+class EncST(nn.Module):                                                          # set-transformer: MHSA + permutation-invariant mean-pool (order-invariant), module-level for LOADREC
+    def __init__(s,H=128):
+        super().__init__(); s.inp=nn.Linear(D+1,H); s.attn=nn.MultiheadAttention(H,4,batch_first=True); s.ff=nn.Sequential(nn.Linear(H,H),nn.ReLU(),nn.Linear(H,H)); s.out=nn.Linear(H,D)
+    def forward(s,t,m):
+        x=s.inp(t); a,_=s.attn(x,x,x,key_padding_mask=(m==0)); x=torch.relu(x+a); x=torch.relu(x+s.ff(x))
+        m2=m.unsqueeze(-1); return s.out((x*m2).sum(1)/m2.sum(1).clamp(min=1))
 enc=Enc(); enc.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc.eval()
 if os.environ.get('LOADREC') and os.path.exists(os.environ['LOADREC']):          # swap in a FINE-TUNED recommender (enc+Ql) for ALL downstream blocks
-    _r=torch.load(os.environ['LOADREC']); _sd=_r['era'] if 'era' in _r else _r['enc']; _isra=any('gru' in k for k in _sd)
-    if _isra: enc=EncRA(); enc.load_state_dict(_sd); enc.eval()                  # GRU+attn unified recommender
-    else: enc.load_state_dict(_sd); enc.eval()                                   # simple-attn (FTREC / recipe)
+    _r=torch.load(os.environ['LOADREC']); _sd=_r['st'] if 'st' in _r else (_r['era'] if 'era' in _r else _r['enc'])
+    if 'st' in _r: enc=EncST(); _at='set-transformer'                           # MHSA + mean-pool (order-invariant)
+    elif any('gru' in k for k in _sd): enc=EncRA(); _at='GRU+attn'              # GRU+attn
+    else: _at='simple'                                                          # simple-attn (FTREC / recipe / V1)
+    enc.load_state_dict(_sd); enc.eval()
     Ql=_r['Ql'].numpy().astype(np.float32); Qlt=torch.tensor(Ql)
-    print(f"LOADREC: using {'GRU+attn' if _isra else 'simple'} recommender {os.path.basename(os.environ['LOADREC'])}",flush=True)
+    print(f"LOADREC: using {_at} recommender {os.path.basename(os.environ['LOADREC'])}",flush=True)
 for p in enc.parameters(): p.requires_grad_(False)
 def sig(z): return 1/(1+np.exp(-z))
 def enc_u_np(toks):
@@ -828,26 +836,47 @@ if os.environ.get('FTRA'):                                                     #
     evtest(_bfull,f"full-profile (val peak {best:.4f})","vs frozen 0.408/0.214")
     if _RAMIX>0 or os.environ.get('RAELIC'): evtest(_belic,"entropy8-elicitation","vs frozen-elicit 0.367/0.158, FTREC 0.385/0.165")
     sys.exit(0)
+if os.environ.get('SHUF'):                                                     # ORDER-SENSITIVITY: fold the SAME entropy8 answers in many random orders -> per-user STD of NDCG across orders. attn-pool=order-invariant (STD~0); GRU=order-sensitive risk.
+    import sys
+    enc_a=Enc(); enc_a.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc_a.eval()
+    for p in enc_a.parameters(): p.requires_grad_(False)
+    _ordE=sorted(range(NP),key=lambda k:-POOL_ENT[k])[:8]; rngr=np.random.default_rng(1); _NS=int(os.environ.get('NSHUF','10'))
+    def _bel(usf,seq): return enc_u_np([(POOL[k],(POS if float(usf@POOL[k])>0 else NEG)) for k in seq])
+    def _nd(u,tlike,prof):
+        s=(popb+Ql@u).copy(); s[list(prof)]=-1e9; o=np.argsort(-s); rel=set(tlike)
+        return sum(_W[p] for p,t in enumerate(o[:10]) if int(t) in rel)/(_W[:min(10,len(rel))].sum()+1e-12)
+    stds=[]; means=[]; rng2=np.random.default_rng(0)
+    for x in TE:
+        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+        if not tlike: continue
+        usf=enc_a(*toks2t([(Q[j],resid[x][j]) for j in profset]))[0].numpy()
+        nds=[_nd(_bel(usf,list(rng2.permutation(_ordE))),tlike,profset) for _ in range(_NS)]
+        stds.append(float(np.std(nds))); means.append(float(np.mean(nds)))
+    print(f"=== SHUFFLE order-sensitivity [{os.path.basename(os.environ.get('LOADREC','FROZEN'))}] entropy8, {_NS} random orders/user ===",flush=True)
+    print(f"  mean NDCG {np.mean(means):.4f} | mean per-user STD across orders {np.mean(stds):.4f}  (0 = order-invariant; larger = order-sensitive)",flush=True)
+    sys.exit(0)
 if os.environ.get('ROBUST'):                                                   # ROBUSTNESS: a recommender (LOADREC, or frozen) ranking beliefs from DIFFERENT question sequences (entropy/pop/random/full-profile), FIXED user answers (original enc). Shows generality vs brittleness.
     import sys
     enc_a=Enc(); enc_a.load_state_dict(torch.load(f'{base}/.cache/enc_concept.pt')); enc_a.eval()   # fixed user taste (answers)
     for p in enc_a.parameters(): p.requires_grad_(False)
     ordE=sorted(range(NP),key=lambda k:-POOL_ENT[k])[:8]; ordP=sorted(range(NP),key=lambda k:-PRIOR[k])[:8]
+    ordC=[k for k in sorted(range(NP),key=lambda k:-POOL_ENT[k]) if k>=NI][:8]   # concept-only entropy (Paper-B style policy, graded answers here)
     nq=int(os.environ.get('RQ','8')); rngr=np.random.default_rng(1)
-    def belief(usf,seq): return enc_u_np([(POOL[k],float(usf@POOL[k])) for k in seq])   # graded answers via global enc (=LOADREC recommender)
+    _gw=os.environ.get('GRAW')                                                   # GRAW=1 -> graded answers (Paper-C); else BINARY geometric sign (Paper-A/B convention)
+    def belief(usf,seq): return enc_u_np([(POOL[k],(float(usf@POOL[k]) if _gw else (POS if float(usf@POOL[k])>0 else NEG))) for k in seq])
     def ndcg(u,tlike,prof,tail):
         s=(popb+Ql@u).copy(); s[list(prof)]=-1e9
         if tail: s[headmask]=-1e9; rel=set(t for t in tlike if not headmask[t])
         else: rel=set(tlike)
         if not rel: return None
         o=np.argsort(-s); return sum(_W[p] for p,t in enumerate(o[:10]) if int(t) in rel)/(_W[:min(10,len(rel))].sum()+1e-12)
-    keys=[f'entropy{nq}','pop','random',f'random{2*nq}','fullprof']; agg={k:[0.,0.,0,0] for k in keys}
+    keys=['item_entropy8','conc_entropy8','pop','random','fullprof']; agg={k:[0.,0.,0,0] for k in keys}
     for x in TE:
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
         if not tlike: continue
         usf=enc_a(*toks2t([(Q[j],resid[x][j]) for j in profset]))[0].numpy()
-        ev={f'entropy{nq}':belief(usf,ordE[:nq]),'pop':belief(usf,ordP[:nq]),'random':belief(usf,list(rngr.integers(0,NP,nq))),
-            f'random{2*nq}':belief(usf,list(rngr.integers(0,NP,2*nq))),'fullprof':enc_u_np([(Q[j],resid[x][j]) for j in profset])}
+        ev={'item_entropy8':belief(usf,ordE[:nq]),'conc_entropy8':belief(usf,ordC[:nq]),'pop':belief(usf,ordP[:nq]),
+            'random':belief(usf,list(rngr.integers(0,NP,nq))),'fullprof':enc_u_np([(Q[j],resid[x][j]) for j in profset])}
         for k,u in ev.items():
             f=ndcg(u,tlike,profset,False); t=ndcg(u,tlike,profset,True)
             if f is not None: agg[k][0]+=f; agg[k][2]+=1
