@@ -1,0 +1,13 @@
+Phase 2 v2: NOBC + VALTEST (live test NDCG/epoch). OBJ=ustar CONTMODE=cont GRADED, frozen V1. Targets: discrete-entropy 0.342 tail, cont-oracle 0.391
+  761 concepts (19s)
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+train scorer policy (pool=1361, TAU=0.3) -- finetune from conc_pop floor...
+  ep1 return=-0.2014 | VAL NDCG@10 full 0.329 tail 0.107  <- BEST (tail) saved  [PEAK tail 0.107 @ep1, 0 since]
+  ep2 return=-0.1399 | VAL NDCG@10 full 0.333 tail 0.124  <- BEST (tail) saved  [PEAK tail 0.124 @ep2, 0 since]
+  ep3 return=-0.1280 | VAL NDCG@10 full 0.335 tail 0.127  <- BEST (tail) saved  [PEAK tail 0.127 @ep3, 0 since]
+  ep4 return=-0.1186 | VAL NDCG@10 full 0.332 tail 0.131  <- BEST (tail) saved  [PEAK tail 0.131 @ep4, 0 since]
+  ep5 return=-0.1099 | VAL NDCG@10 full 0.340 tail 0.139  <- BEST (tail) saved  [PEAK tail 0.139 @ep5, 0 since]
+  ep6 return=-0.0939 | VAL NDCG@10 full 0.345 tail 0.149  <- BEST (tail) saved  [PEAK tail 0.149 @ep6, 0 since]
+  ep7 return=-0.0752 | VAL NDCG@10 full 0.345 tail 0.141  [PEAK tail 0.149 @ep6, 1 since]
+  ep8 return=-0.0702 | VAL NDCG@10 full 0.346 tail 0.146  [PEAK tail 0.149 @ep6, 2 since]
+  ep9 return=-0.0682 | VAL NDCG@10 full 0.344 tail 0.141  [PEAK tail 0.149 @ep6, 3 since]
