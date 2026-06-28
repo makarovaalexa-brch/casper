@@ -29,6 +29,29 @@ No Wolpertinger rescore was needed; pure-query distillation + cosine snap suffic
 Checkpoint: `PAPER_C_GOAL1/policy_cont_distill_replicates_casperR.pt` (sha e0d3b77d). Code: `scripts/paper2/continuous_actor.py`
 (`DISTILL=1 FEATS=ext ANSF=1`; eval `COSSNAP=1`). Isolated copy — Paper B harness untouched.
 
+## Goal 1b — RESULT: a continuous actor learned FROM SCRATCH (no discrete teacher) reaches the discrete ballpark, and learns an interpretable adaptive strategy
+
+Distillation (Goal 1) shows continuity *can* express discrete. Stronger: we train the actor **from scratch — no
+distillation** — by **differentiable unroll**. The policy `π(belief u, turn t) → q ∈ R^64` rolls out 8 questions;
+each query's geometric answer `a = u*·q` and the encoder fold are differentiable, so we backprop the reconstruction
+reward `1 − cos(u, u*)` through the whole rollout to the actor. `u*` is used only in the *training gradient and
+simulator* — the policy sees belief only, so it is **realizable** (no answer-peek; distinct from the privileged oracle).
+
+**Result (te[300:], seed-avg {1,2,3,7,11}):** **0.356 ± 0.005 / 0.146 ± 0.006** — in the CASPER-R / entropy ballpark
+(0.360/0.152, 0.362/0.139), reached with no discrete teacher and no menu. (Frozen V1 encoder; peak ep6.) This is the
+first continuous policy *learned from scratch* on this ruler; prior continuous attempts needed distillation or lost.
+
+**What it learned to ask (QPROBE, 304 users):** emitted-query cosine to the **nearest concept = 0.77**, nearest item
+0.60, to **u\* = 0.12**. So it asks directions that hover *near but off* the concept manifold — **interpolations between
+named concepts**, not snaps to them — and it is **not** the trivial "query your own taste vector" shortcut. Strategy is
+**a fixed informative opener** (turn-0 query identical across users, centroid-cos 1.00) **then adaptive per-user
+queries** (turns 1–7 centroid-cos 0.65–0.79 — queries vary with the belief). So from scratch it discovers exactly the
+shape good elicitation should have: commit to a strong opener, then branch on what the user reveals.
+
+Checkpoint `PAPER_C_GOAL1/policy_phase2_cont_v1_PEAK_ep6.pt`; results `experiments/paper2/{PHASE2_RESULT,QPROBE_RESULT}.md`.
+Run: `CONTMODE=cont OBJ=ustar GRADED=1 NOBC=1 VALTEST=1 SELVAL=tail` (train); `QPROBE=1` (probe). Open: close the gap to
+the 0.391 oracle — hybrid (BC-pretrain on discrete then unroll-finetune) and encoder co-training under study.
+
 ## Why this matters / what continuity unlocks (Goal 2)
 The discrete policy could only pick from a **fixed menu** of 1361 entities. The continuous actor emits a **point**, so it can
 reach **beyond** the menu — novel directions / abstract concepts between the named ones — while the snap guarantees we can

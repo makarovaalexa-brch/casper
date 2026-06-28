@@ -189,7 +189,10 @@ actor=Actor(); CONTMODE=os.environ.get('CONTMODE','snap'); _CN=float(np.linalg.n
 POOLn=(POOL/(np.linalg.norm(POOL,axis=1,keepdims=True)+1e-9)).astype(np.float32); POOLnt=torch.tensor(POOLn)   # unit-norm pool for COSINE snap (consistent with cos-loss distillation; dot-product snap is norm-biased)
 _GROUND=int(os.environ.get('GROUND',0)); _GTAU=float(os.environ.get('GTAU',0.2)); _GRADED=bool(os.environ.get('GRADED'))   # GOAL 2: GROUND>0 -> straight-through grounded fold (nearest real entity fwd, soft grad). GRADED=1 -> graded answer (affinity-interpolated NEG..POS) instead of one ±bit
 _pp=list(actor.parameters())+(list(enc.parameters()) if os.environ.get('COENC') else [])   # COENC: optimise encoder jointly with the actor
-opt=torch.optim.Adam(_pp,1e-3,weight_decay=float(os.environ.get('WD',0)))     # WD = L2 regularization (anti-overfit)
+if os.environ.get('COENC'):                                                    # enc fine-tuned at a MUCH smaller LR than the actor (limit drift -> no collapse) + own param group
+    opt=torch.optim.Adam([{'params':list(actor.parameters()),'lr':1e-3},{'params':list(enc.parameters()),'lr':float(os.environ.get('ENCLR','1e-5'))}],weight_decay=float(os.environ.get('WD',0)))
+else:
+    opt=torch.optim.Adam(_pp,1e-3,weight_decay=float(os.environ.get('WD',0)))     # WD = L2 regularization (anti-overfit)
 class Critic(nn.Module):                                                      # P7: state-value baseline V(belief,turn) for REINFORCE variance reduction
     def __init__(s): super().__init__(); s.f=nn.Sequential(nn.Linear(D+1,128),nn.ReLU(),nn.Linear(128,1))
     def forward(s,u,tt): B=u.shape[0]; return s.f(torch.cat([u,torch.full((B,1),float(tt))],1)).squeeze(1)
@@ -517,6 +520,27 @@ if os.environ.get('SEEDAVG'):                                                  #
         f=nf/max(mf,1); t=nt/max(mt,1); _Ff.append((_sd,f)); _Tt.append((_sd,t)); print(f"  seed{_sd}: FULL {f:.4f}  TAIL {t:.4f}",flush=True)
     _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
     print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
+    sys.exit(0)
+if os.environ.get('QPROBE'):                                                   # what did the from-scratch continuous actor LEARN TO ASK? cos(emitted query, nearest item/concept/u*) + adaptivity across users. Run NOBC=1 CONTMODE=cont.
+    import sys
+    _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
+    Qn=(Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32); Ecn=(Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9)).astype(np.float32)
+    _r=np.random.default_rng(1); SP={}
+    for x in te:
+        its=list(dict(rat_by_u[x]))
+        if len(its)>=6: il=its[:]; _r.shuffle(il); SP[x]=(set(il[:len(il)//2]), il[len(il)//2:])
+    VU=[x for x in te if x in SP][300:]; per=[[] for _ in range(8)]; ci=[];cc=[];cu=[]
+    for x in VU:
+        profset,_=SP[x]; cans=cans_np(x,profset); usf=enc_u_np([(Q[j],resid[x][j]) for j in profset]); usn=usf/(np.linalg.norm(usf)+1e-9); toks=[]
+        for t in range(8):
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); ci.append(float(np.max(Qn@qn))); cc.append(float(np.max(Ecn@qn))); cu.append(float(usn@qn)); per[t].append(qn)
+            _th=float(np.mean([float(usf@Ec[c]) for c in cans])) if cans else 0.; fe=(qn*_CN).astype(np.float32); toks.append((fe, POS if float(usf@fe)>_th else NEG))
+    print(f"=== QPROBE {os.path.basename(_ck)} | what the actor asks (te[300:], {len(VU)} users) ===",flush=True)
+    print(f"  emitted-query cos -> nearest ITEM {np.mean(ci):.3f} | nearest CONCEPT {np.mean(cc):.3f} | to u* {np.mean(cu):.3f}  (high item/concept cos = ~rediscovers discrete; low = off-catalog)",flush=True)
+    for t in range(8):
+        A=np.stack(per[t]); m=A.mean(0); m/=np.linalg.norm(m)+1e-9
+        print(f"  turn{t}: cos(query,centroid)={float(np.mean(A@m)):.3f} | nearest-item {np.mean([np.max(Qn@q) for q in A]):.3f} | nearest-conc {np.mean([np.max(Ecn@q) for q in A]):.3f}  (centroid~1=FIXED across users; <1=ADAPTIVE)",flush=True)
     sys.exit(0)
 print(f"train scorer policy (pool={NP}, TAU={TAU}) -- finetune from conc_pop floor...",flush=True)
 _CKBEST=_CK.replace('.pt','_best.pt'); TAGn=os.environ.get('TAG','o12'); _bestvt=-1.0; _bestvf=0.; _bestvtt=0.; _bestep=0; _selm=os.environ.get('SELVAL','tail')  # EARLY-STOP via best-checkpoint on the SEPARATE val (SELVAL=tail|full); final eval loads _best.pt
