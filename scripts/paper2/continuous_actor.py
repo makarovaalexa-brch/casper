@@ -474,6 +474,34 @@ def val_ndcg():
         st=s.copy(); st[headmask]=-1e9; relt=set(t for t in tlike if not headmask[t])
         if relt: ot=np.argsort(-st)[:10]; nt+=sum(_Wv[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv[:min(10,len(relt))].sum()+1e-12); mt+=1
     return nf/max(mf,1), nt/max(mt,1)
+if os.environ.get('SEEDAVG'):                                                  # eval a SAVED continuous actor across EVAL profile-split seeds (te[300:]); training is seed-indep so this seed-averages the win. Run NOBC=1.
+    import sys
+    _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
+    _seeds=[int(s) for s in os.environ.get('EVALSEEDS','123,1,2,3,7,11').split(',')]
+    print(f"=== SEEDAVG continuous actor {os.path.basename(_ck)} | te[300:] | CONTMODE={CONTMODE} (123=dev sanity; avg over 1,2,3,7,11) ===",flush=True)
+    _Ff=[];_Tt=[]
+    for _sd in _seeds:
+        _r=np.random.default_rng(_sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; _r.shuffle(il); SP[x]=(set(il[:len(il)//2]), il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.
+        for x in VU:
+            profset,vtest=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in vtest if rd[j]>=4)
+            if not tlike: continue
+            cans=cans_np(x,profset); toks=[]
+            for _ in range(8):
+                with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),len(toks)/8.).numpy()[0]
+                _us=enc_u_np([(Q[j],resid[x][j]) for j in profset]); _th=float(np.mean([float(_us@Ec[c]) for c in cans])) if cans else 0.
+                _qn=(qv/(np.linalg.norm(qv)+1e-9)*_CN).astype(np.float32); toks.append((_qn, POS if float(_us@_qn)>_th else NEG))   # realizable: actor sees belief only; binary geometric answer
+            u=enc_u_np(toks); s=popb+Ql@u; s[list(profset)]=-1e9
+            o=np.argsort(-s)[:10]; nf+=sum(_Wv[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv[:min(10,len(tlike))].sum()+1e-12); mf+=1
+            st=s.copy(); st[headmask]=-1e9; relt=set(t for t in tlike if not headmask[t])
+            if relt: ot=np.argsort(-st)[:10]; nt+=sum(_Wv[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv[:min(10,len(relt))].sum()+1e-12); mt+=1
+        f=nf/max(mf,1); t=nt/max(mt,1); _Ff.append((_sd,f)); _Tt.append((_sd,t)); print(f"  seed{_sd}: FULL {f:.4f}  TAIL {t:.4f}",flush=True)
+    _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
+    print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
+    sys.exit(0)
 print(f"train scorer policy (pool={NP}, TAU={TAU}) -- finetune from conc_pop floor...",flush=True)
 _CKBEST=_CK.replace('.pt','_best.pt'); TAGn=os.environ.get('TAG','o12'); _bestvt=-1.0; _bestvf=0.; _bestvtt=0.; _bestep=0; _selm=os.environ.get('SELVAL','tail')  # EARLY-STOP via best-checkpoint on the SEPARATE val (SELVAL=tail|full); final eval loads _best.pt
 _since=0; _PAT=int(os.environ.get('PATIENCE',0))                              # patience halt: stop if val hasn't improved for _PAT epochs (0=OFF, run all EP). best-ckpt still captures the peak regardless.
