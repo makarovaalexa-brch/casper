@@ -704,6 +704,41 @@ if os.environ.get('CONCORACLE'):                                               #
         if mta: nt+=mta[0]; mt+=1
     print(f"  CONCEPT-ONLY oracle: FULL {nf/mf:.4f}  TAIL {nt/mt:.4f}  vs CASPER-R 0.360/0.152  (>> CASPER-R = realizable concept headroom EXISTS; ~= means concepts exhausted)",flush=True)
     sys.exit(0)
+if os.environ.get('CONTORACLE'):                                               # PHASE 0.5: CONTINUOUS privileged oracle — greedy q in R^D (any unit dir), graded answer a=u*.q. Margin vs DISCONLY=catalog-only (same answer model, same encoder) = PURE CONTINUITY headroom.
+    import sys
+    _RT=os.environ.get('NORT') is None; _DISC=bool(os.environ.get('DISCONLY')); NCAND=int(os.environ.get('NCAND','96')); rngc=np.random.default_rng(0)
+    print(f"=== {'DISCRETE-restricted' if _DISC else 'CONTINUOUS'} best-q ORACLE (privileged greedy q=8, graded a=u*.q, {'TAIL' if _RT else 'FULL'}) | encoder=current | vs CASPER-R 0.360/0.152 ===",flush=True)
+    nf=nt=mf=mt=0.; offfrac=0.; _Wc=1./np.log2(np.arange(2,12))
+    _TE=TE[:int(os.environ['NUSER'])] if os.environ.get('NUSER') else TE; _CAP=int(os.environ.get('CCAP','200'))   # subsample users + cap candidate concepts (top by answerable-mass) -> fast directional headroom signal
+    for x in _TE:
+        profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4)
+        trel=set(j for j in test if rd[j]>=4 and (not headmask[j] if _RT else True))
+        if not trel: continue
+        ustar=enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]])             # u* = full-profile belief = best taste estimate (the reconstruction target)
+        relmask=np.zeros(Ql.shape[0],bool); relmask[list(trel)]=True            # VECTORIZED-NDCG relevance mask over the scorer's item axis (== S.shape[1])
+        cans=cans_np(x,profset); cs=sorted(cans.keys(),key=lambda c:-len(citems[c]&profset))[:_CAP]; toks=[]; chosen=[]
+        for t in range(8):
+            cand=[Ec[c] for c in cs]; ndisc=len(cand)                          # discrete catalog directions (answerable concepts)
+            if not _DISC:                                                       # + continuous: u*-aligned, Gram-Schmidt residual of u* vs chosen, random dirs
+                cand.append(ustar.copy())
+                if chosen:
+                    r=ustar.copy()
+                    for qd in chosen: r=r-(r@qd)*qd
+                    if np.linalg.norm(r)>1e-6: cand.append(r)
+                for _ in range(NCAND): cand.append(rngc.standard_normal(D).astype(np.float32))
+            qns=[qd/(np.linalg.norm(qd)+1e-9) for qd in cand]                  # unit directions
+            revs=[toks+[(qn*_CN,float(ustar@qn))] for qn in qns]               # graded answer = projection of true taste onto the queried direction
+            U=enc_batch_np(revs); S=U@Ql.T+popb[None,:]; S[:,list(profset)]=-1e9
+            if _RT: S[:,headmask]=-1e9
+            tp=np.argpartition(-S,10,axis=1)[:,:10]; rr=np.arange(S.shape[0])[:,None]   # VECTORIZED NDCG@10 over all candidates: top-10 then in-order
+            tp=tp[rr,np.argsort(-S[rr,tp],axis=1)]; nd=(relmask[tp]*_Wc[None,:10]).sum(1)
+            bk=int(np.argmax(nd))
+            bq=qns[bk]; chosen.append(bq); toks.append((bq*_CN,float(ustar@bq))); offfrac+=(1. if bk>=ndisc else 0.)
+        u=enc_u_np(toks); mfu=metr(u,tlike,profset,False); mta=metr(u,tlike,profset,True)
+        if mfu: nf+=mfu[0]; mf+=1
+        if mta: nt+=mta[0]; mt+=1
+    print(f"  {'DISCRETE-restricted' if _DISC else 'CONTINUOUS'} oracle: FULL {nf/mf:.4f}  TAIL {nt/mt:.4f}  | off-catalog picks {offfrac/max(mf,1)/8*100:.0f}%  (CONTINUOUS>>DISCRETE => continuity headroom on THIS encoder)",flush=True)
+    sys.exit(0)
 if os.environ.get('REALCONC'):                                                 # REALIZABLE greedy concept policy (NO target knowledge) -> how much of the 0.389 privileged-oracle headroom is recoverable?
     import sys
     _RT=os.environ.get('NORT') is None; PSM=int(os.environ.get('PSM','10'))

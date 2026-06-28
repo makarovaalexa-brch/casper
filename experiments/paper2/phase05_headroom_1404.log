@@ -1,0 +1,6 @@
+Phase 0.5 headroom FIXED (NUSER=40 CCAP=140 NCAND=48) tail-target
+--- DISCRETE-restricted ---
+  DISCRETE-restricted oracle: FULL 0.3481  TAIL 0.3425  | off-catalog picks 0%  (CONTINUOUS>>DISCRETE => continuity headroom on THIS encoder)
+--- CONTINUOUS ---
+  CONTINUOUS oracle: FULL 0.3771  TAIL 0.3910  | off-catalog picks 18%  (CONTINUOUS>>DISCRETE => continuity headroom on THIS encoder)
+=== DONE ===
