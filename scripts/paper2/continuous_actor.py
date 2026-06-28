@@ -526,6 +526,40 @@ if os.environ.get('SEEDAVG'):                                                  #
     _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
     print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('RECONCMP'):                                                 # is recon-cos 0.71 a CEILING? compare 8-question reconstructions: real items vs popular concepts vs the actor. + user counts + density split.
+    import sys
+    _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
+    print(f"=== COUNTS: total users nu={nu} | trU={len(trU)} | trbig(>=14rt,>=6likes)={len(trbig)} | te={len(te)} | concepts NC={NC} | items NI={NI} ===",flush=True)
+    _r=np.random.default_rng(1); SP={}
+    for x in te:
+        its=list(dict(rat_by_u[x]))
+        if len(its)>=6: il=its[:]; _r.shuffle(il); SP[x]=(set(il[:len(il)//2]), il[len(il)//2:])
+    VU=[x for x in te if x in SP][300:]
+    def _cos(a,b): return float(a@b/(np.linalg.norm(a)*np.linalg.norm(b)+1e-9))
+    agg={'items8':[],'conc8':[],'actor8':[],'fullhalf':[]}; ndg={'items8':[],'conc8':[],'actor8':[]}; dens=[]
+    for x in VU:
+        profset,test=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4); pl=[j for j in profset]
+        if not tlike or not pl: continue
+        usf=enc_u_np([(Q[j],resid[x][j]) for j in profset]); dens.append(len(rat_by_u[x]))
+        # 8 REAL profile items (strongest possible 8 answers)
+        i8=pl[:8] if len(pl)>=8 else pl; ui=enc_u_np([(Q[j],resid[x][j]) for j in i8]); agg['items8'].append(_cos(ui,usf))
+        # 8 popular answerable concepts
+        cans=cans_np(x,profset); cc=sorted(cans.keys(),key=lambda c:-cfreq[c])[:8]; uc=enc_u_np([(Ec[c],cans[c]) for c in cc]) if cc else np.zeros(D); agg['conc8'].append(_cos(uc,usf))
+        # actor 8
+        toks=[]
+        for t in range(8):
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); _th=float(np.mean([float(usf@Ec[c]) for c in cans])) if cans else 0.; fe=(qn*_CN).astype(np.float32); toks.append((fe, POS if float(usf@fe)>_th else NEG))
+        ua=enc_u_np(toks); agg['actor8'].append(_cos(ua,usf)); agg['fullhalf'].append(1.0)
+        for nm,u in [('items8',ui),('conc8',uc),('actor8',ua)]:
+            s=popb+Ql@u; s[list(profset)]=-1e9; o=np.argsort(-s)[:10]; ndg[nm].append(sum(_Wv[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv[:min(10,len(tlike))].sum()+1e-12))
+    print("=== 8-question RECONSTRUCTION (cos to profile-taste u*) + full NDCG@10, te[300:] ===",flush=True)
+    for nm in ['items8','conc8','actor8']:
+        print(f"  {nm:>8}: recon-cos {np.mean(agg[nm]):.3f}  NDCG {np.mean(ndg[nm]):.4f}",flush=True)
+    dens=np.array(dens);
+    print(f"  density of these test users: median #ratings {int(np.median(dens))} (trbig train users all >=14)",flush=True)
+    print(f"  => if items8 cos >> actor8: limit is the CONCEPT channel, not 8-question info; if ~=: 8-Q info limit",flush=True)
+    sys.exit(0)
 if os.environ.get('TRAINVAL'):                                                 # OVERFIT vs UNDERFIT diagnostic: same elicitation NDCG + reconstruction-cos on TRAIN users vs TEST users. big gap=overfit; both-low=underfit/ceiling.
     import sys
     _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
