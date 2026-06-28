@@ -1,0 +1,41 @@
+  761 concepts (130s)
+LOADREC: using set-transformer recommender enc_concept_st.pt
+loaded cached BC demos (9600) -> bc_demos_entropy.npz
+BC floor: match entropy... (cached)
+  BC ep1/25 loss 6.337
+  BC ep3/25 loss 4.048
+  BC ep5/25 loss 2.281
+  BC ep7/25 loss 1.899
+  BC ep9/25 loss 1.729
+  BC ep11/25 loss 1.624
+  BC ep13/25 loss 1.552
+  BC ep15/25 loss 1.530
+  BC ep17/25 loss 1.464
+  BC ep19/25 loss 1.456
+  BC ep21/25 loss 1.433
+  BC ep23/25 loss 1.420
+  BC ep25/25 loss 1.386
+saved BC-FLOOR (pre-finetune, +attn if ATTN) -> policy_casperr_st_conc_bc.pt
+train scorer policy (pool=1361, TAU=0.3) -- finetune from conc_pop floor...
+  ep1 return=-0.2563 (SKIPVAL; test post-hoc)
+  ep2 return=-0.2214 (SKIPVAL; test post-hoc)
+  ep3 return=-0.2126 (SKIPVAL; test post-hoc)
+  ep4 return=-0.2032 (SKIPVAL; test post-hoc)
+  ep5 return=-0.2013 (SKIPVAL; test post-hoc)
+  ep6 return=-0.1991 (SKIPVAL; test post-hoc)
+saved C:/dev/phd/casper/data/movielens/.cache/policy_casperr_st_conc.pt (last) ; BEST tail -1.000 @ep0 -> C:/dev/phd/casper/data/movielens/.cache/policy_casperr_st_conc_best.pt
+TEST set: TESTRANGE=300:99999 -> 304 users
+
+=== FULL (MAIN) | popularity-aware scorer | NDCG@10 / Rec@50 / ans ===
+  pop_item : NDCG 0.312 0.295 0.321 0.332 | Rec 0.242 0.222 0.227 0.235 | MRR 0.503 0.492 0.525 0.536 | ans/8=1.9 | cos(u,u*) 0.000 0.228 0.348 0.462
+  conc_pop : NDCG 0.312 0.325 0.337 0.337 | Rec 0.242 0.240 0.245 0.245 | MRR 0.503 0.538 0.547 0.556 | ans/8=8.0 | cos(u,u*) 0.000 0.769 0.769 0.798
+  policy   : NDCG 0.312 0.317 0.316 0.324 | Rec 0.242 0.244 0.246 0.249 | MRR 0.503 0.523 0.513 0.523 | ans/8=6.7 | picks 0i/2025c | distinct-1st 1/304 | cos(u,u*) 0.000 0.719 0.763 0.788
+     ADAPT: distinct-pick/turn [1, 2, 6, 6, 12, 12, 13, 12] | top-pick-share/turn [1.0, 0.89, 0.41, 0.41, 0.3, 0.31, 0.34, 0.22] | distinct-traj 53/304 | total-vocab 19
+  GATE: policy must beat conc_pop @q8 (full+tail)
+
+=== TAIL | popularity-aware scorer | NDCG@10 / Rec@50 / ans ===
+  pop_item : NDCG 0.083 0.094 0.106 0.105 | Rec 0.122 0.118 0.125 0.125 | MRR 0.192 0.200 0.219 0.210 | ans/8=1.9 | cos(u,u*) 0.000 0.230 0.348 0.460
+  conc_pop : NDCG 0.083 0.113 0.111 0.115 | Rec 0.122 0.130 0.134 0.134 | MRR 0.192 0.236 0.231 0.242 | ans/8=8.0 | cos(u,u*) 0.000 0.768 0.768 0.797
+  policy   : NDCG 0.083 0.117 0.121 0.122 | Rec 0.122 0.135 0.142 0.140 | MRR 0.192 0.272 0.254 0.251 | ans/8=6.7 | picks 0i/2012c | distinct-1st 1/302 | cos(u,u*) 0.000 0.720 0.763 0.788
+     ADAPT: distinct-pick/turn [1, 2, 6, 6, 12, 12, 13, 12] | top-pick-share/turn [1.0, 0.89, 0.4, 0.4, 0.29, 0.31, 0.34, 0.23] | distinct-traj 53/302 | total-vocab 19
+  GATE: policy must beat conc_pop @q8 (full+tail)
