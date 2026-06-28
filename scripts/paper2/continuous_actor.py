@@ -545,16 +545,23 @@ if os.environ.get('RECONCMP'):                                                 #
         i8=pl[:8] if len(pl)>=8 else pl; ui=enc_u_np([(Q[j],resid[x][j]) for j in i8]); agg['items8'].append(_cos(ui,usf))
         # 8 popular answerable concepts
         cans=cans_np(x,profset); cc=sorted(cans.keys(),key=lambda c:-cfreq[c])[:8]; uc=enc_u_np([(Ec[c],cans[c]) for c in cc]) if cc else np.zeros(D); agg['conc8'].append(_cos(uc,usf))
-        # actor 8
+        # actor 8 -- BINARY answer (old eval convention)
         toks=[]
         for t in range(8):
             with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
             qn=qv/(np.linalg.norm(qv)+1e-9); _th=float(np.mean([float(usf@Ec[c]) for c in cans])) if cans else 0.; fe=(qn*_CN).astype(np.float32); toks.append((fe, POS if float(usf@fe)>_th else NEG))
         ua=enc_u_np(toks); agg['actor8'].append(_cos(ua,usf)); agg['fullhalf'].append(1.0)
+        # actor 8 -- GRADED answer (matches TRAINING + Paper C continuous-answer model)
+        unf=np.linalg.norm(usf)+1e-9; tg=[]
+        for t in range(8):
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(tg)[None],dtype=torch.float32),t/8.).numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32); cf=float(usf@qn)/unf; tg.append((fe, float(NEG+(POS-NEG)*(cf+1)/2)))
+        uag=enc_u_np(tg); agg.setdefault('actorG',[]).append(_cos(uag,usf))
+        s=popb+Ql@uag; s[list(profset)]=-1e9; o=np.argsort(-s)[:10]; ndg.setdefault('actorG',[]).append(sum(_Wv[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv[:min(10,len(tlike))].sum()+1e-12))
         for nm,u in [('items8',ui),('conc8',uc),('actor8',ua)]:
             s=popb+Ql@u; s[list(profset)]=-1e9; o=np.argsort(-s)[:10]; ndg[nm].append(sum(_Wv[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv[:min(10,len(tlike))].sum()+1e-12))
     print("=== 8-question RECONSTRUCTION (cos to profile-taste u*) + full NDCG@10, te[300:] ===",flush=True)
-    for nm in ['items8','conc8','actor8']:
+    for nm in ['items8','conc8','actor8','actorG']:
         print(f"  {nm:>8}: recon-cos {np.mean(agg[nm]):.3f}  NDCG {np.mean(ndg[nm]):.4f}",flush=True)
     dens=np.array(dens);
     print(f"  density of these test users: median #ratings {int(np.median(dens))} (trbig train users all >=14)",flush=True)

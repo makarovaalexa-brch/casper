@@ -1,0 +1,10 @@
+  761 concepts (19s)
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+=== COUNTS: total users nu=6040 | trU=4827 | trbig(>=14rt,>=6likes)=4823 | te=604 | concepts NC=761 | items NI=600 ===
+=== 8-question RECONSTRUCTION (cos to profile-taste u*) + full NDCG@10, te[300:] ===
+    items8: recon-cos 0.836  NDCG 0.3832
+     conc8: recon-cos 0.811  NDCG 0.3426
+    actor8: recon-cos 0.705  NDCG 0.3573
+    actorG: recon-cos 0.922  NDCG 0.3666
+  density of these test users: median #ratings 103 (trbig train users all >=14)
+  => if items8 cos >> actor8: limit is the CONCEPT channel, not 8-question info; if ~=: 8-Q info limit

@@ -1,20 +1,21 @@
-# Paper C — 0.71 is NOT saturated; the actor UNDERFITS (user was right)
-Counts: nu=6040 users | trU=4827 | trbig=4823 | te=604 (eval te[300:]=304) | NC=761 concepts | NI=600 items.
-("700" was concepts, not users.)
+# Paper C — CORRECTED: actor reconstructs GREAT (cos 0.922); the wall is cos != NDCG (not underfit, not data)
+Counts: nu=6040 users | trU=4827 | trbig=4823 (training set) | te=604 (eval te[300:]=304). "700"=concepts; "400"=a read-off sample.
 
-8-question reconstruction (cos to profile-taste u*) + full NDCG@10, te[300:]:
-  8 real ITEMS   : recon-cos 0.836 | NDCG 0.3832
-  8 popular CONC : recon-cos 0.811 | NDCG 0.3426
-  trained ACTOR  : recon-cos 0.705 | NDCG 0.3573
-=> Actor reconstructs WORSE than a trivial heuristic (0.705 < 0.811) => UNDERFITTING, NOT saturated. Room to >=0.81.
-=> BUT cos != NDCG: conc8 has higher cos (0.811) yet LOWER NDCG (0.343) than actor (0.705 cos, 0.357 NDCG). The actor
-   already beats the popular-concept heuristic on NDCG. items8 (0.383) is the askable-info ceiling but items aren't
-   askable in cold-start.
+8-question reconstruction (cos to profile taste u*) + NDCG@10, te[300:]:
+  8 real ITEMS            : cos 0.836 | NDCG 0.3832
+  8 popular CONCEPTS      : cos 0.811 | NDCG 0.3426
+  actor -- BINARY eval(BUG): cos 0.705 | NDCG 0.3573
+  actor -- GRADED eval(OK) : cos 0.922 | NDCG 0.3666   <-- matches TRAINING answer model + Paper C continuous-answer
 
-Overfit check (TRAINVAL): recon-cos IDENTICAL train==test (0.712) => NO overfit, NO generalization gap. The earlier
-TRAIN(0.291)<TEST(0.361) NDCG gap is a population/sampling artifact (different user subsets), not a model problem.
+CORRECTION: earlier "actor underfits / 0.71 ceiling" was a BINARY-vs-GRADED EVAL BUG (actor trained on graded answers,
+evaluated with binary). With the correct graded answers the actor reconstructs to cos 0.922 -- BEATS the heuristics
+(0.811/0.836), as expected for a profile-optimised policy. NOT underfitting; BC-pretrain rationale RETRACTED.
 
-IMPLICATION (corrected strategy): actor UNDERFITS => (1) BC-PRETRAIN the actor to imitate strong concept/item selection
-(reach heuristic ~0.81 cos) THEN unroll-finetune (breaks the 0.71 plateau from below; matches user's pretrain-on-discrete
-idea). (2) Finetune objective must be NDCG-aligned (cos!=NDCG). NOT a data or capacity problem.
-Probe: RECONCMP=1 block in continuous_actor.py.
+THE REAL WALL: cos 0.922 but NDCG only 0.367. Near-perfect reconstruction of the profile-half taste u* does NOT yield
+high NDCG (items8 has LOWER cos 0.836 but HIGHER NDCG 0.383). => the OBJECTIVE is wrong: reconstructing u* (the asked
+profile) != ranking the HELD-OUT likes. Lever = NDCG/ranking-aligned objective (e.g. USTARHELD: target held-out likes,
+or a soft-NDCG surrogate), NOT data/capacity/encoder.
+
+On the TRAINVAL train<test NDCG gap: recon-cos identical train==test => no overfit (model generalizes); the NDCG
+difference is a real PROPERTY OF THE TWO USER SUBSETS (rankability of their held likes + popularity), not model overfit
+and not mere noise. (Both TRAINVAL rows were binary-eval; redo graded for clean numbers.)
