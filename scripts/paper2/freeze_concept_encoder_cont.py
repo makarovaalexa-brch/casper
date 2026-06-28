@@ -8,7 +8,9 @@ A/B/C consistency. Saves {'enc','Ql','Ec'} -> enc_concept_cont.pt (V1 enc_concep
 """
 import os, time, numpy as np, torch, torch.nn as nn
 base='C:/dev/phd/casper/data/movielens'; ml=f'{base}/ml-1m'; D=64; K=14; rng=np.random.default_rng(0); torch.manual_seed(0)
-NCT=int(os.environ.get('NCT','6'))                                              # # continuous off-pool tokens added to each user's candidate pool (post-warmup)
+NCT=int(os.environ.get('NCT','3'))                                              # # continuous off-pool tokens added to each user's candidate pool (post-warmup)
+RTYPE=os.environ.get('RTYPE','info')                                            # 'info' = INFORMATIVE off-pool dirs (u*-aligned+noise & concept-pair interps; carry signal) ; 'rand' = orthogonal random (v1, failed=diluted)
+SIGMA=float(os.environ.get('SIGMA','0.7'))                                       # off-manifold strength for u*-aligned tokens
 U,I,R=[],[],[]
 with open(f'{ml}/ratings.dat') as f:
     for line in f:
@@ -70,13 +72,17 @@ def ctok(x,avail):
             for ki in item2c[j]: cn.setdefault(ki,[]).append(j)
         out=[(ki,float(np.mean([resid_by_u[x][j] for j in js]))) for ki,js in cn.items() if len(js)>=2]
     rng.shuffle(out); return out[:25]
-def rtok(x):                                                                   # CONTINUOUS off-pool tokens: random unit dir scaled to concept-norm; GRADED geometric answer (matches Phase-2 rollout)
+ECD=Ac.copy(); CSET={}                                                          # current concept embeddings (np) + per-user answerable-concept list (set in precompute_geo)
+def rtok(x):                                                                   # CONTINUOUS off-pool tokens. info: u*-aligned+noise (carries signal) & concept-pair interps (on-manifold, off-catalog). rand: orthogonal (v1).
     if not USE_GEO or x not in USTAR: return []
-    us=USTAR[x]; un=np.linalg.norm(us)+1e-9; out=[]
+    us=USTAR[x]; un=np.linalg.norm(us)+1e-9; usn=us/un; cs=CSET.get(x,[]); out=[]
     for _ in range(NCT):
-        d=rng.standard_normal(D).astype(np.float32); dn=d/(np.linalg.norm(d)+1e-9); fe=dn*_CN
-        cf=float(us@dn)/un                                                      # cos(u*, dir) in [-1,1]
-        ans=float(NEG+(POS-NEG)*(cf+1)/2)                                       # graded interp (== continuous_actor rollout GRADED)
+        if RTYPE=='rand': d=rng.standard_normal(D).astype(np.float32)
+        elif rng.random()<0.5: d=usn+SIGMA*rng.standard_normal(D).astype(np.float32)            # u*-aligned + noise: off-catalog but high |u*.q|
+        elif len(cs)>=2: a,b=rng.choice(cs,2,replace=False); d=(ECD[a]+ECD[b]).astype(np.float32)   # concept-pair interpolation: on-manifold, off-catalog
+        else: d=usn+SIGMA*rng.standard_normal(D).astype(np.float32)
+        dn=d/(np.linalg.norm(d)+1e-9); fe=dn*_CN
+        cf=float(us@dn)/un; ans=float(NEG+(POS-NEG)*(cf+1)/2)                   # graded interp (== continuous_actor rollout GRADED)
         out.append((fe.astype(np.float32),ans))
     return out
 class Enc(nn.Module):
@@ -88,7 +94,7 @@ enc=Enc(); Qp=torch.nn.Parameter(Qt.clone()); Ec=torch.nn.Parameter(torch.tensor
 opt=torch.optim.Adam(list(enc.parameters())+[Qp,Ec],1e-3,weight_decay=1e-5)
 trbig=[x for x in trU if len(rat_by_u[x])>=K+1]
 def precompute_geo():
-    Ecd=Ec.detach().numpy(); G={}; globals()['_CN']=float(np.linalg.norm(Ecd,axis=1).mean())
+    Ecd=Ec.detach().numpy(); G={}; globals()['_CN']=float(np.linalg.norm(Ecd,axis=1).mean()); globals()['ECD']=Ecd
     for b0 in range(0,len(trbig),512):
         us=trbig[b0:b0+512]; mx=60; arr=np.zeros((len(us),mx,D+1),np.float32); msk=np.zeros((len(us),mx),np.float32)
         for b,x in enumerate(us):
@@ -101,6 +107,7 @@ def precompute_geo():
             for j,_ in rat_by_u[x]:
                 for ki in item2c[j]: cn[ki]=cn.get(ki,0)+1
             cs=[ki for ki,nn in cn.items() if nn>=2]
+            CSET[x]=cs                                                          # answerable concepts for this user (for concept-pair interpolation tokens)
             if not cs: G[x]={}; continue
             proj=ustar[b]@Ecd[cs].T; thr=proj.mean(); G[x]={cs[k]:(POS if proj[k]>thr else NEG) for k in range(len(cs))}
     return G
@@ -141,5 +148,6 @@ for ep in range(int(os.environ.get('EP','30'))):
         loss=loss+CL*torch.nn.functional.softplus(MARGIN-diff).mean()
         opt.zero_grad(); loss.backward(); opt.step()
     if (ep+1)%5==0: print(f"  ep{ep+1} loss={loss.item():.4f}",flush=True)
-torch.save({'enc':enc.state_dict(),'Ql':Qp.detach(),'Ec':Ec.detach()}, f'{base}/.cache/enc_concept_cont.pt')
-print("SAVED enc_concept_cont.pt (continuous-capable pooled-attn; enc+Ql+Ec). V1 enc_concept.pt untouched.",flush=True)
+_out=os.environ.get('OUT',f'enc_concept_cont_{RTYPE}.pt')
+torch.save({'enc':enc.state_dict(),'Ql':Qp.detach(),'Ec':Ec.detach()}, f'{base}/.cache/{_out}')
+print(f"SAVED {_out} (continuous-capable pooled-attn; enc+Ql+Ec; RTYPE={RTYPE} NCT={NCT}). V1 enc_concept.pt untouched.",flush=True)

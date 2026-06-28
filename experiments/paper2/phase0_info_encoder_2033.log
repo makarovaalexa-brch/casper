@@ -1,0 +1,10 @@
+Phase 0 v2: INFORMATIVE-direction cont encoder (RTYPE=info NCT=3 SIGMA=0.7) -> enc_concept_cont_info.pt
+  761 genome concepts (12s) | NCT=3 continuous tokens/user
+training CONTINUOUS-CAPABLE concept encoder...
+  ep5 loss=0.1266
+  ep10 loss=0.1338
+  ep15 loss=0.1121
+  ep20 loss=0.1256
+  ep25 loss=0.1193
+  ep30 loss=0.0855
+SAVED enc_concept_cont_info.pt (continuous-capable pooled-attn; enc+Ql+Ec; RTYPE=info NCT=3). V1 enc_concept.pt untouched.

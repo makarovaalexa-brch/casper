@@ -15,3 +15,11 @@ on INFORMATIVE off-pool dirs (concept/item interpolations, residual-of-u* dirs),
 as the instrument (realizable continuous policy ~0.356/0.146 seed-avg, ~tied entropy/CASPER-R) and pursue the
 ANSWERABILITY/adaptivity lever (Phase 3 bot-play) instead.
 Code: scripts/paper2/freeze_concept_encoder_cont.py (NCT knob); continuous_actor.py LOADREC now loads Ec.
+
+## Phase 0 v2 (INFORMATIVE off-pool tokens, RTYPE=info NCT=3 SIGMA=0.7): NEUTRAL — recovers full, matches V1
+enc_concept_cont_info.pt = V1 recipe + informative off-pool tokens (u*-aligned+noise & concept-pair interps).
+Phase 2 on it (seed123): peak ep10 full 0.342 / tail 0.147; full peaks 0.346 @ep12.
+vs frozen V1 0.346/0.149 | vs rand-enc 0.330/0.146.
+=> Informative dirs FIX the dilution (full 0.330->0.346) but DON'T beat frozen V1 (tail 0.147 vs 0.149).
+CONCLUSION: open-loop encoder training (random OR informative) cannot capture more oracle headroom — the encoder
+must learn to fold the ACTOR'S SPECIFIC emitted queries => CO-TRAINING (variant 1) is required. Proceeding to COENC.
