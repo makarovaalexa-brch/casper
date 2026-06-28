@@ -181,10 +181,15 @@ class AttnHead(nn.Module):                                                    # 
         return s.proj((w*z).sum(1))*has                                      # 0 when no history (t=0, nothing asked yet)
     def forward(s,toks,tmask): return s.scale*(s.state(toks,tmask)@POOLt.t())   # (B,NP) additive score, gated by scale (init 0)
 attn=AttnHead()
+ACTHEAD=os.environ.get('ACTHEAD','free'); _MIXTAU=float(os.environ.get('MIXTAU','0.5')); _Ect=torch.tensor(Ec)   # 'free'=emit q in R^D ; 'concmix'=emit MIXTURE over concept bank (q=softmax(logits/tau)@Ec) -> continuous interpolation, IN-DISTRIBUTION by construction
 class Actor(nn.Module):                                                        # PAPER C continuous actor: state [belief u, turn] -> query q in R^D ; snap=argmax(q.POOL) [Wolpertinger replicate] OR fold q directly [continuous]
-    def __init__(s): super().__init__(); s.f=nn.Sequential(nn.Linear(D+1,HID),nn.ReLU(),nn.Linear(HID,HID),nn.ReLU(),nn.Linear(HID,D))
+    def __init__(s):
+        super().__init__(); _od=NC if ACTHEAD=='concmix' else D
+        s.f=nn.Sequential(nn.Linear(D+1,HID),nn.ReLU(),nn.Linear(HID,HID),nn.ReLU(),nn.Linear(HID,_od))
     def forward(s,u,tt):
-        B=u.shape[0]; tn=(tt.view(B,1) if torch.is_tensor(tt) else torch.full((B,1),float(tt))); return s.f(torch.cat([u,tn],1))
+        B=u.shape[0]; tn=(tt.view(B,1) if torch.is_tensor(tt) else torch.full((B,1),float(tt))); o=s.f(torch.cat([u,tn],1))
+        if ACTHEAD=='concmix': return torch.softmax(o/_MIXTAU,1)@_Ect           # mixture over concept embeddings -> query in the concept span (continuous interpolation)
+        return o
 actor=Actor(); CONTMODE=os.environ.get('CONTMODE','snap'); _CN=float(np.linalg.norm(Ec,axis=1).mean())   # snap=Wolpertinger replicate / cont=off-pool fold ; _CN=mean concept norm (on-manifold scale)
 POOLn=(POOL/(np.linalg.norm(POOL,axis=1,keepdims=True)+1e-9)).astype(np.float32); POOLnt=torch.tensor(POOLn)   # unit-norm pool for COSINE snap (consistent with cos-loss distillation; dot-product snap is norm-biased)
 _GROUND=int(os.environ.get('GROUND',0)); _GTAU=float(os.environ.get('GTAU',0.2)); _GRADED=bool(os.environ.get('GRADED'))   # GOAL 2: GROUND>0 -> straight-through grounded fold (nearest real entity fwd, soft grad). GRADED=1 -> graded answer (affinity-interpolated NEG..POS) instead of one ±bit
@@ -521,6 +526,27 @@ if os.environ.get('SEEDAVG'):                                                  #
     _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
     print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('TRAINVAL'):                                                 # OVERFIT vs UNDERFIT diagnostic: same elicitation NDCG + reconstruction-cos on TRAIN users vs TEST users. big gap=overfit; both-low=underfit/ceiling.
+    import sys
+    _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
+    def _evset(US,label):
+        nf=nt=mf=mt=0.; cs=0.; cn=0
+        for x in US:
+            rd=dict(rat_by_u[x]); allit=[j for j,_ in rat_by_u[x]]; il=allit[:]; np.random.default_rng(7).shuffle(il)
+            profset=set(il[:len(il)//2]); test=il[len(il)//2:]; tlike=set(j for j in test if rd[j]>=4)
+            if not tlike: continue
+            cans=cans_np(x,profset); usf=enc_u_np([(Q[j],resid[x][j]) for j in profset]); toks=[]
+            for t in range(8):
+                with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); _th=float(np.mean([float(usf@Ec[c]) for c in cans])) if cans else 0.; fe=(qn*_CN).astype(np.float32); toks.append((fe, POS if float(usf@fe)>_th else NEG))
+            u=enc_u_np(toks); cs+=float(u@usf/(np.linalg.norm(u)*np.linalg.norm(usf)+1e-9)); cn+=1
+            s=popb+Ql@u; s[list(profset)]=-1e9; o=np.argsort(-s)[:10]; nf+=sum(_Wv[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv[:min(10,len(tlike))].sum()+1e-12); mf+=1
+            st=s.copy(); st[headmask]=-1e9; relt=set(t for t in tlike if not headmask[t])
+            if relt: ot=np.argsort(-st)[:10]; nt+=sum(_Wv[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv[:min(10,len(relt))].sum()+1e-12); mt+=1
+        print(f"  {label} (n={int(mf)}): FULL {nf/max(mf,1):.4f}  TAIL {nt/max(mt,1):.4f}  recon-cos {cs/max(cn,1):.3f}",flush=True)
+    _tr=[x for x in trbig][:400]; _teu=[x for x in te if len(rat_by_u[x])>=6][300:]
+    print(f"=== TRAINVAL {os.path.basename(_ck)} (overfit if TRAIN>>TEST) ===",flush=True)
+    _evset(_tr,"TRAIN"); _evset(_teu,"TEST"); sys.exit(0)
 if os.environ.get('QPROBE'):                                                   # what did the from-scratch continuous actor LEARN TO ASK? cos(emitted query, nearest item/concept/u*) + adaptivity across users. Run NOBC=1 CONTMODE=cont.
     import sys
     _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()

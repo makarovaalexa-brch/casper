@@ -1,0 +1,6 @@
+TRAINVAL diagnostic on frozen-V1 from-scratch actor
+  761 concepts (32s)
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+=== TRAINVAL policy_phase2_cont_v1_best.pt (overfit if TRAIN>>TEST) ===
+  TRAIN (n=400): FULL 0.2907  TAIL 0.1135  recon-cos 0.712
+  TEST (n=304): FULL 0.3606  TAIL 0.1493  recon-cos 0.712
