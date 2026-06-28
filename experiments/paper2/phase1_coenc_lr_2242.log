@@ -1,0 +1,9 @@
+VARIANT 1 v2: COENC + ENCLR=1e-4 (gentle enc fine-tune) + anchor. vs frozen-V1/info-enc 0.346/0.147, prev-collapse 0.280/0.085, oracle 0.391
+  761 concepts (20s)
+LOADREC: using simple +Ec recommender enc_concept_cont_info.pt
+COENC: co-training encoder+actor | anchor weight 1.0
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+train scorer policy (pool=1361, TAU=0.3) -- finetune from conc_pop floor...
+  ep1 return=-0.1545 | VAL NDCG@10 full 0.325 tail 0.122  <- BEST (tail) saved  [PEAK tail 0.122 @ep1, 0 since]
+  ep2 return=-0.0991 | VAL NDCG@10 full 0.315 tail 0.116  [PEAK tail 0.122 @ep1, 1 since]
+  ep3 return=-0.0755 | VAL NDCG@10 full 0.324 tail 0.119  [PEAK tail 0.122 @ep1, 2 since]

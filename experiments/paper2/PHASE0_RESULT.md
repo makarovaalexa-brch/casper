@@ -32,3 +32,16 @@ but TEST VAL DEGRADED monotonically: peak ep1 0.299/0.122 -> ep16 0.280/0.085 (<
 NET Phase 0: open-loop (v2)=neutral (matches V1); co-train (v1,anchor1.0)=collapse. Frozen V1 remains best instrument;
 realizable continuous policy stands at ~0.356/0.146 seed-avg (~= entropy/CASPER-R). Levers left: much STRONGER anchor
 (COENW>>1, or freeze enc except a small adapter), OR pivot to answerability/adaptivity (bot-play) lever.
+
+## Variant 1 v3 (COENC warm-actor INIT + ENCLR=1e-4 + anchor): marginal/unstable, NOT a win
+INIT=phase2_info_enc actor (warm) + LOADREC=info-enc + COENC ENCLR=1e-4 COENW=1.0. Curve: ep1 0.342/0.139 ->
+ep2 0.343/0.145 (tail peak) -> ep4 0.350/0.139 (full peak, +0.004 over info-enc) -> DECLINES ep5-12 to 0.330/0.138.
+=> best is full +0.004 @ep4 at the cost of tail (-0.008); unstable (encoder slowly overfits train reconstruction,
+   test degrades) even with warm actor + small LR + anchor. NOT a clean win.
+
+OVERALL ENCODER-LEVER CONCLUSION (all variants): random open-loop=diluted(0.330); informative open-loop=neutral(0.346);
+co-train anchor1.0 random-actor=collapse(0.280); co-train warm ENCLR1e-4=marginal/unstable(0.350/0.139 peak then decay).
+=> reconstruction-based encoder training cannot capture the +0.049 oracle tail headroom (it overfits). Frozen-V1
+from-scratch actor 0.356/0.146 remains best realizable. NEXT (architecture, per QPROBE: actor queries cos0.77 to concept
+span): CONCEPT-MIXTURE actor head (emit mixture weights over concept bank => query stays IN-DISTRIBUTION for the encoder,
+continuous interpolation, no OOD folding by construction). Addresses the diagnosed bottleneck directly.

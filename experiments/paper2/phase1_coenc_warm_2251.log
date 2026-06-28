@@ -1,0 +1,35 @@
+VARIANT 1 v3: COENC from WARM actor (INIT=phase2_info_enc) + info-enc, ENCLR=1e-4 anchor=1.0. vs info-enc 0.346/0.147, oracle 0.391
+  761 concepts (20s)
+LOADREC: using simple +Ec recommender enc_concept_cont_info.pt
+COENC: co-training encoder+actor | anchor weight 1.0
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+INIT warm-start from policy_phase2_info_enc_best.pt (keep training)
+train scorer policy (pool=1361, TAU=0.3) -- finetune from conc_pop floor...
+  ep1 return=-0.0679 | VAL NDCG@10 full 0.342 tail 0.139  <- BEST (tail) saved  [PEAK tail 0.139 @ep1, 0 since]
+  ep2 return=-0.0524 | VAL NDCG@10 full 0.343 tail 0.145  <- BEST (tail) saved  [PEAK tail 0.145 @ep2, 0 since]
+  ep3 return=-0.0469 | VAL NDCG@10 full 0.345 tail 0.144  [PEAK tail 0.145 @ep2, 1 since]
+  ep4 return=-0.0428 | VAL NDCG@10 full 0.350 tail 0.139  [PEAK tail 0.145 @ep2, 2 since]
+  ep5 return=-0.0391 | VAL NDCG@10 full 0.346 tail 0.134  [PEAK tail 0.145 @ep2, 3 since]
+  ep6 return=-0.0330 | VAL NDCG@10 full 0.343 tail 0.127  [PEAK tail 0.145 @ep2, 4 since]
+  ep7 return=-0.0284 | VAL NDCG@10 full 0.338 tail 0.134  [PEAK tail 0.145 @ep2, 5 since]
+  ep8 return=-0.0229 | VAL NDCG@10 full 0.336 tail 0.131  [PEAK tail 0.145 @ep2, 6 since]
+  ep9 return=-0.0202 | VAL NDCG@10 full 0.332 tail 0.132  [PEAK tail 0.145 @ep2, 7 since]
+  ep10 return=-0.0189 | VAL NDCG@10 full 0.331 tail 0.136  [PEAK tail 0.145 @ep2, 8 since]
+  ep11 return=-0.0176 | VAL NDCG@10 full 0.329 tail 0.133  [PEAK tail 0.145 @ep2, 9 since]
+  ep12 return=-0.0166 | VAL NDCG@10 full 0.330 tail 0.138  [PEAK tail 0.145 @ep2, 10 since]
+saved C:/dev/phd/casper/data/movielens/.cache/policy_phase1_coenc_warm.pt (last) ; BEST tail 0.145 @ep2 -> C:/dev/phd/casper/data/movielens/.cache/policy_phase1_coenc_warm_best.pt
+TEST set: TESTRANGE=300:99999 -> 304 users
+
+=== FULL (MAIN) | popularity-aware scorer | NDCG@10 / Rec@50 / ans ===
+  pop_item : NDCG 0.312 0.299 0.323 0.333 | Rec 0.242 0.224 0.229 0.237 | MRR 0.503 0.499 0.534 0.542 | ans/8=1.9 | cos(u,u*) 0.000 0.245 0.367 0.487
+  conc_pop : NDCG 0.312 0.335 0.344 0.344 | Rec 0.242 0.231 0.241 0.245 | MRR 0.503 0.528 0.541 0.539 | ans/8=8.0 | cos(u,u*) 0.000 0.701 0.731 0.757
+  policy   : NDCG 0.312 0.300 0.310 0.314 | Rec 0.242 0.236 0.233 0.233 | MRR 0.503 0.498 0.518 0.510 | ans/8=0.7 | picks 197i/16c | distinct-1st 1/304 | cos(u,u*) 0.000 0.054 0.152 0.220
+     ADAPT: distinct-pick/turn [1, 4, 7, 15, 16, 22, 21, 29] | top-pick-share/turn [1.0, 0.93, 0.88, 0.85, 0.73, 0.7, 0.66, 0.65] | distinct-traj 59/304 | total-vocab 51
+  GATE: policy must beat conc_pop @q8 (full+tail)
+
+=== TAIL | popularity-aware scorer | NDCG@10 / Rec@50 / ans ===
+  pop_item : NDCG 0.083 0.094 0.100 0.098 | Rec 0.122 0.119 0.125 0.125 | MRR 0.192 0.207 0.220 0.218 | ans/8=1.9 | cos(u,u*) 0.000 0.247 0.368 0.486
+  conc_pop : NDCG 0.083 0.134 0.141 0.138 | Rec 0.122 0.153 0.158 0.159 | MRR 0.192 0.266 0.264 0.263 | ans/8=8.0 | cos(u,u*) 0.000 0.702 0.732 0.757
+  policy   : NDCG 0.083 0.087 0.092 0.096 | Rec 0.122 0.121 0.123 0.120 | MRR 0.192 0.203 0.209 0.212 | ans/8=0.7 | picks 197i/16c | distinct-1st 1/302 | cos(u,u*) 0.000 0.054 0.153 0.221
+     ADAPT: distinct-pick/turn [1, 4, 7, 15, 16, 22, 21, 29] | top-pick-share/turn [1.0, 0.93, 0.88, 0.85, 0.73, 0.7, 0.66, 0.65] | distinct-traj 59/302 | total-vocab 51
+  GATE: policy must beat conc_pop @q8 (full+tail)
