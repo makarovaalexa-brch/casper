@@ -23,3 +23,12 @@ vs frozen V1 0.346/0.149 | vs rand-enc 0.330/0.146.
 => Informative dirs FIX the dilution (full 0.330->0.346) but DON'T beat frozen V1 (tail 0.147 vs 0.149).
 CONCLUSION: open-loop encoder training (random OR informative) cannot capture more oracle headroom — the encoder
 must learn to fold the ACTOR'S SPECIFIC emitted queries => CO-TRAINING (variant 1) is required. Proceeding to COENC.
+
+## Variant 1 (COENC co-train encoder+actor, anchor=1.0): COLLAPSED (overfit)
+LOADREC=enc_concept_cont_info + COENC=1 COENW=1.0. Train return improved -0.043->-0.017 (cos(u,u*)->1 on TRAIN)
+but TEST VAL DEGRADED monotonically: peak ep1 0.299/0.122 -> ep16 0.280/0.085 (<< frozen V1 0.346/0.149, < entropy).
+=> co-training lets the encoder WARP the space to fit the actor's queries on train (reward-hack the reconstruction)
+   while destroying generalization; anchor=1.0 too weak to prevent it. FAILED.
+NET Phase 0: open-loop (v2)=neutral (matches V1); co-train (v1,anchor1.0)=collapse. Frozen V1 remains best instrument;
+realizable continuous policy stands at ~0.356/0.146 seed-avg (~= entropy/CASPER-R). Levers left: much STRONGER anchor
+(COENW>>1, or freeze enc except a small adapter), OR pivot to answerability/adaptivity (bot-play) lever.

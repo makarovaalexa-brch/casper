@@ -84,7 +84,8 @@ if os.environ.get('LOADREC') and os.path.exists(os.environ['LOADREC']):         
         POOLn=(POOL/(np.linalg.norm(POOL,axis=1,keepdims=True)+1e-9)).astype(np.float32); POOLnt=torch.tensor(POOLn)
         _at+=' +Ec'
     print(f"LOADREC: using {_at} recommender {os.path.basename(os.environ['LOADREC'])}",flush=True)
-for p in enc.parameters(): p.requires_grad_(False)
+if not os.environ.get('COENC'):                                                # COENC (variant 1): keep encoder TRAINABLE to co-train it with the actor
+    for p in enc.parameters(): p.requires_grad_(False)
 def sig(z): return 1/(1+np.exp(-z))
 def enc_u_np(toks):
     if not toks: return np.zeros(D)
@@ -187,7 +188,7 @@ class Actor(nn.Module):                                                        #
 actor=Actor(); CONTMODE=os.environ.get('CONTMODE','snap'); _CN=float(np.linalg.norm(Ec,axis=1).mean())   # snap=Wolpertinger replicate / cont=off-pool fold ; _CN=mean concept norm (on-manifold scale)
 POOLn=(POOL/(np.linalg.norm(POOL,axis=1,keepdims=True)+1e-9)).astype(np.float32); POOLnt=torch.tensor(POOLn)   # unit-norm pool for COSINE snap (consistent with cos-loss distillation; dot-product snap is norm-biased)
 _GROUND=int(os.environ.get('GROUND',0)); _GTAU=float(os.environ.get('GTAU',0.2)); _GRADED=bool(os.environ.get('GRADED'))   # GOAL 2: GROUND>0 -> straight-through grounded fold (nearest real entity fwd, soft grad). GRADED=1 -> graded answer (affinity-interpolated NEG..POS) instead of one ±bit
-_pp=list(actor.parameters())                                                   # the CONTINUOUS ACTOR is the policy (replaces discrete scorer+attn)
+_pp=list(actor.parameters())+(list(enc.parameters()) if os.environ.get('COENC') else [])   # COENC: optimise encoder jointly with the actor
 opt=torch.optim.Adam(_pp,1e-3,weight_decay=float(os.environ.get('WD',0)))     # WD = L2 regularization (anti-overfit)
 class Critic(nn.Module):                                                      # P7: state-value baseline V(belief,turn) for REINFORCE variance reduction
     def __init__(s): super().__init__(); s.f=nn.Sequential(nn.Linear(D+1,128),nn.ReLU(),nn.Linear(128,1))
@@ -295,6 +296,16 @@ def rollout_sample(users,ANS,LIKED,LMASK,RNEG,PROFM,PEN):                      #
     return u, logps, rews, states, ents
 OBJ=os.environ.get('OBJ','ustar')                                            # 'ustar' = reconstruct the user embedding (user's idea); 'bce' = held-out item prediction
 trbig=[x for x in trU if len(rat_by_u[x])>=14 and len(likes_by_u[x])>=6]
+if os.environ.get('COENC'):                                                    # CO-TRAIN encoder+actor. Anchor enc to its OWN full-profile fold (frozen snapshot) so it stays a good recommender while learning the actor's queries.
+    _COENW=float(os.environ.get('COENW','1.0'))
+    _UFULL={x:enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]]).astype(np.float32) for x in trbig}
+    def profile_anchor(us):
+        mx=max(len(rat_by_u[x]) for x in us); arr=torch.zeros(len(us),mx,D+1); m=torch.zeros(len(us),mx); Tt=torch.zeros(len(us),D)
+        for b,x in enumerate(us):
+            for q,(j,_) in enumerate(rat_by_u[x][:mx]): arr[b,q,:D]=torch.tensor(Q[j]); arr[b,q,D]=resid[x][j]; m[b,q]=1.
+            Tt[b]=torch.tensor(_UFULL[x])
+        return (1-torch.nn.functional.cosine_similarity(enc(arr,m),Tt,dim=1)).mean()
+    print(f"COENC: co-training encoder+actor | anchor weight {_COENW}",flush=True)
 _FASTEVAL=bool(os.environ.get('LOAD')) and os.path.exists(f'{base}/.cache/policy_{os.environ.get("TAG","o12")}.pt')   # LOAD eval-only: skip BC demo-gen + 25ep training (load_ck overwrites the scorer anyway) -> instant re-eval, no CPU waste
 # ---- BC FLOOR (optional): teach the scorer to reproduce conc_pop. NOBC=1 skips it (test if the static-pop BC traps the policy) ----
 if _FASTEVAL:
@@ -535,8 +546,10 @@ for ep in range(EP):
         else:
             u=rollout(us,ANS,USTAR,explore=float(os.environ.get('EXPL',0.3)))
             loss=(1-torch.nn.functional.cosine_similarity(u,USTAR,dim=1)).mean() if OBJ=='ustar' else recon(u,tgt,wt)
+            if os.environ.get('COENC'): loss=loss+_COENW*profile_anchor(us)    # keep co-trained encoder a good recommender (full-profile fold anchored to frozen snapshot)
             tot+=loss.item()
-        opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(actor.parameters(),5.0); opt.step(); nb+=1
+        _clip=list(actor.parameters())+(list(enc.parameters()) if os.environ.get('COENC') else [])
+        opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(_clip,5.0); opt.step(); nb+=1
     if os.environ.get('SKIPVAL'):                                             # SKIPVAL: skip the slow per-epoch 300-user val rollout (~7min/epoch) -> we EVALCKS on TEST post-hoc; every epoch still saved
         print(f"  ep{ep+1} return={-tot/nb:.4f} (SKIPVAL; test post-hoc)",flush=True)
     else:
