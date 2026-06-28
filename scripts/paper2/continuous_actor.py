@@ -78,6 +78,11 @@ if os.environ.get('LOADREC') and os.path.exists(os.environ['LOADREC']):         
     else: _at='simple'                                                          # simple-attn (FTREC / recipe / V1)
     enc.load_state_dict(_sd); enc.eval()
     Ql=_r['Ql'].numpy().astype(np.float32); Qlt=torch.tensor(Ql)
+    if 'Ec' in _r:                                                              # continuous-capable encoder ships its own learned Ec -> rebuild concept-derived tensors so cans/POOL/snap match
+        Ec=_r['Ec'].numpy().astype(np.float32)
+        POOL=np.concatenate([Q[np.array(PITEMS)], Ec],0).astype(np.float32); POOLt=torch.tensor(POOL)
+        POOLn=(POOL/(np.linalg.norm(POOL,axis=1,keepdims=True)+1e-9)).astype(np.float32); POOLnt=torch.tensor(POOLn)
+        _at+=' +Ec'
     print(f"LOADREC: using {_at} recommender {os.path.basename(os.environ['LOADREC'])}",flush=True)
 for p in enc.parameters(): p.requires_grad_(False)
 def sig(z): return 1/(1+np.exp(-z))
