@@ -526,6 +526,34 @@ if os.environ.get('SEEDAVG'):                                                  #
     _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
     print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('RECON3'):                                                   # PROPER: graded eval, large samples, TRAIN vs TEST; + does FULL-PROFILE fold give high NDCG? (tests 'reconstruction->NDCG')
+    import sys
+    _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
+    def _cos(a,b): return float(a@b/(np.linalg.norm(a)*np.linalg.norm(b)+1e-9))
+    def _nd(u,half,tlike):
+        s=popb+Ql@u; s[list(half)]=-1e9; o=np.argsort(-s)[:10]; return sum(_Wv[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv[:min(10,len(tlike))].sum()+1e-12)
+    def evalset(US,label):
+        ca=[];na=[];nh=[];nf=[];nfh=[]
+        for x in US:
+            allit=[j for j,_ in rat_by_u[x]]; il=allit[:]; np.random.default_rng(1000+x).shuffle(il)  # deterministic per-user split (same protocol train & test)
+            if len(il)<6: continue
+            half=set(il[:len(il)//2]); held=il[len(il)//2:]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4)
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); unf=np.linalg.norm(usf)+1e-9
+            tg=[]                                                              # actor, GRADED answers (matches training)
+            for t in range(8):
+                with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(tg)[None],dtype=torch.float32),t/8.).numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32); cf=float(usf@qn)/unf; tg.append((fe,float(NEG+(POS-NEG)*(cf+1)/2)))
+            ua=enc_u_np(tg); ca.append(_cos(ua,usf))
+            uheldfold=enc_u_np([(Q[j],resid[x][j]) for j in held])            # fold the HELD likes themselves (oracle target direction)
+            ufull=enc_u_np([(Q[j],resid[x][j]) for j in allit])              # fold FULL profile (incl held -> leaky ceiling)
+            na.append(_nd(ua,half,tlike)); nh.append(_nd(usf,half,tlike)); nf.append(_nd(ufull,half,tlike)); nfh.append(_nd(uheldfold,half,tlike))
+        print(f"  {label} (n={len(ca)}): ACTOR cos-to-u* {np.mean(ca):.3f} NDCG {np.mean(na):.4f} || u*=half-fold NDCG {np.mean(nh):.4f} | FULL-profile fold NDCG {np.mean(nf):.4f} | HELD-fold NDCG {np.mean(nfh):.4f}",flush=True)
+    print("=== RECON3 (graded, proper) | does reconstructing the profile give high NDCG? ===",flush=True)
+    evalset([x for x in te if len(rat_by_u[x])>=6][300:],"TEST ")
+    evalset([x for x in trbig][:1500],"TRAIN")
+    print("  (if FULL-profile fold NDCG is HIGH but u*=half NDCG ~= ACTOR, then half-profile target caps it; if u* NDCG >> ACTOR, actor belief is the problem)",flush=True)
+    sys.exit(0)
 if os.environ.get('RECONCMP'):                                                 # is recon-cos 0.71 a CEILING? compare 8-question reconstructions: real items vs popular concepts vs the actor. + user counts + density split.
     import sys
     _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
