@@ -165,6 +165,14 @@ class AttnHead(nn.Module):                                                    # 
         return s.proj((w*z).sum(1))*has                                      # 0 when no history (t=0, nothing asked yet)
     def forward(s,toks,tmask): return s.scale*(s.state(toks,tmask)@POOLt.t())   # (B,NP) additive score, gated by scale (init 0)
 attn=AttnHead()
+class _Actor(nn.Module):                                                       # PAPER C continuous actor (belief u, turn) -> query q in R^D ; loaded for the 'contactor' eval mode on THIS canonical ruler
+    def __init__(s): super().__init__(); s.f=nn.Sequential(nn.Linear(D+1,HID),nn.ReLU(),nn.Linear(HID,HID),nn.ReLU(),nn.Linear(HID,D))
+    def forward(s,u,tt):
+        B=u.shape[0]; tn=(tt.view(B,1) if torch.is_tensor(tt) else torch.full((B,1),float(tt))); return s.f(torch.cat([u,tn],1))
+_cactor=_Actor(); _CNa=float(np.linalg.norm(Ec,axis=1).mean())
+if os.environ.get('ACTORCK'):
+    _ad=torch.load(os.environ['ACTORCK']); _cactor.load_state_dict(_ad['actor'] if isinstance(_ad,dict) and 'actor' in _ad else _ad); _cactor.eval()
+    print(f"contactor: loaded {os.path.basename(os.environ['ACTORCK'])}",flush=True)
 _pp=list(scorer.parameters())+(list(attn.parameters()) if ATTN else [])
 opt=torch.optim.Adam(_pp,1e-3,weight_decay=float(os.environ.get('WD',0)))     # WD = L2 regularization (anti-overfit); ATTN adds the attention-head params
 class Critic(nn.Module):                                                      # P7: state-value baseline V(belief,turn) for REINFORCE variance reduction
@@ -461,6 +469,11 @@ def run(mode,tail):
                 elif mode=='entropy':                                              # CANONICAL entropy heuristic: most DIVISIVE answerable concept (binary entropy of like-rate, >=2000 train users, unanswerable->0 ranked last; matches lit_baselines = the strong/fair baseline). CONCEPTS ONLY by design (range(NC)) -- items never in the candidate set.
                     ci=[c for c in range(NC) if c not in asked]; cc=max(ci,key=lambda c:POOL_ENT[NI+c]); asked.add(cc); nq+=1
                     if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1
+                elif mode=='contactor':                                            # PAPER C continuous actor on the CANONICAL ruler: emit q in R^D, fold off-pool point, GRADED geometric answer (GANS=0 -> binary)
+                    qv=_cactor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),nq/8.).detach().numpy()[0]
+                    qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CNa).astype(np.float32); cf=float(ustar@qn)/un
+                    ans=float(NEG+(POS-NEG)*(cf+1)/2) if os.environ.get('GANS','1')=='1' else (POS if float(ustar@fe)>0 else NEG)
+                    toks.append((fe,ans)); nq+=1; nans+=1
                 elif mode=='entropy_uni':                                          # DIVISIVENESS over the UNIFIED pool (items+concepts), answerability-BLIND: ranks by global Hb so it picks divisive ITEMS the cold-start user usually hasn't seen -> unanswerable -> wasted Q. Demonstrates WHY canonical entropy is concept-only + the answerability cost of items.
                     cs=[k for k in range(NP) if k not in asked]; k=max(cs,key=lambda k:POOL_ENT[k]); asked.add(k); nq+=1
                     if PTYPE[k]==0:
