@@ -539,6 +539,62 @@ if os.environ.get('SEEDAVG'):                                                  #
     _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
     print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('COMPARE4'):                                                 # DEFINITIVE: 4 policies (CASPER-R, continuous actor, entropy-8, popular-8) x {binary,graded} answers x FULL+TAIL, seed-avg. Same V1 encoder/split. Run FEATS=ext,ans for CASPER-R scorer.
+    import sys
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    _ack=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase2_cont_v1_best.pt')   # ABLATION: override the actor checkpoint (distilled / u-recon / ndcg)
+    _td=torch.load(f'{base}/.cache/policy_entdistill_ep4.pt'); _hasA=isinstance(_td,dict) and 'attn' in _td
+    def answer(uf,emb,mode,thr):
+        nf=np.linalg.norm(uf)+1e-9; e=emb/(np.linalg.norm(emb)+1e-9); cf=float(uf@e)/nf
+        return float(NEG+(POS-NEG)*(cf+1)/2) if mode=='graded' else (POS if float(uf@emb)>thr else NEG)
+    def ndft(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    def roll(policy,uf,half,cans,mode,thr):
+        toks=[]
+        if policy in ('entropy','popular'):
+            sel=sorted(cans.keys(),key=lambda c:-(_entc_raw[c] if policy=='entropy' else cfreq[c]))[:8]
+            toks=[(Ec[c],answer(uf,Ec[c],mode,thr)) for c in sel]
+        elif policy=='actor':
+            for t in range(8):
+                qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).detach().numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32); toks.append((fe,answer(uf,fe,mode,thr)))
+        else:                                                                  # CASPER-R: scorer picks the best answerable concept each turn
+            asked=set()
+            for t in range(8):
+                with torch.no_grad(): sc=scorer(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.)
+                if _hasA:
+                    with torch.no_grad(): sc=sc+attn(*toks2t(toks))
+                sc=sc.detach().numpy()[0]; cand=[c for c in cans if (NI+c) not in asked]
+                if not cand: break
+                c=max(cand,key=lambda cc:sc[NI+cc]); asked.add(NI+c); toks.append((Ec[c],answer(uf,Ec[c],mode,thr)))
+        return enc_u_np(toks)
+    print(f"=== COMPARE4 (seed-avg {seeds}, te[300:]) | 4 policies x answers x full/tail ===",flush=True)
+    for policy in (['actor'] if os.environ.get('ONLYACTOR') else ['casper','actor','entropy','popular']):
+        if policy=='actor': load_ck(_ack); actor.eval()
+        if policy=='casper': scorer.load_state_dict(_td['scorer'] if isinstance(_td,dict) and 'scorer' in _td else _td,strict=False); scorer.eval(); (_hasA and attn.load_state_dict(_td['attn']))
+        for mode in ['binary','graded']:
+            fs=[];ts=[]
+            for sd in seeds:
+                r=np.random.default_rng(sd); SP={}
+                for x in te:
+                    its=list(dict(rat_by_u[x]))
+                    if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+                VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.
+                for x in VU:
+                    half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+                    if not tlike: continue
+                    uf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cans=cans_np(x,half)
+                    if not cans: continue
+                    thr=float(np.mean([float(uf@Ec[c]) for c in cans]))
+                    f,tl=ndft(roll(policy,uf,half,cans,mode,thr),half,tlike,relt); nf+=f; mf+=1
+                    if tl is not None: nt+=tl; mt+=1
+                fs.append(nf/max(mf,1)); ts.append(nt/max(mt,1))
+            print(f"  {policy:>8} {mode:>6}: FULL {np.mean(fs):.4f}+/-{np.std(fs):.4f}  TAIL {np.mean(ts):.4f}+/-{np.std(ts):.4f}",flush=True)
+    sys.exit(0)
 if os.environ.get('RECON3'):                                                   # PROPER: graded eval, large samples, TRAIN vs TEST; + does FULL-PROFILE fold give high NDCG? (tests 'reconstruction->NDCG')
     import sys
     _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
@@ -546,7 +602,7 @@ if os.environ.get('RECON3'):                                                   #
     def _nd(u,half,tlike):
         s=popb+Ql@u; s[list(half)]=-1e9; o=np.argsort(-s)[:10]; return sum(_Wv[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv[:min(10,len(tlike))].sum()+1e-12)
     def evalset(US,label):
-        ca=[];na=[];nh=[];nf=[];nfh=[]
+        ca=[];na=[];nh=[];nf=[];nfh=[];ce_cos=[];cp_cos=[];ne=[];npp=[]
         for x in US:
             allit=[j for j,_ in rat_by_u[x]]; il=allit[:]; np.random.default_rng(1000+x).shuffle(il)  # deterministic per-user split (same protocol train & test)
             if len(il)<6: continue
@@ -561,7 +617,11 @@ if os.environ.get('RECON3'):                                                   #
             uheldfold=enc_u_np([(Q[j],resid[x][j]) for j in held])            # fold the HELD likes themselves (oracle target direction)
             ufull=enc_u_np([(Q[j],resid[x][j]) for j in allit])              # fold FULL profile (incl held -> leaky ceiling)
             na.append(_nd(ua,half,tlike)); nh.append(_nd(usf,half,tlike)); nf.append(_nd(ufull,half,tlike)); nfh.append(_nd(uheldfold,half,tlike))
-        print(f"  {label} (n={len(ca)}): ACTOR cos-to-u* {np.mean(ca):.3f} NDCG {np.mean(na):.4f} || u*=half-fold NDCG {np.mean(nh):.4f} | FULL-profile fold NDCG {np.mean(nf):.4f} | HELD-fold NDCG {np.mean(nfh):.4f}",flush=True)
+            cans=cans_np(x,half); cks=list(cans.keys())                       # DISCRETE elicitation (GRADED answers, same as actor): entropy-8 & popular-8 concepts
+            def _fc(sel): return enc_u_np([(Ec[c],float(NEG+(POS-NEG)*(_cos(usf,Ec[c])+1)/2)) for c in sel]) if sel else np.zeros(D)
+            ce=sorted(cks,key=lambda c:-_entc_raw[c])[:8]; cp=sorted(cks,key=lambda c:-cfreq[c])[:8]
+            ue=_fc(ce); up=_fc(cp); ce_cos.append(_cos(ue,usf)); cp_cos.append(_cos(up,usf)); ne.append(_nd(ue,half,tlike)); npp.append(_nd(up,half,tlike))
+        print(f"  {label} (n={len(ca)}): ACTOR cos {np.mean(ca):.3f} NDCG {np.mean(na):.4f} | ENTROPY-8disc cos {np.mean(ce_cos):.3f} NDCG {np.mean(ne):.4f} | POPULAR-8disc cos {np.mean(cp_cos):.3f} NDCG {np.mean(npp):.4f} || u* {np.mean(nh):.4f} | FULL {np.mean(nf):.4f} | HELD {np.mean(nfh):.4f}",flush=True)
     print("=== RECON3 (graded, proper) | does reconstructing the profile give high NDCG? ===",flush=True)
     evalset([x for x in te if len(rat_by_u[x])>=6][300:],"TEST ")
     evalset([x for x in trbig][:1500],"TRAIN")

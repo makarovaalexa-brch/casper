@@ -1,0 +1,12 @@
+COMPARE4 seed-avg {1,2,3,7,11}: 4 policies x {binary,graded} x full/tail
+  761 concepts (19s)
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+=== COMPARE4 (seed-avg [1, 2, 3, 7, 11], te[300:]) | 4 policies x answers x full/tail ===
+    casper binary: FULL 0.3523+/-0.0029  TAIL 0.1479+/-0.0051
+    casper graded: FULL 0.3281+/-0.0024  TAIL 0.1241+/-0.0027
+     actor binary: FULL 0.3559+/-0.0048  TAIL 0.1463+/-0.0056
+     actor graded: FULL 0.3663+/-0.0029  TAIL 0.1623+/-0.0047
+   entropy binary: FULL 0.3460+/-0.0051  TAIL 0.1394+/-0.0035
+   entropy graded: FULL 0.3385+/-0.0010  TAIL 0.1295+/-0.0075
+   popular binary: FULL 0.3465+/-0.0027  TAIL 0.1264+/-0.0046
+   popular graded: FULL 0.3246+/-0.0023  TAIL 0.1197+/-0.0047
