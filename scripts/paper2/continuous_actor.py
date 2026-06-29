@@ -253,7 +253,7 @@ _REFUSE=bool(os.environ.get('REFUSE')); _TAUR=float(os.environ.get('TAUR','0.15'
 _ABOTREF=bool(os.environ.get('ABOTREF')); _ABTAU=float(os.environ.get('ABTAU','0.8'))   # ABOT REFUSAL: refuse when the LEARNED answerer's confidence is low (sigma^2>ABTAU) = niche/unfamiliar question -> actor learns to ask FAMILIAR-and-informative; feats=[pop,div,0,0,taste]
 _NOISETR=bool(os.environ.get('NOISETR')); _NOISEK=float(os.environ.get('NOISEK','1.0')); _LEARNTAU=bool(os.environ.get('LEARNTAU')); _tauP=None   # NOISETR: training answers are NOISY (geom + N(0,sigma^2_ABot)) => low-conf = FALSE info; refusing removes it. LEARNTAU: refusal threshold tau co-trained to optimise NDCG.
 _FIELDACT=bool(os.environ.get('FIELDACT'))
-if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE') or os.environ.get('BOTPLAY'):  # #3: ALL continuous signal fields (div/pop/rat) over the DIRECTION; work on (...,D) (broadcasts over candidate dim). BOTPLAY needs pop+div as ABot answerability features.
+if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE') or os.environ.get('BOTPLAY') or os.environ.get('SUBSETORACLE'):  # #3 fields (div/pop/rat); BOTPLAY/SUBSETORACLE need pop+div for ABot features + drop-certainty analysis.
     _uu=[x for x in trU if len(rat_by_u[x])>=8][:int(os.environ.get('NUMAT','2500'))]
     UMATt=torch.tensor(np.stack([enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]]) for x in _uu]).astype(np.float32))
     UMATt=UMATt/(UMATt.norm(dim=1,keepdim=True)+1e-9)                          # unit train-user tastes
@@ -1044,7 +1044,26 @@ if os.environ.get('SUBSETORACLE'):                                             #
         st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
         tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
         return full,tail
-    FA_f=[];FA_t=[];OR_f=[];OR_t=[];KEPT=[]; _DK_turn=[];_DR_turn=[];_DK_cos=[];_DR_cos=[]
+    FA_f=[];FA_t=[];OR_f=[];OR_t=[];KEPT=[]
+    Qn=(Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32); Qnt=torch.tensor(Qn)   # for ABot certainty
+    with torch.no_grad(): _PP=field_pop(Qnt); _DD=field_div(Qnt)
+    _ABpm,_ABps=float(_PP.mean()),float(_PP.std()+1e-9); _ABdm,_ABds=float(_DD.mean()),float(_DD.std()+1e-9)
+    _abm=ABot();
+    try: _abm.load_state_dict(torch.load(f"{base}/.cache/abot.pt")); _abm.eval(); _HASAB=True
+    except Exception: _HASAB=False
+    def _expf(qn,prof):
+        if not prof: return np.zeros(2,np.float32)
+        c=np.sort((Qn[np.array(prof)]@qn))[::-1]; return np.array([float(c[0]),float(c[:5].mean())],np.float32)
+    def _certs(qn,usf,prof):                                                    # ALL certainty defs for a query dir: |cos|, ABot sigma^2, popularity, divisiveness
+        usn=usf/(np.linalg.norm(usf)+1e-9); ab=abs(float(usn@qn))
+        qt=torch.tensor(qn[None],dtype=torch.float32)
+        with torch.no_grad(): pop=float(field_pop(qt)); div=float(field_div(qt))
+        s2=np.nan
+        if _HASAB:
+            e=_expf(qn,prof); fr=torch.tensor([[(pop-_ABpm)/_ABps,(div-_ABdm)/_ABds,e[0],e[1],float(usn@qn)]],dtype=torch.float32)
+            with torch.no_grad(): _,ls=_abm(torch.tensor(usf[None],dtype=torch.float32),qt,fr); s2=float(torch.exp(ls.clamp(-6,4)))
+        return ab,s2,pop,div
+    _DK={'cos':[],'s2':[],'pop':[],'div':[],'turn':[]}; _DR={'cos':[],'s2':[],'pop':[],'div':[],'turn':[]}
     for sd in seeds:
         r=np.random.default_rng(sd); SP={}
         for x in te:
@@ -1076,15 +1095,18 @@ if os.environ.get('SUBSETORACLE'):                                             #
                 if drop is None: break
                 keep.remove(drop)
             ov=_ndft([toks[i] for i in keep],half,evset,evrel); of+=ov[0]; ot_+=ov[1]; nk+=len(keep); m+=1   # oracle-subset, scored on the EVAL set
-            for i in range(8):                                                  # record features of KEPT vs DROPPED answers (what makes a red herring?)
-                _ab=abs(float(usn@(toks[i][0]/(np.linalg.norm(toks[i][0])+1e-9))))  # |cos(u*,q)| decisiveness
-                (_DK_turn if i in keep else _DR_turn).append(i); (_DK_cos if i in keep else _DR_cos).append(_ab)
+            for i in range(8):                                                  # record ALL certainty defs for KEPT vs DROPPED answers
+                qn_i=toks[i][0]/(np.linalg.norm(toks[i][0])+1e-9); ab,s2,pop,div=_certs(qn_i,usf,list(half))
+                Dd=_DK if i in keep else _DR; Dd['cos'].append(ab); Dd['s2'].append(s2); Dd['pop'].append(pop); Dd['div'].append(div); Dd['turn'].append(i)
         FA_f.append(af/m);FA_t.append(at/m);OR_f.append(of/m);OR_t.append(ot_/m);KEPT.append(nk/m)
     print(f"=== SUBSET-ORACLE {os.path.basename(_ck)} | drop answers to max held NDCG (OPT={OPT}, seed-avg {seeds}, te[300:]) ===",flush=True)
     print(f"  fold-ALL-8:     FULL {np.mean(FA_f):.4f}  TAIL {np.mean(FA_t):.4f}",flush=True)
     print(f"  oracle-SUBSET:  FULL {np.mean(OR_f):.4f}  TAIL {np.mean(OR_t):.4f}  | avg kept {np.mean(KEPT):.1f}/8",flush=True)
     print(f"  GAIN from dropping: FULL {np.mean(OR_f)-np.mean(FA_f):+.4f}  TAIL {np.mean(OR_t)-np.mean(FA_t):+.4f} (>0 => red herrings exist => learned refusal has headroom)",flush=True)
-    print(f"  WHAT GETS DROPPED: turn kept {np.mean(_DK_turn):.2f} vs dropped {np.mean(_DR_turn):.2f} | |cos(u*,q)| kept {np.mean(_DK_cos):.3f} vs dropped {np.mean(_DR_cos):.3f}  (late/low-cos dropped => predictable)",flush=True)
+    print(f"  KEPT vs DROPPED certainty (n_kept={len(_DK['cos'])}, n_dropped={len(_DR['cos'])}):",flush=True)
+    for k,lab in [('turn','turn'),('cos','|cos(u*,q)| decisiveness'),('s2','ABot sigma^2 (familiarity-conf; LOWER=more certain)'),('pop','popularity field'),('div','divisiveness field')]:
+        mk=float(np.nanmean(_DK[k])); md=float(np.nanmean(_DR[k])); print(f"    {lab:<48}: kept {mk:+.4f}  dropped {md:+.4f}  diff {md-mk:+.4f}",flush=True)
+    print("  (a real signal => dropped answers differ systematically on some certainty measure)",flush=True)
     sys.exit(0)
 if os.environ.get('DIAGWASH'):                                                 # DIAGNOSTIC: how washed-out are D1's questions PER USER? distribution of |cos(u*,q_t)| (low => indifferent for this user => refusable). Tells us if the refusal lever has headroom.
     import sys

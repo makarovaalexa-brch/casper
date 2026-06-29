@@ -42,3 +42,16 @@ Conclusively NOT a SOTA booster: |cos| refusal ties, familiarity refusal hurts, 
 overfitting. D1 0.378/0.178 stays SOTA. KEEPABLE results: (1) the calibrated learned answerer (rich ABot,
 familiarity=answerability, ABOT_CONFIDENCE_RESULT.md); (2) the answerability<->informativeness TENSION; (3) false info
 devastates NDCG (noisy 0.378->0.308) -- motivates Paper D's LLM renderer. The negative is the honest bot-play story.
+
+## Certainty of DROPPED vs KEPT answers (all definitions) -- NO SIGNATURE (2026-06-29)
+Privileged drop-oracle, 5 seeds, ~9943 kept / 2217 dropped answers. Dropped(red-herring) vs kept, every certainty def:
+| measure | kept | dropped | diff |
+|---|---|---|---|
+| turn | 3.54 | 3.33 | -0.20 |
+| |cos(u*,q)| decisiveness | 0.387 | 0.365 | -0.022 |
+| ABot sigma^2 (familiarity-conf) | 0.7338 | 0.7293 | **-0.0045** |
+| popularity field | 0.164 | 0.161 | -0.003 |
+| divisiveness field | 0.9988 | 0.9987 | -0.0001 |
+=> Red herrings have NO certainty signature. ABot sigma^2 diff ~0 and slightly BACKWARDS (dropped = marginally MORE
+confident). So "low-confidence = red herring" is empirically FALSE; confidence (any def) cannot identify which answers to
+drop. This + the overfit test (gain vanishes disjoint) make the refusal negative airtight: no signal to exploit.
