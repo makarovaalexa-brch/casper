@@ -572,6 +572,76 @@ if os.environ.get('SEEDAVG'):                                                  #
     _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
     print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('QCURVE'):                                                   # Q-CURVE: full+tail NDCG@10 vs question budget q in {0,2,4,6,8} for each policy, seed-avg, graded. Dumps CSV for the paper figure+table. ACTORCK=D1 gives casper/entropy/popular/actor curves; ONLYACTOR + a second ACTORCK gives the continuity-only actor curve.
+    import sys
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    SNAP=[int(x) for x in os.environ.get('QSNAP','0,2,4,6,8').split(',')]; QMAX=max(SNAP)
+    _ack=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase2_cont_v1_best.pt')
+    _alabel=os.environ.get('ALABEL','actor')                                    # row label for the actor curve (e.g. 'actor_divw' or 'actor_cont')
+    _td=torch.load(f'{base}/.cache/policy_entdistill_ep4.pt'); _hasA=isinstance(_td,dict) and 'attn' in _td
+    _csv=os.environ.get('QCSV',f'{base}/../experiments/paper2/qcurve_paperC.csv')
+    def answer(uf,emb,thr):                                                     # GRADED geometric answer (Paper C setting)
+        nf=np.linalg.norm(uf)+1e-9; e=emb/(np.linalg.norm(emb)+1e-9); cf=float(uf@e)/nf; return float(NEG+(POS-NEG)*(cf+1)/2)
+    def ndft(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    def roll_curve(policy,uf,half,cans,thr):                                    # roll QMAX turns, snapshot belief u at each q in SNAP
+        toks=[]; snaps={}; asked=set()
+        if 0 in SNAP: snaps[0]=enc_u_np(toks)
+        if policy in ('entropy','popular'): sel=sorted(cans.keys(),key=lambda c:-(_entc_raw[c] if policy=='entropy' else cfreq[c]))[:QMAX]
+        for t in range(QMAX):
+            if policy=='actor':
+                qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).detach().numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32); toks.append((fe,answer(uf,fe,thr)))
+            elif policy in ('entropy','popular'):
+                if t<len(sel): c=sel[t]; toks.append((Ec[c],answer(uf,Ec[c],thr)))
+            else:                                                              # casper
+                with torch.no_grad(): sc=scorer(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.)
+                if _hasA:
+                    with torch.no_grad(): sc=sc+attn(*toks2t(toks))
+                sc=sc.detach().numpy()[0]; cand=[c for c in cans if (NI+c) not in asked]
+                if cand: c=max(cand,key=lambda cc:sc[NI+cc]); asked.add(NI+c); toks.append((Ec[c],answer(uf,Ec[c],thr)))
+            if (t+1) in SNAP: snaps[t+1]=enc_u_np(toks)
+        return snaps
+    rows=[]
+    pols=['actor'] if os.environ.get('ONLYACTOR') else ['casper','actor','entropy','popular']
+    print(f"=== QCURVE (seed-avg {seeds}, te[300:], graded) q in {SNAP} ===",flush=True)
+    for policy in pols:
+        if policy=='actor': load_ck(_ack); actor.eval()
+        if policy=='casper': scorer.load_state_dict(_td['scorer'] if isinstance(_td,dict) and 'scorer' in _td else _td,strict=False); scorer.eval(); (_hasA and attn.load_state_dict(_td['attn']))
+        lbl=_alabel if policy=='actor' else policy
+        acc={q:([],[]) for q in SNAP}                                          # q -> (full_per_seed, tail_per_seed)
+        for sd in seeds:
+            r=np.random.default_rng(sd); SP={}
+            for x in te:
+                its=list(dict(rat_by_u[x]))
+                if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+            VU=[x for x in te if x in SP][300:]
+            sf={q:0. for q in SNAP}; st_={q:0. for q in SNAP}; mf={q:0. for q in SNAP}; mt={q:0. for q in SNAP}
+            for x in VU:
+                half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+                if not tlike: continue
+                uf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cans=cans_np(x,half)
+                if not cans: continue
+                thr=float(np.mean([float(uf@Ec[c]) for c in cans]))
+                snaps=roll_curve(policy,uf,half,cans,thr)
+                for q in SNAP:
+                    f,tl=ndft(snaps[q],half,tlike,relt); sf[q]+=f; mf[q]+=1
+                    if tl is not None: st_[q]+=tl; mt[q]+=1
+            for q in SNAP: acc[q][0].append(sf[q]/max(mf[q],1)); acc[q][1].append(st_[q]/max(mt[q],1))
+        for q in SNAP:
+            fm=np.mean(acc[q][0]); fs=np.std(acc[q][0]); tm=np.mean(acc[q][1]); ts=np.std(acc[q][1])
+            rows.append((lbl,q,fm,fs,tm,ts)); print(f"  {lbl:>10} q={q}: FULL {fm:.4f}+/-{fs:.4f}  TAIL {tm:.4f}+/-{ts:.4f}",flush=True)
+    import csv,os as _os
+    _new=not _os.path.exists(_csv) or os.environ.get('QFRESH')
+    with open(_csv,'w' if _new else 'a',newline='') as fh:
+        w=csv.writer(fh)
+        if _new: w.writerow(['policy','q','full','full_std','tail','tail_std'])
+        for rrow in rows: w.writerow([rrow[0],rrow[1],f"{rrow[2]:.4f}",f"{rrow[3]:.4f}",f"{rrow[4]:.4f}",f"{rrow[5]:.4f}"])
+    print(f"wrote {_csv}",flush=True); sys.exit(0)
 if os.environ.get('COMPARE4'):                                                 # DEFINITIVE: 4 policies (CASPER-R, continuous actor, entropy-8, popular-8) x {binary,graded} answers x FULL+TAIL, seed-avg. Same V1 encoder/split. Run FEATS=ext,ans for CASPER-R scorer.
     import sys
     seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
