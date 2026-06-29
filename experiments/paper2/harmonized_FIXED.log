@@ -1,0 +1,27 @@
+DEFINITIVE seed-avg on FIXED cache: entropy/conc_pop/CASPER-R(binary) + contactor(graded), canonical harness, q8
+  761 concepts (19s)
+contactor: loaded policy_phase2_cont_v1_best.pt
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+train scorer policy (pool=1361, TAU=0.3) -- finetune from conc_pop floor...
+TEST set: TESTRANGE=300:99999 -> 304 users
+=== EVALCKS seeds=[1, 2, 3, 7, 11] TESTRANGE=300:99999 | NDCG@10 FULL/TAIL @ [8] -> C:/dev/phd/casper/data/movielens/.cache/evalcks_grid.csv ===
+  seed1                  entropy: FULL 0.362 | TAIL 0.139
+  seed1                 conc_pop: FULL 0.343 | TAIL 0.128
+  seed1                contactor: FULL 0.367 | TAIL 0.166
+  seed1           entdistill_ep4: FULL 0.361 | TAIL 0.150
+  seed2                  entropy: FULL 0.360 | TAIL 0.134
+  seed2                 conc_pop: FULL 0.345 | TAIL 0.118
+  seed2                contactor: FULL 0.365 | TAIL 0.160
+  seed2           entdistill_ep4: FULL 0.354 | TAIL 0.149
+  seed3                  entropy: FULL 0.362 | TAIL 0.142
+  seed3                 conc_pop: FULL 0.347 | TAIL 0.131
+  seed3                contactor: FULL 0.362 | TAIL 0.156
+  seed3           entdistill_ep4: FULL 0.363 | TAIL 0.153
+  seed7                  entropy: FULL 0.358 | TAIL 0.138
+  seed7                 conc_pop: FULL 0.351 | TAIL 0.127
+  seed7                contactor: FULL 0.367 | TAIL 0.159
+  seed7           entdistill_ep4: FULL 0.360 | TAIL 0.153
+  seed11                  entropy: FULL 0.362 | TAIL 0.146
+  seed11                 conc_pop: FULL 0.347 | TAIL 0.129
+  seed11                contactor: FULL 0.371 | TAIL 0.170
+  seed11           entdistill_ep4: FULL 0.363 | TAIL 0.156
