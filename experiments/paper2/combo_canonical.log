@@ -1,0 +1,17 @@
+combo (recon+softNDCG) on CANONICAL harness, fixed cache, seed-avg, vs u-recon 0.366/0.162
+  761 concepts (18s)
+contactor: loaded policy_phase3_combo_best.pt
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+train scorer policy (pool=1361, TAU=0.3) -- finetune from conc_pop floor...
+TEST set: TESTRANGE=300:99999 -> 304 users
+=== EVALCKS seeds=[1, 2, 3, 7, 11] TESTRANGE=300:99999 | NDCG@10 FULL/TAIL @ [8] -> C:/dev/phd/casper/data/movielens/.cache/evalcks_grid.csv ===
+  seed1                contactor: FULL 0.368 | TAIL 0.169
+  seed1           entdistill_ep4: FULL 0.361 | TAIL 0.150
+  seed2                contactor: FULL 0.370 | TAIL 0.164
+  seed2           entdistill_ep4: FULL 0.354 | TAIL 0.149
+  seed3                contactor: FULL 0.362 | TAIL 0.159
+  seed3           entdistill_ep4: FULL 0.363 | TAIL 0.153
+  seed7                contactor: FULL 0.374 | TAIL 0.163
+  seed7           entdistill_ep4: FULL 0.360 | TAIL 0.153
+  seed11                contactor: FULL 0.374 | TAIL 0.170
+  seed11           entdistill_ep4: FULL 0.363 | TAIL 0.156

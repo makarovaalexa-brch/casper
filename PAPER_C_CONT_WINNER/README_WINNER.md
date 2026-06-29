@@ -3,11 +3,11 @@
 **Date locked:** 2026-06-29. **Branch:** recommender-improvement.
 
 ## The checkpoint
-- `policy_cont_actor_WINNER.pt` (sha `874163eb`) — the **continuous actor** (MLP belief∈R⁶⁴ + turn → query q∈R⁶⁴).
-  Trained FROM SCRATCH (no distillation) by **differentiable unroll** with the reconstruction objective `1−cos(u,u*)`,
-  CONTMODE=cont (off-pool fold, no snap), GRADED geometric answers. Frozen V1 encoder.
-  Reproduce: `CONTMODE=cont OBJ=ustar GRADED=1 NOBC=1 VALTEST=1 SELVAL=tail SEED=1 python scripts/paper2/continuous_actor.py`
-- `policy_cont_actor_ndcg_variant.pt` — the marginally-better variant (recon + soft-NDCG combo): graded 0.370/0.165.
+- **`policy_cont_actor_WINNER.pt` = the recon+soft-NDCG combo (HEADLINE), graded 0.370/0.165 on the canonical harness.**
+  Continuous actor (MLP belief∈R⁶⁴ + turn → query q∈R⁶⁴), FROM SCRATCH (no distillation), differentiable unroll,
+  CONTMODE=cont (off-pool, no snap), GRADED answers, frozen V1 encoder; objective = reconstruction (1−cos(u,u*)) + soft-NDCG.
+- `policy_cont_actor_recon_variant.pt` — reconstruction-ONLY variant, 0.366/0.162 (within ~1σ; the model the snap-loss/QPROBE
+  analyses were run on; qualitatively identical). Reproduce recon: `CONTMODE=cont OBJ=ustar GRADED=1 NOBC=1 VALTEST=1 SELVAL=tail`.
 - `cache/` — the EXACT frozen recommender deps: enc_concept.pt (V1, sha `27e6c72d`), Ql_concept.npy, Ec_concept.npy,
   Q_svd.npy, bi_svd.npy, ctags_concept.npy, **pool_entavg.npy (sha `156c072c` = CORRECT; a corrupted `09feb829`
   version depressed baselines during dev — see below)**.
@@ -16,12 +16,16 @@
 Canonical Paper B harness (`continuous_policy2_st.py`, `contactor` mode), seed-avg {1,2,3,7,11}, te[300:], q8:
 | policy | FULL | TAIL |
 |---|---|---|
-| **continuous actor (graded)** | **0.3664 ± 0.0029** | **0.1622 ± 0.0051** |
+| **continuous actor — recon+softNDCG (HEADLINE)** | **0.3696 ± 0.0045** | **0.1650 ± 0.0040** |
+| continuous actor — recon only (analysis variant) | 0.3664 ± 0.0029 | 0.1622 ± 0.0051 |
 | CASPER-R (binary, Paper B SOTA) | 0.3602 ± 0.0033 | 0.1522 ± 0.0025 |
 | entropy (binary) | 0.3608 ± 0.0016 | 0.1398 ± 0.0040 |
+| uent+GRAW (unified entropy, graded, answerable items) | 0.3667 ± 0.0045 | 0.1577 ± 0.0078 |
 | conc_pop (binary) | 0.3466 ± 0.0027 | 0.1266 ± 0.0045 |
 
-**WIN: +0.006 FULL (~2σ, marginal; full is popularity-saturated) / +0.010 TAIL (~3σ, significant; Paper B headline metric).**
+**WIN (headline combo vs CASPER-R): +0.009 FULL (~2σ) / +0.013 TAIL (~3σ).** uent+GRAW (static entropy + graded + answerable
+items, the "item-derived" baseline) reaches 0.367/0.158 on full → learned policy's contribution localizes to the TAIL via
+off-manifold action. NOTE: an earlier draft headlined the recon-only 0.366/0.162 by mistake (wrong checkpoint).
 Best-vs-best (each policy on its native answer model). On BINARY both tie (actor 0.356 ≈ CASPER-R) → the win is the
 GRADED (continuous-answer) regime: **continuous answer + continuous policy together**.
 
