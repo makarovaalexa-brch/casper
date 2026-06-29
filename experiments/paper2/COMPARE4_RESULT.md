@@ -14,3 +14,13 @@ CASPER-R's BEST (binary, 0.352/0.148) by +0.014 full / +0.014 tail (~3 sigma, bo
 UNIQUELY benefits from graded answers (0.356->0.366 full, 0.146->0.162 tail) while EVERY discrete policy DROPS on graded
 (built for binary). Earlier "discrete scores higher" = binary-only + cross-harness + actor evaluated with mismatched
 binary answers. Winning model = u*-RECONSTRUCTION actor (policy_phase2_cont_v1_best). Frozen recommender identical across all.
+
+## Objective ablation (continuous actor; seed-avg {1,2,3,7,11}, te[300:])
+| training objective        | binary FULL/TAIL | graded FULL/TAIL |
+|---------------------------|------------------|------------------|
+| distilled-from-discrete   | 0.3545/0.1492    | 0.2928/0.0945 (COLLAPSE) |
+| trained-on-u (recon)      | 0.3559/0.1463    | 0.3663/0.1623    |
+| trained-on-NDCG (recon+softNDCG) | 0.3546/0.1453 | **0.3695/0.1651** (best) |
+- Distilling from discrete INHERITS the binary ceiling & collapses on graded -> continuous win needs NATIVE training.
+- u and NDCG both work; NDCG edges u (+0.003, ~1sigma). soft-NDCG DID help (earlier 'neutral' was a binary-eval confound).
+BEST continuous = trained-on-NDCG graded 0.370/0.165 vs CASPER-R best (binary) 0.352/0.148 = +0.018 full/+0.017 tail.

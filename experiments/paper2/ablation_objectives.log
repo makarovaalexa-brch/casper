@@ -1,0 +1,11 @@
+ABLATION: actor training objective {distilled-from-discrete, trained-on-u, trained-on-ndcg}
+=== OBJECTIVE: distilled (PAPER_C_GOAL1/policy_cont_distill_replicates_casperR.pt) ===
+     actor binary: FULL 0.3545+/-0.0029  TAIL 0.1492+/-0.0026
+     actor graded: FULL 0.2928+/-0.0036  TAIL 0.0945+/-0.0010
+=== OBJECTIVE: u-recon (data/movielens/.cache/policy_phase2_cont_v1_best.pt) ===
+     actor binary: FULL 0.3559+/-0.0048  TAIL 0.1463+/-0.0056
+     actor graded: FULL 0.3663+/-0.0029  TAIL 0.1623+/-0.0047
+=== OBJECTIVE: ndcg (data/movielens/.cache/policy_phase3_combo_best.pt) ===
+     actor binary: FULL 0.3546+/-0.0063  TAIL 0.1453+/-0.0046
+     actor graded: FULL 0.3695+/-0.0046  TAIL 0.1651+/-0.0039
+=== DONE ===
