@@ -251,6 +251,7 @@ def toks2t(toks):                                                             # 
 _DIVW=float(os.environ.get('DIVW','0')); _DTAU=float(os.environ.get('DTAU','2.0')); _DIVH=[torch.zeros(1)]
 _REFUSE=bool(os.environ.get('REFUSE')); _TAUR=float(os.environ.get('TAUR','0.15')); _REFTMP=float(os.environ.get('REFTMP','0.05'))   # REFUSAL: answerer refuses washed-out questions (|cos(u*,q)|<TAUR) during training -> actor learns per-user-decisive asking (straight-through)
 _ABOTREF=bool(os.environ.get('ABOTREF')); _ABTAU=float(os.environ.get('ABTAU','0.8'))   # ABOT REFUSAL: refuse when the LEARNED answerer's confidence is low (sigma^2>ABTAU) = niche/unfamiliar question -> actor learns to ask FAMILIAR-and-informative; feats=[pop,div,0,0,taste]
+_NOISETR=bool(os.environ.get('NOISETR')); _NOISEK=float(os.environ.get('NOISEK','1.0')); _LEARNTAU=bool(os.environ.get('LEARNTAU')); _tauP=None   # NOISETR: training answers are NOISY (geom + N(0,sigma^2_ABot)) => low-conf = FALSE info; refusing removes it. LEARNTAU: refusal threshold tau co-trained to optimise NDCG.
 _FIELDACT=bool(os.environ.get('FIELDACT'))
 if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE') or os.environ.get('BOTPLAY'):  # #3: ALL continuous signal fields (div/pop/rat) over the DIRECTION; work on (...,D) (broadcasts over candidate dim). BOTPLAY needs pop+div as ABot answerability features.
     _uu=[x for x in trU if len(rat_by_u[x])>=8][:int(os.environ.get('NUMAT','2500'))]
@@ -280,10 +281,12 @@ def rollout(users,ANS,USTAR=None,explore=0.0):                                # 
             else: fe=qn*_CN                                                   # raw off-pool point (OOD baseline)
             cf=((fe*USTAR).sum(1)/(fe.norm(dim=1)*USTAR.norm(dim=1)+1e-9)) if USTAR is not None else torch.zeros(B)   # graded affinity cos(u*,fe) in [-1,1]
             ans=(NEG+(POS-NEG)*(cf+1)/2) if _GRADED else (torch.sign(cf)+(torch.tanh(4.*cf)-torch.tanh(4.*cf).detach()))   # GRADED: interpolate NEG..POS by affinity ; else one honest ±bit
-            if _ABOTREF and USTAR is not None:                                   # LEARNED-ANSWERER refusal: refuse niche/unfamiliar (ABot sigma^2>ABTAU); keep familiar+confident. feats=[pop,div,0,0,taste=cf]. straight-through -> actor learns FAMILIAR-and-informative questions
+            if _ABOTREF and USTAR is not None:                                   # LEARNED-ANSWERER: ABot sigma^2 = confidence. NOISETR: low-conf answers are NOISY(false). refuse sigma^2>tau (tau LEARNABLE) -> actor co-learns to ask reliable(low-sigma^2) questions + the optimal cutoff, on NDCG
                 _pq=(field_pop(qn)-_ABpm)/_ABps; _dq=(field_div(qn)-_ABdm)/_ABds; _z=torch.zeros(B)
                 _,_lsq=_abm(USTAR,qn,torch.stack([_pq,_dq,_z,_z,cf],1)); _s2=torch.exp(_lsq.clamp(-6,4))
-                ks=torch.sigmoid((_ABTAU-_s2)/_REFTMP); keep=(_s2<=_ABTAU).float()+(ks-ks.detach())
+                if _NOISETR: ans=ans+torch.randn(B)*_s2.sqrt()*_NOISEK            # unsure => NOISY answer = FALSE info that corrupts belief
+                _tau=_tauP if (_LEARNTAU and _tauP is not None) else _ABTAU
+                ks=torch.sigmoid((_tau-_s2)/_REFTMP); keep=(_s2<=_tau).float()+(ks-ks.detach())
             elif _REFUSE and USTAR is not None:                                  # ANSWERER refuses washed-out (|cos(u*,q)|<TAUR => indifferent for THIS user): token NOT folded (wasted turn); straight-through so the actor learns to ask per-user-DECISIVE questions
                 ks=torch.sigmoid((cf.abs()-_TAUR)/_REFTMP); keep=(cf.abs()>=_TAUR).float()+(ks-ks.detach())   # hard binary fwd, soft grad bwd (push |cos| up to avoid refusal)
             else: keep=torch.ones(B)
@@ -593,7 +596,9 @@ if _ABOTREF:                                                                   #
     for _p in _abm.parameters(): _p.requires_grad_(False)
     with torch.no_grad(): _PP=field_pop(Qn_t); _DD=field_div(Qn_t)
     _ABpm,_ABps=float(_PP.mean()),float(_PP.std()+1e-9); _ABdm,_ABds=float(_DD.mean()),float(_DD.std()+1e-9)
-    print(f"ABOTREF: loaded abot.pt; refuse when ABot sigma^2 > {_ABTAU} (niche/unfamiliar)",flush=True)
+    print(f"ABOTREF: loaded abot.pt; refuse when ABot sigma^2 > {_ABTAU} (niche/unfamiliar); NOISETR={_NOISETR} LEARNTAU={_LEARNTAU}",flush=True)
+    if _LEARNTAU:
+        _tauP=torch.nn.Parameter(torch.tensor(float(_ABTAU))); opt.add_param_group({'params':[_tauP],'lr':float(os.environ.get('TAULR','0.02'))}); print(f"  LEARNTAU: refusal threshold co-trained on NDCG (init {_ABTAU})",flush=True)
 if os.environ.get('BOTPLAY'):                                                  # BOT-PLAY: replace the geometric oracle with a LEARNED heteroscedastic answerer; test whether D1's off-manifold tail gain survives. BOTPLAY=train|eval|cotrain. See experiments/paper2/BOTPLAY_DESIGN.md.
     import sys
     bp=os.environ['BOTPLAY']; seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]
@@ -694,20 +699,25 @@ if os.environ.get('BOTPLAY'):                                                  #
         st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
         tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
         return full,tail
-    def roll_answerer(uf,profidx,answerer):                                     # 2x2 answerers: {geom, mu} answer x {universal, *_refuse} coverage. profidx = the user's FULL rated history (answerability = experience, not the elicited half). -> final belief u + #refused
-        toks=[]; nref=0; need=answerer in ('mu','mu_refuse','geom_refuse')      # geom_refuse uses ABot ONLY for the refusal gate; answer stays geometric (isolates the answerability tax with a perfect answer)
+    NOISEK=float(os.environ.get('NOISEK','1.0'))                                # noisy answerer: a = geometric + N(0, NOISEK^2 * sigma^2_ABot) -- low confidence => NOISY => FALSE info that corrupts the belief
+    def roll_answerer(uf,profidx,answerer,nseed=0):                             # answerers: geom / mu / noisy {+_refuse}. noisy_refuse REMOVES false (high-sigma^2) answers. profidx=user FULL history.
+        toks=[]; nref=0; need=answerer in ('mu','mu_refuse','geom_refuse','noisy','noisy_refuse')
+        nrng=np.random.default_rng(nseed)                                      # paired noise: noisy & noisy_refuse see the SAME draws (refusal only filters)
         for t in range(8):
             qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).detach().numpy()[0]
             qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32)
             cf=float(uf@qn)/(np.linalg.norm(uf)+1e-9)                           # geometric affinity
-            s2=0.
+            s2=0.; z=float(nrng.standard_normal())
             if need:
-                _pd=popdiv_dir(qn); _e=expfeat_np(qn,profidx); _fr=np.array([[_pd[0],_pd[1],_e[0],_e[1],float(uf@qn)/(np.linalg.norm(uf)+1e-9)]],np.float32)
+                _pd=popdiv_dir(qn); _e=expfeat_np(qn,profidx); _fr=np.array([[_pd[0],_pd[1],_e[0],_e[1],cf]],np.float32)
                 with torch.no_grad():
                     mu,ls=abot(torch.tensor(uf[None],dtype=torch.float32),torch.tensor(qn[None]),torch.tensor(_fr))
                 s2=float(torch.exp(ls.clamp(-6,4)))
-            a=float(NEG+(POS-NEG)*(cf+1)/2) if answerer in ('geom','geom_refuse') else float(mu)   # ANSWER SHAPE: geometric vs learned mu
-            if answerer in ('geom_refuse','mu_refuse') and TAUREF>0 and s2>TAUREF: nref+=1; continue  # COVERAGE: refuse off-experience directions (wasted question, like an unanswerable item in Paper B)
+            geo=float(NEG+(POS-NEG)*(cf+1)/2)
+            if answerer in ('geom','geom_refuse'): a=geo
+            elif answerer in ('noisy','noisy_refuse'): a=geo+z*(s2**0.5)*NOISEK   # TRUE signal + calibrated noise => unsure answers are FALSE
+            else: a=float(mu)
+            if answerer in ('geom_refuse','mu_refuse','noisy_refuse') and TAUREF>0 and s2>TAUREF: nref+=1; continue  # REMOVE false (low-confidence) answers
             toks.append((fe,a))
         return enc_u_np(toks),nref
     ANSW=os.environ.get('ANSW','geom,geom_refuse,mu,mu_refuse')                 # the 2x2: {geom,mu} x {universal,refuse}
@@ -725,7 +735,7 @@ if os.environ.get('BOTPLAY'):                                                  #
                 if not tlike: continue
                 uf=enc_u_np([(Q[j],resid[x][j]) for j in half])                # asker sees the half-profile belief only (realizable)
                 fullidx=[j for j,_ in rat_by_u[x]]                              # ANSWERER's experience = the user's FULL lived history (they can answer about any film they've watched)
-                u,nref=roll_answerer(uf,fullidx,answerer); nr+=nref
+                u,nref=roll_answerer(uf,fullidx,answerer,nseed=sd*100003+x); nr+=nref
                 f,tl=ndft(u,half,tlike,relt); nf+=f; mf+=1
                 if tl is not None: nt+=tl; mt+=1
             fs.append(nf/max(mf,1)); ts.append(nt/max(mt,1)); refs.append(nr/max(mf,1))
@@ -1023,6 +1033,59 @@ if os.environ.get('QVIZ'):                                                     #
     print(f"QVIZ: {len(qs)} questions ({NUQ} users x8), {len(Q)} movies, {len(Ec)} concepts -> {out}",flush=True)
     print(f"  emitted-query cos: nearest movie {np.mean([np.max((Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9))@q) for q in qs[:400]]):.3f} | nearest concept {np.mean([np.max((Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9))@q) for q in qs[:400]]):.3f} (low=off-manifold)",flush=True)
     sys.exit(0)
+if os.environ.get('SUBSETORACLE'):                                             # ORACLE: roll D1 (real geometric answers, NO injected noise), then DROP answers to maximise held NDCG. If oracle-subset > fold-all => some answers are RED HERRINGS; removing them helps (cf Paper B subset>full). Headroom for a learned refusal. OPT=tail|full.
+    import sys
+    _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12)); OPT=os.environ.get('OPT','tail')
+    def _ndft(toks,seen,tlike,relt):
+        u=enc_u_np(toks) if toks else np.zeros(D,np.float32)
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    FA_f=[];FA_t=[];OR_f=[];OR_t=[];KEPT=[]; _DK_turn=[];_DR_turn=[];_DK_cos=[];_DR_cos=[]
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; af=at=of=ot_=0.; m=0.; nk=0.
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cans=cans_np(x,half); toks=[]; usn=usf/(np.linalg.norm(usf)+1e-9)
+            for t in range(8):                                                  # roll D1, GRADED geometric answers (the real, noiseless elicitation)
+                with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32); cf=float(usf@qn)/(np.linalg.norm(usf)+1e-9); toks.append((fe,float(NEG+(POS-NEG)*(cf+1)/2)))
+            oi=1 if OPT=='tail' else 0
+            if os.environ.get('OPTSPLIT'):                                      # OVERFIT TEST: SELECT subset on half the held likes, EVAL on the disjoint half (real headroom survives; overfit vanishes)
+                _tl=list(tlike); np.random.default_rng(sd*7+x).shuffle(_tl); _h=len(_tl)//2
+                if _h<1 or len(_tl)-_h<1: continue
+                selset=set(_tl[:_h]); evset=set(_tl[_h:])
+            else:
+                selset=tlike; evset=tlike
+            selrel=set(j for j in selset if not headmask[j]); evrel=set(j for j in evset if not headmask[j])
+            fa=_ndft(toks,half,evset,evrel); af+=fa[0]; at+=fa[1]               # fold-ALL baseline, scored on the EVAL set
+            keep=list(range(8))                                                # BACKWARD-GREEDY drop on the SELECT set
+            while len(keep)>1:
+                base=_ndft([toks[i] for i in keep],half,selset,selrel)[oi]; bestv=base; drop=None
+                for i in keep:
+                    v=_ndft([toks[k] for k in keep if k!=i],half,selset,selrel)[oi]
+                    if v>bestv+1e-9: bestv=v; drop=i
+                if drop is None: break
+                keep.remove(drop)
+            ov=_ndft([toks[i] for i in keep],half,evset,evrel); of+=ov[0]; ot_+=ov[1]; nk+=len(keep); m+=1   # oracle-subset, scored on the EVAL set
+            for i in range(8):                                                  # record features of KEPT vs DROPPED answers (what makes a red herring?)
+                _ab=abs(float(usn@(toks[i][0]/(np.linalg.norm(toks[i][0])+1e-9))))  # |cos(u*,q)| decisiveness
+                (_DK_turn if i in keep else _DR_turn).append(i); (_DK_cos if i in keep else _DR_cos).append(_ab)
+        FA_f.append(af/m);FA_t.append(at/m);OR_f.append(of/m);OR_t.append(ot_/m);KEPT.append(nk/m)
+    print(f"=== SUBSET-ORACLE {os.path.basename(_ck)} | drop answers to max held NDCG (OPT={OPT}, seed-avg {seeds}, te[300:]) ===",flush=True)
+    print(f"  fold-ALL-8:     FULL {np.mean(FA_f):.4f}  TAIL {np.mean(FA_t):.4f}",flush=True)
+    print(f"  oracle-SUBSET:  FULL {np.mean(OR_f):.4f}  TAIL {np.mean(OR_t):.4f}  | avg kept {np.mean(KEPT):.1f}/8",flush=True)
+    print(f"  GAIN from dropping: FULL {np.mean(OR_f)-np.mean(FA_f):+.4f}  TAIL {np.mean(OR_t)-np.mean(FA_t):+.4f} (>0 => red herrings exist => learned refusal has headroom)",flush=True)
+    print(f"  WHAT GETS DROPPED: turn kept {np.mean(_DK_turn):.2f} vs dropped {np.mean(_DR_turn):.2f} | |cos(u*,q)| kept {np.mean(_DK_cos):.3f} vs dropped {np.mean(_DR_cos):.3f}  (late/low-cos dropped => predictable)",flush=True)
+    sys.exit(0)
 if os.environ.get('DIAGWASH'):                                                 # DIAGNOSTIC: how washed-out are D1's questions PER USER? distribution of |cos(u*,q_t)| (low => indifferent for this user => refusable). Tells us if the refusal lever has headroom.
     import sys
     _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
@@ -1087,7 +1150,7 @@ for ep in range(EP):
             _bestvt=_sel; _bestvf=vf; _bestvtt=vt; _bestep=ep+1; _since=0; save_ck(_CKBEST); _bm=f'  <- BEST ({_selm}) saved'
             open(f'{base}/.cache/peak_{TAGn}.txt','w').write(f"PEAK {TAGn} ENT_COEF={os.environ.get('ENT_COEF',0)} WD={os.environ.get('WD',0)} ATTN={int(ATTN)} | val full={vf:.4f} tail={vt:.4f} @ep{ep+1}/{EP} (sel={_selm})\n")
         else: _bm=''; _since+=1
-        print(f"  ep{ep+1} return={-tot/nb:.4f} | VAL NDCG@10 full {vf:.3f} tail {vt:.3f}{_bm}  [PEAK {_selm} {_bestvt:.3f} @ep{_bestep}, {_since} since]",flush=True)
+        print(f"  ep{ep+1} return={-tot/nb:.4f} | VAL NDCG@10 full {vf:.3f} tail {vt:.3f}{_bm}  [PEAK {_selm} {_bestvt:.3f} @ep{_bestep}, {_since} since]"+(f"  tau={float(_tauP):.3f}" if _tauP is not None else ""),flush=True)
     save_ck(_CK.replace('.pt',f'_ep{ep+1}.pt')); save_ck(_CK.replace('.pt','_last.pt'))   # SAVE EVERY epoch (ckpts ~100KB) + always-latest pointer -> any-epoch/peak/latest analysis without stopping; a kill loses only the in-progress epoch
     if _PAT and _since>=_PAT: print(f"EARLY-STOP @ep{ep+1}: no val gain for {_PAT} epochs (best {_selm} {_bestvt:.3f} @ep{_bestep})",flush=True); break
 if not os.environ.get('LOAD') and EP>0:

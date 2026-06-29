@@ -25,3 +25,20 @@ Answerability/refusal is NOT a SOTA booster here. D1 (0.378/0.178) stays the pol
 ROBUSTNESS / honesty stress-test (the gain is sensitive to realistic refusing answerers) + the motivation for Paper D's
 LLM renderer (which makes off-manifold directions answerable), NOT a performance lever. Checkpoints policy_refuse_d1_*,
 policy_refuse2_d1_*. Code: continuous_actor.py _REFUSE gate + DIAGWASH block.
+
+## DECISIVE: drop-oracle headroom is OVERFITTING (2026-06-29)
+User insight: ML ratings have red herrings; Paper-B oracle best-subset >> full; build a DROP-oracle on D1 (no injected
+noise) -- if dropping answers raises held NDCG, headroom for a learned refusal. Backward-greedy drop on D1's 8 geometric
+(noiseless) answers:
+- PRIVILEGED (select subset on held likes = eval on same): TAIL 0.178 -> **0.243 (+0.066)**, drops ~1.5/8. Looks huge.
+- **OVERFIT TEST (select on half the held likes, EVAL on the disjoint half): gain +0.066 -> -0.008. VANISHES.**
+So the +0.066 was the oracle exploiting noise in the small held-like set (dropping answers that help the SPECIFIC held
+items). NO generalizable red herrings. A realizable predictor has strictly LESS signal than this generous test -> NO
+realizable refusal headroom. Whether an answer "hurts" depends on the unobserved target = noise to the policy.
+Code: SUBSETORACLE block (OPT=tail|full, OPTSPLIT=1 for the disjoint test) in continuous_actor.py.
+
+## FINAL VERDICT on answerability/refusal
+Conclusively NOT a SOTA booster: |cos| refusal ties, familiarity refusal hurts, noisy-frozen no-recover, drop-oracle =
+overfitting. D1 0.378/0.178 stays SOTA. KEEPABLE results: (1) the calibrated learned answerer (rich ABot,
+familiarity=answerability, ABOT_CONFIDENCE_RESULT.md); (2) the answerability<->informativeness TENSION; (3) false info
+devastates NDCG (noisy 0.378->0.308) -- motivates Paper D's LLM renderer. The negative is the honest bot-play story.
