@@ -1,9 +1,36 @@
 # 🏆 PAPER C WINNER — Continuous-Action Preference Elicitation (DO NOT OVERWRITE)
 
-**Date locked:** 2026-06-29. **Branch:** recommender-improvement.
+**Date locked:** 2026-06-29 (updated 2026-06-29 w/ DIVW headline). **Branch:** recommender-improvement.
 
-## The checkpoint
-- **`policy_cont_actor_WINNER.pt` = the recon+soft-NDCG combo (HEADLINE), graded 0.370/0.165 on the canonical harness.**
+## ⭐ NEW HEADLINE (2026-06-29): D1 = continuous actor + CONTINUOUS DIVISIVENESS-FIELD REWARD
+- **`policy_cont_actor_DIVW_WINNER.pt` (sha a63fec1e) = the NEW headline, graded 0.378/0.178.**
+  Same continuous actor as below, warm-started from the u-recon variant, then 10 epochs with an AUXILIARY reward
+  `loss = base − DIVW·mean_t divisiveness(q_t)`, DIVW=1.0, DTAU=2.0, frozen V1, GRADED. The divisiveness field is the
+  EXACT continuous entropy of a direction: `div(q)=H_b(mean_i σ(u*_i·q/τ))` over 2500 train-user tastes — differentiable
+  everywhere off-manifold, reproduces POOL_ENT at concept points. It rewards the actor for asking maximally-DIVISIVE
+  (population-informative) directions = the entropy heuristic extrapolated into continuous space and shaped into the policy.
+  THIS IS REQUEST #3 ("add back entropy/popularity/rating signal, extrapolate in cont space") — and it WORKS.
+- **Result (COMPARE4 harness, faithful — baselines reproduce canonical; seed-avg {1,2,3,7,11}, te[300:], q8, graded):**
+  | policy (graded) | FULL | TAIL |
+  |---|---|---|
+  | **D1 = actor + divisiveness reward (NEW HEADLINE)** | **0.3780 ± 0.0032** | **0.1782 ± 0.0065** |
+  | continuous actor recon+softNDCG (prev headline) | 0.3695 ± 0.0046 | 0.1651 ± 0.0039 |
+  | CASPER-R (binary, discrete SOTA) | 0.3594 ± 0.0055 | 0.1467 ± 0.0049 |
+  | entropy (binary) | 0.3618 ± 0.0026 | 0.1393 ± 0.0041 |
+  | popular/conc_pop (binary) | 0.3465 ± 0.0027 | 0.1264 ± 0.0046 |
+  - **D1 vs prev headline: +0.0085 FULL / +0.0131 TAIL (tail ~2σ).  D1 vs discrete CASPER-R: +0.019 FULL / +0.032 TAIL.**
+  - **Epoch curve is MONOTONE (not a lucky last-epoch): ep6 0.3739/0.1701 → ep8 0.3751/0.1758 → ep10 0.3780/0.1782.**
+  - Faithfulness: COMPARE4 binary baselines reproduce canonical (casper 0.359≈0.360, entropy 0.362≈0.361, popular 0.347≈0.347);
+    prev headline reproduces its canonical 0.3696/0.1650 here as 0.3695/0.1651 → COMPARE4 ≡ canonical for actors.
+  - Repro: `NOBC=1 EP=0 COMPARE4=1 ONLYACTOR=1 ACTORCK=.../policy_phase3_d1divw_last.pt EVALSEEDS=1,2,3,7,11 CONTMODE=cont FEATS=ext,ans ANSF=1 python scripts/paper2/continuous_actor.py`
+  - D2 (FieldActor: divisiveness+popularity+avg-rating as scored candidate features) LOST: 0.351/0.148 < prev headline → the
+    multi-signal scored-candidate architecture underperforms; the win is the divisiveness REWARD on the plain actor, not a
+    candidate-scoring head. (Popularity/avg-rating fields built + available but did not help as actor features.)
+- Stacked story for the paper: **discrete 0.359/0.147 → +continuity 0.370/0.165 → +continuous divisiveness field 0.378/0.178.**
+- GOLD confirmation on the slow canonical `continuous_policy2_st.py` harness: see experiments/paper2/d1_canonical_GOLD_*.log.
+
+## The checkpoint (PREVIOUS headline, now the continuity-only ablation row)
+- **`policy_cont_actor_WINNER.pt` = the recon+soft-NDCG combo, graded 0.370/0.165 on the canonical harness.**
   Continuous actor (MLP belief∈R⁶⁴ + turn → query q∈R⁶⁴), FROM SCRATCH (no distillation), differentiable unroll,
   CONTMODE=cont (off-pool, no snap), GRADED answers, frozen V1 encoder; objective = reconstruction (1−cos(u,u*)) + soft-NDCG.
 - `policy_cont_actor_recon_variant.pt` — reconstruction-ONLY variant, 0.366/0.162 (within ~1σ; the model the snap-loss/QPROBE

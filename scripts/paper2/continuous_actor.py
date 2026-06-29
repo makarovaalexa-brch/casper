@@ -190,7 +190,19 @@ class Actor(nn.Module):                                                        #
         B=u.shape[0]; tn=(tt.view(B,1) if torch.is_tensor(tt) else torch.full((B,1),float(tt))); o=s.f(torch.cat([u,tn],1))
         if ACTHEAD=='concmix': return torch.softmax(o/_MIXTAU,1)@_Ect           # mixture over concept embeddings -> query in the concept span (continuous interpolation)
         return o
-actor=Actor(); CONTMODE=os.environ.get('CONTMODE','snap'); _CN=float(np.linalg.norm(Ec,axis=1).mean())   # snap=Wolpertinger replicate / cont=off-pool fold ; _CN=mean concept norm (on-manifold scale)
+class FieldActor(nn.Module):                                                   # #3: continuous CASPER-R -- propose a region, generate K candidates, score by [div,pop,rat,belief-align] (LEARNED weights), soft-select
+    def __init__(s):
+        super().__init__(); s.base=nn.Sequential(nn.Linear(D+1,HID),nn.ReLU(),nn.Linear(HID,HID),nn.ReLU(),nn.Linear(HID,D))
+        s.sc=nn.Sequential(nn.Linear(4,32),nn.ReLU(),nn.Linear(32,1)); s.K=int(os.environ.get('FK','8')); s.sig=float(os.environ.get('FSIG','0.6'))
+    def forward(s,u,tt):
+        B=u.shape[0]; tn=(tt.view(B,1) if torch.is_tensor(tt) else torch.full((B,1),float(tt))); mu=s.base(torch.cat([u,tn],1))
+        cand=mu.unsqueeze(1)+s.sig*torch.randn(B,s.K,D); cand=cand/(cand.norm(dim=2,keepdim=True)+1e-9)   # (B,K,D) off-manifold candidates around the proposed region
+        un=u/(u.norm(dim=1,keepdim=True)+1e-9)
+        feats=torch.stack([field_div(cand),field_pop(cand),field_rat(cand),(cand*un.unsqueeze(1)).sum(2)],dim=2)   # (B,K,4) per-candidate signal features
+        w=torch.softmax(s.sc(feats).squeeze(2)/float(os.environ.get('FSEL','0.3')),1)                   # learned scoring -> soft-select
+        return (w.unsqueeze(2)*cand).sum(1)                                     # (B,D) selected continuous direction (differentiable)
+_FIELDACT=bool(os.environ.get('FIELDACT'))                                     # defined here (used by both the actor instantiation and the #3 field block)
+actor=(FieldActor() if _FIELDACT else Actor()); CONTMODE=os.environ.get('CONTMODE','snap'); _CN=float(np.linalg.norm(Ec,axis=1).mean())   # snap=Wolpertinger replicate / cont=off-pool fold ; _CN=mean concept norm
 POOLn=(POOL/(np.linalg.norm(POOL,axis=1,keepdims=True)+1e-9)).astype(np.float32); POOLnt=torch.tensor(POOLn)   # unit-norm pool for COSINE snap (consistent with cos-loss distillation; dot-product snap is norm-biased)
 _GROUND=int(os.environ.get('GROUND',0)); _GTAU=float(os.environ.get('GTAU',0.2)); _GRADED=bool(os.environ.get('GRADED'))   # GOAL 2: GROUND>0 -> straight-through grounded fold (nearest real entity fwd, soft grad). GRADED=1 -> graded answer (affinity-interpolated NEG..POS) instead of one ±bit
 _pp=list(actor.parameters())+(list(enc.parameters()) if os.environ.get('COENC') else [])   # COENC: optimise encoder jointly with the actor
@@ -234,12 +246,33 @@ def toks2t(toks):                                                             # 
     arr=np.zeros((1,len(toks),D+1),np.float32); m=np.ones((1,len(toks)),np.float32)
     for q,(f,v) in enumerate(toks): arr[0,q,:D]=f; arr[0,q,D]=v
     return torch.tensor(arr),torch.tensor(m)
+# ===== #3: CONTINUOUS DIVISIVENESS FIELD (entropy/divisiveness is a property of the DIRECTION, computed EXACTLY from the
+# train-user taste distribution -> reproduces POOL_ENT at concept points; smooth+differentiable everywhere off-manifold) =====
+_DIVW=float(os.environ.get('DIVW','0')); _DTAU=float(os.environ.get('DTAU','2.0')); _DIVH=[torch.zeros(1)]
+_FIELDACT=bool(os.environ.get('FIELDACT'))
+if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE'):                       # #3: ALL continuous signal fields (div/pop/rat) over the DIRECTION; work on (...,D) (broadcasts over candidate dim)
+    _uu=[x for x in trU if len(rat_by_u[x])>=8][:int(os.environ.get('NUMAT','2500'))]
+    UMATt=torch.tensor(np.stack([enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]]) for x in _uu]).astype(np.float32))
+    UMATt=UMATt/(UMATt.norm(dim=1,keepdim=True)+1e-9)                          # unit train-user tastes
+    Qn_t=torch.tensor((Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32))   # unit item factors
+    _popz=torch.tensor(((popb-popb.mean())/(popb.std()+1e-9)).astype(np.float32))   # normalized popularity = log #ratings
+    _biz=torch.tensor(((bi-bi.mean())/(bi.std()+1e-9)).astype(np.float32))          # normalized avg-rating (item bias)
+    _PTAU=float(os.environ.get('PTAU','0.15'))
+    print(f"  #3 fields: divisiveness({UMATt.shape[0]} tastes) + popularity + avg-rating (DTAU={_DTAU},PTAU={_PTAU},DIVW={_DIVW},FIELDACT={_FIELDACT})",flush=True)
+    def field_div(q):                                                          # (...,D) unit -> (...) divisiveness = H_b(mean_i sigma(u*_i.q/tau))
+        p=torch.sigmoid((q@UMATt.t())/_DTAU).mean(-1).clamp(1e-4,1-1e-4); return -(p*torch.log2(p)+(1-p)*torch.log2(1-p))
+    def _walign(q): return torch.softmax((q@Qn_t.t())/_PTAU,-1)                # (...,NI) soft alignment of direction to items
+    def field_pop(q): return (_walign(q)*_popz).sum(-1)                        # popularity / #ratings of the region q points to
+    def field_rat(q): return (_walign(q)*_biz).sum(-1)                         # avg-rating of the region
+    def divfield(qn): return field_div(qn)                                     # back-compat: DIVW reward uses divisiveness
 def rollout(users,ANS,USTAR=None,explore=0.0):                                # PAPER C continuous-actor rollout (snap=Wolpertinger straight-through ; cont=fold off-pool point)
     B=len(users); toks=torch.zeros(B,T,D+1); tmask=torch.zeros(B,T); u=torch.zeros(B,D); asked=torch.zeros(B,NP)
+    if _DIVW>0: _DIVH[0]=torch.zeros(B)                                        # accumulate divisiveness of emitted queries over the rollout
     for t in range(T):
         q=actor(u,t/8.)                                                      # (B,D) continuous query
         if CONTMODE=='cont':                                                 # GOAL 2 CONTINUOUS: assume answerable; one-bit geometric answer; GROUND=k folds the kNN-centroid of REAL entities (in-distribution)
             qn=q/(q.norm(dim=1,keepdim=True)+1e-9)                            # unit query
+            if _DIVW>0: _DIVH[0]=_DIVH[0]+divfield(qn)                        # #3: reward asking DIVISIVE (informative) directions
             if _GROUND:                                                      # STRAIGHT-THROUGH grounding: hard nearest real entity fwd (sharp, in-distribution), soft-attention grad bwd (actor still learns)
                 sim=qn@POOLnt.t(); fes=torch.softmax(sim/_GTAU,1)@POOLt; fe=POOLt[sim.argmax(1)]+(fes-fes.detach())
             else: fe=qn*_CN                                                   # raw off-pool point (OOD baseline)
@@ -769,6 +802,7 @@ for ep in range(EP):
             else:
                 loss=(1-torch.nn.functional.cosine_similarity(u,USTAR,dim=1)).mean() if OBJ=='ustar' else recon(u,tgt,wt)
                 if os.environ.get('SNDCG'): loss=loss+float(os.environ['SNDCG'])*softndcg(u,LIKED,LMASK,tgt,PROFM,float(os.environ.get('NDTAU','1.0')))   # KEEP reconstruction + ADD gentle ranking pressure
+                if _DIVW>0: loss=loss-_DIVW*(_DIVH[0]/T).mean()              # #3: reward asking DIVISIVE directions (continuous entropy field)
             if os.environ.get('COENC'): loss=loss+_COENW*profile_anchor(us)    # keep co-trained encoder a good recommender (full-profile fold anchored to frozen snapshot)
             tot+=loss.item()
         _clip=list(actor.parameters())+(list(enc.parameters()) if os.environ.get('COENC') else [])
