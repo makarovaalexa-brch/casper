@@ -446,7 +446,7 @@ def run(mode,tail):
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4); held={j:rd[j] for j in test}
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
         ustar=enc_u_np([(Q[j],resid[x][j]) for j in profset]); un=np.linalg.norm(ustar)+1e-9   # known user vector
-        cans=cans_np(x,profset) if mode in('policy','conc_pop','conc_oracle','cont_oracle','entropy','entropy_uni','entropy_item','random','helf','logpop_ent','pop_ent') or mode.startswith('mix') else {}; toks=[]; asked=set(); nq=0; nans=0; first=None; seq=[]; trow=[]
+        cans=cans_np(x,profset) if mode in('policy','conc_pop','conc_oracle','cont_oracle','entropy','entropy_uni','entropy_item','random','helf','logpop_ent','pop_ent','contactor') or mode.startswith('mix') else {}; toks=[]; asked=set(); nq=0; nans=0; first=None; seq=[]; trow=[]
         for q in QPTS:
             while nq<q:
                 if mode=='policy':
@@ -469,9 +469,16 @@ def run(mode,tail):
                 elif mode=='entropy':                                              # CANONICAL entropy heuristic: most DIVISIVE answerable concept (binary entropy of like-rate, >=2000 train users, unanswerable->0 ranked last; matches lit_baselines = the strong/fair baseline). CONCEPTS ONLY by design (range(NC)) -- items never in the candidate set.
                     ci=[c for c in range(NC) if c not in asked]; cc=max(ci,key=lambda c:POOL_ENT[NI+c]); asked.add(cc); nq+=1
                     if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1
-                elif mode=='contactor':                                            # PAPER C continuous actor on the CANONICAL ruler: emit q in R^D, fold off-pool point, GRADED geometric answer (GANS=0 -> binary)
+                elif mode=='contactor':                                            # PAPER C continuous actor on the CANONICAL ruler: emit q in R^D, fold off-pool point, GRADED geometric answer (GANS=0 -> binary). SNAP=1 -> snap query to nearest ANSWERABLE concept (SNAP-LOSS: does off-manifold matter?)
                     qv=_cactor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),nq/8.).detach().numpy()[0]
-                    qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CNa).astype(np.float32); cf=float(ustar@qn)/un
+                    qn=qv/(np.linalg.norm(qv)+1e-9)
+                    if os.environ.get('SNAP'):
+                        cc=[c for c in cans if c not in asked]
+                        if cc:
+                            sims=[float(qn@(Ec[c]/(np.linalg.norm(Ec[c])+1e-9))) for c in cc]; c=cc[int(np.argmax(sims))]; asked.add(c)
+                            fe=Ec[c].astype(np.float32); cf=float(ustar@(fe/(np.linalg.norm(fe)+1e-9)))/un
+                        else: fe=(qn*_CNa).astype(np.float32); cf=float(ustar@qn)/un
+                    else: fe=(qn*_CNa).astype(np.float32); cf=float(ustar@qn)/un
                     ans=float(NEG+(POS-NEG)*(cf+1)/2) if os.environ.get('GANS','1')=='1' else (POS if float(ustar@fe)>0 else NEG)
                     toks.append((fe,ans)); nq+=1; nans+=1
                 elif mode=='entropy_uni':                                          # DIVISIVENESS over the UNIFIED pool (items+concepts), answerability-BLIND: ranks by global Hb so it picks divisive ITEMS the cold-start user usually hasn't seen -> unanswerable -> wasted Q. Demonstrates WHY canonical entropy is concept-only + the answerability cost of items.

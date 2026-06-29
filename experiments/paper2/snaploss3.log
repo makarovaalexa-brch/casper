@@ -1,0 +1,14 @@
+SNAP-LOSS (cans fixed, nohup): un-snapped vs snapped, seed-avg q8
+--UN--
+  seed1                contactor: FULL 0.367 | TAIL 0.166
+  seed2                contactor: FULL 0.365 | TAIL 0.160
+  seed3                contactor: FULL 0.362 | TAIL 0.156
+  seed7                contactor: FULL 0.367 | TAIL 0.159
+  seed11                contactor: FULL 0.371 | TAIL 0.170
+--SN--
+  seed1                contactor: FULL 0.328 | TAIL 0.143
+  seed2                contactor: FULL 0.321 | TAIL 0.123
+  seed3                contactor: FULL 0.327 | TAIL 0.127
+  seed7                contactor: FULL 0.329 | TAIL 0.136
+  seed11                contactor: FULL 0.333 | TAIL 0.126
+==DONE==
