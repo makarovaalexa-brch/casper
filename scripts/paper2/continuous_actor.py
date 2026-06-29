@@ -572,6 +572,134 @@ if os.environ.get('SEEDAVG'):                                                  #
     _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
     print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
     sys.exit(0)
+class ABot(nn.Module):                                                         # BOT-PLAY heteroscedastic answerer: (u*, q, exp) -> (mu, log_sigma2). mu=graded answer; 1/sigma2=answerability, EXPERIENCE-grounded (exp=proximity of q to the user's rated-item cloud) so off-manifold => high sigma2. Validates the geometric answerability assumption.
+    def __init__(s,h=128):
+        super().__init__(); s.net=nn.Sequential(nn.Linear(D+D+2,h),nn.ReLU(),nn.Linear(h,h),nn.ReLU())
+        s.mu=nn.Linear(h,1); s.ls=nn.Linear(h,1)                                # mu in answer-scale (NEG..POS); ls = log sigma^2 (clamped in use)
+    def forward(s,ustar,q,exp):                                                 # ustar (B,D), q unit (B,D), exp (B,2)=[max-cos, mean-top5-cos] to profile items
+        h=s.net(torch.cat([ustar,q,exp],1)); return s.mu(h).squeeze(-1), s.ls(h).squeeze(-1)
+if os.environ.get('BOTPLAY'):                                                  # BOT-PLAY: replace the geometric oracle with a LEARNED heteroscedastic answerer; test whether D1's off-manifold tail gain survives. BOTPLAY=train|eval|cotrain. See experiments/paper2/BOTPLAY_DESIGN.md.
+    import sys
+    bp=os.environ['BOTPLAY']; seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]
+    _Wv2=1./np.log2(np.arange(2,12)); _ackB=os.environ.get('ABOTCK',f'{base}/.cache/abot.pt')
+    Qn=(Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32); Qnt=torch.tensor(Qn)
+    TAUREF=float(os.environ.get('TAUREF','0'))                                  # hard-refusal threshold on sigma^2 (0=off=soft, always fold mu)
+    def ustar_np(x): return enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]])  # simulated user taste = fold of full profile
+    def expfeat_np(qn, profidx):                                                # qn (D,) unit; profidx=list of item ids -> (2,) [max cos, mean top-5 cos] to the user's rated items
+        if len(profidx)==0: return np.zeros(2,np.float32)
+        c=Qn[np.array(profidx)]@qn; c=np.sort(c)[::-1]; return np.array([float(c[0]), float(c[:5].mean())],np.float32)
+    abot=ABot()
+    # ---------- P0: TRAIN + VALIDATE (BOTPLAY=train) ----------
+    if bp in ('train','cotrain'):
+        print("BOTPLAY P0: building heteroscedastic answerer training set (real ML-1M ratings)...",flush=True)
+        Us,Qs,Es,Ts=[],[],[],[]                                                 # u*, q=Qhat_j (leave-one-out exp), target=resid, exp
+        for x in trU:
+            its=[j for j,_ in rat_by_u[x]]
+            if len(its)<8: continue
+            us=ustar_np(x)
+            for j,_ in rat_by_u[x]:
+                qn=Qn[j]; oth=[k for k in its if k!=j]                          # leave-one-out experience (don't let q match itself)
+                Us.append(us); Qs.append(qn); Es.append(expfeat_np(qn,oth)); Ts.append(resid[x][j])
+        Us=torch.tensor(np.stack(Us)); Qs=torch.tensor(np.stack(Qs)); Es=torch.tensor(np.stack(Es)); Ts=torch.tensor(np.array(Ts,np.float32))
+        n=len(Ts); idx=np.random.default_rng(0).permutation(n); va=idx[:n//10]; tr=idx[n//10:]   # 10% held for calibration
+        opt=torch.optim.Adam(abot.parameters(),lr=1e-3); EPB=int(os.environ.get('ABOTEP','8'))
+        print(f"  {n} (user,item) examples; train {len(tr)} val {len(va)}; heteroscedastic NLL, {EPB} epochs",flush=True)
+        for ep in range(EPB):
+            np.random.default_rng(ep).shuffle(tr); tot=0.;nb=0
+            for b0 in range(0,len(tr),4096):
+                bb=tr[b0:b0+4096]; mu,ls=abot(Us[bb],Qs[bb],Es[bb]); ls=ls.clamp(-6,4)
+                nll=(0.5*((Ts[bb]-mu)**2)*torch.exp(-ls)+0.5*ls).mean()         # Gaussian heteroscedastic NLL
+                opt.zero_grad(); nll.backward(); opt.step(); tot+=float(nll); nb+=1
+            with torch.no_grad():
+                mu,ls=abot(Us[va],Qs[va],Es[va]); ls=ls.clamp(-6,4); s2=torch.exp(ls)
+                rmse=float(((Ts[va]-mu)**2).mean()**0.5); nllv=float((0.5*((Ts[va]-mu)**2)/s2+0.5*ls).mean())
+            print(f"  ep{ep}: train NLL {tot/max(nb,1):.3f} | val NLL {nllv:.3f} RMSE {rmse:.3f}",flush=True)
+        torch.save(abot.state_dict(),_ackB); print(f"  saved {_ackB}",flush=True)
+        # VALIDATION GATE: (a) sigma^2 calibration (corr of sigma^2 with |a-mu|), (b) off-manifold sigma^2 > on-manifold
+        with torch.no_grad():
+            mu,ls=abot(Us[va],Qs[va],Es[va]); ls=ls.clamp(-6,4); s2=torch.exp(ls).numpy(); err=np.abs((Ts[va]-mu).numpy())
+            cal=float(np.corrcoef(s2,err)[0,1]); on=float(s2.mean())
+            # off-manifold probe: random unit directions, exp computed vs a sample profile
+            rng2=np.random.default_rng(1); offs=[]
+            for x in trU[:300]:
+                its=[j for j,_ in rat_by_u[x]]
+                if len(its)<8: continue
+                us=torch.tensor(ustar_np(x)[None]); rq=rng2.standard_normal(D).astype(np.float32); rq/=np.linalg.norm(rq)
+                ex=torch.tensor(expfeat_np(rq,its)[None]); _,lso=abot(us,torch.tensor(rq[None]),ex); offs.append(float(torch.exp(lso.clamp(-6,4))))
+            off=float(np.mean(offs))
+        print(f"  GATE: sigma^2-vs-|err| corr {cal:+.3f} (want >0=calibrated) | sigma^2 on-manifold {on:.3f} vs off-manifold {off:.3f} (want off>on=experience-grounded)",flush=True)
+        _K=int(os.environ.get('ABOTENS','0'))                                  # ENSEMBLE CHECK (Lakshminarayanan'17): K models; mu-disagreement should be HIGHER off-manifold => sigma^2 tracks epistemic OOD-ness, not just fitted aleatoric noise
+        if _K>1:
+            print(f"  ensemble check: training {_K} ABots (epistemic sanity for sigma^2)...",flush=True)
+            ens=[]
+            for k in range(_K):
+                m=ABot(); o2=torch.optim.Adam(m.parameters(),lr=1e-3)
+                for ep in range(EPB):
+                    od=np.random.default_rng(100+k*7+ep).permutation(len(tr)); od=tr[od]
+                    for b0 in range(0,len(od),4096):
+                        bb=od[b0:b0+4096]; mu,ls=m(Us[bb],Qs[bb],Es[bb]); ls=ls.clamp(-6,4)
+                        l=(0.5*((Ts[bb]-mu)**2)*torch.exp(-ls)+0.5*ls).mean(); o2.zero_grad(); l.backward(); o2.step()
+                m.eval(); ens.append(m)
+            with torch.no_grad():
+                onm=np.std([m(Us[va],Qs[va],Es[va])[0].numpy() for m in ens],axis=0).mean()    # on-manifold mu-disagreement (held items)
+                rqs=[]; rxs=[]
+                rng3=np.random.default_rng(2)
+                for x in trU[:300]:
+                    its=[j for j,_ in rat_by_u[x]]
+                    if len(its)<8: continue
+                    rq=rng3.standard_normal(D).astype(np.float32); rq/=np.linalg.norm(rq)
+                    rqs.append((ustar_np(x),rq,expfeat_np(rq,its)))
+                Ur=torch.tensor(np.stack([a for a,_,_ in rqs])); Qr=torch.tensor(np.stack([b for _,b,_ in rqs])); Er=torch.tensor(np.stack([c for _,_,c in rqs]))
+                offm=np.std([m(Ur,Qr,Er)[0].numpy() for m in ens],axis=0).mean()               # off-manifold mu-disagreement (random dirs)
+            print(f"  ensemble mu-disagreement: on-manifold {onm:.4f} vs off-manifold {offm:.4f} (want off>on => sigma^2 is genuinely epistemic)",flush=True)
+        if bp=='train': sys.exit(0)
+    else:
+        abot.load_state_dict(torch.load(_ackB)); abot.eval(); print(f"BOTPLAY: loaded {os.path.basename(_ackB)}",flush=True)
+    # ---------- P1: FROZEN-ACTOR STRESS TEST under ABot (BOTPLAY=eval) ----------
+    load_ck(os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt')); actor.eval()
+    def ndft(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    def roll_answerer(uf,profidx,answerer):                                     # 2x2 answerers: {geom, mu} answer x {universal, *_refuse} coverage. profidx = the user's FULL rated history (answerability = experience, not the elicited half). -> final belief u + #refused
+        toks=[]; nref=0; need=answerer in ('mu','mu_refuse','geom_refuse')      # geom_refuse uses ABot ONLY for the refusal gate; answer stays geometric (isolates the answerability tax with a perfect answer)
+        for t in range(8):
+            qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).detach().numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32)
+            cf=float(uf@qn)/(np.linalg.norm(uf)+1e-9)                           # geometric affinity
+            s2=0.
+            if need:
+                with torch.no_grad():
+                    mu,ls=abot(torch.tensor(uf[None],dtype=torch.float32),torch.tensor(qn[None]),torch.tensor(expfeat_np(qn,profidx)[None]))
+                s2=float(torch.exp(ls.clamp(-6,4)))
+            a=float(NEG+(POS-NEG)*(cf+1)/2) if answerer in ('geom','geom_refuse') else float(mu)   # ANSWER SHAPE: geometric vs learned mu
+            if answerer in ('geom_refuse','mu_refuse') and TAUREF>0 and s2>TAUREF: nref+=1; continue  # COVERAGE: refuse off-experience directions (wasted question, like an unanswerable item in Paper B)
+            toks.append((fe,a))
+        return enc_u_np(toks),nref
+    ANSW=os.environ.get('ANSW','geom,geom_refuse,mu,mu_refuse')                 # the 2x2: {geom,mu} x {universal,refuse}
+    print(f"=== BOT-PLAY P1: frozen D1 under answerers [{ANSW}] (seed-avg {seeds}, tail) TAUREF={TAUREF} ===",flush=True)
+    for answerer in ANSW.split(','):
+        fs=[];ts=[];refs=[]
+        for sd in seeds:
+            r=np.random.default_rng(sd); SP={}
+            for x in te:
+                its=list(dict(rat_by_u[x]))
+                if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+            VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.; nr=0.
+            for x in VU:
+                half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+                if not tlike: continue
+                uf=enc_u_np([(Q[j],resid[x][j]) for j in half])                # asker sees the half-profile belief only (realizable)
+                fullidx=[j for j,_ in rat_by_u[x]]                              # ANSWERER's experience = the user's FULL lived history (they can answer about any film they've watched)
+                u,nref=roll_answerer(uf,fullidx,answerer); nr+=nref
+                f,tl=ndft(u,half,tlike,relt); nf+=f; mf+=1
+                if tl is not None: nt+=tl; mt+=1
+            fs.append(nf/max(mf,1)); ts.append(nt/max(mt,1)); refs.append(nr/max(mf,1))
+        print(f"  {answerer:>12}: FULL {np.mean(fs):.4f}+/-{np.std(fs):.4f}  TAIL {np.mean(ts):.4f}+/-{np.std(ts):.4f}  refused/8={np.mean(refs):.2f}",flush=True)
+    print("  (P2 co-train: fine-tune the actor through ABot.mu so it learns answerable-off-manifold directions -- BOTPLAY=cotrain hook, TODO wire REINFORCE/unroll)",flush=True)
+    sys.exit(0)
 if os.environ.get('QCURVE'):                                                   # Q-CURVE: full+tail NDCG@10 vs question budget q in {0,2,4,6,8} for each policy, seed-avg, graded. Dumps CSV for the paper figure+table. ACTORCK=D1 gives casper/entropy/popular/actor curves; ONLYACTOR + a second ACTORCK gives the continuity-only actor curve.
     import sys
     seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
