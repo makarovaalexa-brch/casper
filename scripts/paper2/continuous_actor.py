@@ -250,8 +250,9 @@ def toks2t(toks):                                                             # 
 # train-user taste distribution -> reproduces POOL_ENT at concept points; smooth+differentiable everywhere off-manifold) =====
 _DIVW=float(os.environ.get('DIVW','0')); _DTAU=float(os.environ.get('DTAU','2.0')); _DIVH=[torch.zeros(1)]
 _REFUSE=bool(os.environ.get('REFUSE')); _TAUR=float(os.environ.get('TAUR','0.15')); _REFTMP=float(os.environ.get('REFTMP','0.05'))   # REFUSAL: answerer refuses washed-out questions (|cos(u*,q)|<TAUR) during training -> actor learns per-user-decisive asking (straight-through)
+_ABOTREF=bool(os.environ.get('ABOTREF')); _ABTAU=float(os.environ.get('ABTAU','0.8'))   # ABOT REFUSAL: refuse when the LEARNED answerer's confidence is low (sigma^2>ABTAU) = niche/unfamiliar question -> actor learns to ask FAMILIAR-and-informative; feats=[pop,div,0,0,taste]
 _FIELDACT=bool(os.environ.get('FIELDACT'))
-if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE'):                       # #3: ALL continuous signal fields (div/pop/rat) over the DIRECTION; work on (...,D) (broadcasts over candidate dim)
+if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE') or os.environ.get('BOTPLAY'):  # #3: ALL continuous signal fields (div/pop/rat) over the DIRECTION; work on (...,D) (broadcasts over candidate dim). BOTPLAY needs pop+div as ABot answerability features.
     _uu=[x for x in trU if len(rat_by_u[x])>=8][:int(os.environ.get('NUMAT','2500'))]
     UMATt=torch.tensor(np.stack([enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]]) for x in _uu]).astype(np.float32))
     UMATt=UMATt/(UMATt.norm(dim=1,keepdim=True)+1e-9)                          # unit train-user tastes
@@ -279,7 +280,11 @@ def rollout(users,ANS,USTAR=None,explore=0.0):                                # 
             else: fe=qn*_CN                                                   # raw off-pool point (OOD baseline)
             cf=((fe*USTAR).sum(1)/(fe.norm(dim=1)*USTAR.norm(dim=1)+1e-9)) if USTAR is not None else torch.zeros(B)   # graded affinity cos(u*,fe) in [-1,1]
             ans=(NEG+(POS-NEG)*(cf+1)/2) if _GRADED else (torch.sign(cf)+(torch.tanh(4.*cf)-torch.tanh(4.*cf).detach()))   # GRADED: interpolate NEG..POS by affinity ; else one honest ±bit
-            if _REFUSE and USTAR is not None:                                    # ANSWERER refuses washed-out (|cos(u*,q)|<TAUR => indifferent for THIS user): token NOT folded (wasted turn); straight-through so the actor learns to ask per-user-DECISIVE questions
+            if _ABOTREF and USTAR is not None:                                   # LEARNED-ANSWERER refusal: refuse niche/unfamiliar (ABot sigma^2>ABTAU); keep familiar+confident. feats=[pop,div,0,0,taste=cf]. straight-through -> actor learns FAMILIAR-and-informative questions
+                _pq=(field_pop(qn)-_ABpm)/_ABps; _dq=(field_div(qn)-_ABdm)/_ABds; _z=torch.zeros(B)
+                _,_lsq=_abm(USTAR,qn,torch.stack([_pq,_dq,_z,_z,cf],1)); _s2=torch.exp(_lsq.clamp(-6,4))
+                ks=torch.sigmoid((_ABTAU-_s2)/_REFTMP); keep=(_s2<=_ABTAU).float()+(ks-ks.detach())
+            elif _REFUSE and USTAR is not None:                                  # ANSWERER refuses washed-out (|cos(u*,q)|<TAUR => indifferent for THIS user): token NOT folded (wasted turn); straight-through so the actor learns to ask per-user-DECISIVE questions
                 ks=torch.sigmoid((cf.abs()-_TAUR)/_REFTMP); keep=(cf.abs()>=_TAUR).float()+(ks-ks.detach())   # hard binary fwd, soft grad bwd (push |cos| up to avoid refusal)
             else: keep=torch.ones(B)
             toks=toks.clone(); toks[:,t,:D]=fe; toks[:,t,D]=ans; tmask=tmask.clone(); tmask[:,t]=keep; u=enc(toks,tmask); continue
@@ -576,62 +581,84 @@ if os.environ.get('SEEDAVG'):                                                  #
     _av=[v for s,v in _Ff if s!=123]; _at=[v for s,v in _Tt if s!=123]
     print(f"  SEED-AVG (1,2,3,7,11): FULL {np.mean(_av):.4f}+/-{np.std(_av):.4f}  TAIL {np.mean(_at):.4f}+/-{np.std(_at):.4f}",flush=True)
     sys.exit(0)
-class ABot(nn.Module):                                                         # BOT-PLAY heteroscedastic answerer: (u*, q, exp) -> (mu, log_sigma2). mu=graded answer; 1/sigma2=answerability, EXPERIENCE-grounded (exp=proximity of q to the user's rated-item cloud) so off-manifold => high sigma2. Validates the geometric answerability assumption.
+_NABFEAT=5                                                                     # ABot rich answerability features: [popularity/familiarity, divisiveness, experience-max, experience-mean, taste-cos]
+class ABot(nn.Module):                                                         # BOT-PLAY heteroscedastic answerer: (u*, q, feats) -> (mu, log_sigma2). mu=graded answer; 1/sigma2=CONFIDENCE. Confidence is a LEARNED fn of FAMILIARITY (popularity, dominant), divisiveness, the user's experience, and taste -> popular-unrated=CONFIDENT, niche-unexperienced=UNSURE (NOT just |cos| or movie-distance).
     def __init__(s,h=128):
-        super().__init__(); s.net=nn.Sequential(nn.Linear(D+D+2,h),nn.ReLU(),nn.Linear(h,h),nn.ReLU())
+        super().__init__(); s.net=nn.Sequential(nn.Linear(D+D+_NABFEAT,h),nn.ReLU(),nn.Linear(h,h),nn.ReLU())
         s.mu=nn.Linear(h,1); s.ls=nn.Linear(h,1)                                # mu in answer-scale (NEG..POS); ls = log sigma^2 (clamped in use)
-    def forward(s,ustar,q,exp):                                                 # ustar (B,D), q unit (B,D), exp (B,2)=[max-cos, mean-top5-cos] to profile items
-        h=s.net(torch.cat([ustar,q,exp],1)); return s.mu(h).squeeze(-1), s.ls(h).squeeze(-1)
+    def forward(s,ustar,q,feats):                                              # ustar (B,D), q unit (B,D), feats (B,5)
+        h=s.net(torch.cat([ustar,q,feats],1)); return s.mu(h).squeeze(-1), s.ls(h).squeeze(-1)
+if _ABOTREF:                                                                   # load the frozen LEARNED answerer for ABot-refusal TRAINING (needs the #3 fields: keep DIVW>0 so they're built)
+    _abm=ABot(); _abm.load_state_dict(torch.load(f"{base}/.cache/abot.pt")); _abm.eval()
+    for _p in _abm.parameters(): _p.requires_grad_(False)
+    with torch.no_grad(): _PP=field_pop(Qn_t); _DD=field_div(Qn_t)
+    _ABpm,_ABps=float(_PP.mean()),float(_PP.std()+1e-9); _ABdm,_ABds=float(_DD.mean()),float(_DD.std()+1e-9)
+    print(f"ABOTREF: loaded abot.pt; refuse when ABot sigma^2 > {_ABTAU} (niche/unfamiliar)",flush=True)
 if os.environ.get('BOTPLAY'):                                                  # BOT-PLAY: replace the geometric oracle with a LEARNED heteroscedastic answerer; test whether D1's off-manifold tail gain survives. BOTPLAY=train|eval|cotrain. See experiments/paper2/BOTPLAY_DESIGN.md.
     import sys
     bp=os.environ['BOTPLAY']; seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]
     _Wv2=1./np.log2(np.arange(2,12)); _ackB=os.environ.get('ABOTCK',f'{base}/.cache/abot.pt')
     Qn=(Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32); Qnt=torch.tensor(Qn)
     TAUREF=float(os.environ.get('TAUREF','0'))                                  # hard-refusal threshold on sigma^2 (0=off=soft, always fold mu)
+    with torch.no_grad(): POPi=field_pop(Qnt).numpy(); DIVi=field_div(Qnt).numpy()   # per-ITEM popularity(familiarity) + divisiveness fields (the #3 fields)
+    _pm,_ps=POPi.mean(),POPi.std()+1e-9; _dm,_ds=DIVi.mean(),DIVi.std()+1e-9       # z-score the scalar fields for the ABot input
+    POPz=((POPi-_pm)/_ps).astype(np.float32); DIVz=((DIVi-_dm)/_ds).astype(np.float32)
     def ustar_np(x): return enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]])  # simulated user taste = fold of full profile
     def expfeat_np(qn, profidx):                                                # qn (D,) unit; profidx=list of item ids -> (2,) [max cos, mean top-5 cos] to the user's rated items
         if len(profidx)==0: return np.zeros(2,np.float32)
         c=Qn[np.array(profidx)]@qn; c=np.sort(c)[::-1]; return np.array([float(c[0]), float(c[:5].mean())],np.float32)
+    def popdiv_dir(qn):                                                          # pop+div (z-scored) for an ARBITRARY direction qn (D,) -> (2,)
+        qt=torch.tensor(qn[None],dtype=torch.float32)
+        with torch.no_grad(): p=float(field_pop(qt)); d=float(field_div(qt))
+        return np.array([(p-_pm)/_ps,(d-_dm)/_ds],np.float32)
     abot=ABot()
     # ---------- P0: TRAIN + VALIDATE (BOTPLAY=train) ----------
     if bp in ('train','cotrain'):
-        print("BOTPLAY P0: building heteroscedastic answerer training set (real ML-1M ratings)...",flush=True)
-        Us,Qs,Es,Ts=[],[],[],[]                                                 # u*, q=Qhat_j (leave-one-out exp), target=resid, exp
+        print("BOTPLAY P0: building answerer training set w/ RICH features [pop,div,exp_max,exp_mean,taste]...",flush=True)
+        Us,Qs,Fs,Ts=[],[],[],[]                                                 # u*, q=Qhat_j, feats(5), target=resid
         for x in trU:
             its=[j for j,_ in rat_by_u[x]]
             if len(its)<8: continue
-            us=ustar_np(x)
+            us=ustar_np(x); usn=us/(np.linalg.norm(us)+1e-9)
             for j,_ in rat_by_u[x]:
-                qn=Qn[j]; oth=[k for k in its if k!=j]                          # leave-one-out experience (don't let q match itself)
-                Us.append(us); Qs.append(qn); Es.append(expfeat_np(qn,oth)); Ts.append(resid[x][j])
-        Us=torch.tensor(np.stack(Us)); Qs=torch.tensor(np.stack(Qs)); Es=torch.tensor(np.stack(Es)); Ts=torch.tensor(np.array(Ts,np.float32))
+                qn=Qn[j]; oth=[k for k in its if k!=j]; e=expfeat_np(qn,oth)     # leave-one-out experience
+                Us.append(us); Qs.append(qn); Fs.append(np.array([POPz[j],DIVz[j],e[0],e[1],float(usn@qn)],np.float32)); Ts.append(resid[x][j])
+        Us=torch.tensor(np.stack(Us)); Qs=torch.tensor(np.stack(Qs)); Fs=torch.tensor(np.stack(Fs)); Ts=torch.tensor(np.array(Ts,np.float32))
         n=len(Ts); idx=np.random.default_rng(0).permutation(n); va=idx[:n//10]; tr=idx[n//10:]   # 10% held for calibration
         opt=torch.optim.Adam(abot.parameters(),lr=1e-3); EPB=int(os.environ.get('ABOTEP','8'))
         print(f"  {n} (user,item) examples; train {len(tr)} val {len(va)}; heteroscedastic NLL, {EPB} epochs",flush=True)
         for ep in range(EPB):
             np.random.default_rng(ep).shuffle(tr); tot=0.;nb=0
             for b0 in range(0,len(tr),4096):
-                bb=tr[b0:b0+4096]; mu,ls=abot(Us[bb],Qs[bb],Es[bb]); ls=ls.clamp(-6,4)
+                bb=tr[b0:b0+4096]; mu,ls=abot(Us[bb],Qs[bb],Fs[bb]); ls=ls.clamp(-6,4)
                 nll=(0.5*((Ts[bb]-mu)**2)*torch.exp(-ls)+0.5*ls).mean()         # Gaussian heteroscedastic NLL
                 opt.zero_grad(); nll.backward(); opt.step(); tot+=float(nll); nb+=1
             with torch.no_grad():
-                mu,ls=abot(Us[va],Qs[va],Es[va]); ls=ls.clamp(-6,4); s2=torch.exp(ls)
+                mu,ls=abot(Us[va],Qs[va],Fs[va]); ls=ls.clamp(-6,4); s2=torch.exp(ls)
                 rmse=float(((Ts[va]-mu)**2).mean()**0.5); nllv=float((0.5*((Ts[va]-mu)**2)/s2+0.5*ls).mean())
             print(f"  ep{ep}: train NLL {tot/max(nb,1):.3f} | val NLL {nllv:.3f} RMSE {rmse:.3f}",flush=True)
         torch.save(abot.state_dict(),_ackB); print(f"  saved {_ackB}",flush=True)
-        # VALIDATION GATE: (a) sigma^2 calibration (corr of sigma^2 with |a-mu|), (b) off-manifold sigma^2 > on-manifold
+        # CALIBRATION GATE
         with torch.no_grad():
-            mu,ls=abot(Us[va],Qs[va],Es[va]); ls=ls.clamp(-6,4); s2=torch.exp(ls).numpy(); err=np.abs((Ts[va]-mu).numpy())
-            cal=float(np.corrcoef(s2,err)[0,1]); on=float(s2.mean())
-            # off-manifold probe: random unit directions, exp computed vs a sample profile
-            rng2=np.random.default_rng(1); offs=[]
-            for x in trU[:300]:
+            mu,ls=abot(Us[va],Qs[va],Fs[va]); ls=ls.clamp(-6,4); s2=torch.exp(ls).numpy(); err=np.abs((Ts[va]-mu).numpy())
+            cal=float(np.corrcoef(s2,err)[0,1])                                  # (1) calibration
+            fp=Fs[va][:,0].numpy()                                              # popularity-z of held items
+            ph,pl=np.percentile(fp,67),np.percentile(fp,33); s2pop=float(s2[fp>=ph].mean()); s2niche=float(s2[fp<=pl].mean())   # (2) popular vs niche (HELD/unrated-style)
+            corr_pop=float(np.corrcoef(s2,fp)[0,1])
+            # (3) experienced (user rated dirs) vs random unexperienced dirs
+            rng2=np.random.default_rng(1); ex_s2=[]; rnd_s2=[]; rnd_pop=[]
+            for x in trU[:400]:
                 its=[j for j,_ in rat_by_u[x]]
                 if len(its)<8: continue
-                us=torch.tensor(ustar_np(x)[None]); rq=rng2.standard_normal(D).astype(np.float32); rq/=np.linalg.norm(rq)
-                ex=torch.tensor(expfeat_np(rq,its)[None]); _,lso=abot(us,torch.tensor(rq[None]),ex); offs.append(float(torch.exp(lso.clamp(-6,4))))
-            off=float(np.mean(offs))
-        print(f"  GATE: sigma^2-vs-|err| corr {cal:+.3f} (want >0=calibrated) | sigma^2 on-manifold {on:.3f} vs off-manifold {off:.3f} (want off>on=experience-grounded)",flush=True)
+                us=torch.tensor(ustar_np(x)[None],dtype=torch.float32); usn=us/(us.norm()+1e-9)
+                j=its[0]; qn=Qn[j]; e=expfeat_np(qn,[k for k in its if k!=j]); fe=torch.tensor([[POPz[j],DIVz[j],e[0],e[1],float((usn[0].numpy())@qn)]],dtype=torch.float32)
+                _,l1=abot(us,torch.tensor(qn[None]),fe); ex_s2.append(float(torch.exp(l1.clamp(-6,4))))
+                rq=rng2.standard_normal(D).astype(np.float32); rq/=np.linalg.norm(rq); pd=popdiv_dir(rq); e2=expfeat_np(rq,its)
+                fr=torch.tensor([[pd[0],pd[1],e2[0],e2[1],float((usn[0].numpy())@rq)]],dtype=torch.float32)
+                _,l2=abot(us,torch.tensor(rq[None]),fr); rnd_s2.append(float(torch.exp(l2.clamp(-6,4)))); rnd_pop.append(pd[0])
+        print(f"  GATE(1) sigma^2-vs-|err| corr {cal:+.3f} (want>0=calibrated)",flush=True)
+        print(f"  GATE(2) YOUR TEST: sigma^2 POPULAR(held) {s2pop:.3f} vs NICHE {s2niche:.3f} | corr(sigma^2,pop) {corr_pop:+.3f} (want popular<niche, corr<0 => popular=CONFIDENT)",flush=True)
+        print(f"  GATE(3) experienced-dir sigma^2 {np.mean(ex_s2):.3f} vs random-unexperienced {np.mean(rnd_s2):.3f} (want exp<rand=experience boosts confidence)",flush=True)
         _K=int(os.environ.get('ABOTENS','0'))                                  # ENSEMBLE CHECK (Lakshminarayanan'17): K models; mu-disagreement should be HIGHER off-manifold => sigma^2 tracks epistemic OOD-ness, not just fitted aleatoric noise
         if _K>1:
             print(f"  ensemble check: training {_K} ABots (epistemic sanity for sigma^2)...",flush=True)
@@ -641,11 +668,11 @@ if os.environ.get('BOTPLAY'):                                                  #
                 for ep in range(EPB):
                     od=np.random.default_rng(100+k*7+ep).permutation(len(tr)); od=tr[od]
                     for b0 in range(0,len(od),4096):
-                        bb=od[b0:b0+4096]; mu,ls=m(Us[bb],Qs[bb],Es[bb]); ls=ls.clamp(-6,4)
+                        bb=od[b0:b0+4096]; mu,ls=m(Us[bb],Qs[bb],Fs[bb]); ls=ls.clamp(-6,4)
                         l=(0.5*((Ts[bb]-mu)**2)*torch.exp(-ls)+0.5*ls).mean(); o2.zero_grad(); l.backward(); o2.step()
                 m.eval(); ens.append(m)
             with torch.no_grad():
-                onm=np.std([m(Us[va],Qs[va],Es[va])[0].numpy() for m in ens],axis=0).mean()    # on-manifold mu-disagreement (held items)
+                onm=np.std([m(Us[va],Qs[va],Fs[va])[0].numpy() for m in ens],axis=0).mean()    # on-manifold mu-disagreement (held items)
                 rqs=[]; rxs=[]
                 rng3=np.random.default_rng(2)
                 for x in trU[:300]:
@@ -675,8 +702,9 @@ if os.environ.get('BOTPLAY'):                                                  #
             cf=float(uf@qn)/(np.linalg.norm(uf)+1e-9)                           # geometric affinity
             s2=0.
             if need:
+                _pd=popdiv_dir(qn); _e=expfeat_np(qn,profidx); _fr=np.array([[_pd[0],_pd[1],_e[0],_e[1],float(uf@qn)/(np.linalg.norm(uf)+1e-9)]],np.float32)
                 with torch.no_grad():
-                    mu,ls=abot(torch.tensor(uf[None],dtype=torch.float32),torch.tensor(qn[None]),torch.tensor(expfeat_np(qn,profidx)[None]))
+                    mu,ls=abot(torch.tensor(uf[None],dtype=torch.float32),torch.tensor(qn[None]),torch.tensor(_fr))
                 s2=float(torch.exp(ls.clamp(-6,4)))
             a=float(NEG+(POS-NEG)*(cf+1)/2) if answerer in ('geom','geom_refuse') else float(mu)   # ANSWER SHAPE: geometric vs learned mu
             if answerer in ('geom_refuse','mu_refuse') and TAUREF>0 and s2>TAUREF: nref+=1; continue  # COVERAGE: refuse off-experience directions (wasted question, like an unanswerable item in Paper B)
