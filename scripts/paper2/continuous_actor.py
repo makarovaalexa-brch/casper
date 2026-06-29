@@ -969,6 +969,28 @@ if os.environ.get('QPROBE'):                                                   #
         A=np.stack(per[t]); m=A.mean(0); m/=np.linalg.norm(m)+1e-9
         print(f"  turn{t}: cos(query,centroid)={float(np.mean(A@m)):.3f} | nearest-item {np.mean([np.max(Qn@q) for q in A]):.3f} | nearest-conc {np.mean([np.max(Ecn@q) for q in A]):.3f}  (centroid~1=FIXED across users; <1=ADAPTIVE)",flush=True)
     sys.exit(0)
+if os.environ.get('QVIZ'):                                                     # dump the BEST model's emitted questions + movie factors + concept(tag) factors for a joint 2-D t-SNE (questions live OFF-manifold, between movies & tags). Run NOBC=1 CONTMODE=cont ACTORCK=...d1divw_last.pt
+    import sys
+    _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
+    _r=np.random.default_rng(1); SP={}
+    for x in te:
+        its=list(dict(rat_by_u[x]))
+        if len(its)>=6: il=its[:]; _r.shuffle(il); SP[x]=(set(il[:len(il)//2]), il[len(il)//2:])
+    VU=[x for x in te if x in SP][300:]; NUQ=int(os.environ.get('NUQ','200'))   # cap users for plot clarity
+    qs=[]; qt=[]
+    for x in VU[:NUQ]:
+        profset,_=SP[x]; usf=enc_u_np([(Q[j],resid[x][j]) for j in profset]); cans=cans_np(x,profset); toks=[]
+        for t in range(8):
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); qs.append(qn.astype(np.float32)); qt.append(t)
+            fe=(qn*_CN).astype(np.float32); cf=float(usf@qn)/(np.linalg.norm(usf)+1e-9); toks.append((fe,float(NEG+(POS-NEG)*(cf+1)/2)))  # GRADED answer (faithful to D1's training/eval)
+    qs=np.stack(qs); qt=np.array(qt)
+    out=f'{base}/.cache/qviz.npz'
+    np.savez(out, questions=qs, qturn=qt, movies=Q.astype(np.float32), movie_pop=cnt.astype(np.float32),
+             concepts=Ec.astype(np.float32), ctags=np.array(ctags))
+    print(f"QVIZ: {len(qs)} questions ({NUQ} users x8), {len(Q)} movies, {len(Ec)} concepts -> {out}",flush=True)
+    print(f"  emitted-query cos: nearest movie {np.mean([np.max((Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9))@q) for q in qs[:400]]):.3f} | nearest concept {np.mean([np.max((Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9))@q) for q in qs[:400]]):.3f} (low=off-manifold)",flush=True)
+    sys.exit(0)
 print(f"train scorer policy (pool={NP}, TAU={TAU}) -- finetune from conc_pop floor...",flush=True)
 _CKBEST=_CK.replace('.pt','_best.pt'); TAGn=os.environ.get('TAG','o12'); _bestvt=-1.0; _bestvf=0.; _bestvtt=0.; _bestep=0; _selm=os.environ.get('SELVAL','tail')  # EARLY-STOP via best-checkpoint on the SEPARATE val (SELVAL=tail|full); final eval loads _best.pt
 _since=0; _PAT=int(os.environ.get('PATIENCE',0))                              # patience halt: stop if val hasn't improved for _PAT epochs (0=OFF, run all EP). best-ckpt still captures the peak regardless.

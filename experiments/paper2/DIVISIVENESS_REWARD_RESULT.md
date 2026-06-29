@@ -68,3 +68,16 @@ NOBC=1 EP=0 COMPARE4=1 ONLYACTOR=1 ACTORCK=data/movielens/.cache/policy_phase3_d
 # epoch curve: loop ACTORCK over policy_phase3_d1divw_ep{6,8,10}.pt
 # retrain D1: DIVW=1.0 DTAU=2.0 (warm from u-recon variant), 10 epochs, CONTMODE=cont GRADED, frozen V1.
 ```
+
+## GOLD canonical q-curve confirmation (2026-06-29)
+Ran D1 on the slow canonical continuous_policy2_st.py (contactor, graded, QPTS=0,2,4,8), seed-avg {1,2,3,7,11}:
+FULL 0.310/0.330/0.370/**0.378**  TAIL 0.081/0.135/0.164/**0.178**. Matches the COMPARE4 figure numbers to <=0.001 at
+EVERY q -> COMPARE4 ≡ canonical for D1 across the whole curve (not just q8). Logs: experiments/paper2/qcanon/d1_seed*.log;
+seed-avg experiments/paper2/qcanon/d1_canonical_seedavg.csv. The Paper C headline 0.378/0.178 is gold-confirmed.
+
+## Question-space t-SNE (fig_qspace_tsne)
+QVIZ block dumps D1's emitted questions (GRADED rollout, 220 users x8) + movies + concepts; plot_qviz_tsne.py = joint
+t-SNE (cosine). Emitted-query cos: nearest movie 0.58, nearest concept 0.73 (concept-LEANING -- divisiveness pulls D1
+toward the divisive concept ridge; the pure-continuity/recon variant was further off at 0.30). Figure shows the fixed
+opener (turn-0 dense cluster) + adaptive later turns tracing a smooth turn-ordered manifold, distinct from movies/tags.
+HONEST: t-SNE separation partly reflects the actor outputs lying on their own low-dim manifold; caption accordingly.
