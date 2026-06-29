@@ -249,6 +249,7 @@ def toks2t(toks):                                                             # 
 # ===== #3: CONTINUOUS DIVISIVENESS FIELD (entropy/divisiveness is a property of the DIRECTION, computed EXACTLY from the
 # train-user taste distribution -> reproduces POOL_ENT at concept points; smooth+differentiable everywhere off-manifold) =====
 _DIVW=float(os.environ.get('DIVW','0')); _DTAU=float(os.environ.get('DTAU','2.0')); _DIVH=[torch.zeros(1)]
+_REFUSE=bool(os.environ.get('REFUSE')); _TAUR=float(os.environ.get('TAUR','0.15')); _REFTMP=float(os.environ.get('REFTMP','0.05'))   # REFUSAL: answerer refuses washed-out questions (|cos(u*,q)|<TAUR) during training -> actor learns per-user-decisive asking (straight-through)
 _FIELDACT=bool(os.environ.get('FIELDACT'))
 if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE'):                       # #3: ALL continuous signal fields (div/pop/rat) over the DIRECTION; work on (...,D) (broadcasts over candidate dim)
     _uu=[x for x in trU if len(rat_by_u[x])>=8][:int(os.environ.get('NUMAT','2500'))]
@@ -278,7 +279,10 @@ def rollout(users,ANS,USTAR=None,explore=0.0):                                # 
             else: fe=qn*_CN                                                   # raw off-pool point (OOD baseline)
             cf=((fe*USTAR).sum(1)/(fe.norm(dim=1)*USTAR.norm(dim=1)+1e-9)) if USTAR is not None else torch.zeros(B)   # graded affinity cos(u*,fe) in [-1,1]
             ans=(NEG+(POS-NEG)*(cf+1)/2) if _GRADED else (torch.sign(cf)+(torch.tanh(4.*cf)-torch.tanh(4.*cf).detach()))   # GRADED: interpolate NEG..POS by affinity ; else one honest ±bit
-            toks=toks.clone(); toks[:,t,:D]=fe; toks[:,t,D]=ans; tmask=tmask.clone(); tmask[:,t]=1; u=enc(toks,tmask); continue
+            if _REFUSE and USTAR is not None:                                    # ANSWERER refuses washed-out (|cos(u*,q)|<TAUR => indifferent for THIS user): token NOT folded (wasted turn); straight-through so the actor learns to ask per-user-DECISIVE questions
+                ks=torch.sigmoid((cf.abs()-_TAUR)/_REFTMP); keep=(cf.abs()>=_TAUR).float()+(ks-ks.detach())   # hard binary fwd, soft grad bwd (push |cos| up to avoid refusal)
+            else: keep=torch.ones(B)
+            toks=toks.clone(); toks[:,t,:D]=fe; toks[:,t,D]=ans; tmask=tmask.clone(); tmask[:,t]=keep; u=enc(toks,tmask); continue
         sc=q@POOLt.t()                                                       # SNAP score = query . pool
         if explore>0: sc=sc+explore*torch.randn_like(sc)
         sc=sc.masked_fill(asked>0,-1e9)                                      # no re-asking (matches eval)
@@ -990,6 +994,26 @@ if os.environ.get('QVIZ'):                                                     #
              concepts=Ec.astype(np.float32), ctags=np.array(ctags))
     print(f"QVIZ: {len(qs)} questions ({NUQ} users x8), {len(Q)} movies, {len(Ec)} concepts -> {out}",flush=True)
     print(f"  emitted-query cos: nearest movie {np.mean([np.max((Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9))@q) for q in qs[:400]]):.3f} | nearest concept {np.mean([np.max((Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9))@q) for q in qs[:400]]):.3f} (low=off-manifold)",flush=True)
+    sys.exit(0)
+if os.environ.get('DIAGWASH'):                                                 # DIAGNOSTIC: how washed-out are D1's questions PER USER? distribution of |cos(u*,q_t)| (low => indifferent for this user => refusable). Tells us if the refusal lever has headroom.
+    import sys
+    _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
+    _r=np.random.default_rng(1); SP={}
+    for x in te:
+        its=list(dict(rat_by_u[x]))
+        if len(its)>=6: il=its[:]; _r.shuffle(il); SP[x]=(set(il[:len(il)//2]), il[len(il)//2:])
+    VU=[x for x in te if x in SP][300:]; per=[[] for _ in range(8)]; allc=[]
+    for x in VU:
+        profset,_=SP[x]; usf=enc_u_np([(Q[j],resid[x][j]) for j in profset]); usn=usf/(np.linalg.norm(usf)+1e-9); toks=[]
+        for t in range(8):
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); ac=abs(float(usn@qn)); per[t].append(ac); allc.append(ac)
+            fe=(qn*_CN).astype(np.float32); cf=float(usf@qn)/(np.linalg.norm(usf)+1e-9); toks.append((fe,float(NEG+(POS-NEG)*(cf+1)/2)))
+    allc=np.array(allc)
+    print(f"=== DIAGWASH {os.path.basename(_ck)} | |cos(u*,q)| per-user-question ({len(VU)} users x8) ===",flush=True)
+    print(f"  overall: mean {allc.mean():.3f}  p10 {np.percentile(allc,10):.3f}  p25 {np.percentile(allc,25):.3f}  p50 {np.percentile(allc,50):.3f}  p75 {np.percentile(allc,75):.3f}",flush=True)
+    for thr in (0.05,0.10,0.15,0.20,0.30): print(f"  fraction washed-out (|cos|<{thr}): {float((allc<thr).mean()):.3f}",flush=True)
+    for t in range(8): a=np.array(per[t]); print(f"  turn{t}: mean|cos| {a.mean():.3f}  frac<0.15 {float((a<0.15).mean()):.3f}",flush=True)
     sys.exit(0)
 print(f"train scorer policy (pool={NP}, TAU={TAU}) -- finetune from conc_pop floor...",flush=True)
 _CKBEST=_CK.replace('.pt','_best.pt'); TAGn=os.environ.get('TAG','o12'); _bestvt=-1.0; _bestvf=0.; _bestvtt=0.; _bestep=0; _selm=os.environ.get('SELVAL','tail')  # EARLY-STOP via best-checkpoint on the SEPARATE val (SELVAL=tail|full); final eval loads _best.pt
