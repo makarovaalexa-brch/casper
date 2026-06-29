@@ -689,6 +689,34 @@ if os.environ.get('TRAINVAL'):                                                 #
     _tr=[x for x in trbig][:400]; _teu=[x for x in te if len(rat_by_u[x])>=6][300:]
     print(f"=== TRAINVAL {os.path.basename(_ck)} (overfit if TRAIN>>TEST) ===",flush=True)
     _evset(_tr,"TRAIN"); _evset(_teu,"TEST"); sys.exit(0)
+if os.environ.get('INTERP'):                                                   # PAPER D FOUNDATION: NAME the continuous queries by snapping to nearest genome concept; read off the questioning strategy (opener + per-turn + tree).
+    import sys,csv,collections
+    _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
+    tagname={}
+    for r in csv.reader(open(f'{base}/genome-tags.csv')):
+        if r and r[0].isdigit(): tagname[int(r[0])]=r[1]
+    ctarr=np.load(f'{base}/.cache/ctags_concept.npy'); nm=lambda c: tagname.get(int(ctarr[c]),f'c{c}')
+    Ecn=(Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9)).astype(np.float32)
+    _r=np.random.default_rng(1); SP={}
+    for x in te:
+        its=list(dict(rat_by_u[x]))
+        if len(its)>=6: il=its[:]; _r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+    VU=[x for x in te if x in SP][300:]; per=[collections.Counter() for _ in range(8)]; trees=collections.Counter(); cosn=[]
+    for x in VU:
+        profset,_=SP[x]; usf=enc_u_np([(Q[j],resid[x][j]) for j in profset]); _th=0.; cans=cans_np(x,profset); toks=[]; path=[]
+        for t in range(8):
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); sims=Ecn@qn; c=int(np.argmax(sims)); cosn.append(float(sims[c]))
+            per[t][nm(c)]+=1; path.append(nm(c))
+            _thr=float(np.mean([float(usf@Ec[cc]) for cc in cans])) if cans else 0.; fe=(qn*_CN).astype(np.float32); toks.append((fe, POS if float(usf@fe)>_thr else NEG))
+        trees[' -> '.join(path[:3])]+=1
+    print(f"=== INTERP {os.path.basename(_ck)} | naming continuous queries by nearest genome concept ({len(VU)} users) ===",flush=True)
+    print(f"  mean cos(query, nearest concept) = {np.mean(cosn):.3f}  (low = genuinely off-manifold; the name is approximate)",flush=True)
+    for t in range(8):
+        top=per[t].most_common(5); print(f"  turn{t}: "+", ".join(f'{n}({c})' for n,c in top),flush=True)
+    print("  top first-3-question 'paths' (the strategy tree):",flush=True)
+    for p,c in trees.most_common(8): print(f"    [{c:3d}] {p}",flush=True)
+    sys.exit(0)
 if os.environ.get('QPROBE'):                                                   # what did the from-scratch continuous actor LEARN TO ASK? cos(emitted query, nearest item/concept/u*) + adaptivity across users. Run NOBC=1 CONTMODE=cont.
     import sys
     _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
