@@ -258,6 +258,19 @@ def rollout(users,ANS,USTAR=None,explore=0.0):                                # 
         toks=toks.clone(); toks[:,t,:D]=a_used; toks[:,t,D]=ans; tmask=tmask.clone(); tmask[:,t]=1; u=enc(toks,tmask)
     return u
 def recon(u,tgt,wt): s=u@Qlt.t()+popbt; bce=nn.functional.binary_cross_entropy_with_logits(s,tgt,reduction='none'); return (wt*bce).sum()/wt.sum()
+_POPNEG=torch.tensor(np.argsort(-popb)[:int(os.environ.get('NPOP','200'))].copy())   # top-popular items = the realistic top-10 competition (hard negatives for soft-NDCG)
+def softndcg(u,LIKED,LMASK,tgt,PROFM,tau):                                      # listwise ApproxNDCG: rank HELD likes above POPULAR items, differentiable through the unroll
+    B=u.shape[0]
+    sL=(u.unsqueeze(1)*Qlt[LIKED]).sum(2)+popbt[LIKED]                          # (B,ML) held-like scores
+    sP=u@Qlt[_POPNEG].t()+popbt[_POPNEG]                                        # (B,P) popular-item scores
+    S=torch.cat([sL,sP],1); rel=torch.cat([LMASK,tgt[:,_POPNEG]],1)            # rel=1 for held likes (incl popular ones)
+    valid=torch.cat([LMASK,1.-PROFM[:,_POPNEG]],1)                              # mask seen-profile popular items (excluded at eval)
+    d=(S.unsqueeze(1)-S.unsqueeze(2))/tau                                       # d[b,j,i]=S_j-S_i
+    rank=1.+(torch.sigmoid(d)*valid.unsqueeze(2)).sum(1)-0.5*valid             # soft rank of each candidate
+    dcg=((rel/torch.log2(1.+rank))*valid).sum(1)
+    npos=rel.sum(1).clamp(min=1.); _it=1./torch.log2(torch.arange(2,2+rel.shape[1]).float()); _ic=torch.cumsum(_it,0)
+    idcg=_ic[(npos.long()-1).clamp(0,rel.shape[1]-1)]
+    return -(dcg/(idcg+1e-9)).mean()
 def rollout_sample(users,ANS,LIKED,LMASK,RNEG,PROFM,PEN):                      # REINFORCE: DENSE per-turn reward = D[coverage|rank|NDCG] - PEN*(unanswered)
     B=len(users); toks=torch.zeros(B,T,D+1); tmask=torch.zeros(B,T); u=torch.zeros(B,D); asked=torch.zeros(B,NP); ar=torch.arange(B)
     logps=[]; rews=[]; states=[]; ents=[]; prev=torch.zeros(B); QlL=Qlt[LIKED]; popL=popbt[LIKED]; lsum=LMASK.sum(1).clamp(min=1); QlN=Qlt[RNEG]; popN=popbt[RNEG]   # likes vs random non-likes
@@ -664,7 +677,10 @@ for ep in range(EP):
             if os.environ.get('AUXCOS'): loss=loss+float(os.environ.get('AUXCOS'))*(1-torch.nn.functional.cosine_similarity(rollout(us,ANS,explore=0.0),USTAR,dim=1)).mean()  # owner #4: cos(belief,true-taste) auxiliary (the strong cos signal) via grad-carrying straight-through rollout
         else:
             u=rollout(us,ANS,USTAR,explore=float(os.environ.get('EXPL',0.3)))
-            loss=(1-torch.nn.functional.cosine_similarity(u,USTAR,dim=1)).mean() if OBJ=='ustar' else recon(u,tgt,wt)
+            if OBJ=='softndcg': loss=softndcg(u,LIKED,LMASK,tgt,PROFM,float(os.environ.get('NDTAU','1.0')))   # listwise ranking objective (held likes vs popular items) -> targets question SELECTION for NDCG
+            else:
+                loss=(1-torch.nn.functional.cosine_similarity(u,USTAR,dim=1)).mean() if OBJ=='ustar' else recon(u,tgt,wt)
+                if os.environ.get('SNDCG'): loss=loss+float(os.environ['SNDCG'])*softndcg(u,LIKED,LMASK,tgt,PROFM,float(os.environ.get('NDTAU','1.0')))   # KEEP reconstruction + ADD gentle ranking pressure
             if os.environ.get('COENC'): loss=loss+_COENW*profile_anchor(us)    # keep co-trained encoder a good recommender (full-profile fold anchored to frozen snapshot)
             tot+=loss.item()
         _clip=list(actor.parameters())+(list(enc.parameters()) if os.environ.get('COENC') else [])

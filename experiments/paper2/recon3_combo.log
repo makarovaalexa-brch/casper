@@ -1,0 +1,6 @@
+  761 concepts (18s)
+NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
+=== RECON3 (graded, proper) | does reconstructing the profile give high NDCG? ===
+  TEST  (n=304): ACTOR cos-to-u* 0.931 NDCG 0.3699 || u*=half-fold NDCG 0.4094 | FULL-profile fold NDCG 0.4194 | HELD-fold NDCG 0.4275
+  TRAIN (n=1500): ACTOR cos-to-u* 0.923 NDCG 0.3329 || u*=half-fold NDCG 0.3703 | FULL-profile fold NDCG 0.3808 | HELD-fold NDCG 0.3865
+  (if FULL-profile fold NDCG is HIGH but u*=half NDCG ~= ACTOR, then half-profile target caps it; if u* NDCG >> ACTOR, actor belief is the problem)
