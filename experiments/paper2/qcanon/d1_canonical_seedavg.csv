@@ -1,0 +1,6 @@
+policy,q,full_seedavg,tail_seedavg
+# D1 canonical contactor seed-avg {1,2,3,7,11}, te[300:]
+d1_canonical,0,0.310,0.081
+d1_canonical,2,0.330,0.135
+d1_canonical,4,0.370,0.164
+d1_canonical,8,0.378,0.178
