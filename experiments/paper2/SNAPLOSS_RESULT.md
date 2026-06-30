@@ -15,3 +15,10 @@ VERDICT (decisive):
 3. This is the load-bearing novelty differentiator (novelty agent): every competitor snaps; none claims un-snapped
    beats discrete. SNAP-LOSS is the empirical centerpiece.
 Code: SNAP=1 in the 'contactor' mode (continuous_policy2_st.py); cans-scope bug fixed (contactor now in cans list).
+
+## UPDATE 2026-06-30: snap-loss measured on the HEADLINE D1 (divisiveness), not the recon variant
+COMPARE4 ONLYACTOR graded, seed-avg {1,2,3,7,11}, ACTSNAP=1 snaps each query to nearest answerable concept:
+- D1 un-snapped: 0.3780/0.1782 ; D1 SNAPPED: 0.3414/0.1384 ; snap-loss -0.037 FULL / -0.040 TAIL.
+- Snapped D1 (0.341/0.138) < discrete CASPER-R (0.360/0.152) -> emit-then-snap LOSES to discrete for the headline too.
+- D1 is concept-LEANING (QVIZ cos 0.58 movie / 0.73 concept) yet the off-concept RESIDUAL is load-bearing (-0.040 tail).
+Code: ACTSNAP env in continuous_actor.py COMPARE4 actor roll. Paper tab:snaploss now uses these headline numbers.
