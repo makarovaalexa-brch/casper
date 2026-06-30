@@ -1057,6 +1057,44 @@ if os.environ.get('QVIZ'):                                                     #
     print(f"QVIZ: {len(qs)} questions ({NUQ} users x8), {len(Q)} movies, {len(Ec)} concepts -> {out}",flush=True)
     print(f"  emitted-query cos: nearest movie {np.mean([np.max((Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9))@q) for q in qs[:400]]):.3f} | nearest concept {np.mean([np.max((Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9))@q) for q in qs[:400]]):.3f} (low=off-manifold)",flush=True)
     sys.exit(0)
+if os.environ.get('OPENQ'):                                                    # PAPER D: OPEN-RECALL "favourite movie?" elicitation. Simulator NAMES top-K favourites from the known half by a HEURISTIC; fold their real (Q,resid) tokens; NDCG. HEUR=align|rating|popweight|poppop|distinct|random5 ; OPENK=k.
+    import sys
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    HEUR=os.environ.get('HEUR','align'); K=int(os.environ.get('OPENK','8'))
+    def _nd(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    FS=[];TS=[]
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cand=list(half)              # u* = known-half fold
+            if HEUR=='align': named=sorted(cand,key=lambda j:-float(usf@Q[j]))[:K]          # most-aligned favourite (info-optimistic)
+            elif HEUR=='rating': named=sorted(cand,key=lambda j:(-rd[j],-float(usf@Q[j])))[:K]
+            elif HEUR=='poppop':                                                            # most-popular liked (pessimistic, low-info)
+                pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-cnt[j])[:K]
+            elif HEUR=='distinct':                                                          # high-align / low-popularity = "underrated favourite" (tail-info)
+                pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:K]
+            elif HEUR=='popweight':                                                         # REALISTIC: popularity-weighted recall among likes
+                pos=[j for j in cand if rd[j]>=4] or cand; w=np.array([cnt[j]+1. for j in pos],float); w/=w.sum(); named=list(r.choice(pos,size=min(K,len(pos)),replace=False,p=w))
+            elif HEUR=='random5':
+                pos=[j for j in cand if rd[j]>=5] or [j for j in cand if rd[j]>=4] or cand; named=list(r.choice(pos,size=min(K,len(pos)),replace=False))
+            else: named=cand[:K]
+            u=enc_u_np([(Q[j],resid[x][j]) for j in named]); f,t=_nd(u,half,tlike,relt); nf+=f; mf+=1
+            if t is not None: nt+=t; mt+=1
+        FS.append(nf/max(mf,1)); TS.append(nt/max(mt,1))
+    print(f"=== OPEN-Q 'favourite movie' x{K} | HEUR={HEUR} (seed-avg {seeds}, te[300:]) ===",flush=True)
+    print(f"  FULL {np.mean(FS):.4f}+/-{np.std(FS):.4f}  TAIL {np.mean(TS):.4f}+/-{np.std(TS):.4f}   (ref: D1 0.378/0.178 ; half-fold ceiling ~0.41)",flush=True)
+    sys.exit(0)
 if os.environ.get('SUBSETORACLE'):                                             # ORACLE: roll D1 (real geometric answers, NO injected noise), then DROP answers to maximise held NDCG. If oracle-subset > fold-all => some answers are RED HERRINGS; removing them helps (cf Paper B subset>full). Headroom for a learned refusal. OPT=tail|full.
     import sys
     _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
