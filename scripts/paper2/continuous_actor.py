@@ -203,11 +203,22 @@ class FieldActor(nn.Module):                                                   #
         return (w.unsqueeze(2)*cand).sum(1)                                     # (B,D) selected continuous direction (differentiable)
 _FIELDACT=bool(os.environ.get('FIELDACT'))                                     # defined here (used by both the actor instantiation and the #3 field block)
 actor=(FieldActor() if _FIELDACT else Actor()); CONTMODE=os.environ.get('CONTMODE','snap'); _CN=float(np.linalg.norm(Ec,axis=1).mean())   # snap=Wolpertinger replicate / cont=off-pool fold ; _CN=mean concept norm
+class ConsAns(nn.Module):                                                      # ANSLEARN=cons: answer is a learned function of cos(u*,q) ONLY -> LEGITIMATE (the question is about q); info-equivalent to geometric -> should TIE
+    def __init__(s): super().__init__(); s.g=nn.Sequential(nn.Linear(1,32),nn.Tanh(),nn.Linear(32,32),nn.Tanh(),nn.Linear(32,1))
+    def forward(s,ustar,qn): c=((ustar*qn).sum(1)/(ustar.norm(dim=1)+1e-9)).unsqueeze(1); return NEG+(POS-NEG)*torch.sigmoid(s.g(c).squeeze(1))
+class UnconsAns(nn.Module):                                                    # ANSLEARN=uncons: answer can depend on the FULL u* (leaks taste ORTHOGONAL to q) -> CHEAT; should rocket to the ceiling
+    def __init__(s): super().__init__(); s.g=nn.Sequential(nn.Linear(2*D,128),nn.ReLU(),nn.Linear(128,128),nn.ReLU(),nn.Linear(128,1))
+    def forward(s,ustar,qn): un=ustar/(ustar.norm(dim=1,keepdim=True)+1e-9); return NEG+(POS-NEG)*torch.sigmoid(s.g(torch.cat([un,qn],1)).squeeze(1))
+_ANSLEARN=os.environ.get('ANSLEARN'); _ansmodel=(ConsAns() if _ANSLEARN=='cons' else (UnconsAns() if _ANSLEARN=='uncons' else None))   # learn the graded answer to MAX held NDCG (actor frozen). cons=fn(cos) legitimate(should TIE); uncons=fn(u*) cheat(should hit ceiling); geom=graded-geometric baseline (no learning).
+if _ANSLEARN=='geom': EP=0                                                      # geom = baseline eval only (no answer learning)
 POOLn=(POOL/(np.linalg.norm(POOL,axis=1,keepdims=True)+1e-9)).astype(np.float32); POOLnt=torch.tensor(POOLn)   # unit-norm pool for COSINE snap (consistent with cos-loss distillation; dot-product snap is norm-biased)
 _GROUND=int(os.environ.get('GROUND',0)); _GTAU=float(os.environ.get('GTAU',0.2)); _GRADED=bool(os.environ.get('GRADED'))   # GOAL 2: GROUND>0 -> straight-through grounded fold (nearest real entity fwd, soft grad). GRADED=1 -> graded answer (affinity-interpolated NEG..POS) instead of one ±bit
 _pp=list(actor.parameters())+(list(enc.parameters()) if os.environ.get('COENC') else [])   # COENC: optimise encoder jointly with the actor
 if os.environ.get('COENC'):                                                    # enc fine-tuned at a MUCH smaller LR than the actor (limit drift -> no collapse) + own param group
     opt=torch.optim.Adam([{'params':list(actor.parameters()),'lr':1e-3},{'params':list(enc.parameters()),'lr':float(os.environ.get('ENCLR','1e-5'))}],weight_decay=float(os.environ.get('WD',0)))
+elif _ANSLEARN in ('cons','uncons'):                                           # ANSLEARN: FREEZE the actor (loaded via INIT), train ONLY the answer model on held NDCG
+    for _p in actor.parameters(): _p.requires_grad_(False)
+    opt=torch.optim.Adam(_ansmodel.parameters(),float(os.environ.get('ANSLR','1e-3')))
 else:
     opt=torch.optim.Adam(_pp,1e-3,weight_decay=float(os.environ.get('WD',0)))     # WD = L2 regularization (anti-overfit)
 class Critic(nn.Module):                                                      # P7: state-value baseline V(belief,turn) for REINFORCE variance reduction
@@ -280,7 +291,8 @@ def rollout(users,ANS,USTAR=None,explore=0.0):                                # 
                 sim=qn@POOLnt.t(); fes=torch.softmax(sim/_GTAU,1)@POOLt; fe=POOLt[sim.argmax(1)]+(fes-fes.detach())
             else: fe=qn*_CN                                                   # raw off-pool point (OOD baseline)
             cf=((fe*USTAR).sum(1)/(fe.norm(dim=1)*USTAR.norm(dim=1)+1e-9)) if USTAR is not None else torch.zeros(B)   # graded affinity cos(u*,fe) in [-1,1]
-            ans=(NEG+(POS-NEG)*(cf+1)/2) if _GRADED else (torch.sign(cf)+(torch.tanh(4.*cf)-torch.tanh(4.*cf).detach()))   # GRADED: interpolate NEG..POS by affinity ; else one honest ±bit
+            if _ANSLEARN in ('cons','uncons') and USTAR is not None: ans=_ansmodel(USTAR,qn)  # LEARNED answer (trained to max NDCG); cons=fn(cos) legit, uncons=fn(u*) cheat
+            else: ans=(NEG+(POS-NEG)*(cf+1)/2) if _GRADED else (torch.sign(cf)+(torch.tanh(4.*cf)-torch.tanh(4.*cf).detach()))   # GRADED: interpolate NEG..POS by affinity ; else one honest ±bit
             if _ABOTREF and USTAR is not None:                                   # LEARNED-ANSWERER: ABot sigma^2 = confidence. NOISETR: low-conf answers are NOISY(false). refuse sigma^2>tau (tau LEARNABLE) -> actor co-learns to ask reliable(low-sigma^2) questions + the optimal cutoff, on NDCG
                 _pq=(field_pop(qn)-_ABpm)/_ABps; _dq=(field_div(qn)-_ABdm)/_ABds; _z=torch.zeros(B)
                 _,_lsq=_abm(USTAR,qn,torch.stack([_pq,_dq,_z,_z,cf],1)); _s2=torch.exp(_lsq.clamp(-6,4))
@@ -544,7 +556,12 @@ def val_ndcg():
             with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),len(toks)/8.).numpy()[0]
             if CONTMODE=='cont':
                 _us=enc_u_np([(Q[j],resid[x][j]) for j in profset]); _th=float(np.mean([float(_us@Ec[c]) for c in cans])) if cans else 0.
-                _qn=(qv/(np.linalg.norm(qv)+1e-9)*_CN).astype(np.float32); toks.append((_qn, POS if float(_us@_qn)>_th else NEG))
+                _u1=(qv/(np.linalg.norm(qv)+1e-9)).astype(np.float32); _qn=(_u1*_CN).astype(np.float32)
+                if _ANSLEARN in ('cons','uncons'):
+                    with torch.no_grad(): _a=float(_ansmodel(torch.tensor(_us[None],dtype=torch.float32),torch.tensor(_u1[None])))   # LEARNED graded answer (the demo)
+                elif _ANSLEARN=='geom': _a=float(NEG+(POS-NEG)*(float(_us@_u1)/(np.linalg.norm(_us)+1e-9)+1)/2)   # geometric GRADED baseline (same ruler)
+                else: _a=(POS if float(_us@_qn)>_th else NEG)                    # original binary geometric (unchanged for non-ANSLEARN runs)
+                toks.append((_qn,_a))
             else:
                 sc=qv@POOL.T; kk=next(int(k) for k in np.argsort(-sc) if int(k) not in asked); asked.add(kk)
                 if PTYPE[kk]==0:
@@ -832,9 +849,16 @@ if os.environ.get('COMPARE4'):                                                 #
             sel=sorted(cans.keys(),key=lambda c:-(_entc_raw[c] if policy=='entropy' else cfreq[c]))[:8]
             toks=[(Ec[c],answer(uf,Ec[c],mode,thr)) for c in sel]
         elif policy=='actor':
+            asked=set()
             for t in range(8):
                 qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).detach().numpy()[0]
-                qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32); toks.append((fe,answer(uf,fe,mode,thr)))
+                qn=qv/(np.linalg.norm(qv)+1e-9)
+                if os.environ.get('ACTSNAP'):                                   # SNAP-LOSS: snap the actor's query to its nearest ANSWERABLE concept (emit-then-snap) -> measure the cost of naming for THIS model
+                    cc=[c for c in cans if c not in asked]
+                    if cc: c=max(cc,key=lambda c:float(qn@(Ec[c]/(np.linalg.norm(Ec[c])+1e-9)))); asked.add(c); fe=Ec[c].astype(np.float32)
+                    else: fe=(qn*_CN).astype(np.float32)
+                else: fe=(qn*_CN).astype(np.float32)
+                toks.append((fe,answer(uf,fe,mode,thr)))
         else:                                                                  # CASPER-R: scorer picks the best answerable concept each turn
             asked=set()
             for t in range(8):
@@ -1175,6 +1199,9 @@ for ep in range(EP):
         print(f"  ep{ep+1} return={-tot/nb:.4f} | VAL NDCG@10 full {vf:.3f} tail {vt:.3f}{_bm}  [PEAK {_selm} {_bestvt:.3f} @ep{_bestep}, {_since} since]"+(f"  tau={float(_tauP):.3f}" if _tauP is not None else ""),flush=True)
     save_ck(_CK.replace('.pt',f'_ep{ep+1}.pt')); save_ck(_CK.replace('.pt','_last.pt'))   # SAVE EVERY epoch (ckpts ~100KB) + always-latest pointer -> any-epoch/peak/latest analysis without stopping; a kill loses only the in-progress epoch
     if _PAT and _since>=_PAT: print(f"EARLY-STOP @ep{ep+1}: no val gain for {_PAT} epochs (best {_selm} {_bestvt:.3f} @ep{_bestep})",flush=True); break
+if _ANSLEARN:                                                                  # ANSWER-LEARNING DEMO: final NDCG with the learned (or geometric) answer, fixed actor
+    import sys; vf,vt=val_ndcg()
+    print(f"== ANSLEARN[{_ANSLEARN}] FINAL (te[300:], graded, D1 frozen): FULL {vf:.4f}  TAIL {vt:.4f}  || geom=baseline(~0.378/0.178); cons should TIE; uncons should approach 0.41 half-profile ceiling ==",flush=True); sys.exit(0)
 if not os.environ.get('LOAD') and EP>0:
     save_ck(_CK); print(f"saved {_CK} (last) ; BEST {_selm} {_bestvt:.3f} @ep{_bestep} -> {_CKBEST}",flush=True)  # pin BOTH last + best-val checkpoints
     open(f'{base}/.cache/policy_runs.tsv','a').write(f"{TAGn}\tENT_COEF={os.environ.get('ENT_COEF',0)}\tWD={os.environ.get('WD',0)}\tFEATS={os.environ.get('FEATS','-')}\tpeakval_full={_bestvf:.4f}\tpeakval_tail={_bestvtt:.4f}\t@ep{_bestep}\tEP={EP}\n")  # durable per-run PEAK record (top-not-latest)
