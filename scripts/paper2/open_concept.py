@@ -62,7 +62,9 @@ for j in range(ni):
 print(f"  built {ni} item docs, {len(tag2items)} genome tags ({time.time()-t0:.0f}s)",flush=True)
 sbert=SentenceTransformer('all-MiniLM-L6-v2')
 IE=sbert.encode(docs, batch_size=256, normalize_embeddings=True, show_progress_bar=False).astype(np.float32)
-print("  SBERT item embeddings ready",flush=True)
+BETA=10.0; W=(Q.T@IE)@np.linalg.inv(IE.T@IE+BETA*np.eye(IE.shape[1],dtype=np.float32))   # PAPER's SBERT adapter: ridge map SBERT(384)->taste factor(64)
+def wfactor(text): return (W@sbert.encode([text],normalize_embeddings=True)[0].astype(np.float32)).astype(np.float32)
+print("  SBERT item embeddings + W adapter ready",flush=True)
 class Enc(nn.Module):
     def __init__(s):
         super().__init__(); s.inp=nn.Sequential(nn.Linear(D+1,128),nn.ReLU(),nn.Linear(128,128),nn.ReLU()); s.att=nn.Linear(128,1); s.val=nn.Linear(128,D)
@@ -81,9 +83,9 @@ def genome_centroid(tg,N=40):
     if len(its)<5: return None,None
     its=sorted(its,key=lambda j:-cnt[j])[:N]; return Q[np.array(its)].mean(0), its
 def show(text):
-    cen,top=text_centroid(text,25)
+    _,top=text_centroid(text,25)
     matched=" | ".join(title.get(j,'?') for j in top[:5])                                # open-vocab RETRIEVAL (SBERT text->items)
-    recs=recs_from_centroid(cen,6,exclude=set(top[:5]),popw=0.4)                          # RECOMMEND after folding the concept (balanced popb)
+    recs=recs_from_centroid(wfactor(text),6,exclude=set(top[:5]),popw=0.4)                # RECOMMEND: fold W*SBERT(text) (the paper's adapter)
     print(f"  '{text}'",flush=True)
     print(f"      retrieves : {matched}",flush=True)
     print(f"      recommends: "+" | ".join(title.get(j,'?') for j in recs),flush=True)
@@ -96,7 +98,7 @@ pairs=[('horror','scary frightening movies'),('dinosaurs','prehistoric reptiles'
        ('comedy','hilarious funny film'),('romance','love story'),('western','cowboys in the old west'),('noir','dark detective mystery')]
 ov=[]
 for a,b in pairs:
-    ra=recs_from_centroid(text_centroid(a)[0],10); rb=recs_from_centroid(text_centroid(b)[0],10); o=len(set(ra)&set(rb))/10; ov.append(o)
+    ra=recs_from_centroid(wfactor(a),10); rb=recs_from_centroid(wfactor(b),10); o=len(set(ra)&set(rb))/10; ov.append(o)
     print(f"  '{a}' vs '{b}': overlap@10={o:.0%}",flush=True)
 print(f"  MEAN paraphrase overlap@10 = {np.mean(ov):.0%}",flush=True)
 print("\n=== (3) AT SCALE: text-located concept ~ genome-grounded concept (overlap@10 over genome tags) ===",flush=True)
@@ -104,9 +106,9 @@ common=[tg for tg,its in tag2items.items() if len(its)>=20]; rng.shuffle(common)
 ovg=[]; rnd=[]
 allset=list(range(ni))
 for tg in samp:
-    cg,_=genome_centroid(tg); ct,_=text_centroid(tagname.get(tg,''))
+    cg,_=genome_centroid(tg)
     if cg is None: continue
-    rg=recs_from_centroid(cg,10); rt=recs_from_centroid(ct,10); ovg.append(len(set(rg)&set(rt))/10)
+    rg=recs_from_centroid(cg,10); rt=recs_from_centroid(wfactor(tagname.get(tg,'')),10); ovg.append(len(set(rg)&set(rt))/10)
     rr=set(rng.choice(allset,10,replace=False)); rnd.append(len(set(rg)&rr)/10)
 print(f"  text-vs-genome MEAN overlap@10 = {np.mean(ovg):.0%}  (random baseline {np.mean(rnd):.1%})  over {len(ovg)} tags",flush=True)
 print(f"  => free-text concepts recover the curated genome concepts WITHOUT retraining (bolt-on).",flush=True)

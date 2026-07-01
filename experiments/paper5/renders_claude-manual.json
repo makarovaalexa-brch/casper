@@ -1,0 +1,15 @@
+{
+"Query: -0.56*[gay + stereotypes]  +0.35*[adapted from:book + chase]  +0.31*[scifi cult]": "Do you prefer plot-driven genre films (thrillers, cult sci-fi) over films about social or identity issues?",
+"Query: -0.85*[1990s films]  +0.54*[weapons]  +0.33*[vienna]": "Do you tend to avoid '90s films in favour of other eras?",
+"Query: +0.77*[classic + criterion]  -0.40*[alternate endings]  +0.30*[comic]": "Do you gravitate toward classic, critically-revered films rather than flashy, gimmick-driven ones?",
+"Query: +0.80*[classic + oscar (best directing)]  -0.37*[alternate endings]  +0.29*[comic]": "Are you drawn to classic, award-caliber directing rather than gimmicky twist-ending films?",
+"Query: -0.66*[good + great acting]  -0.30*[alternate endings]  +0.28*[intelligent sci-fi]": "Do you prefer smart, idea-driven science fiction over acting-showcase dramas?",
+"Query: +0.61*[1930s + oscar (best directing)]  -0.35*[alternate endings]  +0.30*[gambling]": "Do you enjoy golden-age, old-Hollywood classics over modern twist-driven films?",
+"Query: -0.64*[good + great ending]  +0.42*[great ending]  +0.32*[sci-fi + science fiction]": "Do you love science fiction?",
+"Query: +0.65*[oscar (best effects - visual effects)]  -0.42*[heartwarming + touching]  +0.30*[adapted from:book + chase]": "Do you want spectacle and thrills over heartwarming, emotional films?",
+"Query: -0.52*[gay + love]  +0.46*[chase + greed]  +0.33*[Sci-Fi]": "Do you prefer high-stakes plots - chases, heists, sci-fi - over romance and love stories?",
+"Query: -0.70*[good soundtrack + love]  +0.33*[1970s films]  +0.30*[mythology]": "Are you drawn to mythic, epic older films rather than romantic, soundtrack-driven ones?",
+"Query: +0.52*[Paul Scofield]  +0.43*[Frances McDormand]  +0.28*[Tommy Davidson]": "Do you enjoy prestige, theatrically-acted dramas?",
+"Query: +0.58*[≈ meditative · intimate · enigmatic]  +0.30*[Tommy Davidson]  +0.34*[Paul Scofield]": "Do you enjoy slow, meditative films that leave things ambiguous?",
+"Query: -0.47*[Cliff DeYoung]  +0.33*[Tim Burton]  +0.31*[Warren Beatty]": "Do you like quirky, gothic, whimsical films (the Tim Burton sort)?"
+}

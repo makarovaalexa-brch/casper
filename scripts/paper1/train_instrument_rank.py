@@ -122,8 +122,8 @@ def main():
             lk, rt = model(bi, bp, pad)
             loss = liked_rank_loss(lk, tgt, revt, nt) + F.binary_cross_entropy_with_logits(rt, ratedm)
             if CAL_WEIGHT > 0:                      # calibrate liked head so EIG/entropy is meaningful
-                m = ~torch.isnan(tgt); t0 = torch.where(m, tgt, torch.zeros_like(tgt))
-                per = F.binary_cross_entropy_with_logits(lk[:, :nt], t0, reduction='none')
+                m = ~torch.isnan(tgt); tz = torch.where(m, tgt, torch.zeros_like(tgt))
+                per = F.binary_cross_entropy_with_logits(lk[:, :nt], tz, reduction='none')
                 loss = loss + CAL_WEIGHT * (per * m.float()).sum() / m.float().sum().clamp(min=1)
             loss.backward(); opt.step()
         if ep % 2 and ep < EPOCHS - 1:
