@@ -264,7 +264,7 @@ _REFUSE=bool(os.environ.get('REFUSE')); _TAUR=float(os.environ.get('TAUR','0.15'
 _ABOTREF=bool(os.environ.get('ABOTREF')); _ABTAU=float(os.environ.get('ABTAU','0.8'))   # ABOT REFUSAL: refuse when the LEARNED answerer's confidence is low (sigma^2>ABTAU) = niche/unfamiliar question -> actor learns to ask FAMILIAR-and-informative; feats=[pop,div,0,0,taste]
 _NOISETR=bool(os.environ.get('NOISETR')); _NOISEK=float(os.environ.get('NOISEK','1.0')); _LEARNTAU=bool(os.environ.get('LEARNTAU')); _tauP=None   # NOISETR: training answers are NOISY (geom + N(0,sigma^2_ABot)) => low-conf = FALSE info; refusing removes it. LEARNTAU: refusal threshold tau co-trained to optimise NDCG.
 _FIELDACT=bool(os.environ.get('FIELDACT'))
-if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE') or os.environ.get('BOTPLAY') or os.environ.get('SUBSETORACLE'):  # #3 fields (div/pop/rat); BOTPLAY/SUBSETORACLE need pop+div for ABot features + drop-certainty analysis.
+if _DIVW>0 or _FIELDACT or os.environ.get('FIELDPROBE') or os.environ.get('BOTPLAY') or os.environ.get('SUBSETORACLE') or (os.environ.get('POLOPEN') and os.environ.get('FEATS')):  # #3 fields (div/pop/rat); POLOPEN+FEATS feeds per-type pop/div properties to the policy.
     _uu=[x for x in trU if len(rat_by_u[x])>=8][:int(os.environ.get('NUMAT','2500'))]
     UMATt=torch.tensor(np.stack([enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]]) for x in _uu]).astype(np.float32))
     UMATt=UMATt/(UMATt.norm(dim=1,keepdim=True)+1e-9)                          # unit train-user tastes
@@ -1078,22 +1078,950 @@ if os.environ.get('OPENQ'):                                                    #
             half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
             if not tlike: continue
             usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cand=list(half)              # u* = known-half fold
-            if HEUR=='align': named=sorted(cand,key=lambda j:-float(usf@Q[j]))[:K]          # most-aligned favourite (info-optimistic)
-            elif HEUR=='rating': named=sorted(cand,key=lambda j:(-rd[j],-float(usf@Q[j])))[:K]
-            elif HEUR=='poppop':                                                            # most-popular liked (pessimistic, low-info)
-                pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-cnt[j])[:K]
-            elif HEUR=='distinct':                                                          # high-align / low-popularity = "underrated favourite" (tail-info)
-                pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:K]
-            elif HEUR=='popweight':                                                         # REALISTIC: popularity-weighted recall among likes
-                pos=[j for j in cand if rd[j]>=4] or cand; w=np.array([cnt[j]+1. for j in pos],float); w/=w.sum(); named=list(r.choice(pos,size=min(K,len(pos)),replace=False,p=w))
-            elif HEUR=='random5':
-                pos=[j for j in cand if rd[j]>=5] or [j for j in cand if rd[j]>=4] or cand; named=list(r.choice(pos,size=min(K,len(pos)),replace=False))
-            else: named=cand[:K]
-            u=enc_u_np([(Q[j],resid[x][j]) for j in named]); f,t=_nd(u,half,tlike,relt); nf+=f; mf+=1
+            PORT=os.environ.get('PORTFOLIO')
+            if PORT:                                                                        # PORTFOLIO of item question-TYPES: "fav:3,gem:3,hate:2" (fav=head, gem=hidden-gem/tail, hate=negative/prune)
+                toks_p=[]; used=set()
+                for spec in PORT.split(','):
+                    typ,n=spec.split(':'); n=int(n); av=[j for j in cand if j not in used]
+                    if typ=='fav': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:(-rd[j],-float(usf@Q[j])))[:n]      # highest-rated favourite (head)
+                    elif typ=='gem': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:n]  # underrated/hidden-gem (tail)
+                    elif typ=='align': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-float(usf@Q[j]))[:n]
+                    elif typ=='hate': sel=sorted([j for j in av if rd[j]<=2] or sorted(av,key=lambda j:float(usf@Q[j]))[:n],key=lambda j:rd[j])[:n]  # disliked movie (negative/prune)
+                    elif typ=='pop': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-cnt[j])[:n]
+                    else: sel=av[:n]
+                    for j in sel: toks_p.append((Q[j],resid[x][j])); used.add(j)
+                u=enc_u_np(toks_p)
+            else:
+                if HEUR=='align': named=sorted(cand,key=lambda j:-float(usf@Q[j]))[:K]          # most-aligned favourite (info-optimistic)
+                elif HEUR=='rating': named=sorted(cand,key=lambda j:(-rd[j],-float(usf@Q[j])))[:K]
+                elif HEUR=='poppop':                                                            # most-popular liked (pessimistic, low-info)
+                    pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-cnt[j])[:K]
+                elif HEUR=='distinct':                                                          # high-align / low-popularity = "underrated favourite" (tail-info)
+                    pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:K]
+                elif HEUR=='popweight':                                                         # REALISTIC: popularity-weighted recall among likes
+                    pos=[j for j in cand if rd[j]>=4] or cand; w=np.array([cnt[j]+1. for j in pos],float); w/=w.sum(); named=list(r.choice(pos,size=min(K,len(pos)),replace=False,p=w))
+                elif HEUR=='random5':
+                    pos=[j for j in cand if rd[j]>=5] or [j for j in cand if rd[j]>=4] or cand; named=list(r.choice(pos,size=min(K,len(pos)),replace=False))
+                else: named=cand[:K]
+                u=enc_u_np([(Q[j],resid[x][j]) for j in named])
+            f,t=_nd(u,half,tlike,relt); nf+=f; mf+=1
             if t is not None: nt+=t; mt+=1
         FS.append(nf/max(mf,1)); TS.append(nt/max(mt,1))
-    print(f"=== OPEN-Q 'favourite movie' x{K} | HEUR={HEUR} (seed-avg {seeds}, te[300:]) ===",flush=True)
+    _lbl=('PORTFOLIO='+os.environ['PORTFOLIO']) if os.environ.get('PORTFOLIO') else ("favmovie x%d HEUR=%s"%(K,HEUR))
+    print(f"=== OPEN-Q {_lbl} (seed-avg {seeds}, te[300:]) ===",flush=True)
     print(f"  FULL {np.mean(FS):.4f}+/-{np.std(FS):.4f}  TAIL {np.mean(TS):.4f}+/-{np.std(TS):.4f}   (ref: D1 0.378/0.178 ; half-fold ceiling ~0.41)",flush=True)
+    sys.exit(0)
+if os.environ.get('METAQ'):                                                    # PAPER D METADATA phase: "favourite ACTOR/DIRECTOR?" -> person token = mean of their catalog films' factors (coarse, but objective & broad-coverage). User names the most-salient person from KNOWN-HALF liked films; fold person-centroid (+POS). METATYPE=actor|director|both, METAHEUR=count|rating|align, METAK=#people. MIXFAV=n appends n favourite-movie item tokens (open+closed mix).
+    import sys, json
+    from collections import defaultdict
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    MTYPE=os.environ.get('METATYPE','actor'); MHEUR=os.environ.get('METAHEUR','count'); MK=int(os.environ.get('METAK','8')); MIXFAV=int(os.environ.get('MIXFAV','0'))
+    cr=json.load(open(f'{base}/.cache/credits_ml1m_actors5.json')); ma={int(k):v for k,v in cr['movie_actors'].items()}; md={int(k):v for k,v in cr['movie_directors'].items()}
+    gmap={}                                                                     # genre: from ml-1m movies.dat ("mid::title::g1|g2"); coarsest themes rung
+    if MTYPE in ('genre','both_g','union'):
+        import codecs
+        for line in codecs.open(f'{ml}/movies.dat','r','latin-1'):
+            a=line.rstrip('\n').split('::')
+            if len(a)>=3: gmap[int(a[0])]=a[2].split('|')
+    srcs=([ma] if MTYPE in('actor','both','union') else [])+([md] if MTYPE in('director','both','union') else [])+([gmap] if MTYPE=='genre' else [])
+    pf=defaultdict(list); ip=defaultdict(list)                                  # person -> [item idx] (global catalog) ; item idx -> [people]
+    for dct in srcs:
+        for mid,people in dct.items():
+            if mid in iids:
+                for p in people: pf[p].append(iids[mid]); ip[iids[mid]].append(p)
+    pcent={p:Q[np.array(sorted(set(idxs)))].mean(0).astype(np.float32) for p,idxs in pf.items() if idxs}   # person factor = centroid of THEIR catalog films (what the system knows from a name; user-agnostic)
+    gf=defaultdict(list); ig=defaultdict(list); gcent={}                        # genre -> item idx ; item idx -> genres ; genre centroid
+    if MTYPE=='union':
+        for mid,gs in gmap.items():
+            if mid in iids:
+                for g in gs: gf[g].append(iids[mid]); ig[iids[mid]].append(g)
+        gcent={g:Q[np.array(sorted(set(v)))].mean(0).astype(np.float32) for g,v in gf.items()}
+    print(f"  META: {len(pcent)} persons, {len(gcent)} genres mapped (MTYPE={MTYPE})",flush=True)
+    _un=lambda v:v/(np.linalg.norm(v)+1e-9)
+    _UTC=defaultdict(int)                                                       # union: which entity TYPE gets named
+    def _nd(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    FS=[];TS=[]
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); liked=[j for j in half if rd[j]>=4]
+            if MTYPE=='union':                                                  # FULLY-OPEN "what do you like?": user may name ANY entity type; rank the union by alignment (cosine = comparable scale across types). Records the type mix.
+                cands=[]                                                        # (token_factor, rating, score, type)
+                for j in liked: cands.append((Q[j],resid[x][j],float(usf@_un(Q[j])),'movie'))
+                sp=set()
+                for j in liked:
+                    for p in ip.get(j,[]):
+                        if p in pcent and p not in sp: sp.add(p); cands.append((pcent[p],POS,float(usf@_un(pcent[p])),'person'))
+                sg=set()
+                for j in liked:
+                    for g in ig.get(j,[]):
+                        if g in gcent and g not in sg: sg.add(g); cands.append((gcent[g],POS,float(usf@_un(gcent[g])),'genre'))
+                top=sorted(cands,key=lambda c:-c[2])[:MK]
+                for c in top: _UTC[c[3]]+=1
+                toks=[(c[0],float(c[1])) for c in top]
+                u=enc_u_np(toks) if toks else np.zeros(D,np.float32)
+                f,t=_nd(u,half,tlike,relt); nf+=f; mf+=1
+                if t is not None: nt+=t; mt+=1
+                continue
+            score=defaultdict(float)                                            # the user names the most-salient favourite person from their known-half likes
+            for j in liked:
+                for p in ip.get(j,[]):
+                    if p not in pcent: continue
+                    if MHEUR=='align': score[p]=max(score[p],float(usf@pcent[p]))
+                    else: score[p]+=(rd[j] if MHEUR=='rating' else 1.)
+            named=[p for p,_ in sorted(score.items(),key=lambda kv:-kv[1])][:MK]
+            toks=[(pcent[p],float(POS)) for p in named]
+            if MIXFAV>0:                                                        # MIX open+closed: also name MIXFAV favourite MOVIES (item tokens)
+                fav=sorted(liked or list(half),key=lambda j:(-rd[j],-float(usf@Q[j])))[:MIXFAV]; toks+=[(Q[j],resid[x][j]) for j in fav]
+            u=enc_u_np(toks) if toks else np.zeros(D,np.float32)
+            f,t=_nd(u,half,tlike,relt); nf+=f; mf+=1
+            if t is not None: nt+=t; mt+=1
+        FS.append(nf/max(mf,1)); TS.append(nt/max(mt,1))
+    print(f"=== META-Q favourite {MTYPE} xK={MK} HEUR={MHEUR}{' +MIXFAV%d'%MIXFAV if MIXFAV else ''} (seed-avg {seeds}, te[300:]) ===",flush=True)
+    print(f"  FULL {np.mean(FS):.4f}+/-{np.std(FS):.4f}  TAIL {np.mean(TS):.4f}+/-{np.std(TS):.4f}   (ref: item-recall ~0.41/0.21 ; D1 0.378/0.178)",flush=True)
+    if MTYPE=='union':
+        _tot=sum(_UTC.values())+1e-9; print(f"  union type-mix named: "+", ".join(f"{k} {100*v/_tot:.0f}%" for k,v in sorted(_UTC.items(),key=lambda kv:-kv[1])),flush=True)
+    sys.exit(0)
+if os.environ.get('HYBRID'):                                                   # PAPER D open+closed COMBO: OPENK open favourite-movie folds (high-bandwidth ANCHOR) then (8-OPENK) Paper-C D1 continuous closed PROBES (graded geometric) on the running belief. Tests value of COMBINING. HEUR=popweight|distinct|align ; OPENK=0..8 (0=pure D1, 8=pure open).
+    import sys
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    HEUR=os.environ.get('HEUR','popweight'); OPENK=int(os.environ.get('OPENK','4'))
+    _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
+    def _nd(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    FS=[];TS=[]
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cand=list(half); usn=usf/(np.linalg.norm(usf)+1e-9)
+            pos=[j for j in cand if rd[j]>=4] or cand                           # OPEN anchor: name OPENK favourite movies
+            if HEUR=='distinct': named=sorted(pos,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:OPENK]
+            elif HEUR=='align': named=sorted(cand,key=lambda j:-float(usf@Q[j]))[:OPENK]
+            else: w=np.array([cnt[j]+1. for j in pos],float); w/=w.sum(); named=list(r.choice(pos,size=min(OPENK,len(pos)),replace=False,p=w))
+            toks=[(Q[j],resid[x][j]) for j in named]
+            for t in range(OPENK,8):                                            # CLOSED refine: D1 continuous probes on the running belief, graded geometric answers
+                with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32); cf=float(usf@qn)/(np.linalg.norm(usf)+1e-9); toks.append((fe,float(NEG+(POS-NEG)*(cf+1)/2)))
+            u=enc_u_np(toks); f,t=_nd(u,half,tlike,relt); nf+=f; mf+=1
+            if t is not None: nt+=t; mt+=1
+        FS.append(nf/max(mf,1)); TS.append(nt/max(mt,1))
+    print(f"=== HYBRID open{OPENK}+closed{8-OPENK} HEUR={HEUR} (seed-avg {seeds}, te[300:]) ===",flush=True)
+    print(f"  FULL {np.mean(FS):.4f}+/-{np.std(FS):.4f}  TAIL {np.mean(TS):.4f}+/-{np.std(TS):.4f}   (ref: pure-D1 0.378/0.178 ; pure-open8 popweight 0.387/0.170, distinct 0.405/0.211)",flush=True)
+    sys.exit(0)
+if os.environ.get('OPENTYPE'):                                                 # PAPER D P3 HEADROOM: is there per-user adaptivity value for an OPEN-ASKER over question TYPES {fav,gem,hate}? Deterministic within-type recall (apples-to-apples), 8 turns. Compare best FIXED schedule vs per-turn GREEDY-ORACLE type selection (privileged upper bound on a learned open asker). OPT=full|tail.
+    import sys
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12)); OPT=os.environ.get('OPT','tail'); oi=1 if OPT=='tail' else 0
+    def _nd(toks,seen,tlike,relt):
+        u=enc_u_np(toks) if toks else np.zeros(D,np.float32); s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    SCHED={'fav8':['fav']*8,'gem8':['gem']*8,'hate8':['hate']*8,'fav4gem4':['fav']*4+['gem']*4,'fav2gem4hate2':['fav']*2+['gem']*4+['hate']*2}
+    RES={k:([],[]) for k in list(SCHED)+['ORACLE']}
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; acc={k:[0.,0.,0.] for k in RES}    # [sum_full,sum_tail,n]
+        SPLIT=bool(os.environ.get('OPTSPLIT'))                                  # OVERFIT TEST: select TYPE on half the held likes, EVAL on the DISJOINT half (real adaptivity survives; held-peek overfit vanishes)
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            if SPLIT:
+                _tl=list(tlike); np.random.default_rng(sd*7+x).shuffle(_tl); _h=len(_tl)//2
+                if _h<1 or len(_tl)-_h<1: continue
+                selset=set(_tl[:_h]); evset=set(_tl[_h:])
+            else: selset=tlike; evset=tlike
+            selrel=set(j for j in selset if not headmask[j]); evrel=set(j for j in evset if not headmask[j])
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); liked=[j for j in half if rd[j]>=4]
+            ORD={'fav':sorted(liked,key=lambda j:-cnt[j]),                      # deterministic within-type recall: fav=most-popular liked (realistic famous favourite)
+                 'gem':sorted(liked,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2)),   # gem=distinctive (high-align/low-pop)
+                 'hate':sorted([j for j in half if rd[j]<=2] or sorted(half,key=lambda j:float(usf@Q[j]))[:8],key=lambda j:rd[j])}
+            def run_sched(types):
+                tk=[]; ptr={'fav':0,'gem':0,'hate':0}
+                for ty in types:
+                    L=ORD[ty]
+                    if ptr[ty]<len(L): j=L[ptr[ty]]; ptr[ty]+=1; tk.append((Q[j],resid[x][j]))
+                return _nd(tk,half,evset,evrel)                                 # fixed schedules scored on the EVAL set
+            for k,types in SCHED.items():
+                f,t=run_sched(types); acc[k][0]+=f; acc[k][1]+=t; acc[k][2]+=1
+            tk=[]; ptr={'fav':0,'gem':0,'hate':0}                               # GREEDY ORACLE asker: each turn pick the TYPE whose next entity maximises NDCG on the SELECT set (OPT axis)
+            for _ in range(8):
+                best=None; bv=-1
+                for ty in ('fav','gem','hate'):
+                    L=ORD[ty]
+                    if ptr[ty]>=len(L): continue
+                    j=L[ptr[ty]]; v=_nd(tk+[(Q[j],resid[x][j])],half,selset,selrel)[oi]
+                    if v>bv: bv=v; best=ty
+                if best is None: break
+                j=ORD[best][ptr[best]]; ptr[best]+=1; tk.append((Q[j],resid[x][j]))
+            f,t=_nd(tk,half,evset,evrel); acc['ORACLE'][0]+=f; acc['ORACLE'][1]+=t; acc['ORACLE'][2]+=1   # oracle scored on the disjoint EVAL set
+        for k in RES: RES[k][0].append(acc[k][0]/max(acc[k][2],1)); RES[k][1].append(acc[k][1]/max(acc[k][2],1))
+    print(f"=== OPEN-ASKER TYPE HEADROOM (fixed schedules vs greedy-oracle type-selection, OPT={OPT}, seed-avg {seeds}, te[300:]) ===",flush=True)
+    bf=max(SCHED,key=lambda k:np.mean(RES[k][oi]))
+    for k in list(SCHED)+['ORACLE']:
+        print(f"  {k:<16} FULL {np.mean(RES[k][0]):.4f}  TAIL {np.mean(RES[k][1]):.4f}",flush=True)
+    print(f"  best-fixed={bf} ; ORACLE-vs-best-fixed on {OPT}: {np.mean(RES['ORACLE'][oi])-np.mean(RES[bf][oi]):+.4f} (>0 => a learned open asker has per-user headroom)",flush=True)
+    sys.exit(0)
+if os.environ.get('POLOPEN'):                                                  # PAPER D P3: TRAIN an adaptive open-asker (REINFORCE on held-NDCG) over question TYPES, conditioned on the running belief. Worst case -> replicates best heuristic (always gem8); best case -> interpretable conditional tree. Honest: train on TRAIN users, model-select on VAL users, eval on TEST. POLTYPES=fav,gem,hate[,genre]; reward WF*full+WT*tail.
+    import sys
+    from collections import defaultdict
+    TYPES=os.environ.get('POLTYPES','fav,gem,hate').split(','); NT=len(TYPES); TI={t:i for i,t in enumerate(TYPES)}
+    WF=float(os.environ.get('WF','1.0')); WT=float(os.environ.get('WT','1.0')); POLEP=int(os.environ.get('POLEP','60')); BS=int(os.environ.get('BS','256')); NTR=int(os.environ.get('NTR','3000')); LR=float(os.environ.get('LR','3e-3')); HZN=int(os.environ.get('HORIZON','8'))
+    _Wv2=1./np.log2(np.arange(2,12)); _PS=int(os.environ.get('POLSEED','0')); torch.manual_seed(_PS); _rng=np.random.default_rng(_PS)
+    import codecs,json
+    ig=defaultdict(list); gf=defaultdict(list); gcent={}
+    if 'genre' in TI or 'avoidgenre' in TI or 'whatdoyoulike' in TI:           # genre maps (ml-1m movies.dat)
+        gmap={}
+        for line in codecs.open(f'{ml}/movies.dat','r','latin-1'):
+            a=line.rstrip('\n').split('::')
+            if len(a)>=3: gmap[int(a[0])]=a[2].split('|')
+        for mid,gs in gmap.items():
+            if mid in iids:
+                for g in gs: ig[iids[mid]].append(g); gf[g].append(iids[mid])
+        gcent={g:Q[np.array(sorted(set(v)))].mean(0).astype(np.float32) for g,v in gf.items()}
+    ip=defaultdict(list); pcent={}                                             # person maps (TMDB credits)
+    if 'actor' in TI or 'director' in TI or 'whatdoyoulike' in TI:
+        cr=json.load(open(f'{base}/.cache/credits_ml1m_actors5.json')); ma={int(k):v for k,v in cr['movie_actors'].items()}; md={int(k):v for k,v in cr['movie_directors'].items()}
+        pf=defaultdict(list); src={'actor':ma,'director':md}
+        for ty in ('actor','director'):
+            if ty in TI:
+                for mid,ppl in src[ty].items():
+                    if mid in iids:
+                        for p in ppl: ip[iids[mid]].append((ty,p)); pf[(ty,p)].append(iids[mid])
+        pcent={k:Q[np.array(sorted(set(v)))].mean(0).astype(np.float32) for k,v in pf.items() if v}
+    def build_orders(x,half):                                                  # per-user: type -> ordered list of (factor,rating) tokens (deterministic recall). Each type = a DISTINCT deployable question.
+        rd=dict(rat_by_u[x]); liked=[j for j in half if rd[j]>=4]; disl=[j for j in half if rd[j]<=2]; usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); O={}
+        if 'fav' in TI: O['fav']=[(Q[j],resid[x][j]) for j in sorted(liked,key=lambda j:-cnt[j])]                                   # "a movie you love" (popular)
+        if 'gem' in TI: O['gem']=[(Q[j],resid[x][j]) for j in sorted(liked,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))]         # "an underrated film you love"
+        if 'align' in TI: O['align']=[(Q[j],resid[x][j]) for j in sorted(liked,key=lambda j:-float(usf@Q[j]))]                      # "your all-time favourite"
+        if 'hate' in TI:
+            dl=disl or sorted(half,key=lambda j:float(usf@Q[j]))[:8]; O['hate']=[(Q[j],resid[x][j]) for j in sorted(dl,key=lambda j:rd[j])]   # "a movie you disliked"
+        if 'genre' in TI:
+            scg=defaultdict(float)
+            for j in liked:
+                for g in ig.get(j,[]):
+                    if g in gcent: scg[g]+=1.
+            O['genre']=[(gcent[g],float(POS)) for g in sorted(scg,key=lambda g:-scg[g])]                                           # "your favourite genre"
+        if 'avoidgenre' in TI:
+            scg=defaultdict(float)
+            for j in disl:
+                for g in ig.get(j,[]):
+                    if g in gcent: scg[g]+=1.
+            O['avoidgenre']=[(gcent[g],float(NEG)) for g in sorted(scg,key=lambda g:-scg[g])]                                      # "a genre you avoid" (negative)
+        for ty in ('actor','director'):
+            if ty in TI:
+                sc=defaultdict(float)
+                for j in liked:
+                    for (tt,p) in ip.get(j,[]):
+                        if tt==ty and (ty,p) in pcent: sc[(ty,p)]+=1.
+                O[ty]=[(pcent[k],float(POS)) for k in sorted(sc,key=lambda k:-sc[k])]                                              # "your favourite actor/director"
+        if 'whatdoyoulike' in TI:                                                                                                 # "what do you like?" = COMPLETELY OPEN: user volunteers ANY entity (movie/actor/director/genre), best-aligned first
+            cands=[(Q[j],resid[x][j]) for j in liked]; sp=set(); sg=set()
+            for j in liked:
+                for (tt,p) in ip.get(j,[]):
+                    if (tt,p) in pcent and (tt,p) not in sp: sp.add((tt,p)); cands.append((pcent[(tt,p)],float(POS)))
+                for g in ig.get(j,[]):
+                    if g in gcent and g not in sg: sg.add(g); cands.append((gcent[g],float(POS)))
+            O['whatdoyoulike']=sorted(cands,key=lambda c:-float(usf@(c[0]/(np.linalg.norm(c[0])+1e-9))))
+        if 'ccon' in TI:                                                                                                          # CASPER-R CLOSED: most-DIVISIVE answerable concept (yes/no), geometric graded answer
+            _un=usf/(np.linalg.norm(usf)+1e-9); acl=sorted([c for c in range(NC) if len(citems[c]&set(half))>=2],key=lambda c:-_entc_raw[c])
+            O['ccon']=[(Ec[c],float(NEG+(POS-NEG)*(float(_un@(Ec[c]/(np.linalg.norm(Ec[c])+1e-9)))+1)/2)) for c in acl]
+        return O,usf
+    def _ndft(toks,seen,tlike,relt):
+        u=enc_u_np(toks) if toks else np.zeros(D,np.float32); s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    FEATS=bool(os.environ.get('FEATS')); NF=3 if FEATS else 0; SD=D+1+NT*NF   # FEATS: per-type population properties of the NEXT entity each type would surface [belief-align, pop-field, div-field]
+    _NOREP=bool(os.environ.get('NOREPEAT'))                                    # DEPLOYABLE: each distinct question (type) asked at most ONCE (no repeats); budget bounded by #types
+    HASCLOSED='closed' in TI                                                   # OPEN+CLOSED: 'closed' = a Paper-C D1 continuous PROBE (query from belief, geometric graded answer); REPEATABLE (each probe is a fresh adaptive direction), exempt from no-repeat
+    if HASCLOSED: load_ck(os.environ.get('D1CK',f'{base}/.cache/policy_phase3_d1divw_last.pt')); actor.eval()
+    def make_state(U,orders,ptr,t,B):                                          # (B,SD) state + (B,NT) availability mask
+        avail=np.zeros((B,NT),np.float32)
+        st=np.concatenate([U,np.full((B,1),t/8.,np.float32)],1)
+        if FEATS:
+            nfac=np.zeros((B,NT,D),np.float32)
+            for b in range(B):
+                for ty in TYPES:
+                    L=orders[b].get(ty,[]); p=ptr[b][ty]
+                    if p<len(L): nfac[b,TI[ty]]=L[p][0]; avail[b,TI[ty]]=1.
+            un=nfac/(np.linalg.norm(nfac,axis=2,keepdims=True)+1e-9)
+            align=(U[:,None,:]*un).sum(2)                                      # belief-alignment of each type's next entity
+            with torch.no_grad():
+                fl=torch.tensor(un.reshape(-1,D)); pop=field_pop(fl).numpy().reshape(B,NT); dv=field_div(fl).numpy().reshape(B,NT)
+            feat=np.stack([align*avail,pop*avail,dv*avail],2).reshape(B,NT*NF)
+            st=np.concatenate([st,feat.astype(np.float32)],1)
+        else:
+            for b in range(B):
+                for ty in TYPES:
+                    if ptr[b][ty]<len(orders[b].get(ty,[])): avail[b,TI[ty]]=1.
+        if HASCLOSED: avail[:,TI['closed']]=1.                                 # closed probe always available (repeatable)
+        return st.astype(np.float32),avail
+    class Pol(nn.Module):
+        def __init__(s): super().__init__(); s.net=nn.Sequential(nn.Linear(SD,128),nn.ReLU(),nn.Linear(128,128),nn.ReLU(),nn.Linear(128,NT))
+        def forward(s,x): return s.net(x)
+    pol=Pol(); optim=torch.optim.Adam(pol.parameters(),lr=LR)
+    TRu=[x for x in trU if len([j for j in dict(rat_by_u[x]) if dict(rat_by_u[x])[j]>=4])>=3][:NTR]   # train users
+    VAu=[x for x in te if x in te][:300]                                        # te[:300] = VAL (disjoint from te[300:] TEST)
+    def _closed_tok(qv,usf):                                                   # D1 probe -> (off-pool direction, geometric graded answer from u*)
+        qn=qv/(np.linalg.norm(qv)+1e-9); cf=float(usf@qn)/(np.linalg.norm(usf)+1e-9); return ((qn*_CN).astype(np.float32),float(NEG+(POS-NEG)*(cf+1)/2))
+    def rollout(users, splits, greedy, collect):                               # batched 8-turn rollout; returns (rewards, logp_sum) ; splits[x]=(half,held)
+        B=len(users); orders=[]; metas=[]; usfs=[]
+        for x in users:
+            half,held=splits[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            O,usf=build_orders(x,half); orders.append(O); usfs.append(usf); metas.append((half,tlike,relt))
+        toks=[[] for _ in range(B)]; ptr=[defaultdict(int) for _ in range(B)]; used=[set() for _ in range(B)]; logps=torch.zeros(B); ents=torch.zeros(1)
+        for t in range(HZN):
+            U=enc_batch_np([tk if tk else [] for tk in toks])                  # (B,D) belief; empty -> zeros
+            st_np,avail=make_state(U,orders,ptr,t,B); st=torch.tensor(st_np,dtype=torch.float32)
+            lg=pol(st)                                           # (B,NT)
+            qb=None
+            if HASCLOSED:
+                with torch.no_grad(): qb=actor(torch.tensor(U,dtype=torch.float32),t/8.).numpy()   # batched D1 query from current belief
+            mask=torch.full((B,NT),0.)
+            for b in range(B):
+                for ty in TYPES:
+                    if avail[b,TI[ty]]<0.5 or (_NOREP and ty in used[b] and ty not in ('closed','ccon')): mask[b,TI[ty]]=-1e9   # exhausted, or (NOREPEAT) already asked (closed/ccon exempt: they advance through a list)
+            lg=lg+mask; pr=torch.softmax(lg,1)
+            if greedy: a=pr.argmax(1)
+            else: a=torch.multinomial(pr,1).squeeze(1)
+            if collect: logps=logps+torch.log(pr[torch.arange(B),a]+1e-9); ents=ents+(-(pr*torch.log(pr+1e-9)).sum(1)).mean()
+            for b in range(B):
+                ty=TYPES[int(a[b])]
+                if ty=='closed': toks[b].append(_closed_tok(qb[b],usfs[b]))
+                else:
+                    L=orders[b].get(ty,[])
+                    if ptr[b][ty]<len(L) and (ty=='ccon' or not (_NOREP and ty in used[b])): toks[b].append(L[ptr[b][ty]]); ptr[b][ty]+=1; used[b].add(ty)
+        R=np.zeros(B,np.float32); FUL=np.zeros(B); TAI=np.zeros(B); _CURVE=bool(os.environ.get('CURVEREW'))   # CURVEREW: reward = MEAN NDCG over ALL prefix lengths 1..H ("anytime" asker, good at every turn) instead of only the final
+        for b in range(B):
+            half,tlike,relt=metas[b]
+            if not tlike: continue
+            if _CURVE:
+                rs=0.;nn=0
+                for k in range(1,len(toks[b])+1):
+                    f,tl=_ndft(toks[b][:k],half,tlike,relt); rs+=WF*f+WT*tl; nn+=1
+                    if k==len(toks[b]): FUL[b]=f; TAI[b]=tl
+                R[b]=rs/max(nn,1)
+            else:
+                f,tl=_ndft(toks[b],half,tlike,relt); FUL[b]=f; TAI[b]=tl; R[b]=WF*f+WT*tl
+        return R,logps,FUL,TAI,ents
+    def fixed_eval(users,splits,types):                                        # a fixed schedule for comparison
+        F=[];T=[]
+        for x in users:
+            half,held=splits[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            O,_=build_orders(x,half); tk=[]; p=defaultdict(int)
+            for ty in types:
+                L=O.get(ty,[])
+                if p[ty]<len(L): tk.append(L[p[ty]]); p[ty]+=1
+            f,tl=_ndft(tk,half,tlike,relt); F.append(f); T.append(tl)
+        return np.mean(F),np.mean(T)
+    def split_for(users,seed):                                                 # half/held split per user
+        sp={}; rr=np.random.default_rng(seed)
+        for x in users:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; rr.shuffle(il); sp[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        return sp
+    VALsp=split_for([x for x in VAu],12345); VALu=[x for x in VAu if x in VALsp]
+    if os.environ.get('NRCURVE'):                                              # DEPLOYABLE no-repeat CURVE: each DISTINCT question asked at most ONCE. Report NDCG at EVERY turn (front-loading matters since the set-encoder belief is order-invariant at the END but the CURVE is not). FIXED order vs per-user GREEDY front-load (privileged). Key operating point = turn EVALTURN (5).
+        import sys
+        ORDER=[t for t in os.environ.get('NRORDER','gem,fav,actor,director,genre,avoidgenre,align,whatdoyoulike').split(',') if t in TI]
+        seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; T=min(int(os.environ.get('NRT','8')),len(ORDER)); KEY=int(os.environ.get('EVALTURN','5')); OPT=os.environ.get('OPT','tail'); oi=1 if OPT=='tail' else 0
+        fixF=np.zeros(T);fixT=np.zeros(T);grF=np.zeros(T);grT=np.zeros(T);first=defaultdict(int);ns=0
+        for sd in seeds:
+            tsp=split_for([x for x in te],sd); TEu=[x for x in te if x in tsp][300:]
+            aF=np.zeros(T);aT=np.zeros(T);gF=np.zeros(T);gT=np.zeros(T);m=0
+            SPLIT=bool(os.environ.get('OPTSPLIT'))                             # honest adaptive-ordering: greedy SELECTS on held-half-A, all curves EVAL on disjoint held-half-B
+            for x in TEu:
+                half,held=tsp[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+                if not tlike: continue
+                if SPLIT:
+                    _tl=list(tlike); np.random.default_rng(sd*7+x).shuffle(_tl); _h=len(_tl)//2
+                    if _h<1 or len(_tl)-_h<1: continue
+                    selset=set(_tl[:_h]); evset=set(_tl[_h:])
+                else: selset=tlike; evset=tlike
+                selrel=set(j for j in selset if not headmask[j]); evrel=set(j for j in evset if not headmask[j])
+                O,_=build_orders(x,half); m+=1
+                tk=[];p=defaultdict(int)                                        # FIXED order (eval on evset)
+                for k in range(T):
+                    ty=ORDER[k]; L=O.get(ty,[])
+                    if p[ty]<len(L): tk.append(L[p[ty]]); p[ty]+=1
+                    f,t=_ndft(tk,half,evset,evrel); aF[k]+=f; aT[k]+=t
+                tk=[];p=defaultdict(int);used=set()                            # GREEDY front-load: SELECT on selset, EVAL on evset
+                for k in range(T):
+                    best=None;bv=-1
+                    for ty in ORDER:
+                        if ty in used: continue
+                        L=O.get(ty,[])
+                        if p[ty]>=len(L): continue
+                        v=_ndft(tk+[L[p[ty]]],half,selset,selrel)[oi]
+                        if v>bv: bv=v;best=ty
+                    if best is not None:                                        # add the chosen question (if any remain); else record flat (mirror FIXED so curves are comparable)
+                        if k==0: first[best]+=1
+                        tk.append(O[best][p[best]]); p[best]+=1; used.add(best)
+                    f,t=_ndft(tk,half,evset,evrel); gF[k]+=f; gT[k]+=t
+            fixF+=aF/max(m,1);fixT+=aT/max(m,1);grF+=gF/max(m,1);grT+=gT/max(m,1);ns+=1
+        fixF/=ns;fixT/=ns;grF/=ns;grT/=ns
+        print(f"=== NO-REPEAT CURVE | {len(ORDER)} distinct Qs: {ORDER} | KEY turn={KEY}, greedy OPT={OPT} (seed-avg {seeds}, te[300:]) ===",flush=True)
+        print("  turn |  FIXED full/tail   |  GREEDY-frontload full/tail",flush=True)
+        for k in range(T):
+            star=' <== KEY' if k+1==KEY else ''
+            print(f"   {k+1}   |  {fixF[k]:.4f} / {fixT[k]:.4f}  |  {grF[k]:.4f} / {grT[k]:.4f}{star}",flush=True)
+        _tot=sum(first.values())+1e-9; print("  greedy FIRST question (per-user, OPT="+OPT+"): "+", ".join(f"{k} {100*v/_tot:.0f}%" for k,v in sorted(first.items(),key=lambda kv:-kv[1])),flush=True)
+        gff=[];gtt=[]
+        for sd in seeds:
+            tsp=split_for([x for x in te],sd); TEu=[x for x in te if x in tsp][300:]; f,t=fixed_eval(TEu,tsp,['gem']*8); gff.append(f); gtt.append(t)
+        print(f"  [ref, NON-deployable] gem x8 repeat @turn8: FULL {np.mean(gff):.4f}  TAIL {np.mean(gtt):.4f}",flush=True)
+        sys.exit(0)
+    _SOFT=bool(os.environ.get('SOFT')); GT=float(os.environ.get('GTAU','1.0')); ML=40   # SOFT: Gumbel-softmax straight-through over the type choice + differentiable soft-NDCG through the torch encoder fold (Paper-C-style differentiable unroll, low-variance alt to REINFORCE). no-repeat, open-only, anytime.
+    def soft_loss(users,splits):
+        B=len(users); token0=torch.zeros(B,NT,D+1); avail=torch.zeros(B,NT); LIKED=torch.zeros(B,ML,dtype=torch.long); LMASK=torch.zeros(B,ML); tgt=torch.zeros(B,ni); PROFM=torch.zeros(B,ni)
+        for bi,x in enumerate(users):
+            half,held=splits[x]; rd=dict(rat_by_u[x]); tl=[j for j in held if rd[j]>=4]; O,_=build_orders(x,half)
+            for ty in TYPES:
+                L=O.get(ty,[])
+                if L: token0[bi,TI[ty],:D]=torch.tensor(L[0][0]); token0[bi,TI[ty],D]=float(L[0][1]); avail[bi,TI[ty]]=1.
+            for j in half: PROFM[bi,j]=1.
+            for hi,j in enumerate(tl[:ML]): LIKED[bi,hi]=j; LMASK[bi,hi]=1.; tgt[bi,j]=1.
+        used=torch.zeros(B,NT); toks=[]; loss=torch.zeros(())
+        for t in range(HZN):
+            U=enc(torch.stack(toks,1),torch.ones(B,len(toks))) if toks else torch.zeros(B,D)
+            st=torch.cat([U,torch.full((B,1),t/8.)],1); lg=pol(st)+(avail-1)*1e9+used*(-1e9)
+            w=torch.nn.functional.gumbel_softmax(lg,tau=GT,hard=True)            # straight-through one-hot type choice
+            toks.append((w.unsqueeze(-1)*token0).sum(1)); used=used+w.detach()   # soft-blended token (forward=hard pick), mark used (no-repeat)
+            U2=enc(torch.stack(toks,1),torch.ones(B,len(toks))); loss=loss+softndcg(U2,LIKED,LMASK,tgt,PROFM,float(os.environ.get('NDTAU','1.0')))
+        return loss/HZN
+    best_val=-1; best_state=None
+    for ep in range(POLEP):
+        bu=list(_rng.choice(TRu,size=min(BS,len(TRu)),replace=False)); tsp=split_for(bu,1000+ep); bu=[x for x in bu if x in tsp]
+        if _SOFT:
+            loss=soft_loss(bu,tsp); R=np.array([-float(loss.item())])           # differentiable Gumbel + soft-NDCG (R is just for logging)
+        else:
+            R,logp,_,_,entp=rollout(bu,tsp,greedy=False,collect=True)
+            ENT=float(os.environ.get('ENT','0.0'))*max(0.,1.-ep/max(POLEP*0.7,1))   # entropy bonus, annealed to 0 by 70% of training
+            adv=torch.tensor(R-R.mean(),dtype=torch.float32); loss=-(adv*logp).mean()-ENT*entp.squeeze()
+        optim.zero_grad(); loss.backward(); optim.step()
+        if (ep+1)%5==0 or ep==POLEP-1:
+            with torch.no_grad(): vR,_,vF,vT,_=rollout(VALu,VALsp,greedy=True,collect=False)
+            vs=WF*np.mean(vF)+WT*np.mean(vT)
+            if vs>best_val: best_val=vs; best_state={k:v.clone() for k,v in pol.state_dict().items()}
+            print(f"  ep{ep+1} train_r {R.mean():.4f} | VAL full {np.mean(vF):.4f} tail {np.mean(vT):.4f} (sel {vs:.4f})",flush=True)
+    if best_state: pol.load_state_dict(best_state)
+    _ck=f'{base}/.cache/polopen_{"_".join(TYPES)}_wf{WF}wt{WT}.pt'; torch.save(pol.state_dict(),_ck)
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; USE=np.zeros((HZN,NT)); SEQS=[]
+    NRORD=[t for t in os.environ.get('NRORDER','gem,fav,actor,director,genre,avoidgenre,align,whatdoyoulike').split(',') if t in TI][:HZN]   # fixed no-repeat order baseline (first HZN)
+    LCF=np.zeros(HZN);LCT=np.zeros(HZN);NCF=np.zeros(HZN);NCT=np.zeros(HZN);ns=0   # LEARNED per-turn curve, fixed NR-order per-turn curve
+    for sd in seeds:
+        tsp=split_for([x for x in te],sd); TEu=[x for x in te if x in tsp][300:]
+        lF=np.zeros(HZN);lT=np.zeros(HZN);nF=np.zeros(HZN);nT=np.zeros(HZN);m=0
+        for x in TEu:
+            half,held=tsp[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            O,usf=build_orders(x,half); m+=1
+            tk=[];p=defaultdict(int);us=set();_seq=[]                           # LEARNED greedy walk (records the curve + type usage + per-user path)
+            for t in range(HZN):
+                U=enc_batch_np([tk if tk else []]); st_np,av=make_state(U,[O],[p],t,1)
+                with torch.no_grad(): lg=pol(torch.tensor(st_np,dtype=torch.float32))[0].numpy()
+                for ty in TYPES:
+                    if av[0,TI[ty]]<0.5 or (_NOREP and ty in us and ty!='closed'): lg[TI[ty]]=-1e9
+                a=int(np.argmax(lg)); ty=TYPES[a]; _seq.append(ty)
+                if sd==seeds[0]: USE[t,a]+=1
+                if ty=='closed':
+                    with torch.no_grad(): qv=actor(torch.tensor(U,dtype=torch.float32),t/8.).numpy()[0]
+                    tk.append(_closed_tok(qv,usf))
+                elif p[ty]<len(O.get(ty,[])) and not (_NOREP and ty in us): tk.append(O[ty][p[ty]]); p[ty]+=1; us.add(ty)
+                f,tl=_ndft(tk,half,tlike,relt); lF[t]+=f; lT[t]+=tl
+            if sd==seeds[0]: SEQS.append(_seq)
+            tk=[];p=defaultdict(int)                                            # FIXED NR-order curve
+            for t in range(HZN):
+                ty=NRORD[t] if t<len(NRORD) else None; L=O.get(ty,[]) if ty else []
+                if ty and p[ty]<len(L): tk.append(L[p[ty]]); p[ty]+=1
+                f,tl=_ndft(tk,half,tlike,relt); nF[t]+=f; nT[t]+=tl
+        LCF+=lF/max(m,1);LCT+=lT/max(m,1);NCF+=nF/max(m,1);NCT+=nT/max(m,1);ns+=1
+    LCF/=ns;LCT/=ns;NCF/=ns;NCT/=ns
+    print(f"=== POLOPEN learned open-asker TYPES={TYPES} HORIZON={HZN} NOREPEAT={_NOREP} FEATS={FEATS} CURVEREW={bool(os.environ.get('CURVEREW'))} WF={WF} WT={WT} (best-val; seed-avg {seeds}, te[300:] TEST) ===",flush=True)
+    print("  turn |  LEARNED full/tail  |  FIXED NR-order full/tail",flush=True)
+    for t in range(HZN): print(f"   {t+1}   |  {LCF[t]:.4f} / {LCT[t]:.4f}  |  {NCF[t]:.4f} / {NCT[t]:.4f}",flush=True)
+    print(f"  (LEARNED - FIXED): "+", ".join(f"t{t+1} {LCF[t]-NCF[t]:+.3f}/{LCT[t]-NCT[t]:+.3f}" for t in range(HZN)),flush=True)
+    _u=USE/(USE.sum(1,keepdims=True)+1e-9)
+    print("  per-turn type usage (learned greedy, TEST seed0):",flush=True)
+    for t in range(HZN): print(f"    turn{t+1}: "+", ".join(f"{TYPES[i]} {100*_u[t,i]:.0f}%" for i in range(NT) if _u[t,i]>0.01),flush=True)
+    if os.environ.get('TREEOUT'):                                              # dump per-user greedy question paths (for the tree figure) + per-turn curve arrays
+        import json; json.dump({'seqs':SEQS,'TYPES':TYPES,'learned_full':LCF.tolist(),'learned_tail':LCT.tolist(),'fixed_full':NCF.tolist(),'fixed_tail':NCT.tolist()},open(os.environ['TREEOUT'],'w'))
+        print(f"  wrote {len(SEQS)} paths + curves -> {os.environ['TREEOUT']}",flush=True)
+    sys.exit(0)
+if os.environ.get('LITBASE'):                                                  # PAPER D published probe baselines on OUR ruler+answerer. LITBASE=conts|pebol. Arms = answerable concepts (Ec) + known-half items (Q); geometric answer y=u*.phi_unit; rank held by our scorer s=popb+Ql.u. Isolates the ACQUISITION policy vs our open-recall asker.
+    import sys
+    WHICH=os.environ['LITBASE']; seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12)); T=int(os.environ.get('T',8)); TAU=float(os.environ.get('LTAU','4.0')); QPTS=[int(z) for z in os.environ.get('QPTS','5,8').split(',')]
+    FAIR=bool(os.environ.get('FAIRCAND')); POOL=None; BR=bool(os.environ.get('BLINDREFUSE'))   # FAIRCAND=1 -> shared candidate pool (no item peek); BLINDREFUSE=1 -> ask over ALL concepts, unanswerable pick wastes the turn (matches CASPER-R strict protocol)
+    if FAIR:
+        op=np.argsort(-cnt); st=np.linspace(0,ni-1,int(os.environ.get('FAIRK','800'))).astype(int); POOL=sorted(set(int(op[k]) for k in st))   # stratified head->tail
+    Qn=(Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32); Ecn=(Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9)).astype(np.float32)
+    def _nd(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    RES={q:([],[]) for q in QPTS}
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; acc={q:[0.,0.,0.] for q in QPTS}
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            ustar=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=ustar/(np.linalg.norm(ustar)+1e-9)
+            acset=set(c for c in range(NC) if len(citems[c]&half)>=2)          # answerable concepts (>=2 items in profile)
+            ac=sorted(acset)
+            icand=POOL if FAIR else list(half)                                 # item arms/candidates: fair shared pool OR (leaky) known half
+            concC=list(range(NC)) if BR else ac                                # BLINDREFUSE: ask over ALL concepts (refuse+waste if unanswerable), matching CASPER-R; else pre-filter to answerable
+            armemb=[Ecn[c] for c in concC]+[Qn[j] for j in icand]; armfac=[Ec[c] for c in concC]+[Q[j] for j in icand]
+            answ=[(c in acset) for c in concC]+[(j in half) for j in icand]     # per-arm answerability: concept iff >=2 items, item iff user saw it
+            A=np.array(armemb,np.float32); NA=len(A)
+            if NA==0: continue
+            y=(A@un).astype(np.float32)                                        # geometric graded answer for each arm
+            toks=[]; asked=set(); recs=[]
+            if WHICH=='conts':                                                 # ConTS: Bayesian-linear posterior over u, Thompson-sample, play best arm, observe, update
+                lam=float(os.environ.get('LAM','1.0')); s2=float(os.environ.get('S2','0.25')); Ainv=np.eye(D,dtype=np.float32)/lam; b=np.zeros(D,np.float32)
+                for t in range(T):
+                    mu=Ainv@b
+                    try: L=np.linalg.cholesky(Ainv)
+                    except: L=np.eye(D,np.float32)*np.sqrt(1.0/lam)
+                    ut=mu+L@r.standard_normal(D).astype(np.float32)            # Thompson sample ~ N(mu, Ainv)
+                    sc=A@ut; sc[list(asked)]=-1e9; k=int(np.argmax(sc)); asked.add(k)             # turn consumed (blind pick)
+                    if not (BR and not answ[k]):                                                   # answerable -> observe+update+fold; else REFUSE = wasted turn (no signal)
+                        phi=A[k]; yk=float(y[k]); Ainv=Ainv-np.outer(Ainv@phi,phi@Ainv)/(s2+phi@Ainv@phi); b=b+phi*yk/s2
+                        toks.append((armfac[k], float(NEG+(POS-NEG)*(yk+1)/2)))
+                    if t+1 in RES: u=enc_u_np(toks); f,tl=_nd(u,half,tlike,relt); acc[t+1][0]+=f; acc[t+1][1]+=tl; acc[t+1][2]+=1
+            else:                                                              # PEBOL-geometric: per-item Beta over candidate items, aspect(concept)-only acquisition via Thompson, NLI->geometric entailment
+                cand=icand; alp=np.ones(len(cand),np.float32); bet=np.ones(len(cand),np.float32)
+                Ecand=np.array([Qn[j] for j in cand],np.float32); conc=list(range(len(concC)))   # concept aspects (ALL if BR)
+                ent=(np.array([Ecn[c] for c in concC],np.float32)@Ecand.T*0.5+0.5)               # entailment e[a,i] in [0,1]
+                for t in range(T):
+                    th=r.beta(alp,bet)                                         # Thompson sample item values
+                    aq=[float((ent[a]*th).sum()) if a not in asked else -1e9 for a in conc]    # aspect acquisition = points at high-value items
+                    a=int(np.argmax(aq)); asked.add(a)                                             # turn consumed (blind pick)
+                    if not (BR and not answ[a]):                                                   # answerable -> observe+update+fold; else REFUSE = wasted turn
+                        ans=float(0.5+0.5*y[a]); alp=alp+ans*ent[a]; bet=bet+(1-ans)*ent[a]
+                        toks.append((armfac[a], float(NEG+(POS-NEG)*(y[a]+1)/2)))
+                    if t+1 in RES: u=enc_u_np(toks); f,tl=_nd(u,half,tlike,relt); acc[t+1][0]+=f; acc[t+1][1]+=tl; acc[t+1][2]+=1
+        for q in QPTS: RES[q][0].append(acc[q][0]/max(acc[q][2],1)); RES[q][1].append(acc[q][1]/max(acc[q][2],1))
+    print(f"=== LITBASE {WHICH} (concept+item arms, geometric answer, our scorer; seed-avg {seeds}, te[300:]) ===",flush=True)
+    for q in QPTS: print(f"  q={q}: FULL {np.mean(RES[q][0]):.4f}+/-{np.std(RES[q][0]):.4f}  TAIL {np.mean(RES[q][1]):.4f}+/-{np.std(RES[q][1]):.4f}",flush=True)
+    sys.exit(0)
+if os.environ.get('LLMDROP'):                                                  # PAPER E: REAL NDCG cost of VERBALISING the continuous query. Roll D1; at each turn render q's 3-phrase blend to NL (LLM), re-embed (SBERT)->q_hat, FOLD q_hat's geometric answer. NDCG(q_hat, verbalised) vs NDCG(q, continuous) on the SAME users = deployment cost of language. MODEL=gpt-4.1-mini NU=150.
+    import sys, concurrent.futures as _cf
+    envp=os.path.join(os.path.dirname(os.path.dirname(base)),'.env')           # casper/.env
+    for _l in open(envp):
+        if _l.startswith('OPENAI_API_KEY='): os.environ['OPENAI_API_KEY']=_l.split('=',1)[1].strip().strip('"')
+    import openai; from sentence_transformers import SentenceTransformer
+    pb=np.load(f'{base}/.cache/phrasebank.npz',allow_pickle=True); PU=pb['unit'].astype(np.float32); PL=list(pb['label'])
+    _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
+    sb=SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'); PLE=sb.encode(PL,normalize_embeddings=True,show_progress_bar=False)
+    MODEL=os.environ.get('MODEL','gpt-4.1-mini'); NU=int(os.environ.get('NU','150')); cl=openai.OpenAI()
+    SYS=("You turn a movie-preference 'elicitation query' into ONE short natural question a recommender asks a new user. "
+    "The query is a DIRECTION in taste space: a signed blend of descriptors weight*[descriptor]. Sign=which side (positive=TOWARD, negative=AWAY); magnitude=importance. "
+    "The descriptors are almost always facets of ONE underlying taste axis. Infer that single axis, ask one conversational question about it from the pole the signs indicate, and do NOT enumerate the descriptors. "
+    "If they clearly share no axis, ask only about the single largest-magnitude one. Output only the question, one sentence.")
+    def omp_k(q,K):
+        ch=[]; res=q.copy(); A=None; w=None
+        for _ in range(K):
+            pr=PU@res
+            if ch: pr[ch]=0.
+            i=int(np.argmax(np.abs(pr))); ch.append(i); A=PU[ch].T; w=np.linalg.lstsq(A,q,rcond=None)[0]; res=q-A@w
+        return ch,w
+    def omp3(q): return omp_k(q,3)
+    def tri_qhat(q):                                                           # triangulation control: reconstruct q from OMP-5 phrases, NO language
+        ch,w=omp_k(q,5); qh=(PU[ch]*np.asarray(w)[:,None]).sum(0); return qh/(np.linalg.norm(qh)+1e-9)
+    RCACHE={}
+    import json as _json
+    RPATH=f'{base}/../../experiments/paper5/renders_{MODEL}.json'              # PERSIST renders (blend-text -> NL) across runs => reproducible + free re-runs + saved for illustration
+    try: RCACHE.update(_json.load(open(RPATH)))
+    except Exception: pass
+    def render_nl(q):                                                          # LLM render (cached by blend text, persisted)
+        ch,w=omp3(q); um="Query: "+"  ".join(f"{wi:+.2f}*[{PL[c]}]" for c,wi in zip(ch,w))
+        if um in RCACHE: return RCACHE[um]
+        _reas=MODEL.startswith(('gpt-5','o1','o3','o4'))
+        kw={'model':MODEL,'messages':[{'role':'system','content':SYS},{'role':'user','content':um}]}
+        kw['max_completion_tokens' if _reas else 'max_tokens']=(2000 if _reas else 60)   # gpt-5 reasoning eats tokens before output => big budget
+        if _reas: kw['reasoning_effort']='minimal'                              # this is a paraphrase task, not a reasoning task
+        try:
+            r=cl.chat.completions.create(**kw); nl=r.choices[0].message.content.strip()
+        except Exception as e:
+            if not getattr(render_nl,'_warned',False): print(f"    [render err {MODEL}: {str(e)[:120]}]",flush=True); render_nl._warned=True
+            return ""
+        RCACHE[um]=nl; return nl
+    _Wv2=1./np.log2(np.arange(2,12))
+    def _nd(toks,seen,tlike,relt):
+        u=enc_u_np(toks) if toks else np.zeros(D,np.float32); s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    r=np.random.default_rng(1); SP={}
+    for x in te:
+        its=list(dict(rat_by_u[x]))
+        if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+    VU=[]
+    for x in [x for x in te if x in SP][300:]:
+        half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4)
+        if tlike: VU.append(x)
+        if len(VU)>=NU: break
+    UN={}; META={}; TC={x:[] for x in VU}; TL={x:[] for x in VU}; TT={x:[] for x in VU}
+    for x in VU:
+        half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+        u=enc_u_np([(Q[j],resid[x][j]) for j in half]); UN[x]=u/(np.linalg.norm(u)+1e-9); META[x]=(set(half),tlike,relt)
+    QPTS=[5,8]; AC={q:[0.,0.,0.] for q in QPTS}; AL={q:[0.,0.,0.] for q in QPTS}; AT={q:[0.,0.,0.] for q in QPTS}; COST=[]; COSL=[]
+    for t in range(8):
+        for x in VU:                                                           # continuous baseline: emit q, fold q
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(TC[x])[None],dtype=torch.float32),t/8.).numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); TC[x].append(((qn*_CN).astype(np.float32),float(NEG+(POS-NEG)*(float(UN[x]@qn)+1)/2)))
+        for x in VU:                                                           # triangulation control (OMP-5 q_hat, NO language)
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(TT[x])[None],dtype=torch.float32),t/8.).numpy()[0]
+            qn=qv/(np.linalg.norm(qv)+1e-9); qh=tri_qhat(qn); COST.append(float(qn@qh)); TT[x].append(((qh*_CN).astype(np.float32),float(NEG+(POS-NEG)*(float(UN[x]@qh)+1)/2)))
+        QL={}                                                                  # LLM: emit q, then render+reconstruct q_hat, fold q_hat
+        for x in VU:
+            with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(TL[x])[None],dtype=torch.float32),t/8.).numpy()[0]
+            QL[x]=qv/(np.linalg.norm(qv)+1e-9)
+        with _cf.ThreadPoolExecutor(max_workers=16) as ex: NLS=dict(zip(VU,ex.map(lambda x: render_nl(QL[x]), VU)))
+        allnl=[NLS[x] if NLS[x] else "movies" for x in VU]; EMB=sb.encode(allnl,normalize_embeddings=True,show_progress_bar=False)
+        for i,x in enumerate(VU):
+            sims=PLE@EMB[i]; top=np.argsort(-sims)[:5]; qh=(PU[top]*sims[top][:,None]).sum(0); qh=qh/(np.linalg.norm(qh)+1e-9)
+            COSL.append(float(QL[x]@qh)); TL[x].append(((qh*_CN).astype(np.float32),float(NEG+(POS-NEG)*(float(UN[x]@qh)+1)/2)))
+        if t+1 in QPTS:
+            for x in VU:
+                half,tlike,relt=META[x]; fc,tc=_nd(TC[x],half,tlike,relt); fl,tl=_nd(TL[x],half,tlike,relt); ft,tt=_nd(TT[x],half,tlike,relt)
+                AC[t+1][0]+=fc; AC[t+1][1]+=tc; AC[t+1][2]+=1; AL[t+1][0]+=fl; AL[t+1][1]+=tl; AT[t+1][0]+=ft; AT[t+1][1]+=tt
+        print(f"  turn {t+1}/8 done ({len(RCACHE)} unique renders cached)",flush=True)
+    print(f"=== LLMDROP MODEL={MODEL} (n={len(VU)} users) : continuous q -> triangulated q_hat (no LLM) -> VERBALISED q_hat (LLM) ===",flush=True)
+    for q in QPTS:
+        m=max(AC[q][2],1)
+        print(f"  q={q}:  CONTINUOUS {AC[q][0]/m:.4f}/{AC[q][1]/m:.4f}  |  TRIANG(no-LLM) {AT[q][0]/m:.4f}/{AT[q][1]/m:.4f}  |  VERBALISED {AL[q][0]/m:.4f}/{AL[q][1]/m:.4f}",flush=True)
+        print(f"        drop: representation {(AC[q][0]-AT[q][0])/m:+.4f}/{(AC[q][1]-AT[q][1])/m:+.4f}  language {(AT[q][0]-AL[q][0])/m:+.4f}/{(AT[q][1]-AL[q][1])/m:+.4f}  total {(AC[q][0]-AL[q][0])/m:+.4f}/{(AC[q][1]-AL[q][1])/m:+.4f}",flush=True)
+    print(f"  synth-query -> continuous query cos:  TRIANG(no-LLM) mean {np.mean(COST):.3f}   VERBALISED(LLM) mean {np.mean(COSL):.3f} p10 {np.percentile(COSL,10):.3f}   (1.0 = identical direction)",flush=True)
+    _json.dump({k:v for k,v in RCACHE.items() if v}, open(RPATH,'w'), indent=0, ensure_ascii=False); print(f"  saved {sum(1 for v in RCACHE.values() if v)} renders -> {RPATH}",flush=True)
+    sys.exit(0)
+if os.environ.get('TRIANGULATE'):                                              # PAPER E interpretability WITHOUT snap-loss: KEEP the continuous policy (metrics unchanged); DECOMPOSE each off-manifold query into a sparse k-phrase blend via OMP. Report reconstruction fidelity vs k (k=1 = the lossy snap) + example blends. The continuous direction that no single phrase names is faithfully described by a few.
+    import sys
+    pb=np.load(f'{base}/.cache/phrasebank.npz',allow_pickle=True); PU=pb['unit'].astype(np.float32); PL=list(pb['label'])
+    _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; KS=[1,2,3,5,8]
+    def omp(q,K):                                                              # orthogonal matching pursuit: greedily build q from K phrases (signed), refit weights each step
+        ch=[]; res=q.copy(); A=None; w=None
+        for _ in range(K):
+            proj=PU@res
+            if ch: proj[ch]=0.
+            i=int(np.argmax(np.abs(proj))); ch.append(i)
+            A=PU[ch].T; w=np.linalg.lstsq(A,q,rcond=None)[0]; res=q-A@w
+        recon=A@w; rc=float(recon@q/(np.linalg.norm(recon)+1e-9)); return ch,w,rc
+    REC={k:[] for k in KS}; EX=[]; QALL=[]
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x])
+            if not any(rd[j]>=4 for j in held): continue
+            un=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=un/(np.linalg.norm(un)+1e-9)
+            tk=[]                                                              # REAL continuous rollout (unchanged, no snap)
+            for t in range(8):
+                with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(tk)[None],dtype=torch.float32),t/8.).numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); tk.append(((qn*_CN).astype(np.float32),float(NEG+(POS-NEG)*(float(un@qn)+1)/2)))
+                for K in KS:
+                    ch,w,rc=omp(qn,K); REC[K].append(rc)
+                    if K==3 and len(EX)<12 and sd==seeds[0] and t<2: EX.append((rc,[(PL[c],float(wi)) for c,wi in zip(ch,w)]))
+                if sd==seeds[0]: QALL.append(qn.astype(np.float32))             # collect queries for the LLM round-trip harness
+    print(f"=== TRIANGULATE: naming D1 continuous queries as sparse {len(PU)}-phrase blends (OMP; metrics UNCHANGED=continuous 0.377/0.175) ===",flush=True)
+    print("  reconstruction fidelity  cos(q, blend)  by #phrases:",flush=True)
+    for k in KS: print(f"    k={k}: mean {np.mean(REC[k]):.3f}   p10 {np.percentile(REC[k],10):.3f}   (k=1 == single-phrase SNAP)",flush=True)
+    print("  example query decompositions (k=3, signed weights):",flush=True)
+    for rc,blend in EX[:10]:
+        print(f"    cos {rc:.2f}: "+"  ".join(f"{w:+.2f}*[{l}]" for l,w in blend),flush=True)
+    if os.environ.get('QDUMP'):                                                # dump de-duplicated queries + OMP-5 blends for the LLM round-trip harness
+        QA=np.stack(QALL); keyv=np.round(QA,2); _,uix=np.unique(keyv,axis=0,return_index=True); QA=QA[np.sort(uix)]
+        blends=[]
+        for q in QA: ch,w,rc=omp(q,5); blends.append({'idx':[int(c) for c in ch],'w':[float(x) for x in w],'labels':[PL[c] for c in ch]})
+        np.savez(os.environ['QDUMP'],q=QA,blends=np.array(blends,dtype=object),labels=np.array(PL,dtype=object)); print(f"  dumped {len(QA)} unique queries -> {os.environ['QDUMP']}",flush=True)
+    sys.exit(0)
+if os.environ.get('SNAPBANK'):                                                 # PAPER E interpretability: roll Paper-C D1 continuous policy; SNAP each off-manifold query to the nearest PHRASE BANK entry. Report coverage (snap cos), SNAP-LOSS (un-snapped vs named NDCG), and the top phrases used (the NAMED tree). Rich bank => small snap-loss => deployable.
+    import sys
+    from collections import Counter
+    pb=np.load(f'{base}/.cache/phrasebank.npz',allow_pickle=True); PU=pb['unit'].astype(np.float32); PL=list(pb['label']); PK=list(pb['kind'])
+    _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    def _nd(toks,seen,tlike,relt):
+        u=enc_u_np(toks) if toks else np.zeros(D,np.float32); s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    UNf=[];UNt=[];SNf=[];SNt=[];COS=[];USE=Counter(); USE_T=Counter()
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; uf=ut=sf=st_=0.; m=0.
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=usf/(np.linalg.norm(usf)+1e-9)
+            tk_un=[]; tk_sn=[]                                                  # parallel rollouts: un-snapped continuous vs snapped-to-named-phrase
+            for t in range(8):
+                with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(tk_un)[None],dtype=torch.float32),t/8.).numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); a=float(NEG+(POS-NEG)*(float(un@qn)+1)/2); tk_un.append(((qn*_CN).astype(np.float32),a))
+                with torch.no_grad(): qv2=actor(torch.tensor(enc_u_np(tk_sn)[None],dtype=torch.float32),t/8.).numpy()[0]
+                qn2=qv2/(np.linalg.norm(qv2)+1e-9); k=int(np.argmax(PU@qn2)); COS.append(float(PU[k]@qn2))   # SNAP to nearest phrase
+                if t==0: USE[PL[k]]+=1
+                USE_T[PL[k]]+=1; pu=PU[k]; a2=float(NEG+(POS-NEG)*(float(un@pu)+1)/2); tk_sn.append(((pu*_CN).astype(np.float32),a2))   # user answers the NAMED question
+            fu,tu=_nd(tk_un,half,tlike,relt); fs,ts=_nd(tk_sn,half,tlike,relt); uf+=fu;ut+=tu;sf+=fs;st_+=ts; m+=1
+        UNf.append(uf/m);UNt.append(ut/m);SNf.append(sf/m);SNt.append(st_/m)
+    print(f"=== SNAPBANK: D1 continuous queries -> {len(PU)}-phrase bank (seed-avg {seeds}, te[300:]) ===",flush=True)
+    print(f"  coverage: snap cos to nearest phrase  mean {np.mean(COS):.3f}  p10 {np.percentile(COS,10):.3f}",flush=True)
+    print(f"  un-snapped (continuous): FULL {np.mean(UNf):.4f}  TAIL {np.mean(UNt):.4f}",flush=True)
+    print(f"  SNAPPED (named phrases): FULL {np.mean(SNf):.4f}  TAIL {np.mean(SNt):.4f}",flush=True)
+    print(f"  SNAP-LOSS (cost of naming): FULL {np.mean(UNf)-np.mean(SNf):+.4f}  TAIL {np.mean(UNt)-np.mean(SNt):+.4f}",flush=True)
+    print(f"  top OPENER phrases (turn 0): "+", ".join(f"{l} {c}" for l,c in USE.most_common(8)),flush=True)
+    print(f"  top phrases overall: "+", ".join(f"{l}" for l,_ in USE_T.most_common(15)),flush=True)
+    sys.exit(0)
+if os.environ.get('SNAPTRAIN'):                                                # PAPER E: TRAIN a Paper-C-style continuous actor whose action is SNAPPED to the rich phrase bank (Wolpertinger: emit q -> categorical over phrases via q.PU) -> NATIVELY NAMED policy, ZERO snap-loss by construction. Warm-start from D1 (aligned w/ best continuous). REINFORCE on held NDCG. Compare vs D1 un-snapped (0.377/0.175) & naive-snap (0.332/0.136).
+    import sys
+    from collections import Counter
+    pb=np.load(f'{base}/.cache/phrasebank.npz',allow_pickle=True); PU=pb['unit'].astype(np.float32); PL=list(pb['label']); PUt=torch.tensor(PU); NB=len(PU); TAU=float(os.environ.get('STAU','0.15'))
+    if os.environ.get('SNAPINIT','d1')=='d1':
+        load_ck(os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt')); print("warm-start from D1",flush=True)
+    opts=torch.optim.Adam(actor.parameters(),lr=float(os.environ.get('LR','5e-4'))); _rng=np.random.default_rng(0)
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12)); EP_=int(os.environ.get('SNEP','40')); WF=float(os.environ.get('WF','1.0')); WT=float(os.environ.get('WT','1.0'))
+    def _nd(toks,seen,tlike,relt):
+        u=enc_u_np(toks) if toks else np.zeros(D,np.float32); s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    trB=[x for x in trU if len([j for j in dict(rat_by_u[x]) if dict(rat_by_u[x])[j]>=4])>=3][:3000]; VAL=[x for x in te][:300]
+    def split(users,sd):
+        sp={}; rr=np.random.default_rng(sd)
+        for x in users:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; rr.shuffle(il); sp[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        return sp
+    def rollout(users,sp,greedy):
+        B=len(users); meta=[]; usf=[]
+        for x in users:
+            half,held=sp[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            meta.append((half,tlike,relt)); u=enc_u_np([(Q[j],resid[x][j]) for j in half]); usf.append(u/(np.linalg.norm(u)+1e-9))
+        toks=[[] for _ in range(B)]; logp=torch.zeros(B); usf=np.stack(usf)
+        for t in range(8):
+            U=enc_batch_np([tk if tk else [] for tk in toks]); q=actor(torch.tensor(U,dtype=torch.float32),t/8.)   # (B,D)
+            qn=q/(q.norm(dim=1,keepdim=True)+1e-9); lg=qn@PUt.t()/TAU; pr=torch.softmax(lg,1)                       # categorical over phrases
+            a=pr.argmax(1) if greedy else torch.multinomial(pr,1).squeeze(1)
+            if not greedy: logp=logp+torch.log(pr[torch.arange(B),a]+1e-9)
+            ai=a.numpy()
+            for b in range(B):
+                pu=PU[ai[b]]; cf=float(usf[b]@pu); toks[b].append(((pu*_CN).astype(np.float32),float(NEG+(POS-NEG)*(cf+1)/2)))
+        R=np.zeros(B,np.float32); F=np.zeros(B); T=np.zeros(B); V=np.zeros(B,bool)
+        for b in range(B):
+            half,tlike,relt=meta[b]
+            if not tlike: continue
+            V[b]=True; f,tl=_nd(toks[b],half,tlike,relt); F[b]=f; T[b]=tl; R[b]=WF*f+WT*tl
+        return R,logp,F,T,V
+    best=-1; bestsd=None
+    for ep in range(EP_):
+        bu=list(_rng.choice(trB,size=256,replace=False)); sp=split(bu,1000+ep); bu=[x for x in bu if x in sp]
+        R,logp,_,_,_=rollout(bu,sp,False); adv=torch.tensor(R-R.mean(),dtype=torch.float32); loss=-(adv*logp).mean()
+        opts.zero_grad(); loss.backward(); opts.step()
+        if (ep+1)%5==0:
+            vsp=split(VAL,12345); vu=[x for x in VAL if x in vsp]
+            with torch.no_grad(): _,_,vF,vT,vV=rollout(vu,vsp,True)
+            sc=WF*np.mean(vF[vV])+WT*np.mean(vT[vV])
+            if sc>best: best=sc; bestsd={k:v.clone() for k,v in actor.state_dict().items()}
+            print(f"  ep{ep+1} train_r {R.mean():.4f} | VAL full {np.mean(vF):.4f} tail {np.mean(vT):.4f}",flush=True)
+    if bestsd: actor.load_state_dict(bestsd)
+    save_ck(f'{base}/.cache/snaptrain_actor.pt')
+    TF=[];TT=[]; USE=Counter()
+    for sd in seeds:
+        tsp=split([x for x in te],sd); TEu=[x for x in te if x in tsp][300:]
+        with torch.no_grad(): _,_,F,T,Vm=rollout(TEu,tsp,True)
+        TF.append(float(np.mean(F[Vm]))); TT.append(float(np.mean(T[Vm])))
+        if sd==seeds[0]:
+            for x in TEu[:200]:
+                half,held=tsp[x]; u=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=u/(np.linalg.norm(u)+1e-9); tk=[]
+                for t in range(8):
+                    with torch.no_grad(): q=actor(torch.tensor(enc_u_np(tk)[None],dtype=torch.float32),t/8.).numpy()[0]
+                    qn=q/(np.linalg.norm(q)+1e-9); k=int(np.argmax(PU@qn));
+                    if t==0: USE[PL[k]]+=1
+                    tk.append(((PU[k]*_CN).astype(np.float32),float(NEG+(POS-NEG)*(float(un@PU[k])+1)/2)))
+    print(f"=== SNAPTRAIN ({NB}-phrase bank, warm D1, REINFORCE NDCG; seed-avg {seeds}, te[300:]) ===",flush=True)
+    print(f"  SNAP-TRAINED (named): FULL {np.mean(TF):.4f}  TAIL {np.mean(TT):.4f}   (vs D1 un-snap 0.377/0.175 ; naive-snap 0.332/0.136)",flush=True)
+    print(f"  top openers: "+", ".join(f"{l} {c}" for l,c in USE.most_common(6)),flush=True)
+    sys.exit(0)
+if os.environ.get('RICHDISC'):                                                 # DEPLOYABLE RICH-VOCAB DISCRETE policy (native-named, zero snap-loss): blind static-divisiveness ask over VOCAB, refuse+waste if unanswerable, geometric graded answer, rank by OUR encoder. Tests the subset claim rich>=concepts>=CASPER-R. VOCAB=concepts|rich|both.
+    import sys
+    VOCAB=os.environ.get('VOCAB','rich'); THR=float(os.environ.get('THR','0.45')); MINA=int(os.environ.get('MINA','2'))
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12)); QPTS=[int(z) for z in os.environ.get('QPTS','5,8').split(',')]
+    Qn=(Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32); Ecn=(Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9)).astype(np.float32)
+    if VOCAB=='concepts': VU=Ecn; VF=Ec.astype(np.float32)
+    else:
+        pb=np.load(f'{base}/.cache/phrasebank.npz',allow_pickle=True); PU=pb['unit'].astype(np.float32); PF=pb['vec'].astype(np.float32)
+        if VOCAB=='both': VU=np.concatenate([Ecn,PU]); VF=np.concatenate([Ec,PF]).astype(np.float32)
+        else: VU=PU; VF=PF                                                     # rich
+    NV=len(VU); PIM=(Qn@VU.T).astype(np.float32)                               # (ni,NV) item-phrase alignment (answerability)
+    UT=np.stack([enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]]) for x in trU[:2000]]).astype(np.float32)   # population taste (DIVISIVENESS)
+    UTn=UT/(np.linalg.norm(UT,axis=1,keepdims=True)+1e-9); lr=((UTn@VU.T)>0).mean(0).clip(1e-3,1-1e-3); DIV=-(lr*np.log(lr)+(1-lr)*np.log(1-lr))   # population divisiveness
+    _psv=(cnt/max(len(trU),1)).astype(np.float32); pop_ans=((PIM>THR)*_psv[:,None]).sum(0)   # POPULATION answerability: expected # of a user's items aligning with each phrase (deployable, no peek)
+    GAMMA=float(os.environ.get('GAMMA','1.0')); score=DIV*np.power(np.clip(pop_ans,1e-3,None),GAMMA); order=np.argsort(-score)   # ask divisive AND answerable (GAMMA=0 -> pure divisiveness)
+    def _nd(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    RES={q:([],[]) for q in QPTS}
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VUu=[x for x in te if x in SP][300:]; acc={q:[0.,0.,0.] for q in QPTS}
+        for x in VUu:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=usf/(np.linalg.norm(usf)+1e-9)
+            ca=(PIM[list(half)]>THR).sum(0); ansp=ca>=MINA                     # phrase answerable iff >=MINA known-half items align
+            toks=[]; nq=0; mx=max(QPTS)
+            for p in order:
+                if nq>=mx: break
+                nq+=1                                                          # blind pick = turn consumed
+                if ansp[p]:                                                    # answerable -> geometric graded answer + fold; else REFUSE = wasted turn
+                    y=float(un@VU[p]); toks.append((VF[p], float(NEG+(POS-NEG)*(y+1)/2)))
+                if nq in QPTS: u=enc_u_np(toks); f,tl=_nd(u,half,tlike,relt); acc[nq][0]+=f; acc[nq][1]+=tl; acc[nq][2]+=1
+        for q in QPTS: RES[q][0].append(acc[q][0]/max(acc[q][2],1)); RES[q][1].append(acc[q][1]/max(acc[q][2],1))
+    print(f"=== RICHDISC VOCAB={VOCAB} (NV={NV}, blind static-divisiveness + refuse, our encoder rank; seed-avg {seeds}, te[300:]) ===",flush=True)
+    for q in QPTS: print(f"  q={q}: FULL {np.mean(RES[q][0]):.4f}  TAIL {np.mean(RES[q][1]):.4f}   (ref CASPER-R 0.360/0.152, entropy 0.361/0.140)",flush=True)
+    sys.exit(0)
+if os.environ.get('EXPLORE'):                                                  # EXPLORATION ABLATION (item-grounded Beta belief over KNOWN items, cf PEBOL; concept acquisition swappable). ACQ=greedy|ts|ucb|dpp|eps. All rank by OUR encoder fold. Which exploration wins the TAIL?
+    import sys
+    ACQ=os.environ.get('ACQ','ts'); UB=float(os.environ.get('UB','1.0')); DL=float(os.environ.get('DL','0.5')); EPS=float(os.environ.get('EPS','0.3'))
+    _FAIRCAND=list(np.argsort(-cnt)[:int(os.environ.get('FAIRK','500'))]) if os.environ.get('FAIRCAND') else None   # FAIRCAND=1 -> shared popular-item candidate set (no known-item peek)
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12)); QPTS=[int(z) for z in os.environ.get('QPTS','5,8').split(',')]
+    Ecn=(Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9)).astype(np.float32); Qn=(Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32)
+    def _nd(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    RES={q:([],[]) for q in QPTS}
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; acc={q:[0.,0.,0.] for q in QPTS}
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=usf/(np.linalg.norm(usf)+1e-9)
+            ac=[c for c in range(NC) if len(citems[c]&half)>=2]
+            if not ac: continue
+            cand=_FAIRCAND if _FAIRCAND is not None else list(half)             # FAIRCAND: shared general item set (no per-user known-item PEEK); else known-half (leaky)
+            alp=np.ones(len(cand),np.float32); bet=np.ones(len(cand),np.float32)
+            EC=np.array([Ecn[c] for c in ac],np.float32); ECf=[Ec[c] for c in ac]; ycon=(EC@un).astype(np.float32)   # geometric answer per concept
+            ent=(EC@np.array([Qn[j] for j in cand],np.float32).T*0.5+0.5).astype(np.float32)                          # entailment concept->known item [0,1]
+            CS=(EC@EC.T).astype(np.float32)                                     # concept-concept similarity (for DPP diversity)
+            toks=[]; asked=set()
+            for t in range(8):
+                if len(asked)>=len(ac): break
+                m=alp/(alp+bet); v=alp*bet/((alp+bet)**2*(alp+bet+1))           # per-item Beta mean/var
+                if ACQ=='greedy': q=ent@m
+                elif ACQ=='ucb': q=ent@(m+UB*np.sqrt(v))
+                elif ACQ=='eps': q=ent@m
+                else: th=r.beta(alp,bet); q=ent@th                             # ts / dpp base on a Thompson sample
+                q=q.copy(); q[list(asked)]=-1e9
+                if ACQ=='dpp':
+                    for a in range(len(ac)):
+                        if a not in asked and asked: q[a]=q[a]-DL*max(float(CS[a,b2]) for b2 in asked)
+                if ACQ=='eps' and r.random()<EPS*max(0.,1.-t/8.): a=int(r.choice([k for k in range(len(ac)) if k not in asked]))
+                else: a=int(np.argmax(q))
+                asked.add(a); ans=float(0.5+0.5*ycon[a]); alp=alp+ans*ent[a]; bet=bet+(1-ans)*ent[a]
+                toks.append((ECf[a],float(NEG+(POS-NEG)*(ycon[a]+1)/2)))
+                if t+1 in QPTS: u=enc_u_np(toks); f,tl=_nd(u,half,tlike,relt); acc[t+1][0]+=f; acc[t+1][1]+=tl; acc[t+1][2]+=1
+        for q in QPTS: RES[q][0].append(acc[q][0]/max(acc[q][2],1)); RES[q][1].append(acc[q][1]/max(acc[q][2],1))
+    print(f"=== EXPLORE ACQ={ACQ} (item-grounded Beta belief, our encoder rank; seed-avg {seeds}, te[300:]) ===",flush=True)
+    for q in QPTS: print(f"  q={q}: FULL {np.mean(RES[q][0]):.4f}  TAIL {np.mean(RES[q][1]):.4f}   (ref CASPER-R 0.360/0.152, PEBOL-geo-ts 0.369/0.168, D1 0.377/0.175)",flush=True)
+    sys.exit(0)
+if os.environ.get('TSCASP'):                                                   # THOMPSON-SAMPLING elicitation in OUR framework (Thompson 1933; exploration lever, cf PEBOL). Bayesian-linear posterior over belief u; each turn SAMPLE u_hat then DISC=ask argmax-aligned concept / CONT=ask the sampled direction. Geometric known-half answer. Rank by OUR encoder fold. TSMODE=disc|cont.
+    import sys
+    MODE=os.environ.get('TSMODE','disc'); lam=float(os.environ.get('LAM','1.0')); s2=float(os.environ.get('S2','0.25'))
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12)); QPTS=[int(z) for z in os.environ.get('QPTS','5,8').split(',')]
+    Ecn=(Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9)).astype(np.float32)
+    def _nd(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else 0.
+        return full,tail
+    RES={q:([],[]) for q in QPTS}
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]; acc={q:[0.,0.,0.] for q in QPTS}
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=usf/(np.linalg.norm(usf)+1e-9)
+            ac=[c for c in range(NC) if len(citems[c]&half)>=2]
+            if MODE=='disc' and not ac: continue
+            EA=np.array([Ecn[c] for c in ac],np.float32) if ac else None; EAf=[Ec[c] for c in ac]
+            cov=(np.eye(D,dtype=np.float32)/lam); b=np.zeros(D,np.float32); toks=[]; asked=set()
+            for t in range(8):
+                mu=cov@b
+                try: L=np.linalg.cholesky(cov)
+                except Exception: L=np.eye(D,np.float32)*np.sqrt(1./lam)
+                uh=mu+L@r.standard_normal(D).astype(np.float32)                # Thompson sample a plausible taste
+                if MODE=='disc':
+                    if len(asked)>=len(ac): break
+                    sc=EA@uh; sc[list(asked)]=-1e9; i=int(np.argmax(sc)); asked.add(i); phi=EA[i]; fac=EAf[i]
+                else:
+                    phi=uh/(np.linalg.norm(uh)+1e-9); fac=(phi*_CN)              # continuous posterior-sampling query
+                y=float(un@phi); toks.append((np.asarray(fac,np.float32),float(NEG+(POS-NEG)*(y+1)/2)))
+                Cphi=cov@phi; cov=cov-np.outer(Cphi,Cphi)/(s2+float(phi@Cphi)); b=b+phi*y/s2   # Bayesian-linear posterior update
+                if t+1 in QPTS: u=enc_u_np(toks); f,tl=_nd(u,half,tlike,relt); acc[t+1][0]+=f; acc[t+1][1]+=tl; acc[t+1][2]+=1
+        for q in QPTS: RES[q][0].append(acc[q][0]/max(acc[q][2],1)); RES[q][1].append(acc[q][1]/max(acc[q][2],1))
+    print(f"=== TS-CASPER ({MODE}, Thompson posterior over u, our encoder rank; lam={lam} s2={s2}; seed-avg {seeds}, te[300:]) ===",flush=True)
+    for q in QPTS: print(f"  q={q}: FULL {np.mean(RES[q][0]):.4f}+/-{np.std(RES[q][0]):.4f}  TAIL {np.mean(RES[q][1]):.4f}+/-{np.std(RES[q][1]):.4f}   (ref: CASPER-R 0.360/0.152, entropy 0.361/0.140, PEBOL-geo 0.369/0.168, D1 0.377/0.175)",flush=True)
     sys.exit(0)
 if os.environ.get('SUBSETORACLE'):                                             # ORACLE: roll D1 (real geometric answers, NO injected noise), then DROP answers to maximise held NDCG. If oracle-subset > fold-all => some answers are RED HERRINGS; removing them helps (cf Paper B subset>full). Headroom for a learned refusal. OPT=tail|full.
     import sys

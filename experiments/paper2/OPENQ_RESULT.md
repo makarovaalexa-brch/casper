@@ -50,3 +50,27 @@ FINDINGS:
 3. Honest band: distinct is optimistic (user names their MOST distinctive favourite); realistic value between
    popweight and distinct. Direction unambiguous; framing effect large.
 NEXT: portfolio of question TYPES (favourite + hidden-gem + hated-movie for negative/tail pruning); the answerer per type.
+
+## PORTFOLIO of item question-TYPES (8 questions split across types) — 2026-06-30
+NDCG@10 (full/tail), seed-avg {1,2,3}, vs D1 0.378/0.178. fav=highest-rated (info-favourable upper band),
+gem=high-align/low-pop (hidden-gem), hate=disliked item folded as a negative token. PORTFOLIO="fav:n,gem:n,hate:n".
+| portfolio (8 Q) | FULL | TAIL |
+|---|---|---|
+| fav:8 (all favourite) | **0.4111** | 0.2093 |
+| gem:8 (all hidden-gem) | 0.4047 | 0.2106 |
+| fav:4,gem:4 | 0.4085 | **0.2112** |
+| fav:3,gem:3,hate:2 | 0.4062 | 0.2086 |
+| fav:2,gem:4,hate:2 | 0.4039 | 0.2108 |
+| gem:6,hate:2 | 0.4002 | 0.2105 |
+
+FINDINGS:
+1. All-favourite maxes FULL (0.4111, head titles dominate full metric); mixing in hidden-gem (fav:4,gem:4 0.4085/0.2112)
+   trades a sliver of full for the best TAIL -> the head/tail framing lever realised inside one schedule.
+2. HATE (negative recall) does NOT help on this ruler: every config with hate:2 is <= its no-hate sibling. A negative
+   item prunes less than a positive item informs at scarce budget. Productive item portfolio = positive recall
+   (favourite + hidden-gem), mix governs head/tail.
+3. These use info-favourable fav/gem recall (upper band); realistic-answerer portfolio sits proportionally lower
+   (track the popweight row in the K-sweep). Repro: NOBC=1 EP=0 CONTMODE=cont OPENQ=1 PORTFOLIO="fav:4,gem:4"
+   EVALSEEDS=1,2,3 python scripts/paper2/continuous_actor.py
+NEXT (item phase DONE): metadata-grounded open Q (actor/director -> film-centroid; needs ML cast metadata), then
+themes/mood (genre/genome centroid), up to fully-open "what do you like?"; then the LEARNED asker over types (NDCG).
