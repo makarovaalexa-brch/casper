@@ -16,7 +16,8 @@ TAIL delta (CASPER-R - entropy heuristic), by TRAINING seed:
 |---|---|---|---|
 | 0 (=winner's seed) | **+0.008** | +0.005 | +0.001 |
 | 1 (diff init)      | **-0.007** | -0.001 | -0.003 |
-| 2                  | (pending) | | |
+| 2                  | -0.005 | +0.006 | -0.002 |
+| **mean (3 seeds)** | **-0.001** | **+0.003** | **-0.001** |
 Also: q8 tail ts0 +0.001, ts1 -0.003. FULL metric ~ties throughout both seeds.
 
 => The ts0 advantage (front-loading +0.008@q2 AND the +0.011 test-selected q8 tail) is a FAVOURABLE TRAINING SEED (the
@@ -26,9 +27,12 @@ Prior finding (val-selection, one training seed) showed q8 win +0.011->+0.001; t
 seed-fragile. Robust B content = ANSWERABILITY (concepts>>items, training-free, solid) + CASPER-R MATCHES the heuristic
 (not beats). Learned-win claim should be dropped. (Consistent with user's point-1 reframe; goes further.)
 
-## D1 (Paper C flagship) — PENDING, PIVOTAL
-D1 x3 training seeds retraining now (trseed_rerun.log). If D1's continuous-vs-discrete margin is also training-seed-
-fragile, C's centerpiece is affected; if it holds, C stands and only B softens. **This is the key open question.**
+## D1 (Paper C flagship) — ROBUST across training seeds (C STANDS)
+D1 graded FULL/TAIL: ts0 0.3799/0.1828, ts1 0.3733/0.1713, ts2 0.3759/0.1753 => MEAN 0.376+/-0.003 / 0.176+/-0.006.
+Stable. Even with BOTH sides training-seed-averaged, continuous beats discrete (vs graded uent+GRAW 0.367/0.158 =>
++0.009/+0.018; vs CASPER-R/entropy ~0.36/~0.145 => larger). C's continuous-beats-discrete margin + snap-loss stand.
+CONCLUSION: C = robust flagship; B = answerability paper (learned-win dropped). ts0=TRSEED0 reproduces winner exactly
+(patch validated). STILL TODO: C-B4 graded-discrete control eval (policy_gradeddisc_rerun); paired-user bootstrap harness.
 
 ## Provenance
 Code: TRSEED patch in continuous_actor.py + continuous_policy2.py (line 9, +actor rng 1823). Logs:
