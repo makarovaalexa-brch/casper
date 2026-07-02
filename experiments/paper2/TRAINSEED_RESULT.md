@@ -1,3 +1,9 @@
+> **⚠ 2026-07-02 LATER: ts1/ts2 rows below are INVALID — split-leak bug.** TRSEED also seeded the
+> train/test split shuffle, so TRSEED!=0 runs trained on ~80% of canonical test users (leakage).
+> TRSEED=0 rows (the winners) are unaffected (byte-identical). CASPER-R conclusion survives a fortiori
+> (ts1 lost even WITH leakage inflation). **D1 robustness must be RE-VERIFIED on the fixed split — rerun in progress.**
+> Fix: split pinned to rng(0) in continuous_actor.py + continuous_policy2.py. See PAIRTRAIN_RESULT.md.
+
 # TRAINING-SEED robustness rerun (2026-07-02, review S1/B-B3/B-B4/C-B5) — CRITICAL, possible B overturn
 
 ## Background / method
