@@ -6,7 +6,7 @@ from per-candidate features [embedding, belief-alignment u.E, popularity-prior, 
 popularity when belief weak) AND personalize (use belief as answers accumulate) => beat conc_pop. Frozen unified model.
 """
 import os, time, numpy as np, torch, torch.nn as nn
-base='C:/dev/phd/casper/data/movielens'; ml=f'{base}/ml-1m'; D=64; T=int(os.environ.get('T',8)); TAU=float(os.environ.get('TAU',0.3)); EP=int(os.environ.get('EP',14)); rng=np.random.default_rng(0); torch.manual_seed(0)
+base='C:/dev/phd/casper/data/movielens'; ml=f'{base}/ml-1m'; D=64; T=int(os.environ.get('T',8)); TAU=float(os.environ.get('TAU',0.3)); EP=int(os.environ.get('EP',14)); _TRS=int(os.environ.get('TRSEED','0')); rng=np.random.default_rng(_TRS); torch.manual_seed(_TRS)
 QPTS=[int(x) for x in os.environ.get('QPTS','0,2,4,8').split(',')]              # eval question-budget points; extend for the saturation cut-off, e.g. QPTS=0,2,4,8,12,16,20 (must be <= T)
 U,I,Rr=[],[],[]
 with open(f'{ml}/ratings.dat') as f:
@@ -1820,7 +1820,7 @@ if os.environ.get('SNAPTRAIN'):                                                #
     pb=np.load(f'{base}/.cache/phrasebank.npz',allow_pickle=True); PU=pb['unit'].astype(np.float32); PL=list(pb['label']); PUt=torch.tensor(PU); NB=len(PU); TAU=float(os.environ.get('STAU','0.15'))
     if os.environ.get('SNAPINIT','d1')=='d1':
         load_ck(os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt')); print("warm-start from D1",flush=True)
-    opts=torch.optim.Adam(actor.parameters(),lr=float(os.environ.get('LR','5e-4'))); _rng=np.random.default_rng(0)
+    opts=torch.optim.Adam(actor.parameters(),lr=float(os.environ.get('LR','5e-4'))); _rng=np.random.default_rng(_TRS)
     seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12)); EP_=int(os.environ.get('SNEP','40')); WF=float(os.environ.get('WF','1.0')); WT=float(os.environ.get('WT','1.0'))
     def _nd(toks,seen,tlike,relt):
         u=enc_u_np(toks) if toks else np.zeros(D,np.float32); s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
