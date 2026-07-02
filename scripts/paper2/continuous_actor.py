@@ -272,6 +272,10 @@ if _PAIRTRAIN:
         k=c.view(len(qn),-1).argmax(1); ii=torch.gather(ti,1,(k//_PTK).view(-1,1)).squeeze(1); jj=torch.gather(bj,1,(k%_PTK).view(-1,1)).squeeze(1)
         d=_PEt[ii]-_PEt[jj]; return d/(d.norm(dim=1,keepdim=True)+1e-9)
     print(f"  PAIRTRAIN: pair-native straight-through realization in the training unroll (N={Q.shape[0]} items, top-K={_PTK})",flush=True)
+_ENTTRAIN=bool(os.environ.get('ENTTRAIN'))                                              # ENTTRAIN=1: ENTITY-NATIVE training -- same protocol as PAIRTRAIN but the realization set is the UNIFIED NP named entities (600 pool items + NC concepts = the vocabulary CASPER-R scores over): snap q to the nearest entity (cosine), fold the ENTITY VECTOR (like SNAPLOSS/ACTSNAP), straight-through bwd. Bottom rung of the action-set richness ladder.
+if _ENTTRAIN:
+    _ERC=[0.,0]                                                                          # accumulates mean realization cos(q,entity) per epoch
+    print(f"  ENTTRAIN: entity-native straight-through realization in the training unroll (NP={NP} unified entities = {NI} items + {NC} concepts)",flush=True)
 _REFUSE=bool(os.environ.get('REFUSE')); _TAUR=float(os.environ.get('TAUR','0.15')); _REFTMP=float(os.environ.get('REFTMP','0.05'))   # REFUSAL: answerer refuses washed-out questions (|cos(u*,q)|<TAUR) during training -> actor learns per-user-decisive asking (straight-through)
 _ABOTREF=bool(os.environ.get('ABOTREF')); _ABTAU=float(os.environ.get('ABTAU','0.8'))   # ABOT REFUSAL: refuse when the LEARNED answerer's confidence is low (sigma^2>ABTAU) = niche/unfamiliar question -> actor learns to ask FAMILIAR-and-informative; feats=[pop,div,0,0,taste]
 _NOISETR=bool(os.environ.get('NOISETR')); _NOISEK=float(os.environ.get('NOISEK','1.0')); _LEARNTAU=bool(os.environ.get('LEARNTAU')); _tauP=None   # NOISETR: training answers are NOISY (geom + N(0,sigma^2_ABot)) => low-conf = FALSE info; refusing removes it. LEARNTAU: refusal threshold tau co-trained to optimise NDCG.
@@ -301,10 +305,14 @@ def rollout(users,ANS,USTAR=None,explore=0.0):                                # 
             if _PAIRTRAIN:                                                    # PAIR-NATIVE: realize q as the best item-pair difference d; fwd folds d, bwd treats d~q (straight-through) -> the policy trains inside the pair-reachable set
                 with torch.no_grad(): _dp=pair_realize_t(qn); _PRC[0]+=float((qn.detach()*_dp).sum(1).mean()); _PRC[1]+=1
                 qn=qn+(_dp-qn).detach()                                       # downstream (divfield, fold, graded answer) all see d in fwd, q-gradient in bwd
+            _ees=None
+            if _ENTTRAIN:                                                     # ENTITY-NATIVE: realize q as the nearest UNIFIED named entity (cosine over POOLnt); fwd folds the ENTITY VECTOR, bwd treats e~q (straight-through)
+                with torch.no_grad(): _ki=(qn@POOLnt.t()).argmax(1); _ee=POOLnt[_ki]; _ees=POOLt[_ki].norm(dim=1,keepdim=True); _ERC[0]+=float((qn.detach()*_ee).sum(1).mean()); _ERC[1]+=1
+                qn=qn+(_ee-qn).detach()                                       # downstream (divfield, fold, graded answer) all see the entity direction in fwd, q-gradient in bwd
             if _DIVW>0: _DIVH[0]=_DIVH[0]+divfield(qn)                        # #3: reward asking DIVISIVE (informative) directions
             if _GROUND:                                                      # STRAIGHT-THROUGH grounding: hard nearest real entity fwd (sharp, in-distribution), soft-attention grad bwd (actor still learns)
                 sim=qn@POOLnt.t(); fes=torch.softmax(sim/_GTAU,1)@POOLt; fe=POOLt[sim.argmax(1)]+(fes-fes.detach())
-            else: fe=qn*_CN                                                   # raw off-pool point (OOD baseline)
+            else: fe=qn*(_ees if _ees is not None else _CN)                   # raw off-pool point (OOD baseline); ENTTRAIN: unit entity dir x native entity norm = the ACTUAL entity vector (matches SNAPLOSS fold)
             cf=((fe*USTAR).sum(1)/(fe.norm(dim=1)*USTAR.norm(dim=1)+1e-9)) if USTAR is not None else torch.zeros(B)   # graded affinity cos(u*,fe) in [-1,1]
             if _ANSLEARN in ('cons','uncons') and USTAR is not None: ans=_ansmodel(USTAR,qn)  # LEARNED answer (trained to max NDCG); cons=fn(cos) legit, uncons=fn(u*) cheat
             else: ans=(NEG+(POS-NEG)*(cf+1)/2) if _GRADED else (torch.sign(cf)+(torch.tanh(4.*cf)-torch.tanh(4.*cf).detach()))   # GRADED: interpolate NEG..POS by affinity ; else one honest ±bit
@@ -575,6 +583,9 @@ def val_ndcg():
                 if _PAIRTRAIN:                                                # PAIR-NATIVE val = deployment: fold the realized pair direction, GRADED answer along it (matches PAIRSNAP eval)
                     with torch.no_grad(): _u1=pair_realize_t(torch.tensor(_u1[None]))[0].numpy().astype(np.float32)
                     _qn=(_u1*_CN).astype(np.float32)
+                    toks.append((_qn,float(NEG+(POS-NEG)*(float(_us@_u1)/(np.linalg.norm(_us)+1e-9)+1)/2))); continue
+                if _ENTTRAIN:                                                 # ENTITY-NATIVE val = deployment: snap to nearest unified entity, fold the ENTITY VECTOR, GRADED answer along it (matches ENTSNAP eval)
+                    _ki=int(np.argmax(POOLn@_u1)); _u1=POOLn[_ki]; _qn=POOL[_ki].astype(np.float32)
                     toks.append((_qn,float(NEG+(POS-NEG)*(float(_us@_u1)/(np.linalg.norm(_us)+1e-9)+1)/2))); continue
                 if _ANSLEARN in ('cons','uncons'):
                     with torch.no_grad(): _a=float(_ansmodel(torch.tensor(_us[None],dtype=torch.float32),torch.tensor(_u1[None])))   # LEARNED graded answer (the demo)
@@ -1001,7 +1012,57 @@ if os.environ.get('PAIRSNAP'):                                                 #
             ca=pair_topk(QSAMP[kk])[2]; ce=pair_exact(QSAMP[kk]); gaps.append(ce-ca); hit+=int(abs(ce-ca)<1e-6)
         g=np.array(gaps); print(f"  approx gap (exact - topK cos, {len(g)} queries): mean {g.mean():.6f}  max {g.max():.6f}  exact-match {hit}/{len(g)}",flush=True)
     sys.exit(0)
-if os.environ.get('PAIRBOOT'):                                                 # PAIRED PER-USER BOOTSTRAP: pair-native actor (ACTORCK, pair-realized graded fold) vs uent+GRAW static baseline (top-8 POOL_ENT entities, raw-dot graded answers) on IDENTICAL users/splits/seeds; per-user seed-avg deltas, 10k bootstrap, two-sided p
+if os.environ.get('ENTSNAP'):                                                   # ENTITY-SNAP eval (ladder bottom rung): realize each query as the NEAREST of the NP unified named entities (cosine), fold the ENTITY VECTOR (like SNAPLOSS/ACTSNAP), graded answer along it. Mirrors the PAIRSNAP harness exactly (same seeds/ruler/graded fold). Anchors: D1 unsnap 0.3780/0.1782 ; pair-native ts0 0.3701/0.1659 ; uent+GRAW 0.3667/0.1577 ; concept-snap 0.3414/0.1384.
+    import sys
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    _ack=os.environ.get('ACTORCK',f'{base}/.cache/policy_enttrain_d1warm_best.pt'); load_ck(_ack); actor.eval()
+    def answer(uf,emb,mode,thr):                                                # SAME graded/binary geometric answer as PAIRSNAP/COMPARE4, along the realized direction
+        nf=np.linalg.norm(uf)+1e-9; e=emb/(np.linalg.norm(emb)+1e-9); cf=float(uf@e)/nf
+        return float(NEG+(POS-NEG)*(cf+1)/2) if mode=='graded' else (POS if float(uf@emb)>thr else NEG)
+    def ndft(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    RCOS=[]; NREP=[0,0]; TCNT=[0,0]                                             # realization cos(q,e) ; repeat-snap rate ; entity-type counts (items,concepts)
+    def roll_ent(uf,cans,mode,thr,collect):
+        toks=[]; seen=set()
+        for t in range(8):
+            qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).detach().numpy()[0]
+            qn=(qv/(np.linalg.norm(qv)+1e-9)).astype(np.float32)
+            k=int(np.argmax(POOLn@qn))
+            if collect:
+                RCOS.append(float(POOLn[k]@qn)); NREP[0]+=int(k in seen); NREP[1]+=1; TCNT[int(PTYPE[k])]+=1
+            seen.add(k)
+            fe=POOL[k].astype(np.float32)                                       # fold the ACTUAL entity vector (native norm), same as SNAPLOSS/ACTSNAP folds Ec[c]
+            toks.append((fe,answer(uf,fe,mode,thr)))
+        return enc_u_np(toks)
+    modes=['graded']+(['binary'] if os.environ.get('ENTBIN') else [])
+    print(f"=== ENTSNAP (nearest-entity realization; NP={NP} unified entities = {NI} items + {NC} concepts; seed-avg {seeds}, te[300:], q8) ===",flush=True)
+    for mode in modes:
+        fs=[];ts=[]
+        for sd in seeds:
+            r=np.random.default_rng(sd); SP={}
+            for x in te:
+                its=list(dict(rat_by_u[x]))
+                if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+            VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.
+            for x in VU:
+                half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+                if not tlike: continue
+                uf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cans=cans_np(x,half)
+                if not cans: continue
+                thr=float(np.mean([float(uf@Ec[c]) for c in cans]))
+                f,tl=ndft(roll_ent(uf,cans,mode,thr,mode=='graded' and sd==seeds[0]),half,tlike,relt); nf+=f; mf+=1
+                if tl is not None: nt+=tl; mt+=1
+            fs.append(nf/max(mf,1)); ts.append(nt/max(mt,1)); print(f"  ent {mode} seed {sd}: FULL {fs[-1]:.4f}  TAIL {ts[-1]:.4f}",flush=True)
+        print(f"  ENT-SNAP {mode:>6}: FULL {np.mean(fs):.4f}+/-{np.std(fs):.4f}  TAIL {np.mean(ts):.4f}+/-{np.std(ts):.4f}   (anchors: D1 unsnap 0.3780/0.1782 ; pair-native 0.3701/0.1659 ; uent+GRAW 0.3667/0.1577 ; concept-snap 0.3414/0.1384)",flush=True)
+    RC=np.array(RCOS)
+    if len(RC): print(f"  realization cos(q,e): mean {RC.mean():.4f}  median {np.median(RC):.4f}  p10 {np.percentile(RC,10):.4f}  p25 {np.percentile(RC,25):.4f}  p75 {np.percentile(RC,75):.4f}  p90 {np.percentile(RC,90):.4f}  min {RC.min():.4f}  (n={len(RC)})",flush=True)
+    if NREP[1]: print(f"  repeat-snap rate (same entity re-asked within a session): {NREP[0]/NREP[1]:.4f}  | snapped-entity types: items {TCNT[0]}  concepts {TCNT[1]}",flush=True)
+    sys.exit(0)
+if os.environ.get('PAIRBOOT'):                                               # PAIRED PER-USER BOOTSTRAP: pair-native actor (ACTORCK, pair-realized graded fold) vs uent+GRAW static baseline (top-8 POOL_ENT entities, raw-dot graded answers) on IDENTICAL users/splits/seeds; per-user seed-avg deltas, 10k bootstrap, two-sided p
     import sys
     seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
     _ack=os.environ.get('ACTORCK',f'{base}/.cache/policy_pairtrain_d1warm_best.pt'); load_ck(_ack); actor.eval()
@@ -2321,6 +2382,7 @@ for ep in range(EP):
         else: _bm=''; _since+=1
         print(f"  ep{ep+1} return={-tot/nb:.4f} | VAL NDCG@10 full {vf:.3f} tail {vt:.3f}{_bm}  [PEAK {_selm} {_bestvt:.3f} @ep{_bestep}, {_since} since]"+(f"  tau={float(_tauP):.3f}" if _tauP is not None else ""),flush=True)
     if _PAIRTRAIN and _PRC[1]>0: print(f"  pair-realization cos(q,d) ep{ep+1}: {_PRC[0]/_PRC[1]:.4f} (over {_PRC[1]} train-rollout turns)",flush=True); _PRC[0]=0.; _PRC[1]=0   # should CLIMB if the policy learns to stay pair-reachable
+    if _ENTTRAIN and _ERC[1]>0: print(f"  entity-realization cos(q,e) ep{ep+1}: {_ERC[0]/_ERC[1]:.4f} (over {_ERC[1]} train-rollout turns)",flush=True); _ERC[0]=0.; _ERC[1]=0   # post-hoc reference ~0.64-0.70
     save_ck(_CK.replace('.pt',f'_ep{ep+1}.pt')); save_ck(_CK.replace('.pt','_last.pt'))   # SAVE EVERY epoch (ckpts ~100KB) + always-latest pointer -> any-epoch/peak/latest analysis without stopping; a kill loses only the in-progress epoch
     if _PAT and _since>=_PAT: print(f"EARLY-STOP @ep{ep+1}: no val gain for {_PAT} epochs (best {_selm} {_bestvt:.3f} @ep{_bestep})",flush=True); break
 if _ANSLEARN:                                                                  # ANSWER-LEARNING DEMO: final NDCG with the learned (or geometric) answer, fixed actor
