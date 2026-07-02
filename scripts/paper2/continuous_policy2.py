@@ -18,7 +18,9 @@ uu=np.array([uids[x] for x in U]); ii=np.array([iids[x] for x in I])
 rat_by_u={}
 for k in range(len(uu)): rat_by_u.setdefault(uu[k],[]).append((ii[k],float(Rr[k])))
 likes_by_u={x:[j for j,r in v if r>=4] for x,v in rat_by_u.items()}
-keep=[x for x in range(nu) if len(likes_by_u.get(x,[]))>=5]; rng.shuffle(keep); nK=len(keep); trU=keep[:int(0.8*nK)]; te=keep[int(0.9*nK):]
+keep=[x for x in range(nu) if len(likes_by_u.get(x,[]))>=5]; rng.shuffle(keep)
+if _TRS: keep=[x for x in range(nu) if len(likes_by_u.get(x,[]))>=5]; np.random.default_rng(0).shuffle(keep)   # SPLIT LEAK FIX (2026-07-02, mirrors continuous_actor.py): TRSEED must not move the train/test split (canonical te[300:] users entered TRAINING for ts!=0; affected TRAINSEED_RESULT CASPER-R ts1/ts2). TRSEED=0 byte-identical.
+nK=len(keep); trU=keep[:int(0.8*nK)]; te=keep[int(0.9*nK):]
 cnt=np.zeros(ni)
 for x in trU:
     for j in likes_by_u.get(x,[]): cnt[j]+=1
@@ -428,7 +430,7 @@ def run(mode,tail):
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4); held={j:rd[j] for j in test}
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
         ustar=enc_u_np([(Q[j],resid[x][j]) for j in profset]); un=np.linalg.norm(ustar)+1e-9   # known user vector
-        cans=cans_np(x,profset) if mode in('policy','conc_pop','conc_oracle','cont_oracle','entropy','entropy_uni','entropy_item','random','helf','logpop_ent','pop_ent') or mode.startswith('mix') else {}; toks=[]; asked=set(); nq=0; nans=0; first=None; seq=[]; trow=[]
+        cans=cans_np(x,profset) if mode in('policy','conc_pop','conc_oracle','cont_oracle','entropy','entropy_ansoracle','entropy_uni','entropy_item','random','helf','logpop_ent','pop_ent') or mode.startswith('mix') else {}; toks=[]; asked=set(); nq=0; nans=0; first=None; seq=[]; trow=[]
         for q in QPTS:
             while nq<q:
                 if mode=='policy':
@@ -451,7 +453,10 @@ def run(mode,tail):
                 elif mode=='entropy':                                              # CANONICAL entropy heuristic: most DIVISIVE answerable concept (binary entropy of like-rate, >=2000 train users, unanswerable->0 ranked last; matches lit_baselines = the strong/fair baseline). CONCEPTS ONLY by design (range(NC)) -- items never in the candidate set.
                     ci=[c for c in range(NC) if c not in asked]; cc=max(ci,key=lambda c:POOL_ENT[NI+c]); asked.add(cc); nq+=1
                     if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1
-                elif mode=='entropy_uni':                                          # DIVISIVENESS over the UNIFIED pool (items+concepts), answerability-BLIND: ranks by global Hb so it picks divisive ITEMS the cold-start user usually hasn't seen -> unanswerable -> wasted Q. Demonstrates WHY canonical entropy is concept-only + the answerability cost of items.
+                elif mode=='entropy_ansoracle':                                    # P0-a DIAGNOSTIC (opt-in via MODES/EVALBASE, never default): SAME entropy ranking but SKIP concepts unanswerable for THIS user (peeks at ANSWERABILITY only -- the >=2-tagged-profile-items criterion of cans_np -- NEVER at answer values) => every turn answered; delta vs 'entropy' = the entire realizable wasted-turn headroom
+                    ci=[c for c in cans if c not in asked]; nq+=1
+                    if ci: cc=max(ci,key=lambda c:POOL_ENT[NI+c]); asked.add(cc); toks.append((Ec[cc],cans[cc])); nans+=1
+                elif mode=='entropy_uni':                                        # DIVISIVENESS over the UNIFIED pool (items+concepts), answerability-BLIND: ranks by global Hb so it picks divisive ITEMS the cold-start user usually hasn't seen -> unanswerable -> wasted Q. Demonstrates WHY canonical entropy is concept-only + the answerability cost of items.
                     cs=[k for k in range(NP) if k not in asked]; k=max(cs,key=lambda k:POOL_ENT[k]); asked.add(k); nq+=1
                     if PTYPE[k]==0:
                         j=PITEMS[k]
@@ -525,6 +530,7 @@ def run(mode,tail):
                         if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1; nc_+=1
             uu=enc_u_np(toks); mt=metr(uu,tlike,profset,tail)
             if mt: M[q]+=mt[0];Rc[q]+=mt[1];MR[q]+=mt[2]
+            if os.environ.get('ANSDUMP') and mt: open(os.environ['ANSDUMP'],'a').write(f"{os.environ.get('DUMPSEED','')},{mode},{int(tail)},{x},{q},{nans},{mt[0]:.4f}\n")   # P0-b DIAGNOSTIC dump (opt-in): seed,mode,tail,user,q,answered-so-far,NDCG@10 -> NDCG-vs-ANSWERED-count curve
             CO[q]+=float(uu@ustar/((np.linalg.norm(uu)+1e-9)*un))             # cos(belief, known user u*)
         m+=1; na+=nans
         if first is not None: FP.append(first)
@@ -546,6 +552,7 @@ if os.environ.get('EVALCKS'):                                                  #
     print(f"=== EVALCKS seeds={_seeds} TESTRANGE={_tr} | NDCG@10 FULL/TAIL @ {QPTS} -> {_csv} ===",flush=True)
     _cf=open(_csv,'a')
     for _sd in _seeds:
+        os.environ['DUMPSEED']=str(_sd)                                        # tag ANSDUMP rows with the eval seed (inert unless ANSDUMP set)
         _rsd=np.random.default_rng(_sd); SPL={}                                # rebuild the profile-split for this seed (== the seed-averaging protocol)
         for x in te:
             its=list(dict(rat_by_u[x]))
