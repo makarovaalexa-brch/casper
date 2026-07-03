@@ -213,6 +213,7 @@ def rollout_sample(users,ANS,LIKED,LMASK,RNEG,PROFM,PEN):                      #
     if _FIXQ1:
         _e=POOL_ENTt.view(1,NP).expand(B,NP).clone(); _e[:,:NI]=-1e9; _e=_e.masked_fill(ANS.abs()<1e-6,-1e9); _opidx=_e.argmax(1)   # per-user entropy opener (most divisive ANSWERABLE concept)
     REW=os.environ.get('REW','cov'); RTAIL=os.environ.get('REWTAIL'); _disc=1.0/torch.log2(torch.arange(2,12).float()); _cd=torch.cumsum(_disc,0); idcg=_cd[(LMASK.sum(1).clamp(1,10).long()-1)]  # per-user ideal DCG@10
+    _AWF=float(os.environ.get('WF','1.0')); _AWT=float(os.environ.get('WT','1.0'))                # REW=anytime weights (Paper D POLOPEN CURVEREW port): per-turn reward=(WF*fullNDCG+WT*tailNDCG)/T, ABSOLUTE not delta -> return-to-go G0 = MEAN NDCG over turns 1..T (PREREG_PATH1_GATE.md)
     if REW=='ndcg' and os.environ.get('DQ0'):                                 # DQ0=1 => delta-over-q0 (tested P1b, regressed); DEFAULT = absolute final-NDCG (P1, reaches conc_pop)
         with torch.no_grad():
             sc0=popbt.unsqueeze(0).expand(B,ni).masked_fill(PROFM>0,-1e9); ti0=sc0.topk(10,1).indices
@@ -228,7 +229,18 @@ def rollout_sample(users,ANS,LIKED,LMASK,RNEG,PROFM,PEN):                      #
         toks=toks.clone(); toks[:,t,:D]=POOLt[idx]; toks[:,t,D]=av; tmask=tmask.clone(); tmask[:,t]=1
         with torch.no_grad():
             u=enc(toks,tmask)
-            if REW=='ndcg':                                                  # O14: DIRECT held-out NDCG@10 reward (exclude known profile); REWTAIL => TAIL-NDCG (rank+targets restricted to tail)
+            if REW=='anytime':                                               # PATH1 (prereg 2026-07-02): ANYTIME reward, faithful port of Paper D POLOPEN CURVEREW — per-turn ABSOLUTE NDCG@10 (full+tail, WF/WT weights), NOT the delta; with return-to-go credit the episode return G0 = mean_{t=1..T}(WF*full_t+WT*tail_t) = the pre-registered mean-NDCG-over-turns objective
+                sca=(u@Qlt.t()+popbt).masked_fill(PROFM>0,-1e9)
+                topi=sca.topk(10,dim=1).indices
+                hitF=((topi.unsqueeze(2)==LIKED.unsqueeze(1))&(LMASK.unsqueeze(1)>0)).any(2).float()
+                ndF=(hitF*_disc).sum(1)/idcg.clamp(min=1e-6)
+                scat=sca.masked_fill(HEADt.unsqueeze(0),-1e9); topit=scat.topk(10,dim=1).indices
+                vmaskA=LMASK*(~HEADt[LIKED]).float()                          # tail held-likes as targets (users with none contribute tail term 0 -> constant, no gradient bias)
+                hitT=((topit.unsqueeze(2)==LIKED.unsqueeze(1))&(vmaskA.unsqueeze(1)>0)).any(2).float()
+                idcT=_cd[(vmaskA.sum(1).clamp(1,10).long()-1)]
+                ndT=(hitT*_disc).sum(1)/idcT.clamp(min=1e-6)*(vmaskA.sum(1)>0).float()
+                cov=(_AWF*ndF+_AWT*ndT)/T
+            elif REW=='ndcg':                                                # O14: DIRECT held-out NDCG@10 reward (exclude known profile); REWTAIL => TAIL-NDCG (rank+targets restricted to tail)
                 sca=(u@Qlt.t()+popbt).masked_fill(PROFM>0,-1e9)
                 if RTAIL: sca=sca.masked_fill(HEADt.unsqueeze(0),-1e9)        # rank only tail items
                 topi=sca.topk(10,dim=1).indices
@@ -248,7 +260,7 @@ def rollout_sample(users,ANS,LIKED,LMASK,RNEG,PROFM,PEN):                      #
                 covL=(torch.sigmoid((u.unsqueeze(1)*QlL).sum(2)+popL)*LMASK).sum(1)/lsum
                 covN=torch.sigmoid((u.unsqueeze(1)*QlN).sum(2)+popN).mean(1)  # non-likes (penalise inflating everything)
                 cov=(covL-covN) if REW=='rank' else covL                     # REW=cov (O12) / rank (O13) / ndcg (O14)
-            rews.append(((cov-prev)-PEN*unans)*float(os.environ.get('REWSCALE','1'))); prev=cov   # REWSCALE restores gradient magnitude for the small delta-over-q0 reward
+            rews.append((((cov if REW=='anytime' else cov-prev))-PEN*unans)*float(os.environ.get('REWSCALE','1'))); prev=cov   # REWSCALE restores gradient magnitude for the small delta-over-q0 reward; anytime = ABSOLUTE per-turn reward (no delta)
     return u, logps, rews, states, ents
 OBJ=os.environ.get('OBJ','ustar')                                            # 'ustar' = reconstruct the user embedding (user's idea); 'bce' = held-out item prediction
 trbig=[x for x in trU if len(rat_by_u[x])>=14 and len(likes_by_u[x])>=6]
@@ -559,7 +571,7 @@ if os.environ.get('EVALCKS'):                                                  #
             if len(its)>=6: il=its[:]; _rsd.shuffle(il); SPL[x]=(set(il[:len(il)//2]), il[len(il)//2:])
         _ts=[x for x in te if x in SPL]
         TE=(_ts[:150]+_ts[400:]) if _tr=='clean' else (_ts if _tr=='all' else _ts[int(_tr.split(':')[0]):int(_tr.split(':')[1])])
-        for _nm in os.environ.get('EVALBASE','entropy,conc_pop').split(',')+_tags:                               # heuristic baselines (recomputed per split) + each checkpoint, SAME split -> directly comparable
+        for _nm in [n for n in os.environ.get('EVALBASE','entropy,conc_pop').split(',') if n]+_tags:             # heuristic baselines (recomputed per split) + each checkpoint, SAME split -> directly comparable (EVALBASE= empty -> ckpts only)
             if _nm in _tags:
                 _p=f'{base}/.cache/policy_{_nm}.pt'
                 if not os.path.exists(_p): print(f"  seed{_sd} {_nm:>24}: MISSING",flush=True); continue

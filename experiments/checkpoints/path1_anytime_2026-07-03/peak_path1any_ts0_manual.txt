@@ -1,0 +1,1 @@
+PEAK path1any_ts0 (PATH1 anytime, manual cross-chunk select, full-precision val re-eval seed123 te[:300] q8) | gep1 val full=0.3149 tail=0.1094 <- BEST (sel=tail) | gep2 0.317/0.105 gep3 0.300/0.102 gep4 0.310/0.108 gep5 val full=0.3135 tail=0.1089 | returns 0.3332,0.3345,0.3327,0.3312,0.3326
