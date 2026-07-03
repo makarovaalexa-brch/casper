@@ -630,6 +630,65 @@ def val_ndcg():
         st=s.copy(); st[headmask]=-1e9; relt=set(t for t in tlike if not headmask[t])
         if relt: ot=np.argsort(-st)[:10]; nt+=sum(_Wv[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv[:min(10,len(relt))].sum()+1e-12); mt+=1
     return nf/max(mf,1), nt/max(mt,1)
+if os.environ.get('GREEDY'):                                                    # STATIC8-GREEDY (Exp2, Paper C): build the best static-8 by GREEDY FORWARD SELECTION over a candidate bank (512 k-means centroids of D1's per-user query dump), NO gradient training. At step k, given picks 0..k-1, pick the candidate maximising marginal val NDCG@10 (horizon k+1) on te[:300]. Requires STATIC8=1 (actor is StaticActor). Saves the 8-dir bank; eval via COMPARE4/QCURVE ACTORCK.
+    import sys
+    assert os.environ.get('STATIC8'), "GREEDY needs STATIC8=1 (StaticActor bank)"
+    _NCAND=int(os.environ.get('NCAND','512')); _GSEL=os.environ.get('GSEL',os.environ.get('SELVAL','tail')); _Wg=1./np.log2(np.arange(2,12))
+    _cndc=f'{base}/.cache/greedy_cands_{_NCAND}.npy'
+    if os.path.exists(_cndc) and not os.environ.get('REGEN_CAND'):
+        _CAND=np.load(_cndc); print(f"GREEDY: loaded {_CAND.shape[0]} cached candidate centroids",flush=True)
+    else:                                                                       # DUMP D1's emitted queries over train users (all 8 turns), unit-normalise, k-means -> NCAND candidate directions
+        from sklearn.cluster import KMeans
+        _D1=Actor(); _d1p=os.environ.get('D1CK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); _sd=torch.load(_d1p)
+        _D1.load_state_dict(_sd['actor'] if isinstance(_sd,dict) and 'actor' in _sd else _sd); _D1.eval()
+        _us=list(trbig)[:int(os.environ.get('NDUMP','1200'))]; _B=len(_us)
+        _UST=torch.tensor(np.stack([enc_u_np([(Q[j],resid[x][j]) for j in list(dict(rat_by_u[x]))[:max(len(dict(rat_by_u[x]))//2,4)]]) for x in _us]),dtype=torch.float32)
+        _tk=torch.zeros(_B,T,D+1); _tm=torch.zeros(_B,T); _u=torch.zeros(_B,D); _dump=[]
+        with torch.no_grad():
+            for _t in range(T):
+                _q=_D1(_u,_t/8.); _qn=_q/(_q.norm(dim=1,keepdim=True)+1e-9); _dump.append(_qn.numpy().copy())
+                _fe=_qn*_CN; _cf=(_fe*_UST).sum(1)/(_fe.norm(dim=1)*_UST.norm(dim=1)+1e-9); _ans=NEG+(POS-NEG)*(_cf+1)/2
+                _tk[:,_t,:D]=_fe; _tk[:,_t,D]=_ans; _tm[:,_t]=1.; _u=enc(_tk,_tm)
+        _dump=np.concatenate(_dump,0).astype(np.float32); print(f"GREEDY: dumped {_dump.shape[0]} D1 queries ({_B} users x {T} turns); k-means -> {_NCAND}",flush=True)
+        _km=KMeans(n_clusters=_NCAND,n_init=4,random_state=0).fit(_dump); _CAND=_km.cluster_centers_.astype(np.float32)
+        _CAND=_CAND/(np.linalg.norm(_CAND,axis=1,keepdims=True)+1e-9); np.save(_cndc,_CAND); print(f"GREEDY: cached {_NCAND} candidate centroids -> {os.path.basename(_cndc)}",flush=True)
+    _CAND=(_CAND/(np.linalg.norm(_CAND,axis=1,keepdims=True)+1e-9)).astype(np.float32); _CFE=(_CAND*_CN).astype(np.float32); Nc=_CAND.shape[0]
+    # precompute per val user: profile taste _us, candidate answers, tlike/relt masks, ideal norms
+    _VU=[x for x in _VAL if _VSPL.get(x) and (lambda vt,rd:any(rd.get(j,0)>=4 for j in vt))(_VSPL[x][1],dict(rat_by_u[x]))]
+    _UPREF=[]; _CANS=[]; _TLm=[]; _RLm=[]; _fnorm=[]; _tnorm=[]; _hasT=[]
+    for x in _VU:
+        profset,vtest=_VSPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in vtest if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+        us=enc_u_np([(Q[j],resid[x][j]) for j in profset]).astype(np.float32); usn=us/(np.linalg.norm(us)+1e-9)
+        _UPREF.append((profset,[]))                                             # (excl set, growing prefix token rows list of (fe,ans))
+        _CANS.append((NEG+(POS-NEG)*(_CAND@usn+1)/2).astype(np.float32))        # per-user graded answer for each candidate direction
+        tlm=np.zeros(ni,bool); tlm[list(tlike)]=True; rlm=np.zeros(ni,bool); rlm[list(relt)]=True
+        _TLm.append(tlm); _RLm.append(rlm); _fnorm.append(_Wg[:min(10,len(tlike))].sum()+1e-12)
+        _tnorm.append((_Wg[:min(10,len(relt))].sum()+1e-12) if relt else None); _hasT.append(len(relt)>0)
+    Qlt_np=Ql.astype(np.float32); _NV=len(_VU); print(f"GREEDY: {_NV} val users, {Nc} candidates, metric={_GSEL}",flush=True)
+    picks=[]; pick_idx=[]; _t0=time.time()
+    for k in range(T):
+        fsum=np.zeros(Nc); tsum=np.zeros(Nc); tcnt=0
+        for xi,x in enumerate(_VU):
+            excl,pref=_UPREF[xi]; L=len(pref)+1; arr=np.zeros((Nc,L,D+1),np.float32); m=np.ones((Nc,L),np.float32)
+            for r,(fe,an) in enumerate(pref): arr[:,r,:D]=fe; arr[:,r,D]=an
+            arr[:,L-1,:D]=_CFE; arr[:,L-1,D]=_CANS[xi]
+            with torch.no_grad(): U=enc(torch.tensor(arr),torch.tensor(m)).numpy()                # (Nc,D) beliefs, one per candidate
+            S=U@Qlt_np.T+popb[None,:]; S[:,list(excl)]=-1e9                                        # (Nc,ni)
+            top=np.argpartition(-S,10,axis=1)[:,:10]; hitf=_TLm[xi][top]; fsum+=(hitf*_Wg[:10]).sum(1)/_fnorm[xi]
+            if _hasT[xi]:
+                St=S.copy(); St[:,headmask]=-1e9; topt=np.argpartition(-St,10,axis=1)[:,:10]; hitt=_RLm[xi][topt]
+                tsum+=(hitt*_Wg[:10]).sum(1)/_tnorm[xi]; tcnt+=1
+        fmean=fsum/max(_NV,1); tmean=tsum/max(tcnt,1); score=(tmean if _GSEL=='tail' else fmean).copy()
+        for pi in pick_idx: score[pi]=-1e9                                       # no re-picking a candidate
+        bc=int(np.argmax(score)); pick_idx.append(bc); picks.append(_CAND[bc].copy())
+        # commit: append candidate bc's token to every user's prefix (per-user answer)
+        for xi in range(_NV): _UPREF[xi][1].append((_CFE[bc], float(_CANS[xi][bc])))
+        print(f"  pick{k+1}: cand#{bc}  val@q{k+1} FULL {fmean[bc]:.4f} TAIL {tmean[bc]:.4f}  ({time.time()-_t0:.0f}s)",flush=True)
+    _bank=np.stack(picks).astype(np.float32)
+    _bn=_bank/(np.linalg.norm(_bank,axis=1,keepdims=True)+1e-9); _cm=np.abs(_bn@_bn.T); _off=(_cm.sum()-np.trace(_cm))/(T*(T-1))
+    print(f"GREEDY done: cross-turn mean |cos| {_off:.3f} (picks {pick_idx})",flush=True)
+    with torch.no_grad(): actor.bank.data.copy_(torch.tensor(_bank))
+    _gck=f'{base}/.cache/policy_{os.environ.get("TAG","static8_greedy")}.pt'; save_ck(_gck); print(f"GREEDY: saved bank -> {os.path.basename(_gck)}",flush=True); sys.exit(0)
 if os.environ.get('SEEDAVG'):                                                  # eval a SAVED continuous actor across EVAL profile-split seeds (te[300:]); training is seed-indep so this seed-averages the win. Run NOBC=1.
     import sys
     _ck=os.environ.get('LOADCK') or f'{base}/.cache/policy_{os.environ.get("TAG","phase2_cont_v1")}_best.pt'; load_ck(_ck); actor.eval()
@@ -2480,6 +2539,9 @@ for ep in range(EP):
                 if os.environ.get('SNDCG'): loss=loss+float(os.environ['SNDCG'])*softndcg(u,LIKED,LMASK,tgt,PROFM,float(os.environ.get('NDTAU','1.0')))   # KEEP reconstruction + ADD gentle ranking pressure
                 if _DIVW>0: loss=loss-_DIVW*(_DIVH[0]/T).mean()              # #3: reward asking DIVISIVE directions (continuous entropy field)
             if os.environ.get('COENC'): loss=loss+_COENW*profile_anchor(us)    # keep co-trained encoder a good recommender (full-profile fold anchored to frozen snapshot)
+            if os.environ.get('STATIC8') and float(os.environ.get('ORTHW',0))>0:   # STATIC8-ORTH (Exp2, Paper C): penalise mutual parallelism of the 8 static directions -> force a DIVERSE fixed questionnaire (anti-collapse). lambda*mean_{i!=j}|cos(q_i,q_j)|.
+                _bn=actor.bank/(actor.bank.norm(dim=1,keepdim=True)+1e-9); _cm=(_bn@_bn.t()).abs()
+                _orth=(_cm.sum()-torch.diagonal(_cm).sum())/(T*(T-1)); loss=loss+float(os.environ['ORTHW'])*_orth
             tot+=loss.item()
         _clip=list(actor.parameters())+(list(enc.parameters()) if os.environ.get('COENC') else [])
         opt.zero_grad(); loss.backward(); torch.nn.utils.clip_grad_norm_(_clip,5.0); opt.step(); nb+=1
@@ -2503,6 +2565,8 @@ if not os.environ.get('LOAD') and EP>0:
     save_ck(_CK); print(f"saved {_CK} (last) ; BEST {_selm} {_bestvt:.3f} @ep{_bestep} -> {_CKBEST}",flush=True)  # pin BOTH last + best-val checkpoints
     open(f'{base}/.cache/policy_runs.tsv','a').write(f"{TAGn}\tENT_COEF={os.environ.get('ENT_COEF',0)}\tWD={os.environ.get('WD',0)}\tFEATS={os.environ.get('FEATS','-')}\tpeakval_full={_bestvf:.4f}\tpeakval_tail={_bestvtt:.4f}\t@ep{_bestep}\tEP={EP}\n")  # durable per-run PEAK record (top-not-latest)
     if os.environ.get('USEBEST') and os.path.exists(_CKBEST): load_ck(_CKBEST); print(f"loaded BEST-val checkpoint for eval (early-stop @ep{_bestep})",flush=True)
+if os.environ.get('EVALEXIT'):                                                  # STATIC8 sweep: stop after training+best-ckpt selection (skip the unrelated MODES eval; eval the saved bank via COMPARE4/QCURVE)
+    import sys; print("EVALEXIT: training done, checkpoint saved; skipping MODES eval",flush=True); sys.exit(0)
 scorer.eval()
 # RMSE rating head: r_hat=mu+bi[j]+BETA*(u.Ql[j]); BETA fit once on training item-folds (cached, SHARED across scripts)
 BETAC=f'{base}/.cache/rmse_beta.npy'

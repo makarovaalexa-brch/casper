@@ -1,0 +1,6 @@
+policy,q,full,full_std,tail,tail_std
+greedy_static,0,0.3099,0.0061,0.0808,0.0040
+greedy_static,2,0.3382,0.0040,0.1209,0.0040
+greedy_static,4,0.3536,0.0041,0.1398,0.0041
+greedy_static,6,0.3509,0.0038,0.1496,0.0041
+greedy_static,8,0.3546,0.0039,0.1464,0.0044
