@@ -97,3 +97,84 @@ STATIC8=1 CONTMODE=cont FEATS=ext,ans ANSF=1 NOBC=1 EP=0 COMPARE4=1 ONLYACTOR=1 
 STATIC8=1 ... QCURVE=1 ONLYACTOR=1 ALABEL=static8 ACTORCK=<ckpt> QSNAP=0,2,4,6,8 QFRESH=1 ...
 # per-turn cosine: CK=<ckpt> python scripts/paper2/static8_cosine.py
 ```
+
+---
+
+## 2026-07-03 — BULLETPROOFING THE STATIC-8 CEILING (two stronger banks: orthogonality-reg training + greedy selection)
+
+**Why:** the verdict above rested on the *best static = raw D1 turn-means 0.3399/0.1362* and the claim "gradient-optimizing the bank
+only hurts." Before Paper C claims the +0.038/+0.042 adaptive gap, two stronger static designs were tried to raise the static
+ceiling honestly. **Result: the ceiling MOVED UP** — a greedily-selected bank reaches **0.3546/0.1464** (TAIL peaks 0.1496 @q6),
+**+0.015 full / +0.010 tail over the raw D1-means**, now level with the discrete entropy baseline. The adaptive gap therefore
+**SHRINKS by ~40% but remains statistically robust: D1 − best-static = +0.023 full / +0.032 tail (~4σ / ~6σ).** The earlier
+"static caps at 0.34/0.136" is **superseded**; the honest static ceiling is **~0.355/0.146**.
+
+### Headline (graded COMPARE4, seed-avg {1,2,3,7,11}, te[300:], q8)
+| policy | FULL | TAIL | gap vs D1 |
+|---|---|---|---|
+| **D1 adaptive continuous actor** (anchor) | **0.3780 ± 0.0032** | **0.1782 ± 0.0065** | — |
+| entropy graded (discrete static baseline) | 0.361 | 0.140 | +0.017 / +0.038 |
+| **static-8 GREEDY (select on val-tail) — NEW BEST STATIC** | **0.3546 ± 0.0039** | **0.1464 ± 0.0044** | **+0.0234 / +0.0318** |
+| static-8 GREEDY (select on val-full) | 0.3552 ± 0.0042 | 0.1444 ± 0.0051 | +0.0228 / +0.0338 |
+| static-8, ORTH λ=1.0 training, val-best (ep1) | 0.3333 ± 0.0044 | 0.1353 ± 0.0052 | +0.045 / +0.043 |
+| static-8, ORTH λ=0.3 training, val-best (ep1) | 0.3303 ± 0.0048 | 0.1351 ± 0.0043 | +0.048 / +0.043 |
+| static-8, ORTH λ=0.1 training, val-best (ep1) | 0.3266 ± 0.0054 | 0.1296 ± 0.0042 | +0.051 / +0.049 |
+| static-8 = raw D1 turn-means, NO training (old best) | 0.3399 ± 0.0053 | 0.1362 ± 0.0049 | +0.038 / +0.042 |
+
+### (a) Orthogonality-regularized training — STILL COLLAPSES, does NOT beat init
+Same D1 unroll objective (`recon + 0.3·softNDCG − 1.0·div`, DTAU=2.0) + penalty `λ·mean_{i≠j}|cos(q_i,q_j)|` on the 8 bank
+directions, from the D1-mean init, graded answers, val-select on te[:300] tail (GRADEDVAL). Sweep λ∈{0.1,0.3,1.0}, EP=8:
+**every λ peaks at ep1 and degrades monotonically** (val tail: λ0.1 0.090→0.053, λ0.3 0.091→0.052, λ1.0 0.095→0.056). Higher λ
+merely *slows* the collapse (best test graded rises 0.327→0.330→0.333 as λ 0.1→1.0) but **none reaches the untrained init
+0.3399/0.1362** — the orthogonality prior keeps the directions diverse yet the *reconstruction* objective still has a trivial
+early minimum for a fixed bank (a couple of dominant-axis directions reconstruct u*, surplus directions add noise). **Confirms the
+original finding on a stronger control: optimizing free continuous parameters cannot improve a static bank; the gain is not there.**
+
+### (b) Greedy forward selection — the REAL static ceiling (no gradient training)
+NO training. Candidate pool = **512 k-means centroids** of D1's per-user query dump (1200 train users × 8 turns = 9600 unit
+queries). Greedy: at step k, given picks 0..k-1, pick the candidate maximizing marginal **val NDCG@10** (horizon k+1) over te[:300]
+(batched: one encoder pass over all 512 candidates per user/step). Selecting on val-tail and on val-full give near-identical banks
+(0.3546/0.1464 and 0.3552/0.1444). Cross-turn mean |cos| **0.39–0.45** (genuinely diverse — no collapse, unlike gradient training's
+0.82). **Selection, not parameter-optimization, is what lifts the static ceiling: choosing 8 good directions from a D1-derived
+menu beats both the D1-mean average and any gradient-tuned free bank.**
+
+**Greedy-tail q-curve (graded, seed-avg {1,2,3,7,11}, te[300:]):**
+| q | 0 | 2 | 4 | 6 | 8 |
+|---|---|---|---|---|---|
+| FULL | 0.3099 | 0.3382 | 0.3536 | 0.3509 | 0.3546 |
+| TAIL | 0.0808 | 0.1209 | 0.1398 | **0.1496** | 0.1464 |
+
+Unlike the raw-means bank (FULL peaks q4 then *declines*), the greedy bank keeps climbing to q8 on FULL and peaks TAIL at
+**q6 (0.1496 ≈ 0.15)** — a materially better-shaped static questionnaire. Still it saturates: adaptive D1 (TAIL
+0.081/0.135/0.164/0.178 over q0/4/6/8) pulls away at every budget because it re-aims per user.
+
+### Verdict — adaptive gap SHRINKS ~40% but stays significant; isolation holds, at reduced magnitude
+Best static found = **greedy-selected bank 0.3546/0.1464** (TAIL peak 0.1496 @q6). This is **above** the old "bulletproof ≤0.35/0.14"
+bar and **below** the "≥0.36/0.15 gap-collapses" bar — the honest middle. The adaptive advantage is no longer the headline
++0.04; it is **+0.023 full / +0.032 tail** (D1 0.3780/0.1782 vs 0.3546/0.1464), still ~4σ/~6σ and still the largest clean effect,
+but Paper C must state the *realistic* adaptive gap as **≈ +0.023/+0.032** (against the strongest static questionnaire we can
+build), not +0.038/+0.042 (against the raw D1-means). The graded-continuity story survives: the greedy static's graded
+(0.355/0.146) still trails adaptive-graded (0.378/0.178), and the entropy discrete baseline (0.361/0.140) is now essentially tied
+with the best static — so "the prize is *adaptivity*, not merely a good fixed continuous questionnaire" holds, just with a smaller,
+more defensible margin. Gradient training remains a dead end (both plain and orthogonality-regularized).
+
+### Artifacts / repro
+- Banks (durable): `.cache/policy_static8_greedy_tail.pt` (**best**), `.cache/policy_static8_greedy_full.pt`,
+  `.cache/policy_static8_orth_{0p1,0p3,1p0}_best.pt`; candidate pool `.cache/greedy_cands_512.npy`;
+  q-curve CSV `experiments/paper2/qcurve_static8_greedy.csv`.
+- New env-gated code in `continuous_actor.py` (all defaults unchanged): `ORTHW=λ` (orthogonality penalty on the STATIC8 bank);
+  `GREEDY=1` block (dump→k-means→greedy forward selection; `NCAND`, `NDUMP`, `GSEL=tail|full`, `REGEN_CAND`); `EVALEXIT=1`
+  (stop after best-ckpt selection, skip the unrelated MODES eval).
+```
+# (a) orthogonality-regularized training sweep (collapses; best=ep1<init):
+STATIC8=1 CONTMODE=cont OBJ=recon SNDCG=0.3 DIVW=1.0 DTAU=2.0 GRADED=1 ORTHW=1.0 FEATS=ext,ans ANSF=1 NOBC=1 \
+  EP=8 SELVAL=tail GRADEDVAL=1 USEBEST=1 EVALEXIT=1 TAG=static8_orth_1p0 python -u scripts/paper2/continuous_actor.py
+# (b) greedy forward selection (NEW BEST static):
+STATIC8=1 GREEDY=1 CONTMODE=cont FEATS=ext,ans ANSF=1 NOBC=1 EP=0 GSEL=tail NCAND=512 NDUMP=1200 \
+  TAG=static8_greedy_tail python -u scripts/paper2/continuous_actor.py
+# eval + q-curve (canonical ruler):
+STATIC8=1 CONTMODE=cont FEATS=ext,ans ANSF=1 NOBC=1 EP=0 COMPARE4=1 ONLYACTOR=1 \
+  ACTORCK=.cache/policy_static8_greedy_tail.pt EVALSEEDS=1,2,3,7,11 python -u scripts/paper2/continuous_actor.py
+STATIC8=1 CONTMODE=cont FEATS=ext,ans ANSF=1 NOBC=1 EP=0 QCURVE=1 ONLYACTOR=1 ALABEL=greedy_static \
+  ACTORCK=.cache/policy_static8_greedy_tail.pt QSNAP=0,2,4,6,8 QFRESH=1 EVALSEEDS=1,2,3,7,11 python -u scripts/paper2/continuous_actor.py
+```
