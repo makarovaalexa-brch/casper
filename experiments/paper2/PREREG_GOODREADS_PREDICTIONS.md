@@ -24,3 +24,9 @@ If the rank law is a law and not a MovieLens coincidence, phase 2 must show:
 Failure of (1)-(3) in the stated directions = evidence against the rank law's generality; report
 either way, no reinterpretation after the fact. Phase-2 protocol otherwise mirrors ML-25M
 (pre-stated fraction-matched K, val-selection, never test-peek).
+
+---
+
+**Note (2026-07-03):** arena = **cold cohort** (test/val users with ≤10 kept ratings), chosen on
+gate-visibility grounds **before any policy run** (phase-1D re-gate, `gr_cold_regate.py`). Predictions
+above unchanged.
