@@ -93,3 +93,6 @@ coverage.xml
 sample_data/data/processed/*.npz
 data/yelp/
 data/amazon/
+
+# Goodreads raw data (academic-use-only, no redistribution)
+.cache/goodreads/
