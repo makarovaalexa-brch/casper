@@ -203,8 +203,13 @@ class FieldActor(nn.Module):                                                   #
         feats=torch.stack([field_div(cand),field_pop(cand),field_rat(cand),(cand*un.unsqueeze(1)).sum(2)],dim=2)   # (B,K,4) per-candidate signal features
         w=torch.softmax(s.sc(feats).squeeze(2)/float(os.environ.get('FSEL','0.3')),1)                   # learned scoring -> soft-select
         return (w.unsqueeze(2)*cand).sum(1)                                     # (B,D) selected continuous direction (differentiable)
+class StaticActor(nn.Module):                                                  # STATIC8 (Exp2, Paper C): NON-adaptive continuous questionnaire -- 8 FREE 64-d direction vectors (8x64=512 params, no policy net), the SAME query bank[t] for EVERY user. Tests whether an optimized STATIC design matches the adaptive D1 policy.
+    def __init__(s,init=None):
+        super().__init__(); b=(torch.zeros(T,D) if init is None else torch.tensor(np.asarray(init,dtype=np.float32))); s.bank=nn.Parameter(b)
+    def forward(s,u,tt):
+        B=u.shape[0]; _tv=(float(tt.view(-1)[0]) if torch.is_tensor(tt) else float(tt)); ti=max(0,min(T-1,int(round(_tv*8)))); return s.bank[ti].unsqueeze(0).expand(B,D)
 _FIELDACT=bool(os.environ.get('FIELDACT'))                                     # defined here (used by both the actor instantiation and the #3 field block)
-actor=(FieldActor() if _FIELDACT else Actor()); CONTMODE=os.environ.get('CONTMODE','snap'); _CN=float(np.linalg.norm(Ec,axis=1).mean())   # snap=Wolpertinger replicate / cont=off-pool fold ; _CN=mean concept norm
+actor=(FieldActor() if _FIELDACT else (StaticActor() if os.environ.get('STATIC8') else Actor())); CONTMODE=os.environ.get('CONTMODE','snap'); _CN=float(np.linalg.norm(Ec,axis=1).mean())   # snap=Wolpertinger replicate / cont=off-pool fold ; _CN=mean concept norm
 class ConsAns(nn.Module):                                                      # ANSLEARN=cons: answer is a learned function of cos(u*,q) ONLY -> LEGITIMATE (the question is about q); info-equivalent to geometric -> should TIE
     def __init__(s): super().__init__(); s.g=nn.Sequential(nn.Linear(1,32),nn.Tanh(),nn.Linear(32,32),nn.Tanh(),nn.Linear(32,1))
     def forward(s,ustar,qn): c=((ustar*qn).sum(1)/(ustar.norm(dim=1)+1e-9)).unsqueeze(1); return NEG+(POS-NEG)*torch.sigmoid(s.g(c).squeeze(1))
@@ -397,6 +402,27 @@ def rollout_sample(users,ANS,LIKED,LMASK,RNEG,PROFM,PEN):                      #
     return u, logps, rews, states, ents
 OBJ=os.environ.get('OBJ','ustar')                                            # 'ustar' = reconstruct the user embedding (user's idea); 'bce' = held-out item prediction
 trbig=[x for x in trU if len(rat_by_u[x])>=14 and len(likes_by_u[x])>=6]
+if os.environ.get('STATIC8'):                                                  # STATIC8 init: seed the 8 free direction vectors with D1's per-turn MEAN emitted query (the "modal path"). Random-init robustness = RANDINIT=1.
+    _s8i=f'{base}/.cache/static8_init.npy'
+    if os.environ.get('RANDINIT'):
+        _init=(np.random.default_rng(0).standard_normal((T,D))*0.1).astype(np.float32); print("STATIC8: RANDOM init (robustness follow-up)",flush=True)
+    elif os.path.exists(_s8i) and not os.environ.get('REGEN_S8'):
+        _init=np.load(_s8i); print(f"STATIC8: loaded cached D1 turn-mean init {tuple(_init.shape)}",flush=True)
+    else:                                                                      # compute D1 turn-means: batched cont rollout of the D1 winner over 800 train users, graded geometric answers (matches D1's own training/eval), mean emitted q per turn
+        _D1=Actor(); _d1p=os.environ.get('D1CK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); _sd=torch.load(_d1p)
+        _D1.load_state_dict(_sd['actor'] if isinstance(_sd,dict) and 'actor' in _sd else _sd); _D1.eval()
+        _us=list(trbig)[:800]; _B=len(_us)
+        _UST=torch.tensor(np.stack([enc_u_np([(Q[j],resid[x][j]) for j in list(dict(rat_by_u[x]))[:max(len(dict(rat_by_u[x]))//2,4)]]) for x in _us]),dtype=torch.float32)
+        _tk=torch.zeros(_B,T,D+1); _tm=torch.zeros(_B,T); _u=torch.zeros(_B,D); _acc=torch.zeros(T,D)
+        with torch.no_grad():
+            for _t in range(T):
+                _q=_D1(_u,_t/8.); _acc[_t]=_q.mean(0)
+                _qn=_q/(_q.norm(dim=1,keepdim=True)+1e-9); _fe=_qn*_CN
+                _cf=(_fe*_UST).sum(1)/(_fe.norm(dim=1)*_UST.norm(dim=1)+1e-9); _ans=NEG+(POS-NEG)*(_cf+1)/2
+                _tk[:,_t,:D]=_fe; _tk[:,_t,D]=_ans; _tm[:,_t]=1.; _u=enc(_tk,_tm)
+        _init=_acc.numpy().astype(np.float32); np.save(_s8i,_init); print(f"STATIC8: computed+cached D1 turn-mean init from {os.path.basename(_d1p)} ({_B} users) -> {tuple(_init.shape)}",flush=True)
+    with torch.no_grad(): actor.bank.data.copy_(torch.tensor(_init,dtype=torch.float32))
+    np.save(f'{base}/.cache/static8_d1means.npy',_init)                        # persist D1 turn-means for the per-turn cosine comparison
 if os.environ.get('COENC'):                                                    # CO-TRAIN encoder+actor. Anchor enc to its OWN full-profile fold (frozen snapshot) so it stays a good recommender while learning the actor's queries.
     _COENW=float(os.environ.get('COENW','1.0'))
     _UFULL={x:enc_u_np([(Q[j],resid[x][j]) for j,_ in rat_by_u[x]]).astype(np.float32) for x in trbig}
@@ -590,6 +616,7 @@ def val_ndcg():
                 if _ANSLEARN in ('cons','uncons'):
                     with torch.no_grad(): _a=float(_ansmodel(torch.tensor(_us[None],dtype=torch.float32),torch.tensor(_u1[None])))   # LEARNED graded answer (the demo)
                 elif _ANSLEARN=='geom': _a=float(NEG+(POS-NEG)*(float(_us@_u1)/(np.linalg.norm(_us)+1e-9)+1)/2)   # geometric GRADED baseline (same ruler)
+                elif os.environ.get('GRADEDVAL'): _a=float(NEG+(POS-NEG)*(float(_us@_u1)/(np.linalg.norm(_us)+1e-9)+1)/2)   # STATIC8: select on the GRADED metric (matches COMPARE4 graded ruler) instead of binary
                 else: _a=(POS if float(_us@_qn)>_th else NEG)                    # original binary geometric (unchanged for non-ANSLEARN runs)
                 toks.append((_qn,_a))
             else:
