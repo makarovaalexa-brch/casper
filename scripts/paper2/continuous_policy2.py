@@ -442,7 +442,7 @@ def run(mode,tail):
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4); held={j:rd[j] for j in test}
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
         ustar=enc_u_np([(Q[j],resid[x][j]) for j in profset]); un=np.linalg.norm(ustar)+1e-9   # known user vector
-        cans=cans_np(x,profset) if mode in('policy','conc_pop','conc_oracle','cont_oracle','entropy','entropy_ansoracle','entropy_uni','entropy_item','random','helf','logpop_ent','pop_ent') or mode.startswith('mix') else {}; toks=[]; asked=set(); nq=0; nans=0; first=None; seq=[]; trow=[]
+        cans=cans_np(x,profset) if mode in('policy','conc_pop','conc_oracle','cont_oracle','entropy','entropy_ansoracle','entropy_uni','entropy_item','random','helf','logpop_ent','pop_ent','twophase','twophase_pop') or mode.startswith('mix') else {}; toks=[]; asked=set(); nq=0; nans=0; first=None; seq=[]; trow=[]
         for q in QPTS:
             while nq<q:
                 if mode=='policy':
@@ -480,6 +480,16 @@ def run(mode,tail):
                     cs=[k for k in range(NI) if k not in asked]; k=max(cs,key=lambda k:POOL_ENT[k]); asked.add(k); nq+=1
                     j=PITEMS[k]
                     if j in profset: toks.append((Q[j],resid[x][j])); nans+=1; ni_+=1
+                elif mode in ('twophase','twophase_pop'):                          # TWOPHASE CHANNEL-SWITCH ORACLE CEILING (TWOPHASE_ORACLE, Exp1): turns 1-4 = static entropy over CONCEPTS (== canonical 'entropy' baseline); turns 5-8 = ITEM questions among the user's ACTUALLY-RATED profile items (answerability PEEK only: we only ask items in profset, never at answer VALUES or held-out targets). twophase => pick most-informative rated item by POOL_IG (population info-gain, no per-user leak); twophase_pop => most popular rated item by cnt.
+                    if nq<4:                                                        # phase 1: static entropy over concepts (identical ranking/fold to mode=='entropy')
+                        ci=[c for c in range(NC) if c not in asked]; cc=max(ci,key=lambda c:POOL_ENT[NI+c]); asked.add(cc); nq+=1
+                        if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1; nc_+=1
+                    else:                                                           # phase 2: predicted-answerable ITEMS = the user's rated pool items (answerability peek); SELECT by informativeness (IG) or popularity — never by answer value / target
+                        cs=[k for k in range(NI) if (PITEMS[k] in profset and ('i',k) not in asked)]
+                        nq+=1
+                        if cs:
+                            k=(max(cs,key=lambda k:POOL_IG[k]) if mode=='twophase' else max(cs,key=lambda k:cnt[PITEMS[k]]))
+                            asked.add(('i',k)); j=PITEMS[k]; toks.append((Q[j],resid[x][j])); nans+=1; ni_+=1
                 elif mode=='fullprof':                                             # CEILING: fold the ENTIRE known profile -> belief == u* (cos=1 by construction); realistic warm-start upper bound on what T-question elicitation can reach
                     toks=[(Q[j],resid[x][j]) for j in profset]; nq=q
                 elif mode=='random':                                              # lit: random concept (canonical active-learning control)
@@ -547,7 +557,7 @@ def run(mode,tail):
         m+=1; na+=nans
         if first is not None: FP.append(first)
         if mode=='policy': ALLSEQ.append(seq); TREEROWS.append(trow)
-    extra=(f" | picks {ni_}i/{nc_}c"+(f" | distinct-1st {len(set(FP))}/{max(len(FP),1)}" if mode=='policy' else "")) if (mode=='policy' or mode.startswith('mix') or mode.startswith('entropy_')) else ""
+    extra=(f" | picks {ni_}i/{nc_}c"+(f" | distinct-1st {len(set(FP))}/{max(len(FP),1)}" if mode=='policy' else "")) if (mode=='policy' or mode.startswith('mix') or mode.startswith('entropy_') or mode.startswith('twophase')) else ""
     extra+=" | cos(u,u*) "+" ".join(f"{CO[q]/m:.3f}" for q in QPTS)
     if mode=='cont_oracle': extra+=f" | NOVEL-dir picks {novp_}/{m*8} ({100*novp_/max(m*8,1):.0f}% chose continuous over EVERY concept)"
     if mode=='policy' and ALLSEQ:                                                 # ADAPTIVITY: does the policy branch after the (fixed) opening, or ask the same shortlist?
