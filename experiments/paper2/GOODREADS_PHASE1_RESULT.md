@@ -225,3 +225,78 @@ tracks cohort density.
   finding does **not** transfer to folksonomy shelves (construction-specific, not universal).
 - Answerability: concepts **0.076** vs popular-item pool **0.012** vs all items **0.0005** —
   the concept-answerability advantage replicates (~6× the popular pool, ~150× all items).
+
+---
+
+## PHASE 1D — COLD-COHORT re-gate (dated 2026-07-03; eval-only, `gr_cold_regate.py`)
+
+**Motivation (stated before any policy result).** Phase-1's +0.010 average headroom hides a strong
+gradient by profile size: **+0.0304 on 2–5-rating users** (n=76) shrinking toward zero for heavier
+raters. Cold users are the thesis's target population and — per Paper A's visibility principle — the
+policy battery needs an arena where the instrument can actually *see* preference differences. This
+cohort choice is made **BEFORE** any phase-2 policy result, on gate-visibility grounds only.
+
+**(1) Cold cohort.** Test/val users with **≤10 kept ratings** (pre-stated threshold). Cohort is
+**large**, as expected from median 6: **65.1% of ALL 568,218 users** (369,807), **62.6% of test**
+(313/500), 65.2% of val. Since ≥300 test users qualify at ≤10, the threshold is **NOT** relaxed
+(the ≤15 fallback would have given 72.2% test / 361 users). Gate is evaluated on the **cold test**
+users. Full-profile fold usable n = **88** (of 313; the rest lack ≥4 likes → no held disjoint target,
+or <2 profile items after the held-half split); avg profile = **4.0 items**; n_tail = 59.
+
+**(2) Health gate on the cold cohort (K=142 primary, +K=10; held-out disjoint targets):**
+
+*(a) Full-profile fold:*
+| model | @10 full | @10 tail | @142 full | @142 tail |
+|---|---|---|---|---|
+| MOSTPOP (q0) | 0.1522 | 0.0000 | 0.2409 | 0.0176 |
+| ridge (λ=5)  | 0.1604 | 0.0049 | 0.2470 | 0.0215 |
+| **ENCODER**  | **0.1749** | 0.0000 | **0.2576** | 0.0161 |
+
+- **Encoder headroom over MOSTPOP: @142 full +0.0167, @10 full +0.0227, @142 tail −0.0015.**
+- Ridge headroom @142 full +0.0062. Ordering encoder > ridge > MOSTPOP holds on full (mechanics
+  healthy); on tail ridge again edges the encoder (head-chasing under the popb decoder), as in phase 1.
+- The cold cohort **does** lift the headroom (+0.0167 vs the full-cohort +0.0104), consistent with the
+  motivating profile-size gradient — but it **dilutes** the very-cold +0.0304 (2–5 raters) with the
+  6–10 bucket and lands **below the pre-stated substantiality band (≥ +0.025)**.
+
+*(b) Monotone no-harm concept-channel elicitation (wasted-turn; graded geometric answers; q0/8/20):*
+| concept selector | q0 @142 | q8 @142 | q20 @142 | ans_tok q8 / q20 | no-harm |
+|---|---|---|---|---|---|
+| random  | 0.2409 | 0.2407 | 0.2405 | 0.19 / 0.57 | OK |
+| entropy | 0.2409 | 0.2450 | 0.2443 | 0.14 / 0.48 | OK |
+| pop     | 0.2409 | 0.2357 | 0.2367 | 6.89 / 13.88 | HURTS (exclusion + head-chasing, as in phase 1) |
+
+- **Monotone no-harm holds for random + entropy** (revealing never hurts) — instrument sound. The pop
+  selector "hurts" purely from the held-out exclusion artifact (asking popular items removes popular
+  distractors), same known confound as §7b; not clean evidence either way.
+
+**(3) Concept-channel elicited gain on the cold cohort.** Entropy concept-asking gains
+**+0.0041 @q8 / +0.0035 @q20** (@142 full) = **~21% of the encoder full-profile headroom (+0.0167)**;
+tail is flat-to-slightly-negative (−0.0013). **Crucially the answerable-token counts are tiny:** entropy
+folds **0.14 answered concepts by q8, 0.48 by q20** (random 0.19 / 0.57). Cold users have ≤10 ratings, so
+almost no shelf reaches the ≥2-tagged-item answerability bar → **even the concept channel is
+answerability-starved on this cohort**, and asks mostly waste the turn. The absolute realizable prize
+is **+0.003–0.004 NDCG@142 with <1 answered concept per 8 turns.**
+
+**(4) VERDICT: FAIL (headroom below the pre-stated band).** Encoder full-profile − MOSTPOP =
+**+0.0167 @142** (< +0.025 target); monotone no-harm PASS. The cold cohort **raises** headroom vs the
+full cohort but **does not clear the substantiality bar**, and the answerable concept channel it was
+meant to feed is itself starved (0.14 answered tokens @q8) — so the arena still does not give the
+instrument enough to see policy differences. **Per the pre-stated rule, this is a FAIL → the phase-2
+battery is NOT a go on this cohort.**
+
+**Recommendation — the multi-genre composite path.** The failure mode is now doubly confirmed:
+single-genre homogeneity gives an intrinsically small (~0.017) personalization prize, and the ≤10-rating
+sparsity thins *both* channels (item channel dead in phase 1; concept channel to 0.14 answered tokens
+here). Taking the cohort colder does not fix it — it trades a little more headroom for even sparser
+answerability. **Recommend building a multi-genre Goodreads composite** (e.g. union of several byGenre
+slices — mystery/thriller/crime + romance + fantasy + …) to restore **cross-genre taste
+differentiation** (the axis popularity cannot explain within a single genre), while **keeping the
+concept/shelf answerability channel** that already replicates. That arena should widen the encoder −
+MOSTPOP headroom back toward a substantial band and give more shelves that clear the ≥2-item bar, so
+the policy battery measures a real prize with a live answerable channel. Alternatively, if staying
+single-genre, re-scope phase 2 explicitly to the **concept-necessity / answerability** story (not a
+policy-efficiency ruler), as §7 already recommended.
+
+*(Script: `casper/scripts/paper2/gr_cold_regate.py`; eval-only, no training, no commits. Cohort chosen
+before any policy run.)*
