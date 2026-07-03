@@ -131,6 +131,78 @@ FENT='ent' in _FE; FAVG='avg' in _FE; ANSF=('ans' in _FE) or bool(os.environ.get
 CONCONLY=os.environ.get('CONCONLY'); CMASK=(torch.tensor(np.where(PTYPE==0,-1e9,0.).astype(np.float32)) if CONCONLY else None)   # P9: restrict action pool to concepts
 ATTN=bool(os.environ.get('ATTN'))                                             # P6: add a LEARNED attention state over answer-history as an additive, gated per-candidate score (base Scorer untouched -> BC floor still loads)
 RESID=bool(os.environ.get('RESID'))                                           # RESIDUAL head: score = alpha*entropy_prior + MLP(features); MLP last-layer init 0, alpha init 1 => starts AS the entropy heuristic, RL learns ONLY the +more (structurally cannot underperform entropy)
+# ================= TWOPHASE E2: LEARNED EXPOSURE MODEL (PREREG_TWOPHASE_E2.md) =================
+# EXPMODEL=1 -> build/load a supervised model P(user HAS RATED item | belief u_t, item), trained on TRAIN users only.
+# Partial-reveal state = belief after the static entropy-4 concept prefix; label = item in the user's FULL profile (frozen prereg).
+# FROZEN ARCH: small MLP (Linear(nf,32)-ReLU-Linear(32,32)-ReLU-Linear(32,1)), BCE, Adam 1e-3, 20 epochs, seed 0.
+#   belief model nf=3 features [z(u_t.e_i), z(logpop_i), z(||u_t||)]; pop-only baseline nf=1 feature [z(logpop_i)] (no belief).
+# Modes: twophase_exp / twophase_poponly = turns1-4 static entropy; turns5-8 = argmax UNASKED item of P(rated|u_t,i) x item-IG.
+EXP_ON=bool(os.environ.get('EXPMODEL'))
+if EXP_ON:
+    _EXPSEED=int(os.environ.get('EXPSEED','0')); _exp_ck=f'{base}/.cache/exposure_twophase_e2_s{_EXPSEED}.pt'
+    _E_items=torch.tensor(Q[np.array(PITEMS)].astype(np.float32))            # (NI,D) item embeddings (== POOL[:NI])
+    _lp_items=torch.tensor(popb[np.array(PITEMS)].astype(np.float32))        # (NI,) log-popularity of pool items
+    _ent4=[int(c) for c in np.argsort(-POOL_ENT[NI:])[:4]]                   # static entropy-4 concept prefix (global divisiveness; == eval phase-1 ranking)
+    _ig_it=POOL_IG[:NI].astype(np.float32); IG_POS=torch.tensor((_ig_it-_ig_it.min()+1e-3).astype(np.float32))   # non-negative, rank-preserving item info-gain (SAME signal ranked by oracle twophase)
+    class ExpModel(nn.Module):
+        def __init__(s,nf): super().__init__(); s.f=nn.Sequential(nn.Linear(nf,32),nn.ReLU(),nn.Linear(32,32),nn.ReLU(),nn.Linear(32,1))
+        def forward(s,x): return s.f(x).squeeze(-1)
+    def _u4_of(x,profset):                                                   # belief after static entropy-4 concepts (fold only answerable ones; == eval phase-1)
+        cans=cans_np(x,profset); tk=[(Ec[c],cans[c]) for c in _ent4 if c in cans]; return enc_u_np(tk).astype(np.float32)
+    expm=ExpModel(3); expm_pop=ExpModel(1); _feat_stats={}
+    if os.path.exists(_exp_ck) and not os.environ.get('REGEN'):
+        _sd=torch.load(_exp_ck); expm.load_state_dict(_sd['belief']); expm_pop.load_state_dict(_sd['pop']); _feat_stats=_sd['stats']
+        print(f"EXPMODEL: loaded {_exp_ck} | belief val AUC {_sd.get('val_auc_b',float('nan')):.4f} p@4 {_sd.get('val_prec4_b',float('nan')):.4f} | pop val AUC {_sd.get('val_auc_p',float('nan')):.4f} p@4 {_sd.get('val_prec4_p',float('nan')):.4f}",flush=True)
+    else:
+        print(f"EXPMODEL: training exposure model (seed {_EXPSEED}) on TRAIN users only...",flush=True); torch.manual_seed(_EXPSEED)
+        _eu=[x for x in trU if len(rat_by_u[x])>=10]; _perm=np.random.default_rng(_EXPSEED).permutation(len(_eu)); _eu=[_eu[i] for i in _perm]
+        _nval=max(60,len(_eu)//5); _val_u=_eu[-_nval:]; _tru=_eu[:-_nval]
+        def _build(users):
+            Um=np.zeros((len(users),D),np.float32); Ym=np.zeros((len(users),NI),np.float32)
+            for b,x in enumerate(users):
+                allit=[j for j,_ in rat_by_u[x]]; r=np.random.default_rng(_EXPSEED*100003+int(x)); r.shuffle(allit)
+                profset=set(allit[:max(len(allit)//2,4)]); Um[b]=_u4_of(x,profset); pf=set(j for j,_ in rat_by_u[x])
+                for k,j in enumerate(PITEMS):
+                    if j in pf: Ym[b,k]=1.
+            return torch.tensor(Um),torch.tensor(Ym)
+        print(f"  building partial-reveal states: {len(_tru)} train / {len(_val_u)} val users",flush=True)
+        Utr,Ytr=_build(_tru); Uva,Yva=_build(_val_u)
+        with torch.no_grad():
+            _al=Utr@_E_items.t(); _un=Utr.norm(dim=1,keepdim=True).expand(-1,NI)
+        a_mu,a_sd=float(_al.mean()),float(_al.std()+1e-6); l_mu,l_sd=float(_lp_items.mean()),float(_lp_items.std()+1e-6); n_mu,n_sd=float(_un.mean()),float(_un.std()+1e-6)
+        _feat_stats={'a':(a_mu,a_sd),'l':(l_mu,l_sd),'n':(n_mu,n_sd)}
+        def _feat(U,belief):
+            al=(U@_E_items.t()-a_mu)/a_sd; lp=((_lp_items-l_mu)/l_sd).view(1,NI).expand(U.shape[0],NI)
+            if not belief: return lp.unsqueeze(2)
+            un=((U.norm(dim=1,keepdim=True)-n_mu)/n_sd).expand(-1,NI); return torch.stack([al,lp,un],2)
+        def _auc(model,U,Y,belief):
+            with torch.no_grad(): p=torch.sigmoid(model(_feat(U,belief))).numpy()
+            yy=Y.numpy(); aucs=[]
+            for b in range(len(U)):
+                pos=p[b][yy[b]>0.5]; neg=p[b][yy[b]<0.5]
+                if len(pos) and len(neg):
+                    allv=np.concatenate([pos,neg]); rk=allv.argsort().argsort().astype(float)+1; aucs.append((rk[:len(pos)].sum()-len(pos)*(len(pos)+1)/2)/(len(pos)*len(neg)))
+            return float(np.mean(aucs)) if aucs else float('nan')
+        def _prec4(model,U,Y,belief):
+            with torch.no_grad(): p=torch.sigmoid(model(_feat(U,belief))).numpy()
+            yy=Y.numpy(); return float(np.mean([yy[b][np.argsort(-p[b])[:4]].mean() for b in range(len(U))]))
+        for (model,belief,nm) in [(expm,True,'belief'),(expm_pop,False,'pop')]:
+            optE=torch.optim.Adam(model.parameters(),1e-3); Ftr=_feat(Utr,belief)
+            for ep in range(int(os.environ.get('EXPEP','20'))):
+                idx=torch.randperm(len(Utr))
+                for b0 in range(0,len(Utr),128):
+                    bb=idx[b0:b0+128]; loss=nn.functional.binary_cross_entropy_with_logits(model(Ftr[bb]),Ytr[bb]); optE.zero_grad(); loss.backward(); optE.step()
+        _vab=_auc(expm,Uva,Yva,True); _vap=_auc(expm_pop,Uva,Yva,False); _vpb=_prec4(expm,Uva,Yva,True); _vpp=_prec4(expm_pop,Uva,Yva,False)
+        torch.save({'belief':expm.state_dict(),'pop':expm_pop.state_dict(),'stats':_feat_stats,'val_auc_b':_vab,'val_auc_p':_vap,'val_prec4_b':_vpb,'val_prec4_p':_vpp},_exp_ck)
+        print(f"EXPMODEL: saved {_exp_ck}\n  belief: val AUC {_vab:.4f} precision@4 {_vpb:.4f} | pop-only: val AUC {_vap:.4f} precision@4 {_vpp:.4f}",flush=True)
+    expm.eval(); expm_pop.eval()
+    (a_mu,a_sd)=_feat_stats['a']; (l_mu,l_sd)=_feat_stats['l']; (n_mu,n_sd)=_feat_stats['n']; _lpz=((_lp_items-l_mu)/l_sd)
+    def exp_predict(u_np,belief):                                            # belief u (D,) -> P(rated) over all NI pool items (torch (NI,))
+        u=torch.tensor(u_np.astype(np.float32))
+        if not belief:
+            with torch.no_grad(): return torch.sigmoid(expm_pop(_lpz.unsqueeze(1)))
+        al=(u@_E_items.t()-a_mu)/a_sd; un=torch.full((NI,),(float(u.norm())-n_mu)/n_sd)
+        with torch.no_grad(): return torch.sigmoid(expm(torch.stack([al,_lpz,un],1)))
 class Scorer(nn.Module):                                                      # per-candidate score from [emb, align(u.E), popularity prior, POPULATION info-gain, belief-strength, turn (+ENT,AVGR if EXT, +ANS if ANSF)]
     def __init__(s):
         super().__init__(); din=D+5+int(FENT)+int(FAVG)+int(ANSF); s.f=nn.Sequential(nn.Linear(din,HID),nn.ReLU(),nn.Linear(HID,HID),nn.ReLU(),nn.Linear(HID,1)); s.alpha=nn.Parameter(torch.tensor(1.0))
@@ -442,7 +514,7 @@ def run(mode,tail):
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4); held={j:rd[j] for j in test}
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
         ustar=enc_u_np([(Q[j],resid[x][j]) for j in profset]); un=np.linalg.norm(ustar)+1e-9   # known user vector
-        cans=cans_np(x,profset) if mode in('policy','conc_pop','conc_oracle','cont_oracle','entropy','entropy_ansoracle','entropy_uni','entropy_item','random','helf','logpop_ent','pop_ent','twophase','twophase_pop') or mode.startswith('mix') else {}; toks=[]; asked=set(); nq=0; nans=0; first=None; seq=[]; trow=[]
+        cans=cans_np(x,profset) if mode in('policy','conc_pop','conc_oracle','cont_oracle','entropy','entropy_ansoracle','entropy_uni','entropy_item','random','helf','logpop_ent','pop_ent','twophase','twophase_pop','twophase_exp','twophase_poponly') or mode.startswith('mix') else {}; toks=[]; asked=set(); nq=0; nans=0; first=None; seq=[]; trow=[]
         for q in QPTS:
             while nq<q:
                 if mode=='policy':
@@ -490,6 +562,16 @@ def run(mode,tail):
                         if cs:
                             k=(max(cs,key=lambda k:POOL_IG[k]) if mode=='twophase' else max(cs,key=lambda k:cnt[PITEMS[k]]))
                             asked.add(('i',k)); j=PITEMS[k]; toks.append((Q[j],resid[x][j])); nans+=1; ni_+=1
+                elif mode in ('twophase_exp','twophase_poponly'):               # REALIZABLE E2 (PREREG_TWOPHASE_E2): phase1 static entropy concepts; phase2 = argmax UNASKED item of P_exposure(rated|u_t,i) x item-IG. NO answerability peek -> a predicted item NOT in the known profile is a WASTED turn (not folded; also avoids target leak). twophase_exp uses the belief model; twophase_poponly uses the popularity-only exposure baseline.
+                    if nq<4:                                                    # phase 1: identical ranking/fold to mode=='entropy'
+                        ci=[c for c in range(NC) if c not in asked]; cc=max(ci,key=lambda c:POOL_ENT[NI+c]); asked.add(cc); nq+=1
+                        if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1; nc_+=1
+                    else:                                                       # phase 2: learned exposure x IG over ALL items
+                        cs=[k for k in range(NI) if ('i',k) not in asked]; nq+=1
+                        if cs:
+                            _score=(exp_predict(enc_u_np(toks), mode=='twophase_exp')*IG_POS).numpy()
+                            k=max(cs,key=lambda kk:_score[kk]); asked.add(('i',k)); j=PITEMS[k]
+                            if j in profset: toks.append((Q[j],resid[x][j])); nans+=1; ni_+=1   # answerable -> fold; else wasted turn
                 elif mode=='fullprof':                                             # CEILING: fold the ENTIRE known profile -> belief == u* (cos=1 by construction); realistic warm-start upper bound on what T-question elicitation can reach
                     toks=[(Q[j],resid[x][j]) for j in profset]; nq=q
                 elif mode=='random':                                              # lit: random concept (canonical active-learning control)
