@@ -1285,49 +1285,64 @@ if os.environ.get('OPENQ'):                                                    #
         st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
         tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
         return full,tail
-    FS=[];TS=[]
-    for sd in seeds:
-        r=np.random.default_rng(sd); SP={}
-        for x in te:
-            its=list(dict(rat_by_u[x]))
-            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
-        VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.
-        for x in VU:
-            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
-            if not tlike: continue
-            usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cand=list(half)              # u* = known-half fold
-            PORT=os.environ.get('PORTFOLIO')
-            if PORT:                                                                        # PORTFOLIO of item question-TYPES: "fav:3,gem:3,hate:2" (fav=head, gem=hidden-gem/tail, hate=negative/prune)
-                toks_p=[]; used=set()
-                for spec in PORT.split(','):
-                    typ,n=spec.split(':'); n=int(n); av=[j for j in cand if j not in used]
-                    if typ=='fav': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:(-rd[j],-float(usf@Q[j])))[:n]      # highest-rated favourite (head)
-                    elif typ=='gem': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:n]  # underrated/hidden-gem (tail)
-                    elif typ=='align': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-float(usf@Q[j]))[:n]
-                    elif typ=='hate': sel=sorted([j for j in av if rd[j]<=2] or sorted(av,key=lambda j:float(usf@Q[j]))[:n],key=lambda j:rd[j])[:n]  # disliked movie (negative/prune)
-                    elif typ=='pop': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-cnt[j])[:n]
-                    else: sel=av[:n]
-                    for j in sel: toks_p.append((Q[j],resid[x][j])); used.add(j)
-                u=enc_u_np(toks_p)
-            else:
-                if HEUR=='align': named=sorted(cand,key=lambda j:-float(usf@Q[j]))[:K]          # most-aligned favourite (info-optimistic)
-                elif HEUR=='rating': named=sorted(cand,key=lambda j:(-rd[j],-float(usf@Q[j])))[:K]
-                elif HEUR=='poppop':                                                            # most-popular liked (pessimistic, low-info)
-                    pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-cnt[j])[:K]
-                elif HEUR=='distinct':                                                          # high-align / low-popularity = "underrated favourite" (tail-info)
-                    pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:K]
-                elif HEUR=='popweight':                                                         # REALISTIC: popularity-weighted recall among likes
-                    pos=[j for j in cand if rd[j]>=4] or cand; w=np.array([cnt[j]+1. for j in pos],float); w/=w.sum(); named=list(r.choice(pos,size=min(K,len(pos)),replace=False,p=w))
-                elif HEUR=='random5':
-                    pos=[j for j in cand if rd[j]>=5] or [j for j in cand if rd[j]>=4] or cand; named=list(r.choice(pos,size=min(K,len(pos)),replace=False))
-                else: named=cand[:K]
-                u=enc_u_np([(Q[j],resid[x][j]) for j in named])
-            f,t=_nd(u,half,tlike,relt); nf+=f; mf+=1
-            if t is not None: nt+=t; mt+=1
-        FS.append(nf/max(mf,1)); TS.append(nt/max(mt,1))
+    BAD=os.environ.get('BADANCHOR'); _BPS=[float(z) for z in os.environ.get('BADP','0.1,0.2,0.4').split(',')]   # BAD-ANCHOR robustness (Paper D): with prob p a named favourite is CORRUPTED. mid=user names a 3/5-rated item as a favourite, folded at loved strength POS (if no mid-rated items: skip corruption); midresid=same mid item folded at its TRUE residual (self-correcting bound); wrong=grounding resolves to a pop-weighted random catalog item NOT in the profile, folded at POS. BADANCHOR=mid,wrong BADP=0.1,0.2,0.4
+    CFGS=[(None,0.)]+([(bt,p) for bt in BAD.split(',') for p in _BPS] if BAD else [])
+    _wpop=(cnt+1.)/(cnt+1.).sum()
     _lbl=('PORTFOLIO='+os.environ['PORTFOLIO']) if os.environ.get('PORTFOLIO') else ("favmovie x%d HEUR=%s"%(K,HEUR))
-    print(f"=== OPEN-Q {_lbl} (seed-avg {seeds}, te[300:]) ===",flush=True)
-    print(f"  FULL {np.mean(FS):.4f}+/-{np.std(FS):.4f}  TAIL {np.mean(TS):.4f}+/-{np.std(TS):.4f}   (ref: D1 0.378/0.178 ; half-fold ceiling ~0.41)",flush=True)
+    print(f"=== OPEN-Q {_lbl} (seed-avg {seeds}, te[300:])   (ref: D1 0.378/0.178 ; half-fold ceiling ~0.41) ===",flush=True)
+    for _bt,_bp in CFGS:
+        FS=[];TS=[]; _ncor=_ntot=0
+        for sd in seeds:
+            r=np.random.default_rng(sd); SP={}
+            for x in te:
+                its=list(dict(rat_by_u[x]))
+                if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+            VU=[x for x in te if x in SP][300:]; nf=nt=mf=mt=0.
+            for x in VU:
+                half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+                if not tlike: continue
+                usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); cand=list(half)              # u* = known-half fold
+                PORT=os.environ.get('PORTFOLIO')
+                if PORT:                                                                        # PORTFOLIO of item question-TYPES: "fav:3,gem:3,hate:2" (fav=head, gem=hidden-gem/tail, hate=negative/prune)
+                    toks_p=[]; used=set()
+                    for spec in PORT.split(','):
+                        typ,n=spec.split(':'); n=int(n); av=[j for j in cand if j not in used]
+                        if typ=='fav': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:(-rd[j],-float(usf@Q[j])))[:n]      # highest-rated favourite (head)
+                        elif typ=='gem': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:n]  # underrated/hidden-gem (tail)
+                        elif typ=='align': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-float(usf@Q[j]))[:n]
+                        elif typ=='hate': sel=sorted([j for j in av if rd[j]<=2] or sorted(av,key=lambda j:float(usf@Q[j]))[:n],key=lambda j:rd[j])[:n]  # disliked movie (negative/prune)
+                        elif typ=='pop': sel=sorted([j for j in av if rd[j]>=4] or av,key=lambda j:-cnt[j])[:n]
+                        else: sel=av[:n]
+                        for j in sel: toks_p.append((Q[j],resid[x][j])); used.add(j)
+                    u=enc_u_np(toks_p)
+                else:
+                    if HEUR=='align': named=sorted(cand,key=lambda j:-float(usf@Q[j]))[:K]          # most-aligned favourite (info-optimistic)
+                    elif HEUR=='rating': named=sorted(cand,key=lambda j:(-rd[j],-float(usf@Q[j])))[:K]
+                    elif HEUR=='poppop':                                                            # most-popular liked (pessimistic, low-info)
+                        pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-cnt[j])[:K]
+                    elif HEUR=='distinct':                                                          # high-align / low-popularity = "underrated favourite" (tail-info)
+                        pos=[j for j in cand if rd[j]>=4]; named=sorted(pos or cand,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:K]
+                    elif HEUR=='popweight':                                                         # REALISTIC: popularity-weighted recall among likes
+                        pos=[j for j in cand if rd[j]>=4] or cand; w=np.array([cnt[j]+1. for j in pos],float); w/=w.sum(); named=list(r.choice(pos,size=min(K,len(pos)),replace=False,p=w))
+                    elif HEUR=='random5':
+                        pos=[j for j in cand if rd[j]>=5] or [j for j in cand if rd[j]>=4] or cand; named=list(r.choice(pos,size=min(K,len(pos)),replace=False))
+                    else: named=cand[:K]
+                    toks_o=[]
+                    for j in named:                                                                 # recall-error corruption: one bad anchor = a whole wrong 64-d token
+                        if _bt and r.random()<_bp:
+                            if _bt in ('mid','midresid'):
+                                mids=[m2 for m2 in cand if rd[m2]==3 and m2 not in named]
+                                if mids: jj=mids[int(r.integers(len(mids)))]; toks_o.append((Q[jj],float(POS) if _bt=='mid' else float(resid[x][jj]))); _ncor+=1; _ntot+=1; continue
+                            else:                                                                   # wrong-title: system grounds to an unrelated catalog item (pop-weighted, not in profile)
+                                jj=int(r.choice(ni,p=_wpop))
+                                while jj in rd: jj=int(r.choice(ni,p=_wpop))
+                                toks_o.append((Q[jj],float(POS))); _ncor+=1; _ntot+=1; continue
+                        toks_o.append((Q[j],resid[x][j])); _ntot+=1
+                    u=enc_u_np(toks_o)
+                f,t=_nd(u,half,tlike,relt); nf+=f; mf+=1
+                if t is not None: nt+=t; mt+=1
+            FS.append(nf/max(mf,1)); TS.append(nt/max(mt,1))
+        print(f"  err={str(_bt or 'none'):9s} p={_bp:.2f}: FULL {np.mean(FS):.4f}+/-{np.std(FS):.4f}  TAIL {np.mean(TS):.4f}+/-{np.std(TS):.4f}   (corrupted {_ncor}/{_ntot} anchors)",flush=True)
     sys.exit(0)
 if os.environ.get('METAQ'):                                                    # PAPER D METADATA phase: "favourite ACTOR/DIRECTOR?" -> person token = mean of their catalog films' factors (coarse, but objective & broad-coverage). User names the most-salient person from KNOWN-HALF liked films; fold person-centroid (+POS). METATYPE=actor|director|both, METAHEUR=count|rating|align, METAK=#people. MIXFAV=n appends n favourite-movie item tokens (open+closed mix).
     import sys, json
@@ -1990,6 +2005,75 @@ if os.environ.get('TRIANGULATE'):                                              #
         blends=[]
         for q in QA: ch,w,rc=omp(q,5); blends.append({'idx':[int(c) for c in ch],'w':[float(x) for x in w],'labels':[PL[c] for c in ch]})
         np.savez(os.environ['QDUMP'],q=QA,blends=np.array(blends,dtype=object),labels=np.array(PL,dtype=object)); print(f"  dumped {len(QA)} unique queries -> {os.environ['QDUMP']}",flush=True)
+    sys.exit(0)
+if os.environ.get('ONESCREEN'):                                                # PAPER E DEPLOYABILITY (review E-B2): ONE SCREEN = one turn. Roll D1; per turn decompose q by OMP-k over the phrase bank into signed phrases (w_k,e_k). Variants: (a) fold true q (unsnapped D1 ref); (b) fold OMP-3 recon q_hat as ONE token w/ composite decomposition-formula answer a_hat=sum_k w_k*(u.e_k); (c) fold the 3 (e_k, u.e_k) pairs as 3 tokens, screen=1 turn; (d)=(c) budget-accounted 3 turns/screen (curve); (e) OMP-5 of (b). Canonical ruler: EVALSEEDS 1,2,3,7,11 te[300:] q8.
+    import sys
+    pb=np.load(f'{base}/.cache/phrasebank.npz',allow_pickle=True); PU=pb['unit'].astype(np.float32); PL=list(pb['label'])
+    _ck=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt'); load_ck(_ck); actor.eval()
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    def omp(q,K):                                                              # OMP: greedy signed phrase selection, refit weights each step
+        ch=[]; res=q.copy(); A=None; w=None
+        for _ in range(K):
+            pr=PU@res
+            if ch: pr[ch]=0.
+            i=int(np.argmax(np.abs(pr))); ch.append(i); A=PU[ch].T; w=np.linalg.lstsq(A,q,rcond=None)[0]; res=q-A@w
+        return ch,np.asarray(w)
+    def _nd(toks,seen,tlike,relt):
+        u=enc_u_np(toks) if toks else np.zeros(D,np.float32); s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    VARS=['cont','omp3_1tok','omp5_1tok','omp3_3tok']
+    AG={v:([],[]) for v in VARS}                                               # variant -> (per-seed FULL list, per-seed TAIL list) @ q8 (8 screens)
+    CURVE={s2:([],[]) for s2 in range(1,9)}                                    # (d): NDCG after s screens of the 3-tok rollout (turn cost 3*s)
+    PART8=([],[])                                                              # (d) @ 8-TURN budget: 2 full screens + first 2 phrases of screen 3
+    COS3=[];COS5=[]
+    for sd in seeds:
+        r=np.random.default_rng(sd); SP={}
+        for x in te:
+            its=list(dict(rat_by_u[x]))
+            if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+        VU=[x for x in te if x in SP][300:]
+        acc={v:[0.,0.,0.,0.] for v in VARS}; accC={s2:[0.,0.,0.,0.] for s2 in range(1,9)}; accP=[0.,0.,0.,0.]   # nf,nt,mf,mt
+        for x in VU:
+            half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+            if not tlike: continue
+            u0=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=u0/(np.linalg.norm(u0)+1e-9)
+            TK={v:[] for v in VARS}
+            for t in range(8):
+                for v in VARS:
+                    with torch.no_grad(): qv=actor(torch.tensor(enc_u_np(TK[v])[None],dtype=torch.float32),t/8.).numpy()[0]
+                    qn=qv/(np.linalg.norm(qv)+1e-9)
+                    if v=='cont': TK[v].append(((qn*_CN).astype(np.float32),float(NEG+(POS-NEG)*(float(un@qn)+1)/2)))
+                    elif v in ('omp3_1tok','omp5_1tok'):                       # ONE composite token: q_hat direction + decomposition-formula answer sum_k w_k*(u.e_k)=u.recon (|.|<=1 since ||recon||<=1)
+                        Kk=3 if v=='omp3_1tok' else 5; ch,w=omp(qn,Kk); recon=(PU[ch]*w[:,None]).sum(0); qh=recon/(np.linalg.norm(recon)+1e-9)
+                        (COS3 if Kk==3 else COS5).append(float(qn@qh))
+                        TK[v].append(((qh*_CN).astype(np.float32),float(NEG+(POS-NEG)*(float(un@recon)+1)/2)))
+                    else:                                                      # 3 separate phrase tokens per screen (answers = per-phrase graded u.e_k; weights live in the screen layout, not the fold)
+                        ch,w=omp(qn,3)
+                        for k in ch: TK[v].append(((PU[k]*_CN).astype(np.float32),float(NEG+(POS-NEG)*(float(un@PU[k])+1)/2)))
+                f,tl=_nd(TK['omp3_3tok'],half,tlike,relt); accC[t+1][0]+=f; accC[t+1][2]+=1
+                if tl is not None: accC[t+1][1]+=tl; accC[t+1][3]+=1
+            for v in VARS:
+                f,tl=_nd(TK[v],half,tlike,relt); acc[v][0]+=f; acc[v][2]+=1
+                if tl is not None: acc[v][1]+=tl; acc[v][3]+=1
+            f,tl=_nd(TK['omp3_3tok'][:8],half,tlike,relt); accP[0]+=f; accP[2]+=1     # 8-turn budget = 2 screens + 2/3 of screen 3 (OMP selection order ~ importance)
+            if tl is not None: accP[1]+=tl; accP[3]+=1
+        for v in VARS: AG[v][0].append(acc[v][0]/max(acc[v][2],1)); AG[v][1].append(acc[v][1]/max(acc[v][3],1))
+        for s2 in range(1,9): CURVE[s2][0].append(accC[s2][0]/max(accC[s2][2],1)); CURVE[s2][1].append(accC[s2][1]/max(accC[s2][3],1))
+        PART8[0].append(accP[0]/max(accP[2],1)); PART8[1].append(accP[1]/max(accP[3],1))
+        print(f"  seed {sd} done ({int(acc['cont'][2])} users)",flush=True)
+    print(f"=== ONESCREEN k=3 (D1 {os.path.basename(_ck)}, seed-avg {seeds}, te[300:], q8) ===",flush=True)
+    _f=lambda P:f"{np.mean(P[0]):.4f}+/-{np.std(P[0]):.4f} / {np.mean(P[1]):.4f}+/-{np.std(P[1]):.4f}"
+    print(f"  (a) CONT fold true q (unsnapped D1 ref) : {_f(AG['cont'])}",flush=True)
+    print(f"  (b) OMP-3 ONE composite token           : {_f(AG['omp3_1tok'])}",flush=True)
+    print(f"  (e) OMP-5 ONE composite token           : {_f(AG['omp5_1tok'])}",flush=True)
+    print(f"  (c) 3 phrase tokens/screen, 8 screens   : {_f(AG['omp3_3tok'])}",flush=True)
+    print(f"  (d) budget=turns: screens curve (3 turns/screen):",flush=True)
+    for s2 in range(1,9): print(f"      s={s2} (turns {3*s2:2d}): {_f(CURVE[s2])}",flush=True)
+    print(f"      8-TURN budget (2 screens + 2 phrases): {_f(PART8)}",flush=True)
+    print(f"  blend fidelity cos(q,q_hat): OMP-3 mean {np.mean(COS3):.3f} p10 {np.percentile(COS3,10):.3f} | OMP-5 mean {np.mean(COS5):.3f} p10 {np.percentile(COS5,10):.3f}",flush=True)
     sys.exit(0)
 if os.environ.get('SNAPBANK'):                                                 # PAPER E interpretability: roll Paper-C D1 continuous policy; SNAP each off-manifold query to the nearest PHRASE BANK entry. Report coverage (snap cos), SNAP-LOSS (un-snapped vs named NDCG), and the top phrases used (the NAMED tree). Rich bank => small snap-loss => deployable.
     import sys
