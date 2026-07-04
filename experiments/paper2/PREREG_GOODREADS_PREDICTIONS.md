@@ -30,3 +30,13 @@ either way, no reinterpretation after the fact. Phase-2 protocol otherwise mirro
 **Note (2026-07-03):** arena = **cold cohort** (test/val users with ≤10 kept ratings), chosen on
 gate-visibility grounds **before any policy run** (phase-1D re-gate, `gr_cold_regate.py`). Predictions
 above unchanged.
+
+
+---
+
+**Note (2026-07-04):** No valid Goodreads arena materialized — three consecutive health-gate failures
+(single-genre +0.010, cold-cohort +0.017, multi-genre composite +0.011/cold −0.000; answered-concept
+tokens ~1/8). Predictions 1-3 remain REGISTERED and UNTESTED cross-domain (not falsified, not confirmed);
+the composite effrank (concepts 7.41 < items 12.30, genre axis 33.5% of variance) also revises the
+phase-1 single-genre effrank (34.65) downward — folksonomy rank is scope-dependent. Next candidate
+arena: Steam. Prediction 4 (answerability + selection persistence) CONFIRMED on Goodreads (~7.6x pool / ~750x all-items).
