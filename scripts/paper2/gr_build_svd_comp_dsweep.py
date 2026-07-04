@@ -31,6 +31,13 @@ else:
     P=(0.1*rng.standard_normal((ntr,D))).astype(np.float32); Q=(0.1*rng.standard_normal((ni,D))).astype(np.float32)
     start_ep=0
 idx=np.arange(len(rr))
+def train_rmse():
+    se=0.0
+    for c0 in range(0,len(rr),2_000_000):
+        s=slice(c0,c0+2_000_000)
+        pr=mu+bu[ruD[s]]+bi[ri[s]]+np.sum(P[ruD[s]]*Q[ri[s]],1)
+        se+=float(np.sum((rr[s]-pr)**2))
+    return np.sqrt(se/len(rr))
 ran=0
 for ep in range(start_ep,EP):
     if ran>=MAXEP:
@@ -43,14 +50,14 @@ for ep in range(start_ep,EP):
         np.add.at(bu,us,LR*(e-LAMF*bu[us])); np.add.at(bi,it,LR*(e-LAMF*bi[it]))
         gP=LR*(e[:,None]*Q[it]-LAMF*P[us]); gQ=LR*(e[:,None]*P[us]-LAMF*Q[it]); np.add.at(P,us,gP); np.add.at(Q,it,gQ)
     ran+=1
-    tr=np.sqrt(np.mean((rr-(mu+bu[ruD]+bi[ri]+np.sum(P[ruD]*Q[ri],1)))**2))
+    tr=train_rmse()
     print(f"  ep{ep+1} train RMSE={tr:.4f} ({time.time()-t0:.0f}s)",flush=True)
     np.savez(ckpt,P=P,Q=Q,bu=bu,bi=bi,ep=ep+1,rng_state_ep=ep+1)
 
 done = (start_ep+ran)>=EP or (os.path.exists(ckpt) and False)
 final_ep=start_ep+ran
 if final_ep>=EP:
-    tr=np.sqrt(np.mean((rr-(mu+bu[ruD]+bi[ri]+np.sum(P[ruD]*Q[ri],1)))**2))
+    tr=train_rmse()
     np.save(f'{GR}/Q_svd_comp_d{D}.npy',Q); np.save(f'{GR}/bi_svd_comp_d{D}.npy',bi)
     with open(f'{GR}/Q_svd_comp_d{D}_peak.txt','w') as f:
         f.write(f"D={D} LAMF={LAMF} LR={LR} EP={EP} final_train_RMSE={tr:.4f} ntr={ntr} ni={ni}\n")
