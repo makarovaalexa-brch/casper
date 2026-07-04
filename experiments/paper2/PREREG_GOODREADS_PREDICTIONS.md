@@ -40,3 +40,21 @@ tokens ~1/8). Predictions 1-3 remain REGISTERED and UNTESTED cross-domain (not f
 the composite effrank (concepts 7.41 < items 12.30, genre axis 33.5% of variance) also revises the
 phase-1 single-genre effrank (34.65) downward — folksonomy rank is scope-dependent. Next candidate
 arena: Steam. Prediction 4 (answerability + selection persistence) CONFIRMED on Goodreads (~7.6x pool / ~750x all-items).
+
+---
+
+**Note (2026-07-05) — PREDICTIONS TESTED. arena = I2 RecVAE-d512 certified composite.**
+The predictions were finally run on a VALID, CERTIFIED arena: the **I2 RecVAE-d512 certified composite**
+(P2/P3 CERTIFIED, 0.78x EASE headroom) on the phase-1E split (va=500/te=500), restricted top-20k universe,
+NDCG@510. Full battery + numbers in `experiments/instrument2/PHASE4B_GOODREADS.md`. Verdicts (no
+reinterpretation):
+- **Prediction 1 - CONFIRMED.** Concept-only k-curve marginal still **+0.008 full @q8** (does not collapse
+  by q4); concept member-bag effrank (I2 latent) = **15.5**.
+- **Prediction 2 - REFUTED.** concept-8 tail - item-8 tail = **-0.084** (a *larger* tail penalty than
+  ML-25M's -0.007, opposite to the registered >=0). High concept rank did NOT remove the tail penalty -
+  evidence against the rank law's generality for the tail claim.
+- **Prediction 3 - CONFIRMED.** Continuous adaptive actor - native discrete item-8 fold: **+0.028 (ML-1M)
+  -> -0.060 (GR)** - the margin shrank below the ML reference (+0.024/+0.037) and inverted, tracking the
+  item effective rank (ML 33 -> GR **160**). Graded/binary inversion still holds (+0.214).
+- **Prediction 4 - CONFIRMED (reconfirmed on the certified arena).** 7.98/8 answered concepts; lift-selected
+  concepts 0.371 >> naive global-entropy 0.060 (below floor).
