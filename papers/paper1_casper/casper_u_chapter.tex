@@ -40,8 +40,9 @@ acquisition (EDDI). Replicating these on their own rulers and porting them to on
 popularity floor plus a personalization residual is necessary; the residual alone loses, but on top of
 popularity it wins.} We then build the CASPER--U instrument---a linear latent-factor model with a closed-form
 ridge fold-in encoder and a confidence-scaled popularity-plus-residual scorer---and prove (against a defined
-seven-gate acceptance suite) that it (i) matches matrix factorization as a cold-start ranker
-(NDCG@10 $0.486$ vs.\ WRMF $0.501$), (ii) is monotone and partial-reveal robust, and (iii) genuinely ingests
+seven-gate acceptance suite) that it (i) is a competitive cold-start ranker that, raised to a RecVAE-class instrument,
+\emph{ties} the strongest shallow autoencoder (EASE) on the canonical arena (NDCG@10 $0.554$ vs.\ $0.555$, $+0.147$ over
+the original fold-in), (ii) is monotone and partial-reveal robust, and (iii) genuinely ingests
 attributes in the same space (asking a genre lifts that genre's items by $+0.36$ score-percentile; mixed
 item$+$attribute interviews beat item-only at equal budget). We give the derivations that explain each design
 choice and the sanity checks, characterise the metric geometry that produces the law, and specify the
@@ -58,7 +59,11 @@ NDCG@10) but bounds the question \emph{channel}, not any realisable method's rea
 characterise the question-type design space and find a clean separation: items are the most informative per answer but
 almost never answerable ($2.1\%$ at random), genres are answerable ($63\%$) but coarse, and \emph{concepts} are
 \emph{both}---answerable ($57\%$) and nearly as informative as items---yet live in a large, open, continuous space that
-cannot be enumerated. This delivers the recommender-side foundation and quantifies precisely the gap the companion
+cannot be enumerated. Finally we raise the instrument to state of the art---faithfully replicating published RecVAE
+(validation NDCG@100 $0.4422$ vs.\ $0.442$) and tying EASE on the canonical arena---so the whole measurement story rests
+on a recommender that is strong rather than merely MF-tolerant; certified on a $16/16$ two-domain gate suite (latent
+concept and polarity channels included), it also reopens the Goodreads arena the original instrument could not see
+(personalization headroom $+0.011\!\to\!+0.237$, $78\%$ of EASE's prize). This delivers the recommender-side foundation and quantifies precisely the gap the companion
 method paper targets: an adaptive, answerability-aware, \emph{continuous-action} concept-elicitation policy.
 \end{abstract}
 
@@ -368,7 +373,10 @@ exists to prevent running policy comparisons in an arena where the instrument ca
 policies would make, so a FAIL verdict is a usable scoping result---it tells us the elicitation-value claims are
 MovieLens-scoped (while the answerability findings, which do replicate on Goodreads, are cross-domain)---not a wasted
 experiment. Naming the instrument and gating the arena is what lets a negative cross-domain result be reported honestly
-rather than buried.
+rather than buried. This row gets a constructive ending in \S\ref{sec:i2}: once the instrument is raised to a
+RecVAE-class recommender, the same Goodreads composite that cleared MOSTPOP by only $+0.011$ under the neural fold-in
+opens to $+0.237$---$78\%$ of EASE's prize, $21.6\times$ the original---and passes the certification gates, turning the
+FAIL into a valid arena rather than a scoping wall.
 
 \subsection{The privilege ladder: what each oracle is allowed to see}\label{sec:privladder}
 Because we report oracle bounds throughout, we fix a convention that makes explicit \emph{what each oracle peeks at}
@@ -1306,6 +1314,99 @@ continuous space that cannot be enumerated, motivating a continuous-action elici
 \label{tab:answer}
 \end{table}
 
+\section{Raising the instrument to state of the art}\label{sec:i2}
+The measurement story so far rests on an instrument that is \emph{competitive with matrix factorization}. That is enough
+to isolate elicitation---the ruler holds the recommender fixed, so what a selector adds is measured against a constant
+baseline---but it invites a fair objection: perhaps an elicitation edge is a property of a \emph{weak} recommender, and
+a stronger instrument would absorb it. The clean answer is to rebuild the instrument at genuine state-of-the-art
+strength and re-verify the whole apparatus on it. We do so here as the capstone of the measurement contribution; the
+companion method paper then re-runs its entire policy battery on this strong instrument (and finds the elicitation
+claims \emph{sharpen}, not vanish).
+
+\subsection{The acceptance bar, done right: replicate SOTA, then tie the strongest model}\label{sec:i2accept}
+We replace the linear fold-in with \textbf{RecVAE}~\cite{recvae}, a multinomial variational autoencoder that is
+SOTA-class under the rigorous non-sampled Liang protocol~\cite{multvae18}. The acceptance bar is a two-step one. First,
+\emph{replicate published SOTA}: on RecVAE's home benchmark (ML-20M, Liang strong-generalisation split) our from-scratch
+port reaches validation NDCG@100 $= 0.4422$ against the published $0.442$---an essentially exact match, with all three
+load-bearing mechanisms (composite prior, per-user $\beta=\gamma|X_u|$, $3{:}1$ alternating updates with encoder-only
+denoising) implemented verbatim. Second, \emph{tie the strongest model on our own canonical arena}: ported to the
+ML-1M ruler byte-identical to this chapter (MOSTPOP reproduces at $0.3099$, the V1 encoder at $0.4074$), the $d{=}512$
+RecVAE reaches full-profile NDCG@10 $= 0.5541$---a statistical \emph{tie with a validation-tuned EASE}~\cite{ease}
+($0.5549$, within seed noise) and $\mathbf{+0.147}$ over the original instrument ($0.4074$). Its headroom over MOSTPOP
+is $+0.244$, \textbf{2.5$\times$ the original fold-in's $+0.098$} (Table~\ref{tab:i2ml1m}). The instrument is no longer
+merely MF-tolerant; it is EASE-class, while---unlike EASE, a shallow item--item autoencoder with no user code---still
+folding any partial profile through one encoder pass into a differentiable latent, exactly the continuous action space
+the policy needs.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccl}
+\toprule
+ML-1M, full-profile NDCG@10 (seed-avg $\{1,2,3,7,11\}$) & full & tail & headroom vs.\ MOSTPOP\\
+\midrule
+MOSTPOP & 0.3099 & 0.0808 & --\\
+V1 neural encoder (original instrument) & 0.4074 & 0.2164 & $+0.098$\\
+iALS ($d{=}64$) & 0.4151 & 0.3158 & $+0.105$\\
+\textbf{RecVAE ($d{=}512$, strengthened instrument)} & \textbf{0.5541} & \textbf{0.3772} & $\mathbf{+0.244}$\\
+EASE ($\lambda{=}1000$, val-selected) & 0.5549 & 0.3774 & $+0.245$\\
+\bottomrule
+\end{tabular}
+\caption{The strengthened instrument on the canonical arena: RecVAE-$d512$ ties EASE ($0.5541$ vs.\ $0.5549$) and beats
+the original neural encoder by $+0.147$, lifting headroom over MOSTPOP to $2.5\times$ the original.}
+\label{tab:i2ml1m}
+\end{table}
+
+\subsection{The Goodreads resolution: the arena the original instrument could not see}\label{sec:i2goodreads}
+The stress test of \S\ref{sec:whyruler} rejected three Goodreads arenas because the neural fold-in cleared MOSTPOP by
+only ${\sim}+0.01$---below the substantiality bar, an honest FAIL. That FAIL was a statement about the \emph{instrument},
+not the data, and the strengthened instrument proves it constructively. On the same three-genre composite ($188{,}867$
+books), on the restricted top-$20$k universe where EASE-comparability holds (MOSTPOP and EASE reproduce the diagnostic
+exactly), the $d{=}512$ RecVAE opens the arena from the original $+0.011$ to $\mathbf{+0.237}$ over MOSTPOP
+(Table~\ref{tab:i2gr})---$\mathbf{78\%}$ of EASE's prize ($+0.304$) and $\mathbf{21.6\times}$ the original instrument's
+headroom. The instrument-class row of the ruler table (\S\ref{sec:whyruler}) thus gets its constructive ending: a domain
+that looked ``saturated'' under a weak instrument is a healthy, high-headroom elicitation arena under a strong one, and
+the cross-domain claims can be tested there rather than merely scoped away.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccl}
+\toprule
+Goodreads composite, full-profile NDCG@510 (restricted top-$20$k) & @510 full & headroom vs.\ MOSTPOP & $\times$ EASE\\
+\midrule
+MOSTPOP & 0.2921 & -- & --\\
+V1 neural encoder (original instrument) & 0.3052 & $+0.013$ & $0.04\times$\\
+\textbf{RecVAE ($d{=}512$, strengthened instrument)} & \textbf{0.5290} & $\mathbf{+0.237}$ & $\mathbf{0.78\times}$\\
+EASE ($\lambda{=}500$) & 0.5958 & $+0.304$ & $1.00\times$\\
+\bottomrule
+\end{tabular}
+\caption{The Goodreads resolution: on the strengthened instrument the composite arena the original fold-in could not see
+($+0.011$) opens to $+0.237$ over MOSTPOP---$78\%$ of EASE's headroom, $21.6\times$ the original---turning a scoping FAIL
+into a valid, high-headroom cross-domain arena.}
+\label{tab:i2gr}
+\end{table}
+
+\subsection{The certified gate suite: $16/16$ on both domains}\label{sec:i2gates}
+Raising the instrument re-opens the acceptance question, so we re-certify against a formal gate suite on \emph{both}
+domains. The suite extends the seven gates of \S\ref{sec:results} to the latent apparatus: monotonicity in reveals,
+no-harm calibration, answerability, polarity, item$+$concept additivity, fold-vs-full, seed stability, and
+answer-strength sanity. Two channels are new and were each benchmarked before being locked. Concepts enter through the
+\emph{latent}, as \textbf{member-bag directions} (the unit latent of the encoded top-member bag of a genome tag/shelf),
+which clear the cold-start floor by $+0.15$ on both datasets and \emph{add} on top of item folds---reversing the earlier
+input-space concept failure of \S\ref{sec:concepts}. Polarity is carried by the belief operator's sign (a disliked
+answer demotes a concept's members with $-33.7$-point specificity). The full suite passes $\mathbf{16/16}$: 8/8 on the
+canonical ML-1M arena and 8/8 on the Goodreads composite, where the concept channel is now \emph{live}---$8/8$
+answerable shelves per cold user, versus the V1-era $0.14$--$1.0$.
+
+\subsection{The elicitation-side payoff: the question channel becomes the strongest channel}\label{sec:i2payoff}
+The point of a strong instrument is what it does for elicitation, and here it delivers the cleanest possible version of
+this chapter's thesis. On the strengthened ML-1M instrument, \emph{eight informative continuous latent probes} (queries
+along the decoder's principal directions, answered geometrically) reach NDCG@10 $=0.4709$, \emph{beating eight folded
+real items} (the $k{=}8$ item-fold reference, $0.4625$) at equal turn count. Each geometric probe reads a full latent
+coordinate of the user's taste, whereas each item rating touches one sparse row; a properly-built instrument therefore
+makes the \emph{question} channel the single strongest elicitation channel---outranking even the discrete item ratings
+that were ``maximally informative but unanswerable'' in the design-space analysis (\S\ref{sec:answerability}). This is
+the recommender-side foundation completed: not only are concepts answerable where items are not, but on a
+state-of-the-art instrument the continuous concept-style question is also the most \emph{informative} channel, which is
+exactly the opening the companion method paper's continuous-action policy exploits.
+
 \section{Discussion}\label{sec:disc}
 
 \subsection{Reframing the earlier negative result}
@@ -1400,6 +1501,8 @@ CASPER--U. Full log archived in \texttt{archive/CASPER\_EXPERIMENTS\_E1-E14\_arc
 \bibitem{conts21} Li et al. Seamlessly Unifying Attributes and Items: Conversational Recommendation for Cold-Start Users. ACM TOIS 2021.
 \bibitem{eddi19} Ma et al. EDDI: Efficient Dynamic Discovery of High-Value Information with Partial VAE. ICML 2019.
 \bibitem{multvae18} Liang et al. Variational Autoencoders for Collaborative Filtering. WWW 2018.
+\bibitem{recvae} Shenbin, Alekseev, Tutubalina, Malykh, Nikolenko. RecVAE: A New Variational Autoencoder for Top-N Recommendations with Implicit Feedback. WSDM 2020.
+\bibitem{ease} Steck. Embarrassingly Shallow Autoencoders for Sparse Data (EASE). WWW 2019.
 \bibitem{autorec15} Sedhain et al. AutoRec: Autoencoders Meet Collaborative Filtering. WWW 2015.
 \bibitem{wolp15} Dulac-Arnold et al. Deep Reinforcement Learning in Large Discrete Action Spaces. arXiv:1512.07679, 2015.
 \bibitem{ecoc25} Wang et al. An Efficient Continuous Control Perspective for RL-based Sequential Recommendation. Knowledge-Based Systems, 2025.

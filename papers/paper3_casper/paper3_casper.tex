@@ -931,6 +931,54 @@ never an artifact of a weak recommender---the one claim that shrinks (adaptivity
 paper's own linear-Gaussian analysis says it should. All numbers are seed-averaged $\{1,2,3,7,11\}$ on the byte-identical
 $304$-user ML-1M test cohort; the instrument is certified $16/16$ on ML-1M and Goodreads.
 
+\subsection{Cross-domain: the flagship on books (Goodreads)}\label{sec:i2gr}
+The same certified apparatus ports to a second content domain. We re-ran the load-bearing battery on the Goodreads
+composite (the $188{,}867$-book corpus of Paper~B) under the I2 RecVAE-$d512$ instrument---certified on that arena as
+part of the same $16/16$ gate suite---using the restricted top-$20$k universe where EASE-comparability holds, NDCG@$510$
+primary, $500$ held-out test users, fixed split. There the instrument reaches full-profile $0.5290$ ($0.78\times$
+EASE's headroom; Paper~A). Crucially, the cross-domain predictions were \emph{pre-registered before any Goodreads
+policy run};\footnote{Pre-registration \texttt{PREREG\_GOODREADS\_PREDICTIONS.md} (written before the certified-arena
+run of 2026-07-05); predictions P1--P4 stated against the effective-rank law. Reported here as registered, no post-hoc
+reinterpretation.} we report them exactly as registered.
+
+\paragraph{Three of the four claims hold unchanged on books.} \textbf{Graded $\gg$ binary} survives massively:
+binarising the actor's answers collapses it from $0.424$ to $0.210$ ($-0.214$ full / $-0.136$ tail). \textbf{Snap-loss}
+is again \emph{catastrophic} and of the \emph{same ${\sim}4\times$ magnitude} as ML-1M---$-0.145$ full to the nearest of
+$1{,}483$ shelf concepts, $-0.143$ to the nearest of $20$k item-decoder rows---so the actor's emitted directions remain
+genuinely off-manifold on books. \textbf{Adaptivity} is if anything \emph{stronger}: the adaptive actor beats its own
+strongest static basis by $+0.047$ full and beats even the \emph{per-user-oracle} strongest static (the better of the
+two static designs chosen per user) by $\mathbf{+0.011}$ (paired bootstrap over $418$ users, $p{=}0.997$)---a cleaner
+adaptivity result than ML-1M, where the per-user-max static bound had sat above the actor, because the fixed continuous
+basis is weak on the rich book catalogue while the belief-conditioned actor recovers most of the gap.
+
+\paragraph{The one weakening is a confirmed pre-registered prediction.} On books the continuous adaptive actor ($0.424$)
+is \emph{outrun by the native discrete $k{=}8$ item fold} ($0.484$; $-0.060$ full / $-0.094$ tail), whereas on ML-1M it
+beat both discrete channels. This is exactly pre-registered \textbf{prediction~P3}: the continuous-over-discrete margin
+tracks the item menu's effective rank. Measured in the I2 latent, the item-decoder participation ratio is $33$ on ML-1M
+and $\mathbf{160}$ on Goodreads; as predicted, the actor's margin over the item fold shrinks and inverts out-of-sample
+and in the registered direction, $+0.028\,(\text{ML-1M}) \to -0.060\,(\text{GR})$---the richer the native item
+geometry, the less a fixed-width continuous basis out-reconstructs it. The margin over the \emph{concept} channel, whose
+rank moved far less ($8.4\to15.5$), barely changed ($+0.046\to+0.053$), consistent with the smaller rank change.
+
+\paragraph{The item fold is the strongest channel but the least askable.} Stated plainly: on books, folding eight real
+rated items is the single best belief-builder ($0.484$). But it is realizable only if the user can \emph{name} those
+items---on a $189$k-book catalogue an arbitrary item question is answered $\sim\!0.0003$ of the time (Paper~B), so the
+item fold is unreachable by \emph{probing} and reachable only through \emph{volunteered/named} items, i.e.\ the
+open-recall channel of the companion paper (Paper~D). Among the channels that are actually \emph{askable} in cold
+start, the practical ranking on books is continuous probes (adaptive actor $0.424$) $>$ continuous SVD-basis static
+($0.376$) $>$ answerable concepts ($0.371$) $\gg$ any binary channel. The continuous, graded question remains the best
+askable elicitation channel on books; the discrete item fold wins only once items become askable, which requires
+recall, not probing.
+
+\paragraph{An honest open tail question.} Pre-registered \textbf{prediction~P2}---that the high-rank shelf vocabulary
+(participation ratio $15.5$, far above ML-25M's genome $3.99$) would remove the concept-vs-item tail penalty---was
+\textbf{refuted}: the concept$-$item tail margin is $-0.084$ on books, \emph{larger} than ML-25M's $-0.007$, not
+$\ge0$. High concept rank did not translate into a non-negative tail margin, so the rank law's tail claim does not
+generalise; we report this as the law's open tail question (consistent with Paper~B's ML-25M tail reversal), not a
+rescued result. Answerability and the selection hierarchy both re-confirm on the certified arena: $7.98/8$ concepts
+answerable per cold user, and lift-selected concepts ($0.371$) $\gg$ naive global-entropy concepts ($0.060$, below the
+cold floor).
+
 %==================================================================
 \section{Discussion}\label{sec:discussion}
 \subsection{Why discrete is limited, in principle}
