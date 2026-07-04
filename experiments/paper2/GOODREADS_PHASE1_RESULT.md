@@ -467,3 +467,22 @@ run a phase-2 policy battery on it. **PHASE 2 IS NOT A GO on Goodreads.**
 
 *(Scripts committed under `casper/scripts/paper2/gr_comp_*.py`; eval + one encoder train, no git
 commits, no background monitors, foreground chunked.)*
+
+### 1E.9 Independent replication of the gate (2026-07-04, second run)
+A parallel recovery run independently re-ran the full gate (`gr_health_comp.py`, same ruler K=510,
+same protocol) against a later val-selected checkpoint from the same training ladder (ep6-best
+0.2900 vs the ep4-best 0.2904 above; ladder continued to ep9, val plateau 0.2889–0.2904 from ep3 —
+peak log `enc_v1_grcomp_peak.txt`; gate checkpoint frozen as `enc_v1_grcomp_GATE.pt`):
+- FULL-TEST (n=423): MOSTPOP 0.2650 / ridge 0.2639 / **encoder 0.2757** @510 full →
+  **headroom +0.0107** (@10 +0.0094; tail +0.0094); ridge −0.0011. Matches §1E.5 to ±0.0001.
+- **Headroom by profile size (@510 full): 2–5 +0.0070 (n=53), 6–15 +0.0102 (n=116), 16–40 +0.0103
+  (n=126), 41+ +0.0130 (n=128)** — flat ~0.01 across a 20× profile-depth range, confirming §1E.5(d):
+  the small prize is intrinsic, not profile starvation.
+- Concept channel (entropy): +0.0022 @q8 / +0.0034 @q20, ans_tok 0.96 / 2.27, monotone no-harm OK —
+  matches. COLD (≤10; n=57): headroom **−0.0030** (vs −0.0003 above; the delta is checkpoint noise —
+  both are ≈0 and far below the band). Effrank/answerability re-run identical (7.41/12.30; 0.226).
+- **Verdict unchanged: WEAK/FAIL — phase 2 is NOT a go on Goodreads.** Checkpoint-to-checkpoint
+  variance (~0.003 on a 57-user cold cohort, ~0.0001 on the full cohort) does not move the verdict.
+- Artifact addendum: composite SBERT content embeddings `item_sbert_comp.npy` (188,867×384;
+  52,613 mystery rows reused, 136,254 new items embedded) built by resumable `gr_sbert_comp.py`
+  (partial-progress file `item_sbert_comp_part.npz`; rerun the script to resume/finish if absent).
