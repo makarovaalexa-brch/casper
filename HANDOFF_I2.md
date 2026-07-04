@@ -12,6 +12,7 @@ Living doc — updated at every phase gate, committed+pushed each time. Resume p
 | Jul 5 | P2 ports: ML-1M + Goodreads, d-discovery {64..512}, EASE/V1 bars | **RUNNING** (agent launched Jul 4 eve) | ML-1M: RecVAE ≥ EASE and ≥ V1. Goodreads: headroom ≥0.8×EASE (≥+0.15 = success vs V1's +0.011) |
 | Jul 5-6 | P3 CASPER-ize: z-space concept/dislike channel (benchmark both polarity designs), k=1..20 gates G1-G8 on both datasets | pending P2 | gates PASS both datasets (Goodreads REQUIRED) |
 | Jul 6-8 | P4a essential battery @ML-1M: static-graded vs D1-recipe actor (3 trseeds), snap-loss, static-8 | pending P3 | THE question: flagship survives strong instrument? |
+| Jul 8-9 | P4c answer-source ablation (empirical-noise channel fitted on real ML-1M ratings; cross-representation 2x2 V1/EASE answers x RecVAE/V1 rec; RAW-DATA pair answers = zero-circularity — elevates pair-native) | pending P4a | Holes 1+2 closed w/o humans if findings hold |
 | Jul 8-9 | P4b stretch: Goodreads cross-domain battery + PREREG predictions | pending P3+time | rank-law out-of-sample test |
 | Jul 9 | Consolidate: Paper C core numbers updated IF enough gates passed; this doc finalized | — | clean handoff |
 | post-Wed (deferred) | ML-25M port; full 5-paper I2 update; remaining ladder rungs; compile passes; D+E merge; ECIR assembly (Oct 2) | handoff | tasks #39-#44 |
@@ -38,5 +39,4 @@ papers backed up casper/papers/ + C:\dev\phd_BACKUP_2026-07-04. Task IDs: #37-#4
 1. Flagship may shrink on strong instrument (FTREC precedent) — P4a answers it; honest either way.
 2. Goodreads VAE may fall structurally short of EASE (MSD pattern) — candidate B = ELSA-style low-rank.
 3. Polarity channel design unproven (P3 benchmark, two designs).
-4. Geometric answer model remains simulator-conditional (see LOGICAL-HOLES audit in chat Jul 4;
-   human study is the only closer).
+4. Geometric answer model: P4c answer-source ablation is the non-human closer (empirical channel + cross-representation + raw-data pairs); human study then covers only framing-lever + slider usability.
