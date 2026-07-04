@@ -9,7 +9,7 @@ Living doc — updated at every phase gate, committed+pushed each time. Resume p
 | Jul 4 | P1 replicate RecVAE ML-20M | **DONE** — test NDCG@100 0.4346 (pub 0.442, kill 0.43) | PASS |
 | Jul 4 | P1.5 elicitation smoke | **DONE** — k-curve monotone (0.136→0.290 @k8), latent smooth, no sparse collapse | PASS ×3; seed z=0 rule |
 | Jul 4 | P1.6 micro-battery | **DONE** — input-space concept fold FAIL → z-space channel; NO amortization gap (encoder-only); native σ correctly signed (−0.081, weak) | design locked |
-| Jul 5 | P2 ports: ML-1M + Goodreads, d-discovery {64..512}, EASE/V1 bars | **RUNNING** (agent launched Jul 4 eve) | ML-1M: RecVAE ≥ EASE and ≥ V1. Goodreads: headroom ≥0.8×EASE (≥+0.15 = success vs V1's +0.011) |
+| Jul 5 | P2 ports | **DONE — BOTH PASS** — ML-1M d512 0.5541 ties EASE (0.5549), +0.147 over V1; Goodreads +0.237 = 0.78×EASE = 21.6×V1 (lower bound, 40k-user subsample; lever = more train users) | PASS; d=512 both; z=0 seed mandatory on ML-1M (cold floor below MOSTPOP) |
 | Jul 5-6 | P3 CASPER-ize: z-space concept/dislike channel (benchmark both polarity designs), k=1..20 gates G1-G8 on both datasets | pending P2 | gates PASS both datasets (Goodreads REQUIRED) |
 | Jul 6-8 | P4a essential battery @ML-1M: static-graded vs D1-recipe actor (3 trseeds), snap-loss, static-8 | pending P3 | THE question: flagship survives strong instrument? |
 | post-Wed (end of queue, per user) | P4c answer-source ablation (empirical-noise channel fitted on real ML-1M ratings; cross-representation 2x2 V1/EASE answers x RecVAE/V1 rec; RAW-DATA pair answers = zero-circularity — elevates pair-native) | pending P4a | Holes 1+2 closed w/o humans if findings hold (task #46) |
