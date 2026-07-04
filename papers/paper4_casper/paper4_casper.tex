@@ -826,7 +826,12 @@ Paper~B routes cold-start through concepts. Open named-entity recall---this pape
 the item channel's full $64$-dimensional bandwidth \emph{without} paying its answerability cost, because the user
 volunteers an entity they actually know rather than being quizzed on a catalogue item they almost certainly have not
 rated. So the very regime where item-probing collapses is where open recall is most valuable, and Paper~D's protocol is
-precisely what the large-catalogue cold-start setting requires.
+precisely what the large-catalogue cold-start setting requires. This is sharpened by the strong-instrument test
+(Paper~C): on the certified SOTA Goodreads instrument, folding eight \emph{named} items is the single strongest
+belief-builder ($k{=}8$ item fold $0.484$ full NDCG@$510$, above every continuous-probing channel, whose best is the
+adaptive actor at $0.424$), yet items are essentially unaskable as \emph{probes} ($0.0003$ answer rate). Open recall is
+therefore not merely competitive on large catalogues but the \emph{only} route to the strongest channel: it is what
+turns the highest-bandwidth belief-builder from unreachable-by-probing into askable.
 
 \paragraph{The final step: interpretability and a deployed agent.} The last paper turns this elicitor into a
 conversational product. An LLM \emph{renders} each grounded question as natural language (``what's a film you love that
