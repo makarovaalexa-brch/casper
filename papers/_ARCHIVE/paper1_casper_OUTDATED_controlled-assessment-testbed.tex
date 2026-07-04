@@ -1,0 +1,1269 @@
+% =========================================================================
+% Paper 1: CASPER — Controlled Assessment of Strategic Preference
+% Elicitation in Conversational Recommendation
+%
+% Long journal format (thesis-includable). Draft v0.1 — results sections
+% contain placeholders marked [RESULTS]. Compile: pdflatex + bibtex
+% (references.bib in this folder, merged from thesis bibliography).
+% =========================================================================
+\documentclass[11pt]{article}
+
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage[comma,authoryear]{natbib}
+\usepackage{xcolor}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\results}[1]{\textcolor{blue}{[RESULTS: #1]}}
+
+\title{CASPER: Controlled Assessment of Strategic Preference Elicitation
+in Conversational Recommendation}
+
+\author{Aleksandra Makarova \and Muhammad Shahzad \and Xia Hong \and Martin Lester\\
+\small Department of Computer Science, University of Reading, UK}
+
+\date{Draft v0.1 --- June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Conversational recommender systems (CRS) are increasingly built around large
+language models (LLMs), yet their defining capability --- strategically
+eliciting user preferences --- is asserted far more often than it is
+measured. Published evaluations embed elicitation inside whole-system
+comparisons, where its effect is confounded with recommendation and
+generation quality, and the heterogeneous approaches now in play
+(graph-pruned Q-networks, Bayesian acquisition, prompted LLMs, learned
+policies) have never been compared on equal terms. We introduce CASPER, a
+controlled testbed that isolates elicitation strategy: a fixed,
+polarity-aware recommendation model serves as the measurement instrument,
+simulated users answer verifiably from held-out MovieLens ground truth, and
+policies are scored on recommendation-relevant information gained per
+conversational turn. We first show that instrument design is decisive.
+Under common configurations, the instrument itself fails in ways that
+silently invalidate measurement: models trained on full preference profiles
+treat the few-reveals regime of an actual dialogue as out-of-distribution,
+and sentence-embedding-based user representations conflate preference with
+anti-preference --- in our audit, a widely-used configuration ranked
+franchise sequels \emph{higher} when the user disliked the franchise anchor.
+We propose acceptance tests that any candidate instrument must pass
+(polarity direction, reveal monotonicity, signal-to-noise), and a
+reveal-subset training augmentation that passes them. We then benchmark
+eight elicitation policies spanning random and popularity baselines, greedy
+information gain, prompt-only LLM questioning in three styles, and a
+reinforcement-learned bot-play policy. \results{headline finding, e.g.\
+``Prompt-only LLM questioners underperform greedy information gain by X\%
+AUAC at equal turn budgets''}. The testbed protocol, simulator, instrument
+acceptance suite, and all reference policies are released to enable
+measurement-grounded progress on strategic elicitation.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+The promise of a conversational recommender system (CRS) over a traditional
+one is interactivity: rather than inferring preferences solely from logged
+behaviour, the system can \emph{ask}. What it asks, and when, determines how
+much of the user's limited conversational patience is converted into
+recommendation quality. This capability --- \emph{strategic preference
+elicitation} --- has been the explicit objective of a decade of research,
+from early reinforcement-learning dialogue managers \citep{sun2018conversational,
+lei2020estimation} through graph-constrained policy learning
+\citep{lei2020interactive, deng2021unified} to, most recently, large language
+models (LLMs) prompted to conduct preference interviews
+\citep{li2023eliciting, he2023large}.
+
+Yet a researcher who asks the simple question \emph{``which of these
+approaches asks better questions?''} will find no answer in the literature.
+Published evaluations measure whole systems: a dialogue agent's questions,
+its recommendation model, its language understanding, and its generation
+quality are exercised together, and a single end metric --- success rate,
+hit ratio, NDCG at dialogue end --- absorbs all of them
+\citep{jannach2021survey, wang2023rethinking}. A system may score well
+because it asks incisive questions, or because its recommender extracts more
+from the same answers, or because its utterances are parsed more reliably;
+the published numbers cannot tell these apart. The confound has become more
+acute, not less, as the field has diversified: the candidate elicitation
+mechanisms now include discrete attribute-selection policies trained with
+deep Q-networks \citep{deng2021unified, zhao2023hierarchical}, single-step
+Bayesian acquisition over item utilities \citep{austin2024bayesian},
+unoptimised free-form LLM interviewing \citep{li2023eliciting}, and hybrid
+architectures in which a learned planner selects strategies that a frozen
+LLM verbalises \citep{deng2023plug, zhao2025reinforced}. These mechanisms
+share no common action space, no common training signal, and no common
+evaluation protocol.
+
+The absence of controlled measurement has a second, subtler consequence:
+the field's motivating claims rest on weak evidence. The widely-repeated
+assertion that prompt-only LLMs are poor elicitation strategists ---
+recommending prematurely, asking unfocused questions --- originates in
+qualitative observations and in motivation sections of papers proposing
+their own fixes \citep{he2023large, zhao2025reinforced, kostric2025should}.
+We are aware of no controlled quantification of how strategically LLMs
+actually question, relative to principled non-learned baselines such as
+greedy information gain. If the gap is large, learned elicitation policies
+have a clear target; if it is small, a substantial research agenda needs
+re-aiming. Either way, the field should know.
+
+This paper introduces \textbf{CASPER} (\emph{Controlled Assessment of
+Strategic Preference Elicitation in Recommendation}), a testbed that
+isolates elicitation strategy as the single experimental variable. CASPER
+rests on three design commitments:
+
+\begin{enumerate}
+  \item \textbf{A fixed, audited measurement instrument.} A single
+  pre-trained recommendation model maps revealed preferences to predicted
+  ratings for all policies alike. Crucially, we treat the instrument itself
+  as an object of audit: we define \emph{acceptance tests} --- polarity
+  direction, reveal monotonicity, and signal-to-noise requirements --- that
+  an instrument must pass before any policy comparison performed with it
+  can be meaningful. We show that plausible, previously-used instruments
+  fail these tests in instructive ways (Section~\ref{sec:instrument}).
+  \item \textbf{A verifiable simulated user.} Simulated users answer
+  entity-level questions deterministically from held-out ground-truth
+  profiles. Unlike free-form LLM simulators \citep{wang2023rethinking},
+  every simulated statement is auditable against the profile, which is
+  essential when the measured quantity is information gain: a simulator
+  that hallucinates a preference injects unmeasurable noise into precisely
+  the signal under study.
+  \item \textbf{A shared discrete action interface.} Every policy ---
+  random, information-theoretic, prompted-LLM, or learned --- selects each
+  question from the same fixed slate of entities (movies, genres, actors,
+  directors). Strategy is thereby the only varying factor; differences in
+  action vocabulary, language generation, and parsing are excluded by
+  construction.
+\end{enumerate}
+
+Within this testbed we benchmark eight reference policies: uniform random;
+population-popularity ordering; greedy expected information gain (one-step
+entropy reduction under the instrument, the strongest non-learned baseline);
+three prompt-only LLM questioners of increasing sophistication (a vanilla
+asker, a chain-of-thought strategist, and a GATE-style interviewer
+\citep{li2023eliciting}); and a reinforcement-learned bot-play policy
+following our earlier published method \citep{makarova2024learning}.
+
+\paragraph{Contributions.}
+(1)~A formal statement of the elicitation measurement problem and a
+controlled protocol that solves it (Section~\ref{sec:problem},
+\ref{sec:testbed}).
+(2)~An instrument acceptance suite, together with an empirical audit showing
+that two plausible instrument configurations fail it --- one because partial
+reveals are out-of-distribution, one because sentence-embedding user
+representations break preference polarity --- and a reveal-subset training
+augmentation that repairs the failure (Section~\ref{sec:instrument}).
+(3)~The first controlled, like-for-like comparison of LLM questioning
+against information-theoretic and learned elicitation baselines
+(Section~\ref{sec:results}).
+(4)~A released implementation comprising the testbed, simulator, acceptance
+suite, reference policies, and evaluation scripts.
+\todo{add repository URL on release}
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Learned Question Selection in CRS}
+
+Reinforcement-learning approaches to conversational recommendation have
+treated question selection as a sequential decision problem over discrete
+action spaces since \citet{sun2018conversational}, whose policy chooses
+among a fixed set of item facets, and \citet{lei2020estimation}, whose
+Estimation--Action--Reflection cycle alternates attribute questions with
+recommendations in a multi-round protocol. Subsequent systems concentrated
+on taming the size of the discrete space: SCPR \citep{lei2020interactive}
+restricts candidate attributes to graph neighbours of confirmed preferences
+and reduces the learned decision to a binary ask-or-recommend choice;
+UNICORN \citep{deng2021unified} scores a pruned candidate set of items and
+attributes with a dueling Q-network; hierarchical refinements separate
+when-to-ask from what-to-ask \citep{zhao2023hierarchical} or generate
+chains of attribute choices \citep{fan2024chain}. Throughout this lineage,
+evaluation is conducted against rule-based simulators with template
+questions, and --- material for the present paper --- the recommendation
+model, simulator, and policy are co-designed and co-reported, so the
+elicitation contribution is never measured in isolation.
+
+\subsection{LLMs as Conversational Recommenders and Elicitors}
+
+Zero-shot LLMs outperform fine-tuned CRS models on established benchmarks
+\citep{he2023large}, with the advantage concentrated in content and context
+knowledge rather than collaborative signals, and characteristic failure
+modes including popularity bias and out-of-catalogue recommendation.
+\citet{wang2023rethinking} showed that static-replay benchmarks
+systematically penalise interactive behaviour and introduced LLM-based user
+simulation (iEvaLM), which has become the dominant interactive evaluation
+protocol --- at the cost of making the simulator's biases, catalogue
+knowledge, and cooperativeness part of the experimental design. On the
+elicitation side specifically, GATE \citep{li2023eliciting} demonstrated
+that prompted LLMs can conduct free-form preference interviews that beat
+user-written specifications; PEBOL \citep{austin2024bayesian} added
+decision-theoretic structure, maintaining Bayesian beliefs over item
+utilities with the LLM as a natural-language acquisition function, and
+showed that this beats monolithic prompted elicitation --- evidence that
+explicit strategy helps even atop strong language models. Hybrid
+architectures train a compact policy to select dialogue strategies that a
+frozen LLM verbalises \citep{deng2023plug}, most recently for CRS with a
+thirteen-strategy inventory including three elicitation types
+\citep{zhao2025reinforced}. \citet{zhang2025modeling} optimise clarifying
+questions at the token level via preference labels derived from simulated
+future turns.
+
+None of these works measures elicitation strategy under a fixed instrument
+and verifiable simulator; the comparisons reported are whole-system, and
+the LLM-elicitation-weakness claim that motivates several of them remains,
+to our knowledge, unquantified. CASPER is designed to supply exactly this
+missing measurement layer; it is complementary to, not competitive with,
+the systems above, each of which could be entered as a policy.
+
+\subsection{Preference Elicitation Beyond CRS}
+
+Preference elicitation predates CRS in decision theory, where questions are
+selected to reduce uncertainty about a utility function by minimax regret
+\citep{viappiani2009regret} or Bayesian updating \citep{mangili2020bayesian},
+and in interactive recommendation via bandit formulations over absolute and
+comparative item questions \citep{christakopoulou2016towards}. Our greedy
+information-gain baseline transplants this tradition's one-step acquisition
+principle onto the testbed's instrument, providing the natural
+non-learned reference point for all learned and prompted policies.
+
+\subsection{Evaluation Methodology}
+
+Simulation-based CRS evaluation spans rule-based attribute-answering
+simulators \citep{lei2020estimation, deng2021unified}, crowd-sourced
+proxies \citep{sun2018conversational, kang2019recommendation}, and LLM
+role-play \citep{wang2023rethinking}. Critiques of CRS evaluation
+\citep{jannach2022evaluating} emphasise weak correlation between automatic
+metrics and user-perceived quality, and the difficulty of comparing
+multi-component systems. Our contribution to this conversation is narrower
+and sharper: for the specific quantity \emph{information gained per
+question}, we show the measurement instrument's statistical properties
+(polarity sensitivity, reveal-regime coverage, signal-to-noise) determine
+whether any comparison is meaningful at all, and we provide the audit
+machinery to establish those properties before benchmarking.
+
+\section{The Measurement Problem}
+\label{sec:problem}
+
+\subsection{Strategic Elicitation as a Sequential Decision Problem}
+
+At each turn $t$ of an elicitation dialogue, the system holds a record
+$R_t = \{(e_i, a_i)\}_{i<t}$ of entities asked about and the user's answers,
+selects a next entity $e_t \in \mathcal{E} \setminus \{e_i\}_{i<t}$ from a
+fixed slate $\mathcal{E}$, and receives an answer
+$a_t \in \{\textsf{liked}, \textsf{disliked}, \textsf{unknown}\}$. A fixed
+recommendation model $\phi$ --- the \emph{instrument} --- maps the record to
+predicted ratings $\hat{y} = \phi(R_t)$ over a movie catalogue
+$\mathcal{M}$, and the quality of elicitation so far is the agreement
+between $\hat{y}$ and the user's held-out true ratings $y^*$:
+\begin{equation}
+\mathrm{Acc}_t \;=\; \frac{1}{|\mathcal{M}_u|} \sum_{m \in \mathcal{M}_u}
+\mathbb{1}\!\left[\, (\hat{y}_m > 0.5) = y^*_m \,\right],
+\label{eq:acc}
+\end{equation}
+where $\mathcal{M}_u \subseteq \mathcal{M}$ are the movies the user has
+actually rated. A \emph{policy} $\pi$ maps the dialogue record to the next
+entity. We compare policies by their accuracy trajectories
+$(\mathrm{Acc}_0, \ldots, \mathrm{Acc}_T)$: the per-turn curve, its final
+value, and its mean over turns (area under the accuracy curve, AUAC), with
+$\mathrm{Acc}_0$ the instrument's prior before any question.
+
+This formulation makes the isolation requirements explicit. The instrument
+$\phi$ and the slate $\mathcal{E}$ are shared by all policies; the answer
+function is a deterministic lookup in the user's ground-truth profile; the
+only free variable is $\pi$. Anything a policy might gain through a better
+recommender, a richer action vocabulary, or more reliable language
+processing is excluded by construction.
+
+\subsection{Why Whole-System Evaluation Cannot Answer the Question}
+
+Consider the standard multi-round CRS protocol \citep{lei2020estimation}:
+the system asks or recommends, the (simulated) user responds, and success
+rate at a turn budget is reported. Three quantities vary together: the
+policy's questions, the recommender that converts answers into rankings,
+and the simulator's response behaviour. Improvements in any one move the
+end metric. The literature's standard remedy --- ablations within a single
+system --- establishes that a component matters to \emph{that} system, not
+how competing elicitation mechanisms compare across systems. The problem
+compounds for LLM pipelines, where question quality, parsing reliability,
+and recommendation knowledge are entangled within a single model's
+behaviour, and for LLM-simulated users, whose answering behaviour is itself
+policy-dependent (a fluent questioner may elicit longer, more revealing
+responses from the simulator than a templated one --- a property of the
+simulator, not of the user population the simulation stands in for).
+
+\subsection{Why the Instrument's Statistics Decide Measurability}
+\label{sec:snr_theory}
+
+Beyond isolation, measurement requires the instrument to be \emph{sensitive
+to the signal being measured}. Two properties are necessary:
+
+\paragraph{Polarity.} The instrument must respond in opposite directions to
+\textsf{liked} and \textsf{disliked} answers about the same entity.
+An instrument that conflates them cannot reward a policy for eliciting
+disambiguating information, and policies that ask polarity-resolving
+questions will measure no better than ones that do not. This requirement is
+not hypothetical: representations that encode preferences as text in a
+sentence-embedding space assign high similarity to ``likes $X$'' and
+``dislikes $X$'' --- in our preliminary system, cosine similarities of
+0.75--0.78 --- and recommenders built on them produce largely overlapping
+recommendations for opposite preference profiles
+(Section~\ref{sec:instrument_audit}).
+
+\paragraph{Signal-to-noise.} The per-question accuracy gain must be
+resolvable against between-user variance at the achievable sample size. In
+preliminary work with a ranking-based reward over small candidate pools, we
+measured per-turn metric deltas of $\sim$0.005 against a per-user standard
+deviation of $\sim$0.20 --- a per-turn signal-to-noise ratio of
+$\sim$0.025, at which neither reinforcement learning nor policy comparison
+is statistically meaningful at realistic budgets. The same arithmetic
+governs evaluation: with $n$ users, the standard error of a mean accuracy
+difference scales as $\sigma\sqrt{2/n}$; an instrument with per-reveal
+gain $g$ and user-level dispersion $\sigma$ needs
+$n \gtrsim 2(z\sigma / kg)^2$ users to resolve a $k$-question quality
+difference at confidence $z$. We therefore report, as part of instrument
+acceptance, the empirical gain and dispersion that determine the user
+sample needed.
+
+\section{A Case Study in Measurement Failure}
+\label{sec:casestudy}
+
+Before describing the testbed, we document the experience that motivated
+it: a reinforcement-learning research programme on elicitation that stalled
+for reasons that were ultimately about measurement, not learning. We report
+it both as evidence for the claims of Section~\ref{sec:problem} and because
+we believe the pattern is common but rarely published.
+
+\subsection{Three Failed Training Campaigns}
+
+Building on \citet{makarova2024learning}, we attempted to train an
+elicitation policy with a continuous semantic action space, rewarded by
+per-turn improvements in NDCG@10 of an LLM-based recommender over a
+candidate pool, against an LLM-simulated user. Three campaigns failed in
+sequence. The first produced \emph{negative} mean rewards
+($-0.25$ over the final ten episodes): the evaluation pool was so saturated
+with popular ground-truth items that the recommender's zero-knowledge
+baseline was already high, and revealing genuine preferences frequently
+\emph{lowered} the metric. The second collapsed into repetition once the
+pool configuration was corrected. The third, with a within-episode
+similarity penalty, converged to a fixed question sequence delivered
+identically to every user: a single concept accounted for 40\% of all
+second-turn questions, and only 35\% of 783 question selections were
+unique across 90 episodes. At no point did any campaign learn
+user-adaptive questioning.
+
+\subsection{Quantifying the Reward Channel}
+
+Post-hoc diagnostics located the failure in the measurement channel rather
+than the policy. Table~\ref{tab:pool_baseline} shows the zero-knowledge
+baseline of the NDCG-based reward as a function of two protocol parameters:
+candidate pool size and the minimum number of ground-truth items required
+per evaluation user. The configuration used in training (pool 100, minimum
+25 targets) yields a baseline of 0.52 --- with $\sim$39\% of the pool being
+ground truth, popularity guessing scores well before any question is asked
+--- leaving almost no headroom for elicitation to be rewarded.
+
+\begin{table}[t]
+\centering
+\caption{Zero-knowledge NDCG@10 baseline by evaluation protocol parameters
+(LLM recommender, $n = 50$ users per cell, per-user std $\approx 0.20$).
+Protocol choices, not elicitation quality, dominate the metric.}
+\label{tab:pool_baseline}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Pool size & \multicolumn{5}{c}{Minimum ground-truth targets per user} \\
+ & 5 & 10 & 15 & 20 & 25 \\
+\midrule
+100 & 0.315 & 0.412 & 0.460 & 0.508 & \textbf{0.519} \\
+200 & 0.275 & 0.295 & 0.420 & 0.430 & 0.463 \\
+500 & 0.253 & 0.286 & 0.295 & 0.377 & 0.417 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Effect of revealed-preference type on the same reward channel
+(pool 100, 20 reveal steps, identical $n = 30$ users per condition;
+95\% CI $\approx \pm 0.074$). Only the title-only decline and the mixed
+improvement exceed noise.}
+\label{tab:pref_type}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Revealed preferences & Baseline & Peak (step) & Final & $\Delta$ \\
+\midrule
+Movie titles only & 0.323 & 0.394 (3) & 0.215 & $-0.109$ \\
+Attributes only & 0.323 & 0.429 (8) & 0.348 & $+0.025$ \\
+Mixed (interleaved) & 0.323 & 0.451 (5) & 0.425 & $+0.102$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:pref_type} probes the channel's response to the
+\emph{content} of revealed preferences under a scripted (policy-free)
+reveal schedule. The response is non-monotonic and type-dependent ---
+revealing movie titles alone eventually drives the metric \emph{below} its
+zero-knowledge baseline --- and the per-step deltas ($\sim$0.005 on
+average) sit against a per-user standard deviation of $\sim$0.20. At that
+signal-to-noise ratio ($\sim$0.025 per step), the per-turn reward an
+individual training episode delivers is statistically indistinguishable
+from noise, and three campaigns of policy learning amounted to fitting
+that noise. No property of the policy class, exploration schedule, or
+reward shaping --- the knobs we had been turning --- could have repaired
+this.
+
+\subsection{Lessons}
+
+The case study yields the design requirements of
+Section~\ref{sec:testbed}: (i) the measurement instrument must be audited
+\emph{before} policy work, against explicit acceptance criteria; (ii) the
+simulated user must be verifiable, so that reward noise cannot enter
+through hallucinated or inconsistent answers; (iii) the per-turn signal
+and its dispersion must be measured and reported, because they determine
+both learnability and the user sample needed for evaluation; and (iv) the
+protocol parameters that Table~\ref{tab:pool_baseline} shows to dominate
+the metric must be fixed and shared across all compared policies.
+
+\section{The CASPER Testbed}
+\label{sec:testbed}
+
+\subsection{Data and Entity Slate}
+
+CASPER instantiates the protocol on MovieLens-25M \citep{harper2015movielens}.
+The entity slate $\mathcal{E}$ comprises 187 items: the 100 most-rated
+movies, 17 genres, the 50 most-frequent lead actors and 20 directors of
+those movies (cast and crew from TMDB). Movie ground truth is binarised at
+the conventional threshold (rating $\geq 4$ is \textsf{liked}); attribute
+ground truth is derived per user as the mean rating of the user's rated
+movies matching the attribute, binarised at the same threshold; entities
+without support in the user's history answer \textsf{unknown}. We restrict
+to users with at least 25 ratings on the slate movies (64{,}639 users), so
+that accuracy (Eq.~\ref{eq:acc}) is estimated over a meaningful per-user
+movie set.
+
+\paragraph{User partitions.} A fixed shuffle (seed 42) divides users 80/20.
+The 80\% partition trains instruments and learned policies; the first
+1{,}500 users of the 20\% partition serve as the instrument's
+model-selection set; the remaining $\sim$11{,}400 users are reserved
+exclusively for testbed evaluation and touch no training or selection step
+of any component.
+
+\subsection{The Verifiable Simulated User}
+
+A simulated user is a ground-truth profile vector over the slate. Asked
+about entity $e$, it answers \textsf{liked} or \textsf{disliked} by lookup,
+or \textsf{unknown} where the profile has no support. The simulator is
+deterministic, free, and auditable: every answer can be checked against the
+profile, and the information content of a dialogue is exactly the set of
+(entity, polarity) pairs revealed. We deliberately trade away linguistic
+naturalism --- the simulator emits labels, not utterances --- because the
+measured quantity is information gain, and any generative variability in
+answering would be confounded with the policies' questioning behaviour.
+Section~\ref{sec:limitations} discusses what this choice does and does not
+license.
+
+\subsection{The Measurement Instrument and Its Acceptance Tests}
+\label{sec:instrument}
+
+The instrument is an extrapolation recommender in the style of our earlier
+work \citep{makarova2024learning}: an LSTM with attention consumes the full
+slate, each position carrying the item's identity and a rating one-hot
+$[\textsf{disliked}, \textsf{liked}, \textsf{unseen}]$, and predicts rating
+logits for every movie; revealed entities carry their answer, all others
+\textsf{unseen}. This architecture encodes preference polarity
+\emph{structurally} --- as an input channel orthogonal to item identity ---
+rather than textually, avoiding by construction the sentence-embedding
+conflation discussed above.
+
+\subsubsection{Why a Learned Instrument Rather Than Matrix Factorization}
+\label{sec:why_not_mf}
+
+The classical recommender for cold-start elicitation is matrix
+factorization (MF) with new-user fold-in: latent item factors are learned
+offline, and a new user's answers are converted to a profile by a ridge
+least-squares solve against the factors of the answered items
+\citep{golbandi2011adaptive, zhou2011functional}. MF is the natural
+reference point, and we include it as such (Section~\ref{sec:mf_reference}).
+We nonetheless adopt a learned set instrument for four reasons specific to
+the quantity this testbed measures --- recommendation-relevant information
+gained per \emph{question} --- none of which MF provides:
+
+\begin{enumerate}
+  \item \textbf{Answerability is a first-class output.} Elicitation value
+  is governed as much by whether a user \emph{can} answer a question as by
+  how informative the answer would be (Section~\ref{sec:casestudy}); on
+  real catalogues the binding constraint is answer rate, not raw
+  informativeness. MF predicts utility, not answer-availability. The
+  instrument's second head predicts $P(\textsf{rated}\mid R_t)$ directly,
+  so the testbed can both score answerability-aware strategies and
+  decompose a policy's gain into ``asks answerable things'' versus ``asks
+  informative things'' --- a decomposition unavailable from a utility-only
+  recommender.
+  \item \textbf{A heterogeneous entity slate in one model.} Questions range
+  over movies, genres, actors and directors; MF factorizes a user--item
+  matrix and must be extended (side-feature or tensor variants) to score
+  non-item entities. The set instrument consumes every entity uniformly as
+  an (identity, polarity) token, so attribute and item questions are
+  measured on one footing.
+  \item \textbf{Open-vocabulary extensibility.} The companion
+  continuous-action work asks via free-form, LLM-verbalised probes mapped
+  into an embedding space; a recommender indexed by catalogue ID cannot
+  score an off-catalogue or generated probe, whereas a set encoder over
+  (embedding, polarity) tokens extends to unseen concepts. The instrument
+  is thus the same measurement device across both papers.
+  \item \textbf{Amortized, differentiable partial-reveal inference.} A
+  single forward pass maps any reveal set to a full belief, versus a
+  per-user re-solve, and the belief is differentiable --- usable directly
+  as the state and reward channel of a learned policy without a
+  non-differentiable fold-in step in the loop.
+\end{enumerate}
+
+These advantages are only worth having if the learned instrument is at
+least as good a \emph{recommender} as MF; otherwise a weak instrument would
+suppress every policy's measured gain and the comparison would be
+uninformative. We therefore treat parity-with-MF as an acceptance
+requirement: the instrument must match an MF reference on standard
+recommendation metrics (NDCG@10, Recall@10, MRR) at matched reveal budgets,
+\emph{and} elicitation must produce gains under the instrument no smaller
+than under MF, before any of the four advantages above are claimed.
+Section~\ref{sec:mf_reference} reports this comparison.
+
+We require any candidate instrument to pass four acceptance tests
+\emph{before} it is used to compare policies:
+
+\begin{description}
+  \item[T1 (attribute polarity).] For each attribute with at least three
+  matching slate movies, the mean rank of matching movies must improve when
+  the attribute is \textsf{liked} versus \textsf{disliked}. Pass: correct
+  direction for $\geq 80\%$ of attributes.
+  \item[T2 (reveal monotonicity).] Mean held-out accuracy must increase
+  monotonically with the number of revealed preferences (Spearman
+  $\rho > 0.9$ across reveal counts $1$--$50$).
+  \item[T3 (franchise flip).] For each film-franchise anchor in the slate
+  (14 franchises), flipping the anchor's rating from \textsf{liked} to
+  \textsf{disliked} must move the franchise's other movies down the
+  ranking. Pass: correct direction for $\geq 70\%$ of related movies.
+  \item[T4 (signal-to-noise).] The accuracy gain over the first 20 reveals,
+  divided by the between-user standard deviation at 10 reveals, is
+  reported and determines the evaluation sample size
+  (Section~\ref{sec:snr_theory}).
+\end{description}
+
+\subsubsection{An Audit of Plausible Instruments}
+\label{sec:instrument_audit}
+
+We audited two instrument configurations carried over from our earlier
+system, both trained to extrapolate full preference profiles
+(Table~\ref{tab:audit}). The first (\textsc{OneHot}) uses learned item
+embeddings; the second (\textsc{Concept}) replaces them with frozen
+SBERT \citep{reimers2019sentence} text embeddings of the item names.
+
+Both fail, and the failure modes are instructive.
+\textsc{OneHot} exhibits genuine polarity --- on T3, disliking a franchise
+anchor demotes its sequels by $\sim$20 of 100 rank positions, 91.7\% correct
+direction --- and clean monotonicity (65.9\% accuracy at one reveal rising
+to 91.6\% at fifty, $\rho = 1.0$). But on T1 it scores only 68.1\%: trained
+exclusively on \emph{complete} profiles, the few-reveals regime that an
+actual dialogue inhabits is out-of-distribution, and the response to a
+single revealed attribute is unreliable. Measured naively, the instrument
+would discriminate policies only weakly in exactly the turn range
+($\leq$15 questions) the testbed cares about; in a five-turn pilot, even a
+greedy information-gain policy moved accuracy by less than 0.011.
+\textsc{Concept} fails outright: 51.1\% on T1 (chance) and 16.7\% on T3 ---
+\emph{worse} than chance, ranking franchise sequels \emph{higher} when the
+anchor is disliked. Frozen text embeddings of item names, projected and
+mixed by a sequence encoder trained on full profiles, do not preserve the
+polarity channel.
+
+\begin{table}[t]
+\centering
+\caption{Instrument audit across four generations. \textsc{RS} =
+reveal-subset training (Section~\ref{sec:reveal_subset}); \textsc{TR} =
+taste-relative attribute labels (Section~\ref{sec:harshness}). DiD =
+difference-in-differences attribute polarity (matching movies must move
+more than non-matching ones). Each generation fixes the previous failure
+and exposes the next. \results{fill final column from v3}}
+\label{tab:audit}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & \textsc{OneHot} & \textsc{Concept} & \textsc{+RS} & \textsc{+RS+TR (ours)} \\
+\midrule
+T1a attr.\ polarity, rank ($\geq$80\%) & 68.1\% & 51.1\% & 51.1\% & \textbf{100\%} \\
+T1b attr.\ polarity, DiD ($\geq$80\%) & 72.3\% & 59.6\% & 46.8\% & \textbf{100\%} \\
+\quad genres only & 100\% & 56.3\% & 37.5\% & \textbf{100\%} \\
+T1c liked/disliked top-10 overlap & 41.2\% & 49.8\% & \textbf{0.7\%} & 26.1\% \\
+T2 monotonicity ($\rho$) & 1.00 & 1.00 & --- & \textbf{1.00} \\
+T3 franchise flip, rank ($\geq$70\%) & \textbf{91.7\%} & 16.7\% & 83.3\% & 83.3\% \\
+\quad DiD form & 62.5\% & 25.0\% & 87.5\% & \textbf{100\%} \\
+T4 SNR (gain$_{1\to20}$/$\sigma_{10}$) & 0.90 & 2.72 & --- & 1.11 \\
+Accuracy @ 1 / 50 reveals & .659/.916 & .508/.819 & --- & \textbf{.697/.852} \\
+Dialogue regime in-distribution & no & no & yes & yes \\
+\midrule
+Accepted & no & no & no & \textbf{yes} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Reveal-Subset Training}
+\label{sec:reveal_subset}
+
+The repair follows from the diagnosis. We retrain the \textsc{OneHot}
+architecture with \emph{reveal-subset augmentation}: each training sample
+reveals only a random subset of $k$ rated items ($k$ log-uniform between 1
+and the profile size; 15\% of samples reveal attributes only), with the
+training target remaining the full rated profile. Every input regime the
+testbed produces --- from a single revealed genre to a long mixed dialogue
+--- is thereby in-distribution. Slate order is shuffled per sample and the
+loss is taken at every sequence position, so each prefix functions as a
+further, smaller reveal set. Architecture, data, splits, and optimisation
+are otherwise unchanged.
+
+\subsubsection{The Rater-Harshness Collapse, and Taste-Relative Labels}
+\label{sec:harshness}
+
+Reveal-subset training repaired the regime problem dramatically at the
+level of preference \emph{combinations} --- the top-10 recommendations for
+a set of attributes all-liked versus all-disliked, which had overlapped by
+41\% under the original instrument, became essentially disjoint (0.7\%,
+row T1c of Table~\ref{tab:audit}) --- while franchise-anchor flips
+remained correct (83\%). But the difference-in-differences test exposed a
+new failure: the response to a \emph{single} revealed attribute had
+collapsed to chance (46.8\% overall; 37.5\% on genres), even though the
+original instrument had scored 100\% on genres by the same test.
+
+Inspection of raw predictions explains the collapse, and the explanation
+is a finding in its own right. Conditioning on ``Horror: disliked'', the
+retrained instrument lowered its scores for the slate's five horror
+classics from $\approx$0.73 to $\approx$0.46 --- the correct direction ---
+but lowered \emph{every other movie even further}, so that in rank terms
+the horror films \emph{rose} from ranks 39--93 into the top 6. The model
+had learned that the derived label ``dislikes Horror'' chiefly identifies
+a \emph{harsh rater}: in a slate composed of beloved classics
+(\emph{The Silence of the Lambs}, \emph{Alien}, \emph{The Shining}), a
+user whose mean rating of these films falls below the liking threshold is,
+overwhelmingly, a user who rates everything severely. The signal is real
+and genuinely predictive of held-out ratings --- which is exactly why a
+well-trained model learns it in preference to the much weaker
+attribute-specific taste signal. Under full-profile training this
+shortcut is unavailable (dozens of co-revealed movie ratings already pin
+down the user's severity), which is why the original instrument had
+learned genuine attribute polarity instead.
+
+The repair therefore belongs in the \emph{label construction}, not the
+model. We re-derive attribute ground truth \emph{taste-relatively}: an
+attribute is \textsf{liked} (\textsf{disliked}) only if the user's mean
+rating over matching slate movies exceeds (falls below) \emph{that user's
+own overall slate mean} by a margin of 0.25, with at least three matching
+rated movies; otherwise the attribute answers \textsf{unknown}. Severity
+is thereby removed from the attribute channel by construction, on both
+the training side and the simulator side (which derives answers from the
+same labels). This also improves the simulator's face validity: a user
+who simply rates everything low is no longer described as ``disliking''
+every genre. \results{v3 acceptance column in Table~\ref{tab:audit}; if
+T1b still $<$80\%, report the auxiliary polarity-contrast loss variant}
+
+The three-generation arc --- full-profile training fails the dialogue
+regime; regime-correct training collapses onto rater severity; severity
+must be removed from the labels --- illustrates the paper's central
+methodological claim in miniature: every one of these failures would have
+been invisible in a whole-system evaluation, and each would have silently
+distorted any policy comparison run on top of it.
+
+\subsubsection{Matrix-Factorization Reference and Parity Check}
+\label{sec:mf_reference}
+
+To establish that the learned instrument is not merely a weaker substitute
+for the classical recommender --- which would invalidate every downstream
+comparison --- we benchmark it against a matrix-factorization reference
+with new-user fold-in, the standard cold-start recommender of
+\citet{golbandi2011adaptive, zhou2011functional}. The reference learns
+$d$-dimensional item factors and per-item biases on the training partition;
+a test user's profile is the ridge least-squares fold-in of the revealed
+(item, polarity) answers against those factors, and predictions are
+$\hat{y}_m = \bar{y} + b_m + u^\top q_m$. Both recommenders are evaluated on
+the identical held-out users and reveal splits, under two lenses:
+\emph{(i) recommendation quality}, ranking each held-out liked item against
+all non-interacted movies (NDCG@10, Recall@10, MRR) and reconstructing the
+held-out preference vector (Brier, ROC-AUC), at full reveal; and
+\emph{(ii) elicitation headroom}, the per-turn gain of identical
+random and popularity question orders run \emph{under each recommender},
+which tests whether the learned instrument suppresses or preserves the
+effect the testbed exists to measure.
+
+\begin{table}[t]
+\centering
+\caption{Learned instrument vs.\ matrix-factorization references, identical
+$n{=}200$ held-out users and reveal splits ($d{=}24$ factors; held-out 40\%
+of each user's ratings; full-slate ranking of held-out liked items against
+non-interacted movies). Explicit rating-MF is a poor top-$N$ ranker by
+construction (no negative signal); WRMF (implicit ALS) is therefore the fair
+ranking reference. The instrument beats both classical recommenders on every
+ranking metric and on calibration, and reaches the highest absolute quality
+under elicitation --- so it is neither weak nor masking the measured effect.
+Elicitation-AUC = mean NDCG@10 over a 15-turn dialogue under that recommender.}
+\label{tab:mf_reference}
+\small
+\begin{tabular}{lcccc cc}
+\toprule
+ & \multicolumn{3}{c}{Recommendation (full reveal)} & Recon. & \multicolumn{2}{c}{Elicit-AUC} \\
+Recommender & NDCG@10 & Recall@10 & MRR & ROC-AUC & random & pop. \\
+\midrule
+Popularity-rank (non-pers.) & .175 & .264 & .155 & .596 & --- & --- \\
+Explicit MF (rating recon.) & .010 & .026 & .019 & .619 & .010 & .018 \\
+WRMF (implicit, ranker)     & .198 & .310 & .170 & .672 & .030 & .113 \\
+\textbf{Learned instrument (ours)} & \textbf{.351} & \textbf{.471} & \textbf{.303} & \textbf{.681} & \textbf{.199} & \textbf{.226} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Metrics}
+\label{sec:metrics}
+
+\paragraph{Primary.} The per-turn accuracy curve
+$(\mathrm{Acc}_0, \ldots, \mathrm{Acc}_T)$ (Eq.~\ref{eq:acc}), averaged
+over users with bootstrap 95\% confidence intervals; \emph{final accuracy}
+$\mathrm{Acc}_T$; and \emph{AUAC}, the mean of the curve over turns, which
+rewards front-loaded information gain --- two policies with equal final
+accuracy differ in AUAC if one achieves its gains earlier. BCE
+trajectories are reported alongside as the smooth counterpart of accuracy.
+
+\paragraph{Behavioural diagnostics.} Four quantities decompose \emph{why}
+a policy scores as it does:
+\begin{description}
+  \item[Hit rate.] The fraction of questions answered other than
+  \textsf{unknown}. Separates ``asks about things this user can answer''
+  from ``asks about informative things''; the popularity baseline
+  maximises it by construction.
+  \item[Redundancy rate.] The fraction of questions whose answer was
+  already inferable: the instrument's pre-question prediction for the
+  asked entity exceeded $0.8$ (or fell below $0.2$) and the answer agreed.
+  A redundant question is locally safe but strategically wasted.
+  \item[Question-type mix.] The distribution of question targets over
+  \{genre, actor, director, movie\} as a function of turn number ---
+  whether a policy opens broad and refines, or interrogates items
+  immediately.
+  \item[Coverage.] The entropy of the policy's question distribution
+  across users at each turn: a fixed-sequence policy has zero coverage
+  entropy at every turn (every user gets the same question), a fully
+  user-adaptive policy a high one. This is the metric under which the
+  fixed-policy collapse of Section~\ref{sec:casestudy} is visible at a
+  glance.
+\end{description}
+
+\paragraph{LLM accounting.} For LLM policies we report parse-failure rates
+and API cost. Failed parses fall back to a random selection and are
+counted against the policy, so formatting unreliability degrades LLM
+scores exactly as it would degrade a deployed system.
+
+\paragraph{Statistical reporting.} All policy contrasts are reported as
+paired differences over the identical user set with bootstrap CIs;
+the instrument's measured per-reveal gain and between-user dispersion
+(T4) accompany every table so that readers can verify the contrasts are
+resolvable at the sample size used (Section~\ref{sec:snr_theory}).
+
+\section{Reference Policies}
+\label{sec:policies}
+
+All policies select from the same slate and observe only the dialogue
+record --- never the user profile or population statistics derived from
+evaluation users.
+
+\subsection{Non-Learned Baselines}
+
+\textbf{Random} selects uniformly among unasked entities, lower-bounding
+the value of any strategy. \textbf{Popularity} asks entities in descending
+population rating frequency (computed on training users only): a maximally
+answerable, strategy-free order that isolates the value of hit rate alone.
+\textbf{Greedy information gain} performs one-step lookahead under the
+instrument: for each candidate entity, the expected reduction in the total
+binary entropy of the instrument's movie predictions, with the expectation
+taken over the candidate's answer --- the instrument's own current
+prediction for the entity supplies $p(\textsf{liked})$, and the
+population rated-frequency supplies $p(\textsf{answerable})$:
+\begin{equation}
+\mathrm{EIG}(e) = p_{\mathrm{rated}}(e)\,\Big[\, p_\ell(e)\,
+\big(H_t - H_t^{e \mapsto \textsf{liked}}\big) + (1 - p_\ell(e))\,
+\big(H_t - H_t^{e \mapsto \textsf{disliked}}\big) \Big].
+\end{equation}
+This transplants the classical acquisition principle
+\citep{viappiani2009regret, christakopoulou2016towards} onto the testbed
+instrument and is the benchmark any learned or prompted policy must beat to
+claim strategic value.
+
+\subsection{Prompt-Only LLM Questioners}
+
+Three styles span the prompting sophistication a practitioner might
+reasonably deploy, all menu-constrained to the slate and parsed with a
+lenient matcher: \textbf{vanilla} (choose the next entity to ask about);
+\textbf{strategist} (a brief chain-of-thought prompt articulating
+elicitation principles: broad attributes first, follow up on what was
+learned, avoid unanswerable and redundant questions); and \textbf{GATE}
+(framing from \citet{li2023eliciting}: conduct an expert interview, probe
+edge cases and contrasts between taste hypotheses). Decoding is
+deterministic (temperature 0). \todo{models: gpt-4o-mini primary; consider
+one frontier model for the camera-ready}
+
+\subsection{Learned Bot-Play Policy}
+
+We retrain the bot-play REINFORCE method of \citet{makarova2024learning} on
+the testbed: a feedforward policy over the revealed-state encoding, trained
+on training-partition users with per-turn reward equal to the reduction in
+the instrument's BCE loss, $\epsilon$-greedy exploration, and a running
+per-turn baseline. This is a faithful transplantation of the published
+method onto the shared instrument, making the comparison with prompted and
+information-theoretic policies like-for-like for the first time.
+
+\section{Experimental Setup}
+\label{sec:setup}
+
+\todo{finalise numbers before results runs}
+Evaluation uses $n = 200$ testbed users (sampled with seed 42 from the
+reserved partition), a turn budget of $T = 15$, and identical user sets and
+seeds for every policy. The instrument is \textsc{OneHot+RS}
+(Section~\ref{sec:reveal_subset}); instrument ablations re-run the full
+benchmark under the rejected \textsc{OneHot} instrument to quantify how
+instrument failure distorts policy rankings. LLM policies use
+\todo{gpt-4o-mini, version-pinned}; total API cost for the benchmark is
+\results{\$X}.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Main Leaderboard (Slate 1)}
+
+Table~\ref{tab:leaderboard} reports the primary comparison: twelve
+policies spanning every elicitation family in the related work, evaluated
+on 200 held-out users at a 15-turn budget under the accepted instrument.
+\emph{Answer rate} is the fraction of questions the simulated user could
+answer (renamed from ``hit rate'' to avoid collision with Hit@$k$);
+\emph{adaptive} reports the behavioural audit verdict (Section~\ref{sec:metrics}):
+whether the policy's question sequence branches on the user's answers.
+
+\begin{table}[t]
+\centering
+\caption{Slate-1 leaderboard, 200 held-out users, $T=15$.
+AUAC@$k$ = mean accuracy over the first $k$ turns. Sorted by AUAC@15.
+\todo{PPO and DQN rows pending the extended convergence runs; paired
+bootstrap CIs for new rows; llm\_gate tail re-run}}
+\label{tab:leaderboard}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+Policy & AUAC@5 & AUAC@15 & Final & NDCG@10 & Answer rate & Adaptive \\
+\midrule
+Bot-play RL \citep{makarova2024learning} & .724 & \textbf{.752} & .779 & .690 & 71\% & no \\
+PPO & .727 & .751 & .778 & .686 & 66\% & no$^{\dagger}$ \\
+SCPR-entropy \citep{lei2020interactive} & .727 & .751 & \textbf{.785} & .625 & 76\% & yes \\
+Greedy info-gain & .726 & .747 & .776 & .657 & 69\% & yes \\
+Bot-play RL v2 & .725 & .742 & .764 & .637 & 81\% & no \\
+DQN \citep{deng2021unified} & \textbf{.727} & .740 & .753 & .613 & 44\% & yes \\
+Popularity & .725 & .739 & .757 & .608 & 88\% & no \\
+Random & .716 & .735 & .757 & .616 & 37\% & --- \\
+LLM strategist (gpt-4o-mini) & .709 & .730 & .763 & \textbf{.708} & 64\% & yes \\
+LLM vanilla (gpt-4o-mini) & .707 & .728 & .752 & .635 & 40\% & yes \\
+Thompson \citep{austin2024bayesian} & .712 & .727 & .749 & .693 & 49\% & yes \\
+LLM GATE-style (gpt-4o-mini) & .707 & .726 & .750 & .635 & 40\% & yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Five findings. \textbf{(1) Prompt-only LLMs do not ask strategically:}
+all three styles rank below greedy information gain at every turn budget,
+and two rank below \emph{random}; their first two questions gain almost
+no accuracy ($+0.002$ by turn 2 versus $+0.022$ for the top tier). This
+quantifies, for the first time under controlled conditions, the
+elicitation weakness attributed to LLMs in the literature
+(Section~\ref{sec:related}). \textbf{(2) The learned bot-play policy is
+top tier} --- but the behavioural audit shows it (and PPO) achieve this
+with \emph{static} question sequences, while every audited-adaptive
+policy scores at or below them. On a popularity-saturated slate, the
+best questions are nearly the same for everyone; the audit, not the
+score, reveals this. \textbf{(3) PPO chooses staticity:} the same
+algorithm that provably learns adaptive routing on the synthetic world
+(Section~\ref{sec:synthetic_results}) converges to a playlist here ---
+evidence that staticity is a property of the slate, not a failure of
+learning. \textbf{(4) Metric choice reshuffles the ranking:} on NDCG@10
+the LLM strategist is \emph{best} (.708) and Thompson second (.693) ---
+policies that pursue likes optimise ranking, policies that pursue
+uncertainty optimise classification. Elicitation benchmarks must report
+both. \textbf{(5) Short budgets invert the order:} at AUAC@3, popularity
+leads --- answerability dominates the opening turns; strategy pays only
+from turn $\sim$5. \results{paired bootstrap table; per-policy CIs}
+
+\subsection{Elicitation Efficiency --- The Right Effect Size}
+\label{sec:efficiency}
+
+Final-turn accuracy understates elicitation value, because at a long
+budget every competent policy converges toward the instrument's
+information ceiling and the endpoint gaps compress. The quantity that
+matters operationally is \emph{efficiency}: how few questions a policy
+needs to reach a given recommendation quality, since each question spends
+scarce user patience. We therefore report, for every policy, the number
+of turns to match the accuracy that \emph{random} questioning reaches at
+the full 15-turn budget, and the implied speed-up
+(Table~\ref{tab:efficiency}); the per-turn curves are
+Figures~\ref{fig:eff1}--\ref{fig:eff2}.
+
+\begin{table}[t]
+\centering
+\caption{Elicitation efficiency. ``turns@R'' = turns to reach random's
+15-turn accuracy; speed-up $=15/\text{turns@R}$; ``—'' = never reaches it
+within 15 turns. Measured this way, strategy yields a 2.1--2.5$\times$
+question-efficiency gain on both slates.}
+\label{tab:efficiency}
+\small
+\begin{tabular}{lccc|ccc}
+\toprule
+ & \multicolumn{3}{c|}{\textbf{Slate 1} (prior .700)}
+ & \multicolumn{3}{c}{\textbf{Slate 2} (prior .638)} \\
+Policy & AUAC@5 & turns@R & speed-up & AUAC@5 & turns@R & speed-up \\
+\midrule
+Random            & .716 & 15 & 1.0$\times$ & .661 & 15 & 1.0$\times$ \\
+Popularity        & .725 & 14 & 1.1$\times$ & .678 & — & — \\
+Greedy info-gain  & .726 & 10 & 1.5$\times$ & .687 & 11 & 1.4$\times$ \\
+SCPR-entropy      & .727 & 9  & 1.7$\times$ & .683 & 7  & 2.1$\times$ \\
+Bot-play \citep{makarova2024learning} & .724 & 7 & \textbf{2.1$\times$} & .686 & 6 & \textbf{2.5$\times$} \\
+PPO+ans           & .725 & 7  & \textbf{2.1$\times$} & .685 & 6  & \textbf{2.5$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three points follow. First, \textbf{the effect is real and sizeable when
+measured correctly}: the learned and uncertainty-driven policies reach in
+6--7 questions what random reaches in 15 --- a 2.1--2.5$\times$
+efficiency gain --- whereas the same comparison on final accuracy alone
+spans under two points and reads as negligible. Second,
+\textbf{static non-adaptive ordering does not get this for free}:
+popularity never reaches random's 15-turn accuracy on slate 2 (it
+saturates on broadly-answerable but low-information questions), so the
+gain is attributable to \emph{what} is asked, not merely to asking
+answerable things. Third, \textbf{the gap widens at short budgets}: at
+turn 5 the strategy--random accuracy gap is roughly double its turn-15
+value, and real elicitation dialogues are short (3--6 turns), precisely
+the regime where efficiency matters most. We therefore treat
+turns-to-quality, not endpoint accuracy, as the primary effect size
+throughout.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/fig_efficiency_slate1.pdf}
+\caption{Per-turn accuracy, slate 1. Dotted line: random's 15-turn level;
+strategy reaches it in $\sim$7 turns. \results{auto-regenerated by
+\texttt{efficiency\_analysis.py}}}
+\label{fig:eff1}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/fig_efficiency_slate2.pdf}
+\caption{Per-turn accuracy, slate 2 (mid-popularity). The efficiency gap
+is larger than slate 1: strategy reaches random's endpoint in $\sim$6
+turns; popularity never does.}
+\label{fig:eff2}
+\end{figure}
+
+\subsection{The Synthetic Indicator World}
+\label{sec:synthetic_results}
+
+\begin{table}[t]
+\centering
+\caption{Synthetic indicator world (300 users, $T=5$; instrument gates:
+oracle-reveal ceiling 0.904, answerability separation $+0.71$). Every
+baseline class fails to capture the proven adaptive headroom for a
+different, diagnosable reason; PPO captures 44\% of it and exceeds the
+hand-built oracle on AUAC by avoiding the indicator's zero-immediate-gain
+turn.}
+\label{tab:synthetic}
+\small
+\begin{tabular}{lccccl}
+\toprule
+Policy & AUAC & Final & Branches & Asks indicator & Diagnosis \\
+\midrule
+Oracle-adaptive & .623 & \textbf{.804} & yes & 100\% & analytic ceiling \\
+PPO & \textbf{.628} & .742 & \textbf{yes} & 0\% & learned, adaptive \\
+DQN & .623 & .738 & \textbf{yes} & 0\% & learned, adaptive \\
+SCPR-entropy & .609 & .710 & yes & 0\% & heuristic, adaptive \\
+Static oracle & .591 & .694 & no & 0\% & best non-adaptive \\
+REINFORCE-v3 & .591 & .662 & \textbf{no} & 0\% & learned, \textbf{static} \\
+Greedy + answerability & .584 & .664 & yes & 0\% & myopia-bound \\
+Greedy info-gain & .582 & .660 & yes & 0\% & myopia-bound \\
+Random & .583 & .657 & --- & 6\% & --- \\
+REINFORCE-v2 & .574 & .619 & no & 0\% & learned, static \\
+Popularity & .554 & .618 & no & 100\% & static; wastes indicator \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three structural results. First, the \emph{answerability discovery}: with
+a single-head instrument exposing only $P(\textsf{liked})$, every policy
+failed ($\leq$0.59 AUAC against a verified 0.90 ceiling) because the
+world's adaptive value flows through answerability routing, which no
+policy could observe; the dual head repairs expressibility.
+Second, \emph{myopia is structural}: the indicator has zero one-step
+information gain --- its value is purely future routing --- so no amount
+of belief quality rescues one-step lookahead. Third, \emph{the optimiser
+is the boundary, not the framework}: the adaptive/static divide in the
+table is near-perfect, and the only learned policy on the static side of
+it is REINFORCE (the bot-play lineage's optimiser, including
+\citealp{das2017learning, makarova2024learning}), which saturates exactly
+at the optimal \emph{static} policy. Given the same state, reward, and
+budget, \emph{both} modern optimisers cross the line --- PPO
+(advantage-based) and DQN (value-based with replay) each learn to branch
+and approach the analytic oracle, PPO discovering a routing trick
+(informative probes as implicit indicators) superior to the hand-designed
+oracle's opening move. The implication for the bot-play programme is
+direct: its ceiling was the high-variance REINFORCE update, not the
+framework; a modern optimiser unlocks adaptive elicitation. (Popularity is
+the instructive failure: it asks the always-answerable indicator first
+100\% of the time, yet scores worst, because a static policy cannot act on
+the answer it receives.)
+
+\subsection{Remaining artefacts}
+
+\results{Generated by \texttt{make\_figures.py} from episode logs; thesis
+version carries the full set:}
+
+\subsubsection*{Main comparison}
+\begin{itemize}
+  \item \textbf{Table 5 --- Main leaderboard.} Final accuracy (CI), AUAC
+  (CI), hit rate, redundancy rate, per policy; paired differences vs
+  greedy information gain. \results{}
+  \item \textbf{Figure 1 --- Accuracy curves.} Mean per-turn accuracy with
+  CI bands, all eight policies, $T = 15$. \results{}
+  \item \textbf{Figure 2 --- BCE curves.} The smooth counterpart of
+  Figure~1; separates policies whose accuracy ties mask confidence
+  differences. \results{}
+\end{itemize}
+
+\subsubsection*{Behavioural analysis: where strategies differ}
+\begin{itemize}
+  \item \textbf{Figure 3 --- Hit rate by turn.} Which policies waste turns
+  on unanswerable questions, and when. \results{}
+  \item \textbf{Figure 4 --- Question-type mix.} Stacked per-turn
+  composition (genre/actor/director/movie) per policy: opening strategy
+  and refinement behaviour at a glance. \results{}
+  \item \textbf{Figure 5 --- Question--turn heatmap.} For each policy, the
+  20 most-asked entities $\times$ turn position: fixed sequences appear as
+  vertical bars, adaptive policies as diffuse mass. The direct visual
+  test of the fixed-policy pathology of Section~\ref{sec:casestudy}.
+  \results{}
+  \item \textbf{Figure 6 --- Coverage entropy by turn.} Quantifies
+  Figure~5: question-distribution entropy across users per turn.
+  \results{}
+  \item \textbf{Figure 7 --- Redundancy by turn.} When policies start
+  asking questions whose answers they should already infer. \results{}
+  \item \textbf{Table 6 --- LLM behaviour.} Parse failures, cost, and the
+  behavioural metrics above contrasted across the three prompt styles:
+  does prompting sophistication buy strategy or only fluency? \results{}
+\end{itemize}
+
+\subsubsection*{Validity and robustness}
+\begin{itemize}
+  \item \textbf{Figure 8 --- Instrument ablation.} The full benchmark
+  re-run under the rejected full-profile instrument: policy separation
+  compresses and ranks distort, the paper's measurement-validity argument
+  made visual. \results{}
+  \item \textbf{Figure 9 --- Per-user outcome distributions.} Violin plots
+  of final accuracy per policy: do strategies differ in mean only, or in
+  tail behaviour (users they fail entirely)? \results{}
+  \item \textbf{Table 7 --- Turn-budget ablation.} AUAC and final accuracy
+  at $T \in \{5, 10, 15\}$: which policies front-load. \results{}
+  \item \textbf{Figure 10 --- Power analysis.} Detectable AUAC difference
+  vs number of evaluation users at the instrument's measured dispersion;
+  justifies $n = 200$ and tells future users of the testbed what their
+  $n$ buys. \results{}
+  \item \textbf{Figure 11 --- Acceptance-test evolution.} The four
+  instrument generations of Table~\ref{tab:audit} as grouped bars; the
+  measurement-first narrative in one figure. (Data already complete for
+  three generations.) \results{}
+  \item \textbf{Table 8 --- Seed robustness.} Main leaderboard re-run
+  under three user-sample seeds (free policies; LLM policies one seed,
+  cost). \results{}
+\end{itemize}
+
+\subsection{Analysis Questions the Results Must Answer}
+
+\begin{enumerate}
+  \item Does any LLM style beat greedy information gain on AUAC? By how
+  much, and does the answer change with turn budget?
+  \item Where do LLM questioners lose: hit rate (asking unanswerable
+  things), redundancy (asking inferable things), or breadth (failing to
+  cover the taste space)?
+  \item Does the learned bot-play policy recover greedy's performance
+  without access to explicit lookahead, and does it exploit population
+  structure greedy cannot see?
+  \item How much of the policy ranking survives under the broken
+  instrument? (If little: quantified evidence that instrument acceptance
+  must precede benchmarking.)
+\end{enumerate}
+
+\section{Discussion}
+\label{sec:discussion}
+
+\results{To be written from results. Scaffolding for the two principal
+outcome branches:}
+
+\paragraph{If greedy information gain dominates LLM questioning.} The
+field's informal claim becomes a measured gap: prompt-only LLMs, however
+fluent, do not implement effective elicitation strategy, and the gap
+justifies the learned-policy research agenda --- with the testbed supplying
+the training signal and the evaluation. The interesting quantity is the
+decomposition (hit rate vs redundancy vs breadth), which tells
+\emph{prompting} research what to fix.
+
+\paragraph{If LLM questioning matches or beats greedy.} The motivating
+claim of several 2024--2026 systems needs revision: the binding constraint
+in LLM-era CRS elicitation is not strategy selection but the surrounding
+measurement and integration. The value of the testbed inverts but does not
+vanish: it becomes the evidence that cheap prompting suffices, and the
+learned-policy agenda should target the regimes where it still fails
+(long-horizon, niche tastes, low hit-rate slates).
+
+\section{Limitations}
+\label{sec:limitations}
+
+The testbed measures strategy under deliberate abstractions. The simulator
+answers labels, not language: linguistic skill --- phrasing questions users
+understand and enjoy, parsing free-form answers --- is excluded by design
+and must be evaluated by other means \citep{kostric2025should}; CASPER
+licenses claims about \emph{what} to ask, not \emph{how} to ask it. The
+slate is closed and movie-domain; open-vocabulary elicitation, the subject
+of our companion work, requires extending the instrument to unseen
+concepts. Attribute ground truth is derived from movie ratings rather than
+stated directly, inheriting that approximation. Binarised ratings discard
+preference intensity. Finally, simulated users drawn from MovieLens
+profiles represent the population of historical raters, not of
+cold-start users in deployment.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We introduced CASPER, a controlled testbed isolating strategic preference
+elicitation in conversational recommendation, built on an audited
+measurement instrument, a verifiable simulator, and a shared action slate.
+Our instrument audit shows that measurement validity is not free: plausible
+configurations fail polarity or reveal-regime requirements in ways that
+would silently corrupt any policy comparison run on top of them, and a
+simple reveal-subset augmentation repairs the failure. The benchmark
+provides the first like-for-like comparison spanning random,
+information-theoretic, prompted-LLM, and reinforcement-learned elicitation.
+\results{one-sentence headline finding}. The released testbed turns a
+contested capability claim into a measurable quantity, and provides the
+fixed training and evaluation signal on which our companion work on
+continuous-action elicitation policies builds.
+
+\paragraph{Acknowledgements.} \todo{}
+
+\bibliographystyle{agsm}
+\bibliography{references}
+
+\appendix
+
+\section{LLM Questioner Prompts}
+\label{app:prompts}
+
+The three prompt styles of Section~\ref{sec:policies}, verbatim. All use
+temperature 0 and a 150-token completion limit; the menu of remaining
+entities and the dialogue transcript are appended to each request.
+
+\subsection*{A.1 Vanilla}
+\begin{verbatim}
+You are a movie recommendation assistant interviewing a user to
+learn their taste. At each step you choose ONE entity to ask about
+(whether they like it), from a fixed menu. Reply with the exact
+entity name from the menu, and nothing else.
+\end{verbatim}
+
+\subsection*{A.2 Strategist}
+\begin{verbatim}
+You are an expert preference-elicitation strategist for a movie
+recommender. Your goal: in as few questions as possible, learn
+enough about this user's taste to predict their ratings for 100
+popular movies. At each step you choose ONE entity from a fixed
+menu.
+
+Think strategically before answering:
+- Broad attributes (genres) split the space fastest early on.
+- Follow up on what you have learned: refine within liked areas,
+  confirm dislikes.
+- Questions the user can't answer ('unknown') are wasted turns;
+  popular entities are safer.
+- Avoid redundant questions whose answer you can already infer.
+
+First think step by step in at most 50 words, then output the
+chosen entity name on the final line in the exact form:
+CHOICE: <entity name>
+\end{verbatim}
+
+\subsection*{A.3 GATE-style}
+\begin{verbatim}
+You are conducting a free-form preference interview, but your
+questions must be realised by selecting ONE entity from a fixed
+menu (the system asks 'do you like <entity>?'). Run the interview
+the way an expert interviewer would: open with broad probes, test
+edge cases of what you believe, and probe contrasts (if they like
+X, check a nearby Y that would distinguish two hypotheses about
+their taste). Output the chosen entity name on the final line as:
+CHOICE: <entity name>
+\end{verbatim}
+
+\section{Instrument Training and Audit Detail}
+\label{app:instrument}
+
+\subsection*{B.1 Training configuration}
+Architecture: item embedding (dimension $\lfloor N/2 \rfloor = 93$)
+concatenated with the rating one-hot, single-layer LSTM (hidden 93),
+dense bottleneck, single-head attention, linear head over the slate;
+193{,}535 parameters. Optimiser Adam, learning rate $10^{-3}$, batch 32,
+masked BCE over rated targets at every sequence position, early stopping
+on validation loss (patience 10). Reveal-subset augmentation: per sample,
+$k \sim \exp(\mathcal{U}(0, \ln(n_{\mathrm{rated}}+1)))$ revealed items;
+with probability 0.15 the candidate reveal set is restricted to
+attributes. Training population: 12{,}000 users of the 80\% partition
+(of 64{,}639 eligible); model selection on 1{,}500 held-out users.
+Wall-clock on a 4-core laptop CPU: $\approx$45--60 s per epoch,
+early-stopped at \results{epoch} ($\approx$\results{} minutes total).
+\results{training curve figure}
+
+\subsection*{B.2 Franchise flip detail}
+\results{per-franchise table: anchor, related movies, rank movement under
+liked vs disliked anchor, for the accepted instrument --- the v1 audit
+measured 8 franchises with slate support (Star Wars, Matrix, Toy Story,
+Lord of the Rings, Terminator, Back to the Future, Jurassic Park,
+Godfather, et al.)}
+
+\subsection*{B.3 Attribute label statistics}
+\results{coverage: fraction of users carrying a non-unknown label per
+attribute under absolute vs taste-relative derivation; the taste-relative
+scheme abstains where the absolute scheme fabricated severity-driven
+labels}
+
+\section{Reproducibility}
+\label{app:repro}
+
+All experiments run on a single laptop (Intel i7-7820HQ, 16~GB RAM, CPU
+PyTorch 2.2). Data: MovieLens-25M \citep{harper2015movielens}; cast and
+crew from TMDB. User partitions derive from one global shuffle (seed 42):
+80\% training / first 1{,}500 of the remainder for instrument model
+selection / final $\sim$11{,}400 reserved for evaluation; evaluation
+samples and bootstrap resampling use fixed seeds recorded in the released
+configuration. LLM policies: \todo{model and version pin}, temperature 0;
+total benchmark API cost \results{\$X}. The released repository contains
+the instrument checkpoints (all four generations), acceptance suite,
+simulator, policies, benchmark runner, figure generation, and the episode
+logs underlying every figure. \todo{repository URL}
+
+\section{Entity Slate}
+\label{app:slate}
+
+The 187-item slate: the 100 most-rated MovieLens movies; 17 genres
+(Action, Adventure, Animation, Children, Comedy, Crime, Documentary,
+Drama, Fantasy, Film-Noir, Horror, IMAX, Musical, Mystery, Romance,
+Sci-Fi, Thriller); the 50 most-frequent lead actors and 20 directors of
+those movies. \results{full listing or pointer to repository file}
+
+\end{document}
