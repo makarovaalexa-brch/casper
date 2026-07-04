@@ -1,0 +1,168 @@
+{
+  "exp_a_concepts": {
+    "n_users": 2000,
+    "ndcg_floor": 0.154556268322996,
+    "ndcg_floor_strong": 0.1180773411296565,
+    "fidelity": {
+      "10": {
+        "ndcg_all": 0.08720685974236506,
+        "ndcg_strong": 0.059557028123667664,
+        "delta_vs_floor_all": -0.06734940858063093,
+        "delta_vs_floor_strong": -0.05852031300598883
+      },
+      "50": {
+        "ndcg_all": 0.07459770294788365,
+        "ndcg_strong": 0.049486693434060966,
+        "delta_vs_floor_all": -0.07995856537511234,
+        "delta_vs_floor_strong": -0.06859064769559553
+      },
+      "200": {
+        "ndcg_all": 0.052718390663859666,
+        "ndcg_strong": 0.032528620868415924,
+        "delta_vs_floor_all": -0.10183787765913632,
+        "delta_vs_floor_strong": -0.08554872026124058
+      }
+    },
+    "additivity": {
+      "M": 50,
+      "answer_strength": 1.0,
+      "ndcg_items_only": 0.2594467834548868,
+      "ndcg_items_plus_concept": 0.23249827236498852,
+      "delta": -0.02694851108989829,
+      "ndcg_items_only_strong": 0.2613727715705955,
+      "ndcg_items_plus_concept_strong": 0.2079489591317052,
+      "delta_strong": -0.05342381243889033
+    },
+    "dislike": {
+      "tags": [
+        "horror",
+        "violence",
+        "romance",
+        "comedy",
+        "dark"
+      ],
+      "per_tag": {
+        "horror": {
+          "mean_score_items_only": -2.5475544929504395,
+          "mean_score_plus_bag": -0.5631397366523743,
+          "mean_score_minus_bag_clamp": -2.5475900173187256,
+          "mean_score_zspace_sub": -4.2653632164001465,
+          "demotion_inputclamp": -3.552436828613281e-05,
+          "promotion_posbag": 1.9844147562980652,
+          "demotion_zspace": -1.717808723449707
+        },
+        "violence": {
+          "mean_score_items_only": -0.7083173394203186,
+          "mean_score_plus_bag": 0.6288926601409912,
+          "mean_score_minus_bag_clamp": -0.7085431814193726,
+          "mean_score_zspace_sub": -2.920677900314331,
+          "demotion_inputclamp": -0.00022584199905395508,
+          "promotion_posbag": 1.3372099995613098,
+          "demotion_zspace": -2.2123605608940125
+        },
+        "romance": {
+          "mean_score_items_only": -0.8981621861457825,
+          "mean_score_plus_bag": 0.44155094027519226,
+          "mean_score_minus_bag_clamp": -0.8982415795326233,
+          "mean_score_zspace_sub": -2.925534963607788,
+          "demotion_inputclamp": -7.939338684082031e-05,
+          "promotion_posbag": 1.3397131264209747,
+          "demotion_zspace": -2.0273727774620056
+        },
+        "comedy": {
+          "mean_score_items_only": 0.4680655002593994,
+          "mean_score_plus_bag": 2.180955410003662,
+          "mean_score_minus_bag_clamp": 0.4678962528705597,
+          "mean_score_zspace_sub": -2.357060432434082,
+          "demotion_inputclamp": -0.00016924738883972168,
+          "promotion_posbag": 1.7128899097442627,
+          "demotion_zspace": -2.8251259326934814
+        },
+        "dark": {
+          "mean_score_items_only": 0.2233210802078247,
+          "mean_score_plus_bag": 1.105025053024292,
+          "mean_score_minus_bag_clamp": 0.2230818122625351,
+          "mean_score_zspace_sub": -1.6634020805358887,
+          "demotion_inputclamp": -0.00023926794528961182,
+          "promotion_posbag": 0.8817039728164673,
+          "demotion_zspace": -1.8867231607437134
+        }
+      }
+    }
+  },
+  "exp_b_inference": {
+    "n_users": 500,
+    "sweep": {
+      "1": {
+        "amortized": {
+          "ndcg": 0.2111844466593202,
+          "sec": 0.22
+        },
+        "optim100": {
+          "ndcg": 0.13573822159361304,
+          "sec": 32.06
+        },
+        "hybrid20": {
+          "ndcg": 0.14854921264376741,
+          "sec": 5.96
+        }
+      },
+      "2": {
+        "amortized": {
+          "ndcg": 0.28181947958805187,
+          "sec": 0.32
+        },
+        "optim100": {
+          "ndcg": 0.1855037428664199,
+          "sec": 29.29
+        },
+        "hybrid20": {
+          "ndcg": 0.21110905871786098,
+          "sec": 6.27
+        }
+      },
+      "4": {
+        "amortized": {
+          "ndcg": 0.31205607348040426,
+          "sec": 0.21
+        },
+        "optim100": {
+          "ndcg": 0.21858109564990802,
+          "sec": 29.87
+        },
+        "hybrid20": {
+          "ndcg": 0.24130657832395708,
+          "sec": 6.34
+        }
+      },
+      "8": {
+        "amortized": {
+          "ndcg": 0.3739983557072446,
+          "sec": 0.23
+        },
+        "optim100": {
+          "ndcg": 0.28309218706545775,
+          "sec": 28.97
+        },
+        "hybrid20": {
+          "ndcg": 0.3017503784909101,
+          "sec": 5.9
+        }
+      }
+    }
+  },
+  "exp_c_variance": {
+    "n_users": 2000,
+    "mean_sigma_vs_k": {
+      "1": 0.5077366232872009,
+      "2": 0.5042861104011536,
+      "4": 0.4954487979412079,
+      "8": 0.4826646149158478,
+      "full": 0.44876715540885925
+    },
+    "monotone_decreasing": true,
+    "k0_note": "empty encoder input -> NaN; prior std ref 1.0",
+    "calib_k8_spearman_sigma_ndcg": -0.08060845836659085
+  },
+  "elapsed_min": 3.1
+}

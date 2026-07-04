@@ -1,0 +1,111 @@
+{
+  "floor_ndcg": 0.154556268322996,
+  "raw_top_tags": [
+    [
+      "original",
+      1737
+    ],
+    [
+      "imdb top 250",
+      124
+    ],
+    [
+      "good",
+      41
+    ],
+    [
+      "action",
+      25
+    ],
+    [
+      "great acting",
+      14
+    ],
+    [
+      "chase",
+      13
+    ],
+    [
+      "mentor",
+      10
+    ],
+    [
+      "criterion",
+      5
+    ],
+    [
+      "oscar (best directing)",
+      3
+    ],
+    [
+      "sci fi",
+      3
+    ]
+  ],
+  "lift_top_tags": [
+    [
+      "classic",
+      303
+    ],
+    [
+      "masterpiece",
+      284
+    ],
+    [
+      "romantic comedy",
+      123
+    ],
+    [
+      "cool",
+      122
+    ],
+    [
+      "thriller",
+      109
+    ],
+    [
+      "fast paced",
+      86
+    ],
+    [
+      "action packed",
+      85
+    ],
+    [
+      "hilarious",
+      77
+    ],
+    [
+      "children",
+      75
+    ],
+    [
+      "oscar winner",
+      63
+    ]
+  ],
+  "fidelity_v2": {
+    "M10_raw": 0.08720685974236506,
+    "M10_lift": 0.11354410233331468,
+    "M50_raw": 0.07459770294788365,
+    "M50_lift": 0.09837373289617898
+  },
+  "dislike_spec": {
+    "s0.25": {
+      "member_rankshift": -0.15402650487368214,
+      "control_top_rankshift": -0.008929252377841018,
+      "all_rankshift": 2.0495065980746872e-20,
+      "ndcg_before": 0.27075792947857863,
+      "ndcg_after": 0.245360576219775
+    },
+    "s0.5": {
+      "member_rankshift": -0.30476875074597176,
+      "control_top_rankshift": -0.02827799890610742,
+      "all_rankshift": -4.523049044026896e-20,
+      "ndcg_before": 0.27075792947857863,
+      "ndcg_after": 0.20210444093724828
+    }
+  },
+  "inputclamp_relative_mass_changed": 2.003407478330516e-05,
+  "elapsed_min": 0.31
+}
