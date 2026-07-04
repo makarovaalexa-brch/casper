@@ -1,0 +1,306 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,xcolor,hyperref,multirow}
+\usepackage[numbers]{natbib}
+\newcommand{\uk}{u^{\star}}
+\newcommand{\qhat}{\hat q}
+\newcommand{\todo}[1]{\textcolor{red}{[\textbf{TODO:} #1]}}
+\title{\textbf{From a Latent Elicitation Policy to a Deployable Dialogue:\\
+Interpretability by Decomposition, the Un-askability of Continuous Queries,\\
+and an Open-Recall Conversational Recommender}}
+\author{CASPER --- Paper E (draft)}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Papers A--D built a cold-start conversational recommender around a single frozen embedding: a set-encoder that
+scores items from a running belief, a discrete concept-elicitation policy (Paper~B), a continuous embedding-query
+policy that marginally out-scores it (Paper~C), and open free-recall, which beats all probing (Paper~D). This paper
+asks the deployment question the previous four deferred: \emph{can a latent elicitation policy be turned into an
+honest, interpretable dialogue, and what is lost in the translation?} We make three contributions. First,
+\textbf{interpretability by decomposition}: any latent query is expressed as a sparse, \emph{signed} blend of named
+phrases via orthogonal matching pursuit; a few phrases reconstruct the query well ($\cos 0.84$ at $k{=}3$, $0.90$ at
+$k{=}5$), and, on the canonical five-seed ruler, folding a \emph{one-screen composite} of the $k{=}5$ reconstruction
+instead of the true query costs only $-0.010/-0.012$ NDCG@10 full/tail ($k{=}3$: $-0.018/-0.020$) --- interpretability is
+essentially free, and we never invert an embedding to text (which we show fails: a natural-language question re-embedded
+recovers the query at $\cos\!\approx\!0$, over $n{=}13$ manually collected renders). Second, a \textbf{fundamental
+negative --- the un-askability of continuous queries}: a faithful
+decomposition is a set of near-\emph{orthogonal} concepts, which are therefore semantically incoherent (only
+$\sim$10\% of triples share a nameable axis), so a single natural question can convey at most one concept's worth of
+the query ($\cos 0.71$, i.e.\ the single-phrase ``snap''). A continuous query is thus \emph{interpretable to read but
+not faithfully askable}. Third, a \textbf{deployed agent}: a chat recommender that renders each question with a
+frontier LLM (axis synthesis, identity-safety filtering), grounds free-text answers, and exposes a live ``taste map'';
+questions that fold only what they ask (\emph{select-and-align}) collapse gracefully to discrete single-concept
+elicitation exactly when the latent query is un-verbalizable. We close with the one thing simulation cannot decide ---
+whether a human answers a rendered question as they would the latent query --- and argue open recall, which is
+natively named, is the deployable interaction, with a discrete concept question as the verbalizable closed fallback.
+\end{abstract}
+
+\section{Introduction}
+A conversational recommender for cold-start users must do two things at once: \emph{elicit} taste from a few turns,
+and do so through language a person can actually answer. Papers~A--D optimized the first objective on a fixed ruler
+(ML-1M, a frozen $d{=}64$ set-encoder recommender, NDCG@10 over the full catalogue and the Cremonesi long tail, an
+eight-turn budget, geometric answers from a held-out half-profile). They established a clear internal ordering: open
+free-recall (``name a film you love'') $>$ continuous latent probe $>$ discrete concept probe $>$ literature
+bandit/BO probes. What none of them addressed is \emph{deployment}: the strongest non-recall policy (Paper~C) acts by
+emitting a $64$-dimensional query vector, which is not a question. This paper is about turning policies into dialogue,
+and about the limits of doing so honestly.
+
+Our stance throughout is \emph{decompose, never invert}. Prior LLM-elicitation systems generate questions directly;
+we instead keep the frozen geometric policy and \emph{describe} its action as a combination of real, named phrases,
+using language only as a surface. This lets us quantify, in NDCG units, exactly what interpretability costs --- and
+exposes a sharp, previously-unremarked limit on what a continuous action can even \emph{mean} as a question.
+
+\paragraph{Contributions.}
+\begin{enumerate}\itemsep2pt
+\item \textbf{Triangulation (\S\ref{sec:tri}).} A latent query is decomposed into a sparse signed phrase blend by OMP
+over a phrase bank; reconstruction fidelity rises $0.73{\to}0.84{\to}0.89$ for $k{=}1,3,5$ phrases, and folding the
+$k{=}5$ reconstruction as a single \emph{one-screen composite} costs only $-0.010/-0.012$ NDCG full/tail on the
+canonical ruler (near-lossless; $k{=}3$ costs $-0.018/-0.020$) --- a deployable ``one screen, three-to-five sliders''
+turn. We show the naive alternative --- re-embedding a natural-language paraphrase with a sentence encoder --- destroys
+the query ($\cos\approx 0$), so language must be a \emph{readout}, not an inversion.
+\item \textbf{The un-askability of continuous queries (\S\ref{sec:unask}).} Faithful reconstruction requires
+near-orthogonal concepts (a property of OMP), which are semantically incoherent; coherent (verbalizable) subsets give
+\emph{no} fidelity gain over a single concept. Hence a single coherent question conveys $\le$ one concept ($\cos
+0.71$, the snap). We frame this as the deepest form of snap-loss: continuous queries are readable but not askable.
+\item \textbf{A deployed, honest agent (\S\ref{sec:agent}).} A chat recommender with LLM question rendering (axis
+synthesis $+$ identity-safety filter), free-text grounding, a taste map, and \emph{select-and-align} questions that
+fold only the concepts the question actually conveys --- which reduces to discrete elicitation precisely when the
+query cannot be verbalized. We report the LLM design, a model-tier cost table, and the human-faithfulness gap that
+only a user study can close.
+\end{enumerate}
+
+\section{Setup and notation}\label{sec:setup}
+We reuse the Paper~A--D ruler verbatim: the frozen set-encoder $\mathrm{enc}(\cdot)$ maps a bag of answer tokens to a
+belief $u\in\mathbb{R}^{64}$; items are scored $s = b_{\mathrm{pop}} + Q_\ell u$; the simulated user answers a query
+$\phi$ geometrically, $a=\uk\!\cdot\hat\phi$, where $\uk=\mathrm{enc}(H)$ is the encoding of the \emph{known} half of
+the profile $H$ and the held half is used only to score NDCG. The Paper~C continuous policy $\pi$ emits a unit query
+$q=\pi(u,t)$; folding it advances the belief. A \emph{phrase bank} $\mathcal{P}$ of $N$ named directions
+$\{\hat p_i\}$ (genome tags, genres, tag-pairs, people, era and cluster centroids) provides the vocabulary for
+interpretation; the ``concept'' subset (single genome tags and genres, $\sim$1{,}100 entries) is the readable core.
+All numbers are seed-averaged NDCG@10 (full / long-tail) on the held-out test users.
+
+\section{Interpretability by decomposition}\label{sec:tri}
+\paragraph{Triangulation.} Given a latent query $q$, we compute a sparse signed reconstruction over the phrase bank by
+orthogonal matching pursuit: greedily pick the phrase most aligned with the residual, refit least-squares weights,
+repeat $k$ times, yielding $\qhat=\sum_i w_i \hat p_i$ and a blend ``$w_1\,[p_1]\ \cdots\ w_k\,[p_k]$'' (signs read as
+\emph{toward}/\emph{away}). Reconstruction fidelity $\cos(q,\qhat)$ over the rollout queries is:
+\begin{center}\small
+\begin{tabular}{lccccc}
+\toprule
+$k$ (phrases) & 1 (=\,snap) & 2 & 3 & 5 & 8\\
+\midrule
+$\cos(q,\qhat)$ & 0.726 & 0.800 & 0.842 & 0.896 & 0.942\\
+\bottomrule
+\end{tabular}
+\end{center}
+A single phrase (the ``snap'') captures only $0.73$ of the query --- this gap \emph{is} the snap-loss of
+Paper~C --- but three phrases reach $0.84$ and eight reach $0.94$. Crucially, triangulation is a post-hoc readout: the
+policy stays continuous and the recommender is untouched. Fidelity numbers depend on both the query set and the
+dictionary, so we state them explicitly: the $0.84$ at $k{=}3$ here is over the \emph{full} phrase bank (all named
+directions) on the rollout queries; the $0.814$ reported in \S\ref{sec:unask} is the same $k{=}3$ restricted to the
+\emph{concepts-only} dictionary (single genome tags and genres) over the top-$8$-aligned queries --- a poorer but more
+readable dictionary, which is the point of that section.
+
+\paragraph{Folding the blend as one screen is near-lossless.} If the deployed system acts on the reconstruction $\qhat$
+rather than the latent $q$ (i.e.\ the user answers the named blend), NDCG barely moves. The deployable design is
+\emph{one screen, $k$ sliders}: show the $k$ signed phrases, let the user rate each ($a_k=\uk\!\cdot\hat e_k$, exactly
+the answer they would give any concept), and fold the OMP reconstruction as \emph{one} composite answer token with score
+$\hat a=\sum_k w_k\,(\uk\!\cdot\hat e_k)$ --- the OMP weights $w_k$ recombining the sliders \emph{outside} the encoder.
+On the canonical five-seed ruler (te$[300{:}]$, $q{=}8$, seed-avg $\{1,2,3,7,11\}$):
+\begin{center}\small
+\begin{tabular}{lccc}
+\toprule
+$q{=}8$, canonical ruler & full & tail & cost\\
+\midrule
+continuous (fold true $q$)               & 0.378 & 0.178 & ---\\
+one-screen composite, OMP-5              & 0.368 & 0.167 & $-0.010\,/\,-0.012$\\
+one-screen composite, OMP-3              & 0.360 & 0.158 & $-0.018\,/\,-0.020$\\
+$k$ phrases as \emph{separate} tokens ($3\times8$ screens) & 0.305 & 0.102 & $-0.073\,/\,-0.077$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The one-screen composite is a faithful \emph{stand-in} for the latent query: at $k{=}5$ the cost ($-0.010/-0.012$) is
+roughly \emph{half} the single-phrase snap ($-0.037/-0.040$, Paper~C), and a three-slider screen already halves that
+snap once. This canonical, five-seed number confirms and supersedes an earlier $n{=}150$ single-run estimate
+($-0.008$); the small extra shrinkage here is exactly the $\hat a=\uk\!\cdot\qhat$ scaling by $\lVert\qhat\rVert\le 1$.
+\emph{But the OMP weights are load-bearing}: folding the same $k$ phrases as $k$ \emph{separate, equally-weighted}
+answer tokens is catastrophic ($-0.073/-0.077$ at $8$ screens $=24$ tokens, worse than the single-phrase snap and flat
+across the whole budget), because the frozen set-encoder weighs tokens near-equally and cannot recover the blend's
+weighting internally. Composition must happen \emph{outside} the encoder, via the composite score above; it needs no
+retraining.
+
+\paragraph{Decompose, never invert.} A tempting alternative is to render the query in words and read the answer back
+by re-embedding the sentence (e.g.\ with a sentence encoder) into the phrase space. This \emph{fails outright}: over
+$n{=}13$ manually collected frontier-model renders (a small, hand-collected probe, not an automated sweep), the
+round-trip $\cos\big(q,\ \mathrm{reembed}(\mathrm{NL})\big)=0.03$ (several negative) versus the OMP ceiling of $0.84$. A
+question's sentence embedding lands nowhere near the short phrase labels it was built from; embedding inversion
+(Vec2Text~\citep{vec2text}, GEIA~\citep{geia}) has no reliable decoder for our sentence encoder. We therefore use language only to
+\emph{paraphrase a set of real phrases}, and fold the geometric reconstruction we already hold --- never a
+text-inverted vector.
+
+\section{The un-askability of continuous queries}\label{sec:unask}
+Triangulation names a query for a human to \emph{read}. Can we turn it into a single question for a human to
+\emph{answer}? Here we hit a fundamental wall.
+
+\paragraph{Faithful $\Rightarrow$ orthogonal $\Rightarrow$ incoherent.} OMP maximizes reconstruction by choosing
+concepts that cover \emph{new} directions; the selected concepts are therefore near-orthogonal (mean pairwise
+$\cos\approx 0$), and, empirically, semantically incoherent: only $\sim$10--18\% of two/three-concept blends have a
+shared nameable theme (SBERT label similarity $>0.3$). Concepts-only blends are marginally more coherent than the
+richer vocabulary ($0.22$ vs $0.16$), confirming that pairs/clusters help fidelity but hurt readability.
+
+\paragraph{Coherent $\Rightarrow$ redundant $\Rightarrow$ no fidelity gain.} Conversely, if we \emph{require} a
+coherent (verbalizable) pair, we can find one for 99\% of queries --- but it buys nothing: a coherent pair
+reconstructs at $\cos 0.700$, \emph{below} the single dominant concept ($0.712$), because similar concepts are
+redundant. The fidelity beyond $\sim\!0.71$ lives entirely in orthogonal concepts that cannot share one question.
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+concepts-only, over top-8 aligned & fidelity $\cos(q,\qhat)$ & verbalizable?\\
+\midrule
+single dominant concept ($k{=}1$)      & 0.712 & yes (trivially)\\
+best \emph{coherent} pair (sem $0.67$) & 0.700 & yes\\
+OMP-2 (orthogonal)                     & 0.777 & no\\
+OMP-3 (orthogonal)                     & 0.814 & no\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Consequence.} \emph{A single coherent natural question can convey at most one concept's worth of a
+continuous query} --- the same $\sim0.71$ as the snap. The extra fidelity of the continuous action is
+\emph{un-askable}: it is representationally real (Paper~C) and readable (\S\ref{sec:tri}), but it cannot be posed as
+one faithful question. This is the deployment reason the continuous probe, despite the best NDCG among probes, is not
+a deployable \emph{dialogue}; and it is a clean explanation of why snapping (Paper~C's honest interpretability test)
+was lossy in the first place.
+
+\paragraph{Not a vocabulary artifact: richer realization sets do not close the gap.} A natural objection is that the
+snap is merely an artifact of the small ($\sim$1{,}100) concept vocabulary --- give the realizer more named directions
+and the query becomes askable. It does not. Realizing each latent query instead as the best \emph{item-pair difference}
+$\hat d\propto(e_i-e_j)$ over the full catalogue --- a natural ``would you rather $A$ than $B$?'' question spanning
+$\binom{3706}{2}\approx 6.9\text{M}$ directions, roughly $9{,}000\times$ the concept set --- recovers only $\cos 0.72$
+of the query (versus $0.70$ for the best of $761$ concepts): $+0.02$ cosine for a $9{,}000\times$ larger vocabulary, and
+\emph{zero} NDCG movement ($0.337/0.134$ pair-snap $\approx 0.341/0.138$ concept-snap, both far below the un-snapped
+$0.378/0.178$). The reason is dimensional, not lexical: for $N$ random unit directions in $d{=}64$, the best-of-$N$
+alignment grows only as $\sqrt{2\ln N/d}$ (a heuristic order-of-magnitude estimate), which gives $\approx 0.70$ at
+$N{=}6.9$M and would need $N\sim 10^{11}$ distinct named directions to reach $\cos 0.9$. The off-manifold residual of a
+continuous query is genuinely outside the span of \emph{any} catalogue-anchored single-direction vocabulary, not just
+outside the concept list --- the strongest form of the un-askability claim. What \emph{does} recover the gap is not a
+richer post-hoc vocabulary but changing the interface and \emph{training through it}: a pair-native policy trained
+straight-through onto the pair realizer reaches $0.370/0.166$ (Paper~C), and the one-screen composite of \S\ref{sec:tri}
+folds the reconstruction outside the encoder --- both constructive resolutions that a fixed, post-hoc snap cannot reach.
+
+\section{A deployable, honest agent}\label{sec:agent}
+\paragraph{Select-and-align: fold only what you ask.} Rather than fold the full $\qhat$ behind a question that conveys
+part of it, the agent shows the LLM the top-6 aligned concepts and asks it to (i) pick the coherent subset that forms
+one natural question and (ii) return \emph{which} concepts it used; we then fold \emph{only that subset}. Ask and fold
+are consistent by construction. Because coherent subsets are usually size one (\S\ref{sec:unask}), select-and-align
+\emph{gracefully degrades to discrete single-concept elicitation} exactly when the query is un-verbalizable --- and
+occasionally, when the top-aligned concepts happen to share a mood (e.g.\ \emph{atmospheric $+$ ominous $+$
+claustrophobic}), it folds a faithful multi-concept question. This is the honest realization of ``name the
+continuous action.''
+
+\paragraph{The deployable closed fallback is a discrete concept question.} Snapping a continuous query to one phrase
+loses $\sim\!0.04$; a native \emph{discrete} concept policy (Paper~B / CASPER-R, $\sim0.36$) is fully verbalizable
+(one named concept) and nearly matches the continuous probe ($0.377$). So for a closed yes/no turn, the right action
+is not a snapped continuous query but a discrete concept --- verbalizable and almost as informative. When we let a
+\emph{learned} policy choose freely between open-recall question types and a discrete concept-closed action
+(Table~\ref{tab:mixed}), it \emph{does} use closed --- but sparingly and in a specific place: it opens with two
+free-recall turns, inserts one--two discrete concept-refinement questions in the middle (turns 3--4, $\sim$12.5\% of
+all turns), then returns to recall. Closed elicitation is thus not redundant but subordinate: a mid-dialogue
+refinement once the high-bandwidth recall signal is in, and the learned hybrid marginally beats a fixed schedule
+($0.390$ vs $0.387$ full) with a better early curve. Notably the policy reaches for the \emph{discrete} concept, never
+the continuous probe --- consistent with the un-askability result.
+
+\paragraph{Rendering.} Every question is produced by a frontier LLM under an \emph{axis-synthesis} prompt: infer the
+one taste axis the signed blend shares, ask from the pole the signs indicate, do not enumerate the phrases, and
+\emph{never} frame a question around identity, sexuality, race, religion or disability (a hard filter removes such
+genome tags from the pool). This turns raw, clunky descriptors into natural questions --- e.g.\ the compound
+\texttt{chase\,+\,good} becomes \emph{``Do you enjoy exciting chase scenes where the good guys win?''}, and the blend
+\texttt{$-$paranoid $-$screwball $-$post-apocalyptic} becomes \emph{``Do you prefer something grounded and realistic
+rather than surreal?''}. Failure modes are legible: a blend of non-collinear phrases (\texttt{$-$feel-good
+$-$animation $-$erotic}) has no faithful single question, and a naive tag-concatenating LLM produces obvious nonsense
+--- a useful signal to fall back to the dominant concept.
+
+\paragraph{Cost.} Rendering is cheap (one short call per turn). On a 300-query benchmark the full cheap$\to$top sweep
+(gpt-4.1-mini \$0.04, gpt-5 \$0.17, gpt-5.5 \$0.61; Anthropic Haiku/Sonnet/Opus \$0.09/\$0.35/\$1.72; July 2026 prices)
+totals $\sim$\$3, so cost does not constrain model choice. We make \emph{no} claim that cheap and frontier models are
+equally faithful: our earlier automatic proxy for that comparison (re-embedding the rendered question) is invalid
+(\S\ref{sec:tri}), and faithfulness can only be judged by the human study of \S\ref{sec:human}. Which model to deploy
+is therefore an open question pending that study; cost merely says any of them is affordable.
+
+\paragraph{The agent.} The system (Fig.~\ref{fig:ui}) grounds free-text answers to catalogue factors (fuzzy movie /
+actor / director / genre matching with cross-type rescue), maintains the frozen belief, recommends over the full
+catalogue and the long tail simultaneously, and renders a live \emph{taste map} --- the belief trajectory in the
+recommender's factor space with named answers lighting up. It supports open recall, mixed, select-and-align,
+triangulated, snap-to-concept, snap-to-phrase and discrete modes for side-by-side comparison.
+
+\section{What simulation cannot decide}\label{sec:human}
+Our folds assume a user answers a rendered question as they would answer the latent query --- geometrically. That
+assumption is exactly what a simulator cannot test, and the natural automatic proxy (re-embedding the NL answer)
+\emph{fails} (\S\ref{sec:tri}). We therefore do \emph{not} claim a verbalized NDCG; the honest deployment number is
+the representation cost ($-0.008$) plus an unmeasured human-faithfulness term. Closing it requires a human round-trip
+study --- render questions, collect real yes/no answers, fold, and compare to the geometric oracle --- which we leave
+as the decisive next experiment.
+
+\section{Related work}
+\emph{Interpretation by retrieval, not inversion.} We snap/decompose onto real phrases rather than invert embeddings
+to text (Vec2Text~\citep{vec2text}, GEIA~\citep{geia}), which have no reliable decoder for sentence encoders; our signed
+sparse decomposition is sparse coding / dictionary learning \citep{omp} in the elicitation-query space, and its
+single-phrase special case is Wolpertinger's snap \citep{wolpertinger} and VQ-VAE quantization \citep{vqvae}, but
+measured in task (NDCG) units. \emph{LLM elicitation.} PEBOL~\citep{pebol}, GATE~\citep{gate} and clarifying-question
+funnel systems~\citep{montazeralghaem25} generate questions directly; we keep a frozen geometric policy and use the LLM
+only to paraphrase a decomposition, which is what lets us quantify the verbalization limit. \emph{Conversational
+recommendation.} UNICORN~\citep{unicorn}, EAR~\citep{ear} and ConTS~\citep{conts} unify asking and ranking; our
+framing --- that the strongest \emph{continuous} action is un-askable, and that a discrete concept is its verbalizable
+fallback --- is, to our knowledge, new.
+
+\section{Conclusion}
+A latent elicitation policy can be made interpretable almost for free by decomposing its action onto named phrases
+and folding the decomposition ($-0.008$ NDCG). But a continuous action cannot be made into an honest \emph{question}:
+its faithful decomposition is a set of orthogonal, un-nameable-together concepts, so a single coherent question
+conveys no more than a single concept. The deployable interaction is therefore \emph{open recall}, which is natively
+named and needs no verbalization, with a \emph{discrete concept question} as the verbalizable closed fallback ---
+snapping or asking the continuous query is the wrong move. We ship a working, safety-filtered chat agent that realizes
+this, and identify the human round-trip as the one experiment that can turn our $-0.008$ representation cost into a
+true deployment cost.
+
+\begin{table}[t]\centering\small
+\caption{A learned policy over open-recall types plus a discrete concept-closed action (\texttt{ccon}) \emph{does}
+choose closed --- as a mid-dialogue refinement. Seed-avg NDCG@10, $q{=}8$, te$[300{:}]$. The closed action is the
+verbalizable \emph{discrete} concept (not the un-askable continuous probe).}
+\label{tab:mixed}
+\begin{tabular}{lccl}
+\toprule
+policy & full & tail & closed usage\\
+\midrule
+fixed no-repeat order      & 0.387 & 0.181 & ---\\
+learned mixed (open$+$ccon)& \textbf{0.390} & 0.181 & 12.5\% of turns, at turns 3--4\\
+\bottomrule
+\end{tabular}
+\\[3pt]
+\footnotesize Learned structure: \texttt{gem}\,$\to$\,\texttt{whatdoyoulike}\,$\to$\,\textbf{ccon}\,$\to$\,\texttt{hate}/\textbf{ccon}\,$\to$\,\texttt{fav}\,$\to$\,\texttt{whatdoyoulike}$\cdots$
+--- open recall first, a discrete concept-refinement in the middle, then more recall.
+\end{table}
+
+\begin{figure}[t]\centering\fbox{\parbox{0.9\textwidth}{\centering\vspace{2em}\todo{replace with a screenshot of the
+deployed chat agent --- question, grounding receipt, full/tail recommendations, and the live taste
+map.}\vspace{2em}}}
+\caption{The CASPER conversational recommender.}\label{fig:ui}\end{figure}
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+\bibitem[Pati et al.(1993)]{omp} Y.~Pati, R.~Rezaiifar, P.~Krishnaprasad. Orthogonal matching pursuit: recursive function approximation with applications to wavelet decomposition. \emph{Asilomar Conf.\ Signals, Systems and Computers}, 1993.
+\bibitem[Dulac-Arnold et al.(2015)]{wolpertinger} G.~Dulac-Arnold, R.~Evans, H.~van Hasselt, P.~Sunehag, T.~Lillicrap, J.~Hunt, T.~Mann, T.~Weber, T.~Degris, B.~Coppin. Deep reinforcement learning in large discrete action spaces (Wolpertinger). arXiv:1512.07679, 2015.
+\bibitem[van den Oord et al.(2017)]{vqvae} A.~van den Oord, O.~Vinyals, K.~Kavukcuoglu. Neural discrete representation learning (VQ-VAE). \emph{NeurIPS}, 2017.
+\bibitem[Morris et al.(2023)]{vec2text} J.~X.~Morris, V.~Kuleshov, V.~Shmatikov, A.~M.~Rush. Text embeddings reveal (almost) as much as text (Vec2Text). \emph{EMNLP}, 2023. arXiv:2310.06816.
+\bibitem[Li et al.(2023)]{geia} H.~Li, M.~Xu, Y.~Song. Sentence embedding leaks more information than you expect: generative embedding inversion attack to recover the whole sentence (GEIA). \emph{Findings of ACL}, 2023. arXiv:2305.03010.
+\bibitem[Austin et al.(2024)]{pebol} D.~E.~Austin, A.~Korikov, A.~Toroghi, S.~Sanner. Bayesian optimization with LLM-based acquisition functions for natural language preference elicitation (PEBOL). \emph{RecSys}, 2024. arXiv:2405.00981.
+\bibitem[Li et al.(2025)]{gate} B.~Z.~Li, A.~Tamkin, N.~Goodman, J.~Andreas. Eliciting human preferences with language models (GATE). \emph{ICLR}, 2025. arXiv:2310.11589.
+\bibitem[Montazeralghaem et al.(2025)]{montazeralghaem25} A.~Montazeralghaem, G.~Tennenholtz, C.~Boutilier, O.~Meshi. Asking clarifying questions for preference elicitation with large language models. arXiv:2510.12015, 2025.
+\bibitem[Deng et al.(2021)]{unicorn} Y.~Deng, Y.~Li, F.~Zhang, B.~Lei, S.~Huang, X.~He, T.-S.~Chua. Unified conversational recommendation policy learning via graph-based reinforcement learning (UNICORN). \emph{SIGIR}, 2021.
+\bibitem[Lei et al.(2020)]{ear} W.~Lei, X.~He, Y.~Miao, Q.~Wu, R.~Hong, M.-Y.~Kan, T.-S.~Chua. Estimation--action--reflection: towards deep interaction between conversational and recommender systems (EAR). \emph{WSDM}, 2020.
+\bibitem[Li et al.(2021)]{conts} S.~Li, W.~Lei, Q.~Wu, X.~He, P.~Jiang, T.-S.~Chua. Seamlessly unifying attributes and items: conversational recommendation for cold-start users (ConTS). \emph{ACM TOIS}, 2021. arXiv:2005.12979.
+\end{thebibliography}
+\end{document}

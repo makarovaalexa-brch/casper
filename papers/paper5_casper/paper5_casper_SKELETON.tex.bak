@@ -1,0 +1,91 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,hyperref,xcolor,graphicx}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\todo}[1]{\textcolor{red}{[#1]}}
+\newcommand{\uk}{u^\star}
+\title{\textbf{From Latent Policy to Conversation:\\An Interpretable, Deployed Cold-Start Recommender}\\[4pt]
+\large Paper E (final) --- skeleton}
+\author{}
+\date{June 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent Papers~A--D built a cold-start conversational recommender end to end: a frozen unified set-encoder
+(Paper~A), a learned elicitation policy (Paper~B), a continuous off-manifold question policy (Paper~C), and an
+open free-recall asker with an interpretable, deployable question tree (Paper~D). All four evaluated against a
+\emph{geometric} user simulator. This final paper closes the loop into a real conversation. It makes two
+contributions. First, \textbf{interpretability by retrieval, not inversion}: every action of the latent
+policies---Paper~C's continuous query $q\in\R^{64}$ and Paper~D's grounded open question---is made human-readable by
+\emph{snapping} to a fixed phrase bank and rendering with an LLM, and we report the \emph{snap-loss} as the honest cost
+of naming. Second, \textbf{a deployed conversational agent}: an LLM renders each grounded question as natural language
+and parses the user's free-text answer back to a catalogue entity (name $\to$ nearest factor), and a chat interface runs
+the Paper~D question tree live, folding answers into the belief and \emph{rendering recommendations} (titles and posters)
+that update every turn. We close with a small human round-trip study that replaces the geometric answerer band with real
+recall, and a head-to-head against a genuine LLM-in-the-loop elicitor.
+\end{abstract}
+
+\section{Introduction \& positioning}
+\label{sec:intro}
+\todo{One paragraph recap of A--D: frozen unified encoder; the elicitation problem; open free-recall beats latent
+rating-probes; the deployable adaptive asker + interpretable tree. The tension this paper resolves: every result so far
+was measured against a \emph{geometric simulator}, and the policies act in a $64$-dimensional latent space. To be a
+product, the agent must (i) speak natural language at both ends, and (ii) be interpretable. This paper does both and
+ships a working interface.}
+
+\section{Interpretability by retrieval, not inversion}
+\label{sec:interp}
+\paragraph{Why not embedding inversion.} Vec2Text/GEIA \emph{decode} embeddings to text but are per-encoder, lossy, and
+unreliable on the sentence encoders we use; we never invert. Interpretation is \emph{retrieval}: snap to a fixed phrase
+bank.
+\paragraph{The phrase bank.} \todo{Mine short descriptive phrases (``slow-burn revenge'', ``feel-good ensemble'') from
+movie reviews / plot keywords / genome glosses; place each in the recommender's $\R^{64}$ factor space as the centroid
+of its matched movies (exactly how genome concepts were built). For Paper~D the ``phrases'' are already named
+(favourite/hidden-gem/disliked movie, actor, director, genre)---interpretability is native; the snapping is only needed
+for Paper~C's off-manifold continuous queries.}
+\paragraph{Snap-loss (the honesty test).} \todo{Report NDCG of the un-snapped continuous query vs.\ the
+snapped-to-bank query (Paper~C's snap-loss): the gap is the cost of naming. Paper~D's open questions are already named,
+so their snap-loss is zero---a deployability advantage of recall over latent probing.}
+\paragraph{The learned question tree as the interpretable backbone.} \todo{Reproduce Paper~D's tree (fig) as the agent's
+visible decision logic: open with ``what do you like?'', branch on the answer into person / all-time-favourite /
+hidden-gem / disliked, deepen into a continuous probe when recall saturates.}
+
+\section{The conversational agent}
+\label{sec:agent}
+\paragraph{Render: question $\to$ natural language.} \todo{An LLM renders each grounded question type as a natural
+utterance (``what's a film you love that you think is underrated?'') conditioned on the running belief; templated
+fallback for offline use.}
+\paragraph{Parse: free text $\to$ entity.} \todo{The user answers in free text (``Pan's Labyrinth''); we ground it to a
+catalogue entity by fuzzy title / SBERT match to the nearest factor $Q_j$, fold $(Q_j,\,\mathrm{POS})$ into the belief,
+re-rank. Persons/genres ground to their film-centroids (Paper~D). This closes the geometric$\leftrightarrow$language loop
+the simulator stood in for.}
+\paragraph{Render recommendations.} \todo{Every turn, show the top-$K$ recommendations (titles $+$ TMDB posters) that
+update as the belief sharpens---the user watches the list improve as they answer.}
+
+\section{The interface}
+\label{sec:ui}
+\todo{Screenshots of the chat UI: question bubbles, the user's free-text movie answers, and the live recommendation rail
+(posters) updating each turn. Implementation: a thin web app over the frozen Papers~A--D pipeline (encoder $+$ policy $+$
+grounding $+$ TMDB posters). Reference the running prototype \texttt{scripts/paper5/casper\_chat.py}.}
+
+\section{Human round-trip study}
+\label{sec:human}
+\todo{Replace the geometric answerer band with real recall: $N$ users answer the open questions in free text; measure
+(i) grounding accuracy (did we map the named movie correctly?), (ii) downstream NDCG vs.\ the simulator band, (iii)
+perceived effort / question naturalness. The honest test of whether the simulator's optimism holds with humans.}
+
+\section{Head-to-head vs.\ a genuine LLM elicitor}
+\label{sec:llm}
+\todo{A faithful LLM-in-the-loop comparison: GATE-style free-form questions and a faithful LLM-PEBOL (real GPT aspect
+generation $+$ NLI grounding), on a handful of users, as the qualitative ceiling/sidebar---closing the loop on Paper~D's
+\emph{geometric-reduction} caveat.}
+
+\section{Discussion}
+\label{sec:disc}
+\todo{The full arc A--E: a frozen unified embedding that is simultaneously the recommender and the interface to
+elicitation; open free-recall as the high-bandwidth, interpretable, deployable interaction; a learned tree that is both
+accurate and legible; and a shipped conversational agent. Limitations: ML-1M scale, single domain, simulator-to-human
+gap measured but not closed at scale.}
+
+\end{document}
