@@ -300,3 +300,170 @@ policy-efficiency ruler), as §7 already recommended.
 
 *(Script: `casper/scripts/paper2/gr_cold_regate.py`; eval-only, no training, no commits. Cohort chosen
 before any policy run.)*
+
+---
+
+## PHASE 1E — MULTI-GENRE COMPOSITE (dated 2026-07-04)
+
+**Motivation.** Phases 1 and 1D failed the headroom gate twice on the single Mystery/Thriller/Crime
+slice (+0.0104 full-cohort, +0.0167 cold — both below the ≥+0.025 substantiality band). Diagnosis:
+*within one genre, popularity explains most of the ranking and cross-user taste barely varies*. The
+composite is the fix attempt: **union of 3 byGenre slices — mystery+thriller+crime ∪
+fantasy/paranormal ∪ history/biography** — to inject **cross-genre taste differentiation** (an axis
+popularity cannot explain within a genre) while keeping the shelf-answerability channel. Explicit
+ratings only (like ≥4 / dislike ≤2), item filter ≥20 ratings. Prep (Q_svd_comp/bi_svd_comp/base_comp/
+books_meta_comp/concepts_comp) was built by a prior run; this phase does the split, encoder, gate,
+effrank/answerability. Scripts: `gr_comp_train_enc.py`, `gr_comp_health.py`, `gr_comp_effrank_answer.py`.
+
+### 1E.1 Composite counts + the cross-genre differentiation signal
+| quantity | value |
+|---|---|
+| **items** (≥20-rating filter, union) | **188,867** (mystery 52,613 · fantasy/paranormal 77,889 · history/biography 58,365) |
+| **users** (full set) | **768,746** |
+| **ratings kept** (explicit) | **46,143,044** (per slice: 10.77M · 24.71M · 10.66M) |
+| ratings/user | **median 24**, mean 60.0, p25 9, p75 64, p90 146, max 8165 |
+| mean rating μ | 3.9717 |
+| **cross-genre share: users with ratings in ≥2 of 3 slices** | **83.4%** (641,092/768,746) |
+| users spanning all 3 slices | **59.4%** (456,473); exactly-1 slice 16.6% |
+
+The composite delivers exactly the intended differentiation signal: **83.4% of users span ≥2 genres,
+59.4% all three**, and the cohort is **~4× denser** than the single slice (median 24 vs 6 ratings/user).
+If cross-genre taste were going to rescue collaborative headroom over popularity, this is the arena.
+
+### 1E.2 Split (unchanged convention)
+rng(0) shuffle, last 1000 → **500 val / 500 test**, rest (**767,746**) train. Verified byte-identical to
+the rng(0) convention used in phases 1/1D. (Splits already materialised in `base_comp.npz`.)
+
+### 1E.3 THE RULER (pre-stated per the phase-1E task spec, BEFORE any eval below)
+- **Primary K = round(0.0027 × 188,867) = 510.** NDCG@10 reported alongside. Tail = Cremonesi head-33%.
+- V1 decoder sc = popb + Q·u (popb = log(cnt+1)); ridge λ=5; MOSTPOP q0 = popb. Held-out disjoint targets.
+- **Gate = encoder full-profile NDCG@510 − MOSTPOP ≥ +0.025 AND monotone no-harm** (random+entropy
+  concept selectors, reveals {0,8,20}).
+
+### 1E.4 V1 encoder training
+Same recipe as `gr_train_enc.py` (d=64 attention fold-in over (Q[item], residual) tokens; frozen popb+Q·u
+decoder; IPS-weighted BCE over unrevealed like-set; k=1..12 reveals; Adam 1e-3). Batch **512**.
+**Compute-budget note:** the full 514,344 train users (≥13 ratings) give a ~3,160 s/epoch pass — over the
+10-min foreground cap — so each epoch trains on a **rotating deterministic (rng0) 90k-user window**
+(covers all users across epochs), ~555 s/epoch, chunked+resumable. Val-selected on the 500-user val
+cohort, full-profile fold, NDCG@510 (n=418 usable):
+
+| ep | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| val NDCG@510 | .2889 | .2893 | .2899 | **.2904** | .2897 |
+
+Plateaued by ep4; ep5 declined. **Best-val = ep4 (0.2904)** → `enc_v1_grcomp.pt`
+(+ `_state.pt` resume, `_peak.txt`). Used by the gate.
+
+### 1E.5 Health gate — VERDICT: **FAIL (headroom +0.0106 full-test / −0.0003 cold, both < +0.025)**
+`gr_comp_health.py`, held-out disjoint targets, K=510 primary.
+
+**(a) FULL-TEST cohort, full-profile fold (n=423, n_tail=392, avg_profile=44.1):**
+| model | @10 full | @10 tail | @510 full | @510 tail |
+|---|---|---|---|---|
+| MOSTPOP (q0) | 0.1973 | 0.0038 | 0.2650 | 0.0373 |
+| ridge (λ=5)  | 0.1923 | 0.0222 | 0.2639 | 0.0498 |
+| **ENCODER**  | **0.2058** | 0.0104 | **0.2756** | 0.0457 |
+
+- **Encoder headroom over MOSTPOP: @510 full +0.0106, @10 full +0.0085, @510 tail +0.0084.**
+- Ridge headroom @510 full is **−0.0011** (encoder > MOSTPOP > ridge on full; on tail ridge leads, as in
+  phases 1/1D — head-chasing under the popb decoder). Encoder mechanics healthy; **headroom is the same
+  ~0.010–0.011 band as the single-genre slice** despite 4× density and cross-genre membership.
+
+**(b) CONCEPT-channel elicitation (FULL-TEST; wasted-turn, graded geometric answers, q0/8/20 @510 full):**
+| selector | q0 | q8 | q20 | ans_tok q8 / q20 | no-harm | elicit gain @q8/@q20 |
+|---|---|---|---|---|---|---|
+| random  | 0.2650 | 0.2646 | 0.2657 | **1.01** / 2.62 | OK | −0.0004 / +0.0007 |
+| entropy | 0.2650 | 0.2675 | 0.2682 | **0.96** / 2.27 | OK | +0.0025 / +0.0032 |
+| pop     | 0.2650 | 0.2664 | 0.2665 | 6.76 / 15.88 | OK | +0.0014 / +0.0015 |
+
+- **Monotone no-harm PASS (random+entropy).** Concept channel is now genuinely answerable
+  (random/entropy fold ~1 token by q8, pop ~6.8) — a real improvement over the single slice's ~0 tokens.
+  But the realizable elicited prize is **tiny (+0.0025 @q8 entropy)** and the informative selectors sit
+  **right at ~1 answered token by q8 (0.96–1.01), NOT clearly above 1** — the bar for a meaningful
+  phase-2 policy battery is not cleanly met.
+
+**(c) COLD cohort (≤10 ratings; n=57 usable, n_tail=42, avg_profile=3.9):** 132/500 test users qualify.
+| model | @10 full | @510 full | @510 tail |
+|---|---|---|---|
+| MOSTPOP (q0) | 0.0844 | 0.1924 | 0.0159 |
+| ridge | 0.0792 | 0.1894 | 0.0214 |
+| **ENCODER** | 0.0899 | **0.1921** | 0.0223 |
+- **Encoder headroom @510 = −0.0003** (encoder ties MOSTPOP on full; +0.0064 tail). Concept entropy
+  elicits +0.0022 @q8 but folds only **0.11 answered tokens** — the concept channel is answerability-
+  starved again on very-cold users, and pop-asking **HURTS** (−0.0082, the held-out exclusion artifact).
+
+**(d) GATE VERDICT: FAIL.** FULL-TEST headroom **+0.0106** and COLD **−0.0003**, both far below +0.025;
+monotone no-harm PASS. **Third consecutive Goodreads headroom failure** (single-genre +0.010/+0.017,
+composite +0.011/−0.000). The multi-genre composite added real cross-genre coverage and revived the
+concept channel to ~1 answered token, **but it did NOT widen the collaborative personalization prize** —
+across the union catalogue, shared popularity structure still explains the @510 ranking, and per-user
+taste over-and-above popularity remains ~0.01 NDCG. Denser profiles (avg 44 items) did not help, so the
+weakness is intrinsic to the domain's popularity-dominated signal, not to profile starvation.
+
+### 1E.6 Effective rank + answerability (composite)
+`gr_comp_effrank_answer.py`, participation ratio (D=64):
+| space | composite effrank (uncentered / centered) | single-genre MTC | ML-25M genome |
+|---|---|---|---|
+| Shelf concepts (1500 shelves) | **7.41 / 8.00** | 34.65 / 35.68 | 4.11 |
+| Pool items (top-600 popular) | **12.30 / 12.50** | 30.48 | 9.09 |
+
+- **The single-genre inversion (concepts 34.65 > items 30.48) does NOT survive the composite:** here
+  **concepts 7.41 < items 12.30**, back to the MovieLens ordering (concepts below items). Top-1 concept
+  direction alone holds **33.5%** of variance — the genre axis dominates the folksonomy shelf geometry
+  once three genres are pooled. So the phase-1 "folksonomy concepts are high-rank" finding was
+  **construction-specific to the single-genre Q**, not a stable cross-domain law.
+- **Answerability (full realistic cohort):** concepts **mean 0.226** (median 0.126, max 0.997; 217/1500
+  ≥0.5; 69 ≥0.8) vs **items-pool 0.0296** vs **all-items 0.0003**. Concepts are **~7.6× the popular-item
+  pool and ~750× all items** — the concept-answerability advantage replicates strongly, and absolute
+  levels are far higher than the single slice (0.226 vs 0.076) thanks to the denser cohort. Most
+  answerable: `fiction` 0.997, `novels` 0.987, `contemporary` 0.986, `mystery` 0.982, `fantasy` 0.966,
+  `romance` 0.962 — broad genre/era labels, as before.
+
+### 1E.7 Pre-registered predictions (PREREG_GOODREADS_PREDICTIONS.md) — retrospective
+The prereg was written on the single-genre effrank basis (concepts 34.65 ≫ items 30.48); the composite
+**changes that basis** (concepts 7.41 < items 12.30), so predictions (1)–(3), which were conditioned on a
+rank-35 concept menu, no longer apply to this arena — recorded, not reinterpreted. Prediction (4)
+**holds**: concept answerability advantage persists (0.226 vs 0.0003) and the selection hierarchy
+entropy ≥ random ≥ pop holds on the realizable gain (entropy +0.0025 @q8, the only clean positive).
+
+### 1E.8 Disk + durable artifacts
+- Free space **5.5 GB** (above the 5 GB floor). Composite artifacts under `casper/.cache/goodreads/`:
+  `base_comp.npz`, `Q_svd_comp.npy`, `bi_svd_comp.npy`, `books_meta_comp.npz`, `concepts_comp.npz`,
+  `enc_v1_grcomp.pt` (best-val ep4), `enc_v1_grcomp_state.pt`, `enc_v1_grcomp_peak.txt`.
+- Scripts: `gr_comp_train_enc.py`, `gr_comp_health.py`, `gr_comp_effrank_answer.py`.
+
+---
+
+## FINAL VERDICT (2026-07-04): Goodreads FAILS as a policy-efficiency ruler — conclude as the concept-necessity story; point the cross-domain bet at Steam
+
+Three health-gate attempts (single-genre, cold re-gate, multi-genre composite) all land in the
+**+0.010–0.017 / −0.000 headroom band — none clears the pre-stated ≥+0.025 substantiality bar.** The
+composite specifically **falsifies the hypothesis** that single-genre homogeneity was the cause:
+adding cross-genre differentiation (83% of users span ≥2 genres) and 4× density **did not widen the
+prize** (+0.0106, statistically indistinguishable from the single-genre +0.0104). The domain is simply
+**popularity-dominated**: on this book catalogue, per-user collaborative taste over-and-above popularity
+is ~0.01 NDCG@K regardless of genre breadth or profile depth, so a phase-2 policy battery would be
+optimising within a ~0.01 envelope — not a publishable efficiency ruler.
+
+**What Goodreads DID establish (keep this):** the **concept-necessity / answerability** story is strong
+and replicates cleanly. Item-level elicitation is structurally dead (0.0003 answer-rate; random/entropy
+item-asks hit ~0 rated items) while the shelf-concept channel is **~750× more answerable** (0.226) and
+monotone-no-harm — the clearest cross-domain evidence that an **answerable concept channel is necessary,
+not merely nicer**, on realistic sparse catalogues. That is the Goodreads contribution.
+
+**Recommendation — GO to Steam for the cross-domain policy-efficiency demonstrator.** Reasoning:
+1. **A live, high-variance taste axis popularity cannot explain.** Steam playtime/genre-tag profiles are
+   far less popularity-collinear than book ratings (a handful of blockbusters do not dominate every
+   user's library the way head books dominate reading), so the encoder − MOSTPOP headroom should clear
+   the substantiality band that Goodreads cannot.
+2. **A rich, genuinely answerable concept vocabulary already exists** (Steam user-generated tags —
+   thousands of them, densely applied), giving the concept channel the "clearly >1 answered token by q8"
+   that Goodreads only reached marginally (0.96–1.01).
+3. **Implicit but abundant per-user signal** (ownership + playtime) sidesteps the explicit-rating
+   sparsity (median 6–24) that thinned both channels here.
+Retain Goodreads solely as the **concept-necessity/answerability** datapoint (§7b, §9, §1E.6); do **not**
+run a phase-2 policy battery on it. **PHASE 2 IS NOT A GO on Goodreads.**
+
+*(Scripts committed under `casper/scripts/paper2/gr_comp_*.py`; eval + one encoder train, no git
+commits, no background monitors, foreground chunked.)*
