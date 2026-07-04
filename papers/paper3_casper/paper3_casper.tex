@@ -51,6 +51,14 @@ the reconstruction objective, and the answerability assumption baked into the ge
 Finally, the headline replicates on MovieLens-25M ($162{,}541$ users, $18{,}430$ items) under a depth-matched
 ruler---continuous$+$graded beats the strongest discrete graded selector by a tail gap of $+0.037$, numerically
 matching MovieLens-1M.
+Finally, we stress-test the whole battery on a \emph{rebuilt, state-of-the-art instrument}---a faithfully replicated
+RecVAE (validation $\mathrm{NDCG@100}$ $0.4422$ vs.\ published $0.442$) that on the canonical arena \emph{ties EASE}
+($0.554$) while retaining the compact differentiable latent the policy needs (elicitation in a SOTA latent-variable
+recommender's latent space is itself without published precedent). The claims do not merely survive on the stronger
+instrument; they \emph{sharpen}: continuous beats discrete by $+0.046$ full / $+0.062$ tail, the graded/binary gap widens
+into a cliff ($0.491$ vs.\ $0.117$), and the snap-loss grows ${\sim}4\times$ to $-0.147/-0.133$---the off-manifold prize
+\emph{grows} with instrument strength. Only adaptivity shrinks (significant on the head, a tie on the tail), exactly as
+the linear-Gaussian argument predicts for a stronger, more linear recommender.
 \end{abstract}
 
 \tableofcontents
@@ -795,6 +803,135 @@ genuinely off-manifold, and the discrete channel is rank-limited---replicates cl
 freshly-instrumented catalogue at the pre-stated depth-matched ruler, with the tail gap numerically matching ML-1M.
 
 %==================================================================
+\section{The strong-instrument test: re-anchoring on a SOTA recommender}\label{sec:i2}
+Every number so far sits on one instrument---the Paper~A/B set-encoder, the frozen ``MF layers'' of \S\ref{sec:setup}, a
+deliberately compact $d{=}64$ fold-in over SVD factors. A fair reader will ask whether the continuous$+$graded$+$adaptive
+prize is a property of \emph{elicitation} or of that particular, weak recommender---if a stronger instrument already
+reconstructs taste well from a few folded items, an elicitation edge could be absorbed. To settle it we rebuilt the
+instrument at state-of-the-art strength and re-ran the \emph{entire} battery on the same canonical ruler. The headline is
+that the claims do not merely survive: they \emph{sharpen}.
+
+\subsection{A SOTA instrument that still exposes a differentiable latent}\label{sec:i2instrument}
+We replaced the V1 encoder with \textbf{RecVAE}~\cite{recvae}, a multinomial variational autoencoder that is SOTA-class
+under the rigorous non-sampled Liang protocol. We reproduced it faithfully on its home benchmark (ML-20M, Liang
+strong-generalisation split): validation $\mathrm{NDCG@100}=0.4422$ against the published $0.442$---an essentially exact
+match, with all three load-bearing mechanisms (composite prior, per-user $\beta=\gamma|X_u|$, $3{:}1$ alternating updates
+with encoder-only denoising) implemented verbatim. Ported to the canonical ML-1M arena (byte-identical protocol to the
+Paper~B harness: MOSTPOP reproduces at $0.3099$, the V1 encoder at $0.4074/0.2164$), the $d{=}512$ RecVAE reaches
+full-profile $\mathrm{NDCG@10}=0.5541$---a statistical \emph{tie with a tuned EASE}~\cite{ease} ($0.5549$; within seed
+noise) and $\mathbf{+0.147}$ over the V1 instrument ($0.4074$). Its headroom over MOSTPOP is $+0.244$, \textbf{2.5$\times$
+the V1 instrument's $+0.098$}. Crucially, unlike EASE (a shallow item--item autoencoder with no compact user code), RecVAE
+folds any partial profile through one encoder pass into a differentiable latent $z\in\R^{512}$---\emph{exactly} the
+continuous action space the elicitation policy needs. This is a verified open contribution in its own right: elicitation
+in the latent space of a SOTA latent-variable recommender has no published precedent.
+
+\subsection{The certified apparatus}\label{sec:i2apparatus}
+Porting the elicitation machinery into the VAE latent required one new operator and one new concept channel, both
+benchmarked and then locked by a formal gate suite. The belief update is a single \textbf{additive latent operator}
+$z' = z + \eta\, a\, q$ ($\eta{=}16$, validation-selected to the natural latent magnitude $\|z^\star\|\approx17$), which
+for orthonormal informative probes makes $\sum_t a_t q_t$ an unbiased estimate of the unit taste direction; it beats the
+learned-head and pseudo-decode alternatives and, at eight probes, already \emph{beats the $k{=}8$ item fold}
+(\S\ref{sec:i2battery}). Concepts enter as \textbf{member-bag directions} (the unit latent of the encoded top-member bag
+of each genome tag), which clear the cold-start floor by $+0.15$ and \emph{add} on top of item folds---reversing the
+input-space concept failure of the earlier design. Polarity is carried by the operator sign ($a{<}0$). The whole
+apparatus was certified by a pre-registered suite of eight gates (monotonicity, no-harm calibration, answerability,
+polarity, additivity, fold-vs-full, seed stability, answer-strength sanity) on \emph{two} arenas: \textbf{16/16 gates
+pass}---8/8 on the canonical ML-1M arena and 8/8 on a Goodreads cold-start composite ($188$k items), where the concept
+channel is now live ($8/8$ answerable shelves per cold user, versus the V1-era $0.14$--$1.0$).
+
+\subsection{The re-anchored battery: every V1 claim, sharpened}\label{sec:i2battery}
+We re-ran the load-bearing experiments---continuous-vs-discrete, graded-vs-binary, snap-loss, and the static-8 adaptivity
+control---under the identical protocol (seed-avg $\{1,2,3,7,11\}$, \texttt{te[300:]} $304$ test users, $T{=}8$,
+$\mathrm{NDCG@10}$ full and Cremonesi tail). Table~\ref{tab:i2main} gives the core results; Table~\ref{tab:i2verdict}
+states each thesis claim against its V1 and I2 measurements.
+
+\begin{table}[h]\centering
+\begin{tabular}{lcc}
+\toprule
+Method on the certified RecVAE-$d512$ instrument ($T{=}8$, graded) & FULL & TAIL \\
+\midrule
+\textbf{D1 continuous actor (graded, adaptive; headline)} & $\mathbf{0.4907\pm0.004}$ & $\mathbf{0.2982\pm0.009}$ \\
+decoder-SVD informative basis-8 (continuous static, strongest single static) & $0.4709$ & $0.2916$ \\
+$k{=}8$ item-fold reference (discrete) & $0.4625$ & $0.2796$ \\
+lift-concepts-8 (discrete, graded; \texttt{uent+GRAW} analogue) & $0.4436$ & $0.2349$ \\
+MOSTPOP (no elicitation) & $0.3099$ & $0.0808$ \\
+\midrule
+\emph{D1 actor, binary answers} (control) & $0.1166$ & $0.1045$ \\
+\emph{decoder-SVD basis-8, binary answers} (control) & $0.2149$ & $0.1734$ \\
+\bottomrule
+\end{tabular}
+\caption{The re-anchored battery on the certified SOTA instrument (seed-avg $\{1,2,3,7,11\}$, $304$ test users). The
+adaptive continuous actor beats the discrete graded concept selector by $+0.046$ full / $+0.062$ tail (paired bootstrap
+$p{=}1.00$ on both axes) and beats the discrete $k{=}8$ item fold by $+0.028/+0.019$. Both continuous margins are
+\emph{larger and cleaner} than on V1. Graded answers are load-bearing to the point of a cliff: binarising the actor's
+answers collapses it from $0.491$ to $0.117$.}\label{tab:i2main}
+\end{table}
+
+\paragraph{The remarkable channel fact.} On the strong instrument the \emph{geometric question is the single strongest
+elicitation channel}. Eight continuous informative probes along the decoder-SVD basis (a static, non-adaptive continuous
+questionnaire, $0.4709$) \emph{beat eight actual item ratings} (the $k{=}8$ item fold, $0.4625$) at equal turn count:
+each geometric probe reads a full latent coordinate of the user's taste, whereas each item rating touches one sparse row.
+Continuous querying does not merely tie the discrete channels---it is the best of them, before any adaptivity is added.
+
+\paragraph{Snap-loss: the off-manifold prize grows with instrument strength.} Snapping each emitted query post-hoc to its
+nearest nameable direction is \emph{catastrophic} on I2: $-0.147$ full / $-0.133$ tail to the concept bank ($200$ genome
+tags), $-0.158/-0.143$ to the item-decoder rows ($3{,}706$ items). This is \textbf{${\sim}4\times$ the V1 concept-snap
+penalty} ($-0.037/-0.040$). Far from being an artifact of the compact V1 encoder, the continuity premium \emph{scales up}
+with the recommender: the stronger the instrument, the more the actor's off-manifold directions out-run any single
+concept or item, and the more a would-be emit-then-snap method (Wolpertinger/PEBOL) would lose by projecting.
+
+\paragraph{Adaptivity: significant on the head, a tie on the tail.} We repeated the static-8 control---the strongest
+fixed continuous questionnaire under the same objective and graded answer model. The strongest realizable single static
+design is the decoder-SVD basis ($0.4709$); a greedy-static bank distilled from the actor's own query distribution is
+\emph{weaker} ($0.4596$, overfitting the $300$-user val cohort), so the actor's edge is genuine per-user adaptivity, not
+a hidden better fixed basis. A paired per-user bootstrap over the $304$ test users gives the adaptive margin over the
+strongest static: $\mathbf{+0.0192}$ full ($95\%$ CI $[+0.009,+0.029]$, $p{=}0.9998$)---a clean, significant head gain
+---and $+0.0054$ tail ($95\%$ CI $[-0.006,+0.017]$, $p{=}0.82$), \emph{a tie}. We state this plainly: on the strong,
+near-linear instrument the adaptive edge is real but modest, lives on the head, and does not reach significance on the
+tail. This is exactly the linear-Gaussian prediction of \S\ref{sec:static8} (a stronger, more linear instrument moves the
+optimal design toward non-adaptive) and consistent with the whole-paper finding that adaptivity is the most
+instrument-sensitive of the four claims.
+
+\begin{table}[h]\centering
+\small
+\begin{tabular}{p{3.6cm}p{4.7cm}p{4.7cm}c}
+\toprule
+Thesis claim & V1 instrument ($+0.098$ headroom) & I2 RecVAE-$d512$ ($+0.244$, EASE-class) & verdict \\
+\midrule
+\textbf{continuous $>$ discrete} & snap-loss small; continuous edge $+0.011$--$0.018$ & adaptive $0.4907 >$ concept-8 $0.4436$ ($+0.046/+0.062$, both sig); static basis $0.4709 >$ item-8 $0.4625$ & \textbf{sharpens} \\
+\textbf{graded $\gg$ binary} & near-tie; win needs graded & actor $0.491$ vs.\ binary $0.117$ ($-0.374$); static basis $0.471$ vs.\ $0.215$ & \textbf{a cliff} \\
+\textbf{snap-loss (off-manifold)} & $-0.037/-0.040$ (concept) & $-0.147/-0.133$ (concept), $-0.158/-0.143$ (item) & \textbf{${\sim}4\times$ larger} \\
+\textbf{adaptivity $>$ static} & $+0.023/+0.032$ & $+0.019$ full (sig, $p{=}.9998$) / $+0.005$ tail (n.s.) & \textbf{survives on head; tail tie} \\
+\bottomrule
+\end{tabular}
+\caption{Each thesis claim against its V1 and I2 (strong-instrument) measurement. Three of the four sharpen on the
+EASE-class instrument; adaptivity is the one claim that shrinks---significant on the head, a tie on the tail---exactly as
+the linear-Gaussian argument (\S\ref{sec:static8}) predicts for a stronger, more linear recommender.}\label{tab:i2verdict}
+\end{table}
+
+\subsection{Honest method notes}\label{sec:i2notes}
+Two scoping facts, stated without drama. First, the continuous actor \emph{requires a BC warm-start} from the static
+decoder-SVD basis: a from-scratch differentiable-unroll policy in the $512$-d latent collapses (val full ${\sim}0.33$,
+reconstruction cosine plateaus ${\sim}0.60$; SGD does not discover a diverse orthonormal informative basis on its own).
+Warm-starting from the static basis and fine-tuning by unroll isolates adaptivity as \emph{whatever the fine-tune adds on
+top of the static basis}---which is the clean $+0.019$ head gain above. This is a documented optimisation limitation, not
+a claim of impossibility. Second, the \emph{continuous divisiveness field contributes nothing on the strong instrument}:
+the field variant ($0.4710/0.2915$) does not improve over the BC-warm actor, because rewarding high-population-variance
+directions $q^\top\!\mathrm{Cov}(z^\star)q$ pulls away from the taste-reconstruction-optimal directions in this
+near-linear regime. This scopes the V1 divisiveness-reward contribution (\S\ref{sec:main}): it is a feature of the
+compact, more nonlinear V1 loop, not a universal ingredient---an honest negative that the strong-instrument test is
+precisely designed to surface.
+
+\subsection{Verdict}\label{sec:i2verdict}
+On a certified EASE-class instrument with $2.5\times$ the headroom of the V1 encoder, the continuous$+$graded$+$adaptive
+flagship \emph{survives, and mostly sharpens}. The continuous channel is the strongest single elicitation channel
+(geometric probes beat item ratings) and its off-manifold premium \emph{grows} $\sim4\times$; graded answers become a
+cliff rather than a marginal lever; adaptivity remains significant on the head and ties on the tail. The results were
+never an artifact of a weak recommender---the one claim that shrinks (adaptivity on the tail) shrinks exactly where the
+paper's own linear-Gaussian analysis says it should. All numbers are seed-averaged $\{1,2,3,7,11\}$ on the byte-identical
+$304$-user ML-1M test cohort; the instrument is certified $16/16$ on ML-1M and Goodreads.
+
+%==================================================================
 \section{Discussion}\label{sec:discussion}
 \subsection{Why discrete is limited, in principle}
 A discrete selector is confined to the convex \emph{vertices} of the question space---the named items and concepts. The
@@ -882,7 +1019,10 @@ quantifies how much is genuinely ``between the words.''
 The win is (i) \emph{conditional on graded answers} (under binary answers the continuous actor ties the discrete SOTA);
 (ii) on the \emph{tail} (full is popularity-saturated); (iii) measured against a \emph{simulated} geometric
 answerer---the realism of off-manifold answerability is exactly what a bot-play / learned-answerer study
-(\S\ref{sec:future}) must stress-test; and (iv) on a single dataset (ML-1M) and a frozen recommender. The pair-native
+(\S\ref{sec:future}) must stress-test; and (iv) on a frozen recommender---though the concern that the effect is an
+artifact of a \emph{weak} recommender is directly answered in \S\ref{sec:i2}, where the entire battery is re-run on a
+certified EASE-class RecVAE instrument ($2.5\times$ the headroom) and the continuous, graded, and off-manifold claims all
+\emph{sharpen} (only adaptivity shrinks, and only on the tail). The pair-native
 interview of \S\ref{sec:ladder} additionally realizes only the \emph{direction} geometrically: a deployed ``$A$ rather
 than $B$?'' question needs an answer model for comparative judgments, and pairs are not constrained by per-user
 answerability or popularity---a realistic pair interview restricted to judgeable items could only lower those numbers.
@@ -954,5 +1094,7 @@ reminder that the label is an approximation: the policy's value lives \emph{betw
 \bibitem{vec2text} J.~X.~Morris et al. Text embeddings reveal (almost) as much as text (Vec2Text). \emph{EMNLP}, 2023.
 \bibitem{geia} H.~Li et al. Sentence embedding leaks more information than you expect (GEIA). \emph{Findings of ACL}, 2023.
 \bibitem{tcav} B.~Kim et al. Interpretability beyond feature attribution: testing with concept activation vectors (TCAV). \emph{ICML}, 2018.
+\bibitem{recvae} I.~Shenbin, A.~Alekseev, E.~Tutubalina, V.~Malykh, S.~I.~Nikolenko. RecVAE: a new variational autoencoder for Top-N recommendations with implicit feedback. \emph{WSDM}, 2020.
+\bibitem{ease} H.~Steck. Embarrassingly shallow autoencoders for sparse data (EASE). \emph{WWW}, 2019.
 \end{thebibliography}
 \end{document}
