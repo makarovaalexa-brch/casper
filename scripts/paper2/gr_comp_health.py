@@ -67,6 +67,23 @@ def ndcg_at(u,rel,excl,K,tail):
     W=1./np.log2(np.arange(2,K+2)); top=np.argpartition(-sc,K)[:K]; top=top[np.argsort(-sc[top])]
     rs=set(rel); dcg=sum(W[p] for p,t in enumerate(top) if int(t) in rs); idcg=W[:min(K,len(rel))].sum()
     return dcg/idcg if idcg>0 else 0.
+# ===== SAMPLED-NEGATIVE PROTOCOL (He et al. NCF) — PROTOCOL-INFLATION study =====
+_SAMPLED=int(os.environ.get('SAMPLED','0')); _NNEG=int(os.environ.get('NNEG','100')); _SAMPSEED=int(os.environ.get('SAMPSEED','0')); _negcache_gr={}
+def ndcg_hr_sampled(u,rel,rated,x,tail):                                          # each held positive ranked vs _NNEG unrated negatives; sampled-NDCG@10 / sampled-HR@10
+    rl=[t for t in rel if (not tail or not headmask[t])]
+    if not rl: return None
+    sc=(popb+Q@u).astype(np.float64); key=(int(x),int(tail))
+    if key not in _negcache_gr:
+        rset=set(int(j) for j in rated)
+        _negcache_gr[key]=np.array([j for j in range(ni) if (j not in rset) and (True if not tail else (not headmask[j]))],dtype=np.int64)
+    pool=_negcache_gr[key]
+    if len(pool)<1: return None
+    rng=np.random.default_rng([_SAMPSEED,int(x),int(tail)]); nd=hr=0.
+    for p in rl:
+        negs=rng.choice(pool,size=min(_NNEG,len(pool)),replace=False)
+        s=sc[np.concatenate([[int(p)],negs])]; rank=1+int((s[1:]>=s[0]).sum())
+        if rank<=10: hr+=1.; nd+=1.0/np.log2(rank+1)
+    n=len(rl); return nd/n, hr/n
 def conc_answers(profset, rd):
     acc={}
     for j in profset:
@@ -74,6 +91,7 @@ def conc_answers(profset, rd):
     return {c:float(np.mean(v)) for c,v in acc.items() if len(v)>=2}
 def eval_fullprof(cohort):
     accE={(K,tl):0. for K in Ks for tl in (0,1)}; accR=dict(accE); accP=dict(accE); m=0; mt=0; npr=0
+    sE={(mm,tl):0. for mm in('nd','hr') for tl in(0,1)}; sR=dict(sE); sP=dict(sE)                # sampled-protocol accumulators (@10)
     for x in te[:NEVAL].tolist():
         if (cohort is not None and x not in cohort) or x not in SPL: continue
         rd=dict(rat_by_u[x]); test=SPL[x]; profile=[j for j in rd if j not in test]; rel=list(test)
@@ -86,17 +104,28 @@ def eval_fullprof(cohort):
             if ht:
                 accE[(K,1)]+=ndcg_at(uE,rel,excl,K,True) or 0; accR[(K,1)]+=ndcg_at(uR,rel,excl,K,True) or 0
                 accP[(K,1)]+=ndcg_at(np.zeros(D),rel,excl,K,True) or 0
+        if _SAMPLED:
+            rated=set(rd)
+            for (uu_,dd) in ((uE,sE),(uR,sR),(np.zeros(D,np.float32),sP)):
+                rf=ndcg_hr_sampled(uu_,rel,rated,x,False)
+                if rf: dd[('nd',0)]+=rf[0]; dd[('hr',0)]+=rf[1]
+                if ht:
+                    rt=ndcg_hr_sampled(uu_,rel,rated,x,True)
+                    if rt: dd[('nd',1)]+=rt[0]; dd[('hr',1)]+=rt[1]
     for d in (accE,accR,accP):
         for k in d: d[k]/=(mt if k[1]==1 else m) or 1
-    return accE,accR,accP,m,mt,npr/max(m,1)
+    for d in (sE,sR,sP):
+        for k in d: d[k]/=(mt if k[1]==1 else m) or 1
+    return accE,accR,accP,m,mt,npr/max(m,1),sE,sR,sP
 def eval_concept(selector, cohort):
     acc={(q,K,tl):0. for q in REVEALS for K in Ks for tl in (0,1)}; m=0; mt=0; ans_at={q:0. for q in REVEALS}
+    sacc={(q,mm,tl):0. for q in REVEALS for mm in('nd','hr') for tl in(0,1)}                      # sampled-protocol curve (@10)
     for x in te[:NEVAL].tolist():
         if (cohort is not None and x not in cohort) or x not in SPL: continue
         rd=dict(rat_by_u[x]); test=SPL[x]; profset=set(rd)-test; rel=list(test)
         if len(rel)<2 or len(profset)<2: continue
         rel_t=[t for t in rel if not headmask[t]]; ht=1 if rel_t else 0; m+=1; mt+=ht
-        cans=conc_answers(profset,rd)
+        cans=conc_answers(profset,rd); rated=set(rd)
         order=list(np.random.default_rng(x).permutation(nc)) if selector=='random' else CONC_ORD[selector]
         toks=[]; asked=set(); ei=0
         for t in range(max(REVEALS)+1):
@@ -117,24 +146,44 @@ def eval_concept(selector, cohort):
                     if ht:
                         vt=ndcg_at(u,rel,excl,K,True)
                         if vt is not None: acc[(t,K,1)]+=vt
+                if _SAMPLED:
+                    rf=ndcg_hr_sampled(u,rel,rated,x,False)
+                    if rf: sacc[(t,'nd',0)]+=rf[0]; sacc[(t,'hr',0)]+=rf[1]
+                    if ht:
+                        rt=ndcg_hr_sampled(u,rel,rated,x,True)
+                        if rt: sacc[(t,'nd',1)]+=rt[0]; sacc[(t,'hr',1)]+=rt[1]
     for k in acc: acc[k]/=(mt if k[2]==1 else m) or 1
+    for k in sacc: sacc[k]/=(mt if k[2]==1 else m) or 1
     for q in ans_at: ans_at[q]/=max(m,1)
-    return acc,ans_at,m,mt
+    return acc,ans_at,m,mt,sacc
 def row(tag,d): return (f"{tag:<14}| @10 full={d[(10,0)]:.4f} tail={d[(10,1)]:.4f} | @{KP} full={d[(KP,0)]:.4f} tail={d[(KP,1)]:.4f}")
 def run_cohort(name,cohort):
     print(f"\n############## COHORT: {name} ##############",flush=True)
-    accEfp,accRfp,accP,mfp,mtfp,avgprof=eval_fullprof(cohort)
+    accEfp,accRfp,accP,mfp,mtfp,avgprof,sE,sR,sP=eval_fullprof(cohort)
     print(f"-- FULL-PROFILE fold (n={mfp}, n_tail={mtfp}, avg_profile={avgprof:.1f}) --",flush=True)
     print(row("MOSTPOP(q0)",accP),flush=True); print(row("ridge",accRfp),flush=True); print(row("ENCODER",accEfp),flush=True)
     hr=accEfp[(KP,0)]-accP[(KP,0)]
     print(f">>> HEADROOM encoder full-profile - MOSTPOP: @{KP} full={hr:+.4f} tail={accEfp[(KP,1)]-accP[(KP,1)]:+.4f} @10 full={accEfp[(10,0)]-accP[(10,0)]:+.4f}",flush=True)
     print(f">>> HEADROOM ridge   full-profile - MOSTPOP: @{KP} full={accRfp[(KP,0)]-accP[(KP,0)]:+.4f}",flush=True)
+    if _SAMPLED:
+        print(f"-- SAMPLED-NEGATIVE protocol (He et al., {_NNEG} negs) full-profile fold, sNDCG@10 / sHR@10 --",flush=True)
+        print(f"  MOSTPOP(q0) | sNDCG full={sP[('nd',0)]:.4f} sHR full={sP[('hr',0)]:.4f} | sNDCG tail={sP[('nd',1)]:.4f}",flush=True)
+        print(f"  ridge       | sNDCG full={sR[('nd',0)]:.4f} sHR full={sR[('hr',0)]:.4f} | sNDCG tail={sR[('nd',1)]:.4f}",flush=True)
+        print(f"  ENCODER     | sNDCG full={sE[('nd',0)]:.4f} sHR full={sE[('hr',0)]:.4f} | sNDCG tail={sE[('nd',1)]:.4f}",flush=True)
+        _sh=sE[('nd',0)]-sP[('nd',0)]; _shhr=sE[('hr',0)]-sP[('hr',0)]
+        _hon_rel=hr/max(accP[(KP,0)],1e-9)*100; _sam_rel=_sh/max(sP[('nd',0)],1e-9)*100
+        print(f">>> SAMPLED HEADROOM encoder-MOSTPOP: sNDCG@10 full={_sh:+.4f} ({_sam_rel:+.1f}% rel) sHR@10 full={_shhr:+.4f} | vs honest @{KP} {hr:+.4f} ({_hon_rel:+.1f}% rel) | INFLATION x{_sh/max(hr,1e-9):.1f} abs",flush=True)
+        _samverd='PASS' if _sh>=0.025 else ('WEAK' if _sh>0 else 'FAIL')
+        print(f">>> SAMPLED-PROTOCOL GATE ({name}, sNDCG@10 >= +0.025): headroom {_sh:+.4f} => {_samverd}  [honest @{KP} gate was {'PASS' if hr>=0.025 else 'WEAK/FAIL'}]",flush=True)
     CRES={}
     for sel in ['random','entropy','pop']:
-        acc,ans_at,m,mt=eval_concept(sel,cohort); CRES[sel]=(acc,ans_at,m,mt)
+        acc,ans_at,m,mt,sacc=eval_concept(sel,cohort); CRES[sel]=(acc,ans_at,m,mt,sacc)
         print(f"\n-- CONCEPT selector={sel} (n={m}, n_tail={mt}); reveals {REVEALS} --",flush=True)
         for q in REVEALS:
             print(f"  q{q:<2} | @10 full={acc[(q,10,0)]:.4f} tail={acc[(q,10,1)]:.4f} | @{KP} full={acc[(q,KP,0)]:.4f} tail={acc[(q,KP,1)]:.4f} | ans_tok={ans_at[q]:.2f}",flush=True)
+            if _SAMPLED: print(f"       sampled: sNDCG@10 full={sacc[(q,'nd',0)]:.4f} sHR@10 full={sacc[(q,'hr',0)]:.4f} | sNDCG@10 tail={sacc[(q,'nd',1)]:.4f}",flush=True)
+        if _SAMPLED:
+            print(f"  SAMPLED elicit gain q8-q0: sNDCG@10 full={sacc[(8,'nd',0)]-sacc[(0,'nd',0)]:+.4f} sHR@10 full={sacc[(8,'hr',0)]-sacc[(0,'hr',0)]:+.4f} | honest @{KP} full={acc[(8,KP,0)]-acc[(0,KP,0)]:+.4f}",flush=True)
         monoK=acc[(REVEALS[-1],KP,0)]>=acc[(0,KP,0)]-3e-3; mono10=acc[(REVEALS[-1],10,0)]>=acc[(0,10,0)]-3e-3
         print(f"  monotone no-harm @10={'OK' if mono10 else 'HURTS'} @{KP}={'OK' if monoK else 'HURTS'} | "
               f"elicit gain @{KP} full q8={acc[(8,KP,0)]-acc[(0,KP,0)]:+.4f} q20={acc[(20,KP,0)]-acc[(0,KP,0)]:+.4f} "

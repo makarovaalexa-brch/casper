@@ -433,6 +433,25 @@ def metr(u,tlike,excl,tail):
     for p,t in enumerate(o):
         if int(t) in rel: mrr=1./(p+1); break
     return nd,rc,mrr
+# ===== SAMPLED-NEGATIVE PROTOCOL (He et al. NCF lineage; PROTOCOL-INFLATION study) =====
+# Each held-out positive is ranked against _NNEG uniformly-sampled UNRATED negatives (items the user never rated).
+# sampled-NDCG@10 / sampled-HR@10, macro-averaged over users. Ties: positive counted below equal negatives (>=,
+# matches eval_method_sample.py). Negatives resampled per eval-seed (base SAMPSEED, keyed by seed+user -> deterministic).
+_SAMPLED=int(os.environ.get('SAMPLED','0')); _NNEG=int(os.environ.get('NNEG','100')); _SAMPSEED=int(os.environ.get('SAMPSEED','0')); _CURSEED=int(os.environ.get('SEED','123')); _negcache={}
+def metr_sampled(u,tlike,x,tail):
+    rel=[t for t in tlike if (not tail or not headmask[t])]
+    if not rel: return None
+    s=(popb+Ql@u); rated=set(j for j,_ in rat_by_u[x]); key=(x,tail)
+    if key not in _negcache:                                                       # unrated-item pool (seed-independent); full-cat or tail-only
+        _negcache[key]=np.array([j for j in range(ni) if (j not in rated) and (True if not tail else (not headmask[j]))],dtype=np.int64)
+    negpool=_negcache[key]
+    if len(negpool)<1: return None
+    rng=np.random.default_rng([_SAMPSEED,_CURSEED,int(x)]); nd=hr=0.
+    for p in rel:
+        negs=rng.choice(negpool,size=min(_NNEG,len(negpool)),replace=False)
+        sc=s[np.concatenate([[int(p)],negs])]; rank=1+int((sc[1:]>=sc[0]).sum())    # 1-based rank of the positive among 1+NNEG candidates
+        if rank<=10: hr+=1.; nd+=1.0/np.log2(rank+1)                                # single relevant -> IDCG=1 -> NDCG=1/log2(rank+1)
+    n=len(rel); return nd/n, hr/n
 _rs=np.random.default_rng(int(os.environ.get('SEED',123))); SPL={}                # SEED env => vary the test profile-split (for seed-averaging the result)
 for x in te:
     its=list(dict(rat_by_u[x]))
@@ -442,6 +461,7 @@ TE=(_tsel[:150]+_tsel[400:]) if _tr=='clean' else (_tsel if _tr=='all' else _tse
 print(f"TEST set: TESTRANGE={_tr} -> {len(TE)} users",flush=True)
 def run(mode,tail):
     M={q:0. for q in QPTS};Rc={q:0. for q in QPTS};CO={q:0. for q in QPTS};MR={q:0. for q in QPTS};m=0;na=0.;ni_=0;nc_=0;novp_=0;FP=[];ALLSEQ=[];TREEROWS=[]
+    SND={q:0. for q in QPTS};SHR={q:0. for q in QPTS};SM={q:0 for q in QPTS}          # sampled-protocol accumulators (NDCG@10, HR@10, user-count)
     for x in TE:
         profset,test=SPL[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in test if rd[j]>=4); held={j:rd[j] for j in test}
         if not tlike or (tail and not any(not headmask[t] for t in tlike)): continue
@@ -555,6 +575,9 @@ def run(mode,tail):
                         if cc in cans: toks.append((Ec[cc],cans[cc])); nans+=1; nc_+=1
             uu=enc_u_np(toks); mt=metr(uu,tlike,profset,tail)
             if mt: M[q]+=mt[0];Rc[q]+=mt[1];MR[q]+=mt[2]
+            if _SAMPLED:                                                        # PROTOCOL-INFLATION: same belief uu, sampled-negative ranking on the SAME held positives
+                _srr=metr_sampled(uu,tlike,x,tail)
+                if _srr: SND[q]+=_srr[0];SHR[q]+=_srr[1];SM[q]+=1
             CO[q]+=float(uu@ustar/((np.linalg.norm(uu)+1e-9)*un))             # cos(belief, known user u*)
         m+=1; na+=nans
         if first is not None: FP.append(first)
@@ -569,13 +592,15 @@ def run(mode,tail):
         extra+=f"\n     ADAPT: distinct-pick/turn {dt} | top-pick-share/turn {share} | distinct-traj {len(set(tuple(s) for s in ALLSEQ))}/{len(ALLSEQ)} | total-vocab {len(set(k for s in ALLSEQ for k in s))}"
     if mode=='policy' and os.environ.get('TREE'):
         import json; json.dump(TREEROWS, open(f'{base}/.cache/tree_{os.environ.get("TAG","x")}.json','w')); print(f"  TREE dumped: {len(TREEROWS)} user paths -> tree_{os.environ.get('TAG','x')}.json",flush=True)
-    return {q:M[q]/m for q in M},{q:Rc[q]/m for q in Rc},{q:MR[q]/m for q in MR},na/m,extra,{q:CO[q]/m for q in CO}
+    return {q:M[q]/m for q in M},{q:Rc[q]/m for q in Rc},{q:MR[q]/m for q in MR},na/m,extra,{q:CO[q]/m for q in CO},{q:(SND[q]/SM[q] if SM[q] else 0.) for q in QPTS},{q:(SHR[q]/SM[q] if SM[q] else 0.) for q in QPTS}
 if os.environ.get('EVALCKS'):                                                  # EFFICIENT eval-all: data loaded ONCE, score entropy+conc_pop + a list of checkpoints on the PAPER test set, ACROSS SEEDS. EVALCKS=tag1,tag2,... EVALSEEDS=123,1,2,3,7,11 -> seed-averaged per-epoch grid (CSV). RESID levers need RESID=1 in this env.
     _seeds=[int(s) for s in os.environ.get('EVALSEEDS',str(os.environ.get('SEED','123'))).split(',')]
     _tags=[t for t in os.environ['EVALCKS'].split(',') if t]; _csv=os.environ.get('EVALCSV',f'{base}/.cache/evalcks_grid.csv')
     print(f"=== EVALCKS seeds={_seeds} TESTRANGE={_tr} | NDCG@10 FULL/TAIL @ {QPTS} -> {_csv} ===",flush=True)
     _cf=open(_csv,'a')
+    if _SAMPLED: _cf.write("# SAMPLED cols appended: sNDCG_full,sHR_full,sNDCG_tail,sHR_tail (He-et-al NNEG="+str(_NNEG)+")\n")
     for _sd in _seeds:
+        _CURSEED=_sd                                                            # sampled-negative rng resampled per eval-seed
         _rsd=np.random.default_rng(_sd); SPL={}                                # rebuild the profile-split for this seed (== the seed-averaging protocol)
         for x in te:
             its=list(dict(rat_by_u[x]))
@@ -591,13 +616,13 @@ if os.environ.get('EVALCKS'):                                                  #
             else: _md=_nm
             try: _rf=run(_md,False); _rt=run(_md,True)
             except Exception as _e: print(f"  seed{_sd} {_nm:>24}: EVALERR {type(_e).__name__}",flush=True); continue
-            Mp,Rcp,MRp,_naf,_,COp=_rf; Mt,Rct,MRt=_rt[0],_rt[1],_rt[2]            # full run -> mrr_full + belief-cos (mask-independent); tail run -> tail NDCG/Rec/mrr
-            print(f"  seed{_sd} {_nm:>24}: FULL "+" ".join(f"{Mp[q]:.3f}" for q in QPTS)+" | TAIL "+" ".join(f"{Mt[q]:.3f}" for q in QPTS),flush=True)
-            for q in QPTS: _cf.write(f"{_sd},{_nm},{q},{Mp[q]:.4f},{Mt[q]:.4f},{Rcp[q]:.4f},{Rct[q]:.4f},{MRp[q]:.4f},{MRt[q]:.4f},{COp[q]:.4f},{_naf:.2f}\n")
+            Mp,Rcp,MRp,_naf,_,COp,SNf,SHf=_rf; Mt,Rct,MRt,SNt,SHt=_rt[0],_rt[1],_rt[2],_rt[6],_rt[7]   # full run -> +sampled full ; tail run -> tail NDCG/Rec/mrr + sampled tail
+            print(f"  seed{_sd} {_nm:>24}: FULL "+" ".join(f"{Mp[q]:.3f}" for q in QPTS)+" | TAIL "+" ".join(f"{Mt[q]:.3f}" for q in QPTS)+(" | sFULL "+" ".join(f"{SNf[q]:.3f}" for q in QPTS) if _SAMPLED else ""),flush=True)
+            for q in QPTS: _cf.write(f"{_sd},{_nm},{q},{Mp[q]:.4f},{Mt[q]:.4f},{Rcp[q]:.4f},{Rct[q]:.4f},{MRp[q]:.4f},{MRt[q]:.4f},{COp[q]:.4f},{_naf:.2f}"+(f",{SNf[q]:.4f},{SHf[q]:.4f},{SNt[q]:.4f},{SHt[q]:.4f}" if _SAMPLED else "")+"\n")
             _cf.flush()
     _cf.close(); import sys; sys.exit(0)
 for tail in [False,True]:
     print(f"\n=== {'FULL (MAIN)' if not tail else 'TAIL'} | popularity-aware scorer | NDCG@10 / Rec@50 / ans ===",flush=True)
     for mode in os.environ.get('MODES','pop_item,conc_pop,policy').split(','):
-        Mp,Rcp,MRp,na,extra,_CO=run(mode,tail); print(f"  {mode:<9}: NDCG "+" ".join(f"{Mp[q]:.3f}" for q in QPTS)+" | Rec "+" ".join(f"{Rcp[q]:.3f}" for q in QPTS)+" | MRR "+" ".join(f"{MRp[q]:.3f}" for q in QPTS)+f" | ans/{T}={na:.1f}{extra}",flush=True)
+        Mp,Rcp,MRp,na,extra,_CO,SNf,SHf=run(mode,tail); print(f"  {mode:<9}: NDCG "+" ".join(f"{Mp[q]:.3f}" for q in QPTS)+" | Rec "+" ".join(f"{Rcp[q]:.3f}" for q in QPTS)+" | MRR "+" ".join(f"{MRp[q]:.3f}" for q in QPTS)+f" | ans/{T}={na:.1f}{extra}"+(" | sNDCG "+" ".join(f"{SNf[q]:.3f}" for q in QPTS)+" sHR "+" ".join(f"{SHf[q]:.3f}" for q in QPTS) if _SAMPLED else ""),flush=True)
     print(f"  GATE: policy must beat conc_pop @q8 (full+tail)",flush=True)
