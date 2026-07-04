@@ -264,6 +264,156 @@ def toks2t(toks):                                                             # 
     arr=np.zeros((1,len(toks),D+1),np.float32); m=np.ones((1,len(toks)),np.float32)
     for q,(f,v) in enumerate(toks): arr[0,q,:D]=f; arr[0,q,D]=v
     return torch.tensor(arr),torch.tensor(m)
+if os.environ.get('UNCSTOP'):                                                  # EXP#8: uncertainty ensemble (answer-subset bootstrap fold) + adaptive stopping. Env-gated; entropy baseline + D1 actor; te[300:], graded, seed-avg. Dumps JSON for the result MD.
+    import sys, json
+    try: from scipy.stats import spearmanr; _HASSCI=True
+    except Exception: _HASSCI=False
+    def _spear(a,b):
+        a=np.asarray(a,float); b=np.asarray(b,float); mask=~(np.isnan(a)|np.isnan(b)); a=a[mask]; b=b[mask]
+        if len(a)<3: return float('nan'),float('nan')
+        if _HASSCI: rho,p=spearmanr(a,b); return float(rho),float(p)
+        ar=np.argsort(np.argsort(a)).astype(float); br=np.argsort(np.argsort(b)).astype(float)   # rank fallback
+        return float(np.corrcoef(ar,br)[0,1]),float('nan')
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3,7,11').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    K=int(os.environ.get('KENS','8')); _ack=os.environ.get('ACTORCK',f'{base}/.cache/policy_phase3_d1divw_last.pt')
+    MASKMODE=bool(os.environ.get('UNCMASK')); MASKP=float(os.environ.get('UNCMASKP','0.35'))     # UNCMASK=1 -> dropout-style token masking instead of bootstrap (the ONE alternative if bootstrap degenerate)
+    POLS=os.environ.get('UNCPOLS','entropy,actor').split(',')
+    outdir='C:/dev/phd/casper/experiments/paper2'; _jout=f'{outdir}/uncertainty_stopping_data.json'
+    def answer(uf,emb):                                                        # graded geometric answer (Paper C setting), along the query direction
+        nf=np.linalg.norm(uf)+1e-9; e=emb/(np.linalg.norm(emb)+1e-9); cf=float(uf@e)/nf; return float(NEG+(POS-NEG)*(cf+1)/2)
+    def ndft(u,seen,tlike,relt):                                               # NDCG@10 full+tail (identical ruler to COMPARE4/QCURVE)
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[p] for p,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[p] for p,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    def ens_unc(toks_t,rng_e):                                                 # -> (embedding pairwise-(1-cos), top50 pairwise-(1-Jaccard)) uncertainty over K fold variants
+        t=len(toks_t)
+        if t<=1: return 2.0,1.0                                                # one token: belief maximally under-determined -> sentinel max (never stop at q1)
+        if MASKMODE:
+            subs=[]
+            for _ in range(K):
+                keep=[i for i in range(t) if rng_e.random()>MASKP]
+                if not keep: keep=[int(rng_e.integers(0,t))]
+                subs.append(keep)
+        elif t>=3: subs=[list(rng_e.integers(0,t,size=t)) for _ in range(K)]   # answer-subset bootstrap (resample answered tokens w/ replacement)
+        else: subs=[[j for j in range(t) if j!=i] for i in range(t)]           # t==2 -> leave-one-out
+        revs=[[toks_t[i] for i in sub] for sub in subs]; folds=enc_batch_np(revs); n=len(folds)
+        nrm=np.linalg.norm(folds,axis=1)+1e-9; top=[set(np.argsort(-(popb+Ql@f))[:50].tolist()) for f in folds]
+        cs=[]; js=[]
+        for a in range(n):
+            for b in range(a+1,n):
+                cs.append(1.0-float(folds[a]@folds[b])/(nrm[a]*nrm[b]))
+                inter=len(top[a]&top[b]); uni=len(top[a]|top[b]); js.append(1.0-inter/max(uni,1))
+        return (float(np.mean(cs)) if cs else 2.0),(float(np.mean(js)) if js else 1.0)
+    def roll_instance(policy,x,half,held,rd,rng_e):
+        tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+        cans=cans_np(x,half)
+        if not tlike or not cans: return None
+        uf=enc_u_np([(Q[j],resid[x][j]) for j in half])                        # profile taste -> graded answers
+        toks=[]; sel=sorted(cans.keys(),key=lambda c:-_entc_raw[c])[:8] if policy=='entropy' else None
+        rec=[]
+        for t in range(8):
+            if policy=='actor':
+                qv=actor(torch.tensor(enc_u_np(toks)[None],dtype=torch.float32),t/8.).detach().numpy()[0]
+                qn=qv/(np.linalg.norm(qv)+1e-9); fe=(qn*_CN).astype(np.float32); toks.append((fe,answer(uf,fe)))
+            else:
+                if t<len(sel): c=sel[t]; toks.append((Ec[c],answer(uf,Ec[c])))  # else: pool exhausted -> belief unchanged (pad)
+            u_t=enc_u_np(toks); uc,uj=ens_unc(toks,rng_e); f,tl=ndft(u_t,half,tlike,relt)
+            rec.append((uc,uj,float(f),(None if tl is None else float(tl))))
+        return rec,(len(relt)>0)
+    DATA={}
+    print(f"=== UNCSTOP (K={K}{' MASK p=%.2f'%MASKP if MASKMODE else ' bootstrap'}, seed-avg {seeds}, te[300:], graded) pols={POLS} ===",flush=True)
+    for policy in POLS:
+        if policy=='actor': load_ck(_ack); actor.eval()
+        insts=[]
+        for sd in seeds:
+            r=np.random.default_rng(sd); rng_e=np.random.default_rng(9000+sd); SP={}
+            for x in te:
+                its=list(dict(rat_by_u[x]))
+                if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+            VU=[x for x in te if x in SP][300:]
+            for x in VU:
+                half,held=SP[x]; out=roll_instance(policy,x,half,held,dict(rat_by_u[x]),rng_e)
+                if out is not None: insts.append({'rec':out[0],'hastail':out[1]})
+        DATA[policy]=insts; print(f"  {policy}: {len(insts)} instances",flush=True)
+    # ---------- analysis ----------
+    def col(insts,t,ki): return [it['rec'][t][ki] for it in insts]
+    def col_tail(insts,t): return [(it['rec'][t][3]) for it in insts if it['hastail'] and it['rec'][t][3] is not None]
+    RESULT={'meta':{'seeds':seeds,'K':K,'mask':MASKMODE,'maskp':MASKP,'actorck':os.path.basename(_ack),'pols':POLS}}
+    for policy in POLS:
+        insts=DATA[policy]; R={'n':len(insts)}
+        # PART2: calibration at q8 (index 7)
+        unc8=col(insts,7,0); uj8=col(insts,7,1); f8=col(insts,7,2)
+        tmask=[i for i,it in enumerate(insts) if it['hastail'] and it['rec'][7][3] is not None]
+        unc8t=[unc8[i] for i in tmask]; t8=[insts[i]['rec'][7][3] for i in tmask]
+        rF,pF=_spear(unc8,f8); rT,pT=_spear(unc8t,t8); rJ,pJ=_spear(uj8,f8)
+        R['calib']={'spearman_full':rF,'p_full':pF,'spearman_tail':rT,'p_tail':pT,'spearman_full_jac':rJ,'p_full_jac':pJ,'n_tail':len(tmask)}
+        # reliability deciles (by cos uncertainty at q8)
+        order=np.argsort(unc8); dec=[]
+        for d in range(10):
+            idx=order[d*len(order)//10:(d+1)*len(order)//10]
+            dec.append({'unc':float(np.mean([unc8[i] for i in idx])),'ndcg_full':float(np.mean([f8[i] for i in idx])),
+                        'ndcg_tail':float(np.mean([insts[i]['rec'][7][3] for i in idx if insts[i]['hastail'] and insts[i]['rec'][7][3] is not None]) if any(insts[i]['hastail'] and insts[i]['rec'][7][3] is not None for i in idx) else float('nan')),'m':len(idx)})
+        R['deciles']=dec
+        # trajectory: mean uncertainty per turn + per-instance decrease-rate heterogeneity
+        uncbar=[float(np.mean(col(insts,t,0))) for t in range(8)]; ujbar=[float(np.mean(col(insts,t,1))) for t in range(8)]
+        slopes=[it['rec'][1][0]-it['rec'][7][0] for it in insts]                # unc(q2)-unc(q8): total decrease per instance (q1 sentinel excluded)
+        R['trajectory']={'unc_mean_per_turn':uncbar,'jac_mean_per_turn':ujbar,'monotone':all(uncbar[t+1]<=uncbar[t]+1e-9 for t in range(1,7)),
+                         'decrease_q2q8_mean':float(np.mean(slopes)),'decrease_q2q8_std':float(np.std(slopes)),
+                         'decrease_q2q8_q25':float(np.percentile(slopes,25)),'decrease_q2q8_q75':float(np.percentile(slopes,75))}
+        # PART3: stopping frontier
+        def stop_pt(tau,ki=0):
+            qs=[];fs=[];ts=[]
+            for it in insts:
+                rec=it['rec']; stop=8
+                for t in range(8):
+                    if rec[t][ki]<tau: stop=t+1; break
+                qs.append(stop); fs.append(rec[stop-1][2])
+                if it['hastail'] and rec[stop-1][3] is not None: ts.append(rec[stop-1][3])
+            return float(np.mean(qs)),float(np.mean(fs)),(float(np.mean(ts)) if ts else float('nan')),qs
+        umax=max(max(col(insts,t,0)) for t in range(1,8)); taus=list(np.linspace(0.0,umax*1.02,40))
+        front=[]
+        for tau in taus:
+            mq,mf,mt,qs=stop_pt(tau); front.append({'tau':float(tau),'mean_q':mq,'ndcg_full':mf,'ndcg_tail':mt})
+        R['frontier_adaptive']=front
+        # fixed-length curve q=1..8
+        fixed=[]
+        for q in range(1,9):
+            ff=float(np.mean(col(insts,q-1,2))); tt=col_tail(insts,q-1); fixed.append({'q':q,'ndcg_full':ff,'ndcg_tail':(float(np.mean(tt)) if tt else float('nan'))})
+        R['fixed']=fixed
+        # random-stopping control + oracle-stopping (L3), reported at a few adaptive operating points
+        rr=np.random.default_rng(0)
+        def rand_ctrl(qs,nsh=25):
+            arr=np.array(qs); accF=[];accT=[]
+            for _ in range(nsh):
+                perm=rr.permutation(arr)
+                accF.append(np.mean([insts[i]['rec'][perm[i]-1][2] for i in range(len(insts))]))
+                tv=[insts[i]['rec'][perm[i]-1][3] for i in range(len(insts)) if insts[i]['hastail'] and insts[i]['rec'][perm[i]-1][3] is not None]
+                accT.append(np.mean(tv) if tv else np.nan)
+            return float(np.mean(accF)),float(np.nanmean(accT))
+        # oracle: per-instance best turn by full NDCG (peeks) = upper bound
+        oqs=[];ofs=[];ots=[]
+        for it in insts:
+            fv=[it['rec'][t][2] for t in range(8)]; bt=int(np.argmax(fv)); oqs.append(bt+1); ofs.append(fv[bt])
+            if it['hastail'] and it['rec'][bt][3] is not None: ots.append(it['rec'][bt][3])
+        R['oracle_L3']={'mean_q':float(np.mean(oqs)),'ndcg_full':float(np.mean(ofs)),'ndcg_tail':(float(np.mean(ots)) if ots else float('nan'))}
+        # matched-accuracy operating points: for each fixed budget target, find adaptive tau matching its full-NDCG with min mean_q
+        A8=fixed[7]['ndcg_full']; ops=[]
+        for tgt_q,tgt in [(8,fixed[7]['ndcg_full']),(6,fixed[5]['ndcg_full']),(4,fixed[3]['ndcg_full'])]:
+            best=None
+            for fp in front:
+                if fp['ndcg_full']>=tgt-0.0003:
+                    if best is None or fp['mean_q']<best['mean_q']: best=fp
+            if best is not None:
+                rf,rt=rand_ctrl(stop_pt(best['tau'])[3])
+                ops.append({'target_fixed_q':tgt_q,'target_ndcg_full':tgt,'adaptive_mean_q':best['mean_q'],'adaptive_ndcg_full':best['ndcg_full'],'adaptive_ndcg_tail':best['ndcg_tail'],'random_same_len_full':rf,'random_same_len_tail':rt,'tau':best['tau']})
+        R['matched_ops']=ops
+        RESULT[policy]=R
+        print(f"  [{policy}] q8 Spearman(unc,ndcg_full)={rF:+.3f}(p={pF:.1e}) tail={rT:+.3f} | traj monotone={R['trajectory']['monotone']} unc q2->q8 {uncbar[1]:.3f}->{uncbar[7]:.3f} | oracle_q={R['oracle_L3']['mean_q']:.2f}",flush=True)
+        for op in ops: print(f"    match fixed-q{op['target_fixed_q']} ({op['target_ndcg_full']:.4f}) @ adaptive mean {op['adaptive_mean_q']:.2f}q (adaptive {op['adaptive_ndcg_full']:.4f} vs random-same-len {op['random_same_len_full']:.4f})",flush=True)
+    with open(_jout,'w') as fh: json.dump(RESULT,fh,indent=1)
+    print(f"wrote {_jout}",flush=True); sys.exit(0)
 # ===== #3: CONTINUOUS DIVISIVENESS FIELD (entropy/divisiveness is a property of the DIRECTION, computed EXACTLY from the
 # train-user taste distribution -> reproduces POOL_ENT at concept points; smooth+differentiable everywhere off-manifold) =====
 _DIVW=float(os.environ.get('DIVW','0')); _DTAU=float(os.environ.get('DTAU','2.0')); _DIVH=[torch.zeros(1)]
