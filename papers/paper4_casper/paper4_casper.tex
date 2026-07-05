@@ -217,7 +217,9 @@ quantitative signature of the bandwidth argument.
 \section{Question framing is a head/tail lever}
 \label{sec:framing}
 The recall heuristic is a proxy for the \emph{wording} of the open question, and Table~\ref{tab:kcurve} shows the
-wording controls where the elicited signal lands on the popularity spectrum.
+wording controls where the elicited signal lands on the popularity spectrum. Figure~\ref{fig:framing_lever} confirms
+the lever directly on an LLM-simulated user: swapping one word shifts the named title $-33$ percentile points toward
+the tail.
 
 \begin{itemize}
   \item \textbf{``Name a favourite movie''} $\to$ users recall \emph{popular} titles (\texttt{popweight}/\texttt{poppop}).
@@ -227,6 +229,19 @@ wording controls where the elicited signal lands on the popularity spectrum.
   (\texttt{distinct}). Far stronger on the tail ($0.193$ vs.\ $0.133$ at $K{=}2$) because a niche favourite is
   diagnostic of exactly the long-tail preferences the head-popularity prior cannot supply.
 \end{itemize}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{figs/fig_framing_lever.pdf}
+\caption{\textbf{The framing lever, measured on an LLM-simulated user.} Popularity percentile of the movie a
+\texttt{gpt-4o-mini} user names when asked, in identical context, ``name a movie you love'' (blue) vs.\ ``name a
+hidden gem you love'' (orange). One English word moves the recalled title a \textbf{paired $-33$ percentile points
+toward the long tail} ($n{=}181$ users, Wilcoxon $p\!\approx\!0$; medians $99\!\to\!71$): ``love'' recalls the head
+(\emph{The Matrix}, \emph{Back to the Future}); ``hidden gem'' recalls the tail (\emph{Paris, Texas}, \emph{Carnival of
+Souls}). The lever the model assumes is real in a stand-in user, and it is a single-phrase design knob---exactly the
+head/tail control this section claims.}
+\label{fig:framing_lever}
+\end{figure}
 
 This is a genuinely useful and, to our knowledge, novel control surface: the same open-recall protocol spans the
 head/tail trade-off by changing a single English phrase, with no change to the model or budget. It also predicts the

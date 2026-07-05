@@ -2,6 +2,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \usepackage{array}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
@@ -20,7 +21,8 @@
 \newcommand{\Amat}{\mathbf{A}}
 \newcommand{\W}{\mathbf{W}}
 \newcommand{\I}{\mathbf{I}}
-\title{\textbf{CASPER--U: A Unified-Embedding Instrument for\\Conversational Preference Elicitation}\\[4pt]\large An extended technical report / thesis chapter}
+% Former working title: CASPER--U: A Unified-Embedding Instrument for Conversational Preference Elicitation
+\title{\textbf{Are We Measuring Elicitation---or Our Instruments?\\A Replication-First Testbed for Conversational Preference Elicitation}\\[4pt]\large An extended technical report / thesis chapter}
 \author{}
 \date{June 2026}
 
@@ -298,10 +300,30 @@ revealed); standard NDCG@10 $=$ DCG@10/IDCG@10 and Recall@10 (the lead elicitati
 blockbuster-saturated, \S\ref{sec:law}); RMSE as a calibration gate only. External anchor: MOSTPOP NDCG@10
 $\approx 0.39$--$0.41$ (matches DRE 2020). Every hyperparameter is tuned on validation and reported on test.
 
-\subsection{Why this ruler}\label{sec:whyruler}
-A measurement instrument is only as trustworthy as the protocol it reports on, and several conventions common in the
-elicitation and conversational-recommendation literature systematically hide the very effect we want to isolate. We fix
-the choices in Table~\ref{tab:whyruler} deliberately, each against a specific failure mode. \emph{(i) Small candidate
+\subsection{Why this ruler: seven checks any elicitation evaluation should pass}\label{sec:whyruler}
+A measurement instrument is only as trustworthy as the protocol it reports on. From reconciling three literatures on one
+ruler we distilled \textbf{seven checks any elicitation evaluation should pass}; each is a positive design rule, and
+next to each we give the one-line receipt---the concrete number, on our own data, that fails the check when it is
+skipped:
+\begin{enumerate}\itemsep1.5pt
+  \item \textbf{Rank against the full catalogue, not a sampled pool.} \emph{Receipt:} a 100-sampled-negative protocol
+  inflates MOSTPOP from NDCG@10 $0.41$ to $0.88$ on the same model, and reorders the elicitation baselines
+  (Fig.~\ref{fig:inflation}).
+  \item \textbf{Score ranking, not rating error.} \emph{Receipt:} RMSE is near-blind to the top-$K$ effects elicitation
+  moves; we keep it only as a calibration gate.
+  \item \textbf{Vary only the selector.} \emph{Receipt:} whole-system CRS scoring confounds the policy with recommender
+  and NLG quality; we hold recommender/simulator/pool fixed.
+  \item \textbf{Rank the whole catalogue, not a pre-filtered shortlist.} \emph{Receipt:} a 100-item shortlist ranker
+  inherits the same compressed floor as sampled negatives.
+  \item \textbf{Name your instrument.} \emph{Receipt:} on identical data a linear fold shows $+0.014$ headroom / tail
+  $0$, the V1 neural encoder $+0.057$ / tail $0.15$---``saturated'' is a statement about the instrument, not the data.
+  \item \textbf{Match metric depth to catalogue fraction, not a fixed $K$.} \emph{Receipt:} $K{=}10$ on $18{,}430$ items
+  is ${\sim}5\times$ stricter than on ML-1M and forces tail@10 to zero; the fraction-matched depth is $K{=}50$.
+  \item \textbf{Split by user, not by activity.} \emph{Receipt:} a heavy-rater subsample yields only $+0.006$ headroom
+  vs.\ $+0.057$ on a standard by-user split---convenience sampling manufactures the saturation it then reports.
+\end{enumerate}
+We fix the choices in Table~\ref{tab:whyruler} to satisfy exactly these checks; the rest of this subsection gives each
+its receipt in full. \emph{(i) Small candidate
 pools.} Ranking each positive against a handful of sampled negatives (e.g.\ a pool of $100$) compresses the achievable
 range and lifts the floor so far that differences between methods fall below noise and become unmeasurable: switching the
 \emph{identical} model from full-catalogue to a $100$-sampled-negative protocol inflates MOSTPOP from NDCG@10 $0.41$ to
@@ -339,11 +361,24 @@ metric depth & fixed $K$ across catalogues: $\sim$5$\times$ stricter, tail $0$ &
 cohort sampling & heavy-rater subsample: popularity-typical ($+0.006$) & standard by-user split ($+0.057$)\\
 \bottomrule
 \end{tabular}
-\caption{Why this ruler. Each protocol choice guards against a way that prevailing evaluation conventions hide the
-elicitation effect, letting differences between selectors be attributed to the selector rather than to pool size, metric
-family, system scope, or calibration.}
+\caption{Why this ruler---the seven checks made concrete. Each protocol choice satisfies one of the checks above,
+letting differences between selectors be attributed to the selector rather than to pool size, metric family, system
+scope, or calibration.}
 \label{tab:whyruler}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figs/fig_protocol_inflation.pdf}
+\caption{\textbf{Same data, two verdicts (check 1).} Holding the recommender, instrument, users and checkpoints fixed
+and switching \emph{only} the ranking protocol from our honest full catalogue to the field-standard $100$-sampled-
+negative metric (ML-1M elicitation harness, seed-avg $\{1,2,3,7,11\}$, $q{=}8$, graded). \emph{Left:} sampled negatives
+inflate every method's absolute NDCG@10 by $\times1.16$--$1.28$, so a weak arena reads as healthy. \emph{Right:} the
+same protocol \emph{reorders} the elicitation baselines---under the honest ruler the entropy (divisiveness) selector
+beats the popularity heuristic on all five seeds, and under sampled negatives popularity overtakes entropy on all five.
+The elicitation-specific instantiation of Krichene \& Rendle~\cite{kr20}; source data in the protocol-inflation study.}
+\label{fig:inflation}
+\end{figure}
 
 \paragraph{Three of these choices are sharpened by a cross-dataset stress test (MovieLens-25M).} Porting the ruler to
 full MovieLens-25M ($162{,}541$ users, $18{,}430$ items) exposed the last three rows as decision points that flip the

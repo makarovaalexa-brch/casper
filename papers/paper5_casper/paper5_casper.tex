@@ -219,9 +219,20 @@ one taste axis the signed blend shares, ask from the pole the signs indicate, do
 genome tags from the pool). This turns raw, clunky descriptors into natural questions --- e.g.\ the compound
 \texttt{chase\,+\,good} becomes \emph{``Do you enjoy exciting chase scenes where the good guys win?''}, and the blend
 \texttt{$-$paranoid $-$screwball $-$post-apocalyptic} becomes \emph{``Do you prefer something grounded and realistic
-rather than surreal?''}. Failure modes are legible: a blend of non-collinear phrases (\texttt{$-$feel-good
-$-$animation $-$erotic}) has no faithful single question, and a naive tag-concatenating LLM produces obvious nonsense
---- a useful signal to fall back to the dominant concept.
+rather than surreal?''}.
+
+\emph{Why synthesis and not enumeration.} The alternative --- literally listing the blend's descriptors --- reliably
+produces nonsense, because a signed blend is a geometric \emph{direction}, not a checklist. On the real query
+\texttt{+0.63\,[death\,+\,independent film]}, \texttt{+0.37\,[jane austen]}, \texttt{+0.25\,[cartoon, animals, animation]},
+a naive tag-concatenating prompt asks \emph{``Do you prefer movies that explore themes of death in independent films,
+adaptations of Jane Austen's works, or animated cartoons featuring animals?''} --- three unrelated genres welded into
+one unanswerable question. The axis-synthesis prompt instead reads the dominant pole and asks \emph{``Do you prefer
+serious independent films that tackle themes of death over lighthearted cartoons?''}, discarding the incoherent minor
+terms.\footnote{Enumeration degrades ungracefully: the non-collinear blend \texttt{$-$feel-good $-$animation $-$erotic},
+concatenated literally, yields the memorably unusable \emph{``heartwarming animated animal erotica.''} We synthesise the
+axis; we do not enumerate.} Failure modes are thus legible and self-signalling: when the top phrases share no axis
+(\S\ref{sec:tri}, $\sim$10\% of triples), there is no faithful single question and the agent falls back to the dominant
+concept.
 
 \paragraph{Cost.} Rendering is cheap (one short call per turn). On a 300-query benchmark the full cheap$\to$top sweep
 (gpt-4.1-mini \$0.04, gpt-5 \$0.17, gpt-5.5 \$0.61; Anthropic Haiku/Sonnet/Opus \$0.09/\$0.35/\$1.72; July 2026 prices)
