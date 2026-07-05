@@ -287,3 +287,15 @@ retitle Paper C to the fidelity/boundary framing (e.g. "Answer Fidelity Governs 
 Mapping the Boundary Between Continuous and Askable Questions"); the poetic phrase may survive ONLY as the
 section title of the un-askability/clean-regime mechanism study, where it IS cleanly derived (realization
 caps, snap-loss under the stated oracle model).
+
+
+## 11. WORST-CASE DEPLOYMENT ANSWER (no answerability knowledge, no open questions) — viva prep
+(1) Constraint is softer than stated: any trained recommender implies logs implies popularity/coverage =
+free population-answerability priors. (2) Measured floor with nothing per-user: ~4 BROAD concept questions
+(answerable by semantic breadth, not statistics; saturation at rank ~2-4 = ~4 questions), graded answers
+where UI allows, repeat-probing under noise. (3) Beyond the floor: COARSE-TO-FINE ADAPTIVE DESCENT driven
+by refusals (each answer/refusal updates taste AND answerability; descend granularity only where user shows
+knowledge) — the one adaptivity channel no static design can imitate, and structurally always present.
+Evidence status: floor = measured (saturation, concept answerability, repeat-probing, refusals-as-evidence);
+the full coarse-to-fine questioner = PREDICTED design, never built — state as the thesis-implied design +
+future work, clearly labeled. (Connects: parked channel-failure routing demo; B answerability; rank law.)
