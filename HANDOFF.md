@@ -92,3 +92,20 @@ still stands on §3 inventory. "Too big before Oct 2" → A+C ship regardless; a
 the generalized margin + heterogeneity scaling, bootstrapped. "You changed your thesis again" → no: this IS
 the original CASPER goal (deployable adaptive elicitation), reached by eliminating what doesn't work —
 document the elimination path as the contribution it is.
+
+
+## 6. LITERATURE CORRECTION (2026-07-06, user challenge: "surely shown before?")
+YES — Golbandi/Koren 2011 ternary interview trees (like/dislike/UNKNOWN branch = refusals as evidence)
+beat static seed lists on real Netflix ratings: adaptive-beats-static WAS shown, honestly, on the ITEM
+channel, 15 years ago. We under-read it (filed as "static seeds"; replicated his curves in June; our own
+reimplementation had his tree LOSING to static — flagged, never resolved = an ignored clue our harness
+lacked the surprise channels his method feeds on). CONSEQUENCES:
+(a) NOVELTY CLAIM (humbled, corrected): first honest adaptivity test across the FULL MODERN CHANNEL SET
+(multi-granularity concepts, pairs, sliders, continuous, open recall) on a SOTA instrument with FITTED
+answer channels — "the classical era tested adaptivity honestly on one channel; the neural era gained
+channels and lost the honest test; we restore it." Cite Golbandi as the ancestor of §12 descent.
+(b) A2 MUST include a faithful Golbandi-style ternary tree baseline; the arena owes an explanation of our
+June reversed replication (if the arena is right, his tree should beat statics there = validates both).
+(c) VERIFY (targeted lit check before print): exact Golbandi margins/protocol; any post-2011 multi-channel
+adaptive elicitation under realistic answers (interview/bootstrapping lineage, Sepliarskaia et al?, Elahi
+survey descendants) — if something closer exists, narrow the claim again.
