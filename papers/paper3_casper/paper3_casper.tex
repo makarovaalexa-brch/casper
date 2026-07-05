@@ -59,7 +59,16 @@ recommender's latent space is itself without published precedent). The claims do
 instrument; they \emph{sharpen}: continuous beats discrete by $+0.046$ full / $+0.062$ tail, the graded/binary gap widens
 into a cliff ($0.491$ vs.\ $0.117$), and the snap-loss grows ${\sim}4\times$ to $-0.147/-0.133$---the off-manifold prize
 \emph{grows} with instrument strength. Only adaptivity shrinks (significant on the head, a tie on the tail), exactly as
-the linear-Gaussian argument predicts for a stronger, more linear recommender.
+the linear-Gaussian argument predicts for a stronger, more linear recommender. All of this holds \emph{under
+high-fidelity graded answers}; our sharpest scoping result charts the boundary where it does not. Fitting the real ML-1M
+answer law ($\mathrm{corr}(s,\text{rating})=0.516$, $1.9$-bit conditional entropy) and sampling noisy $5$-level replies
+\emph{inverts} the ordering: the continuous actor collapses ($0.491\!\to\!0.150$, recovering to $0.287$ when retrained
+under the channel) while discrete answerable questions with graded \emph{real} answers stay robust (concept-8 $0.325$,
+item questions $0.394$) and are non-circular (they survive foreign-geometry and raw-rating answers); snap-loss even
+\emph{reverses} sign (snapping to a real catalog item now denoises the query). The continuous premium is thus an
+answer-fidelity phenomenon: it wins decisively when answers are slider- or comparison-grade, and hands over to
+answerable discrete elicitation under coarse noisy answers---an honest two-regime conclusion, and a deployment rule that
+picks the channel by the fidelity available.
 \end{abstract}
 
 \tableofcontents
@@ -892,7 +901,9 @@ channel is now live ($8/8$ answerable shelves per cold user, versus the V1-era $
 We re-ran the load-bearing experiments---continuous-vs-discrete, graded-vs-binary, snap-loss, and the static-8 adaptivity
 control---under the identical protocol (seed-avg $\{1,2,3,7,11\}$, \texttt{te[300:]} $304$ test users, $T{=}8$,
 $\mathrm{NDCG@10}$ full and Cremonesi tail). Table~\ref{tab:i2main} gives the core results; Table~\ref{tab:i2verdict}
-states each thesis claim against its V1 and I2 measurements.
+states each thesis claim against its V1 and I2 measurements. All results in this subsection are measured under the
+noiseless graded geometric answer channel; \S\ref{sec:i2fidelity} then stress-tests the same battery under an empirically
+calibrated noisy channel and charts the answer-fidelity boundary.
 
 \begin{table}[h]\centering
 \begin{tabular}{lcc}
@@ -953,9 +964,12 @@ Thesis claim & V1 instrument ($+0.098$ headroom) & I2 RecVAE-$d512$ ($+0.244$, E
 \textbf{adaptivity $>$ static} & $+0.023/+0.032$ & $+0.019$ full (sig, $p{=}.9998$) / $+0.005$ tail (n.s.) & \textbf{survives on head; tail tie} \\
 \bottomrule
 \end{tabular}
-\caption{Each thesis claim against its V1 and I2 (strong-instrument) measurement. Three of the four sharpen on the
-EASE-class instrument; adaptivity is the one claim that shrinks---significant on the head, a tie on the tail---exactly as
-the linear-Gaussian argument (\S\ref{sec:static8}) predicts for a stronger, more linear recommender.}\label{tab:i2verdict}
+\caption{Each thesis claim against its V1 and I2 (strong-instrument) measurement, \emph{under the noiseless graded
+geometric channel}. Three of the four sharpen on the EASE-class instrument; adaptivity is the one claim that
+shrinks---significant on the head, a tie on the tail---exactly as the linear-Gaussian argument (\S\ref{sec:static8})
+predicts for a stronger, more linear recommender. These results are the \emph{clean-channel} regime; \S\ref{sec:i2fidelity}
+charts what happens under an empirically calibrated noisy answer channel, where the continuous/discrete ordering
+inverts.}\label{tab:i2verdict}
 \end{table}
 
 \subsection{Honest method notes}\label{sec:i2notes}
@@ -1027,6 +1041,91 @@ generalise; we report this as the law's open tail question (consistent with Pape
 rescued result. Answerability and the selection hierarchy both re-confirm on the certified arena: $7.98/8$ concepts
 answerable per cold user, and lift-selected concepts ($0.371$) $\gg$ naive global-entropy concepts ($0.060$, below the
 cold floor).
+
+\subsection{The answer-fidelity boundary}\label{sec:i2fidelity}
+Every number to this point---V1 and I2, movies and books---was measured under one answer model: the graded geometric
+answerer $a=\cos(z^\star,q)$, a \emph{noiseless} channel that reads the projection of true taste onto the query exactly.
+That model is the right instrument for the question this paper asks (\emph{is the continuous action space itself a
+limitation?}), because it isolates the action space from answer noise. But it also raises the sharpest scoping question
+of the whole study, and we answer it directly here: \textbf{how much of the continuous premium is a property of the
+\emph{query geometry}, and how much is a property of a \emph{high-fidelity graded answer}?} The honest finding is that the
+continuous premium is, to a first approximation, an \emph{answer-fidelity phenomenon}---and we chart the boundary at
+which it hands over to discrete answerable elicitation.
+
+\paragraph{An empirically calibrated realistic channel.} We fitted the real ML-1M answer law $P(\text{rating}\mid s)$,
+$s=\cos(z^\star,d_i)$, on all $809$k train user--item pairs ($4{,}832$ users): $s$ binned into $12$ quantiles, mean rating
+climbing monotonically $2.36\!\to\!4.42$ across bins. The channel is genuinely lossy: $\mathrm{corr}(s,\text{rating})=0.516$
+(moderate---$s$ is far from a perfect predictor of a rating), mean per-bin rating entropy $1.887$ bits (of a maximal
+$\log_2 5 = 2.322$; given $s$ the rating is still very uncertain), effective linear response $a\approx1.55\,s-0.36$ with
+channel residual $\sigma_a=0.48$. To keep the comparison about \emph{information} rather than raw scale we rescale each
+answer stream by one global scalar so its cohort RMS matches the native answer's (equivalent to choosing $\eta$ for the
+channel) and center on the user's own profile-mean rating (an observable, non-circular signed baseline). This is the P4a
+oracle degraded, step by isolable step, into a realistic 5-level noisy reply.
+
+\begin{table}[h]\centering
+\begin{tabular}{lccc}
+\toprule
+Arm (certified RecVAE-$d512$, $T{=}8$) & noiseless (P4a) & \textbf{empirical $\times1$} & noise $\times2$ \\
+\midrule
+continuous \textbf{actor} (seed-avg) & $0.4907$ & $\mathbf{0.1502}$ & $0.0797$ \\
+\quad\emph{$+$ retrained under the channel} & --- & $\mathit{0.2874}$ & --- \\
+continuous SVD-8 static basis & $0.4709$ & $0.1594$ & $0.0903$ \\
+discrete \textbf{concept-8} (lift, graded) & $0.4436$ & $\mathbf{0.3250}$ & $0.2705$ \\
+discrete \textbf{item-8, real ratings} (exact) & --- & $\mathbf{0.3935}$ & $0.3935$ \\
+discrete item-8 fold (pure fold-in) & $0.4625$ & $0.4635$ & $0.4635$ \\
+MOSTPOP (no elicitation) & $0.3099$ & $0.3099$ & $0.3099$ \\
+\bottomrule
+\end{tabular}
+\caption{The fidelity boundary map (full NDCG@10, seed-avg $\{1,2,3,7,11\}$, $304$ test users). Under the empirically
+calibrated $\times1$ channel the noiseless ordering \emph{inverts}: the continuous actor---the strongest arm on a clean
+channel---becomes the \emph{most answer-fragile}, falling below MOSTPOP, while discrete answerable questions answered with
+graded real ratings stay robust. Retraining the policy \emph{under} the channel nearly doubles it ($0.287$) but does not
+recover the lead.}\label{tab:i2fidelity}
+\end{table}
+
+\paragraph{Two regimes.} On \emph{clean} channels the continuous premium wins decisively---this is the entire
+\S\ref{sec:i2battery} result, and we now label those measurements explicitly as \emph{noiseless-channel}: they stand
+exactly as stated, on the same strong instrument, and are not revised by this subsection. On the \emph{empirically
+calibrated} channel the ordering inverts. The continuous actor collapses $0.491\!\to\!0.150$ (below MOSTPOP $0.310$),
+while discrete concept-8 holds at $0.325$, item questions answered by real ratings hold at $0.394$, and the pure item
+fold is untouched at $0.463$. A per-seed decomposition on the actor localizes the collapse to answer fidelity, not query
+geometry: native exact $0.496 \to$ imperfect linear response ($\mathrm{corr}\,0.52$) $0.389 \to$ $+$quantization to five
+levels $0.293 \to$ $+$per-answer sampling (the $1.9$-bit channel) $0.172$---each realistic degradation of the
+\emph{answer} costs the continuous reconstruction ${\sim}0.10$ NDCG. The noise-scaled sweep (Table~\ref{tab:i2fidelity},
+$\times0.5,\times1,\times2$) is the boundary map: the continuous arms decay steeply with answer noise while the discrete
+answerable arms decay gently, and they cross well inside the realistic regime.
+
+\paragraph{Snap-loss reverses---snapping denoises.} The most mechanistically interesting consequence: under the noisy
+channel the snap-loss \emph{reverses sign}. On the noiseless instrument, snapping the actor's continuous query to the
+nearest real item cost $-0.158$ (\S\ref{sec:i2battery}); under the $\times1$ channel it \emph{helps}, $+0.051$ full
+($0.150\to0.201$), while concept-snap costs $-0.088$. The reason is genuinely interesting: when the answer is noisy, the
+off-manifold continuous direction has no denoising anchor, but snapping the query onto a real \emph{catalog item}
+regularizes it toward a direction the noisy channel answers more reliably---the catalog anchors \emph{denoise} the query.
+Off-manifold freedom is an asset only when the answer is high-fidelity enough to exploit it; under a coarse channel the
+discrete anchor is protective. Correspondingly the graded advantage on the actor, a $-0.374$ cliff on the noiseless
+channel, evaporates to $+0.005$ (a tie) once answers are a noisy 5-level reply: the graded premium on continuous queries
+\emph{requires} fidelity.
+
+\paragraph{The robust core is non-circular.} A natural worry is that the discrete-question robustness is itself an
+artifact of answering in the instrument's own geometry (the $u^\star$ circularity). It is not. Answered from a
+\emph{foreign} geometry the instrument never saw---the V1 encoder (item $0.392$, concept $0.396$) or EASE (item $0.439$,
+${\approx}$ the native item fold $0.463$)---the discrete-question rankings persist, while the continuous item-realized
+arms stay weak ($0.07$--$0.24$), the same fragility as the empirical channel. And answered with \emph{no model at all} in
+the answer path---the actor's query realized as an item \emph{pair} and answered only by which of two items the user
+actually rated higher---the continuous interview still works ($0.223$, well above the cold floor $0.107$) \emph{provided
+the pair is drawn from items the user has actually rated} (coverage $1.0$); let the policy query freely over the
+catalogue and coverage falls to $0.3\%$, so raw pairwise answering does nothing. Answerability, not raw geometry, is the
+binding constraint---the same conclusion Paper~B reaches from the other direction.
+
+\paragraph{What this means.} The continuous$+$graded premium is real and, on clean channels, large and growing with
+instrument strength (\S\ref{sec:i2verdict}); it is also, honestly, a \emph{high-fidelity} phenomenon. It needs an answer
+of slider- or comparison-grade resolution to survive; under a coarse, noisy, real-rating-calibrated channel the winning
+configuration is \emph{discrete answerable questions---items or concepts---with graded real answers}, which are robust,
+non-circular, and answerable. This is not a retraction of the thesis but its scope: we have charted the fidelity boundary
+at which the action-space advantage hands over to the answerability advantage. Retraining the continuous policy under the
+noisy channel recovers much of the loss ($0.150\to0.287$, $+0.139$; the collapse is largely an off-distribution artifact
+of a noiseless-trained policy) but not the lead---closing the remaining gap under realistic answers is the clearest piece
+of future work this paper leaves open, and it is a policy-\emph{robustness} problem, not an action-space one.
 
 %==================================================================
 \section{Discussion}\label{sec:discussion}
@@ -1113,7 +1212,9 @@ interpretability layer (\S\ref{sec:future}) addresses this by \emph{naming} each
 quantifies how much is genuinely ``between the words.''
 
 \subsection{Limitations}
-The win is (i) \emph{conditional on graded answers} (under binary answers the continuous actor ties the discrete SOTA);
+The win is (i) \emph{conditional on graded answers of high fidelity} (under binary answers the continuous actor ties the
+discrete SOTA; and, more sharply, under an empirically calibrated noisy $5$-level answer channel the ordering inverts and
+answerable discrete elicitation wins---\S\ref{sec:i2fidelity});
 (ii) on the \emph{tail} (full is popularity-saturated); (iii) measured against a \emph{simulated} geometric
 answerer---the realism of off-manifold answerability is exactly what a bot-play / learned-answerer study
 (\S\ref{sec:future}) must stress-test; and (iv) on a frozen recommender---though the concern that the effect is an
@@ -1123,6 +1224,9 @@ certified EASE-class RecVAE instrument ($2.5\times$ the headroom) and the contin
 interview of \S\ref{sec:ladder} additionally realizes only the \emph{direction} geometrically: a deployed ``$A$ rather
 than $B$?'' question needs an answer model for comparative judgments, and pairs are not constrained by per-user
 answerability or popularity---a realistic pair interview restricted to judgeable items could only lower those numbers.
+The deployment rule that follows from (i) is to pick the channel by the fidelity available: continuous probes are the
+right channel only where the interface affords slider- or comparison-grade answers; under coarse, noisy answers a
+deployed system should fall back to answerable discrete questions plus open recall (Paper~D).
 
 \paragraph{The recommender-side lever (disclosure).} This paper deliberately holds the recommender \emph{frozen} and
 studies the question-asking policy; there is a complementary, and on this ruler stronger, lever we do not use.

@@ -715,7 +715,10 @@ reference ($0.378/0.178$) beyond $p\approx0.1$ wrong-title, reaching $0.330/0.11
 stays \emph{above} D1 on both axes through $p{=}0.2$ ($0.393/0.196$) and only declines to $\approx$D1 at $p{=}0.4$. So
 the Paper~D headline survives realistic recall-error rates ($\sim$10--20\%) provided grounding is decent: the deployment
 risk is \emph{entity resolution}---mapping a named title to the right catalogue factor (the name$\to$nearest-factor step
-of \S\ref{sec:future})---not user-memory slippage over which favourite to name.
+of \S\ref{sec:future})---not user-memory slippage over which favourite to name. This robustness is corroborated on the
+answer-noise axis by Paper~C's P4c ablation: under an answer channel fitted on real ML-1M ratings, real-rating item
+answers are the \emph{most noise-robust} channel ($0.394$--$0.463$, versus a continuous latent probe that collapses to
+$0.150$), reinforcing named/volunteered items as the deployment backbone of cold-start elicitation.
 
 \section{Related work}
 \label{sec:related}
