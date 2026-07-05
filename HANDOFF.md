@@ -175,3 +175,34 @@ ground-truth; (3) first-session-order-as-recall-proxy; (4) review-mined askable 
 users' own text; (5) fitted-BT pairwise from co-rated pairs in elicitation eval; (6) the citation-backed
 deployability audit; (7) fidelity boundary (already ours); (8) the restored honest adaptivity test across
 modern channels (§6 framing). Each: cite nearest prior, state delta, invite counterexamples.
+
+## 7-ANNEX (PARTIAL, 2026-07-06): sim research — extracted but UNVERIFIED (Fable limit hit mid-run)
+STATUS: deep-research run wf_3a5ef549-c13 completed SEARCH+EXTRACT but ALL verification panels failed on
+the Fable-5 usage limit (75/104 agents errored). Claims below are EXTRACTED, NOT adversarially verified —
+treat as leads, re-verify every citation before print. Full raw: experiments/SIM_RESEARCH_RAW_PARTIAL.txt.
+Re-run verification when budget resets: Workflow({scriptPath: the wf_3a5ef549-c13 script, resumeFromRunId:
+'wf_3a5ef549-c13'}) — cached search results replay free; only the verifier panels re-run.
+
+STRONG LEADS (S1 item-rating channel — verify then use as the flagship calibration precedent):
+- Amatriain et al. UMAP 2009 "Rate it Again / I like it... I like it not": test-retest, 118 users x 100
+  Netflix movies x 3 trials (+7-month 4th for 36 users), explicit 'not seen' option. Findings to reuse:
+  overall reliability 0.924 (2wk) -> 0.889 (7mo); intra-user RMSE 0.557-0.832; ~40% of users give a rating
+  inconsistent with their own prior; noise is VALUE-DEPENDENT (extremes 1/5 stable, mid 2/3 noisiest,
+  removing '3' lifts reliability 0.924->0.95); seen/not-seen labels THEMSELVES noisy (refusal-channel
+  grounding); order + speed effects. => our fitted channel S1 already matches this LINEAGE; cite it as the
+  behavioral target and the "magic barrier" framing.
+- Said et al. SIGIR 2012 "magic barrier": irreducible noise floor = expected sq error of the optimal algo,
+  estimated via re-rating; B = sqrt(mean (r-o)^2). Directly reusable S1 recipe + the argument that
+  evaluation below the barrier is meaningless (extends our fidelity-boundary story with a citable floor).
+- Natural-noise-management survey (ACM 2021, TORS?): its critique = prior noise work validated only by
+  offline MAE/RMSE, marginal gains, NEVER by downstream task effect -> supports our "no one wired
+  measured noise into elicitation eval" novelty angle (verify the exact survey + quote).
+EXTRACTED-BUT-UNVERIFIED for other channels (in raw file, re-verify): Tag Genome construction was
+SURVEY-BASED per-user tag judgments (Vig et al.) incl. 'unsure' responses (= S2/S7 concept answerability +
+don't-know grounding, possibly a stronger ground truth than raw tag apps — CHECK); raw tag-application
+sparsity caveats; kill-risk verdict on "has anyone built a calibrated multi-channel elicitation simulator"
+= NOT ESTABLISHED (verification never ran) — this is THE claim to confirm before writing Paper S's headline.
+
+ACTION when budget resets: (1) resume-verify wf_3a5ef549-c13; (2) targeted manual checks on the 3 novelty
+groundings (tag-apps vs Genome-survey for S2; first-session-order for S6; review-mining for S3) + the
+kill-risk; (3) fold verified results into §7 channel table; THEN start building S4+S2.
