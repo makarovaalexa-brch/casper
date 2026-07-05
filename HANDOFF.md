@@ -299,3 +299,28 @@ knowledge) — the one adaptivity channel no static design can imitate, and stru
 Evidence status: floor = measured (saturation, concept answerability, repeat-probing, refusals-as-evidence);
 the full coarse-to-fine questioner = PREDICTED design, never built — state as the thesis-implied design +
 future work, clearly labeled. (Connects: parked channel-failure routing demo; B answerability; rank law.)
+
+
+## 12. COARSE-TO-FINE DESCENT — NEVER TRIED; priority experiment spec (2026-07-06)
+STATUS: every ingredient built separately, the COMPOSITION never run. (two-phase = fixed 4+4 w/ oracle;
+refusals-as-evidence = diagnosed missing in Paper B, never implemented on V1 or I2; routing demo #25 parked;
+POLOPEN sequenced types but went static, no granularity hierarchy, no knowledge-conditioning.) This is the
+deployable-adaptivity result the thesis has circled since day one and the cleanest fair shot at an HONEST
+adaptivity win.
+
+SPEC (I2 instrument, ML-1M first, then Goodreads): granularity hierarchy = concept coverage tiers (broad =
+high-coverage tags, fine = low-coverage / sub-tags); STRICT wasted-turn regime (no answerability oracle —
+a fine concept unanswerable for this user wastes the turn, exactly the per-user variation to exploit);
+CRITICAL: FOLD REFUSALS as evidence (the Paper-B-diagnosed missing signal — a "don't know" updates both the
+belief and an answerability estimate; benchmark two encodings: (a) refusal as a negative/soft signal on the
+concept's member bag, (b) a small running answerability posterior gating candidate granularity). Policy =
+coarse-to-fine descent: ask broad; descend into a sub-tree only where the user answered (showed knowledge);
+stay coarse elsewhere. Comparators (house discipline): best STATIC mixed-granularity questionnaire (greedy
+val-selected), flat-entropy-over-all-concepts, the ~4-broad-concept floor; 3 seeds, paired bootstrap, val-sel.
+PREDICTION (pre-register before running): descent > best static, and the margin GROWS with per-user
+answerability heterogeneity (measure it). Evaluate under BOTH clean and the P4c fitted channel (this is a
+DISCRETE answerable channel -> should be noise-robust, unlike the continuous actor). Also report answered/8.
+OUTCOME EITHER WAY: a win = the thesis's deployable adaptive method (learned or heuristic-tree, both cheap);
+a tie = strengthens "adaptivity needs the answerability surprise channel, and even that saturates" — both
+publishable. Effort: ~1-2 agents. Decision (user): before or after ECIR. If run, it likely becomes a
+Paper B/D headline and a genuine adaptive-policy contribution the current draft lacks.
