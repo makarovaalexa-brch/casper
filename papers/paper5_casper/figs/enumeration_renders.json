@@ -1,0 +1,8 @@
+{
+ "Query: -0.60*[gay + stereotypes]  -0.38*[Sam Weisman]  -0.27*[Julianne Moore]": "Do you prefer movies that feature negative portrayals of gay stereotypes, are directed by Sam Weisman, or star Julianne Moore?",
+ "Query: +0.56*[Paul Scofield]  +0.50*[satire]  -0.28*[Tim Robbins]": "Which movie featuring Paul Scofield and incorporating satire would you prefer, avoiding those with Tim Robbins?",
+ "Query: +0.63*[death + independent film]  +0.37*[jane austen]  +0.25*[≈ cartoon · animals · animation]": "Do you prefer movies that explore themes of death in independent films, adaptations of Jane Austen's works, or animated cartoons featuring animals?",
+ "Query: -0.45*[Cliff DeYoung]  +0.41*[Tim Burton]  -0.35*[≈ mother-son relationship · free speech · nocturnal]": "What are your thoughts on movies featuring Cliff DeYoung, directed by Tim Burton, that explore themes of mother-son relationships, free speech, and have a nocturnal setting?",
+ "Query: -0.80*[criterion + tense]  -0.35*[cult classic + fun movie]  -0.27*[≈ stereotypes · aids · teen]": "Do you prefer movies that are not criterion or tense, not cult classics or fun movies, and also avoid themes related to stereotypes, aids, or teens?",
+ "Query: -0.86*[good + happy ending]  -0.28*[≈ animation · animals · cartoon]  -0.17*[iraq war]": "Do you prefer movies with a good happy ending, or would you rather watch animated cartoons featuring animals, or perhaps films about the Iraq war?"
+}

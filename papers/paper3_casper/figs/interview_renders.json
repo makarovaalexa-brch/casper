@@ -1,0 +1,167 @@
+{
+ "interview_user": 12,
+ "turns": [
+  {
+   "t": 0,
+   "blend": [
+    [
+     -0.7988435626029968,
+     "criterion + tense"
+    ],
+    [
+     -0.3497377038002014,
+     "cult classic + fun movie"
+    ],
+    [
+     -0.26948508620262146,
+     "≈ stereotypes · aids · teen"
+    ]
+   ],
+   "nl": "Do you prefer movies that are more serious and thought-provoking rather than light-hearted and fun?"
+  },
+  {
+   "t": 1,
+   "blend": [
+    [
+     -0.8278920650482178,
+     "feel-good"
+    ],
+    [
+     0.29518362879753113,
+     "James Brown"
+    ],
+    [
+     0.21157243847846985,
+     "≈ colonialism · period piece · mozart"
+    ]
+   ],
+   "nl": "How do you feel about movies that explore serious themes and social issues?"
+  },
+  {
+   "t": 2,
+   "blend": [
+    [
+     0.6646934151649475,
+     "classic + quotable"
+    ],
+    [
+     -0.32232487201690674,
+     "James Urbaniak"
+    ],
+    [
+     -0.26242995262145996,
+     "Cliff DeYoung"
+    ]
+   ],
+   "nl": "Do you enjoy classic films that offer memorable lines and dialogues?"
+  },
+  {
+   "t": 3,
+   "blend": [
+    [
+     -0.6500334143638611,
+     "high school"
+    ],
+    [
+     0.43141278624534607,
+     "John Landis"
+    ],
+    [
+     0.2822783589363098,
+     "Teresa Wright"
+    ]
+   ],
+   "nl": "How do you feel about movies set in high school?"
+  },
+  {
+   "t": 4,
+   "blend": [
+    [
+     0.6090980768203735,
+     "Paul Scofield"
+    ],
+    [
+     0.424268513917923,
+     "≈ clowns · television · deadpan"
+    ],
+    [
+     -0.28452351689338684,
+     "Vin Diesel"
+    ]
+   ],
+   "nl": "Do you enjoy movies featuring classic actors in unconventional or comedic roles?"
+  },
+  {
+   "t": 5,
+   "blend": [
+    [
+     0.5464522242546082,
+     "adaptation + passionate"
+    ],
+    [
+     -0.34053486585617065,
+     "artificial intelligence"
+    ],
+    [
+     -0.25054457783699036,
+     "≈ cia · conspiracy theory · fbi"
+    ]
+   ],
+   "nl": "Do you enjoy movies that explore themes of human resilience and deep emotional connections?"
+  },
+  {
+   "t": 6,
+   "blend": [
+    [
+     0.6726009249687195,
+     "19th century"
+    ],
+    [
+     -0.3542453944683075,
+     "robots"
+    ],
+    [
+     0.2207036316394806,
+     "≈ island · sequel · sequels"
+    ]
+   ],
+   "nl": "What are your thoughts on films set in the 19th century?"
+  },
+  {
+   "t": 7,
+   "blend": [
+    [
+     0.6063072681427002,
+     "costume drama + period piece"
+    ],
+    [
+     -0.4051201343536377,
+     "androids"
+    ],
+    [
+     0.25437024235725403,
+     "≈ kids · cute! · children"
+    ]
+   ],
+   "nl": "Do you enjoy watching films that transport you to different historical periods or immerse you in rich, detailed settings?"
+  }
+ ],
+ "worked_example": {
+  "idx": 10,
+  "blend": [
+   [
+    -0.4472604990005493,
+    "Cliff DeYoung"
+   ],
+   [
+    0.4141917824745178,
+    "Tim Burton"
+   ],
+   [
+    -0.3468915820121765,
+    "≈ mother-son relationship · free speech · nocturnal"
+   ]
+  ],
+  "nl": "Which do you prefer in a film, a whimsical style like Tim Burton's or more serious themes?"
+ }
+}

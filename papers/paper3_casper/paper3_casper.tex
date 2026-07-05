@@ -4,8 +4,9 @@
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\ustar}{u^{\star}}
 \newcommand{\todo}[1]{\textcolor{red}{[#1]}}
-\title{\textbf{CASPER-C: \underline{C}ontinuous-Action Preference Elicitation by \underline{R}econstruction}\\[4pt]
-\large Paper C (method) --- working draft, long/thesis format}
+% Former working title: CASPER-C: Continuous-Action Preference Elicitation by Reconstruction
+\title{\textbf{The Best Question Has No Name:\\Continuous Preference Elicitation in the Latent Space of a State-of-the-Art Recommender}\\[4pt]
+\large Paper C (method) --- working draft, long/thesis format\thanks{Earlier working title: ``CASPER-C: Continuous-Action Preference Elicitation by Reconstruction.''}}
 \author{}
 \date{June 2026}
 \begin{document}
@@ -65,6 +66,19 @@ the linear-Gaussian argument predicts for a stronger, more linear recommender.
 
 %==================================================================
 \section{Introduction}\label{sec:intro}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\linewidth]{figs/fig_ladder.pdf}
+\caption{\textbf{Graphical abstract: the best question has no name.} As the realizable action set grows richer
+(named concepts $\to$ item pairs $\to$ a free continuous direction), elicitation quality (NDCG@10, full catalogue)
+rises. \emph{Post-hoc snapping} the continuous query into a named set (orange) forfeits the gain and falls below the
+discrete state of the art; \emph{training through the interface} (blue) recovers most of it. Only the un-snapped,
+off-manifold direction reaches the top---and the two curves meet there, because a free direction has no interface to
+snap through. Numbers: \S\ref{sec:snaploss},~\S\ref{sec:ladder}.}
+\label{fig:ladder}
+\end{figure}
+
 Cold-start preference elicitation asks a short sequence of questions, folds the answers into a user profile, and then
 recommends. Paper~A built a calibrated set-encoder \emph{instrument} (the recommender); Paper~B asked \emph{what to ask}
 and established the \emph{answerability} axis---in true cold-start a user can answer broad \emph{concept} questions but
@@ -125,6 +139,41 @@ contribution is therefore the \emph{pair}: continuous question $+$ continuous an
   ($+0.024$ full / $+0.037$ tail), the graded/binary inversion, snap-loss, the anti-saturation $q$-curve, and
   saturation-at-effective-rank all replicate, with the tail gap numerically matching ML-1M (\S\ref{sec:ml25m}).
 \end{enumerate}
+
+%---- WORKED EXAMPLE BOX: the question that has no name --------------------------
+\begin{figure}[t]
+\centering
+\fbox{\begin{minipage}{0.94\linewidth}
+\small
+\vspace{2pt}
+\textbf{\textsf{The question that has no name}} \hfill {\footnotesize\itshape one real emitted query, V1-era artifacts}\\[3pt]
+At one turn the continuous actor emits a direction $q\in\R^{64}$ in the recommender's own space. It is not any catalogue
+concept---here is everything we can say about it.\\[4pt]
+\begin{tabular}{@{}p{0.30\linewidth}p{0.63\linewidth}@{}}
+\toprule
+\textbf{What it is} & \textbf{Its shadow on things we \emph{can} name}\\
+\midrule
+Sparse phrase blend (OMP-3) &
+$-0.45\,[\text{Cliff DeYoung}]\;\;+0.41\,[\text{Tim Burton}]$\newline
+$-0.35\,[\approx\text{mother-son}\cdot\text{free speech}\cdot\text{nocturnal}]$\\[3pt]
+Nearest single \emph{concept} & $[\text{oscar (best sound)}]$, $\cos=0.35$ --- nothing named is close\\[2pt]
+Nearest of all $6{,}724$ phrases & $[\text{Teri Garr}]$, $\cos=0.39$\\[2pt]
+Best of ${\approx}6.9$M item-\emph{pairs} & \emph{Raiders of the Lost Ark} (1981) vs.\ \emph{The Shop Around the Corner} (1940), $\cos=0.59$\\[2pt]
+LLM rendering (axis synthesis) & \emph{``Which do you prefer in a film---a whimsical style like Tim Burton's, or more serious themes?''}\\
+\bottomrule
+\end{tabular}\\[4pt]
+\textbf{The cost of naming it.} Snapping this query to its nearest \emph{concept} before folding costs
+$-0.037/-0.040$ NDCG@10 (full/tail); realizing it as the best \emph{item-pair} costs $-0.041/-0.044$ despite a
+$9{,}000\times$ larger vocabulary (\S\ref{sec:snaploss},~\S\ref{sec:ladder}). Both land \emph{below} the discrete
+state of the art. The query only pays off if it is never named---hence the title.
+\vspace{2pt}
+\end{minipage}}
+\caption{A single continuous query, decomposed. The direction is faithfully \emph{describable} as a signed blend of
+familiar phrases (and renderable as one natural question), yet no single concept, phrase, or item-pair \emph{is} it
+($\cos\!\le\!0.6$ to the best of each). Naming or snapping it forfeits the gain. Labels are an interpretability layer
+over V1-era artifacts; metrics are unchanged by the decomposition.}
+\label{fig:worked}
+\end{figure}
 
 %==================================================================
 \section{Related Work}\label{sec:related}
@@ -536,7 +585,7 @@ free policy fails regardless of vocabulary size. The pair rung was additionally 
 mean $0.3678\pm0.0018$ / $0.1641\pm0.0023$.}\label{tab:ladder}
 \end{table}
 
-Table~\ref{tab:ladder} supports three claims.
+Table~\ref{tab:ladder} (visualised as the graphical abstract, Fig.~\ref{fig:ladder}) supports three claims.
 
 \paragraph{(a) The action set is the load-bearing variable.} With the recipe held constant, performance is
 \emph{monotone} in action-set richness at both full and tail: unconstrained ($0.3780/0.1782$) $>$ pair differences
@@ -1117,6 +1166,37 @@ superhero}). The two dominant first-three-question paths are
 \emph{complicated plot}$\to$\emph{intelligent sci-fi}$\to$\emph{gruesome} and
 \emph{complicated plot}$\to$\emph{end of the world}$\to$\emph{car chase}. The snap-loss (\S\ref{sec:snaploss}) is the
 reminder that the label is an approximation: the policy's value lives \emph{between} the names.
+
+\paragraph{What the interview would sound like.} Going one step past the snap, we can have a frontier LLM \emph{render}
+each latent query as a natural question under an axis-synthesis prompt (infer the single taste axis the query's
+phrase-blend shares, ask from the indicated pole, never enumerate). Figure~\ref{fig:interview} shows one real user's
+eight emitted queries rendered this way: the agent opens with the same broad seriousness probe it asks everyone, then
+personalises---narrowing through classic cinema toward period and costume drama, and away from science fiction. This is
+an \emph{illustrative} rendering (gpt-4o-mini; the geometric folds are unchanged---language is an interpretability
+surface, not part of the loop), and the faithfulness of a human answering these words as they would the latent query is
+the open question Paper~D's round-trip study takes up.
+
+\begin{figure}[t]
+\centering
+\fbox{\begin{minipage}{0.92\linewidth}
+\small
+\textbf{\textsf{``What the interview would sound like''}} \hfill {\footnotesize\itshape one real user, 8 emitted queries, illustrative LLM rendering}\\[4pt]
+\newcommand{\qturn}[3]{\textbf{Q#1.}~\emph{``#2''}\hfill{\footnotesize\color{gray}[latent axis: #3]}\\[3pt]}
+\qturn{1}{Do you prefer movies that are more serious and thought-provoking rather than light-hearted and fun?}{criterion/tense $-$ cult/fun}
+\qturn{2}{How do you feel about movies that explore serious themes and social issues?}{$-$feel-good}
+\qturn{3}{Do you enjoy classic films that offer memorable lines and dialogue?}{classic $+$ quotable}
+\qturn{4}{How do you feel about movies set in high school?}{$-$high school}
+\qturn{5}{Do you enjoy movies featuring classic actors in unconventional or comedic roles?}{Scofield $+$ deadpan}
+\qturn{6}{Do you enjoy movies that explore human resilience and deep emotional connections?}{adaptation/passionate $-$ A.I.}
+\qturn{7}{What are your thoughts on films set in the 19th century?}{19th century $-$ robots}
+\qturn{8}{Do you enjoy films that transport you to different historical periods, immersing you in rich, detailed settings?}{costume/period drama $-$ androids}
+\end{minipage}}
+\caption{The same eight off-manifold queries of Fig.~\ref{fig:worked}'s kind, for one user, rendered as a dialogue.
+The opener is shared by all users (no belief yet); the interview then personalises turn by turn (grey tags give the
+dominant pole of each latent query). Rendering is post-hoc and does not touch the metrics; it illustrates that a
+continuous, un-nameable policy can still be \emph{spoken}.}
+\label{fig:interview}
+\end{figure}
 
 %==================================================================
 \begin{thebibliography}{99}
