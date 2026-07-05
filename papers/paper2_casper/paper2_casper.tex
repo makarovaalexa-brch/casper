@@ -253,6 +253,17 @@ answerability axis is foundational, Rashid et al.\ \cite{rashid}; our contributi
 \label{tab:answer_cold}
 \end{table}
 
+\paragraph{The answerability axis is the one that survives every answer model (Paper~C's P4c test).} Paper~C's
+strong-instrument study stress-tests the competing \emph{continuous} elicitation channel against a realistic answer
+model---an answer channel fitted on real ML-1M ratings ($\mathrm{corr}(s,\text{rating})=0.516$, quantized to five noisy
+levels) and against answers from \emph{foreign} geometries the instrument never saw. Under that realistic channel the
+continuous actor collapses ($0.491\to0.150$; $0.287$ even after retraining), whereas \emph{discrete answerable questions
+with graded real answers} stay robust---concept questions $0.325$, item questions with real ratings $0.394$---and remain
+strong when answered from a foreign encoder (V1 $0.392/0.396$) or from EASE ($0.439$), i.e.\ they are \emph{non-circular}.
+This is direct cross-paper vindication of the organising axis of \emph{this} paper: answerable discrete elicitation with
+graded real answers is the robust core, the one configuration that survives every answer model, while the continuous
+premium turns out to be a high-fidelity-answer phenomenon (charted in Paper~C).
+
 \subsection{Answerability is a \emph{non-obvious} lesson: LLM askers split by capability}\label{sec:llmask}
 Is answerability \emph{obvious}---something a competent system would get for free? We test this directly by asking
 frontier LLMs to play the elicitor, blind to our method. Each model sees the \emph{unified} menu---the $600$ most-rated
