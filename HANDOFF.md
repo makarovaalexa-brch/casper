@@ -37,7 +37,28 @@ answers (would contradict the LLM-study calibration 71.5→85% + 83.6% answerabi
 happened it is a field-level finding, not a silent failure). Design accordingly: the study MEASURES
 fidelity, it does not defend a claim.
 
-## 3. REVIEW-RESPONSE TASKS T1–T9 (execute top-down; no work started)
+## 3. REVIEW-RESPONSE TASKS T1–T9
+
+**STATUS 2026-07-05 experiment batch — all 6 dependency-free experiments DONE (details +
+tables in `HANDOFF_PROGRESS_2026-07-05.md`; per-experiment docs cited below):**
+- ✅ **R2-noise** (§6/§7 priority): fair noise-adapted static (repeat top axis) 0.3143 BEATS noise-trained
+  actor 0.2844, Δ−0.030 p<.001 → adaptivity CLEAN-CHANNEL-ONLY. `SQUEEZE_R2.md`.
+- ✅ **R2b** tie-by-construction: actor warmed from the winning schedule TIES the static (0.3177, p=.82) →
+  it's an OPTIMIZATION gap not expressiveness; fine-tune from optimum drifts away. → feeds T8 opt-gap note.
+- ✅ **T4** bot-play/ABot 4th answer source: denoised-mean answerer keeps continuous actor alive at 0.407
+  (collapse was SAMPLING NOISE not model-in-loop); item-8 drops to 0.240. P4C `PART 4`/`V4`.
+- ✅ **T5b** popularity-conditioned answerability: concept advantage SURVIVES (tail +0.031 sig every regime).
+  `experiments/paper2/T5B_ANSWERABILITY.md`.
+- ✅ **T6** Paper D fair comparison: open-recall edge does NOT survive equal known-item access — TIE vs
+  PEBOL+profile at equal budget (m=4 Δ+0.003, CIs overlap; PEBOL edges tail by m=6). Value is OPERATIONAL,
+  not raw NDCG. `experiments/paper2/T6_PAPERD_FAIR.md`.
+- ✅ **T7a** EASE cold-start k=1..8 vs I2: tie is WARM-START-ONLY — I2 wins every k (Δ+0.05–0.06, p=1.0).
+  `experiments/instrument2/T7A_EASE_COLDSTART.md`.
+- ⏳ **ML-25M I2 port** (backlog): RUNNING (Jul-9 constraint lifted; now fully in-scope).
+- ⏳ REMAINING = the TEXT halves (T1, T2, T5a/c, T7b, T8, T9) + T3 kit — numbers now FROZEN, safe to write.
+  T2+T8 MUST state: adaptivity is fidelity-conditional ("clean answers only"); the optimization-gap finding
+  (§7); Paper D = fair-comparison (open≈PEBOL at equal access).
+
 
 - **T1** Thesis-level "measurement position" page; condensed into every paper. (text, small, FIRST)
 - **T2** Paper C reframe: fidelity boundary = headline; noiseless battery = mechanism study under stated
@@ -135,3 +156,25 @@ methods finding across papers; every surviving positive claim already beat its s
 NEXT ARM (tie-by-construction, add to R2): warm the actor FROM the winning repeat schedule + val-select ->
 ties static on val by construction; any test shortfall then = pure val->test noise (quantifies the gap);
 upside = adaptive-repeats might add value on top. Cheap, decisive, makes the "at least tie" property real.
+
+
+## 8. TWO CORRECTIONS from user review (2026-07-06) — must reach the papers
+
+(a) ANSWERABILITY PRIVILEGE IN THE NOISY-REGIME WINNERS (user caught it): the P4c/R2 "discrete answerable"
+arms carry L1 privilege — concept-8 uses the per-user >=2-tagged-items proxy, and item-real (0.394) answers
+only items the user actually rated = answerability oracle. Deployable discrete asking must PREDICT
+answerability, and B's E2 showed the item-level exposure model captures only ~12% of that ceiling. Nuance:
+for CONCEPTS the privilege is mild (answerability is population-stable/predictable — broad tags have high
+answer rates); for ITEMS it is severe. CORRECT CONCLUSION WORDING everywhere the fidelity boundary is
+stated: under realistic answers the winners are population-answerable CONCEPT questions + VOLUNTEERED items
+(open recall — the user self-solves answerability), NOT "item questions" (label item-real rows L1 in every
+table). T2/T8 must apply this.
+
+(b) ANSWER-MODEL TAXONOMY for related work (answers "is everyone unclean?"): three traditions, each clean
+on one axis, unclean on another — (1) real-ratings-as-answers (Rashid/Golbandi lineage): fidelity-clean,
+answerability-ORACLE; (2) simulator-geometry answers (modern CRS/latent incl. EAR/UNICORN-style ground-truth
+attribute answers, and our own V1 era): answerability modeled, fidelity-circular; (3) parametric noise
+(conjoint/dueling bandits, Canal): noise acknowledged but ASSUMED, not fitted. To our knowledge no prior
+work FITS the answer channel from behavioral data and treats fidelity as a measured experimental variable —
+that is the fidelity-boundary paper's precise novelty claim (qualify "to our knowledge"; cite test-retest
+reliability lit (Amatriain) as the measurement that existed but was never wired into elicitation eval).
