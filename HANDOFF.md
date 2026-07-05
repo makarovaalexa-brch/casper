@@ -233,3 +233,9 @@ D3. ARENAS = ML-25M + GOODREADS. DROP ML-1M as a primary arena going forward (it
     arena. Goodreads I2 instrument already built.
 
 PROCEED per §7 SIM-FIRST plan with D1-D3 applied.
+
+## 9. EXECUTION RULE (user, 2026-07-06): STOP-ON-BLOCKER
+On ANY gate failure, blocker, unexpected/negative result, or kill-risk hit: STOP and surface to the user
+for a command. Do NOT improvise workarounds, relax gates, or proceed to the next phase autonomously.
+Applies to every agent/phase in the SIM-FIRST plan — especially the verify-first gates (kill-risk check,
+the 3 novelty groundings) and each channel-fit validation.
