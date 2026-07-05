@@ -239,3 +239,26 @@ On ANY gate failure, blocker, unexpected/negative result, or kill-risk hit: STOP
 for a command. Do NOT improvise workarounds, relax gates, or proceed to the next phase autonomously.
 Applies to every agent/phase in the SIM-FIRST plan — especially the verify-first gates (kill-risk check,
 the 3 novelty groundings) and each channel-fit validation.
+
+## 10. CHEAP VERIFICATION 2026-07-06 (3 searches; full verify parked to Wed) — RESULTS + BLOCKER
+S1 PRECEDENT: VERIFIED. Amatriain "I like it... I like it not" UMAP'09 + "Rate it Again" RecSys'09 (118
+users, 3 trials, 100 Netflix movies, mid-ratings noisier) real & correctly cited; "Magic Barrier"
+(Said et al., + UMUAI 2018 "Coherence and inconsistencies in rating behavior") real. S1 flagship
+calibration story is solid. USE.
+
+S2 NOVELTY — CAVEAT (not a kill, needs wording): the Tag Genome gold standard WAS built from ~50,203
+USER-PROVIDED (item,tag) relevance judgments (Vig 2012) — so "user tag judgments" is NOT novel. Our S2
+claim must be scoped precisely: we use RAW PER-USER TAG APPLICATIONS as a per-USER ANSWERABILITY/VOCABULARY
+model (which concepts THIS user knows/uses), distinct from the Genome's per-(item,tag) RELEVANCE. Verify
+Wed nobody did per-user tag-knowledge/answerability modeling; narrow if so.
+
+KILL-RISK — **NOT CLEARED = BLOCKER (stop per §9).** The "user simulator for CRS" space is CROWDED and
+ACTIVELY MOVING IN 2026. Near-priors surfaced, unread: (1) ANCHOR "Agentic Noise Creation Framework for
+Human Simulation and Denoising Recommendation" (arXiv 2606.05621, 2026) — title alone is close; MUST read
+Wed. (2) Zhang & Balog agenda-based simulator (KDD 2020). (3) the LLM-user-sim validity/faithfulness line
+(iEvaLM + 2024-26). (4) ICER synthetic-dialogue (2510.02331), Interplay (2603.18573). NONE obviously builds
+a per-channel BEHAVIORALLY-FITTED answer-noise simulator — but I cannot clear "first calibrated multi-channel
+elicitation answerer" cheaply. => DO NOT write Paper S's headline until ANCHOR + the LLM-sim-validity line
+are read (Wed, resume-verify wf_3a5ef549-c13 + targeted fetches). If ANCHOR or another already fits answer
+noise from behavioral data per channel, the novelty narrows to the ELICITATION-EVAL application + the
+specific groundings (tag-apps/first-session-order/review-mining) — still a paper, smaller claim.
