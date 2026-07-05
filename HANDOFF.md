@@ -178,3 +178,59 @@ attribute answers, and our own V1 era): answerability modeled, fidelity-circular
 work FITS the answer channel from behavioral data and treats fidelity as a measured experimental variable —
 that is the fidelity-boundary paper's precise novelty claim (qualify "to our knowledge"; cite test-retest
 reliability lit (Amatriain) as the measurement that existed but was never wired into elicitation eval).
+
+
+## 9. THE DEPLOYABILITY-ASSUMPTIONS SECTION (user-elevated: strong, scandalous-adjacent, handle with care)
+
+### 9.1 What to write (a full section, likely in Paper A with a condensed version in C)
+Title suggestion: "What simulated users assume: a deployability audit of elicitation answer models."
+Structure: a per-lineage table + prose. For EACH lineage: answer source / fidelity axis (clean? circular?
+assumed?) / answerability axis (modeled? oracle?) / the un-deployable assumption, stated neutrally /
+representative citations (verify each against the actual papers before print):
+  (1) Real-ratings-as-answers (Rashid 02/08, Golbandi 11, classic AL): fidelity-clean, answerability-ORACLE
+      (asks only rated items -> undeployable at catalogue scale; our Goodreads 0.0003 number quantifies it).
+  (2) Ground-truth/simulator-geometry answers (EAR, SCPR, UNICORN, ConTS, latent sims, OUR OWN V1 ERA):
+      answerability modeled, fidelity-CIRCULAR (user answers from the evaluator's own representation).
+  (3) Parametric-noise choice models (conjoint/polyhedral Toubia04, dueling bandits Yue09, Canal19 pairs):
+      noise acknowledged but ASSUMED (logit/Gaussian), rarely/never FITTED to behavioral data in this use.
+  (4) LLM-simulated users (2023-26 CRS evals, PEBOL-era): flexible but unvalidated fidelity; popularity/
+      sycophancy priors of the LLM = uncontrolled assumption (our LLM study = partial calibration of this).
+TONE RULES (this WILL annoy people if done wrong): every tradition solved the axis it cared about;
+SELF-IMPLICATE FIRST (our V1 era sits squarely in lineage 2 — say so in the first paragraph; the audit
+grew from auditing ourselves); no "flawed/unclean" language — use "carries an assumption that does not
+deploy"; reproduce each lineage's setup faithfully; explicitly invite correction ("to our knowledge; we
+welcome counterexamples"). The claim, precisely: "we find no prior elicitation evaluation that FITS the
+answer channel from behavioral data and treats answer fidelity as a measured experimental variable."
+Our contribution framed HUMBLY: a first, imperfect instance (fitted channel + fidelity sweep + boundary),
+with its own caveats listed (9.3), completed by the human study (9.2).
+
+### 9.2 HUMAN STUDY — brief design (draft; full kit = T3; ALSO: the paper/chapter must state this study
+as designed/forthcoming WITH this summary, so reviewers see the closer coming — add to T2/T8):
+n≈50, within-subject. Entry: participants with importable ratings history (Letterboxd/IMDb/MAL) or a
+20-seed-film rating phase. Each participant answers ~16 items across channels on THEIR catalogue: 4 slider
+screens (k=3 phrase blends), 4 pairwise comparisons, 4 concept yes/no/don't-know, 2 open-recall prompts
+(favourite + hidden gem), 2 item ratings (repeat of seed items -> per-person test-retest fidelity).
+Measures: per-channel FIDELITY (corr of answers with held ratings / geometric prediction), answerability/
+refusal rates, framing-lever shift (gem vs favourite popularity percentile), downstream NDCG (fold answers
+through I2, rank held-out titles). Analysis: place each real interface on the fidelity-boundary x-axis;
+power ~0.8 to detect channel fidelity differences ~0.15 at n=50 (verify in T3 kit). Output feeds: C
+(boundary map gets real-interface markers), B (answerability rates), D (framing lever), E (slider usability).
+
+### 9.3 ADVERSARIAL PRE-MORTEM on the taxonomy claim (write defenses INTO the section):
+(i) "Conjoint DID calibrate choice-model noise from data" — partially true in marketing (logit fitted to
+holdout choices); defense: qualify claim to ELICITATION-FOR-RECOMMENDATION evaluation + the fidelity-SWEEP
+(no one varies fidelity as an experimental axis); ACTION: verify via targeted lit check before print.
+(ii) "Test-retest noise was used somewhere" — Amatriain measured it; search for anyone WIRING it into
+elicitation eval; if found, cite as closest prior and narrow the claim. (iii) "Your fitted channel is
+itself model-dependent" (bins defined by s=cos in OUR space) — TRUE in part; defense already exists:
+the rating side is behavioral, and the channel can be refit per s-definition (V1/EASE/I2) — ACTION (cheap
+experiment): show the fitted law is stable across the three geometries; add to numbers-review below.
+(iv) "Static rating noise != interactive conversational answering" — concede; exactly what the human study
+measures; this is why the paper states the study design. (v) "Straw-manning prior work" — the tone rules +
+faithful-reproduction table + self-implication are the defense.
+
+### 9.4 NUMBERS REVIEW for the answerability-privilege correction (8a) — Opus task:
+(a) verify whether concept-8 (0.325) used per-user lift selection (L1) or population lift (deployable);
+if per-user, ADD a population-only deployable-concept arm to the noisy tables; (b) label item-real rows L1
+everywhere; (c) re-state the R2/P4c conclusions with the corrected deployable ordering (expected:
+population-concepts + open recall lead; verify); (d) propagate to C/B/D texts (T2/T5/T6).
