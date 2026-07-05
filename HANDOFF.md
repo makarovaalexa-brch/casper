@@ -88,3 +88,27 @@ squeeze R0-1 (actor = realizable myopic ceiling clean; Bayesian repeat-probing w
 Papers A-E updated through all of the above incl. sexiness pass (titles, worked-example box, figures).
 Key docs: casper/experiments/instrument2/*.md, PHASE4A/4B/P4C/SQUEEZE_R01, INSTRUMENT2_PLAN.md,
 REVIEW_HARSH_2026-07-01.md + REVIEW_RESPONSE (first review, fully addressed), PUBLICATION_PLAN_2026-07-01.md.
+
+
+## 6. THE LEARNED-POLICY CLAIM — exact status + THE priority experiment (added 2026-07-05)
+
+What is ours/novel/safe re learned policies (we do NOT show "policy doesn't matter"):
+- The LATENT-SPACE ACTOR (D1-recipe on I2 — the same continuous actor whose vs-DISCRETE premium P4c debunks
+  under realistic answers). What survives: (a) CLEAN channel: beats the strongest STATIC continuous design
+  +0.019 full (paired bootstrap p=0.9998, static-distill control passed) and +0.011 on books (p=0.997);
+  (b) NOISY channel: the NOISE-TRAINED actor (0.287) is the best CONTINUOUS method (> Bayesian 0.248 >
+  frozen 0.15) while losing to discrete answerable arms (0.325-0.394). Novelty verified: elicitation policy
+  in a SOTA latent space has no precedent. Second learned finding: "policies must be trained under the
+  deployment answer channel" (0.15->0.287) — nobody else has a fitted channel to show this.
+- What we show does NOT matter: reward engineering, endpoint optimization on saturated budgets, per-user
+  branching over low-rank menus, clean-channel policy tinkering beyond the myopic ceiling.
+
+**KNOWN GAP (the linchpin): the adaptive-vs-static margin has NEVER been tested under the realistic
+channel** — noise-trained actor was compared to clean-era statics, not to a noise-adapted static basis.
+
+**PRIORITY EXPERIMENT (R2-noise, run FIRST from the squeeze handoff):** train actors under the empirical
+channel (3 trseeds, val-sel) AND construct the noise-adapted static comparator (greedy-selected basis
+evaluated/selected under the same channel; also give the static the repeat-probing schedule option so it is
+the STRONGEST fair static); compare with paired bootstrap. Outcome decides the claim's wording: adaptivity
+"under clean answers" vs adaptivity, full stop. ~1 agent, hours CPU. Everything else in squeeze R2-4
+(EIG selector toward the 0.755/0.878 ceilings, learned belief head, sigma-actor, k-curriculum) comes after.
