@@ -54,7 +54,11 @@ tables in `HANDOFF_PROGRESS_2026-07-05.md`; per-experiment docs cited below):**
   not raw NDCG. `experiments/paper2/T6_PAPERD_FAIR.md`.
 - ✅ **T7a** EASE cold-start k=1..8 vs I2: tie is WARM-START-ONLY — I2 wins every k (Δ+0.05–0.06, p=1.0).
   `experiments/instrument2/T7A_EASE_COLDSTART.md`.
-- ⏳ **ML-25M I2 port** (backlog): RUNNING (Jul-9 constraint lifted; now fully in-scope).
+- ✅ **ML-25M I2 port** (backlog, Jul 5): I2 ports to 25M scale — RecVAE-d512 full-profile 0.4998/0.3443
+  (+0.248/+0.294 over MOSTPOP, EASE-class, matches ML-1M headroom), monotone k-curve, **8/8 gates PASS**.
+  = 2nd replication dataset for A/C. `experiments/instrument2/PHASE2_ML25M_PORT.md`. (Honest scope note:
+  concept-ONLY fidelity −0.061 below pop floor = rank-4 genome-centroid concepts, but concepts still ADD
+  on items per G5.) Optional leftovers: NSUB=0 full retrain, d-sweep, EASE bar, W1/Phase-4 policy battery.
 - ⏳ REMAINING = the TEXT halves (T1, T2, T5a/c, T7b, T8, T9) + T3 kit — numbers now FROZEN, safe to write.
   T2+T8 MUST state: adaptivity is fidelity-conditional ("clean answers only"); the optimization-gap finding
   (§7); Paper D = fair-comparison (open≈PEBOL at equal access).
@@ -91,9 +95,12 @@ Order: T1 → T2+T8 → T4+T7a → T5b+T6a → T3 (parallel) → T9. ≈5–6 Op
 ## 4. OTHER REMAINING WORK (pre-review backlog, still valid)
 
 - ML-25M I2 port (deferred core-cut item; conventions in experiments/instrument2/PHASE2_PORTS.md).
-- Squeeze R2-4 pivoted (task #49): noise-robust policies (train-noisy actors, repeat-top-axis probing,
-  decoder-metric belief, fix Kalman magnitude shrinkage) + non-peeking decoder-metric EIG selector toward
-  the 0.755/0.878 ceilings (SQUEEZE_R01.md).
+- Squeeze R2 DONE (see §3/§7). **Squeeze R3 QUEUED to run AFTER the ML-25M port (user-requested 2026-07-05),
+  tasks #16–20:** (16, FLAGSHIP) non-peeking decoder-metric EIG selector attacking the SELECTION gap
+  0.55→0.75 then CONTINUITY gap 0.75→0.88; (17) decoder-metric belief tracker + fix Kalman magnitude
+  shrinkage (re-inflate to ||z*||≈eta); (18) learned belief head; (19) sigma-actor (uncertainty-aware,
+  needs #17); (20) k-curriculum (anytime/all-lengths reward). Headroom-chasing upside, not review-response.
+  Base infra: squeeze_r0/r1/r2 in scripts/instrument2/, SQUEEZE_R01.md compass + recommendations.
 - Compile passes (deferred; before ECIR).
 - Papers-dir consolidation when file lock clears (retire outer copy OR make it canonical permanently —
   decide; currently outer=canonical, casper/papers=synced backup).
@@ -234,3 +241,49 @@ faithful-reproduction table + self-implication are the defense.
 if per-user, ADD a population-only deployable-concept arm to the noisy tables; (b) label item-real rows L1
 everywhere; (c) re-state the R2/P4c conclusions with the corrected deployable ordering (expected:
 population-concepts + open recall lead; verify); (d) propagate to C/B/D texts (T2/T5/T6).
+
+
+## 10. POSITIONING CORE + STRAIGHT ANSWERS (2026-07-06, user Q&A — governs final framing)
+
+### 10.1 Why the critic hit US on the shared flaw, and the guard
+The field uses the flawed channel as BACKGROUND (A-vs-B under one oracle: bias ~cancels). We used it as
+the SUBJECT (claims ABOUT answer types) -> circular for us, merely embarrassing for others. Also we armed
+the critic (P4c/§5.6 put the refutation in our own text) and 5 papers on 1 substrate = one target.
+GUARD (write into T1/T2): claims about CHANNELS are always stated per-channel with the channel's evidence
+grade (oracle / fitted / human-pending); we self-implicate (V1 era = lineage 2) and position the audit as
+"we made the shared assumption visible, measured its cost, built the first fitted alternative" — being
+first-to-surface IS the contribution (Krichene-Rendle precedent: the bar moves when someone makes it salient).
+
+### 10.2 The fitted channel: what it gave us, build status
+GAVE US: the boundary result (ordering inversion under realistic answers), the noise decomposition
+(linear/quantization/sampling ~0.10 each), channel-robust claim rankings, repeat-probing, train-under-
+channel policies — i.e., converted "assume answers" into "measure answers". BUILD STATUS: v1 DONE for
+ML-1M item-direction answers (P(rating|s), 809k pairs, corr .516). NOT FINISHED: (a) extrapolation to
+continuous q / concepts is assumed (same law applied to cos(z*,q) — flagged); (b) one dataset; (c)
+cross-geometry stability refit pending (§9.3iii); (d) static rating noise != interactive answering (human
+study closes). State build status honestly in the papers.
+
+### 10.3 THE CLAIM STACK (final): (i) answer fidelity governs elicitation value (boundary law, fitted
+channel = the instrument for it); (ii) best DEPLOYABLE method = a HEURISTIC pipeline: open recall
+(volunteered items) + population-answerable concept questions (lift/divisiveness-selected) + graded real
+answers, on the I2 instrument, with repeat-probing under noise — components have classical ancestry
+(Rashid-family selection; recall = classic onboarding), the ASSEMBLY + quantification + instrument +
+boundary map + repeat-probing are ours; (iii) learned/continuous adaptivity wins ONLY in high-fidelity
+regimes (sliders/comparisons) — fidelity-conditional, honestly labeled; (iv) the measurement layer.
+ANSWER to "best method on realistic env: learned, heuristic, ours?": HEURISTIC, assembled-by-us,
+components-not-ours, instrument-ours. Learned policies do not make the deployable podium today (pending
+§9.4 numbers review for the exact deployable ordering). This is fine: it is an analysis thesis.
+
+### 10.4 Why the squeeze is out of scope (for THIS thesis)
+R0-1: clean-channel actor already at the realizable myopic ceiling (nothing to squeeze). R2: under noise
+the searched static wins. Remaining rungs = noise-robust policy LEARNING research — a direction the thesis
+OPENS (future work, flag planted), not a claim it needs. Budget cut-from-bottom confirmed this. It is in
+scope for the field/postdoc, out of scope for the reframed claims.
+
+### 10.5 Title correction (coordinator's own error, acknowledged)
+"The Best Question Has No Name" was proposed when the clean-channel flagship was the story; after P4c it
+OVERCLAIMS — the best deployable question is highly nameable ("name a hidden gem"). ACTION (T2, firm):
+retitle Paper C to the fidelity/boundary framing (e.g. "Answer Fidelity Governs Preference Elicitation:
+Mapping the Boundary Between Continuous and Askable Questions"); the poetic phrase may survive ONLY as the
+section title of the un-askability/clean-regime mechanism study, where it IS cleanly derived (realization
+caps, snap-loss under the stated oracle model).
