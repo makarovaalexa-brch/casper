@@ -109,3 +109,69 @@ June reversed replication (if the arena is right, his tree should beat statics t
 (c) VERIFY (targeted lit check before print): exact Golbandi margins/protocol; any post-2011 multi-channel
 adaptive elicitation under realistic answers (interview/bootstrapping lineage, Sepliarskaia et al?, Elahi
 survey descendants) — if something closer exists, narrow the claim again.
+
+
+## 7. SIM-FIRST REPLAN (2026-07-06, user directive: the calibrated answerer takes CENTER STAGE)
+User verdict: ~50% of paper content rests on unrealistic answering; replace/redo with realistic assumptions.
+THE CENTERPIECE ARTIFACT = **the Calibrated Answerer** (working name; a released, per-channel,
+behaviorally-FITTED user simulator). Deep-research workflow launched 2026-07-06 (run wf_3a5ef549-c13) —
+its report (citations, recipes, kill-risks, field-audit quotes) gets appended as §7-ANNEX when it lands;
+DO NOT finalize novelty claims before reading it.
+
+### 7.1 CHANNEL TABLE — each channel: grounding data → fitted model → status
+S1 ITEM RATINGS: P(rating|affinity)+per-user style — FITTED v1 (P4c, 809k pairs); extend w/ test-retest
+   anchor (Amatriain refs via research) + response-style psychometrics. [v1 done]
+S2 CONCEPTS/TAGS y/n/dk: **ground in RAW TAG APPLICATIONS** (ML user-item-tag triples = real users
+   asserting concepts): per-user tag-vocabulary breadth = answerability model; tag sentiment = polarity;
+   genome scores = item-side relevance. NOVEL grounding — verify no prior via research. [to build]
+S3 REVIEW-MINED VOCAB: mine the vocabulary users ACTUALLY use (Goodreads/Amazon/IMDb reviews); askable
+   concepts = attested phrases; answers grounded in the user's own review text + rated-item phrase
+   incidence. Ties to the original language-anchored CASPER vision, done right. [to build]
+S4 PAIRWISE: Bradley-Terry FITTED from co-rated pairs (rating differences = revealed choices; real tie/noise
+   rates) vs the field's assumed logit. [to build, easy — 1M ratings give millions of co-rated pairs]
+S5 SLIDERS/GRADED: quantization + response-style, fitted (extends S1). [half-done]
+S6 OPEN RECALL: **ground in FIRST-SESSION RATING ORDER** (a user's earliest ratings ≈ what they volunteer
+   first — measure popularity/extremity/recency bias of first-k vs later ratings = an in-dataset revealed-
+   recall experiment). NOVEL grounding — verify via research. + availability-lit parameters + LLM persona
+   as secondary + human study as final. [to build]
+S7 REFUSALS/DON'T-KNOW: from S2 vocabulary breadth + coverage + our LLM-study dk-rates; Golbandi ternary
+   protocol as the classical anchor. [to build]
+Each channel ships with: fit stats, validation (held-out behavioral prediction), assumption grade
+(fitted/assumed/human-pending), and a sensitivity knob.
+
+### 7.2 EXECUTION ORDER (very specific)
+STEP 1 (after research lands): read §7-ANNEX; finalize channel recipes + novelty wording; write the
+  field-audit section w/ REAL quotes+citations (respectful tone rules of archive §9.1 apply). 
+STEP 2: build S4+S2 (cheapest, both from in-hand data) → S6+S7 → S3 (heaviest, needs review corpora).
+  Each channel = one Opus agent, one result md, fit+validation numbers, committed.
+STEP 3: assemble THE ARENA (v2 §A1) on the calibrated channels; graded-assumptions table auto-generated.
+STEP 4: re-run the claim battery on the arena (which prior claims survive calibrated answers — expect the
+  fidelity-boundary structure to persist; every paper's numbers rebased or clearly dual-labeled
+  oracle-vs-calibrated). THIS is the redo of the "rubbish 50%".
+STEP 5: baselines incl. Golbandi ternary tree (§6) + THE AGENT (v2 §A3: descent+refusals+routing,
+  tie-by-construction, trained under the arena) + prereg (v2 §A4).
+STEP 6: human study (archive §9.2) refits channels; papers state it as forthcoming.
+
+### 7.3 PAPER REMAP (the replace/redo)
+NEW PAPER S = **the Calibrated Answerer + field audit** (replaces Paper B's dead policy content; B's
+answerability models BECOME sim components S2/S7; the audit of archive §9 lives here with citations).
+The great story, if research confirms the kill-risk check: "elicitation has been evaluated against
+users that answer like the evaluator's own model; here is the first simulator that answers like the
+data says people do — and here is what survives." A = instrument+gates (keeps its role, cites S).
+C = mechanisms + fidelity boundary, numbers rebased/dual-labeled. D = open recall on the S6-grounded
+channel. E merged into D. FINAL = agent-in-arena. ECIR: A + C if timing holds; S is potentially the
+STRONGEST submission — decide venue when S exists.
+
+### 7.4 HALF-FINISHED IDEAS FOLDED IN (nothing lost)
+Coarse-to-fine descent (archive §12) = the agent core (STEP 5). Golbandi ternary (§6) = mandatory baseline
++ our June reversed-replication resolution. Learned bot-play answerer (archive T4) = a VALIDATION
+comparator for the sim (does a learned answerer match fitted channels?). Cross-geometry channel stability
+(archive §9.3iii) = S1 validation. Numbers review (archive §9.4) = subsumed by STEP 4 rebase. LLM-study
+phase 2 = sim-validation arm. ML-25M port, squeeze leftovers, D+E merge = post-arena backlog.
+
+### 7.5 NOVELTY-RETENTION CHECKLIST (verify each against §7-ANNEX before claiming)
+(1) first behaviorally-calibrated MULTI-CHANNEL elicitation simulator; (2) tag-applications-as-concept-
+ground-truth; (3) first-session-order-as-recall-proxy; (4) review-mined askable vocabulary grounded in
+users' own text; (5) fitted-BT pairwise from co-rated pairs in elicitation eval; (6) the citation-backed
+deployability audit; (7) fidelity boundary (already ours); (8) the restored honest adaptivity test across
+modern channels (§6 framing). Each: cite nearest prior, state delta, invite counterexamples.
