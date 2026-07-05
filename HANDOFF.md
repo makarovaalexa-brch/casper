@@ -112,3 +112,26 @@ evaluated/selected under the same channel; also give the static the repeat-probi
 the STRONGEST fair static); compare with paired bootstrap. Outcome decides the claim's wording: adaptivity
 "under clean answers" vs adaptivity, full stop. ~1 agent, hours CPU. Everything else in squeeze R2-4
 (EIG selector toward the 0.755/0.878 ceilings, learned belief head, sigma-actor, k-curriculum) comes after.
+
+
+## 7. R2 VERDICT (Opus ran it) + the "should-at-least-tie" question (2026-07-06)
+
+R2 result: fair noise-adapted static (repeat-probing schedule, 0.3143) BEATS the noise-trained actor
+(0.2844) by -0.030 [-0.040,-0.020]. Adaptivity verdict under the realistic channel: DOES NOT HOLD ->
+papers use the pre-authorized wording: the clean-channel adaptive margin (+0.019) is FIDELITY-CONDITIONAL;
+under noise the optimal realizable strategy is repeat-probing the top informative axis ("ask the best
+question five times" - quotable, practical, ours).
+
+WHY below-static is possible despite expressiveness (the actor CAN emit any fixed schedule): the
+OPTIMIZATION GAP - (a) the static was found by greedy discrete SEARCH directly on the (val) noisy
+objective; SGD through a sampled channel is a weaker optimizer; (b) actor objective is a proxy
+(recon+softNDCG); (c) clean-warm-start basin biases toward distinct probes - gradients do not discover
+the degenerate repeat strategy. THIS IS A RECURRING, NAMED PHENOMENON in the thesis (BC-clone 0.137 <
+teacher 0.140; distill = lossless at best; from-scratch collapses x2; learned tag->z < constructed bags;
+FieldActor < plain; Gumbel < REINFORCE < fixed): direct construction/search beats gradient training of a
+superset class at these sample sizes. ACTION (T8 addition): state the optimization gap ONCE as a named
+methods finding across papers; every surviving positive claim already beat its searched-static control.
+
+NEXT ARM (tie-by-construction, add to R2): warm the actor FROM the winning repeat schedule + val-select ->
+ties static on val by construction; any test shortfall then = pure val->test noise (quantifies the gap);
+upside = adaptive-repeats might add value on top. Cheap, decisive, makes the "at least tie" property real.
