@@ -69,14 +69,15 @@ def ndcg_batch_full(Scand, profset, rel_set):
 
 
 # ================================================================== RUNG 0a: direction oracle
-def build_candidate_dirs(model, rng, n_rand=512):
-    """~ (3706 items + 512 SVD + n_rand random) unit directions in z-space."""
+def build_candidate_dirs(model, rng, n_item=1024, n_rand=512):
+    """~2k unit directions: n_item sampled item-decoder rows + 512 SVD + n_rand random."""
     W = model.decoder.weight.detach().numpy()
     D = W / (np.linalg.norm(W, axis=1, keepdims=True) + 1e-9)     # 3706 item rows
+    isel = rng.choice(D.shape[0], min(n_item, D.shape[0]), replace=False)
     svd = P.decoder_svd_dirs(model, 512)                         # 512 informative
     R = rng.standard_normal((n_rand, W.shape[1])).astype(np.float32)
     R /= (np.linalg.norm(R, axis=1, keepdims=True) + 1e-9)
-    Q = np.concatenate([D, svd, R], 0).astype(np.float32)
+    Q = np.concatenate([D[isel], svd, R], 0).astype(np.float32)
     return Q
 
 
@@ -88,7 +89,7 @@ def stage_oracle_dir():
     Q = build_candidate_dirs(model, np.random.default_rng(0))    # (C,d)
     C = Q.shape[0]
     print(f'[oracle_dir] {C} candidate directions; precompute QW...', flush=True)
-    QW = (Q.astype(np.float64) @ W.T)                            # (C,NI)  q.W^T  shared over users/turns
+    QW = (Q.astype(np.float64) @ W.T).astype(np.float32)         # (C,NI)  q.W^T  shared over users/turns
     res = {'full': [], 'tail': []}
     for sd in SEEDS:
         ar = P.arena_seed(sd, rd_all); test = ar['test_users']
@@ -100,10 +101,9 @@ def stage_oracle_dir():
             if not rel:
                 continue
             zs = zst[i]; nz = np.linalg.norm(zs) + 1e-9
-            a_u = (Q.astype(np.float64) @ zs) / nz               # (C,) graded answer per direction
-            Delta = ETA * a_u[:, None] * QW                     # (C,NI) score contribution of each dir
-            Sbase = np.zeros(NI)                                # z=0 -> decode bias only... plus bias
-            Sbase = Sbase + bdec                                # z0=0 => decode = bias
+            a_u = ((Q.astype(np.float64) @ zs) / nz).astype(np.float32)   # (C,) graded answer
+            Delta = (ETA * a_u[:, None] * QW).astype(np.float32)         # (C,NI) score contribution
+            Sbase = bdec.astype(np.float32).copy()             # z0=0 => decode = bias
             for t in range(T):
                 Scand = Sbase[None, :] + Delta                 # (C,NI)
                 nd = ndcg_batch_full(Scand, profset, rel)
@@ -211,9 +211,10 @@ def make_prior(kind, model, cov_pop, scale, svd_all=None, sv=None):
 
 
 def kalman_run(zst, dirs_fn, P0, R, scale, decode_fn, ar, users, model, W, bdec,
-               answer_fn=None):
+               answer_fn=None, cmul=1.0):
     """Run Kalman belief for a cohort. dirs_fn(t, mu, Pcur) -> unit q (d,).
-    answer_fn(i, q) -> observation a (default graded cos). Returns (full, tail)."""
+    answer_fn(i, q) -> observation a (default graded cos); cmul scale-matches a channel
+    answer's RMS to the native cos RMS (isolates information from raw scale). Returns (full,tail)."""
     d = P0.shape[0]
     af = at = 0.0; mf = mt = 0
     for i, x in enumerate(users):
@@ -225,7 +226,7 @@ def kalman_run(zst, dirs_fn, P0, R, scale, decode_fn, ar, users, model, W, bdec,
         mu = np.zeros(d); Pc = P0.copy()
         for t in range(T):
             q = dirs_fn(t, mu, Pc)                                # unit dir
-            a = (zs @ q / nz) if answer_fn is None else answer_fn(i, q)
+            a = (zs @ q / nz) if answer_fn is None else cmul * answer_fn(i, q)
             y = a * scale                                        # linear obs y = q^T z + noise
             Pq = Pc @ q
             S = float(q @ Pq + R)
@@ -260,7 +261,7 @@ def load_actor(d, name):
     return a, blob.get('best_val_tail')
 
 
-def additive_run(zst, dirs_fn, ar, users, model, W, bdec, answer_fn=None):
+def additive_run(zst, dirs_fn, ar, users, model, W, bdec, answer_fn=None, cmul=1.0):
     """Baseline additive operator z'=z+eta*a*q with a direction policy dirs_fn(t,z)->q."""
     d = W.shape[1]; af = at = 0.0; mf = mt = 0
     for i, x in enumerate(users):
@@ -272,7 +273,7 @@ def additive_run(zst, dirs_fn, ar, users, model, W, bdec, answer_fn=None):
         z = np.zeros(d)
         for t in range(T):
             q = dirs_fn(t, z)
-            a = (zs @ q / nz) if answer_fn is None else answer_fn(i, q)
+            a = (zs @ q / nz) if answer_fn is None else cmul * answer_fn(i, q)
             z = z + ETA * a * q
         S = z @ W.T + bdec
         nf = A.ndcg_at10(S, rel, profset, ar['headmask'], False)
@@ -280,6 +281,24 @@ def additive_run(zst, dirs_fn, ar, users, model, W, bdec, answer_fn=None):
         if nf is not None: af += nf; mf += 1
         if ntl is not None: at += ntl; mt += 1
     return af / max(mf, 1), at / max(mt, 1)
+
+
+def compute_cmul(actor, zst, chan, centers, seed):
+    """Scale-match: run actor with NATIVE cos answers to get the trajectory; c = rms(s)/rms(a_channel)
+    sampled along that trajectory (== choosing the channel's effective eta; isolates info from scale)."""
+    d = zst.shape[1]; U = zst.shape[0]; nz = np.linalg.norm(zst, axis=1) + 1e-9
+    rng = np.random.default_rng(seed)
+    z = np.zeros((U, d), np.float32); s_all = []; a_all = []
+    for t in range(T):
+        with torch.no_grad():
+            q = actor(torch.tensor(z, dtype=torch.float32), t).numpy()
+        s = (zst * q).sum(1) / nz
+        a = _sample_channel(s, chan, 1.0, rng, center=centers)
+        s_all.append(s); a_all.append(a)
+        z = z + ETA * s[:, None] * q                             # native trajectory
+    rs = np.sqrt(np.mean(np.square(np.concatenate(s_all))) + 1e-12)
+    ra = np.sqrt(np.mean(np.square(np.concatenate(a_all))) + 1e-12)
+    return float(rs / ra) if ra > 0 else 1.0
 
 
 def actor_dir_fn(actor):
@@ -338,6 +357,17 @@ def stage_bayes(noisy=False):
     # R swept on VAL (seed 1) for the D-optimal x each prior; pick best-full R
     Rgrid = [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0]
     arv = P.arena_seed(1, rd_all); val = arv['val_users']; zstv = P.build_zstar(model, arv, val)
+    # under the noisy channel, select R on a NOISY val (fair to Kalman's noise weighting)
+    val_afn = None; val_cmul = 1.0
+    if noisy:
+        _rngv = np.random.default_rng(99)
+        _umv = _user_means(arv, val, rd_all); _cv = np.array([_umv[u] for u in val])
+        _nzv = np.linalg.norm(zstv, axis=1) + 1e-9
+        val_cmul = compute_cmul(actor, zstv, chan, _cv, 99)
+
+        def val_afn(i, q):
+            s = float(zstv[i] @ q / _nzv[i])
+            return _sample_channel(np.array([s]), chan, 1.0, _rngv, center=_cv[i])[0]
     bestR = {}
     for pk in priors:
         P0 = make_prior(pk, model, cov_pop, scale, svd_all, sv)
@@ -345,7 +375,7 @@ def stage_bayes(noisy=False):
         for R in Rgrid:
             seq = dopt_sequence(P0, R, T)
             f, _ = kalman_run(zstv, lambda t, mu, Pc, seq=seq: seq[t], P0, R, scale,
-                              None, arv, val, model, W, bdec)
+                              None, arv, val, model, W, bdec, answer_fn=val_afn, cmul=val_cmul)
             if f > bf: bf = f; bR = R
         bestR[pk] = bR
         print(f'[bayes] prior {pk}: val-best R={bR} (val full {bf:.4f})', flush=True)
@@ -388,8 +418,18 @@ def stage_bayes(noisy=False):
         boot[name] = {}
     for sd in SEEDS:
         ar = P.arena_seed(sd, rd_all); test = ar['test_users']; zst = P.build_zstar(model, ar, test)
-        afn = make_answer_fn(ar, test, zst, 1000 * sd)() if noisy else None
+        if noisy:
+            _um = _user_means(ar, test, rd_all); _ctr = np.array([_um[u] for u in test])
+            cmul = compute_cmul(actor, zst, chan, _ctr, 1000 * sd)
+            print(f'[bayes_noisy] seed{sd} scale-match cmul={cmul:.4f}', flush=True)
+        else:
+            cmul = 1.0
+        # COMMON RANDOM NUMBERS: every arm (and its bootstrap pass) gets a fresh rng seeded
+        # identically, so each (user,turn) draws the SAME channel noise across arms.
+        def fresh_afn():
+            return make_answer_fn(ar, test, zst, 1000 * sd) if noisy else None
         for name, upd, dirs, pk in keys:
+            afn = fresh_afn()
             if dirs == 'dopt':
                 P0 = make_prior(pk, model, cov_pop, scale, svd_all, sv); R = bestR[pk]
                 seq = dopt_sequence(P0, R, T)
@@ -402,13 +442,14 @@ def stage_bayes(noisy=False):
             if upd == 'kalman':
                 P0 = make_prior(pk, model, cov_pop, scale, svd_all, sv); R = bestR.get(pk, 1.0)
                 f, t = kalman_run(zst, dfn, P0, R, scale, None, ar, test, model, W, bdec,
-                                  answer_fn=afn)
+                                  answer_fn=afn, cmul=cmul)
+                afn = fresh_afn()                                # reset draws for bootstrap pass
 
-                def bf_k(i, zs, dfn=dfn, P0=P0, R=R, afn=afn, zst=zst):
+                def bf_k(i, zs, dfn=dfn, P0=P0, R=R, afn=afn, zst=zst, cmul=cmul):
                     mu = np.zeros(d); Pc = P0.copy(); nz = np.linalg.norm(zs) + 1e-9
                     for tt in range(T):
                         q = dfn(tt, mu, Pc)
-                        a = (zs @ q / nz) if afn is None else afn(i, q)
+                        a = (zs @ q / nz) if afn is None else cmul * afn(i, q)
                         y = a * scale; Pq = Pc @ q; Sd = float(q @ Pq + R); K = Pq / Sd
                         mu = mu + K * (y - float(q @ mu)); Pc = Pc - np.outer(K, Pq)
                     return mu
@@ -417,13 +458,14 @@ def stage_bayes(noisy=False):
                 dfn2 = (actor_dir_fn(actor) if dirs == 'actor'
                         else (lambda t, z: svd8[t]) if dirs == 'svd8'
                         else (lambda t, z, seq=dopt_sequence(make_prior(pk, model, cov_pop, scale, svd_all, sv), bestR.get(pk, 1.0), T): seq[t]))
-                f, t = additive_run(zst, dfn2, ar, test, model, W, bdec, answer_fn=afn)
+                f, t = additive_run(zst, dfn2, ar, test, model, W, bdec, answer_fn=afn, cmul=cmul)
+                afn = fresh_afn()                                # reset draws for bootstrap pass
 
-                def bf_a(i, zs, dfn2=dfn2, afn=afn):
+                def bf_a(i, zs, dfn2=dfn2, afn=afn, cmul=cmul):
                     z = np.zeros(d); nz = np.linalg.norm(zs) + 1e-9
                     for tt in range(T):
                         q = dfn2(tt, z)
-                        a = (zs @ q / nz) if afn is None else afn(i, q)
+                        a = (zs @ q / nz) if afn is None else cmul * afn(i, q)
                         z = z + ETA * a * q
                     return z
                 bu = collect_peruser_full(bf_a, ar, test, zst, W, bdec)
