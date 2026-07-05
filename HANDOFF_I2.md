@@ -41,3 +41,19 @@ papers backed up casper/papers/ + C:\dev\phd_BACKUP_2026-07-04. Task IDs: #37-#4
 3. Polarity channel design proven (P3): operator a<0 gives strong specific demotion (spec −33.7,
    beats 1.6's −14.5); two-channel encoder is preservation-exact but weak (−4.3) = fallback only.
 4. Geometric answer model: P4c answer-source ablation is the non-human closer (empirical channel + cross-representation + raw-data pairs); human study then covers only framing-lever + slider usability.
+
+
+## LOCKED PLAN + BUDGET (2026-07-05, user at 67% weekly usage until Tue)
+
+Priority order if budget tightens (cut from the bottom):
+1. P4c answer-source ablation (RUNNING) — Opus ~150-200k tok, ~2-4h CPU
+2. Sexiness pass (RUNNING) — Opus ~120-180k tok, ~0 CPU, cents of API
+3. Squeeze R0-1 oracle+Bayesian arm (RUNNING) — Opus ~120-180k tok, ~1-3h CPU
+4. Squeeze R2-4 (gated on R0-1 verdict) — Opus ~200-300k tok, ~4-8h CPU
+5. Final consolidation: results->papers weave + handoff finalization — Opus ~100k + Fable coordination
+
+Est. total remaining: ~0.7-1.0M Opus tokens + ~40-60k Fable tokens + ~8-15h CPU wall-clock
+(vs ~3M-equivalent remaining in the weekly budget -> comfortable, ~2x margin).
+Token rules in force: no more deep-research workflows; compact agent reports; coordinator polls
+files rather than resuming agents; batch writing tasks; Fable only at gates + strategy.
+User plan post-Tue: 1-2 replication datasets, finalize drafts, compile.
