@@ -59,3 +59,11 @@ Est. total remaining: ~0.7-1.0M Opus tokens + ~40-60k Fable tokens + ~8-15h CPU 
 Token rules in force: no more deep-research workflows; compact agent reports; coordinator polls
 files rather than resuming agents; batch writing tasks; Fable only at gates + strategy.
 User plan post-Tue: 1-2 replication datasets, finalize drafts, compile.
+
+
+## SQUEEZE ARC R0-1 (Jul 6, DONE) + FINAL STATE
+- Compass: privileged direction ceiling 0.878/0.411; item-subset 0.755 > full-profile 0.554; actor ~7% of headroom.
+- Clean channel: actor = realizable myopic ceiling (D-optimal -0.011; Kalman shrinkage hurts; D-opt needs decoder metric).
+- NOISY channel: Kalman-D-optimal repeat-probing WINS +0.095 (0.248 vs actor 0.150) -> noise robustness = the realizable prize. Woven into C's fidelity subsection.
+- R2-4 PIVOTED to handoff (task #49): noise-robust policies + non-peeking decoder-metric EIG selector toward the 0.755/0.878 ceilings.
+ALL CORE + PRIORITY WORK COMPLETE. Remaining for user: 1-2 replication datasets (ML-25M I2 port spec via PHASE2_PORTS conventions), draft finalization, compile passes (#43), ECIR assembly (#13), human micro-study (#12), D+E merge (#44), squeeze R2-4 (#49).
