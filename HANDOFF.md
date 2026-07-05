@@ -206,3 +206,30 @@ sparsity caveats; kill-risk verdict on "has anyone built a calibrated multi-chan
 ACTION when budget resets: (1) resume-verify wf_3a5ef549-c13; (2) targeted manual checks on the 3 novelty
 groundings (tag-apps vs Genome-survey for S2; first-session-order for S6; review-mining for S3) + the
 kill-risk; (3) fold verified results into §7 channel table; THEN start building S4+S2.
+
+## 8. DECISIONS 2026-07-06 (user, on Opus) — override earlier points
+
+D1. REPEAT-PROBING IS NOT DEPLOYABLE AS LITERAL REPETITION. You cannot ask a real person the same question
+    5x. DELETE "repeat-probing / ask-your-best-question-5-times" as a deployable headline (kills the earlier
+    §18b). BUT the underlying insight survives and must be RE-REALIZED deployably: under noisy answers you
+    want to RE-MEASURE THE SAME LATENT AXIS via DIFFERENT questions that load on it (axis-redundant
+    questioning — several distinct askable questions probing one direction to average answer noise down).
+    ACTION: re-run the noise-robust arm with an AXIS-REDUNDANCY constraint (no verbatim repeats; distinct
+    questions per turn, allowed to target the same latent direction). This is the deployable, novel form —
+    "when answers are noisy, ask several different questions about the same thing." Reframe in Paper C as
+    such; the literal-repeat static was only a mechanism probe, label it that way.
+
+D2. SQUEEZE / ADAPTIVITY RESULTS MAY DIFFER UNDER THE PROPER MULTI-CHANNEL ANSWERER. The R0-1/R2 numbers
+    were on the P4c single-channel (item-direction) fitted noise. RE-RUN the squeeze battery (actor vs fair
+    static, axis-redundancy version per D1) under the calibrated multi-channel answerer once it exists.
+    RETRAIN the actor under that answerer. KEEP this analysis in Paper C (the adaptivity-under-realistic-
+    answers section) — do not finalize the "fidelity-conditional" wording until the proper answerer is in.
+
+D3. ARENAS = ML-25M + GOODREADS. DROP ML-1M as a primary arena going forward (it stays only as legacy/
+    provenance for the V1-era results already written). All new work — calibrated channels, arena, agent,
+    claim rebase — targets ML-25M (has raw tag applications for S2, first-session order for S6, scale for
+    fitting) + Goodreads (reviews for S3, cross-domain). Update every "ML-1M first" instruction accordingly.
+    Note: ML-25M I2 instrument port (was backlog point 35) is now ON the critical path — needed before the
+    arena. Goodreads I2 instrument already built.
+
+PROCEED per §7 SIM-FIRST plan with D1-D3 applied.
