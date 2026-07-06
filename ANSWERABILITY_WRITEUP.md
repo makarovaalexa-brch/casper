@@ -45,7 +45,21 @@ stereotype. G2=0.287 says the fuel is large; it is a privileged oracle bound, NO
 Judging full concept set + large stratified item sample; then fit P(answerable|log-pop, count, decade,
 genre-match, franchise), validated on HELD-OUT USERS (AUC + calibration). [numbers TBD; append here.]
 
-## 6. WHICH PAPER — placement
+## 6. STRUCTURE DECISION (owner, 2026-07-06): SEPARATE THESIS CHAPTER, FOLDED FOR PAPERS
+- **THESIS: its own chapter** — working title *"Measuring Answerability: An External-Judge Testbed for
+  Deployable Elicitation."* Sits between the instrument chapter and the flagship; makes everything after it
+  non-circular. Contents: the problem (silent un-deployable answer assumptions in the field, with citations
+  = the deployability audit), the external-LLM-judge method, the 4-test pre-registered gate, the 2
+  cross-checks (independent-CF + cross-family), the fitted P(answerable) model, the validity-gap FINDING
+  (external answerability is heterogeneous + taste-tracking + NOT stereotype + exploitable), claim boundary
+  (removes self-authored circularity, not model-prior; human study validates). MUST carry the AUDIT + the
+  FINDING, not just "we built a judge" (else it reads as plumbing). Strongest viva material.
+- **PAPERS: FOLD IN, do NOT spin a 4th paper for Oct 2.** Primary home = Paper 1 (which BECOMES the
+  answerability/measurement paper; old instrument content = its foundation). Post-ECIR, IF main study +
+  human validation are strong, a short standalone "released calibrated answerer + audit" resource paper is
+  an option — decide after the fitted-model numbers, not now.
+
+## 7. WHICH PAPER — placement (paper-side detail)
 This is a CROSS-CUTTING METHODS CONTRIBUTION; it does not belong to one legacy chapter. Placement:
 - **PRIMARY = Paper 1 (the instrument/testbed paper).** The answerability judge + validity-gap methodology +
   the deployability-assumptions audit are apparatus, exactly Paper 1's remit ("how do we measure elicitation
