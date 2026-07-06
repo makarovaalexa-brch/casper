@@ -1,0 +1,81 @@
+{
+ "model": "claude-haiku-4-5",
+ "snapshot": "claude-haiku-4-5-20251001",
+ "temperature": 0.0,
+ "n_users": 30,
+ "n_interview_questions_compared": 2250,
+ "answerability_agreement_rate": 0.8324444444444444,
+ "cohens_kappa": 0.6684692247983848,
+ "per_user_agreement_mean": 0.8324444444444444,
+ "gpt_yes_rate": 0.6191111111111111,
+ "haiku_yes_rate": 0.47733333333333333,
+ "haiku_validity_gap": {
+  "famous": {
+   "rated_rate": 0.23270440251572327,
+   "never_rate": 0.031446540880503145,
+   "gap_pts": 20.125786163522015,
+   "rated_n": 159,
+   "never_n": 159
+  },
+  "moderate": {
+   "rated_rate": 0.03896103896103896,
+   "never_rate": 0.0,
+   "gap_pts": 3.896103896103896,
+   "rated_n": 77,
+   "never_n": 77
+  },
+  "obscure": {
+   "rated_rate": 0.0,
+   "never_rate": 0.0,
+   "gap_pts": 0.0,
+   "rated_n": 4,
+   "never_n": 4
+  }
+ },
+ "gpt_validity_gap_same_users": {
+  "famous": {
+   "rated_rate": 0.8867924528301887,
+   "never_rate": 0.6163522012578616,
+   "gap_pts": 27.04402515723271,
+   "rated_n": 159,
+   "never_n": 159
+  },
+  "moderate": {
+   "rated_rate": 0.6103896103896104,
+   "never_rate": 0.12987012987012986,
+   "gap_pts": 48.05194805194805,
+   "rated_n": 77,
+   "never_n": 77
+  },
+  "obscure": {
+   "rated_rate": 0.0,
+   "never_rate": 0.0,
+   "gap_pts": 0.0,
+   "rated_n": 4,
+   "never_n": 4
+  }
+ },
+ "validity_low_mid_haiku_diagnostic": [
+  3.896103896103896
+ ],
+ "validity_low_mid_nondiagnostic": {
+  "obscure": {
+   "gap": 0.0,
+   "rated_n": 4,
+   "gpt_gap": 0.0
+  }
+ },
+ "validity_diag_min_rated_n": 5,
+ "validity_sign_replicates": true,
+ "cost": {
+  "calls": 30,
+  "in_tokens": null,
+  "out_tokens": null,
+  "usd_estimate": 0.4378,
+  "price_in": 1.0,
+  "price_out": 5.0,
+  "note": "analyze rerun (0 new calls); cost = persisted collection usage"
+ },
+ "cutoff": "agreement>=0.70 AND validity-gap sign replicates (low/mid rated>never)",
+ "passed": true
+}

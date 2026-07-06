@@ -1,0 +1,17 @@
+{
+ "method": "Bank-restricted EASE (top-4000 popular UNION masked targets = 4147-item universe; lambda=500; binary M item-item weights; item-mean-centered rating prediction). Trained on KNOWN-portion ratings of all users; gate-user held-out interactions dropped; predicted the SAME masked known-half items the LLM predicted, context = known-half minus masked (mirrors the LLM profile).",
+ "universe_items": 4147,
+ "lambda_l2": 500.0,
+ "n_predicted": 2400,
+ "n_skipped_out_of_universe": 0,
+ "ease_mae": 0.7401069021053069,
+ "ease_pred_true_corr": 0.42808132816902467,
+ "ease_rmse": 0.9434101384816376,
+ "global_mean_mae": 0.8472462709001792,
+ "item_mean_mae": 0.7766958628115106,
+ "global_mu": 3.5972161512347474,
+ "llm_mae_reference": 0.6789583333333333,
+ "llm_corr_reference": 0.5004255779445698,
+ "llm_n": 2400,
+ "pass_sane": true
+}
