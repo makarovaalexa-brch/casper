@@ -275,3 +275,11 @@ line (iEvaLM + 2024-26 faithfulness studies), Zhang&Balog agenda sim (KDD2020), 
 (2603.18573) — all appear to be assumed/LLM/agenda simulators, NOT per-channel fitted-answer-noise, but
 confirm before the "first calibrated multi-channel elicitation answerer" headline. Status: blocker DOWNGRADED
 from hard-stop to "one Wed session of targeted fetches"; Paper S novelty very likely survives with scoping.
+
+## 12. LLM ANSWERABILITY STUDY — model + cost decisions (2026-07-06)
+Model landscape (mid-2026): GPT-5.5/5.4 flagship; GPT-5.4-mini $0.75/$4.50 per 1M tok; GPT-5.4-nano
+$0.20/$1.25; 4o-mini legacy. DECISION: judge = GPT-5.4-mini (judgment-heavy theory-of-mind task, nano too
+weak, flagship overkill); + a 2nd family (Claude Haiku / Gemini Flash) on ~30-user subset for robustness;
+flagship spot-check ~20 hard niche cases. Costs (5.4-mini): micro-pilot (~15u×20q≈300 calls) <$1; full
+fuel gate (18k calls) ~$8-12, +cross-family ~$15-20; main experiment (60k cached) ~$40-70. OpenAI spend is
+NOT the binding constraint — Fable orchestration tokens are. Sequence: <$1 pilot -> ~$15-20 gate -> ~$50 main if gate passes.
