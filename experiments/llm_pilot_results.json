@@ -1,0 +1,762 @@
+{
+ "868": {
+  "genre": "Horror",
+  "ans": {
+   "0": {
+    "q": 0,
+    "can_answer": "yes",
+    "conf": 0.86
+   },
+   "1": {
+    "q": 1,
+    "can_answer": "yes",
+    "conf": 0.99
+   },
+   "2": {
+    "q": 2,
+    "can_answer": "no",
+    "conf": 0.58
+   },
+   "3": {
+    "q": 3,
+    "can_answer": "maybe",
+    "conf": 0.48
+   },
+   "4": {
+    "q": 4,
+    "can_answer": "no",
+    "conf": 0.76
+   },
+   "5": {
+    "q": 5,
+    "can_answer": "no",
+    "conf": 0.7
+   },
+   "6": {
+    "q": 6,
+    "can_answer": "no",
+    "conf": 0.82
+   },
+   "7": {
+    "q": 7,
+    "can_answer": "yes",
+    "conf": 0.66
+   },
+   "8": {
+    "q": 8,
+    "can_answer": "no",
+    "conf": 0.9
+   },
+   "9": {
+    "q": 9,
+    "can_answer": "no",
+    "conf": 0.74
+   },
+   "10": {
+    "q": 10,
+    "can_answer": "maybe",
+    "conf": 0.44
+   },
+   "11": {
+    "q": 11,
+    "can_answer": "maybe",
+    "conf": 0.41
+   },
+   "12": {
+    "q": 12,
+    "can_answer": "maybe",
+    "conf": 0.45
+   },
+   "13": {
+    "q": 13,
+    "can_answer": "maybe",
+    "conf": 0.39
+   },
+   "14": {
+    "q": 14,
+    "can_answer": "maybe",
+    "conf": 0.24
+   },
+   "15": {
+    "q": 15,
+    "can_answer": "maybe",
+    "conf": 0.27
+   },
+   "16": {
+    "q": 16,
+    "can_answer": "maybe",
+    "conf": 0.12
+   },
+   "17": {
+    "q": 17,
+    "can_answer": "maybe",
+    "conf": 0.1
+   }
+  }
+ },
+ "4190": {
+  "genre": "Romance",
+  "ans": {
+   "0": {
+    "q": 0,
+    "can_answer": "yes",
+    "conf": 0.94
+   },
+   "1": {
+    "q": 1,
+    "can_answer": "yes",
+    "conf": 0.98
+   },
+   "2": {
+    "q": 2,
+    "can_answer": "yes",
+    "conf": 0.89
+   },
+   "3": {
+    "q": 3,
+    "can_answer": "yes",
+    "conf": 0.93
+   },
+   "4": {
+    "q": 4,
+    "can_answer": "no",
+    "conf": 0.98
+   },
+   "5": {
+    "q": 5,
+    "can_answer": "no",
+    "conf": 0.8
+   },
+   "6": {
+    "q": 6,
+    "can_answer": "no",
+    "conf": 0.99
+   },
+   "7": {
+    "q": 7,
+    "can_answer": "no",
+    "conf": 0.96
+   },
+   "8": {
+    "q": 8,
+    "can_answer": "no",
+    "conf": 0.92
+   },
+   "9": {
+    "q": 9,
+    "can_answer": "no",
+    "conf": 0.93
+   },
+   "10": {
+    "q": 10,
+    "can_answer": "maybe",
+    "conf": 0.55
+   },
+   "11": {
+    "q": 11,
+    "can_answer": "maybe",
+    "conf": 0.5
+   },
+   "12": {
+    "q": 12,
+    "can_answer": "maybe",
+    "conf": 0.58
+   },
+   "13": {
+    "q": 13,
+    "can_answer": "yes",
+    "conf": 0.97
+   },
+   "14": {
+    "q": 14,
+    "can_answer": "no",
+    "conf": 0.95
+   },
+   "15": {
+    "q": 15,
+    "can_answer": "no",
+    "conf": 0.92
+   },
+   "16": {
+    "q": 16,
+    "can_answer": "no",
+    "conf": 0.9
+   },
+   "17": {
+    "q": 17,
+    "can_answer": "no",
+    "conf": 0.9
+   }
+  }
+ },
+ "5190": {
+  "genre": "Children's",
+  "ans": {
+   "0": {
+    "q": 0,
+    "can_answer": "yes",
+    "conf": 0.98
+   },
+   "1": {
+    "q": 1,
+    "can_answer": "yes",
+    "conf": 0.95
+   },
+   "2": {
+    "q": 2,
+    "can_answer": "maybe",
+    "conf": 0.56
+   },
+   "3": {
+    "q": 3,
+    "can_answer": "maybe",
+    "conf": 0.62
+   },
+   "4": {
+    "q": 4,
+    "can_answer": "no",
+    "conf": 0.86
+   },
+   "5": {
+    "q": 5,
+    "can_answer": "no",
+    "conf": 0.9
+   },
+   "6": {
+    "q": 6,
+    "can_answer": "no",
+    "conf": 0.92
+   },
+   "7": {
+    "q": 7,
+    "can_answer": "no",
+    "conf": 0.85
+   },
+   "8": {
+    "q": 8,
+    "can_answer": "no",
+    "conf": 0.88
+   },
+   "9": {
+    "q": 9,
+    "can_answer": "no",
+    "conf": 0.9
+   },
+   "10": {
+    "q": 10,
+    "can_answer": "maybe",
+    "conf": 0.58
+   },
+   "11": {
+    "q": 11,
+    "can_answer": "maybe",
+    "conf": 0.52
+   },
+   "12": {
+    "q": 12,
+    "can_answer": "yes",
+    "conf": 0.97
+   },
+   "13": {
+    "q": 13,
+    "can_answer": "maybe",
+    "conf": 0.69
+   },
+   "14": {
+    "q": 14,
+    "can_answer": "no",
+    "conf": 0.94
+   },
+   "15": {
+    "q": 15,
+    "can_answer": "yes",
+    "conf": 0.8
+   },
+   "16": {
+    "q": 16,
+    "can_answer": "no",
+    "conf": 0.96
+   },
+   "17": {
+    "q": 17,
+    "can_answer": "no",
+    "conf": 0.97
+   }
+  }
+ },
+ "4003": {
+  "genre": "Film-Noir",
+  "ans": {
+   "0": {
+    "q": 0,
+    "can_answer": "yes",
+    "conf": 0.88
+   },
+   "1": {
+    "q": 1,
+    "can_answer": "yes",
+    "conf": 0.77
+   },
+   "2": {
+    "q": 2,
+    "can_answer": "yes",
+    "conf": 0.72
+   },
+   "3": {
+    "q": 3,
+    "can_answer": "yes",
+    "conf": 0.62
+   },
+   "4": {
+    "q": 4,
+    "can_answer": "yes",
+    "conf": 0.83
+   },
+   "5": {
+    "q": 5,
+    "can_answer": "yes",
+    "conf": 0.97
+   },
+   "6": {
+    "q": 6,
+    "can_answer": "no",
+    "conf": 0.58
+   },
+   "7": {
+    "q": 7,
+    "can_answer": "no",
+    "conf": 0.75
+   },
+   "8": {
+    "q": 8,
+    "can_answer": "yes",
+    "conf": 0.81
+   },
+   "9": {
+    "q": 9,
+    "can_answer": "yes",
+    "conf": 0.78
+   },
+   "10": {
+    "q": 10,
+    "can_answer": "maybe",
+    "conf": 0.64
+   },
+   "11": {
+    "q": 11,
+    "can_answer": "maybe",
+    "conf": 0.55
+   },
+   "12": {
+    "q": 12,
+    "can_answer": "maybe",
+    "conf": 0.46
+   },
+   "13": {
+    "q": 13,
+    "can_answer": "maybe",
+    "conf": 0.44
+   },
+   "14": {
+    "q": 14,
+    "can_answer": "no",
+    "conf": 0.68
+   },
+   "15": {
+    "q": 15,
+    "can_answer": "maybe",
+    "conf": 0.3
+   },
+   "16": {
+    "q": 16,
+    "can_answer": "no",
+    "conf": 0.95
+   },
+   "17": {
+    "q": 17,
+    "can_answer": "no",
+    "conf": 0.96
+   }
+  }
+ },
+ "4651": {
+  "genre": "Documentary",
+  "ans": {
+   "0": {
+    "q": 0,
+    "can_answer": "yes",
+    "conf": 0.88
+   },
+   "1": {
+    "q": 1,
+    "can_answer": "no",
+    "conf": 0.72
+   },
+   "2": {
+    "q": 2,
+    "can_answer": "maybe",
+    "conf": 0.48
+   },
+   "3": {
+    "q": 3,
+    "can_answer": "yes",
+    "conf": 0.8
+   },
+   "4": {
+    "q": 4,
+    "can_answer": "yes",
+    "conf": 0.98
+   },
+   "5": {
+    "q": 5,
+    "can_answer": "no",
+    "conf": 0.64
+   },
+   "6": {
+    "q": 6,
+    "can_answer": "no",
+    "conf": 0.7
+   },
+   "7": {
+    "q": 7,
+    "can_answer": "no",
+    "conf": 0.74
+   },
+   "8": {
+    "q": 8,
+    "can_answer": "yes",
+    "conf": 0.77
+   },
+   "9": {
+    "q": 9,
+    "can_answer": "no",
+    "conf": 0.66
+   },
+   "10": {
+    "q": 10,
+    "can_answer": "maybe",
+    "conf": 0.47
+   },
+   "11": {
+    "q": 11,
+    "can_answer": "yes",
+    "conf": 0.6
+   },
+   "12": {
+    "q": 12,
+    "can_answer": "maybe",
+    "conf": 0.44
+   },
+   "13": {
+    "q": 13,
+    "can_answer": "yes",
+    "conf": 0.54
+   },
+   "14": {
+    "q": 14,
+    "can_answer": "no",
+    "conf": 0.81
+   },
+   "15": {
+    "q": 15,
+    "can_answer": "maybe",
+    "conf": 0.33
+   },
+   "16": {
+    "q": 16,
+    "can_answer": "maybe",
+    "conf": 0.31
+   },
+   "17": {
+    "q": 17,
+    "can_answer": "maybe",
+    "conf": 0.25
+   }
+  }
+ },
+ "4188": {
+  "genre": "Action",
+  "ans": {
+   "0": {
+    "q": 0,
+    "can_answer": "yes",
+    "conf": 0.91
+   },
+   "1": {
+    "q": 1,
+    "can_answer": "yes",
+    "conf": 0.95
+   },
+   "2": {
+    "q": 2,
+    "can_answer": "maybe",
+    "conf": 0.74
+   },
+   "3": {
+    "q": 3,
+    "can_answer": "yes",
+    "conf": 0.98
+   },
+   "4": {
+    "q": 4,
+    "can_answer": "no",
+    "conf": 0.93
+   },
+   "5": {
+    "q": 5,
+    "can_answer": "no",
+    "conf": 0.88
+   },
+   "6": {
+    "q": 6,
+    "can_answer": "no",
+    "conf": 0.97
+   },
+   "7": {
+    "q": 7,
+    "can_answer": "no",
+    "conf": 0.96
+   },
+   "8": {
+    "q": 8,
+    "can_answer": "no",
+    "conf": 0.9
+   },
+   "9": {
+    "q": 9,
+    "can_answer": "maybe",
+    "conf": 0.58
+   },
+   "10": {
+    "q": 10,
+    "can_answer": "yes",
+    "conf": 0.9
+   },
+   "11": {
+    "q": 11,
+    "can_answer": "maybe",
+    "conf": 0.7
+   },
+   "12": {
+    "q": 12,
+    "can_answer": "yes",
+    "conf": 0.88
+   },
+   "13": {
+    "q": 13,
+    "can_answer": "yes",
+    "conf": 0.92
+   },
+   "14": {
+    "q": 14,
+    "can_answer": "no",
+    "conf": 0.99
+   },
+   "15": {
+    "q": 15,
+    "can_answer": "yes",
+    "conf": 0.76
+   },
+   "16": {
+    "q": 16,
+    "can_answer": "no",
+    "conf": 0.98
+   },
+   "17": {
+    "q": 17,
+    "can_answer": "no",
+    "conf": 0.99
+   }
+  }
+ },
+ "2718": {
+  "genre": "Comedy",
+  "ans": {
+   "0": {
+    "q": 0,
+    "can_answer": "yes",
+    "conf": 0.99
+   },
+   "1": {
+    "q": 1,
+    "can_answer": "maybe",
+    "conf": 0.65
+   },
+   "2": {
+    "q": 2,
+    "can_answer": "yes",
+    "conf": 0.98
+   },
+   "3": {
+    "q": 3,
+    "can_answer": "yes",
+    "conf": 0.96
+   },
+   "4": {
+    "q": 4,
+    "can_answer": "no",
+    "conf": 0.12
+   },
+   "5": {
+    "q": 5,
+    "can_answer": "no",
+    "conf": 0.08
+   },
+   "6": {
+    "q": 6,
+    "can_answer": "no",
+    "conf": 0.06
+   },
+   "7": {
+    "q": 7,
+    "can_answer": "no",
+    "conf": 0.1
+   },
+   "8": {
+    "q": 8,
+    "can_answer": "maybe",
+    "conf": 0.57
+   },
+   "9": {
+    "q": 9,
+    "can_answer": "maybe",
+    "conf": 0.44
+   },
+   "10": {
+    "q": 10,
+    "can_answer": "yes",
+    "conf": 0.99
+   },
+   "11": {
+    "q": 11,
+    "can_answer": "no",
+    "conf": 0.2
+   },
+   "12": {
+    "q": 12,
+    "can_answer": "no",
+    "conf": 0.18
+   },
+   "13": {
+    "q": 13,
+    "can_answer": "no",
+    "conf": 0.15
+   },
+   "14": {
+    "q": 14,
+    "can_answer": "no",
+    "conf": 0.08
+   },
+   "15": {
+    "q": 15,
+    "can_answer": "maybe",
+    "conf": 0.52
+   },
+   "16": {
+    "q": 16,
+    "can_answer": "no",
+    "conf": 0.06
+   },
+   "17": {
+    "q": 17,
+    "can_answer": "no",
+    "conf": 0.05
+   }
+  }
+ },
+ "2845": {
+  "genre": "Sci-Fi",
+  "ans": {
+   "0": {
+    "q": 0,
+    "can_answer": "yes",
+    "conf": 0.97
+   },
+   "1": {
+    "q": 1,
+    "can_answer": "yes",
+    "conf": 0.88
+   },
+   "2": {
+    "q": 2,
+    "can_answer": "maybe",
+    "conf": 0.68
+   },
+   "3": {
+    "q": 3,
+    "can_answer": "yes",
+    "conf": 0.96
+   },
+   "4": {
+    "q": 4,
+    "can_answer": "maybe",
+    "conf": 0.55
+   },
+   "5": {
+    "q": 5,
+    "can_answer": "maybe",
+    "conf": 0.4
+   },
+   "6": {
+    "q": 6,
+    "can_answer": "no",
+    "conf": 0.82
+   },
+   "7": {
+    "q": 7,
+    "can_answer": "no",
+    "conf": 0.75
+   },
+   "8": {
+    "q": 8,
+    "can_answer": "no",
+    "conf": 0.74
+   },
+   "9": {
+    "q": 9,
+    "can_answer": "maybe",
+    "conf": 0.43
+   },
+   "10": {
+    "q": 10,
+    "can_answer": "yes",
+    "conf": 0.9
+   },
+   "11": {
+    "q": 11,
+    "can_answer": "maybe",
+    "conf": 0.62
+   },
+   "12": {
+    "q": 12,
+    "can_answer": "yes",
+    "conf": 0.93
+   },
+   "13": {
+    "q": 13,
+    "can_answer": "yes",
+    "conf": 0.91
+   },
+   "14": {
+    "q": 14,
+    "can_answer": "no",
+    "conf": 0.99
+   },
+   "15": {
+    "q": 15,
+    "can_answer": "maybe",
+    "conf": 0.7
+   },
+   "16": {
+    "q": 16,
+    "can_answer": "no",
+    "conf": 0.98
+   },
+   "17": {
+    "q": 17,
+    "can_answer": "no",
+    "conf": 0.99
+   }
+  }
+ }
+}
