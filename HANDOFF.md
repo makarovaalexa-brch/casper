@@ -262,3 +262,16 @@ elicitation answerer" cheaply. => DO NOT write Paper S's headline until ANCHOR +
 are read (Wed, resume-verify wf_3a5ef549-c13 + targeted fetches). If ANCHOR or another already fits answer
 noise from behavioral data per channel, the novelty narrows to the ELICITATION-EVAL application + the
 specific groundings (tag-apps/first-session-order/review-mining) — still a paper, smaller claim.
+
+## 11. KILL-RISK UPDATE 2026-07-06 (2 cheap checks) — biggest threat CLEARED
+ANCHOR (2606.05621): NOT a competitor — LLM/ASSUMED synthetic noise to TRAIN a recommender-denoiser; not
+fitted, not multi-channel, not elicitation-eval. It is an INSTANCE of the assumed-noise lineage we audit =>
+cite as a FOIL, not prior art. Biggest single kill-risk down.
+S2: per-user tag vocabulary is studied (personalized tag RECOMMENDATION / folksonomy lineage — cite it) but
+NOT as an answerability model for elicitation sim. S2 delta = "first to repurpose personal tag applications
+as a fitted answerability channel." Clean.
+REMAINING (finish Wed, cheaper now — targeted fetches not full workflow): read the LLM-user-sim-VALIDITY
+line (iEvaLM + 2024-26 faithfulness studies), Zhang&Balog agenda sim (KDD2020), ICER (2510.02331), Interplay
+(2603.18573) — all appear to be assumed/LLM/agenda simulators, NOT per-channel fitted-answer-noise, but
+confirm before the "first calibrated multi-channel elicitation answerer" headline. Status: blocker DOWNGRADED
+from hard-stop to "one Wed session of targeted fetches"; Paper S novelty very likely survives with scoping.
