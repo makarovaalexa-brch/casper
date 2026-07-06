@@ -73,3 +73,27 @@ This is a CROSS-CUTTING METHODS CONTRIBUTION; it does not belong to one legacy c
 Net: the study is Paper 1's new backbone and Paper 2's enabling engine. It is NOT a standalone paper —
 it is the thing that makes the other two non-circular. (If it grows, a short "resource" paper on the
 released calibrated answerer + audit is possible, but default is Paper 1.)
+
+## 8. CITATIONS — TODO (Wed, budget-reset): deep-research + hard lit critique
+The deployability audit + novelty claims need real citations; most reviewers DON'T do this diligence, so a
+thorough, quote-backed critique is itself a differentiator — do it properly.
+ALREADY REVIEWED (cheap checks, 2026-07-06; re-verify, don't trust as final):
+- Amatriain UMAP'09 "I like it... I like it not" + "Rate it Again" RecSys'09 — real rating noise/test-retest;
+  Said et al. "magic barrier" (SIGIR'12 + UMUAI 2018) — VERIFIED, use for fidelity/irreducible-noise framing.
+- Tag Genome (Vig 2012) gold standard = ~50k USER (item,tag) relevance judgments -> "user tag data" NOT novel;
+  our S2 delta = per-user tag APPLICATIONS as an ANSWERABILITY/vocabulary model (verify nobody did this).
+- ANCHOR (arXiv 2606.05621, 2026) = LLM/ASSUMED synthetic noise to TRAIN a denoiser -> a FOIL (assumed-noise
+  lineage), not a competitor. Cite as such.
+- Per-user tag vocabulary = studied as tag RECOMMENDATION/folksonomy, NOT as elicitation answerability (verify).
+DEEP-RESEARCH TASK (Wed): resume the earlier run wf_3a5ef549-c13 (cached searches replay free; only verifier
+panels re-run) + targeted fetches. MUST resolve: (1) KILL-RISK — has ANYONE built a calibrated/validated
+multi-channel answer simulator for elicitation eval, or fitted answer noise from behavioral data in this
+context? (read the LLM-user-sim VALIDITY line: iEvaLM + 2024-26 faithfulness studies; Zhang&Balog KDD'20
+agenda sim; ICER 2510.02331; Interplay 2603.18573 — all appear assumed/LLM/agenda not fitted, CONFIRM).
+(2) The 4-lineage deployability audit table with EXACT quotes per lineage (real-ratings-oracle-answerability:
+Rashid 02/08, Golbandi 11; simulator-geometry: EAR/UNICORN/SCPR/ConTS; parametric-assumed-noise: Toubia04,
+Yue09, Canal19; LLM-sim: iEvaLM etc.). (3) Novelty deltas for: external LLM answerability judge, the
+validity-gap methodology (held-out-rated vs matched never-rated), fidelity-boundary. (4) GATE/Li et al.,
+PEBOL/Austin24, Christakopoulou16, EDDI/Ma19 — closest elicitation-eval prior. TONE: respectful,
+self-implicate (our V1 era = simulator-geometry lineage), "to our knowledge", invite counterexamples.
+Full prior brief: questions_for_fable.md, HANDOFF.md §9. Raw partial research: experiments/SIM_RESEARCH_RAW_PARTIAL.txt.
