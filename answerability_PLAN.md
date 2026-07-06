@@ -29,10 +29,10 @@ A2. Design decisions locked from the review:
 - Heterogeneity: mixed-effects logistic can_answer ~ logpop + breadth + (1|user)+(1|question); LRT that
   user-variance>0 AND report ICC. Threshold: ICC ≥ 0.05 (user structure non-trivial). [CONFIRM]
 - Taste-tracking: add taste-match covariate (cosine(user known-profile genre/tag dist, question genre/tag
-  vector)); OR ≥ 1.5 per sd, or ΔAUC ≥ 0.05 vs popularity-only. Report raw effect regardless. [CONFIRM]
+  vector)); OR ≥ 1.5 per sd, or ΔAUC ≥ 0.05 vs popularity-only. Report raw effect regardless. [FROZEN: OR>=1.5/sd OR dAUC>=0.05]
 - Validity gap (Hole 2): judged answer-rate on held-out-RATED minus matched never-rated, within pop tiers;
-  require ≥ 15pt gap in low/mid tiers. [CONFIRM]
-- Exploitability G2 (Hole 3): ΔNDCG(answerability-aware greedy − blind greedy) CI excludes 0. [CONFIRM]
+  require >= 15pt gap in low/mid tiers. [FROZEN 2026-07-06]
+- Exploitability G2 (Hole 3): ΔNDCG(answerability-aware greedy - blind greedy) CI excludes 0, AND dNDCG>=0.005 (material). [FROZEN 2026-07-06]
 - ADAPTIVE-CLAIM GATE = heterogeneity AND taste-tracking AND validity-gap AND G2>0. All four, else static map.
 
 ## C. SCRIPT UPGRADES (from pilot → gate script; cheap, no full run)
@@ -63,7 +63,12 @@ C5. Small spot-checks to schedule (cheap): batch-vs-single agreement (~subset), 
 judge is validated against human answers in §X [pending human study]." NEVER "realistic users" / "human-
 level answerability." LLM study = load-bearer of recomputed results; human study = validator of the judge.
 
-## F. OWNER DECISIONS NEEDED before run
+## F. FROZEN 2026-07-06 (owner: reasonable cutoffs set, ML-25M only, proceed, not worried re single-$)
+- Cutoffs above FROZEN. Arena = ML-25M only (v1). Budget: proceed through gate (single-$ ok).
+- Execution: agent does script-upgrade + ML-25M mini-pilot, STOPS for review before the 300-user gate
+  (the pre-registered decision spend). STOP-ON-BLOCKER stands.
+
+## F-OLD. (superseded)
 - Confirm the four cutoffs in §B (or adjust).
 - Confirm arena = ML-25M only for v1.
 - Confirm budget to proceed through the gate (expected low single-$, measured at step 2).
