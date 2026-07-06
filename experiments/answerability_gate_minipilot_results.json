@@ -1,0 +1,244 @@
+{
+ "config": {
+  "model": "gpt-5.4-mini",
+  "snapshot": "gpt-5.4-mini-2026-03-17",
+  "temperature": 0.0,
+  "answerer_split_seed": 123,
+  "user_sample_seed": 0,
+  "n_users": 15,
+  "n_concepts": 39,
+  "n_items": 30,
+  "maybe_policy": "refuse",
+  "dataset": "ML-25M",
+  "meta": "data/movielens/.cache/ml25m/meta.npz"
+ },
+ "cost": {
+  "calls": 30,
+  "prompt_tokens": 80901,
+  "completion_tokens": 22749,
+  "usd_estimate": 0.0657,
+  "usd_per_call": 0.00219,
+  "snapshot": "gpt-5.4-mini-2026-03-17",
+  "price_in_per_m": 0.25,
+  "price_out_per_m": 2.0,
+  "wall_min": 2.2
+ },
+ "metrics": {
+  "heterogeneity": {
+   "mean": 0.6444444444444445,
+   "sd": 0.0770826076041913,
+   "min": 0.5333333333333333,
+   "max": 0.76,
+   "spread": 0.22666666666666668,
+   "note": "mixed-effects logistic can_answer~logpop+breadth+(1|user)+(1|question) is a TODO stub for the full gate; mini-pilot reports the raw per-user answer-rate spread"
+  },
+  "taste_tracking": {
+   "point_biserial_r": 0.14378225113541376,
+   "n": 585,
+   "mean_tastematch_when_yes": 0.7276143300957948,
+   "mean_tastematch_when_no": 0.5772072779207648,
+   "note": "full gate: mixed-effects taste-match coeff (OR>=1.5/sd or dAUC>=0.05). mini-pilot reports raw correlation as plumbing."
+  },
+  "validity_gap": {
+   "famous": {
+    "rated_rate": 0.8481012658227848,
+    "never_rate": 0.7721518987341772,
+    "gap_pts": 7.594936708860756,
+    "rated_n": 79,
+    "never_n": 79
+   },
+   "moderate": {
+    "rated_rate": 0.5294117647058824,
+    "never_rate": 0.17647058823529413,
+    "gap_pts": 35.29411764705882,
+    "rated_n": 34,
+    "never_n": 34
+   },
+   "obscure": {
+    "rated_rate": 0.0,
+    "never_rate": 0.0,
+    "gap_pts": 0.0,
+    "rated_n": 4,
+    "never_n": 4
+   },
+   "_prereg": "require >=15pt gap in low/mid tiers (obscure/moderate). one-sided signal."
+  },
+  "masked_item_mae": {
+   "llm_mae": 0.625,
+   "llm_pred_true_corr": 0.621958133601579,
+   "n": 120,
+   "note": "feeds counterfactual-value fidelity sigma (Hole 4); CF cross-check EASE = full-gate TODO"
+  },
+  "g2_exploitability": {
+   "status": "STUB",
+   "note": "answerability-aware vs blind greedy dNDCG on cached grid; requires the instrument fold-in loop \u2014 computed in the 300-user gate, not the mini-pilot."
+  }
+ },
+ "per_user": {
+  "102367": {
+   "cell": [
+    0,
+    "(none)"
+   ],
+   "dom": "(none)",
+   "N": 22,
+   "interview_yes": 49,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "41590": {
+   "cell": [
+    2,
+    "Drama"
+   ],
+   "dom": "Drama",
+   "N": 497,
+   "interview_yes": 41,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "43135": {
+   "cell": [
+    2,
+    "Action"
+   ],
+   "dom": "Action",
+   "N": 209,
+   "interview_yes": 40,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "101696": {
+   "cell": [
+    1,
+    "Children"
+   ],
+   "dom": "Children",
+   "N": 47,
+   "interview_yes": 44,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "60670": {
+   "cell": [
+    1,
+    "Crime"
+   ],
+   "dom": "Crime",
+   "N": 75,
+   "interview_yes": 40,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "56755": {
+   "cell": [
+    0,
+    "Comedy"
+   ],
+   "dom": "Comedy",
+   "N": 39,
+   "interview_yes": 52,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "139420": {
+   "cell": [
+    0,
+    "Mystery"
+   ],
+   "dom": "Mystery",
+   "N": 31,
+   "interview_yes": 46,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "64620": {
+   "cell": [
+    0,
+    "IMAX"
+   ],
+   "dom": "IMAX",
+   "N": 20,
+   "interview_yes": 57,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "41189": {
+   "cell": [
+    1,
+    "Adventure"
+   ],
+   "dom": "Adventure",
+   "N": 77,
+   "interview_yes": 56,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "92591": {
+   "cell": [
+    1,
+    "Romance"
+   ],
+   "dom": "Romance",
+   "N": 96,
+   "interview_yes": 50,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "101103": {
+   "cell": [
+    0,
+    "Crime"
+   ],
+   "dom": "Crime",
+   "N": 21,
+   "interview_yes": 49,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "11927": {
+   "cell": [
+    1,
+    "Action"
+   ],
+   "dom": "Action",
+   "N": 115,
+   "interview_yes": 55,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "31858": {
+   "cell": [
+    2,
+    "Sci-Fi"
+   ],
+   "dom": "Sci-Fi",
+   "N": 572,
+   "interview_yes": 52,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "45794": {
+   "cell": [
+    2,
+    "Comedy"
+   ],
+   "dom": "Comedy",
+   "N": 806,
+   "interview_yes": 41,
+   "interview_n": 75,
+   "mask_n": 8
+  },
+  "57353": {
+   "cell": [
+    0,
+    "Drama"
+   ],
+   "dom": "Drama",
+   "N": 21,
+   "interview_yes": 53,
+   "interview_n": 75,
+   "mask_n": 8
+  }
+ }
+}
