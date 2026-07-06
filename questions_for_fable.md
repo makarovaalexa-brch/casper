@@ -147,6 +147,28 @@ hedging / wild assumptions, around this thesis:
   and the ONE figure/result that carries each. Flag any place the coarse→granular claim still needs
   evidence we don't yet have (and whether the LLM or human study supplies it).
 
+**Q5 (THE ONE THAT MATTERS MOST). Deliver a genuinely CLEAN, VALUABLE, NOVEL story — a real contribution.**
+Non-negotiable: the owner cannot submit a thesis/paper whose message is "we tried, we matched a heuristic,
+our own method is flawed, and we don't really know anything else." That is a failure narrative, not a
+contribution. Do NOT default to safe-but-empty "honest null" framing. Your job here is to find and argue the
+REAL contribution hiding in this work and refactor/reframe the whole program around it.
+Requirements for the answer:
+- State the SINGLE clearest true claim the evidence actually supports, phrased as a positive contribution a
+  committee would call novel and valuable (not a disclaimer).
+- Show it is NOVEL against prior art (name the closest work; state the delta in one line each).
+- Make sure it is DEPLOYABLE and passes the gut check (coarse->granular adaptive elicitation across all
+  channels, no clairvoyant answerer) — i.e. the story a practitioner would actually want.
+- Reconcile it with the awkward facts (heuristic-matches, circularity, fidelity boundary) so those become
+  SUPPORTING evidence for the thesis, not admissions that sink it. (e.g. "adaptivity only pays where the
+  environment has real answerability structure; prior sims removed it; we put it back and it wins" — if the
+  evidence supports that, make that the spine.)
+- If the genuinely-novel clean story REQUIRES the LLM/human answerability result to exist, say so plainly
+  and make that experiment THE make-or-break, not a footnote.
+- Give the one-paragraph abstract of the reframed flagship paper as you would write it, overclaim-free but
+  confident.
+Litmus test for your answer: a reader must finish the abstract thinking "that is a real, useful, new thing"
+— not "these people are commendably honest about their failure."
+
 ---
 Context pointers (only if needed): full detail in casper/HANDOFF.md + experiments/instrument2/*.md +
 REVIEW_ADVERSARIAL_2026-07-05.md. But answer from THIS doc first — it is meant to be self-contained.
