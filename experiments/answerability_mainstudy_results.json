@@ -1,0 +1,126 @@
+{
+ "config": {
+  "model": "gpt-5.4-mini",
+  "snapshot": "gpt-5.4-mini-2026-03-17",
+  "answerer_split_seed": 123,
+  "n_study_users": 300,
+  "n_concepts_bank": 200,
+  "pool_target": 1800,
+  "pool_per_user": 50,
+  "taste_adj_per_user": 20,
+  "mask_per_user": 12
+ },
+ "coverage": {
+  "distinct_items_judged": 1716,
+  "distinct_concepts_judged": 200,
+  "total_fit_observations": 108224,
+  "total_fit_users": 300
+ },
+ "pmodel": {
+  "n_obs": 108224,
+  "n_users": 300,
+  "n_eval_users": 90,
+  "auc_heldout_users": 0.9209398993443028,
+  "auc_grouped5cv": 0.9163553715882624,
+  "ece_heldout": 0.008024772112980054,
+  "calibration": [
+   {
+    "bin": 0,
+    "p_mean": 0.030745382086710116,
+    "emp": 0.02226503960608007,
+    "n": 4671
+   },
+   {
+    "bin": 1,
+    "p_mean": 0.1447421356178767,
+    "emp": 0.16943521594684385,
+    "n": 903
+   },
+   {
+    "bin": 2,
+    "p_mean": 0.25024173040270553,
+    "emp": 0.2599388379204893,
+    "n": 654
+   },
+   {
+    "bin": 3,
+    "p_mean": 0.34936076516927755,
+    "emp": 0.31962616822429907,
+    "n": 535
+   },
+   {
+    "bin": 4,
+    "p_mean": 0.44736663960592066,
+    "emp": 0.44652908067542213,
+    "n": 533
+   },
+   {
+    "bin": 5,
+    "p_mean": 0.5501216430320882,
+    "emp": 0.55,
+    "n": 660
+   },
+   {
+    "bin": 6,
+    "p_mean": 0.6523622800354801,
+    "emp": 0.6549865229110512,
+    "n": 742
+   },
+   {
+    "bin": 7,
+    "p_mean": 0.7547279256683174,
+    "emp": 0.7547770700636943,
+    "n": 942
+   },
+   {
+    "bin": 8,
+    "p_mean": 0.8654082698155446,
+    "emp": 0.8104457451598379,
+    "n": 2221
+   },
+   {
+    "bin": 9,
+    "p_mean": 0.9438620548477896,
+    "emp": 0.9463809569981093,
+    "n": 20627
+   }
+  ],
+  "coef_standardized": {
+   "pop_pct": -0.2710455757303015,
+   "log_rcount": 1.5511090618317298,
+   "decade": 0.3679714337582618,
+   "genre_match": 0.6293629790642806,
+   "franchise": 0.021556701800166403,
+   "is_concept": 1.2737293071473499
+  },
+  "intercept": 1.3514653636268357,
+  "base_rate": 0.732425340035482
+ },
+ "value": {
+  "llm": {
+   "llm_mae": 0.6966450521567522,
+   "llm_corr": 0.5077663339448191,
+   "n": 3547
+  },
+  "ease": {
+   "ease_mae": 0.7451814744449116,
+   "ease_corr": 0.45330493432621116,
+   "n": 3547,
+   "universe": 4221
+  },
+  "fidelity_sigma_stars": 0.6966450521567522,
+  "note": "Primary value predictor = LLM masked-rating; EASE = independent-CF sensitivity control (Hole-1). Value is sensitivity-only per prereg."
+ },
+ "cost": {
+  "calls": 600,
+  "prompt_tokens": 2538945,
+  "completion_tokens": 1282391,
+  "usd_estimate": 3.1995,
+  "price_in_per_m": 0.25,
+  "price_out_per_m": 2.0
+ },
+ "artifact": {
+  "pmodel_json": ".cache/instrument2/answerability_pmodel.json",
+  "pmodel_npz": ".cache/instrument2/answerability_pmodel.npz"
+ }
+}
