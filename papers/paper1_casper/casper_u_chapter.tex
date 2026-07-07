@@ -439,6 +439,11 @@ The instrument is accepted only if it passes:
   \item[G5 attribute directionality] revealing ``like $g$'' raises $g$'s items.
   \item[G6 attribute value] mixed item$+$attribute interviews $\ge$ item-only at equal budget.
   \item[G7 polarity] ``like $X$'' and ``dislike $X$'' move $X$'s neighbourhood oppositely.
+  \item[G8 out-of-envelope canary] one free, true answer folded from a cold start must \emph{help} on every
+  channel it will be asked over (item, concept, attribute), even when that answer type falls outside the
+  regime the belief operator was tuned on. This canary gate class is what catches a belief-update operator
+  that is silently mis-specified for a channel the downstream agent relies on; it is the gate that the
+  algebraic fold fails and the learned fold passes (\S\ref{sec:i2fold}).
 \end{description}
 
 \subsection{The ladder (one change per rung, regression-checked)}
@@ -1426,7 +1431,10 @@ answer-strength sanity. Two channels are new and were each benchmarked before be
 \emph{latent}, as \textbf{member-bag directions} (the unit latent of the encoded top-member bag of a genome tag/shelf),
 which clear the cold-start floor by $+0.15$ on both datasets and \emph{add} on top of item folds---reversing the earlier
 input-space concept failure of \S\ref{sec:concepts}. Polarity is carried by the belief operator's sign (a disliked
-answer demotes a concept's members with $-33.7$-point specificity). The full suite passes $\mathbf{16/16}$: 8/8 on the
+answer demotes a concept's members with $-33.7$-point specificity). This algebraic belief operator
+($z'=z+\eta\,a\,q$) is certified and valid \emph{within the concept-geometric envelope} it is tuned for;
+outside it---for real-rating item answers---it is mis-specified and must be replaced by the learned fold of
+\S\ref{sec:i2fold}. The full suite passes $\mathbf{16/16}$: 8/8 on the
 canonical ML-1M arena and 8/8 on the Goodreads composite, where the concept channel is now \emph{live}---$8/8$
 answerable shelves per cold user, versus the V1-era $0.14$--$1.0$.
 
@@ -1441,6 +1449,82 @@ that were ``maximally informative but unanswerable'' in the design-space analysi
 the recommender-side foundation completed: not only are concepts answerable where items are not, but on a
 state-of-the-art instrument the continuous concept-style question is also the most \emph{informative} channel, which is
 exactly the opening the companion method paper's continuous-action policy exploits.
+
+\subsection{The fold is part of the instrument}\label{sec:i2fold}
+A recommender-side certification is incomplete until the \emph{belief-update operator}---the map from
+answered questions to the latent user code, which we call \emph{the fold}---is itself certified, because it
+is the fold, not only the scorer, that decides what an elicited answer is worth. The strengthened
+instrument above ships a frozen RecVAE decoder/scorer but no native interface for heterogeneous answer
+tokens, so the strong-instrument apparatus first folded answers with an \emph{algebraic} operator,
+$z' = z + \eta\,a\,q$: a taste-gradient step along the question direction $q$ scaled by the answer $a$.
+That operator was certified \emph{only} inside the envelope it was tuned for---concept questions answered
+geometrically, where $a=\cos(z^\star,q)$ is literally a coordinate of true taste---and this narrowing was
+silent: the arena built on top of it inherited it. Pushed just outside that envelope, with one
+\emph{real-rating} item answer folded from a cold start, the operator fails an elementary sanity check. A
+single free, true answer that can only add information instead \emph{hurts} NDCG@10 by $-0.053$
+(CI $[-0.079,-0.027]$; ML-25M, $298$ users, paired bootstrap), because a star rating is not a taste
+coordinate---it correlates with $\cos(z^\star,q)$ at only $0.39$, sign-disagrees on disliked items, and the
+step size $\eta$, tuned for eight accumulating broad concepts, grossly overshoots a single narrow item
+token. We name this the \emph{out-of-envelope canary}: one free, true answer from cold must help, or the
+fold is mis-specified for that channel.
+
+We therefore replace the algebraic operator with a \emph{learned fold}: a permutation-invariant Deep-Sets
+residual $z = z_{\mathrm{native}} + \rho(\text{answer set})$ (\cite{zaheer17,eddi19}) wrapped around the
+frozen RecVAE encoder's own item interface, with $\rho$ zero-initialised so the fold \emph{starts} at the
+certified native interface and learns only a beneficial delta. It is trained data-side---item answers are
+real centered ratings, concept and attribute answers are data-side member aggregates, and $\cos(z^\star,q)$
+appears nowhere in training or evaluation---so it is non-circular by construction; refusals are excluded
+(they inform answerability, not taste); training reconstructs held-out interactions from simulated partial
+reveals of real profiles under an input-dropout curriculum (\cite{dropoutnet17}) with best-checkpoint
+selection on a disjoint validation cohort. Under the learned fold the canary \emph{flips on every channel}:
+one free true answer from cold now helps by $+0.095$ (item), $+0.066$ (concept), and $+0.068$ (attribute,
+a newly added decade$+$genre channel), all CIs excluding zero. The learned fold passes five of six
+pre-registered gates (Table~\ref{tab:i2fold}).
+
+\begin{table}[h]\centering\small
+\begin{tabular}{llll}
+\toprule
+gate & requirement & measured & verdict\\
+\midrule
+G-fold1 (item) & one true item answer from cold helps & $\Delta{=}{+}0.095$ CI$[{+}0.070,{+}0.121]$ & PASS\\
+G-fold1 (concept) & one concept answer from cold helps & $\Delta{=}{+}0.066$ CI$[{+}0.047,{+}0.086]$ & PASS\\
+G-fold1 (attribute) & one attribute answer from cold helps & $\Delta{=}{+}0.068$ CI$[{+}0.050,{+}0.087]$ & PASS\\
+G-fold2 & monotone $1{\to}16$ per channel$+$mixed & item $.238{\to}.407$; mixed $.238{\to}.362$; concept/attr flat & PASS\\
+G-fold3 & item-only $\ge$ native fold, same items & $k{=}2$ ${+}0.012$ CI$[{+}0.002,{+}0.022]$; never below & PASS\\
+G-fold4 & mixed$(4i{+}4c)\ge$ best single @budget 8 & mixed $0.314$ vs item-8 $0.348$: $\Delta{=}{-}0.073$ CI$[{-}0.091,{-}0.056]$ & \textbf{FAIL}\\
+G-fold5 & smooth under fidelity noise $\sigma$ & $\sigma{=}0/0.35/0.70/1.40$: max step $-0.002$ & PASS\\
+G-fold6 & full-profile fold $\approx$ native full-profile & learned $0.465$ vs native $0.479$: $\Delta{=}{-}0.014$ CI$[{-}0.026,{-}0.002]$ & PASS$^\dagger$\\
+\bottomrule
+\end{tabular}
+\caption{The learned-fold gate suite (ML-25M RecVAE-$d512$, NDCG@10, $298$ users, per-user paired bootstrap).
+Five of six pre-registered gates pass. $^\dagger$G-fold6 gives up a small but significant $1.4$ points to the
+native full-profile fold; it is inside the declared $\pm0.02$ ``$\approx$'' tolerance (a stated judgment call)
+and flagged, not hidden---the learned fold is intended for partial interviews, and full-profile scores use
+the native encoder. The one FAIL is diagnosed below as structural, not a fold defect.}
+\label{tab:i2fold}
+\end{table}
+
+\paragraph{The one failure is displacement, not defect.} G-fold4 asked that a mixed item$+$concept set beat
+the best single channel at a matched eight-turn budget; it fails ($-0.073$). A same-seed diagnosis on paired
+arms shows this is \emph{channel dominance}, not a corrupted belief. Adding four concept answers on top of a
+fixed item set never hurts and usually helps ($+0.0076$, CI $[+0.0035,+0.0115]$ on item-8; $+0.0020$, CI
+spanning zero on item-4): the fold is monotone-in-information everywhere. But swapping four items for four
+concepts loses, because at this budget an item turn is worth $\approx18\times$ a concept turn (the marginal
+item is $+0.037$, CI $[+0.019,+0.054]$; the data-side concept aggregate saturates immediately---the
+rank-$\approx$2--4 concept plateau of \S\ref{sec:i2payoff} reproduced by the learned fold). ``Mixing beats the
+best single channel'' is structurally unsatisfiable when one channel dominates, so the gate discovered an
+arena fact, not an instrument bug. Following the pre-registered amendment procedure we report the original
+form (\textbf{FAIL, on record}) and its defect-detecting re-scoping, G-fold4$'$ (``a mixed set must not lose
+to its own item subset''), which \textbf{passes} ($+0.0076$ significant); both are reported.
+
+\paragraph{Lesson: certify the fold, and canary the envelope.} Two methodological points generalise beyond
+this instrument. First, a gate suite must include an \emph{out-of-envelope canary}---a check that
+deliberately leaves the regime the operator was tuned on (here, one real answer instead of the geometric
+answers the operator assumes). Without it, an operator can pass every in-envelope gate and still be silently
+wrong for a channel the downstream agent depends on. Second, the belief-update machinery is \emph{part of the
+instrument}: the same descent question that ``loses'' under the algebraic fold is genuinely open under the
+learned fold, because the fold, not the policy, sets the value of each channel's answers. An elicitation
+verdict read off an uncertified fold measures the fold, not the elicitation.
 
 \section{Discussion}\label{sec:disc}
 
@@ -1535,6 +1619,8 @@ CASPER--U. Full log archived in \texttt{archive/CASPER\_EXPERIMENTS\_E1-E14\_arc
 \bibitem{unicorn21} Deng et al. Unified Conversational Recommendation Policy Learning via Graph-based RL. SIGIR 2021.
 \bibitem{conts21} Li et al. Seamlessly Unifying Attributes and Items: Conversational Recommendation for Cold-Start Users. ACM TOIS 2021.
 \bibitem{eddi19} Ma et al. EDDI: Efficient Dynamic Discovery of High-Value Information with Partial VAE. ICML 2019.
+\bibitem{zaheer17} Zaheer, Kottur, Ravanbakhsh, Poczos, Salakhutdinov, Smola. Deep Sets. NeurIPS 2017.
+\bibitem{dropoutnet17} Volkovs, Yu, Poutanen. DropoutNet: Addressing Cold Start in Recommender Systems. NeurIPS 2017.
 \bibitem{multvae18} Liang et al. Variational Autoencoders for Collaborative Filtering. WWW 2018.
 \bibitem{recvae} Shenbin, Alekseev, Tutubalina, Malykh, Nikolenko. RecVAE: A New Variational Autoencoder for Top-N Recommendations with Implicit Feedback. WSDM 2020.
 \bibitem{ease} Steck. Embarrassingly Shallow Autoencoders for Sparse Data (EASE). WWW 2019.

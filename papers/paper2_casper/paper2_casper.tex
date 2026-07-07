@@ -14,15 +14,20 @@ cold-start conversational recommender. Our central finding is an \emph{answerabi
 can answer broad \emph{concept} questions (``do you like horror?'') but not fine \emph{item} questions (``did you like
 \emph{this} film?''), having seen almost none of the catalogue---so coarse-but-answerable concepts beat
 fine-but-unanswerable items by a wide margin (a $5{:}1$ answer rate; tail NDCG collapses to the no-ask floor when the
-same selector is pointed at items). We then learn a policy over the answerable action type that beats the strongest
-heuristic (divisiveness) on the long tail and on \emph{every} belief-quality axis (tail NDCG, Recall, MRR,
-belief-cosine), while tying the popularity-saturated full metric. The winning recipe is \emph{not} reward maximisation:
-from a heuristic-distilled floor, a self-supervised \emph{reconstruction} objective---driving the elicited belief to the
-user's own taste vector---is the \emph{only} refinement that helps; REINFORCE and supervised ranking both \emph{degrade}
-it, and pretraining is essential. We call this policy \textbf{CASPER-R}. Finally, blind LLM askers show answerability is
-a \emph{non-obvious} lesson: model capability predicts answerability-awareness (the strongest avoids items unprompted,
-the weakest does not), yet none matches the data-driven policy. CASPER-R is a single policy over a unified item$+$concept
-embedding that is simultaneously the recommender.
+same selector is pointed at items). We make this axis deployable with a \emph{second pillar}: instead of assuming who can
+answer what, we \emph{measure} it with an external LLM judge that reads a user's known profile, validated by a
+pre-registered four-test gate (heterogeneous, taste-tracking beyond popularity, and carrying user-specific signal a
+matched popularity$+$genre rule does not---a $+44$-point validity gap), cross-checked against a second model family and an
+independent collaborative-filtering predictor, and distilled into a calibrated $P(\text{answerable}\mid\text{features})$
+model (held-out-user AUC $0.92$, ECE $0.008$). We then study a \emph{learned} reconstruction-trained policy, CASPER-R,
+over the answerable action type. Its recipe is instructive---from a heuristic-distilled floor, a self-supervised
+\emph{reconstruction} objective is the only refinement that sharpens the elicited belief, while REINFORCE and supervised
+ranking both \emph{degrade} it---but its endpoint margin over the static heuristic does \emph{not} survive training-seed
+variation: \textbf{we claim no learned endpoint win}, and report CASPER-R as a mechanism analysis (it matches the
+heuristic on average). Finally, blind LLM askers show answerability is a \emph{non-obvious} lesson: model capability
+predicts answerability-awareness (the strongest avoids items unprompted, the weakest does not). The carried
+contributions are the \emph{answerability axis} and its \emph{external measurement}; CASPER-R is a single policy over a
+unified item$+$concept embedding that is simultaneously the recommender.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -60,26 +65,38 @@ short horizons: the choice of \emph{action type and criterion} matters enormousl
 selector beats popularity, random, and item-asking by wide margins), but \emph{learning or per-user
 adapting} that selection is what adds nothing---localising where a learned policy \emph{can} pay off. \emph{(ii)} The realizable
 lever is answerability at \emph{concept} granularity: in realistic cold-start, answerable concepts beat
-(mostly unanswerable) item questions by $+50\%$ tail NDCG ($0.140$ vs $0.093$; \S\ref{sec:answerresults}). \emph{(iii)} A
-\emph{learned}, answerability-aware policy over the unified item$+$concept pool beats the strongest
-heuristic selection of concepts on the long tail---robustly across five seeds---and, given every lever,
-it \emph{chooses} to ask zero items, rediscovering the answerability argument as an emergent policy
-(\S\ref{sec:learned}--\ref{sec:adapt}). The method that ties these together, and this paper's headline
-contribution, is \textbf{CASPER-R}: an answerability-aware elicitation policy over the unified item$+$concept
-space, trained not by reward but by self-supervised \emph{reconstruction}.
+(mostly unanswerable) item questions by $+50\%$ tail NDCG ($0.140$ vs $0.093$; \S\ref{sec:answerresults}). \emph{(iii)}
+Because every result above depends on \emph{who can answer what}, we replace the assumed answer model with a
+\emph{measured} one: an external LLM judge, validated by a pre-registered gate and cross-checks and distilled into a
+calibrated $P(\text{answerable})$ model (\S\ref{sec:external}). A \emph{learned}, answerability-aware policy
+(\textbf{CASPER-R}) over the unified item$+$concept pool---trained not by reward but by self-supervised
+\emph{reconstruction}---sharpens the elicited belief and, given every lever, \emph{chooses} to ask zero items,
+rediscovering the answerability argument as emergent behaviour (\S\ref{sec:learned}--\ref{sec:adapt}); but its endpoint
+margin over the strong heuristic does \emph{not} survive training-seed variation, so we claim no learned endpoint win and
+present it as a mechanism analysis. The paper's carried contributions are therefore the \emph{answerability axis} and its
+\emph{external measurement}, not a learned-policy result.
 
 \paragraph{Contributions, and their lineage.} We are explicit about what is new versus inherited; none of the
 ingredients is claimed novel in isolation.
 \begin{enumerate}
-  \item \emph{(Method, this paper's headline)} \textbf{CASPER-R}: an answerability-aware elicitation policy over the
+  \item \emph{(Method, this paper's headline)} \textbf{Externally-sourced answerability}: rather than assume who can
+  answer what, we \emph{measure} answerability with an external LLM judge reading each user's known profile, validated by
+  a pre-registered four-test gate (heterogeneity, taste-tracking beyond popularity, a $+44$-point held-out validity gap
+  showing user-specific signal beyond a matched popularity$+$genre rule, and a privileged exploitability upper bound),
+  cross-checked against a second model family (Cohen's $\kappa{=}0.67$) and an independent CF value predictor, and
+  distilled into a calibrated $P(\text{answerable}\mid\text{features})$ model (held-out-user AUC $0.92$, ECE $0.008$;
+  \S\ref{sec:external}). This removes the self-authored circularity of assuming an answer model, and gives every
+  downstream elicitation result a measured, two-model-robust answerability environment.
+  \item \emph{(Method, mechanism analysis)} \textbf{CASPER-R}: an answerability-aware elicitation policy over the
   \emph{unified} item$+$concept action space of Paper~A's single embedding, trained by a self-supervised
   \emph{reconstruction} objective---driving the elicited belief toward the user's own taste vector---rather than by
-  reward. It beats the strongest concept heuristic on the long tail and on every belief-quality axis, and, given items
-  and concepts on equal footing, \emph{chooses to ask zero items}, rediscovering the answerability argument as emergent
-  behaviour. We credit the unified item$+$attribute action space to ConTS (Li et al.\ 2021, \cite{conts}), which chose a
-  \emph{discrete categorical} attribute set by Thompson sampling; our additions are the open-vocabulary \emph{concept}
-  granularity, the \emph{reconstruction} training objective (reward and supervised ranking both degrade it), and the
-  answerability framing.
+  reward. Given items and concepts on equal footing it \emph{chooses to ask zero items}, rediscovering the answerability
+  argument as emergent behaviour, and its reconstruction recipe sharpens the elicited belief where reward and ranking
+  objectives degrade it. \textbf{We claim no endpoint win}: its tail margin over the strong concept heuristic does not
+  survive training-seed variation (\S\ref{sec:learned}), so CASPER-R is reported as a mechanism analysis that
+  \emph{matches} the heuristic, not beats it. We credit the unified item$+$attribute action space to ConTS (Li et al.\
+  2021, \cite{conts}), which chose a \emph{discrete categorical} attribute set by Thompson sampling; our additions are the
+  open-vocabulary \emph{concept} granularity and the \emph{reconstruction} training objective.
   \item \emph{(Result, established)} A \textbf{clarifying negative result}, carefully scoped: on the \emph{discrete} item
   action space, and \emph{under the noiseless graded/binary answer regime used by simulator evaluations including ours},
   greedy one-step EIG is the realizable frontier---behaviour cloning, oracle distillation, REINFORCE, and two-step
@@ -117,6 +134,10 @@ true-taste vector $u^\star$: an item answer is the taste residual $r_{ui}-\mu-b_
 rated $i$; a concept answer is $\mathrm{sign}(u^{\star\top}E_c-\theta)$, scaled to the population
 like/dislike residual---``do your tastes fall on the liked side of this concept?''. An item is
 \emph{answerable} only if the user has rated it; a concept only if the user has $\ge 2$ items in it. This
+constraint---which we call the \emph{structural lower-bound answer model}, one of the two answerability models
+used in this chapter---is a deliberately conservative, designer-authored floor: it counts only demonstrably
+logged films and under-counts what a real user could answer. \S\ref{sec:external} replaces this assumption with
+an externally \emph{measured} answer model (an LLM judge) and reports the load-bearing claims under both. This
 answerability constraint drives every result below.
 
 \paragraph{Calibration, and why it matters here.} Paper~A established that the instrument is
@@ -132,9 +153,10 @@ split~\cite{cremonesi10}; head ${=}$ the most-popular $33\%$ of likes). Test use
 training; for the learned policy the validation users used for model selection are disjoint from the
 test users as well (\S\ref{sec:learned}). All ``seed-averaged'' numbers average five held-out user-split
 seeds $\{1,2,3,7,11\}$ (a seed randomizes the held-out user split; te$[300{:}]$ denotes the evaluation
-cohort within each split).\footnote{On a sixth split (seed $123$) CASPER-R's tail margin over the
-fair-entropy heuristic is smallest ($+0.002$) but does not reverse; the per-seed delta is positive on all
-six splits.}
+cohort within each split).\footnote{These five seeds vary only the held-out \emph{user} split, not the policy
+optimisation. When the policy is instead retrained under independent \emph{training} seeds, CASPER-R's tail
+margin over the fair-entropy heuristic averages to $\approx0$ at $q8$ (\S\ref{sec:learned}); we therefore
+claim no learned endpoint win and treat the CASPER-R analysis as descriptive.}
 
 \section{Related Work}\label{sec:related}
 \paragraph{Preference elicitation and active learning in recommenders.} The cold-start interview has a
@@ -318,25 +340,119 @@ re-choosing each question from the running dialogue, was run on a $30$-user subs
 \label{tab:llm}
 \end{table}
 
+\section{Externally-sourced answerability: measuring the answer model instead of assuming it}\label{sec:external}
+Every result so far, and every prior elicitation evaluation we know of, rests on a silent and un-deployable
+answer model. Ours (\S\ref{sec:background}) declares a question \emph{answerable iff rated} (items) or iff the
+user has $\ge2$ member items (concepts); simulator-based conversational systems answer from the recommender's
+own latent geometry; both are assumptions the evaluator \emph{authored}, and a sharp reviewer can always ask
+whether an adaptive method merely rediscovers the rule its designers wrote. The ``answerable iff rated'' rule
+is best understood as a designer-authored \emph{lower bound} on knowledge---it counts only films the user
+demonstrably logged, and grossly under-counts what a real user could actually answer (they have seen far more
+than they rated). This section replaces the \emph{assumption} with a \emph{measurement}: an external LLM judge
+that reads a user's known profile and judges what they could answer, authored by no rule of ours, and thus not
+exploitable circularly. It removes \emph{self-authored} circularity; it does not remove model-prior dependence
+(the LLM is a learned proxy over the same public opinion-space), so the claim boundary is stated explicitly at
+the end and a human validation is left as future work.
+
+\paragraph{Design (pre-registered, frozen before any run).} ML-25M; a pinned LLM judge (\texttt{gpt-5.4-mini},
+temperature $0$); one fixed answerer split (seed $123$), cached and reused across all recommender-eval seeds;
+``maybe''$\to$refuse (conservative). The judge sees only the \emph{known half} of the profile (never the
+held-out targets), and held-out targets are excluded from the interview bank so no interview can leak a target's
+rating. Answers stay non-circular: real ratings for rated items and pairs, a data-side member-rating aggregate
+for concepts, and an LLM-predicted value only where no ground truth exists (sensitivity-only, never in a headline).
+Four gate tests were pre-registered with cutoffs frozen before the run (Table~\ref{tab:extgate}).
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lll l}
+\toprule
+gate test & rules out & cutoff & measured\\
+\midrule
+heterogeneity & ``everyone answers the same'' & ICC $\ge0.05$ & ICC $0.174$ (perm $p{=}.003$) \quad PASS\\
+taste-tracking & ``answerability $=$ popularity'' & OR $\ge1.5$/sd or $\Delta$AUC $\ge.05$ & OR $2.71$/sd, $\Delta$AUC $.106$ \quad PASS\\
+validity gap & ``LLM just stereotypes the prompt'' & $\ge15$pt low/mid tier & \textbf{$+44.1$pt} moderate ($n{=}768$) \quad PASS\\
+G2 exploitability$^\ddagger$ & ``heterogeneity is useless for NDCG'' & CI$>0$, $\Delta$NDCG$\ge.005$ & $\Delta$NDCG $0.287$ CI$[.268,.307]$ \quad PASS\\
+\bottomrule
+\end{tabular}
+\caption{The pre-registered four-test answerability gate (ML-25M, $300$ users, \$1.29). All four pass. The
+\emph{validity gap} is load-bearing: for mid-popularity films the user did \emph{not} show the judge, the judge
+rates them more answerable when the user actually rated them than when matched on popularity$+$genre---i.e.\ it
+infers real user-specific knowledge from taste, not stereotype. $^\ddagger$G2 is a \emph{privileged upper bound}
+(the selector sees the full answerability table and true taste), not the realizable agent prize: it sizes the
+fuel, it does not claim it.}
+\label{tab:extgate}
+\end{table}
+
+\paragraph{Cross-checks (both pass).} Two robustness checks rule out single-source artifacts. \emph{Cross-family:}
+re-judging with a different model family (\texttt{claude-haiku-4.5}) agrees on answerability $83.2\%$ of the time
+(Cohen's $\kappa{=}0.67$, substantial) and replicates the validity-gap \emph{sign}, so the signal is a property of
+capable LLMs reading profiles, not a one-model quirk. \emph{Independent CF value:} a bank-restricted EASE trained
+on known-portion ratings predicts the same masked held-out ratings at MAE $0.74$ versus the LLM's $0.68$---two
+independently-built predictors agreeing within $0.06$ stars, so the LLM value channel is not a shared-prior
+artifact.
+
+\paragraph{Main study: a fitted, calibrated $P(\text{answerable})$.} Because the agent needs answerability for
+\emph{any} item or concept, not just a bank, we judge the full $200$-tag concept set plus a $1{,}716$-item
+stratified sample ($108{,}224$ labeled observations) and fit a logistic $P(\text{answerable}\mid\text{features})$,
+\emph{validated on held-out users} (fit on training users only): \textbf{AUC $0.921$} (grouped-5-fold $0.916$),
+\textbf{ECE $0.008$} (well-calibrated across all ten bins). Standardized coefficients (Table~\ref{tab:extcoef})
+put ratings-count and the concept flag first, but the load-bearing term is \emph{genre-match} ($+0.63$)---the
+user-specific fuel that a popularity-only rule cannot see. Masked-item validation gives the counterfactual value
+channel its fidelity noise: LLM MAE $0.697$ stars (independent-CF EASE $0.745$), i.e.\ a fidelity $\sigma\approx0.70$
+stars, consistent across the gate, the cross-check, and the main study.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccccc c}
+\toprule
+standardized coef.\ (logistic) & log ratings-count & is-concept & genre-match & decade & pop.\ pct.\ & franchise\\
+\midrule
+$\hat\beta$ & $+1.55$ & $+1.27$ & $\mathbf{+0.63}$ & $+0.37$ & $-0.27$ & $+0.02$\\
+\bottomrule
+\end{tabular}
+\caption{Fitted $P(\text{answerable}\mid\text{features})$, standardized coefficients (base answer-rate $0.732$;
+held-out-user AUC $0.92$, ECE $0.008$). Genre-match ($+0.63$) is the user-specific signal a popularity-only rule
+omits; pop-percentile is negative because it is collinear with ratings-count. This fitted model is the
+\emph{LLM-derived scale surrogate}---plumbing that scores answerability everywhere the interview asks---and is
+\emph{never} cited as the independent structural witness; that role is reserved for a separate a-priori rule
+(rated OR top-popularity for items; $\ge k$ rated members for concepts), fixed before looking at any LLM output.}
+\label{tab:extcoef}
+\end{table}
+
+\paragraph{Claim boundary (stated everywhere this environment is used).} The LLM judge removes the
+\emph{self-authored} circularity the field's assumed answer models carry; it does \emph{not} establish
+human-level answerability. Headline claims hold under \emph{two} external answer models---the LLM judge and the
+a-priori structural rule---and under two model families and two value predictors; the fitted surrogate is plumbing,
+never the independent witness. We never write ``realistic users'': the human study that validates the judge against
+real answers is future work. The ``answerable iff rated'' model of \S\ref{sec:background} is thus one of two
+answerability models used in this chapter---the conservative structural lower bound---and the external judge is the
+measurement that extends and stress-tests it.
+
 \section{Beyond the heuristic: \textbf{CASPER-R}, a policy that \emph{understands} the user}\label{sec:learned}
 Section~\ref{sec:answerresults} establishes that \emph{answerable concepts} are the right action \emph{type}. The strong
 heuristic---ask the globally most \emph{divisive} answerable concept---is \emph{static}: it asks every user the same
 population-ranked questions. We now introduce \textbf{CASPER-R}---a \emph{learned} policy over the same action type, built on the CASPER-U instrument
-(\S\ref{sec:background}) and trained by \emph{reconstruction} (hence the ``R'')---and show it beats the heuristic; we are
-precise about \emph{why}. The gain is not a different question \emph{type} (both ask answerable concepts) but three
-things the static heuristic structurally cannot do: it \emph{understands} the user---its belief reconstructs the user's
-taste vector far more sharply ($\cos(u,u^\star)\approx0.74$ vs the heuristic's $0.64$); it is \emph{efficient}---it
-front-loads, reaching the heuristic's eight-question score in $\sim\!2$ questions; and it \emph{personalises}---it
-branches the question sequence on the user's answers instead of replaying a fixed shortlist. The advantage shows up on
-\emph{every} belief-quality axis we measure (tail NDCG, Recall@50, MRR, and belief-cosine), and is, to our knowledge,
-the first learned-policy win in this testbed. We keep it as the discrete-concept baseline that the continuous policy
-(Paper~C) must in turn surpass.
+(\S\ref{sec:background}) and trained by \emph{reconstruction} (hence the ``R'')---and analyse what it does differently
+from the heuristic. \textbf{We claim no learned endpoint win.} On a single, favourable training seed CASPER-R edges the
+static heuristic on the tail ($+0.012$), but this margin \emph{does not survive training-seed variation}: retraining the
+policy under three independent training seeds (the earlier ``seeds'' varied only the held-out \emph{user} split, not the
+optimisation) leaves its mean tail margin over the fair-entropy heuristic at $q8$ statistically indistinguishable from
+zero ($-0.001$, averaged over training seeds; the favourable seed gives $+0.008$ at $q2$/$+0.001$ at $q8$, a second seed
+$-0.007$/$-0.003$). \textbf{Averaged over training seeds, CASPER-R matches the heuristic.} We therefore report this
+section as a \emph{descriptive mechanism analysis}---what a reconstruction-trained policy does relative to a static
+one---rather than as a performance win. The mechanism is real and reproducible even where the endpoint margin is not: the
+policy asks the same question \emph{type} (both ask answerable concepts) but it \emph{understands} the user (its belief
+reconstructs the taste vector more sharply, $\cos(u,u^\star)\approx0.74$ vs the heuristic's $0.64$), it \emph{front-loads}
+(reaching the heuristic's eight-question score in $\sim\!2$ questions), and it \emph{personalises} (branching the question
+sequence on the running answers instead of replaying a fixed shortlist). The robust contribution of this paper is the
+\emph{answerability} axis (\S\ref{sec:answerresults}) and the externally-sourced answer model (\S\ref{sec:external});
+the learned policy \emph{matches}, and does not beat, the static heuristic at the budget's end.
 
 \paragraph{Action space and protocol.} The policy selects from a \emph{unified pool} of the $600$ most-rated items and
 $761$ Tag-Genome concepts ($\mathrm{NP}{=}1361$). Realistic cold-start as in \S\ref{sec:answerresults}: the user starts
 empty, we ask $T{=}8$ questions, fold each (geometric) answer into the frozen Paper-A encoder, and measure
 full-catalogue NDCG@10 on a held-out, \emph{leakage-free} test of $304$ users (disjoint from the validation split used
-for model selection; head/tail by the Cremonesi split). A concept is answerable iff the user has $\ge 2$ items in it.
+for model selection; head/tail by the Cremonesi split). A concept is answerable iff the user has $\ge 2$ items in it (the
+structural lower-bound answer model of \S\ref{sec:background}; the external judge of \S\ref{sec:external} is the measured
+alternative).
 
 \paragraph{Policy.} For each candidate entity $e$ a per-candidate MLP scores
 $\mathrm{MLP}\!\big([\,\phi_e,\; u^\top E_e,\; \mathrm{prior}_e,\; \mathrm{ig}_e,\; \lVert u\rVert,\; t,\;
@@ -439,10 +555,12 @@ ask nothing ($q0$ $=$ MostPop) & 0.310 & 0.081 & 0.119 & --- & 0\\
 full-profile ceiling & \emph{0.407} & \emph{0.216} & \emph{0.228} & \emph{1.00} & ---\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Main comparison} (seed-averaged over the $5$ held-out splits, te$[300{:}]$, $q8$). CASPER-R beats every
-realizable asker on the \emph{tail} (NDCG $\mathbf{0.152}$; next best the \emph{static} Golbandi interview $0.129$ and the
-divisiveness heuristic $0.140$) and ties the popularity-saturated full metric ($\approx0.36$; entropy edges it
-$0.361$). Three patterns. \emph{(i) Answerability}: concept askers ($0.11$--$0.14$ tail) dominate item askers; the
+\caption{\textbf{Main comparison} (single favourable training seed; seed-averaged over the $5$ held-out \emph{user}
+splits, te$[300{:}]$, $q8$). \textbf{The CASPER-R tail margin shown here does not survive training-seed variation}
+(\S\ref{sec:learned}): on this seed CASPER-R edges the tail (NDCG $\mathbf{0.152}$; next best the \emph{static} Golbandi
+interview $0.129$ and the divisiveness heuristic $0.140$), but averaged over training seeds it matches the heuristic
+($\approx0$ tail margin at $q8$); the full metric is a tie regardless ($\approx0.36$; entropy edges it $0.361$). The
+answerability pattern below is training-free and robust. Three patterns. \emph{(i) Answerability}: concept askers ($0.11$--$0.14$ tail) dominate item askers; the
 deep-RL \textsc{NICF} \cite{nicf} asks catalogue items ($0.9/8$ answered) and craters---its value objective never
 internalises that cold-start items are unanswerable, the lever a reconstruction loss gets for free. \emph{(ii)
 Capability vs.\ specifics}: the strongest blind LLM (Opus) reaches the popular-concept level ($0.130$) but \emph{no} LLM
@@ -456,13 +574,14 @@ no question selection); it upper-bounds what this representation can encode, not
 \label{tab:learned}
 \end{table}
 
-\paragraph{Reading.} The margin is small but the result is clean and \emph{robust}: against a strong
-heuristic, CASPER-R edges the tail on \emph{every} belief-quality axis (Table~\ref{tab:learned})---tail NDCG
-$+0.012$, tail Recall $+0.012$, tail MRR $+0.019$, and a much sharper belief ($\cos\,0.745$ vs $0.636$, $+0.109$)---by
-distilling the heuristic and refining it by reconstruction. Full NDCG is a clean \emph{tie} ($-0.001$;
-popularity-saturated for every strong method, $\approx0.36$); the win is on the \emph{tail}, the cold-start-relevant
-axis, and it holds across the $5$ held-out seeds and epochs $3$--$5$. We keep CASPER-R as the discrete-concept policy
-that the continuous method (Paper~C) must in turn surpass.
+\paragraph{Reading.} On the single favourable training seed reported in Table~\ref{tab:learned}, CASPER-R edges the tail
+on every belief-quality axis---tail NDCG $+0.012$, tail Recall $+0.012$, tail MRR $+0.019$, and a much sharper belief
+($\cos\,0.745$ vs $0.636$, $+0.109$). \textbf{These margins do not survive training-seed variation} (the retraining
+overturn above): averaged over independent training seeds the tail margin is $\approx0$, so we read the belief-cosine and
+front-loading numbers as a \emph{characterisation of what reconstruction training does}, not as an endpoint win. Full
+NDCG is in any case a clean \emph{tie} ($-0.001$; popularity-saturated for every strong method, $\approx0.36$). The one
+axis that \emph{is} robust and training-free is answerability---concept askers dominate item askers regardless of
+seed---which is the paper's carried claim; CASPER-R matches, and does not beat, the static heuristic at $q8$.
 
 \paragraph{The recipe matters: reconstruction is the \emph{only} refinement that helps.} Table~\ref{tab:ablation}
 ablates it. \emph{(i) Pretraining is essential}---training the reconstruction objective \emph{from scratch} (no entropy
@@ -487,9 +606,11 @@ entropy-BC floor (no refinement) & 0.361 & 0.137 & 0.634 & 5.7\\
 reconstruction \emph{from scratch} (no floor) & 0.311 & 0.114 & 0.642 & 6.0\\
 \bottomrule
 \end{tabular}
-\caption{Recipe ablation (NDCG@10, seed-averaged). Only \emph{reconstruction} lifts the entropy floor; RL and
-ranking-SL \emph{degrade} it, and dropping the floor (from-scratch) collapses---pretraining is essential and
-reconstruction is the right refinement.}
+\caption{Recipe ablation (NDCG@10, single favourable training seed, averaged over held-out user splits). Among refinement
+objectives, reconstruction is the only one that lifts the entropy floor on this seed; RL and ranking-SL \emph{degrade}
+it, and dropping the floor (from-scratch) collapses. Read as a \emph{relative} comparison of objectives: the absolute
+reconstruction lift over the floor does not survive training-seed variation (\S\ref{sec:learned}), but the ordering
+(reconstruction $>$ RL $>$ ranking; pretraining essential) is the reproducible finding.}
 \label{tab:ablation}
 \end{table}
 
@@ -499,8 +620,9 @@ of $761$ on divisiveness, the instinct inherited from the entropy floor) but the
 user: from a focused $19$-concept working vocabulary it produces $49$ distinct question-sequences ($133$ distinct
 answer-paths) across the $302$ test users, flipping the order of the quality/tone probes (\emph{great movie},
 \emph{sad but good}, \emph{visually stunning}) on the running answers. The advantage over the static heuristic is exactly
-this \emph{per-user re-ordering}---not a richer vocabulary or a different question \emph{type}---which is why CASPER-R
-sharpens the belief ($\cos\,0.745$ vs $0.636$) and the tail ranking while asking the same \emph{kind} of question.
+this \emph{per-user re-ordering}---not a richer vocabulary or a different question \emph{type}---which is the mechanism by
+which reconstruction training sharpens the belief ($\cos\,0.745$ vs $0.636$) while asking the same \emph{kind} of
+question (this belief-sharpening is reproducible; the endpoint tail margin it buys is not, \S\ref{sec:learned}).
 
 \textbf{Eight questions is a saturated, realistic budget.} Figure~\ref{fig:qcurve} traces NDCG against the question
 budget out to $q{=}10$. The heuristics saturate early---popular-concepts peaks by $q{\approx}4$ and entropy flattens by
