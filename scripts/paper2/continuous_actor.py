@@ -2106,6 +2106,108 @@ if os.environ.get('LITBASE'):                                                  #
     print(f"=== LITBASE {WHICH} (concept+item arms, geometric answer, our scorer; seed-avg {seeds}, te[300:]) ===",flush=True)
     for q in QPTS: print(f"  q={q}: FULL {np.mean(RES[q][0]):.4f}+/-{np.std(RES[q][0]):.4f}  TAIL {np.mean(RES[q][1]):.4f}+/-{np.std(RES[q][1]):.4f}",flush=True)
     sys.exit(0)
+if os.environ.get('ACCESS'):                                                   # PAPER D T6 (REVIEW FAIRNESS): ACCESS-CONTROLLED arms + bootstrap CIs. The reviewer charge: open-recall consumes volunteered known-item tokens (full 64-d factors) that the probe baselines never receive. FIX: give EVERY arm the SAME m matched volunteered known-item tokens (realistic popweight recall, identical per user), then each arm spends the remaining p=T-m turns with its own policy (open=name more; PEBOL/ConTS/etc=probe). Equal total question budget T for all. Sweep m to show the transition. Realistic answerer=headline; oracle-recall rows LABELED AS BOUNDS. Bootstrap CIs over pooled (seed x user) per-user scores.
+    import sys, json
+    seeds=[int(s) for s in os.environ.get('EVALSEEDS','1,2,3').split(',')]; _Wv2=1./np.log2(np.arange(2,12))
+    T=int(os.environ.get('T',8)); MSWEEP=[int(z) for z in os.environ.get('MSWEEP','0,2,4,6').split(',')]
+    HEADM=int(os.environ.get('HEADM','4')); B_BOOT=int(os.environ.get('BOOT','2000'))
+    Qn=(Q/(np.linalg.norm(Q,axis=1,keepdims=True)+1e-9)).astype(np.float32); Ecn=(Ec/(np.linalg.norm(Ec,axis=1,keepdims=True)+1e-9)).astype(np.float32)
+    def _nd(u,seen,tlike,relt):
+        s=popb+Ql@u; s[list(seen)]=-1e9; o=np.argsort(-s)[:10]
+        full=sum(_Wv2[pp] for pp,it in enumerate(o) if int(it) in tlike)/(_Wv2[:min(10,len(tlike))].sum()+1e-12)
+        st=s.copy(); st[headmask]=-1e9; ot=np.argsort(-st)[:10]
+        tail=(sum(_Wv2[pp] for pp,it in enumerate(ot) if int(it) in relt)/(_Wv2[:min(10,len(relt))].sum()+1e-12)) if relt else None
+        return full,tail
+    def _name(cand,rd,usf,r,K,how):                                            # ANSWERER: which favourites the user names. realistic=popweight; oracle bounds=align/distinct
+        pos=[j for j in cand if rd[j]>=4] or cand
+        if not pos or K<=0: return []
+        if how=='popweight': w=np.array([cnt[j]+1. for j in pos],float); w/=w.sum(); return list(r.choice(pos,size=min(K,len(pos)),replace=False,p=w))
+        if how=='align':   return sorted(pos,key=lambda j:-float(usf@Q[j]))[:K]
+        if how=='distinct':return sorted(pos,key=lambda j:-float(usf@Q[j])/np.log(cnt[j]+2))[:K]
+        return pos[:K]
+    def _boot(v,seed=0):
+        v=np.array([z for z in v if z is not None],float)
+        if len(v)==0: return (float('nan'),float('nan'),float('nan'))
+        rr=np.random.default_rng(seed); n=len(v); mns=v[rr.integers(0,n,size=(B_BOOT,n))].mean(1)
+        return float(v.mean()),float(np.percentile(mns,2.5)),float(np.percentile(mns,97.5))
+    # arm labels; BOUND rows use the oracle answerer (upper band, NOT realizable). base arms are m-parametrized.
+    def run(m):
+        p=T-m; A={k:{'full':[],'tail':[]} for k in ['profile_only','open_realistic','pebol_profile','conts_profile','cpop_profile','rand_profile','BOUND_open_align','BOUND_open_distinct']}
+        for sd in seeds:
+            r=np.random.default_rng(sd); SP={}
+            for x in te:
+                its=list(dict(rat_by_u[x]))
+                if len(its)>=6: il=its[:]; r.shuffle(il); SP[x]=(set(il[:len(il)//2]),il[len(il)//2:])
+            VU=[x for x in te if x in SP][300:]
+            for x in VU:
+                half,held=SP[x]; rd=dict(rat_by_u[x]); tlike=set(j for j in held if rd[j]>=4); relt=set(j for j in tlike if not headmask[j])
+                if not tlike: continue
+                usf=enc_u_np([(Q[j],resid[x][j]) for j in half]); un=usf/(np.linalg.norm(usf)+1e-9); cand=list(half)
+                def rec(k,u):
+                    f,t=_nd(u,half,tlike,relt); A[k]['full'].append(f); A[k]['tail'].append(t)
+                # SHARED matched volunteered known-item tokens (realistic popweight), identical for every arm this user
+                warm=_name(cand,rd,usf,r,m,'popweight'); wset=set(warm); wtoks=[(Q[j],resid[x][j]) for j in warm]
+                rec('profile_only',enc_u_np(wtoks))
+                # OURS: open-recall spends the remaining p turns naming MORE favourites (realistic)
+                more=_name([j for j in cand if j not in wset],rd,usf,r,p,'popweight'); rec('open_realistic',enc_u_np(wtoks+[(Q[j],resid[x][j]) for j in more]))
+                # BOUNDS (oracle recall, full budget, NOT realizable): info-optimal (align) and tail-optimal (distinct)
+                rec('BOUND_open_align',enc_u_np([(Q[j],resid[x][j]) for j in _name(cand,rd,usf,r,T,'align')]))
+                rec('BOUND_open_distinct',enc_u_np([(Q[j],resid[x][j]) for j in _name(cand,rd,usf,r,T,'distinct')]))
+                # probe baselines: warm m tokens + p probe turns over ANSWERABLE concepts (strong, realistic)
+                ac=sorted(c for c in range(NC) if len(citems[c]&half)>=2)
+                if not ac:
+                    for k in ['pebol_profile','conts_profile','cpop_profile','rand_profile']: rec(k,enc_u_np(wtoks))
+                    continue
+                Ac=np.array([Ecn[c] for c in ac],np.float32); yA=(Ac@un).astype(np.float32); Afac=[Ec[c] for c in ac]
+                # PEBOL+profile (PRIMARY): Beta-per-known-item + concept-aspect Thompson acquisition; geometric entailment
+                cpool=cand; th_i=np.array([Qn[j] for j in cpool],np.float32); ent=(Ac@th_i.T*0.5+0.5); alp=np.ones(len(cpool),np.float32); bet=np.ones(len(cpool),np.float32); asked=set(); tk=list(wtoks)
+                for _t in range(p):
+                    ths=r.beta(alp,bet); aq=[float((ent[a]*ths).sum()) if a not in asked else -1e9 for a in range(len(ac))]
+                    a=int(np.argmax(aq)); asked.add(a); ans=float(0.5+0.5*yA[a]); alp=alp+ans*ent[a]; bet=bet+(1-ans)*ent[a]
+                    tk.append((Afac[a],float(NEG+(POS-NEG)*(yA[a]+1)/2)))
+                rec('pebol_profile',enc_u_np(tk))
+                # ConTS+profile: Bayesian-linear posterior warm-started from the volunteered tokens, then Thompson over concept+item arms
+                lam=1.0; s2=0.25; Ainv=np.eye(D,dtype=np.float32)/lam; b=np.zeros(D,np.float32)
+                for j in warm: phi=Qn[j]; yk=float(un@Qn[j]); Ainv=Ainv-np.outer(Ainv@phi,phi@Ainv)/(s2+phi@Ainv@phi); b=b+phi*yk/s2
+                armE=[Ecn[c] for c in ac]+[Qn[j] for j in cand]; armF=[Ec[c] for c in ac]+[Q[j] for j in cand]; AM=np.array(armE,np.float32); ym=(AM@un).astype(np.float32); asked=set(); tk=list(wtoks)
+                for _t in range(p):
+                    mu=Ainv@b
+                    try: L=np.linalg.cholesky(Ainv)
+                    except: L=np.eye(D,np.float32)*np.sqrt(1.0/lam)
+                    ut=mu+L@r.standard_normal(D).astype(np.float32); sc=AM@ut; sc[list(asked)]=-1e9; k=int(np.argmax(sc)); asked.add(k)
+                    phi=AM[k]; yk=float(ym[k]); Ainv=Ainv-np.outer(Ainv@phi,phi@Ainv)/(s2+phi@Ainv@phi); b=b+phi*yk/s2
+                    tk.append((armF[k],float(NEG+(POS-NEG)*(yk+1)/2)))
+                rec('conts_profile',enc_u_np(tk))
+                # concept-pop+profile (Paper B strong static baseline): probe the p most-covering answerable concepts
+                cp=sorted(ac,key=lambda c:-cfreq[c])[:p]; tk=list(wtoks)+[(Ec[c],float(NEG+(POS-NEG)*(float(un@Ecn[ci])+1)/2)) for ci,c in enumerate(ac) if c in cp]; rec('cpop_profile',enc_u_np(tk))
+                # random-concept+profile (weak floor)
+                rc=list(r.choice(len(ac),size=min(p,len(ac)),replace=False)); tk=list(wtoks)+[(Ec[ac[ci]],float(NEG+(POS-NEG)*(yA[ci]+1)/2)) for ci in rc]; rec('rand_profile',enc_u_np(tk))
+        return A
+    ALL={}; ORDER=['open_realistic','pebol_profile','conts_profile','cpop_profile','rand_profile','profile_only','BOUND_open_align','BOUND_open_distinct']
+    LBL={'open_realistic':'OPEN-recall (ours, realistic)','pebol_profile':'PEBOL+profile [PRIMARY]','conts_profile':'ConTS+profile','cpop_profile':'concept-pop+profile','rand_profile':'random-concept+profile','profile_only':'profile-only (shared tokens, control)','BOUND_open_align':'[BOUND] open-recall oracle-align','BOUND_open_distinct':'[BOUND] open-recall oracle-distinct'}
+    print(f"=== ACCESS-CONTROLLED (T={T}, seeds {seeds}, {B_BOOT}-boot 95% CI). m = matched volunteered known-item tokens given to EVERY arm; baselines then probe p=T-m turns. ===",flush=True)
+    for m in MSWEEP:
+        A=run(m); ALL[m]={}
+        print(f"\n-- m={m} volunteered tokens (open names all {T}; baselines get {m} volunteered + {T-m} probes) --",flush=True)
+        print(f"   {'arm':40s} {'FULL [95% CI]':28s} {'TAIL [95% CI]':28s}",flush=True)
+        for k in ORDER:
+            fm,fl,fh=_boot(A[k]['full'],seed=13); tm,tl,th=_boot(A[k]['tail'],seed=17)
+            ALL[m][k]={'full':fm,'full_ci':[fl,fh],'tail':tm,'tail_ci':[tl,th],'n_full':len([z for z in A[k]['full'] if z is not None]),'n_tail':len([z for z in A[k]['tail'] if z is not None])}
+            tag=' (m-invariant BOUND/ref)' if k.startswith('BOUND') else ''
+            print(f"   {LBL[k]:40s} {fm:.4f} [{fl:.4f},{fh:.4f}]   {tm:.4f} [{tl:.4f},{th:.4f}]{tag}",flush=True)
+    # verdict at headline m
+    hm=HEADM if HEADM in ALL else MSWEEP[-1]; O=ALL[hm]['open_realistic']; P=ALL[hm]['pebol_profile']
+    surv_full=O['full_ci'][0]>P['full_ci'][1]; surv_tail=O['tail_ci'][0]>P['tail_ci'][1]
+    dfull=O['full']-P['full']; dtail=O['tail']-P['tail']
+    print(f"\n=== VERDICT @ headline m={hm} (equal budget, PEBOL+profile primary) ===",flush=True)
+    print(f"  OPEN-realistic FULL {O['full']:.4f}{O['full_ci']} vs PEBOL+profile {P['full']:.4f}{P['full_ci']}  d={dfull:+.4f}  CI-disjoint={surv_full}",flush=True)
+    print(f"  OPEN-realistic TAIL {O['tail']:.4f}{O['tail_ci']} vs PEBOL+profile {P['tail']:.4f}{P['tail_ci']}  d={dtail:+.4f}  CI-disjoint={surv_tail}",flush=True)
+    tailgap=ALL[hm]['BOUND_open_distinct']['tail']-O['tail']
+    print(f"  HONEST tail loss: realistic open {O['tail']:.4f} vs oracle-distinct BOUND {ALL[hm]['BOUND_open_distinct']['tail']:.4f} (gap {tailgap:+.4f}); align-BOUND full {ALL[hm]['BOUND_open_align']['full']:.4f}",flush=True)
+    outd=f'{base}/.cache/paperD'; os.makedirs(outd,exist_ok=True)
+    json.dump({'meta':{'T':T,'seeds':seeds,'msweep':MSWEEP,'headline_m':hm,'boot':B_BOOT,'ruler':'ML-1M frozen V1 set-encoder s=popb+Ql.u, NDCG@10 full+tail, te[300:]','answerer':'realistic=popweight; BOUND rows=oracle align/distinct (not realizable)'},'results':ALL,'verdict':{'survives_full':bool(surv_full),'survives_tail':bool(surv_tail),'d_full':dfull,'d_tail':dtail,'tail_loss_vs_bound':tailgap}},open(f'{outd}/t6_paperD_fair.json','w'),indent=2)
+    print(f"\nsaved {outd}/t6_paperD_fair.json",flush=True)
+    sys.exit(0)
 if os.environ.get('LLMDROP'):                                                  # PAPER E: REAL NDCG cost of VERBALISING the continuous query. Roll D1; at each turn render q's 3-phrase blend to NL (LLM), re-embed (SBERT)->q_hat, FOLD q_hat's geometric answer. NDCG(q_hat, verbalised) vs NDCG(q, continuous) on the SAME users = deployment cost of language. MODEL=gpt-4.1-mini NU=150.
     import sys, concurrent.futures as _cf
     envp=os.path.join(os.path.dirname(os.path.dirname(base)),'.env')           # casper/.env
