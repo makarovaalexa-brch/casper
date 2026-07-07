@@ -157,7 +157,68 @@ less information than a graded cosine.
 
 ---
 
-# THREE VERDICTS
+## PART 4 — the LEARNED bot-play answerer (ABot)  a = μ(z\*, q, feats)
+
+Closes the reviewer's "suppressed evidence" charge: a **learned** answerer (previously built for
+Paper C on the V1 encoder, then dropped as "bot-play DEAD") shown wherever it lands in the P4c
+framework. **Provenance.** The ABot recipe survives verbatim (commit `b1aaa31`, doc
+`experiments/paper2/ABOT_CONFIDENCE_RESULT.md`) though its checkpoint (`.cache/abot.pt`) is gone; it
+was dropped after two *policy-side* negatives (drop-oracle headroom = overfitting `cdd5296`; no
+certainty signature in dropped answers `1c17130`) — **neither is about answer fidelity**, so it is a
+legitimate 4th answer source to re-measure here. Re-implemented faithfully on the **I2 geometry**
+(`scripts/instrument2/p4c_botplay.py`): a heteroscedastic MLP `ABot(z*, q, feats[5]) → (μ, log σ²)`
+trained by Gaussian NLL on **808,940 real ML-1M ratings**; **μ = the learned graded answer**,
+`feats = [popularity/familiarity, divisiveness, experience-max, experience-mean, taste-cos]`. Target
+is the **same per-user-centered rating** the other P4c arms fold. Frozen invariants identical
+(RecVAE-d512, η=16, z₀=0, seeds {1,2,3,7,11}, te[300:] 304 users, T=8, scale-matched). Checkpoint
+`.cache/instrument2/abot_i2.pt`.
+
+**What makes it the 4th source.** PART 1's empirical channel is a 1-D lookup `a=f(s)`+sampled noise;
+the ABot is a full learned regressor of `(z*, q, familiarity/experience)` returning the answer's
+**conditional mean μ** (a *denoised, richer* answerer). It is **in-distribution on real item
+directions** (item-8) and **extrapolates off-manifold** for concept / continuous-actor directions.
+
+| statistic | value |
+|---|---|
+| corr(μ, true centered answer), held val | **0.589** (richer than the empirical channel's corr(s,rating)=0.516) |
+| val RMSE of μ | 0.406 |
+| calibration gate σ²-vs-\|err\| corr | **+0.232** (PASS, want >0 — matches original ABot +0.253) |
+| σ² popular vs niche | 0.151 vs 0.146 (near-flat on I2; the familiarity=confidence signal is weaker than on V1, but this is a σ² detail — μ is what we fold) |
+
+### PART 4 arms under the learned answerer (5-seed TEST, scale-matched)
+
+| arm | **bot-play (ABot μ)** | empirical channel (noise ×1) | native (P4a) |
+|---|---|---|---|
+| continuous **actor** (seed-avg) | **0.4071 / 0.2223** | 0.150 / 0.087 | 0.491 / 0.298 |
+| continuous **SVD-8 static** | **0.3850 / 0.1877** | 0.159 / 0.078 | 0.471 / 0.292 |
+| discrete **concept-8 (lift)** | **0.4061 / 0.2215** | 0.325 / 0.170 | 0.444 / 0.235 |
+| discrete **item-8** | **0.2400 / 0.1322** | 0.394 (real-rating) / 0.463 (fold) | — |
+
+**Reading — the learned answerer sits on the *opposite* side of the boundary from the sampled
+channel.** Because μ returns the **denoised conditional mean** (no per-answer sampling noise, no
+5-level quantization), the **continuous actor SURVIVES at 0.407** — vs the empirical channel's 0.150
+it is **+0.257**, and it lands *above* MOSTPOP (0.310) and level with its own concept-8 (0.406). This
+directly confirms PART 1's noise decomposition: the collapse to 0.150 was the **per-answer sampling
+noise** (native 0.496 → linear-response 0.389 → +quantization 0.293 → +sampling 0.172), *not* the
+use of a model in the answer loop. A learned answerer emitting E[a | z\*,q] behaves like the
+**linear-response stage or better** (0.407, edging past 0.389 thanks to corr 0.589 > 0.52).
+
+**The inversion.** Under the *sampled* empirical channel the **item** channel was the most robust
+(fold 0.463); under the learned answerer **item-8 DROPS to 0.240** — the single arm that gets *worse*.
+A smooth learned regressor cannot reproduce a user's **idiosyncratic per-item rating** as faithfully
+as the real rating (item-8 loses −0.15 vs its real-rating reference), whereas for
+concept/basis/continuous directions the true answer *is* a smooth `cos(z*,q)` that μ tracks tightly
+(concept −0.038, SVD-8 −0.086, actor −0.084 vs native). So the learned answerer **trades
+item-specific fidelity for smoothness**: it is high-fidelity exactly where the sampled channel was
+fragile (continuous), and lossy exactly where the sampled channel was robust (items).
+
+**Where it lands vs the empirical-channel anchors** (actor 0.150 / concept-8 0.325 / item-8 0.463):
+bot-play is **far on the high-fidelity side for the actor (0.407 ≫ 0.150) and SVD-8 (0.385 ≫ 0.159)**,
+**modestly above on concept-8 (0.406 vs 0.325)**, and **below on item-8 (0.240 vs 0.463)**.
+
+---
+
+# FOUR VERDICTS
 
 **V1 — Empirical channel (H1): the flagship's *continuity* claim does NOT survive realistic answer
 noise; robustness lives in discrete item/concept questions.**
@@ -184,14 +245,34 @@ floor 0.107) when restricted to the user's rated items (coverage 1); its geometr
 at 0.329. Unrestricted, coverage is 0.3% and it does nothing — **answerability, not raw geometry, is
 the binding constraint**. No model anywhere in the answer path.
 
+**V4 — Learned bot-play answerer (ABot): the fidelity boundary is set by answer *noise*, not by a
+*model* in the loop; a denoised learned answerer puts the continuous actor back on the surviving
+side and, in exchange, makes the item channel the fragile one.**
+The recovered ABot (heteroscedastic MLP, μ = learned answer, corr(μ,a)=0.589, calibration +0.232)
+returns the **conditional-mean** answer, so the continuous actor recovers to **0.407** (vs the
+sampled channel's 0.150, **+0.257**; ≈ its own concept-8 0.406; above MOSTPOP 0.31) and SVD-8 to
+**0.385** — confirming PART 1's decomposition that the collapse was **sampling/quantization noise**,
+not the presence of a learned answerer. The ordering **inverts vs V1**: **item-8 drops to 0.240**
+(the one arm that worsens) because a smooth regressor cannot match a user's idiosyncratic per-item
+rating, whereas concept/basis/continuous answers *are* smooth cosines μ tracks tightly. A learned
+answerer therefore **trades item-specific fidelity for smoothness** — high-fidelity exactly where the
+sampled channel was fragile (continuous), lossy exactly where it was robust (items). The dropped
+"bot-play" model was retired for *policy-side* reasons (overfit drop-oracle, no certainty signature),
+**not** because it fails as an answer source — as an answer source it is well-calibrated and faithful.
+
 ### Key numbers
 - Channel: corr(s,rating) **0.516**, mean bin entropy **1.887 bits**, response `a≈1.55s−0.36`, σ=0.48.
 - Empirical (noise×1): actor **0.150** / SVD-8 **0.159** / concept-8 **0.325** / item-real **0.394** /
   item-fold **0.463**; train-noisy actor **0.287**; graded−binary(actor) **+0.005**; item-snap **+0.051**.
 - Foreign: V1 item **0.392**, V1 concept **0.396**, EASE item **0.439**; continuous-realized 0.07–0.24.
 - Raw pairs: profile-restricted **0.223** (cov 1.0), geom-pair 0.329, global-raw 0.109 (**cov 0.003**).
+- Bot-play (learned μ): actor **0.407** / SVD-8 **0.385** / concept-8 **0.406** / item-8 **0.240**;
+  corr(μ,answer) **0.589**, calibration **+0.232**. Actor **+0.257** over the sampled channel.
 
 ### Durable artifacts
 `.cache/instrument2/p4c_channel.json` (fitted channel), `.cache/instrument2/p4c_answer_sources.json`
 (part1/part2/part3), `.cache/instrument2/p4c_actor_noisy_s0.pt` (train-noisy actor). Script
 `scripts/instrument2/p4c_answer_sources.py`.
+PART 4: `.cache/instrument2/abot_i2.pt` (retrained learned answerer), `.cache/instrument2/p4c_botplay.json`
+(4 arms + calibration gate). Script `scripts/instrument2/p4c_botplay.py` (`train|part4`, imports the
+PART1–3 helpers).

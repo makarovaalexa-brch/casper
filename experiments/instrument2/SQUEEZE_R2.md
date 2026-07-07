@@ -88,8 +88,63 @@ noise-adapted static (repeat-probe the top informative axis) beats the noise-tra
 +0.030 full (p<0.001).* Do **not** claim the noise-trained actor "recovers adaptivity" — it only
 recovers vs a static that was denied the same channel adaptation.
 
+---
+
+## R2b — TIE-BY-CONSTRUCTION arm (is the R2 loss an optimization gap or an expressiveness gap?)
+
+**Motivation.** The noise-adapted static won because it was found by **direct greedy SEARCH** on the
+noisy-val objective, whereas the actor was fit by **SGD through the sampled channel** — a weaker
+optimizer. But the actor architecture (belief-conditioned MLP → unit direction) *can* emit any fixed
+schedule. If we **construct** the actor from the winning schedule, does it at least tie the static?
+That isolates optimization gap (SGD is weak) from expressiveness gap (the actor cannot represent the
+policy). Runner `squeeze_r2.py r2b`.
+
+**Construction.** BC-warm a fresh `P.Actor` to emit, per turn, the exact winning repeat schedule of
+decoder-SVD directions `[0,0,0,0,1,2,7,0]` (belief-independent target). Fidelity check: emitted
+direction · target per turn = **[1.0]×8** — the actor reproduces the static schedule *exactly* by
+construction. Then two arms: **construct-only** (no fine-tune) and **construct+fine-tune** (20-epoch
+noisy-channel unroll fine-tune on top of the construction, val-selected on noisy-val full NDCG).
+
+| arm | VAL (te[:300]) full/tail | TEST 5-seed full/tail |
+|---|---|---|
+| **tie construct-only** (BC-warm to schedule) | 0.2857 / 0.0932 | **0.3177** (sd .0043) / **0.1168** |
+| tie **fine-tuned** (SGD on top) | 0.2980 / 0.0742 | 0.2925 / 0.0974 |
+| noise-adapted static-repeat (ref) | 0.2923 / 0.0789 | 0.3143 / 0.1167 |
+
+**Paired bootstrap (304 users, seed-avg per-user full):**
+
+| margin | Δ full | 95% CI | p(Δ>0) |
+|---|---|---|---|
+| **tie construct-only − static-repeat** | **+0.0035** | [−0.0043, +0.0112] | **0.815** (TIE) |
+| tie fine-tuned − static-repeat | −0.0218 | [−0.0340, −0.0098] | 0.000 |
+| tie fine-tuned − tie construct-only | −0.0253 | [−0.0386, −0.0122] | 0.000 |
+
+### R2b VERDICT — the actor CAN at least tie the static; R2's loss was an OPTIMIZATION gap, and fine-tuning ADDS NO value (it destroys it).
+
+1. **"At least tie" property CONFIRMED.** Constructed from the winning schedule, the actor emits
+   identical directions (cos=1.0) and reaches **TEST 0.318/0.117 ≈ static 0.314/0.117**
+   (Δ +0.0035, p=0.82 — a statistical tie, if anything marginally above). On val it ties too
+   (0.286 vs 0.292, within the vectorized-vs-per-user noise-draw difference). The R2 defeat of the
+   *trained* actor (0.284) was therefore **not an expressiveness limit** — the architecture fully
+   represents the noise-robust repeat-probe policy; P4C's `trainnoisy` SGD simply failed to find it.
+
+2. **Fine-tuning does NOT unlock adaptive upside — it is actively HARMFUL.** Starting *exactly at the
+   optimum* (the constructed schedule) and fine-tuning under the noisy channel drifts the policy
+   **away** from it: TEST 0.318 → 0.293 (Δ −0.025, p<0.001), tail 0.117 → 0.097. The val-selection even
+   chose the final epoch (val-full 0.308) that generalized to only 0.293 — SGD's apparent val gain was
+   val-overfit noise. **There is no realizable adaptive gain on top of the fixed schedule under this
+   channel; gradient descent through the noisy unroll systematically corrupts the robust static
+   optimum.** This strengthens R2: the noise-robust optimum *is* the non-adaptive repeat-probe
+   schedule, and belief-conditioned adaptivity is not merely unhelpful but a liability under noise.
+
+**Net for Papers C/D.** The learned actor is *expressive enough* to match the strongest noise-adapted
+static (state it as an optimization, not capacity, story) — but under a realistic answer channel the
+best it can *do* is tie a zero-training fixed schedule, and any attempt to train adaptivity on top of
+that schedule loses. Adaptivity's positive value remains **clean-channel only**.
+
 ### Durable artifacts
-`.cache/instrument2/squeeze_r2_noise.json` (greedy schedules + val curves, 5-seed TEST full/tail per
-seed, paired bootstraps); script `scripts/instrument2/squeeze_r2.py` (imports helpers from
-`p4c_answer_sources` / `p4a_battery` / `p4a_bootstrap`). Noise-trained actors
-`p4c_actor_noisy_s{0,1,2}.pt`.
+`.cache/instrument2/squeeze_r2_noise.json` (greedy schedules + val curves, R2 5-seed TEST + bootstraps,
+and `r2b` block: construction fidelity, val + 5-seed TEST for both tie arms, bootstraps);
+`.cache/instrument2/p4c_actor_tie_ft.pt` (fine-tuned tie actor); script
+`scripts/instrument2/squeeze_r2.py` (`r2` + `r2b` stages, imports helpers from `p4c_answer_sources` /
+`p4a_battery` / `p4a_bootstrap`). Noise-trained actors `p4c_actor_noisy_s{0,1,2}.pt`.
