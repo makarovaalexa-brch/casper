@@ -272,3 +272,66 @@ cos@t1 0.864 -> cos@t24 0.458 (delta -0.406) -- g-hat barely moves (few answers 
 7. Refusal = no-op turn (belief unchanged), user retained; all 298 users in every mean (fair, inherited from the harness). Bootstrap paired per-user BOOT=5000 seed=0; selectors deterministic (V/cid tie-breaks).
 8. g-hat-to-true-genre cosine and per-turn realized answer rate are DIAGNOSTICS; the true known-half genre distribution is PRIVILEGED and never enters the policy.
 
+
+## ARENA-V2 (LLM-measured answerability)
+
+Date 2026-07-08. Script `scripts/i25_phase4_arena2.py` (imports/reuses `i25_phase4_fair.py`, `i25_phase4_a3.py`, `i25_phase4_a4.py` UNMODIFIED). NO LLM calls (grids cached); deterministic; local compute.
+
+**Two pre-registered answerability models.** The study fixes TWO environments and reports the adaptivity verdict under BOTH: **arena-v1** = STRUCTURAL lower-bound answerability (an item probe is answerable only if the user rated it in the known half; the sections above), and **arena-v2** (this section) = the project's VALIDATED **LLM-MEASURED** answerability (cached LLM judged grid + fitted pmodel, base answer-rate 0.732). The A4 diagnosis showed the v1 harsh rule is what starves blind adaptivity of hits; arena-v2 tests whether blind adaptive probing separates from the static once answerability is the measured, human-like model. The verdict may legitimately differ between the two -- that contrast is itself a headline finding.
+
+**Arena-v1 reproduction (old rule, before switching):** s1 any@24 = 0.2103 (target 0.2103), **s3 any@24 = 0.2786 (target 0.2786)**, s3 hit 3.4/24 -> reproduced = True.
+
+**Arena-v2 item answer model (environment-side only; agent arms stay exactly as blind/privileged as before).** An item probe is ANSWERABLE iff (a) the user rated it in the known half (as v1), OR (b) the cached LLM judged grid (gate + main-study, union; answerable if any grid judged YES) says yes, OR (c) for a bank item NOT in that user's grid, the fitted pmodel with the user's TRUE known-half genre_match has p_hat >= BASE_RATE=0.732 (env-side => true-profile features are LEGAL in the answering rule). ANSWER VALUE: rated -> real centered rating; answerable-but-unrated -> **LLM/CF-predicted** = bank-restricted EASE (universe = top-4000 popular UNION the 160-item bank, lambda=500, 4000 items; trained on KNOWN-portion ratings with all study-user held-out rows dropped -- cross-check A recipe) + Gaussian noise sigma=0.7 stars seeded per (user,item), clipped [0.5,5], centered; native recall channel nat=item iff the noised predicted star >= 4 (the same channel v1 uses for a rated-liked item). Concepts/attributes UNCHANGED.
+
+**Grid coverage of the 160-item probe bank:** mean 4.9/160 items judged per user (3.1%); on those judged bank items the LLM YES-rate is **0.780** (popular bank items are far more answerable than the 0.269 all-strata item base). Bank items outside a user's grid fall back to the pmodel threshold. Provenance of item-probe outcomes across all (user,bank-item) cells: {'answerable_grid': 1034, 'answerable_pmodel': 38198, 'rated': 5000, 'refuse_grid': 323, 'refuse_pmodel': 3125}.
+
+| arm | any/end @8 | any/end @16 | any/end @24 | hit (ansT) | delta-any@24 vs s3(v2) [CI] |
+|---|---|---|---|---|---|
+| s3 popular-item (v2, opponent) | 0.2250/0.2336 | 0.2327/0.2448 | 0.2377/0.2480 | 23.3 (97%) | -- |
+| s1 concepts | 0.2120/0.2099 | 0.2106/0.2092 | 0.2103/0.2097 | 22.9 (95%) | -- |
+| a3-blind | 0.2163/0.2203 | 0.2190/0.2223 | 0.2201/0.2261 | 24.0 (100%) | -0.0176[-0.0249,-0.0102] |
+| a4-blind | 0.2084/0.2150 | 0.2109/0.2152 | 0.2135/0.2224 | 23.9 (100%) | -0.0242[-0.0340,-0.0143] |
+| a3-table (PRIV, class ceiling) | 0.2064/0.2147 | 0.2117/0.2229 | 0.2152/0.2255 | 24.0 (100%) | -0.0224[-0.0325,-0.0124] |
+| u1 clairvoyant (PRIV, arena ceiling) | 0.6006/0.6258 | 0.6117/0.6162 | 0.6076/0.5805 | 24.0 (100%) | +0.3699[+0.3462,+0.3935] |
+
+**Hit rates v1 vs v2 (mean answered turns / 24):** s3 v1 = 3.4 (~14%) -> **s3 v2 = 23.3 (~97%)**; a3-blind = 24.0; a4-blind = 23.9; a3-table (ceiling) = 24.0; u1 = 24.0.
+
+**THE verdict contrasts (per budget):**
+
+| budget T | a3-blind vs s3 [CI] | a4-blind vs s3 [CI] |
+|---|---|---|
+| 8 | -0.0086[-0.0169,+0.0003] | -0.0165[-0.0327,+0.0000] |
+| 16 | -0.0137[-0.0213,-0.0057] | -0.0218[-0.0341,-0.0089] |
+| 24 | -0.0176[-0.0249,-0.0102] | -0.0242[-0.0340,-0.0143] |
+
+**First separation vs s3 (belief(t) paired CI excl 0):** a3-blind turn 8 (sign -); a4-blind turn 3 (sign -).
+
+**a4 calibration under arena-v2 (per turn, mean chosen-probe p_hat vs realized answer rate -- roughly right by construction now, since the answer model IS the pmodel/grid):**
+
+| t | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| mean chosen p_hat | 0.958 | 0.960 | 0.962 | 0.979 | 0.885 | 0.957 | 0.939 | 0.955 | 0.952 | 0.925 | 0.962 | 0.913 | 0.920 | 0.878 | 0.961 | 0.956 | 0.951 | 0.928 | 0.958 | 0.940 | 0.914 | 0.968 | 0.925 | 0.859 |
+| realized answer rate | 1.000 | 1.000 | 0.990 | 1.000 | 1.000 | 0.997 | 1.000 | 1.000 | 0.963 | 1.000 | 1.000 | 0.990 | 1.000 | 1.000 | 1.000 | 1.000 | 0.997 | 0.997 | 1.000 | 0.993 | 0.997 | 1.000 | 0.997 | 1.000 |
+
+Mean p_hat - answer-rate gap = -0.059 (corr -0.09) -- vs arena-v1's +0.720 gap: the surrogate is now well-aligned in level because the environment answers by the SAME measured model the agent ranks with.
+
+**NDCG@10(t) curves (t=1..24):**
+
+| arm | t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 | t10 | t11 | t12 | t13 | t14 | t15 | t16 | t17 | t18 | t19 | t20 | t21 | t22 | t23 | t24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| s3 popular-item (v2) | 0.213 | 0.218 | 0.223 | 0.225 | 0.226 | 0.229 | 0.232 | 0.234 | 0.236 | 0.236 | 0.238 | 0.241 | 0.242 | 0.242 | 0.243 | 0.245 | 0.246 | 0.246 | 0.247 | 0.248 | 0.248 | 0.248 | 0.249 | 0.248 |
+| a3-blind | 0.213 | 0.212 | 0.215 | 0.213 | 0.213 | 0.221 | 0.224 | 0.220 | 0.219 | 0.221 | 0.223 | 0.222 | 0.224 | 0.222 | 0.221 | 0.222 | 0.222 | 0.221 | 0.222 | 0.223 | 0.220 | 0.222 | 0.223 | 0.226 |
+| a4-blind | 0.199 | 0.199 | 0.202 | 0.207 | 0.217 | 0.214 | 0.215 | 0.215 | 0.213 | 0.215 | 0.212 | 0.214 | 0.213 | 0.211 | 0.213 | 0.215 | 0.212 | 0.213 | 0.217 | 0.220 | 0.219 | 0.223 | 0.223 | 0.222 |
+| a3-table (PRIV) | 0.199 | 0.199 | 0.199 | 0.199 | 0.208 | 0.219 | 0.215 | 0.215 | 0.215 | 0.217 | 0.217 | 0.217 | 0.216 | 0.215 | 0.216 | 0.223 | 0.222 | 0.221 | 0.222 | 0.223 | 0.221 | 0.222 | 0.223 | 0.225 |
+| u1 clairvoyant (PRIV) | 0.511 | 0.577 | 0.604 | 0.616 | 0.622 | 0.624 | 0.625 | 0.626 | 0.627 | 0.626 | 0.626 | 0.625 | 0.624 | 0.621 | 0.618 | 0.616 | 0.615 | 0.610 | 0.608 | 0.604 | 0.598 | 0.592 | 0.587 | 0.581 |
+
+**VERDICT:** BRANCH B (arena-v2) -- prize EXISTS, DISCOVERY still the bottleneck: the clairvoyant ceiling beats the rebuilt s3 static, but blind probing cannot capture it. (a3-blind beats s3=False, a4-blind beats s3=False, u1 PRIV beats s3=True.) Read against the arena-v1 verdict (Branch B, blind loses): the adaptivity verdict is reported under BOTH pre-registered answerability models.
+
+**ASSUMPTIONS / judgment calls (arena-v2):**
+1. Grid coverage/fallback: an item probe is answerable if the user rated it in the known half, OR the gate+main-study LLM grids (union; YES if ANY grid judged YES) say yes; for bank items NOT in that user's grid (mean grid coverage 4.9/160 items/user), fall back to the fitted pmodel with the user's TRUE known-half genre_match, thresholded at p_hat >= BASE_RATE=0.732 (the calibrated MAIN-STUDY grid base answer-rate). The answering rule is environment-side, so true-profile features are legal here; the AGENT arms (a3/a4 blind) never see it.
+2. EASE rebuild: bank-restricted EASE (cross-check A recipe), universe = top-4000 popular UNION the 160 bank items = 4000 items, L2 lambda=500, binary item-item weights, item-mean-centered prediction. Trained on the KNOWN-portion ratings of the full ML-25M population with ALL study users' seed-123 held-out interactions dropped (never trains on recommendation targets). Predicts each bank item for each study user from their known-half context. Cached to `.cache/instrument2/arena2_ease_bankpred.npz` (rebuilt on bank/uid mismatch).
+3. Value-channel noise: answerable-but-unrated value = EASE predicted star + N(0,0.7^2) stars, seeded DETERMINISTICALLY per (user,item) via rng((u*2654435761+j) mod 2^32), clipped [0.5,5], then centered by the user's known-half mean. Labelled LLM/CF-predicted (sensitivity-only convention). Rated items keep their REAL centered rating with no noise.
+4. Native recall channel: an answerable item contributes a native (full-factor) recall token iff its star (real, or noised-predicted) >= 4 -- identical to the v1 rule for rated-liked items; the probe is system-selected (not open recall).
+5. s3 greedy REBUILT under arena-v2 over the same top-60-coverage candidate pool; s1 concepts and the coverage prior / granularity g are unchanged (structural coverage) for comparability with v1.
+6. All harness conventions inherited UNMODIFIED: refusal = no-op turn (belief unchanged), user retained, all 298 users in every mean; paired per-user bootstrap BOOT=5000 seed=0; u1/a3-table use the (now v2) TRUE answerability table (privileged, labelled); a3/a4 blind arms condition only on answers/refusals; co-known cosine from trU minus study users (leak=0 asserted).
+
