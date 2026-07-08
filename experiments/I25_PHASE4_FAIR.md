@@ -203,3 +203,72 @@ Date 2026-07-08. Script `scripts/i25_phase4_a3.py` (imports/reuses `i25_phase4_f
 8. No neighborhood-size cap (full 160-item bank scored each turn); refusal = no-op turn (belief unchanged), user retained; all 298 users in every mean (fair, inherited from the harness).
 9. Deterministic: bootstrap paired per-user BOOT=5000 seed=0; all selectors deterministic (coverage/cid tie-breaks).
 
+
+## A4 pmodel-blind prober
+
+Date 2026-07-08. Script `scripts/i25_phase4_a4.py` (imports/reuses `i25_phase4_fair.py` and `i25_phase4_a3.py` UNMODIFIED). NO LLM calls; deterministic; local compute.
+
+**Reproduction gate (existing harness, before adding anything):** s1 any@24=0.2103 (t 0.2103), s3 any@24=0.2786 (t 0.2786), a3-blind any@24=0.2412 (t 0.2412) -> reproduced=True.
+
+**Idea.** A3's co-rating cosine de-popularised the signal and wandered into low-coverage refusal territory (hit +1.0 but any@24 -0.037 vs s3). A4 instead ranks item probes by the VALIDATED answerability surrogate `.cache/instrument2/answerability_pmodel` (AUC .921 held-out users; features [pop_pct, log_rcount, decade, genre_match, franchise, is_concept]; log_rcount coef +1.55 DOMINANT, genre_match +0.63 the user tilt). All features except genre_match are public/static; genre_match is imputed ONLINE from a running per-user genre estimate g-hat. Popularity stays dominant; discovered taste only TILTS the ranking.
+
+**Arm.** Pool = the same 160-item top-coverage ladder bank s3/a3 draw from (item probes only). Online g-hat: init = coverage-weighted population genre prior (low weight w0=1.0); ANSWERED item (any polarity) += Gmat[j]; REFUSED item -= 0.5*p_hat_chosen*Gmat[j] then clip>=0 (surprising refusals subtract more). Per turn pick argmax p_hat(j)*V(j), p_hat=pmodel(., genre_match=cos(g-hat,Gmat[j])), V=study-cohort coverage prior (pop_rate). a4-explore adds a small annealed novelty bonus (1+0.30*anneal_t*novelty) for low-g-hat-mass genre regions, off by turn 6.
+
+| arm | any/end @8 | any/end @16 | any/end @24 | hit (ansT) | delta-any@24 vs s3 [CI] |
+|---|---|---|---|---|---|
+| s3 popular-item (opponent) | 0.2303/0.2683 | 0.2602/0.3035 | 0.2786/0.3236 | 3.4 (14%) | -- |
+| a3-blind (prior arm) | 0.1976/0.2166 | 0.2195/0.2675 | 0.2412/0.2932 | 4.4 (18%) | -- |
+| s1 concepts | 0.2120/0.2099 | 0.2106/0.2092 | 0.2103/0.2097 | 22.9 (95%) | -- |
+| a4-blind | 0.1986/0.2171 | 0.2233/0.2723 | 0.2431/0.2890 | 4.4 (18%) | -0.0356[-0.0477,-0.0231] |
+| a4-explore | 0.1986/0.2171 | 0.2233/0.2723 | 0.2431/0.2890 | 4.4 (18%) | -0.0355[-0.0477,-0.0231] |
+
+**Contrast a4-blind vs s3 (THE contrast) and vs a3-blind, per budget:**
+
+| budget T | a4-blind vs s3 [CI] | a4-blind vs a3-blind [CI] |
+|---|---|---|
+| 8 | -0.0317[-0.0460,-0.0168] | +0.0010[-0.0058,+0.0073] |
+| 16 | -0.0369[-0.0503,-0.0226] | +0.0038[-0.0006,+0.0080] |
+| 24 | -0.0356[-0.0477,-0.0231] | +0.0018[-0.0015,+0.0050] |
+
+**Mechanism metric -- hit rate (mean answered turns / 24):** s3 = 3.4 (~14%); a3-blind = 4.4; a4-blind = 4.4 (~18%); a4-explore = 4.4; a3-table ceiling = 12.9. Hit rose vs s3? **True**. Hit rose vs a3-blind? **True**. a4-blind BEATS s3 at T=24 (CI excl 0)? **False**.
+
+**First separation (a4-blind belief(t) vs s3 belief(t), CI excl 0):** turn 2 (sign -).
+
+**Calibration diagnostic (is the online p_hat honest?): per turn, mean chosen-probe p_hat vs realized answer rate.**
+
+| t | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| mean chosen p_hat | 0.958 | 0.941 | 0.960 | 0.936 | 0.887 | 0.954 | 0.924 | 0.896 | 0.922 | 0.890 | 0.901 | 0.888 | 0.883 | 0.881 | 0.907 | 0.893 | 0.889 | 0.893 | 0.883 | 0.877 | 0.883 | 0.875 | 0.875 | 0.873 |
+| realized answer rate | 0.275 | 0.258 | 0.235 | 0.185 | 0.218 | 0.232 | 0.164 | 0.164 | 0.144 | 0.195 | 0.154 | 0.164 | 0.185 | 0.174 | 0.191 | 0.164 | 0.185 | 0.148 | 0.164 | 0.164 | 0.168 | 0.144 | 0.151 | 0.174 |
+
+Mean p_hat - answer-rate gap = +0.720 (corr +0.70). p_hat is OPTIMISTIC (over-predicts answerability) -- the surrogate ranks, it is not a per-user probability oracle.
+
+**g-hat convergence (PRIVILEGED-INFO DIAGNOSTIC ONLY -- cos of online g-hat to the user's true known-half genre distribution; NOT used by the policy):**
+
+| t | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| cos(g-hat, true genre) | 0.864 | 0.658 | 0.653 | 0.548 | 0.492 | 0.490 | 0.465 | 0.473 | 0.458 | 0.455 | 0.460 | 0.457 | 0.469 | 0.477 | 0.477 | 0.468 | 0.471 | 0.469 | 0.459 | 0.454 | 0.445 | 0.461 | 0.457 | 0.458 |
+
+cos@t1 0.864 -> cos@t24 0.458 (delta -0.406) -- g-hat barely moves (few answers to learn from).
+
+**NDCG@10(t) curves (t=1..24):**
+
+| arm | t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 | t10 | t11 | t12 | t13 | t14 | t15 | t16 | t17 | t18 | t19 | t20 | t21 | t22 | t23 | t24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| s3 popular-item | 0.172 | 0.197 | 0.216 | 0.230 | 0.244 | 0.254 | 0.262 | 0.268 | 0.274 | 0.280 | 0.285 | 0.289 | 0.293 | 0.296 | 0.299 | 0.304 | 0.308 | 0.310 | 0.312 | 0.314 | 0.316 | 0.319 | 0.322 | 0.324 |
+| a3-blind | 0.172 | 0.176 | 0.186 | 0.197 | 0.207 | 0.214 | 0.213 | 0.217 | 0.218 | 0.223 | 0.227 | 0.235 | 0.247 | 0.253 | 0.260 | 0.267 | 0.274 | 0.278 | 0.283 | 0.285 | 0.287 | 0.289 | 0.290 | 0.293 |
+| a4-blind | 0.165 | 0.178 | 0.194 | 0.199 | 0.210 | 0.211 | 0.214 | 0.217 | 0.224 | 0.231 | 0.236 | 0.243 | 0.253 | 0.259 | 0.266 | 0.272 | 0.275 | 0.278 | 0.280 | 0.281 | 0.284 | 0.286 | 0.287 | 0.289 |
+| a4-explore | 0.165 | 0.178 | 0.194 | 0.199 | 0.210 | 0.211 | 0.214 | 0.217 | 0.224 | 0.231 | 0.236 | 0.243 | 0.253 | 0.259 | 0.266 | 0.272 | 0.275 | 0.278 | 0.280 | 0.281 | 0.284 | 0.286 | 0.287 | 0.289 |
+
+**VERDICT:** A4-blind RAISES the hit rate (4.4 vs a3-blind 4.4, s3 3.4/24) but does NOT beat s3 on NDCG at T=24 -- extra answers still land on lower-value items; hit does not convert. Branch B stands.
+
+**ASSUMPTIONS / judgment calls (a4):**
+1. Probe bank = the 160 top-coverage ladder items (coverage>=3) s3/a3 draw from; item probes only.
+2. p_hat = the fitted logistic answerability surrogate (answerability_pmodel; sigmoid(intercept + coef.(x-mean)/std)). Features pop_pct=D.pr[j], log_rcount=log(D.cnt[j]+1), decade=(year-1900)/100 (0.5 if no year), genre_match=cos(g-hat, Gmat[j]), franchise=title-regex, is_concept=0. All but genre_match are public/static per item.
+3. g-hat init = coverage-weighted population genre prior (sum_j pop_rate[j]*Gmat[j], unit-normed) with evidence weight w0=1.0 (~one pseudo-item). ANSWERED (any polarity, incl dislikes -- a dislike still proves knowledge) += raw Gmat[j]. REFUSED -= 0.5*p_hat_chosen*Gmat[j], clipped >=0 (down-weight proportional to the p_hat we predicted -> surprising refusals count more).
+4. V(j) = study-cohort coverage prior (pop_rate) -- the SAME coverage prior that defines s3's pool and a3's coverage_prior. Selection = argmax p_hat(j)*V(j); popularity stays dominant (V and the pmodel's log_rcount term), genre_match only tilts.
+5. a4-explore bonus = (1 + 0.3*anneal_t*novelty(j)), anneal_t=max(0,1-t/6), novelty(j)=1 - (item genre distribution . g-hat evidence fraction) -- cheap directed exploration, annealed off after ~6 turns.
+6. No turn-1 seeding: turn 1 uses g-hat=prior only, so the first pick emerges from the model (deployable, fully model-driven; refusals do NOT switch to a hard fallback order -- every turn is argmax p_hat*V).
+7. Refusal = no-op turn (belief unchanged), user retained; all 298 users in every mean (fair, inherited from the harness). Bootstrap paired per-user BOOT=5000 seed=0; selectors deterministic (V/cid tie-breaks).
+8. g-hat-to-true-genre cosine and per-turn realized answer rate are DIAGNOSTICS; the true known-half genre distribution is PRIVILEGED and never enters the policy.
+
