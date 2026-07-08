@@ -157,6 +157,21 @@ synthesized environment cells (the circularity breach), post-hoc arena patches.
       ad hoc — gaps go back through this design process.
   R4. Author signs off on: any environment change, any LLM spend, any headline claim.
 
+## 7c. FINAL CLARIFICATIONS (2026-07-08, author Q&A round 3)
+- Documentaries sign-off question RETRACTED (malformed): cast questions are entity-level
+  ("do you like DiCaprio?"); docs simply contribute no actors — correct behaviour, no decision.
+- Universe structure: three JUDGED channels per user — concepts (all 1,128 tags), items (top-N),
+  attributes (top-slice entity battery; the judged battery IS the askable attribute universe per
+  the firewall). Pairs composed free; recall generated free.
+- Attribute battery options: 250 / **700 (rec: dir 200, act 300, comp 50, writ 50, franch 100)** /
+  1,500.
+- RECALL MENU extended per author (each once per interview): item-favourite, item-hidden-gem,
+  [item-hated pending], concept-recall ("what kind of movies do you love?"), actor-favourite,
+  director-favourite. Paper D machinery covered items only; concept/entity recall = same data-side
+  generation pattern. LLM recall model = v1.1.
+- TOTALS both scales (knowledge+value per cell): rec config = 1,128 + 1,000 + 700 ≈ 2,828 Q/user ≈
+  848k cells; cost est $20–35 (range configs: 653k–1.39M cells, $15–55). Pilot ~$1 first, always.
+
 ## 7. Sign-off needed from the author (then, and only then, the run) — REVISED LIST
   [ ] DECISION A (universe size): items top-3,000 (rec) or top-2,000 (budget fallback);
       concepts = 200 judged bank (rec) or extend to all 1,128 (+$3);
