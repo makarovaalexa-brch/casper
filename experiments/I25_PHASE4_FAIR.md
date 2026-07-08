@@ -405,3 +405,67 @@ Mean P_kmap - answer-rate gap = -0.125 (corr +0.63) -- the calibrated K-map prob
 7. Map-health = held-out structural AUC at t=8 over bank items NOT among the arm's first 8 probes (a5-blind's OWN order), label=rated-in-known-half, per-user AUC needs both classes; compared to the offline s3-order 0.669 to detect probe-choice starvation.
 8. Refusal = no-op turn (belief unchanged for the fold; the K-map still records the refusal event), user retained; all 298 users in every mean (fair, inherited). Bootstrap paired per-user BOOT=5000 seed=0; all selectors deterministic.
 
+
+## A6 tie-by-construction prober
+
+Date 2026-07-08. Script `scripts/i25_phase4_a6.py` (imports/reuses `i25_phase4_fair.py`, `i25_phase4_a3.py`, `i25_phase4_a5.py` [calibrate_beta0] UNMODIFIED, and the ONLINE-INFERENCE `Kmap` class from `scripts/kmap_validate.py`). NO LLM calls; deterministic; local compute.
+
+**Reproduction gate (existing harness, before adding anything):** s1 any@24=0.2103 (t 0.2103), s3 any@24=0.2786 (t 0.2786), a3-blind any@24=0.2412 (t 0.2412) -> reproduced=True.
+
+**The confound A6 removes.** a2/a3/a4/a5 ranked probes by P(answerable)xCOVERAGE, but the best static s3 was built by greedy NDCG-VALUE ordering -- so those arms deviated from s3 at t=0 for VALUE-MODEL reasons (not evidence), violating the program's tie-by-construction rule (warm-start from the best heuristic so learning can only ADD). Their losses to s3 are confounded. A6 is a WARM-STARTED s3: it starts from s3's exact schedule and tilts it ONLY by an evidence-driven answerability likelihood ratio.
+
+**Value V(j).** The s3 greedy ordering itself, realized as the monotone rank proxy V(j)=1/rank_s3(j) (FA.build_greedy does not return greedy marginal contributions, so the rank proxy is used -- see ASSUMPTIONS). s3's 24 scheduled items take ranks 1..24 in schedule order; remaining bank items take ranks 25.. by coverage (pop_rate) descending. So argmax V over unasked = s3's next item exactly.
+
+**Belief + selection.** BELIEF = the validated LEARNED K-map `P(u knows j)=sigmoid(alpha_u+b_j+k_u.e_j)`, online MAP-Newton inference from all observed events, IDENTICAL to a5; level calibration beta0 reused from a5 (base rate 0.1107 -> beta0 -1.8510, mean P@t0 0.1107). SELECTION each turn = argmax over UNASKED bank items of V(j) x LR(j), LR(j)=P_kmap(j|events)/P_kmap(j|no events). At t=0, alpha=k=0 => LR=1 for ALL j => the pick is EXACTLY s3's next item, so s3 is the policy FLOOR at t=0 and every deviation is a pure evidence-driven swap. **Tie-by-construction floor check (all users' turn-1 pick == s3[0]): True.**
+
+**Variants.** a6 (argmax V*LR, deployable). a6-margin (hysteresis: swap off the s3-base order only if LR(argmax) > 1.2, else take the next s3-order item). a6-table (PRIVILEGED, labelled: same V*LR policy but LR from the TRUE-answerability posterior -- LR=1 if the user rated j, ~0 else -- the tie-by-construction ceiling of the policy class; recovers most of a3-table's +0.060 iff the V*LR form is not the bottleneck).
+
+| arm | any/end @8 | any/end @16 | any/end @24 | hit (ansT) | delta-any@24 vs s3 [CI] |
+|---|---|---|---|---|---|
+| s3 popular-item (opponent) | 0.2303/0.2683 | 0.2602/0.3035 | 0.2786/0.3236 | 3.4 (14%) | -- |
+| a3-blind (co-known, prior arm) | 0.1976/0.2166 | 0.2195/0.2675 | 0.2412/0.2932 | 4.4 (18%) | -- |
+| s1 concepts | 0.2120/0.2099 | 0.2106/0.2092 | 0.2103/0.2097 | 22.9 (95%) | -- |
+| a6 (V=s3-order x K-map LR) | 0.2280/0.2661 | 0.2582/0.3012 | 0.2765/0.3162 | 4.1 (17%) | -0.0021[-0.0056,+0.0015] |
+| a6-margin (swap iff LR>1.2) | 0.2295/0.2679 | 0.2596/0.3022 | 0.2785/0.3240 | 3.4 (14%) | -0.0002[-0.0011,+0.0008] |
+| a6-table (PRIV, true-table LR = class ceiling) | 0.3235/0.3422 | 0.3410/0.3682 | 0.3514/0.3754 | 12.9 (54%) | +0.0727[+0.0596,+0.0871] |
+
+**THE contrast -- a6 vs s3, and the PRIVILEGED ceiling a6-table vs s3, per budget (can now differ from s3 ONLY through evidence-driven swaps):**
+
+| budget T | a6 vs s3 [CI] | a6-margin vs s3 [CI] | a6-table (PRIV) vs s3 [CI] |
+|---|---|---|---|
+| 8 | -0.0023[-0.0050,+0.0001] | -0.0008[-0.0016,-0.0001] | +0.0931[+0.0786,+0.1082] |
+| 16 | -0.0019[-0.0049,+0.0010] | -0.0006[-0.0015,+0.0004] | +0.0808[+0.0673,+0.0953] |
+| 24 | -0.0021[-0.0056,+0.0015] | -0.0002[-0.0011,+0.0008] | +0.0727[+0.0596,+0.0871] |
+
+**SWAP FORENSICS (a6 arm -- a swap = the argmax V*LR pick differs from the pure-V s3-order continuation among unasked items).**
+
+- Deviations from s3's order per user: mean **13.30**, median 14, max 21; users with >=1 swap **298/298**; 3962 swap events total. (a6-margin, LR>1.2: mean 1.04 deviations/user.)
+- Realized answer rate of swapped-IN items = **0.207** vs displaced (s3-order) items = **0.102** (the K-map LR tilts toward items the user is MORE likely to answer).
+- NDCG effect of swaps (per-user paired delta a6-s3): users with >=1 swap (n=298) any@24 **-0.0021**[-0.0056,+0.0015] (end@24 -0.0075); users with 0 swaps (n=0) any@24 +nan (identical to s3 by construction -- 0 deviations => same plan).
+
+**Mechanism metric -- hit rate (mean answered turns / 24):** s3 = 3.4 (~14%); a3-blind = 4.4; a6 = 4.1 (~17%); a6-margin = 3.4; a6-table (PRIV) = 12.9; a3-table ceiling = 12.9. a6 BEATS s3 at any budget (CI excl 0)? **False**. a6-table (PRIV) beats s3 (policy CLASS viable)? **True**.
+
+**First separation (a6 belief(t) vs s3 belief(t), CI excl 0):** turn 4 (sign -).
+
+**NDCG@10(t) curves (t=1..24):**
+
+| arm | t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 | t10 | t11 | t12 | t13 | t14 | t15 | t16 | t17 | t18 | t19 | t20 | t21 | t22 | t23 | t24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| s3 popular-item | 0.172 | 0.197 | 0.216 | 0.230 | 0.244 | 0.254 | 0.262 | 0.268 | 0.274 | 0.280 | 0.285 | 0.289 | 0.293 | 0.296 | 0.299 | 0.304 | 0.308 | 0.310 | 0.312 | 0.314 | 0.316 | 0.319 | 0.322 | 0.324 |
+| a3-blind | 0.172 | 0.176 | 0.186 | 0.197 | 0.207 | 0.214 | 0.213 | 0.217 | 0.218 | 0.223 | 0.227 | 0.235 | 0.247 | 0.253 | 0.260 | 0.267 | 0.274 | 0.278 | 0.283 | 0.285 | 0.287 | 0.289 | 0.290 | 0.293 |
+| a6 | 0.172 | 0.197 | 0.217 | 0.226 | 0.242 | 0.247 | 0.257 | 0.266 | 0.273 | 0.278 | 0.285 | 0.286 | 0.292 | 0.294 | 0.299 | 0.301 | 0.307 | 0.310 | 0.314 | 0.313 | 0.315 | 0.315 | 0.316 | 0.316 |
+| a6-margin | 0.172 | 0.197 | 0.216 | 0.229 | 0.243 | 0.252 | 0.260 | 0.268 | 0.274 | 0.280 | 0.284 | 0.288 | 0.292 | 0.295 | 0.302 | 0.302 | 0.308 | 0.312 | 0.313 | 0.315 | 0.316 | 0.320 | 0.323 | 0.324 |
+| a6-table (PRIV) | 0.271 | 0.299 | 0.325 | 0.333 | 0.337 | 0.336 | 0.343 | 0.342 | 0.349 | 0.352 | 0.355 | 0.354 | 0.360 | 0.363 | 0.367 | 0.368 | 0.370 | 0.371 | 0.372 | 0.372 | 0.370 | 0.373 | 0.374 | 0.375 |
+
+**VERDICT:** A6 TIES s3 within noise: warm-starting from s3 and tilting only by evidence neither adds nor destroys ranking value -- the confound in the prior arms explained their apparent losses, but blind answerability adaptivity still does not beat the popular-item static. a6-table PRIV vs s3 @T24 +0.0727[+0.0596,+0.0871] -> policy CLASS viable (recover-a3-table check). Branch B stands.
+
+**ASSUMPTIONS / judgment calls (a6):**
+1. Probe bank = the 160 top-coverage ladder items (coverage>=3) s3/a3/a4/a5 draw from; item probes only.
+2. V(j) REALIZATION = the s3 greedy ORDER as a monotone rank proxy V(j)=1/rank_s3(j). FA.build_greedy returns only the schedule (not per-position greedy marginal contributions), so the rank proxy is used; it is monotone in the s3 order, which is all the tie-by-construction argument requires (argmax V over unasked == s3's next item at LR=1). s3's 24 items get ranks 1..24 in schedule order; the remaining bank items get ranks 25.. by coverage descending (tie-break dense id).
+3. Belief = the LEARNED K-map (kmap_emb.npz/kmap_intercepts.npz), online inference = kmap_validate.Kmap.infer (MAP-Newton, 12 it, priors tau(k)=1.0, tau_a(alpha)=2.0); imported UNMODIFIED. Event label = probe outcome (answered=1 iff the user rated the dense id in the known half; refused=0) -- the STRUCTURAL arena. No privileged features enter the a6/a6-margin policy.
+4. LR CALIBRATION = P_kmap(j|events)/P_kmap(j|no events) with P_kmap=sigmoid(alpha+b_j+k.e_j+beta0), beta0 the a5 level shift (reused via A5.calibrate_beta0; base rate 0.1107 -> beta0 -1.8510). At t=0 alpha=k=0 => numerator==denominator => LR=1 exactly for every j (verified: all turn-1 picks == s3[0]); beta0 does not affect the t=0 tie (cancels in the ratio there) and only tilts the ratio once events accrue.
+5. MARGIN (a6-margin) = 1.2: swap off the s3-base order only if the argmax's LR exceeds 1.2 (hysteresis against posterior noise); otherwise take the next s3-order item.
+6. a6-table (PRIVILEGED, labelled) = same V*LR selection but LR = the certain-knowledge posterior (1.0 if the user rated j, 1e-6 else), so argmax V*LR = highest-V ANSWERABLE item each turn -- the tie-by-construction ceiling of the policy class (mirrors a3-table's restrict-to-answerable rule). Not deployable.
+7. SWAP definition = actual pick != j_base, where j_base = the max-V unasked item (the pure s3-order continuation given what is already asked); swapped-IN = actual pick, displaced = j_base. Deterministic tie-breaks: max score, then higher coverage V, then lower dense id.
+8. Refusal = no-op turn (belief unchanged for the fold; the K-map still records the refusal event), user retained; all 298 users in every mean (fair, inherited). Bootstrap paired per-user BOOT=5000 seed=0; all selectors deterministic.
+
