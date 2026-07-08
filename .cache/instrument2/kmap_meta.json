@@ -1,0 +1,43 @@
+{
+ "recipe": {
+  "model": "P(u knows j)=sigmoid(b_j + k_u . e_j)",
+  "d": 16,
+  "min_raters": 20,
+  "nu_train": 40000,
+  "n_pos": 6116834,
+  "n_items_kept": 11502,
+  "n_items_total": 18430,
+  "epochs": 3,
+  "batch": 200000,
+  "n_neg": 3,
+  "lr": 0.05,
+  "l2_emb": 1e-05,
+  "seed": 0,
+  "downsample": "downsampled to 40000 of 161541 trU users (seed 0)",
+  "neg_sampling": "uniform over kept items",
+  "warm_start": "b_j initialized to empirical popularity logit"
+ },
+ "zero_leak": {
+  "study_users": 300,
+  "leak_into_trU": 0
+ },
+ "popularity_fallback": {
+  "pop_a": 0.8278967650393624,
+  "pop_c": -9.970895789848576,
+  "base_logit": -4.306971420184862,
+  "desc": "logit(P) ~= pop_a*log(cnt+1)+pop_c for items outside the kept universe"
+ },
+ "coverage": {
+  "probe_bank_n": 160,
+  "probe_bank_covered": 160,
+  "probe_bank_frac": 1.0,
+  "judged_bank_n": 3411,
+  "judged_bank_covered": 3007,
+  "judged_bank_frac": 0.881559659923776
+ },
+ "artifacts": {
+  "emb": ".cache/instrument2/kmap_emb.npz",
+  "intercepts": ".cache/instrument2/kmap_intercepts.npz"
+ },
+ "wall_min": 0.56
+}
