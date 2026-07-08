@@ -150,3 +150,56 @@ s4 NDCG step t16->t17 = -0.0007; a2-blind step = +0.0004. Cliff (drop>0.03) = Fa
 13. SPEED (documented): u1's per-user candidate pool is capped at the top-30 answerable candidates by single-token NDCG gain (measured at turn 1; the turn-1 argmax is unaffected). u1 is a privileged ceiling; the cap can only make it a slightly CONSERVATIVE ceiling.
 14. Determinism: attribute candidate order is sorted (an earlier draft iterated a Python set, whose hash-randomized order perturbed climber tie-breaks by <0.006 between runs -- caught and fixed; no verdict was ever affected).
 
+
+## A3 co-known prober
+
+Date 2026-07-08. Script `scripts/i25_phase4_a3.py` (imports/reuses `i25_phase4_fair.py` UNMODIFIED). NO LLM calls; deterministic; local compute.
+
+**Reproduction gate (existing harness, before adding anything):** s1 any@24 = 0.2103 (target 0.2103), s3 any@24 = 0.2786 (target 0.2786) -> reproduced = True.
+
+**Pre-registered hypothesis:** a3-blind raises the mean-answered-turns (hit rate) above s3's 3.4/24 (~14%) by exploiting answered-item co-known neighborhoods. If the hit rate does not rise, adaptive conditioning found no purchase and Branch B stands unqualified.
+
+**Arm.** Pool = the 160-item top-coverage ladder bank s3 draws from (coverage>=3), item probes only. Turn 1 = the globally best s3 item (I:469). After each turn: if ANSWERED -> next = highest coverage_prior(j) x mean co-known cosine(j | answered set), unasked, tie-break global coverage; if REFUSED -> next unasked item in global coverage order. Co-known cosine built from ML-25M training users (trU, n=159345) with all 298 study users' rows dropped (zero leak, asserted). a3-decay: a sponsoring anchor's weight decays 1->0.5->0 as its neighbors are refused (2 refusals in X's region stop probing X). a3-table (PRIVILEGED): candidates restricted to TRUE-answerable items -> hit-rate ceiling for this policy class.
+
+| arm | any/end @8 | any/end @16 | any/end @24 | hit (ansT) | delta-any@24 vs s3 [CI] |
+|---|---|---|---|---|---|
+| s3 popular-item (opponent) | 0.2303/0.2683 | 0.2602/0.3035 | 0.2786/0.3236 | 3.4 (14%) | -- |
+| s1 concepts | 0.2120/0.2099 | 0.2106/0.2092 | 0.2103/0.2097 | 22.9 (95%) | -- |
+| a3-blind | 0.1976/0.2166 | 0.2195/0.2675 | 0.2412/0.2932 | 4.4 (18%) | -0.0374[-0.0486,-0.0258] |
+| a3-decay | 0.1977/0.2169 | 0.2193/0.2693 | 0.2408/0.2915 | 4.4 (18%) | -0.0378[-0.0490,-0.0262] |
+| a3-table (PRIV) | 0.2874/0.3351 | 0.3216/0.3659 | 0.3386/0.3728 | 12.9 (54%) | +0.0600[+0.0461,+0.0755] |
+
+**Contrast a3-blind vs s3 (THE contrast) and vs s1, per budget:**
+
+| budget T | a3-blind vs s3 [CI] | a3-blind vs s1 [CI] |
+|---|---|---|
+| 8 | -0.0327[-0.0451,-0.0203] | -0.0144[-0.0280,-0.0004] |
+| 16 | -0.0407[-0.0534,-0.0277] | +0.0089[-0.0036,+0.0216] |
+| 24 | -0.0374[-0.0486,-0.0258] | +0.0310[+0.0177,+0.0444] |
+
+**Mechanism metric -- hit rate (mean answered turns / 24):** s3 = 3.4 (~14%); a3-blind = 4.4 (~18%); a3-decay = 4.4; a3-table (ceiling) = 12.9. Hit rose vs s3? **True**. Did it convert to NDCG (beat s3, CI excl 0)? **False**.
+
+**First separation (a3-blind belief(t) vs s3 belief(t), CI excl 0):** turn 2 (sign -).
+
+**NDCG@10(t) curves (t=1..24):**
+
+| arm | t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 | t10 | t11 | t12 | t13 | t14 | t15 | t16 | t17 | t18 | t19 | t20 | t21 | t22 | t23 | t24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| s3 popular-item | 0.172 | 0.197 | 0.216 | 0.230 | 0.244 | 0.254 | 0.262 | 0.268 | 0.274 | 0.280 | 0.285 | 0.289 | 0.293 | 0.296 | 0.299 | 0.304 | 0.308 | 0.310 | 0.312 | 0.314 | 0.316 | 0.319 | 0.322 | 0.324 |
+| a3-blind | 0.172 | 0.176 | 0.186 | 0.197 | 0.207 | 0.214 | 0.213 | 0.217 | 0.218 | 0.223 | 0.227 | 0.235 | 0.247 | 0.253 | 0.260 | 0.267 | 0.274 | 0.278 | 0.283 | 0.285 | 0.287 | 0.289 | 0.290 | 0.293 |
+| a3-decay | 0.172 | 0.176 | 0.186 | 0.197 | 0.207 | 0.214 | 0.213 | 0.217 | 0.218 | 0.223 | 0.226 | 0.235 | 0.244 | 0.252 | 0.261 | 0.269 | 0.274 | 0.278 | 0.283 | 0.283 | 0.286 | 0.287 | 0.288 | 0.292 |
+| a3-table (PRIV) | 0.215 | 0.244 | 0.262 | 0.287 | 0.301 | 0.322 | 0.332 | 0.335 | 0.342 | 0.347 | 0.353 | 0.356 | 0.358 | 0.361 | 0.363 | 0.366 | 0.369 | 0.372 | 0.372 | 0.373 | 0.374 | 0.375 | 0.374 | 0.373 |
+
+**VERDICT:** A3-blind RAISES the hit rate (4.4 vs s3 3.4/24) but does NOT beat s3 on NDCG -- extra answers land on lower-value neighbors; hit rate does not convert. Branch B stands.
+
+**ASSUMPTIONS / judgment calls (a3):**
+1. Probe bank = the 160 top-coverage ladder items (coverage>=3) that s3 draws from; item probes only.
+2. Co-known statistic = COSINE of binary co-rating counts, cooc(a,b)/sqrt(cooc(a,a)cooc(b,b)); diagonal zeroed (an item never scores against itself). Cosine removes each item's marginal popularity so the separate coverage prior is not double-counted.
+3. Neighbor value = coverage_prior(j) x mean cosine affinity of j to the answered set. coverage_prior = study-cohort coverage (pop_rate). Affinity = MEAN over answered anchors (not sum -> not confounded with #answers).
+4. Population for cooc = ML-25M training users (trU, n=159345) with all 298 study users' rows dropped; study users are eval-split and disjoint from trU (asserted leak=0). Co-rating uses each population user's FULL rated profile intersected with the bank.
+5. Turn 1 = s3[0] (the globally best s3 item). Fallback (refusal) order = global coverage descending, tie-break cid. Neighborhood tie-break = coverage.
+6. a3-decay: each neighborhood-selected probe records a SPONSORING anchor = raw-cosine argmax over the answered set; a refusal increments that sponsor's counter; anchor weight = max(0, 1 - 0.5*refusals) -> 1, 0.5, 0 (hard stop at 2 refusals in that region).
+7. a3-table (PRIVILEGED, labelled): candidate set restricted to true-answerable items each turn -> every probe answered -> hit-rate ceiling min(24, #answerable bank items); turn 1 = first answerable item in global order.
+8. No neighborhood-size cap (full 160-item bank scored each turn); refusal = no-op turn (belief unchanged), user retained; all 298 users in every mean (fair, inherited from the harness).
+9. Deterministic: bootstrap paired per-user BOOT=5000 seed=0; all selectors deterministic (coverage/cid tie-breaks).
+
