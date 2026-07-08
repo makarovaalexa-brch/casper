@@ -1,0 +1,82 @@
+{
+  "schema_version": "answerer-v1",
+  "status": "DRAFT — NOT LOCKED until author sign-off (see answerer_schema.md)",
+  "created": "2026-07-08",
+  "source_design": "casper/ANSWERER_V1_DESIGN_REVIEW.md (Decisions D, E)",
+  "purpose": "Single source of truth imported by the judge prompt, the cache format, and the fold interface. Every downstream experiment consumes exactly (channel, entity, value, knowledge/vividness). Locked thesis-wide once signed.",
+
+  "knowledge": {
+    "field": "knowledge",
+    "description": "Does the user know the entity well enough to have an opinion? (Decision D3 vividness hedge, renamed to knowledge for the 3-level form.) Observable hedging like a real human.",
+    "levels": ["no_clue", "rough_idea", "know_well"],
+    "semantics": {
+      "no_clue": "Never heard of it / cannot answer. value is ABSENT.",
+      "rough_idea": "Knows of it / barely remembers / 'I think I liked it?'. value present but down-weighted.",
+      "know_well": "Seen it / remembers well / confident opinion. value present, full weight."
+    },
+    "can_answer_rule": "can_answer == (knowledge != 'no_clue'). The design's can_answer{yes/no} is derived, not stored separately."
+  },
+
+  "value": {
+    "field": "value",
+    "description": "The graded sentiment the user would give. Present iff knowledge != 'no_clue'.",
+    "levels": ["hated", "meh", "liked", "loved"],
+    "present_iff": "knowledge != 'no_clue'",
+    "centered_fold": {
+      "hated": -1.0,
+      "meh": -0.3333333333333333,
+      "liked": 0.3333333333333333,
+      "loved": 1.0
+    }
+  },
+
+  "fold_confidence_weight": {
+    "description": "Weight applied to the centered fold value, as a function of knowledge. KNOB, not a constant — to be fit later (masked-value validation). Defaults below.",
+    "by_knowledge": {
+      "know_well": 1.0,
+      "rough_idea": 0.5,
+      "no_clue": 0.0
+    },
+    "param_name": "w_rough",
+    "param_default": 0.5,
+    "note": "w_rough is the down-weight for rough_idea answers; documented as a fit parameter, not a fixed truth."
+  },
+
+  "rating_to_scale": {
+    "description": "Maps a real ML-25M star rating (0.5..5.0) to the 4-level value scale. Used for rated cells (canonical answer = real rating). Fixed, documented.",
+    "bins": [
+      {"level": "loved", "min": 4.5, "max": 5.0, "rule": ">= 4.5"},
+      {"level": "liked", "min": 3.5, "max": 4.0, "rule": "3.5 <= r <= 4.0"},
+      {"level": "meh",   "min": 2.5, "max": 3.0, "rule": "2.5 <= r <= 3.0"},
+      {"level": "hated", "min": 0.5, "max": 2.0, "rule": "r <= 2.0"}
+    ],
+    "rated_knowledge": "know_well",
+    "note": "A real rating implies the user saw the film => knowledge = know_well for rated cells."
+  },
+
+  "channels": {
+    "description": "The five question channels. Each cell is keyed (channel, entity_id).",
+    "item":      {"entity": "dense item id (0..18429; movieId = keepI[id])", "value_source_rated": "real rating -> rating_to_scale", "value_source_unrated": "LLM graded answer (Decision E canonical)"},
+    "concept":   {"entity": "genome tagId (1..1128)", "value_source_primary": "data-side member aggregate where >=k rated members", "value_source_fallback": "LLM graded answer where <k rated members (flagged)"},
+    "attribute": {"entity": "attribute entity id (director/actor/composer/writer/franchise)", "value_source_primary": "data-side aggregate of user's ratings over the entity's member films", "value_source_fallback": "LLM graded answer"},
+    "pair":      {"entity": "(item_a, item_b) both answerable", "value_source": "which rated higher — real where both rated, LLM-compared otherwise (dual-answerer)"},
+    "recall":    {"entity": "open-recall framing menu", "framings": ["favourite", "hidden_gem", "hated"], "rule": "each framing usable ONCE per interview; v1 = Paper-D popularity-tilted sampler; LLM recall model = v1.1"}
+  },
+
+  "dual_arena": {
+    "description": "Decision E pre-registered robustness rule. Every headline runs under two answerers.",
+    "arena_F": {"name": "Arena-F (full)", "role": "PRIMARY", "answers": "real rating where rated; LLM graded answer where answerable-but-unrated"},
+    "arena_R": {"name": "Arena-R (rated-only)", "role": "hard ground-truth lower bound / check", "answers": "only cells with a real rating; answerable-but-unrated => treated as not answered"},
+    "claim_rule": "Claims stated where both arenas agree; disagreements reported as scope, not hidden."
+  },
+
+  "fidelity": {
+    "masked_value_sigma_stars": 0.70,
+    "note": "LLM masked-item validation MAE ~= 0.70 stars ~= human test-retest inconsistency (Amatriain). This is the fidelity sigma for the LLM-valued channel; re-anchored per V3."
+  },
+
+  "fold_interface_contract": {
+    "consumes": ["channel", "entity", "value_4level", "knowledge", "fold_value_centered", "fold_weight"],
+    "note": "Raw LLM confidence floats are kept for analysis but NOT exposed to the agent/fold."
+  }
+}
