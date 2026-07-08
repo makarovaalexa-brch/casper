@@ -14,7 +14,73 @@ ONE artifact: for every study user and every ALLOWED question, the answerer's re
     regime showed is load-bearing (vague answers dilute vivid ones).
 All cached, versioned, judge-pinned. Every downstream experiment consumes THIS and nothing else.
 
-## 1. DECISION A — the allowed-question universe (the cost driver)
+## 1-REVISED (2026-07-08, after author discussion) — THE QUESTION UNIVERSE, mapped channel by channel
+
+Principle (author): the universe = questions a human interviewer could plausibly ask a human about
+movies. Locked once, used thesis-wide.
+
+**Dataset:** ML-25M (ratings through Nov 2019 — the recent standard; user base is 2019-era, not
+ML-1M's 2000-era). Item universe includes classics (humans know classics); recency concern applies
+to the RATER population, which 25M satisfies. Note: ML-32M (2023) exists as a later recency port;
+everything (pinned split, grids, RecVAE, EASE, genome) is built on 25M — stay, port later
+(Goodreads for domain transfer; optionally ML-32M for recency).
+
+**ITEMS** — probing allowed down to a recognition floor, not into obscurity:
+  Universe = top-N items by ratings count. N=3,000 reaches the genuinely moderate band
+  (recognizable-to-some; the coarse→fine descent range); N=2,000 is the budget fallback.
+  Judged for ALL 300 study users (full grid = any policy runnable, frozen, reproducible).
+**CONCEPTS** — genome tags only in v1 (validated membership+relevance = data-side values work).
+  The 200 breadth-tiered bank is already judged (reuse); option: extend to all 1,128 tags (+~$3).
+  Mined-from-reviews concepts: ML-25M has NO review text — would need external corpora + a new
+  validation pipeline. Deferred to v2, flagged as the author's idea worth keeping.
+**ATTRIBUTES** — actors, directors, composers (author-requested, currently missing):
+  ML-25M carries only genres+year → external join REQUIRED: links.csv → IMDb offline TSV dumps
+  (free, no API, reproducible): directors (title.crew), top-billed cast (title.principals),
+  composers (title.principals category 'composer'). Universe = entities with enough presence to be
+  askable: directors ≥3 films in the item universe, actors ≥5, composers ≥3 → judged battery ~200
+  attribute questions (stratified famous→niche). Value = data-side aggregate of the user's ratings
+  over the entity's films (as concepts). PREREQUISITE BUILD: the membership map (one script, no LLM).
+**PAIRS** — composed from item judgments, zero extra calls. Askable iff both items answerable;
+  answer = which rated higher (real where both rated; LLM-compared where not, dual-answerer rule).
+**OPEN RECALL** — a fixed menu, each framing usable ONCE per interview (no identical repeats):
+  favourite ×1, hidden-gem ×1, and (author to decide) optional "a movie you hated" ×1 — negative
+  evidence, humans ask it. Environment: v1 = the validated Paper-D sampler (popularity-tilted from
+  known set, framing lever), LLM recall model as v1.1 (+~$2). Out of the probing arena; in the
+  answerer artifact.
+
+## 1b. DECISION D (NEW, locks the whole thesis) — THE ANSWER SCALE
+What a human actually emits (and therefore what the judge emits, what the fold consumes, what every
+experiment uses). Options:
+  D1 binary (yes/no) — wastes signal (real answers are graded);
+  D2 five-star mimicry (3.5 stars) — humans don't talk like this in interviews;
+  D3 (RECOMMENDED) **4-level sentiment + explicit can't-answer + vividness hedge**:
+     value ∈ {hated / meh / liked / loved} (centered −1, −⅓, +⅓, +1 for the fold);
+     can_answer ∈ {yes / no};
+     vividness ∈ {strong (seen it, remember well) / vague (know of it / barely remember)} —
+     observable hedging, like a real human ("I think I liked it?"), and the fidelity weight for
+     the fold. Raw LLM confidence floats are kept for analysis but NOT exposed to the agent.
+  Mapping of real ratings to the scale (for rated items): ≥4.5 loved, 3.5–4 liked, 2.5–3 meh,
+  ≤2 hated (documented, fixed). The recommender/fold interface consumes exactly:
+  (channel-type, entity, value∈4-level, vividness-weight). LOCKED THESIS-WIDE once signed.
+
+## 1c. DECISION E (NEW) — retire "sensitivity-only"; adopt DUAL-ANSWERER, canonical answers
+Author's question ("we do not lock llm rating answers as responses?") — resolved as follows.
+Old framing: LLM-predicted values for answerable-but-unrated items were quarantined to side
+analyses ("sensitivity-only") because they are model guesses. NEW framing (cleaner, and matches
+deployability): a real human answers EVERYTHING they can answer — a simulated user that answers
+only where a rating exists is the dishonest one. Therefore:
+  - **Canonical answer** = real rating (mapped to the scale) where rated; **the LLM's graded answer
+    where answerable-but-unrated** — the LLM IS the simulated human there. Its licence: masked-item
+    validation MAE ≈ 0.70 stars ≈ human test-retest inconsistency (Amatriain) — the stand-in errs
+    about as much as humans disagree with themselves.
+  - **Dual-answerer robustness (pre-registered, replaces 'sensitivity-only'):** every headline runs
+    under TWO answerers — Arena-F (full: LLM-valued canonical, PRIMARY) and Arena-R (rated-only:
+    hard ground-truth lower bound) — claims stated where both agree; disagreements reported as
+    scope. The independent-CF (EASE) value swap remains a one-time robustness table.
+  - Human study (later) validates the judge; until then every paper prints the claim boundary.
+
+## 1-ORIGINAL (superseded by 1-REVISED for the universe; kept for the cost table) —
+## DECISION A — the allowed-question universe (the cost driver)
 Items dominate cost. Measured rate from the main study: ~600 calls / $3.20 with ~270 questions per
 call → ≈ $0.002 per 100 (user,question) judgments. Options:
   A1. Top-1,000 items by ratings count × 300 users = 300k cells ≈ **$6–10**. Covers popular +
@@ -71,9 +137,17 @@ synthesized environment cells (the circularity breach), post-hoc arena patches.
       ad hoc — gaps go back through this design process.
   R4. Author signs off on: any environment change, any LLM spend, any headline claim.
 
-## 7. Sign-off needed from the author (then, and only then, the run)
-  [ ] DECISION A: universe = A1 / A2 / A3 (my rec: A2, fallback A3)
-  [ ] DECISION B: emit = B1 / B2 (my rec: B2, vividness field)
-  [ ] DECISION C: value policy as restated (my rec: yes, unchanged)
-  [ ] Budget ceiling: proposed hard cap $30, tripwire-checked after 5 users
-  [ ] Reuse of the 55-user partial arena-3 cache (my rec: yes, absorb)
+## 7. Sign-off needed from the author (then, and only then, the run) — REVISED LIST
+  [ ] DECISION A (universe size): items top-3,000 (rec) or top-2,000 (budget fallback);
+      concepts = 200 judged bank (rec) or extend to all 1,128 (+$3);
+      attributes ~200 questions after the IMDb join (rec: yes);
+      open-recall menu: favourite+hidden-gem only, or + "hated" (author call).
+  [ ] DECISION D (answer scale, locks thesis-wide): D3 4-level + can't-answer + vividness (rec).
+  [ ] DECISION E (answers): canonical = real-where-rated, LLM-where-answerable-unrated;
+      dual-answerer (Arena-F primary / Arena-R lower bound) replaces "sensitivity-only" (rec: yes).
+  [ ] Budget: full est. $25–45 at N=3,000 (items dominate; scale-linear). Hard cap proposal $45,
+      tripwire after 5 users (abort if projected > cap). N=2,000 brings est. to ~$18–30.
+  [ ] Reuse: absorb all cached judgments incl. the 55-user arena-3 partial (rec: yes).
+  [ ] PREREQUISITE (no LLM cost, needed before the run): IMDb TSV join → attribute membership map;
+      item-universe list + strata; question templates per channel; the locked scale in one schema
+      file that the judge prompt, the cache format, and the fold interface all import.
