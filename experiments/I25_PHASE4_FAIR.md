@@ -335,3 +335,73 @@ Mean p_hat - answer-rate gap = -0.059 (corr -0.09) -- vs arena-v1's +0.720 gap: 
 5. s3 greedy REBUILT under arena-v2 over the same top-60-coverage candidate pool; s1 concepts and the coverage prior / granularity g are unchanged (structural coverage) for comparability with v1.
 6. All harness conventions inherited UNMODIFIED: refusal = no-op turn (belief unchanged), user retained, all 298 users in every mean; paired per-user bootstrap BOOT=5000 seed=0; u1/a3-table use the (now v2) TRUE answerability table (privileged, labelled); a3/a4 blind arms condition only on answers/refusals; co-known cosine from trU minus study users (leak=0 asserted).
 
+
+## A5 K-map prober
+
+Date 2026-07-08. Script `scripts/i25_phase4_a5.py` (imports/reuses `i25_phase4_fair.py`, `i25_phase4_a3.py`, `i25_phase4_a4.py` UNMODIFIED, and the ONLINE-INFERENCE `Kmap` class from `scripts/kmap_validate.py`). NO LLM calls; deterministic; local compute.
+
+**Reproduction gate (existing harness, before adding anything):** s1 any@24=0.2103 (t 0.2103), s3 any@24=0.2786 (t 0.2786), a3-blind any@24=0.2412 (t 0.2412) -> reproduced=True. (a4-blind any@24=0.2431 for the in-loop comparison.)
+
+**Idea.** The scaffold is a3/a4's blind item prober; the BELIEF is the validated LEARNED K-map `P(u knows j)=sigmoid(alpha_u + b_j + k_u.e_j)` (kmap_build/kmap_validate). Offline in this STRUCTURAL arena the per-user term k_u.e_j is the ONLY thing that lifts held-out AUC over popularity (t8 full 0.669 vs pop 0.623). A5 asks whether that offline superiority converts to a blind IN-LOOP win. Each user starts at the prior (k=0, alpha=0 -> P=sigmoid(b_j+beta0)); after every turn (alpha_u,k_u) are re-inferred by the MAP-Newton online inference from ALL observed events (answered=1/refused=0 for the probed dense id -- the probe outcome IS the structural label). Selection = argmax_{unasked} P_kmap(j)*V(j), V=study-cohort coverage prior (IDENTICAL to a3/a4).
+
+**Calibration (level only, as offline).** b_j is the population rated-ever logit; the STRUCTURAL label is rated-in-the-known-half (lower base rate). We fit ONE global logit shift beta0 (1-param Platt, slope=1) on a deterministic TRAIN HALF (seed 0) so that the t=0 population prediction mean_j sigmoid(b_j+beta0) equals the empirical structural base rate over (train users x 160 bank items). Fitted: base rate = 0.1107 -> beta0 = -1.8510 (calibrated mean P@t0 = 0.1107). AUC is invariant to this monotone shift (map-health uses the uncalibrated logit); in the deep low-probability regime P*V argmax is near beta0-invariant, so beta0 sets the reported P LEVEL far more than the picks.
+
+**Variants.** a5-blind (above, deployable). a5-ucb: one-standard-error optimism on the knowledge logit from the Laplace posterior of (alpha_u,k_u) -- H^{-1} with H the Newton Hessian reconstructed AT the returned MAP (the posterior variance IS cheaply available; the iterative inference is not duplicated); logit_ucb(j)=(alpha+b_j+k.e_j)+sqrt(a_j^T H^{-1} a_j), a_j=[1,e_j]. Principled exploration, no hand rules.
+
+| arm | any/end @8 | any/end @16 | any/end @24 | hit (ansT) | delta-any@24 vs s3 [CI] |
+|---|---|---|---|---|---|
+| s3 popular-item (opponent) | 0.2303/0.2683 | 0.2602/0.3035 | 0.2786/0.3236 | 3.4 (14%) | -- |
+| a3-blind (co-known) | 0.1976/0.2166 | 0.2195/0.2675 | 0.2412/0.2932 | 4.4 (18%) | -- |
+| a4-blind (pmodel) | 0.1986/0.2171 | 0.2233/0.2723 | 0.2431/0.2890 | 4.4 (18%) | -- |
+| s1 concepts | 0.2120/0.2099 | 0.2106/0.2092 | 0.2103/0.2097 | 22.9 (95%) | -- |
+| a5-blind (K-map) | 0.1981/0.2281 | 0.2233/0.2624 | 0.2407/0.2858 | 4.8 (20%) | -0.0379[-0.0504,-0.0251] |
+| a5-ucb (K-map + Laplace 1se) | 0.2021/0.2347 | 0.2292/0.2711 | 0.2470/0.2914 | 4.7 (20%) | -0.0317[-0.0433,-0.0196] |
+
+**Contrast a5-blind vs s3 (THE contrast), vs a3-blind, vs a4-blind, per budget:**
+
+| budget T | a5-blind vs s3 [CI] | a5-blind vs a3-blind [CI] | a5-blind vs a4-blind [CI] |
+|---|---|---|---|
+| 8 | -0.0322[-0.0461,-0.0175] | +0.0005[-0.0079,+0.0086] | -0.0005[-0.0075,+0.0066] |
+| 16 | -0.0369[-0.0501,-0.0234] | +0.0038[-0.0034,+0.0113] | -0.0000[-0.0068,+0.0070] |
+| 24 | -0.0379[-0.0504,-0.0251] | -0.0005[-0.0069,+0.0058] | -0.0023[-0.0084,+0.0037] |
+
+**Mechanism metric -- hit rate (mean answered turns / 24):** s3 = 3.4 (~14%); a3-blind = 4.4; a4-blind = 4.4; a5-blind = 4.8 (~20%); a5-ucb = 4.7; a3-table ceiling = 12.9. Hit rose vs s3? **True**. Hit rose vs a4-blind? **True**. a5-blind BEATS s3 at T=24 (CI excl 0)? **False**.
+
+**First separation (a5-blind belief(t) vs s3 belief(t), CI excl 0):** turn 2 (sign -).
+
+**Calibration in the loop (mean chosen-probe P_kmap vs realized answer rate per turn):**
+
+| t | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| mean chosen P_kmap | 0.306 | 0.189 | 0.130 | 0.096 | 0.076 | 0.066 | 0.056 | 0.057 | 0.051 | 0.053 | 0.056 | 0.055 | 0.051 | 0.056 | 0.058 | 0.055 | 0.054 | 0.054 | 0.050 | 0.050 | 0.048 | 0.048 | 0.047 | 0.044 |
+| realized answer rate | 0.275 | 0.258 | 0.181 | 0.188 | 0.178 | 0.218 | 0.205 | 0.171 | 0.201 | 0.221 | 0.188 | 0.195 | 0.225 | 0.195 | 0.225 | 0.205 | 0.188 | 0.201 | 0.164 | 0.181 | 0.218 | 0.185 | 0.134 | 0.208 |
+
+Mean P_kmap - answer-rate gap = -0.125 (corr +0.63) -- the calibrated K-map probability is PESSIMISTIC (under-predicts) against the in-loop realized answer rate.
+
+**Map-health (does the policy starve the map?): per-user held-out STRUCTURAL AUC @t=8 using a5-blind's OWN probe order, vs the offline (s3-order) t8 number.**
+
+- In-loop a5-blind AUC@t8 = **0.629** (n=292) vs offline **0.669** -> delta -0.040. a5-ucb AUC@t8 = 0.642 (n=292).
+- Reading: in-loop map is DEGRADED vs offline -- the policy concentrates probes on high-P items and starves the K-map of the diverse evidence its offline s3-order run had.
+
+**NDCG@10(t) curves (t=1..24):**
+
+| arm | t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9 | t10 | t11 | t12 | t13 | t14 | t15 | t16 | t17 | t18 | t19 | t20 | t21 | t22 | t23 | t24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| s3 popular-item | 0.172 | 0.197 | 0.216 | 0.230 | 0.244 | 0.254 | 0.262 | 0.268 | 0.274 | 0.280 | 0.285 | 0.289 | 0.293 | 0.296 | 0.299 | 0.304 | 0.308 | 0.310 | 0.312 | 0.314 | 0.316 | 0.319 | 0.322 | 0.324 |
+| a3-blind | 0.172 | 0.176 | 0.186 | 0.197 | 0.207 | 0.214 | 0.213 | 0.217 | 0.218 | 0.223 | 0.227 | 0.235 | 0.247 | 0.253 | 0.260 | 0.267 | 0.274 | 0.278 | 0.283 | 0.285 | 0.287 | 0.289 | 0.290 | 0.293 |
+| a4-blind | 0.165 | 0.178 | 0.194 | 0.199 | 0.210 | 0.211 | 0.214 | 0.217 | 0.224 | 0.231 | 0.236 | 0.243 | 0.253 | 0.259 | 0.266 | 0.272 | 0.275 | 0.278 | 0.280 | 0.281 | 0.284 | 0.286 | 0.287 | 0.289 |
+| a5-blind | 0.165 | 0.178 | 0.183 | 0.195 | 0.200 | 0.213 | 0.222 | 0.228 | 0.234 | 0.238 | 0.244 | 0.244 | 0.252 | 0.255 | 0.258 | 0.262 | 0.264 | 0.270 | 0.271 | 0.274 | 0.275 | 0.282 | 0.283 | 0.286 |
+| a5-ucb | 0.165 | 0.178 | 0.190 | 0.197 | 0.207 | 0.217 | 0.228 | 0.235 | 0.241 | 0.245 | 0.250 | 0.256 | 0.257 | 0.263 | 0.267 | 0.271 | 0.273 | 0.274 | 0.282 | 0.283 | 0.286 | 0.283 | 0.287 | 0.291 |
+
+**VERDICT:** A5-blind RAISES the hit rate (4.8 vs a4-blind 4.4, s3 3.4/24) but does NOT beat s3 on NDCG at T=24 -- the K-map's per-user knowledge tilt finds more answerable items than the fixed list, yet the extra answers do not add enough ranking value to overturn the popular-item static. Branch B stands.
+
+**ASSUMPTIONS / judgment calls (a5):**
+1. Probe bank = the 160 top-coverage ladder items (coverage>=3) s3/a3/a4 draw from; item probes only; V(j)=study-cohort coverage prior (pop_rate) -- identical to a3/a4.
+2. Belief = the LEARNED K-map (kmap_emb.npz/kmap_intercepts.npz), online inference = kmap_validate.Kmap.infer (MAP-Newton, 12 it, priors tau(k)=1.0, tau_a(alpha)=2.0); imported UNMODIFIED, not duplicated. t=0 => k=alpha=0 => P=sigmoid(b_j+beta0) (popularity-only), so turn 1 is fully model-driven and deployable.
+3. Event label = the probe outcome (answered=1 iff the user rated the dense item id in the known half, i.e. the STRUCTURAL arena the K-map's four offline gates were passed in; refused=0). No privileged features enter the policy.
+4. Level calibration beta0: 1-parameter logit shift (Platt slope=1) fit on a deterministic TRAIN HALF (seed 0) so mean_j sigmoid(b_j+beta0)=structural base rate 0.1107 over (train users x bank); applied to all users/turns. AUC-invariant (map-health uncalibrated). In the low-P regime P*V argmax is near beta0-invariant -> calibration sets the reported P LEVEL, barely the picks.
+5. Selection = argmax_{unasked} P_kmap(j)*V(j); tie-break higher V then lowest global cid (same deterministic rule as a4).
+6. a5-ucb: Laplace posterior cov = H^{-1}, H = Newton Hessian reconstructed at the returned MAP from KM.emb_of/b_of (the posterior variance is a by-product of the same infer; the iterative fitting is not re-run). logit_ucb=(alpha+b_j+k.e_j)+sqrt(a_j^T H^{-1} a_j), 1-sigma optimism; empty history -> prior covariance diag(tau_a^2, tau^2 I).
+7. Map-health = held-out structural AUC at t=8 over bank items NOT among the arm's first 8 probes (a5-blind's OWN order), label=rated-in-known-half, per-user AUC needs both classes; compared to the offline s3-order 0.669 to detect probe-choice starvation.
+8. Refusal = no-op turn (belief unchanged for the fold; the K-map still records the refusal event), user retained; all 298 users in every mean (fair, inherited). Bootstrap paired per-user BOOT=5000 seed=0; all selectors deterministic.
+
