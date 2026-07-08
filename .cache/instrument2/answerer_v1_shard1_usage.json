@@ -1,0 +1,15 @@
+{
+ "calls": 450,
+ "prompt_tokens": 1742523,
+ "completion_tokens": 797332,
+ "usd": 2.0302947500000004,
+ "snapshot": "gpt-5.4-mini-2026-03-17",
+ "shard": 1,
+ "users_done": 43,
+ "tokstat": {
+  "completion": 797332,
+  "prompt": 1742523,
+  "questions": 101684,
+  "calls": 462
+ }
+}
