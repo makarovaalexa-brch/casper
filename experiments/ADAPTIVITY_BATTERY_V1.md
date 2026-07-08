@@ -1,3 +1,12 @@
+> **STAGE-C RETRACTION (Fable, 2026-07-08, same day):** the "+0.040 prize" cited from u-clair is a
+> TARGET-PEEK (clairvoyant NDCG-greedy) upper bound — the exact class of number the program's own
+> rules (E0f: peek-UBs are labelled leaky, never cited as results) forbid citing as a prize. It is
+> hereby retracted as a prize measurement. The u-table "answerability oracle loses" arm used a
+> different value ordering than the static it was compared to — the E2 value-model confound applied
+> to a ceiling arm. Stage C therefore establishes NOTHING about the adaptivity prize; a legitimate
+> ceiling (information-bounded, not target-peeking; one value model across all arms) has not been
+> run. Stages A and B stand. r-blind's tie stands as "no loss under E2 floor" only.
+
 # Directional Adaptivity Battery -- Answerer v1 (PARTIAL 173-user)
 
 > **DIRECTIONAL ONLY** -- 173/300 users (163 shards + 10 grid10 merged in-memory); the answerer-v1 grid is NOT frozen. Every number below is provisional and must be re-run on the frozen 300-user grid before any citation.
