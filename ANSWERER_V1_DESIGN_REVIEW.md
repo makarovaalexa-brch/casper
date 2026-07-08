@@ -72,12 +72,13 @@ What a human actually emits (and therefore what the judge emits, what the fold c
 experiment uses). Options:
   D1 binary (yes/no) — wastes signal (real answers are graded);
   D2 five-star mimicry (3.5 stars) — humans don't talk like this in interviews;
-  D3 (RECOMMENDED) **4-level sentiment + explicit can't-answer + vividness hedge**:
-     value ∈ {hated / meh / liked / loved} (centered −1, −⅓, +⅓, +1 for the fold);
-     can_answer ∈ {yes / no};
-     vividness ∈ {strong (seen it, remember well) / vague (know of it / barely remember)} —
-     observable hedging, like a real human ("I think I liked it?"), and the fidelity weight for
-     the fold. Raw LLM confidence floats are kept for analysis but NOT exposed to the agent.
+  D3-FINAL (AUTHOR'S VERSION, adopted 2026-07-08 — merges can_answer and vividness into ONE
+     human-shaped knowledge dimension):
+     **knowledge ∈ {no clue / rough idea / know it well}** — "no clue" = the refusal;
+     **value ∈ {hated / meh / liked / loved}** (centered −1, −⅓, +⅓, +1), present whenever
+     knowledge ≠ no-clue; the fold's confidence weight = f(knowledge), rough-idea down-weighted
+     (a fitted knob, not a constant). Raw LLM confidence floats kept for analysis, not exposed.
+     Single source of truth = casper/answerer_schema.json (P4 build).
   Mapping of real ratings to the scale (for rated items): ≥4.5 loved, 3.5–4 liked, 2.5–3 meh,
   ≤2 hated (documented, fixed). The recommender/fold interface consumes exactly:
   (channel-type, entity, value∈4-level, vividness-weight). LOCKED THESIS-WIDE once signed.
