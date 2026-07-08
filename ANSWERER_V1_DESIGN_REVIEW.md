@@ -19,27 +19,46 @@ All cached, versioned, judge-pinned. Every downstream experiment consumes THIS a
 Principle (author): the universe = questions a human interviewer could plausibly ask a human about
 movies. Locked once, used thesis-wide.
 
-**Dataset:** ML-25M (ratings through Nov 2019 — the recent standard; user base is 2019-era, not
-ML-1M's 2000-era). Item universe includes classics (humans know classics); recency concern applies
-to the RATER population, which 25M satisfies. Note: ML-32M (2023) exists as a later recency port;
-everything (pinned split, grids, RecVAE, EASE, genome) is built on 25M — stay, port later
-(Goodreads for domain transfer; optionally ML-32M for recency).
+**Dataset (VERIFIED 2026-07-08 via grouplens.org):** ML-25M is the most recent MovieLens that
+SHIPS the Tag Genome natively ("15 million relevance scores across 1,129 tags"). ML-32M (2024)
+does NOT include genome data (a separate Tag Genome 2021 dataset exists — a different item
+universe, extra join engineering). Since the design REQUIRES genome (concepts channel + membership
+values), **ML-25M is the right dataset, confirmed, not assumed.** Raters are 2019-era (modern).
+Port later: Goodreads (domain), optionally ML-32M+Genome-2021 (recency, v2).
 
-**ITEMS** — probing allowed down to a recognition floor, not into obscurity:
-  Universe = top-N items by ratings count. N=3,000 reaches the genuinely moderate band
-  (recognizable-to-some; the coarse→fine descent range); N=2,000 is the budget fallback.
-  Judged for ALL 300 study users (full grid = any policy runnable, frozen, reproducible).
-**CONCEPTS** — genome tags only in v1 (validated membership+relevance = data-side values work).
-  The 200 breadth-tiered bank is already judged (reuse); option: extend to all 1,128 tags (+~$3).
-  Mined-from-reviews concepts: ML-25M has NO review text — would need external corpora + a new
-  validation pipeline. Deferred to v2, flagged as the author's idea worth keeping.
-**ATTRIBUTES** — actors, directors, composers (author-requested, currently missing):
+**CONCEPTS-FIRST UNIVERSE (author redesign, 2026-07-08 — replaces the items-heavy plan):**
+Author's insight, adopted: the per-user discovery prize is at the CONCEPT level ("cozy scandi
+noir"), not in guessing which of 3,000 niche movies someone saw. Real answerability of popular
+items is near-universal (judged yes-rate .78 on the popular bank — recognition of famous films is
+easy); rated-ness (~25% hit) is the idiosyncratic thing, and we don't need to predict it if the
+LLM answers seen-but-unrated questions (Decision E). So the LLM budget goes to CONCEPTS, not items:
+  **CONCEPTS = ALL 1,128 genome tags × 300 users** (answerability + graded liking + vividness).
+  ~1,128 Q/user ≈ 4–5 calls/user ≈ 1,400 calls ≈ **$8–15**. Subsumes the 200-bank (consistency
+  check for free). PILOT GATE FIRST (author: "check the cheap model can actually do it"):
+  20 users × all tags ≈ $1 — check parse rate, degenerate all-yes/all-no columns, within-user
+  variance, and agreement of LLM concept-liking vs the data-side member aggregate where ≥k rated
+  members (the concept-value masked-check). PRUNE tags the judge handles badly (ambiguous genome
+  tags like "007", "based on a book" may or may not survive) → the locked tag list.
+  Mined-from-reviews concepts: v2 (ML-25M has no review text; external corpus + validation needed).
+**ITEMS** — smaller bank, probing to a recognition floor: top-800–1,000 by ratings count
+  (+ absorb ALL already-judged item cells: gate bank, 1,716 main-study sample, 55-user arena-3
+  partial). ≈ 3–4 calls/user ≈ **$6–10**. Items are the high-bandwidth channel for folding and
+  pairs; the DISCOVERY channel is concepts.
+**ATTRIBUTES** — actors, directors, composers + the full reasonable set (author: "must be
+included, all reasonable ones; find lit"):
   ML-25M carries only genres+year → external join REQUIRED: links.csv → IMDb offline TSV dumps
   (free, no API, reproducible): directors (title.crew), top-billed cast (title.principals),
-  composers (title.principals category 'composer'). Universe = entities with enough presence to be
-  askable: directors ≥3 films in the item universe, actors ≥5, composers ≥3 → judged battery ~200
-  attribute questions (stratified famous→niche). Value = data-side aggregate of the user's ratings
-  over the entity's films (as concepts). PREREQUISITE BUILD: the membership map (one script, no LLM).
+  composers + writers (title.principals categories). Franchise/series from title matching.
+  Country/language and studio need TMDb (API) — v1.1 optional. Candidate attribute TYPES for v1:
+  genre (native), decade/era (native), director, actor, composer, writer, franchise.
+  Universe = entities with enough presence to be askable (directors ≥3 films in the item universe,
+  actors ≥5, composers/writers ≥3), stratified famous→niche, capped ~250 judged questions ≈ $2–4.
+  Value = data-side aggregate of the user's ratings over the entity's films (as concepts).
+  PREREQUISITE BUILDS: (i) the IMDb membership map (one script, no LLM); (ii) a SHORT LIT PASS on
+  which attribute types conversational/critiquing recommenders ask (EAR/CRM attribute questions;
+  critiquing literature; Rashid cold-start interviews) — to justify the chosen set and catch
+  anything missing (e.g., mood/tone lives in genome tags already, not attributes). The lit pass is
+  a to-do for the audit phase, run only with author approval.
 **PAIRS** — composed from item judgments, zero extra calls. Askable iff both items answerable;
   answer = which rated higher (real where both rated; LLM-compared where not, dual-answerer rule).
 **OPEN RECALL** — a fixed menu, each framing usable ONCE per interview (no identical repeats):
