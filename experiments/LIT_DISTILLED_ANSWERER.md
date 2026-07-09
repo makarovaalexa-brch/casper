@@ -1,0 +1,45 @@
+# Literature Verification — Distilled Answerability-Aware User Simulator ("Answerer")
+
+**Date:** 2026-07-09 · **Method:** read-only web literature search (WebSearch/WebFetch), no code, no LLM-judge.
+
+**THE BUILD under test.** A user-simulator ("answerer") for conversational/interview RecSys evaluation that (a) models per-user **answerability/knowledge** as a first-class 3-level dimension (no-clue / rough-idea / know-well) alongside graded preference answers, over **multi-channel** questions (items, concepts/tags, entities); (b) is **distilled** from a validated LLM judge into a small **interpretable IRT-style** feature model (question difficulty × person ability × territory match) so it runs at **population scale** (100k+ users); (c) is **gated** on reproducing measured heterogeneity statistics (ICC, taste-tracking validity gaps) of the real judged data.
+
+## Comparison table
+
+| Work (year) | What it simulates | Knowledge/answerability dim? | Distilled vs direct | Scale | Gated on real calibration stats? |
+|---|---|---|---|---|---|
+| **RecQuest — "Know Your Users! Estimating User Domain Knowledge in CRS"** (Zhang et al., arXiv 2512.13173, ICTIR 2026) | Estimating a user's domain-knowledge level from interaction; new game-with-a-purpose dataset + target-aware CRS | **YES** — domain knowledge is the core modelled dimension | Direct (data-collection + baseline estimators); no distillation to a scalable simulator | Dataset-scale, not population-scale generation | Not reported (no IRT / ICC gating) |
+| **Evaluating LLMs as Generative User Simulators for CRS** (Yoon et al., arXiv 2403.09738, 2024) | 5-task protocol: item-mention diversity, binary/open preference, request gen, feedback coherence | No (preference realism only; no knowledge axis) | **Direct LLM prompting**, black-box simulator | Eval protocol, LLM-per-turn | **Partial** — validates aggregate behaviour vs human data (entropy, Pearson corr, aspect sentiment); no ICC, no individual-reliability coefficient |
+| **IRT for RecSys eval — "What We Evaluate When We Evaluate…"** (RecSys 2023) | Latent *algorithm* ability × dataset difficulty | No — abilities are of algorithms, not users | Direct IRT fit | 51 algos × 3 datasets | Uses IRT machinery (precedent for the math, not the target) |
+| **IRT for crowd labels / NLP** (Whitehill 2009; Passonneau & Carpenter 2014; Rehbein & Ruppenhofer; Lalor "IRT for NLP" 2024) | Annotator ability × item difficulty → true label | Ability≈"can answer correctly" but for *labels*, not preference elicitation | Direct IRT | Crowd-scale | IRT is the calibration model itself |
+| **EAR (WSDM'20) / UNICORN (SIGIR'21) / SCPR / Lei 2020** | Attribute Q&A from the **target item's** oracle attribute set | No — user always can/does answer (target-derived) | Rule-based, deterministic | Population (cheap) | No |
+| **RecSim / RecSim NG (2019/21), RecoGym (2018)** | Configurable latent user state, choice model; **"item familiarity"** is a configurable user feature | Familiarity present but **hand-specified**, not knowledge-of-answer for questions | Hand-authored generative model | Population | No (not calibrated to a judged corpus) |
+| **Agent4Rec (SIGIR'24), RecAgent, RecUserSim (2507.22897), LLM-Powered User Simulator (AAAI'25, 2412.16984), CSHI (WWW'25, 2405.08035)** | LLM generative agents: profile/memory/emotion, ratings, personality (Big-Five), fuzzy yes/no/unsure attribute replies | Mostly no; some emit **fuzzy/"unsure"** replies but not a modelled knowledge level | **Direct LLM** agents (some fine-tuned) | LLM-per-user (expensive at 100k) | Realism/diversity checks; no IRT, no ICC gate |
+| **Vague Preference Policy Learning** (arXiv 2306.04487) | Users with vague/uncertain preferences (fuzzy feedback) | Uncertainty of preference ≠ knowledge/answerability | Rule-based simulator | Population | No |
+| **Usage-based elicitation** (Kostric & Balog, TORS 2023, 2111.13463; "Soliciting Preferences" RecSys'21) | — (system side) — but **names the answerability problem**: users lack domain knowledge to answer attribute questions | Motivates the axis; does not simulate it | n/a | n/a | No |
+| **Personas within Parameters** (2509.09689); **SLMRec** (2405.17890) | LoRA/KD to make **small** models mimic user behaviour / recommend | No knowledge axis | **Distillation** (LLM→small) — precedent for the *distill-to-scale* move | Population | No |
+| **DAUS / DuetSim / UserSimCRS(v2) / ConvApparel (2602.16938)** | Task-oriented / CRS simulators; ConvApparel adds a **validation framework** for simulators | No knowledge axis | Fine-tuned or agenda/LLM | Population | ConvApparel: validation framework (closest peer on the "gate" idea), no IRT/ICC |
+
+## Verdict
+
+**Component precedent is broad; the specific combination appears novel.** Every ingredient exists *separately*: (1) modelling user domain knowledge in CRS exists (RecQuest, 2512.13173) — but as an *estimation/inference* task with a collected dataset, not as a *generative answerer* conditioned on knowledge; (2) IRT person-ability × item-difficulty is standard in crowd-labelling and now in RecSys *algorithm* evaluation — but never applied to per-user *answerability of elicitation questions*; (3) calibrating a simulator against real human population statistics is done by Yoon et al. (2403.09738) — but with aggregate entropy/correlation and via *direct LLM prompting*, not a small distilled model gated on ICC/validity-gap replication; (4) distilling an LLM into a small model for scale is established (SLMRec, Personas-within-Parameters) — but for recommendation, not for an answerability-aware answerer. **No work combines a first-class 3-level knowledge/answerability dimension + multi-channel (item/concept/entity) graded answers + LLM-judge distillation into an interpretable IRT feature model + population-scale + gating on measured heterogeneity (ICC, taste-tracking validity gaps).** That four-way conjunction is the defensible novelty; each pillar alone is not.
+
+**Three closest works (one-line deltas):**
+1. **RecQuest — "Know Your Users!" (arXiv 2512.13173, ICTIR 2026)** — closest on the *knowledge dimension*; delta: it **estimates** a user's knowledge from interactions (inference + new dataset), whereas the build **generates** graded answers *conditioned on* knowledge as a reusable population-scale answerer — and it has no IRT, no distillation, no ICC gate.
+2. **Yoon et al. — "Evaluating LLMs as Generative User Simulators for CRS" (arXiv 2403.09738, 2024)** — closest on *calibration-to-real-heterogeneity*; delta: validates *direct LLM* simulators against aggregate human patterns (entropy, Pearson), with **no knowledge/answerability axis, no distilled small model, no IRT/ICC gate**.
+3. **IRT for RecSys eval (RecSys 2023) + IRT-for-crowd-labels line (Whitehill'09, Passonneau'14, Lalor'24)** — closest on the *IRT difficulty×ability machinery*; delta: applied to *algorithm* ability or *label* correctness, never to *per-user answerability of preference-elicitation questions* inside a simulator.
+
+**Would embarrass the claim if missed:** **RecQuest (2512.13173)** — it is the one paper explicitly about *user domain knowledge in conversational recommenders* and must be cited and distinguished (estimation-of-knowledge vs generation-conditioned-on-knowledge; no scaling/IRT/gating). Secondary must-cites so reviewers don't think they were overlooked: **Yoon et al. 2403.09738** (LLM-simulator-calibration), **RecSim** (configurable "item familiarity" user feature — pre-empts the "familiarity is old" objection; answer: hand-specified vs LLM-distilled+ICC-gated), and the **IRT-for-annotators** line (pre-empts "IRT ability is old").
+
+### Full citations / URLs
+- RecQuest / Know Your Users — https://arxiv.org/abs/2512.13173
+- Yoon et al., Evaluating LLMs as Generative User Simulators for CRS — https://arxiv.org/abs/2403.09738
+- What We Evaluate When We Evaluate RecSys (IRT) — https://dl.acm.org/doi/10.1145/3604915.3608809
+- IRT for NLP / crowd labels — Whitehill 2009 (NeurIPS); Passonneau & Carpenter 2014 (TACL); Lalor et al., "IRT for NLP" 2024
+- EAR — https://staff.ustc.edu.cn/~hexn/papers/wsdm20-EAR.pdf ; UNICORN — https://arxiv.org/pdf/2105.09710 ; SCPR/Lei — https://arxiv.org/pdf/2005.12979
+- RecSim — https://arxiv.org/abs/1909.04847 ; RecSim NG — https://arxiv.org/pdf/2103.08057 ; RecoGym — https://arxiv.org/pdf/1808.00720
+- Agent4Rec — https://arxiv.org/pdf/2310.10108 ; RecUserSim — https://arxiv.org/abs/2507.22897 ; LLM-Powered User Simulator (AAAI'25) — https://arxiv.org/abs/2412.16984 ; CSHI — https://arxiv.org/abs/2405.08035
+- Vague Preference Policy Learning — https://arxiv.org/pdf/2306.04487
+- Usage-related questions (Kostric & Balog) — https://arxiv.org/pdf/2111.13463 ; Soliciting Preferences — https://krisztianbalog.com/files/recsys2021-questions.pdf
+- Personas within Parameters (LoRA SLM) — https://arxiv.org/pdf/2509.09689 ; SLMRec — https://arxiv.org/html/2405.17890v3
+- ConvApparel (simulator validation) — https://arxiv.org/pdf/2602.16938 ; UserSimCRS — https://arxiv.org/pdf/2301.05544
