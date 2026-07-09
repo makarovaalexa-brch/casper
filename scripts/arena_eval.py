@@ -60,7 +60,7 @@ def stage_build(args):
     b2_users = coh["train"][:args.n_b2]
     ar.prefill_answers(b2_users, f"train{len(coh['train'])}")  # already cached
     print("[build] constructing b2 greedy static (this is the long pole) ...", flush=True)
-    b2_seq, _ = AP.build_b2(ar, b2_users, Tmax=Tmax, K=AP.PRIMARY_K)
+    b2_seq, _ = AP.build_b2(ar, b2_users, Tmax=Tmax, K=AP.PRIMARY_K, cand_cap=args.b2_cap)
     print("[build] b1 concept-entropy static ...", flush=True)
     AP.build_b1(ar, coh["train"][:400])
     print("[build] Golbandi tree ...", flush=True)
@@ -182,7 +182,7 @@ def stage_eval(args):
     dv, dt = coh["devval"], coh["devtest"]
 
     # ---- load constructed arms ----
-    b2_seq, b2_gain = AP.build_b2(ar, coh["train"][:args.n_b2], Tmax=Tmax, K=AP.PRIMARY_K)
+    b2_seq, b2_gain = AP.build_b2(ar, coh["train"][:args.n_b2], Tmax=Tmax, K=AP.PRIMARY_K, cand_cap=args.b2_cap)
     b1_seq = AP.build_b1(ar, coh["train"][:400], verbose=False)
     gol_tree, gol_tail = AP.build_golbandi(ar, coh["train"][:args.n_gol], b2_seq, max_depth=5,
                                            min_users=25, verbose=False)
@@ -432,15 +432,16 @@ if __name__ == "__main__":
     ap.add_argument("stage", choices=["build", "eval"])
     ap.add_argument("--n_item", type=int, default=800)
     ap.add_argument("--n_train", type=int, default=1000)
-    ap.add_argument("--n_devval", type=int, default=100)
-    ap.add_argument("--n_devtest", type=int, default=200)
-    ap.add_argument("--n_b2", type=int, default=100)
+    ap.add_argument("--n_devval", type=int, default=80)
+    ap.add_argument("--n_devtest", type=int, default=160)
+    ap.add_argument("--n_b2", type=int, default=50)
+    ap.add_argument("--b2_cap", type=int, default=1030)
     ap.add_argument("--n_gol", type=int, default=200)
     ap.add_argument("--n_scorer", type=int, default=1000)
     ap.add_argument("--n_labels", type=int, default=3500)
-    ap.add_argument("--cand_M", type=int, default=110)
-    ap.add_argument("--b4_M", type=int, default=90)
-    ap.add_argument("--ctx_n", type=int, default=60)
+    ap.add_argument("--cand_M", type=int, default=100)
+    ap.add_argument("--b4_M", type=int, default=80)
+    ap.add_argument("--ctx_n", type=int, default=50)
     a = ap.parse_args()
     args_n_b2, args_n_scorer, args_n_gol = a.n_b2, a.n_scorer, a.n_gol
     if a.stage == "build":
