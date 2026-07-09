@@ -96,3 +96,21 @@ ONLY after this sheet is signed; Fable reviews implementation and all gate outpu
 [x] Split simplification ratified: train = synthetic users (173 real IDs excluded); test = the 173
     real users (touched sparingly, headline-only); known/held-out halves = the task definition,
     not a split; all tuning on synthetic validation users.
+
+## AMENDMENTS — SIGNED 2026-07-09 (second round)
+[x] LAZY ANSWERER (author's architecture): NO bulk pre-generation. The fitted model + per-user
+    cached profile summaries serve answers ON DEMAND during interviews/training; deterministic
+    per-user latent draws (pinned by user seed) and per-(user,question) sampling seeds make lazy
+    computation exactly equivalent to a precomputed grid; disk memoization for dense-access
+    workloads (greedy/tree construction). G4 sanity runs on a sampled synthetic population.
+    The "apply to everyone" condition is satisfied by the answerer SERVING all 162k on demand.
+[x] ITERATION-2 (author-directed, replaces the intercept-heavy design): the LLM saw ONLY the
+    profile, so its per-user behaviour is in-principle profile-predictable — the item-side 90%
+    residual measured feature poverty, not randomness. Add BUFFNESS features: mean/median
+    popularity percentile of rated items; SHARE and log-COUNT of rated items outside top-N
+    popularity; niche-tag engagement (relevance-weighted contact with low-fame genome tags,
+    share AND count); foreign/era markers where derivable; total rating count and interactions.
+    Refit; report the new explained-vs-residual decomposition per channel; the random intercept
+    SHRINKS to the new residual (kept only at its measured remainder). Plus the two G2 calibration
+    fixes (attribute per-cut intercept; concept taste-gradient coefficient matched to the measured
+    near-far gap). Then FULL G2 re-run. Stop for review after G2 regardless of outcome.
