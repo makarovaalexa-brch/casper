@@ -1,0 +1,140 @@
+[
+ {
+  "clean_frac": 0.3,
+  "cf": 30,
+  "best_val": 0.43114740670613527,
+  "best_epoch": 8,
+  "best_ckpt": ".cache/i25_fold_v3_c30_best.pt",
+  "history": [
+   {
+    "epoch": 1,
+    "train_loss": 6.6923,
+    "val_ndcg": 0.4097,
+    "min": 3.7
+   },
+   {
+    "epoch": 2,
+    "train_loss": 6.5476,
+    "val_ndcg": 0.4175,
+    "min": 7.3
+   },
+   {
+    "epoch": 3,
+    "train_loss": 6.4904,
+    "val_ndcg": 0.419,
+    "min": 10.9
+   },
+   {
+    "epoch": 4,
+    "train_loss": 6.4556,
+    "val_ndcg": 0.4233,
+    "min": 14.5
+   },
+   {
+    "epoch": 5,
+    "train_loss": 6.4259,
+    "val_ndcg": 0.4259,
+    "min": 18.1
+   },
+   {
+    "epoch": 6,
+    "train_loss": 6.4167,
+    "val_ndcg": 0.4191,
+    "min": 21.7
+   },
+   {
+    "epoch": 7,
+    "train_loss": 6.3973,
+    "val_ndcg": 0.4265,
+    "min": 25.3
+   },
+   {
+    "epoch": 8,
+    "train_loss": 6.3899,
+    "val_ndcg": 0.4311,
+    "min": 28.9
+   },
+   {
+    "epoch": 9,
+    "train_loss": 6.3828,
+    "val_ndcg": 0.4308,
+    "min": 32.5
+   },
+   {
+    "epoch": 10,
+    "train_loss": 6.375,
+    "val_ndcg": 0.4261,
+    "min": 36.0
+   }
+  ]
+ },
+ {
+  "clean_frac": 0.5,
+  "cf": 50,
+  "best_val": 0.42888977797353994,
+  "best_epoch": 9,
+  "best_ckpt": ".cache/i25_fold_v3_c50_best.pt",
+  "history": [
+   {
+    "epoch": 1,
+    "train_loss": 6.4668,
+    "val_ndcg": 0.4111,
+    "min": 4.1
+   },
+   {
+    "epoch": 2,
+    "train_loss": 6.3577,
+    "val_ndcg": 0.4128,
+    "min": 8.3
+   },
+   {
+    "epoch": 3,
+    "train_loss": 6.304,
+    "val_ndcg": 0.4163,
+    "min": 12.5
+   },
+   {
+    "epoch": 4,
+    "train_loss": 6.2763,
+    "val_ndcg": 0.4219,
+    "min": 16.7
+   },
+   {
+    "epoch": 5,
+    "train_loss": 6.2744,
+    "val_ndcg": 0.4239,
+    "min": 21.0
+   },
+   {
+    "epoch": 6,
+    "train_loss": 6.2483,
+    "val_ndcg": 0.4266,
+    "min": 25.3
+   },
+   {
+    "epoch": 7,
+    "train_loss": 6.2362,
+    "val_ndcg": 0.4275,
+    "min": 29.5
+   },
+   {
+    "epoch": 8,
+    "train_loss": 6.2303,
+    "val_ndcg": 0.4211,
+    "min": 33.6
+   },
+   {
+    "epoch": 9,
+    "train_loss": 6.222,
+    "val_ndcg": 0.4289,
+    "min": 37.8
+   },
+   {
+    "epoch": 10,
+    "train_loss": 6.2126,
+    "val_ndcg": 0.4281,
+    "min": 42.0
+   }
+  ]
+ }
+]
