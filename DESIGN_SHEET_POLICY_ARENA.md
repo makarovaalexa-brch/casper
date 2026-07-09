@@ -46,7 +46,7 @@ apparatus (v2.1 answerer, fold-v3, full question universe, E1-E7 discipline)?
   questions of the 1-step expected gain computed with the SAME beliefs (v2.1 answerer model) and
   fold the policies use. Deployable, adaptive-by-computation. If b4 beats b2, that alone is the
   program's first honest adaptive win — and every learned policy must then beat b4, not b2.
-- b5 LLM-INTERVIEWER (author-raised, PENDING SPEND MARK ~<=$8): a cross-family LLM (NOT the judge's
+- b5 LLM-INTERVIEWER (author-raised, DEFERRED to TODO by author 2026-07-09: run only after a working policy exists; ~<=$8): a cross-family LLM (NOT the judge's
   family — e.g. Haiku vs the GPT judge, to break the think-like-the-judge coupling) chooses each
   next question from the dialogue transcript alone (no grid access); our environment answers.
   Pre-empts the "why not LLM as interviewer" reviewer challenge and connects to GATE/PEBOL
