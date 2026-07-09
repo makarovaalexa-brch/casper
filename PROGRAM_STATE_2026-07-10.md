@@ -113,3 +113,27 @@ R3 ecosystem-quirk DEV wins that vanish on the 173 -> the sim-real table catches
 R4 clock: 12 weeks to ECIR; consolidation of A+B must start within ~2 weeks regardless of arena.
 R5 the flutter finding invites "is your eval world reliable at all" — pre-empted by stars-stability,
    within-call robustness, equating; but the wording must lead with it, not bury it.
+
+
+# CORRECTIONS (2026-07-10, from the blind validation — experiments/BLIND_VALIDATION.md; owned in full)
+The validator confirmed every audited NUMBER (none fabricated, most to-the-digit) and convicted the
+SYNTHESIS of three families of status inflation. Corrections of record:
+1. CERTIFICATION TRANSFER: "gates 13/13 vs corrected targets" conflated two gates (13/13 was vs the
+   OLD flutter-inflated targets; the corrected-target gate was 3 statistics, tolerance-passed,
+   driven partly by fixes tuned to the target). Worse: the fold-v3/arena sampler substitutes a
+   hand-parameterized sigmoid for the gated v2.1 knowledge models — the arena world was running on
+   INHERITED credentials. Fixed tonight (arena fix #7: wire the fitted models + gate the world
+   as-built).
+2. INDEPENDENCE/BANNERS: the 173 are NOT an independent read (the distillation final-refit on all
+   173; quarantine is prospective, adopted 07-09, unenforced in code); the grid is 173/300 unfrozen
+   and the directional banner was dropped from the +0.028 contamination, the +0.058 recall premium,
+   and elsewhere. Only the human study is independent. All wording downgraded accordingly.
+3. ASPIRATIONAL CONTENT AS CURRENT: Paper B's flutter/equating section DOES NOT EXIST (being
+   written tonight from LLM_DECOMPOSITION/SHUFFLE_PROBE/DANS v2.1 material; its stale ICC 0.174
+   table to be corrected); fold-v3 is NOT "all-gated" (G5 real fail, G6 formal fail, artifact
+   sub-fail — decisive gates passed, full suite did not); "serves 162k lazily" is designed, not
+   run; "0.550 vs 0.547 parity" compares different targets/cohorts — restated as "the distilled
+   value channel recovers LLM-level label agreement," not parity.
+S1 is reclassified: NOT a secured floor — a realistic 2-6 week consolidation target (Paper A
+near-shippable; Paper B needs the frozen grid, the flutter repeat-study at N, and its headline
+section written). The adaptivity thesis has still never beaten a fair static on the judged cohort.
