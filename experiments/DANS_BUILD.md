@@ -598,3 +598,85 @@ fold-v3, policies. Awaiting Fable review + author marks on the G2 outcome.
 Artifacts: .cache/dans/{models_iter2.json, decomp_iter2.json (incl. importance table), louo_iter2.npz,
 g1_iter2.json, g2_iter2.json, g3_iter2.json, erapocket_iter2.json, ref_centroids_4000_123.npz,
 iter2_all.log}. Scripts: scripts/dans_iter2.py (+ dans_build.py / dans_stages.py extended).
+
+
+---
+
+# D-ANS v2.1 REPAIR BUNDLE (author-directed, signed 2026-07-09)
+
+Motivation: the shuffle probe exposed a per-CALL know-well flutter (rate spread up to 0.66 on identical content; stars stable; within-call structure stable). v2.1 equates it out, rewires value on an EASE backbone, refits sigma_u to the equated trait, and re-gates against CORRECTED fuel targets. NO LLM calls.
+
+## STAGE A -- equating + variance decomposition (full record: experiments/LLM_DECOMPOSITION.md)
+
+Two-step equating (joint fit unidentifiable: unshuffled battery => call collinear with question-block). Headline margin per channel (concept/entity k>=1, item k>=2 since k>=1 is saturated ~99%). Share of Var(y):
+
+| channel/margin | question-diff | user-FEATURE | user-TRAIT (equated) | CALL-FLUTTER | cell resid |
+|---|--:|--:|--:|--:|--:|
+| concept k>=1 | 54.6% | 0.6% | 1.3% | 4.3% | 39.3% |
+| entity k>=1 | 32.0% | 0.0% | 2.5% | 16.2% | 49.3% |
+| item k>=2 | 34.3% | 0.3% | 4.5% | 21.7% | 39.2% |
+
+**Corrected fuel (trait-only ICC, headline margin) vs old flutter-inflated:**
+
+| channel/margin | OLD ICC one-way | CORRECTED trait ICC | flutter var |
+|---|--:|--:|--:|
+| concept k>=1 | 0.0338 | **0.0427** | 0.00819 |
+| entity k>=1 | 0.0920 | **0.0374** | 0.02350 |
+| item k>=2 | 0.1367 | **0.0729** | 0.04619 |
+
+## STAGE B -- EASE value wiring (backbone t(u,i) = real rating if rated else EASE pred)
+
+Population EASE over a 9352-item universe (top-9000 popular UNION the top-800 bank UNION the 173 users' known items; lambda=500; binary item-item weights; Gram footprint 700 MB, cached B for lazy per-user prediction known-vector x B). Genome coverage of the universe (raw membership incidence; popular members -- which dominate the popularity-weighted aggregation -- are covered at a higher rate): tag-member 0.733, entity-member 0.797. Trained on all users' interactions MINUS the 173 study users' held-out half (leakage guard). Value refit: item = ordinal on t(u,i) directly; concept/entity = ordinal on the popularity-weighted mean of member t-values + rated-member engagement + fitted cutpoints. LOUO.
+
+| value channel | n | corr(E[stars], LLM stars) | MAE vs label | iter-2 MAE | verdict |
+|---|--:|--:|--:|--:|---|
+| item | 123226 | 0.550 | 0.392 | 0.411 | corr>=0.40 PASS (G5) |
+| concept | 144547 | 0.544 | 0.532 | 0.536 | beats iter-2 |
+| entity | 71309 | 0.452 | 0.391 | 0.395 | beats iter-2 |
+
+Item-value corr target ~0.45 (LLM masked-cell benchmark 0.547; G5 gate >=0.40). Old distilled item-value corr was 0.177 (heavily diluted); the EASE backbone rewires it.
+
+## STAGE C -- dial refit + gates vs CORRECTED targets
+
+### sigma_u refit to the EQUATED (flutter-free) trait residual
+
+iter-2 sigma_u pooled trait+flutter over each user's few calls; rescaled by sqrt(trait fraction), trait fraction = sig2_U/(sig2_U + flutter/avg-calls-per-user) on the headline margin (documented approximation -- linear-scale variance ratio applied to the logit-scale sigma).
+
+| channel | margin | sigma_u iter-2 | sigma_u v2.1 | trait fraction | note |
+|---|---|--:|--:|--:|---|
+| concept | k>=1 | 0.239 | 0.199 | 0.695 | single shift |
+| entity | k>=1 | 0.533 | 0.301 | 0.320 | per-cut ['0.778', '0.554'] -> ['0.440', '0.313'] |
+| item | k>=2 | 0.928 | 0.621 | 0.449 | single shift |
+
+### G1 -- agreement (raw point acc unchanged; rate-level raw vs EQUATED-labels)
+
+Point argmax accuracy is unchanged from iter-2 (equating changes the variance components / sigma_u, not the fixed-effect point predictions; item all-stratum acc stays 0.734). The fair comparison is at the per-call RATE level. The model predicts a content-driven per-call rate (it has NO knowledge of the call's flutter offset). RAW compares it to the LLM's realized (fluttered) per-call rate; EQUATED compares it to the flutter-FREE content rate = the population question-difficulty mean of that call's questions (removes flutter but PRESERVES content -- the correct target when calls are content-heterogeneous, e.g. the item battery's popularity-ordered blocks). Lower is better.
+
+| channel | RAW per-call rate-MAE (vs fluttered LLM call rate) | EQUATED rate-MAE (vs flutter-free content rate) |
+|---|--:|--:|
+| concept | 0.0764 | 0.0534 |
+| entity | 0.1552 | 0.1084 |
+| item | 0.1609 | 0.0611 |
+
+EQUATED < RAW on every channel: under RAW the model is penalized purely for not reproducing presentation flutter, which v2.1 deliberately no longer bakes into the trait. The gap RAW-minus-EQUATED is the flutter the model correctly declines to reproduce; the equated number is the fair agreement.
+
+### G2 -- fuel reproduction vs the CORRECTED targets (the gate that now matters)
+
+Generate synthetic knowledge with the EQUATED sigma_u (per-user intercept only, no per-call flutter), recompute the trait ICC by the same question-residualized nested VC, and require it to reproduce the CORRECTED (flutter-free) real trait ICC -- NOT the old flutter-inflated one-way ICC.
+
+| channel | margin | real OLD one-way ICC | real CORRECTED trait ICC | synth trait ICC | match |
+|---|---|--:|--:|--:|:--:|
+| concept | k>=1 | 0.0338 | 0.0427 | 0.0294 | OK |
+| entity | k>=1 | 0.0920 | 0.0374 | 0.0368 | OK |
+| item | k>=2 | 0.1367 | 0.0729 | 0.0786 | OK |
+
+**G2 v2.1 verdict**: reproduces corrected trait targets = True (tolerance 0.02 absolute).
+
+### G3 -- error profile (NEW EASE value model, rated cells, passthrough disabled)
+
+Sampled value vs real rating on 6962 rated cells: MAE=0.543, dispersion=0.495, pred-true corr=0.651. LLM ref MAE~0.70 corr~0.5. Too-clean flag=False. **G3 verdict**: PASS.
+
+## v2.1 STOP STATE -- halted after gates per contract
+
+Not run (contract: STOP after gates): lazy answerer, 20k/G4/162k generation, policies. Artifacts: .cache/dans/{equate_v21.json, value_v21.json, sigma_v21.json, gates_v21.json, models_v21.json, ease_v21.npz}, experiments/LLM_DECOMPOSITION.md. Script scripts/dans_v21.py.
+
