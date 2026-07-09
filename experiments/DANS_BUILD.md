@@ -293,3 +293,308 @@ value fidelity.
 Artifacts: .cache/dans/{g_pre,g1,g2,g3,sign_checks}.json, models.json (fitted coefficients +
 sigma_u), louo.npz (LOUO predictions), logs .cache/dans/*_iter1.log. Scripts
 scripts/dans_build.py + scripts/dans_stages.py.
+
+
+---
+
+# ITERATION-2 (author-directed amendment; signed 2026-07-09)
+
+Contract: DESIGN_SHEET AMENDMENTS block + coordinator addenda (full feature census, distinctiveness, pockets, regularized importance study). Enriched user-level features + refit + two G2 calibration fixes; full G2 re-run; G1/G3 side-by-side. NO LLM calls; seeds 123. Author rationale (quoted): *"the LLM saw ONLY the profile, so its per-user behaviour is profile-predictable in principle; the old 90% item residual measured feature poverty, not randomness."* Census constraint: every feature derives from WHAT THE LLM SAW -- verified: the gate's profile_text showed the FULL known half (no 200-cap exists in the gate code; max shown 702 titles), so known-half features == shown-profile features exactly.
+
+## ITER-2 feature census (user-level, known-half only; identical transform real & synthetic)
+
+34 user features = 4 iter-1 consumption + 30 census: volume, obscurity (mean/median pop percentile, out-top-1000/5000 share+logcount), era (pre-1980 and pre-1970 share+count, era spread, per-question era density+distance), breadth (genre entropy, taste-cloud dispersion, top-pocket concentration, effective pocket count), distinctiveness (taste typicality vs population centroid, neighborhood density vs 4000 non-study reference users), territory (bank coverage + per-question co-knowledge/genre/era), markers (foreign genome tags (15), foreign-title, franchise, documentary, animation, niche-tag engagement), rating style (mean, sd, share-max, share-extreme), interactions (volume x out-top-5000, volume x niche, volume x dispersion). Fitted with a RIDGE penalty on the user block, lambda by 5-fold user-grouped CV (concept lambda=1000.0, entity lambda=1000.0, item lambda=1000.0).
+
+### Fitted knowledge coefficients (standardized; sign = effect on higher knowledge)
+
+| model | feature | coefficient |
+|---|---|--:|
+| know:concept | sat_ratedmembers | +0.525 |
+| know:concept | tag_logmemb | -0.043 |
+| know:concept | tag_logpw | +1.002 |
+| know:concept | taste_align | +0.114 |
+| know:concept | u_logprofile | -0.014 |
+| know:concept | u_genre_entropy | -0.020 |
+| know:concept | u_n_decades | +0.031 |
+| know:concept | u_rating_sd | +0.093 |
+| know:concept | b_mean_pr | +0.023 |
+| know:concept | b_med_pr | +0.087 |
+| know:concept | b_share_out1k | +0.007 |
+| know:concept | b_logcnt_out1k | +0.057 |
+| know:concept | b_share_out5k | -0.041 |
+| know:concept | b_logcnt_out5k | +0.080 |
+| know:concept | b_niche_share | -0.036 |
+| know:concept | b_niche_logcnt | -0.010 |
+| know:concept | b_foreign_share | +0.057 |
+| know:concept | b_foreign_logcnt | +0.018 |
+| know:concept | b_share_old | +0.054 |
+| know:concept | b_int_size_out5k | +0.001 |
+| know:concept | b_int_size_niche | +0.013 |
+| know:concept | b_coverage | -0.052 |
+| know:concept | b_pre1970_share | -0.004 |
+| know:concept | b_pre1970_logcnt | +0.062 |
+| know:concept | b_foreign_title_share | -0.040 |
+| know:concept | b_franchise_share | -0.046 |
+| know:concept | b_taste_disp | +0.050 |
+| know:concept | b_typicality | +0.032 |
+| know:concept | b_nbr_density | +0.039 |
+| know:concept | b_pocket_conc | +0.037 |
+| know:concept | b_pocket_eff | +0.059 |
+| know:concept | b_rate_mean | +0.140 |
+| know:concept | b_share_max | -0.033 |
+| know:concept | b_share_extreme | -0.027 |
+| know:concept | b_doc_share | +0.024 |
+| know:concept | b_anim_share | +0.041 |
+| know:concept | b_era_spread | -0.051 |
+| know:concept | b_int_size_disp | +0.008 |
+| know:concept | era_density | +0.121 |
+| know:concept | era_dist | -0.009 |
+| know:concept | saturation_gamma | +0.250 |
+| know:entity | sat_ratedfilmo | +0.336 |
+| know:entity | frac_filmo | +0.201 |
+| know:entity | entity_logpop | +0.089 |
+| know:entity | taste_align | +0.203 |
+| know:entity | u_logprofile | +0.031 |
+| know:entity | u_genre_entropy | -0.102 |
+| know:entity | u_n_decades | -0.026 |
+| know:entity | u_rating_sd | +0.073 |
+| know:entity | b_mean_pr | +0.014 |
+| know:entity | b_med_pr | -0.144 |
+| know:entity | b_share_out1k | -0.109 |
+| know:entity | b_logcnt_out1k | -0.026 |
+| know:entity | b_share_out5k | -0.104 |
+| know:entity | b_logcnt_out5k | +0.033 |
+| know:entity | b_niche_share | +0.014 |
+| know:entity | b_niche_logcnt | -0.119 |
+| know:entity | b_foreign_share | +0.015 |
+| know:entity | b_foreign_logcnt | +0.108 |
+| know:entity | b_share_old | +0.033 |
+| know:entity | b_int_size_out5k | -0.027 |
+| know:entity | b_int_size_niche | +0.072 |
+| know:entity | b_coverage | -0.040 |
+| know:entity | b_pre1970_share | +0.080 |
+| know:entity | b_pre1970_logcnt | +0.103 |
+| know:entity | b_foreign_title_share | -0.044 |
+| know:entity | b_franchise_share | +0.009 |
+| know:entity | b_taste_disp | +0.020 |
+| know:entity | b_typicality | -0.063 |
+| know:entity | b_nbr_density | +0.016 |
+| know:entity | b_pocket_conc | +0.063 |
+| know:entity | b_pocket_eff | +0.039 |
+| know:entity | b_rate_mean | +0.020 |
+| know:entity | b_share_max | -0.031 |
+| know:entity | b_share_extreme | +0.031 |
+| know:entity | b_doc_share | -0.007 |
+| know:entity | b_anim_share | +0.030 |
+| know:entity | b_era_spread | -0.172 |
+| know:entity | b_int_size_disp | +0.054 |
+| know:entity | era_density | -0.006 |
+| know:entity | era_dist | -0.179 |
+| know:entity | saturation_gamma | +0.350 |
+| know:item | coknow_mean | +0.482 |
+| know:item | coknow_max | -0.054 |
+| know:item | genre_align | +0.094 |
+| know:item | fame_pr | +0.261 |
+| know:item | fame_logcnt | +1.003 |
+| know:item | decade_align | -0.147 |
+| know:item | u_logprofile | -0.087 |
+| know:item | u_genre_entropy | +0.044 |
+| know:item | u_n_decades | +0.020 |
+| know:item | u_rating_sd | +0.047 |
+| know:item | b_mean_pr | +0.046 |
+| know:item | b_med_pr | -0.115 |
+| know:item | b_share_out1k | -0.002 |
+| know:item | b_logcnt_out1k | -0.100 |
+| know:item | b_share_out5k | -0.148 |
+| know:item | b_logcnt_out5k | +0.120 |
+| know:item | b_niche_share | -0.112 |
+| know:item | b_niche_logcnt | -0.069 |
+| know:item | b_foreign_share | +0.094 |
+| know:item | b_foreign_logcnt | -0.115 |
+| know:item | b_share_old | +0.198 |
+| know:item | b_int_size_out5k | +0.060 |
+| know:item | b_int_size_niche | -0.060 |
+| know:item | b_coverage | -0.200 |
+| know:item | b_pre1970_share | -0.058 |
+| know:item | b_pre1970_logcnt | +0.164 |
+| know:item | b_foreign_title_share | -0.005 |
+| know:item | b_franchise_share | -0.211 |
+| know:item | b_taste_disp | +0.149 |
+| know:item | b_typicality | +0.105 |
+| know:item | b_nbr_density | -0.048 |
+| know:item | b_pocket_conc | +0.018 |
+| know:item | b_pocket_eff | -0.026 |
+| know:item | b_rate_mean | -0.018 |
+| know:item | b_share_max | -0.062 |
+| know:item | b_share_extreme | +0.056 |
+| know:item | b_doc_share | +0.050 |
+| know:item | b_anim_share | -0.004 |
+| know:item | b_era_spread | -0.198 |
+| know:item | b_int_size_disp | +0.206 |
+| know:item | era_dist | -0.126 |
+
+(concept taste_align shown is POST-calibration; pre-calibration beta = +0.163, multiplier 0.70.)
+
+## STANDALONE STUDY -- what does an LLM read in a rating profile? (anatomy of judged answerability)
+
+Ranked user-feature importance: LOUO fold-mean beta (173 refits), fold sd, and sign-consistency per knowledge channel; ranked by sum |beta| across channels. (Flagged by the author as a potentially publishable standalone table.)
+
+| rank | feature | concept beta (sd, sign%) | entity beta (sd, sign%) | item beta (sd, sign%) |
+|--:|---|---|---|---|
+| 1 | b_era_spread | -0.051 (0.005, 100%) | -0.172 (0.005, 100%) | -0.197 (0.008, 100%) |
+| 2 | b_med_pr | +0.086 (0.003, 100%) | -0.143 (0.006, 100%) | -0.115 (0.006, 100%) |
+| 3 | b_pre1970_logcnt | +0.062 (0.003, 100%) | +0.103 (0.005, 100%) | +0.164 (0.007, 100%) |
+| 4 | b_coverage | -0.052 (0.003, 100%) | -0.040 (0.005, 100%) | -0.200 (0.006, 100%) |
+| 5 | b_share_out5k | -0.040 (0.003, 100%) | -0.103 (0.004, 100%) | -0.148 (0.005, 100%) |
+| 6 | b_share_old | +0.054 (0.003, 100%) | +0.033 (0.004, 100%) | +0.198 (0.006, 100%) |
+| 7 | b_int_size_disp | +0.008 (0.002, 99%) | +0.054 (0.003, 100%) | +0.205 (0.006, 100%) |
+| 8 | b_franchise_share | -0.046 (0.002, 100%) | +0.009 (0.004, 98%) | -0.211 (0.006, 100%) |
+| 9 | b_foreign_logcnt | +0.018 (0.003, 100%) | +0.107 (0.004, 100%) | -0.115 (0.005, 100%) |
+| 10 | b_logcnt_out5k | +0.080 (0.003, 100%) | +0.033 (0.005, 100%) | +0.120 (0.007, 100%) |
+| 11 | b_taste_disp | +0.050 (0.003, 100%) | +0.020 (0.004, 100%) | +0.148 (0.005, 100%) |
+| 12 | u_rating_sd | +0.093 (0.004, 100%) | +0.073 (0.005, 100%) | +0.047 (0.006, 100%) |
+| 13 | b_typicality | +0.032 (0.002, 100%) | -0.063 (0.004, 100%) | +0.105 (0.006, 100%) |
+| 14 | b_niche_logcnt | -0.010 (0.003, 99%) | -0.118 (0.004, 100%) | -0.069 (0.005, 100%) |
+| 15 | b_logcnt_out1k | +0.057 (0.003, 100%) | -0.025 (0.004, 100%) | -0.100 (0.005, 100%) |
+| 16 | b_rate_mean | +0.140 (0.003, 100%) | +0.020 (0.005, 100%) | -0.018 (0.006, 99%) |
+| 17 | b_foreign_share | +0.057 (0.003, 100%) | +0.015 (0.004, 99%) | +0.094 (0.005, 100%) |
+| 18 | u_genre_entropy | -0.020 (0.004, 100%) | -0.102 (0.005, 100%) | +0.044 (0.005, 100%) |
+| 19 | b_niche_share | -0.036 (0.002, 100%) | +0.014 (0.004, 99%) | -0.111 (0.004, 100%) |
+| 20 | b_int_size_niche | +0.013 (0.004, 99%) | +0.072 (0.004, 100%) | -0.060 (0.005, 100%) |
+| 21 | b_pre1970_share | -0.004 (0.004, 95%) | +0.079 (0.005, 100%) | -0.058 (0.006, 100%) |
+| 22 | u_logprofile | -0.013 (0.002, 100%) | +0.030 (0.003, 100%) | -0.087 (0.004, 100%) |
+| 23 | b_share_max | -0.033 (0.003, 100%) | -0.030 (0.003, 100%) | -0.062 (0.004, 100%) |
+| 24 | b_pocket_eff | +0.059 (0.004, 100%) | +0.038 (0.005, 100%) | -0.026 (0.007, 99%) |
+| 25 | b_share_out1k | +0.007 (0.002, 98%) | -0.109 (0.005, 100%) | -0.002 (0.006, 69%) |
+| 26 | b_pocket_conc | +0.037 (0.003, 100%) | +0.063 (0.004, 100%) | +0.018 (0.006, 99%) |
+| 27 | b_share_extreme | -0.027 (0.004, 100%) | +0.031 (0.004, 100%) | +0.055 (0.004, 100%) |
+| 28 | b_nbr_density | +0.039 (0.004, 100%) | +0.016 (0.006, 98%) | -0.048 (0.006, 100%) |
+| 29 | b_foreign_title_share | -0.040 (0.001, 100%) | -0.044 (0.003, 100%) | -0.005 (0.005, 94%) |
+| 30 | b_int_size_out5k | +0.000 (0.004, 71%) | -0.028 (0.006, 99%) | +0.060 (0.006, 100%) |
+| 31 | b_mean_pr | +0.023 (0.003, 100%) | +0.014 (0.005, 99%) | +0.046 (0.006, 100%) |
+| 32 | b_doc_share | +0.024 (0.001, 100%) | -0.007 (0.003, 98%) | +0.050 (0.004, 100%) |
+| 33 | u_n_decades | +0.031 (0.004, 100%) | -0.026 (0.005, 100%) | +0.020 (0.008, 98%) |
+| 34 | b_anim_share | +0.040 (0.002, 100%) | +0.030 (0.005, 100%) | -0.004 (0.005, 84%) |
+
+## DECOMPOSITION -- user answer-rate variance explained by observable features (R^2)
+
+Per channel: OLS of per-user mean(knowledge>=1) on the user-feature block; R^2 = fraction of between-user variance explained (residual = what the random intercept carries). 'Old' = the 4 iter-1 consumption features; 'New' = the full census. CV = 5-fold ridge cross-validated R^2 (the honest number with ~34 features on 173 users).
+
+| channel | explained OLD | explained NEW | OLD (CV) | NEW (CV) | between-user var(rate) |
+|---|--:|--:|--:|--:|--:|
+| concept | 42% | 64% | 37% | 32% | 0.0056 |
+| entity | 12% | 29% | 2% | -28% | 0.0134 |
+| item | 9% | 36% | 5% | 3% | 0.0002 |
+
+## sigma_u -- random intercept shrinkage (refit to the NEW residual)
+
+| channel | sigma_u iter-1 | sigma_u iter-2 | note |
+|---|--:|--:|---|
+| concept | 0.305 | 0.239 | single shift |
+| entity/attribute | 0.567 | 0.533 | replaced by PER-CUT [k>=1: 0.778, k>=2: 0.554] (fix a) |
+| item | 1.048 | 0.928 | single shift |
+
+Calibration fix (b): concept taste_align coefficient scaled x0.70 (near-far(k1) 0.115 -> 0.105, target 0.105).
+
+## ITER-2 G1 AGREEMENT (LOUO) -- side-by-side with iter-1
+
+Knowledge accuracy / kappa vs LLM (baseline = per-stratum majority). Value MAE unchanged (value channels do not use the buffness user block).
+
+| channel | stratum | n | acc iter1 | acc iter2 | kappa iter1 | kappa iter2 | base | verdict |
+|---|---|--:|--:|--:|--:|--:|--:|:--:|
+| concept | all | 195144 | 0.577 | 0.578 | 0.353 | 0.354 | 0.386 | beat |
+| concept | low (NICHE) | 65048 | 0.555 | 0.554 | 0.180 | 0.182 | 0.517 | beat |
+| concept | mid | 65048 | 0.491 | 0.493 | 0.144 | 0.152 | 0.436 | beat |
+| concept | high | 65048 | 0.684 | 0.686 | 0.144 | 0.155 | 0.674 | beat |
+| entity | all | 86500 | 0.556 | 0.558 | 0.131 | 0.137 | 0.525 | beat |
+| entity | low (NICHE) | 28891 | 0.483 | 0.491 | 0.069 | 0.091 | 0.458 | beat |
+| entity | mid | 28891 | 0.626 | 0.625 | 0.111 | 0.111 | 0.636 | tie/lose |
+| entity | high | 28718 | 0.560 | 0.557 | 0.184 | 0.177 | 0.480 | beat |
+| item | all | 124387 | 0.727 | 0.734 | 0.297 | 0.322 | 0.694 | beat |
+| item | low (NICHE) | 41521 | 0.566 | 0.583 | 0.146 | 0.180 | 0.504 | beat |
+| item | mid | 41530 | 0.698 | 0.703 | 0.096 | 0.135 | 0.690 | beat |
+| item | high | 41336 | 0.917 | 0.917 | 0.000 | 0.010 | 0.917 | tie/lose |
+
+**ITER-2 G1 verdict**: beats population-rate baseline (all channels + niche) = True; enriched features do NOT degrade accuracy vs iter-1 at all/niche strata = True.
+
+## ITER-2 G2 -- FUEL REPRODUCTION (decisive, 13 stats)
+
+**Pre-registered**: each statistic's synthetic value within the real 95% CI (or CIs overlap). Sampling only. Fixes applied: entity per-cut random effects (a); concept taste_align calibrated (b).
+
+| statistic | real [95% CI] | synth [95% CI] | match |
+|---|---|---|:--:|
+| A1 concept ICC(k>=1) | +0.034 [+0.026,+0.041] | +0.029 [+0.023,+0.035] | OK |
+| A1 concept ICC(k>=2) | +0.052 [+0.042,+0.062] | +0.042 [+0.034,+0.050] | OK |
+| A1 concept base(k>=1) | +0.741 [+0.741,+0.741] | +0.742 [+0.742,+0.742] | OK |
+| A1 attribute ICC(k>=1) | +0.092 [+0.075,+0.108] | +0.094 [+0.075,+0.114] | OK |
+| A1 attribute ICC(k>=2) | +0.080 [+0.066,+0.095] | +0.060 [+0.047,+0.074] | OK |
+| A1 attribute base(k>=1) | +0.824 [+0.824,+0.824] | +0.799 [+0.799,+0.799] | OK |
+| A1 item ICC(k>=1) | +0.016 [+0.011,+0.021] | +0.018 [+0.011,+0.025] | OK |
+| A1 item ICC(k>=2) | +0.137 [+0.114,+0.159] | +0.136 [+0.114,+0.158] | OK |
+| A1 item base(k>=1) | +0.991 [+0.991,+0.991] | +0.987 [+0.987,+0.987] | OK |
+| A2 item-low near-far(k2) | +0.009 [-0.004,+0.023] | +0.039 [+0.031,+0.048] | MISS |
+| A2 item-mid near-far(k2) | +0.028 [+0.017,+0.039] | +0.028 [+0.020,+0.037] | OK |
+| A2 item-high near-far(k2) | -0.007 [-0.014,+0.001] | +0.010 [+0.004,+0.017] | MISS |
+| A2 concept near-far(k1) | +0.105 [+0.095,+0.115] | +0.104 [+0.098,+0.110] | OK |
+| A3 concept-niche k>=1 | +0.528 [+0.528,+0.528] | +0.545 [+0.545,+0.545] | OK |
+| A3 item-niche k>=2 | +0.475 [+0.475,+0.475] | +0.485 [+0.485,+0.485] | OK |
+| A3 concept-broad k>=1 | +0.928 [+0.928,+0.928] | +0.914 [+0.914,+0.914] | OK |
+| A3 item-broad k>=2 | +0.917 [+0.917,+0.917] | +0.895 [+0.895,+0.895] | OK |
+| A3 overall rough share | +0.374 [+0.374,+0.374] | +0.365 [+0.365,+0.365] | OK |
+
+**ITER-2 G2 verdict**: decisive 13/13 within CI -> PASS.
+
+## ITER-2 G3 -- ERROR PROFILE (rated cells, passthrough disabled)
+
+Sampled value vs real rating on 6962 rated cells: MAE=0.754, |err| dispersion=0.674, pred-true corr=0.177. LLM reference MAE~0.70, corr~0.5. Too-clean flag=False. **ITER-2 G3 verdict**: PASS. (value channels unchanged from iter-1; rated cells pass through the true rating in real generation.)
+
+## ADDENDUM -- era-pocket user check (territory matching vs a global dial)
+
+Bank era mass = 1988.1. Era-pocket users = rated-era mass >= 1.5 decades away (9/173 users; the user-62120 type: literate but off the bank's modern era). LOUO item-knowledge accuracy WITHOUT era features (decade_align density + era_dist distance dropped) vs WITH:
+
+| subset | n cells | acc (no era) | acc (+era) | delta |
+|---|--:|--:|--:|--:|
+| era-pocket users | 6627 | 0.792 | 0.791 | -0.001 |
+| non-pocket users | 117760 | 0.731 | 0.731 | -0.000 |
+| all | 124387 | 0.734 | 0.734 | -0.000 |
+
+**Verdict: NULL.** The era features produce NO item-knowledge accuracy lift for era-pocket users
+(delta -0.001) or anyone else (delta -0.000). Item knowledge on this bank is already carried by
+co-knowledge proximity + fame; per-question era distance adds nothing the embedding space did not
+already encode. The territory-matching hypothesis for the item channel is not supported at n=9
+pocket users -- reported without softening. (The era features remain in the model at negligible
+weight; they do no harm and the concept/entity channels keep their own era columns.)
+
+## ITERATION-2 STOP STATE (2026-07-09) -- build halted after G2 per contract
+
+**Verdict chain (iteration-2)**: FIT clean (34 user features, ridge lambda by user-grouped 5-fold CV;
+LOUO over 173; per-fold betas recorded). Calibration fixes: (a) entity per-cut random effects
+sigma=[0.778 k>=1, 0.554 k>=2] (replaces the single 0.533 shift -- exactly the larger-variance-at-the-
+knows-of-it-margin structure the iter-1 miss demanded); (b) concept taste_align x0.70 (synthetic
+near-far(k1) 0.115 -> 0.105 = target center). **G2 PASS 13/13 decisive** (16/18 all rows; the two
+misses are the NON-decisive item-low/item-high near-far bands, unchanged caveat from iter-1).
+**G1**: improves or ties everywhere that matters (item all 0.727->0.734, item NICHE 0.566->0.583,
+item kappa 0.297->0.322, entity NICHE 0.483->0.491; no degradation). **G3** unchanged-PASS (value
+channels untouched: MAE 0.754 vs LLM ~0.70, corr 0.18 -- noisier than the LLM, not cleaner).
+**Era-pocket check: NULL** (no lift; reported without softening).
+
+**Honest caveats**:
+1. Ridge lambda hit the GRID EDGE (1000) in all three channels -- CV prefers strong shrinkage of the
+   user block; coefficients are stable (tiny fold-sd) but their absolute scale is penalty-limited.
+2. The decomposition's CV columns are the honest numbers: concept 37%->32% (census does NOT beat the
+   4 iter-1 features out-of-sample there), entity 2%->-28% (census OVERFITS the entity channel at the
+   user level), item 5%->3%. The in-sample gains (concept 42->64%, entity 12->29%, item 9->36%) are
+   what the fitted model actually uses, shrunken by the ridge; the user random intercepts carry the
+   measured remainder (sigma_u 0.305->0.239 concept, 0.567->0.533 entity(+per-cut), 1.048->0.928 item).
+   The author's profile-predictability thesis is PARTIALLY confirmed: features restore enough
+   user-level structure that G2's ICCs all pass, but a large idiosyncratic residual remains and the
+   random intercept (not the census) is what carries it.
+3. G2 passing was driven primarily by the two calibration fixes; the census's measurable G2
+   contribution is via the refit + shrunken sigma_u.
+
+**Not run (contract: STOP after G2 regardless of outcome)**: lazy answerer, 20k/G4, 162k extension,
+fold-v3, policies. Awaiting Fable review + author marks on the G2 outcome.
+
+Artifacts: .cache/dans/{models_iter2.json, decomp_iter2.json (incl. importance table), louo_iter2.npz,
+g1_iter2.json, g2_iter2.json, g3_iter2.json, erapocket_iter2.json, ref_centroids_4000_123.npz,
+iter2_all.log}. Scripts: scripts/dans_iter2.py (+ dans_build.py / dans_stages.py extended).

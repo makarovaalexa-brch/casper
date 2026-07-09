@@ -12,14 +12,34 @@ from dans_build import (Universe, load_173, ord_fit, ord_prob, fit_scale, zscale
 from adaptivity_battery_v1 import icc_oneway, paired_boot        # reuse Stage-A primitives (E5)
 
 GAMMA_GRID = [0.25, 0.35, 0.5, 0.65, 0.8, 1.0]
-UFEATS = ["u_logprofile", "u_genre_entropy", "u_n_decades", "u_rating_sd"]     # ITERATION-1
+# ITERATION-1 (first 4) + ITERATION-2 BUFFNESS user-level features (must match uvec order in
+# dans_build.Universe.user_features exactly).
+UFEATS_ITER1 = ["u_logprofile", "u_genre_entropy", "u_n_decades", "u_rating_sd"]
+UFEATS_BUFF = ["b_mean_pr", "b_med_pr", "b_share_out1k", "b_logcnt_out1k", "b_share_out5k",
+               "b_logcnt_out5k", "b_niche_share", "b_niche_logcnt", "b_foreign_share",
+               "b_foreign_logcnt", "b_share_old", "b_int_size_out5k", "b_int_size_niche",
+               "b_coverage", "b_pre1970_share", "b_pre1970_logcnt", "b_foreign_title_share",
+               "b_franchise_share",                                     # ADDENDUM territory/canon
+               "b_taste_disp",                                          # breadth: embedding dispersion
+               "b_typicality", "b_nbr_density",                         # distinctiveness (author addition)
+               "b_pocket_conc", "b_pocket_eff",                         # pockets (author addition)
+               "b_rate_mean", "b_share_max", "b_share_extreme",         # rating style (census family h)
+               "b_doc_share", "b_anim_share", "b_era_spread",           # census markers + era spread
+               "b_int_size_disp"]                                       # interaction: volume x dispersion
+UFEATS = UFEATS_ITER1 + UFEATS_BUFF
+# ADDENDUM per-QUESTION era columns appended after the uvec block (concept/entity: density+distance;
+# item: distance only -- item density already carried by decade_align).
+ERA_COLS = {"concept": ["era_density", "era_dist"], "entity": ["era_density", "era_dist"],
+            "item": ["era_dist"]}
 KNOW_COLS = {
-    "concept": ["sat_ratedmembers", "tag_logmemb", "tag_logpw", "taste_align"] + UFEATS,
-    "entity":  ["sat_ratedfilmo", "frac_filmo", "entity_logpop", "taste_align"] + UFEATS,
+    "concept": ["sat_ratedmembers", "tag_logmemb", "tag_logpw", "taste_align"] + UFEATS + ERA_COLS["concept"],
+    "entity":  ["sat_ratedfilmo", "frac_filmo", "entity_logpop", "taste_align"] + UFEATS + ERA_COLS["entity"],
     "item":    ["coknow_mean", "coknow_max", "genre_align", "fame_pr", "fame_logcnt",
-                "decade_align"] + UFEATS,
+                "decade_align"] + UFEATS + ERA_COLS["item"],
 }
-N_ITEM_KNOW = 10          # item_know cols 0..9 = knowledge features; col 10 = rated_flag
+N_ITEM_KNOW = 6 + len(UFEATS) + len(ERA_COLS["item"])   # item knowledge cols; last col = rated_flag
+UVEC_SLICE = {"concept": (3, 3 + len(UFEATS)), "entity": (3, 3 + len(UFEATS)),
+              "item": (6, 6 + len(UFEATS))}     # user-feature block within each channel's lin matrix
 VAL_COLS = {
     "item":    ["genre_align", "fame_pr", "fame_logcnt", "user_cmean"],
     "concept": ["member_mean_ctr", "has_rated_member", "taste_align", "tag_logpw", "user_cmean"],
@@ -59,45 +79,77 @@ def collect(uni, users):
 
 
 # ============================================================ per-channel knowledge fit (+ gamma + LOUO)
-def fit_know_channel(name, a, has_gamma):
+LAMBDA_GRID = [1e-4, 0.1, 1.0, 10.0, 100.0, 1000.0]     # ITERATION-2 ridge on the user block (abs scale)
+
+
+def fit_know_channel(name, a, has_gamma, ublock=None):
+    """ITERATION-2: ordinal fit with a RIDGE penalty on the user-level feature block (lambda by
+    5-fold user-grouped CV -- ~34 user features vs 173 user-level observations), LOUO predictions,
+    per-fold user-block betas recorded for the feature-importance/stability study.
+    ublock: explicit user-block column indices in X0 (default from UVEC_SLICE + sat offset)."""
     raw = a["raw"]; lin = a["lin"]; y = a["ky"].astype(int); grp = a["grp"]
-    # choose gamma by full-data log-likelihood
+    off = 1 if has_gamma else 0
+    if ublock is None:
+        lo, hi = UVEC_SLICE[name]
+        ublock = list(range(off + lo, off + hi))
+    # choose gamma by full-data log-likelihood (baseline penalty)
     best = None
     grid = GAMMA_GRID if has_gamma else [None]
     for g in grid:
-        if g is None:
-            X0 = lin.copy()
-        else:
-            X0 = np.column_stack([np.power(np.maximum(raw, 0.0), g), lin])
+        X0 = lin.copy() if g is None else np.column_stack([np.power(np.maximum(raw, 0.0), g), lin])
         mu, sd = fit_scale(X0); Xs = zscale(X0, mu, sd)
         th = ord_fit(Xs, y, 3)
         nll, _ = B.ord_nll_grad(th, Xs, y, 3)
         if best is None or nll < best["nll"]:
             best = dict(gamma=g, mu=mu, sd=sd, theta=th, nll=nll)
     g = best["gamma"]; mu = best["mu"]; sd = best["sd"]
-    if g is None:
-        X0 = lin.copy()
-    else:
-        X0 = np.column_stack([np.power(np.maximum(raw, 0.0), g), lin])
+    X0 = lin.copy() if g is None else np.column_stack([np.power(np.maximum(raw, 0.0), g), lin])
     Xs = zscale(X0, mu, sd)
-    theta_full = best["theta"]
-    # LOUO predictions
+    p = Xs.shape[1]
+    def pen(lmbda):
+        v = np.full(p, 1e-4); v[ublock] = lmbda; return v
+    # ---- lambda by 5-fold USER-GROUPED CV (test NLL unpenalized) ----
     uq = np.unique(grp)
+    rngcv = np.random.default_rng(0)
+    perm = rngcv.permutation(len(uq))
+    folds = np.array_split(perm, 5)
+    t0 = time.time()
+    cv_nll = {}
+    for lam in LAMBDA_GRID:
+        tot = 0.0
+        for fold in folds:
+            teu = set(uq[fold].tolist())
+            te = np.isin(grp, list(teu)); tr = ~te
+            th = ord_fit(Xs[tr], y[tr], 3, warm=best["theta"], l2=pen(lam), maxiter=200)
+            nll_te, _ = B.ord_nll_grad(th, Xs[te], y[te], 3, l2=0.0)
+            tot += float(nll_te)
+        cv_nll[lam] = tot
+    lam = min(cv_nll, key=cv_nll.get)
+    theta_full = ord_fit(Xs, y, 3, warm=best["theta"], l2=pen(lam))
+    print(f"    [know {name:8s}] lambda_u={lam} cv_nll={ {k: round(v, 0) for k, v in cv_nll.items()} } "
+          f"[{time.time()-t0:.1f}s]", flush=True)
+    # ---- LOUO predictions + per-fold user-block betas (importance stability) ----
     pred = np.full(len(y), -1, int)
     prob = np.zeros((len(y), 3))
+    fold_betas = np.zeros((len(uq), len(ublock)))
     t0 = time.time()
-    for u in uq:
+    for fi, u in enumerate(uq):
         te = grp == u; tr = ~te
-        th = ord_fit(Xs[tr], y[tr], 3, warm=theta_full, maxiter=120)
+        th = ord_fit(Xs[tr], y[tr], 3, warm=theta_full, l2=pen(lam), maxiter=120)
         P = ord_prob(th, Xs[te], 3)
         prob[te] = P; pred[te] = P.argmax(1)
+        fold_betas[fi] = th[2:][ublock]
     # ITERATION-1: empirical-Bayes per-user random intercept variance (documented model amendment)
     sigma_u, _bs = B.eb_user_sigma(theta_full, Xs, y, grp, 3)
     print(f"    [know {name:8s}] gamma={g} nll={best['nll']:.1f} sigma_u={sigma_u:.3f} "
           f"LOUO {len(uq)} folds [{time.time()-t0:.1f}s]", flush=True)
     cols = KNOW_COLS[name]
     return dict(gamma=g, mu=mu.tolist(), sd=sd.tolist(), theta=theta_full.tolist(), cols=cols,
-                sigma_u=sigma_u, _Xs=Xs, _y=y, _grp=grp, _pred=pred, _prob=prob)
+                sigma_u=sigma_u, lambda_u=lam, ublock=list(ublock),
+                fold_beta_mean=fold_betas.mean(0).tolist(), fold_beta_sd=fold_betas.std(0).tolist(),
+                fold_sign_cons=(np.sign(fold_betas) ==
+                                np.sign(fold_betas.mean(0))[None, :]).mean(0).tolist(),
+                _Xs=Xs, _y=y, _grp=grp, _pred=pred, _prob=prob)
 
 
 # ============================================================ per-channel value fit (+ LOUO)
@@ -278,14 +330,33 @@ def know_probs(uni, f, models, rng=None):
     X = np.column_stack([np.power(np.maximum(f["concept_raw"], 0), g), f["concept_lin"]])
     out["concept"] = ord_prob(mk["concept"]["theta"], zscale(X, mk["concept"]["mu"], mk["concept"]["sd"]),
                               3, shift=shift("concept"))
+    # ENTITY: ITERATION-2 per-cut-margin user random effects (calibration fix a) if sigma_cuts present.
     g = mk["entity"]["gamma"]
-    X = np.column_stack([np.power(np.maximum(f["entity_raw"], 0), g), f["entity_lin"]])
-    out["entity"] = ord_prob(mk["entity"]["theta"], zscale(X, mk["entity"]["mu"], mk["entity"]["sd"]),
-                             3, shift=shift("entity"))
+    Xe = zscale(np.column_stack([np.power(np.maximum(f["entity_raw"], 0), g), f["entity_lin"]]),
+                mk["entity"]["mu"], mk["entity"]["sd"])
+    if "sigma_cuts" in mk["entity"]:
+        out["entity"] = ord_prob_percut(mk["entity"]["theta"], Xe, mk["entity"]["sigma_cuts"], rng)
+    else:
+        out["entity"] = ord_prob(mk["entity"]["theta"], Xe, 3, shift=shift("entity"))
     X = f["item_know"][:, :N_ITEM_KNOW]
     out["item"] = ord_prob(mk["item"]["theta"], zscale(X, mk["item"]["mu"], mk["item"]["sd"]),
                            3, shift=shift("item"))
     return out
+
+
+def ord_prob_percut(theta, Xs, sigma_cuts, rng):
+    """ITERATION-2: 3-level ordinal probabilities with INDEPENDENT per-cut user random effects.
+    b_k ~ N(0, sigma_cuts[k]) drawn once per user; P(Y>=1)=sig(eta+b0-c0), P(Y>=2)=sig(eta+b1-c1),
+    clipped monotone. rng=None -> b_k=0 (expected/point mode)."""
+    from dans_build import _sig, _cuts
+    c = _cuts(theta[:2]); eta = Xs @ theta[2:]
+    b0 = float(rng.normal(0.0, sigma_cuts[0])) if rng is not None else 0.0
+    b1 = float(rng.normal(0.0, sigma_cuts[1])) if rng is not None else 0.0
+    p1 = _sig(eta + b0 - c[0])                        # P(Y>=1)
+    p2 = _sig(eta + b1 - c[1])                        # P(Y>=2)
+    p2 = np.minimum(p2, p1)
+    P = np.column_stack([1.0 - p1, p1 - p2, p2])
+    return np.clip(P, 1e-9, 1.0)
 
 
 def value_probs(uni, f, models):

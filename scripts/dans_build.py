@@ -156,9 +156,90 @@ class Universe:
         esz = np.asarray(self.entM.sum(1)).ravel()
         self.ent_genre = eg / (esz[:, None] + 1e-9)
         self.ent_gn = np.linalg.norm(self.ent_genre, axis=1)
+        # ---- ITERATION-2 BUFFNESS static structure (population-side, no new joins) ----
+        # item popularity percentile pr in [0,1] (1=most popular); top-N cutoffs as pr thresholds.
+        self.TOPN = (1000, 5000)
+        self.topn_thr = {n: 1.0 - float(n) / self.ni for n in self.TOPN}
+        # low-fame genome tags = bottom tercile of pop-weighted membership (relevance proxy already
+        # thresholded at genome-membership); niche-tag engagement measures contact with these.
+        self.lowfame_tag = self.tag_logpw <= np.quantile(self.tag_logpw, 1.0 / 3.0)
+        # foreign markers from genome tag names (existing metadata; no new join).
+        FOREIGN_KW = ("foreign", "subtitle", "subtitled", "anime", "bollywood", "criterion",
+                      "french", "german", "germany", "east germany", "italian", "japanese",
+                      "korean", "spanish", "world cinema", "kung fu", "martial arts")
+        fmask = np.array([any(k in (str(t.get("tag", "")).lower()) for k in FOREIGN_KW)
+                          for t in tq], bool)
+        self.n_foreign_tags = int(fmask.sum())
+        self.item_foreign = (np.asarray(self.tagM[fmask].sum(0)).ravel() > 0).astype(np.float64)
+        # ---- ADDENDUM (territory matching): era distance + canon/cult + franchise structure ----
+        # per-concept / per-entity member mean YEAR -> decade (for per-question era distance).
+        yr_pos = np.where(self.year > 0, self.year.astype(np.float64), 0.0)
+        yr_val = (self.year > 0).astype(np.float64)
+        tsum = np.asarray(self.tagM.dot(yr_pos)).ravel(); tcnt = np.asarray(self.tagM.dot(yr_val)).ravel()
+        self.tag_year = np.where(tcnt > 0, tsum / np.maximum(tcnt, 1), -1.0)
+        self.tag_decade = np.where(self.tag_year > 0, (self.tag_year // 10) * 10, -1.0)
+        esum = np.asarray(self.entM.dot(yr_pos)).ravel(); ecnt = np.asarray(self.entM.dot(yr_val)).ravel()
+        self.ent_year = np.where(ecnt > 0, esum / np.maximum(ecnt, 1), -1.0)
+        self.ent_decade = np.where(self.ent_year > 0, (self.ent_year // 10) * 10, -1.0)
+        # bank era mass (for the era-pocket check): rating-count-weighted mean decade of the bank.
+        bd = self.bank_decade[self.bank_decade > 0]
+        self.bank_era_mean = float(bd.mean()) if len(bd) else 1990.0
+        # canon/cult item markers: pre-1970; non-English title heuristic (non-ASCII glyph or 'a.k.a.').
+        self.item_pre1970 = ((self.year > 0) & (self.year < 1970)).astype(np.float64)
+        self.item_nonascii = np.array([1.0 if (t and (any(ord(c) > 127 for c in t)
+                                       or "a.k.a" in t.lower())) else 0.0 for t in D["title"]])
+        # franchise membership: member of any type=='franchise' entity in the battery.
+        frows = [r for r, e in enumerate(bat) if e.get("type") == "franchise"]
+        self.n_franchise = len(frows)
+        fr_items = np.asarray(self.entM[frows].sum(0)).ravel() if frows else np.zeros(self.ni)
+        self.item_franchise = (fr_items > 0).astype(np.float64)
+        # ---- DISTINCTIVENESS reference (author addition): population user taste centroids in kmap
+        #      space; deterministic sample; population-side structure like popularity (uses reference
+        #      users' full rated sets -- these are structure, not the featurized user's own data). ----
+        self._build_ref_centroids(n_ref=4000, seed=SEED)
         if verbose:
             print(f"[universe] ni={self.ni} bank={self.nbank} tags={self.ntag} ents={self.nent} "
                   f"kmap_items={len(self.km_ids)} [{time.time()-t0:.1f}s]", flush=True)
+
+    def _build_ref_centroids(self, n_ref=4000, seed=SEED):
+        """Sample n_ref population users (>=20 ratings, >=10 with kmap embeddings) and cache their
+        rating-weighted taste centroids (unit 16-d) + the population centroid. Cached to disk."""
+        cpath = f"{DANS}/ref_centroids_{n_ref}_{seed}.npz"
+        if os.path.exists(cpath):
+            d = np.load(cpath)
+            self.refC = d["refC"]; self.popC = d["popC"]
+            return
+        d = np.load(META)
+        uu = d["uu"].astype(np.int64); ii = d["ii"].astype(np.int64); rr = d["rr"].astype(np.float64)
+        order = np.argsort(uu, kind="stable")
+        uu = uu[order]; ii = ii[order]; rr = rr[order]
+        bnd = np.searchsorted(uu, np.arange(uu[-1] + 2))
+        rng = np.random.default_rng(seed)
+        cand = rng.permutation(int(uu[-1]) + 1)
+        excl = study_ids()                     # eval firewall: study users never enter the reference set
+        refc = []
+        for u in cand:
+            if int(u) in excl:
+                continue
+            s, e = bnd[u], bnd[u + 1]
+            if e - s < 20:
+                continue
+            its = ii[s:e]; rat = rr[s:e]
+            rows = self.km_row[its]; m = rows >= 0
+            if m.sum() < 10:
+                continue
+            w = rat[m]
+            c = (self.Enorm[rows[m]] * w[:, None]).sum(0) / max(w.sum(), 1e-9)
+            n = np.linalg.norm(c)
+            if n > 0:
+                refc.append(c / n)
+            if len(refc) >= n_ref:
+                break
+        self.refC = np.asarray(refc)
+        pc = self.refC.mean(0)
+        self.popC = pc / (np.linalg.norm(pc) + 1e-12)
+        np.savez_compressed(cpath, refC=self.refC, popC=self.popC)
+        print(f"[universe] built {len(self.refC)} reference taste centroids -> {cpath}", flush=True)
 
     # -------- per-user feature builder (known half only) --------
     def user_features(self, known):
@@ -168,6 +249,12 @@ class Universe:
         kids = np.fromiter(known.keys(), np.int64, len(known))
         krat = np.fromiter(known.values(), np.float64, len(known))
         cmean = float(krat.mean()) if len(krat) else 3.5
+        nk = max(len(kids), 1)
+        # indicator / rating dense vectors (needed early for niche-tag engagement)
+        ind = np.zeros(ni); ratv = np.zeros(ni)
+        if len(kids):
+            ind[kids] = 1.0; ratv[kids] = krat
+        rmc_tag = self.tagM.dot(ind)                                    # per-tag rated-member count
         # ---- ITERATION-1 user-level consumption statistics (observable from the known half for real
         #      AND synthetic users alike; carry cross-user knowledge propensity) ----
         lognk = float(np.log(len(kids) + 1.0))
@@ -176,65 +263,163 @@ class Universe:
         pgd = kg / max(kg.sum(), 1e-9); pgd = pgd[pgd > 0]
         gent = float(-(pgd * np.log(pgd)).sum()) if len(pgd) else 0.0
         ndec = float(len(set(int(self.decade[j]) for j in kids if self.decade[j] > 0)))
-        uvec = np.array([lognk, gent, ndec, csd])
         # taste genre vector = sum genre over liked known (>=4), else all known
         likemask = krat >= 4.0
-        base = kids[likemask] if likemask.any() else kids
-        taste = self.Gmat[base].sum(0) if len(base) else np.zeros(20)
+        gbase = kids[likemask] if likemask.any() else kids
+        taste = self.Gmat[gbase].sum(0) if len(gbase) else np.zeros(20)
         tn = np.linalg.norm(taste)
         taste_u = taste / tn if tn > 0 else np.zeros(20)
-        # decade distribution over known
+        # decade distribution over known (density-at-decade); user decades with mass (min-distance)
         ddist = np.zeros(len(self.dec_levels) + 1)                 # last bucket = unknown decade
         for j in kids:
             d = int(self.decade[j])
             ddist[self.dec_row.get(d, len(self.dec_levels))] += 1
         if ddist.sum() > 0:
             ddist = ddist / ddist.sum()
-        # indicator / rating dense vectors (for sparse member counts)
-        ind = np.zeros(ni); ind[kids] = 1.0
-        ratv = np.zeros(ni); ratv[kids] = krat
+        user_decs = np.array(sorted(set(int(self.decade[j]) for j in kids if self.decade[j] > 0)),
+                             np.float64)
+
+        def era_feats(dec_years):
+            """Per-question era (density-at-decade + min-decade-distance) for an array of member decades
+            (years; -1 unknown). Unknown-decade entries get the user's mean valid distance (neutral)."""
+            dens = np.array([ddist[self.dec_row.get(int(d), len(self.dec_levels))] if d > 0 else 0.0
+                             for d in dec_years])
+            dist = np.zeros(len(dec_years))
+            valid = dec_years > 0
+            if len(user_decs) and valid.any():
+                dv = np.abs(dec_years[valid][:, None] - user_decs[None, :]).min(1) / 10.0
+                dist[valid] = dv
+                dist[~valid] = float(dv.mean())
+            return dens, dist
 
         # ===== ITEM features (nbank) =====
         rated_flag = ind[self.bank]
-        # co-knowledge proximity to rated set in kmap space
-        kk = kids[self.km_row[kids] >= 0]
+        kk = kids[self.km_row[kids] >= 0]                          # co-knowledge proximity (kmap space)
         if len(kk):
-            Ku = self.Enorm[self.km_row[kk]]                       # (m,16)
-            sim = self.bank_emb @ Ku.T                             # (nbank,m)
+            Ku = self.Enorm[self.km_row[kk]]
+            sim = self.bank_emb @ Ku.T
             coprox = sim.mean(1); comax = sim.max(1)
             coprox[~self.bank_has_emb] = 0.0; comax[~self.bank_has_emb] = 0.0
         else:
             coprox = np.zeros(self.nbank); comax = np.zeros(self.nbank)
         genre_align = (self.bank_genre @ taste_u) / self.bank_gn
-        dec_align = np.array([ddist[self.dec_row.get(int(d), len(self.dec_levels))]
-                              for d in self.bank_decade])
+        dec_align, era_dist_i = era_feats(self.bank_decade)        # dec_align = density variant (existing)
+
+        # ---- ITERATION-2 BUFFNESS + ADDENDUM territory features (all user-level; known-half only) ----
+        pr_k = self.pr[kids] if len(kids) else np.array([0.5])
+        b_mean_pr = float(pr_k.mean()); b_med_pr = float(np.median(pr_k))
+        out1 = pr_k < self.topn_thr[self.TOPN[0]]                       # outside top-1000
+        out5 = pr_k < self.topn_thr[self.TOPN[1]]                       # outside top-5000
+        b_share_out1k = float(out1.mean()); b_logcnt_out1k = float(np.log(1.0 + out1.sum()))
+        b_share_out5k = float(out5.mean()); b_logcnt_out5k = float(np.log(1.0 + out5.sum()))
+        niche_incid = float(rmc_tag[self.lowfame_tag].sum()); total_incid = float(rmc_tag.sum())
+        b_niche_share = niche_incid / max(total_incid, 1e-9)
+        b_niche_logcnt = float(np.log(1.0 + niche_incid))
+        nfor = float(self.item_foreign[kids].sum()) if len(kids) else 0.0
+        b_foreign_share = nfor / nk; b_foreign_logcnt = float(np.log(1.0 + nfor))
+        yv = self.year[kids] if len(kids) else np.array([-1])
+        vy = yv > 0
+        b_share_old = float((yv[vy] < 1980).mean()) if vy.any() else 0.0
+        b_int_size_out5k = lognk * b_share_out5k                        # log rating-count x obscurity
+        b_int_size_niche = lognk * b_niche_share
+        # ADDENDUM: universe coverage = share of the bank inside the user's territory (co-knowledge OR
+        # era+genre proximity) = 'how much info is obtainable from this user'.
+        gmed = float(np.median(genre_align))
+        territory = (comax >= 0.30) | ((genre_align >= gmed) & (era_dist_i <= 1.0))
+        b_coverage = float(territory.mean())
+        # ADDENDUM canon/cult markers.
+        npre = float(self.item_pre1970[kids].sum()) if len(kids) else 0.0
+        b_pre1970_share = npre / nk; b_pre1970_logcnt = float(np.log(1.0 + npre))
+        b_foreign_title_share = float(self.item_nonascii[kids].mean()) if len(kids) else 0.0
+        b_franchise_share = float(self.item_franchise[kids].mean()) if len(kids) else 0.0
+        # AUTHOR ADDITION: taste-cloud dispersion = trace of the covariance of the user's rated items'
+        # co-knowledge embeddings (subculture BREADTH; genre entropy under-measures it).
+        if len(kk) >= 2:
+            Kv = self.Enorm[self.km_row[kk]]
+            b_taste_disp = float(np.trace(np.cov(Kv, rowvar=False)))
+        else:
+            Kv = None
+            b_taste_disp = 0.0
+        # AUTHOR ADDITION (distinctiveness): taste typicality + neighborhood density vs the population
+        # reference centroids (kmap space; reference = 4000 non-study users, fixed).
+        if len(kk):
+            w = np.array([known[int(j)] for j in kk])
+            cen = (self.Enorm[self.km_row[kk]] * w[:, None]).sum(0) / max(w.sum(), 1e-9)
+            cn2 = np.linalg.norm(cen)
+            cen = cen / cn2 if cn2 > 0 else cen
+            b_typicality = 1.0 - float(cen @ self.popC)          # high = unusual taste centroid
+            sims = self.refC @ cen
+            b_nbr_density = float(np.sort(sims)[-20:].mean())    # high = dense neighborhood (common)
+        else:
+            b_typicality = 0.0; b_nbr_density = 0.0
+        # AUTHOR ADDITION (pockets): top-cluster concentration + effective pocket count via small-k
+        # k-means on the rated-item embeddings (k in 2..4 by silhouette; k=1 if weak structure).
+        b_pocket_conc, b_pocket_eff = 1.0, 1.0
+        if Kv is not None and len(Kv) >= 8:
+            from sklearn.cluster import KMeans
+            from sklearn.metrics import silhouette_score
+            best_k, best_s, best_lab = 1, -1.0, None
+            for k in (2, 3, 4):
+                km = KMeans(n_clusters=k, n_init=3, random_state=0).fit(Kv)
+                try:
+                    s = float(silhouette_score(Kv, km.labels_))
+                except Exception:
+                    s = -1.0
+                if s > best_s:
+                    best_k, best_s, best_lab = k, s, km.labels_
+            if best_s >= 0.15 and best_lab is not None:          # weak structure -> single pocket
+                shares = np.bincount(best_lab, minlength=best_k) / len(best_lab)
+                b_pocket_conc = float(shares.max())
+                b_pocket_eff = float(1.0 / np.sum(shares ** 2))
+        # RATING STYLE (census family h): generosity/decisiveness as the LLM could read it.
+        b_rate_mean = cmean - 3.5
+        b_share_max = float((krat >= 5.0).mean()) if len(krat) else 0.0
+        b_share_extreme = float(((krat <= 1.0) | (krat >= 5.0)).mean()) if len(krat) else 0.0
+        # census markers + era spread + interaction
+        b_doc_share = float(self.Gmat[kids, 6].mean()) if len(kids) else 0.0      # Documentary
+        b_anim_share = float(self.Gmat[kids, 2].mean()) if len(kids) else 0.0     # Animation
+        b_era_spread = float(yv[vy].std()) if vy.sum() > 1 else 0.0
+        b_int_size_disp = lognk * b_taste_disp
+        uvec = np.array([lognk, gent, ndec, csd,
+                         b_mean_pr, b_med_pr,
+                         b_share_out1k, b_logcnt_out1k, b_share_out5k, b_logcnt_out5k,
+                         b_niche_share, b_niche_logcnt,
+                         b_foreign_share, b_foreign_logcnt,
+                         b_share_old,
+                         b_int_size_out5k, b_int_size_niche,
+                         b_coverage, b_pre1970_share, b_pre1970_logcnt,
+                         b_foreign_title_share, b_franchise_share, b_taste_disp,
+                         b_typicality, b_nbr_density, b_pocket_conc, b_pocket_eff,
+                         b_rate_mean, b_share_max, b_share_extreme,
+                         b_doc_share, b_anim_share, b_era_spread, b_int_size_disp])
         Uc = np.tile(uvec, (self.nbank, 1))
         item_know = np.column_stack([coprox, comax, genre_align, self.bank_pr,
-                                     self.bank_logcnt, dec_align, Uc, rated_flag])
-        # item value features
+                                     self.bank_logcnt, dec_align, Uc, era_dist_i, rated_flag])
         item_val = np.column_stack([genre_align, self.bank_pr, self.bank_logcnt,
                                     np.full(self.nbank, cmean)])
 
         # ===== CONCEPT features (ntag) =====
-        rmc = self.tagM.dot(ind)                                    # rated-member count
-        rms = self.tagM.dot(ratv)                                   # rated-member rating sum
-        mmean = np.where(rmc > 0, rms / np.maximum(rmc, 1), 0.0)    # mean rating over rated members
+        rmc = rmc_tag
+        rms = self.tagM.dot(ratv)
+        mmean = np.where(rmc > 0, rms / np.maximum(rmc, 1), 0.0)
         c_align = np.where(self.tag_gn > 0, self.tag_genre @ taste_u / np.maximum(self.tag_gn, 1e-9), 0.0)
-        concept_raw_count = rmc                                     # saturating term (gamma applied later)
+        c_dens, c_dist = era_feats(self.tag_decade)
+        concept_raw_count = rmc
         concept_know_lin = np.column_stack([self.tag_logmemb, self.tag_logpw, c_align,
-                                            np.tile(uvec, (self.ntag, 1))])
+                                            np.tile(uvec, (self.ntag, 1)), c_dens, c_dist])
         concept_val = np.column_stack([mmean - 3.5, (rmc > 0).astype(float), c_align, self.tag_logpw,
                                        np.full(self.ntag, cmean)])
 
         # ===== ENTITY features (nent) =====
-        rec = self.entM.dot(ind)                                    # rated filmography count
+        rec = self.entM.dot(ind)
         res = self.entM.dot(ratv)
         emean = np.where(rec > 0, res / np.maximum(rec, 1), 0.0)
         e_align = np.where(self.ent_gn > 0, self.ent_genre @ taste_u / np.maximum(self.ent_gn, 1e-9), 0.0)
         efrac = rec / self.ent_nmov
+        e_dens, e_dist = era_feats(self.ent_decade)
         entity_raw_count = rec
         entity_know_lin = np.column_stack([efrac, self.ent_logpop, e_align,
-                                           np.tile(uvec, (self.nent, 1))])
+                                           np.tile(uvec, (self.nent, 1)), e_dens, e_dist])
         entity_val = np.column_stack([emean - 3.5, (rec > 0).astype(float), e_align, self.ent_logpop,
                                       np.full(self.nent, cmean)])
         return dict(cmean=cmean,
@@ -325,7 +510,8 @@ def _cuts_jac(a):
 
 def ord_nll_grad(theta, X, y, ncat, l2=1e-4):
     """Negative log-likelihood + analytic grad for proportional-odds ordinal logistic.
-    theta = [a(ncat-1), beta(p)]. eta=X beta. c=_cuts(a). P(y=k)=sig(c_k-eta)-sig(c_{k-1}-eta)."""
+    theta = [a(ncat-1), beta(p)]. eta=X beta. c=_cuts(a). P(y=k)=sig(c_k-eta)-sig(c_{k-1}-eta).
+    l2: scalar OR per-coefficient vector (ITERATION-2 ridge on the user-feature block)."""
     na = ncat - 1
     a = theta[:na]; beta = theta[na:]
     c = _cuts(a)
@@ -335,7 +521,7 @@ def ord_nll_grad(theta, X, y, ncat, l2=1e-4):
     A = _sig(cU[y] - eta)                           # sigma(c_y - eta)
     B = _sig(cL[y] - eta)                           # sigma(c_{y-1} - eta)
     P = np.maximum(A - B, 1e-12)
-    nll = -np.sum(np.log(P)) + l2 * np.sum(beta * beta)
+    nll = -np.sum(np.log(P)) + np.sum(l2 * beta * beta)
     # grad wrt eta
     dA = A * (1 - A); dB = B * (1 - B)
     dEta = (dA - dB) / P                            # dNLL/deta_i
@@ -410,6 +596,47 @@ def eb_user_sigma(theta, Xs, y, grp, ncat, cap=4.0):
     samp = np.mean([1.0 / infos[u] for u in bs])
     var = max(float(np.var(bv, ddof=1)) - samp, 0.0)
     return float(np.sqrt(var)), bs
+
+
+def eb_logit_sigma(offset, yb, grp, cap=6.0):
+    """ITERATION-2 (calibration fix a): empirical-Bayes per-user random intercept for a SINGLE binary
+    margin.  logit P(yb=1) = offset + b_u ; offset is the fixed linear predictor at this cut (eta - c_cut).
+    Returns sampling-corrected sigma = sqrt(max(var(b_u) - mean(1/info), 0)).  Newton per user."""
+    bs, infos = {}, {}
+    for u in np.unique(grp):
+        idx = np.where(grp == u)[0]
+        off = offset[idx]; y = yb[idx]
+        b = 0.0
+        for _ in range(40):
+            p = _sig(off + b)
+            g = float(np.sum(y - p)); h = float(np.sum(p * (1 - p)))
+            if h <= 1e-9:
+                break
+            step = g / h; b += step
+            if abs(step) < 1e-7:
+                break
+        b = float(np.clip(b, -cap, cap))
+        p = _sig(off + b); info = float(np.sum(p * (1 - p)))
+        bs[int(u)] = b; infos[int(u)] = max(info, 1e-6)
+    bv = np.array(list(bs.values()))
+    samp = np.mean([1.0 / infos[u] for u in bs])
+    var = max(float(np.var(bv, ddof=1)) - samp, 0.0)
+    return float(np.sqrt(var))
+
+
+def eb_percut_sigma(theta, Xs, y, grp, ncat):
+    """ITERATION-2 (calibration fix a): per-cut-margin user random effects for an ordinal channel.
+    For each threshold cut k (Y>=k+1) fit an independent between-user variance on the binary margin,
+    with the ordinal fixed effects as offset (eta - c_k).  Returns [sigma_cut1, ..., sigma_cut{ncat-1}].
+    Lets the knows-of-it margin (k>=1) carry MORE user variance than the know-well margin (k>=2), which a
+    single shared intercept cannot -- the named fix for the attribute ICC(k>=1) miss."""
+    na = ncat - 1
+    c = _cuts(theta[:na]); eta = Xs @ theta[na:]
+    sig = []
+    for k in range(na):
+        yb = (y > k).astype(np.float64)           # 1 if Y >= k+1
+        sig.append(eb_logit_sigma(eta - c[k], yb, grp))
+    return sig
 
 
 # ============================================================ standardization
