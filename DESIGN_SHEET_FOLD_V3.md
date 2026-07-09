@@ -57,7 +57,16 @@ held-out population users; the GoT probe pairs constructed from population profi
 ## 6. Compute/cost: $0; ~3-5 training runs x ~25 min CPU + gate battery. Opus executes after sign-off;
 Fable reviews gates before anything consumes v3.
 
-## SIGN-OFF (mark each)
-[ ] Token design §2 incl. D1 separate-tokens, no-clue token
-[ ] Training §3 incl. D2 curriculum sweep, D3 ST-as-contingency
-[ ] Gates §4 incl. G2 GoT gate as decisive, D4 clean-profile threshold 0.05
+## SIGN-OFF — SIGNED 2026-07-10 (author amendment + delegated decisions)
+[x] AUTHOR AMENDMENT (the prolific correction): implicit evidence = SURPRISE, not raw engagement —
+    each implicit token carries a lift feature (engagement with E relative to what the user's
+    overall volume/answerability level predicts). NEW GATE G2b (prolific control): a SELECTIVE user
+    who watched all of X must be pulled toward X MORE than a PROLIFIC user who watched all of X
+    plus everything else. G2+G2b jointly decisive.
+[x] D1 separate tokens (Fable, delegated): two entries per answer; pure-knowledge events natural;
+    clean implicit-channel ablation.
+[x] D2 curriculum: sweep 30/70 and 50/50, keep best-on-val (2 runs).
+[x] D3 Deep-Sets primary; Set-Transformer contingency iff G6 anti-saturation fails.
+[x] D4 clean-profile threshold 0.05.
+[x] Entity embeddings: member-bag aggregates v1; CONTINGENCY = native user-x-entity engagement
+    factorization (kmap-style) iff entity canaries weak on member-bag.
