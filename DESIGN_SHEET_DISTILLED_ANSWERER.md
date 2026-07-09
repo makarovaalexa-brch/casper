@@ -83,9 +83,16 @@ $0 LLM. Local CPU: fitting = minutes; 20k-user generation = hours. Implementatio
 ONLY after this sheet is signed; Fable reviews implementation and all gate outputs before anything
 (fold-v3, policies) consumes the result.
 
-## SIGN-OFF (mark each)
-[ ] Model form (§3) — incl. consumption variable, two-feature entity rules, learned saturation
-[ ] Gates (§4) — G2 as the decisive gate
-[ ] S1 conf: omit / fit
-[ ] S2 impurity: free measurement first / spend ~$1-2 on re-judging now
-[ ] S4 synthetic N: 20k / other
+## SIGN-OFF — SIGNED BY AUTHOR 2026-07-09
+[x] Model form (§3) — signed, with author amendment: know_well is NOT relabeled as "watched"; the
+    consumption variable stays INTERNAL to generation; know_well labels match the LLM's behavior
+    as-is and are used as the strong signal downstream ("leave it as llm decided").
+[x] Gates (§4) — signed; G2 decisive; G-pre impurity measurement = informational only, no
+    correction applied in v1.
+[x] S1 conf: OMIT (author: "didn't know about conf, ok, drop").
+[x] S2 impurity: free measurement only; no re-judging spend.
+[x] S4 synthetic N: 20k for gates, THEN — AUTHOR CONDITION — extend to ALL 162k users BEFORE any
+    next step (no fold-v3, no policies, until everyone has an answerer).
+[x] Split simplification ratified: train = synthetic users (173 real IDs excluded); test = the 173
+    real users (touched sparingly, headline-only); known/held-out halves = the task definition,
+    not a split; all tuning on synthetic validation users.
