@@ -198,11 +198,11 @@ def build_b1(arena, train_recs, verbose=True):
 
 
 # ============================================================ b2: THE LEARNED STATIC (greedy)
-def build_b2(arena, train_recs, Tmax=24, K=PRIMARY_K, cand_cap=None, verbose=True):
+def build_b2(arena, train_recs, Tmax=24, K=PRIMARY_K, cand_cap=None, verbose=True, tag=""):
     """Greedy forward selection over the FULL universe on TRAIN synthetic users, maximising mean
     NDCG@K. E7-symmetric: trained on the same synthetic world as the policies (no test-fit leak).
     Cached to disk. Returns (seq, per_step_gain)."""
-    path = f"{CACHE}/b2_seq_T{Tmax}_K{K}_n{len(train_recs)}.json"
+    path = f"{CACHE}/b2_seq_T{Tmax}_K{K}_n{len(train_recs)}{tag}.json"
     if os.path.exists(path):
         blob = json.load(open(path))
         if verbose:
@@ -216,8 +216,20 @@ def build_b2(arena, train_recs, Tmax=24, K=PRIMARY_K, cand_cap=None, verbose=Tru
     tokens = [[] for _ in range(n)]
     natives = [[] for _ in range(n)]
     seq = []; gains = []; used = set()
-    # candidate list (full universe); optional cap by popularity-ish for speed (documented)
-    cands = list(range(arena.nQ))
+    # candidate SEARCH list. cand_cap = documented compute scale-down: keep ALL concept/attr/entity
+    # questions + the top-(cap - #non-item) POPULAR items (drops only low-popularity tail items, which
+    # never win a static slot); the arena UNIVERSE stays full for every other arm. cand_cap=None = full.
+    if cand_cap is None:
+        cands = list(range(arena.nQ))
+    else:
+        non_item = [qi for qi in range(arena.nQ) if arena.Q[qi][0] != TYPE_ITEM]
+        item_qi = [qi for qi in range(arena.nQ) if arena.Q[qi][0] == TYPE_ITEM]  # already popularity-ordered
+        n_item = max(0, cand_cap - len(non_item))
+        cands = non_item + item_qi[:n_item]
+        if verbose:
+            print(f"[b2] candidate search cap={cand_cap}: {len(non_item)} non-item + {n_item} popular "
+                  f"items (dropped {len(item_qi)-n_item} tail items; universe stays full for other arms)",
+                  flush=True)
     for t in range(Tmax):
         # current mean NDCG
         Zc = arena.belief_z_batch(tokens, natives)
@@ -471,10 +483,10 @@ class GolbandiTree(Policy):
 
 
 def build_golbandi(arena, train_recs, b2_seq, max_depth=6, min_users=25, K=PRIMARY_K,
-                   cand_cap=250, verbose=True):
+                   cand_cap=250, verbose=True, tag=""):
     """Grow the ADAPTIVE tree (NDCG-split, polarity-branch) on TRAIN users; tail = global b2 order.
     Returns (tree, b2_seq). Cached."""
-    path = f"{CACHE}/golbandi_d{max_depth}_n{len(train_recs)}.json"
+    path = f"{CACHE}/golbandi_d{max_depth}_n{len(train_recs)}{tag}.json"
     if os.path.exists(path):
         blob = json.load(open(path))
         if verbose:
@@ -573,18 +585,18 @@ FEAT_NAMES = ["is_item", "is_concept", "is_attr", "is_entity", "p_ans_blind", "a
               "vmag_blind", "n_ans", "n_ref", "turn_frac", "horizon"]
 
 
-def build_scorerA(arena, train_recs, n_samples=6000, M2=15, Tmax=24, K=PRIMARY_K, verbose=True):
+def build_scorerA(arena, train_recs, n_samples=6000, M2=15, Tmax=24, K=PRIMARY_K, verbose=True, seed=None, tag=""):
     """Outcome-labelled candidate scorer: features (belief-state + candidate) -> realized 1-step AND
     2-step NDCG@K gains from simulated interviews on TRAIN users. HistGBM. Cached."""
     from sklearn.ensemble import HistGradientBoostingRegressor
     import joblib
-    path = f"{CACHE}/scorerA_n{len(train_recs)}.joblib"
+    path = f"{CACHE}/scorerA_n{len(train_recs)}{tag}.joblib"
     if os.path.exists(path):
         if verbose:
             print(f"[A] loaded cached GBM scorer from {path}", flush=True)
         return joblib.load(path)
     t0 = time.time()
-    rng = np.random.default_rng(SEED)
+    rng = np.random.default_rng(SEED if seed is None else seed)
     ctxs = {r["u"]: arena.user_ctx(r) for r in train_recs}
     X, Y = [], []
     for si in range(n_samples):
@@ -635,7 +647,7 @@ def build_scorerA(arena, train_recs, n_samples=6000, M2=15, Tmax=24, K=PRIMARY_K
             print(f"    [A] labels {si+1}/{n_samples} [{time.time()-t0:.0f}s]", flush=True)
     X = np.array(X); Y = np.array(Y)
     gbm = HistGradientBoostingRegressor(max_iter=300, max_depth=4, learning_rate=0.06,
-                                        min_samples_leaf=40, random_state=SEED)
+                                        min_samples_leaf=40, random_state=SEED if seed is None else seed)
     gbm.fit(X, Y)
     joblib.dump(gbm, path)
     assert os.path.exists(path)
