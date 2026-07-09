@@ -83,9 +83,7 @@ Open recall as a policy channel (author-reserved; reference row only). Human-tra
 
 ## 8. Compute: label generation + 4-6 training runs + eval — local CPU, ~1-2 days wall, $0.
 
-## SIGN-OFF (to discuss)
-[ ] §1 firewall incl. the 173-touched-twice protocol
-[ ] §2 lenient-only regime (strict retired due to flutter) + full universe
-[ ] §3 ladder incl. b4 and the b4-beats-b2 interpretation
-[ ] §4 classes A/B/C (+D) — or re-rank/cut
-[ ] §6 verdict definitions
+## SIGN-OFF — SIGNED BY AUTHOR 2026-07-09 ("sounds good, try that")
+[x] All sections as drafted. EXECUTION SCOPE GUARD (Fable): the build proceeds through DEV
+    evaluation on synthetic users ONLY; the 173 real users are NOT touched by any agent — the two
+    permitted headline reads are scheduled explicitly by the author, separately.
