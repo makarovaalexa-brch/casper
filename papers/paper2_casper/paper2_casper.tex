@@ -417,6 +417,25 @@ omits; pop-percentile is negative because it is collinear with ratings-count. Th
 \label{tab:extcoef}
 \end{table}
 
+\subsection{LLM world-knowledge distillation: what does the judge read in a rating profile?}\label{sec:distill}
+The judge's per-user behaviour is, by construction, a function of the profile it was shown---titles, years, and
+star values alone. Distilling that behaviour into an \emph{interpretable} feature model therefore doubles as a
+study of which profile properties carry a person's answerability in the eyes of a knowledgeable reader: the
+\emph{anatomy of judged answerability}. We fit regularized ordinal models over a full census of
+profile-derivable features---volume; obscurity depth (percentile profile, niche shares \emph{and} counts);
+era structure (spread, pre-1970 mass, per-question era distance to the user's rated-era mass); interest
+breadth as a user property (taste-cloud dispersion, top-pocket concentration, effective pocket count);
+distinctiveness (taste typicality, neighbourhood density); territory coverage of the question universe;
+composition markers (foreign, franchise, documentary, niche-tag engagement); and rating style
+(generosity, decisiveness)---every feature restricted to what the judge could actually see, selected by
+cross-validated elastic net, with stability reported across leave-one-user-out folds. Direct reading of
+extreme profiles motivates the design: the judge does not assign users a global ``knowledgeability'';
+it \emph{matches territory}---a viewer deeply literate in 1930s--60s Hollywood is judged unable to discuss a
+modern catalogue and vice versa---so per-question territory features, not user constants, carry the signal.
+% TABLE PLACEHOLDER: ranked feature-importance table + explained-variance decomposition per channel
+% (from D-ANS iteration-2; runs as of 2026-07-09). Also: the era-pocket case study (user 62120).
+\todo{Insert iteration-2 importance table, decomposition (explained vs residual per channel), era-pocket check.}
+
 \paragraph{Claim boundary (stated everywhere this environment is used).} The LLM judge removes the
 \emph{self-authored} circularity the field's assumed answer models carry; it does \emph{not} establish
 human-level answerability. Headline claims hold under \emph{two} external answer models---the LLM judge and the
