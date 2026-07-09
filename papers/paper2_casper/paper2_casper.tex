@@ -378,7 +378,10 @@ G2 exploitability$^\ddagger$ & ``heterogeneity is useless for NDCG'' & CI$>0$, $
 rates them more answerable when the user actually rated them than when matched on popularity$+$genre---i.e.\ it
 infers real user-specific knowledge from taste, not stereotype. $^\ddagger$G2 is a \emph{privileged upper bound}
 (the selector sees the full answerability table and true taste), not the realizable agent prize: it sizes the
-fuel, it does not claim it.}
+fuel, it does not claim it. The heterogeneity ICC quoted here ($0.174$) is a \emph{single-read, pre-equating}
+estimate; \S\ref{sec:flutter} shows it is inflated by presentation flutter and reports the corrected flutter-free trait
+ICCs ($0.043$ concept, $0.037$ attribute, $0.073$ item knows-well, $0.000$ item recognition). The gate passes under
+both, but the corrected figures are the ones to cite.}
 \label{tab:extgate}
 \end{table}
 
@@ -417,6 +420,98 @@ omits; pop-percentile is negative because it is collinear with ratings-count. Th
 \label{tab:extcoef}
 \end{table}
 
+\subsection{Presentation flutter and the equated trait: how reliable is an LLM judge?}\label{sec:flutter}
+The gate above (Table~\ref{tab:extgate}) reports a between-user heterogeneity ICC from a \emph{single} read of each
+profile. Before trusting any per-subject rate we asked a prior question: is the judge's answer even repeatable when
+the \emph{content} is held fixed and only the \emph{presentation} changes? \emph{(All quantities in this subsection
+derive from the $173/300$-user answerer grid; a frozen-grid re-run is pending and these numbers are directional.)}
+
+\paragraph{The shuffle probe.} We re-sent identical interview content to the judge three times, shuffling only
+question order and the order of the profile lines, with no caching ($3$ users spanning the knowledge range, $250$
+item-questions each, $9$ calls, \$0.05). Two things held and one moved. The \emph{value} channel is stable: on cells
+judged known in two re-sends the star ratings agree to MAE $0.12$--$0.21$, comparable to their agreement with the
+original read, and the \emph{within-call} ordering of items is preserved ($\approx0.99$). But the
+\emph{knowledge-commitment threshold}---the ``knows it well'' versus ``rough idea'' cutoff---slides wholesale per
+call: the know-well \emph{rate} on identical content spreads by up to $0.66$ across re-sends (the three users spread
+by $0.66$, $0.54$, $0.16$). The judge does not change \emph{what} it thinks the viewer knows relatively; it changes
+\emph{how much} of the scale it labels ``well'' from one call to the next.
+
+\paragraph{A score-plus-wobbly-cutoff model.} This is the signature of a stable latent value read through a
+\emph{fluctuating decision threshold}: each item carries a content-driven propensity, but the cutoff the judge applies
+to turn that propensity into a discrete knowledge label drifts by a per-call offset. Absolute per-subject \emph{rates}
+therefore inherit that offset; \emph{within-call contrasts} (near-vs-far, item-vs-item) do not.
+
+\paragraph{Equating the threshold out.} We remove the per-call offset by \emph{test-equating}~\cite{kolen04,lord80},
+the standard device for placing scores from different test forms onto a common scale. A joint per-call-intercept refit
+is unidentifiable here---the production battery was never shuffled, so a cell's call is a deterministic function of
+its question position and the call intercept is collinear with question-block difficulty---so we use a two-step
+estimator. First we remove each \emph{question}'s mean answer rate, absorbing all content difficulty; then, on the
+question-residualised outcome, a nested variance-components model~\cite{searle92} splits the remainder into a
+flutter-free per-viewer \emph{trait} (constant across a viewer's calls), a between-call \emph{presentation flutter},
+and a cell residual. Because content is removed first, any residual between-call, within-viewer variation is
+presentation, not content (Table~\ref{tab:flutterdecomp}).
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lrrrrr}
+\toprule
+channel (headline margin) & question & user-feat.\ & user-trait & call-flutter & cell resid.\\
+\midrule
+concept (knows-of-it)          & $54.6\%$ & $0.6\%$ & $1.3\%$ & $4.3\%$  & $39.3\%$\\
+entity/attribute (knows-of-it) & $32.0\%$ & $0.0\%$ & $2.5\%$ & $16.2\%$ & $49.3\%$\\
+item (knows-\emph{well})       & $34.3\%$ & $0.3\%$ & $4.5\%$ & $21.7\%$ & $39.2\%$\\
+\bottomrule
+\end{tabular}
+\caption{Variance decomposition of the judge's knowledge answer (share of $\mathrm{Var}(y)$; question-residualised
+nested variance components, $173$ users; headline margin per channel, item on the knows-\emph{well} cut since
+knows-of-it is saturated at ${\sim}99\%$). \textbf{Call-flutter}---the presentation artefact the shuffle probe
+exposed---is the largest user-side component on the attribute and item channels ($16$--$22\%$), dwarfing the stable
+\emph{user-trait} ($1$--$5\%$). It is neither viewer signal nor content. Rows sum to $\approx100\%$ up to
+crossed-design non-additivity.}
+\label{tab:flutterdecomp}
+\end{table}
+
+\paragraph{The corrected trait.} A single-read one-way ICC attributes \emph{all} user-level grouping to trait; because
+each viewer answers a channel over only a few calls, per-call flutter does not average out and inflates the apparent
+between-user fuel. Using only the flutter-free component sharply revises the picture (Table~\ref{tab:fluttericc}). The
+largest correction is the attribute channel, whose apparent heterogeneity ($0.092$) is mostly flutter and falls to
+$0.037$. Most tellingly, item \emph{recognition} (knows-of-it) has \emph{zero} trait ICC once equated: recognising a
+popular title is a property of the title, not a durable person dial. The item \emph{knows-well} margin retains a real
+but roughly-halved trait ($0.137\to0.073$).
+
+\begin{table}[h]\centering\small
+\begin{tabular}{llrrr}
+\toprule
+channel & margin & old one-way ICC & corrected trait ICC & flutter var.\\
+\midrule
+concept & knows-of-it        & $0.034$ & $0.043$          & $0.008$\\
+entity  & knows-of-it        & $0.092$ & $\mathbf{0.037}$ & $0.024$\\
+item    & knows-\emph{well}  & $0.137$ & $\mathbf{0.073}$ & $0.046$\\
+item    & recognition        & $0.016$ & $\mathbf{0.000}$ & $0.001$\\
+\bottomrule
+\end{tabular}
+\caption{Corrected (flutter-free) trait ICC versus the old single-read one-way ICC, per channel. The one-way estimate
+is inflated by presentation flutter; the corrected trait uses only the between-viewer component that survives equating.
+Item recognition is \emph{not} a person trait ($0.000$)---a viewer-level dial exists only for the item
+knows-\emph{well} and (weakly) the concept margins.}
+\label{tab:fluttericc}
+\end{table}
+
+\paragraph{Two independent routes agree on the flutter's size.} The equating estimates the item knows-well call-flutter
+variance at $0.046$ from question-residualised production data ($173$ users); the shuffle probe measures the same
+quantity directly---between-call know-well-rate variance on identical content---at $0.068$ ($3$ users). These two
+routes, one from re-sending identical content and one from population-scale residualisation, agree to the same order of
+magnitude, cross-validating the flutter's magnitude (the probe estimate is higher and far noisier on $3$ users, two of
+them extreme; the $173$-user equating is the number we cite).
+
+\paragraph{Scope and implication.} This finding currently rests on a $3$-user shuffle probe plus a single variance
+decomposition on the $173$-user grid. A formal repeat-study ($30$--$50$ users $\times\ge3$ shuffled re-sends, across
+judge snapshots) to pin the channel-by-channel flutter profile and its temperature/snapshot dependence is
+pre-registered future work, and no human-transfer or policy-value claim in this chapter leans on the corrected ICCs
+beyond sizing the fuel. Framed honestly, this is a methods contribution with a stated evidence scope. The general
+implication we draw is transferable: \emph{any} LLM-judge study reporting absolute per-subject rates from a single
+read is exposed to this threshold flutter, whereas within-presentation contrasts are robust to it---a reason to prefer
+contrast designs, or to equate, when an LLM is the measuring instrument.
+
 \subsection{LLM world-knowledge distillation: what does the judge read in a rating profile?}\label{sec:distill}
 The judge's per-user behaviour is, by construction, a function of the profile it was shown---titles, years, and
 star values alone. Distilling that behaviour into an \emph{interpretable} feature model therefore doubles as a
@@ -432,9 +527,37 @@ cross-validated elastic net, with stability reported across leave-one-user-out f
 extreme profiles motivates the design: the judge does not assign users a global ``knowledgeability'';
 it \emph{matches territory}---a viewer deeply literate in 1930s--60s Hollywood is judged unable to discuss a
 modern catalogue and vice versa---so per-question territory features, not user constants, carry the signal.
-% TABLE PLACEHOLDER: ranked feature-importance table + explained-variance decomposition per channel
-% (from D-ANS iteration-2; runs as of 2026-07-09). Also: the era-pocket case study (user 62120).
-\textbf{[Placeholder: iteration-2 importance table, per-channel explained-vs-residual decomposition, era-pocket check.]}
+The census confirms the territory reading. Ranked by summed leave-one-user-out importance across channels, the
+load-bearing profile features are \emph{era spread}, \emph{median obscurity} (rating-percentile depth),
+\emph{pre-1970 depth}, \emph{catalogue coverage}, and \emph{franchise share} (Table~\ref{tab:distillfeat})---all
+descriptors of \emph{where in the catalogue a viewer lives}, not a scalar ``knowledgeability''; signs are $\ge98\%$
+consistent across the $173$ leave-one-user-out refits. But the honest out-of-sample verdict is blunt, and we state
+it as such: a user-level census predicts \emph{concept} answerability across held-out users ($5$-fold CV
+$R^2\approx32\%$), yet does \emph{not} cross-validate for the item or attribute channels---item CV $R^2\approx3\%$
+(item knowledge is a question property, fame, not a person dial) and attribute CV $R^2$ is \emph{negative}
+($\approx-28\%$: the census overfits it in-sample, with no reliable observable-profile predictor of per-user attribute
+answerability beyond the question's own fame). The stable, generalising signal is the per-\emph{question}
+content-difficulty axis (fame and co-knowledge for items, membership size and pop-weight for concepts, filmography
+fraction for attributes, era alignment throughout), not a user constant.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lrrr}
+\toprule
+feature (LOUO fold-mean $\hat\beta$) & concept & entity & item\\
+\midrule
+era spread              & $-0.051$ & $-0.172$ & $-0.197$\\
+median obscurity pct.\  & $+0.086$ & $-0.143$ & $-0.115$\\
+pre-1970 depth (log-count) & $+0.062$ & $+0.103$ & $+0.164$\\
+catalogue coverage      & $-0.052$ & $-0.040$ & $-0.200$\\
+franchise share         & $-0.046$ & $+0.009$ & $-0.211$\\
+\bottomrule
+\end{tabular}
+\caption{Top profile features by summed leave-one-user-out importance ($173$ refits; standardized fold-mean
+coefficients, signs $\ge98\%$ consistent across folds). These are \emph{territory} descriptors. The user-level census
+generalises out-of-sample for the \emph{concept} channel only ($5$-fold CV $R^2\ 32\%$); it does not cross-validate
+for item ($3\%$) or attribute ($-28\%$), so per-user answerability there is not a stable, profile-readable trait.}
+\label{tab:distillfeat}
+\end{table}
 
 \paragraph{Claim boundary (stated everywhere this environment is used).} The LLM judge removes the
 \emph{self-authored} circularity the field's assumed answer models carry; it does \emph{not} establish
@@ -858,5 +981,8 @@ policies that here only tie the heuristic separate from it once answers stop bei
 \bibitem{cremonesi10} Cremonesi, Koren, Turrin. Performance of Recommender Algorithms on Top-N Recommendation Tasks. RecSys 2010.
 \bibitem{ross11} Ross, Gordon, Bagnell. A Reduction of Imitation Learning and Structured Prediction to No-Regret Online Learning (DAgger). AISTATS 2011.
 \bibitem{ng99} Ng, Harada, Russell. Policy Invariance Under Reward Transformations: Theory and Application to Reward Shaping. ICML 1999.
+\bibitem{kolen04} Kolen, Brennan. Test Equating, Scaling, and Linking: Methods and Practices. 2nd ed., Springer, 2004.
+\bibitem{lord80} Lord. Applications of Item Response Theory to Practical Testing Problems. Lawrence Erlbaum, 1980.
+\bibitem{searle92} Searle, Casella, McCulloch. Variance Components. Wiley, 1992.
 \end{thebibliography}
 \end{document}
