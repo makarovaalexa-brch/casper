@@ -1,0 +1,562 @@
+{
+ "banner": "CLEAN REFERENCE LADDER -- fold-v2 (.cache/i25_fold_v2_best.pt), 173 users, answerer-v1 WORKING grid, NO LLM calls. DIRECTIONAL 173/300 (grid unfrozen).",
+ "n_users": 173,
+ "n_cands": 180,
+ "fold_val": 0.4256030594269467,
+ "cold": {
+  "10": 0.15017198397641085,
+  "50": 0.15754136114428471
+ },
+ "item_static_insample": {
+  "10": {
+   "curve": [
+    0.2158,
+    0.2153,
+    0.2194,
+    0.2216,
+    0.2254,
+    0.2274,
+    0.2281,
+    0.2286,
+    0.2284,
+    0.2295,
+    0.2302,
+    0.2309,
+    0.2305,
+    0.2305,
+    0.2305,
+    0.2315,
+    0.2297,
+    0.228,
+    0.2279,
+    0.2274,
+    0.227,
+    0.2265,
+    0.2273,
+    0.2256
+   ],
+   "endpoint": {
+    "8": 0.22864084212997604,
+    "12": 0.23088158355928393,
+    "24": 0.22562040721801138
+   },
+   "anytime": {
+    "8": 0.22270487819162854,
+    "12": 0.2250566036669829,
+    "24": 0.2267992798563695
+   },
+   "max_decline": -0.0017998223898003096,
+   "max_decline_at_turn": 17
+  },
+  "50": {
+   "curve": [
+    0.2032,
+    0.2041,
+    0.2034,
+    0.2079,
+    0.2082,
+    0.2089,
+    0.2091,
+    0.2096,
+    0.2097,
+    0.2107,
+    0.2088,
+    0.2143,
+    0.2155,
+    0.2154,
+    0.217,
+    0.2159,
+    0.2172,
+    0.2195,
+    0.2174,
+    0.2162,
+    0.2183,
+    0.219,
+    0.2191,
+    0.2167
+   ],
+   "endpoint": {
+    "8": 0.2095686264464226,
+    "12": 0.21430509759544167,
+    "24": 0.2166812528984243
+   },
+   "anytime": {
+    "8": 0.20681609973588463,
+    "12": 0.20816456385433743,
+    "24": 0.21271692746920692
+   },
+   "max_decline": -0.0024216274458825904,
+   "max_decline_at_turn": 24
+  }
+ },
+ "concept_static_insample": {
+  "10": {
+   "curve": [
+    0.2176,
+    0.225,
+    0.2243,
+    0.2249,
+    0.2253,
+    0.2247,
+    0.2243,
+    0.2239,
+    0.2243,
+    0.2235,
+    0.2247,
+    0.2251,
+    0.2253,
+    0.2252,
+    0.2234,
+    0.2233,
+    0.2233,
+    0.2231,
+    0.2222,
+    0.2224,
+    0.2229,
+    0.2226,
+    0.2219,
+    0.2222
+   ],
+   "endpoint": {
+    "8": 0.22389359040338655,
+    "12": 0.22513889249116795,
+    "24": 0.22216797770739868
+   },
+   "anytime": {
+    "8": 0.22373727137407565,
+    "12": 0.2239569208137845,
+    "24": 0.22355223774199753
+   },
+   "max_decline": -0.0017677686633298384,
+   "max_decline_at_turn": 15
+  },
+  "50": {
+   "curve": [
+    0.2106,
+    0.2134,
+    0.2149,
+    0.216,
+    0.2157,
+    0.2154,
+    0.214,
+    0.2142,
+    0.2152,
+    0.2158,
+    0.2156,
+    0.2171,
+    0.2164,
+    0.2156,
+    0.2156,
+    0.2146,
+    0.2149,
+    0.2144,
+    0.2152,
+    0.2151,
+    0.2153,
+    0.2147,
+    0.2141,
+    0.2148
+   ],
+   "endpoint": {
+    "8": 0.2142385593874008,
+    "12": 0.2170582971506916,
+    "24": 0.21479588494393917
+   },
+   "anytime": {
+    "8": 0.21428901555409138,
+    "12": 0.21483218927309444,
+    "24": 0.2149428368373036
+   },
+   "max_decline": -0.0014776672597128782,
+   "max_decline_at_turn": 7
+  }
+ },
+ "anchor_check": {
+  "anytime10_T12": 0.2250566036669829,
+  "anchor": 0.2251,
+  "tol": 0.002,
+  "match": true
+ },
+ "item_static_faircrossfit": {
+  "10": {
+   "8": 0.2048072120411897,
+   "12": 0.20455481182316557,
+   "24": 0.20078614691061192
+  },
+  "50": {
+   "8": 0.2019858187562895,
+   "12": 0.2032631999907146,
+   "24": 0.20466806607203072
+  }
+ },
+ "contamination_insample_minus_fair@10": {
+  "8": {
+   "delta": 0.017897666150438835,
+   "ci": [
+    0.006800707210590241,
+    0.030561026920549628
+   ],
+   "n": 173,
+   "a": 0.22270487819162854,
+   "b": 0.2048072120411897
+  },
+  "12": {
+   "delta": 0.020501791843817334,
+   "ci": [
+    0.009428919302148637,
+    0.03287433769285753
+   ],
+   "n": 173,
+   "a": 0.2250566036669829,
+   "b": 0.20455481182316557
+  },
+  "24": {
+   "delta": 0.026013132945757547,
+   "ci": [
+    0.014372563756622679,
+    0.038326351753884484
+   ],
+   "n": 173,
+   "a": 0.2267992798563695,
+   "b": 0.20078614691061192
+  }
+ },
+ "full_profile": {
+  "10": {
+   "v2_fold": 0.35888286181408535,
+   "native": 0.49378405869711794,
+   "v2_minus_native": {
+    "delta": -0.13490119688303262,
+    "ci": [
+     -0.16808582240768574,
+     -0.1020725657404253
+    ],
+    "n": 173,
+    "a": 0.35888286181408535,
+    "b": 0.49378405869711794
+   }
+  },
+  "50": {
+   "v2_fold": 0.3780452843752254,
+   "native": 0.488272614803389,
+   "v2_minus_native": {
+    "delta": -0.1102273304281636,
+    "ci": [
+     -0.1322473912815357,
+     -0.08913778166112733
+    ],
+    "n": 173,
+    "a": 0.3780452843752254,
+    "b": 0.488272614803389
+   }
+  }
+ },
+ "orientation": {
+  "10": {
+   "static_t24": 0.22562040721801138,
+   "pct_of_v2fold": 62.9,
+   "pct_of_native": 45.7
+  },
+  "50": {
+   "static_t24": 0.2166812528984243,
+   "pct_of_v2fold": 57.3,
+   "pct_of_native": 44.4
+  }
+ },
+ "decoded_item_schedule": [
+  {
+   "kind": "item",
+   "key": 14234,
+   "name": "Hobbit: The Desolation of Smaug, The (2013)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 1262,
+   "name": "American Werewolf in London, An (1981)",
+   "cov": 0.988
+  },
+  {
+   "kind": "item",
+   "key": 680,
+   "name": "Truth About Cats & Dogs, The (1996)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 10955,
+   "name": "Watchmen (2009)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 1019,
+   "name": "Sleepers (1996)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 7531,
+   "name": "Fahrenheit 9/11 (2004)",
+   "cov": 0.994
+  },
+  {
+   "kind": "item",
+   "key": 2934,
+   "name": "Fatal Attraction (1987)",
+   "cov": 0.988
+  },
+  {
+   "kind": "item",
+   "key": 256,
+   "name": "Little Women (1994)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 7833,
+   "name": "Finding Neverland (2004)",
+   "cov": 0.988
+  },
+  {
+   "kind": "item",
+   "key": 1217,
+   "name": "Highlander (1986)",
+   "cov": 0.988
+  },
+  {
+   "kind": "item",
+   "key": 988,
+   "name": "Dumbo (1941)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 16117,
+   "name": "Spotlight (2015)",
+   "cov": 0.988
+  },
+  {
+   "kind": "item",
+   "key": 2783,
+   "name": "Dirty Dozen, The (1967)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 9620,
+   "name": "Thank You for Smoking (2006)",
+   "cov": 0.988
+  },
+  {
+   "kind": "item",
+   "key": 4399,
+   "name": "Ghost World (2001)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 1046,
+   "name": "Basic Instinct (1992)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 159,
+   "name": "Desperado (1995)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 4209,
+   "name": "Legally Blonde (2001)",
+   "cov": 0.988
+  },
+  {
+   "kind": "item",
+   "key": 1072,
+   "name": "People vs. Larry Flynt, The (1996)",
+   "cov": 1.0
+  },
+  {
+   "kind": "item",
+   "key": 3171,
+   "name": "Bull Durham (1988)",
+   "cov": 0.994
+  },
+  {
+   "kind": "item",
+   "key": 15912,
+   "name": "The Revenant (2015)",
+   "cov": 0.994
+  },
+  {
+   "kind": "item",
+   "key": 1661,
+   "name": "Wedding Singer, The (1998)",
+   "cov": 0.983
+  },
+  {
+   "kind": "item",
+   "key": 9813,
+   "name": "Stranger than Fiction (2006)",
+   "cov": 0.988
+  },
+  {
+   "kind": "item",
+   "key": 6406,
+   "name": "Monty Python's The Meaning of Life (1983)",
+   "cov": 0.988
+  }
+ ],
+ "decoded_concept_schedule": [
+  {
+   "kind": "concept",
+   "key": 231,
+   "name": "comic",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 154,
+   "name": "books",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 122,
+   "name": "beautifully filmed",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 269,
+   "name": "crime gone awry",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 274,
+   "name": "cult",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 291,
+   "name": "deadpan",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 163,
+   "name": "brilliant",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 235,
+   "name": "coming of age",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 107,
+   "name": "based on a book",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 129,
+   "name": "better than expected",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 62,
+   "name": "animals",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 285,
+   "name": "dark",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 54,
+   "name": "amazing cinematography",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 67,
+   "name": "anti-hero",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 260,
+   "name": "courage",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 86,
+   "name": "atmospheric",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 220,
+   "name": "clever",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 195,
+   "name": "chase",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 83,
+   "name": "assassins",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 282,
+   "name": "cynical",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 239,
+   "name": "competition",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 267,
+   "name": "creepy",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 121,
+   "name": "beautiful scenery",
+   "cov": 1.0
+  },
+  {
+   "kind": "concept",
+   "key": 307,
+   "name": "disappointing",
+   "cov": 1.0
+  }
+ ],
+ "concept_map_size": 1128,
+ "concept_unmapped_in_sched": 0,
+ "wall_min": 11.99,
+ "anomaly_concept_pool": "308 concepts answered by ALL 173 users (cov tie 1.0); top-60-by-coverage pool tie-breaks by Counter insertion order = ascending tagId = alphabetical genome tag order, so the concept pool is the alphabetically-first ~60 universally-answered tags. Mapping itself verified correct (tagId->tag from the grid cells; 0 unmapped). Concept-vs-item contrast is a lower bound for concepts."
+}
