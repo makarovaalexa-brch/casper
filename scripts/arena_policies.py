@@ -31,7 +31,7 @@ from arena_core import (TYPE_ITEM, TYPE_CONCEPT, TYPE_ENTITY, KIND_IMPL, KIND_EX
 
 CACHE = AC.CACHE_DIR
 SEED = AC.SEED
-PRIMARY_K = 50
+PRIMARY_K = 10   # PRIMARY = endpoint NDCG@10 (author directive 2026-07-10); @50 secondary
 
 
 # ============================================================ shared BLIND machinery (E7-symmetric)
@@ -461,7 +461,7 @@ def build_golbandi(arena, train_recs, max_depth=5, min_users=25, K=PRIMARY_K, ca
                    verbose=True, tag=""):
     """Tree growth on TRAIN (world-side construction; realized answers are training data -- E2).
     Split candidates = top-`cand_cap` by TRAIN answer rate (documented)."""
-    path = f"{CACHE}/golbandi31_d{max_depth}_n{len(train_recs)}{tag}.json"
+    path = f"{CACHE}/golbandi31_K{K}_d{max_depth}_n{len(train_recs)}{tag}.json"
     if os.path.exists(path):
         if verbose:
             print(f"[D] loaded cached Golbandi tree from {path}", flush=True)
@@ -549,7 +549,7 @@ def build_scorerA(arena, train_recs, n_samples=4000, M2=12, Tmax=24, K=PRIMARY_K
     simulated interviews on TRAIN users (world-side labels; E2). HistGBM."""
     from sklearn.ensemble import HistGradientBoostingRegressor
     import joblib
-    path = f"{CACHE}/scorerA31_n{len(train_recs)}_s{n_samples}{tag}.joblib"
+    path = f"{CACHE}/scorerA31_K{K}_n{len(train_recs)}_s{n_samples}{tag}.joblib"
     if os.path.exists(path):
         if verbose:
             print(f"[A] loaded cached GBM from {path}", flush=True)
