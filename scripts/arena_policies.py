@@ -77,8 +77,8 @@ def hypo_tokens(arena, z_scores, qidx, tokens, mu, sd):
     ch = int(arena.q_channel[qidx])
     emb = arena.Qemb[qidx]
     v = blind_value(arena, z_scores, mu, sd, qidx)
-    return tokens + [(ch, KIND_IMPL, LVL_KW, 0.0, FID_DATA, 0.0, emb),
-                     (ch, KIND_EXPL, LVL_ROUGH, 0.0, FID_EASE, float(v), emb)]
+    return tokens + [(ch, KIND_IMPL, LVL_KW, 0.0, FID_DATA, 0.0, emb, 0.0),
+                     (ch, KIND_EXPL, LVL_ROUGH, 0.0, FID_EASE, float(v), emb, 0.0)]
 
 
 # ============================================================ the interview runner (batched)
@@ -123,13 +123,12 @@ def run_policy(arena, recs, policy, Tmax, Ks=(50, 10), skip=False, verbose=False
                 used[i].add(qi)
                 a = arena.answered(uid, qi, ctx)
                 observed[i][qi] = arena.realized_branch(uid, qi, ctx)
+                tokens[i] += arena.tokens_for(uid, qi, ctx)   # v3.1: no-clue tokens FOLD too
+                if a and arena.is_liked_item(uid, qi, ctx):
+                    natives[i].append(int(arena.uni.bank[qi - arena.off_item]))
                 if skip and not a and len(used[i]) < arena.nQ:
-                    continue                     # b3: refused turn refunded
+                    continue                     # b3: refused turn refunded (its no-clue evidence kept)
                 asked[i].append(qi); ansf[i].append(bool(a))
-                if a:
-                    tokens[i] += arena.tokens_for(uid, qi, ctx)
-                    if arena.is_liked_item(uid, qi, ctx):
-                        natives[i].append(int(arena.uni.bank[qi - arena.off_item]))
                 break
         Z = arena.belief_z_batch(tokens, natives)
         z_cur = Z
@@ -197,7 +196,7 @@ def train_pop_prior(arena, train_recs):
 # ============================================================ b2: THE LEARNED STATIC (greedy)
 def _commit_q(arena, recs, ctxs, tokens, natives, qi):
     for i, r in enumerate(recs):
-        tk = arena.tokens_for(r["u"], qi, ctxs[i])
+        tk = arena.tokens_for(r["u"], qi, ctxs[i])            # incl no-clue tokens (v3.1)
         tokens[i] = tokens[i] + tk
         if arena.is_liked_item(r["u"], qi, ctxs[i]) and arena.answered(r["u"], qi, ctxs[i]):
             natives[i] = natives[i] + [int(arena.uni.bank[qi - arena.off_item])]
@@ -207,7 +206,7 @@ def prescreen_gains(arena, recs, K=PRIMARY_K, tag="", verbose=True):
     """1-question cohort NDCG gain for EVERY question from cold (one pass; cached). Used to (a)
     pre-screen the b2 greedy candidate set (documented compute deviation) and (b) define b3's
     value-ranked tail order."""
-    path = f"{CACHE}/prescreen_{tag}_n{len(recs)}_K{K}.json"
+    path = f"{CACHE}/pres31_{tag}_n{len(recs)}_K{K}.json"
     if os.path.exists(path):
         return np.array(json.load(open(path))["gain"])
     t0 = time.time()
@@ -241,7 +240,7 @@ def build_b2(arena, train_recs, Tmax=24, K=PRIMARY_K, prescreen_top=300, verbose
     """Greedy forward selection on TRAIN users (E2). Candidate set = top-`prescreen_top` questions
     by 1-question cohort gain (documented deviation from argmax-over-all; the pre-screen itself
     scans ALL 2,428 on the same cohort). RESUMES from partial cache; asserts full length (fix #2)."""
-    path = f"{CACHE}/b2v2_T{Tmax}_K{K}_n{len(train_recs)}{tag}.json"
+    path = f"{CACHE}/b2v31_T{Tmax}_K{K}_n{len(train_recs)}{tag}.json"
     seq, gains = [], []
     if os.path.exists(path):
         blob = json.load(open(path))
@@ -462,7 +461,7 @@ def build_golbandi(arena, train_recs, max_depth=5, min_users=25, K=PRIMARY_K, ca
                    verbose=True, tag=""):
     """Tree growth on TRAIN (world-side construction; realized answers are training data -- E2).
     Split candidates = top-`cand_cap` by TRAIN answer rate (documented)."""
-    path = f"{CACHE}/golbandi2_d{max_depth}_n{len(train_recs)}{tag}.json"
+    path = f"{CACHE}/golbandi31_d{max_depth}_n{len(train_recs)}{tag}.json"
     if os.path.exists(path):
         if verbose:
             print(f"[D] loaded cached Golbandi tree from {path}", flush=True)
@@ -478,10 +477,9 @@ def build_golbandi(arena, train_recs, max_depth=5, min_users=25, K=PRIMARY_K, ca
     def user_tokens(uid, path_q):
         toks = []; nat = []; ctx = ctxs[uid]
         for qi in path_q:
-            if arena.answered(uid, qi, ctx):
-                toks += arena.tokens_for(uid, qi, ctx)
-                if arena.is_liked_item(uid, qi, ctx):
-                    nat.append(int(arena.uni.bank[qi - arena.off_item]))
+            toks += arena.tokens_for(uid, qi, ctx)            # incl no-clue tokens (v3.1)
+            if arena.answered(uid, qi, ctx) and arena.is_liked_item(uid, qi, ctx):
+                nat.append(int(arena.uni.bank[qi - arena.off_item]))
         return toks, nat
 
     def grow(uids, path_q, depth):
@@ -551,7 +549,7 @@ def build_scorerA(arena, train_recs, n_samples=4000, M2=12, Tmax=24, K=PRIMARY_K
     simulated interviews on TRAIN users (world-side labels; E2). HistGBM."""
     from sklearn.ensemble import HistGradientBoostingRegressor
     import joblib
-    path = f"{CACHE}/scorerA2_n{len(train_recs)}_s{n_samples}{tag}.joblib"
+    path = f"{CACHE}/scorerA31_n{len(train_recs)}_s{n_samples}{tag}.joblib"
     if os.path.exists(path):
         if verbose:
             print(f"[A] loaded cached GBM from {path}", flush=True)
@@ -567,8 +565,9 @@ def build_scorerA(arena, train_recs, n_samples=4000, M2=12, Tmax=24, K=PRIMARY_K
         allq = rng.permutation(arena.nQ); pi = 0
         while len(used) < plen and pi < len(allq):
             qi = int(allq[pi]); pi += 1; used.add(qi)
+            toks += arena.tokens_for(uid, qi, ctx)            # incl no-clue tokens (v3.1)
             if arena.answered(uid, qi, ctx):
-                toks += arena.tokens_for(uid, qi, ctx); n_ans += 1
+                n_ans += 1
                 if arena.is_liked_item(uid, qi, ctx):
                     nat.append(int(arena.uni.bank[qi - arena.off_item]))
             else:

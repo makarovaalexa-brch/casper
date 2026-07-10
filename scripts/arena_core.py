@@ -15,11 +15,13 @@ WORLD (fix #7 -- the certification-chain repair):
   - UNIVERSE (fix #5, per the signed sheet): ALL judged questions = 1,128 concepts + 500 attributes
     (IMDb entities) + 800 bank items = 2,428. No pools, no coverage sampling; deterministic layout
     [concept | entity | item] (= generate_population's layout).
-  - Belief = the PICKED Deep-Sets fold-v3 (.cache/i25_fold_v3_best.pt). NOTE (documented deviation):
-    the fold was TRAINED on the hand-parameterized sampler world; it is deployed here as a FIXED
-    belief encoder on the gated world (mild distribution shift, same token vocabulary).
-  - LENIENT regime: know>=1 (rough/know_well) = answered; know=0 (no_clue) = REFUSAL = consumed
-    turn, belief unchanged (no token folded), user never dropped (E1).
+  - Belief = FOLD-V3.1 (.cache/i25_fold_v31_best.pt; NOCLUE_ABLATION verdict): the anti-surprise
+    retrain, val 0.4356 > v3 0.4311, decisive gates pass with G2b (+0.433) and G7 (+0.032) STRONGER.
+    NOTE (documented deviation): the fold was TRAINED on the hand-parameterized sampler world; it is
+    deployed FIXED on the gated world (mild distribution shift, same token vocabulary).
+  - LENIENT regime + v3.1 REFUSAL RULE: know>=1 = answered; know=0 = REFUSAL = consumed turn, user
+    never dropped (E1) -- and the no-clue token (with ANTI-SURPRISE) IS FOLDED (v3.1-fold+anti beats
+    v3-skip +0.0098 CI excl 0; the earlier skip rule + inert-no-clue caveat are SUPERSEDED).
   - CACHES (fix #4): per-cohort answer tables keyed by a config sha (seed, all cohort sizes, nq,
     models file sha) AND per-user known-set hashes verified on load; mismatch = recompute.
 
@@ -39,14 +41,14 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import i25_lib as L
-import i25_fold_v3 as FV3
+import i25_fold_v31 as FV31
 import dans_build as DB
 import dans_stages as DS
 from i25_fold_v3_sampler import (TYPE_ITEM, TYPE_CONCEPT, TYPE_ATTR, TYPE_ENTITY,
                                   LVL_ROUGH, LVL_KW, LVL_NEG, KIND_IMPL, KIND_EXPL,
                                   FID_DATA, FID_EASE, FID_LLM, CENTERED_FOLD)
 
-FOLD_CKPT = ".cache/i25_fold_v3_best.pt"
+FOLD_CKPT = ".cache/i25_fold_v31_best.pt"      # FOLD-V3.1 (no-clue anti-surprise; NOCLUE_ABLATION)
 MODELS21 = ".cache/dans/models_v21.json"
 EASE_V21 = ".cache/dans/ease_v21.npz"
 EQUATE_V21 = ".cache/dans/equate_v21.json"
@@ -108,7 +110,7 @@ class Arena:
         self.uni = DB.Universe(verbose=False)
         self.D = self.uni.D
         self.FR = L.Frozen(self.D)
-        self.model = FV3.FoldV3()
+        self.model = FV31.FoldV31()
         blob = torch.load(FOLD_CKPT, map_location="cpu")
         self.model.load_state_dict(blob["model"]); self.model.eval()
         self.fold_state = blob.get("state", {})
@@ -302,24 +304,29 @@ class Arena:
         return "dislike" if 0 <= v <= 1 else "like"
 
     def tokens_for(self, uid, qidx, ctx):
-        """Fold-v3 tokens for asking qidx (empty on refusal; refusals NEVER fold -- E1 + no-clue
-        caveat). Implicit token (level + surprise) + explicit token (4-level value, fidelity)."""
+        """FOLD-V3.1 tokens (8-field, incl ANTI-SURPRISE) for asking qidx. NEW REFUSAL RULE
+        (NOCLUE_ABLATION verdict): no_clue -> the implicit-NEGATIVE token IS FOLDED, carrying
+        anti-surprise = clip(-surprise, 0, 8) (expectedness of knowing); v3's skip rule and its
+        inert-no-clue caveat are SUPERSEDED by v3.1's measured semantics (expected refusals pull
+        away -0.059; v3.1-fold+anti beats v3-skip +0.0098 CI excl 0)."""
         t = ctx["table"]
         k = int(t["know"][qidx])
-        if k == 0:
-            return []
         ch = int(self.q_channel[qidx])
         emb = self.Qemb[qidx]
+        surp = float(t["surp"][qidx])
+        if k == 0:
+            anti = float(np.clip(-surp, 0.0, 8.0))
+            return [(ch, KIND_IMPL, LVL_NEG, surp, FID_DATA, 0.0, emb, anti)]
         lvl = LVL_KW if k == 2 else LVL_ROUGH
-        toks = [(ch, KIND_IMPL, lvl, float(t["surp"][qidx]), FID_DATA, 0.0, emb)]
+        toks = [(ch, KIND_IMPL, lvl, surp, FID_DATA, 0.0, emb, 0.0)]
         if qidx >= self.off_item and np.isfinite(t["crval"][qidx - self.off_item]):
             toks.append((ch, KIND_EXPL, LVL_ROUGH, 0.0, FID_DATA,
-                         float(t["crval"][qidx - self.off_item]), emb))
+                         float(t["crval"][qidx - self.off_item]), emb, 0.0))
         else:
             v = int(t["val"][qidx])
             if v >= 0:
                 fid = FID_EASE if k == 2 else FID_LLM
-                toks.append((ch, KIND_EXPL, LVL_ROUGH, 0.0, fid, float(VBIN_CENTERED[v]), emb))
+                toks.append((ch, KIND_EXPL, LVL_ROUGH, 0.0, fid, float(VBIN_CENTERED[v]), emb, 0.0))
         return toks
 
     def is_liked_item(self, uid, qidx, ctx):
@@ -329,15 +336,15 @@ class Arena:
         return j in ctx["known"] and ctx["known"][j] >= 4
 
     def belief_z_batch(self, tok_lists, native_lists):
-        return FV3.fold_batch(self.FR, self.model, tok_lists, native_lists)
+        return FV31.fold_batch(self.FR, self.model, tok_lists, native_lists)
 
     def belief_z(self, uid, asked_qidx, ctx):
         toks = []; native = []
         for qi in asked_qidx:
-            toks += self.tokens_for(uid, qi, ctx)
+            toks += self.tokens_for(uid, qi, ctx)          # incl no-clue tokens (v3.1 rule)
             if self.is_liked_item(uid, qi, ctx) and self.answered(uid, qi, ctx):
                 native.append(int(self.uni.bank[qi - self.off_item]))
-        return FV3.fold_np(self.FR, self.model, toks, native)
+        return FV31.fold_np(self.FR, self.model, toks, native)
 
     # ---- vectorised BLIND answerability (population per-question prior + belief alignment) ----
     def set_pop_prior(self, p0_q):
