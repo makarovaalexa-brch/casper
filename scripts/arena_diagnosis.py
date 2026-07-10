@@ -1,8 +1,11 @@
 """arena_diagnosis.py -- DIAGNOSIS SUITE (author-directed; runs against existing artifacts only).
 
+THE LIVE QUESTION (author, 2026-07-10): the free arms underfit (objective disease, accepted); the
+tethered arm ties b2 by construction. So: DOES ANY PROFITABLE BRANCH OFF b2 EXIST ON THIS DATA?
 D1 ORACLE ANATOMY: along true-table-oracle vs b2 trajectories on the same DEV users -- per-turn
-   divergence from b2, channel mix, answered-rate, prior-p_ans (granularity) trajectory, and a
-   frequency-vs-targeting decomposition of the oracle's edge.
+   divergence from b2, BRANCH RATE (how often the oracle's pick differs from b2's next question at
+   the same state) and the endpoint@10 gain when it does (THE BRANCH-GAIN NUMBER), channel mix,
+   answered-rate, granularity trajectory, frequency-vs-targeting decomposition. PRIMARY = NDCG@10.
 D2 MYOPIA TEST (decisive objective diagnosis): at ~500 states sampled along ORACLE trajectories,
    the realized 1-step gain (the scorer's own label) of (a) the oracle's actual pick vs (b) the
    pick b2 would make vs (c) the pick scorer-A would make. If 1-step labels do NOT favor oracle
@@ -27,7 +30,7 @@ from arena_policies import top_answerable, blind_scores
 
 MD = "experiments/ARENA_BUILD.md"
 Tmax = 24
-K = 50
+K = 10          # PRIMARY = NDCG@10 (author amendment 2026-07-10; @50 secondary)
 N_USERS = 100        # oracle-anatomy cohort (DEV-TEST prefix)
 N_STATES = 500
 ORACLE_M = 100       # same candidate cap as the eval's ttab
@@ -125,6 +128,15 @@ def main():
             print(f"    [diag] {i+1}/{len(dt)} users [{time.time()-t0:.0f}s]", flush=True)
 
     # ================= D1 anatomy ==============================================================
+    # BRANCH RATE: fraction of oracle states where its pick != b2's next-unused question
+    branch = 0; branch_tot = 0
+    for (i, t, toks, nat, used) in orc["states"]:
+        q_b2_next = next((q for q in b2_seq if q not in used), None)
+        if q_b2_next is not None:
+            branch_tot += 1
+            if orc["asked"][i][t] != q_b2_next:
+                branch += 1
+    branch_rate = branch / max(branch_tot, 1)
     div_turns = []
     for i in range(len(dt)):
         d = Tmax
@@ -238,7 +250,7 @@ def main():
            "failure: no 1-/2-step-label scorer, at any data scale, can capture this prize; "
            "sequence-level (multi-step rollout) labels or explicit lookahead are required. D1 shows "
            "what must be reproduced: the oracle's edge decomposition above.\n")
-    json.dump(dict(edge_total=edge_total, edge_freq=edge_freq, edge_targ=edge_targ,
+    json.dump(dict(primary='ndcg10', branch_rate=branch_rate, edge_total=edge_total, edge_freq=edge_freq, edge_targ=edge_targ,
                    div_turn_mean=float(np.mean(div_turns)), d2_ob=d_ob, d2_os=d_os,
                    frac_oge=frac_oge, d3_median_rank=med_rank, d3_top10=top10),
               open(f"{AC.CACHE_DIR}/diagnosis.json", "w"), indent=1, default=float)
