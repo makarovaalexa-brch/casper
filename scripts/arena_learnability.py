@@ -38,7 +38,9 @@ from arena_core import paired_ci, ndcg_at_k, TYPE_CONCEPT, TYPE_ENTITY, TYPE_ITE
 from arena_policies import (StaticSeq, Policy, top_answerable, run_policy)
 
 MD = "experiments/ARENA_BUILD.md"
-Tmax = 24; KS = (50, 10); K = 10
+Tmax = 24                # full diagnostic curve
+T_HEAD = 8               # HEADLINE budget (author correction: canonical = 8 questions)
+KS = (50, 10); K = 10
 N_LABEL_USERS = 200       # users for endpoint-return labels
 N_STATES_PER_USER = 6     # sampled states along b2 trajectory per user
 N_ACT = 12                # candidate actions labelled per state (incl b2's own next pick)
@@ -98,18 +100,18 @@ class EndpointScorer(Policy):
         return cand[int(np.argmax(self.gbm.predict(X)))]
 
 
-def rollout_endpoint(ar, rec, ctx, prefix_q, q, b2_seq):
-    """ENDPOINT NDCG@10 at T=24 of: prefix + q + b2-completion (skipping used). One fold+decode."""
+def rollout_endpoint(ar, rec, ctx, prefix_q, q, b2_seq, horizon=T_HEAD):
+    """ENDPOINT NDCG@10 at the HEADLINE budget (T=8) of: prefix + q + b2-completion. One fold."""
     used = set(prefix_q) | {q}
     order = list(prefix_q) + [q]
     for qq in b2_seq:
-        if len(order) >= Tmax:
+        if len(order) >= horizon:
             break
         if qq not in used:
             order.append(qq); used.add(qq)
     toks = []; nat = []
     uid = rec["u"]
-    for qq in order[:Tmax]:
+    for qq in order[:horizon]:
         toks += ar.tokens_for(uid, qq, ctx)
         if ar.answered(uid, qq, ctx) and ar.is_liked_item(uid, qq, ctx):
             nat.append(int(ar.uni.bank[qq - ar.off_item]))
@@ -136,8 +138,9 @@ def main():
           flush=True)
     b2_seq, b2_gain = AP.build_b2(ar, coh["train"][:300], Tmax=Tmax, K=10, prescreen_top=300)
     o_b2 = run_policy(ar, dt, StaticSeq("b2", b2_seq), Tmax, Ks=KS, tag="b2@10")
-    b2_ep = endpoint(o_b2)
-    print(f"[gate] rebuilt b2 endpoint@10 (DEV, n={len(dt)}) = {b2_ep:.4f}", flush=True)
+    b2_ep = endpoint(o_b2, 10, T_HEAD)
+    print(f"[gate] rebuilt b2 HEADLINE @10 at T={T_HEAD} (DEV, n={len(dt)}) = {b2_ep:.4f} "
+          f"(T24 diagnostic {endpoint(o_b2):.4f})", flush=True)
 
     # ================= PART 3: endpoint-return labels for class A =============================
     print("[gate] PART 3: endpoint-return labels (prefix + action + b2-completion rollouts) ...",
@@ -150,8 +153,8 @@ def main():
         # ENDPOINT@10 of taking that action then completing with b2
         toks = []; nat = []; used = set(); prefix = []
         n_ans = 0; n_ref = 0
-        state_ts = set(rng.choice(Tmax, size=N_STATES_PER_USER, replace=False).tolist())
-        for t in range(Tmax):
+        state_ts = set(rng.choice(T_HEAD, size=min(N_STATES_PER_USER, T_HEAD), replace=False).tolist())
+        for t in range(T_HEAD):
             if t in state_ts:
                 z = ar.belief_z_batch([toks], [nat])[0]
                 znorm = float(np.linalg.norm(z) + 1e-9)
@@ -198,7 +201,7 @@ def main():
         curves[iters] = (list(map(float, g.train_score_[:5])), float(g.train_score_[-1]),
                          float(g.validation_score_[-1]))
         o = run_policy(ar, dev_small, EndpointScorer(g, fa), Tmax, Ks=KS, tag=f"gate@it{iters}")
-        ckpt_eval[iters] = endpoint(o)
+        ckpt_eval[iters] = endpoint(o, 10, T_HEAD)
         print(f"    [gate ckpt max_iter={iters}] train loss {curves[iters][1]:.6f} "
               f"val loss {curves[iters][2]:.6f} | DEV(60) endpoint@10 {ckpt_eval[iters]:.4f}",
               flush=True)
@@ -214,9 +217,9 @@ def main():
     # ================= GATE evaluation: free endpoint-trained A vs rebuilt b2 =================
     print("[gate] evaluating FREE endpoint-trained A on DEV-TEST ...", flush=True)
     o_A = run_policy(ar, dt, EndpointScorer(gbm, fa), Tmax, Ks=KS, tag="A_endpoint")
-    a_ep = endpoint(o_A)
+    a_ep = endpoint(o_A, 10, T_HEAD)
     d = paired_ci([x - y for x, y in
-                   zip(o_A["curves"][10][:, Tmax], o_b2["curves"][10][:, Tmax])])
+                   zip(o_A["curves"][10][:, T_HEAD], o_b2["curves"][10][:, T_HEAD])])
     gate_pass = d["hi"] >= 0 and (d["lo"] > 0 or (d["lo"] <= 0 <= d["hi"]))
     # PASS = reaches (CI includes 0) or beats (CI>0); FAIL = CI entirely below 0
     gate_pass = not (d["hi"] < 0)
@@ -224,7 +227,7 @@ def main():
           f"{'PASS' if gate_pass else 'FAIL'}", flush=True)
 
     # ================= report ==================================================================
-    md("\n\n---\n\n## LEARNABILITY GATE (author directive 2026-07-10; PRIMARY = NDCG@10, T=24)\n\n")
+    md("\n\n---\n\n## LEARNABILITY GATE (author directive 2026-07-10; HEADLINE = NDCG@10 at T=8, curve to 24 diagnostic)\n\n")
     md("### 1. Update mechanism (from code, not assumption)\n\n")
     md("- **Class A** = sklearn HistGradientBoostingRegressor: STAGEWISE GRADIENT BOOSTING (trees "
        "added greedily on squared-error residuals; no SGD, no optimizer.step). Labels: realized "
@@ -265,7 +268,7 @@ def main():
            "waits. Candidate causes to check next: feature bottleneck (the state omits question "
            "identity), label noise vs signal (endpoint labels differ by ~one question out of 24), "
            "candidate-rule reachability, GBM capacity.\n")
-    json.dump(dict(primary="ndcg10", b2_ep10=b2_ep, a_endpoint_ep10=a_ep, delta=d,
+    json.dump(dict(primary="ndcg10@T8", b2_ep10=b2_ep, a_endpoint_ep10=a_ep, delta=d,
                    gate="PASS" if gate_pass else "FAIL", ckpt_eval=ckpt_eval,
                    n_labels=int(len(Y_all)), loss_moved=bool(loss_moved),
                    eval_rose=bool(eval_rose)),
