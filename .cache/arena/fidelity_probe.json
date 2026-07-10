@@ -1,0 +1,46 @@
+{
+ "n_users": 495,
+ "value_token": "loved(+1)",
+ "region": "top concept",
+ "prior": "native liked items",
+ "data": {
+  "dz_mean": 0.5240786752030008,
+  "dz_ci": [
+   0.5198848838703505,
+   0.5284400604014482
+  ],
+  "dscore_mean": -0.010307119591067535,
+  "dscore_ci": [
+   -0.011415136322529629,
+   -0.009121552299369465
+  ]
+ },
+ "ease": {
+  "dz_mean": 0.33687163839924583,
+  "dz_ci": [
+   0.3337922617727399,
+   0.3401067354327018
+  ],
+  "dscore_mean": -0.02070953749647044,
+  "dscore_ci": [
+   -0.02153565211127503,
+   -0.01983582691110746
+  ]
+ },
+ "llm": {
+  "dz_mean": 0.32251080462311893,
+  "dz_ci": [
+   0.318736749859542,
+   0.32614027898516124
+  ],
+  "dscore_mean": -0.028566067146532464,
+  "dscore_ci": [
+   -0.029322651815835876,
+   -0.027808741436462208
+  ]
+ },
+ "spread": 0.20156787057988185,
+ "rel_spread": 0.510961958018131,
+ "monotone_data_ge_ease_ge_llm": true,
+ "verdict": "OK: data >= ease > llm-style shift magnitudes (rel spread 51.1%) -- the fold trusts high-fidelity answers more, as designed."
+}
