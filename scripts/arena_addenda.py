@@ -71,7 +71,7 @@ def max_dip_ci(curve_mat, n_boot=3000, seed=0):
     return dip, float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))
 
 
-def main(n_seeds=3, b2_n=30, b2_cap=1030):
+def main(n_seeds=3, b2_n=120):
     t0 = time.time()
     res = json.load(open(RES))
     sel = res["selected_tau"]; cm = res["curves_mean"]
@@ -81,10 +81,12 @@ def main(n_seeds=3, b2_n=30, b2_cap=1030):
     print(f"[addenda] selected TAU={sel}; DEV-TEST endpoint@50 by class {leaders}; LEADER={leader}",
           flush=True)
 
-    ar = AC.Arena(n_item_universe=800)
+    ar = AC.Arena()
     coh = AC.make_cohorts(ar, n_train=1000, n_devval=80, n_devtest=160)
-    ar.prefill_answers(coh["train"], "train1000", verbose=False)
-    ar.prefill_answers(coh["devtest"], "devtest160", verbose=False)
+    cfg = coh["cfg"]
+    ar.prefill_answers(coh["train"], "train", cfg, verbose=False)
+    ar.prefill_answers(coh["devtest"], "devtest", cfg, verbose=False)
+    ar.set_pop_prior(AP.train_pop_prior(ar, coh["train"]))
     dt = coh["devtest"]
 
     md("\n\n---\n\n## RELIABILITY UPGRADES (author-directed addendum)\n\n")
@@ -100,7 +102,7 @@ def main(n_seeds=3, b2_n=30, b2_cap=1030):
     b2_eps = []; b2_seqs = []
     for si in range(n_seeds):
         sub = coh["train"][si * b2_n:(si + 1) * b2_n]
-        seq, _ = AP.build_b2(ar, sub, Tmax=Tmax, K=K, cand_cap=b2_cap, verbose=False, tag=f"_s{si}")
+        seq, _ = AP.build_b2(ar, sub, Tmax=Tmax, K=K, prescreen_top=200, verbose=False, tag=f"_s{si}")
         b2_seqs.append(seq)
         o = run_policy(ar, dt, StaticSeq("b2", seq), Tmax, Ks=KS)
         b2_eps.append(endpoint(o)); print(f"  [b2 seed {si}] endpoint@50={b2_eps[-1]:.4f}", flush=True)
@@ -121,10 +123,11 @@ def main(n_seeds=3, b2_n=30, b2_cap=1030):
     elif leader == "D":
         for si in range(n_seeds):
             sub = coh["train"][si * 200:(si + 1) * 200 + 200]
-            tree, tail = AP.build_golbandi(ar, sub, b2_seqs[0], max_depth=5, min_users=25,
-                                           verbose=False, tag=f"_s{si}")
-            o = run_policy(ar, dt, B2Anchored(f"D_s{si}", b2_seqs[0], GolbandiTree(tree, tail), sel["D"]),
-                           Tmax, Ks=KS)
+            tree = AP.build_golbandi(ar, sub, max_depth=5, min_users=25,
+                                     verbose=False, tag=f"_s{si}")
+            tail = AP.b3_tail(ar, coh["train"][:b2_n], b2_seqs[0], tag="_s0")
+            o = run_policy(ar, dt, B2Anchored(f"D_s{si}", b2_seqs[0],
+                           GolbandiTree(tree, b2_seqs[0], tail), sel["D"]), Tmax, Ks=KS)
             lead_eps.append(endpoint(o)); print(f"  [D seed {si}] endpoint@50={lead_eps[-1]:.4f}", flush=True)
         md(f"| D Golbandi (tau{sel['D']}) | {['%.4f' % e for e in lead_eps]} | "
            f"{np.mean(lead_eps):.4f} +/- {np.std(lead_eps):.4f} |\n")
@@ -150,9 +153,10 @@ def main(n_seeds=3, b2_n=30, b2_cap=1030):
                                seed=1000, tag="_s0")
         arms[leader] = B2Anchored(leader, b2_seqs[0], ScorerA(gbm, M=100, Tmax=Tmax), sel[leader])
     elif leader == "D":
-        tree, tail = AP.build_golbandi(ar, coh["train"][:200], b2_seqs[0], max_depth=5, min_users=25,
-                                       verbose=False, tag="_s0")
-        arms[leader] = B2Anchored(leader, b2_seqs[0], GolbandiTree(tree, tail), sel[leader])
+        tree = AP.build_golbandi(ar, coh["train"][:200], max_depth=5, min_users=25,
+                                 verbose=False, tag="_s0")
+        tail = AP.b3_tail(ar, coh["train"][:b2_n], b2_seqs[0], tag="_s0")
+        arms[leader] = B2Anchored(leader, b2_seqs[0], GolbandiTree(tree, b2_seqs[0], tail), sel[leader])
     else:
         mk = AskGradient(M=100) if leader == "B" else CATRouter(M=100)
         arms[leader] = B2Anchored(leader, b2_seqs[0], mk, sel[leader])

@@ -32,7 +32,7 @@ def _ci(x, seed=0):
 
 
 def main(n_users=200):
-    ar = AC.Arena(n_item_universe=800)
+    ar = AC.Arena()
     coh = AC.make_cohorts(ar, n_train=50, n_devval=n_users, n_devtest=10)
     users = coh["devval"][:n_users]
     dz = {k: [] for k, _ in FIDS}
@@ -44,14 +44,17 @@ def main(n_users=200):
         liked = [int(j) for j in ks if known[j] >= 4][:6]
         if len(liked) < 2:
             continue
-        # top concept by revealed relevance mass = the region we craft a value token about
-        mass = ar.S.item_tag[np.array(ks, np.int64)].sum(0)
+        # top concept by revealed member count = the region we craft a value token about
+        ind = np.zeros(ar.uni.ni, np.float64)
+        for j in ks:
+            if 0 <= int(j) < ar.uni.ni:
+                ind[int(j)] = 1.0
+        mass = np.asarray(ar.uni.tagM.dot(ind)).ravel()
         ctag = int(np.argmax(mass))
-        members = ar.S.concept_members[ctag]
+        members = ar.region_members(ctag)                    # concept qidx == tag rid (layout)
         if len(members) == 0:
             continue
-        emb = ar.q_emb_for_concept(ctag) if hasattr(ar, "q_emb_for_concept") else \
-            np.asarray(ar.S.region_emb(TYPE_CONCEPT, ctag), np.float32)
+        emb = ar.Qemb[ctag]
         native = liked
         # identical warm prior: native liked items, NO explicit token
         z0 = FV3.fold_np(ar.FR, ar.model, [], native)
