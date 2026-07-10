@@ -31,7 +31,7 @@ def md(t):
     open(MD, "a", encoding="utf-8").write(t)
 
 
-def endpoint(o, K=50, t=Tmax):
+def endpoint(o, K=10, t=Tmax):
     return float(np.nanmean(o["curves"][K][:, t]))
 
 
@@ -55,13 +55,14 @@ def main():
 
     # DEV-TEST (held-out) references from the main run
     dev = json.load(open(f"{AC.CACHE_DIR}/results.json"))["curves_mean"]
-    dev_ep = {a: dev[a]["ndcg50"][Tmax] for a in ("b2", "A_pure", "B_pure", "C_pure", "D_pure")}
+    dev_ep = {a: dev[a]["ndcg10"][Tmax] for a in ("b2", "A_pure", "B_pure", "C_pure", "D_pure")}
+    dev_ep50 = {a: dev[a]["ndcg50"][Tmax] for a in ("b2", "A_pure", "B_pure", "C_pure", "D_pure")}
 
     R = {}
     def run(name, pol):
         tt = time.time()
         R[name] = run_policy(ar, ins, pol, Tmax, Ks=KS, tag=name)
-        print(f"  [in-sample {name}] endpoint@50={endpoint(R[name]):.4f} "
+        print(f"  [in-sample {name}] endpoint@10={endpoint(R[name]):.4f} "
               f"[{(time.time()-tt)/60:.1f}m]", flush=True)
 
     print(f"[insample] {N_IN} users from the construction cohorts", flush=True)
@@ -71,8 +72,10 @@ def main():
     run("C_pure", B2Anchored("C_pure", b2_seq, CATRouter(M=100), 0))
     run("D_pure", GolbandiTree(gol_tree, b2_seq, tail))
 
-    b2e = R["b2"]["curves"][50][:, Tmax]
-    md("\n\n---\n\n## IN-SAMPLE DIAGNOSTIC (author-directed): which disease is the DEV tie?\n\n")
+    b2e = R["b2"]["curves"][10][:, Tmax]
+    md("\n\n---\n\n## IN-SAMPLE DIAGNOSTIC (author-directed; PRIMARY = NDCG@10, author amendment 2026-07-10): which disease is the DEV tie?\n\n")
+    md("NOTE: the pure arms are the FREE (untethered) policies; the tethered TAU=24 variants tie "
+       "b2 BY CONSTRUCTION and are NOT adaptivity results (labelled as such in the main table).\n\n")
     md(f"b2 + PURE (tau=0) adaptive classes evaluated on {N_IN} users FROM THEIR OWN TRAINING "
        "cohorts (b2/D constructed on train[:300]; A labelled on train[:1000]; these 200 are a "
        "subset of both). Interpretation rule (pre-stated): win in-sample but tie/lose held-out = "
@@ -81,18 +84,19 @@ def main():
        "(no training cohort): in-sample == held-out by construction, rows labelled accordingly. "
        "D (tree + b2 tail) is superset-of-static by construction: its in-sample number must be "
        ">= b2's or the harness is miswired (sanity check).\n\n")
-    md("| arm | in-sample @50 T24 | vs b2 in-sample (paired) | DEV-TEST @50 T24 (n=160) | "
-       "in-sample - DEV gap |\n|---|--:|---|--:|--:|\n")
+    md("| arm | in-sample @10 T24 | vs b2 in-sample (paired @10) | DEV-TEST @10 T24 (n=160) | "
+       "in-sample - DEV gap | in-sample @50 (secondary) |\n|---|--:|---|--:|--:|--:|\n")
     verdicts = []
     for name in ("b2", "A_pure", "B_pure", "C_pure", "D_pure"):
         o = R[name]
         e = endpoint(o)
         dvs = "--" if name == "b2" else _fmt(paired_ci(
-            [x - y for x, y in zip(o["curves"][50][:, Tmax], b2e)]))
+            [x - y for x, y in zip(o["curves"][10][:, Tmax], b2e)]))
         gap = e - dev_ep[name]
-        md(f"| {name} | {e:.4f} | {dvs} | {dev_ep[name]:.4f} | {gap:+.4f} |\n")
+        e50 = float(np.nanmean(o["curves"][50][:, Tmax]))
+        md(f"| {name} | {e:.4f} | {dvs} | {dev_ep[name]:.4f} | {gap:+.4f} | {e50:.4f} |\n")
         if name != "b2":
-            d = paired_ci([x - y for x, y in zip(o["curves"][50][:, Tmax], b2e)])
+            d = paired_ci([x - y for x, y in zip(o["curves"][10][:, Tmax], b2e)])
             if d["lo"] > 0:
                 verdicts.append((name, "wins IN-SAMPLE -> the DEV tie is a GENERALIZATION GAP "
                                        "(data/regularization fixable)"))
@@ -105,10 +109,10 @@ def main():
     md("\n**Disease verdicts (one line per class):**\n")
     for n, v in verdicts:
         md(f"- {n}: {v}\n")
-    dd = paired_ci([x - y for x, y in zip(R["D_pure"]["curves"][50][:, Tmax], b2e)])
+    dd = paired_ci([x - y for x, y in zip(R["D_pure"]["curves"][10][:, Tmax], b2e)])
     md(f"- harness sanity (D superset-of-static): D in-sample vs b2 = {_fmt(dd)}; "
        f"{'OK (>= b2 within CI)' if dd['hi'] >= 0 else 'FLAG: D BELOW b2 in-sample -- investigate'}\n")
-    json.dump({a: endpoint(R[a]) for a in R}, open(f"{AC.CACHE_DIR}/results_insample.json", "w"),
+    json.dump({a: {'ndcg10': endpoint(R[a]), 'ndcg50': float(np.nanmean(R[a]['curves'][50][:, Tmax]))} for a in R}, open(f"{AC.CACHE_DIR}/results_insample.json", "w"),
               indent=1)
     print(f"[insample] DONE [{(time.time()-t0)/60:.1f}m]", flush=True)
 

@@ -30,7 +30,7 @@ def md(t):
     open(MD, "a", encoding="utf-8").write(t)
 
 
-def endpoint(o, K=50, t=Tmax):
+def endpoint(o, K=10, t=Tmax):
     return float(np.nanmean(o["curves"][K][:, t]))
 
 
@@ -68,7 +68,7 @@ def main():
     def run(name, pol, skip=False):
         tt = time.time()
         R[name] = run_policy(ar, dt, pol, Tmax, Ks=KS, skip=skip, tag=name)
-        print(f"  [big {name}] endpoint@50={endpoint(R[name]):.4f} "
+        print(f"  [big {name}] endpoint@10={endpoint(R[name]):.4f} "
               f"[{(time.time()-tt)/60:.1f}m]", flush=True)
 
     print(f"[bigdev] n={len(dt)} DEV-TEST users; running all arms except b4/ctx", flush=True)
@@ -80,27 +80,42 @@ def main():
     run("A_pure", B2Anchored("A_pure", b2_seq, ScorerA(gbm, M=100, Tmax=Tmax), 0))
     run("B_pure", B2Anchored("B_pure", b2_seq, AskGradient(M=100), 0))
     run("C_pure", B2Anchored("C_pure", b2_seq, CATRouter(M=100), 0))
+    # b4 re-run on the first 160 users only (documented compute exception) for the @10 paired CI
+    tt = time.time()
+    R["b4_160"] = run_policy(ar, dt[:160], B4Myopic(M=100), Tmax, Ks=KS, tag="b4_160")
+    print(f"  [big b4_160] endpoint@10={endpoint(R['b4_160']):.4f} [{(time.time()-tt)/60:.1f}m]",
+          flush=True)
 
-    b2e = R["b2"]["curves"][50][:, Tmax]
-    md("\n\n---\n\n## ENLARGED DEV-TEST (n=600; coordinator reliability addendum)\n\n")
+    b2e = R["b2"]["curves"][10][:, Tmax]
+    md("\n\n---\n\n## ENLARGED DEV-TEST (n=600; PRIMARY = NDCG@10, author amendment 2026-07-10)\n\n")
     md(f"All results rows re-run on {len(dt)} synthetic DEV-TEST users (the n=160 cohort is a "
        "prefix; same world, same constructions). EXCEPTIONS, documented: b4 kept at its n=160 "
        "verdict (-0.0588 [-0.0835,-0.0344] vs b2 -- already decisive; 25min/160users compute); "
        "context arms stay n=50 (labelled, never cited). A/B/C at their DEV-VAL-selected TAU=24 are "
        "IDENTICAL to b2 by construction -- the tie is EXACT (delta==0), not a statistical claim; "
        "their pure TAU=0 variants are re-run in full below.\n\n")
-    md("| arm | @50 T24 | @10 T24 | anytime@10 | @50 T8 | @50 T16 | vs b2 @50 T24 (paired, MDE) |\n"
-       "|---|--:|--:|--:|--:|--:|---|\n")
-    for name in ("b0", "b1", "b2", "b3", "D", "A_pure", "B_pure", "C_pure"):
+    md("| arm | @10 T24 | @50 T24 (secondary) | anytime@10 | @10 T8 | @10 T16 | vs b2 @10 T24 "
+       "(paired, MDE) |\n|---|--:|--:|--:|--:|--:|---|\n")
+    for name in ("b0", "b1", "b2", "b3", "D", "A_pure", "B_pure", "C_pure", "b4_160"):
+        if name not in R:
+            continue
         o = R[name]
-        d = paired_ci([x - y for x, y in zip(o["curves"][50][:, Tmax], b2e)])
+        ref = b2e if name != "b4_160" else R["b2"]["curves"][10][:160, Tmax]
+        d = paired_ci([x - y for x, y in zip(o["curves"][10][:, Tmax], ref)])
         dv = "--" if name == "b2" else _fmt(d)
-        md(f"| {name} | {endpoint(o):.4f} | {endpoint(o,10):.4f} | {anytime(o):.4f} | "
-           f"{endpoint(o,50,8):.4f} | {endpoint(o,50,16):.4f} | {dv} |\n")
-    md("| A/B/C (sel TAU=24) | = b2 | = b2 | = b2 | = b2 | = b2 | EXACT tie by construction |\n")
-    d0 = paired_ci([x - y for x, y in zip(R["b0"]["curves"][50][:, Tmax], b2e)])
-    md(f"\nEnlarged-cohort MDE (vs b2 contrasts): ~{paired_ci([x - y for x, y in zip(R['D']['curves'][50][:, Tmax], b2e)])['mde']:.4f} "
-       f"(was ~0.036 at n=160). b2 vs cold: {_fmt(d0)} (sign flipped: b2 above cold).\n")
+        lab = name if name != "b4_160" else "b4 (n=160, documented)"
+        md(f"| {lab} | {endpoint(o):.4f} | {endpoint(o,50):.4f} | {anytime(o):.4f} | "
+           f"{endpoint(o,10,8):.4f} | {endpoint(o,10,16):.4f} | {dv} |\n")
+    md("| A/B/C (sel TAU=24) | = b2 | = b2 | = b2 | = b2 | = b2 | EXACT tie by construction "
+       "(NOT an adaptivity result) |\n")
+    d0 = paired_ci([x - y for x, y in zip(R["b0"]["curves"][10][:, Tmax], b2e)])
+    md(f"\nEnlarged-cohort MDE (@10 vs b2 contrasts): "
+       f"~{paired_ci([x - y for x, y in zip(R['D']['curves'][10][:, Tmax], b2e)])['mde']:.4f} "
+       f"(was ~0.036 @50 at n=160). b2 vs cold @10: {_fmt(d0)}.\n")
+    md("\nSeed-robustness note (author correction): seed validation applies to WIN claims; the DEV "
+       "outcome is ANCHORING-TIES, for which b2's own 3-seed spread (0.2801/0.2838/0.2814 @50, "
+       "sd 0.0015) is the relevant robustness line -- anchored arms inherit it identically; the "
+       "A-seed rows in the earlier addendum are tautological (A@tau24 == its b2 at every seed).\n")
     # b2 full decoded schedule (mechanism deliverable)
     md("\n### b2's full decoded schedule (the strongest fair static, 24 picks in order)\n\n")
     for i, qi in enumerate(b2_seq):
