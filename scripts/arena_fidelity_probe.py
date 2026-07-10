@@ -1,4 +1,4 @@
-"""arena_fidelity_probe.py -- DIRECT FIDELITY-TRUST PROBE on the picked fold-v3 (author-driven).
+"""arena_fidelity_probe.py -- DIRECT FIDELITY-TRUST PROBE on the deployed fold-v3.1 (author-driven).
 
 For ~200 population val users: from an identical warm prior (the user's liked items), fold ONE explicit
 token that differs ONLY in fidelity class (data / ease / llm-style) at a FIXED stated value (loved).
@@ -18,7 +18,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import arena_core as AC
-import i25_fold_v3 as FV3
+import i25_fold_v31 as FV31
 from arena_core import (TYPE_CONCEPT, KIND_EXPL, KIND_IMPL, LVL_ROUGH, LVL_KW,
                         FID_DATA, FID_EASE, FID_LLM)
 
@@ -57,11 +57,11 @@ def main(n_users=200):
         emb = ar.Qemb[ctag]
         native = liked
         # identical warm prior: native liked items, NO explicit token
-        z0 = FV3.fold_np(ar.FR, ar.model, [], native)
+        z0 = FV31.fold_np(ar.FR, ar.model, [], native)
         base = float(np.mean(ar.FR.decode_np(z0[None, :])[0][members]))
         for name, fid in FIDS:
-            tok = [(TYPE_CONCEPT, KIND_EXPL, LVL_ROUGH, 0.0, fid, 1.0, emb)]  # fixed value=loved
-            z = FV3.fold_np(ar.FR, ar.model, tok, native)
+            tok = [(TYPE_CONCEPT, KIND_EXPL, LVL_ROUGH, 0.0, fid, 1.0, emb, 0.0)]  # fixed value=loved
+            z = FV31.fold_np(ar.FR, ar.model, tok, native)
             dz[name].append(float(np.linalg.norm(z - z0)))
             dsc[name].append(float(np.mean(ar.FR.decode_np(z[None, :])[0][members]) - base))
         n += 1
