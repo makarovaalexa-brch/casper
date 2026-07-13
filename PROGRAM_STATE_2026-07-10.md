@@ -26,6 +26,43 @@ no leaks, no clairvoyance, no self-authored circularity. Deadline gravity: ECIR 
 - Beliefs: kmap co-knowledge embeddings; LOUO judged-grid MF; the fitted pmodel (per-arena
   recalibration mandatory).
 
+### ★ THE SET+MULTINOMIAL RECOMMENDER — an INTERVIEW-COMPATIBLE instrument (LIVE, 2026-07-13/14)
+**Spec `ARCH_SET_MULTINOMIAL.md` · belief layer `PLAN_BELIEF_SET.md` · code `scripts/set_mn.py`.**
+Potentially a CONTRIBUTION IN ITS OWN RIGHT: every strong recommender we have (a0c, RecVAE, EASE) takes a
+FIXED DENSE catalog vector, so it cannot represent a 3-answer interview, an open-vocabulary concept, or a
+continuous query — it must fold the whole catalog as zeros. Every interview-native encoder we have was
+non-SOTA. This architecture is the first that is BOTH.
+
+- **The insight**: INPUT and OUTPUT are separable. The pre-VAE's collapse at an 18k catalog was its
+  listwise-over-TOKENS objective, NOT its set-encoder. So: keep the arbitrary-SET encoder, and score with a
+  MULTINOMIAL decoder over ITEMS ONLY (Mult-VAE/RecVAE class). Concepts never enter the softmax => no collapse.
+- **Token fusion (FiLM)**: `token = gamma[rating] (*) item_emb + beta[rating]`, learned tables over the 10
+  half-star levels, init gamma=1/beta=0 => at init the token IS the pure additive token (imposes nothing), can
+  LEARN negation, and is ~100x cheaper than a per-token MLP. It also PRESERVES the a0c warm-start geometry
+  instead of scrambling it — the measured reason it out-learns the concat-MLP.
+- **No teacher anchor** (lam=0): the a0c z-distillation term was a CEILING ("be a0c"), is UNAVAILABLE in the
+  interview regime (a0c cannot encode a 5-token set), and cost a dense forward pass per batch. a0c is kept as
+  INIT only (item embeddings + decoder warm-start).
+- **Belief pooling** (`--pool belief`, built, NOT yet compared): conjugate-Gaussian posterior replaces the
+  attention pool. `z0`=prior mean, per-token LEARNED precision `lambda_t`, `z = z0 + s*(mu - z0)`.
+  VERIFIED AT INIT: empty set -> z0 EXACTLY (max|z-z0| = 1.5e-08 => cold-start = popularity by IDENTITY), and
+  prior weight decays 1.000 (n=0) -> 0.428 (n=1) -> 0.003 (n=256) => SHRINKAGE is structural, not tuned.
+
+**STATUS — HONEST. THE GATE IS NOT YET CLEARED.**
+| run | config | ep1 | ep2 | gate | a0c |
+|---|---|---|---|---|---|
+| pa4 | concat-MLP + teacher anchor | 0.4077 / 0.2593 | (killed) | 0.486 | 0.4961 |
+| **pb2** | **FiLM + lam=0 (LIVE, converging)** | **0.4407 / 0.2998** | **0.4512 / 0.3018** | 0.486 | 0.4961 |
+| pb3 | + belief pool (chained, one-variable) | pending | | | |
+Full-profile NDCG@10 / tail. pb2 is CLIMBING but BELOW the 0.486 gate; per-epoch gains are shrinking
+(+0.0105 at ep2). It may yet plateau short — if it does, we report that, we do not reframe it.
+CAVEAT: pa4-vs-pb2 confounds TWO changes (token AND anchor) and their wall-clock is not comparable (pa4 ran
+under CPU contention from stray processes). It is a directional call, NOT an ablation. pb2-vs-pb3 IS a clean
+one-variable ablation (aggregator only).
+**Why it matters if it clears**: a SOTA-class recommender that natively eats an arbitrary set is the missing
+substrate for the whole program — interviews, concepts, refusals, and Paper C's CONTINUOUS query all become
+"one more token in the same space", with no architecture change.
+
 ### Science (findings that survive every audit to date)
 - THE FLUTTER: an LLM judge's knowledge-commitment threshold slides with presentation (rate spread
   up to 0.66 same-content; stars stable). Novel methods finding; every LLM-judge study in the
