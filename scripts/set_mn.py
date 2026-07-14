@@ -373,9 +373,17 @@ def cmd_pb(args):
     base = load_arena_base(); ni = base["ni"]; NT = ni + NC
     PB_NI[0] = ni
     ck = torch.load(os.path.join(OUT, args.base + ".pt"), map_location="cpu")
-    log("[pb] base=%s (full-profile %.4f)" % (args.base, ck.get("full", float("nan"))))
+    # AUTO-DETECT the pool from the base checkpoint. A belief checkpoint carries lam_head/log_p0/pscale; an
+    # attention encoder would silently IGNORE them and we would train a different model than we think.
+    pool = "belief" if any(k.startswith(("lam_head", "log_p0", "pscale")) for k in ck["student"]) else "attn"
+    if pool != args.pool:
+        log("[pb] pool AUTO-DETECTED from %s: %s (flag said %s -- using the checkpoint)"
+            % (args.base, pool, args.pool))
+    log("[pb] base=%s (full-profile %.4f) pool=%s%s"
+        % (args.base, ck.get("full", float("nan")), pool,
+           "  [BELIEF: z carries a precision]" if pool == "belief" else "  [point estimate z only]"))
 
-    student = SetEncoder(NT, token_mode="film", pool=args.pool, nlev=NLEV, nknow=3)
+    student = SetEncoder(NT, token_mode="film", pool=pool, nlev=NLEV, nknow=3)
     decoder = nn.Linear(D, ni)
     sd = ck["student"]
     with torch.no_grad():
@@ -410,7 +418,7 @@ def cmd_pb(args):
     lens = np.array([len(u["items"]) for u in users]); order = np.argsort(lens)
     batches_all = make_batches(users, order)
     log("[pb] %d train users w/ answerer rows | tokens %d (items %d + concepts %d) | DECODER FROZEN | pool=%s"
-        % (len(users), NT, ni, NC, args.pool))
+        % (len(users), NT, ni, NC, pool))
     log("[pb] %d adaptive batches" % len(batches_all))
 
     start_ep = 0; best = -1.0; bad = 0
