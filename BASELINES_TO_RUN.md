@@ -56,32 +56,50 @@ from the recommendable set. Reported ML-25M NDCG@10: **.3390 / .3594 / .3709 / .
 **HOW TO RUN:** extract the top-k item ORDERING, feed that fixed question sequence into OUR answerer + OUR
 recommender + OUR NDCG@10. Apples-to-apples on the POLICY only. 2-4 days.
 
-### ☠☠ UNRESOLVED CONFLICT — DO NOT CITE THIS PAPER FOR "STATIC BEATS ADAPTIVE" UNTIL THE PDF IS READ
-The lit agent **CONTRADICTED ITSELF** on the single most load-bearing fact:
-- its DETAILED report: *"QGSLIM **is static**... QBandit (Christakopoulou'16 + **Thompson sampling** over a
-  PureSVD LFM) **is dynamic**"* — i.e. the curve below IS static-vs-adaptive;
-- its FINAL summary: *"Greedy SLIM does **NOT** show 'static beats adaptive' — it compares **two STATIC**
-  questionnaires."*
-**BOTH CANNOT BE TRUE.** Everything downstream depends on which is:
+### ✅ CONFLICT RESOLVED FROM THE PAPER'S OWN TEXT (arxiv.org/html/2406.06061v1, read 2026-07-14)
+The lit agent's DETAILED report was RIGHT; its FINAL SUMMARY was WRONG. **The curve below IS static-vs-adaptive.**
+Verbatim from the paper:
+- **QGSLIM is STATIC:** *"Our approach describes a **static questionnaire** but we believe that our ideas can be
+  easily extended to the dynamic setting."* Items are chosen in a PREPROCESSING phase; the same sequence goes to
+  every new user.
+- **QBandit is DYNAMIC:** Christakopoulou et al. 2016, **Thompson sampling**, LFM trained with **PureSVD**;
+  response-conditioned question selection. **The paper uses the words "static" and "dynamic" explicitly and
+  places QGSLIM in the first and QBandit in the second.**
 
-| ML-25M NDCG@10 | 5Q | 10Q | 15Q | 20Q |
+| ML-25M NDCG@10 (their Table 3) | 5Q | 10Q | 15Q | 20Q |
 |---|---|---|---|---|
-| QGSLIM (static?) | .3390 | .3594 | .3709 | .3752 |
-| QBandit (dynamic?) | .3382 | .3456 | .3221 | **.2916** |
+| **QGSLIM (STATIC)** | .3390 | .3594 | .3709 | **.3752** |
+| **QBandit (DYNAMIC)** | .3382 | .3456 | .3221 | **.2916** |
+**The dynamic method is level at 5Q and then COLLAPSES — it gets WORSE with more questions.**
 
-**ACTION: read the PDF and establish FROM THE TEXT whether QBandit is response-conditioned. Until then, cite
-nothing from it beyond the undisputed facts above.**
+**⚠ HOW TO READ THIS WITHOUT VIOLATING HARD RULE #2.** This is NOT evidence that adaptivity does not pay — our
+own 150k-user probe (+47% TAIL, no policy, no RL) settles that. It is evidence that **A THOMPSON-SAMPLING BANDIT
+OVER A PureSVD LFM IS A WEAK ADAPTIVE METHOD**, and the paper names the reason itself:
+> *"asking questions about popular items may have a negative effect ... if the recommender system is unable to
+> generalize."*
+**That is OUR probe's mechanism, stated from the losing side.** Their bandit chases POPULAR items (exactly what
+our static arm picks: The Usual Suspects, rank 8/800). Our cluster-adaptive arm asks **NICHE in-genre polarisers**
+(median rank 471/800). **Same ruler, same dataset, opposite outcome — and the difference is WHICH questions
+adaptivity is allowed to reach for.** This is a headline contrast for the paper, not a threat.
 
-### ⚠ IF THE DYNAMIC READING IS CORRECT, ITS MECHANISM APPLIES TO US — AND NOBODY HAS NAMED IT
-> *The adaptive method asks about the POPULAR items it would otherwise have RECOMMENDED — and since asked items
-> are EXCLUDED from the recommendable set, **ADAPTIVITY CANNIBALISES ITS OWN SLATE.***
-**WE HAVE EXACTLY THIS PROBLEM.** Our masking rule drops asked-and-answered items from the ranking, so every
-time Q asks about a film the user would have loved, **it burns that film out of its own top-10.**
-**=> CHECK IT IN OUR OWN RESULTS THE MOMENT THE TARGETS LAND.**
-Also cuts against the answerability story: GSLIM asks about items users KNOW only **34.4%** of the time vs
-QBandit's **48.7%** — the winner deliberately asks LESS ANSWERABLE questions. Plus a 103-person user study
-where the adaptive LFM method is statistically indistinguishable from a NON-PERSONALISED static recommender
-(52.6% vs 52.0%) while static-SLIM reaches 77.2%.
+### ⚠ CANNIBALISATION — CONFIRMED IN THEIR TEXT, AND IT APPLIES TO US
+**Their exclusion rule, verbatim: `I_Q ∩ I_R = ∅` — "to avoid trivial recommendations".** IDENTICAL to our
+masking rule. So when their bandit asks about the popular items it would otherwise have RECOMMENDED,
+**ADAPTIVITY CANNIBALISES ITS OWN SLATE** — and the more questions it asks, the more of its own top-10 it burns.
+**That is the shape of the .3382 → .2916 collapse.**
+**WE HAVE THE SAME EXCLUSION RULE, SO THE SAME EXPOSURE.** Every time our Q asks about a film the user would
+have loved, it burns that film out of its own top-10.
+**⇒ MEASURE IT THE MOMENT THE TARGETS LAND: what fraction of Q's picks would have been in the top-10 anyway?**
+**NOTE — WE MAY ALREADY BE IMMUNE, AND IT IS TESTABLE.** Our probe's adaptive arm asks NICHE items (rank
+471/800) under the SAME masking rule and still wins **+47% TAIL**. A niche item is rarely in the top-10 it would
+be cannibalising. **PREDICTION: cannibalisation cost scales with the POPULARITY of the asked item — which makes
+"ask niche" not just informative but CHEAP.** If that holds it is a genuine finding and it explains their curve.
+
+**⚠ AND IT CUTS AGAINST THE ANSWERABILITY STORY:** GSLIM asks about items users KNOW only **34.4%** of the time
+vs QBandit's **48.7%** — **the WINNER deliberately asks LESS ANSWERABLE questions.** Plus a 103-person user
+study where the adaptive LFM method is statistically indistinguishable from a NON-PERSONALISED static
+recommender (52.6% vs 52.0%) while static-SLIM reaches 77.2%. (Consistent with our own E0 null: answerability
+routing bought −0.0003. **Answerability is a CONSTRAINT, not an objective.**)
 
 ## GOLBANDI: RE-DERIVING HIS SPLIT FOR A RANKING LOSS IS ITSELF A CONTRIBUTION
 [VERIFIED] His efficiency rests on a SUFFICIENT-STATISTICS trick (compute for LOVERS+HATERS, derive UNKNOWNS by
