@@ -72,3 +72,14 @@ says where to point it.**
 3. **Before ANY claim that adaptivity does or does not pay: (a) use ALL the labelled data (153k users, not the
    3k val slice — a 3k run produced the OPPOSITE, and wrong, answer), and (b) report TAIL, not just FULL (the
    effect is 47% on tail and 6% on full).**
+
+## HARD RULE #3 — THE THEOREM IS CLOSED. THE EIGHT FAILED POLICIES ARE DEAD.
+1. **NEVER cite, re-derive, or reason from the non-adaptivity theorem again.** It is settled (HARD RULE #2) and
+   it BIASES the analysis into a spiral: every time it is invoked, the conclusion drifts back toward "adaptivity
+   cannot pay", which is FALSE and is contradicted by our own 150k-user measurement. It does not explain any
+   result in this project. Do not use it to predict a result. Do not use it to excuse one.
+2. **THE EIGHT FAILED POLICY RUNS ARE DEAD AND BURIED.** They go in **NO paper, in NO form**. They are not a
+   finding, not a contribution, not a caveat, not a "negative result". **They lost because THE MODELS WERE WEAK**
+   (V1 encoder). The recommender is now a 0.4852 set encoder — a different machine. Do not analyse them, do not
+   cite them, do not "explain" them. Forget them.
+3. The only live question about the policy is: **does it work on the STRONG model?** Test that.

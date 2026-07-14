@@ -36,7 +36,7 @@ de Rijke (RecSys 2018) found a STATIC questionnaire BEATS adaptive decision tree
 ranking by the task loss reverses the sign and wins by 47%.
 
 ## ⚠ WHAT THIS DOES *NOT* EXPLAIN (author's correction, 2026-07-14)
-I claimed this "retro-explains our year of nulls" — that **every one of the eight tied policies was
+I claimed this "retro-explains our year of nulls" — that **every one of [the old policy runs -- DEAD, not to be cited] was
 entropy/EIG-driven**. **THAT IS FALSE, and the author corrected it.** Our learned policies **DID optimise
 NDCG** — the policy ladder's own record says the direct-NDCG reward was adopted as the base
 ([[policy-ladder-ndcg-reward]]). So the objective was NOT our bug.
