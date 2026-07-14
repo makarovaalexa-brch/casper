@@ -35,12 +35,19 @@ de Rijke (RecSys 2018) found a STATIC questionnaire BEATS adaptive decision tree
 **That is exactly the -0.0068 above.** They published half of it in 2018; we can now show the OTHER half — that
 ranking by the task loss reverses the sign and wins by 47%.
 
-## ⭐ IT RETRO-EXPLAINS OUR ENTIRE YEAR
-Every one of the **eight tied policies** — and the **static entropy baseline they could not beat** — was
-**ENTROPY / EIG driven**. They were optimising the one criterion that provably collapses to a single list.
-The single note in our records that a **direct-NDCG reward** helped ([[policy-ladder-ndcg-reward]]: *"P1:
-direct-NDCG reward fixes belief-decoherence"*) was the one time we stepped over the line without knowing why.
-**Our year of nulls was not a fact about elicitation. It was a fact about our objective.**
+## ⚠ WHAT THIS DOES *NOT* EXPLAIN (author's correction, 2026-07-14)
+I claimed this "retro-explains our year of nulls" — that **every one of the eight tied policies was
+entropy/EIG-driven**. **THAT IS FALSE, and the author corrected it.** Our learned policies **DID optimise
+NDCG** — the policy ladder's own record says the direct-NDCG reward was adopted as the base
+([[policy-ladder-ndcg-reward]]). So the objective was NOT our bug.
+
+**The honest diagnosis is the author's: the policies lost because THE MODELS WERE WEAK.** They ran on the V1
+encoder. We now have a set encoder at 0.4852 full-profile. **That is the variable that changed, and it is the
+one to retest.**
+
+This result therefore stands as a finding about **CRITERIA** — an information-ranked policy loses to static,
+a task-loss-ranked policy wins by 47%, and the two orderings are near-orthogonal — and NOT as a diagnosis of
+our own history. Do not conflate them.
 
 ## THE CLAIM (falsifiable, and now demonstrated)
 > *Adaptive elicitation fails when you rank questions by how much you LEARN ABOUT THE USER, and succeeds when

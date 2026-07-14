@@ -71,8 +71,7 @@ class SetEncoder(nn.Module):
     """FAST set-encoder: tokens -> attend INTO m inducing points -> inducing points self-attend (global
     interaction) -> pool -> z. Permutation-invariant, ANY set length, real cross-token interaction, but NO
     per-token FFN (we only need a pooled belief) -> ~10-20x faster than full ISAB on 14k-token profiles."""
-    def __init__(self, ni, d=D, nhead=4, m=32, nlayers=2, token_mode="mlp", pool="attn", nlev=10, nknow=0,
-                 nchan=0):
+    def __init__(self, ni, d=D, nhead=4, m=32, nlayers=2, token_mode="mlp", pool="attn", nlev=10, nknow=0):
         super().__init__()
         self.ni = ni; self.d = d; self.token_mode = token_mode; self.pool = pool
         self.item_emb = nn.Embedding(ni, d)                        # init from a0c decoder factors
@@ -88,15 +87,6 @@ class SetEncoder(nn.Module):
         self.know_emb = nn.Embedding(nknow, d) if nknow else None
         if self.know_emb is not None:
             nn.init.zeros_(self.know_emb.weight)
-        # CHANNEL (Fable, 2026-07-14): a VOLUNTEERED "loved" is NOT the same observation as a PROBED
-        # "loved" -- it carries the user's own SALIENCE ranking and a framing-dependent MNAR selection
-        # (Marlin & Zemel CPT-v). Without this flag the open channel is OOD for the frozen trunk and the
-        # policy inherits an encoder that cannot read its best channel (Paper D: open recall 0.378/0.178).
-        # 0 = probed(closed) | 1 = volunteered-FAVOURITE | 2 = volunteered-HIDDEN-GEM.
-        # SEPARATE + ADDITIVE, init ZERO (additive null). Never multiplied into value.
-        self.chan_emb = nn.Embedding(nchan, d) if nchan else None
-        if self.chan_emb is not None:
-            nn.init.zeros_(self.chan_emb.weight)
         self.I = nn.Parameter(torch.randn(1, m, d) * 0.02)         # inducing points
         self.mab_in = MAB(d, nhead)                                # I attends to the set  (O(L*m), FF on m only)
         self.sab = nn.ModuleList([MAB(d, nhead) for _ in range(nlayers)])   # interaction among inducing points
@@ -112,15 +102,13 @@ class SetEncoder(nn.Module):
         self.last_prec = None                                      # z0 + s*(mu-z0) keeps the intercept EXACT
         self.head = nn.Linear(d + 1, d)                            # + log(1+m) set-size feature
 
-    def forward(self, ids, vals, pad, lvs=None, kn=None, ch=None):
+    def forward(self, ids, vals, pad, lvs=None, kn=None):
         b = ids.shape[0]
         e = self.item_emb(ids)
         if self.token_mode == "film":
             x = self.gamma(lvs) * e + self.beta(lvs)                                     # (B,L,d)  CHEAP
             if self.know_emb is not None and kn is not None:
                 x = x + self.know_emb(kn)                       # SEPARATE + ADDITIVE. Never multiplied.
-            if self.chan_emb is not None and ch is not None:
-                x = x + self.chan_emb(ch)                       # SEPARATE + ADDITIVE. Never multiplied.
         else:
             x = self.tok_mlp(torch.cat([e, vals.unsqueeze(-1)], dim=-1))                 # (B,L,d)
         h = self.mab_in(self.I.expand(b, -1, -1), x, key_padding_mask=pad)              # (B,m,d)
@@ -246,8 +234,6 @@ def make_input_target(u, rng, drop_max=0.5):
 NC = 1628
 NLEV = 15
 LV_REFUSE = 14
-NCHAN = 3          # 0 probed | 1 volunteered-FAVOURITE | 2 volunteered-HIDDEN-GEM
-LV_LOVED = 13      # a volunteered entity is, by construction, one the user LOVES
 RSD = "C:/dev/phd/casper/.cache/rich_signal"
 
 
@@ -302,25 +288,7 @@ def make_pb_example(u, K, V, rng):
     Target = liked items NOT revealed (leak-free)."""
     r = rng.random()
     its = u["items"]; n = len(its)
-    tid = []; sv = []; lv = []; kk = []; ch = []
-    # ---- OPEN CHANNEL (Paper D: our STRONGEST channel, 0.378/0.178). The user VOLUNTEERS an entity.
-    # FAVOURITE framing pulls the HEAD (popular); HIDDEN-GEM framing pulls the TAIL (distinctive) -- the
-    # measured -33pt popularity lever. We simulate the framing by sampling the volunteered film from the
-    # user's OWN liked set, weighted by popularity (favourite) or by INVERSE popularity (hidden gem).
-    # The token is flagged VOLUNTEERED so the encoder can learn that it is a different observation.
-    n_open = int(rng.integers(0, 3))                                # 0-2 open reveals per example
-    if n_open and len(u["liked"]):
-        lk = u["liked"]
-        pw = PB_POP[0][lk]
-        for _ in range(n_open):
-            gem = rng.random() < 0.5
-            w = (1.0 / (pw + 1.0)) if gem else (pw + 1.0)
-            w = w / w.sum()
-            j = int(rng.choice(lk, p=w))
-            tid.append(np.array([j], np.int64)); sv.append(np.zeros(1, np.float32))
-            lv.append(np.array([LV_LOVED], np.int64))               # volunteered => loved
-            kk.append(np.array([2], np.int64))                      # volunteered => know_well
-            ch.append(np.array([2 if gem else 1], np.int64))
+    tid = []; sv = []; lv = []; kk = []
     if r < 0.65:                                                   # items present (item-only or mixed)
         keep = rng.random(n) >= rng.uniform(0.0, 0.9)              # heavy dropout => short interviews too
         if not keep.any():
@@ -328,7 +296,6 @@ def make_pb_example(u, K, V, rng):
         ii_ = its[keep]; ss = u["sv"][keep]
         tid.append(ii_); sv.append(ss)
         lv.append(sv_to_level(ss)); kk.append(np.full(len(ii_), 2, np.int64))   # rated => know_well
-        ch.append(np.zeros(len(ii_), np.int64))                                 # PROBED
     if r >= 0.35:                                                  # concepts present (concept-only or mixed)
         k = int(rng.integers(1, 33))                               # log-uniform-ish 1..32 concept reveals
         cids = rng.choice(NC, size=k, replace=False)
@@ -337,20 +304,18 @@ def make_pb_example(u, K, V, rng):
         tid.append(cids.astype(np.int64) + PB_NI[0])               # concept token id = ni + c
         sv.append(np.zeros(k, np.float32))                         # value lives in the LEVEL, not the scalar
         lv.append(clv); kk.append(ckk)
-        ch.append(np.zeros(k, np.int64))                           # PROBED
     if not tid:
         return None
     tid = np.concatenate(tid); sv = np.concatenate(sv)
-    lv = np.concatenate(lv); kk = np.concatenate(kk); ch = np.concatenate(ch)
+    lv = np.concatenate(lv); kk = np.concatenate(kk)
     revealed = tid[tid < PB_NI[0]]
-    tgt = np.setdiff1d(u["liked"], revealed, assume_unique=False)   # leak-free: volunteered items are removed too
+    tgt = np.setdiff1d(u["liked"], revealed, assume_unique=False)   # leak-free
     if len(tgt) == 0:
         return None
-    return tid, sv.astype(np.float32), lv, kk, ch, tgt
+    return tid, sv.astype(np.float32), lv, kk, tgt
 
 
 PB_NI = [0]        # set to ni at startup (module-level so make_pb_example can see it)
-PB_POP = [None]    # item popularity (for the open-channel framing lever)
 
 
 def eval_concept_only(student, base, SPL, users, Wd, bd, ni, umapV, KV, VV, ks=(1, 2, 4, 8, 16, 32)):
@@ -407,11 +372,10 @@ def cmd_pb(args):
     not reshape it."""
     base = load_arena_base(); ni = base["ni"]; NT = ni + NC
     PB_NI[0] = ni
-    PB_POP[0] = base["cnt"].astype(np.float64)
     ck = torch.load(os.path.join(OUT, args.base + ".pt"), map_location="cpu")
     log("[pb] base=%s (full-profile %.4f)" % (args.base, ck.get("full", float("nan"))))
 
-    student = SetEncoder(NT, token_mode="film", pool=args.pool, nlev=NLEV, nknow=3, nchan=NCHAN)
+    student = SetEncoder(NT, token_mode="film", pool=args.pool, nlev=NLEV, nknow=3)
     decoder = nn.Linear(D, ni)
     sd = ck["student"]
     with torch.no_grad():
@@ -420,7 +384,7 @@ def cmd_pb(args):
         student.beta.weight[:10].copy_(sd["beta.weight"])
         named = dict(student.named_parameters())
         for kk_, vv_ in sd.items():
-            if kk_.startswith(("item_emb", "gamma", "beta", "know_emb", "chan_emb")):
+            if kk_.startswith(("item_emb", "gamma", "beta", "know_emb")):
                 continue
             if kk_ in named and named[kk_].shape == vv_.shape:
                 named[kk_].copy_(vv_)
@@ -475,16 +439,15 @@ def cmd_pb(args):
             L = max(len(e[0]) for e in exs); B = len(exs)
             ids = np.zeros((B, L), np.int64); vals = np.zeros((B, L), np.float32)
             lv = np.zeros((B, L), np.int64); kk = np.zeros((B, L), np.int64)
-            cn = np.zeros((B, L), np.int64)
             pad = np.ones((B, L), bool)
             tgt = torch.zeros((B, ni), dtype=torch.float32)
-            for r, (tid, sv, l_, k_, c_, tg) in enumerate(exs):
+            for r, (tid, sv, l_, k_, tg) in enumerate(exs):
                 n_ = len(tid)
-                ids[r, :n_] = tid; vals[r, :n_] = sv; lv[r, :n_] = l_; kk[r, :n_] = k_; cn[r, :n_] = c_
+                ids[r, :n_] = tid; vals[r, :n_] = sv; lv[r, :n_] = l_; kk[r, :n_] = k_
                 pad[r, :n_] = False
                 tgt[r, tg] = 1.0
             z = student(torch.from_numpy(ids), torch.from_numpy(vals), torch.from_numpy(pad),
-                        torch.from_numpy(lv), torch.from_numpy(kk), torch.from_numpy(cn))
+                        torch.from_numpy(lv), torch.from_numpy(kk))
             logits = z @ Wd.T + bd
             nll = -((F.log_softmax(logits, -1) * tgt).sum(-1) / tgt.sum(-1).clamp_min(1.0)).mean()
             opt.zero_grad(); nll.backward(); opt.step()
