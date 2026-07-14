@@ -48,6 +48,58 @@ direct comparator.
 
 ---
 
+## ⭐ GREEDY SLIM — OUR EXACT COMPETITOR ON OUR EXACT RULER (priority 1)
+[VERIFIED, and the facts below are NOT in dispute] ML-25M **UNFILTERED** (162,541 users / 59,047 items),
+**full-catalog NDCG@10, UNSAMPLED** (they cite Krichene & Rendle), **WITH a tail split**, questions EXCLUDED
+from the recommendable set. Reported ML-25M NDCG@10: **.3390 / .3594 / .3709 / .3752 at 5 / 10 / 15 / 20 Q.**
+**COST: ~19 MINUTES PER ROW** on ML-25M (they compute 20) => ~6h one-time preprocessing.
+**HOW TO RUN:** extract the top-k item ORDERING, feed that fixed question sequence into OUR answerer + OUR
+recommender + OUR NDCG@10. Apples-to-apples on the POLICY only. 2-4 days.
+
+### ☠☠ UNRESOLVED CONFLICT — DO NOT CITE THIS PAPER FOR "STATIC BEATS ADAPTIVE" UNTIL THE PDF IS READ
+The lit agent **CONTRADICTED ITSELF** on the single most load-bearing fact:
+- its DETAILED report: *"QGSLIM **is static**... QBandit (Christakopoulou'16 + **Thompson sampling** over a
+  PureSVD LFM) **is dynamic**"* — i.e. the curve below IS static-vs-adaptive;
+- its FINAL summary: *"Greedy SLIM does **NOT** show 'static beats adaptive' — it compares **two STATIC**
+  questionnaires."*
+**BOTH CANNOT BE TRUE.** Everything downstream depends on which is:
+
+| ML-25M NDCG@10 | 5Q | 10Q | 15Q | 20Q |
+|---|---|---|---|---|
+| QGSLIM (static?) | .3390 | .3594 | .3709 | .3752 |
+| QBandit (dynamic?) | .3382 | .3456 | .3221 | **.2916** |
+
+**ACTION: read the PDF and establish FROM THE TEXT whether QBandit is response-conditioned. Until then, cite
+nothing from it beyond the undisputed facts above.**
+
+### ⚠ IF THE DYNAMIC READING IS CORRECT, ITS MECHANISM APPLIES TO US — AND NOBODY HAS NAMED IT
+> *The adaptive method asks about the POPULAR items it would otherwise have RECOMMENDED — and since asked items
+> are EXCLUDED from the recommendable set, **ADAPTIVITY CANNIBALISES ITS OWN SLATE.***
+**WE HAVE EXACTLY THIS PROBLEM.** Our masking rule drops asked-and-answered items from the ranking, so every
+time Q asks about a film the user would have loved, **it burns that film out of its own top-10.**
+**=> CHECK IT IN OUR OWN RESULTS THE MOMENT THE TARGETS LAND.**
+Also cuts against the answerability story: GSLIM asks about items users KNOW only **34.4%** of the time vs
+QBandit's **48.7%** — the winner deliberately asks LESS ANSWERABLE questions. Plus a 103-person user study
+where the adaptive LFM method is statistically indistinguishable from a NON-PERSONALISED static recommender
+(52.6% vs 52.0%) while static-SLIM reaches 77.2%.
+
+## GOLBANDI: RE-DERIVING HIS SPLIT FOR A RANKING LOSS IS ITSELF A CONTRIBUTION
+[VERIFIED] His efficiency rests on a SUFFICIENT-STATISTICS trick (compute for LOVERS+HATERS, derive UNKNOWNS by
+subtraction — Unknowns being ~99% of users). **It is SPECIFIC TO SQUARED LOSS and does not survive a switch to
+NDCG. KOREN SAYS SO HIMSELF (§8):**
+> *"we would like to experiment with other cost functions, especially ones related to the quality of the top-K
+> item ranking. **The main challenge would be keeping computation efficient.**"*
+Verified details: ternary like(4-5*)/dislike(1-3*)/unknown; node predictor = the node's item MEAN; smoothing
+lambda1=200; ensemble weights **w_L=5, w_H=1, w_U=0.02, c=2** (a "like" is worth 5x a "dislike", **250x an
+"unknown"**); depth 6 => Netflix RMSE 0.97172. **No public code.**
+
+## CHEAP FLOOR BASELINES (Dacrema makes them awkward to skip)
+**MostPop** (<0.5d), **ItemKNN** (0.5d), **SLIM** (0.5d), **ADMM-SLIM** (1d), **Mult-DAE** (0.5d). ~1.5d total.
+Dacrema, Cremonesi & Jannach, **RecSys 2019 BEST LONG PAPER** [VERIFIED]: of 18 neural recommenders from top
+venues **only 7 reproduced**, and well-tuned classical baselines matched or beat most of them.
+**MeLU / TaNP: OUT OF SCOPE — and SAY SO explicitly rather than omitting silently** (rating prediction/MAE,
+~3,900-item content-rich catalogs, and MeLU runs a per-user MAML inner loop at TEST time).
+
 ## THE MINIMUM SET — the six a reviewer will demand
 | # | baseline | why | effort | code |
 |---|---|---|---|---|
