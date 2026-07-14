@@ -60,7 +60,9 @@ OFF_ITEM = 1628
 OUT = "C:/dev/phd/casper/.cache/vhead"
 os.makedirs(OUT, exist_ok=True)
 D = 512
-KCAND = 16          # candidates sampled per state when BUILDING TRAINING TARGETS (minibatch SGD, not a cap)
+KCAND = 16          # candidates sampled per state when BUILDING TRAINING TARGETS (minibatch SGD over the
+                    # (state, candidate) product; DECLARED to the author. All 800 would be ~107h.
+                    # Coverage: 150,238 x 16 / 800 ~= 3,005 pairs per candidate (~1,500 in the selection half).
 MAXT = 8            # interview length 1..8 (mid-interview states -- Fable fix #3)
 
 
@@ -164,12 +166,23 @@ def main():
             return enc(torch.from_numpy(ids), torch.zeros((B, L)), torch.from_numpy(pad),
                        torch.from_numpy(lv))
 
-    def tail_ndcg(z, us):
+    def tail_ndcg(z, us, picks=None):
+        """TAIL NDCG@10 of the belief z.
+        MASKING RULE (identical in targets and in eval -- Fable defect #1 was that they DIFFERED):
+          * mask every ASKED-AND-ANSWERED item (we now know the user's opinion -> not a recommendation), and
+          * mask the FOLDED CANDIDATE if it was answered.
+            Without this the target is CIRCULAR: fold 'user loves Blade Runner' -> the model ranks Blade
+            Runner first -> a large fake DCG bonus for asking about it.
+          * a REFUSED item stays RECOMMENDABLE: the user has told us they do not know it, which makes it a
+            legitimate (arguably ideal) recommendation. The turn is still burned."""
         sc = (z @ Wd.T + bd).numpy().astype(np.float64)
         out = np.zeros(len(us))
         for r, u in enumerate(us):
             s = sc[r].copy()
-            s[bank[asked[u]]] = -1e30                     # asked items are known -> not recommendable
+            a = asked[u]
+            s[bank[a[ANS[u, a]]]] = -1e30                 # asked AND ANSWERED -> known -> not recommendable
+            if picks is not None and ANS[u, picks[r]]:
+                s[bank[picks[r]]] = -1e30                 # *** THE FOLDED CANDIDATE. defect #1. ***
             s[head] = -1e30                               # TAIL: head items masked out
             hl = set(int(x) for x in held_t[u])
             o = np.argsort(-s)[:10]
@@ -178,32 +191,51 @@ def main():
         return out
 
     # ---------- STATE beliefs z (one encode per user) ----------
-    log("encoding states ...")
-    Z = np.zeros((N, D), np.float32); BASE = np.zeros(N)
-    for b in range(0, N, 2048):
-        us = list(range(b, min(b + 2048, N)))
-        z = encode([tokens_of(u) for u in us])
-        Z[us] = z.numpy(); BASE[us] = tail_ndcg(z, us)
-        if b % 20480 == 0:
-            log(f"  states {b}/{N}")
-    np.save(f"{OUT}/Z.npy", Z); np.save(f"{OUT}/BASE.npy", BASE)
+    # RESUME: the encoder pass is unaffected by the target bug, so Z is reusable. BASE is RECOMPUTED
+    # (it depends on the masking rule, which changed).
+    if os.path.exists(f"{OUT}/Z.npy"):
+        Z = np.load(f"{OUT}/Z.npy")
+        assert Z.shape == (N, D), f"stale Z {Z.shape} vs {(N, D)}"
+        log("Z reused from disk (encoder pass unaffected by the target bug)")
+    else:
+        log("encoding states ...")
+        Z = np.zeros((N, D), np.float32)
+        for b in range(0, N, 2048):
+            us = list(range(b, min(b + 2048, N)))
+            Z[us] = encode([tokens_of(u) for u in us]).numpy()
+            if b % 20480 == 0:
+                log(f"  states {b}/{N}")
+        np.save(f"{OUT}/Z.npy", Z)
+    BASE = np.zeros(N)
+    for b in range(0, N, 4096):
+        us = list(range(b, min(b + 4096, N)))
+        BASE[us] = tail_ndcg(torch.from_numpy(Z[us]), us)          # under the CORRECTED masking rule
+    np.save(f"{OUT}/BASE.npy", BASE)
     log(f"state tail-NDCG (before the next question): {BASE.mean():.4f}")
 
     # ---------- TRAINING TARGETS: realized tail NDCG after folding a sampled candidate ----------
     log(f"building targets: {N} states x {KCAND} sampled candidates ...")
     CU = np.zeros((N, KCAND), np.int64); CY = np.zeros((N, KCAND), np.float32)
+    t0 = time.time()
     for b in range(0, N, 512):
         us = list(range(b, min(b + 512, N)))
-        cand = rng.integers(0, nb, size=(len(us), KCAND))
-        flat, owner = [], []
+        flat, owner, picks = [], [], []
+        cand = np.zeros((len(us), KCAND), np.int64)
         for r, u in enumerate(us):
+            # DEFECT #2: never sample a candidate the user has ALREADY been asked. Re-asking is an INVALID
+            # ACTION (eval bans it), and appending its token twice would teach Q that re-asking sharpens the
+            # belief. Excluding invalid actions is not a data reduction.
+            pool = np.setdiff1d(np.arange(nb), asked[u], assume_unique=False)
+            c = rng.choice(pool, size=KCAND, replace=False)
+            cand[r] = c
             for j in range(KCAND):
-                flat.append(tokens_of(u, int(cand[r, j]))); owner.append(u)
+                flat.append(tokens_of(u, int(c[j]))); owner.append(u); picks.append(int(c[j]))
         z = encode(flat)
-        y = tail_ndcg(z, owner)
+        y = tail_ndcg(z, owner, np.array(picks))                   # <-- candidate MASKED (defect #1)
         CU[us] = cand; CY[us] = y.reshape(len(us), KCAND)
-        if b % 20480 == 0:
-            log(f"  targets {b}/{N}   ({(time.time()):.0f})")
+        if b % 10240 == 0 and b:
+            el = time.time() - t0
+            log(f"  targets {b}/{N}  {el/60:.0f}m elapsed, ETA {(el/b*(N-b))/60:.0f}m")
     np.save(f"{OUT}/CU.npy", CU); np.save(f"{OUT}/CY.npy", CY)
     log(f"targets done. mean realized {CY.mean():.4f} vs state base {BASE.mean():.4f}")
 
