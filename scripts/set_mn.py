@@ -71,7 +71,8 @@ class SetEncoder(nn.Module):
     """FAST set-encoder: tokens -> attend INTO m inducing points -> inducing points self-attend (global
     interaction) -> pool -> z. Permutation-invariant, ANY set length, real cross-token interaction, but NO
     per-token FFN (we only need a pooled belief) -> ~10-20x faster than full ISAB on 14k-token profiles."""
-    def __init__(self, ni, d=D, nhead=4, m=32, nlayers=2, token_mode="mlp", pool="attn"):
+    def __init__(self, ni, d=D, nhead=4, m=32, nlayers=2, token_mode="mlp", pool="attn", nlev=10, nknow=0,
+                 nchan=0):
         super().__init__()
         self.ni = ni; self.d = d; self.token_mode = token_mode; self.pool = pool
         self.item_emb = nn.Embedding(ni, d)                        # init from a0c decoder factors
@@ -80,8 +81,22 @@ class SetEncoder(nn.Module):
         # init gamma=1, beta~small  ->  token = item_emb + beta[r]  = the PURE ADDITIVE token (author's null).
         # The model can LEARN gamma negative (dislike-as-negation) if the data asks; nothing imposed.
         # ~100x cheaper than tok_mlp (2 lookups + elementwise vs a 0.5M-FLOP MLP per token).
-        self.gamma = nn.Embedding(10, d); self.beta = nn.Embedding(10, d)
+        self.gamma = nn.Embedding(nlev, d); self.beta = nn.Embedding(nlev, d)
         nn.init.ones_(self.gamma.weight); nn.init.normal_(self.beta.weight, std=0.02)
+        # KNOWLEDGE = a SEPARATE learned signal, ADDED to the token. NEVER multiplied into value (author rule).
+        # init ZERO => additive null: at start the knowledge level changes nothing; the model learns what it means.
+        self.know_emb = nn.Embedding(nknow, d) if nknow else None
+        if self.know_emb is not None:
+            nn.init.zeros_(self.know_emb.weight)
+        # CHANNEL (Fable, 2026-07-14): a VOLUNTEERED "loved" is NOT the same observation as a PROBED
+        # "loved" -- it carries the user's own SALIENCE ranking and a framing-dependent MNAR selection
+        # (Marlin & Zemel CPT-v). Without this flag the open channel is OOD for the frozen trunk and the
+        # policy inherits an encoder that cannot read its best channel (Paper D: open recall 0.378/0.178).
+        # 0 = probed(closed) | 1 = volunteered-FAVOURITE | 2 = volunteered-HIDDEN-GEM.
+        # SEPARATE + ADDITIVE, init ZERO (additive null). Never multiplied into value.
+        self.chan_emb = nn.Embedding(nchan, d) if nchan else None
+        if self.chan_emb is not None:
+            nn.init.zeros_(self.chan_emb.weight)
         self.I = nn.Parameter(torch.randn(1, m, d) * 0.02)         # inducing points
         self.mab_in = MAB(d, nhead)                                # I attends to the set  (O(L*m), FF on m only)
         self.sab = nn.ModuleList([MAB(d, nhead) for _ in range(nlayers)])   # interaction among inducing points
@@ -97,11 +112,15 @@ class SetEncoder(nn.Module):
         self.last_prec = None                                      # z0 + s*(mu-z0) keeps the intercept EXACT
         self.head = nn.Linear(d + 1, d)                            # + log(1+m) set-size feature
 
-    def forward(self, ids, vals, pad, lvs=None):
+    def forward(self, ids, vals, pad, lvs=None, kn=None, ch=None):
         b = ids.shape[0]
         e = self.item_emb(ids)
         if self.token_mode == "film":
             x = self.gamma(lvs) * e + self.beta(lvs)                                     # (B,L,d)  CHEAP
+            if self.know_emb is not None and kn is not None:
+                x = x + self.know_emb(kn)                       # SEPARATE + ADDITIVE. Never multiplied.
+            if self.chan_emb is not None and ch is not None:
+                x = x + self.chan_emb(ch)                       # SEPARATE + ADDITIVE. Never multiplied.
         else:
             x = self.tok_mlp(torch.cat([e, vals.unsqueeze(-1)], dim=-1))                 # (B,L,d)
         h = self.mab_in(self.I.expand(b, -1, -1), x, key_padding_mask=pad)              # (B,m,d)
@@ -217,6 +236,281 @@ def make_input_target(u, rng, drop_max=0.5):
     return inp, sv, tgt
 
 
+# ============================ PHASE B — CONCEPTS + ATTRIBUTES ============================
+# ONE INDEX SPACE (the pre-VAE recipe that worked): a concept is LITERALLY another entity id in the SAME
+# embedding table.  items [0, ni)  |  concepts+entities [ni, ni+NC).
+# LEVELS (15): 0-9 item half-star ; 10-13 concept ordinal (hated/meh/liked/loved) ; 14 = REFUSAL.
+# KNOWLEDGE (3): no_clue / rough_idea / know_well -- a SEPARATE ADDITIVE embedding, never multiplied.
+# PROVEN TWICE ALREADY (u1: concept-only cold k32=0.304 > intercept 0.2551 ; pre-VAE: attr-only 0.395->0.51).
+# THE HONEST NEW PART: this tests the recipe against the REALISTIC ANSWERER, not oracle member-means.
+NC = 1628
+NLEV = 15
+LV_REFUSE = 14
+NCHAN = 3          # 0 probed | 1 volunteered-FAVOURITE | 2 volunteered-HIDDEN-GEM
+LV_LOVED = 13      # a volunteered entity is, by construction, one the user LOVES
+RSD = "C:/dev/phd/casper/.cache/rich_signal"
+
+
+def load_answerer(tag):
+    K = np.load(RSD + "/mm_" + tag + "_know.npy")
+    V = np.load(RSD + "/mm_" + tag + "_val.npy")
+    uids = np.load(RSD + "/mm_" + tag + "_uids.npy")
+    return {int(u): r for r, u in enumerate(uids)}, K, V
+
+
+def concept_answers(row, K, V, cids):
+    """Answers from the DISTILLED ANSWERER. A REFUSAL IS AN EXPLICIT TOKEN, NOT AN ABSENCE -- it burns the
+    turn. (A policy allowed to dodge converges to the 94%-answerable equilibrium that killed E0.)"""
+    kn = K[row, cids].astype(np.int64)
+    vl = V[row, cids].astype(np.int64)
+    ans = (kn >= 1) & (vl >= 0)
+    lv = np.where(ans, 10 + np.clip(vl, 0, 3), LV_REFUSE).astype(np.int64)
+    kk = np.where(ans, np.clip(kn, 0, 2), 0).astype(np.int64)
+    return lv, kk
+
+
+def build_pb_users(base, umap):
+    """build_train_users + the uid (needed to index the answerer tables). Full data, no cap."""
+    tra_u = base["tra_u"]; tra_i = base["tra_i"]; tra_r = base["tra_r"]
+    o = np.argsort(tra_u, kind="stable")
+    tu, ti, tr = tra_u[o], tra_i[o], tra_r[o]
+    users = []
+    N = len(tu); b = 0
+    while b < N:
+        e = b
+        while e < N and tu[e] == tu[b]:
+            e += 1
+        uid = int(tu[b])
+        row = umap.get(uid)
+        if row is not None:
+            its = ti[b:e].astype(np.int64); rs = tr[b:e].astype(np.float64)
+            srt = np.argsort(its); its = its[srt]; rs = rs[srt]
+            liked = its[rs >= LO]
+            if len(liked) >= 2:
+                users.append(dict(items=its, sv=scale_rating(rs).astype(np.float32),
+                                  liked=liked, row=row))
+        b = e
+    return users
+
+
+def make_pb_example(u, K, V, rng):
+    """CONCEPT-FORCING CURRICULUM (the pre-VAE recipe: ATTR_REVEAL_P=0.5 -- half of all reveals are
+    concept-only, so concepts MUST carry the belief).
+      item-only (0.35) : strength preservation, so full-profile accuracy does not rot
+      CONCEPT-ONLY (0.35): forcing -- the belief must be built from concepts alone
+      mixed (0.30)     : the realistic interview
+    Target = liked items NOT revealed (leak-free)."""
+    r = rng.random()
+    its = u["items"]; n = len(its)
+    tid = []; sv = []; lv = []; kk = []; ch = []
+    # ---- OPEN CHANNEL (Paper D: our STRONGEST channel, 0.378/0.178). The user VOLUNTEERS an entity.
+    # FAVOURITE framing pulls the HEAD (popular); HIDDEN-GEM framing pulls the TAIL (distinctive) -- the
+    # measured -33pt popularity lever. We simulate the framing by sampling the volunteered film from the
+    # user's OWN liked set, weighted by popularity (favourite) or by INVERSE popularity (hidden gem).
+    # The token is flagged VOLUNTEERED so the encoder can learn that it is a different observation.
+    n_open = int(rng.integers(0, 3))                                # 0-2 open reveals per example
+    if n_open and len(u["liked"]):
+        lk = u["liked"]
+        pw = PB_POP[0][lk]
+        for _ in range(n_open):
+            gem = rng.random() < 0.5
+            w = (1.0 / (pw + 1.0)) if gem else (pw + 1.0)
+            w = w / w.sum()
+            j = int(rng.choice(lk, p=w))
+            tid.append(np.array([j], np.int64)); sv.append(np.zeros(1, np.float32))
+            lv.append(np.array([LV_LOVED], np.int64))               # volunteered => loved
+            kk.append(np.array([2], np.int64))                      # volunteered => know_well
+            ch.append(np.array([2 if gem else 1], np.int64))
+    if r < 0.65:                                                   # items present (item-only or mixed)
+        keep = rng.random(n) >= rng.uniform(0.0, 0.9)              # heavy dropout => short interviews too
+        if not keep.any():
+            keep[rng.integers(0, n)] = True
+        ii_ = its[keep]; ss = u["sv"][keep]
+        tid.append(ii_); sv.append(ss)
+        lv.append(sv_to_level(ss)); kk.append(np.full(len(ii_), 2, np.int64))   # rated => know_well
+        ch.append(np.zeros(len(ii_), np.int64))                                 # PROBED
+    if r >= 0.35:                                                  # concepts present (concept-only or mixed)
+        k = int(rng.integers(1, 33))                               # log-uniform-ish 1..32 concept reveals
+        cids = rng.choice(NC, size=k, replace=False)
+        clv, ckk = concept_answers(u["row"], K, V, cids)
+        ni_ = K.shape[1]                                           # unused; keep explicit
+        tid.append(cids.astype(np.int64) + PB_NI[0])               # concept token id = ni + c
+        sv.append(np.zeros(k, np.float32))                         # value lives in the LEVEL, not the scalar
+        lv.append(clv); kk.append(ckk)
+        ch.append(np.zeros(k, np.int64))                           # PROBED
+    if not tid:
+        return None
+    tid = np.concatenate(tid); sv = np.concatenate(sv)
+    lv = np.concatenate(lv); kk = np.concatenate(kk); ch = np.concatenate(ch)
+    revealed = tid[tid < PB_NI[0]]
+    tgt = np.setdiff1d(u["liked"], revealed, assume_unique=False)   # leak-free: volunteered items are removed too
+    if len(tgt) == 0:
+        return None
+    return tid, sv.astype(np.float32), lv, kk, ch, tgt
+
+
+PB_NI = [0]        # set to ni at startup (module-level so make_pb_example can see it)
+PB_POP = [None]    # item popularity (for the open-channel framing lever)
+
+
+def eval_concept_only(student, base, SPL, users, Wd, bd, ni, umapV, KV, VV, ks=(1, 2, 4, 8, 16, 32)):
+    """CONCEPT-ONLY COLD-START (the gate that the additive operator FAILED: 0.226 vs intercept 0.2551).
+    Concepts are sampled at RANDOM from the bank and answered by the REALISTIC ANSWERER -- refusals included,
+    and a refusal BURNS THE TURN. No cherry-picking answerable concepts."""
+    student.eval(); headmask = base["headmask"]
+    rng = np.random.default_rng(7)
+    out = {}
+    recs = [(u,) + SPL[u] for u in users if umapV.get(u) is not None]
+    with torch.no_grad():
+        # intercept: the empty set
+        z = student(torch.zeros((1, 1), dtype=torch.long), torch.zeros((1, 1)),
+                    torch.ones((1, 1), dtype=torch.bool), torch.zeros((1, 1), dtype=torch.long),
+                    torch.zeros((1, 1), dtype=torch.long))
+        sc0 = (z @ Wd.T + bd).numpy().astype(np.float64)[0]
+        ff = []
+        for u, profset, held, prof_r, held_r in recs:
+            tl = [j for j in held if held_r[j] >= LO]
+            if tl:
+                v = ndcg10(sc0, tl, profset, headmask, False)
+                if v is not None:
+                    ff.append(v)
+        out["intercept"] = round(float(np.mean(ff)), 4) if ff else float("nan")
+
+        for k in ks:
+            ff = []
+            for b in range(0, len(recs), 256):
+                ch = recs[b:b + 256]
+                B = len(ch)
+                ids = np.zeros((B, k), np.int64); lv = np.zeros((B, k), np.int64)
+                kk = np.zeros((B, k), np.int64)
+                for r, (u, profset, held, prof_r, held_r) in enumerate(ch):
+                    cids = rng.choice(NC, size=k, replace=False)
+                    a, c = concept_answers(umapV[u], KV, VV, cids)
+                    ids[r] = cids + ni; lv[r] = a; kk[r] = c
+                z = student(torch.from_numpy(ids), torch.zeros((B, k)),
+                            torch.zeros((B, k), dtype=torch.bool),
+                            torch.from_numpy(lv), torch.from_numpy(kk))
+                sc = (z @ Wd.T + bd).numpy().astype(np.float64)
+                for r, (u, profset, held, prof_r, held_r) in enumerate(ch):
+                    tl = [j for j in held if held_r[j] >= LO]
+                    if tl:
+                        v = ndcg10(sc[r], tl, profset, headmask, False)
+                        if v is not None:
+                            ff.append(v)
+            out["k%d" % k] = round(float(np.mean(ff)), 4) if ff else float("nan")
+    student.train()
+    return out
+
+
+def cmd_pb(args):
+    """PHASE B. DECODER FROZEN (author's staging): concepts must learn to SPEAK the decoder's language,
+    not reshape it."""
+    base = load_arena_base(); ni = base["ni"]; NT = ni + NC
+    PB_NI[0] = ni
+    PB_POP[0] = base["cnt"].astype(np.float64)
+    ck = torch.load(os.path.join(OUT, args.base + ".pt"), map_location="cpu")
+    log("[pb] base=%s (full-profile %.4f)" % (args.base, ck.get("full", float("nan"))))
+
+    student = SetEncoder(NT, token_mode="film", pool=args.pool, nlev=NLEV, nknow=3, nchan=NCHAN)
+    decoder = nn.Linear(D, ni)
+    sd = ck["student"]
+    with torch.no_grad():
+        student.item_emb.weight[:ni].copy_(sd["item_emb.weight"])
+        student.gamma.weight[:10].copy_(sd["gamma.weight"])
+        student.beta.weight[:10].copy_(sd["beta.weight"])
+        named = dict(student.named_parameters())
+        for kk_, vv_ in sd.items():
+            if kk_.startswith(("item_emb", "gamma", "beta", "know_emb", "chan_emb")):
+                continue
+            if kk_ in named and named[kk_].shape == vv_.shape:
+                named[kk_].copy_(vv_)
+        decoder.load_state_dict(ck["decoder"])
+        # CONCEPT WARM-START: pop-weighted MEMBER-BAG mean of the item embeddings (encoder-faithful init).
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from reconciled import ConceptBank
+        cb = ConceptBank(ni, base["cnt"])
+        M = cb.Mw.tocsr() if hasattr(cb.Mw, 'tocsr') else cb.Mw    # pop-weighted member bag
+        rs = np.asarray(M.sum(1)).ravel(); rs[rs == 0] = 1.0
+        E = (M @ sd["item_emb.weight"].numpy()) / rs[:, None]
+        student.item_emb.weight[ni:ni + M.shape[0]].copy_(torch.from_numpy(E).float())
+        log("[pb] concept rows warm-started from member-bags: %d rows, nnz %d" % (M.shape[0], M.nnz))
+    for p_ in decoder.parameters():
+        p_.requires_grad_(False)                                   # ***** DECODER FROZEN *****
+    Wd = decoder.weight.detach(); bd = decoder.bias.detach()
+
+    opt = torch.optim.AdamW(student.parameters(), lr=3e-4, weight_decay=1e-4)
+    umap, KT, VT = load_answerer("train")
+    umapV, KV, VV = load_answerer("val")
+    users = build_pb_users(base, umap)
+    SPLv = build_splits(base, SEEDS[0]); vusers = cohort(base, SPLv, "val")
+    lens = np.array([len(u["items"]) for u in users]); order = np.argsort(lens)
+    batches_all = make_batches(users, order)
+    log("[pb] %d train users w/ answerer rows | tokens %d (items %d + concepts %d) | DECODER FROZEN | pool=%s"
+        % (len(users), NT, ni, NC, args.pool))
+    log("[pb] %d adaptive batches" % len(batches_all))
+
+    start_ep = 0; best = -1.0; bad = 0
+    ckp = os.path.join(OUT, args.tag + ".pt")
+    if args.resume and os.path.exists(ckp):
+        blob = torch.load(ckp, map_location="cpu")
+        student.load_state_dict(blob["student"]); start_ep = blob.get("epoch", 0)
+        best = blob.get("full", -1.0)
+        if "opt" in blob:
+            opt.load_state_dict(blob["opt"])
+        log("[pb] RESUMED ep%d (full=%.4f)" % (start_ep, best))
+
+    f0, t0 = eval_student(student, None, base, SPLv, vusers, Wd, bd)
+    cc0 = eval_concept_only(student, base, SPLv, vusers, Wd, bd, ni, umapV, KV, VV)
+    log("[pb] INIT full=%.4f tail=%.4f (Phase-A base %.4f) | CONCEPT-ONLY %s"
+        % (f0, t0, ck.get("full", 0.0), cc0))
+
+    for ep in range(start_ep, args.epochs):
+        student.train(); rng = np.random.default_rng(100 + ep)
+        batches = list(batches_all); rng.shuffle(batches)
+        t_ep = time.time(); run = 0.0; nb = 0
+        for bat in batches:
+            exs = [e for e in (make_pb_example(users[i], KT, VT, rng) for i in bat) if e is not None]
+            if not exs:
+                continue
+            L = max(len(e[0]) for e in exs); B = len(exs)
+            ids = np.zeros((B, L), np.int64); vals = np.zeros((B, L), np.float32)
+            lv = np.zeros((B, L), np.int64); kk = np.zeros((B, L), np.int64)
+            cn = np.zeros((B, L), np.int64)
+            pad = np.ones((B, L), bool)
+            tgt = torch.zeros((B, ni), dtype=torch.float32)
+            for r, (tid, sv, l_, k_, c_, tg) in enumerate(exs):
+                n_ = len(tid)
+                ids[r, :n_] = tid; vals[r, :n_] = sv; lv[r, :n_] = l_; kk[r, :n_] = k_; cn[r, :n_] = c_
+                pad[r, :n_] = False
+                tgt[r, tg] = 1.0
+            z = student(torch.from_numpy(ids), torch.from_numpy(vals), torch.from_numpy(pad),
+                        torch.from_numpy(lv), torch.from_numpy(kk), torch.from_numpy(cn))
+            logits = z @ Wd.T + bd
+            nll = -((F.log_softmax(logits, -1) * tgt).sum(-1) / tgt.sum(-1).clamp_min(1.0)).mean()
+            opt.zero_grad(); nll.backward(); opt.step()
+            run += float(nll); nb += 1
+            if nb % 50 == 0:
+                log("  [pb] ep%d b%d/%d NLL=%.4f %.1fm" % (ep, nb, len(batches), run / nb,
+                                                           (time.time() - t_ep) / 60))
+        f, t = eval_student(student, None, base, SPLv, vusers, Wd, bd)
+        cc = eval_concept_only(student, base, SPLv, vusers, Wd, bd, ni, umapV, KV, VV)
+        log("[pb ep%d] NLL=%.4f full=%.4f tail=%.4f (%s) | CONCEPT-ONLY %s (%.1fm)"
+            % (ep + 1, run / max(nb, 1), f, t,
+               "HOLDS >= base" if f >= args.gate else "BELOW base",
+               cc, (time.time() - t_ep) / 60))
+        safe_save({"student": student.state_dict(), "decoder": decoder.state_dict(),
+                   "opt": opt.state_dict(), "epoch": ep + 1, "full": f, "tail": t}, ckp)
+        if f > best:
+            best = f; bad = 0
+            safe_save({"student": student.state_dict(), "decoder": decoder.state_dict(),
+                       "epoch": ep + 1, "full": f, "tail": t}, os.path.join(OUT, args.tag + "_best.pt"))
+        else:
+            bad += 1
+            if bad >= args.patience:
+                log("[pb] CONVERGED"); break
+    log("[pb] done best full-profile=%.4f" % best)
+
+
 def cmd_pa(args):
     """FORCED Phase A: train the set-encoder on the REAL objective (multinomial NLL of held-liked, a0c's own
     curriculum) with z-distillation demoted to an AUX anchor, decoder co-trained from a0c warm-start.
@@ -311,7 +605,9 @@ def cmd_pa(args):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["pa"])
+    ap.add_argument("cmd", choices=["pa", "pb"])
+    ap.add_argument("--base", default="pb2_best")
+    ap.add_argument("--gate", type=float, default=0.4852)
     ap.add_argument("--tag", default="pa1"); ap.add_argument("--epochs", type=int, default=10)
     ap.add_argument("--resume", action="store_true"); ap.add_argument("--patience", type=int, default=3); ap.add_argument("--lam", type=float, default=0.1); ap.add_argument("--token", choices=["mlp","film"], default="mlp"); ap.add_argument("--pool", choices=["attn","belief"], default="attn")
     a = ap.parse_args()
