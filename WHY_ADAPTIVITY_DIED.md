@@ -42,9 +42,43 @@ taste axis already reconstruct u*, so surplus STATIC queries are redundant **by 
 => **GRADED ANSWERS AND ADAPTIVITY ARE COMPLEMENTS. NEITHER PAYS ALONE.** The file's own words: *"This
 localizes the entire graded-continuity prize of Paper C to ADAPTIVITY."*
 
+### 0c. THE HOLE IN 0 -- STATIC8's STATIC ARM MAY BE UNDER-OPTIMIZED. DO NOT DECLARE VICTORY.
+A counter-evidence sweep (2026-07-14) found the key methodological fact of this literature: **"the size of a
+reported adaptivity gap is dominated by HOW THE NON-ADAPTIVE ARM WAS CONSTRUCTED."** (RL-BOED reports
+Random=1.624 on the same benchmark where DAD reports Random=8.303 -- a 6.7-nat gap in the *comparator*.)
+Now re-read STATIC8's own text **[V]**:
+> *"The best static-8 is the **raw D1 turn-means with ZERO further training** (0.3399). Gradient-optimizing the
+> static bank on any variant of the D1 objective **only makes it worse** (collapse or drift)."*
+**Our static arm COULD NOT BE OPTIMIZED -- every attempt collapsed (cross-turn |cos| 0.47 -> 0.82).** That is
+exactly the pattern the sweep finds across the field: **a TRAINED adaptive actor vs an UNTRAINED static bank.**
+STATIC8's own diagnosis ("a static reconstruction objective has a trivial minimum") argues the OBJECTIVE was
+wrong for static design -- NOT that no good static exists.
+
+**THE GENUINE TENSION (unresolved -- the live question):**
+- **FOR adaptivity:** our belief is NOT linear-Gaussian (learned attention fold-in) => information may genuinely
+  BE answer-dependent. **[V] Krause's escape clause: "for non-Gaussian models, sequential strategies can
+  strictly outperform a priori designs, EVEN WITH KNOWN PARAMETERS."**
+- **AGAINST:** **[V] Lecomte, Odor & Thiran (arXiv:2002.07336), verbatim: "If instead we are allowed to query
+  ANY SUBSET ... there is NO DIFFERENCE between the adaptive and the non-adaptive query complexities."**
+  **ADAPTIVITY REQUIRES AN IMPOVERISHED QUERY VOCABULARY.** Ours is maximally rich (continuous, 512-d).
+  This predicts static should TIE.
+These point OPPOSITE ways, and **STATIC8 is the only measurement that adjudicates them -- which is exactly why
+its static arm must be beyond reproach. It currently is not.**
+
+### 0d. THE DECISIVE RUN (the literature supplies the template)
+**[V] DAD's static baseline is NOT naive**: SG-BOED with the PCE bound, **JOINTLY optimizing all T designs
+before any observation** -- and adaptivity still doubles the information against it (temporal discounting,
+T=20: Fixed 2.518 -> DAD 5.021). **Build our static arm the same way.**
+**E2-HARD-STATIC**: jointly optimize all 8 queries **directly on the DOWNSTREAM objective (NDCG)**, from an
+**ACTOR-INDEPENDENT candidate pool** (NOT D1 turn-means; NOT the D1 training objective, whose static minimum is
+trivial by their own admission). Same selection/multiplicity budget as the actor. Seed-avg. Pre-registered MDE.
+- **Adaptive still wins => the win is REAL and Paper C's claim is safe.**
+- **Gap collapses => STATIC8 was an OPTIMIZATION ARTIFACT.** Report it.
+**I do not know which. Neither goes into a paper until this runs.**
+
 ---
 
-## 1. THE BOUNDARY (the reconciliation — this is the thesis)
+## 1. THE BOUNDARY (the reconciliation -- this is the thesis)
 > **A fixed questionnaire is optimal exactly when a question's information value is the same for everyone
 > regardless of what they have already said. The adaptive interviewer pays exactly when answers RELOCATE where
 > the information is — through a clean channel, below saturation budget, in proportion to the model uncertainty
