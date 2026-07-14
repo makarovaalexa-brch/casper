@@ -3,6 +3,58 @@ Every claim below is to be ATTACKED. If a claim dies, it dies here, not in revie
 
 ---
 
+## ⚠⚠⚠ C2 IS FALSIFIED AS WORDED. THE REPLACEMENT IS STRONGER. (lit sweep, 2026-07-14)
+
+**THE FALSIFIER — PERE, Nguyen et al., arXiv 2406.00973 (2024)** [venue UNVERIFIED, possibly UAI 2024 — CONFIRM].
+Same recommender (LightGCN / biVAE) across ALL arms; metric NDCG@10; and their STATIC arm is literally
+**Sepliarskaia's SPQ** (our own best supporting paper, used as their baseline). Adaptive WINS:
+| | PEO (static) | c-DPP (sequential, NOT adaptive) | PERE (adaptive) |
+|---|---|---|---|
+| Amazon-Books | 0.2218 | 0.2901 | **0.2918** |
+| Gowalla | 0.3108 | 0.3575 | **0.3616** |
+=> **"Nobody has shown adaptive beating static with the same recommender" IS DEAD. DO NOT WRITE IT.**
+
+**BUT THEIR OWN CONTROL SAVES US — AND MAKES THE CLAIM STRONGER.** `c-DPP` is a DIVERSITY selector over the
+un-queried items. **It is not adaptive at all.** It recovers **97% of PERE's entire margin over static**
+(0.2901 of 0.2918; 0.3575 of 0.3616). PERE's actual response-conditioned machinery contributes **+0.0017 /
++0.0041**. **THE VISIBLE WIN IS THE PIPELINE, NOT THE ADAPTIVITY.**
+
+### ⭐ C2′ — THE REPLACEMENT CLAIM (defensible against every primary source)
+> **No prior work has ATTRIBUTED an adaptive elicitation gain TO ADAPTIVITY ITSELF.** Where both arms appear
+> in one table with the recommender held FIXED, **either the static arm WINS** (Sepliarskaia RecSys 2018;
+> Greedy SLIM 2024 at realistic budgets) **or the adaptive win is NOT ATTRIBUTABLE** — PERE's own
+> NON-ADAPTIVE sequential control recovers **97%** of its margin over the static arm.
+**Only THREE papers in the corpus put both arms in one table**: Sepliarskaia (static wins), Greedy SLIM
+(static wins), PERE (adaptive wins, unattributable). Golbandi's win is ASYMMETRIC (tree node-means vs a
+seed-restricted item-item model, RMSE). **This makes the CONFOUND load-bearing rather than the OUTCOME** — and
+our job precise: **build the symmetric, ATTRIBUTABLE test nobody has built, and report the honest answer.**
+**PRESENT THE NEAR-MISSES IN A TABLE.** A "nobody has" claim defended by HIDING its neighbours dies; defended
+by DISPLAYING them, it is the strongest card we hold.
+
+### ⭐ C5′ — THE POLICY GETS A REAL DELTA AFTER ALL: **WE AMORTIZE A PRIVILEGED ORACLE**
+Task-utility-trained acquisition is **NOT new in recsys**: Golbandi 2011 (squared loss, explicitly
+*"deviate from... entropy or Gini impurity"*); **FacT-CRS (CIKM 2022)** splits on a **BPR ranking loss**;
+**UpsRec (WWW 2023)** is a **greedy NDCG selector**; Greedy SLIM (2024). **DROP the criterion novelty.**
+**BUT [VERIFIED]: UpsRec is a PRIVILEGED ORACLE** — it computes NDCG using *"the groundtruth items of the user
+(in the validation set)"* and **ASSUMES the answer will be "liked."** All 11 of its forward citations were
+swept: **NOBODY AMORTIZED IT.**
+> **OUR DELTA: a LEARNED, AMORTIZED, ANSWER-MARGINALIZED value head that needs NO GROUND TRUTH at selection
+> time and NO PER-CANDIDATE RECOMMENDER REFIT. UpsRec is the privileged greedy oracle we amortize.**
+**AND KOREN NAMED OUR GAP HIMSELF (WSDM 2011):** *"In the future we would like to experiment with other cost
+functions, especially ones related to the quality of the top-K item ranking."*
+**ALSO [VERIFIED]: NO BOED→recsys port exists** (TNDP/DAD/EPIG/ALINE un-ported). That corridor is our framing.
+⚠ **SELF PRIOR-ART: our own IJCNN 2024 paper already used "reduction in the recommender's loss" as a reward.**
+A reviewer can quote the author against her own "nobody". **Any "first" must explicitly scope our own paper out.**
+
+### ☠ THE HIGHEST-VALUE UNKNOWN — GET THIS PDF BEFORE WRITING A WORD
+**Hu & Yu, "Interview process learning for top-N recommendation", RecSys 2013, DOI 10.1145/2507157.2507205.**
+Abstract [VERIFIED]: *"our model is able to handle wide ranges of loss functions and can be used in
+collaborative ranking task."* **THAT IS GOLBANDI'S STATED FUTURE WORK, DONE IN 2013.** Paywalled.
+**IF it does per-node RANKING-METRIC splits, our ranking-target delta collapses to AMORTIZATION ALONE.**
+Also to verify: PERE's venue, and re-derive its c-DPP gap ourselves (it is now load-bearing).
+
+---
+
 ## THE PROPOSED CONTRIBUTION, IN ONE SENTENCE
 > **The first elicitation policy that beats a static questionnaire against a SOTA collaborative recommender —
 > and the reason the field kept failing is that it optimised INFORMATION instead of VALUE.**
