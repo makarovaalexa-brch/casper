@@ -1,4 +1,23 @@
+> # ⚠ SUPERSEDED — DO NOT EXECUTE §2a / §4c FROM THIS FILE
+> **This sheet's central thesis (the adaptive prize lives in the ANSWERABILITY channel and we deleted it)
+> was REFUTED on 2026-07-14 by our own prior results.** See **`WHY_ADAPTIVITY_DIED.md` (v2)** for the
+> refutation and the surviving explanation (adaptivity <= H(Theta); a strong collaborative recommender
+> leaves ~no model uncertainty).
+> - **E0** already tested answerability routing WITH THE PRIVILEGED TRUE TABLE => **-0.0003 TIE**.
+> - **REFUSAL_RESULT.md** already built two of the three proposed "wires" (2026-06-29) => **TIE tail, LOSE full**.
+> - The "94% answerable" is an **equilibrium of good asking over an OPEN pool**, NOT an engineered filter;
+>   the code "smoking gun" cited below is in a **Paper-D literature-baseline block**, not the policy path.
+> - **The §4c p_unknown sweep (E3) is INCOHERENT** (high experienced refusal and good refusal prediction are
+>   mutually exclusive at the optimum; and a fixed-sequence comparator guarantees the gap by wasted-turn
+>   arithmetic = the P4C artifact, 2nd edition). **DO NOT RUN IT.**
+>
+> **STILL VALID from this file:** the Golbandi-tree baseline (§2, §2b) — but run it as **E4-DUAL** (two rulers +
+> unknown-branch ablation) per `WHY_ADAPTIVITY_DIED.md` §4, which turns it into the DISCRIMINATOR between the
+> two theses. The HARD RULE #1 flag on Golbandi's popular-only splitter reduction (§2b) also stands.
+> **Live run order: `DESIGN_SHEET_E2_SNAPK.md` (SNAP-K, then E2), then E4-DUAL, then H(Theta)-lite.**
+
 # DESIGN SHEET — WHY DID ADAPTIVITY DIE? (Golbandi baseline + the mixture belief)  2026-07-14
+# [SUPERSEDED 2026-07-14 — see banner above and WHY_ADAPTIVITY_DIED.md v2]
 Status: DESIGN. Golbandi baseline APPROVED by author ("do run golbandi as a baseline, by all means").
 Runs queued behind pb2/pb3 — NOT concurrent (CPU contention corrupted the 2026-07-13 timings).
 

@@ -176,6 +176,79 @@ theorem's bound on our own data.
   (`dans_build.py`: `c_align`, `genre_align`) measures our own prior. External validation (173 LLM-judged users)
   is QUARANTINED and establishes *existence*, not *magnitude*.
 
+## 6b. CITATIONS — VERIFIED AT PRIMARY SOURCE (2026-07-14). USE THESE STRINGS.
+- **[V verbatim] Krause & Guestrin, ICML 2007, pp. 449-456, DOI 10.1145/1273496.1273553.** §4 ("Bounds on the
+  Advantage of Active Learning Strategies"): *"any objective function depending only on the predictive
+  variances, such as mutual information, cannot benefit from sequential strategies. Note that for non-Gaussian
+  models, sequential strategies can strictly outperform a priori designs, even with known parameters."*
+  **Theorem 1**: `max_pi H(X_pi) <= sum_theta P(theta) max_A H(X_A|theta) + H(Theta)`.
+  ASSUMPTIONS: GP; Theta DISCRETE/FINITE; **proofs are in a companion tech report, not the ICML paper.**
+- **[V verbatim] Jedynak, Frazier & Sznitman, J.Appl.Prob. 49(1):114-136, 2012, DOI 10.1239/jap/1331216837.**
+  Greedy one-step entropy = horizon-optimal; the dyadic policy *"asks a deterministic set of questions,
+  despite being optimal among fully sequential policies."*
+  ⭐ **THE LOAD-BEARING ASSUMPTION**: the noise channel is **FIXED AND INDEPENDENT OF THE QUESTION** —
+  *"Y_{n+1} depends on Z_n, but not on previous questions or answers"*, and its law does not depend on n.
+  Also: X* must be CONTINUOUS ("the arguments do not generalize easily to the discrete case").
+- **[V verbatim] Golbandi, Koren & Lempel, WSDM 2011, pp. 595-604, DOI 10.1145/1935826.1935910.** ALL FOUR
+  claims confirmed (ternary like/dislike/unknown; Fig.2 branch RMSE 0.9393/0.9522/0.9837; "six user
+  evaluations" vs "over 20"). **CORRECTION: the weights are `w_L=5, w_H=1, w_U=0.02` AND AN EXPONENT `c=2`**
+  — `w_t = (#L*w_L + #H*w_H + #U*w_U)^c`. They are **NODE-BLENDING weights for combining K trees, NOT
+  per-answer likelihoods.** Do not present them as such.
+- **[V verbatim] Sepliarskaia, Kiseleva, Radlinski & de Rijke, RecSys 2018, pp. 172-180, DOI
+  10.1145/3240323.3240352.** *"SPQ and FG achieve better performance than PWDT, despite the fact that they are
+  static, while PWDT is dynamic. A possible explanation is that PWDT optimizes a function that is different
+  from the loss function, namely weighted generalized variance."*
+  ⚠ **QUALIFY IT**: the win holds **only for LONG ENOUGH questionnaires** (differences NOT significant, p>0.1,
+  below ~5 questions on MovieLens), and **the margins are FIGURE-ONLY — there is no results table, so we cannot
+  quote a number.**
+- **[V] Asadpour & Nazerzadeh (journal; WINE 2008 version adds Saberi), arXiv:0908.2788.** *"The adaptivity gap
+  of SMSM is equal to e/(e-1)"* ~= **1.58**. PRECONDITIONS: **INDEPENDENT** r.v.s, **MONOTONE SUBMODULAR**, any
+  **MATROID** (cardinality = the uniform-matroid special case, so our statement was too narrow).
+  ⚠ **"the adaptivity gap can be UNBOUNDED if the objective is submodular but NON-MONOTONE"** — and NDCG-of-a-
+  fold-in is NOT established monotone. So §4's cap may not even apply to us.
+- **[V] Golovin & Krause, JAIR 42:427-486, 2011, arXiv:1003.3967 (CITE v5, 2017).** §11 "Adaptivity Gap",
+  **Theorem 25**: the gap for Adaptive Stochastic Min-Sum Cover is **Omega(n/log n)** — **Omega, NOT Theta**
+  (it is a LOWER bound). The v5 erratum touches **Theorem 13** (adaptive greedy's min-cost-cover upper bound is
+  now **SQUARED**-logarithmic, not logarithmic) — Thm 25 is unaffected, but any citation of the greedy
+  guarantee must be updated.
+- **[V] Karimi, Nanopoulos & Schmidt-Thieme, UMUAI 25(1):39-64, 2015**, DOI 10.1007/s11257-014-9153-z.
+  ⚠ **OUR CITATION WAS WRONG ON THREE COUNTS** (there is NO Freudenthaler on this paper; it is 25(1)/2015, not
+  24(5)/2014). Table 1 p(unknown): **Bootstrapping 0.67** [V], GMP 0.57, Random 0.993.
+  ⚠ **GMP IS NOT A CLEAN ADAPTIVITY ABLATION** — it selects questions by **GLOBAL POPULARITY**, not by
+  Golbandi's error-minimizing split, so it differs in **TWO** ways at once (adaptivity AND criterion).
+  Presenting it as an adaptivity-only ablation **will be killed by a referee.** Magnitude is Fig.3-only:
+  NOT extractable, do not quote.
+- **[U — UNREACHABLE]** Steck, KDD 2010 (MNAR). Paywalled; abstract only via secondary indexes. **Get the PDF
+  through the library before quoting anything verbatim.**
+
+## 6c. ⚠ THE "REFUSAL-AS-EVIDENCE" NOVELTY CLAIM IS **REFUTED** — DO NOT MAKE IT
+**[V] Marlin & Zemel, "Collaborative Prediction and Ranking with Non-Random Missing Data", RecSys 2009**,
+DOI 10.1145/1639714.1639717, §3.2 (verbatim): *"**CPT-v is a simple missing data model where the probability
+that a rating is observed depends only on that underlying rating value.** This model can capture the idea that
+**a user's preferences for a particular item can influence whether the user rates that item**... P(r_nd = 1 |
+x_nd = v) = mu_v."* (Also Marlin, Zemel, Roweis & Slaney, UAI 2007, arXiv:1206.5267.)
+=> **"Non-response is evidence about the user" IS the MNAR literature.** And **Golbandi already put "unknown"
+INSIDE an interactive loop.** So neither the idea NOR the interactive setting is new. **Claiming it is a
+one-line reviewer kill.**
+
+**WHAT SURVIVES AS DEFENSIBLE NOVELTY (switch to this frame):**
+1. **ANSWERABILITY AS A CONTROL VARIABLE, NOT AN ESTIMAND.** MNAR models the missingness mechanism to DE-BIAS
+   ESTIMATION on a **fixed** matrix — nobody CHOOSES the queries. Here the system **SELECTS** the question, so
+   `P(answerable | user, item)` is an argument of the **POLICY OBJECTIVE**. **DESIGN, not INFERENCE** — a
+   different mathematical object, and MNAR says nothing about it.
+2. ⭐ **QUESTION-DEPENDENT RESPONSE NOISE BREAKS THE CLASSICAL NON-ADAPTIVITY THEOREMS.** Jedynak assumes the
+   channel does NOT depend on the question [V verbatim, §6b]; Krause's Thm 1 assumes variance-only objectives.
+   **Answerability makes the channel query- AND user-dependent — precisely the assumption whose violation
+   reopens the value of adaptivity.** This is the cleanest theory hook we have and MNAR does not touch it.
+   **CONSISTENCY WITH OUR NULL**: the channel violation is **NECESSARY BUT NOT SUFFICIENT** — H(Theta) ~ 0
+   still caps the prize, which is exactly why E0 measured zero *while holding the privileged table*. The theory
+   says where adaptivity COULD live; our measurement shows it is ~0 in the strong-recommender regime; the
+   H(Theta) bound EXPLAINS why. **That triple is the contribution.**
+3. **Prior work RECORDS refusal but DISCARDS it** — Golbandi's own fitted **w_U = 0.02** ("an unknown vote was
+   found to be relatively insignificant"). A named number in a named paper to contrast against.
+4. **Refusal on an OPEN / CONCEPT question has NO MNAR analogue at all** (MNAR is defined over a ratings
+   matrix). Paper D territory.
+
 ## 7. PROCESS LESSONS (recorded)
 1. **READ OUR OWN PRIOR RESULTS BEFORE THEORIZING.** E0 and REFUSAL_RESULT.md each independently refuted v1's
    thesis and both were on disk the whole time. A literature sweep is not a substitute for reading your own lab
