@@ -9,6 +9,62 @@ Every claim below is to be ATTACKED. If a claim dies, it dies here, not in revie
 
 ---
 
+## CORRECTIONS FROM THE ARCHITECTURE LIT SWEEP (2026-07-14) — READ BEFORE WRITING
+
+### THE LANDMINE: NEVER COMPARE OUR NDCG TO SASRec/BERT4Rec's
+**There is NO valid head-to-head between the sequential (SASRec/BERT4Rec) and the Mult-VAE/RecVAE lines —
+THE PROTOCOLS ARE INCOMPATIBLE.** Sequential = **leave-one-out (ONE held-out target)**; Mult-VAE line =
+**strong generalization (80/20 fold-in, MANY targets)**. SASRec's "NDCG@10 ~0.15" and our **0.4852** are
+**NOT THE SAME QUANTITY**.
+> **If we ever write "SASRec 0.15 vs our 0.485", a knowledgeable reviewer kills the paper on that line.**
+**IT CUTS BOTH WAYS: nobody can prove SASRec IS RecVAE-class either — the number does not exist.**
+=> **REQUIRED EXPERIMENT: run SASRec (+BERT4Rec/gSASRec) ON OUR RULER** (same catalog, same strong-
+generalization fold-in, full catalog, NDCG@10) as a baseline row beside 0.4852. **This comparison appears
+NOWHERE in the literature.** It is the ONLY honest way to make C1, and it is itself a contribution.
+VERIFIED (RecVAE Table 1, ML-20M, strong generalization): RecVAE R@20 0.414 / NDCG@100 0.442; Mult-VAE
+0.395 / 0.426; EASE 0.391 / 0.420.
+
+### TWO STATEMENTS IN C1 ARE FALSE AS ORIGINALLY WRITTEN
+1. **"Mult-VAE structurally CANNOT represent a 3-answer interview" — WRONG.** Its input is a SET-INDICATOR
+   vector: permutation-invariant, variable-cardinality. A 3-item bag IS a legal input — it is
+   **OUT-OF-DISTRIBUTION, NOT INEXPRESSIBLE.** The REAL, narrower gap (genuinely inexpressible in a one-hot
+   input basis): **(i) GRADED/SIGNED VALUES per entity**, **(ii) OUT-OF-CATALOG CONCEPTS**, **(iii) ARBITRARY
+   CONTINUOUS DIRECTIONS.** Claim ONLY those three.
+2. **DEFINITIONAL TRAP: SASRec IS token-based and CAN eat a 3-item interview as a short sequence.** So
+   "interview-native = token input" is TRIVIALLY satisfied by SASRec. Interview-native must mean
+   **VALUE-CARRYING, MIXED-TYPE, CONTINUOUS-CAPABLE** tokens — where SASRec cannot follow.
+3. Say **"we are aware of none"**, never "there are none".
+
+### PRIOR ART WE MUST CITE (we would look ignorant otherwise)
+- **TaNP (WWW 2021, arXiv 2103.06137)** — a PERMUTATION-INVARIANT encoder mean-pooling encoded
+  **(item, rating) pairs**. THE ancestor of the set-input, value-carrying, cold-start recommender. MUST cite.
+  Also **MeLU (KDD 2019)**.
+- **M&Ms-VAE (RecSys 2021)** — encodes a user **from KEYPHRASES ALONE**, but via **TWO SEPARATE encoders**
+  fused by mixture-of-experts, NOT one shared table; no continuous token; not on ML-20M.
+- **P5 (RecSys 2022)** — items/attributes/reviews as text tokens in ONE shared space. Strongest precedent.
+- **ConTS (TOIS 2021)** — unifies attributes+items as **BANDIT ARMS (an ACTION space)**, not an encoder INPUT.
+
+### THE ONE LEG THAT SURVIVES CLEAN — LEAD WITH IT
+**A CONTINUOUS QUERY AS AN *INPUT TOKEN*: the sweep found NOTHING, anywhere.** Not steering a latent, not
+generating one, not a retrieval query — accepting an arbitrary continuous direction as a token in the SAME
+entity space as items and concepts. **This is the cleanest, strongest leg of C1.**
+
+### SAFE FORMULATION OF C1
+> *"One shared token space in which ITEMS, CONCEPTS and ARBITRARY CONTINUOUS DIRECTIONS are interchangeable
+> VALUE-CARRYING inputs to a single set encoder, at RecVAE-class full-profile accuracy."*
+
+### C4 IS DOWNGRADED — DO NOT CLAIM DISCOVERY
+Coarse-to-fine is the KNOWN behaviour of adaptive-interview decision trees (Golbandi: popular root,
+discriminative deeper) and Rashid already has the popularity-vs-entropy tension. **Pitch as EMPIRICAL
+CHARACTERISATION:** nobody MEASURES the popularity inversion (root **9/800** vs within-cluster median
+**456/800**), and the **niche within-cluster polariser** statistic appears unreported (confidence MODERATE).
+VERIFIED contrast: the Google 2025 paper (arXiv 2510.12015) **HARD-CODES** the funnel — *"We first use an LLM
+to rank the tags from general to specific"* — and does not even specify a downstream recommender.
+UNVERIFIED, load-bearing: whether Golbandi reports node-depth popularity stats. **READ THE GOLBANDI PDF.**
+UNVERIFIED: the "328-person user study" in arXiv 2607.06765 is NOT supported by its abstract. Do not cite it.
+
+---
+
 ## C1 — THE ARCHITECTURE: interview-native AND SOTA-class (the enabler)
 **CLAIM.** One latent space in which an ITEM, a CONCEPT, and an ARBITRARY CONTINUOUS DIRECTION are all just
 tokens, feeding a SOTA-class multinomial recommender (full-profile NDCG@10 **0.4852**; teacher a0c 0.4961).
