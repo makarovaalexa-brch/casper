@@ -1,3 +1,8 @@
+> **NOTE (2026-07-14):** any statement in this file that adaptivity is worthless, or that a static
+> schedule is optimal, is **SUPERSEDED**. See `experiments/ADAPTIVE_PROBE_RESULT.md` (ADAPTIVITY PAYS,
+> +47% TAIL) and `CLAUDE.md` HARD RULE #2. The belief layer is to be judged ONLY on whether it makes a
+> BETTER RECOMMENDER and a BETTER POLICY — never on theorem-compatibility.
+
 # DESIGN SHEET — Belief / confidence / shrinkage in the set+multinomial encoder (2026-07-13)
 Status: DESIGN ONLY. No runs until the author signs. Supersedes PLAN_BELIEF_HEAD.md (dense-era).
 

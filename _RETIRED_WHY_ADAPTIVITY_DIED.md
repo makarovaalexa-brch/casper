@@ -1,3 +1,21 @@
+> # ⛔ RETIRED — DO NOT REASON FROM THIS DOCUMENT
+> **Everything in this file that concludes "adaptivity does not pay" is WRONG and was produced by a biased
+> spiral of theorem-reasoning.** It is kept only as a record of how the error was made.
+>
+> **THE SETTLED RESULT: `experiments/ADAPTIVE_PROBE_RESULT.md` — ADAPTIVITY PAYS: +47% TAIL (150,239 users,
+> CI [+0.0186,+0.0203], no policy, no optimisation).** The winning question is always a NICHE film INSIDE the
+> user's own genre; coarse-to-fine falls out. See `CLAUDE.md` HARD RULE #2.
+>
+> **DO NOT cite the non-adaptivity theorem as an explanation of anything in this project. Do not re-derive it.
+> Do not use it to predict a result. It is settled and closed.**
+>
+> **THE EIGHT FAILED POLICIES ARE DEAD AND BURIED.** They lost because the MODELS WERE WEAK (V1 encoder), not
+> because of any objective or any theorem. **They go in NO paper, in NO form.** Do not analyse them, do not
+> cite them, do not explain them.
+
+
+---
+
 # THE TWO REGIMES OF ADAPTIVITY (v3, 2026-07-14)
 **v1 claimed the adaptive prize lives in the answerability channel — REFUTED (by E0 + REFUSAL_RESULT).**
 **v2 claimed adaptivity is worth ~0 in our arena, full stop — WRONG IN SCOPE. It generalized a DISCRETE/BINARY
