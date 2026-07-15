@@ -469,8 +469,10 @@ def cmd_pb(args):
             % (ep + 1, run / max(nb, 1), f, t,
                "HOLDS >= base" if f >= args.gate else "BELOW base",
                cc, (time.time() - t_ep) / 60))
-        safe_save({"student": student.state_dict(), "decoder": decoder.state_dict(),
-                   "opt": opt.state_dict(), "epoch": ep + 1, "full": f, "tail": t}, ckp)
+        blob_ep = {"student": student.state_dict(), "decoder": decoder.state_dict(),
+                   "opt": opt.state_dict(), "epoch": ep + 1, "full": f, "tail": t}
+        safe_save(blob_ep, ckp)
+        safe_save(blob_ep, os.path.join(OUT, "%s_ep%d.pt" % (args.tag, ep + 1)))  # keep EVERY epoch (eval is broken; pick later)
         if f > best:
             best = f; bad = 0
             safe_save({"student": student.state_dict(), "decoder": decoder.state_dict(),
@@ -584,3 +586,5 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.cmd == "pa":
         cmd_pa(a)
+    elif a.cmd == "pb":
+        cmd_pb(a)
