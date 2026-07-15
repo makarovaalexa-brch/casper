@@ -130,9 +130,16 @@ class SetEncoder(nn.Module):
         return self.z0 + self.head(torch.cat([p, sz], dim=-1))
 
 
+GRADING = "halfstar"          # "halfstar" (10 item levels) or "ordinal" (UNIFIED hated/meh/liked/loved+refuse);
+                              # set once in __main__ via set_grading(). All call sites read it -> consistent.
 def sv_to_level(sv):
-    """signed value -> discrete half-star rating level 0..9 (scale_rating: star = sv*2.25 + 2.75)."""
+    """signed value -> FiLM level. star = sv*2.25 + 2.75.
+    ordinal: 0=hated 1=meh 2=liked 3=loved (answerer-matched thresholds; refusal=4, only in elicitation).
+    halfstar: 0..9 half-stars (legacy, rating-matrix native)."""
     star = np.asarray(sv, np.float64) * 2.25 + 2.75
+    if GRADING == "ordinal":
+        # boundaries = midpoints of the answerer's ordinal star-means {1.54, 2.91, 3.86, 4.82}
+        return np.clip(np.digitize(star, [2.225, 3.385, 4.34]), 0, 3).astype(np.int64)
     return np.clip(np.rint(star * 2).astype(np.int64) - 1, 0, 9)
 
 
@@ -234,7 +241,20 @@ def make_input_target(u, rng, drop_max=0.5):
 NC = 1628
 NLEV = 15
 LV_REFUSE = 14
+CLEVEL_OFFSET = 10            # concept ordinal vl -> FiLM level CLEVEL_OFFSET+vl (halfstar keeps concepts at 10-13)
 RSD = "C:/dev/phd/casper/.cache/rich_signal"
+
+
+def set_grading(mode):
+    """UNIFIED ORDINAL (author, Jul 15): items, concepts and emitted embeddings share ONE 5-level FiLM
+    (0=hated 1=meh 2=liked 3=loved 4=refuse). Polarity is learned once (on items) and reused for concepts.
+    halfstar = legacy: items on 10 half-star levels, concepts offset to 10-13, refuse 14 (NLEV 15)."""
+    global GRADING, NLEV, LV_REFUSE, CLEVEL_OFFSET
+    GRADING = mode
+    if mode == "ordinal":
+        NLEV, LV_REFUSE, CLEVEL_OFFSET = 5, 4, 0
+    else:
+        NLEV, LV_REFUSE, CLEVEL_OFFSET = 15, 14, 10
 
 
 def load_answerer(tag):
@@ -250,7 +270,7 @@ def concept_answers(row, K, V, cids):
     kn = K[row, cids].astype(np.int64)
     vl = V[row, cids].astype(np.int64)
     ans = (kn >= 1) & (vl >= 0)
-    lv = np.where(ans, 10 + np.clip(vl, 0, 3), LV_REFUSE).astype(np.int64)
+    lv = np.where(ans, CLEVEL_OFFSET + np.clip(vl, 0, 3), LV_REFUSE).astype(np.int64)   # UNIFIED with items in ordinal mode
     kk = np.where(ans, np.clip(kn, 0, 2), 0).astype(np.int64)
     return lv, kk
 
@@ -490,12 +510,20 @@ def cmd_pa(args):
     Pure z-mimicry caps at mimicry quality; the gate is NDCG >= 0.486, so optimize NDCG directly."""
     base = load_arena_base(); ni = base["ni"]
     teacher = load_teacher(ni)
-    student = SetEncoder(ni, token_mode=args.token, pool=args.pool)
-    decoder = nn.Linear(D, ni)                                                        # co-trained, a0c warm-start
-    with torch.no_grad():
-        student.item_emb.weight.copy_(teacher.decoder.weight.detach())                # item_emb = a0c factors
-        decoder.weight.copy_(teacher.decoder.weight.detach())
-        decoder.bias.copy_(teacher.decoder.bias.detach())
+    student = SetEncoder(ni, token_mode=args.token, pool=args.pool, nlev=NLEV)
+    decoder = nn.Linear(D, ni)                                                        # co-trained
+    if getattr(args, "warm", ""):                                                     # warm-start from a checkpoint
+        blob = torch.load(os.path.join(OUT, args.warm + ".pt"), map_location="cpu")
+        sd = {k: v for k, v in blob["student"].items() if not k.startswith(("gamma", "beta"))}  # FiLM reinit
+        student.load_state_dict(sd, strict=False)                                     # item_emb+attention transfer
+        decoder.load_state_dict(blob["decoder"])
+        log(f"[pa] warm-started item_emb+attention+decoder from {args.warm}; gamma/beta REINIT for NLEV={NLEV} "
+            f"(grading={GRADING})")
+    else:
+        with torch.no_grad():
+            student.item_emb.weight.copy_(teacher.decoder.weight.detach())            # item_emb = a0c factors
+            decoder.weight.copy_(teacher.decoder.weight.detach())
+            decoder.bias.copy_(teacher.decoder.bias.detach())
     Wd = decoder.weight; bd = decoder.bias
     LAM = args.lam                                                                    # z-distill aux weight
     opt = torch.optim.AdamW(list(student.parameters()) + list(decoder.parameters()),
@@ -583,7 +611,11 @@ if __name__ == "__main__":
     ap.add_argument("--gate", type=float, default=0.4852)
     ap.add_argument("--tag", default="pa1"); ap.add_argument("--epochs", type=int, default=10)
     ap.add_argument("--resume", action="store_true"); ap.add_argument("--patience", type=int, default=3); ap.add_argument("--lam", type=float, default=0.1); ap.add_argument("--token", choices=["mlp","film"], default="mlp"); ap.add_argument("--pool", choices=["attn","belief"], default="attn")
+    ap.add_argument("--grading", choices=["halfstar", "ordinal"], default="halfstar")
+    ap.add_argument("--warm", default="")            # warm-start checkpoint stem (item_emb+attention+decoder)
     a = ap.parse_args()
+    set_grading(a.grading)
+    log(f"[main] cmd={a.cmd} grading={GRADING} NLEV={NLEV} refuse={LV_REFUSE} concept_offset={CLEVEL_OFFSET}")
     if a.cmd == "pa":
         cmd_pa(a)
     elif a.cmd == "pb":
