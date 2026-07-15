@@ -11,7 +11,8 @@ Usage: python scripts/concept_eval.py <tag>_ep<N>   (checkpoint stem under .cach
 import os, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np, torch, torch.nn as nn
-from set_mn import SetEncoder, concept_answers, NC, NLEV, RSD
+import set_mn as S
+from set_mn import SetEncoder, concept_answers, RSD
 from signed_latent import load_arena_base, ndcg10
 import arena_core as AC
 
@@ -20,6 +21,9 @@ torch.set_num_threads(os.cpu_count())
 META = "C:/dev/phd/casper/data/movielens/.cache/ml25m/meta.npz"
 LO = 4.0
 stem = sys.argv[1] if len(sys.argv) > 1 else "pbC_ep1"
+GRADING = sys.argv[2] if len(sys.argv) > 2 else "ordinal"       # paord-based checkpoints are ordinal
+S.set_grading(GRADING); NC = S.NC; NLEV = S.NLEV
+log(f"grading={GRADING} NLEV={NLEV} refuse={S.LV_REFUSE} concept_offset={S.CLEVEL_OFFSET}")
 
 base = load_arena_base(); ni = base["ni"]; head = base["headmask"]; headarr = np.where(head)[0]
 d = np.load(META); uu = d["uu"].astype(np.int64); ii = d["ii"].astype(np.int64); rr = d["rr"].astype(np.float64)
@@ -40,14 +44,14 @@ for r, uid in enumerate(uidsV):
     p = ru.permutation(len(its)); h = len(its) // 2
     ki = its[p[:h]]                                   # evidence half -> excluded from ranking (profset)
     hi, hr = its[p[h:]], rat[p[h:]]
-    hl = hi[hr >= LO]; hl = hl[~head[hl]]             # held liked, tail
-    if len(ki) < 4 or len(hl) == 0: continue
+    hl = hi[hr >= LO]                                 # ALL held-liked (head+tail); ndcg10(tail=True) filters head
+    if len(ki) < 4 or len(hl) == 0 or (~head[hl]).sum() == 0: continue   # need >=1 TAIL target too
     recs.append((r, set(int(x) for x in ki), hl))
 log(f"usable eval users {len(recs)}")
 
 ck = torch.load(f"C:/dev/phd/casper/.cache/set_mn/{stem}.pt", map_location="cpu")
 NT = ck["student"]["item_emb.weight"].shape[0]
-enc = SetEncoder(NT, token_mode="film", pool="attn", nlev=NLEV, nknow=3)
+enc = SetEncoder(NT, token_mode="film", pool="attn", nlev=NLEV, nknow=0)   # paord has no know_emb; pool=attn FORCED
 enc.load_state_dict(ck["student"], strict=False); enc.eval()
 dec = nn.Linear(512, ni); dec.load_state_dict(ck["decoder"]); Wd = dec.weight.detach(); bd = dec.bias.detach()
 log(f"loaded {stem}.pt  tokens {NT}  full={ck.get('full')} tail={ck.get('tail')}")
@@ -73,12 +77,14 @@ for k in (1, 2, 4, 8, 16, 32):
     for b in range(0, len(recs), 256):
         ch = recs[b:b + 256]; B = len(ch)
         ids = np.zeros((B, k), np.int64); lv = np.zeros((B, k), np.int64); kk = np.zeros((B, k), np.int64)
+        pad = np.zeros((B, k), bool)
         for r, (row, profset, hl) in enumerate(ch):
             cids = rng.choice(NC, size=k, replace=False)
             a, c = concept_answers(row, KV, VV, cids)
             ids[r] = cids + ni; lv[r] = a; kk[r] = c
+            pad[r] = (a == S.LV_REFUSE)                          # DROP refused (padded out); still counts toward k
         with torch.no_grad():
-            z = enc(torch.from_numpy(ids), torch.zeros((B, k)), torch.zeros((B, k), dtype=torch.bool),
+            z = enc(torch.from_numpy(ids), torch.zeros((B, k)), torch.from_numpy(pad),
                     torch.from_numpy(lv), torch.from_numpy(kk))
         sc = decode(z)
         for r, (row, profset, hl) in enumerate(ch):
