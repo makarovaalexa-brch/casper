@@ -1,0 +1,567 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{definition}{Definition}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
+\usepackage{subcaption}
+
+% --- notation macros (carried from Paper A v1 for consistency) ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbf{Q}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\yy}{\mathbf{y}}
+\newcommand{\Amat}{\mathbf{A}}
+\newcommand{\W}{\mathbf{W}}
+\newcommand{\Imat}{\mathbf{I}}
+\newcommand{\bphi}{\boldsymbol{\phi}}
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\bSigma}{\boldsymbol{\Sigma}}
+\newcommand{\bLambda}{\boldsymbol{\Lambda}}
+
+% --- visible TODO macro (results/implementation not yet landed) ---
+\newcommand{\TODO}[1]{{\color{red}\textbf{[TODO:} \textsf{#1}\textbf{]}}}
+% cmark/xmark/pmark for the capability tables
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+\usepackage{pifont}
+\newcommand{\pmark}{$\sim$}
+
+\title{\textbf{The Interview-Compatible Recommender:\\A Measuring Instrument for Cold-Start Conversational Recommendation}\\[4pt]\large Thesis Chapter A (v2)}
+\author{}
+\date{July 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent Before one can study \emph{how} to interview a cold-start user---which questions to ask, in what
+order---one needs a recommender that can \emph{be} interviewed: a model that folds an arbitrary-length,
+mixed-channel set of answers into its belief and re-ranks a large catalogue, without per-user retraining and
+without trading away full-profile accuracy. We argue that this recommender is a \emph{measuring instrument} for the
+entire elicitation-policy literature, and that its requirements are more demanding than any single published system
+meets. We state five requirements---\textbf{R1} state-of-the-art full-profile accuracy, \textbf{R2} arbitrary-length
+cold-start fold-in, \textbf{R3} channel-agnostic input (items, out-of-catalogue concepts, entities, and continuous
+directions through one interface), \textbf{R4} an uncertainty-native belief, and \textbf{R5} monotonicity (a
+truthful answer never lowers ranking quality)---and three acceptance gates \textbf{G0}/\textbf{G1}/\textbf{G2} that
+operationalise them. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
+the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite{steck2019ease} and
+RecVAE~\cite{ren2020recvae}) are item-only point estimators, while the models with an uncertainty-native, multi-channel
+belief (soft-attribute Gaussian elicitation~\cite{biyik2023soft}, unified item$+$attribute bandits~\cite{li2021seamlessly},
+conjugate critique folds~\cite{toroghi2023bcie}) do not report full-profile accuracy at the R1 bar. We are aware of no
+published system that occupies the conjunction of all five. The instrument we propose to close this gap is a
+\emph{frozen} certified shallow-SOTA tower with an analytic conjugate-Gaussian belief layer over its latent, into
+which every channel folds as a linear observation; three of its input legs---signed/graded values, out-of-catalogue
+concepts, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
+models. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
+and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then G0/G1/G2 on the
+ML-25M harness). Our two provenanced in-house anchors---a set-encoder tower at full/tail NDCG@10 $0.4946/0.3372$ and a
+RecVAE-class $d{=}512$ ruler at $0.4998/0.3443$ (both ML-25M, not yet bridged to the published ML-20M scale)---are
+reported as such; all downstream instrument results are marked \TODO{} pending the certified run.
+\end{abstract}
+
+\tableofcontents
+
+% =====================================================================
+\section{Introduction: the recommender as a measuring instrument}\label{sec:intro}
+% =====================================================================
+
+A \emph{cold-start} conversational recommender must elicit taste from a short interview and then rank a large
+catalogue. Two questions are entangled: \emph{what to ask} (the elicitation policy) and \emph{how to turn answers
+into recommendations} (the recommender). The elicitation-policy literature is large and active, but almost every
+comparison in it is confounded: a policy's apparent value depends on the recommender it drives, and reported gains
+routinely conflate a better \emph{question-selection strategy} with a better \emph{answer-ingestion model}. Before we
+can measure elicitation strategies in isolation, we need to fix the recommender---and not just any recommender, but one
+strong and flexible enough that a good interview is not wasted on it. We call such a recommender an
+\emph{interview-compatible instrument}.
+
+\paragraph{Five requirements.}
+An instrument fit for measuring conversational elicitation must simultaneously satisfy:
+\begin{description}[leftmargin=2.4em,itemsep=1.5pt]
+  \item[R1 --- full-profile SOTA.] On a full interaction history it must rank at the level of the strongest shallow
+        collaborative-filtering baselines (EASE~\cite{steck2019ease}, RecVAE~\cite{ren2020recvae}), so that
+        elicitation is measured against a recommender nobody can dismiss as weak~\cite{dacrema2019progress}.
+  \item[R2 --- any-length cold-start fold-in.] It must ingest an evidence set of \emph{any} cardinality, from $0$
+        (fully cold) upward, without per-user retraining.
+  \item[R3 --- channel-agnostic input.] Items, out-of-catalogue concepts, entities, and free text (and, for the
+        continuous policy, direction tokens) must all fold through \emph{one} interface as arbitrary embeddings, not a
+        fixed categorical schema.
+  \item[R4 --- uncertainty-native belief.] It must carry an explicit covariance over the user belief, not just a
+        point estimate, so that a policy can act on \emph{what it does not yet know}.
+  \item[R5 --- monotonicity.] A truthful answer must never \emph{lower} ranking quality; adding evidence should, in
+        expectation, only help.
+\end{description}
+
+\paragraph{The bifurcation observation.}
+The central empirical fact this chapter documents is that R1 and $\{$R3, R4, R5$\}$ are \emph{anti-correlated across
+the published literature}. The models that hit the full-profile bar---closed-form linear autoencoders
+(EASE~\cite{steck2019ease}, EDLAE~\cite{steck2020edlae}), amortised VAEs (Mult-VAE~\cite{liang2018variational},
+RecVAE~\cite{ren2020recvae}), and training-free graph filters
+(GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf})---are \emph{item-only point
+estimators} on a one-hot indicator basis. The models with an uncertainty-native, multi-channel belief---soft-attribute
+Gaussian elicitation~\cite{biyik2023soft}, item$+$attribute Thompson bandits~\cite{li2021seamlessly}, conjugate critique
+folds over a frozen factorisation~\cite{toroghi2023bcie}, and per-item Bayesian NL elicitation~\cite{austin2024bayesian}---do
+\emph{not} report full-profile accuracy at the R1 bar. We call these the \emph{accuracy corner} and the \emph{belief
+corner}. No published system we are aware of occupies both (\S\ref{sec:gap}).
+
+\paragraph{Contributions.}
+This chapter is the instrument paper of the thesis. It does not claim a new elicitation policy (that is the companion
+method chapter); it claims the \emph{recommender that makes policy measurement possible}. Concretely:
+\begin{enumerate}[leftmargin=1.5em,itemsep=1.5pt]
+  \item \textbf{The conjunction as the contribution.} We frame R1$\wedge$R2$\wedge$R3$\wedge$R4$\wedge$R5 as a single
+        requirement no published system meets, and give a six-family taxonomy and per-near-miss gap analysis
+        (\S\ref{sec:related},~\S\ref{sec:gap}) that locates exactly which requirement each candidate fails. We say we
+        are \emph{aware of none}, never that there \emph{is} none.
+  \item \textbf{Three architecturally-inexpressible legs.} We isolate the three input channels that are impossible
+        (not merely untuned) in the item-indicator basis of every R1-bar model: (i) signed/graded per-entity values,
+        (ii) out-of-catalogue concepts, and (iii) continuous direction tokens. These are the narrow, defensible novelty
+        legs of the channel-agnostic interface (\S\ref{sec:gap},~\S\ref{sec:method}).
+  \item \textbf{The instrument.} A design for a \emph{frozen} certified shallow-SOTA tower with an analytic
+        conjugate-Gaussian precision-accumulator belief layer over its latent, into which every channel folds as a
+        linear observation (\S\ref{sec:method}). The frozen-tower$+$exact-conjugacy shape is the one mechanism with a
+        principled monotonicity story~\cite{toroghi2023bcie}, and it is what separates us from the co-trained,
+        approximate-posterior near-miss of Bıyık et al.~\cite{biyik2023soft}.
+  \item \textbf{G0/G1/G2 as a reusable acceptance protocol.} We define three gates---full-strength preserved,
+        posterior strictly shrinks per question, and cold-start per-question NDCG rises on \emph{full and tail} versus
+        random---and propose them as a portable certificate any interview-compatible recommender should have to pass
+        (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
+\end{enumerate}
+
+We are careful throughout to distinguish what is \emph{new} (the conjunction; the frozen-certified-tower wedge; the
+G0--G2 protocol on a SOTA tower) from what is \emph{pre-empted} and must be cited (attributes-as-directions plus a
+Bayesian fold~\cite{biyik2023soft}; unified item$+$attribute belief~\cite{li2021seamlessly}; conjugate folds over a
+frozen factorisation~\cite{toroghi2023bcie}; permutation-invariant set-encoders with information-gain
+acquisition~\cite{ma2019eddi}; value-carrying set-input cold-start recommenders~\cite{lin2021tanp}; the
+non-degradation-of-information principle, Good 1967 / Blackwell). ``Uncertainty-native recommender'' alone is a
+crowded 2024--25 area~\cite{wang2025bdecf} and is \emph{not} claimed as novel.
+
+% =====================================================================
+\section{Requirements and gates}\label{sec:reqs}
+% =====================================================================
+
+We now state the requirements and gates formally. Let the catalogue have $n$ items and let the frozen tower expose a
+$d$-dimensional latent in which each item $i$ has a factor row $\Q_i\in\R^{d}$. An \emph{evidence set} after $t$
+questions is a set of observations $\mathcal E_t=\{(\bphi_j, y_j)\}_{j=1}^{t}$, where $\bphi_j\in\R^{d}$ is the latent
+direction of the queried entity (an item factor, a concept centroid, an entity embedding, or a continuous direction
+token) and $y_j\in\R$ is the (possibly graded, possibly signed) answer. The instrument maintains a belief
+$b(\mathcal E_t)=(\bmu_t,\bSigma_t)$ over the user latent $\uu\in\R^{d}$ and scores item $i$ by a fixed read-out
+$s_i(\bmu_t)$ of the base tower.
+
+\paragraph{Requirements (formal).}
+\begin{description}[leftmargin=2.4em,itemsep=1.5pt]
+  \item[R1.] With $\mathcal E$ equal to a user's full history, $\mathrm{NDCG}@10\bigl(s(\bmu(\mathcal E))\bigr)$ ties
+        the strongest shallow baseline on a shared harness (Def.~\ref{def:tie}).
+  \item[R2.] $b(\mathcal E_t)$ is defined and computable for every $t\ge 0$ with no gradient step at inference; $t{=}0$
+        yields the prior belief (a non-personalised ranker).
+  \item[R3.] The update from $\mathcal E_t$ to $\mathcal E_{t+1}$ depends on the new observation only through the pair
+        $(\bphi_{t+1},y_{t+1})\in\R^{d}\times\R$; the operator is identical for every channel, so any entity with an
+        embedding is a legal observation---including entities absent from the catalogue.
+  \item[R4.] $\bSigma_t$ is an explicit, queryable covariance; a policy may read $\bSigma_t$ to choose the next
+        question.
+  \item[R5.] For a truthful answer $y_{t+1}$, $\mathbb E\bigl[\mathrm{NDCG}@10(s(\bmu_{t+1}))\bigr]\ge
+        \mathrm{NDCG}@10(s(\bmu_t))$. We treat R5 as an \emph{empirical} property to be demonstrated per step, not a
+        theorem for a learned ranker (\S\ref{sec:limits}).
+\end{description}
+
+\begin{definition}[Ties SOTA]\label{def:tie}
+A recommender \emph{ties} a baseline on a metric if their scores are within the paired per-user bootstrap confidence
+interval on one shared harness (same users, items, split, metric depth). A number computed on a different
+metric/split (e.g.\ NDCG@10 on ML-25M vs.\ NDCG@100 on the ML-20M strong-generalisation split) is \emph{not} a tie
+until bridged (\S\ref{sec:bridge}).
+\end{definition}
+
+\paragraph{Gates (acceptance protocol).}
+The instrument is accepted only if it passes all three:
+\begin{description}[leftmargin=2.4em,itemsep=1.5pt]
+  \item[G0 --- full strength preserved.] Evaluating on the belief mean with the full profile reproduces the base
+        tower's full-profile NDCG@10 (full \emph{and} tail), i.e.\ the belief layer adds no full-profile regression.
+        This certifies R1 survives the addition of the belief machinery.
+  \item[G1 --- usable posterior.] The posterior strictly shrinks per truthful question: $\det\bSigma_{t+1}<\det\bSigma_t$
+        (and the shrinkage is directed along the queried $\bphi_{t+1}$). This certifies R4.
+  \item[G2 --- cold-start curve rises on full and tail.] Starting cold ($t{=}0$), per-question NDCG@10 rises with $t$
+        on \emph{both} the full catalogue and the long tail, and beats a random-question control at every budget with
+        a paired per-user bootstrap CI excluding zero. This is the operational form of R2$\wedge$R5 and the headline
+        instrument claim.
+\end{description}
+
+We report \emph{both} full and tail NDCG@10 for every gate (a project reporting rule: full-only or tail-only hides the
+effect, which historically has been much larger on the tail than on the full catalogue). All gate results in this
+chapter are \TODO{} pending the certified run of \S\ref{sec:expdesign}.
+
+% =====================================================================
+\section{Related work: a six-family taxonomy}\label{sec:related}
+% =====================================================================
+
+We organise interview-relevant recommenders into six families and score each against R1--R5
+(Table~\ref{tab:taxonomy}). The reading is consistent across families: no family is strong on both the accuracy
+axis (R1) and the belief-channel axis (R3--R5). Figure~\ref{fig:gapmap} plots the same fact as a qualitative
+gap map.
+
+\begin{table}[t]\centering\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{p{2.5cm}p{2.7cm}cccccp{3.0cm}}
+\toprule
+Family & Representatives & R1 & R2 & R3 & R4 & R5 & One-line verdict \\
+\midrule
+(i) retrain / meta-learn per user &
+  MeLU, TaNP~\cite{lin2021tanp}, CDRNP &
+  \pmark & \cmark & \xmark & \pmark & \xmark &
+  R2/R4 precedent; not full-profile SOTA, not channel-open. \\
+(ii) fold-in linear / closed-form &
+  EASE~\cite{steck2019ease}, SLIM, GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf} &
+  \cmark & \cmark & \xmark & \xmark & \pmark &
+  The full-profile bar (G0); item-indicator basis $\Rightarrow$ R3 impossible. \\
+(iii) amortised inference encoders &
+  Mult-VAE~\cite{liang2018variational}, RecVAE~\cite{ren2020recvae}, EDLAE~\cite{steck2020edlae}, EDDI~\cite{ma2019eddi} &
+  \cmark & \cmark & \pmark & \pmark & \xmark &
+  The architecture we live in; VAEs item-only, EDDI right shape/wrong domain. \\
+(iv) Bayesian belief over item space &
+  Bıyık~\cite{biyik2023soft}, ConTS~\cite{li2021seamlessly}, BCIE~\cite{toroghi2023bcie}, ICF~\cite{zhao2013interactive} &
+  \xmark & \cmark & \pmark & \cmark & \pmark &
+  The R4/R5 heart; belief layers, not full-profile towers. \\
+(v) sequence models &
+  SASRec~\cite{kang2018sasrec}, BERT4Rec~\cite{sun2019bert4rec} &
+  \pmark & \cmark & \xmark & \xmark & \xmark &
+  Interview $\ne$ ordered session; tokens item-only, order-sensitive. \\
+(vi) LLM-as-recommender / CRS &
+  PEBOL~\cite{austin2024bayesian}, GATE~\cite{li2023eliciting}, LLM-CRS~\cite{he2023large} &
+  \xmark & \cmark & \cmark & \pmark & \xmark &
+  Best R3 (open text); weakest R1 (weak collaborative signal). \\
+\midrule
+\textbf{CASPER (target)} & \textbf{this chapter} &
+  \cmark & \cmark & \cmark & \cmark & \cmark &
+  \textbf{The conjunction; no published system occupies it.} \\
+\bottomrule
+\end{tabular}
+\caption{Six-family taxonomy scored against R1--R5. \cmark~met, \pmark~partial, \xmark~not met. Scores are our
+reading of each family's \emph{published} claims and are qualitative; the last row is a target, not a result. R1 and
+$\{$R3,R4,R5$\}$ are anti-correlated: families (ii)/(iii) hold the accuracy corner, family (iv) the belief corner,
+and none spans both. Adapted from the landscape analysis (c2).}
+\label{tab:taxonomy}
+\end{table}
+
+\paragraph{The accuracy corner (families ii--iii).}
+On the canonical ML-20M strong-generalisation split (10k validation / 10k test held-out users, NDCG@100), the
+full-profile frontier has been \emph{flat since 2019--2020} and is held by shallow models, not deep nets:
+EASE~\cite{steck2019ease} at NDCG@100 $0.420$, Mult-VAE~\cite{liang2018variational} at $0.426$,
+RecVAE~\cite{ren2020recvae} at $0.442$ (top of this split), with EDLAE~\cite{steck2020edlae} in the same class; SLIM
+($0.401$) and WMF/iALS ($0.386$) are the classic floors. Dacrema et al.~\cite{dacrema2019progress} is the binding
+warning: most deeper ``SOTA'' gains vanish on this exact split. The graph-filter leaders
+(GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf}) are the 2023--24 speed$+$accuracy
+front on Gowalla/Yelp/Amazon but do not report this ML-20M split, so they are admissible to our accuracy tier only if
+re-run on our harness. All of family (ii)/(iii) are item-only: their input is a one-hot (or set-indicator) interaction
+vector, which \emph{cannot encode} a signed value, an out-of-catalogue concept, or a continuous direction---R3 is an
+architecture property here, not a tuning gap.
+
+\paragraph{The belief corner (family iv, and vi).}
+Bıyık et al.~\cite{biyik2023soft} maintain a multivariate-Gaussian belief over a user embedding and treat both item
+comparisons and ``soft attributes'' (e.g.\ ``scarier'') as directions (concept-activation vectors) in the item space,
+selecting queries by expected value of information---the nearest thing to R2$+$R3$+$R4 together.
+ConTS~\cite{li2021seamlessly} unifies items and attributes as Thompson-sampling arms with a posterior over a cold-start
+user. BCIE~\cite{toroghi2023bcie} folds critiques into a \emph{frozen} factorisation by exact conjugate-Gaussian
+updates---the closest published analogue of our belief mechanism. PEBOL~\cite{austin2024bayesian} keeps a per-item Beta
+posterior updated by LLM-extracted aspects and NLI scoring, reporting cold-start MRR@10 $0.27$ versus a $0.17$ baseline.
+None of these reports full-profile accuracy at the EASE/RecVAE bar; each is a belief layer, not a certified tower.
+
+\paragraph{The set-encoder and cold-start-NP precedents (families i, iii).}
+EDDI/Partial-VAE~\cite{ma2019eddi} is the permutation-invariant set-encoder over an arbitrary observed subset with
+information-gain acquisition---exactly R2's architecture, but demonstrated outside recommendation and without a full-profile
+CF result or an attribute/concept channel. TaNP~\cite{lin2021tanp} gives a neural-process, stochastic-process
+uncertainty over a value-carrying set input for cold-start---the R2$+$R4 shape, but not at full-profile SOTA nor
+channel-agnostic. These are cited as the mechanism precedents our design instantiates, not as rivals for the
+conjunction.
+
+\paragraph{The gap map.}
+Figure~\ref{fig:gapmap} places the families on two qualitative axes: \emph{interview-compatibility}
+(channels $+$ uncertainty $+$ monotonicity, i.e.\ R3--R5) on the $x$-axis, and \emph{full-profile accuracy} (R1) on
+the $y$-axis. The accuracy-corner systems sit top-left; the belief-corner systems sit lower-right; the target sits
+top-right, empty.
+
+\begin{figure}[t]\centering
+\begin{tikzpicture}[>=Latex,scale=1.0]
+  % axes
+  \draw[->,thick] (0,0) -- (11,0) node[below right]{\small interview-compatibility (R3--R5): channels $+$ uncertainty $+$ monotone};
+  \draw[->,thick] (0,0) -- (0,8) node[above left,rotate=90,anchor=south]{\small full-profile accuracy (R1)};
+  % faint quadrant guides
+  \draw[gray!35,dashed] (5.5,0) -- (5.5,7.6);
+  \draw[gray!35,dashed] (0,4) -- (10.6,4);
+  % accuracy corner (top-left)
+  \node[draw,rounded corners,fill=blue!6,font=\scriptsize,align=center] (ease) at (1.6,7.0) {EASE / RecVAE\\ / EDLAE};
+  \node[draw,rounded corners,fill=blue!6,font=\scriptsize,align=center] (gf) at (1.4,5.6) {graph filters\\(GF-CF/BSPM)};
+  \node[draw,rounded corners,fill=blue!6,font=\scriptsize,align=center] (sas) at (2.7,3.2) {SASRec /\\BERT4Rec};
+  % belief corner (lower-right)
+  \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (eddi) at (6.6,4.3) {EDDI /\\TaNP};
+  \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (biyik) at (7.7,4.7) {B\i y\i k'23\\(soft attrs)};
+  \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (conts) at (8.4,1.7) {ConTS / BCIE\\ / PEBOL};
+  % target (top-right)
+  \node[star,star points=5,draw,fill=yellow!85!red,minimum size=15pt,inner sep=0pt] (star) at (9.6,7.0) {};
+  \node[font=\scriptsize,align=center,anchor=west] at (9.9,7.0) {\textbf{CASPER}\\\textbf{(target)}};
+  \node[font=\scriptsize,align=center,text=red!70!black] at (9.0,6.05) {no published\\system here};
+  \draw[->,gray] (biyik) .. controls (9.0,5.6) .. (star);
+\end{tikzpicture}
+\caption{\textbf{The gap map (qualitative).} $x$-axis: interview-compatibility (channel-agnostic input, an
+uncertainty-native belief, and monotonicity---R3--R5). $y$-axis: full-profile accuracy (R1). Positions are
+\emph{qualitative} and reflect our reading of each system's published claims, not measured coordinates; they are
+meant to show the \emph{shape} of the bifurcation, not exact rankings. The accuracy corner
+(EASE/RecVAE/EDLAE~\cite{steck2019ease,ren2020recvae,steck2020edlae}, graph
+filters~\cite{shen2021gfcf,choi2023bspm}, sequence models~\cite{kang2018sasrec,sun2019bert4rec}) is top-left; the
+belief corner (EDDI~\cite{ma2019eddi}/TaNP~\cite{lin2021tanp}, Bıyık~\cite{biyik2023soft},
+ConTS~\cite{li2021seamlessly}/BCIE~\cite{toroghi2023bcie}/PEBOL~\cite{austin2024bayesian}) is lower-right. The
+top-right target is empty: we are aware of no published system there.}
+\label{fig:gapmap}
+\end{figure}
+
+% =====================================================================
+\section{Gap analysis}\label{sec:gap}
+% =====================================================================
+
+\paragraph{The verdict.}
+No single published system satisfies all of $\{$R1 SOTA-full-profile $\wedge$ R2 any-length set $\wedge$ R3
+channel-agnostic via arbitrary embeddings $\wedge$ R4 uncertainty-native $\wedge$ R5 monotone$\}$. The binding
+near-miss is Bıyık et al.~\cite{biyik2023soft}: it fails R1 (a co-trained item space, not a frozen certified
+RecVAE-class tower, and no full-profile benchmark) and gives only an approximate, ``generally not Gaussian''
+posterior; every other candidate fails R3 or R4 outright. \textbf{We are aware of none} that occupies the
+conjunction---and we state it exactly that way, never as ``there is none.''
+
+\paragraph{Per-near-miss failure analysis.}
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \textbf{Bıyık et al.~2023}~\cite{biyik2023soft} --- has R2 $+$ R3 (items and soft attributes as directions)
+        $+$ R4 (Gaussian belief). \emph{Fails R1}: the item space is co-trained with the belief model, not a certified
+        full-profile CF tower, and accuracy is reported on their elicitation task, not the EASE/RecVAE bar. R3 is
+        \emph{attribute directions}, not arbitrary embeddings / open concepts / continuous query tokens. R5 is
+        approximate (sampled EVOI over a non-Gaussian posterior). This is the central threat, and our wedge is exactly
+        (a) frozen certified tower vs.\ co-trained, (b) exact conjugacy vs.\ approximate posterior, (c) arbitrary /
+        open / continuous tokens vs.\ a fixed attribute set.
+  \item \textbf{ConTS}~\cite{li2021seamlessly} --- R2 $+$ R4 $+$ a unified item/attribute action space.
+        \emph{Fails R3} (a fixed categorical attribute schema; no arbitrary embedding, no continuous or open token) and
+        \emph{R1} (a bandit over arms, not a full-profile encoder).
+  \item \textbf{EDDI / Partial-VAE}~\cite{ma2019eddi} --- R2 $+$ R4 (information-gain) $+$ set input.
+        \emph{Fails R1} (not a recommendation model / no CF SOTA) and \emph{R3} (no attribute or concept channel as
+        demonstrated).
+  \item \textbf{RecVAE / EASE}~\cite{ren2020recvae,steck2019ease} --- \emph{R1 yes.} \emph{Fail R3} (an item-only
+        one-hot / indicator basis---cannot express a concept, a signed value, or a continuous direction) and \emph{R4}
+        (point estimate; RecVAE's latent posterior is item-only and is not used as an actionable belief).
+  \item \textbf{PEBOL}~\cite{austin2024bayesian} --- R4 (per-item Beta) $+$ R3 (LLM aspects) $+$ strong cold-start.
+        \emph{Fails R1} (no full-profile CF ranking) and its R4 is \emph{per item}, not a shared user covariance; no
+        monotonicity guarantee.
+  \item \textbf{SASRec / BERT4Rec}~\cite{kang2018sasrec,sun2019bert4rec} --- R2 (re-encode the sequence).
+        \emph{Fail R3, R4, R5} (item-only, order-sensitive, point estimate, non-monotone---a later token can reorder
+        everything). Token input is trivially satisfied but is \emph{not} value-carrying or mixed-type, so ``interview
+        $=$ tokens'' does not hold; and BERT4Rec's fold-in advantage carries a replicability
+        caveat~\cite{petrov2022replicability}.
+\end{itemize}
+
+\paragraph{The three inexpressible legs.}
+Three input channels are \emph{architecturally impossible} (not merely untuned) in the item-indicator basis of every
+R1-bar model: (i) graded/signed per-entity values (the basis has no sign and no magnitude---a ``dislike'' is not
+representable as a negative one-hot without changing the likelihood), (ii) out-of-catalogue concepts (there is no
+column for an entity absent from the catalogue), and (iii) arbitrary continuous direction tokens. Folding these as
+\emph{linear observations in a frozen latent} is the one leg of the conjunction we find nowhere in the literature.
+
+\paragraph{Pre-empted---cited, never claimed as first.}
+We must credit, and do not claim priority over: attribute-answers-as-directions plus a Bayesian
+fold~\cite{biyik2023soft}; unified item$+$attribute belief and value-of-information~\cite{biyik2023soft,li2021seamlessly};
+conjugate-Gaussian folds over a frozen factorisation~\cite{toroghi2023bcie}; permutation-invariant set-encoders with
+information-gain acquisition~\cite{ma2019eddi}; value-carrying set-input cold-start recommenders~\cite{lin2021tanp};
+the non-degradation-of-information principle (Good 1967 / Blackwell); and the now-crowded ``uncertainty-native
+recommender'' area~\cite{wang2025bdecf}. Our defensible novelty is only the \emph{conjunction} of all five requirements
+in one frozen certified tower, plus the three inexpressible legs and the G0--G2 protocol.
+
+% =====================================================================
+\section{The instrument}\label{sec:method}
+% =====================================================================
+
+The design follows directly from the gap analysis: use the shallow frozen tower that already holds the accuracy
+corner (R1, and the flat-since-2019 frontier means no deep-net detour is warranted), and add the one belief mechanism
+with a principled monotonicity story---exact linear-Gaussian conjugacy---over its frozen latent (R4, R5), with a
+channel-agnostic linear-observation interface (R3). This section is written at design level; implementation details
+and all numbers are \TODO{}.
+
+\subsection{Frozen shallow-SOTA tower}
+The substrate is a certified shallow recommender---a RecVAE-class amortised encoder or a closed-form
+autoencoder~\cite{ren2020recvae,steck2019ease}---trained once on the full catalogue and then \emph{frozen}. It exposes
+(a) item factor rows $\Q_i\in\R^{d}$, (b) a decoder read-out $s_i(\uu)=\Q_i^\top\uu + \beta_i$ with a learned bias
+$\beta_i$, and (c) the encoder that maps a full interaction set to a latent. Freezing is the wedge against
+Bıyık~\cite{biyik2023soft} (co-trained) and the guarantee that G0 (full strength preserved) is a property of the
+substrate, not of the belief layer. We deliberately do \emph{not} extend the linear basis with concept columns
+(that stays in the item-indicator world and fails R3), nor learn the uncertainty head (no monotonicity story, and
+retraining risks G0). \TODO{Select and certify the frozen tower (RecVAE-$d512$ ruler candidate; report the certified
+full/tail NDCG@10 and the bridge number of \S\ref{sec:bridge}).}
+
+\subsection{Analytic conjugate-Gaussian belief layer}
+Over the frozen latent we place a Gaussian belief on the user vector, $\uu\sim\mathcal N(\bmu_0,\bSigma_0)$, and model
+each answer as a noisy linear read-out along the queried direction:
+\begin{equation}\label{eq:obs}
+  y_j \;=\; \bphi_j^\top\uu + \varepsilon_j,\qquad \varepsilon_j\sim\mathcal N(0,\sigma_j^2).
+\end{equation}
+Because the observation is linear-Gaussian, the posterior after $\mathcal E_t$ is Gaussian in closed form; maintaining
+it in \emph{precision} form (a precision accumulator) makes the any-length fold-in a single running sum:
+\begin{equation}\label{eq:precacc}
+  \bLambda_t \;=\; \bLambda_0 + \sum_{j=1}^{t}\sigma_j^{-2}\,\bphi_j\bphi_j^\top,\qquad
+  \bLambda_t\,\bmu_t \;=\; \bLambda_0\bmu_0 + \sum_{j=1}^{t}\sigma_j^{-2}\,y_j\,\bphi_j,\qquad
+  \bSigma_t=\bLambda_t^{-1}.
+\end{equation}
+Equation~\eqref{eq:precacc} is exactly the mechanism BCIE~\cite{toroghi2023bcie} uses for critiques over a frozen
+factorisation; our contribution is doing it over a \emph{certified full-profile SOTA} tower with channel-agnostic
+tokens, and certifying the G0--G2 protocol on it. Three properties fall out by construction: it is a permutation-invariant
+\emph{set} operation defined for every $t\ge 0$ (R2); each update adds a rank-1 term along $\bphi_{t+1}$, so
+$\bLambda_t$ only grows and $\det\bSigma_t$ only shrinks (G1); and conjugate updates are Blackwell/Good-1967 monotone
+in \emph{expected utility}. The last is why R5 is plausible, but---because the tower's dot-product ranker does not act
+optimally under the belief---per-question NDCG monotonicity is \emph{not} automatic and must be shown empirically
+(\S\ref{sec:limits}). \TODO{Fix $\bLambda_0,\bmu_0$ (prior from the tower), the per-channel noise $\sigma_j$, and the
+confidence/temperature schedule; verify G0 holds at the belief mean on the full profile.}
+
+\subsection{Channel-agnostic tokens as linear observations}
+Every channel supplies a direction $\bphi_j\in\R^{d}$ and a value $y_j\in\R$ to Eq.~\eqref{eq:precacc}; the update is
+identical across channels (R3):
+\begin{itemize}[leftmargin=1.4em,itemsep=1.5pt]
+  \item \textbf{Items.} $\bphi_j=\Q_i$ (the frozen item factor). A graded or signed answer sets $y_j$; a dislike is a
+        negative $y_j$ along the same direction---representable here precisely because the observation model
+        \eqref{eq:obs} has a sign and a magnitude, unlike a one-hot indicator.
+  \item \textbf{Out-of-catalogue concepts.} $\bphi_j$ is a concept direction in the latent (e.g.\ a centroid of member
+        factors, or a text-adapter image of the concept), folded exactly like an item---no catalogue column required.
+  \item \textbf{Entities / free text.} An embedding is projected into the latent by a fixed adapter and folded
+        identically.
+  \item \textbf{Continuous direction tokens.} A policy may emit any $\bphi_j\in\R^{d}$ directly (the continuous-action
+        interface the companion chapter uses); the belief update does not distinguish it from a catalogue entity.
+\end{itemize}
+The signed/graded, out-of-catalogue, and continuous legs are the three channels inexpressible in the R1-bar basis
+(\S\ref{sec:gap}). \TODO{Specify the concept-direction and text-adapter constructions, the polarity/gradation
+encoding, and the acceptance tests (a like/dislike flip reverses the queried neighbourhood; a concept fold lifts its
+member items; monotone in $t$).}
+
+% =====================================================================
+\section{Experimental design}\label{sec:expdesign}
+% =====================================================================
+
+\subsection{Baseline bank}
+The baseline bank (Table~\ref{tab:baselines}) is three tiers: classic floors that every curve must clear
+(Dacrema et al.~\cite{dacrema2019progress} demands them), the full-profile SOTA bar that decides G0, and the
+elicitation-compatible rivals that decide G1/G2. Reported anchors are on the systems' \emph{own} splits and are not
+comparable to ours until bridged (\S\ref{sec:bridge}); we print them only to show what ``ties SOTA'' will mean.
+
+\begin{table}[t]\centering\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{p{3.2cm}p{3.0cm}p{3.6cm}p{4.0cm}}
+\toprule
+Baseline & Type & Reported anchor & Why the slot \\
+\midrule
+\multicolumn{4}{l}{\emph{Tier 1 --- classic floors (must clear)}}\\
+Most-Popular & non-personalised & popb floor (our harness) & the ``did we learn anything'' line; G2 must beat it cold. \\
+Item-kNN (cosine) & neighbourhood & ML-20M NDCG@100 $\sim0.36$ class & instant fold-in; Cremonesi-era strong-simple~\cite{cremonesi2010performance}. \\
+PureSVD / iALS-WMF & linear MF fold-in & WMF ML-20M NDCG@100 $0.386$ & cheap fold-in reference. \\
+SLIM & sparse linear item-item & ML-20M NDCG@100 $0.401$ & direct EASE ancestor. \\
+\midrule
+\multicolumn{4}{l}{\emph{Tier 2 --- full-profile SOTA (the R1 / G0 bar)}}\\
+EASE~\cite{steck2019ease} & closed-form item-item & NDCG@100 $0.420$ & the bar to tie; item-only shows the R3 gap. \\
+RecVAE~\cite{ren2020recvae} & amortised VAE & NDCG@100 $0.442$ & top of the ML-20M split; our $d512$ ruler class. \\
+Mult-VAE / DAE~\cite{liang2018variational} & VAE / DAE & NDCG@100 $0.426$ / $0.419$ & canonical amortised anchor. \\
+EDLAE~\cite{steck2020edlae} & denoising higher-order EASE & $\approx$ RecVAE class & confirms the flat frontier. \\
+GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & closed-form graph filter & SOTA on Gowalla/Yelp (ML-20M not reported) & admit only if re-run on our split. \\
+SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & self-attentive sequence & strong next-item (not this split) & sequence fold-in; watch replicability~\cite{petrov2022replicability}. \\
+\midrule
+\multicolumn{4}{l}{\emph{Tier 3 --- elicitation-compatible rivals (decide G1/G2)}}\\
+EDDI / Partial-VAE~\cite{ma2019eddi} & set-encoder $+$ info-gain & non-recsys (UCI/MNIST) & the R2 architecture; myopic info-gain baseline. \\
+Bıyık soft-attributes~\cite{biyik2023soft} & Gaussian belief $+$ EVOI & own elicitation task & the central threat; frozen-vs-co-trained wedge. \\
+ConTS~\cite{li2021seamlessly} & Thompson bandit, item$+$attr arms & cold-start CRS metrics & unified-space $+$ uncertainty; fixed schema. \\
+BCIE~\cite{toroghi2023bcie} & conjugate-Gaussian critique fold & critique metrics & exact-conjugacy-over-frozen precedent. \\
+PEBOL~\cite{austin2024bayesian} & Bayesian-opt NL-PE (LLM) & MRR@10 $0.27$ vs $0.17$ & load-bearing PE baseline; per-item Beta. \\
+Golbandi tree~\cite{golbandi2011adaptive} & RMSE decision-tree interview & Netflix RMSE & the static-tree interview comparator. \\
+RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & MF-embedding seeds & elicitation RMSE & interview-seed line; cite-and-differentiate. \\
+\bottomrule
+\end{tabular}
+\caption{Baseline bank. Anchors are on each system's own split/metric and are \emph{not} comparable to ours until the
+bridge (\S\ref{sec:bridge}) is run; G0 is decided against EASE$+$RecVAE, G1/G2 against the Tier-3 rivals plus a
+random-question control. Any deep-net ``SOTA'' not snapping to Tier-2 numbers on our split is
+inadmissible~\cite{dacrema2019progress}.}
+\label{tab:baselines}
+\end{table}
+
+\subsection{Evaluation protocol}
+
+\paragraph{(i) Certification bridge.}\label{sec:bridge}
+Our in-house anchors are on a \emph{different} ruler than the published bar, and we do not conflate them. Concretely,
+our set-encoder tower reaches full/tail NDCG@10 $0.4946/0.3372$ and our RecVAE-class $d{=}512$ ruler reaches
+$0.4998/0.3443$, \emph{both on ML-25M at NDCG@10}---whereas the published EASE/RecVAE numbers are NDCG@100 on the
+ML-20M strong-generalisation split. These are not comparable, and no ``ties SOTA'' claim is made until the bridge is
+run. The bridge has two steps: (1) \emph{reproduce} the published EASE and Mult-VAE/RecVAE numbers on the ML-20M Liang
+split (NDCG@100, Recall@20/50) in our own code, snapping to the reported values exactly~\cite{steck2019ease,liang2018variational,ren2020recvae};
+(2) \emph{port} the certified tower to the ML-25M harness and report full/tail NDCG@10 there. We keep ML-20M in the
+loop despite being older because the Liang 2018 split is a protocol lock-in the whole full-profile literature reports
+on; ML-25M is the newer corpus and, crucially, carries the genome tags the concept channel needs, so both datasets are
+required---one for comparability, one for the channels. \TODO{Bridge table: reproduced ML-20M NDCG@100/Recall vs.\
+published; ported ML-25M full/tail NDCG@10.}
+
+\paragraph{(ii) G0 --- full-profile on ML-25M, items-only.}
+On the baselines' native input (items only), evaluate full and tail NDCG@10 on the full ML-25M catalogue with a
+paired per-user bootstrap CI, confirming the instrument's belief mean reproduces the frozen tower and ties
+EASE/RecVAE on the shared harness. \TODO{G0 table (full \& tail NDCG@10, all baselines, CIs).}
+
+\paragraph{(iii) G2 --- per-question curves.}
+Cold-start per-question NDCG@10 curves (full and tail) versus a random-question control. Items are foldable by all
+baselines; mixed channels (concepts, signed values, continuous tokens) are foldable only by our instrument, which is
+the point of the comparison---the rivals cap out at what an item-only interview can carry. Symmetric access is
+enforced where a baseline \emph{can} fold a channel; where it structurally cannot, that is reported as an architecture
+limit, not hidden. \TODO{G2 curves for items-only (all methods) and mixed-channel (ours), full \& tail, with CIs and
+the random control; G1 posterior-shrinkage diagnostic.}
+
+\paragraph{(iv) Concept-as-pseudo-item ablation.}
+To pre-empt ``just add genre columns,'' we fold a concept into EASE/RecVAE as the centroid-of-members pseudo-item and
+compare against our concept channel. The expected finding is that a pseudo-item column is a lossy special case (it
+cannot carry sign, magnitude, or an out-of-catalogue direction), but we run it rather than assert it. \TODO{Ablation
+table: concept-as-pseudo-item fold into EASE/RecVAE vs.\ our concept channel, full \& tail.}
+
+\paragraph{Metrics.}
+Full \emph{and} tail NDCG@10 on ML-25M (the project reporting rule, scored with the decoder's learned bias, not a
+log-count popularity floor), plus NDCG@100 (and Recall@20/50) on the ML-20M bridge split for comparability with the
+published anchors. Every headline delta carries a paired per-user bootstrap CI on one shared harness. All result cells
+are \TODO{}.
+
+% =====================================================================
+\section{Limitations and threats to validity}\label{sec:limits}
+% =====================================================================
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Metric non-comparability until the bridge is run.} Our $0.4946/0.3372$ and $0.4998/0.3443$ are NDCG@10
+        on ML-25M; the published bar is NDCG@100 on ML-20M. Until \S\ref{sec:bridge} snaps our code to the published
+        numbers, \emph{no} ``ties SOTA'' claim is licensed---the numbers live on different rulers.
+  \item \textbf{Monotonicity is empirical, not a theorem.} Conjugate-Gaussian updates are monotone in expected
+        utility (Good 1967 / Blackwell) \emph{only in expectation}, and only if the ranker acts optimally under the
+        belief---which a fixed dot-product / NDCG ranker does not. R5 (and G2's rising curve) is therefore a
+        \emph{measured} property with a per-question CI, not a guarantee; a truthful answer can in principle still
+        lower NDCG at a given step, and we report any such step rather than suppress it.
+  \item \textbf{Simulator-based evaluation pending a human study.} G1/G2 are measured under a stated answer model
+        (a simulator), which shares structure with the instrument's own latent; this risks circularity (the answer,
+        the belief, and the metric are all functions of the same space). We add answer-noise ablations and a
+        simulator-alignment limitation to every gate, and treat a $\ge$1 human round-trip study as the load-bearing
+        external validation---not yet run.
+  \item \textbf{BERT4Rec replicability.} The sequence baseline's fold-in advantage is subject to a documented
+        replicability caveat~\cite{petrov2022replicability}; we tune it to the published protocol and flag any
+        residual gap rather than treat a single run as authoritative.
+  \item \textbf{Graph-filter admissibility.} GF-CF/BSPM/Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} do
+        not publish the ML-20M strong-generalisation NDCG; they enter Tier 2 only if re-run on our split, and are
+        otherwise reported as an accuracy ceiling on other datasets, not as a bridged tie.
+  \item \textbf{Absence of evidence.} The conjunction claim is ``we are aware of none,'' bounded by our survey; a
+        set-encoder / deep-set recommender that hits RecVAE-class full-profile accuracy \emph{and} takes value-carrying
+        mixed-type tokens would partly pre-empt R1$\wedge$R2$\wedge$R3. Our searches found no such reported system,
+        which is absence of evidence, not proof of absence.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\bibliographystyle{plain}
+\bibliography{../references,chapterA_v2_new_refs}
+
+\end{document}
