@@ -28,6 +28,13 @@ _Canonical current recommender = **pbC set-encoder** (interview-native). The Rec
 - Adaptivity **proven** (+47% tail from one genre question — HARD RULE #2).
 - Concepts **lose to items** as an interview router; a concept answer ≈ a coarsened item-watch signal.
 
+## Paper A restart (2026-07-20)
+- Lit re-review DONE: `external_literature/findings/paperA_recommender_landscape.md` (SOTA, taxonomy, gap
+  verdict, baseline bank) + per-paper records in `external_literature/papers/`. Gap CONFIRMED (no system holds
+  R1–R5; Biyik 2023 = central threat). Design verdict → `docs/design/PAPERA_DESIGN_VERDICT_2026-07-20.md`:
+  **frozen shallow tower + PrecAcc conjugacy IS the Paper-A instrument**; obligations = metric bridge
+  (NDCG@10/ML-25M vs published NDCG@100/ML-20M) + c4 baseline tiers before any "ties SOTA" claim.
+
 ## Running now
 - Nothing.
 
