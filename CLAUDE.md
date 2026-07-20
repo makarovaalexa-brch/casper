@@ -83,3 +83,16 @@ says where to point it.**
    (V1 encoder). The recommender is now a 0.4852 set encoder — a different machine. Do not analyse them, do not
    cite them, do not "explain" them. Forget them.
 3. The only live question about the policy is: **does it work on the STRONG model?** Test that.
+
+## HARD RULE #4 — ALWAYS REPORT FULL *AND* TAIL NDCG, ON THE CANONICAL RECOMMENDER
+1. **Every result reports BOTH full-NDCG@10 and tail-NDCG@10.** Never tail-only. A tail-only number hides
+   head/full behaviour and has repeatedly misled us. (Jul-19: a whole session concluded "full is flat / solved"
+   from tail-masked eval + a wrong head bias — see [[popb-vs-decoder-bias-full-ndcg-bug]].)
+2. **Score with the recommender's ACTUAL decoder (weight + LEARNED bias), not a log-count `popb` floor.** popb and
+   the learned bias correlate only ~0.79; substituting popb craters full-NDCG (head-dominated). The canonical
+   set-encoder recommender is **~0.486 full / ~0.32 tail full-profile** (pb2_best 0.4852/0.3295; paord ~0.486;
+   fusion 0.4859/0.3203; a0c 0.4961). If a reconstruction doesn't reproduce ~0.486 full-profile, the EVAL PROTOCOL
+   is wrong — fix it before drawing any conclusion. Cold-start popb-only ≈ 0.19 full; the full HEADROOM (0.19→0.49)
+   is huge and REAL — never call full "solved".
+3. Before measuring elicitation, confirm the belief-pool's scoring/split reproduces the canonical recommender's
+   full-profile number; a bespoke per-user half-split + popb floor is NOT the canonical eval.
