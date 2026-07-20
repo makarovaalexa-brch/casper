@@ -1,0 +1,1112 @@
+Towards Hierarchical Policy Learning for Conversational Recommendation with
+Hypergraph-based Reinforcement Learning
+Sen Zhao1,2 , Wei Wei∗1,2 , Yifan Liu1,2 , Ziyang Wang1,2 , Wendi Li1,2 , Xian-Ling Mao3 , Shuai
+Zhu4 , Minghui Yang4 , Zujie Wen4
+1Cognitive Computing and Intelligent Information Processing (CCIIP) Laboratory, School of Computer
+Science and Technology, Huazhong University of Science and Technology
+2Joint Laboratory of HUST and Pingan Property & Casualty Research (HPL)
+3School of Computer Science and Technology, Beijing Institute of Technology
+4Ant Group
+{senzhao, weiw, yifaan, ziyang1997, wendili0822}@hust.edu.cn, maoxl@bit.edu.cn, {zs261988,
+minghui.ymh, zujie.wzj}@antgroup.com
+Abstract
+Conversational recommendation systems (CRS)
+aim to timely and proactively acquire user dynamic
+preferred attributes through conversations for item
+recommendation. In each turn of CRS, there natu-
+rally have two decision-making processes with dif-
+ferent roles that influence each other: 1) director,
+which is to select the follow-up option (i.e., ask or
+recommend) that is more effective for reducing the
+action space and acquiring user preferences; and
+2) actor, which is to accordingly choose primitive
+actions (i.e., asked attribute or recommended item)
+that satisfy user preferences and give feedback
+to estimate the effectiveness of the director’s op-
+tion. However, existing methods heavily rely on a
+unified decision-making module or heuristic rules,
+while neglecting to distinguish the roles of differ-
+ent decision procedures, as well as the mutual in-
+fluences between them. To address this, we propose
+a novelDirector-Actor Hierarchical Conversational
+Recommender (DAHCR), where the director se-
+lects the most effective option, followed by the ac-
+tor accordingly choosing primitive actions that sat-
+isfy user preferences. Specifically, we develop a
+dynamic hypergraph to model user preferences and
+introduce an intrinsic motivation to train from weak
+supervision over the director. Finally, to alleviate
+the bad effect of model bias on the mutual influence
+between the director and actor, we model the di-
+rector’s option by sampling from a categorical dis-
+tribution. Extensive experiments demonstrate that
+DAHCR outperforms state-of-the-art methods.
+1 Introduction
+Conversational recommendation systems (CRS) aim to dy-
+namically learn user preferences by iteratively interacting
+with the user. Existing works have explored various settings
+∗Corresponding author
+Director
+Actor
+Environment
+Agent
+Option Intrinsic
+motivation
+State
+Extrinsic 
+rewards
+Actor
+Environment
+Agent
+State
+Extrinsic 
+rewards
+Actor
+Environment
+Agent
+Option
+State
+Primitive 
+actions
+Extrinsic 
+rewards
+Heuristic rules
+Primitive 
+actions
+Primitive 
+actions
+Item Feature
+(a)  Framework of  SCPR (b)  Framework of Unicorn (c)  Framework of DAHCR(b)  
+Figure 1: Illustration of policy learning frameworks for CRS, in-
+cluding a framework of the outsourcing strategy (SCPR), a unified
+framework (Unicorn), and our proposed Director-Actor framework.
+of CRS from the perspective of either dialogue systems[Li et
+al., 2018] or recommendation systems [Lei et al., 2018]. This
+work focuses on the setting of multi-round conversational
+recommendation (MCR) [Sun and Zhang, 2018], which aims
+to recommend the target item to the user by iteratively asking
+attributes and recommending items in the limited turns.
+For each turn in CRS, the system naturally includes two
+essential decision-make procedures, when to recommend
+(i.e., ask or recommend), and what to talk about ( i.e., the
+specific attribute/items). Early works [Lei et al. , 2020a;
+Sun and Zhang, 2018 ] develop policy learning for a subset
+of decision procedures and outsource the other procedures to
+heuristic rules (SCPR as illustrated in Figure 1 (a)). These
+works isolate strategies for different decisions and make pol-
+icy learning hard to converge due to their lack of mutual
+influence during training. To solve this problem, Deng et
+al. [2021] and Zhang et al. [2022] develop unified policy
+learning frameworks (Unicorn as illustrated in Figure 1 (b))
+which unify the aforementioned two separated decision-make
+processes as a selection from the action space consisting of
+items and attributes. Despite effectiveness, the unified strat-
+egy brings out issues to be solved: (i) The unified strategy
+complicates the action selection of the CRS strategy by en-
+larging the action space and introducing data bias into the
+action space due to the imbalance in the number of items and
+attributes. As illustrated in Figure 1 (b), the action space is
+enlarged with all the items and attributes, and the strategy will
+arXiv:2305.02575v2  [cs.IR]  26 Jul 2023
+prefer to select items when the number of items is larger. (ii)
+The unified strategy ignores the different roles of the two de-
+cision procedures, leading to the sub-optimal CRS strategy.
+In the real scenario of CRS, the two decision procedures
+have different roles which are mutually influenced. As il-
+lustrated in Figure 1 (c), the decision procedure of when to
+recommend works as a director, which should select the op-
+tion ( i.e., ask or recommend) that is more effective for re-
+ducing the action space and acquiring user preferences ( e.g.,
+avoid recommending when the user’s preference is not cer-
+tain enough) to guide the latter procedure. The latter proce-
+dure works as an actor, which should accordingly choose the
+primitive action (i.e., the specific attribute/items) that satisfies
+the user’s preference and gives feedback to evaluate the effec-
+tiveness of the director’s option. The director’s option limits
+the actor’s action space to either attributes or items, which re-
+duces the action space and avoids the data bias introduced by
+the imbalance in the number of items and attributes.
+There remain three challenges in modeling these two roles
+and their mutual influence. The first challenge is weak super-
+vision. The extrinsic rewards from the environment in each
+turn estimate the user’s preference for the actor’s primitive
+actions, but fail to estimate the effectiveness of the director’s
+option, which is weakly supervised by the final-turn result
+(i.e., success or failure). The second challenge is user prefer-
+ence modeling. In the scenario of CRS, the user likes/dislikes
+items since they satisfy some attributes, which is a three-order
+relation ( i.e., user-attribute-item). To specify the attributes
+that motivate the user to like/dislike the item, we should
+model user preferences with such high-order relations. The
+third challenge is the bad effect of model bias [Battaglia et
+al., 2018; Tarvainen and Valpola, 2017] on the mutual influ-
+ence between director and actor. Specifically, the director’s
+bias may lead to bad options that will filter out more efficient
+actions for the actor. And the actor’s bias can result in false
+feedback that will disturb the convergence of the director.
+To overcome the aforementioned challenges, we propose
+a Director-Actor Hierarchical Conversational Recommender
+(DAHCR) with the director to select the option ( i.e., ask
+or recommend) that is more effective for reducing the ac-
+tion space and acquiring user preferences, followed by the
+actor accordingly choosing primitive actions ( i.e., specific
+items/attributes) that satisfy user preferences. To train from
+weak supervision over the director’s option effectiveness, we
+develop and introduce an intrinsic motivation (i.e., the actor’s
+feedback) [Chentanez et al. , 2004 ] into our Director-Actor
+framework to estimate the effectiveness of director’s options.
+Furthermore, to model user preferences, we develop a dy-
+namic hypergraph [Feng et al., 2019; Jiang et al., 2019] with
+each high-order relation ( i.e., user-attribute-item) specifying
+an attribute that motivates the user to like/dislike the item. Fi-
+nally, to alleviate bad effects of the model bias in the mutual
+influence, we model the director’s option by sampling from
+a categorical distribution with Gumbel-softmax [Pei et al. ,
+2022]. Extensive experiments on real-world datasets show
+that our method outperforms the state-of-the-art methods.
+In a nutshell, this work makes the following contributions:
+• We emphasize the different roles in two decision proce-
+dures for CRS, and the mutual influence between them.
+• We propose a novel Director-Actor Hierarchical conver-
+sational recommender with intrinsic motivation to train
+from weak supervision and a dynamic hypergraph to
+learn user preferences from high-order relations. To al-
+leviate the bad effect of model bias on the mutual in-
+fluence between director and actor, DAHCR models the
+director’s options by sampling from a categorical distri-
+bution with Gumbel-softmax.
+• We conduct extensive experiments on two benchmark
+datasets, and DAHCR effectively improves the perfor-
+mance of conversational recommendation.
+2 Related Work
+Different from traditional recommendation systems [Zhao et
+al., 2022; Wang et al., 2022; Wei et al., 2023] that predict the
+user’s preference based on his/her historical behaviors, con-
+versational recommendation systems (CRS) [Priyogi, 2019;
+Xie et al., 2021; Zhou et al., 2020; Zhao et al., 2023 ] aim
+to communicate with the user and recommend items based
+on the attributes explicitly asked during the conversation.
+Various efforts have been conducted to explore the chal-
+lenges in CRS which can mainly be categorized into two
+tasks: dialogue-biased CRS studies the dialogue understand-
+ing and generation [Chen et al. , 2019; Kang et al. , 2020;
+Liu et al., 2020], and recommendation-biased CRS explores
+the strategy to consult and recommend [Christakopoulou et
+al., 2016; Christakopoulouet al., 2018; Sun and Zhang, 2018;
+Lei et al. , 2020a ]. This work focuses on the multi-round
+recommendation-biased CRS (MCR) [Lei et al. , 2020a ]
+which focuses on the setting where the MCR aims to recom-
+mend the target item to the user by iteratively asking attributes
+and recommending items in limited turns.
+For each turn in CRS, the system naturally includes two
+make-decision procedures, when to recommend ( i.e., ask or
+recommend), and what to talk about (i.e., which attribute/item
+to inquire/recommend). Early works for the MCR improve
+the strategies of when and what attributes to ask, while the
+decision of which item to recommend is made by external
+heuristic rules. EAR [Lei et al., 2020a ] utilizes latent vec-
+tors to capture the current state of MCR, and employs pol-
+icy gradient to improve the strategy of deciding when to ask
+questions about attributes and which attribute to ask. To re-
+duce the action space in policy learning, SCPR [Lei et al.,
+2020b] improves the strategy to only decide whether to ask
+or recommend and develops external path reasoning meth-
+ods to decide which attribute to ask or which item to rec-
+ommend. These works, however, isolate strategies for dif-
+ferent problems and make the policy learning of these strate-
+gies hard to converge. To solve this problem, Unicorn [Deng
+et al., 2021 ] unifies the two decision procedures as the se-
+lection from the candidate action space consisting of items
+and attributes. Specifically, Unicorn proposes a graph-based
+Markov Decision Process (MDP) environment to choose ac-
+tions from the candidate action space. MCMIPL [Zhang et
+al., 2022] further considers the user’s multiple interests in the
+unified strategy and develops a multi-interest policy learning
+module. Despite effectiveness, these works ignore the vari-
+ant roles of different decision procedures, which may lead to
+sub-optimal CRS strategies.
+3 The Proposed Model
+We first introduce the problem definition of multi-turn con-
+versational recommendation (MCR). Next, we introduce the
+framework and the model of our proposed Director-Actor Hi-
+erarchical Conversational Recommender (DAHCR).
+3.1 Problem Formulation
+In this section, we formulate the problem of multi-turn con-
+versational recommendation (MCR), which aims to recom-
+mend the target item to the user by asking attributes and rec-
+ommending items in the limited turns of the conversation.
+Specifically, let V = {v1, v2, · · ·, vM } denotes the item
+set. For each item v, there exists an attribute setPv associated
+with the item. At the beginning of each conversation, a useru
+initializes the conversation session with a target item v∗ and
+an attribute that belongs to the target item p0 ∈ Pv∗. The
+candidate item set Vcand is formed with the items associated
+with p0 and the candidate attribute setPcand is constructed by
+the attributes associated with the items in the candidate item
+set Vcand. Then at each turn t, MCR can either ask the user an
+attribute pt ∈ Pcand or recommend a certain number of items
+(e.g., the top ten items) Vt ⊆ Vcand to the user. According
+to the target item v∗ and its associated attributes Pv∗, the user
+will choose to accept or reject the proposal of MCR. Based on
+the user’s feedback, MCR will update the candidate attribute
+set Pcand and the candidate item set Vcand. The conversation
+will continue until the max turnT and the recommendation is
+successful if the target item v∗ is recommended within T .
+3.2 DAHCR Framework
+As illustrated in Figure 1 (c), we propose the Director-Actor
+hierarchical conversational recommendation policy Learning,
+a novel framework for MCR. At each time step t, the direc-
+tor chooses an option ot ∈ O, and the actor chooses the
+primitive action at ∈ At|ot accordingly. Consequently, the
+state is updated to st+1 with the transition T (st+1|st, ot, at).
+The user’s feedback ft ∈ {acc, rej}, the extrinsic reward
+ra
+t ∈ Ra, and intrinsic motivation ro
+t ∈ Ro are given accord-
+ing to st, ot and at. Specifically, the main components of
+DAHCR ⟨S, O, A, T,Ro, Ra⟩ are defined as:
+State S. The current state contains three components, in-
+cluding the interactive history I t, the related nodes N t, and
+the hypergraph Gt among the user and related nodes:
+st = [I t, N t, Gt], (1)
+where I t = [(a1
+j , fj)|j = 1, 2 · · ·t − 1]. The related nodes
+N t = {u} ∪P t
+acc ∪ P t
+rej ∪ V t
+rej ∪ V t
+cand contains the user u,
+the accepted attributes P t
+acc, the rejected attributes P t
+rej, the
+rejected items V t
+rej, and the candidate items V t
+cand.
+Options O. Based on the state st of the current turn, the
+director should choose an option ot ∈ O, where O =
+{ask, rec} denotes whether to ask or recommend.
+Primitive actions A. Based on the director’s option ot and
+the state st, the actor selects the primitive action at ∈ At|ot,
+where At|ask = P t
+cand is the candidate attributes to ask and
+At|rec = V t
+cand means the candidate items to recommend.
+Transitions T . As previous works [Deng et al., 2021], the
+state st+1 updates based on the user’s response:
+
+
+
+P t+1
+acc = P t
+acc ∪ at, if ot = ask, ft = acc
+P t+1
+rej = P t
+rej ∪ at, if at = ask, ft = rej
+V t+1
+rej = V t
+rej ∪ at, if at = rec, ft = rej
+, (2)
+V t
+cand = VP tacc \ V t
+rej , Pt
+cand = PV t
+cand
+\ (P t
+acc ∪ P t
+rej ), (3)
+where VP tacc denotes the items that satisfy all the accepted
+attributes and PV t
+cand
+denotes all the attributes that belong to
+the candidate items. Follows Lei et al. [2020b], items that
+have rejected attributes are not eliminated from V t
+cand.
+Extrinsic rewards Ra. Extrinsic rewards are special sig-
+nals to guide the agent to select user-preferred actions. Five
+kinds of rewards are designed [Deng et al. , 2021 ]: (1)
+ra
+acc|rec, a strongly positive reward for successful recommen-
+dation; (2) ra
+rej|rec, a slightly negative reward for rejected rec-
+ommendation; (3) ra
+acc|ask, a slightly positive reward when
+the asked attribute is accepted; (4) ra
+rej|ask, a slightly nega-
+tive reward when the asked attribute is rejected; (5) ra
+quit, a
+strong negative reward when the maximum turn reaches.
+Intrinsic motivation Ro. The intrinsic motivation is passed
+from the actor to the director to estimate the effectiveness of
+the director’s option. Since recommending is an inefficient
+action when the user’s preference is not certain enough ( i.e.,
+the target item is outside the top ten in the actor’s ranking list
+of items), we assign a positive rewardro
++ to the option of ask
+and a negative rewardro
+− to the option of rec in this situation.
+Inversely, when the user’s preference is certain,ro
++ and ro
+− are
+assigned to the option of rec and ask, respectively.
+3.3 DAHCR Policy Learning
+State Encoder
+The interactive history I t = [(oj, fj)|j ∈ {1, 2 · · ·t − 1}] be-
+tween DAHCR and the user contains the director’s historical
+options oj and the user’s feedback of accepting or rejecting
+fj ∈ {acc, rej}. With the embedding of the interactive his-
+tory {X1
+h, X2
+h, · · ·, Xt−1
+h }, the interactive statest
+h is obtained
+with GRU networks [Cho et al., 2014]:
+st
+h = GRU (st−1
+h , Xt−1
+h ). (4)
+The interactive state st
+h encodes the historical interaction
+between the agent and the user, and is excepted to guide
+DAHCR to learn CRS strategy to decide whether the user’s
+preference is certain enough (e.g., the recommended attribute
+is accepted for several turns) for recommending items.
+To learn the user’s preference for the specific attributes
+and items, we build a dynamic hypergraph G(t)
+u =
+(N (t), H(t), A(t)), including: (1) the set of related nodes
+N t = {u} ∪P t
+acc ∪ P t
+rej ∪ V t
+rej ∪ V t
+cand; (2) a hyperedge
+set H(t), whose element h ∈ H(t) denotes a hyperedge be-
+tween the user, an attribute and items. In our case, for each
+Conversation History
+Environment
+Update
+Connectivity State Encoder
+User
+Item
+Attribute Rejected  
+Attribute
+Accepted  
+Attribute
+FFN
+Ranking  
+Attributes
+Ranking 
+Items
+Actor
+ItemAttributeGumbel 
+Distribution
+DQN Policy Network
+FFN
+FFN
+Director
+Interactive State Encoder
+Action Space
+Attribute 
+Embeddings
+Item 
+Embeddings
+Advance
+HGNN
+Rejected  
+Item
+Candiate  
+Attributes
+Candidate 
+Items
+State Encoder Hierachical Action Selection
+Value FFN
+FFNAdvance
+Value
+State 
+Embedding
+GRU
+Encode
+Size
+Figure 2: The overview of Director-Actor Hierarchical Conversational Recommender (Best view in color).
+attribute p ∈ N(t), we define a hyperedge hp corresponding
+to the attribute p; (3) a |N (t)| × |H(t)| adjacent matrix A(t)
+which denotes the weighted edge between each node and hy-
+peredge, with entries denoted as:
+A(t)
+i,j =
+
+
+
+1, if ni = u, phj ∈ P(t)
+acc
+−1, if ni = u, phj ∈ P(t)
+rej
+1
+|V (t)
+hj
+| , if ni ∈ V(t)
+hj
+1, if ni = phj
+0, otherwise
+, (5)
+where phj denotes the attribute corresponding to the hyper-
+edge hj, and V (t)
+hj
+indicates items that satisfy the attributephj .
+To take advantage of the connectivity information from the
+dynamic hypergraph, we employ hypergraph neural networks
+[Xia et al., 2022] to refine the node representation with struc-
+ture and connectivity information. Firstly, we aggregate in-
+formation propagated from nodes to related hyperedges:
+H = D−1
+h AT EWn, (6)
+where E ∈ R|N (t)|×d denotes the initial embedding of related
+nodes N (t), Wn ∈ Rd×d is the weight matrix, and Dh is the
+diagonal matrix denoting the degree of the hyperedges, which
+is defined as the number of nodes connected by hyperedges.
+During the conversation, the hyperedges are successively
+generated when the user accepts or rejects the asked attribute.
+Moreover, the higher-level interactions between different hy-
+peredges are also important in learning user preferences. To
+model the sequential information and hyperedge-wise feature
+interactions, higher-level hypergraph layers further pass mes-
+sages through the interactions between hyperedges as:
+H l
+f = MHSAf (H l−1
+f , H l−1
+f , H l−1
+f ), (7)
+where f ∈ {acc, rej}, and MHSA (·) indicates the multi-
+head self attention [Vaswani et al., 2017]. Finally, we aggre-
+gate the information from the hyperedges to refine the nodes’
+representations Γl and then obtain the connectivity state st
+g:
+st
+g =
+X
+l
+Γl(u), Γl = ReLU(A · H l). (8)
+With the interactive state st
+h and the connectivity state st
+g,
+the final state is obtained by:
+st = st
+h ⊕ st
+g ⊕ st
+len, (9)
+where ni denotes the node in the hypergraph, st
+len encodes
+the size of the candidate item and attribute set by dividing the
+length |Vcand| and |Pcand| into ten-digit binary features [Lei
+et al., 2020a], since it is also an important basis for deciding
+to ask or recommend ( e.g., the recommendation is easier to
+be successful when the candidate items’ size is small).
+Hierarchical Action Selection Strategy
+After obtaining the state encoding the interactive history and
+the user’s preference, we design a novel dueling Q-network
+to conduct policy learning under the hierarchical structure.
+Following the basic assumption that the delayed rewards are
+discounted by a factor of γ, we define the Q-value Qo(st, ot)
+and Qa(st, at) as the expected reward for the director’s op-
+tion ot and the actor’s action at based on the state st:
+Qo(st, ot) =f o
+θV (st) +f o
+θA (st, ot), (10)
+Qa(st, at|ot) =P ∗(st, ot)(f a
+θV (st) +f a
+θA (st, at)), (11)
+where the value function f o
+θV (·) f a
+θV (·), and the advantage
+function f o
+θA (·) f a
+θA (·) are four separate multi-layer percep-
+tions (MLP). P ∗(st, ot) controls the action space of the ac-
+tor’s actions by masking the Q-value of actions at according
+to the director’s option ot. To realize a differentiable discrete
+sample of the director’s option and alleviate the bad effect of
+model bias on the mutual influence between the director and
+actor, we model ot by sampling from a categorical distribu-
+tion with Gumbel-softmax as:
+P ∗(st, ot) = exp((log(P (st, ot)) +ϵ)/τ )P
+o∈O exp((log(P (st, o)) +ϵ)/τ ) , (12)
+where ϵ = −log(−log(x)) and x is sampled from
+U nif orm(0, 1). The temperature parameter τ controls the
+bias and variance of the likelihood distribution. When τ is
+larger, the likelihood is smoother with more variance and less
+bias. P (st, ot) is calculated with the softmax function as:
+P (st, ot) = exp(Qo(st, ot))P
+o∈O Qo(st, o) , (13)
+where O = {ask, rec} denotes the space for the director’s
+option. Gumbel-Softmax is used to alleviate the bias when
+lacking policy learning in the mutual influence between Di-
+rector and Actor: (1)Biases (e.g., bad options of Director)
+caused by Director may filter out of efficient actions for the
+Actor. Hence, we consider sampling options from a Gumbel
+distribution, which may pave the way to explore the right ac-
+tion for Actor; (2)Bias (e.g., false feedback) caused by Actor
+may affect the convergence of Director, and thus to alleviate
+the issue, we consider to optimize the Gumbel distribution,
+rather than the deterministic function of Director’s option.
+The optimal Q-function with the maximum expected re-
+ward Q∗
+o(st, ot) and Q∗
+a(st, at) for the director’s option and
+the actor’s primitive action are achieved by optimizing the
+hierarchical policy πo and πa, follows the Bellman function
+[Bellman and Kalaba, 1957] as:
+Q∗
+o(st, ot) =Est+1 [ro
+t + γ max
+ot+1∈O
+Q∗
+o(st+1, ot+1|ot)], (14)
+Q∗
+a(st, at) =Est+1 [ra
+t + γ max
+at+1∈At+1|ot+1
+Q∗
+a(st+1, at+1|at)],
+(15)
+where At+1|ot+1 denotes the action space of primitive actions
+according to the director’s option (i.e., At+1|ask denotes can-
+didate attributes and At+1|rec denotes candidate items).
+Model Training
+For each turn, the agent gets the intrinsic motivationro
+t to the
+director’s option, the extrinsic reward ra
+t to the actor’s prim-
+itive action, and the candidate actions space At+1 is updated
+according to the user’s feedback. We define a replay buffer
+D following Deng et al. [2021], which stores the experience
+(st, ot, at, ro
+t , ra
+t , st+1, At+1). For the training procedure, we
+sample mini-batch from the buffer and optimize the model
+with loss function as follows:
+L1(θQ) =E(st,ot,ro
+t ,st+1)∼D[(yo
+t − Qo(st, ot; θQ))2], (16)
+L2(θQ) =E(st,at,ra
+t ,st+1,At+1)∼D[(ya
+t − Qa(st, at; θQ))2].
+(17)
+L1 and L2 are alternatively optimized to teach DAHCR ef-
+ficiently interacts with the user and predict the user’s prefer-
+ence, where θQ = {θV , θA}, and yo
+t , ya
+t are target values for
+the director’s options and the actor’s actions, which are based
+on the optimal value function as:
+yo
+t = ro
+t + γ max
+ot+1∈O
+Q∗
+o(st+1, ot+1; θQ), (18)
+ya
+t = ra
+t + γ max
+at+1∈At+1
+Q∗
+a(st+2, at+1; θQ). (19)
+To alleviate the problem of overestimation bias, we adopt the
+double Q-learning [Van Hasseltet al., 2016] to employ target
+networks Q
+′
+o and Q
+′
+a as period copies from the online net-
+works to train the network following previous works [Deng
+et al., 2021; Lei et al., 2020b].
+Dataset LastFM LastFM* Yelp Yelp*
+Users 1,801 1,801 27,675 27,675
+Items 7,432 7,432 70,311 70,311
+Interactions 76,693 76,693 1,368,606 1,368,606
+Attributes 33 8,438 29 590
+Entities 9,266 17,671 98,605 98,576
+Relations 4 4 3 3
+Triples 138,215 228,217 2,884,567 2,533,827
+Table 1: Statistics of datasets.
+4 Experiments
+To fully demonstrate the superiority of our method, we con-
+duct experiments to verify the following three research ques-
+tions (RQ):
+• RQ1: Compared with the state-of-the-art methods, does
+our framework achieves better performance?
+• RQ2: What are the impacts of key components on per-
+formance?
+• RQ3: How do hyper-parameters settings (such as the
+layer number of hypergraph neural networks) affect our
+framework?
+4.1 Experiment Setting
+Datasets
+For better comparison, we follow previous works to conduct
+experiments1 on LastFM, LastFM* for music artist recom-
+mendation and Yelp, Yelp* for the business recommendation.
+The statistics of datasets are illustrated in Table 1.
+• LastFM [Lei et al., 2020a]: LastFM is designed to eval-
+uate the binary question scenario for the music artist
+recommendation, where the user gives preference to-
+wards an attribute using yes or no. Following Lei et al.
+[2020a], we manually merge relevant attributes into 33
+coarse-grained attributes.
+• Yelp[Lei et al., 2020a]: Yelp is designed for enumerated
+questions for the business recommendation, where the
+user can select multiple attributes under one category.
+• LastFM* and Yelp* [Lei et al., 2020b]: Following Lei
+et al. [2020b], we construct the datasets with original
+attributes and pruning off the attributes with frequency
+< 10, named LastFM* (containing 8438 attributes) and
+Yelp* (containing 590 attributes) separately.
+1https://github.com/Snnzhao/DAHCR
+Models LastFM LastFM* Yelp Yelp*
+SR@15 AT hDCG SR@15 AT hDCG SR@15 AT hDCG SR@15 AT hDCG
+Abs Greedy 0.222 13.48 0.073 0.635 8.66 0.267 0.264 12.57 0.145 0.189 13.43 0.089
+Max Entropy 0.283 13.91 0.083 0.669 9.33 0.269 0.921 6.59 0.338 0.398 13.42 0.121
+CRM 0.325 13.75 0.092 0.580 10.79 0.224 0.923 6.25 0.353 0.177 13.69 0.070
+EAR 0.429 12.88 0.136 0.595 10.51 0.230 0.967 5.74 0.378 0.182 13.63 0.079
+SCPR 0.465 12.86 0.139 0.709 8.43 0.317 0.973 5.67 0.382 0.489 12.62 0.159
+UNICORN 0.547 11.57 0.176 0.798 7.58 0.412 0.985 5.33 0.397 0.522 11.55 0.174
+MCMIPL 0.633 11.54 0.191 0.839 6.89 0.412 0.981 5.65 0.387 0.552 11.31 0.178
+DAHCR 0.712† 10.83† 0.213† 0.925† 6.31† 0.431† 0.992 5.16 † 0.400† 0.626† 11.02† 0.192†
+Table 2: Experimental results. † represents the improvement of DAHCR over all baselines is statistically significant with p-value < 0.01.
+hDCG indicates hDCG@(15, 10). SR@15 and hDCG are the higher the better, while AT is the lower the better.
+Metrics
+Following previous studies [Lei et al. , 2020a; Lei et al. ,
+2020b; Deng et al., 2021], we adopt three widely used metrics
+for conversational recommendation: SR@t, AT, and hDCG.
+Success rate (SR@t) is adopted to measure the cumulative
+ratio of successful recommendations by the turn t. Average
+turns (AT) is used to evaluate the average number of turns for
+all sessions. hDCG@(T, K) is used to additionally evaluate
+the ranking performance of recommendations. Therefore, the
+higher SR@t and hDCG@(T, K) indicate better performance,
+while the lower AT means an overall higher efficiency.
+Implementation Details
+Following previous works [Deng et al. , 2021; Lei et al. ,
+2020b], we adopt TransE [Bordes et al., 2013] from OpenKE
+[Han et al., 2018] to pretrain the embedding of nodes in the
+constructed graph with the training set. The embedding size
+and the hidden size are set as 64 and 100. The temperature
+parameter τ is set to be 0.7 for Yelp* and 0.3 for the other
+three datasets. The layer number of hypergraph neural net-
+works is selected from 1, 2, 3, and 4. We set the intrinsic
+motivations as: ro
++ = 1, ro
+− = −1. The settings of the extrin-
+sic rewards are the same as previous works[Lei et al., 2020a;
+Lei et al., 2020b; Deng et al., 2021]: ra
+rec acc = 1, ra
+rec rej =
+−0.1, ra
+ask acc = 0.01, ra
+ask rej = −0.1, ra
+quit = −0.3. In the
+training procedure, the size of the experience replay buffer
+is 50,000, and the batch size is 128. The learning rate and
+the L2 norm regularization are set to be 1e-4 and 1e-6, with
+Adam optimizer. The discount factor γ is set as 0.999. Our
+experiment is conducted on Nvidia RTX 3090 graphic cards
+equipped with an AMD r9-5900x CPU (32GB Memory).
+4.2 Baselines
+To demonstrate the effectiveness of the proposed DAHCR,
+we choose state-of-the-art methods for comparison. Specif-
+ically, we first choose two rule-based methods, three rein-
+forcement learning-based methods that outsource part of de-
+cision procedures, and then two reinforcement learning (RL)-
+based method that unifies two decision procedures.
+• Max Entropy [Lei et al., 2020a]. This method employs
+a rule-based strategy to ask and recommend. It chooses
+to select an attribute with maximum entropy based on
+the current state, or recommends the top-ranked item
+with certain probabilities.
+• Abs Greedy [Christakopoulou et al. , 2016 ]. This
+method only makes the item-recommendation actions
+and updates the model based on the feedback. It keeps
+recommending items until the successful recommenda-
+tion is made or the pre-defined round is reached.
+• CRM [Sun and Zhang, 2018]. A RL-based method that
+records the users’ preferences into a belief tracker and
+learns the policy deciding when and which attributes to
+ask based on the belief tracker.
+• EAR [Lei et al. , 2020a ]. This method proposes a
+three-stage solution to enhance the interaction between
+the conversational component and the recommendation
+component.
+• SCPR [Lei et al., 2020b]. This method models CRS as
+an interactive path reasoning problem. It prunes irrele-
+vant candidate attributes by traversing attribute vertices
+on the graph based on user feedback.
+• UNICORN [Deng et al., 2021]. A RL-based approach
+that unifies the two decision strategies. It learns graph-
+enhanced state representations for RL via graph neural
+networks.
+• MCMIPL [Zhang et al., 2022]. A state-of-the-art ap-
+proach to CRS that extends the unified conversational
+recommendation strategy with multi-interest representa-
+tions of the user.
+4.3 Performance Comparison (RQ1)
+Overall Performance
+From the overall performance of all methods reported in Ta-
+ble 2, we make the following observations:
+• Our proposed DAHCR achieves the best perfor-
+mance. DAHCR significantly outperforms all the base-
+lines by achieving a higher success rate and hDCG, and
+less average turn on four datasets. The reason for such
+improvement can be attributed to the following aspects:
+i) With the hierarchical strategy, our proposed DAHCR
+can reduce the action space and avoid the data bias in-
+troduced by the imbalance in the number of items and
+0 50000.3
+0.4
+0.5
+0.6
+0.7
+0.8
+0.9
+1.0SuccessRate@15
+LastFM*
+SCPR
+CRM
+EAR
+Max Entropy
+Abs Greedy
+1000  2000  3000  4000
+Training Episode
+DAHCR
+MCMIPL
+UNICORN
+0 50000.0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7SuccessRate@15
+DAHCR
+MCMIPL
+UNICORN
+SCPR
+CRM
+EAR
+Max Entropy
+Abs Greedy
+Yelp*
+1000  2000  3000  4000
+Training Episode
+Figure 3: Test performance at different training epochs.
+attributes. ii) The director and actor in DAHCR can well
+play their roles of choosing the effective option ( i.e.,
+ask or recommend) and learning the user’s preference
+over the candidate items and attributes. iii) The intrin-
+sic motivation can well deal with the problem of weak
+supervision on the director’s option effectiveness. iv)
+Modeling user preferences with dynamic hypergraph,
+DAHCR could specify the attributes that motivate the
+user to like/dislike the item with high-order relations. v)
+Modeling the director’s option by sampling from a cat-
+egorical distribution can well alleviate the bad effect of
+model bias on the mutual influence between the director
+and the actor.
+• Mutual influence of different decision procedures
+and the user’s dynamic preference in the pol-
+icy learning is important for CRS. From Table 2,
+DAHCR, MCMIPL and UNICORN surpasses CRM,
+EAR and SCPR in terms of three metrics over four
+datasets. There are two reasons for this performance:
+(i) CRM, EAR and SCPR isolate strategies for different
+decision procedures during the training process, which
+makes the conversational recommendation strategy hard
+to converge. This demonstrate the importance of the mu-
+tual influence between different decision procedures in
+the training process. (ii) Compared with other methods,
+DAHCR, MCMIPL and UNICORN use RL to update
+the user preferences on the attributes and items, which
+leads to better performance. This proves the importance
+of learning the user’s dynamic preference for CRS.
+Training Efficiency
+Figure 3 shows the performance curves of the different meth-
+ods tested on LastFM* and Yelp*, respectively. The test per-
+formance curves for the unsupervised methods Max Entropy
+and Abs Greedy are shown as two horizontal lines for com-
+parison. It can be seen that DAHCR is far superior in con-
+verge speed and stability to all the baselines. The reason is
+that the hierarchical conversational recommendation strategy
+of DAHCR can realize more effective action choice and bet-
+ter learn the user’s preference. In the Yelp∗, where the action
+candidate space is larger, the performance of EAR and CRM
+does not improve much or even gets worse as the training
+process iterates. These results demonstrate the efficiency and
+effectiveness of the proposed DAHCR.
+LastFM* Yelp*
+SR@15 AT hDCG SR@15 AT hDCG
+DAHCR w/o 0.925 6.31 0.431 0.626 11.02 0.192
+(a) Hie. 0.842 6.88 0.415 0.551 11.35 0.176
+(b) Hyper. 0.909 6.54 0.428 0.608 11.13 0.189
+(c) Gumbel. 0.863 6.70 0.418 0.560 11.30 0.181
+(d) Intrinsic. 0.887 6.63 0.424 0.570 11.31 0.183
+Table 3: Results of the Ablation Study.
+1234
+number of layers
+0.89
+0.90
+0.91
+0.92
+0.93
+0.94SR@15
+6.2
+6.3
+6.4
+6.5
+6.6
+6.7
+AT
+LastFM*
+SR@15
+AT
+1234
+number of layers
+0.59
+0.60
+0.61
+0.62
+0.63
+0.64SR@15
+10.8
+10.9
+11.0
+11.1
+11.2
+11.3
+AT
+Yelp*
+SR@15
+AT
+Figure 4: Impact of Layer Number(L)
+4.4 Study of DAHCR (RQ2&RQ3)
+Next we investigate the underlining mechanism of our
+DAHCR with four ablated models that remove the hierarchi-
+cal framework, dynamic hypergraph, Gumbel-softmax, and
+intrinsic motivation, respectively. From the results in Table 3,
+we observe that:
+• The performance of DAHCR suffers a significant degra-
+dation when replacing the hierarchical framework with
+the unified framework. This demonstrates the impor-
+tance of modeling the variant roles of different decision
+procedures in CRS.
+• The performance of DAHCR drops when replacing the
+dynamic hypergraph neural networks with graph neu-
+ral networks. We attribute this to the importance of
+high-order relations ( i.e., user-attribute-item) in model-
+ing user preferences for CRS.
+• The model performs worse when removing the Gumbel-
+softmax. This result suggests that alleviating the bad
+effect of model bias on the mutual influence between
+the director and the actor is necessary. Our method that
+models the director’s option by sampling from the cat-
+egorical distribution with Gumbel-softmax can reason-
+ably deal with such an effect.
+• The performance of the model drops when removing the
+intrinsic motivation, which indicates the necessity of in-
+trinsic motivation to train DAHCR from weak supervi-
+sion on the director’s effectiveness.
+Figure 4 shows the experimental results by varying the layer
+number of hypergraph neural networks. Two-layer DAHCR
+performs better than one-layer DAHCR since it can capture
+high-order collaborative information in the dynamic hyper-
+graph. But the performance of DAHCR does not always in-
+crease when the layer number increases. We attribute this to
+the noise that increases along with the hop of neighbors.
+5 Conclusion
+In this work, we propose a Director-Actor Hierarchical Con-
+versational Recommender (DAHCR) with the director to se-
+lect the most effective option ( i.e., ask or recommend), fol-
+lowed by the actor accordingly choosing primitive actions
+that satisfy user preferences. The intrinsic motivation is de-
+signed for training from weak supervision on the director’s ef-
+fectiveness, a dynamic hypergraph is developed to learn user
+preferences from high-order relations, and Gumbel-softmax
+is employed to alleviate the bad effect of model bias on the
+mutual influence between director and actor. Experimental
+results on two real-world datasets show that the proposed
+DAHCR outperforms the state-of-the-art methods.
+Acknowledgments
+This work was supported in part by the National Natural Sci-
+ence Foundation of China under Grant No.62276110, Grant
+No.61772076, in part by CCF-AFSG Research Fund under
+Grant No.RF20210005, and in part by the fund of Joint Lab-
+oratory of HUST and Pingan Property & Casualty Research
+(HPL). The authors would also like to thank the anonymous
+reviewers for their comments on improving the quality of this
+paper.
+References
+[Battaglia et al., 2018] Peter W Battaglia, Jessica B Ham-
+rick, Victor Bapst, Alvaro Sanchez-Gonzalez, Vinicius
+Zambaldi, Mateusz Malinowski, Andrea Tacchetti, David
+Raposo, Adam Santoro, Ryan Faulkner, et al. Relational
+inductive biases, deep learning, and graph networks.arXiv
+preprint arXiv:1806.01261, 2018.
+[Bellman and Kalaba, 1957] Richard Bellman and Robert
+Kalaba. On the role of dynamic programming in statistical
+communication theory. IRE Transactions on Information
+Theory, 3(3):197–203, 1957.
+[Bordes et al., 2013] Antoine Bordes, Nicolas Usunier,
+Alberto Garcia-Duran, Jason Weston, and Oksana
+Yakhnenko. Translating embeddings for modeling
+multi-relational data. Advances in neural information
+processing systems, 26, 2013.
+[Chen et al., 2019] Qibin Chen, Junyang Lin, Yichang
+Zhang, Ming Ding, Yukuo Cen, Hongxia Yang, and Jie
+Tang. Towards knowledge-based recommender dialog sys-
+tem. In Proceedings of the 2019 Conference on Empirical
+Methods in Natural Language Processing and the 9th In-
+ternational Joint Conference on Natural Language Pro-
+cessing (EMNLP-IJCNLP), pages 1803–1813, 2019.
+[Chentanez et al., 2004] Nuttapong Chentanez, Andrew
+Barto, and Satinder Singh. Intrinsically motivated re-
+inforcement learning. Advances in neural information
+processing systems, 17, 2004.
+[Cho et al., 2014] Kyunghyun Cho, Bart Van Merri ¨enboer,
+Dzmitry Bahdanau, and Yoshua Bengio. On the proper-
+ties of neural machine translation: Encoder-decoder ap-
+proaches. arXiv preprint arXiv:1409.1259, 2014.
+[Christakopoulou et al., 2016] Konstantina Chris-
+takopoulou, Filip Radlinski, and Katja Hofmann. Towards
+conversational recommender systems. In Proceedings
+of the 22nd ACM SIGKDD international conference on
+knowledge discovery and data mining , pages 815–824,
+2016.
+[Christakopoulou et al., 2018] Konstantina Chris-
+takopoulou, Alex Beutel, Rui Li, Sagar Jain, and
+Ed H Chi. Q&r: A two-stage approach toward inter-
+active recommendation. In Proceedings of the 24th
+ACM SIGKDD International Conference on Knowledge
+Discovery & Data Mining, pages 139–148, 2018.
+[Deng et al., 2021] Yang Deng, Yaliang Li, Fei Sun, Bolin
+Ding, and Wai Lam. Unified conversational recommenda-
+tion policy learning via graph-based reinforcement learn-
+ing. In Proceedings of the 44th International ACM SIGIR
+Conference on Research and Development in Information
+Retrieval, pages 1431–1441, 2021.
+[Feng et al., 2019] Yifan Feng, Haoxuan You, Zizhao
+Zhang, Rongrong Ji, and Yue Gao. Hypergraph neural net-
+works. In Proceedings of the AAAI conference on artificial
+intelligence, volume 33, pages 3558–3565, 2019.
+[Han et al., 2018] Xu Han, Shulin Cao, Xin Lv, Yankai Lin,
+Zhiyuan Liu, Maosong Sun, and Juanzi Li. Openke: An
+open toolkit for knowledge embedding. In Proceedings
+of the 2018 conference on empirical methods in natural
+language processing: system demonstrations , pages 139–
+144, 2018.
+[Jiang et al., 2019] Jianwen Jiang, Yuxuan Wei, Yifan Feng,
+Jingxuan Cao, and Yue Gao. Dynamic hypergraph neural
+networks. In IJCAI, pages 2635–2641, 2019.
+[Kang et al., 2020] Dongyeop Kang, Anusha Balakrishnan,
+Pararth Shah, Paul Crook, Y Lan Boureau, and Jason We-
+ston. Recommendation as a communication game: Self-
+supervised bot-play for goal-oriented dialogue. In 2019
+Conference on Empirical Methods in Natural Language
+Processing and 9th International Joint Conference on Nat-
+ural Language Processing, EMNLP-IJCNLP 2019 , pages
+1951–1961. Association for Computational Linguistics,
+2020.
+[Lei et al., 2018] Wenqiang Lei, Xisen Jin, Min-Yen Kan,
+Zhaochun Ren, Xiangnan He, and Dawei Yin. Sequic-
+ity: Simplifying task-oriented dialogue systems with sin-
+gle sequence-to-sequence architectures. In Proceedings of
+the 56th Annual Meeting of the Association for Computa-
+tional Linguistics (Volume 1: Long Papers) , pages 1437–
+1447, 2018.
+[Lei et al., 2020a] Wenqiang Lei, Xiangnan He, Yisong
+Miao, Qingyun Wu, Richang Hong, Min-Yen Kan, and
+Tat-Seng Chua. Estimation-action-reflection: Towards
+deep interaction between conversational and recommender
+systems. In Proceedings of the 13th International Con-
+ference on Web Search and Data Mining, pages 304–312,
+2020.
+[Lei et al., 2020b] Wenqiang Lei, Gangyi Zhang, Xiangnan
+He, Yisong Miao, Xiang Wang, Liang Chen, and Tat-Seng
+Chua. Interactive path reasoning on graph for conversa-
+tional recommendation. In Proceedings of the 26th acm
+sigkdd international conference on knowledge discovery
+& data mining, pages 2073–2083, 2020.
+[Li et al., 2018] Raymond Li, Samira Ebrahimi Kahou,
+Hannes Schulz, Vincent Michalski, Laurent Charlin, and
+Chris Pal. Towards deep conversational recommendations.
+Advances in neural information processing systems , 31,
+2018.
+[Liu et al., 2020] Zeming Liu, Haifeng Wang, Zheng-Yu
+Niu, Hua Wu, Wanxiang Che, and Ting Liu. Towards con-
+versational recommendation over multi-type dialogs. In
+Proceedings of the 58th Annual Meeting of the Association
+for Computational Linguistics, pages 1036–1049, 2020.
+[Pei et al., 2022] Jiahuan Pei, Cheng Wang, and Gy ¨orgy
+Szarvas. Transformer uncertainty estimation with hier-
+archical stochastic attention. In Proceedings of the 36th
+AAAI Conference on Artificial Intelligence, 2022.
+[Priyogi, 2019] Bilih Priyogi. Preference elicitation strategy
+for conversational recommender system. In Proceedings
+of the twelfth ACM international conference on web search
+and data mining, pages 824–825, 2019.
+[Sun and Zhang, 2018] Yueming Sun and Yi Zhang. Conver-
+sational recommender system. In The 41st international
+acm sigir conference on research & development in infor-
+mation retrieval, pages 235–244, 2018.
+[Tarvainen and Valpola, 2017] Antti Tarvainen and Harri
+Valpola. Mean teachers are better role models: Weight-
+averaged consistency targets improve semi-supervised
+deep learning results. Advances in neural information pro-
+cessing systems, 30, 2017.
+[Van Hasselt et al., 2016] Hado Van Hasselt, Arthur Guez,
+and David Silver. Deep reinforcement learning with dou-
+ble q-learning. In Proceedings of the AAAI conference on
+artificial intelligence, volume 30, 2016.
+[Vaswani et al., 2017] Ashish Vaswani, Noam Shazeer, Niki
+Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez,
+Łukasz Kaiser, and Illia Polosukhin. Attention is all you
+need. Advances in neural information processing systems,
+30, 2017.
+[Wang et al., 2022] Ziyang Wang, Wei Wei, Xian-Ling Mao,
+Guibing Guo, Pan Zhou, and Sheng Jiang. User-based net-
+work embedding for opinion spammer detection. Pattern
+Recognition, 125:108512, 2022.
+[Wei et al., 2023] Wei Wei, Sen Zhao, and Ding Zou. Rec-
+ommendation system: A survey and new perspectives.
+World Scientific Annual Review of Artificial Intelligence ,
+2023.
+[Xia et al., 2022] Lianghao Xia, Chao Huang, Yong Xu, Ji-
+ashu Zhao, Dawei Yin, and Jimmy Huang. Hypergraph
+contrastive collaborative filtering. In Proceedings of the
+45th International ACM SIGIR conference on research
+and development in information retrieval , pages 70–79,
+2022.
+[Xie et al., 2021] Zhihui Xie, Tong Yu, Canzhe Zhao, and
+Shuai Li. Comparison-based conversational recommender
+system with relative bandit feedback. InProceedings of the
+44th International ACM SIGIR Conference on Research
+and Development in Information Retrieval , pages 1400–
+1409, 2021.
+[Zhang et al., 2022] Yiming Zhang, Lingfei Wu, Qi Shen,
+Yitong Pang, Zhihua Wei, Fangli Xu, Bo Long, and Jian
+Pei. Multiple choice questions based multi-interest policy
+learning for conversational recommendation. In Proceed-
+ings of the ACM Web Conference 2022, pages 2153–2162,
+2022.
+[Zhao et al., 2022] Sen Zhao, Wei Wei, Ding Zou, and Xian-
+ling Mao. Multi-view intent disentangle graph networks
+for bundle recommendation. In Proceedings of the 36th
+AAAI Conference on Artificial Intelligence, 2022.
+[Zhao et al., 2023] Sen Zhao, Wei Wei, Xian-Ling Mao,
+Shuai Zhu, Minghui Yang, Zujie Wen, Dangyang Chen,
+and Feida Zhu. Multi-view hypergraph contrastive pol-
+icy learning for conversational recommendation. In Pro-
+ceedings of the 46th International ACM SIGIR Conference
+on Research and Development in Information Retrieval ,
+pages 654–664, 2023.
+[Zhou et al., 2020] Kun Zhou, Wayne Xin Zhao, Shuqing
+Bian, Yuanhang Zhou, Ji-Rong Wen, and Jingsong Yu. Im-
+proving conversational recommender systems via knowl-
+edge graph based semantic fusion. In Proceedings of the
+26th ACM SIGKDD International Conference on Knowl-
+edge Discovery & Data Mining, pages 1006–1014, 2020.
