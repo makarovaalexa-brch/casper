@@ -6,7 +6,7 @@ Orientation: end-state → `docs/VISION.md` · current status → `docs/STATE.md
 ## Working rules
 - **Design sheet before any run** — pre-register the question, exact Ns, full action space, baseline symmetry, metric + MDE, and every shortcut with its non-lossy alternative. If no decision changes on the outcome, it doesn't run.
 - **No LLM API calls without explicit author approval.**
-- **Fable oversees, Opus executes** — Fable = strategy/design/review only.
+- **Fable oversees, Opus/Sonnet execute** — Fable = strategy/design/review/final-verdict only; Opus for research & hard coding, Sonnet for mechanical work (abstracts, tabulation, refactors, plots). Fable never reads the repo broadly or does groundwork itself — if a Fable task looks token-heavy, stop and ask the author first.
 
 ## Recording protocol — where findings go (no ledger; record before moving on)
 - **A finding / lesson** → a **memory note** (`…/memory/<slug>.md`, one fact per file, frontmatter `type: project|feedback|user|reference`) + a one-line pointer in `MEMORY.md`. **Update** an existing note rather than duplicate; **delete** notes that turn out wrong. Keep `MEMORY.md` lean — only its first ~25 KB auto-loads.

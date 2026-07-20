@@ -7,7 +7,8 @@ D=open-vocab free-recall, E=policy→dialogue deployment). Purpose: never redo d
 every external finding is captured here with its bib-key so claims stay traceable.
 
 ## File map
-- `INDEX.md` — table of ALL 90 `references.bib` entries: bib-key, authors/year, title, venue, 1-line takeaway (or "citation only"), topic-tag, relevant-to (A–E). Sorted by tag then year; tag legend at top.
+- `INDEX.md` — table of ALL `references.bib` entries: bib-key, authors/year, title, venue, 1-line takeaway (or "citation only"), topic-tag, relevant-to (A–E). Sorted by tag then year; tag legend at top. **Every paper researched must have a row here.**
+- `papers/<bib-key>.md` — **one durable record per individually-read paper** (schema: `papers/TEMPLATE.md` — essence, method, relevance, baseline-candidate, verdict). Written the first time a paper is read; the source is never reread after. Only papers that matter get a file; pure-background citations stay INDEX-row-only.
 - `findings/elicitation_and_belief_pool.md` — Golbandi trees, EDDI, Biyik Gaussian belief, VoI, adaptive-vs-static, the info-vs-value boundary.
 - `findings/continuous_action_policy.md` — PEBOL, HyAR, Wolpertinger, DBU, continuous-vs-discrete RL, embedding→NL inversion (Paper C).
 - `findings/unified_embedding_architecture.md` — set encoders, RBMF, UNICORN, ConTS, one-embedding-both-roles (Paper A / C1 enabler).
