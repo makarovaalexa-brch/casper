@@ -53,6 +53,8 @@ A real ML-25M star rating maps to the value scale (and implies `knowledge = know
 
 Fixed and documented. (0.5-star bins between the ranges, e.g. exactly 2.5 vs 3.0, fall as written: 2.5–3.0 → meh, ≤2.0 → hated. There is no 2.25 in a half-star dataset.)
 
+**Value elicitation (stars-then-bin, judge-side).** The judge does **not** emit the 4-level `value` directly. For every non-`no_clue` cell it predicts a **star rating** (0.5–5.0, half-star steps), and we bin it deterministically to the value scale with the exact `stars → value` table above (≥4.5 loved, 3.5–4.0 liked, 2.5–3.0 meh, ≤2.0 hated). The cache stores **both** the raw `stars` and the binned `value`. Rationale: the pilot showed a direct 4-level ask collapses to a modal "liked" (~0.94); a continuous star ask recovers the full-range variance and is binned mechanically. This is a change to the judge's internal elicitation format only — the fold interface (this schema) is unchanged.
+
 ## Channels
 `channel ∈ {item, concept, attribute, pair, recall}`.
 

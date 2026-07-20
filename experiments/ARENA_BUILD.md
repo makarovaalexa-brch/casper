@@ -202,3 +202,120 @@ b2 (greedy static) and the DEV-VAL leader (**A**) rebuilt on 3 DISJOINT TRAIN us
 
 | arm | seed endpoints@50 | mean +/- sd |
 |---|---|---|
+| b2 static | ['0.2801', '0.2838', '0.2814'] | 0.2818 +/- 0.0015 |
+| A scorer (tau24) | ['0.2801', '0.2801', '0.2801'] | 0.2801 +/- 0.0000 |
+
+b2 across-seed sd = 0.0015; leader across-seed sd = 0.0000. A win only counts if it exceeds the across-seed spread.
+
+### (2) Trend-based curve verdicts (replace single-step strictness bounds)
+
+Kendall-tau monotonicity of the mean NDCG@50 curve (T=0..24), isotonic-fit R^2, and the max per-turn DIP with a paired-bootstrap CI over users. A dip whose CI sits within +/-0.001 is measurement granularity, not a real decline.
+
+| arm | Kendall tau | isotonic R^2 | max per-turn dip [95% CI] |
+|---|--:|--:|---|
+| b2 | -0.193 | 0.861 | -0.0087 [-0.0160,-0.0046] (real decline) |
+| A | -0.193 | 0.861 | -0.0087 [-0.0160,-0.0046] (real decline) |
+
+### (3) Probe cohorts + methods note
+
+- Fidelity-trust probe re-run at n=495 population val users: mean|dz| data 0.524 / ease 0.337 / llm 0.323. OK: data >= ease > llm-style shift magnitudes (rel spread 51.1%) -- the fold trusts high-fidelity answers more, as designed.
+- METHODS (these upgrades are additive to E1-E7): learned arms' headline DEV numbers are seed-means (>=3 training seeds; across-seed sd reported); curve verdicts are trend-based (Kendall tau + isotonic R^2 + bootstrap max-dip), never single 0.0005-resolution steps; world-validation probes use >=400-user cohorts.
+
+_Addendum compute: 132.7 min._
+
+
+## BASELINES V2 (test, per-turn @10)
+
+Standard cold-start elicitation baselines on the SYNTHETIC population, per-turn NDCG@10 (full catalog). Split (seed 123, disjoint, the 173/300 LLM-judged users excluded by construction): TRAIN 14000 / VAL 3000 / TEST 3000. All numbers on TEST. NO LLM calls; $0; gated v2.1 world + fold-v3.1 belief + 2,428-question universe.
+
+- **COLD** (turn 0, ask nothing) = **0.2452** (reference).
+- **FULL-PROFILE** anchor (fold all known ratings) = **0.4882** (ceiling; n=3000).
+- RANDOM = uniform over unasked, mean +/- std over 5 seeds [0, 1, 2, 3, 4].
+- POPULARITY = static order by catalog popularity mass (most-popular first).
+- INFO-GAIN = static order by EXPECTED taste NDCG@10 gain per question (myopic, non-greedy; Paper-B EIG idea; prescreen on a 800-user TRAIN subsample). NOT answerability entropy.
+- ENTROPY = static order by RATING-ENTROPY of each question's elicited value distribution over the TRAIN subsample (classic Rashid/Golbandi; Shannon base-2 over answered bins; most-divisive first).
+
+| turn | random (mean +/- std) | popularity | info-gain | entropy |
+|--:|--:|--:|--:|--:|
+| 1 | 0.2490 +/- 0.0012 | 0.2442 | 0.2692 | 0.2511 |
+| 2 | 0.2522 +/- 0.0009 | 0.2480 | 0.2774 | 0.2618 |
+| 3 | 0.2546 +/- 0.0007 | 0.2511 | 0.2771 | 0.2576 |
+| 4 | 0.2574 +/- 0.0010 | 0.2555 | 0.2725 | 0.2586 |
+| 5 | 0.2600 +/- 0.0011 | 0.2556 | 0.2670 | 0.2597 |
+| 6 | 0.2617 +/- 0.0012 | 0.2605 | 0.2576 | 0.2576 |
+| 7 | 0.2634 +/- 0.0016 | 0.2594 | 0.2459 | 0.2629 |
+| 8 | 0.2644 +/- 0.0011 | 0.2576 | 0.2388 | 0.2652 |  **<- headline (turn 8)**
+| 9 | 0.2650 +/- 0.0016 | 0.2554 | 0.2325 | 0.2545 |
+| 10 | 0.2644 +/- 0.0015 | 0.2533 | 0.2278 | 0.2562 |
+
+(COLD turn-0 = 0.2452; FULL-PROFILE ceiling = 0.4882 -- both anchors, not per-turn.)
+
+**Turn-8 lift over COLD:** random +0.0192, popularity +0.0125, info-gain -0.0064, entropy +0.0200. Strongest = **entropy**. Random across-seed std at turn 8 = 0.0011.
+
+## FOLD RECOVERED: attention-pool + shrinkage + full gate suite
+
+Per DESIGN_SHEET_FOLD_RECOVERED.md (LOCKED 2026-07-10). Recovers the June attention-pool + Bayesian-shrinkage no-harm design over the FROZEN RecVAE-d512 decoder. z = FIXED cold prior + w*delta; delta = ATTENTION-POOL (softmax weights sum to 1) -> residual MLP; w = CONTENT confidence (fidelity x coherence, NEVER count). Raw per-token log(n_E)/log(V)/log(p_E) (NO hand-crafted surprise). Answers DATA-SIDE (real U EASE). Curriculum = DeOODGen realistic strategy mixture (tails ~0.18) at lengths 1..24 + 30% clean; blind_eig HELD OUT. IPS-weighted multinomial reconstruction of held-out likes. Split: TRAIN/VAL/TEST disjoint population trU users, 300 study ids excluded; all gates on TEST.
+
+### Sanity (tiny run): intercept PASS, no-Q1-drop PASS (cold 0.165 -> turn1 0.240), loss finite-decreasing.
+
+### Fold: best val NDCG@10 0.2810 @ep12 (`.cache/i25_fold_recovered_best.pt`); cold prior baseline 0.1630.
+
+### Gate table (TEST users)
+
+| gate | value | verdict |
+|---|---|:--:|
+| G-intercept | max_dev 0.0e+00, cold 0.1630==0.1630 | PASS |
+| G-falsify-count | dup +0.00000, pad +0.0075 | PASS |
+| G-generalize | held-out 0.2246 vs mean-seen 0.2681 | FAIL |
+| G-order | max_dev 8.3e-07 | PASS |
+| G-noharm | delta +0.0051 CI[+0.0019,+0.0083] | PASS |
+| G-noQ1drop | Q1 +0.0781, max decline -0.0019 | PASS |
+| G-clean | fold 0.3208 vs native 0.4874 (-0.1665) | FAIL |
+| G-caplength | elic@8 0.2656 vs cold 0.1630 | PASS |
+| G-canary item | impl +0.0695, expl +0.0857 | PASS |
+| G-canary concept | impl +0.0744, expl +0.0705 | PASS |
+| G-canary entity | impl +0.0449, expl +0.0443 | PASS |
+| G-GoT | +0.6851 CI[+0.6256,+0.7477] | PASS |
+| G-prolific | +1.1534 CI[+1.0720,+1.2399] | PASS |
+| G-implicit-ablation | +0.0178 CI[+0.0123,+0.0233] | PASS |
+| G-firewall | answers = arena gated v2.1 EASE-backbone... | FAIL |
+
+**ALL GATES PASS (TEST): False**
+
+## FOLD MASTER (locked design) — gates
+
+Implemented the LOCKED FOLD-MASTER design (FOLD_MASTER.md sec E): the PROVEN i25/v3 Deep-Sets
+SUM-pool residual `z = native_z + rho([SUM(distinct tokens), native_z, log1p(#distinct)])`, amended per
+sec E — surprise REMOVED (F4), leak-free two-channel tokens (implicit {rough/know_well} + explicit
+{4-level value, fidelity}), item-hole native_z (LIKED items only; consumed-not-liked carry GoT via
+z-space tokens), DISTINCT-set dedup by (channel,entity,kind) with the locked collision rule, empty→native
+intercept gated by (ntok>0), ordinal graded margin loss over a stratified held sample, DATA-hygiene
+zeroing of non-finite embeddings, and a log-uniform any-strategy curriculum (30% clean, natural refusals).
+Firewall: population trU users only, study va/te ids excluded. NO LLM, $0.
+Code: `scripts/i25_fold_master.py` + `scripts/i25_fold_master_sampler.py`.
+
+**Sanity go/no-go (per brief): STOPPED before the full 20k run.** G-clean passes but the graded gates fail
+directionally at sanity across λ∈{0.3,1.0} — the accumulation + graded gates are the whole point, so per
+the guardrail the full run was not burned.
+
+| probe (sanity) | λ=0.3 (200u/14ep) | λ=1.0,m=1.0 (600u/16ep) |
+|---|---|---|
+| G-intercept | PASS (maxdev 0) | — |
+| G-no-profile-leak (+traps) | PASS (byte-dev 0) | — |
+| **G-clean [HARD STOP]** | **PASS** fold 0.5170 vs native 0.5100 (+0.0070) | **PASS** 0.4935 vs 0.4611 (+0.0323) |
+| G-order / G-falsify-count | PASS by construction (dedup+sum) | — |
+| explicit value z-shift (cold item) | 0.0039 (near-inert) | 0.0352 (activates) |
+| G-value-monotone[short] | FAIL flat [+.0005,-.0004,-.0014] | FAIL **wrong-sign** [-.0235,-.0244,-.0204] |
+| G-know-graded[short] | FAIL rough-absent -0.0169 | FAIL rough-absent -0.0212 |
+| G-k2-graded | — | FAIL graded==value-zeroed (+0.0000) |
+
+**Diagnosis (geometry, model-free).** Linearized pull `mean W[member]·region_emb` = +0.053 (concept, 93%>0)
+and +0.254 (entity, 92%>0): moving z along +region_emb DOES raise decoder member scores, so the region-pull
+metric is coherent and a correct pull is representable. The failure is in what training learns: the ordinal
+loss optimizes HELD-ITEM RANKING, not region geometry, so the learned value→z map comes out anti-aligned
+with region_emb (higher value → lower member score). Removing surprise (correct: F4 leak fix) removed the
+mechanism that gave v3 its positive region-pull (+0.184); no leak-free token feature in the amended set
+replaces it, and the ordinal term does not. **G-clean/accumulation is SOUND and passes (clean BEATS native
+at both λ); the two graded axes do NOT pass in any regime.** Author decision needed on a leak-free
+region-pull carrier before committing the full 20k run (design-sheet rule: not inventing a new mechanism
+unilaterally). Results JSON: `.cache/arena/fold_master_results.json`.

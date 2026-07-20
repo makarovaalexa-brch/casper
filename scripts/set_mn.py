@@ -67,11 +67,40 @@ class PMA(nn.Module):
         return self.mab(self.S.expand(b, -1, -1), X, key_padding_mask=pad)[:, 0]
 
 
+class XAttnFuse(nn.Module):
+    """CONTEXT-DEPENDENT token fusion (author's requirement: value/confidence transform an embedding DIFFERENTLY
+    per embedding, learned -- not FiLM's global per-level coefficients). The embedding is the QUERY; it attends
+    over KV = {emb, value_code, confidence_code}. Because emb is in the KV set and Wv is a FULL matrix, the
+    output can be anti-parallel to emb (Wv ~ -2I on a subspace => token ~ (1-2w)*emb), so a 'hated' answer can
+    PUSH AWAY from a concept while (via a smaller learned weight w) leaning INTO an item's region -- the
+    context-dependence gated by which embedding is the query. Wo init ZERO => contributes 0 at init (containment:
+    step-0 == the warm FiLM base)."""
+    def __init__(self, d, nlev, nknow):
+        super().__init__()
+        self.d = d
+        self.Wq = nn.Linear(d, d, bias=False); self.Wk = nn.Linear(d, d, bias=False)
+        self.Wv = nn.Linear(d, d, bias=False)                                    # FULL matrix (can rotate/negate)
+        self.Wo = nn.Linear(d, d)
+        nn.init.zeros_(self.Wo.weight); nn.init.zeros_(self.Wo.bias)             # CONTAINMENT: fusion = 0 at init
+        self.Eval = nn.Embedding(nlev, d); nn.init.normal_(self.Eval.weight, std=0.02)    # value code (NOT null)
+        self.Econf = nn.Embedding(max(nknow, 1), d); nn.init.normal_(self.Econf.weight, std=0.02)
+
+    def forward(self, e, lvs, kn):
+        # e (B,L,d) embeddings; lvs (B,L) value/refuse level; kn (B,L) confidence
+        val = self.Eval(lvs); conf = self.Econf(kn) if kn is not None else torch.zeros_like(e)
+        kv = torch.stack([e, val, conf], dim=2)                                  # (B,L,3,d)  -- emb IN the KV set
+        q = self.Wq(e).unsqueeze(2)                                              # (B,L,1,d)
+        k = self.Wk(kv); v = self.Wv(kv)                                         # (B,L,3,d)
+        att = (q * k).sum(-1) / (self.d ** 0.5)                                  # (B,L,3)
+        w = att.softmax(-1).unsqueeze(-1)                                        # (B,L,3,1)
+        return self.Wo((w * v).sum(2))                                           # (B,L,d), = 0 at init
+
+
 class SetEncoder(nn.Module):
     """FAST set-encoder: tokens -> attend INTO m inducing points -> inducing points self-attend (global
     interaction) -> pool -> z. Permutation-invariant, ANY set length, real cross-token interaction, but NO
     per-token FFN (we only need a pooled belief) -> ~10-20x faster than full ISAB on 14k-token profiles."""
-    def __init__(self, ni, d=D, nhead=4, m=32, nlayers=2, token_mode="mlp", pool="attn", nlev=10, nknow=0):
+    def __init__(self, ni, d=D, nhead=4, m=32, nlayers=2, token_mode="mlp", pool="attn", nlev=10, nknow=0, n_items=None):
         super().__init__()
         self.ni = ni; self.d = d; self.token_mode = token_mode; self.pool = pool
         self.item_emb = nn.Embedding(ni, d)                        # init from a0c decoder factors
@@ -87,6 +116,17 @@ class SetEncoder(nn.Module):
         self.know_emb = nn.Embedding(nknow, d) if nknow else None
         if self.know_emb is not None:
             nn.init.zeros_(self.know_emb.weight)
+        # CROSS-ATTENTION FUSION (token_mode="xattn"): context-dependent value/confidence transform (Wo=0 at init
+        # => token == the warm FiLM base at step-0, i.e. exact containment of the warm-started model).
+        self.xfuse = XAttnFuse(d, nlev, max(nknow, 3)) if token_mode == "xattn" else None
+        # PER-VALUE MATRIX branch (token_mode="wmat"): CONCEPT tokens (id >= n_items) use W(v)*emb + b(v) + c(kn),
+        # a per-value FULL matrix init IDENTITY (Fable-decided: negates a whitened concept by geometry, generalises
+        # to OOD; item tokens keep the frozen FiLM). n_items splits items vs concepts.
+        self.n_items = n_items if n_items is not None else ni
+        if token_mode == "wmat":
+            self.Wv = nn.Parameter(torch.eye(d).unsqueeze(0).repeat(nlev, 1, 1))   # (nlev,d,d) init I
+            self.bv = nn.Parameter(torch.zeros(nlev, d))                           # init 0
+            self.cv = nn.Embedding(max(nknow, 3), d); nn.init.zeros_(self.cv.weight)
         self.I = nn.Parameter(torch.randn(1, m, d) * 0.02)         # inducing points
         self.mab_in = MAB(d, nhead)                                # I attends to the set  (O(L*m), FF on m only)
         self.sab = nn.ModuleList([MAB(d, nhead) for _ in range(nlayers)])   # interaction among inducing points
@@ -105,7 +145,23 @@ class SetEncoder(nn.Module):
     def forward(self, ids, vals, pad, lvs=None, kn=None):
         b = ids.shape[0]
         e = self.item_emb(ids)
-        if self.token_mode == "film":
+        if self.token_mode == "wmat":
+            # ITEM tokens (id < n_items): frozen FiLM. CONCEPT tokens (id >= n_items): per-value matrix W(v).
+            x_item = self.gamma(lvs) * e + self.beta(lvs)
+            if self.know_emb is not None and kn is not None:
+                x_item = x_item + self.know_emb(kn)
+            x_con = torch.einsum("blij,blj->bli", self.Wv[lvs], e) + self.bv[lvs]          # (B,L,d), W(v)*emb+b(v)
+            if kn is not None:
+                x_con = x_con + self.cv(kn)
+            is_con = (ids >= self.n_items).unsqueeze(-1)                                   # (B,L,1)
+            x = torch.where(is_con, x_con, x_item)
+        elif self.token_mode == "xattn":
+            # warm FiLM base (context-INDEPENDENT value shift) + context-DEPENDENT cross-attention correction.
+            x = self.gamma(lvs) * e + self.beta(lvs)
+            if self.know_emb is not None and kn is not None:
+                x = x + self.know_emb(kn)
+            x = x + self.xfuse(e, lvs, kn)                                                # Wo=0 at init -> +0
+        elif self.token_mode == "film":
             x = self.gamma(lvs) * e + self.beta(lvs)                                     # (B,L,d)  CHEAP
             if self.know_emb is not None and kn is not None:
                 x = x + self.know_emb(kn)                       # SEPARATE + ADDITIVE. Never multiplied.
