@@ -3,7 +3,7 @@
 > One row per experiment: what it tested · the result (faithful to the source) · the source doc.
 > This is the record that lets old design/plan docs be retired. Grouped by paper. Sources in
 > `docs/reference/` (promoted) or `docs/archive/` (not yet reviewed). Add rows as experiments run.
-> Chapters filled so far: **A + recommender-core**. B/C/D/E/apparatus pending their review pass.
+> All chapters filled (A–E + recommender-core + apparatus).
 
 ## Paper A — recommender / instrument
 | experiment | tested | result | source |
@@ -13,7 +13,7 @@
 | Root-cause: weak polarity / blockbuster attractor | why instrument under-uses dislike | popularity floor ~48× personalization spread; polarity under-trained by likes-only | `reference/RESULTS.md` |
 | Polarity/MNAR fixes (EXPO / CONTRA / two-head) | fix polarity through a collapse gate | **EXPO canonical win** 0.362/0.159; +CONTRA polarity gap +10→+42pp; two-head REJECTED (collapse) | `reference/RESULTS.md` |
 | Cheap LLM asker (gpt-4o-mini) | world-knowledge asker on the calibrated instrument | LLM 0.304→0.274 (**worse than random**); world-knowledge ≠ collaborative informativeness | `reference/RESULTS.md` |
-| RS-validity / protocol reconciliation | are cold numbers weak, or the protocol? | 100% the held-half+exclude-known protocol (PROT-A 0.4200 vs PROT-C 0.2929), not RS weakness | `archive/POLICY_LOG.md` |
+| RS-validity / protocol reconciliation | are cold numbers weak, or the protocol? | 100% the held-half+exclude-known protocol (PROT-A 0.4200 vs PROT-C 0.2929), not RS weakness | `reference/POLICY_LOG.md` |
 
 ## Recommender-core (belief / fold / dislike — feeds A & B)
 | experiment | tested | result | source |
