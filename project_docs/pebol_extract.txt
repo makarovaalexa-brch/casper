@@ -1,0 +1,1262 @@
+Bayesian Optimization with LLM-Based Acquisition Functions for
+                Natural Language Preference Elicitation
+
+                     David Eric Austin                                                                           Anton Korikov
+                                                                                                                  Armin Toroghi
+                         deaustin@uwaterloo.ca
+                         University of Waterloo                                                                    Scott Sanner
+                      Waterloo, Ontario, Canada
+                                                                                                            anton.korikov@mail.utoronto.ca
+ABSTRACT                                                                                                           University of Toronto
+
+Designing preference elicitation (PE) methodologies that can quickly                                             Toronto, Ontario, Canada
+ascertain a user's top item preferences in a cold-start setting is a key
+challenge for building effective and personalized conversational                               CCS CONCEPTS
+recommendation (ConvRec) systems. While large language mod-
+els (LLMs) enable fully natural language (NL) PE dialogues, we                                 · Information systems  Recommender systems; Personal-
+hypothesize that monolithic LLM NL-PE approaches lack the multi-                               ization; Language models.
+turn, decision-theoretic reasoning required to effectively balance
+the exploration and exploitation of user preferences towards an                                KEYWORDS
+arbitrary item set. In contrast, traditional Bayesian optimization
+PE methods define theoretically optimal PE strategies, but cannot                              Conversational Recommendation, Preference Elicitation, Bayesian
+generate arbitrary NL queries or reason over content in NL item                                Optimization, Online Recommendation, Query Generation
+descriptions ­ requiring users to express preferences via ratings or
+comparisons of unfamiliar items. To overcome the limitations of                                ACM Reference Format:
+both approaches, we formulate NL-PE in a Bayesian Optimization                                 David Eric Austin, Anton Korikov, Armin Toroghi, and Scott Sanner. 2024.
+(BO) framework that seeks to actively elicit NL feedback to identify                           Bayesian Optimization with LLM-Based Acquisition Functions for Natural
+the best recommendation. Key challenges in generalizing BO to                                  Language Preference Elicitation. In 18th ACM Conference on Recommender
+deal with natural language feedback include determining: (a) how                               Systems (RecSys '24), October 14­18, 2024, Bari, Italy. ACM, New York, NY,
+to leverage LLMs to model the likelihood of NL preference feedback                             USA, 10 pages. https://doi.org/10.1145/3640457.3688142
+as a function of item utilities, and (b) how to design an acquisition
+function for NL BO that can elicit preferences in the infinite space                           1 INTRODUCTION
+of language. We demonstrate our framework in a novel NL-PE al-
+gorithm, PEBOL, which uses: 1) Natural Language Inference (NLI)                                Personalized conversational recommendation (ConvRec) systems
+between user preference utterances and NL item descriptions to                                 require effective natural language (NL) preference elicitation (PE)
+maintain Bayesian preference beliefs, and 2) BO strategies such as                             strategies that can efficiently learn a user's top item preferences in
+Thompson Sampling (TS) and Upper Confidence Bound (UCB) to                                     cold start settings, ideally requiring only an arbitrary set of NL item
+guide LLM query generation. We numerically evaluate our methods                                descriptions. While the advent of large language models (LLMs)
+in controlled simulations, finding that after 10 turns of dialogue,                            has introduced the technology to facilitate NL-PE conversations
+PEBOL can achieve an MRR@10 of up to 0.27 compared to the                                      [14, 23] we conjecture that monolithic LLMs have limited abilities
+best monolithic LLM baseline's MRR@10 of 0.17, despite relying                                 to strategically conduct active, multi-turn NL-PE dialogues about
+on earlier and smaller LLMs.1                                                                  a set of arbitrary items. Specifically, we hypothesize that LLMs
+                                                                                               lack the multi-turn decision-theoretic reasoning to interactively
+Both authors contributed equally to this research.                                             generate queries that avoid over-exploitation or over-exploration
+1Our code is publically available at https://github.com/D3Mlab/llm-pe.                         of user-item preferences, thus risking over-focusing on already
+                                                                                               revealed item preferences or wastefully exploring preferences over
+Permission to make digital or hard copies of all or part of this work for personal or          low-value items. Further challenges faced by monolithic LLM NL-PE
+classroom use is granted without fee provided that copies are not made or distributed          approaches include the need to jointly reason over large, poten-
+for profit or commercial advantage and that copies bear this notice and the full citation      tially unseen sets of item descriptions, and the lack of control and
+on the first page. Copyrights for components of this work owned by others than the             interpretability in system behaviour even after prompt engineering
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or         or fine-tuning [28].
+republish, to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.                                       In contrast, conventional PE algorithms [21, 22, 27, 39, 40], in-
+RecSys '24, October 14­18, 2024, Bari, Italy                                                   cluding Bayesian optimization methods [2, 5, 12, 32, 36], establish
+© 2024 Copyright held by the owner/author(s). Publication rights licensed to ACM.              formal decision-theoretic policies such as Thompson Sampling (TS)
+ACM ISBN 979-8-4007-0505-2/24/1                                                                and Upper Confidence Bound (UCB) [16] to balance exploration
+https://doi.org/10.1145/3640457.3688142                                                        and exploitation with the goal of quickly identifying the user's most
+                                                                                               preferred items. However, these techniques typically assume a user
+                                                                                               can express preferences via direct item ratings or comparisons ­
+                                                                                               an unrealistic expectation when users are unfamiliar with most
+                                                                                               items [1]. While recent work has extended Bayesian PE to a fixed
+                                                                                               set of template-based queries over pre-defined keyphrases [36], no
+RecSys '24, October 14­18, 2024, Bari, Italy                                                                   Austin and Korikov, et al.
+
+Figure 1: PEBOL's belief updates over a cold-start user's item utilities during three turns of NL dialogue. Bayesian preference
+beliefs not only facilitate recommendation, but also enable Bayesian optimization policies to guide LLM query generation,
+avoiding over-exploration (asking about clearly low-value items) and over-exploitation (over-focusing on known preferences).
+
+existing work extends Bayesian methodologies to generative NL-PE                      represent a noisy or indirect observation of  ( ), and collecting a
+over a set of generic NL item descriptions.                                           sequence of observations into a dataset D = (x, y), an observation
+                                                                                      model defines the likelihood  (D| ). We then use the observed data
+   In this paper, we make the following contributions:                                and Bayes theorem to update our beliefs and obtain the posterior
+
+     · We introduce the first Bayesian optimization formalization of                   ( |D) =   ( ) (D| )     (1)
+        NL-PE for arbitrary NL dialogue over a generic set of NL item
+        descriptions ­ establishing a new framework for research                                 (D)        .
+        on steering LLMs with decision-theoretic reasoning.
+                                                                                      This posterior informs an acquisition function  ( |D) which deter-
+     · We present PEBOL (Preference Elicitation with Bayesian                         mines where to next observe  () in a way that balances exploita-
+        Optimization augmented LLMs), a novel NL-PE algorithm                         tion (focusing observations where  is likely near its maximum)
+        which 1) infers item preferences via Natural Language In-                     with exploration (probing areas where  has high uncertainty).
+        ference (NLI) [37] between dialogue utterances and item
+        descriptions to maintain Bayesian preference beliefs and                      2.2 Preference Elicitation
+        2) introduces LLM-based acquisition functions, where NL
+        query generation is guided by decision-theoretic strategies                   PE has witnessed decades of research, and includes approaches
+        such as TS and UCB over the preference beliefs.                               based on Bayesian optimization (e.g., [3, 8, 11, 13, 18]), Bandits (e.g.,
+                                                                                      [5, 24, 25, 40]), constrained optimization [29], and POMDPs [2]. In
+     · We numerically evaluate PEBOL against monolithic GPT-                          the standard PE setting, a user is assumed to have some hidden
+        3.5 and Gemini-Pro NL-PE methods via controlled NL-PE                         utilities u = [1, ...,  ] over a set I of  items, where item  is
+        dialogue experiments over multiple NL item datasets and                       preferred to item  if  >   . The goal of PE is typically to search for
+        levels of user noise.                                                         an item   arg max  that maximizes user utility in a minimal
+                                                                                      number of PE queries, which most often ask a user to express
+     · We observe that after 10 turns of dialogue, PEBOL can achieve                  item preferences as item ratings (e.g., [3, 5, 24, 25, 40]) or relative
+        a mean MRR@10 of up to 0.27 compared to the best mono-                        preferences between item pairs or sets (e.g., [2, 8, 11, 12, 14, 32]).
+        lithic LLM baseline's MRR@10 of 0.17, despite relying on                      An alternative form of PE asks users to express preferences over
+        earlier and smaller LLMs.                                                     predefined item features, also through rating- or comparison-based
+                                                                                      queries [22, 27, 39]. Central to the above PE methods are query
+2 BACKGROUND AND RELATED WORK                                                         selection strategies that balance the exploration and exploitation
+                                                                                      of user preferences, with TS and UCB algorithms (cf. Sec. 4.2) often
+2.1 Bayesian Optimization                                                             exhibiting strong performance [5, 27, 36, 39, 40]. However, none of
+                                                                                      these methods are able to interact with users through NL dialogue
+Given an objective function  : X  R, (standard) optimization sys-                     or reason about NL item descriptions.
+tematically searches for a point   X that maximizes2  . Bayesian
+optimization focuses on settings where  is a black-box function                       2.3 Language-Based Preference Elicitation
+which does not provide gradient information and cannot be evalu-
+ated exactly ­ rather,  must be evaluated using indirect or noisy                     Yang et al. [36] introduce Bayesian PE strategies using TS and UCB
+observations which are expensive to obtain [10, 30]. To address                       for keyphrase rating queries, where keyphrases are first mined from
+these challenges, Bayesian optimization maintains probabilistic be-                   NL item reviews and then co-embedded with user-item preferences
+liefs over  () and its observations to guide an uncertainty-aware                     in a recommendation system. Handa et al. [14] propose using LLMs
+optimization policy which decides where to next observe  ().                          to interface with a conventional Bayesian PE system, suggesting
+                                                                                      a preprocessing step to extract features from NL descriptions and
+   Bayesian optimization begins with a prior  ( ) which represents                    a verbalization step to fluidly express pairwise item comparison
+the beliefs about  before any observations are made. Letting 
+
+2We take the maximization direction since this paper searches for items with maximum
+utility for a person.
+Bayesian Optimization with LLM-Based Acquisition Functions for Natural Language Preference Elicitation                  RecSys '24, October 14­18, 2024, Bari, Italy
+
+Figure 2: The PEBOL NL-PE algorithm, which maintains a Bayesian belief state over a user's item preferences given an arbitrary
+set of NL item descriptions x. This belief is used by a decision-theoretic policy to balance the exploration and exploitation of
+preferences by strategically selecting an item description  as the basis for LLM query generation. Belief updates are computed
+through Bayesian inference with NLI entailment scores between item descriptions and query-response pairs.
+
+queries. Li et al. [23] prompt an LLM to generate PE queries for some            set I collectively represented by x  X with x = [1, ...,  ]. We
+specific domain (e.g., news content, morals), observe user responses,            assume the user has some (unknown) utility function  : X  R
+and evaluate LLM relevance predictions for a single item. While
+these works make progress towards NL-PE, they do not study how                   establishing hidden utilities u =  (x) so that item  is preferred to
+LLM query generation can strategically explore user preferences
+towards an arbitrary item set outside the realm of item-based or                 item  if  >   . Our goal is to find the most preferred item(s):
+category-based feedback.
+                                                                                                                     arg max  .                   (2)
+2.4 Conversational Recommendation
+                                                                                                           
+Recent work on ConvRec uses language models3 to facilitate NL
+dialogue while integrating calls to a recommender module which                                                               I
+generates item recommendations based on user-item interaction
+history [4, 26, 33, 35]. He et al. [15] report that on common datasets,          In contrast to standard Bayesian PE formalisms (c.f. Sec 2.2), we
+zero-shot GPT-3.5/4 outperforms these ConvRec methods, which
+generally use older language models and require user-item interac-               do not assume that the user can effectively convey direct item-level
+tion history for their recommendation modules.
+                                                                                 preferences by either: 1) providing item ratings (i.e., utilities) or
+2.5 Natural Language Inference
+                                                                                 2) pairwise or listwise item comparisons. Instead, we must infer
+Binary Natural Language Inference (NLI) [37] models predict the
+likelihood that one span of text called a premise is entailed by (i.e.,          user preferences by observing utterances during a NL system-user
+can be inferred from) a second span called the hypothesis. For ex-
+ample, an effective NLI model should predict a high likelihood that              dialogue. At turn  of a dialogue, we let  and  be the system
+the premise "I want to watch Iron Man" entails the hypothesis "I                 and user utterance, respectively, with q = [1, ...,  ] and r =
+want to watch a superhero movie". As illustrated by this example,                [ 1, ...,  ] representing all system and user utterances up to . In this
+the hypothesis typically must be more general than the premise.
+NLI models are trained by fine-tuning encoder-only LLMs on NLI                   paper, we call  the query and  the response, though extensions
+datasets [6, 31, 34], which typically consist of short text spans for
+the premise and hypothesis ­ thus enabling relatively efficient                  to more generic dialogues (e.g., when users can also ask queries)
+performance on similar tasks with a fairly small number LLM pa-
+rameters.                                                                        are discussed in Section 7. We let H = (q , r ) be the conversation
+
+3 PROBLEM DEFINITION                                                             history at turn .
+
+We now present a Bayesian optimization formulation of NL-PE.                     To formulate NL-PE as a Bayesian optimization problem, we
+The goal of NL-PE is to facilitate a NL dialogue which efficiently
+discovers a user's most preferred items out of a set of  items.                  place a prior belief on the user's utilities  (u|x), potentially con-
+Each item   I has a NL description  , which might be a title,
+long-form description, or even a sequence of reviews, with the item              ditioned on item descriptions since they are available before the
+
+3Earlier systems (e.g. [4, 26]) use relatively small RNN-based language models.  dialogue begins. We then assume an observation model that gives
+
+                                                                                 the likelihood  (r |x, u, q ), letting us define the posterior utility
+
+                                                                                 belief as
+
+                                                                                                         (u|x, H )   (r |x, u, qt) (u|x).         (3)
+
+                                                                                 This posterior informs an acquisition function  (x, H ) which gen-
+                                                                                 erates4 a new NL query
+
+                                                                                                                 +1  =   (x, H ),                 (4)
+
+                                                                                                        
+
+                                                                                 to systematically search for . The preference beliefs also let us
+
+                                                                                 define  an  Expected   Utility  (EU)      for  every  item  as
+
+                                                                                                                        
+                                                                                                                        
+
+                                                                                                           =     E (u|x,H ) [ ],                  (5)
+
+                                                                                                        
+
+                                                                                                         
+
+                                                                                 which allows the top- items to be recommended at any turn based
+                                                                                 on their expected utilities.
+
+                                                                                    Our Bayesian optimization NL-PE paradigm lets us formalize
+                                                                                 several key questions, including:
+
+                                                                                 4To represent the generative acquisition of NL outputs, we deviate from the conventional
+                                                                                 definition of acquisition functions as mapping to R.
+RecSys '24, October 14­18, 2024, Bari, Italy                                                                                            Austin and Korikov, et al.
+
+Figure 3: Cherry-picked system-generated dialogues from our NL-PE experiments. The Monolithic GPT-3.5 dialogue (left)
+demonstrates over-exploitation, with 3 directly extending 2 after a positive user preference is observed and leading to the
+extreme case of query repetition (4 = 3). In contrast, PEBOL (right) continues exploring even after a positive response, while
+
+focusing on promising aspects (three out of four queries elicit a positive response) by using UCB-guided query generation.
+
+   (1) How do we represent beliefs  (u|x, H ) in user-item utilities       descriptions to map dialogue utterances to numerical observations
+        u, given NL item descriptions x and a dialogue H ?                 (c.f. Sec 4.3).
+
+   (2) What are effective models for the likelihood  (r |x, u, q ) of      4.1 Utility Beliefs
+        observed responses r given x, q , and user utilities u?
+                                                                           4.1.1 Prior Beliefs. Before any dialogue, PEBOL establishes an
+   (3) How can our beliefs inform the generative acquisition of NL         uninformed prior belief  (u) on user-item utilities. We assume item
+        queries +1 given H to strategically search for ?                   utilities are independent so that
+
+These questions reveal a number of novel research directions dis-                                            
+cussed further in Section 7. In this paper, we present PEBOL, a
+NL-PE algorithm based on the above Bayesian optimization NL-PE                                          (u) =  ( ),                                  (6)
+formalism, and numerically evaluate it against monolithic LLM
+alternatives through controlled, simulated NL dialogues (cf. Sec. 6).                                         =1
+
+4 METHODOLOGY                                                              and that the prior for each utility  is a Beta distribution
+
+   Limitations of Monolithic LLM Prompting. An obvious NL-PE                                        ( )  =  Beta(0 ,        0 ) .                    (7)
+approach, described further as baseline in Section 5.1, is to prompt
+a monolithic LLM with all item descriptions x, dialogue history                                                             
+H , and instructions to generate a new query at each turn. How-
+ever, providing all item descriptions [1, ...,  ] in the LLM context       Since this paper focuses on fully cold start settings, we assume a
+window is very computationally expensive for all but the smallest          uniform Beta prior with (0, 0) = (1, 1). Beta distributions, illus-
+item sets. While item knowledge could be internalized through fine-
+tuning, each item update would imply system retraining. Critically,                                                  
+an LLM's preference elicitation behaviour cannot be controlled
+other than by prompt-engineering or further fine-tuning, with nei-         trated in Figure 1, lie in the domain [0, 1] ­ a normalized interval
+ther option offering any guarantees of predictable or interpretable
+behaviour that balances the exploitation and exploration of user           for bounded ratings in classical recommendation systems. We can
+preferences.                                                               thus interpret utility values of  = 1 or  = 0 to represent a com-
+                                                                           plete like or dislike of item , respectively, while values   (0, 1)
+   PEBOL Overview. We propose to addresses these limitations by
+augmenting LLM reasoning with a Bayesian Optimization proce-               provide a strength of preference between these two extremes.
+dure in a novel algorithm, PEBOL, illustrated in Figure 2. At each
+turn , our algorithm maintains a probabilistic belief state over           4.1.2 Observation Model. To perform a posterior update on our
+user preferences as a Beta belief state (cf. Sec. 4.1). This belief state
+guides an LLM-based acquisition function to generate NL queries            utility beliefs given observed responses r , we need an observa-
+explicitly balancing exploration and exploitation to uncover the top
+user preferences (cf. Sec. 4.2). In addition, our acquisition function     tion model that represents the likelihood  (r |x, u, q ). Modelling
+reduces the context needed to prompt the LLM in each turn from all
+ item descriptions x to a single strategically selected item descrip-      the likelihood of r is a challenging task, so we will require some
+tion  . PEBOL then uses NLI over elicited NL preferences and item
+                                                                           simplifying assumptions. Firstly, we assume that the likelihood of
+
+                                                                           a  single  response     is  independent    from          any    previous  dialogue
+
+                                                                                                
+
+                                                                           history H -1, so that:
+
+                                                                                                             
+
+                                                                                       (r |x, u, q ) =                (      |  x,  u,       )       (8)
+
+                                                                                                                                                .
+
+                                                                                                              =1
+
+                                                                           Note that this independence assumption will allow incremental
+                                                                           posterior belief updates, so that
+
+                                                                                       (u|x,    H )       (  |x,  u,     ) (u|x,        H -1).       (9)
+
+                                                                                                                      
+
+                                                                           4.1.3 Binary Item Response Likelihoods and Posterior Update. With
+                                                                           the factorized distributions over item utilities and observational
+Bayesian Optimization with LLM-Based Acquisition Functions for Natural Language Preference Elicitation                                   RecSys '24, October 14­18, 2024, Bari, Italy
+
+Figure 4: MRR@10 for MonoLLM and PEBOL-P with uncertainty-informed policies (UCB, TS, ER). All methods show preference
+learning over time and MonoLLM is generally outperformed by PEBOL.
+
+likelihood history now defined, we simply have to provide a con-                                        that replaces the binary observation   {0, 1} with the entailment
+
+crete observational model of the response likelihood conditioned                                        probability   [0, 1], i.e.,  =  -1 +  ,  =  -1 + (1 -  ).
+on the query, item descriptions, and latent utility:  ( |x, u,  ).                                                                                                      
+
+                                                                                                        To visually illustrate how this posterior inference process works
+
+Because the prior is factorized over conditionally independent                                          in practice, Figure 1 shows the effect of PEBOL's posterior utility
+
+ (cf. (6)), we can likewise introduce individual per-item factor-                                       belief updates based on NLI for three query-response pairs ­ we
+ized binary responses   {0(dislike), 1(like)} to represent the
+                                                                                                        can see the system gaining statistical knowledge about useful items
+                                    
+                                                                                                        for the user from the dialogue.
+individual relevance of each item  to the preference elicited at
+
+turn . Critically, we won't actually require an individual response
+
+per item -- this will be computed by a natural language inference                                       4.2 LLM-Based Acquisition Functions
+
+(NLI) model [6] to be discussed shortly -- but we'll begin with an                                      Recall from Sec. 2.1 that in Bayesian optimization, the posterior
+                                                                                                        informs an acquisition function which determines where to make
+individual  binary       response      model       for      for      simplicity:                        the next observation. PEBOL generates a new query  with a
+                                                                                                        two-step acquisition function , first using Bayesian Optimization
+                                                                                                        policies (step 1) based on the posterior utility beliefs  (u|x, H )
+                                                                                                        to select NL context, and then using this selected context to guide
+                                                                                                        LLM prompting (step 2). We express the overall acquisition function
+                          (    |  ,    ,     )  =  Bernoulli( ).                                 (10)    =    as a composition of a context acquisition function 
+                                                                                                        (cf. Sec. 4.2.1) and a NL generation function  (cf. Sec. 4.2.2).
+                                          
+
+   With our response likelihood defined, this now leads us to our
+first pass at a full posterior utility update that we term PEBOL-B
+for observed Binary rating feedback. Specifically, given observed
+binary ratings  , the update at  = 1 uses the Beta prior (7) with
+
+                        
+
+the Bernoulli likelihood (10) to form a standard Beta-Bernoulli
+conjugate pair and compute the posterior utility belief
+
+                  (      | ,   H1)         (       |  )   ( 1  |     ,      ,     )              (11)   4.2.1 Context Acquisition via Bayesian Optimization Policies. First,
+                                                                                                        PEBOL harnesses Bayesian optimization policies to select an item
+                                                                                                        description  which will be used to prompt an LLM to generate a
+                                                                                                        query about an aspect described by  (cf. Sec. 4.2.2). Selecting an
+                                       =  Beta(1 ,       1 ),                                    (12)   item  whose utility  is expected to be near the maximum,  ,
+                                                                                                        will generate exploitation queries asking about properties of items
+                                                                                                        that are likely to be preferred by the user. In contrast, selecting an
+                                                                                                        item  associated with high uncertainty in its utility  will generate
+where 1 = 0 +  1, 1 = 0 + (1 -  1). Subsequent incremental
+                                                                                                                                                                                      
+
+updates updates follow Eq. (9) and use the same conjugacy to give                                       exploration queries that probe into properties of items for which user
+                                                                                                        preferences are less known. Thus, strategically selecting  allows
+                          (      | ,  H )       =  Beta   (    ,        ),                       (13)   PEBOL to balance the exploration and exploitation behaviour of
+                                                                                                        NL queries, decreasing the risks of becoming stuck in local optima
+                                                                                                        (over-exploitation) or wasting resources exploring low utility item
+                                                                                                        preferences (over-exploration). We define the item selected by the
+                                                                                                        context acquisition function as
+where  =  -1 +  ,  =  -1 + (1 -  ).
+                                                            
+
+4.1.4 Natural Language Inference and Probabilistic Posterior Update.
+
+As hinted above, effective inference becomes slightly more nuanced
+
+since we don't need to observe an explicit binary response per item
+
+in our PEBOL framework. Rather, we receive general preference
+
+feedback      on      whether     a   user      generically          prefers         a  text  descrip-
+
+          
+
+tion  and then leverage an NLI model [6] to infer whether the
+
+description  of item  would be preferred according to this feed-                                                         =               (x,  H    ),                   (14)
+
+back. For instance, for a ( ,  ) pair ("Want to watch a children's                                                          
+
+movie?","Yes"),  NLI     should      infer   a  rating    of         =  1      for   1  =  "The  Lion   and list several alternatives for  , including the well-known strate-
+                                                                  1                                     gies of TS and UCB [30]:
+
+King"  and       =    0  for  2  =   "Titanic".
+              2
+
+To deal with the fact that NLI models actually return an entail-                                        (1) Thompson Sampling (TS): First, a sample of each item's
+
+ment probability, our probabilistic observation variant, PEBOL-P                                        utility ^     is taken from the posterior, ^                     ( |, H ).
+
+                                                                                                                                                                    
+
+leverages the probability that item description  entails  , which                                       Then, the item with the highest sampled utility is selected:
+
+we  denote  as        .  We   provide     a  full  graphical         model          and  derivation                      =  arg max ^ .                                 (15)
+
+                                                                                                                      
+                    
+
+of the Bayesian posterior update given this entailment probability                                                                       
+
+in the Supplementary Material, but note that we can summarize the                                       TS explores more when beliefs have higher uncertainty and
+
+final result as a relaxed version of the binary posterior update of (13)                                exploits more as the system becomes more confident.
+RecSys '24, October 14­18, 2024, Bari, Italy                                                                                                       Austin and Korikov, et al.
+
+                                Figure 5: MRR@10 for PEBOL-P with various context acquisition policies.
+
+    (2) Upper Confidence Bound (UCB): Let  (, ) represent                              given a query that asks if the user prefers the aspect "patriotism"
+        the 'th percentile of Beta(, ), which provides a confidence                    in an item, if the user response is "yes", then the user preference
+        bound on the posterior. UCB selects the item with the highest                   is "patriotism", and "not patriotism" otherwise. This approach
+        confidence bound                                                               produces short, general preference descriptions that are well suited
+                                                                                       for NLI models [37].
+                 =  arg max  ( ( |, H )),                                      (16)
+
+              
+
+                              
+
+        following a balanced strategy because confidence bounds                        4.3.2 Inferring Item Ratings from NL Preferences. Given a NL pref-
+        are increased by both high utility and high uncertainty.
+    (3) Entropy Reduction (ER): An explore-only strategy that                          erence  , PEBOL must infer whether the user would like an item de-
+        selects the item with the most uncertain utility:
+                                                                                       scribed by  . Specifically, PEBOL acquires ratings w            =     [1 ,  ...,      ]
+                                                                                                                                                                           
+
+                                                                                       (cf. Sec. 4.1.4) by using NLI to predict whether an item description
+
+                    arg max Var( ( |, H )).                                             entails (i.e., implies) the preference  . For example, we expect
+
+                 =                                                             (17)    that an NLI model would predict that  ="The Lion King" entails
+
+                              
+
+    (4) Greedy: An exploit-only strategy that selects the item with                     ="animated" while   ="Titanic" does not, inferring that a user
+        the highest expected utility  (Eq. 5):
+                                                                                       who expressed preference  would like item  but not . We use an
+                                                     
+                                                                                       NLI  model        ( ,     )  to  predict  the  probability      that    entails      ,
+
+                                                                                                                                                     
+
+                              =  arg  max          .                           (18)    and return  =   in the case of binary observations (PEBOL-B)
+
+                                                                                                               
+
+                                              
+
+    (5) Random: An explore-only heuristic that selects the next                        and      in  the  case  of   probabilistic     observations  (PEBOL-P).
+        item randomly.
+                                                                                            
+                                                                                            
+
+4.2.2 Generating Short, Aspect-Based NL Queries. Next, PEBOL                           4.4 The Complete PEBOL System
+prompts an LLM to generate a NL query  based on the selected
+item description  while also using the dialogue history H to                           This concludes the PEBOL specification ­ the entire process from
+avoid repetitive queries. We choose to generate "yes-or-no" queries                    prior utility belief to the LLM-based acquisition function generation
+asking if a user prefers items with some aspect  , which is a short                    of a query to the posterior utility update is illustrated in Figure 2.
+text span extracted dynamically from  to be different from any
+previously queried aspects 1, ...,  -1. We adopt this query genera-                    5 EXPERIMENTAL METHODS
+tion strategy to: 1) reduce cognitive load on the user, who may be
+frustrated by long and specific queries about unfamiliar items and                     We numerically evaluate our PEBOL variations through controlled
+2) better facilitate NLI through brief, general phrases [37]. Letting                  NL-PE dialogue experiments across multiple datasets and response
+ represent the query generation prompt, we let                                         noise levels ­ comparing against two monolithic LLM (MonoLLM)
+                                                                                       baselines. Specifically, these baselines directly use GPT-3.5-turbo-
+                              =  ( , H , )                                     (19)    0613 (GPT MonoLLM) or Gemini-Pro (Gemini MonoLLM) as the
+                                                                                       NL-PE system, as described in Section 5.1. We do not compare
+                     ,                                                                 against ConvRec methods [4, 26, 33, 35] because they are not cold-
+                                                                                       start systems, requiring observed user-item interactions data to
+be the LLM generated query and aspect at turn , with prompting                         drive their recommendation modules. We also do not base our
+details discussed in Section 5.2.3. An example of such a query and                     experiments on ConvRec datasets such as ReDIAL [26], since they
+aspect (bold) is "Are you interested in movies with patriotic themes?",                are made up of pre-recorded conversation histories and cannot be
+generated by PEBOL in our movie recommendation experiments                             used to evaluate active, cold-start NL-PE systems.
+and shown in Figure 2.
+
+4.3 NL Item-Preference Entailment                                                      5.1 MonoLLM Baseline
+
+4.3.1 Preference Descriptions from Query Response Pairs. Next,                         A major challenge of using MonoLLM for NL-PE is that item de-
+                                                                                       scriptions x either need to be internalized through training or be
+PEBOL receives a NL user response  , which it must convert to                          provided in the context window (cf. Sec. 4) ­ since we focus on fully
+                                                                                       cold-start settings, we test the latter approach as a baseline. In each
+individual item preference observations. Since the LLM is instructed                   turn, given the full conversation history H and x, we prompt the
+                                                                                       MonoLLM to generate a new query to elicit user preferences ­ all
+to  generate  "yes-or-no"  queries            asking  a  user  if  they  like  aspect  prompts are shown in the Supplementary Materials. We evaluate
+
+                                    
+
+ , we assume the user response will be a "yes" or a "no", and create
+
+a NL description of the users preference  , letting  =  if
+
+ ="yes", and  = concat("not ",  ) if  = "no". For example,
+Bayesian Optimization with LLM-Based Acquisition Functions for Natural Language Preference Elicitation  RecSys '24, October 14­18, 2024, Bari, Italy
+
+Figure 6: MRR@10 for PEBOL using binary vs. probabilistic entailment scores. PEBOL-P with the best policy (TS on Yelp and
+MovieLens, UCB on Recipe-MPR) generally outperforms PEBOL-B.
+
+recommendation performance after each turn by using another                            5.2.6 Omitting Query History Ablation. We test how tracking query
+prompt to recommend a list of ten item names from x given H .                          history in PEBOL effects performance with an ablation study that
+Due to context window limits, this MonoLLM approach is only fea-                       removes previously generated aspects (1, ...,  -1) from the aspect
+sible for small item sets with short item descriptions; thus, we have                  extraction prompt.
+to limit |I| to 100 for fair comparison to the MonoLLM baseline.
+                                                                                       5.3 Datasets
+5.2 Simulation Details
+                                                                                       We obtain item descriptions from three real-world datasets: Movie-
+We test PEBOL and MonoLLM through NL-PE dialogues with LLM-                            Lens25M7, Yelp8, and Recipe-MPR [38] (example item descriptions
+simulated users, where the simulated users' item preferences remain                    from each shown in Table 1 in the Supplementary Materials). After
+hidden from the system. We evaluate recommendation performance                         the filtering steps below for Yelp and MovieLens, we randomly sam-
+over 10 turns of dialogue.                                                             ple 100 items to create x. For Yelp, we filter restaurant descriptions
+                                                                                       to be from a single major North American city (Philadelphia) and
+5.2.1 User Simulation. For each experiment, we simulate 100 users,                     to have at least 50 reviews and five or more category labels. For
+                                                                                       MovieLens,9 we filter movies to be in the 10% by rating count with
+each of which likes a single item   I. Each user is simulated                          at least 20 tags, and let movie descriptions use the title, genre labels,
+                                                                                       and 20 most common user-assigned tags.
+by GPT-3.5-turbo-0613, which is given item description  and
+                                                                                       5.4 Research Questions
+instructed  to  provide  only  "yes"  or  "no"  responses  to  a  query     as
+                                                                                       Our experiments explore the following research questions (RQs):
+                                                                         
+                                                                                            · RQ1: How does PEBOL perform against the MonoLLM base-
+if it was a user who likes item .                                                              lines?
+
+5.2.2 Evaluating Recommendations. We evaluate the top-10 recom-                             · RQ2: Does PEBOL perform better with binary or probabilis-
+mendations in each turn using the Mean Reciprocal Rank (MRR@10)                                tic observations, and how sensitive is the latter to tempera-
+of the preferred item, which is equivalent to MAP@10 for the case                              ture?
+of a single preferred item.
+                                                                                            · RQ3: How do PEBOL and MonoLLM perform under user
+5.2.3 PEBOL Query Generation. In turn , given an item description                              response noise?
+ and previously generated aspects (1, ...,  -1), an LLM (GPT-3.5-
+turbo-0613)5 is prompted to generate an aspect  describing the                              · RQ4: How do the context selection policies of TS, UCB, ER,
+item  that is no more than 3 words long. The LLM is then prompted                              Greedy, and Random effect PEBOL performance?
+again to generate a "yes-or-no" query asking if a user prefers  .
+                                                                                            · RQ5: How much does PEBOL performance depend on access
+5.2.4 NLI. We use the 400M FAIR mNLI6 model to predicts logits                                 to the query history during query generation?
+for entailment, contradiction, and neutral, and divide these logits by
+an MNLI temperature   {1, 10, 100} As per the FAIR guidelines,                         6 EXPERIMENTAL RESULTS
+we pass the temperature-scaled entailment and contradiction scores
+through a softmax layer and take the entailment probabilities. We                      6.1 RQ1 - PEBOL vs. MonoLLM
+report PEBOL results using the best MNLI temperature for the most
+datasets.                                                                              Figure 4 shows MRR@10 over 10 dialogue turns for MonoLLM and
+                                                                                       PEBOL (UCB,TS,ER),10 with 95% confidence intervals (CIs) at turn
+5.2.5 User Response Noise. We test three user response noise levels                    10 shown in Figure 8 (see Supplementary Materials for CIs for all
+ {0,0.25,0.5} corresponding to the proportion or user responses                        turns and experiments). All methods start near random guessing,
+that are randomly selected between "yes" and "no".                                     reflecting a cold start, and show clear preference learning over time.
+
+5Experiments with newer LLMs such as Gemini or GPT4 for PEBOL query generation         7 https://grouplens.org/datasets/movielens/25m/
+are left for future work due to the API time and cost requirements needed to simulate  8 https://www.yelp.com/dataset
+the many variants of PEBOL reported in Section 6. We do, however, compare PEBOL        9For all experiments with MovieLens, we use the 16k version of GPT-3.5-turbo-0613,
+                                                                                       due to MonoLLM requiring extra context length for x.
+against a Gemini-MonoLLM baseline.                                                     10For each PEBOL policy, we use the MNLI temperature that performed best on the
+6 https://huggingface.co/facebook/bart-large-mnli                                      most datasets with continuous responses (see Supplementary Materials).
+RecSys '24, October 14­18, 2024, Bari, Italy                        Austin and Korikov, et al.
+
+Figure 7: The effect of including the generated aspect history in the aspect generation prompt. Including the history improves
+performance, which we hypothesize is due to reducing repeated or uninformative queries.
+
+Figure 8: The effect of user response noise on MRR@10 ­ error bars are 95% confidence intervals.
+
+   Compared to GPT-MonoLLM, which uses the same LLM (GPT-           6.4 RQ4 - Comparison of Context Acquisition
+3.5-turbo-0613) as PEBOL does for query generation, after 10 turns        Policies
+of dialogue PEBOL achieves: a mean MRR@10 of 0.27 vs. GPT-
+MonoLLM's MRR@10 of 0.12 on Yelp; 0.18 vs 0.09 on MovieLens;        Figure 5 compares the performance of various PEBOL context acqui-
+and 0.17 vs 0.11 on Recipe-MPR, respectively. Compared to Gemini-   sition policies ­ all policies show active preference learning, other
+MonoLLM, which uses a newer generation LLM (Gemini-Pro) than        than random item selection on RecipeMPR. There is considerable
+PEBOL for query generation, after 10 turns PEBOL still achieves     overlap between methods, however for most turns TS does well on
+a higher mean MRR@10 of 0.27 vs. Gemini-MonoLLM's mean              Yelp and MovieLens while being beaten by Greedy, ER, and UCB
+MRR@10 of 0.17 on Yelp; 0.18 vs. 0.15 on MovieLens, and 0.17        on Recipe-MPR. As expected due to the randomness in sampling,
+vs 0.16 on Recipe-MPR, respectively. While we did not have the      TS performance is correlated with random item selection, while
+resources to test PEBOL with Gemini query generation, we hy-        UCB performs quite similarly to greedy.
+pothesize that using a newer LLM for query generation can further
+improve PEBOL performance, since using the newer LLM (Gemini)       6.5 RQ5 - Effect of Aspect History in Query
+shows performance improvements for the MonoLLM baseline.                  Generation
+
+6.2 RQ2 - Binary vs. Probabilistic Responses                        As shown in Figure 7, we see improvements in PEBOL performance
+                                                                    from including a list of previously generated aspects in the aspect
+Figure 6 compares PEBOL performance using binary (PEBOL-B)          generation prompt. For instance, the differences in mean MRR@10
+vs. continuous (PEBOL-P) feedback, and shows that performance is    from including vs. excluding the query history for TS after 10 turns
+typically better when continuous responses are used ­ indicating    were: 0.27 vs 0.16 for Yelp; 0.18 vs 0.14 for MovieLens, and 0.13 vs
+that binary feedback models discard valuable information from the   0.09 for Recipe-MPR, respectively. Practically, including the aspect
+entailment probabilities.                                           generation history also helps to avoid repeat queries, which gain
+                                                                    no information and could frustrate a user.
+
+6.3 RQ3 - Effect of User Response Noise                             7 CONCLUSION AND FUTURE WORK
+
+Figure 8 shows the impact of user response noise on MRR@10 at       This paper presents a novel Bayesian optimization formalization of
+turn 10 ­ PEBOL generally continues to outperform MonoLLM           natural language (NL) preference elicitation (PE) over arbitrary NL
+under user response noise. Specifically, at all noise levels, both  item descriptions, as well as introducing and evaluating PEBOL, an
+MonoLLM baselines are outperformed by all PEBOL-P variants          algorithm for NL Preference Elicitation with Bayesian Optimization
+on Yelp, and by at least one PEBOL-P variant on MovieLens and       augmented LLMs. As discussed below, our study also presents many
+Recipe-MPR.                                                         opportunities for future work, including for addressing some of the
+                                                                    limitations of PEBOL and our experiment setup.
+Bayesian Optimization with LLM-Based Acquisition Functions for Natural Language Preference Elicitation  RecSys '24, October 14­18, 2024, Bari, Italy
+
+   User Studies. Firstly, our experiments limited by their reliance                           California, USA) (KDD '16). Association for Computing Machinery, New York,
+on LLM-simulated users. While the dialogue simulations indicate                               NY, USA, 815­824.
+reasonable behaviour in the observed results, such as initial recom-                     [6] Ido Dagan, Oren Glickman, and Bernardo Magnini. 2005. The PASCAL recog-
+mendation performance near random guessing, preference learning                               nising textual entailment challenge. In Machine Learning Challenges Workshop.
+over time, and coherent user responses in logs such as those shown                            Springer, 177­190.
+in Figure 7, future work would benefit from human user studies.                          [7] Yashar Deldjoo, Zhankui He, Julian McAuley, Anton Korikov, Scott Sanner, Arnau
+                                                                                              Ramisa, René Vidal, Maheswaran Sathiamoorthy, Atoosa Kasirzadeh, and Silvia
+   Multi-Item Belief Updates. While the assumption that item utili-                           Milano. 2024. A Review of Modern Recommender Systems Using Generative
+ties can be updated independently allows the use of a simple and                              Models (Gen-RecSys). In Proceedings of the 30th ACM SIGKDD Conference on
+interpertable Beta-Bernouilli update model for each item, it also                             Knowledge Discovery and Data Mining (KDD '24), August 25­29, 2024, Barcelona,
+requires a separate NLI calculation to be performed for each item,                            Spain.
+which is computationally expensive. A key future direction is thus                       [8] Brochu Eric, Nando Freitas, and Abhijeet Ghosh. 2007. Active preference learning
+to explore alternative belief state forms which enable the joint                              with discrete choice data. Advances in Neural Information Processing Systems 20
+updating of beliefs over all items from a single NLI computation.                             (2007).
+                                                                                         [9] Luke Friedman, Sameer Ahuja, David Allen, Terry Tan, Hakim Sidahmed,
+   Collaborative Belief Updates. Since PEBOL does not leverage                                Changbo Long, Jun Xie, Gabriel Schubiner, Ajay Patel, Harsh Lara, et al. 2023.
+any historical interactions with other users, an important future                             Leveraging Large Language Models in Conversational Recommender Systems.
+direction is to study NL-PE which leverages collaborative, multi-                             arXiv preprint arXiv:2305.07961 (2023).
+user data. One possibility is to initialize a cold start user's prior                   [10] Roman Garnett. 2023. Bayesian optimization. Cambridge University Press.
+beliefs based on interaction histories with other users. Another                        [11] Javier González, Zhenwen Dai, Andreas Damianou, and Neil D Lawrence. 2017.
+direction is adapting collaborative filtering based belief updating,                          Preferential bayesian optimization. In International Conference on Machine Learn-
+such as the methods used in item-based feedback PE techniques                                 ing. PMLR, 1282­1291.
+(e.g., [5]), to NL-PE.                                                                  [12] Shengbo Guo and Scott Sanner. 2010. Real-time multiattribute Bayesian prefer-
+                                                                                              ence elicitation with pairwise comparison queries. In Proceedings of the Thirteenth
+   Diverse Query Forms. While PEBOL uses a pointwise query gen-                               International Conference on Artificial Intelligence and Statistics. JMLR Workshop
+eration strategy that selects one item description at a time for LLM                          and Conference Proceedings, 289­296.
+context, future work can explore LLM-based acquisition functions                        [13] Shengbo Guo, Scott Sanner, and Edwin V Bonilla. 2010. Gaussian process prefer-
+with pairwise and setwise context selection. Such multi-item con-                             ence elicitation. Advances in Neural Information Processing Systems 23 (2010).
+text selection would enable contrastive query generation that could                     [14] Kunal Handa, Yarin Gal, Ellie Pavlick, Noah Goodman, Jacob Andreas, Alex
+better discriminate between item preferences.                                                 Tamkin, and Belinda Z. Li. 2024. Bayesian Preference Elicitation with Language
+                                                                                              Models. arXiv:2403.05534 [cs.CL]
+   NL-PE in ConvRec Architectures. Another direction for future                         [15] Zhankui He, Zhouhang Xie, Rahul Jha, Harald Steck, Dawen Liang, Yesu Feng,
+research is the integration of NL-PE methodologies such as PEBOL                              Bodhisattwa Prasad Majumder, Nathan Kallus, and Julian McAuley. 2023. Large
+into conversational recommendation (ConvRec) system architec-                                 Language Models as Zero-Shot Conversational Recommenders. Proceedings of the
+tures (e.g., [7, 9, 17, 20]), which must balance many tasks including                         32nd ACM International Conference on Information and Knowledge Management
+recommendation, explanation, and personalized question answer-                                (2023).
+ing. Thus, in contrast to PEBOL's pointwise queries and "yes-or-no"                     [16] Giannis Karamanolakis, Kevin Raji Cherian, Ananth Ravi Narayan, Jie Yuan, Da
+user responses, the use of PE in ConvRec systems implies that future                          Tang, and Tony Jebara. 2018. Item recommendation with variational autoencoders
+algorithms will need to elicit preferences based on arbitrary pairs                           and heterogeneous priors. In Proceedings of the 3rd Workshop on Deep Learning
+of NL system-user utterances. In these potential extensions, aspect-                          for Recommender Systems. 10­14.
+based NLI could be enabled by extracting aspects from utterances                        [17] Sara Kemper, Justin Cui, Kai Dicarlantonio, Kathy Lin, Danjie Tang, Anton Ko-
+with LLMs [19].                                                                               rikov, and Scott Sanner. 2024. Retrieval-Augmented Conversational Recommen-
+                                                                                              dation with Prompt-based Semi-Structured Natural Language State Tracking.
+REFERENCES                                                                                    In Proceedings of the 47th International ACM SIGIR Conference on Research and
+                                                                                              Development in Information Retrieval (Washington, DC, USA) (SIGIR '24). ACM,
+ [1] Erdem Biyik, Fan Yao, Yinlam Chow, Alex Haig, Chih-wei Hsu, Mohammad                     New York, NY, USA.
+      Ghavamzadeh, and Craig Boutilier. 2023. Preference Elicitation with Soft At-      [18] Mohammad M. Khajah, Brett D. Roads, Robert V. Lindsey, Yun-En Liu, and
+      tributes in Interactive Recommendation. ArXiv abs/2311.02085 (2023). https:             Michael C. Mozer. 2016. Designing Engaging Games Using Bayesian Optimization.
+      //api.semanticscholar.org/CorpusID:265034238                                            In Proceedings of the 2016 CHI Conference on Human Factors in Computing Systems
+                                                                                              (San Jose, California, USA) (CHI '16). Association for Computing Machinery, New
+ [2] Craig Boutilier. 2002. A POMDP formulation of preference elicitation problems.           York, NY, USA, 5571­5582. https://doi.org/10.1145/2858036.2858253
+      In AAAI/IAAI. Edmonton, AB, 239­246.                                              [19] Anton Korikov, George Saad, Ethan Baron, Mustafa Khan, Manav Shah, and
+                                                                                              Scott Sanner. 2024. Multi-Aspect Reviewed-Item Retrieval via LLM Query De-
+ [3] Eric Brochu, Tyson Brochu, and Nando De Freitas. 2010. A Bayesian interactive            composition and Aspect Fusion. In Proceedings of the 1st SIGIR'24 Workshop on
+      optimization approach to procedural animation design. In Proceedings of the 2010        Information Retrieval's Role in RAG Systems, July 18, 2024, Washington D.C., USA.
+      ACM SIGGRAPH/Eurographics Symposium on Computer Animation. 103­112.               [20] Anton Korikov, Scott Sanner, Yashar Deldjoo, Francesco Ricci, Zhankui He, Ju-
+                                                                                              lian McAuley, Arnau Ramisa, Rene Vidal, Maheswaran Sathiamoorthy, Atoosa
+ [4] Qibin Chen, Junyang Lin, Yichang Zhang, Ming Ding, Yukuo Cen, Hongxia Yang,              Kasirzadeh, and Silvia Milano. 2024. Large Language Model Driven Recommen-
+      and Jie Tang. 2019. Towards Knowledge-Based Recommender Dialog System.                  dation. arXiv preprint arXiv:2404.XXXXX (2024).
+      In Proceedings of the 2019 Conference on Empirical Methods in Natural Language    [21] Hoyeop Lee, Jinbae Im, Seongwon Jang, Hyunsouk Cho, and Sehee Chung. 2019.
+      Processing and the 9th International Joint Conference on Natural Language Pro-          MeLU: Meta-Learned User Preference Estimator for Cold-Start Recommendation.
+      cessing (EMNLP-IJCNLP), Kentaro Inui, Jing Jiang, Vincent Ng, and Xiaojun Wan           In Proceedings of the 25th ACM SIGKDD International Conference on Knowledge
+      (Eds.). Association for Computational Linguistics, Hong Kong, China, 1803­1813.         Discovery & Data Mining (Anchorage, AK, USA) (KDD '19). Association for
+      https://doi.org/10.18653/v1/D19- 1189                                                   Computing Machinery, New York, NY, USA, 1073­1082. https://doi.org/10.1145/
+                                                                                              3292500.3330859
+ [5] Konstantina Christakopoulou, Filip Radlinski, and Katja Hofmann. 2016. Towards     [22] Wenqiang Lei, Gangyi Zhang, Xiangnan He, Yisong Miao, Xiang Wang, Liang
+      Conversational Recommender Systems. In Proceedings of the 22nd ACM SIGKDD               Chen, and Tat-Seng Chua. 2020. Interactive Path Reasoning on Graph for Conver-
+      International Conference on Knowledge Discovery and Data Mining (San Francisco,         sational Recommendation. In Proceedings of the 26th ACM SIGKDD International
+                                                                                              Conference on Knowledge Discovery & Data Mining (Virtual Event, CA, USA)
+                                                                                              (KDD '20). Association for Computing Machinery, New York, NY, USA, 2073­2083.
+                                                                                              https://doi.org/10.1145/3394486.3403258
+                                                                                        [23] Belinda Z. Li, Alex Tamkin, Noah Goodman, and Jacob Andreas. 2023. Eliciting
+                                                                                              Human Preferences with Language Models. arXiv:2310.11589 [cs.CL]
+                                                                                        [24] Lihong Li, Wei Chu, John Langford, and Robert E Schapire. 2010. A contextual-
+                                                                                              bandit approach to personalized news article recommendation. In Proceedings of
+                                                                                              the 19th International Conference on World Wide Web. 661­670.
+                                                                                        [25] Lihong Li, Wei Chu, John Langford, and Xuanhui Wang. 2011. Unbiased offline
+                                                                                              evaluation of contextual-bandit-based news article recommendation algorithms.
+RecSys '24, October 14­18, 2024, Bari, Italy                                                                                                                        Austin and Korikov, et al.
+
+      In Proceedings of the Fourth ACM International Conference on Web Search and          [34] Adina Williams, Nikita Nangia, and Samuel Bowman. 2018. A Broad-Coverage
+      Data Mining. 297­306.                                                                      Challenge Corpus for Sentence Understanding through Inference. In Proceed-
+[26] Raymond Li, Samira Ebrahimi Kahou, Hannes Schulz, Vincent Michalski, Laurent                ings of the 2018 Conference of the North American Chapter of the Association for
+      Charlin, and Chris Pal. 2018. Towards deep conversational recommendations.                 Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers)
+      Advances in Neural Information Processing Systems 31 (2018).                               (New Orleans, Louisiana). Association for Computational Linguistics, 1112­1122.
+[27] Shijun Li, Wenqiang Lei, Qingyun Wu, Xiangnan He, Peng Jiang, and Tat-Seng                  http://aclweb.org/anthology/N18- 1101
+      Chua. 2021. Seamlessly Unifying Attributes and Items: Conversational Recom-
+      mendation for Cold-start Users. ACM Trans. Inf. Syst. 39, 4, Article 40 (aug 2021),  [35] Bowen Yang, Cong Han, Yu Li, Lei Zuo, and Zhou Yu. 2022. Improving Con-
+      29 pages. https://doi.org/10.1145/3446427                                                  versational Recommendation Systems' Quality with Context-Aware Item Meta-
+[28] Joshua Maynez, Shashi Narayan, Bernd Bohnet, and Ryan McDonald. 2020. On                    Information. In Findings of the Association for Computational Linguistics: NAACL
+      Faithfulness and Factuality in Abstractive Summarization. In Proceedings of the            2022. 38­48.
+      58th Annual Meeting of the Association for Computational Linguistics, Dan Jurafsky,
+      Joyce Chai, Natalie Schluter, and Joel Tetreault (Eds.). Association for Compu-      [36] Hojin Yang, Scott Sanner, Ga Wu, and Jin Peng Zhou. 2021. Bayesian Preference
+      tational Linguistics, Online, 1906­1919. https://doi.org/10.18653/v1/2020.acl-             Elicitation with Keyphrase-Item Coembeddings for Interactive Recommendation.
+      main.173                                                                                   In Proceedings of the 29th ACM Conference on User Modeling, Adaptation and
+[29] Francesca Rossi and Allesandro Sperduti. 2004. Acquiring both constraint and                Personalization. 55­64.
+      solution preferences in interactive constraint systems. Constraints 9, 4 (2004),
+      311­332.                                                                             [37] Wenpeng Yin, Jamaal Hay, and Dan Roth. 2019. Benchmarking Zero-shot
+[30] Bobak Shahriari, Kevin Swersky, Ziyu Wang, Ryan P. Adams, and Nando de Fre-                 Text Classification: Datasets, Evaluation and Entailment Approach. In Proceed-
+      itas. 2016. Taking the Human Out of the Loop: A Review of Bayesian Optimization.           ings of the 2019 Conference on Empirical Methods in Natural Language Process-
+      Proc. IEEE 104, 1 (2016), 148­175. https://doi.org/10.1109/JPROC.2015.2494218              ing and the 9th International Joint Conference on Natural Language Process-
+[31] James Thorne, Andreas Vlachos, Christos Christodoulopoulos, and Arpit Mittal.               ing (EMNLP-IJCNLP), Kentaro Inui, Jing Jiang, Vincent Ng, and Xiaojun Wan
+      2018. FEVER: a Large-scale Dataset for Fact Extraction and VERification. In                (Eds.). Association for Computational Linguistics, Hong Kong, China, 3914­3923.
+      Proceedings of the 2018 Conference of the North American Chapter of the Association        https://doi.org/10.18653/v1/D19- 1404
+      for Computational Linguistics: Human Language Technologies, Volume 1 (Long
+      Papers), Marilyn Walker, Heng Ji, and Amanda Stent (Eds.). Association for           [38] Haochen Zhang, Anton Korikov, Parsa Farinneya, Mohammad Mahdi Abdol-
+      Computational Linguistics, New Orleans, Louisiana, 809­819. https://doi.org/10.            lah Pour, Manasa Bharadwaj, Ali Pesaranghader, Xi Yu Huang, Yi Xin Lok,
+      18653/v1/N18- 1074                                                                         Zhaoqi Wang, Nathan Jones, and Scott Sanner. 2023. Recipe-MPR: A Test
+[32] Ivan Vendrov, Tyler Lu, Qingqing Huang, and Craig Boutilier. 2020. Gradient-                Collection for Evaluating Multi-aspect Preference-based Natural Language Re-
+      Based Optimization for Bayesian Preference Elicitation. Proceedings of the AAAI            trieval. In Proceedings of the 46th International ACM SIGIR Conference on Re-
+      Conference on Artificial Intelligence 34, 06 (Apr. 2020), 10292­10301. https:              search and Development in Information Retrieval (Taipei, Taiwan) (SIGIR '23).
+      //doi.org/10.1609/aaai.v34i06.6592                                                         Association for Computing Machinery, New York, NY, USA, 2744­2753. https:
+[33] Xiaolei Wang, Kun Zhou, Ji-Rong Wen, and Wayne Xin Zhao. 2022. Towards                      //doi.org/10.1145/3539618.3591880
+      unified conversational recommender systems via knowledge-enhanced prompt
+      learning. In Proceedings of the 28th ACM SIGKDD Conference on Knowledge Dis-         [39] Xiaoying Zhang, Hong Xie, Hang Li, and John C.S. Lui. 2020. Conversational
+      covery and Data Mining. 1929­1937.                                                         Contextual Bandit: Algorithm and Application. In Proceedings of The Web Confer-
+                                                                                                 ence 2020 (Taipei, Taiwan) (WWW '20). Association for Computing Machinery,
+                                                                                                 New York, NY, USA, 662­672. https://doi.org/10.1145/3366423.3380148
+
+                                                                                           [40] Xiaoxue Zhao, Weinan Zhang, and Jun Wang. 2013. Interactive collaborative
+                                                                                                 filtering. In Proceedings of the 22nd ACM International Conference on Information
+                                                                                                 & Knowledge Management. 1411­1420.
+                                                                         Supplementary Materials
+
+ABSTRACT
+
+This document provides the supplementary materials for the paper
+titled "Bayesian Optimization with LLM Acquisition Functions for
+Natural Language Preference Elicitation".
+
+A PROBABILISTIC GRAPHICAL MODEL FOR
+
+        POSTERIOR UTILITY UPDATE
+
+In this section, we present the probabilistic graphical model for
+
+the posterior utility updates introduced in our paper with a more
+
+detailed derivation of the posterior utility belief. As discussed in
+
+the paper, the objective of posterior inference is to update the prior                                                                                                     t=1,...,m
+
+belief maintained over the utility of each item   I denoted by
+
+ ( )    given     the    query        ,    item        description         ,       and             ,  the   binary
+
+                                                                                              
+
+observation variable representing whether the item description                                                         Figure 1: Graphical model used for posterior utility updates.
+                                                                                                                        is the random variable representing the utility of item
+entails the user's response to the queried preference  .                                                                 I and  is the item description.  is the query presented
+                                                                                                                       at iteration ,  is the variable representing the latent (not
+  Figure 1 shows the graphical model representation of these vari-
+                                                                                                                                               
+ables. The presented query  and the item description  are ob-
+                                                                                                                       directly observed) relevance of item  at step , and  is the
+served (shaded), while the relevance of item  to query  is latent
+                                                                                                                                                                                                               
+(unshaded) and denoted by   {0, 1} and conditioned on the la-
+                                                                                                                       binary observation representing whether the item descrip-
+                                                                                                                       tion entails the user preference. Unshaded and shaded nodes
+                                                                                                                       indicate unobserved and observed variables respectively.
+tent item utility  . We observe whether the item  "truly" entails
+
+(i.e.,     =  True)    the     user's      response          to  query             (as    determined          by
+
+         
+
+the NLI entailment probability  if the item is relevant, i.e.,  = 1).
+                                                                                                            
+
+The conditional probability distributions in this graphical model                                                      Next, we replace the probability distribution of each factor accord-
+                                                                                                                       ing to Equations (1), (2), (3) in (4), to obtain
+are formally defined as follows:
+
+                                                  ( ) = Beta( ; ,  ),                                         (1)        (  |              =   True)
+
+                                                                                                                               ,     ,  
+
+                                           (        |  )  =  Bernoulli( ),                                    (2)                        
+
+                                             
+
+                                                                                                                                                                      = 1                            = 1
+                                                                                                                                                         1 - 
+                                                                                    = 1                                                 (1  -    )                                                                .
+                                                                                     ,
+                 (       =  True|                      )  =                         = 0                       (3)                                                     = 0             1 -            = 0
+
+                                                             1 -                                                                                                                              
+
+                                           ,     ,                                                                         {0,1}                                                                      
+
+                                                                                                                          
+
+                                                                                                                                                                                                                     (6)
+
+To further explain the rationale for Eq (3), we note that  is the                                                      Expanding the summation yields
+
+                                                                                         
+
+natural language entailment probability that item description 
+
+entails the aspect queried in the user's response to  given that item                                                    (  |  ,     ,     =   True)             +1    ( 1 -  )    +  (1  -      )    ( 1 -    )     +1
+
+                                                                                                                                                                                                    
+
+ is relevant ( = 1). This entailment probability is obtained from                                                                                             
+
+                                                                                                                                           Beta(    ;    +  1,   )  +  (1  -       )Beta( ;      ,      +  1)        (7)
+
+the NLI model, which produces the probability that the entailment is                                                                                                          
+
+                                                                                                                                                                                
+
+true, hence the reason why  = True. If item  is instead irrelevant                                                     The latter term represents a mixture of Beta distributions that is
+                                                                                                                       challenging to handle since multiple posterior updates would cause
+                                                                                                                       the number of components in the mixture to grow exponentially
+                                                                                                                       with the number of query observations , leading to substantial
+( = 0) then we assume for simplicity that 1 -  is the probability                                                      computational and memory complexity.
+                                                                                   
+                                                                                                                          To address this issue, several methods have been proposed for
+of the true entailment.1                                                                                               approximating the posterior distribution to allow for tractable com-
+                                                                                                                       putations. In this work, we use the Assumed Density Filtering (ADF)
+  To    obtain    the  posterior        utility        (     |   ,     ,     )  ,  we     need        to    marginal-  approach, a technique widely used in Bayesian filtering and track-
+                                                                                                                       ing problems to project a complex posterior to an assumed simpler
+                                                                                                                       form (often the same form as the prior to maintain a closed-form).
+                                                                                                                       In our case, we project the Beta mixture posterior to a single Beta in
+ize  the   joint  distribution             (     ,     | ,            )   over         .  Formally,                    order to maintain a closed-form Beta approximation of the posterior
+                                                                                                                       update matching the form of the Beta prior in Eq (1).
+                                                              ,                    
+                                                                                                                          To apply ADF, we assume a Beta distribution with parameters
+                                                                                                                        and  for the posterior, and approximate the original mixture
+                                                                                                                       of Beta's with this distribution by equating their first moments (i.e.,
+                                                    
+
+                    (    | ,                  )  =           (   ,       |   ,     ,      )  .                (4)
+
+                                ,                                                     
+                                        
+                                                                                       
+
+                                                     
+
+                                                     
+
+Considering the conditional independencies determined from the
+graphical model, the joint distribution factorizes as
+
+                (  ,     |  ,     ,     )  =        (  )     (   |    )   (        |   ,        ,     )  .    (5)
+
+                                                                                                   
+
+                                      
+
+1We note that an alternative approach (not used here) could attempt to use NLI to
+determine the probability of an incorrect true entailment (or confusion) given that
+item  is irrelevant ( = 0). That is, there is no inherent requirement for the two cases
+
+                                
+
+of Eq (3) to sum to 1 since  is on the conditional side.
+
+                                           
+RecSys '24, 14­18 October 2024, Bari, Italy
+
+their means):                                                                           Matching two distributions by equating their first moments is
+
+                        (1 + )                        (1 -  )                           a special case of a more general technique called "moment match-
+                + 
+                    =                           +                                 (8)   ing", which is widely used to approximate a complex probability
+
+                       (1 +  + )                     1 +  +                             distribution with a simpler one by equating their moments. In our
+
+                                              +                                         work, we adopted a special case of this approach by matching the
+                    =                                  
+                                                                                  (9)
+                                                                    .
+
+                              +  +  + (1 -  )                                           first moments, which we refer to as "mean matching" of the distri-
+                                                              
+
+Equating the numerators yields                                                          butions that we used for its simplicity and intuitive interpretation.
+
+                                 =           +                                    (10)  However, this is only one of the possible solutions, and a complete
+
+                                                 ,                                      moment matching derivation results in a slightly different solution.
+                                                   
+
+and replacing this  in the equation of the denominators results in                      With this "mean matching" derivation and current item  poste-
+
+                             =   1  +           -      .                          (11)  rior ( ; , ) at step  - 1, we can now perform an incremental
+
+                                                                                        posterior update after at step  given the probability  that the item
+
+                                                                                                                                                                      
+
+Thus,  the  "mean  matched"  posterior          is   Beta( ;    +   ,  1  +    -   ).   description  entails preference query  yielding the closed-form
+
+                                                                                    
+
+                                                                                        Beta  posterior  ( ;    +   ,  1  +    -   )  as  used  in  PEBOL-P.
+
+                                                                                                                                    
+Supplementary Materials                                                                                   RecSys '24, 14­18 October 2024, Bari, Italy
+
+                         Table 1: Examples of LLM Aspect-Based Query Generation from an Item Description
+
+Dataset                  Item Description                                              Generated Aspect   Generated Query 
+MovieLens                Movie Title: Meet John Doe (1941)                             patriotism         Are you interested in movies with
+                         Genres: Comedy, Drama                                                            patriotic themes?
+Recipe-MPR               Tags: Christianity, Frank Capra, acting, anti-fascism, class  classic
+Yelp                     issues, journalism, patriotic, pro american, thought pro-     alfredo sauce      Do you enjoy classic movies?
+                         voking, AFI 100 (Cheers), BD-R, Barbara Stanwyck, Gary        chicken breast     Do you like alfredo sauce?
+                         Cooper, baseball player, compare: This Is Our Land (2017),    bakery             Do you like chicken breasts?
+                         domain, funny, radio broadcast, reviewed in the NYer by                          Do you like bakeries?
+                         Anthony Lanne (2018-04-30), suicide note                      French pastries
+                                                                                                          Do you like French pastries?
+                         Spaghetti with mushrooms, onion, green pepper, chicken
+                         breasts, and alfredo sauce
+
+                         name: Le Pain Quotidien
+                         categories: Restaurants, Bakeries, Break-
+                         fast & Brunch, Coffee & Tea, Food, Bel-
+                         gian, French
+
+                         Figure 2: MAP@10 for all turns on all datasets and noise levels
+RecSys '24, 14­18 October 2024, Bari, Italy
+
+Figure 3: The effect of MNLI temperature on MAP@10 without noise ­ error bars are 95% C.I.s. Other results are reported using
+the temperatures that perform best across the most datasets for each policy.
+
+                                                Figure 4: Effect of MNLI Temperature with noise 0.25
+
+                                                 Figure 5: Effect of MNLI Temperature with noise 0.5
+Supplementary Materials                                                            RecSys '24, 14­18 October 2024, Bari, Italy
+
+(a) Monolithic LLM query generation  (b) Monolithic LLM recommendation generation  (c) Aspect generation
+
+                         (d) Aspect-based query generation  (e) User simulation
+
+                                     Figure 6: LLM Prompting Templates
+RecSys '24, 14­18 October 2024, Bari, Italy
+
+Table 2: MRR@10 Mean and 95% C.I. for PEBOL-P vs MonoLLM on MovieLens without Response Noise
+
+Turn                                         1 2 3 4 5 6 7 8 9 10
+Method
+
+MonoLLM GPT Mean                             0.04 0.06 0.06 0.07 0.08 0.08 0.10 0.11 0.09 0.09
+
+MonoLLM GPT CI LB                            0.01 0.02 0.02 0.02 0.03 0.03 0.05 0.06 0.04 0.04
+
+MonoLLM GPT CI UB                            0.08 0.10 0.11 0.11 0.12 0.13 0.15 0.16 0.14 0.15
+
+MonoLLM Gemini Mean 0.04 0.02 0.06 0.06 0.07 0.08 0.11 0.10 0.10 0.15
+
+MonoLLM Gemini CI LB 0.01 0.01 0.02 0.03 0.04 0.05 0.07 0.05 0.06 0.09
+
+MonoLLM Gemini CI UB 0.07 0.04 0.10 0.10 0.11 0.12 0.16 0.15 0.14 0.20
+
+ER Mean                                      0.05 0.05 0.06 0.08 0.09 0.10 0.12 0.12 0.13 0.14
+ER CI LB                                     0.01 0.02 0.03 0.04 0.05 0.05 0.06 0.07 0.07 0.08
+ER CI UB                                     0.08 0.09 0.09 0.12 0.13 0.15 0.17 0.18 0.19 0.20
+Greedy Mean                                  0.05 0.05 0.07 0.07 0.09 0.09 0.10 0.10 0.11 0.13
+Greedy CI LB                                 0.02 0.02 0.03 0.03 0.05 0.04 0.05 0.05 0.06 0.07
+Greedy CI UB                                 0.09 0.09 0.10 0.11 0.14 0.14 0.15 0.15 0.17 0.19
+Random Mean                                  0.05 0.05 0.08 0.11 0.12 0.14 0.14 0.16 0.16 0.14
+Random CI LB                                 0.01 0.02 0.04 0.05 0.06 0.08 0.08 0.09 0.09 0.09
+Random CI UB                                 0.08 0.09 0.13 0.16 0.18 0.21 0.20 0.22 0.22 0.20
+TS Mean                                      0.05 0.08 0.11 0.10 0.12 0.15 0.15 0.16 0.17 0.18
+TS CI LB                                     0.01 0.03 0.06 0.05 0.06 0.09 0.09 0.10 0.10 0.11
+TS CI UB                                     0.08 0.13 0.17 0.15 0.17 0.22 0.21 0.23 0.23 0.24
+UCB Mean                                     0.05 0.05 0.06 0.07 0.09 0.09 0.10 0.10 0.12 0.13
+UCB CI LB                                    0.02 0.02 0.03 0.03 0.05 0.04 0.05 0.05 0.06 0.07
+UCB CI UB                                    0.09 0.09 0.10 0.10 0.13 0.14 0.15 0.15 0.17 0.19
+
+Table 3: MRR@10 Mean and 95% C.I. for PEBOL-P vs MonoLLM on Recipe-MPR without Response Noise
+
+Turn                                         1 2 3 4 5 6 7 8 9 10
+Method
+
+MonoLLM GPT Mean                             0.05 0.09 0.07 0.09 0.05 0.06 0.07 0.08 0.09 0.11
+
+MonoLLM GPT CI LB                            0.01 0.05 0.03 0.05 0.02 0.02 0.03 0.04 0.04 0.06
+
+MonoLLM GPT CI UB                            0.08 0.13 0.10 0.14 0.08 0.10 0.11 0.13 0.13 0.17
+
+MonoLLM Gemini Mean 0.02 0.03 0.04 0.07 0.07 0.11 0.11 0.13 0.10 0.16
+
+MonoLLM Gemini CI LB 0.01 0.02 0.02 0.04 0.03 0.06 0.07 0.08 0.06 0.10
+
+MonoLLM Gemini CI UB 0.03 0.05 0.07 0.10 0.10 0.15 0.15 0.18 0.13 0.21
+
+ER Mean                                      0.06 0.05 0.08 0.11 0.11 0.13 0.14 0.15 0.16 0.16
+ER CI LB                                     0.02 0.02 0.04 0.06 0.06 0.08 0.08 0.09 0.09 0.10
+ER CI UB                                     0.10 0.08 0.13 0.16 0.16 0.18 0.19 0.22 0.22 0.22
+Greedy Mean                                  0.06 0.06 0.07 0.10 0.11 0.13 0.15 0.15 0.16 0.17
+Greedy CI LB                                 0.02 0.02 0.03 0.05 0.06 0.07 0.09 0.09 0.10 0.11
+Greedy CI UB                                 0.10 0.09 0.11 0.15 0.17 0.18 0.21 0.21 0.23 0.24
+Random Mean                                  0.05 0.03 0.03 0.03 0.04 0.04 0.05 0.06 0.07 0.07
+Random CI LB                                 0.02 0.01 0.01 0.00 0.01 0.01 0.02 0.02 0.03 0.02
+Random CI UB                                 0.08 0.06 0.06 0.05 0.06 0.07 0.08 0.10 0.11 0.11
+TS Mean                                      0.06 0.06 0.06 0.08 0.09 0.10 0.12 0.13 0.13 0.13
+TS CI LB                                     0.02 0.02 0.02 0.03 0.05 0.05 0.06 0.07 0.07 0.07
+TS CI UB                                     0.10 0.09 0.10 0.12 0.14 0.14 0.17 0.19 0.18 0.19
+UCB Mean                                     0.06 0.06 0.08 0.11 0.13 0.14 0.16 0.16 0.17 0.17
+UCB CI LB                                    0.02 0.02 0.03 0.06 0.07 0.08 0.10 0.09 0.11 0.11
+UCB CI UB                                    0.10 0.09 0.12 0.16 0.18 0.19 0.23 0.22 0.24 0.24
+Supplementary Materials                                                      RecSys '24, 14­18 October 2024, Bari, Italy
+
+Table 4: MRR@10 Mean and 95% C.I. for PEBOL-P vs MonoLLM on Yelp without Response Noise
+
+                         Turn               1 2 3 4 5 6 7 8 9 10
+                         Method
+
+                         MonoLLM GPT Mean   0.03 0.05 0.04 0.05 0.07 0.07 0.07 0.09 0.09 0.12
+
+                         MonoLLM GPT CI LB  0.01 0.01 0.01 0.02 0.03 0.03 0.03 0.04 0.04 0.06
+
+                         MonoLLM GPT CI UB  0.05 0.08 0.07 0.08 0.10 0.12 0.12 0.14 0.14 0.17
+
+                         MonoLLM Gemini Mean 0.06 0.09 0.11 0.09 0.10 0.14 0.13 0.16 0.20 0.17
+
+                         MonoLLM Gemini CI LB 0.02 0.05 0.06 0.05 0.06 0.08 0.09 0.10 0.14 0.12
+
+                         MonoLLM Gemini CI UB 0.10 0.14 0.15 0.13 0.14 0.20 0.18 0.21 0.26 0.23
+
+                         ER Mean            0.06 0.07 0.09 0.11 0.14 0.16 0.18 0.21 0.22 0.26
+                         ER CI LB           0.03 0.03 0.05 0.06 0.08 0.09 0.12 0.14 0.15 0.18
+                         ER CI UB           0.10 0.11 0.14 0.16 0.20 0.22 0.25 0.28 0.29 0.33
+                         Greedy Mean        0.06 0.08 0.11 0.11 0.14 0.15 0.17 0.18 0.19 0.22
+                         Greedy CI LB       0.03 0.04 0.06 0.07 0.08 0.09 0.10 0.12 0.13 0.16
+                         Greedy CI UB       0.10 0.12 0.15 0.16 0.20 0.21 0.23 0.25 0.26 0.29
+                         Random Mean        0.06 0.09 0.11 0.13 0.17 0.17 0.17 0.18 0.20 0.21
+                         Random CI LB       0.03 0.04 0.06 0.08 0.11 0.11 0.11 0.12 0.13 0.15
+                         Random CI UB       0.10 0.13 0.16 0.19 0.23 0.23 0.23 0.24 0.26 0.28
+                         TS Mean            0.06 0.08 0.11 0.11 0.14 0.17 0.20 0.25 0.25 0.27
+                         TS CI LB           0.03 0.04 0.06 0.07 0.09 0.11 0.13 0.18 0.18 0.20
+                         TS CI UB           0.10 0.12 0.17 0.15 0.20 0.23 0.26 0.33 0.32 0.34
+                         UCB Mean           0.07 0.09 0.11 0.12 0.14 0.16 0.18 0.20 0.20 0.23
+                         UCB CI LB          0.03 0.05 0.06 0.07 0.08 0.09 0.12 0.13 0.14 0.16
+                         UCB CI UB          0.10 0.13 0.16 0.17 0.20 0.22 0.25 0.26 0.27 0.30
+
+Table 5: MRR@10 Mean and 95% C.I. for PEBOL-P without Aspect History on MovieLens without Response Noise
+
+                         Turn               1 2 3 4 5 6 7 8 9 10
+                         Method
+
+                         TS Mean 0.03 0.05 0.06 0.06 0.08 0.11 0.13 0.12 0.13 0.14
+                         TS CI LB 0.01 0.02 0.02 0.02 0.04 0.06 0.08 0.06 0.07 0.08
+                         TS CI UB 0.06 0.09 0.09 0.09 0.13 0.16 0.19 0.17 0.18 0.19
+                         UCB Mean 0.03 0.03 0.04 0.05 0.05 0.05 0.06 0.06 0.06 0.06
+                         UCB CI LB 0.01 0.01 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+                         UCB CI UB 0.05 0.06 0.07 0.09 0.08 0.08 0.09 0.10 0.09 0.09
+
+Table 6: MRR@10 Mean and 95% C.I. for PEBOL-P without Aspect History on Recipe-MPR without Response Noise
+
+                         Turn               123456                    78         9 10
+                         Method
+                                                                  0.06 0.09  0.10 0.09
+                         TS Mean 0.04 0.05 0.03 0.04 0.06 0.07    0.03 0.04  0.05 0.05
+                         TS CI LB 0.01 0.02 0.01 0.01 0.03 0.03   0.10 0.13  0.14 0.14
+                         TS CI UB 0.07 0.09 0.05 0.07 0.10 0.12   0.08 0.09  0.10 0.10
+                         UCB Mean 0.04 0.05 0.06 0.08 0.08 0.09   0.04 0.04  0.05 0.05
+                         UCB CI LB 0.01 0.01 0.02 0.04 0.04 0.04  0.12 0.13  0.14 0.14
+                         UCB CI UB 0.07 0.08 0.09 0.12 0.12 0.13
+
+Table 7: MRR@10 Mean and 95% C.I. for PEBOL-P without Aspect History on Yelp without Response Noise
+
+                         Turn               1 2 3 4 5 6 7 8 9 10
+                         Method
+
+                         TS Mean 0.05 0.06 0.07 0.08 0.09 0.11 0.14 0.14 0.15 0.16
+                         TS CI LB 0.02 0.02 0.03 0.04 0.05 0.06 0.09 0.08 0.09 0.10
+                         TS CI UB 0.09 0.09 0.10 0.11 0.13 0.16 0.20 0.19 0.21 0.22
+                         UCB Mean 0.05 0.08 0.09 0.11 0.12 0.15 0.15 0.17 0.17 0.19
+                         UCB CI LB 0.02 0.04 0.05 0.06 0.07 0.09 0.10 0.11 0.11 0.13
+                         UCB CI UB 0.09 0.12 0.13 0.16 0.17 0.20 0.21 0.22 0.22 0.25
+RecSys '24, 14­18 October 2024, Bari, Italy
+
+Table 8: MRR@10 Mean and 95% C.I. for PEBOL-B on MovieLens without Response Noise
+
+Turn                                         1 2 3 4 5 6 7 8 9 10
+Method
+
+ER Mean                                      0.03 0.04 0.04 0.05 0.06 0.08 0.09 0.11 0.11 0.12
+
+ER CI LB                                     0.01 0.01 0.01 0.02 0.03 0.04 0.04 0.06 0.07 0.07
+
+ER CI UB                                     0.06 0.07 0.08 0.08 0.10 0.12 0.14 0.16 0.16 0.16
+
+Greedy Mean 0.03 0.04 0.05 0.05 0.07 0.09 0.10 0.11 0.11 0.11
+
+Greedy CI LB 0.01 0.01 0.02 0.02 0.03 0.05 0.05 0.06 0.07 0.07
+
+Greedy CI UB 0.06 0.08 0.08 0.09 0.11 0.13 0.14 0.16 0.16 0.16
+
+Random Mean 0.03 0.04 0.04 0.06 0.06 0.08 0.09 0.10 0.10 0.10
+
+Random CI LB 0.01 0.01 0.01 0.03 0.03 0.04 0.05 0.06 0.06 0.06
+
+Random CI UB 0.06 0.06 0.07 0.09 0.10 0.12 0.13 0.14 0.14 0.14
+
+TS Mean                                      0.03 0.05 0.06 0.07 0.08 0.07 0.09 0.12 0.12 0.13
+
+TS CI LB                                     0.01 0.02 0.02 0.03 0.03 0.03 0.04 0.07 0.07 0.07
+
+TS CI UB                                     0.06 0.08 0.09 0.11 0.12 0.11 0.13 0.17 0.18 0.18
+
+UCB Mean                                     0.03 0.04 0.05 0.05 0.06 0.08 0.09 0.10 0.11 0.11
+
+UCB CI LB                                    0.01 0.01 0.02 0.02 0.03 0.04 0.05 0.06 0.06 0.06
+
+UCB CI UB                                    0.06 0.07 0.08 0.08 0.09 0.13 0.14 0.15 0.15 0.15
+
+Table 9: MRR@10 Mean and 95% C.I. for PEBOL-B on Recipe-MPR without Response Noise
+
+Turn                                         1 2 3 4 5 6 7 8 9 10
+Method
+
+ER Mean                                      0.04 0.06 0.09 0.07 0.09 0.09 0.10 0.13 0.10 0.10
+
+ER CI LB                                     0.00 0.02 0.05 0.03 0.04 0.04 0.05 0.07 0.05 0.05
+
+ER CI UB                                     0.07 0.10 0.14 0.10 0.14 0.14 0.16 0.19 0.15 0.15
+
+Greedy Mean 0.04 0.04 0.06 0.07 0.10 0.11 0.12 0.12 0.12 0.13
+
+Greedy CI LB 0.00 0.01 0.02 0.03 0.05 0.06 0.06 0.06 0.06 0.07
+
+Greedy CI UB 0.07 0.08 0.10 0.10 0.15 0.17 0.18 0.18 0.18 0.19
+
+Random Mean 0.04 0.03 0.03 0.05 0.04 0.04 0.05 0.04 0.05 0.06
+
+Random CI LB 0.00 0.00 0.01 0.01 0.01 0.01 0.01 0.01 0.02 0.02
+
+Random CI UB 0.07 0.06 0.05 0.09 0.07 0.08 0.08 0.07 0.09 0.11
+
+TS Mean                                      0.04 0.06 0.06 0.07 0.09 0.09 0.10 0.10 0.11 0.12
+
+TS CI LB                                     0.00 0.02 0.02 0.03 0.05 0.04 0.05 0.05 0.06 0.06
+
+TS CI UB                                     0.07 0.09 0.10 0.12 0.14 0.14 0.16 0.15 0.17 0.17
+
+UCB Mean                                     0.04 0.05 0.07 0.07 0.09 0.11 0.12 0.12 0.13 0.13
+
+UCB CI LB                                    0.00 0.02 0.03 0.03 0.04 0.05 0.06 0.07 0.07 0.08
+
+UCB CI UB                                    0.07 0.08 0.11 0.11 0.14 0.16 0.17 0.18 0.18 0.19
+
+Table 10: MRR@10 Mean and 95% C.I. for PEBOL-B on Yelp without Response Noise
+
+Turn                                         1 2 3 4 5 6 7 8 9 10
+Method
+
+ER Mean                                      0.05 0.05 0.07 0.09 0.11 0.11 0.11 0.11 0.11 0.11
+
+ER CI LB                                     0.02 0.02 0.04 0.05 0.07 0.07 0.07 0.06 0.06 0.06
+
+ER CI UB                                     0.08 0.09 0.11 0.12 0.15 0.15 0.15 0.15 0.15 0.15
+
+Greedy Mean 0.05 0.06 0.08 0.09 0.10 0.10 0.10 0.10 0.10 0.10
+
+Greedy CI LB 0.02 0.02 0.04 0.05 0.06 0.06 0.06 0.06 0.06 0.06
+
+Greedy CI UB 0.08 0.09 0.11 0.13 0.14 0.13 0.13 0.14 0.14 0.13
+
+Random Mean 0.05 0.06 0.07 0.09 0.11 0.10 0.10 0.11 0.12 0.14
+
+Random CI LB 0.02 0.03 0.03 0.05 0.06 0.06 0.06 0.07 0.07 0.09
+
+Random CI UB 0.08 0.09 0.11 0.14 0.15 0.14 0.14 0.15 0.16 0.19
+
+TS Mean                                      0.05 0.06 0.12 0.12 0.16 0.16 0.18 0.18 0.22 0.24
+
+TS CI LB                                     0.02 0.02 0.07 0.07 0.10 0.10 0.12 0.12 0.15 0.17
+
+TS CI UB                                     0.08 0.10 0.17 0.17 0.22 0.22 0.24 0.24 0.28 0.31
+
+UCB Mean                                     0.05 0.06 0.08 0.10 0.10 0.10 0.10 0.10 0.10 0.10
+
+UCB CI LB                                    0.02 0.02 0.04 0.06 0.06 0.06 0.06 0.06 0.06 0.06
+
+UCB CI UB                                    0.08 0.09 0.12 0.13 0.14 0.14 0.14 0.14 0.14 0.13
+Supplementary Materials                                       RecSys '24, 14­18 October 2024, Bari, Italy
+
+Table 11: MRR@10 Mean and 95% C.I. at Turn 10 for PEBOL-P and MonoLLM baselines on MovieLens with Different Levels of
+Response Noise
+
+                         Noise Level        0 0.25 0.5
+                         Method
+
+                         MonoLLM GPT Mean   0.09 0.07 0.04
+
+                         MonoLLM GPT CI LB  0.04 0.03 0.01
+
+                         MonoLLM GPT CI UB 0.15 0.10 0.07
+
+                         MonoLLM Gemini Mean 0.15 0.06 0.03
+
+                         MonoLLM Gemini CI LB 0.09 0.02 0.00
+
+                         MonoLLM Gemini CI UB 0.20 0.09 0.05
+
+                         ER Mean            0.14 0.09 0.06
+                         ER CI LB           0.08 0.04 0.03
+                         ER CI UB           0.20 0.14 0.10
+                         Greedy Mean        0.13 0.09 0.06
+                         Greedy CI LB       0.07 0.04 0.02
+                         Greedy CI UB       0.19 0.14 0.10
+                         Random Mean        0.14 0.09 0.07
+                         Random CI LB       0.09 0.05 0.03
+                         Random CI UB       0.20 0.13 0.11
+                         TS Mean            0.18 0.07 0.06
+                         TS CI LB           0.11 0.03 0.02
+                         TS CI UB           0.24 0.10 0.10
+                         UCB Mean           0.13 0.08 0.07
+                         UCB CI LB          0.07 0.04 0.03
+                         UCB CI UB          0.19 0.13 0.11
+
+Table 12: MRR@10 Mean and 95% C.I. at Turn 10 for PEBOL-P and MonoLLM baselines on Recipe-MPR with Different Levels of
+Response Noise
+
+                         Noise Level        0 0.25 0.5
+                         Method
+
+                         MonoLLM GPT Mean   0.11 0.06 0.05
+
+                         MonoLLM GPT CI LB  0.06 0.02 0.01
+
+                         MonoLLM GPT CI UB 0.17 0.11 0.08
+
+                         MonoLLM Gemini Mean 0.16 0.13 0.08
+
+                         MonoLLM Gemini CI LB 0.10 0.07 0.03
+
+                         MonoLLM Gemini CI UB 0.21 0.19 0.12
+
+                         ER Mean            0.16 0.15 0.09
+                         ER CI LB           0.10 0.09 0.04
+                         ER CI UB           0.22 0.22 0.13
+                         Greedy Mean        0.17 0.13 0.07
+                         Greedy CI LB       0.11 0.07 0.03
+                         Greedy CI UB       0.24 0.19 0.11
+                         Random Mean        0.07 0.04 0.02
+                         Random CI LB       0.02 0.01 0.01
+                         Random CI UB       0.11 0.06 0.04
+                         TS Mean            0.13 0.06 0.06
+                         TS CI LB           0.07 0.03 0.02
+                         TS CI UB           0.19 0.08 0.10
+                         UCB Mean           0.17 0.13 0.08
+                         UCB CI LB          0.11 0.08 0.04
+                         UCB CI UB          0.24 0.19 0.12
+RecSys '24, 14­18 October 2024, Bari, Italy
+
+Table 13: MRR@10 Mean and 95% C.I. at Turn 10 for PEBOL-P and MonoLLM baselines on Yelp with Different Levels of Response
+Noise
+
+                                             Noise Level        0 0.25 0.5
+                                             Method
+
+                                             MonoLLM GPT Mean   0.12 0.08 0.05
+
+                                             MonoLLM GPT CI LB  0.06 0.03 0.01
+
+                                             MonoLLM GPT CI UB 0.17 0.13 0.09
+
+                                             MonoLLM Gemini Mean 0.17 0.09 0.07
+
+                                             MonoLLM Gemini CI LB 0.12 0.05 0.02
+
+                                             MonoLLM Gemini CI UB 0.23 0.14 0.11
+
+                                             ER Mean            0.26 0.14 0.07
+                                             ER CI LB           0.18 0.08 0.03
+                                             ER CI UB           0.33 0.19 0.11
+                                             Greedy Mean        0.22 0.14 0.08
+                                             Greedy CI LB       0.16 0.09 0.04
+                                             Greedy CI UB       0.29 0.19 0.11
+                                             Random Mean        0.21 0.14 0.10
+                                             Random CI LB       0.15 0.09 0.05
+                                             Random CI UB       0.28 0.19 0.14
+                                             TS Mean            0.27 0.14 0.12
+                                             TS CI LB           0.20 0.08 0.06
+                                             TS CI UB           0.34 0.20 0.17
+                                             UCB Mean           0.23 0.13 0.10
+                                             UCB CI LB          0.16 0.08 0.05
+                                             UCB CI UB          0.30 0.18 0.14
+
