@@ -95,7 +95,7 @@ data/yelp/
 data/amazon/
 
 # Goodreads raw data (academic-use-only, no redistribution)
-.cache/goodreads/
+.cache/
 data/ml25m/
 
 # INSTRUMENT2 ML-20M replication data (large, do not commit)

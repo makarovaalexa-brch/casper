@@ -1,8 +1,0 @@
-{
- "calls": 600,
- "prompt_tokens": null,
- "completion_tokens": null,
- "usd": 1.291,
- "snapshot": "gpt-5.4-mini-2026-03-17",
- "note": "usd = sum of 6 collection-chunk response.usage subtotals (each exact, logged to 3dp); per-chunk token totals not persisted (cumulative accumulator added after collection ran). Approx tokens ~1.6M prompt / ~0.46M completion by the mini-pilot per-call rate. usd is a documented-rate estimate (in $0.25/M, out $2.00/M); tokens exact per call."
-}

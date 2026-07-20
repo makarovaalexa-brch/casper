@@ -1,10 +1,9 @@
 [tool.poetry]
 name = "casper"
 version = "0.1.0"
-description = "CASPER: Continuous Action Space Preference Elicitation via Reinforcement"
+description = "CASPER: cold-start conversational recommender (research repo)"
 authors = ["Aleksandra Makarova <a.makarova@pgr.reading.ac.uk>"]
 readme = "README.md"
-packages = [{include = "casper", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"

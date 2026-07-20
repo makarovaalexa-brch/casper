@@ -1,7 +1,0 @@
-=== FTREC (fine-tuned recommender + uent+GRAW) seed-avg vs frozen 0.367/0.158, CASPER-R 0.360/0.152 ===
-SEED=1    FTREC: FULL 0.3844  TAIL 0.1730  (val-nd peak -1.0000)
-SEED=2    FTREC: FULL 0.3822  TAIL 0.1612  (val-nd peak -1.0000)
-SEED=3    FTREC: FULL 0.3767  TAIL 0.1553  (val-nd peak -1.0000)
-SEED=7    FTREC: FULL 0.3883  TAIL 0.1676  (val-nd peak -1.0000)
-SEED=11    FTREC: FULL 0.3912  TAIL 0.1696  (val-nd peak -1.0000)
-DONE

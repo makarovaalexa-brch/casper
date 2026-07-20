@@ -1,7 +1,0 @@
-{
- "calls": 160,
- "prompt_tokens": 627713,
- "completion_tokens": 738011,
- "usd": 1.6329502500000004,
- "snapshot": "gpt-5.4-mini-2026-03-17"
-}
