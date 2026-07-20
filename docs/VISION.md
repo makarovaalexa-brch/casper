@@ -46,7 +46,9 @@ encoded and folded like any other channel. **Woven in, not a bolt-on.**
 
 ## 5. Test UI · **[WANT]**
 An interface that drives a **real interview end-to-end** — render question → take answer → update belief
-→ re-rank — for demos and the human validation study. *→ `simulator_ui/`.*
+→ re-rank — for demos and the human validation study. **Does not exist yet** — the V0 Dec-2025 `simulator_ui/`
+was removed (it drove the dead two-tower agent); to be **built** on the current recommender. The current
+*answer* simulator is the distilled answerer (`dans_*` / `answerer_schema.json`).
 
 ## 6. LLM interpretation / simulator · **[EXP]**
 Highest-risk / lowest-commitment: (a) an LLM that **interprets** free answers into belief updates; (b) an
