@@ -23,7 +23,7 @@
 | Oracle-Z headroom (frozen RecVAE) | best-possible belief; do dislikes help | likes-only 0.483 → clairvoyant ceiling 0.994 (+0.51); watched-dislikes −0.0016 = the **WALL** | `reference/ORACLE_Z.md` |
 | Fold-model lineage (recon/v3/v4/recovered/leakfree) | which fold accumulates without leaking | recon > ridge; v3 clean but LEAKS; v4 cold-collapse 0.167; recovered under-accumulates; leakfree SATURATES | `reference/EMBEDDING_FOLDING_INDEX.md`, `reference/FOLD_MASTER.md` |
 | Raw-data dislike anatomy (model-free ML-25M) | is dislike separable / generalizable | corr +0.46; implicit 0.407 > explicit-sign 0.398 > explicit-cent 0.270; disinterest region inert | `reference/RAWDATA_DISLIKE.md` |
-| SignedAE (a0c) scorecard | is a signed/dislike channel real & useful | full 0.4954, k-curve monotone; genre sign-flip gap +0.257 (3× control); folding disliked genres as neg **HURTS** −0.12@k2 | `reference/SIGNED_LATENT_ANALYSIS.md` |
+| SignedAE (a0c) scorecard | is a signed/dislike channel real & useful | full 0.4954 (val-peak 0.4961), k-curve monotone; genre sign-flip gap +0.257 (3× control); folding disliked genres as neg **HURTS** −0.12@k2 | `reference/SIGNED_LATENT_ANALYSIS.md` |
 | Rung-I answer-native encoder (FiLM value gate) | make the value channel non-inert on a frozen decoder | **STOP — value INERT** (ΔNDCG +0.0002 vs 0.005 bar); a Rung-II (decoder-geometry) ceiling, not a loss bug | `reference/RUNG1_CHECKS.md` |
 | Early two-tower / LSTM / DDPG (Jan 2025) | first recommender + RL attempts | two-tower 0.389 (68% like/dislike overlap); LSTM+Attn 0.428 (100% collapse); all 3 DDPG runs FAILED (user-agnostic policy) | `reference/RECOMMENDER_TASKS.md` |
 

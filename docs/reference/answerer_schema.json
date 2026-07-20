@@ -1,8 +1,8 @@
 {
   "schema_version": "answerer-v1",
-  "status": "DRAFT — NOT LOCKED until author sign-off (see answerer_schema.md)",
+  "status": "DRAFT — NOT LOCKED until author sign-off (see docs/reference/answerer_schema.md)",
   "created": "2026-07-08",
-  "source_design": "casper/ANSWERER_V1_DESIGN_REVIEW.md (Decisions D, E)",
+  "source_design": "casper/docs/reference/ANSWERER_V1_DESIGN_REVIEW.md (Decisions D, E)",
   "purpose": "Single source of truth imported by the judge prompt, the cache format, and the fold interface. Every downstream experiment consumes exactly (channel, entity, value, knowledge/vividness). Locked thesis-wide once signed.",
 
   "knowledge": {

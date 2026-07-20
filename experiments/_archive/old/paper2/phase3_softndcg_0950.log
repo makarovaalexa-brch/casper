@@ -1,7 +1,0 @@
-SOFT-NDCG (ApproxNDCG, listwise, popular hard-negs) warm from u*-actor, frozen V1, graded. monitor: binary-VAL baseline 0.346/0.149; final truth via RECON3 graded (actor was 0.369)
-  761 concepts (19s)
-NO BC pretraining -- pure RL from random init (testing BC-trap hypothesis)
-INIT warm-start from policy_phase2_cont_v1_best.pt (keep training)
-train scorer policy (pool=1361, TAU=0.3) -- finetune from conc_pop floor...
-  ep1 return=0.6246 | VAL NDCG@10 full 0.303 tail 0.066  <- BEST (tail) saved  [PEAK tail 0.066 @ep1, 0 since]
-  ep2 return=0.6464 | VAL NDCG@10 full 0.304 tail 0.066  <- BEST (tail) saved  [PEAK tail 0.066 @ep2, 0 since]
