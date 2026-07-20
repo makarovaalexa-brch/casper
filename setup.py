@@ -68,7 +68,6 @@ def setup_environment():
 def validate_project_structure():
     """Ensure all necessary directories exist"""
     directories = [
-        'src/casper',
         'data/movielens',
         'data/reddit',
         'data/processed',

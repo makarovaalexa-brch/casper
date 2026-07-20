@@ -1,98 +1,34 @@
 # CASPER — project rules (read before any experiment or agent task)
 
-## HARD RULE #1 — NEVER REDUCE DATA WITHOUT EXPLICIT AUTHOR CONFIRMATION
-Do NOT sample, cap, subsample, truncate, top-N-select, coverage-sample, or otherwise DROP any data
-— users, items, questions, answers, tokens, features, candidates, rows — without the author's
-explicit sign-off, obtained first.
+Auto-loaded every session — kept terse on purpose. Each rule is the directive; detail/evidence is a `→ pointer`.
+Orientation: end-state → `docs/VISION.md` · current status → `docs/STATE.md` · mistakes checklist → `docs/HARSH_REVIEW_POINTS.md`.
 
-This includes (non-exhaustive):
-- token caps / `MAX_*` limits / per-channel caps on a fold or belief encoder,
-- top-N candidate pools or question shortlists,
-- user cohort subsampling ("use 300/500/1000 for speed"),
-- truncating an answer/interview set,
-- "for speed" / "memory-safe" reductions of any kind.
+## Working rules
+- **Design sheet before any run** — pre-register the question, exact Ns, full action space, baseline symmetry, metric + MDE, and every shortcut with its non-lossy alternative. If no decision changes on the outcome, it doesn't run.
+- **No LLM API calls without explicit author approval.**
+- **Fable oversees, Opus executes** — Fable = strategy/design/review only.
 
-WHY: this is a small, expensive-to-label dataset (real LLM-judged answers cost real money), and
-silent data reduction has repeatedly corrupted results here — truncated b2 cache, top-N pools that
-hid signal, 300-user greedy selection that noise-fit, a token cap that crowded out the strongest
-(item) channel. Every one looked like a harmless engineering default and every one changed the
-answer.
+## Recording protocol — where findings go (no ledger; record before moving on)
+- **A finding / lesson** → a **memory note** (`…/memory/<slug>.md`, one fact per file, frontmatter `type: project|feedback|user|reference`) + a one-line pointer in `MEMORY.md`. **Update** an existing note rather than duplicate; **delete** notes that turn out wrong. Keep `MEMORY.md` lean — only its first ~25 KB auto-loads.
+- **Current status / numbers / next step** → overwrite `docs/STATE.md`.
+- **End-state change** → `docs/VISION.md` · **paper/venue status** → `docs/PUBLICATION_PLAN.md` · **a review criticism** → `docs/HARSH_REVIEW_POINTS.md`.
+- **Raw run outputs** (logs, metrics, checkpoints) stay where produced (`experiments/`, `.cache/`) — never re-copied into a doc.
+- Nothing important lives only in chat: after a substantive result, record it in the right home the same session.
 
-IF COMPUTE OR MEMORY IS THE CONCERN: use a NON-LOSSY alternative — length-bucketed / micro-batching,
-chunked or streaming processing, sparse ops, per-item folding at eval (no padding), caching. Never
-drop data to fit. If you genuinely believe a reduction is unavoidable, STOP and ask the author with
-the exact tradeoff stated; do not proceed on your own judgment.
+## HARD RULES
+1. **No data truncation without explicit confirmation.** Never sample/cap/subsample/truncate/top-N/coverage-sample ANY data (users, items, questions, answers, tokens, features, candidates) without sign-off obtained first — silent reductions have repeatedly corrupted results. Use non-lossy alternatives (bucketing, streaming, sparse ops, per-item folding); if a reduction seems unavoidable, STOP and ask. Restate in every subagent brief.
+2. **Start simple; verify against published numbers.** Begin with the simplest baseline and the published/named baselines, and **match their reported numbers exactly** before building anything on top — only trust a delta once its baseline snaps. Run the actual named prior; never justify skipping it, or a claim, with a bound measured under different settings.
+3. **Define and check gates before moving forward.** Every build states its acceptance gates up front (e.g. the recommender's G0 strength-preserved / G1 usable-posterior / G2 elicitation-curve) and must pass them before the next step. No gate → no progress.
+4. **Summarise all lit + deep-research so nothing is re-run.** Every external source and verdict lives in `external_literature/` (INDEX + bib + `findings/` by topic/paper); read it before any lit search. **After ANY deep research, commit its findings there immediately** — new sources → INDEX + bib, conclusions → the relevant `findings/` file, structured for retrieval so it never needs redoing. Read our own prior results before theorizing.
+5. **Sanity checks / controls on every quantitative test.** Include an existential/shuffle control, a canonical-snap, and a leak check. A failed control means a broken instrument, not a real effect.
+6. **No jumping to conclusions.** Failure to prove an idea by experiment defaults to a **weak method**, not that the idea is impossible/undoable. Fix the signal; never market a negative as a contribution.
+7. **Save Fable tokens.** Hand Fable a self-contained brief (design sheet + the specific numbers), never let it read the whole repo; batch decisions; ask for a typed verdict, not open chat.
+8. **Fixed tests, incremental steps, locked gains.** One fixed ruler / metric / user-count, stated once and reused; replicate before inventing; move forward incrementally without diverging or backtracking. **Each stage's key achievement stays locked behind a regression check** — a later step may not silently degrade what a prior step proved. Be patient with training dips (track the return curve; don't early-stop on a val dip).
+9. **Keep the best checkpoint only.** Select on a disjoint val and record a durable peak; no train-then-eval throwaway, and no hoarding every epoch.
 
-This rule applies to Fable (the overseer) AND every subagent. Every agent brief that touches data
-must restate it. Use ALL the data unless told otherwise.
+## Metric & reporting (domain)
+- **Always report full AND tail NDCG@10**, scored with the recommender's **learned decoder bias**, not a log-count `popb` floor (corr ~0.79; popb craters full-NDCG). A reconstruction must reproduce ~0.486 full-profile before any conclusion; cold-start ≈ 0.19 — headroom is real, never call full "solved". *→ memory `popb-vs-decoder-bias-full-ndcg-bug`.*
+- **Check every experiment/claim against `docs/HARSH_REVIEW_POINTS.md`**; if it matches a ✗, STOP. Add new criticism there.
 
-## Working rules (from standing author guidance)
-- DESIGN SHEETS BEFORE EXECUTION: no experiment runs until the author signs a one-page design sheet
-  (question, exact sample Ns, full action space, baseline symmetry, metric+MDE, every shortcut
-  flagged with its alternative). Silent shortcuts are the enemy.
-- The 173 LLM-judged / 300 study users are QUARANTINED — never train/val/test a fold or policy on
-  them; touched only on the author's explicit schedule.
-- No LLM API calls without explicit author approval.
-- Report faithfully: if a gate fails, say so; never market a failure as a contribution.
-
-## HARD RULE #2 — NEVER AGAIN DISPUTE THE VALUE OF ADAPTIVITY WITH THE "STATIC IS OPTIMAL" ARGUMENT
-**Settled empirically on 2026-07-14. See `experiments/ADAPTIVE_PROBE_RESULT.md`.**
-
-On 150,239 users, with NO policy, NO RL and NO optimisation (so it cannot be confounded by a weak static arm):
-ask ONE genre question, cluster users by the answer, and give each cluster its own best follow-up item.
-
-    TAIL NDCG@10:  static 0.0414  ->  adaptive 0.0608
-    PRIZE = +0.0194   95% CI [+0.0186, +0.0203]   **+47% RELATIVE**   (n = 74,881 eval users)
-    (selection and evaluation on DISJOINT halves of users, symmetric for both arms)
-
-**AND THE MECHANISM IS THE HUMAN INTERVIEWER'S:**
-- The best question for EVERYONE is a blockbuster: **The Usual Suspects (popularity rank 8/800)**.
-- The best question for a CLUSTER is a NICHE film **inside that cluster's own genre** (median rank **471/800**):
-  horror -> *Poltergeist*; sci-fi -> *Planet of the Apes*; animation -> *Laputa / Howl's / Totoro* (all Ghibli);
-  family -> *Pinocchio*; comedy -> *Wayne's World*; drama -> *Citizen Kane*.
-- WHY: once you know someone is a horror fan, "do you like The Usual Suspects?" tells you NOTHING (everyone
-  does). What discriminates WITHIN horror fans is *Poltergeist*. **The informative question for a homogeneous
-  group is one that POLARISES that group** — always a moderately-obscure, genre-congruent film.
-- This is why the effect is in the **TAIL (+47%)** and barely in the head (+6%): a popular probe only re-ranks
-  the head, which popularity already gets right. A niche probe locates the user in a NICHE SUBSPACE.
-
-**COARSE-TO-FINE FELL OUT OF THIS, UNPROMPTED:** Q1 = genre (broad, population axis) -> Q2 = a niche film
-WITHIN that genre (narrow). And the STATIC Q2 is another blockbuster. **So coarse-to-fine is not merely
-emergent — it is only AVAILABLE to an adaptive policy: the "fine" question only exists once the coarse answer
-says where to point it.**
-
-**THEREFORE, BINDING:**
-1. Do NOT argue "the theorem says a static questionnaire is optimal, so adaptivity is worthless." The
-   non-adaptivity theorems (Krause & Guestrin ICML'07; Jedynak 2012) assume a LINEAR-GAUSSIAN belief and a
-   VARIANCE-ONLY objective. **We have neither** (learned nonlinear fold-in; NDCG task loss). Krause's own next
-   sentence: *"for non-Gaussian models, sequential strategies can strictly outperform a priori designs, even
-   with known parameters."*
-2. Prior nulls (E0's -0.0003; the eight tied policies) are **ARENA-CONDITIONAL** — discrete pool, binary
-   answers, full-NDCG, q=8, population mean. They do NOT generalise to elicitation as such.
-3. **Before ANY claim that adaptivity does or does not pay: (a) use ALL the labelled data (153k users, not the
-   3k val slice — a 3k run produced the OPPOSITE, and wrong, answer), and (b) report TAIL, not just FULL (the
-   effect is 47% on tail and 6% on full).**
-
-## HARD RULE #3 — THE THEOREM IS CLOSED. THE EIGHT FAILED POLICIES ARE DEAD.
-1. **NEVER cite, re-derive, or reason from the non-adaptivity theorem again.** It is settled (HARD RULE #2) and
-   it BIASES the analysis into a spiral: every time it is invoked, the conclusion drifts back toward "adaptivity
-   cannot pay", which is FALSE and is contradicted by our own 150k-user measurement. It does not explain any
-   result in this project. Do not use it to predict a result. Do not use it to excuse one.
-2. **THE EIGHT FAILED POLICY RUNS ARE DEAD AND BURIED.** They go in **NO paper, in NO form**. They are not a
-   finding, not a contribution, not a caveat, not a "negative result". **They lost because THE MODELS WERE WEAK**
-   (V1 encoder). The recommender is now a 0.4852 set encoder — a different machine. Do not analyse them, do not
-   cite them, do not "explain" them. Forget them.
-3. The only live question about the policy is: **does it work on the STRONG model?** Test that.
-
-## HARD RULE #4 — ALWAYS REPORT FULL *AND* TAIL NDCG, ON THE CANONICAL RECOMMENDER
-1. **Every result reports BOTH full-NDCG@10 and tail-NDCG@10.** Never tail-only. A tail-only number hides
-   head/full behaviour and has repeatedly misled us. (Jul-19: a whole session concluded "full is flat / solved"
-   from tail-masked eval + a wrong head bias — see [[popb-vs-decoder-bias-full-ndcg-bug]].)
-2. **Score with the recommender's ACTUAL decoder (weight + LEARNED bias), not a log-count `popb` floor.** popb and
-   the learned bias correlate only ~0.79; substituting popb craters full-NDCG (head-dominated). The canonical
-   set-encoder recommender is **~0.486 full / ~0.32 tail full-profile** (pb2_best 0.4852/0.3295; paord ~0.486;
-   fusion 0.4859/0.3203; a0c 0.4961). If a reconstruction doesn't reproduce ~0.486 full-profile, the EVAL PROTOCOL
-   is wrong — fix it before drawing any conclusion. Cold-start popb-only ≈ 0.19 full; the full HEADROOM (0.19→0.49)
-   is huge and REAL — never call full "solved".
-3. Before measuring elicitation, confirm the belief-pool's scoring/split reproduces the canonical recommender's
-   full-profile number; a bespoke per-user half-split + popb floor is NOT the canonical eval.
+## Settled — do not relitigate
+- **Adaptivity pays** (+47% tail from one question). Never argue "static is optimal" — the theorem assumes linear-Gaussian + variance-only, which we have neither of. *→ `experiments/ADAPTIVE_PROBE_RESULT.md`.*
