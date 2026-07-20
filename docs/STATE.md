@@ -11,6 +11,8 @@
 | `signed_latent/a0c_best.pt` | dense teacher / oracle ceiling | 0.4961 |
 | cold-start (popb only) | — | ≈ 0.19 full → **huge headroom** |
 
+_Canonical current recommender = **pbC set-encoder** (interview-native). The RecVAE-d512 instrument (0.4998/0.3443, `EXPERIMENTS.md` recommender-core) is a **separate Paper-A ruler**, not the interview recommender._
+
 ## Current direction
 - **Paper B lead = uncertainty-shrinkage / belief-distribution** — the belief-pool elicitation invariant
   (closed-form update, Σ only shrinks, NDCG never drops per question) → Kalman-incompatible-with-canonical
