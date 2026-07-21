@@ -12,6 +12,10 @@ handful of answers, questions eventually rendered by an LLM. (ML-25M.)
 - **Papers (A–E)** → `new_chapters/` · **prior PhD output** → `previous_work/`
 
 ## Layout
-- `scripts/` — research code (the live modules: `set_mn`, `arena_core`, `signed_latent`, `reconciled`, …)
-- `src/casper/` — *(removed 2026-07; V0 architecture, see `docs/reference/ARCHITECTURE_V0_NOTES.md`)*
-- `data/` — ML-25M · `.cache/` — checkpoints + derived caches (git-ignored)
+- `src/` — **paper-supporting code only**: everything behind a number reported in a thesis chapter
+  (`src/baselines/` = baseline implementations + the ML-25M-ruler runner). Rule: no discarded/false-path
+  code ever lands here — working lines and explicit superseded-baselines only.
+- `scripts/` — the lab: live research modules (`set_mn`, `arena_core`, `signed_latent`, `reconciled`, …),
+  certification apparatus (`scripts/baselines/` = ML-20M snap harness), forensics (`scripts/_verify/`),
+  and `scripts/_archive/` for dead ends.
+- `data/` — ML-25M + ML-20M (git-ignored) · `.cache/` — checkpoints + derived caches (git-ignored)
