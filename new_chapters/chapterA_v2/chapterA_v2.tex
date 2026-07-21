@@ -277,7 +277,7 @@ GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmar
 \multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
 Mult-DAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.419$ \\
 Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.426$ \\
-RecVAE~\cite{ren2020recvae}                  & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{---} & not-run$^{\dagger}$ & @100 $0.442$ (ours \textbf{PASS} $+.0005$) \\
+RecVAE~\cite{ren2020recvae} ($d{=}512$)      & \cmark & \cmark & \xmark & \pmark & \xmark & $0.4998$ & $0.3443$ & measured$^{\ddagger}$ & @100 $0.442$ (ours \textbf{PASS} $+.0005$) \\
 SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
 TaNP~\cite{lin2021tanp}                       & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (own cold-start benchmark) \\
 \midrule
@@ -293,7 +293,7 @@ LLM zero-shot CRS~\cite{he2023large}         & \xmark & \cmark & \cmark & \xmark
 \midrule
 \multicolumn{10}{l}{\emph{(d) Ours}}\\
 Set-encoder tower (pbC)                      & \pmark & \cmark & \pmark & \xmark & \pmark & $.4946$ & $.3372$ & recorded$^{\dagger}$ & n/a (in-house) \\
-RecVAE-class $d{=}512$ ruler                 & \pmark & \cmark & \xmark & \pmark & \xmark & $.4998$ & $.3443$ & recorded$^{\dagger}$ & n/a (in-house; ML-20M snap \textbf{PASS} $0.442$) \\
+RecVAE-class $d{=}512$ ruler                 & \pmark & \cmark & \xmark & \pmark & \xmark & $.4998$ & $.3443$ & measured$^{\ddagger}$ & n/a (in-house; ML-20M snap \textbf{PASS} $0.442$) \\
 \textbf{Instrument (target)}                 & \cmark & \cmark & \cmark & \cmark & \cmark & \multicolumn{2}{c}{\TODO{}} & pending & n/a (this chapter) \\
 \bottomrule
 \end{tabular}
@@ -307,8 +307,11 @@ control---see the verification caveat in \S\ref{sec:expdesign}; the reproducing 
 $0.4917$ full); or ``---'' with a one-word reason
 (\emph{not-run}, \emph{cannot-rank-full}, \emph{needs-LLM}). The final column is each system's own published
 full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
-``n/r'' where the literature reports none. RecVAE$^{\dagger}$: not run standalone on ML-25M---its ML-25M
-realisation is our $d512$ ruler row. No number is invented: a value appears only if it is in a baseline JSON, in
+``n/r'' where the literature reports none. RecVAE$^{\ddagger}$: measured on this ruler (our $d{=}512$ training
+run, Jul 2026; its saved test record includes the matching Most-Popular cross-check on the same splits). The
+checkpoint weights were later purged, so the run is not re-executable until retrained---but the implementation
+family passed the ML-20M published-number snap, so the measurement stands as a measurement, not a citation. The
+``ours'' block repeats this model as the ruler row. No number is invented: a value appears only if it is in a baseline JSON, in
 the landscape file with a citation, or is one of the two recorded in-house anchors.}
 \label{tab:master}
 \end{sidewaystable}
