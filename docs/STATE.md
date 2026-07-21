@@ -29,13 +29,14 @@ _Canonical current recommender = **pbC set-encoder** (interview-native). The Rec
 - Concepts **lose to items** as an interview router; a concept answer ≈ a coarsened item-watch signal.
 
 ## Baseline campaign (2026-07-21, running)
-- **ML-20M Liang snap: EASE PASS +0.0003 (0.4203 vs published 0.420)** — split+metric fidelity certified
-  (split stats exact: 9,990,682 / 116,677 / 20,108). iALS 0.3580, EDLAE 0.4167, kNN 0.2995 (advisory), Pop 0.1906.
-  RecVAE snap training; Mult-VAE/DAE queued tonight. `experiments/baselines/`.
-- **ML-25M G0 (same canonical ruler, verified line-for-line): EASE 0.5078/0.3394 full/tail@10 — ABOVE both
-  in-house anchors** (pbC 0.4946/0.3372, RecVAE-d512 0.4998/0.3443). R1 obligation is now "close ~1.3pt to
-  EASE", not "tie RecVAE". kNN 0.4272/0.2208, iALS 0.4272/0.3172, Pop 0.2851/0.0589 (pop-definition gap vs
-  MOSTPOP 0.2522 diagnosed benign: like-count vs all-band popb).
+- **ML-20M Liang snap: EASE PASS +0.0003 (0.4203 vs 0.420) AND RecVAE PASS +0.0005 (0.4425 vs 0.442;
+  R@20 0.4144 vs 0.414, R@50 0.5525 vs 0.553)** — split+metric+implementation fidelity certified
+  (split stats exact: 9,990,682 / 116,677 / 20,108). iALS 0.3580, EDLAE 0.4167, kNN 0.2995 (advisory),
+  Pop 0.1906. Mult-VAE/DAE queued (one command: `run_snap_ml20m.py --only dae,multvae`, ~16 h CPU).
+- **ML-25M G0 (same canonical ruler, verified line-for-line): EDLAE 0.5230/0.3464 is the NEW BAR,
+  EASE 0.5078/0.3394 — both ABOVE the in-house anchors** (pbC 0.4946/0.3372, RecVAE-d512 0.4998/0.3443).
+  R1 obligation is now "close ~2.8pt to EDLAE", not "tie RecVAE". kNN 0.4272/0.2208, iALS 0.4272/0.3172,
+  Pop 0.2851/0.0589 (pop gap vs MOSTPOP 0.2522 diagnosed benign: like-count vs all-band popb).
 - **⚠ ANCHOR PROVENANCE HOLE:** RecVAE-d512 weights no longer on disk (only logs/TEST json survive);
   `pbC_best.pt` (trained Jul 15) scores 0.2428 under the CURRENT `set_mn` forward — the Jul-20 belief-pool
   refactor broke checkpoint↔code compatibility. Both anchors stand on record, not fresh reproduction.

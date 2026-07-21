@@ -526,7 +526,7 @@ EDLAE~\cite{steck2020edlae} & $0.4167$ & $\sim0.427$ & val-selected $p{=}0.5$; a
 EASE~\cite{steck2019ease} & $\mathbf{0.4203}$ & $0.420$ & \textbf{exact snap} ($+0.0003$) \\
 Mult-VAE~\cite{liang2018variational} & \TODO{training} & $0.426$ & training \\
 DAE~\cite{liang2018variational} & \TODO{training} & $0.419$ & training \\
-RecVAE~\cite{ren2020recvae} & \TODO{training} & $0.442$ & training \\
+RecVAE~\cite{ren2020recvae} & $\mathbf{0.4425}$ & $0.442$ & \textbf{PASS} ($+0.0005$); R@20 $0.4144$ vs.\ $0.414$, R@50 $0.5525$ vs.\ $0.553$ \\
 \bottomrule
 \end{tabular}
 \caption{Certification bridge, step (1): ML-20M Liang strong-generalisation split, NDCG@100, single split. EASE
@@ -539,8 +539,7 @@ training.}
 \paragraph{(ii) G0 --- full-profile on ML-25M, items-only.}
 On the baselines' native input (items only), evaluate full and tail NDCG@10 on the full ML-25M catalogue with a
 paired per-user bootstrap CI, confirming the instrument's belief mean reproduces the frozen tower and ties
-EASE/RecVAE on the shared harness. The item-only baselines are measured (Table~\ref{tab:g0}); the EDLAE cell is
-still running.
+EASE/RecVAE on the shared harness. The item-only baselines are measured (Table~\ref{tab:g0}).
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{7pt}
@@ -553,7 +552,7 @@ Most-Popular & $0.2851$ & $0.0589$ & train-likes popularity \\
 Item-kNN (cosine) & $0.4272$ & $0.2208$ & neighbourhood fold-in \\
 iALS-WMF & $0.4272$ & $0.3172$ & MF fold-in \\
 EASE~\cite{steck2019ease} & $\mathbf{0.5078}$ & $\mathbf{0.3394}$ & full@100 $0.5136$ \\
-EDLAE~\cite{steck2020edlae} & \TODO{running} & \TODO{running} & running \\
+EDLAE~\cite{steck2020edlae} & $\mathbf{0.5230}$ & $\mathbf{0.3464}$ & full@100 $0.5297$; fixed $p{=}0.5$ \\
 \midrule
 \multicolumn{4}{l}{\emph{Our anchors (recorded; see certification note below)}}\\
 Set-encoder tower (pbC) & $0.4946$ & $0.3372$ & interview-native encoder \\
@@ -562,19 +561,21 @@ RecVAE-class $d{=}512$ ruler & $0.4998$ & $0.3443$ & our in-house ruler \\
 \end{tabular}
 \caption{G0 --- full-profile, items-only, ML-25M half-split, NDCG@10 (full and tail), seed-averaged over
 $\{1,2,3,7,11\}$; test cohort $=$ held-out users minus the 300 quarantined study users. The baseline evaluate path
-reuses the canonical harness (split/cohort/tail/seed protocol) verbatim, so EASE is on the same ruler as our
-recorded anchors. EDLAE pending.}
+reuses the canonical harness (split/cohort/tail/seed protocol) verbatim, so the baselines are on the same ruler
+as our recorded anchors.}
 \label{tab:g0}
 \end{table}
 
-\paragraph{EASE sets the G0 bar, and we report it as such.} On our ML-25M harness EASE attains $0.5078$ full /
-$0.3394$ tail---\emph{above} our interview-native encoder ($0.4946/0.3372$). The evaluate path in the baseline
+\paragraph{The closed-form linear models set the G0 bar, and we report it as such.} On our ML-25M harness
+EDLAE attains $0.5230$ full / $0.3464$ tail and EASE $0.5078/0.3394$---both \emph{above} our interview-native
+encoder ($0.4946/0.3372$) and our RecVAE-class ruler ($0.4998/0.3443$). The evaluate path in the baseline
 harness is the same split, cohort, tail definition, seed set, and NDCG@10 routine used to produce the recorded
 encoder anchors (identical line-for-line for implicit baselines, verified by code inspection), and the only
 divergence---the Most-Popular row, $0.2851$ vs.\ the encoder harness's $0.2522$---is a benign difference in the
 \emph{popularity definition} (train-user liked-item counts vs.\ full-catalogue interaction counts), not a
-difference in the evaluate path. The instrument's R1 obligation is therefore to close a $\sim1.3$-point
-full-profile gap to EASE, not merely to tie RecVAE. We report this rather than excluding the stronger baseline.
+difference in the evaluate path. The instrument's R1 obligation is therefore to close a $\sim2.8$-point
+full-profile gap to EDLAE ($0.5230$; EASE $0.5078$), not merely to tie RecVAE. We report this rather than
+excluding the stronger baselines.
 \emph{Verification caveat:} the two encoder anchors are carried from record---the RecVAE-$d512$ checkpoint weights
 are no longer on disk, and the set-encoder checkpoint predates a subsequent refactor of its forward pass, so
 neither could be independently re-derived in this pass; the anchors will be re-certified when the frozen tower is
