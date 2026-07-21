@@ -302,8 +302,9 @@ shared ruler.} \cmark~met, \pmark~partial, \xmark~not met (our reading of each s
 consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on \emph{our} ML-25M half-split harness
 (seed-averaged $\{1,2,3,7,11\}$; test cohort $=$ held-out users minus the 300 quarantined study users), scored
 with the decoder's learned bias. Status: \emph{measured} (from our baseline JSONs); \emph{queued} (\TODO{}, run
-pending); \emph{recorded}$^{\dagger}$ (carried from record, re-certification pending---the $d512$ weights are off
-disk and the pbC forward pass predates a refactor, \S\ref{sec:expdesign}); or ``---'' with a one-word reason
+pending); \emph{recorded}$^{\dagger}$ (carried from record and NOT currently reproducible from version
+control---see the verification caveat in \S\ref{sec:expdesign}; the reproducing in-house anchor is pb2 at
+$0.4917$ full); or ``---'' with a one-word reason
 (\emph{not-run}, \emph{cannot-rank-full}, \emph{needs-LLM}). The final column is each system's own published
 full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
 ``n/r'' where the literature reports none. RecVAE$^{\dagger}$: not run standalone on ML-25M---its ML-25M
@@ -652,10 +653,16 @@ divergence---the Most-Popular row, $0.2851$ vs.\ the encoder harness's $0.2522$-
 difference in the evaluate path. The instrument's R1 obligation is therefore to close a $\sim2.8$-point
 full-profile gap to EDLAE ($0.5230$; EASE $0.5078$), not merely to tie RecVAE. We report this rather than
 excluding the stronger baselines.
-\emph{Verification caveat:} the two encoder anchors are carried from record---the RecVAE-$d512$ checkpoint weights
-are no longer on disk, and the set-encoder checkpoint predates a subsequent refactor of its forward pass, so
-neither could be independently re-derived in this pass; the anchors will be re-certified when the frozen tower is
-re-run under the current code (\S\ref{sec:bridge}).
+\emph{Verification caveat (updated after a forensic re-check):} the in-house anchors have unequal provenance.
+The RecVAE-$d512$ weights are no longer on disk (its $0.4998/0.3443$ stands on its saved test record; the
+implementation that would rebuild it passed the ML-20M snap). For the belief-pool encoders the situation is
+worse and we state it plainly: re-scoring \texttt{pbC} under every git-recoverable version of its training-time
+forward yields $0.2428/0.1505$ (test) --- far below the recorded $0.4946/0.3372$ --- because the forward pass
+that produced the recorded number lived only in an uncommitted working tree and was overwritten. The recorded
+belief-pool anchors are therefore \emph{unreproducible from version control} and are quoted for history only.
+The one in-house anchor that reproduces from committed code is the attention-pool item-only encoder
+\texttt{pb2}: measured $0.4917$ full ($0.3071$ tail) against a recorded $0.4852/0.3295$. All instrument claims
+in this chapter will be re-based on a tower whose forward pass is committed and whose metric re-derives on demand.
 
 \paragraph{(iii) G2 --- per-question curves.}
 Cold-start per-question NDCG@10 curves (full and tail) versus a random-question control. Items are foldable by all

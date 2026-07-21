@@ -37,11 +37,13 @@ _Canonical current recommender = **pbC set-encoder** (interview-native). The Rec
   EASE 0.5078/0.3394 — both ABOVE the in-house anchors** (pbC 0.4946/0.3372, RecVAE-d512 0.4998/0.3443).
   R1 obligation is now "close ~2.8pt to EDLAE", not "tie RecVAE". kNN 0.4272/0.2208, iALS 0.4272/0.3172,
   Pop 0.2851/0.0589 (pop gap vs MOSTPOP 0.2522 diagnosed benign: like-count vs all-band popb).
-- **⚠ ANCHOR PROVENANCE HOLE:** RecVAE-d512 weights no longer on disk (only logs/TEST json survive);
-  `pbC_best.pt` (trained Jul 15) scores 0.2428 under the CURRENT `set_mn` forward — the Jul-20 belief-pool
-  refactor broke checkpoint↔code compatibility. Both anchors stand on record, not fresh reproduction.
-  **Blocks PrecAcc** (needs the frozen pbC mean): re-verify pbC under pre-refactor code (git) or retrain
-  before any instrument run. Chapter carries the caveat explicitly.
+- **⚠ ANCHOR FORENSIC VERDICT (Jul 21): pbC/paord belief-pool numbers are IRREPRODUCIBLE from git** — the
+  training-time forward was never committed (lived in the Jul-15 working tree, overwritten same day); pbC
+  measures 0.2428/0.1505 under every recoverable pin. **pb2 (attn pool) is the ONLY reproducing in-house
+  anchor: 0.4917 full / 0.3071 tail** (recorded 0.4852/0.3295; tail −0.022 unexplained). RecVAE-d512
+  rebuildable ~7h via the snap-certified recvae.py. **PrecAcc decision needed:** retrain belief-pool encoder
+  under committed code, or re-base the frozen mean on pb2. New HARD RULE 10: commit training code before any
+  run. `scripts/_verify/verify_pbc.py` reproduces the forensics.
 
 ## Paper A restart (2026-07-20)
 - Lit re-review DONE: `external_literature/findings/paperA_recommender_landscape.md` (SOTA, taxonomy, gap
