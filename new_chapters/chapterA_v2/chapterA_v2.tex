@@ -15,6 +15,7 @@
 \pgfplotsset{compat=1.17}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
 \usepackage{subcaption}
+\usepackage{rotating} % sidewaystable for the master classification table
 
 % --- notation macros (carried from Paper A v1 for consistency) ---
 \newcommand{\R}{\mathbb{R}}
@@ -206,7 +207,10 @@ chapter are \TODO{} pending the certified run of \S\ref{sec:expdesign}.
 We organise interview-relevant recommenders into six families and score each against R1--R5
 (Table~\ref{tab:taxonomy}). The reading is consistent across families: no family is strong on both the accuracy
 axis (R1) and the belief-channel axis (R3--R5). Figure~\ref{fig:gapmap} plots the same fact as a qualitative
-gap map.
+gap map. Table~\ref{tab:taxonomy} is the compact conceptual overview; the chapter's anchor is the per-system
+\emph{master table} (Table~\ref{tab:master}), which classifies every reasonable candidate against R1--R5
+\emph{and}, where one exists, prints its full/tail NDCG@10 on our shared ML-25M ruler---so that the bifurcation
+is not merely asserted from published claims but is visible in the one column of measured numbers.
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{4pt}
@@ -251,6 +255,78 @@ $\{$R3,R4,R5$\}$ are anti-correlated: families (ii)/(iii) hold the accuracy corn
 and none spans both. Adapted from the landscape analysis (c2).}
 \label{tab:taxonomy}
 \end{table}
+
+\begin{sidewaystable}[p]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{p{4.1cm}ccccc r@{\,/\,}l l p{4.9cm}}
+\toprule
+System (rep.\ / cite) & R1 & R2 & R3 & R4 & R5 &
+  \multicolumn{2}{c}{full/tail NDCG@10} & status & published full-profile anchor \\
+ & & & & & & \multicolumn{2}{c}{(our ML-25M ruler)} & & (own benchmark, \emph{NOT} comparable) \\
+\midrule
+\multicolumn{10}{l}{\emph{(a) Classic / linear full-profile}}\\
+Most-Popular                                & \xmark & \cmark & \xmark & \xmark & \pmark & $.2851$ & $.0589$ & measured   & n/r (non-personalised floor) \\
+Item-kNN (cosine)                           & \xmark & \cmark & \xmark & \xmark & \pmark & $.4272$ & $.2208$ & measured   & @100 $\sim0.36$ class~\cite{cremonesi2010performance} \\
+PureSVD / iALS-WMF                          & \xmark & \cmark & \xmark & \xmark & \pmark & $.4272$ & $.3172$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
+SLIM                                        & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not-run & @100 $0.401$ (ML-20M) \\
+EASE~\cite{steck2019ease}                    & \cmark & \cmark & \xmark & \xmark & \pmark & $\mathbf{.5078}$ & $\mathbf{.3394}$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
+EDLAE~\cite{steck2020edlae}                  & \cmark & \cmark & \xmark & \xmark & \pmark & $\mathbf{.5230}$ & $\mathbf{.3464}$ & measured & @100 $\approx0.42$--$0.44$ class \\
+GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (ML-20M not reported) \\
+\midrule
+\multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
+Mult-DAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.419$ \\
+Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.426$ \\
+RecVAE~\cite{ren2020recvae}                  & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{---} & not-run$^{\dagger}$ & @100 $0.442$ (ours \textbf{PASS} $+.0005$) \\
+SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
+TaNP~\cite{lin2021tanp}                       & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (own cold-start benchmark) \\
+\midrule
+\multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
+EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & cannot-rank-full & n/r (non-recsys; UCI/MNIST) \\
+Golbandi tree~\cite{golbandi2011adaptive}    & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (Netflix RMSE) \\
+RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (elicitation RMSE) \\
+B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (own elicitation task) \\
+ConTS~\cite{li2021seamlessly}                & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (cold-start CRS metrics) \\
+BCIE~\cite{toroghi2023bcie}                  & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (critique metrics) \\
+PEBOL~\cite{austin2024bayesian}              & \xmark & \cmark & \cmark & \pmark & \xmark & \multicolumn{2}{c}{---} & needs-LLM & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
+LLM zero-shot CRS~\cite{he2023large}         & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & needs-LLM & n/r (weak collaborative signal) \\
+\midrule
+\multicolumn{10}{l}{\emph{(d) Ours}}\\
+Set-encoder tower (pbC)                      & \pmark & \cmark & \pmark & \xmark & \pmark & $.4946$ & $.3372$ & recorded$^{\dagger}$ & n/a (in-house) \\
+RecVAE-class $d{=}512$ ruler                 & \pmark & \cmark & \xmark & \pmark & \xmark & $.4998$ & $.3443$ & recorded$^{\dagger}$ & n/a (in-house; ML-20M snap \textbf{PASS} $0.442$) \\
+\textbf{Instrument (target)}                 & \cmark & \cmark & \cmark & \cmark & \cmark & \multicolumn{2}{c}{\TODO{}} & pending & n/a (this chapter) \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{Master table: every reasonable system by R1--R5 and by measured full-profile accuracy on one
+shared ruler.} \cmark~met, \pmark~partial, \xmark~not met (our reading of each system's \emph{published} claims,
+consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on \emph{our} ML-25M half-split harness
+(seed-averaged $\{1,2,3,7,11\}$; test cohort $=$ held-out users minus the 300 quarantined study users), scored
+with the decoder's learned bias. Status: \emph{measured} (from our baseline JSONs); \emph{queued} (\TODO{}, run
+pending); \emph{recorded}$^{\dagger}$ (carried from record, re-certification pending---the $d512$ weights are off
+disk and the pbC forward pass predates a refactor, \S\ref{sec:expdesign}); or ``---'' with a one-word reason
+(\emph{not-run}, \emph{cannot-rank-full}, \emph{needs-LLM}). The final column is each system's own published
+full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
+``n/r'' where the literature reports none. RecVAE$^{\dagger}$: not run standalone on ML-25M---its ML-25M
+realisation is our $d512$ ruler row. No number is invented: a value appears only if it is in a baseline JSON, in
+the landscape file with a citation, or is one of the two recorded in-house anchors.}
+\label{tab:master}
+\end{sidewaystable}
+
+\paragraph{The one column that is blank for an entire block.}
+Read Table~\ref{tab:master} down its measured-accuracy column. Every system that carries a number---a full/tail
+NDCG@10 on our shared ML-25M ruler---sits in block (a) or (b): the item-only linear and amortised recommenders.
+The entire belief corner, block (c)---EDDI, Golbandi, RBMF/Functional-MF, Bıyık, ConTS, BCIE, PEBOL, the
+LLM-zero-shot CRS---has a \emph{blank} accuracy column: not one of these systems has a full-catalogue top-N number
+on any shared ruler, and its R1 cell is \xmark\ in every row. This is not an accident of our harness. Most CRS and
+elicitation papers never report full-catalogue top-N accuracy at all (they report elicitation RMSE, cold-start
+MRR/MAP on a shortlist, or critique metrics), and several \emph{cannot produce it by construction}: a per-item
+Beta posterior (PEBOL) or a decision tree over rating queries (Golbandi) does not induce a ranking over the whole
+catalogue, and an LLM CRS needs an API call per candidate to score one. Conversely, every system with a competitive
+number is item-only and point-estimate---\xmark\ on R3 and R4. The two blocks are disjoint: no row combines a
+\cmark\ (or even a filled-in number) in the accuracy column with \cmark s across R3--R5. The top-right cell of the
+gap map---all five requirements met \emph{and} a competitive full-profile number---is occupied only by the target
+row, which is a design, not a result. That empty conjunction is the chapter's thesis, and the master table is where
+it is impossible to miss.
 
 \paragraph{The accuracy corner (families ii--iii).}
 On the canonical ML-20M strong-generalisation split (10k validation / 10k test held-out users, NDCG@100), the
