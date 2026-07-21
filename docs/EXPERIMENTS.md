@@ -19,6 +19,9 @@
 | experiment | tested | result | source |
 |---|---|---|---|
 | RecVAE-d512 instrument rebuild (I2) | strong-CF ruler vs V1/EASE | ML-1M 0.5541 (ties EASE); Goodreads 21.6× V1; ML-25M 0.4998/0.3443, 8/8 gates | `reference/INSTRUMENT_REVIEW.md` |
+| Baseline snap campaign (Jul 21) | do our baseline impls match published ML-20M numbers | **EASE PASS +0.0003 (0.4203), RecVAE PASS +0.0005 (0.4425, all 3 metrics)**; iALS 0.3580 / EDLAE 0.4167 advisory; split stats exact | `experiments/baselines/snap_ml20m/` |
+| ML-25M G0 baseline table (Jul 21) | closed-form baselines on OUR canonical ruler | **EDLAE 0.5230/0.3464 = new R1 bar**, EASE 0.5078/0.3394, iALS 0.4272/0.3172, kNN 0.4272/0.2208, Pop 0.2851/0.0589 — bar ABOVE both in-house towers | `experiments/baselines/ml25m/` |
+| Anchor forensics (Jul 21) | do pbC/paord/pb2 reproduce their recorded numbers | pbC/paord **NO-SNAP under any git pin** (training forward never committed — history only); **pb2 reproduces 0.4917/0.3071**; → HARD RULE 10 | `scripts/_verify/verify_pbc.py`, memory `anchor-provenance-hole-pbc-recvae` |
 | RecVAE valence probe + bolt-on channel | is a dislike direction real / usable | z-space carries dislike (−17.8pp, 8/8 genres) BUT a bolted sign channel is **INERT** (ΔNDCG 0.000) | `reference/INSTRUMENT_REVIEW.md` |
 | Oracle-Z headroom (frozen RecVAE) | best-possible belief; do dislikes help | likes-only 0.483 → clairvoyant ceiling 0.994 (+0.51); watched-dislikes −0.0016 = the **WALL** | `reference/ORACLE_Z.md` |
 | Fold-model lineage (recon/v3/v4/recovered/leakfree) | which fold accumulates without leaking | recon > ridge; v3 clean but LEAKS; v4 cold-collapse 0.167; recovered under-accumulates; leakfree SATURATES | `reference/EMBEDDING_FOLDING_INDEX.md`, `reference/FOLD_MASTER.md` |
