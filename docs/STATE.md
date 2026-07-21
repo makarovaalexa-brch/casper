@@ -28,7 +28,14 @@ _Canonical current recommender = **pbC set-encoder** (interview-native). The Rec
 - Adaptivity **proven** (+47% tail from one genre question — HARD RULE #2).
 - Concepts **lose to items** as an interview router; a concept answer ≈ a coarsened item-watch signal.
 
-## Baseline campaign (2026-07-21, running)
+## ★ RULER RESET (2026-07-21, author-approved)
+- **Canonical G0 ruler = Liang recipe on ML-25M** (>3.5, min5, **10k val + 10k test held-out users**, 80/20
+  fold-in, seed 98765; `liang_split.py --data ml-25m`). Old 500/500 arena split = elicitation-only.
+  Quarantine dropped. **ALL G0 numbers below are OLD-SPLIT and superseded** — re-measurement running;
+  chapter tables will be re-emitted on the new split. RecVAE old-split training killed at ep~45
+  (val peak 0.5506 — recipe validated, number discarded; d200 architecture verdict stands informally).
+
+## Baseline campaign (2026-07-21, old 500/500 split — SUPERSEDED for G0; ML-20M snaps remain valid)
 - **ML-20M Liang snap: EASE PASS +0.0003 (0.4203 vs 0.420) AND RecVAE PASS +0.0005 (0.4425 vs 0.442;
   R@20 0.4144 vs 0.414, R@50 0.5525 vs 0.553)** — split+metric+implementation fidelity certified
   (split stats exact: 9,990,682 / 116,677 / 20,108). iALS 0.3580, EDLAE 0.4167, kNN 0.2995 (advisory),
