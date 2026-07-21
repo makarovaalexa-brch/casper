@@ -19,6 +19,9 @@ import time
 import argparse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# model implementations + metrics live in src/baselines (paper-supporting code); this snap
+# apparatus stays in scripts/ (certification, not a thesis number)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "src", "baselines")))
 import metrics as M
 import pop, itemknn, ease, ials, multvae, recvae, edlae
 
