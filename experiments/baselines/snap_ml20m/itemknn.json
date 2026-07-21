@@ -1,0 +1,20 @@
+{
+  "ndcg@100": 0.2995403312612134,
+  "ndcg@100_se": 0.001987738899121225,
+  "ndcg@10": 0.22374526043967954,
+  "ndcg@10_se": 0.0022325683425534447,
+  "recall@20": 0.2634134432981879,
+  "recall@20_se": 0.0024371061665010617,
+  "recall@50": 0.3636213410798723,
+  "recall@50_se": 0.002727556945213479,
+  "seconds": 19.039315938949585,
+  "hp": {
+    "topk": 200
+  },
+  "target": {
+    "ndcg@100": 0.36,
+    "approx": true,
+    "note": "~0.36 class (Cremonesi-era item-kNN)"
+  },
+  "verdict": "~target 0.360 got 0.2995 (delta -0.0605) [APPROX - reviewer decides]"
+}

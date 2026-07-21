@@ -1,0 +1,23 @@
+{
+  "ndcg@100": 0.3580325098186631,
+  "ndcg@100_se": 0.0020205258911027268,
+  "ndcg@10": 0.23460507939486616,
+  "ndcg@10_se": 0.002118075370401864,
+  "recall@20": 0.3316451334724787,
+  "recall@20_se": 0.002685916520401532,
+  "recall@50": 0.47557645875635846,
+  "recall@50_se": 0.0029744309169140474,
+  "seconds": 2478.0965361595154,
+  "hp": {
+    "factors": 200,
+    "reg": 0.1,
+    "alpha": 50.0,
+    "iterations": 15
+  },
+  "target": {
+    "ndcg@100": 0.386,
+    "approx": true,
+    "note": "WMF/iALS reported ~0.386 (tuned)"
+  },
+  "verdict": "~target 0.386 got 0.3580 (delta -0.0280) [APPROX - reviewer decides]"
+}

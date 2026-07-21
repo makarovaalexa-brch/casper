@@ -41,6 +41,9 @@ def edlae_B(G, p, l2=0.0):
     q = 1.0 - p
     diagG = np.diag(G).copy()
     Lam = (p / q) * diagG                      # Eq. 4 diagonal
+    Lam[diagG == 0.0] = 1.0                    # items with ZERO train interactions (possible on the
+                                               # fixed ML-25M catalog, unlike the Liang train-vocab
+                                               # split) -> keep A SPD; their B columns carry no signal
     G[np.diag_indices(m)] += Lam + l2          # A = G + Lam (+ l2*I), in place; DESTROYS G
     C = inv_spd_lowmem(G)                       # Eq. 9 (in-place Cholesky, low RAM)
     d = 1.0 / np.diag(C).copy()
@@ -80,9 +83,12 @@ def main():
     if p is None:
         va_tr, va_te = M.load_val(n_items)
         best_v = -1.0
+        import gc
+        B = None
         for pp in (0.3, 0.4, 0.5, 0.6, 0.7):
+            B = None; gc.collect()               # free prev B BEFORE the next 3.2GB Gram (OOM guard)
             G = build_gram(train)               # edlae_B destroys G -> rebuild per p (~12 s)
-            B = edlae_B(G, pp, args.l2); del G
+            B = edlae_B(G, pp, args.l2); del G; gc.collect()
             v = M.evaluate(lambda Xc, _B=B: np.asarray(Xc @ _B, np.float32), va_tr, va_te)["ndcg@100"]
             print(f"[edlae] VAL p={pp} ndcg@100={v:.4f}")
             if v > best_v:

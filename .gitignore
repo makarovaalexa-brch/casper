@@ -100,3 +100,4 @@ data/ml25m/
 
 # INSTRUMENT2 ML-20M replication data (large, do not commit)
 data/ml20m/
+data/ml-20m/

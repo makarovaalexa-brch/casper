@@ -1,0 +1,20 @@
+{
+  "ndcg@100": 0.41671099694554475,
+  "ndcg@100_se": 0.0021521901199311804,
+  "ndcg@10": 0.32527430766085236,
+  "ndcg@10_se": 0.002545791552079456,
+  "recall@20": 0.383908156885684,
+  "recall@20_se": 0.002677543201820014,
+  "recall@50": 0.5145975370587966,
+  "recall@50_se": 0.0028463461857173573,
+  "seconds": 976.221086025238,
+  "hp": {
+    "p": 0.5
+  },
+  "target": {
+    "ndcg@100": 0.427,
+    "approx": true,
+    "note": "EDLAE full-rank ~RecVAE class (approx)"
+  },
+  "verdict": "~target 0.427 got 0.4167 (delta -0.0103) [APPROX - reviewer decides]"
+}

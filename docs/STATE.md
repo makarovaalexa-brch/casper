@@ -28,6 +28,20 @@ _Canonical current recommender = **pbC set-encoder** (interview-native). The Rec
 - Adaptivity **proven** (+47% tail from one genre question — HARD RULE #2).
 - Concepts **lose to items** as an interview router; a concept answer ≈ a coarsened item-watch signal.
 
+## Baseline campaign (2026-07-21, running)
+- **ML-20M Liang snap: EASE PASS +0.0003 (0.4203 vs published 0.420)** — split+metric fidelity certified
+  (split stats exact: 9,990,682 / 116,677 / 20,108). iALS 0.3580, EDLAE 0.4167, kNN 0.2995 (advisory), Pop 0.1906.
+  RecVAE snap training; Mult-VAE/DAE queued tonight. `experiments/baselines/`.
+- **ML-25M G0 (same canonical ruler, verified line-for-line): EASE 0.5078/0.3394 full/tail@10 — ABOVE both
+  in-house anchors** (pbC 0.4946/0.3372, RecVAE-d512 0.4998/0.3443). R1 obligation is now "close ~1.3pt to
+  EASE", not "tie RecVAE". kNN 0.4272/0.2208, iALS 0.4272/0.3172, Pop 0.2851/0.0589 (pop-definition gap vs
+  MOSTPOP 0.2522 diagnosed benign: like-count vs all-band popb).
+- **⚠ ANCHOR PROVENANCE HOLE:** RecVAE-d512 weights no longer on disk (only logs/TEST json survive);
+  `pbC_best.pt` (trained Jul 15) scores 0.2428 under the CURRENT `set_mn` forward — the Jul-20 belief-pool
+  refactor broke checkpoint↔code compatibility. Both anchors stand on record, not fresh reproduction.
+  **Blocks PrecAcc** (needs the frozen pbC mean): re-verify pbC under pre-refactor code (git) or retrain
+  before any instrument run. Chapter carries the caveat explicitly.
+
 ## Paper A restart (2026-07-20)
 - Lit re-review DONE: `external_literature/findings/paperA_recommender_landscape.md` (SOTA, taxonomy, gap
   verdict, baseline bank) + per-paper records in `external_literature/papers/`. Gap CONFIRMED (no system holds
