@@ -91,15 +91,19 @@ def build(name, train, n_items, D, max_minutes, log):
         from ease import build_gram
         from edlae import edlae_B
         import numpy as np
+        import gc
+        B = None
         for pp in (0.3, 0.4, 0.5, 0.6, 0.7):
+            B = None; gc.collect()               # free prev B BEFORE the next 3.2GB Gram (OOM guard)
             G = build_gram(train)               # edlae_B destroys G -> rebuild per p (~12 s)
-            B = edlae_B(G, pp); del G
+            B = edlae_B(G, pp); del G; gc.collect()
             v = M.evaluate(lambda Xc, _B=B: np.asarray(Xc @ _B, np.float32), va_tr, va_te)["ndcg@100"]
             log(f"  [edlae] VAL p={pp} ndcg@100={v:.4f}")
             if v > best_v:
                 best_v, best_p = v, pp
+        B = None; gc.collect()
         G = build_gram(train)
-        B = edlae_B(G, best_p); del G
+        B = edlae_B(G, best_p); del G; gc.collect()
 
         def pr(Xc, _B=B):
             import numpy as np

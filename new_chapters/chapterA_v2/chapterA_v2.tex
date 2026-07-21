@@ -502,13 +502,83 @@ split (NDCG@100, Recall@20/50) in our own code, snapping to the reported values 
 (2) \emph{port} the certified tower to the ML-25M harness and report full/tail NDCG@10 there. We keep ML-20M in the
 loop despite being older because the Liang 2018 split is a protocol lock-in the whole full-profile literature reports
 on; ML-25M is the newer corpus and, crucially, carries the genome tags the concept channel needs, so both datasets are
-required---one for comparability, one for the channels. \TODO{Bridge table: reproduced ML-20M NDCG@100/Recall vs.\
-published; ported ML-25M full/tail NDCG@10.}
+required---one for comparability, one for the channels.
+
+The first step is now measured on the ML-20M Liang strong-generalisation split (Table~\ref{tab:bridge}). The
+split statistics reproduce the published numbers exactly (9{,}990{,}682 events / 116{,}677 train users / 20{,}108
+items), and \textbf{EASE snaps to its published value} at NDCG@100 $0.4203$ vs.\ the reported $0.420$ (a
+$+0.0003$ deviation): this exact snap certifies that our split construction and metric implementation are
+faithful to the published protocol, so any downstream comparison inherits a trusted ruler. iALS ($0.3580$ vs.\
+$\sim0.386$) and EDLAE (val-selected $p{=}0.5$, $0.4167$ vs.\ $\sim0.427$) are reported as advisory---close but not
+exact---and the amortised VAEs (Mult-VAE/DAE/RecVAE) are still training.
+
+\begin{table}[t]\centering\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{p{3.4cm}p{2.6cm}p{2.4cm}p{4.4cm}}
+\toprule
+Method & Reproduced & Published & Status \\
+\midrule
+Most-Popular & $0.1906$ & --- & non-personalised floor (advisory) \\
+Item-kNN (cosine) & $0.2995$ & --- & neighbourhood floor (advisory) \\
+iALS-WMF & $0.3580$ & $\sim0.386$ & advisory (not exact) \\
+EDLAE~\cite{steck2020edlae} & $0.4167$ & $\sim0.427$ & val-selected $p{=}0.5$; advisory \\
+EASE~\cite{steck2019ease} & $\mathbf{0.4203}$ & $0.420$ & \textbf{exact snap} ($+0.0003$) \\
+Mult-VAE~\cite{liang2018variational} & \TODO{training} & $0.426$ & training \\
+DAE~\cite{liang2018variational} & \TODO{training} & $0.419$ & training \\
+RecVAE~\cite{ren2020recvae} & \TODO{training} & $0.442$ & training \\
+\bottomrule
+\end{tabular}
+\caption{Certification bridge, step (1): ML-20M Liang strong-generalisation split, NDCG@100, single split. EASE
+reproduces its published value exactly ($+0.0003$), certifying split$+$metric fidelity; split statistics matched the
+published counts exactly (9{,}990{,}682 events / 116{,}677 train users / 20{,}108 items). Amortised-VAE cells pending
+training.}
+\label{tab:bridge}
+\end{table}
 
 \paragraph{(ii) G0 --- full-profile on ML-25M, items-only.}
 On the baselines' native input (items only), evaluate full and tail NDCG@10 on the full ML-25M catalogue with a
 paired per-user bootstrap CI, confirming the instrument's belief mean reproduces the frozen tower and ties
-EASE/RecVAE on the shared harness. \TODO{G0 table (full \& tail NDCG@10, all baselines, CIs).}
+EASE/RecVAE on the shared harness. The item-only baselines are measured (Table~\ref{tab:g0}); the EDLAE cell is
+still running.
+
+\begin{table}[t]\centering\small
+\setlength{\tabcolsep}{7pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{p{4.0cm}p{2.4cm}p{2.4cm}p{3.2cm}}
+\toprule
+Method & full NDCG@10 & tail NDCG@10 & note \\
+\midrule
+Most-Popular & $0.2851$ & $0.0589$ & train-likes popularity \\
+Item-kNN (cosine) & $0.4272$ & $0.2208$ & neighbourhood fold-in \\
+iALS-WMF & $0.4272$ & $0.3172$ & MF fold-in \\
+EASE~\cite{steck2019ease} & $\mathbf{0.5078}$ & $\mathbf{0.3394}$ & full@100 $0.5136$ \\
+EDLAE~\cite{steck2020edlae} & \TODO{running} & \TODO{running} & running \\
+\midrule
+\multicolumn{4}{l}{\emph{Our anchors (recorded; see certification note below)}}\\
+Set-encoder tower (pbC) & $0.4946$ & $0.3372$ & interview-native encoder \\
+RecVAE-class $d{=}512$ ruler & $0.4998$ & $0.3443$ & our in-house ruler \\
+\bottomrule
+\end{tabular}
+\caption{G0 --- full-profile, items-only, ML-25M half-split, NDCG@10 (full and tail), seed-averaged over
+$\{1,2,3,7,11\}$; test cohort $=$ held-out users minus the 300 quarantined study users. The baseline evaluate path
+reuses the canonical harness (split/cohort/tail/seed protocol) verbatim, so EASE is on the same ruler as our
+recorded anchors. EDLAE pending.}
+\label{tab:g0}
+\end{table}
+
+\paragraph{EASE sets the G0 bar, and we report it as such.} On our ML-25M harness EASE attains $0.5078$ full /
+$0.3394$ tail---\emph{above} our interview-native encoder ($0.4946/0.3372$). The evaluate path in the baseline
+harness is the same split, cohort, tail definition, seed set, and NDCG@10 routine used to produce the recorded
+encoder anchors (identical line-for-line for implicit baselines, verified by code inspection), and the only
+divergence---the Most-Popular row, $0.2851$ vs.\ the encoder harness's $0.2522$---is a benign difference in the
+\emph{popularity definition} (train-user liked-item counts vs.\ full-catalogue interaction counts), not a
+difference in the evaluate path. The instrument's R1 obligation is therefore to close a $\sim1.3$-point
+full-profile gap to EASE, not merely to tie RecVAE. We report this rather than excluding the stronger baseline.
+\emph{Verification caveat:} the two encoder anchors are carried from record---the RecVAE-$d512$ checkpoint weights
+are no longer on disk, and the set-encoder checkpoint predates a subsequent refactor of its forward pass, so
+neither could be independently re-derived in this pass; the anchors will be re-certified when the frozen tower is
+re-run under the current code (\S\ref{sec:bridge}).
 
 \paragraph{(iii) G2 --- per-question curves.}
 Cold-start per-question NDCG@10 curves (full and tail) versus a random-question control. Items are foldable by all
