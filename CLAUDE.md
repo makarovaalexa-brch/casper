@@ -25,6 +25,7 @@ Orientation: end-state → `docs/VISION.md` · current status → `docs/STATE.md
 7. **Save Fable tokens.** Hand Fable a self-contained brief (design sheet + the specific numbers), never let it read the whole repo; batch decisions; ask for a typed verdict, not open chat.
 8. **Fixed tests, incremental steps, locked gains.** One fixed ruler / metric / user-count, stated once and reused; replicate before inventing; move forward incrementally without diverging or backtracking. **Each stage's key achievement stays locked behind a regression check** — a later step may not silently degrade what a prior step proved. Be patient with training dips (track the return curve; don't early-stop on a val dip).
 9. **Keep the best checkpoint only.** Select on a disjoint val and record a durable peak; no train-then-eval throwaway, and no hoarding every epoch.
+10. **Commit the training code BEFORE launching any run.** A checkpoint is only as good as the committed forward that scores it — pbC's recorded 0.4946 became unreproducible because its forward lived only in the working tree. No run starts on a dirty tree. *→ memory `anchor-provenance-hole-pbc-recvae`.*
 
 ## Metric & reporting (domain)
 - **Always report full AND tail NDCG@10**, scored with the recommender's **learned decoder bias**, not a log-count `popb` floor (corr ~0.79; popb craters full-NDCG). A reconstruction must reproduce ~0.486 full-profile before any conclusion; cold-start ≈ 0.19 — headroom is real, never call full "solved". *→ memory `popb-vs-decoder-bias-full-ndcg-bug`.*
