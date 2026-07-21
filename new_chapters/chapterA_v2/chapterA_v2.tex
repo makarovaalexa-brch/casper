@@ -269,29 +269,29 @@ System (rep.\ / cite) & R1 & R2 & R3 & R4 & R5 &
 Most-Popular                                & \xmark & \cmark & \xmark & \xmark & \pmark & $.2851$ & $.0589$ & measured   & n/r (non-personalised floor) \\
 Item-kNN (cosine)                           & \xmark & \cmark & \xmark & \xmark & \pmark & $.4272$ & $.2208$ & measured   & @100 $\sim0.36$ class~\cite{cremonesi2010performance} \\
 PureSVD / iALS-WMF                          & \xmark & \cmark & \xmark & \xmark & \pmark & $.4272$ & $.3172$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
-SLIM                                        & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not-run & @100 $0.401$ (ML-20M) \\
+SLIM                                        & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & superseded (EASE row) & @100 $0.401$ (ML-20M) \\
 EASE~\cite{steck2019ease}                    & \cmark & \cmark & \xmark & \xmark & \pmark & $\mathbf{.5078}$ & $\mathbf{.3394}$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
 EDLAE~\cite{steck2020edlae}                  & \cmark & \cmark & \xmark & \xmark & \pmark & $\mathbf{.5230}$ & $\mathbf{.3464}$ & measured & @100 $\approx0.42$--$0.44$ class \\
-GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (ML-20M not reported) \\
+GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & run planned (public code) & n/r (ML-20M not reported) \\
 \midrule
 \multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
 Mult-DAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.419$ \\
 Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.426$ \\
 RecVAE~\cite{ren2020recvae} ($d{=}512$)      & \cmark & \cmark & \xmark & \pmark & \xmark & $0.4998$ & $0.3443$ & measured & @100 $0.442$ (ours \textbf{PASS} $+.0005$) \\
-SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (own cold-start benchmark) \\
+SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & run planned (public code) & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (own cold-start benchmark) \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & cannot-rank-full & n/r (non-recsys; UCI/MNIST) \\
-Golbandi tree~\cite{golbandi2011adaptive}    & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (Netflix RMSE) \\
-RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (elicitation RMSE) \\
-B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (own elicitation task) \\
-ICF~\cite{zhao2013interactive}               & \xmark & \cmark & \xmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (online CF; own protocol) \\
-ConTS~\cite{li2021seamlessly}                & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (cold-start CRS metrics) \\
-BCIE~\cite{toroghi2023bcie}                  & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (critique metrics) \\
-PEBOL~\cite{austin2024bayesian}              & \xmark & \cmark & \cmark & \pmark & \xmark & \multicolumn{2}{c}{---} & needs-LLM & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
-GATE~\cite{li2023eliciting}                  & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & needs-LLM & n/r (elicitation-only; no full ranking) \\
-LLM zero-shot CRS~\cite{he2023large}         & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & needs-LLM & n/r (weak collaborative signal) \\
+EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (non-recsys; UCI/MNIST) \\
+Golbandi tree~\cite{golbandi2011adaptive}    & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (Netflix RMSE) \\
+RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (elicitation RMSE) \\
+B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (own elicitation task) \\
+ICF~\cite{zhao2013interactive}               & \xmark & \cmark & \xmark & \cmark & \pmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
+ConTS~\cite{li2021seamlessly}                & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (cold-start CRS metrics) \\
+BCIE~\cite{toroghi2023bcie}                  & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (critique metrics) \\
+PEBOL~\cite{austin2024bayesian}              & \xmark & \cmark & \cmark & \pmark & \xmark & \multicolumn{2}{c}{---} & not runnable at full catalogue & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
+GATE~\cite{li2023eliciting}                  & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not runnable (no ranker) & n/r (elicitation-only; no full ranking) \\
+LLM zero-shot CRS~\cite{he2023large}         & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not runnable at scale & n/r (weak collaborative signal) \\
 \midrule
 \multicolumn{10}{l}{\emph{(d) Ours}}\\
 Set-encoder tower (pb2)                      & \pmark & \cmark & \xmark & \xmark & \pmark & $.4917$ & $.3071$ & measured & n/a (in-house) \\
@@ -303,9 +303,10 @@ RecVAE-class $d{=}512$ ruler                 & \pmark & \cmark & \xmark & \pmark
 shared ruler.} \cmark~met, \pmark~partial, \xmark~not met (our reading of each system's \emph{published} claims,
 consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on \emph{our} ML-25M half-split harness
 (seed-averaged $\{1,2,3,7,11\}$; test cohort $=$ held-out users minus the 300 quarantined study users), scored
-with the decoder's learned bias. Status: \emph{measured} (run on this ruler); \emph{queued} (\TODO{}, run
-pending); or ``---'' with a one-word reason
-(\emph{not-run}, \emph{cannot-rank-full}, \emph{needs-LLM}). The final column is each system's own published
+with the decoder's learned bias. Statuses are \emph{measured} (run on this ruler), \emph{queued} (\TODO{}, run
+pending), \emph{run planned} / \emph{best-effort planned} (wave-2 replication on this ruler; best-effort = with
+stated substitutions), \emph{superseded} (a measured successor row subsumes it), or \emph{not runnable / not
+portable} (impossible by construction; mechanism in the text). The final column is each system's own published
 full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
 ``n/r'' where the literature reports none. The RecVAE row is our own $d{=}512$ training run on this ruler; the
 ``ours'' block repeats it as the ruler row. Omitted systems: UNICORN-line graph-RL CRS (no full-profile claim;
@@ -313,6 +314,8 @@ covered by the taxonomy discussion, \S\ref{sec:gap}); MeLU/CDRNP (folded into th
 line). No number is invented: a value appears only if it was measured on this ruler or carries a citation.}
 \label{tab:master}
 \end{sidewaystable}
+
+\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of four dispositions. \emph{Superseded}: SLIM is subsumed by EASE, its closed-form successor, which we measure at $0.5078$. \emph{Run planned}: the graph filters and sequence models have public code and will be measured on this ruler in the next experimental wave. \emph{Best-effort planned}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we will report a best-effort replication with every substitution stated---a Gaussian belief over an MF latent for B\i y\i k (no public implementation; their embedding is co-trained, so the substitution, if anything, flatters the original), the Thompson-posterior core for ConTS, a trained Partial-VAE for EDDI, the node recommender for the Golbandi tree, and MF-seed reconstruction for RBMF/Functional-MF. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the Bıyık-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.4272$).
 
 \paragraph{The one column that is blank for an entire block.}
 Read Table~\ref{tab:master} down its measured-accuracy column. Every system that carries a number---a full/tail
