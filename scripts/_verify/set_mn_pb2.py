@@ -1,0 +1,319 @@
+"""set_mn.py -- SET-input encoder + MULTINOMIAL decoder. Contract: casper/ARCH_SET_MULTINOMIAL.md.
+
+PHASE A (this file, cmd_pa): does a SELF-ATTENTION set-encoder DISTILL to a0c on FULL profiles and reach
+full-profile NDCG@10 >= 0.486? The make-or-break architecture gate (prove it can be a SOTA recommender).
+Teacher = a0c SignedAE (frozen). Student = transformer over item tokens (item_emb init a0c factors + continuous
+value) -> CLS -> z. Loss = MSE(z_student, z_a0c). Decoder = a0c (frozen) for the NDCG eval.
+
+HARD RULE #1: NO token caps / NO profile truncation ever -> length-bucketed micro-batching. 300 study quarantined.
+"""
+import os, sys, time, argparse, math
+os.environ.setdefault("OMP_NUM_THREADS", str(os.cpu_count()))
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+torch.set_num_threads(os.cpu_count())
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "instrument2")); sys.path.insert(0, _HERE)
+import signed_latent as SL
+from signed_latent import (load_arena_base, build_splits, cohort, ndcg10, safe_save, scale_rating,
+                           build_train_users, SEEDS, LO, HI, SignedAE, log)
+
+A0C = "C:/dev/phd/casper/.cache/signed_latent/a0c_best.pt"
+OUT = "C:/dev/phd/casper/.cache/set_mn"; os.makedirs(OUT, exist_ok=True)
+D = 512
+
+
+class MAB(nn.Module):
+    """Multihead attention block (Set Transformer): MAB(Q,K) = LN(H + FF(H)), H = LN(Q + Attn(Q,K,K))."""
+    def __init__(self, d, nhead, drop=0.1):
+        super().__init__()
+        self.attn = nn.MultiheadAttention(d, nhead, dropout=drop, batch_first=True)
+        self.ln0 = nn.LayerNorm(d); self.ln1 = nn.LayerNorm(d)
+        self.ff = nn.Sequential(nn.Linear(d, 4 * d), nn.GELU(), nn.Dropout(drop), nn.Linear(4 * d, d))
+
+    def forward(self, Q, K, key_padding_mask=None):
+        h, _ = self.attn(Q, K, K, key_padding_mask=key_padding_mask, need_weights=False)
+        h = self.ln0(Q + h)
+        return self.ln1(h + self.ff(h))
+
+
+class ISAB(nn.Module):
+    """Induced Set Attention Block: tokens interact GLOBALLY through m learned inducing points.
+    O(L*m) instead of O(L^2) -> handles the 14,040-item profiles. Permutation-invariant, arbitrary L."""
+    def __init__(self, d, nhead, m=32, drop=0.1):
+        super().__init__()
+        self.I = nn.Parameter(torch.randn(1, m, d) * 0.02)
+        self.mab0 = MAB(d, nhead, drop)      # inducing points attend to the set
+        self.mab1 = MAB(d, nhead, drop)      # the set attends back to the inducing points
+
+    def forward(self, X, pad):
+        b = X.shape[0]
+        H = self.mab0(self.I.expand(b, -1, -1), X, key_padding_mask=pad)   # (B, m, d)
+        return self.mab1(X, H)                                             # (B, L, d)
+
+
+class PMA(nn.Module):
+    """Pooling by multihead attention: a learned seed attends over the set -> one vector."""
+    def __init__(self, d, nhead, drop=0.1):
+        super().__init__()
+        self.S = nn.Parameter(torch.randn(1, 1, d) * 0.02)
+        self.mab = MAB(d, nhead, drop)
+
+    def forward(self, X, pad):
+        b = X.shape[0]
+        return self.mab(self.S.expand(b, -1, -1), X, key_padding_mask=pad)[:, 0]
+
+
+class SetEncoder(nn.Module):
+    """FAST set-encoder: tokens -> attend INTO m inducing points -> inducing points self-attend (global
+    interaction) -> pool -> z. Permutation-invariant, ANY set length, real cross-token interaction, but NO
+    per-token FFN (we only need a pooled belief) -> ~10-20x faster than full ISAB on 14k-token profiles."""
+    def __init__(self, ni, d=D, nhead=4, m=32, nlayers=2, token_mode="mlp", pool="attn"):
+        super().__init__()
+        self.ni = ni; self.d = d; self.token_mode = token_mode; self.pool = pool
+        self.item_emb = nn.Embedding(ni, d)                        # init from a0c decoder factors
+        self.tok_mlp = nn.Sequential(nn.Linear(d + 1, d), nn.GELU(), nn.Linear(d, d))
+        # FILM token: learned per-RATING scale+shift tables (10 discrete half-star levels).
+        # init gamma=1, beta~small  ->  token = item_emb + beta[r]  = the PURE ADDITIVE token (author's null).
+        # The model can LEARN gamma negative (dislike-as-negation) if the data asks; nothing imposed.
+        # ~100x cheaper than tok_mlp (2 lookups + elementwise vs a 0.5M-FLOP MLP per token).
+        self.gamma = nn.Embedding(10, d); self.beta = nn.Embedding(10, d)
+        nn.init.ones_(self.gamma.weight); nn.init.normal_(self.beta.weight, std=0.02)
+        self.I = nn.Parameter(torch.randn(1, m, d) * 0.02)         # inducing points
+        self.mab_in = MAB(d, nhead)                                # I attends to the set  (O(L*m), FF on m only)
+        self.sab = nn.ModuleList([MAB(d, nhead) for _ in range(nlayers)])   # interaction among inducing points
+        self.pma = PMA(d, nhead)                                   # pool -> one vector
+        self.z0 = nn.Parameter(torch.zeros(d))                     # empty-set prior = PRIOR MEAN
+        # ---- BELIEF pooling (conjugate-Gaussian): posterior mean = precision-weighted evidence + prior ----
+        # lambda_t = LEARNED per-token precision (confidence), fed the ISAB context so it can DISCOUNT
+        # redundant/collinear evidence instead of double-counting it (the whitening cure).
+        # NOTE z0=0 + a0c-warm-started decoder => empty set decodes to the decoder BIAS = popularity. Exact.
+        self.lam_head = nn.Linear(2 * d, 1)                        # scalar precision (diag would re-add the d->d MLP)
+        self.log_p0 = nn.Parameter(torch.zeros(d))                 # prior precision (diagonal, LEARNED)
+        self.pscale = nn.Parameter(torch.ones(d))                  # scale evidence to the decoder's norm;
+        self.last_prec = None                                      # z0 + s*(mu-z0) keeps the intercept EXACT
+        self.head = nn.Linear(d + 1, d)                            # + log(1+m) set-size feature
+
+    def forward(self, ids, vals, pad, lvs=None):
+        b = ids.shape[0]
+        e = self.item_emb(ids)
+        if self.token_mode == "film":
+            x = self.gamma(lvs) * e + self.beta(lvs)                                     # (B,L,d)  CHEAP
+        else:
+            x = self.tok_mlp(torch.cat([e, vals.unsqueeze(-1)], dim=-1))                 # (B,L,d)
+        h = self.mab_in(self.I.expand(b, -1, -1), x, key_padding_mask=pad)              # (B,m,d)
+        for blk in self.sab:
+            h = blk(h, h)                                                               # global interaction
+        p = self.pma(h, None)                                                           # (B,d) context
+        p = torch.nan_to_num(p)          # all-padded row => softmax over -inf => NaN; empty set must give z0
+        if self.pool == "belief":
+            keep = (~pad).unsqueeze(-1).float()                                         # (B,L,1)
+            ctx = p.unsqueeze(1).expand(-1, x.shape[1], -1)                             # (B,L,d)
+            lam = F.softplus(self.lam_head(torch.cat([x, ctx], dim=-1))) * keep         # (B,L,1) >=0, pad->0
+            p0 = F.softplus(self.log_p0)                                                # (d,) prior precision
+            num = p0 * self.z0 + (lam * x).sum(1)                                       # (B,d)
+            den = p0 + lam.sum(1)                                                       # (B,d) broadcast
+            self.last_prec = den                                                        # belief precision (for entropy)
+            mu = num / den                                                              # posterior mean; n=0 -> z0
+            return self.z0 + self.pscale * (mu - self.z0)                               # empty set -> z0 EXACTLY
+        sz = (~pad).sum(-1, keepdim=True).float().clamp_min(1.0).log1p()
+        return self.z0 + self.head(torch.cat([p, sz], dim=-1))
+
+
+def sv_to_level(sv):
+    """signed value -> discrete half-star rating level 0..9 (scale_rating: star = sv*2.25 + 2.75)."""
+    star = np.asarray(sv, np.float64) * 2.25 + 2.75
+    return np.clip(np.rint(star * 2).astype(np.int64) - 1, 0, 9)
+
+
+def load_teacher(ni):
+    t = SignedAE(ni, use_mask=True)
+    blob = torch.load(A0C, map_location="cpu"); t.load_state_dict(blob["model"]); t.eval()
+    for p in t.parameters():
+        p.requires_grad_(False)
+    return t
+
+
+ATTN_BUDGET = 1_000_000        # cap on B * L (ISAB is O(L*m) -> LINEAR in L). NOT a data cap: all users, all items,
+MAX_B = 256 # we only vary HOW MANY users share a batch. HARD RULE #1 intact.
+
+
+def make_batches(users, order):
+    """Length-bucketed ADAPTIVE batching: fewer users per batch when profiles are long, so B*L^2 stays bounded.
+    Never truncates a profile, never drops a user."""
+    batches = []; cur = []; curL = 0
+    for i in order:
+        L = len(users[i]["items"])
+        nl = max(curL, L)
+        if cur and ((len(cur) + 1) * nl > ATTN_BUDGET or len(cur) >= MAX_B):
+            batches.append(cur); cur = []; curL = 0; nl = L
+        cur.append(i); curL = nl
+    if cur:
+        batches.append(cur)
+    return batches
+
+
+def pad_batch(users, idxs):
+    """Length-bucketed padded (ids, vals, pad) from users' rated items (all of them; NO cap)."""
+    L = max(len(users[i]["items"]) for i in idxs)
+    B = len(idxs)
+    ids = np.zeros((B, L), np.int64); vals = np.zeros((B, L), np.float32); pad = np.ones((B, L), bool)
+    for r, i in enumerate(idxs):
+        it = users[i]["items"]; sv = users[i]["sv"]; k = len(it)
+        ids[r, :k] = it; vals[r, :k] = sv; pad[r, :k] = False
+    return torch.from_numpy(ids), torch.from_numpy(vals), torch.from_numpy(pad)
+
+
+def eval_student(student, teacher, base, SPL, users, decoder_W, decoder_b):
+    """Full-profile NDCG@10 via decoder(student_z). revealed=liked_prof (a0c 'full' protocol)."""
+    student.eval(); ni = base["ni"]; headmask = base["headmask"]; ff, tt = [], []
+    recs = []
+    for u in users:
+        profset, held, prof_r, held_r = SPL[u]
+        tlike = [j for j in held if held_r[j] >= LO]
+        if not tlike:
+            continue
+        liked = [j for j in prof_r if prof_r[j] >= LO]
+        if not liked:
+            continue
+        recs.append((np.array(liked, np.int64),
+                     scale_rating(np.array([prof_r[j] for j in liked], np.float64)).astype(np.float32),
+                     profset, tlike))
+    if not recs:
+        return float("nan"), float("nan")
+    with torch.no_grad():
+        for b in range(0, len(recs), 128):
+            chunk = recs[b:b + 128]
+            L = max(len(r[0]) for r in chunk); B = len(chunk)
+            ids = np.zeros((B, L), np.int64); vals = np.zeros((B, L), np.float32); pad = np.ones((B, L), bool)
+            lvs = np.zeros((B, L), np.int64)
+            for r, (it, sv, _, _) in enumerate(chunk):
+                ids[r, :len(it)] = it; vals[r, :len(it)] = sv; pad[r, :len(it)] = False
+                lvs[r, :len(it)] = sv_to_level(sv)
+            z = student(torch.from_numpy(ids), torch.from_numpy(vals), torch.from_numpy(pad),
+                        torch.from_numpy(lvs))
+            sc = (z @ decoder_W.T + decoder_b).numpy().astype(np.float64)
+            for r, (_, _, profset, tlike) in enumerate(chunk):
+                nf = ndcg10(sc[r], tlike, profset, headmask, False)
+                nt = ndcg10(sc[r], tlike, profset, headmask, True)
+                if nf is not None: ff.append(nf)
+                if nt is not None: tt.append(nt)
+    return (float(np.mean(ff)) if ff else float("nan"), float(np.mean(tt)) if tt else float("nan"))
+
+
+def make_input_target(u, rng, drop_max=0.5):
+    """a0c's own curriculum: input = profile subset (random dropout), target = liked NOT in input (leak-free)."""
+    its = u["items"]; n = len(its)
+    keep = rng.random(n) >= rng.uniform(0.0, drop_max)
+    if not keep.any():
+        keep[rng.integers(0, n)] = True
+    inp = its[keep]; sv = u["sv"][keep]
+    tgt = np.setdiff1d(u["liked"], inp, assume_unique=False)
+    if len(tgt) == 0:
+        return None
+    return inp, sv, tgt
+
+
+def cmd_pa(args):
+    """FORCED Phase A: train the set-encoder on the REAL objective (multinomial NLL of held-liked, a0c's own
+    curriculum) with z-distillation demoted to an AUX anchor, decoder co-trained from a0c warm-start.
+    Pure z-mimicry caps at mimicry quality; the gate is NDCG >= 0.486, so optimize NDCG directly."""
+    base = load_arena_base(); ni = base["ni"]
+    teacher = load_teacher(ni)
+    student = SetEncoder(ni, token_mode=args.token, pool=args.pool)
+    decoder = nn.Linear(D, ni)                                                        # co-trained, a0c warm-start
+    with torch.no_grad():
+        student.item_emb.weight.copy_(teacher.decoder.weight.detach())                # item_emb = a0c factors
+        decoder.weight.copy_(teacher.decoder.weight.detach())
+        decoder.bias.copy_(teacher.decoder.bias.detach())
+    Wd = decoder.weight; bd = decoder.bias
+    LAM = args.lam                                                                    # z-distill aux weight
+    opt = torch.optim.AdamW(list(student.parameters()) + list(decoder.parameters()),
+                            lr=3e-4, weight_decay=1e-4)
+    users = build_train_users(base)                                                   # items + sv (signed value)
+    log(f"[pa] {len(users)} train users; teacher a0c frozen; student set-encoder (d={D}, token={args.token}, pool={args.pool})")
+    SPLv = build_splits(base, SEEDS[0]); vusers = cohort(base, SPLv, "val")
+    # sort by length for bucketed ADAPTIVE batching (HARD RULE #1: bucket, never cap)
+    lens = np.array([len(u["items"]) for u in users])
+    order = np.argsort(lens)
+    batches_all = make_batches(users, order)
+    log(f"[pa] profiles: min={lens.min()} med={int(np.median(lens))} max={lens.max()}; "
+        f"{len(batches_all)} adaptive batches (B*L<={ATTN_BUDGET//1_000_000}M, ISAB O(L*m))")
+    start_ep = 0; best = -1.0; bad = 0
+    ck = os.path.join(OUT, f"{args.tag}.pt")
+    if args.resume and os.path.exists(ck):
+        blob = torch.load(ck, map_location="cpu")
+        student.load_state_dict(blob["student"]); start_ep = blob.get("epoch", 0)
+        decoder.load_state_dict(blob["decoder"])          # co-trained: MUST restore, else silent reset to a0c
+        Wd = decoder.weight.detach(); bd = decoder.bias.detach()
+        if "opt" in blob:
+            opt.load_state_dict(blob["opt"])              # Adam moments: else a loss spike at every restart
+        best = blob.get("full", -1.0)
+        log(f"[pa] RESUMED from ep{start_ep} (full={best:.4f}) decoder+opt restored")
+    f0, t0 = eval_student(student, teacher, base, SPLv, vusers, Wd, bd)
+    log(f"[pa] INIT student full-profile NDCG@10 full={f0:.4f} tail={t0:.4f}  (a0c target 0.4961; gate 0.486)")
+    for ep in range(start_ep, args.epochs):
+        student.train(); rng = np.random.default_rng(ep)
+        batches = list(batches_all)
+        rng.shuffle(batches)
+        t_ep = time.time(); run = 0.0; nb = 0
+        for bat in batches:
+            # a0c curriculum: input = profile subset, target = liked not in input
+            exs = [(i, make_input_target(users[i], rng)) for i in bat]
+            exs = [(i, e) for i, e in exs if e is not None]
+            if not exs:
+                continue
+            L = max(len(e[1][0]) for e in exs); B = len(exs)
+            ids = np.zeros((B, L), np.int64); vals = np.zeros((B, L), np.float32); pad = np.ones((B, L), bool)
+            lvs = np.zeros((B, L), np.int64)
+            xv = torch.zeros((B, ni), dtype=torch.float32); tgt = torch.zeros((B, ni), dtype=torch.float32)
+            for r, (i, (inp, sv, tg)) in enumerate(exs):
+                k = len(inp)
+                ids[r, :k] = inp; vals[r, :k] = sv; pad[r, :k] = False; lvs[r, :k] = sv_to_level(sv)
+                if LAM > 0:
+                    xv[r, inp] = torch.from_numpy(sv)                   # teacher sees the SAME input
+                tgt[r, tg] = 1.0
+            if LAM > 0:
+                with torch.no_grad():
+                    z_t = teacher.encode(xv)
+            z_s = student(torch.from_numpy(ids), torch.from_numpy(vals), torch.from_numpy(pad),
+                          torch.from_numpy(lvs))
+            logits = z_s @ Wd.T + bd
+            logsm = F.log_softmax(logits, dim=-1)
+            nll = -((logsm * tgt).sum(-1) / tgt.sum(-1).clamp_min(1.0)).mean()        # THE objective
+            loss = nll
+            if LAM > 0:                                                               # anchor OFF at lam=0:
+                loss = loss + LAM * F.mse_loss(z_s, z_t)                              # no ceiling, no teacher pass
+            opt.zero_grad(); loss.backward(); opt.step()
+            run += float(nll); nb += 1
+            if nb % 50 == 0:
+                log(f"  [pa] ep{ep} b{nb}/{len(batches)} NLL={run/nb:.4f} {(time.time()-t_ep)/60:.1f}m")
+        f, t = eval_student(student, teacher, base, SPLv, vusers, Wd, bd)
+        log(f"[pa ep{ep+1}] NLL={run/max(nb,1):.4f} full-profile NDCG@10 full={f:.4f} tail={t:.4f} "
+            f"({'PASS >=0.486' if f>=0.486 else 'below gate'}) ({(time.time()-t_ep)/60:.1f}m)")
+        safe_save({"student": student.state_dict(), "decoder": decoder.state_dict(), "opt": opt.state_dict(),
+                   "epoch": ep + 1, "full": f, "tail": t},
+                  os.path.join(OUT, f"{args.tag}.pt"))
+        if f > best:
+            best = f; bad = 0
+            safe_save({"student": student.state_dict(), "decoder": decoder.state_dict(), "epoch": ep + 1, "full": f, "tail": t},
+                      os.path.join(OUT, f"{args.tag}_best.pt"))
+        else:
+            bad += 1
+            log(f"[pa] no improvement over {best:.4f} ({bad}/{args.patience})")
+            if bad >= args.patience:
+                log(f"[pa] CONVERGED (val NDCG flat for {args.patience} epochs)"); break
+    log(f"[pa] done best full-profile={best:.4f} (gate 0.486; a0c 0.4961)")
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("cmd", choices=["pa"])
+    ap.add_argument("--tag", default="pa1"); ap.add_argument("--epochs", type=int, default=10)
+    ap.add_argument("--resume", action="store_true"); ap.add_argument("--patience", type=int, default=3); ap.add_argument("--lam", type=float, default=0.1); ap.add_argument("--token", choices=["mlp","film"], default="mlp"); ap.add_argument("--pool", choices=["attn","belief"], default="attn")
+    a = ap.parse_args()
+    if a.cmd == "pa":
+        cmd_pa(a)
