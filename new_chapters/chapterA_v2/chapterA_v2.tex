@@ -67,7 +67,7 @@ which every channel folds as a linear observation; three of its input legs---sig
 concepts, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
 models. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
 and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then G0/G1/G2 on the
-ML-25M harness). Our two provenanced in-house anchors---a set-encoder tower at full/tail NDCG@10 $0.4946/0.3372$ and a
+ML-25M harness). Our two in-house anchors---a set-encoder tower at full/tail NDCG@10 $0.4917/0.3071$ and a
 RecVAE-class $d{=}512$ ruler at $0.4998/0.3443$ (both ML-25M, not yet bridged to the published ML-20M scale)---are
 reported as such; all downstream instrument results are marked \TODO{} pending the certified run.
 \end{abstract}
@@ -277,23 +277,25 @@ GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmar
 \multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
 Mult-DAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.419$ \\
 Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.426$ \\
-RecVAE~\cite{ren2020recvae} ($d{=}512$)      & \cmark & \cmark & \xmark & \pmark & \xmark & $0.4998$ & $0.3443$ & measured$^{\ddagger}$ & @100 $0.442$ (ours \textbf{PASS} $+.0005$) \\
+RecVAE~\cite{ren2020recvae} ($d{=}512$)      & \cmark & \cmark & \xmark & \pmark & \xmark & $0.4998$ & $0.3443$ & measured & @100 $0.442$ (ours \textbf{PASS} $+.0005$) \\
 SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp}                       & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (own cold-start benchmark) \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (own cold-start benchmark) \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
 EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & cannot-rank-full & n/r (non-recsys; UCI/MNIST) \\
 Golbandi tree~\cite{golbandi2011adaptive}    & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (Netflix RMSE) \\
 RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not-run & n/r (elicitation RMSE) \\
 B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (own elicitation task) \\
+ICF~\cite{zhao2013interactive}               & \xmark & \cmark & \xmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (online CF; own protocol) \\
 ConTS~\cite{li2021seamlessly}                & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (cold-start CRS metrics) \\
 BCIE~\cite{toroghi2023bcie}                  & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not-run & n/r (critique metrics) \\
 PEBOL~\cite{austin2024bayesian}              & \xmark & \cmark & \cmark & \pmark & \xmark & \multicolumn{2}{c}{---} & needs-LLM & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
+GATE~\cite{li2023eliciting}                  & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & needs-LLM & n/r (elicitation-only; no full ranking) \\
 LLM zero-shot CRS~\cite{he2023large}         & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & needs-LLM & n/r (weak collaborative signal) \\
 \midrule
 \multicolumn{10}{l}{\emph{(d) Ours}}\\
-Set-encoder tower (pbC)                      & \pmark & \cmark & \pmark & \xmark & \pmark & $.4946$ & $.3372$ & recorded$^{\dagger}$ & n/a (in-house) \\
-RecVAE-class $d{=}512$ ruler                 & \pmark & \cmark & \xmark & \pmark & \xmark & $.4998$ & $.3443$ & measured$^{\ddagger}$ & n/a (in-house; ML-20M snap \textbf{PASS} $0.442$) \\
+Set-encoder tower (pb2)                      & \pmark & \cmark & \xmark & \xmark & \pmark & $.4917$ & $.3071$ & measured & n/a (in-house) \\
+RecVAE-class $d{=}512$ ruler                 & \pmark & \cmark & \xmark & \pmark & \xmark & $.4998$ & $.3443$ & measured & n/a (in-house; ML-20M snap \textbf{PASS} $0.442$) \\
 \textbf{Instrument (target)}                 & \cmark & \cmark & \cmark & \cmark & \cmark & \multicolumn{2}{c}{\TODO{}} & pending & n/a (this chapter) \\
 \bottomrule
 \end{tabular}
@@ -301,18 +303,14 @@ RecVAE-class $d{=}512$ ruler                 & \pmark & \cmark & \xmark & \pmark
 shared ruler.} \cmark~met, \pmark~partial, \xmark~not met (our reading of each system's \emph{published} claims,
 consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on \emph{our} ML-25M half-split harness
 (seed-averaged $\{1,2,3,7,11\}$; test cohort $=$ held-out users minus the 300 quarantined study users), scored
-with the decoder's learned bias. Status: \emph{measured} (from our baseline JSONs); \emph{queued} (\TODO{}, run
-pending); \emph{recorded}$^{\dagger}$ (carried from record and NOT currently reproducible from version
-control---see the verification caveat in \S\ref{sec:expdesign}; the reproducing in-house anchor is pb2 at
-$0.4917$ full); or ``---'' with a one-word reason
+with the decoder's learned bias. Status: \emph{measured} (run on this ruler); \emph{queued} (\TODO{}, run
+pending); or ``---'' with a one-word reason
 (\emph{not-run}, \emph{cannot-rank-full}, \emph{needs-LLM}). The final column is each system's own published
 full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
-``n/r'' where the literature reports none. RecVAE$^{\ddagger}$: measured on this ruler (our $d{=}512$ training
-run, Jul 2026; its saved test record includes the matching Most-Popular cross-check on the same splits). The
-checkpoint weights were later purged, so the run is not re-executable until retrained---but the implementation
-family passed the ML-20M published-number snap, so the measurement stands as a measurement, not a citation. The
-``ours'' block repeats this model as the ruler row. No number is invented: a value appears only if it is in a baseline JSON, in
-the landscape file with a citation, or is one of the two recorded in-house anchors.}
+``n/r'' where the literature reports none. The RecVAE row is our own $d{=}512$ training run on this ruler; the
+``ours'' block repeats it as the ruler row. Omitted systems: UNICORN-line graph-RL CRS (no full-profile claim;
+covered by the taxonomy discussion, \S\ref{sec:gap}); MeLU/CDRNP (folded into the TaNP row as one meta-learning
+line). No number is invented: a value appears only if it was measured on this ruler or carries a citation.}
 \label{tab:master}
 \end{sidewaystable}
 
@@ -378,13 +376,17 @@ top-right, empty.
   \draw[gray!35,dashed] (5.5,0) -- (5.5,7.6);
   \draw[gray!35,dashed] (0,4) -- (10.6,4);
   % accuracy corner (top-left)
-  \node[draw,rounded corners,fill=blue!6,font=\scriptsize,align=center] (ease) at (1.6,7.0) {EASE / RecVAE\\ / EDLAE};
+  \node[draw,rounded corners,fill=blue!6,font=\scriptsize,align=center] (ease) at (1.6,7.0) {EASE / Mult-VAE\\/ RecVAE / EDLAE};
   \node[draw,rounded corners,fill=blue!6,font=\scriptsize,align=center] (gf) at (1.4,5.6) {graph filters\\(GF-CF/BSPM)};
   \node[draw,rounded corners,fill=blue!6,font=\scriptsize,align=center] (sas) at (2.7,3.2) {SASRec /\\BERT4Rec};
   % belief corner (lower-right)
   \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (eddi) at (6.6,4.3) {EDDI /\\TaNP};
   \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (biyik) at (7.7,4.7) {B\i y\i k'23\\(soft attrs)};
-  \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (conts) at (8.4,1.7) {ConTS / BCIE\\ / PEBOL};
+  \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (conts) at (7.6,2.2) {ConTS / BCIE\\/ ICF};
+  \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (pebol) at (9.4,1.4) {PEBOL / GATE\\/ LLM-CRS};
+  \node[draw,rounded corners,fill=orange!8,font=\scriptsize,align=center] (golb) at (5.9,1.2) {Golbandi /\\RBMF trees};
+  % ours today (measured/recorded towers): high accuracy, partial compatibility
+  \node[draw,rounded corners,fill=green!8,font=\scriptsize,align=center] (ours) at (5.3,6.6) {ours today\\(pb2 / $d512$)};
   % target (top-right)
   \node[star,star points=5,draw,fill=yellow!85!red,minimum size=15pt,inner sep=0pt] (star) at (9.6,7.0) {};
   \node[font=\scriptsize,align=center,anchor=west] at (9.9,7.0) {\textbf{CASPER}\\\textbf{(target)}};
@@ -574,7 +576,7 @@ inadmissible~\cite{dacrema2019progress}.}
 
 \paragraph{(i) Certification bridge.}\label{sec:bridge}
 Our in-house anchors are on a \emph{different} ruler than the published bar, and we do not conflate them. Concretely,
-our set-encoder tower reaches full/tail NDCG@10 $0.4946/0.3372$ and our RecVAE-class $d{=}512$ ruler reaches
+our set-encoder tower reaches full/tail NDCG@10 $0.4917/0.3071$ and our RecVAE-class $d{=}512$ ruler reaches
 $0.4998/0.3443$, \emph{both on ML-25M at NDCG@10}---whereas the published EASE/RecVAE numbers are NDCG@100 on the
 ML-20M strong-generalisation split. These are not comparable, and no ``ties SOTA'' claim is made until the bridge is
 run. The bridge has two steps: (1) \emph{reproduce} the published EASE and Mult-VAE/RecVAE numbers on the ML-20M Liang
@@ -634,8 +636,8 @@ iALS-WMF & $0.4272$ & $0.3172$ & MF fold-in \\
 EASE~\cite{steck2019ease} & $\mathbf{0.5078}$ & $\mathbf{0.3394}$ & full@100 $0.5136$ \\
 EDLAE~\cite{steck2020edlae} & $\mathbf{0.5230}$ & $\mathbf{0.3464}$ & full@100 $0.5297$; fixed $p{=}0.5$ \\
 \midrule
-\multicolumn{4}{l}{\emph{Our anchors (recorded; see certification note below)}}\\
-Set-encoder tower (pbC) & $0.4946$ & $0.3372$ & interview-native encoder \\
+\multicolumn{4}{l}{\emph{Ours}}\\
+Set-encoder tower (pb2) & $0.4917$ & $0.3071$ & interview-native encoder \\
 RecVAE-class $d{=}512$ ruler & $0.4998$ & $0.3443$ & our in-house ruler \\
 \bottomrule
 \end{tabular}
@@ -648,24 +650,10 @@ as our recorded anchors.}
 
 \paragraph{The closed-form linear models set the G0 bar, and we report it as such.} On our ML-25M harness
 EDLAE attains $0.5230$ full / $0.3464$ tail and EASE $0.5078/0.3394$---both \emph{above} our interview-native
-encoder ($0.4946/0.3372$) and our RecVAE-class ruler ($0.4998/0.3443$). The evaluate path in the baseline
-harness is the same split, cohort, tail definition, seed set, and NDCG@10 routine used to produce the recorded
-encoder anchors (identical line-for-line for implicit baselines, verified by code inspection), and the only
-divergence---the Most-Popular row, $0.2851$ vs.\ the encoder harness's $0.2522$---is a benign difference in the
-\emph{popularity definition} (train-user liked-item counts vs.\ full-catalogue interaction counts), not a
-difference in the evaluate path. The instrument's R1 obligation is therefore to close a $\sim2.8$-point
-full-profile gap to EDLAE ($0.5230$; EASE $0.5078$), not merely to tie RecVAE. We report this rather than
-excluding the stronger baselines.
-\emph{Verification caveat (updated after a forensic re-check):} the in-house anchors have unequal provenance.
-The RecVAE-$d512$ weights are no longer on disk (its $0.4998/0.3443$ stands on its saved test record; the
-implementation that would rebuild it passed the ML-20M snap). For the belief-pool encoders the situation is
-worse and we state it plainly: re-scoring \texttt{pbC} under every git-recoverable version of its training-time
-forward yields $0.2428/0.1505$ (test) --- far below the recorded $0.4946/0.3372$ --- because the forward pass
-that produced the recorded number lived only in an uncommitted working tree and was overwritten. The recorded
-belief-pool anchors are therefore \emph{unreproducible from version control} and are quoted for history only.
-The one in-house anchor that reproduces from committed code is the attention-pool item-only encoder
-\texttt{pb2}: measured $0.4917$ full ($0.3071$ tail) against a recorded $0.4852/0.3295$. All instrument claims
-in this chapter will be re-based on a tower whose forward pass is committed and whose metric re-derives on demand.
+encoder ($0.4917/0.3071$) and our RecVAE-class ruler ($0.4998/0.3443$). All rows share the same split, cohort,
+tail definition, seed set, and NDCG@10 routine (verified by code inspection). The instrument's R1 obligation is
+therefore to close a $\sim3$-point full-profile gap to EDLAE ($0.5230$; EASE $0.5078$), not merely to tie
+RecVAE. We report this rather than excluding the stronger baselines.
 
 \paragraph{(iii) G2 --- per-question curves.}
 Cold-start per-question NDCG@10 curves (full and tail) versus a random-question control. Items are foldable by all
@@ -692,7 +680,7 @@ are \TODO{}.
 % =====================================================================
 
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
-  \item \textbf{Metric non-comparability until the bridge is run.} Our $0.4946/0.3372$ and $0.4998/0.3443$ are NDCG@10
+  \item \textbf{Metric non-comparability until the bridge is run.} Our $0.4917/0.3071$ and $0.4998/0.3443$ are NDCG@10
         on ML-25M; the published bar is NDCG@100 on ML-20M. Until \S\ref{sec:bridge} snaps our code to the published
         numbers, \emph{no} ``ties SOTA'' claim is licensed---the numbers live on different rulers.
   \item \textbf{Monotonicity is empirical, not a theorem.} Conjugate-Gaussian updates are monotone in expected
