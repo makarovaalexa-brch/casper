@@ -125,8 +125,9 @@ def reconstruct_val_userids(log):
        catalog: set of catalog movieIds.
     Also returns the raw dataframe restricted to (catalog movies) for downstream dislike lookup."""
     import pandas as pd
-    log("[recon] loading raw ratings.csv (25M rows) ...")
-    raw = pd.read_csv(RAW)
+    log("[recon] loading raw ratings.csv (25M rows, usecols+dtypes to bound RAM) ...")
+    raw = pd.read_csv(RAW, usecols=["userId", "movieId", "rating"],
+                      dtype={"userId": np.int32, "movieId": np.int32, "rating": np.float32})
     icnt = raw.groupby("movieId").size()
     catalog = set(icnt[icnt >= CATALOG_MIN_RATINGS].index.tolist())
     if len(catalog) != CATALOG_N_EXPECTED:
@@ -287,13 +288,13 @@ def main():
     val_uid2userid, show2id, catalog, raw = reconstruct_val_userids(log)
 
     # sanity: reconstructed liked-catalog-vocab items == validation_tr U validation_te for a sample
-    import pandas as pd
-    liked_raw = raw[raw["rating"] > RATING_GT]
+    sample = val_uids[:200]
+    sample_userids = {val_uid2userid[u] for u in sample if u in val_uid2userid}
+    liked_raw = raw[(raw["rating"] > RATING_GT) & (raw["userId"].isin(sample_userids))]
     liked_by_user = {}
     for uid, mid in zip(liked_raw["userId"].to_numpy(), liked_raw["movieId"].to_numpy()):
         if mid in show2id:
             liked_by_user.setdefault(int(uid), set()).add(show2id[mid])
-    sample = val_uids[:200]
     n_ok = 0
     for u in sample:
         userid = val_uid2userid.get(u)
@@ -305,8 +306,9 @@ def main():
     if n_ok < len(sample):
         raise SystemExit(f"[recon] MAPPING MISMATCH ({n_ok}/{len(sample)}); reconstruction unreliable -- abort")
 
-    # disliked catalog+vocab items per val userId (star <= 2.5)
-    dis_raw = raw[raw["rating"] <= DISLIKE_LE]
+    # disliked catalog+vocab items per val userId (star <= 2.5) -- restrict to VAL userIds (RAM)
+    val_userid_set = set(val_uid2userid.values())
+    dis_raw = raw[(raw["rating"] <= DISLIKE_LE) & (raw["userId"].isin(val_userid_set))]
     dislikes_by_user = {}
     for uid, mid in zip(dis_raw["userId"].to_numpy(), dis_raw["movieId"].to_numpy()):
         if mid in show2id:
