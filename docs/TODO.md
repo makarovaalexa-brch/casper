@@ -11,6 +11,15 @@ fought ON the certified instrument. Elicitation-line SYSTEMS appear in A only as
 recommender cores); their POLICIES fight in B.
 
 ## Running / imminent
+- [ ] **⚠ GATING PROBE (before any T2' night): dislike-separability on the canonical teacher**
+      (RUNG1-Check-2 rerun; `scripts/_verify/probe_dislike_separability.py`, agent building+running).
+      PASS cutoffs pre-registered: disliked falls ≥0.10 pctile more than liked; dislike-heavy ΔNDCG ≥
+      −0.005. **FAIL ⇒ frozen-geometry tower is DEAD for G3 → escalate to trainable-decoder tower; do
+      NOT spend the training night.** Also produces the teacher cold-curve (λ_z gate calibration).
+      Rerun on the FINAL RecVAE ckpt when training completes (minutes).
+- [ ] **T2' builder folding the 7 review repairs** (λ_z gate/anneal, γ-sign per-token, normalized
+      identities, dislike negatives, evidence-gate intercept, freeze-out-of-optimizer, G0 split) —
+      then MY review of the final code, commit, and only then (probe permitting) the night.
 - [ ] **RecVAE canonical-ruler** (training, val peak ~0.3504 @ep20; verdict vs EASE 0.3476/0.2441)
       → on completion auto-launch chain: Mult-DAE ML-20M snap → belief_mf → golbandi_node → Mult-VAE snap.
 - [ ] **T2' training night** (next): graded-native tower on canonical split (`src/instrument/
