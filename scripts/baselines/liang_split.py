@@ -35,13 +35,31 @@ PARAMETERS (verbatim from the notebook):
         replace=False)] = True` -> 20% target ("te"), 80% fold-in ("tr").
         (all our held-out users have >=5 items by the min_uc=5 filter above.)
 
-OUTPUTS (data/ml-20m/proc/): unique_sid.txt, train.csv, validation_tr.csv, validation_te.csv,
+OUTPUTS (<proc>/): unique_sid.txt, train.csv, validation_tr.csv, validation_te.csv,
   test_tr.csv, test_te.csv, meta.json.  New contiguous ids: uid = profile2id[userId], sid = show2id[movieId].
 
-Usage:  python scripts/baselines/liang_split.py
+DATASETS (--data, default ml-20m; ONE code path, only the data locations change):
+  ml-20m: RAW = data/ml-20m/ratings.csv               OUT = data/ml-20m/proc/  (published 20108 items)
+  ml-25m: RAW = data/movielens/ratings.csv (25M rows) OUT = data/ml-25m/proc/  (CASPER canonical ruler,
+          author-approved 2026-07-21).  ML-25M is also half-star, so `> 3.5` == `>= 4.0` identically.
+  ALL user-side constants (rating>3.5, min_uc=5, 10k+10k held-out, test_prop=0.2, seed 98765) are the
+  SAME for both -- the recipe is not forked, only RAW/OUT differ.
+
+  ML-25M CATALOG RESTRICTION (explicit, AUTHOR-APPROVED deviation from Liang's min_sc=0, 2026-07-22):
+  before the rating>3.5 binarization, the raw ratings are filtered to the project-wide 18,430-item
+  catalog = movies with >= 20 TOTAL ratings (ALL rating bands) over the full 25M raw file -- derived
+  exactly as scripts/instrument2/ml25m_arena.py's cached build does
+  (scripts/_archive/paper2_old/ml25m_build_svd_full.py: `uniqI[icnt >= 20]`). Rationale: cross-chapter
+  consistency (every CASPER chapter scores this catalog) and RAM feasibility (EASE/EDLAE closed forms
+  are m x m dense float64). The script ASSERTS the derived set has exactly 18,430 movieIds and aborts
+  with the actual count otherwise. User-side protocol stays Liang-verbatim; the final item vocab is
+  still taken from TRAIN users only (so n_items <= 18430).
+
+Usage:  python scripts/baselines/liang_split.py [--data {ml-20m,ml-25m}]
 """
 import os
 import json
+import argparse
 import numpy as np
 import pandas as pd
 
@@ -51,12 +69,23 @@ MIN_SC = 0            # as in dawenl/vae_cf
 N_HELDOUT = 10000     # as in dawenl/vae_cf (n_heldout_users)
 TEST_PROP = 0.2       # as in dawenl/vae_cf (test_prop)
 RATING_GT = 3.5       # as in dawenl/vae_cf (raw_data['rating'] > 3.5)
+CATALOG_MIN_RATINGS = 20   # ml-25m ONLY: project catalog = movies w/ >=20 total ratings (all bands)
+CATALOG_N_EXPECTED = 18430  # ml-25m ONLY: must match the arena catalog EXACTLY (else abort)
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
+
+# RAW/OUT per dataset -- SAME recipe, two data locations (see DATASETS above).
+_LOCATIONS = {
+    "ml-20m": {"raw": os.path.join(_ROOT, "data", "ml-20m", "ratings.csv"),
+               "out": os.path.join(_ROOT, "data", "ml-20m", "proc")},
+    "ml-25m": {"raw": os.path.join(_ROOT, "data", "movielens", "ratings.csv"),
+               "out": os.path.join(_ROOT, "data", "ml-25m", "proc")},
+}
+# Module-level defaults preserved for backward compat (ml-20m); main() overrides from --data.
 DATA_DIR = os.path.join(_ROOT, "data", "ml-20m")
-RAW = os.path.join(DATA_DIR, "ratings.csv")
-OUT = os.path.join(DATA_DIR, "proc")
+RAW = _LOCATIONS["ml-20m"]["raw"]
+OUT = _LOCATIONS["ml-20m"]["out"]
 
 
 def get_count(tp, id_col):
@@ -107,12 +136,35 @@ def numerize(tp, profile2id, show2id):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data", choices=["ml-20m", "ml-25m"], default="ml-20m",
+                    help="which MovieLens dump to split (SAME recipe, different RAW/OUT)")
+    args = ap.parse_args()
+    RAW = _LOCATIONS[args.data]["raw"]
+    OUT = _LOCATIONS[args.data]["out"]
+    print(f"[liang] dataset={args.data}  RAW={RAW}  OUT={OUT}", flush=True)
     if not os.path.exists(RAW):
-        raise SystemExit(f"[liang] {RAW} not found. Run scripts/baselines/download_ml20m.py first.")
+        raise SystemExit(f"[liang] {RAW} not found "
+                         f"({'run scripts/baselines/download_ml20m.py first' if args.data == 'ml-20m' else 'expected the ML-25M ratings.csv'}).")
     os.makedirs(OUT, exist_ok=True)
     print(f"[liang] loading {RAW}", flush=True)
     raw = pd.read_csv(RAW)
     print(f"[liang] raw interactions: {len(raw):,}", flush=True)
+
+    if args.data == "ml-25m":
+        # AUTHOR-APPROVED deviation from min_sc=0 (2026-07-22): restrict to the project-wide
+        # 18,430-item catalog (movies with >= CATALOG_MIN_RATINGS total ratings over ALL bands of the
+        # full raw file -- the ml25m_arena.py catalog) BEFORE binarization. See module docstring.
+        icnt = raw.groupby("movieId").size()
+        catalog = set(icnt[icnt >= CATALOG_MIN_RATINGS].index.tolist())
+        if len(catalog) != CATALOG_N_EXPECTED:
+            raise SystemExit(f"[liang] CATALOG MISMATCH: derived {len(catalog)} movies with "
+                             f">={CATALOG_MIN_RATINGS} total ratings, expected {CATALOG_N_EXPECTED} "
+                             f"(arena catalog). STOP -- verify the raw file before proceeding.")
+        raw = raw[raw["movieId"].isin(catalog)]
+        print(f"[liang] ml-25m catalog restriction: {len(catalog):,} movies "
+              f"(>= {CATALOG_MIN_RATINGS} total ratings, all bands); "
+              f"{len(raw):,} interactions kept", flush=True)
 
     # binarize: keep ratings > 3.5  (== >= 4.0 for half-star data)  -- as in dawenl/vae_cf
     raw = raw[raw["rating"] > RATING_GT]
@@ -169,13 +221,20 @@ def main():
         "n_events_total": int(raw.shape[0]),
         "seed": SEED, "min_uc": MIN_UC, "min_sc": MIN_SC, "rating_gt": RATING_GT,
         "n_heldout_users": N_HELDOUT, "test_prop": TEST_PROP,
-        "provenance": "dawenl/vae_cf VAE_ML20M_WWW2018.ipynb (bit-faithful)",
+        "dataset": args.data, "raw": RAW,
+        "provenance": "dawenl/vae_cf VAE_ML20M_WWW2018.ipynb (bit-faithful recipe; "
+                      + ("ML-20M raw" if args.data == "ml-20m" else "applied to ML-25M raw") + ")",
     }
+    if args.data == "ml-25m":
+        meta["catalog_restriction"] = (
+            f"AUTHOR-APPROVED deviation from min_sc=0 (2026-07-22): raw pre-filtered to the "
+            f"project-wide {CATALOG_N_EXPECTED}-item catalog (movies with >= {CATALOG_MIN_RATINGS} "
+            f"total ratings, all bands, full 25M file == ml25m_arena.py catalog); user-side Liang-verbatim")
     with open(os.path.join(OUT, "meta.json"), "w") as f:
         json.dump(meta, f, indent=2)
     print(f"[liang] DONE. meta={meta}", flush=True)
-    # Expected (published): ~9,990,682 events, ~136,677 users, 20,108 items.
-    if len(unique_sid) != 20108:
+    # ml-20m expected (published): ~9,990,682 events, ~136,677 users, 20,108 items.
+    if args.data == "ml-20m" and len(unique_sid) != 20108:
         print(f"[liang] NOTE: item vocab = {len(unique_sid)} (published Liang split = 20108). "
               f"Verify the raw ratings.csv is the canonical ML-20M before trusting snaps.", flush=True)
 

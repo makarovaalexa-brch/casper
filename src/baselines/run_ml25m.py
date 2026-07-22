@@ -1,4 +1,10 @@
-"""run_ml25m.py -- run the SAME baseline code on CASPER's canonical ML-25M strong-generalization harness.
+"""run_ml25m.py -- arena 500/500 split runner -- ELICITATION-LINE ONLY, NOT for full-profile claims
+(author ruling 2026-07-21). DEPRECATED as the G0 runner: the canonical full-profile ruler is now the
+Liang-recipe ML-25M split (10k+10k held-out users); use src/baselines/run_ml25m_liang.py for any
+G0 / full-profile / full+tail-NDCG number. This file is kept only for continuity of the arena
+elicitation line (500 test users minus the 300 study quarantine, per-user half-split).
+
+run_ml25m.py -- run the SAME baseline code on CASPER's canonical ML-25M strong-generalization harness.
 
 The harness is REUSED verbatim from scripts/signed_latent.py (the eval that produced the canonical
 pbC set-encoder full/tail NDCG@10 = 0.4946/0.3372 and reproduces RecVAE-d512 0.4998/0.3443):
