@@ -364,7 +364,7 @@ GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmar
 \multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
 Mult-DAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.419$ \\
 Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.426$ \\
-RecVAE~\cite{ren2020recvae} (ours, paper config) & \cmark & \cmark & \xmark & \pmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (ours \textbf{PASS} $+.0005$) \\
+RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \cmark & \xmark & \pmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
 SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & run planned (public code) & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
 TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (own cold-start benchmark) \\
 \midrule
@@ -482,8 +482,10 @@ interview-compatibility rises, so the top-right---high compatibility \emph{and} 
   % --- target region: top-right, x>=4 and y>=frontier bar (RecVAE 0.354) ---
   \fill[green!14] (axis cs:4,0.354) rectangle (axis cs:5,0.38);
   \draw[green!45!black,dashed] (axis cs:4,0.354) rectangle (axis cs:5,0.38);
-  \node[green!45!black,font=\scriptsize,align=center] at (axis cs:4.5,0.368)
-        {instrument target\\(T2$'$, \textcolor{red}{\textbf{TODO}})};
+  \node[star,star points=5,draw=green!45!black,fill=yellow!85!red,minimum size=11pt,inner sep=0pt]
+        at (axis cs:4.5,0.373) {};
+  \node[green!45!black,font=\scriptsize,align=center,anchor=north] at (axis cs:4.5,0.370)
+        {\textbf{CASPER} (target)\\(T2$'$, \textcolor{red}{\textbf{TODO}})};
   % --- measured points (filled) ---
   \addplot[only marks,mark=*,mark size=2.6pt,color=blue!55!black] coordinates {
     (1.5,0.1345) (1.5,0.2428) (1.5,0.2442) (3.0,0.2019)
@@ -496,7 +498,7 @@ interview-compatibility rises, so the top-right---high compatibility \emph{and} 
   \node[font=\scriptsize,anchor=east] at (axis cs:0.92,0.3065) {Golbandi-node};
   \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3400) {EDLAE};
   \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3490) {EASE};
-  \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3585) {\textbf{RecVAE (ours)}};
+  \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3585) {\textbf{RecVAE}};
   \node[font=\scriptsize,anchor=south west] at (axis cs:3.02,0.2019) {belief-MF (B\i y\i k/ConTS core)};
   % --- unmeasured / unrunnable systems: hollow, pinned at the axis floor ---
   \addplot[only marks,mark=o,mark size=2.6pt,color=gray] coordinates {
@@ -742,7 +744,7 @@ iALS-WMF & $0.2442$ & $0.1853$ & @100 $0.3704$; MF fold-in \\
 Golbandi node recommender & $0.3065$ & $0.1895$ & @100 $0.3958$; best-effort tree core \\
 EDLAE~\cite{steck2020edlae} & $0.3433$ & $0.2395$ & @100 $0.4330$; val $p{=}0.4$ \\
 EASE~\cite{steck2019ease} & $0.3476$ & $0.2441$ & @100 $0.4375$ \\
-RecVAE (ours, paper config)~\cite{ren2020recvae} & $\mathbf{0.3540}$ & $\mathbf{0.2497}$ & @100 $0.4537$; nominal frontier \\
+RecVAE (paper config; our run)~\cite{ren2020recvae} & $\mathbf{0.3540}$ & $\mathbf{0.2497}$ & @100 $0.4537$; nominal frontier \\
 \midrule
 \multicolumn{4}{l}{\emph{Ours}}\\
 Set-encoder tower T2$'$ (ours) & \multicolumn{2}{c}{\TODO{}} & graded-native interview tower (training) \\
