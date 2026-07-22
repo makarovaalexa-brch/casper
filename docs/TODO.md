@@ -11,15 +11,14 @@ fought ON the certified instrument. Elicitation-line SYSTEMS appear in A only as
 recommender cores); their POLICIES fight in B.
 
 ## Running / imminent
-- [ ] **⚠ GATING PROBE (before any T2' night): dislike-separability on the canonical teacher**
-      (RUNG1-Check-2 rerun; `scripts/_verify/probe_dislike_separability.py`, agent building+running).
-      PASS cutoffs pre-registered: disliked falls ≥0.10 pctile more than liked; dislike-heavy ΔNDCG ≥
-      −0.005. **FAIL ⇒ frozen-geometry tower is DEAD for G3 → escalate to trainable-decoder tower; do
-      NOT spend the training night.** Also produces the teacher cold-curve (λ_z gate calibration).
-      Rerun on the FINAL RecVAE ckpt when training completes (minutes).
-- [ ] **T2' builder folding the 7 review repairs** (λ_z gate/anneal, γ-sign per-token, normalized
-      identities, dislike negatives, evidence-gate intercept, freeze-out-of-optimizer, G0 split) —
-      then MY review of the final code, commit, and only then (probe permitting) the night.
+- [x] **GATING PROBE: FAILED (Jul 22 16:30) — frozen geometry DEAD.** No η gives ≥0.10 separation at
+      ≤0.005 NDCG cost (best: +0.216 sep at −0.221 full). RUNG1 ceiling reproduced on canonical teacher.
+      Teacher cold-curve: below pop floor at k≤2. `experiments/baselines/probe_separability.json`.
+- [ ] **ESCALATION (pre-registered): T2' = warm-init TRAINABLE-decoder** — decoder+embeddings initialized
+      from RecVAE ckpt but trainable; KD off; all other v3 repairs carried (γ-sign, dislike negatives,
+      evidence gate, G0 split vs RecVAE full-profile). Builder implementing --warm_init mode → my review →
+      commit → the training night (~74 min/epoch class). NOTE: geometry now emerges in training → concept
+      directions/Σ defined on the FINAL T2' latent, not RecVAE's (design-sheet consequence, minor).
 - [ ] **RecVAE canonical-ruler** (training, val peak ~0.3504 @ep20; verdict vs EASE 0.3476/0.2441)
       → on completion auto-launch chain: Mult-DAE ML-20M snap → belief_mf → golbandi_node → Mult-VAE snap.
 - [ ] **T2' training night** (next): graded-native tower on canonical split (`src/instrument/

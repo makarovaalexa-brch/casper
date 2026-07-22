@@ -6,8 +6,18 @@ an order-invariant set encoder over (item, half-star-level) tokens -- on the can
 be scored on this ruler (its train users overlap the new test cohort = leak); this file re-trains pb2-class
 on the canonical partition. Emits experiments/baselines/ml25m_liang/tower_t2.json.
 
-TWO TEACHER MODES (author-approved architecture revision, 2026-07-22):
-  --teacher recvae  (DEFAULT): distill T1 RecVAE into the set encoder with FROZEN geometry.
+THREE MODES (--teacher {warm_init, recvae, none}; default warm_init):
+  --teacher warm_init (DEFAULT; pre-registered escalation after the dislike-separability probe FAILED
+      2026-07-22 -- the frozen RecVAE decoder cannot separate dislike neighborhoods at acceptable cost):
+      TRAINABLE-decoder T2'. Decoder W+b AND input item identities are INITIALIZED from the RecVAE ckpt
+      but TRAINABLE (in the optimizer, normal weight decay). Latent KD is OFF (a different geometry will
+      emerge; the teacher is REMOVED from the loss path -- the ckpt is init-only). Item identities are
+      normalized ONCE at init then train freely; the separate norm scalar feature is dropped in this
+      mode. Everything else = v3 verbatim: gamma-sign init, dislike negatives w_neg, evidence gate
+      g(0)=0 with z0 frozen at 0 (intercept = the TRAINABLE bias, init from RecVAE's), G0 split
+      reporting (the strength tie target stays the frozen RecVAE full-profile). The trunk-drift assert
+      is REMOVED in this mode (things are supposed to move); it stays in --teacher recvae.
+  --teacher recvae: distill T1 RecVAE into the set encoder with FROZEN geometry.
       * Loads `.cache/baselines/recvae_ml25m_liang.pt` (src/baselines/recvae.py state-dict; prefers
         state.best_state = the best-on-val weights, HR9, else the last `model`). d_latent=200.
       * FROZEN + reused: the RecVAE decoder Linear(200 -> n_items) INCLUDING its bias. The set encoder
