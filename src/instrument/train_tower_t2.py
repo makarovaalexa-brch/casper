@@ -617,7 +617,23 @@ def apply_sign_prior(enc):
 
 def build_model(args, ni, cnt, teacher_override=None):
     """Returns (enc, decoder, teacher, trainable_params). teacher_override lets smoke inject a fake."""
-    if args.teacher == "recvae":
+    if args.teacher == "warm_init":
+        # pre-registered escalation (probe FAIL 2026-07-22): TRAINABLE decoder + identities, RecVAE ckpt
+        # is INIT-ONLY -- the model is dropped from the loss path (returned teacher=None -> no latent KD).
+        src = teacher_override if teacher_override is not None else \
+            load_recvae_teacher(ni, hidden=args.t_hidden, latent=args.t_latent)
+        d_out = args.t_latent
+        enc = SetEncoder(ni, d=D, d_out=d_out, d_emb=d_out, token_mode=args.token, norm_feat=False)
+        decoder = nn.Linear(d_out, ni)
+        with torch.no_grad():
+            decoder.weight.copy_(src.decoder.weight)         # TRAINABLE, warm init
+            decoder.bias.copy_(src.decoder.bias)             # intercept starts at RecVAE's marginal
+            norms = src.decoder.weight.norm(dim=1).clamp_min(1e-8)
+            enc.item_emb.weight.copy_(src.decoder.weight / norms.unsqueeze(1))  # normalized ONCE at init
+        enc.z0.requires_grad_(False)                         # gate + z0=0 -> enc(empty)=decoder bias(t)
+        teacher = None                                       # latent KD OFF; ckpt not in the loss path
+        log("[model] warm_init: decoder W+b + item identities TRAINABLE (RecVAE init); latent KD OFF")
+    elif args.teacher == "recvae":
         teacher = teacher_override if teacher_override is not None else \
             load_recvae_teacher(ni, hidden=args.t_hidden, latent=args.t_latent)
         d_out = args.t_latent
@@ -793,12 +809,17 @@ def train(args):
            "ndcg@10": tm["ndcg@10"], "ndcg@10_se": tm["ndcg@10_se"],
            "tail_ndcg@10": tm["tail_ndcg@10"], "ndcg@100": tm["ndcg@100"],
            "recall@20": tm["recall@20"], "recall@50": tm["recall@50"], "val_full@10_best": best,
-           "geometry": ("FROZEN RecVAE decoder+bias+identities (recvae_ml25m_liang.pt best_state)"
-                        if args.teacher == "recvae" else "from scratch; pop-init decoder bias")}
-    if args.teacher == "recvae":                             # repair 7: G0 reporting split
+           "geometry": {"warm_init": "TRAINABLE decoder+identities, RecVAE warm init, latent KD OFF",
+                        "recvae": "FROZEN RecVAE decoder+bias+identities (recvae_ml25m_liang.pt best_state)",
+                        "none": "from scratch; pop-init decoder bias"}[args.teacher]}
+    if args.teacher in ("recvae", "warm_init"):              # repair 7: G0 reporting split
         # G0-strength: CI-tie of the tower's full-fold test NDCG@10 vs the frozen RecVAE's own
+        # (in warm_init the tie TARGET stays the frozen ckpt RecVAE -- reload it, the trained decoder
+        # has moved away from it by design)
+        g0_ref = teacher if teacher is not None else \
+            load_recvae_teacher(ni, hidden=args.t_hidden, latent=args.t_latent)
         te_tr, te_te = M.load_test(ni, PROC)
-        rec_res = M.evaluate(R.make_predict_fn(teacher), te_tr, te_te, batch_size=500,
+        rec_res = M.evaluate(R.make_predict_fn(g0_ref), te_tr, te_te, batch_size=500,
                              head_mask=head_mask)
         diff = tm["ndcg@10"] - rec_res["ndcg@10"]
         ci = 1.96 * float(np.sqrt(tm["ndcg@10_se"] ** 2 + rec_res["ndcg@10_se"] ** 2))
@@ -846,14 +867,23 @@ def dry_run(args):
     loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam0)
     opt.zero_grad(); loss.backward(); opt.step()
     log(f"[DRY] one fwd/bwd on {len(exs)} users OK: NLL={nll_v:.4f} zMSE={mse_v:.4f} lam_glob={lam0:.3f}")
+    opt_ids = {id(p) for grp in opt.param_groups for p in grp["params"]}
     if args.teacher == "recvae":
         assert not decoder.weight.requires_grad and not decoder.bias.requires_grad, "decoder not frozen"
         assert not enc.z0.requires_grad, "z0 not frozen (intercept identity needs z0 fixed at 0)"
         assert args.unfreeze_emb or not enc.item_emb.weight.requires_grad, "item_emb not frozen"
-        opt_ids = {id(p) for grp in opt.param_groups for p in grp["params"]}
         assert id(decoder.weight) not in opt_ids and id(decoder.bias) not in opt_ids \
             and id(enc.z0) not in opt_ids, "frozen tensor leaked into the optimizer (repair 6)"
         log("[DRY] frozen-geometry asserts PASS (decoder/z0/item_emb frozen + excluded from optimizer)")
+    elif args.teacher == "warm_init":
+        assert decoder.weight.requires_grad and decoder.bias.requires_grad, "decoder should be TRAINABLE"
+        assert enc.item_emb.weight.requires_grad, "item identities should be TRAINABLE"
+        assert not enc.z0.requires_grad and id(enc.z0) not in opt_ids, "z0 must stay frozen at 0"
+        assert id(decoder.weight) in opt_ids and id(enc.item_emb.weight) in opt_ids, \
+            "trainable warm-init tensors missing from the optimizer"
+        assert teacher is None, "warm_init must not keep the RecVAE in the loss path"
+        log("[DRY] warm_init asserts PASS (decoder+identities trainable in optimizer; z0 frozen; "
+            "no teacher in loss path)")
 
     # calibrated epoch-time estimate: time one epoch over `ncal` users, scale to 140768
     lens = np.array([len(u["items"]) for u in users])
@@ -895,8 +925,8 @@ def smoke(args):
                       "disliked": items[lvls <= 4]})       # repair 4: dislike band (<=2.5 stars)
 
     teacher_override = None
-    if args.teacher == "recvae":
-        # fake teacher: random-weight RecVAE saved+loaded through the REAL load path
+    if args.teacher in ("recvae", "warm_init"):
+        # fake teacher/init source: random-weight RecVAE saved+loaded through the REAL load path
         args.t_hidden, args.t_latent = 24, 16
         fake = R.RecVAE(args.t_hidden, args.t_latent, ni)
         tmp = os.path.join(CKPT_DIR, "_smoke_recvae.pt"); os.makedirs(CKPT_DIR, exist_ok=True)
@@ -907,14 +937,15 @@ def smoke(args):
     enc, decoder, teacher, params = build_model(args, ni, cnt, teacher_override=teacher_override)
     znorm, rho = report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), None, "SMOKE-init")
     assert znorm < 1e-6, "zero-init intercept identity broken (enc(empty) != 0 at init)"
-    if args.teacher == "recvae":
+    if args.teacher in ("recvae", "warm_init"):
         with torch.no_grad():
             sc0 = (enc(torch.zeros((1, 1), dtype=torch.long), torch.zeros((1, 1)),
                        torch.ones((1, 1), dtype=torch.bool), torch.zeros((1, 1), dtype=torch.long))
                    @ decoder.weight.T + decoder.bias)[0]
-        assert torch.equal(sc0, decoder.bias), "enc(empty) does not decode BIT-EXACTLY to frozen bias"
-        print("[SMOKE] intercept identity PASS: enc(empty) decodes BIT-EXACTLY to the frozen decoder "
-              "bias (gate g(0)=0 + frozen z0=0 -- holds at every training step, not just init)")
+        assert torch.equal(sc0, decoder.bias), "enc(empty) does not decode BIT-EXACTLY to the bias"
+        print("[SMOKE] intercept identity PASS: enc(empty) decodes BIT-EXACTLY to the decoder bias "
+              "(gate g(0)=0 + frozen z0=0 -- holds at every training step; in warm_init the bias itself "
+              "is trainable, the identity tracks the CURRENT bias)")
         if args.sign_prior:
             g = enc.gamma.weight.detach()
             v = level_valence()
@@ -938,6 +969,7 @@ def smoke(args):
     lens = np.array([len(u["items"]) for u in users])
     batches_all = make_batches(users, np.argsort(lens))
     E0 = enc.item_emb.weight.detach().clone()
+    W0 = decoder.weight.detach().clone()
     for ep in range(3):
         enc.train(); r = np.random.default_rng(ep)
         lam_glob = lam_anneal(ep, args.lambda_z, args.anneal_epochs)
@@ -959,14 +991,21 @@ def smoke(args):
                "frozen item identities CHANGED during training"
         print("[SMOKE] frozen-geometry immutability PASS (decoder + item identities bit-identical "
               "after 3 epochs)")
-        # repair 5: the intercept must STILL be bit-exact AFTER training (gate property, not init)
+    elif args.teacher == "warm_init":
+        assert not torch.equal(decoder.weight, W0), "warm_init decoder did NOT move (should be trainable)"
+        assert not torch.equal(enc.item_emb.weight, E0), "warm_init identities did NOT move"
+        print("[SMOKE] warm_init trainability PASS (decoder + item identities moved after 3 epochs)")
+    if args.teacher in ("recvae", "warm_init"):
+        # repair 5: the intercept must STILL be bit-exact AFTER training (gate property, not init;
+        # in warm_init the identity tracks the CURRENT trainable bias)
         enc.eval()
         with torch.no_grad():
             sc1 = (enc(torch.zeros((1, 1), dtype=torch.long), torch.zeros((1, 1)),
                        torch.ones((1, 1), dtype=torch.bool), torch.zeros((1, 1), dtype=torch.long))
                    @ decoder.weight.T + decoder.bias)[0]
         assert torch.equal(sc1, decoder.bias), "intercept identity LOST after training (gate broken)"
-        print("[SMOKE] post-training intercept PASS: enc(empty) STILL decodes bit-exactly to the bias")
+        print("[SMOKE] post-training intercept PASS: enc(empty) STILL decodes bit-exactly to the "
+              "(current) bias")
 
     # eval path smoke: synthetic graded fold-in matrix + head_mask through metrics.evaluate
     tr = sparse.csr_matrix((np.ones(600), (rng.randint(0, 60, 600), rng.randint(0, ni, 600))),
@@ -999,8 +1038,10 @@ def main():
     ap.add_argument("--max_users", type=int, default=0, help="cap MATERIALISED users (dev only; 0=all)")
     ap.add_argument("--dry_users", type=int, default=2000, help="users to time for the epoch estimate")
     # teacher-mode revision (2026-07-22)
-    ap.add_argument("--teacher", choices=["recvae", "none"], default="recvae",
-                    help="recvae = frozen T1 geometry + latent distill (DEFAULT); none = from-scratch arm")
+    ap.add_argument("--teacher", choices=["warm_init", "recvae", "none"], default="warm_init",
+                    help="warm_init = TRAINABLE decoder/identities from RecVAE init, no latent KD "
+                         "(DEFAULT; probe-FAIL escalation); recvae = frozen T1 geometry + latent "
+                         "distill; none = from-scratch arm")
     ap.add_argument("--lambda_z", type=float, default=0.5,
                     help="INITIAL global latent-KD weight; annealed ->0 over anneal_epochs (repair 1)")
     ap.add_argument("--anneal_epochs", type=int, default=10,
