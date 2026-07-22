@@ -14,10 +14,13 @@ recommender cores); their POLICIES fight in B.
 - [ ] **RecVAE canonical-ruler** (training, val peak ~0.3504 @ep20; verdict vs EASE 0.3476/0.2441)
       → on completion auto-launch chain: Mult-DAE ML-20M snap → belief_mf → golbandi_node → Mult-VAE snap.
 - [ ] **T2' training night** (next): graded-native tower on canonical split (`src/instrument/
-      train_tower_t2.py`, committed). Include the graded-vs-binarized ablation arm (tower-level G3c
-      sanity). ~74 min/epoch from scratch — expect 2–4 nights, resume-capable.
-- [ ] **Tower pick at G0'**: T2' vs bar (EASE/RecVAE). **AUTHOR RULE: T3' distillation ONLY if T2' gap is
-      CI-significant; within-noise ⇒ T2' is the tower.**
+      train_tower_t2.py`, committed). **AUTHOR REVISION (Jul 22): KD ON from night one** (α_kd=0.5,
+      teacher = EDLAE exported B; RecVAE outputs = alternate teacher) — distilling from the start is free;
+      the old no-distillation rule now means: no SECOND tuning night if within noise of the bar.
+      ⚠ KD RISK = G3 (all teachers are grade-blind): canary = the graded-vs-binarized ablation arm — if
+      graded ≠> binarized on val, α_kd comes down. Prereq: `edlae.py --export_B` on the canonical split.
+      ~74 min/epoch — expect 2–4 nights, resume-capable.
+- [ ] **Tower pick at G0'**: T2'(+KD) vs bar (EASE/RecVAE); within-noise of the bar = good enough, move on.
 
 ## Step 2 — the instrument (chapter A core)
 - [ ] **Belief-layer + battery code** vs `docs/design/DESIGN_SHEET_STEP2_BELIEF.md` (v2.2: design (ii);
