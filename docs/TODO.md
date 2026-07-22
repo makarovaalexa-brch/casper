@@ -14,7 +14,12 @@ recommender cores); their POLICIES fight in B.
 - [ ] **RecVAE canonical-ruler** (training, val peak ~0.3504 @ep20; verdict vs EASE 0.3476/0.2441)
       → on completion auto-launch chain: Mult-DAE ML-20M snap → belief_mf → golbandi_node → Mult-VAE snap.
 - [ ] **T2' training night** (next): graded-native tower on canonical split (`src/instrument/
-      train_tower_t2.py`, committed). **AUTHOR REVISION (Jul 22): KD ON from night one** (α_kd=0.5,
+      train_tower_t2.py`, committed). **AUTHOR REVISION v2 (Jul 22): distill T1 RecVAE with FROZEN geometry** — decoder+bias and
+      input item embeddings frozen from tonight's RecVAE ckpt; ONLY attention+FiLM train; loss = latent
+      regression to the RecVAE encoder on binarized SUBSETS (subset-fed teacher supervises the interview
+      regime k=1..8) + graded NLL; set-encoder output dim = 200; fallback --unfreeze_emb if val stalls;
+      expect much faster epochs (frozen big matrices). SUPERSEDES v1 below:
+      ~~KD ON from night one~~ (α_kd=0.5,
       teacher = EDLAE exported B; RecVAE outputs = alternate teacher) — distilling from the start is free;
       the old no-distillation rule now means: no SECOND tuning night if within noise of the bar.
       ⚠ KD RISK = G3 (all teachers are grade-blind): canary = the graded-vs-binarized ablation arm — if
