@@ -471,9 +471,11 @@ interview-compatibility rises, so the top-right---high compatibility \emph{and} 
     width=13.5cm, height=9cm,
     xlabel={interview-compatibility score (R1--R5 marks satisfied; \cmark$=1$, \pmark$=0.5$)},
     ylabel={measured full-profile NDCG@10 (our ML-25M ruler)},
-    xmin=0, xmax=5, ymin=0.10, ymax=0.38,
+    xmin=0, xmax=5, ymin=0.068, ymax=0.38,
     xtick={0,1,2,3,4,5},
     ytick={0.10,0.15,0.20,0.25,0.30,0.35},
+    ymajorgrids=true,
+    extra y ticks={0.068}, extra y tick labels={},
     grid=both, grid style={gray!12},
     axis line style={-Latex},
     tick align=outside,
@@ -500,16 +502,20 @@ interview-compatibility rises, so the top-right---high compatibility \emph{and} 
   \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3490) {EASE};
   \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3585) {\textbf{RecVAE}};
   \node[font=\scriptsize,anchor=south west] at (axis cs:3.02,0.2019) {belief-MF (B\i y\i k/ConTS core)};
-  % --- unmeasured / unrunnable systems: hollow, pinned at the axis floor ---
-  \addplot[only marks,mark=o,mark size=2.6pt,color=gray] coordinates {
-    (1.5,0.10) (2.0,0.10) (2.5,0.10) (3.0,0.10)
+  % --- "no full-profile number" strip: BELOW the measured y-scale, visually separated ---
+  \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:5,0.094);
+  \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:5,0.094);
+  \addplot[only marks,mark=o,mark size=2.6pt,color=gray!70!black] coordinates {
+    (1.5,0.076) (2.0,0.076) (2.5,0.076) (3.0,0.076)
   };
-  \node[gray,font=\tiny,rotate=90,anchor=west] at (axis cs:1.53,0.104) {SASRec/BERT4Rec};
-  \node[gray,font=\tiny,rotate=90,anchor=west] at (axis cs:2.03,0.104) {GATE, LLM-CRS, graph filters};
-  \node[gray,font=\tiny,rotate=90,anchor=west] at (axis cs:2.53,0.104) {PEBOL, EDDI, TaNP};
-  \node[gray,font=\tiny,rotate=90,anchor=west] at (axis cs:3.03,0.104) {BCIE};
-  \node[gray,font=\tiny,anchor=west] at (axis cs:3.25,0.108) {$\circ$ = no full-profile number exists};
-  \node[gray,font=\tiny,anchor=west] at (axis cs:3.25,0.100) {(floor position, not a measurement)};
+  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:1.5,0.079) {SASRec/BERT4Rec};
+  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:2.0,0.0745) {GATE, LLM-CRS, graph filters};
+  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:2.5,0.079) {PEBOL, EDDI, TaNP};
+  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:3.0,0.0745) {BCIE};
+  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.55,0.086)
+        {no full-profile number exists};
+  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.55,0.079)
+        {(off the $y$ scale; $x$ position only)};
 \end{axis}
 \end{tikzpicture}
 \caption{\textbf{The gap map (measured axes).} $y$-axis: measured full-profile NDCG@10 on our canonical ML-25M ruler.
@@ -517,9 +523,9 @@ $x$-axis: an \emph{interview-compatibility score}, defined as the number of R1--
 master table (Table~\ref{tab:master}), scoring \cmark${=}1$ and \pmark${=}0.5$. This score is a \emph{coarse ordinal
 capability count, not a measurement}, so the $x$-axis is qualitative even though the $y$-axis is measured. Filled
 markers are systems with a full-profile number on this ruler (belief-MF is the shared B\i y\i k/ConTS posterior core;
-Golbandi-node is the tree's best-effort node recommender). Hollow markers, pinned at the axis floor, are systems for
-which \emph{no full-profile number exists}---unrun, unrunnable at full catalogue, or not portable (see the master-table
-dispositions); their height is not meaningful, only their $x$. The shaded top-right box is the instrument target
+Golbandi-node is the tree's best-effort node recommender). Hollow markers sit in the separated grey strip \emph{below}
+the measured $y$-scale: these are systems for which \emph{no full-profile number exists}---unrun, unrunnable at full
+catalogue, or not portable (see the master-table dispositions); only their $x$ position is meaningful. The shaded top-right box is the instrument target
 ($x\ge4$ and full-profile at the frontier bar), still \TODO{}. The shape of the evidence is a \emph{collapse, not a
 gradual trade-off}: the upper envelope is roughly flat up to the item-only accuracy corner ($x{=}2.5$:
 RecVAE/EASE/EDLAE at $0.343$--$0.354$), then falls off a cliff --- the only measured system beyond it (belief-MF at
