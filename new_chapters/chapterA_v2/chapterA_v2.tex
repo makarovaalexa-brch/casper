@@ -482,12 +482,10 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
     tick align=outside,
     clip=false,
 ]
-  % --- target region: top-right, x>=3.5 (of 4) and y>=frontier bar (RecVAE 0.354) ---
-  \fill[green!14] (axis cs:3.5,0.354) rectangle (axis cs:4,0.38);
-  \draw[green!45!black,dashed] (axis cs:3.5,0.354) rectangle (axis cs:4,0.38);
+  % --- target: star only (author preference; no box) ---
   \node[star,star points=5,draw=green!45!black,fill=yellow!85!red,minimum size=11pt,inner sep=0pt]
         at (axis cs:3.75,0.373) {};
-  \node[green!45!black,font=\scriptsize,align=center,anchor=north] at (axis cs:3.75,0.370)
+  \node[green!45!black,font=\scriptsize,align=center,anchor=north] at (axis cs:3.75,0.369)
         {\textbf{CASPER} (target)\\(T2$'$, \textcolor{red}{\textbf{TODO}})};
   % --- measured points (filled); x = R2..R5 marks ONLY (R1 excluded: accuracy is the y-axis) ---
   \addplot[only marks,mark=*,mark size=2.6pt,color=blue!55!black] coordinates {
@@ -529,8 +527,8 @@ $x$-axis is qualitative even though the $y$-axis is measured. Filled markers are
 this ruler (belief-MF is the shared B\i y\i k/ConTS posterior core; Golbandi-node is the tree's best-effort node
 recommender). Hollow markers sit in the separated grey strip \emph{below} the measured $y$-scale: systems for which
 \emph{no full-profile number exists}---unrun, unrunnable at full catalogue, or not portable (see the master-table
-dispositions); only their $x$ position is meaningful. The shaded top-right box is the instrument target ($x\ge3.5$
-and full-profile at the frontier bar), still \TODO{}. The population is \emph{bimodal}: the entire accuracy corner
+dispositions); only their $x$ position is meaningful. The star marks the instrument target (high compatibility at
+the frontier bar), still \TODO{}. The population is \emph{bimodal}: the entire accuracy corner
 (Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x\le1.5$---strong recommenders that can fold items
 and nothing else---while every system with genuine interview machinery sits at $x\ge2$ and either has no measurable
 full-profile accuracy at all (the grey strip) or, for the one measurable core, drops to $0.2019$, below plain matrix
