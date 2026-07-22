@@ -59,6 +59,11 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   self-model gain, CI excl. 0. THE single most important addition: without it, a G0–G2 pass is consistent
   with an instrument inverting its own simulator. Includes the firewall assert: recommender-geometry
   answers (cos(z*,q)) appear NOWHERE in train or eval *(circular-measurement flaw)*.
+  **C2 leak clause (2026-07-22):** the SEL answer for a user MUST be computed with the user's held-out
+  target items EXCLUDED from the watch counts — an answer derived from the targets is a leak dressed as a
+  certification. **C2 scope clause:** SEL certifies *not-geometrically-circular*, NOT *human-realistic* —
+  behavioral and stated answers agree only ~21% (Jul-17 finding); SEL is likely optimistic vs a real
+  interview. Human realism is C3's job and only C3's.
 - **C3 — human round-trip (VISION constraint; still owed project-wide).** ≥1 study: rendered questions →
   graded human answers → downstream NDCG.
 
