@@ -32,6 +32,19 @@
   = the G3 canary (teacher is grade-blind — the KD pressure is toward sign-blindness; the NLL must win).
 - **Why:** tiny trainable surface (fast, low overfit), certified fixed geometry for everything downstream
   (concept dirs, Arm A shifts, Σ), teacher supervision exactly at interview set sizes.
+- **ADVERSARIAL REVIEW REPAIRS (2026-07-22, all adopted):** (1) λ_z gated OFF at k≤8 + annealed →0
+  (teacher latent is covariate-shift noise at small subsets — its L2-norm input is 3–9× off-scale there;
+  KD = full-profile warm-start only); (2) sign init on γ per-token (γ(hated)=−1 ⇒ −e_i), NO β∝ū (that
+  seeded valence on the popularity axis → G3a false-pass + G5 unpassable); (3) input identities =
+  normalized Wd rows + norm as scalar feature; (4) held dislikes as down-weighted NLL negatives (else
+  dislikes get no gradient); (5) evidence gate g(0)=0 for exact empty-set intercept = softmax(RecVAE's
+  TRAINED bias, not log-pop); (6) frozen tensors out of the optimizer + trunk-drift assert; (7) G0 split:
+  strength = CI-tie vs RecVAE full-profile; identity = harness bit-pass-through.
+- **GATING PRECONDITION for the training night (existential):** the RUNG1-Check-2 like/dislike
+  separability probe on the CANONICAL teacher must clear (disliked falls ≥0.10 pctile more than liked;
+  dislike-heavy ΔNDCG ≥ −0.005) — if the frozen decoder geometry cannot separate liked/disliked
+  neighborhoods, NO training on top passes G3 → escalate to a trainable-decoder tower. Probe:
+  `scripts/_verify/probe_dislike_separability.py` (+ teacher cold-curve for the λ_z gate).
 
 ## The tower question v2 exposes (feeds Step-1 selection — decision pending tonight's numbers)
 The instrument's fold must ingest **(entity, graded value, confidence) tokens** (G3/G4 demand it).

@@ -1,33 +1,59 @@
 """train_tower_t2.py -- T2': GRADED-NATIVE pb2-class set-encoder tower on the CANONICAL Liang-25M split.
 
 Purpose (Step-2 design sheet v2, `docs/design/DESIGN_SHEET_STEP2_BELIEF.md`): train the interview TOWER --
-an order-invariant set encoder over (item, half-star-level) tokens with a multinomial decoder over the
-catalog -- on the canonical full-profile ruler (data/ml-25m/proc/, `scripts/baselines/liang_split.py
---data ml-25m`). The existing pb2 checkpoint CANNOT be scored on this ruler (its train users overlap the
-new test cohort = leak); this file re-trains pb2-class from scratch on the canonical partition so the tower
-is measurable on the same ruler as EASE/EDLAE/RecVAE. Emits experiments/baselines/ml25m_liang/tower_t2.json.
+an order-invariant set encoder over (item, half-star-level) tokens -- on the canonical full-profile ruler
+(data/ml-25m/proc/, `scripts/baselines/liang_split.py --data ml-25m`). The existing pb2 checkpoint CANNOT
+be scored on this ruler (its train users overlap the new test cohort = leak); this file re-trains pb2-class
+on the canonical partition. Emits experiments/baselines/ml25m_liang/tower_t2.json.
+
+TWO TEACHER MODES (author-approved architecture revision, 2026-07-22):
+  --teacher recvae  (DEFAULT): distill T1 RecVAE into the set encoder with FROZEN geometry.
+      * Loads `.cache/baselines/recvae_ml25m_liang.pt` (src/baselines/recvae.py state-dict; prefers
+        state.best_state = the best-on-val weights, HR9, else the last `model`). d_latent=200.
+      * FROZEN + reused: the RecVAE decoder Linear(200 -> n_items) INCLUDING its bias. The set encoder
+        outputs 200-d (internal width D=512, projected out by the head).
+      * FROZEN input item embeddings = the decoder rows Wd (n_items x 200), lifted to the internal width
+        by a TRAINABLE in_proj Linear(200 -> 512). Fallback arm: --unfreeze_emb trains the embeddings.
+      * Trainable params ONLY: attention blocks (mab_in / sab / PMA + inducing points), FiLM gamma/beta
+        tables, in_proj, out head (zero-init) + z0. The FiLM tables REMAIN trainable by design: with the
+        item embeddings frozen, gamma/beta are where graded value/sign lives.
+      * SIGN PRIOR (--sign_prior, default ON; --no_sign_prior for the ablation): insurance against the
+        RUNG1 gamma(hated)==gamma(loved) failure -- the sign is UNREACHABLE from a pure null init (see
+        memory `token-fusion-signed-values`: init additive-null left dislike==like until a signed
+        nonlinearity was forced). Init gamma(level)=1 for all levels; beta(level) = kappa * v(level) *
+        u_bar, where v(level) = centered valence in [-1,+1] (level mapped linearly, NEUTRAL at the 3-star
+        point, clipped), u_bar = the normalized mean of the frozen decoder rows (a global "liked-things"
+        direction), lifted through in_proj's linear part into the internal space, kappa = 0.1 * the mean
+        projected-row norm. Hated tokens START mildly repulsive, loved mildly attractive; training refines
+        magnitude. Applied in recvae mode only (a random from-scratch decoder has no meaningful u_bar).
+      * LOSS = lambda_z * ||z_set(graded S') - z_T||^2  +  (1 - lambda_z) * NLL(decoder(z_set), held likes)
+        where z_T = FROZEN RecVAE encoder MEAN on the BINARIZED S' (the SAME denoising subset the student
+        sees, presence-binarized over ALL its tokens; subset-fed => supervises the interview regime at
+        small set sizes). lambda_z default 0.5. Subset sizes sampled BROADLY: P_INTERVIEW=50% of examples
+        draw an interview-regime size k ~ U{1..8}; the rest use the pb2 random-dropout curriculum.
+      * INTERCEPT IDENTITY: z0 and the out head are ZERO-INITIALISED, so at init enc(ANY set) = 0 and
+        enc(empty) decodes to decoder(0) = the frozen RecVAE bias -- the learned popularity intercept.
+        After training enc(empty) = decoder(z0 + head.bias contribution) -- drift is allowed but measured:
+        report_empty_set() prints |z_empty| + Spearman vs the frozen bias at init AND after training.
+  --teacher none: the previous from-scratch arm (trainable decoder, pop-log bias init, no latent teacher).
 
 ARCHITECTURE PROVENANCE
   The model classes (MAB, PMA, SetEncoder) are COPIED, not imported, from the pinned reference
   `scripts/_verify/set_mn_pb2.py` (pin: set_mn_pb2.py @ 2bace5e; the Jul-14 frozen pb2 version of set_mn).
-  Live `scripts/set_mn.py` is NOT imported -- it drifts (concept channels, belief-pool, PrecAcc branches).
-  STRIPPED from the copy (per the build brief): concept machinery, the belief-pool branch (pool="belief",
-  lam_head/log_p0/pscale/last_prec), the a0c teacher / SignedAE warm-start, and the answerer. `load_answerer`
-  is RETIRED (Jul-22 audit) and MUST NOT appear anywhere in this file -- asserted at import.
-  Kept: attention-pool set encoder (mab_in -> sab -> PMA) + FiLM graded token (NLEV=10 half-star levels)
-  + separate co-trained multinomial decoder.
-
-KEY DIFFERENCE FROM pb2: pb2 warm-started item_emb and the decoder from the a0c SignedAE (arena split,
-  overlapping users -> a leak vector here, and a vocab mismatch: arena 18,430 vs canonical 18,359). This
-  tower trains FROM SCRATCH: random item_emb, decoder bias initialised to log train-popularity (so the
-  empty set decodes to a popularity prior, z0=0), decoder weight random. FLAG FOR REVIEW: pb2's 0.486 gate
-  was reached WITH the a0c warm-start; from-scratch convergence to the R1 bar is not guaranteed and may need
-  more epochs (or the T3' EDLAE-distillation hook, --alpha_kd). This is a build+smoke deliverable, not a run.
+  Live `scripts/set_mn.py` is NOT imported -- it drifts (concept machinery, belief-pool, PrecAcc branches).
+  STRIPPED from the copy: concept machinery, the belief-pool branch (pool="belief", lam_head/log_p0/
+  pscale/last_prec), the a0c teacher / SignedAE warm-start, and the answerer. `load_answerer` is RETIRED
+  (Jul-22 audit) and MUST NOT appear anywhere in this file -- asserted at import.
+  Deviations from the pin (all revision-mandated): d_out decoupled from the internal width (head
+  Linear(d+1 -> d_out) ZERO-INIT for the intercept identity), optional frozen item_emb + in_proj lift.
+  The RecVAE teacher is IMPORTED from src/baselines/recvae.py (the snap-certified port), not copied.
 
 GRADED DATA (the point of "graded-native"): the proc CSVs store only binarised likes (>3.5). We re-derive
   half-star levels for ALL rating bands from the raw ratings.csv, for TRAIN-partition users only, mapped to
   the proc sid space. Training input tokens = (sid, level) over ALL bands (dislikes are levels too -- signed
   evidence); the multinomial target = the user's held-out LIKED items (>3.5), matching what the ruler scores.
+  G3 CANARY (graded-vs-binarised ablation arm): --ablate_binarized collapses every INPUT token's level to a
+  constant like-level (8 == 4.5 stars) so the encoder sees presence-only evidence; targets/eval unchanged.
 
   GRADED FOLD-IN CONVENTION (documented): the canonical eval path (metrics.evaluate) folds in the binarised
   tr-half LIKES. The graded encoder eats (sid,level) tokens, so we recover each tr-half item's REAL half-star
@@ -42,15 +68,16 @@ LEAK CHECKS (hard asserts, fail-fast):
   - the reproduced train-user item vocabulary SET == unique_sid.txt SET (permutation reproduced correctly).
   - train users are disjoint from val+test users (no held-out user contributes any training row).
 
-CHECKPOINT/RESUME (HR9/HR10): keeps <tag>.pt (last, for resume: enc+decoder+opt+epoch) and <tag>_best.pt
-  (best-on-val only). Early stop on VAL full NDCG@10 via the canonical evaluate path. Code committed before
-  any launch (HR10); this file does NOT launch training (review gate).
+CHECKPOINT/RESUME (HR9/HR10): keeps <tag>.pt (last, for resume) and <tag>_best.pt (best-on-val only).
+  Early stop on VAL full NDCG@10 via the canonical evaluate path. Code committed before any launch (HR10);
+  this file does NOT launch training (review gate).
 
 Usage:
-  python src/instrument/train_tower_t2.py --smoke            # synthetic code-path smoke (labeled)
+  python src/instrument/train_tower_t2.py --smoke            # synthetic code-path smoke (fake teacher)
   python src/instrument/train_tower_t2.py --dry_run          # real-data leak asserts + 1 fwd/bwd + epoch est
   python src/instrument/train_tower_t2.py --train --tag t2   # FULL train (do NOT launch until review clears)
-  python src/instrument/train_tower_t2.py --train --alpha_kd 0.3 --teacher_npy <edlae_B.npy>   # T3' distill
+  python src/instrument/train_tower_t2.py --train --teacher none            # from-scratch fallback arm
+  python src/instrument/train_tower_t2.py --train --alpha_kd 0.3 --teacher_npy <edlae_B.npy>  # EDLAE CE hook
 """
 import os
 import sys
@@ -71,15 +98,17 @@ sys.path.insert(0, os.path.join(_ROOT, "src", "baselines"))
 sys.path.insert(0, os.path.join(_ROOT, "scripts", "baselines"))
 import metrics as M                       # canonical loaders + evaluate + NDCG (vae_cf port)
 import liang_split as LS                  # reuse the split's own filtering helpers (no drift)
+import recvae as R                        # T1 teacher architecture (IMPORTED, snap-certified port)
 
 PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
 RAW = os.path.join(_ROOT, "data", "movielens", "ratings.csv")
 OUTDIR = os.path.join(_ROOT, "experiments", "baselines", "ml25m_liang")
 CKPT_DIR = os.path.join(_ROOT, ".cache", "instrument")
-CACHE_DIR = os.path.join(_ROOT, ".cache", "instrument")
+RECVAE_CKPT = os.path.join(_ROOT, ".cache", "baselines", "recvae_ml25m_liang.pt")
 
-D = 512          # latent width (pb2)
+D = 512          # internal attention width (pb2)
 NLEV = 10        # half-star levels 0.5..5.0 -> 0..9 (matches set_mn_pb2 gamma/beta tables)
+LIKE_LEVEL = 8   # constant level (4.5 stars) used by the --ablate_binarized G3-canary arm
 
 # `load_answerer` is RETIRED (Jul-22 audit). Guard: this name must never be defined or called here.
 assert "load_answerer" not in globals(), "load_answerer is retired and must not appear in the tower"
@@ -90,7 +119,8 @@ def log(msg):
 
 
 # =============================================================================================
-# ARCHITECTURE  (copied from scripts/_verify/set_mn_pb2.py @ pin 2bace5e; belief/concept/teacher stripped)
+# ARCHITECTURE  (copied from scripts/_verify/set_mn_pb2.py @ pin 2bace5e; belief/concept/teacher stripped;
+#                d_out decoupling + frozen-emb lift + zero-init head = the 2026-07-22 revision)
 # =============================================================================================
 class MAB(nn.Module):
     """Multihead attention block (Set Transformer): MAB(Q,K) = LN(H + FF(H)), H = LN(Q + Attn(Q,K,K)).
@@ -121,19 +151,22 @@ class PMA(nn.Module):
 
 
 class SetEncoder(nn.Module):
-    """Graded-native set encoder (pb2-class, attn pool). Tokens (item, half-star level) -> FiLM token ->
-    inducing-point attention (mab_in) -> global interaction (sab) -> PMA pool -> z. Permutation-invariant,
-    ANY set length. Copied from set_mn_pb2.SetEncoder with pool='attn', token='film' as the graded-native
-    path; belief-pool branch and a0c warm-start REMOVED.
+    """Graded-native set encoder (pb2-class, attn pool). Tokens (item, half-star level) -> [in_proj] ->
+    FiLM token -> inducing-point attention (mab_in) -> global interaction (sab) -> PMA pool -> zero-init
+    head -> z (d_out). Permutation-invariant, ANY set length.
 
-    z0=0 (empty-set prior) + a popularity-initialised decoder bias => empty set decodes to the popularity
-    prior EXACTLY (the design-(ii) intercept identity)."""
-    def __init__(self, ni, d=D, nhead=4, m=32, nlayers=2, token_mode="film"):
+    Copied from set_mn_pb2.SetEncoder (pool='attn', token='film'); belief-pool branch REMOVED. Revision
+    (2026-07-22): d_out decoupled from the internal width d; item_emb may be FROZEN to the teacher decoder
+    rows (d_emb=200) and lifted by a trainable in_proj; head + z0 ZERO-INIT so enc(anything)=0 at init
+    => enc(empty) decodes to decoder(0) = the frozen decoder bias (intercept identity)."""
+    def __init__(self, ni, d=D, d_out=D, d_emb=None, nhead=4, m=32, nlayers=2, token_mode="film"):
         super().__init__()
-        self.ni = ni; self.d = d; self.token_mode = token_mode
-        self.item_emb = nn.Embedding(ni, d)
-        nn.init.normal_(self.item_emb.weight, std=0.02)                 # random init (NO a0c warm-start)
-        # FiLM graded token: per-level scale+shift tables. init gamma=1, beta~small -> token = item_emb+beta
+        d_emb = d_emb or d
+        self.ni = ni; self.d = d; self.d_out = d_out; self.token_mode = token_mode
+        self.item_emb = nn.Embedding(ni, d_emb)
+        nn.init.normal_(self.item_emb.weight, std=0.02)     # overwritten+frozen in teacher mode
+        self.in_proj = nn.Linear(d_emb, d) if d_emb != d else nn.Identity()
+        # FiLM graded token: per-level scale+shift tables. init gamma=1, beta~small -> token = e + beta
         # (the pure additive/author-null token); the model can LEARN gamma<0 for dislike-as-negation.
         self.gamma = nn.Embedding(NLEV, d); self.beta = nn.Embedding(NLEV, d)
         nn.init.ones_(self.gamma.weight); nn.init.normal_(self.beta.weight, std=0.02)
@@ -143,12 +176,13 @@ class SetEncoder(nn.Module):
         self.mab_in = MAB(d, nhead)                                    # I attends to the set  (O(L*m))
         self.sab = nn.ModuleList([MAB(d, nhead) for _ in range(nlayers)])   # interaction among inducing pts
         self.pma = PMA(d, nhead)                                       # pool -> one vector
-        self.z0 = nn.Parameter(torch.zeros(d))                        # empty-set prior mean
-        self.head = nn.Linear(d + 1, d)                               # + log(1+set-size) feature
+        self.z0 = nn.Parameter(torch.zeros(d_out))                     # empty-set prior mean (0)
+        self.head = nn.Linear(d + 1, d_out)                            # + log(1+set-size) feature
+        nn.init.zeros_(self.head.weight); nn.init.zeros_(self.head.bias)   # ZERO-INIT: intercept identity
 
     def forward(self, ids, vals, pad, lvs):
         b = ids.shape[0]
-        e = self.item_emb(ids)
+        e = self.in_proj(self.item_emb(ids))
         if self.token_mode == "film":
             x = self.gamma(lvs) * e + self.beta(lvs)                                   # (B,L,d) CHEAP
         else:
@@ -160,6 +194,41 @@ class SetEncoder(nn.Module):
         p = torch.nan_to_num(p)             # all-padded row -> softmax over -inf -> NaN; empty set -> z0
         sz = (~pad).sum(-1, keepdim=True).float().clamp_min(1.0).log1p()
         return self.z0 + self.head(torch.cat([p, sz], dim=-1))
+
+
+# =============================================================================================
+# T1 RECVAE TEACHER  (frozen; encoder mean supervises the latent, decoder+bias reused for ranking)
+# =============================================================================================
+def load_recvae_teacher(ni, path=RECVAE_CKPT, hidden=600, latent=200):
+    """Load the T1 RecVAE (src/baselines/recvae.py checkpoint {'model','state',...}); prefer the
+    best-on-val weights (state.best_state, HR9), else the last 'model'. Returns frozen eval model."""
+    if not os.path.exists(path):
+        raise SystemExit(f"[teacher] RecVAE checkpoint not found: {path} (still training?). "
+                         f"Use --teacher none for the from-scratch arm.")
+    blob = torch.load(path, map_location="cpu")
+    st = blob.get("state", {})
+    sd = st.get("best_state") or blob["model"]
+    src = "state.best_state" if st.get("best_state") else "model (last)"
+    t = R.RecVAE(hidden, latent, ni)
+    t.load_state_dict(sd)
+    t.eval()
+    for p in t.parameters():
+        p.requires_grad_(False)
+    log(f"[teacher] RecVAE loaded from {src}: ep{st.get('epoch','?')} best_val={st.get('best', float('nan')):.4f} "
+        f"(hidden={hidden} latent={latent}) -- FROZEN")
+    return t
+
+
+def teacher_latent(teacher, sids_list, ni):
+    """z_T = frozen RecVAE encoder MEAN on the BINARIZED subset (presence of ALL subset tokens ->
+    1.0; the encoder L2-normalises internally; subsets are never empty by construction).
+    sids_list: list of int arrays. Returns (B, latent)."""
+    x = torch.zeros((len(sids_list), ni), dtype=torch.float32)
+    for r, s in enumerate(sids_list):
+        x[r, s] = 1.0
+    with torch.no_grad():
+        mu, _ = teacher.encoder(x, dropout_rate=0.0)
+    return mu
 
 
 # =============================================================================================
@@ -297,13 +366,22 @@ def make_batches(users, order):
     return batches
 
 
+P_INTERVIEW = 0.5      # fraction of training examples drawn in the interview regime (tiny subsets)
+INTERVIEW_KMAX = 8
+
+
 def make_input_target(u, rng, drop_max=0.5):
-    """pb2 denoising curriculum: input = random subset of ALL tokens (incl. dislikes), target = liked
-    NOT in input (leak-free)."""
+    """Denoising curriculum, revision 2026-07-22: with prob P_INTERVIEW sample an INTERVIEW-REGIME subset
+    (k ~ U{1..8} tokens -- supervises the small-set fold the interview lives in); otherwise the pb2
+    random-dropout subset. Input includes dislikes (graded); target = liked NOT in input (leak-free)."""
     its = u["items"]; n = len(its)
-    keep = rng.random(n) >= rng.uniform(0.0, drop_max)
-    if not keep.any():
-        keep[rng.integers(0, n)] = True
+    if rng.random() < P_INTERVIEW:
+        k = int(rng.integers(1, min(INTERVIEW_KMAX, n) + 1))
+        keep = np.zeros(n, bool); keep[rng.choice(n, size=k, replace=False)] = True
+    else:
+        keep = rng.random(n) >= rng.uniform(0.0, drop_max)
+        if not keep.any():
+            keep[rng.integers(0, n)] = True
     inp = its[keep]; lv = u["levels"][keep]; sv = u["vals"][keep]
     tgt = np.setdiff1d(u["liked"], inp, assume_unique=False)
     if len(tgt) == 0:
@@ -311,21 +389,26 @@ def make_input_target(u, rng, drop_max=0.5):
     return inp, lv, sv, tgt
 
 
-def pack_tokens(rows):
-    """rows: list of (ids, levels, vals) -> padded torch tensors (ids, vals, pad, lvs)."""
+def pack_tokens(rows, binarize=False):
+    """rows: list of (ids, levels, vals) -> padded torch tensors (ids, vals, pad, lvs).
+    binarize=True is the G3-canary arm: every input level collapsed to LIKE_LEVEL (presence-only)."""
     B = len(rows); L = max(len(r[0]) for r in rows)
     ids = np.zeros((B, L), np.int64); vals = np.zeros((B, L), np.float32)
     pad = np.ones((B, L), bool); lvs = np.zeros((B, L), np.int64)
     for r, (i, lv, sv) in enumerate(rows):
         k = len(i)
-        ids[r, :k] = i; lvs[r, :k] = lv; vals[r, :k] = sv; pad[r, :k] = False
+        ids[r, :k] = i; pad[r, :k] = False
+        if binarize:
+            lvs[r, :k] = LIKE_LEVEL; vals[r, :k] = level_to_sv(np.full(k, LIKE_LEVEL))
+        else:
+            lvs[r, :k] = lv; vals[r, :k] = sv
     return (torch.from_numpy(ids), torch.from_numpy(vals), torch.from_numpy(pad), torch.from_numpy(lvs))
 
 
 # =============================================================================================
 # EVAL  (canonical metrics.evaluate path; predict_fn wraps the encoder fold of graded tokens)
 # =============================================================================================
-def make_graded_predict_fn(enc, Wd, bd, L_csr, token_mode):
+def make_graded_predict_fn(enc, Wd, bd, L_csr, binarize=False):
     """Factory: returns a predict_fn(X_csr)->dense scores for metrics.evaluate. The graded levels come
     from L_csr (aligned to the fold-in matrix); metrics.evaluate iterates rows sequentially so a cursor
     tracks the row offset. An nnz assert catches any misalignment. FRESH factory call per evaluate()."""
@@ -346,7 +429,7 @@ def make_graded_predict_fn(enc, Wd, bd, L_csr, token_mode):
                     sids = Ls.indices[s:e].astype(np.int64)
                     lv = (Ls.data[s:e] - 1.0).astype(np.int64)
                     packrows.append((sids, lv, level_to_sv(lv)))
-                ids, vals, pad, lvs = pack_tokens(packrows)
+                ids, vals, pad, lvs = pack_tokens(packrows, binarize=binarize)
                 z = enc(ids, vals, pad, lvs)
                 out[chunk] = (z @ Wd.T + bd).numpy().astype(np.float32)
                 b += len(chunk)
@@ -354,7 +437,8 @@ def make_graded_predict_fn(enc, Wd, bd, L_csr, token_mode):
     return predict
 
 
-def eval_split(enc, Wd, bd, raw, unique_uid, show2id, unique_sid_list, split, head_mask, batch_size=500):
+def eval_split(enc, Wd, bd, raw, unique_uid, show2id, unique_sid_list, split, head_mask,
+               batch_size=500, binarize=False):
     """NDCG@10 full/tail + NDCG@100 on a split via the canonical evaluate path."""
     meta = M.load_meta(PROC); ni = meta["n_items"]
     L, _ = build_graded_eval_matrix(raw, unique_uid, show2id, unique_sid_list, split)
@@ -362,7 +446,7 @@ def eval_split(enc, Wd, bd, raw, unique_uid, show2id, unique_sid_list, split, he
         d_tr, d_te = M.load_val(ni, PROC)
     else:
         d_tr, d_te = M.load_test(ni, PROC)
-    predict = make_graded_predict_fn(enc, Wd, bd, L, enc.token_mode)
+    predict = make_graded_predict_fn(enc, Wd, bd, L, binarize=binarize)
     return M.evaluate(predict, d_tr, d_te, batch_size=batch_size, head_mask=head_mask)
 
 
@@ -376,14 +460,40 @@ def compute_head_mask(train, n_items):
     return head, cnt
 
 
+def report_empty_set(enc, Wd, bd, cnt, label):
+    """Verify + document what enc(empty) decodes to under the (frozen) decoder: |z_empty| and the
+    Spearman of the empty-set scores against the decoder bias and against train popularity."""
+    from scipy.stats import spearmanr
+    enc.eval()
+    with torch.no_grad():
+        ids = torch.zeros((1, 1), dtype=torch.long); vals = torch.zeros((1, 1))
+        pad = torch.ones((1, 1), dtype=torch.bool); lvs = torch.zeros((1, 1), dtype=torch.long)
+        z_empty = enc(ids, vals, pad, lvs)[0]
+        sc = (z_empty @ Wd.T + bd).numpy()
+    znorm = float(z_empty.norm())
+    rho_bias = float(spearmanr(sc, bd.numpy()).statistic)
+    rho_pop = float(spearmanr(sc, cnt).statistic) if cnt is not None else float("nan")
+    log(f"[{label}] EMPTY-SET: |z|={znorm:.6f}; decode-vs-frozen-bias Spearman={rho_bias:.4f}; "
+        f"vs train-popularity Spearman={rho_pop:.4f} "
+        f"({'EXACT intercept identity (z=0 -> decoder bias)' if znorm < 1e-6 else 'z0/head trained away from 0 (allowed; measured here)'})")
+    return znorm, rho_bias
+
+
+def count_params(enc, decoder):
+    tr_p = sum(p.numel() for p in enc.parameters() if p.requires_grad) \
+         + sum(p.numel() for p in decoder.parameters() if p.requires_grad)
+    fr_p = sum(p.numel() for p in enc.parameters() if not p.requires_grad) \
+         + sum(p.numel() for p in decoder.parameters() if not p.requires_grad)
+    return tr_p, fr_p
+
+
 # =============================================================================================
-# T3' DISTILLATION HOOK (EDLAE teacher CE; precompute top-k targets ONCE; default OFF)
+# T3' EDLAE DISTILLATION HOOK (score-CE; precompute top-k targets ONCE; default OFF)
 # =============================================================================================
 def precompute_teacher(users, teacher_npy, ni, topk=1000, temp=2.0, batch=512):
     """The known 50x optimisation: compute the EDLAE teacher distribution ONCE per user (from the user's
     FULL binary LIKE profile), store top-k (idx, prob). Returns (idx int32 [N,topk], prob float32 [N,topk]).
-    Teacher logits = x_like @ B; top-k truncated temperature-softmax (Hinton KD; distill_edlae convention).
-    NOTE teacher is keyed to the user's fixed full-like profile, decoupled from the per-epoch random input."""
+    Teacher logits = x_like @ B; top-k truncated temperature-softmax (Hinton KD; distill_edlae convention)."""
     if not os.path.exists(teacher_npy):
         raise SystemExit(f"[kd] teacher B npy not found: {teacher_npy}. Produce it: "
                          f"python src/baselines/edlae.py --p <best> --export_B <path>.npy")
@@ -417,6 +527,103 @@ def kd_ce(logsm, uidx, t_idx, t_prob):
 
 
 # =============================================================================================
+# MODEL BUILD  (teacher-mode wiring shared by train / dry_run / smoke)
+# =============================================================================================
+def level_valence(levels=None):
+    """Centered valence v(level) in [-1,+1], NEUTRAL at the 3-star point (level 5), linear in stars,
+    clipped: v = clip((star - 3.0)/2.0, -1, 1). Levels 0..9 <-> stars 0.5..5.0."""
+    lv = np.arange(NLEV) if levels is None else np.asarray(levels)
+    star = (lv + 1.0) / 2.0
+    return np.clip((star - 3.0) / 2.0, -1.0, 1.0)
+
+
+def apply_sign_prior(enc):
+    """SIGNED FiLM INIT (2026-07-22 addendum; insurance vs the RUNG1 sign-unreachable-from-null-init
+    failure, memory `token-fusion-signed-values`): gamma stays 1; beta(level) = kappa * v(level) * u_int,
+    with u_bar = normalized mean of the FROZEN decoder rows (enc.item_emb, already copied from Wd),
+    u_int = normalize(W_inproj @ u_bar) (linear part only -- the bias is level-independent and belongs to
+    the token, not the valence axis), kappa = 0.1 * mean ||in_proj(Wd rows)|| (the mean projected token
+    norm, so the prior is 'mild' in the space where FiLM acts)."""
+    with torch.no_grad():
+        Wrows = enc.item_emb.weight                              # (ni, d_emb) frozen decoder rows
+        u_bar = Wrows.mean(0)
+        u_bar = u_bar / u_bar.norm().clamp_min(1e-8)
+        if isinstance(enc.in_proj, nn.Linear):
+            u_int = enc.in_proj.weight @ u_bar                   # linear part only (no bias)
+            proj_norms = (Wrows @ enc.in_proj.weight.T).norm(dim=1)
+        else:
+            u_int = u_bar.clone()
+            proj_norms = Wrows.norm(dim=1)
+        u_int = u_int / u_int.norm().clamp_min(1e-8)
+        kappa = 0.1 * float(proj_norms.mean())
+        v = torch.from_numpy(level_valence().astype(np.float32))          # (NLEV,)
+        nn.init.ones_(enc.gamma.weight)
+        enc.beta.weight.copy_(kappa * v.unsqueeze(1) * u_int.unsqueeze(0))
+    log(f"[model] SIGN PRIOR applied: beta(level)=kappa*v(level)*u_bar, kappa={kappa:.4f}, "
+        f"v={np.round(level_valence(), 2).tolist()} (neutral at 3 stars); gamma=1")
+
+
+
+def build_model(args, ni, cnt, teacher_override=None):
+    """Returns (enc, decoder, teacher, trainable_params). teacher_override lets smoke inject a fake."""
+    if args.teacher == "recvae":
+        teacher = teacher_override if teacher_override is not None else \
+            load_recvae_teacher(ni, hidden=args.t_hidden, latent=args.t_latent)
+        d_out = args.t_latent
+        enc = SetEncoder(ni, d=D, d_out=d_out, d_emb=d_out, token_mode=args.token)
+        decoder = nn.Linear(d_out, ni)
+        with torch.no_grad():                                # FROZEN RecVAE decoder + bias, reused
+            decoder.weight.copy_(teacher.decoder.weight)
+            decoder.bias.copy_(teacher.decoder.bias)
+            enc.item_emb.weight.copy_(teacher.decoder.weight)   # frozen input emb = decoder rows Wd
+        decoder.weight.requires_grad_(False); decoder.bias.requires_grad_(False)
+        if not args.unfreeze_emb:
+            enc.item_emb.weight.requires_grad_(False)
+        if getattr(args, "sign_prior", True):
+            apply_sign_prior(enc)                            # signed FiLM init (addendum 2026-07-22)
+        else:
+            log("[model] sign_prior OFF (ablation arm): FiLM beta stays additive-null random init")
+    else:                                                    # --teacher none: from-scratch fallback arm
+        teacher = None
+        if getattr(args, "sign_prior", True):
+            log("[model] sign_prior SKIPPED in --teacher none (random decoder has no meaningful u_bar)")
+        enc = SetEncoder(ni, d=D, d_out=D, token_mode=args.token)
+        decoder = nn.Linear(D, ni)
+        with torch.no_grad():                                # pop-prior bias (z0=0 -> cold pop)
+            decoder.bias.copy_(torch.from_numpy(np.log(cnt / cnt.sum() + 1e-9).astype(np.float32)))
+            nn.init.normal_(decoder.weight, std=0.02)
+    params = [p for p in list(enc.parameters()) + list(decoder.parameters()) if p.requires_grad]
+    tr_p, fr_p = count_params(enc, decoder)
+    log(f"[model] teacher={args.teacher} d_int={D} d_out={enc.d_out} "
+        f"TRAINABLE={tr_p:,} FROZEN={fr_p:,} (unfreeze_emb={args.unfreeze_emb})")
+    return enc, decoder, teacher, params
+
+
+def batch_loss(enc, decoder, teacher, exs, ni, args, t_idx=None, t_prob=None):
+    """Shared loss for one packed batch. exs: list of (user_idx, (inp, lv, sv, tgt)).
+    Returns (loss, nll_float, zmse_float)."""
+    packrows = [(e[0], e[1], e[2]) for _, e in exs]
+    ids, vals, pad, lvs = pack_tokens(packrows, binarize=args.ablate_binarized)
+    tgt = torch.zeros((len(exs), ni), dtype=torch.float32)
+    for r, (_, e) in enumerate(exs):
+        tgt[r, e[3]] = 1.0
+    z = enc(ids, vals, pad, lvs)
+    logits = z @ decoder.weight.T + decoder.bias
+    logsm = F.log_softmax(logits, dim=-1)
+    nll = -((logsm * tgt).sum(-1) / tgt.sum(-1).clamp_min(1.0)).mean()
+    rank_term = nll
+    if args.alpha_kd > 0:
+        uidx = np.array([i for i, _ in exs], np.int64)
+        rank_term = (1.0 - args.alpha_kd) * nll + args.alpha_kd * kd_ce(logsm, uidx, t_idx, t_prob)
+    if teacher is not None and args.lambda_z > 0:
+        z_T = teacher_latent(teacher, [e[0] for _, e in exs], ni)     # binarized SAME subset
+        mse = F.mse_loss(z, z_T)
+        loss = args.lambda_z * mse + (1.0 - args.lambda_z) * rank_term
+        return loss, float(nll), float(mse)
+    return rank_term, float(nll), float("nan")
+
+
+# =============================================================================================
 # TRAIN
 # =============================================================================================
 def train(args):
@@ -428,13 +635,9 @@ def train(args):
     users = build_train_profiles(raw, tr_set, show2id,
                                  max_users=(args.max_users if args.max_users else None))
 
-    enc = SetEncoder(ni, token_mode=args.token)
-    decoder = nn.Linear(D, ni)
-    with torch.no_grad():                                    # popularity-prior decoder bias (z0=0 -> cold pop)
-        decoder.bias.copy_(torch.from_numpy(np.log(cnt / cnt.sum() + 1e-9).astype(np.float32)))
-        nn.init.normal_(decoder.weight, std=0.02)
-    Wd, bd = decoder.weight, decoder.bias
-    opt = torch.optim.AdamW(list(enc.parameters()) + list(decoder.parameters()), lr=3e-4, weight_decay=1e-4)
+    enc, decoder, teacher, params = build_model(args, ni, cnt)
+    report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), cnt, "init")
+    opt = torch.optim.AdamW(params, lr=args.lr, weight_decay=1e-4)
 
     t_idx = t_prob = None
     if args.alpha_kd > 0:
@@ -443,7 +646,8 @@ def train(args):
     lens = np.array([len(u["items"]) for u in users])
     batches_all = make_batches(users, np.argsort(lens))
     log(f"[train] {len(users)} users; profiles min={lens.min()} med={int(np.median(lens))} max={lens.max()}; "
-        f"{len(batches_all)} adaptive batches; token={args.token} alpha_kd={args.alpha_kd}")
+        f"{len(batches_all)} adaptive batches; token={args.token} teacher={args.teacher} "
+        f"lambda_z={args.lambda_z} alpha_kd={args.alpha_kd} ablate_binarized={args.ablate_binarized}")
 
     ck = os.path.join(CKPT_DIR, f"{args.tag}.pt"); ckb = os.path.join(CKPT_DIR, f"{args.tag}_best.pt")
     start_ep, best, bad = 0, -1.0, 0
@@ -451,41 +655,30 @@ def train(args):
         blob = torch.load(ck, map_location="cpu")
         enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"])
         opt.load_state_dict(blob["opt"]); start_ep = blob["epoch"]; best = blob.get("best", -1.0)
-        Wd, bd = decoder.weight, decoder.bias
         log(f"[train] RESUMED ep{start_ep} best={best:.4f}")
 
     for ep in range(start_ep, args.epochs):
         enc.train(); rng = np.random.default_rng(ep)
         order = list(range(len(batches_all))); rng.shuffle(order)
-        t0 = time.time(); run = 0.0; nb = 0
+        t0 = time.time(); run_n = 0.0; run_z = 0.0; nb = 0
         for bi in order:
             bat = batches_all[bi]
             exs = [(i, make_input_target(users[i], rng)) for i in bat]
             exs = [(i, e) for i, e in exs if e is not None]
             if not exs:
                 continue
-            packrows = [(e[0], e[1], e[2]) for _, e in exs]      # (ids, levels, vals)
-            ids, vals, pad, lvs = pack_tokens(packrows)
-            tgt = torch.zeros((len(exs), ni), dtype=torch.float32)
-            for r, (_, e) in enumerate(exs):
-                tgt[r, e[3]] = 1.0
-            z = enc(ids, vals, pad, lvs)
-            logits = z @ Wd.T + bd
-            logsm = F.log_softmax(logits, dim=-1)
-            nll = -((logsm * tgt).sum(-1) / tgt.sum(-1).clamp_min(1.0)).mean()
-            loss = nll
-            if args.alpha_kd > 0:
-                uidx = np.array([i for i, _ in exs], np.int64)
-                loss = (1.0 - args.alpha_kd) * nll + args.alpha_kd * kd_ce(logsm, uidx, t_idx, t_prob)
+            loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, t_idx, t_prob)
             opt.zero_grad(); loss.backward(); opt.step()
-            run += float(nll); nb += 1
+            run_n += nll_v; run_z += (0.0 if np.isnan(mse_v) else mse_v); nb += 1
             if nb % 100 == 0:
-                log(f"  ep{ep} b{nb}/{len(order)} NLL={run/nb:.4f} {(time.time()-t0)/60:.1f}m")
-        vm = eval_split(enc, Wd.detach(), bd.detach(), raw, unique_uid, show2id, usid, "validation", head_mask)
+                log(f"  ep{ep} b{nb}/{len(order)} NLL={run_n/nb:.4f} zMSE={run_z/nb:.4f} "
+                    f"{(time.time()-t0)/60:.1f}m")
+        vm = eval_split(enc, decoder.weight.detach(), decoder.bias.detach(), raw, unique_uid, show2id,
+                        usid, "validation", head_mask, binarize=args.ablate_binarized)
         f10, t10 = vm["ndcg@10"], vm["tail_ndcg@10"]
-        log(f"[ep{ep+1}] NLL={run/max(nb,1):.4f} VAL full@10={f10:.4f} tail@10={t10:.4f} "
-            f"ndcg@100={vm['ndcg@100']:.4f} ({'PASS>=0.486' if f10>=0.486 else 'below gate'}) "
-            f"({(time.time()-t0)/60:.1f}m)")
+        log(f"[ep{ep+1}] NLL={run_n/max(nb,1):.4f} zMSE={run_z/max(nb,1):.4f} VAL full@10={f10:.4f} "
+            f"tail@10={t10:.4f} ndcg@100={vm['ndcg@100']:.4f} "
+            f"({'PASS>=0.486' if f10>=0.486 else 'below gate'}) ({(time.time()-t0)/60:.1f}m)")
         torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "opt": opt.state_dict(),
                     "epoch": ep + 1, "best": best, "val_full": f10, "val_tail": t10}, ck)
         if f10 > best:
@@ -503,22 +696,27 @@ def train(args):
     if os.path.exists(ckb):
         blob = torch.load(ckb, map_location="cpu")
         enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"])
-        Wd, bd = decoder.weight, decoder.bias
-    tm = eval_split(enc, Wd.detach(), bd.detach(), raw, unique_uid, show2id, usid, "test", head_mask)
+    report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), cnt, "final")
+    tm = eval_split(enc, decoder.weight.detach(), decoder.bias.detach(), raw, unique_uid, show2id,
+                    usid, "test", head_mask, binarize=args.ablate_binarized)
+    tr_p, fr_p = count_params(enc, decoder)
     out = {"model": "tower_t2 (pb2-class graded-native set encoder)", "token": args.token,
-           "alpha_kd": args.alpha_kd, "n_items": ni,
+           "teacher": args.teacher, "lambda_z": args.lambda_z, "alpha_kd": args.alpha_kd,
+           "unfreeze_emb": args.unfreeze_emb, "ablate_binarized": args.ablate_binarized,
+           "trainable_params": tr_p, "frozen_params": fr_p, "n_items": ni,
            "ndcg@10": tm["ndcg@10"], "tail_ndcg@10": tm["tail_ndcg@10"], "ndcg@100": tm["ndcg@100"],
-           "recall@20": tm["recall@20"], "recall@50": tm["recall@50"],
-           "val_full@10_best": best, "warm_start": "NONE (from scratch; pop-init decoder bias)"}
+           "recall@20": tm["recall@20"], "recall@50": tm["recall@50"], "val_full@10_best": best,
+           "geometry": ("FROZEN RecVAE decoder+bias+emb (recvae_ml25m_liang.pt best_state)"
+                        if args.teacher == "recvae" else "from scratch; pop-init decoder bias")}
     json.dump(out, open(os.path.join(OUTDIR, "tower_t2.json"), "w"), indent=2)
     log(f"[train] TEST full@10={tm['ndcg@10']:.4f} tail@10={tm['tail_ndcg@10']:.4f} -> tower_t2.json")
 
 
 # =============================================================================================
-# DRY RUN  (real data: leak asserts + one fwd/bwd on 200 users + calibrated epoch-time estimate)
+# DRY RUN  (real data: leak asserts + one fwd/bwd + calibrated epoch-time estimate; NO training)
 # =============================================================================================
 def dry_run(args):
-    log("[DRY] real-data leak asserts + 1 fwd/bwd + epoch-time estimate (NO training)")
+    log(f"[DRY] real-data leak asserts + 1 fwd/bwd + epoch-time estimate (teacher={args.teacher})")
     meta = M.load_meta(PROC); ni = meta["n_items"]
     train_mat = M.load_train(ni, PROC)
     _, cnt = compute_head_mask(train_mat, ni)
@@ -528,31 +726,21 @@ def dry_run(args):
     assert all(0 <= s < ni for u in users for s in u["items"]), "sid out of vocab range (LEAK)"
     log("[DRY] token-vocab range assert PASS (all sids in [0, n_items))")
 
-    enc = SetEncoder(ni, token_mode=args.token)
-    decoder = nn.Linear(D, ni)
-    with torch.no_grad():
-        decoder.bias.copy_(torch.from_numpy(np.log(cnt / cnt.sum() + 1e-9).astype(np.float32)))
-    opt = torch.optim.AdamW(list(enc.parameters()) + list(decoder.parameters()), lr=3e-4)
-    Wd, bd = decoder.weight, decoder.bias
+    enc, decoder, teacher, params = build_model(args, ni, cnt)
+    report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), cnt, "DRY-init")
+    opt = torch.optim.AdamW(params, lr=args.lr)
 
     # one fwd/bwd on the first 200 users
     rng = np.random.default_rng(0)
-    sub = users[:200]
-    packrows, tgts = [], []
-    for u in sub:
-        e = make_input_target(u, rng)
-        if e is None:
-            continue
-        packrows.append((e[0], e[1], e[2])); tgts.append(e[3])
-    ids, vals, pad, lvs = pack_tokens(packrows)
-    tgt = torch.zeros((len(packrows), ni))
-    for r, t in enumerate(tgts):
-        tgt[r, t] = 1.0
-    z = enc(ids, vals, pad, lvs)
-    logsm = F.log_softmax(z @ Wd.T + bd, dim=-1)
-    loss = -((logsm * tgt).sum(-1) / tgt.sum(-1).clamp_min(1.0)).mean()
+    exs = [(i, make_input_target(users[i], rng)) for i in range(min(200, len(users)))]
+    exs = [(i, e) for i, e in exs if e is not None]
+    loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args)
     opt.zero_grad(); loss.backward(); opt.step()
-    log(f"[DRY] one fwd/bwd on {len(packrows)} users OK: NLL={float(loss):.4f}, z.shape={tuple(z.shape)}")
+    log(f"[DRY] one fwd/bwd on {len(exs)} users OK: NLL={nll_v:.4f} zMSE={mse_v:.4f}")
+    if args.teacher == "recvae":
+        assert not decoder.weight.requires_grad and not decoder.bias.requires_grad, "decoder not frozen"
+        assert args.unfreeze_emb or not enc.item_emb.weight.requires_grad, "item_emb not frozen"
+        log("[DRY] frozen-geometry asserts PASS (decoder + item_emb requires_grad=False)")
 
     # calibrated epoch-time estimate: time one epoch over `ncal` users, scale to 140768
     lens = np.array([len(u["items"]) for u in users])
@@ -563,15 +751,8 @@ def dry_run(args):
         exs = [(i, e) for i, e in exs if e is not None]
         if not exs:
             continue
-        pr = [(e[0], e[1], e[2]) for _, e in exs]
-        ii, vv, pp, ll = pack_tokens(pr)
-        tt = torch.zeros((len(exs), ni))
-        for r, (_, e) in enumerate(exs):
-            tt[r, e[3]] = 1.0
-        zz = enc(ii, vv, pp, ll)
-        lsm = F.log_softmax(zz @ Wd.T + bd, dim=-1)
-        ll_ = -((lsm * tt).sum(-1) / tt.sum(-1).clamp_min(1.0)).mean()
-        opt.zero_grad(); ll_.backward(); opt.step()
+        loss, _, _ = batch_loss(enc, decoder, teacher, exs, ni, args)
+        opt.zero_grad(); loss.backward(); opt.step()
     dt = time.time() - t0
     est_min = dt * (140768 / len(users)) / 60.0
     log(f"[DRY] timed {len(users)} users ({len(batches_all)} batches) in {dt:.1f}s "
@@ -581,11 +762,11 @@ def dry_run(args):
 
 
 # =============================================================================================
-# SMOKE  (synthetic data; code-path only, LABELED; exercises graded tokens + eval + KD path)
+# SMOKE  (synthetic data + FAKE teacher weights; code-path only, LABELED)
 # =============================================================================================
 def smoke(args):
     from scipy import sparse
-    print("[SMOKE] synthetic tiny data (code-path only, NOT the canonical split)")
+    print("[SMOKE] synthetic tiny data + FAKE RecVAE teacher (code-path only, NOT the canonical split)")
     rng = np.random.RandomState(0)
     ni = 130                         # >100 so NDCG@100 is well-defined
     nu = 240
@@ -599,43 +780,67 @@ def smoke(args):
             liked = items[:2]; lvls[:2] = 8
         users.append({"items": items, "levels": lvls, "vals": level_to_sv(lvls), "liked": liked})
 
-    enc = SetEncoder(ni, token_mode=args.token, m=8, nlayers=1)
-    decoder = nn.Linear(D, ni)
-    opt = torch.optim.AdamW(list(enc.parameters()) + list(decoder.parameters()), lr=1e-3)
-    Wd, bd = decoder.weight, decoder.bias
+    teacher_override = None
+    if args.teacher == "recvae":
+        # fake teacher: random-weight RecVAE saved+loaded through the REAL load path
+        args.t_hidden, args.t_latent = 24, 16
+        fake = R.RecVAE(args.t_hidden, args.t_latent, ni)
+        tmp = os.path.join(CKPT_DIR, "_smoke_recvae.pt"); os.makedirs(CKPT_DIR, exist_ok=True)
+        torch.save({"model": fake.state_dict(), "state": {"epoch": 1, "best": 0.0, "best_state": None}}, tmp)
+        teacher_override = load_recvae_teacher(ni, path=tmp, hidden=args.t_hidden, latent=args.t_latent)
+        os.remove(tmp)
+    cnt = np.ones(ni)
+    enc, decoder, teacher, params = build_model(args, ni, cnt, teacher_override=teacher_override)
+    znorm, rho = report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), None, "SMOKE-init")
+    assert znorm < 1e-6, "zero-init intercept identity broken (enc(empty) != 0 at init)"
+    if args.teacher == "recvae":
+        with torch.no_grad():
+            sc0 = (enc(torch.zeros((1, 1), dtype=torch.long), torch.zeros((1, 1)),
+                       torch.ones((1, 1), dtype=torch.bool), torch.zeros((1, 1), dtype=torch.long))
+                   @ decoder.weight.T + decoder.bias)[0]
+        assert torch.allclose(sc0, decoder.bias, atol=1e-5), "enc(empty) does not decode to frozen bias"
+        print("[SMOKE] intercept identity PASS: enc(empty) decodes EXACTLY to the frozen decoder bias "
+              "(holds WITH sign_prior: the zero-init head gates the signed tokens out at init)")
+        if args.sign_prior:
+            b = enc.beta.weight.detach()
+            cos_ends = float(F.cosine_similarity(b[0], b[NLEV - 1], dim=0))
+            v = level_valence()
+            assert cos_ends < -0.99, f"sign prior not antisymmetric (cos={cos_ends:.3f})"
+            assert abs(float(b[5].norm())) < 1e-6, "3-star (level 5) beta should be exactly neutral (0)"
+            print(f"[SMOKE] sign prior PASS: cos(beta[hated], beta[loved])={cos_ends:.3f} (opposite), "
+                  f"beta[3-star]=0, |beta| proportional to |v|={np.round(np.abs(v),2).tolist()}")
 
-    # KD path smoke (synthetic teacher B) if requested
     t_idx = t_prob = None
     if args.alpha_kd > 0:
         Bt = (rng.randn(ni, ni) * 0.1).astype(np.float32); np.fill_diagonal(Bt, 0.0)
-        tmp = os.path.join(CACHE_DIR, "_smoke_teacherB.npy"); os.makedirs(CACHE_DIR, exist_ok=True)
+        tmp = os.path.join(CKPT_DIR, "_smoke_teacherB.npy"); os.makedirs(CKPT_DIR, exist_ok=True)
         np.save(tmp, Bt)
         t_idx, t_prob = precompute_teacher(users, tmp, ni, topk=10, temp=2.0)
         os.remove(tmp)
-        print("[SMOKE] KD teacher precompute path exercised (synthetic B)")
+        print("[SMOKE] EDLAE KD teacher precompute path exercised (synthetic B)")
 
+    opt = torch.optim.AdamW(params, lr=1e-3)
     lens = np.array([len(u["items"]) for u in users])
     batches_all = make_batches(users, np.argsort(lens))
     for ep in range(3):
         enc.train(); r = np.random.default_rng(ep)
+        last = (float("nan"), float("nan"))
         for bat in batches_all:
             exs = [(i, make_input_target(users[i], r)) for i in bat]
             exs = [(i, e) for i, e in exs if e is not None]
             if not exs:
                 continue
-            pr = [(e[0], e[1], e[2]) for _, e in exs]
-            ii, vv, pp, ll = pack_tokens(pr)
-            tt = torch.zeros((len(exs), ni))
-            for k, (_, e) in enumerate(exs):
-                tt[k, e[3]] = 1.0
-            z = enc(ii, vv, pp, ll); lsm = F.log_softmax(z @ Wd.T + bd, dim=-1)
-            nll = -((lsm * tt).sum(-1) / tt.sum(-1).clamp_min(1.0)).mean()
-            loss = nll
-            if args.alpha_kd > 0:
-                uidx = np.array([i for i, _ in exs], np.int64)
-                loss = (1 - args.alpha_kd) * nll + args.alpha_kd * kd_ce(lsm, uidx, t_idx, t_prob)
+            loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, t_idx, t_prob)
             opt.zero_grad(); loss.backward(); opt.step()
-        print(f"[SMOKE] ep{ep+1} last-batch NLL={float(nll):.4f}")
+            last = (nll_v, mse_v)
+        print(f"[SMOKE] ep{ep+1} last-batch NLL={last[0]:.4f} zMSE={last[1]:.4f}")
+    if args.teacher == "recvae":
+        assert torch.equal(decoder.weight, teacher_override.decoder.weight) and \
+               torch.equal(decoder.bias, teacher_override.decoder.bias), \
+               "frozen decoder CHANGED during training"
+        assert torch.equal(enc.item_emb.weight, teacher_override.decoder.weight) or args.unfreeze_emb, \
+               "frozen item_emb CHANGED during training"
+        print("[SMOKE] frozen-geometry immutability PASS (decoder + item_emb bit-identical after 3 epochs)")
 
     # eval path smoke: synthetic graded fold-in matrix + head_mask through metrics.evaluate
     tr = sparse.csr_matrix((np.ones(600), (rng.randint(0, 60, 600), rng.randint(0, ni, 600))),
@@ -646,11 +851,12 @@ def smoke(args):
                            shape=(60, ni), dtype=np.float32)
     te = (te > 0).astype(np.float32); te.data[:] = 1.0
     hm, _ = compute_head_mask(bin_tr, ni)
-    predict = make_graded_predict_fn(enc, Wd.detach(), bd.detach(), tr, args.token)
+    predict = make_graded_predict_fn(enc, decoder.weight.detach(), decoder.bias.detach(), tr)
     res = M.evaluate(predict, bin_tr, te, batch_size=20, head_mask=hm)
     print(f"[SMOKE] eval path OK  full@10={res['ndcg@10']:.4f} tail@10={res['tail_ndcg@10']:.4f} "
           f"ndcg@100={res['ndcg@100']:.4f}")
-    print("[SMOKE] COMPLETE (all code paths: graded tokens, denoising fold, KD, canonical eval)")
+    print("[SMOKE] COMPLETE (paths: graded tokens, interview-regime subsets, frozen-geometry latent "
+          "distill, EDLAE KD hook, canonical eval)")
 
 
 def main():
@@ -661,11 +867,23 @@ def main():
     ap.add_argument("--tag", default="tower_t2")
     ap.add_argument("--epochs", type=int, default=20)
     ap.add_argument("--patience", type=int, default=4)
+    ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--token", choices=["film", "mlp"], default="film")
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--max_users", type=int, default=0, help="cap MATERIALISED users (dev only; 0=all)")
     ap.add_argument("--dry_users", type=int, default=2000, help="users to time for the epoch estimate")
-    # T3' distillation hook (default OFF)
+    # teacher-mode revision (2026-07-22)
+    ap.add_argument("--teacher", choices=["recvae", "none"], default="recvae",
+                    help="recvae = frozen T1 geometry + latent distill (DEFAULT); none = from-scratch arm")
+    ap.add_argument("--lambda_z", type=float, default=0.5, help="latent-regression weight (recvae mode)")
+    ap.add_argument("--unfreeze_emb", action="store_true", help="fallback arm: train the item embeddings")
+    ap.add_argument("--no_sign_prior", dest="sign_prior", action="store_false", default=True,
+                    help="ablation: skip the signed FiLM-beta init (addendum 2026-07-22)")
+    ap.add_argument("--t_hidden", type=int, default=600)
+    ap.add_argument("--t_latent", type=int, default=200)
+    ap.add_argument("--ablate_binarized", action="store_true",
+                    help="G3 canary: collapse INPUT levels to a constant like-level (presence-only)")
+    # T3' EDLAE score-CE hook (default OFF)
     ap.add_argument("--alpha_kd", type=float, default=0.0, help="EDLAE-teacher KD weight (0=off)")
     ap.add_argument("--teacher_npy", default=None, help="EDLAE B .npy (edlae.py --export_B)")
     ap.add_argument("--kd_topk", type=int, default=1000)
