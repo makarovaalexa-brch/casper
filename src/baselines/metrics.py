@@ -98,12 +98,24 @@ def Recall_at_k_batch(X_pred, heldout_batch, k=20):
     return recall
 
 
-def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50)):
+def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50), head_mask=None):
     """predict_fn: csr (batch x n_items) fold-in -> dense np (batch x n_items) scores.
-    Returns dict of mean NDCG@100, Recall@20, Recall@50 (+NDCG@10 if requested via ks). tr items
-    masked with -inf before ranking (vae_cf convention). Users with 0 held-out items are skipped."""
+    Returns dict of mean NDCG@100, NDCG@10, Recall@20, Recall@50. tr items masked with -inf before
+    ranking (vae_cf convention). Users with 0 held-out items are skipped.
+
+    TAIL metric (head_mask given): head_mask is a boolean array over items (True == HEAD item, i.e. in
+    the smallest set of items covering 33% of TRAIN interaction mass). When supplied we ALSO report
+    `tail_ndcg@10`, computed by reusing NDCG_binary_at_k_batch (no duplicated metric): head-item scores
+    are set to -inf so they can never be ranked, head held-out targets are dropped, and users whose
+    held-out set is ALL head (no tail target) are skipped -- identical to signed_latent.ndcg10(tail=True).
+    """
     n = data_tr.shape[0]
     acc = {"ndcg@100": [], "ndcg@10": [], "recall@20": [], "recall@50": []}
+    do_tail = head_mask is not None
+    if do_tail:
+        head_mask = np.asarray(head_mask, dtype=bool)
+        tail_row = (~head_mask).astype("float32")[np.newaxis, :]  # (1 x n_items), 1 on tail, 0 on head
+        acc["tail_ndcg@10"] = []
     for st in range(0, n, batch_size):
         en = min(st + batch_size, n)
         X = data_tr[st:en]
@@ -119,6 +131,15 @@ def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50)):
         acc["ndcg@10"].append(NDCG_binary_at_k_batch(X_pred, he, k=10))
         acc["recall@20"].append(Recall_at_k_batch(X_pred, he, k=20))
         acc["recall@50"].append(Recall_at_k_batch(X_pred, he, k=50))
+        if do_tail:
+            he_tail = he.multiply(tail_row).tocsr()          # drop head targets from held-out
+            he_tail.eliminate_zeros()
+            tkeep = np.asarray(he_tail.getnnz(axis=1)).ravel() > 0  # users with >=1 tail target
+            if tkeep.any():
+                Xp_t = X_pred[tkeep].copy()
+                Xp_t[:, head_mask] = -np.inf                 # head items never rankable
+                acc["tail_ndcg@10"].append(
+                    NDCG_binary_at_k_batch(Xp_t, he_tail[tkeep], k=10))
     out = {}
     for key, chunks in acc.items():
         if not chunks:
