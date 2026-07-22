@@ -34,6 +34,13 @@ recommender cores); their POLICIES fight in B.
       graded ≠> binarized on val, α_kd comes down. Prereq: `edlae.py --export_B` on the canonical split.
       ~74 min/epoch — expect 2–4 nights, resume-capable.
 - [ ] **Tower pick at G0'**: T2' vs bar (RecVAE 0.3540); within-noise of the bar = good enough, move on.
+- [ ] **VISION GUARD for ANY T2' recipe change (author, Jul 22):** gates/requirements outrank recipes.
+      Every launch config must keep: graded FiLM tokens (pb2's own proven recipe was graded); the dislike
+      target-side gradient (down-weight allowed, delete never); interview-regime training ending ≥50%
+      (anneal OK) with a small-k val curve logged; the evidence-gate intercept; the G3
+      graded-beats-binarized canary. Teacher tricks bounded (grade-blind supervision never wins the
+      endgame). Tower-internal plumbing (embeddings frozen/trainable, LRs, warm-starts) = free variables
+      where the pb2 recipe wins. No mid-run changes unless the watchdog shows stall/decline.
 - [ ] **REPRODUCIBILITY POLICY (author, Jul 22): the certified tower = ONE CLEAN RUN.** The current
       patched/resumed run is recipe-finding only. Once hyperparameters settle, retrain from scratch:
       single command, committed code, fixed+recorded seed, no mid-flight interventions — that checkpoint
