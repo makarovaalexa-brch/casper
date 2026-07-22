@@ -64,8 +64,16 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   certification. **C2 scope clause:** SEL certifies *not-geometrically-circular*, NOT *human-realistic* —
   behavioral and stated answers agree only ~21% (Jul-17 finding); SEL is likely optimistic vs a real
   interview. Human realism is C3's job and only C3's.
-- **C3 — human round-trip (VISION constraint; still owed project-wide).** ≥1 study: rendered questions →
-  graded human answers → downstream NDCG.
+- **C3 — human round-trip (VISION constraint; still owed project-wide).** Load-bearing form ONLY: the
+  HOLDOUT design — participants with importable histories (Letterboxd/IMDb export, or a 40–60-film
+  build-your-profile step); hold out a random half as objective targets; interview WITHOUT them; measure
+  NDCG on the held-out half. A satisfaction-survey C3 ("rate these recs") is explicitly NOT acceptable —
+  self-assessed quality with no reference proves ~nothing. Known biases to report: recall/salience skew,
+  head-biased profiles, small n. Note: this is also the only place a genuinely STATED concept answer meets
+  an objective outcome — in-corpus, "stated" concept/attribute affinity has NO ground truth (all prior
+  stated-vs-behavioral figures, incl. the 21% agreement, are proxy-vs-proxy: LLM-sim or member-bag
+  averages, never real statements). Item-level stated DOES have in-corpus GT (star ratings) — the
+  rated-only firewall exploits that; concepts do not.
 
 ## Standing protocol rules (not gates; from CLAUDE.md + archaeology, enforced on every experiment)
 Paired per-user bootstrap for every bolded delta · ≥3 REAL training seeds before any "learned X wins"
