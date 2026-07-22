@@ -27,6 +27,10 @@ _Canonical current recommender = **pbC set-encoder** (interview-native). The Rec
   validity-gap gate discriminates and it fails cross-family). New work uses: ratings/SEL for values,
   the structural rule for answerability. Distilled grids = archive-only. Instrument line has ONE bridge
   to remove (train_precacc concept answers → SEL, in the Step-2 design sheet).
+- **Consequence: ALL pre-Jul-22 interview-line NUMBERS demoted** (B answerable-concepts, C ladder,
+  D open-recall, the +47% adaptivity magnitude) — directions = credible priors, magnitudes re-establish
+  paper-by-paper on the new instrument. Ratings-only results (item channel, dislike probe, ruler
+  campaign) untainted.
 - Kalman belief-pool **incompatible** with the canonical recommender (craters full 0.167→0.097).
 - Metric bug fixed: score with the learned bias, not popb. **Always report FULL and TAIL.**
 - Adaptivity **proven** (+47% tail from one genre question — HARD RULE #2).
