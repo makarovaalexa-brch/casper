@@ -460,10 +460,11 @@ conjunction.
 
 \paragraph{The gap map.}
 Figure~\ref{fig:gapmap} places every system on two axes: \emph{interview-compatibility} on the $x$-axis---a coarse
-ordinal capability count, the number of R1--R5 marks a system satisfies in the master table (\cmark${=}1$,
-\pmark${=}0.5$)---and \emph{measured full-profile NDCG@10 on our ML-25M ruler} (R1) on the $y$-axis. The measured
-points trace a \emph{descending} frontier: accuracy peaks at the item-only accuracy corner ($x{=}2.5$) and falls as
-interview-compatibility rises, so the top-right---high compatibility \emph{and} a full-profile number---is empty.
+ordinal capability count, the number of \textbf{R2--R5} marks a system satisfies in the master table (\cmark${=}1$,
+\pmark${=}0.5$; R1 is excluded because accuracy is the $y$-axis)---and \emph{measured full-profile NDCG@10 on our
+ML-25M ruler} (R1) on the $y$-axis. The population is bimodal: the accuracy corner collapses onto $x\le1.5$, the
+interview-capable systems sit at $x\ge2$ with weak or non-existent full-profile accuracy, and no system bridges---the
+top-right, high compatibility \emph{and} frontier accuracy, is empty.
 
 \begin{figure}[t]\centering
 \begin{tikzpicture}
@@ -471,8 +472,8 @@ interview-compatibility rises, so the top-right---high compatibility \emph{and} 
     width=13.5cm, height=9cm,
     xlabel={interview-compatibility score (R1--R5 marks satisfied; \cmark$=1$, \pmark$=0.5$)},
     ylabel={measured full-profile NDCG@10 (our ML-25M ruler)},
-    xmin=0, xmax=5, ymin=0.068, ymax=0.38,
-    xtick={0,1,2,3,4,5},
+    xmin=0, xmax=4, ymin=0.068, ymax=0.38,
+    xtick={0,1,2,3,4},
     ytick={0.10,0.15,0.20,0.25,0.30,0.35},
     ymajorgrids=true,
     extra y ticks={0.068}, extra y tick labels={},
@@ -481,58 +482,61 @@ interview-compatibility rises, so the top-right---high compatibility \emph{and} 
     tick align=outside,
     clip=false,
 ]
-  % --- target region: top-right, x>=4 and y>=frontier bar (RecVAE 0.354) ---
-  \fill[green!14] (axis cs:4,0.354) rectangle (axis cs:5,0.38);
-  \draw[green!45!black,dashed] (axis cs:4,0.354) rectangle (axis cs:5,0.38);
+  % --- target region: top-right, x>=3.5 (of 4) and y>=frontier bar (RecVAE 0.354) ---
+  \fill[green!14] (axis cs:3.5,0.354) rectangle (axis cs:4,0.38);
+  \draw[green!45!black,dashed] (axis cs:3.5,0.354) rectangle (axis cs:4,0.38);
   \node[star,star points=5,draw=green!45!black,fill=yellow!85!red,minimum size=11pt,inner sep=0pt]
-        at (axis cs:4.5,0.373) {};
-  \node[green!45!black,font=\scriptsize,align=center,anchor=north] at (axis cs:4.5,0.370)
+        at (axis cs:3.75,0.373) {};
+  \node[green!45!black,font=\scriptsize,align=center,anchor=north] at (axis cs:3.75,0.370)
         {\textbf{CASPER} (target)\\(T2$'$, \textcolor{red}{\textbf{TODO}})};
-  % --- measured points (filled) ---
+  % --- measured points (filled); x = R2..R5 marks ONLY (R1 excluded: accuracy is the y-axis) ---
   \addplot[only marks,mark=*,mark size=2.6pt,color=blue!55!black] coordinates {
     (1.5,0.1345) (1.5,0.2428) (1.5,0.2442) (3.0,0.2019)
-    (1.0,0.3065) (2.5,0.3433) (2.5,0.3476) (2.5,0.3540)
+    (1.0,0.3065) (1.5,0.3433) (1.5,0.3476) (1.5,0.3540)
   };
-  % measured-point labels
+  % measured-point labels (accuracy cluster stacked at x=1.5, spread by y)
   \node[font=\scriptsize,anchor=east] at (axis cs:1.42,0.1345) {Most-Popular};
   \node[font=\scriptsize,anchor=west] at (axis cs:1.58,0.2360) {item-kNN};
   \node[font=\scriptsize,anchor=west] at (axis cs:1.58,0.2510) {iALS};
   \node[font=\scriptsize,anchor=east] at (axis cs:0.92,0.3065) {Golbandi-node};
-  \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3400) {EDLAE};
-  \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3490) {EASE};
-  \node[font=\scriptsize,anchor=west] at (axis cs:2.60,0.3585) {\textbf{RecVAE}};
+  \node[font=\scriptsize,anchor=west] at (axis cs:1.58,0.3400) {EDLAE};
+  \node[font=\scriptsize,anchor=west] at (axis cs:1.58,0.3490) {EASE};
+  \node[font=\scriptsize,anchor=west] at (axis cs:1.58,0.3585) {\textbf{RecVAE}};
   \node[font=\scriptsize,anchor=south west] at (axis cs:3.02,0.2019) {belief-MF (B\i y\i k/ConTS core)};
   % --- "no full-profile number" strip: BELOW the measured y-scale, visually separated ---
-  \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:5,0.094);
-  \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:5,0.094);
+  \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:4,0.094);
+  \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:4,0.094);
   \addplot[only marks,mark=o,mark size=2.6pt,color=gray!70!black] coordinates {
-    (1.5,0.076) (2.0,0.076) (2.5,0.076) (3.0,0.076)
+    (1.0,0.076) (1.5,0.076) (2.0,0.076) (2.5,0.076) (3.0,0.076)
   };
-  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:1.5,0.079) {SASRec/BERT4Rec};
-  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:2.0,0.0745) {GATE, LLM-CRS, graph filters};
-  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:2.5,0.079) {PEBOL, EDDI, TaNP};
-  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:3.0,0.0745) {BCIE};
-  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.55,0.086)
+  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:1.0,0.079) {SASRec/BERT4Rec};
+  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:1.5,0.0745) {graph filters};
+  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:2.0,0.079) {GATE, LLM-CRS, TaNP};
+  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:2.5,0.0745) {PEBOL, EDDI};
+  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:3.0,0.079) {BCIE};
+  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.30,0.086)
         {no full-profile number exists};
-  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.55,0.079)
-        {(off the $y$ scale; $x$ position only)};
+  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.30,0.079)
+        {(off the $y$ scale; $x$ only)};
 \end{axis}
 \end{tikzpicture}
 \caption{\textbf{The gap map (measured axes).} $y$-axis: measured full-profile NDCG@10 on our canonical ML-25M ruler.
-$x$-axis: an \emph{interview-compatibility score}, defined as the number of R1--R5 marks a system carries in the
-master table (Table~\ref{tab:master}), scoring \cmark${=}1$ and \pmark${=}0.5$. This score is a \emph{coarse ordinal
-capability count, not a measurement}, so the $x$-axis is qualitative even though the $y$-axis is measured. Filled
-markers are systems with a full-profile number on this ruler (belief-MF is the shared B\i y\i k/ConTS posterior core;
-Golbandi-node is the tree's best-effort node recommender). Hollow markers sit in the separated grey strip \emph{below}
-the measured $y$-scale: these are systems for which \emph{no full-profile number exists}---unrun, unrunnable at full
-catalogue, or not portable (see the master-table dispositions); only their $x$ position is meaningful. The shaded top-right box is the instrument target
-($x\ge4$ and full-profile at the frontier bar), still \TODO{}. The shape of the evidence is a \emph{collapse, not a
-gradual trade-off}: the upper envelope is roughly flat up to the item-only accuracy corner ($x{=}2.5$:
-RecVAE/EASE/EDLAE at $0.343$--$0.354$), then falls off a cliff --- the only measured system beyond it (belief-MF at
-$x{=}3.0$) drops to $0.2019$, below plain matrix factorisation, and \emph{nothing measurable exists at $x\ge3.5$}. The
-corner is not expensive; it is unoccupied. The
+$x$-axis: an \emph{interview-compatibility score}, defined as the number of \textbf{R2--R5} marks a system carries in
+the master table (Table~\ref{tab:master}), scoring \cmark${=}1$ and \pmark${=}0.5$, maximum $4$. \emph{R1 is
+deliberately excluded from the score}: accuracy is the $y$-axis, and letting it also inflate $x$ would blur the very
+trade-off the figure exists to show. The score is a \emph{coarse ordinal capability count, not a measurement}, so the
+$x$-axis is qualitative even though the $y$-axis is measured. Filled markers are systems with a full-profile number on
+this ruler (belief-MF is the shared B\i y\i k/ConTS posterior core; Golbandi-node is the tree's best-effort node
+recommender). Hollow markers sit in the separated grey strip \emph{below} the measured $y$-scale: systems for which
+\emph{no full-profile number exists}---unrun, unrunnable at full catalogue, or not portable (see the master-table
+dispositions); only their $x$ position is meaningful. The shaded top-right box is the instrument target ($x\ge3.5$
+and full-profile at the frontier bar), still \TODO{}. The population is \emph{bimodal}: the entire accuracy corner
+(Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x\le1.5$---strong recommenders that can fold items
+and nothing else---while every system with genuine interview machinery sits at $x\ge2$ and either has no measurable
+full-profile accuracy at all (the grey strip) or, for the one measurable core, drops to $0.2019$, below plain matrix
+factorisation (belief-MF at $x{=}3$). Two clusters, no bridge: the corner is not expensive; it is unoccupied. The
 nearest published rival to the target is B\i y\i k et al.~\cite{biyik2023soft} (highest compatibility of any system
-with an actionable belief), whose runnable core nonetheless measures at $0.2019$ full---far below the frontier bar.}
+with an actionable belief), whose runnable core nonetheless measures far below the frontier bar.}
 \label{fig:gapmap}
 \end{figure}
 
