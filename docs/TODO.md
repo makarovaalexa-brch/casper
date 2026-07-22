@@ -1,51 +1,64 @@
 # TODO — durable backlog (Paper A restart era)
 
-> The standing backlog. STATE.md = what is true NOW; this file = what is QUEUED, in priority order.
-> Prune on completion (move the result pointer to STATE/EXPERIMENTS, delete the row). Last: 2026-07-22.
+> STATE.md = what is true NOW; this file = what is QUEUED, priority-ordered. Prune on completion.
+> Last cleaned: 2026-07-22 (evening).
+
+## Chapter A/B separation (author-approved rule)
+**A certifies answer-INGESTION; B studies question-SELECTION.** A's interviews use only dumb fixed
+policies (random control, popularity-static; Σ-greedy solely as G8 instrumentation). Everything learned/
+adaptive (trees, VOI, EDDI-IG, Bıyık-EVOI, coarse-to-fine, the demoted +47% re-establishment) = Chapter B,
+fought ON the certified instrument. Elicitation-line SYSTEMS appear in A only as master-table rows (their
+recommender cores); their POLICIES fight in B.
 
 ## Running / imminent
-- [ ] **RecVAE on canonical ruler** (training now; test verdict vs EASE 0.3476/0.2441 bar) → fills master
-      table + tower candidate T1.
-- [ ] **Mult-DAE / Mult-VAE ML-20M certification snaps** (C1 completion; resume-capable, queued nights).
-- [ ] **Answerability apparatus adversarial audit** (agent running) → verdict + fix list; decide whether
-      answerability stays load-bearing for the interview line.
+- [ ] **RecVAE canonical-ruler** (training, val peak ~0.3504 @ep20; verdict vs EASE 0.3476/0.2441)
+      → on completion auto-launch chain: Mult-DAE ML-20M snap → belief_mf → golbandi_node → Mult-VAE snap.
+- [ ] **T2' training night** (next): graded-native tower on canonical split (`src/instrument/
+      train_tower_t2.py`, committed). Include the graded-vs-binarized ablation arm (tower-level G3c
+      sanity). ~74 min/epoch from scratch — expect 2–4 nights, resume-capable.
+- [ ] **Tower pick at G0'**: T2' vs bar (EASE/RecVAE). **AUTHOR RULE: T3' distillation ONLY if T2' gap is
+      CI-significant; within-noise ⇒ T2' is the tower.**
 
-## Next up (order matters)
-- [ ] **Step-2 design sheet: the belief layer** — FIRST resolve the PrecAcc two-mean ambiguity
-      (posterior-mean vs frozen-encoder-mean ranking; G0 form + G8 teeth depend on it), then build against
-      the FULL battery (`docs/design/GATE_BATTERY_INSTRUMENT.md`), on the certified tower, committed before run.
-- [ ] **Tower selection (revised by Step-2 review):** the interview tower must be GRADED-NATIVE →
-      **T2' = retrain pb2-class set encoder on the canonical split** (old pb2 ckpt LEAKS on new ruler —
-      its train users overlap the new test cohort); RecVAE (tonight) = R1 bar + distillation teacher.
-      **T3' distillation: AUTHOR RULE (Jul 22) — run ONLY if T2's gap to the bar is significant
-      (paired-bootstrap CI excludes zero); within-noise ⇒ T2' IS the tower, no distillation night.**
-- [ ] **Wave-2 baseline runs** (code committed, review-staged): belief_mf (Bıyık/ConTS rows), eddi_pvae,
-      golbandi_node, graph filter (Turbo-CF if cheap), SASRec/BERT4Rec → convert master-table "planned" cells.
-- [ ] **Concept-as-pseudo-item ablation** (`scripts/baselines/pseudo_item_concept.py`) — at G2 stage.
-- [ ] **Chapter table re-emit on canonical ruler** once RecVAE + wave-2 numbers land (G0 + master tables;
-      old-split numbers out).
-- [ ] **Answerability fixes (audit verdict Jul 22 — REQUIRED before answerability is cited again;
-      all zero-LLM):** (1) corr(answerability, popularity) + taste-tracking OR with popularity AND
-      per-user profile-size partialled (~1 h, cached grid); (2) dual-witness structural rule — promised in
-      5 docs, never run (½ day); (3) popcond-full on canonical ML-25M ruler with the distilled answerer
-      (½ day); (4) cross-family magnitude table (GPT +44.1 vs Haiku +3.9 validity gap — report the fail);
-      (5) distilled-value provenance disclosure (value ≈ EASE CF, shared-prior caveat). Claims narrow to
-      "under an LLM-derived answer model"; realizable routing prize = ≈0 (E0).
-- [ ] **Quarantine bridge:** swap `train_precacc.py` G2 concept answers from the distilled grid to the
-      SEL behavioral channel (goes into the Step-2 design sheet) — keeps instrument certification fully
-      independent of the answerability apparatus.
+## Step 2 — the instrument (chapter A core)
+- [ ] **Belief-layer + battery code** vs `docs/design/DESIGN_SHEET_STEP2_BELIEF.md` (v2.2: design (ii);
+      concepts = Arm A latent mean shift, three-arm G5 decision; refusal = consumption observation with
+      fitted α_refuse — author correction Jul 22). Then its own adversarial review → commit → run.
+- [ ] **Battery run — MUST-gate tier first** (the vision set): G0, G2, G3, G5, G6 + C2. Supporting tier:
+      G1c calibration detail, G4, G8-selection, G9. Continuous-token demo (random abstract embedding folds
+      like a concept direction) alongside G5.
+- [ ] **C2 certification** (SEL transfer; leak clause: exclude held-out targets).
 
-## Later / end-game
-- [ ] **G2 stage**: per-question curves, items-all-baselines vs mixed-channels-ours, battery gates G2/G5/G6/G9.
-- [ ] **C2 certification**: answer-model transfer via SEL channel (leak clause: exclude held-out targets).
-- [ ] **C3 human round-trip study** — design frozen → `docs/design/STUDY_C3_HUMAN_ROUNDTRIP.md` (Prolific,
-      holdout form, n≈40, £400–600). Preconditions listed there.
-- [ ] **Bib merge**: fold `chapterA_v2_new_refs.bib` into `references.bib` per `BIB_MERGE_TODO.md`
-      (+ key rename wang2025bdecf→cheraghi2025bdecf if ever).
-- [ ] **Belief-pool era re-audit** (Jul 15–19 conclusions incl. Kalman-craters) — happens implicitly as
-      Step 2 runs on the verified stack; revise memory notes on outcome.
-- [ ] **Retire/park**: old 500/500 arena split stays for elicitation-line continuity only.
+## Chapter A figures (author-approved — build with the battery results)
+- [ ] **FIG-1 "intensity staircase"**: ΔNDCG from folding ONE answer at each level hated→loved, per
+      channel (items, concepts). The G3 figure — no elicitation paper has it.
+- [ ] **FIG-2 "gap map, measured axes"**: upgrade the qualitative TikZ quadrant → scatter with
+      y = measured full-profile NDCG on our ruler, x = R-checks satisfied; instrument's dot enters the
+      empty top-right after the battery. Before/after variant if it reads well.
+- [ ] (optional) FIG-3 Σ-trace per question with refusal steps visibly small; battery scorecard table.
 
-## Small nits
-- [ ] tail-metric SE / user-floor parameter (k tail targets) — set when G2 harness is built.
-- [ ] `experiments/baselines/DESIGN_SHEET.md` refresh to canonical-ruler reality (currently ML-20M-era).
+## Chapter A completion checklist (what "done" means)
+- [ ] All master-table planned/queued cells measured or honestly dispositioned (wave-2).
+- [ ] Battery results table (pass/narrowed/fail per gate) + G2 curves (full+tail, CIs).
+- [ ] Bridge prose completed with Mult-VAE/DAE snap deltas.
+- [ ] UNICORN row added (bib exists: deng2021unicorn).
+- [ ] Method section rewritten from design sheet v2.2; results section from battery JSONs.
+- [ ] CIs on every bolded delta (paired per-user bootstrap).
+- [ ] C3 stays listed as owed certification (design: `STUDY_C3_HUMAN_ROUNDTRIP.md`) — NOT a chapter blocker.
+
+## Wave-2 baselines (nights, interleaved — table-filling, not gating)
+- [ ] belief_mf + golbandi_node (reviewed, auto-queued tonight).
+- [ ] EDDI training night (after T2'; deprioritized behind instrument line).
+- [ ] Turbo-CF / SASRec/BERT4Rec / canonical Mult-VAE/DAE — only if the master table still needs them.
+- [ ] Concept-as-pseudo-item ablation — at G2/G5 stage (it's the Arm-B comparator's cousin for EASE).
+
+## Chapter B seeds (do NOT start — recorded so nothing is lost)
+- Re-establish demoted magnitudes on the certified instrument: adaptivity (+47% re-test), answerable-
+  concepts, belief-pool curves, open-recall/framing. Policy rivals: Golbandi tree, EDDI-IG, Bıyık-EVOI,
+  ConTS. G9/G8 substrate from A enables clean attribution.
+
+## Standing debts (not blocking)
+- [ ] Answerability fixes (5, zero-LLM) — before answerability is EVER cited again (B-era).
+- [ ] Bib merge into references.bib (`BIB_MERGE_TODO.md`); wang2025bdecf key rename optional.
+- [ ] `experiments/baselines/DESIGN_SHEET.md` refresh to canonical-ruler reality.
+- [ ] EXPERIMENTS.md rows for canonical-ruler results (fold in with RecVAE verdict).
+- [ ] Tail-metric user-floor parameter (≥k tail targets) — set when G2 harness is built.
