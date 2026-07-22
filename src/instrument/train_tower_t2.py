@@ -25,7 +25,7 @@ THREE MODES (--teacher {warm_init, recvae, none}; default warm_init):
       * FROZEN input item embeddings = the decoder rows Wd (n_items x 200), lifted to the internal width
         by a TRAINABLE in_proj Linear(200 -> 512). Fallback arm: --unfreeze_emb trains the embeddings.
       * Trainable params ONLY: attention blocks (mab_in / sab / PMA + inducing points), FiLM gamma/beta
-        tables, in_proj, out head (zero-init) + z0. The FiLM tables REMAIN trainable by design: with the
+        tables, in_proj, out head (normal init; gate guards the intercept) + z0. The FiLM tables REMAIN trainable by design: with the
         item embeddings frozen, gamma/beta are where graded value/sign lives.
       * SIGN INIT ON GAMMA [repair 2; --sign_prior default ON, --no_sign_prior ablation]: insurance
         against the RUNG1 gamma(hated)==gamma(loved) failure -- the sign is UNREACHABLE from a pure null
@@ -77,7 +77,7 @@ ARCHITECTURE PROVENANCE
   pscale/last_prec), the a0c teacher / SignedAE warm-start, and the answerer. `load_answerer` is RETIRED
   (Jul-22 audit) and MUST NOT appear anywhere in this file -- asserted at import.
   Deviations from the pin (all revision-mandated): d_out decoupled from the internal width (head
-  Linear(d+1 -> d_out) ZERO-INIT for the intercept identity), optional frozen item_emb + in_proj lift.
+  Linear(d+1 -> d_out), normal init -- the intercept identity lives in the g(0)=0 gate, not the init), optional frozen item_emb + in_proj lift.
   The RecVAE teacher is IMPORTED from src/baselines/recvae.py (the snap-certified port), not copied.
 
 GRADED DATA (the point of "graded-native"): the proc CSVs store only binarised likes (>3.5). We re-derive
@@ -142,6 +142,8 @@ D = 512          # internal attention width (pb2)
 NLEV = 10        # half-star levels 0.5..5.0 -> 0..9 (matches set_mn_pb2 gamma/beta tables)
 LIKE_LEVEL = 8       # constant level (4.5 stars) used by the --ablate_binarized G3-canary arm
 LIKE_MIN_LEVEL = 7   # like boundary: level >= 7 <=> star >= 4.0 <=> rating > 3.5 (Liang binarization)
+G0_BAR = 0.3540      # G0-strength bar on THIS ruler: frozen RecVAE reference full NDCG@10 (NOT the old
+                     # 0.486 arena number -- different split, different fold-in protocol)
 
 # `load_answerer` is RETIRED (Jul-22 audit). Guard: this name must never be defined or called here.
 assert "load_answerer" not in globals(), "load_answerer is retired and must not appear in the tower"
@@ -153,7 +155,7 @@ def log(msg):
 
 # =============================================================================================
 # ARCHITECTURE  (copied from scripts/_verify/set_mn_pb2.py @ pin 2bace5e; belief/concept/teacher stripped;
-#                d_out decoupling + frozen-emb lift + zero-init head = the 2026-07-22 revision)
+#                d_out decoupling + frozen-emb lift + gated fold = the 2026-07-22 revision)
 # =============================================================================================
 class MAB(nn.Module):
     """Multihead attention block (Set Transformer): MAB(Q,K) = LN(H + FF(H)), H = LN(Q + Attn(Q,K,K)).
@@ -185,7 +187,7 @@ class PMA(nn.Module):
 
 class SetEncoder(nn.Module):
     """Graded-native set encoder (pb2-class, attn pool). Tokens (item, half-star level) -> [in_proj] ->
-    FiLM token -> inducing-point attention (mab_in) -> global interaction (sab) -> PMA pool -> zero-init
+    FiLM token -> inducing-point attention (mab_in) -> global interaction (sab) -> PMA pool -> normal-init
     head -> z (d_out). Permutation-invariant, ANY set length.
 
     Copied from set_mn_pb2.SetEncoder (pool='attn', token='film'); belief-pool branch REMOVED. Revisions
@@ -216,7 +218,10 @@ class SetEncoder(nn.Module):
         self.pma = PMA(d, nhead)                                       # pool -> one vector
         self.z0 = nn.Parameter(torch.zeros(d_out))                     # empty-set prior mean (0)
         self.head = nn.Linear(d + 1, d_out)                            # + log(1+set-size) feature
-        nn.init.zeros_(self.head.weight); nn.init.zeros_(self.head.bias)   # zero-init: stable start
+        # UN-ZEROED head (archaeology verdict 2026-07-23): normal init -- the fold is LIVE from step 0
+        # (no pure cold-start tax). The empty-set intercept does NOT depend on head init: the gate
+        # g(0)=0 zeroes the head output at n_tok=0 exactly, at every point in training.
+        nn.init.normal_(self.head.weight, std=0.02); nn.init.normal_(self.head.bias, std=0.02)
         self.gate_a = nn.Parameter(torch.tensor(0.5413))               # softplus(0.5413) ~= 1.0
 
     def forward(self, ids, vals, pad, lvs):
@@ -611,19 +616,28 @@ def level_valence(levels=None):
     return np.clip((star - 3.0) / 2.0, -1.0, 1.0)
 
 
+# SIGN-PRIOR v2 (archaeology verdict 2026-07-23): piecewise gamma init. ALL like levels (>=7, i.e.
+# rating > 3.5) start at FULL +1.0 (pb2 parity -- v1's graded positives halved the dominant like signal);
+# the 3/3.5-star neutral band starts weakly positive (+0.25); dislike levels stay GRADED NEGATIVE
+# (hard-wired negation kept: vision guard / G3). Levels 0..9 = stars 0.5..5.0.
+SIGN_GAMMA_V2 = [-1.0, -1.0, -1.0, -0.75, -0.5,   # 0.5-2.5 stars: graded negation (descending)
+                 0.25, 0.25,                       # 3.0-3.5 stars: neutral band, weakly positive
+                 1.0, 1.0, 1.0]                    # 4.0-5.0 stars: FULL positive (pb2 parity)
+
+
 def apply_sign_prior(enc):
-    """SIGN INIT ON GAMMA (repair 2, 2026-07-22 adversarial review; insurance vs the RUNG1
+    """SIGN INIT ON GAMMA v2 (repair 2 + archaeology verdict; insurance vs the RUNG1
     sign-unreachable-from-null-init failure, memory `token-fusion-signed-values`):
-    gamma(level) = v(level) in [-1,+1] broadcast across dims -- a hated token STARTS as -e_i (PER-ITEM
-    negation, not a global direction), a loved token as +e_i; beta ZERO-init (learned small).
-    The earlier beta-along-u-bar variant is REMOVED: it seeded valence on the popularity axis
-    (G3a false-pass; G5 structurally unpassable)."""
+    gamma(level) = SIGN_GAMMA_V2[level] broadcast across dims -- a hated token STARTS as a scaled -e_i
+    (PER-ITEM negation, not a global direction), every LIKED token at full +e_i; beta ZERO-init.
+    The earlier beta-along-u-bar variant is REMOVED (popularity-axis seeding); the v1 linear-valence
+    gamma is REPLACED (it halved the positive signal on 4/4.5-star tokens)."""
     with torch.no_grad():
-        v = torch.from_numpy(level_valence().astype(np.float32))          # (NLEV,)
+        v = torch.tensor(SIGN_GAMMA_V2, dtype=torch.float32)              # (NLEV,)
         enc.gamma.weight.copy_(v.unsqueeze(1).expand(-1, enc.d).contiguous())
         nn.init.zeros_(enc.beta.weight)
-    log(f"[model] SIGN INIT applied: gamma(level)=v(level)={np.round(level_valence(), 2).tolist()} "
-        f"(per-item negation for dislikes; neutral at 3 stars); beta=0")
+    log(f"[model] SIGN INIT v2 applied: gamma(level)={SIGN_GAMMA_V2} "
+        f"(likes full +1, neutral +0.25, dislikes graded negative); beta=0")
 
 
 
@@ -860,7 +874,7 @@ def train(args):
         log(f"[ep{ep+1}] NLL={run_n/max(nb,1):.4f} zMSE={run_z/max(nb,1):.4f} lam_glob={lam_glob:.3f} "
             f"p_int={p_int:.2f} "
             f"VAL full@10={f10:.4f} tail@10={t10:.4f} ndcg@100={vm['ndcg@100']:.4f} "
-            f"({'PASS>=0.486' if f10>=0.486 else 'below gate'}) ({(time.time()-t0)/60:.1f}m)")
+            f"vs bar {G0_BAR:.4f} ({f10 - G0_BAR:+.4f}) ({(time.time()-t0)/60:.1f}m)")
         if args.nll_guard:                                   # patch 4: train-NLL divergence rescue
             nll_guard_step(guard, run_n / max(nb, 1), opt, enc, decoder, ckb)
         torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "opt": opt.state_dict(),
@@ -1030,7 +1044,7 @@ def smoke(args):
     cnt = np.ones(ni)
     enc, decoder, teacher, params, groups = build_model(args, ni, cnt, teacher_override=teacher_override)
     znorm, rho = report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), None, "SMOKE-init")
-    assert znorm < 1e-6, "zero-init intercept identity broken (enc(empty) != 0 at init)"
+    assert znorm < 1e-6, "gated intercept identity broken (enc(empty) != 0 at init; gate g(0) leak?)"
     if args.teacher in ("recvae", "warm_init"):
         with torch.no_grad():
             sc0 = (enc(torch.zeros((1, 1), dtype=torch.long), torch.zeros((1, 1)),
@@ -1042,13 +1056,15 @@ def smoke(args):
               "is trainable, the identity tracks the CURRENT bias)")
         if args.sign_prior:
             g = enc.gamma.weight.detach()
-            v = level_valence()
-            assert torch.allclose(g[0], torch.full_like(g[0], -1.0)), "gamma(hated) != -1"
-            assert torch.allclose(g[NLEV - 1], torch.full_like(g[0], 1.0)), "gamma(loved) != +1"
-            assert float(g[5].abs().max()) < 1e-6, "gamma(3-star) should be exactly 0 (neutral)"
+            for lvl, want in enumerate(SIGN_GAMMA_V2):
+                assert torch.allclose(g[lvl], torch.full_like(g[lvl], want)), \
+                    f"gamma(level {lvl}) != {want}"
+            assert SIGN_GAMMA_V2[0] == -1.0 and SIGN_GAMMA_V2[NLEV - 1] == 1.0   # ends pinned
+            assert all(SIGN_GAMMA_V2[l] == 1.0 for l in range(LIKE_MIN_LEVEL, NLEV)), \
+                "all like levels must init at full +1 (pb2 parity)"
             assert float(enc.beta.weight.detach().abs().max()) < 1e-12, "beta not zero-init"
-            print(f"[SMOKE] sign init PASS: gamma(level)=v={np.round(v,2).tolist()} "
-                  f"(hated token = -e_i, per-item negation), beta=0")
+            print(f"[SMOKE] sign init v2 PASS: gamma={SIGN_GAMMA_V2} "
+                  f"(likes full +1, neutral +0.25, dislikes graded negative), beta=0")
 
     t_idx = t_prob = None
     if args.alpha_kd > 0:
