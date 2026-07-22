@@ -33,7 +33,13 @@ recommender cores); their POLICIES fight in B.
       ⚠ KD RISK = G3 (all teachers are grade-blind): canary = the graded-vs-binarized ablation arm — if
       graded ≠> binarized on val, α_kd comes down. Prereq: `edlae.py --export_B` on the canonical split.
       ~74 min/epoch — expect 2–4 nights, resume-capable.
-- [ ] **Tower pick at G0'**: T2'(+KD) vs bar (EASE/RecVAE); within-noise of the bar = good enough, move on.
+- [ ] **Tower pick at G0'**: T2' vs bar (RecVAE 0.3540); within-noise of the bar = good enough, move on.
+- [ ] **REPRODUCIBILITY POLICY (author, Jul 22): the certified tower = ONE CLEAN RUN.** The current
+      patched/resumed run is recipe-finding only. Once hyperparameters settle, retrain from scratch:
+      single command, committed code, fixed+recorded seed, no mid-flight interventions — that checkpoint
+      (and only that one) gets certified and frozen for Step 2. Exploration runs never become artifacts.
+      (Bit-exact CPU replication impossible; the bar = statistical replication: same command+commit →
+      same curve within noise.)
 
 ## Step 2 — the instrument (chapter A core)
 - [ ] **Belief-layer + battery code** vs `docs/design/DESIGN_SHEET_STEP2_BELIEF.md` (v2.2: design (ii);
