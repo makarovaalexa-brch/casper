@@ -23,6 +23,10 @@ _Canonical current recommender = **pbC set-encoder** (interview-native). The Rec
   --max_users 30000 --max_atoms 40` → sign-proof G, α's crediting concepts, G1c/G2 curves (full+tail).
 
 ## Settled — do NOT relitigate (see memory)
+- **LLM answerability apparatus: RETIRED for new work** (Jul-22 audit — popularity-dominated; only the
+  validity-gap gate discriminates and it fails cross-family). New work uses: ratings/SEL for values,
+  the structural rule for answerability. Distilled grids = archive-only. Instrument line has ONE bridge
+  to remove (train_precacc concept answers → SEL, in the Step-2 design sheet).
 - Kalman belief-pool **incompatible** with the canonical recommender (craters full 0.167→0.097).
 - Metric bug fixed: score with the learned bias, not popb. **Always report FULL and TAIL.**
 - Adaptivity **proven** (+47% tail from one genre question — HARD RULE #2).
