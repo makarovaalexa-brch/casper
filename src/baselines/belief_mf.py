@@ -115,11 +115,11 @@ def _smoke():
     print("[belief_mf][SMOKE] synthetic tiny data (code-path only, NOT the Liang split)")
     from scipy import sparse
     rng = np.random.RandomState(0)
-    n_users, n_items = 80, 40
+    n_users, n_items = 120, 130   # >100 items: metrics.evaluate uses NDCG@100 / Recall@50
     X = sparse.random(n_users, n_items, density=0.15, random_state=rng, data_rvs=lambda s: np.ones(s))
     X = (X > 0).astype(np.float32).tocsr()
-    tr = X[:60]
-    te_tr, te_te = X[60:], (sparse.random(20, n_items, density=0.1, random_state=rng,
+    tr = X[:90]
+    te_tr, te_te = X[90:], (sparse.random(30, n_items, density=0.1, random_state=rng,
                                           data_rvs=lambda s: np.ones(s)) > 0).astype(np.float32).tocsr()
     a = argparse.Namespace(**DEFAULTS, **{"factors": 8, "reg": 0.1, "alpha": 50.0, "iterations": 3})
     pr = fit(tr, n_items, args=a, log=print)

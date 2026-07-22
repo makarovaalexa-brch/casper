@@ -74,6 +74,9 @@ def main():
     ap.add_argument("--p", type=float, default=None, help="dropout prob; if unset, sweep on val")
     ap.add_argument("--l2", type=float, default=0.0)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--export_B", default=None,
+                    help="path to np.save the fitted EDLAE B (n_items x n_items float32) for distillation "
+                         "(distill_edlae.py teacher). Saved AFTER the final (val-selected p) refit.")
     args = ap.parse_args()
     meta = M.load_meta(); n_items = meta["n_items"]
     train = M.load_train(n_items)
@@ -95,6 +98,10 @@ def main():
                 best_v, p = v, pp
     G = build_gram(train)
     B = edlae_B(G, p, args.l2); del G
+    if args.export_B:
+        os.makedirs(os.path.dirname(os.path.abspath(args.export_B)), exist_ok=True)
+        np.save(args.export_B, B.astype(np.float32))
+        print(f"[edlae] exported teacher B -> {args.export_B} ({B.shape} float32) for distill_edlae.py")
     res = M.evaluate(lambda Xc: np.asarray(Xc @ B, np.float32), te_tr, te_te)
     res["p"] = p; res["l2"] = args.l2; res["seconds"] = time.time() - t0
     print(f"[edlae] test {res}")
