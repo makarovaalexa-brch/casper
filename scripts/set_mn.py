@@ -314,6 +314,12 @@ def set_grading(mode):
 
 
 def load_answerer(tag):
+    # RETIRED FOR NEW WORK (audit 2026-07-22): the distilled LLM answerability grids are
+    # popularity-dominated and unvalidated as external truth. Archive-only — reproduces pre-Jul-22
+    # B/C/D numbers. New work: values = ratings/SEL; answerability = structural rule.
+    # See CLAUDE.md 'Settled' + memory answerability-audit-2026-07-22.
+    print("[WARN] load_answerer: LLM-derived grid is RETIRED for new work (audit 2026-07-22) — "
+          "archive/reproduction use only.", flush=True)
     K = np.load(RSD + "/mm_" + tag + "_know.npy")
     V = np.load(RSD + "/mm_" + tag + "_val.npy")
     uids = np.load(RSD + "/mm_" + tag + "_uids.npy")
