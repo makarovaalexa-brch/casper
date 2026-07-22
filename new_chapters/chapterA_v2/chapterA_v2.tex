@@ -359,19 +359,19 @@ Item-kNN (cosine)                           & \xmark & \cmark & \xmark & \xmark 
 PureSVD / iALS-WMF                          & \xmark & \cmark & \xmark & \xmark & \pmark & $.2442$ & $.1853$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
 EASE~\cite{steck2019ease}                    & \cmark & \cmark & \xmark & \xmark & \pmark & $.3476$ & $.2441$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
 EDLAE~\cite{steck2020edlae}                  & \cmark & \cmark & \xmark & \xmark & \pmark & $.3433$ & $.2395$ & measured & @100 $\approx0.42$--$0.44$ class \\
-GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & run planned (public code) & n/r (ML-20M not reported) \\
+GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{\TODO{}} & queued & n/r (ML-20M not reported) \\
 \midrule
 \multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
 Mult-DAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.419$ \\
 Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.426$ \\
 RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \cmark & \xmark & \pmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
-SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & run planned (public code) & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (own cold-start benchmark) \\
+SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued (best-effort) & n/r (own cold-start benchmark) \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (non-recsys; UCI/MNIST) \\
+EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued (best-effort) & n/r (non-recsys; UCI/MNIST) \\
 Golbandi tree~\cite{golbandi2011adaptive}    & \xmark & \cmark & \xmark & \xmark & \xmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
-RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & best-effort planned & n/r (elicitation RMSE) \\
+RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued (best-effort) & n/r (elicitation RMSE) \\
 B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & $.2019$ & $.1200$ & measured (core) & n/r (own elicitation task) \\
 ICF~\cite{zhao2013interactive}               & \xmark & \cmark & \xmark & \cmark & \pmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
 ConTS~\cite{li2021seamlessly}                & \xmark & \cmark & \pmark & \cmark & \pmark & $.2019$ & $.1200$ & measured (core) & n/r (cold-start CRS metrics) \\
@@ -394,8 +394,7 @@ val 10k / test 10k users; per-user 80/20 fold-in; tail $=$ top-33\%-train-mass h
 with the decoder's learned bias. The B\i y\i k and ConTS rows share one measured posterior core (belief-MF,
 best-effort; substitutions per the no-dash paragraph), so both print $0.2019/0.1200$; the Golbandi row prints its
 node-recommender core. Statuses are \emph{measured} (run on this ruler), \emph{queued} (\TODO{}, run
-pending), \emph{run planned} / \emph{best-effort planned} (replication on this ruler in the next experimental
-round; best-effort = with
+pending), \emph{queued} (\TODO{}: runnable, implementation/run scheduled on this ruler; best-effort = with
 stated substitutions), \emph{superseded} (a measured successor row subsumes it), or \emph{not runnable / not
 portable} (impossible by construction; mechanism in the text). The final column is each system's own published
 full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
@@ -505,17 +504,15 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
   \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:4,0.094);
   \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:4,0.094);
   \addplot[only marks,mark=o,mark size=2.6pt,color=gray!70!black] coordinates {
-    (1.0,0.076) (1.5,0.076) (2.0,0.076) (2.5,0.076) (3.0,0.076)
+    (2.0,0.076) (2.5,0.076) (3.0,0.076)
   };
-  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:1.0,0.079) {SASRec/BERT4Rec};
-  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:1.5,0.0745) {graph filters};
-  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:2.0,0.079) {GATE, LLM-CRS, TaNP};
-  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:2.5,0.0745) {PEBOL, EDDI};
+  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:2.0,0.079) {GATE, LLM-CRS};
+  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:2.5,0.0745) {PEBOL};
   \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:3.0,0.079) {BCIE};
-  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.30,0.086)
-        {no full-profile number exists};
-  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.30,0.079)
-        {(off the $y$ scale; $x$ only)};
+  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.20,0.086)
+        {no full-profile ranker exists};
+  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:3.20,0.079)
+        {(by construction; $x$ only)};
 \end{axis}
 \end{tikzpicture}
 \caption{\textbf{The gap map (measured axes).} $y$-axis: measured full-profile NDCG@10 on our canonical ML-25M ruler.
@@ -525,9 +522,11 @@ deliberately excluded from the score}: accuracy is the $y$-axis, and letting it 
 trade-off the figure exists to show. The score is a \emph{coarse ordinal capability count, not a measurement}, so the
 $x$-axis is qualitative even though the $y$-axis is measured. Filled markers are systems with a full-profile number on
 this ruler (belief-MF is the shared B\i y\i k/ConTS posterior core; Golbandi-node is the tree's best-effort node
-recommender). Hollow markers sit in the separated grey strip \emph{below} the measured $y$-scale: systems for which
-\emph{no full-profile number exists}---unrun, unrunnable at full catalogue, or not portable (see the master-table
-dispositions); only their $x$ position is meaningful. The star marks the instrument target (high compatibility at
+recommender). Hollow markers in the separated grey strip \emph{below} the measured $y$-scale are systems that
+\emph{cannot produce a full-profile number by construction} (no full-catalogue ranker, or not portable; see the
+master-table dispositions); only their $x$ position is meaningful. Runnable-but-not-yet-measured systems (sequence
+models, graph filters, EDDI, TaNP) are deliberately \emph{absent} from the figure --- they carry \TODO{} cells in
+Table~\ref{tab:master} and join the plot when their numbers land. The star marks the instrument target (high compatibility at
 the frontier bar), still \TODO{}. The population is \emph{bimodal}: the entire accuracy corner
 (Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x\le1.5$---strong recommenders that can fold items
 and nothing else---while every system with genuine interview machinery sits at $x\ge2$ and either has no measurable
