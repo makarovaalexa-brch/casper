@@ -663,10 +663,51 @@ def build_model(args, ni, cnt, teacher_override=None):
         log("[model] sign_prior OFF (ablation arm): gamma=1, beta random (additive-null init)")
     # repair 6: frozen tensors EXCLUDED from the optimizer entirely (AdamW decay mutates at zero grad)
     params = [p for p in list(enc.parameters()) + list(decoder.parameters()) if p.requires_grad]
+    # stabilization patch (2026-07-22 warm_init ep5 collapse): warm-started decoder+identities get a
+    # REDUCED learning rate (lr * warm_lr_scale) -- training 7.4M warm params at the from-scratch
+    # attention LR churned the good init (train NLL rose 6.64->7.79 = divergence).
+    if args.teacher == "warm_init":
+        slow_ids = {id(decoder.weight), id(decoder.bias), id(enc.item_emb.weight)}
+        slow = [p for p in params if id(p) in slow_ids]
+        fast = [p for p in params if id(p) not in slow_ids]
+        groups = [{"params": fast},
+                  {"params": slow, "lr": args.lr * args.warm_lr_scale}]
+        log(f"[model] param groups: fast={sum(p.numel() for p in fast):,}@lr={args.lr} "
+            f"slow(warm decoder+identities)={sum(p.numel() for p in slow):,}"
+            f"@lr={args.lr * args.warm_lr_scale} (warm_lr_scale={args.warm_lr_scale})")
+    else:
+        groups = [{"params": params}]
     tr_p, fr_p = count_params(enc, decoder)
     log(f"[model] teacher={args.teacher} d_int={D} d_out={enc.d_out} "
         f"TRAINABLE={tr_p:,} FROZEN={fr_p:,} (unfreeze_emb={args.unfreeze_emb})")
-    return enc, decoder, teacher, params
+    return enc, decoder, teacher, params, groups
+
+
+def nll_guard_step(guard, ep_nll, opt, enc, decoder, ckb):
+    """Plateau-rescue (patch 4): if epoch train NLL rises >10% over its running min for 2 CONSECUTIVE
+    epochs, halve ALL group LRs and reload the best checkpoint weights. guard = {'min','streak'} dict,
+    mutated in place. Returns True when a rescue fired."""
+    if ep_nll < guard["min"]:
+        guard["min"] = ep_nll; guard["streak"] = 0
+        return False
+    if ep_nll > 1.10 * guard["min"]:
+        guard["streak"] += 1
+        if guard["streak"] >= 2:
+            for g in opt.param_groups:
+                g["lr"] *= 0.5
+            if ckb and os.path.exists(ckb):
+                blob = torch.load(ckb, map_location="cpu")
+                enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"])
+                reloaded = "best ckpt reloaded"
+            else:
+                reloaded = "no best ckpt yet (weights kept)"
+            guard["streak"] = 0
+            log(f"[guard] train-NLL divergence (> {1.10 * guard['min']:.4f} twice): "
+                f"ALL LRs halved -> {[round(g['lr'], 6) for g in opt.param_groups]}; {reloaded}")
+            return True
+    else:
+        guard["streak"] = 0
+    return False
 
 
 def batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob=None, t_idx=None, t_prob=None):
@@ -728,9 +769,9 @@ def train(args):
     users = build_train_profiles(raw, tr_set, show2id,
                                  max_users=(args.max_users if args.max_users else None))
 
-    enc, decoder, teacher, params = build_model(args, ni, cnt)
+    enc, decoder, teacher, params, groups = build_model(args, ni, cnt)
     report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), cnt, "init")
-    opt = torch.optim.AdamW(params, lr=args.lr, weight_decay=1e-4)
+    opt = torch.optim.AdamW(groups, lr=args.lr, weight_decay=1e-4)
 
     t_idx = t_prob = None
     if args.alpha_kd > 0:
@@ -744,11 +785,22 @@ def train(args):
 
     ck = os.path.join(CKPT_DIR, f"{args.tag}.pt"); ckb = os.path.join(CKPT_DIR, f"{args.tag}_best.pt")
     start_ep, best, bad = 0, -1.0, 0
-    if args.resume and os.path.exists(ck):
+    guard = {"min": float("inf"), "streak": 0}
+    if args.resume_from_best and os.path.exists(ckb):
+        # patch 3: restart from the BEST checkpoint's weights (e.g. post-collapse). The best ckpt
+        # stores no optimizer state -> Adam moments start FRESH at the configured (grouped) LRs.
+        blob = torch.load(ckb, map_location="cpu")
+        enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"])
+        start_ep = blob["epoch"]; best = blob.get("val_full", -1.0)
+        log(f"[train] RESUMED FROM BEST ep{start_ep} (val_full={best:.4f}); fresh optimizer, "
+            f"group LRs={[round(g['lr'], 6) for g in opt.param_groups]}")
+    elif args.resume and os.path.exists(ck):
         blob = torch.load(ck, map_location="cpu")
         enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"])
         opt.load_state_dict(blob["opt"]); start_ep = blob["epoch"]; best = blob.get("best", -1.0)
-        log(f"[train] RESUMED ep{start_ep} best={best:.4f}")
+        guard = blob.get("guard", guard)
+        log(f"[train] RESUMED ep{start_ep} best={best:.4f} "
+            f"LRs={[round(g['lr'], 6) for g in opt.param_groups]}")
 
     W0 = decoder.weight.detach().clone(); b0 = decoder.bias.detach().clone()   # repair 6 drift ref
     E0 = enc.item_emb.weight.detach().clone()
@@ -764,7 +816,10 @@ def train(args):
             if not exs:
                 continue
             loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob, t_idx, t_prob)
-            opt.zero_grad(); loss.backward(); opt.step()
+            opt.zero_grad(); loss.backward()
+            if args.clip > 0:                                # patch 2: global grad-norm clipping
+                torch.nn.utils.clip_grad_norm_(params, args.clip)
+            opt.step()
             run_n += nll_v; run_z += (0.0 if np.isnan(mse_v) else mse_v); nb += 1
             if nb % 100 == 0:
                 log(f"  ep{ep} b{nb}/{len(order)} NLL={run_n/nb:.4f} zMSE={run_z/nb:.4f} "
@@ -780,8 +835,10 @@ def train(args):
         log(f"[ep{ep+1}] NLL={run_n/max(nb,1):.4f} zMSE={run_z/max(nb,1):.4f} lam_glob={lam_glob:.3f} "
             f"VAL full@10={f10:.4f} tail@10={t10:.4f} ndcg@100={vm['ndcg@100']:.4f} "
             f"({'PASS>=0.486' if f10>=0.486 else 'below gate'}) ({(time.time()-t0)/60:.1f}m)")
+        if args.nll_guard:                                   # patch 4: train-NLL divergence rescue
+            nll_guard_step(guard, run_n / max(nb, 1), opt, enc, decoder, ckb)
         torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "opt": opt.state_dict(),
-                    "epoch": ep + 1, "best": best, "val_full": f10, "val_tail": t10}, ck)
+                    "epoch": ep + 1, "best": best, "val_full": f10, "val_tail": t10, "guard": guard}, ck)
         if f10 > best:
             best = f10; bad = 0
             torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(),
@@ -855,9 +912,14 @@ def dry_run(args):
     assert all(0 <= s < ni for u in users for s in u["items"]), "sid out of vocab range (LEAK)"
     log("[DRY] token-vocab range assert PASS (all sids in [0, n_items))")
 
-    enc, decoder, teacher, params = build_model(args, ni, cnt)
+    enc, decoder, teacher, params, groups = build_model(args, ni, cnt)
     report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), cnt, "DRY-init")
-    opt = torch.optim.AdamW(params, lr=args.lr)
+    opt = torch.optim.AdamW(groups, lr=args.lr)
+    if args.teacher == "warm_init":                          # stabilization patch asserts
+        lrs = [g.get("lr", args.lr) for g in opt.param_groups]
+        assert len(opt.param_groups) == 2 and abs(lrs[1] - args.lr * args.warm_lr_scale) < 1e-12, \
+            f"warm param groups wrong: lrs={lrs}"
+        log(f"[DRY] param-group asserts PASS: fast lr={lrs[0]} slow lr={lrs[1]}")
 
     # one fwd/bwd on the first 200 users
     rng = np.random.default_rng(0)
@@ -934,7 +996,7 @@ def smoke(args):
         teacher_override = load_recvae_teacher(ni, path=tmp, hidden=args.t_hidden, latent=args.t_latent)
         os.remove(tmp)
     cnt = np.ones(ni)
-    enc, decoder, teacher, params = build_model(args, ni, cnt, teacher_override=teacher_override)
+    enc, decoder, teacher, params, groups = build_model(args, ni, cnt, teacher_override=teacher_override)
     znorm, rho = report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), None, "SMOKE-init")
     assert znorm < 1e-6, "zero-init intercept identity broken (enc(empty) != 0 at init)"
     if args.teacher in ("recvae", "warm_init"):
@@ -965,7 +1027,21 @@ def smoke(args):
         os.remove(tmp)
         print("[SMOKE] EDLAE KD teacher precompute path exercised (synthetic B)")
 
-    opt = torch.optim.AdamW(params, lr=1e-3)
+    opt = torch.optim.AdamW(groups, lr=1e-3)
+    if args.teacher == "warm_init":
+        assert len(opt.param_groups) == 2, "warm_init should give 2 param groups"
+        print(f"[SMOKE] param-group PASS: fast lr={opt.param_groups[0]['lr']} "
+              f"slow lr={opt.param_groups[1]['lr']} (warm_lr_scale={args.warm_lr_scale})")
+    # patch 4 unit-smoke: synthetic NLL sequence must trigger the rescue on the 2nd consecutive rise
+    gtest = {"min": float("inf"), "streak": 0}
+    lr_before = [g["lr"] for g in opt.param_groups]
+    fired = [nll_guard_step(gtest, v, opt, enc, decoder, None) for v in (5.0, 4.0, 4.6, 4.7)]
+    assert fired == [False, False, False, True], f"nll_guard sequence wrong: {fired}"
+    assert all(abs(g["lr"] - 0.5 * l0) < 1e-12 for g, l0 in zip(opt.param_groups, lr_before)), \
+        "nll_guard did not halve LRs"
+    for g, l0 in zip(opt.param_groups, lr_before):
+        g["lr"] = l0                                        # restore for the real smoke epochs
+    print("[SMOKE] nll_guard PASS: fired on 2nd consecutive >10% rise, halved all LRs (restored)")
     lens = np.array([len(u["items"]) for u in users])
     batches_all = make_batches(users, np.argsort(lens))
     E0 = enc.item_emb.weight.detach().clone()
@@ -980,7 +1056,10 @@ def smoke(args):
             if not exs:
                 continue
             loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob, t_idx, t_prob)
-            opt.zero_grad(); loss.backward(); opt.step()
+            opt.zero_grad(); loss.backward()
+            if args.clip > 0:
+                torch.nn.utils.clip_grad_norm_(params, args.clip)
+            opt.step()
             last = (nll_v, mse_v)
         print(f"[SMOKE] ep{ep+1} last-batch NLL={last[0]:.4f} zMSE={last[1]:.4f} lam_glob={lam_glob:.3f}")
     if args.teacher == "recvae":
@@ -1035,6 +1114,17 @@ def main():
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--token", choices=["film", "mlp"], default="film")
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--resume_from_best", action="store_true",
+                    help="restart from <tag>_best.pt weights (fresh optimizer at the grouped LRs); "
+                         "takes precedence over --resume")
+    # stabilization patch (warm_init ep5 collapse, 2026-07-22)
+    ap.add_argument("--warm_lr_scale", type=float, default=0.1,
+                    help="LR multiplier for the warm-started decoder+identities group (warm_init mode)")
+    ap.add_argument("--clip", type=float, default=1.0, help="global grad-norm clip (0 disables)")
+    ap.add_argument("--nll_guard", dest="nll_guard", action="store_true", default=True,
+                    help="plateau-rescue: halve LRs + reload best if train NLL rises >10% over its "
+                         "running min for 2 consecutive epochs (default ON)")
+    ap.add_argument("--no_nll_guard", dest="nll_guard", action="store_false")
     ap.add_argument("--max_users", type=int, default=0, help="cap MATERIALISED users (dev only; 0=all)")
     ap.add_argument("--dry_users", type=int, default=2000, help="users to time for the epoch estimate")
     # teacher-mode revision (2026-07-22)
