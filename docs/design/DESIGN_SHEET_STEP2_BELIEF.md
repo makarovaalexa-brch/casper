@@ -40,6 +40,14 @@ The instrument's fold must ingest **(entity, graded value, confidence) tokens** 
     `score = base(enc(S)) + β·w_c·⟨Wd, whitened member direction⟩` (IDF w_c, per-user norm; the Jul-17
     operator that worked UNTRAINED: tail +41% with full never dropping — magnitude demoted popb-era,
     structure = strong prior; floor is now the learned-bias base, not popb).
+    **NOT a bolt-on — it IS the belief mean update:** since score(i)=⟨Wd[i],z⟩+b_i, the residual is
+    identically a latent mean shift z → z + β·w_c·v·d_c — a linear-Gaussian observation update along the
+    concept direction. Items update the mean via the certified NONLINEAR fold; concepts via LINEAR latent
+    shifts; Σ pools precision from both. One latent, one decoder, one belief. The Jul-17 failure was the
+    insertion point (inside the attention pool), not the information; Arm A inserts post-fold. Sign from
+    like/dislike (G3 flip applies to concepts too), magnitude from graded value, weight from confidence.
+    Cold: mean=enc(∅)=intercept, one concept answer shifts along d_c (G5/G-collinearity measure it).
+    Full profile: no concept answers ⇒ mean=enc(S) exactly ⇒ G0 bit-identity preserved.
   - **Arm B (the recorded failure, kept as G5 comparator):** member-bag token injection into the frozen
     attention fold — documented to DISPLACE the prior (0.258→0.226, `z += e_c`); expected to lose.
   - **Arm C (only if A fails G5):** concept tokens trained into T2' (label design from SEL) — a training
