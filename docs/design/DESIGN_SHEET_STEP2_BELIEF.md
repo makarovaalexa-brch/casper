@@ -31,9 +31,20 @@ The instrument's fold must ingest **(entity, graded value, confidence) tokens** 
 ## Observation model (for Σ; all analytic — with the review's repairs)
 - item: φ_i = raw decoder row Wd[i] in the observation equation; graded target in LOGIT scale
   y_i = g(level)·‖Wd[i]‖ (F3 repair); normalization only in leverage terms.
-- concept: φ_c = enc(member-bag) − enc(∅) under the actual tower (the only computable definition here —
-  F4); G5 pre-registered as: the dedicated channel must beat plain member-bag injection, expecting it may
-  not; matched non-member set for G5 AUC = non-members popularity/like-count-matched to members.
+- concept (Σ direction): φ_c = enc(member-bag) − enc(∅) under the actual tower (the only computable
+  definition here — F4); matched non-member set for G5 AUC = non-members popularity/like-count-matched.
+- **concept RANKING ingestion (the hole the author caught 2026-07-22): Σ-only concepts cannot move recs.**
+  The concept's effect on the MEAN is an explicit three-arm decision, all inference-time on the frozen
+  tower, all cheap, decided by G5 + G-collinearity on the clean stack:
+  - **Arm A (favoured by the record):** additive score-space residual over the intercept floor —
+    `score = base(enc(S)) + β·w_c·⟨Wd, whitened member direction⟩` (IDF w_c, per-user norm; the Jul-17
+    operator that worked UNTRAINED: tail +41% with full never dropping — magnitude demoted popb-era,
+    structure = strong prior; floor is now the learned-bias base, not popb).
+  - **Arm B (the recorded failure, kept as G5 comparator):** member-bag token injection into the frozen
+    attention fold — documented to DISPLACE the prior (0.258→0.226, `z += e_c`); expected to lose.
+  - **Arm C (only if A fails G5):** concept tokens trained into T2' (label design from SEL) — a training
+    cost and a known-hard path; not default.
+  Whichever arm wins carries the R3-concept ranking claim; Σ keeps selection duty regardless.
 - confidence: σ ∈ {know-well, vague, refuse→∞} (3-way, matching G4's ordering — F7 nit).
 - refusal: no observation; burns the turn.
 - α calibration: explicit objective = held-out-item NLL on val increments (PrecAcc's Huber increment loss
