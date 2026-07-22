@@ -55,8 +55,8 @@ entire elicitation-policy literature, and that its requirements are more demandi
 meets. We state five requirements---\textbf{R1} state-of-the-art full-profile accuracy, \textbf{R2} arbitrary-length
 cold-start fold-in, \textbf{R3} channel-agnostic input (items, out-of-catalogue concepts, entities, and continuous
 directions through one interface), \textbf{R4} an uncertainty-native belief, and \textbf{R5} monotonicity (a
-truthful answer never lowers ranking quality)---and three acceptance gates \textbf{G0}/\textbf{G1}/\textbf{G2} that
-operationalise them. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
+truthful answer never lowers ranking quality)---and an acceptance battery (per-build gates \textbf{G0--G9} plus
+one-time certifications \textbf{C1--C3}) that operationalises them. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
 the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite{steck2019ease} and
 RecVAE~\cite{ren2020recvae}) are item-only point estimators, while the models with an uncertainty-native, multi-channel
 belief (soft-attribute Gaussian elicitation~\cite{biyik2023soft}, unified item$+$attribute bandits~\cite{li2021seamlessly},
@@ -133,14 +133,17 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         linear observation (\S\ref{sec:method}). The frozen-tower$+$exact-conjugacy shape is the one mechanism with a
         principled monotonicity story~\cite{toroghi2023bcie}, and it is what separates us from the co-trained,
         approximate-posterior near-miss of Bıyık et al.~\cite{biyik2023soft}.
-  \item \textbf{G0/G1/G2 as a reusable acceptance protocol.} We define three gates---full-strength preserved,
-        posterior strictly shrinks per question, and cold-start per-question NDCG rises on \emph{full and tail} versus
-        random---and propose them as a portable certificate any interview-compatible recommender should have to pass
-        (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
+  \item \textbf{An acceptance battery as a reusable certificate.} We define three headline outcome gates---full-strength
+        preserved (G0), posterior strictly shrinks per question (G1), and cold-start per-question NDCG rises on
+        \emph{full and tail} versus random (G2)---and, because these outcome gates admit several false positives
+        (a sign-blind fold, a circular answer model, a decorative covariance), extend them into a full battery of
+        per-build gates G0--G9 plus one-time certifications C1--C3 that add the semantic, artifact-control, and
+        answer-model-transfer checks. We propose the battery as a portable certificate any interview-compatible
+        recommender should pass (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
 \end{enumerate}
 
 We are careful throughout to distinguish what is \emph{new} (the conjunction; the frozen-certified-tower wedge; the
-G0--G2 protocol on a SOTA tower) from what is \emph{pre-empted} and must be cited (attributes-as-directions plus a
+acceptance battery on a SOTA tower) from what is \emph{pre-empted} and must be cited (attributes-as-directions plus a
 Bayesian fold~\cite{biyik2023soft}; unified item$+$attribute belief~\cite{li2021seamlessly}; conjugate folds over a
 frozen factorisation~\cite{toroghi2023bcie}; permutation-invariant set-encoders with information-gain
 acquisition~\cite{ma2019eddi}; value-carrying set-input cold-start recommenders~\cite{lin2021tanp}; the
@@ -182,23 +185,108 @@ metric/split (e.g.\ NDCG@10 on ML-25M vs.\ NDCG@100 on the ML-20M strong-general
 until bridged (\S\ref{sec:bridge}).
 \end{definition}
 
-\paragraph{Gates (acceptance protocol).}
-The instrument is accepted only if it passes all three:
+\paragraph{Gates (acceptance battery).}
+The three headline gates below (G0/G1/G2) are \emph{outcome} gates: they certify that the full-profile strength is
+preserved, that the posterior is usable, and that the cold-start curve rises. On their own they are insufficient
+(see below), so the instrument is accepted only against the full battery---per-build gates G0--G9 (every build, all
+cheap) and three one-time certifications C1--C3. Table~\ref{tab:battery} is the compact reference; the definitions
+follow.
+
+\emph{Per-build gates.}
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
-  \item[G0 --- full strength preserved.] Evaluating on the belief mean with the full profile reproduces the base
-        tower's full-profile NDCG@10 (full \emph{and} tail), i.e.\ the belief layer adds no full-profile regression.
-        This certifies R1 survives the addition of the belief machinery.
-  \item[G1 --- usable posterior.] The posterior strictly shrinks per truthful question: $\det\bSigma_{t+1}<\det\bSigma_t$
-        (and the shrinkage is directed along the queried $\bphi_{t+1}$). This certifies R4.
-  \item[G2 --- cold-start curve rises on full and tail.] Starting cold ($t{=}0$), per-question NDCG@10 rises with $t$
-        on \emph{both} the full catalogue and the long tail, and beats a random-question control at every budget with
-        a paired per-user bootstrap CI excluding zero. This is the operational form of R2$\wedge$R5 and the headline
-        instrument claim.
+  \item[G0 --- full strength \& identity.] Evaluating on the belief mean with the full profile reproduces the frozen
+        tower's full-profile NDCG@10 (full \emph{and} tail)---a paired-bootstrap tie, or bit-identity under the
+        frozen-fold design---so the belief layer adds no full-profile regression (certifies R1 survives).
+  \item[G1 --- usable posterior.] The posterior covariance shrinks in expectation over confident answers, with
+        \emph{refusals explicitly exempt} (a correct model does not shrink on a refusal); the shrinkage is directional
+        (at least twice as large along the queried $\bphi_{t+1}$ as elsewhere) and the belief scale is calibrated
+        against held-out NLL (certifies R4).
+  \item[G2 --- cold-start curve rises on full and tail.] Starting cold, per-question full and tail NDCG@10 beats a
+        random-question control judged by the \emph{curve/endpoint at budget} (an AUC criterion, \emph{not} every-step
+        significance), and must strictly \emph{increase} from the first to the last turn (not merely fail to drop);
+        plus an out-of-envelope canary that a single true answer from cold helps on \emph{every} channel. This is the
+        operational form of R2$\wedge$R5.
+  \item[G3 --- sign \& intensity fidelity.] Negating every answer's sign lowers NDCG (CI excluding zero, per channel);
+        neutralising values to ``indifferent'' while freezing membership costs NDCG; and quality is monotone in stated
+        intensity, so a binarising ablation must lose.
+  \item[G4 --- confidence \& refusal.] The fitted per-answer precisions order $\alpha(\text{refuse})<\alpha(\text{vague})<\alpha(\text{know-well})$,
+        collapsing the confidence levels loses NDCG, and a refusal burns the turn while moving the belief by
+        approximately nothing.
+  \item[G5 --- concept/channel specificity.] Folding a concept ranks its member items above matched non-members
+        (member-lift AUC $>0.8$) \emph{and} beats that concept's own popularity projection (top principal component
+        partialled out), with a dedicated channel at least matching a trained member-bag injection.
+  \item[G6 --- existential controls.] Wrong-user, shuffled, and placebo-constant answers through the identical
+        pipeline gain approximately nothing relative to the true-answer arm, and duplicating an answer changes nothing
+        (the belief responds to information, not cardinality).
+  \item[G8 --- $\bSigma$ load-bearing \& set coherence.] Replacing $\bSigma$ with an isotropic $c\Imat$ \emph{degrades}
+        the acceptance-deciding number (else the R4 claim is withdrawn), and the belief and ranking are invariant to
+        answer order and to conflicting re-asks.
+  \item[G9 --- answer-ingestion isolation.] On a \emph{fixed}, user-independent question set the curve still rises with
+        $t$ from answer content alone, separating instrument \emph{ingestion} from question-selection \emph{policy}.
 \end{description}
 
+\emph{One-time certifications} (per instrument, not per build):
+\begin{description}[leftmargin=2.4em,itemsep=1.5pt]
+  \item[C1 --- published-number bridge.] The implementations snap to the published full-profile numbers on the
+        canonical split (\emph{partially met}: EASE and RecVAE reproduce to the third decimal on the ML-20M Liang split,
+        \S\ref{sec:bridge}; Mult-VAE/DAE pending).
+  \item[C2 --- answer-model transfer (non-circularity).] The G2 gain survives under a \emph{held-out behavioural}
+        answer model plus injected label noise, at $\ge$ a stated fraction of the self-model gain with a CI excluding
+        zero, and a firewall assert guarantees that recommender-geometry answers appear nowhere in training or
+        evaluation. This is the load-bearing certification: without it a G0--G2 pass is consistent with an instrument
+        inverting its own simulator.
+  \item[C3 --- human round-trip.] At least one study takes rendered questions $\to$ graded human answers $\to$
+        downstream NDCG. Deferred; carried as a project-wide external-validity obligation (\S\ref{sec:limits}).
+\end{description}
+
+\paragraph{Why the outcome gates alone are insufficient.}
+G0/G1/G2 are outcome gates, and several broken instruments pass all three. A \emph{sign-blind} fold that updates its
+belief from only the \emph{direction} of the queried entity but never the answer \emph{value} still reproduces the
+frozen tower (G0), still shrinks $\bSigma$ along $\bphi$ per question (G1), and still beats a random-question control
+(G2)---because beating random certifies that a good question was \emph{selected}, not that the answer was
+\emph{ingested}; only the sign-flip test (G3) and the fixed-question ingestion isolation (G9) expose it. A
+\emph{circular} answer model that generates answers from the instrument's own latent geometry inflates the G2 curve
+with no transferable signal; only the held-out behavioural answer model and firewall of C2 close it. And a
+\emph{decorative} covariance that is maintained but never enters the acceptance-deciding number passes G0--G2
+trivially; only replacing $\bSigma$ with an isotropic matrix and demanding a degradation (G8) shows whether the
+uncertainty is load-bearing. The battery's semantic and artifact-control gates (G3--G9) and the transfer certification
+(C2) exist precisely to close these outcome-gate false positives.
+
 We report \emph{both} full and tail NDCG@10 for every gate (a project reporting rule: full-only or tail-only hides the
-effect, which historically has been much larger on the tail than on the full catalogue). All gate results in this
-chapter are \TODO{} pending the certified run of \S\ref{sec:expdesign}.
+effect, which is typically much larger on the tail than on the full catalogue). All gate results in this chapter are
+\TODO{} pending the certified run of \S\ref{sec:expdesign}.
+
+\begin{table}[t]\centering\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{p{1.15cm}p{6.4cm}p{6.0cm}}
+\toprule
+Gate & One-line criterion & Failure class it excludes \\
+\midrule
+\multicolumn{3}{l}{\emph{Per-build gates (every build; all cheap)}}\\
+G0 & Belief mean reproduces the frozen tower's full/tail NDCG@10 (tie or bit-identity). & Full-profile regression from the belief layer. \\
+G1 & $\bSigma$ shrinks in expectation over confident answers (refusals exempt), directionally, calibrated to NLL. & Unusable / uncalibrated posterior. \\
+G2 & Cold full/tail curve beats random by AUC-at-budget and strictly rises; one true answer helps every channel. & Flat-model and out-of-envelope artifacts. \\
+G3 & Sign-flip lowers NDCG; value-neutralisation costs NDCG; quality monotone in intensity. & Sign-blind and intensity-blind folds. \\
+G4 & Precisions order refuse\,$<$\,vague\,$<$\,know-well; collapsing levels loses; a refusal barely moves belief. & Confidence-flat / mis-ordered ingestion. \\
+G5 & Concept lifts member items (AUC\,$>$\,0.8) above its popularity projection; channel\,$\ge$\,member-bag. & Non-specific / popularity-parasite concepts. \\
+G6 & Wrong-user, shuffled, placebo, and duplicated answers gain $\approx$ nothing. & Cardinality confound; existential leakage. \\
+G8 & Replacing $\bSigma$ with $c\Imat$ degrades the deciding number; order- and re-ask-invariant. & Decorative $\bSigma$; order-dependence. \\
+G9 & On a fixed user-independent question set the curve still rises from answer content. & Taste-leak: selection masquerading as ingestion. \\
+\midrule
+\multicolumn{3}{l}{\emph{One-time certifications (per instrument)}}\\
+C1 & Implementations snap to published numbers on the canonical split (partially met). & Uncertified ruler / metric mismatch. \\
+C2 & G2 gain survives a held-out behavioural answer model $+$ noise; geometry-answer firewall. & Circular answer model (self-simulator inversion). \\
+C3 & $\ge1$ study: rendered questions $\to$ graded human answers $\to$ NDCG (deferred). & Simulator-only external-validity gap. \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{The instrument acceptance battery.} Per-build gates G0--G9 (there is no standalone G7; the
+answer-model-transfer check is folded into C2) run on every build; certifications C1--C3 are one-time per instrument.
+The three headline outcome gates are G0/G1/G2; the semantic and artifact-control gates G3--G9 and the transfer
+certification C2 close the false positives that pass the outcome gates alone (text). The full specification, with each
+gate's testable form, is the design-side battery document.}
+\label{tab:battery}
+\end{table}
 
 % =====================================================================
 \section{Related work: a six-family taxonomy}\label{sec:related}
@@ -576,8 +664,13 @@ inadmissible~\cite{dacrema2019progress}.}
 \end{table}
 
 \subsection{Evaluation protocol}
+The protocol items below instantiate the headline outcome gates (the certification bridge is C1; G0 and G2 as
+named); they are the cheap, always-run subset. The remaining per-build gates (G3--G9) and the load-bearing
+answer-model-transfer certification (C2), which close the outcome-gate false positives, are specified in full in the
+acceptance battery (Table~\ref{tab:battery}) and its design-side document, and each headline result is reported
+against them.
 
-\paragraph{(i) Certification bridge.}\label{sec:bridge}
+\paragraph{(i) Certification bridge (C1).}\label{sec:bridge}
 Our in-house anchors are on a \emph{different} ruler than the published bar, and we do not conflate them. Concretely,
 our set-encoder tower reaches full/tail NDCG@10 $0.4917/0.3071$ and our RecVAE-class $d{=}512$ ruler reaches
 $0.4998/0.3443$, \emph{both on ML-25M at NDCG@10}---whereas the published EASE/RecVAE numbers are NDCG@100 on the
@@ -672,8 +765,10 @@ are \TODO{}.
   \item \textbf{Simulator-based evaluation pending a human study.} G1/G2 are measured under a stated answer model
         (a simulator), which shares structure with the instrument's own latent; this risks circularity (the answer,
         the belief, and the metric are all functions of the same space). We add answer-noise ablations and a
-        simulator-alignment limitation to every gate, and treat a $\ge$1 human round-trip study as the load-bearing
-        external validation---not yet run.
+        simulator-alignment limitation to every gate; the battery discharges this through certification C2
+        (the G2 gain must survive a held-out behavioural answer model plus injected noise, with a geometry-answer
+        firewall) and treats the $\ge$1 human round-trip study (C3) as the load-bearing external validation---not yet
+        run.
   \item \textbf{BERT4Rec replicability.} The sequence baseline's fold-in advantage is subject to a documented
         replicability caveat~\cite{petrov2022replicability}; we tune it to the published protocol and flag any
         residual gap rather than treat a single run as authoritative.

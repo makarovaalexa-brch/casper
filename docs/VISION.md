@@ -26,6 +26,7 @@ Acceptance gates every build must pass:
 - **G0** — item strength preserved (eval on the belief mean = the base recommender).
 - **G1** — usable posterior (uncertainty strictly shrinks per question, and directionally).
 - **G2** — cold-start per-question curves rise, on full **and** tail, vs random.
+- …extended by the full certification battery (sign/intensity, confidence, channel specificity, existential controls, answer-model transfer, Σ-load-bearing) → `docs/design/GATE_BATTERY_INSTRUMENT.md`.
 
 ## 2. Discrete elicitation policy — adaptive & coarse-to-fine · **[MUST]**
 A policy over closed probes (items / concepts / entities) that:
