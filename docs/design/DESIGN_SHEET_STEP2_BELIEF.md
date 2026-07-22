@@ -53,8 +53,14 @@ The instrument's fold must ingest **(entity, graded value, confidence) tokens** 
   - **Arm C (only if A fails G5):** concept tokens trained into T2' (label design from SEL) — a training
     cost and a known-hard path; not default.
   Whichever arm wins carries the R3-concept ranking claim; Σ keeps selection duty regardless.
-- confidence: σ ∈ {know-well, vague, refuse→∞} (3-way, matching G4's ordering — F7 nit).
-- refusal: no observation; burns the turn.
+- confidence: σ ∈ {know-well, vague, refuse} (3-way, matching G4's ordering — F7 nit).
+- refusal (AUTHOR CORRECTION 2026-07-22 — refusals are information): "no clue about X" is a CONSUMPTION
+  observation, not a null — the user doesn't live in that region (the SEL/film-mute lesson). Refusal
+  folds as its own observation type: small shift along the probed direction with separately-fitted
+  α_refuse (expected sign: away from region; fitted on val, reported; zero if the data says zero) —
+  NEVER a preference-value update. Still burns the turn. G4 ordering unchanged:
+  α_refuse < α_vague < α_know-well; G1's exemption becomes "refusal shrinks Σ by at most its small
+  fitted α", not "exactly zero".
 - α calibration: explicit objective = held-out-item NLL on val increments (PrecAcc's Huber increment loss
   carried forward — F6), grid/convex fit over ≤13 scalars, cost stated in the run plan (F8); pre-fit sign
   proof dL/dα_c < 0 at α=0 asserted before fitting (G1 requirement, reinstated).
