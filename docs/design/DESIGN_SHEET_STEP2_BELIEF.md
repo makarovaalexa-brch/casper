@@ -17,6 +17,22 @@
 - **R5/monotonicity** lives in the fold operator: evidence sets only grow; the demoted "Kalman craters"
   question becomes moot for scoring (the mean never leaves the certified fold); Q4 is retired.
 
+## T2' tower architecture v2 (author-revised 2026-07-22 — FROZEN-GEOMETRY DISTILLATION)
+- **Frozen, inherited from T1 RecVAE (canonical-split ckpt):** the decoder Linear(200→n_items) + bias,
+  AND the input item embeddings (= decoder rows Wd). The latent space is RecVAE's, permanently.
+- **Trainable ONLY:** attention blocks (mab_in→sab→PMA), FiLM γ/β level tables (NLEV=10), any projection.
+- **Token:** γ(level)⊙e_i + β(level), e_i frozen — identity frozen, valence learned. **Signed init
+  (--sign_prior, default ON):** γ=1; β(level) = κ·v(level)·ū (v = centered valence in [−1,1], ū =
+  normalized mean decoder row, κ small) — hated starts mildly repulsive, loved mildly attractive; training
+  refines magnitude (RUNG1 hard-wired-sign lesson: sign unreachable from null init).
+- **Loss:** λ_z·‖z_set(graded S′) − z_T(binarized S′)‖² + (1−λ_z)·NLL(dec(z_set), held likes), λ_z=0.5;
+  teacher z_T = RecVAE encoder fed the binarized SUBSET (subset sizes sampled broadly incl. 1–8 →
+  supervises the interview regime directly). EDLAE score-CE demoted to optional hook.
+- **Fallback arms:** --unfreeze_emb if val stalls; --no_sign_prior ablation; graded-vs-binarized ablation
+  = the G3 canary (teacher is grade-blind — the KD pressure is toward sign-blindness; the NLL must win).
+- **Why:** tiny trainable surface (fast, low overfit), certified fixed geometry for everything downstream
+  (concept dirs, Arm A shifts, Σ), teacher supervision exactly at interview set sizes.
+
 ## The tower question v2 exposes (feeds Step-1 selection — decision pending tonight's numbers)
 The instrument's fold must ingest **(entity, graded value, confidence) tokens** (G3/G4 demand it).
 - **RecVAE (tonight's run):** R1-strong but input = binary item vector — graded/signed values are NOT
