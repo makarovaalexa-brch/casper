@@ -36,7 +36,11 @@ TWO TEACHER MODES (author-approved architecture revision, 2026-07-22):
         rank_i = NLL(decoder(z_set), held likes_i) + w_neg * mean-logprob(held DISLIKES_i)   [repair 4:
         held disliked items (rating<=2.5) enter as explicit DOWN-WEIGHTED negatives -- without this,
         dislikes are input-only and get ~zero target-side gradient. --w_neg, default 0.1.]
-        z_T = FROZEN RecVAE encoder MEAN on the BINARIZED S' (same denoising subset, presence-binarized).
+        z_T = FROZEN RecVAE encoder MEAN on the LIKES-ONLY binarization of S' (review decision
+        2026-07-22: only tokens with level >= 7, i.e. rating > 3.5, enter the teacher input -- RecVAE
+        never saw dislikes as positives; a hated film fed as binary 1 would make z_T believe the user
+        likes it. Dislikes STAY in the student tokens and the w_neg term. Rows whose subset has no
+        liked token get ramp=0, i.e. no latent loss).
         lam_i = lambda_z SCHEDULE [repair 1], NOT flat: lam_i = anneal(epoch) * ramp(k_i) with
         ramp(k)=0 for k<=8 (the teacher latent is covariate-shift garbage at tiny k: RecVAE L2-normalises
         its input, putting 1-8-item subsets far outside training scale), linear ramp to 1 at k>=30; and
@@ -126,7 +130,8 @@ RECVAE_CKPT = os.path.join(_ROOT, ".cache", "baselines", "recvae_ml25m_liang.pt"
 
 D = 512          # internal attention width (pb2)
 NLEV = 10        # half-star levels 0.5..5.0 -> 0..9 (matches set_mn_pb2 gamma/beta tables)
-LIKE_LEVEL = 8   # constant level (4.5 stars) used by the --ablate_binarized G3-canary arm
+LIKE_LEVEL = 8       # constant level (4.5 stars) used by the --ablate_binarized G3-canary arm
+LIKE_MIN_LEVEL = 7   # like boundary: level >= 7 <=> star >= 4.0 <=> rating > 3.5 (Liang binarization)
 
 # `load_answerer` is RETIRED (Jul-22 audit). Guard: this name must never be defined or called here.
 assert "load_answerer" not in globals(), "load_answerer is retired and must not appear in the tower"
@@ -666,12 +671,17 @@ def batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob=None, t_idx=None, 
         rank_vec = (1.0 - args.alpha_kd) * rank_vec + args.alpha_kd * kd_ce(logsm, uidx, t_idx, t_prob)
     zmse_mean = float("nan")
     if teacher is not None and lam_glob is not None and lam_glob > 0:
-        ramp = torch.tensor([lam_ramp(len(e[0])) for _, e in exs], dtype=torch.float32)   # (B,)
+        # review decision 2026-07-22: teacher input = LIKES-ONLY (level >= LIKE_MIN_LEVEL, i.e. > 3.5
+        # stars) binarized -- RecVAE never saw dislikes as positives; a hated film fed as binary 1 would
+        # make z_T believe the user likes it. Dislikes stay in the STUDENT tokens + the w_neg term.
+        liked_in = [e[0][e[1] >= LIKE_MIN_LEVEL] for _, e in exs]
+        ramp = torch.tensor([lam_ramp(len(e[0])) if len(lk) > 0 else 0.0
+                             for (_, e), lk in zip(exs, liked_in)], dtype=torch.float32)   # (B,)
         lam = lam_glob * ramp
         sel = (ramp > 0).nonzero(as_tuple=True)[0]
         mse_vec = torch.zeros(B)
         if sel.numel() > 0:                                  # teacher forward ONLY for ramp>0 rows
-            z_T = teacher_latent(teacher, [exs[int(r)][1][0] for r in sel], ni)
+            z_T = teacher_latent(teacher, [liked_in[int(r)] for r in sel], ni)
             mse_sel = ((z[sel] - z_T) ** 2).mean(-1)
             mse_vec = mse_vec.index_copy(0, sel, mse_sel)
             zmse_mean = float(mse_sel.mean())
@@ -871,7 +881,8 @@ def smoke(args):
         liked = items[lvls >= 7]
         if len(liked) < 2:
             liked = items[:2]; lvls[:2] = 8
-        users.append({"items": items, "levels": lvls, "vals": level_to_sv(lvls), "liked": liked})
+        users.append({"items": items, "levels": lvls, "vals": level_to_sv(lvls), "liked": liked,
+                      "disliked": items[lvls <= 4]})       # repair 4: dislike band (<=2.5 stars)
 
     teacher_override = None
     if args.teacher == "recvae":
@@ -916,25 +927,36 @@ def smoke(args):
     opt = torch.optim.AdamW(params, lr=1e-3)
     lens = np.array([len(u["items"]) for u in users])
     batches_all = make_batches(users, np.argsort(lens))
+    E0 = enc.item_emb.weight.detach().clone()
     for ep in range(3):
         enc.train(); r = np.random.default_rng(ep)
+        lam_glob = lam_anneal(ep, args.lambda_z, args.anneal_epochs)
         last = (float("nan"), float("nan"))
         for bat in batches_all:
             exs = [(i, make_input_target(users[i], r)) for i in bat]
             exs = [(i, e) for i, e in exs if e is not None]
             if not exs:
                 continue
-            loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, t_idx, t_prob)
+            loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob, t_idx, t_prob)
             opt.zero_grad(); loss.backward(); opt.step()
             last = (nll_v, mse_v)
-        print(f"[SMOKE] ep{ep+1} last-batch NLL={last[0]:.4f} zMSE={last[1]:.4f}")
+        print(f"[SMOKE] ep{ep+1} last-batch NLL={last[0]:.4f} zMSE={last[1]:.4f} lam_glob={lam_glob:.3f}")
     if args.teacher == "recvae":
         assert torch.equal(decoder.weight, teacher_override.decoder.weight) and \
                torch.equal(decoder.bias, teacher_override.decoder.bias), \
                "frozen decoder CHANGED during training"
-        assert torch.equal(enc.item_emb.weight, teacher_override.decoder.weight) or args.unfreeze_emb, \
-               "frozen item_emb CHANGED during training"
-        print("[SMOKE] frozen-geometry immutability PASS (decoder + item_emb bit-identical after 3 epochs)")
+        assert torch.equal(enc.item_emb.weight, E0) or args.unfreeze_emb, \
+               "frozen item identities CHANGED during training"
+        print("[SMOKE] frozen-geometry immutability PASS (decoder + item identities bit-identical "
+              "after 3 epochs)")
+        # repair 5: the intercept must STILL be bit-exact AFTER training (gate property, not init)
+        enc.eval()
+        with torch.no_grad():
+            sc1 = (enc(torch.zeros((1, 1), dtype=torch.long), torch.zeros((1, 1)),
+                       torch.ones((1, 1), dtype=torch.bool), torch.zeros((1, 1), dtype=torch.long))
+                   @ decoder.weight.T + decoder.bias)[0]
+        assert torch.equal(sc1, decoder.bias), "intercept identity LOST after training (gate broken)"
+        print("[SMOKE] post-training intercept PASS: enc(empty) STILL decodes bit-exactly to the bias")
 
     # eval path smoke: synthetic graded fold-in matrix + head_mask through metrics.evaluate
     tr = sparse.csr_matrix((np.ones(600), (rng.randint(0, 60, 600), rng.randint(0, ni, 600))),
@@ -969,7 +991,12 @@ def main():
     # teacher-mode revision (2026-07-22)
     ap.add_argument("--teacher", choices=["recvae", "none"], default="recvae",
                     help="recvae = frozen T1 geometry + latent distill (DEFAULT); none = from-scratch arm")
-    ap.add_argument("--lambda_z", type=float, default=0.5, help="latent-regression weight (recvae mode)")
+    ap.add_argument("--lambda_z", type=float, default=0.5,
+                    help="INITIAL global latent-KD weight; annealed ->0 over anneal_epochs (repair 1)")
+    ap.add_argument("--anneal_epochs", type=int, default=10,
+                    help="epochs over which lambda_z anneals to 0 (KD = warm-start only)")
+    ap.add_argument("--w_neg", type=float, default=0.1,
+                    help="weight of held-dislike explicit negatives in the rank loss (repair 4)")
     ap.add_argument("--unfreeze_emb", action="store_true", help="fallback arm: train the item embeddings")
     ap.add_argument("--no_sign_prior", dest="sign_prior", action="store_false", default=True,
                     help="ablation: skip the signed FiLM-beta init (addendum 2026-07-22)")
