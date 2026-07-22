@@ -413,16 +413,27 @@ def make_batches(users, order):
     return batches
 
 
-P_INTERVIEW = 0.5      # fraction of training examples drawn in the interview regime (tiny subsets)
+P_INTERVIEW = 0.5      # default fraction of examples drawn in the interview regime (see --p_interview)
 INTERVIEW_KMAX = 8
 
 
-def make_input_target(u, rng, drop_max=0.5):
-    """Denoising curriculum, revision 2026-07-22: with prob P_INTERVIEW sample an INTERVIEW-REGIME subset
+def parse_p_interview(spec):
+    """--p_interview '0.5' -> (0.5, 0.5); '0.1:0.5' -> linear 0.1 -> 0.5 over anneal_epochs."""
+    parts = str(spec).split(":")
+    p0 = float(parts[0]); p1 = float(parts[1]) if len(parts) > 1 else p0
+    return p0, p1
+
+
+def p_interview_at(ep, p0, p1, anneal_epochs):
+    return p0 + (p1 - p0) * min(1.0, ep / max(anneal_epochs, 1))
+
+
+def make_input_target(u, rng, drop_max=0.5, p_int=P_INTERVIEW):
+    """Denoising curriculum, revision 2026-07-22: with prob p_int sample an INTERVIEW-REGIME subset
     (k ~ U{1..8} tokens -- supervises the small-set fold the interview lives in); otherwise the pb2
     random-dropout subset. Input includes dislikes (graded); target = liked NOT in input (leak-free)."""
     its = u["items"]; n = len(its)
-    if rng.random() < P_INTERVIEW:
+    if rng.random() < p_int:
         k = int(rng.integers(1, min(INTERVIEW_KMAX, n) + 1))
         keep = np.zeros(n, bool); keep[rng.choice(n, size=k, replace=False)] = True
     else:
@@ -575,12 +586,13 @@ def kd_ce(logsm, uidx, t_idx, t_prob):
 
 
 # ---- repair 1: lambda_z schedule (subset-size ramp x epoch anneal) ----
-RAMP_LO, RAMP_HI = 8, 30      # ramp(k)=0 for k<=8 (teacher covariate shift at tiny k), 1 for k>=30
+RAMP_LO, RAMP_HI = 8, 30           # recvae mode: ramp(k)=0 for k<=8, 1 for k>=30
+FULL_KD_LO, FULL_KD_HI = 30, 60    # --full_kd plan-B: latent term ONLY at large subsets
 
 
-def lam_ramp(k):
-    """ramp(k): 0 for k<=RAMP_LO, linear to 1 at k>=RAMP_HI."""
-    return float(np.clip((k - RAMP_LO) / (RAMP_HI - RAMP_LO), 0.0, 1.0))
+def lam_ramp(k, lo=RAMP_LO, hi=RAMP_HI):
+    """ramp(k): 0 for k<=lo, linear to 1 at k>=hi."""
+    return float(np.clip((k - lo) / (hi - lo), 0.0, 1.0))
 
 
 def lam_anneal(ep, lambda_z, anneal_epochs):
@@ -631,8 +643,17 @@ def build_model(args, ni, cnt, teacher_override=None):
             norms = src.decoder.weight.norm(dim=1).clamp_min(1e-8)
             enc.item_emb.weight.copy_(src.decoder.weight / norms.unsqueeze(1))  # normalized ONCE at init
         enc.z0.requires_grad_(False)                         # gate + z0=0 -> enc(empty)=decoder bias(t)
-        teacher = None                                       # latent KD OFF; ckpt not in the loss path
-        log("[model] warm_init: decoder W+b + item identities TRAINABLE (RecVAE init); latent KD OFF")
+        # NOTE --unfreeze_emb is a NO-OP in warm mode: identities are ALWAYS trainable here (and always
+        # routed to the SLOW LR group below, since they were warm-started).
+        if getattr(args, "full_kd", False):                  # plan-B: dense full-profile latent anchor
+            teacher = src                                    # FROZEN, loss-only; decoder stays TRAINABLE
+            log(f"[model] warm_init + full_kd: latent term at large subsets only "
+                f"(ramp {FULL_KD_LO}->{FULL_KD_HI}, constant w={args.full_kd_w}, no anneal). "
+                f"CAVEAT: if the trainable decoder drifts far from the ckpt geometry the KD target can "
+                f"fight it -- mitigated by the slow decoder LR (warm_lr_scale={args.warm_lr_scale}).")
+        else:
+            teacher = None                                   # latent KD OFF; ckpt not in the loss path
+        log("[model] warm_init: decoder W+b + item identities TRAINABLE (RecVAE init)")
     elif args.teacher == "recvae":
         teacher = teacher_override if teacher_override is not None else \
             load_recvae_teacher(ni, hidden=args.t_hidden, latent=args.t_latent)
@@ -742,7 +763,8 @@ def batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob=None, t_idx=None, 
         # stars) binarized -- RecVAE never saw dislikes as positives; a hated film fed as binary 1 would
         # make z_T believe the user likes it. Dislikes stay in the STUDENT tokens + the w_neg term.
         liked_in = [e[0][e[1] >= LIKE_MIN_LEVEL] for _, e in exs]
-        ramp = torch.tensor([lam_ramp(len(e[0])) if len(lk) > 0 else 0.0
+        lo, hi = (FULL_KD_LO, FULL_KD_HI) if getattr(args, "full_kd", False) else (RAMP_LO, RAMP_HI)
+        ramp = torch.tensor([lam_ramp(len(e[0]), lo, hi) if len(lk) > 0 else 0.0
                              for (_, e), lk in zip(exs, liked_in)], dtype=torch.float32)   # (B,)
         lam = lam_glob * ramp
         sel = (ramp > 0).nonzero(as_tuple=True)[0]
@@ -804,14 +826,17 @@ def train(args):
 
     W0 = decoder.weight.detach().clone(); b0 = decoder.bias.detach().clone()   # repair 6 drift ref
     E0 = enc.item_emb.weight.detach().clone()
+    p0, p1 = parse_p_interview(args.p_interview)
     for ep in range(start_ep, args.epochs):
         enc.train(); rng = np.random.default_rng(ep)
-        lam_glob = lam_anneal(ep, args.lambda_z, args.anneal_epochs)           # repair 1 anneal
+        # repair 1 anneal; --full_kd overrides with a CONSTANT weight (no anneal, large-subset ramp)
+        lam_glob = args.full_kd_w if args.full_kd else lam_anneal(ep, args.lambda_z, args.anneal_epochs)
+        p_int = p_interview_at(ep, p0, p1, args.anneal_epochs)                 # curriculum schedule
         order = list(range(len(batches_all))); rng.shuffle(order)
         t0 = time.time(); run_n = 0.0; run_z = 0.0; nb = 0
         for bi in order:
             bat = batches_all[bi]
-            exs = [(i, make_input_target(users[i], rng)) for i in bat]
+            exs = [(i, make_input_target(users[i], rng, p_int=p_int)) for i in bat]
             exs = [(i, e) for i, e in exs if e is not None]
             if not exs:
                 continue
@@ -833,6 +858,7 @@ def train(args):
                         usid, "validation", head_mask, binarize=args.ablate_binarized)
         f10, t10 = vm["ndcg@10"], vm["tail_ndcg@10"]
         log(f"[ep{ep+1}] NLL={run_n/max(nb,1):.4f} zMSE={run_z/max(nb,1):.4f} lam_glob={lam_glob:.3f} "
+            f"p_int={p_int:.2f} "
             f"VAL full@10={f10:.4f} tail@10={t10:.4f} ndcg@100={vm['ndcg@100']:.4f} "
             f"({'PASS>=0.486' if f10>=0.486 else 'below gate'}) ({(time.time()-t0)/60:.1f}m)")
         if args.nll_guard:                                   # patch 4: train-NLL divergence rescue
@@ -925,7 +951,7 @@ def dry_run(args):
     rng = np.random.default_rng(0)
     exs = [(i, make_input_target(users[i], rng)) for i in range(min(200, len(users)))]
     exs = [(i, e) for i, e in exs if e is not None]
-    lam0 = lam_anneal(0, args.lambda_z, args.anneal_epochs)
+    lam0 = args.full_kd_w if args.full_kd else lam_anneal(0, args.lambda_z, args.anneal_epochs)
     loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam0)
     opt.zero_grad(); loss.backward(); opt.step()
     log(f"[DRY] one fwd/bwd on {len(exs)} users OK: NLL={nll_v:.4f} zMSE={mse_v:.4f} lam_glob={lam0:.3f}")
@@ -943,9 +969,15 @@ def dry_run(args):
         assert not enc.z0.requires_grad and id(enc.z0) not in opt_ids, "z0 must stay frozen at 0"
         assert id(decoder.weight) in opt_ids and id(enc.item_emb.weight) in opt_ids, \
             "trainable warm-init tensors missing from the optimizer"
-        assert teacher is None, "warm_init must not keep the RecVAE in the loss path"
-        log("[DRY] warm_init asserts PASS (decoder+identities trainable in optimizer; z0 frozen; "
-            "no teacher in loss path)")
+        slow_params = {id(p) for p in opt.param_groups[1]["params"]}
+        assert id(enc.item_emb.weight) in slow_params and id(decoder.weight) in slow_params, \
+            "warm-started identities/decoder not in the SLOW LR group"
+        if args.full_kd:
+            assert teacher is not None, "--full_kd must keep the frozen RecVAE in the loss path"
+        else:
+            assert teacher is None, "warm_init (no full_kd) must not keep the RecVAE in the loss path"
+        log("[DRY] warm_init asserts PASS (decoder+identities trainable, SLOW group; z0 frozen; "
+            f"teacher-in-loss={args.full_kd})")
 
     # calibrated epoch-time estimate: time one epoch over `ncal` users, scale to 140768
     lens = np.array([len(u["items"]) for u in users])
@@ -977,7 +1009,7 @@ def smoke(args):
     nu = 240
     users = []
     for _ in range(nu):
-        k = rng.randint(6, 25)
+        k = rng.randint(6, 80)      # wide: covers interview (<=8), recvae ramp (8-30), full_kd ramp (30-60)
         items = rng.choice(ni, size=k, replace=False).astype(np.int64)
         lvls = rng.randint(0, NLEV, size=k).astype(np.int64)          # ALL bands (graded)
         liked = items[lvls >= 7]
@@ -1044,14 +1076,20 @@ def smoke(args):
     print("[SMOKE] nll_guard PASS: fired on 2nd consecutive >10% rise, halved all LRs (restored)")
     lens = np.array([len(u["items"]) for u in users])
     batches_all = make_batches(users, np.argsort(lens))
+    # p_interview schedule parse smoke
+    assert parse_p_interview("0.5") == (0.5, 0.5) and parse_p_interview("0.1:0.5") == (0.1, 0.5)
+    assert abs(p_interview_at(5, 0.1, 0.5, 10) - 0.3) < 1e-12
+    print("[SMOKE] p_interview schedule PASS ('0.5' const; '0.1:0.5' linear over anneal_epochs)")
+    p0, p1 = parse_p_interview(args.p_interview)
     E0 = enc.item_emb.weight.detach().clone()
     W0 = decoder.weight.detach().clone()
     for ep in range(3):
         enc.train(); r = np.random.default_rng(ep)
-        lam_glob = lam_anneal(ep, args.lambda_z, args.anneal_epochs)
+        lam_glob = args.full_kd_w if args.full_kd else lam_anneal(ep, args.lambda_z, args.anneal_epochs)
+        p_int = p_interview_at(ep, p0, p1, args.anneal_epochs)
         last = (float("nan"), float("nan"))
         for bat in batches_all:
-            exs = [(i, make_input_target(users[i], r)) for i in bat]
+            exs = [(i, make_input_target(users[i], r, p_int=p_int)) for i in bat]
             exs = [(i, e) for i, e in exs if e is not None]
             if not exs:
                 continue
@@ -1125,6 +1163,15 @@ def main():
                     help="plateau-rescue: halve LRs + reload best if train NLL rises >10% over its "
                          "running min for 2 consecutive epochs (default ON)")
     ap.add_argument("--no_nll_guard", dest="nll_guard", action="store_false")
+    # plan-B config (pre-staged 2026-07-22; composable with --teacher warm_init)
+    ap.add_argument("--full_kd", action="store_true",
+                    help="warm_init plan-B: frozen RecVAE latent term at LARGE subsets only "
+                         f"(ramp {FULL_KD_LO}->{FULL_KD_HI}), constant weight full_kd_w, no anneal; "
+                         "decoder stays trainable")
+    ap.add_argument("--full_kd_w", type=float, default=0.3, help="constant latent weight for --full_kd")
+    ap.add_argument("--p_interview", default="0.5",
+                    help="interview-regime example fraction; '0.5' constant or 'a:b' linear a->b "
+                         "over anneal_epochs (curriculum)")
     ap.add_argument("--max_users", type=int, default=0, help="cap MATERIALISED users (dev only; 0=all)")
     ap.add_argument("--dry_users", type=int, default=2000, help="users to time for the epoch estimate")
     # teacher-mode revision (2026-07-22)
