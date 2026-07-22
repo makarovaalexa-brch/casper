@@ -27,19 +27,23 @@ HYPERPARAMETERS (paper ML-1M config, scaled sensibly for 18k items / 140k users 
     maxlen=200 (paper ML-1M), dropout=0.2, lr=1e-3, batch=128, l2=0.0, num_neg=1.
   Exposed on the CLI; the used values are recorded in the output `hp`.
 
-EVAL ADAPTATION -- fold-in for strong generalization (documented SUBSTITUTION):
+EVAL ADAPTATION -- fold-in for strong generalization (documented; REAL per-user timestamps):
   The paper evaluates next-item on a held-out LAST item of a known sequence. Our ruler is the SET-based
-  metrics.evaluate: predict(X_csr) receives only the fold-in ITEM SET for each held-out user (order is
-  not carried through the proc split / the set interface), and must score the whole catalog for NDCG@10
-  over the 20% target set. We adapt SASRec as a fold-in scorer:
-    - order each held-out user's fold-in items by a global per-item timestamp proxy `item_ts` (mean
-      rating timestamp of that movie over the TRAIN corpus), oldest-first, and keep the most-recent
-      `maxlen`; feed as the sequence; take the FINAL position's hidden state; score all items by
-      inner-product with the item-embedding table -> dense (batch x n_items).
-    This is the standard "sequence -> next-item logits over the catalog = full-profile prediction" fold-in.
-    The one honest deviation: true per-user interaction order is unavailable through the set-based ruler,
-    so fold-in items are ordered by the item-timestamp proxy rather than the user's own timestamps. Flag
-    at review. (A future timestamp-carrying eval split could restore exact per-user order.)
+  metrics.evaluate: predict(X_csr) receives the fold-in ITEM SET for each held-out user and must score
+  the whole catalog for NDCG@10 over the 20% target set. We adapt SASRec as a fold-in scorer:
+    - each held-out user's fold-in items are ordered by THAT USER'S OWN raw timestamps
+      (data/movielens/ratings.csv), oldest-first, most-recent `maxlen` kept; fed as the sequence; the
+      FINAL position's hidden state scores all items by inner product with the item-embedding table ->
+      dense (batch x n_items). ("sequence -> next-item logits over the catalog = full-profile prediction",
+      the standard fold-in adaptation.)
+  TIMESTAMP-CARRYING EVAL PATH (build_eval_order): the proc CSVs drop timestamps, so we rebuild the
+  per-row ordered fold-in sequences by (a) replaying the deterministic liang_split user permutation to
+  map raw userId -> proc uid, (b) reading validation_tr.csv / test_tr.csv (the EXACT fold-in rows the
+  ruler scores), and (c) joining each (uid, sid) with its raw timestamp. metrics.evaluate slices users
+  in ascending-row batches, so predict carries a batch CURSOR per split (predict.set_split resets it);
+  every row is verified by an exact SET-EQUALITY assertion between the incoming fold-in columns and the
+  stored ordered sequence -- any misalignment raises instead of silently mis-ordering. The set-based
+  ruler itself is untouched; order matters only inside sasrec's own predict.
 
 Checkpoint/resume + early stop on val FULL NDCG@10 (the primary metric), same convention as multvae.py.
 
@@ -134,23 +138,50 @@ class SASRec(nn.Module):
 
 
 # --------------------------------------------------------------------------- fold-in predict
-def _make_predict(model, item_ts, maxlen):
-    """predict(X_csr) -> dense (B, n_items). Orders each row's fold-in sids by item_ts, keeps last maxlen."""
+def _make_predict(model, eval_order, maxlen):
+    """predict(X_csr) -> dense (B, n_items), ordering each row's fold-in items by the USER'S OWN
+    timestamps.
+
+    eval_order: {"val": [ordered sid array per row], "test": [...]} -- row-aligned with the proc
+    val/test matrices (build_eval_order). metrics.evaluate consumes users in ascending-row batches, so
+    a per-split CURSOR tracks which rows this batch covers; predict.set_split(name) selects the split
+    AND resets the cursor (call it before every full evaluate pass). Every row is checked by an exact
+    set-equality assertion (incoming fold-in columns vs the stored sequence) -- a cursor desync or a
+    wrong split raises immediately instead of silently mis-ordering."""
+    state = {"split": None, "cursor": 0}
+
+    def set_split(name):
+        if name not in eval_order:
+            raise KeyError(f"[sasrec] unknown eval split '{name}' (have {list(eval_order)})")
+        state["split"] = name
+        state["cursor"] = 0
+
     def predict(X_csr):
+        if state["split"] is None:
+            raise RuntimeError("[sasrec] predict.set_split('val'|'test') must be called before evaluate")
+        ordered = eval_order[state["split"]]
         model.eval()
         Xc = X_csr.tocsr()
         B = Xc.shape[0]
+        if state["cursor"] + B > len(ordered):
+            raise RuntimeError(f"[sasrec] cursor overrun: {state['cursor']}+{B} > {len(ordered)} "
+                               f"(missing set_split reset?)")
         seq = np.zeros((B, maxlen), dtype=np.int64)
         for r in range(B):
             cols = Xc.indices[Xc.indptr[r]:Xc.indptr[r + 1]]
-            if len(cols) == 0:
-                continue
-            order = np.argsort(item_ts[cols], kind="stable")   # oldest -> newest
-            s = cols[order][-maxlen:]                           # keep most-recent maxlen
-            seq[r, maxlen - len(s):] = s + 1                    # +1 (0 is padding); right-aligned
+            s_user = ordered[state["cursor"] + r]              # user's fold-in sids, oldest->newest
+            if set(cols.tolist()) != set(s_user.tolist()):     # HARD alignment check, every row
+                raise RuntimeError(f"[sasrec] fold-in set mismatch at split={state['split']} "
+                                   f"row={state['cursor'] + r}: eval row has {len(cols)} items, "
+                                   f"stored order has {len(s_user)} -- cursor/split desync")
+            s = s_user[-maxlen:]                               # keep most-recent maxlen
+            seq[r, maxlen - len(s):] = s + 1                   # +1 (0 is padding); right-aligned
+        state["cursor"] += B
         with torch.no_grad():
             out = model.score_last(torch.from_numpy(seq))
         return out.cpu().numpy().astype(np.float32)
+
+    predict.set_split = set_split
     return predict
 
 
@@ -183,12 +214,19 @@ def _train_batches(seqs, maxlen, batch, n_items, rng):
 
 
 def fit(train, n_items, evaluator=None, args=None, ckpt=None, log=print,
-        seqs=None, item_ts=None):
-    """seqs/item_ts: precomputed chronological training sequences (list of sid arrays) and per-item
-    mean-timestamp array (n_items,). If None, they are rebuilt from the raw split (real-data path)."""
+        seqs=None, eval_order=None):
+    """seqs: precomputed chronological training sequences (list of sid arrays).
+    eval_order: {"val": [...], "test": [...]} row-aligned ordered fold-in sequences (build_eval_order).
+    If None, both are rebuilt from the raw split (real-data path).
+    NOTE: the returned predict is split-aware -- call predict.set_split('val'|'test') before every
+    evaluate pass (the evaluator you pass in must do this for 'val')."""
     a = args or _defaults()
-    if seqs is None or item_ts is None:
-        seqs, item_ts = build_sequences(n_items, log=log)
+    if seqs is None or eval_order is None:
+        rp = _replay_split(n_items, log=log)                   # one raw-CSV replay serves both builds
+        if seqs is None:
+            seqs = build_sequences(n_items, log=log, _replayed=rp)
+        if eval_order is None:
+            eval_order = build_eval_order(n_items, log=log, _replayed=rp)
     model = SASRec(n_items, a.hidden, a.num_blocks, a.num_heads, a.maxlen, a.dropout)
     opt = torch.optim.Adam(model.parameters(), lr=a.lr, betas=(0.9, a.beta2), weight_decay=a.l2)
     bce = nn.BCEWithLogitsLoss(reduction="none")
@@ -198,7 +236,7 @@ def fit(train, n_items, evaluator=None, args=None, ckpt=None, log=print,
         blob = torch.load(ckpt, map_location="cpu")
         model.load_state_dict(blob["model"]); opt.load_state_dict(blob["opt"]); state = blob["state"]
         log(f"[sasrec] RESUMED ep{state['epoch']} best={state['best']:.4f}")
-    predict = _make_predict(model, item_ts, a.maxlen)
+    predict = _make_predict(model, eval_order, a.maxlen)
     t0 = time.time()
     for epoch in range(state["epoch"], a.epochs):
         model.train(); ep_loss = 0.0; nb = 0
@@ -235,15 +273,16 @@ def fit(train, n_items, evaluator=None, args=None, ckpt=None, log=print,
     predict.hp = dict(hidden=a.hidden, num_blocks=a.num_blocks, num_heads=a.num_heads,
                       maxlen=a.maxlen, dropout=a.dropout, lr=a.lr, batch=a.batch, num_neg=a.num_neg,
                       best_val=state["best"], best_epoch=state["best_epoch"],
-                      role="SASRec (Kang&McAuley 2018) fold-in adaptation; item-ts order")
+                      role="SASRec (Kang&McAuley 2018) fold-in adaptation; per-user timestamp order")
     return predict
 
 
 # --------------------------------------------------------------------------- real sequence build
-def build_sequences(n_items, log=print):
-    """Rebuild TRAIN-user chronological sid sequences + per-item mean timestamp from raw ratings.
-    REAL-DATA path: reads the 25M ratings.csv and replays the liang_split recipe. Takes ~1 min +
-    a few GB RAM -- only called on the real training run, never in smoke."""
+def _replay_split(n_items, log=print):
+    """Replay the deterministic liang_split recipe on the raw 25M ratings (REAL-DATA path, ~1 min).
+    Returns (kept, unique_uid, LS): `kept` = DataFrame of all kept interactions of vocab items with
+    columns userId, sid, timestamp; `unique_uid` = the seed-98765-permuted userId array whose slices
+    define train/val/test users AND the proc uid = position in this array (liang_split's profile2id)."""
     import pandas as pd
     sys.path.insert(0, os.path.join(_ROOT, "scripts", "baselines"))
     import liang_split as LS
@@ -265,25 +304,65 @@ def build_sequences(n_items, log=print):
     raw = raw[raw["movieId"].isin(catalog)]
     raw = raw[raw["rating"] > LS.RATING_GT]
     raw, user_activity, _ = LS.filter_triplets(raw)
-    # deterministic seed-98765 user permutation -> first n-20000 = train users (== liang_split)
+    # deterministic seed-98765 user permutation (== liang_split; uid = position in this array)
     unique_uid = user_activity["userId"].values
     np.random.seed(LS.SEED)
     unique_uid = unique_uid[np.random.permutation(unique_uid.size)]
+    # keep vocab items only; map movieId -> sid
+    kept = raw[raw["movieId"].isin(show2id)]
+    kept = kept.assign(sid=kept["movieId"].map(show2id))[["userId", "sid", "timestamp"]]
+    return kept, unique_uid, LS
+
+
+def build_sequences(n_items, log=print, _replayed=None):
+    """TRAIN-user chronological sid sequences from raw timestamps (list of int64 arrays)."""
+    kept, unique_uid, LS = _replayed if _replayed is not None else _replay_split(n_items, log=log)
     tr_users = set(unique_uid[:(unique_uid.size - LS.N_HELDOUT * 2)].tolist())
     log(f"[sasrec] train users={len(tr_users)} (replayed split)")
+    sub = kept[kept["userId"].isin(tr_users)]
+    sub = sub.sort_values(["userId", "timestamp", "sid"], kind="stable")
+    seqs = [g["sid"].to_numpy(dtype=np.int64) for _, g in sub.groupby("userId", sort=False)]
+    log(f"[sasrec] built {len(seqs)} train sequences; median len="
+        f"{int(np.median([len(s) for s in seqs]))}")
+    return seqs
 
-    # restrict to train users + vocab; map movieId->sid; sort by timestamp
-    raw = raw[raw["userId"].isin(tr_users) & raw["movieId"].isin(show2id)]
-    raw = raw.assign(sid=raw["movieId"].map(show2id))
-    # per-item mean timestamp (fold-in ordering proxy)
-    item_ts = np.zeros(n_items, dtype=np.float64)
-    grp = raw.groupby("sid")["timestamp"].mean()
-    item_ts[grp.index.values] = grp.values
-    # per-user chronological sid sequence
-    raw = raw.sort_values(["userId", "timestamp", "movieId"], kind="stable")
-    seqs = [g["sid"].to_numpy(dtype=np.int64) for _, g in raw.groupby("userId", sort=False)]
-    log(f"[sasrec] built {len(seqs)} sequences; median len={int(np.median([len(s) for s in seqs]))}")
-    return seqs, item_ts
+
+def build_eval_order(n_items, log=print, _replayed=None):
+    """Per-ROW ordered fold-in sequences for the val/test matrices, from each user's OWN timestamps.
+
+    For split in {val, test}: read proc/<split>_tr.csv (the EXACT fold-in rows metrics.evaluate
+    scores), map uid -> raw userId via the replayed permutation (uid = position in unique_uid, row =
+    uid - first_uid_of_split, identical to metrics._load_tr_te_data's start_idx offset), join each
+    (userId, sid) with its raw timestamp, and sort that user's fold-in sids oldest->newest (ties by
+    sid, matching build_sequences). Returns {"val": [np.int64 array per row], "test": [...]}.
+    Every (uid, sid) fold-in pair MUST find a timestamp (it exists in raw by construction); asserted."""
+    import pandas as pd
+    kept, unique_uid, LS = _replayed if _replayed is not None else _replay_split(n_items, log=log)
+    n_users = unique_uid.size
+    proc = os.path.join(_ROOT, "data", "ml-25m", "proc")
+    bounds = {"val": (n_users - 2 * LS.N_HELDOUT, n_users - LS.N_HELDOUT),
+              "test": (n_users - LS.N_HELDOUT, n_users)}
+    out = {}
+    for split, (lo, hi) in bounds.items():
+        split_users = unique_uid[lo:hi]
+        uid_of_user = {u: lo + i for i, u in enumerate(split_users)}     # raw userId -> proc uid
+        sub = kept[kept["userId"].isin(set(split_users.tolist()))]
+        sub = sub.assign(uid=sub["userId"].map(uid_of_user))
+        ts = {(u, s): t for u, s, t in zip(sub["uid"].values, sub["sid"].values,
+                                           sub["timestamp"].values)}
+        tr = pd.read_csv(os.path.join(proc, f"{split}_tr.csv"))
+        assert int(tr["uid"].min()) == lo, f"[sasrec] {split} uid offset {tr['uid'].min()} != {lo}"
+        ordered = [np.empty(0, dtype=np.int64)] * (hi - lo)
+        for uid, g in tr.groupby("uid"):
+            sids = g["sid"].to_numpy(dtype=np.int64)
+            t = np.array([ts.get((uid, s), np.nan) for s in sids])
+            assert not np.isnan(t).any(), f"[sasrec] missing timestamp for uid={uid} ({split})"
+            order = np.lexsort((sids, t))                                # by ts, ties by sid
+            ordered[uid - lo] = sids[order]
+        out[split] = ordered
+        log(f"[sasrec] {split}: ordered fold-in for {len(ordered)} rows "
+            f"(median len={int(np.median([len(s) for s in ordered]))})")
+    return out
 
 
 # --------------------------------------------------------------------------- CLI / smoke
@@ -304,19 +383,34 @@ def _smoke():
     # synthetic chronological sequences + a synthetic held-out set
     seqs = [np.array(sorted(rng.choice(n_items, size=rng.randint(3, 12), replace=False)), dtype=np.int64)
             for _ in range(200)]
-    item_ts = rng.rand(n_items)
     te_tr = (sparse.random(30, n_items, density=0.1, random_state=rng,
                            data_rvs=lambda s: np.ones(s)) > 0).astype(np.float32).tocsr()
     te_te = (sparse.random(30, n_items, density=0.1, random_state=rng,
                            data_rvs=lambda s: np.ones(s)) > 0).astype(np.float32).tocsr()
+    # synthetic per-user ordered fold-in sequences: each row's items in a random (fake-timestamp) order
+    def _rows_order(Xc):
+        Xc = Xc.tocsr()
+        return [rng.permutation(Xc.indices[Xc.indptr[r]:Xc.indptr[r + 1]]).astype(np.int64)
+                for r in range(Xc.shape[0])]
+    eval_order = {"val": _rows_order(te_tr), "test": _rows_order(te_tr)}
     a = _defaults(); a.hidden = 32; a.maxlen = 20; a.epochs = 2; a.batch = 32; a.patience = 99
     hm = _head_mask(te_tr, n_items)
 
     def ev(pred):
+        pred.set_split("val")                         # split-aware predict: reset cursor per pass
         m = M.evaluate(pred, te_tr, te_te, batch_size=10, head_mask=hm)
         return m["ndcg@10"], m
-    pr = fit(None, n_items, evaluator=ev, args=a, ckpt=None, log=print, seqs=seqs, item_ts=item_ts)
+    pr = fit(None, n_items, evaluator=ev, args=a, ckpt=None, log=print, seqs=seqs,
+             eval_order=eval_order)
+    pr.set_split("test")
     res = M.evaluate(pr, te_tr, te_te, batch_size=10, head_mask=hm)
+    # negative control: a desynced cursor / wrong rows MUST raise (alignment assertion)
+    try:
+        pr.set_split("test")
+        pr(te_tr[5:15])                               # rows 5..14 presented as rows 0..9 -> mismatch
+        raise SystemExit("[sasrec][SMOKE] FAIL: misaligned rows did NOT raise")
+    except RuntimeError:
+        print("[sasrec][SMOKE] alignment assertion fires on misaligned rows (control OK)")
     print(f"[sasrec][SMOKE] OK full@10={res['ndcg@10']:.4f} tail@10={res['tail_ndcg@10']:.4f} "
           f"best_val={pr.best_val:.4f}")
 
@@ -340,10 +434,12 @@ def main():
     os.makedirs(os.path.dirname(ckpt), exist_ok=True)
 
     def ev(pred):
+        pred.set_split("val")                         # split-aware predict: reset cursor per pass
         m = M.evaluate(pred, va_tr, va_te, batch_size=500, head_mask=hm)
         return m["ndcg@10"], m
     t0 = time.time()
     predict = fit(None, n_items, evaluator=ev, args=a, ckpt=ckpt)
+    predict.set_split("test")
     res = M.evaluate(predict, te_tr, te_te, batch_size=500, head_mask=hm)
     res["seconds"] = time.time() - t0; res["hp"] = predict.hp
     print(f"[sasrec] test full@10={res['ndcg@10']:.4f} tail@10={res['tail_ndcg@10']:.4f} "

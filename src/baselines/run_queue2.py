@@ -72,7 +72,12 @@ def build(name, train, n_items, D, head_mask, max_minutes, log):
         return pr, pr.hp
     if name == "sasrec":
         a = sasrec._defaults(); a.max_minutes = max_minutes
-        pr = sasrec.fit(train, n_items, evaluator=neural_eval, args=a, ckpt=ck, log=log)
+
+        def sasrec_eval(predict):
+            predict.set_split("val")      # split-aware predict (per-user timestamp order): reset cursor
+            return neural_eval(predict)
+        pr = sasrec.fit(train, n_items, evaluator=sasrec_eval, args=a, ckpt=ck, log=log)
+        pr.set_split("test")              # arm for the final test pass done by the main loop
         return pr, pr.hp
     if name == "tanp":
         a = tanp._defaults(); a.max_minutes = max_minutes
