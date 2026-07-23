@@ -6,7 +6,42 @@ an order-invariant set encoder over (item, half-star-level) tokens -- on the can
 be scored on this ruler (its train users overlap the new test cohort = leak); this file re-trains pb2-class
 on the canonical partition. Emits experiments/baselines/ml25m_liang/tower_t2.json.
 
-THREE MODES (--teacher {warm_init, recvae, none}; default warm_init):
+ARCHITECTURE MODES (--arch {i25, attn}; default i25 -- 2026-07-23 revision, evidence-backed by the
+pre-cleanup i25_fold recipe that reached native-0.014; the from-scratch attention encoder's 0.29
+plateau is the imitation gap that recipe avoided. FOLD_MASTER F7: set-transformer 3x rejected here):
+  --arch i25 (DEFAULT): RESIDUAL fold on the frozen native RecVAE encoder.
+      z = native_z + g(n_tok) * rho(concat(sumpool_phi, native_z, log1p(n_tok)))
+      * native_z = FROZEN RecVAE encoder mean on the BINARIZED LIKED tokens of the input set
+        (likes = level >= 7; dislikes NEVER enter the native encoder -- same rule as the old latent
+        teacher). EMPTY-LIKES GUARD (documented): the RecVAE encoder L2-normalises its input with NO
+        zero guard (x / ||x||, NaN on a zero row) => rows with no liked token get native_z = 0.
+      * phi = per-token 2-layer MLP on the graded FiLM token (gamma(level)*e_i + beta(level),
+        e_i = 200-d NORMALIZED frozen decoder row), SUM-pooled with padding zeroed. DISLIKES ARE IN
+        the phi tokens -- that is where the dislike signal lives.
+      * rho = 2-layer MLP, FINAL LAYER ZERO-INIT => z == native_z BIT-EXACTLY at init.
+      * The g(0)=0 evidence gate is KEPT on the residual (documented interplay): with native_z(empty)=0
+        it makes enc(empty) decode to the decoder bias at EVERY point in training, not just init.
+      * The frozen native encoder is NOT registered in the module (checkpoints stay small); it is
+        re-attached from RECVAE_CKPT best_state at build -- resume assumes that file is stable.
+      * DECODER ARMS: (A, primary/default) FROZEN RecVAE decoder W+b -- restores G0-identity, logged;
+        (B, --train_decoder) trainable at the slow LR group as in warm mode.
+      * G0 note (documented): z = native_z + delta means full-profile score == native RecVAE IFF
+        delta == 0; post-training delta != 0, so G0-strength criterion = tower >= native - CI (the
+        residual is val-selected). Emitted in the JSON.
+      * Loss = v3 unchanged (held-likes NLL + clamped w_neg dislike negatives); NO latent KD
+        (lam pinned 0 -- the native encoder is inside the forward, not a loss target).
+      * v4 ADVERSARIAL-REVIEW REPAIRS (2026-07-23): S1 ANCHOR GATE -- native_z is attenuated by a
+        trainable a(n)=1-exp(-softplus(b)*n) (a(0)=0, ~1 by n~16; the native anchor is BELOW the pop
+        floor at k<=2, probe 0.115 vs 0.1345) and a(n) is fed into rho; init identity is now
+        z == a(n)*native_z. S2 NATIVE-SEEDED BEST -- the init model's val full@10 seeds `best` and the
+        best checkpoint before epoch 1 (below-native G0 impossible). S5 DEDUP ASSERT at the fold
+        boundary (sum-pool is duplicate-sensitive; hard fail).
+      * LAUNCH GATES (S3/S4, review ruling): arm A (frozen decoder) may only be CERTIFIED if it passes
+        the G3 flip test AND the ablate_binarized canary; arm B (--train_decoder) is the PRIMARY arm
+        for dislike capability pending those gates.
+  --arch attn: the previous pb2-class attention path, in one of THREE TEACHER MODES below.
+
+TEACHER MODES for --arch attn (--teacher {warm_init, recvae, none}; default warm_init):
   --teacher warm_init (DEFAULT; pre-registered escalation after the dislike-separability probe FAILED
       2026-07-22 -- the frozen RecVAE decoder cannot separate dislike neighborhoods at acceptable cost):
       TRAINABLE-decoder T2'. Decoder W+b AND input item identities are INITIALIZED from the RecVAE ckpt
@@ -248,6 +283,67 @@ class SetEncoder(nn.Module):
         return self.z0 + g * fold
 
 
+class I25Encoder(nn.Module):
+    """RESIDUAL fold on the frozen native RecVAE encoder (--arch i25; 2026-07-23 revision):
+        z = native_z + g(n_tok) * rho(concat(sum_phi, native_z, log1p(n_tok)))
+    native_z = frozen RecVAE encoder mean on the BINARIZED LIKES of the token set (level >= 7;
+    rows with NO liked token get native_z = 0 -- the RecVAE encoder x/||x|| has no zero guard).
+    phi = 2-layer MLP on the graded FiLM token (dislikes ARE here), SUM-pooled (padding zeroed).
+    rho final layer ZERO-INIT => z == native_z bit-exactly at init. No PMA/MAB (FOLD_MASTER F7).
+    The native encoder is held UNREGISTERED (self._native list) so checkpoints exclude its ~13M
+    params; build_model re-attaches it from RECVAE_CKPT best_state."""
+    def __init__(self, ni, native_encoder, d_lat=200, h=512, token_mode="film"):
+        super().__init__()
+        self.ni = ni; self.d = d_lat; self.d_out = d_lat; self.token_mode = token_mode
+        self.norm_feat = False
+        self._native = [native_encoder]                      # UNREGISTERED (frozen, external)
+        self.item_emb = nn.Embedding(ni, d_lat)              # frozen normalized decoder rows
+        self.gamma = nn.Embedding(NLEV, d_lat); self.beta = nn.Embedding(NLEV, d_lat)
+        nn.init.ones_(self.gamma.weight); nn.init.normal_(self.beta.weight, std=0.02)
+        self.phi = nn.Sequential(nn.Linear(d_lat, h), nn.GELU(), nn.Linear(h, h))
+        # rho input: [sum_phi, a(n)*native_z, log1p(n), a(n)]  (S1: a(n) passed into rho)
+        self.rho = nn.Sequential(nn.Linear(h + d_lat + 2, h), nn.GELU(), nn.Linear(h, d_lat))
+        nn.init.zeros_(self.rho[-1].weight); nn.init.zeros_(self.rho[-1].bias)   # z==a*native at init
+        self.gate_a = nn.Parameter(torch.tensor(0.5413))     # g(0)=0: empty set -> 0
+        # S1 ANCHOR GATE (v4 adversarial review): a(n) = 1 - exp(-softplus(b)*n). The native anchor is
+        # BELOW the pop floor at k<=2 (probe 0.115 vs 0.1345) -> attenuate it where it is wrong.
+        # b init: softplus(b) ~= 0.25 -> a(16) ~= 0.98 (ramps to ~1 by n~16); TRAINABLE scalar.
+        self.anchor_b = nn.Parameter(torch.tensor(-1.2586))  # softplus(-1.2586) ~= 0.25
+        self.z0 = nn.Parameter(torch.zeros(d_lat), requires_grad=False)          # compat (unused)
+
+    def native_z(self, ids, pad, lvs):
+        """Frozen RecVAE encoder mean on binarized LIKED tokens; 0 for rows with no likes."""
+        B = ids.shape[0]
+        like = (lvs >= LIKE_MIN_LEVEL) & (~pad)
+        x = torch.zeros((B, self.ni), dtype=torch.float32)
+        rows = like.nonzero(as_tuple=True)
+        x[rows[0], ids[rows]] = 1.0
+        has = x.sum(-1) > 0
+        out = torch.zeros((B, self.d_out), dtype=torch.float32)
+        if bool(has.any()):
+            with torch.no_grad():
+                mu, _ = self._native[0].encoder(x[has], dropout_rate=0.0)
+            out[has] = mu
+        return out
+
+    def anchor(self, n_tok):
+        """S1 anchor gate a(n) = 1 - exp(-softplus(b)*n); a(0)=0 exactly, ramps to ~1 by n~16."""
+        return 1.0 - torch.exp(-F.softplus(self.anchor_b) * n_tok)
+
+    def forward(self, ids, vals, pad, lvs):
+        e = self.item_emb(ids)                                               # (B,L,200) frozen
+        x = self.gamma(lvs) * e + self.beta(lvs)                             # graded FiLM token
+        ph = self.phi(x) * (~pad).unsqueeze(-1).float()                      # padding zeroed
+        sp = ph.sum(1)                                                       # (B,h) SUM pool
+        nz = self.native_z(ids, pad, lvs)                                    # (B,200) frozen fold
+        n_tok = (~pad).sum(-1, keepdim=True).float()
+        a = self.anchor(n_tok)                                               # (B,1) S1 anchor gate
+        anz = a * nz                                                         # attenuated native anchor
+        delta = self.rho(torch.cat([sp, anz, n_tok.log1p(), a], dim=-1))
+        g = 1.0 - torch.exp(-F.softplus(self.gate_a) * n_tok)               # g(0)=0 exactly
+        return anz + g * delta                                               # empty: a(0)*0 + 0 = 0
+
+
 # =============================================================================================
 # T1 RECVAE TEACHER  (frozen; encoder mean supervises the latent, decoder+bias reused for ranking)
 # =============================================================================================
@@ -464,6 +560,10 @@ def pack_tokens(rows, binarize=False):
     pad = np.ones((B, L), bool); lvs = np.zeros((B, L), np.int64)
     for r, (i, lv, sv) in enumerate(rows):
         k = len(i)
+        # S5 dedup assert (fold boundary, HARD FAIL): sum-pool is duplicate-sensitive; a repeated sid
+        # would silently double-count evidence. MovieLens guarantees unique (user,item), so this must
+        # never fire -- if it does, the data path upstream is broken.
+        assert len(np.unique(i)) == k, f"duplicate sids in a token set (row {r}: {k} tokens)"
         ids[r, :k] = i; pad[r, :k] = False
         if binarize:
             lvs[r, :k] = LIKE_LEVEL; vals[r, :k] = level_to_sv(np.full(k, LIKE_LEVEL))
@@ -672,7 +772,42 @@ def apply_sign_prior(enc):
 
 
 def build_model(args, ni, cnt, teacher_override=None):
-    """Returns (enc, decoder, teacher, trainable_params). teacher_override lets smoke inject a fake."""
+    """Returns (enc, decoder, teacher, trainable_params, groups). teacher_override: smoke fake."""
+    if args.arch == "i25":
+        # RESIDUAL fold (2026-07-23): frozen native RecVAE encoder inside the forward; loss teacher OFF.
+        src = teacher_override if teacher_override is not None else \
+            load_recvae_teacher(ni, hidden=args.t_hidden, latent=args.t_latent)
+        enc = I25Encoder(ni, src, d_lat=args.t_latent, token_mode=args.token)
+        decoder = nn.Linear(args.t_latent, ni)
+        with torch.no_grad():
+            decoder.weight.copy_(src.decoder.weight)
+            decoder.bias.copy_(src.decoder.bias)
+            norms = src.decoder.weight.norm(dim=1).clamp_min(1e-8)
+            enc.item_emb.weight.copy_(src.decoder.weight / norms.unsqueeze(1))   # normalized identities
+        enc.item_emb.weight.requires_grad_(False)            # identities frozen in i25
+        if args.train_decoder:                               # arm B (fallback): trainable at slow LR
+            log("[model] i25 arm B: decoder TRAINABLE at slow LR (--train_decoder)")
+        else:                                                # arm A (primary): frozen -> G0-identity
+            decoder.weight.requires_grad_(False); decoder.bias.requires_grad_(False)
+            log("[model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)")
+        teacher = None                                       # native encoder is in the FORWARD, not loss
+        if getattr(args, "sign_prior", True):
+            apply_sign_prior(enc)
+        else:
+            log("[model] sign_prior OFF (ablation arm)")
+        params = [p for p in list(enc.parameters()) + list(decoder.parameters()) if p.requires_grad]
+        if args.train_decoder:
+            slow_ids = {id(decoder.weight), id(decoder.bias)}
+            fast = [p for p in params if id(p) not in slow_ids]
+            slow = [p for p in params if id(p) in slow_ids]
+            groups = [{"params": fast}, {"params": slow, "lr": args.lr * args.warm_lr_scale}]
+        else:
+            groups = [{"params": params}]
+        tr_p, fr_p = count_params(enc, decoder)
+        log(f"[model] arch=i25 d_lat={args.t_latent} TRAINABLE={tr_p:,} FROZEN={fr_p:,} "
+            f"(+ unregistered frozen native encoder ~13.4M params, not counted/saved) "
+            f"train_decoder={args.train_decoder}")
+        return enc, decoder, teacher, params, groups
     if args.teacher == "warm_init":
         # pre-registered escalation (probe FAIL 2026-07-22): TRAINABLE decoder + identities, RecVAE ckpt
         # is INIT-ONLY -- the model is dropped from the loss path (returned teacher=None -> no latent KD).
@@ -903,6 +1038,20 @@ def train(args):
         Lk8 = truncate_graded(L_val, 8, COLD_SEED + 1)
         log(f"[train] cold-val subsets built once: k=2 nnz={Lk2.nnz}, k=8 nnz={Lk8.nnz} (seed {COLD_SEED})")
 
+    # S2 NATIVE-SEEDED BEST (v4 review): evaluate the INIT model (delta==0) on val and seed `best` +
+    # the best checkpoint with it BEFORE epoch 1 -- a below-native G0 outcome becomes impossible
+    # (early stop can never keep a checkpoint worse than the anchored init).
+    if start_ep == 0 and best < 0:
+        vm0 = M.evaluate(make_graded_predict_fn(enc, decoder.weight.detach(), decoder.bias.detach(),
+                                                L_val, binarize=args.ablate_binarized),
+                         va_tr, va_te, batch_size=500, head_mask=head_mask)
+        best = vm0["ndcg@10"]
+        torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(),
+                    "epoch": 0, "val_full": best, "val_tail": vm0["tail_ndcg@10"]}, ckb)
+        log(f"[init] VAL full@10={best:.4f} tail@10={vm0['tail_ndcg@10']:.4f} "
+            f"(native{'-anchored' if args.arch == 'i25' else ''} init; best SEEDED -> "
+            f"below-native G0 impossible)")
+
     p0, p1 = parse_p_interview(args.p_interview)
     for ep in range(start_ep, args.epochs):
         enc.train(); rng = np.random.default_rng(ep)
@@ -910,8 +1059,8 @@ def train(args):
         # CONSTANT weight 1.0. (NOTE for the record: with teacher=None batch_loss already returned the
         # pure rank loss at weight 1.0; the annealing lam_glob was computed and LOGGED but never entered
         # the loss. The pin makes the log truthful and forecloses the creep path permanently.)
-        if args.teacher == "warm_init" and not args.full_kd:
-            lam_glob = 0.0
+        if args.arch == "i25" or (args.teacher == "warm_init" and not args.full_kd):
+            lam_glob = 0.0                   # i25: native encoder is in the FORWARD, never a loss target
         elif args.full_kd:
             lam_glob = args.full_kd_w        # constant convex weight, no anneal (as built)
         else:
@@ -936,7 +1085,12 @@ def train(args):
             if nb % 100 == 0:
                 log(f"  ep{ep} b{nb}/{len(order)} NLL={run_n/nb:.4f} zMSE={run_z/nb:.4f} "
                     f"negfloor={run_f/max(nf,1):.2f} {(time.time()-t0)/60:.1f}m")
-        if args.teacher == "recvae":                                           # repair 6: trunk drift
+        if args.arch == "i25":                                                 # repair 6: trunk drift
+            assert torch.equal(enc.item_emb.weight, E0), "FROZEN i25 identities drifted"
+            if not args.train_decoder:
+                assert torch.equal(decoder.weight, W0) and torch.equal(decoder.bias, b0), \
+                    "FROZEN i25 arm-A decoder drifted"
+        elif args.teacher == "recvae":
             assert torch.equal(decoder.weight, W0) and torch.equal(decoder.bias, b0), \
                 "FROZEN decoder drifted (||dWd|| != 0)"
             assert args.unfreeze_emb or torch.equal(enc.item_emb.weight, E0), \
@@ -993,7 +1147,7 @@ def train(args):
            "geometry": {"warm_init": "TRAINABLE decoder+identities, RecVAE warm init, latent KD OFF",
                         "recvae": "FROZEN RecVAE decoder+bias+identities (recvae_ml25m_liang.pt best_state)",
                         "none": "from scratch; pop-init decoder bias"}[args.teacher]}
-    if args.teacher in ("recvae", "warm_init"):              # repair 7: G0 reporting split
+    if args.arch == "i25" or args.teacher in ("recvae", "warm_init"):   # repair 7: G0 reporting split
         # G0-strength: CI-tie of the tower's full-fold test NDCG@10 vs the frozen RecVAE's own
         # (in warm_init the tie TARGET stays the frozen ckpt RecVAE -- reload it, the trained decoder
         # has moved away from it by design)
@@ -1006,7 +1160,12 @@ def train(args):
         ci = 1.96 * float(np.sqrt(tm["ndcg@10_se"] ** 2 + rec_res["ndcg@10_se"] ** 2))
         out["G0_strength"] = {"tower_full@10": tm["ndcg@10"], "recvae_full@10": rec_res["ndcg@10"],
                               "recvae_tail@10": rec_res["tail_ndcg@10"], "diff": diff,
-                              "ci95_halfwidth": ci, "tie": bool(abs(diff) <= ci)}
+                              "ci95_halfwidth": ci, "tie": bool(abs(diff) <= ci),
+                              "ge_native_minus_ci": bool(diff >= -ci)}
+        if args.arch == "i25":
+            out["G0_strength"]["criterion"] = (
+                "i25 residual form: identity only at init (z=native+delta); post-training the "
+                "val-selected residual makes the criterion tower >= native - CI (ge_native_minus_ci)")
         # G0-identity: mechanical bit-identity of the intercept + harness pass-through
         with torch.no_grad():
             z_e = enc(torch.zeros((1, 1), dtype=torch.long), torch.zeros((1, 1)),
@@ -1074,7 +1233,11 @@ def dry_run(args):
     enc, decoder, teacher, params, groups = build_model(args, ni, cnt)
     report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), cnt, "DRY-init")
     opt = torch.optim.AdamW(groups, lr=args.lr)
-    if args.teacher == "warm_init":                          # stabilization patch asserts
+    if args.arch == "i25":                                   # param-group asserts (arch-gated)
+        want = 2 if args.train_decoder else 1
+        assert len(opt.param_groups) == want, f"i25 groups: expected {want}, got {len(opt.param_groups)}"
+        log(f"[DRY] param-group asserts PASS (i25): {want} group(s), train_decoder={args.train_decoder}")
+    elif args.teacher == "warm_init":                        # stabilization patch asserts
         lrs = [g.get("lr", args.lr) for g in opt.param_groups]
         assert len(opt.param_groups) == 2 and abs(lrs[1] - args.lr * args.warm_lr_scale) < 1e-12, \
             f"warm param groups wrong: lrs={lrs}"
@@ -1084,8 +1247,8 @@ def dry_run(args):
     rng = np.random.default_rng(0)
     exs = [(i, make_input_target(users[i], rng)) for i in range(min(200, len(users)))]
     exs = [(i, e) for i, e in exs if e is not None]
-    if args.teacher == "warm_init" and not args.full_kd:
-        lam0 = 0.0                           # pinned (2026-07-23): pure rank loss in warm mode
+    if args.arch == "i25" or (args.teacher == "warm_init" and not args.full_kd):
+        lam0 = 0.0                           # pinned: pure rank loss (i25 / warm mode)
     elif args.full_kd:
         lam0 = args.full_kd_w
     else:
@@ -1094,7 +1257,19 @@ def dry_run(args):
     opt.zero_grad(); loss.backward(); opt.step()
     log(f"[DRY] one fwd/bwd on {len(exs)} users OK: NLL={nll_v:.4f} zMSE={mse_v:.4f} lam_glob={lam0:.3f}")
     opt_ids = {id(p) for grp in opt.param_groups for p in grp["params"]}
-    if args.teacher == "recvae":
+    if args.arch == "i25":
+        assert not enc.item_emb.weight.requires_grad and id(enc.item_emb.weight) not in opt_ids, \
+            "i25 identities must be frozen + excluded from the optimizer"
+        if args.train_decoder:
+            assert decoder.weight.requires_grad and id(decoder.weight) in opt_ids \
+                and len(opt.param_groups) == 2, "i25 arm B: decoder must be in the slow group"
+        else:
+            assert not decoder.weight.requires_grad and id(decoder.weight) not in opt_ids, \
+                "i25 arm A: decoder must be frozen + excluded"
+        assert teacher is None, "i25 must not carry a loss-path teacher (native enc is in the forward)"
+        log(f"[DRY] i25 asserts PASS (identities frozen; decoder arm "
+            f"{'B trainable-slow' if args.train_decoder else 'A frozen'}; no loss teacher)")
+    elif args.teacher == "recvae":
         assert not decoder.weight.requires_grad and not decoder.bias.requires_grad, "decoder not frozen"
         assert not enc.z0.requires_grad, "z0 not frozen (intercept identity needs z0 fixed at 0)"
         assert args.unfreeze_emb or not enc.item_emb.weight.requires_grad, "item_emb not frozen"
@@ -1157,7 +1332,7 @@ def smoke(args):
                       "disliked": items[lvls <= 4]})       # repair 4: dislike band (<=2.5 stars)
 
     teacher_override = None
-    if args.teacher in ("recvae", "warm_init"):
+    if args.arch == "i25" or args.teacher in ("recvae", "warm_init"):
         # fake teacher/init source: random-weight RecVAE saved+loaded through the REAL load path
         args.t_hidden, args.t_latent = 24, 16
         fake = R.RecVAE(args.t_hidden, args.t_latent, ni)
@@ -1169,7 +1344,35 @@ def smoke(args):
     enc, decoder, teacher, params, groups = build_model(args, ni, cnt, teacher_override=teacher_override)
     znorm, rho = report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), None, "SMOKE-init")
     assert znorm < 1e-6, "gated intercept identity broken (enc(empty) != 0 at init; gate g(0) leak?)"
-    if args.teacher in ("recvae", "warm_init"):
+    if args.arch == "i25":
+        # i25 zero-init identity: z == native_z BIT-EXACT at init (rho final layer zero-init)
+        r0 = np.random.default_rng(7)
+        exs0 = [(j, make_input_target(users[j], r0)) for j in range(8)]
+        exs0 = [(j, e) for j, e in exs0 if e is not None]
+        ii0, vv0, pp0, ll0 = pack_tokens([(e[0], e[1], e[2]) for _, e in exs0])
+        enc.eval()
+        with torch.no_grad():
+            n0 = (~pp0).sum(-1, keepdim=True).float()
+            expect = enc.anchor(n0) * enc.native_z(ii0, pp0, ll0)     # S1: init identity = a(n)*native
+            assert torch.equal(enc(ii0, vv0, pp0, ll0), expect), \
+                "i25 zero-init identity broken (z != a(n)*native_z at init)"
+        print("[SMOKE] i25 zero-init identity PASS: z == a(n)*native_z BIT-EXACT at init (S1 anchored)")
+        # S1 anchor-gate properties: a(0)=0 exactly, strictly monotone, ~1 by n~16 at init
+        with torch.no_grad():
+            nn_ = torch.arange(0, 33, dtype=torch.float32).unsqueeze(1)
+            av = enc.anchor(nn_).squeeze(1)
+        assert float(av[0]) == 0.0, "a(0) != 0 (empty-set identity would break)"
+        assert bool((av[1:] > av[:-1]).all()), "a(n) not strictly monotone"
+        assert float(av[16]) >= 0.97, f"a(16)={float(av[16]):.3f} (expected ~0.98 ramp at init)"
+        print(f"[SMOKE] anchor gate PASS: a(0)=0, monotone, a(2)={float(av[2]):.3f} "
+              f"a(8)={float(av[8]):.3f} a(16)={float(av[16]):.3f}")
+        # S5 dedup assert must fire on a duplicated sid
+        try:
+            pack_tokens([(np.array([3, 3, 5]), np.array([8, 8, 9]), level_to_sv(np.array([8, 8, 9])))])
+            raise RuntimeError("dedup assert did NOT fire on duplicate sids")
+        except AssertionError:
+            print("[SMOKE] dedup assert PASS: duplicate sids in a token set hard-fail (S5)")
+    if args.arch == "i25" or args.teacher in ("recvae", "warm_init"):
         with torch.no_grad():
             sc0 = (enc(torch.zeros((1, 1), dtype=torch.long), torch.zeros((1, 1)),
                        torch.ones((1, 1), dtype=torch.bool), torch.zeros((1, 1), dtype=torch.long))
@@ -1200,7 +1403,13 @@ def smoke(args):
         print("[SMOKE] EDLAE KD teacher precompute path exercised (synthetic B)")
 
     opt = torch.optim.AdamW(groups, lr=1e-3)
-    if args.teacher == "warm_init":
+    if args.arch == "i25":
+        want_groups = 2 if args.train_decoder else 1
+        assert len(opt.param_groups) == want_groups, \
+            f"i25 arm {'B' if args.train_decoder else 'A'} should give {want_groups} param group(s)"
+        print(f"[SMOKE] param-group PASS (i25): {len(opt.param_groups)} group(s), "
+              f"train_decoder={args.train_decoder}")
+    elif args.teacher == "warm_init":
         assert len(opt.param_groups) == 2, "warm_init should give 2 param groups"
         print(f"[SMOKE] param-group PASS: fast lr={opt.param_groups[0]['lr']} "
               f"slow lr={opt.param_groups[1]['lr']} (warm_lr_scale={args.warm_lr_scale})")
@@ -1254,7 +1463,32 @@ def smoke(args):
         if args.teacher == "warm_init" and not args.full_kd:
             assert lam_glob == 0.0, "warm mode without full_kd must pin lam_glob=0"
         print(f"[SMOKE] ep{ep+1} last-batch NLL={last[0]:.4f} zMSE={last[1]:.4f} lam_glob={lam_glob:.3f}")
-    if args.teacher == "recvae":
+    if args.arch == "i25":
+        assert torch.equal(enc.item_emb.weight, E0), "i25 frozen identities CHANGED during training"
+        if args.train_decoder:
+            assert not torch.equal(decoder.weight, W0), "i25 arm B decoder did NOT move"
+            print("[SMOKE] i25 arm B PASS: decoder moved (slow group); identities frozen")
+        else:
+            assert torch.equal(decoder.weight, W0), "i25 arm A frozen decoder CHANGED"
+            print("[SMOKE] i25 arm A PASS: decoder + identities bit-identical after 3 epochs")
+        # sum-pool permutation invariance (post-training, rho nonzero)
+        u0 = users[0]; k0n = len(u0["items"])
+        perm = np.random.default_rng(11).permutation(k0n)
+        b1 = pack_tokens([(u0["items"], u0["levels"], u0["vals"])])
+        b2 = pack_tokens([(u0["items"][perm], u0["levels"][perm], u0["vals"][perm])])
+        enc.eval()
+        with torch.no_grad():
+            z1 = enc(*b1); z2 = enc(*b2)
+        assert torch.allclose(z1, z2, atol=1e-5), "sum-pool permutation invariance broken"
+        print("[SMOKE] i25 permutation invariance PASS (token order changes z by < 1e-5)")
+        # dislike-in-phi: flipping one liked token to hated must CHANGE z (post-training)
+        lv3 = u0["levels"].copy(); lv3[0] = 0                # 0.5 stars
+        b3 = pack_tokens([(u0["items"], lv3, level_to_sv(lv3))])
+        with torch.no_grad():
+            z3 = enc(*b3)
+        assert not torch.allclose(z1, z3, atol=1e-6), "dislike level flip did not change z (phi dead?)"
+        print("[SMOKE] i25 dislike-in-phi PASS: like->hate flip moves z")
+    elif args.teacher == "recvae":
         assert torch.equal(decoder.weight, teacher_override.decoder.weight) and \
                torch.equal(decoder.bias, teacher_override.decoder.bias), \
                "frozen decoder CHANGED during training"
@@ -1266,7 +1500,7 @@ def smoke(args):
         assert not torch.equal(decoder.weight, W0), "warm_init decoder did NOT move (should be trainable)"
         assert not torch.equal(enc.item_emb.weight, E0), "warm_init identities did NOT move"
         print("[SMOKE] warm_init trainability PASS (decoder + item identities moved after 3 epochs)")
-    if args.teacher in ("recvae", "warm_init"):
+    if args.arch == "i25" or args.teacher in ("recvae", "warm_init"):
         # repair 5: the intercept must STILL be bit-exact AFTER training (gate property, not init;
         # in warm_init the identity tracks the CURRENT trainable bias)
         enc.eval()
@@ -1354,8 +1588,11 @@ def smoke(args):
     # eval_cold ckpt contract: save read-only-style blob, reload into FRESH modules, scores identical
     tmpck = os.path.join(CKPT_DIR, "_smoke_evalcold.pt")
     torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "epoch": 3}, tmpck)
-    enc3 = SetEncoder(ni, d=D, d_out=enc.d_out, d_emb=enc.item_emb.weight.shape[1],
-                      token_mode=args.token, norm_feat=enc.norm_feat)
+    if args.arch == "i25":
+        enc3 = I25Encoder(ni, teacher_override, d_lat=enc.d_out, token_mode=args.token)
+    else:
+        enc3 = SetEncoder(ni, d=D, d_out=enc.d_out, d_emb=enc.item_emb.weight.shape[1],
+                          token_mode=args.token, norm_feat=enc.norm_feat)
     dec3 = nn.Linear(enc.d_out, ni)
     blob3 = torch.load(tmpck, map_location="cpu")
     enc3.load_state_dict(blob3["enc"]); dec3.load_state_dict(blob3["decoder"]); enc3.eval()
@@ -1377,6 +1614,13 @@ def main():
     ap.add_argument("--patience", type=int, default=4)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--token", choices=["film", "mlp"], default="film")
+    # architecture revision 2026-07-23 (i25 residual fold; FOLD_MASTER F7)
+    ap.add_argument("--arch", choices=["i25", "attn"], default="i25",
+                    help="i25 = residual fold on the frozen native RecVAE encoder (DEFAULT); "
+                         "attn = the previous pb2-class attention path (--teacher modes)")
+    ap.add_argument("--train_decoder", action="store_true",
+                    help="i25 arm B (fallback): decoder trainable at the slow LR group; "
+                         "default arm A = frozen RecVAE decoder (G0-identity)")
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--resume_from_best", action="store_true",
                     help="restart from <tag>_best.pt weights (fresh optimizer at the grouped LRs); "
