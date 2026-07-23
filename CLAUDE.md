@@ -4,6 +4,7 @@ Auto-loaded every session — kept terse on purpose. Each rule is the directive;
 Orientation: end-state → `docs/VISION.md` · current status → `docs/STATE.md` · mistakes checklist → `docs/HARSH_REVIEW_POINTS.md`.
 
 ## Working rules
+- **Report to the author at the "informed colleague" level** (calibrated 2026-07-23): explain the *essence* of what's happening in plain language — no heavy math, no internal jargon/codenames — but DO include the concrete mechanics and the numbers (epoch-by-epoch curves, what a fix changes and why, side-by-side comparisons, honest fixed-vs-cosmetic ledgers). Never ELI5 ("manners", story-metaphors), never raw formula dumps. When a claim was wrong, say so plainly and show what the check found.
 - **Design sheet before any run** — pre-register the question, exact Ns, full action space, baseline symmetry, metric + MDE, and every shortcut with its non-lossy alternative. If no decision changes on the outcome, it doesn't run.
 - **No LLM API calls without explicit author approval.**
 - **Fable oversees, Opus/Sonnet execute** — Fable = strategy/design/review/final-verdict only; Opus for research & hard coding, Sonnet for mechanical work (abstracts, tabulation, refactors, plots). Fable never reads the repo broadly or does groundwork itself — if a Fable task looks token-heavy, stop and ask the author first.
