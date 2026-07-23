@@ -886,6 +886,7 @@ def train(args):
         blob = torch.load(ck, map_location="cpu")
         enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"])
         opt.load_state_dict(blob["opt"]); start_ep = blob["epoch"]; best = blob.get("best", -1.0)
+        bad = blob.get("bad", 0)
         guard = blob.get("guard", guard)
         log(f"[train] RESUMED ep{start_ep} best={best:.4f} "
             f"LRs={[round(g['lr'], 6) for g in opt.param_groups]}")
@@ -955,8 +956,7 @@ def train(args):
             f"vs bar {G0_BAR:.4f} ({f10 - G0_BAR:+.4f}) ({(time.time()-t0)/60:.1f}m)")
         rescued = bool(args.nll_guard) and \
             nll_guard_step(guard, run_n / max(nb, 1), opt, enc, decoder, ckb)   # patch 4: rescue
-        torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "opt": opt.state_dict(),
-                    "epoch": ep + 1, "best": best, "val_full": f10, "val_tail": t10, "guard": guard}, ck)
+        stop = False
         if f10 > best:
             best = f10; bad = 0
             torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(),
@@ -965,8 +965,13 @@ def train(args):
             bad, stop = early_stop_step(bad, False, rescued, args.patience)
             log(f"[train] no improvement over {best:.4f} ({bad}/{args.patience})"
                 + (" [guard rescue: patience counter reset, continuing]" if rescued else ""))
-            if stop:
-                log(f"[train] CONVERGED (val flat {args.patience} epochs)"); break
+        # save the resume ckpt AFTER the best-update so 'best' (and 'bad') survive a resume
+        # (ordering bug fix 2026-07-23: previously saved stale best -> RESUMED best=-1)
+        torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "opt": opt.state_dict(),
+                    "epoch": ep + 1, "best": best, "bad": bad, "val_full": f10, "val_tail": t10,
+                    "guard": guard}, ck)
+        if stop:
+            log(f"[train] CONVERGED (val flat {args.patience} epochs)"); break
     log(f"[train] done best val full@10={best:.4f}")
 
     # ---- test eval on the BEST checkpoint -> tower_t2.json ----
