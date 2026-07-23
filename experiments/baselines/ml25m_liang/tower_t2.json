@@ -1,0 +1,35 @@
+{
+  "model": "tower_t2 (pb2-class graded-native set encoder, v3)",
+  "token": "film",
+  "teacher": "warm_init",
+  "lambda_z": 0.5,
+  "anneal_epochs": 10,
+  "w_neg": 0.1,
+  "alpha_kd": 0.0,
+  "sign_prior": true,
+  "unfreeze_emb": false,
+  "ablate_binarized": false,
+  "trainable_params": 20730168,
+  "frozen_params": 200,
+  "n_items": 18359,
+  "ndcg@10": 0.28172746623047473,
+  "ndcg@10_se": 0.002323162442632228,
+  "tail_ndcg@10": 0.1875070752919834,
+  "ndcg@100": 0.38756954296867535,
+  "recall@20": 0.35141358505142944,
+  "recall@50": 0.49150571311078856,
+  "val_full@10_best": 0.2826601355224927,
+  "geometry": "TRAINABLE decoder+identities, RecVAE warm init, latent KD OFF",
+  "G0_strength": {
+    "tower_full@10": 0.28172746623047473,
+    "recvae_full@10": 0.3539526437978997,
+    "recvae_tail@10": 0.24967034749158068,
+    "diff": -0.07222517756742497,
+    "ci95_halfwidth": 0.006717858843620558,
+    "tie": false
+  },
+  "G0_identity": {
+    "empty_set_equals_frozen_bias": true,
+    "z_empty_norm": 0.0
+  }
+}

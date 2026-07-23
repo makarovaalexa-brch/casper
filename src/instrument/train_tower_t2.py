@@ -142,6 +142,7 @@ D = 512          # internal attention width (pb2)
 NLEV = 10        # half-star levels 0.5..5.0 -> 0..9 (matches set_mn_pb2 gamma/beta tables)
 LIKE_LEVEL = 8       # constant level (4.5 stars) used by the --ablate_binarized G3-canary arm
 LIKE_MIN_LEVEL = 7   # like boundary: level >= 7 <=> star >= 4.0 <=> rating > 3.5 (Liang binarization)
+NEG_FLOOR_OFFSET = 2.0  # dislike-term floor: log(1/n_items) - 2 (saturates ~e^2 below uniform)
 G0_BAR = 0.3540      # G0-strength bar on THIS ruler: frozen RecVAE reference full NDCG@10 (NOT the old
                      # 0.486 arena number -- different split, different fold-in protocol)
 
@@ -738,11 +739,24 @@ def nll_guard_step(guard, ep_nll, opt, enc, decoder, ckb):
                 reloaded = "no best ckpt yet (weights kept)"
             guard["streak"] = 0
             log(f"[guard] train-NLL divergence (> {1.10 * guard['min']:.4f} twice): "
-                f"ALL LRs halved -> {[round(g['lr'], 6) for g in opt.param_groups]}; {reloaded}")
+                f"ALL LRs halved -> {[round(g['lr'], 6) for g in opt.param_groups]}; {reloaded}; "
+                f"continuing at halved LRs")
             return True
     else:
         guard["streak"] = 0
     return False
+
+
+def early_stop_step(bad, improved, rescued, patience):
+    """Early-stop counter update (2026-07-23 fix: 'done after rescue' bug). A guard rescue RESETS the
+    no-improvement counter -- the reloaded-best model at halved LRs deserves fresh patience. Without
+    this, a rescue firing when bad == patience-1 still incremented bad past patience the SAME epoch
+    (the diverged epoch's val can't beat best by construction) and the loop exited right after the
+    rescue. Returns (bad, stop)."""
+    if improved or rescued:
+        return 0, False
+    bad += 1
+    return bad, bad >= patience
 
 
 def batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob=None, t_idx=None, t_prob=None):
@@ -764,10 +778,19 @@ def batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob=None, t_idx=None, 
     logits = z @ decoder.weight.T + decoder.bias
     logsm = F.log_softmax(logits, dim=-1)
     nll_vec = -((logsm * tgt).sum(-1) / tgt.sum(-1).clamp_min(1.0))               # (B,)
-    # repair 4: held dislikes as down-weighted explicit negatives (push their log-prob DOWN).
-    # mean logprob of negs is negative; ADDING it penalises high probability on disliked items.
-    neg_vec = (logsm * neg).sum(-1) / neg.sum(-1).clamp_min(1.0)                  # (B,) 0 where no negs
+    # repair 4 + BOUNDEDNESS FIX (2026-07-23, ep4-7 divergence root cause CONFIRMED): held dislikes as
+    # down-weighted explicit negatives, CLAMPED. The unclamped form w_neg * mean(log p(dislike)) is
+    # UNBOUNDED BELOW -- once the softmax sharpens (~ep3-4) the optimizer reduces total loss without
+    # limit by driving disliked logits to -inf, dragging the like-NLL up (the observed signature in all
+    # three warm runs). Clamp: max(log p, FLOOR), FLOOR = log(1/n_items) - NEG_FLOOR_OFFSET -- once a
+    # dislike is ranked ~e^2 below uniform it stops generating gradient.
+    floor = -(np.log(ni) + NEG_FLOOR_OFFSET)
+    neg_vec = (torch.clamp(logsm, min=floor) * neg).sum(-1) / neg.sum(-1).clamp_min(1.0)   # bounded
     rank_vec = nll_vec + args.w_neg * neg_vec
+    with torch.no_grad():                                    # diagnostic: fraction of negs at the floor
+        n_negs = float(neg.sum())
+        floor_frac = (float(((logsm <= floor) & neg.bool()).sum()) / n_negs) if n_negs > 0 \
+            else float("nan")
     if args.alpha_kd > 0:
         uidx = np.array([i for i, _ in exs], np.int64)
         rank_vec = (1.0 - args.alpha_kd) * rank_vec + args.alpha_kd * kd_ce(logsm, uidx, t_idx, t_prob)
@@ -789,8 +812,8 @@ def batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob=None, t_idx=None, 
             mse_vec = mse_vec.index_copy(0, sel, mse_sel)
             zmse_mean = float(mse_sel.mean())
         loss = (lam * mse_vec + (1.0 - lam) * rank_vec).mean()
-        return loss, float(nll_vec.mean()), zmse_mean
-    return rank_vec.mean(), float(nll_vec.mean()), zmse_mean
+        return loss, float(nll_vec.mean()), zmse_mean, floor_frac
+    return rank_vec.mean(), float(nll_vec.mean()), zmse_mean, floor_frac
 
 
 # =============================================================================================
@@ -843,26 +866,36 @@ def train(args):
     p0, p1 = parse_p_interview(args.p_interview)
     for ep in range(start_ep, args.epochs):
         enc.train(); rng = np.random.default_rng(ep)
-        # repair 1 anneal; --full_kd overrides with a CONSTANT weight (no anneal, large-subset ramp)
-        lam_glob = args.full_kd_w if args.full_kd else lam_anneal(ep, args.lambda_z, args.anneal_epochs)
+        # lam selection (2026-07-23 fix): warm mode without full_kd PINS lam=0 -- the rank loss runs at
+        # CONSTANT weight 1.0. (NOTE for the record: with teacher=None batch_loss already returned the
+        # pure rank loss at weight 1.0; the annealing lam_glob was computed and LOGGED but never entered
+        # the loss. The pin makes the log truthful and forecloses the creep path permanently.)
+        if args.teacher == "warm_init" and not args.full_kd:
+            lam_glob = 0.0
+        elif args.full_kd:
+            lam_glob = args.full_kd_w        # constant convex weight, no anneal (as built)
+        else:
+            lam_glob = lam_anneal(ep, args.lambda_z, args.anneal_epochs)   # repair 1 anneal (recvae mode)
         p_int = p_interview_at(ep, p0, p1, args.anneal_epochs)                 # curriculum schedule
         order = list(range(len(batches_all))); rng.shuffle(order)
-        t0 = time.time(); run_n = 0.0; run_z = 0.0; nb = 0
+        t0 = time.time(); run_n = 0.0; run_z = 0.0; nb = 0; run_f = 0.0; nf = 0
         for bi in order:
             bat = batches_all[bi]
             exs = [(i, make_input_target(users[i], rng, p_int=p_int)) for i in bat]
             exs = [(i, e) for i, e in exs if e is not None]
             if not exs:
                 continue
-            loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob, t_idx, t_prob)
+            loss, nll_v, mse_v, ff_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob, t_idx, t_prob)
             opt.zero_grad(); loss.backward()
             if args.clip > 0:                                # patch 2: global grad-norm clipping
                 torch.nn.utils.clip_grad_norm_(params, args.clip)
             opt.step()
             run_n += nll_v; run_z += (0.0 if np.isnan(mse_v) else mse_v); nb += 1
+            if not np.isnan(ff_v):
+                run_f += ff_v; nf += 1
             if nb % 100 == 0:
                 log(f"  ep{ep} b{nb}/{len(order)} NLL={run_n/nb:.4f} zMSE={run_z/nb:.4f} "
-                    f"{(time.time()-t0)/60:.1f}m")
+                    f"negfloor={run_f/max(nf,1):.2f} {(time.time()-t0)/60:.1f}m")
         if args.teacher == "recvae":                                           # repair 6: trunk drift
             assert torch.equal(decoder.weight, W0) and torch.equal(decoder.bias, b0), \
                 "FROZEN decoder drifted (||dWd|| != 0)"
@@ -872,11 +905,11 @@ def train(args):
                         usid, "validation", head_mask, binarize=args.ablate_binarized)
         f10, t10 = vm["ndcg@10"], vm["tail_ndcg@10"]
         log(f"[ep{ep+1}] NLL={run_n/max(nb,1):.4f} zMSE={run_z/max(nb,1):.4f} lam_glob={lam_glob:.3f} "
-            f"p_int={p_int:.2f} "
+            f"p_int={p_int:.2f} negfloor={run_f/max(nf,1):.2f} "
             f"VAL full@10={f10:.4f} tail@10={t10:.4f} ndcg@100={vm['ndcg@100']:.4f} "
             f"vs bar {G0_BAR:.4f} ({f10 - G0_BAR:+.4f}) ({(time.time()-t0)/60:.1f}m)")
-        if args.nll_guard:                                   # patch 4: train-NLL divergence rescue
-            nll_guard_step(guard, run_n / max(nb, 1), opt, enc, decoder, ckb)
+        rescued = bool(args.nll_guard) and \
+            nll_guard_step(guard, run_n / max(nb, 1), opt, enc, decoder, ckb)   # patch 4: rescue
         torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "opt": opt.state_dict(),
                     "epoch": ep + 1, "best": best, "val_full": f10, "val_tail": t10, "guard": guard}, ck)
         if f10 > best:
@@ -884,9 +917,10 @@ def train(args):
             torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(),
                         "epoch": ep + 1, "val_full": f10, "val_tail": t10}, ckb)
         else:
-            bad += 1
-            log(f"[train] no improvement over {best:.4f} ({bad}/{args.patience})")
-            if bad >= args.patience:
+            bad, stop = early_stop_step(bad, False, rescued, args.patience)
+            log(f"[train] no improvement over {best:.4f} ({bad}/{args.patience})"
+                + (" [guard rescue: patience counter reset, continuing]" if rescued else ""))
+            if stop:
                 log(f"[train] CONVERGED (val flat {args.patience} epochs)"); break
     log(f"[train] done best val full@10={best:.4f}")
 
@@ -965,8 +999,13 @@ def dry_run(args):
     rng = np.random.default_rng(0)
     exs = [(i, make_input_target(users[i], rng)) for i in range(min(200, len(users)))]
     exs = [(i, e) for i, e in exs if e is not None]
-    lam0 = args.full_kd_w if args.full_kd else lam_anneal(0, args.lambda_z, args.anneal_epochs)
-    loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam0)
+    if args.teacher == "warm_init" and not args.full_kd:
+        lam0 = 0.0                           # pinned (2026-07-23): pure rank loss in warm mode
+    elif args.full_kd:
+        lam0 = args.full_kd_w
+    else:
+        lam0 = lam_anneal(0, args.lambda_z, args.anneal_epochs)
+    loss, nll_v, mse_v, ff_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam0)
     opt.zero_grad(); loss.backward(); opt.step()
     log(f"[DRY] one fwd/bwd on {len(exs)} users OK: NLL={nll_v:.4f} zMSE={mse_v:.4f} lam_glob={lam0:.3f}")
     opt_ids = {id(p) for grp in opt.param_groups for p in grp["params"]}
@@ -1002,7 +1041,7 @@ def dry_run(args):
         exs = [(i, e) for i, e in exs if e is not None]
         if not exs:
             continue
-        loss, _, _ = batch_loss(enc, decoder, teacher, exs, ni, args, lam0)
+        loss, _, _, _ = batch_loss(enc, decoder, teacher, exs, ni, args, lam0)
         opt.zero_grad(); loss.backward(); opt.step()
     dt = time.time() - t0
     est_min = dt * (140768 / len(users)) / 60.0
@@ -1090,6 +1129,13 @@ def smoke(args):
     for g, l0 in zip(opt.param_groups, lr_before):
         g["lr"] = l0                                        # restore for the real smoke epochs
     print("[SMOKE] nll_guard PASS: fired on 2nd consecutive >10% rise, halved all LRs (restored)")
+    # 2026-07-23 fix unit-smoke: a rescue must RESET the patience counter (loop continues), not exit
+    bad, stop = early_stop_step(3, improved=False, rescued=True, patience=4)
+    assert (bad, stop) == (0, False), f"rescue at bad=3/patience=4 must continue, got {(bad, stop)}"
+    bad, stop = early_stop_step(3, improved=False, rescued=False, patience=4)
+    assert (bad, stop) == (4, True), "no-rescue path must still early-stop at patience"
+    assert early_stop_step(3, improved=True, rescued=False, patience=4) == (0, False)
+    print("[SMOKE] early_stop_step PASS: guard rescue resets patience (loop CONTINUES after rescue)")
     lens = np.array([len(u["items"]) for u in users])
     batches_all = make_batches(users, np.argsort(lens))
     # p_interview schedule parse smoke
@@ -1101,7 +1147,12 @@ def smoke(args):
     W0 = decoder.weight.detach().clone()
     for ep in range(3):
         enc.train(); r = np.random.default_rng(ep)
-        lam_glob = args.full_kd_w if args.full_kd else lam_anneal(ep, args.lambda_z, args.anneal_epochs)
+        if args.teacher == "warm_init" and not args.full_kd:
+            lam_glob = 0.0                   # pinned (mirrors train())
+        elif args.full_kd:
+            lam_glob = args.full_kd_w
+        else:
+            lam_glob = lam_anneal(ep, args.lambda_z, args.anneal_epochs)
         p_int = p_interview_at(ep, p0, p1, args.anneal_epochs)
         last = (float("nan"), float("nan"))
         for bat in batches_all:
@@ -1109,12 +1160,14 @@ def smoke(args):
             exs = [(i, e) for i, e in exs if e is not None]
             if not exs:
                 continue
-            loss, nll_v, mse_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob, t_idx, t_prob)
+            loss, nll_v, mse_v, ff_v = batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob, t_idx, t_prob)
             opt.zero_grad(); loss.backward()
             if args.clip > 0:
                 torch.nn.utils.clip_grad_norm_(params, args.clip)
             opt.step()
             last = (nll_v, mse_v)
+        if args.teacher == "warm_init" and not args.full_kd:
+            assert lam_glob == 0.0, "warm mode without full_kd must pin lam_glob=0"
         print(f"[SMOKE] ep{ep+1} last-batch NLL={last[0]:.4f} zMSE={last[1]:.4f} lam_glob={lam_glob:.3f}")
     if args.teacher == "recvae":
         assert torch.equal(decoder.weight, teacher_override.decoder.weight) and \
@@ -1139,6 +1192,51 @@ def smoke(args):
         assert torch.equal(sc1, decoder.bias), "intercept identity LOST after training (gate broken)"
         print("[SMOKE] post-training intercept PASS: enc(empty) STILL decodes bit-exactly to the "
               "(current) bias")
+
+    # ---- w_neg boundedness smoke (2026-07-23 divergence fix): LEARNABLE 2-cluster data WITH dislikes,
+    # trained several epochs with the clamped dislike term. Asserts: every loss finite, like-NLL DROPS
+    # (the unclamped form made like-NLL RISE once the softmax sharpened), floor fraction reported.
+    print("[SMOKE] w_neg boundedness: 2-cluster synthetic with dislikes, 8 epochs, clamped neg term")
+    cl_users = []
+    for i in range(60):
+        lik = np.arange(0, 20) if i % 2 == 0 else np.arange(100, 120)
+        dis = np.arange(100, 120) if i % 2 == 0 else np.arange(0, 20)
+        levels = np.concatenate([np.full(20, 9), np.full(20, 0)]).astype(np.int64)
+        cl_users.append({"items": np.concatenate([lik, dis]).astype(np.int64), "levels": levels,
+                         "vals": level_to_sv(levels), "liked": lik.astype(np.int64),
+                         "disliked": dis.astype(np.int64)})
+    enc2 = SetEncoder(ni, d=64, d_out=16, d_emb=16, m=4, nlayers=1)
+    apply_sign_prior(enc2)
+    dec2 = nn.Linear(16, ni)
+    opt2 = torch.optim.AdamW([p for p in list(enc2.parameters()) + list(dec2.parameters())
+                              if p.requires_grad], lr=1e-3)
+    ep_nlls = []; last_ff = float("nan")
+    for ep in range(8):
+        r2 = np.random.default_rng(100 + ep); tot_n = 0.0; nb2 = 0
+        for st in range(0, len(cl_users), 30):
+            exs2 = [(j, make_input_target(cl_users[j], r2)) for j in range(st, min(st + 30, len(cl_users)))]
+            exs2 = [(j, e) for j, e in exs2 if e is not None]
+            if not exs2:
+                continue
+            l2, n2, _, f2 = batch_loss(enc2, dec2, None, exs2, ni, args, 0.0)
+            assert torch.isfinite(l2), f"loss not finite at ep{ep} (boundedness broken)"
+            opt2.zero_grad(); l2.backward(); opt2.step()
+            tot_n += n2; nb2 += 1; last_ff = f2
+        ep_nlls.append(tot_n / max(nb2, 1))
+    print(f"[SMOKE] w_neg run: like-NLL {ep_nlls[0]:.4f} -> {ep_nlls[-1]:.4f}; "
+          f"final neg-at-floor frac={last_ff:.2f}")
+    assert ep_nlls[-1] < ep_nlls[0], \
+        f"like-NLL rose under w_neg ({ep_nlls[0]:.4f}->{ep_nlls[-1]:.4f}): divergence NOT fixed"
+    print("[SMOKE] w_neg boundedness PASS: all losses finite, like-NLL decreased with dislikes active")
+    # direct saturation check: crush dislike logits far below the floor -> floor_frac must hit 1.0
+    with torch.no_grad():
+        dec2.bias[np.arange(100, 120)] -= 50.0               # dislikes now ~e^-50 below uniform
+    r2 = np.random.default_rng(999)
+    exs2 = [(j, make_input_target(cl_users[j], r2)) for j in range(0, 60, 2)]   # cluster A (dislikes 100+)
+    exs2 = [(j, e) for j, e in exs2 if e is not None]
+    _, _, _, ff_sat = batch_loss(enc2, dec2, None, exs2, ni, args, 0.0)
+    assert ff_sat == 1.0, f"clamp did not saturate on crushed dislikes (floor_frac={ff_sat})"
+    print("[SMOKE] w_neg saturation PASS: crushed dislikes report floor_frac=1.0 (zero further gradient)")
 
     # eval path smoke: synthetic graded fold-in matrix + head_mask through metrics.evaluate
     tr = sparse.csr_matrix((np.ones(600), (rng.randint(0, 60, 600), rng.randint(0, ni, 600))),
