@@ -34,7 +34,13 @@ recommender cores); their POLICIES fight in B.
       graded ≠> binarized on val, α_kd comes down. Prereq: `edlae.py --export_B` on the canonical split.
       ~74 min/epoch — expect 2–4 nights, resume-capable.
 - [ ] **Tower pick at G0'**: T2' vs bar (RecVAE 0.3540); within-noise of the bar = good enough, move on.
-- [ ] **T2' PHASE PLAN (author-designed, Jul 23 — target: ~0.35 full AND all-baseline cold sweep):**
+- [ ] **T2' v4 = i25-REDUX (Jul 23, supersedes the phase plan below):** archive lookup found the
+      pre-cleanup near-native recipe (i25_fold, native−0.014): **z = native_z(frozen RecVAE encoder on
+      revealed likes) + zero-init sum-pool residual over graded tokens** — our from-scratch attention
+      encoder's 0.29 plateau = the imitation gap it avoids. Builder implementing --arch i25 (frozen-
+      decoder primary arm = G0-identity + full≥native at init; trainable-slow fallback if G3 fails).
+      Phase-1 verdict recorded: curriculum refuted (pure-full diet stayed flat); LR vetoed by author.
+- [ ] **T2' PHASE PLAN (author-designed, Jul 23 — historical; superseded by v4 above):**
       Phase 1 (RUNNING): resume-from-best (0.2913), p_interview=0.0 (pure full diet), all else frozen —
       3 epochs decide curriculum-vs-capacity (cold-val watches forgetting live). Phase 2 (only if flat):
       warm_lr_scale 1.0, single-variable. Phase 3 (always, = final recipe): reverse curriculum — anneal
