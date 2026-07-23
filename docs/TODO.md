@@ -39,6 +39,10 @@ recommender cores); their POLICIES fight in B.
       3 epochs decide curriculum-vs-capacity (cold-val watches forgetting live). Phase 2 (only if flat):
       warm_lr_scale 1.0, single-variable. Phase 3 (always, = final recipe): reverse curriculum — anneal
       interviews back 0→0.5 as finetune (restores vision-guard ending share; cold must return ≥ today's).
+      **Fork ckpt preserved:** `.cache/instrument/t2warm_v3_FORK_ep6_full02913.pt` (pre-Phase-1 best,
+      full 0.2913 / tail 0.2029 / coldk2 0.1951). **AUTHOR REAFFIRMED (Jul 23): certified tower = ONE
+      CLEAN RUN of the winning recipe end-to-end (curriculum as a SCHEDULE, no mid-run switches) — the
+      phase experiments only DISCOVER the recipe.**
 - [ ] **AUTHOR CONSULT REQUIRED (Jul 23): no recipe/LR switch at ep10 (or any point) without the author.**
       Present curve + projection + options; default = keep training. Author prefers avoiding a full
       retrain — mid-run switches need strong justification; the one-clean-run question is also re-decided
