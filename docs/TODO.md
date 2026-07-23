@@ -34,6 +34,11 @@ recommender cores); their POLICIES fight in B.
       graded ≠> binarized on val, α_kd comes down. Prereq: `edlae.py --export_B` on the canonical split.
       ~74 min/epoch — expect 2–4 nights, resume-capable.
 - [ ] **Tower pick at G0'**: T2' vs bar (RecVAE 0.3540); within-noise of the bar = good enough, move on.
+- [ ] **AUTHOR CONSULT REQUIRED (Jul 23): no recipe/LR switch at ep10 (or any point) without the author.**
+      Present curve + projection + options; default = keep training. Author prefers avoiding a full
+      retrain — mid-run switches need strong justification; the one-clean-run question is also re-decided
+      WITH the author once the recipe settles (current run's provenance: committed code, one resume for
+      logging — to be weighed then).
 - [ ] **VISION GUARD for ANY T2' recipe change (author, Jul 22):** gates/requirements outrank recipes.
       Every launch config must keep: graded FiLM tokens (pb2's own proven recipe was graded); the dislike
       target-side gradient (down-weight allowed, delete never); interview-regime training ending ≥50%
