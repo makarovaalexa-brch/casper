@@ -143,6 +143,7 @@ NLEV = 10        # half-star levels 0.5..5.0 -> 0..9 (matches set_mn_pb2 gamma/b
 LIKE_LEVEL = 8       # constant level (4.5 stars) used by the --ablate_binarized G3-canary arm
 LIKE_MIN_LEVEL = 7   # like boundary: level >= 7 <=> star >= 4.0 <=> rating > 3.5 (Liang binarization)
 NEG_FLOOR_OFFSET = 2.0  # dislike-term floor: log(1/n_items) - 2 (saturates ~e^2 below uniform)
+COLD_SEED = 4242        # fixed RNG seed for the cold-val k-subsets (sampled ONCE, stable across epochs)
 G0_BAR = 0.3540      # G0-strength bar on THIS ruler: frozen RecVAE reference full NDCG@10 (NOT the old
                      # 0.486 arena number -- different split, different fold-in protocol)
 
@@ -457,7 +458,8 @@ def make_input_target(u, rng, drop_max=0.5, p_int=P_INTERVIEW):
 def pack_tokens(rows, binarize=False):
     """rows: list of (ids, levels, vals) -> padded torch tensors (ids, vals, pad, lvs).
     binarize=True is the G3-canary arm: every input level collapsed to LIKE_LEVEL (presence-only)."""
-    B = len(rows); L = max(len(r[0]) for r in rows)
+    B = len(rows); L = max(1, max(len(r[0]) for r in rows))   # floor 1: an all-pad row is the canonical
+    # empty-set path (attention NaN -> nan_to_num, gate g(0)=0 -> z0); L=0 would crash MultiheadAttention
     ids = np.zeros((B, L), np.int64); vals = np.zeros((B, L), np.float32)
     pad = np.ones((B, L), bool); lvs = np.zeros((B, L), np.int64)
     for r, (i, lv, sv) in enumerate(rows):
@@ -473,16 +475,35 @@ def pack_tokens(rows, binarize=False):
 # =============================================================================================
 # EVAL  (canonical metrics.evaluate path; predict_fn wraps the encoder fold of graded tokens)
 # =============================================================================================
-def make_graded_predict_fn(enc, Wd, bd, L_csr, binarize=False):
+def truncate_graded(L, k, seed):
+    """COLD-VAL fold-in: per user keep a FIXED random k-subset of their graded tokens (RandomState(seed),
+    sampled once at build -- stable across epochs). Users with <=k tokens keep all. Returns a new CSR
+    aligned row-for-row with L."""
+    from scipy import sparse
+    rng = np.random.RandomState(seed)
+    rows, cols, data = [], [], []
+    for r in range(L.shape[0]):
+        s, e = L.indptr[r], L.indptr[r + 1]
+        idx = np.arange(s, e)
+        if len(idx) > k:
+            idx = rng.choice(idx, size=k, replace=False)
+        rows.extend([r] * len(idx)); cols.extend(L.indices[idx]); data.extend(L.data[idx])
+    return sparse.csr_matrix((np.asarray(data, np.float32), (rows, cols)),
+                             shape=L.shape, dtype=np.float32)
+
+
+def make_graded_predict_fn(enc, Wd, bd, L_csr, binarize=False, check_nnz=True):
     """Factory: returns a predict_fn(X_csr)->dense scores for metrics.evaluate. The graded levels come
     from L_csr (aligned to the fold-in matrix); metrics.evaluate iterates rows sequentially so a cursor
-    tracks the row offset. An nnz assert catches any misalignment. FRESH factory call per evaluate()."""
+    tracks the row offset. An nnz assert catches any misalignment (check_nnz=False for COLD eval, where
+    L_csr is deliberately a truncated subset of the full fold-in). FRESH factory call per evaluate()."""
     state = {"pos": 0}
 
     def predict(X_csr):
         pos = state["pos"]; rows = X_csr.shape[0]
         Ls = L_csr[pos:pos + rows]; state["pos"] = pos + rows
-        assert Ls.shape[0] == rows and Ls.nnz == X_csr.nnz, "graded/fold-in misalignment"
+        assert Ls.shape[0] == rows, "graded/fold-in row misalignment"
+        assert (not check_nnz) or Ls.nnz == X_csr.nnz, "graded/fold-in misalignment"
         enc.eval(); out = np.zeros((rows, enc.ni), dtype=np.float32)
         with torch.no_grad():
             b = 0
@@ -513,6 +534,14 @@ def eval_split(enc, Wd, bd, raw, unique_uid, show2id, unique_sid_list, split, he
         d_tr, d_te = M.load_test(ni, PROC)
     predict = make_graded_predict_fn(enc, Wd, bd, L, binarize=binarize)
     return M.evaluate(predict, d_tr, d_te, batch_size=batch_size, head_mask=head_mask)
+
+
+def cold_full10(enc, Wd, bd, L_k, d_tr, d_te, head_mask, binarize=False):
+    """COLD val full@10: the encoder folds ONLY the fixed k-subset tokens, but the candidate mask and
+    targets stay the FULL canonical ones (metrics.evaluate masks the full tr fold-in), so cold numbers
+    are directly comparable to the full-fold val@10."""
+    pred = make_graded_predict_fn(enc, Wd, bd, L_k, binarize=binarize, check_nnz=False)
+    return M.evaluate(pred, d_tr, d_te, batch_size=500, head_mask=head_mask)["ndcg@10"]
 
 
 def compute_head_mask(train, n_items):
@@ -863,6 +892,16 @@ def train(args):
 
     W0 = decoder.weight.detach().clone(); b0 = decoder.bias.detach().clone()   # repair 6 drift ref
     E0 = enc.item_emb.weight.detach().clone()
+    # prebuilt val artifacts (ONCE): full graded fold-in + the FIXED cold k-subsets (COLD_SEED --
+    # same subsets every epoch, so the cold curve is comparable across epochs)
+    L_val, _ = build_graded_eval_matrix(raw, unique_uid, show2id, usid, "validation")
+    va_tr, va_te = M.load_val(ni, PROC)
+    Lk2 = Lk8 = None
+    if not args.no_cold_val:
+        Lk2 = truncate_graded(L_val, 2, COLD_SEED)
+        Lk8 = truncate_graded(L_val, 8, COLD_SEED + 1)
+        log(f"[train] cold-val subsets built once: k=2 nnz={Lk2.nnz}, k=8 nnz={Lk8.nnz} (seed {COLD_SEED})")
+
     p0, p1 = parse_p_interview(args.p_interview)
     for ep in range(start_ep, args.epochs):
         enc.train(); rng = np.random.default_rng(ep)
@@ -901,12 +940,18 @@ def train(args):
                 "FROZEN decoder drifted (||dWd|| != 0)"
             assert args.unfreeze_emb or torch.equal(enc.item_emb.weight, E0), \
                 "FROZEN item identities drifted"
-        vm = eval_split(enc, decoder.weight.detach(), decoder.bias.detach(), raw, unique_uid, show2id,
-                        usid, "validation", head_mask, binarize=args.ablate_binarized)
+        Wd_, bd_ = decoder.weight.detach(), decoder.bias.detach()
+        predict = make_graded_predict_fn(enc, Wd_, bd_, L_val, binarize=args.ablate_binarized)
+        vm = M.evaluate(predict, va_tr, va_te, batch_size=500, head_mask=head_mask)
         f10, t10 = vm["ndcg@10"], vm["tail_ndcg@10"]
+        cold_str = ""
+        if not args.no_cold_val:                             # cold val: k-subset fold, FULL candidate mask
+            c2 = cold_full10(enc, Wd_, bd_, Lk2, va_tr, va_te, head_mask, args.ablate_binarized)
+            c8 = cold_full10(enc, Wd_, bd_, Lk8, va_tr, va_te, head_mask, args.ablate_binarized)
+            cold_str = f"coldk2={c2:.4f} coldk8={c8:.4f} "
         log(f"[ep{ep+1}] NLL={run_n/max(nb,1):.4f} zMSE={run_z/max(nb,1):.4f} lam_glob={lam_glob:.3f} "
             f"p_int={p_int:.2f} negfloor={run_f/max(nf,1):.2f} "
-            f"VAL full@10={f10:.4f} tail@10={t10:.4f} ndcg@100={vm['ndcg@100']:.4f} "
+            f"VAL full@10={f10:.4f} tail@10={t10:.4f} {cold_str}ndcg@100={vm['ndcg@100']:.4f} "
             f"vs bar {G0_BAR:.4f} ({f10 - G0_BAR:+.4f}) ({(time.time()-t0)/60:.1f}m)")
         rescued = bool(args.nll_guard) and \
             nll_guard_step(guard, run_n / max(nb, 1), opt, enc, decoder, ckb)   # patch 4: rescue
@@ -970,6 +1015,41 @@ def train(args):
             f"identity: empty==bias {out['G0_identity']['empty_set_equals_frozen_bias']}")
     json.dump(out, open(os.path.join(OUTDIR, "tower_t2.json"), "w"), indent=2)
     log(f"[train] TEST full@10={tm['ndcg@10']:.4f} tail@10={tm['tail_ndcg@10']:.4f} -> tower_t2.json")
+
+
+# =============================================================================================
+# OFFLINE COLD EVAL  (--eval_cold <ckpt>: READ-ONLY -- loads a checkpoint, prints one line, exits;
+#                     touches NO training state / checkpoint files; safe to run against a live run)
+# =============================================================================================
+def eval_cold_mode(args):
+    ckpt = args.eval_cold
+    if not os.path.exists(ckpt):
+        raise SystemExit(f"[eval_cold] checkpoint not found: {ckpt}")
+    meta = M.load_meta(PROC); ni = meta["n_items"]
+    train_mat = M.load_train(ni, PROC)
+    head_mask, cnt = compute_head_mask(train_mat, ni)
+    unique_uid, tr_set, vd_set, te_set, n_train, raw, show2id, usid = reproduce_partition()
+    L_val, _ = build_graded_eval_matrix(raw, unique_uid, show2id, usid, "validation")
+    va_tr, va_te = M.load_val(ni, PROC)
+    Lk2 = truncate_graded(L_val, 2, COLD_SEED)
+    Lk8 = truncate_graded(L_val, 8, COLD_SEED + 1)
+    from scipy import sparse
+    L0 = sparse.csr_matrix(L_val.shape, dtype=np.float32)            # EMPTY fold-in (intercept eval)
+    enc, decoder, teacher, params, groups = build_model(args, ni, cnt)
+    blob = torch.load(ckpt, map_location="cpu")                      # READ-ONLY
+    enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"])
+    enc.eval()
+    Wd_, bd_ = decoder.weight.detach(), decoder.bias.detach()
+    full = M.evaluate(make_graded_predict_fn(enc, Wd_, bd_, L_val), va_tr, va_te,
+                      batch_size=500, head_mask=head_mask)
+    c2 = cold_full10(enc, Wd_, bd_, Lk2, va_tr, va_te, head_mask)
+    c8 = cold_full10(enc, Wd_, bd_, Lk8, va_tr, va_te, head_mask)
+    c0 = cold_full10(enc, Wd_, bd_, L0, va_tr, va_te, head_mask)
+    znorm, rho = report_empty_set(enc, Wd_, bd_, cnt, "eval_cold")
+    log(f"[eval_cold] ckpt={os.path.basename(ckpt)} ep={blob.get('epoch', '?')} "
+        f"VAL full@10={full['ndcg@10']:.4f} tail@10={full['tail_ndcg@10']:.4f} "
+        f"coldk8={c8:.4f} coldk2={c2:.4f} cold0={c0:.4f} |z_empty|={znorm:.4f} "
+        f"vs bar {G0_BAR:.4f} ({full['ndcg@10'] - G0_BAR:+.4f})")
 
 
 # =============================================================================================
@@ -1251,6 +1331,33 @@ def smoke(args):
     res = M.evaluate(predict, bin_tr, te, batch_size=20, head_mask=hm)
     print(f"[SMOKE] eval path OK  full@10={res['ndcg@10']:.4f} tail@10={res['tail_ndcg@10']:.4f} "
           f"ndcg@100={res['ndcg@100']:.4f}")
+
+    # ---- cold-val smoke (2026-07-23): fixed-subset truncation + cold eval path + eval_cold contract ----
+    t2a = truncate_graded(tr, 2, COLD_SEED); t2b = truncate_graded(tr, 2, COLD_SEED)
+    assert (t2a != t2b).nnz == 0, "truncation not deterministic under the fixed seed"
+    for r in range(tr.shape[0]):
+        want = min(2, tr.indptr[r + 1] - tr.indptr[r])
+        assert t2a.indptr[r + 1] - t2a.indptr[r] == want, f"row {r} truncated wrong"
+    t8 = truncate_graded(tr, 8, COLD_SEED + 1)
+    c2s = cold_full10(enc, decoder.weight.detach(), decoder.bias.detach(), t2a, bin_tr, te, hm)
+    c8s = cold_full10(enc, decoder.weight.detach(), decoder.bias.detach(), t8, bin_tr, te, hm)
+    L0s = sparse.csr_matrix(tr.shape, dtype=np.float32)
+    c0s = cold_full10(enc, decoder.weight.detach(), decoder.bias.detach(), L0s, bin_tr, te, hm)
+    assert np.isfinite(c2s) and np.isfinite(c8s) and np.isfinite(c0s)
+    print(f"[SMOKE] cold-val path PASS: deterministic k-subsets; coldk2={c2s:.4f} coldk8={c8s:.4f} "
+          f"cold0(empty)={c0s:.4f}")
+    # eval_cold ckpt contract: save read-only-style blob, reload into FRESH modules, scores identical
+    tmpck = os.path.join(CKPT_DIR, "_smoke_evalcold.pt")
+    torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "epoch": 3}, tmpck)
+    enc3 = SetEncoder(ni, d=D, d_out=enc.d_out, d_emb=enc.item_emb.weight.shape[1],
+                      token_mode=args.token, norm_feat=enc.norm_feat)
+    dec3 = nn.Linear(enc.d_out, ni)
+    blob3 = torch.load(tmpck, map_location="cpu")
+    enc3.load_state_dict(blob3["enc"]); dec3.load_state_dict(blob3["decoder"]); enc3.eval()
+    os.remove(tmpck)
+    c2r = cold_full10(enc3, dec3.weight.detach(), dec3.bias.detach(), t2a, bin_tr, te, hm)
+    assert abs(c2r - c2s) < 1e-9, f"eval_cold reload mismatch: {c2r} vs {c2s}"
+    print("[SMOKE] eval_cold contract PASS: fresh-module reload reproduces scores bit-for-bit")
     print("[SMOKE] COMPLETE (paths: graded tokens, interview-regime subsets, frozen-geometry latent "
           "distill, EDLAE KD hook, canonical eval)")
 
@@ -1286,6 +1393,11 @@ def main():
     ap.add_argument("--p_interview", default="0.5",
                     help="interview-regime example fraction; '0.5' constant or 'a:b' linear a->b "
                          "over anneal_epochs (curriculum)")
+    # cold-val additions (2026-07-23)
+    ap.add_argument("--no_cold_val", action="store_true",
+                    help="skip the per-epoch cold (k=2/k=8 fixed-subset) val evals")
+    ap.add_argument("--eval_cold", default=None, metavar="CKPT",
+                    help="OFFLINE READ-ONLY: load CKPT, print full + coldk2/k8 + empty-set val line, exit")
     ap.add_argument("--max_users", type=int, default=0, help="cap MATERIALISED users (dev only; 0=all)")
     ap.add_argument("--dry_users", type=int, default=2000, help="users to time for the epoch estimate")
     # teacher-mode revision (2026-07-22)
@@ -1312,14 +1424,16 @@ def main():
     ap.add_argument("--kd_topk", type=int, default=1000)
     ap.add_argument("--kd_temp", type=float, default=2.0)
     args = ap.parse_args()
-    if args.smoke:
+    if args.eval_cold:
+        eval_cold_mode(args)
+    elif args.smoke:
         smoke(args)
     elif args.dry_run:
         dry_run(args)
     elif args.train:
         train(args)
     else:
-        ap.error("one of --smoke / --dry_run / --train required")
+        ap.error("one of --smoke / --dry_run / --train / --eval_cold required")
 
 
 if __name__ == "__main__":

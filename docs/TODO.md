@@ -52,6 +52,10 @@ recommender cores); their POLICIES fight in B.
 - [ ] **Belief-layer + battery code** vs `docs/design/DESIGN_SHEET_STEP2_BELIEF.md` (v2.2: design (ii);
       concepts = Arm A latent mean shift, three-arm G5 decision; refusal = consumption observation with
       fitted α_refuse — author correction Jul 22). Then its own adversarial review → commit → run.
+- [ ] **G2 static question-selection controls** (author-recalled Jul 23): random-k (floor) →
+      popularity-order → **HELF (harmonic mean of rating-entropy and log-frequency, Rashid et al. —
+      the canonical static interview selector; both stats from the train matrix, ~free)** → Σ-greedy
+      (G8 arm). Learned/adaptive policies = Chapter B, fought against these.
 - [ ] **Battery run — MUST-gate tier first** (the vision set): G0, G2, G3, G5, G6 + C2. Supporting tier:
       G1c calibration detail, G4, G8-selection, G9. Continuous-token demo (random abstract embedding folds
       like a concept direction) alongside G5.
