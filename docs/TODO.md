@@ -34,6 +34,11 @@ recommender cores); their POLICIES fight in B.
       graded ≠> binarized on val, α_kd comes down. Prereq: `edlae.py --export_B` on the canonical split.
       ~74 min/epoch — expect 2–4 nights, resume-capable.
 - [ ] **Tower pick at G0'**: T2' vs bar (RecVAE 0.3540); within-noise of the bar = good enough, move on.
+- [ ] **T2' PHASE PLAN (author-designed, Jul 23 — target: ~0.35 full AND all-baseline cold sweep):**
+      Phase 1 (RUNNING): resume-from-best (0.2913), p_interview=0.0 (pure full diet), all else frozen —
+      3 epochs decide curriculum-vs-capacity (cold-val watches forgetting live). Phase 2 (only if flat):
+      warm_lr_scale 1.0, single-variable. Phase 3 (always, = final recipe): reverse curriculum — anneal
+      interviews back 0→0.5 as finetune (restores vision-guard ending share; cold must return ≥ today's).
 - [ ] **AUTHOR CONSULT REQUIRED (Jul 23): no recipe/LR switch at ep10 (or any point) without the author.**
       Present curve + projection + options; default = keep training. Author prefers avoiding a full
       retrain — mid-run switches need strong justification; the one-clean-run question is also re-decided
