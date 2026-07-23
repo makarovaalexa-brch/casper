@@ -1,0 +1,117 @@
+{
+  "_protocol": {
+    "cohort": "validation",
+    "seed_k2": 4242,
+    "seed_k8": 4243,
+    "dislikes": "DROPPED (vacuous: val fold-in is likes-only by construction)",
+    "masking": "full tr fold-in masked (tower cold-val parity)"
+  },
+  "pop": {
+    "full": {
+      "ndcg@10": 0.13258885812726418,
+      "tail_ndcg@10": 0.022225064570067926,
+      "empty_rows": 0
+    },
+    "k8": {
+      "ndcg@10": 0.13258885812726418,
+      "tail_ndcg@10": 0.022225064570067926,
+      "empty_rows": 0
+    },
+    "k2": {
+      "ndcg@10": 0.13258885812726418,
+      "tail_ndcg@10": 0.022225064570067926,
+      "empty_rows": 0
+    },
+    "seconds": 71.4
+  },
+  "itemknn": {
+    "full": {
+      "ndcg@10": 0.23673789004356613,
+      "tail_ndcg@10": 0.12796078903535646,
+      "empty_rows": 0
+    },
+    "k8": {
+      "ndcg@10": 0.21568558909101576,
+      "tail_ndcg@10": 0.11230356987322822,
+      "empty_rows": 0
+    },
+    "k2": {
+      "ndcg@10": 0.15987653152151046,
+      "tail_ndcg@10": 0.08524770497374663,
+      "empty_rows": 0
+    },
+    "seconds": 90.8
+  },
+  "ease": {
+    "full": {
+      "ndcg@10": 0.3445924756355419,
+      "tail_ndcg@10": 0.24551955982588802,
+      "empty_rows": 0
+    },
+    "k8": {
+      "ndcg@10": 0.19598581564546674,
+      "tail_ndcg@10": 0.1308759429887461,
+      "empty_rows": 0
+    },
+    "k2": {
+      "ndcg@10": 0.12304683228630092,
+      "tail_ndcg@10": 0.07856419863082081,
+      "empty_rows": 0
+    },
+    "seconds": 394.2
+  },
+  "ials": {
+    "full": {
+      "ndcg@10": 0.24239389243939632,
+      "tail_ndcg@10": 0.1825410124941236,
+      "empty_rows": 0
+    },
+    "k8": {
+      "ndcg@10": 0.18820587858430898,
+      "tail_ndcg@10": 0.127376949013688,
+      "empty_rows": 0
+    },
+    "k2": {
+      "ndcg@10": 0.11008931608733971,
+      "tail_ndcg@10": 0.0729683253245755,
+      "empty_rows": 0
+    },
+    "seconds": 411.8
+  },
+  "belief_mf": {
+    "full": {
+      "ndcg@10": 0.19882500279379553,
+      "tail_ndcg@10": 0.11892813329022367,
+      "empty_rows": 0
+    },
+    "k8": {
+      "ndcg@10": 0.15617769950232596,
+      "tail_ndcg@10": 0.08337981958306255,
+      "empty_rows": 0
+    },
+    "k2": {
+      "ndcg@10": 0.13879894866442086,
+      "tail_ndcg@10": 0.05167104840280924,
+      "empty_rows": 0
+    },
+    "seconds": 405.1
+  },
+  "golbandi_node": {
+    "full": {
+      "ndcg@10": 0.30079798684336556,
+      "tail_ndcg@10": 0.1921290851416149,
+      "empty_rows": 0
+    },
+    "k8": {
+      "ndcg@10": 0.22988978457279072,
+      "tail_ndcg@10": 0.12413620092372069,
+      "empty_rows": 0
+    },
+    "k2": {
+      "ndcg@10": 0.17395906134678005,
+      "tail_ndcg@10": 0.08320011670836559,
+      "empty_rows": 0
+    },
+    "seconds": 465.3
+  }
+}
