@@ -1,0 +1,27 @@
+{
+  "_protocol": {
+    "cohort": "validation",
+    "seed_k2": 4242,
+    "seed_k8": 4243,
+    "dislikes": "DROPPED (vacuous: val fold-in is likes-only by construction)",
+    "masking": "full tr fold-in masked (tower cold-val parity)"
+  },
+  "pop": {
+    "full": {
+      "ndcg@10": 0.13258885812726418,
+      "tail_ndcg@10": 0.022225064570067926,
+      "empty_rows": 0
+    },
+    "k8": {
+      "ndcg@10": 0.13258885812726418,
+      "tail_ndcg@10": 0.022225064570067926,
+      "empty_rows": 0
+    },
+    "k2": {
+      "ndcg@10": 0.13258885812726418,
+      "tail_ndcg@10": 0.022225064570067926,
+      "empty_rows": 0
+    },
+    "seconds": 71.4
+  }
+}
