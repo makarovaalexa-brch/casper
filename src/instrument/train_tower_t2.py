@@ -181,6 +181,8 @@ NEG_FLOOR_OFFSET = 2.0  # dislike-term floor: log(1/n_items) - 2 (saturates ~e^2
 COLD_SEED = 4242        # fixed RNG seed for the cold-val k-subsets (sampled ONCE, stable across epochs)
 G0_BAR = 0.3540      # G0-strength bar on THIS ruler: frozen RecVAE reference full NDCG@10 (NOT the old
                      # 0.486 arena number -- different split, different fold-in protocol)
+G0_TIE_CI = 0.0070   # paired-bootstrap CI half-width on the 10k cohort (measured at the G0 test eval);
+                     # the --select_cold full-profile tie band: full@10 >= native_ref - G0_TIE_CI
 
 # `load_answerer` is RETIRED (Jul-22 audit). Guard: this name must never be defined or called here.
 assert "load_answerer" not in globals(), "load_answerer is retired and must not appear in the tower"
@@ -1041,11 +1043,14 @@ def train(args):
     # S2 NATIVE-SEEDED BEST (v4 review): evaluate the INIT model (delta==0) on val and seed `best` +
     # the best checkpoint with it BEFORE epoch 1 -- a below-native G0 outcome becomes impossible
     # (early stop can never keep a checkpoint worse than the anchored init).
+    native_ref_f10 = G0_BAR          # fallback reference for the cold-primary tie constraint
+    best_cold = -1.0                 # cold-composite incumbent for --select_cold
     if start_ep == 0 and best < 0:
         vm0 = M.evaluate(make_graded_predict_fn(enc, decoder.weight.detach(), decoder.bias.detach(),
                                                 L_val, binarize=args.ablate_binarized),
                          va_tr, va_te, batch_size=500, head_mask=head_mask)
         best = vm0["ndcg@10"]
+        native_ref_f10 = best        # the anchored-init full@10 IS the tie reference on this val cohort
         torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(),
                     "epoch": 0, "val_full": best, "val_tail": vm0["tail_ndcg@10"]}, ckb)
         log(f"[init] VAL full@10={best:.4f} tail@10={vm0['tail_ndcg@10']:.4f} "
@@ -1111,7 +1116,27 @@ def train(args):
         rescued = bool(args.nll_guard) and \
             nll_guard_step(guard, run_n / max(nb, 1), opt, enc, decoder, ckb)   # patch 4: rescue
         stop = False
-        if f10 > best:
+        # SELECTION RULE (2026-07-24, author-approved): cold-primary SUBJECT TO full-profile tie.
+        # An epoch is best if its COLD composite (mean of coldk2,coldk8) beats the incumbent AND its
+        # full@10 stays within G0_TIE_CI of the seeded native reference. Falls back to full@10-primary
+        # when cold-val is off. Patience runs on this selection criterion.
+        cold_comp = (c2 + c8) / 2.0 if not args.no_cold_val else None
+        if args.select_cold and cold_comp is not None:
+            full_ok = f10 >= native_ref_f10 - G0_TIE_CI
+            improved = full_ok and cold_comp > best_cold
+            if improved:
+                best_cold = cold_comp; best = max(best, f10); bad = 0
+                torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(),
+                            "epoch": ep + 1, "val_full": f10, "val_tail": t10,
+                            "coldk2": c2, "coldk8": c8}, ckb)
+                log(f"[train] new best (cold-primary): cold={cold_comp:.4f} full={f10:.4f} "
+                    f"(full_ok={full_ok})")
+            else:
+                bad, stop = early_stop_step(bad, False, rescued, args.patience)
+                log(f"[train] no cold improvement over {best_cold:.4f} (full_ok={full_ok}) "
+                    f"({bad}/{args.patience})"
+                    + (" [guard rescue: patience counter reset, continuing]" if rescued else ""))
+        elif f10 > best:
             best = f10; bad = 0
             torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(),
                         "epoch": ep + 1, "val_full": f10, "val_tail": t10}, ckb)
@@ -1645,6 +1670,10 @@ def main():
     # cold-val additions (2026-07-23)
     ap.add_argument("--no_cold_val", action="store_true",
                     help="skip the per-epoch cold (k=2/k=8 fixed-subset) val evals")
+    ap.add_argument("--select_cold", action="store_true",
+                    help="AUTHOR SELECTION RULE (2026-07-24): best checkpoint = max cold composite "
+                         "(mean coldk2,coldk8) SUBJECT TO full@10 >= native-init - G0_TIE_CI; patience "
+                         "runs on this criterion. Requires cold_val. Default off (full@10-primary).")
     ap.add_argument("--eval_cold", default=None, metavar="CKPT",
                     help="OFFLINE READ-ONLY: load CKPT, print full + coldk2/k8 + empty-set val line, exit")
     ap.add_argument("--max_users", type=int, default=0, help="cap MATERIALISED users (dev only; 0=all)")
