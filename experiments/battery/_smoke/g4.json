@@ -1,0 +1,27 @@
+{
+  "gate": "G4",
+  "alpha_grid_item": [
+    1.0,
+    1.0,
+    0.018319999799132347
+  ],
+  "alpha_grid_concept": [
+    1.0,
+    1.0,
+    0.018319999799132347
+  ],
+  "conf_precision": {
+    "know-well": 1.0,
+    "vague": 1.0,
+    "refuse": 0.018315639346837997
+  },
+  "ordering_refuse_lt_vague_lt_knowwell_PASS": false,
+  "confident_shrinkage_mean": 0.006067,
+  "refusal_shrinkage_mean": 0.000357,
+  "refusal_over_confident_ratio": 0.0588,
+  "refusal_le_25pct_PASS": true,
+  "belief_fitted": false,
+  "convention": "pre-C3 simulation: items rated=know-well, concept SEL=vague, unrated-popular probe=refuse (consumption obs only)",
+  "seconds": 0.1,
+  "PASS": false
+}

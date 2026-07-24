@@ -21,8 +21,11 @@ recommender cores); their POLICIES fight in B.
 1. **Fix G5 standalone-cold concept** (whitened dir loses the prior at k0 by 0.0045; per-k β / floor
    blend) — important, part of Step-2 design.
 2. **Belief layer (Phase B)**: Σ + G1/G4/G8, formal G2, C2.
-3. **Clean retrain of the tower** (one command, selection rule fixed: cold-primary s.t. full ≥ native−CI)
+3. **Clean retrain of the tower** (one command, --select_cold rule implemented Jul 24)
    + full battery RE-VERIFIED on the certified checkpoint.
+   **CERTIFICATION PURITY (author-approved Jul 24): the certified belief calibration = BATCHED EXACT
+   all-users fit (no subsample anywhere in the final chain; batch the LOO increment folds — ~10x,
+   overnight-class). Today's 30k-user fit = shakedown only, never cited.**
 4. **All outstanding baselines run** (Mult-VAE/DAE snaps + canonical, EDDI, SASRec, TaNP, Turbo-CF, RBMF).
 5. **The graded/upgraded baselines** (two tiers: published-faithful biasedMF etc.; our labeled extensions
    signed-EASE etc. + the all-rated-binary control) — the fair-fight table for the graded-premium claim.
