@@ -32,7 +32,7 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   per channel; (b) VALUE-NONINERT: neutralizing values to "meh" (membership frozen) drops NDCG ≥ MDE
   *(the 7-fold value-inertness wall)*; (c) monotone-in-intensity: Spearman(level, Δ) > 0 and
   binarize-ablation must LOSE *(graded-collapse)*.
-- **G4 — refusal inertness (RESTRUCTURED 2026-07-24, author ruling).** A refusal contributes ≈ nothing,
+- **G4 — refusal BOUNDEDNESS (RESTRUCTURED 2026-07-24, author ruling; renamed Jul 24 — refusals DO carry the small fitted consumption signal per the author's Jul-22 correction).** A refusal must count far less than a real answer,
   tested WITHIN the same channel/direction family (dodges the cross-channel α-scale confound):
   α_refuse/α_answer ≤ 0.05 same-channel. *(Fitted shakedown: 0.018/27.66 = 0.0007 — PASS.)*
   **The confidence-ORDERING test is NOT A GATE** — MovieLens carries no within-channel confidence signal
