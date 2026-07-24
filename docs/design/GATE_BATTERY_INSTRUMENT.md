@@ -32,9 +32,15 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   per channel; (b) VALUE-NONINERT: neutralizing values to "meh" (membership frozen) drops NDCG ≥ MDE
   *(the 7-fold value-inertness wall)*; (c) monotone-in-intensity: Spearman(level, Δ) > 0 and
   binarize-ablation must LOSE *(graded-collapse)*.
-- **G4 — confidence & refusal.** Fitted precision ordered: α(refuse) < α(vague) < α(know-well); collapsing
-  confidence levels must LOSE NDCG; a refusal burns the turn but moves belief ≈ 0 *(τ mis-ordering; the
-  additive-null trap)*.
+- **G4 — refusal inertness (RESTRUCTURED 2026-07-24, author ruling).** A refusal contributes ≈ nothing,
+  tested WITHIN the same channel/direction family (dodges the cross-channel α-scale confound):
+  α_refuse/α_answer ≤ 0.05 same-channel. *(Fitted shakedown: 0.018/27.66 = 0.0007 — PASS.)*
+  **The confidence-ORDERING test is NOT A GATE** — MovieLens carries no within-channel confidence signal
+  (the retired LLM apparatus was its only source), and an untestable property cannot gate (author: do not
+  lean on the human study). Confidence-weighting remains documented architecture (per-observation σ; the
+  one live data-side proxy = SEL support count for concepts), certifiable only if confidence-bearing data
+  ever exists. The Jul-24 Phase-B "G4 FAIL" is re-dispositioned: ordering = unmeasurable-by-design;
+  refusal-inertness = PASS.
 - **G5 — concept/channel specificity.** Folding concept c ranks member items above matched non-members
   (member-lift AUC > 0.8) AND beats folding c's own popularity-projection (top-PC partialled out); honest
   bar on tail = popularity-WITHIN-the-filter; dedicated channel ≥ trained member-bag injection

@@ -1,0 +1,24 @@
+{
+  "gate": "G1",
+  "n_users": 10000,
+  "g1a_traces": {
+    "0": 1881.9004,
+    "1": 1875.9871,
+    "2": 1870.2443,
+    "4": 1859.4969,
+    "8": 1839.7173,
+    "16": 1805.0576
+  },
+  "g1a_monotone_PASS": true,
+  "alpha_refuse_reported": 0.018315639346837997,
+  "g1b_own": 0.996422,
+  "g1b_other": 0.086456,
+  "g1b_ratio": 11.525,
+  "g1b_PASS": true,
+  "g1c_rho": 0.2393,
+  "g1c_PASS": false,
+  "belief_fitted": true,
+  "note": "g1c on INIT alphas is advisory; the fitted-alpha rho is the certified number",
+  "seconds": 129.3,
+  "PASS": false
+}
