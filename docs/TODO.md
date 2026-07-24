@@ -10,6 +10,21 @@ adaptive (trees, VOI, EDDI-IG, Bıyık-EVOI, coarse-to-fine, the demoted +47% re
 fought ON the certified instrument. Elicitation-line SYSTEMS appear in A only as master-table rows (their
 recommender cores); their POLICIES fight in B.
 
+## ★ AUTHOR ROADMAP (Jul 24) — in order
+0. **Deep research: the graded-inputs-discarded story** (agent running) → findings file + published-
+   faithful replication plan (graded AND binary upgrades). **Claim discipline: the honest graded premium
+   is currently ~+0.017 (G6 decomposition: likes-only 0.3435 / all-rated-membership 0.4022 / true-graded
+   0.4189) — most of the all-bands gain is REVEAL-SET SIZE; the all-rated-BINARY frontier control (arm g)
+   decides the final number. NO "+6.5 on SOTA" claim.**
+1. **Fix G5 standalone-cold concept** (whitened dir loses the prior at k0 by 0.0045; per-k β / floor
+   blend) — important, part of Step-2 design.
+2. **Belief layer (Phase B)**: Σ + G1/G4/G8, formal G2, C2.
+3. **Clean retrain of the tower** (one command, selection rule fixed: cold-primary s.t. full ≥ native−CI)
+   + full battery RE-VERIFIED on the certified checkpoint.
+4. **All outstanding baselines run** (Mult-VAE/DAE snaps + canonical, EDDI, SASRec, TaNP, Turbo-CF, RBMF).
+5. **The graded/upgraded baselines** (two tiers: published-faithful biasedMF etc.; our labeled extensions
+   signed-EASE etc. + the all-rated-binary control) — the fair-fight table for the graded-premium claim.
+
 ## Running / imminent
 - [x] **GATING PROBE: FAILED (Jul 22 16:30) — frozen geometry DEAD.** No η gives ≥0.10 separation at
       ≤0.005 NDCG cost (best: +0.216 sep at −0.221 full). RUNG1 ceiling reproduced on canonical teacher.
