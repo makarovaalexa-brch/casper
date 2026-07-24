@@ -317,6 +317,15 @@ def per_answer_section(rung, rows):
     res["monotone_to_m8_full"] = bool(all(seq[i + 1] >= seq[i] - 1e-9 for i in range(len(seq) - 1)))
     seqt = [res["concepts_only"]["tail@10"][str(m)] for m in M_LIST]
     res["monotone_to_m8_tail"] = bool(all(seqt[i + 1] >= seqt[i] - 1e-9 for i in range(len(seqt) - 1)))
+    # REDUNDANCY ROBUSTNESS (author clause 2026-07-24, every rung): the CORRELATED top-SEL m=8 fold
+    # must not decline vs its m=4 prefix (full AND tail) -- the operator must fix redundancy itself;
+    # the untrained armA fails this row by construction (the visible motivation).
+    rows_t = [r for r in rows if r in sh["sel_top"]]
+    ff_r, tt_r = _concepts_only_curve(rung, rows_t, sh["sel_top"])
+    res["redundancy_topSEL"] = {"m4": {"full": ff_r["4"], "tail": tt_r["4"]},
+                                "m8": {"full": ff_r["8"], "tail": tt_r["8"]}}
+    res["redundancy_robust_full"] = bool(ff_r["8"] >= ff_r["4"] - 1e-9)
+    res["redundancy_robust_tail"] = bool(tt_r["8"] >= tt_r["4"] - 1e-9)
     # items coldk2/k8 UNDER THIS RUNG'S TOWER (C-full: its own numbers = the item-cost decision axis)
     if hasattr(ctx, "L_val"):
         enc = rung.enc()
@@ -448,6 +457,10 @@ def main():
               (f" coldk2={pa.get('coldk2_full@10', float('nan')):.4f}"
                f" coldk8={pa.get('coldk8_full@10', float('nan')):.4f}" if "coldk2_full@10" in pa else "") +
               f" mixed_m2k2 {pa['mixed_m2_k2']['vs_items_k2']['mean']:+.4f}")
+        rr = pa["redundancy_topSEL"]
+        print(f"    redundancy(topSEL) m4 {rr['m4']['full']:.4f}/{rr['m4']['tail']:.4f} -> "
+              f"m8 {rr['m8']['full']:.4f}/{rr['m8']['tail']:.4f} "
+              f"robust={pa['redundancy_robust_full']}|{pa['redundancy_robust_tail']}")
         dep = r["deployment"]
         for arm in ("items-pop", "items-entropy", "concepts-only", "mixed"):
             print(f"    deploy {arm:>14}: " + " ".join(
