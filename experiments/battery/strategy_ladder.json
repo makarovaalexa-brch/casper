@@ -1,0 +1,444 @@
+{
+  "analysis": "strategy_ladder",
+  "snapshot": "t2i25_EP4_SNAP.pt",
+  "n_users": 10000,
+  "budgets": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "headline_q": 8,
+  "caveats": [
+    "answers fold GRADED values into a set-encoder posterior scored NDCG@10; the lit mostly measured rating-prediction MAE/RMSE -- expected ranks are priors, not certified numbers",
+    "random_bank (fixed random-200 shortlist) has no exact lit counterpart; lit's 'random' is our random_catalog",
+    "entropy from a catalog-restricted (>=20 ratings) matrix compresses the entropy range",
+    "asked-but-unrated burns the question in ALL arms (the lit protocol)"
+  ],
+  "arms": {
+    "helf": {
+      "lit_expected_rank": 1,
+      "citation": "rashid2002getting; rashid2008learning",
+      "annotation": "HELF = harmonic(entropy, log-freq): informative AND answerable -- Rashid's winner",
+      "full@10": {
+        "0": 0.12793773315625726,
+        "1": 0.12811609356415296,
+        "2": 0.13058441973858792,
+        "4": 0.13930692772110917,
+        "8": 0.1486812461015286,
+        "16": 0.16010399586281232
+      },
+      "tail@10": {
+        "0": 0.01923195232020529,
+        "1": 0.01959366028497018,
+        "2": 0.02858308165983063,
+        "4": 0.03823677765368712,
+        "8": 0.04566302904967869,
+        "16": 0.055837907605269
+      },
+      "answer_rate": {
+        "0": {
+          "mean_answered": 0.0,
+          "frac_any": 0.0
+        },
+        "1": {
+          "mean_answered": 0.2163,
+          "frac_any": 0.2163
+        },
+        "2": {
+          "mean_answered": 0.4918,
+          "frac_any": 0.3891
+        },
+        "4": {
+          "mean_answered": 0.8164,
+          "frac_any": 0.4935
+        },
+        "8": {
+          "mean_answered": 1.5652,
+          "frac_any": 0.6203
+        },
+        "16": {
+          "mean_answered": 3.2795,
+          "frac_any": 0.782
+        }
+      },
+      "monotone_full": true
+    },
+    "entropy0": {
+      "lit_expected_rank": 2,
+      "citation": "rashid2008learning",
+      "annotation": "entropy incl. 'not rated' as a category -- folds answerability into the score",
+      "full@10": {
+        "0": 0.12793773315625726,
+        "1": 0.1277036909047703,
+        "2": 0.12020660808187084,
+        "4": 0.1287126140194375,
+        "8": 0.1275166074280189,
+        "16": 0.13608964497210566
+      },
+      "tail@10": {
+        "0": 0.01923195232020529,
+        "1": 0.029197984459520803,
+        "2": 0.03360104068122429,
+        "4": 0.04231911484516621,
+        "8": 0.050264611928142994,
+        "16": 0.06421995363416569
+      },
+      "answer_rate": {
+        "0": {
+          "mean_answered": 0.0,
+          "frac_any": 0.0
+        },
+        "1": {
+          "mean_answered": 0.4263,
+          "frac_any": 0.4263
+        },
+        "2": {
+          "mean_answered": 0.8397,
+          "frac_any": 0.5931
+        },
+        "4": {
+          "mean_answered": 1.6112,
+          "frac_any": 0.7418
+        },
+        "8": {
+          "mean_answered": 3.0737,
+          "frac_any": 0.8501
+        },
+        "16": {
+          "mean_answered": 5.4991,
+          "frac_any": 0.9203
+        }
+      },
+      "monotone_full": false
+    },
+    "popularity": {
+      "lit_expected_rank": 3,
+      "citation": "rashid2002getting; golbandi2010 [FLAG FOR BIB ADD if absent]",
+      "annotation": "strong simple baseline: answerable but redundant",
+      "full@10": {
+        "0": 0.12793773315625726,
+        "1": 0.11899712772549388,
+        "2": 0.11075984701298669,
+        "4": 0.09745359668701772,
+        "8": 0.12547341222638211,
+        "16": 0.1349855657906972
+      },
+      "tail@10": {
+        "0": 0.01923195232020529,
+        "1": 0.026593085480202863,
+        "2": 0.03148788633514784,
+        "4": 0.034315155475988054,
+        "8": 0.05040193874276397,
+        "16": 0.05799406060990303
+      },
+      "answer_rate": {
+        "0": {
+          "mean_answered": 0.0,
+          "frac_any": 0.0
+        },
+        "1": {
+          "mean_answered": 0.4252,
+          "frac_any": 0.4252
+        },
+        "2": {
+          "mean_answered": 0.8386,
+          "frac_any": 0.5965
+        },
+        "4": {
+          "mean_answered": 1.6488,
+          "frac_any": 0.7314
+        },
+        "8": {
+          "mean_answered": 3.0316,
+          "frac_any": 0.855
+        },
+        "16": {
+          "mean_answered": 5.4061,
+          "frac_any": 0.9087
+        }
+      },
+      "monotone_full": false
+    },
+    "pure_entropy": {
+      "lit_expected_rank": 4,
+      "citation": "rashid2002getting",
+      "annotation": "'Pure Entropy was the worst... shockingly poor' -- obscure high-entropy items",
+      "full@10": {
+        "0": 0.12793773315625726,
+        "1": 0.12799676874031649,
+        "2": 0.12810612597678864,
+        "4": 0.12810450043089547,
+        "8": 0.12838195979084,
+        "16": 0.12954360292042075
+      },
+      "tail@10": {
+        "0": 0.01923195232020529,
+        "1": 0.019454305758695407,
+        "2": 0.019533938698459,
+        "4": 0.01955596912062628,
+        "8": 0.02061681701622581,
+        "16": 0.02185129918894015
+      },
+      "answer_rate": {
+        "0": {
+          "mean_answered": 0.0,
+          "frac_any": 0.0
+        },
+        "1": {
+          "mean_answered": 0.0057,
+          "frac_any": 0.0057
+        },
+        "2": {
+          "mean_answered": 0.0076,
+          "frac_any": 0.0074
+        },
+        "4": {
+          "mean_answered": 0.0078,
+          "frac_any": 0.0075
+        },
+        "8": {
+          "mean_answered": 0.0315,
+          "frac_any": 0.0243
+        },
+        "16": {
+          "mean_answered": 0.0723,
+          "frac_any": 0.0475
+        }
+      },
+      "monotone_full": false
+    },
+    "random_bank": {
+      "lit_expected_rank": 5,
+      "citation": "no exact lit counterpart (protocol caveat)",
+      "annotation": "random within a fixed 200-item shortlist",
+      "full@10": {
+        "0": 0.12793773315625726,
+        "1": 0.127936288952239,
+        "2": 0.12793597889917502,
+        "4": 0.1281033964423113,
+        "8": 0.12854189691074083,
+        "16": 0.12937652889523418
+      },
+      "tail@10": {
+        "0": 0.01923195232020529,
+        "1": 0.019307721022580895,
+        "2": 0.01948166691380374,
+        "4": 0.01978195085607466,
+        "8": 0.020708829552540303,
+        "16": 0.021909371541347936
+      },
+      "answer_rate": {
+        "0": {
+          "mean_answered": 0.0,
+          "frac_any": 0.0
+        },
+        "1": {
+          "mean_answered": 0.0066,
+          "frac_any": 0.0066
+        },
+        "2": {
+          "mean_answered": 0.0128,
+          "frac_any": 0.0127
+        },
+        "4": {
+          "mean_answered": 0.0265,
+          "frac_any": 0.0258
+        },
+        "8": {
+          "mean_answered": 0.0575,
+          "frac_any": 0.0527
+        },
+        "16": {
+          "mean_answered": 0.1148,
+          "frac_any": 0.0967
+        }
+      },
+      "monotone_full": false
+    },
+    "random_catalog": {
+      "lit_expected_rank": 6,
+      "citation": "rashid2002getting; elahi2016survey",
+      "annotation": "uniform over the full vocab: tiny answer rate, near-zero info",
+      "full@10": {
+        "0": 0.12793773315625726,
+        "1": 0.12786501963100155,
+        "2": 0.1280557075541645,
+        "4": 0.12834642711303107,
+        "8": 0.12886205854303523,
+        "16": 0.12916082503040724
+      },
+      "tail@10": {
+        "0": 0.01923195232020529,
+        "1": 0.019281597099135125,
+        "2": 0.01958748486402049,
+        "4": 0.019946569441811154,
+        "8": 0.020601082767100543,
+        "16": 0.021496845362445696
+      },
+      "answer_rate": {
+        "0": {
+          "mean_answered": 0.0,
+          "frac_any": 0.0
+        },
+        "1": {
+          "mean_answered": 0.0083,
+          "frac_any": 0.0083
+        },
+        "2": {
+          "mean_answered": 0.0152,
+          "frac_any": 0.0151
+        },
+        "4": {
+          "mean_answered": 0.0293,
+          "frac_any": 0.0279
+        },
+        "8": {
+          "mean_answered": 0.0598,
+          "frac_any": 0.0546
+        },
+        "16": {
+          "mean_answered": 0.1165,
+          "frac_any": 0.0976
+        }
+      },
+      "monotone_full": false
+    }
+  },
+  "pairwise_vs_lit_order": {
+    "helf > entropy0": {
+      "measured_delta_q8_full": 0.01861237087224242,
+      "ci95": [
+        0.014818988201683522,
+        0.02256599035627768
+      ],
+      "verdict": "replicated"
+    },
+    "helf > popularity": {
+      "measured_delta_q8_full": 0.020560084582785566,
+      "ci95": [
+        0.016760480042217477,
+        0.02429004331848272
+      ],
+      "verdict": "replicated"
+    },
+    "helf > pure_entropy": {
+      "measured_delta_q8_full": 0.02019649851261747,
+      "ci95": [
+        0.017950220710280792,
+        0.022410960238129524
+      ],
+      "verdict": "replicated"
+    },
+    "helf > random_bank": {
+      "measured_delta_q8_full": 0.020036433340579037,
+      "ci95": [
+        0.01781446588229231,
+        0.022236183152366935
+      ],
+      "verdict": "replicated"
+    },
+    "helf > random_catalog": {
+      "measured_delta_q8_full": 0.019716015373911256,
+      "ci95": [
+        0.017472448147432144,
+        0.021952158665674456
+      ],
+      "verdict": "replicated"
+    },
+    "entropy0 > popularity": {
+      "measured_delta_q8_full": 0.001856550248677494,
+      "ci95": [
+        -0.0003645375024000791,
+        0.004007420126155623
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "entropy0 > pure_entropy": {
+      "measured_delta_q8_full": 0.0018092642921362125,
+      "ci95": [
+        -0.002122435529490157,
+        0.005611617899782647
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "entropy0 > random_bank": {
+      "measured_delta_q8_full": 0.0016484588227004564,
+      "ci95": [
+        -0.0023006554745261627,
+        0.005458309963545247
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "entropy0 > random_catalog": {
+      "measured_delta_q8_full": 0.0013265589309907773,
+      "ci95": [
+        -0.0026114478040138904,
+        0.005137791711381578
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "popularity > pure_entropy": {
+      "measured_delta_q8_full": -7.678289557338277e-05,
+      "ci95": [
+        -0.0039138431299042134,
+        0.0037300923326036694
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "popularity > random_bank": {
+      "measured_delta_q8_full": -0.00024170129771821183,
+      "ci95": [
+        -0.0040845719840184825,
+        0.0035775902130553193
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "popularity > random_catalog": {
+      "measured_delta_q8_full": -0.0005595367942111407,
+      "ci95": [
+        -0.0044027565622886365,
+        0.0032157253829391713
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "pure_entropy > random_bank": {
+      "measured_delta_q8_full": -0.00015993711990080247,
+      "ci95": [
+        -0.0007375822037707028,
+        0.00041351819995388167
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "pure_entropy > random_catalog": {
+      "measured_delta_q8_full": -0.00048009875219525,
+      "ci95": [
+        -0.0011301673210282373,
+        0.00017587815130778564
+      ],
+      "verdict": "indistinguishable, no flag"
+    },
+    "random_bank > random_catalog": {
+      "measured_delta_q8_full": -0.00032016163229444744,
+      "ci95": [
+        -0.0010056138702890676,
+        0.0003783978354059518
+      ],
+      "verdict": "indistinguishable, no flag"
+    }
+  },
+  "n_inversion_flags": 0,
+  "measured_rank_q8": {
+    "helf": 1,
+    "random_catalog": 2,
+    "random_bank": 3,
+    "pure_entropy": 4,
+    "entropy0": 5,
+    "popularity": 6
+  },
+  "rank_spearman_lit_vs_measured": -0.08571428571428573,
+  "seconds": 408.2,
+  "post_run_observation": "FULL-metric parity subtlety: popularity/entropy0 answer ~3 of 8 yet sit at/below the q0 intercept on FULL (0.1255/0.1275 vs 0.1279) because credit-neutral masking removes the revealed POPULAR items -- the easiest full-NDCG targets -- from candidates+IDCG; their TAIL (+0.030 over the random arms, 0.0504/0.0503 vs 0.0206) shows the ingested answer content is real. HELF dodges this by asking mid-popularity items (1.57 answered) and wins FULL CI-clean. Same masking-parity caveat as the Phase A +0.065 pending-verification note."
+}

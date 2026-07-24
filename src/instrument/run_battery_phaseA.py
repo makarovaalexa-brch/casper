@@ -164,6 +164,7 @@ def build_real_ctx(snapshot):
     ctx.va_tr, ctx.va_te = M.load_val(ctx.ni, PROC)
     ctx.n = ctx.va_tr.shape[0]
     unique_uid, tr_set, vd_set, te_set, ntr, raw, show2id, usid = reproduce_partition()
+    ctx.raw, ctx.tr_set, ctx.show2id = raw, tr_set, show2id      # stashed for strategy_ladder entropies
     # model from snapshot (i25 arm A)
     a = argparse.Namespace(arch="i25", teacher="warm_init", t_hidden=600, t_latent=200, token="film",
                            train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=3e-4,

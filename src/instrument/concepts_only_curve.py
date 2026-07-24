@@ -30,10 +30,13 @@ Usage:
   python src/instrument/concepts_only_curve.py [--snapshot PATH] [--smoke]
 """
 import os
-os.environ["OMP_NUM_THREADS"] = "4"
-os.environ.setdefault("OPENBLAS_NUM_THREADS", "4")
-os.environ.setdefault("MKL_NUM_THREADS", "4")
 import sys
+# --full_threads (author 2026-07-24: retrain stopped, battery owns the CPU): no OMP cap, normal priority
+_FULL = "--full_threads" in sys.argv
+_NT = str(os.cpu_count()) if _FULL else "4"
+os.environ["OMP_NUM_THREADS"] = _NT
+os.environ.setdefault("OPENBLAS_NUM_THREADS", _NT)
+os.environ.setdefault("MKL_NUM_THREADS", _NT)
 import json
 import time
 import argparse
@@ -41,7 +44,7 @@ import numpy as np
 import torch
 from scipy import sparse
 
-torch.set_num_threads(4)
+torch.set_num_threads(int(_NT))
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
@@ -129,8 +132,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
+    ap.add_argument("--full_threads", action="store_true",
+                    help="no OMP cap + normal priority (the CPU is ours)")
     args = ap.parse_args()
-    set_low_priority()
+    if not args.full_threads:
+        set_low_priority()
+    else:
+        log(f"[prio] FULL THREADS ({_NT}) at normal priority (author: battery owns the CPU)")
     t00 = time.time()
     ctx = build_smoke_ctx() if args.smoke else build_real_ctx(args.snapshot)
     ctx.Wd = ctx.decoder.weight.detach().float(); ctx.bd = ctx.decoder.bias.detach().float()
