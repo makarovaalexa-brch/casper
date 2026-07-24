@@ -294,12 +294,21 @@ class I25Encoder(nn.Module):
     rho final layer ZERO-INIT => z == native_z bit-exactly at init. No PMA/MAB (FOLD_MASTER F7).
     The native encoder is held UNREGISTERED (self._native list) so checkpoints exclude its ~13M
     params; build_model re-attaches it from RECVAE_CKPT best_state."""
-    def __init__(self, ni, native_encoder, d_lat=200, h=512, token_mode="film"):
+    def __init__(self, ni, native_encoder, d_lat=200, h=512, token_mode="film", n_concepts=0):
         super().__init__()
         self.ni = ni; self.d = d_lat; self.d_out = d_lat; self.token_mode = token_mode
         self.norm_feat = False
         self._native = [native_encoder]                      # UNREGISTERED (frozen, external)
         self.item_emb = nn.Embedding(ni, d_lat)              # frozen normalized decoder rows
+        # ARM C-FULL (--concept_tokens, 2026-07-24): OPTIONAL concept-token channel. Token id ni+c is a
+        # CONCEPT token: identity = concept_emb[c] (TRAINABLE, whitened-centroid init applied in train()),
+        # fused with its graded value through the SAME FiLM gamma/beta tables as item tokens, summed into
+        # the SAME phi pool. Concept tokens NEVER enter the frozen native RecVAE anchor (item-likes only)
+        # -- that is the G0 protection: an item-only input bypasses this channel bit-exactly.
+        self.nc = n_concepts
+        if n_concepts > 0:
+            self.concept_emb = nn.Embedding(n_concepts, d_lat)
+            nn.init.normal_(self.concept_emb.weight, std=0.02)   # overwritten w/ whitened centroids
         self.gamma = nn.Embedding(NLEV, d_lat); self.beta = nn.Embedding(NLEV, d_lat)
         nn.init.ones_(self.gamma.weight); nn.init.normal_(self.beta.weight, std=0.02)
         self.phi = nn.Sequential(nn.Linear(d_lat, h), nn.GELU(), nn.Linear(h, h))
@@ -314,9 +323,10 @@ class I25Encoder(nn.Module):
         self.z0 = nn.Parameter(torch.zeros(d_lat), requires_grad=False)          # compat (unused)
 
     def native_z(self, ids, pad, lvs):
-        """Frozen RecVAE encoder mean on binarized LIKED tokens; 0 for rows with no likes."""
+        """Frozen RecVAE encoder mean on binarized LIKED ITEM tokens; 0 for rows with no likes.
+        Concept tokens (ids >= ni) are EXCLUDED unconditionally -- the frozen anchor never sees them."""
         B = ids.shape[0]
-        like = (lvs >= LIKE_MIN_LEVEL) & (~pad)
+        like = (lvs >= LIKE_MIN_LEVEL) & (~pad) & (ids < self.ni)
         x = torch.zeros((B, self.ni), dtype=torch.float32)
         rows = like.nonzero(as_tuple=True)
         x[rows[0], ids[rows]] = 1.0
@@ -333,7 +343,14 @@ class I25Encoder(nn.Module):
         return 1.0 - torch.exp(-F.softplus(self.anchor_b) * n_tok)
 
     def forward(self, ids, vals, pad, lvs):
-        e = self.item_emb(ids)                                               # (B,L,200) frozen
+        if self.nc > 0:
+            is_c = (ids >= self.ni) & (~pad)                                 # concept-token positions
+            e = self.item_emb(torch.where(is_c, torch.zeros_like(ids), ids))
+            if bool(is_c.any()):                                             # no concepts -> path bit-
+                ce = self.concept_emb((ids - self.ni).clamp(min=0))          # identical to nc=0 build
+                e = torch.where(is_c.unsqueeze(-1), ce, e)
+        else:
+            e = self.item_emb(ids)                                           # (B,L,200) frozen
         x = self.gamma(lvs) * e + self.beta(lvs)                             # graded FiLM token
         ph = self.phi(x) * (~pad).unsqueeze(-1).float()                      # padding zeroed
         sp = ph.sum(1)                                                       # (B,h) SUM pool
@@ -550,6 +567,56 @@ def make_input_target(u, rng, drop_max=0.5, p_int=P_INTERVIEW):
     if len(tgt) == 0:
         return None
     negs = np.setdiff1d(u.get("disliked", np.empty(0, np.int64)), inp, assume_unique=False)  # repair 4
+    return inp, lv, sv, tgt, negs
+
+
+def sel_value_to_level(v):
+    """SEL-graded concept value v in [0.25, 1] -> FiLM level in the positive band {6..9}
+    (0.25 -> 6 weak-positive, 1.0 -> 9 loved). Concepts carry no dislike band pre-C3 (SEL is
+    watch-lift, positive-only); the mapping is documented as the Arm C-full convention."""
+    v = min(max(float(v), 0.25), 1.0)
+    return int(6 + round(3.0 * (v - 0.25) / 0.75))
+
+
+def make_concept_example(u, rng, Mm, grate, member_sets, ni, p_conc_only=0.35, m_max=8):
+    """ARM C-FULL item-masked curriculum example (mirrors concept_fold.make_example; the C-lite recipe):
+    pool/target split (leak-free), SEL labels FROM THE INPUT POOL ONLY, the member items that generated
+    each revealed concept DROPPED from the item input, item budget k (concepts-only w.p. p_conc_only),
+    concept tokens appended as ids ni+c at sel_value_to_level(v). Returns the make_input_target tuple
+    shape (inp, lv, sv, tgt, negs) or None."""
+    from concept_fold import sel_concepts_from_items          # lazy (concept_fold imports this module)
+    its = np.asarray(u["items"], np.int64); n = len(its)
+    liked = np.asarray(u["liked"], np.int64)
+    if n < 4 or len(liked) < 2:
+        return None
+    ntg = max(1, len(liked) // 3)
+    tg = rng.choice(liked, size=ntg, replace=False)
+    keep = ~np.isin(its, tg)
+    pool_s = its[keep]; pool_l = np.asarray(u["levels"], np.int64)[keep]
+    pool_v = np.asarray(u["vals"], np.float32)[keep]
+    if len(pool_s) < 2:
+        return None
+    m = int(rng.integers(1, m_max + 1))
+    cids, cvals, support = sel_concepts_from_items(pool_s, Mm, grate, m, member_sets)
+    if not cids:
+        return None
+    dropset = np.unique(np.concatenate(support)) if support else np.empty(0, np.int64)
+    mk = ~np.isin(pool_s, dropset)                            # ITEM MASK: independent-signal curriculum
+    rem_s, rem_l, rem_v = pool_s[mk], pool_l[mk], pool_v[mk]
+    if rng.random() < p_conc_only or len(rem_s) == 0:
+        in_s = np.empty(0, np.int64); in_l = np.empty(0, np.int64); in_v = np.empty(0, np.float32)
+    else:
+        k = int(rng.integers(1, min(8, len(rem_s)) + 1))
+        pick = rng.choice(len(rem_s), size=k, replace=False)
+        in_s, in_l, in_v = rem_s[pick], rem_l[pick], rem_v[pick]
+    c_ids = np.asarray([ni + c for c in cids], np.int64)
+    c_lv = np.asarray([sel_value_to_level(v) for v in cvals], np.int64)
+    inp = np.concatenate([in_s, c_ids]); lv = np.concatenate([in_l, c_lv])
+    sv = np.concatenate([in_v, np.zeros(len(cids), np.float32)])     # concept sv=0 (value in the LEVEL)
+    tgt = np.setdiff1d(tg, in_s)
+    if len(tgt) == 0:
+        return None
+    negs = np.setdiff1d(u.get("disliked", np.empty(0, np.int64)), in_s)
     return inp, lv, sv, tgt, negs
 
 
@@ -779,7 +846,11 @@ def build_model(args, ni, cnt, teacher_override=None):
         # RESIDUAL fold (2026-07-23): frozen native RecVAE encoder inside the forward; loss teacher OFF.
         src = teacher_override if teacher_override is not None else \
             load_recvae_teacher(ni, hidden=args.t_hidden, latent=args.t_latent)
-        enc = I25Encoder(ni, src, d_lat=args.t_latent, token_mode=args.token)
+        n_conc = int(getattr(args, "n_concepts", 0)) if getattr(args, "concept_tokens", False) else 0
+        enc = I25Encoder(ni, src, d_lat=args.t_latent, token_mode=args.token, n_concepts=n_conc)
+        if n_conc > 0:
+            log(f"[model] ARM C-FULL: concept-token channel ON ({n_conc} concepts x {args.t_latent} = "
+                f"{n_conc * args.t_latent:,} extra TRAINABLE params; whitened init applied by train())")
         decoder = nn.Linear(args.t_latent, ni)
         with torch.no_grad():
             decoder.weight.copy_(src.decoder.weight)
@@ -982,6 +1053,37 @@ def batch_loss(enc, decoder, teacher, exs, ni, args, lam_glob=None, t_idx=None, 
     return rank_vec.mean(), float(nll_vec.mean()), zmse_mean, floor_frac
 
 
+def cold_concepts_full10(enc, Wd, bd, sel_val, m, va_tr, va_te, ni, batch=500):
+    """Concepts-ONLY cold val full@10 (ARM C-FULL selection axis): fold m concept tokens (ids ni+c at
+    sel_value_to_level(v)) with NO items; mask = full canonical fold-in (cold parity); users with no
+    SEL concept excluded."""
+    n = va_tr.shape[0]
+    accs = []
+    enc.eval()
+    with torch.no_grad():
+        for st in range(0, n, batch):
+            rows = list(range(st, min(st + batch, n)))
+            packrows = []
+            for r in rows:
+                if sel_val[r] is None:
+                    packrows.append((np.empty(0, np.int64), np.empty(0, np.int64),
+                                     np.empty(0, np.float32)))
+                else:
+                    cs, vv = sel_val[r]
+                    cid = (ni + cs[:m]).astype(np.int64)
+                    clv = np.asarray([sel_value_to_level(v) for v in vv[:m]], np.int64)
+                    packrows.append((cid, clv, np.zeros(len(cid), np.float32)))
+            ids, vals, pad, lvs = pack_tokens(packrows)
+            S = (enc(ids, vals, pad, lvs) @ Wd.T + bd).numpy().astype(np.float32)
+            S[va_tr[rows].nonzero()] = -np.inf
+            te = va_te[rows]
+            keep = (np.asarray(te.getnnz(axis=1)).ravel() > 0) & \
+                   np.array([sel_val[r] is not None for r in rows])
+            if keep.any():
+                accs.append(M.NDCG_binary_at_k_batch(S[keep], te[np.flatnonzero(keep)], k=10))
+    return float(np.concatenate(accs).mean()) if accs else float("nan")
+
+
 # =============================================================================================
 # TRAIN
 # =============================================================================================
@@ -994,7 +1096,36 @@ def train(args):
     users = build_train_profiles(raw, tr_set, show2id,
                                  max_users=(args.max_users if args.max_users else None))
 
+    # ---- ARM C-FULL concept setup (--concept_tokens; default OFF -> t2final provenance untouched) ----
+    Mm = grate = member_sets = tags = None
+    if args.concept_tokens:
+        import pandas as pd
+        from concept_fold import build_member_matrix
+        gpath = os.path.join(_ROOT, "data", "movielens", "genome-scores.csv")
+        m2s = {int(m): i for i, m in enumerate(usid)}
+        gg = pd.read_csv(gpath); gg = gg[gg["relevance"] >= 0.5]; gg = gg[gg["movieId"].isin(m2s)]
+        gg["sid"] = gg["movieId"].map(m2s).astype(np.int64)
+        members = {int(t): np.sort(s["sid"].values) for t, s in gg.groupby("tagId")}
+        members = {t: mm for t, mm in members.items() if len(mm) >= 30}
+        tags = sorted(members.keys())
+        Mm = build_member_matrix(members, tags, ni)
+        grate = (cnt @ np.asarray(Mm.todense())) / max(cnt.sum(), 1e-9)
+        member_sets = {i: members[t] for i, t in enumerate(tags)}
+        args.n_concepts = len(tags)
+        log(f"[cfull] concept channel: {len(tags)} genome concepts (>=30 members); "
+            f"p_concept_ex={args.p_concept_ex} (item-only examples keep the item pathway fed)")
+
     enc, decoder, teacher, params, groups = build_model(args, ni, cnt)
+    if args.concept_tokens:
+        # whitened member-centroid init for the TRAINABLE concept identities (the July geometry prior)
+        from belief_layer import build_concept_dirs           # lazy (belief_layer imports this module)
+        members_by_tag = {t: member_sets[i] for i, t in enumerate(tags)}
+        d_c, _, _ = build_concept_dirs(decoder.weight.detach(), members_by_tag, tags)
+        with torch.no_grad():
+            enc.concept_emb.weight.copy_(d_c)
+        assert enc.concept_emb.weight.requires_grad, "concept_emb must be TRAINABLE (Arm C-full)"
+        assert any(p is enc.concept_emb.weight for p in params), "concept_emb missing from optimizer"
+        log(f"[cfull] concept_emb init = whitened member centroids ({len(tags)}x{enc.d})")
     report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), cnt, "init")
     opt = torch.optim.AdamW(groups, lr=args.lr, weight_decay=1e-4)
 
@@ -1039,6 +1170,24 @@ def train(args):
         Lk2 = truncate_graded(L_val, 2, COLD_SEED)
         Lk8 = truncate_graded(L_val, 8, COLD_SEED + 1)
         log(f"[train] cold-val subsets built once: k=2 nnz={Lk2.nnz}, k=8 nnz={Lk8.nnz} (seed {COLD_SEED})")
+    sel_val = None
+    if args.concept_tokens and not args.no_cold_val:
+        # per-val-user top-8 SEL concepts from the canonical fold-in (targets excluded by construction)
+        counts_v = np.asarray((va_tr @ Mm).todense())
+        nu_v = np.asarray(va_tr.sum(axis=1)).ravel().clip(min=1)
+        lift_v = (counts_v / nu_v[:, None]) / np.maximum(grate[None, :], 1e-12)
+        lift_v[counts_v < 2] = -np.inf
+        sel_val = []
+        for r in range(va_tr.shape[0]):
+            pos = np.flatnonzero(np.isfinite(lift_v[r]) & (lift_v[r] > 1.0))
+            if len(pos) == 0:
+                sel_val.append(None); continue
+            o = pos[np.argsort(-lift_v[r][pos])][:8]
+            l1 = np.log(lift_v[r][o[0]])
+            vv = np.clip(np.log(lift_v[r][o]) / max(l1, 1e-9), 0.25, 1.0)
+            sel_val.append((o.astype(np.int64), vv.astype(np.float32)))
+        log(f"[cfull] val concepts-only sets built once: "
+            f"{sum(1 for s in sel_val if s is not None)} users with >=1 SEL concept")
 
     # S2 NATIVE-SEEDED BEST (v4 review): evaluate the INIT model (delta==0) on val and seed `best` +
     # the best checkpoint with it BEFORE epoch 1 -- a below-native G0 outcome becomes impossible
@@ -1075,7 +1224,15 @@ def train(args):
         t0 = time.time(); run_n = 0.0; run_z = 0.0; nb = 0; run_f = 0.0; nf = 0
         for bi in order:
             bat = batches_all[bi]
-            exs = [(i, make_input_target(users[i], rng, p_int=p_int)) for i in bat]
+            if args.concept_tokens:
+                # C-full mix: concept-curriculum examples w.p. p_concept_ex, else plain item examples
+                # (the item pathway must never starve -- author spec)
+                exs = [(i, make_concept_example(users[i], rng, Mm, grate, member_sets, ni,
+                                                p_conc_only=0.35)
+                        if rng.random() < args.p_concept_ex
+                        else make_input_target(users[i], rng, p_int=p_int)) for i in bat]
+            else:
+                exs = [(i, make_input_target(users[i], rng, p_int=p_int)) for i in bat]
             exs = [(i, e) for i, e in exs if e is not None]
             if not exs:
                 continue
@@ -1105,10 +1262,15 @@ def train(args):
         vm = M.evaluate(predict, va_tr, va_te, batch_size=500, head_mask=head_mask)
         f10, t10 = vm["ndcg@10"], vm["tail_ndcg@10"]
         cold_str = ""
+        cm2 = cm8 = None
         if not args.no_cold_val:                             # cold val: k-subset fold, FULL candidate mask
             c2 = cold_full10(enc, Wd_, bd_, Lk2, va_tr, va_te, head_mask, args.ablate_binarized)
             c8 = cold_full10(enc, Wd_, bd_, Lk8, va_tr, va_te, head_mask, args.ablate_binarized)
             cold_str = f"coldk2={c2:.4f} coldk8={c8:.4f} "
+            if args.concept_tokens and sel_val is not None:  # C-full: concepts-only selection axis
+                cm2 = cold_concepts_full10(enc, Wd_, bd_, sel_val, 2, va_tr, va_te, ni)
+                cm8 = cold_concepts_full10(enc, Wd_, bd_, sel_val, 8, va_tr, va_te, ni)
+                cold_str += f"concm2={cm2:.4f} concm8={cm8:.4f} "
         log(f"[ep{ep+1}] NLL={run_n/max(nb,1):.4f} zMSE={run_z/max(nb,1):.4f} lam_glob={lam_glob:.3f} "
             f"p_int={p_int:.2f} negfloor={run_f/max(nf,1):.2f} "
             f"VAL full@10={f10:.4f} tail@10={t10:.4f} {cold_str}ndcg@100={vm['ndcg@100']:.4f} "
@@ -1120,7 +1282,12 @@ def train(args):
         # An epoch is best if its COLD composite (mean of coldk2,coldk8) beats the incumbent AND its
         # full@10 stays within G0_TIE_CI of the seeded native reference. Falls back to full@10-primary
         # when cold-val is off. Patience runs on this selection criterion.
-        cold_comp = (c2 + c8) / 2.0 if not args.no_cold_val else None
+        # C-full extension (author 2026-07-24): the composite includes the concepts-only m2/m8 axis
+        if not args.no_cold_val:
+            cold_comp = (np.mean([c2, c8, cm2, cm8]) if (args.concept_tokens and cm2 is not None)
+                         else (c2 + c8) / 2.0)
+        else:
+            cold_comp = None
         if args.select_cold and cold_comp is not None:
             full_ok = f10 >= native_ref_f10 - G0_TIE_CI
             improved = full_ok and cold_comp > best_cold
@@ -1165,6 +1332,9 @@ def train(args):
            "teacher": args.teacher, "lambda_z": args.lambda_z, "anneal_epochs": args.anneal_epochs,
            "w_neg": args.w_neg, "alpha_kd": args.alpha_kd, "sign_prior": args.sign_prior,
            "unfreeze_emb": args.unfreeze_emb, "ablate_binarized": args.ablate_binarized,
+           "concept_tokens": bool(args.concept_tokens),
+           "n_concepts": int(getattr(args, "n_concepts", 0)),
+           "p_concept_ex": args.p_concept_ex if args.concept_tokens else None,
            "trainable_params": tr_p, "frozen_params": fr_p, "n_items": ni,
            "ndcg@10": tm["ndcg@10"], "ndcg@10_se": tm["ndcg@10_se"],
            "tail_ndcg@10": tm["tail_ndcg@10"], "ndcg@100": tm["ndcg@100"],
@@ -1366,6 +1536,8 @@ def smoke(args):
         teacher_override = load_recvae_teacher(ni, path=tmp, hidden=args.t_hidden, latent=args.t_latent)
         os.remove(tmp)
     cnt = np.ones(ni)
+    if getattr(args, "concept_tokens", False):
+        args.n_concepts = 6                                   # toy concept vocab for the C-full smoke
     enc, decoder, teacher, params, groups = build_model(args, ni, cnt, teacher_override=teacher_override)
     znorm, rho = report_empty_set(enc, decoder.weight.detach(), decoder.bias.detach(), None, "SMOKE-init")
     assert znorm < 1e-6, "gated intercept identity broken (enc(empty) != 0 at init; gate g(0) leak?)"
@@ -1513,6 +1685,64 @@ def smoke(args):
             z3 = enc(*b3)
         assert not torch.allclose(z1, z3, atol=1e-6), "dislike level flip did not change z (phi dead?)"
         print("[SMOKE] i25 dislike-in-phi PASS: like->hate flip moves z")
+        # ---- ARM C-FULL smoke (--concept_tokens): channel asserts ----
+        if args.concept_tokens:
+            from concept_fold import build_member_matrix, sel_concepts_from_items
+            nc = int(args.n_concepts)
+            # (1) NO-OP BIT-IDENTITY: item-only forward identical to an nc=0 build with shared weights
+            enc0 = I25Encoder(ni, teacher_override, d_lat=enc.d_out, token_mode=args.token,
+                              n_concepts=0)
+            enc0.load_state_dict(enc.state_dict(), strict=False)          # concept_emb key ignored
+            enc0.eval()
+            with torch.no_grad():
+                assert torch.equal(enc(*b1), enc0(*b1)), \
+                    "concept channel broke item-only bit-identity (G0 protection violated)"
+            print("[SMOKE] C-full no-op PASS: item-only forward BIT-IDENTICAL to the nc=0 build")
+            # (2) native anchor NEVER sees concepts
+            u0c = users[0]
+            ids_c = np.concatenate([u0c["items"][:4], [ni + 1, ni + 3]]).astype(np.int64)
+            lvs_c = np.concatenate([u0c["levels"][:4], [9, 8]]).astype(np.int64)
+            bA = pack_tokens([(u0c["items"][:4], u0c["levels"][:4], u0c["vals"][:4])])
+            bC = pack_tokens([(ids_c, lvs_c, level_to_sv(lvs_c))])
+            with torch.no_grad():
+                nzA = enc.native_z(bA[0], bA[2], bA[3]); nzC = enc.native_z(bC[0], bC[2], bC[3])
+                assert torch.equal(nzA, nzC), "concept tokens leaked into the frozen native anchor"
+                zC = enc(*bC); zA = enc(*bA)
+            assert not torch.equal(zC, zA), "concept tokens inert in the forward (channel dead)"
+            print("[SMOKE] C-full anchor-isolation PASS: native_z ignores concepts; forward uses them")
+            # (3) sel_value_to_level convention: [0.25,1] -> {6..9} positive band
+            assert sel_value_to_level(0.25) == 6 and sel_value_to_level(1.0) == 9
+            assert all(6 <= sel_value_to_level(v) <= 9 for v in (0.3, 0.5, 0.7, 0.9))
+            print("[SMOKE] C-full value map PASS: SEL [0.25,1] -> levels {6..9}")
+            # (4) item-masked curriculum: revealed concepts' member items dropped; targets leak-free
+            rngS = np.random.RandomState(3)
+            membS = {t: np.sort(rngS.choice(ni, size=rngS.randint(20, 40), replace=False))
+                     for t in range(nc)}
+            MmS = build_member_matrix(membS, list(range(nc)), ni)
+            cntS = np.ones(ni)
+            grateS = (cntS @ np.asarray(MmS.todense())) / cntS.sum()
+            msetS = {i: membS[i] for i in range(nc)}
+            hits = 0
+            for tr_i in range(200):
+                uS = users[tr_i % len(users)]
+                e = make_concept_example(uS, np.random.default_rng(tr_i), MmS, grateS, msetS, ni)
+                if e is None:
+                    continue
+                inp, lvv, svv, tgt, negs = e
+                cmask = inp >= ni
+                assert cmask.any(), "concept example contains no concept token"
+                assert (lvv[cmask] >= 6).all(), "concept token level outside the positive band"
+                for cid in inp[cmask] - ni:
+                    assert not np.isin(inp[~cmask], msetS[int(cid)]).any(), \
+                        "member items of a revealed concept leaked into the item input"
+                assert len(np.intersect1d(inp[~cmask], tgt)) == 0, "target leaked into input"
+                hits += 1
+            assert hits > 20, f"too few usable concept examples ({hits}/200)"
+            print(f"[SMOKE] C-full curriculum PASS ({hits}/200 usable; member-drop + leak asserts)")
+            # (5) param delta
+            extra = enc.concept_emb.weight.numel()
+            print(f"[SMOKE] C-full param delta (toy dims): +{extra:,}; REAL dims: 1031 x 200 = "
+                  f"+206,200 on 838,250 -> 1,044,450 trainable")
     elif args.teacher == "recvae":
         assert torch.equal(decoder.weight, teacher_override.decoder.weight) and \
                torch.equal(decoder.bias, teacher_override.decoder.bias), \
@@ -1614,7 +1844,8 @@ def smoke(args):
     tmpck = os.path.join(CKPT_DIR, "_smoke_evalcold.pt")
     torch.save({"enc": enc.state_dict(), "decoder": decoder.state_dict(), "epoch": 3}, tmpck)
     if args.arch == "i25":
-        enc3 = I25Encoder(ni, teacher_override, d_lat=enc.d_out, token_mode=args.token)
+        enc3 = I25Encoder(ni, teacher_override, d_lat=enc.d_out, token_mode=args.token,
+                          n_concepts=getattr(enc, "nc", 0))
     else:
         enc3 = SetEncoder(ni, d=D, d_out=enc.d_out, d_emb=enc.item_emb.weight.shape[1],
                           token_mode=args.token, norm_feat=enc.norm_feat)
@@ -1670,6 +1901,14 @@ def main():
     # cold-val additions (2026-07-23)
     ap.add_argument("--no_cold_val", action="store_true",
                     help="skip the per-epoch cold (k=2/k=8 fixed-subset) val evals")
+    # ARM C-FULL (2026-07-24): concept tokens trained INTO the tower. Default OFF -- t2final provenance
+    # untouched; i25-only.
+    ap.add_argument("--concept_tokens", action="store_true",
+                    help="ARM C-FULL: add a trainable concept-token channel (ids ni+c, FiLM-fused, "
+                         "same phi pool; frozen native anchor NEVER sees concepts)")
+    ap.add_argument("--p_concept_ex", type=float, default=0.5,
+                    help="fraction of training examples drawn from the concept curriculum "
+                         "(rest = plain item examples; keeps the item pathway fed)")
     ap.add_argument("--select_cold", action="store_true",
                     help="AUTHOR SELECTION RULE (2026-07-24): best checkpoint = max cold composite "
                          "(mean coldk2,coldk8) SUBJECT TO full@10 >= native-init - G0_TIE_CI; patience "
@@ -1702,6 +1941,8 @@ def main():
     ap.add_argument("--kd_topk", type=int, default=1000)
     ap.add_argument("--kd_temp", type=float, default=2.0)
     args = ap.parse_args()
+    if args.concept_tokens:
+        assert args.arch == "i25", "--concept_tokens is i25-only (Arm C-full)"
     if args.eval_cold:
         eval_cold_mode(args)
     elif args.smoke:
