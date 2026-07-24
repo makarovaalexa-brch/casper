@@ -1,0 +1,43 @@
+{
+  "gate": "G5-fix",
+  "n_users": 10000,
+  "intercept_full@10": 0.12793773315625726,
+  "k2only_full@10": 0.19650762395829532,
+  "per_k_beta": {
+    "cold_curve": {
+      "0.0": 0.12793773315625726,
+      "0.5": 0.13124908504663657,
+      "1.0": 0.13433830304398153,
+      "2.0": 0.12336677829421223,
+      "5.0": 0.021382765066381523
+    },
+    "ctx_curve": {
+      "0.0": 0.19650762395829532,
+      "0.5": 0.19802383323589054,
+      "1.0": 0.1993400159067049,
+      "2.0": 0.20219707832183034,
+      "5.0": 0.20486313101594897
+    },
+    "beta_cold": 1.0,
+    "beta_ctx": 5.0,
+    "cold_clears_intercept": true,
+    "ctx_beta5_delta_vs_k2only": 0.00836,
+    "ctx_survives": true
+  },
+  "floor_blend": {
+    "cold_curve": {
+      "0.0": 0.12336677829421223,
+      "0.25": 0.12724057613484857,
+      "0.5": 0.12982178699389554,
+      "0.75": 0.13081851730056443,
+      "1.0": 0.13076977949654947
+    },
+    "floor_rho": 0.75,
+    "beta_cold_used": 2.0,
+    "cold_clears_intercept": true
+  },
+  "winner": "floor_blend",
+  "note": "k>=2 uses pure whitened (rho=0) so the context result is untouched; only the k=0 cold operator changes. Phase A miss was 0.1234 vs intercept 0.1279.",
+  "seconds": 206.3,
+  "PASS": true
+}
