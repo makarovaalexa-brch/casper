@@ -48,6 +48,18 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   (member-lift AUC > 0.8) AND beats folding c's own popularity-projection (top-PC partialled out); honest
   bar on tail = popularity-WITHIN-the-filter; dedicated channel ≥ trained member-bag injection
   *(raw-centroid popularity collapse; member-bag catastrophe)*.
+- **G5-E — elicitation-grade concept certification (added 2026-07-24, author: "this is first and foremost an
+  elicitation instrument, and attribute-based elicitation is a core thing it must do").** Elevates concepts
+  from a specificity side-gate to a first-class certified channel: (a) **concepts-only G2** — the interview
+  curve on concept answers ALONE must RISE monotonically through q8 (full AND tail, same credit-neutral
+  harness); (b) **G1-directional on concepts** — Σ shrinks along the asked attribute (already in G1, now
+  explicitly required per-channel); (c) **C2 transfer on the concept channel specifically**; (d) concept-
+  question arms in the strategy ladder. **Decision protocol (author 2026-07-24): run the FULL escalation
+  ladder regardless of early passes** — Arm A (untrained) / Fix A+B (selection + Bayesian accumulation) /
+  Arm C-lite (trained fold, frozen tower) / Arm C-full (concept tokens trained INTO the tower) — and emit
+  ONE tradeoff ledger on the same harness: item full+tail NDCG@10 (the SOTA-tie cost axis) vs the
+  concepts-only curve (the elicitation-gain axis) for every arm. The item-cost of C-full is a DECISION
+  INPUT, not an auto-fail; the author picks the operating point from the ledger.
 - **G6 — existential controls (HARD RULE 5, now discharged for the fold itself).** Wrong-user answers,
   shuffled answers, and placebo-constant answers through the identical pipeline must gain ≈ nothing
   (≪ true-answer arm); duplicate answers ×2/×3 change nothing (information, not cardinality)
