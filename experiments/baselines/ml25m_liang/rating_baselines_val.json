@@ -1,0 +1,81 @@
+{
+  "_notes": {
+    "masking": "PARITY: only liked fold-in items masked, every arm (corrected convention)",
+    "cremonesi2010": "explicit-rating models lose to binarized implicit at top-N ranking (Cremonesi et al., RecSys 2010) -- the published reason the frontier binarizes; the published-faithful tier is expected weak at top-N",
+    "decomposition": "graded premium = tower_all_bands - max(same-information binary controls)",
+    "ordrec": "OrdRec (Koren & Sill 2011) cited-not-run: no trivially available implementation",
+    "tower_ref_parity": {
+      "likes_only": {
+        "full": 0.3435,
+        "tail": 0.2463
+      },
+      "all_bands_true_graded": {
+        "full": 0.3478,
+        "tail": 0.2482
+      },
+      "all_bands_TAINTED_mask": {
+        "full": 0.419,
+        "tail": 0.2999
+      },
+      "coldk2_canonical": 0.1965,
+      "coldk8_canonical": 0.2584
+    }
+  },
+  "published_faithful": {},
+  "graded_extension_best_effort": {
+    "EASE_signedfold": {
+      "full": {
+        "full": 0.3388570152632348,
+        "tail": 0.23937728176148157
+      },
+      "k8": {
+        "full": 0.15273015126923933,
+        "tail": 0.10000775521652043
+      },
+      "k2": {
+        "full": 0.09577452317899303,
+        "tail": 0.06079253157390735
+      },
+      "seconds": 28.5
+    },
+    "kNN_ratingweight": {
+      "full": {
+        "full": 0.22895642005202207,
+        "tail": 0.12621552589191512
+      },
+      "k8": {
+        "full": 0.17340218407561833,
+        "tail": 0.09435556841943148
+      },
+      "k2": {
+        "full": 0.1152576199835847,
+        "tail": 0.0668347805921943
+      },
+      "seconds": 15.3
+    }
+  },
+  "binary_controls": {
+    "EASE_allratedbin": {
+      "full": {
+        "full": 0.28918362785748697,
+        "tail": 0.20359786405840033
+      },
+      "k8": {
+        "full": 0.14262656945914495,
+        "tail": 0.09748158347756547
+      },
+      "k2": {
+        "full": 0.09278013035729296,
+        "tail": 0.06050503084854587
+      },
+      "seconds": 27.8
+    },
+    "EASE_likesonly": {
+      "full": {
+        "full": 0.3445924756355419,
+        "tail": 0.24551955982588802
+      },
+      "seconds": 12.3
+    }
+  }
+}
