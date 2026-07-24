@@ -495,6 +495,113 @@ def eval_curve(args):
     return out
 
 
+# ============================================================================= G5 AUC follow-ups
+def g5_followups(args):
+    """Three cheap eval-only diagnostics so the author can rule on the 0.6173 AUC item (2026-07-24):
+    (a) member-lift AUC on MULTI-concept folds (m=1,2,4; per folded concept, pop-matched non-members);
+    (b) popularity-projection control: C-lite fold vs a SAME-NORM shift projected onto the popularity
+        axis (top-1 PC of centered Wd) -- does the trained fold beat its own popularity shadow?
+    (c) taste-vs-popularity discriminator: Spearman of the C-lite score-DELTA with log-popularity vs
+        with member-ness -- popularity-shaped = the parasite; member/taste-shaped = benign.
+    Appends 'g5_followups' to concepts_only_curve_armC.json. Sample = first 2000 cohort users (the
+    committed eval's own AUC convention)."""
+    from run_battery_phaseA import build_real_ctx, load_genome, ndcg10_from_scores, bootstrap_ci, \
+        spearman
+    from concepts_only_curve import sel_top_concepts, diversify_sel
+    blob = torch.load(args.g5_followups, map_location="cpu")
+    ctx = build_real_ctx(args.snapshot)
+    ctx.Wd = ctx.decoder.weight.detach().float(); ctx.bd = ctx.decoder.bias.detach().float()
+    ctx.d = ctx.enc.d_out
+    members = load_genome(ctx)
+    tags = sorted(members.keys())
+    assert tags == blob["tags"], "concept vocabulary drift"
+    d_c, d_raw, w_c = build_concept_dirs(ctx.Wd, members, tags)
+    net = ConceptFoldNet(len(tags), d=ctx.d, h=blob["hidden"])
+    net.load_state_dict(blob["net"]); net.eval()
+    sel40 = sel_top_concepts(ctx, members, tags, 40)
+    sel = diversify_sel(sel40, d_c, m_max=8)
+    rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel]
+    rows_s = rows[:2000]
+    Wd = ctx.Wd; bd = ctx.bd
+    m0 = Wd.mean(0)
+    _, _, Vp = torch.pca_lowrank(Wd - m0, q=1, niter=8)
+    u1 = torch.nn.functional.normalize(Vp[:, 0], dim=0)          # popularity axis (top-1 PC)
+    # pop-matched non-members per concept (built lazily, cached)
+    match = {}
+    def get_match(ti):
+        if ti not in match:
+            mem = members[tags[ti]]
+            non = np.setdiff1d(np.arange(ctx.ni), mem)
+            ns = non[np.argsort(ctx.cnt[non])]
+            pos = np.searchsorted(ctx.cnt[ns], ctx.cnt[mem])
+            match[ti] = ns[np.clip(pos, 0, len(ns) - 1)]
+        return match[ti]
+    def auc_pair(S, ti):
+        sm = S[members[tags[ti]]]; sn = S[get_match(ti)]
+        k = len(sm)
+        ranks = np.argsort(np.argsort(np.concatenate([sm, sn])))[:k].sum()
+        return (ranks - k * (k - 1) / 2) / (k * k)
+    res = {"sample_n": len(rows_s), "note": "first-2000-cohort sample = the committed eval's own AUC "
+                                            "convention"}
+    log_cnt = np.log1p(ctx.cnt)
+    with torch.no_grad():
+        # ---- (a) multi-concept member AUC ----
+        multi = {}
+        for m in (1, 2, 4):
+            aucs = []
+            for r in rows_s:
+                cs, vs = sel[r]
+                used = list(zip([int(c) for c in cs[:m]], [float(v) for v in vs[:m]]))
+                ci, vv = ConceptFoldNet.canonical_order([c for c, _ in used], [v for _, v in used])
+                z = net(torch.zeros(1, ctx.d), [ci], [vv])[0]
+                S = (z @ Wd.T + bd).numpy()
+                for c, _ in used:
+                    aucs.append(auc_pair(S, c))
+            multi[str(m)] = float(np.mean(aucs))
+        res["multi_concept_member_AUC"] = multi
+        log(f"[g5fu] (a) multi-concept member AUC: {multi}")
+        # ---- (b) popularity-projection control (top concept, k0) ----
+        f_net = np.full(len(rows_s), np.nan); f_pop = np.full(len(rows_s), np.nan)
+        Zn = torch.zeros(len(rows_s), ctx.d); Zp = torch.zeros(len(rows_s), ctx.d)
+        for j, r in enumerate(rows_s):
+            c = int(sel[r][0][0]); v = float(sel[r][1][0])
+            z = net(torch.zeros(1, ctx.d), [[c]], [[v]])[0]
+            zp = (z @ u1) * u1                                   # popularity-axis projection
+            nz = float(z.norm()); npz = float(zp.norm())
+            if npz > 1e-9:
+                zp = zp * (nz / npz)                             # SAME-NORM control
+            Zn[j] = z; Zp[j] = zp
+        for st in range(0, len(rows_s), 500):
+            ch = rows_s[st:st + 500]
+            Sn = (Zn[st:st + len(ch)] @ Wd.T + bd).numpy().astype(np.float32)
+            Sp = (Zp[st:st + len(ch)] @ Wd.T + bd).numpy().astype(np.float32)
+            fn, _ = ndcg10_from_scores(Sn, ctx.va_tr[ch], ctx.va_te[ch], None)
+            fp, _ = ndcg10_from_scores(Sp, ctx.va_tr[ch], ctx.va_te[ch], None)
+            f_net[st:st + len(ch)] = fn; f_pop[st:st + len(ch)] = fp
+        dpp = bootstrap_ci(f_net - f_pop)
+        res["pop_projection_control"] = {
+            "clite_full@10": float(np.nanmean(f_net)), "pop_proj_same_norm_full@10": float(np.nanmean(f_pop)),
+            "delta": dpp[0], "ci95": dpp[1], "clite_beats_pop_proj": bool(dpp[0] > 0 and dpp[1][0] > 0)}
+        log(f"[g5fu] (b) pop-projection control: clite {np.nanmean(f_net):.4f} vs pop-proj "
+            f"{np.nanmean(f_pop):.4f} delta {dpp[0]:+.4f} CI {dpp[1]}")
+        # ---- (c) taste-vs-popularity discriminator on the score DELTA ----
+        cp = []; cm = []
+        for j, r in enumerate(rows_s[:1000]):
+            c = int(sel[r][0][0])
+            delta = (Zn[j] @ Wd.T).numpy()                        # score delta (bias cancels)
+            memind = np.zeros(ctx.ni); memind[members[tags[c]]] = 1.0
+            cp.append(spearman(delta, log_cnt)); cm.append(spearman(delta, memind))
+        res["delta_discriminator"] = {"spearman_vs_log_popularity_mean": float(np.mean(cp)),
+                                      "spearman_vs_memberness_mean": float(np.mean(cm)),
+                                      "n": len(cp)}
+        log(f"[g5fu] (c) delta discriminator: corr(pop)={np.mean(cp):.4f} corr(member)={np.mean(cm):.4f}")
+    path = os.path.join(OUTDIR, "concepts_only_curve_armC.json")
+    d = json.load(open(path))
+    d["g5_followups"] = res
+    json.dump(d, open(path, "w"), indent=2)
+    log(f"[g5fu] appended -> {path}")
+
+
 # ============================================================================= smoke
 def _smoke():
     import recvae as R
@@ -594,6 +701,8 @@ def main():
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--train", action="store_true", help="EVENING CLASS -- do not launch until t2final")
     ap.add_argument("--eval_curve", default=None, metavar="CKPT")
+    ap.add_argument("--g5_followups", default=None, metavar="CKPT",
+                    help="the three G5-AUC follow-up diagnostics; appends to concepts_only_curve_armC.json")
     ap.add_argument("--snapshot", default=os.path.join(CKPT_DIR, "t2i25_EP4_SNAP.pt"),
                     help="frozen tower ckpt (swap to t2final when it lands)")
     ap.add_argument("--tag", default="cfold")
@@ -612,8 +721,10 @@ def main():
         train(args)
     elif args.eval_curve:
         eval_curve(args)
+    elif args.g5_followups:
+        g5_followups(args)
     else:
-        ap.error("one of --smoke / --train / --eval_curve required")
+        ap.error("one of --smoke / --train / --eval_curve / --g5_followups required")
 
 
 if __name__ == "__main__":
