@@ -111,7 +111,93 @@ def build_shared(ctx):
     sel40 = sel_top_concepts(ctx, members, sh["tags"], 40)                        # deep ranked pool
     sh["sel_top"] = {r: (cs[:max(M_LIST)], vs[:max(M_LIST)]) for r, (cs, vs) in sel40.items()}
     sh["sel_div"] = diversify_sel(sel40, d_c, m_max=max(M_LIST), cos_max=COS_MAX)
+    # SPLIT-G5 machinery (author 2026-07-24: the ruling is on the SPLIT criteria; every rung reports
+    # both halves): popularity axis + pop-matched non-member cache
+    m0 = ctx.Wd.mean(0)
+    _, _, Vp = torch.pca_lowrank(ctx.Wd - m0, q=1, niter=8)
+    sh["u1"] = torch.nn.functional.normalize(Vp[:, 0], dim=0)
+    sh["_match"] = {}
+    def get_match(ti):
+        if ti not in sh["_match"]:
+            mem = members[sh["tags"][ti]]
+            non = np.setdiff1d(np.arange(ctx.ni), mem)
+            ns = non[np.argsort(ctx.cnt[non])]
+            pos = np.searchsorted(ctx.cnt[ns], ctx.cnt[mem])
+            sh["_match"][ti] = ns[np.clip(pos, 0, len(ns) - 1)]
+        return sh["_match"][ti]
+    sh["get_match"] = get_match
     return sh
+
+
+def g5_split(rung, rows, n_sample=2000):
+    """SPLIT-G5 columns per rung (author 2026-07-24; mirrors concept_fold --g5_followups):
+      (a) member-lift AUC on m=1/2/4 folds (per folded concept, pop-matched non-members);
+      (b) pop-projection control: rung fold vs SAME-NORM shift on the popularity axis (paired CI);
+      (c) delta discriminator: Spearman(score-delta, log-pop) vs Spearman(score-delta, member-ness)."""
+    ctx, sh = rung.ctx, rung.sh
+    sel = sh["sel_div"]
+    rows_s = [r for r in rows if r in sel][:n_sample]
+    Wd, bd = ctx.Wd, ctx.bd
+    log_cnt = np.log1p(ctx.cnt)
+    empty1 = (np.empty(0, np.int64), np.empty(0, np.int64))
+    z0 = rung.z_batch([empty1], [[]])[0]                        # rung intercept latent (0 for all rungs)
+    def auc_pair(S, ti):
+        mem = sh["members"][sh["tags"][ti]]; non = sh["get_match"](ti)
+        sm = S[mem]; sn = S[non]; k = len(sm)
+        ranks = np.argsort(np.argsort(np.concatenate([sm, sn])))[:k].sum()
+        return (ranks - k * (k - 1) / 2) / (k * k)
+    res = {"sample_n": len(rows_s)}
+    with torch.no_grad():
+        # (a) multi-concept member AUC
+        multi = {}
+        for m in (1, 2, 4):
+            conc_lists = [list(zip(sel[r][0][:m], sel[r][1][:m])) for r in rows_s]
+            Z = rung.z_batch([empty1] * len(rows_s), conc_lists)
+            aucs = []
+            for j, r in enumerate(rows_s):
+                S = (Z[j] @ Wd.T + bd).numpy()
+                for c, _ in conc_lists[j]:
+                    aucs.append(auc_pair(S, int(c)))
+            multi[str(m)] = float(np.mean(aucs))
+        res["member_AUC"] = multi
+        # (b) pop-projection control (top concept, k0, same-norm)
+        conc1 = [[(int(sel[r][0][0]), float(sel[r][1][0]))] for r in rows_s]
+        Zn = rung.z_batch([empty1] * len(rows_s), conc1)
+        u1 = sh["u1"]
+        Zp = torch.zeros_like(Zn)
+        for j in range(len(rows_s)):
+            d = Zn[j] - z0
+            zp = (d @ u1) * u1
+            npz = float(zp.norm())
+            if npz > 1e-9:
+                zp = zp * (float(d.norm()) / npz)
+            Zp[j] = z0 + zp
+        f_n = np.full(len(rows_s), np.nan); f_p = np.full(len(rows_s), np.nan)
+        for st in range(0, len(rows_s), 500):
+            ch = rows_s[st:st + 500]
+            Sn = (Zn[st:st + len(ch)] @ Wd.T + bd).numpy().astype(np.float32)
+            Sp = (Zp[st:st + len(ch)] @ Wd.T + bd).numpy().astype(np.float32)
+            a, _ = ndcg10_from_scores(Sn, ctx.va_tr[ch], ctx.va_te[ch], None)
+            b, _ = ndcg10_from_scores(Sp, ctx.va_tr[ch], ctx.va_te[ch], None)
+            f_n[st:st + len(ch)] = a; f_p[st:st + len(ch)] = b
+        dpp = bootstrap_ci(f_n - f_p)
+        res["pop_projection_control"] = {"rung_full@10": float(np.nanmean(f_n)),
+                                         "pop_proj_full@10": float(np.nanmean(f_p)),
+                                         "delta": dpp[0], "ci95": dpp[1],
+                                         "beats_pop_proj": bool(dpp[0] > 0 and dpp[1][0] > 0)}
+        # (c) delta discriminator (top concept)
+        cp = []; cm = []
+        for j, r in enumerate(rows_s[:1000]):
+            c = int(sel[r][0][0])
+            delta = ((Zn[j] - z0) @ Wd.T).numpy()
+            memind = np.zeros(ctx.ni); memind[sh["members"][sh["tags"][c]]] = 1.0
+            cp.append(spearman(delta, log_cnt)); cm.append(spearman(delta, memind))
+        res["delta_discriminator"] = {"spearman_vs_log_pop": float(np.mean(cp)),
+                                      "spearman_vs_memberness": float(np.mean(cm)), "n": len(cp)}
+    log(f"[{rung.name} g5split] AUC {multi} | pop-proj delta {dpp[0]:+.4f} "
+        f"(beats={res['pop_projection_control']['beats_pop_proj']}) | "
+        f"disc pop={np.mean(cp):.3f}/mem={np.mean(cm):.3f}")
+    return res
 
 
 def fold_items_enc(enc, seqs, batch=256):
@@ -326,6 +412,8 @@ def per_answer_section(rung, rows):
                                 "m8": {"full": ff_r["8"], "tail": tt_r["8"]}}
     res["redundancy_robust_full"] = bool(ff_r["8"] >= ff_r["4"] - 1e-9)
     res["redundancy_robust_tail"] = bool(tt_r["8"] >= tt_r["4"] - 1e-9)
+    # SPLIT-G5 columns (author 2026-07-24): both halves reported for every rung
+    res["g5_split"] = g5_split(rung, rows)
     # items coldk2/k8 UNDER THIS RUNG'S TOWER (C-full: its own numbers = the item-cost decision axis)
     if hasattr(ctx, "L_val"):
         enc = rung.enc()
@@ -461,6 +549,13 @@ def main():
         print(f"    redundancy(topSEL) m4 {rr['m4']['full']:.4f}/{rr['m4']['tail']:.4f} -> "
               f"m8 {rr['m8']['full']:.4f}/{rr['m8']['tail']:.4f} "
               f"robust={pa['redundancy_robust_full']}|{pa['redundancy_robust_tail']}")
+        gs = pa["g5_split"]
+        print(f"    G5-split: memberAUC m1/2/4 = "
+              + "/".join(f"{gs['member_AUC'][str(m)]:.3f}" for m in (1, 2, 4))
+              + f" | pop-proj delta {gs['pop_projection_control']['delta']:+.4f} "
+                f"(beats={gs['pop_projection_control']['beats_pop_proj']})"
+              + f" | disc pop={gs['delta_discriminator']['spearman_vs_log_pop']:.3f}"
+                f"/mem={gs['delta_discriminator']['spearman_vs_memberness']:.3f}")
         dep = r["deployment"]
         for arm in ("items-pop", "items-entropy", "concepts-only", "mixed"):
             print(f"    deploy {arm:>14}: " + " ".join(
