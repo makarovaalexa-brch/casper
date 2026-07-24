@@ -61,7 +61,7 @@ import run_battery_phaseA as PA
 from run_battery_phaseA import (build_real_ctx, build_smoke_ctx, eval_tokens, ndcg10_from_scores,
                                 bootstrap_ci, load_genome, spearman, OUTDIR, SEED)
 from belief_layer import build_concept_dirs, ConceptMean
-from concepts_only_curve import sel_top_concepts, K_SEED
+from concepts_only_curve import sel_top_concepts, diversify_sel, K_SEED
 from strategy_ladder import train_entropies
 
 assert not hasattr(sys.modules[__name__], "load_answerer")
@@ -105,7 +105,12 @@ def build_shared(ctx):
     H, H0, n_raters = train_entropies(ctx)
     sh["order_entropy"] = np.argsort(-H)
     sh["lvl_lookup"] = [dict(zip(s.tolist(), l.tolist())) for s, l in ctx.allb]   # te excluded
-    sh["sel_top"] = sel_top_concepts(ctx, members, sh["tags"], max(M_LIST))       # per-answer axis
+    # per-answer axis selections: DIVERSIFIED (|cos|<0.5) is the DEFAULT for all rungs (author ruling
+    # 2026-07-24, from the Fix-A verdict: the top-SEL m=8 crater is a correlation artifact); top-SEL is
+    # kept as the armA comparator row so the artifact story stays visible in the table.
+    sel40 = sel_top_concepts(ctx, members, sh["tags"], 40)                        # deep ranked pool
+    sh["sel_top"] = {r: (cs[:max(M_LIST)], vs[:max(M_LIST)]) for r, (cs, vs) in sel40.items()}
+    sh["sel_div"] = diversify_sel(sel40, d_c, m_max=max(M_LIST), cos_max=COS_MAX)
     return sh
 
 
@@ -276,13 +281,10 @@ def deploy_curves(rung, rows, budgets=BUDGETS):
 
 
 # ============================================================================= per-answer section
-def per_answer_section(rung, rows):
-    """Concepts-only m curve (rung operator, per-answer top-SEL selection -- the G5-E axis), items
-    coldk2/k8 snap, mixed m2k2."""
-    ctx, sh = rung.ctx, rung.sh
-    sel = sh["sel_top"]
-    res = {"concepts_only": {"full@10": {}, "tail@10": {}}}
-    rows_c = [r for r in rows if r in sel]
+def _concepts_only_curve(rung, rows_c, sel):
+    """Rung-operator concepts-only m curve under a given selection. Returns ({m: full}, {m: tail})."""
+    ctx = rung.ctx
+    ff = {}; tt = {}
     for m in M_LIST:
         item_seqs = [(np.empty(0, np.int64), np.empty(0, np.int64))] * len(rows_c)
         conc_lists = [list(zip(sel[r][0][:m], sel[r][1][:m])) for r in rows_c]
@@ -293,8 +295,24 @@ def per_answer_section(rung, rows):
             S = (Z[st:st + len(ch)] @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
             f, t = ndcg10_from_scores(S, ctx.va_tr[ch], ctx.va_te[ch], ctx.head_mask)
             full[st:st + len(ch)] = f; tail[st:st + len(ch)] = t
-        res["concepts_only"]["full@10"][str(m)] = float(np.nanmean(full))
-        res["concepts_only"]["tail@10"][str(m)] = float(np.nanmean(tail))
+        ff[str(m)] = float(np.nanmean(full)); tt[str(m)] = float(np.nanmean(tail))
+    return ff, tt
+
+
+def per_answer_section(rung, rows):
+    """Concepts-only m curve (rung operator; DIVERSIFIED selection = the default per-answer axis --
+    author ruling 2026-07-24), items coldk2/k8 under the rung's own tower, mixed m2k2. armA also emits
+    the top-SEL comparator row (the correlation-artifact story stays visible)."""
+    ctx, sh = rung.ctx, rung.sh
+    sel = sh["sel_div"]                                       # DEFAULT: diversified |cos|<0.5
+    res = {"selection": "diversified |cos|<0.5 (default per author ruling 2026-07-24)"}
+    rows_c = [r for r in rows if r in sel]
+    ff, tt = _concepts_only_curve(rung, rows_c, sel)
+    res["concepts_only"] = {"full@10": ff, "tail@10": tt}
+    if rung.name == "armA":                                   # comparator row: top-SEL under armA
+        rows_t = [r for r in rows if r in sh["sel_top"]]
+        ff_t, tt_t = _concepts_only_curve(rung, rows_t, sh["sel_top"])
+        res["concepts_only_topSEL_comparator"] = {"full@10": ff_t, "tail@10": tt_t}
     seq = [res["concepts_only"]["full@10"][str(m)] for m in M_LIST]
     res["monotone_to_m8_full"] = bool(all(seq[i + 1] >= seq[i] - 1e-9 for i in range(len(seq) - 1)))
     seqt = [res["concepts_only"]["tail@10"][str(m)] for m in M_LIST]
@@ -400,9 +418,10 @@ def main():
     prev_p = os.path.join(OUTDIR, "concepts_only_curve.json")
     if (not args.smoke) and os.path.exists(prev_p) and "armA" in rungs:
         prev = json.load(open(prev_p))
-        deltas = {str(m): out["rungs"]["armA"]["per_answer"]["concepts_only"]["full@10"][str(m)]
+        comp = out["rungs"]["armA"]["per_answer"]["concepts_only_topSEL_comparator"]
+        deltas = {str(m): comp["full@10"][str(m)]
                   - prev["configs"]["pure_whitened_b1"]["full@10"][str(m)] for m in M_LIST}
-        out["snap_control_armA_vs_recorded"] = deltas
+        out["snap_control_armA_topSEL_vs_recorded"] = deltas
     out["seconds"] = round(time.time() - t00, 1)
     outdir = ctx.outdir if args.smoke else OUTDIR
     os.makedirs(outdir, exist_ok=True)
@@ -419,7 +438,11 @@ def main():
             print(f"[{name}] {r}"); continue
         pa = r["per_answer"]
         cc = pa["concepts_only"]["full@10"]
-        print(f"[{name}] per-answer: conc m1/2/4/8 = " +
+        if "concepts_only_topSEL_comparator" in pa:
+            ct = pa["concepts_only_topSEL_comparator"]["full@10"]
+            print(f"[{name}] per-answer topSEL comparator: conc m1/2/4/8 = " +
+                  "/".join(f"{ct[str(m)]:.4f}" for m in M_LIST) + "  (the correlation artifact)")
+        print(f"[{name}] per-answer (div-sel): conc m1/2/4/8 = " +
               "/".join(f"{cc[str(m)]:.4f}" for m in M_LIST) +
               f" mono_m8={pa['monotone_to_m8_full']}|{pa['monotone_to_m8_tail']}" +
               (f" coldk2={pa.get('coldk2_full@10', float('nan')):.4f}"
