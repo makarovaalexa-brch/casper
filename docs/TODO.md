@@ -11,11 +11,13 @@ fought ON the certified instrument. Elicitation-line SYSTEMS appear in A only as
 recommender cores); their POLICIES fight in B.
 
 ## ★ AUTHOR ROADMAP (Jul 24) — in order
-0. **Deep research: the graded-inputs-discarded story** (agent running) → findings file + published-
-   faithful replication plan (graded AND binary upgrades). **Claim discipline: the honest graded premium
-   is currently ~+0.017 (G6 decomposition: likes-only 0.3435 / all-rated-membership 0.4022 / true-graded
-   0.4189) — most of the all-bands gain is REVEAL-SET SIZE; the all-rated-BINARY frontier control (arm g)
-   decides the final number. NO "+6.5 on SOTA" claim.**
+0. **Deep research: DONE** (findings/graded_inputs_for_ranking.md; premium claim pre-emption-mapped).
+   **PARITY CORRECTION (Jul 24): the 0.419 was a MASKING ARTIFACT** — parity-correct all-bands graded =
+   0.3478 vs likes-only 0.3435 (+0.004, marginal). Binary-EASE POISONED by all-rated fold (0.3446→0.2892)
+   = the no-poisoning asymmetry claim. Phase-A gate verdicts unaffected (within-convention pairs).
+   **In-flight, FINISH but do not extend now (author): remaining fair-fight arms + the premium-vs-k
+   curve** (the likely headline: opinion value grows as evidence shrinks). Then PARK baselines until
+   step 4-5.
 1. **Fix G5 standalone-cold concept** (whitened dir loses the prior at k0 by 0.0045; per-k β / floor
    blend) — important, part of Step-2 design.
 2. **Belief layer (Phase B)**: Σ + G1/G4/G8, formal G2, C2.
