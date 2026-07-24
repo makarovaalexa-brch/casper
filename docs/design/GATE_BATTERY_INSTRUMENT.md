@@ -59,6 +59,14 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   from answer content alone *(separates instrument from policy — the E0/G2 taste-peek lesson: beats-random
   certifies selection, the instrument paper must certify ingestion)*.
 
+- **G10 — strategy discrimination (added 2026-07-24, author-prompted).** The instrument must RANK
+  question strategies sensibly: privileged-oracle selection > random > adversarial-worst (least-informative
+  items), each separation CI-clean, on full AND tail, same harness/credit-neutral masking. Certifies the
+  ruler for every Chapter-B policy comparison (a B-null becomes attributable to the policy, not the
+  instrument). Shares compute with the headroom probe (oracle arm = its L1); context: the G2-formal
+  random-beats-popularity-on-tail result is Rashid-2002's uninformative-blockbusters effect, not ruler
+  insensitivity — G10 makes that defense a measurement.
+
 ## One-time certifications (expensive; per instrument, not per build)
 
 - **C1 — published-number bridge.** Implementations snap to published numbers on the canonical split

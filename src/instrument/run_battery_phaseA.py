@@ -196,6 +196,7 @@ def build_real_ctx(snapshot):
         f"{sum(1 for s, l in allb if (l <= 4).sum() >= 3)} users with >=3 dislikes")
     # canonical k2 graded subset (tower cold parity) for G5 context
     L_val, _ = build_graded_eval_matrix(raw, unique_uid, show2id, usid, "validation")
+    ctx.L_val = L_val                        # stashed for downstream cold-k protocols (concepts_only_curve)
     Lk2 = truncate_graded(L_val, 2, COLD_SEED)
     ctx.k2_tokens = [(Lk2[i].indices.astype(np.int64), (Lk2[i].data - 1).astype(np.int64))
                      for i in range(ctx.n)]
