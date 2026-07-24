@@ -99,6 +99,13 @@ recommender cores); their POLICIES fight in B.
 - [ ] **C2 certification** (SEL transfer; leak clause: exclude held-out targets).
 
 ## Chapter A figures (author-approved — build with the battery results)
+- [ ] **FIG: GRADED PREMIUM vs EVIDENCE SIZE (author-endorsed Jul 24, "great analysis")** — the curve
+      k∈{2,4,8,16,full}: values-premium (graded − membership-only) and reveal-premium (membership −
+      likes-only), paired CIs, parity-masked; plus the per-k flip-delta (sign-value curve). Expected
+      story: opinion value GROWS as evidence shrinks — the interview-native finding. Run commissioned
+      (`src/instrument/premium_vs_k.py` → experiments/battery/premium_vs_k.json, auto after fair-fight
+      arms); becomes a chapter section + figure alongside the fair-fight asymmetry table (classic graded
+      variants all NEGATIVE premium; tower the only non-negative one).
 - [ ] **FIG-1 "intensity staircase"**: ΔNDCG from folding ONE answer at each level hated→loved, per
       channel (items, concepts). The G3 figure — no elicitation paper has it.
 - [ ] **FIG-2 "gap map, measured axes"**: upgrade the qualitative TikZ quadrant → scatter with
