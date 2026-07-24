@@ -252,10 +252,17 @@ def train(args):
     log(f"[cfold] TRAINABLE params = {net.n_params():,} (emb {len(tags)}x{enc.d_out} + gate + mlp + cap)")
     opt = torch.optim.AdamW(net.parameters(), lr=args.lr, weight_decay=1e-5)
     ckb = os.path.join(CKPT_DIR, f"{args.tag}_best.pt")
-    best = -1.0
+    best = -1.0; start_ep = 0
+    if args.resume_from_best and os.path.exists(ckb):
+        # resume from the best ckpt's weights (fresh optimizer; the 2026-07-24 harness-kill recovery).
+        blob = torch.load(ckb, map_location="cpu")
+        assert blob["tags"] == tags, "concept vocabulary drift on resume"
+        net.load_state_dict(blob["net"])
+        start_ep = int(blob["epoch"]); best = float(blob["val"]["m8_full"])
+        log(f"[cfold] RESUMED FROM BEST ep{start_ep} (val m8={best:.4f}); fresh optimizer")
     # val harness: concepts-only m={2,8} on the val cohort (built once; the author acceptance metric)
     import run_battery_phaseA as PA_
-    for ep in range(args.epochs):
+    for ep in range(start_ep, args.epochs):
         rng = np.random.default_rng(1000 + ep)
         order = rng.permutation(len(users))
         net.train(); run = 0.0; nb = 0; t0 = time.time()
@@ -595,6 +602,8 @@ def main():
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--hidden", type=int, default=256)
     ap.add_argument("--max_users", type=int, default=0, help="dev cap only (0=all; HARD RULE #1)")
+    ap.add_argument("--resume_from_best", action="store_true",
+                    help="resume from <tag>_best.pt weights (fresh optimizer; continue epochs)")
     ap.add_argument("--full_threads", action="store_true")
     args = ap.parse_args()
     if args.smoke:
