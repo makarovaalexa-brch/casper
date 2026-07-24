@@ -36,6 +36,20 @@ _Canonical current recommender = **pbC set-encoder** (interview-native). The Rec
 - Adaptivity **proven** (+47% tail from one genre question — HARD RULE #2).
 - Concepts **lose to items** as an interview router; a concept answer ≈ a coarsened item-watch signal.
 
+## ★ BATTERY PHASE A: PASSED (2026-07-24, ep4 i25 snapshot — no redo indicated)
+- **Tower v4 (i25-redux: frozen RecVAE anchor + a(n) gate + zero-init sum-pool residual, 838k trainable,
+  ~16min epochs): G0-strength TIE (test 0.3536 vs 0.3540, CI ±0.007)**; coldk2 0.1965 / coldk8 0.2618 =
+  leads ALL baselines; all-bands graded fold = **0.4189/0.2999 (+0.065 over the RecVAE bar — pending
+  masking-parity verification; potential headline "R1 exceeded via graded channel")**.
+- Gates: **G3a flip PASS** (−0.299, sign carries ~70%), staircase Spearman 0.927 PASS, **G3b PASS**
+  (values = the signal, 57× MDE), **G9 PASS** (fixed-bank monotone +0.122), G6 3/4 PASS + wrong-user
+  criterion re-specified (scored 0.099 BELOW intercept = genuine personalization, not a leak — ruling:
+  substantive PASS, spec fixed to "no gain over intercept"). **G5 mixed:** member specificity AUC
+  0.885–0.926 PASS, Arm A ≫ Arm B (bag k0 0.016 catastrophe as predicted), concept-on-context +0.008,
+  but **concept-ONLY cold misses the intercept by 0.0045** — channel certified as context-additive;
+  standalone-cold concept = Step-2 design item (per-k β / floor blend), claim narrowed until fixed.
+- Next: masking-parity check on the +0.065; selection-rule fix + longer-cold clean run; Phase B (Σ gates).
+
 ## ★ RULER RESET (2026-07-21, author-approved)
 - **Canonical G0 ruler = Liang recipe on ML-25M** (>3.5, min5, **10k val + 10k test held-out users**, 80/20
   fold-in, seed 98765; `liang_split.py --data ml-25m`). Old 500/500 arena split = elicitation-only.
