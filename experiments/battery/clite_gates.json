@@ -1,0 +1,70 @@
+{
+  "gates": "clite_concept_gates",
+  "ckpt": "cfold_best.pt",
+  "n_users": 10000,
+  "evidence": "top-4 diversified SEL concepts, k=0",
+  "intercept_full@10": 0.12793773315625726,
+  "true_full@10": 0.20571477485186643,
+  "g3a_flip": {
+    "flipped_full@10": 0.004546190041280077,
+    "delta": -0.2011685848105863,
+    "ci95": [
+      -0.2053892904539624,
+      -0.19701275304072172
+    ],
+    "PASS": true,
+    "note": "net trained on v in [0.25,1]; -v = negated candidate point"
+  },
+  "g6_wrong_user": {
+    "full@10": 0.0974466386348015,
+    "delta_vs_intercept": -0.030491094521455774,
+    "ci95": [
+      -0.03296978810684012,
+      -0.02799232877109849
+    ],
+    "PASS_no_gain_over_intercept": true
+  },
+  "g6_shuffled_values": {
+    "true_minus_shuffled": 0.005778554249735308,
+    "ci95": [
+      0.004352662106951225,
+      0.007180797773669992
+    ],
+    "note": "graded-value binding within the concept set (reported)"
+  },
+  "g6_placebo_constant1": {
+    "true_minus_placebo": 0.0019093589177726746,
+    "ci95": [
+      0.00046614997125573676,
+      0.0033199310176422704
+    ],
+    "note": "membership kept, values flattened to 1.0 (reported)"
+  },
+  "g6_duplicates": {
+    "x2": {
+      "delta": 0.0006249005494567982,
+      "ci95": [
+        -0.0006193505037384367,
+        0.0019000118822121066
+      ],
+      "PASS_near_zero": true
+    },
+    "x3": {
+      "delta": -0.005001854841893998,
+      "ci95": [
+        -0.006841278340211198,
+        -0.0031551166174319943
+      ],
+      "PASS_near_zero": false
+    }
+  },
+  "g8_order": {
+    "raw_order_max_dz": 2.741257429122925,
+    "raw_order_max_dNDCG": 0.6845351232142712,
+    "raw_order_mean_absdNDCG": 0.028288008141190663,
+    "canonical_order_invariant": true,
+    "note": "recursion is order-dependent in principle; the deployed path sorts canonically (desc value, ties by id) = exact invariance; raw-order sensitivity reported as the honest residual"
+  },
+  "PASS": false,
+  "seconds": 101.1
+}
