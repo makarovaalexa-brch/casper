@@ -341,7 +341,7 @@ def eval_curve(args):
     import run_battery_phaseA as PA_
     from run_battery_phaseA import build_real_ctx, load_genome, ndcg10_from_scores, eval_tokens, \
         bootstrap_ci, spearman
-    from concepts_only_curve import sel_top_concepts, concepts_only_scores, K_SEED
+    from concepts_only_curve import sel_top_concepts, concepts_only_scores, diversify_sel, K_SEED
     from train_tower_t2 import truncate_graded
     blob = torch.load(args.eval_curve, map_location="cpu")
     ctx = build_real_ctx(args.snapshot)
@@ -353,8 +353,12 @@ def eval_curve(args):
     d_c, d_raw, w_c = build_concept_dirs(ctx.Wd, members, tags)
     net = ConceptFoldNet(len(tags), d=ctx.d, h=blob["hidden"], conc_init=None)
     net.load_state_dict(blob["net"]); net.eval()
-    sel = sel_top_concepts(ctx, members, tags, M_MAX)
-    rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel]
+    # selection: DIVERSIFIED default (author ruling; ask-order upside) for the main curve; the
+    # CORRELATED top-SEL set feeds the REDUNDANCY-ROBUSTNESS acceptance row (m8 !< m4).
+    sel40 = sel_top_concepts(ctx, members, tags, 40)
+    sel_top = {r: (cs[:M_MAX], vs[:M_MAX]) for r, (cs, vs) in sel40.items()}
+    sel = diversify_sel(sel40, torch.as_tensor(d_c), m_max=M_MAX)
+    rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel and r in sel_top]
     empty = [(np.empty(0, np.int64), np.empty(0, np.int64))] * ctx.n
     f_int, t_int = eval_tokens(ctx, empty, ctx.va_tr, rows=rows)
     out = {"analysis": "concepts_only_curve_armC", "ckpt": os.path.basename(args.eval_curve),
@@ -386,6 +390,31 @@ def eval_curve(args):
                 f"{out['armC']['tail@10'][str(m)]:.4f} | armA "
                 f"{out['armA_comparator']['full@10'][str(m)]:.4f}/"
                 f"{out['armA_comparator']['tail@10'][str(m)]:.4f}")
+        # REDUNDANCY ROBUSTNESS (author acceptance clause 2026-07-24): folding the CORRELATED top-SEL
+        # m=8 set must NOT decline vs its m=4 prefix (full AND tail) -- the operator itself must fix
+        # redundancy; div-selection is ask-order upside, not a crutch.
+        red = {}
+        for m in (4, 8):
+            fR = np.full(ctx.n, np.nan); tR = np.full(ctx.n, np.nan)
+            for st in range(0, len(rows), 500):
+                chunk = rows[st:st + 500]
+                Z0 = torch.zeros(len(chunk), ctx.d)
+                cids = []; cvals = []
+                for r in chunk:
+                    cs, vs = sel_top[r]
+                    ci, vv = ConceptFoldNet.canonical_order(list(cs[:m]), list(vs[:m]))
+                    cids.append(ci); cvals.append(vv)
+                zo = net(Z0, cids, cvals)
+                S = (zo @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
+                ff, tt = ndcg10_from_scores(S, ctx.va_tr[chunk], ctx.va_te[chunk], ctx.head_mask)
+                fR[np.asarray(chunk)] = ff; tR[np.asarray(chunk)] = tt
+            red[str(m)] = {"full": float(np.nanmean(fR[rows])), "tail": float(np.nanmean(tR[rows]))}
+        out["redundancy_topSEL"] = red
+        out["redundancy_robust_full"] = bool(red["8"]["full"] >= red["4"]["full"] - 1e-9)
+        out["redundancy_robust_tail"] = bool(red["8"]["tail"] >= red["4"]["tail"] - 1e-9)
+        log(f"[eval redundancy topSEL] m4 {red['4']['full']:.4f}/{red['4']['tail']:.4f} -> "
+            f"m8 {red['8']['full']:.4f}/{red['8']['tail']:.4f} robust="
+            f"{out['redundancy_robust_full']}|{out['redundancy_robust_tail']}")
         # acceptance verdicts
         for arm in ("armC", "armA_comparator"):
             sf = [out[arm]["full@10"][str(m)] for m in (1, 2, 4, 8)]
@@ -446,6 +475,8 @@ def eval_curve(args):
         out["acceptance"] = {
             "monotone_full_to_m8": out["armC_monotone_full"],
             "monotone_tail_to_m8": out["armC_monotone_tail"],
+            "redundancy_robust_full": out["redundancy_robust_full"],
+            "redundancy_robust_tail": out["redundancy_robust_tail"],
             "mixed_ge_armA_bar": bool(out["mixed_m2_k2"]["vs_items_k2"]["mean"] >= 0.0125),
             "g5_auc_gt_0.8": bool(out["g5_member_auc_k0"] > 0.8),
             "G_collinearity": out["G_collinearity_PASS"]}

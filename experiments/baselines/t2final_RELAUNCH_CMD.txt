@@ -1,0 +1,5 @@
+CERTIFICATION RELAUNCH (author reorder 2026-07-24: concepts first, certification LAST on the winning config)
+Killed at ep4 b500/551 (ckpts .cache/instrument/t2final.pt + t2final_best.pt preserved; --resume works).
+Original launch:
+  python -u src/instrument/train_tower_t2.py --train --tag t2final --p_interview 0.5 --select_cold
+If the ledger picks C-full, relaunch WITH --concept_tokens on the winning config instead.

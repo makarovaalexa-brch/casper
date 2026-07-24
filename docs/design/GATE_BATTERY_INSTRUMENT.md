@@ -60,6 +60,16 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   ONE tradeoff ledger on the same harness: item full+tail NDCG@10 (the SOTA-tie cost axis) vs the
   concepts-only curve (the elicitation-gain axis) for every arm. The item-cost of C-full is a DECISION
   INPUT, not an auto-fail; the author picks the operating point from the ledger.
+  (e) **REDUNDANCY ROBUSTNESS (added 2026-07-24, author: correlated items don't hurt, correlated
+  concepts must not either — the operator must fix redundancy itself; diversified selection is
+  ask-order UPSIDE, not a crutch).** Folding the CORRELATED top-SEL m=8 concept set must NOT decline
+  vs its own m=4 prefix, on full AND tail — the near-duplicate form of G6's duplicate-invariance
+  (siblings like action/adventure/thriller are near-duplicate observations; an operator that
+  over-counts them fails exactly the way ×2/×3 duplicates would). Required of every TRAINED arm
+  (C-lite/C-full acceptance clause); reported for every rung in the tradeoff ledger — the untrained
+  Arm A fails it by construction (the Jul-24 Fix-A finding: top-SEL m8 0.0991 vs m4 0.1349 = the
+  correlation crater), which is the visible motivation row. *(additive-union saturation; correlated
+  near-duplicate over-count)*.
 - **G6 — existential controls (HARD RULE 5, now discharged for the fold itself).** Wrong-user answers,
   shuffled answers, and placebo-constant answers through the identical pipeline must gain ≈ nothing
   (≪ true-answer arm); duplicate answers ×2/×3 change nothing (information, not cardinality)
