@@ -30,8 +30,9 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   ambush)*.
 - **G3 — sign & intensity fidelity.** (a) FLIP test: negate every answer's sign → ΔNDCG < 0, CI excl. 0,
   per channel; (b) VALUE-NONINERT: neutralizing values to "meh" (membership frozen) drops NDCG ≥ MDE
-  *(the 7-fold value-inertness wall)*; (c) monotone-in-intensity: Spearman(level, Δ) > 0 and
-  binarize-ablation must LOSE *(graded-collapse)*.
+  *(the 7-fold value-inertness wall)*; (c) monotone-in-intensity: Spearman(level, Δ) > 0; and the binarize-ablation comparison is run AS AN
+  INTERVIEW-LENGTH CURVE (author, Jul 24): graded vs binarized tower over k=2..full — gradedness must win
+  somewhere on the curve, expected in the cold regime *(graded-collapse; the premium-vs-k form)*.
 - **G4 — refusal BOUNDEDNESS (RESTRUCTURED 2026-07-24, author ruling; renamed Jul 24 — refusals DO carry the small fitted consumption signal per the author's Jul-22 correction).** A refusal must count far less than a real answer,
   tested WITHIN the same channel/direction family (dodges the cross-channel α-scale confound):
   α_refuse/α_answer ≤ 0.05 same-channel. *(Fitted shakedown: 0.018/27.66 = 0.0007 — PASS.)*
@@ -41,7 +42,9 @@ under (i) G0 is a CI-tie, under (ii) G0 is bit-identity + Σ must be load-bearin
   one live data-side proxy = SEL support count for concepts), certifiable only if confidence-bearing data
   ever exists. The Jul-24 Phase-B "G4 FAIL" is re-dispositioned: ordering = unmeasurable-by-design;
   refusal-inertness = PASS.
-- **G5 — concept/channel specificity.** Folding concept c ranks member items above matched non-members
+- **G5 — concept/channel specificity (STANDALONE-COLD = HARD REQUIREMENT, author Jul 24: concepts are
+  the most answerable channel; concepts-only interviews are a realistic deployment mode — no 'context
+  modifier' narrowing permitted; escalation: fix arms → conjugate mean-update fold → Arm C training).** Folding concept c ranks member items above matched non-members
   (member-lift AUC > 0.8) AND beats folding c's own popularity-projection (top-PC partialled out); honest
   bar on tail = popularity-WITHIN-the-filter; dedicated channel ≥ trained member-bag injection
   *(raw-centroid popularity collapse; member-bag catastrophe)*.

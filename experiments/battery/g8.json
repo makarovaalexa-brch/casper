@@ -1,0 +1,45 @@
+{
+  "gate": "G8",
+  "order_invariance": {
+    "mu_max_dev": 4.76837158203125e-07,
+    "tr_max_dev": 0.0,
+    "PASS": true
+  },
+  "selection_full@10": {
+    "sigma": {
+      "2": 0.17479422778260942,
+      "4": 0.20494772050485036,
+      "8": 0.23722923827291012,
+      "16": 0.27243744107987183
+    },
+    "ci": {
+      "2": 0.1750539479150856,
+      "4": 0.20057860836471714,
+      "8": 0.23023778066914327,
+      "16": 0.2635306813686896
+    },
+    "random": {
+      "2": 0.1754937836654848,
+      "4": 0.20409623736553864,
+      "8": 0.23579308724429107,
+      "16": 0.26881104559156194
+    }
+  },
+  "sigma_beats_ci_by_budget": {
+    "2": false,
+    "4": true,
+    "8": true,
+    "16": true
+  },
+  "sigma_minus_ci_full@10_maxbudget": {
+    "mean": 0.0089067597111822,
+    "ci95": [
+      0.007085843321641447,
+      0.010697349015999918
+    ]
+  },
+  "sigma_load_bearing_PASS": false,
+  "note": "if sigma does NOT beat cI, R4 narrows to selection-grade-only -- report honestly",
+  "seconds": 1856.6,
+  "PASS": false
+}
