@@ -1,0 +1,35 @@
+{
+  "gate": "G6",
+  "true_full@10": 0.4189561567350627,
+  "intercept_full@10": 0.15289870014870685,
+  "wrong_user": {
+    "full@10": 0.05431993432535898,
+    "delta_vs_intercept": -0.09857876582334787,
+    "ci95": [
+      -0.10215239561459526,
+      -0.09495476507260238
+    ],
+    "PASS_near_intercept": false
+  },
+  "shuffled_levels": {
+    "full@10": 0.38189931529682664,
+    "true_minus_shuffled": 0.0370568414382361,
+    "ci95": [
+      0.03376805670495799,
+      0.04037869449087458
+    ],
+    "PASS": true
+  },
+  "placebo_4star": {
+    "full@10": 0.4022059547812708,
+    "true_minus_placebo": 0.016750201953791934,
+    "ci95": [
+      0.013728467970088832,
+      0.01975166368923219
+    ],
+    "PASS": true
+  },
+  "duplicate_assert_fired": true,
+  "seconds": 506.0,
+  "PASS": false
+}
