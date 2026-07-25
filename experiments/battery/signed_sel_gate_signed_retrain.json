@@ -1,0 +1,314 @@
+{
+  "gate": "signed_sel_triple_gate_AMENDED",
+  "amendments": "2026-07-25 author rulings: OOD asymmetry (arm1 worse = INCONCLUSIVE, only arm2>=70% = HARD KILL); value = bpool_r2 SEL+VAL port; value-permutation sanity row kept; KT-A4 dropped",
+  "pre_registered_selval": {
+    "source": "ALL 140768 train users, 76,826,039 answerable cells (n>=2, EXPO>=TAU)",
+    "formula": "v_raw = SEL + VAL; SEL=log2((n+.5)/(e+.5)); VAL=(n/(n+3))*mean(star - train item mean); REFUSE iff e < 1.5",
+    "S_scale_p90_abs": 1.5423595905303955,
+    "vraw_quantiles": {
+      "5": -1.6619136452674865,
+      "25": -0.6529190540313721,
+      "50": -0.0365414135158062,
+      "75": 0.5431905090808868,
+      "95": 1.4167768955230713
+    },
+    "TAU_refuse": 1.5,
+    "LAM_val": 3.0,
+    "item_mean_source": "TRAIN users only (leak-free)",
+    "clip_provenance": "bpool_r2 never clipped; [0.25,1] entered downstream in sel_top_concepts (concepts_only_curve.py, 7f45fd2) -> concept_fold.make_example/quick_val + train_tower_t2.sel_value_to_level"
+  },
+  "v1_thresholds_for_arm3_row": {
+    "source": "ALL 140768 train users, 68,346,337 answerable pairs",
+    "r_neg_cutoff_p25": -0.2104100158712499,
+    "s_neg_scale_p10_abs": 0.6281251239717115,
+    "min_expected_members": 3.0,
+    "neutral_band": "(-0.2104, 0]",
+    "eps": 0.002,
+    "train_median_volume": 41.0,
+    "min_expect_train_quantile": 0.31077947893535246
+  },
+  "decision_rules": {
+    "HARD_KILL_iff": "arm2 gain over clipup at q16 >= 0.70 * arm1 gain (given arm1 gain>0)",
+    "STRONG_SUPPORT_iff": "arm1 full@q >= arm1@q2 - eps for all q AND q16 > q2",
+    "otherwise": "INCONCLUSIVE (dislike/neutral OOD for the [0.25,1]-trained module); signed retrain proceeds regardless, gated by counterfeit-eval on the retrained model -- NOT launched from here",
+    "eps": 0.002,
+    "arm2_fraction": 0.7
+  },
+  "status": "SCORED",
+  "n_users": 10000,
+  "intercept": {
+    "full": 0.12793773315625726,
+    "tail": 0.01923195232020529
+  },
+  "snap_clipup_vs_ledger": {
+    "deltas": {
+      "2": -0.0032207989883190347,
+      "4": -0.00010963140246172953,
+      "8": 0.002735790459752613,
+      "16": 0.010758628048812904
+    },
+    "PASS": false
+  },
+  "arms": {
+    "clipup": {
+      "2": {
+        "full@10": 0.12717920101168095,
+        "tail@10": 0.02289181669912108,
+        "types_per_user": {
+          "like": 1.999,
+          "meh": 0.0,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.12899036859753826,
+        "tail@10": 0.021559091665724023,
+        "types_per_user": {
+          "like": 3.995,
+          "meh": 0.0,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.12693579045975262,
+        "tail@10": 0.018821145924742596,
+        "types_per_user": {
+          "like": 7.974,
+          "meh": 0.0,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.1267586280488129,
+        "tail@10": 0.018023884394729683,
+        "types_per_user": {
+          "like": 15.848,
+          "meh": 0.0,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    },
+    "arm1_signed": {
+      "2": {
+        "full@10": 0.12860952184506366,
+        "tail@10": 0.02429470616980803,
+        "types_per_user": {
+          "like": 0.756,
+          "meh": 0.578,
+          "dislike": 0.666,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.13112279713055142,
+        "tail@10": 0.029468751581868933,
+        "types_per_user": {
+          "like": 1.368,
+          "meh": 1.049,
+          "dislike": 1.579,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.14539842404818146,
+        "tail@10": 0.042770989070589294,
+        "types_per_user": {
+          "like": 2.666,
+          "meh": 1.845,
+          "dislike": 3.463,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.13718477024742146,
+        "tail@10": 0.04569640907439787,
+        "types_per_user": {
+          "like": 4.844,
+          "meh": 3.224,
+          "dislike": 7.78,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    },
+    "arm1p_value_permuted": {
+      "2": {
+        "full@10": 0.12132847863129331,
+        "tail@10": 0.020679096507724166,
+        "types_per_user": {
+          "like": 0.756,
+          "meh": 0.578,
+          "dislike": 0.666,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.11795588523030369,
+        "tail@10": 0.022617718831236585,
+        "types_per_user": {
+          "like": 1.368,
+          "meh": 1.049,
+          "dislike": 1.579,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.11902272933841677,
+        "tail@10": 0.02622020477102847,
+        "types_per_user": {
+          "like": 2.666,
+          "meh": 1.845,
+          "dislike": 3.463,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.10365085566202165,
+        "tail@10": 0.02273192566930355,
+        "types_per_user": {
+          "like": 4.844,
+          "meh": 3.224,
+          "dislike": 7.78,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    },
+    "arm2_pop_counterfeit": {
+      "2": {
+        "full@10": 0.12600213022052742,
+        "tail@10": 0.022530147188585044,
+        "types_per_user": {
+          "like": 0.028,
+          "meh": 1.617,
+          "dislike": 0.355,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.12359381988629974,
+        "tail@10": 0.0212966600130438,
+        "types_per_user": {
+          "like": 0.057,
+          "meh": 2.307,
+          "dislike": 1.631,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.1148914256616516,
+        "tail@10": 0.020327944351380862,
+        "types_per_user": {
+          "like": 0.131,
+          "meh": 3.599,
+          "dislike": 4.244,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.08155747734142565,
+        "tail@10": 0.017691232354767956,
+        "types_per_user": {
+          "like": 0.335,
+          "meh": 5.374,
+          "dislike": 10.139,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    },
+    "arm3_meh_only": {
+      "2": {
+        "full@10": 0.12828128804302552,
+        "tail@10": 0.02431477633917858,
+        "types_per_user": {
+          "like": 1.551,
+          "meh": 0.448,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.13138965645962983,
+        "tail@10": 0.024484719767285893,
+        "types_per_user": {
+          "like": 2.775,
+          "meh": 1.221,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.13352831823127448,
+        "tail@10": 0.02485547910056043,
+        "types_per_user": {
+          "like": 5.098,
+          "meh": 2.876,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.13190853108510064,
+        "tail@10": 0.023463660244264557,
+        "types_per_user": {
+          "like": 9.446,
+          "meh": 6.402,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    }
+  },
+  "decision": {
+    "strong_support": true,
+    "hard_kill_arm2": false,
+    "arm1_gain_q16": 0.010426142198608546,
+    "arm2_gain_q16": -0.045201150707387255,
+    "clip_specific_informational": false,
+    "arm1_minus_clipup_q16": {
+      "mean": 0.01042614219860857,
+      "ci95": [
+        0.007534213869160039,
+        0.013361287263855253
+      ]
+    },
+    "arm1_minus_value_permuted_q16": {
+      "mean": 0.03353391458539982,
+      "ci95": [
+        0.030953715793712668,
+        0.03607081465306729
+      ]
+    },
+    "VERDICT": "STRONG SUPPORT (arm1 holds its q2 level through q16 and trends up)"
+  },
+  "kt_a3_leak_probe": {
+    "ridge_R2_logvol_from_q8_latent": {
+      "clipup": 0.023646531459662223,
+      "arm1_signed": 0.2492785582939705
+    },
+    "leak_tell": true
+  },
+  "seconds": 377.5
+}
