@@ -472,6 +472,7 @@ def main():
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
     ap.add_argument("--arms", default="G,B,O,K,U,S,C")
+    ap.add_argument("--out", default="answer_contrast_newrec.json")
     ap.add_argument("--sclite_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
                                                           "cfold_signed_best.pt"))
     ap.add_argument("--full_threads", action="store_true")
@@ -545,6 +546,14 @@ def main():
             from selplus import build_content_arrays, Content
             Vc, Fc, ansc = build_content_arrays(ctx, sh, Mm, pexp, smoke=args.smoke)
             models["C"] = Content(Vc, Fc, ansc, lvl_lookup); sh["conc_value_content"] = Vc
+        elif tag == "E":
+            from imputer_models import build_expomf_arrays, FactorImputer
+            Ve, Fe, anse = build_expomf_arrays(ctx, sh, Mm, pexp, smoke=args.smoke, log=log)
+            models["E"] = FactorImputer(Ve, Fe, anse, lvl_lookup); sh["conc_value_expomf"] = Ve
+        elif tag == "P":
+            from imputer_models import build_tagmf_arrays, FactorImputer
+            Vp, Fp, ansp = build_tagmf_arrays(ctx, sh, Mm, pexp, smoke=args.smoke, log=log)
+            models["P"] = FactorImputer(Vp, Fp, ansp, lvl_lookup); sh["conc_value_tagmf"] = Vp
         elif tag == "K":
             models["K"] = "oracle_select"                           # sentinel; concept-only arm
 
@@ -617,7 +626,8 @@ def main():
         if tag == "O":
             spear[tag] = 1.0; continue
         Vt = {"B": Vb, "K": Vb, "S": sh.get("conc_value_selplus"),
-              "C": sh.get("conc_value_content")}.get(tag)          # K folds honest B values (selection arm)
+              "C": sh.get("conc_value_content"), "E": sh.get("conc_value_expomf"),
+              "P": sh.get("conc_value_tagmf")}.get(tag)           # K folds honest B values (selection arm)
         if Vt is None:                                              # G / U answers have no fixed value
             spear[tag] = None; continue                            # table -> N/A
 
@@ -653,7 +663,7 @@ def main():
     if {"U", "O"} <= A:
         key["U_minus_O_concept_q8"] = trip("U", "O", "how far the SEL-formula oracle sits below true NDCG "
                                                      "ceiling (SEL is NOT the ceiling if >0)")
-    for imp in ("S", "C"):
+    for imp in ("S", "C", "E", "P"):
         if {imp, "B"} <= A:
             key[f"{imp}_minus_B_concept_q8"] = trip(imp, "B", f"{imp} imputer lift over behavioral SEL")
         if {imp, "O"} <= A:
@@ -702,7 +712,7 @@ def main():
     out["seconds"] = round(time.time() - t00, 1)
     outdir = ctx.outdir if args.smoke else OUTDIR
     os.makedirs(outdir, exist_ok=True)
-    jpath = os.path.join(outdir, "answer_contrast_newrec.json")
+    jpath = os.path.join(outdir, args.out)
     json.dump(out, open(jpath, "w"), indent=2, default=float)
     log(f"[out] -> {jpath}")
 
