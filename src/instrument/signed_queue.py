@@ -26,7 +26,7 @@ BATT = os.path.join(_ROOT, "experiments", "battery")
 STATE = os.path.join(BATT, "signed_queue_state.json")
 RUNLOG = os.path.join(BATT, "signed_queue.log")
 PY = sys.executable
-STAGES = ["U0", "U1", "U2", "U3", "done"]
+STAGES = ["U0", "U1", "U2", "U3", "U3b", "done"]
 _cur = {"stage": "U0"}
 
 
@@ -196,6 +196,19 @@ def u3_acceptance():
                           "(armA/fixab/clite/cfull/sclite/scfull) [signed queue U3]")
 
 
+def u3b_adaptive():
+    """U3b (author-committed 2026-07-25): THE decisive row -- adaptive concept selection.
+    static floor / realizable greedy / privileged oracle / items-pop, gap-closure per q."""
+    rc = run_stage_cmd(["src/instrument/adaptive_concept_arms.py", "--full_threads"],
+                       os.path.join(BATT, "adaptive_arms_run.log"))
+    if rc == 0:
+        git_commit(["experiments/battery/adaptive_concept_arms.json"],
+                   "U3b adaptive concept arms: static/greedy/oracle + items-pop, gap-closure "
+                   "decision quantity (the author concept-ruling row)")
+    else:
+        log("U3b FAILED (rc != 0) -- left for manual rerun")
+
+
 def main():
     start = read_stage()
     if start == "done":
@@ -219,7 +232,8 @@ def main():
             break
         _cur["stage"] = stage; write_state()
         log(f"=== STAGE {stage} ===")
-        {"U0": u0_demote_snap, "U1": u1_clite, "U2": u2_cfull, "U3": u3_acceptance}[stage]()
+        {"U0": u0_demote_snap, "U1": u1_clite, "U2": u2_cfull, "U3": u3_acceptance,
+         "U3b": u3b_adaptive}[stage]()
     _cur["stage"] = "done"; write_state()
     log("=== SIGNED QUEUE DONE (HARD STOP -- author picks the final winner) ===")
 
