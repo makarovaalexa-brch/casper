@@ -22,7 +22,7 @@ if (Test-Path $state) {
         $s = Get-Content $state -Raw | ConvertFrom-Json
         $cpid = [int]$s.pid
         $hb = [double]$s.heartbeat
-        $now = [double](Get-Date -UFormat %s)
+        $now = [double][DateTimeOffset]::UtcNow.ToUnixTimeSeconds()   # true UTC unix (PS %s is local-buggy)
         $age = $now - $hb
         $proc = Get-Process -Id $cpid -ErrorAction SilentlyContinue
         if ($proc -and ($proc.ProcessName -like 'python*') -and ($age -lt 1200)) { $alive = $true }
