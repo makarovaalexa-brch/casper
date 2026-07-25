@@ -180,13 +180,43 @@ def u2_cfull():
 
 
 def u3_acceptance():
-    rc1 = run_stage_cmd(["src/instrument/signed_sel_gate.py", "--full_threads",
-                         "--ckpt", ".cache/instrument/cfold_signed_best.pt",
-                         "--out_tag", "signed_retrain"],
-                        os.path.join(BATT, "signed_retrain_gate.log"))
-    rc2 = run_stage_cmd(["src/instrument/tradeoff_ledger.py", "--full_threads",
-                         "--rungs", "armA,fixab,clite,cfull,sclite,scfull"],
-                        os.path.join(BATT, "ledger_signed_run.log"))
+    """IDEMPOTENT (2026-07-25 race fix): artifact checks first; never start a second ledger while
+    one is live (the re-entry race re-ran the gate, whose startup prereg-write clobbers its own
+    completed JSON -- artifact check prevents that now)."""
+    gate_json = os.path.join(BATT, "signed_sel_gate_signed_retrain.json")
+    def gate_scored():
+        try:
+            return json.load(open(gate_json)).get("status") == "SCORED"
+        except Exception:
+            return False
+    rc1 = 0
+    if gate_scored():
+        log("U3: retrained gate artifact SCORED -> skip")
+    else:
+        while find_pid("signed_sel_gate"):
+            log("U3: a gate process is live -> waiting"); time.sleep(60)
+        if gate_scored():
+            log("U3: gate artifact SCORED (finished while waiting) -> skip")
+        else:
+            rc1 = run_stage_cmd(["src/instrument/signed_sel_gate.py", "--full_threads",
+                                 "--ckpt", ".cache/instrument/cfold_signed_best.pt",
+                                 "--out_tag", "signed_retrain"],
+                                os.path.join(BATT, "signed_retrain_gate.log"))
+    led_json = os.path.join(BATT, "tradeoff_ledger.json")
+    def ledger_has_signed():
+        try:
+            return isinstance(json.load(open(led_json)).get("rungs", {}).get("sclite"), dict)
+        except Exception:
+            return False
+    rc2 = 0
+    while find_pid("tradeoff_ledger"):
+        log("U3: a ledger process is live -> waiting"); time.sleep(120)
+    if ledger_has_signed():
+        log("U3: 6-rung ledger artifact present (sclite scored) -> skip")
+    else:
+        rc2 = run_stage_cmd(["src/instrument/tradeoff_ledger.py", "--full_threads",
+                             "--rungs", "armA,fixab,clite,cfull,sclite,scfull"],
+                            os.path.join(BATT, "ledger_signed_run.log"))
     paths = []
     if rc1 == 0:
         paths.append("experiments/battery/signed_sel_gate_signed_retrain.json")
