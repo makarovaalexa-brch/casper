@@ -4,7 +4,7 @@ Session-independent (launched via Start-Process). Writes split logs + a done mar
 
 Steps:
   1. wait until .cache/paper2_repl/pb_data.npz exists AND is size-stable; abort if it never appears.
-  2. leak check: fold-in ∩ target == ∅ for every test user (structural, but verified).
+  2. leak check: fold-in intersect target == empty for every test user (structural, but verified).
   3. pb_train_enc.py  (EP_MAX epochs, best-val checkpoint on the 10k val cohort -> enc.pt/Qp.npy/Ec.npy)
   4. pb_interview.py   (T=8 item+concept, static-pop + EIG, geometric answers, full+tail NDCG@10 on 10k
                         test users; canonical-snap full-profile + answer-permutation control inside it)
@@ -15,7 +15,7 @@ import os, sys, time, subprocess, numpy as np
 ROOT = 'C:/dev/phd/casper'; OUT = f'{ROOT}/.cache/paper2_repl'; RESD = f'{ROOT}/experiments/paper2_repl'
 PY = sys.executable
 os.makedirs(RESD, exist_ok=True)
-LOG = open(f'{RESD}/pb_run_rest.log', 'a', buffering=1)
+LOG = open(f'{RESD}/pb_run_rest.log', 'a', buffering=1, encoding='utf-8')
 def log(m): LOG.write(f"[{time.strftime('%H:%M:%S')}] {m}\n"); LOG.flush()
 
 NPZ = f'{OUT}/pb_data.npz'
@@ -46,13 +46,14 @@ fold = {}; tgt = {}
 for u, s in zip(fu, fs): fold.setdefault(int(u), set()).add(int(s))
 for u, s in zip(tu, ts): tgt.setdefault(int(u), set()).add(int(s))
 overlap = sum(len(fold.get(u, set()) & tgt.get(u, set())) for u in tgt)
-log(f"LEAK CHECK: total fold-in∩target overlaps across test users = {overlap} (must be 0)")
+log(f"LEAK CHECK: total fold-in/target overlaps across test users = {overlap} (must be 0)")
 if overlap != 0:
     log("ABORT: fold-in/target leak detected"); open(DONE, 'w').write(f"ABORT: leak {overlap}\n"); sys.exit(1)
 log(f"leak check OK; n_test_fold={len(fold)} n_test_tgt={len(tgt)} nc={int(Z['Ac'].shape[0])} ni={int(Z['ni'])}")
 
 # ---------------------------------------------------------------- 3. train encoder (best-val ckpt)
 env = dict(os.environ)
+env['PYTHONIOENCODING'] = 'utf-8'; env['PYTHONUNBUFFERED'] = '1'
 env['EP_CHUNK'] = env.get('EP_MAX', '12'); env['EP_MAX'] = env.get('EP_MAX', '12')
 log(f"launching pb_train_enc.py (EP_MAX={env['EP_MAX']})")
 with open(f'{RESD}/pb_train_enc.out', 'w', buffering=1) as o, open(f'{RESD}/pb_train_enc.err', 'w', buffering=1) as e:
