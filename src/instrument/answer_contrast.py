@@ -225,6 +225,26 @@ def walk_static_concept(rung, rows, model, order, budgets=BUDGETS):
     return ev
 
 
+def walk_oracle_select_concept(rung, rows, per_user_orders, Vb, budgets=BUDGETS):
+    """(K) ORACLE-CONCEPT-SELECTION: each user asked their OWN top-|value| concepts (privileged question
+    SELECTION), folded with the honest behavioral B value. Isolates FOLD health from the SELECTION
+    problem -- the upper bound on WHICH concepts to ask, honest answers. per_user_orders aligned to rows."""
+    folded = [[] for _ in rows]
+    qmax = max(budgets)
+    ev = {q: None for q in budgets}
+    if 0 in budgets:
+        ev[0] = [list(f) for f in folded]
+    for step in range(1, qmax + 1):
+        for j, r in enumerate(rows):
+            order = per_user_orders[j]
+            if step - 1 < len(order):
+                c = int(order[step - 1])
+                folded[j].append((c, float(Vb[r, c])))
+        if step in budgets:
+            ev[step] = [list(f) for f in folded]
+    return ev
+
+
 def walk_static_item(rung, rows, model, order, budgets=BUDGETS):
     """Fixed public item order; model.item_value gives the fold. Snapshots evidence at each q."""
     items = [[] for _ in rows]
@@ -451,7 +471,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
-    ap.add_argument("--arms", default="G,B,O,U,S,C")
+    ap.add_argument("--arms", default="G,B,O,K,U,S,C")
     ap.add_argument("--sclite_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
                                                           "cfold_signed_best.pt"))
     ap.add_argument("--full_threads", action="store_true")
@@ -525,13 +545,27 @@ def main():
             from selplus import build_content_arrays, Content
             Vc, Fc, ansc = build_content_arrays(ctx, sh, Mm, pexp, smoke=args.smoke)
             models["C"] = Content(Vc, Fc, ansc, lvl_lookup); sh["conc_value_content"] = Vc
+        elif tag == "K":
+            models["K"] = "oracle_select"                           # sentinel; concept-only arm
+
+    # per-user oracle concept SELECTION order (top-|behavioral v| among answerable+fold), for arm K
+    Vb = sh["conc_value_signed"]; ansB = sh["conc_answerable"]; foldB = sh["conc_fold_signed"]
+    K_orders = None
+    if "K" in arms:
+        K_orders = []
+        for r in rows:
+            elig = np.flatnonzero(ansB[r] & foldB[r])
+            K_orders.append(elig[np.argsort(-np.abs(Vb[r, elig]))])
 
     results = {"item": {}, "concept": {}}
     zq8 = {}                                                        # concept belief Z@q8 per model (CKA)
     for tag, model in models.items():
-        for channel in ("concept", "item"):
+        channels = ("concept",) if tag == "K" else ("concept", "item")
+        for channel in channels:
             t0 = time.time()
-            if getattr(model, "utility", False):
+            if tag == "K":
+                ev = walk_oracle_select_concept(rung, rows, K_orders, Vb)
+            elif getattr(model, "utility", False):
                 ev = (walk_utility_concept(rung, rows, model, conc_order) if channel == "concept"
                       else walk_utility_item(rung, rows, model, item_order))
             elif model.geometric:
@@ -582,8 +616,8 @@ def main():
     for tag in arms:
         if tag == "O":
             spear[tag] = 1.0; continue
-        Vt = {"B": Vb, "S": sh.get("conc_value_selplus"),
-              "C": sh.get("conc_value_content")}.get(tag)
+        Vt = {"B": Vb, "K": Vb, "S": sh.get("conc_value_selplus"),
+              "C": sh.get("conc_value_content")}.get(tag)          # K folds honest B values (selection arm)
         if Vt is None:                                              # G / U answers have no fixed value
             spear[tag] = None; continue                            # table -> N/A
 
@@ -609,6 +643,11 @@ def main():
         key["O_minus_B_concept_q8"] = trip("O", "B", "headroom an honest better SEL imputer could capture")
     if {"G", "O"} <= A:
         key["G_minus_O_concept_q8"] = trip("G", "O", "does geometric converge to the SEL-oracle")
+    if {"K", "B"} <= A:
+        key["K_minus_B_concept_q8"] = trip("K", "B", "SELECTION gap: oracle per-user concept selection "
+                                                     "over the generic polarization bank (honest B answer)")
+    if {"U", "K"} <= A:
+        key["U_minus_K_concept_q8"] = trip("U", "K", "answer-value gain beyond best selection")
     if {"U", "B"} <= A:
         key["U_minus_B_concept_q8"] = trip("U", "B", "TRUE answer-channel ceiling over behavioral SEL")
     if {"U", "O"} <= A:
@@ -625,6 +664,8 @@ def main():
     # item-ask vs concept-ask WITHIN each answer model (does the answer model flip the winner?)
     flip = {}
     for tag in arms:
+        if tag not in results["item"]:                              # concept-only arms (K) have no flip
+            continue
         flip[tag] = {}
         for q in BUDGETS:
             cf = results["concept"][tag][q]["full@10"]; itf = results["item"][tag][q]["full@10"]
@@ -654,7 +695,7 @@ def main():
                       "spearman_value_vs_oracleB": spear,
                       "cka_note": "G should be HIGH (visible circularity); an SEL+ arm must not exceed "
                                   "SEL(B)'s CKA while agreeing MORE with oracle-B (Spearman)."},
-           "item_ask": {tag: strip(results["item"][tag]) for tag in arms},
+           "item_ask": {tag: strip(results["item"][tag]) for tag in arms if tag in results["item"]},
            "concept_ask": {tag: strip(results["concept"][tag]) for tag in arms},
            "channel_flip_within_model": flip,
            "key_quantities": key}
@@ -671,6 +712,8 @@ def main():
     print(f"{'row':>16} | " + " ".join(f"q{q:<18}" for q in BUDGETS) + "  (f@10/t@10/f@100)")
     for channel, label in (("item", "item-ask"), ("concept", "concept-ask")):
         for tag in arms:
+            if tag not in results[channel]:
+                continue
             sc = results[channel][tag]
             print(f"{label+'x'+tag:>16} | " + " ".join(
                 f"{sc[q]['full@10']:.4f}/{sc[q]['tail@10']:.4f}/{sc[q]['full@100']:.4f}"
@@ -678,6 +721,8 @@ def main():
     print("\nMEAN_ANSWERED (questions actually folded per budget):")
     for channel, label in (("item", "item-ask"), ("concept", "concept-ask")):
         for tag in arms:
+            if tag not in results[channel]:
+                continue
             sc = results[channel][tag]
             print(f"{label+'x'+tag:>16} | " + " ".join(
                 f"q{q}={sc[q]['mean_answered']:.2f}" for q in BUDGETS))
