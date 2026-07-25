@@ -85,6 +85,10 @@ def main():
     ap.add_argument("--ckpt", default=os.path.join(_ROOT, ".cache", "instrument", "cfold_best.pt"))
     ap.add_argument("--snapshot", default=os.path.join(_ROOT, ".cache", "instrument",
                                                        "t2i25_EP4_SNAP.pt"))
+    ap.add_argument("--signed", action="store_true",
+                    help="SIGNED evidence (four-band values incl. real dislike-band flips); "
+                         "requires the signed prereg cache")
+    ap.add_argument("--out_tag", default="", help="output JSON suffix")
     ap.add_argument("--full_threads", action="store_true")
     args = ap.parse_args()
     t00 = time.time()
@@ -105,19 +109,48 @@ def main():
         net = ConceptFoldNet(len(tags), d=ctx.d, h=blob["hidden"])
         net.load_state_dict(blob["net"])
     net.eval()
-    sel40 = sel_top_concepts(ctx, members, tags, 40)
-    sel = diversify_sel(sel40, d_c, m_max=8)
-    rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel
-            and len(sel[r][0]) >= 2]
-    conc_true = {r: list(zip([int(c) for c in sel[r][0][:M_EV]],
-                             [float(v) for v in sel[r][1][:M_EV]])) for r in rows}
+    if args.signed:
+        # SIGNED evidence: top-4 by |v| among answerable non-refuse; C_NEG cap; REAL dislike-band
+        # members in the evidence -> the flip test flips both directions
+        from signed_answers import load_prereg, signed_values, cap_negatives, BAND_REFUSE
+        from concept_fold import build_member_matrix
+        import numpy as _np
+        prereg, item_mean = load_prereg()
+        Mm = build_member_matrix(members, tags, ctx.ni)
+        pexp = (ctx.cnt @ _np.asarray(Mm.todense())) / max(ctx.cnt.sum(), 1e-9)
+        items_l = [_np.asarray(s, _np.int64) for s, l in ctx.allb]
+        stars_l = [((_np.asarray(l, _np.float64) + 1) / 2).astype(_np.float32)
+                   for s, l in ctx.allb]
+        V, F, B, ans = signed_values(items_l, stars_l, item_mean, Mm, pexp, ctx.ni, prereg,
+                                     apply_neg_cap=False)
+        sel = {}
+        for r in range(ctx.n):
+            cand = _np.flatnonzero(ans[r] & (B[r] != BAND_REFUSE))
+            if len(cand) >= 2:
+                o = cand[_np.argsort(-_np.abs(V[r, cand]))][:M_EV]
+                sel[r] = (o.astype(_np.int64),
+                          _np.asarray(cap_negatives([float(V[r, c]) for c in o]), _np.float32))
+        rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel]
+        conc_true = {r: list(zip([int(c) for c in sel[r][0]],
+                                 [float(v) for v in sel[r][1]])) for r in rows}
+        n_dis = sum(1 for r in rows for _, v in conc_true[r] if v < 0)
+        log(f"[gates] SIGNED evidence: {n_dis} dislike-band answers in the evidence "
+            f"({n_dis / max(sum(len(conc_true[r]) for r in rows), 1):.1%} of folds)")
+    else:
+        sel40 = sel_top_concepts(ctx, members, tags, 40)
+        sel = diversify_sel(sel40, d_c, m_max=8)
+        rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel
+                and len(sel[r][0]) >= 2]
+        conc_true = {r: list(zip([int(c) for c in sel[r][0][:M_EV]],
+                                 [float(v) for v in sel[r][1][:M_EV]])) for r in rows}
     log(f"[gates] cohort {len(rows)} val users, evidence = top-{M_EV} div concepts, k=0")
     # intercept + true
     empty = {r: [] for r in rows}
     f_int, _ = score_rows(net, ctx, rows, empty)
     f_true, Z_true = score_rows(net, ctx, rows, conc_true)
     m_int = float(np.nanmean(f_int[rows])); m_true = float(np.nanmean(f_true[rows]))
-    out = {"gates": "clite_concept_gates", "ckpt": os.path.basename(args.ckpt),
+    out = {"gates": "clite_concept_gates", "signed_evidence": bool(args.signed),
+           "ckpt": os.path.basename(args.ckpt),
            "n_users": len(rows), "evidence": f"top-{M_EV} diversified SEL concepts, k=0",
            "intercept_full@10": m_int, "true_full@10": m_true}
     # ---- G3a-c FLIP ----
@@ -184,7 +217,7 @@ def main():
     out["seconds"] = round(time.time() - t00, 1)
     outdir = ctx.outdir if args.smoke else OUTDIR
     os.makedirs(outdir, exist_ok=True)
-    path = os.path.join(outdir, "clite_gates.json")
+    path = os.path.join(outdir, f"clite_gates{(chr(95)+args.out_tag) if args.out_tag else ''}.json")
     json.dump(out, open(path, "w"), indent=2)
     log(f"[gates] -> {path} PASS={out['PASS']}")
     print(f"\nG3a-c flip {d[0]:+.4f} PASS={out['g3a_flip']['PASS']} | wrong-user vs int {dw[0]:+.4f} "

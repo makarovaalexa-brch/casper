@@ -26,7 +26,7 @@ BATT = os.path.join(_ROOT, "experiments", "battery")
 STATE = os.path.join(BATT, "signed_queue_state.json")
 RUNLOG = os.path.join(BATT, "signed_queue.log")
 PY = sys.executable
-STAGES = ["U0", "U1", "U2", "U3", "U3b", "done"]
+STAGES = ["U0", "U1", "U2", "U3", "U3b", "U3c", "done"]
 _cur = {"stage": "U0"}
 
 
@@ -209,6 +209,27 @@ def u3b_adaptive():
         log("U3b FAILED (rc != 0) -- left for manual rerun")
 
 
+def u3c_gates():
+    """U3c (author directive 2026-07-25): FULL gate checks on the signed retrained modules +
+    the consolidated verdict block. HARD STOP after."""
+    rc1 = run_stage_cmd(["src/instrument/clite_gates.py", "--full_threads", "--signed",
+                         "--ckpt", ".cache/instrument/cfold_signed_best.pt",
+                         "--out_tag", "signed"],
+                        os.path.join(BATT, "clite_gates_signed_run.log"))
+    rc2 = run_stage_cmd(["src/instrument/signed_gates_u3c.py", "--full_threads"],
+                        os.path.join(BATT, "signed_gates_u3c_run.log"))
+    paths = []
+    if rc1 == 0:
+        paths.append("experiments/battery/clite_gates_signed.json")
+    if rc2 == 0:
+        paths.append("experiments/battery/signed_gates_consolidated.json")
+    if paths:
+        git_commit(paths, "U3c signed-module gate checks: sclite signed gates (two-way flip incl. "
+                          "dislike-band) + scfull tower gates (G0 id/tie, flip, G6, dup-blocked, "
+                          "order) + consolidated verdict block (G5-split, KT-A3 leak vs 0.05 bar "
+                          "reported as FAIL pending author ruling w/ counterfeit waiver note)")
+
+
 def main():
     start = read_stage()
     if start == "done":
@@ -233,7 +254,7 @@ def main():
         _cur["stage"] = stage; write_state()
         log(f"=== STAGE {stage} ===")
         {"U0": u0_demote_snap, "U1": u1_clite, "U2": u2_cfull, "U3": u3_acceptance,
-         "U3b": u3b_adaptive}[stage]()
+         "U3b": u3b_adaptive, "U3c": u3c_gates}[stage]()
     _cur["stage"] = "done"; write_state()
     log("=== SIGNED QUEUE DONE (HARD STOP -- author picks the final winner) ===")
 
