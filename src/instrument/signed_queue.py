@@ -26,7 +26,9 @@ BATT = os.path.join(_ROOT, "experiments", "battery")
 STATE = os.path.join(BATT, "signed_queue_state.json")
 RUNLOG = os.path.join(BATT, "signed_queue.log")
 PY = sys.executable
-STAGES = ["U0", "U1", "U2", "U3", "U3b", "U3c", "done"]
+# AUTHOR HOLD 2026-07-25: U3b REPLACED by SUITE (strategy-by-channel curve suite, which
+# subsumes U3b's gap-closure); U3c PARKED until the author reviews the suite.
+STAGES = ["U0", "U1", "U2", "U3", "SUITE", "done"]
 _cur = {"stage": "U0"}
 
 
@@ -209,6 +211,20 @@ def u3b_adaptive():
         log("U3b FAILED (rc != 0) -- left for manual rerun")
 
 
+def suite_stage():
+    """SUITE (author redirect 2026-07-25): the complete strategy-by-channel curve suite; subsumes
+    U3b. U3c stays parked."""
+    rc = run_stage_cmd(["src/instrument/strategy_channel_suite.py", "--full_threads"],
+                       os.path.join(BATT, "suite_run.log"))
+    if rc == 0:
+        git_commit(["experiments/battery/strategy_channel_suite.json",
+                    "experiments/battery/strategy_channel_curves_2026-07-25.png"],
+                   "Strategy-by-channel curve suite (items/concepts/mixed x full/tail, q=1..16, "
+                   "signed modules, one harness; subsumes U3b gap-closure) [queue SUITE]")
+    else:
+        log("SUITE FAILED (rc != 0) -- left for manual rerun")
+
+
 def u3c_gates():
     """U3c (author directive 2026-07-25): FULL gate checks on the signed retrained modules +
     the consolidated verdict block. HARD STOP after."""
@@ -254,7 +270,7 @@ def main():
         _cur["stage"] = stage; write_state()
         log(f"=== STAGE {stage} ===")
         {"U0": u0_demote_snap, "U1": u1_clite, "U2": u2_cfull, "U3": u3_acceptance,
-         "U3b": u3b_adaptive, "U3c": u3c_gates}[stage]()
+         "SUITE": suite_stage}[stage]()
     _cur["stage"] = "done"; write_state()
     log("=== SIGNED QUEUE DONE (HARD STOP -- author picks the final winner) ===")
 
