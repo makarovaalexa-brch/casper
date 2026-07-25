@@ -14,6 +14,7 @@
 | Polarity/MNAR fixes (EXPO / CONTRA / two-head) | fix polarity through a collapse gate | **EXPO canonical win** 0.362/0.159; +CONTRA polarity gap +10→+42pp; two-head REJECTED (collapse) | `reference/RESULTS.md` |
 | Cheap LLM asker (gpt-4o-mini) | world-knowledge asker on the calibrated instrument | LLM 0.304→0.274 (**worse than random**); world-knowledge ≠ collaborative informativeness | `reference/RESULTS.md` |
 | RS-validity / protocol reconciliation | are cold numbers weak, or the protocol? | 100% the held-half+exclude-known protocol (PROT-A 0.4200 vs PROT-C 0.2929), not RS weakness | `reference/POLICY_LOG.md` |
+| Concept channel: signed retrain + strategy×channel suite (Jul 25) | can concepts carry an interview; signed vs clip; C-lite vs C-full | concepts OWN short interview (polar opener beats all items thru q4), items win long (items-pop .1948/.0580@q16); signed beats clip +0.0104@q16 CI-clean, counterfeit ~0%; **signed C-LITE WINS** (scfull craters .1052@q16); G0 tie both (scfull TEST 0.3487/.2471 vs 0.3540); **OPEN: volume-leak gate FAILS** (R² 0.249 vs ≤0.05); adaptive prize large+unclaimed (oracle .2237/.1305, greedy ~2%) | `results/CONCEPT_CHANNEL_RESULT.md`; memory `concept-channel-escalation-2026-07-24` |
 
 ## Recommender-core (belief / fold / dislike — feeds A & B)
 | experiment | tested | result | source |

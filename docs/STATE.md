@@ -1,39 +1,46 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-07-25 (signed-concepts GO)**.
+> End-state is in `VISION.md`. Last updated: **2026-07-25 (concept-channel directional verdict recorded)**.
 
-## The concept escalation arc (Jul 24-25) — where it stands
-Author requirement: concepts must carry whole interviews (G5-E). Escalation ladder ran end-to-end on
-the frozen ep4 i25 snapshot (val 0.3435 full; canonical 10k COLD_SEED cohort; intercept 0.1279/0.0192):
+## The concept channel — DIRECTIONAL VERDICT RECORDED (Jul 25)
+Author ruled the concept-channel story **"directionally checks out"**; recorded AS-IS (honest, open
+items visible). **Hard record + all tables: `docs/results/CONCEPT_CHANNEL_RESULT.md`.** One shared
+harness, 10k COLD_SEED, per-question deployment currency; intercept (0 answers) **0.1279/0.0192**.
+The signed four-band SEL retrain turned the deployment curve POSITIVE; the suite is complete.
 
-| rung | concepts-only m8 (full/tail) | verdict |
-|---|---|---|
-| ArmA additive (untrained, whitened β=1) | 0.0991/0.0455 top-SEL (craters) | additive-union saturates |
-| FixA div-selection (\|cos\|<0.5, eval-only) | 0.1537/0.0631 monotone | crater = correlation artifact; FixB Bayes KILLED (below intercept) |
-| **C-lite trained fold** (`cfold_best.pt`, 464k params) | **0.2091/0.1222** monotone, redundancy-robust (top-SEL m8 0.2219 > m4) | item-parity at m2 (0.1922 vs 0.1965); mixed m2k2 +0.0265; **G5 split**: member-AUC 0.617 FAIL / pop-projection control PASS (+0.0494) — learned taste-region movement, not member-shape |
-| **C-full tokens-in-tower** (`cfull_best.pt`) | see ledger | **item cost ~zero** (full ≥ native-init; coldk8 above item-only tower by ep2) |
+**What's DONE:**
+- **Strategy × channel suite** (`strategy_channel_suite.json`, fig `strategy_channel_curves_2026-07-25.png`;
+  primary rung = signed C-lite): **concepts own the short interview** — polarization-ranked concepts
+  beat every item strategy on full AND tail through q4 (q1 .1323/.0348 > items-pop .1307/.0266; q4
+  .1433/.0395 > items-HELF .1391/.0384); the single best opener is a polarizing concept question.
+  **Items win the long interview** — items-pop highest @q8 .1673/.0504 and @q16 .1948/.0580. Static
+  mixed schedules underperform pure items @q8+ (mixed-c4→items q16 .1775). **Adaptive prize large +
+  unclaimed** — privileged oracle dominates every budget (@q16 .2237/.1305); realizable greedy closes
+  only 2.1% full / 1.9% tail of the oracle−static gap @q16 (negative @q8) → Chapter B motivation.
+- **Signed triple gate on the RETRAINED model** (`signed_sel_gate_signed_retrain.json`, SCORED):
+  signed beats clip-up **+0.0104 @q16** CI-clean [.0075,.0134] (clip-up sinks below intercept by q8;
+  signed holds .1372); popularity-counterfeit reproduces ~0% (@q16 −0.0452, no hard kill → taste, not
+  volume×pop); value-permutation collapses the gain (+0.0335 CI-clean → the values carry it).
+- **Ledger — signed C-LITE WINS** (`tradeoff_ledger.json`): per-answer concepts m8 sclite .1630/.0639 >
+  scfull .1566/.0577; deployment sclite stays above intercept thru q16 (.1379) while **scfull craters to
+  .1052 @q16**. **G0 tie holds BOTH**: sclite = frozen ep4 tower (bit-identity, ~0.3536); **scfull TEST
+  full 0.3487 / tail 0.2471 vs 0.3540 bar (diff −0.0053, CI 0.0070, tie=True)** → concepts-in-tower cost
+  ~nothing on items (coldk8 0.2611 ≥ 0.2584) but buy nothing on concepts.
+- **Methods lesson (now in the paper):** the G3 sign-flip capability gate (flip −0.201 CI-clean) PASSED
+  on a channel that, as deployed, never emitted a negative answer (clip discarded the negative half);
+  only the deployment-currency gate caught it. Capability gates are vacuous if the deployed answer model
+  never exercises the capability.
 
-**Ledger (committed 2eb1b51, `experiments/battery/tradeoff_ledger.json`)**: the author decision
-table — per-answer curves, redundancy rows, split-G5 columns, deployment per-question section.
-**Deployment finding**: realizable fixed-bank concepts-only DECLINES under the clip-up value
-convention (clite: 0.1304→0.1160 by q16, below intercept by q8).
-
-## Signed-SEL triple gate (Jul 25, eval-only, `signed_sel_gate.json`, both runs committed)
-Clip-up poison confirmed; the **bpool_r2 SEL+VAL signed port beats clip-up at every q**
-(+0.0093 @q16 CI-clean, 0.1317→0.1254, never below intercept); popularity-counterfeit reproduces
-only 12% (taste-real, no hard kill); value-permutation collapses the gain (values carry it);
-**volume leak found** (ridge R² latent→log-volume 0.025→0.260) → per-user negative-channel
-normalization mandatory. Verdict INCONCLUSIVE per the OOD-asymmetry ruling (module trained on
-[0.25,1] likes only) → **retrain = the fair test. AUTHOR GO given.**
-
-## What trains tonight (design: `docs/design/DESIGN_SIGNED_CONCEPTS.md`, pre-registered)
-Four-band signed SEL+VAL/NPMI answers (shared module `signed_answers.py`, replaces the clip
-everywhere), C_NEG negative-channel volume cap. Sequential, session-independent, queue-runner +
-watchdog: (T1) signed C-lite, m~U{1..16} curriculum, ~2h → (T2) signed C-full (--concept_tokens,
-signed levels incl. graded dislikes), ~3-5h → (T3) acceptance batch: deployment ≥ signed-eval curve
-(≥0.1317@q2, never below intercept), counterfeit ~0%, leak R² ≤~0.05, redundancy holds, per-answer
-m≤8 not degraded, split-G5 reported, ledger rows signed-clite/signed-cfull.
+**What's OPEN (recorded honestly, not softened):**
+- **Volume-leak gate FAILS.** KT-A3 ridge R²(signed fold latent @q8 → log user-volume) 0.025 → **0.249**
+  vs the pre-registered acceptance bar **≤0.05**; the C_NEG negative-channel cap did not hold it. **GATE
+  FAIL pending author ruling.** Counterfeit-clean (Arm2 ~0%) attached as waiver-consideration evidence.
+  Fallback grid pre-registered: `C_NEG ∈ {1,2,4}` on val, or a volume-orthogonalised fold / invariance penalty.
+- **C-lite vs C-full operating point** — C-lite wins the ledger; author call, given the split-G5 gap.
+- **G5 split** — trained concept operators learn "what X-likers watch," not "members of X" (sclite
+  member-AUC k1 0.630; disc Spearman 0.948 vs log-pop / 0.030 vs member-ness; pop-projection control
+  PASSES +0.0087 CI-clean). Fine for recommendation, a gap for the R3 attribute-semantics claim (→ C3).
 
 ## Parked / pending
 - **Certification retrain (t2final) PARKED** until the author picks the final winner
