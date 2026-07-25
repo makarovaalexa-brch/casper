@@ -62,9 +62,15 @@ def read_stage():
 
 
 def ps(cmd):
-    r = subprocess.run(["powershell", "-NoProfile", "-Command", cmd],
-                       capture_output=True, text=True, timeout=180)
-    return r.stdout.strip()
+    """PowerShell query; NEVER raises (2026-07-25 incident: TimeoutExpired from an inherited pipe
+    killed both runner instances ~3 min after each launch)."""
+    try:
+        r = subprocess.run(["powershell", "-NoProfile", "-Command", cmd],
+                           capture_output=True, text=True, timeout=120)
+        return r.stdout.strip()
+    except Exception:
+        return ""
+
 
 
 def find_pid(pattern):
@@ -76,30 +82,51 @@ def find_pid(pattern):
 
 
 def start_detached(arglist, out_log, err_log):
-    args_ps = ",".join(f"'{a}'" for a in ["-u"] + arglist)
-    ps(f"Start-Process -FilePath '{PY}' -ArgumentList {args_ps} -WorkingDirectory '{_ROOT}' "
-       f"-RedirectStandardOutput '{out_log}' -RedirectStandardError '{err_log}' -WindowStyle Hidden")
+    """Direct DETACHED Popen (2026-07-25 fix): no powershell middleman, no pipes (the Start-Process
+    route left an inherited pipe that hung the runner's subprocess.run and ALSO overwrote the child
+    log on relaunch). Append-mode file handles; child survives runner death."""
+    DETACHED = 0x00000008 | 0x00000200          # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+    fo = open(out_log, "a"); fe = open(err_log, "a")
+    p = subprocess.Popen([PY, "-u"] + arglist, cwd=_ROOT, stdout=fo, stderr=fe,
+                         stdin=subprocess.DEVNULL, creationflags=DETACHED)
+    fo.close(); fe.close()
+    log(f"detached pid {p.pid}: {' '.join(arglist)}")
+    return p.pid
+
+
+def _log_fresh(path, secs=300):
+    return os.path.exists(path) and (time.time() - os.path.getmtime(path)) < secs
+
+
+def _done(log_paths, marker):
+    for lp in log_paths:
+        if os.path.exists(lp) and marker in open(lp, errors="replace").read():
+            return True
+    return False
 
 
 def run_train(tag_pattern, launch_args, resume_args, done_marker, log_path):
-    """Launch a detached trainer, babysit it, auto-resume on dirty death, return when done clean."""
-    if find_pid(tag_pattern) is None:
-        log(f"launch: {' '.join(launch_args)}")
-        start_detached(launch_args, log_path, log_path.replace(".log", ".err"))
-        time.sleep(60)
+    """Idempotent babysitter (2026-07-25 rules): (a) ARTIFACT FIRST -- done marker in any log =>
+    stage complete, never relaunch; (b) LIVENESS = pid match OR log freshness (<5 min) -- a flaky
+    CIM query alone can NEVER trigger a relaunch onto a live trainer; (c) resume-launch only when
+    provably dead AND not done."""
+    logs = [log_path, log_path.replace(".log", "_resume.log")]
+    launched_once = False
     while True:
-        pid = find_pid(tag_pattern)
-        if pid:
+        if _done(logs, done_marker):
+            log(f"{tag_pattern}: done marker present -> stage COMPLETE")
+            return True
+        alive = (find_pid(tag_pattern) is not None) or any(_log_fresh(lp) for lp in logs)
+        if alive:
             time.sleep(90)
             continue
-        txt = open(log_path).read() if os.path.exists(log_path) else ""
-        if done_marker in txt:
-            log(f"{tag_pattern}: trainer finished CLEAN")
-            return True
-        log(f"{tag_pattern}: DEAD DIRTY -> relaunch w/ resume")
-        start_detached(resume_args, log_path.replace(".log", "_resume.log"),
-                       log_path.replace(".log", "_resume.err"))
-        log_path = log_path.replace(".log", "_resume.log")
+        if not launched_once and not any(os.path.exists(lp) for lp in logs):
+            log(f"launch: {' '.join(launch_args)}")
+            start_detached(launch_args, log_path, log_path.replace(".log", ".err"))
+        else:
+            log(f"{tag_pattern}: provably dead (no pid, logs stale, no done marker) -> resume")
+            start_detached(resume_args, logs[1], logs[1].replace(".log", ".err"))
+        launched_once = True
         time.sleep(120)
 
 
@@ -173,6 +200,17 @@ def main():
     start = read_stage()
     if start == "done":
         log("signed queue already done"); return
+    # single-instance lock: a FRESH heartbeat from another pid means a live runner -- exit
+    if os.path.exists(STATE):
+        try:
+            st = json.load(open(STATE))
+            if st.get("pid") != os.getpid() and (time.time() - st.get("heartbeat", 0)) < 180:
+                other = find_pid("signed_queue")
+                if other and other != os.getpid():
+                    log(f"another live runner (pid {other}, fresh heartbeat) -- exiting")
+                    return
+        except Exception:
+            pass
     threading.Thread(target=heartbeat_loop, daemon=True).start()
     log(f"signed queue START (pid {os.getpid()}) at {start}")
     idx = STAGES.index(start) if start in STAGES else 0
