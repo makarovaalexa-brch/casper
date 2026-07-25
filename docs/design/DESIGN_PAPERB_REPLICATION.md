@@ -21,6 +21,23 @@ restricted to the 18,359 vocab — exactly as the archived ML-25M port trained i
 all concepts (HARD RULE 1). Code: `scripts/paper2_repl/pb_{prep,train_enc,interview}.py`. Controls:
 canonical-snap (full-profile fold), answer-permutation existential, disjoint fold-in/target leak check.
 
+### ADDENDUM-2 2026-07-25 — TWO-ANSWER-MODEL contrast at the interview step (author/Fable ruling)
+Encoder training is UNCHANGED (keeps the faithful geometric-Ec warmup — it is the training signal).
+At EVAL only, the T=8 item+concept interview runs under TWO answer models on the SAME trained encoder,
+two blocks in `pb_results.json`:
+- **BLOCK A GEOMETRIC** (`u*.Ec` vs per-user mean -> POS/NEG): faithful reproduction of the OLD +36%
+  setting, but a CIRCULAR measurement (shared-representation self-preference). Labeled UNCITABLE /
+  simulator-privileged.
+- **BLOCK B BEHAVIORAL** (HEADLINE): the honest recommender-INDEPENDENT signed-SEL answer
+  (`src/instrument/signed_answers.py`) = `clip(NPMI + w_val*VAL, -1, 1)` computed from the fold-in
+  history (NPMI watch-lift over popularity base-rate + shrunk residual over TRAIN item means), four
+  bands (like/meh/dislike/refuse E<1.5), C_NEG=2 per-user negative cap. Prereg (`w_val`, `t_like`,
+  `t_neg`, item means) computed on OUR train users + genome membership, cached `.cache/paper2_repl/`.
+Both fold the SAME trained `Ec[c]`; only the token VALUE differs -> the A-vs-B delta IS the
+demonstration that the answer model (not the concept channel) drives concept success. Item arms are
+answer-model-independent (real rating residual). Deliverable = three-way: OLD ML-1M(geom) |
+NEW-ruler geom | NEW-ruler behavioral, item vs concept, q0..q8.
+
 
 > Pre-registered per HARD RULE 10 / "design sheet before any run". Question: **was the old
 > pre-RecVAE Paper B short-interview lift a genuinely stronger METHOD, or an artifact of the OLD
