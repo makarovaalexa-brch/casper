@@ -819,8 +819,102 @@ The miss is closed only by a \emph{deployment-currency} gate---evaluate the chan
 question bank under a per-question budget (the G9 ingestion-isolation setting, scored at the endpoint), where an
 answer model that never exercises the negative half is penalised by the same declining curve that exposed the clip.
 We therefore add the deployment-currency endpoint as the acceptance form of the concept channel: not ``can the operator
-express dislike'' but ``does the realizable interview stay above the no-answer intercept at budget.'' \TODO{Fold the
-signed-SEL retrain result and the volume-invariance number into the G3/G9 rows once the certified tower is trained.}
+express dislike'' but ``does the realizable interview stay above the no-answer intercept at budget.''
+
+\subsection{Results: the signed retrain, and where the concept channel wins}\label{sec:concept:results}
+
+The signed retrain of \S\ref{sec:concept:fail} has since landed, and we ran the two channels---concepts and
+items---through \emph{one} deployment-currency harness (10{,}000 held-out cold users, per-question budget, every
+question spending budget whether answered or not, scored on full \emph{and} tail NDCG@10 against the no-answer
+intercept $0.1279/0.0192$). The results are reported here on the internal ML-25M interview harness; the certified
+instrument curves remain \TODO{} (\S\ref{sec:expdesign}). They tell a consistent, and deliberately un-triumphal,
+story: the signed answer repairs the regression, but the concept channel's value is \emph{shaped}---it owns the
+opening of an interview and cedes the long tail of it to items---and its largest prize is one we do not yet capture.
+
+\paragraph{The signed answer turns the deployment decline into a gain.} Re-running the pre-registered triple gate on
+the \emph{retrained} model (not merely the eval-only fold of \S\ref{sec:concept:fail}) clears all three taste
+criteria. Signed answers beat the positive-only clip by $+0.0104$ full NDCG@10 at the sixteenth question (CI
+$[+0.0075,+0.0134]$): the clip-up curve sinks below the intercept by the eighth question and stays there ($0.1268$ at
+$q{=}16$), while the signed curve holds above it ($0.1372$). The counterfeit control---an answer built only from user
+volume and concept popularity---reproduces \emph{none} of the gain (it declines, $-0.045$ at $q{=}16$), so the signal
+is taste, not a volume$\times$popularity artifact; and permuting the answer values across concepts collapses the gain
+($+0.0335$ CI-excluding-zero relative to the permutation), so it is the answer \emph{values} that carry it, not fold
+cardinality. \emph{One acceptance criterion remains unmet, and we record it plainly:} the volume-invariance gate still
+fails. The recoverability of log watch-volume from the belief latent is $R^2\,0.249$ after the retrain, against a
+pre-registered bar of $\le 0.05$---the per-user negative-channel cap did not hold the leak down. We treat the signed
+concept answer as \emph{directionally supported but not yet certified}: the counterfeit-clean result is the
+waiver-consideration evidence (the leaked quantity is user volume, but the ranking gain provably is not a volume
+meter), and the fold's acceptance is pending either a volume-orthogonalised variant or an author ruling on the waiver.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_strategy_channel_suite.png}
+\caption{\textbf{Strategy $\times$ channel deployment suite} (internal ML-25M interview harness, 10k cold users,
+per-question budget; signed C-lite as the fold). Full and tail NDCG@10 versus the number of questions, for item-side
+question strategies (popularity, HELF, entropy, random bank), concept-side strategies (polarization/HELF-analog,
+member-mass, random), static mixes, the realizable adaptive greedy selector, and the privileged adaptive oracle,
+against the no-answer intercept. \emph{Concepts own the short interview} (a polarizing-concept opener is the best
+single question on both metrics, and concept strategies lead every item strategy through $q{\approx}4$); \emph{items
+win the long interview} (popularity-ranked items are highest from $q{=}8$ onward); \emph{static mixes underperform
+pure items past $q{=}8$}; and the \emph{privileged oracle} sits far above every realizable arm at all budgets, while
+the realizable greedy selector recovers only a small single-digit fraction of that oracle$-$static gap---the large,
+unclaimed adaptive prize that motivates the companion method chapter. All curves are \TODO{} pending the certified
+tower.}
+\label{fig:strategychannel}
+\end{figure}
+
+\paragraph{Concepts own the short interview; items win the long one.} Figure~\ref{fig:strategychannel} is the headline
+picture. Reading it against the intercept: the single most informative \emph{opening} question is a \emph{polarizing
+concept}---the polarization-ranked concept strategy reaches $0.1323/0.0348$ (full/tail) after one question, above the
+best item strategy's $0.1307/0.0266$ (popularity-ranked items) on \emph{both} metrics, and concept strategies stay
+ahead of every item strategy through about the fourth question ($0.1433/0.0395$ for polarizing concepts at $q{=}4$
+versus $0.1391/0.0384$ for the best item strategy, HELF). This is the coarse-to-fine intuition made concrete: a good
+first move splits a cold population along a taste axis, and a concept does that in one question where an item barely
+moves the belief. But the advantage is front-loaded. From the eighth question onward, popularity-ranked \emph{items}
+are the strongest realizable arm ($0.1673/0.0504$ at $q{=}8$, $0.1948/0.0580$ at $q{=}16$), while the best concept
+strategy plateaus near $0.1471/0.0389$---the coarse concept direction localises the belief but cannot keep refining it,
+exactly the front-loaded-then-plateau ceiling the signed-critiquing literature reports at about five
+turns~\cite{antognini2022posneg}. Static \emph{mixed} schedules do not rescue the long interview: a coarse-to-fine mix
+(concepts first, then items) trails pure popularity items past $q{=}8$ ($0.1775$ versus $0.1948$ at $q{=}16$). The
+operational reading is that concepts are a short-interview and cold-open instrument, not an item replacement---which is
+what the coarseness ceiling predicted.
+
+\paragraph{The adaptive prize is large and unclaimed.} The privileged \emph{oracle} selector---which sees each user's
+own most informative next question---sits far above every realizable arm at every budget ($0.2237/0.1305$ at $q{=}16$,
+against popularity items' $0.1948/0.0580$), and the oracle$-$static gap widens with budget (full gap $0.086$, tail
+$0.098$ at $q{=}16$). A realizable greedy selector on this same harness recovers only a small single-digit fraction of
+that gap ($2.1\%$ full, $1.9\%$ tail at $q{=}16$, and \emph{negative} at $q{=}8$, where it does not even beat the
+static member-mass concept order, $-0.0046$ full, CI-clean). We flag this as a positive finding for the companion
+chapter rather than a defeat here: a large adaptive headroom that a naive greedy policy cannot capture is precisely the
+regime a learned selector should address---the decision-tree acquisition line of Golbandi et
+al.~\cite{golbandi2011adaptive} on \emph{this} instrument and harness. The instrument chapter's job is to make the
+gap \emph{measurable}; closing it is the method chapter's.
+
+\paragraph{Training concepts into the tower is item-safe but buys nothing.} We evaluated two homes for the signed
+concept fold: a trained fold-to-point on the \emph{frozen} tower (call it the frozen-fold), and concept tokens trained
+\emph{into} the tower itself (the tokens-in-tower variant). Both preserve full-profile strength, as G0 demands. The
+frozen-fold inherits the tower's G0 by construction (a zero-initialised fold is bit-identical on the full profile).
+The tokens-in-tower variant is retrained and therefore must re-earn G0, and it does: full/tail NDCG@10 $0.3487/0.2471$
+on the test users, a paired-bootstrap tie with the $0.3540/0.2497$ RecVAE bar (difference $-0.0053$, within the
+$0.0070$ CI), with cold-start accuracy if anything marginally higher. So \emph{training concepts into the tower costs
+essentially nothing on items.} It also, however, \emph{gains} essentially nothing on concepts, and it is worse where it
+matters most. On per-answer concept curves the frozen-fold is higher at eight answers ($0.1630/0.0639$ versus
+$0.1566/0.0577$), and in deployment currency the difference is decisive: the frozen-fold stays above the intercept
+through sixteen questions ($0.1379$ at $q{=}16$), whereas the tokens-in-tower variant \emph{craters} to $0.1052$,
+below the no-answer intercept, as the long tail of the fixed bank floods it with weak-support concepts. We therefore
+carry the frozen-fold as the concept operator of record; the tokens-in-tower arm is item-safe but does not earn its
+place. Which of the two is the final certified operating point is left open pending the author's ruling on the
+volume-leak waiver above---and no certification run launches until that winner is fixed.
+
+\paragraph{The methods lesson, restated as a battery amendment.} The concept channel's near-miss is the sharpest
+argument in this chapter for \emph{why the battery has the shape it does}. A capability gate (G3's sign-flip) passed on
+a fold that, as actually driven down a realistic question bank, never emitted a negative answer---the answer model, not
+the operator, was sign-blind, and the operator's certified capability was vacuous in deployment. Only the
+deployment-currency evaluation---a fixed, user-independent bank under a per-question budget, scored at the endpoint
+(the G9 ingestion-isolation setting)---exposed it, because there the declining curve penalises an answer model that
+never exercises the negative half. This is a general failure class, not a concept-specific accident: \emph{a gate on
+what an operator \emph{can} do must be paired with a gate on what the deployed system \emph{does}}. We record the
+deployment-currency endpoint as the concept channel's acceptance form, and fold the signed-retrain and volume-leak
+numbers into the G3/G9 rows once the certified tower is trained (\S\ref{sec:expdesign}).
 
 % =====================================================================
 \section{Experimental design}\label{sec:expdesign}
