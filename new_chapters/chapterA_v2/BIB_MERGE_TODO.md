@@ -27,6 +27,26 @@ duplication should not persist silently).
     record `deng2021unicorn.md`; add a `\cite{deng2021unicorn}` in the related-work table if/when the prose
     is updated to reference it)
 
+## Concept-channel additions (2026-07-25) — 9 more entries to merge
+Added to `chapterA_v2_new_refs.bib` for the new \S "The concept channel: derivation, lineage, and failure
+analysis". All are real papers recorded in `external_literature/INDEX.md` (2026-07-25 block) +
+`findings/concept_folding_and_implicit_attribute_inference.md`; none were edited into the author-owned
+`references.bib`. Key-collision re-checked against `references.bib`: **zero collisions**.
+15. `hu2008collaborative` — Hu/Koren/Volinsky, Implicit-feedback CF (WMF), ICDM 2008
+16. `liang2016expomf` — Liang et al., ExpoMF, WWW 2016
+17. `qin2020attributepropensity` — Qin et al., attribute-based propensity, KDD 2020
+18. `steck2018calibrated` — Steck, Calibrated Recommendations, RecSys 2018
+19. `antognini2021mmvae` — Antognini & Faltings, M&Ms-VAE fast multi-step critiquing, RecSys 2021
+20. `antognini2022posneg` — Antognini & Faltings, positive+negative critiquing (M&Ms-VAE++), arXiv 2022
+21. `luo2021bkvae` — Luo et al., BK-VAE keyphrase-activation-vector critiquing, SIGIR 2021
+22. `luo2019deepcritiquing` — Luo et al., CE-VAE deep language-based critiquing, RecSys 2019
+23. `perez2018film` — Perez et al., FiLM, AAAI 2018
+
+**Bib-detail confidence flag:** entry *keys/authors/year/venue* are taken verbatim from INDEX.md and are
+reliable. *Page numbers and DOIs* were reconstructed from the findings doc + standard proceedings records and
+should be spot-checked against the canonical DOI before the final camera-ready (they are not load-bearing for
+compilation). arXiv-only entries (`antognini2022posneg`) carry no page range by design.
+
 ## Key-collision check (2026-07-22)
 Checked every key in `chapterA_v2_new_refs.bib` against `../references.bib` — **zero collisions**, all 14
 keys above are net-new to `references.bib`.

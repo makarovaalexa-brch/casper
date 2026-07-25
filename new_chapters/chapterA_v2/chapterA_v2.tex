@@ -657,6 +657,172 @@ encoding, and the acceptance tests (a like/dislike flip reverses the queried nei
 member items; monotone in $t$).}
 
 % =====================================================================
+\section{The concept channel: derivation, lineage, and failure analysis}\label{sec:concept}
+% =====================================================================
+
+The out-of-catalogue concept leg is the most demanding of the three inexpressible channels---it is the one with no
+catalogue column, no interaction count, and no sign in the item-indicator basis---so we work it out in full. Three
+things must be made concrete: how a concept answer becomes an observation pair $(\bphi_c, y_c)$ for the belief update
+of Eq.~\eqref{eq:precacc}; where each piece sits in the published record (so that we claim only the conjunction, never
+a component); and---because the honest history of this channel includes a self-inflicted regression---what a measured
+failure of our \emph{own} evaluation harness taught us about which gate class the battery was missing. This section
+is written at derivation level; the concept-channel numbers below are measured on the internal ML-25M interview
+harness and are reported as such, while the certified instrument curves remain \TODO{} (\S\ref{sec:expdesign}).
+
+\subsection{A signed, exposure-corrected affinity estimator}\label{sec:concept:est}
+
+A concept answer must supply the value $y_c$ that Eq.~\eqref{eq:obs} reads along the concept direction. We want that
+value to be \emph{signed} (a user can dislike ``horror,'' not merely fail to like it), \emph{popularity-corrected} (a
+concept made of blockbusters must not read as universal affinity), \emph{volume-corrected} (a heavy watcher must not
+read as liking everything), and \emph{confidence-bearing} (a concept the user has plausibly never been exposed to is a
+\emph{refusal}, not a dislike). Two estimators, an implicit and an explicit one, combine to meet this.
+
+Let $\mathcal I_u$ be the user's watched set, $p_i$ the catalogue marginal of item $i$, and let concept $c$ have member
+set $M_c$. Write $n_c=|\mathcal I_u\cap M_c|$ for the user's watched members and $e_c=|\mathcal I_u|\cdot\pi_c$ for the
+number \emph{expected} under the user's volume times the concept's popularity $\pi_c=\sum_{i\in M_c}p_i$. The implicit
+\emph{selection} estimator is the add-$\tfrac12$ log watch-lift
+\begin{equation}\label{eq:sel}
+  \mathrm{SEL}(u,c) \;=\; \log_2\frac{n_c+0.5}{e_c+0.5}
+  \;\;\approx\;\; \mathrm{PMI}(u,c),
+\end{equation}
+which is precisely the \emph{pointwise mutual information} between the user and the concept: the denominator's $\pi_c$
+divides out concept popularity, and forming $e_c$ from the user's own volume divides out user activity, so SEL is
+positive for genuine affinity, near zero for popularity-explained co-occurrence, and \emph{negative for avoidance}.
+Its normalised form is the NPMI, $\mathrm{NPMI}=\mathrm{PMI}/(-\log_2 \hat p_{uc})\in[-1,1]$, which tames PMI's
+small-count inflation and yields a bounded, comparable score. The explicit \emph{value} estimator is a support-shrunk
+signed rating residual,
+\begin{equation}\label{eq:val}
+  \mathrm{VAL}(u,c) \;=\; \frac{n_c}{n_c+\lambda}\;\bar r^{\,\mathrm{res}}_{uc},
+  \qquad \lambda=3,\qquad
+  \bar r^{\,\mathrm{res}}_{uc}=\frac{1}{n_c}\!\!\sum_{i\in\mathcal I_u\cap M_c}\!\!\bigl(r_{ui}-\bar r_i\bigr),
+\end{equation}
+the mean rating the user gives the concept's members \emph{above each item's own mean}, shrunk toward zero by the
+Beta-style factor $n_c/(n_c+\lambda)$ so that a one-film opinion counts for little. Both estimators are signed and
+combine into a four-band answer: a \emph{graded like} (SEL/VAL band above the neutral zone), a \emph{neutral}
+(indistinguishable-from-exposure), a \emph{graded dislike} (band below), and a \emph{refusal} issued exactly when the
+expected support falls below a threshold, $e_c<\tau$, i.e.\ when the user has plausibly never been exposed to the
+concept and no answer should be forced.
+
+\paragraph{Lineage.} Every piece is established prior art, which is the point of stating it explicitly. The log-lift
+\eqref{eq:sel} is PMI/NPMI, the standard popularity-corrected association score. Reading a \emph{magnitude} of implicit
+consumption as evidence is Hu--Koren--Volinsky's implicit-confidence template~\cite{hu2008collaborative}---except that
+HKV lets the count re-enter \emph{only as a loss confidence weight, never as a sign}, which is exactly the assumption
+our signed estimator breaks. The principled account of why a non-watch is not a dislike is
+ExpoMF~\cite{liang2016expomf}: it separates a latent \emph{exposure} variable (was the user even aware of the item)
+from \emph{preference}, so that non-consumption is modelled as ``not exposed'' \emph{or} ``exposed-and-disliked''---the
+generative gold standard our refusal band ($e_c<\tau$) and popularity-corrected $e_c$ approximate cheaply and in closed
+form. The unbiased-learning route to the same correction is attribute-level exposure
+propensity~\cite{qin2020attributepropensity}, which IPS-reweights implicit feedback by a per-attribute propensity;
+it is the heavier, variance-prone alternative to our moment estimator. Finally, calibrated
+recommendation~\cite{steck2018calibrated} builds a user's normalised genre \emph{distribution} $p(g\mid u)$---the
+closest widely-used ``concept profile,'' but a distribution that sums to one and therefore encodes relative emphasis
+only: it \emph{cannot express dislike}, which is precisely the expressive gap SEL$<0$ fills.
+
+\paragraph{Why the implicit channel, quantified.} On an informativeness decomposition (a per-concept linear fit of the
+oracle concept affinity onto each candidate answer, $R^2$), the implicit watch-lift dominates: SEL explains $0.376$ of
+the affinity variance, the explicit rating residual VAL a further $+0.042$ (SEL$+$VAL $0.398$), while an LLM-elicited
+ordinal answer explains only $0.017$ (an internal decomposition)---implicit outperforms the explicit LLM answer by
+roughly $22\times$.
+Because SEL is built from raw watch counts and item marginals, it uses no recommender geometry, so this signal is
+\emph{non-circular by construction} (it even beats a model-geometry projection of the same residuals). This is the
+evidence that the concept channel's value is worth carrying signed rather than as a mere membership indicator; the
+decomposition is an informativeness measurement, not an interview curve, and is reported as such.
+
+\subsection{The fold operator: whitened directions and a gated fold-to-point}\label{sec:concept:fold}
+
+The direction $\bphi_c$ must point where the concept's taste lives, not where popularity lives. A raw member centroid
+fails this: a shared popularity component (random concept pairs have cosine $\approx 0.5$) masks the genre geometry.
+Removing it---centre the member factors and strip the top-1 principal component (the popularity axis), the
+all-but-the-top whitening of Mu and Viswanath---turns the centroid into a usable direction: concept-membership
+discrimination through the frozen decoder rises from AUC $0.44$ (raw, at chance) to $0.94$ (whitened). We therefore
+take $\bphi_c$ to be the \emph{whitened member centroid}, IDF-weighted by $1/\log(1+|M_c|)$ so broad genres do not
+dominate. Whitening is a fix, not a contribution, and is cited as such.
+
+The operator that consumes $(\bphi_c,y_c)$ is where the design decision lives, and our own history is a clean
+ablation between two families. An \emph{additive-union} operator scores each item by summing concept contributions on
+a popularity floor, $s_i=\beta_i+\sum_c w_c\,\langle \W_d\Q_i,\bphi_c\rangle$. It has the right monotonicity floor (an
+empty interview scores exactly $\beta_i$) but the wrong composition: it scores the \emph{union} of directions, so
+correlated sibling concepts (``dark,'' ``gritty,'' ``noir'') re-add the same acclaim axis and over-count. Measured
+against a no-answer intercept of $0.1279$ full NDCG@10, the additive channel peaks early (about $+0.011$ at two
+answers) and then \emph{craters} as answers accumulate, reaching $0.0991$ at eight answers---below the intercept. A
+\emph{trained gated fold-to-point} operator fixes this by folding the answers into the latent itself and letting a
+frozen decoder apply the full collaborative (intersection) structure:
+\begin{equation}\label{eq:cfold}
+  \uu \;\leftarrow\; \uu + \sigma\!\bigl(g([\uu;\bphi_c;y_c])\bigr)\;\odot\;h([\uu;\bphi_c;y_c]),
+\end{equation}
+with the gate $g$ and the delta MLP $h$ \emph{zero-initialised} (so at initialisation $\uu$ is unchanged and G0
+survives) and the accumulated shift norm-capped per user. This operator is monotone in the number of answers to eight
+(concepts-only $0.2091/0.1222$ full/tail at eight answers, up from the $0.1717$ cold point) and, crucially,
+\emph{redundancy-robust}: feeding it eight \emph{correlated} top-SEL concepts still reaches $0.2219$ full, at or above
+its four-answer level, where the additive-union operator degraded. The gated fold is the concept operator we adopt;
+Eq.~\eqref{eq:cfold} is the concept-channel instantiation of the linear-observation fold, with the belief covariance
+maintained analytically as in \S\ref{sec:method}.
+
+\paragraph{Lineage.} The skeleton---an attribute as a latent direction, folded by a Bayesian belief update over a
+frozen factor space---is well-trodden, and we claim none of it in isolation. Bıyık et al.~\cite{biyik2023soft} treat a
+soft attribute as a concept-activation-vector direction and fold signed answers into a Gaussian belief; M\&Ms-VAE
+folds a rating-posterior and an attribute-posterior over one latent by a product-of-experts
+merge~\cite{antognini2021mmvae}; its successor adds an independent \emph{signed} critique axis through learned
+positive/negative conditioning tokens, and reports that negative critiquing saturates after about five
+turns~\cite{antognini2022posneg}---a concrete ceiling for any signed-attribute channel, consistent with our own
+front-loaded concept curves. BK-VAE folds keyphrase-activation-vector directions by a Bayesian critiquing
+step~\cite{luo2021bkvae}; the gate/MLP of Eq.~\eqref{eq:cfold} is a per-token generalisation of FiLM
+conditioning~\cite{perez2018film}, which a single global affine cannot do because it would apply the same modulation to
+item and concept tokens alike. And the decision to \emph{freeze} the tower rather than co-train a concept head is a
+direct reading of the cautionary result that a bolt-on critique head costs recommendation
+accuracy~\cite{luo2019deepcritiquing}. What none of these holds jointly---and what we are aware of no system holding---is
+the conjunction this channel occupies: \emph{continuous, out-of-catalogue concept directions} (a whitened centroid, or
+a text-adapter image, with no per-attribute probe to train), driven by a \emph{signed, exposure-corrected implicit
+affinity} (Eqs.~\eqref{eq:sel}--\eqref{eq:val}), folded over a \emph{frozen, certified full-profile SOTA tower}. The
+components are borrowed; only their conjunction is claimed.
+
+\subsection{Failure analysis: a positive-only clip and the deployment-currency gate}\label{sec:concept:fail}
+
+The honest history of this channel includes a regression we introduced ourselves, and it is worth recording because it
+exposes a whole \emph{class} of gate the battery originally lacked. When the concept curves were first built, the
+evaluation harness clipped every folded concept value to $[0.25,1]$---the like-levels only---silently discarding the
+negative half of the estimator that \S\ref{sec:concept:est} works so hard to produce. Selection kept only
+positive-lift concepts and floored the survivors at a weak positive; SEL$<0$ was \emph{computed and then thrown away}.
+
+The consequence only became visible in the right currency. Per-answer curves that privilege each user's own top-SEL
+concepts looked fine, but those are unknowable before the interview. Measured in \emph{deployment currency}---a
+realizable, generic question bank with a per-question budget, where most answers down a fixed bank are weak
+positives---the accumulated weak-positive ``poison'' dragged the ranking \emph{below the no-answer intercept}:
+concepts-only full NDCG@10 declined from $0.1304$ to $0.1160$ by the sixteenth question, under the $0.1279$ intercept.
+The channel was structurally unable to say ``no,'' even though the fold operator of Eq.~\eqref{eq:cfold} is
+\emph{sign-capable}---a flip test on it moves NDCG by $-0.201$ with a clean CI. That is the crux: \textbf{a capability
+gate is vacuous if the answer model never exercises the capability.} The sign-flip gate (G3) passed on a channel that,
+as actually driven in deployment, never emitted a negative answer at all.
+
+We close this with a pre-registered, eval-only triple gate (recorded as the signed-SEL gate specification) that a
+retrain must clear before the signed answer is adopted:
+\begin{enumerate}[leftmargin=1.6em,itemsep=1.5pt]
+  \item \textbf{Recovery.} Signed answers routed through the sign-capable operator recover $+0.0076$ full NDCG@10 at
+        the sixteenth question with a CI excluding zero, and about $1.5\times$ the tail---turning the deployment decline
+        into a gain.
+  \item \textbf{Counterfeit control (taste, not artifact).} An adversarial review flagged that ``dislike from absence''
+        could be a volume$\times$popularity artifact; a counterfeit answer built only from user volume and concept
+        popularity reproduces \emph{zero} of the recovery, so the gain is taste, not an exposure artifact.
+  \item \textbf{Out-of-curriculum control.} A meh-only control shows the residual late decline is out-of-curriculum
+        extrapolation---the operator was trained on interviews of up to eight answers and asked sixteen---rather than a
+        sign defect, isolating the two failure modes.
+\end{enumerate}
+Because ``dislike from absence'' can leak user volume into the belief, we pair the gate with a volume-invariance
+acceptance criterion, backed by a probe: the recoverability of log watch-volume from the belief latent
+($R^2$ of a linear read-out) rises from $0.025$ to $0.204$ once signed answers are folded, so a signed-answer build is
+accepted only if that leak is held down (a volume-orthogonalised fold, or an invariance penalty).
+
+\paragraph{The lesson for the battery.} The outcome-gate false positives of \S\ref{sec:reqs} have a sibling among the
+\emph{semantic} gates. A capability gate such as G3's sign-flip certifies that the operator \emph{can} negate; it says
+nothing about whether the operator, driven by a realistic answer model down a realistic question bank, ever \emph{does}.
+The miss is closed only by a \emph{deployment-currency} gate---evaluate the channel on a fixed, user-independent
+question bank under a per-question budget (the G9 ingestion-isolation setting, scored at the endpoint), where an
+answer model that never exercises the negative half is penalised by the same declining curve that exposed the clip.
+We therefore add the deployment-currency endpoint as the acceptance form of the concept channel: not ``can the operator
+express dislike'' but ``does the realizable interview stay above the no-answer intercept at budget.'' \TODO{Fold the
+signed-SEL retrain result and the volume-invariance number into the G3/G9 rows once the certified tower is trained.}
+
+% =====================================================================
 \section{Experimental design}\label{sec:expdesign}
 % =====================================================================
 
