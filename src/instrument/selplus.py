@@ -127,6 +127,42 @@ def build_selplus_arrays(ctx, sh, Mm, pexp, smoke=False):
     return V, F, answerable
 
 
+def build_content_arrays(ctx, sh, Mm, pexp, smoke=False):
+    """(C) CONTENT-PROJECTION concept answers: the tag-genome-projected user profile . each concept
+    direction (model-free, content only; coverage-complete). u's genome profile = mean over rated
+    fold-in items of their genome relevance; per-concept z-scored -> signed content affinity; four
+    bands (shared thresholds). Answerable wherever the user has a real profile AND the tag has genome
+    coverage (fills the SEL support gap). Returns (V, F, answerable) at (n, C)."""
+    from signed_answers import (load_prereg, user_matrices, _components, TAU_REF, C_NEG,
+                                BAND_LIKE, BAND_MEH, BAND_DISLIKE, BAND_REFUSE)
+    prereg, item_mean = load_prereg()
+    tags = sh["tags"]; members = sh["members"]
+    items_l = [np.asarray(s, np.int64) for s, l in ctx.allb]
+    stars_l = [((np.asarray(l, np.float64) + 1) / 2).astype(np.float32) for s, l in ctx.allb]
+    Xb, Xr = user_matrices(items_l, stars_l, item_mean, ctx.ni)
+    dl = np.asarray(Xb.sum(axis=1)).ravel().astype(np.float32)
+    Grel = load_genome_relevance(ctx, tags, smoke=smoke, members=members)   # (ni, C)
+    gcov = Grel.sum(0) > 0
+    dlc = np.maximum(dl, 1.0)
+    gproj = (np.asarray(Xb @ Grel) / dlc[:, None]).astype(np.float32)        # mean rated-item relevance
+    mu = gproj.mean(0, keepdims=True); sd = gproj.std(0, keepdims=True) + 1e-6
+    prior_z = ((gproj - mu) / sd).astype(np.float32)
+    V = np.clip(0.5 * prior_z, -1.0, 1.0).astype(np.float32)
+    t_like = prereg["t_like_p60pos"]; t_neg = prereg["t_neg_absp25"]
+    Bnd = np.full(V.shape, BAND_MEH, np.int8)
+    Bnd[V > t_like] = BAND_LIKE
+    Bnd[V < -t_neg] = BAND_DISLIKE
+    answerable = (dl[:, None] >= 3) & gcov[None, :]                          # real profile + tag coverage
+    Bnd[~answerable] = BAND_REFUSE
+    F = (Bnd != BAND_REFUSE)
+    V = np.where(Bnd == BAND_MEH, 0.0, V).astype(np.float32)
+    negmask = (Bnd == BAND_DISLIKE) & F
+    negsum = np.abs(np.where(negmask, V, 0.0)).sum(axis=1)
+    scale = np.minimum(1.0, C_NEG / np.maximum(negsum, 1e-9))
+    V = np.where(negmask, V * scale[:, None], V).astype(np.float32)
+    return V, F, answerable
+
+
 class SELPlus:
     """(S) SEL+ answer model. Concepts = the assembled imputer; items = the real fold-in rating."""
     geometric = False
@@ -142,3 +178,8 @@ class SELPlus:
     def item_value(self, r, i):
         d = self.lk[r]
         return (float(d[i]), True) if i in d else (0.0, False)
+
+
+class Content(SELPlus):
+    """(C) content-projection answer model (same interface; different concept value table)."""
+    pass
