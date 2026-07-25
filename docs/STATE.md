@@ -1,90 +1,61 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-07-20**.
+> End-state is in `VISION.md`. Last updated: **2026-07-25 (signed-concepts GO)**.
 
-## Current recommender (canonical — full / tail NDCG@10, scored with the LEARNED decoder bias, not popb)
-| ckpt (`.cache/…`) | role | full / tail |
+## The concept escalation arc (Jul 24-25) — where it stands
+Author requirement: concepts must carry whole interviews (G5-E). Escalation ladder ran end-to-end on
+the frozen ep4 i25 snapshot (val 0.3435 full; canonical 10k COLD_SEED cohort; intercept 0.1279/0.0192):
+
+| rung | concepts-only m8 (full/tail) | verdict |
 |---|---|---|
-| `set_mn/pbC_best.pt` | concept-capable set-encoder — **frozen mean for the current direction** | **0.4946 / 0.3372** |
-| `set_mn/paord_best.pt`, `pb2_best.pt` | item-only base encoders | ~0.486 / ~0.485 |
-| `signed_latent/a0c_best.pt` | dense teacher / oracle ceiling | 0.4961 |
-| cold-start (popb only) | — | ≈ 0.19 full → **huge headroom** |
+| ArmA additive (untrained, whitened β=1) | 0.0991/0.0455 top-SEL (craters) | additive-union saturates |
+| FixA div-selection (\|cos\|<0.5, eval-only) | 0.1537/0.0631 monotone | crater = correlation artifact; FixB Bayes KILLED (below intercept) |
+| **C-lite trained fold** (`cfold_best.pt`, 464k params) | **0.2091/0.1222** monotone, redundancy-robust (top-SEL m8 0.2219 > m4) | item-parity at m2 (0.1922 vs 0.1965); mixed m2k2 +0.0265; **G5 split**: member-AUC 0.617 FAIL / pop-projection control PASS (+0.0494) — learned taste-region movement, not member-shape |
+| **C-full tokens-in-tower** (`cfull_best.pt`) | see ledger | **item cost ~zero** (full ≥ native-init; coldk8 above item-only tower by ep2) |
 
-_Canonical current recommender = **pbC set-encoder** (interview-native). The RecVAE-d512 instrument (0.4998/0.3443, `EXPERIMENTS.md` recommender-core) is a **separate Paper-A ruler**, not the interview recommender._
+**Ledger (committed 2eb1b51, `experiments/battery/tradeoff_ledger.json`)**: the author decision
+table — per-answer curves, redundancy rows, split-G5 columns, deployment per-question section.
+**Deployment finding**: realizable fixed-bank concepts-only DECLINES under the clip-up value
+convention (clite: 0.1304→0.1160 by q16, below intercept by q8).
 
-## Current direction
-- **Paper B lead = uncertainty-shrinkage / belief-distribution** — the belief-pool elicitation invariant
-  (closed-form update, Σ only shrinks, NDCG never drops per question) → Kalman-incompatible-with-canonical
-  → the PrecAcc redesign. Design lineage in `docs/design/`; experiments in `docs/EXPERIMENTS.md §B (★ LEAD)`.
-- **Unified multi-channel belief recommender = PrecAcc** (`scripts/train_precacc.py`): frozen pbC mean +
-  analytic precision-accumulator covariance. **Coded, adversarially reviewed, NOT yet run.**
-- Design: `docs/design/DESIGN_PRECACC.md`. Planned first run: `--conc_dirs conc_dirs_meanshift.npy
-  --max_users 30000 --max_atoms 40` → sign-proof G, α's crediting concepts, G1c/G2 curves (full+tail).
+## Signed-SEL triple gate (Jul 25, eval-only, `signed_sel_gate.json`, both runs committed)
+Clip-up poison confirmed; the **bpool_r2 SEL+VAL signed port beats clip-up at every q**
+(+0.0093 @q16 CI-clean, 0.1317→0.1254, never below intercept); popularity-counterfeit reproduces
+only 12% (taste-real, no hard kill); value-permutation collapses the gain (values carry it);
+**volume leak found** (ridge R² latent→log-volume 0.025→0.260) → per-user negative-channel
+normalization mandatory. Verdict INCONCLUSIVE per the OOD-asymmetry ruling (module trained on
+[0.25,1] likes only) → **retrain = the fair test. AUTHOR GO given.**
 
-## Settled — do NOT relitigate (see memory)
-- **LLM answerability apparatus: RETIRED for new work** (Jul-22 audit — popularity-dominated; only the
-  validity-gap gate discriminates and it fails cross-family). New work uses: ratings/SEL for values,
-  the structural rule for answerability. Distilled grids = archive-only. Instrument line has ONE bridge
-  to remove (train_precacc concept answers → SEL, in the Step-2 design sheet).
-- **Consequence: ALL pre-Jul-22 interview-line NUMBERS demoted** (B answerable-concepts, C ladder,
-  D open-recall, the +47% adaptivity magnitude) — directions = credible priors, magnitudes re-establish
-  paper-by-paper on the new instrument. Ratings-only results (item channel, dislike probe, ruler
-  campaign) untainted.
-- Kalman belief-pool **incompatible** with the canonical recommender (craters full 0.167→0.097).
-- Metric bug fixed: score with the learned bias, not popb. **Always report FULL and TAIL.**
-- Adaptivity **proven** (+47% tail from one genre question — HARD RULE #2).
-- Concepts **lose to items** as an interview router; a concept answer ≈ a coarsened item-watch signal.
+## What trains tonight (design: `docs/design/DESIGN_SIGNED_CONCEPTS.md`, pre-registered)
+Four-band signed SEL+VAL/NPMI answers (shared module `signed_answers.py`, replaces the clip
+everywhere), C_NEG negative-channel volume cap. Sequential, session-independent, queue-runner +
+watchdog: (T1) signed C-lite, m~U{1..16} curriculum, ~2h → (T2) signed C-full (--concept_tokens,
+signed levels incl. graded dislikes), ~3-5h → (T3) acceptance batch: deployment ≥ signed-eval curve
+(≥0.1317@q2, never below intercept), counterfeit ~0%, leak R² ≤~0.05, redundancy holds, per-answer
+m≤8 not degraded, split-G5 reported, ledger rows signed-clite/signed-cfull.
 
-## ★ BATTERY PHASE A: PASSED (2026-07-24, ep4 i25 snapshot — no redo indicated)
-- **Tower v4 (i25-redux: frozen RecVAE anchor + a(n) gate + zero-init sum-pool residual, 838k trainable,
-  ~16min epochs): G0-strength TIE (test 0.3536 vs 0.3540, CI ±0.007)**; coldk2 0.1965 / coldk8 0.2618 =
-  leads ALL baselines; all-bands graded fold = **0.4189/0.2999 (+0.065 over the RecVAE bar — pending
-  masking-parity verification; potential headline "R1 exceeded via graded channel")**.
-- Gates: **G3a flip PASS** (−0.299, sign carries ~70%), staircase Spearman 0.927 PASS, **G3b PASS**
-  (values = the signal, 57× MDE), **G9 PASS** (fixed-bank monotone +0.122), G6 3/4 PASS + wrong-user
-  criterion re-specified (scored 0.099 BELOW intercept = genuine personalization, not a leak — ruling:
-  substantive PASS, spec fixed to "no gain over intercept"). **G5 mixed:** member specificity AUC
-  0.885–0.926 PASS, Arm A ≫ Arm B (bag k0 0.016 catastrophe as predicted), concept-on-context +0.008,
-  but **concept-ONLY cold misses the intercept by 0.0045** — channel certified as context-additive;
-  standalone-cold concept = Step-2 design item (per-k β / floor blend), claim narrowed until fixed.
-- Next: masking-parity check on the +0.065; selection-rule fix + longer-cold clean run; Phase B (Σ gates).
+## Parked / pending
+- **Certification retrain (t2final) PARKED** until the author picks the final winner
+  (relaunch cmd recorded: `experiments/baselines/t2final_RELAUNCH_CMD.txt`; killed at ep4-b500,
+  ckpts preserved).
+- S4 filler (DAE/MultVAE ML-20M snap) running; demoted to idle priority during the retrains.
+- C-lite gates (committed 70cbe78): flip −0.2012 PASS, wrong-user PASS, dup ×2 PASS / ×3 −0.005
+  (slight over-count at ×3 — re-gate on the signed retrain's extended curriculum).
+- Strategy ladder (Jul 24): HELF lit-rank-1 replicated CI-clean, 0 inversion flags; bib add flagged
+  (golbandi2010 absent from INDEX).
+- Belief layer (design (ii)) + Phase B battery built & smoked; belief shakedown fit exists
+  (`belief_i25.pt`, sign proof G=2291); Phase B runs after the concept line settles.
 
-## ★ RULER RESET (2026-07-21, author-approved)
-- **Canonical G0 ruler = Liang recipe on ML-25M** (>3.5, min5, **10k val + 10k test held-out users**, 80/20
-  fold-in, seed 98765; `liang_split.py --data ml-25m`). Old 500/500 arena split = elicitation-only.
-  Quarantine dropped. **ALL G0 numbers below are OLD-SPLIT and superseded** — re-measurement running;
-  chapter tables will be re-emitted on the new split. RecVAE old-split training killed at ep~45
-  (val peak 0.5506 — recipe validated, number discarded; d200 architecture verdict stands informally).
+## Older context (pre-Jul-24; see git history of this file for the full pre-reset picture)
+- Canonical ruler = Liang ML-25M (CLAUDE.md); EDLAE 0.5230/0.3464 = the external bar; ep4 i25 tower
+  G0-strength tie (0.3536 vs 0.3540 test).
+- Phase A battery PASSED on the ep4 snapshot (G3a/G3b/G9 clean; G6 re-specified PASS; G5 → the arc
+  above). Pre-Jul-22 interview-line numbers remain demoted (memory).
 
-## Baseline campaign (2026-07-21, old 500/500 split — SUPERSEDED for G0; ML-20M snaps remain valid)
-- **ML-20M Liang snap: EASE PASS +0.0003 (0.4203 vs 0.420) AND RecVAE PASS +0.0005 (0.4425 vs 0.442;
-  R@20 0.4144 vs 0.414, R@50 0.5525 vs 0.553)** — split+metric+implementation fidelity certified
-  (split stats exact: 9,990,682 / 116,677 / 20,108). iALS 0.3580, EDLAE 0.4167, kNN 0.2995 (advisory),
-  Pop 0.1906. Mult-VAE/DAE queued (one command: `run_snap_ml20m.py --only dae,multvae`, ~16 h CPU).
-- **ML-25M G0 (same canonical ruler, verified line-for-line): EDLAE 0.5230/0.3464 is the NEW BAR,
-  EASE 0.5078/0.3394 — both ABOVE the in-house anchors** (pbC 0.4946/0.3372, RecVAE-d512 0.4998/0.3443).
-  R1 obligation is now "close ~2.8pt to EDLAE", not "tie RecVAE". kNN 0.4272/0.2208, iALS 0.4272/0.3172,
-  Pop 0.2851/0.0589 (pop gap vs MOSTPOP 0.2522 diagnosed benign: like-count vs all-band popb).
-- **⚠ ANCHOR FORENSIC VERDICT (Jul 21): pbC/paord belief-pool numbers are IRREPRODUCIBLE from git** — the
-  training-time forward was never committed (lived in the Jul-15 working tree, overwritten same day); pbC
-  measures 0.2428/0.1505 under every recoverable pin. **pb2 (attn pool) is the ONLY reproducing in-house
-  anchor: 0.4917 full / 0.3071 tail** (recorded 0.4852/0.3295; tail −0.022 unexplained). RecVAE-d512
-  rebuildable ~7h via the snap-certified recvae.py. **PrecAcc decision needed:** retrain belief-pool encoder
-  under committed code, or re-base the frozen mean on pb2. New HARD RULE 10: commit training code before any
-  run. `scripts/_verify/verify_pbc.py` reproduces the forensics.
-
-## Paper A restart (2026-07-20)
-- Lit re-review DONE: `external_literature/findings/paperA_recommender_landscape.md` (SOTA, taxonomy, gap
-  verdict, baseline bank) + per-paper records in `external_literature/papers/`. Gap CONFIRMED (no system holds
-  R1–R5; Biyik 2023 = central threat). Design verdict → `docs/design/PAPERA_DESIGN_VERDICT_2026-07-20.md`:
-  **frozen shallow tower + PrecAcc conjugacy IS the Paper-A instrument**; obligations = metric bridge
-  (NDCG@10/ML-25M vs published NDCG@100/ML-20M) + c4 baseline tiers before any "ties SOTA" claim.
-
-## Running now
-- Nothing.
-
-## Next action (proposed — awaiting go)
-Per `VISION.md` sequencing (closed probes first): land the unified recommender's uncertainty layer, then
-the discrete adaptive policy. Concretely — run the PrecAcc sanctioned-subsample experiment (frozen pbC mean
-+ analytic covariance) to clear gates G0/G1/G2 on full+tail, then build the adaptive policy on top.
+## Standing cautions
+- Session-managed background tasks are reaped at ~1h — long runs launch via Start-Process
+  (session-independent) with split stdout/stderr; watchdog via schtasks.
+- The G5 split (member-AUC vs pop-projection) is an open author ruling: trained concept operators
+  learn "what X-likers watch", not "members of X" — C3 human round-trip is where stated-attribute
+  semantics ultimately get tested.
