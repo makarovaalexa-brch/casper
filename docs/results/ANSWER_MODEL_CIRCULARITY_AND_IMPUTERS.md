@@ -78,7 +78,49 @@ oracle-B agreement, does it close the SEL→oracle-B gap under the cap}.
 
 ## 8. Status (2026-07-25)
 
-- Strong-recommender contrast: harness built, all arms smoke-passed, G/B/O running; S/E/C/(P) queued.
 - Weak-recommender (Paper B): two-model interview built (`db92d3a`); encoder in geometric-warmup epochs.
 - Records: this file + memory notes; findings in `external_literature/`. Certification of the instrument
   remains parked pending the winner selection (separate track).
+
+### 8.1 PHASE-1 LANDED — strong-recommender G/B/O contrast (`answer_contrast_newrec.json`, 10k users)
+
+Harness `src/instrument/answer_contrast.py` (committed `bc470a4`). Fixed orders identical across arms:
+item-ask = popularity, concept-ask = polarization. Controls ALL pass: q0 = intercept 0.1279/0.0192
+(canonical-snap), wrong-user shuffle q8 full 0.1252 (< intercept → collapses=True), leak_users=0. B snaps
+to the prior suite exactly (concept-ask B ≡ conc-polarization; item-ask B ≡ items-pop).
+
+Full/tail NDCG@10 by budget:
+
+| row | q0 | q1 | q2 | q4 | q8 |
+|---|---|---|---|---|---|
+| concept-ask **B** | .1279/.0192 | .1323/.0348 | .1328/.0343 | .1433/.0395 | .1441/.0395 |
+| concept-ask **O** | .1279/.0192 | .1326/.0350 | .1330/.0345 | .1441/.0408 | .1448/.0404 |
+| concept-ask **G** | .1279/.0192 | .1322/.0349 | .1340/.0354 | .1444/.0409 | .1450/.0413 |
+| item-ask **B** | .1279/.0192 | .1307/.0266 | .1305/.0315 | .1319/.0343 | .1673/.0504 |
+| item-ask **O** (degenerate) | .1279/.0192 | .1113/.0285 | .0976/.0320 | .0761/.0344 | .0992/.0520 |
+| item-ask **G** | .1279/.0192 | .1438/.0344 | .1495/.0412 | .1506/.0430 | .1723/.0549 |
+
+**Guards:** CKA(answer-geom, u\*) B 0.351 / O 0.358 / **G 0.406** (G highest = visible circularity, as the
+§5 guard predicts; B is the admissible ceiling). Spearman(value, oracle-B) B **0.921** / O 1.0 / G N/A.
+
+**Key quantities (concept-asking, q8, paired bootstrap 95% CI):**
+- **G − B = +0.0009 full CI[+0.00000,+0.0019] / +0.0018 tail CI[+0.0009,+0.0027]** — self-preference
+  inflation on concepts is TINY (CI-clean but ~1e-3). The circular answer barely helps concepts.
+- **O − B = +0.0008 full CI[+0.0003,+0.0012] / +0.0010 tail CI[+0.0004,+0.0016]** — honest headroom is
+  also small: behavioral SEL already agrees with the oracle (Spearman 0.921).
+- **G − O = +0.0002 full CI[−0.0008,+0.0012] / +0.0008 tail CI[−0.0002,+0.0018]** — straddles 0:
+  the strong-model geometric answer CONVERGES to the honest ceiling on concepts.
+
+**READ: on the strong stack the answer model is NOT load-bearing for the CONCEPT channel** — G/B/O concept
+curves sit within ~0.002 at every budget; the concept lift over intercept (+0.016 full / +0.020 tail @q8)
+is answer-model-invariant. The answer model IS load-bearing for the **ITEM** channel: the circular
+geometric answer inflates item-ask by **+0.013/+0.019/+0.019/+0.005 full** at q1/2/4/8 (vs +0.0009 on
+concepts), which **erases the honest short-interview concept win** — under G, item-ask beats concept-ask at
+EVERY budget, whereas under honest B concept-ask wins q1–q4 (crossover to items at q8). So "concepts beat
+items early" is a property of the CONCEPTS, not the simulator; if anything a self-preferencing simulator
+HIDES the concept advantage by pumping items. (item-ask O craters because answering held-out target items
+consumes them as evidence and they are credit-neutral-masked out of the metric — a degenerate arm, not a
+ceiling for items.)
+
+- Phase-2 imputer panel (S/E/C/P) DEFERRED pending author greenlight (after phase-1 + Paper B review).
+  `SELPlus` built + committed (`d7dd460`), dormant; E/C/P slot into the same `--arms` interface.
