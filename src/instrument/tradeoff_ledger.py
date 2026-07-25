@@ -126,6 +126,20 @@ def build_shared(ctx):
             sh["_match"][ti] = ns[np.clip(pos, 0, len(ns) - 1)]
         return sh["_match"][ti]
     sh["get_match"] = get_match
+    # SIGNED valuation arrays (DESIGN_SIGNED_CONCEPTS) -- available when the training prereg exists
+    sh["signed_available"] = False
+    try:
+        from signed_answers import load_prereg, signed_values, BAND_REFUSE
+        prereg, item_mean = load_prereg()
+        items_l = [np.asarray(s, np.int64) for s, l in ctx.allb]
+        stars_l = [((np.asarray(l, np.float64) + 1) / 2).astype(np.float32) for s, l in ctx.allb]
+        pexp = gmass / max(ctx.cnt.sum(), 1e-9)
+        Vs, Fs, Bs, ans_s = signed_values(items_l, stars_l, item_mean, Mm, pexp, ctx.ni, prereg)
+        sh["conc_value_signed"] = Vs; sh["conc_fold_signed"] = Fs; sh["conc_band_signed"] = Bs
+        sh["signed_available"] = True
+        log("[ledger] SIGNED valuation arrays built (prereg cache found)")
+    except Exception as e:                                    # missing cache OR dim mismatch (smoke)
+        log(f"[ledger] signed rungs unavailable ({type(e).__name__})")
     return sh
 
 
@@ -151,7 +165,8 @@ def g5_split(rung, rows, n_sample=2000):
         # (a) multi-concept member AUC
         multi = {}
         for m in (1, 2, 4):
-            conc_lists = [list(zip(sel[r][0][:m], sel[r][1][:m])) for r in rows_s]
+            conc_lists = [rung.map_answers(r, list(zip(sel[r][0][:m], sel[r][1][:m])))
+                          for r in rows_s]
             Z = rung.z_batch([empty1] * len(rows_s), conc_lists)
             aucs = []
             for j, r in enumerate(rows_s):
@@ -161,7 +176,8 @@ def g5_split(rung, rows, n_sample=2000):
             multi[str(m)] = float(np.mean(aucs))
         res["member_AUC"] = multi
         # (b) pop-projection control (top concept, k0, same-norm)
-        conc1 = [[(int(sel[r][0][0]), float(sel[r][1][0]))] for r in rows_s]
+        conc1 = [rung.map_answers(r, [(int(sel[r][0][0]), float(sel[r][1][0]))]) or
+                 [(int(sel[r][0][0]), 0.0)] for r in rows_s]
         Zn = rung.z_batch([empty1] * len(rows_s), conc1)
         u1 = sh["u1"]
         Zp = torch.zeros_like(Zn)
@@ -216,11 +232,26 @@ def fold_items_enc(enc, seqs, batch=256):
 class Rung:
     """A rung = (tower encoder used for item folds, concept application). score(items, concs) -> z."""
 
-    def __init__(self, name, ctx, sh, clite_net=None, cfull_enc=None, div_select=False):
+    def __init__(self, name, ctx, sh, clite_net=None, cfull_enc=None, div_select=False,
+                 val_source="clip"):
         self.name = name; self.ctx = ctx; self.sh = sh
         self.clite = clite_net; self.cfull = cfull_enc; self.div_select = div_select
+        self.val_source = val_source                          # "clip" | "signed"
         self.cmean = ConceptMean(sh["d_c"], sh["d_raw"], sh["w_c"], beta_ctx=5.0,
                                  beta_cold=1.0, floor_rho=0.0)
+
+    def map_answers(self, r, pairs):
+        """Rung-level valuation of a selected concept list: clip = as given; signed = the four-band
+        signed value (refuse band -> not folded)."""
+        if self.val_source == "clip":
+            return [(int(c), float(v)) for c, v in pairs]
+        sh = self.sh
+        out = []
+        for c, _ in pairs:
+            c = int(c)
+            if sh["conc_fold_signed"][r, c]:
+                out.append((c, float(sh["conc_value_signed"][r, c])))
+        return out
 
     def enc(self):
         return self.cfull if self.cfull is not None else self.ctx.enc
@@ -231,7 +262,11 @@ class Rung:
             seqs = []
             for (s, l), cl in zip(item_seqs, conc_lists):
                 cid = np.asarray([self.ctx.ni + c for c, _ in cl], np.int64)
-                clv = np.asarray([sel_value_to_level(v) for _, v in cl], np.int64)
+                if self.val_source == "signed":               # signed levels incl. graded dislikes
+                    from signed_answers import value_to_level
+                    clv = np.asarray([value_to_level(v) for _, v in cl], np.int64)
+                else:
+                    clv = np.asarray([sel_value_to_level(v) for _, v in cl], np.int64)
                 seqs.append((np.concatenate([np.asarray(s, np.int64), cid]),
                              np.concatenate([np.asarray(l, np.int64), clv])))
             return fold_items_enc(self.cfull, seqs)
@@ -300,8 +335,13 @@ def deploy_curves(rung, rows, budgets=BUDGETS):
                     return False
                 c = int(cand[0]); asked_conc.add(c); nq += 1
                 if sh["conc_answerable"][r, c]:
-                    concs.append((c, float(sh["conc_value"][r, c])))
-                    answered_c.append(c)
+                    if rung.val_source == "signed":
+                        if sh["conc_fold_signed"][r, c]:      # refuse band burns w/o fold
+                            concs.append((c, float(sh["conc_value_signed"][r, c])))
+                            answered_c.append(c)
+                    else:
+                        concs.append((c, float(sh["conc_value"][r, c])))
+                        answered_c.append(c)
                 return True
 
             for q in range(1, qmax + 1):
@@ -373,7 +413,8 @@ def _concepts_only_curve(rung, rows_c, sel):
     ff = {}; tt = {}
     for m in M_LIST:
         item_seqs = [(np.empty(0, np.int64), np.empty(0, np.int64))] * len(rows_c)
-        conc_lists = [list(zip(sel[r][0][:m], sel[r][1][:m])) for r in rows_c]
+        conc_lists = [rung.map_answers(r, list(zip(sel[r][0][:m], sel[r][1][:m])))
+                      for r in rows_c]
         Z = rung.z_batch(item_seqs, conc_lists)
         full = np.full(len(rows_c), np.nan); tail = np.full(len(rows_c), np.nan)
         for st in range(0, len(rows_c), 500):
@@ -432,7 +473,7 @@ def per_answer_section(rung, rows):
     # mixed m2k2
     rows_m = rows_c
     k2 = [ctx.k2_tokens[r] for r in rows_m]
-    conc2 = [list(zip(sel[r][0][:2], sel[r][1][:2])) for r in rows_m]
+    conc2 = [rung.map_answers(r, list(zip(sel[r][0][:2], sel[r][1][:2]))) for r in rows_m]
     Zm = rung.z_batch(k2, conc2)
     Zi = rung.z_batch(k2, [[] for _ in rows_m])
     fm = np.full(len(rows_m), np.nan); fi = np.full(len(rows_m), np.nan)
@@ -459,6 +500,10 @@ def main():
                                                          "cfold_best.pt"))
     ap.add_argument("--cfull_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
                                                          "cfull_best.pt"))
+    ap.add_argument("--sclite_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
+                                                          "cfold_signed_best.pt"))
+    ap.add_argument("--scfull_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
+                                                          "cfull_signed_best.pt"))
     ap.add_argument("--full_threads", action="store_true")
     args = ap.parse_args()
     t00 = time.time()
@@ -506,6 +551,26 @@ def main():
                                 n_concepts=len(sh["tags"]))
             enc_cf.load_state_dict(blob["enc"]); enc_cf.eval()
             rungs[name] = Rung(name, ctx, sh, cfull_enc=enc_cf)
+        elif name in ("sclite", "scfull"):
+            # SIGNED rungs (DESIGN_SIGNED_CONCEPTS): signed four-band valuation + the retrained ckpt
+            if not sh.get("signed_available"):
+                out["rungs"][name] = "PENDING (no signed prereg cache)"; continue
+            ckpt = args.sclite_ckpt if name == "sclite" else args.scfull_ckpt
+            if not os.path.exists(ckpt):
+                out["rungs"][name] = "PENDING (no ckpt)"; continue
+            if name == "sclite":
+                from concept_fold import ConceptFoldNet
+                blob = torch.load(ckpt, map_location="cpu")
+                net = ConceptFoldNet(len(blob["tags"]), d=ctx.d, h=blob["hidden"])
+                net.load_state_dict(blob["net"]); net.eval()
+                rungs[name] = Rung(name, ctx, sh, clite_net=net, val_source="signed")
+            else:
+                blob = torch.load(ckpt, map_location="cpu")
+                native = ctx.enc._native[0] if hasattr(ctx.enc, "_native") else None
+                enc_sf = I25Encoder(ctx.ni, native, d_lat=ctx.d, token_mode="film",
+                                    n_concepts=len(sh["tags"]))
+                enc_sf.load_state_dict(blob["enc"]); enc_sf.eval()
+                rungs[name] = Rung(name, ctx, sh, cfull_enc=enc_sf, val_source="signed")
     for name, rung in rungs.items():
         log(f"=== RUNG {name} ===")
         r_out = {"per_answer": per_answer_section(rung, rows)}

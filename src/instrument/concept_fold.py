@@ -165,6 +165,56 @@ def sel_concepts_from_items(item_sids, Mm, grate, m, member_sets):
 
 
 # ============================================================================= training (DO NOT LAUNCH)
+M_MAX_SIGNED = 16      # signed curriculum: m ~ U{1..16} (the q16 slide was out-of-curriculum at 8)
+
+
+def make_example_signed(u, rng, Mm, pexp, member_sets, item_mean, prereg, p_conc_only=0.35):
+    """SIGNED curriculum example (DESIGN_SIGNED_CONCEPTS): four-band SEL+VAL labels from the INPUT
+    POOL, m ~ U{1..M_MAX_SIGNED}, reveal = ceil(m/2) top-|v| + rest uniform over remaining
+    answerable non-refuse concepts (negatives IN-envelope), member-drop unchanged, C_NEG cap over
+    the revealed negatives."""
+    from signed_answers import signed_for_pool, cap_negatives, BAND_REFUSE
+    items = np.asarray(u["items"], np.int64); lv = np.asarray(u["levels"], np.int64)
+    liked = np.asarray(u["liked"], np.int64)
+    if len(items) < 4 or len(liked) < 2:
+        return None
+    ntg = max(1, len(liked) // 3)
+    tg = rng.choice(liked, size=ntg, replace=False)
+    keep = ~np.isin(items, tg)
+    pool_s = items[keep]; pool_l = lv[keep]
+    if len(pool_s) < 2:
+        return None
+    stars = (pool_l.astype(np.float32) + 1.0) / 2.0
+    V, B, ans = signed_for_pool(pool_s, stars, item_mean, Mm, pexp, prereg)
+    cand = np.flatnonzero(ans & (B != BAND_REFUSE))
+    if len(cand) == 0:
+        return None
+    m = int(rng.integers(1, M_MAX_SIGNED + 1))
+    m = min(m, len(cand))
+    order = cand[np.argsort(-np.abs(V[cand]))]
+    top = order[: int(np.ceil(m / 2))]
+    rest_pool = np.setdiff1d(cand, top)
+    rest = rng.choice(rest_pool, size=min(m - len(top), len(rest_pool)), replace=False) \
+        if len(rest_pool) and m > len(top) else np.empty(0, np.int64)
+    cids = np.concatenate([top, rest]).astype(int)
+    cvals = cap_negatives([float(V[c]) for c in cids])
+    # member-drop: items supporting any revealed concept leave the item input
+    support = [np.intersect1d(pool_s, member_sets[int(c)]) for c in cids]
+    drop = np.unique(np.concatenate(support)) if support else np.empty(0, np.int64)
+    mk = ~np.isin(pool_s, drop)
+    rem_s, rem_l = pool_s[mk], pool_l[mk]
+    if rng.random() < p_conc_only or len(rem_s) == 0:
+        in_s = np.empty(0, np.int64); in_l = np.empty(0, np.int64)
+    else:
+        k = int(rng.integers(1, min(8, len(rem_s)) + 1))
+        pick = rng.choice(len(rem_s), size=k, replace=False)
+        in_s, in_l = rem_s[pick], rem_l[pick]
+    tgt = np.setdiff1d(tg, in_s)
+    if len(tgt) == 0:
+        return None
+    return in_s, in_l, [int(c) for c in cids], [float(v) for v in cvals], tgt
+
+
 def make_example(u, rng, Mm, grate, member_sets, p_conc_only=0.35):
     """Item-masked curriculum example: (input item sids/levels AFTER member-drop, concept ids, concept
     vals, target likes). None if unusable."""
@@ -248,6 +298,13 @@ def train(args):
     Mm = build_member_matrix(members, tags, ni)
     grate = (cnt @ np.asarray(Mm.todense())) / max(cnt.sum(), 1e-9)
     member_sets = {i: members[t] for i, t in enumerate(tags)}
+    prereg = item_mean_arr = None
+    if args.signed:
+        from signed_answers import compute_prereg
+        prereg, item_mean_arr = compute_prereg(raw, tr_set, show2id, ni, Mm, grate)
+        log(f"[cfold] SIGNED mode: prereg w_val={prereg['w_val']:.3f} "
+            f"t_like={prereg['t_like_p60pos']:.3f} t_neg={prereg['t_neg_absp25']:.3f} "
+            f"C_NEG={prereg.get('C_NEG')} curriculum m<= {M_MAX_SIGNED}")
     net = ConceptFoldNet(len(tags), d=enc.d_out, h=args.hidden, conc_init=d_c.numpy())
     log(f"[cfold] TRAINABLE params = {net.n_params():,} (emb {len(tags)}x{enc.d_out} + gate + mlp + cap)")
     opt = torch.optim.AdamW(net.parameters(), lr=args.lr, weight_decay=1e-5)
@@ -268,7 +325,11 @@ def train(args):
         net.train(); run = 0.0; nb = 0; t0 = time.time()
         for st in range(0, len(order), args.batch):
             uix = order[st:st + args.batch]
-            exs = [make_example(users[i], rng, Mm, grate, member_sets) for i in uix]
+            if args.signed:
+                exs = [make_example_signed(users[i], rng, Mm, grate, member_sets,
+                                           item_mean_arr, prereg) for i in uix]
+            else:
+                exs = [make_example(users[i], rng, Mm, grate, member_sets) for i in uix]
             exs = [e for e in exs if e is not None]
             if not exs:
                 continue
@@ -315,7 +376,29 @@ def quick_val(enc, Wd, bd, net, args):
         ctx = PA_.build_real_ctx(args.snapshot)
         members = load_genome(ctx)
         tags = sorted(members.keys())
-        _VAL_CACHE["sel"] = sel_top_concepts(ctx, members, tags, M_MAX)
+        if getattr(args, "signed", False):
+            # SIGNED monitor: top-8 by |v| among answerable non-refuse; C_NEG cap over the selection
+            from signed_answers import (load_prereg, signed_values, cap_negatives, BAND_REFUSE)
+            from concept_fold import build_member_matrix
+            prereg, item_mean = load_prereg()
+            Mm = build_member_matrix(members, tags, ctx.ni)
+            pexp = (ctx.cnt @ np.asarray(Mm.todense())) / max(ctx.cnt.sum(), 1e-9)
+            items_list = [np.asarray(s, np.int64) for s, l in ctx.allb]
+            stars_list = [((np.asarray(l, np.float64) + 1) / 2).astype(np.float32)
+                          for s, l in ctx.allb]
+            V, F, B, ans = signed_values(items_list, stars_list, item_mean, Mm, pexp, ctx.ni,
+                                         prereg, apply_neg_cap=False)
+            sel = {}
+            for r in range(ctx.n):
+                cand = np.flatnonzero(ans[r] & (B[r] != BAND_REFUSE))
+                if len(cand) == 0:
+                    continue
+                o = cand[np.argsort(-np.abs(V[r, cand]))][:8]
+                sel[r] = (o.astype(np.int64),
+                          np.asarray(cap_negatives([float(V[r, c]) for c in o]), np.float32))
+            _VAL_CACHE["sel"] = sel
+        else:
+            _VAL_CACHE["sel"] = sel_top_concepts(ctx, members, tags, M_MAX)
         _VAL_CACHE["ctx"] = ctx
     ctx = _VAL_CACHE["ctx"]; sel = _VAL_CACHE["sel"]
     rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel]
@@ -687,6 +770,28 @@ def _smoke():
         hit += 1
     assert hit > 20, f"make_example produced too few usable examples ({hit}/200)"
     print(f"[SMOKE] item-masked curriculum PASS ({hit}/200 usable; member-drop + leak asserts hold)")
+    # signed curriculum (DESIGN_SIGNED_CONCEPTS): four-band labels, m<=16, C_NEG cap, leak asserts
+    prereg_s = {"w_val": 0.3, "t_like_p60pos": 0.15, "t_neg_absp25": 0.1, "C_NEG": 2.0}
+    item_mean_s = np.full(ni, 3.5, np.float32)
+    hs = 0; nneg = 0; mmax_seen = 0
+    for t in range(200):
+        kS = rng.randint(12, 60)
+        itsS = rng.choice(ni, size=kS, replace=False).astype(np.int64)
+        lvsS = rng.randint(0, NLEV, size=kS).astype(np.int64); lvsS[:6] = 8
+        uS = {"items": itsS, "levels": lvsS, "liked": itsS[lvsS >= 7]}
+        e = make_example_signed(uS, np.random.default_rng(t), Mm, grate, member_sets,
+                                item_mean_s, prereg_s)
+        if e is None:
+            continue
+        in_s, in_l, cids, cvals, tgt = e
+        assert all(-1.0 - 1e-6 <= v <= 1.0 + 1e-6 for v in cvals)
+        assert sum(-v for v in cvals if v < 0) <= 2.0 + 1e-6, "C_NEG cap violated"
+        assert len(cids) <= M_MAX_SIGNED
+        assert len(np.intersect1d(in_s, tgt)) == 0
+        hs += 1; nneg += sum(1 for v in cvals if v < 0); mmax_seen = max(mmax_seen, len(cids))
+    assert hs > 20 and nneg > 0, f"signed curriculum: usable={hs} negatives={nneg}"
+    print(f"[SMOKE] SIGNED curriculum PASS ({hs}/200 usable; {nneg} negative folds in-envelope; "
+          f"max m seen {mmax_seen} <= {M_MAX_SIGNED}; C_NEG cap holds)")
     # 7) real-dims param count (the reportable number)
     net_real = ConceptFoldNet(1031, d=200, h=256, conc_init=None)
     print(f"[SMOKE] REAL-dims param count: {net_real.n_params():,} "
@@ -713,6 +818,9 @@ def main():
     ap.add_argument("--max_users", type=int, default=0, help="dev cap only (0=all; HARD RULE #1)")
     ap.add_argument("--resume_from_best", action="store_true",
                     help="resume from <tag>_best.pt weights (fresh optimizer; continue epochs)")
+    ap.add_argument("--signed", action="store_true",
+                    help="SIGNED four-band SEL+VAL curriculum (DESIGN_SIGNED_CONCEPTS): m<=16, "
+                         "negatives in-envelope, C_NEG cap; prereg computed once from train")
     ap.add_argument("--full_threads", action="store_true")
     args = ap.parse_args()
     if args.smoke:
