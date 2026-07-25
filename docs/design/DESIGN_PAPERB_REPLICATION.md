@@ -1,5 +1,27 @@
 # DESIGN — Faithful replication of OLD (pre-RecVAE) Paper B onto the NEW canonical ruler
 
+## ★ ADDENDUM 2026-07-25 — SINGLE-RUN faithful version (NOT the §3 2×2)
+Author directive supersedes the §7 "blocked" stop: run the **one faithful cell** = the old ML-1M
+reconstruction-encoder method, method held byte-faithful, moved onto OUR canonical ML-25M Liang ruler.
+No 2×2, no ML-1M rebuild, no recommender-strength decomposition — just the new-ruler lift curve
+side-by-side with the OLD recorded numbers, to answer: **did the strong short-interview lift survive?**
+
+Faithful stack (all recipes verbatim from `scripts/_archive/paper2_old/`): biased-SVD D=64 LAMF=0.05 LR=0.01
+EP=15 (`ml25m_build_svd_full.py`) + concept-aware attention reconstruction encoder with LEARNED enc+Qp+Ec
+(`freeze_concept_encoder.py`; genre tokens dropped per the ML-25M port) + genome concepts relevance>0.5,
+≥30 members (`ml25m_concepts_full.py`) + GEOMETRIC answer (no LLM, no SEL) + item & concept short-interview
+T=8 with static-pop AND EIG selection (`answerability_concept.py` infogain_items/infogain_concepts).
+Decoder = the method's own `score = popb + Qp·u` (this IS the weak old recommender — the point of the test).
+
+Deltas vs the archived code = dataset + split ONLY. The canonical proc/*.csv are binary (rating>3.5);
+the method is explicit-rating based, so `pb_prep.py` reproduces the exact Liang identity maps (seed 98765,
+asserts vocab == proc/unique_sid.txt byte-for-byte) and recovers ALL-BAND explicit ratings from raw ML-25M
+restricted to the 18,359 vocab — exactly as the archived ML-25M port trained its biased-SVD. Fold-in
+(test_tr) / targets (test_te) / head mask are the canonical ruler, untouched. All 10k test users, all items,
+all concepts (HARD RULE 1). Code: `scripts/paper2_repl/pb_{prep,train_enc,interview}.py`. Controls:
+canonical-snap (full-profile fold), answer-permutation existential, disjoint fold-in/target leak check.
+
+
 > Pre-registered per HARD RULE 10 / "design sheet before any run". Question: **was the old
 > pre-RecVAE Paper B short-interview lift a genuinely stronger METHOD, or an artifact of the OLD
 > RULER (dataset + recommender strength + metric/split)?**
