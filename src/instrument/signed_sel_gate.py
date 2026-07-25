@@ -335,6 +335,7 @@ def main():
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--ckpt", default=os.path.join(_ROOT, ".cache", "instrument", "cfold_best.pt"))
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
+    ap.add_argument("--out_tag", default="", help="suffix for the output JSON (retrain acceptance)")
     ap.add_argument("--full_threads", action="store_true")
     args = ap.parse_args()
     if not args.full_threads:
@@ -381,7 +382,7 @@ def main():
                         np.full(ctx.ni, 3.5, np.float32))            # smoke fallback
     outdir = ctx.outdir if args.smoke else OUTDIR
     os.makedirs(outdir, exist_ok=True)
-    path = os.path.join(outdir, "signed_sel_gate.json")
+    path = os.path.join(outdir, f"signed_sel_gate{(chr(95)+args.out_tag) if args.out_tag else ''}.json")
     prereg = {"gate": "signed_sel_triple_gate_AMENDED",
               "amendments": "2026-07-25 author rulings: OOD asymmetry (arm1 worse = INCONCLUSIVE, "
                             "only arm2>=70% = HARD KILL); value = bpool_r2 SEL+VAL port; "

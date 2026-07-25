@@ -578,6 +578,57 @@ def sel_value_to_level(v):
     return int(6 + round(3.0 * (v - 0.25) / 0.75))
 
 
+def make_concept_example_signed(u, rng, Mm, pexp, member_sets, ni, item_mean, prereg,
+                                p_conc_only=0.35, m_max=16):
+    """SIGNED C-full curriculum example (DESIGN_SIGNED_CONCEPTS): four-band SEL+VAL labels from the
+    input pool; concept token levels via signed_answers.value_to_level (dislikes -> the tower's
+    EXISTING graded dislike levels); m ~ U{1..16}; C_NEG cap over the revealed negatives."""
+    from signed_answers import signed_for_pool, cap_negatives, value_to_level, BAND_REFUSE
+    its = np.asarray(u["items"], np.int64)
+    liked = np.asarray(u["liked"], np.int64)
+    if len(its) < 4 or len(liked) < 2:
+        return None
+    ntg = max(1, len(liked) // 3)
+    tg = rng.choice(liked, size=ntg, replace=False)
+    keep = ~np.isin(its, tg)
+    pool_s = its[keep]; pool_l = np.asarray(u["levels"], np.int64)[keep]
+    pool_v = np.asarray(u["vals"], np.float32)[keep]
+    if len(pool_s) < 2:
+        return None
+    stars = (pool_l.astype(np.float32) + 1.0) / 2.0
+    V, B, ans = signed_for_pool(pool_s, stars, item_mean, Mm, pexp, prereg)
+    cand = np.flatnonzero(ans & (B != BAND_REFUSE))
+    if len(cand) == 0:
+        return None
+    m = min(int(rng.integers(1, m_max + 1)), len(cand))
+    order = cand[np.argsort(-np.abs(V[cand]))]
+    top = order[: int(np.ceil(m / 2))]
+    rest_pool = np.setdiff1d(cand, top)
+    rest = rng.choice(rest_pool, size=min(m - len(top), len(rest_pool)), replace=False) \
+        if len(rest_pool) and m > len(top) else np.empty(0, np.int64)
+    cids = np.concatenate([top, rest]).astype(int)
+    cvals = cap_negatives([float(V[c]) for c in cids])
+    support = [np.intersect1d(pool_s, member_sets[int(c)]) for c in cids]
+    drop = np.unique(np.concatenate(support)) if support else np.empty(0, np.int64)
+    mk = ~np.isin(pool_s, drop)
+    rem_s, rem_l, rem_v = pool_s[mk], pool_l[mk], pool_v[mk]
+    if rng.random() < p_conc_only or len(rem_s) == 0:
+        in_s = np.empty(0, np.int64); in_l = np.empty(0, np.int64); in_v = np.empty(0, np.float32)
+    else:
+        k = int(rng.integers(1, min(8, len(rem_s)) + 1))
+        pick = rng.choice(len(rem_s), size=k, replace=False)
+        in_s, in_l, in_v = rem_s[pick], rem_l[pick], rem_v[pick]
+    c_ids = np.asarray([ni + int(c) for c in cids], np.int64)
+    c_lv = np.asarray([value_to_level(v) for v in cvals], np.int64)
+    inp = np.concatenate([in_s, c_ids]); lvo = np.concatenate([in_l, c_lv])
+    sv = np.concatenate([in_v, np.zeros(len(cids), np.float32)])
+    tgt = np.setdiff1d(tg, in_s)
+    if len(tgt) == 0:
+        return None
+    negs = np.setdiff1d(u.get("disliked", np.empty(0, np.int64)), in_s)
+    return inp, lvo, sv, tgt, negs
+
+
 def make_concept_example(u, rng, Mm, grate, member_sets, ni, p_conc_only=0.35, m_max=8):
     """ARM C-FULL item-masked curriculum example (mirrors concept_fold.make_example; the C-lite recipe):
     pool/target split (leak-free), SEL labels FROM THE INPUT POOL ONLY, the member items that generated
@@ -1069,9 +1120,9 @@ def cold_concepts_full10(enc, Wd, bd, sel_val, m, va_tr, va_te, ni, batch=500):
                     packrows.append((np.empty(0, np.int64), np.empty(0, np.int64),
                                      np.empty(0, np.float32)))
                 else:
-                    cs, vv = sel_val[r]
+                    cs, lvls = sel_val[r]                    # PRE-MAPPED levels (signed-aware)
                     cid = (ni + cs[:m]).astype(np.int64)
-                    clv = np.asarray([sel_value_to_level(v) for v in vv[:m]], np.int64)
+                    clv = np.asarray(lvls[:m], np.int64)
                     packrows.append((cid, clv, np.zeros(len(cid), np.float32)))
             ids, vals, pad, lvs = pack_tokens(packrows)
             S = (enc(ids, vals, pad, lvs) @ Wd.T + bd).numpy().astype(np.float32)
@@ -1114,6 +1165,13 @@ def train(args):
         args.n_concepts = len(tags)
         log(f"[cfull] concept channel: {len(tags)} genome concepts (>=30 members); "
             f"p_concept_ex={args.p_concept_ex} (item-only examples keep the item pathway fed)")
+        signed_prereg = signed_item_mean = None
+        if getattr(args, "signed_concepts", False):
+            from signed_answers import compute_prereg
+            signed_prereg, signed_item_mean = compute_prereg(raw, tr_set, show2id, ni, Mm, grate)
+            log(f"[cfull] SIGNED concepts: w_val={signed_prereg['w_val']:.3f} "
+                f"t_like={signed_prereg['t_like_p60pos']:.3f} "
+                f"t_neg={signed_prereg['t_neg_absp25']:.3f} m<=16, dislike levels 0..4")
 
     enc, decoder, teacher, params, groups = build_model(args, ni, cnt)
     if args.concept_tokens:
@@ -1172,22 +1230,46 @@ def train(args):
         log(f"[train] cold-val subsets built once: k=2 nnz={Lk2.nnz}, k=8 nnz={Lk8.nnz} (seed {COLD_SEED})")
     sel_val = None
     if args.concept_tokens and not args.no_cold_val:
-        # per-val-user top-8 SEL concepts from the canonical fold-in (targets excluded by construction)
-        counts_v = np.asarray((va_tr @ Mm).todense())
-        nu_v = np.asarray(va_tr.sum(axis=1)).ravel().clip(min=1)
-        lift_v = (counts_v / nu_v[:, None]) / np.maximum(grate[None, :], 1e-12)
-        lift_v[counts_v < 2] = -np.inf
-        sel_val = []
-        for r in range(va_tr.shape[0]):
-            pos = np.flatnonzero(np.isfinite(lift_v[r]) & (lift_v[r] > 1.0))
-            if len(pos) == 0:
-                sel_val.append(None); continue
-            o = pos[np.argsort(-lift_v[r][pos])][:8]
-            l1 = np.log(lift_v[r][o[0]])
-            vv = np.clip(np.log(lift_v[r][o]) / max(l1, 1e-9), 0.25, 1.0)
-            sel_val.append((o.astype(np.int64), vv.astype(np.float32)))
+        if getattr(args, "signed_concepts", False):
+            # SIGNED monitor: top-8 by |v|, C_NEG cap, levels via value_to_level (incl. dislikes)
+            from signed_answers import signed_values, cap_negatives, value_to_level, BAND_REFUSE
+            counts_v = None
+            items_l = []; stars_l = []
+            for r in range(va_tr.shape[0]):
+                s_, e_ = L_val.indptr[r], L_val.indptr[r + 1]
+                sids = L_val.indices[s_:e_].astype(np.int64)
+                lvls = (L_val.data[s_:e_] - 1.0)
+                items_l.append(sids); stars_l.append(((lvls + 1.0) / 2.0).astype(np.float32))
+            Vv, Fv, Bv, ansv = signed_values(items_l, stars_l, signed_item_mean, Mm, grate, ni,
+                                             signed_prereg, apply_neg_cap=False)
+            sel_val = []
+            for r in range(va_tr.shape[0]):
+                cand = np.flatnonzero(ansv[r] & (Bv[r] != BAND_REFUSE))
+                if len(cand) == 0:
+                    sel_val.append(None); continue
+                o = cand[np.argsort(-np.abs(Vv[r, cand]))][:8]
+                vv = cap_negatives([float(Vv[r, c]) for c in o])
+                sel_val.append((o.astype(np.int64),
+                                np.asarray([value_to_level(v) for v in vv], np.int64)))
+        else:
+            # per-val-user top-8 SEL concepts (LEGACY clip path, kept for unsigned runs)
+            counts_v = np.asarray((va_tr @ Mm).todense())
+            nu_v = np.asarray(va_tr.sum(axis=1)).ravel().clip(min=1)
+            lift_v = (counts_v / nu_v[:, None]) / np.maximum(grate[None, :], 1e-12)
+            lift_v[counts_v < 2] = -np.inf
+            sel_val = []
+            for r in range(va_tr.shape[0]):
+                pos = np.flatnonzero(np.isfinite(lift_v[r]) & (lift_v[r] > 1.0))
+                if len(pos) == 0:
+                    sel_val.append(None); continue
+                o = pos[np.argsort(-lift_v[r][pos])][:8]
+                l1 = np.log(lift_v[r][o[0]])
+                vv = np.clip(np.log(lift_v[r][o]) / max(l1, 1e-9), 0.25, 1.0)
+                sel_val.append((o.astype(np.int64),
+                                np.asarray([sel_value_to_level(v) for v in vv], np.int64)))
         log(f"[cfull] val concepts-only sets built once: "
-            f"{sum(1 for s in sel_val if s is not None)} users with >=1 SEL concept")
+            f"{sum(1 for s in sel_val if s is not None)} users with >=1 concept "
+            f"({'SIGNED' if getattr(args, 'signed_concepts', False) else 'legacy clip'})")
 
     # S2 NATIVE-SEEDED BEST (v4 review): evaluate the INIT model (delta==0) on val and seed `best` +
     # the best checkpoint with it BEFORE epoch 1 -- a below-native G0 outcome becomes impossible
@@ -1227,10 +1309,16 @@ def train(args):
             if args.concept_tokens:
                 # C-full mix: concept-curriculum examples w.p. p_concept_ex, else plain item examples
                 # (the item pathway must never starve -- author spec)
-                exs = [(i, make_concept_example(users[i], rng, Mm, grate, member_sets, ni,
-                                                p_conc_only=0.35)
-                        if rng.random() < args.p_concept_ex
-                        else make_input_target(users[i], rng, p_int=p_int)) for i in bat]
+                if getattr(args, "signed_concepts", False):
+                    exs = [(i, make_concept_example_signed(users[i], rng, Mm, grate, member_sets,
+                                                           ni, signed_item_mean, signed_prereg)
+                            if rng.random() < args.p_concept_ex
+                            else make_input_target(users[i], rng, p_int=p_int)) for i in bat]
+                else:
+                    exs = [(i, make_concept_example(users[i], rng, Mm, grate, member_sets, ni,
+                                                    p_conc_only=0.35)
+                            if rng.random() < args.p_concept_ex
+                            else make_input_target(users[i], rng, p_int=p_int)) for i in bat]
             else:
                 exs = [(i, make_input_target(users[i], rng, p_int=p_int)) for i in bat]
             exs = [(i, e) for i, e in exs if e is not None]
@@ -1909,6 +1997,10 @@ def main():
     ap.add_argument("--p_concept_ex", type=float, default=0.5,
                     help="fraction of training examples drawn from the concept curriculum "
                          "(rest = plain item examples; keeps the item pathway fed)")
+    ap.add_argument("--signed_concepts", action="store_true",
+                    help="SIGNED four-band SEL+VAL concept channel (DESIGN_SIGNED_CONCEPTS): "
+                         "m<=16, dislike levels 0..4 in-envelope, C_NEG cap; requires "
+                         "--concept_tokens")
     ap.add_argument("--select_cold", action="store_true",
                     help="AUTHOR SELECTION RULE (2026-07-24): best checkpoint = max cold composite "
                          "(mean coldk2,coldk8) SUBJECT TO full@10 >= native-init - G0_TIE_CI; patience "
@@ -1943,6 +2035,8 @@ def main():
     args = ap.parse_args()
     if args.concept_tokens:
         assert args.arch == "i25", "--concept_tokens is i25-only (Arm C-full)"
+    if args.signed_concepts:
+        assert args.concept_tokens, "--signed_concepts requires --concept_tokens"
     if args.eval_cold:
         eval_cold_mode(args)
     elif args.smoke:
