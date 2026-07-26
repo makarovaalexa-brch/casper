@@ -124,3 +124,25 @@ ceiling for items.)
 
 - Phase-2 imputer panel (S/E/C/P) DEFERRED pending author greenlight (after phase-1 + Paper B review).
   `SELPlus` built + committed (`d7dd460`), dormant; E/C/P slot into the same `--arms` interface.
+
+## Concept granularity diagnostic (`concept_granularity.json`, completed 2026-07-26 02:25, 10k users, 1031 concepts, frozen t2i25_EP4 + signed C-lite)
+
+**A1 — what the selector picks:** oracle-selected concepts are BROAD, not fine. Median member count of
+oracle-pooled selections = 1320 (polarization/mass banks even broader ~4000) vs 291 across all 1031
+concepts. The interview naturally reaches for high-coverage concepts.
+
+**A2 — per-answer cold lift rises with breadth** (single honest B concept, terciles by member count):
+
+| tercile | med members | mean answerable users | lift full@10 | lift tail@10 |
+|---|---|---|---|---|
+| fine | 90 | 1291 | **−0.0053** | **−0.0061** |
+| medium | 295 | 3655 | −0.0005 | +0.0027 |
+| broad | 1073 | 7271 | +0.0019 | +0.0074 |
+
+Spearman(lift, member_count) = **+0.49 full / +0.59 tail** → fine-grained concepts HURT per answer; breadth
+helps. **Verdict:** on the strong frozen stack the concept channel wants BROAD concepts — a coarseness
+ceiling, consistent with the cos~0.83 bound. Fine niche concepts do not compound.
+
+**C-lite vs C-full (concept-ask B, identical answers):** near-identical; the fold-to-point C-full head buys
+a hair at low budget (q1 full .1380 vs C-lite .1323) but OVER-COMMITS at q8 (C-full .1378 < C-lite .1441).
+Extra fold capacity is not load-bearing for concepts.
