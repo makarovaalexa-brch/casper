@@ -102,3 +102,34 @@ instrument stays parked (separate track) until the concept operator is settled.
 - **[HIGHEST] Answer-channel information ceiling** — settled cheaply by Step 0 before any train.
 - Score-match brittleness on frozen coords → relational/GAR fallback ready.
 - Teacher near cos≈0.83 coarseness ceiling → Step 0b makes it the explicit, honest bar (not item parity).
+
+## Step-0 RESULT (2026-07-26; code `474eaee`, zero training) — VERDICT: FLAG_AUTHOR, qualified PROCEED
+Ran `src/instrument/concept_distill_step0.py` on the frozen i25 tower, 10k COLD_SEED, full+tail NDCG@10.
+Controls all PASS: q0 snap 0.12794/0.01923 exact; leak known∩held=0; shuffled-teacher canary capture ≤0
+everywhere (real capture is genuine concept signal). JSON `experiments/battery/concept_distill_step0.json`,
+writeup `docs/results/CONCEPT_DISTILL_STEP0_RESULT.md`.
+
+**Capture-rate (tier × kc, full | tail):** overall **11.5%|16.0% (kc=1)**, **15.3%|21.3% (kc=4)** — inside
+the pre-registered 10–30% grey band → **FLAG_AUTHOR** (not a clean STOP; barely over the 10% line at kc=1).
+**Decisive split by coarseness** (the |v|-selection is ~pure BROAD, so "overall" ≈ broad):
+- fine (≤164 mem): 21.6%|42.6% (kc1) → **31.8%|39.5% (kc4)** — clears PROCEED
+- medium (164–525): 21.7%|34.5% → 25.7%|32.1% — clears PROCEED
+- broad (>525 mem): 10.3%|13.8% → 13.5%|18.6% — the drag (broad kc1 folds ~86 members ≈ near-full-profile,
+  uncompressible into one (concept, band) bucket).
+
+**Within-cell teacher cos-to-mean = 0.950** (fine 0.965 / medium 0.955 / broad 0.944; 4.18M cells). The
+member-fold DIRECTION is ~fully determined by (concept, band); *which* members barely rotates it → the
+"information ceiling / which-members" fear is **refuted**. The capture shortfall is **magnitude/ranking
+dilution** of the conditional mean, i.e. exactly what a *trained* student (NDCG-aware finetune arm S2 +
+learned composition) can recover **above** the tabular floor. So the tabular capture is a conservative
+floor for the direction-well-posed tiers, not a hard ceiling.
+
+**Teacher ceiling (§1b bars, full/tail @10):** overall 0.358/0.386/0.401/0.410 (kc=1/2/4/8); fine
+0.235→0.372; medium 0.258→0.369; broad 0.363→0.413. **Full-profile fold ceiling 0.4190/0.2999** (~136
+items). Broad kc=8 ≈ full-profile ceiling; fine/medium top ~0.37.
+
+**Decision:** plan is NOT dead. (1) Run the trained student — its bar is beating the tabular floor by
+learning magnitude+composition (the actual bottleneck per cos=0.95), fine/medium already clear 20–32%. (2)
+The design's own STOP-remedy — **richer student input (answer + kc-so-far belief context)** — is the right
+fix for the broad-concept drag; and/or the interview should **prefer fine/medium concepts** where the
+channel already pays. Author call requested on scope before spending the train.
