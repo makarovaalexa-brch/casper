@@ -208,13 +208,18 @@ def run_item(mode):
                     if e is not None:
                         asked.add(e)
                         if e in residmap: toks.append((Q[e], residmap[e]))
-            at[q] += len(toks); u = enc_u(toks); excl = prof | asked
+            # FIX 2026-07-26: mask only the fold-in profile (prof), NOT prof|asked.
+            # Faithful Paper B rule: an item is answerable/foldable IFF rated in the fold-in half
+            # (all folded items are already in prof). Asked-but-unanswered popular items must NOT be
+            # masked -- masking them removed popular HELD-OUT TARGETS and cratered full-NDCG. Targets
+            # stay un-askable (never in residmap -> never folded) and un-masked (never in prof).
+            at[q] += len(toks); u = enc_u(toks); excl = prof
             vF = ndcg10(u, rel, excl, False)
             if vF is not None: cF[q] += vF
             if ht:
                 vT = ndcg10(u, rel, excl, True)
                 if vT is not None: cT[q] += vT
-        final.append((u, rel, prof | asked, ht))
+        final.append((u, rel, prof, ht))
     return ({q: cF[q] / m for q in REVEALS}, {q: cT[q] / max(mt, 1) for q in REVEALS},
             {q: at[q] / m for q in REVEALS}, m, mt, final)
 
@@ -277,33 +282,50 @@ def full_profile():
             if vT is not None: Tt += vT; mt += 1
     return F / m, Tt / max(mt, 1), m
 
+# ARMS selects which blocks to (re)compute. 'all'=faithful full run (default). 'item'=recompute only the
+# corrected item arm + control + snap, carrying the concept arms forward from the prior pb_results.json --
+# the concept code path is byte-identical after the item-mask fix, rng-independent and deterministic, so
+# its numbers are exactly what a full re-run reproduces. (2026-07-26 item-mask fix; see run_item.)
+ARMS = os.environ.get('ARMS', 'all')
+RES_PATH = f'{RESD}/pb_results.json'
+prev = json.load(open(RES_PATH)) if os.path.exists(RES_PATH) else {}
+
 log("=== canonical-snap: full-profile fold ===")
 fpF, fpT, fpm = full_profile()
 log(f"FULL-PROFILE fold NDCG@10: full={fpF:.4f} tail={fpT:.4f} (n={fpm})")
 
 RES = {'meta': {'n_test_users': len(users), 'nc': int(nc), 'ni': int(ni),
                 'full_profile_full': fpF, 'full_profile_tail': fpT, 'n_head': int(headmask.sum()),
-                'POS': POS, 'NEG': NEG, 'prereg': prereg},
+                'POS': POS, 'NEG': NEG, 'prereg': prereg, 'arms_computed': ARMS},
        'item': {}, 'geom': {}, 'behav': {}}
 
 pop_final = None
-for mode in ['pop_item', 'eig_item', 'rand_item']:
-    log(f"--- item: {mode} ---")
-    cF, cT, at, m, mt, fin = run_item(mode)
-    RES['item'][mode] = {'full': [cF[q] for q in REVEALS], 'tail': [cT[q] for q in REVEALS],
-                         'ans_tok': [at[q] for q in REVEALS], 'n': m, 'n_tail': mt}
-    log(f"  full q0..q8: " + " ".join(f"{cF[q]:.4f}" for q in REVEALS))
-    log(f"  tail q0..q8: " + " ".join(f"{cT[q]:.4f}" for q in REVEALS))
-    if mode == 'pop_item': pop_final = fin
-
-for model in ['geom', 'behav']:
-    for mode in ['conc_pop', 'conc_eig']:
-        log(f"--- {model}: {mode} ---")
-        cF, cT, at, m, mt = run_concept(mode, model)
-        RES[model][mode] = {'full': [cF[q] for q in REVEALS], 'tail': [cT[q] for q in REVEALS],
-                            'ans_tok': [at[q] for q in REVEALS], 'n': m, 'n_tail': mt}
+if ARMS in ('all', 'item'):
+    for mode in ['pop_item', 'eig_item', 'rand_item']:
+        log(f"--- item: {mode} ---")
+        cF, cT, at, m, mt, fin = run_item(mode)
+        RES['item'][mode] = {'full': [cF[q] for q in REVEALS], 'tail': [cT[q] for q in REVEALS],
+                             'ans_tok': [at[q] for q in REVEALS], 'n': m, 'n_tail': mt}
         log(f"  full q0..q8: " + " ".join(f"{cF[q]:.4f}" for q in REVEALS))
         log(f"  tail q0..q8: " + " ".join(f"{cT[q]:.4f}" for q in REVEALS))
+        log(f"  mean_answered q0..q8: " + " ".join(f"{at[q]:.3f}" for q in REVEALS))
+        if mode == 'pop_item': pop_final = fin
+else:
+    RES['item'] = prev.get('item', {})
+    log(f"item arms carried forward from prior pb_results.json (ARMS={ARMS})")
+
+if ARMS in ('all', 'concept'):
+    for model in ['geom', 'behav']:
+        for mode in ['conc_pop', 'conc_eig']:
+            log(f"--- {model}: {mode} ---")
+            cF, cT, at, m, mt = run_concept(mode, model)
+            RES[model][mode] = {'full': [cF[q] for q in REVEALS], 'tail': [cT[q] for q in REVEALS],
+                                'ans_tok': [at[q] for q in REVEALS], 'n': m, 'n_tail': mt}
+            log(f"  full q0..q8: " + " ".join(f"{cF[q]:.4f}" for q in REVEALS))
+            log(f"  tail q0..q8: " + " ".join(f"{cT[q]:.4f}" for q in REVEALS))
+else:
+    RES['geom'] = prev.get('geom', {}); RES['behav'] = prev.get('behav', {})
+    log(f"concept arms carried forward from prior pb_results.json (ARMS={ARMS})")
 
 # ---------- existential control: answer-permutation on pop_item ----------
 if pop_final is not None:
@@ -319,6 +341,8 @@ if pop_final is not None:
     RES['control_shuffle_pop_item'] = {'full_q8': sF / m, 'tail_q8': sT / max(mt, 1)}
     log(f"CONTROL (answer-permutation pop_item @q8): full={sF/m:.4f} tail={sT/max(mt,1):.4f} "
         f"(vs real q8 full={RES['item']['pop_item']['full'][T]:.4f})")
+elif 'control_shuffle_pop_item' in prev:
+    RES['control_shuffle_pop_item'] = prev['control_shuffle_pop_item']
 
 json.dump(RES, open(f'{RESD}/pb_results.json', 'w'), indent=2)
 log(f"SAVED {RESD}/pb_results.json")
