@@ -469,6 +469,94 @@ def diagnostic5(rung, rows, sh, ctx, args, n_per_tercile=40, max_users=2500):
     return t5
 
 
+# ============================================================================= T7
+def _score_restricted(rung, rows, item_seqs, conc_lists, topN_mask, ctx):
+    """Score a belief against a top-N popularity-restricted candidate set. Held-out targets outside
+    top-N are dropped (rank-within-shortlist). Returns (full@10, tail@10, coverage) mean scalars."""
+    import metrics as M
+    Z = rung.z_batch(item_seqs, conc_lists)
+    n = len(rows)
+    full = np.full(n, np.nan); tail = np.full(n, np.nan); cov = np.full(n, np.nan)
+    head = ctx.head_mask
+    for st in range(0, n, 500):
+        ch = rows[st:st + 500]
+        S = (Z[st:st + len(ch)] @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
+        mask = ctx.va_tr[ch].copy(); te = ctx.va_te[ch].tolil()
+        for j in range(len(ch)):
+            s = item_seqs[st + j][0]
+            if len(s):
+                extra = sparse.csr_matrix((np.ones(len(s), np.float32), (np.zeros(len(s)), s)),
+                                          shape=(1, ctx.ni))
+                mask[j] = mask[j] + extra
+                for i in np.asarray(s).tolist():
+                    te[j, i] = 0
+        mask.data[:] = 1.0; te = te.tocsr(); te.eliminate_zeros()
+        te_orig_nnz = np.asarray(te.getnnz(axis=1)).ravel()
+        # restrict candidates + targets to top-N popular
+        S = S.copy(); S[:, ~topN_mask] = -np.inf
+        te_r = te.multiply(topN_mask[None, :]).tocsr(); te_r.eliminate_zeros()
+        S[mask.tocsr().nonzero()] = -np.inf
+        keep = np.asarray(te_r.getnnz(axis=1)).ravel() > 0
+        if keep.any():
+            full[st:st + len(ch)][keep] = M.NDCG_binary_at_k_batch(S[keep], te_r[keep], k=10)
+        cov[st:st + len(ch)] = np.where(te_orig_nnz > 0,
+                                        np.asarray(te_r.getnnz(axis=1)).ravel() / np.maximum(te_orig_nnz, 1),
+                                        np.nan)
+        tail_row = (~head).astype("float32")[None, :]
+        te_t = te_r.multiply(tail_row).tocsr(); te_t.eliminate_zeros()
+        tkeep = np.asarray(te_t.getnnz(axis=1)).ravel() > 0
+        if tkeep.any():
+            St = S.copy(); St[:, head] = -np.inf
+            tail[st:st + len(ch)][tkeep] = M.NDCG_binary_at_k_batch(St[tkeep], te_t[tkeep], k=10)
+    return float(np.nanmean(full)), float(np.nanmean(tail)), float(np.nanmean(cov))
+
+
+def diagnostic7(rung, rows, sh, ctx, args):
+    """T7 CANDIDATE-CATALOG RESTRICTION SWEEP (Krichene-Rendle fixed popularity-top-N; rank-within-
+    shortlist). Re-score concept-ask B / item-ask B / oracle-concept K interview beliefs (q0 vs q8)
+    against top-N most-rated candidate sets. Does the elicitation delta grow (ruler was the problem)
+    or shrink (popb prior strengthens) as the catalog shrinks toward ML-1M scale?"""
+    log("=== TEST 7: candidate-catalog restriction sweep ===")
+    Ns = (ctx.ni, 8000, 5000, 3706, 2000)
+    bmodel = Behavioral(sh, sh["lvl_lookup"])
+    _, std_v = train_concept_stats(ctx, sh["_Mm_cache"], sh["_pexp_cache"], smoke=args.smoke)
+    conc_order = np.argsort(-std_v)
+    Vb = sh["conc_value_signed"]; AF = sh["conc_answerable"] & sh["conc_fold_signed"]
+    K_orders = [np.flatnonzero(AF[r])[np.argsort(-np.abs(Vb[r, np.flatnonzero(AF[r])]))] for r in rows]
+    empty_i = [(np.empty(0, np.int64), np.empty(0, np.int64)) for _ in rows]
+    budg = (0, 8)
+    # per-arm beliefs at q0 and q8
+    ev_item = walk_static_item(rung, rows, bmodel, sh["order_pop"], budgets=budg)
+    ev_conc = walk_static_concept(rung, rows, bmodel, conc_order, budgets=budg)
+    ev_K = walk_oracle_select_concept(rung, rows, K_orders, Vb, budgets=budg)
+    arms = {"item_ask_B": ("item", ev_item), "concept_ask_B": ("concept", ev_conc),
+            "oracle_concept_K": ("concept", ev_K)}
+    t7 = {"Ns": list(Ns), "restriction": "fixed popularity top-N (Krichene-Rendle 2020); "
+          "rank-within-shortlist; held-out targets outside top-N dropped", "arms": {}}
+    for aname, (chan, ev) in arms.items():
+        t7["arms"][aname] = {}
+        for N in Ns:
+            topN = np.zeros(ctx.ni, bool); topN[sh["order_pop"][:N]] = True
+            res = {}
+            for q in budg:
+                snap = ev[q]
+                if chan == "item":
+                    iseq = snap; clist = [[] for _ in rows]
+                else:
+                    iseq = empty_i; clist = snap
+                f, t, cov = _score_restricted(rung, rows, iseq, clist, topN, ctx)
+                res[f"q{q}"] = {"full@10": f, "tail@10": t}
+                res.setdefault("coverage", cov)
+            res["delta_full@10"] = res["q8"]["full@10"] - res["q0"]["full@10"]
+            res["delta_tail@10"] = res["q8"]["tail@10"] - res["q0"]["tail@10"]
+            t7["arms"][aname][f"N{N}"] = res
+        log(f"[T7 {aname:>16}] " + " ".join(
+            f"N{N}:d_full{t7['arms'][aname][f'N{N}']['delta_full@10']:+.4f}"
+            f"/d_tail{t7['arms'][aname][f'N{N}']['delta_tail@10']:+.4f}"
+            f"(cov{t7['arms'][aname][f'N{N}']['coverage']:.2f})" for N in Ns))
+    return t7
+
+
 # ============================================================================= T6
 def diagnostic6(rung, rows, sh, ctx, L_full, d3, args):
     """T6 THE MEH HYPOTHESIS. (a) band distribution of the generic polarization bank vs oracle K;
@@ -633,6 +721,9 @@ def main():
         out["T4_ruler_ceiling"] = diagnostic4(rung, rows, sh, ctx, args)
         out["T5_concept_vs_memberitem_fold"] = diagnostic5(rung, rows, sh, ctx, args)
         # flush partial results so T4/T5 are readable before the long L pass finishes
+        _flush(out, ctx, args)
+    if args.diag in ("7", "all"):
+        out["T7_catalog_restriction"] = diagnostic7(rung, rows, sh, ctx, args)
         _flush(out, ctx, args)
     if do23:
         L_full, L_tail, _, _, nans = compute_marginal_L(rung, rows, sh, ctx)
