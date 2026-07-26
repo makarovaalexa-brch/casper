@@ -469,6 +469,101 @@ def diagnostic5(rung, rows, sh, ctx, args, n_per_tercile=40, max_users=2500):
     return t5
 
 
+# ============================================================================= T6
+def diagnostic6(rung, rows, sh, ctx, L_full, d3, args):
+    """T6 THE MEH HYPOTHESIS. (a) band distribution of the generic polarization bank vs oracle K;
+    (b) per-band per-answer NDCG delta (is meh ~ unanswered?); (c) polarized-only concept-ask curve
+    (skip meh) vs generic vs K; (d) coverage: per-user fraction meh vs polarized."""
+    log("=== TEST 6: the MEH hypothesis ===")
+    from signed_answers import BAND_LIKE, BAND_MEH, BAND_DISLIKE, BAND_REFUSE
+    Vb = sh["conc_value_signed"]; B = sh["conc_band_signed"]
+    ansB = sh["conc_answerable"]; foldB = sh["conc_fold_signed"]
+    C = len(sh["tags"]); rows_arr = np.asarray(rows)
+    _, std_v = train_concept_stats(ctx, sh["_Mm_cache"], sh["_pexp_cache"], smoke=args.smoke)
+    conc_order = np.argsort(-std_v)
+    N = 8
+
+    def band_frac(asked_cells):
+        """asked_cells: list of (r, c). Categorize into folded like/meh/dislike + burned."""
+        cnt = {"like": 0, "meh": 0, "dislike": 0, "burned_refuse_or_unanswerable": 0}
+        for r, c in asked_cells:
+            if not (ansB[r, c] and foldB[r, c]):
+                cnt["burned_refuse_or_unanswerable"] += 1
+            elif B[r, c] == BAND_LIKE:
+                cnt["like"] += 1
+            elif B[r, c] == BAND_MEH:
+                cnt["meh"] += 1
+            elif B[r, c] == BAND_DISLIKE:
+                cnt["dislike"] += 1
+        tot = max(sum(cnt.values()), 1)
+        return {k: v / tot for k, v in cnt.items()}, cnt
+
+    # (a) band distribution -- generic polarization bank (first-8 concepts) and oracle K (top-8 |v|)
+    polar_cells = [(r, int(conc_order[k])) for r in rows for k in range(N)]
+    K_cells = []
+    for r in rows:
+        elig = np.flatnonzero(ansB[r] & foldB[r])
+        top = elig[np.argsort(-np.abs(Vb[r, elig]))][:N]
+        K_cells.extend((r, int(c)) for c in top)
+    pf, pc = band_frac(polar_cells); kf, kc = band_frac(K_cells)
+
+    # (b) per-band per-answer NDCG delta from L (answerable&fold cells)
+    B_rows = B[rows_arr]
+    perband = {}
+    for name, bid in (("like", BAND_LIKE), ("meh", BAND_MEH), ("dislike", BAND_DISLIKE)):
+        m = (B_rows == bid) & ~np.isnan(L_full)
+        perband[name] = {"n_cells": int(m.sum()),
+                         "mean_delta_full@10": float(np.nanmean(L_full[m])) if m.any() else None}
+
+    # (c) polarized-only concept-ask: skip meh, ask down the bank to the next polarized concept
+    polar_orders = []
+    order_set = conc_order.tolist()
+    for r in rows:
+        pol = (ansB[r] & foldB[r] & ((B[r] == BAND_LIKE) | (B[r] == BAND_DISLIKE)))
+        polar_orders.append(np.array([c for c in order_set if pol[c]], np.int64))
+    ev_pol = walk_oracle_select_concept(rung, rows, polar_orders, Vb, budgets=INT_BUDGETS)
+    sc_pol = score_snapshots(rung, rows, ev_pol, "concept", budgets=INT_BUDGETS)
+    strip = lambda s: {q: {"full@10": s[q]["full@10"], "tail@10": s[q]["tail@10"],
+                           "full@100": s[q]["full@100"], "mean_answered": s[q]["mean_answered"]}
+                       for q in INT_BUDGETS}
+
+    # (d) coverage: per-user band fractions over all C concepts + among answerable
+    frac_meh_all = []; frac_pol_all = []; frac_meh_ans = []; frac_pol_ans = []
+    for r in rows:
+        br = B[r]; an = ansB[r] & foldB[r]
+        pol = an & ((br == BAND_LIKE) | (br == BAND_DISLIKE))
+        meh = an & (br == BAND_MEH)
+        frac_meh_all.append(meh.sum() / C); frac_pol_all.append(pol.sum() / C)
+        na = max(an.sum(), 1)
+        frac_meh_ans.append(meh.sum() / na); frac_pol_ans.append(pol.sum() / na)
+
+    def med_mean(v):
+        v = np.asarray(v); return {"median": float(np.median(v)), "mean": float(v.mean())}
+
+    t6 = {"asked_first_k": N,
+          "a_band_distribution": {"generic_polarization_bank": {"fractions": pf, "counts": pc},
+                                  "oracle_selection_K": {"fractions": kf, "counts": kc}},
+          "b_per_band_per_answer_delta": perband,
+          "c_polarized_only_curve": {"polarized_only": strip(sc_pol),
+                                     "generic_polarization_bank": d3["polarization_bank_B"],
+                                     "oracle_selection_K": d3["sel_selection_K"]},
+          "d_coverage": {"note": "per-user fractions; polarized = like|dislike, over answerable&fold",
+                         "frac_meh_over_all_1031": med_mean(frac_meh_all),
+                         "frac_polarized_over_all_1031": med_mean(frac_pol_all),
+                         "frac_meh_among_answerable": med_mean(frac_meh_ans),
+                         "frac_polarized_among_answerable": med_mean(frac_pol_ans)}}
+    log(f"[T6a] generic bank bands like/meh/dislike/burned = "
+        f"{pf['like']:.2f}/{pf['meh']:.2f}/{pf['dislike']:.2f}/{pf['burned_refuse_or_unanswerable']:.2f}"
+        f" | K = {kf['like']:.2f}/{kf['meh']:.2f}/{kf['dislike']:.2f}/{kf['burned_refuse_or_unanswerable']:.2f}")
+    log(f"[T6b] per-answer delta like={perband['like']['mean_delta_full@10']:+.4f} "
+        f"meh={perband['meh']['mean_delta_full@10']:+.4f} "
+        f"dislike={perband['dislike']['mean_delta_full@10']:+.4f}")
+    log(f"[T6c] polarized-only " + " ".join(f"q{q}={sc_pol[q]['full@10']:.4f}" for q in INT_BUDGETS))
+    log(f"[T6d] median-user frac meh(answerable)={t6['d_coverage']['frac_meh_among_answerable']['median']:.2f} "
+        f"polarized(answerable)={t6['d_coverage']['frac_polarized_among_answerable']['median']:.2f}")
+    return t6
+
+
 # ============================================================================= main
 def _flush(out, ctx, args):
     outdir = ctx.outdir if args.smoke else OUTDIR
@@ -543,7 +638,9 @@ def main():
         L_full, L_tail, _, _, nans = compute_marginal_L(rung, rows, sh, ctx)
         d2, member_count = diagnostic2(rung, rows, sh, ctx, L_full, L_tail, nans)
         out["D2_fine_concept_harm"] = d2
-        out["D3_utility_selection"] = diagnostic3(rung, rows, sh, ctx, L_full, member_count, args)
+        d3 = diagnostic3(rung, rows, sh, ctx, L_full, member_count, args)
+        out["D3_utility_selection"] = d3
+        out["T6_meh_hypothesis"] = diagnostic6(rung, rows, sh, ctx, L_full, d3, args)
 
     out["seconds"] = round(time.time() - t00, 1)
     outdir = ctx.outdir if args.smoke else OUTDIR
