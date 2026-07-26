@@ -180,3 +180,35 @@ small remaining headroom (+0.0008 full) is not captured by exposure- or tag-fact
 that SEL is "beatable non-circularly on exposure/coverage/count-weighting" is **not realized by E or P** on
 this stack. (Phase-2 S = SEL⁺ and C = content-projection remain to be run for the full panel; E/P alone do
 not dislodge SEL.)
+
+## WEAK-recommender (Paper B) G vs B contrast — geometric inflation SHRINKS as the model strengthens (`experiments/paper2_repl/pb_results.json`, completed 2026-07-26 07:46, 10k test users, nc=1031, ni=18359)
+
+The faithful Paper B reconstruction-encoder (weak biased-SVD + attention fold-in) retrained on ML-25M, run
+through the same interview (T=8, static-pop + EIG orders, credit-neutral, leak=0). Full-profile fold =
+**0.1443 full / 0.0365 tail**. Control (answer-permutation pop_item @q8) full 0.0797 < real 0.0860 → collapses
+(passes). This is the §7 second recommender: does geometric's self-preference inflation **shrink as the
+recommender strengthens** (u\* → true taste)?
+
+Concept-ask full/tail NDCG@10 by budget (q0/q1/q2/q4/q8), geometric **G** vs behavioral **B** (pop order):
+
+| row | q0 | q1 | q2 | q4 | q8 |
+|---|---|---|---|---|---|
+| concept-ask **G** (geom, pop) | .1345/.0226 | .0585/.0219 | .0932/.0258 | .1362/.0362 | **.1450/.0364** |
+| concept-ask **B** (behav, pop) | .1345/.0226 | .0837/.0198 | .1062/.0224 | .1273/.0254 | **.1322/.0261** |
+| concept-ask **G** (geom, eig) | .1345/.0226 | .1309/.0215 | .1340/.0234 | .1409/.0315 | .1439/.0354 |
+| concept-ask **B** (behav, eig) | .1345/.0226 | .1315/.0227 | .1288/.0207 | .1316/.0234 | .1327/.0256 |
+| item-ask pop/eig (degenerate) | .1345/.0226 | .1094/.0206 | .1001/.0193 | .0973/.0215 | .0860/.0222 |
+| item-ask rand (flat) | .1345/.0226 | .1339/.0228 | .1334/.0228 | .1327/.0232 | .1318/.0242 |
+
+**Verdict — geometric IS load-bearing on the weak model, unlike the strong stack.** Concept-ask **G − B =
++0.0128 full / +0.0103 tail @q8** (pop order; +0.0112 full / +0.0098 tail on the eig order). On the STRONG
+stack (§8.1) this same G − B was only **+0.0009 full / +0.0018 tail** — so the circular geometric answer
+inflates the concept channel **~14× more on the weak recommender**, exactly the §7 prediction that geometric's
+self-preference shrinks toward the honest ceiling as u\* approaches true taste. Under the honest **B** answer
+the weak model barely lifts concepts on full (0.1345→0.1322, ~flat) and only +0.0035 tail, whereas the
+inflated **G** reaches +0.0105 full / +0.0138 tail — i.e. on a weak encoder the "concepts help" story is
+almost entirely a simulator artifact. Item-asking degenerates (pop/eig arms fold held-out targets that are
+credit-neutral-masked out → full craters 0.1345→0.0860); rand_item confirms the drift is the folding, not
+noise. Together the two recommenders bracket the effect: **the more circular the answer model and the weaker
+the recommender, the larger the phantom concept win — the honest, strong-stack concept lift (+0.016 full /
++0.020 tail) is the citable one.**
