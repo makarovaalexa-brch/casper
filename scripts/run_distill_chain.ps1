@@ -2,7 +2,8 @@
 # Waits on the POC done-marker (concept_distill_train_DONE.marker), selects the best distilled fold,
 # runs D1->D2->D3 idempotently, split logs, state + heartbeat + done-marker, watchdog resume-on-death.
 param(
-  [string]$WaitMarker = ""
+  [string]$WaitMarker = "",
+  [string]$BestCkpt = ""
 )
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
@@ -10,7 +11,9 @@ if (-not $WaitMarker) { $WaitMarker = Join-Path $root "experiments\battery\conce
 $out = Join-Path $root "experiments\battery\distill_chain.out"
 $err = Join-Path $root "experiments\battery\distill_chain.err"
 $py  = "python"
-$argline = "-u src/instrument/distill_downstream_chain.py --run --full_threads --wait_marker `"$WaitMarker`""
+$bc = ""
+if ($BestCkpt) { $bc = " --best_ckpt `"$BestCkpt`"" }
+$argline = "-u src/instrument/distill_downstream_chain.py --run --full_threads --wait_marker `"$WaitMarker`"$bc"
 
 $p = Start-Process -FilePath $py -ArgumentList $argline -WorkingDirectory $root `
      -RedirectStandardOutput $out -RedirectStandardError $err -PassThru -WindowStyle Hidden
