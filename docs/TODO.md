@@ -10,6 +10,35 @@ adaptive (trees, VOI, EDDI-IG, Bıyık-EVOI, coarse-to-fine, the demoted +47% re
 fought ON the certified instrument. Elicitation-line SYSTEMS appear in A only as master-table rows (their
 recommender cores); their POLICIES fight in B.
 
+## ★★ CURRENT — post-distillation plan (Jul 26, author-aligned)
+**In flight:** distillation concept-fold train (PID live; `DESIGN_CONCEPT_FOLD_DISTILLATION.md`). Step-0 verdict
+= qualified-go (info IS there, cos-to-mean 0.95; tabular FLOOR capture fine 32/med 26/broad 13% @kc4;
+teacher CEILING 0.358 @kc1 — ABOVE items). Tests: does the trained student beat the tabular floor.
+
+**Two corrections that reshape the plan (author, Jul 26):**
+- **ALL current concept numbers are from the BROKEN (lossy 1–6%) fold** — the "concepts open / items close by
+  q8" crossover (concept-ask 0.144, oracle-concept 0.213) is PROVISIONAL. Teacher ceiling 0.358 > item bar
+  (oracle-item 0.26 / realizable 0.167) ⇒ concepts COULD beat items if the fold captures enough. NOT settled.
+- **The answerer panel (SEL vs SEL⁺/ExpoMF/content/PITF) ran on the BROKEN fold too** — a lossy fold flattens
+  answer-model differences, so "no imputer beats SEL" may be a broken-fold artifact.
+
+**Post-train sequence, ON THE FIXED FOLD:**
+1. Read distillation result: capture per tier vs teacher ceiling 0.358; G0 item bit-tie held; no-distill
+   control delta (the distillation claim); deployment curve. If it fails to beat floor → belief-conditioned
+   richer student input (design §5 fallback).
+2. **RE-MEASURE concept-vs-item crossover** on the fixed fold — does the story change; do concepts beat items further in / outright?
+3. **RE-RUN the full answerer panel** on the fixed fold — do imputers differentiate once the fold isn't
+   throwing 95% of the signal away? (Upgraded from "sanity check" — real open question.)
+4. **1-LEVEL ADAPTIVITY TREE** (author-requested): ask q1 → BRANCH on the answer → each branch's own best q2;
+   adaptive-q2 vs single best STATIC-q2, NDCG full+tail. The clean "adaptivity pays for NDCG" test — refutes
+   the linear-Gaussian "static is optimal" (HARD RULE #2). NOTE: oracle/random (G10) ≠ adaptivity. Per A/B
+   rule the ADAPTIVE POLICY is Chapter B; this 1-level probe = the capability confirmation + B-preview. Item
+   branch is fold-independent (previewable now); full concept+item version on the fixed fold.
+5. Then Paper A completion: **G10** strategy-discrimination gate; full battery RE-VERIFIED on the certified
+   checkpoint; **baseline G0 table** (Mult-VAE/DAE snaps + bank); metrics/figures = **efficiency curve
+   (NDCG vs #questions) as the HEADLINE figure** + item-cold ("film-mute") subpopulation slice; @100 done.
+6. **Clean certified retrain of the WINNING config** (parked until fold+battery settled) → **Paper A write-up**.
+
 ## ★ AUTHOR ROADMAP (Jul 24) — in order
 0. **Deep research: DONE** (findings/graded_inputs_for_ranking.md; premium claim pre-emption-mapped).
    **PARITY CORRECTION (Jul 24): the 0.419 was a MASKING ARTIFACT** — parity-correct all-bands graded =
