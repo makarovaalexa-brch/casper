@@ -146,3 +146,37 @@ ceiling, consistent with the cos~0.83 bound. Fine niche concepts do not compound
 **C-lite vs C-full (concept-ask B, identical answers):** near-identical; the fold-to-point C-full head buys
 a hair at low budget (q1 full .1380 vs C-lite .1323) but OVER-COMMITS at q8 (C-full .1378 < C-lite .1441).
 Extra fold capacity is not load-bearing for concepts.
+
+## PHASE-2 imputer panel — is SEL beatable non-circularly? NO (`answer_contrast_imputers.json`, completed 2026-07-26 03:01, 10k users, arms B/O/E/P, ~36min)
+
+Ran the two grade-(ii) separate-model imputers against the B/O anchors on concept-asking (strong stack:
+frozen t2i25_EP4 tower + signed C-lite). **E = ExpoMF** (content-conditioned exposure, Liang 2016),
+**P = PITF/TagMF** (separate user×tag factor model). Same fixed polarization order, credit-neutral, leak=0.
+
+Concept-ask full@10 by budget (q1/2/4/8), q8 tail, q8 mean-answered:
+
+| arm | q1 | q2 | q4 | q8 | tail q8 | ans q8 |
+|---|---|---|---|---|---|---|
+| **B** behavioral SEL | .1323 | .1328 | .1433 | **.1441** | .0395 | 7.9 |
+| **O** oracle-B (privileged) | .1326 | .1330 | .1441 | **.1448** | .0404 | 8.0 |
+| **E** ExpoMF | .1277 | .1271 | .1303 | **.1293** | .0203 | 8.0 |
+| **P** PITF/TagMF | .1248 | .1243 | .1258 | **.1253** | .0205 | 8.0 |
+
+**Key deltas @q8 (paired bootstrap 95% CI, concept-asking):**
+- **O − B = +0.0008 full CI[+0.0003,+0.0012] / +0.0010 tail** — the honest headroom a *better* imputer could
+  capture is tiny (re-confirms phase-1: SEL already agrees with the oracle at Spearman 0.921).
+- **E − B = −0.0147 full CI[−0.0162,−0.0132] / −0.0192 tail**; **E − O = −0.0155 full** — ExpoMF does NOT
+  beat SEL; it sits at/below the q0 intercept (barely moves the belief).
+- **P − B = −0.0187 full / −0.0190 tail** — PITF is worse still, dropping *below* the intercept at every budget.
+
+**Guards:** CKA(answer-geom, u\*) E **0.098** / P **0.108** (both far under B's admissible ceiling 0.351 →
+cleanly independent of the tower geometry, as intended). But Spearman(value, oracle-B) E **−0.070** /
+P **0.158** (vs B 0.921) → their independence comes with near-zero agreement with the true taste ranking.
+
+**VERDICT — SEL is the ceiling among realizable non-circular imputers.** No cheap model-free / separate-model
+imputer beats behavioral SEL on the concept channel: the more-independent generative models (ExpoMF, PITF)
+are *far worse*, not better. Combined with the tiny O−B gap, behavioral SEL is a strong honest baseline whose
+small remaining headroom (+0.0008 full) is not captured by exposure- or tag-factor models. The §4 hypothesis
+that SEL is "beatable non-circularly on exposure/coverage/count-weighting" is **not realized by E or P** on
+this stack. (Phase-2 S = SEL⁺ and C = content-projection remain to be run for the full panel; E/P alone do
+not dislodge SEL.)
