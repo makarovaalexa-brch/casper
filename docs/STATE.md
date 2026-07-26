@@ -1,7 +1,19 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-07-25 (concept-channel directional verdict recorded)**.
+> End-state is in `VISION.md`. Last updated: **2026-07-26 (Paper B repl item-mask bug fixed)**.
+
+## Paper B faithful replication — item-ask bug FIXED, real item-vs-concept table (Jul 26)
+The old-Paper-B reconstruction encoder (weak biased-SVD + attention fold-in) on ML-25M Liang had a
+**degenerate item-ask arm**: it masked `prof | asked`, removing popular held-out TARGETS from the
+ranking → item full cratered 0.1345→0.0860 @q8 (a masking artifact). **Fix** (`excl = prof`, commit
+`9a2eab7`): mask only the fold-in profile, matching the concept arm; folding was already fold-in-only.
+Item is now **cold-unanswerable** (~2.3/8 answered) and **flat** (pop 0.1268, rand 0.1320 @q8), not a crater.
+**Concept − item @q8** (vs pop_item): GEOMETRIC (circular) **+0.0182 full / +0.0142 tail (+64%)** —
+reproduces & exceeds the old "+36%" but geom concepts (0.1450) exceed the full-profile ceiling (0.1443),
+a circularity tell; BEHAVIORAL (honest SEL) **+0.0054 full / +0.0039 tail (+18%)**, ≈tie-full/+7%-tail vs
+the strongest (random) item control. Honest premium is modest, tail-concentrated. Full record:
+`experiments/paper2_repl/PB_REPL_RESULT.md` (JSON `pb_results.json`; buggy JSON kept as `..._BUGGY_itemmask.json`).
 
 ## The concept channel — DIRECTIONAL VERDICT RECORDED (Jul 25)
 Author ruled the concept-channel story **"directionally checks out"**; recorded AS-IS (honest, open
