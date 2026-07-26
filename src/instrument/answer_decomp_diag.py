@@ -341,11 +341,145 @@ def diagnostic3(rung, rows, sh, ctx, L_full, member_count, args):
     return d3
 
 
+# ============================================================================= T4
+def compute_K_curve(rung, rows, sh, budgets):
+    """Oracle CONCEPT selection K: each user asked their top-|behavioral v| answerable concepts."""
+    Vb = sh["conc_value_signed"]; AF = sh["conc_answerable"] & sh["conc_fold_signed"]
+    K_orders = []
+    for r in rows:
+        elig = np.flatnonzero(AF[r])
+        K_orders.append(elig[np.argsort(-np.abs(Vb[r, elig]))])
+    ev = walk_oracle_select_concept(rung, rows, K_orders, Vb, budgets=budgets)
+    return score_snapshots(rung, rows, ev, "concept", budgets=budgets)
+
+
+def diagnostic4(rung, rows, sh, ctx, args):
+    """T4 RULER SENSITIVITY CEILING: fold N of each user's OWN best (highest-rated) fold-in items --
+    the strongest honest short item signal ('your N favorite films'). vs intercept, vs the full-profile
+    fold ceiling (fold ALL fold-in items), side by side with oracle CONCEPT selection K."""
+    log("=== TEST 4: ruler sensitivity ceiling (oracle item selection) ===")
+    budgets = (0, 1, 2, 4, 8, 16)
+    lvl = sh["lvl_lookup"]
+    poprank = np.empty(ctx.ni, np.int64); poprank[sh["order_pop"]] = np.arange(ctx.ni)
+    # per-user favorite order: rating level DESC, tie-break popularity DESC (recognizable favorites)
+    fav_order = []
+    for r in rows:
+        d = lvl[r]
+        its = np.array(list(d.keys()), np.int64)
+        if len(its) == 0:
+            fav_order.append(np.empty(0, np.int64)); continue
+        lv = np.array([d[int(i)] for i in its], np.int64)
+        fav_order.append(its[np.lexsort((poprank[its], -lv))])       # primary -lv, tie poprank asc(=pop desc)
+    qmax = max(budgets)
+    ev = {q: None for q in budgets}
+    if 0 in budgets:
+        ev[0] = [(np.empty(0, np.int64), np.empty(0, np.int64)) for _ in rows]
+    seqs = [[] for _ in rows]
+    for step in range(1, qmax + 1):
+        for j in range(len(rows)):
+            o = fav_order[j]
+            if step - 1 < len(o):
+                i = int(o[step - 1]); seqs[j].append((i, lvl[rows[j]][i]))
+        if step in budgets:
+            ev[step] = [(np.asarray([s for s, _ in it], np.int64),
+                         np.asarray([l for _, l in it], np.int64)) for it in seqs]
+    sc = score_snapshots(rung, rows, ev, "item", budgets=budgets)
+    # full-profile fold ceiling: fold ALL fold-in items
+    allseq = [(np.asarray(list(lvl[r].keys()), np.int64),
+               np.asarray(list(lvl[r].values()), np.int64)) for r in rows]
+    acc_all, _ = score_users_multi(rung, allseq, [[] for _ in rows], rows)
+    ceiling = {"full@10": float(np.nanmean(acc_all["full@10"])),
+               "tail@10": float(np.nanmean(acc_all["tail@10"])),
+               "full@100": float(np.nanmean(acc_all["full@100"])),
+               "mean_items": float(np.mean([len(s[0]) for s in allseq]))}
+    scK = compute_K_curve(rung, rows, sh, budgets)
+    strip = lambda s: {q: {"full@10": s[q]["full@10"], "tail@10": s[q]["tail@10"],
+                           "full@100": s[q]["full@100"], "mean_answered": s[q]["mean_answered"]}
+                       for q in budgets}
+    t4 = {"budgets": list(budgets),
+          "oracle_item_selection": strip(sc),
+          "oracle_concept_selection_K": strip(scK),
+          "full_profile_fold_ceiling": ceiling,
+          "note": "oracle item selection = top-N highest-rated fold-in items ('your N favorite films'), "
+                  "honest (fold-in only, te-excluded). Fair oracle-vs-oracle vs K (top-|SEL| concepts)."}
+    log(f"[T4 oracle-item ] " + " ".join(f"N{q}={sc[q]['full@10']:.4f}/{sc[q]['tail@10']:.4f}"
+                                         for q in budgets))
+    log(f"[T4 oracle-K    ] " + " ".join(f"N{q}={scK[q]['full@10']:.4f}" for q in budgets))
+    log(f"[T4] full-profile ceiling {ceiling['full@10']:.4f}/{ceiling['tail@10']:.4f} "
+        f"(mean {ceiling['mean_items']:.0f} items)")
+    return t4
+
+
+# ============================================================================= T5
+def diagnostic5(rung, rows, sh, ctx, args, n_per_tercile=40, max_users=2500):
+    """T5 CONCEPT-FOLD vs MEMBER-ITEM-FOLD: for sampled concepts across granularity terciles, compare
+    per answerable user (a) folding the CONCEPT via signed C-lite vs (b) folding the concept's rated
+    MEMBER ITEMS directly. If (b) >> (a), the concept fold is LOSSY (operator/training gap)."""
+    log("=== TEST 5: concept-fold vs member-item-fold ===")
+    Vb = sh["conc_value_signed"]; AF = sh["conc_answerable"] & sh["conc_fold_signed"]
+    lvl = sh["lvl_lookup"]
+    C = len(sh["tags"])
+    member_count = np.array([len(sh["members"][t]) for t in sh["tags"]], np.int64)
+    rows_arr = np.asarray(rows); row_pos = {r: j for j, r in enumerate(rows)}
+    empty = (np.empty(0, np.int64), np.empty(0, np.int64))
+    f0, t0, _ = score_users(rung, [empty] * len(rows), [[] for _ in rows], rows)
+    b1, b2 = np.percentile(member_count, [33.333, 66.667])
+    terciles = {"fine": np.flatnonzero(member_count <= b1),
+                "medium": np.flatnonzero((member_count > b1) & (member_count <= b2)),
+                "broad": np.flatnonzero(member_count > b2)}
+    rng = np.random.default_rng(4242)
+    t5 = {"tercile_bounds_membercount": [float(b1), float(b2)],
+          "n_concepts_per_tercile": n_per_tercile, "max_users_per_concept": max_users, "bins": {}}
+    memberset = {c: set(sh["members"][sh["tags"][c]].tolist()) for c in range(C)}
+    for name, pool in terciles.items():
+        csamp = rng.choice(pool, size=min(n_per_tercile, len(pool)), replace=False)
+        la, lb, ratios, memfold_n = [], [], [], []
+        for c in csamp:
+            c = int(c)
+            rc = rows_arr[AF[rows_arr, c]]
+            if len(rc) > max_users:
+                rc = rng.choice(rc, size=max_users, replace=False)
+            if len(rc) < 10:
+                continue
+            idx = np.array([row_pos[int(r)] for r in rc])
+            # (a) concept fold via C-lite
+            conc = [[(c, float(Vb[int(r), c]))] for r in rc]
+            fa, _, _ = score_users(rung, [empty] * len(rc), conc, list(rc))
+            # (b) member-item fold: the user's RATED member items (fold-in), real ratings
+            mseq = []
+            for r in rc:
+                d = lvl[int(r)]
+                mi = [i for i in d if i in memberset[c]]
+                mseq.append((np.asarray(mi, np.int64), np.asarray([d[i] for i in mi], np.int64)))
+            fb, _, _ = score_users(rung, mseq, [[] for _ in rc], list(rc))
+            lift_a = float(np.nanmean(fa - f0[idx])); lift_b = float(np.nanmean(fb - f0[idx]))
+            la.append(lift_a); lb.append(lift_b)
+            ratios.append(lift_b / lift_a if abs(lift_a) > 1e-6 else float("nan"))
+            memfold_n.append(float(np.mean([len(s[0]) for s in mseq])))
+        t5["bins"][name] = {"n_concepts": len(la),
+                            "median_member_count": float(np.median(member_count[csamp])),
+                            "mean_concept_fold_lift@10": float(np.mean(la)),
+                            "mean_member_item_fold_lift@10": float(np.mean(lb)),
+                            "mean_lift_ratio_member_over_concept": float(np.nanmean(ratios)),
+                            "mean_member_items_folded": float(np.mean(memfold_n))}
+        b = t5["bins"][name]
+        log(f"[T5 {name:>6}] concept-fold {b['mean_concept_fold_lift@10']:+.4f} vs member-item-fold "
+            f"{b['mean_member_item_fold_lift@10']:+.4f} (ratio {b['mean_lift_ratio_member_over_concept']:.2f}, "
+            f"{b['mean_member_items_folded']:.1f} items)")
+    return t5
+
+
 # ============================================================================= main
+def _flush(out, ctx, args):
+    outdir = ctx.outdir if args.smoke else OUTDIR
+    os.makedirs(outdir, exist_ok=True)
+    json.dump(out, open(os.path.join(outdir, args.out), "w"), indent=2, default=float)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
-    ap.add_argument("--diag", default="all")                     # 1 | 23 | all
+    ap.add_argument("--diag", default="all")                     # 1 | 23 | 45 | all
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
     ap.add_argument("--sclite_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
                                                           "cfold_signed_best.pt"))
@@ -395,9 +529,16 @@ def main():
            "diagnostic": "UNDERSTANDING run (not for paper)"}
 
     do1 = args.diag in ("1", "all")
+    do45 = args.diag in ("45", "all")
     do23 = args.diag in ("23", "all")
+    # cheap diagnostics first (D1, T4, T5); the ~80-min L pass (D2/D3) runs last
     if do1:
         out["D1_item_breakdown"] = diagnostic1(rung, rows, sh, ctx, args)
+    if do45:
+        out["T4_ruler_ceiling"] = diagnostic4(rung, rows, sh, ctx, args)
+        out["T5_concept_vs_memberitem_fold"] = diagnostic5(rung, rows, sh, ctx, args)
+        # flush partial results so T4/T5 are readable before the long L pass finishes
+        _flush(out, ctx, args)
     if do23:
         L_full, L_tail, _, _, nans = compute_marginal_L(rung, rows, sh, ctx)
         d2, member_count = diagnostic2(rung, rows, sh, ctx, L_full, L_tail, nans)
