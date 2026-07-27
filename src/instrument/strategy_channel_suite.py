@@ -536,6 +536,9 @@ def main():
         enc_sf.load_state_dict(blob["enc"]); enc_sf.eval()
         return Rung(name, ctx, sh, cfull_enc=enc_sf, val_source="signed")
     rung = load_rung("sclite")
+    # fold provenance: the concept arm is only as good as the fold it rides. cfold_signed_best.pt is the
+    # SUPERSEDED Jul-25 fold (pre-recipe-fix); the deployment fold of record is cd_s1_l10_best.pt (lam=1.0).
+    log(f"[rung] sclite concept fold = {os.path.basename(args.sclite_ckpt)}")
     # intercept
     empty_i = (np.empty(0, np.int64), np.empty(0, np.int64))
     f0, t0v, _ = score_users(rung, [empty_i] * len(rows), [[] for _ in rows], rows)
