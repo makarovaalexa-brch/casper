@@ -470,6 +470,9 @@ def main():
                     help="greedy: fold asked-but-unrated (non-target) items as a mild-negative refusal")
     ap.add_argument("--refuse_level", type=int, default=4,
                     help="greedy: fold level for item refusals (0-9; <5 = negative pull-away)")
+    ap.add_argument("--eval_test", action="store_true",
+                    help="greedy: BUILD on all val, EVAL on the disjoint TEST cohort (paper-grade "
+                         "split-construct). Ignores --fit_users.")
     args = ap.parse_args()
     t00 = time.time()
     ctx = build_smoke_ctx() if args.smoke else build_real_ctx(args.snapshot)
@@ -548,14 +551,29 @@ def main():
         # best-static greedy sequence for NDCG: items-only / concepts-only / combined.
         GRJSON = os.path.join(_ROOT, "experiments", "battery", "greedy_static.json")
         GRPNG = os.path.join(_ROOT, "experiments", "battery", "greedy_static.png")
-        # split-construct: BUILD the greedy sequence on one user set, EVAL on a DISJOINT set
-        # (greedy directly maximizes eval NDCG, so fit==eval overfits severely -> always split).
-        nfit = args.fit_users if args.fit_users > 0 else len(rows) // 2
-        build_rows = rows[:nfit]
-        eval_rows = rows[nfit:2 * nfit] if 2 * nfit <= len(rows) else rows[nfit:]
+        # split-construct: BUILD greedy on val, EVAL on a DISJOINT set (greedy maximizes eval NDCG,
+        # so fit==eval overfits -> always split).
+        if args.eval_test:
+            build_rows = rows                                   # all val users
+            log("[greedy] building disjoint TEST-eval context (test cohort)...")
+            ctx_te = build_real_ctx(args.snapshot, split="test")
+            sh_te = build_shared(ctx_te)
+            assert sh_te.get("signed_available"), "signed prereg required for test ctx"
+            from concept_fold import ConceptFoldNet
+            _blob = torch.load(args.sclite_ckpt, map_location="cpu")
+            _net = ConceptFoldNet(len(_blob["tags"]), d=ctx_te.d, h=_blob["hidden"])
+            _net.load_state_dict(_blob["net"]); _net.eval()
+            eval_rung = Rung("sclite", ctx_te, sh_te, clite_net=_net, val_source="signed")
+            eval_rows = [r for r in range(ctx_te.n) if ctx_te.va_te[r].nnz > 0]
+        else:
+            nfit = args.fit_users if args.fit_users > 0 else len(rows) // 2
+            build_rows = rows[:nfit]
+            eval_rows = rows[nfit:2 * nfit] if 2 * nfit <= len(rows) else rows[nfit:]
+            eval_rung = rung
         item_pool = [(0, int(i)) for i in ord_pop[:args.n_items]]
         conc_pool = [(1, int(c)) for c in np.argsort(-ans_rate)[:args.n_concepts]]
-        log(f"[greedy] build={len(build_rows)} / eval={len(eval_rows)} DISJOINT users; "
+        log(f"[greedy] build={len(build_rows)} val / eval={len(eval_rows)} "
+            f"{'TEST' if args.eval_test else 'disjoint-val'}; "
             f"item_pool={len(item_pool)} conc_pool={len(conc_pool)} (top-answerable) "
             f"L={max(BUDGETS)} fold_refusals={args.fold_refusals}"
             + (f" @level{args.refuse_level}" if args.fold_refusals else ""))
@@ -567,11 +585,11 @@ def main():
                                                 args.fold_refusals, args.refuse_level)
             curve = {}
             for q in BUDGETS:
-                f, t = _greedy_avg(rung, eval_rows, seq[:q],
+                f, t = _greedy_avg(eval_rung, eval_rows, seq[:q],
                                    args.fold_refusals, args.refuse_level)    # held-out (honest)
                 bf, bt = _greedy_avg(rung, build_rows, seq[:q],
                                      args.fold_refusals, args.refuse_level)   # on build set (overfit ref)
-                ia, ca = _seq_answered(rung.sh, eval_rows, seq[:q])
+                ia, ca = _seq_answered(eval_rung.sh, eval_rows, seq[:q])
                 curve[str(q)] = {"full@10": f, "tail@10": t,
                                  "build_full@10": bf, "build_tail@10": bt,
                                  "item_answered": round(ia, 3), "conc_answered": round(ca, 3)}
@@ -585,10 +603,12 @@ def main():
                 + f" | answered@16={curve['16']['item_answered']}i/{curve['16']['conc_answered']}c"
                 + f" ({(time.time()-t0)/60:.1f}m)")
         out = {"analysis": "greedy_static_seq", "n_build_users": len(build_rows),
-               "n_eval_users": len(eval_rows), "n_items_pool": len(item_pool),
-               "n_concepts_pool": len(conc_pool),
-               "note": "split-construct: build on val[:nfit], eval on DISJOINT val[nfit:2nfit]. "
-                       "Full run: build all val, eval test.",
+               "n_eval_users": len(eval_rows), "eval_split": "test" if args.eval_test else "val-disjoint",
+               "fold_refusals": bool(args.fold_refusals),
+               "n_items_pool": len(item_pool), "n_concepts_pool": len(conc_pool),
+               "note": ("build on ALL val, eval on disjoint TEST cohort (paper-grade)"
+                        if args.eval_test else
+                        "build on val[:nfit], eval on disjoint val[nfit:2nfit] (peek)"),
                "budgets": BUDGETS, "intercept": intercept, "arms": greedy_res}
         os.makedirs(os.path.dirname(GRJSON), exist_ok=True)
         json.dump(out, open(GRJSON, "w"), indent=2)
