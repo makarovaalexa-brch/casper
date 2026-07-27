@@ -61,12 +61,12 @@ as comparison tables, claim nothing novel. Everything else is archived.
 ---
 
 ## GAPS to close for Paper A (concrete, cheap, high value)
-1. **The star/graded interview-length curve on the TOWER** — `graded vs binarized, k=2..full`. It was
-   *designed* as a gate (`docs/design/GATE_BATTERY_INSTRUMENT.md:34`, "gradedness must win") but **never
-   run on the neural tower**; only a full-profile premium (~+0.004) and a k-indexed *classic-baseline*
-   comparison exist (`experiments/baselines/ml25m_liang/rating_baselines_val.json`). Short interviews are
-   exactly where the extra bits per rating should pay; the full-profile +0.004 is the worst case for
-   gradedness. **This is the highest-value missing instrument evidence.** (Author's "star curve" question.)
+1. **The star/graded interview-length curve on the TOWER** — ✅ RAN 2026-07-27
+   (`docs/results/GRADED_CURVE_RESULT.md`, provisional Figure~\ref{fig:gradedcurve}). Result: vs the fair
+   positive-only baseline (likes-only, r>3.5, what RecVAE does) the graded premium is small and
+   short-concentrated (+0.012 @k2 → ≈0 @k8, +0.004 full); vs naive "all-as-like" binarization it is huge
+   (+0.12 @full) because that control mislabels dislikes. The leg's real value = **representing dislikes at
+   all**, not fine gradation. Re-run on the certified tower when it lands.
 2. **Mult-VAE on the ruler** — finish the G0 table (it snapped on ML-20M but has no ML-25M number); drop or
    explicitly label DAE as non-reproducing.
 3. *(Optional, instrument-validation only, not a "beats" claim):* a published elicitation baseline (the
