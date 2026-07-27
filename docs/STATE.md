@@ -1,7 +1,31 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-07-27 (concept fold FIXED; downstream D1–D3)**.
+> End-state is in `VISION.md`. Last updated: **2026-07-27 (G0 CERTIFIED; Paper A number audit)**.
+
+## ★★★ G0 PASSED ON THE CERTIFIED TOWER (2026-07-27) + full Paper-A number audit
+Full record: `docs/results/PAPER_A_NUMBER_AUDIT.md`. Certified run finished (converged ep13, val flat 4).
+
+- **T2′ certified: TEST full 0.3482 / tail 0.2462 / @100 0.4486** (`ml25m_liang/tower_t2.json`).
+  **G0 tie vs the RecVAE bar 0.3540/0.2497: diff −0.0057, CI 0.0069, tie=True.** Identity half holds
+  EXACTLY: empty interview → |z|=0.000000, Spearman 1.0000 vs the frozen decoder bias. Best val 0.3510.
+  → R1/G0 is no longer open. The paper's abstract, `tab:g0`, `tab:master`, gap map and §5.1 now carry it.
+- **C1 bridge closed, incl. a failure:** EASE 0.4203/0.420 PASS · RecVAE 0.4425/0.442 PASS ·
+  **Mult-VAE 0.4223/0.426 near-snap (−.004, admitted as such)** · **Mult-DAE 0.3969/0.419 FAIL (−.022) →
+  DROPPED from the bank entirely** · iALS 0.358 vs WMF 0.386 → iALS rows read as a FLOOR, not a repro.
+- **Paper corrections:** Most-Popular @100 0.1961→**0.1975**; volume-leak R² 0.204→**0.249** (§6.4 and
+  §6.5 had been self-inconsistent). All other baseline cells verified against JSON — OK.
+- **Broken-fold retraction landed in the paper.** Fig `fig:strategychannel` REMOVED (it asserted "items win
+  the long interview" = broken-fold artifact, and still had the flagged design faults). Replaced by a named
+  retraction paragraph + the fixed-fold D1 table; adaptive-headroom magnitudes WITHDRAWN, direction
+  re-grounded on the fold-independent D3 probe. New `\REDO{}` macro marks superseded-but-measured numbers
+  distinctly from `\TODO{}` (never run).
+- **Bib:** all 35 cites resolve, 0 undefined on the final pass; added `good1967principle`,
+  `blackwell1953equivalent`, `mu2018allbutthetop` (cited in prose, previously no entry). 9 raw-UTF-8 `Bıyık`
+  normalised → file is 100% ASCII. Build clean via Tectonic.
+- **⚠ RUN-INTEGRITY CATCH:** the in-flight greedy (PID 6512) was loading the SUPERSEDED
+  `cfold_signed_best.pt` (script default) and would have re-derived the broken-fold artifact. Killed at
+  23 min (nothing lost), relaunched on `cd_s1_l10_best.pt` as **PID 2652**. Fold now logged (`e745f6f`).
 
 ## ★ CURRENT (2026-07-27) — concept operator SETTLED; lever = selection/adaptivity
 Full record: memory `concept-fold-distillation-and-downstream-2026-07-27`; `docs/results/
@@ -44,10 +68,8 @@ is NOT a contribution (internal bug, fixed). Paper B/C + adaptivity out of scope
   dislike the item-indicator basis can't; edge washes out as collaborative signal fills in. (The "grows to
   +0.12" number vs all-as-like was a mislabeling-control artifact — demoted.) Two-panel provisional figure in
   chapterA_v2, reframed per author.
-- **CERTIFIED RETRAIN 🔄 RUNNING** (PID 17748, fresh, detached): `train_tower_t2.py --train --tag t2final
-  --p_interview 0.5 --select_cold` (C-lite winning config, items-only; concepts fold separately). Empty-set
-  G0 identity holds; init 0.3510/0.2502; ~8min/epoch × 20ep ≈ 2.5–3h. Old ep4 shakedown ckpts backed up to
-  `t2final_*ep4bak.pt`. Log: `experiments/baselines/t2final_train.out`.
+- **CERTIFIED RETRAIN ✅ DONE** — see the G0 block at the top. `t2final_best.pt`, TEST 0.3482/0.2462,
+  G0 tie=True. Log: `experiments/baselines/t2final_train.out`.
 - **Repo tidy ✅:** 11 pre-Jul-22 dead-end docs archived to `experiments/_archive/pre_jul22/`; dead scripts +
   cruft removed; result JSONs committed for provenance. Record fix: canonical ruler EASE 0.3476/RecVAE
   0.3540 (0.508/0.523 = retired arena).
@@ -108,10 +130,18 @@ items visible). One shared harness, 10k COLD_SEED, per-question deployment curre
   PASSES +0.0087 CI-clean). Fine for recommendation, a gap for the R3 attribute-semantics claim (→ C3).
 
 ## Parked / pending
-- **Certification retrain (t2final) PARKED** until the author picks the final winner
-  (relaunch cmd recorded: `experiments/baselines/t2final_RELAUNCH_CMD.txt`; killed at ep4-b500,
-  ckpts preserved).
-- S4 filler (DAE/MultVAE ML-20M snap) running; demoted to idle priority during the retrains.
+- **QUEUE (Paper A, in order) — what is actually left to run:**
+  1. **Greedy best-static** (RUNNING, PID 2652, fixed fold): build 10k val / eval 10k TEST, 500 items /
+     500 concepts, no refusals → the replacement `fig:strategychannel`.
+  2. **Mult-VAE on the ML-25M ruler** → finishes the G0 baseline table (DAE dropped, snap failed).
+  3. **Re-run the interview curves on the certified tower** (`t2final_best.pt`): the graded/star curve, and
+     a concept-fold retrain on t2final so the concept channel rides the certified substrate. Everything
+     marked `\REDO{}` in the chapter is blocked on this.
+  4. **Volume-leak waiver ruling** (R² 0.249 vs the ≤0.05 bar) — author call, or run the pre-registered
+     fallback `C_NEG ∈ {1,2,4}` / volume-orthogonalised fold. Fixes the final operating point.
+  5. **G10 strategy-discrimination gate** + full battery re-verified on the certified ckpt.
+  6. Efficiency-curve figure; Wave-2 belief-corner baselines; film-mute (item-cold) slice.
+- S4 filler (ML-20M snap) ✅ DONE: Mult-VAE near-snap (−.004), **Mult-DAE FAILED (−.022), dropped**.
 - C-lite gates (committed 70cbe78): flip −0.2012 PASS, wrong-user PASS, dup ×2 PASS / ×3 −0.005
   (slight over-count at ×3 — re-gate on the signed retrain's extended curriculum).
 - Strategy ladder (Jul 24): HELF lit-rank-1 replicated CI-clean, 0 inversion flags; bib add flagged
