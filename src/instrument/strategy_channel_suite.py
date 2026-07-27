@@ -520,19 +520,23 @@ def main():
         # best-static greedy sequence for NDCG: items-only / concepts-only / combined.
         GRJSON = os.path.join(_ROOT, "experiments", "battery", "greedy_static.json")
         GRPNG = os.path.join(_ROOT, "experiments", "battery", "greedy_static.png")
-        fit_rows = rows if args.fit_users <= 0 else rows[:args.fit_users]
+        # split-construct: BUILD the greedy sequence on one user set, EVAL on a DISJOINT set
+        # (greedy directly maximizes eval NDCG, so fit==eval overfits severely -> always split).
+        nfit = args.fit_users if args.fit_users > 0 else len(rows) // 2
+        build_rows = rows[:nfit]
+        eval_rows = rows[nfit:2 * nfit] if 2 * nfit <= len(rows) else rows[nfit:]
         item_pool = [(0, int(i)) for i in ord_pop[:args.n_items]]
         conc_pool = [(1, int(c)) for c in np.argsort(-ans_rate)[:args.n_concepts]]
-        log(f"[greedy] fit+eval users={len(fit_rows)} item_pool={len(item_pool)} "
-            f"conc_pool={len(conc_pool)} (top-answerable) L={max(BUDGETS)} "
-            f"[PEEK: fit==eval, contamination not controlled]")
+        log(f"[greedy] build={len(build_rows)} / eval={len(eval_rows)} DISJOINT users; "
+            f"item_pool={len(item_pool)} conc_pool={len(conc_pool)} (top-answerable) "
+            f"L={max(BUDGETS)}")
         greedy_res = {}
         for name, pool in [("items-only", item_pool), ("concepts-only", conc_pool),
                            ("combined", item_pool + conc_pool)]:
             t0 = time.time()
-            seq, gains, nev = greedy_static_seq(rung, fit_rows, pool, max(BUDGETS))
+            seq, gains, nev = greedy_static_seq(rung, build_rows, pool, max(BUDGETS))
             curve = {str(q): dict(zip(("full@10", "tail@10"),
-                                     _greedy_avg(rung, fit_rows, seq[:q]))) for q in BUDGETS}
+                                     _greedy_avg(rung, eval_rows, seq[:q]))) for q in BUDGETS}
             comp = "".join("c" if ch == 1 else "i" for ch, _ in seq)
             greedy_res[name] = {"curve": curve, "order": comp,
                                 "sequence": [[int(ch), int(idx)] for ch, idx in seq],
@@ -540,9 +544,11 @@ def main():
             log(f"[greedy {name}] order={comp} nev={nev} " + " ".join(
                 f"q{q}:{curve[str(q)]['full@10']:.4f}/{curve[str(q)]['tail@10']:.4f}"
                 for q in BUDGETS) + f" ({(time.time()-t0)/60:.1f}m)")
-        out = {"analysis": "greedy_static_seq", "n_fit_eval_users": len(fit_rows),
-               "n_items_pool": len(item_pool), "n_concepts_pool": len(conc_pool),
-               "note": "PEEK build: fit==eval (contamination uncontrolled); full run needs test split",
+        out = {"analysis": "greedy_static_seq", "n_build_users": len(build_rows),
+               "n_eval_users": len(eval_rows), "n_items_pool": len(item_pool),
+               "n_concepts_pool": len(conc_pool),
+               "note": "split-construct: build on val[:nfit], eval on DISJOINT val[nfit:2nfit]. "
+                       "Full run: build all val, eval test.",
                "budgets": BUDGETS, "intercept": intercept, "arms": greedy_res}
         os.makedirs(os.path.dirname(GRJSON), exist_ok=True)
         json.dump(out, open(GRJSON, "w"), indent=2)
