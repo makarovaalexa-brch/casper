@@ -50,9 +50,14 @@ DESIGN_CONCEPT_FOLD_DISTILLATION.md`. Canonical harness, 10k COLD_SEED, intercep
   **Deployment fold = λ=1.0** (only config passing the opener gate; S2 distill-then-sharpen craters it).
 - **D1 concept-vs-item on the FIXED fold (SUPERSEDES the Jul-25 broken-fold suite below):** concepts BEAT
   items on **tail at EVERY budget** (@10 & @100; k8 tail .121 vs .084, +44%) and **lead full through k=4**
-  (k1 .159 vs .137, k4 .197 vs .184); items overtake full only at k=8 (.211 vs .227). Caveat: realizable
-  concept-ask vs pop item-ask; items still win FULL at k8. → the "items win the long interview" line in the
-  Jul-25 suite was a BROKEN-FOLD artifact; the honest story is now "concepts lead short + dominate tail."
+  (k1 .159 vs .137, k4 .197 vs .184); items overtake full only at k=8 (.211 vs .227). → the "items win the
+  long interview" line in the Jul-25 suite was a BROKEN-FOLD artifact.
+  **⚠ METHODOLOGY CAVEAT (added Jul 27, do not drop): D1 is NOT a strategy-free comparison.** It is
+  `item-ask = popularity order` vs `concept-ask = polarization order` (`answer_contrast.py:10-11`) — two
+  hand-picked heuristics, one per channel, which is the same asymmetry that made the Jul-25 suite fragile.
+  **D1 is NOT paper evidence for concept-vs-item** and was pulled from chapterA_v2 for exactly this reason.
+  The strategy-free criterion is best-static greedy (items-only / concepts-only / combined). Use D1 only as
+  a directional prior that the fixed fold changed the shape.
 - **D2 answerer panel (fixed fold):** SEL is the answer-ceiling — REPLICATES (imputers tie within ~0.003;
   ExpoMF/PITF worse; not a broken-fold artifact). The answer model was never the lever; **SELECTION is**
   (oracle-select 0.211 vs answer-model ~0.144 @q8).
