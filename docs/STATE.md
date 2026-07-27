@@ -16,9 +16,18 @@ Full record: `docs/results/PAPER_A_NUMBER_AUDIT.md`. Certified run finished (con
 - **Paper corrections:** Most-Popular @100 0.1961→**0.1975**; volume-leak R² 0.204→**0.249** (§6.4 and
   §6.5 had been self-inconsistent). All other baseline cells verified against JSON — OK.
 - **Broken-fold retraction landed in the paper.** Fig `fig:strategychannel` REMOVED (it asserted "items win
-  the long interview" = broken-fold artifact, and still had the flagged design faults). Replaced by a named
-  retraction paragraph + the fixed-fold D1 table; adaptive-headroom magnitudes WITHDRAWN, direction
-  re-grounded on the fold-independent D3 probe. New `\REDO{}` macro marks superseded-but-measured numbers
+  the long interview" = broken-fold artifact, and still had the flagged design faults). Adaptive-headroom
+  magnitudes WITHDRAWN, direction re-grounded on the fold-independent D3 probe.
+- **NO concept-vs-item claim in the chapter until the greedy lands.** I briefly put the fixed-fold D1 table
+  in as the replacement; author caught that D1 = `item-ask: popularity order` vs `concept-ask: polarization
+  order` (`answer_contrast.py:10-11`) — two hand-picked heuristics, one per channel, i.e. the SAME defect
+  that made the original suite fragile. Pulled. **Best-static greedy is the agreed criterion** (combined bank
+  CONTAINS items-only → combined can only lose by overfitting the build set → combined−items = a direct
+  readout of what concepts add). Chapter keeps only the weak claim: both channels fold and both lift off the
+  intercept.
+- **Gap map clarified:** T2′ sits at x=2.5 vs the target star at 4.0. That 1.5 is THREE HALF-MARKS (R3/R4/R5
+  partial), NOT failed gates — unified interface not built, belief layer not fitted, monotonicity not yet
+  certified. Star moved 3.75→4.0 and the caption now says this explicitly. New `\REDO{}` macro marks superseded-but-measured numbers
   distinctly from `\TODO{}` (never run).
 - **Bib:** all 35 cites resolve, 0 undefined on the final pass; added `good1967principle`,
   `blackwell1953equivalent`, `mu2018allbutthetop` (cited in prose, previously no entry). 9 raw-UTF-8 `Bıyık`
