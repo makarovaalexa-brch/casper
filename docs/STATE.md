@@ -27,9 +27,28 @@ DESIGN_CONCEPT_FOLD_DISTILLATION.md`. Canonical harness, 10k COLD_SEED, intercep
   Δtail +0.0016 CI[.0008,.0024], significant → refutes static-optimal / HARD RULE #2); concept channel
   positive-not-significant at 1 level (needs the multi-turn policy = Chapter B).
 - **Through-line:** operator settled + answer model solved → the prize is SELECTION/ADAPTIVITY (Chapter B),
-  cleanly motivated by A. **Paper A remaining (await author): G10 strategy-discrimination; full battery
-  re-verified on the certified ckpt; baseline G0 table (Mult-VAE/DAE + bank); efficiency-curve headline
-  figure + film-mute subpop slice; ONE clean certified retrain of the winning config; write-up.**
+  cleanly motivated by A. **Paper A remaining: G10 strategy-discrimination; full battery re-verified on the
+  certified ckpt; baseline G0 table (Mult-VAE on ruler — DROP DAE, failed snap); efficiency-curve figure;
+  write-up.**
+
+## ★ Paper A = INSTRUMENT (scope-corrected 2026-07-27) — audit + star curve + certified run
+Full: `docs/PAPER_CONTRIBUTION_AUDIT.md`, `docs/results/GRADED_CURVE_RESULT.md`, memory
+`paper-contribution-audit-2026-07-27`. Paper A claims the INSTRUMENT; elicitation = evidence it works on
+both channels, NOT a headline. Method pieces framed as PICKED (answer-model panel, distillation = due
+diligence) / BUILT-ON (3 legs: graded/star, out-of-catalog concepts, direction tokens; set-encoder; belief
+layer) / ARCHIVED (circular geometric answer, Kalman churn, broken clip — take working version). Circularity
+is NOT a contribution (internal bug, fixed). Paper B/C + adaptivity out of scope.
+- **STAR CURVE ✅ (`premium_vs_k.json`, Fig `fig:gradedcurve`):** vs likes-only (fair positive-only baseline)
+  graded premium is small + short-concentrated (+0.012 @k2 → ≈0 @k8, +0.004 full); vs naive all-as-like it
+  grows to +0.12 @full but that control mislabels dislikes (artifact). Graded leg's value = REPRESENTING
+  DISLIKES, not fine gradation; flip −0.29 @full. Provisional figure added to chapterA_v2.
+- **CERTIFIED RETRAIN 🔄 RUNNING** (PID 17748, fresh, detached): `train_tower_t2.py --train --tag t2final
+  --p_interview 0.5 --select_cold` (C-lite winning config, items-only; concepts fold separately). Empty-set
+  G0 identity holds; init 0.3510/0.2502; ~8min/epoch × 20ep ≈ 2.5–3h. Old ep4 shakedown ckpts backed up to
+  `t2final_*ep4bak.pt`. Log: `experiments/baselines/t2final_train.out`.
+- **Repo tidy ✅:** 11 pre-Jul-22 dead-end docs archived to `experiments/_archive/pre_jul22/`; dead scripts +
+  cruft removed; result JSONs committed for provenance. Record fix: canonical ruler EASE 0.3476/RecVAE
+  0.3540 (0.508/0.523 = retired arena).
 
 ## Paper B faithful replication — item-ask bug FIXED, real item-vs-concept table (Jul 26)
 The old-Paper-B reconstruction encoder (weak biased-SVD + attention fold-in) on ML-25M Liang had a
