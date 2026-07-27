@@ -175,7 +175,10 @@ def gate_g1(ctx):
                "g1b_PASS": bool(mo > 0 and ratio >= 2.0),
                "g1c_rho": round(rho, 4), "g1c_PASS": bool(rho >= 0.25),
                "belief_fitted": ctx.belief_fitted,
-               "note": "g1c on INIT alphas is advisory; the fitted-alpha rho is the certified number",
+               "note": ("g1c is advisory ONLY when belief_fitted=False; when belief_fitted=True this rho IS "
+                        "the certified number and a miss is a real calibration failure (2026-07-27: the "
+                        "previous wording said the opposite and caused a fitted-alpha miss to be read as "
+                        "an init-alpha artifact)"),
                "seconds": round(time.time() - t0, 1)}
     payload["PASS"] = bool(g1a and payload["g1b_PASS"] and (payload["g1c_PASS"] or not ctx.belief_fitted))
     save_gate(ctx, "g1", payload)
