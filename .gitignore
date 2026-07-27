@@ -83,6 +83,7 @@ Thumbs.db
 *.marker
 *_state.json
 experiments/**/*_logs/
+experiments/**/_smoke/
 
 # LaTeX build artifacts (regenerable from .tex)
 *.aux
