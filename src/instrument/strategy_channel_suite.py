@@ -553,9 +553,11 @@ def main():
             seq, gains, nev = greedy_static_seq(rung, build_rows, pool, max(BUDGETS))
             curve = {}
             for q in BUDGETS:
-                f, t = _greedy_avg(rung, eval_rows, seq[:q])
+                f, t = _greedy_avg(rung, eval_rows, seq[:q])           # held-out (honest)
+                bf, bt = _greedy_avg(rung, build_rows, seq[:q])        # on build set (overfit ref)
                 ia, ca = _seq_answered(rung.sh, eval_rows, seq[:q])
                 curve[str(q)] = {"full@10": f, "tail@10": t,
+                                 "build_full@10": bf, "build_tail@10": bt,
                                  "item_answered": round(ia, 3), "conc_answered": round(ca, 3)}
             comp = "".join("c" if ch == 1 else "i" for ch, _ in seq)
             greedy_res[name] = {"curve": curve, "order": comp,
