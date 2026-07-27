@@ -66,7 +66,17 @@ something false.
 
 ## 3. Triage: how bad is each failure, really?
 
-**G4 is a broken GATE, not (only) a broken model.** The gate assigns the confidence tier *by channel*:
+**G4 was ALREADY RE-DISPOSITIONED BY THE AUTHOR ON JUL 24 — the gate code just never caught up.**
+`GATE_BATTERY_INSTRUMENT.md:36-44` records the ruling verbatim: G4 was restructured to **refusal
+boundedness**, tested *within* the same channel (α_refuse/α_answer ≤ 0.05), and "**The confidence-ORDERING
+test is NOT A GATE** — MovieLens carries no within-channel confidence signal (the retired LLM apparatus was
+its only source), and an untestable property cannot gate." It even records the disposition: "*The Jul-24
+Phase-B 'G4 FAIL' is re-dispositioned: ordering = unmeasurable-by-design; refusal-inertness = PASS*" — with
+the fitted numbers 0.018/27.66 = **0.0007 vs the ≤0.05 bar, a PASS by 70×**. So the `g4.json` FAIL is an
+artifact of stale code running the pre-ruling gate. **G4 is a PASS.** The only work is making the code
+match the ruling. The analysis below is why the ruling was right:
+
+**The old G4 was a broken GATE, not (only) a broken model.** The gate assigns the confidence tier *by channel*:
 items→know-well, concepts→vague, unrated-popular probe→refuse (`run_battery_phaseB.py:13-14`). It then
 demands refuse < vague < know-well. But the fit is free to discover that a concept answer is worth far more
 than a single item answer — which is exactly what it found (27.66 vs 0.013), and exactly what every other
@@ -74,6 +84,15 @@ result in the project says (concepts lead the short interview; one concept split
 **A correct model necessarily fails this gate as written**, because the gate conflates two different axes:
 *channel* (item vs concept) and *stated confidence* (know-well vs vague vs refuse). Note also that only 3
 of the 6 channel×confidence cells were ever exercised — `a_item[1]` and `a_conc[0]` sit untouched at 1.0.
+
+**Where the 0.25 bar came from (it is not absolute).** `DESIGN_PRECACC.md:62` states it: "G1c calibration
+Spearman ρ ≥ 0.25 (**must beat the failed head's 0.219**)". So the bar is *relative* — it was set to clear
+the learned-uncertainty head we abandoned, at ρ=0.219, rounded up for margin. Measured against the purpose
+the bar was written for, the analytic belief **passes**: 0.2393 > 0.219, i.e. it beats the approach it was
+meant to beat by +0.020. Measured against the rounded number it misses by 0.011. Nothing derives 0.25 from
+an MDE, a published precedent, or a decision consequence — it is a round number with a sensible motive.
+That should be stated plainly rather than treated as a law of nature; the honest report is "beats the
+abandoned learned head, short of the round-number margin we set ourselves."
 
 **G1 is a real, marginal calibration miss — not a bookkeeping artifact.** I first assumed the failing
 sub-gate was an init-alpha artifact, because the JSON carries the note "*g1c on INIT alphas is advisory;
@@ -109,14 +128,18 @@ incidental consequence. If neither clears 0.25, report the near-miss and narrow 
 correct, magnitude weakly calibrated" — which is what G1a/G1b already license. Delete the misleading
 "INIT alphas is advisory" note from `run_battery_phaseB.py:178` regardless.
 
-### Step 2 — Redesign G4 so confidence is not a synonym for channel *(pre-register first)*
-The corrected gate varies stated confidence **within** a channel and reports the channel effect separately:
-- *know-well* = an item the user rated with many neighbours / high support;
-- *vague* = an item or concept with thin support (low `n_c`, or a sparsely-rated item);
-- *refuse* = the `e_c < τ` unmeasurable band, which must move the belief by ≈0.
-The ordering bar then applies **within channel** (refuse < vague < know-well for items, and again for
-concepts), and the cross-channel ratio (concepts higher-precision than items) is reported as a **result**,
-not a failure. All 6 cells must be exercised. The old G4 verdict stays in the record.
+### Step 2 — Make the G4 code match the author's Jul-24 ruling *(cheap; no new design decision)*
+No pre-registration needed — the ruling exists. Implement it: G4 becomes **refusal boundedness only**,
+α_refuse/α_answer ≤ 0.05 **within channel**. On the existing fit that is 0.018/27.66 = 0.0007, a **PASS**.
+Delete the confidence-ordering assertion from the gate (keep confidence-weighting as documented
+architecture, certifiable only if confidence-bearing data ever exists). Re-emit `g4.json` with the correct
+verdict and a pointer to the ruling; keep the old FAIL in the record as a stale-code artifact.
+
+This is the *same lesson the chapter already teaches* in the concept section — "a capability gate is vacuous
+if the answer model never exercises the capability" — applied to ourselves. Since the LLM answer apparatus
+was retired (values are now real ratings for items, behavioural SEL for concepts, and refusal is a
+structural rule), **nothing in the live pipeline emits a confidence level**, so an ordering gate over
+confidence tiers tests a capability no data exercises. Worth saying out loud in the chapter.
 
 ### Step 3 — Restate G8 honestly and narrow R4 *(no new run)*
 Report: Σ-greedy > isotropic-cI at q4/8/16, CI-clean at q16; ties/loses at q2; Σ-greedy over *random* is
