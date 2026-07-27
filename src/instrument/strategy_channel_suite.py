@@ -266,6 +266,80 @@ def unified_walk(rung, rows, item_score, conc_score, budgets=BUDGETS):
     return res
 
 
+def _greedy_build_ev(sh, rows, seq):
+    """Per-user (item_ev, conc_ev) for a fixed sequence of (chan, id): item iff rated, concept iff
+    structurally answerable. Static -> same seq for every user."""
+    Vs = sh["conc_value_signed"]; Fs = sh["conc_fold_signed"]; answ = sh["conc_answerable"]
+    iev, cev = [], []
+    for r in rows:
+        d = sh["lvl_lookup"][r]; items = []; fold = []
+        for ch, idx in seq:
+            if ch == 0:
+                if idx in d: items.append((idx, d[idx]))
+            else:
+                if answ[r, idx] and Fs[r, idx]: fold.append((idx, float(Vs[r, idx])))
+        iev.append((np.asarray([s for s, _ in items], np.int64),
+                    np.asarray([l for _, l in items], np.int64)))
+        cev.append(fold)
+    return iev, cev
+
+
+def _greedy_avg(rung, rows, seq):
+    """Mean full/tail NDCG@10 over rows of folding a fixed sequence."""
+    iev, cev = _greedy_build_ev(rung.sh, rows, seq)
+    full, tail, _ = score_users(rung, iev, cev, rows)
+    return float(np.nanmean(full)), float(np.nanmean(tail))
+
+
+def greedy_static_seq(rung, rows, pool, L):
+    """Lazy-greedy (CELF) best static sequence of length L from pool=[(chan,id),...], maximizing
+    mean full NDCG@10 over rows. Exploits submodularity: recompute a candidate's marginal gain only
+    when it reaches the top with a stale bound. Returns (seq, gains, n_evals)."""
+    import heapq
+    base, _ = _greedy_avg(rung, rows, [])
+    heap = []; nev = 0
+    for q in pool:
+        f, _ = _greedy_avg(rung, rows, [q]); nev += 1
+        heapq.heappush(heap, (-(f - base), q, 0))
+    seq, gains, cur = [], [], base
+    while len(seq) < L and heap:
+        neg, q, upd = heapq.heappop(heap)
+        if upd == len(seq):
+            seq.append(q); gains.append(-neg); cur += -neg
+        else:
+            f, _ = _greedy_avg(rung, rows, seq + [q]); nev += 1
+            heapq.heappush(heap, (-(f - cur), q, len(seq)))
+    return seq, gains, nev
+
+
+def make_greedy_png(results, intercept, path):
+    """Best-static curves: items-only / concepts-only / combined; full & tail, EQUAL y-axes."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    CURVES = [("items-only", "#0072B2", "--o"), ("concepts-only", "#009E73", "--^"),
+              ("combined", "#D55E00", "-s")]
+    allv = [results[n]["curve"][str(q)][m] for n, _, _ in CURVES for q in BUDGETS
+            for m in ("full@10", "tail@10")]
+    ymin = min(min(allv), intercept["full"], intercept["tail"]); ymax = max(allv)
+    pad = (ymax - ymin) * 0.06
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.4), sharey=True)
+    for ax, metric, ikey in ((axes[0], "full@10", "full"), (axes[1], "tail@10", "tail")):
+        ax.axhline(intercept[ikey], color="#888888", ls=":", lw=1.1, label="no-answer intercept")
+        for name, col, mk in CURVES:
+            c = results[name]["curve"]
+            ax.plot(BUDGETS, [c[str(q)][metric] for q in BUDGETS], mk, color=col, lw=2, ms=5,
+                    label=name)
+        ax.set_xscale("log", base=2); ax.set_xticks(BUDGETS); ax.set_xticklabels(BUDGETS)
+        ax.set_xlabel("questions asked $q$"); ax.set_title(metric, fontsize=10)
+        ax.set_ylim(ymin - pad, ymax + pad); ax.grid(alpha=0.3)
+    axes[0].set_ylabel("NDCG@10"); axes[0].legend(fontsize=7.5, loc="upper left")
+    fig.suptitle("Best static question sequence (greedy NDCG): does adding concepts help?",
+                 fontsize=10)
+    fig.tight_layout(); fig.savefig(path, dpi=160); fig.savefig(path.replace(".png", ".pdf"))
+    plt.close(fig)
+
+
 def make_qbank_png(results, intercept, path, balanced=False):
     """Question-bank-expansion figure: full & tail with EQUAL y-axes; per strategy (prevalence,
     entropy, HELF), items-only bank (dashed) vs unified items+concepts bank (solid)."""
@@ -360,6 +434,14 @@ def main():
     ap.add_argument("--balanced", action="store_true",
                     help="qbank: z-score each channel's score before merging (balanced interleave) "
                          "instead of raw [0,1] scores (which let concepts crowd out items)")
+    ap.add_argument("--greedy", action="store_true",
+                    help="best-static greedy sequence (lazy CELF) for NDCG: items-only / concepts-only "
+                         "/ combined; shows the emergent optimal concept+item order")
+    ap.add_argument("--n_items", type=int, default=500, help="greedy: top-N popular items in the pool")
+    ap.add_argument("--n_concepts", type=int, default=500,
+                    help="greedy: top-M most-answerable concepts in the pool")
+    ap.add_argument("--fit_users", type=int, default=0,
+                    help="greedy: #val users to fit+eval on (0=all val). PEEK: small value.")
     args = ap.parse_args()
     t00 = time.time()
     ctx = build_smoke_ctx() if args.smoke else build_real_ctx(args.snapshot)
@@ -434,6 +516,40 @@ def main():
         cur = results[name]
         log(f"[{name}] " + " ".join(f"q{q}={cur[q]['full@10']:.4f}/{cur[q]['tail@10']:.4f}"
                                     for q in BUDGETS) + f" ({(time.time()-t0)/60:.1f}m)")
+    if args.greedy:
+        # best-static greedy sequence for NDCG: items-only / concepts-only / combined.
+        GRJSON = os.path.join(_ROOT, "experiments", "battery", "greedy_static.json")
+        GRPNG = os.path.join(_ROOT, "experiments", "battery", "greedy_static.png")
+        fit_rows = rows if args.fit_users <= 0 else rows[:args.fit_users]
+        item_pool = [(0, int(i)) for i in ord_pop[:args.n_items]]
+        conc_pool = [(1, int(c)) for c in np.argsort(-ans_rate)[:args.n_concepts]]
+        log(f"[greedy] fit+eval users={len(fit_rows)} item_pool={len(item_pool)} "
+            f"conc_pool={len(conc_pool)} (top-answerable) L={max(BUDGETS)} "
+            f"[PEEK: fit==eval, contamination not controlled]")
+        greedy_res = {}
+        for name, pool in [("items-only", item_pool), ("concepts-only", conc_pool),
+                           ("combined", item_pool + conc_pool)]:
+            t0 = time.time()
+            seq, gains, nev = greedy_static_seq(rung, fit_rows, pool, max(BUDGETS))
+            curve = {str(q): dict(zip(("full@10", "tail@10"),
+                                     _greedy_avg(rung, fit_rows, seq[:q]))) for q in BUDGETS}
+            comp = "".join("c" if ch == 1 else "i" for ch, _ in seq)
+            greedy_res[name] = {"curve": curve, "order": comp,
+                                "sequence": [[int(ch), int(idx)] for ch, idx in seq],
+                                "gains": [float(g) for g in gains], "n_evals": nev}
+            log(f"[greedy {name}] order={comp} nev={nev} " + " ".join(
+                f"q{q}:{curve[str(q)]['full@10']:.4f}/{curve[str(q)]['tail@10']:.4f}"
+                for q in BUDGETS) + f" ({(time.time()-t0)/60:.1f}m)")
+        out = {"analysis": "greedy_static_seq", "n_fit_eval_users": len(fit_rows),
+               "n_items_pool": len(item_pool), "n_concepts_pool": len(conc_pool),
+               "note": "PEEK build: fit==eval (contamination uncontrolled); full run needs test split",
+               "budgets": BUDGETS, "intercept": intercept, "arms": greedy_res}
+        os.makedirs(os.path.dirname(GRJSON), exist_ok=True)
+        json.dump(out, open(GRJSON, "w"), indent=2)
+        make_greedy_png(greedy_res, intercept, GRPNG)
+        log(f"[greedy] wrote {os.path.basename(GRJSON)} + {os.path.basename(GRPNG)} "
+            f"({(time.time()-t00)/60:.1f}m)")
+        return
     if args.qbank:
         # question-bank expansion: items-only vs unified items+concepts, 3 cross-channel scores.
         runlog("items-pop", items_walk, rung, rows, lambda r: ord_pop)
