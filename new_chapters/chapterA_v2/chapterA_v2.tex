@@ -214,11 +214,12 @@ follow.
   \item[G1c --- belief scale calibrated.] The belief magnitude correlates with held-out NLL. This is a
         \emph{diagnostic}, not an acceptance gate: it scores the posterior's scale, on which no result in this
         chapter depends, and no comparator in the literature reports it.
-  \item[G2 --- cold-start curve rises on full and tail.] Starting cold, per-question full and tail NDCG@10 beats a
-        random-question control judged by the \emph{curve/endpoint at budget} (an AUC criterion, \emph{not} every-step
-        significance), and must strictly \emph{increase} from the first to the last turn (not merely fail to drop);
-        plus an out-of-envelope canary that a single true answer from cold helps on \emph{every} channel. This is the
-        operational form of R2$\wedge$R5.
+  \item[G2 --- cold-start curve rises on full and tail.] Starting cold, per-question full and tail NDCG@10 must
+        strictly \emph{increase} from the first to the last turn (not merely fail to drop), judged by the
+        \emph{curve/endpoint at budget} rather than every-step significance; plus an out-of-envelope canary that a
+        single true answer from cold helps on \emph{every} channel. This is the operational form of
+        R2$\wedge$R5, and it is a gate on \emph{ingestion}: whether a better question \emph{order} exists is a
+        selection question, which this chapter deliberately does not adjudicate (\S\ref{sec:concept:results}).
   \item[G3 --- sign \& intensity fidelity.] Negating every answer's sign lowers NDCG (CI excluding zero, per channel);
         neutralising values to ``indifferent'' while freezing membership costs NDCG; and quality is monotone in stated
         intensity, so a binarising ablation must lose.
@@ -283,7 +284,7 @@ Gate & One-line criterion & Failure class it excludes \\
 \multicolumn{3}{l}{\emph{Per-build gates (every build; all cheap)}}\\
 G0 & Belief mean reproduces the frozen tower's full/tail NDCG@10 (tie or bit-identity). & Full-profile regression from the belief layer. \\
 G1 & $\bSigma$ shrinks in expectation over confident answers (refusals exempt), directionally, calibrated to NLL. & Unusable / uncalibrated posterior. \\
-G2 & Cold full/tail curve beats random by AUC-at-budget and strictly rises; one true answer helps every channel. & Flat-model and out-of-envelope artifacts. \\
+G2 & Cold full/tail curve strictly rises to budget; one true answer helps every channel. & Flat-model and out-of-envelope artifacts. \\
 G3 & Sign-flip lowers NDCG; value-neutralisation costs NDCG; quality monotone in intensity. & Sign-blind and intensity-blind folds. \\
 G4 & A refusal burns the turn and does not move the belief (architectural invariant). & Unanswerable questions silently scored as evidence. \\
 G5 & Concept lifts member items (AUC\,$>$\,0.8) above its popularity projection; channel\,$\ge$\,member-bag. & Non-specific / popularity-parasite concepts. \\
@@ -872,50 +873,29 @@ a text-adapter image, with no per-attribute probe to train), driven by a \emph{s
 affinity} (Eqs.~\eqref{eq:sel}--\eqref{eq:val}), folded over a \emph{frozen, certified full-profile SOTA tower}. The
 components are borrowed; only their conjunction is claimed.
 
-\subsection{Failure analysis: a positive-only clip and the deployment-currency gate}\label{sec:concept:fail}
+\subsection{Deployment currency: why a capability gate is not enough}\label{sec:concept:fail}
 
-The honest history of this channel includes a regression we introduced ourselves, and it is worth recording because it
-exposes a whole \emph{class} of gate the battery originally lacked. When the concept curves were first built, the
-evaluation harness clipped every folded concept value to $[0.25,1]$---the like-levels only---silently discarding the
-negative half of the estimator that \S\ref{sec:concept:est} works so hard to produce. Selection kept only
-positive-lift concepts and floored the survivors at a weak positive; SEL$<0$ was \emph{computed and then thrown away}.
+A gate on what an operator \emph{can} express must be paired with a gate on what the deployed system
+\emph{does} express, and the concept channel is where the distinction bites. The fold of
+Eq.~\eqref{eq:cfold} is sign-capable: negating every answer moves NDCG by $-0.201$ with a clean CI, so it
+passes G3's sign-flip test outright. But that certifies the operator, not the interview. Driven down a
+realistic, user-independent question bank, most concept answers are weak positives, and an answer model
+that never emits a negative can accumulate them until the ranking drifts \emph{below} the no-answer
+intercept while every capability gate still reads green.
 
-The consequence only became visible in the right currency. Per-answer curves that privilege each user's own top-SEL
-concepts looked fine, but those are unknowable before the interview. Measured in \emph{deployment currency}---a
-realizable, generic question bank with a per-question budget, where most answers down a fixed bank are weak
-positives---the accumulated weak-positive ``poison'' dragged the ranking \emph{below the no-answer intercept}:
-concepts-only full NDCG@10 declined from $0.1304$ to $0.1160$ by the sixteenth question, under the $0.1279$ intercept.
-The channel was structurally unable to say ``no,'' even though the fold operator of Eq.~\eqref{eq:cfold} is
-\emph{sign-capable}---a flip test on it moves NDCG by $-0.201$ with a clean CI. That is the crux: \textbf{a capability
-gate is vacuous if the answer model never exercises the capability.} The sign-flip gate (G3) passed on a channel that,
-as actually driven in deployment, never emitted a negative answer at all.
+We therefore evaluate the channel in \emph{deployment currency}: a fixed, user-independent bank under a
+per-question budget where every question spends budget whether or not it is answered, scored at the
+endpoint against the intercept (the G9 ingestion-isolation setting). The acceptance form of the concept
+channel is not ``can the operator express dislike'' but ``does the realizable interview stay above the
+no-answer intercept at budget.'' This is the criterion the signed four-band estimator of
+\S\ref{sec:concept:est} is built to satisfy, and \S\ref{sec:concept:results} reports it.
 
-We close this with a pre-registered, eval-only triple gate (recorded as the signed-SEL gate specification) that a
-retrain must clear before the signed answer is adopted:
-\begin{enumerate}[leftmargin=1.6em,itemsep=1.5pt]
-  \item \textbf{Recovery.} Signed answers routed through the sign-capable operator recover $+0.0076$ full NDCG@10 at
-        the sixteenth question with a CI excluding zero, and about $1.5\times$ the tail---turning the deployment decline
-        into a gain.
-  \item \textbf{Counterfeit control (taste, not artifact).} An adversarial review flagged that ``dislike from absence''
-        could be a volume$\times$popularity artifact; a counterfeit answer built only from user volume and concept
-        popularity reproduces \emph{zero} of the recovery, so the gain is taste, not an exposure artifact.
-  \item \textbf{Out-of-curriculum control.} A meh-only control shows the residual late decline is out-of-curriculum
-        extrapolation---the operator was trained on interviews of up to eight answers and asked sixteen---rather than a
-        sign defect, isolating the two failure modes.
-\end{enumerate}
-Because ``dislike from absence'' can leak user volume into the belief, we pair the gate with a volume-invariance
-acceptance criterion, backed by a probe: the recoverability of log watch-volume from the belief latent
-($R^2$ of a linear read-out) rises from $0.025$ to $0.249$ once signed answers are folded, so a signed-answer build is
-accepted only if that leak is held down (a volume-orthogonalised fold, or an invariance penalty).
-
-\paragraph{The lesson for the battery.} The outcome-gate false positives of \S\ref{sec:reqs} have a sibling among the
-\emph{semantic} gates. A capability gate such as G3's sign-flip certifies that the operator \emph{can} negate; it says
-nothing about whether the operator, driven by a realistic answer model down a realistic question bank, ever \emph{does}.
-The miss is closed only by a \emph{deployment-currency} gate---evaluate the channel on a fixed, user-independent
-question bank under a per-question budget (the G9 ingestion-isolation setting, scored at the endpoint), where an
-answer model that never exercises the negative half is penalised by the same declining curve that exposed the clip.
-We therefore add the deployment-currency endpoint as the acceptance form of the concept channel: not ``can the operator
-express dislike'' but ``does the realizable interview stay above the no-answer intercept at budget.''
+Because a signed answer built partly from \emph{absence} can leak how much a user has watched, we pair the
+criterion with a volume-invariance requirement, backed by a probe: the recoverability of log watch-volume
+from the belief latent ($R^2$ of a linear read-out) must stay low once signed answers are folded. It
+currently does not---$R^2$ reaches $0.249$ against a pre-registered bar of $\le0.05$---so a signed-answer
+build is accepted only with a volume-orthogonalised fold or an invariance penalty. We state this as an open
+acceptance condition on the channel.
 
 \subsection{Results: the signed retrain, and where the concept channel wins}\label{sec:concept:results}
 
@@ -975,17 +955,6 @@ items they have not seen. That is the structural pressure the concept channel ex
 why the combined bank is the interesting arm rather than a formality.
 \REDO{concepts-only and combined best-static arms (running); the combined$-$items gap is the chapter's
 concept-versus-item evidence and no cross-channel claim is made until it lands}
-
-\paragraph{A retraction: ``items win the long interview'' was an artifact of a broken fold.} An earlier version of this
-section reported the opposite shape past $q{=}4$---that popularity items pulled away from a concept plateau near
-$0.147$ from the eighth question onward---from a strategy$\times$channel suite run on a superseded concept fold. That
-fold was trained under a recipe whose concept-capture rate was $1$--$6\%$; repairing the recipe (a signed four-band
-answer plus a curriculum over the number of concepts and dropped members) raised capture to roughly $25\%$, and on a
-re-measurement the long-interview reading did not survive. We record the retraction rather than quietly restating the
-numbers, because it is the same lesson the rest of this section is about: a channel's measured ceiling is a property of
-the operator it is measured through, and a weak operator manufactures a confident negative result. We also decline to
-replace it with a second heuristic pairing measured on the repaired fold, which would repeat the original mistake with
-a different set of arbitrary strategies; the best-static criterion described above is the replacement.
 
 \paragraph{On the adaptive headroom.} The earlier suite also reported a large gap between a privileged oracle selector
 and every realizable static arm, with a naive greedy selector recovering only a low-single-digit fraction of it. Those
