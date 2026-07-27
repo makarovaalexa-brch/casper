@@ -62,6 +62,8 @@ assert not hasattr(sys.modules[__name__], "load_answerer")
 
 BUDGETS = (1, 2, 4, 8, 16)
 PNG_NAME = "strategy_channel_curves_2026-07-25.png"
+QBANK_JSON = os.path.join(_ROOT, "experiments", "battery", "qbank_expansion.json")
+QBANK_PNG = os.path.join(_ROOT, "experiments", "battery", "qbank_expansion.png")
 # Okabe-Ito CVD-safe, FIXED assignment (never cycled; shared arms share colors across panels)
 COLORS = {"items-pop": "#0072B2", "items-entropy": "#D55E00", "items-HELF": "#009E73",
           "items-random-bank": "#999999",
@@ -222,6 +224,85 @@ def mixed_walk(rung, rows, recipe, mean_abs, std_v, budgets=BUDGETS):
     return out
 
 
+def unified_walk(rung, rows, item_score, conc_score, budgets=BUDGETS):
+    """Unified question bank: merge ALL items + ALL concepts into ONE global static ranking by a
+    single cross-channel score (item_score, conc_score already on a comparable [0,1] scale), ask the
+    top-q, fold what each user can answer (item iff rated; concept iff structurally answerable). The
+    order is the SAME for every user (static bank) -- the answer never changes which question is
+    asked, so any concept-first-then-items shape here EMERGES from the score, it is not scheduled."""
+    sh = rung.sh
+    C = sh["d_c"].shape[0]
+    Vs = sh["conc_value_signed"]; Fs = sh["conc_fold_signed"]; answ = sh["conc_answerable"]
+    ni = len(item_score)
+    key = np.concatenate([np.asarray(item_score, np.float64), np.asarray(conc_score, np.float64)])
+    chan = np.concatenate([np.zeros(ni, np.int8), np.ones(C, np.int8)])      # 0 item, 1 concept
+    ids = np.concatenate([np.arange(ni), np.arange(C)]).astype(np.int64)
+    order = np.argsort(-key, kind="stable")
+    qmax = max(budgets)
+    top = order[:qmax]
+    iev_at = {q: [] for q in budgets}; cev_at = {q: [] for q in budgets}
+    for j, r in enumerate(rows):
+        d = sh["lvl_lookup"][r]
+        items = []; folded = []
+        for nq, o in enumerate(top, start=1):
+            if chan[o] == 0:
+                i = int(ids[o])
+                if i in d: items.append((i, d[i]))
+            else:
+                c = int(ids[o])
+                if answ[r, c] and Fs[r, c]: folded.append((c, float(Vs[r, c])))
+            if nq in budgets:
+                iev_at[nq].append((np.asarray([s for s, _ in items], np.int64),
+                                   np.asarray([l for _, l in items], np.int64)))
+                cev_at[nq].append(list(folded))
+    res = {}
+    for q in budgets:
+        nc = int((chan[top[:q]] == 1).sum())
+        full, tail, _ = score_users(rung, iev_at[q], cev_at[q], rows)
+        res[q] = {"full@10": float(np.nanmean(full)), "tail@10": float(np.nanmean(tail)),
+                  "mean_answered": float(np.mean([len(s[0]) for s in iev_at[q]])
+                                         + np.mean([len(f) for f in cev_at[q]])),
+                  "bank_conc": nc, "bank_item": q - nc, "_fv": full, "_tv": tail}
+    return res
+
+
+def make_qbank_png(results, intercept, path):
+    """Question-bank-expansion figure: full & tail with EQUAL y-axes; per strategy (prevalence,
+    entropy, HELF), items-only bank (dashed) vs unified items+concepts bank (solid)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    STRAT = [("prevalence", "items-pop", "unified-prevalence", "#0072B2"),
+             ("entropy", "items-entropy", "unified-entropy", "#D55E00"),
+             ("HELF", "items-HELF", "unified-HELF", "#009E73")]
+    allv = []
+    for _, io, un, _ in STRAT:
+        for arm in (io, un):
+            for q in BUDGETS:
+                allv += [results[arm][q]["full@10"], results[arm][q]["tail@10"]]
+    ymin = min(min(allv), intercept["full"], intercept["tail"]); ymax = max(allv)
+    pad = (ymax - ymin) * 0.06
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.4), sharey=True)
+    for ax, metric, ikey in ((axes[0], "full@10", "full"), (axes[1], "tail@10", "tail")):
+        ax.axhline(intercept[ikey], color="#888888", ls=":", lw=1.1, zorder=1,
+                   label="no-answer intercept")
+        for sname, io, un, col in STRAT:
+            ax.plot(BUDGETS, [results[io][q][metric] for q in BUDGETS], "--o", color=col,
+                    lw=1.4, ms=4, alpha=0.65, zorder=2, label=f"{sname} · items-only")
+            ax.plot(BUDGETS, [results[un][q][metric] for q in BUDGETS], "-s", color=col,
+                    lw=2.3, ms=5, zorder=3, label=f"{sname} · unified bank")
+        ax.set_xscale("log", base=2); ax.set_xticks(BUDGETS); ax.set_xticklabels(BUDGETS)
+        ax.set_xlabel("questions asked $q$"); ax.set_title(metric, fontsize=10)
+        ax.set_ylim(ymin - pad, ymax + pad); ax.grid(alpha=0.3, zorder=0)
+    axes[0].set_ylabel("NDCG@10")
+    axes[0].legend(fontsize=6.8, loc="upper left", ncol=1, framealpha=0.9)
+    fig.suptitle("Question-bank expansion: unified items+concepts vs items-only "
+                 "(static bank; answer does not steer selection)", fontsize=10)
+    fig.tight_layout()
+    fig.savefig(path, dpi=160); fig.savefig(path.replace(".png", ".pdf"))
+    plt.close(fig)
+
+
 # ============================================================================= figure
 def make_png(results, intercept, path):
     import matplotlib
@@ -272,6 +353,9 @@ def main():
     ap.add_argument("--scfull", action="store_true", default=True)
     ap.add_argument("--no_scfull", dest="scfull", action="store_false")
     ap.add_argument("--full_threads", action="store_true")
+    ap.add_argument("--qbank", action="store_true",
+                    help="question-bank-expansion mode: items-only vs unified items+concepts bank "
+                         "under prevalence/entropy/HELF; equal-y figure; no oracle/mixed")
     args = ap.parse_args()
     t00 = time.time()
     ctx = build_smoke_ctx() if args.smoke else build_real_ctx(args.snapshot)
@@ -346,6 +430,25 @@ def main():
         cur = results[name]
         log(f"[{name}] " + " ".join(f"q{q}={cur[q]['full@10']:.4f}/{cur[q]['tail@10']:.4f}"
                                     for q in BUDGETS) + f" ({(time.time()-t0)/60:.1f}m)")
+    if args.qbank:
+        # question-bank expansion: items-only vs unified items+concepts, 3 cross-channel scores.
+        runlog("items-pop", items_walk, rung, rows, lambda r: ord_pop)
+        runlog("items-entropy", items_walk, rung, rows, lambda r: ord_ent)
+        runlog("items-HELF", items_walk, rung, rows, lambda r: ord_helf)
+        item_prev = n_raters.astype(np.float64) / 140768.0          # fraction of train users who rated
+        runlog("unified-prevalence", unified_walk, rung, rows, item_prev, ans_rate)
+        runlog("unified-entropy", unified_walk, rung, rows, Hn, pol_n)
+        runlog("unified-HELF", unified_walk, rung, rows, helf_i, helf_c)
+        out = {"analysis": "qbank_expansion", "n_users": len(rows), "budgets": BUDGETS,
+               "rung": "sclite", "intercept": intercept,
+               "arms": {k: {str(q): {kk: vv for kk, vv in results[k][q].items()
+                                     if not kk.startswith("_")} for q in BUDGETS} for k in results}}
+        os.makedirs(os.path.dirname(QBANK_JSON), exist_ok=True)
+        json.dump(out, open(QBANK_JSON, "w"), indent=2)
+        make_qbank_png(results, intercept, QBANK_PNG)
+        log(f"[qbank] wrote {os.path.basename(QBANK_JSON)} + {os.path.basename(QBANK_PNG)} "
+            f"({(time.time()-t00)/60:.1f}m)")
+        return
     # ITEMS
     runlog("items-pop", items_walk, rung, rows, lambda r: ord_pop)
     runlog("items-entropy", items_walk, rung, rows, lambda r: ord_ent)
