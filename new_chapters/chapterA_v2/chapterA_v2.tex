@@ -76,9 +76,10 @@ ML-25M harness). Our in-house RecVAE realisation sets the bar at full/tail NDCG@
 ML-25M protocol, and the graded-native interview tower now \emph{meets} it: a single certified training run reaches
 $0.3482/0.2462$ on the held-out test cohort---a paired-bootstrap tie with the bar---while reproducing the frozen
 decoder's ranking exactly at the empty interview, so G0 (full strength preserved) is passed rather than assumed. The
-interview-side results (the graded-input curve, the concept channel) are measured on the same architecture but on a
-pre-certification snapshot and an earlier fold recipe; they are labelled as such throughout and their re-runs on the
-certified tower are queued.
+remaining per-build gates have all been run on a pre-certification snapshot of the same architecture---nine pass, one
+misses, two are partial---and we report the miss and the two partials in the same detail as the passes. The
+interview-side results (the graded-input curve, the concept channel) share that provenance and are labelled as such
+throughout; their re-runs on the certified tower are queued.
 \end{abstract}
 
 \tableofcontents
@@ -264,9 +265,10 @@ uncertainty is load-bearing. The battery's semantic and artifact-control gates (
 
 We report \emph{both} full and tail NDCG@10 for every gate (a project reporting rule: full-only or tail-only hides the
 effect, which is typically much larger on the tail than on the full catalogue). Of the battery, \textbf{G0 is passed on
-the certified tower} (\S\ref{sec:expdesign}, Table~\ref{tab:g0}); the remaining gate results in this chapter were
-measured on a pre-certification snapshot of the same architecture and are labelled \REDO{} where their re-run on the
-certified tower is queued, or \TODO{} where the gate has not yet been run at all.
+the certified tower} (\S\ref{sec:expdesign}, Table~\ref{tab:g0}) and \textbf{every other per-build gate has
+been run} on a pre-certification snapshot of the same architecture: nine pass, one misses, two are partial
+(Table~\ref{tab:batteryresults}). Results measured on that earlier snapshot are labelled \REDO{} where the
+re-run on the certified tower is queued; \TODO{} marks a gate never run at all.
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{5pt}
@@ -666,8 +668,22 @@ tokens, and certifying the G0--G2 protocol on it. Three properties fall out by c
 $\bLambda_t$ only grows and $\det\bSigma_t$ only shrinks (G1); and conjugate updates are
 monotone in \emph{expected utility}~\cite{good1967principle,blackwell1953equivalent}. The last is why R5 is plausible, but---because the tower's dot-product ranker does not act
 optimally under the belief---per-question NDCG monotonicity is \emph{not} automatic and must be shown empirically
-(\S\ref{sec:limits}). \TODO{Fix $\bLambda_0,\bmu_0$ (prior from the tower), the per-channel noise $\sigma_j$, and the
-confidence/temperature schedule; verify G0 holds at the belief mean on the full profile.}
+(\S\ref{sec:limits}).
+
+\paragraph{Status of the belief layer, stated precisely.} The layer is \emph{built and fitted}, not
+hypothetical: $\bLambda_0,\bmu_0$ are taken from the tower, and the per-channel noise reduces to eight
+fitted scalars (a $2\times3$ channel$\times$confidence precision grid plus a prior scale and a variance
+floor), calibrated on real data with a pre-fit sign proof ($G=2291$ over $414{,}265$ concept triples). It
+passes G1a, G1b, G4 and G9, misses G1c, and is partial on G8 (Table~\ref{tab:batteryresults}). Two
+limitations are load-bearing and we state them here rather than in a footnote. First, the covariance is
+maintained \emph{decoupled} from the ranking path: the results in \S\ref{sec:concept} are produced by
+folding answers to a point estimate, and $\bSigma$ is consulted only for question selection, where its
+advantage over random is $+0.0036$ at $q{=}16$. Second, the confidence axis of the precision grid is
+currently unexercised---MovieLens carries no within-channel confidence signal, so only the refusal band and
+a single answer tier are populated by real data. The honest claim is therefore that the instrument
+\emph{provides} a correct, queryable, order-invariant belief, not that its covariance is doing heavy
+lifting in the numbers reported here; exploiting it is the companion chapter's problem.
+\REDO{refit the belief layer on the certified checkpoint and re-run Phase B}
 
 \subsection{Channel-agnostic tokens as linear observations}
 Every channel supplies a direction $\bphi_j\in\R^{d}$ and a value $y_j\in\R$ to Eq.~\eqref{eq:precacc}; the update is
@@ -684,9 +700,23 @@ identical across channels (R3):
         interface the companion chapter uses); the belief update does not distinguish it from a catalogue entity.
 \end{itemize}
 The signed/graded, out-of-catalogue, and continuous legs are the three channels inexpressible in the R1-bar basis
-(\S\ref{sec:gap}). \TODO{Specify the concept-direction and text-adapter constructions, the polarity/gradation
-encoding, and the acceptance tests (a like/dislike flip reverses the queried neighbourhood; a concept fold lifts its
-member items; monotone in $t$).}
+(\S\ref{sec:gap}).
+
+\paragraph{What is delivered, and what is still an interface rather than a result.} The signed/graded leg is
+delivered and measured (G3a/G3b, Figure~\ref{fig:gradedcurve}). The concept leg is delivered for concepts
+\emph{in a fixed vocabulary}: our implementation folds a concept by looking its direction up in a trained
+embedding table over the $1{,}031$ genome tags, initialised from whitened member centroids. That is enough
+for R3's out-of-catalogue clause in the narrow sense---no catalogue \emph{column} is required, and a concept
+is not an item---but it is \emph{not} yet the strong claim, which is that an arbitrary embedding, including
+one for an entity the model never saw in training, folds through the same interface. Everything downstream
+of the lookup already consumes a direction in $\R^{d}$, so the interface is arbitrary by construction; what
+is missing is evidence that a direction produced \emph{outside} our own item geometry lands in the right
+place. We therefore state R3 as partially delivered and do not claim the continuous-token leg as
+demonstrated. \TODO{the deciding experiment: fit one text adapter into the frozen latent, then fold English
+phrases that are neither genome tags nor titles, and show the ranking moves semantically (a ``dinosaur''
+query surfacing the right films without the word appearing in any title), with a string-match control ---
+the claim being \emph{no per-concept training}, one adapter generalising to unseen phrases, which is the
+wedge against per-attribute probes~\cite{biyik2023soft}}
 
 \begin{figure}[t]
   \centering
@@ -929,9 +959,18 @@ every step over an items-only bank, a concepts-only bank, and a combined bank of
 on the validation cohort and scored on the disjoint test cohort. Because the combined bank contains the items-only bank
 as a subset, it can only fall below items-only by overfitting the construction set---which makes the combined-versus-
 items gap a direct, interpretable readout of what the concept channel adds to an interview, rather than an artifact of
-whichever heuristics were paired. \REDO{best-static greedy sequences (items-only / concepts-only / combined), fixed
-fold, built on the 10k validation cohort and evaluated on the disjoint 10k test cohort; this table and figure are the
-chapter's concept-versus-item evidence and no cross-channel claim is made until they land}
+whichever heuristics were paired.
+
+The items-only arm has landed and is reported here as the reference line the other two banks will be read
+against: greedily selecting the best static item sequence from a $500$-item bank on the validation cohort
+and scoring it on the disjoint test cohort gives full/tail NDCG@10 of $0.1405/0.0275$ at one question,
+$0.1524/0.0387$ at two, $0.1656/0.0445$ at four, $0.1863/0.0538$ at eight and $0.2098/0.0679$ at sixteen,
+against the $0.1279/0.0192$ intercept. The answerability figure is the striking one: across a
+sixteen-question interview a user answers on average only $3.6$ of the item questions, the rest being
+items they have not seen. That is the structural pressure the concept channel exists to relieve, and it is
+why the combined bank is the interesting arm rather than a formality.
+\REDO{concepts-only and combined best-static arms (running); the combined$-$items gap is the chapter's
+concept-versus-item evidence and no cross-channel claim is made until it lands}
 
 \paragraph{A retraction: ``items win the long interview'' was an artifact of a broken fold.} An earlier version of this
 section reported the opposite shape past $q{=}4$---that popularity items pulled away from a concept plateau near
@@ -1131,16 +1170,78 @@ precision) and its scores are a rank-identical image of the frozen decoder's lea
 is what licenses reading every later interview curve as evidence about \emph{ingestion} rather than about a shifted
 baseline. The cold intercept of every curve in this chapter, $0.1279/0.0192$, is that same non-personalised read-out.
 Accuracy is therefore no longer the open question for this instrument; what remains open is whether the belief layer
-preserves the tie once it is placed over the frozen latent, which is \TODO{} until the belief layer is fitted
-(\S\ref{sec:method}).
+preserves the tie once it is placed over the frozen latent, which is \REDO{G0 re-checked at the belief mean
+on the certified checkpoint} --- the belief layer is fitted and gated (\S\ref{sec:batteryresults}), but on
+the earlier snapshot.
+
+\subsection{The battery, measured}\label{sec:batteryresults}
+
+The battery is proposed in \S\ref{sec:reqs} as a portable certificate, so it owes its own results. Table~\ref{tab:batteryresults}
+reports every gate that has been run. All rows except G0 and C1 are measured on the pre-certification
+snapshot of the tower architecture and are provisional in the sense of \S\ref{sec:concept}; the re-run on
+the certified checkpoint is queued. We report the two partial verdicts and the one miss in the same detail
+as the passes, because a battery whose author only publishes its passes certifies nothing.
+
+\begin{table}[t]\centering\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{p{0.9cm}p{5.0cm}p{6.2cm}p{1.6cm}}
+\toprule
+Gate & Criterion & Measured & Verdict \\
+\midrule
+G0 & tie the bar; identity at $t{=}0$ & $0.3482/0.2462$ vs $0.3540/0.2497$, diff $-0.0057$ (CI $0.0069$); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
+G1a & $\mathrm{tr}\,\bSigma$ shrinks over answers & $1881.9\!\to\!1805.1$ across $q{=}0\ldots16$, monotone & \textbf{PASS} \\
+G1b & directional, $\ge2\times$ & along-$\bphi$ $0.996$ vs elsewhere $0.086$ $=\mathbf{11.5\times}$ & \textbf{PASS} \\
+G1c & $\rho(\text{belief-}\sigma,\text{NLL})\ge0.25$ & $\rho=0.2393$ & \emph{miss} \\
+G2 & cold curve rises, beats random & $\bSigma$-arm $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; rise $+0.1445/+0.1113$ & \textbf{PASS} \\
+G3a & sign-flip lowers NDCG & $-0.2985$ (CI $[-0.3047,-0.2922]$); intensity staircase $\rho=0.927$ & \textbf{PASS} \\
+G3b & value-neutralisation costs & $-0.2869$ (CI $[0.2817,0.2922]$) full; $0.2999\!\to\!0.0368$ tail & \textbf{PASS} \\
+G4 & refusal boundedness, same channel & $\alpha_{\text{refuse}}/\alpha_{\text{answer}}=0.0007$ vs a $\le0.05$ bar & \textbf{PASS} \\
+G5 & concept lifts members, beats its popularity projection & whitened-direction membership AUC $0.94$ (raw $0.44$); cold fold clears the intercept $0.1308>0.1279$ & \textbf{PASS} \\
+G6 & wrong-user / shuffle / placebo / duplicate & shuffled $+0.0371$, placebo $+0.0168$ (both CI-clean), duplicate assert fired; \emph{wrong-user $-0.0986$ below intercept, not $\approx$ intercept} & \emph{partial} \\
+G8 & $\bSigma$ beats isotropic $c\Imat$; order-invariant & $+0.0089$ at $q{=}16$ (CI $[0.0071,0.0107]$), also wins $q{=}4,8$, \emph{loses $q{=}2$}; order deviation $5\!\times\!10^{-7}$ & \emph{partial} \\
+G9 & fixed bank rises from answer content & rise $+0.1218$ (CI $[0.1184,0.1252]$), monotone $\rho=1.0$ & \textbf{PASS} \\
+\midrule
+C1 & snap to published numbers & EASE $+.0003$, RecVAE $+.0005$, Mult-VAE $-.004$; \textbf{Mult-DAE $-.022$ failed, dropped} & \textbf{PASS}$^\dagger$ \\
+C2 & held-out behavioural answer model & \TODO{} & --- \\
+C3 & human round-trip & deferred (\S\ref{sec:limits}) & --- \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{The acceptance battery, measured.} $^\dagger$C1 passes \emph{with a disqualification}:
+one of the four amortised anchors failed its snap and was dropped rather than carried
+(\S\ref{sec:bridge}). G1c misses a bar that was itself set relative to an abandoned learned uncertainty
+head ($\rho=0.219$); the analytic belief beats that head by $+0.020$ but falls $0.011$ short of the
+rounded bar we set ourselves, so the honest statement is that the posterior is \emph{directionally}
+excellent (G1b, $11.5\times$) and \emph{magnitude}-calibrated only weakly. G6's wrong-user arm does not
+sit near the intercept as written; it falls far \emph{below} it---folding a stranger's answers is actively
+harmful, which is stronger evidence of genuine ingestion than the gate's own criterion demanded, but it is
+a failure of the criterion as stated and we record it as partial rather than reinterpret it into a pass.
+G8 shows $\bSigma$ is load-bearing from $q{=}4$ onward but not at $q{=}2$. All rows but G0/C1 are on the
+pre-certification snapshot.}
+\label{tab:batteryresults}
+\end{table}
+
+\paragraph{An awkward result we report rather than bury: random question selection is a strong baseline.}
+In the G2 curves, a \emph{random} question drawn from the answerable bank beats popularity-ranked items at
+$q{=}1,2,4,8$ (e.g.\ $0.2358$ vs $0.2230$ full at $q{=}8$) and is only overtaken at $q{=}16$ ($+0.0022$,
+CI-clean). HELF and the $\bSigma$-greedy selector are likewise within noise of random until the largest
+budget, where $\bSigma$-greedy wins by $+0.0036$ (CI $[0.0016,0.0057]$). This is not a contradiction of G9,
+whose random arm is drawn from the \emph{whole catalogue} and is therefore mostly unanswerable (mean
+$1.4$ of $16$ questions answered, versus $13.5$ for the popularity bank) and which the popularity bank
+beats by $+0.1264$: the two ``random'' controls are different objects, and we name them separately. The
+lesson is that once a bank is restricted to answerable questions, \emph{which} of them you ask matters far
+less than that they are answerable---which is precisely why the selection problem is deferred to the
+companion chapter and why we decline to claim a selection result here.
 
 \paragraph{(iii) G2 --- per-question curves.}
 Cold-start per-question NDCG@10 curves (full and tail) versus a random-question control. Items are foldable by all
 baselines; mixed channels (concepts, signed values, continuous tokens) are foldable only by our instrument, which is
 the point of the comparison---the rivals cap out at what an item-only interview can carry. Symmetric access is
 enforced where a baseline \emph{can} fold a channel; where it structurally cannot, that is reported as an architecture
-limit, not hidden. \TODO{G2 curves for items-only (all methods) and mixed-channel (ours), full \& tail, with CIs and
-the random control; G1 posterior-shrinkage diagnostic.}
+limit, not hidden. The items-only G2 curves and the G1 shrinkage diagnostic are measured
+(\S\ref{sec:batteryresults}); what remains is the mixed-channel comparison against baselines that can fold
+only items. \REDO{items-only and mixed-channel G2 curves on the certified tower, with the rivals of
+Table~\ref{tab:baselines} on the arms they can express}
 
 \paragraph{(iv) Concept-as-pseudo-item ablation.}
 To pre-empt ``just add genre columns,'' we fold a concept into EASE/RecVAE as the centroid-of-members pseudo-item and
