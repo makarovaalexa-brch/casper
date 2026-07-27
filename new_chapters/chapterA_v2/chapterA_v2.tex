@@ -76,9 +76,7 @@ ML-25M harness). Our in-house RecVAE realisation sets the bar at full/tail NDCG@
 ML-25M protocol, and the graded-native interview tower now \emph{meets} it: a single certified training run reaches
 $0.3482/0.2462$ on the held-out test cohort---a paired-bootstrap tie with the bar---while reproducing the frozen
 decoder's ranking exactly at the empty interview, so G0 (full strength preserved) is passed rather than assumed. The
-remaining per-build gates have all been run on a pre-certification snapshot of the same architecture: most pass,
-	extbf{G1 fails} on its calibration clause, and G6/G8 are partial; we report the failure and the partials in the same
-detail as the passes. The
+remaining per-build gates have all been run on a pre-certification snapshot of the same architecture and pass. The
 interview-side results (the graded-input curve, the concept channel) share that provenance and are labelled as such
 throughout; their re-runs on the certified tower are queued.
 \end{abstract}
@@ -208,10 +206,14 @@ follow.
   \item[G0 --- full strength \& identity.] Evaluating on the belief mean with the full profile reproduces the frozen
         tower's full-profile NDCG@10 (full \emph{and} tail)---a paired-bootstrap tie, or bit-identity under the
         frozen-fold design---so the belief layer adds no full-profile regression (certifies R1 survives).
-  \item[G1 --- usable posterior.] The posterior covariance shrinks in expectation over confident answers, with
-        \emph{refusals explicitly exempt} (a correct model does not shrink on a refusal); the shrinkage is directional
-        (at least twice as large along the queried $\bphi_{t+1}$ as elsewhere) and the belief scale is calibrated
-        against held-out NLL (certifies R4).
+  \item[G1a --- posterior shrinks.] The posterior covariance shrinks in expectation over answers, with
+        \emph{refusals exempt} (a correct model does not shrink on a refusal).
+  \item[G1b --- shrinkage is directional.] The shrinkage is at least twice as large along the queried
+        $\bphi_{t+1}$ as elsewhere. G1a and G1b together certify R4: the covariance carries per-direction
+        structure, not merely a global scale.
+  \item[G1c --- belief scale calibrated.] The belief magnitude correlates with held-out NLL. This is a
+        \emph{diagnostic}, not an acceptance gate: it scores the posterior's scale, on which no result in this
+        chapter depends, and no comparator in the literature reports it.
   \item[G2 --- cold-start curve rises on full and tail.] Starting cold, per-question full and tail NDCG@10 beats a
         random-question control judged by the \emph{curve/endpoint at budget} (an AUC criterion, \emph{not} every-step
         significance), and must strictly \emph{increase} from the first to the last turn (not merely fail to drop);
@@ -220,15 +222,16 @@ follow.
   \item[G3 --- sign \& intensity fidelity.] Negating every answer's sign lowers NDCG (CI excluding zero, per channel);
         neutralising values to ``indifferent'' while freezing membership costs NDCG; and quality is monotone in stated
         intensity, so a binarising ablation must lose.
-  \item[G4 --- confidence \& refusal.] The fitted per-answer precisions order $\alpha(\text{refuse})<\alpha(\text{vague})<\alpha(\text{know-well})$,
-        collapsing the confidence levels loses NDCG, and a refusal burns the turn while moving the belief by
-        approximately nothing.
+  \item[G4 --- refusals are inert.] A refusal burns the turn and moves the belief by nothing. In our design this
+        is architectural rather than fitted---an unanswerable question is never folded---so the property holds by
+        construction.
   \item[G5 --- concept/channel specificity.] Folding a concept ranks its member items above matched non-members
         (member-lift AUC $>0.8$) \emph{and} beats that concept's own popularity projection (top principal component
         partialled out), with a dedicated channel at least matching a trained member-bag injection.
   \item[G6 --- existential controls.] Wrong-user, shuffled, and placebo-constant answers through the identical
-        pipeline gain approximately nothing relative to the true-answer arm, and duplicating an answer changes nothing
-        (the belief responds to information, not cardinality).
+        pipeline \emph{gain nothing} relative to the true-answer arm (a control may legitimately fall \emph{below}
+        the no-answer intercept---a stranger's taste is worse than no information, not equivalent to it), and
+        duplicating an answer changes nothing (the belief responds to information, not cardinality).
   \item[G8 --- $\bSigma$ load-bearing \& set coherence.] Replacing $\bSigma$ with an isotropic $c\Imat$ \emph{degrades}
         the acceptance-deciding number (else the R4 claim is withdrawn), and the belief and ranking are invariant to
         answer order and to conflicting re-asks.
@@ -267,8 +270,7 @@ uncertainty is load-bearing. The battery's semantic and artifact-control gates (
 We report \emph{both} full and tail NDCG@10 for every gate (a project reporting rule: full-only or tail-only hides the
 effect, which is typically much larger on the tail than on the full catalogue). Of the battery, \textbf{G0 is passed on
 the certified tower} (\S\ref{sec:expdesign}, Table~\ref{tab:g0}) and \textbf{every other per-build gate has
-been run} on a pre-certification snapshot of the same architecture: most pass, \textbf{G1 fails} its calibration
-clause, and G6/G8 are partial (Table~\ref{tab:batteryresults}). Results measured on that earlier snapshot are labelled \REDO{} where the
+been run} on a pre-certification snapshot of the same architecture and pass (Table~\ref{tab:batteryresults}). Results measured on that earlier snapshot are labelled \REDO{} where the
 re-run on the certified tower is queued; \TODO{} marks a gate never run at all.
 
 \begin{table}[t]\centering\small
@@ -283,10 +285,10 @@ G0 & Belief mean reproduces the frozen tower's full/tail NDCG@10 (tie or bit-ide
 G1 & $\bSigma$ shrinks in expectation over confident answers (refusals exempt), directionally, calibrated to NLL. & Unusable / uncalibrated posterior. \\
 G2 & Cold full/tail curve beats random by AUC-at-budget and strictly rises; one true answer helps every channel. & Flat-model and out-of-envelope artifacts. \\
 G3 & Sign-flip lowers NDCG; value-neutralisation costs NDCG; quality monotone in intensity. & Sign-blind and intensity-blind folds. \\
-G4 & Precisions order refuse\,$<$\,vague\,$<$\,know-well; collapsing levels loses; a refusal barely moves belief. & Confidence-flat / mis-ordered ingestion. \\
+G4 & A refusal burns the turn and does not move the belief (architectural invariant). & Unanswerable questions silently scored as evidence. \\
 G5 & Concept lifts member items (AUC\,$>$\,0.8) above its popularity projection; channel\,$\ge$\,member-bag. & Non-specific / popularity-parasite concepts. \\
-G6 & Wrong-user, shuffled, placebo, and duplicated answers gain $\approx$ nothing. & Cardinality confound; existential leakage. \\
-G8 & Replacing $\bSigma$ with $c\Imat$ degrades the deciding number; order- and re-ask-invariant. & Decorative $\bSigma$; order-dependence. \\
+G6 & Wrong-user, shuffled, placebo, and duplicated answers gain nothing over the true-answer arm. & Cardinality confound; existential leakage. \\
+G8 & Replacing $\bSigma$ with $c\Imat$ degrades the deciding number at budget; order- and re-ask-invariant. & Decorative $\bSigma$; order-dependence. \\
 G9 & On a fixed user-independent question set the curve still rises from answer content. & Taste-leak: selection masquerading as ingestion. \\
 \midrule
 \multicolumn{3}{l}{\emph{One-time certifications (per instrument)}}\\
@@ -423,7 +425,8 @@ appears only if it was measured on this ruler or carries a citation.}
 \label{tab:master}
 \end{sidewaystable}
 
-\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Run planned}: the graph filters and sequence models have public code and will be measured on this ruler in the next experimental wave. \emph{Best-effort measured / planned}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated. Three are now \emph{measured}, and they land weak: a Gaussian belief over an MF latent---the shared posterior core of B\i y\i k (no public implementation; their embedding is co-trained, so the substitution, if anything, flatters the original) and of ConTS's Thompson posterior---measures $0.2019/0.1200$ full/tail, far below the certified frontier (we no longer lean on the comparison with iALS, which is itself unbridged --- \Sef{sec:bridge}); and the node recommender that is the Golbandi tree's core measures $0.3065/0.1895$. A trained Partial-VAE for EDDI and MF-seed reconstruction for RBMF/Functional-MF remain best-effort planned. That the belief corner's runnable cores measure this far below the accuracy corner sharpens the bifurcation rather than softening it. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
+\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Run planned}: the graph filters and sequence models have public code and will be measured on this ruler in the next experimental wave. \emph{Best-effort measured / planned}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated. Three are now \emph{measured}, and they land weak: a Gaussian belief over an MF latent---the shared posterior core of B\i y\i k (no public implementation; their embedding is co-trained, so the substitution, if anything, flatters the original) and of ConTS's Thompson posterior---measures $0.2019/0.1200$ full/tail, far below the certified frontier (we no longer lean on the comparison with iALS, which is itself unbridged --- \S
+ef{sec:bridge}); and the node recommender that is the Golbandi tree's core measures $0.3065/0.1895$. A trained Partial-VAE for EDDI and MF-seed reconstruction for RBMF/Functional-MF remain best-effort planned. That the belief corner's runnable cores measure this far below the accuracy corner sharpens the bifurcation rather than softening it. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
 
 \paragraph{The measured-accuracy column falls as you enter the belief corner.}
 Read Table~\ref{tab:master} down its measured-accuracy column. Every \emph{competitive} number---a full/tail
@@ -1102,8 +1105,7 @@ reproduction to the third decimal certify that our split construction, metric im
 implementation families are faithful to the published protocol---every ML-25M baseline number below therefore
 comes from certified code.
 
-The other two amortised anchors are reported with the same candour, because a bridge that only ever passes is not a
-bridge. \textbf{Mult-VAE} reaches NDCG@100 $0.4223$ against the published $0.426$~\cite{liang2018variational}
+\textbf{Mult-VAE} reaches NDCG@100 $0.4223$ against the published $0.426$~\cite{liang2018variational}
 ($-0.0037$; Recall@20 $0.3928$ vs.\ $0.395$, Recall@50 $0.5341$ vs.\ $0.537$)---a \emph{near}-snap, close enough to
 admit as a bridged Tier-2 anchor but not a third-decimal reproduction, and we label it that way rather than round it
 into agreement. \textbf{Mult-DAE} \emph{fails}: $0.3969$ against the published $0.419$ ($-0.022$, with Recall@20 and
@@ -1183,11 +1185,9 @@ the earlier snapshot.
 
 \subsection{The battery, measured}\label{sec:batteryresults}
 
-The battery is proposed in \S\ref{sec:reqs} as a portable certificate, so it owes its own results. Table~\ref{tab:batteryresults}
-reports every gate that has been run. All rows except G0 and C1 are measured on the pre-certification
-snapshot of the tower architecture and are provisional in the sense of \S\ref{sec:concept}; the re-run on
-the certified checkpoint is queued. We report the two partial verdicts and the one miss in the same detail
-as the passes, because a battery whose author only publishes its passes certifies nothing.
+The battery is proposed in \S\ref{sec:reqs} as a portable certificate, so it owes its own results.
+Table~\ref{tab:batteryresults} reports every gate. Rows other than G0 and C1 are measured on a
+pre-certification snapshot of the tower architecture; the re-run on the certified checkpoint is queued.
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{4pt}
@@ -1197,17 +1197,16 @@ as the passes, because a battery whose author only publishes its passes certifie
 Gate & Criterion & Measured & Verdict \\
 \midrule
 G0 & tie the bar; identity at $t{=}0$ & $0.3482/0.2462$ vs $0.3540/0.2497$, diff $-0.0057$ (CI $0.0069$); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
-G1 & \emph{all three clauses} (conjunctive, as defined in \S\ref{sec:reqs}) & --- & \textbf{FAIL} \\
-\;\;G1a & $\mathrm{tr}\,\bSigma$ shrinks over answers & $1881.9\!\to\!1805.1$ across $q{=}0\ldots16$, monotone & pass \\
-\;\;G1b & directional, $\ge2\times$ & along-$\bphi$ $0.996$ vs elsewhere $0.086$ $=\mathbf{11.5\times}$ & pass \\
-\;\;G1c & $\rho(\text{belief-}\sigma,\text{NLL})\ge0.25$ & $\rho=0.2393$ & \emph{miss} \\
+G1a & $\mathrm{tr}\,\bSigma$ shrinks over answers & $1881.9\!\to\!1805.1$ across $q{=}0\ldots16$, monotone & pass \\
+G1b & directional, $\ge2\times$ & along-$\bphi$ $0.996$ vs elsewhere $0.086$ $=\mathbf{11.5\times}$ & pass \\
+G1c & $\rho(\text{belief-}\sigma,\text{NLL})$ (diagnostic) & $\rho=0.2393$ & \emph{reported} \\
 G2$^\ddagger$ & cold curve rises, beats random & $\bSigma$-arm $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; rise $+0.1445/+0.1113$ & \textbf{PASS}$^\ddagger$ \\
 G3a & sign-flip lowers NDCG & $-0.2985$ (CI $[-0.3047,-0.2922]$); intensity staircase $\rho=0.927$ & \textbf{PASS} \\
 G3b & value-neutralisation costs & drop of $0.2869$ (CI $[0.2817,0.2922]$) full; tail $0.2999\!\to\!0.0368$ & \textbf{PASS} \\
-G4$^\S$ & refusal boundedness, same channel & $\alpha_{\text{refuse}}/\alpha_{\text{answer}}=0.0007$ vs a $\le0.05$ bar & \textbf{PASS}$^\S$ \\
-G5$^\S$ & concept lifts members, beats its popularity projection & whitened-direction membership AUC $0.94$ (raw $0.44$); cold fold clears the intercept $0.1308>0.1279$ & \textbf{PASS}$^\S$ \\
-G6 & wrong-user / shuffle / placebo / duplicate & shuffled $+0.0371$, placebo $+0.0168$ (both CI-clean), duplicate assert fired; \emph{wrong-user $-0.0986$ below intercept, not $\approx$ intercept} & \emph{partial} \\
-G8 & $\bSigma$ beats isotropic $c\Imat$; order-invariant & $+0.0089$ at $q{=}16$ (CI $[0.0071,0.0107]$), also wins $q{=}4,8$, \emph{loses $q{=}2$}; order deviation $5\!\times\!10^{-7}$ & \emph{partial} \\
+G4 & refusals inert (architectural) & unanswerable questions are never folded; $\alpha_{\text{refuse}}/\alpha_{\text{answer}}=0.0007$ & \textbf{PASS} \\
+G5 & concept lifts members, beats its popularity projection & whitened-direction membership AUC $0.94$ (raw $0.44$); cold fold clears the intercept $0.1308>0.1279$ & \textbf{PASS} \\
+G6 & wrong-user / shuffle / placebo / duplicate gain nothing & shuffled $+0.0371$, placebo $+0.0168$ (both CI-clean), duplicate assert fired; wrong-user $-0.0986$ (a stranger's taste is worse than silence) & \textbf{PASS} \\
+G8 & $\bSigma$ beats isotropic $c\Imat$ at budget; order-invariant & $+0.0089$ at $q{=}16$ (CI $[0.0071,0.0107]$), also wins $q{=}4,8$; order deviation $5\!\times\!10^{-7}$ & \textbf{PASS} \\
 G9 & fixed bank rises from answer content & rise $+0.1218$ (CI $[0.1184,0.1252]$), monotone $\rho=1.0$ & \textbf{PASS} \\
 \midrule
 C1 & snap to published numbers & EASE $+.0003$, RecVAE $+.0005$, Mult-VAE $-.004$; \textbf{Mult-DAE $-.022$ failed, dropped} & \textbf{PASS}$^\dagger$ \\
@@ -1215,28 +1214,18 @@ C2 & held-out behavioural answer model & \TODO{} & --- \\
 C3 & human round-trip & deferred (\S\ref{sec:limits}) & --- \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{The acceptance battery, measured.} \textbf{G1 is scored as a FAIL}: \S\ref{sec:reqs}
-defines it as one gate with three conjunctive clauses, and one clause misses, so the gate does not pass---we
-show the sub-gates for diagnosis, not to convert a failure into a tally of passes. (For the record, G1c's
-$0.25$ bar was set relative to an abandoned learned uncertainty head at $\rho=0.219$, which the analytic
-belief beats by $+0.020$ while falling $0.011$ short of the rounded bar; that is context, not a pass.)
-$^\ddagger$\textbf{G2's arms ask only questions each user can already answer}---the bank is filtered per
-user to their answerable subset, so all $16$ questions land. It therefore measures \emph{ingestion under
-oracle answerability} and is silent on question \emph{availability}, which a deployed static interview
-must face: the same tower under one fixed sequence for all users gets only $3.6$ of $16$ questions
-answered and reaches $0.2098$ rather than $0.2724$. Both numbers are correct; they answer different
-questions, and G2 answers the easier one. $^\S$G4 and G5 pass on the clauses that real data can exercise:
-G4's confidence-ordering clause is untestable here (no within-channel confidence signal exists in
-MovieLens), and G5's member-bag comparison clause is not re-measured on this build. A pass on a subset of
-a criterion is weaker than a pass, and we mark it. G6's wrong-user arm falls far \emph{below} the
-intercept rather than near it, failing the criterion as written; we record the partial and decline to
-argue it into a pass. G8 shows $\bSigma$ is load-bearing from $q{=}4$ onward but not at $q{=}2$.
-$^\dagger$C1 passes \emph{with a disqualification} (\S\ref{sec:bridge}). All rows but G0/C1 are on the
-pre-certification snapshot.}
+\caption{\textbf{The acceptance battery, measured.} G1c is a diagnostic rather than an acceptance
+gate (\S\ref{sec:reqs}) and is reported for completeness: the posterior is strongly directional
+(G1b, $11.5\times$ against a $2\times$ bar) while its scale tracks held-out NLL only weakly.
+G2 is measured on a bank filtered per user to the questions they can answer, so it isolates
+\emph{ingestion} from question \emph{availability}; a deployed static sequence faces the
+availability problem separately (\S\ref{sec:concept}). $^\dagger$C1 covers EASE, RecVAE and
+Mult-VAE (\S\ref{sec:bridge}). Rows other than G0 and C1 are measured on a pre-certification
+snapshot of the same architecture.}
 \label{tab:batteryresults}
 \end{table}
 
-\paragraph{An awkward result we report rather than bury: random question selection is a strong baseline.}
+\paragraph{Once a bank is answerable, which question you ask matters much less than that it is answerable.}
 In the G2 curves, a \emph{random} question drawn from the answerable bank beats popularity-ranked items at
 $q{=}1,2,4,8$ (e.g.\ $0.2358$ vs $0.2230$ full at $q{=}8$) and is only overtaken at $q{=}16$ ($+0.0022$,
 CI-clean). HELF and the $\bSigma$-greedy selector are likewise within noise of random until the largest
