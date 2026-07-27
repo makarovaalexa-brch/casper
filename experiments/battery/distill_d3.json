@@ -1,0 +1,77 @@
+{
+  "stage": "D3_adaptivity_tree",
+  "concept": {
+    "channel": "concept",
+    "q1": 704,
+    "q2_static": 173,
+    "q2_by_branch": {
+      "0": 274,
+      "1": 173,
+      "2": 915,
+      "3": 491
+    },
+    "branch_sizes_eval": {
+      "0": 1912,
+      "1": 1326,
+      "2": 1628,
+      "3": 134
+    },
+    "static_full@10": 0.14581173616753018,
+    "adaptive_full@10": 0.14736186330684106,
+    "static_tail@10": 0.05121085610056393,
+    "adaptive_tail@10": 0.05048789845102437,
+    "adaptive_minus_static_full": {
+      "mean": 0.0015501271393108644,
+      "ci95": [
+        -0.000792085773351526,
+        0.003908561221494523
+      ]
+    },
+    "adaptive_minus_static_tail": {
+      "mean": -0.0007229576495395737,
+      "ci95": [
+        -0.003298948888591357,
+        0.0017947255896521635
+      ]
+    },
+    "adaptivity_pays_full": false,
+    "adaptivity_pays_tail": false
+  },
+  "item": {
+    "channel": "item",
+    "q1": 98,
+    "q2_static": 1,
+    "q2_by_branch": {
+      "0": 22,
+      "1": 83,
+      "2": 140,
+      "3": 1
+    },
+    "branch_sizes_eval": {
+      "0": 906,
+      "1": 260,
+      "2": 127,
+      "3": 3707
+    },
+    "static_full@10": 0.14499897148120855,
+    "adaptive_full@10": 0.14653682349993777,
+    "static_tail@10": 0.04033084695647042,
+    "adaptive_tail@10": 0.041924914716515646,
+    "adaptive_minus_static_full": {
+      "mean": 0.0015378520187292629,
+      "ci95": [
+        0.00069784614652988,
+        0.0023789185860486443
+      ]
+    },
+    "adaptive_minus_static_tail": {
+      "mean": 0.0015940677600452242,
+      "ci95": [
+        0.0008147036771844148,
+        0.002419397479687651
+      ]
+    },
+    "adaptivity_pays_full": true,
+    "adaptivity_pays_tail": true
+  }
+}

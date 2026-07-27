@@ -77,6 +77,25 @@ Thumbs.db
 *.temp
 *.log
 
+# Run detritus (background-run heartbeats / markers / runner state — regenerable, never commit).
+# NB: some *.err/*.out training logs and *_watchdog.ps1 helpers are deliberately tracked — not ignored here.
+*.heartbeat
+*.marker
+*_state.json
+experiments/**/*_logs/
+
+# LaTeX build artifacts (regenerable from .tex)
+*.aux
+*.blg
+*.bbl
+*.toc
+*.lof
+*.lot
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.out.ps
+
 # Coverage reports
 htmlcov/
 .coverage

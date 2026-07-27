@@ -1,0 +1,314 @@
+{
+  "gate": "signed_sel_triple_gate_AMENDED",
+  "amendments": "2026-07-25 author rulings: OOD asymmetry (arm1 worse = INCONCLUSIVE, only arm2>=70% = HARD KILL); value = bpool_r2 SEL+VAL port; value-permutation sanity row kept; KT-A4 dropped",
+  "pre_registered_selval": {
+    "source": "ALL 140768 train users, 76,826,039 answerable cells (n>=2, EXPO>=TAU)",
+    "formula": "v_raw = SEL + VAL; SEL=log2((n+.5)/(e+.5)); VAL=(n/(n+3))*mean(star - train item mean); REFUSE iff e < 1.5",
+    "S_scale_p90_abs": 1.5423595905303955,
+    "vraw_quantiles": {
+      "5": -1.6619136452674865,
+      "25": -0.6529190540313721,
+      "50": -0.0365414135158062,
+      "75": 0.5431905090808868,
+      "95": 1.4167768955230713
+    },
+    "TAU_refuse": 1.5,
+    "LAM_val": 3.0,
+    "item_mean_source": "TRAIN users only (leak-free)",
+    "clip_provenance": "bpool_r2 never clipped; [0.25,1] entered downstream in sel_top_concepts (concepts_only_curve.py, 7f45fd2) -> concept_fold.make_example/quick_val + train_tower_t2.sel_value_to_level"
+  },
+  "v1_thresholds_for_arm3_row": {
+    "source": "ALL 140768 train users, 68,346,337 answerable pairs",
+    "r_neg_cutoff_p25": -0.2104100158712499,
+    "s_neg_scale_p10_abs": 0.6281251239717115,
+    "min_expected_members": 3.0,
+    "neutral_band": "(-0.2104, 0]",
+    "eps": 0.002,
+    "train_median_volume": 41.0,
+    "min_expect_train_quantile": 0.31077947893535246
+  },
+  "decision_rules": {
+    "HARD_KILL_iff": "arm2 gain over clipup at q16 >= 0.70 * arm1 gain (given arm1 gain>0)",
+    "STRONG_SUPPORT_iff": "arm1 full@q >= arm1@q2 - eps for all q AND q16 > q2",
+    "otherwise": "INCONCLUSIVE (dislike/neutral OOD for the [0.25,1]-trained module); signed retrain proceeds regardless, gated by counterfeit-eval on the retrained model -- NOT launched from here",
+    "eps": 0.002,
+    "arm2_fraction": 0.7
+  },
+  "status": "SCORED",
+  "n_users": 10000,
+  "intercept": {
+    "full": 0.12793773315625726,
+    "tail": 0.01923195232020529
+  },
+  "snap_clipup_vs_ledger": {
+    "deltas": {
+      "2": 1.7397562863369354e-05,
+      "4": 1.282155941825791e-05,
+      "8": -4.147890505669383e-05,
+      "16": 7.847561112925283e-06
+    },
+    "PASS": true
+  },
+  "arms": {
+    "clipup": {
+      "2": {
+        "full@10": 0.13041739756286336,
+        "tail@10": 0.02033691820859153,
+        "types_per_user": {
+          "like": 1.999,
+          "meh": 0.0,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.12911282155941825,
+        "tail@10": 0.01977563667582833,
+        "types_per_user": {
+          "like": 3.995,
+          "meh": 0.0,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.12415852109494331,
+        "tail@10": 0.018185718829762127,
+        "types_per_user": {
+          "like": 7.974,
+          "meh": 0.0,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.11600784756111293,
+        "tail@10": 0.01807667337917086,
+        "types_per_user": {
+          "like": 15.848,
+          "meh": 0.0,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    },
+    "arm1_signed": {
+      "2": {
+        "full@10": 0.13171916236957468,
+        "tail@10": 0.02248546484032319,
+        "types_per_user": {
+          "like": 0.756,
+          "meh": 0.578,
+          "dislike": 0.666,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.13103907259571018,
+        "tail@10": 0.024008001409319087,
+        "types_per_user": {
+          "like": 1.368,
+          "meh": 1.049,
+          "dislike": 1.579,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.13110663628038047,
+        "tail@10": 0.03244298747744087,
+        "types_per_user": {
+          "like": 2.666,
+          "meh": 1.845,
+          "dislike": 3.463,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.1253515813734342,
+        "tail@10": 0.030159422053588392,
+        "types_per_user": {
+          "like": 4.844,
+          "meh": 3.224,
+          "dislike": 7.78,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    },
+    "arm1p_value_permuted": {
+      "2": {
+        "full@10": 0.12324546180499374,
+        "tail@10": 0.01811742927331965,
+        "types_per_user": {
+          "like": 0.756,
+          "meh": 0.578,
+          "dislike": 0.666,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.12766364909119296,
+        "tail@10": 0.022479727106001303,
+        "types_per_user": {
+          "like": 1.368,
+          "meh": 1.049,
+          "dislike": 1.579,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.12275622887971492,
+        "tail@10": 0.026690898602212715,
+        "types_per_user": {
+          "like": 2.666,
+          "meh": 1.845,
+          "dislike": 3.463,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.11529140400555643,
+        "tail@10": 0.022215789404093553,
+        "types_per_user": {
+          "like": 4.844,
+          "meh": 3.224,
+          "dislike": 7.78,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    },
+    "arm2_pop_counterfeit": {
+      "2": {
+        "full@10": 0.12978000258449776,
+        "tail@10": 0.02040615097695447,
+        "types_per_user": {
+          "like": 0.028,
+          "meh": 1.617,
+          "dislike": 0.355,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.12738666351176722,
+        "tail@10": 0.020036844279076683,
+        "types_per_user": {
+          "like": 0.057,
+          "meh": 2.307,
+          "dislike": 1.631,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.12313263022105632,
+        "tail@10": 0.020333205323317213,
+        "types_per_user": {
+          "like": 0.131,
+          "meh": 3.599,
+          "dislike": 4.244,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.11710361395796633,
+        "tail@10": 0.01524911594292422,
+        "types_per_user": {
+          "like": 0.335,
+          "meh": 5.374,
+          "dislike": 10.139,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    },
+    "arm3_meh_only": {
+      "2": {
+        "full@10": 0.13167274247870644,
+        "tail@10": 0.022121187797162163,
+        "types_per_user": {
+          "like": 1.551,
+          "meh": 0.448,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.001
+        }
+      },
+      "4": {
+        "full@10": 0.13028523430412703,
+        "tail@10": 0.021385575098292982,
+        "types_per_user": {
+          "like": 2.775,
+          "meh": 1.221,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.005
+        }
+      },
+      "8": {
+        "full@10": 0.12770440025618848,
+        "tail@10": 0.022352488556903676,
+        "types_per_user": {
+          "like": 5.098,
+          "meh": 2.876,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.026
+        }
+      },
+      "16": {
+        "full@10": 0.11905553776721126,
+        "tail@10": 0.021451856884775907,
+        "types_per_user": {
+          "like": 9.446,
+          "meh": 6.402,
+          "dislike": 0.0,
+          "refuse": 0.0,
+          "unanswerable": 0.152
+        }
+      }
+    }
+  },
+  "decision": {
+    "strong_support": false,
+    "hard_kill_arm2": false,
+    "arm1_gain_q16": 0.009343733812321259,
+    "arm2_gain_q16": 0.0010957663968533954,
+    "clip_specific_informational": false,
+    "arm1_minus_clipup_q16": {
+      "mean": 0.009343733812321259,
+      "ci95": [
+        0.008180826188179722,
+        0.01053944473973461
+      ]
+    },
+    "arm1_minus_value_permuted_q16": {
+      "mean": 0.010060177367877744,
+      "ci95": [
+        0.009093700756683719,
+        0.01102568378853507
+      ]
+    },
+    "VERDICT": "INCONCLUSIVE (OOD asymmetry: dislike/neutral are out-of-envelope for the [0.25,1]-trained module) -- signed retrain proceeds as planned, gated by counterfeit-eval on the retrained model"
+  },
+  "kt_a3_leak_probe": {
+    "ridge_R2_logvol_from_q8_latent": {
+      "clipup": 0.025000563881916182,
+      "arm1_signed": 0.2604237783466662
+    },
+    "leak_tell": true
+  },
+  "seconds": 400.0
+}
