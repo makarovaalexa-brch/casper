@@ -291,6 +291,22 @@ def _greedy_avg(rung, rows, seq):
     return float(np.nanmean(full)), float(np.nanmean(tail))
 
 
+def _seq_answered(sh, rows, seq):
+    """Mean #items answered and #concepts answered per user for the fixed sequence (answerability):
+    how many of the ASKED questions the average user could actually answer."""
+    Fs = sh["conc_fold_signed"]; answ = sh["conc_answerable"]
+    ii = cc = 0
+    for r in rows:
+        d = sh["lvl_lookup"][r]
+        for ch, idx in seq:
+            if ch == 0:
+                if idx in d: ii += 1
+            elif answ[r, idx] and Fs[r, idx]:
+                cc += 1
+    n = max(len(rows), 1)
+    return ii / n, cc / n
+
+
 def greedy_static_seq(rung, rows, pool, L):
     """Lazy-greedy (CELF) best static sequence of length L from pool=[(chan,id),...], maximizing
     mean full NDCG@10 over rows. Exploits submodularity: recompute a candidate's marginal gain only
@@ -535,15 +551,21 @@ def main():
                            ("combined", item_pool + conc_pool)]:
             t0 = time.time()
             seq, gains, nev = greedy_static_seq(rung, build_rows, pool, max(BUDGETS))
-            curve = {str(q): dict(zip(("full@10", "tail@10"),
-                                     _greedy_avg(rung, eval_rows, seq[:q]))) for q in BUDGETS}
+            curve = {}
+            for q in BUDGETS:
+                f, t = _greedy_avg(rung, eval_rows, seq[:q])
+                ia, ca = _seq_answered(rung.sh, eval_rows, seq[:q])
+                curve[str(q)] = {"full@10": f, "tail@10": t,
+                                 "item_answered": round(ia, 3), "conc_answered": round(ca, 3)}
             comp = "".join("c" if ch == 1 else "i" for ch, _ in seq)
             greedy_res[name] = {"curve": curve, "order": comp,
                                 "sequence": [[int(ch), int(idx)] for ch, idx in seq],
                                 "gains": [float(g) for g in gains], "n_evals": nev}
             log(f"[greedy {name}] order={comp} nev={nev} " + " ".join(
                 f"q{q}:{curve[str(q)]['full@10']:.4f}/{curve[str(q)]['tail@10']:.4f}"
-                for q in BUDGETS) + f" ({(time.time()-t0)/60:.1f}m)")
+                for q in BUDGETS)
+                + f" | answered@16={curve['16']['item_answered']}i/{curve['16']['conc_answered']}c"
+                + f" ({(time.time()-t0)/60:.1f}m)")
         out = {"analysis": "greedy_static_seq", "n_build_users": len(build_rows),
                "n_eval_users": len(eval_rows), "n_items_pool": len(item_pool),
                "n_concepts_pool": len(conc_pool),
