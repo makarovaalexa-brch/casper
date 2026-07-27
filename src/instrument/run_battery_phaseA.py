@@ -153,7 +153,9 @@ class Ctx:
     pass
 
 
-def build_real_ctx(snapshot):
+def build_real_ctx(snapshot, split="validation"):
+    """split='validation' (default, unchanged) or 'test' -> builds the ctx on the disjoint TEST cohort
+    (same model/catalog; test users' fold-in/target/answers) for leak-free split-construct eval."""
     ctx = Ctx()
     meta = M.load_meta(PROC); ctx.ni = meta["n_items"]
     train = M.load_train(ctx.ni, PROC)
@@ -161,7 +163,8 @@ def build_real_ctx(snapshot):
     order = np.argsort(-cnt); cum = np.cumsum(cnt[order]) / cnt.sum()
     hm = np.zeros(ctx.ni, bool); hm[order[:np.searchsorted(cum, 0.33) + 1]] = True
     ctx.head_mask, ctx.cnt = hm, cnt
-    ctx.va_tr, ctx.va_te = M.load_val(ctx.ni, PROC)
+    ctx.va_tr, ctx.va_te = (M.load_test(ctx.ni, PROC) if split == "test"
+                            else M.load_val(ctx.ni, PROC))
     ctx.n = ctx.va_tr.shape[0]
     unique_uid, tr_set, vd_set, te_set, ntr, raw, show2id, usid = reproduce_partition()
     ctx.raw, ctx.tr_set, ctx.show2id = raw, tr_set, show2id      # stashed for strategy_ladder entropies
@@ -179,9 +182,10 @@ def build_real_ctx(snapshot):
     import pandas as pd
     n_users_all = len(unique_uid)
     start_vd = n_users_all - 2 * 10000
-    val_userIds = unique_uid[start_vd:start_vd + 10000]
-    uid2row = {int(u): i for i, u in enumerate(val_userIds)}
-    vdf = raw[raw["userId"].isin(set(val_userIds.tolist()))].copy()
+    off = 10000 if split == "test" else 0                       # test cohort = last 10k users
+    split_userIds = unique_uid[start_vd + off:start_vd + off + 10000]
+    uid2row = {int(u): i for i, u in enumerate(split_userIds)}
+    vdf = raw[raw["userId"].isin(set(split_userIds.tolist()))].copy()
     vdf["sid"] = vdf["movieId"].map(show2id); vdf = vdf[vdf["sid"].notna()]
     vdf["sid"] = vdf["sid"].astype(np.int64)
     vdf["lvl"] = np.clip(np.rint(vdf["rating"].values * 2).astype(np.int64) - 1, 0, NLEV - 1)
@@ -196,7 +200,7 @@ def build_real_ctx(snapshot):
     log(f"[ctx] all-bands reconstruction: {int(ctx.allb_mask.nnz)} tokens; "
         f"{sum(1 for s, l in allb if (l <= 4).sum() >= 3)} users with >=3 dislikes")
     # canonical k2 graded subset (tower cold parity) for G5 context
-    L_val, _ = build_graded_eval_matrix(raw, unique_uid, show2id, usid, "validation")
+    L_val, _ = build_graded_eval_matrix(raw, unique_uid, show2id, usid, split)
     ctx.L_val = L_val                        # stashed for downstream cold-k protocols (concepts_only_curve)
     Lk2 = truncate_graded(L_val, 2, COLD_SEED)
     ctx.k2_tokens = [(Lk2[i].indices.astype(np.int64), (Lk2[i].data - 1).astype(np.int64))
