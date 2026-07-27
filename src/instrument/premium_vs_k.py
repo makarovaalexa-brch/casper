@@ -79,7 +79,8 @@ def main():
         eff = np.array([len(arms["likes"][r][0]) for r in rows], float)
         row["likes_effective_size"] = {"mean": float(eff.mean()),
                                        "frac_zero": float((eff == 0).mean())}
-        for dname, (a, b) in (("values_premium(true-memb4)", ("true", "memb4")),
+        for dname, (a, b) in (("graded_over_binary(true-likes)", ("true", "likes")),
+                              ("values_premium(true-memb4)", ("true", "memb4")),
                               ("reveal_premium(memb4-likes)", ("memb4", "likes")),
                               ("flip_delta(flip-true)", ("flip", "true"))):
             m, ci, nn_ = bootstrap_ci(vecs[a][rows] - vecs[b][rows])
