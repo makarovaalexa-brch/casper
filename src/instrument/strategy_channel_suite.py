@@ -266,16 +266,24 @@ def unified_walk(rung, rows, item_score, conc_score, budgets=BUDGETS):
     return res
 
 
-def _greedy_build_ev(sh, rows, seq):
+def _greedy_build_ev(rung, rows, seq, fold_refusals=False, refuse_level=4):
     """Per-user (item_ev, conc_ev) for a fixed sequence of (chan, id): item iff rated, concept iff
-    structurally answerable. Static -> same seq for every user."""
+    structurally answerable. Static -> same seq for every user.
+    If fold_refusals: an asked-but-unrated item that is NOT the user's held-out target is folded as a
+    mild-negative 'refusal' at level=refuse_level (heuristic; the model was not trained for refusals).
+    Targets are masked from the refusal set (at deployment the user would answer them)."""
+    sh = rung.sh; ctx = rung.ctx
     Vs = sh["conc_value_signed"]; Fs = sh["conc_fold_signed"]; answ = sh["conc_answerable"]
     iev, cev = [], []
     for r in rows:
         d = sh["lvl_lookup"][r]; items = []; fold = []
+        te = set(ctx.va_te[r].indices.tolist()) if fold_refusals else None
         for ch, idx in seq:
             if ch == 0:
-                if idx in d: items.append((idx, d[idx]))
+                if idx in d:
+                    items.append((idx, d[idx]))
+                elif fold_refusals and idx not in te:            # item refusal (not seen, not a target)
+                    items.append((idx, refuse_level))
             else:
                 if answ[r, idx] and Fs[r, idx]: fold.append((idx, float(Vs[r, idx])))
         iev.append((np.asarray([s for s, _ in items], np.int64),
@@ -284,9 +292,9 @@ def _greedy_build_ev(sh, rows, seq):
     return iev, cev
 
 
-def _greedy_avg(rung, rows, seq):
+def _greedy_avg(rung, rows, seq, fold_refusals=False, refuse_level=4):
     """Mean full/tail NDCG@10 over rows of folding a fixed sequence."""
-    iev, cev = _greedy_build_ev(rung.sh, rows, seq)
+    iev, cev = _greedy_build_ev(rung, rows, seq, fold_refusals, refuse_level)
     full, tail, _ = score_users(rung, iev, cev, rows)
     return float(np.nanmean(full)), float(np.nanmean(tail))
 
@@ -307,15 +315,15 @@ def _seq_answered(sh, rows, seq):
     return ii / n, cc / n
 
 
-def greedy_static_seq(rung, rows, pool, L):
+def greedy_static_seq(rung, rows, pool, L, fold_refusals=False, refuse_level=4):
     """Lazy-greedy (CELF) best static sequence of length L from pool=[(chan,id),...], maximizing
     mean full NDCG@10 over rows. Exploits submodularity: recompute a candidate's marginal gain only
     when it reaches the top with a stale bound. Returns (seq, gains, n_evals)."""
     import heapq
-    base, _ = _greedy_avg(rung, rows, [])
+    base, _ = _greedy_avg(rung, rows, [], fold_refusals, refuse_level)
     heap = []; nev = 0
     for q in pool:
-        f, _ = _greedy_avg(rung, rows, [q]); nev += 1
+        f, _ = _greedy_avg(rung, rows, [q], fold_refusals, refuse_level); nev += 1
         heapq.heappush(heap, (-(f - base), q, 0))
     seq, gains, cur = [], [], base
     while len(seq) < L and heap:
@@ -323,7 +331,7 @@ def greedy_static_seq(rung, rows, pool, L):
         if upd == len(seq):
             seq.append(q); gains.append(-neg); cur += -neg
         else:
-            f, _ = _greedy_avg(rung, rows, seq + [q]); nev += 1
+            f, _ = _greedy_avg(rung, rows, seq + [q], fold_refusals, refuse_level); nev += 1
             heapq.heappush(heap, (-(f - cur), q, len(seq)))
     return seq, gains, nev
 
@@ -458,6 +466,10 @@ def main():
                     help="greedy: top-M most-answerable concepts in the pool")
     ap.add_argument("--fit_users", type=int, default=0,
                     help="greedy: #val users to fit+eval on (0=all val). PEEK: small value.")
+    ap.add_argument("--fold_refusals", action="store_true",
+                    help="greedy: fold asked-but-unrated (non-target) items as a mild-negative refusal")
+    ap.add_argument("--refuse_level", type=int, default=4,
+                    help="greedy: fold level for item refusals (0-9; <5 = negative pull-away)")
     args = ap.parse_args()
     t00 = time.time()
     ctx = build_smoke_ctx() if args.smoke else build_real_ctx(args.snapshot)
@@ -545,16 +557,20 @@ def main():
         conc_pool = [(1, int(c)) for c in np.argsort(-ans_rate)[:args.n_concepts]]
         log(f"[greedy] build={len(build_rows)} / eval={len(eval_rows)} DISJOINT users; "
             f"item_pool={len(item_pool)} conc_pool={len(conc_pool)} (top-answerable) "
-            f"L={max(BUDGETS)}")
+            f"L={max(BUDGETS)} fold_refusals={args.fold_refusals}"
+            + (f" @level{args.refuse_level}" if args.fold_refusals else ""))
         greedy_res = {}
         for name, pool in [("items-only", item_pool), ("concepts-only", conc_pool),
                            ("combined", item_pool + conc_pool)]:
             t0 = time.time()
-            seq, gains, nev = greedy_static_seq(rung, build_rows, pool, max(BUDGETS))
+            seq, gains, nev = greedy_static_seq(rung, build_rows, pool, max(BUDGETS),
+                                                args.fold_refusals, args.refuse_level)
             curve = {}
             for q in BUDGETS:
-                f, t = _greedy_avg(rung, eval_rows, seq[:q])           # held-out (honest)
-                bf, bt = _greedy_avg(rung, build_rows, seq[:q])        # on build set (overfit ref)
+                f, t = _greedy_avg(rung, eval_rows, seq[:q],
+                                   args.fold_refusals, args.refuse_level)    # held-out (honest)
+                bf, bt = _greedy_avg(rung, build_rows, seq[:q],
+                                     args.fold_refusals, args.refuse_level)   # on build set (overfit ref)
                 ia, ca = _seq_answered(rung.sh, eval_rows, seq[:q])
                 curve[str(q)] = {"full@10": f, "tail@10": t,
                                  "build_full@10": bf, "build_tail@10": bt,
