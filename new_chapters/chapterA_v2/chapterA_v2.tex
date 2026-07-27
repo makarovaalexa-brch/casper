@@ -658,18 +658,20 @@ member items; monotone in $t$).}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.62\linewidth]{fig_graded_curve.png}
-  \caption{\textbf{The signed/graded leg, empirically (provisional; frozen graded-native tower, ML-25M
-    interview harness, VAL, full NDCG@10 vs.\ interview length $k$).} The same revealed set is fed three ways.
-    \emph{Graded} (real signed star levels) and \emph{likes-only} (sub-threshold answers dropped---what a
-    positive-only tower such as RecVAE does at $r{>}3.5$) nearly coincide: the fine gradations add only a small,
-    short-interview premium over likes-only ($+0.012$ at $k{=}2$, fading to $\approx 0$ by $k{=}8$; CI-clean).
-    Both dominate \emph{all-as-like} (every answered item recorded as a $4$-star like---naive implicit
-    binarization), which stays flat and low because it \emph{mislabels dislikes as likes}; that gap widens with
-    $k$ ($-0.12$ at full profile) as more dislikes are corrupted. The leg's value is thus \emph{representing a
-    dislike at all}---a negative $y_j$ the item-indicator basis cannot encode---rather than fine gradation among
-    likes; mirroring the star signs (flip control) costs $-0.29$ at full profile. \emph{Provisional pending the
-    certified tower (\S\ref{sec:expdesign}).}}
+  \includegraphics[width=0.98\linewidth]{fig_graded_curve.png}
+  \caption{\textbf{Graded input helps over binarized input, most on the short interview (provisional; frozen
+    graded-native tower, ML-25M interview harness, VAL, full NDCG@10 vs.\ interview length $k$).} The same
+    revealed set is fed three ways: \emph{graded} (real signed star levels), \emph{likes-only} (sub-threshold
+    answers dropped---exactly what a positive-only tower such as RecVAE does at $r{>}3.5$), and \emph{all-as-like}
+    (every answered item recorded as a $4$-star like---naive implicit binarization). \textbf{(b)} Against the
+    fair positive-only baseline, the graded premium is \emph{CI-clean positive on the short interview}---$+0.012$
+    at $k{=}2$ (CI $[+0.010,+0.014]$), $+0.007$ at $k{=}4$---and fades to a tie by $k{=}8$ as collaborative
+    signal fills in: the extra bits a star carries are most decisive when few items are known. The
+    \emph{mechanism} is that a signed answer encodes a dislike (a negative $y_j$ the item-indicator basis cannot
+    express); against the \emph{all-as-like} control, which mislabels dislikes as likes, the apparent premium
+    instead \emph{grows} with $k$ (dotted)---a control artifact (more revealed items $\Rightarrow$ more dislikes
+    corrupted), not value from gradation. Mirroring the star signs (flip) costs up to $-0.29$. \emph{Provisional
+    pending the certified tower (\S\ref{sec:expdesign}).}}
   \label{fig:gradedcurve}
 \end{figure}
 
