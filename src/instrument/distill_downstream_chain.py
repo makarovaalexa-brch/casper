@@ -89,7 +89,7 @@ def _beat(msg):
 
 def _append_md(title, body):
     os.makedirs(os.path.dirname(RESULT_MD), exist_ok=True)
-    with open(RESULT_MD, "a") as f:
+    with open(RESULT_MD, "a", encoding="utf-8") as f:          # utf-8: tables use Delta/arrows
         f.write(f"\n## {title}  ({time.strftime('%F %T')})\n\n{body}\n")
 
 
