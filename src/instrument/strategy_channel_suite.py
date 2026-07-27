@@ -266,7 +266,7 @@ def unified_walk(rung, rows, item_score, conc_score, budgets=BUDGETS):
     return res
 
 
-def make_qbank_png(results, intercept, path):
+def make_qbank_png(results, intercept, path, balanced=False):
     """Question-bank-expansion figure: full & tail with EQUAL y-axes; per strategy (prevalence,
     entropy, HELF), items-only bank (dashed) vs unified items+concepts bank (solid)."""
     import matplotlib
@@ -296,8 +296,9 @@ def make_qbank_png(results, intercept, path):
         ax.set_ylim(ymin - pad, ymax + pad); ax.grid(alpha=0.3, zorder=0)
     axes[0].set_ylabel("NDCG@10")
     axes[0].legend(fontsize=6.8, loc="upper left", ncol=1, framealpha=0.9)
-    fig.suptitle("Question-bank expansion: unified items+concepts vs items-only "
-                 "(static bank; answer does not steer selection)", fontsize=10)
+    fig.suptitle(f"Question-bank expansion: unified items+concepts "
+                 f"({'balanced z-score merge' if balanced else 'raw-score merge'}) vs items-only "
+                 f"(static bank; answer does not steer selection)", fontsize=10)
     fig.tight_layout()
     fig.savefig(path, dpi=160); fig.savefig(path.replace(".png", ".pdf"))
     plt.close(fig)
@@ -356,6 +357,9 @@ def main():
     ap.add_argument("--qbank", action="store_true",
                     help="question-bank-expansion mode: items-only vs unified items+concepts bank "
                          "under prevalence/entropy/HELF; equal-y figure; no oracle/mixed")
+    ap.add_argument("--balanced", action="store_true",
+                    help="qbank: z-score each channel's score before merging (balanced interleave) "
+                         "instead of raw [0,1] scores (which let concepts crowd out items)")
     args = ap.parse_args()
     t00 = time.time()
     ctx = build_smoke_ctx() if args.smoke else build_real_ctx(args.snapshot)
@@ -436,17 +440,23 @@ def main():
         runlog("items-entropy", items_walk, rung, rows, lambda r: ord_ent)
         runlog("items-HELF", items_walk, rung, rows, lambda r: ord_helf)
         item_prev = n_raters.astype(np.float64) / 140768.0          # fraction of train users who rated
-        runlog("unified-prevalence", unified_walk, rung, rows, item_prev, ans_rate)
-        runlog("unified-entropy", unified_walk, rung, rows, Hn, pol_n)
-        runlog("unified-HELF", unified_walk, rung, rows, helf_i, helf_c)
-        out = {"analysis": "qbank_expansion", "n_users": len(rows), "budgets": BUDGETS,
-               "rung": "sclite", "intercept": intercept,
+
+        def _zsc(x):
+            x = np.asarray(x, np.float64); return (x - x.mean()) / (x.std() + 1e-9)
+        tf = _zsc if args.balanced else (lambda x: np.asarray(x, np.float64))
+        runlog("unified-prevalence", unified_walk, rung, rows, tf(item_prev), tf(ans_rate))
+        runlog("unified-entropy", unified_walk, rung, rows, tf(Hn), tf(pol_n))
+        runlog("unified-HELF", unified_walk, rung, rows, tf(helf_i), tf(helf_c))
+        jpath = QBANK_JSON.replace(".json", "_balanced.json") if args.balanced else QBANK_JSON
+        ppath = QBANK_PNG.replace(".png", "_balanced.png") if args.balanced else QBANK_PNG
+        out = {"analysis": "qbank_expansion", "merge": "balanced-zscore" if args.balanced else "raw",
+               "n_users": len(rows), "budgets": BUDGETS, "rung": "sclite", "intercept": intercept,
                "arms": {k: {str(q): {kk: vv for kk, vv in results[k][q].items()
                                      if not kk.startswith("_")} for q in BUDGETS} for k in results}}
-        os.makedirs(os.path.dirname(QBANK_JSON), exist_ok=True)
-        json.dump(out, open(QBANK_JSON, "w"), indent=2)
-        make_qbank_png(results, intercept, QBANK_PNG)
-        log(f"[qbank] wrote {os.path.basename(QBANK_JSON)} + {os.path.basename(QBANK_PNG)} "
+        os.makedirs(os.path.dirname(jpath), exist_ok=True)
+        json.dump(out, open(jpath, "w"), indent=2)
+        make_qbank_png(results, intercept, ppath, balanced=args.balanced)
+        log(f"[qbank] wrote {os.path.basename(jpath)} + {os.path.basename(ppath)} "
             f"({(time.time()-t00)/60:.1f}m)")
         return
     # ITEMS
