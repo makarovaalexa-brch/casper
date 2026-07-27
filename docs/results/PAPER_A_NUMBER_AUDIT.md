@@ -68,15 +68,20 @@ The Jul-25 strategy×channel suite ran on the **superseded concept fold** (`cfol
   names the replacement now in flight.
 - **A named retraction paragraph added** ("*A retraction: 'items win the long interview' was an artifact of a
   broken fold*") rather than a silent restatement.
-- **Replaced with the fixed-fold D1 table** (source `DISTILL_DOWNSTREAM_RESULT.md`), which is current:
-
-  | k | 1 | 2 | 4 | 8 |
-  |---|---|---|---|---|
-  | concept ask | .1591/.0638 | .1803/.0861 | .1972/.1050 | .2107/**.1210** |
-  | item ask | .1374/.0392 | .1493/.0478 | .1839/.0648 | **.2274**/.0839 |
-
-  Concepts lead full through k=4 and dominate tail at every budget (+44% at k=8); items overtake full only at
-  k=8. Both stated caveats kept: realizable-concept vs *popularity*-item ask, and items do win full by k=8.
+- **NO cross-channel claim is made in the chapter at all**, pending the greedy run. *(This was corrected
+  mid-audit: I had first substituted the fixed-fold D1 table — concept-ask .1591/.1803/.1972/.2107 vs
+  item-ask .1374/.1493/.1839/.2274 — as the replacement. The author caught that D1's methodology is
+  `item-ask = popularity order` vs `concept-ask = polarization order` (`answer_contrast.py:10-11`): two
+  different hand-picked heuristics, one per channel. That is the same asymmetric-heuristic defect that made
+  the original suite fragile, and it is exactly what the agreed best-static-greedy criterion replaces.
+  Swapping one arbitrary pairing for another is not a fix. The table was pulled.)*
+- **The agreed replacement criterion** is stated in the chapter instead: the best static question sequence
+  for NDCG by greedy maximisation at each step, over items-only / concepts-only / combined banks, built on
+  val and scored on the disjoint test cohort. The chapter spells out why this is strategy-free: the combined
+  bank *contains* the items-only bank, so combined can only fall below items-only by overfitting the
+  construction set — making the combined−items gap a direct readout of what concepts add.
+- The chapter now retains only the weak claim the instrument paper actually needs: **both channels fold and
+  both move the ranking off the intercept**, with no ranking between them.
 - **Adaptive-headroom magnitudes withdrawn** (oracle−static gap, greedy closure %). The *direction* is
   re-grounded on fold-independent evidence: the D3 one-level probe, item channel Δfull +0.0015
   CI[+0.0007,+0.0024], Δtail +0.0016 CI[+0.0008,+0.0024]; concept channel positive-not-significant.

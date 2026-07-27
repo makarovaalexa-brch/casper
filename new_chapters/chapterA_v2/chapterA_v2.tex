@@ -498,14 +498,16 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
 ]
   % --- target: star only (author preference; no box) ---
   \node[star,star points=5,draw=green!45!black,fill=yellow!85!red,minimum size=11pt,inner sep=0pt]
-        at (axis cs:3.75,0.373) {};
-  \node[green!45!black,font=\scriptsize,align=center,anchor=north] at (axis cs:3.75,0.369)
-        {\textbf{CASPER} (target)};
-  % --- our certified tower: MEASURED (accuracy done, channels partial) ---
+        at (axis cs:4.0,0.373) {};
+  \node[green!45!black,font=\scriptsize,align=center,anchor=north east] at (axis cs:3.94,0.371)
+        {\textbf{CASPER} (target)\\{\tiny R2--R5 all \cmark}};
+  % --- our certified tower: MEASURED (R1 certified; R3/R4/R5 each still partial) ---
   \addplot[only marks,mark=diamond*,mark size=3.6pt,color=green!35!black] coordinates {(2.5,0.3482)};
   \node[green!35!black,font=\scriptsize,align=center,anchor=south] at (axis cs:2.5,0.3535)
-        {\textbf{T2$'$ tower} (ours, certified)};
-  \draw[green!45!black,dashed,-Latex,thin,opacity=0.7] (axis cs:2.62,0.3492) -- (axis cs:3.62,0.3690);
+        {\textbf{T2$'$ tower} (ours, certified)\\{\tiny R2 \cmark, R3/R4/R5 \pmark}};
+  \draw[green!45!black,dashed,-Latex,thin,opacity=0.7] (axis cs:2.62,0.3492) -- (axis cs:3.88,0.3705);
+  \node[green!45!black,font=\tiny,anchor=north,align=center] at (axis cs:3.25,0.3572)
+        {3 half-marks to earn\\(unified interface, fitted belief, certified monotonicity)};
   % --- measured points (filled); x = R2..R5 marks ONLY (R1 excluded: accuracy is the y-axis) ---
   \addplot[only marks,mark=*,mark size=2.6pt,color=blue!55!black] coordinates {
     (1.5,0.1345) (1.5,0.2428) (1.5,0.2442) (3.0,0.2019)
@@ -548,9 +550,14 @@ master-table dispositions); only their $x$ position is meaningful. Runnable-but-
 models, graph filters, EDDI, TaNP) are deliberately \emph{absent} from the figure --- they carry \TODO{} cells in
 Table~\ref{tab:master} and join the plot when their numbers land. The star marks the instrument target (all five
 requirements at the frontier bar), still \TODO{}; the green diamond is our \emph{certified} tower T2$'$ at
-$0.3482$---the first measured point that is simultaneously at the frontier bar and away from the item-only column,
-with the dashed arrow marking the remaining distance to the target (the channel and belief marks it has yet to earn
-in full). The population is otherwise \emph{bimodal}: the entire accuracy corner
+$0.3482$---the first measured point that is simultaneously at the frontier bar and away from the item-only column.
+\emph{The horizontal distance from the diamond to the star is not a record of failed gates.} T2$'$ scores $2.5$
+because it holds R2 outright and holds R3, R4 and R5 only \emph{partially}: concepts fold, but through a separate
+trained operator rather than the single unified interface R3 asks for; the belief layer of \S\ref{sec:method} is
+specified but not yet fitted, so there is no queryable covariance (the same \pmark\ we give RecVAE, and for the same
+reason); and per-question monotonicity is observed but not yet certified on this checkpoint. Three half-marks, each
+an unbuilt or uncertified component rather than a negative result---which is the honest reading of an instrument
+whose accuracy half is finished and whose belief half is not. The population is otherwise \emph{bimodal}: the entire accuracy corner
 (Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x\le1.5$---strong recommenders that can fold items
 and nothing else---while every system with genuine interview machinery sits at $x\ge2$ and either has no measurable
 full-profile accuracy at all (the grey strip) or, for the one measurable core, drops to $0.2019$, below plain matrix
@@ -903,49 +910,39 @@ meter), and the fold's acceptance is pending either a volume-orthogonalised vari
 \REDO{the triple-gate magnitudes above are measured through the earlier fold recipe; the three verdicts (recovery,
 counterfeit-clean, values-carry-it) are what the gate certifies, and the deltas are re-measured on the fixed fold}
 
-\paragraph{Both channels carry an interview, and the concept channel is strongest exactly where the item channel is
-weakest.} The instrument's claim on the elicitation side is deliberately modest: not that concepts beat items, but that
-\emph{both} channels fold and both move the ranking, which is what makes the instrument usable for measuring policies
-over a mixed question bank. Under a matched question budget---a realizable concept ask against a popularity-ranked item
-ask, both scored on the same cold cohort against the $0.1279/0.0192$ intercept---the two channels separate cleanly by
-regime (full/tail NDCG@10):
+\paragraph{Both channels carry an interview.} The instrument's claim on the elicitation side is deliberately modest,
+and it is worth separating from the claim we do \emph{not} make. What the instrument chapter needs is that \emph{both}
+channels fold and both move the ranking off the cold intercept---which is what makes the instrument usable for
+measuring policies over a mixed question bank. That much is unambiguous: an interview conducted entirely in
+out-of-catalogue concepts, a channel no R1-bar baseline can express at all, lifts a frontier-accuracy recommender
+substantially and monotonically above its $0.1279/0.0192$ starting point, and so does an interview conducted entirely
+in items.
 
-\begin{center}\small
-\begin{tabular}{lcccc}
-\toprule
-questions $k$ & 1 & 2 & 4 & 8 \\
-\midrule
-concept ask & $\mathbf{.1591}/\mathbf{.0638}$ & $\mathbf{.1803}/\mathbf{.0861}$ & $\mathbf{.1972}/\mathbf{.1050}$ & $.2107/\mathbf{.1210}$ \\
-item ask    & $.1374/.0392$ & $.1493/.0478$ & $.1839/.0648$ & $\mathbf{.2274}/.0839$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent The concept channel leads on \emph{full} accuracy through $k{=}4$ and dominates the \emph{tail} at every
-budget measured---at $k{=}8$ the tail gap is $.1210$ versus $.0839$, about $+44\%$---while items overtake on full
-accuracy only at $k{=}8$. The mechanism is the coarse-to-fine intuition made concrete: a concept question splits a cold
-population along a taste axis in one move, where a single item barely moves the belief; and because a concept direction
-is not anchored to any one popular title, its gains land disproportionately off the head, which is precisely the tail.
-Two honest caveats attach. The comparison is a realizable concept ask against a \emph{popularity} item ask, which is
-the item channel's strongest simple strategy but not its ceiling; and items do win full accuracy by $k{=}8$, so this is
-a statement about \emph{shape}, not a claim that one channel dominates. What the instrument chapter needs from this is
-only the weaker conclusion, which is unambiguous: an interview conducted entirely in out-of-catalogue concepts---a
-channel no R1-bar baseline can express at all---moves a frontier-accuracy recommender substantially and monotonically
-off its cold intercept.
+What we deliberately do \emph{not} state here is a ranking between the two channels, and the reason is methodological
+rather than diplomatic. Any such comparison is only as meaningful as the question-selection strategy each channel is
+given, and pairing one hand-picked heuristic per channel---a popularity-ordered item bank against a
+polarization-ordered concept bank, say---measures the two heuristics at least as much as it measures the two channels.
+Every cross-channel comparison we have run so far has that defect, which is precisely why the earlier
+strategy$\times$channel reading did not survive a change of fold. The comparison is therefore being redone under a
+single strategy-free criterion: the \emph{best static question sequence} for NDCG, obtained by greedy maximisation at
+every step over an items-only bank, a concepts-only bank, and a combined bank of both, with the sequences constructed
+on the validation cohort and scored on the disjoint test cohort. Because the combined bank contains the items-only bank
+as a subset, it can only fall below items-only by overfitting the construction set---which makes the combined-versus-
+items gap a direct, interpretable readout of what the concept channel adds to an interview, rather than an artifact of
+whichever heuristics were paired. \REDO{best-static greedy sequences (items-only / concepts-only / combined), fixed
+fold, built on the 10k validation cohort and evaluated on the disjoint 10k test cohort; this table and figure are the
+chapter's concept-versus-item evidence and no cross-channel claim is made until they land}
 
 \paragraph{A retraction: ``items win the long interview'' was an artifact of a broken fold.} An earlier version of this
 section reported the opposite shape past $q{=}4$---that popularity items pulled away from a concept plateau near
 $0.147$ from the eighth question onward---from a strategy$\times$channel suite run on a superseded concept fold. That
 fold was trained under a recipe whose concept-capture rate was $1$--$6\%$; repairing the recipe (a signed four-band
-answer plus a curriculum over the number of concepts and dropped members) raised capture to roughly $25\%$ and
-inverted the long-interview reading, as the table above shows. We record the retraction rather than quietly restating
-the numbers, because it is the same lesson the rest of this section is about: a channel's measured ceiling is a
-property of the operator it is measured through, and a weak operator manufactures a confident negative result. The
-full strategy$\times$channel picture---question-bank strategies, and the best \emph{static} question sequence obtained
-by greedy NDCG maximisation over an items-only, concepts-only, and combined bank---is being re-measured on the fixed
-fold with construction and evaluation on disjoint cohorts. \REDO{strategy$\times$channel suite and the best-static
-greedy sequences, fixed fold, build on the 10k validation cohort / evaluate on the disjoint 10k test cohort; figure to
-be inserted here}
+answer plus a curriculum over the number of concepts and dropped members) raised capture to roughly $25\%$, and on a
+re-measurement the long-interview reading did not survive. We record the retraction rather than quietly restating the
+numbers, because it is the same lesson the rest of this section is about: a channel's measured ceiling is a property of
+the operator it is measured through, and a weak operator manufactures a confident negative result. We also decline to
+replace it with a second heuristic pairing measured on the repaired fold, which would repeat the original mistake with
+a different set of arbitrary strategies; the best-static criterion described above is the replacement.
 
 \paragraph{On the adaptive headroom.} The earlier suite also reported a large gap between a privileged oracle selector
 and every realizable static arm, with a naive greedy selector recovering only a low-single-digit fraction of it. Those
