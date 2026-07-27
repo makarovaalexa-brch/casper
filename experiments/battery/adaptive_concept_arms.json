@@ -1,0 +1,140 @@
+{
+  "analysis": "adaptive_concept_arms_U3b",
+  "n_users": 10000,
+  "budgets": [
+    2,
+    4,
+    8,
+    16
+  ],
+  "greedy_rule": "opener = argmax train mean|v|; then argmax |<d_c, z>| * train std|v| (answers-so-far + train stats ONLY)",
+  "oracle_rule": "argmax true |signed v| per user (PRIVILEGED ceiling)",
+  "rungs": {
+    "sclite": {
+      "arms": {
+        "static": {
+          "2": {
+            "full@10": 0.13151256919726212,
+            "tail@10": 0.02517923358320758,
+            "mean_answered": 1.9992
+          },
+          "4": {
+            "full@10": 0.13351839526247947,
+            "tail@10": 0.025817190874415624,
+            "mean_answered": 3.9951
+          },
+          "8": {
+            "full@10": 0.13991306973294831,
+            "tail@10": 0.03510304811554769,
+            "mean_answered": 7.974
+          },
+          "16": {
+            "full@10": 0.13572546066187363,
+            "tail@10": 0.03679584879888527,
+            "mean_answered": 15.8483
+          }
+        },
+        "greedy": {
+          "2": {
+            "full@10": 0.1359752162029257,
+            "tail@10": 0.030140847600324178,
+            "mean_answered": 1.9695
+          },
+          "4": {
+            "full@10": 0.13640517753001366,
+            "tail@10": 0.03284595419894894,
+            "mean_answered": 3.8789
+          },
+          "8": {
+            "full@10": 0.13737084154369328,
+            "tail@10": 0.035507285663640184,
+            "mean_answered": 7.761
+          },
+          "16": {
+            "full@10": 0.13873175685653039,
+            "tail@10": 0.037342456844473376,
+            "mean_answered": 15.3903
+          }
+        },
+        "oracle": {
+          "2": {
+            "full@10": 0.17374368438920568,
+            "tail@10": 0.08133020100567755,
+            "mean_answered": 2.0
+          },
+          "4": {
+            "full@10": 0.1943437985739922,
+            "tail@10": 0.10322293795110249,
+            "mean_answered": 4.0
+          },
+          "8": {
+            "full@10": 0.20970177164258003,
+            "tail@10": 0.12086878283397738,
+            "mean_answered": 7.9998
+          },
+          "16": {
+            "full@10": 0.22144768588943226,
+            "tail@10": 0.1289897291808673,
+            "mean_answered": 15.9973
+          }
+        },
+        "items_pop": {
+          "2": {
+            "full@10": 0.13046311194246862,
+            "tail@10": 0.03148788633514784,
+            "mean_answered": 0.8386
+          },
+          "4": {
+            "full@10": 0.1319377673885396,
+            "tail@10": 0.034315155475988054,
+            "mean_answered": 1.6488
+          },
+          "8": {
+            "full@10": 0.16726843738563793,
+            "tail@10": 0.05040193874276397,
+            "mean_answered": 3.0316
+          },
+          "16": {
+            "full@10": 0.19475829319401497,
+            "tail@10": 0.05799406060990303,
+            "mean_answered": 5.4061
+          }
+        }
+      },
+      "gap_closure": {
+        "2": {
+          "oracle_minus_static_full": 0.04223111519194356,
+          "greedy_closes_full": 0.1056720142335937,
+          "oracle_minus_static_tail": 0.056150967422469965,
+          "greedy_closes_tail": 0.08836203978083385
+        },
+        "4": {
+          "oracle_minus_static_full": 0.06082540331151273,
+          "greedy_closes_full": 0.04746014182182657,
+          "oracle_minus_static_tail": 0.07740574707668686,
+          "greedy_closes_tail": 0.09080415330879538
+        },
+        "8": {
+          "oracle_minus_static_full": 0.06978870190963171,
+          "greedy_closes_full": -0.03642750358857408,
+          "oracle_minus_static_tail": 0.08576573471842969,
+          "greedy_closes_tail": 0.004713275638803949
+        },
+        "16": {
+          "oracle_minus_static_full": 0.08572222522755862,
+          "greedy_closes_full": 0.03507020713328692,
+          "oracle_minus_static_tail": 0.09219388038198202,
+          "greedy_closes_tail": 0.00592889726870563
+        }
+      },
+      "greedy_minus_static_q8_full": {
+        "mean": -0.0025422281892550232,
+        "ci95": [
+          -0.0037799248045711567,
+          -0.0013003319181915094
+        ]
+      }
+    }
+  },
+  "seconds": 222.3
+}

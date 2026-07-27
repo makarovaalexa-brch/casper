@@ -1,0 +1,97 @@
+{
+  "analysis": "concepts_only_curve_armC",
+  "ckpt": "cd_s1_l10_best.pt",
+  "n_users": 10000,
+  "trainable_params": 463682,
+  "intercept": {
+    "full": 0.12793773315625726,
+    "tail": 0.01923195232020529
+  },
+  "armC": {
+    "full@10": {
+      "1": 0.13220193261348362,
+      "2": 0.14469563166137062,
+      "4": 0.16038764354349486,
+      "8": 0.17592489457243582
+    },
+    "tail@10": {
+      "1": 0.05027687000071418,
+      "2": 0.06192885634226193,
+      "4": 0.07495541247884635,
+      "8": 0.08412606279389012
+    }
+  },
+  "armA_comparator": {
+    "full@10": {
+      "1": 0.13433830304398153,
+      "2": 0.13963875467576864,
+      "4": 0.1482140720837435,
+      "8": 0.15373006525832858
+    },
+    "tail@10": {
+      "1": 0.03870464533647276,
+      "2": 0.050650644288075114,
+      "4": 0.05961604754971336,
+      "8": 0.06307793961800436
+    }
+  },
+  "redundancy_topSEL": {
+    "4": {
+      "full": 0.1571545819955726,
+      "tail": 0.07771863071375201
+    },
+    "8": {
+      "full": 0.1684955615102953,
+      "tail": 0.09056945252718519
+    }
+  },
+  "redundancy_robust_full": true,
+  "redundancy_robust_tail": true,
+  "armC_monotone_full": true,
+  "armC_monotone_tail": true,
+  "armA_comparator_monotone_full": true,
+  "armA_comparator_monotone_tail": true,
+  "G_collinearity_PASS": true,
+  "items_at_k": {
+    "1": {
+      "full": 0.1637213849094729,
+      "tail": 0.07150629741762396
+    },
+    "2": {
+      "full": 0.19650762395829532,
+      "tail": 0.1011653104870139
+    },
+    "4": {
+      "full": 0.2284165454457163,
+      "tail": 0.13398459413073444
+    },
+    "8": {
+      "full": 0.25843758876643597,
+      "tail": 0.16522283258792658
+    }
+  },
+  "fraction_of_item_gain_m8": 0.3677181188577167,
+  "mixed_m2_k2": {
+    "full@10": 0.17307494078892938,
+    "tail@10": 0.10302679036059006,
+    "vs_items_k2": {
+      "mean": -0.023432683169365965,
+      "ci95": [
+        -0.027026872100516786,
+        -0.019925732762000197
+      ]
+    },
+    "armA_bar": 0.0125
+  },
+  "g5_member_auc_k0": 0.6479873841154099,
+  "acceptance": {
+    "monotone_full_to_m8": true,
+    "monotone_tail_to_m8": true,
+    "redundancy_robust_full": true,
+    "redundancy_robust_tail": true,
+    "mixed_ge_armA_bar": false,
+    "g5_auc_gt_0.8": false,
+    "G_collinearity": true
+  },
+  "ACCEPT": false
+}

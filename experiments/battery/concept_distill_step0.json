@@ -1,0 +1,286 @@
+{
+  "analysis": "concept_distill_step0",
+  "n_users": 10000,
+  "stack": "FROZEN i25 tower (t2i25_EP4_SNAP.pt) + decoder; SIGNED SEL answer simulator; NO concept-fold net (Step 0 = answer-channel CEILING, zero training)",
+  "n_concepts": 1031,
+  "tier_bounds_membercount": [
+    164.0,
+    524.6700999999999
+  ],
+  "bucketing": "(concept, signed SEL band in {like,meh,dislike}); 2-fold cross-fit means (user reads the OTHER fold) -> leak-safe out-of-sample; kc>1 student = SUM of per-concept bucket means; kc>1 teacher = JOINT union member-fold",
+  "selection": "per-user top-kc answerable&foldable concepts of the pool by |signed value|",
+  "intercept": {
+    "full": 0.12793773315625726,
+    "tail": 0.01923195232020529
+  },
+  "intercept_ref": [
+    0.12793773315625726,
+    0.01923195232020529
+  ],
+  "controls": {
+    "q0_canonical_snap_PASS": true,
+    "leak_foldin_heldout_overlap_users": 0,
+    "shuffled_teacher_canary": "bucket by a random WRONG concept id; capture must ~0 (see capture[*][*].shuffled_capture_full)"
+  },
+  "part_B_teacher_ceiling": {
+    "overall": {
+      "1": {
+        "n_users": 10000,
+        "teacher_full@10": 0.35813662705349697,
+        "teacher_tail@10": 0.24845934494374927,
+        "mean_members_folded": 82.9659
+      },
+      "2": {
+        "n_users": 10000,
+        "teacher_full@10": 0.38606339696237557,
+        "teacher_tail@10": 0.2723403515310686,
+        "mean_members_folded": 97.9057
+      },
+      "4": {
+        "n_users": 10000,
+        "teacher_full@10": 0.40052448455770007,
+        "teacher_tail@10": 0.2854629073545167,
+        "mean_members_folded": 108.4719
+      },
+      "8": {
+        "n_users": 9998,
+        "teacher_full@10": 0.40997436118796543,
+        "teacher_tail@10": 0.29306282006888545,
+        "mean_members_folded": 117.65123024604921
+      }
+    },
+    "fine": {
+      "1": {
+        "n_users": 9131,
+        "teacher_full@10": 0.23514227023182377,
+        "teacher_tail@10": 0.13952827594609765,
+        "mean_members_folded": 10.43850618771219
+      },
+      "2": {
+        "n_users": 8566,
+        "teacher_full@10": 0.2714957533360501,
+        "teacher_tail@10": 0.1660588777461517,
+        "mean_members_folded": 17.089656782629
+      },
+      "4": {
+        "n_users": 7561,
+        "teacher_full@10": 0.31645555153342897,
+        "teacher_tail@10": 0.1959755202903862,
+        "mean_members_folded": 28.049861129480227
+      },
+      "8": {
+        "n_users": 6376,
+        "teacher_full@10": 0.3719143780357386,
+        "teacher_tail@10": 0.2296548014141514,
+        "mean_members_folded": 46.48776662484316
+      }
+    },
+    "medium": {
+      "1": {
+        "n_users": 9958,
+        "teacher_full@10": 0.25821098104281043,
+        "teacher_tail@10": 0.17421886076352477,
+        "mean_members_folded": 19.30869652540671
+      },
+      "2": {
+        "n_users": 9908,
+        "teacher_full@10": 0.2978099815675271,
+        "teacher_tail@10": 0.2037527425496272,
+        "mean_members_folded": 29.14816310052483
+      },
+      "4": {
+        "n_users": 9837,
+        "teacher_full@10": 0.3345619663108644,
+        "teacher_tail@10": 0.23088365356230864,
+        "mean_members_folded": 41.74392599369727
+      },
+      "8": {
+        "n_users": 9621,
+        "teacher_full@10": 0.36907404708344393,
+        "teacher_tail@10": 0.2556642699770212,
+        "mean_members_folded": 58.449433530818006
+      }
+    },
+    "broad": {
+      "1": {
+        "n_users": 10000,
+        "teacher_full@10": 0.36312247535022635,
+        "teacher_tail@10": 0.25528509966190555,
+        "mean_members_folded": 85.8156
+      },
+      "2": {
+        "n_users": 10000,
+        "teacher_full@10": 0.3902480299784698,
+        "teacher_tail@10": 0.27546840042455767,
+        "mean_members_folded": 101.6171
+      },
+      "4": {
+        "n_users": 10000,
+        "teacher_full@10": 0.403885348121674,
+        "teacher_tail@10": 0.28777276172406807,
+        "mean_members_folded": 112.2326
+      },
+      "8": {
+        "n_users": 9998,
+        "teacher_full@10": 0.4128628791851977,
+        "teacher_tail@10": 0.29521812557241767,
+        "mean_members_folded": 121.86397279455892
+      }
+    }
+  },
+  "full_profile_fold_ceiling": {
+    "full@10": 0.4189561567350627,
+    "tail@10": 0.2998578287564934,
+    "mean_items": 135.6475
+  },
+  "part_A_capture": {
+    "overall": {
+      "1": {
+        "n_users": 10000,
+        "intercept_full": 0.12793773315625726,
+        "intercept_tail": 0.01923195232020529,
+        "teacher_full@10": 0.35813662705349697,
+        "teacher_tail@10": 0.24845934494374927,
+        "student_full@10": 0.15445213205104172,
+        "student_tail@10": 0.05597354758663087,
+        "capture_full": 0.11518039225080044,
+        "capture_tail": 0.16028448801826073,
+        "shuffled_student_full@10": 0.0852417376284076,
+        "shuffled_capture_full": -0.1854743730736997,
+        "shuffled_student_tail@10": 0.01951023027927449,
+        "shuffled_capture_tail": 0.0012139821331310537
+      },
+      "4": {
+        "n_users": 10000,
+        "intercept_full": 0.12793773315625726,
+        "intercept_tail": 0.01923195232020529,
+        "teacher_full@10": 0.40052448455770007,
+        "teacher_tail@10": 0.2854629073545167,
+        "student_full@10": 0.16959702036877797,
+        "student_tail@10": 0.07580791230911427,
+        "capture_full": 0.15282946437542894,
+        "capture_tail": 0.21250706921596538,
+        "shuffled_student_full@10": 0.12036880452665508,
+        "shuffled_capture_full": -0.027767045135863175,
+        "shuffled_student_tail@10": 0.0215331962091863,
+        "shuffled_capture_tail": 0.008643787829572378
+      }
+    },
+    "fine": {
+      "1": {
+        "n_users": 9131,
+        "intercept_full": 0.13555853612683202,
+        "intercept_tail": 0.020466586516933945,
+        "teacher_full@10": 0.23514227023182377,
+        "teacher_tail@10": 0.13952827594609765,
+        "student_full@10": 0.15710455428322773,
+        "student_tail@10": 0.07119394637406909,
+        "capture_full": 0.2163608178588644,
+        "capture_tail": 0.42605946631822,
+        "shuffled_student_full@10": 0.10575343803950925,
+        "shuffled_capture_full": -0.29929685159123554,
+        "shuffled_student_tail@10": 0.021136362602101902,
+        "shuffled_capture_tail": 0.005625454236196125
+      },
+      "4": {
+        "n_users": 7561,
+        "intercept_full": 0.14652297300661224,
+        "intercept_tail": 0.02294418911965515,
+        "teacher_full@10": 0.31645555153342897,
+        "teacher_tail@10": 0.1959755202903862,
+        "student_full@10": 0.20056896361188895,
+        "student_tail@10": 0.09124112982562486,
+        "capture_full": 0.3180437269522619,
+        "capture_tail": 0.3947085203810905,
+        "shuffled_student_full@10": 0.14562193167672918,
+        "shuffled_capture_full": -0.005302346010955545,
+        "shuffled_student_tail@10": 0.026765242794844858,
+        "shuffled_capture_tail": 0.022083016118158688
+      }
+    },
+    "medium": {
+      "1": {
+        "n_users": 9958,
+        "intercept_full": 0.12834502934296693,
+        "intercept_tail": 0.019266707279893994,
+        "teacher_full@10": 0.25821098104281043,
+        "teacher_tail@10": 0.17421886076352477,
+        "student_full@10": 0.15652680189616736,
+        "student_tail@10": 0.07271647946367474,
+        "capture_full": 0.21700663017768027,
+        "capture_tail": 0.34494371960714443,
+        "shuffled_student_full@10": 0.0915755693293821,
+        "shuffled_capture_full": -0.283133951064936,
+        "shuffled_student_tail@10": 0.016109096268867314,
+        "shuffled_capture_tail": -0.02037797436200364
+      },
+      "4": {
+        "n_users": 9837,
+        "intercept_full": 0.12962676597457762,
+        "intercept_tail": 0.01948094678614405,
+        "teacher_full@10": 0.3345619663108644,
+        "teacher_tail@10": 0.23088365356230864,
+        "student_full@10": 0.1823837752559601,
+        "student_tail@10": 0.08728341764509777,
+        "capture_full": 0.2574326381939818,
+        "capture_tail": 0.32072659755839217,
+        "shuffled_student_full@10": 0.12253723117510523,
+        "shuffled_capture_full": -0.034594031615061104,
+        "shuffled_student_tail@10": 0.019055575371070513,
+        "shuffled_capture_tail": -0.0020121379785544872
+      }
+    },
+    "broad": {
+      "1": {
+        "n_users": 10000,
+        "intercept_full": 0.12793773315625726,
+        "intercept_tail": 0.01923195232020529,
+        "teacher_full@10": 0.36312247535022635,
+        "teacher_tail@10": 0.25528509966190555,
+        "student_full@10": 0.15209507744639505,
+        "student_tail@10": 0.05183407326765543,
+        "capture_full": 0.10271646053558177,
+        "capture_tail": 0.13811347704784774,
+        "shuffled_student_full@10": 0.08439298932367467,
+        "shuffled_capture_full": -0.18515122803616643,
+        "shuffled_student_tail@10": 0.02010838212919659,
+        "shuffled_capture_tail": 0.003712849495383417
+      },
+      "4": {
+        "n_users": 10000,
+        "intercept_full": 0.12793773315625726,
+        "intercept_tail": 0.01923195232020529,
+        "teacher_full@10": 0.403885348121674,
+        "teacher_tail@10": 0.28777276172406807,
+        "student_full@10": 0.16521863631970826,
+        "student_tail@10": 0.06915690618147553,
+        "capture_full": 0.13510137845591907,
+        "capture_tail": 0.18591198102105708,
+        "shuffled_student_full@10": 0.12104108336454691,
+        "shuffled_capture_full": -0.024992605181873618,
+        "shuffled_student_tail@10": 0.022534209041730414,
+        "shuffled_capture_tail": 0.012297038684197932
+      }
+    }
+  },
+  "within_cell_teacher_cos": {
+    "fine": 0.9652332033507227,
+    "medium": 0.9547215975924188,
+    "broad": 0.9442984443916346,
+    "overall": 0.9495976954989469
+  },
+  "within_cell_n": {
+    "fine": 444232,
+    "medium": 1231578,
+    "broad": 2501538,
+    "overall": 4177348
+  },
+  "verdict": {
+    "kc1_overall_capture_full": 0.11518039225080044,
+    "kc1_verdict": "FLAG_AUTHOR",
+    "kc4_overall_capture_full": 0.15282946437542894,
+    "kc4_verdict": "FLAG_AUTHOR",
+    "rule": "capture>=~0.20-0.30 PROCEED; <=~0.10 STOP (answer channel info-limited, fix = richer student input: answer + kc-so-far belief context); between = FLAG_AUTHOR"
+  },
+  "seconds": 10163.9
+}

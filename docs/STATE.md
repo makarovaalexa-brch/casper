@@ -44,20 +44,24 @@ the strongest (random) item control. Honest premium is modest, tail-concentrated
 `experiments/paper2_repl/PB_REPL_RESULT.md` (JSON `pb_results.json`; buggy JSON kept as `..._BUGGY_itemmask.json`).
 
 ## The concept channel — DIRECTIONAL VERDICT RECORDED (Jul 25)
+> **Partly SUPERSEDED by the Jul-27 CURRENT block above** — the concept-vs-item verdict here ran on the
+> BROKEN fold; the fixed-fold D1 replaces the "items win the long interview" line (concepts are now
+> tail-dominant throughout + full-lead through k4). The signed-gate / ledger / methods-lesson / OPEN
+> items below still stand. Full record: `docs/results/CONCEPT_CHANNEL_RESULT.md`.
+
 Author ruled the concept-channel story **"directionally checks out"**; recorded AS-IS (honest, open
-items visible). **Hard record + all tables: `docs/results/CONCEPT_CHANNEL_RESULT.md`.** One shared
-harness, 10k COLD_SEED, per-question deployment currency; intercept (0 answers) **0.1279/0.0192**.
-The signed four-band SEL retrain turned the deployment curve POSITIVE; the suite is complete.
+items visible). One shared harness, 10k COLD_SEED, per-question deployment currency; intercept
+(0 answers) **0.1279/0.0192**. The signed four-band SEL retrain turned the deployment curve POSITIVE.
 
 **What's DONE:**
 - **Strategy × channel suite** (`strategy_channel_suite.json`, fig `strategy_channel_curves_2026-07-25.png`;
   primary rung = signed C-lite): **concepts own the short interview** — polarization-ranked concepts
   beat every item strategy on full AND tail through q4 (q1 .1323/.0348 > items-pop .1307/.0266; q4
   .1433/.0395 > items-HELF .1391/.0384); the single best opener is a polarizing concept question.
-  **Items win the long interview** — items-pop highest @q8 .1673/.0504 and @q16 .1948/.0580. Static
-  mixed schedules underperform pure items @q8+ (mixed-c4→items q16 .1775). **Adaptive prize large +
-  unclaimed** — privileged oracle dominates every budget (@q16 .2237/.1305); realizable greedy closes
-  only 2.1% full / 1.9% tail of the oracle−static gap @q16 (negative @q8) → Chapter B motivation.
+  (⚠ the old "items win @q8/q16" reading here is a BROKEN-FOLD artifact — see Jul-27 D1 above.)
+  **Adaptive prize large + unclaimed** — privileged oracle dominates every budget (@q16 .2237/.1305);
+  realizable greedy closes only 2.1% full / 1.9% tail of the oracle−static gap @q16 (negative @q8)
+  → Chapter B motivation.
 - **Signed triple gate on the RETRAINED model** (`signed_sel_gate_signed_retrain.json`, SCORED):
   signed beats clip-up **+0.0104 @q16** CI-clean [.0075,.0134] (clip-up sinks below intercept by q8;
   signed holds .1372); popularity-counterfeit reproduces ~0% (@q16 −0.0452, no hard kill → taste, not
