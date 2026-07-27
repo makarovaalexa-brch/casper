@@ -38,10 +38,12 @@ both channels, NOT a headline. Method pieces framed as PICKED (answer-model pane
 diligence) / BUILT-ON (3 legs: graded/star, out-of-catalog concepts, direction tokens; set-encoder; belief
 layer) / ARCHIVED (circular geometric answer, Kalman churn, broken clip — take working version). Circularity
 is NOT a contribution (internal bug, fixed). Paper B/C + adaptivity out of scope.
-- **STAR CURVE ✅ (`premium_vs_k.json`, Fig `fig:gradedcurve`):** vs likes-only (fair positive-only baseline)
-  graded premium is small + short-concentrated (+0.012 @k2 → ≈0 @k8, +0.004 full); vs naive all-as-like it
-  grows to +0.12 @full but that control mislabels dislikes (artifact). Graded leg's value = REPRESENTING
-  DISLIKES, not fine gradation; flip −0.29 @full. Provisional figure added to chapterA_v2.
+- **STAR CURVE ✅ (`premium_vs_k.json`, Fig `fig:gradedcurve`, `docs/results/GRADED_CURVE_RESULT.md`):**
+  stars help over binary on the SHORT interview, CI-clean — graded − likes-only (fair positive-only baseline,
+  r>3.5) = **+0.0117 @k2 [+.0099,+.0135], +0.0071 @k4**, tie by k8. Mechanism: a signed answer encodes a
+  dislike the item-indicator basis can't; edge washes out as collaborative signal fills in. (The "grows to
+  +0.12" number vs all-as-like was a mislabeling-control artifact — demoted.) Two-panel provisional figure in
+  chapterA_v2, reframed per author.
 - **CERTIFIED RETRAIN 🔄 RUNNING** (PID 17748, fresh, detached): `train_tower_t2.py --train --tag t2final
   --p_interview 0.5 --select_cold` (C-lite winning config, items-only; concepts fold separately). Empty-set
   G0 identity holds; init 0.3510/0.2502; ~8min/epoch × 20ep ≈ 2.5–3h. Old ep4 shakedown ckpts backed up to
