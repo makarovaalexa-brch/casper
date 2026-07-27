@@ -1,7 +1,35 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-07-26 (Paper B repl item-mask bug fixed)**.
+> End-state is in `VISION.md`. Last updated: **2026-07-27 (concept fold FIXED; downstream D1–D3)**.
+
+## ★ CURRENT (2026-07-27) — concept operator SETTLED; lever = selection/adaptivity
+Full record: memory `concept-fold-distillation-and-downstream-2026-07-27`; `docs/results/
+CONCEPT_DISTILL_TRAIN_RESULT.md` + `DISTILL_DOWNSTREAM_RESULT.md`; design `docs/design/
+DESIGN_CONCEPT_FOLD_DISTILLATION.md`. Canonical harness, 10k COLD_SEED, intercept 0.1279/0.0192.
+
+- **Concept fold FIXED by the RECIPE, not distillation.** Architecture unchanged (gated fold-to-point on
+  FROZEN i25 tower, zero-init gate → G0 item bit-tie). The fix = signed four-band SEL (killed the
+  [0.25,1] positive-only clip) + kc/member-drop curriculum (kc 1..32) + NDCG-NLL. Capture 1–6% → **~25%**
+  (broad +10 over the tabular floor via composition; fine 34.6 / med 31.4 / overall 25.4% @kc4);
+  deployment ~0.144 → ~0.18. **Distillation teacher = NULL** (no-distill control 25.5 / shuffle-canary
+  25.9 / distilled 25.0–25.7% — within noise; random teacher = same). One ablation line, not a claim.
+  **Deployment fold = λ=1.0** (only config passing the opener gate; S2 distill-then-sharpen craters it).
+- **D1 concept-vs-item on the FIXED fold (SUPERSEDES the Jul-25 broken-fold suite below):** concepts BEAT
+  items on **tail at EVERY budget** (@10 & @100; k8 tail .121 vs .084, +44%) and **lead full through k=4**
+  (k1 .159 vs .137, k4 .197 vs .184); items overtake full only at k=8 (.211 vs .227). Caveat: realizable
+  concept-ask vs pop item-ask; items still win FULL at k8. → the "items win the long interview" line in the
+  Jul-25 suite was a BROKEN-FOLD artifact; the honest story is now "concepts lead short + dominate tail."
+- **D2 answerer panel (fixed fold):** SEL is the answer-ceiling — REPLICATES (imputers tie within ~0.003;
+  ExpoMF/PITF worse; not a broken-fold artifact). The answer model was never the lever; **SELECTION is**
+  (oracle-select 0.211 vs answer-model ~0.144 @q8).
+- **D3 1-level adaptivity tree:** adaptivity PAYS on the ITEM channel (Δfull +0.0015 CI[.0007,.0024],
+  Δtail +0.0016 CI[.0008,.0024], significant → refutes static-optimal / HARD RULE #2); concept channel
+  positive-not-significant at 1 level (needs the multi-turn policy = Chapter B).
+- **Through-line:** operator settled + answer model solved → the prize is SELECTION/ADAPTIVITY (Chapter B),
+  cleanly motivated by A. **Paper A remaining (await author): G10 strategy-discrimination; full battery
+  re-verified on the certified ckpt; baseline G0 table (Mult-VAE/DAE + bank); efficiency-curve headline
+  figure + film-mute subpop slice; ONE clean certified retrain of the winning config; write-up.**
 
 ## Paper B faithful replication — item-ask bug FIXED, real item-vs-concept table (Jul 26)
 The old-Paper-B reconstruction encoder (weak biased-SVD + attention fold-in) on ML-25M Liang had a
