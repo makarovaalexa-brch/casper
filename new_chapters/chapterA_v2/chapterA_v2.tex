@@ -140,8 +140,11 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
   \item \textbf{The instrument.} A design for a \emph{frozen} certified shallow-SOTA tower with an analytic
         conjugate-Gaussian precision-accumulator belief layer over its latent, into which every channel folds as a
         linear observation (\S\ref{sec:method}). The frozen-tower$+$exact-conjugacy shape is the one mechanism with a
-        principled monotonicity story~\cite{toroghi2023bcie}, and it is what separates us from the co-trained,
-        approximate-posterior near-miss of B\i y\i k et al.~\cite{biyik2023soft}.
+        principled monotonicity story~\cite{toroghi2023bcie}. Freezing is \emph{not} what separates us from the
+        soft-attribute line---G\"opfert et al.~\cite{gopfert2024cav} and B\i y\i k et al.~\cite{biyik2023soft} both
+        freeze the collaborative model and learn attribute directions separately, and say so explicitly. What
+        separates us is an \emph{open} concept vocabulary carrying no per-concept supervision, at the R1 accuracy
+        bar (\S\ref{sec:gap}).
   \item \textbf{An acceptance battery as a reusable certificate.} We define three headline outcome gates---full-strength
         preserved (G0), posterior strictly shrinks per question (G1), and cold-start per-question NDCG rises on
         \emph{full and tail} versus random (G2)---and, because these outcome gates admit several false positives
@@ -426,7 +429,7 @@ appears only if it was measured on this ruler or carries a citation.}
 \label{tab:master}
 \end{sidewaystable}
 
-\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Run planned}: the graph filters and sequence models have public code and will be measured on this ruler in the next experimental wave. \emph{Best-effort measured / planned}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated. Three are now \emph{measured}, and they land weak: a Gaussian belief over an MF latent---the shared posterior core of B\i y\i k (no public implementation; their embedding is co-trained, so the substitution, if anything, flatters the original) and of ConTS's Thompson posterior---measures $0.2019/0.1200$ full/tail, far below the certified frontier (we no longer lean on the comparison with iALS, which is itself unbridged --- \S
+\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Run planned}: the graph filters and sequence models have public code and will be measured on this ruler in the next experimental wave. \emph{Best-effort measured / planned}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated. Three are now \emph{measured}, and they land weak: a Gaussian belief over an MF latent---the shared posterior core of B\i y\i k (no public implementation; like ours their item space is a \emph{frozen} factorisation, so a frozen-MF substitution is faithful in kind, though at $d{=}200$ against their $d{=}50$) and of ConTS's Thompson posterior---measures $0.2019/0.1200$ full/tail, far below the certified frontier (we no longer lean on the comparison with iALS, which is itself unbridged --- \S
 ef{sec:bridge}); and the node recommender that is the Golbandi tree's core measures $0.3065/0.1895$. A trained Partial-VAE for EDDI and MF-seed reconstruction for RBMF/Functional-MF remain best-effort planned. That the belief corner's runnable cores measure this far below the accuracy corner sharpens the bifurcation rather than softening it. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
 
 \paragraph{The measured-accuracy column falls as you enter the belief corner.}
@@ -581,20 +584,26 @@ with an actionable belief), whose runnable core nonetheless measures far below t
 \paragraph{The verdict.}
 No single published system satisfies all of $\{$R1 SOTA-full-profile $\wedge$ R2 any-length set $\wedge$ R3
 channel-agnostic via arbitrary embeddings $\wedge$ R4 uncertainty-native $\wedge$ R5 monotone$\}$. The binding
-near-miss is B\i y\i k et al.~\cite{biyik2023soft}: it fails R1 (a co-trained item space, not a frozen certified
-RecVAE-class tower, and no full-profile benchmark) and gives only an approximate, ``generally not Gaussian''
-posterior; every other candidate fails R3 or R4 outright. \textbf{We are aware of none} that occupies the
+near-miss is B\i y\i k et al.~\cite{biyik2023soft}: it fails R1 (a $d{=}50$ ALS two-tower rather than a
+certified RecVAE-class tower, and it reports no full-catalogue accuracy---its NDCG is computed between a user's true
+top-$|S|$ items and the top-$|S|$ estimated from the posterior, over 16 sampled test users on slates of 5, an
+in-simulator alignment measure) and gives only an approximate, ``generally not Gaussian'' posterior; it fails R3 in
+the specific sense of \S\ref{sec:gap} (a per-concept supervised probe over a closed tag list, not an open
+vocabulary). Every other candidate fails R3 or R4 outright. \textbf{We are aware of none} that occupies the
 conjunction---and we state it exactly that way, never as ``there is none.''
 
 \paragraph{Per-near-miss failure analysis.}
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
   \item \textbf{B\i y\i k et al.~2023}~\cite{biyik2023soft} --- has R2 $+$ R3 (items and soft attributes as directions)
-        $+$ R4 (Gaussian belief). \emph{Fails R1}: the item space is co-trained with the belief model, not a certified
-        full-profile CF tower, and accuracy is reported on their elicitation task, not the EASE/RecVAE bar. R3 is
-        \emph{attribute directions}, not arbitrary embeddings / open concepts / continuous query tokens. R5 is
-        approximate (sampled EVOI over a non-Gaussian posterior). This is the central threat, and our wedge is exactly
-        (a) frozen certified tower vs.\ co-trained, (b) exact conjugacy vs.\ approximate posterior, (c) arbitrary /
-        open / continuous tokens vs.\ a fixed attribute set.
+        $+$ R4 (Gaussian belief), over a \emph{frozen} item tower---they train the CF model and the attribute
+        directions separately, as we do. \emph{Fails R1}: a $d{=}50$ ALS two-tower, and accuracy is reported on their
+        own elicitation task (in-simulator top-$|S|$ agreement over 16 users, slates of 5), not the EASE/RecVAE bar.
+        R3 is \emph{per-attribute supervised directions} over an enumerated tag list---each direction is a logistic
+        regressor fitted from labelled positive/negative items, and they train CAVs for the 164 most-frequent tags---not
+        arbitrary embeddings / open concepts / continuous query tokens. R5 is approximate (sampled EVOI over a
+        non-Gaussian posterior). This is the central threat, and our wedge is exactly (a) an \emph{open} vocabulary
+        through one global adapter with no per-concept supervision, (b) the R1 accuracy bar on a shared full-catalogue
+        ruler, (c) exact conjugacy vs.\ approximate posterior.
   \item \textbf{ConTS}~\cite{li2021seamlessly} --- R2 $+$ R4 $+$ a unified item/attribute action space.
         \emph{Fails R3} (a fixed categorical attribute schema; no arbitrary embedding, no continuous or open token) and
         \emph{R1} (a bandit over arms, not a full-profile encoder).
@@ -644,9 +653,11 @@ channel-agnostic linear-observation interface (R3). The tower half of this desig
 The substrate is a certified shallow recommender---a RecVAE-class amortised encoder or a closed-form
 autoencoder~\cite{ren2020recvae,steck2019ease}---trained once on the full catalogue and then \emph{frozen}. It exposes
 (a) item factor rows $\Q_i\in\R^{d}$, (b) a decoder read-out $s_i(\uu)=\Q_i^\top\uu + \beta_i$ with a learned bias
-$\beta_i$, and (c) the encoder that maps a full interaction set to a latent. Freezing is the wedge against
-B\i y\i k~\cite{biyik2023soft} (co-trained) and the guarantee that G0 (full strength preserved) is a property of the
-substrate, not of the belief layer. We deliberately do \emph{not} extend the linear basis with concept columns
+$\beta_i$, and (c) the encoder that maps a full interaction set to a latent. Freezing is the guarantee that G0 (full strength preserved) is a property of the substrate, not of the belief
+layer. It is a design choice we share with the soft-attribute line rather than one that distinguishes us:
+G\"opfert et al. are explicit that ``we do not use the tag data when training the collaborative filtering
+model''~\cite{gopfert2024cav}, and B\i y\i k et al. train the CF model and the attribute directions
+separately~\cite{biyik2023soft}. We cite that convergence as independent support for the frozen-substrate design. We deliberately do \emph{not} extend the linear basis with concept columns
 (that stays in the item-indicator world and fails R3), nor learn the uncertainty head (no monotonicity story, and
 retraining risks G0). The tower is now \emph{selected and certified}: the graded-native set-encoder T2$'$, trained
 once in its pre-registered configuration, scores $0.3482/0.2462$ full/tail on the held-out test cohort---a
@@ -1020,7 +1031,7 @@ SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & self-attentive sequenc
 \midrule
 \multicolumn{4}{l}{\emph{Tier 3 --- elicitation-compatible rivals (decide G1/G2)}}\\
 EDDI / Partial-VAE~\cite{ma2019eddi} & set-encoder $+$ info-gain & non-recsys (UCI/MNIST) & the R2 architecture; myopic info-gain baseline. \\
-B\i y\i k soft-attributes~\cite{biyik2023soft} & Gaussian belief $+$ EVOI & own elicitation task & the central threat; frozen-vs-co-trained wedge. \\
+B\i y\i k soft-attributes~\cite{biyik2023soft} & Gaussian belief $+$ EVOI & own elicitation task (16 users, slates of 5) & the central threat; open-vocabulary and R1-bar wedge. \\
 ConTS~\cite{li2021seamlessly} & Thompson bandit, item$+$attr arms & cold-start CRS metrics & unified-space $+$ uncertainty; fixed schema. \\
 BCIE~\cite{toroghi2023bcie} & conjugate-Gaussian critique fold & critique metrics & exact-conjugacy-over-frozen precedent. \\
 PEBOL~\cite{austin2024bayesian} & Bayesian-opt NL-PE (LLM) & MRR@10 $0.27$ vs $0.17$ & load-bearing PE baseline; per-item Beta. \\
