@@ -1,0 +1,344 @@
+{
+ "max_cos": 0.6,
+ "candidates": {
+  "movies about grief": {
+   "lexical_tag_hits": [],
+   "nearest": "feel good movie",
+   "cos": 0.537,
+   "clean": true,
+   "top5": [
+    "Hush... Hush, Sweet Charlotte (1964)",
+    "Rachel, Rachel (1968)",
+    "Mean Creek (2004)",
+    "Woodsman, The (2004)",
+    "Rabbit Hole (2010)"
+   ]
+  },
+  "a family falling apart over one dinner": {
+   "lexical_tag_hits": [
+    "family"
+   ],
+   "nearest": "dysfunctional family",
+   "cos": 0.557,
+   "clean": false,
+   "top5": [
+    "Enough Said (2013)",
+    "Visitor, The (2007)",
+    "Instructions Not Included (No se Aceptan Devoluciones) (2013)",
+    "Ilo Ilo (2013)",
+    "Band's Visit, The (Bikur Ha-Tizmoret) (2007)"
+   ]
+  },
+  "someone slowly losing their memory": {
+   "lexical_tag_hits": [
+    "memory"
+   ],
+   "nearest": "memory loss",
+   "cos": 0.713,
+   "clean": false,
+   "top5": [
+    "Stay (2005)",
+    "Enemy (2013)",
+    "Inland Empire (2006)",
+    "Jacket, The (2005)",
+    "Another Earth (2011)"
+   ]
+  },
+  "quiet films where almost nothing happens": {
+   "lexical_tag_hits": [],
+   "nearest": "film noir",
+   "cos": 0.532,
+   "clean": true,
+   "top5": [
+    "Eyes Without a Face (Yeux sans visage, Les) (1959)",
+    "Repulsion (1965)",
+    "Careful (1992)",
+    "Carnival of Souls (1962)",
+    "Peeping Tom (1960)"
+   ]
+  },
+  "a con artist who gets conned": {
+   "lexical_tag_hits": [
+    "artist"
+   ],
+   "nearest": "con artists",
+   "cos": 0.807,
+   "clean": false,
+   "top5": [
+    "Mean Streets (1973)",
+    "California Split (1974)",
+    "Confessions of a Dangerous Mind (2002)",
+    "King of Comedy, The (1983)",
+    "Who's That Knocking at My Door? (1967)"
+   ]
+  },
+  "small town secrets that come out": {
+   "lexical_tag_hits": [
+    "secrets",
+    "small town"
+   ],
+   "nearest": "small town",
+   "cos": 0.741,
+   "clean": false,
+   "top5": [
+    "State of Grace (1990)",
+    "Charley Varrick (1973)",
+    "Friends of Eddie Coyle, The (1973)",
+    "Lookout, The (2007)",
+    "Ride the High Country (1962)"
+   ]
+  },
+  "a road trip that goes badly wrong": {
+   "lexical_tag_hits": [
+    "road trip"
+   ],
+   "nearest": "road trip",
+   "cos": 0.754,
+   "clean": false,
+   "top5": [
+    "Vicious Kind, The (2009)",
+    "8 Million Ways to Die (1986)",
+    "Driver, The (1978)",
+    "Death Hunt (1981)",
+    "London (2005)"
+   ]
+  },
+  "when the monster is never shown on screen": {
+   "lexical_tag_hits": [
+    "monster"
+   ],
+   "nearest": "monster",
+   "cos": 0.594,
+   "clean": false,
+   "top5": [
+    "Wes Craven's New Nightmare (Nightmare on Elm Street Part 7: Freddy's Finale, A) (1994)",
+    "Jeepers Creepers 2 (2003)",
+    "Jason X (2002)",
+    "Freddy vs. Jason (2003)",
+    "Thing, The (2011)"
+   ]
+  },
+  "two people talking for the whole film": {
+   "lexical_tag_hits": [],
+   "nearest": "dialogue",
+   "cos": 0.54,
+   "clean": true,
+   "top5": [
+    "Trouble in Paradise (1932)",
+    "Palm Beach Story, The (1942)",
+    "Sweet Smell of Success (1957)",
+    "Maggie's Plan (2015)",
+    "In Search of a Midnight Kiss (2007)"
+   ]
+  },
+  "an ordinary person pushed too far": {
+   "lexical_tag_hits": [],
+   "nearest": "forceful",
+   "cos": 0.503,
+   "clean": true,
+   "top5": [
+    "Punisher: War Zone (2008)",
+    "Yellow Sea, The (a.k.a. The Murderer) (Hwanghae) (2010)",
+    "Chaser, The (Chugyeogja) (2008)",
+    "Assault on Precinct 13 (1976)",
+    "Thief (1981)"
+   ]
+  },
+  "loneliness in a big city": {
+   "lexical_tag_hits": [
+    "loneliness"
+   ],
+   "nearest": "loneliness",
+   "cos": 0.706,
+   "clean": false,
+   "top5": [
+    "Savages, The (2007)",
+    "Mondays in the Sun (Lunes al sol, Los) (2002)",
+    "Two Lovers (2008)",
+    "Alice Doesn't Live Here Anymore (1974)",
+    "Beginners (2010)"
+   ]
+  },
+  "a detective who drinks too much": {
+   "lexical_tag_hits": [
+    "detective"
+   ],
+   "nearest": "detective",
+   "cos": 0.66,
+   "clean": false,
+   "top5": [
+    "Killers, The (1964)",
+    "Thief (1981)",
+    "State of Grace (1990)",
+    "Underneath (1995)",
+    "Get Carter (1971)"
+   ]
+  },
+  "the last day before everything changes": {
+   "lexical_tag_hits": [],
+   "nearest": "holiday",
+   "cos": 0.41,
+   "clean": true,
+   "top5": [
+    "Frequencies (2013)",
+    "Time Lapse (2014)",
+    "Another Earth (2011)",
+    "Oblivion (2013)",
+    "About Time (2013)"
+   ]
+  },
+  "growing old and looking back on a life": {
+   "lexical_tag_hits": [
+    "life"
+   ],
+   "nearest": "aging",
+   "cos": 0.578,
+   "clean": false,
+   "top5": [
+    "Take This Waltz (2011)",
+    "Short Term 12 (2013)",
+    "Breathe In (2013)",
+    "Beginners (2010)",
+    "Way, Way Back, The (2013)"
+   ]
+  },
+  "somebody pretending to be someone else": {
+   "lexical_tag_hits": [],
+   "nearest": "imaginary friend",
+   "cos": 0.515,
+   "clean": true,
+   "top5": [
+    "Repossessed (1990)",
+    "Smiley Face (2007)",
+    "Class Reunion (1982)",
+    "Very Brady Sequel, A (1996)",
+    "Jawbreaker (1999)"
+   ]
+  },
+  "a wedding where everything goes wrong": {
+   "lexical_tag_hits": [
+    "wedding"
+   ],
+   "nearest": "wedding",
+   "cos": 0.766,
+   "clean": false,
+   "top5": [
+    "Evening (2007)",
+    "No Reservations (2007)",
+    "Things You Can Tell Just by Looking at Her (2000)",
+    "Wedding Date, The (2005)",
+    "Nights in Rodanthe (2008)"
+   ]
+  },
+  "set entirely inside one room": {
+   "lexical_tag_hits": [],
+   "nearest": "art house",
+   "cos": 0.394,
+   "clean": true,
+   "top5": [
+    "Fantastic Planet, The (Plan\u00e8te sauvage, La) (1973)",
+    "Congress, The (2013)",
+    "Solyaris (1968)",
+    "Jet\u00e9e, La (1962)",
+    "Dimensions of Dialogue (Moznosti dialogu) (1982)"
+   ]
+  },
+  "a mother and daughter who cannot talk to each other": {
+   "lexical_tag_hits": [],
+   "nearest": "mother daughter relationship",
+   "cos": 0.653,
+   "clean": false,
+   "top5": [
+    "Rabbit Hole (2010)",
+    "Mean Creek (2004)",
+    "My Life Without Me (2003)",
+    "Martha Marcy May Marlene (2011)",
+    "Please Give (2010)"
+   ]
+  },
+  "revenge served very slowly": {
+   "lexical_tag_hits": [
+    "revenge"
+   ],
+   "nearest": "revenge",
+   "cos": 0.731,
+   "clean": false,
+   "top5": [
+    "Chaser, The (Chugyeogja) (2008)",
+    "New World (Shin-sae-gye) (2013)",
+    "Bittersweet Life, A (Dalkomhan insaeng) (2005)",
+    "13 Assassins (J\u00fbsan-nin no shikaku) (2010)",
+    "Second Wind (Le deuxi\u00e8me souffle) (Second Breath) (1966)"
+   ]
+  },
+  "people trapped by a decision they made years ago": {
+   "lexical_tag_hits": [],
+   "nearest": "history",
+   "cos": 0.393,
+   "clean": true,
+   "top5": [
+    "Music Box (1989)",
+    "Judgment at Nuremberg (1961)",
+    "Missing (1982)",
+    "Mirage (1965)",
+    "Desperate Hours, The (1955)"
+   ]
+  },
+  "the quiet dignity of losing": {
+   "lexical_tag_hits": [],
+   "nearest": "redemption",
+   "cos": 0.465,
+   "clean": true,
+   "top5": [
+    "Tyson (2008)",
+    "Red Army (2014)",
+    "Days of Glory (Indig\u00e8nes) (2006)",
+    "Umberto D. (1952)",
+    "5 Broken Cameras (2011)"
+   ]
+  },
+  "a friendship that curdles": {
+   "lexical_tag_hits": [
+    "friendship"
+   ],
+   "nearest": "friendship",
+   "cos": 0.758,
+   "clean": false,
+   "top5": [
+    "Selfish Giant, The (2013)",
+    "Kings of Summer, The (2013)",
+    "Way, Way Back, The (2013)",
+    "Submarine (2010)",
+    "Monsieur Lazhar (2011)"
+   ]
+  },
+  "bureaucracy grinding somebody down": {
+   "lexical_tag_hits": [],
+   "nearest": "corruption",
+   "cos": 0.476,
+   "clean": true,
+   "top5": [
+    "Second Wind (Le deuxi\u00e8me souffle) (Second Breath) (1966)",
+    "Casino Jack (2010)",
+    "Friends of Eddie Coyle, The (1973)",
+    "Mesrine: Public Enemy #1 (L'ennemi public n\u00b01) (2008)",
+    "Thief (1981)"
+   ]
+  },
+  "nostalgia for a place that no longer exists": {
+   "lexical_tag_hits": [
+    "nostalgia"
+   ],
+   "nearest": "nostalgia",
+   "cos": 0.741,
+   "clean": false,
+   "top5": [
+    "Paper Heart (2009)",
+    "Wristcutters: A Love Story (2006)",
+    "In Your Eyes (2014)",
+    "Mood Indigo (L'\u00e9cume des jours) (2013)",
+    "Science of Sleep, The (La science des r\u00eaves) (2006)"
+   ]
+  }
+ }
+}
