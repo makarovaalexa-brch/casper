@@ -66,9 +66,9 @@ the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite
 RecVAE~\cite{ren2020recvae}) are item-only point estimators, while the models with an uncertainty-native, multi-channel
 belief (soft-attribute Gaussian elicitation~\cite{biyik2023soft}, unified item$+$attribute bandits~\cite{li2021seamlessly},
 conjugate critique folds~\cite{toroghi2023bcie}) do not report full-profile accuracy at the R1 bar. We are aware of no
-published system that occupies the conjunction of all five. The instrument we propose to close this gap is a
-\emph{frozen} certified shallow-SOTA tower with an analytic conjugate-Gaussian belief layer over its latent, into
-which every channel folds as a linear observation; three of its input legs---signed/graded values, out-of-catalogue
+published system that occupies the conjunction of all five. The instrument that closes this gap is a \emph{frozen} certified
+shallow-SOTA tower over whose latent every channel is folded as a direction paired with a value, with an analytic
+conjugate-Gaussian belief maintained over the same latent for a policy to query; three of its input legs---signed/graded values, out-of-catalogue
 concepts, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
 models. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
 and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then G0/G1/G2 on the
@@ -128,12 +128,13 @@ corner}. No published system we are aware of occupies both (\S\ref{sec:gap}).
 This chapter is the instrument paper of the thesis. It does not claim a new elicitation policy (that is the companion
 method chapter); it claims the \emph{recommender that makes policy measurement possible}. Concretely:
 \begin{enumerate}[leftmargin=1.5em,itemsep=1.5pt]
-  \item \textbf{One ingestion interface at the accuracy frontier.} A single set-valued fold takes items,
-        out-of-catalogue concepts and arbitrary continuous directions as one kind of observation, over a tower that
-        ties the strongest shallow baseline on a shared ruler. We frame
-        R1$\wedge$R2$\wedge$R3$\wedge$R4$\wedge$R5 as a single requirement no published system meets, and give a
-        six-family taxonomy and per-near-miss gap analysis (\S\ref{sec:related},~\S\ref{sec:gap}) locating which
-        requirement each candidate fails. We say we are \emph{aware of none}, never that there \emph{is} none.
+  \item \textbf{One latent, many channels, at the accuracy frontier.} A frozen tower that ties the strongest
+        shallow baseline on a shared ruler, over whose latent every channel is folded as a direction paired with a
+        value: item factors, out-of-catalogue concept directions, and directions produced outside the catalogue
+        entirely. The unification is of the \emph{representation}---one space, one form of observation---not of the
+        code path. We frame R1$\wedge$R2$\wedge$R3$\wedge$R4$\wedge$R5 as a single requirement no published system
+        meets, and give a six-family taxonomy and per-near-miss gap analysis
+        (\S\ref{sec:related},~\S\ref{sec:gap}) locating which requirement each candidate fails.
   \item \textbf{Three architecturally-inexpressible legs.} We isolate the three input channels that are impossible
         (not merely untuned) in the item-indicator basis of every R1-bar model: (i) signed/graded per-entity values,
         (ii) out-of-catalogue concepts, and (iii) continuous direction tokens. These are the narrow, defensible novelty
@@ -749,9 +750,24 @@ That is the instrument's obligation discharged: a belief that is correct, querya
 available to a policy. What a policy should do with it---and in particular whether reading the covariance
 is a good way to choose questions---is a separate question, and the companion chapter's subject.
 
-\subsection{Channel-agnostic tokens as linear observations}
-Every channel supplies a direction $\bphi_j\in\R^{d}$ and a value $y_j\in\R$ to Eq.~\eqref{eq:precacc}; the update is
-identical across channels (R3):
+\subsection{Channel-agnostic tokens: one representation, one form of observation}
+Every channel supplies the same kind of thing---a direction $\bphi_j\in\R^{d}$ in the frozen latent and a value
+$y_j\in\R$---and it is this that makes the channel set open (R3). Two folds consume those pairs in the system we
+report: the tower's own set encoder for item evidence, and a trained gated operator for concept evidence
+(\S\ref{sec:concept:fold}); the conjugate update of Eq.~\eqref{eq:precacc} maintains the belief over the same
+latent alongside them. We are explicit that these are distinct operators rather than one code path, because the
+unification that matters is of the representation: any entity with an embedding is expressible as an observation,
+which is what no item-indicator model can say.
+
+\paragraph{Why the belief is maintained alongside the ranking rather than inside it.} The conjugate posterior mean
+is itself a legal ranker---score item $i$ by $\Q_i^\top\bmu_t+\beta_i$---and it would make Eq.~\eqref{eq:precacc}
+the single fold for every channel. We measured that option rather than assuming it: a conjugate-Gaussian belief
+over a frozen factorisation, ranked by its posterior mean, reaches full/tail NDCG@10 $0.2019/0.1200$ on our ruler,
+against $0.3482/0.2462$ for the learned fold (Table~\ref{tab:g0}). Ranking on the posterior mean therefore costs
+roughly $0.15$ full NDCG---it forfeits R1 to buy uniformity---and that is why the belief is carried beside the
+ranking path and read by a policy, not used to produce the rankings we report.
+
+The channels, then, are:
 \begin{itemize}[leftmargin=1.4em,itemsep=1.5pt]
   \item \textbf{Items.} $\bphi_j=\Q_i$ (the frozen item factor). A graded or signed answer sets $y_j$; a dislike is a
         negative $y_j$ along the same direction---representable here precisely because the observation model
