@@ -397,9 +397,9 @@ TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmar
 EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & queued (best-effort) & n/r (non-recsys; UCI/MNIST) \\
 Golbandi tree~\cite{golbandi2011adaptive}    & \xmark & \cmark & \xmark & \xmark & \xmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
 RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & queued (best-effort) & n/r (elicitation RMSE) \\
-B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & $.2019$ & $.1200$ & measured (core) & n/r (own elicitation task) \\
+B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (16 users, slates of 5) \\
 ICF~\cite{zhao2013interactive}               & \xmark & \cmark & \xmark & \cmark & \pmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
-ConTS~\cite{li2021seamlessly}                & \xmark & \cmark & \pmark & \cmark & \pmark & $.2019$ & $.1200$ & measured (core) & n/r (cold-start CRS metrics) \\
+ConTS~\cite{li2021seamlessly}                & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (cold-start CRS metrics) \\
 BCIE~\cite{toroghi2023bcie}                  & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (critique metrics) \\
 UNICORN~\cite{deng2021unicorn}               & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (graph-RL CRS; own metrics) \\
 PEBOL~\cite{austin2024bayesian}              & \xmark & \cmark & \cmark & \pmark & \xmark & \multicolumn{2}{c}{---} & not runnable at full catalogue & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
@@ -416,9 +416,8 @@ shared ruler.} \cmark~met, \pmark~partial, \xmark~not met (our reading of each s
 consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on the canonical Liang-recipe
 strong-generalization ML-25M split (catalog restricted to the 18{,}430-item project catalog, train vocabulary 18{,}359; train 140{,}768 /
 val 10k / test 10k users; per-user 80/20 fold-in; tail $=$ top-33\%-train-mass head mask, 190 head items), scored
-with the decoder's learned bias. The B\i y\i k and ConTS rows share one measured posterior core (belief-MF,
-best-effort; substitutions per the no-dash paragraph), so both print $0.2019/0.1200$; the Golbandi row prints its
-node-recommender core. Statuses are \emph{measured} (run on this ruler), \emph{queued} (runnable, run scheduled on this
+with the decoder's learned bias. The B\i y\i k and ConTS rows carry a dash because neither reports full-catalogue
+accuracy; the Golbandi row prints its node-recommender core. Statuses are \emph{measured} (run on this ruler), \emph{queued} (runnable, run scheduled on this
 ruler; best-effort $=$ with stated substitutions), \emph{superseded} (a measured successor row subsumes it), or \emph{not runnable / not
 portable} (impossible by construction; mechanism in the text). The final column is each system's own published
 full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
@@ -432,15 +431,14 @@ appears only if it was measured on this ruler or carries a citation.}
 \label{tab:master}
 \end{sidewaystable}
 
-\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Run planned}: the graph filters and sequence models have public code and will be measured on this ruler in the next experimental wave. \emph{Best-effort measured / planned}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated. Three are now \emph{measured}, and they land weak: a Gaussian belief over an MF latent---the shared posterior core of B\i y\i k (no public implementation; like ours their item space is a \emph{frozen} factorisation, so a frozen-MF substitution is faithful in kind, though at $d{=}200$ against their $d{=}50$) and of ConTS's Thompson posterior---measures $0.2019/0.1200$ full/tail, far below the certified frontier (we no longer lean on the comparison with iALS, which is itself unbridged, \S\ref{sec:bridge}); and the node recommender that is the Golbandi tree's core measures $0.3065/0.1895$. A trained Partial-VAE for EDDI and MF-seed reconstruction for RBMF/Functional-MF remain best-effort planned. That the belief corner's runnable cores measure this far below the accuracy corner sharpens the bifurcation rather than softening it. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
+\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Run planned}: the graph filters and sequence models have public code and will be measured on this ruler in the next experimental wave. \emph{Best-effort measured / planned}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated. One is now \emph{measured}: the node recommender that is the Golbandi tree's core, at $0.3065/0.1895$. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the cost of ranking on a conjugate posterior mean, which is a decision about \emph{our} architecture. A trained Partial-VAE for EDDI and MF-seed reconstruction for RBMF/Functional-MF remain best-effort planned. The belief corner is blank in this column not because its systems are weak but because full-catalogue top-$N$ accuracy is not what they set out to report---which is precisely the bifurcation. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
 
 \paragraph{The measured-accuracy column falls as you enter the belief corner.}
 Read Table~\ref{tab:master} down its measured-accuracy column. Every \emph{competitive} number---a full/tail
 NDCG@10 at or near the frontier on our shared ML-25M ruler---sits in block (a) or (b): the item-only linear and
 amortised recommenders (RecVAE $0.3540$, EASE $0.3476$, EDLAE $0.3433$). The belief corner, block (c), is either
-\emph{blank} or \emph{measurably weak}. Where its cores are runnable at all they land at the bottom of the column:
-the shared Gaussian-belief-over-MF core of B\i y\i k and ConTS at $0.2019/0.1200$, the
-Golbandi node recommender at $0.3065/0.1895$---and every one of these carries an \xmark\ on R1. The rest of the
+\emph{blank} or \emph{measurably weak}. Its one runnable core, the Golbandi node
+recommender, lands at $0.3065/0.1895$, and carries an \xmark\ on R1. The rest of the
 corner---EDDI, RBMF/Functional-MF, BCIE, UNICORN, PEBOL, GATE, the LLM-zero-shot CRS---has a blank accuracy column
 entirely. This is not an accident of our harness. Most CRS and elicitation papers never report full-catalogue
 top-N accuracy at all (they report elicitation RMSE, cold-start MRR/MAP on a shortlist, or critique metrics), and
@@ -533,7 +531,7 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
   \node[font=\scriptsize,anchor=west] at (axis cs:1.58,0.3400) {EDLAE};
   \node[font=\scriptsize,anchor=west] at (axis cs:1.58,0.3490) {EASE};
   \node[font=\scriptsize,anchor=west] at (axis cs:1.58,0.3585) {\textbf{RecVAE}};
-  \node[font=\scriptsize,anchor=south west] at (axis cs:3.02,0.2019) {belief-MF (B\i y\i k/ConTS core)};
+  \node[font=\scriptsize,anchor=south west] at (axis cs:3.02,0.2019) {conjugate belief over frozen MF};
   % --- "no full-profile number" strip: BELOW the measured y-scale, visually separated ---
   \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:4,0.094);
   \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:4,0.094);
@@ -554,9 +552,9 @@ $x$-axis: an \emph{interview-compatibility score}, defined as the number of \tex
 the master table (Table~\ref{tab:master}), scoring \cmark${=}1$ and \pmark${=}0.5$, maximum $4$. \emph{R1 is
 deliberately excluded from the score}: accuracy is the $y$-axis, and letting it also inflate $x$ would blur the very
 trade-off the figure exists to show. The score is a \emph{coarse ordinal capability count, not a measurement}, so the
-$x$-axis is qualitative even though the $y$-axis is measured. Filled markers are systems with a full-profile number on
-this ruler (belief-MF is the shared B\i y\i k/ConTS posterior core; Golbandi-node is the tree's best-effort node
-recommender). Hollow markers in the separated grey strip \emph{below} the measured $y$-scale are systems that
+$x$-axis is qualitative even though the $y$-axis is measured. Filled markers are systems with a full-profile number on this
+ruler; Golbandi-node is that tree's best-effort node recommender, and the conjugate-belief point is our own
+posterior-mean ranker (\S\ref{sec:method}), plotted to show what ranking on a conjugate mean costs. Hollow markers in the separated grey strip \emph{below} the measured $y$-scale are systems that
 \emph{cannot produce a full-profile number by construction} (no full-catalogue ranker, or not portable; see the
 master-table dispositions); only their $x$ position is meaningful. Runnable-but-not-yet-measured systems (sequence
 models, graph filters, EDDI, TaNP) are \emph{absent} from the figure and join the plot when their numbers land. The star marks the instrument target (all five
@@ -569,11 +567,11 @@ exploited in the ranking path; and per-question monotonicity is observed but not
 an unbuilt or uncertified component rather than a negative result---which is the honest reading of an instrument
 whose accuracy half is finished and whose belief half is not. The population is otherwise \emph{bimodal}: the entire accuracy corner
 (Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x\le1.5$---strong recommenders that can fold items
-and nothing else---while every system with genuine interview machinery sits at $x\ge2$ and either has no measurable
-full-profile accuracy at all (the grey strip) or, for the one measurable core, drops to $0.2019$, below plain matrix
-factorisation (belief-MF at $x{=}3$). Two clusters, no bridge: the corner is not expensive; it is unoccupied. The
-nearest published rival to the target is B\i y\i k et al.~\cite{biyik2023soft} (highest compatibility of any system
-with an actionable belief), whose runnable core nonetheless measures far below the frontier bar.}
+and nothing else---while every system with genuine interview machinery sits at $x\ge2$ and reports no
+full-catalogue accuracy at all. The one point plotted at $x{=}3$ is not a rival but our own conjugate posterior-mean
+ranker at $0.2019$, included because it shows what the uniform-fold alternative costs. Two clusters, no bridge: the corner is not expensive; it is unoccupied. The
+nearest published rival to the target is B\i y\i k et al.~\cite{biyik2023soft}, the highest compatibility of any
+system with an actionable belief.}
 \label{fig:gapmap}
 \end{figure}
 
@@ -1257,7 +1255,7 @@ EASE/RecVAE on the shared harness. The item-only baselines are measured (Table~\
 Method & full NDCG@10 & tail NDCG@10 & note \\
 \midrule
 Most-Popular & $0.1345$ & $0.0226$ & @100 $0.1975$; non-personalised floor \\
-belief-MF (B\i y\i k/ConTS core) & $0.2019$ & $0.1200$ & @100 $0.2886$; best-effort posterior core \\
+conjugate belief over frozen MF & $0.2019$ & $0.1200$ & @100 $0.2886$; the posterior-mean ranker (\S\ref{sec:method}) \\
 Item-kNN (cosine) & $0.2428$ & $0.1297$ & @100 $0.3200$; neighbourhood fold-in \\
 iALS-WMF & $0.2442$ & $0.1853$ & @100 $0.3704$; MF fold-in \\
 Golbandi node recommender & $0.3065$ & $0.1895$ & @100 $0.3958$; best-effort tree core \\
