@@ -1,0 +1,32 @@
+[23:26:15] [polish] seeding from C:\dev\phd\casper\experiments\battery\greedy_static.json (objective=full)
+[23:26:20] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[23:26:51] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[23:26:52] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[23:26:52] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[23:26:52] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[23:26:52] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[23:26:52] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[23:26:59] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[23:27:16] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[23:27:26] [g5] 1031 concepts with >= 30 members
+[23:27:44] [ledger] SIGNED valuation arrays built (prereg cache found)
+[23:27:50] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[23:28:21] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[23:28:22] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[23:28:22] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[23:28:22] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[23:28:22] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[23:28:22] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[23:28:29] [ctx] all-bands reconstruction: 1411761 tokens; 7622 users with >=3 dislikes
+[23:28:47] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[23:28:57] [g5] 1031 concepts with >= 30 members
+[23:29:15] [ledger] SIGNED valuation arrays built (prereg cache found)
+[23:29:16] [polish] build=10000 val / eval=10000 TEST; top_m=40
+[23:29:41] [polish items-only] seed endpoint (build) = 0.2051
+[23:29:41] [polish items-only] no improvement this pass; stopping
+[23:31:44] [polish items-only] order=iiiiiiiiiiiiiiii | q16 0.2098/0.0679 (seed was 0.2098) [0 evals]
+[23:31:57] [polish concepts-only] seed endpoint (build) = 0.1806
+[23:31:57] [polish concepts-only] no improvement this pass; stopping
+[23:32:58] [polish concepts-only] order=cccccccccccccccc | q16 0.1808/0.0758 (seed was 0.1808) [0 evals]
+[23:33:27] [polish combined] seed endpoint (build) = 0.2024
+[23:33:27] [polish combined] no improvement this pass; stopping
