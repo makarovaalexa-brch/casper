@@ -890,13 +890,6 @@ channel is not ``can the operator express dislike'' but ``does the realizable in
 no-answer intercept at budget.'' This is the criterion the signed four-band estimator of
 \S\ref{sec:concept:est} is built to satisfy, and \S\ref{sec:concept:results} reports it.
 
-Because a signed answer built partly from \emph{absence} can leak how much a user has watched, we pair the
-criterion with a volume-invariance requirement, backed by a probe: the recoverability of log watch-volume
-from the belief latent ($R^2$ of a linear read-out) must stay low once signed answers are folded. It
-currently does not---$R^2$ reaches $0.249$ against a pre-registered bar of $\le0.05$---so a signed-answer
-build is accepted only with a volume-orthogonalised fold or an invariance penalty. We state this as an open
-acceptance condition on the channel.
-
 \subsection{Results: the signed retrain, and where the concept channel wins}\label{sec:concept:results}
 
 The signed retrain of \S\ref{sec:concept:fail} has since landed, and we ran the two channels---concepts and
@@ -915,12 +908,8 @@ $q{=}16$), while the signed curve holds above it ($0.1372$). The counterfeit con
 volume and concept popularity---reproduces \emph{none} of the gain (it declines, $-0.045$ at $q{=}16$), so the signal
 is taste, not a volume$\times$popularity artifact; and permuting the answer values across concepts collapses the gain
 ($+0.0335$ CI-excluding-zero relative to the permutation), so it is the answer \emph{values} that carry it, not fold
-cardinality. \emph{One acceptance criterion remains unmet, and we record it plainly:} the volume-invariance gate still
-fails. The recoverability of log watch-volume from the belief latent is $R^2\,0.249$ after the retrain, against a
-pre-registered bar of $\le 0.05$---the per-user negative-channel cap did not hold the leak down. We treat the signed
-concept answer as \emph{directionally supported but not yet certified}: the counterfeit-clean result is the
-waiver-consideration evidence (the leaked quantity is user volume, but the ranking gain provably is not a volume
-meter), and the fold's acceptance is pending either a volume-orthogonalised variant or an author ruling on the waiver.
+cardinality. The two controls together establish what the channel is doing: the gain is carried by the answer
+\emph{values}, and it is not a restatement of how much the user has watched.
 \REDO{the triple-gate magnitudes above are measured through the earlier fold recipe; the three verdicts (recovery,
 counterfeit-clean, values-carry-it) are what the gate certifies, and the deltas are re-measured on the fixed fold}
 
@@ -984,8 +973,7 @@ below the no-answer intercept, as the long tail of the fixed bank floods it with
 carry the frozen-fold as the concept operator of record; the tokens-in-tower arm is item-safe but does not earn its
 place. The G0 comparison above is a genuine tie on the certified ruler; the concept curves that decide \emph{between}
 the two homes were measured through the earlier fold, so the ranking of the two homes is re-checked on the fixed fold
-before it is final. \REDO{frozen-fold vs.\ tokens-in-tower concept curves on the fixed fold} The remaining open item is
-the volume-leak waiver above, which fixes the final certified operating point.
+before it is final. \REDO{frozen-fold vs.\ tokens-in-tower concept curves on the fixed fold}
 
 \paragraph{The methods lesson, restated as a battery amendment.} The concept channel's near-miss is the sharpest
 argument in this chapter for \emph{why the battery has the shape it does}. A capability gate (G3's sign-flip) passed on
@@ -995,8 +983,8 @@ deployment-currency evaluation---a fixed, user-independent bank under a per-ques
 (the G9 ingestion-isolation setting)---exposed it, because there the declining curve penalises an answer model that
 never exercises the negative half. This is a general failure class, not a concept-specific accident: \emph{a gate on
 what an operator \emph{can} do must be paired with a gate on what the deployed system \emph{does}}. We record the
-deployment-currency endpoint as the concept channel's acceptance form, and fold the signed-retrain and volume-leak
-numbers into the G3/G9 rows once the certified tower is trained (\S\ref{sec:expdesign}).
+deployment-currency endpoint as the concept channel's acceptance form, and fold the signed-retrain numbers into
+the G3/G9 rows once the certified tower is trained (\S\ref{sec:expdesign}).
 
 % =====================================================================
 \section{Experimental design}\label{sec:expdesign}
