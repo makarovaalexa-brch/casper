@@ -1002,14 +1002,52 @@ against the $0.1279/0.0192$ intercept. The answerability figure is the striking 
 sixteen-question interview a user answers on average only $3.6$ of the item questions, the rest being
 items they have not seen. That is the structural pressure the concept channel exists to relieve, and it is
 why the combined bank is the interesting arm rather than a formality.
-\REDO{concepts-only and combined best-static arms (running); the combined$-$items gap is the chapter's
-concept-versus-item evidence and no cross-channel claim is made until it lands}
+\begin{center}\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc c}
+\toprule
+bank & $q{=}1$ & $q{=}2$ & $q{=}4$ & $q{=}8$ & $q{=}16$ & answered of 8 \\
+\midrule
+items-only    & $.1405/.0275$ & $.1524/.0387$ & $.1656/.0445$ & $\mathbf{.1863}/.0538$ & $\mathbf{.2098}/.0679$ & $2.18$ \\
+concepts-only & $\mathbf{.1436}/\mathbf{.0323}$ & $.1504/\mathbf{.0434}$ & $.1647/\mathbf{.0551}$ & $.1776/\mathbf{.0698}$ & $.1808/.0758$ & $\mathbf{6.02}$ \\
+combined      & $\mathbf{.1436}/\mathbf{.0323}$ & $.1504/\mathbf{.0434}$ & $.1647/\mathbf{.0551}$ & $.1817/.0616$ & $.2049/\mathbf{.0776}$ & $4.67$ \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\paragraph{On the adaptive headroom.} The earlier suite also reported a large gap between a privileged oracle selector
-and every realizable static arm, with a naive greedy selector recovering only a low-single-digit fraction of it. Those
-magnitudes were measured through the same superseded fold and are withdrawn pending the re-run
-(\REDO{oracle$-$static gap and greedy closure on the fixed fold}). The \emph{direction} survives on evidence
-independent of the fold: a one-level adaptive probe on the fixed stack---branch on the first answer, then choose the
+\noindent Three things follow, and we state each with its limit.
+
+\emph{Concepts own the opening, on both metrics.} At one question the concept bank leads on full
+($.1436$ vs $.1405$) and on tail ($.0323$ vs $.0275$), and the combined bank is \emph{identical} to
+concepts-only through $q{=}4$---given free choice over five hundred items and five hundred concepts, the
+optimiser spends its first four questions on concepts. The emergent combined order is
+\texttt{c\,c\,c\,c\,i\,i\,i\,i\,c\,i\,i\,i\,i\,i\,i\,i}: concepts first, then items, with one concept
+returning at position nine. Nothing in the objective encodes ``ask broad things first.'' Coarse-to-fine is
+long known in the interview literature~\cite{golbandi2011adaptive,rashid2002getting} and we claim no
+discovery; what is new here is that it emerges unprompted in a \emph{mixed} action space, and that
+\S\ref{sec:method} gives a geometric account of why (Eq.~\eqref{eq:region}).
+
+\emph{Concepts dominate the tail at every budget, without being asked to.} At $q{=}8$ the concept bank
+reaches $.0698$ tail against items' $.0538$, a $30\%$ margin, and the combined bank is the best tail arm at
+$q{=}16$ ($.0776$ vs $.0679$, $+14\%$). This is worth more than it looks: \textbf{the greedy maximised full
+NDCG@10 only}---the tail was never an objective in any arm---so the tail advantage is an incidental
+property of the channel rather than something the optimiser was steered toward.
+
+\emph{Items win full accuracy on the long interview, and the combined bank does not repair it.} From
+$q{=}8$ items lead on full ($.1863$ vs $.1776$), and at $q{=}16$ combined trails items-only by $-0.0049$
+despite the combined bank \emph{containing} the item bank. That is not overfitting---the build-set and
+held-out curves differ by $-0.0047$, $-0.0002$ and $-0.0025$ across the three arms, i.e.\ the test cohort
+scores \emph{higher} than the cohort the sequences were built on. It is myopia: a greedy that maximises
+each prefix commits its first four slots to concepts and cannot undo them by the sixteenth question, and
+NDCG over a sequence is not guaranteed submodular. We therefore read the combined$-$items gap only where
+the optimiser is not implicated---at $q\le4$, where the combined bank freely chose concepts over every
+available item, and on the tail throughout.
+
+The answerability figures underneath these curves are the plainest statement of what the concept channel
+buys: at a realistic eight-question budget a user answers $2.18$ item questions and $6.02$ concept
+questions, a factor of $2.8$.
+
+\paragraph{On the adaptive headroom.} A one-level adaptive probe on the fixed stack---branch on the first answer, then choose the
 second question per branch, selected and evaluated out-of-sample on disjoint halves---pays on the item channel with a
 CI excluding zero ($+0.0015$ full, CI $[+0.0007,+0.0024]$; $+0.0016$ tail, CI $[+0.0008,+0.0024]$), and is positive
 but not significant on the concept channel at one level. The effect is small because a one-level preview is not a
