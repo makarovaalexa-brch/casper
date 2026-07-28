@@ -19,7 +19,10 @@ import matplotlib.pyplot as plt
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
-INP = os.path.join(_ROOT, "experiments", "battery", "premium_vs_k.json")
+import sys
+# default to the CERTIFIED tower's curve; pass a path to plot the pre-certification one instead
+INP = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+    _ROOT, "experiments", "battery", "premium_vs_k_t2final.json")
 OUT = os.path.join(_ROOT, "new_chapters", "chapterA_v2", "fig_graded_curve")
 
 d = json.load(open(INP))
