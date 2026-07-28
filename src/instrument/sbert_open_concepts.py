@@ -1,35 +1,37 @@
 r"""sbert_open_concepts.py -- R3 illustration: the instrument takes an ARBITRARY CONTINUOUS DIRECTION.
 
-CLAIM BEING ILLUSTRATED (author, 2026-07-28): not that we contribute a way to map verbal information
-into a collaborative latent -- that ground is taken (Balog et al. SIGIR 2021 map an attribute phrase by
-BM25 retrieval + item-embedding centroid; Gopfert 2022 / Biyik 2023 fit a per-concept supervised probe).
-The claim is narrower and is about the INSTRUMENT: any entity with an embedding is a legal observation,
-so the channel set is open WITHOUT BOLT-ONS and a continuous elicitation policy can drive it. Text is the
+CLAIM BEING ILLUSTRATED (author, 2026-07-28): NOT that we contribute a way to map verbal information into
+a collaborative latent -- that ground is taken (Balog et al. SIGIR 2021 map an attribute phrase by BM25
+retrieval + item-embedding centroid; Gopfert 2022 / Biyik 2023 fit a per-concept supervised probe). The
+claim is narrower and is about the INSTRUMENT: any entity with an embedding is a legal observation, so the
+channel set is open WITHOUT BOLT-ONS and a continuous elicitation policy can drive it. Text is the
 illustration, not the point.
 
-METHOD. One globally-fitted closed-form ridge adapter from a frozen general-purpose sentence encoder into
-the frozen collaborative latent:
+METHOD. We already HAVE concept directions in the latent: d_c, the whitened member centroid of each genome
+tag, which is what the concept channel folds. And every one of them has a name, which is text. So the
+adapter is fitted directly on that correspondence -- one global closed-form ridge map
 
-    W = Q^T S (S^T S + beta I)^-1          Q = frozen decoder rows (n x d), S = SBERT(item text) (n x 384)
+    W = D^T S (S^T S + beta I)^-1     S = SBERT(tag name) (m x 384),  D = d_c (m x 200)
 
-Then ANY phrase gets a direction W @ SBERT(phrase) in the same space as item rows and concept centroids.
-No per-concept training, no concept inventory, no retraining -- a matrix multiply at inference.
+after which ANY phrase gets a direction W @ SBERT(phrase) in the same space. No per-concept training, no
+concept inventory, no retraining -- a matrix multiply at inference.
 
-ITEM REPRESENTATION = the RELEVANCE-WEIGHTED MEAN of an item's genome-tag embeddings (author directive:
-NOT titles -- titles carry no plot meaning, so a title-only adapter is a misconceived setup; genome is
-also the vocabulary the concept channel is trained on, so membership and closeness live in one semantic
-space). Weighting rather than concatenating a top-N string: a top-N cutoff is arbitrary, and MiniLM
-truncates at 256 word-pieces so a long string silently loses its tail. Every tag above a relevance floor
-contributes, with the weight the genome assigns it.
+(Earlier drafts fitted on item text built from top-N genome tags. Both the top-N cutoff and the string
+concatenation were arbitrary -- and unnecessary, since the concept directions we actually want to
+reproduce already exist. Fitting on them directly is simpler and tests the right thing.)
 
-CONTROLS (these are what make it evidence rather than anecdote):
-  (a) PARAPHRASE INVARIANCE -- fold a phrase and a non-tag paraphrase, compare top-10 overlap. Defeats
-      the "it is just string matching against the tag vocabulary" reading.
-  (b) AT SCALE -- for many genome tags, compare the direction from the tag's TEXT against the direction
-      from that tag's genome-grounded member CENTROID (the curated concept), overlap@10 vs a random
-      baseline. Shows a free-text phrase reaches the curated concept without any retraining.
+THE TEST THAT MATTERS -- HELD-OUT CONCEPTS. The adapter is fitted on a random 80% of tags and evaluated on
+the 20% it never saw. For a held-out tag we compare the direction predicted from its NAME ALONE against
+its true genome-grounded direction d_c: cosine, and top-10 item overlap. This is a generalisation test,
+not a similarity check: a concept the adapter was never fitted on must still land in the right place.
 
-  python src/instrument/sbert_open_concepts.py [--min_rel 0.3] [--ridge 1.0]
+FURTHER CONTROLS:
+  (a) PARAPHRASE INVARIANCE -- a phrase vs a non-tag paraphrase of it, top-10 overlap. Defeats the "it is
+      just matching the tag string" reading.
+  (b) FREE-TEXT PROBES -- phrases that are not genome tags at all, so they have no d_c to fall back on;
+      qualitative, and the illustration the reader remembers.
+
+  python src/instrument/sbert_open_concepts.py [--ridge 1.0] [--holdout 0.2]
 """
 import os
 os.environ.setdefault("OMP_NUM_THREADS", "6")
@@ -51,13 +53,13 @@ from run_battery_phaseA import build_real_ctx
 
 OUT = os.path.join(_ROOT, "experiments", "battery", "sbert_open_concepts.json")
 DATA = os.path.join(_ROOT, "data", "movielens")
+SEED = 4242
 
-# Probe phrases: deliberately NOT genome tag strings, so success cannot be tag lookup.
+# Free-text probes: deliberately NOT genome tag strings, so success cannot be tag lookup.
 PROBES = ["dinosaurs", "movies about grief", "heist gone wrong", "slow burn character study",
           "outer space aliens invading earth", "spy during the cold war",
           "artificial intelligence robots", "courtroom drama", "coming of age in the suburbs",
           "post apocalyptic survival"]
-# (phrase, paraphrase) pairs -- the paraphrase must not be a tag string either.
 PARAPHRASES = [("dinosaurs", "prehistoric reptiles"),
                ("time travel", "journeys through time"),
                ("horror", "scary frightening movies"),
@@ -70,161 +72,120 @@ PARAPHRASES = [("dinosaurs", "prehistoric reptiles"),
                ("documentary", "non fiction real life films")]
 
 
-def build_item_vectors(sid_of_movie, sb, min_rel):
-    """Item representation = RELEVANCE-WEIGHTED MEAN of its genome tags' SBERT embeddings.
-
-    Deliberately NOT a concatenated top-N tag string. Concatenation forces an arbitrary cutoff (the old
-    chapter used top-18, which is a choice with nothing behind it) and all-MiniLM-L6-v2 truncates at 256
-    word-pieces anyway, so a long string silently loses its tail. Weighting instead uses ALL 1,128 tags
-    with the relevance the genome actually assigns them, has no truncation, and costs 1,128 encodes
-    rather than 18k. A query phrase stays a single SBERT vector in the same space, so the adapter is
-    unaffected.
-
-    min_rel drops near-zero relevances (genome scores are dense: every tag has a score for every film,
-    most of them meaningless). Returns {sid: (384,) unit vector}.
-    """
-    import csv
-    from collections import defaultdict
-    tagname = {}
-    with open(os.path.join(DATA, "genome-tags.csv"), newline="", encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            tagname[int(r["tagId"])] = r["tag"].strip()
-    tag_ids = sorted(tagname)
-    log(f"[sbert] encoding {len(tag_ids)} genome tag names once...")
-    T = sb.encode([tagname[t] for t in tag_ids], normalize_embeddings=True,
-                  batch_size=256, show_progress_bar=False).astype(np.float64)
-    trow = {t: i for i, t in enumerate(tag_ids)}
-
-    acc = defaultdict(lambda: np.zeros(T.shape[1]))
-    wsum = defaultdict(float)
-    kept = 0
-    with open(os.path.join(DATA, "genome-scores.csv"), newline="", encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            rel = float(r["relevance"])
-            if rel < min_rel:
-                continue
-            sid = sid_of_movie.get(int(r["movieId"]))
-            if sid is None:
-                continue
-            acc[sid] += rel * T[trow[int(r["tagId"])]]
-            wsum[sid] += rel
-            kept += 1
-    out = {}
-    for sid, v in acc.items():
-        v = v / max(wsum[sid], 1e-9)
-        out[sid] = v / max(np.linalg.norm(v), 1e-12)
-    log(f"[sbert] {kept:,} tag-item pairs above relevance {min_rel} -> {len(out)} item vectors")
-    return out
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
-    ap.add_argument("--min_rel", type=float, default=0.3,
-                    help="drop genome relevances below this (scores are dense; most are meaningless). "
-                         "All surviving tags contribute, weighted -- there is no top-N cutoff.")
     ap.add_argument("--ridge", type=float, default=1.0)
-    ap.add_argument("--n_scale_tags", type=int, default=150, help="tags for the at-scale control")
+    ap.add_argument("--holdout", type=float, default=0.2, help="fraction of tags never fitted on")
     args = ap.parse_args()
     t0 = time.time()
 
     ctx = build_real_ctx(args.snapshot)
-    # attach_belief is what puts the frozen decoder rows (ctx.Wd) and the genome members
-    # (ctx.tags / ctx.members) onto the context -- needed for the adapter target AND control (b).
+    # attach_belief puts the frozen decoder rows (ctx.Wd) and the genome concept directions
+    # (ctx.tags, ctx.d_c -- whitened member centroids) onto the context.
     from run_battery_phaseB import attach_belief
     attach_belief(ctx, None)
-    Wd = ctx.Wd.numpy().astype(np.float64)           # frozen decoder rows: item directions (n x d)
+    Wd = ctx.Wd.numpy().astype(np.float64)
     n, d = Wd.shape
-    log(f"[sbert] frozen decoder rows {Wd.shape}")
+    tags = list(ctx.tags)
+    D = ctx.d_c.numpy().astype(np.float64) if hasattr(ctx.d_c, "numpy") else np.asarray(ctx.d_c, np.float64)
+    log(f"[sbert] {len(tags)} concept directions {D.shape} over a {Wd.shape} decoder")
 
-    # internal sid -> movieId, via the split's unique_sid list
-    sid2movie = PA.sid_to_movieid(ctx) if hasattr(PA, "sid_to_movieid") else None
-    if sid2movie is None:
-        import pandas as pd
-        usid = pd.read_csv(os.path.join(_ROOT, "data", "ml-25m", "proc", "unique_sid.txt"), header=None)
-        sid2movie = {i: int(m) for i, m in enumerate(usid[0].tolist())}
-    movie2sid = {m: s for s, m in sid2movie.items()}
+    # tag id -> human-readable name
+    import csv
+    tagname = {}
+    with open(os.path.join(DATA, "genome-tags.csv"), newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            tagname[int(r["tagId"])] = r["tag"].strip()
+    names = [tagname.get(int(t), str(t)) if str(t).isdigit() else str(t) for t in tags]
 
     titles = {}
-    import csv as _csv
-    with open(os.path.join(DATA, "movies.csv"), newline="", encoding="utf-8") as f:
-        for r in _csv.DictReader(f):
-            s = movie2sid.get(int(r["movieId"]))
-            if s is not None:
-                titles[s] = r["title"]
+    try:
+        import pandas as pd
+        usid = pd.read_csv(os.path.join(_ROOT, "data", "ml-25m", "proc", "unique_sid.txt"), header=None)
+        movie2sid = {int(m): i for i, m in enumerate(usid[0].tolist())}
+        with open(os.path.join(DATA, "movies.csv"), newline="", encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                s = movie2sid.get(int(r["movieId"]))
+                if s is not None:
+                    titles[s] = r["title"]
+    except Exception as e:                                        # titles are cosmetic only
+        log(f"[sbert] (titles unavailable: {e})")
 
     from sentence_transformers import SentenceTransformer
     log("[sbert] loading all-MiniLM-L6-v2 (one-off download if not cached)...")
     sb = SentenceTransformer("all-MiniLM-L6-v2")
-    vecs = build_item_vectors(movie2sid, sb, args.min_rel)
-    sids = sorted(vecs)
-    S = np.stack([vecs[s] for s in sids])
-    log(f"[sbert] item vectors {S.shape} ({100*len(sids)/n:.1f}% catalogue coverage)")
+    S = sb.encode(names, normalize_embeddings=True, batch_size=256,
+                  show_progress_bar=False).astype(np.float64)
+    log(f"[sbert] encoded {S.shape[0]} tag names {S.shape}")
 
-    # ---- the one global adapter: W = Q^T S (S^T S + beta I)^-1 ----
-    Q = Wd[sids]
-    G = S.T @ S + args.ridge * np.eye(S.shape[1])
-    W = (Q.T @ S) @ np.linalg.inv(G)                  # (d x 384)
-    fit_cos = float(np.mean([np.dot(W @ S[i], Q[i]) /
-                             (np.linalg.norm(W @ S[i]) * np.linalg.norm(Q[i]) + 1e-12)
-                             for i in range(0, len(sids), 17)]))
-    log(f"[sbert] adapter fitted {W.shape}; mean cos(W*SBERT(item), decoder row) = {fit_cos:.3f}")
+    rng = np.random.default_rng(SEED)
+    perm = rng.permutation(len(tags))
+    n_ho = max(1, int(round(args.holdout * len(tags))))
+    ho, fit = perm[:n_ho], perm[n_ho:]
+    log(f"[sbert] fitting adapter on {len(fit)} tags, holding out {len(ho)}")
 
-    def direction(phrase):
-        v = sb.encode([phrase], normalize_embeddings=True)[0].astype(np.float64)
-        return W @ v
+    def fit_adapter(idx):
+        Sf, Df = S[idx], D[idx]
+        G = Sf.T @ Sf + args.ridge * np.eye(Sf.shape[1])
+        return (Df.T @ Sf) @ np.linalg.inv(G)                     # (200 x 384)
+
+    W = fit_adapter(fit)
+
+    def cos(a, b):
+        return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-12))
 
     def topk(vec, k=10):
-        sc = Wd @ vec
-        return [int(i) for i in np.argsort(-sc)[:k]]
+        return [int(i) for i in np.argsort(-(Wd @ vec))[:k]]
 
-    # ---- (0) the illustration: does an open phrase point at the right films? ----
+    # ---- THE TEST: held-out concepts, predicted from the NAME ALONE ----
+    ho_cos, ho_ov, ho_rand = [], [], []
+    per_tag = {}
+    for j in ho:
+        pred = W @ S[j]
+        true = D[j]
+        c = cos(pred, true)
+        a, b = set(topk(pred)), set(topk(true))
+        o = len(a & b) / 10.0
+        r = len(a & set(rng.choice(n, 10, replace=False))) / 10.0
+        ho_cos.append(c); ho_ov.append(o); ho_rand.append(r)
+        per_tag[names[j]] = {"cos": round(c, 3), "overlap@10": o}
+    held = {"n": len(ho), "cos_mean": float(np.mean(ho_cos)),
+            "overlap@10_mean": float(np.mean(ho_ov)),
+            "overlap@10_random": float(np.mean(ho_rand)),
+            "ratio_vs_random": float(np.mean(ho_ov) / max(np.mean(ho_rand), 1e-9))}
+    log(f"[HELD-OUT] {held['n']} unseen tags: cos {held['cos_mean']:.3f} | "
+        f"top-10 overlap {held['overlap@10_mean']:.3f} vs random {held['overlap@10_random']:.4f} "
+        f"({held['ratio_vs_random']:.0f}x)")
+
+    # in-fit reference, to show how much is generalisation vs memorisation
+    in_cos = float(np.mean([cos(W @ S[j], D[j]) for j in fit[:len(ho)]]))
+    log(f"[in-fit ref] cos {in_cos:.3f} (vs held-out {held['cos_mean']:.3f})")
+
+    # ---- refit on ALL tags for the qualitative probes ----
+    W_all = fit_adapter(np.arange(len(tags)))
+
+    def direction(p):
+        return W_all @ sb.encode([p], normalize_embeddings=True)[0].astype(np.float64)
+
     probes = {}
     for ph in PROBES:
         idx = topk(direction(ph))
         probes[ph] = [titles.get(i, f"sid{i}") for i in idx]
         log(f"[probe] {ph!r} -> " + "; ".join(probes[ph][:5]))
 
-    # ---- (a) paraphrase invariance ----
     para = {}
     for a, b in PARAPHRASES:
-        ta, tb = set(topk(direction(a))), set(topk(direction(b)))
-        para[f"{a} | {b}"] = len(ta & tb) / 10.0
+        para[f"{a} | {b}"] = len(set(topk(direction(a))) & set(topk(direction(b)))) / 10.0
     para_mean = float(np.mean(list(para.values())))
-    log(f"[control-a] paraphrase overlap@10 mean = {para_mean:.2f}  " +
-        " ".join(f"{k.split(' | ')[0]}={v:.1f}" for k, v in list(para.items())[:5]))
+    log(f"[control-a] paraphrase overlap@10 mean = {para_mean:.2f}")
 
-    # ---- (b) at scale: text-derived direction vs the tag's genome-grounded member centroid ----
-    tags = getattr(ctx, "tags", None)
-    members = getattr(ctx, "members", None)
-    scale = {}
-    if tags is not None and members is not None:
-        rng = np.random.default_rng(0)
-        names = list(tags)[:args.n_scale_tags]
-        ov, rnd = [], []
-        for tg in names:
-            mem = members.get(tg)
-            if mem is None or len(mem) < 30:
-                continue
-            cent = Wd[np.asarray(mem)].mean(0)
-            a = set(topk(direction(str(tg))))
-            b = set(topk(cent))
-            ov.append(len(a & b) / 10.0)
-            rnd.append(len(a & set(rng.choice(n, 10, replace=False))) / 10.0)
-        if ov:
-            scale = {"n_tags": len(ov), "text_vs_centroid_overlap@10": float(np.mean(ov)),
-                     "random_overlap@10": float(np.mean(rnd)),
-                     "ratio": float(np.mean(ov) / max(np.mean(rnd), 1e-9))}
-            log(f"[control-b] text-vs-centroid overlap@10 = {scale['text_vs_centroid_overlap@10']:.3f} "
-                f"vs random {scale['random_overlap@10']:.4f}  ({scale['ratio']:.0f}x) over {len(ov)} tags")
-    else:
-        log("[control-b] SKIPPED: genome members not attached to ctx")
-
-    res = {"snapshot": os.path.basename(args.snapshot), "n_items_with_text": len(sids),
-           "coverage": len(sids) / n, "min_relevance": args.min_rel, "ridge": args.ridge,
-           "adapter_fit_cos": fit_cos, "probes": probes,
+    res = {"snapshot": os.path.basename(args.snapshot), "n_concepts": len(tags),
+           "ridge": args.ridge, "holdout_frac": args.holdout,
+           "held_out_concepts": held, "in_fit_cos_reference": in_cos,
+           "per_held_out_tag": per_tag, "probes": probes,
            "paraphrase_overlap@10": para, "paraphrase_mean": para_mean,
-           "at_scale": scale, "seconds": round(time.time() - t0, 1)}
+           "seconds": round(time.time() - t0, 1)}
     json.dump(res, open(OUT, "w"), indent=1)
     log(f"[sbert] -> {OUT}")
 
