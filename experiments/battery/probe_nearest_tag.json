@@ -1,0 +1,370 @@
+{
+ "drop_cos": 0.75,
+ "probes": {
+  "dinosaurs": {
+   "nearest": [
+    {
+     "tag": "dinosaurs",
+     "cos": 1.0
+    },
+    {
+     "tag": "snakes",
+     "cos": 0.568
+    },
+    {
+     "tag": "dragons",
+     "cos": 0.564
+    }
+   ],
+   "exact_tag_match": true,
+   "overlap_with_nearest_tag_curated_dir": 0.1,
+   "n_dropped_for_lno": 1,
+   "dropped": [
+    "dinosaurs"
+   ],
+   "overlap_full_vs_leaveneighbourout": 0.8,
+   "top5_full": [
+    "Tremors II: Aftershocks (1996)",
+    "Food of the Gods, The (1976)",
+    "Land That Time Forgot, The (1975)",
+    "Lost in Space (1998)",
+    "Battlefield Earth (2000)"
+   ],
+   "top5_lno": [
+    "Food of the Gods, The (1976)",
+    "Land That Time Forgot, The (1975)",
+    "Tremors II: Aftershocks (1996)",
+    "Black Hole, The (1979)",
+    "Fire and Ice (1983)"
+   ]
+  },
+  "movies about grief": {
+   "nearest": [
+    {
+     "tag": "feel good movie",
+     "cos": 0.537
+    },
+    {
+     "tag": "funniest movies",
+     "cos": 0.514
+    },
+    {
+     "tag": "film noir",
+     "cos": 0.506
+    }
+   ],
+   "exact_tag_match": false,
+   "overlap_with_nearest_tag_curated_dir": 0.0,
+   "n_dropped_for_lno": 0,
+   "dropped": [],
+   "overlap_full_vs_leaveneighbourout": 1.0,
+   "top5_full": [
+    "Hush... Hush, Sweet Charlotte (1964)",
+    "Rachel, Rachel (1968)",
+    "Mean Creek (2004)",
+    "Woodsman, The (2004)",
+    "Rabbit Hole (2010)"
+   ],
+   "top5_lno": [
+    "Hush... Hush, Sweet Charlotte (1964)",
+    "Rachel, Rachel (1968)",
+    "Mean Creek (2004)",
+    "Woodsman, The (2004)",
+    "Rabbit Hole (2010)"
+   ]
+  },
+  "heist gone wrong": {
+   "nearest": [
+    {
+     "tag": "heist",
+     "cos": 0.791
+    },
+    {
+     "tag": "bad script",
+     "cos": 0.332
+    },
+    {
+     "tag": "crime gone awry",
+     "cos": 0.33
+    }
+   ],
+   "exact_tag_match": false,
+   "overlap_with_nearest_tag_curated_dir": 0.0,
+   "n_dropped_for_lno": 1,
+   "dropped": [
+    "heist"
+   ],
+   "overlap_full_vs_leaveneighbourout": 0.4,
+   "top5_full": [
+    "D\u00e9j\u00e0 Vu (Deja Vu) (2006)",
+    "Non-Stop (2014)",
+    "Unknown (2011)",
+    "International, The (2009)",
+    "Firewall (2006)"
+   ],
+   "top5_lno": [
+    "Knowing (2009)",
+    "D\u00e9j\u00e0 Vu (Deja Vu) (2006)",
+    "Transcendence (2014)",
+    "Next (2007)",
+    "Surrogates (2009)"
+   ]
+  },
+  "slow burn character study": {
+   "nearest": [
+    {
+     "tag": "character study",
+     "cos": 0.519
+    },
+    {
+     "tag": "slow paced",
+     "cos": 0.376
+    },
+    {
+     "tag": "fast paced",
+     "cos": 0.373
+    }
+   ],
+   "exact_tag_match": false,
+   "overlap_with_nearest_tag_curated_dir": 0.0,
+   "n_dropped_for_lno": 0,
+   "dropped": [],
+   "overlap_full_vs_leaveneighbourout": 1.0,
+   "top5_full": [
+    "Spring (2015)",
+    "Let Me In (2010)",
+    "The Wailing (2016)",
+    "Let the Right One In (L\u00e5t den r\u00e4tte komma in) (2008)",
+    "Byzantium (2012)"
+   ],
+   "top5_lno": [
+    "Spring (2015)",
+    "Let Me In (2010)",
+    "The Wailing (2016)",
+    "Let the Right One In (L\u00e5t den r\u00e4tte komma in) (2008)",
+    "Byzantium (2012)"
+   ]
+  },
+  "outer space aliens invading earth": {
+   "nearest": [
+    {
+     "tag": "alien invasion",
+     "cos": 0.766
+    },
+    {
+     "tag": "aliens",
+     "cos": 0.649
+    },
+    {
+     "tag": "alien",
+     "cos": 0.536
+    }
+   ],
+   "exact_tag_match": false,
+   "overlap_with_nearest_tag_curated_dir": 0.3,
+   "n_dropped_for_lno": 1,
+   "dropped": [
+    "alien invasion"
+   ],
+   "overlap_full_vs_leaveneighbourout": 0.9,
+   "top5_full": [
+    "Red Planet (2000)",
+    "Wing Commander (1999)",
+    "Supernova (2000)",
+    "Core, The (2003)",
+    "Battlefield Earth (2000)"
+   ],
+   "top5_lno": [
+    "Red Planet (2000)",
+    "Wing Commander (1999)",
+    "Soldier (1998)",
+    "Core, The (2003)",
+    "AVP: Alien vs. Predator (2004)"
+   ]
+  },
+  "spy during the cold war": {
+   "nearest": [
+    {
+     "tag": "cold war",
+     "cos": 0.668
+    },
+    {
+     "tag": "spies",
+     "cos": 0.653
+    },
+    {
+     "tag": "spy",
+     "cos": 0.634
+    }
+   ],
+   "exact_tag_match": false,
+   "overlap_with_nearest_tag_curated_dir": 0.1,
+   "n_dropped_for_lno": 0,
+   "dropped": [],
+   "overlap_full_vs_leaveneighbourout": 1.0,
+   "top5_full": [
+    "Where Eagles Dare (1968)",
+    "Battle of Britain (1969)",
+    "Funeral in Berlin (1966)",
+    "Sink the Bismark! (1960)",
+    "Package, The (1989)"
+   ],
+   "top5_lno": [
+    "Where Eagles Dare (1968)",
+    "Battle of Britain (1969)",
+    "Funeral in Berlin (1966)",
+    "Sink the Bismark! (1960)",
+    "Package, The (1989)"
+   ]
+  },
+  "artificial intelligence robots": {
+   "nearest": [
+    {
+     "tag": "artificial intelligence",
+     "cos": 0.83
+    },
+    {
+     "tag": "robots",
+     "cos": 0.734
+    },
+    {
+     "tag": "robot",
+     "cos": 0.658
+    }
+   ],
+   "exact_tag_match": false,
+   "overlap_with_nearest_tag_curated_dir": 0.3,
+   "n_dropped_for_lno": 1,
+   "dropped": [
+    "artificial intelligence"
+   ],
+   "overlap_full_vs_leaveneighbourout": 0.8,
+   "top5_full": [
+    "Darkest Hour, The (2011)",
+    "Spectral (2016)",
+    "Tron: Legacy (2010)",
+    "Oblivion (2013)",
+    "Surrogates (2009)"
+   ],
+   "top5_lno": [
+    "Spectral (2016)",
+    "Darkest Hour, The (2011)",
+    "Tron: Legacy (2010)",
+    "Oblivion (2013)",
+    "Battleship (2012)"
+   ]
+  },
+  "courtroom drama": {
+   "nearest": [
+    {
+     "tag": "courtroom drama",
+     "cos": 1.0
+    },
+    {
+     "tag": "courtroom",
+     "cos": 0.836
+    },
+    {
+     "tag": "court",
+     "cos": 0.699
+    }
+   ],
+   "exact_tag_match": true,
+   "overlap_with_nearest_tag_curated_dir": 0.4,
+   "n_dropped_for_lno": 2,
+   "dropped": [
+    "courtroom",
+    "courtroom drama"
+   ],
+   "overlap_full_vs_leaveneighbourout": 0.4,
+   "top5_full": [
+    "Indictment: The McMartin Trial (1995)",
+    "Primal Fear (1996)",
+    "Music Box (1989)",
+    "...And Justice for All (1979)",
+    "Verdict, The (1982)"
+   ],
+   "top5_lno": [
+    "Friends of Eddie Coyle, The (1973)",
+    "Indictment: The McMartin Trial (1995)",
+    "Silence, The (Das letzte Schweigen) (2010)",
+    "Straight Time (1978)",
+    "All the Way (2016)"
+   ]
+  },
+  "coming of age in the suburbs": {
+   "nearest": [
+    {
+     "tag": "coming of age",
+     "cos": 0.694
+    },
+    {
+     "tag": "coming-of-age",
+     "cos": 0.683
+    },
+    {
+     "tag": "suburbia",
+     "cos": 0.563
+    }
+   ],
+   "exact_tag_match": false,
+   "overlap_with_nearest_tag_curated_dir": 0.4,
+   "n_dropped_for_lno": 0,
+   "dropped": [],
+   "overlap_full_vs_leaveneighbourout": 1.0,
+   "top5_full": [
+    "Way, Way Back, The (2013)",
+    "Manic (2001)",
+    "Dogfight (1991)",
+    "The Edge of Seventeen (2016)",
+    "Valley Girl (1983)"
+   ],
+   "top5_lno": [
+    "Way, Way Back, The (2013)",
+    "Manic (2001)",
+    "Dogfight (1991)",
+    "The Edge of Seventeen (2016)",
+    "Valley Girl (1983)"
+   ]
+  },
+  "post apocalyptic survival": {
+   "nearest": [
+    {
+     "tag": "post-apocalyptic",
+     "cos": 0.861
+    },
+    {
+     "tag": "post apocalyptic",
+     "cos": 0.86
+    },
+    {
+     "tag": "survival",
+     "cos": 0.695
+    }
+   ],
+   "exact_tag_match": false,
+   "overlap_with_nearest_tag_curated_dir": 0.5,
+   "n_dropped_for_lno": 2,
+   "dropped": [
+    "post apocalyptic",
+    "post-apocalyptic"
+   ],
+   "overlap_full_vs_leaveneighbourout": 0.8,
+   "top5_full": [
+    "Pandorum (2009)",
+    "Outlander (2008)",
+    "Last Days on Mars, The (2013)",
+    "Predators (2010)",
+    "Daybreakers (2010)"
+   ],
+   "top5_lno": [
+    "Outlander (2008)",
+    "Pandorum (2009)",
+    "Predators (2010)",
+    "Last Days on Mars, The (2013)",
+    "Road, The (2009)"
+   ]
+  }
+ },
+ "seconds": 290.3
+}

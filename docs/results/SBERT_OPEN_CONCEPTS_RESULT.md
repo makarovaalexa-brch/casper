@@ -55,3 +55,32 @@ policy could drive it. Report the probes and the 345×-over-random generalisatio
 number as a limitation. Do **not** build a claim on it, and do **not** present it as a text-to-latent
 mapping contribution — that ground is occupied (Balog et al. SIGIR 2021 §5.2 label-free retrieval-centroid;
 Göpfert 2022 / Bıyık 2023 per-concept supervised probes).
+
+
+## PROBE CONTAMINATION CHECK (2026-07-28) — several probes were genome tags
+
+The author asked what the nearest genome tag to each probe was. Several probes ARE tags verbatim:
+`courtroom drama` = tag 263, `dinosaurs` = 304, `coming of age` = 235, `cold war` = 226,
+`heist` = 498, `post apocalyptic` = 802. The probe adapter was refitted on ALL tags, so those phrases
+were in the fitting set — the results were recall of a fitted direction, not open-vocabulary work. A
+sentence asserting the opposite had already been written into the chapter and was pulled.
+
+`src/instrument/probe_nearest_tag.py` measures this: nearest tags by cosine, the top-10 overlap between
+the phrase direction and its nearest tag CURATED direction, and a leave-the-neighbour-out refit dropping
+every tag within cos 0.75.
+
+**The four that survive** (nearest tag < 0.75, nothing dropped, so no contamination):
+
+| phrase | nearest concept | cos | overlap w/ that concept | top films |
+|---|---|---|---|---|
+| movies about grief | *feel good movie* | 0.54 | 0.0 | Rachel Rachel; Mean Creek; The Woodsman |
+| slow burn character study | *character study* | 0.52 | 0.0 | Spring; Let Me In; The Wailing; Let the Right One In |
+| spy during the cold war | *cold war* | 0.67 | 0.1 | Where Eagles Dare; Funeral in Berlin; Sink the Bismarck |
+| coming of age in the suburbs | *coming of age* | 0.69 | 0.4 | The Way Way Back; Manic; Dogfight; Edge of Seventeen |
+
+**Excluded**: courtroom drama and dinosaurs (exact tags, cos 1.0); heist gone wrong (0.79), outer space
+aliens invading earth (0.77), artificial intelligence robots (0.83), post apocalyptic survival (0.86).
+
+The strongest single line: the nearest concept in the whole vocabulary to *movies about grief* is
+*feel good movie* — tonally opposite — sharing NONE of its top ten with that concept curated direction,
+yet the returned films are right. The phrase is placed on its own terms, not retrieved.
