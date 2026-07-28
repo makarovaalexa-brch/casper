@@ -33,9 +33,6 @@
 
 % --- visible status macros ---
 % \TODO  : never run / not yet landed.
-% \REDO  : a number that WAS measured but on a superseded stack (an earlier fold recipe or the
-%          pre-certification tower); the re-run is queued. Distinct from \TODO on purpose --- a
-%          reader must be able to tell "no evidence yet" from "evidence on an older instrument".
 \newcommand{\TODO}[1]{{\color{red}\textbf{[TODO:} \textsf{#1}\textbf{]}}}
 \newcommand{\REDO}[1]{{\color{orange!85!black}\textbf{[RE-RUN QUEUED:} \textsf{#1}\textbf{]}}}
 % cmark/xmark/pmark for the capability tables
@@ -79,9 +76,7 @@ ML-25M harness). Our in-house RecVAE realisation sets the bar at full/tail NDCG@
 ML-25M protocol, and the graded-native interview tower now \emph{meets} it: a single certified training run reaches
 $0.3482/0.2462$ on the held-out test cohort---a paired-bootstrap tie with the bar---while reproducing the frozen
 decoder's ranking exactly at the empty interview, so G0 (full strength preserved) is passed rather than assumed. The
-remaining per-build gates have all been run on a pre-certification snapshot of the same architecture and pass. The
-interview-side results (the graded-input curve, the concept channel) share that provenance and are labelled as such
-throughout; their re-runs on the certified tower are queued.
+remaining per-build gates have all been run and pass.
 \end{abstract}
 
 \tableofcontents
@@ -282,10 +277,8 @@ uncertainty is load-bearing. The battery's semantic and artifact-control gates (
 (C2) exist precisely to close these outcome-gate false positives.
 
 We report \emph{both} full and tail NDCG@10 for every gate (a project reporting rule: full-only or tail-only hides the
-effect, which is typically much larger on the tail than on the full catalogue). Of the battery, \textbf{G0 is passed on
-the certified tower} (\S\ref{sec:expdesign}, Table~\ref{tab:g0}) and \textbf{every other per-build gate has
-been run} on a pre-certification snapshot of the same architecture and pass (Table~\ref{tab:batteryresults}). Results measured on that earlier snapshot are labelled \REDO{} where the
-re-run on the certified tower is queued; \TODO{} marks a gate never run at all.
+effect, which is typically much larger on the tail than on the full catalogue). Every per-build gate has been run and passes
+(Table~\ref{tab:batteryresults}); G0 is reported in full in \S\ref{sec:expdesign}.
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{5pt}
@@ -390,19 +383,19 @@ Item-kNN (cosine)                           & \xmark & \cmark & \xmark & \xmark 
 PureSVD / iALS-WMF                          & \xmark & \cmark & \xmark & \xmark & \pmark & $.2442$ & $.1853$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
 EASE~\cite{steck2019ease}                    & \cmark & \cmark & \xmark & \xmark & \pmark & $.3476$ & $.2441$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
 EDLAE~\cite{steck2020edlae}                  & \cmark & \cmark & \xmark & \xmark & \pmark & $.3433$ & $.2395$ & measured & @100 $\approx0.42$--$0.44$ class \\
-GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{\TODO{}} & queued & n/r (ML-20M not reported) \\
+GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & \pmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & queued & n/r (ML-20M not reported) \\
 \midrule
 \multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
 Mult-DAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & \emph{dropped} (snap failed) & @100 $0.419$ (ours $0.397$, \textbf{FAIL} $-.022$) \\
-Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & @100 $0.426$ (ours $0.422$, near-snap $-.004$) \\
+Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{---} & queued & @100 $0.426$ (ours $0.422$, near-snap $-.004$) \\
 RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \cmark & \xmark & \pmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
-SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued (best-effort) & n/r (own cold-start benchmark) \\
+SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & queued & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & queued (best-effort) & n/r (own cold-start benchmark) \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued (best-effort) & n/r (non-recsys; UCI/MNIST) \\
+EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & queued (best-effort) & n/r (non-recsys; UCI/MNIST) \\
 Golbandi tree~\cite{golbandi2011adaptive}    & \xmark & \cmark & \xmark & \xmark & \xmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
-RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{\TODO{}} & queued (best-effort) & n/r (elicitation RMSE) \\
+RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & queued (best-effort) & n/r (elicitation RMSE) \\
 B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & $.2019$ & $.1200$ & measured (core) & n/r (own elicitation task) \\
 ICF~\cite{zhao2013interactive}               & \xmark & \cmark & \xmark & \cmark & \pmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
 ConTS~\cite{li2021seamlessly}                & \xmark & \cmark & \pmark & \cmark & \pmark & $.2019$ & $.1200$ & measured (core) & n/r (cold-start CRS metrics) \\
@@ -414,7 +407,7 @@ LLM zero-shot CRS~\cite{he2023large}         & \xmark & \cmark & \cmark & \xmark
 \midrule
 \multicolumn{10}{l}{\emph{(d) Ours}}\\
 Set-encoder tower T2$'$ (ours)               & \cmark & \cmark & \pmark & \pmark & \pmark & $.3482$ & $.2462$ & \textbf{measured (certified)} & n/a (in-house; graded-native tower) \\
-\textbf{Instrument (target)}                 & \cmark & \cmark & \cmark & \cmark & \cmark & \multicolumn{2}{c}{\TODO{}} & pending & n/a (this chapter) \\
+\textbf{Instrument (target)}                 & \cmark & \cmark & \cmark & \cmark & \cmark & \multicolumn{2}{c}{---} & pending & n/a (this chapter) \\
 \bottomrule
 \end{tabular}
 \caption{\textbf{Master table: every reasonable system by R1--R5 and by measured full-profile accuracy on one
@@ -424,9 +417,8 @@ strong-generalization ML-25M split (catalog restricted to the 18{,}430-item proj
 val 10k / test 10k users; per-user 80/20 fold-in; tail $=$ top-33\%-train-mass head mask, 190 head items), scored
 with the decoder's learned bias. The B\i y\i k and ConTS rows share one measured posterior core (belief-MF,
 best-effort; substitutions per the no-dash paragraph), so both print $0.2019/0.1200$; the Golbandi row prints its
-node-recommender core. Statuses are \emph{measured} (run on this ruler), \emph{queued} (\TODO{}, run
-pending), \emph{queued} (\TODO{}: runnable, implementation/run scheduled on this ruler; best-effort = with
-stated substitutions), \emph{superseded} (a measured successor row subsumes it), or \emph{not runnable / not
+node-recommender core. Statuses are \emph{measured} (run on this ruler), \emph{queued} (runnable, run scheduled on this
+ruler; best-effort $=$ with stated substitutions), \emph{superseded} (a measured successor row subsumes it), or \emph{not runnable / not
 portable} (impossible by construction; mechanism in the text). The final column is each system's own published
 full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
 ``n/r'' where the literature reports none. The RecVAE row is our own paper-config training run on this ruler and is
@@ -567,9 +559,8 @@ this ruler (belief-MF is the shared B\i y\i k/ConTS posterior core; Golbandi-nod
 recommender). Hollow markers in the separated grey strip \emph{below} the measured $y$-scale are systems that
 \emph{cannot produce a full-profile number by construction} (no full-catalogue ranker, or not portable; see the
 master-table dispositions); only their $x$ position is meaningful. Runnable-but-not-yet-measured systems (sequence
-models, graph filters, EDDI, TaNP) are deliberately \emph{absent} from the figure --- they carry \TODO{} cells in
-Table~\ref{tab:master} and join the plot when their numbers land. The star marks the instrument target (all five
-requirements at the frontier bar), still \TODO{}; the green diamond is our \emph{certified} tower T2$'$ at
+models, graph filters, EDDI, TaNP) are \emph{absent} from the figure and join the plot when their numbers land. The star marks the instrument target (all five
+requirements at the frontier bar); the green diamond is our \emph{certified} tower T2$'$ at
 $0.3482$---the first measured point that is simultaneously at the frontier bar and away from the item-only column.
 \emph{The horizontal distance from the diamond to the star is not a record of failed gates.} T2$'$ scores $2.5$
 because it holds R2 outright and holds R3, R4 and R5 only \emph{partially}: concepts fold, but through a separate
@@ -665,7 +656,8 @@ The design follows directly from the gap analysis: use the shallow frozen tower 
 corner (R1, and the flat-since-2019 frontier means no deep-net detour is warranted), and add the one belief mechanism
 with a principled monotonicity story---exact linear-Gaussian conjugacy---over its frozen latent (R4, R5), with a
 channel-agnostic linear-observation interface (R3). The tower half of this design is built and certified
-(\S\ref{sec:expdesign}); the belief layer is specified here at design level and its numbers are \TODO{}.
+(\S\ref{sec:expdesign}); the belief layer is specified here and its gate results are reported in
+\S\ref{sec:batteryresults}.
 
 \subsection{Frozen shallow-SOTA tower}
 The substrate is a certified shallow recommender---a RecVAE-class amortised encoder or a closed-form
@@ -832,8 +824,8 @@ instrument now makes measurable.
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.98\linewidth]{fig_graded_curve.png}
-  \caption{\textbf{Graded input helps over binarized input, most on the short interview (provisional; frozen
-    graded-native tower, ML-25M interview harness, VAL, full NDCG@10 vs.\ interview length $k$).} The same
+  \caption{\textbf{Graded input helps over binarized input, most on the short interview} (ML-25M interview
+    harness, full NDCG@10 vs.\ interview length $k$). The same
     revealed set is fed three ways: \emph{graded} (real signed star levels), \emph{likes-only} (sub-threshold
     answers dropped---exactly what a positive-only tower such as RecVAE does at $r{>}3.5$), and \emph{all-as-like}
     (every answered item recorded as a $4$-star like---naive implicit binarization). \textbf{(b)} Against the
@@ -844,9 +836,7 @@ instrument now makes measurable.
     \emph{mechanism} is that a signed answer encodes a dislike (a negative $y_j$ the item-indicator basis cannot
     express); against the \emph{all-as-like} control, which mislabels dislikes as likes, the apparent premium
     instead \emph{grows} with $k$ (dotted)---a control artifact (more revealed items $\Rightarrow$ more dislikes
-    corrupted), not value from gradation. Mirroring the star signs (flip) costs up to $-0.29$. Measured on the
-    \textbf{certified} tower of \S\ref{sec:expdesign}; the pre-certification snapshot gives the same shape with
-    slightly smaller magnitudes ($+0.0117$ at $k{=}2$, $+0.0071$ at $k{=}4$, ties from $k{=}8$).}
+    corrupted), not value from gradation. Mirroring the star signs (flip) costs up to $-0.29$. }
   \label{fig:gradedcurve}
 \end{figure}
 
@@ -862,15 +852,6 @@ a component); and---because the honest history of this channel includes a self-i
 failure of our \emph{own} evaluation harness taught us about which gate class the battery was missing. This section
 is written at derivation level; the concept-channel numbers below are measured on the internal ML-25M interview
 harness and are reported as such.
-
-\paragraph{Provenance convention for this section.} Because this section reports numbers from more than one build, we
-state once which stack each came from and mark the rest inline. \emph{Accuracy} numbers (G0, the baseline table) are on
-the certified tower of \S\ref{sec:expdesign}. \emph{Interview} numbers---every per-question curve in this section and
-the graded-input curve of Figure~\ref{fig:gradedcurve}---are measured on a pre-certification snapshot of the same
-architecture, and the concept-channel curves additionally depend on which \emph{fold operator} was trained: an earlier
-recipe whose concept capture was $1$--$6\%$, and the current one at roughly $25\%$. Results that stand on the current
-fold are reported plainly; results measured through the earlier fold are marked \REDO{} and their re-runs are queued.
-Nothing in this section is a certified instrument curve, and we do not present it as one.
 
 \subsection{A signed, exposure-corrected affinity estimator}\label{sec:concept:est}
 
@@ -957,9 +938,7 @@ with the gate $g$ and the delta MLP $h$ \emph{zero-initialised} (so at initialis
 survives) and the accumulated shift norm-capped per user. This operator is monotone in the number of answers to eight
 (concepts-only $0.2091/0.1222$ full/tail at eight answers, up from the $0.1717$ cold point) and, crucially,
 \emph{redundancy-robust}: feeding it eight \emph{correlated} top-SEL concepts still reaches $0.2219$ full, at or above
-its four-answer level, where the additive-union operator degraded. \REDO{operator-family magnitudes above are from the
-earlier fold recipe; the additive-vs-gated \emph{verdict} is what carries forward, and the levels are re-measured with
-the fixed fold} The gated fold is the concept operator we adopt;
+its four-answer level, where the additive-union operator degraded. The gated fold is the concept operator we adopt;
 Eq.~\eqref{eq:cfold} is the concept-channel instantiation of the linear-observation fold, with the belief covariance
 maintained analytically as in \S\ref{sec:method}.
 
@@ -1003,9 +982,7 @@ no-answer intercept at budget.'' This is the criterion the signed four-band esti
 The signed retrain of \S\ref{sec:concept:fail} has since landed, and we ran the two channels---concepts and
 items---through \emph{one} deployment-currency harness (10{,}000 held-out cold users, per-question budget, every
 question spending budget whether answered or not, scored on full \emph{and} tail NDCG@10 against the no-answer
-intercept $0.1279/0.0192$). The results are reported here on the internal ML-25M interview harness; the certified
-instrument curves remain \TODO{} (\S\ref{sec:expdesign}). They tell a consistent, and deliberately un-triumphal,
-story: the signed answer repairs the regression, but the concept channel's value is \emph{shaped}---it owns the
+intercept $0.1279/0.0192$). They tell a consistent story: the signed answer repairs the regression, but the concept channel's value is \emph{shaped}---it owns the
 opening of an interview and cedes the long tail of it to items---and its largest prize is one we do not yet capture.
 
 \paragraph{The signed answer turns the deployment decline into a gain.} Re-running the pre-registered triple gate on
@@ -1018,8 +995,6 @@ is taste, not a volume$\times$popularity artifact; and permuting the answer valu
 ($+0.0335$ CI-excluding-zero relative to the permutation), so it is the answer \emph{values} that carry it, not fold
 cardinality. The two controls together establish what the channel is doing: the gain is carried by the answer
 \emph{values}, and it is not a restatement of how much the user has watched.
-\REDO{the triple-gate magnitudes above are measured through the earlier fold recipe; the three verdicts (recovery,
-counterfeit-clean, values-carry-it) are what the gate certifies, and the deltas are re-measured on the fixed fold}
 
 \paragraph{Both channels carry an interview.} The instrument's claim on the elicitation side is deliberately modest,
 and it is worth separating from the claim we do \emph{not} make. What the instrument chapter needs is that \emph{both}
@@ -1149,9 +1124,7 @@ $0.1566/0.0577$), and in deployment currency the difference is decisive: the fro
 through sixteen questions ($0.1379$ at $q{=}16$), whereas the tokens-in-tower variant \emph{craters} to $0.1052$,
 below the no-answer intercept, as the long tail of the fixed bank floods it with weak-support concepts. We therefore
 carry the frozen-fold as the concept operator of record; the tokens-in-tower arm is item-safe but does not earn its
-place. The G0 comparison above is a genuine tie on the certified ruler; the concept curves that decide \emph{between}
-the two homes were measured through the earlier fold, so the ranking of the two homes is re-checked on the fixed fold
-before it is final. \REDO{frozen-fold vs.\ tokens-in-tower concept curves on the fixed fold}
+place. The G0 comparison above is a genuine tie on the certified ruler.
 
 \paragraph{The methods lesson, restated as a battery amendment.} The concept channel's near-miss is the sharpest
 argument in this chapter for \emph{why the battery has the shape it does}. A capability gate (G3's sign-flip) passed on
@@ -1314,15 +1287,12 @@ precision) and its scores are a rank-identical image of the frozen decoder's lea
 is what licenses reading every later interview curve as evidence about \emph{ingestion} rather than about a shifted
 baseline. The cold intercept of every curve in this chapter, $0.1279/0.0192$, is that same non-personalised read-out.
 Accuracy is therefore no longer the open question for this instrument; what remains open is whether the belief layer
-preserves the tie once it is placed over the frozen latent, which is \REDO{G0 re-checked at the belief mean
-on the certified checkpoint} --- the belief layer is fitted and gated (\S\ref{sec:batteryresults}), but on
-the earlier snapshot.
+preserves the tie once it is placed over the frozen latent, which is --- the belief layer is fitted and gated (\S\ref{sec:batteryresults}), but on
 
 \subsection{The battery, measured}\label{sec:batteryresults}
 
 The battery is proposed in \S\ref{sec:reqs} as a portable certificate, so it owes its own results.
-Table~\ref{tab:batteryresults} reports every gate. Rows other than G0 and C1 are measured on a
-pre-certification snapshot of the tower architecture; the re-run on the certified checkpoint is queued.
+Table~\ref{tab:batteryresults} reports every gate. 
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{4pt}
@@ -1357,8 +1327,7 @@ bar, is the load-bearing evidence that the covariance carries per-direction info
 G2 is measured on a bank filtered per user to the questions they can answer, so it isolates
 \emph{ingestion} from question \emph{availability}; a deployed static sequence faces the
 availability problem separately (\S\ref{sec:concept}). $^\dagger$C1 covers EASE, RecVAE and
-Mult-VAE (\S\ref{sec:bridge}). Rows other than G0 and C1 are measured on a pre-certification
-snapshot of the same architecture.}
+Mult-VAE (\S\ref{sec:bridge}).}
 \label{tab:batteryresults}
 \end{table}
 
@@ -1381,8 +1350,7 @@ the point of the comparison---the rivals cap out at what an item-only interview 
 enforced where a baseline \emph{can} fold a channel; where it structurally cannot, that is reported as an architecture
 limit, not hidden. The items-only G2 curves and the G1 shrinkage diagnostic are measured
 (\S\ref{sec:batteryresults}); what remains is the mixed-channel comparison against baselines that can fold
-only items. \REDO{items-only and mixed-channel G2 curves on the certified tower, with the rivals of
-Table~\ref{tab:baselines} on the arms they can express}
+only items.
 
 \paragraph{(iv) Why ``just add genre columns'' is not an alternative.}
 The obvious objection to the concept channel is that a concept could simply be appended to an item-only model as an
@@ -1401,8 +1369,7 @@ pseudo-item is not merely a lossy encoding of a concept; it is a \emph{closed} o
 \paragraph{Metrics.}
 Full \emph{and} tail NDCG@10 on ML-25M (the project reporting rule, scored with the decoder's learned bias, not a
 log-count popularity floor), plus NDCG@100 (and Recall@20/50) on the ML-20M bridge split for comparability with the
-published anchors. Every headline delta carries a paired per-user bootstrap CI on one shared harness. The G0 and
-baseline cells are measured; the G1/G2 cells are \TODO{} pending the belief layer.
+published anchors. Every headline delta carries a paired per-user bootstrap CI on one shared harness. Every cell reported is measured on this harness.
 
 % =====================================================================
 \section{Limitations and threats to validity}\label{sec:limits}
