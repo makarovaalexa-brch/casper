@@ -101,6 +101,10 @@ def main():
     t0 = time.time()
 
     ctx = build_real_ctx(args.snapshot)
+    # attach_belief is what puts the frozen decoder rows (ctx.Wd) and the genome members
+    # (ctx.tags / ctx.members) onto the context -- needed for the adapter target AND control (b).
+    from run_battery_phaseB import attach_belief
+    attach_belief(ctx, None)
     Wd = ctx.Wd.numpy().astype(np.float64)           # frozen decoder rows: item directions (n x d)
     n, d = Wd.shape
     log(f"[sbert] frozen decoder rows {Wd.shape}")
@@ -167,8 +171,6 @@ def main():
         " ".join(f"{k.split(' | ')[0]}={v:.1f}" for k, v in list(para.items())[:5]))
 
     # ---- (b) at scale: text-derived direction vs the tag's genome-grounded member centroid ----
-    from run_battery_phaseB import attach_belief          # brings genome members onto ctx
-    attach_belief(ctx, None)
     tags = getattr(ctx, "tags", None)
     members = getattr(ctx, "members", None)
     scale = {}
