@@ -691,6 +691,48 @@ monotone in \emph{expected utility}~\cite{good1967principle,blackwell1953equival
 optimally under the belief---per-question NDCG monotonicity is \emph{not} automatic and must be shown empirically
 (\S\ref{sec:limits}).
 
+\paragraph{One answer tightens a whole region, and that is where coarse-to-fine comes from.}
+Because each update adds a rank-one term, the Sherman--Morrison identity gives the effect of asking
+$\bphi$ on the uncertainty along \emph{any other} direction $w$ in closed form:
+\begin{equation}\label{eq:region}
+  w^\top\bSigma_t w \;-\; w^\top\bSigma_{t+1} w
+  \;=\; \frac{\sigma^{-2}\,\bigl(w^\top\bSigma_t\bphi\bigr)^{2}}{1+\sigma^{-2}\,\bphi^\top\bSigma_t\bphi}.
+\end{equation}
+The reduction is proportional to $(w^\top\bSigma_t\bphi)^2$---the squared covariance between $w$ and the
+queried direction under the current belief. A question therefore does not sharpen one axis; it sharpens a
+whole \emph{correlated region}, in proportion to how strongly that region moves with what was asked. The
+consequence for a mixed question bank is immediate and geometric rather than heuristic: a concept
+direction is by construction close to many item directions at once, so folding it collapses a large region
+per question, whereas an idiosyncratic item collapses little beyond itself. Breadth-before-depth is thus a
+property of the covariance geometry, not a scheduling rule imposed from outside---and it is what we
+observe when a purely accuracy-driven greedy is allowed to choose freely from items and concepts together
+(\S\ref{sec:concept:results}). Coarse-to-fine itself is long known in the interview
+literature~\cite{golbandi2011adaptive,rashid2002getting}; what Eq.~\eqref{eq:region} adds is an account of
+\emph{why} it holds in a latent-factor instrument, and a way to compute it for any channel.
+
+\paragraph{The belief separates cleanly into an answer-independent and an answer-dependent part.}
+A property of Eq.~\eqref{eq:precacc} deserves to be stated explicitly, because anyone building elicitation
+on this instrument needs it. The precision $\bLambda_t$ accumulates $\sigma_j^{-2}\bphi_j\bphi_j^\top$
+terms: it depends on \emph{which} directions were queried and on the noise assigned to each, but
+\emph{not on the answers themselves}. The covariance $\bSigma_t$ is therefore the same for two users who
+were asked the same questions and replied differently. The mean is not: $\bmu_t$ carries
+$\sum_j\sigma_j^{-2}y_j\bphi_j$ and moves with every $y_j$.
+
+This asymmetry is informative for elicitation. A question-selection rule that reads only the covariance
+is, by construction, answer-independent---it produces the same sequence for every user, which is the
+linear-Gaussian, variance-only case in which adaptive selection provably gains nothing over a fixed
+schedule~\cite{krause2007nonmyopic,jedynak2012twenty}. A rule that reads the mean, or any quantity derived
+from it such as the current ranking, is not. Our instrument exposes both, so the choice is available to a
+policy designer rather than forced by the substrate; which rule to use, and what it is worth, is the
+companion chapter's question.
+
+One qualification, which the refusal band supplies. The per-observation noise $\sigma_j$ is not constant
+across answer types: an unanswerable question is not folded at all, so whether a user \emph{could} answer
+changes which terms enter $\bLambda_t$. The covariance is consequently answer-dependent to the extent that
+answerability varies across users---and it varies a great deal, since items and concepts are answered at
+very different rates (\S\ref{sec:concept:results}). Answerability thus enters the belief itself, not only
+the accounting of a wasted turn.
+
 \paragraph{Status of the belief layer, stated precisely.} The layer is \emph{built and fitted}, not
 hypothetical: $\bLambda_0,\bmu_0$ are taken from the tower, and the per-channel noise reduces to eight
 fitted scalars (a $2\times3$ channel$\times$confidence precision grid plus a prior scale and a variance
