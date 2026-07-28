@@ -315,24 +315,31 @@ def _seq_answered(sh, rows, seq):
     return ii / n, cc / n
 
 
-def greedy_static_seq(rung, rows, pool, L, fold_refusals=False, refuse_level=4):
+def greedy_static_seq(rung, rows, pool, L, fold_refusals=False, refuse_level=4, objective="full"):
     """Lazy-greedy (CELF) best static sequence of length L from pool=[(chan,id),...], maximizing
-    mean full NDCG@10 over rows. Exploits submodularity: recompute a candidate's marginal gain only
-    when it reaches the top with a stale bound. Returns (seq, gains, n_evals)."""
+    mean NDCG@10 over rows. Exploits submodularity: recompute a candidate's marginal gain only
+    when it reaches the top with a stale bound. Returns (seq, gains, n_evals).
+
+    objective: "full" (default; the 2026-07-27 run used this) or "tail". The original run maximised
+    FULL only and discarded tail, so every tail number it produced was incidental -- which is why the
+    tail objective is worth running separately rather than re-reading the full-optimised sequence.
+    """
     import heapq
-    base, _ = _greedy_avg(rung, rows, [], fold_refusals, refuse_level)
+    assert objective in ("full", "tail"), objective
+    pick = (lambda ft: ft[0]) if objective == "full" else (lambda ft: ft[1])
+    base = pick(_greedy_avg(rung, rows, [], fold_refusals, refuse_level))
     heap = []; nev = 0
     for q in pool:
-        f, _ = _greedy_avg(rung, rows, [q], fold_refusals, refuse_level); nev += 1
-        heapq.heappush(heap, (-(f - base), q, 0))
+        v = pick(_greedy_avg(rung, rows, [q], fold_refusals, refuse_level)); nev += 1
+        heapq.heappush(heap, (-(v - base), q, 0))
     seq, gains, cur = [], [], base
     while len(seq) < L and heap:
         neg, q, upd = heapq.heappop(heap)
         if upd == len(seq):
             seq.append(q); gains.append(-neg); cur += -neg
         else:
-            f, _ = _greedy_avg(rung, rows, seq + [q], fold_refusals, refuse_level); nev += 1
-            heapq.heappush(heap, (-(f - cur), q, len(seq)))
+            v = pick(_greedy_avg(rung, rows, seq + [q], fold_refusals, refuse_level)); nev += 1
+            heapq.heappush(heap, (-(v - cur), q, len(seq)))
     return seq, gains, nev
 
 
@@ -461,6 +468,10 @@ def main():
     ap.add_argument("--greedy", action="store_true",
                     help="best-static greedy sequence (lazy CELF) for NDCG: items-only / concepts-only "
                          "/ combined; shows the emergent optimal concept+item order")
+    ap.add_argument("--objective", default="full", choices=["full", "tail"],
+                    help="metric the greedy maximises. The 2026-07-27 run used 'full' and discarded "
+                         "tail, so its tail numbers were incidental; 'tail' gives the concept channel "
+                         "its first tail-optimised sequence. Output filenames are suffixed by objective.")
     ap.add_argument("--n_items", type=int, default=500, help="greedy: top-N popular items in the pool")
     ap.add_argument("--n_concepts", type=int, default=500,
                     help="greedy: top-M most-answerable concepts in the pool")
@@ -552,8 +563,9 @@ def main():
                                     for q in BUDGETS) + f" ({(time.time()-t0)/60:.1f}m)")
     if args.greedy:
         # best-static greedy sequence for NDCG: items-only / concepts-only / combined.
-        GRJSON = os.path.join(_ROOT, "experiments", "battery", "greedy_static.json")
-        GRPNG = os.path.join(_ROOT, "experiments", "battery", "greedy_static.png")
+        _sfx = "" if args.objective == "full" else f"_{args.objective}"
+        GRJSON = os.path.join(_ROOT, "experiments", "battery", f"greedy_static{_sfx}.json")
+        GRPNG = os.path.join(_ROOT, "experiments", "battery", f"greedy_static{_sfx}.png")
         # split-construct: BUILD greedy on val, EVAL on a DISJOINT set (greedy maximizes eval NDCG,
         # so fit==eval overfits -> always split).
         if args.eval_test:
@@ -585,7 +597,8 @@ def main():
                            ("combined", item_pool + conc_pool)]:
             t0 = time.time()
             seq, gains, nev = greedy_static_seq(rung, build_rows, pool, max(BUDGETS),
-                                                args.fold_refusals, args.refuse_level)
+                                                args.fold_refusals, args.refuse_level,
+                                                objective=args.objective)
             curve = {}
             for q in BUDGETS:
                 f, t = _greedy_avg(eval_rung, eval_rows, seq[:q],
@@ -607,7 +620,7 @@ def main():
                 + f" ({(time.time()-t0)/60:.1f}m)")
         out = {"analysis": "greedy_static_seq", "n_build_users": len(build_rows),
                "n_eval_users": len(eval_rows), "eval_split": "test" if args.eval_test else "val-disjoint",
-               "fold_refusals": bool(args.fold_refusals),
+               "objective": args.objective, "fold_refusals": bool(args.fold_refusals),
                "n_items_pool": len(item_pool), "n_concepts_pool": len(conc_pool),
                "note": ("build on ALL val, eval on disjoint TEST cohort (paper-grade)"
                         if args.eval_test else
