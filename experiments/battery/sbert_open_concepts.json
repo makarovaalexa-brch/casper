@@ -1,0 +1,976 @@
+{
+ "snapshot": "t2i25_EP4_SNAP.pt",
+ "n_concepts": 1031,
+ "ridge": 1.0,
+ "holdout_frac": 0.2,
+ "held_out_concepts": {
+  "n": 206,
+  "cos_mean": 0.6380160526088252,
+  "overlap@10_mean": 0.16747572815533981,
+  "overlap@10_random": 0.00048543689320388353,
+  "ratio_vs_random": 345.0
+ },
+ "in_fit_cos_reference": 0.8151799980763387,
+ "per_held_out_tag": {
+  "nudity": {
+   "cos": 0.837,
+   "overlap@10": 0.0
+  },
+  "stop-motion": {
+   "cos": 0.716,
+   "overlap@10": 0.1
+  },
+  "oscar (best actor)": {
+   "cos": 0.862,
+   "overlap@10": 0.3
+  },
+  "handycam": {
+   "cos": 0.053,
+   "overlap@10": 0.0
+  },
+  "dialogue driven": {
+   "cos": 0.706,
+   "overlap@10": 0.1
+  },
+  "assassin": {
+   "cos": 0.85,
+   "overlap@10": 0.4
+  },
+  "murder": {
+   "cos": 0.848,
+   "overlap@10": 0.0
+  },
+  "united nations": {
+   "cos": 0.595,
+   "overlap@10": 0.3
+  },
+  "teen": {
+   "cos": 0.841,
+   "overlap@10": 0.3
+  },
+  "talking animals": {
+   "cos": 0.715,
+   "overlap@10": 0.1
+  },
+  "pretentious": {
+   "cos": 0.497,
+   "overlap@10": 0.0
+  },
+  "saturn award (best special effects)": {
+   "cos": 0.827,
+   "overlap@10": 0.1
+  },
+  "dragons": {
+   "cos": 0.874,
+   "overlap@10": 0.2
+  },
+  "very interesting": {
+   "cos": 0.699,
+   "overlap@10": 0.0
+  },
+  "underdog": {
+   "cos": 0.432,
+   "overlap@10": 0.0
+  },
+  "teleportation": {
+   "cos": 0.702,
+   "overlap@10": 0.0
+  },
+  "poetry": {
+   "cos": 0.762,
+   "overlap@10": 0.1
+  },
+  "conspiracy": {
+   "cos": 0.85,
+   "overlap@10": 0.4
+  },
+  "suburbia": {
+   "cos": 0.606,
+   "overlap@10": 0.0
+  },
+  "big budget": {
+   "cos": 0.364,
+   "overlap@10": 0.0
+  },
+  "aardman studios": {
+   "cos": -0.04,
+   "overlap@10": 0.0
+  },
+  "cyberpunk": {
+   "cos": 0.675,
+   "overlap@10": 0.0
+  },
+  "spain": {
+   "cos": 0.768,
+   "overlap@10": 0.1
+  },
+  "awesome soundtrack": {
+   "cos": 0.56,
+   "overlap@10": 0.0
+  },
+  "complex characters": {
+   "cos": 0.117,
+   "overlap@10": 0.0
+  },
+  "zombies": {
+   "cos": 0.811,
+   "overlap@10": 0.1
+  },
+  "finnish": {
+   "cos": 0.485,
+   "overlap@10": 0.0
+  },
+  "spielberg": {
+   "cos": 0.561,
+   "overlap@10": 0.0
+  },
+  "product placement": {
+   "cos": -0.161,
+   "overlap@10": 0.0
+  },
+  "interracial romance": {
+   "cos": 0.449,
+   "overlap@10": 0.0
+  },
+  "parenthood": {
+   "cos": 0.751,
+   "overlap@10": 0.1
+  },
+  "reality tv": {
+   "cos": 0.49,
+   "overlap@10": 0.0
+  },
+  "vietnam war": {
+   "cos": 0.862,
+   "overlap@10": 0.5
+  },
+  "police investigation": {
+   "cos": 0.903,
+   "overlap@10": 0.0
+  },
+  "secret service": {
+   "cos": 0.817,
+   "overlap@10": 0.1
+  },
+  "environment": {
+   "cos": 0.793,
+   "overlap@10": 0.4
+  },
+  "scary": {
+   "cos": 0.847,
+   "overlap@10": 0.1
+  },
+  "fairy tales": {
+   "cos": 0.858,
+   "overlap@10": 0.4
+  },
+  "good versus evil": {
+   "cos": 0.368,
+   "overlap@10": 0.0
+  },
+  "caper": {
+   "cos": 0.074,
+   "overlap@10": 0.0
+  },
+  "assassins": {
+   "cos": 0.834,
+   "overlap@10": 0.3
+  },
+  "better than the american version": {
+   "cos": 0.083,
+   "overlap@10": 0.0
+  },
+  "surrealism": {
+   "cos": 0.832,
+   "overlap@10": 0.3
+  },
+  "tragedy": {
+   "cos": 0.609,
+   "overlap@10": 0.0
+  },
+  "genius": {
+   "cos": 0.281,
+   "overlap@10": 0.0
+  },
+  "time loop": {
+   "cos": 0.694,
+   "overlap@10": 0.3
+  },
+  "free to download": {
+   "cos": 0.408,
+   "overlap@10": 0.0
+  },
+  "post apocalyptic": {
+   "cos": 0.822,
+   "overlap@10": 0.4
+  },
+  "steampunk": {
+   "cos": 0.219,
+   "overlap@10": 0.0
+  },
+  "martial arts": {
+   "cos": 0.685,
+   "overlap@10": 0.4
+  },
+  "historical": {
+   "cos": 0.909,
+   "overlap@10": 0.6
+  },
+  "ocean": {
+   "cos": 0.627,
+   "overlap@10": 0.0
+  },
+  "brainwashing": {
+   "cos": 0.7,
+   "overlap@10": 0.1
+  },
+  "wwii": {
+   "cos": 0.944,
+   "overlap@10": 0.9
+  },
+  "gratuitous violence": {
+   "cos": 0.693,
+   "overlap@10": 0.2
+  },
+  "complex": {
+   "cos": 0.814,
+   "overlap@10": 0.3
+  },
+  "erotic": {
+   "cos": 0.844,
+   "overlap@10": 0.4
+  },
+  "oscar (best cinematography)": {
+   "cos": 0.783,
+   "overlap@10": 0.2
+  },
+  "non-linear": {
+   "cos": 0.671,
+   "overlap@10": 0.2
+  },
+  "oscar (best writing - screenplay written directly for the screen)": {
+   "cos": 0.721,
+   "overlap@10": 0.1
+  },
+  "hospital": {
+   "cos": 0.747,
+   "overlap@10": 0.1
+  },
+  "devil": {
+   "cos": 0.69,
+   "overlap@10": 0.1
+  },
+  "80s": {
+   "cos": 0.637,
+   "overlap@10": 0.2
+  },
+  "imagination": {
+   "cos": 0.83,
+   "overlap@10": 0.2
+  },
+  "idealism": {
+   "cos": 0.579,
+   "overlap@10": 0.0
+  },
+  "graphic design": {
+   "cos": 0.729,
+   "overlap@10": 0.1
+  },
+  "native americans": {
+   "cos": 0.546,
+   "overlap@10": 0.0
+  },
+  "lawyers": {
+   "cos": 0.863,
+   "overlap@10": 0.3
+  },
+  "overrated": {
+   "cos": -0.054,
+   "overlap@10": 0.0
+  },
+  "infidelity": {
+   "cos": 0.751,
+   "overlap@10": 0.3
+  },
+  "fight scenes": {
+   "cos": 0.51,
+   "overlap@10": 0.0
+  },
+  "science fiction": {
+   "cos": 0.91,
+   "overlap@10": 0.7
+  },
+  "free speech": {
+   "cos": 0.659,
+   "overlap@10": 0.0
+  },
+  "spiders": {
+   "cos": 0.838,
+   "overlap@10": 0.1
+  },
+  "biting": {
+   "cos": 0.143,
+   "overlap@10": 0.0
+  },
+  "moving": {
+   "cos": 0.298,
+   "overlap@10": 0.0
+  },
+  "ironic": {
+   "cos": 0.606,
+   "overlap@10": 0.0
+  },
+  "heist": {
+   "cos": 0.267,
+   "overlap@10": 0.0
+  },
+  "natural disaster": {
+   "cos": 0.835,
+   "overlap@10": 0.4
+  },
+  "comics": {
+   "cos": 0.929,
+   "overlap@10": 0.5
+  },
+  "wizards": {
+   "cos": 0.691,
+   "overlap@10": 0.1
+  },
+  "true story": {
+   "cos": 0.629,
+   "overlap@10": 0.3
+  },
+  "suprisingly clever": {
+   "cos": 0.619,
+   "overlap@10": 0.0
+  },
+  "biography": {
+   "cos": 0.879,
+   "overlap@10": 0.4
+  },
+  "dumb": {
+   "cos": 0.84,
+   "overlap@10": 0.3
+  },
+  "talky": {
+   "cos": 0.32,
+   "overlap@10": 0.0
+  },
+  "brazil": {
+   "cos": 0.64,
+   "overlap@10": 0.2
+  },
+  "animated": {
+   "cos": 0.88,
+   "overlap@10": 0.6
+  },
+  "sexuality": {
+   "cos": 0.914,
+   "overlap@10": 0.3
+  },
+  "iraq war": {
+   "cos": 0.785,
+   "overlap@10": 0.2
+  },
+  "silly fun": {
+   "cos": 0.848,
+   "overlap@10": 0.1
+  },
+  "artist": {
+   "cos": 0.789,
+   "overlap@10": 0.3
+  },
+  "sword fighting": {
+   "cos": 0.862,
+   "overlap@10": 0.5
+  },
+  "exceptional acting": {
+   "cos": 0.752,
+   "overlap@10": 0.2
+  },
+  "soccer": {
+   "cos": 0.612,
+   "overlap@10": 0.6
+  },
+  "realistic action": {
+   "cos": 0.803,
+   "overlap@10": 0.2
+  },
+  "cold war": {
+   "cos": 0.621,
+   "overlap@10": 0.0
+  },
+  "special": {
+   "cos": 0.263,
+   "overlap@10": 0.0
+  },
+  "classical music": {
+   "cos": 0.731,
+   "overlap@10": 0.1
+  },
+  "japanese": {
+   "cos": 0.729,
+   "overlap@10": 0.2
+  },
+  "android(s)/cyborg(s)": {
+   "cos": 0.801,
+   "overlap@10": 0.4
+  },
+  "virginity": {
+   "cos": 0.719,
+   "overlap@10": 0.0
+  },
+  "virtual reality": {
+   "cos": 0.797,
+   "overlap@10": 0.2
+  },
+  "hackers": {
+   "cos": 0.703,
+   "overlap@10": 0.3
+  },
+  "rome": {
+   "cos": 0.659,
+   "overlap@10": 0.0
+  },
+  "cloning": {
+   "cos": 0.799,
+   "overlap@10": 0.4
+  },
+  "psychological": {
+   "cos": 0.829,
+   "overlap@10": 0.1
+  },
+  "enormously long battle scene": {
+   "cos": 0.493,
+   "overlap@10": 0.0
+  },
+  "organized crime": {
+   "cos": 0.891,
+   "overlap@10": 0.6
+  },
+  "kick-butt women": {
+   "cos": 0.12,
+   "overlap@10": 0.0
+  },
+  "computers": {
+   "cos": 0.82,
+   "overlap@10": 0.0
+  },
+  "absurd": {
+   "cos": 0.757,
+   "overlap@10": 0.0
+  },
+  "nuclear": {
+   "cos": 0.728,
+   "overlap@10": 0.4
+  },
+  "007": {
+   "cos": 0.692,
+   "overlap@10": 0.7
+  },
+  "working class": {
+   "cos": 0.168,
+   "overlap@10": 0.0
+  },
+  "relationships": {
+   "cos": 0.791,
+   "overlap@10": 0.1
+  },
+  "cerebral": {
+   "cos": 0.825,
+   "overlap@10": 0.2
+  },
+  "forceful": {
+   "cos": 0.732,
+   "overlap@10": 0.1
+  },
+  "police corruption": {
+   "cos": 0.954,
+   "overlap@10": 0.8
+  },
+  "good": {
+   "cos": 0.555,
+   "overlap@10": 0.1
+  },
+  "israel": {
+   "cos": 0.854,
+   "overlap@10": 0.5
+  },
+  "politics": {
+   "cos": 0.938,
+   "overlap@10": 0.7
+  },
+  "india": {
+   "cos": 0.437,
+   "overlap@10": 0.0
+  },
+  "colonialism": {
+   "cos": 0.689,
+   "overlap@10": 0.2
+  },
+  "innocence lost": {
+   "cos": 0.368,
+   "overlap@10": 0.0
+  },
+  "masterpiece": {
+   "cos": 0.848,
+   "overlap@10": 0.5
+  },
+  "court": {
+   "cos": 0.861,
+   "overlap@10": 0.5
+  },
+  "factual": {
+   "cos": 0.456,
+   "overlap@10": 0.0
+  },
+  "divorce": {
+   "cos": 0.639,
+   "overlap@10": 0.0
+  },
+  "end of the world": {
+   "cos": 0.736,
+   "overlap@10": 0.3
+  },
+  "art": {
+   "cos": 0.773,
+   "overlap@10": 0.1
+  },
+  "complicated plot": {
+   "cos": 0.781,
+   "overlap@10": 0.3
+  },
+  "firefly": {
+   "cos": 0.285,
+   "overlap@10": 0.0
+  },
+  "hip hop": {
+   "cos": 0.629,
+   "overlap@10": 0.0
+  },
+  "campy": {
+   "cos": 0.47,
+   "overlap@10": 0.0
+  },
+  "ghosts/afterlife": {
+   "cos": 0.662,
+   "overlap@10": 0.1
+  },
+  "witches": {
+   "cos": 0.629,
+   "overlap@10": 0.0
+  },
+  "wilderness": {
+   "cos": 0.739,
+   "overlap@10": 0.2
+  },
+  "british comedy": {
+   "cos": 0.817,
+   "overlap@10": 0.4
+  },
+  "black comedy": {
+   "cos": 0.544,
+   "overlap@10": 0.0
+  },
+  "robots": {
+   "cos": 0.918,
+   "overlap@10": 0.5
+  },
+  "good sequel": {
+   "cos": 0.762,
+   "overlap@10": 0.1
+  },
+  "stand-up comedy": {
+   "cos": 0.376,
+   "overlap@10": 0.0
+  },
+  "james bond": {
+   "cos": 0.512,
+   "overlap@10": 0.7
+  },
+  "witch": {
+   "cos": 0.655,
+   "overlap@10": 0.0
+  },
+  "censorship": {
+   "cos": 0.273,
+   "overlap@10": 0.0
+  },
+  "amazing cinematography": {
+   "cos": 0.895,
+   "overlap@10": 0.2
+  },
+  "death": {
+   "cos": 0.865,
+   "overlap@10": 0.4
+  },
+  "oscar": {
+   "cos": 0.763,
+   "overlap@10": 0.0
+  },
+  "nostalgic": {
+   "cos": 0.092,
+   "overlap@10": 0.0
+  },
+  "first contact": {
+   "cos": -0.256,
+   "overlap@10": 0.0
+  },
+  "ensemble cast": {
+   "cos": 0.048,
+   "overlap@10": 0.0
+  },
+  "cheerleading": {
+   "cos": 0.497,
+   "overlap@10": 0.0
+  },
+  "oscar (best picture)": {
+   "cos": 0.766,
+   "overlap@10": 0.1
+  },
+  "whimsical": {
+   "cos": 0.099,
+   "overlap@10": 0.0
+  },
+  "plot": {
+   "cos": 0.804,
+   "overlap@10": 0.1
+  },
+  "world war i": {
+   "cos": 0.834,
+   "overlap@10": 0.6
+  },
+  "mutants": {
+   "cos": 0.846,
+   "overlap@10": 0.3
+  },
+  "man versus machine": {
+   "cos": 0.736,
+   "overlap@10": 0.1
+  },
+  "fighting": {
+   "cos": 0.428,
+   "overlap@10": 0.0
+  },
+  "better than expected": {
+   "cos": 0.299,
+   "overlap@10": 0.0
+  },
+  "romance": {
+   "cos": 0.736,
+   "overlap@10": 0.2
+  },
+  "mistaken identity": {
+   "cos": 0.351,
+   "overlap@10": 0.0
+  },
+  "dogs": {
+   "cos": 0.832,
+   "overlap@10": 0.4
+  },
+  "author:neil gaiman": {
+   "cos": 0.145,
+   "overlap@10": 0.0
+  },
+  "creepy": {
+   "cos": 0.788,
+   "overlap@10": 0.2
+  },
+  "claymation": {
+   "cos": 0.342,
+   "overlap@10": 0.0
+  },
+  "ridiculous": {
+   "cos": 0.655,
+   "overlap@10": 0.0
+  },
+  "super hero": {
+   "cos": 0.913,
+   "overlap@10": 0.7
+  },
+  "depressing": {
+   "cos": 0.859,
+   "overlap@10": 0.1
+  },
+  "geeks": {
+   "cos": 0.641,
+   "overlap@10": 0.0
+  },
+  "immigrants": {
+   "cos": 0.756,
+   "overlap@10": 0.0
+  },
+  "gay character": {
+   "cos": 0.522,
+   "overlap@10": 0.9
+  },
+  "scifi cult": {
+   "cos": 0.785,
+   "overlap@10": 0.2
+  },
+  "great acting": {
+   "cos": 0.74,
+   "overlap@10": 0.0
+  },
+  "gunfight": {
+   "cos": 0.892,
+   "overlap@10": 0.3
+  },
+  "swashbuckler": {
+   "cos": 0.331,
+   "overlap@10": 0.0
+  },
+  "cartoon": {
+   "cos": 0.75,
+   "overlap@10": 0.0
+  },
+  "father-son relationship": {
+   "cos": 0.615,
+   "overlap@10": 0.1
+  },
+  "doctors": {
+   "cos": 0.665,
+   "overlap@10": 0.0
+  },
+  "love": {
+   "cos": 0.774,
+   "overlap@10": 0.2
+  },
+  "romantic comedy": {
+   "cos": 0.739,
+   "overlap@10": 0.4
+  },
+  "good music": {
+   "cos": 0.762,
+   "overlap@10": 0.1
+  },
+  "stylized": {
+   "cos": 0.775,
+   "overlap@10": 0.2
+  },
+  "adapted from:game": {
+   "cos": 0.769,
+   "overlap@10": 0.2
+  },
+  "stupid as hell": {
+   "cos": 0.854,
+   "overlap@10": 0.1
+  },
+  "based on a play": {
+   "cos": 0.406,
+   "overlap@10": 0.0
+  },
+  "pixar": {
+   "cos": 0.672,
+   "overlap@10": 0.1
+  },
+  "art house": {
+   "cos": 0.373,
+   "overlap@10": 0.0
+  },
+  "italian": {
+   "cos": 0.741,
+   "overlap@10": 0.2
+  },
+  "dark fantasy": {
+   "cos": 0.895,
+   "overlap@10": 0.6
+  },
+  "monster": {
+   "cos": 0.771,
+   "overlap@10": 0.1
+  },
+  "time": {
+   "cos": 0.383,
+   "overlap@10": 0.0
+  },
+  "canada": {
+   "cos": 0.454,
+   "overlap@10": 0.0
+  },
+  "las vegas": {
+   "cos": 0.696,
+   "overlap@10": 0.1
+  },
+  "cathartic": {
+   "cos": 0.592,
+   "overlap@10": 0.0
+  },
+  "underwater": {
+   "cos": 0.764,
+   "overlap@10": 0.0
+  },
+  "competition": {
+   "cos": 0.327,
+   "overlap@10": 0.0
+  },
+  "christian": {
+   "cos": 0.614,
+   "overlap@10": 0.2
+  },
+  "teen movie": {
+   "cos": 0.869,
+   "overlap@10": 0.4
+  },
+  "thriller": {
+   "cos": 0.789,
+   "overlap@10": 0.0
+  },
+  "wedding": {
+   "cos": 0.506,
+   "overlap@10": 0.0
+  },
+  "slapstick": {
+   "cos": 0.055,
+   "overlap@10": 0.0
+  },
+  "morality": {
+   "cos": 0.675,
+   "overlap@10": 0.1
+  },
+  "explosions": {
+   "cos": 0.559,
+   "overlap@10": 0.0
+  },
+  "samurai": {
+   "cos": 0.787,
+   "overlap@10": 0.6
+  }
+ },
+ "probes": {
+  "dinosaurs": [
+   "Tremors II: Aftershocks (1996)",
+   "Food of the Gods, The (1976)",
+   "Land That Time Forgot, The (1975)",
+   "Lost in Space (1998)",
+   "Battlefield Earth (2000)",
+   "Wing Commander (1999)",
+   "Earth vs. the Flying Saucers (1956)",
+   "Godzilla 1985: The Legend Is Reborn (Gojira) (Godzilla) (Return of Godzilla, The) (1984)",
+   "Black Hole, The (1979)",
+   "It Came from Beneath the Sea (1955)"
+  ],
+  "movies about grief": [
+   "Hush... Hush, Sweet Charlotte (1964)",
+   "Rachel, Rachel (1968)",
+   "Mean Creek (2004)",
+   "Woodsman, The (2004)",
+   "Rabbit Hole (2010)",
+   "Cropsey (2009)",
+   "Bastard Out of Carolina (1996)",
+   "Sybil (1976)",
+   "Things We Lost in the Fire (2007)",
+   "Wit (2001)"
+  ],
+  "heist gone wrong": [
+   "D\u00e9j\u00e0 Vu (Deja Vu) (2006)",
+   "Non-Stop (2014)",
+   "Unknown (2011)",
+   "International, The (2009)",
+   "Firewall (2006)",
+   "Man on a Ledge (2012)",
+   "Next (2007)",
+   "Eagle Eye (2008)",
+   "Time Lapse (2014)",
+   "Cypher (2002)"
+  ],
+  "slow burn character study": [
+   "Spring (2015)",
+   "Let Me In (2010)",
+   "The Wailing (2016)",
+   "Let the Right One In (L\u00e5t den r\u00e4tte komma in) (2008)",
+   "Byzantium (2012)",
+   "Never Let Me Go (2010)",
+   "Tale of Two Sisters, A (Janghwa, Hongryeon) (2003)",
+   "It Comes at Night (2017)",
+   "A Dark Song (2017)",
+   "The Void (2016)"
+  ],
+  "outer space aliens invading earth": [
+   "Red Planet (2000)",
+   "Wing Commander (1999)",
+   "Supernova (2000)",
+   "Core, The (2003)",
+   "Battlefield Earth (2000)",
+   "AVP: Alien vs. Predator (2004)",
+   "Soldier (1998)",
+   "Skyline (2010)",
+   "Darkest Hour, The (2011)",
+   "Mission to Mars (2000)"
+  ],
+  "spy during the cold war": [
+   "Where Eagles Dare (1968)",
+   "Battle of Britain (1969)",
+   "Funeral in Berlin (1966)",
+   "Sink the Bismark! (1960)",
+   "Package, The (1989)",
+   "Sea Wolves, The (1980)",
+   "Living Daylights, The (1987)",
+   "Ipcress File, The (1965)",
+   "Fourth Protocol, The (1987)",
+   "Eagle Has Landed, The (1976)"
+  ],
+  "artificial intelligence robots": [
+   "Darkest Hour, The (2011)",
+   "Spectral (2016)",
+   "Tron: Legacy (2010)",
+   "Oblivion (2013)",
+   "Surrogates (2009)",
+   "Red Planet (2000)",
+   "Aut\u00f3mata (Automata) (2014)",
+   "Cargo (2009)",
+   "Battleship (2012)",
+   "Project Almanac (2015)"
+  ],
+  "courtroom drama": [
+   "Indictment: The McMartin Trial (1995)",
+   "Primal Fear (1996)",
+   "Music Box (1989)",
+   "...And Justice for All (1979)",
+   "Verdict, The (1982)",
+   "Silence, The (Das letzte Schweigen) (2010)",
+   "61* (2001)",
+   "Presumed Innocent (1990)",
+   "City Hall (1996)",
+   "Longford (2006)"
+  ],
+  "coming of age in the suburbs": [
+   "Way, Way Back, The (2013)",
+   "Manic (2001)",
+   "Dogfight (1991)",
+   "The Edge of Seventeen (2016)",
+   "Valley Girl (1983)",
+   "Speak (2004)",
+   "The Spectacular Now (2013)",
+   "Lucas (1986)",
+   "Just One of the Guys (1985)",
+   "Short Term 12 (2013)"
+  ],
+  "post apocalyptic survival": [
+   "Pandorum (2009)",
+   "Outlander (2008)",
+   "Last Days on Mars, The (2013)",
+   "Predators (2010)",
+   "Daybreakers (2010)",
+   "Road, The (2009)",
+   "Skyline (2010)",
+   "Enemy Mine (1985)",
+   "Cargo (2009)",
+   "Thing, The (2011)"
+  ]
+ },
+ "paraphrase_overlap@10": {
+  "dinosaurs | prehistoric reptiles": 0.0,
+  "time travel | journeys through time": 0.1,
+  "horror | scary frightening movies": 0.5,
+  "space | outer space and distant planets": 0.5,
+  "war | armed conflict and battlefields": 0.7,
+  "romance | falling in love": 0.0,
+  "animation | animated cartoon films": 0.0,
+  "crime | criminals and heists": 0.4,
+  "comedy | funny humorous films": 0.3,
+  "documentary | non fiction real life films": 0.0
+ },
+ "paraphrase_mean": 0.25,
+ "seconds": 219.5
+}

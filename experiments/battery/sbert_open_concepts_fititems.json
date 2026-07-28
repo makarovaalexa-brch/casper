@@ -1,0 +1,4283 @@
+{
+ "snapshot": "t2i25_EP4_SNAP.pt",
+ "n_concepts": 1031,
+ "ridge": 1.0,
+ "holdout_frac": 0.2,
+ "fit_on": "items",
+ "held_out_concepts": {
+  "n": 1031,
+  "cos_mean": 0.5034652257571759,
+  "overlap@10_mean": 0.08593598448108633,
+  "overlap@10_random": 0.00048496605237633366,
+  "ratio_vs_random": 177.20000000000002
+ },
+ "held_out_vs_d_raw": {
+  "cos_mean": 0.3730426578108891,
+  "overlap@10_mean": 0.055480116391852574,
+  "overlap@10_random": 0.000387972841901067,
+  "ratio_vs_random": 143.0
+ },
+ "in_fit_cos_reference": null,
+ "per_held_out_tag": {
+  "007": {
+   "cos": 0.592,
+   "overlap@10": 0.8
+  },
+  "007 (series)": {
+   "cos": 0.665,
+   "overlap@10": 0.9
+  },
+  "18th century": {
+   "cos": 0.853,
+   "overlap@10": 0.8
+  },
+  "1920s": {
+   "cos": 0.513,
+   "overlap@10": 0.0
+  },
+  "1930s": {
+   "cos": 0.71,
+   "overlap@10": 0.1
+  },
+  "1950s": {
+   "cos": 0.696,
+   "overlap@10": 0.0
+  },
+  "1960s": {
+   "cos": 0.68,
+   "overlap@10": 0.2
+  },
+  "1970s": {
+   "cos": 0.626,
+   "overlap@10": 0.2
+  },
+  "1980s": {
+   "cos": 0.83,
+   "overlap@10": 0.7
+  },
+  "19th century": {
+   "cos": 0.777,
+   "overlap@10": 0.1
+  },
+  "3d": {
+   "cos": 0.663,
+   "overlap@10": 0.3
+  },
+  "70mm": {
+   "cos": 0.61,
+   "overlap@10": 0.1
+  },
+  "80s": {
+   "cos": 0.769,
+   "overlap@10": 0.5
+  },
+  "aardman studios": {
+   "cos": 0.203,
+   "overlap@10": 0.0
+  },
+  "absurd": {
+   "cos": 0.679,
+   "overlap@10": 0.0
+  },
+  "action": {
+   "cos": 0.691,
+   "overlap@10": 0.1
+  },
+  "action packed": {
+   "cos": 0.733,
+   "overlap@10": 0.3
+  },
+  "adaptation": {
+   "cos": 0.368,
+   "overlap@10": 0.0
+  },
+  "adapted from:book": {
+   "cos": 0.431,
+   "overlap@10": 0.0
+  },
+  "adapted from:comic": {
+   "cos": 0.572,
+   "overlap@10": 0.5
+  },
+  "adapted from:game": {
+   "cos": 0.399,
+   "overlap@10": 0.0
+  },
+  "addiction": {
+   "cos": 0.656,
+   "overlap@10": 0.3
+  },
+  "adolescence": {
+   "cos": 0.626,
+   "overlap@10": 0.2
+  },
+  "adoption": {
+   "cos": 0.708,
+   "overlap@10": 0.2
+  },
+  "adultery": {
+   "cos": 0.531,
+   "overlap@10": 0.0
+  },
+  "adventure": {
+   "cos": 0.536,
+   "overlap@10": 0.1
+  },
+  "affectionate": {
+   "cos": 0.432,
+   "overlap@10": 0.0
+  },
+  "afi 100": {
+   "cos": 0.355,
+   "overlap@10": 0.0
+  },
+  "afi 100 (laughs)": {
+   "cos": 0.396,
+   "overlap@10": 0.0
+  },
+  "afi 100 (movie quotes)": {
+   "cos": 0.643,
+   "overlap@10": 0.2
+  },
+  "africa": {
+   "cos": 0.603,
+   "overlap@10": 0.0
+  },
+  "afterlife": {
+   "cos": 0.593,
+   "overlap@10": 0.3
+  },
+  "aging": {
+   "cos": 0.474,
+   "overlap@10": 0.0
+  },
+  "aids": {
+   "cos": 0.535,
+   "overlap@10": 0.2
+  },
+  "alaska": {
+   "cos": 0.377,
+   "overlap@10": 0.0
+  },
+  "alcoholism": {
+   "cos": 0.616,
+   "overlap@10": 0.1
+  },
+  "alien": {
+   "cos": 0.532,
+   "overlap@10": 0.0
+  },
+  "alien invasion": {
+   "cos": 0.483,
+   "overlap@10": 0.1
+  },
+  "aliens": {
+   "cos": 0.553,
+   "overlap@10": 0.0
+  },
+  "allegory": {
+   "cos": 0.409,
+   "overlap@10": 0.0
+  },
+  "alone in the world": {
+   "cos": 0.277,
+   "overlap@10": 0.0
+  },
+  "alter ego": {
+   "cos": 0.119,
+   "overlap@10": 0.0
+  },
+  "alternate endings": {
+   "cos": 0.669,
+   "overlap@10": 0.1
+  },
+  "alternate history": {
+   "cos": 0.187,
+   "overlap@10": 0.0
+  },
+  "alternate reality": {
+   "cos": 0.466,
+   "overlap@10": 0.0
+  },
+  "alternate universe": {
+   "cos": 0.409,
+   "overlap@10": 0.0
+  },
+  "amazing cinematography": {
+   "cos": 0.527,
+   "overlap@10": 0.0
+  },
+  "amazing photography": {
+   "cos": 0.396,
+   "overlap@10": 0.0
+  },
+  "american civil war": {
+   "cos": 0.721,
+   "overlap@10": 0.2
+  },
+  "amnesia": {
+   "cos": 0.066,
+   "overlap@10": 0.0
+  },
+  "amy smart": {
+   "cos": 0.15,
+   "overlap@10": 0.0
+  },
+  "android(s)/cyborg(s)": {
+   "cos": 0.366,
+   "overlap@10": 0.0
+  },
+  "androids": {
+   "cos": 0.131,
+   "overlap@10": 0.0
+  },
+  "animal movie": {
+   "cos": 0.504,
+   "overlap@10": 0.1
+  },
+  "animals": {
+   "cos": 0.629,
+   "overlap@10": 0.2
+  },
+  "animated": {
+   "cos": 0.821,
+   "overlap@10": 0.3
+  },
+  "animation": {
+   "cos": 0.745,
+   "overlap@10": 0.1
+  },
+  "anime": {
+   "cos": 0.671,
+   "overlap@10": 0.0
+  },
+  "antarctica": {
+   "cos": 0.244,
+   "overlap@10": 0.0
+  },
+  "anti-hero": {
+   "cos": 0.508,
+   "overlap@10": 0.0
+  },
+  "anti-semitism": {
+   "cos": 0.338,
+   "overlap@10": 0.0
+  },
+  "anti-war": {
+   "cos": 0.473,
+   "overlap@10": 0.5
+  },
+  "apocalypse": {
+   "cos": 0.68,
+   "overlap@10": 0.3
+  },
+  "archaeology": {
+   "cos": 0.237,
+   "overlap@10": 0.0
+  },
+  "argentina": {
+   "cos": 0.598,
+   "overlap@10": 0.3
+  },
+  "arms dealer": {
+   "cos": 0.004,
+   "overlap@10": 0.0
+  },
+  "arnold": {
+   "cos": 0.205,
+   "overlap@10": 0.0
+  },
+  "art": {
+   "cos": 0.505,
+   "overlap@10": 0.0
+  },
+  "art house": {
+   "cos": 0.286,
+   "overlap@10": 0.0
+  },
+  "artificial intelligence": {
+   "cos": 0.475,
+   "overlap@10": 0.1
+  },
+  "artist": {
+   "cos": 0.45,
+   "overlap@10": 0.0
+  },
+  "artistic": {
+   "cos": 0.625,
+   "overlap@10": 0.2
+  },
+  "artsy": {
+   "cos": 0.217,
+   "overlap@10": 0.0
+  },
+  "assassin": {
+   "cos": 0.655,
+   "overlap@10": 0.4
+  },
+  "assassination": {
+   "cos": 0.601,
+   "overlap@10": 0.1
+  },
+  "assassins": {
+   "cos": 0.686,
+   "overlap@10": 0.5
+  },
+  "astronauts": {
+   "cos": 0.457,
+   "overlap@10": 0.1
+  },
+  "atheism": {
+   "cos": 0.283,
+   "overlap@10": 0.0
+  },
+  "atmospheric": {
+   "cos": 0.507,
+   "overlap@10": 0.0
+  },
+  "australia": {
+   "cos": 0.653,
+   "overlap@10": 0.3
+  },
+  "australian": {
+   "cos": 0.55,
+   "overlap@10": 0.1
+  },
+  "author:neil gaiman": {
+   "cos": 0.172,
+   "overlap@10": 0.1
+  },
+  "aviation": {
+   "cos": 0.523,
+   "overlap@10": 0.3
+  },
+  "awesome": {
+   "cos": -0.101,
+   "overlap@10": 0.0
+  },
+  "awesome soundtrack": {
+   "cos": 0.371,
+   "overlap@10": 0.1
+  },
+  "awful": {
+   "cos": 0.4,
+   "overlap@10": 0.0
+  },
+  "bad": {
+   "cos": 0.561,
+   "overlap@10": 0.0
+  },
+  "bad acting": {
+   "cos": 0.191,
+   "overlap@10": 0.0
+  },
+  "bad cgi": {
+   "cos": 0.49,
+   "overlap@10": 0.0
+  },
+  "bad ending": {
+   "cos": 0.628,
+   "overlap@10": 0.0
+  },
+  "bad plot": {
+   "cos": 0.213,
+   "overlap@10": 0.0
+  },
+  "bad science": {
+   "cos": 0.558,
+   "overlap@10": 0.1
+  },
+  "bad script": {
+   "cos": 0.192,
+   "overlap@10": 0.0
+  },
+  "bank robbery": {
+   "cos": 0.588,
+   "overlap@10": 0.1
+  },
+  "baseball": {
+   "cos": 0.648,
+   "overlap@10": 0.3
+  },
+  "based on a book": {
+   "cos": 0.712,
+   "overlap@10": 0.4
+  },
+  "based on a comic": {
+   "cos": 0.409,
+   "overlap@10": 0.0
+  },
+  "based on a play": {
+   "cos": 0.353,
+   "overlap@10": 0.0
+  },
+  "based on a true story": {
+   "cos": 0.625,
+   "overlap@10": 0.1
+  },
+  "based on a tv show": {
+   "cos": 0.265,
+   "overlap@10": 0.0
+  },
+  "based on a video game": {
+   "cos": 0.465,
+   "overlap@10": 0.0
+  },
+  "based on book": {
+   "cos": 0.61,
+   "overlap@10": 0.2
+  },
+  "based on comic": {
+   "cos": 0.49,
+   "overlap@10": 0.0
+  },
+  "based on true story": {
+   "cos": 0.618,
+   "overlap@10": 0.1
+  },
+  "basketball": {
+   "cos": 0.602,
+   "overlap@10": 0.0
+  },
+  "bdsm": {
+   "cos": 0.333,
+   "overlap@10": 0.0
+  },
+  "beautiful": {
+   "cos": 0.247,
+   "overlap@10": 0.0
+  },
+  "beautiful scenery": {
+   "cos": 0.722,
+   "overlap@10": 0.1
+  },
+  "beautifully filmed": {
+   "cos": 0.381,
+   "overlap@10": 0.0
+  },
+  "beer": {
+   "cos": 0.59,
+   "overlap@10": 0.2
+  },
+  "berlin": {
+   "cos": 0.546,
+   "overlap@10": 0.0
+  },
+  "best of 2005": {
+   "cos": 0.326,
+   "overlap@10": 0.0
+  },
+  "best war films": {
+   "cos": 0.571,
+   "overlap@10": 0.2
+  },
+  "betrayal": {
+   "cos": 0.48,
+   "overlap@10": 0.0
+  },
+  "better than expected": {
+   "cos": 0.779,
+   "overlap@10": 0.2
+  },
+  "better than the american version": {
+   "cos": 0.288,
+   "overlap@10": 0.1
+  },
+  "biblical": {
+   "cos": 0.616,
+   "overlap@10": 0.2
+  },
+  "big budget": {
+   "cos": 0.147,
+   "overlap@10": 0.0
+  },
+  "biographical": {
+   "cos": 0.593,
+   "overlap@10": 0.0
+  },
+  "biography": {
+   "cos": 0.596,
+   "overlap@10": 0.0
+  },
+  "biopic": {
+   "cos": 0.025,
+   "overlap@10": 0.0
+  },
+  "biting": {
+   "cos": 0.33,
+   "overlap@10": 0.0
+  },
+  "bittersweet": {
+   "cos": 0.628,
+   "overlap@10": 0.0
+  },
+  "bizarre": {
+   "cos": 0.697,
+   "overlap@10": 0.1
+  },
+  "black and white": {
+   "cos": 0.409,
+   "overlap@10": 0.0
+  },
+  "black comedy": {
+   "cos": 0.444,
+   "overlap@10": 0.1
+  },
+  "blaxploitation": {
+   "cos": 0.251,
+   "overlap@10": 0.0
+  },
+  "bleak": {
+   "cos": 0.534,
+   "overlap@10": 0.0
+  },
+  "blindness": {
+   "cos": 0.167,
+   "overlap@10": 0.0
+  },
+  "blood": {
+   "cos": 0.211,
+   "overlap@10": 0.0
+  },
+  "bloody": {
+   "cos": 0.515,
+   "overlap@10": 0.0
+  },
+  "boarding school": {
+   "cos": 0.462,
+   "overlap@10": 0.1
+  },
+  "boat": {
+   "cos": 0.579,
+   "overlap@10": 0.0
+  },
+  "bollywood": {
+   "cos": 0.537,
+   "overlap@10": 0.1
+  },
+  "bombs": {
+   "cos": 0.304,
+   "overlap@10": 0.0
+  },
+  "bond": {
+   "cos": 0.483,
+   "overlap@10": 0.5
+  },
+  "book": {
+   "cos": 0.471,
+   "overlap@10": 0.1
+  },
+  "book was better": {
+   "cos": 0.563,
+   "overlap@10": 0.0
+  },
+  "books": {
+   "cos": 0.498,
+   "overlap@10": 0.0
+  },
+  "boring!": {
+   "cos": 0.372,
+   "overlap@10": 0.1
+  },
+  "boston": {
+   "cos": 0.336,
+   "overlap@10": 0.0
+  },
+  "boxing": {
+   "cos": 0.503,
+   "overlap@10": 0.0
+  },
+  "brainwashing": {
+   "cos": 0.553,
+   "overlap@10": 0.1
+  },
+  "brazil": {
+   "cos": 0.451,
+   "overlap@10": 0.0
+  },
+  "breathtaking": {
+   "cos": 0.472,
+   "overlap@10": 0.0
+  },
+  "british": {
+   "cos": 0.751,
+   "overlap@10": 0.3
+  },
+  "british comedy": {
+   "cos": 0.84,
+   "overlap@10": 0.3
+  },
+  "broadway": {
+   "cos": 0.805,
+   "overlap@10": 0.2
+  },
+  "brothers": {
+   "cos": 0.475,
+   "overlap@10": 0.0
+  },
+  "brutal": {
+   "cos": 0.577,
+   "overlap@10": 0.1
+  },
+  "brutality": {
+   "cos": 0.762,
+   "overlap@10": 0.2
+  },
+  "buddy movie": {
+   "cos": 0.466,
+   "overlap@10": 0.0
+  },
+  "bullying": {
+   "cos": 0.37,
+   "overlap@10": 0.0
+  },
+  "business": {
+   "cos": 0.613,
+   "overlap@10": 0.0
+  },
+  "california": {
+   "cos": 0.636,
+   "overlap@10": 0.1
+  },
+  "camp": {
+   "cos": 0.391,
+   "overlap@10": 0.0
+  },
+  "campy": {
+   "cos": 0.294,
+   "overlap@10": 0.0
+  },
+  "canada": {
+   "cos": 0.349,
+   "overlap@10": 0.0
+  },
+  "cancer": {
+   "cos": 0.3,
+   "overlap@10": 0.0
+  },
+  "cannibalism": {
+   "cos": 0.377,
+   "overlap@10": 0.0
+  },
+  "caper": {
+   "cos": 0.319,
+   "overlap@10": 0.0
+  },
+  "capitalism": {
+   "cos": 0.799,
+   "overlap@10": 0.4
+  },
+  "car chase": {
+   "cos": 0.515,
+   "overlap@10": 0.0
+  },
+  "cars": {
+   "cos": 0.539,
+   "overlap@10": 0.0
+  },
+  "cartoon": {
+   "cos": 0.626,
+   "overlap@10": 0.0
+  },
+  "casino": {
+   "cos": 0.508,
+   "overlap@10": 0.0
+  },
+  "catastrophe": {
+   "cos": 0.242,
+   "overlap@10": 0.0
+  },
+  "cathartic": {
+   "cos": 0.262,
+   "overlap@10": 0.0
+  },
+  "catholicism": {
+   "cos": 0.591,
+   "overlap@10": 0.0
+  },
+  "censorship": {
+   "cos": 0.398,
+   "overlap@10": 0.0
+  },
+  "cerebral": {
+   "cos": 0.494,
+   "overlap@10": 0.0
+  },
+  "cgi": {
+   "cos": 0.58,
+   "overlap@10": 0.0
+  },
+  "character study": {
+   "cos": 0.168,
+   "overlap@10": 0.0
+  },
+  "chase": {
+   "cos": 0.628,
+   "overlap@10": 0.1
+  },
+  "cheating": {
+   "cos": 0.385,
+   "overlap@10": 0.0
+  },
+  "cheerleading": {
+   "cos": 0.317,
+   "overlap@10": 0.0
+  },
+  "cheesy": {
+   "cos": 0.104,
+   "overlap@10": 0.0
+  },
+  "chess": {
+   "cos": 0.085,
+   "overlap@10": 0.0
+  },
+  "chick flick": {
+   "cos": 0.623,
+   "overlap@10": 0.6
+  },
+  "child abuse": {
+   "cos": 0.601,
+   "overlap@10": 0.1
+  },
+  "childhood": {
+   "cos": 0.553,
+   "overlap@10": 0.0
+  },
+  "children": {
+   "cos": 0.744,
+   "overlap@10": 0.0
+  },
+  "china": {
+   "cos": 0.655,
+   "overlap@10": 0.2
+  },
+  "christian": {
+   "cos": 0.434,
+   "overlap@10": 0.1
+  },
+  "christianity": {
+   "cos": 0.687,
+   "overlap@10": 0.3
+  },
+  "christmas": {
+   "cos": 0.661,
+   "overlap@10": 0.4
+  },
+  "cia": {
+   "cos": 0.525,
+   "overlap@10": 0.0
+  },
+  "cinematography": {
+   "cos": 0.513,
+   "overlap@10": 0.0
+  },
+  "civil war": {
+   "cos": 0.684,
+   "overlap@10": 0.4
+  },
+  "classic": {
+   "cos": 0.773,
+   "overlap@10": 0.0
+  },
+  "classic car": {
+   "cos": 0.419,
+   "overlap@10": 0.0
+  },
+  "classical music": {
+   "cos": 0.456,
+   "overlap@10": 0.0
+  },
+  "claustrophobic": {
+   "cos": 0.638,
+   "overlap@10": 0.1
+  },
+  "claymation": {
+   "cos": 0.367,
+   "overlap@10": 0.0
+  },
+  "clever": {
+   "cos": 0.693,
+   "overlap@10": 0.3
+  },
+  "clones": {
+   "cos": 0.125,
+   "overlap@10": 0.0
+  },
+  "cloning": {
+   "cos": 0.176,
+   "overlap@10": 0.0
+  },
+  "clowns": {
+   "cos": 0.218,
+   "overlap@10": 0.0
+  },
+  "coen bros": {
+   "cos": 0.144,
+   "overlap@10": 0.0
+  },
+  "cold war": {
+   "cos": 0.536,
+   "overlap@10": 0.0
+  },
+  "college": {
+   "cos": 0.555,
+   "overlap@10": 0.0
+  },
+  "colonialism": {
+   "cos": 0.573,
+   "overlap@10": 0.3
+  },
+  "colourful": {
+   "cos": 0.602,
+   "overlap@10": 0.0
+  },
+  "comedy": {
+   "cos": 0.671,
+   "overlap@10": 0.0
+  },
+  "comic": {
+   "cos": 0.629,
+   "overlap@10": 0.0
+  },
+  "comic book": {
+   "cos": 0.61,
+   "overlap@10": 0.0
+  },
+  "comic book adaption": {
+   "cos": 0.556,
+   "overlap@10": 0.1
+  },
+  "comics": {
+   "cos": 0.702,
+   "overlap@10": 0.2
+  },
+  "coming of age": {
+   "cos": 0.61,
+   "overlap@10": 0.6
+  },
+  "coming-of-age": {
+   "cos": 0.684,
+   "overlap@10": 0.6
+  },
+  "communism": {
+   "cos": 0.412,
+   "overlap@10": 0.0
+  },
+  "compassionate": {
+   "cos": 0.562,
+   "overlap@10": 0.0
+  },
+  "competition": {
+   "cos": 0.405,
+   "overlap@10": 0.0
+  },
+  "complex": {
+   "cos": 0.557,
+   "overlap@10": 0.0
+  },
+  "complex characters": {
+   "cos": 0.313,
+   "overlap@10": 0.0
+  },
+  "complicated": {
+   "cos": 0.581,
+   "overlap@10": 0.2
+  },
+  "complicated plot": {
+   "cos": 0.49,
+   "overlap@10": 0.0
+  },
+  "computer animation": {
+   "cos": 0.726,
+   "overlap@10": 0.3
+  },
+  "computer game": {
+   "cos": 0.528,
+   "overlap@10": 0.0
+  },
+  "computers": {
+   "cos": 0.592,
+   "overlap@10": 0.2
+  },
+  "con artists": {
+   "cos": 0.34,
+   "overlap@10": 0.0
+  },
+  "con men": {
+   "cos": 0.38,
+   "overlap@10": 0.0
+  },
+  "confrontational": {
+   "cos": 0.519,
+   "overlap@10": 0.0
+  },
+  "confusing": {
+   "cos": 0.542,
+   "overlap@10": 0.0
+  },
+  "conspiracy": {
+   "cos": 0.569,
+   "overlap@10": 0.2
+  },
+  "conspiracy theory": {
+   "cos": 0.659,
+   "overlap@10": 0.1
+  },
+  "controversial": {
+   "cos": 0.612,
+   "overlap@10": 0.0
+  },
+  "cooking": {
+   "cos": 0.362,
+   "overlap@10": 0.0
+  },
+  "cool": {
+   "cos": 0.095,
+   "overlap@10": 0.0
+  },
+  "corny": {
+   "cos": 0.023,
+   "overlap@10": 0.0
+  },
+  "corporate america": {
+   "cos": 0.604,
+   "overlap@10": 0.5
+  },
+  "corruption": {
+   "cos": 0.376,
+   "overlap@10": 0.1
+  },
+  "costume drama": {
+   "cos": 0.326,
+   "overlap@10": 0.0
+  },
+  "courage": {
+   "cos": 0.589,
+   "overlap@10": 0.1
+  },
+  "court": {
+   "cos": 0.443,
+   "overlap@10": 0.0
+  },
+  "courtroom": {
+   "cos": 0.541,
+   "overlap@10": 0.0
+  },
+  "courtroom drama": {
+   "cos": 0.478,
+   "overlap@10": 0.2
+  },
+  "crappy sequel": {
+   "cos": 0.587,
+   "overlap@10": 0.6
+  },
+  "crazy": {
+   "cos": 0.657,
+   "overlap@10": 0.3
+  },
+  "creativity": {
+   "cos": 0.738,
+   "overlap@10": 0.0
+  },
+  "creepy": {
+   "cos": 0.722,
+   "overlap@10": 0.1
+  },
+  "crime": {
+   "cos": 0.582,
+   "overlap@10": 0.0
+  },
+  "crime gone awry": {
+   "cos": 0.359,
+   "overlap@10": 0.1
+  },
+  "criterion": {
+   "cos": 0.494,
+   "overlap@10": 0.0
+  },
+  "cross dressing": {
+   "cos": 0.561,
+   "overlap@10": 0.1
+  },
+  "crude humor": {
+   "cos": 0.619,
+   "overlap@10": 0.3
+  },
+  "cuba": {
+   "cos": 0.572,
+   "overlap@10": 0.0
+  },
+  "cult": {
+   "cos": 0.506,
+   "overlap@10": 0.0
+  },
+  "cult classic": {
+   "cos": 0.666,
+   "overlap@10": 0.1
+  },
+  "cult film": {
+   "cos": 0.66,
+   "overlap@10": 0.1
+  },
+  "culture clash": {
+   "cos": 0.275,
+   "overlap@10": 0.0
+  },
+  "cute": {
+   "cos": 0.421,
+   "overlap@10": 0.2
+  },
+  "cute!": {
+   "cos": 0.546,
+   "overlap@10": 0.2
+  },
+  "cyberpunk": {
+   "cos": 0.519,
+   "overlap@10": 0.1
+  },
+  "cyborgs": {
+   "cos": 0.517,
+   "overlap@10": 0.0
+  },
+  "cynical": {
+   "cos": 0.419,
+   "overlap@10": 0.0
+  },
+  "dance": {
+   "cos": 0.621,
+   "overlap@10": 0.0
+  },
+  "dancing": {
+   "cos": 0.609,
+   "overlap@10": 0.0
+  },
+  "dark": {
+   "cos": 0.384,
+   "overlap@10": 0.0
+  },
+  "dark comedy": {
+   "cos": 0.643,
+   "overlap@10": 0.3
+  },
+  "dark fantasy": {
+   "cos": 0.707,
+   "overlap@10": 0.1
+  },
+  "dark hero": {
+   "cos": 0.72,
+   "overlap@10": 0.3
+  },
+  "dark humor": {
+   "cos": 0.531,
+   "overlap@10": 0.2
+  },
+  "dc comics": {
+   "cos": 0.691,
+   "overlap@10": 0.4
+  },
+  "deadpan": {
+   "cos": 0.505,
+   "overlap@10": 0.1
+  },
+  "death": {
+   "cos": 0.502,
+   "overlap@10": 0.0
+  },
+  "death penalty": {
+   "cos": 0.416,
+   "overlap@10": 0.0
+  },
+  "demons": {
+   "cos": 0.627,
+   "overlap@10": 0.0
+  },
+  "depressing": {
+   "cos": 0.708,
+   "overlap@10": 0.2
+  },
+  "depression": {
+   "cos": 0.59,
+   "overlap@10": 0.0
+  },
+  "desert": {
+   "cos": 0.486,
+   "overlap@10": 0.0
+  },
+  "destiny": {
+   "cos": 0.165,
+   "overlap@10": 0.0
+  },
+  "detective": {
+   "cos": 0.601,
+   "overlap@10": 0.0
+  },
+  "devil": {
+   "cos": 0.396,
+   "overlap@10": 0.0
+  },
+  "dialogue": {
+   "cos": 0.334,
+   "overlap@10": 0.0
+  },
+  "dialogue driven": {
+   "cos": 0.602,
+   "overlap@10": 0.2
+  },
+  "dinosaurs": {
+   "cos": 0.403,
+   "overlap@10": 0.0
+  },
+  "directorial debut": {
+   "cos": 0.3,
+   "overlap@10": 0.0
+  },
+  "disability": {
+   "cos": 0.42,
+   "overlap@10": 0.0
+  },
+  "disaster": {
+   "cos": 0.516,
+   "overlap@10": 0.0
+  },
+  "disney": {
+   "cos": 0.776,
+   "overlap@10": 0.5
+  },
+  "disney animated feature": {
+   "cos": 0.83,
+   "overlap@10": 0.6
+  },
+  "distopia": {
+   "cos": 0.31,
+   "overlap@10": 0.0
+  },
+  "disturbing": {
+   "cos": 0.717,
+   "overlap@10": 0.0
+  },
+  "divorce": {
+   "cos": 0.511,
+   "overlap@10": 0.0
+  },
+  "doctors": {
+   "cos": 0.388,
+   "overlap@10": 0.0
+  },
+  "documentary": {
+   "cos": 0.797,
+   "overlap@10": 0.4
+  },
+  "dog": {
+   "cos": 0.475,
+   "overlap@10": 0.0
+  },
+  "dogs": {
+   "cos": 0.615,
+   "overlap@10": 0.3
+  },
+  "downbeat": {
+   "cos": 0.342,
+   "overlap@10": 0.0
+  },
+  "dragon": {
+   "cos": 0.645,
+   "overlap@10": 0.0
+  },
+  "dragons": {
+   "cos": 0.688,
+   "overlap@10": 0.4
+  },
+  "drama": {
+   "cos": 0.452,
+   "overlap@10": 0.0
+  },
+  "dramatic": {
+   "cos": 0.445,
+   "overlap@10": 0.0
+  },
+  "dreamlike": {
+   "cos": 0.463,
+   "overlap@10": 0.0
+  },
+  "dreams": {
+   "cos": 0.317,
+   "overlap@10": 0.0
+  },
+  "drinking": {
+   "cos": 0.57,
+   "overlap@10": 0.1
+  },
+  "drug abuse": {
+   "cos": 0.832,
+   "overlap@10": 0.9
+  },
+  "drug addiction": {
+   "cos": 0.779,
+   "overlap@10": 0.6
+  },
+  "drugs": {
+   "cos": 0.761,
+   "overlap@10": 0.2
+  },
+  "dumb": {
+   "cos": 0.591,
+   "overlap@10": 0.2
+  },
+  "dumb but funny": {
+   "cos": 0.605,
+   "overlap@10": 0.1
+  },
+  "dynamic cgi action": {
+   "cos": 0.596,
+   "overlap@10": 0.1
+  },
+  "dysfunctional family": {
+   "cos": 0.563,
+   "overlap@10": 0.0
+  },
+  "dystopia": {
+   "cos": 0.498,
+   "overlap@10": 0.0
+  },
+  "dystopic future": {
+   "cos": 0.61,
+   "overlap@10": 0.2
+  },
+  "earnest": {
+   "cos": 0.434,
+   "overlap@10": 0.0
+  },
+  "east germany": {
+   "cos": 0.515,
+   "overlap@10": 0.2
+  },
+  "eccentricity": {
+   "cos": 0.469,
+   "overlap@10": 0.0
+  },
+  "ecology": {
+   "cos": 0.317,
+   "overlap@10": 0.0
+  },
+  "educational": {
+   "cos": 0.669,
+   "overlap@10": 0.3
+  },
+  "eerie": {
+   "cos": 0.722,
+   "overlap@10": 0.0
+  },
+  "effects": {
+   "cos": 0.296,
+   "overlap@10": 0.0
+  },
+  "egypt": {
+   "cos": 0.327,
+   "overlap@10": 0.0
+  },
+  "emotional": {
+   "cos": 0.764,
+   "overlap@10": 0.3
+  },
+  "end of the world": {
+   "cos": 0.548,
+   "overlap@10": 0.1
+  },
+  "england": {
+   "cos": 0.761,
+   "overlap@10": 0.2
+  },
+  "enigmatic": {
+   "cos": 0.659,
+   "overlap@10": 0.0
+  },
+  "ennio morricone": {
+   "cos": 0.479,
+   "overlap@10": 0.0
+  },
+  "enormously long battle scene": {
+   "cos": 0.568,
+   "overlap@10": 0.0
+  },
+  "ensemble cast": {
+   "cos": 0.252,
+   "overlap@10": 0.0
+  },
+  "entertaining": {
+   "cos": 0.415,
+   "overlap@10": 0.0
+  },
+  "entirely dialogue": {
+   "cos": 0.51,
+   "overlap@10": 0.0
+  },
+  "environment": {
+   "cos": 0.513,
+   "overlap@10": 0.0
+  },
+  "environmental": {
+   "cos": 0.593,
+   "overlap@10": 0.0
+  },
+  "epic": {
+   "cos": 0.633,
+   "overlap@10": 0.1
+  },
+  "erotic": {
+   "cos": 0.681,
+   "overlap@10": 0.1
+  },
+  "espionage": {
+   "cos": 0.676,
+   "overlap@10": 0.7
+  },
+  "ethnic conflict": {
+   "cos": 0.474,
+   "overlap@10": 0.0
+  },
+  "excellent": {
+   "cos": 0.039,
+   "overlap@10": 0.0
+  },
+  "excellent script": {
+   "cos": 0.395,
+   "overlap@10": 0.0
+  },
+  "exceptional acting": {
+   "cos": 0.386,
+   "overlap@10": 0.0
+  },
+  "exciting": {
+   "cos": 0.272,
+   "overlap@10": 0.0
+  },
+  "existentialism": {
+   "cos": 0.599,
+   "overlap@10": 0.0
+  },
+  "explosions": {
+   "cos": 0.425,
+   "overlap@10": 0.0
+  },
+  "factual": {
+   "cos": 0.441,
+   "overlap@10": 0.0
+  },
+  "fairy tale": {
+   "cos": 0.66,
+   "overlap@10": 0.0
+  },
+  "fairy tales": {
+   "cos": 0.638,
+   "overlap@10": 0.1
+  },
+  "fake documentary": {
+   "cos": 0.529,
+   "overlap@10": 0.0
+  },
+  "family": {
+   "cos": 0.482,
+   "overlap@10": 0.0
+  },
+  "family bonds": {
+   "cos": 0.28,
+   "overlap@10": 0.0
+  },
+  "family drama": {
+   "cos": 0.352,
+   "overlap@10": 0.0
+  },
+  "fantasy": {
+   "cos": 0.543,
+   "overlap@10": 0.1
+  },
+  "fantasy world": {
+   "cos": 0.5,
+   "overlap@10": 0.1
+  },
+  "farce": {
+   "cos": 0.477,
+   "overlap@10": 0.0
+  },
+  "fascism": {
+   "cos": 0.499,
+   "overlap@10": 0.0
+  },
+  "fashion": {
+   "cos": 0.433,
+   "overlap@10": 0.0
+  },
+  "fast paced": {
+   "cos": 0.514,
+   "overlap@10": 0.2
+  },
+  "father daughter relationship": {
+   "cos": 0.344,
+   "overlap@10": 0.0
+  },
+  "father son relationship": {
+   "cos": 0.485,
+   "overlap@10": 0.0
+  },
+  "father-son relationship": {
+   "cos": 0.345,
+   "overlap@10": 0.0
+  },
+  "fbi": {
+   "cos": 0.392,
+   "overlap@10": 0.0
+  },
+  "feel good movie": {
+   "cos": 0.66,
+   "overlap@10": 0.3
+  },
+  "feel-good": {
+   "cos": 0.633,
+   "overlap@10": 0.1
+  },
+  "fight scenes": {
+   "cos": 0.529,
+   "overlap@10": 0.1
+  },
+  "fighting": {
+   "cos": 0.618,
+   "overlap@10": 0.3
+  },
+  "fighting the system": {
+   "cos": 0.338,
+   "overlap@10": 0.0
+  },
+  "film noir": {
+   "cos": 0.743,
+   "overlap@10": 0.5
+  },
+  "finnish": {
+   "cos": 0.412,
+   "overlap@10": 0.0
+  },
+  "firefly": {
+   "cos": 0.419,
+   "overlap@10": 0.0
+  },
+  "first contact": {
+   "cos": 0.162,
+   "overlap@10": 0.0
+  },
+  "fish": {
+   "cos": 0.451,
+   "overlap@10": 0.0
+  },
+  "flashbacks": {
+   "cos": 0.27,
+   "overlap@10": 0.0
+  },
+  "food": {
+   "cos": 0.345,
+   "overlap@10": 0.0
+  },
+  "football": {
+   "cos": 0.456,
+   "overlap@10": 0.1
+  },
+  "forceful": {
+   "cos": 0.63,
+   "overlap@10": 0.1
+  },
+  "foreign": {
+   "cos": 0.694,
+   "overlap@10": 0.1
+  },
+  "foul language": {
+   "cos": 0.409,
+   "overlap@10": 0.0
+  },
+  "france": {
+   "cos": 0.8,
+   "overlap@10": 0.3
+  },
+  "franchise": {
+   "cos": 0.298,
+   "overlap@10": 0.1
+  },
+  "francis ford copolla": {
+   "cos": 0.192,
+   "overlap@10": 0.0
+  },
+  "free speech": {
+   "cos": 0.589,
+   "overlap@10": 0.0
+  },
+  "free to download": {
+   "cos": 0.546,
+   "overlap@10": 0.0
+  },
+  "freedom": {
+   "cos": 0.573,
+   "overlap@10": 0.2
+  },
+  "french": {
+   "cos": 0.746,
+   "overlap@10": 0.1
+  },
+  "friendship": {
+   "cos": 0.648,
+   "overlap@10": 0.0
+  },
+  "frightening": {
+   "cos": 0.696,
+   "overlap@10": 0.0
+  },
+  "fun": {
+   "cos": 0.481,
+   "overlap@10": 0.0
+  },
+  "fun movie": {
+   "cos": 0.635,
+   "overlap@10": 0.0
+  },
+  "funniest movies": {
+   "cos": 0.635,
+   "overlap@10": 0.1
+  },
+  "funny": {
+   "cos": 0.594,
+   "overlap@10": 0.0
+  },
+  "funny as hell": {
+   "cos": 0.443,
+   "overlap@10": 0.0
+  },
+  "future": {
+   "cos": 0.446,
+   "overlap@10": 0.0
+  },
+  "futuristic": {
+   "cos": 0.563,
+   "overlap@10": 0.2
+  },
+  "gambling": {
+   "cos": 0.501,
+   "overlap@10": 0.1
+  },
+  "gangs": {
+   "cos": 0.585,
+   "overlap@10": 0.1
+  },
+  "gangster": {
+   "cos": 0.671,
+   "overlap@10": 0.0
+  },
+  "gangsters": {
+   "cos": 0.677,
+   "overlap@10": 0.2
+  },
+  "gay": {
+   "cos": 0.831,
+   "overlap@10": 0.8
+  },
+  "gay character": {
+   "cos": 0.709,
+   "overlap@10": 0.7
+  },
+  "geek": {
+   "cos": 0.392,
+   "overlap@10": 0.0
+  },
+  "geeks": {
+   "cos": 0.407,
+   "overlap@10": 0.0
+  },
+  "genetics": {
+   "cos": 0.139,
+   "overlap@10": 0.0
+  },
+  "genius": {
+   "cos": 0.29,
+   "overlap@10": 0.0
+  },
+  "genocide": {
+   "cos": 0.368,
+   "overlap@10": 0.0
+  },
+  "german": {
+   "cos": 0.5,
+   "overlap@10": 0.0
+  },
+  "germany": {
+   "cos": 0.527,
+   "overlap@10": 0.0
+  },
+  "ghosts": {
+   "cos": 0.722,
+   "overlap@10": 0.1
+  },
+  "ghosts/afterlife": {
+   "cos": 0.638,
+   "overlap@10": 0.0
+  },
+  "giant robots": {
+   "cos": 0.491,
+   "overlap@10": 0.0
+  },
+  "girlie movie": {
+   "cos": 0.532,
+   "overlap@10": 0.2
+  },
+  "glbt": {
+   "cos": 0.268,
+   "overlap@10": 0.0
+  },
+  "global warming": {
+   "cos": 0.317,
+   "overlap@10": 0.0
+  },
+  "god": {
+   "cos": 0.465,
+   "overlap@10": 0.0
+  },
+  "golden palm": {
+   "cos": 0.524,
+   "overlap@10": 0.0
+  },
+  "golf": {
+   "cos": 0.391,
+   "overlap@10": 0.0
+  },
+  "good": {
+   "cos": 0.035,
+   "overlap@10": 0.0
+  },
+  "good acting": {
+   "cos": 0.389,
+   "overlap@10": 0.1
+  },
+  "good action": {
+   "cos": 0.633,
+   "overlap@10": 0.1
+  },
+  "good dialogue": {
+   "cos": 0.416,
+   "overlap@10": 0.6
+  },
+  "good music": {
+   "cos": 0.457,
+   "overlap@10": 0.0
+  },
+  "good romantic comedies": {
+   "cos": 0.779,
+   "overlap@10": 0.7
+  },
+  "good sequel": {
+   "cos": 0.484,
+   "overlap@10": 0.0
+  },
+  "good soundtrack": {
+   "cos": 0.22,
+   "overlap@10": 0.0
+  },
+  "good story": {
+   "cos": 0.357,
+   "overlap@10": 0.0
+  },
+  "good versus evil": {
+   "cos": 0.339,
+   "overlap@10": 0.0
+  },
+  "goofy": {
+   "cos": 0.474,
+   "overlap@10": 0.0
+  },
+  "gore": {
+   "cos": 0.346,
+   "overlap@10": 0.0
+  },
+  "goretastic": {
+   "cos": 0.382,
+   "overlap@10": 0.0
+  },
+  "gory": {
+   "cos": 0.507,
+   "overlap@10": 0.1
+  },
+  "goth": {
+   "cos": 0.604,
+   "overlap@10": 0.1
+  },
+  "gothic": {
+   "cos": 0.612,
+   "overlap@10": 0.0
+  },
+  "graphic design": {
+   "cos": 0.379,
+   "overlap@10": 0.0
+  },
+  "graphic novel": {
+   "cos": 0.476,
+   "overlap@10": 0.0
+  },
+  "gratuitous violence": {
+   "cos": 0.59,
+   "overlap@10": 0.0
+  },
+  "great": {
+   "cos": -0.016,
+   "overlap@10": 0.0
+  },
+  "great acting": {
+   "cos": 0.202,
+   "overlap@10": 0.0
+  },
+  "great cinematography": {
+   "cos": 0.355,
+   "overlap@10": 0.0
+  },
+  "great dialogue": {
+   "cos": 0.3,
+   "overlap@10": 0.2
+  },
+  "great ending": {
+   "cos": 0.228,
+   "overlap@10": 0.0
+  },
+  "great movie": {
+   "cos": 0.178,
+   "overlap@10": 0.0
+  },
+  "great music": {
+   "cos": 0.465,
+   "overlap@10": 0.0
+  },
+  "great soundtrack": {
+   "cos": 0.235,
+   "overlap@10": 0.1
+  },
+  "greed": {
+   "cos": 0.419,
+   "overlap@10": 0.0
+  },
+  "grim": {
+   "cos": 0.515,
+   "overlap@10": 0.0
+  },
+  "grindhouse": {
+   "cos": 0.243,
+   "overlap@10": 0.0
+  },
+  "gritty": {
+   "cos": 0.449,
+   "overlap@10": 0.0
+  },
+  "gross-out": {
+   "cos": 0.211,
+   "overlap@10": 0.0
+  },
+  "gruesome": {
+   "cos": 0.683,
+   "overlap@10": 0.0
+  },
+  "guilt": {
+   "cos": 0.575,
+   "overlap@10": 0.1
+  },
+  "guilty pleasure": {
+   "cos": 0.218,
+   "overlap@10": 0.0
+  },
+  "gulf war": {
+   "cos": 0.543,
+   "overlap@10": 0.3
+  },
+  "gunfight": {
+   "cos": 0.795,
+   "overlap@10": 0.3
+  },
+  "guns": {
+   "cos": 0.534,
+   "overlap@10": 0.0
+  },
+  "hackers": {
+   "cos": 0.483,
+   "overlap@10": 0.0
+  },
+  "hacking": {
+   "cos": 0.56,
+   "overlap@10": 0.1
+  },
+  "halloween": {
+   "cos": 0.559,
+   "overlap@10": 0.0
+  },
+  "hallucinatory": {
+   "cos": 0.319,
+   "overlap@10": 0.0
+  },
+  "handycam": {
+   "cos": 0.018,
+   "overlap@10": 0.0
+  },
+  "happy ending": {
+   "cos": 0.628,
+   "overlap@10": 0.0
+  },
+  "hard to watch": {
+   "cos": 0.514,
+   "overlap@10": 0.1
+  },
+  "harsh": {
+   "cos": 0.53,
+   "overlap@10": 0.1
+  },
+  "haunted house": {
+   "cos": 0.665,
+   "overlap@10": 0.0
+  },
+  "hawaii": {
+   "cos": 0.526,
+   "overlap@10": 0.1
+  },
+  "heartbreaking": {
+   "cos": 0.573,
+   "overlap@10": 0.0
+  },
+  "heartwarming": {
+   "cos": 0.665,
+   "overlap@10": 0.3
+  },
+  "heist": {
+   "cos": 0.328,
+   "overlap@10": 0.0
+  },
+  "heroin": {
+   "cos": 0.604,
+   "overlap@10": 0.0
+  },
+  "high fantasy": {
+   "cos": 0.46,
+   "overlap@10": 0.2
+  },
+  "high school": {
+   "cos": 0.637,
+   "overlap@10": 0.1
+  },
+  "highly quotable": {
+   "cos": 0.426,
+   "overlap@10": 0.0
+  },
+  "hilarious": {
+   "cos": 0.507,
+   "overlap@10": 0.0
+  },
+  "hip hop": {
+   "cos": 0.541,
+   "overlap@10": 0.0
+  },
+  "historical": {
+   "cos": 0.671,
+   "overlap@10": 0.3
+  },
+  "history": {
+   "cos": 0.701,
+   "overlap@10": 0.3
+  },
+  "hit men": {
+   "cos": 0.527,
+   "overlap@10": 0.1
+  },
+  "hitchcock": {
+   "cos": 0.512,
+   "overlap@10": 0.0
+  },
+  "hitman": {
+   "cos": 0.287,
+   "overlap@10": 0.0
+  },
+  "holiday": {
+   "cos": 0.486,
+   "overlap@10": 0.0
+  },
+  "hollywood": {
+   "cos": 0.387,
+   "overlap@10": 0.0
+  },
+  "holocaust": {
+   "cos": 0.528,
+   "overlap@10": 0.1
+  },
+  "homeless": {
+   "cos": 0.42,
+   "overlap@10": 0.0
+  },
+  "homophobia": {
+   "cos": 0.746,
+   "overlap@10": 0.7
+  },
+  "homosexuality": {
+   "cos": 0.835,
+   "overlap@10": 0.8
+  },
+  "honest": {
+   "cos": 0.607,
+   "overlap@10": 0.2
+  },
+  "hong kong": {
+   "cos": 0.528,
+   "overlap@10": 0.5
+  },
+  "horrible": {
+   "cos": 0.521,
+   "overlap@10": 0.1
+  },
+  "horror": {
+   "cos": 0.794,
+   "overlap@10": 0.1
+  },
+  "horses": {
+   "cos": 0.62,
+   "overlap@10": 0.0
+  },
+  "hospital": {
+   "cos": 0.334,
+   "overlap@10": 0.0
+  },
+  "hostage": {
+   "cos": 0.438,
+   "overlap@10": 0.1
+  },
+  "hotel": {
+   "cos": 0.762,
+   "overlap@10": 0.0
+  },
+  "humanity": {
+   "cos": 0.577,
+   "overlap@10": 0.0
+  },
+  "humor": {
+   "cos": 0.658,
+   "overlap@10": 0.3
+  },
+  "humorous": {
+   "cos": 0.698,
+   "overlap@10": 0.0
+  },
+  "hunting": {
+   "cos": 0.518,
+   "overlap@10": 0.1
+  },
+  "idealism": {
+   "cos": 0.301,
+   "overlap@10": 0.0
+  },
+  "identity": {
+   "cos": 0.441,
+   "overlap@10": 0.0
+  },
+  "idiotic": {
+   "cos": 0.43,
+   "overlap@10": 0.0
+  },
+  "imaginary friend": {
+   "cos": 0.324,
+   "overlap@10": 0.0
+  },
+  "imagination": {
+   "cos": 0.576,
+   "overlap@10": 0.0
+  },
+  "imdb top 250": {
+   "cos": 0.285,
+   "overlap@10": 0.0
+  },
+  "immigrants": {
+   "cos": 0.606,
+   "overlap@10": 0.0
+  },
+  "immortality": {
+   "cos": 0.231,
+   "overlap@10": 0.0
+  },
+  "incest": {
+   "cos": 0.33,
+   "overlap@10": 0.0
+  },
+  "independent film": {
+   "cos": 0.578,
+   "overlap@10": 0.0
+  },
+  "india": {
+   "cos": 0.668,
+   "overlap@10": 0.0
+  },
+  "indians": {
+   "cos": 0.623,
+   "overlap@10": 0.0
+  },
+  "indie": {
+   "cos": 0.561,
+   "overlap@10": 0.0
+  },
+  "infidelity": {
+   "cos": 0.731,
+   "overlap@10": 0.1
+  },
+  "innocence lost": {
+   "cos": 0.299,
+   "overlap@10": 0.0
+  },
+  "insanity": {
+   "cos": 0.642,
+   "overlap@10": 0.2
+  },
+  "inspirational": {
+   "cos": 0.681,
+   "overlap@10": 0.0
+  },
+  "inspiring": {
+   "cos": 0.657,
+   "overlap@10": 0.0
+  },
+  "intellectual": {
+   "cos": 0.668,
+   "overlap@10": 0.2
+  },
+  "intelligent": {
+   "cos": 0.492,
+   "overlap@10": 0.1
+  },
+  "intelligent sci-fi": {
+   "cos": 0.702,
+   "overlap@10": 0.3
+  },
+  "intense": {
+   "cos": 0.5,
+   "overlap@10": 0.0
+  },
+  "interesting": {
+   "cos": 0.22,
+   "overlap@10": 0.0
+  },
+  "internet": {
+   "cos": 0.568,
+   "overlap@10": 0.1
+  },
+  "interracial romance": {
+   "cos": 0.471,
+   "overlap@10": 0.0
+  },
+  "intimate": {
+   "cos": 0.531,
+   "overlap@10": 0.0
+  },
+  "investigation": {
+   "cos": 0.465,
+   "overlap@10": 0.0
+  },
+  "iran": {
+   "cos": 0.493,
+   "overlap@10": 0.0
+  },
+  "iraq": {
+   "cos": 0.5,
+   "overlap@10": 0.1
+  },
+  "iraq war": {
+   "cos": 0.487,
+   "overlap@10": 0.0
+  },
+  "ireland": {
+   "cos": 0.586,
+   "overlap@10": 0.0
+  },
+  "irish": {
+   "cos": 0.537,
+   "overlap@10": 0.0
+  },
+  "irish accent": {
+   "cos": 0.49,
+   "overlap@10": 0.0
+  },
+  "ironic": {
+   "cos": 0.236,
+   "overlap@10": 0.0
+  },
+  "irreverent": {
+   "cos": 0.274,
+   "overlap@10": 0.0
+  },
+  "islam": {
+   "cos": 0.419,
+   "overlap@10": 0.0
+  },
+  "island": {
+   "cos": 0.399,
+   "overlap@10": 0.1
+  },
+  "isolation": {
+   "cos": 0.327,
+   "overlap@10": 0.0
+  },
+  "israel": {
+   "cos": 0.673,
+   "overlap@10": 0.0
+  },
+  "italian": {
+   "cos": 0.532,
+   "overlap@10": 0.0
+  },
+  "italy": {
+   "cos": 0.676,
+   "overlap@10": 0.0
+  },
+  "james bond": {
+   "cos": 0.561,
+   "overlap@10": 0.6
+  },
+  "japan": {
+   "cos": 0.638,
+   "overlap@10": 0.0
+  },
+  "japanese": {
+   "cos": 0.627,
+   "overlap@10": 0.0
+  },
+  "jazz": {
+   "cos": 0.451,
+   "overlap@10": 0.0
+  },
+  "jesus": {
+   "cos": 0.528,
+   "overlap@10": 0.4
+  },
+  "jewish": {
+   "cos": 0.407,
+   "overlap@10": 0.0
+  },
+  "jews": {
+   "cos": 0.423,
+   "overlap@10": 0.0
+  },
+  "journalism": {
+   "cos": 0.503,
+   "overlap@10": 0.0
+  },
+  "judaism": {
+   "cos": 0.492,
+   "overlap@10": 0.0
+  },
+  "jungle": {
+   "cos": 0.476,
+   "overlap@10": 0.0
+  },
+  "justice": {
+   "cos": 0.402,
+   "overlap@10": 0.0
+  },
+  "kick-butt women": {
+   "cos": 0.311,
+   "overlap@10": 0.0
+  },
+  "kidnapping": {
+   "cos": 0.512,
+   "overlap@10": 0.1
+  },
+  "kids": {
+   "cos": 0.706,
+   "overlap@10": 0.0
+  },
+  "kids and family": {
+   "cos": 0.505,
+   "overlap@10": 0.0
+  },
+  "kung fu": {
+   "cos": 0.767,
+   "overlap@10": 0.3
+  },
+  "kurosawa": {
+   "cos": 0.41,
+   "overlap@10": 0.0
+  },
+  "lame": {
+   "cos": 0.417,
+   "overlap@10": 0.0
+  },
+  "las vegas": {
+   "cos": 0.579,
+   "overlap@10": 0.0
+  },
+  "latin america": {
+   "cos": 0.631,
+   "overlap@10": 0.2
+  },
+  "lawyer": {
+   "cos": 0.611,
+   "overlap@10": 0.3
+  },
+  "lawyers": {
+   "cos": 0.599,
+   "overlap@10": 0.4
+  },
+  "lesbian": {
+   "cos": 0.839,
+   "overlap@10": 0.3
+  },
+  "life": {
+   "cos": 0.36,
+   "overlap@10": 0.0
+  },
+  "life & death": {
+   "cos": -0.009,
+   "overlap@10": 0.0
+  },
+  "life philosophy": {
+   "cos": 0.368,
+   "overlap@10": 0.0
+  },
+  "light": {
+   "cos": 0.698,
+   "overlap@10": 0.5
+  },
+  "lions": {
+   "cos": 0.375,
+   "overlap@10": 0.0
+  },
+  "literary adaptation": {
+   "cos": 0.578,
+   "overlap@10": 0.6
+  },
+  "literature": {
+   "cos": 0.671,
+   "overlap@10": 0.6
+  },
+  "london": {
+   "cos": 0.731,
+   "overlap@10": 0.0
+  },
+  "lone hero": {
+   "cos": 0.23,
+   "overlap@10": 0.0
+  },
+  "loneliness": {
+   "cos": 0.52,
+   "overlap@10": 0.0
+  },
+  "long": {
+   "cos": 0.362,
+   "overlap@10": 0.0
+  },
+  "los angeles": {
+   "cos": 0.33,
+   "overlap@10": 0.0
+  },
+  "love": {
+   "cos": 0.613,
+   "overlap@10": 0.1
+  },
+  "love story": {
+   "cos": 0.651,
+   "overlap@10": 0.0
+  },
+  "love triangles": {
+   "cos": 0.457,
+   "overlap@10": 0.0
+  },
+  "low budget": {
+   "cos": 0.098,
+   "overlap@10": 0.0
+  },
+  "lynch": {
+   "cos": -0.092,
+   "overlap@10": 0.0
+  },
+  "lyrical": {
+   "cos": 0.568,
+   "overlap@10": 0.0
+  },
+  "macabre": {
+   "cos": 0.457,
+   "overlap@10": 0.1
+  },
+  "mad scientist": {
+   "cos": 0.62,
+   "overlap@10": 0.3
+  },
+  "made for tv": {
+   "cos": 0.517,
+   "overlap@10": 0.0
+  },
+  "mafia": {
+   "cos": 0.547,
+   "overlap@10": 0.0
+  },
+  "magic": {
+   "cos": 0.52,
+   "overlap@10": 0.0
+  },
+  "magic realism": {
+   "cos": 0.321,
+   "overlap@10": 0.0
+  },
+  "male nudity": {
+   "cos": 0.318,
+   "overlap@10": 0.0
+  },
+  "man versus machine": {
+   "cos": 0.392,
+   "overlap@10": 0.0
+  },
+  "manipulation": {
+   "cos": 0.537,
+   "overlap@10": 0.2
+  },
+  "marijuana": {
+   "cos": 0.859,
+   "overlap@10": 0.7
+  },
+  "marriage": {
+   "cos": 0.512,
+   "overlap@10": 0.0
+  },
+  "mars": {
+   "cos": 0.386,
+   "overlap@10": 0.1
+  },
+  "martial arts": {
+   "cos": 0.689,
+   "overlap@10": 0.2
+  },
+  "marvel": {
+   "cos": 0.59,
+   "overlap@10": 0.7
+  },
+  "masterpiece": {
+   "cos": 0.595,
+   "overlap@10": 0.1
+  },
+  "math": {
+   "cos": 0.384,
+   "overlap@10": 0.0
+  },
+  "mathematics": {
+   "cos": 0.498,
+   "overlap@10": 0.3
+  },
+  "maze": {
+   "cos": 0.426,
+   "overlap@10": 0.0
+  },
+  "medieval": {
+   "cos": 0.67,
+   "overlap@10": 0.1
+  },
+  "meditative": {
+   "cos": 0.446,
+   "overlap@10": 0.2
+  },
+  "melancholic": {
+   "cos": 0.192,
+   "overlap@10": 0.0
+  },
+  "melancholy": {
+   "cos": 0.536,
+   "overlap@10": 0.0
+  },
+  "memory": {
+   "cos": 0.221,
+   "overlap@10": 0.0
+  },
+  "memory loss": {
+   "cos": 0.346,
+   "overlap@10": 0.0
+  },
+  "mental hospital": {
+   "cos": 0.551,
+   "overlap@10": 0.0
+  },
+  "mental illness": {
+   "cos": 0.684,
+   "overlap@10": 0.0
+  },
+  "mentor": {
+   "cos": 0.377,
+   "overlap@10": 0.0
+  },
+  "metaphysics": {
+   "cos": 0.387,
+   "overlap@10": 0.2
+  },
+  "mexico": {
+   "cos": 0.48,
+   "overlap@10": 0.0
+  },
+  "middle east": {
+   "cos": 0.508,
+   "overlap@10": 0.0
+  },
+  "midlife crisis": {
+   "cos": 0.396,
+   "overlap@10": 0.0
+  },
+  "military": {
+   "cos": 0.61,
+   "overlap@10": 0.3
+  },
+  "mindfuck": {
+   "cos": 0.428,
+   "overlap@10": 0.0
+  },
+  "mining": {
+   "cos": 0.25,
+   "overlap@10": 0.0
+  },
+  "mistaken identity": {
+   "cos": 0.618,
+   "overlap@10": 0.0
+  },
+  "mob": {
+   "cos": 0.071,
+   "overlap@10": 0.0
+  },
+  "mockumentary": {
+   "cos": 0.351,
+   "overlap@10": 0.0
+  },
+  "modern fantasy": {
+   "cos": 0.504,
+   "overlap@10": 0.0
+  },
+  "money": {
+   "cos": 0.316,
+   "overlap@10": 0.0
+  },
+  "monster": {
+   "cos": 0.63,
+   "overlap@10": 0.0
+  },
+  "monsters": {
+   "cos": 0.714,
+   "overlap@10": 0.0
+  },
+  "moody": {
+   "cos": 0.557,
+   "overlap@10": 0.0
+  },
+  "moon": {
+   "cos": 0.316,
+   "overlap@10": 0.0
+  },
+  "moral ambiguity": {
+   "cos": 0.494,
+   "overlap@10": 0.1
+  },
+  "morality": {
+   "cos": 0.447,
+   "overlap@10": 0.1
+  },
+  "mother daughter relationship": {
+   "cos": 0.461,
+   "overlap@10": 0.0
+  },
+  "mother-son relationship": {
+   "cos": 0.324,
+   "overlap@10": 0.0
+  },
+  "motorcycle": {
+   "cos": 0.544,
+   "overlap@10": 0.0
+  },
+  "movie business": {
+   "cos": 0.215,
+   "overlap@10": 0.0
+  },
+  "movielens top pick": {
+   "cos": 0.243,
+   "overlap@10": 0.0
+  },
+  "moving": {
+   "cos": 0.311,
+   "overlap@10": 0.0
+  },
+  "mozart": {
+   "cos": 0.477,
+   "overlap@10": 0.0
+  },
+  "multiple storylines": {
+   "cos": 0.508,
+   "overlap@10": 0.0
+  },
+  "mummy": {
+   "cos": 0.452,
+   "overlap@10": 0.3
+  },
+  "murder": {
+   "cos": 0.612,
+   "overlap@10": 0.0
+  },
+  "murder mystery": {
+   "cos": 0.727,
+   "overlap@10": 0.1
+  },
+  "music": {
+   "cos": 0.595,
+   "overlap@10": 0.1
+  },
+  "music business": {
+   "cos": 0.513,
+   "overlap@10": 0.0
+  },
+  "musical": {
+   "cos": 0.757,
+   "overlap@10": 0.2
+  },
+  "musicians": {
+   "cos": 0.464,
+   "overlap@10": 0.0
+  },
+  "mutants": {
+   "cos": 0.616,
+   "overlap@10": 0.1
+  },
+  "mystery": {
+   "cos": 0.417,
+   "overlap@10": 0.0
+  },
+  "mythology": {
+   "cos": 0.341,
+   "overlap@10": 0.0
+  },
+  "narrated": {
+   "cos": 0.227,
+   "overlap@10": 0.0
+  },
+  "nasa": {
+   "cos": 0.712,
+   "overlap@10": 0.2
+  },
+  "native americans": {
+   "cos": 0.562,
+   "overlap@10": 0.0
+  },
+  "natural disaster": {
+   "cos": 0.496,
+   "overlap@10": 0.0
+  },
+  "nature": {
+   "cos": 0.402,
+   "overlap@10": 0.0
+  },
+  "nazi": {
+   "cos": 0.323,
+   "overlap@10": 0.0
+  },
+  "nazis": {
+   "cos": 0.383,
+   "overlap@10": 0.0
+  },
+  "neo-noir": {
+   "cos": 0.562,
+   "overlap@10": 0.1
+  },
+  "nerds": {
+   "cos": 0.572,
+   "overlap@10": 0.0
+  },
+  "new jersey": {
+   "cos": 0.692,
+   "overlap@10": 0.1
+  },
+  "new orleans": {
+   "cos": 0.434,
+   "overlap@10": 0.0
+  },
+  "new york": {
+   "cos": 0.592,
+   "overlap@10": 0.1
+  },
+  "new york city": {
+   "cos": 0.623,
+   "overlap@10": 0.1
+  },
+  "ninja": {
+   "cos": 0.661,
+   "overlap@10": 0.0
+  },
+  "no plot": {
+   "cos": 0.393,
+   "overlap@10": 0.0
+  },
+  "nocturnal": {
+   "cos": 0.456,
+   "overlap@10": 0.0
+  },
+  "noir": {
+   "cos": 0.647,
+   "overlap@10": 0.1
+  },
+  "noir thriller": {
+   "cos": 0.684,
+   "overlap@10": 0.4
+  },
+  "non-linear": {
+   "cos": 0.447,
+   "overlap@10": 0.1
+  },
+  "nonlinear": {
+   "cos": 0.314,
+   "overlap@10": 0.0
+  },
+  "nostalgia": {
+   "cos": 0.479,
+   "overlap@10": 0.0
+  },
+  "nostalgic": {
+   "cos": 0.459,
+   "overlap@10": 0.0
+  },
+  "notable nudity": {
+   "cos": 0.585,
+   "overlap@10": 0.0
+  },
+  "notable soundtrack": {
+   "cos": 0.492,
+   "overlap@10": 0.0
+  },
+  "nuclear": {
+   "cos": 0.595,
+   "overlap@10": 0.1
+  },
+  "nuclear war": {
+   "cos": 0.53,
+   "overlap@10": 0.0
+  },
+  "nudity": {
+   "cos": 0.497,
+   "overlap@10": 0.0
+  },
+  "nudity (full frontal - brief)": {
+   "cos": 0.282,
+   "overlap@10": 0.0
+  },
+  "nudity (full frontal - notable)": {
+   "cos": 0.504,
+   "overlap@10": 0.0
+  },
+  "nudity (full frontal)": {
+   "cos": 0.471,
+   "overlap@10": 0.0
+  },
+  "nudity (rear)": {
+   "cos": 0.617,
+   "overlap@10": 0.0
+  },
+  "nudity (topless - brief)": {
+   "cos": 0.205,
+   "overlap@10": 0.0
+  },
+  "nudity (topless - notable)": {
+   "cos": 0.599,
+   "overlap@10": 0.0
+  },
+  "nudity (topless)": {
+   "cos": 0.526,
+   "overlap@10": 0.0
+  },
+  "obsession": {
+   "cos": 0.393,
+   "overlap@10": 0.0
+  },
+  "ocean": {
+   "cos": 0.272,
+   "overlap@10": 0.0
+  },
+  "off-beat comedy": {
+   "cos": 0.565,
+   "overlap@10": 0.1
+  },
+  "oil": {
+   "cos": 0.713,
+   "overlap@10": 0.3
+  },
+  "olympics": {
+   "cos": 0.513,
+   "overlap@10": 0.0
+  },
+  "ominous": {
+   "cos": 0.703,
+   "overlap@10": 0.2
+  },
+  "opera": {
+   "cos": 0.592,
+   "overlap@10": 0.0
+  },
+  "organized crime": {
+   "cos": 0.552,
+   "overlap@10": 0.0
+  },
+  "original": {
+   "cos": -0.01,
+   "overlap@10": 0.0
+  },
+  "original plot": {
+   "cos": 0.372,
+   "overlap@10": 0.0
+  },
+  "orphans": {
+   "cos": 0.374,
+   "overlap@10": 0.0
+  },
+  "oscar": {
+   "cos": 0.482,
+   "overlap@10": 0.0
+  },
+  "oscar (best actor)": {
+   "cos": 0.779,
+   "overlap@10": 0.6
+  },
+  "oscar (best actress)": {
+   "cos": 0.711,
+   "overlap@10": 0.3
+  },
+  "oscar (best animated feature)": {
+   "cos": 0.681,
+   "overlap@10": 0.0
+  },
+  "oscar (best cinematography)": {
+   "cos": 0.745,
+   "overlap@10": 0.1
+  },
+  "oscar (best directing)": {
+   "cos": 0.58,
+   "overlap@10": 0.1
+  },
+  "oscar (best editing)": {
+   "cos": 0.373,
+   "overlap@10": 0.0
+  },
+  "oscar (best effects - visual effects)": {
+   "cos": 0.467,
+   "overlap@10": 0.1
+  },
+  "oscar (best foreign language film)": {
+   "cos": 0.624,
+   "overlap@10": 0.3
+  },
+  "oscar (best music - original song)": {
+   "cos": 0.417,
+   "overlap@10": 0.0
+  },
+  "oscar (best picture)": {
+   "cos": 0.743,
+   "overlap@10": 0.3
+  },
+  "oscar (best sound)": {
+   "cos": 0.487,
+   "overlap@10": 0.0
+  },
+  "oscar (best supporting actor)": {
+   "cos": 0.786,
+   "overlap@10": 0.3
+  },
+  "oscar (best supporting actress)": {
+   "cos": 0.756,
+   "overlap@10": 0.3
+  },
+  "oscar (best writing - screenplay written directly for the screen)": {
+   "cos": 0.56,
+   "overlap@10": 0.0
+  },
+  "oscar winner": {
+   "cos": 0.698,
+   "overlap@10": 0.1
+  },
+  "over the top": {
+   "cos": -0.058,
+   "overlap@10": 0.0
+  },
+  "overrated": {
+   "cos": 0.399,
+   "overlap@10": 0.0
+  },
+  "parallel universe": {
+   "cos": 0.346,
+   "overlap@10": 0.0
+  },
+  "paranoia": {
+   "cos": 0.647,
+   "overlap@10": 0.3
+  },
+  "paranoid": {
+   "cos": 0.609,
+   "overlap@10": 0.1
+  },
+  "parenthood": {
+   "cos": 0.612,
+   "overlap@10": 0.1
+  },
+  "paris": {
+   "cos": 0.729,
+   "overlap@10": 0.3
+  },
+  "parody": {
+   "cos": 0.64,
+   "overlap@10": 0.2
+  },
+  "passionate": {
+   "cos": 0.456,
+   "overlap@10": 0.0
+  },
+  "perfect": {
+   "cos": 0.163,
+   "overlap@10": 0.0
+  },
+  "period piece": {
+   "cos": 0.624,
+   "overlap@10": 0.1
+  },
+  "pg": {
+   "cos": 0.162,
+   "overlap@10": 0.0
+  },
+  "pg-13": {
+   "cos": 0.646,
+   "overlap@10": 0.1
+  },
+  "philip k. dick": {
+   "cos": -0.15,
+   "overlap@10": 0.0
+  },
+  "philosophical": {
+   "cos": 0.539,
+   "overlap@10": 0.0
+  },
+  "philosophy": {
+   "cos": 0.284,
+   "overlap@10": 0.0
+  },
+  "photography": {
+   "cos": 0.431,
+   "overlap@10": 0.0
+  },
+  "pirates": {
+   "cos": 0.354,
+   "overlap@10": 0.0
+  },
+  "pixar": {
+   "cos": 0.688,
+   "overlap@10": 0.4
+  },
+  "pixar animation": {
+   "cos": 0.805,
+   "overlap@10": 0.7
+  },
+  "plot": {
+   "cos": 0.631,
+   "overlap@10": 0.0
+  },
+  "plot holes": {
+   "cos": 0.398,
+   "overlap@10": 0.0
+  },
+  "plot twist": {
+   "cos": 0.633,
+   "overlap@10": 0.1
+  },
+  "poetry": {
+   "cos": 0.436,
+   "overlap@10": 0.0
+  },
+  "poignant": {
+   "cos": 0.359,
+   "overlap@10": 0.0
+  },
+  "pointless": {
+   "cos": 0.374,
+   "overlap@10": 0.1
+  },
+  "poker": {
+   "cos": 0.252,
+   "overlap@10": 0.0
+  },
+  "poland": {
+   "cos": 0.623,
+   "overlap@10": 0.0
+  },
+  "police": {
+   "cos": 0.502,
+   "overlap@10": 0.0
+  },
+  "police corruption": {
+   "cos": 0.383,
+   "overlap@10": 0.0
+  },
+  "police investigation": {
+   "cos": 0.314,
+   "overlap@10": 0.0
+  },
+  "political": {
+   "cos": 0.623,
+   "overlap@10": 0.2
+  },
+  "political corruption": {
+   "cos": 0.52,
+   "overlap@10": 0.1
+  },
+  "politics": {
+   "cos": 0.67,
+   "overlap@10": 0.2
+  },
+  "pornography": {
+   "cos": 0.549,
+   "overlap@10": 0.0
+  },
+  "post apocalyptic": {
+   "cos": 0.679,
+   "overlap@10": 0.3
+  },
+  "post-apocalyptic": {
+   "cos": 0.682,
+   "overlap@10": 0.3
+  },
+  "poverty": {
+   "cos": 0.692,
+   "overlap@10": 0.1
+  },
+  "powerful ending": {
+   "cos": 0.41,
+   "overlap@10": 0.1
+  },
+  "predictable": {
+   "cos": 0.615,
+   "overlap@10": 0.2
+  },
+  "pregnancy": {
+   "cos": 0.516,
+   "overlap@10": 0.0
+  },
+  "prejudice": {
+   "cos": 0.543,
+   "overlap@10": 0.0
+  },
+  "prequel": {
+   "cos": 0.28,
+   "overlap@10": 0.1
+  },
+  "president": {
+   "cos": 0.482,
+   "overlap@10": 0.0
+  },
+  "pretentious": {
+   "cos": 0.476,
+   "overlap@10": 0.0
+  },
+  "prison": {
+   "cos": 0.467,
+   "overlap@10": 0.0
+  },
+  "prison escape": {
+   "cos": 0.167,
+   "overlap@10": 0.0
+  },
+  "private detective": {
+   "cos": 0.448,
+   "overlap@10": 0.0
+  },
+  "product placement": {
+   "cos": 0.153,
+   "overlap@10": 0.0
+  },
+  "prohibition": {
+   "cos": 0.491,
+   "overlap@10": 0.0
+  },
+  "propaganda": {
+   "cos": 0.63,
+   "overlap@10": 0.2
+  },
+  "prostitution": {
+   "cos": 0.446,
+   "overlap@10": 0.0
+  },
+  "psychedelic": {
+   "cos": 0.624,
+   "overlap@10": 0.3
+  },
+  "psychiatrist": {
+   "cos": 0.633,
+   "overlap@10": 0.1
+  },
+  "psychiatry": {
+   "cos": 0.715,
+   "overlap@10": 0.2
+  },
+  "psychological": {
+   "cos": 0.483,
+   "overlap@10": 0.0
+  },
+  "psychology": {
+   "cos": 0.308,
+   "overlap@10": 0.0
+  },
+  "pulp": {
+   "cos": 0.449,
+   "overlap@10": 0.0
+  },
+  "punk": {
+   "cos": 0.361,
+   "overlap@10": 0.0
+  },
+  "puppets": {
+   "cos": 0.417,
+   "overlap@10": 0.0
+  },
+  "queer": {
+   "cos": 0.839,
+   "overlap@10": 0.6
+  },
+  "quirky": {
+   "cos": 0.738,
+   "overlap@10": 0.0
+  },
+  "quotable": {
+   "cos": 0.56,
+   "overlap@10": 0.6
+  },
+  "rabbits": {
+   "cos": 0.294,
+   "overlap@10": 0.0
+  },
+  "race": {
+   "cos": 0.396,
+   "overlap@10": 0.0
+  },
+  "race issues": {
+   "cos": 0.446,
+   "overlap@10": 0.1
+  },
+  "racing": {
+   "cos": 0.609,
+   "overlap@10": 0.0
+  },
+  "racism": {
+   "cos": 0.508,
+   "overlap@10": 0.0
+  },
+  "radio": {
+   "cos": 0.652,
+   "overlap@10": 0.1
+  },
+  "rags to riches": {
+   "cos": 0.546,
+   "overlap@10": 0.0
+  },
+  "rape": {
+   "cos": 0.553,
+   "overlap@10": 0.1
+  },
+  "realistic": {
+   "cos": 0.383,
+   "overlap@10": 0.0
+  },
+  "realistic action": {
+   "cos": 0.755,
+   "overlap@10": 0.2
+  },
+  "reality tv": {
+   "cos": 0.402,
+   "overlap@10": 0.0
+  },
+  "rebellion": {
+   "cos": 0.473,
+   "overlap@10": 0.1
+  },
+  "redemption": {
+   "cos": 0.485,
+   "overlap@10": 0.0
+  },
+  "reflective": {
+   "cos": 0.468,
+   "overlap@10": 0.0
+  },
+  "relationships": {
+   "cos": 0.606,
+   "overlap@10": 0.0
+  },
+  "religion": {
+   "cos": 0.683,
+   "overlap@10": 0.4
+  },
+  "remade": {
+   "cos": 0.306,
+   "overlap@10": 0.0
+  },
+  "remake": {
+   "cos": 0.463,
+   "overlap@10": 0.0
+  },
+  "revenge": {
+   "cos": 0.32,
+   "overlap@10": 0.0
+  },
+  "revolution": {
+   "cos": 0.625,
+   "overlap@10": 0.2
+  },
+  "ridiculous": {
+   "cos": 0.365,
+   "overlap@10": 0.0
+  },
+  "rio de janeiro": {
+   "cos": 0.455,
+   "overlap@10": 0.0
+  },
+  "road movie": {
+   "cos": 0.353,
+   "overlap@10": 0.0
+  },
+  "road trip": {
+   "cos": 0.556,
+   "overlap@10": 0.0
+  },
+  "robbery": {
+   "cos": 0.705,
+   "overlap@10": 0.2
+  },
+  "robert downey jr": {
+   "cos": 0.376,
+   "overlap@10": 0.0
+  },
+  "robot": {
+   "cos": 0.449,
+   "overlap@10": 0.0
+  },
+  "robots": {
+   "cos": 0.532,
+   "overlap@10": 0.0
+  },
+  "rock and roll": {
+   "cos": 0.709,
+   "overlap@10": 0.2
+  },
+  "romance": {
+   "cos": 0.809,
+   "overlap@10": 0.5
+  },
+  "romantic": {
+   "cos": 0.769,
+   "overlap@10": 0.3
+  },
+  "romantic comedy": {
+   "cos": 0.718,
+   "overlap@10": 0.0
+  },
+  "rome": {
+   "cos": 0.713,
+   "overlap@10": 0.0
+  },
+  "runaway": {
+   "cos": 0.212,
+   "overlap@10": 0.0
+  },
+  "russia": {
+   "cos": 0.723,
+   "overlap@10": 0.1
+  },
+  "russian": {
+   "cos": 0.703,
+   "overlap@10": 0.0
+  },
+  "sacrifice": {
+   "cos": 0.447,
+   "overlap@10": 0.0
+  },
+  "sad": {
+   "cos": 0.562,
+   "overlap@10": 0.1
+  },
+  "sad but good": {
+   "cos": 0.316,
+   "overlap@10": 0.0
+  },
+  "samurai": {
+   "cos": 0.671,
+   "overlap@10": 0.2
+  },
+  "san francisco": {
+   "cos": 0.597,
+   "overlap@10": 0.3
+  },
+  "sappy": {
+   "cos": 0.148,
+   "overlap@10": 0.0
+  },
+  "sarcasm": {
+   "cos": 0.343,
+   "overlap@10": 0.0
+  },
+  "satire": {
+   "cos": 0.651,
+   "overlap@10": 0.0
+  },
+  "satirical": {
+   "cos": 0.63,
+   "overlap@10": 0.0
+  },
+  "saturday night live": {
+   "cos": 0.532,
+   "overlap@10": 0.2
+  },
+  "saturn award (best special effects)": {
+   "cos": 0.469,
+   "overlap@10": 0.0
+  },
+  "scary": {
+   "cos": 0.859,
+   "overlap@10": 0.1
+  },
+  "scenic": {
+   "cos": 0.563,
+   "overlap@10": 0.0
+  },
+  "schizophrenia": {
+   "cos": 0.639,
+   "overlap@10": 0.2
+  },
+  "school": {
+   "cos": 0.64,
+   "overlap@10": 0.0
+  },
+  "sci fi": {
+   "cos": 0.756,
+   "overlap@10": 0.2
+  },
+  "sci-fi": {
+   "cos": 0.758,
+   "overlap@10": 0.1
+  },
+  "science": {
+   "cos": 0.701,
+   "overlap@10": 0.1
+  },
+  "science fiction": {
+   "cos": 0.681,
+   "overlap@10": 0.1
+  },
+  "scifi": {
+   "cos": 0.752,
+   "overlap@10": 0.2
+  },
+  "scifi cult": {
+   "cos": 0.658,
+   "overlap@10": 0.1
+  },
+  "scotland": {
+   "cos": 0.776,
+   "overlap@10": 0.2
+  },
+  "screwball": {
+   "cos": 0.53,
+   "overlap@10": 0.1
+  },
+  "screwball comedy": {
+   "cos": 0.527,
+   "overlap@10": 0.1
+  },
+  "script": {
+   "cos": 0.396,
+   "overlap@10": 0.0
+  },
+  "secret service": {
+   "cos": 0.559,
+   "overlap@10": 0.1
+  },
+  "secrets": {
+   "cos": 0.284,
+   "overlap@10": 0.0
+  },
+  "segregation": {
+   "cos": 0.471,
+   "overlap@10": 0.2
+  },
+  "self discovery": {
+   "cos": 0.214,
+   "overlap@10": 0.0
+  },
+  "sentimental": {
+   "cos": 0.439,
+   "overlap@10": 0.0
+  },
+  "sequel": {
+   "cos": 0.611,
+   "overlap@10": 0.4
+  },
+  "sequels": {
+   "cos": 0.569,
+   "overlap@10": 0.2
+  },
+  "serial killer": {
+   "cos": 0.628,
+   "overlap@10": 0.0
+  },
+  "series": {
+   "cos": 0.698,
+   "overlap@10": 0.2
+  },
+  "sex": {
+   "cos": 0.531,
+   "overlap@10": 0.0
+  },
+  "sex comedy": {
+   "cos": 0.475,
+   "overlap@10": 0.0
+  },
+  "sexual": {
+   "cos": 0.695,
+   "overlap@10": 0.0
+  },
+  "sexual abuse": {
+   "cos": 0.604,
+   "overlap@10": 0.0
+  },
+  "sexuality": {
+   "cos": 0.733,
+   "overlap@10": 0.1
+  },
+  "sexualized violence": {
+   "cos": 0.77,
+   "overlap@10": 0.1
+  },
+  "sexy": {
+   "cos": 0.578,
+   "overlap@10": 0.0
+  },
+  "shakespeare": {
+   "cos": 0.66,
+   "overlap@10": 0.0
+  },
+  "shallow": {
+   "cos": 0.242,
+   "overlap@10": 0.0
+  },
+  "shark": {
+   "cos": 0.411,
+   "overlap@10": 0.0
+  },
+  "shopping": {
+   "cos": 0.326,
+   "overlap@10": 0.0
+  },
+  "short": {
+   "cos": 0.306,
+   "overlap@10": 0.0
+  },
+  "silent": {
+   "cos": 0.578,
+   "overlap@10": 0.0
+  },
+  "silly": {
+   "cos": 0.445,
+   "overlap@10": 0.1
+  },
+  "silly fun": {
+   "cos": 0.665,
+   "overlap@10": 0.3
+  },
+  "simple": {
+   "cos": 0.405,
+   "overlap@10": 0.0
+  },
+  "single father": {
+   "cos": 0.287,
+   "overlap@10": 0.0
+  },
+  "sisters": {
+   "cos": 0.733,
+   "overlap@10": 0.0
+  },
+  "slackers": {
+   "cos": 0.206,
+   "overlap@10": 0.0
+  },
+  "slapstick": {
+   "cos": 0.467,
+   "overlap@10": 0.0
+  },
+  "slasher": {
+   "cos": 0.389,
+   "overlap@10": 0.0
+  },
+  "slavery": {
+   "cos": 0.613,
+   "overlap@10": 0.1
+  },
+  "slow": {
+   "cos": 0.419,
+   "overlap@10": 0.0
+  },
+  "slow paced": {
+   "cos": 0.54,
+   "overlap@10": 0.1
+  },
+  "small town": {
+   "cos": 0.494,
+   "overlap@10": 0.0
+  },
+  "snakes": {
+   "cos": 0.507,
+   "overlap@10": 0.0
+  },
+  "so bad it's funny": {
+   "cos": 0.4,
+   "overlap@10": 0.0
+  },
+  "so bad it's good": {
+   "cos": 0.419,
+   "overlap@10": 0.0
+  },
+  "soccer": {
+   "cos": 0.489,
+   "overlap@10": 0.0
+  },
+  "social commentary": {
+   "cos": 0.532,
+   "overlap@10": 0.0
+  },
+  "solitude": {
+   "cos": 0.372,
+   "overlap@10": 0.0
+  },
+  "south africa": {
+   "cos": 0.527,
+   "overlap@10": 0.0
+  },
+  "space": {
+   "cos": 0.531,
+   "overlap@10": 0.0
+  },
+  "space opera": {
+   "cos": 0.322,
+   "overlap@10": 0.0
+  },
+  "space program": {
+   "cos": 0.672,
+   "overlap@10": 0.1
+  },
+  "space travel": {
+   "cos": 0.695,
+   "overlap@10": 0.3
+  },
+  "spaghetti western": {
+   "cos": 0.57,
+   "overlap@10": 0.0
+  },
+  "spain": {
+   "cos": 0.813,
+   "overlap@10": 0.4
+  },
+  "spanish": {
+   "cos": 0.653,
+   "overlap@10": 0.3
+  },
+  "special": {
+   "cos": 0.307,
+   "overlap@10": 0.0
+  },
+  "special effects": {
+   "cos": 0.428,
+   "overlap@10": 0.0
+  },
+  "spelling bee": {
+   "cos": 0.039,
+   "overlap@10": 0.0
+  },
+  "spiders": {
+   "cos": 0.547,
+   "overlap@10": 0.0
+  },
+  "spielberg": {
+   "cos": 0.334,
+   "overlap@10": 0.0
+  },
+  "spies": {
+   "cos": 0.638,
+   "overlap@10": 0.0
+  },
+  "splatter": {
+   "cos": 0.559,
+   "overlap@10": 0.0
+  },
+  "spoof": {
+   "cos": 0.409,
+   "overlap@10": 0.0
+  },
+  "sports": {
+   "cos": 0.742,
+   "overlap@10": 0.4
+  },
+  "spy": {
+   "cos": 0.675,
+   "overlap@10": 0.0
+  },
+  "spying": {
+   "cos": 0.672,
+   "overlap@10": 0.0
+  },
+  "stand-up comedy": {
+   "cos": 0.488,
+   "overlap@10": 0.0
+  },
+  "steampunk": {
+   "cos": 0.198,
+   "overlap@10": 0.0
+  },
+  "stereotypes": {
+   "cos": 0.476,
+   "overlap@10": 0.0
+  },
+  "stoner movie": {
+   "cos": 0.452,
+   "overlap@10": 0.0
+  },
+  "stop motion": {
+   "cos": 0.536,
+   "overlap@10": 0.2
+  },
+  "stop-motion": {
+   "cos": 0.593,
+   "overlap@10": 0.0
+  },
+  "story": {
+   "cos": 0.123,
+   "overlap@10": 0.0
+  },
+  "storytelling": {
+   "cos": 0.345,
+   "overlap@10": 0.0
+  },
+  "stranded": {
+   "cos": 0.441,
+   "overlap@10": 0.0
+  },
+  "strange": {
+   "cos": 0.608,
+   "overlap@10": 0.0
+  },
+  "strippers": {
+   "cos": 0.488,
+   "overlap@10": 0.0
+  },
+  "stunning": {
+   "cos": 0.321,
+   "overlap@10": 0.0
+  },
+  "stupid": {
+   "cos": 0.732,
+   "overlap@10": 0.3
+  },
+  "stupid as hell": {
+   "cos": 0.689,
+   "overlap@10": 0.3
+  },
+  "stupidity": {
+   "cos": 0.531,
+   "overlap@10": 0.2
+  },
+  "stylish": {
+   "cos": 0.512,
+   "overlap@10": 0.0
+  },
+  "stylized": {
+   "cos": 0.554,
+   "overlap@10": 0.0
+  },
+  "submarine": {
+   "cos": 0.533,
+   "overlap@10": 0.0
+  },
+  "suburbia": {
+   "cos": 0.405,
+   "overlap@10": 0.0
+  },
+  "suicide": {
+   "cos": 0.56,
+   "overlap@10": 0.0
+  },
+  "suicide attempt": {
+   "cos": 0.301,
+   "overlap@10": 0.0
+  },
+  "super hero": {
+   "cos": 0.575,
+   "overlap@10": 0.1
+  },
+  "super-hero": {
+   "cos": 0.605,
+   "overlap@10": 0.1
+  },
+  "superhero": {
+   "cos": 0.762,
+   "overlap@10": 0.6
+  },
+  "superheroes": {
+   "cos": 0.731,
+   "overlap@10": 0.5
+  },
+  "supernatural": {
+   "cos": 0.701,
+   "overlap@10": 0.0
+  },
+  "suprisingly clever": {
+   "cos": 0.545,
+   "overlap@10": 0.0
+  },
+  "surprise ending": {
+   "cos": 0.622,
+   "overlap@10": 0.4
+  },
+  "surreal": {
+   "cos": 0.567,
+   "overlap@10": 0.1
+  },
+  "surrealism": {
+   "cos": 0.643,
+   "overlap@10": 0.1
+  },
+  "surveillance": {
+   "cos": 0.572,
+   "overlap@10": 0.0
+  },
+  "survival": {
+   "cos": 0.699,
+   "overlap@10": 0.2
+  },
+  "suspense": {
+   "cos": 0.658,
+   "overlap@10": 0.3
+  },
+  "suspenseful": {
+   "cos": 0.648,
+   "overlap@10": 0.0
+  },
+  "swashbuckler": {
+   "cos": 0.422,
+   "overlap@10": 0.0
+  },
+  "swedish": {
+   "cos": 0.433,
+   "overlap@10": 0.0
+  },
+  "sweet": {
+   "cos": 0.127,
+   "overlap@10": 0.0
+  },
+  "sword fight": {
+   "cos": 0.72,
+   "overlap@10": 0.1
+  },
+  "sword fighting": {
+   "cos": 0.714,
+   "overlap@10": 0.0
+  },
+  "talking animals": {
+   "cos": 0.461,
+   "overlap@10": 0.2
+  },
+  "talky": {
+   "cos": 0.19,
+   "overlap@10": 0.0
+  },
+  "teacher": {
+   "cos": 0.264,
+   "overlap@10": 0.0
+  },
+  "tear jerker": {
+   "cos": 0.368,
+   "overlap@10": 0.0
+  },
+  "technology": {
+   "cos": 0.603,
+   "overlap@10": 0.1
+  },
+  "teen": {
+   "cos": 0.72,
+   "overlap@10": 0.0
+  },
+  "teen movie": {
+   "cos": 0.655,
+   "overlap@10": 0.0
+  },
+  "teenager": {
+   "cos": 0.485,
+   "overlap@10": 0.0
+  },
+  "teenagers": {
+   "cos": 0.727,
+   "overlap@10": 0.1
+  },
+  "teens": {
+   "cos": 0.546,
+   "overlap@10": 0.0
+  },
+  "teleportation": {
+   "cos": 0.433,
+   "overlap@10": 0.2
+  },
+  "television": {
+   "cos": 0.225,
+   "overlap@10": 0.0
+  },
+  "tense": {
+   "cos": 0.535,
+   "overlap@10": 0.0
+  },
+  "terminal illness": {
+   "cos": 0.458,
+   "overlap@10": 0.0
+  },
+  "terrorism": {
+   "cos": 0.628,
+   "overlap@10": 0.3
+  },
+  "texas": {
+   "cos": 0.695,
+   "overlap@10": 0.2
+  },
+  "thought-provoking": {
+   "cos": 0.432,
+   "overlap@10": 0.0
+  },
+  "thriller": {
+   "cos": 0.589,
+   "overlap@10": 0.0
+  },
+  "time": {
+   "cos": 0.228,
+   "overlap@10": 0.0
+  },
+  "time loop": {
+   "cos": 0.336,
+   "overlap@10": 0.0
+  },
+  "time travel": {
+   "cos": 0.617,
+   "overlap@10": 0.4
+  },
+  "tokyo": {
+   "cos": 0.626,
+   "overlap@10": 0.1
+  },
+  "tom clancy": {
+   "cos": 0.44,
+   "overlap@10": 0.0
+  },
+  "too long": {
+   "cos": 0.319,
+   "overlap@10": 0.0
+  },
+  "too short": {
+   "cos": 0.211,
+   "overlap@10": 0.0
+  },
+  "torture": {
+   "cos": 0.593,
+   "overlap@10": 0.2
+  },
+  "touching": {
+   "cos": 0.147,
+   "overlap@10": 0.0
+  },
+  "toys": {
+   "cos": 0.655,
+   "overlap@10": 0.0
+  },
+  "tragedy": {
+   "cos": 0.372,
+   "overlap@10": 0.0
+  },
+  "train": {
+   "cos": 0.197,
+   "overlap@10": 0.0
+  },
+  "trains": {
+   "cos": 0.16,
+   "overlap@10": 0.0
+  },
+  "transformation": {
+   "cos": 0.456,
+   "overlap@10": 0.0
+  },
+  "transgender": {
+   "cos": 0.773,
+   "overlap@10": 0.4
+  },
+  "travel": {
+   "cos": 0.594,
+   "overlap@10": 0.2
+  },
+  "treasure": {
+   "cos": 0.459,
+   "overlap@10": 0.0
+  },
+  "treasure hunt": {
+   "cos": 0.638,
+   "overlap@10": 0.0
+  },
+  "tricky": {
+   "cos": 0.483,
+   "overlap@10": 0.1
+  },
+  "trilogy": {
+   "cos": 0.638,
+   "overlap@10": 0.4
+  },
+  "true story": {
+   "cos": 0.655,
+   "overlap@10": 0.4
+  },
+  "twist": {
+   "cos": 0.537,
+   "overlap@10": 0.0
+  },
+  "twist ending": {
+   "cos": 0.658,
+   "overlap@10": 0.0
+  },
+  "twists & turns": {
+   "cos": 0.437,
+   "overlap@10": 0.0
+  },
+  "undercover cop": {
+   "cos": 0.546,
+   "overlap@10": 0.0
+  },
+  "underdog": {
+   "cos": 0.484,
+   "overlap@10": 0.1
+  },
+  "underrated": {
+   "cos": 0.449,
+   "overlap@10": 0.0
+  },
+  "understated": {
+   "cos": 0.152,
+   "overlap@10": 0.0
+  },
+  "underwater": {
+   "cos": 0.392,
+   "overlap@10": 0.0
+  },
+  "unfunny": {
+   "cos": 0.488,
+   "overlap@10": 0.0
+  },
+  "unique": {
+   "cos": 0.314,
+   "overlap@10": 0.0
+  },
+  "united nations": {
+   "cos": 0.503,
+   "overlap@10": 0.0
+  },
+  "unlikeable characters": {
+   "cos": 0.333,
+   "overlap@10": 0.0
+  },
+  "unlikely friendships": {
+   "cos": 0.619,
+   "overlap@10": 0.2
+  },
+  "unrealistic": {
+   "cos": 0.599,
+   "overlap@10": 0.0
+  },
+  "unusual plot structure": {
+   "cos": 0.225,
+   "overlap@10": 0.0
+  },
+  "us history": {
+   "cos": 0.61,
+   "overlap@10": 0.1
+  },
+  "utopia": {
+   "cos": 0.399,
+   "overlap@10": 0.1
+  },
+  "vampire": {
+   "cos": 0.68,
+   "overlap@10": 0.0
+  },
+  "vampire human love": {
+   "cos": 0.394,
+   "overlap@10": 0.0
+  },
+  "vampires": {
+   "cos": 0.565,
+   "overlap@10": 0.0
+  },
+  "vengeance": {
+   "cos": 0.27,
+   "overlap@10": 0.0
+  },
+  "very funny": {
+   "cos": 0.589,
+   "overlap@10": 0.1
+  },
+  "very good": {
+   "cos": 0.075,
+   "overlap@10": 0.0
+  },
+  "very interesting": {
+   "cos": 0.439,
+   "overlap@10": 0.0
+  },
+  "video game": {
+   "cos": 0.701,
+   "overlap@10": 0.2
+  },
+  "video game adaptation": {
+   "cos": 0.58,
+   "overlap@10": 0.1
+  },
+  "video games": {
+   "cos": 0.718,
+   "overlap@10": 0.5
+  },
+  "videogame": {
+   "cos": 0.584,
+   "overlap@10": 0.0
+  },
+  "vienna": {
+   "cos": 0.348,
+   "overlap@10": 0.0
+  },
+  "vietnam": {
+   "cos": 0.572,
+   "overlap@10": 0.0
+  },
+  "vietnam war": {
+   "cos": 0.675,
+   "overlap@10": 0.1
+  },
+  "view askew": {
+   "cos": 0.414,
+   "overlap@10": 0.0
+  },
+  "vigilante": {
+   "cos": 0.461,
+   "overlap@10": 0.0
+  },
+  "vigilantism": {
+   "cos": 0.376,
+   "overlap@10": 0.0
+  },
+  "violence": {
+   "cos": 0.772,
+   "overlap@10": 0.1
+  },
+  "violent": {
+   "cos": 0.834,
+   "overlap@10": 0.2
+  },
+  "virginity": {
+   "cos": 0.556,
+   "overlap@10": 0.5
+  },
+  "virtual reality": {
+   "cos": 0.434,
+   "overlap@10": 0.0
+  },
+  "virus": {
+   "cos": 0.423,
+   "overlap@10": 0.0
+  },
+  "visceral": {
+   "cos": 0.583,
+   "overlap@10": 0.0
+  },
+  "visual": {
+   "cos": 0.671,
+   "overlap@10": 0.1
+  },
+  "visually appealing": {
+   "cos": 0.556,
+   "overlap@10": 0.0
+  },
+  "visually stunning": {
+   "cos": 0.61,
+   "overlap@10": 0.0
+  },
+  "visuals": {
+   "cos": 0.736,
+   "overlap@10": 0.3
+  },
+  "voodoo": {
+   "cos": 0.297,
+   "overlap@10": 0.0
+  },
+  "voyeurism": {
+   "cos": 0.568,
+   "overlap@10": 0.0
+  },
+  "war": {
+   "cos": 0.687,
+   "overlap@10": 0.4
+  },
+  "war movie": {
+   "cos": 0.586,
+   "overlap@10": 0.1
+  },
+  "wartime": {
+   "cos": 0.701,
+   "overlap@10": 0.4
+  },
+  "watch the credits": {
+   "cos": 0.459,
+   "overlap@10": 0.0
+  },
+  "weapons": {
+   "cos": 0.78,
+   "overlap@10": 0.2
+  },
+  "wedding": {
+   "cos": 0.611,
+   "overlap@10": 0.1
+  },
+  "weed": {
+   "cos": 0.803,
+   "overlap@10": 0.3
+  },
+  "weird": {
+   "cos": 0.639,
+   "overlap@10": 0.0
+  },
+  "werewolf": {
+   "cos": 0.593,
+   "overlap@10": 0.0
+  },
+  "werewolves": {
+   "cos": 0.696,
+   "overlap@10": 0.1
+  },
+  "western": {
+   "cos": 0.773,
+   "overlap@10": 0.1
+  },
+  "whimsical": {
+   "cos": 0.514,
+   "overlap@10": 0.0
+  },
+  "wilderness": {
+   "cos": 0.707,
+   "overlap@10": 0.2
+  },
+  "wine": {
+   "cos": 0.329,
+   "overlap@10": 0.0
+  },
+  "wistful": {
+   "cos": 0.402,
+   "overlap@10": 0.0
+  },
+  "witch": {
+   "cos": 0.684,
+   "overlap@10": 0.0
+  },
+  "witches": {
+   "cos": 0.705,
+   "overlap@10": 0.1
+  },
+  "witty": {
+   "cos": 0.532,
+   "overlap@10": 0.0
+  },
+  "wizards": {
+   "cos": 0.405,
+   "overlap@10": 0.1
+  },
+  "women": {
+   "cos": 0.624,
+   "overlap@10": 0.0
+  },
+  "working class": {
+   "cos": 0.202,
+   "overlap@10": 0.0
+  },
+  "workplace": {
+   "cos": 0.367,
+   "overlap@10": 0.0
+  },
+  "world politics": {
+   "cos": 0.668,
+   "overlap@10": 0.0
+  },
+  "world war i": {
+   "cos": 0.692,
+   "overlap@10": 0.4
+  },
+  "world war ii": {
+   "cos": 0.74,
+   "overlap@10": 0.5
+  },
+  "writer's life": {
+   "cos": 0.354,
+   "overlap@10": 0.0
+  },
+  "writers": {
+   "cos": 0.569,
+   "overlap@10": 0.0
+  },
+  "writing": {
+   "cos": 0.452,
+   "overlap@10": 0.1
+  },
+  "wuxia": {
+   "cos": 0.535,
+   "overlap@10": 0.1
+  },
+  "wwii": {
+   "cos": 0.741,
+   "overlap@10": 0.6
+  },
+  "zombie": {
+   "cos": 0.675,
+   "overlap@10": 0.0
+  },
+  "zombies": {
+   "cos": 0.669,
+   "overlap@10": 0.1
+  }
+ },
+ "probes": {
+  "dinosaurs": [
+   "Food of the Gods, The (1976)",
+   "Land That Time Forgot, The (1975)",
+   "Godzilla vs. Mechagodzilla (Gojira tai Mekagojira) (1974)",
+   "Rodan (Sora no daikaij\u00fb Radon) (1956)",
+   "Not of This Earth (1988)",
+   "Godzilla vs. Megalon (Gojira tai Megaro) (1973)",
+   "Mothra (Mosura) (1961)",
+   "Pok\u00e9mon the Movie: Genesect and the Legend Awakened (2013)",
+   "SSSSSSS (1973)",
+   "Son of Kong, The (1933)"
+  ],
+  "movies about grief": [
+   "They're Watching (2016)",
+   "Reef, The (2010)",
+   "The Houses October Built (2014)",
+   "Halloween: The Curse of Michael Myers (Halloween 6: The Curse of Michael Myers) (1995)",
+   "Haunting in Connecticut 2: Ghosts of Georgia, The (2013)",
+   "Cropsey (2009)",
+   "Backcountry (2014)",
+   "Shrine, The (2010)",
+   "Forget Me Not (2009)",
+   "Come Back to Me (2014)"
+  ],
+  "heist gone wrong": [
+   "Brick Mansions (2014)",
+   "Flypaper (2011)",
+   "Left Behind (2014)",
+   "Firewall (2006)",
+   "Echelon Conspiracy (2009)",
+   "Stolen (2012)",
+   "Hacker (2016)",
+   "Suspect, The (Yong-eui-ja) (2013)",
+   "Momentum (2015)",
+   "Man on a Ledge (2012)"
+  ],
+  "slow burn character study": [
+   "Steins;Gate the Movie: The Burden of D\u00e9j\u00e0 vu (2013)",
+   "Kung Fu Jungle (2014)",
+   "Ultimate Avengers 2 (2006)",
+   "Batman: Strange Days (2014)",
+   "Robot Monster (1953)",
+   "It! The Terror from Beyond Space (1958)",
+   "Flash Point (a.k.a. Flashpoint) (Dou fo sin) (2007)",
+   "Superman/Shazam!: The Return of Black Adam (2010)",
+   "Ninja III: The Domination (1984)",
+   "Kundo: Age of the Rampant (2014)"
+  ],
+  "outer space aliens invading earth": [
+   "Aliens (1986)",
+   "Thing, The (1982)",
+   "Alien (1979)",
+   "Pitch Black (2000)",
+   "War of the Worlds, The (1953)",
+   "Alien: Resurrection (1997)",
+   "Abyss, The (1989)",
+   "Alien\u00b3 (a.k.a. Alien 3) (1992)",
+   "Lost World: Jurassic Park, The (1997)",
+   "Predator (1987)"
+  ],
+  "spy during the cold war": [
+   "Shalako (1968)",
+   "Guadalcanal Diary (1943)",
+   "Halls of Montezuma (1950)",
+   "Duel at Diablo (1966)",
+   "It Happened to Jane (1959)",
+   "Jamaica Inn (1939)",
+   "Action in the North Atlantic (1943)",
+   "Passage to Marseille (1944)",
+   "Sea Wolves, The (1980)",
+   "Nevada Smith (1966)"
+  ],
+  "artificial intelligence robots": [
+   "Appleseed (Appurush\u00eedo) (2004)",
+   "Paycheck (2003)",
+   "Steamboy (Such\u00eemub\u00f4i) (2004)",
+   "Facing the Giants (2006)",
+   "Stealth (2005)",
+   "Transformers: Dark of the Moon (2011)",
+   "Peaceful Warrior (2006)",
+   "Transformers: Age of Extinction (2014)",
+   "Eagle Eye (2008)",
+   "Tron: Legacy (2010)"
+  ],
+  "courtroom drama": [
+   "Zipper (2015)",
+   "Chamber, The (1996)",
+   "Everybody's All-American (1988)",
+   "Off the Black (2006)",
+   "Indictment: The McMartin Trial (1995)",
+   "1 (2013)",
+   "Cadence (1990)",
+   "True Colors (1991)",
+   "Paradise (1991)",
+   "Heartbreak Hotel (1988)"
+  ],
+  "coming of age in the suburbs": [
+   "Sixteen Candles (1984)",
+   "River's Edge (1986)",
+   "Holes (2003)",
+   "Say Anything... (1989)",
+   "Lucas (1986)",
+   "Fast Times at Ridgemont High (1982)",
+   "Valley Girl (1983)",
+   "Heathers (1989)",
+   "Sandlot, The (1993)",
+   "Stand by Me (1986)"
+  ],
+  "post apocalyptic survival": [
+   "Last Days on Mars, The (2013)",
+   "Pandorum (2009)",
+   "Daybreakers (2010)",
+   "Stake Land (2010)",
+   "Road, The (2009)",
+   "Crazies, The (2010)",
+   "The 5th Wave (2016)",
+   "Enemy Mine (1985)",
+   "28 Weeks Later (2007)",
+   "World War Z (2013)"
+  ]
+ },
+ "paraphrase_overlap@10": {
+  "dinosaurs | prehistoric reptiles": 0.3,
+  "time travel | journeys through time": 0.3,
+  "horror | scary frightening movies": 0.0,
+  "space | outer space and distant planets": 0.2,
+  "war | armed conflict and battlefields": 0.1,
+  "romance | falling in love": 0.0,
+  "animation | animated cartoon films": 0.1,
+  "crime | criminals and heists": 0.2,
+  "comedy | funny humorous films": 0.0,
+  "documentary | non fiction real life films": 0.0
+ },
+ "paraphrase_mean": 0.12000000000000002,
+ "seconds": 340.4
+}
