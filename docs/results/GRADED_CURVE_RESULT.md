@@ -38,6 +38,21 @@ answered item = a 4-star like — naive implicit "any interaction = positive"), 
 likes**. Its premium grows +0.003 → +0.12 with k only because more revealed items = more dislikes corrupted —
 a control artifact, not a marginal-value-of-stars effect. The fair baseline is `likes-only`.
 
-**Paper:** provisional Figure~\ref{fig:gradedcurve} — panel (b) leads with the short-interview graded-over-binary
+## REPLICATED ON THE CERTIFIED TOWER (2026-07-28)
+
+Re-ran on `t2final_best.pt` (`premium_vs_k_t2final.json`; the pre-certification run is preserved as
+`premium_vs_k_ep4snap.json`). Same shape, slightly STRONGER at the short budgets:
+
+| k | ep4 snapshot | **certified t2final** |
+|---|---|---|
+| 2 | +0.0117 [+.0099,+.0135] | **+0.0147 [+.0127,+.0167]** |
+| 4 | +0.0071 [+.0053,+.0090] | **+0.0083 [+.0063,+.0103]** |
+| 8 | -0.0010 (tie) | -0.0006 [-.0024,+.0012] (tie) |
+| 16 | -0.0012 (tie) | -0.0007 (tie) |
+| full | - | -0.0002 (tie) |
+
+Figure and caption updated to the certified numbers; the \REDO marker is cleared.
+
+**Paper:** Figure~\ref{fig:gradedcurve} — panel (b) leads with the short-interview graded-over-binary
 premium + CI. Re-run on the certified tower when it lands. (full-profile point pending; not needed for the
 interview-range claim.)

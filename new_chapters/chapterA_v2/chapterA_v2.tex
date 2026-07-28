@@ -789,14 +789,16 @@ wedge against per-attribute probes~\cite{biyik2023soft}}
     revealed set is fed three ways: \emph{graded} (real signed star levels), \emph{likes-only} (sub-threshold
     answers dropped---exactly what a positive-only tower such as RecVAE does at $r{>}3.5$), and \emph{all-as-like}
     (every answered item recorded as a $4$-star like---naive implicit binarization). \textbf{(b)} Against the
-    fair positive-only baseline, the graded premium is \emph{CI-clean positive on the short interview}---$+0.012$
-    at $k{=}2$ (CI $[+0.010,+0.014]$), $+0.007$ at $k{=}4$---and fades to a tie by $k{=}8$ as collaborative
-    signal fills in: the extra bits a star carries are most decisive when few items are known. The
+    fair positive-only baseline, the graded premium is \emph{CI-clean positive on the short interview}---$+0.0147$
+    at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$ (CI $[+0.0063,+0.0103]$)---and fades to a tie from
+    $k{=}8$ onward ($-0.0006$, CI $[-0.0024,+0.0012]$) as collaborative signal fills in: the extra bits a star
+    carries are most decisive when few items are known. The
     \emph{mechanism} is that a signed answer encodes a dislike (a negative $y_j$ the item-indicator basis cannot
     express); against the \emph{all-as-like} control, which mislabels dislikes as likes, the apparent premium
     instead \emph{grows} with $k$ (dotted)---a control artifact (more revealed items $\Rightarrow$ more dislikes
     corrupted), not value from gradation. Mirroring the star signs (flip) costs up to $-0.29$. Measured on the
-    pre-certification snapshot of the tower architecture; \REDO{graded-vs-binarized curve on the certified tower}}
+    \textbf{certified} tower of \S\ref{sec:expdesign}; the pre-certification snapshot gives the same shape with
+    slightly smaller magnitudes ($+0.0117$ at $k{=}2$, $+0.0071$ at $k{=}4$, ties from $k{=}8$).}
   \label{fig:gradedcurve}
 \end{figure}
 
