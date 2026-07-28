@@ -15,9 +15,12 @@ the frozen collaborative latent:
 Then ANY phrase gets a direction W @ SBERT(phrase) in the same space as item rows and concept centroids.
 No per-concept training, no concept inventory, no retraining -- a matrix multiply at inference.
 
-ITEM TEXT = top-N genome tags per item (author directive: NOT titles. Titles carry no plot meaning, so a
-title-only adapter is a misconceived setup; genome tags are also the vocabulary the concept channel is
-trained on, so membership and closeness live in one semantic space).
+ITEM REPRESENTATION = the RELEVANCE-WEIGHTED MEAN of an item's genome-tag embeddings (author directive:
+NOT titles -- titles carry no plot meaning, so a title-only adapter is a misconceived setup; genome is
+also the vocabulary the concept channel is trained on, so membership and closeness live in one semantic
+space). Weighting rather than concatenating a top-N string: a top-N cutoff is arbitrary, and MiniLM
+truncates at 256 word-pieces so a long string silently loses its tail. Every tag above a relevance floor
+contributes, with the weight the genome assigns it.
 
 CONTROLS (these are what make it evidence rather than anecdote):
   (a) PARAPHRASE INVARIANCE -- fold a phrase and a non-tag paraphrase, compare top-10 overlap. Defeats
@@ -26,7 +29,7 @@ CONTROLS (these are what make it evidence rather than anecdote):
       from that tag's genome-grounded member CENTROID (the curated concept), overlap@10 vs a random
       baseline. Shows a free-text phrase reaches the curated concept without any retraining.
 
-  python src/instrument/sbert_open_concepts.py [--n_tags_text 18] [--ridge 1.0]
+  python src/instrument/sbert_open_concepts.py [--min_rel 0.3] [--ridge 1.0]
 """
 import os
 os.environ.setdefault("OMP_NUM_THREADS", "6")
@@ -67,34 +70,59 @@ PARAPHRASES = [("dinosaurs", "prehistoric reptiles"),
                ("documentary", "non fiction real life films")]
 
 
-def build_item_text(sid_of_movie, n_tags):
-    """Item text = its top-n genome tags by relevance. Returns {internal_sid: 'tag, tag, ...'}."""
+def build_item_vectors(sid_of_movie, sb, min_rel):
+    """Item representation = RELEVANCE-WEIGHTED MEAN of its genome tags' SBERT embeddings.
+
+    Deliberately NOT a concatenated top-N tag string. Concatenation forces an arbitrary cutoff (the old
+    chapter used top-18, which is a choice with nothing behind it) and all-MiniLM-L6-v2 truncates at 256
+    word-pieces anyway, so a long string silently loses its tail. Weighting instead uses ALL 1,128 tags
+    with the relevance the genome actually assigns them, has no truncation, and costs 1,128 encodes
+    rather than 18k. A query phrase stays a single SBERT vector in the same space, so the adapter is
+    unaffected.
+
+    min_rel drops near-zero relevances (genome scores are dense: every tag has a score for every film,
+    most of them meaningless). Returns {sid: (384,) unit vector}.
+    """
     import csv
+    from collections import defaultdict
     tagname = {}
     with open(os.path.join(DATA, "genome-tags.csv"), newline="", encoding="utf-8") as f:
         for r in csv.DictReader(f):
             tagname[int(r["tagId"])] = r["tag"].strip()
-    best = {}
+    tag_ids = sorted(tagname)
+    log(f"[sbert] encoding {len(tag_ids)} genome tag names once...")
+    T = sb.encode([tagname[t] for t in tag_ids], normalize_embeddings=True,
+                  batch_size=256, show_progress_bar=False).astype(np.float64)
+    trow = {t: i for i, t in enumerate(tag_ids)}
+
+    acc = defaultdict(lambda: np.zeros(T.shape[1]))
+    wsum = defaultdict(float)
+    kept = 0
     with open(os.path.join(DATA, "genome-scores.csv"), newline="", encoding="utf-8") as f:
         for r in csv.DictReader(f):
-            mid = int(r["movieId"])
-            sid = sid_of_movie.get(mid)
+            rel = float(r["relevance"])
+            if rel < min_rel:
+                continue
+            sid = sid_of_movie.get(int(r["movieId"]))
             if sid is None:
                 continue
-            rel = float(r["relevance"])
-            b = best.setdefault(sid, [])
-            b.append((rel, int(r["tagId"])))
+            acc[sid] += rel * T[trow[int(r["tagId"])]]
+            wsum[sid] += rel
+            kept += 1
     out = {}
-    for sid, b in best.items():
-        b.sort(reverse=True)
-        out[sid] = ", ".join(tagname[t] for _, t in b[:n_tags])
+    for sid, v in acc.items():
+        v = v / max(wsum[sid], 1e-9)
+        out[sid] = v / max(np.linalg.norm(v), 1e-12)
+    log(f"[sbert] {kept:,} tag-item pairs above relevance {min_rel} -> {len(out)} item vectors")
     return out
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
-    ap.add_argument("--n_tags_text", type=int, default=18, help="genome tags per item in its text")
+    ap.add_argument("--min_rel", type=float, default=0.3,
+                    help="drop genome relevances below this (scores are dense; most are meaningless). "
+                         "All surviving tags contribute, weighted -- there is no top-N cutoff.")
     ap.add_argument("--ridge", type=float, default=1.0)
     ap.add_argument("--n_scale_tags", type=int, default=150, help="tags for the at-scale control")
     args = ap.parse_args()
@@ -125,17 +153,13 @@ def main():
             if s is not None:
                 titles[s] = r["title"]
 
-    log(f"[sbert] building item text from top-{args.n_tags_text} genome tags (NOT titles)...")
-    text = build_item_text(movie2sid, args.n_tags_text)
-    sids = sorted(text)
-    log(f"[sbert] {len(sids)} items have genome text ({100*len(sids)/n:.1f}% coverage)")
-
     from sentence_transformers import SentenceTransformer
     log("[sbert] loading all-MiniLM-L6-v2 (one-off download if not cached)...")
     sb = SentenceTransformer("all-MiniLM-L6-v2")
-    S = sb.encode([text[s] for s in sids], normalize_embeddings=True,
-                  batch_size=256, show_progress_bar=False).astype(np.float64)
-    log(f"[sbert] encoded item text {S.shape}")
+    vecs = build_item_vectors(movie2sid, sb, args.min_rel)
+    sids = sorted(vecs)
+    S = np.stack([vecs[s] for s in sids])
+    log(f"[sbert] item vectors {S.shape} ({100*len(sids)/n:.1f}% catalogue coverage)")
 
     # ---- the one global adapter: W = Q^T S (S^T S + beta I)^-1 ----
     Q = Wd[sids]
@@ -197,7 +221,7 @@ def main():
         log("[control-b] SKIPPED: genome members not attached to ctx")
 
     res = {"snapshot": os.path.basename(args.snapshot), "n_items_with_text": len(sids),
-           "coverage": len(sids) / n, "n_tags_per_item": args.n_tags_text, "ridge": args.ridge,
+           "coverage": len(sids) / n, "min_relevance": args.min_rel, "ridge": args.ridge,
            "adapter_fit_cos": fit_cos, "probes": probes,
            "paraphrase_overlap@10": para, "paraphrase_mean": para_mean,
            "at_scale": scale, "seconds": round(time.time() - t0, 1)}
