@@ -18,7 +18,7 @@
 | concepts-only | **.1436**/**.0323** | .1504/**.0434** | .1647/**.0551** | .1776/**.0698** | .1808/.0758 | **11.04 c** |
 | combined | **.1436**/**.0323** | .1504/**.0434** | .1647/**.0551** | .1817/.0616 | .2049/**.0776** | 2.75 i + 4.25 c |
 
-## THE HEADLINE — coarse-to-fine emerges, unforced
+## Coarse-to-fine emerges unforced — but it is CONFIRMATION, not discovery
 
 The combined arm's emergent order is:
 
@@ -28,7 +28,15 @@ c c c c i i i i c i i i i i i i
 
 **Four concepts, then items, with one concept re-entering at position 9.** Nothing in the objective
 encodes "ask broad things first" — this is pure per-step NDCG maximisation over a mixed bank, and it
-discovers coarse-to-fine on its own. This is the natural-sequence result the design was built to find.
+discovers coarse-to-fine on its own.
+
+**DO NOT CLAIM COARSE-TO-FINE AS A DISCOVERY.** Our own lit record already rules on this
+(`external_literature/findings/elicitation_and_belief_pool.md`): *"Coarse-to-fine (C4) = DOWNGRADED, do
+not claim discovery. Known in Golbandi (popular root, discriminative deeper) and Rashid
+(popularity-vs-entropy)."* What is new here is narrower and should be stated as such: the ordering emerges
+from a **mixed item+concept bank** under pure NDCG optimisation, and we **measure the channel composition**
+of the optimal static sequence (4 concepts, then items). That is empirical characterisation of a known
+phenomenon in a new action space, not a new phenomenon.
 
 ## Readings (each checked against the JSON)
 
@@ -40,6 +48,21 @@ discovers coarse-to-fine on its own. This is the natural-sequence result the des
 3. **Items win FULL at long budgets** (.2098 vs .1808 concepts @q16).
 4. **ANSWERABILITY, the stark number:** items are answered **3.63 of 16**; concepts **11.04 of 16** —
    a 3× difference on the same budget.
+
+## At a REALISTIC budget (q8), the story is different — and combined does not win
+
+q16 is an unrealistically long interview. At q8:
+
+| bank | full@10 | tail@10 | answered of 8 |
+|---|---|---|---|
+| items-only | **.1863** | .0538 | 2.18 (27%) |
+| concepts-only | .1776 | **.0698** | **6.02 (75%)** |
+| combined | .1817 | .0616 | 1.03 i + 3.64 c = 4.67 |
+
+**Concepts beat items on tail by +0.0160 (+30%) at q8**, and are answered 2.8x more often. But **combined
+is middling on both metrics at q8** — it is NOT the best arm at a realistic interview length; concepts
+alone are the best tail arm. Combined only becomes the best tail arm at q16. Any claim for the combined
+bank must therefore be made at q16 or not at all, which is the weaker position given q8 realism.
 
 ## The one that needs care: combined < items on full@16
 
