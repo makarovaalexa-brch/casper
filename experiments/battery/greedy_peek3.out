@@ -1,0 +1,16 @@
+[17:45:19] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[17:45:34] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[17:45:34] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[17:45:34] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[17:45:34] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[17:45:34] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[17:45:34] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[17:45:38] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[17:45:46] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[17:45:51] [g5] 1031 concepts with >= 30 members
+[17:46:00] [ledger] SIGNED valuation arrays built (prereg cache found)
+[17:46:10] [greedy] build=1000 / eval=1000 DISJOINT users; item_pool=100 conc_pool=100 (top-answerable) L=16
+[17:51:13] [greedy items-only] order=iiiiiiiiiiiiiiii nev=211 q1:0.1475/0.0309 q2:0.1583/0.0392 q4:0.1707/0.0503 q8:0.1863/0.0635 q16:0.2078/0.0694 | answered@16=4.257i/0.0c (5.1m)
+[17:54:48] [greedy concepts-only] order=cccccccccccccccc nev=266 q1:0.1422/0.0310 q2:0.1522/0.0389 q4:0.1574/0.0437 q8:0.1668/0.0576 q16:0.1710/0.0532 | answered@16=0.0i/15.009c (3.6m)
+[18:02:48] [greedy combined] order=iciiiciiiciiiiii nev=378 q1:0.1475/0.0309 q2:0.1584/0.0433 q4:0.1700/0.0470 q8:0.1894/0.0572 q16:0.2066/0.0670 | answered@16=3.695i/2.759c (8.0m)
+[18:02:49] [greedy] wrote greedy_static.json + greedy_static.png (17.5m)

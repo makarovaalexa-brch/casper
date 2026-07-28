@@ -93,7 +93,10 @@ def main():
         },
         "seconds": round(time.time() - t0, 1),
     }
-    best_triv = max((abs(v), k) for k, v in res["rho"].items() if k != "belief_sigma")
+    # n_answers_folded is constant by construction (k=8 prefix for every user) -> rho is undefined;
+    # exclude NaNs rather than let max() propagate one.
+    best_triv = max((abs(v), k) for k, v in res["rho"].items()
+                    if k != "belief_sigma" and v == v)
     res["best_trivial_proxy"] = {"name": best_triv[1], "abs_rho": round(best_triv[0], 4)}
     res["belief_beats_best_trivial"] = bool(abs(res["rho"]["belief_sigma"]) > best_triv[0])
     res["verdict"] = ("belief covariance carries information beyond bookkeeping"

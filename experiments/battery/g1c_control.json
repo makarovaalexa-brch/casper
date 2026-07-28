@@ -1,0 +1,21 @@
+{
+ "gate": "G1c-control",
+ "n_users": 10000,
+ "belief_fitted": true,
+ "rho": {
+  "belief_sigma": 0.2393,
+  "n_answers_folded": NaN,
+  "profile_size": 0.5195,
+  "n_held_targets": 0.4992,
+  "mean_log_pop_of_targets": -0.6964,
+  "mean_decoder_bias_of_targets": -0.5673
+ },
+ "seconds": 602.0,
+ "best_trivial_proxy": {
+  "name": "mean_log_pop_of_targets",
+  "abs_rho": 0.6964
+ },
+ "belief_beats_best_trivial": false,
+ "verdict": "a trivial scalar predicts held-out error FAR better -- G1c measures target difficulty, not covariance quality, and should be DROPPED rather than improved",
+ "note_n_answers_folded": "constant by construction (k=8 prefix for every user) -> rho undefined; excluded"
+}

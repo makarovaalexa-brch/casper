@@ -1,0 +1,108 @@
+[11:12:45] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:13:17] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:14:23] [data] materialised 140768 train graded profiles
+[11:14:24] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:14:24] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[11:14:24] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:14:24] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[11:14:30] [init] EMPTY-SET: |z|=0.000000; decode-vs-frozen-bias Spearman=1.0000; vs train-popularity Spearman=0.4779 (EXACT intercept identity (z=0 -> decoder bias))
+[11:14:32] [train] 140768 users; profiles min=6 med=72 max=14009; 551 adaptive batches; token=film teacher=warm_init lambda_z=0.5 alpha_kd=0.0 ablate_binarized=False
+[11:14:38] [train] cold-val subsets built once: k=2 nnz=20000, k=8 nnz=79338 (seed 4242)
+[11:15:34] [init] VAL full@10=0.3510 tail@10=0.2502 (native-anchored init; best SEEDED -> below-native G0 impossible)
+[11:17:04]   ep0 b100/551 NLL=6.5031 zMSE=0.0000 negfloor=0.06 1.5m
+[11:18:36]   ep0 b200/551 NLL=6.4893 zMSE=0.0000 negfloor=0.07 3.0m
+[11:19:57]   ep0 b300/551 NLL=6.4836 zMSE=0.0000 negfloor=0.07 4.4m
+[11:21:14]   ep0 b400/551 NLL=6.4626 zMSE=0.0000 negfloor=0.08 5.7m
+[11:22:54]   ep0 b500/551 NLL=6.4567 zMSE=0.0000 negfloor=0.08 7.3m
+[11:25:08] [ep1] NLL=6.4512 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.08 VAL full@10=0.3496 tail@10=0.2483 coldk2=0.1919 coldk8=0.2594 ndcg@100=0.4484 vs bar 0.3540 (-0.0044) (9.6m)
+[11:25:08] [train] new best (cold-primary): cold=0.2256 full=0.3496 (full_ok=True)
+[11:26:16]   ep1 b100/551 NLL=6.3283 zMSE=0.0000 negfloor=0.08 1.1m
+[11:27:43]   ep1 b200/551 NLL=6.3451 zMSE=0.0000 negfloor=0.08 2.6m
+[11:29:39]   ep1 b300/551 NLL=6.3848 zMSE=0.0000 negfloor=0.09 4.5m
+[11:31:51]   ep1 b400/551 NLL=6.4094 zMSE=0.0000 negfloor=0.09 6.7m
+[11:33:29]   ep1 b500/551 NLL=6.4022 zMSE=0.0000 negfloor=0.09 8.4m
+[11:37:06] [ep2] NLL=6.4037 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3484 tail@10=0.2495 coldk2=0.1930 coldk8=0.2613 ndcg@100=0.4469 vs bar 0.3540 (-0.0056) (12.0m)
+[11:37:06] [train] new best (cold-primary): cold=0.2272 full=0.3484 (full_ok=True)
+[11:40:38]   ep2 b100/551 NLL=6.4124 zMSE=0.0000 negfloor=0.09 3.5m
+[11:42:10]   ep2 b200/551 NLL=6.3971 zMSE=0.0000 negfloor=0.09 5.1m
+[11:43:37]   ep2 b300/551 NLL=6.3982 zMSE=0.0000 negfloor=0.09 6.5m
+[11:45:11]   ep2 b400/551 NLL=6.4071 zMSE=0.0000 negfloor=0.09 8.1m
+[11:46:37]   ep2 b500/551 NLL=6.3984 zMSE=0.0000 negfloor=0.09 9.5m
+[11:48:55] [ep3] NLL=6.3888 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3473 tail@10=0.2485 coldk2=0.1944 coldk8=0.2618 ndcg@100=0.4471 vs bar 0.3540 (-0.0067) (11.8m)
+[11:48:55] [train] new best (cold-primary): cold=0.2281 full=0.3473 (full_ok=True)
+[11:50:21]   ep3 b100/551 NLL=6.3776 zMSE=0.0000 negfloor=0.09 1.4m
+[11:51:49]   ep3 b200/551 NLL=6.3882 zMSE=0.0000 negfloor=0.09 2.9m
+[11:53:42]   ep3 b300/551 NLL=6.3909 zMSE=0.0000 negfloor=0.09 4.8m
+[11:55:17]   ep3 b400/551 NLL=6.3867 zMSE=0.0000 negfloor=0.09 6.4m
+[11:56:41]   ep3 b500/551 NLL=6.3835 zMSE=0.0000 negfloor=0.09 7.8m
+[11:58:47] [ep4] NLL=6.3754 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3435 tail@10=0.2463 coldk2=0.1965 coldk8=0.2584 ndcg@100=0.4442 vs bar 0.3540 (-0.0105) (9.9m)
+[11:58:47] [train] no cold improvement over 0.2281 (full_ok=False) (1/4)
+[12:00:18]   ep4 b100/551 NLL=6.3700 zMSE=0.0000 negfloor=0.09 1.5m
+[12:01:27]   ep4 b200/551 NLL=6.3326 zMSE=0.0000 negfloor=0.08 2.7m
+[12:03:24]   ep4 b300/551 NLL=6.3789 zMSE=0.0000 negfloor=0.09 4.6m
+[12:04:51]   ep4 b400/551 NLL=6.3600 zMSE=0.0000 negfloor=0.09 6.1m
+[12:06:39]   ep4 b500/551 NLL=6.3609 zMSE=0.0000 negfloor=0.09 7.9m
+[12:09:04] [ep5] NLL=6.3594 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3460 tail@10=0.2477 coldk2=0.1975 coldk8=0.2575 ndcg@100=0.4448 vs bar 0.3540 (-0.0080) (10.3m)
+[12:09:04] [train] no cold improvement over 0.2281 (full_ok=True) (2/4)
+[12:10:46]   ep5 b100/551 NLL=6.4391 zMSE=0.0000 negfloor=0.09 1.7m
+[12:12:42]   ep5 b200/551 NLL=6.4105 zMSE=0.0000 negfloor=0.09 3.6m
+[12:14:24]   ep5 b300/551 NLL=6.3803 zMSE=0.0000 negfloor=0.09 5.3m
+[12:15:40]   ep5 b400/551 NLL=6.3242 zMSE=0.0000 negfloor=0.08 6.6m
+[12:19:31]   ep5 b500/551 NLL=6.3468 zMSE=0.0000 negfloor=0.09 10.5m
+[12:24:35] [ep6] NLL=6.3528 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3432 tail@10=0.2467 coldk2=0.1984 coldk8=0.2597 ndcg@100=0.4438 vs bar 0.3540 (-0.0108) (15.5m)
+[12:24:35] [train] no cold improvement over 0.2281 (full_ok=False) (3/4)
+[12:28:54]   ep6 b100/551 NLL=6.3705 zMSE=0.0000 negfloor=0.09 4.3m
+[12:31:50]   ep6 b200/551 NLL=6.3989 zMSE=0.0000 negfloor=0.09 7.2m
+[12:35:00]   ep6 b300/551 NLL=6.3646 zMSE=0.0000 negfloor=0.09 10.4m
+[12:37:23]   ep6 b400/551 NLL=6.3587 zMSE=0.0000 negfloor=0.09 12.8m
+[12:40:00]   ep6 b500/551 NLL=6.3568 zMSE=0.0000 negfloor=0.09 15.4m
+[12:44:07] [ep7] NLL=6.3467 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3452 tail@10=0.2482 coldk2=0.1994 coldk8=0.2580 ndcg@100=0.4448 vs bar 0.3540 (-0.0088) (19.5m)
+[12:44:07] [train] new best (cold-primary): cold=0.2287 full=0.3452 (full_ok=True)
+[12:46:30]   ep7 b100/551 NLL=6.3201 zMSE=0.0000 negfloor=0.08 2.4m
+[12:49:18]   ep7 b200/551 NLL=6.3646 zMSE=0.0000 negfloor=0.09 5.2m
+[12:51:43]   ep7 b300/551 NLL=6.3486 zMSE=0.0000 negfloor=0.09 7.6m
+[12:54:11]   ep7 b400/551 NLL=6.3503 zMSE=0.0000 negfloor=0.09 10.1m
+[12:56:50]   ep7 b500/551 NLL=6.3389 zMSE=0.0000 negfloor=0.09 12.7m
+[13:01:05] [ep8] NLL=6.3375 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3437 tail@10=0.2479 coldk2=0.2000 coldk8=0.2560 ndcg@100=0.4436 vs bar 0.3540 (-0.0103) (17.0m)
+[13:01:05] [train] no cold improvement over 0.2287 (full_ok=False) (1/4)
+[13:03:30]   ep8 b100/551 NLL=6.3260 zMSE=0.0000 negfloor=0.09 2.4m
+[13:06:36]   ep8 b200/551 NLL=6.3175 zMSE=0.0000 negfloor=0.08 5.5m
+[13:08:12]   ep8 b300/551 NLL=6.3235 zMSE=0.0000 negfloor=0.09 7.1m
+[13:09:40]   ep8 b400/551 NLL=6.3339 zMSE=0.0000 negfloor=0.09 8.6m
+[13:11:10]   ep8 b500/551 NLL=6.3357 zMSE=0.0000 negfloor=0.09 10.1m
+[13:13:23] [ep9] NLL=6.3344 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3451 tail@10=0.2479 coldk2=0.1996 coldk8=0.2602 ndcg@100=0.4443 vs bar 0.3540 (-0.0089) (12.3m)
+[13:13:23] [train] new best (cold-primary): cold=0.2299 full=0.3451 (full_ok=True)
+[13:15:01]   ep9 b100/551 NLL=6.3444 zMSE=0.0000 negfloor=0.08 1.6m
+[13:16:25]   ep9 b200/551 NLL=6.3390 zMSE=0.0000 negfloor=0.08 3.0m
+[13:18:03]   ep9 b300/551 NLL=6.3306 zMSE=0.0000 negfloor=0.08 4.7m
+[13:19:24]   ep9 b400/551 NLL=6.3251 zMSE=0.0000 negfloor=0.08 6.0m
+[13:20:48]   ep9 b500/551 NLL=6.3248 zMSE=0.0000 negfloor=0.08 7.4m
+[13:23:08] [ep10] NLL=6.3267 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.08 VAL full@10=0.3439 tail@10=0.2487 coldk2=0.1993 coldk8=0.2551 ndcg@100=0.4443 vs bar 0.3540 (-0.0101) (9.7m)
+[13:23:08] [train] no cold improvement over 0.2299 (full_ok=False) (1/4)
+[13:24:26]   ep10 b100/551 NLL=6.2879 zMSE=0.0000 negfloor=0.09 1.3m
+[13:26:08]   ep10 b200/551 NLL=6.2816 zMSE=0.0000 negfloor=0.08 3.0m
+[13:29:34]   ep10 b300/551 NLL=6.3184 zMSE=0.0000 negfloor=0.09 6.4m
+[13:32:33]   ep10 b400/551 NLL=6.3225 zMSE=0.0000 negfloor=0.09 9.4m
+[13:35:28]   ep10 b500/551 NLL=6.3318 zMSE=0.0000 negfloor=0.09 12.3m
+[13:39:42] [ep11] NLL=6.3232 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3381 tail@10=0.2462 coldk2=0.1995 coldk8=0.2584 ndcg@100=0.4397 vs bar 0.3540 (-0.0159) (16.6m)
+[13:39:42] [train] no cold improvement over 0.2299 (full_ok=False) (2/4)
+[13:42:42]   ep11 b100/551 NLL=6.3696 zMSE=0.0000 negfloor=0.09 3.0m
+[13:45:21]   ep11 b200/551 NLL=6.3118 zMSE=0.0000 negfloor=0.09 5.7m
+[13:48:12]   ep11 b300/551 NLL=6.3142 zMSE=0.0000 negfloor=0.09 8.5m
+[13:51:05]   ep11 b400/551 NLL=6.3145 zMSE=0.0000 negfloor=0.09 11.4m
+[13:55:40]   ep11 b500/551 NLL=6.3180 zMSE=0.0000 negfloor=0.09 16.0m
+[14:01:50] [ep12] NLL=6.3217 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3423 tail@10=0.2467 coldk2=0.1992 coldk8=0.2592 ndcg@100=0.4421 vs bar 0.3540 (-0.0117) (22.1m)
+[14:01:50] [train] no cold improvement over 0.2299 (full_ok=False) (3/4)
+[14:05:12]   ep12 b100/551 NLL=6.2789 zMSE=0.0000 negfloor=0.08 3.4m
+[14:09:27]   ep12 b200/551 NLL=6.2953 zMSE=0.0000 negfloor=0.08 7.6m
+[14:14:00]   ep12 b300/551 NLL=6.3367 zMSE=0.0000 negfloor=0.09 12.2m
+[14:16:52]   ep12 b400/551 NLL=6.3283 zMSE=0.0000 negfloor=0.09 15.0m
+[14:19:36]   ep12 b500/551 NLL=6.3241 zMSE=0.0000 negfloor=0.09 17.8m
+[14:24:04] [ep13] NLL=6.3168 zMSE=0.0000 lam_glob=0.000 p_int=0.50 negfloor=0.09 VAL full@10=0.3367 tail@10=0.2440 coldk2=0.2004 coldk8=0.2582 ndcg@100=0.4375 vs bar 0.3540 (-0.0173) (22.2m)
+[14:24:04] [train] no cold improvement over 0.2299 (full_ok=False) (4/4)
+[14:24:04] [train] CONVERGED (val flat 4 epochs)
+[14:24:04] [train] done best val full@10=0.3510
+[14:24:04] [final] EMPTY-SET: |z|=0.000000; decode-vs-frozen-bias Spearman=1.0000; vs train-popularity Spearman=0.4779 (EXACT intercept identity (z=0 -> decoder bias))
+[14:26:37] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[14:27:08] [G0] strength: tower 0.3482 vs recvae 0.3540 diff=-0.0057 ci=0.0069 tie=True; identity: empty==bias True
+[14:27:08] [train] TEST full@10=0.3482 tail@10=0.2462 -> tower_t2.json

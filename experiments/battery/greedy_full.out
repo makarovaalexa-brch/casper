@@ -1,0 +1,29 @@
+[20:09:59] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[20:10:13] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[20:10:13] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[20:10:13] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[20:10:13] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[20:10:13] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[20:10:13] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[20:10:16] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[20:10:25] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[20:10:30] [g5] 1031 concepts with >= 30 members
+[20:10:38] [ledger] SIGNED valuation arrays built (prereg cache found)
+[20:10:41] [rung] sclite concept fold = cd_s1_l10_best.pt
+[20:10:49] [greedy] building disjoint TEST-eval context (test cohort)...
+[20:10:51] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[20:11:06] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[20:11:06] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[20:11:06] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[20:11:06] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[20:11:06] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[20:11:06] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[20:11:10] [ctx] all-bands reconstruction: 1411761 tokens; 7622 users with >=3 dislikes
+[20:11:19] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[20:11:23] [g5] 1031 concepts with >= 30 members
+[20:11:32] [ledger] SIGNED valuation arrays built (prereg cache found)
+[20:11:33] [greedy] build=10000 val / eval=10000 TEST; item_pool=500 conc_pool=500 (top-answerable) L=16 fold_refusals=False
+[22:42:14] [greedy items-only] order=iiiiiiiiiiiiiiii nev=754 q1:0.1405/0.0275 q2:0.1524/0.0387 q4:0.1656/0.0445 q8:0.1863/0.0538 q16:0.2098/0.0679 | answered@16=3.632i/0.0c (150.7m)
+[01:52:07] [greedy concepts-only] order=cccccccccccccccc nev=878 q1:0.1436/0.0323 q2:0.1504/0.0434 q4:0.1647/0.0551 q8:0.1776/0.0698 q16:0.1808/0.0758 | answered@16=0.0i/11.04c (189.9m)
+[05:38:32] [greedy combined] order=cccciiiiciiiiiii nev=1423 q1:0.1436/0.0323 q2:0.1504/0.0434 q4:0.1647/0.0551 q8:0.1817/0.0616 q16:0.2049/0.0776 | answered@16=2.749i/4.247c (226.4m)
+[05:38:34] [greedy] wrote greedy_static.json + greedy_static.png (568.6m)

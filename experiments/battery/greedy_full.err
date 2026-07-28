@@ -1,0 +1,2 @@
+C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\scipy\sparse\_index.py:207: SparseEfficiencyWarning: Changing the sparsity structure of a csr_matrix is expensive. lil and dok are more efficient.
+  self._set_arrayXarray_sparse(i, j, x)
