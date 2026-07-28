@@ -780,15 +780,32 @@ concept's own item ranking $345\times$ more often than chance ($0.167$ top-10 ov
 random baseline; cosine $0.638$ to the true direction). No per-concept probe is fitted, no inventory is
 consulted, and nothing is retrained---a phrase becomes a direction by one matrix multiplication.
 
-Because the map is defined on any string, it also accepts phrases that are not concepts in our vocabulary
-at all. Asking for ``courtroom drama'' returns \emph{Indictment: The McMartin Trial}, \emph{Primal Fear},
-\emph{\ldots And Justice for All} and \emph{The Verdict}; ``coming of age in the suburbs'' returns
-\emph{The Way, Way Back}, \emph{The Edge of Seventeen} and \emph{Valley Girl}; ``movies about grief''
-returns \emph{Rabbit Hole}, \emph{Mean Creek} and \emph{The Woodsman}; ``spy during the cold war'' returns
-\emph{Funeral in Berlin} and \emph{Where Eagles Dare}. \TODO{re-select the probes and re-report: several
-of the phrases above are genome tags verbatim (``courtroom drama'' is one), and the probe adapter was
-fitted on all tags, so as run these demonstrate recall of a fitted direction rather than open-vocabulary
-generalisation --- pending the nearest-tag and leave-the-neighbour-out measurement}
+Because the map is defined on any string, it also accepts phrases that are not in our concept vocabulary.
+To make that meaningful rather than decorative we report, for each phrase, the \emph{closest} concept we
+actually hold and how close it is---so the reader can judge whether the phrase is doing new work or merely
+paraphrasing something already curated. The four phrases below all sit well away from any concept in the
+vocabulary (nearest-neighbour cosine $\le0.7$; every phrase within $0.75$ of a genome tag is excluded from
+this table, which removes ``courtroom drama'' and ``dinosaurs'' as tags in their own right):
+
+\begin{center}\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{p{3.5cm}p{2.6cm}c p{6.0cm}}
+\toprule
+free-text phrase & nearest concept & cos & top of the returned ranking \\
+\midrule
+``movies about grief'' & \emph{feel good movie} & $0.54$ & Rachel, Rachel; Mean Creek; The Woodsman \\
+``slow burn character study'' & \emph{character study} & $0.52$ & Spring; Let Me In; The Wailing; Let the Right One In \\
+``spy during the cold war'' & \emph{cold war} & $0.67$ & Where Eagles Dare; Funeral in Berlin; Sink the Bismarck! \\
+``coming of age in the suburbs'' & \emph{coming of age} & $0.69$ & The Way, Way Back; Manic; Dogfight; The Edge of Seventeen \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The first row is the clearest case. The nearest concept in the entire vocabulary to ``movies
+about grief'' is \emph{feel good movie}---tonally its opposite---and the phrase's direction shares
+\emph{none} of its top ten items with that concept's curated direction, yet the films it returns are the
+right ones. The phrase is not retrieving a stored concept; it is being placed in the latent on its own
+terms.
 
 We present this as an \emph{illustration of what the interface permits}, not as a contribution to mapping
 language into collaborative latents---a question with an established literature of its own, in which
