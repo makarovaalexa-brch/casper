@@ -1080,9 +1080,41 @@ NDCG over a sequence is not guaranteed submodular. We therefore read the combine
 the optimiser is not implicated---at $q\le4$, where the combined bank freely chose concepts over every
 available item, and on the tail throughout.
 
-The answerability figures underneath these curves are the plainest statement of what the concept channel
-buys: at a realistic eight-question budget a user answers $2.18$ item questions and $6.02$ concept
-questions, a factor of $2.8$.
+\paragraph{What the concept channel buys is answerability, and that has a literature.}
+The figures underneath these curves are the plainest statement of the channel's value: at a realistic
+eight-question budget a user answers $2.18$ item questions and $6.02$ concept questions, a factor of
+$2.8$. Whether a cold user \emph{can} answer at all is not a detail of our harness---it is a first-class
+concern of the classical interview literature, under other names. Rashid et al.\ select seed items by
+popularity precisely because popularity is the probability that a new user has seen the
+item~\cite{rashid2002getting}, and report that a pure-entropy strategy performs badly for exactly this
+reason; Golbandi et al.'s tree splits users three ways, into lovers, haters and \emph{unknowns},
+so unanswerability is a branch of the method rather than an
+afterthought~\cite{golbandi2011adaptive}; and the active-learning survey of Elahi et al.\ gives the
+property its own taxonomy category, as \emph{rateability} or acquisition
+probability~\cite{elahi2016survey}. We adopt the term \emph{answerability} for readability, but we are
+renaming a known quantity, not introducing one.
+
+The sharpest prior statement of the problem is Sun et al.~\cite{sun2013learning}, by three of Functional
+MF's own authors, whose entire contribution is an answerability fix: they report that a cold-start
+interview tree becomes so unbalanced that \emph{the unknown branch captures more than $80\%$ of users at
+each split}, so that users must repeatedly answer ``unknown'' before reaching a question they can engage
+with, and may simply abandon the interview. Their remedy is to show several items per screen, which raises
+the chance that a user knows at least one, and they evaluate against interview \emph{time} rather than
+question count. That is the same pathology we measure, diagnosed twelve years earlier and more sharply.
+Two things separate our result from theirs. Their fix stays inside the item channel---it makes item
+questions more likely to land, rather than asking whether a different \emph{kind} of question lands more
+often---and their multi-question screen is simultaneously more answerable \emph{and} more informative, a
+confound they do not separate. Our comparison holds the budget and the interview protocol fixed and varies
+only the channel, which isolates answerability from informativeness.
+
+We should also be clear that the \emph{shape} of our curve is not new. Gharahighehi et
+al.~\cite{gharahighehi2025pairwise} run item-only against item-plus-genre trees and find that attributes
+lead early while items overtake later; Xia et al.~\cite{xia2026when} find attributes dominating the
+opening turns of a dialogue and items the later ones. Both report the crossover we report. Neither measures
+an answer rate: the first attributes it to clustering efficiency, the second to preference specificity.
+The contribution here is therefore not the crossover but its mechanism---that the channels differ by a
+factor of $2.8$ in how often a question is answerable at all, which the geometry of \S\ref{sec:method}
+predicts and which is measurable on this instrument.
 
 \paragraph{On the adaptive headroom.} A one-level adaptive probe on the fixed stack---branch on the first answer, then choose the
 second question per branch, selected and evaluated out-of-sample on disjoint halves---pays on the item channel with a
