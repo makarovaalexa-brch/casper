@@ -1,0 +1,25 @@
+[11:19:22] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:19:37] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:19:38] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:19:38] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[11:19:38] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:19:38] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[11:19:38] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[11:19:42] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[11:19:52] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[11:19:57] [g5] 1031 concepts with >= 30 members
+[11:20:07] [ledger] SIGNED valuation arrays built (prereg cache found)
+[11:20:10] [rung] sclite concept fold = cd_s1_l10_best.pt
+[11:20:18] [greedy] building disjoint TEST-eval context (test cohort)...
+[11:20:20] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:20:35] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:20:35] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:20:35] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[11:20:35] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:20:35] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[11:20:35] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[11:20:39] [ctx] all-bands reconstruction: 1411761 tokens; 7622 users with >=3 dislikes
+[11:20:47] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[11:20:52] [g5] 1031 concepts with >= 30 members
+[11:21:01] [ledger] SIGNED valuation arrays built (prereg cache found)
+[11:21:01] [greedy] build=10000 val / eval=10000 TEST; item_pool=500 conc_pool=500 (top-answerable) L=16 fold_refusals=False

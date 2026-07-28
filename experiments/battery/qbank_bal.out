@@ -1,0 +1,18 @@
+[16:25:18] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[16:25:44] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[16:25:44] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[16:25:44] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[16:25:44] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[16:25:44] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[16:25:44] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[16:25:53] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[16:26:16] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[16:26:21] [g5] 1031 concepts with >= 30 members
+[16:26:33] [ledger] SIGNED valuation arrays built (prereg cache found)
+[16:29:43] [items-pop] q1=0.1307/0.0266 q2=0.1305/0.0315 q4=0.1319/0.0343 q8=0.1673/0.0504 q16=0.1948/0.0580 (2.8m)
+[16:31:03] [items-entropy] q1=0.1280/0.0195 q2=0.1281/0.0195 q4=0.1281/0.0196 q8=0.1284/0.0206 q16=0.1295/0.0219 (1.3m)
+[16:33:15] [items-HELF] q1=0.1281/0.0196 q2=0.1304/0.0286 q4=0.1391/0.0384 q8=0.1490/0.0460 q16=0.1723/0.0580 (2.2m)
+[16:36:26] [unified-prevalence] q1=0.1349/0.0292 q2=0.1342/0.0315 q4=0.1319/0.0343 q8=0.1635/0.0500 q16=0.1959/0.0625 (3.2m)
+[16:37:57] [unified-entropy] q1=0.1323/0.0348 q2=0.1328/0.0343 q4=0.1433/0.0395 q8=0.1441/0.0395 q16=0.1471/0.0389 (1.5m)
+[16:40:25] [unified-HELF] q1=0.1281/0.0196 q2=0.1304/0.0286 q4=0.1391/0.0384 q8=0.1490/0.0460 q16=0.1723/0.0580 (2.5m)
+[16:40:27] [qbank] wrote qbank_expansion_balanced.json + qbank_expansion_balanced.png (15.2m)

@@ -1,0 +1,12 @@
+[11:28:23] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:28:58] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:29:00] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:29:00] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[11:29:00] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:29:00] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[11:29:00] [ctx] snapshot loaded: t2i25_EP4_SNAP.pt ep=4 val_full=0.3435
+[11:29:08] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[11:31:13] [k=2] true=0.1778 memb4=0.1751 likes=0.1661 flip=0.1402 | values=+0.0027 reveal=+0.0090 flip=-0.0376 (1.5m)
+[11:32:38] [k=4] true=0.2016 memb4=0.1775 likes=0.1945 flip=0.1328 | values=+0.0241 reveal=-0.0170 flip=-0.0688 (1.4m)
+[11:34:09] [k=8] true=0.2248 memb4=0.1774 likes=0.2258 flip=0.1131 | values=+0.0474 reveal=-0.0484 flip=-0.1118 (1.5m)
+[11:35:45] [k=16] true=0.2575 memb4=0.1871 likes=0.2587 flip=0.0834 | values=+0.0703 reveal=-0.0715 flip=-0.1741 (1.6m)

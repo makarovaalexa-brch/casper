@@ -214,9 +214,6 @@ follow.
   \item[G1b --- shrinkage is directional.] The shrinkage is at least twice as large along the queried
         $\bphi_{t+1}$ as elsewhere. G1a and G1b together certify R4: the covariance carries per-direction
         structure, not merely a global scale.
-  \item[G1c --- belief scale calibrated.] The belief magnitude correlates with held-out NLL. This is a
-        \emph{diagnostic}, not an acceptance gate: it scores the posterior's scale, on which no result in this
-        chapter depends, and no comparator in the literature reports it.
   \item[G2 --- cold-start curve rises on full and tail.] Starting cold, per-question full and tail NDCG@10 must
         strictly \emph{increase} from the first to the last turn (not merely fail to drop), judged by the
         \emph{curve/endpoint at budget} rather than every-step significance; plus an out-of-envelope canary that a
@@ -1175,7 +1172,6 @@ Gate & Criterion & Measured & Verdict \\
 G0 & tie the bar; identity at $t{=}0$ & $0.3482/0.2462$ vs $0.3540/0.2497$, diff $-0.0057$ (CI $0.0069$); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 G1a & $\mathrm{tr}\,\bSigma$ shrinks over answers & $1881.9\!\to\!1805.1$ across $q{=}0\ldots16$, monotone & pass \\
 G1b & directional, $\ge2\times$ & along-$\bphi$ $0.996$ vs elsewhere $0.086$ $=\mathbf{11.5\times}$ & pass \\
-G1c & $\rho(\text{belief-}\sigma,\text{NLL})$ (diagnostic) & $\rho=0.2393$ & \emph{reported} \\
 G2$^\ddagger$ & cold curve rises, beats random & $\bSigma$-arm $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; rise $+0.1445/+0.1113$ & \textbf{PASS}$^\ddagger$ \\
 G3a & sign-flip lowers NDCG & $-0.2985$ (CI $[-0.3047,-0.2922]$); intensity staircase $\rho=0.927$ & \textbf{PASS} \\
 G3b & value-neutralisation costs & drop of $0.2869$ (CI $[0.2817,0.2922]$) full; tail $0.2999\!\to\!0.0368$ & \textbf{PASS} \\
@@ -1190,9 +1186,12 @@ C2 & held-out behavioural answer model & \TODO{} & --- \\
 C3 & human round-trip & deferred (\S\ref{sec:limits}) & --- \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{The acceptance battery, measured.} G1c is a diagnostic rather than an acceptance
-gate (\S\ref{sec:reqs}) and is reported for completeness: the posterior is strongly directional
-(G1b, $11.5\times$ against a $2\times$ bar) while its scale tracks held-out NLL only weakly.
+\caption{\textbf{The acceptance battery, measured.} We gate the covariance on its
+\emph{structure} (G1a, G1b) and not on the absolute scale of its uncertainty: a control shows that the
+scale question is confounded by target difficulty---the mean popularity of a user's held-out items predicts
+their NLL with $|\rho|=0.70$, where the belief's own $\sigma$ reaches $0.24$---so a scale-calibration gate
+would largely measure which users happen to have easy targets. G1b, at $11.5\times$ against a $2\times$
+bar, is the load-bearing evidence that the covariance carries per-direction information.
 G2 is measured on a bank filtered per user to the questions they can answer, so it isolates
 \emph{ingestion} from question \emph{availability}; a deployed static sequence faces the
 availability problem separately (\S\ref{sec:concept}). $^\dagger$C1 covers EASE, RecVAE and
