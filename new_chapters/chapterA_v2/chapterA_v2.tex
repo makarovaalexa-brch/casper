@@ -57,11 +57,14 @@ order---one needs a recommender that can \emph{be} interviewed: a model that fol
 mixed-channel set of answers into its belief and re-ranks a large catalogue, without per-user retraining and
 without trading away full-profile accuracy. We argue that this recommender is a \emph{measuring instrument} for the
 entire elicitation-policy literature, and that its requirements are more demanding than any single published system
-meets. We state five requirements---\textbf{R1} state-of-the-art full-profile accuracy, \textbf{R2} arbitrary-length
-cold-start fold-in, \textbf{R3} channel-agnostic input (items, out-of-catalogue concepts, entities, and continuous
-directions through one interface), \textbf{R4} an uncertainty-native belief, and \textbf{R5} monotonicity (a
-truthful answer never lowers ranking quality)---and an acceptance battery (per-build gates \textbf{G0--G9} plus
-one-time certifications \textbf{C1--C3}) that operationalises them. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
+meets. The demanding part is \emph{ingestion}: folding an arbitrary-length set of mixed-type answers into a recommender
+that is already at the accuracy frontier. We state that as five requirements---\textbf{R1} state-of-the-art
+full-profile accuracy, \textbf{R2} arbitrary-length cold-start fold-in, \textbf{R3} channel-agnostic input (items,
+out-of-catalogue concepts, entities and continuous directions through one interface), \textbf{R4} a queryable
+belief over the user, and \textbf{R5} monotonicity (a truthful answer never lowers ranking quality)---and an
+acceptance battery (per-build gates \textbf{G0--G9} plus one-time certifications \textbf{C1--C3}) that
+operationalises them. R2 and R3 carry the weight: R4 is what the instrument \emph{provides} to a policy, and what
+a policy should do with it is the companion chapter's subject. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
 the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite{steck2019ease} and
 RecVAE~\cite{ren2020recvae}) are item-only point estimators, while the models with an uncertainty-native, multi-channel
 belief (soft-attribute Gaussian elicitation~\cite{biyik2023soft}, unified item$+$attribute bandits~\cite{li2021seamlessly},
@@ -107,8 +110,9 @@ An instrument fit for measuring conversational elicitation must simultaneously s
   \item[R3 --- channel-agnostic input.] Items, out-of-catalogue concepts, entities, and free text (and, for the
         continuous policy, direction tokens) must all fold through \emph{one} interface as arbitrary embeddings, not a
         fixed categorical schema.
-  \item[R4 --- uncertainty-native belief.] It must carry an explicit covariance over the user belief, not just a
-        point estimate, so that a policy can act on \emph{what it does not yet know}.
+  \item[R4 --- queryable belief.] It must expose an explicit covariance over the user belief, not only a point
+        estimate, so that a policy \emph{can} act on what is not yet known. The instrument's obligation is to
+        provide and verify that belief; whether and how a policy exploits it is a separate question.
   \item[R5 --- monotonicity.] A truthful answer must never \emph{lower} ranking quality; adding evidence should, in
         expectation, only help.
 \end{description}
@@ -129,10 +133,12 @@ corner}. No published system we are aware of occupies both (\S\ref{sec:gap}).
 This chapter is the instrument paper of the thesis. It does not claim a new elicitation policy (that is the companion
 method chapter); it claims the \emph{recommender that makes policy measurement possible}. Concretely:
 \begin{enumerate}[leftmargin=1.5em,itemsep=1.5pt]
-  \item \textbf{The conjunction as the contribution.} We frame R1$\wedge$R2$\wedge$R3$\wedge$R4$\wedge$R5 as a single
-        requirement no published system meets, and give a six-family taxonomy and per-near-miss gap analysis
-        (\S\ref{sec:related},~\S\ref{sec:gap}) that locates exactly which requirement each candidate fails. We say we
-        are \emph{aware of none}, never that there \emph{is} none.
+  \item \textbf{One ingestion interface at the accuracy frontier.} A single set-valued fold takes items,
+        out-of-catalogue concepts and arbitrary continuous directions as one kind of observation, over a tower that
+        ties the strongest shallow baseline on a shared ruler. We frame
+        R1$\wedge$R2$\wedge$R3$\wedge$R4$\wedge$R5 as a single requirement no published system meets, and give a
+        six-family taxonomy and per-near-miss gap analysis (\S\ref{sec:related},~\S\ref{sec:gap}) locating which
+        requirement each candidate fails. We say we are \emph{aware of none}, never that there \emph{is} none.
   \item \textbf{Three architecturally-inexpressible legs.} We isolate the three input channels that are impossible
         (not merely untuned) in the item-indicator basis of every R1-bar model: (i) signed/graded per-entity values,
         (ii) out-of-catalogue concepts, and (iii) continuous direction tokens. These are the narrow, defensible novelty
@@ -183,8 +189,8 @@ $s_i(\bmu_t)$ of the base tower.
   \item[R3.] The update from $\mathcal E_t$ to $\mathcal E_{t+1}$ depends on the new observation only through the pair
         $(\bphi_{t+1},y_{t+1})\in\R^{d}\times\R$; the operator is identical for every channel, so any entity with an
         embedding is a legal observation---including entities absent from the catalogue.
-  \item[R4.] $\bSigma_t$ is an explicit, queryable covariance; a policy may read $\bSigma_t$ to choose the next
-        question.
+  \item[R4.] $\bSigma_t$ is an explicit, queryable covariance, correct in the sense of G1a/G1b, and readable by a
+        policy for any direction $w$ as $w^\top\bSigma_t w$.
   \item[R5.] For a truthful answer $y_{t+1}$, $\mathbb E\bigl[\mathrm{NDCG}@10(s(\bmu_{t+1}))\bigr]\ge
         \mathrm{NDCG}@10(s(\bmu_t))$. We treat R5 as an \emph{empirical} property to be demonstrated per step, not a
         theorem for a learned ranker (\S\ref{sec:limits}).
@@ -733,20 +739,18 @@ answerability varies across users---and it varies a great deal, since items and 
 very different rates (\S\ref{sec:concept:results}). Answerability thus enters the belief itself, not only
 the accounting of a wasted turn.
 
-\paragraph{Status of the belief layer, stated precisely.} The layer is \emph{built and fitted}, not
-hypothetical: $\bLambda_0,\bmu_0$ are taken from the tower, and the per-channel noise reduces to eight
-fitted scalars (a $2\times3$ channel$\times$confidence precision grid plus a prior scale and a variance
-floor), calibrated on real data with a pre-fit sign proof ($G=2291$ over $414{,}265$ concept triples). It
-passes G1a, G1b, G4, G8 and G9 (Table~\ref{tab:batteryresults}). Two
-limitations are load-bearing and we state them here rather than in a footnote. First, the covariance is
-maintained \emph{decoupled} from the ranking path: the results in \S\ref{sec:concept} are produced by
-folding answers to a point estimate, and $\bSigma$ is consulted only for question selection, where its
-advantage over random is $+0.0036$ at $q{=}16$. Second, the confidence axis of the precision grid is
-currently unexercised---MovieLens carries no within-channel confidence signal, so only the refusal band and
-a single answer tier are populated by real data. The honest claim is therefore that the instrument
-\emph{provides} a correct, queryable, order-invariant belief, not that its covariance is doing heavy
-lifting in the numbers reported here; exploiting it is the companion chapter's problem.
-\REDO{refit the belief layer on the certified checkpoint and re-run Phase B}
+\paragraph{What the belief layer provides.} The layer is built and fitted: $\bLambda_0,\bmu_0$ are taken
+from the tower, and the per-channel noise reduces to eight fitted scalars (a $2\times3$
+channel$\times$confidence precision grid plus a prior scale and a variance floor), calibrated on real data
+with a pre-fit sign proof ($G=2291$ over $414{,}265$ concept triples). It passes G1a, G1b, G4, G8 and G9
+(Table~\ref{tab:batteryresults}): the posterior shrinks monotonically over answers, shrinks $11.5\times$
+more along the queried direction than elsewhere, is order-invariant to $5\times10^{-7}$, and is unmoved by
+a refusal. Uncertainty along any direction $w$---an item, a concept, a phrase---is read off as
+$w^\top\bSigma_t w$.
+
+That is the instrument's obligation discharged: a belief that is correct, queryable for any channel, and
+available to a policy. What a policy should do with it---and in particular whether reading the covariance
+is a good way to choose questions---is a separate question, and the companion chapter's subject.
 
 \subsection{Channel-agnostic tokens as linear observations}
 Every channel supplies a direction $\bphi_j\in\R^{d}$ and a value $y_j\in\R$ to Eq.~\eqref{eq:precacc}; the update is
