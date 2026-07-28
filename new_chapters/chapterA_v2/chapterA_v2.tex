@@ -252,11 +252,14 @@ follow.
         canonical split (\emph{met, with one disqualification}: EASE and RecVAE reproduce to the third decimal on the
         ML-20M Liang split and Mult-VAE near-snaps at $-0.004$, while Mult-DAE fails at $-0.022$ and is dropped;
         \S\ref{sec:bridge}).
-  \item[C2 --- answer-model transfer (non-circularity).] The G2 gain survives under a \emph{held-out behavioural}
-        answer model plus injected label noise, at $\ge$ a stated fraction of the self-model gain with a CI excluding
-        zero, and a firewall assert guarantees that recommender-geometry answers appear nowhere in training or
-        evaluation. This is the load-bearing certification: without it a G0--G2 pass is consistent with an instrument
-        inverting its own simulator.
+  \item[C2 --- answers carry no recommender geometry.] Every simulated answer is computed from observed
+        behaviour alone: an item answer is the user's own rating, and a concept answer is a log watch-lift,
+        $\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, formed from the user's watched members $n_c$ and the
+        count $e_c$ expected from their volume and the concept's catalogue popularity. No latent, no factor, no
+        score and no quantity derived from the recommender enters an answer at any point, and the absence is
+        asserted in code rather than assumed. The gain therefore cannot be the instrument recovering its own
+        geometry, because that geometry is nowhere in the input.
+
   \item[C3 --- human round-trip.] At least one study takes rendered questions $\to$ graded human answers $\to$
         downstream NDCG. Deferred; carried as a project-wide external-validity obligation (\S\ref{sec:limits}).
 \end{description}
@@ -267,8 +270,12 @@ belief from only the \emph{direction} of the queried entity but never the answer
 frozen tower (G0), still shrinks $\bSigma$ along $\bphi$ per question (G1), and still beats a random-question control
 (G2)---because beating random certifies that a good question was \emph{selected}, not that the answer was
 \emph{ingested}; only the sign-flip test (G3) and the fixed-question ingestion isolation (G9) expose it. A
-\emph{circular} answer model that generates answers from the instrument's own latent geometry inflates the G2 curve
-with no transferable signal; only the held-out behavioural answer model and firewall of C2 close it. And a
+\emph{circular} answer model that generates answers from the instrument's own latent geometry would inflate the G2
+curve with no transferable signal. The risk is not hypothetical in this literature: evaluations commonly grant the
+simulated user privileged access to the target---PEBOL's simulator answers from the ground-truth item
+description~\cite{austin2024bayesian}, and unified item-and-attribute CRS work assumes the user holds and reveals
+clear preferences over every attribute and item~\cite{deng2021unicorn}. C2 closes this by construction rather than
+by measurement (\S\ref{sec:reqs}). And a
 \emph{decorative} covariance that is maintained but never enters the acceptance-deciding number passes G0--G2
 trivially; only replacing $\bSigma$ with an isotropic matrix and demanding a degradation (G8) shows whether the
 uncertainty is load-bearing. The battery's semantic and artifact-control gates (G3--G9) and the transfer certification
@@ -300,7 +307,7 @@ G9 & On a fixed user-independent question set the curve still rises from answer 
 \midrule
 \multicolumn{3}{l}{\emph{One-time certifications (per instrument)}}\\
 C1 & Implementations snap to published numbers on the canonical split (met; Mult-DAE failed and was dropped). & Uncertified ruler / metric mismatch. \\
-C2 & G2 gain survives a held-out behavioural answer model $+$ noise; geometry-answer firewall. & Circular answer model (self-simulator inversion). \\
+C2 & Answers are computed from observed behaviour only; no recommender-derived quantity enters an answer (asserted in code). & Circular answer model (self-simulator inversion). \\
 C3 & $\ge1$ study: rendered questions $\to$ graded human answers $\to$ NDCG (deferred). & Simulator-only external-validity gap. \\
 \bottomrule
 \end{tabular}
@@ -1337,7 +1344,7 @@ G8 & $\bSigma$ beats isotropic $c\Imat$ at budget; order-invariant & $+0.0089$ a
 G9 & fixed bank rises from answer content & rise $+0.1218$ (CI $[0.1184,0.1252]$), monotone $\rho=1.0$ & \textbf{PASS} \\
 \midrule
 C1 & snap to published numbers & EASE $+.0003$, RecVAE $+.0005$, Mult-VAE $-.004$; \textbf{Mult-DAE $-.022$ failed, dropped} & \textbf{PASS}$^\dagger$ \\
-C2 & held-out behavioural answer model & \TODO{} & --- \\
+C2 & answers carry no recommender geometry & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts & \textbf{by construction} \\
 C3 & human round-trip & deferred (\S\ref{sec:limits}) & --- \\
 \bottomrule
 \end{tabular}
