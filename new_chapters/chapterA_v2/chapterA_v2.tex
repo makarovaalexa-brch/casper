@@ -630,6 +630,14 @@ representable as a negative one-hot without changing the likelihood), (ii) out-o
 column for an entity absent from the catalogue), and (iii) arbitrary continuous direction tokens. Folding these as
 \emph{linear observations in a frozen latent} is the one leg of the conjunction we find nowhere in the literature.
 
+The distinction that matters is between an \emph{open} and a \emph{closed} channel. An item-indicator model can be
+extended with a concept---as a pseudo-item column, or an extra input unit---but only by adding a column, and a column
+is fixed when the model is fitted (\S\ref{sec:expdesign}). Its concept vocabulary is therefore frozen at training
+time. Our interface takes a direction $\bphi\in\R^{d}$ and a value, so any entity with an embedding is a legal
+observation at inference: a paraphrase, a concept coined after deployment, or a continuous direction emitted by a
+policy and snapped to a nearby meaningful axis. This is what we mean by channel-agnostic, and it is a property of the
+interface rather than a quantity to be tuned.
+
 \paragraph{Pre-empted---cited, never claimed as first.}
 We must credit, and do not claim priority over: attribute-answers-as-directions plus a Bayesian
 fold~\cite{biyik2023soft}; unified item$+$attribute belief and value-of-information~\cite{biyik2023soft,li2021seamlessly};
@@ -1215,11 +1223,19 @@ limit, not hidden. The items-only G2 curves and the G1 shrinkage diagnostic are 
 only items. \REDO{items-only and mixed-channel G2 curves on the certified tower, with the rivals of
 Table~\ref{tab:baselines} on the arms they can express}
 
-\paragraph{(iv) Concept-as-pseudo-item ablation.}
-To pre-empt ``just add genre columns,'' we fold a concept into EASE/RecVAE as the centroid-of-members pseudo-item and
-compare against our concept channel. The expected finding is that a pseudo-item column is a lossy special case (it
-cannot carry sign, magnitude, or an out-of-catalogue direction), but we run it rather than assert it. \TODO{Ablation
-table: concept-as-pseudo-item fold into EASE/RecVAE vs.\ our concept channel, full \& tail.}
+\paragraph{(iv) Why ``just add genre columns'' is not an alternative.}
+The obvious objection to the concept channel is that a concept could simply be appended to an item-only model as an
+extra column---a centroid-of-members pseudo-item in EASE, or an extra input unit in RecVAE. The objection fails for a
+structural reason rather than an empirical one, and the reason is worth stating precisely because it is the same
+property that motivates the whole channel.
+
+A column is fixed when the model is fitted. EASE's item--item weight matrix is defined over a fixed column set and is
+obtained in closed form from the Gram matrix of exactly those columns; RecVAE's input layer has one weight vector per
+column. Adding a concept therefore means adding a column, and adding a column means \emph{refitting the model}. This
+is not a tuning inconvenience: it means the set of expressible concepts is frozen at training time. A paraphrase of an
+existing concept, a concept invented after deployment, a direction produced by snapping a continuous query to the
+nearest meaningful axis---none of these can be answered without retraining, because none of them has a column. The
+pseudo-item is not merely a lossy encoding of a concept; it is a \emph{closed} one.
 
 \paragraph{Metrics.}
 Full \emph{and} tail NDCG@10 on ML-25M (the project reporting rule, scored with the decoder's learned bias, not a
