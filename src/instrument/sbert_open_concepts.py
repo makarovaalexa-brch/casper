@@ -198,6 +198,26 @@ def main():
     def topk(vec, k=10):
         return [int(i) for i in np.argsort(-(Wd @ vec))[:k]]
 
+    # Diagnostic: score against BOTH concept geometries. d_c is the WHITENED member centroid (centred,
+    # top-PC stripped) that the concept channel folds; d_raw is the unwhitened centroid. An adapter fitted
+    # on raw item decoder rows is trained in d_raw's geometry, so scoring it against d_c mixes a target
+    # mismatch into the generalisation number. Reporting both separates the two.
+    D_raw = None
+    if hasattr(ctx, "d_raw") and ctx.d_raw is not None:
+        D_raw = ctx.d_raw.numpy().astype(np.float64) if hasattr(ctx.d_raw, "numpy") \
+            else np.asarray(ctx.d_raw, np.float64)
+
+    def score_against(target, idx):
+        cs, ovs, rnds = [], [], []
+        for j in idx:
+            pred = W @ S[j]
+            cs.append(cos(pred, target[j]))
+            a, b = set(topk(pred)), set(topk(target[j]))
+            ovs.append(len(a & b) / 10.0)
+            rnds.append(len(a & set(rng.choice(n, 10, replace=False))) / 10.0)
+        return {"cos_mean": float(np.mean(cs)), "overlap@10_mean": float(np.mean(ovs)),
+                "overlap@10_random": float(np.mean(rnds))}
+
     # ---- THE TEST: held-out concepts, predicted from the NAME ALONE ----
     ho_cos, ho_ov, ho_rand = [], [], []
     per_tag = {}
@@ -214,9 +234,16 @@ def main():
             "overlap@10_mean": float(np.mean(ho_ov)),
             "overlap@10_random": float(np.mean(ho_rand)),
             "ratio_vs_random": float(np.mean(ho_ov) / max(np.mean(ho_rand), 1e-9))}
-    log(f"[HELD-OUT] {held['n']} unseen tags: cos {held['cos_mean']:.3f} | "
+    log(f"[HELD-OUT vs d_c (whitened)] {held['n']} unseen tags: cos {held['cos_mean']:.3f} | "
         f"top-10 overlap {held['overlap@10_mean']:.3f} vs random {held['overlap@10_random']:.4f} "
         f"({held['ratio_vs_random']:.0f}x)")
+    held_raw = None
+    if D_raw is not None:
+        held_raw = score_against(D_raw, ho)
+        held_raw["ratio_vs_random"] = held_raw["overlap@10_mean"] / max(held_raw["overlap@10_random"], 1e-9)
+        log(f"[HELD-OUT vs d_raw (unwhitened)] cos {held_raw['cos_mean']:.3f} | "
+            f"top-10 overlap {held_raw['overlap@10_mean']:.3f} "
+            f"({held_raw['ratio_vs_random']:.0f}x)  <-- matched geometry for an items fit")
 
     # in-fit reference: how much of the fit quality is memorisation? (concepts-fit only -- under an
     # items fit there is no in-fit concept to compare against, which is the point)
@@ -246,7 +273,7 @@ def main():
 
     res = {"snapshot": os.path.basename(args.snapshot), "n_concepts": len(tags),
            "ridge": args.ridge, "holdout_frac": args.holdout,
-           "fit_on": args.fit_on, "held_out_concepts": held, "in_fit_cos_reference": in_cos,
+           "fit_on": args.fit_on, "held_out_concepts": held, "held_out_vs_d_raw": held_raw, "in_fit_cos_reference": in_cos,
            "per_held_out_tag": per_tag, "probes": probes,
            "paraphrase_overlap@10": para, "paraphrase_mean": para_mean,
            "seconds": round(time.time() - t0, 1)}
