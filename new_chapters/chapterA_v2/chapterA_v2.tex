@@ -765,21 +765,36 @@ identical across channels (R3):
 The signed/graded, out-of-catalogue, and continuous legs are the three channels inexpressible in the R1-bar basis
 (\S\ref{sec:gap}).
 
-\paragraph{What is delivered, and what is still an interface rather than a result.} The signed/graded leg is
-delivered and measured (G3a/G3b, Figure~\ref{fig:gradedcurve}). The concept leg is delivered for concepts
-\emph{in a fixed vocabulary}: our implementation folds a concept by looking its direction up in a trained
-embedding table over the $1{,}031$ genome tags, initialised from whitened member centroids. That is enough
-for R3's out-of-catalogue clause in the narrow sense---no catalogue \emph{column} is required, and a concept
-is not an item---but it is \emph{not} yet the strong claim, which is that an arbitrary embedding, including
-one for an entity the model never saw in training, folds through the same interface. Everything downstream
-of the lookup already consumes a direction in $\R^{d}$, so the interface is arbitrary by construction; what
-is missing is evidence that a direction produced \emph{outside} our own item geometry lands in the right
-place. We therefore state R3 as partially delivered and do not claim the continuous-token leg as
-demonstrated. \TODO{the deciding experiment: fit one text adapter into the frozen latent, then fold English
-phrases that are neither genome tags nor titles, and show the ranking moves semantically (a ``dinosaur''
-query surfacing the right films without the word appearing in any title), with a string-match control ---
-the claim being \emph{no per-concept training}, one adapter generalising to unseen phrases, which is the
-wedge against per-attribute probes~\cite{biyik2023soft}}
+\paragraph{Any direction is a legal observation: an illustration.} The signed/graded leg is delivered and
+measured (G3a/G3b, Figure~\ref{fig:gradedcurve}). The concept leg is delivered over the genome vocabulary.
+The third leg---an \emph{arbitrary} direction, including one for an entity that has no catalogue column and
+was never seen in training---is a property of the interface rather than of any particular channel:
+everything downstream of Eq.~\eqref{eq:precacc} consumes a pair $(\bphi,y)$, so any entity with an
+embedding is admissible. We illustrate that concretely.
+
+Each of the $1{,}031$ genome concepts has a direction in the latent and a name in English, so those pairs
+determine a single global linear map from a frozen general-purpose sentence encoder into the frozen latent,
+in closed form. We fit it on a random $80\%$ of the concepts and ask what happens to the $20\%$ it never
+saw: for a held-out concept, the direction predicted \emph{from its name alone} recovers the top of that
+concept's own item ranking $345\times$ more often than chance ($0.167$ top-10 overlap against a $0.0005$
+random baseline; cosine $0.638$ to the true direction). No per-concept probe is fitted, no inventory is
+consulted, and nothing is retrained---a phrase becomes a direction by one matrix multiplication.
+
+Because the map is defined on any string, it also accepts phrases that are not concepts in our vocabulary
+at all. Asking for ``courtroom drama'' returns \emph{Indictment: The McMartin Trial}, \emph{Primal Fear},
+\emph{\ldots And Justice for All} and \emph{The Verdict}; ``coming of age in the suburbs'' returns
+\emph{The Way, Way Back}, \emph{The Edge of Seventeen} and \emph{Valley Girl}; ``movies about grief''
+returns \emph{Rabbit Hole}, \emph{Mean Creek} and \emph{The Woodsman}; ``spy during the cold war'' returns
+\emph{Funeral in Berlin} and \emph{Where Eagles Dare}. None of these phrases is a genome tag, so none has a
+curated direction to fall back on.
+
+We present this as an \emph{illustration of what the interface permits}, not as a contribution to mapping
+language into collaborative latents---a question with an established literature of its own, in which
+attribute directions are obtained either by per-concept supervised probes~\cite{gopfert2024cav,biyik2023soft}
+or by per-attribute corpus retrieval~\cite{balog2021softattr}. Fitting such a map \emph{well} is a research
+direction this architecture opens rather than one this chapter pursues: text underdetermines collaborative
+taste, and how much of that gap a better-fitted adapter can close is exactly the kind of question the
+instrument now makes measurable.
 
 \begin{figure}[t]
   \centering
