@@ -48,7 +48,9 @@ def main():
     ap.add_argument("--sclite_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
                                                           "cd_s1_l10_best.pt"))
     ap.add_argument("--top_m", type=int, default=50, help="candidates tried per position")
-    ap.add_argument("--passes", type=int, default=1)
+    ap.add_argument("--passes", type=int, default=2)
+    ap.add_argument("--n_items", type=int, default=500)
+    ap.add_argument("--n_concepts", type=int, default=500)
     args = ap.parse_args()
     t0 = time.time()
 
@@ -71,16 +73,27 @@ def main():
     eval_rows = [r for r in range(ctx_te.n) if ctx_te.va_te[r].nnz > 0]
     log(f"[polish] build={len(build_rows)} val / eval={len(eval_rows)} TEST; top_m={args.top_m}")
 
+    # answerability ranking for the concept pool (same rule the greedy used)
+    answ = sh["conc_answerable"]
+    ans_rate = np.asarray(answ[build_rows].mean(0)).ravel()
+
     out = {"seeded_from": os.path.basename(IN), "top_m": args.top_m, "arms": {}}
     for name, arm in prev["arms"].items():
         seq = [(int(c), int(i)) for c, i in arm["sequence"]]
-        gains = arm.get("gains", [])
-        # candidate pool for swaps: the positions the original greedy ranked highest
-        order = sorted(range(len(seq)), key=lambda k: -(gains[k] if k < len(gains) else 0))
-        pool = [seq[k] for k in order[:args.top_m]]
-        # plus the arm's own unused high-gain candidates are not stored, so also allow any position's
-        # question to move -- swaps are within the selected set plus its own ordering
+        # Candidate pool must be questions NOT already in the sequence -- an earlier version built it
+        # from seq itself, so every candidate was skipped by the `q in cur` guard and the search did
+        # zero evaluations. Rebuild from the same pools the greedy drew from.
+        if name == "items-only":
+            cand = [(0, int(i)) for i in sh["order_pop"][:args.n_items]]
+        elif name == "concepts-only":
+            cand = [(1, int(c)) for c in np.argsort(-ans_rate)[:args.n_concepts]]
+        else:
+            cand = ([(0, int(i)) for i in sh["order_pop"][:args.n_items]]
+                    + [(1, int(c)) for c in np.argsort(-ans_rate)[:args.n_concepts]])
+        inseq = set(seq)
+        pool = [q for q in cand if q not in inseq][:args.top_m]
         cur = list(seq)
+        log(f"[polish {name}] {len(pool)} swap candidates outside the seed sequence")
         base, _ = _greedy_avg(rung, build_rows, cur)
         log(f"[polish {name}] seed endpoint (build) = {base:.4f}")
         nev = 0

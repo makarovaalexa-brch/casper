@@ -30,3 +30,5 @@
 [23:32:58] [polish concepts-only] order=cccccccccccccccc | q16 0.1808/0.0758 (seed was 0.1808) [0 evals]
 [23:33:27] [polish combined] seed endpoint (build) = 0.2024
 [23:33:27] [polish combined] no improvement this pass; stopping
+[23:35:05] [polish combined] order=cccciiiiciiiiiii | q16 0.2049/0.0776 (seed was 0.2049) [0 evals]
+[23:35:05] [polish] -> C:\dev\phd\casper\experiments\battery\greedy_polish.json (8.8m)
