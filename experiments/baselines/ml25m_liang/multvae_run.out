@@ -1,0 +1,12 @@
+[22:29:11] === ml25m_liang run start; order=['multvae'] ===
+[22:29:11] Liang ML-25M split: n_items=18359 meta={'n_items': 18359, 'n_train_users': 140768, 'n_val_users': 10000, 'n_test_users': 10000, 'n_events_total': 12397406, 'seed': 98765, 'min_uc': 5, 'min_sc': 0, 'rating_gt': 3.5, 'n_heldout_users': 10000, 'test_prop': 0.2, 'dataset': 'ml-25m', 'raw': 'C:\\dev\\phd\\casper\\data\\movielens\\ratings.csv', 'provenance': 'dawenl/vae_cf VAE_ML20M_WWW2018.ipynb (bit-faithful recipe; applied to ML-25M raw)', 'catalog_restriction': 'AUTHOR-APPROVED deviation from min_sc=0 (2026-07-22): raw pre-filtered to the project-wide 18430-item catalog (movies with >= 20 total ratings, all bands, full 25M file == ml25m_arena.py catalog); user-side Liang-verbatim'}
+[22:29:16] head/tail: 190 head items (top-33% train mass) / 18169 tail items; train_users=140768 nnz=10851052
+[22:29:16] --- multvae ---
+[22:40:32] [vae] ep  1 loss 589.1512 anneal 0.001 val 0.2013 11.2m
+[22:48:43] [vae] ep  2 loss 545.6127 anneal 0.003 val 0.2512 19.4m
+[22:56:38] [vae] ep  3 loss 529.8296 anneal 0.004 val 0.2714 27.3m
+[23:05:07] [vae] ep  4 loss 522.6600 anneal 0.006 val 0.2870 35.8m
+[23:15:35] [vae] ep  5 loss 517.5965 anneal 0.007 val 0.2930 46.3m
+[23:25:48] [vae] ep  6 loss 514.1469 anneal 0.008 val 0.2980 56.5m
+[23:29:41] [vae] ep  7 loss 511.4916 anneal 0.010 val 0.3026 60.4m
+[23:33:39] [vae] ep  8 loss 509.0765 anneal 0.011 val 0.3043 64.3m
