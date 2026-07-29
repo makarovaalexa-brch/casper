@@ -3,10 +3,12 @@
 $ErrorActionPreference = "Stop"
 Set-Location C:\dev\phd\casper
 $log = "C:\dev\phd\casper\experiments\baselines\ml25m_liang\turbocf_queued.log"
-"[{0}] waiting for >=6GB free RAM" -f (Get-Date -Format "HH:mm:ss") | Out-File $log -Encoding utf8
+# 4GB is the working threshold: the dense filter is P (1.35GB) plus F (1.35GB) with the polynomial
+# computed row-blocked, so ~2.7GB peak plus evaluation batches.
+"[{0}] waiting for >=4GB free RAM" -f (Get-Date -Format "HH:mm:ss") | Out-File $log -Encoding utf8
 while ($true) {
     $free = (Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB
-    if ($free -ge 6) { break }
+    if ($free -ge 4) { break }
     Start-Sleep -Seconds 300
 }
 "[{0}] {1:N1}GB free -- launching turbocf sweep" -f (Get-Date -Format "HH:mm:ss"), $free |
