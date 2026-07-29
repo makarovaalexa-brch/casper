@@ -72,10 +72,11 @@ ML-25M harness). Our in-house RecVAE realisation sets the bar at full/tail NDCG@
 ML-25M protocol, and the graded-native interview tower now \emph{meets} it: a single certified training run reaches
 $0.3482/0.2462$ on the held-out test cohort---a paired-bootstrap tie with the bar---while reproducing the frozen
 decoder's ranking exactly at the empty interview, so V1 (full strength preserved) is passed rather than assumed. The
-remaining per-build gates have all been run and pass. With the tower fixed, the instrument makes a question the
-elicitation literature has largely left implicit directly measurable: under one strategy-free selection criterion,
-a cold user answers $2.18$ of eight item questions but $6.02$ of eight concept questions---a factor of $2.8$---and
-the concept channel leads on the opening of an interview and on tail accuracy throughout.
+remaining verification items have all been run and are met. With the tower fixed, a quantity the elicitation
+literature has long treated qualitatively---how often a cold user can answer the question at all---becomes
+directly measurable: in our harness, at an eight-question budget, a user answers $2.18$ of the item questions
+and $6.02$ of the concept questions, and the concept channel leads on the opening of an interview and on tail
+accuracy throughout.
 \end{abstract}
 
 \tableofcontents
@@ -1080,10 +1081,11 @@ Read across the table, the shape is consistent and it is the shape the rest of t
 the concept channel owns the opening and the tail, the item channel owns full accuracy once enough
 questions have been answered---and how many that is depends on how many the user can answer at all.
 
-\paragraph{What the concept channel buys is answerability, and that has a literature.}
-The figures underneath these curves are the plainest statement of the channel's value: at a realistic
-eight-question budget a user answers $2.18$ item questions and $6.02$ concept questions, a factor of
-$2.8$. Whether a cold user \emph{can} answer at all is not a detail of our harness---it is a first-class
+\paragraph{What the concept channel buys is answerability, and that is neither new nor surprising.}
+That a cold user can answer a question about a broad property more readily than one about a particular
+title is close to common sense: the concept question asks whether they like a kind of film, the item
+question presupposes they have seen a specific one. We claim no discovery here, and the direction is
+established independently of us. Whether a cold user \emph{can} answer at all is a first-class
 concern of the classical interview literature, under other names. Rashid et al.\ select seed items by
 popularity precisely because popularity is the probability that a new user has seen the
 item~\cite{rashid2002getting}, and report that a pure-entropy strategy performs badly for exactly this
@@ -1105,16 +1107,23 @@ Two things separate our result from theirs. Their fix stays inside the item chan
 questions more likely to land, rather than asking whether a different \emph{kind} of question lands more
 often---and their multi-question screen is simultaneously more answerable \emph{and} more informative, a
 confound they do not separate. Our comparison holds the budget and the interview protocol fixed and varies
-only the channel, which isolates answerability from informativeness.
+only the channel.
 
-We should also be clear that the \emph{shape} of our curve is not new. Gharahighehi et
+The \emph{shape} of the curve is not new either. Gharahighehi et
 al.~\cite{gharahighehi2025pairwise} run item-only against item-plus-genre trees and find that attributes
 lead early while items overtake later; Xia et al.~\cite{xia2026when} find attributes dominating the
-opening turns of a dialogue and items the later ones. Both report the crossover we report. Neither measures
-an answer rate: the first attributes it to clustering efficiency, the second to preference specificity.
-The contribution here is therefore not the crossover but its mechanism---that the channels differ by a
-factor of $2.8$ in how often a question is answerable at all, which the geometry of \S\ref{sec:method}
-predicts and which is measurable on this instrument.
+opening turns of a dialogue and items the later ones. Both report the crossover we report.
+
+\paragraph{What we do claim, and how far it reaches.} Not that concepts are more answerable---the
+literature above establishes that---but that on this instrument the quantity is \emph{visible}, so a
+channel comparison can be read against it rather than inferred. In our harness, at an eight-question
+budget, a user answers $2.18$ of the item questions and $6.02$ of the concept questions. That figure is a
+property of \emph{this} setup and we make no claim beyond it: it depends on the question banks (a
+popularity-ordered item bank is answered $3.0$ times in eight, an NDCG-greedy one $2.18$), on the
+structural rule that decides when an item or concept counts as answerable, and on a catalogue where items
+are films. What generalises is the ordering and its cause, both of which predate us; what is ours is that
+the instrument reports the number at all, and that the item channel turns out to face a trade-off the
+concept channel does not---an item bank can be answerable or informative, and the two orderings differ.
 
 \paragraph{On the adaptive headroom.} A one-level adaptive probe on the fixed stack---branch on the first answer, then choose the
 second question per branch, selected and evaluated out-of-sample on disjoint halves---pays on the item channel with a
