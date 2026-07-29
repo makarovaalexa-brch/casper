@@ -107,6 +107,15 @@ An instrument fit for measuring conversational elicitation must simultaneously s
         never saw when it was fitted---an out-of-catalogue concept, an entity, a phrase, a direction a policy
         emits---is a legal member of the set. That demands both a set-structured input and a latent space arbitrary
         vectors can be inserted into, which is an architectural property and not a tuning one.
+
+        \emph{Why this is an elicitation requirement and not an engineering preference.} A cold interview is rate-limited
+        by what the user can actually answer, and answerability rises with abstraction: a question about a kind of
+        film presupposes nothing, where a question about a particular film presupposes having seen it
+        (\S\ref{sec:concept:results}). An instrument restricted to catalogue items is therefore capped by the user's
+        viewing history; one restricted to a curated attribute list is capped by whoever wrote the list. Neither cap
+        is a property of the user. Since abstraction has no natural ceiling---``psychological thrillers'', ``films
+        about grief'', ``the quiet dignity of losing''---any vocabulary fixed at training time forecloses part of
+        what a user could have told us, and which part is decided before the user arrives.
   \item[R3 --- queryable belief.] It must expose an explicit covariance over the user belief, not only a point
         estimate, so that a policy \emph{can} act on what is not yet known. The instrument's obligation is to
         provide and verify that belief; whether and how a policy exploits it is a separate question.
@@ -829,6 +838,18 @@ or by per-attribute corpus retrieval~\cite{balog2021softattr}. Fitting such a ma
 direction this architecture opens rather than one this chapter pursues: text underdetermines collaborative
 taste, and how much of that gap a better-fitted adapter can close is exactly the kind of question the
 instrument now makes measurable.
+
+\paragraph{The interface does not care who chose the direction.} One consequence is worth naming because
+it costs no new mechanism. Everything above treats a phrase as something the \emph{system} elected to ask
+about. But Eq.~\eqref{eq:obs} reads a pair $(\bphi,y)$ and is indifferent to its provenance: a user who
+volunteers ``I'm in the mood for something about grief'' has supplied a direction and a positive value,
+which folds exactly as an answer to a question we posed would. The same holds for a critique after a
+recommendation (``less bleak than that'') and for a direction a continuous policy emits and never renders
+as language at all. An item-indicator model cannot accept any of these, because none has a column; a
+model with a curated attribute list can accept only those a curator anticipated. A user-initiated request
+is thus not a separate feature to be built on top of this instrument---it is the same fold read in the
+other direction, and the reason it is available is R2. We have not evaluated proactive requests here, and
+the quality of any such interaction would rest on the text adapter whose limits are set out above.
 
 \begin{figure}[t]
   \centering
