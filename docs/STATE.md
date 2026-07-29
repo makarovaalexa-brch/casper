@@ -102,15 +102,21 @@ the whole grid, since no published ML-20M/25M number exists to snap to. `scripts
 the run when RAM frees. **Lesson: a smoke test on toy data cannot catch a scale-dependent numerical
 degeneracy — the guard has to be a property check on the real matrix.**
 
-## What the polish decides
-Combined trails items-only at q16 (0.2049 vs 0.2098) despite the combined bank CONTAINING the item bank.
-That is possible because greedy picks one question at a time by immediate gain: concepts genuinely win the
-opening, so it commits 4 concept slots and cannot undo them. The sequence space contains the items-only
-solution; the greedy path does not reach it. Polish swaps positions scoring the FULL 16-sequence, and its
-pool for the combined arm is items-first, so it CAN walk toward items-only.
-**Note items-only improved to 0.2118, so combined must now clear a higher bar.** If combined still trails,
-check HOW MANY concept slots were swapped out before concluding anything — a bounded search failing to
-escape is evidence about the search, not about concepts.
+## ★ THE POLISH IS DROPPED (author ruling, 2026-07-29) — greedy is the right object
+The endpoint polish optimises q=16 and **nothing else, and nobody set the budget at 16**. On items-only it
+buys **+0.002 at q16** and pays **−0.029 at q2**, −0.012 at q4, −0.004 at q8; its curve is not even
+monotone (q2 0.1234 < q1 0.1310). For a cold-start interview, where the budget is a deployment choice and
+short interviews are the realistic case, that is a bad trade in every column that matters.
+
+**Greedy is prefix-optimal — the best its bank can do at every budget at once — which is exactly the
+property an interview needs.** The paper now says so, and the old "read the combined−items gap only at
+q≤4 and on the tail" reading rule (what the harsh review called a moved goalpost) is GONE, replaced by:
+containment binds at the *optimum*, not along the *path*, so q16 is the one column where a bank can be
+behind. No goalpost, no apology, and the section no longer waits on a run.
+
+Polish numbers for the record (not in the paper): items-only 0.2098→0.2118 (1146 evals); concepts-only
+**unchanged** (640 evals, nothing worth swapping); combined killed part-way at 0.2024→0.2067 on build —
+it was indeed unwinding toward items-only, consistent with the myopia account but not needed.
 
 ## Paper A: what is settled
 - **G0 CERTIFIED**: T2′ TEST **0.3482 / 0.2462** (@100 0.4486); tie vs RecVAE 0.3540/0.2497
@@ -149,12 +155,23 @@ escape is evidence about the search, not about concepts.
   Yu-Bi-Tresp ICML 2006 + Attia 2018. Best alternative = **Knowledge Gradient** (Frazier 2009).
   `external_literature/findings/rank_targeted_acquisition.md`.
 
-## Parked / pending
+## Closed WITHOUT running (author ruling, 2026-07-29) — do not reopen
+- **#30 Wave-2 rest** (GF-CF, BSPM, BERT4Rec, EDDI): not implemented, and none can snap to published
+  numbers on our ruler (no Gowalla/Yelp/Amazon data, different metrics). They stay dashes in `tab:master`
+  with a stated disposition. Turbo-CF and SASRec/TaNP are the exceptions — those runs exist.
+- **#36 G10**: never run and unreferenced anywhere in the text. Dropped, not run.
+- **#34 certified-tower interview re-runs**: not needed. Both towers freeze the same RecVAE decoder and
+  the graded curve replicated with the same shape.
+- **#43 full PEBOL-style open-vocabulary interview**: the illustration is in and framed as an enabled
+  direction; the full experiment is Paper C territory.
+- **#46 the polish**: see the ruling above.
+
+## Still open
 - **PAPER B BLOCK (#56)** — belief-driven selection; do not start until A is closed. Σ-greedy is provably
   static-equivalent (Λ's update ignores answers); escapes are answerability and NDCG-coupling.
-- **#30 Wave-2 baselines**: GF-CF/BSPM/BERT4Rec/EDDI not implemented; TurboCF broken. None can snap to
-  published numbers (no Gowalla/Yelp/Amazon data, different metrics) — they are best-effort rows only.
-- **#36** — G10 never run and unreferenced in the text; recommend DROPPING rather than running.
-- **#34** — certified-tower interview re-runs: NOT needed. Author ruling: the non-certified run does not
-  exist; keep numbers and say nothing about source, or re-run. Nothing is expected to change (both towers
-  freeze the same RecVAE decoder; the graded curve replicated with the same shape).
+- **#65 Turbo-CF** — re-running now on the val sweep after the degeneracy fix; the degenerate output is
+  archived as `turbocf_DEGENERATE_alpha0.7_s0.6_filt2.json`.
+- **SASRec / TaNP** — running. WATCH SASRec: val went 0.1174 (ep1) → 0.1158 (ep2), i.e. below
+  Most-Popular's 0.1345. If it early-stops there, decide whether the row enters the table at all rather
+  than printing a best-effort number far off the model's published standing.
+- **#58 A6** — one human-speed read-through. Everything mechanical is clean.
