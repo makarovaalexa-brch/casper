@@ -6,3 +6,7 @@
 [23:35:59] [turbocf] F ready (1.6m) alpha=0.7 power=0.6 filter=2 |F|=2355.44
 [23:36:27] [done] turbocf: full@10=0.0000 tail@10=0.0000 ndcg@100=0.0000 r@20=0.0000 r@50=0.0000 2.1m
 [23:36:27] --- rbmf_seed ---
+[23:41:05] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (4.6m)
+[23:41:05] [rbmf_seed] frozen iALS f=200 (4.6m); ls_reg=1.0
+[23:59:43] [done] rbmf_seed: full@10=0.2534 tail@10=0.1764 ndcg@100=0.3607 r@20=0.3275 r@50=0.4635 23.3m
+[23:59:43] === ml25m_liang queue-2 run complete ===
