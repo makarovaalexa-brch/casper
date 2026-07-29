@@ -1,0 +1,13 @@
+{
+  "ndcg@100": 0.345979042289692,
+  "ndcg@100_se": 0.0022462858579809356,
+  "ndcg@10": 0.2422294260293057,
+  "ndcg@10_se": 0.0022801500374632776,
+  "recall@20": 0.3196817227530811,
+  "recall@20_se": 0.00280626559786459,
+  "recall@50": 0.44688201393920096,
+  "recall@50_se": 0.00313518999759859,
+  "tail_ndcg@10": 0.1690939333612707,
+  "tail_ndcg@10_se": 0.0022759049366559555,
+  "input_regime": "graded catalogue ratings in the per-user LS seed; frozen Y from the implicit iALS fit (stated substitution)"
+}

@@ -60,7 +60,23 @@ def main():
     log(f"graded fold-in carries {g_te_tr.nnz / te_tr.nnz:.2f}x the binary fold-in's interactions; "
         f"{float((g_te_tr.data <= 3.5).mean()):.1%} of them are sub-3.5 and absent from the split")
 
+    # CONTROL. The graded fold-in carries 2.26x the binary one's interactions, so a graded gain could
+    # simply be a volume gain. This arm holds the interaction SET at all-bands and binarises the values,
+    # isolating "more interactions" from "graded values". Without it no graded number is interpretable.
+    b_train = g_train.copy(); b_train.data[:] = 1.0
+    b_te_tr = g_te_tr.copy(); b_te_tr.data[:] = 1.0
+
     out = {}
+    if "golbandi_node_allbands_binary" in want:
+        log("--- CONTROL: golbandi_node, all-bands interaction SET, values binarised ---")
+        pr = golbandi_node.fit(b_train, n_items, log=log)
+        r = M.evaluate(pr, b_te_tr, te_te, batch_size=500, head_mask=hm)
+        r["input_regime"] = "all-bands interaction set, values binarised (volume control)"
+        out["golbandi_node_allbands_binary"] = r
+        log(f"[done] golbandi_node_allbands_binary: full@10={r['ndcg@10']:.4f} "
+            f"tail@10={r['tail_ndcg@10']:.4f}  (likes-only binary was 0.3065/0.1895)")
+        json.dump(r, open(os.path.join(OUTDIR, "golbandi_node_allbands_binary.json"), "w"), indent=2)
+
     if "golbandi_node_graded" in want:
         log("--- golbandi_node on graded ratings (fully faithful: node mean = mean rating) ---")
         pr = golbandi_node.fit(g_train, n_items, log=log)
