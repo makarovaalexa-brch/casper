@@ -361,10 +361,11 @@ Family & Representatives & R1 & R2 & R3 & R4 & R5 & One-line verdict \\
   \textbf{The conjunction; no published system occupies it.} \\
 \bottomrule
 \end{tabular}
-\caption{Six-family taxonomy scored against R1--R5. \cmark~met, \pmark~partial, \xmark~not met. Scores are our
-reading of each family's \emph{published} claims and are qualitative; the last row is a target, not a result. R1 and
-$\{$R3,R4,R5$\}$ are anti-correlated: families (ii)/(iii) hold the accuracy corner, family (iv) the belief corner,
-and none spans both. }
+\caption{Six-family taxonomy scored against R1--R5. \cmark~met, \pmark~partial, \xmark~not met. Scores for the
+six published families are our reading of their \emph{published} claims and are qualitative; the last row is this
+chapter's instrument, whose marks are the measured verification results of Table~\ref{tab:batteryresults} rather
+than a reading. R1 and $\{$R2,R3,R4,R5$\}$ are anti-correlated across the published families: (ii)/(iii) hold the
+accuracy corner, (iv) the belief corner, and none spans both. }
 \label{tab:taxonomy}
 \end{table}
 
@@ -1039,9 +1040,11 @@ combined      & $\mathbf{.1436}/\mathbf{.0323}$ & $.1504/\mathbf{.0434}$ & $.164
 budget, sequences built by lazy greedy on the $10{,}000$ validation users over a $500$-item and/or $500$-concept
 bank and scored once on the $10{,}000$ disjoint test users; no refusals; intercept $0.1279/0.0192$. The last
 column is the mean number of the first eight questions a user can actually answer. Bold marks the best bank in
-each column. Paired per-user bootstrap intervals on $10{,}000$ users at this scale have half-widths of
-$\pm0.002$--$0.003$ throughout this chapter; the differences read in the text are the ones comfortably
-above that.}
+each column. For comparisons of this kind---two \emph{arms of the same model} over the same users, whose
+per-user differences are strongly correlated---paired bootstrap intervals on $10{,}000$ users have half-widths
+of $\pm0.002$--$0.003$, and the differences read in the text are the ones comfortably above that. Intervals for
+comparisons \emph{across models} are wider, because two systems' per-user scores are far less correlated: the
+tower-versus-RecVAE interval of \S\ref{sec:expdesign} is $0.0069$.}
 \label{tab:beststatic}
 \end{table}
 
