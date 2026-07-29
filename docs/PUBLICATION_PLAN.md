@@ -9,12 +9,50 @@
 - Prefer resource / short tracks and journals where a strong artifact carries the paper.
 
 ## Venue targets
-- **ECIR 2027** — deadline **~2 Oct 2026** — primary anchor for Papers **C** and **A**.
+- **★ TORS (ACM Trans. on Recommender Systems) — the primary target for Paper A.** See below.
+- **ECIR 2027** — deadline **~2 Oct 2026** — anchor for Paper **C**; for A, only a cut-down version.
+- **RecSys / ECIR reproducibility tracks** — strong fit for Paper A's certification bridge.
 - **RecSys 2026** — short or resource track (Paper A as testbed/resource).
 - **CIKM 2026** — resource track.
-- **UMAP 2027** — Paper A/B fit.
+- **UMAP 2027** — ruled OUT for Paper A: no human study, and the answer model is behavioural.
 - **Journals (parallel, no deadline pressure):** UMUAI, TORS.
 - **Workshop fallbacks:** KaRS, IntRS.
+
+## ★ TORS — why it is Paper A's target (settled 2026-07-29)
+ACM Transactions on Recommender Systems, the field's dedicated journal (launched 2023). Scope
+explicitly covers **evaluation methodology, reproducibility, and resource/benchmark contributions** —
+exactly the category three independent reviews put Paper A in.
+
+- **No deadline.** Rolling submission; we submit when the work is ready. Nothing forces the timeline.
+- **No travel.** A journal satisfies the project's hard no-travel constraint outright, unlike every
+  conference on the list. This alone makes it the best-matched venue we have.
+- **Length is an asset.** The ~30pp that got Paper A rejected from ECIR ("too long; instrument
+  without application") is unremarkable for TORS.
+- **Speed is the cost.** Journal cycles run months. Against the Oct-2026 ECIR date a TORS submission
+  likely will not *complete* before the thesis, but "under review at TORS" is normal and citable.
+- **Not yet verified:** current editorial board and turnaround statistics. Check the journal site
+  before committing.
+
+### The blind calibration panel (2026-07-29) — why we trust the TORS read
+Three drafts, one hostile reviewer, identical short rubric, all anonymised and framed as unpublished
+submissions: **(A)** PEBOL, **(B)** Bıyık soft-attributes — the system our own gap analysis calls the
+binding near-miss — and **(C)** our Paper A pre-restructure.
+
+| | A (PEBOL) | B (soft attributes) | C (ours) |
+|---|---|---|---|
+| verdict | weak reject | weak reject | **weak reject** |
+| SIGIR / RecSys main | REJECT | REJECT | REJECT |
+| ECIR full | ACCEPT | ACCEPT | **REJECT** (length; instrument without application) |
+| **TORS** | ACCEPT | ACCEPT | **ACCEPT** |
+| reproducibility | REJECT | REJECT | **ACCEPT** (bridge called "exemplary") |
+
+**Read:** identical verdicts to two peer-reviewed elicitation papers ⇒ we are AT the field's level, not
+below it, and the earlier long-form "reject" was the reviewer running hot rather than a measurement.
+TORS is the one venue every draft clears. Our unique win is the reproducibility track; our unique
+loss is ECIR, for length and for deferring the payoff to a companion chapter.
+**All three top objections were simulator circularity** — it is the field-wide attack, and our I2
+firewall (answers = recorded ratings / raw watch counts, fold-in only) is the only real defence among
+the three. We under-sell it.
 
 ## The papers (A–E → `new_chapters/`)
 | # | folder | working title | maps to VISION pillar | draft state |
