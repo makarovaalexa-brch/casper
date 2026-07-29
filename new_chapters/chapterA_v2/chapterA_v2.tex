@@ -31,11 +31,10 @@
 \newcommand{\bSigma}{\boldsymbol{\Sigma}}
 \newcommand{\bLambda}{\boldsymbol{\Lambda}}
 
-% cmark/xmark/pmark for the capability tables
+% cmark/xmark for the capability tables
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
 \usepackage{pifont}
-\newcommand{\pmark}{$\sim$}
 
 \title{\textbf{The Interview-Compatible Recommender:\\A Measuring Instrument for Cold-Start Conversational Recommendation}\\[4pt]\large Thesis Chapter A (v2)}
 \author{}
@@ -334,27 +333,27 @@ Family & Representatives & R1 & R2 & R3 & R4 & R5 & One-line verdict \\
 \midrule
 (i) retrain / meta-learn per user &
   MeLU, TaNP~\cite{lin2021tanp}, CDRNP &
-  \pmark & \xmark & \pmark & \xmark & \pmark &
+  \xmark & \xmark & \cmark & \xmark & \cmark &
   Set-input and belief precedent; not full-profile SOTA, not channel-open. \\
 (ii) fold-in linear / closed-form &
   EASE~\cite{steck2019ease}, SLIM, GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf} &
-  \cmark & \xmark & \xmark & \pmark & \xmark &
+  \cmark & \xmark & \xmark & \xmark & \xmark &
   The full-profile bar (V1); item-indicator basis $\Rightarrow$ R2, R5 impossible. \\
 (iii) amortised inference encoders &
   Mult-VAE~\cite{liang2018variational}, RecVAE~\cite{ren2020recvae}, EDLAE~\cite{steck2020edlae}, EDDI~\cite{ma2019eddi} &
-  \cmark & \pmark & \pmark & \xmark & \xmark &
+  \cmark & \xmark & \xmark & \xmark & \xmark &
   The architecture we live in; VAEs item-only, EDDI right shape/wrong domain. \\
 (iv) Bayesian belief over item space &
   B\i y\i k~\cite{biyik2023soft}, ConTS~\cite{li2021seamlessly}, BCIE~\cite{toroghi2023bcie}, ICF~\cite{zhao2013interactive} &
-  \xmark & \pmark & \cmark & \pmark & \pmark &
+  \xmark & \xmark & \cmark & \xmark & \cmark &
   The belief heart; belief layers, not full-profile towers. \\
 (v) sequence models &
   SASRec~\cite{kang2018sasrec}, BERT4Rec~\cite{sun2019bert4rec} &
-  \pmark & \xmark & \xmark & \xmark & \xmark &
+  \xmark & \xmark & \xmark & \xmark & \xmark &
   Interview $\ne$ ordered session; tokens item-only, order-sensitive. \\
 (vi) LLM-as-recommender / CRS &
   PEBOL~\cite{austin2024bayesian}, GATE~\cite{li2023eliciting}, LLM-CRS~\cite{he2023large} &
-  \xmark & \cmark & \pmark & \xmark & \pmark &
+  \xmark & \cmark & \xmark & \xmark & \cmark &
   Best R2 (open text); weakest R1 (weak collaborative signal). \\
 \midrule
 \textbf{CASPER (delivered)} & \textbf{this chapter} &
@@ -362,7 +361,7 @@ Family & Representatives & R1 & R2 & R3 & R4 & R5 & One-line verdict \\
   \textbf{The conjunction; no published system occupies it.} \\
 \bottomrule
 \end{tabular}
-\caption{Six-family taxonomy scored against R1--R5. \cmark~met, \pmark~partial, \xmark~not met. Scores for the
+\caption{Six-family taxonomy scored against R1--R5. \cmark~met, \xmark~not met---there are no half marks: a mark is met only if the system provides the capability as a designed, demonstrated feature. Scores for the
 six published families are our reading of their \emph{published} claims and are qualitative; the last row is this
 chapter's instrument, whose marks are the measured verification results of Table~\ref{tab:batteryresults} rather
 than a reading. R1 and $\{$R2,R3,R4,R5$\}$ are anti-correlated across the published families: (ii)/(iii) hold the
@@ -380,40 +379,40 @@ System (rep.\ / cite) & R1 & R2 & R3 & R4 & R5 &
  & & & & & & \multicolumn{2}{c}{(our ML-25M ruler)} & & (own benchmark, \emph{NOT} comparable) \\
 \midrule
 \multicolumn{10}{l}{\emph{(a) Classic / linear full-profile}}\\
-Most-Popular & \xmark & \xmark & \xmark & \pmark & \xmark & $.1345$ & $.0226$ & measured   & n/r (non-personalised floor) \\
-Item-kNN (cosine) & \xmark & \xmark & \xmark & \pmark & \xmark & $.2428$ & $.1297$ & measured   & @100 $\sim0.36$ class~\cite{cremonesi2010performance} \\
-PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \pmark & \xmark & $.2442$ & $.1853$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
-EASE~\cite{steck2019ease} & \cmark & \xmark & \xmark & \pmark & \xmark & $.3476$ & $.2441$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
-EDLAE~\cite{steck2020edlae} & \cmark & \xmark & \xmark & \pmark & \xmark & $.3433$ & $.2395$ & measured & @100 $\approx0.42$--$0.44$ class \\
-Turbo-CF~\cite{park2024turbocf} & \pmark & \xmark & \xmark & \pmark & \xmark & $.2622$ & $.1621$ & measured (val-tuned) & n/r (ML-20M not reported) \\
-GF-CF / BSPM~\cite{shen2021gfcf,choi2023bspm} & \pmark & \xmark & \xmark & \pmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (ML-20M not reported) \\
+Most-Popular & \xmark & \xmark & \xmark & \xmark & \xmark & $.1345$ & $.0226$ & measured   & n/r (non-personalised floor) \\
+Item-kNN (cosine) & \xmark & \xmark & \xmark & \xmark & \xmark & $.2428$ & $.1297$ & measured   & @100 $\sim0.36$ class~\cite{cremonesi2010performance} \\
+PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & \xmark & $.2442$ & $.1853$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
+EASE~\cite{steck2019ease} & \cmark & \xmark & \xmark & \xmark & \xmark & $.3476$ & $.2441$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
+EDLAE~\cite{steck2020edlae} & \cmark & \xmark & \xmark & \xmark & \xmark & $.3433$ & $.2395$ & measured & @100 $\approx0.42$--$0.44$ class \\
+Turbo-CF~\cite{park2024turbocf} & \xmark & \xmark & \xmark & \xmark & \xmark & $.2622$ & $.1621$ & measured (val-tuned) & n/r (ML-20M not reported) \\
+GF-CF / BSPM~\cite{shen2021gfcf,choi2023bspm} & \xmark & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (ML-20M not reported) \\
 \midrule
 \multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
 Mult-DAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & \emph{dropped} (snap failed) & @100 $0.419$ (ours $0.397$, \textbf{FAIL} $-.022$) \\
-Mult-VAE~\cite{liang2018variational} & \cmark & \xmark & \pmark & \xmark & \xmark & $.3202$ & $.2194$ & measured & @100 $0.426$ (ours $0.422$, near-snap $-.004$) \\
-RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \xmark & \pmark & \xmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
-SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp} (MeLU / CDRNP line) & \pmark & \xmark & \cmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not run here & n/r (own cold-start benchmark) \\
+Mult-VAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & \xmark & $.3202$ & $.2194$ & measured & @100 $0.426$ (ours $0.422$, near-snap $-.004$) \\
+RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \xmark & \xmark & \xmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
+SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \xmark & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line) & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not run here & n/r (own cold-start benchmark) \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi} & \xmark & \pmark & \cmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not run here & n/r (non-recsys; UCI/MNIST) \\
+EDDI / Partial-VAE~\cite{ma2019eddi} & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not run here & n/r (non-recsys; UCI/MNIST) \\
 Golbandi tree~\cite{golbandi2011adaptive} & \xmark & \xmark & \xmark & \xmark & \cmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
-RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \xmark & \xmark & \xmark & \pmark & $.2534$ & $.1764$ & measured (best-effort) & n/r (elicitation RMSE) \\
-B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \pmark & \cmark & \pmark & \pmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (16 users, slates of 5) \\
-ICF~\cite{zhao2013interactive} & \xmark & \xmark & \cmark & \pmark & \pmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
-ConTS~\cite{li2021seamlessly} & \xmark & \pmark & \cmark & \pmark & \pmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (cold-start CRS metrics) \\
-BCIE~\cite{toroghi2023bcie} & \xmark & \pmark & \cmark & \pmark & \pmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (critique metrics) \\
-UNICORN~\cite{deng2021unicorn} & \xmark & \pmark & \cmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (graph-RL CRS; own metrics) \\
-PEBOL~\cite{austin2024bayesian} & \xmark & \cmark & \pmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not runnable at full catalogue & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
-GATE~\cite{li2023eliciting} & \xmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not runnable (no ranker) & n/r (elicitation-only; no full ranking) \\
-LLM zero-shot CRS~\cite{he2023large} & \xmark & \cmark & \xmark & \xmark & \pmark & \multicolumn{2}{c}{---} & not runnable at scale & n/r (weak collaborative signal) \\
+RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \xmark & \xmark & \xmark & \cmark & $.2534$ & $.1764$ & measured (best-effort) & n/r (elicitation RMSE) \\
+B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (16 users, slates of 5) \\
+ICF~\cite{zhao2013interactive} & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
+ConTS~\cite{li2021seamlessly} & \xmark & \xmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (cold-start CRS metrics) \\
+BCIE~\cite{toroghi2023bcie} & \xmark & \xmark & \cmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (critique metrics) \\
+UNICORN~\cite{deng2021unicorn} & \xmark & \xmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (graph-RL CRS; own metrics) \\
+PEBOL~\cite{austin2024bayesian} & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not runnable at full catalogue & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
+GATE~\cite{li2023eliciting} & \xmark & \cmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not runnable (no ranker) & n/r (elicitation-only; no full ranking) \\
+LLM zero-shot CRS~\cite{he2023large} & \xmark & \cmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not runnable at scale & n/r (weak collaborative signal) \\
 \midrule
 \multicolumn{10}{l}{\emph{(d) Ours}}\\
 \textbf{The instrument (this chapter)} & \cmark & \cmark & \cmark & \cmark & \cmark & $\mathbf{.3482}$ & $\mathbf{.2462}$ & \textbf{measured (certified)} & n/a (in-house; graded-native tower) \\
 \bottomrule
 \end{tabular}
 \caption{\textbf{Master table: every reasonable system by R1--R5 and by measured full-profile accuracy on one
-shared ruler.} \cmark~met, \pmark~partial, \xmark~not met (our reading of each system's \emph{published} claims,
+shared ruler.} \cmark~met, \xmark~not met, with no intermediate grade: a requirement counts as met only where the system provides it as a designed, demonstrated capability (our reading of each system's \emph{published} claims,
 consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on the canonical Liang-recipe
 strong-generalization ML-25M split (catalog restricted to the 18{,}430-item project catalog, train vocabulary 18{,}359; train 140{,}768 /
 val 10k / test 10k users; per-user 80/20 fold-in; tail $=$ top-33\%-train-mass head mask, 190 head items), scored
@@ -485,8 +484,8 @@ conjunction.
 
 \paragraph{The gap map.}
 Figure~\ref{fig:gapmap} places every system on two axes: \emph{interview-compatibility} on the $x$-axis---a coarse
-ordinal capability count, the number of \textbf{R2--R5} marks a system satisfies in the master table (\cmark${=}1$,
-\pmark${=}0.5$; R1 is excluded because accuracy is the $y$-axis)---and \emph{measured full-profile NDCG@10 on our
+ordinal capability count, the number of \textbf{R2--R5} marks a system satisfies in the master table
+(R1 is excluded because accuracy is the $y$-axis)---and \emph{measured full-profile NDCG@10 on our
 ML-25M ruler} (R1) on the $y$-axis. The population is bimodal: the accuracy corner collapses onto $x\le1.5$, the
 interview-capable systems sit at $x\ge2$ with weak or non-existent full-profile accuracy, and no system bridges---the
 top-right, high compatibility \emph{and} frontier accuracy, is empty.
@@ -495,7 +494,7 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
 \begin{tikzpicture}
 \begin{axis}[
     width=13.5cm, height=9cm,
-    xlabel={interview-compatibility score (R2--R5 marks satisfied; \cmark$=1$, \pmark$=0.5$)},
+    xlabel={interview-compatibility score (number of R2--R5 requirements met)},
     ylabel={measured full-profile NDCG@10 (our ML-25M ruler)},
     xmin=0, xmax=4, ymin=0.068, ymax=0.38,
     xtick={0,1,2,3,4},
@@ -514,27 +513,27 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
         {\textbf{CASPER} (this chapter)\\{\tiny R2--R5 all \cmark, $0.3482$}};
   % --- measured points (filled); x = R2..R5 marks ONLY (R1 excluded: accuracy is the y-axis) ---
   \addplot[only marks,mark=*,mark size=2.6pt,color=blue!55!black] coordinates {
-    (0.5,0.1345) (0.5,0.2428) (0.5,0.2442) (2.0,0.2019)
-    (1.0,0.3065) (0.5,0.3433) (0.5,0.3476) (0.5,0.3540)
+    (0.0,0.1345) (0.0,0.2428) (0.0,0.2442) (3.0,0.2019)
+    (1.0,0.3065) (0.0,0.3433) (0.0,0.3476) (0.0,0.3540)
   };
   % measured-point labels (accuracy cluster stacked at x=1.5, spread by y)
-  \node[font=\scriptsize,anchor=east] at (axis cs:0.42,0.1345) {Most-Popular};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.58,0.2360) {item-kNN};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.58,0.2510) {iALS};
-  \node[font=\scriptsize,anchor=east] at (axis cs:0.92,0.3065) {Golbandi-node};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.58,0.3400) {EDLAE};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.58,0.3490) {EASE};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.58,0.3585) {\textbf{RecVAE}};
-  \node[font=\scriptsize,anchor=south west] at (axis cs:2.02,0.2019) {conjugate belief over frozen MF};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.1345) {Most-Popular};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.2360) {item-kNN};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.2510) {iALS};
+  \node[font=\scriptsize,anchor=west] at (axis cs:1.08,0.3065) {Golbandi-node};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.3400) {EDLAE};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.3490) {EASE};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.3585) {\textbf{RecVAE}};
+  \node[font=\scriptsize,anchor=south east] at (axis cs:2.94,0.2019) {conjugate belief over frozen MF};
   % --- "no full-profile number" strip: BELOW the measured y-scale, visually separated ---
   \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:4,0.094);
   \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:4,0.094);
   \addplot[only marks,mark=o,mark size=2.6pt,color=gray!70!black] coordinates {
-    (1.5,0.076) (2.0,0.076) (2.5,0.076)
+    (1.0,0.076) (1.94,0.076) (2.06,0.076)
   };
-  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:1.5,0.079) {GATE, LLM-CRS};
-  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:2.0,0.0745) {PEBOL};
-  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:2.5,0.079) {BCIE};
+  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:2.0,0.079) {PEBOL, BCIE, GATE, LLM-CRS};
+  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:1.0,0.0745) {UNICORN};
+  
   \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:2.75,0.086)
         {no full-profile ranker exists};
   \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:2.75,0.079)
@@ -543,7 +542,7 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
 \end{tikzpicture}
 \caption{\textbf{The gap map (measured axes).} $y$-axis: measured full-profile NDCG@10 on our canonical ML-25M ruler.
 $x$-axis: an \emph{interview-compatibility score}, defined as the number of \textbf{R2--R5} marks a system carries in
-the master table (Table~\ref{tab:master}), scoring \cmark${=}1$ and \pmark${=}0.5$, maximum $4$. \emph{R1 is
+the master table (Table~\ref{tab:master}), maximum $4$. There are no half marks, so the axis is an integer count. \emph{R1 is
 deliberately excluded from the score}: accuracy is the $y$-axis, and letting it also inflate $x$ would blur the very
 trade-off the figure exists to show. The score is a \emph{coarse ordinal capability count, not a measurement}, so the
 $x$-axis is qualitative even though the $y$-axis is measured. Filled markers are systems with a full-profile number on this
@@ -554,12 +553,12 @@ master-table dispositions); only their $x$ position is meaningful. Runnable-but-
 models, graph filters, EDDI, TaNP) are \emph{absent} from the figure and join the plot when their numbers land. The
 star is this chapter's certified instrument at $0.3482$---the only measured point that is simultaneously at the
 frontier bar and at full interview compatibility.
-The instrument sits at $x{=}4$, the only point in the top-right cell: R2 by V2's member lift and its
+The instrument sits at $x{=}4$---no published system exceeds two---the only point in the top-right cell: R2 by V2's member lift and its
 open-vocabulary fold, R3 by V3's directional and load-bearing covariance, R4 by V4's rising fixed-bank curve, and
 R5 by V5's sign and intensity arms---each verified rather than asserted (Table~\ref{tab:batteryresults}). The population is otherwise \emph{bimodal}: the entire accuracy corner
-(Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x\le0.5$---strong recommenders that can fold items
-and nothing else---while every system with genuine interview machinery sits at $x\ge1.5$ and reports no
-full-catalogue accuracy at all. The one point plotted at $x{=}2$ is not a rival but our own conjugate posterior-mean
+(Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x{=}0$---strong recommenders that can fold items
+and nothing else---while every system with genuine interview machinery sits at $x\ge1$ and reports no
+full-catalogue accuracy at all. The one point plotted at $x{=}3$ is not a rival but our own conjugate posterior-mean
 ranker at $0.2019$, included because it shows what the uniform-fold alternative costs. Two clusters, no bridge: the corner is not expensive; it is unoccupied. The
 nearest published rival to the target is B\i y\i k et al.~\cite{biyik2023soft}, the highest compatibility of any
 system with an actionable belief.}
