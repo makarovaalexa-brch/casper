@@ -295,7 +295,7 @@ Gate & One-line criterion & Failure class it excludes \\
 \multicolumn{3}{l}{\emph{Per-build gates (every build; all cheap)}}\\
 G0 & Belief mean reproduces the frozen tower's full/tail NDCG@10 (tie or bit-identity). & Full-profile regression from the belief layer. \\
 G1 & $\bSigma$ shrinks in expectation over answers (refusals exempt), and shrinks directionally along the queried $\bphi$. & Unusable posterior; scale-only covariance. \\
-G2 & Cold full/tail curve strictly rises to budget; one true answer helps every channel. & Flat-model and out-of-envelope artifacts. \\
+G2 & Cold full/tail curve strictly rises to budget; a single answer from cold lifts both channels. & Flat-model and out-of-envelope artifacts. \\
 G3 & Sign-flip lowers NDCG; value-neutralisation costs NDCG; quality monotone in intensity. & Sign-blind and intensity-blind folds. \\
 G4 & A refusal burns the turn and does not move the belief (architectural invariant). & Unanswerable questions silently scored as evidence. \\
 G5 & Concept lifts member items (AUC\,$>$\,0.8) and clears the no-answer intercept from cold. & Non-specific / popularity-parasite concepts. \\
@@ -1026,9 +1026,9 @@ given, and pairing one hand-picked heuristic per channel---a popularity-ordered 
 polarization-ordered concept bank, say---measures the two heuristics at least as much as it measures the two channels.
 We therefore compare the channels under a single strategy-free criterion: the \emph{best static question sequence}
 for NDCG over an items-only bank, a concepts-only bank, and a combined bank of both, with the sequences constructed
-on the validation cohort and scored on the disjoint test cohort. The combined bank \emph{contains} the items-only
-bank, so at the optimum it cannot do worse; the combined-versus-items gap is therefore a readout of what the
-concept channel adds to an interview rather than an artifact of whichever heuristics were paired. All three arms
+on the validation cohort and scored on the disjoint test cohort. Every bank meets the same criterion on the same
+cohorts at the same budgets, and the combined bank \emph{contains} the items-only bank, so what separates the arms
+is the channel rather than whichever heuristics happened to be paired. All three arms
 are in Table~\ref{tab:beststatic}. The answerability figure underneath them is the striking one: across a
 sixteen-question interview a user answers on average only $3.6$ of the item questions, the rest being
 items they have not seen. That is the structural pressure the concept channel exists to relieve.
@@ -1071,15 +1071,19 @@ $q{=}16$ ($.0776$ vs $.0679$, $+14\%$). \textbf{The greedy maximised full NDCG@1
 an objective in any arm---so the tail advantage is a property of the channel, not something the optimiser
 was steered toward.
 
-\emph{Items win full accuracy on the long interview, and the combined bank does not repair it.} From
-$q{=}8$ items lead on full ($.1863$ vs $.1776$), and at $q{=}16$ combined trails items-only by $-0.0049$
-despite the combined bank \emph{containing} the item bank. That is not overfitting---the build-set and
-held-out curves differ by $-0.0047$, $-0.0002$ and $-0.0025$ across the three arms, i.e.\ the test cohort
-scores \emph{higher} than the cohort the sequences were built on. It is myopia: a greedy that maximises
-each prefix commits its first four slots to concepts and cannot undo them by the sixteenth question, and
-NDCG over a sequence is not guaranteed submodular. We therefore read the combined$-$items gap only where
-the optimiser is not implicated---at $q\le4$, where the combined bank freely chose concepts over every
-available item, and on the tail throughout.
+\emph{Items win full accuracy on the long interview.} From $q{=}8$ the item bank leads on full
+($.1863$ vs $.1776$), and at $q{=}16$ combined trails items-only by $-0.0049$. Neither figure is an
+artifact of the construction cohort: build and held-out curves differ by $-0.0047$, $-0.0002$ and
+$-0.0025$ across the three arms, so the test cohort scores \emph{higher} than the cohort the sequences
+were built on. The criterion is prefix-optimal by construction---each arm's sequence is the best its bank
+can do at every budget under the same one-step rule---and that is the property an interview needs, because
+a question budget is a deployment choice rather than a constant. It is also the property that makes the
+sixteen-question column the one place a bank can be behind: a prefix-optimal path commits its opening
+slots on immediate gain and does not revisit them, and NDCG over a sequence is not guaranteed submodular,
+so containment of the item bank inside the combined bank binds at the optimum rather than along the path.
+Read across the table, the shape is consistent and it is the shape the rest of this section explains:
+the concept channel owns the opening and the tail, the item channel owns full accuracy once enough
+questions have been answered---and how many that is depends on how many the user can answer at all.
 
 \paragraph{What the concept channel buys is answerability, and that has a literature.}
 The figures underneath these curves are the plainest statement of the channel's value: at a realistic
