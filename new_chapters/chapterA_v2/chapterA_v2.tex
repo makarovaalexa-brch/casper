@@ -127,12 +127,12 @@ An instrument fit for measuring conversational elicitation must simultaneously s
 \end{description}
 
 \paragraph{The bifurcation observation.}
-The central empirical fact this chapter documents is that R1 and $\{$R3, R4, R5$\}$ are \emph{anti-correlated across
+The central empirical fact this chapter documents is that R1 and $\{$R2, R3, R4, R5$\}$ are \emph{anti-correlated across
 the published literature}. The models that hit the full-profile bar---closed-form linear autoencoders
-(EASE~\cite{steck2019ease}, EDLAE~\cite{steck2020edlae}), amortised VAEs (Mult-VAE~\cite{liang2018variational},
-RecVAE~\cite{ren2020recvae}), and training-free graph filters
-(GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf})---are \emph{item-only point
-estimators} on a one-hot indicator basis. The models with an uncertainty-native, multi-channel belief---soft-attribute
+(EASE~\cite{steck2019ease}, EDLAE~\cite{steck2020edlae}) and amortised VAEs (Mult-VAE~\cite{liang2018variational},
+RecVAE~\cite{ren2020recvae}), together with the training-free graph filters
+(GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf}) that claim the frontier on other
+corpora---are \emph{item-only point estimators} on a one-hot indicator basis. The models with an uncertainty-native, multi-channel belief---soft-attribute
 Gaussian elicitation~\cite{biyik2023soft}, item$+$attribute Thompson bandits~\cite{li2021seamlessly}, conjugate critique
 folds over a frozen factorisation~\cite{toroghi2023bcie}, and per-item Bayesian NL elicitation~\cite{austin2024bayesian}---do
 \emph{not} report full-profile accuracy at the R1 bar. We call these the \emph{accuracy corner} and the \emph{belief
@@ -240,7 +240,7 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         pushed all of a concept's members up the ranking would be behaving as a genre filter, which is a failure
         mode rather than the property to gate on. The ablation of \S\ref{sec:concept:fold} measures that trade-off
         directly---the additive-union operator reaches member AUC $0.820$ and \emph{craters} to $0.0991$ full
-        NDCG@10, below the no-answer intercept, while the gated fold sits at $0.630$ and reaches $0.1759$. What we
+        NDCG@10, below the no-answer intercept, while the gated fold sits at $0.626$ and reaches $0.1759$. What we
         require instead is that the movement be \emph{specific}: folding a like on a concept must move that
         concept's members differently from folding a dislike on it, and differently again from folding some other
         answerable concept.
@@ -348,7 +348,7 @@ Family & Representatives & R1 & R2 & R3 & R4 & R5 & One-line verdict \\
 (ii) fold-in linear / closed-form &
   EASE~\cite{steck2019ease}, SLIM, GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf} &
   \cmark & \xmark & \xmark & \xmark & \xmark &
-  The full-profile bar (V1); item-indicator basis $\Rightarrow$ R2, R5 impossible. \\
+  EASE/SLIM hold the bar (V1); the graph filters do not on this ruler. Item-indicator basis $\Rightarrow$ R2, R5 impossible. \\
 (iii) amortised inference encoders &
   Mult-VAE~\cite{liang2018variational}, RecVAE~\cite{ren2020recvae}, EDLAE~\cite{steck2020edlae}, EDDI~\cite{ma2019eddi} &
   \cmark & \xmark & \xmark & \xmark & \xmark &
@@ -456,7 +456,7 @@ top-N accuracy at all (they report elicitation RMSE, cold-start MRR/MAP on a sho
 several \emph{cannot produce it by construction}: a per-item Beta posterior (PEBOL) or the decision tree itself
 (Golbandi, whose node recommender we measure only as a best-effort core) does not induce a ranking over the whole
 catalogue, and an LLM CRS needs an API call per candidate to score one. Conversely, every system at the frontier is
-item-only and point-estimate---\xmark\ on R3 and R4. The two blocks are disjoint: no row combines a frontier
+item-only and point-estimate---\xmark\ on R2 and R3. The two blocks are disjoint: no row combines a frontier
 accuracy number with \cmark s across R2--R5. The top-right cell of the
 gap map---all five requirements met \emph{and} a competitive full-profile number---is empty across the published
 literature, and is occupied by the instrument this chapter builds. That is the chapter's thesis, and the master
@@ -472,7 +472,7 @@ warning: most deeper ``SOTA'' gains vanish on this exact split. The graph-filter
 (GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf}) are the 2023--24 speed$+$accuracy
 front on Gowalla/Yelp/Amazon but do not report this ML-20M split, so they are admissible to our accuracy tier only if
 re-run on our harness. Turbo-CF is, and lands at $0.2622/0.1621$---mid-pack rather than frontier at this catalogue size. All of family (ii)/(iii) are item-only: their input is a one-hot (or set-indicator) interaction
-vector, which \emph{cannot encode} a signed value, an out-of-catalogue concept, or a continuous direction---R3 is an
+vector, which \emph{cannot encode} a signed value, an out-of-catalogue concept, or a continuous direction---R2 and R5 are an
 architecture property here, not a tuning gap.
 
 \paragraph{The belief corner (family iv, and vi).}
@@ -586,39 +586,41 @@ uncertainty-native $\wedge$ R4 monotone $\wedge$ R5 expressive answers$\}$. The 
 near-miss is B\i y\i k et al.~\cite{biyik2023soft}: it fails R1 (a $d{=}50$ ALS two-tower rather than a
 certified RecVAE-class tower, and it reports no full-catalogue accuracy---its NDCG is computed between a user's true
 top-$|S|$ items and the top-$|S|$ estimated from the posterior, over 16 sampled test users on slates of 5, an
-in-simulator alignment measure) and gives only an approximate, ``generally not Gaussian'' posterior; it fails R3 in
+in-simulator alignment measure) and gives only an approximate, ``generally not Gaussian'' posterior; it fails R2 in
 the specific sense of \S\ref{sec:gap} (a per-concept supervised probe over a closed tag list, not an open
 vocabulary). Every other candidate fails R3 or R4 outright, and we are aware of no system that occupies the
 conjunction.
 
 \paragraph{Where each near-miss falls short.}
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
-  \item \textbf{B\i y\i k et al.~2023}~\cite{biyik2023soft} --- has R2 $+$ R3 (items and soft attributes as directions)
-        $+$ R4 (Gaussian belief), over a \emph{frozen} item tower---they train the CF model and the attribute
-        directions separately, as we do. \emph{Fails R1}: a $d{=}50$ ALS two-tower, and accuracy is reported on their
-        own elicitation task (in-simulator top-$|S|$ agreement over 16 users, slates of 5), not the EASE/RecVAE bar.
-        R3 is \emph{per-attribute supervised directions} over an enumerated tag list---each direction is a logistic
-        regressor fitted from labelled positive/negative items, and they train CAVs for the 164 most-frequent tags---not
-        arbitrary embeddings / open concepts / continuous query tokens. R5 is approximate (sampled EVOI over a
-        non-Gaussian posterior). This is the central threat, and our wedge is exactly (a) an \emph{open} vocabulary
-        through one global adapter with no per-concept supervision, (b) the R1 accuracy bar on a shared full-catalogue
-        ruler, (c) exact conjugacy vs.\ approximate posterior.
-  \item \textbf{ConTS}~\cite{li2021seamlessly} --- R2 $+$ R4 $+$ a unified item/attribute action space.
-        \emph{Fails R3} (a fixed categorical attribute schema; no arbitrary embedding, no continuous or open token) and
+  \item \textbf{B\i y\i k et al.~2023}~\cite{biyik2023soft} --- holds \emph{part} of R2 (items and soft attributes
+        both enter as directions) and R3 (a Gaussian belief), over a \emph{frozen} item tower---they train the CF model
+        and the attribute directions separately, as we do. \emph{Fails R1}: a $d{=}50$ ALS two-tower, and accuracy is
+        reported on their own elicitation task (in-simulator top-$|S|$ agreement over 16 users, slates of 5), not the
+        EASE/RecVAE bar. \emph{Fails R2} in the sense that decides it: the directions are \emph{per-attribute supervised
+        probes} over an enumerated tag list---each a logistic regressor fitted from labelled positive/negative items,
+        trained for the 164 most-frequent tags---so the vocabulary is fixed before the user arrives, which is exactly
+        what R2 forbids. R4 is approximate (sampled EVOI over a non-Gaussian posterior). This is the central threat, and
+        our wedge is exactly (a) an \emph{open} vocabulary through one global adapter with no per-concept supervision,
+        (b) the R1 accuracy bar on a shared full-catalogue ruler, (c) exact conjugacy vs.\ approximate posterior.
+  \item \textbf{ConTS}~\cite{li2021seamlessly} --- R3 $+$ a unified item/attribute action space.
+        \emph{Fails R2} (a fixed categorical attribute schema; no arbitrary embedding, no continuous or open token) and
         \emph{R1} (a bandit over arms, not a full-profile encoder).
-  \item \textbf{EDDI / Partial-VAE}~\cite{ma2019eddi} --- R2 $+$ R4 (information-gain) $+$ set input.
-        \emph{Fails R1} (not a recommendation model / no CF SOTA) and \emph{R3} (no attribute or concept channel as
-        demonstrated).
-  \item \textbf{RecVAE / EASE}~\cite{ren2020recvae,steck2019ease} --- \emph{R1 yes.} \emph{Fail R3} (an item-only
-        one-hot / indicator basis---cannot express a concept, a signed value, or a continuous direction) and \emph{R4}
-        (point estimate; RecVAE's latent posterior is item-only and is not used as an actionable belief).
-  \item \textbf{PEBOL}~\cite{austin2024bayesian} --- R4 (per-item Beta) $+$ R3 (LLM aspects) $+$ strong cold-start.
-        \emph{Fails R1} (no full-profile CF ranking) and its R4 is \emph{per item}, not a shared user covariance; no
-        monotonicity guarantee.
-  \item \textbf{SASRec / BERT4Rec}~\cite{kang2018sasrec,sun2019bert4rec} --- R2 (re-encode the sequence).
-        \emph{Fail R3, R4, R5} (item-only, order-sensitive, point estimate, non-monotone---a later token can reorder
-        everything). Token input is trivially satisfied but is \emph{not} value-carrying or mixed-type, so ``interview
-        $=$ tokens'' does not hold; and BERT4Rec's fold-in advantage carries a replicability
+  \item \textbf{EDDI / Partial-VAE}~\cite{ma2019eddi} --- R3 (information-gain over a belief) $+$ set input.
+        \emph{Fails R1} (not a recommendation model / no CF SOTA) and \emph{R2} (a fixed feature set; no attribute or
+        concept channel as demonstrated).
+  \item \textbf{RecVAE / EASE}~\cite{ren2020recvae,steck2019ease} --- \emph{R1 yes.} \emph{Fail R2} (an item-only
+        one-hot / indicator basis admits no concept and no continuous direction), \emph{R5} (nor a signed or graded
+        value), and \emph{R3} (point estimate; RecVAE's latent posterior is item-only and is not used as an actionable
+        belief).
+  \item \textbf{PEBOL}~\cite{austin2024bayesian} --- R3 (per-item Beta) $+$ R2 (LLM-extracted aspects, an open
+        vocabulary) $+$ strong cold-start.
+        \emph{Fails R1} (no full-profile CF ranking) and its belief is \emph{per item}, not a shared user covariance; no
+        monotonicity guarantee, and a yes/no answer carries no intensity (R5).
+  \item \textbf{SASRec / BERT4Rec}~\cite{kang2018sasrec,sun2019bert4rec} --- re-encode the sequence at inference.
+        \emph{Fail R2, R3, R4 and R5} (item-only, order-sensitive, point estimate, non-monotone---a later token can
+        reorder everything). Token input is trivially satisfied but is \emph{not} value-carrying or mixed-type, so
+        ``interview $=$ tokens'' does not hold; and BERT4Rec's fold-in advantage carries a replicability
         caveat~\cite{petrov2022replicability}.
 \end{itemize}
 
@@ -653,8 +655,8 @@ in one frozen certified tower, plus the three inexpressible legs and the accepta
 
 The design follows directly from the gap analysis: use the shallow frozen tower that already holds the accuracy
 corner (R1, and the flat-since-2019 frontier means no deep-net detour is warranted), and add the one belief mechanism
-with a principled monotonicity story---exact linear-Gaussian conjugacy---over its frozen latent (R4, R5), with a
-channel-agnostic linear-observation interface (R3). The tower half is built and certified
+with a principled monotonicity story---exact linear-Gaussian conjugacy---over its frozen latent (R3, R4), with a
+channel-agnostic linear-observation interface (R2). The tower half is built and certified
 (\S\ref{sec:expdesign}); the belief layer is derived here, fitted on real data, and gated in
 \S\ref{sec:batteryresults}.
 
@@ -691,7 +693,7 @@ factorisation; our contribution is doing it over a \emph{certified full-profile 
 tokens, and certifying it against V1--V5. Three properties fall out by construction: it is a permutation-invariant
 \emph{set} operation defined for every $t\ge 0$ (R2); each update adds a rank-1 term along $\bphi_{t+1}$, so
 $\bLambda_t$ only grows and $\det\bSigma_t$ only shrinks (V3); and conjugate updates are
-monotone in \emph{expected utility}~\cite{good1967principle,blackwell1953equivalent}. The last is why R5 is plausible, but---because the tower's dot-product ranker does not act
+monotone in \emph{expected utility}~\cite{good1967principle,blackwell1953equivalent}. The last is why R4 is plausible, but---because the tower's dot-product ranker does not act
 optimally under the belief---per-question NDCG monotonicity is \emph{not} automatic and must be shown empirically
 (\S\ref{sec:limits}).
 
@@ -752,7 +754,7 @@ is a good way to choose questions---is a separate question, and the companion ch
 
 \subsection{Channel-agnostic tokens: one representation, one form of observation}
 Every channel supplies the same kind of thing---a direction $\bphi_j\in\R^{d}$ in the frozen latent and a value
-$y_j\in\R$---and it is this that makes the channel set open (R3). Two folds consume those pairs in the system we
+$y_j\in\R$---and it is this that makes the channel set open (R2). Two folds consume those pairs in the system we
 report: the tower's own set encoder for item evidence, and a trained gated operator for concept evidence
 (\S\ref{sec:concept:fold}); the conjugate update of Eq.~\eqref{eq:precacc} maintains the belief over the same
 latent alongside them. We are explicit that these are distinct operators rather than one code path, because the
@@ -1181,7 +1183,7 @@ deployment-currency evaluation---a fixed, user-independent bank under a per-ques
 never exercises the negative half. This is a general failure class, not a concept-specific accident: \emph{a gate on
 what an operator \emph{can} do must be paired with a gate on what the deployed system \emph{does}}. We record the
 deployment-currency endpoint as the concept channel's acceptance form, and fold the signed-retrain numbers into
-the V4/V5 rows once the certified tower is trained (\S\ref{sec:expdesign}).
+the V4/V5 rows of Table~\ref{tab:batteryresults}.
 
 % =====================================================================
 \section{Experimental design}\label{sec:expdesign}
