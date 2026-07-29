@@ -25,8 +25,21 @@ Chapter: `new_chapters/chapterA_v2/chapterA_v2.tex`. Compiles clean via Tectonic
 - **A5 (#63) ✅ 2026-07-29** — defensiveness and archaeology out (commit `0ef5c4c`). NOT done: halving the
   lineage prose. Deliberate — a 30pp thesis chapter and a venue submission are different artifacts;
   length reduction belongs to the submission pass, not here.
-- **A6 (#58)** — final read-through. Scripted-edit damage scan is CLEAN (no mid-clause sentences, no stray
-  `ef{`, no `\REDO`/`\TODO` uses — only the macro definitions remain).
+- **A6 (#58) ✅ 2026-07-29** — cold pass done, whole chapter read start to finish. It earned its keep;
+  five defects no grep would catch:
+  1. **R3's formal statement contradicted the method section** ("the operator is identical for every
+     channel" vs. "these are distinct operators") — the harsh review's one-fold-vs-three-mechanisms hit,
+     still alive inside the requirement after being fixed everywhere else. R3 now constrains the
+     *observation*, not the number of code paths.
+  2. Two consecutive sentences contradicting each other on whether the belief layer preserves the G0 tie.
+  3. A protocol paragraph promising a mixed-channel comparison that is both already done and partly
+     impossible by construction.
+  4. The iALS rule quoted a sentence we had already deleted ("below even iALS… withdrawn as evidence").
+  5. "The belief layer is **specified** here" — the exact word that became the harsh review's
+     "contradicts itself on whether its central component exists".
+  Also removed: **C3 / the human study** (author ruling) — the battery is now **C1–C2** and no table,
+  abstract or limitation promises an unrun study; the answer-model limitation is stated as fact instead.
+  Status vocabulary no longer contains "queued": every unmeasured row reads **"not run here"**.
 
 ### A3, resolved — what each discrepancy actually was
 - **sign-flip's three numbers were three different arms.** −0.2012 = the concept operator (`clite_gates`);
@@ -184,4 +197,6 @@ it was indeed unwinding toward items-only, consistent with the myopia account bu
 - **SASRec / TaNP** — running until ~14:00. SASRec's early dip was a training dip, not a ceiling:
   val 0.1174 → 0.1158 → 0.1013 → 0.1151 → 0.1313 → **0.1376** (ep6) → 0.1362. It is now above
   Most-Popular (0.1345), so the earlier concern about withholding the row does not apply. TaNP follows.
-- **#58 A6** — one human-speed read-through. Everything mechanical is clean.
+- **The polish sentence** — author deferred: we hold the numbers that pre-empt "you only tried a myopic
+  optimiser" (+0.002 at q16 for −0.029 at q2) and are keeping them out until all results are in.
+  Revisit before submission; it is evidence FOR our criterion, so A0 argues for it, not against.
