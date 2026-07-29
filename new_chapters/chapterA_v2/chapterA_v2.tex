@@ -497,7 +497,7 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
 \begin{tikzpicture}
 \begin{axis}[
     width=13.5cm, height=9cm,
-    xlabel={interview-compatibility score (R1--R5 marks satisfied; \cmark$=1$, \pmark$=0.5$)},
+    xlabel={interview-compatibility score (R2--R5 marks satisfied; \cmark$=1$, \pmark$=0.5$)},
     ylabel={measured full-profile NDCG@10 (our ML-25M ruler)},
     xmin=0, xmax=4, ymin=0.068, ymax=0.38,
     xtick={0,1,2,3,4},
@@ -1179,7 +1179,7 @@ comparable to ours until bridged (\S\ref{sec:bridge}); we print them only to sho
 Baseline & Type & Reported anchor & Why the slot \\
 \midrule
 \multicolumn{4}{l}{\emph{Tier 1 --- classic floors (must clear)}}\\
-Most-Popular & non-personalised & popb floor (our harness) & the ``did we learn anything'' line; G2 must beat it cold. \\
+Most-Popular & non-personalised & popb floor (our harness) & the ``did we learn anything'' line; the G2 curve must clear it at budget. \\
 Item-kNN (cosine) & neighbourhood & ML-20M NDCG@100 $\sim0.36$ class & instant fold-in; Cremonesi-era strong-simple~\cite{cremonesi2010performance}. \\
 PureSVD / iALS-WMF & linear MF fold-in & WMF ML-20M NDCG@100 $0.386$ & cheap fold-in reference. \\
 SLIM & sparse linear item-item & ML-20M NDCG@100 $0.401$ & direct EASE ancestor. \\
@@ -1336,7 +1336,7 @@ Gate & Criterion & Measured & Verdict \\
 G0 & tie the bar; identity at $t{=}0$ & $0.3482/0.2462$ vs $0.3540/0.2497$, diff $-0.0057$ (CI $0.0069$); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 G1a & $\mathrm{tr}\,\bSigma$ shrinks over answers & $1881.9\!\to\!1805.1$ across $q{=}0\ldots16$, monotone & pass \\
 G1b & directional, $\ge2\times$ & along-$\bphi$ $0.996$ vs elsewhere $0.086$ $=\mathbf{11.5\times}$ & pass \\
-G2$^\ddagger$ & cold curve rises, beats random & $\bSigma$-arm $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; rise $+0.1445/+0.1113$. Canary: one answer from cold rises on \emph{both} channels, full and tail (items $0.1310/0.0219$, concepts $0.1436/0.0323$) & \textbf{PASS}$^\ddagger$ \\
+G2$^\ddagger$ & cold curve rises, beats random & $\bSigma$-arm $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; rise $+0.1445/+0.1113$. Canary: one answer from cold rises on \emph{both} channels, full and tail (items $0.1405/0.0275$, concepts $0.1436/0.0323$) & \textbf{PASS}$^\ddagger$ \\
 G3a & sign-flip lowers NDCG & full-profile arm: $0.4279\!\to\!0.1294$, $-0.2985$ (CI $[-0.3047,-0.2922]$); intensity staircase $\rho=0.927$ & \textbf{PASS} \\
 G3b & value-neutralisation costs & full-profile arm: $0.4190\!\to\!0.1321$, drop $0.2869$ (CI $[0.2817,0.2922]$); tail $0.2999\!\to\!0.0368$ & \textbf{PASS} \\
 G4 & refusals inert (architectural) & unanswerable questions are never folded; $\alpha_{\text{refuse}}/\alpha_{\text{answer}}=0.0007$ & \textbf{PASS} \\
