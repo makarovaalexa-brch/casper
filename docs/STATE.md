@@ -180,6 +180,56 @@ it was indeed unwinding toward items-only, consistent with the myopia account bu
   Yu-Bi-Tresp ICML 2006 + Attia 2018. Best alternative = **Knowledge Gradient** (Frazier 2009).
   `external_literature/findings/rank_targeted_acquisition.md`.
 
+## ★★★ OPEN, TOP OF QUEUE (#66): sign-aware evaluation — scope R5, then optionally probe
+**Adjudicated twice by Fable + one deep-research pass, evening of 2026-07-29. NOT a blocker.**
+Full record: `external_literature/findings/sign_aware_evaluation.md` and task #66.
+
+**The question.** The Liang protocol discards every sub-3.5 interaction (55.7% of a test user's rated
+history). Our tower is sign-aware; item-indicator models cannot represent a dislike at all. So can a parity
+claim rest on a ruler that forbids the capability?
+
+**The verdict.** The protocol is **silent** on sign, not structurally incapable of crediting it. The
+inflation objection is right but scoped only to *observed* dislikes — demoting them is a free lift, since
+targets ⊂ likes makes them guaranteed non-targets. **Comprehension is different and is measurable here:** a
+model that understands a dislike re-ranks *unseen* items, judged by held-out likes it never saw. Do **not**
+change the primary protocol: masking all rated items would break the C1 bridge, hand every model an oracle
+the models were denied, and delete the advantage it means to credit. Never write "rubbish" about our own
+bridge.
+
+**Owed (writing only).** Scope R5's evidence to the scarce-evidence regime — intensity-within-likes is
+**−0.0002** at full profile, the premium is **+0.0147 at k=2** and gone by k=8. Frame as a finding: *sign
+carries information when evidence is scarce and washes out once 60+ likes are on the table*, which is the
+argument for an interview instrument. The limitation paragraph is already in, with the intensity/sign
+distinction corrected; the chapter-wide R5 scoping pass is not done.
+
+**Optional 4-arm probe** (A likes-only / B +trivial dislike filter / **B′ dislikes as unsigned positives** /
+C dislikes signed natively). The estimand is **gap(C,B′)**, not gap(C,B) — without B′ the comparison credits
+sign-awareness for merely having 55.7% more data. That was the confound I missed. Mask fixed at `te_tr`, and
+the `-inf` exclusion of observed dislikes applied in B, B′ *and* C.
+
+**★ The metric already exists — cite, do not christen.** Frolov & Oseledets RecSys 2016 **nDCL**
+(arXiv:1607.04228) uses a negativity threshold of **3.5, the same boundary as Liang**, admits irrelevant
+items to the holdout, and even ran a **negative-only cold-start** arm. Sánchez & Bellogín RecSys 2018
+**anti-relevance**, extended in Mena-Maldonado TOIS 2021. *We already had Frolov flagged in our own 24-Jul
+notes (`graded_inputs_for_ranking.md` line 67) and missed it — HARD RULE 4 exists for this.*
+
+**Constraints:** avoidance must be a separate lower-is-better number, never negative gains inside NDCG
+(Gienapp CIKM 2020 — implementations clamp to 0); report it popularity-stratified (Mena-Maldonado — observed
+dislikes skew popular); full-rank probe, no sampled negatives (Krichene & Rendle 2020).
+
+**What is ours (verified from full text):** the sign-aware *model* line evaluates positives-only — SIGformer
+(SIGIR 2024) and SiReN report Recall/NDCG only, and *no metric measures whether disliked items rank low*.
+Also ours: the conjunction with the Liang protocol, the anti-gaming rationale, frozen-tower purpose, and —
+searched, not found — no protocol measures the marginal value of a *"no"* answer separately from a *"yes"*.
+
+## ★ VOID: the graded-baseline reruns (2026-07-29 evening)
+Both regimes were artifacts of one coupling resolved in opposite directions; `metrics.evaluate` uses the
+fold-in matrix as **both** model input and `-inf` mask. Regime 1 over-masked the graded arm (Golbandi
+"0.3894", above RecVAE — a candidate-pool result, not a model result); regime 2 under-masked it (RBMF 0.1377,
+*at* the Most-Popular floor). Seven variables moved at once. **The canonical rows are simply correct**
+(Golbandi 0.3065, RBMF 0.2534, TaNP 0.2645) and numbers from different information contracts are not
+ordered. Nothing from this goes in the paper. → memory `surprise-means-debug-the-harness`.
+
 ## Closed WITHOUT running (author ruling, 2026-07-29) — do not reopen
 - **#30 Wave-2 rest** (GF-CF, BSPM, BERT4Rec, EDDI): not implemented, and none can snap to published
   numbers on our ruler (no Gowalla/Yelp/Amazon data, different metrics). They stay dashes in `tab:master`
