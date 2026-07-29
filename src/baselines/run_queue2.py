@@ -65,7 +65,10 @@ def build(name, train, n_items, D, head_mask, max_minutes, log):
     ck = os.path.join(CKPT, f"{name}_ml25m_liang.pt")
 
     if name == "turbocf":
-        pr = turbocf.fit(train, n_items, log=log)
+        # No published ML-20M/25M Turbo-CF number exists, so (alpha, s, filter) is selected on VAL.
+        # A fixed guess is unsafe: outside the stable region the polynomial filter inverts the ranking
+        # at this catalogue size (see the STABILITY note in turbocf.py).
+        pr = turbocf.fit_sweep(train, n_items, va_tr, va_te, log=log)
         return pr, pr.hp
     if name == "rbmf_seed":
         pr = rbmf_seed.fit(train, n_items, log=log)
