@@ -1,0 +1,27 @@
+{
+  "ndcg@100": 0.2464737837521997,
+  "ndcg@100_se": 0.001727745838030053,
+  "ndcg@10": 0.14859821622277583,
+  "ndcg@10_se": 0.0017981175660249443,
+  "recall@20": 0.20377891087756417,
+  "recall@20_se": 0.002170152340764191,
+  "recall@50": 0.3233941673395093,
+  "recall@50_se": 0.0026915267994173002,
+  "tail_ndcg@10": 0.08052972456590535,
+  "tail_ndcg@10_se": 0.001480119450083923,
+  "seconds": 28566.689273118973,
+  "hp": {
+    "hidden": 128,
+    "num_blocks": 2,
+    "num_heads": 2,
+    "maxlen": 200,
+    "dropout": 0.2,
+    "lr": 0.001,
+    "batch": 128,
+    "num_neg": 1,
+    "best_val": 0.14793845784091195,
+    "best_epoch": 10,
+    "role": "SASRec (Kang&McAuley 2018) fold-in adaptation; per-user timestamp order"
+  },
+  "n_items": 18359
+}
