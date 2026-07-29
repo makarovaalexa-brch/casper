@@ -25,3 +25,5 @@
 [07:59:18] [polish combined] 40 swap candidates outside the seed sequence
 [07:59:54] [polish combined] seed endpoint (build) = 0.2024
 [08:23:42] [polish combined] pos 0 -> (0, 4) | endpoint 0.2067 (40 evals)
+[09:10:30] [polish combined] pos 2 -> (0, 113) | endpoint 0.2082 (118 evals)
+[09:53:26] [polish combined] pos 4 -> (0, 8) | endpoint 0.2090 (194 evals)
