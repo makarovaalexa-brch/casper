@@ -44,6 +44,9 @@ CKPT = os.path.join(_ROOT, ".cache", "baselines")
 
 ORDER = ["turbocf", "rbmf_seed", "sasrec", "tanp"]
 
+# None = the full published-sensitivity grid in turbocf.SWEEP_GRID; set by --turbocf_grid.
+TURBOCF_GRID = None
+
 
 def logln(msg):
     line = f"[{time.strftime('%H:%M:%S')}] {msg}"
@@ -67,8 +70,9 @@ def build(name, train, n_items, D, head_mask, max_minutes, log):
     if name == "turbocf":
         # No published ML-20M/25M Turbo-CF number exists, so (alpha, s, filter) is selected on VAL.
         # A fixed guess is unsafe: outside the stable region the polynomial filter inverts the ranking
-        # at this catalogue size (see the STABILITY note in turbocf.py).
-        pr = turbocf.fit_sweep(train, n_items, va_tr, va_te, log=log)
+        # at this catalogue size (see the STABILITY note in turbocf.py). --turbocf_grid restricts the
+        # grid so an already-completed sweep does not have to be repeated to score its winner on test.
+        pr = turbocf.fit_sweep(train, n_items, va_tr, va_te, log=log, grid=TURBOCF_GRID)
         return pr, pr.hp
     if name == "rbmf_seed":
         pr = rbmf_seed.fit(train, n_items, log=log)
@@ -93,7 +97,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default=None, help="comma list of baseline names")
     ap.add_argument("--max_minutes", type=float, default=1e9, help="per-neural-baseline wall budget")
+    ap.add_argument("--turbocf_grid", default=None,
+                    help="restrict the Turbo-CF val grid, e.g. '0.5,1.0,2'. Semicolon-separated for "
+                         "several points. Use to score an already-selected winner without repeating "
+                         "the 46-minute sweep; the full sweep log is the record of the selection.")
     args = ap.parse_args()
+    if args.turbocf_grid:
+        global TURBOCF_GRID
+        TURBOCF_GRID = [tuple(float(v) if i < 2 else int(v) for i, v in enumerate(p.split(",")))
+                        for p in args.turbocf_grid.split(";")]
     os.makedirs(OUTDIR, exist_ok=True)
     order = ORDER
     if args.only:
