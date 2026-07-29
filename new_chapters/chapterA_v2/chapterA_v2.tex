@@ -229,7 +229,12 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         We deliberately do \emph{not} require a high member-lift \emph{after} folding: the fold is trained to predict
         a user's actual targets, and a user who likes film noir does not like every noir film; an operator that
         pushed all of a concept's members up the ranking would be behaving as a genre filter, which is a failure
-        mode rather than the property to gate on.
+        mode rather than the property to gate on. The ablation of \S\ref{sec:concept:fold} measures that trade-off
+        directly---the additive-union operator reaches member AUC $0.820$ and \emph{craters} to $0.0991$ full
+        NDCG@10, below the no-answer intercept, while the gated fold sits at $0.630$ and reaches $0.1759$. What we
+        require instead is that the movement be \emph{specific}: folding a like on a concept must move that
+        concept's members differently from folding a dislike on it, and differently again from folding some other
+        answerable concept.
   \item[V3 --- queryable belief (R3).] The posterior covariance shrinks in expectation over answers; the shrinkage
         is at least twice as large along the queried $\bphi_{t+1}$ as elsewhere; and replacing $\bSigma$ with an
         isotropic $c\Imat$ \emph{degrades} a downstream number, else the R3 claim is withdrawn. The belief and the
@@ -1319,7 +1324,7 @@ Table~\ref{tab:batteryresults} reports every gate.
 Check & Criterion & Measured & Verdict \\
 \midrule
 V1 & tie the bar; identity at $t{=}0$ & $0.3482/0.2462$ vs $0.3540/0.2497$, diff $-0.0057$ (CI $0.0069$); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
-V2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction (the fold is a running sum, $t{=}0$ is the prior). Open half measured: the direction ranks its members at AUC $0.94$ whitened (raw $0.44$, below chance---whitening is what makes a concept a direction); folding beats the concept's own popularity projection by $+0.0087$ and clears the cold intercept ($0.1308>0.1279$); a concept \emph{held out of the adapter's fit} folds from its name alone and recovers its own top-10 at $>300\times$ chance & \textbf{PASS} \\
+V2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction (the fold is a running sum, $t{=}0$ is the prior). Open half measured: the direction ranks its members at AUC $0.94$ whitened (raw $0.44$, below chance---whitening is what makes a concept a direction); the fold is \emph{concept-specific}---a like lifts $c$'s members to AUC $0.626$, a dislike pushes them to $0.416$, and folding a \emph{different} answerable concept leaves them at chance ($0.498$), giving a sign contrast of $+0.2096$ (CI $[+0.1986,+0.2208]$) and an identity contrast of $+0.1278$ (CI $[+0.1195,+0.1361]$); it beats the concept's own popularity projection by $+0.0087$; and a concept \emph{held out of the adapter's fit} folds from its name alone and recovers its own top-10 at $>300\times$ chance & \textbf{PASS} \\
 V3 & $\bSigma$ shrinks, is directional, and is load-bearing & $\mathrm{tr}\,\bSigma$ $1881.9\!\to\!1805.1$ monotone; along-$\bphi$ $0.996$ vs $0.086$ elsewhere $=\mathbf{11.5\times}$; beats isotropic $c\Imat$ by $+0.0089$ at $q{=}16$ (CI $[0.0071,0.0107]$); order deviation $5\!\times\!10^{-7}$ & \textbf{PASS} \\
 V4$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; fixed-bank rise $+0.1218$ (CI $[0.1184,0.1252]$), monotone $\rho=1.0$; canary: one answer from cold clears the intercept on both channels (items $0.1405/0.0275$, concepts $0.1436/0.0323$) & \textbf{PASS}$^\ddagger$ \\
 V5 & sign and intensity are carried & sign-flip $0.4279\!\to\!0.1294$, $-0.2985$ (CI $[-0.3047,-0.2922]$); neutralisation $0.4190\!\to\!0.1321$, tail $0.2999\!\to\!0.0368$; intensity staircase $\rho=0.927$; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$) and $+0.0083$ at $k{=}4$ & \textbf{PASS} \\
