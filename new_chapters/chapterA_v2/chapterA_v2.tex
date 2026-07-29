@@ -224,11 +224,15 @@ of our measuring apparatus, not of the instrument, and it is reported there.
   \item[V2 --- any-length fold-in (R2).] The belief is defined and computable for every $t\ge0$ with no gradient
         step at inference, and $t{=}0$ yields the prior. Satisfied by the form of the update rather than by
         tuning: the fold is a running sum over observations, so no cardinality is special.
-  \item[V3 --- channel-agnostic input (R3).] A concept folded through the same interface as an item ranks that
-        concept's member items above matched non-members, and does so beyond what the concept's own popularity
-        explains (its top principal component partialled out). The channel is \emph{open}, not merely non-item:
-        a direction obtained for a concept held out of the adapter's fit, from its name alone, must recover that
-        concept's own ranking far above chance.
+  \item[V3 --- channel-agnostic input (R3).] A concept must be a \emph{specific direction} rather than a popularity
+        proxy: it ranks its member items above matched non-members in the latent, and folding it lifts the cold
+        ranking beyond what the concept's own popularity explains (its top principal component partialled out).
+        We deliberately do \emph{not} require a high member-lift \emph{after} folding. The fold is trained to
+        predict a user's actual targets, and a user who likes film noir does not like every noir film; an operator
+        that pushed all of a concept's members up the ranking would be behaving as a genre filter, which is the
+        failure mode a collaborative recommender should avoid rather than the property it should be gated on.
+        The channel must also be \emph{open}, not merely non-item: a direction obtained for a concept held out of
+        the adapter's fit, from its name alone, must recover that concept's own ranking far above chance.
   \item[V4 --- queryable belief (R4).] The posterior covariance shrinks in expectation over answers with
         \emph{refusals exempt}; the shrinkage is at least twice as large along the queried $\bphi_{t+1}$ as
         elsewhere; and replacing $\bSigma$ with an isotropic $c\Imat$ \emph{degrades} a downstream number, else the
@@ -291,7 +295,7 @@ Check & One-line criterion & Failure class it excludes \\
 \midrule
 V1 (R1) & Belief mean reproduces the frozen tower's full/tail NDCG@10 (tie); an empty interview is the decoder exactly. & Full-profile regression from the belief layer. \\
 V2 (R2) & Belief defined and computable for every $t\ge0$, no gradient step at inference, $t{=}0$ is the prior. & Per-user retraining; a minimum evidence size. \\
-V3 (R3) & Concept lifts its member items beyond its own popularity projection; a held-out concept folds from its name alone. & Non-specific / popularity-parasite concepts; a closed vocabulary. \\
+V3 (R3) & Concept is a specific direction, not a popularity proxy; a held-out concept folds from its name alone. & Non-specific / popularity-parasite concepts; a closed vocabulary. \\
 V4 (R4) & $\bSigma$ shrinks (refusals exempt), shrinks directionally along $\bphi$, and beats isotropic $c\Imat$; order- and re-ask-invariant. & Unusable posterior; scale-only or decorative $\bSigma$. \\
 V5 (R5) & Cold full/tail curve rises to budget, on a \emph{fixed} user-independent bank. & Flat model; selection masquerading as ingestion. \\
 V6 (R6) & Sign-flip lowers NDCG; quality monotone in intensity; a refusal moves the belief by nothing. & Sign-blind, intensity-blind, or refusal-blind folds. \\
@@ -1320,7 +1324,7 @@ Check & Criterion & Measured & Verdict \\
 \midrule
 V1 & tie the bar; identity at $t{=}0$ & $0.3482/0.2462$ vs $0.3540/0.2497$, diff $-0.0057$ (CI $0.0069$); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 V2 & any-length fold-in, no gradient step & belief defined $\forall t\ge0$; $t{=}0$ is the prior; the fold is a running sum over observations & \textbf{by construction} \\
-V3 & concept lifts members beyond popularity; open vocabulary & whitened membership AUC $0.94$ (raw $0.44$); popularity-projection margin $+0.0087$; held-out concept from its name alone recovers its own top-10 at $>300\times$ chance & \textbf{PASS} \\
+V3 & concept is a specific direction, not a popularity proxy; open vocabulary & direction ranks its members at AUC $0.94$ whitened (raw $0.44$, i.e.\ whitening is what makes a concept a direction); folding beats the concept's own popularity projection by $+0.0087$ and clears the cold intercept ($0.1308>0.1279$); held-out concept from its name alone recovers its own top-10 at $>300\times$ chance & \textbf{PASS} \\
 V4 & $\bSigma$ shrinks, is directional, and is load-bearing & $\mathrm{tr}\,\bSigma$ $1881.9\!\to\!1805.1$ monotone; along-$\bphi$ $0.996$ vs $0.086$ elsewhere $=\mathbf{11.5\times}$; beats isotropic $c\Imat$ by $+0.0089$ at $q{=}16$ (CI $[0.0071,0.0107]$); order deviation $5\!\times\!10^{-7}$ & \textbf{PASS} \\
 V5$^\ddagger$ & cold curve rises; fixed bank rises from answer content & $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; fixed-bank rise $+0.1218$ (CI $[0.1184,0.1252]$), monotone $\rho=1.0$; canary: one answer from cold clears the intercept on both channels (items $0.1405/0.0275$, concepts $0.1436/0.0323$) & \textbf{PASS}$^\ddagger$ \\
 V6 & sign, intensity and refusal are distinguished & sign-flip $0.4279\!\to\!0.1294$, $-0.2985$ (CI $[-0.3047,-0.2922]$); neutralisation $0.4190\!\to\!0.1321$, tail $0.2999\!\to\!0.0368$; intensity staircase $\rho=0.927$ and a graded premium of $+0.0147$ at $k{=}2$; refusal $\alpha_{\text{refuse}}/\alpha_{\text{answer}}=0.0007$ & \textbf{PASS} \\
