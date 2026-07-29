@@ -186,8 +186,9 @@ $s_i(\bmu_t)$ of the base tower.
   \item[R2.] $b(\mathcal E_t)$ is defined and computable for every $t\ge 0$ with no gradient step at inference; $t{=}0$
         yields the prior belief (a non-personalised ranker).
   \item[R3.] The update from $\mathcal E_t$ to $\mathcal E_{t+1}$ depends on the new observation only through the pair
-        $(\bphi_{t+1},y_{t+1})\in\R^{d}\times\R$; the operator is identical for every channel, so any entity with an
-        embedding is a legal observation---including entities absent from the catalogue.
+        $(\bphi_{t+1},y_{t+1})\in\R^{d}\times\R$. No channel supplies anything else and none is privileged by type,
+        so any entity with an embedding is a legal observation---including entities absent from the catalogue. The
+        requirement is on the \emph{observation}, not on the number of code paths that consume it.
   \item[R4.] $\bSigma_t$ is an explicit, queryable covariance, correct in the sense of G1a/G1b, and readable by a
         policy for any direction $w$ as $w^\top\bSigma_t w$.
   \item[R5.] For a truthful answer $y_{t+1}$, $\mathbb E\bigl[\mathrm{NDCG}@10(s(\bmu_{t+1}))\bigr]\ge
@@ -462,7 +463,7 @@ RecVAE~\cite{ren2020recvae} at $0.442$ (top of this split), with EDLAE~\cite{ste
 warning: most deeper ``SOTA'' gains vanish on this exact split. The graph-filter leaders
 (GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf}) are the 2023--24 speed$+$accuracy
 front on Gowalla/Yelp/Amazon but do not report this ML-20M split, so they are admissible to our accuracy tier only if
-re-run on our harness. All of family (ii)/(iii) are item-only: their input is a one-hot (or set-indicator) interaction
+re-run on our harness. Turbo-CF is, and lands at $0.2622/0.1621$---mid-pack rather than frontier at this catalogue size. All of family (ii)/(iii) are item-only: their input is a one-hot (or set-indicator) interaction
 vector, which \emph{cannot encode} a signed value, an out-of-catalogue concept, or a continuous direction---R3 is an
 architecture property here, not a tuning gap.
 
@@ -644,7 +645,7 @@ conjugate-Gaussian folds over a frozen factorisation~\cite{toroghi2023bcie}; per
 information-gain acquisition~\cite{ma2019eddi}; value-carrying set-input cold-start recommenders~\cite{lin2021tanp};
 the non-degradation-of-information principle~\cite{good1967principle,blackwell1953equivalent}; and the now-crowded ``uncertainty-native
 recommender'' area~\cite{wang2025bdecf}. Our defensible novelty is only the \emph{conjunction} of all five requirements
-in one frozen certified tower, plus the three inexpressible legs and the G0--G2 protocol.
+in one frozen certified tower, plus the three inexpressible legs and the acceptance battery that certifies them.
 
 % =====================================================================
 \section{The instrument}\label{sec:method}
@@ -1314,10 +1315,10 @@ not merely statistically: with an empty evidence set the tower emits a zero late
 precision) and its scores are a rank-identical image of the frozen decoder's learned bias (Spearman $1.0000$), which
 is what licenses reading every later interview curve as evidence about \emph{ingestion} rather than about a shifted
 baseline. The cold intercept of every curve in this chapter, $0.1279/0.0192$, is that same non-personalised read-out.
-Accuracy is therefore no longer the open question for this instrument; what remains open is whether the belief layer
-preserves the tie once it is placed over the frozen latent. The belief layer is fitted and passes its
-gates (\S\ref{sec:batteryresults}); the rankings reported in this chapter are read from the posterior
-\emph{mean}, and putting the covariance to work in question selection is the companion chapter's subject.
+Accuracy is therefore settled for this instrument: G0 is evaluated on the belief mean, so the tie is one the
+belief layer preserves rather than one it is measured beside, and the layer passes its own gates as well
+(\S\ref{sec:batteryresults}). The rankings reported in this chapter are read from the posterior \emph{mean};
+putting the covariance to work in question selection is the companion chapter's subject.
 
 \subsection{The battery, measured}\label{sec:batteryresults}
 
@@ -1382,8 +1383,9 @@ baselines; mixed channels (concepts, signed values, continuous tokens) are folda
 the point of the comparison---the rivals cap out at what an item-only interview can carry. Symmetric access is
 enforced where a baseline \emph{can} fold a channel; where it structurally cannot, that is reported as an architecture
 limit, not hidden. The items-only G2 curves and the G1 shrinkage diagnostic are measured
-(\S\ref{sec:batteryresults}); what remains is the mixed-channel comparison against baselines that can fold
-only items.
+(\S\ref{sec:batteryresults}), and the mixed-channel comparison is reported in \S\ref{sec:concept:results}
+under one strategy-free criterion. No item-only baseline appears in that comparison, because none can fold
+a concept at all---which is the architecture limit itself, argued in (iv) below.
 
 \paragraph{(iv) Why ``just add genre columns'' is not an alternative.}
 The obvious objection to the concept channel is that a concept could simply be appended to an item-only model as an
