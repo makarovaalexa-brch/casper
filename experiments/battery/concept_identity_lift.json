@@ -1,0 +1,31 @@
+{
+  "ckpt": "cd_s1_l10_best.pt",
+  "n_users": 2000,
+  "seed": 0,
+  "member_AUC": {
+    "like": 0.511680762690531,
+    "dislike": 0.511680762690531,
+    "other_concept": 0.5010939388804794
+  },
+  "SIGN_contrast": {
+    "delta": 0.0,
+    "ci95": [
+      0.0,
+      0.0
+    ],
+    "n": 2000,
+    "excludes_zero": false
+  },
+  "IDENTITY_contrast": {
+    "delta": 0.01058682381005163,
+    "ci95": [
+      0.008165956671011526,
+      0.013136232502138313
+    ],
+    "n": 2000,
+    "excludes_zero": true
+  },
+  "mde": 0.02,
+  "seconds": 102.9,
+  "PASS": false
+}
