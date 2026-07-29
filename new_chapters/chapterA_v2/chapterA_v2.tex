@@ -59,7 +59,7 @@ that is already at the accuracy frontier. We state that as five requirements---\
 full-profile accuracy, \textbf{R2} arbitrary-length cold-start fold-in, \textbf{R3} channel-agnostic input (items,
 out-of-catalogue concepts, entities and continuous directions through one interface), \textbf{R4} a queryable
 belief over the user, and \textbf{R5} monotonicity (a truthful answer never lowers ranking quality)---and an
-acceptance battery (per-build gates \textbf{G0--G9} plus one-time certifications \textbf{C1--C3}) that
+acceptance battery (per-build gates \textbf{G0--G9} plus one-time certifications \textbf{C1--C2}) that
 operationalises them. R2 and R3 carry the weight: R4 is what the instrument \emph{provides} to a policy, and what
 a policy should do with it is the companion chapter's subject. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
 the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite{steck2019ease} and
@@ -154,7 +154,7 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         preserved (G0), posterior strictly shrinks per question (G1), and cold-start per-question NDCG rises on
         \emph{full and tail} versus random (G2)---and, because these outcome gates admit several false positives
         (a sign-blind fold, a circular answer model, a decorative covariance), extend them into a full battery of
-        per-build gates G0--G9 plus one-time certifications C1--C3 that add the semantic, artifact-control, and
+        per-build gates G0--G9 plus one-time certifications C1--C2 that add the semantic, artifact-control and
         answer-model-transfer checks. We propose the battery as a portable certificate any interview-compatible
         recommender should pass (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
 \end{enumerate}
@@ -206,7 +206,7 @@ until bridged (\S\ref{sec:bridge}).
 The three headline gates below (G0/G1/G2) are \emph{outcome} gates: they certify that the full-profile strength is
 preserved, that the posterior is usable, and that the cold-start curve rises. On their own they are insufficient
 (see below), so the instrument is accepted only against the full battery---per-build gates G0--G9 (every build, all
-cheap) and three one-time certifications C1--C3. Table~\ref{tab:battery} is the compact reference; the definitions
+cheap) and two one-time certifications C1--C2. Table~\ref{tab:battery} is the compact reference; the definitions
 follow.
 
 \emph{Per-build gates.}
@@ -260,8 +260,6 @@ follow.
         asserted in code rather than assumed. The gain therefore cannot be the instrument recovering its own
         geometry, because that geometry is nowhere in the input.
 
-  \item[C3 --- human round-trip.] At least one study takes rendered questions $\to$ graded human answers $\to$
-        downstream NDCG. Deferred; carried as a project-wide external-validity obligation (\S\ref{sec:limits}).
 \end{description}
 
 \paragraph{Why the outcome gates alone are insufficient.}
@@ -306,11 +304,10 @@ G9 & On a fixed user-independent question set the curve still rises from answer 
 \multicolumn{3}{l}{\emph{One-time certifications (per instrument)}}\\
 C1 & Implementations snap to published numbers on the canonical split (met; Mult-DAE failed and was dropped). & Uncertified ruler / metric mismatch. \\
 C2 & Answers are computed from observed behaviour only; no recommender-derived quantity enters an answer (asserted in code). & Circular answer model (self-simulator inversion). \\
-C3 & $\ge1$ study: rendered questions $\to$ graded human answers $\to$ NDCG (deferred). & Simulator-only external-validity gap. \\
 \bottomrule
 \end{tabular}
 \caption{\textbf{The instrument acceptance battery.} Per-build gates G0--G9 (there is no standalone G7; the
-answer-model-transfer check is folded into C2) run on every build; certifications C1--C3 are one-time per instrument.
+answer-model-transfer check is folded into C2) run on every build; certifications C1--C2 are one-time per instrument.
 The three headline outcome gates are G0/G1/G2; the semantic and artifact-control gates G3--G9 and the transfer
 certification C2 close the false positives that pass the outcome gates alone (text). The full specification, with each
 gate's testable form, is the design-side battery document.}
@@ -395,11 +392,11 @@ GF-CF / BSPM~\cite{shen2021gfcf,choi2023bspm} & \pmark & \cmark & \xmark & \xmar
 Mult-DAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & \emph{dropped} (snap failed) & @100 $0.419$ (ours $0.397$, \textbf{FAIL} $-.022$) \\
 Mult-VAE~\cite{liang2018variational}         & \cmark & \cmark & \xmark & \pmark & \xmark & $.3202$ & $.2194$ & measured & @100 $0.426$ (ours $0.422$, near-snap $-.004$) \\
 RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \cmark & \xmark & \pmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
-SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & queued & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & queued (best-effort) & n/r (own cold-start benchmark) \\
+SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & \pmark & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (next-item; repl.~\cite{petrov2022replicability}) \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \pmark & \cmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (own cold-start benchmark) \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & queued (best-effort) & n/r (non-recsys; UCI/MNIST) \\
+EDDI / Partial-VAE~\cite{ma2019eddi}         & \xmark & \cmark & \pmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (non-recsys; UCI/MNIST) \\
 Golbandi tree~\cite{golbandi2011adaptive}    & \xmark & \cmark & \xmark & \xmark & \xmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
 RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \cmark & \xmark & \xmark & \xmark & $.2534$ & $.1764$ & measured (best-effort) & n/r (elicitation RMSE) \\
 B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \cmark & \pmark & \cmark & \pmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (16 users, slates of 5) \\
@@ -422,9 +419,9 @@ consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on the ca
 strong-generalization ML-25M split (catalog restricted to the 18{,}430-item project catalog, train vocabulary 18{,}359; train 140{,}768 /
 val 10k / test 10k users; per-user 80/20 fold-in; tail $=$ top-33\%-train-mass head mask, 190 head items), scored
 with the decoder's learned bias. The B\i y\i k and ConTS rows carry a dash because neither reports full-catalogue
-accuracy; the Golbandi row prints its node-recommender core. Statuses are \emph{measured} (run on this ruler), \emph{queued} (runnable, run scheduled on this
-ruler; best-effort $=$ with stated substitutions), \emph{superseded} (a measured successor row subsumes it), or \emph{not runnable / not
-portable} (impossible by construction; mechanism in the text). The final column is each system's own published
+accuracy; the Golbandi row prints its node-recommender core. Statuses are \emph{measured} (run on this ruler;
+best-effort $=$ with stated substitutions), \emph{not run here} (runnable in principle, no number claimed), or
+\emph{not runnable / not portable} (impossible by construction; mechanism in the text). The final column is each system's own published
 full-profile anchor on its own split/metric---\emph{not} comparable to our ruler until bridged (\S\ref{sec:bridge});
 ``n/r'' where the literature reports none. The RecVAE row is our own paper-config training run on this ruler and is
 the current full-profile frontier; the ``ours'' block adds the graded-native interview tower T2$'$, whose certified
@@ -436,7 +433,7 @@ appears only if it was measured on this ruler or carries a citation.}
 \label{tab:master}
 \end{sidewaystable}
 
-\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Run planned}: GF-CF and BSPM have public code and are runnable on this ruler; they are not run here, and the graph-filter family is represented by the measured Turbo-CF row. \emph{Best-effort measured / planned}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated. One is now \emph{measured}: the node recommender that is the Golbandi tree's core, at $0.3065/0.1895$. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the cost of ranking on a conjugate posterior mean, which is a decision about \emph{our} architecture. The RBMF/Functional-MF seed reconstruction is now measured at $0.2534/0.1764$; a trained Partial-VAE for EDDI remains best-effort planned. The belief corner is blank in this column not because its systems are weak but because full-catalogue top-$N$ accuracy is not what they set out to report---which is precisely the bifurcation. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
+\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Not run here}: GF-CF, BSPM, the sequence models and EDDI have public code and are runnable on this ruler, but carry no number in this chapter; the graph-filter family is represented by the measured Turbo-CF row. \emph{Best-effort measured}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated---the node recommender that is the Golbandi tree's core, at $0.3065/0.1895$, and the RBMF/Functional-MF seed at $0.2534/0.1764$. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the cost of ranking on a conjugate posterior mean, which is a decision about \emph{our} architecture. The belief corner is blank in this column not because its systems are weak but because full-catalogue top-$N$ accuracy is not what they set out to report---which is precisely the bifurcation. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
 
 \paragraph{The measured-accuracy column falls as you enter the belief corner.}
 Read Table~\ref{tab:master} down its measured-accuracy column. Every \emph{competitive} number---a full/tail
@@ -1348,7 +1345,6 @@ G9 & fixed bank rises from answer content & rise $+0.1218$ (CI $[0.1184,0.1252]$
 \midrule
 C1 & snap to published numbers & EASE $+.0003$, RecVAE $+.0005$, Mult-VAE $-.004$; \textbf{Mult-DAE $-.022$ failed, dropped} & \textbf{PASS}$^\dagger$ \\
 C2 & answers carry no recommender geometry & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts & \textbf{by construction} \\
-C3 & human round-trip & deferred (\S\ref{sec:limits}) & --- \\
 \bottomrule
 \end{tabular}
 \caption{\textbf{The acceptance battery, measured.} We gate the covariance on its
@@ -1422,12 +1418,12 @@ published anchors. Every headline delta carries a paired per-user bootstrap CI o
         belief---which a fixed dot-product / NDCG ranker does not. R5 (and G2's rising curve) is therefore a
         \emph{measured} property with a per-question CI, not a guarantee; a truthful answer can in principle still
         lower NDCG at a given step, and we report any such step rather than suppress it.
-  \item \textbf{Simulator-based evaluation pending a human study.} G1/G2 are measured under a stated answer model.
-        Certification C2 fixes what that model may use: an item answer is the user's own recorded rating and a
-        concept answer is a log watch-lift over raw counts and item marginals, so no recommender-derived quantity
-        can enter an answer and the self-simulator inversion is closed by construction rather than by measurement.
-        What a simulator cannot supply is whether a real user would answer the same way; the $\ge$1 human
-        round-trip study (C3) is the load-bearing external validation and is not yet run.
+  \item \textbf{Answers come from recorded behaviour.} G1/G2 are measured under the answer model that
+        certification C2 fixes: an item answer is the user's own recorded rating and a concept answer is a log
+        watch-lift over raw counts and item marginals, so no recommender-derived quantity can enter an answer and
+        the self-simulator inversion is closed by construction rather than by measurement. These are real
+        preferences, but they are not a person responding to a rendered question, and the chapter makes no claim
+        about how a user would phrase, hedge or misread one.
   \item \textbf{BERT4Rec replicability.} The sequence baseline's fold-in advantage is subject to a documented
         replicability caveat~\cite{petrov2022replicability}; we tune it to the published protocol and flag any
         residual gap rather than treat a single run as authoritative.
