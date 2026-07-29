@@ -1,0 +1,11 @@
+[07:56:04] === ml25m_liang queue-2 run start; order=['sasrec', 'tanp'] ===
+[07:56:04] Liang ML-25M split: n_items=18359 meta={'n_items': 18359, 'n_train_users': 140768, 'n_val_users': 10000, 'n_test_users': 10000, 'n_events_total': 12397406, 'seed': 98765, 'min_uc': 5, 'min_sc': 0, 'rating_gt': 3.5, 'n_heldout_users': 10000, 'test_prop': 0.2, 'dataset': 'ml-25m', 'raw': 'C:\\dev\\phd\\casper\\data\\movielens\\ratings.csv', 'provenance': 'dawenl/vae_cf VAE_ML20M_WWW2018.ipynb (bit-faithful recipe; applied to ML-25M raw)', 'catalog_restriction': 'AUTHOR-APPROVED deviation from min_sc=0 (2026-07-22): raw pre-filtered to the project-wide 18430-item catalog (movies with >= 20 total ratings, all bands, full 25M file == ml25m_arena.py catalog); user-side Liang-verbatim'}
+[07:56:11] head/tail: 190 head items (top-33% train mass) / 18169 tail items; train_users=140768 nnz=10851052
+[07:56:11] --- sasrec ---
+[07:56:11] [sasrec] loading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv (real-data path)
+[07:56:31] [sasrec] train users=140768 (replayed split)
+[07:57:00] [sasrec] built 140768 train sequences; median len=41
+[07:57:02] [sasrec] val: ordered fold-in for 10000 rows (median len=32)
+[07:57:05] [sasrec] test: ordered fold-in for 10000 rows (median len=33)
+[08:19:54] [sasrec] ep  1 loss 1.3699 val 0.1174 22.8m
+[08:42:07] [sasrec] ep  2 loss 0.6042 val 0.1158 45.0m
