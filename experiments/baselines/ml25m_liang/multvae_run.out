@@ -10,3 +10,31 @@
 [23:25:48] [vae] ep  6 loss 514.1469 anneal 0.008 val 0.2980 56.5m
 [23:29:41] [vae] ep  7 loss 511.4916 anneal 0.010 val 0.3026 60.4m
 [23:33:39] [vae] ep  8 loss 509.0765 anneal 0.011 val 0.3043 64.3m
+[23:42:32] [vae] ep  9 loss 507.2907 anneal 0.013 val 0.3037 73.2m
+[23:55:34] [vae] ep 10 loss 505.3079 anneal 0.014 val 0.3058 86.3m
+[00:02:30] [vae] ep 11 loss 503.9407 anneal 0.016 val 0.3085 93.2m
+[00:06:36] [vae] ep 12 loss 502.6452 anneal 0.017 val 0.3087 97.3m
+[00:10:39] [vae] ep 13 loss 501.4078 anneal 0.018 val 0.3087 101.3m
+[00:14:43] [vae] ep 14 loss 500.4749 anneal 0.020 val 0.3089 105.4m
+[00:18:49] [vae] ep 15 loss 499.4486 anneal 0.021 val 0.3119 109.5m
+[00:22:53] [vae] ep 16 loss 498.7261 anneal 0.023 val 0.3096 113.6m
+[00:26:56] [vae] ep 17 loss 498.1219 anneal 0.024 val 0.3110 117.6m
+[00:31:00] [vae] ep 18 loss 497.3869 anneal 0.025 val 0.3074 121.7m
+[00:35:04] [vae] ep 19 loss 497.0372 anneal 0.027 val 0.3109 125.8m
+[00:39:07] [vae] ep 20 loss 496.3000 anneal 0.028 val 0.3156 129.8m
+[00:43:15] [vae] ep 21 loss 495.8338 anneal 0.030 val 0.3123 133.9m
+[00:47:21] [vae] ep 22 loss 495.6351 anneal 0.031 val 0.3108 138.0m
+[00:51:28] [vae] ep 23 loss 495.2752 anneal 0.032 val 0.3124 142.2m
+[00:55:34] [vae] ep 24 loss 494.9393 anneal 0.034 val 0.3135 146.3m
+[00:59:41] [vae] ep 25 loss 494.4599 anneal 0.035 val 0.3139 150.4m
+[01:03:49] [vae] ep 26 loss 494.5223 anneal 0.037 val 0.3142 154.5m
+[01:07:57] [vae] ep 27 loss 494.3207 anneal 0.038 val 0.3119 158.6m
+[01:12:04] [vae] ep 28 loss 493.9970 anneal 0.039 val 0.3120 162.8m
+[01:16:11] [vae] ep 29 loss 493.9951 anneal 0.041 val 0.3146 166.9m
+[01:20:19] [vae] ep 30 loss 493.7626 anneal 0.042 val 0.3164 171.0m
+[01:24:25] [vae] ep 31 loss 493.5756 anneal 0.044 val 0.3150 175.1m
+[01:28:29] [vae] ep 32 loss 493.6332 anneal 0.045 val 0.3155 179.2m
+[01:32:34] [vae] ep 33 loss 493.6742 anneal 0.047 val 0.3151 183.3m
+[01:32:35] [vae] wall budget 180.0m hit @ep33; re-run to resume
+[01:32:54] [done] multvae: full@10=0.3202 tail@10=0.2194 ndcg@100=0.4303 r@20=0.3905 r@50=0.5300 183.6m
+[01:32:54] === ml25m_liang run complete ===

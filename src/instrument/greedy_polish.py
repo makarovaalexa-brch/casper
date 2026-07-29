@@ -51,6 +51,9 @@ def main():
     ap.add_argument("--passes", type=int, default=2)
     ap.add_argument("--n_items", type=int, default=500)
     ap.add_argument("--n_concepts", type=int, default=500)
+    ap.add_argument("--arms", default="", help="comma list; default all. The COMBINED arm is the one "
+                                              "with the open question, so it can be run first.")
+    ap.add_argument("--out_suffix", default="", help="so a targeted run cannot clobber the full one")
     args = ap.parse_args()
     t0 = time.time()
 
@@ -77,8 +80,13 @@ def main():
     answ = sh["conc_answerable"]
     ans_rate = np.asarray(answ[build_rows].mean(0)).ravel()
 
+    want = [a.strip() for a in args.arms.split(",") if a.strip()]
+    outp = OUT.replace(".json", f"{args.out_suffix}.json") if args.out_suffix else OUT
+
     out = {"seeded_from": os.path.basename(IN), "top_m": args.top_m, "arms": {}}
     for name, arm in prev["arms"].items():
+        if want and name not in want:
+            continue
         seq = [(int(c), int(i)) for c, i in arm["sequence"]]
         # Candidate pool must be questions NOT already in the sequence -- an earlier version built it
         # from seq itself, so every candidate was skipped by the `q in cur` guard and the search did
@@ -127,11 +135,11 @@ def main():
                              "seed_q16_full": arm["curve"]["16"]["full@10"]}
         log(f"[polish {name}] order={comp} | q16 {curve['16']['full@10']:.4f}/{curve['16']['tail@10']:.4f} "
             f"(seed was {arm['curve']['16']['full@10']:.4f}) [{nev} evals]")
-        json.dump(out, open(OUT, "w"), indent=1)
+        json.dump(out, open(outp, "w"), indent=1)
 
     out["seconds"] = round(time.time() - t0, 1)
-    json.dump(out, open(OUT, "w"), indent=1)
-    log(f"[polish] -> {OUT} ({out['seconds']/60:.1f}m)")
+    json.dump(out, open(outp, "w"), indent=1)
+    log(f"[polish] -> {outp} ({out['seconds']/60:.1f}m)")
 
 
 if __name__ == "__main__":

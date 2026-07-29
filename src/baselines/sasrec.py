@@ -350,7 +350,9 @@ def build_eval_order(n_items, log=print, _replayed=None):
         sub = sub.assign(uid=sub["userId"].map(uid_of_user))
         ts = {(u, s): t for u, s, t in zip(sub["uid"].values, sub["sid"].values,
                                            sub["timestamp"].values)}
-        tr = pd.read_csv(os.path.join(proc, f"{split}_tr.csv"))
+        # the Liang split writes validation_tr.csv / validation_te.csv, not val_*
+        _fname = {"val": "validation"}.get(split, split)
+        tr = pd.read_csv(os.path.join(proc, f"{_fname}_tr.csv"))
         assert int(tr["uid"].min()) == lo, f"[sasrec] {split} uid offset {tr['uid'].min()} != {lo}"
         ordered = [np.empty(0, dtype=np.int64)] * (hi - lo)
         for uid, g in tr.groupby("uid"):
