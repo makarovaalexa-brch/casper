@@ -42,6 +42,46 @@ def log(msg):
     print(line, flush=True)
 
 
+def evaluate_decoupled(predict_fn, input_X, mask_X, data_te, head_mask, batch_size=500):
+    """metrics.evaluate mirrored, with the model INPUT decoupled from the RANKING MASK.
+
+    metrics.evaluate uses one matrix for both, which is correct when they are the same object. Handing it
+    a richer fold-in silently also masks more items out of the ranking -- and the extra items are the
+    user's sub-3.5 ratings, i.e. exactly the confusable candidates a recommender would otherwise rank
+    high. That inflates NDCG and makes the row incomparable to every other row in the bank. Here the
+    model reads `input_X` while the mask stays `mask_X` (the canonical fold-in), so the ranking task is
+    byte-identical across arms and only the input regime varies."""
+    from metrics import NDCG_binary_at_k_batch, Recall_at_k_batch
+    n = mask_X.shape[0]
+    acc = {"ndcg@100": [], "ndcg@10": [], "recall@20": [], "recall@50": [], "tail_ndcg@10": []}
+    head_mask = np.asarray(head_mask, dtype=bool)
+    tail_row = (~head_mask).astype("float32")[np.newaxis, :]
+    for st in range(0, n, batch_size):
+        en = min(st + batch_size, n)
+        Xin, Xmask, he = input_X[st:en], mask_X[st:en], data_te[st:en]
+        keep = np.asarray(he.getnnz(axis=1)).ravel() > 0
+        if not keep.any():
+            continue
+        X_pred = predict_fn(Xin)
+        X_pred[Xmask.nonzero()] = -np.inf          # canonical mask, NOT the (richer) input
+        X_pred, he = X_pred[keep], he[keep]
+        acc["ndcg@100"].append(NDCG_binary_at_k_batch(X_pred, he, k=100))
+        acc["ndcg@10"].append(NDCG_binary_at_k_batch(X_pred, he, k=10))
+        acc["recall@20"].append(Recall_at_k_batch(X_pred, he, k=20))
+        acc["recall@50"].append(Recall_at_k_batch(X_pred, he, k=50))
+        he_tail = he.multiply(tail_row).tocsr(); he_tail.eliminate_zeros()
+        tkeep = np.asarray(he_tail.getnnz(axis=1)).ravel() > 0
+        if tkeep.any():
+            Xp_t = X_pred[tkeep].copy(); Xp_t[:, head_mask] = -np.inf
+            acc["tail_ndcg@10"].append(NDCG_binary_at_k_batch(Xp_t, he_tail[tkeep], k=10))
+    out = {}
+    for key, chunks in acc.items():
+        v = np.concatenate(chunks) if chunks else np.array([np.nan])
+        out[key] = float(np.mean(v))
+        out[key + "_se"] = float(np.std(v) / np.sqrt(len(v)))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="golbandi_node_graded,rbmf_seed_graded")
@@ -70,7 +110,7 @@ def main():
     if "golbandi_node_allbands_binary" in want:
         log("--- CONTROL: golbandi_node, all-bands interaction SET, values binarised ---")
         pr = golbandi_node.fit(b_train, n_items, log=log)
-        r = M.evaluate(pr, b_te_tr, te_te, batch_size=500, head_mask=hm)
+        r = evaluate_decoupled(pr, b_te_tr, te_tr, te_te, hm)
         r["input_regime"] = "all-bands interaction set, values binarised (volume control)"
         out["golbandi_node_allbands_binary"] = r
         log(f"[done] golbandi_node_allbands_binary: full@10={r['ndcg@10']:.4f} "
@@ -80,8 +120,8 @@ def main():
     if "golbandi_node_graded" in want:
         log("--- golbandi_node on graded ratings (fully faithful: node mean = mean rating) ---")
         pr = golbandi_node.fit(g_train, n_items, log=log)
-        r = M.evaluate(pr, g_te_tr, te_te, batch_size=500, head_mask=hm)
-        r["input_regime"] = "graded catalogue ratings, all bands, targets excluded"
+        r = evaluate_decoupled(pr, g_te_tr, te_tr, te_te, hm)
+        r["input_regime"] = "graded catalogue ratings, all bands, targets excluded; canonical ranking mask"
         out["golbandi_node_graded"] = r
         log(f"[done] golbandi_node_graded: full@10={r['ndcg@10']:.4f} tail@10={r['tail_ndcg@10']:.4f} "
             f"ndcg@100={r['ndcg@100']:.4f}  (binary row was 0.3065/0.1895)")
@@ -90,7 +130,7 @@ def main():
     if "rbmf_seed_graded" in want:
         log("--- rbmf_seed on graded ratings (seed step regresses real ratings; frozen Y still iALS) ---")
         pr = rbmf_seed.fit(bin_train, n_items, log=log)     # Y from the certified implicit fit
-        r = M.evaluate(pr, g_te_tr, te_te, batch_size=500, head_mask=hm)
+        r = evaluate_decoupled(pr, g_te_tr, te_tr, te_te, hm)
         r["input_regime"] = ("graded catalogue ratings in the per-user LS seed; frozen Y from the "
                              "implicit iALS fit (stated substitution)")
         out["rbmf_seed_graded"] = r
