@@ -654,8 +654,8 @@ in one frozen certified tower, plus the three inexpressible legs and the accepta
 The design follows directly from the gap analysis: use the shallow frozen tower that already holds the accuracy
 corner (R1, and the flat-since-2019 frontier means no deep-net detour is warranted), and add the one belief mechanism
 with a principled monotonicity story---exact linear-Gaussian conjugacy---over its frozen latent (R4, R5), with a
-channel-agnostic linear-observation interface (R3). The tower half of this design is built and certified
-(\S\ref{sec:expdesign}); the belief layer is specified here and its gate results are reported in
+channel-agnostic linear-observation interface (R3). The tower half is built and certified
+(\S\ref{sec:expdesign}); the belief layer is derived here, fitted on real data, and gated in
 \S\ref{sec:batteryresults}.
 
 \subsection{Frozen shallow-SOTA tower}
@@ -1248,10 +1248,11 @@ row on the ML-25M ruler.
 Consistency demands we apply that rule to ourselves, and doing so costs us something. Our iALS lands at $0.358$
 against the published WMF anchor of $0.386$---a miss of $0.028$, \emph{larger} than the $0.022$ that disqualified
 Mult-DAE. It would be a double standard to drop one and keep the other merely because the kept row is convenient, so
-we state the rule and its consequence explicitly: \textbf{iALS is an uncertified floor, not a bridged anchor}, it is
-excluded from every claim that requires a certified comparator, and in particular the sentence ``the belief corner's
-core measures \emph{below even iALS}'' is downgraded---it compares one unbridged number against another and is
-withdrawn as evidence. Only EASE, RecVAE and (as a near-snap) Mult-VAE carry certified status on this ruler. The
+we state the rule and its consequence explicitly: \textbf{iALS is an uncertified floor, not a bridged anchor}. It
+keeps its measured row on the ML-25M ruler, where it is one more number from the same harness, but it is excluded
+from every claim that requires a certified comparator---no argument in this chapter rests on an unbridged number
+being compared with another unbridged number. Only EASE, RecVAE and (as a near-snap) Mult-VAE carry certified
+status on this ruler. The
 bifurcation argument must stand on those or not at all.
 
 \paragraph{(ii) G0 --- full-profile on ML-25M, items-only.}
