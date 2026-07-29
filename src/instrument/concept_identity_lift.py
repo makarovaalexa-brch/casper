@@ -8,12 +8,17 @@ answer value y as a generic "this user is being positive" nudge would pass both 
 concept entirely.
 
 PRE-REGISTERED DESIGN (2026-07-29).
-  Cohort      : the g5_split sample -- first n_sample rows of the build cohort that have a
-                diversified top concept (sh["sel_div"]), pop-matched non-members via sh["get_match"].
-  Arms, per (user r, that user's top concept c), each folded from the SAME empty item state:
-    LIKE     fold (c, +|v|)              -- the user's own signed value, forced positive
-    DISLIKE  fold (c, -|v|)              -- same magnitude, opposite sign
-    OTHER    fold (c', +|v|)             -- a random other concept, same value, scored on c's members
+  Cohort      : rows of the build cohort whose diversified top concept c (sh["sel_div"]) is actually
+                FOLDABLE for that user (sh["conc_fold_signed"][r,c]) -- refuse-band concepts are never
+                folded, so including them would compare "folded something" against "folded nothing".
+                Pop-matched non-members via sh["get_match"], as in g5_split.
+  Arms, per (user r, top concept c), each folded from the SAME empty item state. Values are set
+  DIRECTLY rather than through Rung.map_answers, which under val_source="signed" overrides whatever
+  value it is handed with the user's own stored one -- so it cannot be used to vary the sign:
+    LIKE     fold (c,  +|v|)             -- v = the user's own signed value for c
+    DISLIKE  fold (c,  -|v|)             -- same magnitude, opposite sign
+    OTHER    fold (c', +|v|)             -- a random OTHER concept that is also foldable for this
+                                            user, same magnitude, scored on c's members
   Metric      : member-vs-matched-non-member AUC on c's members, per (user, concept).
   Contrasts   : SIGN     = AUC(LIKE) - AUC(DISLIKE)   -- does the sign of the answer steer members?
                 IDENTITY = AUC(LIKE) - AUC(OTHER)     -- does WHICH concept was folded matter?
@@ -73,11 +78,31 @@ def main():
     log(f"[cid] fold = {os.path.basename(args.sclite_ckpt)}")
 
     sel = sh["sel_div"]
-    rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel][:args.n_sample]
+    Fs, Vs = sh["conc_fold_signed"], sh["conc_value_signed"]
     Wd, bd = ctx.Wd, ctx.bd
     empty1 = (np.empty(0, np.int64), np.empty(0, np.int64))
     n_conc = len(sh["tags"])
-    log(f"[cid] {len(rows)} users, {n_conc} concepts, pop-matched non-members")
+
+    # Only users whose top concept is genuinely foldable, and which have a second foldable
+    # concept to serve as the OTHER arm -- otherwise the contrast degenerates into
+    # "folded something" vs "folded nothing".
+    cand = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0 and r in sel]
+    rows, tops, vals, others = [], [], [], []
+    for r in cand:
+        c = int(sel[r][0][0])
+        if not Fs[r, c]:
+            continue
+        alt = np.flatnonzero(np.asarray(Fs[r]).ravel())
+        alt = alt[alt != c]
+        if len(alt) == 0:
+            continue
+        rows.append(r); tops.append(c)
+        vals.append(abs(float(Vs[r, c])))
+        others.append(int(alt[rng.randint(len(alt))]))
+        if len(rows) >= args.n_sample:
+            break
+    log(f"[cid] {len(rows)} users with a foldable top concept and a foldable alternative "
+        f"(of {len(cand)} candidates), {n_conc} concepts, pop-matched non-members")
 
     def auc_on(S, ti):
         """member-vs-matched-non-member AUC for concept ti, verbatim from g5_split."""
@@ -86,20 +111,11 @@ def main():
         ranks = np.argsort(np.argsort(np.concatenate([sm, sn])))[:k].sum()
         return (ranks - k * (k - 1) / 2) / (k * k)
 
-    # per user: top concept c, its |value|, and a random other concept c'
-    tops, vals, others = [], [], []
-    for r in rows:
-        c = int(sel[r][0][0]); v = abs(float(sel[r][1][0]))
-        o = int(rng.randint(n_conc))
-        while o == c:
-            o = int(rng.randint(n_conc))
-        tops.append(c); vals.append(v); others.append(o)
-
     def fold_scores(concept_ids, values):
-        lists = [rung.map_answers(r, [(int(c), float(v))]) or [(int(c), 0.0)]
-                 for r, c, v in zip(rows, concept_ids, values)]
-        Z = rung.z_batch([empty1] * len(rows), lists)
-        return Z
+        """Fold exactly one (concept, value) pair per user, with the value as given. Deliberately
+        bypasses Rung.map_answers, which would replace `value` with the user's stored one."""
+        lists = [[(int(c), float(v))] for c, v in zip(concept_ids, values)]
+        return rung.z_batch([empty1] * len(rows), lists)
 
     with torch.no_grad():
         Z_like = fold_scores(tops, [+v for v in vals])
