@@ -919,7 +919,9 @@ the quality of any such interaction would rest on the text adapter whose limits 
     fair positive-only baseline, the graded premium is \emph{CI-clean positive on the short interview}---$+0.0147$
     at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$ (CI $[+0.0063,+0.0103]$)---and fades to a tie from
     $k{=}8$ onward ($-0.0006$, CI $[-0.0024,+0.0012]$) as collaborative signal fills in: the extra bits a star
-    carries are most decisive when few items are known. The
+    carries are most decisive when few items are known. At the \emph{full} profile the premium is
+    $-0.0002$ over all $10{,}000$ users ($0.3449$ vs $0.3451$ full, $0.2467$ vs $0.2479$ tail), which is
+    why V1's tie owes nothing to the tower being graded-native. The
     \emph{mechanism} is that a signed answer encodes a dislike (a negative $y_j$ the item-indicator basis cannot
     express); against the \emph{all-as-like} control, which mislabels dislikes as likes, the apparent premium
     instead \emph{grows} with $k$ (dotted)---a control artifact (more revealed items $\Rightarrow$ more dislikes
@@ -1389,7 +1391,15 @@ $\mathbf{0.3482/0.2462}$ against the RecVAE bar's $0.3540/0.2497$. The differenc
 per-user bootstrap CI of $0.0069$, so the two \emph{tie} in the sense of Definition~\ref{def:tie}: the tower pays no
 measurable full-profile price for being interviewable. Two properties of that number matter more than its size. First,
 it is on the \emph{same} ruler as every other row of Table~\ref{tab:g0}---same split, cohort, tail mask, and NDCG
-routine---so it is a tie in the strict sense, not a bridged one. Second, the V1 \emph{identity} half holds exactly and
+routine---so it is a tie in the strict sense, not a bridged one. It is also a tie on the same
+\emph{information}: the tower reads the identical fold-in support as every other row (the level matrix is
+built aligned to it, with an equal-\emph{nnz} assertion), differing only in that each item carries its
+half-star level where the others carry a $1$. That difference is worth nothing at full profile---graded
+input against the same support binarised measures $0.3449$ versus $0.3451$ full and $0.2467$ versus
+$0.2479$ tail, a mean difference of $-0.0002$ over all $10{,}000$ users, nominally in the binarised arm's
+favour. The intensity channel earns its place on the \emph{short} interview
+(Figure~\ref{fig:gradedcurve}), not here, so no part of this tie rests on the tower being graded-native.
+Second, the V1 \emph{identity} half holds exactly and
 not merely statistically: with an empty evidence set the tower emits a zero latent ($|\bmu_0|=0$ to numerical
 precision) and its scores are a rank-identical image of the frozen decoder's learned bias (Spearman $1.0000$), which
 is what licenses reading every later interview curve as evidence about \emph{ingestion} rather than about a shifted
