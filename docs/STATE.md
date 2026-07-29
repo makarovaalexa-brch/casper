@@ -17,26 +17,37 @@ Chapter: `new_chapters/chapterA_v2/chapterA_v2.tex`. Compiles clean via Tectonic
   unreproducible or unfairly attributed (protocol, ruler, seeds, baseline substitutions, and the failed
   snaps that changed what we report — both reviewers named those as the credibility engine). Cut process,
   hedging, self-scoring, pre-emptive defence.
-- **A1 (#59) ✅ DONE** — contribution reframed onto the artifact that produced the numbers.
-- **A2 (#60) ✅ DONE** — belief-MF recast; no longer printed under Bıyık's/ConTS's names.
-- **A3 (#61) NEXT** — number reconciliation (details below).
-- **A4 (#62)** — figures/tables: gap-map caption + self-scored axis, taxonomy-table redundancy,
-  best-static table unnumbered/no CIs, graded caption's phantom "(a)", the G7 hole.
-- **A5 (#63)** — writing: cut defensiveness ("aware of none" ×3, "this is worth more than it looks"),
-  compress failure archaeology to one paragraph, halve lineage prose (~30pp is too long).
-- **A6 (#58)** — final compile, number sweep, human-speed read-through. MUST grep for scripted-edit
-  damage: this round introduced a truncated sentence and a corrupted `\ref` via automated edits.
+- **A1 (#59) ✅** — contribution reframed onto the artifact that produced the numbers.
+- **A2 (#60) ✅** — belief-MF recast; no longer printed under Bıyık's/ConTS's names.
+- **A3 (#61) ✅ 2026-07-29** — every A3 item closed (list below, with what each turned out to be).
+- **A4 (#62) ✅ 2026-07-29** — gap-map self-score removed, best-static table numbered + captioned with the
+  CI scale, graded caption's missing "(a)" added, G7 explained in the results caption too.
+- **A5 (#63) ✅ 2026-07-29** — defensiveness and archaeology out (commit `0ef5c4c`). NOT done: halving the
+  lineage prose. Deliberate — a 30pp thesis chapter and a venue submission are different artifacts;
+  length reduction belongs to the submission pass, not here.
+- **A6 (#58)** — final read-through. Scripted-edit damage scan is CLEAN (no mid-clause sentences, no stray
+  `ef{`, no `\REDO`/`\TODO` uses — only the macro definitions remain).
 
-### A3's open list (each checkable in-document; some need the source JSON)
-- **sign-flip appears as THREE numbers**: −0.201, −0.2985 (CI [−0.3047,−0.2922]), "up to −0.29"
-- **concepts@8 answers appears twice**: 0.2091/0.1222 vs 0.1630/0.0639; cold point 0.1717 vs 0.1279/0.0192
-- **signed curve @q16**: 0.1372 vs 0.1379
-- **G3b tail 0.2999** exceeds every other tail in the paper (frontier tail is 0.2497) — arm unstated
-- **statistical double standard**: RecVAE's +0.0064 over EASE = "nominal lead, not settled"; T2′'s −0.0057
-  vs RecVAE = "a tie… pays no measurable price". Same magnitude, opposite treatment, both flattering us.
-- **C2 goalpost**: Limitations still describes C2 as a measurement while the battery discharges it "by
-  construction". The construction argument is right — fix Limitations.
-- **G2's "out-of-envelope canary"** is in the stated criterion but never reported.
+### A3, resolved — what each discrepancy actually was
+- **sign-flip's three numbers were three different arms.** −0.2012 = the concept operator (`clite_gates`);
+  −0.2985 = the full-profile item arm (`g3a.json`, 0.4279→0.1294). The graded figure's vague "up to −0.29"
+  now cites G3a explicitly. All three now name their arm.
+- **G3a/G3b reference values are full-profile** (whole history folded, no 80/20 holdout), which is why the
+  G3b tail is 0.2999 against a 0.2497 frontier tail. Caption now says so and states that the gate is the
+  *drop within* an arm, never a comparison across arms.
+- **concepts@8 was on a SUPERSEDED fold.** 0.2091/0.1222 and 0.2219 came from the pre-fix fold; the current
+  `cd_s1_l10_best.pt` gives **0.1759/0.0841 at m=8** (up from 0.1322/0.0503 at one) and redundancy
+  **0.1572→0.1685** under correlated top-SEL. Paragraph rewritten on the current numbers. The additive-union
+  crater (0.1349→0.0991) is fold-independent (identical in both ledger runs) and stands.
+- **0.1717 was the ONE-ANSWER value, not the cold point.** The cold point is and stays 0.1279/0.0192.
+- **0.1372 vs 0.1379**: retrain-gate arm vs the ledger's paired deployment sweep. Each now names its harness.
+- **The double standard is gone.** Both differences are the same magnitude, so the paper now says the top of
+  the ruler is one narrow band and RecVAE is *the bar* because it is the conservative choice — not because
+  it is separated from EASE.
+- **C2 in Limitations** now matches the battery: closed by construction, with C3 (human study) as the real
+  outstanding item.
+- **G2's canary is now reported**: one answer from cold lifts both channels on full and tail
+  (items 0.1310/0.0219, concepts 0.1436/0.0323).
 
 ## ★★ TWO REVIEWS OF THE PAPER ALONE (2026-07-28, fresh sessions, tex + figures only)
 **Balanced:** *"strong thesis chapter, solid-but-not-flashy publication."* **Harsh:** *reject as it stands*,
@@ -68,7 +79,7 @@ Eq.(region) and the mean/covariance asymmetry; the free-text illustration includ
 |---|---|
 | **Mult-VAE** on the ruler | ✅ **0.3202 / 0.2194** (@100 0.4303) — below EASE/RecVAE, frontier claim holds |
 | **RBMF seed** | ✅ **0.2534 / 0.1764** (@100 0.3607) |
-| **TurboCF** | ❌ **0.0000 everywhere — BROKEN.** Must not enter the paper. Needs debugging. |
+| **TurboCF** | ❌ 0.0000 everywhere → **DIAGNOSED AND FIXED** (see below); re-run queued |
 | **SASRec** | ❌ died 23:41 on `val_tr.csv`; the Liang split writes `validation_tr.csv`. Fixed + restarted. |
 | **greedy polish, items-only** | ✅ **0.2098 → 0.2118** (1146 evals, converged) |
 | **greedy polish, combined** | 🔄 running (was queued LAST by mistake; now runs in parallel via `--arms`) |
@@ -77,6 +88,19 @@ Eq.(region) and the mean/covariance asymmetry; the free-text illustration includ
 from the sequence itself, so every candidate was skipped and it reported "0 evals / no improvement" — a
 confident-looking null that was a bug; (2) the earlier greedy ran on the SUPERSEDED fold because that was
 the script default. Both were caught by inspection, not by the runs failing.
+
+## TurboCF: a degenerate configuration, not a weak baseline (fixed 2026-07-29, commit `3f25c7f`)
+Verified against the public source (`jindeok/Turbo-CF/main.py`): the code does **not** re-normalise
+$\bar P$ after the Hadamard power, so the polynomial filters are low-pass only while $\rho(\bar P)\le1$.
+Our default — the paper's tuned region $\alpha{=}0.7$, $s{=}0.6$ with the 2nd-order filter — pushes $\rho$
+far past 1 at 18,359 items, the $-P^2$ term dominates, and the ranking **inverts**. Harmless on the
+130-item smoke (which is exactly why the smoke passed), fatal on the real split.
+Fixes: defaults revert to the repo-stable $(\alpha{=}0.5, s{=}1, \text{linear})$; `build_filter` estimates
+$\rho$ by power iteration and warns loudly outside the stable region, logs F stats and rejects non-finite F;
+polynomials computed row-blocked (~2.7 GB peak, not ~4 GB); `fit_sweep` selects on **our val** and records
+the whole grid, since no published ML-20M/25M number exists to snap to. `scripts/queue_turbocf.ps1` fires
+the run when RAM frees. **Lesson: a smoke test on toy data cannot catch a scale-dependent numerical
+degeneracy — the guard has to be a property check on the real matrix.**
 
 ## What the polish decides
 Combined trails items-only at q16 (0.2049 vs 0.2098) despite the combined bank CONTAINING the item bank.
