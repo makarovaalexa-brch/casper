@@ -587,10 +587,10 @@ certified RecVAE-class tower, and it reports no full-catalogue accuracy---its ND
 top-$|S|$ items and the top-$|S|$ estimated from the posterior, over 16 sampled test users on slates of 5, an
 in-simulator alignment measure) and gives only an approximate, ``generally not Gaussian'' posterior; it fails R3 in
 the specific sense of \S\ref{sec:gap} (a per-concept supervised probe over a closed tag list, not an open
-vocabulary). Every other candidate fails R3 or R4 outright. \textbf{We are aware of none} that occupies the
-conjunction---and we state it exactly that way, never as ``there is none.''
+vocabulary). Every other candidate fails R3 or R4 outright, and we are aware of no system that occupies the
+conjunction.
 
-\paragraph{Per-near-miss failure analysis.}
+\paragraph{Where each near-miss falls short.}
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
   \item \textbf{B\i y\i k et al.~2023}~\cite{biyik2023soft} --- has R2 $+$ R3 (items and soft attributes as directions)
         $+$ R4 (Gaussian belief), over a \emph{frozen} item tower---they train the CF model and the attribute
@@ -854,15 +854,15 @@ instrument now makes measurable.
 \end{figure}
 
 % =====================================================================
-\section{The concept channel: derivation, lineage, and failure analysis}\label{sec:concept}
+\section{The concept channel: derivation, lineage, and deployment currency}\label{sec:concept}
 % =====================================================================
 
 The out-of-catalogue concept leg is the most demanding of the three inexpressible channels---it is the one with no
 catalogue column, no interaction count, and no sign in the item-indicator basis---so we work it out in full. Three
 things must be made concrete: how a concept answer becomes an observation pair $(\bphi_c, y_c)$ for the belief update
 of Eq.~\eqref{eq:precacc}; where each piece sits in the published record (so that we claim only the conjunction, never
-a component); and---because the honest history of this channel includes a self-inflicted regression---what a measured
-failure of our \emph{own} evaluation harness taught us about which gate class the battery was missing. This section
+a component); and why this channel is the one that forces the battery to gate what a \emph{deployed} interview
+elicits and not only what the operator can express. This section
 is written at derivation level; the concept-channel numbers below are measured on the internal ML-25M interview
 harness and are reported as such.
 
@@ -900,7 +900,7 @@ combine into a four-band answer: a \emph{graded like} (SEL/VAL band above the ne
 expected support falls below a threshold, $e_c<\tau$, i.e.\ when the user has plausibly never been exposed to the
 concept and no answer should be forced.
 
-\paragraph{Lineage.} Every piece is established prior art, which is the point of stating it explicitly. The log-lift
+\paragraph{Lineage.} Every piece is established prior art. The log-lift
 \eqref{eq:sel} is PMI/NPMI, the standard popularity-corrected association score. Reading a \emph{magnitude} of implicit
 consumption as evidence is Hu--Koren--Volinsky's implicit-confidence template~\cite{hu2008collaborative}---except that
 HKV lets the count re-enter \emph{only as a loss confidence weight, never as a sign}, which is exactly the assumption
@@ -995,7 +995,7 @@ no-answer intercept at budget.'' This is the criterion the signed four-band esti
 The signed retrain of \S\ref{sec:concept:fail} has since landed, and we ran the two channels---concepts and
 items---through \emph{one} deployment-currency harness (10{,}000 held-out cold users, per-question budget, every
 question spending budget whether answered or not, scored on full \emph{and} tail NDCG@10 against the no-answer
-intercept $0.1279/0.0192$). They tell a consistent story: the signed answer repairs the regression, but the concept channel's value is \emph{shaped}---it owns the
+intercept $0.1279/0.0192$). They tell a consistent story: the signed answer keeps the deployed interview above the intercept, and the concept channel's value is \emph{shaped}---it owns the
 opening of an interview and cedes the long tail of it to items---and its largest prize is one we do not yet capture.
 
 \paragraph{The signed answer turns the deployment decline into a gain.} Re-running the pre-registered triple gate on
@@ -1021,23 +1021,14 @@ What we deliberately do \emph{not} state here is a ranking between the two chann
 rather than diplomatic. Any such comparison is only as meaningful as the question-selection strategy each channel is
 given, and pairing one hand-picked heuristic per channel---a popularity-ordered item bank against a
 polarization-ordered concept bank, say---measures the two heuristics at least as much as it measures the two channels.
-Every cross-channel comparison we have run so far has that defect, which is precisely why the earlier
-strategy$\times$channel reading did not survive a change of fold. The comparison is therefore being redone under a
-single strategy-free criterion: the \emph{best static question sequence} for NDCG, obtained by greedy maximisation at
-every step over an items-only bank, a concepts-only bank, and a combined bank of both, with the sequences constructed
-on the validation cohort and scored on the disjoint test cohort. Because the combined bank contains the items-only bank
-as a subset, it can only fall below items-only by overfitting the construction set---which makes the combined-versus-
-items gap a direct, interpretable readout of what the concept channel adds to an interview, rather than an artifact of
-whichever heuristics were paired.
-
-The items-only arm has landed and is reported here as the reference line the other two banks will be read
-against: greedily selecting the best static item sequence from a $500$-item bank on the validation cohort
-and scoring it on the disjoint test cohort gives full/tail NDCG@10 of $0.1405/0.0275$ at one question,
-$0.1524/0.0387$ at two, $0.1656/0.0445$ at four, $0.1863/0.0538$ at eight and $0.2098/0.0679$ at sixteen,
-against the $0.1279/0.0192$ intercept. The answerability figure is the striking one: across a
+We therefore compare the channels under a single strategy-free criterion: the \emph{best static question sequence}
+for NDCG over an items-only bank, a concepts-only bank, and a combined bank of both, with the sequences constructed
+on the validation cohort and scored on the disjoint test cohort. The combined bank \emph{contains} the items-only
+bank, so at the optimum it cannot do worse; the combined-versus-items gap is therefore a readout of what the
+concept channel adds to an interview rather than an artifact of whichever heuristics were paired. All three arms
+are in Table~\ref{tab:beststatic}. The answerability figure underneath them is the striking one: across a
 sixteen-question interview a user answers on average only $3.6$ of the item questions, the rest being
-items they have not seen. That is the structural pressure the concept channel exists to relieve, and it is
-why the combined bank is the interesting arm rather than a formality.
+items they have not seen. That is the structural pressure the concept channel exists to relieve.
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{lccccc c}
@@ -1073,9 +1064,9 @@ discovery; what is new here is that it emerges unprompted in a \emph{mixed} acti
 
 \emph{Concepts dominate the tail at every budget, without being asked to.} At $q{=}8$ the concept bank
 reaches $.0698$ tail against items' $.0538$, a $30\%$ margin, and the combined bank is the best tail arm at
-$q{=}16$ ($.0776$ vs $.0679$, $+14\%$). This is worth more than it looks: \textbf{the greedy maximised full
-NDCG@10 only}---the tail was never an objective in any arm---so the tail advantage is an incidental
-property of the channel rather than something the optimiser was steered toward.
+$q{=}16$ ($.0776$ vs $.0679$, $+14\%$). \textbf{The greedy maximised full NDCG@10 only}---the tail was never
+an objective in any arm---so the tail advantage is a property of the channel, not something the optimiser
+was steered toward.
 
 \emph{Items win full accuracy on the long interview, and the combined bank does not repair it.} From
 $q{=}8$ items lead on full ($.1863$ vs $.1776$), and at $q{=}16$ combined trails items-only by $-0.0049$
@@ -1429,10 +1420,9 @@ published anchors. Every headline delta carries a paired per-user bootstrap CI o
   \item \textbf{Graph-filter admissibility.} GF-CF/BSPM/Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} do
         not publish the ML-20M strong-generalisation NDCG; they enter Tier 2 only if re-run on our split, and are
         otherwise reported as an accuracy ceiling on other datasets, not as a bridged tie.
-  \item \textbf{Absence of evidence.} The conjunction claim is ``we are aware of none,'' bounded by our survey; a
-        set-encoder / deep-set recommender that hits RecVAE-class full-profile accuracy \emph{and} takes value-carrying
-        mixed-type tokens would partly pre-empt R1$\wedge$R2$\wedge$R3. Our searches found no such reported system,
-        which is absence of evidence, not proof of absence.
+  \item \textbf{Scope of the novelty claim.} The conjunction claim is bounded by our survey: a set-encoder /
+        deep-set recommender that reached RecVAE-class full-profile accuracy \emph{and} took value-carrying
+        mixed-type tokens would partly pre-empt R1$\wedge$R2$\wedge$R3, and we found no such reported system.
 \end{itemize}
 
 % ---------------------------------------------------------------------
