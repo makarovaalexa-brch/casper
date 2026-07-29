@@ -102,7 +102,7 @@ An instrument fit for measuring conversational elicitation must simultaneously s
         elicitation is measured against a recommender nobody can dismiss as weak~\cite{dacrema2019progress}.
   \item[R2 --- an open set-valued input interface.] It must ingest an evidence set of \emph{any} cardinality, from
         $0$ (fully cold) upward, without per-user retraining---and, the part that bites, the members of that set
-        must be \emph{arbitrary embeddings rather than pre-committed ones}. Any-length input alone is cheap: every
+        must be \emph{arbitrary embeddings rather than pre-committed ones}. Any-length input alone is undemanding: every
         recommender folds an arbitrary number of \emph{its own} columns. The requirement is that a vector the model
         never saw when it was fitted---an out-of-catalogue concept, an entity, a phrase, a direction a policy
         emits---is a legal member of the set. That demands both a set-structured input and a latent space arbitrary
@@ -274,7 +274,7 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         be the instrument recovering its own geometry, because that geometry is nowhere in the input.
 \end{description}
 
-\paragraph{Why the outcome gates alone are insufficient.}
+\paragraph{Why the outcome checks alone are insufficient.}
 V1, V3 and V4 are outcome checks, and several broken instruments pass all three. A \emph{sign-blind} fold that
 updates its belief from only the \emph{direction} of the queried entity but never the answer \emph{value} still
 reproduces the frozen tower (V1), still shrinks $\bSigma$ along $\bphi$ per question (V3), and still beats a
@@ -444,7 +444,7 @@ appears only if it was measured on this ruler or carries a citation.}
 
 \paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Not run here}: GF-CF, BSPM, BERT4Rec and EDDI have public code and are runnable on this ruler, but carry no number in this chapter; the graph-filter family is represented by the measured Turbo-CF row and the sequence family by the measured SASRec row. \emph{Best-effort measured}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated---the node recommender that is the Golbandi tree's core, at $0.3065/0.1895$, and the RBMF/Functional-MF seed at $0.2534/0.1764$. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the cost of ranking on a conjugate posterior mean, which is a decision about \emph{our} architecture. The belief corner is blank in this column because full-catalogue top-$N$ accuracy is not what these papers report---and that is a defect in the record rather than a neutral choice of emphasis, for the reason set out in \S\ref{sec:gap:why}. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
 
-\paragraph{The measured-accuracy column falls as you enter the belief corner.}
+\paragraph{The measured-accuracy column falls across the belief corner.}
 Read Table~\ref{tab:master} down its measured-accuracy column. Every \emph{competitive} number---a full/tail
 NDCG@10 at or near the frontier on our shared ML-25M ruler---sits in block (a) or (b): the item-only linear and
 amortised recommenders (RecVAE $0.3540$, EASE $0.3476$, EDLAE $0.3433$). The belief corner, block (c), is either
@@ -640,10 +640,11 @@ observation at inference: a paraphrase, a concept coined after deployment, or a 
 policy and snapped to a nearby meaningful axis. This is what we mean by channel-agnostic, and it is a property of the
 interface rather than a quantity to be tuned.
 
-\subsection{Why the conjunction is worth paying for}\label{sec:gap:why}
+\subsection{Feasibility and necessity of the conjunction}\label{sec:gap:why}
 
-A reasonable objection to everything above is that the conjunction is cheap: take a frontier recommender,
-carry a conjugate belief beside it, and the grid fills in. Three things are wrong with that.
+One objection to the analysis above is that the conjunction is inexpensive to satisfy: take a frontier
+recommender, carry a conjugate belief beside it, and the grid fills in. Three considerations tell against
+this.
 
 \emph{Most of the frontier has nothing to carry a belief over.} A belief of the form
 Eq.~\eqref{eq:precacc} needs a user vector in a dense latent, and a direction in that latent to be a
@@ -654,7 +655,7 @@ training-free graph filters. For the closed-form family---most of the accuracy c
 not difficult, it is undefined. It is available to the amortised-encoder family, and that is where we build
 it.
 
-\emph{Where it is available, it is not free.} The layer has to leave full-profile accuracy exactly intact,
+\emph{Where it is available, it carries a cost.} The layer has to leave full-profile accuracy exactly intact,
 which is a property to be measured and not assumed: our empty interview reproduces the frozen decoder's
 ranking identically (Spearman $1.0000$, $|\bmu_0|=0$), and the obvious alternative---ranking on the
 conjugate mean---forfeits $0.15$ full NDCG (\S\ref{sec:method}). Nor does a dense latent accept concepts
@@ -682,7 +683,7 @@ measured on it may not survive contact with $18{,}359$ candidates. We therefore 
 column not as a difference of emphasis but as missing evidence, and we report full \emph{and} tail
 NDCG@10 for every arm of our own work, including the arms where it is unflattering.
 
-\paragraph{Pre-empted---cited, never claimed as first.}
+\paragraph{Prior art, cited and not claimed.}
 We must credit, and do not claim priority over: attribute-answers-as-directions plus a Bayesian
 fold~\cite{biyik2023soft}; unified item$+$attribute belief and value-of-information~\cite{biyik2023soft,li2021seamlessly};
 conjugate-Gaussian folds over a frozen factorisation~\cite{toroghi2023bcie}; permutation-invariant set-encoders with
@@ -739,7 +740,7 @@ monotone in \emph{expected utility}~\cite{good1967principle,blackwell1953equival
 optimally under the belief---per-question NDCG monotonicity is \emph{not} automatic and must be shown empirically
 (\S\ref{sec:limits}).
 
-\paragraph{One answer tightens a whole region, and that is where coarse-to-fine comes from.}
+\paragraph{A single answer tightens a correlated region, which accounts for coarse-to-fine ordering.}
 Because each update adds a rank-one term, the Sherman--Morrison identity gives the effect of asking
 $\bphi$ on the uncertainty along \emph{any other} direction $w$ in closed form:
 \begin{equation}\label{eq:region}
@@ -884,8 +885,8 @@ direction this architecture opens rather than one this chapter pursues: text und
 taste, and how much of that gap a better-fitted adapter can close is exactly the kind of question the
 instrument now makes measurable.
 
-\paragraph{The interface does not care who chose the direction.} One consequence is worth naming because
-it costs no new mechanism. Everything above treats a phrase as something the \emph{system} elected to ask
+\paragraph{The observation is independent of its provenance.} One consequence is worth naming because
+it requires no additional mechanism. The discussion above treats a phrase as something the \emph{system} elected to ask
 about. But Eq.~\eqref{eq:obs} reads a pair $(\bphi,y)$ and is indifferent to its provenance: a user who
 volunteers ``I'm in the mood for something about grief'' has supplied a direction and a positive value,
 which folds exactly as an answer to a question we posed would. The same holds for a critique after a
@@ -1147,7 +1148,7 @@ Read across the table, the shape is consistent and it is the shape the rest of t
 the concept channel owns the opening and the tail, the item channel owns full accuracy once enough
 questions have been answered---and how many that is depends on how many the user can answer at all.
 
-\paragraph{What the concept channel buys is answerability, and that is neither new nor surprising.}
+\paragraph{The concept channel\'s advantage is answerability, which is neither new nor surprising.}
 That a cold user can answer a question about a broad property more readily than one about a particular
 title is close to common sense: the concept question asks whether they like a kind of film, the item
 question presupposes they have seen a specific one. We claim no discovery here, and the direction is
@@ -1200,7 +1201,7 @@ what this chapter owes the companion method chapter, whose job is to close the g
 line of Golbandi et al.~\cite{golbandi2011adaptive} on \emph{this} instrument and harness. The instrument chapter's job
 is to make the gap \emph{measurable}; closing it is the method chapter's.
 
-\paragraph{Training concepts into the tower is item-safe but buys nothing.} We evaluated two homes for the signed
+\paragraph{Training concepts into the tower preserves item accuracy but yields no concept gain.} We evaluated two homes for the signed
 concept fold: a trained fold-to-point on the \emph{frozen} tower (call it the frozen-fold), and concept tokens trained
 \emph{into} the tower itself (the tokens-in-tower variant). Both preserve full-profile strength, as V1 demands. The
 frozen-fold inherits the tower's V1 by construction (a zero-initialised fold is bit-identical on the full profile).
@@ -1216,7 +1217,7 @@ below the no-answer intercept, as the long tail of the fixed bank floods it with
 carry the frozen-fold as the concept operator of record; the tokens-in-tower arm is item-safe but does not earn its
 place. The V1 comparison above is a genuine tie on the certified ruler.
 
-\paragraph{The methods lesson, restated as a battery amendment.} The concept channel's near-miss is the sharpest
+\paragraph{The methodological consequence for verification design.} The concept channel's near-miss is the sharpest
 argument in this chapter for \emph{why verification has the shape it does}. A capability check (V5's sign-flip) passed on
 a fold that, as actually driven down a realistic question bank, never emitted a negative answer---the answer model, not
 the operator, was sign-blind, and the operator's certified capability was vacuous in deployment. Only the
@@ -1356,7 +1357,7 @@ belief-corner systems (\S\ref{sec:related}). All rows reuse the canonical harnes
 \label{tab:g0}
 \end{table}
 
-\paragraph{A properly-trained RecVAE edges the closed-form frontier, and that is the bar.} On our canonical ML-25M
+\paragraph{A properly-trained RecVAE leads the closed-form frontier, and sets the bar.} On our canonical ML-25M
 ruler our in-house paper-config RecVAE attains $0.3540$ full / $0.2497$ tail, the nominally strongest measured
 system---ahead of the closed-form leaders EASE ($0.3476/0.2441$) and EDLAE ($0.3433/0.2395$). The top of this ruler
 is a narrow band rather than a ranking: RecVAE leads EASE by $+0.0064$ full, about $1.8$ unpaired standard errors,
@@ -1423,7 +1424,7 @@ fold-in values of Table~\ref{tab:g0}, which withhold a fifth of each profile as 
 \label{tab:batteryresults}
 \end{table}
 
-\paragraph{Once a bank is answerable, which question you ask matters much less than that it is answerable.}
+\paragraph{Within an answerable bank, question choice matters far less than answerability itself.}
 In the V4 curves, a \emph{random} question drawn from the answerable bank beats popularity-ranked items at
 $q{=}1,2,4,8$ (e.g.\ $0.2358$ vs $0.2230$ full at $q{=}8$) and is only overtaken at $q{=}16$ ($+0.0022$,
 CI-clean). HELF and the $\bSigma$-greedy selector are likewise within noise of random until the largest
@@ -1431,7 +1432,7 @@ budget, where $\bSigma$-greedy wins by $+0.0036$ (CI $[0.0016,0.0057]$). This is
 whose random arm is drawn from the \emph{whole catalogue} and is therefore mostly unanswerable (mean
 $1.4$ of $16$ questions answered, versus $13.5$ for the popularity bank) and which the popularity bank
 beats by $+0.1264$: the two ``random'' controls are different objects, and we name them separately. The
-lesson is that once a bank is restricted to answerable questions, \emph{which} of them you ask matters far
+lesson is that once a bank is restricted to answerable questions, \emph{which} of them is asked matters far
 less than that they are answerable---which is precisely why the selection problem is deferred to the
 companion chapter and why we decline to claim a selection result here.
 
