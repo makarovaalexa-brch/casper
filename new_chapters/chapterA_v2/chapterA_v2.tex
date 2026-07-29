@@ -209,11 +209,13 @@ $s_i(\bmu_t)$ of the base tower.
         it was disliked, nor how much.
 \end{description}
 
-\begin{definition}[Ties SOTA]\label{def:tie}
-A recommender \emph{ties} a baseline on a metric if their scores are within the paired per-user bootstrap confidence
-interval on one shared harness (same users, items, split, metric depth). A number computed on a different
-metric/split (e.g.\ NDCG@10 on ML-25M vs.\ NDCG@100 on the ML-20M strong-generalisation split) is \emph{not} a tie
-until bridged (\S\ref{sec:bridge}).
+\begin{definition}[Parity on a shared protocol]\label{def:tie}
+A recommender attains \emph{parity} with a baseline on a metric if their scores are within the paired per-user
+bootstrap confidence interval on one shared harness (same users, items, split, metric depth). A number computed
+on a different metric/split (e.g.\ NDCG@10 on ML-25M vs.\ NDCG@100 on the ML-20M strong-generalisation split) is
+\emph{not} parity until bridged (\S\ref{sec:bridge}). Parity is a claim about standing on a stated protocol; we do
+not read it as a claim about absolute recommendation quality, which no offline benchmark of this kind
+establishes (\S\ref{sec:limits}).
 \end{definition}
 
 \paragraph{Verification: one check per requirement.}
@@ -1249,7 +1251,7 @@ the V4/V5 rows of Table~\ref{tab:batteryresults}.
 The baseline bank (Table~\ref{tab:baselines}) is three tiers: classic floors that every curve must clear
 (Dacrema et al.~\cite{dacrema2019progress} demands them), the full-profile SOTA bar that decides V1, and the
 elicitation-compatible rivals that decide V3/V4. Reported anchors are on the systems' \emph{own} splits and are not
-comparable to ours until bridged (\S\ref{sec:bridge}); we print them only to show what ``ties SOTA'' will mean.
+comparable to ours until bridged (\S\ref{sec:bridge}); we print them only to show what parity on this protocol will mean.
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{5pt}
@@ -1299,7 +1301,7 @@ specified in Table~\ref{tab:battery}, and each headline result is reported again
 Our ML-25M ruler and the published bar are on \emph{different} metrics and splits, and we do not conflate them.
 Concretely, our paper-config RecVAE realisation reaches full/tail NDCG@10 $0.3540/0.2497$ on the canonical ML-25M
 split---whereas the published EASE/RecVAE numbers are NDCG@100 on the ML-20M strong-generalisation split. These are
-not comparable, and no ``ties SOTA'' claim is made until the bridge is run. The bridge has two steps: (1) \emph{reproduce} the published EASE and Mult-VAE/RecVAE numbers on the ML-20M Liang
+not comparable, and no parity claim is made until the bridge is run. The bridge has two steps: (1) \emph{reproduce} the published EASE and Mult-VAE/RecVAE numbers on the ML-20M Liang
 split (NDCG@100, Recall@20/50) in our own code, snapping to the reported values exactly~\cite{steck2019ease,liang2018variational,ren2020recvae};
 (2) \emph{port} the certified tower to the ML-25M harness and report full/tail NDCG@10 there. We keep ML-20M in the
 loop despite being older because the Liang 2018 split is a protocol lock-in the whole full-profile literature reports
@@ -1494,13 +1496,26 @@ published anchors. Every headline delta carries a paired per-user bootstrap CI o
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
   \item \textbf{Metric non-comparability until the bridge is run.} Our frontier number $0.3540/0.2497$ is NDCG@10
         on ML-25M; the published bar is NDCG@100 on ML-20M. Until \S\ref{sec:bridge} snaps our code to the published
-        numbers (done for EASE/RecVAE, \S\ref{sec:bridge}), \emph{no} ``ties SOTA'' claim across the two rulers is
+        numbers (done for EASE/RecVAE, \S\ref{sec:bridge}), \emph{no} parity claim across the two rulers is
         licensed---the ML-25M and ML-20M numbers live on different rulers.
   \item \textbf{Monotonicity is empirical, not a theorem.} Conjugate-Gaussian updates are monotone in expected
         utility~\cite{good1967principle,blackwell1953equivalent} \emph{only in expectation}, and only if the ranker acts optimally under the
         belief---which a fixed dot-product / NDCG ranker does not. R4 (and V4's rising curve) is therefore a
         \emph{measured} property with a per-question CI, not a guarantee; a truthful answer can in principle still
         lower NDCG at a given step, and we report any such step rather than suppress it.
+  \item \textbf{The protocol discards sub-threshold interactions.} The canonical recipe filters to
+        $r>3.5$ before building its matrices, so $55.7\%$ of a test user's rated history---their
+        dislikes---is absent from every model's input, ours included, and the candidate pool contains
+        rated-and-disliked items that can never be targets. This is a property of the shared ruler rather
+        than of any row on it: the discard is identical for every system, so comparative statements are
+        unaffected, and we make a parity claim on this protocol rather than an absolute one. Two things
+        bound what it costs. Intensity within likes is worth $-0.0002$ at the full profile
+        (\S\ref{sec:expdesign}), so the channel the protocol forbids carries no measurable full-profile
+        value for this model; and the interview curves, where sign and intensity do pay
+        (Figure~\ref{fig:gradedcurve}), are not governed by the full-profile ruler. We note also that
+        masking the disliked items out of the candidate pool would \emph{not} be a repair: it would supply
+        every model with a dislike-avoidance oracle the models themselves were denied, and in doing so
+        remove precisely the items a dislike-aware recommender earns its advantage by demoting.
   \item \textbf{Answers come from recorded behaviour.} V3 and V4 are measured under the answer model that
         integrity item I2 fixes: an item answer is the user's own recorded rating and a concept answer is a log
         watch-lift over raw counts and item marginals, so no recommender-derived quantity can enter an answer and
