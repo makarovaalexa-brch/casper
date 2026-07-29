@@ -449,16 +449,28 @@ models were all published on binarised interactions, and feeding them ratings wo
 systems rather than repair them. Three rows are different: Golbandi's tree routes users by \emph{lovers,
 haters and unknowns} and is evaluated on RMSE; RBMF/Functional-MF is a rating regression; and TaNP is
 episodic meta-learning for \emph{rating prediction} over $(\text{item},\text{rating})$ support pairs. All
-three are ratings-native, and on this ruler all three receive binary input---so a hater and a non-viewer
-become the same zero, the regression fits ones rather than graded targets, and TaNP's rating channel is a
-constant. That is precisely the information loss R5 identifies and V5 measures at $-0.2985$ when imposed
-on our own tower. \textbf{Those three numbers are therefore lower bounds on what the designs can do, and
+three are ratings-native, and on this ruler all three receive binary input. The mechanism deserves stating
+exactly, because it is stronger than binarisation: the Liang recipe does not flatten sub-threshold ratings,
+it \emph{discards} them---every interaction at $r\le3.5$ is removed before the matrices are built. A hater
+is therefore not a zero in these models' input; the hater is absent from it. Golbandi's third branch has
+nothing to route, the regression fits ones rather than graded targets, and TaNP's rating channel is a
+constant. This is precisely the information R5 identifies and V5 values at $-0.2985$ when it is removed
+from our own tower. \textbf{Those three numbers are therefore lower bounds on what the designs can do, and
 we do not read the gap between them and the tower as evidence about the designs.} TaNP makes the point
 concretely: at $0.2645/0.1635$ it is the strongest of the three on this ruler, reached with its rating
-channel held constant. Restoring the graded
-channel requires no change to the models---the binarisation is in the data path, and the Golbandi node
-means and the RBMF ridge solve consume whatever values the matrix carries---so this is a limitation of
-the shared ruler rather than of the reconstructions, and repairing it is the obvious next measurement.
+channel held constant.
+
+We are equally explicit about the other side of that asymmetry. Our interview does not read the split's
+fold-in file; it reconstructs each cold user's profile from the \emph{raw} catalogue ratings across all
+bands, excluding held-out targets, which is how a signed answer becomes available at all ($7{,}563$ of the
+$10{,}000$ test users have at least three sub-threshold ratings). Held-out items are excluded in both
+cases, so neither input sees its own targets---but the two inputs differ in content and not merely in
+encoding, and the instrument's is the richer one. Recovering intensity for the ratings-native rows within
+the existing split is cheap, since the surviving $4.0$--$5.0$ values are in the raw data and the Golbandi
+node means and RBMF ridge solve consume whatever values the matrix carries. Recovering \emph{sign} is not,
+because the sub-threshold interactions are not in the split at all: it requires giving those models the
+same all-bands profile the instrument reads, which changes the input set rather than its encoding. That
+comparison is the one worth running, and we report it as owed rather than done.
 The same caution applies to ICF, whose ceiling we take from the measured iALS row: ICF is Bayesian
 probabilistic MF over ratings, while iALS is implicit-with-confidence, so that substitution crosses an
 input regime as well as a model family. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the cost of ranking on a conjugate posterior mean, which is a decision about \emph{our} architecture. The belief corner is blank in this column because full-catalogue top-$N$ accuracy is not what these papers report---and that is a defect in the record rather than a neutral choice of emphasis, for the reason set out in \S\ref{sec:gap:why}. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
