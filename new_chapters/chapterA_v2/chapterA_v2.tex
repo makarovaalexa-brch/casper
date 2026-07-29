@@ -403,7 +403,7 @@ Mult-VAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & \xmar
 RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \xmark & \xmark & \xmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
 SASRec~\cite{kang2018sasrec}                 & \xmark & \xmark & \xmark & \xmark & \xmark & $.1486$ & $.0805$ & measured (best-effort) & n/r (next-item task) \\
 BERT4Rec~\cite{sun2019bert4rec}              & \xmark & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp} (MeLU / CDRNP line) & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not run here & n/r (own cold-start benchmark) \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line) & \xmark & \xmark & \cmark & \xmark & \cmark & $.2645$ & $.1635$ & measured (best-effort) & n/r (own cold-start benchmark) \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
 EDDI / Partial-VAE~\cite{ma2019eddi} & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not run here & n/r (non-recsys; UCI/MNIST) \\
@@ -453,7 +453,9 @@ three are ratings-native, and on this ruler all three receive binary input---so 
 become the same zero, the regression fits ones rather than graded targets, and TaNP's rating channel is a
 constant. That is precisely the information loss R5 identifies and V5 measures at $-0.2985$ when imposed
 on our own tower. \textbf{Those three numbers are therefore lower bounds on what the designs can do, and
-we do not read the gap between them and the tower as evidence about the designs.} Restoring the graded
+we do not read the gap between them and the tower as evidence about the designs.} TaNP makes the point
+concretely: at $0.2645/0.1635$ it is the strongest of the three on this ruler, reached with its rating
+channel held constant. Restoring the graded
 channel requires no change to the models---the binarisation is in the data path, and the Golbandi node
 means and the RBMF ridge solve consume whatever values the matrix carries---so this is a limitation of
 the shared ruler rather than of the reconstructions, and repairing it is the obvious next measurement.
@@ -1355,6 +1357,7 @@ conjugate belief over frozen MF & $0.2019$ & $0.1200$ & @100 $0.2886$; the poste
 Item-kNN (cosine) & $0.2428$ & $0.1297$ & @100 $0.3200$; neighbourhood fold-in \\
 iALS-WMF & $0.2442$ & $0.1853$ & @100 $0.3704$; MF fold-in \\
 RBMF / Functional-MF seed & $0.2534$ & $0.1764$ & @100 $0.3607$; best-effort seed core \\
+TaNP~\cite{lin2021tanp} & $0.2645$ & $0.1635$ & @100 $0.3661$; best-effort, rating channel binarised \\
 Turbo-CF~\cite{park2024turbocf} & $0.2622$ & $0.1621$ & @100 $0.3569$; val-tuned $\alpha{=}0.5$, $s{=}1$, 2nd-order \\
 Golbandi node recommender & $0.3065$ & $0.1895$ & @100 $0.3958$; best-effort tree core \\
 Mult-VAE~\cite{liang2018variational} & $0.3202$ & $0.2194$ & @100 $0.4303$; near-snap $-0.004$ \\
