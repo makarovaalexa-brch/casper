@@ -1,0 +1,30 @@
+{
+  "ndcg@100": 0.3569025975282858,
+  "ndcg@100_se": 0.001988180221441823,
+  "ndcg@10": 0.2622265505408329,
+  "ndcg@10_se": 0.002278851639067771,
+  "recall@20": 0.31702588823757943,
+  "recall@20_se": 0.0025312823826053343,
+  "recall@50": 0.4426907438031143,
+  "recall@50_se": 0.002816350552840684,
+  "tail_ndcg@10": 0.16210253355072468,
+  "tail_ndcg@10_se": 0.002121375192701055,
+  "seconds": 447.0043730735779,
+  "hp": {
+    "alpha": 0.5,
+    "power": 1.0,
+    "filter": 2,
+    "role": "Turbo-CF (Park SIGIR2024) alpha=0.5 s=1.0 filter=2",
+    "selected_on": "val full NDCG@10 (no published ML-20M/25M number to snap to)",
+    "val_ndcg@10": 0.25548,
+    "sweep": [
+      {
+        "alpha": 0.5,
+        "power": 1.0,
+        "filter": 2,
+        "val_ndcg10": 0.25548
+      }
+    ]
+  },
+  "n_items": 18359
+}
