@@ -807,7 +807,7 @@ sits from anything curated. (The screen is not cosmetic: it rejects ``revenge se
 ``loneliness in a big city'' and ``a detective who drinks too much'', because \emph{revenge},
 \emph{loneliness} and \emph{detective} are all themselves genome tags.)
 
-\begin{center}\small
+\begin{table}[t]\centering\small
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{p{4.4cm}p{2.1cm}c p{5.6cm}}
 \toprule
@@ -819,15 +819,20 @@ free-text phrase & nearest concept & cos & top of the returned ranking \\
 ``movies about grief'' & \emph{feel good movie} & $0.54$ & Rachel, Rachel; Mean Creek; The Woodsman \\
 \bottomrule
 \end{tabular}
-\end{center}
+\caption{\textbf{A phrase with no curated counterpart is placed, not looked up.} Four free-text phrases,
+each screened against the $1{,}031$-concept vocabulary two ways---no genome tag occurs as a whole-word
+substring, and no concept sits within cosine $0.6$---with the nearest concept we actually hold printed so
+the distance from anything curated is visible. Directions come from the single global map fitted on $80\%$
+of the concepts; nothing here is retrained or looked up.}
+\label{tab:freetext}
+\end{table}
 
-\noindent These are illustrative rather than representative: they were chosen from a screened candidate
-pool, and phrases whose meaning is not carried by the genome vocabulary---``set entirely inside one
-room''---return lists we would not defend. The systematic claim is the held-out number above; the point
-of the table is that a phrase with no curated counterpart is nonetheless \emph{placed}, not looked up.
-The last row makes it plainest: the nearest concept in the entire vocabulary to ``movies about grief'' is
+\noindent The systematic claim is the held-out number above; the table shows what it buys. The last row
+makes the point plainest: the nearest concept in the entire vocabulary to ``movies about grief'' is
 \emph{feel good movie}, tonally its opposite, and the phrase's direction shares none of its top ten items
-with that concept's curated direction.
+with that concept's curated direction---the phrase is placed by its own meaning, not snapped to the
+closest thing on a list. The phrases were drawn from a screened pool, and ones whose meaning the genome
+vocabulary does not carry at all---``set entirely inside one room''---return lists we would not defend.
 
 We present this as an \emph{illustration of what the interface permits}, not as a contribution to mapping
 language into collaborative latents---a question with an established literature of its own, in which
@@ -1187,7 +1192,7 @@ RecVAE~\cite{ren2020recvae} & amortised VAE & NDCG@100 $0.442$ & top of the ML-2
 Mult-VAE~\cite{liang2018variational} & amortised VAE & NDCG@100 $0.426$ (ours $0.422$) & canonical amortised anchor; near-snap. \\
 \emph{Mult-DAE} (dropped) & DAE & NDCG@100 $0.419$ (ours $0.397$) & snap \textbf{failed} $-0.022$; disqualified. \\
 EDLAE~\cite{steck2020edlae} & denoising higher-order EASE & $\approx$ RecVAE class & confirms the flat frontier. \\
-GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & closed-form graph filter & SOTA on Gowalla/Yelp (ML-20M not reported) & admit only if re-run on our split; Turbo-CF is ($0.2622/0.1621$, val-tuned). \\
+GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & closed-form graph filter & SOTA on Gowalla/Yelp (ML-20M not reported) & admit only if re-run on our split, which Turbo-CF now is: $0.2622/0.1621$, val-tuned. \\
 SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & self-attentive sequence & strong next-item (not this split) & sequence fold-in; watch replicability~\cite{petrov2022replicability}. \\
 \midrule
 \multicolumn{4}{l}{\emph{Tier 3 --- elicitation-compatible rivals (decide G1/G2)}}\\
