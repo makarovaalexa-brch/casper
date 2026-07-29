@@ -89,6 +89,18 @@ from the sequence itself, so every candidate was skipped and it reported "0 eval
 confident-looking null that was a bug; (2) the earlier greedy ran on the SUPERSEDED fold because that was
 the script default. Both were caught by inspection, not by the runs failing.
 
+## ✅ Turbo-CF MEASURED: **0.2622 / 0.1621** (@100 0.3569) — `docs/results/TURBOCF_SWEEP_RESULT.md`
+Val-selected $\alpha{=}0.5$, $s{=}1$, 2nd-order (val 0.2555). Mid-pack in the accuracy corner: above RBMF
+(0.2534) and iALS (0.2442) on full, below Golbandi (0.3065), well below EASE (0.3476); its tail 0.1621 is
+below iALS's 0.1853. In `tab:master` as its own row (R1 = partial); **GF-CF/BSPM split out as "not run
+here"** rather than sharing a measured row. Flagged best-effort tuned — no published ML-20M/25M number.
+
+**The val grid is the proof of the diagnosis.** ρ(P̄) = **1.000 exactly** at α=0.5, s=1.0 — symmetric
+normalisation, no Hadamard power — and that is the ONLY cell where the 2nd-order filter helps
+(0.2313 → 0.2555). Every ρ>1 cell collapses under it: 0.0001 / 0.0086 / 0.0001. At α=1.0, s=0.6, ρ=269 and
+F reaches −1.9e3 with 99.9% negative entries. The winner is the public repo's own default; the paper's
+tuned region (α=0.7, s=0.6) does not transfer to an 18k catalogue.
+
 ## TurboCF: a degenerate configuration, not a weak baseline (fixed 2026-07-29, commit `3f25c7f`)
 Verified against the public source (`jindeok/Turbo-CF/main.py`): the code does **not** re-normalise
 $\bar P$ after the Hadamard power, so the polynomial filters are low-pass only while $\rho(\bar P)\le1$.
@@ -169,9 +181,7 @@ it was indeed unwinding toward items-only, consistent with the myopia account bu
 ## Still open
 - **PAPER B BLOCK (#56)** — belief-driven selection; do not start until A is closed. Σ-greedy is provably
   static-equivalent (Λ's update ignores answers); escapes are answerability and NDCG-coupling.
-- **#65 Turbo-CF** — re-running now on the val sweep after the degeneracy fix; the degenerate output is
-  archived as `turbocf_DEGENERATE_alpha0.7_s0.6_filt2.json`.
-- **SASRec / TaNP** — running. WATCH SASRec: val went 0.1174 (ep1) → 0.1158 (ep2), i.e. below
-  Most-Popular's 0.1345. If it early-stops there, decide whether the row enters the table at all rather
-  than printing a best-effort number far off the model's published standing.
+- **SASRec / TaNP** — running until ~14:00. SASRec's early dip was a training dip, not a ceiling:
+  val 0.1174 → 0.1158 → 0.1013 → 0.1151 → 0.1313 → **0.1376** (ep6) → 0.1362. It is now above
+  Most-Popular (0.1345), so the earlier concern about withholding the row does not apply. TaNP follows.
 - **#58 A6** — one human-speed read-through. Everything mechanical is clean.
