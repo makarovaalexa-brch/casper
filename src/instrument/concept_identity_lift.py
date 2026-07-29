@@ -112,16 +112,16 @@ def main():
             a_dis[j] = auc_on((Z_dis[j] @ Wd.T + bd).numpy(), c)
             a_oth[j] = auc_on((Z_oth[j] @ Wd.T + bd).numpy(), c)
 
-    sign_d, sign_ci = bootstrap_ci(a_like - a_dis)
-    iden_d, iden_ci = bootstrap_ci(a_like - a_oth)
+    sign_d, sign_ci, n_sign = bootstrap_ci(a_like - a_dis)      # (mean, (lo, hi), n)
+    iden_d, iden_ci, n_iden = bootstrap_ci(a_like - a_oth)
     out = {
         "ckpt": os.path.basename(args.sclite_ckpt),
         "n_users": len(rows), "seed": args.seed,
         "member_AUC": {"like": float(a_like.mean()), "dislike": float(a_dis.mean()),
                        "other_concept": float(a_oth.mean())},
-        "SIGN_contrast": {"delta": sign_d, "ci95": sign_ci,
+        "SIGN_contrast": {"delta": sign_d, "ci95": sign_ci, "n": n_sign,
                           "excludes_zero": bool(sign_ci[0] > 0 or sign_ci[1] < 0)},
-        "IDENTITY_contrast": {"delta": iden_d, "ci95": iden_ci,
+        "IDENTITY_contrast": {"delta": iden_d, "ci95": iden_ci, "n": n_iden,
                               "excludes_zero": bool(iden_ci[0] > 0 or iden_ci[1] < 0)},
         "mde": 0.02,
         "seconds": round(time.time() - t0, 1),
