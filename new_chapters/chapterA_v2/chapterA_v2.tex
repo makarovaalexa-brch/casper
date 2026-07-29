@@ -1508,11 +1508,14 @@ published anchors. Every headline delta carries a paired per-user bootstrap CI o
         dislikes---is absent from every model's input, ours included, and the candidate pool contains
         rated-and-disliked items that can never be targets. This is a property of the shared ruler rather
         than of any row on it: the discard is identical for every system, so comparative statements are
-        unaffected, and we make a parity claim on this protocol rather than an absolute one. Two things
-        bound what it costs. Intensity within likes is worth $-0.0002$ at the full profile
-        (\S\ref{sec:expdesign}), so the channel the protocol forbids carries no measurable full-profile
-        value for this model; and the interview curves, where sign and intensity do pay
-        (Figure~\ref{fig:gradedcurve}), are not governed by the full-profile ruler. We note also that
+        unaffected, and we make a parity claim on this protocol rather than an absolute one. It does,
+        however, bear asymmetrically on R5, and we are precise about which half. \emph{Intensity} within
+        likes is measurable on this protocol and is worth $-0.0002$ at the full profile
+        (\S\ref{sec:expdesign}). \emph{Sign} is not measurable on it at all, because a fold-in filtered to
+        $r>3.5$ contains no dislike to fold: the protocol does not merely leave that capability unrewarded,
+        it removes the input that would exercise it. What sign is worth at the full profile is therefore an
+        open quantity on this ruler, and the evidence we report for it comes from the interview curves
+        (Figure~\ref{fig:gradedcurve}), which are not governed by the full-profile protocol. We note also that
         masking the disliked items out of the candidate pool would \emph{not} be a repair: it would supply
         every model with a dislike-avoidance oracle the models themselves were denied, and in doing so
         remove precisely the items a dislike-aware recommender earns its advantage by demoting.
