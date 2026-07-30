@@ -50,6 +50,9 @@ def main():
     ap.add_argument("--rival", default="recvae")
     ap.add_argument("--snapshot", default=SNAP_DEFAULT)
     ap.add_argument("--boot", type=int, default=10000)
+    ap.add_argument("--arm", default="N", choices=["A", "N"],
+                    help="A re-tests the CHAPTER's tie claim with the correct paired test; the "
+                         "recorded CI 0.0069 is 1.96*sqrt(2)*SE, i.e. an UNPAIRED interval.")
     a = ap.parse_args()
 
     D = load_arm_n(log=logln)
@@ -62,15 +65,26 @@ def main():
     enc, decoder, _t, _p, _g = build_model(ma, ni, cnt)
     blob = torch.load(a.snapshot, map_location="cpu")
     enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"]); enc.eval()
+    if a.arm == "N":
+        L_ours, pool = graded_to_levels(D["g_te_tr"]), D["pool"]
+    else:
+        # ARM A: the canonical likes-only fold-in with real star levels, canonical mask. Reproduces
+        # the chapter's 0.3482 and lets the recorded tie be re-tested with the correct statistic.
+        from train_tower_t2 import build_graded_eval_matrix, reproduce_partition
+        unique_uid, _a, _b, _c, _d, raw, show2id, usid = reproduce_partition()
+        L_ours, _n = build_graded_eval_matrix(raw, unique_uid, show2id, usid, "test")
+        pool = D["te_tr"]
+    logln(f"[paired] arm {a.arm}: fold-in nnz={L_ours.nnz} pool nnz={pool.nnz}")
+
     pr_ours = make_graded_predict_fn(enc, decoder.weight.detach(), decoder.bias.detach(),
-                                     graded_to_levels(D["g_te_tr"]), check_nnz=False)
+                                     L_ours, check_nnz=False)
     r_ours = M.evaluate(pr_ours, D["te_tr"], D["te_te"], batch_size=500, head_mask=D["head_mask"],
-                        mask_X=D["pool"], per_user=True)
+                        mask_X=pool, per_user=True)
     logln(f"[paired] ours  full={r_ours['ndcg@10']:.4f} tail={r_ours['tail_ndcg@10']:.4f}")
 
     pr_rival, _hp = build(a.rival, D, 1e9, logln)
     r_rival = M.evaluate(pr_rival, D["te_tr"], D["te_te"], batch_size=500, head_mask=D["head_mask"],
-                         mask_X=D["pool"], per_user=True)
+                         mask_X=pool, per_user=True)
     logln(f"[paired] {a.rival} full={r_rival['ndcg@10']:.4f} tail={r_rival['tail_ndcg@10']:.4f}")
 
     out = {"rival": a.rival, "n_boot": a.boot}
@@ -87,7 +101,7 @@ def main():
         logln(f"[paired] {key}: ours-{a.rival} = {d.mean():+.4f}  95% CI [{lo:+.4f}, {hi:+.4f}]  "
               f"n={len(d)}  -> {'TIE (CI spans 0)' if tie else 'SEPARATED'}")
 
-    with open(os.path.join(OUT, f"paired_{a.rival}.json"), "w") as f:
+    with open(os.path.join(OUT, f"paired_{a.rival}_arm{a.arm}.json"), "w") as f:
         json.dump(out, f, indent=2)
 
 
