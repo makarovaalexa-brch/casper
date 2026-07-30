@@ -1,0 +1,17 @@
+[19:08:16] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[19:08:16] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[19:08:16] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[19:08:16] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:08:17] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[19:08:17] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:08:17] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[19:08:17] [blend] folding 20000 TRAIN users for var_emp ...
+[19:12:50] [blend] var_emp computed: mean=0.4935 min=0.1936 max=4.0305
+[19:12:51] [blend] anchor=pop; q0 mean=1.7489
+[19:12:52] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[19:13:17] [blend:pop] helf        k= 1 mean_w=0.0043 full=0.1632 tail=0.0274 (0.4m)
+[19:13:51] [blend:pop] helf        k= 2 mean_w=0.0117 full=0.1660 tail=0.0338 (0.6m)
+[19:14:21] [blend:pop] entropy0    k= 1 mean_w=0.0288 full=0.1664 tail=0.0349 (0.5m)
+[19:15:05] [blend:pop] entropy0    k= 2 mean_w=0.0456 full=0.1685 tail=0.0398 (0.7m)
+[19:15:36] [blend:pop] popularity  k= 1 mean_w=0.0304 full=0.1632 tail=0.0312 (0.5m)
+[19:16:19] [blend:pop] popularity  k= 2 mean_w=0.0457 full=0.1654 tail=0.0372 (0.7m)

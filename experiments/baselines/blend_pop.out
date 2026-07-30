@@ -1,0 +1,25 @@
+[19:16:58] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[19:16:58] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[19:16:58] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[19:16:58] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:16:58] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[19:16:58] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:16:58] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[19:16:59] [blend] var_emp from cache: mean=0.4935
+[19:16:59] [blend] anchor=pop; q0 mean=1.7489
+[19:16:59] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[19:17:24] [blend:pop] helf        k= 1 mean_w=0.0043 full=0.1632 tail=0.0274 (0.4m)
+[19:17:56] [blend:pop] helf        k= 2 mean_w=0.0117 full=0.1660 tail=0.0338 (0.5m)
+[19:18:35] [blend:pop] helf        k= 4 mean_w=0.0151 full=0.1708 tail=0.0443 (0.6m)
+[19:19:25] [blend:pop] helf        k= 8 mean_w=0.0254 full=0.1779 tail=0.0539 (0.8m)
+[19:20:33] [blend:pop] helf        k=16 mean_w=0.0493 full=0.2004 tail=0.0673 (1.1m)
+[19:21:02] [blend:pop] entropy0    k= 1 mean_w=0.0288 full=0.1664 tail=0.0349 (0.5m)
+[19:21:44] [blend:pop] entropy0    k= 2 mean_w=0.0456 full=0.1685 tail=0.0398 (0.7m)
+[19:22:41] [blend:pop] entropy0    k= 4 mean_w=0.0662 full=0.1741 tail=0.0447 (0.9m)
+[19:23:51] [blend:pop] entropy0    k= 8 mean_w=0.0872 full=0.1826 tail=0.0505 (1.2m)
+[19:25:22] [blend:pop] entropy0    k=16 mean_w=0.1113 full=0.2047 tail=0.0600 (1.5m)
+[19:25:51] [blend:pop] popularity  k= 1 mean_w=0.0304 full=0.1632 tail=0.0312 (0.5m)
+[19:26:32] [blend:pop] popularity  k= 2 mean_w=0.0457 full=0.1654 tail=0.0372 (0.7m)
+[19:27:26] [blend:pop] popularity  k= 4 mean_w=0.0658 full=0.1681 tail=0.0424 (0.9m)
+[19:28:40] [blend:pop] popularity  k= 8 mean_w=0.0905 full=0.1806 tail=0.0477 (1.2m)
+[19:30:14] [blend:pop] popularity  k=16 mean_w=0.1121 full=0.2014 tail=0.0532 (1.6m)

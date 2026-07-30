@@ -1,0 +1,18 @@
+[19:36:42] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[19:36:42] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[19:36:42] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[19:36:43] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:36:43] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[19:36:43] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:36:43] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[19:36:44] [span] ridge fit: Spearman(decode(z0*), log-pop) = 0.8362  |z0*|=4.122
+[19:37:00] [span] NDCG@10 of decode(z0*) = 0.0032 tail=0.0037   (MostPop = 0.1626)
+[19:37:00] [span] VERDICT: NOT IN SPAN -- delta_b branch required
+[19:37:17] [intensity] k= 1 graded    full=0.2002 tail=0.0803
+[19:37:34] [intensity] k= 1 collapsed full=0.1862 tail=0.0692
+[19:37:52] [intensity] k= 2 graded    full=0.2289 tail=0.1062
+[19:38:11] [intensity] k= 2 collapsed full=0.2038 tail=0.0890
+[19:38:30] [intensity] k= 4 graded    full=0.2540 tail=0.1318
+[19:38:49] [intensity] k= 4 collapsed full=0.2168 tail=0.1085
+[19:39:09] [intensity] k= 8 graded    full=0.2770 tail=0.1603
+[19:39:28] [intensity] k= 8 collapsed full=0.2480 tail=0.1457
