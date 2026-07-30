@@ -5,12 +5,21 @@ i25 path in train_tower_t2.py is untouched, so `t2final_best.pt` stays exactly r
 
     z     = native_z*a(n) + g(n) * rho_taste([sum_phi, a*native_z, log1p(n), a])   [i25, UNCHANGED]
             + g_e(m) * rho_expo([sum_psi, log1p(m)])                               [NEW]
-    score = z @ Wd' + bd + delta_b                                                 [NEW]
+    score = z @ Wd' + bd + g_b(n) * delta_b                                        [NEW]
 
 WHY AN EXPOSURE BRANCH AND NOT AN 11th LEVEL. An 11th gamma band would push "asked but not seen" through
 the TASTE pathway as a scalar -- i.e. encode exposure as a weak dislike. Exposure is not taste: most
 unseen films are unseen for reasons unrelated to preference, and under HELF there are ~4 unseen tokens
 per answered one, so that noise would swamp the signal. A separate branch keeps the two distinct.
+
+WHY delta_b IS GATED (review fix). A STATIC delta_b is forced into one compromise between two jobs:
+supply the whole popularity correction at zero evidence, and be ~zero at full profile where calibration
+is already right. It cannot do both -- and the span test proves the encoder cannot compensate, since the
+popularity direction is not in the decoder's range, so no z can subtract delta_b back out. The failure
+mode is a quiet full-profile regression that would look like a curriculum problem. So it decays with
+evidence: g_b = exp(-softplus(gate_b) * n), one trained scalar. g_b -> 1 at zero evidence (its entire
+reason for existing), -> 0 at full profile (asymptotically bit-identical to i25, which also keeps the
+certification story clean).
 
 WHY delta_b. Measured 2026-07-30: the population marginal is NOT in the frozen decoder's span. Ridge-
 fitting a latent to reproduce log-popularity gives Spearman 0.836 but NDCG@10 = 0.0032 -- a 200-dim
@@ -66,8 +75,14 @@ class I26Encoder(nn.Module):
                                       nn.Linear(h_expo, d_lat))
         nn.init.zeros_(self.rho_expo[-1].weight); nn.init.zeros_(self.rho_expo[-1].bias)
         self.gate_e = nn.Parameter(torch.tensor(0.5413))      # g_e(0)=0: no unseen tokens -> no effect
-        # ---- NEW: trainable per-item prior ----------------------------------------------
+        # ---- NEW: trainable per-item prior, GATED ON EVIDENCE ---------------------------
         self.delta_b = nn.Parameter(torch.zeros(ni))          # zero-init; frozen decoder untouched
+        self.gate_b = nn.Parameter(torch.tensor(-1.2586))     # softplus ~= 0.25 -> g_b(8) ~= 0.14
+        # Whitened identity for the EXPOSURE path only: Wd centred with its top principal component
+        # (the popularity axis) stripped. Concept-channel precedent -- raw decoder directions are
+        # popularity-dominated (AUC 0.44 -> 0.94 after whitening). Free preconditioning, and the taste
+        # path is untouched so identity with i25 is preserved.
+        self.register_buffer("W_white", torch.eye(d_lat))
 
     # ---------------------------------------------------------------- frozen anchor
     def native_z(self, ids, pad, lvs):
@@ -121,18 +136,23 @@ class I26Encoder(nn.Module):
         # ---- exposure branch: zero contribution when there are no unseen tokens ----
         m_tok = unseen.sum(-1, keepdim=True).float()
         if bool(unseen.any()):
-            pe = self.psi(e) * unseen.unsqueeze(-1).float()
-            se = pe.sum(1)
+            pe = self.psi(e @ self.W_white.T) * unseen.unsqueeze(-1).float()
+            # sqrt-normalised, NOT summed: at k=32 a light user gives ~30 unseen tokens vs ~2 answered,
+            # so a raw sum swings the branch input ~30x across examples and high-m examples dominate the
+            # gradient. The count itself is not lost -- log1p(m) already carries it.
+            se = pe.sum(1) / m_tok.clamp(min=1.0).sqrt()
             de = self.rho_expo(torch.cat([se, m_tok.log1p()], dim=-1))
             g_e = 1.0 - torch.exp(-F.softplus(self.gate_e) * m_tok)
             z = z + g_e * de
         return z
 
     # ---------------------------------------------------------------- scoring
-    def logits(self, z, Wd, bd):
-        """The ONE place the per-item prior enters. Every scoring path must go through here so
-        delta_b cannot be silently omitted by one caller and not another."""
-        return z @ Wd.T + bd + self.delta_b
+    def logits(self, z, Wd, bd, n_evidence):
+        """The ONE place the per-item prior enters. Every scoring path must go through here so the
+        prior cannot be silently omitted by one caller and applied by another.
+        n_evidence: (B,1) ANSWERED token count. g_b decays the prior as evidence accumulates."""
+        g_b = torch.exp(-F.softplus(self.gate_b) * n_evidence)
+        return z @ Wd.T + bd + g_b * self.delta_b
 
 
 def build_i26(ni, src, args, log=print):
@@ -145,6 +165,11 @@ def build_i26(ni, src, args, log=print):
         decoder.bias.copy_(src.decoder.bias)
         norms = src.decoder.weight.norm(dim=1).clamp_min(1e-8)
         enc.item_emb.weight.copy_(src.decoder.weight / norms.unsqueeze(1))
+        # Whitening for the exposure path: centre the decoder rows and strip the top PC (popularity).
+        Wc = src.decoder.weight - src.decoder.weight.mean(0, keepdim=True)
+        _u, _s, V = torch.linalg.svd(Wc, full_matrices=False)
+        v1 = V[0:1]                                            # the popularity axis
+        enc.W_white.copy_(torch.eye(args.t_latent) - v1.T @ v1)
     enc.item_emb.weight.requires_grad_(False)
     decoder.weight.requires_grad_(False); decoder.bias.requires_grad_(False)
     log("[model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT "
