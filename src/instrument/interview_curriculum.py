@@ -23,10 +23,11 @@ test caught it immediately (entropy0 simulated at 0.04 answers/8 against a measu
 coin was landing on pure entropy, whose true rate really is ~0). Popularity, pure-entropy, entropy0 and
 HELF are now exact corners of the simplex, which G-HELDOUT also depends on.
 
-HELF IS HELD OUT (author decision, 2026-07-30). The exact HELF weight vector is excluded from the
-training family and reserved for G-HELDOUT. HELF is the strategy on which Golbandi's lookup beats us, so
-the headline comparison then runs on an ask-order the model has never trained against. Strictly harder,
-and the only version of the claim worth making.
+NO STRATEGY IS HELD OUT (author ruling, 2026-07-30, overruling an earlier decision of mine). The
+heuristics are public formulas computed from TRAINING data, so training on them is not leakage -- it is
+what a deployed system would do, and withholding one only weakens us on the comparison that matters.
+The real generalisation test lives in Paper B, whose LEARNED question-selection policies are unseen by
+construction. So the family spans the full simplex, corners included.
 
 ANSWERABILITY is the transparent structural rule: an asked item is answered iff the user has rated it.
 No LLM-derived answerability (banned for new work, 2026-07-22 audit). Answered -> the real half-star
@@ -39,8 +40,9 @@ BUDGETS = (1, 2, 4, 8, 16, 32)
 # Regime mixture (design sheet section 5). The k=0 bucket IS the prior-anchoring mechanism.
 P_FULL, P_INTERVIEW, P_K0, P_K1 = 0.35, 0.55, 0.05, 0.05
 
-# The HELD-OUT configuration: pure HELF. Never sampled for training; used only by G-HELDOUT.
-HELDOUT_WEIGHTS = (0.0, 0.0, 0.0, 1.0, 0.0)     # (pop, H, H0, HELF, noise) -- pure HELF
+# Named corners, for reference and for reporting. None is withheld from training.
+NAMED = {"popularity": (1.0, 0.0, 0.0, 0.0, 0.0), "pure_entropy": (0.0, 1.0, 0.0, 0.0, 0.0),
+         "entropy0": (0.0, 0.0, 1.0, 0.0, 0.0), "helf": (0.0, 0.0, 0.0, 1.0, 0.0)}
 
 
 def zs(x):
@@ -51,7 +53,7 @@ def zs(x):
 class StrategyFamily:
     """Samples an ask-order per example from a continuous family spanning the literature's selectors."""
 
-    def __init__(self, cnt, H, H0, helf, exclude_heldout=True):
+    def __init__(self, cnt, H, H0, helf, exclude_heldout=False):
         self.pop = zs(np.log1p(cnt))
         self.H = zs(H)
         self.H0 = zs(H0)
@@ -60,8 +62,8 @@ class StrategyFamily:
         self.exclude_heldout = exclude_heldout
 
     def sample_weights(self, rng):
-        """(a,b,c,d,e) >= 0; a..d L1-normalised over the four informative legs. Rejects the held-out
-        HELF corner so the model never trains on the strategy G-HELDOUT tests."""
+        """(a,b,c,d,e) >= 0; a..d L1-normalised over the four informative legs. `exclude_heldout` is
+        retained only as a switch for diagnostics; the shipped curriculum spans the full simplex."""
         for _ in range(32):
             w = rng.dirichlet([0.8, 0.8, 0.8, 0.8])       # mass on corners AND interiors
             e = float(rng.uniform(0.0, 0.5))

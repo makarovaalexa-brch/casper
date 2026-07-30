@@ -27,7 +27,7 @@ sys.path.insert(0, _HERE)
 from arm_n import load_arm_n
 import interview_strategies as ST
 from interview_curriculum import (StrategyFamily, make_interview_example, make_empty_example, draw,
-                                  HELDOUT_WEIGHTS, P_FULL, P_INTERVIEW)
+                                  NAMED, P_FULL, P_INTERVIEW)
 
 EVAL_ANSWERED_K8 = {"helf": 1.6, "entropy0": 3.1, "popularity": 3.1, "pure_entropy": 0.0}
 TOL = 0.6           # absolute answers-per-8; the simulator must land in the same regime, not identically
@@ -71,8 +71,7 @@ def main():
     ok = True
 
     # ---- 1. ANSWERED-RATE per NAMED strategy must match evaluation (risk 7)
-    named = {"helf": (0.0, 0.0, 0.0, 1.0, 0.0), "entropy0": (0.0, 0.0, 1.0, 0.0, 0.0),
-             "popularity": (1.0, 0.0, 0.0, 0.0, 0.0), "pure_entropy": (0.0, 1.0, 0.0, 0.0, 0.0)}
+    named = NAMED
     for name, w in named.items():
         rates = []
         for u in users:
@@ -85,14 +84,17 @@ def main():
         log(f"[test] answered@8 {name:11s}: simulator {got:.2f} vs eval {want:.2f} "
             f"-> {'PASS' if hit else 'FAIL'}")
 
-    # ---- 2. The held-out corner is never sampled for training
-    hits = 0
+    # ---- 2. The family must COVER the named corners (no strategy is withheld -- author ruling)
+    near = {k: 0 for k in NAMED}
     for _ in range(4000):
-        a, b, c, d, e = fam.sample_weights(rng)
-        if d > 0.80 and max(a, b, c) < 0.12:
-            hits += 1
-    log(f"[test] held-out HELF corner sampled {hits}/4000 -> {'PASS' if hits == 0 else 'FAIL'}")
-    ok &= hits == 0
+        w = np.asarray(fam.sample_weights(rng)[:4])
+        for k, wa in NAMED.items():
+            if w[np.argmax(wa[:4])] > 0.55:
+                near[k] += 1
+    cov = all(v > 0 for v in near.values())
+    log(f"[test] family covers each named corner (>0.55 mass): "
+        f"{ {k: v for k, v in near.items()} } -> {'PASS' if cov else 'FAIL'}")
+    ok &= cov
 
     # ---- 3. LEAK CHECK: a target must never be asked about, and unseen must be disjoint from answered
     leaks = overlap = n_unseen = n_ans = 0
