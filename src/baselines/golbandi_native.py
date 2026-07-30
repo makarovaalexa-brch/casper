@@ -108,6 +108,10 @@ def main():
     ap.add_argument("--k", type=int, default=100)
     ap.add_argument("--lam", type=float, default=8.0)
     ap.add_argument("--sweep", action="store_true", help="val-select (k, lambda) on the arm-N protocol")
+    ap.add_argument("--grid", default=None,
+                    help="semicolon-separated k,lam pairs to val-sweep, e.g. '100,50;100,100'. Use to "
+                         "extend a sweep whose winner sat on the grid edge -- an edge winner means the "
+                         "baseline is under-tuned, and an under-tuned baseline is not a fair baseline.")
     ap.add_argument("--smoke", action="store_true")
     a = ap.parse_args()
 
@@ -138,7 +142,13 @@ def main():
             f.write(line + "\n")
 
     D = load_arm_n(log=logln)
-    grid = [(100, 0.0), (100, 8.0), (100, 25.0), (300, 8.0), (300, 25.0)] if a.sweep else [(a.k, a.lam)]
+    if a.grid:
+        grid = [(int(p.split(",")[0]), float(p.split(",")[1])) for p in a.grid.split(";")]
+        a.sweep = True
+    elif a.sweep:
+        grid = [(100, 0.0), (100, 8.0), (100, 25.0), (300, 8.0), (300, 25.0)]
+    else:
+        grid = [(a.k, a.lam)]
 
     # Val selection uses the VAL cohort with the same protocol. Graded val fold-in is rebuilt here
     # rather than cached: it is only needed when --sweep is on.
