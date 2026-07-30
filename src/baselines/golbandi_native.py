@@ -69,17 +69,28 @@ def fit(train, n_items, evaluator=None, args=None, ckpt=None, log=print):
     a = args or argparse.Namespace(**DEFAULTS)
     k = int(getattr(a, "k", DEFAULTS["k"]))
     lam = float(getattr(a, "lam", DEFAULTS["lam"]))
+    centre = bool(getattr(a, "centre", True))
 
-    C, _mu = _centre(train)                 # centred train ratings: the values the node mean averages
+    # CENTRING IS A CHOICE WITH A COST, and it is the whole story of this row.
+    # Centred (RMSE-faithful): c_ui = r_ui - mu_u. A dislike goes negative -- the sign-aware property --
+    # but the "this user watched it at all" signal is DESTROYED: for binary input every row mean is 1,
+    # so every centred value is exactly 0 and the estimator returns 0.0001 (verified). For top-N,
+    # co-occurrence is the dominant signal (Cremonesi RecSys'10), so centring trades the strong ranking
+    # signal for the weak-but-signed one.
+    # Uncentred: values stay raw ratings, so magnitude AND co-occurrence both survive, but a 0.5-star
+    # rating still contributes POSITIVELY -- no sign-awareness.
+    # Neither is strictly the published model; the paper's node model is an RMSE estimate. Report both.
+    C, _mu = (_centre(train) if centre else (train.tocsr().astype(np.float32), None))
     Cn = _l2_normalize(C)                   # cosine basis over centred rows
     A = C.copy()
     A.data = np.ones_like(A.data)           # rated-indicator, for the per-item support denominator
     r = C.shape[0]
     kk = min(k, r)
-    log(f"[golbandi_native] centred user-kNN: {r} train users, k={kk}, lambda={lam}")
+    log(f"[golbandi_native] {'centred' if centre else 'UNCENTRED'} user-kNN: {r} train users, "
+        f"k={kk}, lambda={lam}")
 
     def predict(X_csr):
-        Cq, _ = _centre(X_csr)
+        Cq = _centre(X_csr)[0] if centre else X_csr.tocsr().astype(np.float32)
         Qn = _l2_normalize(Cq)
         b = Qn.shape[0]
         S = np.asarray((Qn @ Cn.T).todense(), dtype=np.float32)      # (b x r) adjusted cosine
@@ -113,6 +124,10 @@ def main():
                          "extend a sweep whose winner sat on the grid edge -- an edge winner means the "
                          "baseline is under-tuned, and an under-tuned baseline is not a fair baseline.")
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--no_centre", action="store_true",
+                    help="Ratings WITHOUT mean-centring: magnitude and co-occurrence both survive, but "
+                         "a 0.5-star rating still counts positively (no sign-awareness). The centred "
+                         "arm is RMSE-faithful and sign-aware but destroys co-occurrence. Run both.")
     ap.add_argument("--binary_control", action="store_true",
                     help="EXISTENTIAL CONTROL. Run this same centred/shrunk estimator on the BINARY "
                          "matrices. If it lands near the binary user-kNN row (0.3756), the estimator "
@@ -173,7 +188,8 @@ def main():
     best, results = None, []
     for (k, lam) in grid:
         ts = time.time()
-        pr = fit(D["g_train"], D["n_items"], args=argparse.Namespace(k=k, lam=lam), log=logln)
+        pr = fit(D["g_train"], D["n_items"],
+                 args=argparse.Namespace(k=k, lam=lam, centre=not a.no_centre), log=logln)
         if a.sweep:
             v = M.evaluate(pr, g_va_tr, va_te, batch_size=500, head_mask=D["head_mask"],
                            mask_X=va_pool)
@@ -190,12 +206,14 @@ def main():
           + (" [BINARY CONTROL: same estimator, binary input]" if a.binary_control else ""))
     ts = time.time()
     train_X, foldin_X = (D["train"], D["te_tr"]) if a.binary_control else (D["g_train"], D["g_te_tr"])
-    pr = fit(train_X, D["n_items"], args=argparse.Namespace(k=k, lam=lam), log=logln)
+    pr = fit(train_X, D["n_items"],
+             args=argparse.Namespace(k=k, lam=lam, centre=not a.no_centre), log=logln)
     t = M.evaluate(pr, foldin_X, D["te_te"], batch_size=500, head_mask=D["head_mask"],
                    mask_X=D["pool"])
     logln(f"[golbandi_native] ARM-N TEST full@10={t['ndcg@10']:.4f} tail@10={t['tail_ndcg@10']:.4f} "
           f"ndcg@100={t['ndcg@100']:.4f} ({(time.time() - ts) / 60:.1f} m)")
-    with open(os.path.join(OUT, ("golbandi_native_binctrl.json" if a.binary_control else "golbandi_native.json")), "w") as f:
+    with open(os.path.join(OUT, ("golbandi_native_binctrl.json" if a.binary_control else
+                            ("golbandi_native_uncentred.json" if a.no_centre else "golbandi_native.json"))), "w") as f:
         json.dump({"arm": "N", "model": "golbandi_native", "hp": {"k": k, "lam": lam},
                    "sweep": results, "test": t}, f, indent=2)
     return 0
