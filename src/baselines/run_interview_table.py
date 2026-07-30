@@ -21,6 +21,19 @@ RECOMMENDERS, each on its own published input contract:
   mostpop         the PRIOR: ignores the answers entirely, so it is ONE number, not a curve --
                   a horizontal reference line, evaluated once
 
+THE MOST-POPULAR FLOOR (author ruling, 2026-07-30). A recommender that has been told NOTHING about a
+user must not do worse than showing them popular items -- any deployed system falls back that way, and
+a method that scores below the popularity prior at zero evidence is being reported with its cold-start
+handling removed, not reproduced. So the floor is applied UNIFORMLY: for any user with zero answers,
+every recommender returns the popularity ranking. Users with >=1 answer are on their own, which is the
+honest test of answer conversion. No hyperparameter, no per-model tuning, deployment-realistic, and
+applied identically to all -- the same principle as the fixed candidate pool.
+
+Without it the table reports artefacts, not methods: RBMF returns an all-zero score vector at zero
+evidence (0.0003 on the arms nobody answers) and the un-adapted RecVAE backbone collapses to 0.0099 at
+k=1. Neither number is about elicitation. Methods whose papers specify no cold-start fallback get a
+FOOTNOTE, not a degenerate row.
+
 PROTOCOL. Candidate pool = the arm-N protocol pool (every rated fold-in-side item, likes AND dislikes),
 FIXED and strategy-independent. This deliberately departs from strategy_ladder's credit-neutral
 convention of masking every ASKED item: if the pool depended on what a strategy asked, a strategy that
@@ -87,6 +100,16 @@ def answers_to_csr(answered, n_users, n_items, mode):
                              shape=(n_users, n_items), dtype=np.float32)
 
 
+def apply_pop_floor(scores, answered, pop_scores, lo, hi):
+    """Users in [lo,hi) with NO answers get the popularity ranking. Uniform across recommenders."""
+    n_floored = 0
+    for r in range(hi - lo):
+        if len(answered[lo + r]) == 0:
+            scores[r] = pop_scores
+            n_floored += 1
+    return n_floored
+
+
 def cursor_predict(score_matrix_fn, batch=500):
     """Wrap a function that produces scores for a row RANGE into metrics.evaluate's predict_fn(X)
     contract. evaluate walks rows in order with a fixed batch size, so a cursor is safe; it is reset
@@ -150,6 +173,7 @@ def main():
 
     # ---------------------------------------------------------------- MostPop: one number
     pr_pop = pop.fit(D["train"], ni, log=logln)
+    pop_row = np.asarray(pr_pop(D["te_tr"][:1]), dtype=np.float32).ravel().copy()   # the floor itself
     r = M.evaluate(pr_pop, D["te_tr"], te_te, batch_size=500, head_mask=head_mask, mask_X=pool)
     results["mostpop"] = {"_prior": {"full": r["ndcg@10"], "tail": r["tail_ndcg@10"]}}
     logln(f"[interview] mostpop PRIOR (constant, answer-independent): "
@@ -172,23 +196,32 @@ def main():
                 if mode == "raw":
                     ga = asked[0] if arm in GLOBAL_ARMS else None
                     sc = obj.scores(asked, answered, global_asked=ga)
-                    predict = cursor_predict(lambda s, e, _sc=sc: _sc[s:e].copy())
-                    predict.reset()
-                    res = M.evaluate(predict, D["te_tr"], te_te, batch_size=500,
-                                     head_mask=head_mask, mask_X=pool)
+                    base = cursor_predict(lambda s, e, _sc=sc: _sc[s:e].copy())
+                    Xin = D["te_tr"]
                 else:
                     Xi = answers_to_csr(answered, n, ni, mode)
                     if name == "ours":
                         e_, W_, b_ = obj
-                        pr = make_graded_predict_fn(e_, W_, b_, Xi, check_nnz=False)
+                        base = make_graded_predict_fn(e_, W_, b_, Xi, check_nnz=False)
                     else:
-                        pr = obj
-                    res = M.evaluate(pr, Xi, te_te, batch_size=500, head_mask=head_mask, mask_X=pool)
+                        base = obj
+                    Xin = Xi
+                floored = {"n": 0, "cursor": 0}
+
+                def pr(X, _b=base, _st=floored):
+                    out = np.array(_b(X), dtype=np.float32, copy=True)
+                    lo = _st["cursor"]; hi = lo + X.shape[0]
+                    _st["n"] += apply_pop_floor(out, answered, pop_row, lo, hi)
+                    _st["cursor"] = hi
+                    return out
+                if hasattr(base, "reset"):
+                    base.reset()
+                res = M.evaluate(pr, Xin, te_te, batch_size=500, head_mask=head_mask, mask_X=pool)
                 results[name][arm][f"k{k}"] = {"full": res["ndcg@10"], "tail": res["tail_ndcg@10"],
-                                               "answered": n_ans}
+                                               "answered": n_ans, "floored": floored["n"]}
                 logln(f"[interview] {name:14s} {arm:14s} k={k:2d} answered={n_ans:4.1f}/{k} "
-                      f"full={res['ndcg@10']:.4f} tail={res['tail_ndcg@10']:.4f} "
-                      f"({(time.time() - ts) / 60:.1f}m)")
+                      f"floored={floored['n']:5d} full={res['ndcg@10']:.4f} "
+                      f"tail={res['tail_ndcg@10']:.4f} ({(time.time() - ts) / 60:.1f}m)")
                 json.dump({"lit_rank": ST.LIT_RANK, "cites": ST.CITES, "budgets": budgets,
                            "results": results}, open(outp, "w"), indent=2)
     logln(f"[interview] done -> {outp}")
