@@ -98,7 +98,8 @@ def Recall_at_k_batch(X_pred, heldout_batch, k=20):
     return recall
 
 
-def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50), head_mask=None):
+def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50), head_mask=None,
+             mask_X=None):
     """predict_fn: csr (batch x n_items) fold-in -> dense np (batch x n_items) scores.
     Returns dict of mean NDCG@100, NDCG@10, Recall@20, Recall@50. tr items masked with -inf before
     ranking (vae_cf convention). Users with 0 held-out items are skipped.
@@ -108,7 +109,18 @@ def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50), hea
     `tail_ndcg@10`, computed by reusing NDCG_binary_at_k_batch (no duplicated metric): head-item scores
     are set to -inf so they can never be ranked, head held-out targets are dropped, and users whose
     held-out set is ALL head (no tail target) are skipped -- identical to signed_latent.ndcg10(tail=True).
+
+    mask_X DECOUPLES the ranking mask from the model input. Default None == mask_X is data_tr, i.e.
+    byte-identical to every pre-existing call. Pass it when the model reads a richer/different matrix
+    than the one defining the candidate pool: otherwise a richer fold-in silently -inf's more items and
+    inflates NDCG (this coupling produced the void "Golbandi 0.3894"). The candidate pool must be a
+    property of the PROTOCOL, identical across models, never a property of what a model happens to eat.
     """
+    if mask_X is None:
+        mask_X = data_tr
+    if not (data_tr.shape[0] == mask_X.shape[0] == data_te.shape[0]):
+        raise ValueError(f"row misalignment: input {data_tr.shape[0]}, mask {mask_X.shape[0]}, "
+                         f"target {data_te.shape[0]}")
     n = data_tr.shape[0]
     acc = {"ndcg@100": [], "ndcg@10": [], "recall@20": [], "recall@50": []}
     do_tail = head_mask is not None
@@ -119,12 +131,13 @@ def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50), hea
     for st in range(0, n, batch_size):
         en = min(st + batch_size, n)
         X = data_tr[st:en]
+        Xm = mask_X[st:en]
         he = data_te[st:en]
         keep = np.asarray(he.getnnz(axis=1)).ravel() > 0  # skip users with no held-out target
         if not keep.any():
             continue
         X_pred = predict_fn(X)
-        X_pred[X.nonzero()] = -np.inf  # mask fold-in items
+        X_pred[Xm.nonzero()] = -np.inf  # mask out the candidate pool (default: the fold-in items)
         X_pred = X_pred[keep]
         he = he[keep]
         acc["ndcg@100"].append(NDCG_binary_at_k_batch(X_pred, he, k=100))
