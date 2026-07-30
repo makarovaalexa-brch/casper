@@ -131,7 +131,11 @@ a confession.
 **Claim wording:** parity on a stated protocol, never unqualified "SOTA". Definition 1 has been renamed
 *"Parity on a shared protocol"* and all "ties SOTA" phrasings removed.
 
-## 9. The optional 4-arm probe (strengthening, not a gate)
+## 9. The 4-arm probe — SUPERSEDED by §11 (2026-07-30)
+
+*Kept for the record of how the design evolved. The author cut it to two arms: the claim is a systems
+comparison ("who converts the available signal best"), not a mechanism study, so the decomposition arms
+(B, B′) are unnecessary. The final design is §11.*
 
 Mask fixed at `te_tr` throughout; same targets, same pool; the `-inf` exclusion of observed dislikes applied
 in **B, B′ and C** so C's residual edge is purely off-support generalisation.
@@ -155,7 +159,7 @@ filtering.
 through it first. Everyone should rise; what matters is whether they rise *unequally* and reorder the
 frontier.
 
-## 10. Open items
+## 10. Open items (see §11 for the superseding experiment spec)
 
 1. The chapter-wide **R5 scoping pass** (the limitation paragraph is in; the rest is not).
 2. Optionally run A/B/B′/C with an nDCL-style avoidance number reported separately and popularity-stratified.
@@ -163,3 +167,69 @@ frontier.
    `sanchez2018antirelevance`, `menamaldonado2021tois`, `gienapp2020cikm`, `wang2023dislike`,
    `krichene2020sampled`. Author lists for RecSys 2025 and the SiReN/SIGformer orders need verification —
    the ACM pages returned 403.
+
+---
+
+## 11. FINAL DESIGN (author decision, 2026-07-30) — the two-arm A/N comparison
+
+**Supersedes the 4-arm probe of §9.** The claim is a *systems* comparison — "given the same dataset, users,
+split, and no cheating, which model converts the available signal into the best ranking?" — not a mechanism
+study. So no decomposition arms, no forcing dislikes into binary models, no unsigned-positive control.
+**Every model runs on its published input contract.**
+
+### 11.1 The two arms
+
+**Arm A — canonical anchor.** Liang recipe verbatim, unchanged, exactly the current G0 numbers. Its sole
+job is certification: it ties every implementation (ours and baselines) to recognisable published numbers.
+Nothing is re-run for A.
+
+**Arm N — native regime.** Same 10k test users, same held-out targets, full-rank NDCG@10 (full + tail),
+no sampled negatives. Two changes relative to A:
+
+1. **Input = each model's published contract.**
+   - RecVAE / Mult-VAE / EASE / TurboCF / iALS / SASRec / Most-Popular: binary likes — *identical to their
+     A input*. Their N rows need only re-evaluation under the new mask.
+   - Our tower: signed/graded fold-in, natively (what the belief update was built for). Re-eval only.
+   - Golbandi / RBMF / TaNP: ratings-native, per their papers — like `r > 3.5`, dislike `r ≤ 3.5`,
+     unknown = unrated, drawn from the user's full rated fold-in-side history. **These three retrain**,
+     because the discard happens before training matrices are built: Golbandi's tree must be regrown on
+     graded data (its dislike branches are dead on binarised data), RBMF's ridge refit on **centred** graded
+     targets (the 1-star-as-weak-positive scar), TaNP meta-trained on ratings.
+2. **Uniform mask: ALL rated fold-in-side items** (likes ∪ dislikes) are excluded (`-inf`) from every
+   model's ranking, identically, regardless of what the model consumed. Targets remain scoreable (they are
+   held-out likes, never in the fold-in). Rationale: (a) deployment-realistic — a served system filters
+   everything the user has rated; (b) ungameable — a signed model cannot collect a free lift by demoting
+   the observed dislikes it was shown, because they are already out of everyone's pool.
+
+The A-vs-N delta per model is itself a finding: it shows exactly which models the canonical protocol
+punishes and by how much (Golbandi is the predicted headline case — on A it is routed down the
+"never-seen-it" branch for films the user hated).
+
+### 11.2 Non-negotiable implementation rules
+
+1. **Decouple input from mask.** `metrics.evaluate` currently derives the `-inf` mask from the model's
+   input matrix. That coupling produced the fake Golbandi 0.3894 (richer fold-in silently deleted 2.26×
+   more candidates). The N harness must take the mask as an **explicit argument**, fixed per user at
+   all-rated, independent of what the model was fed. This is the single most dangerous line of the build.
+2. **Canary gate before any number is believed** (memory: `surprise-means-debug-the-harness`). Push
+   Most-Popular and EASE through the N harness first. Their input is unchanged, so their N numbers must
+   differ from A **only** through the mask — expect a small, near-uniform lift. If they reorder, jump, or
+   drop, the harness is broken, not the ranking.
+3. **One variable at a time.** The three retrains change training data AND fold-in AND mask relative to
+   their A rows. Stage it: (i) canary re-evals, (ii) binary models under N mask, (iii) our tower signed
+   fold-in, (iv) the three retrains — each compared against the previous stage, never straight to A.
+4. **Data already exists and is verified:** `src/baselines/graded_data.py` builds the graded matrices via
+   `reproduce_partition()` — 1,411,761 nnz, checked against the instrument's all-bands reconstruction,
+   zero target overlap. Threshold 3.5 throughout (Liang's own boundary, also Frolov's).
+5. **HARD RULE 10:** commit the harness code before launching any run. Seeds and configs logged per row.
+6. Prior void-rerun code (`run_graded_native.py`, `evaluate_decoupled`) may be salvaged for parts, but
+   every result from the 29-Jul session is void and must not be compared against.
+
+### 11.3 What this changes in the papers
+
+- **Paper A is untouched** except the already-planned R5 scoping pass (§8). Arm A remains the chapter's
+  ruler; the limitation paragraph stands.
+- **Arm N is the designated arena for comparative elicitation claims** (baseline-ordering across
+  recommenders, Golbandi with its dislike branch restored, sign-aware vs binary) — Paper B territory,
+  reported side-by-side with the A column for transparency.
+- Claim wording stays "parity on a stated protocol"; never unqualified SOTA on either arm.
