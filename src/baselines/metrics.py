@@ -99,7 +99,7 @@ def Recall_at_k_batch(X_pred, heldout_batch, k=20):
 
 
 def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50), head_mask=None,
-             mask_X=None):
+             mask_X=None, per_user=False):
     """predict_fn: csr (batch x n_items) fold-in -> dense np (batch x n_items) scores.
     Returns dict of mean NDCG@100, NDCG@10, Recall@20, Recall@50. tr items masked with -inf before
     ranking (vae_cf convention). Users with 0 held-out items are skipped.
@@ -115,6 +115,12 @@ def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50), hea
     than the one defining the candidate pool: otherwise a richer fold-in silently -inf's more items and
     inflates NDCG (this coupling produced the void "Golbandi 0.3894"). The candidate pool must be a
     property of the PROTOCOL, identical across models, never a property of what a model happens to eat.
+
+    per_user=True additionally returns the raw per-user vector under `<key>_per_user`. Needed for a
+    PAIRED comparison between two models: the users are identical, so an unpaired SE-of-difference is
+    the wrong test and is usually far too conservative. Note the `ndcg@10` and `tail_ndcg@10` vectors
+    cover DIFFERENT user subsets (tail drops users whose held-out set is all head), so only pair
+    vectors of the same key, from runs with identical data and batching.
     """
     if mask_X is None:
         mask_X = data_tr
@@ -160,4 +166,6 @@ def evaluate(predict_fn, data_tr, data_te, batch_size=500, ks=(100, 20, 50), hea
         v = np.concatenate(chunks)
         out[key] = float(np.mean(v))
         out[key + "_se"] = float(np.std(v) / np.sqrt(len(v)))
+        if per_user:
+            out[key + "_per_user"] = v
     return out
