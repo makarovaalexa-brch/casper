@@ -21,6 +21,20 @@ RECOMMENDERS, each on its own published input contract:
   mostpop         the PRIOR: ignores the answers entirely, so it is ONE number, not a curve --
                   a horizontal reference line, evaluated once
 
+WHO THE FLOOR APPLIES TO -- "no answers" is NOT "no input" (found 2026-07-30, after the floor made
+Golbandi WORSE on every zero-answer arm: 0.1650 -> 0.1643 pure-entropy, 0.1658 -> 0.1655 random-bank).
+Golbandi's routing is TERNARY: like / dislike / UNKNOWN. A user asked eight popular films who rates
+none of them does not land at the global root -- they land in the leaf of training users who also
+rated none of those eight, and "I have seen none of these" is a genuinely informative answer. Flooring
+that to popularity deletes a real prediction.
+So the rule is: THE FLOOR APPLIES WHEN THE MODEL RECEIVED NO INPUT, not when the user gave no
+like/dislike. Models that consume unknowns (golbandi_leaf) always have input and are never floored;
+models that fold only answered tokens (ours, rbmf, belief_mf, the recvae backbone) get nothing at all
+when nothing is answered, and are floored. Uniform as a RULE, asymmetric in outcome -- and that
+asymmetry is a real capability difference that belongs in the write-up, not smoothed away.
+NOTE FOR THE PAPER: our instrument DISCARDS the unknown signal. An unanswered question contributes
+literally nothing to the fold. That is a concrete design gap this experiment exposed.
+
 THE MOST-POPULAR FLOOR (author ruling, 2026-07-30). A recommender that has been told NOTHING about a
 user must not do worse than showing them popular items -- any deployed system falls back that way, and
 a method that scores below the popularity prior at zero evidence is being reported with its cold-start
@@ -67,6 +81,8 @@ from train_tower_t2 import build_model, make_graded_predict_fn, compute_head_mas
 
 OUT = os.path.join(_ROOT, "experiments", "baselines", "interview")
 RECS = ["ours", "recvae_likes", "golbandi_leaf", "rbmf", "belief_mf"]
+# Models whose input contract INCLUDES the unknowns, so they are never information-free -> never floored.
+CONSUMES_UNKNOWNS = {"golbandi_leaf"}
 GLOBAL_ARMS = {"popularity", "pure_entropy", "entropy0", "helf"}
 
 
@@ -207,11 +223,13 @@ def main():
                         base = obj
                     Xin = Xi
                 floored = {"n": 0, "cursor": 0}
+                use_floor = name not in CONSUMES_UNKNOWNS
 
-                def pr(X, _b=base, _st=floored):
+                def pr(X, _b=base, _st=floored, _f=use_floor):
                     out = np.array(_b(X), dtype=np.float32, copy=True)
                     lo = _st["cursor"]; hi = lo + X.shape[0]
-                    _st["n"] += apply_pop_floor(out, answered, pop_row, lo, hi)
+                    if _f:
+                        _st["n"] += apply_pop_floor(out, answered, pop_row, lo, hi)
                     _st["cursor"] = hi
                     return out
                 if hasattr(base, "reset"):
