@@ -131,7 +131,13 @@ def main():
         except Exception as e:
             logln(f"[FAIL] {name}: {type(e).__name__}: {e}")
             continue
+        # SASRec's predict carries a per-split cursor over timestamp-ordered users; scoring the same
+        # model twice needs it rewound, or the second pass overruns.
+        if hasattr(predict, "set_split"):
+            predict.set_split("test")
         arm_a = M.evaluate(predict, D["te_tr"], D["te_te"], batch_size=500, head_mask=D["head_mask"])
+        if hasattr(predict, "set_split"):
+            predict.set_split("test")
         arm_n = M.evaluate(predict, D["te_tr"], D["te_te"], batch_size=500, head_mask=D["head_mask"],
                            mask_X=D["pool"])
         can = canonical(name)
