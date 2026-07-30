@@ -92,7 +92,10 @@ def fit(train, n_items, evaluator=None, args=None, ckpt=None, log=print):
                 continue
             num = w @ C[nbr].toarray()                                # signed: haters push DOWN
             den = lam + (w @ A[nbr].toarray())                        # shrink toward 0 on thin support
-            scores[i] = num / den
+            # An item no neighbour rated has num == den == 0. With lambda > 0 that is 0/lambda = 0;
+            # at lambda == 0 it is 0/0, and a NaN score sorts unpredictably rather than ranking last.
+            # Score it 0 -- "no neighbourhood evidence", the same place shrinkage would put it.
+            np.divide(num, den, out=scores[i], where=den > 0)
         return scores
     predict.k = kk
     predict.lam = lam
