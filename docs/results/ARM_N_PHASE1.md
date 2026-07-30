@@ -117,39 +117,74 @@ never surface it.
 Note the tail gap exceeds the full gap at k ≤ 2 (+0.0217 vs +0.0169 at k=1): dislikes disambiguate
 hardest where popularity carries least.
 
-## 4. Golbandi — the author's fear
+## 4. The author's fear, resolved — and a naming correction
 
-**Status: sweep running.** First configuration is already informative.
+**Golbandi has no full-profile mode by construction.** The WSDM'11 contribution is an *elicitation
+policy*: ask ≤ k questions, route by like / dislike / unknown, recommend the leaf's shrunk group mean.
+At full profile the tree is meaningless. So the master-table row we have been printing under his name
+is **our construction**, not his — `golbandi_node.py` says so in its own header ("NOT the tree /
+elicitation ... the full-profile ceiling of the node model").
+
+**Author ruling, 2026-07-30: relabel it `user-kNN` and stop printing it under Golbandi's name.** Same
+class of error as printing belief-MF under Bıyık's name, already fixed once. Correct attribution in
+prose: *"user-kNN, the full-profile limit of Golbandi's node-mean recommender"* — cite them for the node
+model, own the reduction. Do **not** write "Golbandi used user-kNN"; their node model is a group mean.
+
+**Golbandi appears in exactly one table: the interview table.** Never the full-profile one.
+
+### The ratings-native user-kNN
 
 The void 29-Jul graded run (0.2641, *below* its own binary 0.3065) fed raw ratings into a cosine built
-for binary rows, so a 1.0-star rating pulled the user *toward* that neighbour and the node mean summed
-rating magnitudes upward. That was a bug, not evidence about ratings.
+for binary rows, so a 1.0-star rating pulled the user *toward* that neighbour. That was a bug.
 
-`golbandi_native.py` is the published model: row-centred ratings (a dislike is **negative**), adjusted
-cosine, top-k with negative similarities clipped, shrunk by λ on thin support — genuinely sign-aware in
-a way no binary neighbour mean can be. Val sweep over k ∈ {100, 300} × λ ∈ {0, 8, 25}.
+`golbandi_native.py` is the proper neighbourhood formulation: row-centred ratings (a dislike is
+**negative**), adjusted cosine, top-k with negative similarities clipped, shrunk by λ on thin support.
+Val sweep k ∈ {100, 300} × λ ∈ {0, 8, 25}:
 
-- Bug found and fixed mid-run: at λ=0 an item no neighbour rated scores 0/0 = NaN, which sorts
-  unpredictably rather than ranking last.
-- `k=100, λ=0`: val full **0.0034**. The unshrunk estimator is degenerate at this catalogue size,
-  exactly as expected — the top-10 fills with items one enthusiastic neighbour rated. This is why the
-  shrinkage term is in the published design and why λ is swept rather than assumed.
+| k | λ | val full | val tail |
+|---|---|---|---|
+| 100 | 0 | 0.0034 | 0.0035 |
+| 100 | 8 | 0.2503 | 0.1162 |
+| **100** | **25** | **0.2663** | **0.1302** |
+| 300 | 8 | 0.2377 | 0.1056 |
+| 300 | 25 | 0.2589 | 0.1259 |
 
-## 5. Standing interpretation of the fear (written before the Golbandi number lands)
+**ARM-N TEST (k=100, λ=25): 0.2725 / 0.1317.** λ=25 sits at the grid edge, so λ=50 is being run — a
+selected value on the boundary is an under-tuned baseline.
 
-If the ratings-native Golbandi *does* beat the tower at full profile in arm N, the paper is not in
-trouble, provided we hold the line on what it claims:
+Bug found and fixed mid-run: at λ=0 an item no neighbour rated scores 0/0 = NaN, which sorts
+unpredictably rather than ranking last. λ=0's 0.0034 is the unshrunk estimator being degenerate at this
+catalogue size, exactly why shrinkage is in the published design.
+
+### The finding that matters more than the fear
+
+**The ratings-native user-kNN (0.2725) lands BELOW where its binary twin will land** (binary arm A is
+0.3065; the pool lift for a model of that strength is ≈ +0.05, so ≈ 0.35). *Giving a ratings-native
+model its ratings back made it worse at ranking.*
+
+This is **Cremonesi, Koren & Turrin (RecSys 2010)**: rating-prediction and top-N ranking are different
+objectives, and the implicit/binary formulation is legitimately strong for top-N. A centred
+neighbourhood model ranks by "liked this more than their own average" — the right quantity for RMSE,
+the wrong one for "what should we show next".
+
+**Consequence for the argument, and it sharpens it.** Two claims must stay separate:
+
+1. The discard costs Golbandi **its dislike branch** — an *elicitation* loss. Real, demonstrable in the
+   interview table, and on half-star data his `< 4` boundary is *exactly* Liang's `> 3.5` cut, so the
+   protocol deletes precisely the branch his tree routes on.
+2. It does **not** follow that ratings-native input makes a **recommender** stronger. Here it does the
+   opposite, for a published reason.
+
+Claim 1 is the one we can demonstrate; claim 2 would have been easy to overclaim. Keeping them apart is
+what makes "every baseline is reproduced faithfully on its own contract" a defensible sentence.
+
+## 5. Standing interpretation, now that the ordering is visible
 
 1. **Arm A is untouched.** Parity is certified there, against published numbers.
-2. A ratings-native model winning on the protocol *built to stop punishing ratings-native models* is
-   the finding the author asked for, not a refutation. It is the strongest possible evidence that the
-   canonical protocol distorts the league table.
-3. The chapter's claim lives in the **scarce-evidence regime**. §3 shows sign pays at k ≤ 4 and vanishes
-   by k = 8; the full-profile row is the least load-bearing number in the whole table.
-
-The result would only be dangerous if a native Golbandi also won the **short-interview** curve — and
-that requires the tree, which does not exist yet on this ruler (`golbandi_node` is explicitly the
-full-profile kNN ceiling with the elicitation removed). That build is phase 3.
+2. **The A→N ordering is close to unchanged**, because Δ tracks personalisation rather than capability.
+   RecVAE (arm A 0.3540 vs our 0.3482, a reported tie at −0.0057, CI 0.0069) will most likely stay just
+   above us in arm N. Plan no claim that needs us in first place.
+3. The chapter's claim lives in the **scarce-evidence regime** (§3), not in any full-profile row.
 
 ## 6. Files
 
