@@ -54,7 +54,7 @@ def main():
     apply_sign_prior(enc26)
     with torch.no_grad():                       # phi/rho are randomly initialised -> copy i25's
         for n26, p26 in enc26.named_parameters():
-            if n26.startswith(("psi.", "rho_expo.")) or n26 in ("gate_e", "delta_b"):
+            if n26.startswith(("psi.", "rho_expo.")) or n26 == "gate_e":
                 continue
             p25 = dict(enc25.named_parameters()).get(n26)
             if p25 is not None and p25.shape == p26.shape:
@@ -73,8 +73,8 @@ def main():
     hit = d < 1e-6; ok &= hit
     print(f"[i26] 1. z identical on item-only input: max|diff| = {d:.3e} -> {'PASS' if hit else 'FAIL'}")
 
-    hit = float(enc26.delta_b.abs().max()) == 0.0; ok &= hit
-    print(f"[i26] 2. delta_b zero at init -> {'PASS' if hit else 'FAIL'}")
+    hit = not hasattr(enc26, "delta_b"); ok &= hit
+    print(f"[i26] 2. NO per-item bias exists (prior is learned) -> {'PASS' if hit else 'FAIL'}")
 
     # 3. add unseen tokens; at init they must change nothing
     rows_u = [(np.concatenate([s, rng.choice(ni, size=4, replace=False)]),

@@ -5,27 +5,31 @@ i25 path in train_tower_t2.py is untouched, so `t2final_best.pt` stays exactly r
 
     z     = native_z*a(n) + g(n) * rho_taste([sum_phi, a*native_z, log1p(n), a])   [i25, UNCHANGED]
             + g_e(m) * rho_expo([sum_psi, log1p(m)])                               [NEW]
-    score = z @ Wd' + bd + g_b(n) * delta_b                                        [NEW]
+    score = z @ Wd' + bd                                                          [UNCHANGED]
 
 WHY AN EXPOSURE BRANCH AND NOT AN 11th LEVEL. An 11th gamma band would push "asked but not seen" through
 the TASTE pathway as a scalar -- i.e. encode exposure as a weak dislike. Exposure is not taste: most
 unseen films are unseen for reasons unrelated to preference, and under HELF there are ~4 unseen tokens
 per answered one, so that noise would swamp the signal. A separate branch keeps the two distinct.
 
-WHY delta_b IS GATED (review fix). A STATIC delta_b is forced into one compromise between two jobs:
-supply the whole popularity correction at zero evidence, and be ~zero at full profile where calibration
-is already right. It cannot do both -- and the span test proves the encoder cannot compensate, since the
-popularity direction is not in the decoder's range, so no z can subtract delta_b back out. The failure
-mode is a quiet full-profile regression that would look like a curriculum problem. So it decays with
-evidence: g_b = exp(-softplus(gate_b) * n), one trained scalar. g_b -> 1 at zero evidence (its entire
-reason for existing), -> 0 at full profile (asymptotically bit-identical to i25, which also keeps the
-certification story clean).
+NO PER-ITEM BIAS. THE PRIOR IS LEARNED, NOT BOLTED ON (author challenge, 2026-07-30 -- "if we feed
+model 0 answer cases, will it learn this prior naturally rather than bolting on?").
 
-WHY delta_b. Measured 2026-07-30: the population marginal is NOT in the frozen decoder's span. Ridge-
-fitting a latent to reproduce log-popularity gives Spearman 0.836 but NDCG@10 = 0.0032 -- a 200-dim
-linear decoder tracks popularity loosely across 18,359 items and gets the TOP TEN wrong, and NDCG only
-sees the top ten. So no amount of encoder training can make our zero-evidence prediction equal counting.
-A trainable per-item bias is the minimal principled fix; the RecVAE decoder itself stays frozen.
+An earlier span test appeared to force a trainable per-item bias: ridge-fitting a latent to REPRODUCE
+log-popularity scores gave Spearman 0.836 but NDCG@10 0.0032, and I read that as "the marginal is not in
+the decoder's range". THAT TEST WAS MIS-SPECIFIED. The model never needs to match popularity SCORES; it
+needs to RANK as well as popularity does, and least-squares to log-pop is the wrong objective entirely.
+
+The right test is what the k=0 curriculum bucket actually optimises: the multinomial NLL of the
+population like-distribution, which is CONVEX in z (log-sum-exp of a linear map), so gradient descent
+reaches the global optimum. Measured on the frozen decoder:
+
+    best achievable zero-evidence ranking = 0.1628 full  (Most-Popular = 0.1626)
+
+The prior IS reachable. So there is no bias vector, no gate on it, and no 18,359 free parameters with a
+direct path to every logit -- the k=0 examples teach the encoder its own prior through the existing loss.
+(Caveat for the sheet: the optimum's TAIL is 0.0239 vs Most-Popular's 0.0262, so G-EMPTY is gated on
+full@10 only and the tail is reported, not gated.)
 
 INITIALISATION IS THE SAFETY PROPERTY. `rho_expo`'s last layer and `delta_b` are BOTH zero-init, so at
 step 0 this arm is BIT-IDENTICAL to i25. Every change has to be earned by the loss. `test_i26_identity`
@@ -75,9 +79,6 @@ class I26Encoder(nn.Module):
                                       nn.Linear(h_expo, d_lat))
         nn.init.zeros_(self.rho_expo[-1].weight); nn.init.zeros_(self.rho_expo[-1].bias)
         self.gate_e = nn.Parameter(torch.tensor(0.5413))      # g_e(0)=0: no unseen tokens -> no effect
-        # ---- NEW: trainable per-item prior, GATED ON EVIDENCE ---------------------------
-        self.delta_b = nn.Parameter(torch.zeros(ni))          # zero-init; frozen decoder untouched
-        self.gate_b = nn.Parameter(torch.tensor(-1.2586))     # softplus ~= 0.25 -> g_b(8) ~= 0.14
         # Whitened identity for the EXPOSURE path only: Wd centred with its top principal component
         # (the popularity axis) stripped. Concept-channel precedent -- raw decoder directions are
         # popularity-dominated (AUC 0.44 -> 0.94 after whitening). Free preconditioning, and the taste
@@ -147,12 +148,10 @@ class I26Encoder(nn.Module):
         return z
 
     # ---------------------------------------------------------------- scoring
-    def logits(self, z, Wd, bd, n_evidence):
-        """The ONE place the per-item prior enters. Every scoring path must go through here so the
-        prior cannot be silently omitted by one caller and applied by another.
-        n_evidence: (B,1) ANSWERED token count. g_b decays the prior as evidence accumulates."""
-        g_b = torch.exp(-F.softplus(self.gate_b) * n_evidence)
-        return z @ Wd.T + bd + g_b * self.delta_b
+    def logits(self, z, Wd, bd):
+        """Scoring is the plain frozen decode -- no per-item bias, no gate. Kept as a method so every
+        scoring path goes through one place."""
+        return z @ Wd.T + bd
 
 
 def build_i26(ni, src, args, log=print):
@@ -177,5 +176,6 @@ def build_i26(ni, src, args, log=print):
     params = [p for p in list(enc.parameters()) + list(decoder.parameters()) if p.requires_grad]
     n_tr = sum(p.numel() for p in params)
     n_expo = sum(p.numel() for p in list(enc.psi.parameters()) + list(enc.rho_expo.parameters())) + 1
-    log(f"[model] arch=i26 TRAINABLE={n_tr:,} (exposure branch {n_expo:,}, delta_b {ni:,})")
+    log(f"[model] arch=i26 TRAINABLE={n_tr:,} (exposure branch {n_expo:,}; NO per-item bias -- "
+        f"the prior is learned from the k=0 curriculum bucket)")
     return enc, decoder, params

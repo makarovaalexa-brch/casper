@@ -33,15 +33,33 @@ usable weighting signal (G1c dropped it; B2 confirms).
 *Caveat: those numbers degrade monotonically in k, which should not happen; the control may be buggy.
 Direction only — do not cite the values.*
 
-## 2. ★ SPAN TEST: the population marginal is NOT reachable — `delta_b` is REQUIRED
+## 2. ★ THE PRIOR IS LEARNABLE — no per-item bias. (My span test was mis-specified.)
 
-Ridge-fit `z0* = argmin ||z0 Wd' + bd − log p_pop||`, then score `decode(z0*)`:
-**Spearman 0.836, NDCG@10 = 0.0032** (Most-Popular = 0.1626).
+**First attempt, WRONG.** Ridge-fit `z0* = argmin ||z0 Wd' + bd − log p_pop||`, score `decode(z0*)`:
+Spearman 0.836 but **NDCG@10 = 0.0032**. I read that as "the marginal is outside the decoder's range"
+and concluded a trainable per-item bias was structurally required.
 
-A 200-dim linear decoder tracks popularity loosely across 18,359 items and gets the **top ten**
-completely wrong — and NDCG only sees the top ten. **No amount of encoder training can make our
-zero-evidence prediction equal the population marginal.** This is a representational limit of the frozen
-decoder, not a curriculum gap. Fable's conditional branch fires: **`delta_b` is required**, not optional.
+**That test asked the wrong question** (author challenge: *"if we feed model 0 answer cases, will it
+learn this prior naturally rather than bolting on?"*). The model never needs to reproduce popularity
+SCORES — it needs to RANK as well as popularity does. Least-squares to log-popularity is simply the
+wrong objective, and its failure says nothing about what is reachable.
+
+**The right test** is what the k=0 curriculum bucket actually optimises: the multinomial NLL of the
+population like-distribution. That is **convex in z** (log-sum-exp of a linear map), so gradient descent
+reaches the global optimum. Measured on the frozen decoder:
+
+| | full@10 | tail@10 |
+|---|---|---|
+| **best achievable zero-evidence ranking** | **0.1628** | 0.0239 |
+| Most-Popular | 0.1626 | 0.0262 |
+| current empty-set decode | 0.1553 | — |
+
+**The prior IS reachable.** So there is no bias vector, no gate on it, and no 18,359 free parameters with
+a direct path to every logit — the k=0 examples teach the encoder its own prior through the existing
+loss. The architecture has no bolt-on anywhere.
+
+*Caveat: the optimum's TAIL (0.0239) is below Most-Popular's (0.0262), so **G-EMPTY is gated on full@10
+only** and the tail is reported rather than gated.*
 
 ## 3. ★ INTENSITY IS LOAD-BEARING — a new gate follows
 
@@ -64,7 +82,7 @@ damage the γ bands ⇒ G-INTENSITY below.**
 ```
 z = native_z + rho_taste( Σ φ(e_i, gamma(level)) )        [UNCHANGED]
               + rho_expo ( Σ psi(e_i) )                    [NEW: asked-but-unseen items]
-score = z @ Wd' + bd + delta_b                             [NEW: per-item bias]
+score = z @ Wd' + bd                                      [UNCHANGED -- no per-item bias]
 ```
 
 - **Exposure branch, not an 11th γ level.** An 11th band forces exposure through the taste pathway as a
@@ -73,7 +91,8 @@ score = z @ Wd' + bd + delta_b                             [NEW: per-item bias]
 - `psi` reuses the existing frozen item embeddings with a learned projection — **no new 18k table**.
 - `rho_expo` output is **zero-initialised** (the proven i25 trick): the network starts at exactly today's
   certified behaviour and the branch must earn its way in.
-- `delta_b`: **zero-init, trainable, per-item** (18,359 params). The RecVAE decoder stays frozen.
+- **No per-item bias** (see §2): the prior is learned from the k=0 bucket. The decoder stays frozen and
+  the scoring path is untouched.
 - No ask-mask input needed — (answered tokens, unseen tokens) jointly determine it.
 - Capacity: +~120–270k ⇒ ~1.0–1.1M trainable. **Do not widen `rho_taste`** unless the smoke run shows a
   train-loss plateau with regime buckets still improving. Chasing a 0.005 gap by 5–10×-ing the head puts
@@ -128,8 +147,8 @@ Val-side of train users for go/no-go. **Canonical test touched ONCE, at the end.
 - **G-FULL** — canonical full-profile full@10 ≥ **0.3467** (0.3482 − the 0.0015 paired-CI width). Below
   this, ABORT: R1 dies for a 0.005 interview gain.
 - **G-SNAP** — certification snap passes as before.
-- **G-EMPTY** — empty-set decode ≥ **0.1626**. Binary; the whole prior story rests on it. The prior may
-  be arrived at by ANY trained means (author: "if it is trained, i am happy with any approach").
+- **G-EMPTY** — empty-set decode **full@10** ≥ **0.1626** (achievable optimum is 0.1628, so this is
+  tight but real). Tail reported, NOT gated — the optimum's tail is 0.0239 vs MostPop's 0.0262.
 - **G-NOHARM** — random / pure-entropy arms ≥ prior − 0.002 at every budget.
 - **G-INTENSITY** *(added from §3)* — like-band collapse must still cost ≥ +0.020 at k=2 and k=4. If the
   retrain flattens γ, we have traded a measured R5 asset for an interview gain.
@@ -154,7 +173,7 @@ Val-side of train users for go/no-go. **Canonical test touched ONCE, at the end.
 | 1 | full-profile regression | Kalman fold-all crater 0.167→0.097; DAE snap −0.022 | val full-profile every epoch from ep1; abort at >−0.005 by ep2 |
 | 2 | exposure branch learns the activity/popularity proxy | LLM answerability popularity-dominated; concept dirs needed whitening | **G-SHUFFLE at the FIRST checkpoint, not the last** |
 | 3 | regime competition (interview improves, full profile quietly sacrificed) | — | per-regime NLL logged separately from batch 1; all buckets must descend |
-| 4 | `delta_b` popularity double-count | — | `delta_b` norm growth without NDCG gain ⇒ kill it |
+| 4 | ~~`delta_b` double-count~~ | REMOVED — no per-item bias exists (§2) | n/a |
 | 5 | prior anchor drags tail at low k | B2: tail 0.0274 vs 0.0302 | G-TAIL from the first eval |
 | 6 | harness / masking artifact | the void 0.3894 leak; the `prof\|asked` scar | any cell beating ternary Golbandi by >0.01 is a bug until audited |
 | 7 | simulator answered-rate ≠ eval answered-rate | — | checked in §9 step 3, **before** training |
@@ -195,8 +214,7 @@ not just a re-run of numbers.
 
 ## 10. Open questions for the author
 
-1. Is the `delta_b` per-item bias acceptable given §2 shows it is required? It is a popularity sink — a
-   reviewer may read it as bolting popularity onto the decoder, which is exactly the aesthetic objected
-   to, except now it is trained rather than blended.
+1. ~~Is `delta_b` acceptable?~~ **SETTLED: removed.** The author's challenge exposed a mis-specified
+   test; the prior is reachable and is learned from the k=0 bucket (§2). No bolt-on remains.
 2. G-FULL floor at 0.3467 — agreed, or stricter?
 3. ~~Hold out HELF?~~ **SETTLED: no holdout** (author ruling, §5).
