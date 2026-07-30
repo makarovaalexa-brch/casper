@@ -294,6 +294,32 @@ Honest formulations, in decreasing strength:
   measured price, not a hand-wave — and a 1.6% price for the whole capability set is a good trade to
   argue explicitly.
 
+### WHY the chapter's interval was wrong — and the audit result
+
+`chapterA_v2.tex:1127-1130` states the reasoning explicitly:
+
+> *"For comparisons of this kind — two arms of the same model over the same users, whose per-user
+> differences are strongly correlated — paired bootstrap intervals on 10,000 users have half-widths of
+> ±0.002–0.003 … Intervals for comparisons **across models** are wider, because two systems' per-user
+> scores are far less correlated: the tower-versus-RecVAE interval is 0.0069."*
+
+**The premise is empirically false for this particular pair, and for the most on-the-nose reason.**
+Back out the per-user correlation from the measured numbers: per-user NDCG@10 has σ ≈ 0.28 for both
+models (SE 0.0028 × √10000); the paired difference has σ_d ≈ 0.0765 (CI half-width 0.0015). Then
+σ_d² = 2σ² − 2cov gives **r ≈ 0.96**.
+
+Ours and RecVAE agree on 96% of the per-user variance — because **our tower literally contains RecVAE's
+frozen encoder and decoder** (`[teacher] RecVAE loaded … FROZEN`, `[model] i25: decoder FROZEN RecVAE
+W+b`). The chapter widened the interval on the assumption that two different systems decorrelate; but
+this is not a comparison of two systems, it is a comparison of a model with its own backbone. The
+architecture fact that makes the ablation meaningful is the same fact that makes the interval tight.
+
+**AUDIT RESULT (complete).** Every other interval in the chapter — the +0.0015 probe, the graded
+premium at k=2/4/8, the signed-vs-clipped +0.0104, the concept sign-flip — is a **within-model, two-arm**
+comparison, correctly using the ±0.002–0.003 paired half-width. **The tower-versus-RecVAE interval is
+the only across-model CI in the chapter, and it is the one that is wrong.** No further corrections
+needed; the audit is closed.
+
 ### Actions
 
 1. Definition 1 is currently titled *"Parity on a shared protocol"* — the word no longer fits. Retitle.
