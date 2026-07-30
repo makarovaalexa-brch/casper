@@ -92,11 +92,14 @@ Train users only (val/test quarantined).
 - **Regime mixture:** 35% full-profile/dropout (protects the floor) · 55% interview · 10% zero/near-zero
   (k=0 ≈5%, k=1 ≈5%). **The k=0 bucket IS the prior-anchoring mechanism** — no loss term; NLL on empty
   inputs trains the empty-set decode toward the marginal directly (and `delta_b` gives it somewhere to go).
-- **Strategy family, not the six eval arms.** ask-score = α·log-pop + β·entropy + γ·HELF-harmonic + ε·noise,
-  with (α,β,γ,ε) sampled per example. The six arms are points in this family. **Hold out the exact HELF
-  weights entirely** and gate on them (G-HELDOUT) — that answers the overfit worry with a measurement.
-  Simulating public strategy functions on train users is legitimate and symmetric: it is exactly the
-  information Golbandi's leaves are built from.
+- **Strategy family, four legs.** ask-score = a·log-pop + b·H + c·H0 + d·HELF + e·noise, sampled per
+  example. Rashid's two entropies are SEPARATE axes — an earlier three-leg version chose between them by
+  coin flip, which made the named strategies unrepresentable and simulated entropy0 at 0.04 answers/8
+  against a measured 3.10. The unit test caught it on the first run.
+- **NO STRATEGY IS HELD OUT** (author ruling, overruling an earlier decision of mine to withhold HELF).
+  The heuristics are public formulas over TRAINING data, so training on them is not leakage — it is what
+  a deployed system does, and withholding one only weakens us on the comparison that matters. The real
+  generalisation test lives in **Paper B, whose LEARNED policies are unseen by construction.**
 - **Answerability = the transparent structural rule**: answered iff in the user's rated set. Answered →
   level token from the real rating; unanswered → **unseen token**. This one line creates everything the
   model has never seen: unanswerable questions, ask-order/answer correlation, popularity-skewed asks.
@@ -125,7 +128,8 @@ Val-side of train users for go/no-go. **Canonical test touched ONCE, at the end.
 - **G-FULL** — canonical full-profile full@10 ≥ **0.3467** (0.3482 − the 0.0015 paired-CI width). Below
   this, ABORT: R1 dies for a 0.005 interview gain.
 - **G-SNAP** — certification snap passes as before.
-- **G-EMPTY** — empty-set decode ≥ **0.1626**. Binary; the whole prior story rests on it.
+- **G-EMPTY** — empty-set decode ≥ **0.1626**. Binary; the whole prior story rests on it. The prior may
+  be arrived at by ANY trained means (author: "if it is trained, i am happy with any approach").
 - **G-NOHARM** — random / pure-entropy arms ≥ prior − 0.002 at every budget.
 - **G-INTENSITY** *(added from §3)* — like-band collapse must still cost ≥ +0.020 at k=2 and k=4. If the
   retrain flattens γ, we have traded a measured R5 asset for an interview gain.
@@ -136,7 +140,9 @@ Val-side of train users for go/no-go. **Canonical test touched ONCE, at the end.
 - **G-LONG** — entropy0 and popularity at k=16 within 0.003 of the backbone (0.2238 / 0.2182).
 - **G-TAIL** — tail@10 at k≤4 not below current by more than the paired CI. *(B2 showed an anchor eats
   tail; this gate exists because of that evidence.)*
-- **G-HELDOUT** — held-out strategy config within 0.005 of in-family strategies at matched answered-rate.
+- **G-MONOTONE** *(author rule, 2026-07-30)* — the model must NOT score below its own zero-question
+  result after ONE question, on any strategy. One weak answer dragging it below where it started is a
+  real failure mode and we have never checked it. NOTE: the current checkpoint FAILS this.
 - **G-SHUFFLE** — exposure gain must **vanish** under a matched-count random-unseen shuffle. If it
   survives, the branch learned the activity proxy (Spearman 0.65 with profile size) and is disqualified
   **even if NDCG is up**.
@@ -159,13 +165,33 @@ Val-side of train users for go/no-go. **Canonical test touched ONCE, at the end.
 2. ~~**Binary-collapse ablation**~~ **DONE** → intensity is load-bearing (§3), G-INTENSITY added.
 3. **Generator + unit tests, NO training.** Simulate the family on train users; verify answered-rate per
    strategy matches eval (HELF 1.6/8, entropy0 3.1/8); verify the masking rule; **commit** (HARD RULE 10).
-4. **Smoke run**, 1 epoch on a subset (~1–2 h). Pass: every regime bucket descending, empty-set decode
-   moving toward 0.16, full-profile bucket not degrading. Risks 1/3/7 surface here.
+4. **Smoke run**, 1 epoch on a subset (~1–2 h). **Log TRAIN loss AND held-out metric, separately per
+   regime bucket** (author correction: watching held-out alone cannot distinguish a bad design from
+   simply not enough data/steps yet). Decision rule:
+     * train loss FLAT  -> not a design failure; give it more steps/data before judging anything.
+     * train down, held-out WORSE -> memorising, or the design is wrong. Stop.
+     * both improving -> proceed.
+   Risks 1/3/7 surface here.
 5. **Full train** at i25 timescale (expect ep4–13, ≤~3.5 h). Per-epoch val gates. Keep best only.
    `t2final_best.pt` untouched under its own name; the new arm gets a new name.
 6. **At best checkpoint: G-SHUFFLE and G-HELDOUT** — before the cascade.
 7. **Only after all val gates pass:** canonical test once, then the cascade (certification snap, greedy
    sequences, graded curves, concept-fold re-runs).
+
+## 9b. Downstream components — the cascade is not only numbers
+
+The stack was trained in stages: item tower first, then the CONCEPT channel on the frozen tower, then the
+confidence/belief layer on both frozen. **Retraining the item tower makes both downstream components
+stale** — they were fitted to a latent that is about to change. That is a second and third training pass,
+not just a re-run of numbers.
+
+- **Concepts: retrain AFTER the item tower is confirmed**, not jointly. Every measured problem is in the
+  item tower; changing everything at once means a failure cannot be localised, and the graveyard is full
+  of runs that moved too many things simultaneously.
+- **Confidence/belief layer: OUT OF SCOPE for now** (author ruling) → task #67. Two independent findings
+  say its uncertainty is not doing useful work (G1c: a popularity lookup predicted held-out difficulty
+  better, |rho| 0.70 vs 0.24; B2: Sigma-weighting made things worse). The open question is whether to
+  refit it at all or to stop claiming it does work it demonstrably is not doing.
 
 ## 10. Open questions for the author
 
@@ -173,5 +199,4 @@ Val-side of train users for go/no-go. **Canonical test touched ONCE, at the end.
    reviewer may read it as bolting popularity onto the decoder, which is exactly the aesthetic objected
    to, except now it is trained rather than blended.
 2. G-FULL floor at 0.3467 — agreed, or stricter?
-3. Hold out HELF (the strategy Golbandi wins) or a different config? Holding out HELF means the headline
-   comparison runs on an unseen strategy — honest, but strictly harder.
+3. ~~Hold out HELF?~~ **SETTLED: no holdout** (author ruling, §5).
