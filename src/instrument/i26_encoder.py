@@ -3,7 +3,7 @@ r"""i26_encoder.py -- the interview-native arm: an EXPOSURE branch + a trainable
 SPEC: docs/design/RETRAIN_DESIGN_SHEET.md section 4. This is a NEW ARM (`--arch i26`). The certified
 i25 path in train_tower_t2.py is untouched, so `t2final_best.pt` stays exactly reproducible.
 
-    z     = native_z*a(n) + g(n) * rho_taste([sum_phi, a*native_z, log1p(n), a])   [i25, UNCHANGED]
+    z     = z0 + native_z*a(n) + g(n)*rho_taste([sum_phi, a*native_z, log1p(n), a])  [z0 NEW, 200 params]
             + g_e(m) * rho_expo([sum_psi, log1p(m)])                               [NEW]
     score = z @ Wd' + bd                                                          [UNCHANGED]
 
@@ -11,6 +11,22 @@ WHY AN EXPOSURE BRANCH AND NOT AN 11th LEVEL. An 11th gamma band would push "ask
 the TASTE pathway as a scalar -- i.e. encode exposure as a weak dislike. Exposure is not taste: most
 unseen films are unseen for reasons unrelated to preference, and under HELF there are ~4 unseen tokens
 per answered one, so that noise would swamp the signal. A separate branch keeps the two distinct.
+
+THE PRIOR IS A LEARNABLE LATENT z0 (200 params) -- found by the smoke run, 2026-07-30.
+
+The k=0 curriculum bucket could not learn ANYTHING as first built, and the smoke caught it: at zero
+evidence a(0)=0 kills the anchor and g(0)=0 kills the residual, so z == 0 EXACTLY and the score is the
+frozen decoder bias. There is no trainable parameter in the forward path at all when the input is empty
+-- empty-set NDCG sat pinned at 0.1550 across 200 steps while the interview bucket fell 7.69 -> 6.68.
+
+So z0 (already present, previously frozen and marked "compat (unused)") becomes TRAINABLE and is added
+to z. At empty input z == z0, which the span test below says can reach 0.1628.
+
+WHY z0 AND NOT A PER-ITEM BIAS. z0 lives INSIDE the latent, so rho can compensate for it wherever it is
+unhelpful -- at full profile the model simply learns to subtract it. A per-item bias sits OUTSIDE the
+latent, where the span test proves no z can subtract it back out, which is exactly why it needed a gate
+and why it risked a quiet full-profile regression. 200 compensable parameters, not 18,359 uncompensable
+ones. Still zero-init, so the identity property holds.
 
 NO PER-ITEM BIAS. THE PRIOR IS LEARNED, NOT BOLTED ON (author challenge, 2026-07-30 -- "if we feed
 model 0 answer cases, will it learn this prior naturally rather than bolting on?").
@@ -71,7 +87,8 @@ class I26Encoder(nn.Module):
         nn.init.zeros_(self.rho[-1].weight); nn.init.zeros_(self.rho[-1].bias)
         self.gate_a = nn.Parameter(torch.tensor(0.5413))
         self.anchor_b = nn.Parameter(torch.tensor(-1.2586))
-        self.z0 = nn.Parameter(torch.zeros(d_lat), requires_grad=False)
+        # TRAINABLE prior latent: the model's belief with no evidence. Zero-init => identity with i25.
+        self.z0 = nn.Parameter(torch.zeros(d_lat), requires_grad=True)
         # ---- NEW: exposure path ----------------------------------------------------------
         # psi projects the SAME frozen item identity; no new 18k table (design sheet section 4).
         self.psi = nn.Sequential(nn.Linear(d_lat, h_expo), nn.GELU(), nn.Linear(h_expo, h_expo))
@@ -132,7 +149,7 @@ class I26Encoder(nn.Module):
         anz = a * nz
         delta = self.rho(torch.cat([sp, anz, n_tok.log1p(), a], dim=-1))
         g = 1.0 - torch.exp(-F.softplus(self.gate_a) * n_tok)
-        z = anz + g * delta
+        z = self.z0 + anz + g * delta
 
         # ---- exposure branch: zero contribution when there are no unseen tokens ----
         m_tok = unseen.sum(-1, keepdim=True).float()
