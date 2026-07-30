@@ -117,6 +117,41 @@ never surface it.
 Note the tail gap exceeds the full gap at k ≤ 2 (+0.0217 vs +0.0169 at k=1): dislikes disambiguate
 hardest where popularity carries least.
 
+## 3b. The full-profile table must be SPLIT: five rows are scored off their design point
+
+**Author decision, 2026-07-30.** Golbandi was the visible case — his tree admits no full-profile
+reduction at all, so the error was obvious. But **four other rows are in exactly the same position**;
+for those we *could* invent a plausible full-profile reduction, so the category error hid.
+
+From their own module headers:
+
+| row | what its paper actually targets | evidence |
+|---|---|---|
+| user-kNN | our reduction of Golbandi's node-mean; no published ranker | `golbandi_node.py` header |
+| belief-MF / ConTS | a conversational bandit | *"At FULL profile we do not need to explore, so the Thompson draw collapses to the posterior MEAN"* |
+| RBMF / Functional-MF | cold-start fold-in from a handful of observations | *"the classic WMF cold-start fold-in"* |
+| EDDI | sequential active feature acquisition | at full profile everything is observed; acquisition is vacuous |
+| TaNP | episodic meta-learning for user cold-start | support/target episodes; full profile is a very large support |
+
+**Every cold-start / elicitation method in the table is being scored at the one operating point its
+paper does not target.** Presenting them in a single ranked list invites — and deserves — the objection
+that we are beating cold-start methods at a task they were not built for.
+
+**Table structure to adopt:**
+
+- **Full-profile recommenders** (legitimate design point): RecVAE, ours, EASE, EDLAE, Mult-VAE,
+  TurboCF, iALS, itemKNN, SASRec, Most-Popular.
+- **Cold-start / elicitation methods, scored off design point (‡):** user-kNN, TaNP, RBMF, belief-MF,
+  EDDI.
+
+Proposed note: *"‡ These methods are designed for the cold or interviewed user. Their full-profile
+scores are reductions we construct, not results their papers report, and should be read as
+recommender-component ceilings rather than as comparisons. Their real comparison is the interview
+table. Golbandi's tree admits no such reduction and appears only there."*
+
+This pre-empts the reviewer objection and moves the real comparison to the interview table, which is
+where the chapter's claim lives anyway.
+
 ## 4. Golbandi is NOT in the full-profile table. The row is user-kNN.
 
 **Author ruling, 2026-07-30, restated because I drifted off it twice.** The full-profile model list
