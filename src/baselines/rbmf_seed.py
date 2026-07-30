@@ -59,12 +59,20 @@ def _make_predict(Y, ls_reg, log=print):
         b = Xc.shape[0]
         scores = np.zeros((b, Y.shape[0]), dtype=np.float32)
         for r in range(b):
-            cols = Xc.indices[Xc.indptr[r]:Xc.indptr[r + 1]]
+            s0, e0 = Xc.indptr[r], Xc.indptr[r + 1]
+            cols = Xc.indices[s0:e0]
             if len(cols) == 0:
                 continue                                    # no evidence -> zero seed -> zero scores
             Ys = Y[cols]                                     # (|S| x f)
             A = Ys.T @ Ys + reg_I                            # (f x f) ridge normal-equations
-            rhs = Ys.sum(axis=0)                             # Y_S^T 1  (target r_i = 1)
+            # TARGET = the VALUE carried by the input matrix. Binary contract: every entry is 1.0, so
+            # Y_S^T r reduces EXACTLY to the old Y_S^T 1 and every published row is bit-identical.
+            # Signed interview contract: pass centred ratings and a dislike becomes a NEGATIVE target,
+            # pulling the ridge seed AWAY from that region instead of toward it. The frozen basis Y is
+            # untouched -- this method is DEFINED as a fold-in onto a frozen basis, so only the target
+            # moves. Caveat for the write-up: Y was itself fitted on binary data, so the latent space
+            # has no dislike structure, which caps what sign can buy here.
+            rhs = Ys.T @ Xc.data[s0:e0].astype(np.float64)   # Y_S^T r
             x_u = np.linalg.solve(A, rhs)
             scores[r] = (Y @ x_u).astype(np.float32)
         return scores

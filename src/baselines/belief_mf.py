@@ -70,14 +70,20 @@ def _make_predict(Y, mu0, Sig0, obs_noise, prior_scale, jitter, log=print):
         b = Xc.shape[0]
         scores = np.zeros((b, Y.shape[0]), dtype=np.float32)
         for r in range(b):
-            cols = Xc.indices[Xc.indptr[r]:Xc.indptr[r + 1]]
+            s0, e0 = Xc.indptr[r], Xc.indptr[r + 1]
+            cols = Xc.indices[s0:e0]
             if len(cols) == 0:
                 # no evidence -> posterior == prior -> score by prior-mean utility
                 scores[r] = (Y @ mu0).astype(np.float32)
                 continue
             Ys = Y[cols]                                   # (|S| x f)
             A = Sig0_inv + inv_s2 * (Ys.T @ Ys)            # posterior precision
-            rhs = Sig0_inv_mu0 + inv_s2 * Ys.sum(axis=0)   # Y_S^T 1  (r_i = 1)
+            # OBSERVATION = the VALUE carried by the input matrix. Binary contract: every entry is 1.0,
+            # so this reduces EXACTLY to the old Y_S^T 1 and the published row is bit-identical. Signed
+            # interview contract: a dislike enters as a NEGATIVE measurement of the user's utility.
+            # Frozen basis and empirical prior unchanged -- see rbmf_seed for the caveat about Y.
+            obs = Ys.T @ Xc.data[s0:e0].astype(np.float64)
+            rhs = Sig0_inv_mu0 + inv_s2 * obs              # Y_S^T r
             mu_post = np.linalg.solve(A, rhs)
             scores[r] = (Y @ mu_post).astype(np.float32)
         return scores
