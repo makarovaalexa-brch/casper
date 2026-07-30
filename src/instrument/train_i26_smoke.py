@@ -155,10 +155,12 @@ def main():
     Wd = dec.weight.detach(); bd = dec.bias.detach()
     opt = torch.optim.Adam(params, lr=a.lr)
 
+    bank = [fam.build_bank(np.random.default_rng(0))]
+
     def make_batch(pool, r):
         out = []
         while len(out) < a.batch:
-            ex = draw(pool[r.integers(len(pool))], r, fam, full_dropout)
+            ex = draw(pool[r.integers(len(pool))], r, fam, full_dropout, bank=bank[0])
             if ex is not None:
                 out.append(ex)
         return out

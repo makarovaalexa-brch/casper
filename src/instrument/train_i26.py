@@ -125,10 +125,12 @@ def main():
                         head_mask=D["head_mask"], mask_X=D["pool"])
         enc.train(); return r0["ndcg@10"], r1["ndcg@10"]
 
+    bank = [fam.build_bank(np.random.default_rng(0))]      # regenerated each epoch (see build_bank)
+
     def make_batch(pool, r):
         out = []
         while len(out) < a.batch:
-            ex = draw(pool[r.integers(len(pool))], r, fam, full_dropout)
+            ex = draw(pool[r.integers(len(pool))], r, fam, full_dropout, bank=bank[0])
             if ex is not None:
                 out.append(ex)
         return out
@@ -139,6 +141,7 @@ def main():
     enc.train()
     for ep in range(1, a.epochs + 1):
         r = np.random.default_rng(1000 + ep)
+        bank[0] = fam.build_bank(np.random.default_rng(500 + ep))   # fresh askers every epoch
         run = {"full": [], "interview": [], "empty": []}
         for step in range(a.steps_per_epoch):
             b = make_batch(tr_us, r)
