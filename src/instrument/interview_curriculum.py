@@ -61,6 +61,8 @@ class StrategyFamily:
         self.ni = len(self.pop)
         self.exclude_heldout = exclude_heldout
 
+    P_PURE_NOISE = 0.08      # the eval RANDOM arms live outside the Dirichlet simplex -- cover them
+
     def sample_weights(self, rng):
         """(a,b,c,d,e) >= 0; a..d L1-normalised over the four informative legs. `exclude_heldout` is
         retained only as a switch for diagnostics; the shipped curriculum spans the full simplex."""
@@ -73,7 +75,17 @@ class StrategyFamily:
         return 0.25, 0.25, 0.25, 0.25, 0.1
 
     def order(self, rng, k, weights=None):
-        """Top-k ask order under a sampled (or supplied) weighting."""
+        """Top-k ask order under a sampled (or supplied) weighting.
+
+        With probability P_PURE_NOISE the score is pure noise. Dirichlet weights are never exactly zero
+        and the noise leg is capped, so a RANDOM ask-order is outside the family's support -- yet the
+        eval random arms live there, and G-NOHARM (stay at the prior on useless questions) is defined on
+        exactly that regime. Without this the model would never train on it."""
+        if weights is None and rng.random() < self.P_PURE_NOISE:
+            sc = rng.standard_normal(self.ni)
+            kk = min(k, self.ni)
+            idx = np.argpartition(-sc, kk - 1)[:kk]
+            return idx[np.argsort(-sc[idx])].astype(np.int64)
         a, b, c, d, e = weights if weights is not None else self.sample_weights(rng)
         s = a * self.pop + b * self.H + c * self.H0 + d * self.helf
         if e > 0:
