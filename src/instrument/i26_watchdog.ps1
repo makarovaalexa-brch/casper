@@ -14,6 +14,7 @@
 # Remove:
 #   schtasks /Delete /TN i26_watchdog /F
 
+param([switch]$Loop, [int]$IntervalSec = 600)
 $ErrorActionPreference = 'SilentlyContinue'
 $root   = 'C:\dev\phd\casper'
 $out    = Join-Path $root 'experiments\instrument'
@@ -26,7 +27,8 @@ $script = Join-Path $root 'src\instrument\train_i26.py'
 
 function Log($m) { "$([DateTime]::Now.ToString('s')) $m" | Out-File -FilePath $log -Append -Encoding utf8 }
 
-if (Test-Path $done) { Log 'DONE marker present -> nothing to do'; exit 0 }
+function Check {
+if (Test-Path $done) { Log 'DONE marker present -> nothing to do'; return $true }
 
 $alive = $false
 if (Test-Path $state) {
@@ -56,4 +58,21 @@ if (-not $alive) {
         -ArgumentList @('-u', $script, '--epochs', '14', '--tag', 't2i26', '--steps_per_epoch', '2200') `
         -WorkingDirectory $root -WindowStyle Hidden `
         -RedirectStandardOutput $runlog -RedirectStandardError ($runlog + '.err')
+}
+return $false
+}
+
+# PRIMARY mechanism is -Loop as a DETACHED process: CLAUDE.md records that detached Start-Process
+# survives the session while in-session background tasks are reaped, and a registered schtasks entry
+# reported LastResult=0 while demonstrably never writing its log. A loop we can watch beats a scheduler
+# we cannot.
+if ($Loop) {
+    Log "watchdog LOOP started (pid=$PID, interval=${IntervalSec}s)"
+    while ($true) {
+        $done_now = Check
+        if ($done_now) { Log 'loop exiting: DONE'; break }
+        Start-Sleep -Seconds $IntervalSec
+    }
+} else {
+    Check | Out-Null
 }
