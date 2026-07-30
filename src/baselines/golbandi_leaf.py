@@ -45,9 +45,20 @@ from scipy import sparse
 LIKE_MIN = 3.5          # r > 3.5, i.e. r >= 4.0 on half-star data
 MAX_DEPTH = 8
 
+# ABLATION MODES -- which channels of the answer the leaf is allowed to condition on.
+#   "ternary"  like / dislike / unknown          -- the published WSDM'11 routing
+#   "no_unknown"  like / dislike only            -- unrated asked items stop being evidence; isolates
+#                 what the NON-ANSWER is worth (under HELF, 6.4 of 8 questions are unanswered, so this
+#                 is most of the interview)
+#   "no_sign"  like / not-like                   -- dislike and unknown merged, i.e. exactly the view
+#                 the Liang protocol leaves a model; isolates what the SIGN is worth
+MODES = ("ternary", "no_unknown", "no_sign")
+
 
 class GolbandiLeaf:
-    def __init__(self, g_train, n_items, lam=8.0, log=print):
+    def __init__(self, g_train, n_items, lam=8.0, mode="ternary", log=print):
+        assert mode in MODES, mode
+        self.mode = mode
         self.G = g_train.tocsr().astype(np.float32)
         self.Gc = self.G.tocsc()
         self.n_train, self.n_items = self.G.shape[0], n_items
@@ -62,7 +73,8 @@ class GolbandiLeaf:
         # over-fragmented leaf, correctly falls back to.
         self.global_mean = self.lsum / float(self.n_train)
         self._cache = {}
-        log(f"[golbandi_leaf] node model over {self.n_train} train users, lambda={self.lam}")
+        log(f"[golbandi_leaf] node model over {self.n_train} train users, lambda={self.lam}, "
+            f"mode={self.mode}")
 
     def _codes(self, asked):
         """(n_train,) ternary answer code of every TRAIN user over the asked items. 0 == all-unknown."""
@@ -71,9 +83,36 @@ class GolbandiLeaf:
             s, e = self.Gc.indptr[i], self.Gc.indptr[i + 1]
             rows = self.Gc.indices[s:e]
             vals = self.Gc.data[s:e]
-            branch = np.where(vals > LIKE_MIN, 2, 1).astype(np.int64)   # 1=dislike, 2=like, 0=unknown
-            codes[rows] += branch * (3 ** j)
+            if self.mode == "no_sign":      # dislike merged into unknown: like vs not-like
+                branch = np.where(vals > LIKE_MIN, 1, 0).astype(np.int64)
+                codes[rows] += branch * (2 ** j)
+            else:
+                branch = np.where(vals > LIKE_MIN, 2, 1).astype(np.int64)
+                codes[rows] += branch * (3 ** j)
         return codes
+
+    def _match_answered_only(self, answered):
+        """no_unknown mode: the leaf is defined ONLY by the items the test user actually answered.
+        Train users are matched on those items' like/dislike; the questions the user could not answer
+        are MARGINALISED OVER rather than matched, so the non-answer stops being evidence. This is the
+        diagnostic for "how much of Golbandi's short-budget advantage is the unknown branch?"."""
+        mask = None
+        for (i, lv) in answered:
+            want = 2 if lv >= 7 else 1
+            s0, e0 = self.Gc.indptr[i], self.Gc.indptr[i + 1]
+            rows, vals = self.Gc.indices[s0:e0], self.Gc.data[s0:e0]
+            br = np.where(vals > LIKE_MIN, 2, 1)
+            hit = np.zeros(self.n_train, dtype=bool)
+            hit[rows[br == want]] = True
+            mask = hit if mask is None else (mask & hit)
+        return np.flatnonzero(mask) if mask is not None else None
+
+    def _profile_answered_only(self, answered):
+        idx = self._match_answered_only(answered)
+        if idx is None or len(idx) == 0:
+            return self.global_mean.astype(np.float32)
+        s = np.asarray(self.L[idx].sum(axis=0)).ravel()
+        return ((s + self.lam * self.global_mean) / (len(idx) + self.lam)).astype(np.float32)
 
     def _group_profiles(self, asked):
         """Shrunk profile for every answer code present, as (code -> row index) plus a sparse sum
@@ -107,27 +146,32 @@ class GolbandiLeaf:
             s = np.asarray(self.L[idx].sum(axis=0)).ravel()
         return ((s + self.lam * self.global_mean) / (len(idx) + self.lam)).astype(np.float32)
 
+    def _code_of_user(self, asked, answered):
+        """The test user's own answer code, in the same encoding _codes() used for train users."""
+        d = dict(answered)
+        c = 0
+        for j, i in enumerate(asked):
+            if i in d:
+                like = d[i] >= 7                                   # level>=7 == r>=4.0
+                c += (1 if like else 0) * (2 ** j) if self.mode == "no_sign"                     else (2 if like else 1) * (3 ** j)
+        return c
+
     def scores(self, asked_per_user, answered_per_user, global_asked=None):
         """(n_users x n_items) dense scores. `global_asked` is the shared ask-list when the strategy is
         global (all four scored arms), which lets the whole partition be computed once."""
         n = len(asked_per_user)
         out = np.zeros((n, self.n_items), dtype=np.float32)
+        if self.mode == "no_unknown":
+            for u in range(n):
+                out[u] = self._profile_answered_only(answered_per_user[u])
+            return out
         if global_asked is not None:
             code_of, P = self._group_profiles(list(global_asked))
             for u in range(n):
-                d = dict(answered_per_user[u])
-                c = 0
-                for j, i in enumerate(global_asked):
-                    if i in d:
-                        c += (2 if d[i] >= 7 else 1) * (3 ** j)         # level>=7 == r>=4.0 == like
-                out[u] = P[code_of[c]] if c in code_of else self.global_mean
+                out[u] = P[code_of[c]] if (c := self._code_of_user(global_asked,
+                                                                    answered_per_user[u])) in code_of                     else self.global_mean
         else:
             for u in range(n):
                 asked = asked_per_user[u]
-                d = dict(answered_per_user[u])
-                c = 0
-                for j, i in enumerate(asked):
-                    if i in d:
-                        c += (2 if d[i] >= 7 else 1) * (3 ** j)
-                out[u] = self._profile_one(asked, c)
+                out[u] = self._profile_one(asked, self._code_of_user(asked, answered_per_user[u]))
         return out
