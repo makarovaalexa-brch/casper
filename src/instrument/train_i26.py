@@ -49,6 +49,15 @@ CERT_FULL = 0.3482          # the certified arm-A full-profile number
 G_FULL_FLOOR = 0.3467       # abort below this
 G_EMPTY_FLOOR = 0.1626      # counting
 EP2_ABORT_DELTA = 0.005     # risk-1 early warning
+HEARTBEAT_EVERY = 50        # steps between heartbeat writes (the watchdog reads this)
+
+
+def atomic_save(obj, path):
+    """Write to a temp file then os.replace. A crash mid-write must never corrupt the best checkpoint --
+    it is the only artifact of the run that matters."""
+    tmp = path + ".tmp"
+    torch.save(obj, tmp)
+    os.replace(tmp, path)
 
 
 def logln(m, tag="t2i26"):
@@ -136,10 +145,28 @@ def main():
         return out
 
     best = {"val": -1.0, "epoch": 0}
-    t0 = time.time()
+    start_ep = 1
     hist = []
+    last_p = os.path.join(CKPT_DIR, f"{a.tag}_last.pt")
+    state_p = os.path.join(OUT, f"{a.tag}_state.json")
+    # ---- RESUME: a watchdog relaunch must not start over from epoch 1 -------------------
+    if os.path.exists(last_p):
+        lb = torch.load(last_p, map_location="cpu")
+        enc.load_state_dict(lb["enc"]); opt.load_state_dict(lb["opt"])
+        start_ep = int(lb["epoch"]) + 1
+        best = lb.get("best", best)
+        hist = lb.get("hist", [])
+        L(f"[i26] RESUMED from {a.tag}_last.pt at epoch {start_ep} "
+          f"(best val_full={best['val']:.4f} @ep{best['epoch']})")
+    t0 = time.time()
     enc.train()
-    for ep in range(1, a.epochs + 1):
+
+    def beat(ep, step):
+        json.dump({"pid": os.getpid(), "heartbeat": time.time(), "epoch": ep, "step": step,
+                   "best_val": best["val"], "best_epoch": best["epoch"]},
+                  open(state_p, "w"))
+
+    for ep in range(start_ep, a.epochs + 1):
         r = np.random.default_rng(1000 + ep)
         bank[0] = fam.build_bank(np.random.default_rng(500 + ep))   # fresh askers every epoch
         run = {"full": [], "interview": [], "empty": []}
@@ -150,6 +177,8 @@ def main():
             loss.backward()
             torch.nn.utils.clip_grad_norm_(params, 5.0)
             opt.step()
+            if step % HEARTBEAT_EVERY == 0:
+                beat(ep, step)
             if step % 5 == 0:
                 with torch.no_grad():
                     for reg in run:
@@ -180,20 +209,26 @@ def main():
         json.dump(hist, open(os.path.join(OUT, f"{a.tag}_hist.json"), "w"), indent=2)
 
         if ep >= 2 and fv < CERT_FULL - EP2_ABORT_DELTA:
+            open(os.path.join(OUT, f"{a.tag}_DONE.marker"), "w").write("ABORTED: G-FULL")
             L(f"[i26] *** ABORT (risk 1): full-profile val {fv:.4f} is more than {EP2_ABORT_DELTA} "
               f"below the certified {CERT_FULL} at epoch {ep}. Design sheet section 0: the certified "
               f"checkpoint stands. ***")
             return 1
         if fv > best["val"]:
             best = {"val": fv, "epoch": ep}
-            torch.save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
-                        "val_full": fv, "val_tail": ft, "k0": e0, "k1": e1, "arch": "i26"},
-                       os.path.join(CKPT_DIR, f"{a.tag}_best.pt"))
-            L(f"[i26] new best val_full={fv:.4f} -> {a.tag}_best.pt")
+            atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
+                         "val_full": fv, "val_tail": ft, "k0": e0, "k1": e1, "arch": "i26"},
+                        os.path.join(CKPT_DIR, f"{a.tag}_best.pt"))
+            L(f"[i26] new best val_full={fv:.4f} -> {a.tag}_best.pt (atomic)")
+        # `last` carries optimiser state so a watchdog relaunch resumes instead of restarting.
+        atomic_save({"enc": enc.state_dict(), "opt": opt.state_dict(), "epoch": ep,
+                     "best": best, "hist": hist, "arch": "i26"}, last_p)
+        beat(ep, a.steps_per_epoch)
         if el > a.max_minutes:
             L(f"[i26] wall budget {a.max_minutes}m hit at ep{ep}"); break
 
     L(f"[i26] done. best val_full={best['val']:.4f} @ep{best['epoch']}")
+    open(os.path.join(OUT, f"{a.tag}_DONE.marker"), "w").write(json.dumps(best))
     return 0
 
 
