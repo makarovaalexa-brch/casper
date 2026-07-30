@@ -113,6 +113,11 @@ def main():
                          "extend a sweep whose winner sat on the grid edge -- an edge winner means the "
                          "baseline is under-tuned, and an under-tuned baseline is not a fair baseline.")
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--binary_control", action="store_true",
+                    help="EXISTENTIAL CONTROL. Run this same centred/shrunk estimator on the BINARY "
+                         "matrices. If it lands near the binary user-kNN row (0.3756), the estimator "
+                         "is sound and the ratings INPUT is what costs. If it also lands near 0.28, "
+                         "the estimator itself is broken and the ratings-native row means nothing.")
     a = ap.parse_args()
 
     if a.smoke:
@@ -181,14 +186,16 @@ def main():
             best = (None, k, lam)
 
     _, k, lam = best
-    logln(f"[golbandi_native] TEST with k={k} lam={lam}")
+    logln(f"[golbandi_native] TEST with k={k} lam={lam}"
+          + (" [BINARY CONTROL: same estimator, binary input]" if a.binary_control else ""))
     ts = time.time()
-    pr = fit(D["g_train"], D["n_items"], args=argparse.Namespace(k=k, lam=lam), log=logln)
-    t = M.evaluate(pr, D["g_te_tr"], D["te_te"], batch_size=500, head_mask=D["head_mask"],
+    train_X, foldin_X = (D["train"], D["te_tr"]) if a.binary_control else (D["g_train"], D["g_te_tr"])
+    pr = fit(train_X, D["n_items"], args=argparse.Namespace(k=k, lam=lam), log=logln)
+    t = M.evaluate(pr, foldin_X, D["te_te"], batch_size=500, head_mask=D["head_mask"],
                    mask_X=D["pool"])
     logln(f"[golbandi_native] ARM-N TEST full@10={t['ndcg@10']:.4f} tail@10={t['tail_ndcg@10']:.4f} "
           f"ndcg@100={t['ndcg@100']:.4f} ({(time.time() - ts) / 60:.1f} m)")
-    with open(os.path.join(OUT, "golbandi_native.json"), "w") as f:
+    with open(os.path.join(OUT, ("golbandi_native_binctrl.json" if a.binary_control else "golbandi_native.json")), "w") as f:
         json.dump({"arm": "N", "model": "golbandi_native", "hp": {"k": k, "lam": lam},
                    "sweep": results, "test": t}, f, indent=2)
     return 0
