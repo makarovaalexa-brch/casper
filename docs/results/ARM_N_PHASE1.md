@@ -149,8 +149,19 @@ Val sweep k ∈ {100, 300} × λ ∈ {0, 8, 25}:
 | 300 | 8 | 0.2377 | 0.1056 |
 | 300 | 25 | 0.2589 | 0.1259 |
 
-**ARM-N TEST (k=100, λ=25): 0.2725 / 0.1317.** λ=25 sits at the grid edge, so λ=50 is being run — a
-selected value on the boundary is an under-tuned baseline.
+λ=25 won at the edge of the first grid, and a selected value on the boundary means an under-tuned
+baseline — so the grid was extended and re-selected on val (a λ=50 *test* run made before this was
+discarded: selecting on test is not selection):
+
+| λ (k=100) | 25 | 50 | 100 | **200** |
+|---|---|---|---|---|
+| val full | 0.2663 | 0.2713 | 0.2737 | **0.2754** |
+| increment | — | +0.0050 | +0.0024 | +0.0017 |
+
+Increments halve per doubling, so the curve is asymptotic near ~0.278 and λ=200 is a properly converged
+selection rather than a boundary artefact.
+
+**ARM-N TEST (k=100, λ=200): 0.2808 / 0.1391.**
 
 Bug found and fixed mid-run: at λ=0 an item no neighbour rated scores 0/0 = NaN, which sorts
 unpredictably rather than ranking last. λ=0's 0.0034 is the unshrunk estimator being degenerate at this
