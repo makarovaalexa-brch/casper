@@ -117,7 +117,40 @@ never surface it.
 Note the tail gap exceeds the full gap at k ≤ 2 (+0.0217 vs +0.0169 at k=1): dislikes disambiguate
 hardest where popularity carries least.
 
-## 4. The author's fear, resolved — and a naming correction
+## 4. Golbandi is NOT in the full-profile table. The row is user-kNN.
+
+**Author ruling, 2026-07-30, restated because I drifted off it twice.** The full-profile model list
+contains **user-kNN**. It does not contain Golbandi, in the table or in the prose around it. His tree is
+an elicitation policy with no full-profile mode; it belongs only to the interview table.
+
+**The full-profile user-kNN row is the binary one: 0.3756 / 0.2377** (arm N; arm A 0.3065 / 0.1895).
+That is the strongest user-kNN we can build, so that is the row.
+
+Ratings-valued variants were explored and are **diagnostics, not table rows** — they exist only to
+explain why a neighbourhood model on ratings ranks worse, and they must not be presented as
+"Golbandi, faithfully reproduced", because Golbandi published an RMSE estimator, not a ranker:
+
+| variant | arm N full / tail | why |
+|---|---|---|
+| **binary (the row)** | **0.3756 / 0.2377** | co-occurrence, which is what top-N runs on |
+| centred ratings, λ=200 val-selected | 0.2808 / 0.1391 | sign-aware, but centring destroys co-occurrence |
+| centred ratings on BINARY input | 0.0001 | **degenerate by construction** — every row mean is 1, so every centred value is exactly 0 |
+
+That last line is the mechanism, and it is worth keeping: mean-centring removes "this user watched it
+at all". With binary input there is nothing else, so the model dies completely; with real ratings it
+merely degrades, because ~50% of ML-25M ratings are ≤ 3.5 and widely-watched-but-mixed films accumulate
+negative mass — exactly the films with high hit probability. Cremonesi, Koren & Turrin (RecSys 2010) is
+the citation: rating-prediction and top-N are different objectives.
+
+Corroborating detail: λ had to climb to 200, at which point the denominator is λ-dominated and the
+score collapses to a support-weighted sum — the model quietly re-introducing the co-occurrence
+weighting that centring removed.
+
+**Naming debt:** `golbandi_node.py` and `golbandi_native.py` keep his name in the filenames and in the
+`golbandi_node` JSON keys. Rename to `user_knn*` so the label cannot drift back (importers:
+`run_arm_n.py`, `run_ml25m_liang.py`, `eval_cold_baselines.py`).
+
+## 4a. Historical note on the naming error
 
 **Golbandi has no full-profile mode by construction.** The WSDM'11 contribution is an *elicitation
 policy*: ask ≤ k questions, route by like / dislike / unknown, recommend the leaf's shrunk group mean.
