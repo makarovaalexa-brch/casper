@@ -178,6 +178,54 @@ the wrong one for "what should we show next".
 Claim 1 is the one we can demonstrate; claim 2 would have been easy to overclaim. Keeping them apart is
 what makes "every baseline is reproduced faithfully on its own contract" a defensible sentence.
 
+## 4b. ★★★ THE TIE CLAIM DOES NOT SURVIVE A PAIRED TEST
+
+**Found 2026-07-30 while computing the arm-N comparison. This reaches back into the chapter.**
+
+The chapter reports our tower as tying RecVAE on arm A: difference −0.0057, "CI 0.0069". That interval
+is exactly `1.96 × √2 × 0.0025` — i.e. an **unpaired** SE-of-difference. Both models are scored on the
+*same 10,000 users*, so the comparison is paired and the unpaired interval is far too wide.
+
+Re-tested with a percentile bootstrap over the per-user differences (`arm_n_paired.py`, 10,000
+resamples):
+
+| arm | metric | ours − RecVAE | 95% CI (paired) | verdict |
+|---|---|---|---|---|
+| **A** | full@10 | −0.0057 | [−0.0072, −0.0042] | **SEPARATED** |
+| **A** | tail@10 | −0.0035 | [−0.0049, −0.0021] | **SEPARATED** |
+| **N** | full@10 | −0.0094 | [−0.0108, −0.0079] | **SEPARATED** |
+| **N** | tail@10 | −0.0096 | [−0.0111, −0.0081] | **SEPARATED** |
+
+The paired CI half-width is ±0.0015, **4.6× tighter** than the unpaired ±0.0069 the chapter used. The
+sign of the difference is consistent across arms, both metrics, and every resample.
+
+**We do not tie RecVAE. We are reliably just below it.**
+
+### What may be claimed instead
+
+The gap is small and quantifiable: **1.6% relative on arm A** (0.3482 vs 0.3540), 2.2% on arm N. And
+the context is favourable, because the tower is *built on a frozen RecVAE decoder*: we are within 1.6%
+of the model we sit on top of, while adding set-structured input, signed folding, and the interview
+capability none of the rivals have.
+
+Honest formulations, in decreasing strength:
+- "within 0.006 NDCG@10 (1.6%) of the strongest baseline on its own protocol"
+- "near-parity"; **never** unqualified "parity", "ties", or "matches"
+- The frozen-tower design *chooses* to give up a little full-profile accuracy for R2–R5. That is now a
+  measured price, not a hand-wave — and a 1.6% price for the whole capability set is a good trade to
+  argue explicitly.
+
+### Actions
+
+1. Definition 1 is currently titled *"Parity on a shared protocol"* — the word no longer fits. Retitle.
+2. Every "ties SOTA" / "matches RecVAE" / "parity" phrasing must be requantified. (A prior pass already
+   replaced "ties SOTA" with "parity"; that was the right instinct with the wrong destination.)
+3. Report the paired CI everywhere a difference is claimed. The unpaired interval must not reappear.
+4. Re-check any other CI in the chapter computed as `1.96 × √2 × SE`.
+
+**This is exactly what a reviewer would have found.** Finding it ourselves converts a fatal objection
+into a measured design trade-off.
+
 ## 5. Standing interpretation, now that the ordering is visible
 
 1. **Arm A is untouched.** Parity is certified there, against published numbers.
