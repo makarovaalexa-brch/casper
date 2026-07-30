@@ -1,0 +1,22 @@
+[11:15:34] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:16:03] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:16:11] [graded] train (140768, 18359) nnz=21682110 mean=3.540 frac_sub3.5=0.500
+[11:16:47] [graded] test fold-in (10000, 18359) nnz=1411761 mean=3.441 frac_sub3.5=0.557
+[11:16:47] [arm_n] graded matrices cached -> C:\dev\phd\casper\.cache\baselines\graded_ml25m.npz
+[11:16:47] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[11:16:47] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[11:16:47] [pop] fitted item popularity over 140768 train users, 18359 items
+[11:17:24] [canary] pop   A full=0.1345 tail=0.0226 | N full=0.1626 tail=0.0262 | delta full=+0.0280 tail=+0.0037
+[11:17:24] [ease] building Gram (18359x18359 float64)
+[11:17:40] [ease] solving EASE lambda=500.0 ...
+[11:21:09] [ease] B ready (3.8m), |B|=24.92
+[11:22:02] [canary] ease  A full=0.3476 tail=0.2441 | N full=0.4135 tail=0.2941 | delta full=+0.0658 tail=+0.0500
+[11:22:02] [gate] SNAP  pop.ndcg@10: got 0.1345 vs canonical 0.1345 -> PASS
+[11:22:02] [gate] SNAP  pop.tail_ndcg@10: got 0.0226 vs canonical 0.0226 -> PASS
+[11:22:02] [gate] SNAP  ease.ndcg@10: got 0.3476 vs canonical 0.3476 -> PASS
+[11:22:02] [gate] SNAP  ease.tail_ndcg@10: got 0.2441 vs canonical 0.2441 -> PASS
+[11:22:02] [gate] RISE  pop: +0.0280 -> PASS
+[11:22:02] [gate] RISE  ease: +0.0658 -> PASS
+[11:22:02] [gate] ORDER ease > pop under N: 0.4135 vs 0.1626 -> PASS
+[11:22:02] [gate] EVEN  rise pop +0.0280 vs ease +0.0658 (ratio 2.35) -- INSPECT, not automatic
+[11:22:02] [canary] ALL GATES PASS in 6.6 m

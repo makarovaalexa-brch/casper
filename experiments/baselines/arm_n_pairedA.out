@@ -1,0 +1,15 @@
+[13:18:02] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[13:18:02] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[13:18:02] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[13:18:03] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[13:18:03] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[13:18:03] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[13:18:03] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[13:18:03] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[13:18:22] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[13:18:31] [paired] arm A: fold-in nnz=625946 pool nnz=625946
+[13:19:44] [paired] ours  full=0.3482 tail=0.2462
+[13:19:47] [recvae] RESUMED ep25 best=0.3512
+[13:20:05] [paired] recvae full=0.3540 tail=0.2497
+[13:20:08] [paired] ndcg@10: ours-recvae = -0.0057  95% CI [-0.0072, -0.0042]  n=10000  -> SEPARATED
+[13:20:10] [paired] tail_ndcg@10: ours-recvae = -0.0035  95% CI [-0.0049, -0.0021]  n=9281  -> SEPARATED

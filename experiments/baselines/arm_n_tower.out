@@ -1,0 +1,24 @@
+[11:22:45] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[11:22:45] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[11:22:45] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[11:22:46] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:22:47] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[11:22:47] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:22:47] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[11:22:47] [tower] snapshot t2final_best.pt ep=9 val_full=0.3451
+[11:22:47] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:23:28] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:23:44] [tower] fold-in nnz: arm A 625946 (likes only) vs arm N 1411761 (all bands, 0.557 of tokens are dislikes at level<=6)
+[11:26:15] [tower] A_full                 full@10=0.3482 tail@10=0.2462 ndcg@100=0.4486 (2.5 m)
+[11:28:42] [tower] A_input_N_pool         full@10=0.4203 tail@10=0.2985 ndcg@100=0.5036 (2.5 m)
+[11:35:04] [tower] N_full                 full@10=0.4179 tail@10=0.2955 ndcg@100=0.5023 (6.4 m)
+[11:35:45] [tower] A_k2_N_pool            full@10=0.2464 tail@10=0.1262 ndcg@100=0.3256 (0.7 m)
+[11:36:21] [tower] N_k2                   full@10=0.2289 tail@10=0.1062 ndcg@100=0.3068 (0.6 m)
+[11:37:01] [tower] A_k4_N_pool            full@10=0.2849 tail@10=0.1650 ndcg@100=0.3689 (0.7 m)
+[11:37:38] [tower] N_k4                   full@10=0.2540 tail@10=0.1318 ndcg@100=0.3378 (0.6 m)
+[11:38:16] [tower] A_k8_N_pool            full@10=0.3178 tail@10=0.1982 ndcg@100=0.4079 (0.6 m)
+[11:39:07] [tower] N_k8                   full@10=0.2770 tail@10=0.1603 ndcg@100=0.3693 (0.8 m)
+[11:39:56] [tower] A_k16_N_pool           full@10=0.3586 tail@10=0.2371 ndcg@100=0.4505 (0.8 m)
+[11:40:46] [tower] N_k16                  full@10=0.3124 tail@10=0.1951 ndcg@100=0.4066 (0.8 m)
+[11:40:46] [gate] SNAP arm-A full@10 0.3482 vs chapter 0.3482 -> PASS
+[11:40:46] [tower] done in 18.2 m

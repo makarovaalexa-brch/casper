@@ -1,0 +1,84 @@
+[11:50:59] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[11:50:59] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[11:50:59] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[11:50:59] === arm N re-eval start; order=['pop', 'itemknn', 'ease', 'ials', 'edlae', 'turbocf', 'golbandi_node', 'rbmf_seed', 'belief_mf', 'recvae', 'multvae', 'tanp', 'sasrec'] ===
+[11:50:59] --- pop ---
+[11:50:59] [pop] fitted item popularity over 140768 train users, 18359 items
+[11:51:28] [snap] pop: arm A 0.1345 vs canonical 0.1345 -> PASS
+[11:51:28] [done] pop: A full=0.1345 tail=0.0226 | N full=0.1626 tail=0.0262 | delta full=+0.0280 tail=+0.0037 (0.5m)
+[11:51:28] --- itemknn ---
+[11:51:46]   [itemknn] top-200 pruning 0/18359
+[11:51:46]   [itemknn] top-200 pruning 4000/18359
+[11:51:47]   [itemknn] top-200 pruning 8000/18359
+[11:51:47]   [itemknn] top-200 pruning 12000/18359
+[11:51:47]   [itemknn] top-200 pruning 16000/18359
+[11:51:47] [itemknn] built cosine S (top-200), nnz=3662174, 0.3m
+[11:52:12] [snap] itemknn: arm A 0.2428 vs canonical 0.2428 -> PASS
+[11:52:12] [done] itemknn: A full=0.2428 tail=0.1297 | N full=0.2946 tail=0.1593 | delta full=+0.0518 tail=+0.0296 (0.7m)
+[11:52:12] --- ease ---
+[11:52:12] [ease] building Gram (18359x18359 float64)
+[11:52:26] [ease] solving EASE lambda=500.0 ...
+[12:00:50] [ease] B ready (8.6m), |B|=24.92
+[12:02:16] [snap] ease: arm A 0.3476 vs canonical 0.3476 -> PASS
+[12:02:16] [done] ease: A full=0.3476 tail=0.2441 | N full=0.4135 tail=0.2941 | delta full=+0.0658 tail=+0.0500 (10.1m)
+[12:02:16] --- ials ---
+C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\implicit\cpu\als.py:96: RuntimeWarning: OpenBLAS is configured to use 3 threads. It is highly recommended to disable its internal threadpool by setting the environment variable 'OPENBLAS_NUM_THREADS=1' or by calling 'threadpoolctl.threadpool_limits(1, "blas")'. Having OpenBLAS use a threadpool can lead to severe performance issues here.
+  check_blas_config()
+[12:08:21] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (6.1m)
+[12:10:29] [snap] ials: arm A 0.2445 vs canonical 0.2442 -> PASS
+[12:10:29] [done] ials: A full=0.2445 tail=0.1836 | N full=0.3052 tail=0.2276 | delta full=+0.0607 tail=+0.0440 (8.2m)
+[12:10:29] --- edlae ---
+[12:23:10] [snap] edlae: arm A 0.3433 vs canonical 0.3433 -> PASS
+[12:23:10] [done] edlae: A full=0.3433 tail=0.2395 | N full=0.4110 tail=0.2893 | delta full=+0.0677 tail=+0.0498 (12.7m)
+[12:23:10] --- turbocf ---
+[12:23:11] [turbocf] R_tilde nnz=10851052 (alpha=0.5); building P_bar (dense 18359^2 f32)
+[12:23:39] [turbocf] rho(P_bar) ~ 1.000 (alpha=0.5, s=1.0)
+[12:28:22] [turbocf] F stats: min=-0.000553 max=0.208 frac_neg=0.711
+[12:28:23] [turbocf] F ready (5.2m) alpha=0.5 power=1.0 filter=2 |F|=3.59
+[12:35:04] [snap] turbocf: arm A 0.2622 vs canonical 0.2622 -> PASS
+[12:35:04] [done] turbocf: A full=0.2622 tail=0.1621 | N full=0.3285 tail=0.2034 | delta full=+0.0663 tail=+0.0413 (11.9m)
+[12:35:04] --- golbandi_node ---
+[12:35:04] [golbandi_node] user-kNN mean core: 140768 train users, k=100, weighted=True, shrink=0.0
+[12:42:13] [snap] golbandi_node: arm A 0.3065 vs canonical 0.3065 -> PASS
+[12:42:13] [done] golbandi_node: A full=0.3065 tail=0.1895 | N full=0.3756 tail=0.2377 | delta full=+0.0691 tail=+0.0482 (7.1m)
+[12:42:13] --- rbmf_seed ---
+[12:45:43] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (3.5m)
+[12:45:43] [rbmf_seed] frozen iALS f=200 (3.5m); ls_reg=1.0
+[12:47:50] [snap] rbmf_seed: arm A 0.2503 vs canonical 0.2534 -> *** FAIL ***
+[12:47:50] [done] rbmf_seed: A full=0.2503 tail=0.1755 | N full=0.3072 tail=0.2107 | delta full=+0.0569 tail=+0.0351 (5.6m)
+[12:47:50] --- belief_mf ---
+[12:54:59] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (7.1m)
+[12:55:00] [belief_mf] frozen iALS f=200 (7.2m); prior mu0|=8.079 tr(Sig0)=338.125; obs_noise=1.0
+[12:56:43] [snap] belief_mf: arm A 0.2010 vs canonical 0.2019 -> PASS
+[12:56:43] [done] belief_mf: A full=0.2010 tail=0.1201 | N full=0.2521 tail=0.1522 | delta full=+0.0511 tail=+0.0321 (8.9m)
+[12:56:43] --- recvae ---
+[12:56:46] [recvae] RESUMED ep25 best=0.3512
+[12:57:53] [snap] recvae: arm A 0.3540 vs canonical 0.3540 -> PASS
+[12:57:53] [done] recvae: A full=0.3540 tail=0.2497 | N full=0.4273 tail=0.3051 | delta full=+0.0734 tail=+0.0554 (1.2m)
+[12:57:53] --- multvae ---
+[12:57:54] [vae] RESUMED ep33 best=0.3164
+[12:59:09] [snap] multvae: arm A 0.3202 vs canonical 0.3202 -> PASS
+[12:59:09] [done] multvae: A full=0.3202 tail=0.2194 | N full=0.3904 tail=0.2682 | delta full=+0.0702 tail=+0.0488 (1.3m)
+[12:59:09] --- tanp ---
+[12:59:09] [tanp] RESUMED ep98 best=0.2623
+[13:00:07] [snap] tanp: arm A 0.2645 vs canonical 0.2645 -> PASS
+[13:00:07] [done] tanp: A full=0.2645 tail=0.1635 | N full=0.3324 tail=0.2078 | delta full=+0.0679 tail=+0.0443 (1.0m)
+[13:00:07] --- sasrec ---
+[13:00:07] [sasrec] loading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv (real-data path)
+[13:00:25] [sasrec] train users=140768 (replayed split)
+[13:00:47] [sasrec] built 140768 train sequences; median len=41
+[13:00:49] [sasrec] val: ordered fold-in for 10000 rows (median len=32)
+[13:00:51] [sasrec] test: ordered fold-in for 10000 rows (median len=33)
+[13:00:51] [sasrec] RESUMED ep11 best=0.1479
+Traceback (most recent call last):
+  File "C:\dev\phd\casper\src\baselines\run_arm_n.py", line 155, in <module>
+    main()
+  File "C:\dev\phd\casper\src\baselines\run_arm_n.py", line 135, in main
+    arm_n = M.evaluate(predict, D["te_tr"], D["te_te"], batch_size=500, head_mask=D["head_mask"],
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\dev\phd\casper\src\baselines\metrics.py", line 139, in evaluate
+    X_pred = predict_fn(X)
+             ^^^^^^^^^^^^^
+  File "C:\dev\phd\casper\src\baselines\sasrec.py", line 167, in predict
+    raise RuntimeError(f"[sasrec] cursor overrun: {state['cursor']}+{B} > {len(ordered)} "
+RuntimeError: [sasrec] cursor overrun: 10000+500 > 10000 (missing set_split reset?)
