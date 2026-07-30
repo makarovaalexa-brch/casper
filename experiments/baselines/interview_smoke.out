@@ -1,0 +1,17 @@
+[14:56:19] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[14:56:19] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[14:56:19] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[14:56:20] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[14:56:21] [interview] 2 recommenders x 2 strategies x 1 budgets
+[14:56:21] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[14:56:22] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[14:56:22] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[14:56:22] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[14:56:23] [golbandi_leaf] node model over 140768 train users, lambda=8.0
+[14:56:23] [pop] fitted item popularity over 140768 train users, 18359 items
+[14:56:48] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[14:57:16] [interview] ours           helf           k= 2 answered= 0.5/2 full=0.1642 tail=0.0392 (0.5m)
+[14:57:38] [interview] ours           popularity     k= 2 answered= 0.8/2 full=0.1609 tail=0.0435 (0.4m)
+[14:58:05] [interview] golbandi_leaf  helf           k= 2 answered= 0.5/2 full=0.1739 tail=0.0473 (0.4m)
+[14:58:28] [interview] golbandi_leaf  popularity     k= 2 answered= 0.8/2 full=0.1534 tail=0.0425 (0.4m)
+[14:58:28] [interview] done -> C:\dev\phd\casper\experiments\baselines\interview\interview_table.json

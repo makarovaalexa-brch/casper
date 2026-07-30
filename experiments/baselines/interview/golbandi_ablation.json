@@ -1,0 +1,20 @@
+{
+  "ternary|helf|k2": 0.1739353747017557,
+  "ternary|helf|k4": 0.1890154151310554,
+  "ternary|helf|k8": 0.19479928858972123,
+  "ternary|entropy0|k2": 0.15625608463573734,
+  "ternary|entropy0|k4": 0.16804918622511125,
+  "ternary|entropy0|k8": 0.16860320832579923,
+  "no_unknown|helf|k2": 0.171361265363955,
+  "no_unknown|helf|k4": 0.1823350995501311,
+  "no_unknown|helf|k8": 0.18672887377686012,
+  "no_unknown|entropy0|k2": 0.1687836325270907,
+  "no_unknown|entropy0|k4": 0.17657142164121464,
+  "no_unknown|entropy0|k8": 0.18785875414856962,
+  "no_sign|helf|k2": 0.16806992393126446,
+  "no_sign|helf|k4": 0.17405269746504518,
+  "no_sign|helf|k8": 0.18814543555936847,
+  "no_sign|entropy0|k2": 0.15413562195757854,
+  "no_sign|entropy0|k4": 0.1575009850868129,
+  "no_sign|entropy0|k8": 0.16242610508317662
+}
