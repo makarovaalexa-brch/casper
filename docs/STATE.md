@@ -182,7 +182,9 @@ it was indeed unwinding toward items-only, consistent with the myopia account bu
 
 ## ★★★ OPEN, TOP OF QUEUE (#66): sign-aware evaluation — scope R5, then optionally probe
 **Adjudicated twice by Fable + one deep-research pass, evening of 2026-07-29. NOT a blocker.**
-Full record: `external_literature/findings/sign_aware_evaluation.md` and task #66.
+**★ FULL WRITE-UP → `docs/results/PROTOCOL_DISLIKE_DISCARD.md`** (why the Liang protocol is canonical, the
+whole argument, both verdicts, the rejected fix, the 4-arm design, open items). Citations →
+`external_literature/findings/sign_aware_evaluation.md`. Plan → task #66.
 
 **The question.** The Liang protocol discards every sub-3.5 interaction (55.7% of a test user's rated
 history). Our tower is sign-aware; item-indicator models cannot represent a dislike at all. So can a parity
