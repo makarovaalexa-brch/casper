@@ -1,0 +1,19 @@
+[11:35:54] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[11:35:54] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[11:35:54] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[11:35:54] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:36:34] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:37:36] [golbandi_native] val graded fold-in nnz=1356475
+[11:37:37] [golbandi_native] centred user-kNN: 140768 train users, k=100, lambda=0.0
+[11:45:57] [golbandi_native] VAL k=100 lam=0.0: full=0.0034 tail=0.0035 (8.3 m)
+[11:45:58] [golbandi_native] centred user-kNN: 140768 train users, k=100, lambda=8.0
+[11:51:39] [golbandi_native] VAL k=100 lam=8.0: full=0.2503 tail=0.1162 (5.7 m)
+[11:51:41] [golbandi_native] centred user-kNN: 140768 train users, k=100, lambda=25.0
+[12:00:47] [golbandi_native] VAL k=100 lam=25.0: full=0.2663 tail=0.1302 (9.1 m)
+[12:00:51] [golbandi_native] centred user-kNN: 140768 train users, k=300, lambda=8.0
+[12:13:38] [golbandi_native] VAL k=300 lam=8.0: full=0.2377 tail=0.1056 (12.9 m)
+[12:13:42] [golbandi_native] centred user-kNN: 140768 train users, k=300, lambda=25.0
+[12:30:13] [golbandi_native] VAL k=300 lam=25.0: full=0.2589 tail=0.1259 (16.6 m)
+[12:30:13] [golbandi_native] TEST with k=100 lam=25.0
+[12:30:14] [golbandi_native] centred user-kNN: 140768 train users, k=100, lambda=25.0
+[12:35:30] [golbandi_native] ARM-N TEST full@10=0.2725 tail@10=0.1317 ndcg@100=0.3205 (5.3 m)

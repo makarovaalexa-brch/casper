@@ -1,0 +1,14 @@
+[13:06:13] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[13:06:13] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[13:06:13] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[13:06:13] === arm N re-eval start; order=['sasrec'] ===
+[13:06:13] --- sasrec ---
+[13:06:14] [sasrec] loading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv (real-data path)
+[13:08:30] [sasrec] train users=140768 (replayed split)
+[13:11:08] [sasrec] built 140768 train sequences; median len=41
+[13:11:37] [sasrec] val: ordered fold-in for 10000 rows (median len=32)
+[13:12:01] [sasrec] test: ordered fold-in for 10000 rows (median len=33)
+[13:12:13] [sasrec] RESUMED ep11 best=0.1479
+[13:17:49] [snap] sasrec: arm A 0.1486 vs canonical 0.1486 -> PASS
+[13:17:49] [done] sasrec: A full=0.1486 tail=0.0805 | N full=0.1842 tail=0.0986 | delta full=+0.0356 tail=+0.0181 (11.6m)
+[13:17:49] === arm N re-eval complete ===

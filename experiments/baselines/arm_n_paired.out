@@ -1,0 +1,12 @@
+[13:06:20] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[13:06:21] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[13:06:21] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[13:06:22] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[13:06:23] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[13:06:23] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[13:06:23] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[13:16:05] [paired] ours  full=0.4179 tail=0.2955
+[13:16:09] [recvae] RESUMED ep25 best=0.3512
+[13:16:34] [paired] recvae full=0.4273 tail=0.3051
+[13:16:37] [paired] ndcg@10: ours-recvae = -0.0094  95% CI [-0.0108, -0.0079]  n=10000  -> SEPARATED
+[13:16:41] [paired] tail_ndcg@10: ours-recvae = -0.0096  95% CI [-0.0111, -0.0081]  n=9281  -> SEPARATED

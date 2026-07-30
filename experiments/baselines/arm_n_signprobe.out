@@ -1,0 +1,15 @@
+[11:41:16] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[11:41:16] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[11:41:16] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[11:41:18] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:41:18] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[11:41:18] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:41:18] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[11:41:18] [probe] snapshot t2final_best.pt ep=9
+[11:42:39] [probe] k=  1  A(likes only,  0.5/1 usable) full=0.1833 tail=0.0586  |  N(all signed) full=0.2002 tail=0.0803  |  GAP full=+0.0169 tail=+0.0217
+[11:44:04] [probe] k=  2  A(likes only,  1.1/2 usable) full=0.2060 tail=0.0849  |  N(all signed) full=0.2289 tail=0.1062  |  GAP full=+0.0229 tail=+0.0212
+[11:45:21] [probe] k=  4  A(likes only,  2.1/4 usable) full=0.2389 tail=0.1193  |  N(all signed) full=0.2540 tail=0.1318  |  GAP full=+0.0151 tail=+0.0125
+[11:46:32] [probe] k=  8  A(likes only,  4.2/8 usable) full=0.2779 tail=0.1572  |  N(all signed) full=0.2770 tail=0.1603  |  GAP full=-0.0009 tail=+0.0031
+[11:47:52] [probe] k= 16  A(likes only,  8.5/16 usable) full=0.3142 tail=0.1953  |  N(all signed) full=0.3124 tail=0.1951  |  GAP full=-0.0018 tail=-0.0003
+[11:49:09] [probe] k= 32  A(likes only, 15.8/32 usable) full=0.3576 tail=0.2326  |  N(all signed) full=0.3580 tail=0.2329  |  GAP full=+0.0005 tail=+0.0002
+[11:49:09] [probe] done in 8.0 m
