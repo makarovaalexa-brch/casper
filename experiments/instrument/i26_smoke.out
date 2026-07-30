@@ -1,0 +1,20 @@
+[23:14:35] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[23:14:35] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[23:14:35] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[23:14:36] [smoke] 18000 train / 2000 held-out profiles (held-out is a slice of the TRAIN cohort; canonical val/test stay quarantined)
+[23:14:38] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[23:14:39] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[23:14:39] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[23:14:39] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[23:14:39] [smoke] warm-started taste path from t2final_best; new params left at init: ['gate_e', 'W_white', 'psi.0.weight', 'psi.0.bias', 'psi.2.weight', 'psi.2.bias', 'rho_expo.0.weight', 'rho_expo.0.bias', 'rho_expo.2.weight', 'rho_expo.2.bias']
+[23:14:41] [smoke] ---- step 0 (should equal the certified model: all new parts are zero-init) ----
+[23:15:09] [smoke] step   0 HELD-OUT loss  full=5.4606  interview=7.6947  empty=7.4802  | empty-set NDCG@10=0.1550 (target >= 0.1626)
+[23:20:12] [smoke] step 100 TRAIN loss    full=5.4324  interview=6.6473  empty=7.2992
+[23:20:42] [smoke] step 100 HELD-OUT loss  full=5.4587  interview=6.6943  empty=7.4425  | empty-set NDCG@10=0.1579 (target >= 0.1626)
+[23:25:56] [smoke] step 200 TRAIN loss    full=5.4268  interview=6.6012  empty=7.2427
+[23:26:55] [smoke] step 200 HELD-OUT loss  full=5.4535  interview=6.6656  empty=7.3509  | empty-set NDCG@10=0.1588 (target >= 0.1626)
+[23:31:19] [smoke] step 300 TRAIN loss    full=5.4608  interview=6.6465  empty=7.0457
+[23:31:58] [smoke] step 300 HELD-OUT loss  full=5.4490  interview=6.6735  empty=7.2668  | empty-set NDCG@10=0.1595 (target >= 0.1626)
+[23:35:04] [smoke] step 400 TRAIN loss    full=5.3949  interview=6.5179  empty=7.1522
+[23:35:45] [smoke] step 400 HELD-OUT loss  full=5.4758  interview=6.6290  empty=7.2240  | empty-set NDCG@10=0.1598 (target >= 0.1626)
+[23:35:45] [smoke] done

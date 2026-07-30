@@ -1,0 +1,15 @@
+[23:01:56] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[23:01:56] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[23:01:56] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[23:01:57] [smoke] 18000 train / 2000 held-out profiles (held-out is a slice of the TRAIN cohort; canonical val/test stay quarantined)
+[23:01:59] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[23:01:59] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[23:01:59] [model] arch=i26 TRAINABLE=1,072,947 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[23:01:59] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[23:01:59] [smoke] warm-started taste path from t2final_best; new params left at init: ['gate_e', 'W_white', 'psi.0.weight', 'psi.0.bias', 'psi.2.weight', 'psi.2.bias', 'rho_expo.0.weight', 'rho_expo.0.bias', 'rho_expo.2.weight', 'rho_expo.2.bias']
+[23:02:02] [smoke] ---- step 0 (should equal the certified model: all new parts are zero-init) ----
+[23:02:36] [smoke] step   0 HELD-OUT loss  full=5.4606  interview=7.6947  empty=7.4802  | empty-set NDCG@10=0.1550 (target >= 0.1626)
+[23:07:05] [smoke] step 100 TRAIN loss    full=5.4330  interview=6.6575  empty=7.3934
+[23:07:30] [smoke] step 100 HELD-OUT loss  full=5.4572  interview=6.7067  empty=7.5677  | empty-set NDCG@10=0.1550 (target >= 0.1626)
+[23:12:27] [smoke] step 200 TRAIN loss    full=5.4245  interview=6.6160  empty=7.4232
+[23:12:59] [smoke] step 200 HELD-OUT loss  full=5.4514  interview=6.6840  empty=7.5581  | empty-set NDCG@10=0.1550 (target >= 0.1626)
