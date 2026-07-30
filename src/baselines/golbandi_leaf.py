@@ -11,7 +11,18 @@ prediction is that group's shrunk mean profile. No tree growth, no candidate-poo
                    like      if r_vi > 3.5          <- on half-star data this is exactly r >= 4.0,
                    dislike   otherwise                 which is exactly Golbandi's own like/dislike cut
                                                        AND exactly Liang's keep/discard boundary.
-    profile(S)   = ( SUM_{v in S} r_v  +  lam * global_mean ) / ( |S|_i + lam )      [per item, lam=8]
+    profile(S)_i = ( #{v in S : v LIKED i}  +  lam * global_like_rate_i ) / ( |S| + lam )   [lam=8]
+
+RANKING ADAPTATION, stated plainly. Golbandi's node profile is the group's MEAN RATING, because their
+metric is RMSE. Ranking by mean rating is a known disaster for top-N (an obscure film with one
+enthusiastic rater outranks a film forty people liked) and, measured directly, it scores 0.0165 -- an
+order of magnitude BELOW the no-information popularity prior of 0.1626. Reporting that would be
+strawmanning the method, not reproducing it. So the node profile becomes the group's LIKE RATE: the
+fraction of the leaf's users who liked each item, shrunk toward the global like rate. This is the same
+implicit-feedback adaptation every other ratings-native baseline in the bank receives, it is exactly
+what our binary user-kNN node reduction already computes, and it preserves the mechanism that matters
+-- the profile is conditioned on the answer pattern. Note the denominator is the GROUP SIZE, not the
+per-item rater count: that is what makes it a frequency rather than an average.
 
 The shrinkage toward the global mean is Golbandi's (our archived ML-100k replication uses LAM=8) and it
 is load-bearing: answer patterns fragment fast, so most leaves are small and an unshrunk group mean
@@ -41,13 +52,15 @@ class GolbandiLeaf:
         self.Gc = self.G.tocsc()
         self.n_train, self.n_items = self.G.shape[0], n_items
         self.lam = float(lam)
-        self.gsum = np.asarray(self.G.sum(axis=0)).ravel().astype(np.float64)
-        B = self.G.copy(); B.data[:] = 1.0
-        self.gcnt = np.asarray(B.sum(axis=0)).ravel().astype(np.float64)
-        self.B = B.tocsr()
-        # Global (root) profile: what an all-unknown answer pattern, or an over-fragmented leaf,
-        # correctly falls back to.
-        self.global_mean = self.gsum / np.maximum(self.gcnt, 1.0)
+        # LIKE indicator (r > 3.5), not the rating -- see the ranking-adaptation note in the header.
+        L = self.G.copy()
+        L.data = (L.data > LIKE_MIN).astype(np.float32)
+        L.eliminate_zeros()
+        self.L = L.tocsr()
+        self.lsum = np.asarray(self.L.sum(axis=0)).ravel().astype(np.float64)
+        # Global (root) profile = catalogue like RATE: where an all-unknown pattern, or an
+        # over-fragmented leaf, correctly falls back to.
+        self.global_mean = self.lsum / float(self.n_train)
         self._cache = {}
         log(f"[golbandi_leaf] node model over {self.n_train} train users, lambda={self.lam}")
 
@@ -72,9 +85,9 @@ class GolbandiLeaf:
         uniq, inv = np.unique(codes, return_inverse=True)
         M = sparse.csr_matrix((np.ones(self.n_train, np.float32),
                                (inv, np.arange(self.n_train))), shape=(len(uniq), self.n_train))
-        S = np.asarray((M @ self.G).todense(), dtype=np.float64)        # (n_codes x n_items) sums
-        N = np.asarray((M @ self.B).todense(), dtype=np.float64)        # per-item rater counts
-        P = (S + self.lam * self.global_mean[None, :]) / (N + self.lam)
+        S = np.asarray((M @ self.L).todense(), dtype=np.float64)        # (n_codes x n_items) LIKE counts
+        gsz = np.asarray(M.sum(axis=1)).ravel()[:, None]                # leaf SIZE (not rater count)
+        P = (S + self.lam * self.global_mean[None, :]) / (gsz + self.lam)
         out = ({int(c): r for r, c in enumerate(uniq)}, P.astype(np.float32))
         if len(uniq) <= 20000:                                          # cache only if it is worth it
             self._cache[key] = out
@@ -89,12 +102,10 @@ class GolbandiLeaf:
             return self.global_mean.astype(np.float32)
         if len(idx) > self.n_train // 2:                                # big group: subtract the rest
             other = np.flatnonzero(codes != code)
-            s = self.gsum - np.asarray(self.G[other].sum(axis=0)).ravel()
-            n = self.gcnt - np.asarray(self.B[other].sum(axis=0)).ravel()
+            s = self.lsum - np.asarray(self.L[other].sum(axis=0)).ravel()
         else:
-            s = np.asarray(self.G[idx].sum(axis=0)).ravel()
-            n = np.asarray(self.B[idx].sum(axis=0)).ravel()
-        return ((s + self.lam * self.global_mean) / (n + self.lam)).astype(np.float32)
+            s = np.asarray(self.L[idx].sum(axis=0)).ravel()
+        return ((s + self.lam * self.global_mean) / (len(idx) + self.lam)).astype(np.float32)
 
     def scores(self, asked_per_user, answered_per_user, global_asked=None):
         """(n_users x n_items) dense scores. `global_asked` is the shared ask-list when the strategy is
