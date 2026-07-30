@@ -74,6 +74,14 @@ class StrategyFamily:
             return float(w[0]), float(w[1]), float(w[2]), float(w[3]), e
         return 0.25, 0.25, 0.25, 0.25, 0.1
 
+    def build_bank(self, rng, n_orders=512, kmax=32):
+        """Precompute a bank of ask-orders. Sampling a fresh order per EXAMPLE costs an 18,359-element
+        gaussian draw for the noise leg -- 1.2M randn per batch of 64, which dominated the training step
+        (~3 s/step, measured). The bank is regenerated every epoch, so across a run the model still sees
+        thousands of distinct askers; only WITHIN an epoch are orders reused. No user or item is dropped:
+        this reduces strategy resampling, not data."""
+        return [self.order(rng, kmax) for _ in range(n_orders)]
+
     def order(self, rng, k, weights=None):
         """Top-k ask order under a sampled (or supplied) weighting.
 
@@ -95,7 +103,7 @@ class StrategyFamily:
         return idx[np.argsort(-s[idx])].astype(np.int64)
 
 
-def make_interview_example(u, rng, fam, kmax_full=None):
+def make_interview_example(u, rng, fam, kmax_full=None, bank=None):
     """One interview-regime example.
 
     Returns (inp_sids, inp_levels, inp_vals, unseen_sids, targets, negatives) or None.
@@ -118,7 +126,7 @@ def make_interview_example(u, rng, fam, kmax_full=None):
         return None
 
     k = int(rng.choice(BUDGETS)) if kmax_full is None else kmax_full
-    asked = fam.order(rng, k)
+    asked = (bank[rng.integers(len(bank))][:k] if bank is not None else fam.order(rng, k))
     rated = {int(s): j for j, s in enumerate(pool_s)}          # the answerability rule: rated <=> answerable
     ans_idx, unseen = [], []
     for i in asked:
@@ -157,7 +165,7 @@ def make_empty_example(u, rng, n_keep=0):
     return (inp_s, inp_l, inp_v, np.empty(0, np.int64), tg, negs)
 
 
-def draw(u, rng, fam, make_full):
+def draw(u, rng, fam, make_full, bank=None):
     """Regime-mixture draw. `make_full` is the EXISTING full-profile/dropout generator, kept unchanged
     so the full-profile objective is protected (design sheet: 35% of examples)."""
     r = rng.random()
@@ -168,7 +176,7 @@ def draw(u, rng, fam, make_full):
         inp, lv, sv, tgt, negs = out
         return (inp, lv, sv, np.empty(0, np.int64), tgt, negs)
     if r < P_FULL + P_INTERVIEW:
-        return make_interview_example(u, rng, fam)
+        return make_interview_example(u, rng, fam, bank=bank)
     if r < P_FULL + P_INTERVIEW + P_K0:
         return make_empty_example(u, rng, n_keep=0)
     return make_empty_example(u, rng, n_keep=1)
