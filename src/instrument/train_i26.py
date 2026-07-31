@@ -108,6 +108,17 @@ def main():
     ap.add_argument("--steps_per_epoch", type=int, default=2200)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--max_minutes", type=float, default=1e9)
+    ap.add_argument("--init", default="certified", choices=["certified", "recvae"],
+                    help="certified = warm-start the taste path from t2final_best.pt (RecVAE -> i25 -> "
+                         "i26, TWO hops). recvae = leave the taste path at build_i26's RecVAE-derived "
+                         "init (RecVAE -> i26, ONE documented hop from a published anchor). The "
+                         "certification run uses recvae so the chain cannot be questioned; it also "
+                         "removes 'how much of i26 is really i25?'.")
+    ap.add_argument("--warm_lr_scale", type=float, default=0.1,
+                    help="LR multiplier for the WARM parameter group (the taste path). 0.1 was tuned "
+                         "for --init certified, where that path was already converged. Under --init "
+                         "recvae it is NOT converged on our objective, so this is the FIRST knob to "
+                         "raise if the run underperforms -- do not change it silently mid-campaign.")
     ap.add_argument("--fresh", action="store_true",
                     help="Start a new run: ARCHIVES any existing best/last checkpoints (timestamped) "
                          "rather than resuming or deleting. Without it, an existing _last resumes.")
@@ -131,13 +142,17 @@ def main():
 
     ma = argparse.Namespace(arch="i26", teacher="warm_init", t_hidden=600, t_latent=200, token="film",
                             train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=a.lr,
-                            warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
+                            warm_lr_scale=a.warm_lr_scale, full_kd=False, full_kd_w=0.3)
     src = load_recvae_teacher(ni, hidden=ma.t_hidden, latent=ma.t_latent)
     enc, dec, params, groups = build_i26(ni, src, ma, log=L)
     apply_sign_prior(enc)
-    blob = torch.load(os.path.join(CKPT_DIR, "t2final_best.pt"), map_location="cpu")
-    miss = enc.load_state_dict(blob["enc"], strict=False)
-    L(f"[i26] warm-started taste path from t2final_best; at init: {sorted(miss.missing_keys)}")
+    if a.init == "certified":
+        blob = torch.load(os.path.join(CKPT_DIR, "t2final_best.pt"), map_location="cpu")
+        miss = enc.load_state_dict(blob["enc"], strict=False)
+        L(f"[i26] warm-started taste path from t2final_best; at init: {sorted(miss.missing_keys)}")
+    else:
+        L("[i26] INIT=recvae: taste path left at build_i26's RecVAE-derived init. Provenance chain is "
+          "RecVAE -> i26, ONE hop from a published anchor; t2final_best.pt is NOT read.")
     Wd = dec.weight.detach(); bd = dec.bias.detach()
     opt = torch.optim.Adam(groups, lr=a.lr)
 
