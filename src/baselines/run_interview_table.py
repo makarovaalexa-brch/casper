@@ -169,6 +169,16 @@ def main():
                          "Its checkpoint cannot be loaded into an i25 model: the state dict carries "
                          "psi/rho_expo/gate_e/z0 that i25 has no slots for.")
     ap.add_argument("--label", default=None, help="row name in the output JSON (default: arch)")
+    ap.add_argument("--no_floor", action="store_true",
+                    help="Disable the Most-Popular floor for THIS run (the A/B arm). The floor rule is "
+                         "'apply when the model received NO INPUT' -- but apply_pop_floor triggers on "
+                         "zero ANSWERS, which is not the same thing once the model has an unknown "
+                         "channel. i26 is fed asked-but-unseen items as UNSEEN_LEVEL tokens, so a user "
+                         "who answered nothing still supplies real, set-dependent evidence (measured "
+                         "2026-07-31: up to 1.44 logits away from the empty set, 1.29 between two "
+                         "different unseen sets). Under the floor that evidence is computed and then "
+                         "overwritten by the popularity row for up to 7,843/10,000 users at k=1. Run "
+                         "both arms and report the difference rather than switching silently.")
     a = ap.parse_args()
     budgets = [int(x) for x in a.budgets.split(",")]
     recs = RECS if not a.only else [r for r in RECS if r in set(a.only.split(","))]
@@ -276,7 +286,7 @@ def main():
                         base = obj
                     Xin = Xi
                 floored = {"n": 0, "cursor": 0}
-                use_floor = name not in CONSUMES_UNKNOWNS
+                use_floor = (name not in CONSUMES_UNKNOWNS) and not a.no_floor
 
                 def pr(X, _b=base, _st=floored, _f=use_floor):
                     out = np.array(_b(X), dtype=np.float32, copy=True)
