@@ -145,22 +145,35 @@ def main():
         r = M.evaluate(pr, va_tr, va_te, batch_size=500, head_mask=D["head_mask"])
         enc.train(); return r["ndcg@10"], r["tail_ndcg@10"]
 
-    def empty_and_k1():
-        """G-EMPTY and G-MONOTONE, on the arm-N pool (same object the interview table uses)."""
+    def interview_val():
+        """THE SELECTION METRIC, and everything else, on the VAL cohort only.
+
+        Two corrections, both author-driven (2026-07-31):
+        (1) Selection was on FULL-PROFILE val -- i.e. on exactly the quantity we have decided we are
+            willing to trade ("even if it sacrifices 1 or 2 points, but beats everyone clean on
+            interview, this is defensible"). It would have picked the epoch that is best at the thing
+            being sacrificed and discarded the epoch that is best at the job. Selection is now the
+            SHORT-INTERVIEW score; full profile is reported as the cost, not optimised.
+        (2) k0/k1 were computed on the TEST cohort. They never fed selection, but watching test numbers
+            every epoch is how unconscious selection starts. Everything here is VAL now.
+
+        Returns (k0, k2, k8, sel) with sel = mean(k2, k8) -- the scarce regime the instrument is for.
+        """
         enc.eval()
         with torch.no_grad():
             e = pack_tokens([(np.empty(0, np.int64), np.empty(0, np.int64), np.empty(0, np.float32))],
                             binarize=False)
             s0 = enc.logits(enc(*e), Wd, bd).numpy()[0]
         r0 = M.evaluate(lambda X, _s=s0: np.repeat(_s[None, :], X.shape[0], 0).astype(np.float32),
-                        D["te_tr"], D["te_te"], batch_size=500,
-                        head_mask=D["head_mask"], mask_X=D["pool"])
-        from arm_n_tower import graded_to_levels
-        L1 = truncate_graded(graded_to_levels(D["g_te_tr"]), 1, 4242)
-        pr = make_graded_predict_fn(enc, Wd, bd, L1, check_nnz=False)
-        r1 = M.evaluate(pr, D["te_tr"], D["te_te"], batch_size=500,
-                        head_mask=D["head_mask"], mask_X=D["pool"])
-        enc.train(); return r0["ndcg@10"], r1["ndcg@10"]
+                        va_tr, va_te, batch_size=500, head_mask=D["head_mask"])
+        out = {}
+        for k in (1, 2, 8):
+            Lk = truncate_graded(L_val, k, 4242)
+            pr = make_graded_predict_fn(enc, Wd, bd, Lk, check_nnz=False)
+            out[k] = M.evaluate(pr, va_tr, va_te, batch_size=500,
+                                head_mask=D["head_mask"])["ndcg@10"]
+        enc.train()
+        return r0["ndcg@10"], out[1], out[2], out[8], 0.5 * (out[2] + out[8])
 
     bank = [fam.build_bank(np.random.default_rng(0))]      # regenerated each epoch (see build_bank)
 
@@ -227,14 +240,15 @@ def main():
                     if sub:
                         vb[reg].append(float(loss_of(enc, Wd, bd, sub, ni)))
         fv, ft = full_profile_val()
-        e0, e1 = empty_and_k1()
+        e0, e1, k2, k8, sel = interview_val()
         el = (time.time() - t0) / 60.0
         L(f"[i26] ep{ep:2d} TRAIN " + " ".join(f"{k}={np.mean(v):.4f}" for k, v in run.items()) +
           " | HELD-OUT " + " ".join(f"{k}={np.mean(v):.4f}" for k, v in vb.items()))
-        L(f"[i26] ep{ep:2d} G-FULL val={fv:.4f}/{ft:.4f} (floor {G_FULL_FLOOR}) | "
-          f"G-EMPTY k0={e0:.4f} (floor {G_EMPTY_FLOOR}) | G-MONOTONE k1={e1:.4f} "
-          f"({'PASS' if e1 >= e0 else 'FAIL'}) | {el:.1f}m")
+        L(f"[i26] ep{ep:2d} SELECT sel={sel:.4f} (k2={k2:.4f} k8={k8:.4f}) | "
+          f"COST full={fv:.4f}/{ft:.4f} | k0={e0:.4f} k1={e1:.4f} "
+          f"(monotone {'PASS' if e1 >= e0 else 'FAIL'}) | {el:.1f}m   [all VAL cohort]")
         hist.append({"ep": ep, "val_full": fv, "val_tail": ft, "k0": e0, "k1": e1,
+                     "k2": k2, "k8": k8, "sel": sel,
                      "train": {k: float(np.mean(v)) for k, v in run.items()},
                      "held": {k: float(np.mean(v)) for k, v in vb.items()}})
         json.dump(hist, open(os.path.join(OUT, f"{a.tag}_hist.json"), "w"), indent=2)
@@ -243,11 +257,13 @@ def main():
         # sat ABOVE this block and returned at epoch 2, so the epoch-2 model (val 0.3342, BETTER than
         # epoch 1's 0.3307) was never written and `best` stayed pinned at epoch 1. Author caught it.
         # Nothing may ever come between computing a val score and persisting the model that earned it.
-        if fv > best["val"]:
-            best = {"val": fv, "epoch": ep}
+        if sel > best["val"]:
+            best = {"val": sel, "epoch": ep}
             atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
-                         "val_full": fv, "val_tail": ft, "k0": e0, "k1": e1, "arch": "i26"}, best_p)
-            L(f"[i26] new best val_full={fv:.4f} -> {a.tag}_best.pt (atomic)")
+                         "sel": sel, "k2": k2, "k8": k8, "val_full": fv, "val_tail": ft,
+                         "k0": e0, "k1": e1, "arch": "i26"}, best_p)
+            L(f"[i26] new best SHORT-INTERVIEW sel={sel:.4f} (full-profile cost {fv:.4f}) "
+              f"-> {a.tag}_best.pt (atomic)")
 
         # THE GATES REPORT; THEY DO NOT KILL. (author, 2026-07-31: "do NOT set up logic to kill the
         # run, delete everything and not offer alternative. we could have learned smth at least".)
@@ -257,15 +273,17 @@ def main():
         # failing gate is logged loudly, the best checkpoint keeps being written, and a human reads the
         # full curve and decides. Nothing is ever lost by letting it run.
         fulls = [h["val_full"] for h in hist]
-        stalled = (len(fulls) > PATIENCE and
-                   max(fulls[-PATIENCE:]) <= max(fulls[:-PATIENCE]) + 1e-5)
+        sels = [h["sel"] for h in hist]
+        stalled = (len(sels) > PATIENCE and
+                   max(sels[-PATIENCE:]) <= max(sels[:-PATIENCE]) + 1e-5)
         flags = []
         if fv < G_FULL_FLOOR:
             trend = "IMPROVING" if len(fulls) < 2 or fv > fulls[-2] else "flat/falling"
             d = (fv - fulls[-2]) if len(fulls) >= 2 else 0.0
             flags.append(f"G-FULL below floor ({fv:.4f} < {G_FULL_FLOOR}), {trend} {d:+.4f}")
         if stalled:
-            flags.append(f"G-FULL not improving for {PATIENCE} epochs (best {max(fulls):.4f})")
+            flags.append(f"short-interview not improving for {PATIENCE} epochs "
+                         f"(best {max(sels):.4f})")
         if e0 < G_EMPTY_FLOOR:
             flags.append(f"G-EMPTY below floor ({e0:.4f} < {G_EMPTY_FLOOR})")
         if e1 < e0:
@@ -279,7 +297,7 @@ def main():
         if el > a.max_minutes:
             L(f"[i26] wall budget {a.max_minutes}m hit at ep{ep}"); break
 
-    L(f"[i26] done. best val_full={best['val']:.4f} @ep{best['epoch']}")
+    L(f"[i26] done. best short-interview sel={best['val']:.4f} @ep{best['epoch']}")
     open(os.path.join(OUT, f"{a.tag}_DONE.marker"), "w").write(json.dumps(best))
     return 0
 
