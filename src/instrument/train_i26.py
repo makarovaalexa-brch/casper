@@ -239,6 +239,16 @@ def main():
                      "held": {k: float(np.mean(v)) for k, v in vb.items()}})
         json.dump(hist, open(os.path.join(OUT, f"{a.tag}_hist.json"), "w"), indent=2)
 
+        # SAVE FIRST, REPORT SECOND -- ordering is structural, not stylistic. In v1 the abort check
+        # sat ABOVE this block and returned at epoch 2, so the epoch-2 model (val 0.3342, BETTER than
+        # epoch 1's 0.3307) was never written and `best` stayed pinned at epoch 1. Author caught it.
+        # Nothing may ever come between computing a val score and persisting the model that earned it.
+        if fv > best["val"]:
+            best = {"val": fv, "epoch": ep}
+            atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
+                         "val_full": fv, "val_tail": ft, "k0": e0, "k1": e1, "arch": "i26"}, best_p)
+            L(f"[i26] new best val_full={fv:.4f} -> {a.tag}_best.pt (atomic)")
+
         # THE GATES REPORT; THEY DO NOT KILL. (author, 2026-07-31: "do NOT set up logic to kill the
         # run, delete everything and not offer alternative. we could have learned smth at least".)
         # The v1 abort stopped at 02:09 and, because the watchdog correctly stands down on a DONE
@@ -262,11 +272,6 @@ def main():
             flags.append(f"G-MONOTONE violated (k1 {e1:.4f} < k0 {e0:.4f})")
         if flags:
             L(f"[i26] ep{ep:2d} GATE FLAGS (reporting only, run CONTINUES): " + "; ".join(flags))
-        if fv > best["val"]:
-            best = {"val": fv, "epoch": ep}
-            atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
-                         "val_full": fv, "val_tail": ft, "k0": e0, "k1": e1, "arch": "i26"}, best_p)
-            L(f"[i26] new best val_full={fv:.4f} -> {a.tag}_best.pt (atomic)")
         # `last` carries optimiser state so a watchdog relaunch resumes instead of restarting.
         atomic_save({"enc": enc.state_dict(), "opt": opt.state_dict(), "epoch": ep,
                      "best": best, "hist": hist, "arch": "i26"}, last_p)
