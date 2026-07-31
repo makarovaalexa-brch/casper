@@ -72,7 +72,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--epochs", type=int, default=14)
     ap.add_argument("--tag", default="t2i26")
-    ap.add_argument("--batch", type=int, default=64)
+    ap.add_argument("--batch", type=int, default=128)   # recipe buckets up to MAX_B=256; 64 was noisy
     ap.add_argument("--steps_per_epoch", type=int, default=2200)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--max_minutes", type=float, default=1e9)

@@ -38,7 +38,10 @@ import numpy as np
 NLEV = 10
 BUDGETS = (1, 2, 4, 8, 16, 32)
 # Regime mixture (design sheet section 5). The k=0 bucket IS the prior-anchoring mechanism.
-P_FULL, P_INTERVIEW, P_K0, P_K1 = 0.35, 0.55, 0.05, 0.05
+# 2026-07-31: full-profile share raised 0.35 -> 0.45 after the epoch-2 G-FULL abort. The certified
+# recipe trains 50% of examples in the dropout regime; starving it to 35% while ALSO over-truncating
+# them (drop_max 0.8 vs 0.5) cost 0.014-0.018 full-profile NDCG. The interview share stays substantial.
+P_FULL, P_INTERVIEW, P_K0, P_K1 = 0.45, 0.45, 0.05, 0.05
 
 # Named corners, for reference and for reporting. None is withheld from training.
 NAMED = {"popularity": (1.0, 0.0, 0.0, 0.0, 0.0), "pure_entropy": (0.0, 1.0, 0.0, 0.0, 0.0),
