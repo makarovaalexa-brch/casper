@@ -1,7 +1,44 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-07-29 (Paper A finalisation round)**.
+> End-state is in `VISION.md`. Last updated: **2026-07-31 (Reddit-opener idea; i26 retrain running)**.
+
+## ★★★ TOP OF THE QUEUE — THE REDDIT-MINED OPEN REQUEST (task #68, author idea 2026-07-31)
+Memory: `reddit-mined-open-request-opener.md`. Design context: `docs/design/PAPER_B_DESIGN.md`.
+
+**The idea.** The open-ended opener need not be a question *we* ask. It can be the **proactive request the
+user arrives with** — *"something like Inception but less confusing"* — and those can be **mined from real
+Reddit recommendation threads** (r/MovieSuggestions, r/ifyoulikeblank, r/tipofmytongue), where real people
+post exactly this, commenters reply with titles, and votes rank the replies.
+
+**Why it is the strongest form of the open-opener line.**
+1. **It cannot be circular.** Circular answer models have killed two headline results here: the +47%
+   adaptivity number (retired LLM answer grids, popularity-dominated) and the old Paper B +36% concept edge,
+   which collapsed to a tie once the geometric simulator was replaced by a behavioural one — the tell being
+   that the geometric arm *exceeded the full-profile ceiling*. Every interview number we currently produce
+   carries "answers come from recorded ratings, not from a person responding to a rendered question". A
+   mined Reddit request was written by a real person, in their own words, before our system existed.
+2. **It makes Paper A's R2 load-bearing.** R2 claims an open set-valued interface — "a vector the model
+   never saw when it was fitted is a legal member of the set" — and today only *illustrates* it. An organic
+   free-text request **is** that vector. The item-selection line cannot ingest one: for them a question is
+   an index into a fixed catalogue and an answer is a scalar on that index. Not a criterion they lack, an
+   **interface**.
+3. The thread carries its own outcome signal: the recommended titles, vote-ranked.
+
+**Where it sits.** It instantiates the bottom-right cell of the author's 2×2 — {closed, open} opener ×
+{static, adaptive} follow-up — with organic rather than simulated data. Hypothesis: adaptive is only weakly
+better than static after a *closed* opener (the field's null, and ours), much better after an *open* one,
+and **the interaction is the finding**. Confound already in our own corpus, previously unnoticed: the one
+experiment that showed a large adaptivity gain opened with an OPEN question ("favourite genre?"); every
+experiment that found nothing opened CLOSED. We demoted the winner for its answer model and never noticed
+the opener type differed too.
+
+**Blockers — resolve before committing Paper B's shape** (deep research dispatched 2026-07-31):
+ReDial-with-extra-steps? (theirs is crowdsourced role-play; the claim rests on *organic* vs
+*elicited-for-the-dataset*) · entity-linking free-text film mentions to ML-25M · **Reddit data legality
+post-API-changes — this decides feasibility** · evaluation design (we have no ratings for those users; are
+vote-ranked replies a usable ruler or popularity-contaminated?) · any LLM entity extraction needs explicit
+author approval. **Risk:** a six-month data project rather than a six-week one.
 
 ## ★★★ PAPER A IS IN FINALISATION — A0–A6 plan, A1/A2 done
 Chapter: `new_chapters/chapterA_v2/chapterA_v2.tex`. Compiles clean via Tectonic, **0 undefined, 0 TODO,
