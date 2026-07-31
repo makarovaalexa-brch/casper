@@ -62,6 +62,21 @@ RECOVER_BY = 8              # must be at/above the floor by this epoch
 HEARTBEAT_EVERY = 50        # steps between heartbeat writes (the watchdog reads this)
 
 
+def archive_existing(paths, log):
+    """NEVER DELETE A CHECKPOINT. 2026-07-31: I twice ran `rm .cache/instrument/t2i26_best.pt` when
+    relaunching, destroying the only artifact of a 2-hour run -- after the author had explicitly asked
+    that the best checkpoint always be kept on disk. Clearing `_last` is legitimate (resume reads it, so
+    a stale one would silently continue an old run under old settings); clearing `_best` never was --
+    nothing reads it. So a fresh run now ARCHIVES whatever it finds, with a timestamp, instead of
+    requiring anyone to delete anything by hand."""
+    stamp = time.strftime("%Y%m%d_%H%M%S")
+    for pth in paths:
+        if os.path.exists(pth):
+            dst = f"{os.path.splitext(pth)[0]}.archived_{stamp}.pt"
+            os.replace(pth, dst)
+            log(f"[i26] ARCHIVED {os.path.basename(pth)} -> {os.path.basename(dst)} (never deleted)")
+
+
 def atomic_save(obj, path):
     """Write to a temp file then os.replace. A crash mid-write must never corrupt the best checkpoint --
     it is the only artifact of the run that matters."""
@@ -86,6 +101,9 @@ def main():
     ap.add_argument("--steps_per_epoch", type=int, default=2200)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--max_minutes", type=float, default=1e9)
+    ap.add_argument("--fresh", action="store_true",
+                    help="Start a new run: ARCHIVES any existing best/last checkpoints (timestamped) "
+                         "rather than resuming or deleting. Without it, an existing _last resumes.")
     a = ap.parse_args()
     L = lambda m: logln(m, a.tag)
 
@@ -158,7 +176,10 @@ def main():
     start_ep = 1
     hist = []
     last_p = os.path.join(CKPT_DIR, f"{a.tag}_last.pt")
+    best_p = os.path.join(CKPT_DIR, f"{a.tag}_best.pt")
     state_p = os.path.join(OUT, f"{a.tag}_state.json")
+    if a.fresh:
+        archive_existing([best_p, last_p], L)
     # ---- RESUME: a watchdog relaunch must not start over from epoch 1 -------------------
     if os.path.exists(last_p):
         lb = torch.load(last_p, map_location="cpu")
@@ -237,8 +258,7 @@ def main():
         if fv > best["val"]:
             best = {"val": fv, "epoch": ep}
             atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
-                         "val_full": fv, "val_tail": ft, "k0": e0, "k1": e1, "arch": "i26"},
-                        os.path.join(CKPT_DIR, f"{a.tag}_best.pt"))
+                         "val_full": fv, "val_tail": ft, "k0": e0, "k1": e1, "arch": "i26"}, best_p)
             L(f"[i26] new best val_full={fv:.4f} -> {a.tag}_best.pt (atomic)")
         # `last` carries optimiser state so a watchdog relaunch resumes instead of restarting.
         atomic_save({"enc": enc.state_dict(), "opt": opt.state_dict(), "epoch": ep,
