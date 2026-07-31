@@ -49,6 +49,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--rival", default="recvae")
     ap.add_argument("--snapshot", default=SNAP_DEFAULT)
+    ap.add_argument("--arch", default="i25", choices=["i25", "i26"],
+                    help="i26 = the interview-native tower. Its state dict cannot be loaded into an i25 "
+                         "model, so this must match the snapshot or the run scores the wrong "
+                         "architecture. Both arms here are FULL-PROFILE fold-ins with no "
+                         "asked-but-unseen items, so i26's exposure branch is inert and the comparison "
+                         "measures the same quantity as the i25 rows.")
     ap.add_argument("--boot", type=int, default=10000)
     ap.add_argument("--arm", default="N", choices=["A", "N"],
                     help="A re-tests the CHAPTER's tie claim with the correct paired test; the "
@@ -59,12 +65,24 @@ def main():
     ni = D["n_items"]
     _hm, cnt = compute_head_mask(D["train"], ni)
 
-    ma = argparse.Namespace(arch="i25", teacher="warm_init", t_hidden=600, t_latent=200, token="film",
+    ma = argparse.Namespace(arch=a.arch, teacher="warm_init", t_hidden=600, t_latent=200, token="film",
                             train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=3e-4,
                             warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
-    enc, decoder, _t, _p, _g = build_model(ma, ni, cnt)
+    if a.arch == "i26":
+        sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
+        from i26_encoder import build_i26
+        from train_tower_t2 import load_recvae_teacher, apply_sign_prior
+        _src = load_recvae_teacher(ni, hidden=600, latent=200)
+        enc, decoder, _p, _g = build_i26(ni, _src, ma, log=logln)
+        apply_sign_prior(enc)
+    else:
+        enc, decoder, _t, _p, _g = build_model(ma, ni, cnt)
     blob = torch.load(a.snapshot, map_location="cpu")
-    enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"]); enc.eval()
+    _miss = enc.load_state_dict(blob["enc"], strict=(a.arch != "i26"))
+    if a.arch == "i26" and (_miss.missing_keys or _miss.unexpected_keys):
+        raise SystemExit(f"[paired] REFUSING to load: missing={sorted(_miss.missing_keys)} "
+                         f"unexpected={sorted(_miss.unexpected_keys)}")
+    decoder.load_state_dict(blob["decoder"]); enc.eval()
     if a.arm == "N":
         L_ours, pool = graded_to_levels(D["g_te_tr"]), D["pool"]
     else:
