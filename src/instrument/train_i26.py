@@ -34,6 +34,7 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(_ROOT, "src", "baselines"))
 
 import metrics as M
+from scipy import sparse
 from arm_n import load_arm_n
 import interview_strategies as ST
 from i26_encoder import build_i26, UNSEEN_LEVEL
@@ -150,6 +151,15 @@ def main():
     G_EMPTY_FLOOR = M.evaluate(_pp, va_tr, va_te, batch_size=500,
                                head_mask=D["head_mask"])["ndcg@10"]
     G_FULL_FLOOR = CERT_VAL_FULL - CI_WIDTH
+    # Val-side interview machinery: answerability from the val users' FULL rated history.
+    from graded_data import _partition, _graded_rows
+    _uu2, _s2i, _raw2 = _partition()
+    _nall = len(_uu2)
+    g_va_tr = _graded_rows(_uu2[_nall - 20000:_nall - 10000], _s2i, _raw2, exclude=va_te)
+    vlvl = ST.level_lookup(g_va_tr)
+    vglob, vbank = ST.build_orders(D["g_train"], D["train"], ni, log=lambda m: None)
+    nva = va_tr.shape[0]
+    L(f"[i26] val interview oracle: {g_va_tr.nnz} rated cells over {nva} val users")
     L(f"[i26] references MEASURED on val/arm-A: MostPop={G_EMPTY_FLOOR:.4f} (empty-set floor); "
       f"full-profile floor={G_FULL_FLOOR:.4f} (certified val {CERT_VAL_FULL} - CI {CI_WIDTH})")
 
@@ -171,7 +181,17 @@ def main():
         (2) k0/k1 were computed on the TEST cohort. They never fed selection, but watching test numbers
             every epoch is how unconscious selection starts. Everything here is VAL now.
 
-        Returns (k0, k2, k8, sel) with sel = mean(k2, k8) -- the scarce regime the instrument is for.
+        Returns (k0, k1, k2, k8, sel).
+
+        WHAT k MEANS HERE -- corrected 2026-07-31 after the author flagged k8=0.2442 as suspiciously
+        high. It was: truncate_graded(L_val, k) takes k items from the user's LIKED fold-in, so every
+        one is answerable and positive. "k=8" meant eight real likes. But in a deployed interview k=8
+        means eight QUESTIONS ASKED, of which only ~1.6-3.1 come back answered -- which is why the
+        interview table reads 0.1899-0.1935 at k=8 against this metric's 0.2442. Selecting on the easy
+        regime while deploying in the hard one can prefer a different epoch entirely.
+        So k2/k8 are now REAL simulated interviews on val users: strategy-selected questions, answered
+        only if the user rated the item, the rest folded as unseen -- the same generator the model
+        trains on, and the same thing the interview table measures.
         """
         enc.eval()
         with torch.no_grad():
@@ -180,14 +200,31 @@ def main():
             s0 = enc.logits(enc(*e), Wd, bd).numpy()[0]
         r0 = M.evaluate(lambda X, _s=s0: np.repeat(_s[None, :], X.shape[0], 0).astype(np.float32),
                         va_tr, va_te, batch_size=500, head_mask=D["head_mask"])
+        # k=1 keeps the cheap likes-only probe purely for the monotonicity check against k=0.
+        L1 = truncate_graded(L_val, 1, 4242)
+        pr1 = make_graded_predict_fn(enc, Wd, bd, L1, check_nnz=False)
+        r1 = M.evaluate(pr1, va_tr, va_te, batch_size=500, head_mask=D["head_mask"])["ndcg@10"]
+        # k=2 / k=8: REAL interviews -- strategy-selected asks, unanswerable questions folded as unseen.
         out = {}
-        for k in (1, 2, 8):
-            Lk = truncate_graded(L_val, k, 4242)
+        for k in (2, 8):
+            asked, answered = ST.ask("helf", vglob, vbank, nva, ni, vlvl, k)
+            rows = []
+            for u in range(nva):
+                a_ = [i for i, _l in answered[u]]
+                l_ = [l for _i, l in answered[u]]
+                uns = [int(i) for i in asked[u] if int(i) not in set(a_)]
+                sid = np.asarray(a_ + uns, np.int64)
+                lvl = np.asarray(l_ + [UNSEEN_LEVEL] * len(uns), np.int64)
+                rows.append((sid, lvl + 1.0))
+            Lk = sparse.csr_matrix(
+                (np.concatenate([r[1] for r in rows]).astype(np.float32),
+                 (np.repeat(np.arange(nva), [len(r[0]) for r in rows]),
+                  np.concatenate([r[0] for r in rows]))), shape=(nva, ni), dtype=np.float32)
             pr = make_graded_predict_fn(enc, Wd, bd, Lk, check_nnz=False)
             out[k] = M.evaluate(pr, va_tr, va_te, batch_size=500,
                                 head_mask=D["head_mask"])["ndcg@10"]
         enc.train()
-        return r0["ndcg@10"], out[1], out[2], out[8], 0.5 * (out[2] + out[8])
+        return r0["ndcg@10"], r1, out[2], out[8], 0.5 * (out[2] + out[8])
 
     bank = [fam.build_bank(np.random.default_rng(0))]      # regenerated each epoch (see build_bank)
 
