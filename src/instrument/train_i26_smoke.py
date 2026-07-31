@@ -153,7 +153,7 @@ def main():
                             train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=a.lr,
                             warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
     src = load_recvae_teacher(ni, hidden=ma.t_hidden, latent=ma.t_latent)
-    enc, dec, params = build_i26(ni, src, ma, log=logln)
+    enc, dec, params, groups = build_i26(ni, src, ma, log=logln)
     apply_sign_prior(enc)
     # Warm-start the SHARED taste path from the certified checkpoint, so the smoke measures the NEW
     # parts learning rather than the old parts re-learning from scratch.
@@ -163,7 +163,7 @@ def main():
     logln(f"[smoke] warm-started taste path from t2final_best; new params left at init: "
           f"{[k for k in missing.missing_keys]}")
     Wd = dec.weight.detach(); bd = dec.bias.detach()
-    opt = torch.optim.Adam(params, lr=a.lr)
+    opt = torch.optim.Adam(groups, lr=a.lr)
 
     bank = [fam.build_bank(np.random.default_rng(0))]
 

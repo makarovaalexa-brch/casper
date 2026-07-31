@@ -178,7 +178,7 @@ def main():
             from i26_encoder import build_i26
             from train_tower_t2 import load_recvae_teacher, apply_sign_prior
             src = load_recvae_teacher(ni, hidden=600, latent=200)
-            enc, dec, _p26 = build_i26(ni, src, ma, log=logln)
+            enc, dec, _p26, _g26 = build_i26(ni, src, ma, log=logln)
             apply_sign_prior(enc)
         else:
             enc, dec, _t, _p, _g = build_model(ma, ni, cnt)

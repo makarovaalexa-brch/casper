@@ -190,9 +190,23 @@ def build_i26(ni, src, args, log=print):
     decoder.weight.requires_grad_(False); decoder.bias.requires_grad_(False)
     log("[model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT "
         "(bit-identical to i25 at step 0)")
-    params = [p for p in list(enc.parameters()) + list(decoder.parameters()) if p.requires_grad]
+    # TWO LR GROUPS -- the codebase's own warm_lr_scale convention, which i26 was ignoring.
+    # The taste path arrives CONVERGED from t2final_best (ep13). Training it at the from-scratch rate
+    # kicks it straight out of that optimum, which degrades full profile AND the interview together --
+    # observed at ep1, and the reason it got worse at the very thing it was tuned for. New branches
+    # start at zero and need the full rate; the warm path needs lr * warm_lr_scale.
+    NEW = ("psi.", "rho_expo.", "gate_e", "z0")
+    new_p = [p for n, p in enc.named_parameters() if p.requires_grad and n.startswith(NEW)]
+    warm_p = [p for n, p in enc.named_parameters() if p.requires_grad and not n.startswith(NEW)]
+    warm_p += [p for p in decoder.parameters() if p.requires_grad]
+    scale = float(getattr(args, "warm_lr_scale", 0.1))
+    groups = [{"params": new_p}, {"params": warm_p, "lr": args.lr * scale}]
+    params = new_p + warm_p
     n_tr = sum(p.numel() for p in params)
+    log(f"[model] i26 LR groups: NEW {sum(p.numel() for p in new_p):,} params @ lr={args.lr}; "
+        f"WARM {sum(p.numel() for p in warm_p):,} params @ lr={args.lr * scale} "
+        f"(warm_lr_scale={scale})")
     n_expo = sum(p.numel() for p in list(enc.psi.parameters()) + list(enc.rho_expo.parameters())) + 1
     log(f"[model] arch=i26 TRAINABLE={n_tr:,} (exposure branch {n_expo:,}; NO per-item bias -- "
         f"the prior is learned from the k=0 curriculum bucket)")
-    return enc, decoder, params
+    return enc, decoder, params, groups
