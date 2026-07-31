@@ -192,7 +192,9 @@ def main():
     best_p = os.path.join(CKPT_DIR, f"{a.tag}_best.pt")
     state_p = os.path.join(OUT, f"{a.tag}_state.json")
     if a.fresh:
-        archive_existing([best_p, last_p], L)
+        import glob as _g
+        archive_existing([best_p, last_p] + sorted(_g.glob(os.path.join(CKPT_DIR, f"{a.tag}_ep*.pt"))),
+                         L)
     # ---- RESUME: a watchdog relaunch must not start over from epoch 1 -------------------
     if os.path.exists(last_p):
         lb = torch.load(last_p, map_location="cpu")
@@ -257,6 +259,17 @@ def main():
         # sat ABOVE this block and returned at epoch 2, so the epoch-2 model (val 0.3342, BETTER than
         # epoch 1's 0.3307) was never written and `best` stayed pinned at epoch 1. Author caught it.
         # Nothing may ever come between computing a val score and persisting the model that earned it.
+        # EVERY EPOCH IS KEPT (author, 2026-07-31: "can you save all chkp though? we need a good
+        # tradeoff, surely we have space on disk"). ~32 MB each, 14 epochs ~= 450 MB against 37 GB free.
+        # The full-profile / short-interview tradeoff is a JUDGEMENT the author makes with the whole
+        # curve in front of them -- keeping only a single "best" under one selection rule pre-empts that
+        # decision and throws away the operating points we might actually prefer. Each file carries its
+        # own metrics so a checkpoint can be chosen on any criterion after the fact.
+        atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
+                     "sel": sel, "k0": e0, "k1": e1, "k2": k2, "k8": k8,
+                     "val_full": fv, "val_tail": ft, "arch": "i26"},
+                    os.path.join(CKPT_DIR, f"{a.tag}_ep{ep:02d}.pt"))
+        L(f"[i26] saved {a.tag}_ep{ep:02d}.pt (sel={sel:.4f} full={fv:.4f})")
         if sel > best["val"]:
             best = {"val": sel, "epoch": ep}
             atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
