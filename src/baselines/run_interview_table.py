@@ -199,7 +199,26 @@ def main():
         else:
             enc, dec, _t, _p, _g = build_model(ma, ni, cnt)
         blob = torch.load(a.snapshot, map_location="cpu")
-        enc.load_state_dict(blob["enc"]); dec.load_state_dict(blob["decoder"]); enc.eval()
+        if a.arch == "i26":
+            # A certified i25 checkpoint has no exposure-branch keys, so strict=True rejects it -- but
+            # loading it into i26 is exactly the BEFORE-TRAINING control we want (zero-init branch =>
+            # unseen tokens inert => it must reproduce the i25 numbers). Allow it, but ALLOWLIST what
+            # may be missing: blanket strict=False is how a partial model gets loaded in silence.
+            ALLOWED = {"W_white", "gate_e", "psi.0.weight", "psi.0.bias", "psi.2.weight", "psi.2.bias",
+                       "rho_expo.0.weight", "rho_expo.0.bias", "rho_expo.2.weight", "rho_expo.2.bias"}
+            miss = enc.load_state_dict(blob["enc"], strict=False)
+            unexpected = set(miss.unexpected_keys)
+            bad = set(miss.missing_keys) - ALLOWED
+            if bad or unexpected:
+                raise SystemExit(f"[interview] REFUSING to load: unexpected={sorted(unexpected)} "
+                                 f"missing-and-not-allowed={sorted(bad)}")
+            if miss.missing_keys:
+                logln(f"[interview] BEFORE-TRAINING control: exposure branch left at zero-init "
+                      f"({len(miss.missing_keys)} keys) -- unseen tokens are inert, so this must "
+                      f"reproduce the certified i25 numbers")
+        else:
+            enc.load_state_dict(blob["enc"])
+        dec.load_state_dict(blob["decoder"]); enc.eval()
         logln(f"[interview] ours = {a.arch} from {os.path.basename(a.snapshot)} "
               f"(ep={blob.get('epoch','?')} val_full={blob.get('val_full','?')})")
         # i26 must RECEIVE the unseen channel it was trained on; i25 has no such channel.
