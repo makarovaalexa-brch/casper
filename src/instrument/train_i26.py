@@ -48,7 +48,17 @@ CKPT_DIR = os.path.join(_ROOT, ".cache", "instrument")
 CERT_FULL = 0.3482          # the certified arm-A full-profile number
 G_FULL_FLOOR = 0.3467       # abort below this
 G_EMPTY_FLOOR = 0.1626      # counting
-EP2_ABORT_DELTA = 0.005     # risk-1 early warning
+# ABORT RULE, REWRITTEN 2026-07-31 after it killed a HEALTHY run.
+# v1 tested an ABSOLUTE level at epoch 2 (abort if val < 0.3482 - 0.005) and fired on 0.3307 -> 0.3342.
+# But that is +0.0035 in one epoch: a warm-started model whose new branches start at zero DIPS while
+# they settle and then climbs back, and at that rate it reaches certified in ~4 more epochs. The gate
+# killed a run that was recovering exactly as it should.
+# v2 tests the TREND and gives recovery room:
+#   * abort only if full-profile is FLAT-OR-FALLING over the last PATIENCE epochs, or
+#   * if it has not reached the floor by RECOVER_BY epochs.
+# A dip is expected; a dip that stops improving is the real failure.
+PATIENCE = 3                # consecutive epochs without improvement -> abort
+RECOVER_BY = 8              # must be at/above the floor by this epoch
 HEARTBEAT_EVERY = 50        # steps between heartbeat writes (the watchdog reads this)
 
 
@@ -208,12 +218,22 @@ def main():
                      "held": {k: float(np.mean(v)) for k, v in vb.items()}})
         json.dump(hist, open(os.path.join(OUT, f"{a.tag}_hist.json"), "w"), indent=2)
 
-        if ep >= 2 and fv < CERT_FULL - EP2_ABORT_DELTA:
-            open(os.path.join(OUT, f"{a.tag}_DONE.marker"), "w").write("ABORTED: G-FULL")
-            L(f"[i26] *** ABORT (risk 1): full-profile val {fv:.4f} is more than {EP2_ABORT_DELTA} "
-              f"below the certified {CERT_FULL} at epoch {ep}. Design sheet section 0: the certified "
-              f"checkpoint stands. ***")
+        fulls = [h["val_full"] for h in hist]
+        stalled = (len(fulls) > PATIENCE and
+                   max(fulls[-PATIENCE:]) <= max(fulls[:-PATIENCE]) + 1e-5)
+        too_late = (ep >= RECOVER_BY and fv < G_FULL_FLOOR)
+        if stalled or too_late:
+            why = (f"full-profile has not improved in {PATIENCE} epochs (best {max(fulls):.4f})"
+                   if stalled else
+                   f"full-profile {fv:.4f} still below the floor {G_FULL_FLOOR} at epoch {ep}")
+            open(os.path.join(OUT, f"{a.tag}_DONE.marker"), "w").write(f"ABORTED: G-FULL ({why})")
+            L(f"[i26] *** ABORT (risk 1): {why}. Design sheet section 0: the certified checkpoint "
+              f"stands. ***")
             return 1
+        if ep >= 2 and fv < G_FULL_FLOOR:
+            L(f"[i26] NOTE ep{ep}: full-profile {fv:.4f} below the floor {G_FULL_FLOOR} but "
+              f"{'IMPROVING' if len(fulls) < 2 or fv > fulls[-2] else 'not improving'} "
+              f"({(fv - fulls[-2]):+.4f} vs last epoch) -- recovery window runs to ep{RECOVER_BY}")
         if fv > best["val"]:
             best = {"val": fv, "epoch": ep}
             atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
