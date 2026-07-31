@@ -45,9 +45,15 @@ from train_tower_t2 import (load_recvae_teacher, pack_tokens, apply_sign_prior, 
 
 OUT = os.path.join(_ROOT, "experiments", "instrument")
 CKPT_DIR = os.path.join(_ROOT, ".cache", "instrument")
-CERT_FULL = 0.3482          # the certified arm-A full-profile number
-G_FULL_FLOOR = 0.3467       # abort below this
-G_EMPTY_FLOOR = 0.1626      # counting
+# REFERENCE POINTS ARE MEASURED AT STARTUP, NOT HARDCODED (fix 2026-07-31).
+# ep1 flagged "G-EMPTY below floor (0.1315 < 0.1626)" -- a FALSE ALARM. 0.1626 was measured on the
+# arm-N pool (all rated items masked), which inflates scores ~+0.03; when the diagnostics moved to the
+# VAL cohort they also dropped that pool, so a val/arm-A number was being compared to an arm-N floor.
+# Same mismatch on full profile: 0.3467 derives from the TEST number 0.3482, but the certified model
+# scores 0.3451 on VAL. Comparing a val measurement to a test-derived floor is the same error twice.
+# So both references are now MEASURED on the val cohort under the identical protocol at startup.
+CERT_VAL_FULL = 0.3451      # t2final_best.pt's own recorded val_full (sanity-checked at startup)
+CI_WIDTH = 0.0015           # paired-bootstrap half-width
 # ABORT RULE, REWRITTEN 2026-07-31 after it killed a HEALTHY run.
 # v1 tested an ABSOLUTE level at epoch 2 (abort if val < 0.3482 - 0.005) and fired on 0.3307 -> 0.3342.
 # But that is +0.0035 in one epoch: a warm-started model whose new branches start at zero DIPS while
@@ -134,10 +140,18 @@ def main():
     Wd = dec.weight.detach(); bd = dec.bias.detach()
     opt = torch.optim.Adam(params, lr=a.lr)
 
-    # ---- canonical VAL cohort, for G-FULL only. TEST is never touched here. -------------
+    # ---- canonical VAL cohort. TEST is never touched here. ------------------------------
     uu, _tr, _vd, _te, _n, raw, show2id, usid = reproduce_partition()
     L_val, _nv = build_graded_eval_matrix(raw, uu, show2id, usid, "validation")
     va_tr, va_te = M.load_val(ni, PROC)
+    # Empty-set reference on the SAME protocol the diagnostics use: Most-Popular on val, arm-A masking.
+    import pop as _pop
+    _pp = _pop.fit(D["train"], ni, log=lambda m: None)
+    G_EMPTY_FLOOR = M.evaluate(_pp, va_tr, va_te, batch_size=500,
+                               head_mask=D["head_mask"])["ndcg@10"]
+    G_FULL_FLOOR = CERT_VAL_FULL - CI_WIDTH
+    L(f"[i26] references MEASURED on val/arm-A: MostPop={G_EMPTY_FLOOR:.4f} (empty-set floor); "
+      f"full-profile floor={G_FULL_FLOOR:.4f} (certified val {CERT_VAL_FULL} - CI {CI_WIDTH})")
 
     def full_profile_val():
         enc.eval()
