@@ -78,6 +78,8 @@ from arm_n_tower import SNAP_DEFAULT
 import interview_strategies as ST
 from golbandi_leaf import GolbandiLeaf, MAX_DEPTH
 from train_tower_t2 import build_model, make_graded_predict_fn, compute_head_mask, level_to_sv
+sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
+from i26_encoder import UNSEEN_LEVEL
 
 OUT = os.path.join(_ROOT, "experiments", "baselines", "interview")
 RECS = ["ours", "recvae_likes", "golbandi_leaf", "rbmf", "belief_mf"]
@@ -95,23 +97,37 @@ def logln(m):
 
 
 # ------------------------------------------------------------------ answer -> per-contract input
-def answers_to_csr(answered, n_users, n_items, mode):
+def answers_to_csr(answered, n_users, n_items, mode, asked=None):
     """mode='levels'  -> level+1 (the tower's graded encoding)
+       mode='levels_unseen' -> as 'levels', PLUS asked-but-unanswered items at UNSEEN_LEVEL+1.
+
+    THE GAP THIS CLOSES (found 2026-07-31, author: "i would expect epoch 1 to already improve on short,
+    i don't know why it wouldn't"). Every interview number produced until now fed the model ONLY the
+    ANSWERED items -- `asked` was consumed by Golbandi alone. So the i26 exposure branch, the entire
+    point of that arm, was never exercised at evaluation: the model was trained on a channel the harness
+    does not hand it. Under HELF that is 6.4 of 8 questions silently discarded before the model sees
+    them. i26 numbers measured this way cannot improve on short interviews by construction.
        mode='signed'  -> level_to_sv: +1 at 5.0 stars, 0 at 2.75, -1 at 0.5 (RBMF / belief-MF targets)
        mode='likes'   -> 1.0 for level>=7 (r>=4.0) only; dislikes are DROPPED, which is precisely what
                          a binary recommender's contract can express."""
     rows, cols, vals = [], [], []
     for u, toks in enumerate(answered):
+        seen = set()
         for (i, lv) in toks:
+            seen.add(int(i))
             if mode == "likes":
                 if lv < 7:
                     continue
                 v = 1.0
-            elif mode == "levels":
+            elif mode in ("levels", "levels_unseen"):
                 v = float(lv) + 1.0
             else:
                 v = float(level_to_sv(lv))
             rows.append(u); cols.append(i); vals.append(v)
+        if mode == "levels_unseen" and asked is not None:
+            for i in asked[u]:
+                if int(i) not in seen:            # asked, and the user could not answer
+                    rows.append(u); cols.append(int(i)); vals.append(float(UNSEEN_LEVEL) + 1.0)
     return sparse.csr_matrix((np.asarray(vals, np.float32), (rows, cols)),
                              shape=(n_users, n_items), dtype=np.float32)
 
@@ -186,7 +202,9 @@ def main():
         enc.load_state_dict(blob["enc"]); dec.load_state_dict(blob["decoder"]); enc.eval()
         logln(f"[interview] ours = {a.arch} from {os.path.basename(a.snapshot)} "
               f"(ep={blob.get('epoch','?')} val_full={blob.get('val_full','?')})")
-        built["ours"] = ("levels", (enc, dec.weight.detach(), dec.bias.detach()))
+        # i26 must RECEIVE the unseen channel it was trained on; i25 has no such channel.
+        built["ours"] = ("levels_unseen" if a.arch == "i26" else "levels",
+                         (enc, dec.weight.detach(), dec.bias.detach()))
     if "recvae_likes" in recs:
         ck = os.path.join(_ROOT, ".cache", "baselines", "recvae_ml25m_liang.pt")
         ra = recvae._defaults()
@@ -231,7 +249,7 @@ def main():
                     base = cursor_predict(lambda s, e, _sc=sc: _sc[s:e].copy())
                     Xin = D["te_tr"]
                 else:
-                    Xi = answers_to_csr(answered, n, ni, mode)
+                    Xi = answers_to_csr(answered, n, ni, mode, asked=asked)
                     if name == "ours":
                         e_, W_, b_ = obj
                         base = make_graded_predict_fn(e_, W_, b_, Xi, check_nnz=False)
