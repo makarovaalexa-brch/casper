@@ -3,42 +3,74 @@
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
 > End-state is in `VISION.md`. Last updated: **2026-07-31 (Reddit-opener idea; i26 retrain running)**.
 
-## ★★★ TOP OF THE QUEUE — THE REDDIT-MINED OPEN REQUEST (task #68, author idea 2026-07-31)
-Memory: `reddit-mined-open-request-opener.md`. Design context: `docs/design/PAPER_B_DESIGN.md`.
+## ★★★ TOP OF THE QUEUE — THE ORGANIC OPEN REQUEST (task #68, author idea 2026-07-31, CORRECTED SAME DAY)
+Memory: `reddit-mined-open-request-opener.md`. Full lit record:
+`external_literature/findings/organic_open_request_novelty.md`. Design: `docs/design/PAPER_B_DESIGN.md`.
 
-**The idea.** The open-ended opener need not be a question *we* ask. It can be the **proactive request the
-user arrives with** — *"something like Inception but less confusing"* — and those can be **mined from real
-Reddit recommendation threads** (r/MovieSuggestions, r/ifyoulikeblank, r/tipofmytongue), where real people
-post exactly this, commenters reply with titles, and votes rank the replies.
+**The idea.** The open opener need not be a question *we* ask — it can be the **proactive request the user
+arrives with** (*"something like Inception but less confusing"*), **mined from real Reddit threads**.
 
-**Why it is the strongest form of the open-opener line.**
-1. **It cannot be circular.** Circular answer models have killed two headline results here: the +47%
-   adaptivity number (retired LLM answer grids, popularity-dominated) and the old Paper B +36% concept edge,
-   which collapsed to a tie once the geometric simulator was replaced by a behavioural one — the tell being
-   that the geometric arm *exceeded the full-profile ceiling*. Every interview number we currently produce
-   carries "answers come from recorded ratings, not from a person responding to a rendered question". A
-   mined Reddit request was written by a real person, in their own words, before our system existed.
-2. **It makes Paper A's R2 load-bearing.** R2 claims an open set-valued interface — "a vector the model
-   never saw when it was fitted is a legal member of the set" — and today only *illustrates* it. An organic
-   free-text request **is** that vector. The item-selection line cannot ingest one: for them a question is
-   an index into a fixed catalogue and an answer is a scalar on that index. Not a criterion they lack, an
-   **interface**.
-3. The thread carries its own outcome signal: the recommended titles, vote-ranked.
+**THE MORNING FRAMING WAS WRONG IN THREE PLACES.** Deep research returned the same day.
 
-**Where it sits.** It instantiates the bottom-right cell of the author's 2×2 — {closed, open} opener ×
-{static, adaptive} follow-up — with organic rather than simulated data. Hypothesis: adaptive is only weakly
-better than static after a *closed* opener (the field's null, and ours), much better after an *open* one,
-and **the interaction is the finding**. Confound already in our own corpus, previously unnoticed: the one
-experiment that showed a large adaptivity gain opened with an OPEN question ("favourite genre?"); every
-experiment that found nothing opened CLOSED. We demoted the winner for its answer model and never noticed
-the opener type differed too.
+**Dead — the data contribution.** It is not "ReDial with extra steps", it is **narrative-driven
+recommendation with extra steps**: a decade-old published programme with a CLEF shared task.
+**Bogers & Koolen** (RecSys'17, KaRS'18, INEX/CLEF Social Book Search 2011–16) define it verbatim —
+*"a narrative description of the aspects of items desired by the users (≥1 sentence)… The narrative must
+describe **a open request for recommendations** as opposed to locating a specific item"* — over 115,899
+LibraryThing threads, and **they have the outcome signal we lack** (SBS grades: suggested=1, already
+owned=0, **subsequently added to the requester's catalogue=8**; `<request>`/`<examples>`/`<catalog>` XML;
+94,656 profiles; nDCG@10; 46 runs from 10 institutions in 2016). **Eberhard et al. IUI'19** already built
+the exact r/MovieSuggestions→IMDb artifact. **He et al. CIKM'23** already published our anti-circularity
+argument in print. Cold-start-as-differentiator is also already in Eberhard. The only surviving field-wide
+statement: **no public dataset in the MOVIE domain has both an organic open request at turn 1 and an
+out-of-dialogue consumption outcome.**
 
-**Blockers — resolve before committing Paper B's shape** (deep research dispatched 2026-07-31):
-ReDial-with-extra-steps? (theirs is crowdsourced role-play; the claim rests on *organic* vs
-*elicited-for-the-dataset*) · entity-linking free-text film mentions to ML-25M · **Reddit data legality
-post-API-changes — this decides feasibility** · evaluation design (we have no ratings for those users; are
-vote-ranked replies a usable ruler or popularity-contaminated?) · any LLM entity extraction needs explicit
-author approval. **Risk:** a six-month data project rather than a six-week one.
+**Wrong — "it cannot be circular".** The *opener* can't; **the ground truth can.** Reply titles come from
+the same self-selected community, and He et al. document the leak we would inherit: **>15% of INSPIRED
+ground-truth items are already named earlier in the conversation, a trivial copy-the-history baseline beats
+most CRS models, and stripping repeats drops #HIT@1 by >60%.**
+
+**Wrong — "votes rank the replies". DO NOT USE VOTES AS GRADED LABELS.** GuessTheKarma (CSCW'18, 20,674
+influence-free judgments): higher-scored item preferred only **68%** of the time. Glenski & Weninger
+(HT'15, N≈93,019): one artificial upvote → **+11.02%**, one downvote → **−5.15%**, and **the corrective
+effect does not replicate on Reddit**. **73% of votes are cast without viewing the content.** 51.52% of
+eventually-popular links were previously submitted and ignored (Gilbert CSCW'13). IR/CQA calls these
+**silver** labels. **Neither Bogers & Koolen nor He et al. use votes** — He ships an `upvotes` column and
+the paper has zero occurrences of "upvote"/"vote". Use votes only as **a coarse binary inclusion filter**.
+
+**HARD RULE 1 applies to the pipeline.** Of Bogers & Koolen's 1,457 annotated requests, **483 (33.2%) are
+known-item needs, not recommendation needs**, and ~25% of the rest give neither examples nor context — an
+entity-anchored pipeline silently discards **~42%** of genuine requests, biased toward users who already
+name titles. That is a truncation and it is not neutral.
+
+**WHAT SURVIVES — one cell, and it is the strongest posture available.** *The adaptivity gap measured
+DOWNSTREAM of a non-circular organic opener, cold-start, with a ranking outcome.* The three pieces exist
+and never co-occur: organic request + ranking with **zero** follow-up (Eberhard IUI'19/WWW'25, He CIKM'23,
+Mysore RecSys'23, OCG-Agent EMNLP'25 — zero occurrences of "follow-up"/"multi-turn"); adaptive multi-turn +
+ranking but curated request and role-played answerer (Qulac, ClariQ, ConvSim); real request + real signal
+but one question and no ranking (Zamani WWW'20: *"In this work, we do not study multi-turn interactions."*).
+In recommendation the openers are **target-derived** — EAR: *"we randomly choose an attribute from the
+oracle set as the user's initialization"*, scored by Success Rate@t, not ranking. Negative searches:
+`"narrative" AND "clarifying" AND recommend` → **0**; `"r/MovieSuggestions"` → **0**.
+
+> **REFRAME: "what does an adaptive interview add once a real request has already been given?"**
+> Eberhard/He become the **ruler**; the mined opener becomes **given evidence**, not the contribution.
+> That converts our two most dangerous prior works into our baseline table.
+
+**Usable now.** Aliannejadi's best case is an **open** question (*"Open questions are very hard to
+formulate… however, it is more likely to get useful feedback"*) — independent support for the opener-type
+hypothesis. **Krasakis ICTIR'20: on Qulac, negative answers DEGRADE ranking** (NDCG@20 0.130→0.106,
+−18.5%) — a published contrast for our sign line (+0.0229 at k=2). Calibration target: **ConvSim +16%
+nDCG@3 after one feedback round, +35% after three**, but with a curated opener and an LLM simulator.
+One point in Reddit's favour: top-popular items are ~2% of ReDial ground truth but **<0.3% on Reddit**.
+
+**FIRST DEBT before committing:** Koolen, Kamps & Kazai, **CIKM 2012**, "Social book search: comparing
+topical relevance judgements and book suggestions for evaluation" — closed access, and literally the
+validity study for the ground truth we would adopt.
+
+**⚠ 2 of 9 sub-agents fabricated primary-source content before self-correcting** (retracted: BK-VAE
+internals, Burke/Chen&Pu quotes, LangPTune mechanism, a fabricated "NEO arXiv:2603.17533", Eberhard's
+field list). Anything not tied to an extracted quote is provisional.
 
 ## ★★★ PAPER A IS IN FINALISATION — A0–A6 plan, A1/A2 done
 Chapter: `new_chapters/chapterA_v2/chapterA_v2.tex`. Compiles clean via Tectonic, **0 undefined, 0 TODO,

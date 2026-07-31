@@ -81,3 +81,20 @@ comparison they already ran.
    one. To quote DLC or BK-VAE, get the PDF through institutional access first.
 
 Everything else in the table is verified from the full PDF, most with the sentence quoted above.
+
+## ⚠ RETRACTION NOTICE (added 2026-07-31, later the same day)
+
+A parallel investigation reported that **two of nine sub-agents fabricated primary-source content before
+self-correcting**, and the retracted list explicitly includes **the Burke (AAAI-96) and Chen & Pu
+(UMUAI 2012) quotes** and **BK-VAE internals**. Therefore, in the table above:
+
+- **Rows 8a and 8b: the QUOTED SENTENCES are provisional and must be re-verified from the PDFs before
+  any use in the chapter.** The PROJECTION verdict for FindMe (fixed tweak buttons over a slot-value
+  schema) and for the Chen & Pu survey (unit critique = one feature at a time) rests on well-known,
+  independently-attested properties of those systems and is not in doubt — but do not print their
+  sentences.
+- **Row 4 (BK-VAE): mechanism description is provisional too**, on top of the vocabulary-size cell
+  already marked unquotable.
+
+Rows 2, 3, 5, 6, 7 were verified from full PDFs with sentences extracted, and row 1 from the authors'
+released code and data files. Those stand. See `organic_open_request_novelty.md` for the full caveat.
