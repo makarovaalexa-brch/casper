@@ -148,6 +148,11 @@ def main():
     ap.add_argument("--only", default=None)
     ap.add_argument("--arms", default=None)
     ap.add_argument("--snapshot", default=SNAP_DEFAULT)
+    ap.add_argument("--arch", default="i25", choices=["i25", "i26"],
+                    help="i26 = the interview-native arm (exposure branch + trainable prior latent). "
+                         "Its checkpoint cannot be loaded into an i25 model: the state dict carries "
+                         "psi/rho_expo/gate_e/z0 that i25 has no slots for.")
+    ap.add_argument("--label", default=None, help="row name in the output JSON (default: arch)")
     a = ap.parse_args()
     budgets = [int(x) for x in a.budgets.split(",")]
     recs = RECS if not a.only else [r for r in RECS if r in set(a.only.split(","))]
@@ -165,12 +170,22 @@ def main():
     # ---------------------------------------------------------------- recommenders
     built = {}
     if "ours" in recs:
-        ma = argparse.Namespace(arch="i25", teacher="warm_init", t_hidden=600, t_latent=200,
+        ma = argparse.Namespace(arch=a.arch, teacher="warm_init", t_hidden=600, t_latent=200,
                                 token="film", train_decoder=False, sign_prior=True, unfreeze_emb=False,
                                 lr=3e-4, warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
-        enc, dec, _t, _p, _g = build_model(ma, ni, cnt)
+        if a.arch == "i26":
+            sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
+            from i26_encoder import build_i26
+            from train_tower_t2 import load_recvae_teacher, apply_sign_prior
+            src = load_recvae_teacher(ni, hidden=600, latent=200)
+            enc, dec, _p26 = build_i26(ni, src, ma, log=logln)
+            apply_sign_prior(enc)
+        else:
+            enc, dec, _t, _p, _g = build_model(ma, ni, cnt)
         blob = torch.load(a.snapshot, map_location="cpu")
         enc.load_state_dict(blob["enc"]); dec.load_state_dict(blob["decoder"]); enc.eval()
+        logln(f"[interview] ours = {a.arch} from {os.path.basename(a.snapshot)} "
+              f"(ep={blob.get('epoch','?')} val_full={blob.get('val_full','?')})")
         built["ours"] = ("levels", (enc, dec.weight.detach(), dec.bias.detach()))
     if "recvae_likes" in recs:
         ck = os.path.join(_ROOT, ".cache", "baselines", "recvae_ml25m_liang.pt")
@@ -185,7 +200,8 @@ def main():
         built["golbandi_leaf"] = ("raw", GolbandiLeaf(D["g_train"], ni, lam=8.0, log=logln))
 
     results = {}
-    outp = os.path.join(OUT, "interview_table.json")
+    lbl = a.label or a.arch
+    outp = os.path.join(OUT, f"interview_table_{lbl}.json")
 
     # ---------------------------------------------------------------- MostPop: one number
     pr_pop = pop.fit(D["train"], ni, log=logln)
@@ -241,6 +257,7 @@ def main():
                       f"floored={floored['n']:5d} full={res['ndcg@10']:.4f} "
                       f"tail={res['tail_ndcg@10']:.4f} ({(time.time() - ts) / 60:.1f}m)")
                 json.dump({"lit_rank": ST.LIT_RANK, "cites": ST.CITES, "budgets": budgets,
+                           "arch": a.arch, "snapshot": os.path.basename(a.snapshot),
                            "results": results}, open(outp, "w"), indent=2)
     logln(f"[interview] done -> {outp}")
 
