@@ -133,13 +133,13 @@ def main():
                             train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=a.lr,
                             warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
     src = load_recvae_teacher(ni, hidden=ma.t_hidden, latent=ma.t_latent)
-    enc, dec, params = build_i26(ni, src, ma, log=L)
+    enc, dec, params, groups = build_i26(ni, src, ma, log=L)
     apply_sign_prior(enc)
     blob = torch.load(os.path.join(CKPT_DIR, "t2final_best.pt"), map_location="cpu")
     miss = enc.load_state_dict(blob["enc"], strict=False)
     L(f"[i26] warm-started taste path from t2final_best; at init: {sorted(miss.missing_keys)}")
     Wd = dec.weight.detach(); bd = dec.bias.detach()
-    opt = torch.optim.Adam(params, lr=a.lr)
+    opt = torch.optim.Adam(groups, lr=a.lr)
 
     # ---- canonical VAL cohort. TEST is never touched here. ------------------------------
     uu, _tr, _vd, _te, _n, raw, show2id, usid = reproduce_partition()
