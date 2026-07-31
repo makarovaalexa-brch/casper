@@ -98,6 +98,25 @@ def pack(batch):
     return pack_tokens(rows, binarize=False)
 
 
+def loss_vec(enc, Wd, bd, batch, ni):
+    """PER-EXAMPLE loss. Returns a (B,) tensor so one forward serves both the optimiser step and the
+    per-regime logging. Previously the logging called loss_of() again on each regime subset every 5th
+    step -- up to FOUR forwards per step, each building dense (B, 18359) target/negative matrices, which
+    is most of why a step cost ~8 s instead of ~3.5 s."""
+    ids, vals, padm, lvs = pack(batch)
+    z = enc(ids, vals, padm, lvs)
+    logsm = F.log_softmax(enc.logits(z, Wd, bd), dim=-1)
+    B = len(batch)
+    tgt = torch.zeros((B, ni)); neg = torch.zeros((B, ni))
+    for r, (_i, _l, _v, _u, t, n) in enumerate(batch):
+        tgt[r, t] = 1.0
+        if len(n):
+            neg[r, n] = 1.0
+    nll = -((logsm * tgt).sum(-1) / tgt.sum(-1).clamp_min(1.0))
+    npen = (logsm * neg).sum(-1) / neg.sum(-1).clamp_min(1.0)
+    return nll + W_NEG * npen.clamp(min=NEG_CLAMP)
+
+
 def loss_of(enc, Wd, bd, batch, ni):
     ids, vals, padm, lvs = pack(batch)
     z = enc(ids, vals, padm, lvs)

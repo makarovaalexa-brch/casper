@@ -39,7 +39,7 @@ from arm_n import load_arm_n
 import interview_strategies as ST
 from i26_encoder import build_i26, UNSEEN_LEVEL
 from interview_curriculum import StrategyFamily, draw
-from train_i26_smoke import profiles, full_dropout, pack, loss_of, regime_of
+from train_i26_smoke import profiles, full_dropout, pack, loss_of, loss_vec, regime_of
 from train_tower_t2 import (load_recvae_teacher, pack_tokens, apply_sign_prior, compute_head_mask,
                             make_graded_predict_fn, build_graded_eval_matrix, reproduce_partition,
                             truncate_graded, PROC)
@@ -270,28 +270,26 @@ def main():
         for step in range(a.steps_per_epoch):
             b = make_batch(tr_us, r)
             opt.zero_grad()
-            loss = loss_of(enc, Wd, bd, b, ni)
-            loss.backward()
+            lv_ = loss_vec(enc, Wd, bd, b, ni)          # ONE forward, reused for logging
+            lv_.mean().backward()
             torch.nn.utils.clip_grad_norm_(params, 5.0)
             opt.step()
             if step % HEARTBEAT_EVERY == 0:
                 beat(ep, step)
             if step % 5 == 0:
                 with torch.no_grad():
-                    for reg in run:
-                        sub = [e for e in b if regime_of(e) == reg]
-                        if sub:
-                            run[reg].append(float(loss_of(enc, Wd, bd, sub, ni)))
+                    d_ = lv_.detach()
+                    for j, e in enumerate(b):
+                        run[regime_of(e)].append(float(d_[j]))
         # ---- held-out loss per regime
         rv = np.random.default_rng(99)
         vb = {"full": [], "interview": [], "empty": []}
         with torch.no_grad():
             for _ in range(20):
                 b = make_batch(val_us, rv)
-                for reg in vb:
-                    sub = [e for e in b if regime_of(e) == reg]
-                    if sub:
-                        vb[reg].append(float(loss_of(enc, Wd, bd, sub, ni)))
+                d_ = loss_vec(enc, Wd, bd, b, ni)
+                for j, e in enumerate(b):
+                    vb[regime_of(e)].append(float(d_[j]))
         fv, ft = full_profile_val()
         e0, e1, k2, k8, sel = interview_val()
         el = (time.time() - t0) / 60.0
