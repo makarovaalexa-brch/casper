@@ -239,22 +239,29 @@ def main():
                      "held": {k: float(np.mean(v)) for k, v in vb.items()}})
         json.dump(hist, open(os.path.join(OUT, f"{a.tag}_hist.json"), "w"), indent=2)
 
+        # THE GATES REPORT; THEY DO NOT KILL. (author, 2026-07-31: "do NOT set up logic to kill the
+        # run, delete everything and not offer alternative. we could have learned smth at least".)
+        # The v1 abort stopped at 02:09 and, because the watchdog correctly stands down on a DONE
+        # marker, the machine then sat IDLE until 08:43 -- six and a half hours producing nothing. A
+        # stop with no alternative path is not a safety feature. Training now continues regardless; a
+        # failing gate is logged loudly, the best checkpoint keeps being written, and a human reads the
+        # full curve and decides. Nothing is ever lost by letting it run.
         fulls = [h["val_full"] for h in hist]
         stalled = (len(fulls) > PATIENCE and
                    max(fulls[-PATIENCE:]) <= max(fulls[:-PATIENCE]) + 1e-5)
-        too_late = (ep >= RECOVER_BY and fv < G_FULL_FLOOR)
-        if stalled or too_late:
-            why = (f"full-profile has not improved in {PATIENCE} epochs (best {max(fulls):.4f})"
-                   if stalled else
-                   f"full-profile {fv:.4f} still below the floor {G_FULL_FLOOR} at epoch {ep}")
-            open(os.path.join(OUT, f"{a.tag}_DONE.marker"), "w").write(f"ABORTED: G-FULL ({why})")
-            L(f"[i26] *** ABORT (risk 1): {why}. Design sheet section 0: the certified checkpoint "
-              f"stands. ***")
-            return 1
-        if ep >= 2 and fv < G_FULL_FLOOR:
-            L(f"[i26] NOTE ep{ep}: full-profile {fv:.4f} below the floor {G_FULL_FLOOR} but "
-              f"{'IMPROVING' if len(fulls) < 2 or fv > fulls[-2] else 'not improving'} "
-              f"({(fv - fulls[-2]):+.4f} vs last epoch) -- recovery window runs to ep{RECOVER_BY}")
+        flags = []
+        if fv < G_FULL_FLOOR:
+            trend = "IMPROVING" if len(fulls) < 2 or fv > fulls[-2] else "flat/falling"
+            d = (fv - fulls[-2]) if len(fulls) >= 2 else 0.0
+            flags.append(f"G-FULL below floor ({fv:.4f} < {G_FULL_FLOOR}), {trend} {d:+.4f}")
+        if stalled:
+            flags.append(f"G-FULL not improving for {PATIENCE} epochs (best {max(fulls):.4f})")
+        if e0 < G_EMPTY_FLOOR:
+            flags.append(f"G-EMPTY below floor ({e0:.4f} < {G_EMPTY_FLOOR})")
+        if e1 < e0:
+            flags.append(f"G-MONOTONE violated (k1 {e1:.4f} < k0 {e0:.4f})")
+        if flags:
+            L(f"[i26] ep{ep:2d} GATE FLAGS (reporting only, run CONTINUES): " + "; ".join(flags))
         if fv > best["val"]:
             best = {"val": fv, "epoch": ep}
             atomic_save({"enc": enc.state_dict(), "decoder": dec.state_dict(), "epoch": ep,
