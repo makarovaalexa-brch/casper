@@ -65,10 +65,20 @@ def profiles(G, idx):
     return out
 
 
+DROP_MAX = 0.5      # MUST match train_tower_t2.make_input_target's default. See the note below.
+
+
 def full_dropout(u, rng):
-    """The EXISTING full-profile/dropout regime, unchanged (protects the floor)."""
+    """The EXISTING full-profile/dropout regime -- and it must be EXACTLY the certified one.
+
+    BUG FOUND 2026-07-31 (the epoch-2 abort): this had drop_max hardcoded to 0.8 while the certified
+    recipe uses 0.5. So the 'full-profile' regime was training on inputs up to 80% truncated, far
+    sparser than the recipe has ever used, and full-profile val duly fell to 0.3307/0.3342 against the
+    certified 0.3482 -- the abort fired at epoch 2 exactly as designed. The only thing that may differ
+    from the certified recipe is the ADDITION of the interview and empty regimes; the full-profile
+    regime itself must be untouched."""
     its = u["items"]
-    keep = rng.random(len(its)) >= rng.uniform(0.0, 0.8)
+    keep = rng.random(len(its)) >= rng.uniform(0.0, DROP_MAX)
     if not keep.any():
         keep[rng.integers(0, len(its))] = True
     tgt = np.setdiff1d(u["liked"], its[keep])
