@@ -1,0 +1,14 @@
+[11:03:57] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:05:58] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:06:44] certified ckpt records: ep=9 val_full=0.3450886366992694
+[11:06:47] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:06:48] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[11:06:48] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:06:48] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[11:12:12] A) i25 certified          val full@10 = 0.3451  (recorded 0.3451)
+[11:12:15] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:12:18] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:12:18]    missing keys (left at init): ['W_white', 'gate_e', 'psi.0.bias', 'psi.0.weight', 'psi.2.bias', 'psi.2.weight', 'rho_expo.0.bias', 'rho_expo.0.weight', 'rho_expo.2.bias', 'rho_expo.2.weight']
+[11:12:18]    UNEXPECTED keys (in ckpt, not in model): []
+[11:16:50] B) i26 warm-started       val full@10 = 0.3451
+[11:16:50] DELTA (B-A) = +0.0000  -> WARM START IS CLEAN

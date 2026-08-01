@@ -1,0 +1,62 @@
+{
+  "lit_rank": {
+    "helf": 1,
+    "entropy0": 2,
+    "popularity": 3,
+    "pure_entropy": 4,
+    "random_bank": 5,
+    "random_catalog": 6
+  },
+  "cites": {
+    "helf": "rashid2002getting; rashid2008learning",
+    "entropy0": "rashid2008learning",
+    "popularity": "rashid2002getting; golbandi2010",
+    "pure_entropy": "rashid2002getting",
+    "random_bank": "no exact lit counterpart (protocol caveat)",
+    "random_catalog": "rashid2002getting; elahi2016survey"
+  },
+  "budgets": [
+    2,
+    8
+  ],
+  "arch": "i26",
+  "snapshot": "t2final_best.pt",
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "helf": {
+        "k2": {
+          "full": 0.16683762521781864,
+          "tail": 0.04100479576189751,
+          "answered": 0.4992,
+          "floored": 6107
+        },
+        "k8": {
+          "full": 0.18988535978483487,
+          "tail": 0.06369241390702118,
+          "answered": 1.5878,
+          "floored": 3737
+        }
+      },
+      "entropy0": {
+        "k2": {
+          "full": 0.1684767676305908,
+          "tail": 0.047233878965952505,
+          "answered": 0.8552,
+          "floored": 3933
+        },
+        "k8": {
+          "full": 0.19349578175426788,
+          "tail": 0.06347844053460719,
+          "answered": 3.1,
+          "floored": 1463
+        }
+      }
+    }
+  }
+}
