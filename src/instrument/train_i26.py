@@ -120,7 +120,7 @@ def main():
                          "recvae it is NOT converged on our objective, so this is the FIRST knob to "
                          "raise if the run underperforms -- do not change it silently mid-campaign.")
     ap.add_argument("--mix", default=None,
-                    help="Regime mixture p_full,p_interview,p_k0,p_k1 (sums to 1). Default keeps the "
+                    help="Regime mixture p_full,p_small,p_interview,p_k0,p_k1 (sums to 1). Default keeps the "
                          "module's 45/45/5/5. Author directive 2026-08-01: interviews are the priority, "
                          "so the certification run uses 0.30,0.60,0.05,0.05, with a full-profile budget "
                          "of 1-2 NDCG points against the certified 0.3482.")
@@ -146,9 +146,11 @@ def main():
     fam = StrategyFamily(cnt, H, H0, helf)
     if a.mix:
         import interview_curriculum as _ic
-        _pf, _pi, _p0, _p1 = (float(x) for x in a.mix.split(","))
-        _ic.set_mixture(_pf, _pi, _p0, _p1)
-        L(f"[i26] regime mixture SET to full={_pf} interview={_pi} k0={_p0} k1={_p1}")
+        _v = [float(x) for x in a.mix.split(",")]
+        assert len(_v) == 5, f"--mix needs 5 values full,small,interview,k0,k1; got {len(_v)}"
+        _ic.set_mixture(*_v)
+        L(f"[i26] regime mixture SET to full={_v[0]} DENSE-SMALL={_v[1]} interview={_v[2]} "
+          f"k0={_v[3]} k1={_v[4]}")
 
     ma = argparse.Namespace(arch="i26", teacher="warm_init", t_hidden=600, t_latent=200, token="film",
                             train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=a.lr,
