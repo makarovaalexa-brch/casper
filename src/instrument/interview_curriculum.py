@@ -42,6 +42,25 @@ BUDGETS = (1, 2, 4, 8, 16, 32)
 # recipe trains 50% of examples in the dropout regime; starving it to 35% while ALSO over-truncating
 # them (drop_max 0.8 vs 0.5) cost 0.014-0.018 full-profile NDCG. The interview share stays substantial.
 P_FULL, P_INTERVIEW, P_K0, P_K1 = 0.45, 0.45, 0.05, 0.05
+
+
+def set_mixture(p_full, p_interview, p_k0, p_k1):
+    """Override the regime mixture at runtime (the trainer's --mix flag writes through this).
+
+    AUTHOR DIRECTIVE 2026-08-01: "the curriculum should be interview heavy, with realistic interviews.
+    interviews are a priority, trying to not lose more than 1-2 points on full." So the mixture spends
+    on interviews, and the full-profile share exists only to hold that budget. Reference: at 45/45 the
+    run lost 0.0066 full profile (0.3482 -> 0.3416), well inside a 1-2 point allowance, so there is room
+    to shift.
+
+    NOTE this is the ONLY sanctioned way to change the mixture -- an earlier run shifted it to 30/60
+    while ALSO dropping warm_lr_scale to 0.01, which nearly froze the taste path; interview learning
+    went flat and the mixture change could not be evaluated on its own. Change the mixture OR the
+    learning rate, not both."""
+    global P_FULL, P_INTERVIEW, P_K0, P_K1
+    tot = p_full + p_interview + p_k0 + p_k1
+    assert abs(tot - 1.0) < 1e-9, f"mixture must sum to 1, got {tot}"
+    P_FULL, P_INTERVIEW, P_K0, P_K1 = p_full, p_interview, p_k0, p_k1
 def zs(x):
     x = np.asarray(x, np.float64)
     return (x - x.mean()) / max(x.std(), 1e-9)
