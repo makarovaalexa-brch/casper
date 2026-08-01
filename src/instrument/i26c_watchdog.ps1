@@ -63,6 +63,29 @@ function Check {
         Log 'no state file yet -> treating as dead'
     }
 
+    # SECOND, INDEPENDENT CHECK -- added 2026-08-01 after this exact race cost a night.
+    # The state file is NOT a reliable liveness signal. Restarting the run by hand means: kill the
+    # trainer, delete the stale state file, launch the new one. In the seconds between the delete and
+    # the new process's first heartbeat, the state file is absent and the check above concludes "no
+    # state file yet -> treating as dead" and launches a SECOND trainer. That is what happened at
+    # 22:56:24 on 2026-07-31: two trainers then ran for ten hours writing the same t2i26c_ep*.pt files,
+    # halving each other's throughput (31 min/epoch instead of ~18) and interleaving checkpoints from
+    # two runs that -- because torch.manual_seed is never set -- had DIFFERENT initialisations for the
+    # zero-init branch. Checkpoints ep01-ep04 had to be quarantined.
+    # So: before launching anything, ask the OS whether a train_i26.py is already running. Only relaunch
+    # if there is genuinely no trainer alive. This is authoritative where the state file is advisory.
+    if (-not $alive) {
+        $running = @(Get-CimInstance Win32_Process -Filter "Name='python.exe'" -ErrorAction SilentlyContinue |
+                     Where-Object { $_.CommandLine -like '*train_i26.py*' -and $_.CommandLine -like '*t2i26c*' })
+        if ($running.Count -gt 0) {
+            Log ("STAND DOWN: state file says dead/stale but " + $running.Count +
+                 " train_i26.py/t2i26c process(es) are alive (pid " +
+                 (($running | ForEach-Object { $_.ProcessId }) -join ',') +
+                 "). Not launching a duplicate.")
+            return $false
+        }
+    }
+
     if (-not $alive) {
         $env:OMP_NUM_THREADS = '6'
         $env:OPENBLAS_NUM_THREADS = '1'
