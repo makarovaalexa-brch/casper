@@ -1,0 +1,20 @@
+[21:22:43] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[21:22:43] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[21:22:43] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[21:22:44] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[21:22:44] [interview] 1 recommenders x 6 strategies x 1 budgets
+[21:22:45] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[21:22:45] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[21:22:45] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[21:22:45] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[21:22:45] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[21:22:45] [interview] ours = i26 from t2i26_best.pt (ep=18 val_full=0.3372787089285702)
+[21:22:45] [pop] fitted item popularity over 140768 train users, 18359 items
+[21:23:00] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[21:23:18] [interview] ours           helf           k= 8 answered= 1.6/8 floored=    0 full=0.1872 tail=0.0674 (0.3m)
+[21:23:38] [interview] ours           entropy0       k= 8 answered= 3.1/8 floored=    0 full=0.2019 tail=0.0770 (0.3m)
+[21:23:59] [interview] ours           popularity     k= 8 answered= 3.1/8 floored=    0 full=0.1897 tail=0.0673 (0.3m)
+[21:24:18] [interview] ours           pure_entropy   k= 8 answered= 0.0/8 floored=    0 full=0.1584 tail=0.0347 (0.3m)
+[21:24:37] [interview] ours           random_bank    k= 8 answered= 0.1/8 floored=    0 full=0.1602 tail=0.0337 (0.3m)
+[21:24:57] [interview] ours           random_catalog k= 8 answered= 0.1/8 floored=    0 full=0.1593 tail=0.0322 (0.3m)
+[21:24:57] [interview] done -> C:\dev\phd\casper\experiments\baselines\interview\interview_table_k8_NOFLOOR_i26.json

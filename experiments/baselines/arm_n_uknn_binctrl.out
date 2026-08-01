@@ -1,0 +1,7 @@
+[13:38:49] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[13:38:49] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[13:38:49] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[13:38:50] [golbandi_native] centred user-kNN: 140768 train users, k=100, lambda=200.0
+[13:38:50] [golbandi_native] TEST with k=100 lam=200.0 [BINARY CONTROL: same estimator, binary input]
+[13:38:50] [golbandi_native] centred user-kNN: 140768 train users, k=100, lambda=200.0
+[13:39:07] [golbandi_native] ARM-N TEST full@10=0.0001 tail@10=0.0001 ndcg@100=0.0001 (0.3 m)

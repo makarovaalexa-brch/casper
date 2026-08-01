@@ -1,0 +1,43 @@
+[10:23:44] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[10:23:44] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[10:23:44] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[10:23:49] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[10:23:52] [interview] 1 recommenders x 6 strategies x 5 budgets
+[10:23:55] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[10:23:55] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[10:23:55] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[10:23:55] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[10:23:56] [interview] ours = i26 from t2i26_best.pt (ep=1 val_full=0.31677327511042525)
+[10:23:56] [pop] fitted item popularity over 140768 train users, 18359 items
+[10:25:06] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[10:26:05] [interview] ours           helf           k= 1 answered= 0.2/1 floored= 7843 full=0.1620 tail=0.0302 (1.0m)
+[10:26:42] [interview] ours           helf           k= 2 answered= 0.5/2 floored= 6107 full=0.1587 tail=0.0420 (0.6m)
+[10:27:19] [interview] ours           helf           k= 4 answered= 0.8/4 floored= 5041 full=0.1689 tail=0.0538 (0.6m)
+[10:28:08] [interview] ours           helf           k= 8 answered= 1.6/8 floored= 3737 full=0.1644 tail=0.0606 (0.8m)
+[10:29:49] [interview] ours           helf           k=16 answered= 3.3/16 floored= 2111 full=0.1817 tail=0.0791 (1.7m)
+[10:31:33] [interview] ours           entropy0       k= 1 answered= 0.4/1 floored= 5633 full=0.1640 tail=0.0414 (1.7m)
+[10:33:13] [interview] ours           entropy0       k= 2 answered= 0.9/2 floored= 3933 full=0.1652 tail=0.0477 (1.7m)
+[10:34:10] [interview] ours           entropy0       k= 4 answered= 1.6/4 floored= 2531 full=0.1665 tail=0.0550 (0.9m)
+[10:34:56] [interview] ours           entropy0       k= 8 answered= 3.1/8 floored= 1463 full=0.1848 tail=0.0694 (0.8m)
+[10:35:39] [interview] ours           entropy0       k=16 answered= 5.5/16 floored=  780 full=0.1970 tail=0.0779 (0.7m)
+[10:36:16] [interview] ours           popularity     k= 1 answered= 0.4/1 floored= 5803 full=0.1566 tail=0.0337 (0.6m)
+[10:36:56] [interview] ours           popularity     k= 2 answered= 0.8/2 floored= 4054 full=0.1561 tail=0.0428 (0.7m)
+[10:37:35] [interview] ours           popularity     k= 4 answered= 1.7/4 floored= 2634 full=0.1583 tail=0.0504 (0.6m)
+[10:38:28] [interview] ours           popularity     k= 8 answered= 3.1/8 floored= 1425 full=0.1649 tail=0.0595 (0.9m)
+[10:40:14] [interview] ours           popularity     k=16 answered= 5.4/16 floored=  894 full=0.1909 tail=0.0711 (1.8m)
+[10:41:48] [interview] ours           pure_entropy   k= 1 answered= 0.0/1 floored= 9925 full=0.1629 tail=0.0265 (1.6m)
+[10:43:20] [interview] ours           pure_entropy   k= 2 answered= 0.0/2 floored= 9910 full=0.1629 tail=0.0266 (1.5m)
+[10:44:49] [interview] ours           pure_entropy   k= 4 answered= 0.0/4 floored= 9904 full=0.1629 tail=0.0266 (1.5m)
+[10:46:20] [interview] ours           pure_entropy   k= 8 answered= 0.0/8 floored= 9728 full=0.1633 tail=0.0278 (1.5m)
+[10:48:00] [interview] ours           pure_entropy   k=16 answered= 0.1/16 floored= 9468 full=0.1641 tail=0.0304 (1.7m)
+[10:49:29] [interview] ours           random_bank    k= 1 answered= 0.0/1 floored= 9920 full=0.1628 tail=0.0266 (1.5m)
+[10:51:01] [interview] ours           random_bank    k= 2 answered= 0.0/2 floored= 9837 full=0.1629 tail=0.0271 (1.5m)
+[10:52:42] [interview] ours           random_bank    k= 4 answered= 0.0/4 floored= 9685 full=0.1633 tail=0.0279 (1.7m)
+[10:54:30] [interview] ours           random_bank    k= 8 answered= 0.1/8 floored= 9408 full=0.1640 tail=0.0299 (1.8m)
+[10:56:22] [interview] ours           random_bank    k=16 answered= 0.1/16 floored= 8996 full=0.1645 tail=0.0327 (1.9m)
+[10:58:32] [interview] ours           random_catalog k= 1 answered= 0.0/1 floored= 9911 full=0.1630 tail=0.0267 (2.2m)
+[11:00:43] [interview] ours           random_catalog k= 2 answered= 0.0/2 floored= 9851 full=0.1628 tail=0.0276 (2.2m)
+[11:03:01] [interview] ours           random_catalog k= 4 answered= 0.0/4 floored= 9705 full=0.1633 tail=0.0283 (2.3m)
+[11:04:57] [interview] ours           random_catalog k= 8 answered= 0.1/8 floored= 9459 full=0.1643 tail=0.0300 (1.9m)
+[11:06:52] [interview] ours           random_catalog k=16 answered= 0.1/16 floored= 8968 full=0.1642 tail=0.0322 (1.9m)
+[11:06:52] [interview] done -> C:\dev\phd\casper\experiments\baselines\interview\interview_table_i26.json

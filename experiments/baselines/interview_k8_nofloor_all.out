@@ -1,0 +1,51 @@
+[21:16:48] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[21:16:48] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[21:16:48] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[21:16:49] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[21:16:49] [interview] 5 recommenders x 6 strategies x 1 budgets
+[21:16:50] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[21:16:50] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[21:16:50] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[21:16:50] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[21:16:50] [interview] ours = i25 from t2final_best.pt (ep=9 val_full=0.3450886366992694)
+[21:16:52] [recvae] RESUMED ep25 best=0.3512
+C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\implicit\cpu\als.py:96: RuntimeWarning: OpenBLAS is configured to use 4 threads. It is highly recommended to disable its internal threadpool by setting the environment variable 'OPENBLAS_NUM_THREADS=1' or by calling 'threadpoolctl.threadpool_limits(1, "blas")'. Having OpenBLAS use a threadpool can lead to severe performance issues here.
+  check_blas_config()
+[21:19:11] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (2.3m)
+[21:19:11] [rbmf_seed] frozen iALS f=200 (2.3m); ls_reg=1.0
+[21:21:30] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (2.3m)
+[21:21:30] [belief_mf] frozen iALS f=200 (2.3m); prior mu0|=8.119 tr(Sig0)=338.480; obs_noise=1.0
+[21:21:31] [golbandi_leaf] node model over 140768 train users, lambda=8.0, mode=ternary
+[21:21:31] [pop] fitted item popularity over 140768 train users, 18359 items
+[21:21:43] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[21:22:00] [interview] ours           helf           k= 8 answered= 1.6/8 floored=    0 full=0.1890 tail=0.0624 (0.3m)
+[21:22:18] [interview] ours           entropy0       k= 8 answered= 3.1/8 floored=    0 full=0.1934 tail=0.0636 (0.3m)
+[21:22:36] [interview] ours           popularity     k= 8 answered= 3.1/8 floored=    0 full=0.1774 tail=0.0558 (0.3m)
+[21:22:55] [interview] ours           pure_entropy   k= 8 answered= 0.0/8 floored=    0 full=0.1564 tail=0.0257 (0.3m)
+[21:23:14] [interview] ours           random_bank    k= 8 answered= 0.1/8 floored=    0 full=0.1570 tail=0.0264 (0.3m)
+[21:23:34] [interview] ours           random_catalog k= 8 answered= 0.1/8 floored=    0 full=0.1567 tail=0.0262 (0.3m)
+[21:23:51] [interview] recvae_likes   helf           k= 8 answered= 1.6/8 floored=    0 full=0.1003 tail=0.0418 (0.3m)
+[21:24:09] [interview] recvae_likes   entropy0       k= 8 answered= 3.1/8 floored=    0 full=0.1718 tail=0.0576 (0.3m)
+[21:24:27] [interview] recvae_likes   popularity     k= 8 answered= 3.1/8 floored=    0 full=0.1760 tail=0.0534 (0.3m)
+[21:24:41] [interview] recvae_likes   pure_entropy   k= 8 answered= 0.0/8 floored=    0 full=0.0013 tail=0.0011 (0.2m)
+[21:24:56] [interview] recvae_likes   random_bank    k= 8 answered= 0.1/8 floored=    0 full=0.0068 tail=0.0040 (0.2m)
+[21:25:09] [interview] recvae_likes   random_catalog k= 8 answered= 0.1/8 floored=    0 full=0.0063 tail=0.0032 (0.2m)
+[21:25:24] [interview] golbandi_leaf  helf           k= 8 answered= 1.6/8 floored=    0 full=0.1948 tail=0.0792 (0.2m)
+[21:25:38] [interview] golbandi_leaf  entropy0       k= 8 answered= 3.1/8 floored=    0 full=0.1686 tail=0.0677 (0.2m)
+[21:25:53] [interview] golbandi_leaf  popularity     k= 8 answered= 3.1/8 floored=    0 full=0.1716 tail=0.0696 (0.2m)
+[21:26:05] [interview] golbandi_leaf  pure_entropy   k= 8 answered= 0.0/8 floored=    0 full=0.1650 tail=0.0324 (0.2m)
+[21:27:49] [interview] golbandi_leaf  random_bank    k= 8 answered= 0.1/8 floored=    0 full=0.1658 tail=0.0353 (1.7m)
+[21:29:29] [interview] golbandi_leaf  random_catalog k= 8 answered= 0.1/8 floored=    0 full=0.1664 tail=0.0351 (1.7m)
+[21:29:55] [interview] rbmf           helf           k= 8 answered= 1.6/8 floored=    0 full=0.0707 tail=0.0391 (0.4m)
+[21:30:27] [interview] rbmf           entropy0       k= 8 answered= 3.1/8 floored=    0 full=0.1658 tail=0.0358 (0.5m)
+[21:31:01] [interview] rbmf           popularity     k= 8 answered= 3.1/8 floored=    0 full=0.1638 tail=0.0323 (0.6m)
+[21:31:09] [interview] rbmf           pure_entropy   k= 8 answered= 0.0/8 floored=    0 full=0.0011 tail=0.0013 (0.1m)
+[21:31:19] [interview] rbmf           random_bank    k= 8 answered= 0.1/8 floored=    0 full=0.0057 tail=0.0041 (0.2m)
+[21:31:28] [interview] rbmf           random_catalog k= 8 answered= 0.1/8 floored=    0 full=0.0051 tail=0.0040 (0.2m)
+[21:32:01] [interview] belief_mf      helf           k= 8 answered= 1.6/8 floored=    0 full=0.1621 tail=0.0338 (0.6m)
+[21:32:38] [interview] belief_mf      entropy0       k= 8 answered= 3.1/8 floored=    0 full=0.1636 tail=0.0304 (0.6m)
+[21:33:14] [interview] belief_mf      popularity     k= 8 answered= 3.1/8 floored=    0 full=0.1635 tail=0.0304 (0.6m)
+[21:33:38] [interview] belief_mf      pure_entropy   k= 8 answered= 0.0/8 floored=    0 full=0.1607 tail=0.0280 (0.4m)
+[21:34:03] [interview] belief_mf      random_bank    k= 8 answered= 0.1/8 floored=    0 full=0.1609 tail=0.0287 (0.4m)
+[21:34:27] [interview] belief_mf      random_catalog k= 8 answered= 0.1/8 floored=    0 full=0.1608 tail=0.0284 (0.4m)
+[21:34:27] [interview] done -> C:\dev\phd\casper\experiments\baselines\interview\interview_table_k8_NOFLOOR_all.json

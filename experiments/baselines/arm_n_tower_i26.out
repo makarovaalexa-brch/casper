@@ -1,0 +1,25 @@
+[21:35:57] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[21:35:57] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[21:35:57] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[21:35:57] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[21:35:58] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[21:35:58] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[21:35:58] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[21:35:58] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[21:35:58] [tower] snapshot t2i26_best.pt ep=18 val_full=0.3373
+[21:35:58] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[21:36:12] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[21:36:18] [tower] fold-in nnz: arm A 625946 (likes only) vs arm N 1411761 (all bands, 0.557 of tokens are dislikes at level<=6)
+[21:37:17] [tower] A_full                 full@10=0.3386 tail@10=0.2448 ndcg@100=0.4424 (1.0 m)
+[21:38:15] [tower] A_input_N_pool         full@10=0.4124 tail@10=0.2982 ndcg@100=0.4984 (1.0 m)
+[21:40:47] [tower] N_full                 full@10=0.4113 tail@10=0.2985 ndcg@100=0.4989 (2.5 m)
+[21:41:04] [tower] A_k2_N_pool            full@10=0.2480 tail@10=0.1280 ndcg@100=0.3268 (0.3 m)
+[21:41:21] [tower] N_k2                   full@10=0.2281 tail@10=0.1071 ndcg@100=0.3057 (0.3 m)
+[21:41:38] [tower] A_k4_N_pool            full@10=0.2836 tail@10=0.1636 ndcg@100=0.3681 (0.3 m)
+[21:41:54] [tower] N_k4                   full@10=0.2501 tail@10=0.1289 ndcg@100=0.3336 (0.3 m)
+[21:42:12] [tower] A_k8_N_pool            full@10=0.3175 tail@10=0.1974 ndcg@100=0.4070 (0.3 m)
+[21:42:29] [tower] N_k8                   full@10=0.2732 tail@10=0.1588 ndcg@100=0.3647 (0.3 m)
+[21:42:48] [tower] A_k16_N_pool           full@10=0.3575 tail@10=0.2375 ndcg@100=0.4479 (0.3 m)
+[21:43:06] [tower] N_k16                  full@10=0.3115 tail@10=0.1968 ndcg@100=0.4043 (0.3 m)
+[21:43:06] [gate] SNAP arm-A full@10 0.3386 vs chapter 0.3482 -> *** FAIL -- stop, wrong checkpoint or path ***
+[21:43:06] [tower] done in 7.2 m

@@ -1,0 +1,17 @@
+[23:59:38] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[23:59:38] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[23:59:38] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[23:59:47] [i26] 136768 train / 4000 held-out profiles from the TRAIN cohort
+[23:59:49] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[23:59:50] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[23:59:50] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[23:59:50] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[23:59:50] [i26] warm-started taste path from t2final_best; at init: ['W_white', 'gate_e', 'psi.0.bias', 'psi.0.weight', 'psi.2.bias', 'psi.2.weight', 'rho_expo.0.bias', 'rho_expo.0.weight', 'rho_expo.2.bias', 'rho_expo.2.weight']
+[23:59:52] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[00:00:16] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[01:09:50] [i26] ep 1 TRAIN full=5.4375 interview=6.5440 empty=6.8761 | HELD-OUT full=5.4672 interview=6.5564 empty=6.6211
+[01:09:50] [i26] ep 1 G-FULL val=0.3307/0.2426 (floor 0.3467) | G-EMPTY k0=0.1621 (floor 0.1626) | G-MONOTONE k1=0.2011 (PASS) | 69.4m
+[01:09:50] [i26] new best val_full=0.3307 -> t2i26_best.pt (atomic)
+[02:09:35] [i26] ep 2 TRAIN full=5.4320 interview=6.4883 empty=6.5657 | HELD-OUT full=5.4566 interview=6.5671 empty=6.5547
+[02:09:35] [i26] ep 2 G-FULL val=0.3342/0.2440 (floor 0.3467) | G-EMPTY k0=0.1620 (floor 0.1626) | G-MONOTONE k1=0.2043 (PASS) | 129.1m
+[02:09:35] [i26] *** ABORT (risk 1): full-profile val 0.3342 is more than 0.005 below the certified 0.3482 at epoch 2. Design sheet section 0: the certified checkpoint stands. ***

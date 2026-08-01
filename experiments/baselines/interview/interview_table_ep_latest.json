@@ -1,0 +1,133 @@
+{
+  "lit_rank": {
+    "helf": 1,
+    "entropy0": 2,
+    "popularity": 3,
+    "pure_entropy": 4,
+    "random_bank": 5,
+    "random_catalog": 6
+  },
+  "cites": {
+    "helf": "rashid2002getting; rashid2008learning",
+    "entropy0": "rashid2008learning",
+    "popularity": "rashid2002getting; golbandi2010",
+    "pure_entropy": "rashid2002getting",
+    "random_bank": "no exact lit counterpart (protocol caveat)",
+    "random_catalog": "rashid2002getting; elahi2016survey"
+  },
+  "budgets": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "arch": "i26",
+  "snapshot": "t2i26_ep09.pt",
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "helf": {
+        "k1": {
+          "full": 0.16379552134465106,
+          "tail": 0.031080998926456386,
+          "answered": 0.2157,
+          "floored": 7843
+        },
+        "k2": {
+          "full": 0.16459391032049128,
+          "tail": 0.043144041585261785,
+          "answered": 0.4992,
+          "floored": 6107
+        },
+        "k4": {
+          "full": 0.1775066268339352,
+          "tail": 0.05565567652106453,
+          "answered": 0.8185,
+          "floored": 5041
+        },
+        "k8": {
+          "full": 0.18590419239589265,
+          "tail": 0.0661995654285196,
+          "answered": 1.5878,
+          "floored": 3737
+        },
+        "k16": {
+          "full": 0.21178049387391257,
+          "tail": 0.08504152467981227,
+          "answered": 3.3368,
+          "floored": 2111
+        }
+      },
+      "entropy0": {
+        "k1": {
+          "full": 0.1664920609640854,
+          "tail": 0.04152926165459015,
+          "answered": 0.4367,
+          "floored": 5633
+        },
+        "k2": {
+          "full": 0.17034237147728903,
+          "tail": 0.04899437064023531,
+          "answered": 0.8552,
+          "floored": 3933
+        },
+        "k4": {
+          "full": 0.1809383965934283,
+          "tail": 0.05729005109907982,
+          "answered": 1.6408,
+          "floored": 2531
+        },
+        "k8": {
+          "full": 0.20577560542943488,
+          "tail": 0.07461920918231625,
+          "answered": 3.1,
+          "floored": 1463
+        },
+        "k16": {
+          "full": 0.23122629694859892,
+          "tail": 0.08755954308818217,
+          "answered": 5.5247,
+          "floored": 780
+        }
+      },
+      "popularity": {
+        "k1": {
+          "full": 0.16196458641942468,
+          "tail": 0.03461556433467892,
+          "answered": 0.4197,
+          "floored": 5803
+        },
+        "k2": {
+          "full": 0.16392638572786192,
+          "tail": 0.043826964462243115,
+          "answered": 0.8382,
+          "floored": 4054
+        },
+        "k4": {
+          "full": 0.17235130572005056,
+          "tail": 0.052169962563042856,
+          "answered": 1.6701,
+          "floored": 2634
+        },
+        "k8": {
+          "full": 0.18727767106764878,
+          "tail": 0.06209223819876091,
+          "answered": 3.0512,
+          "floored": 1425
+        },
+        "k16": {
+          "full": 0.21961723724667823,
+          "tail": 0.07736598726469568,
+          "answered": 5.4238,
+          "floored": 894
+        }
+      }
+    }
+  }
+}
