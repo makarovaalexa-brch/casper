@@ -119,6 +119,11 @@ def main():
                          "for --init certified, where that path was already converged. Under --init "
                          "recvae it is NOT converged on our objective, so this is the FIRST knob to "
                          "raise if the run underperforms -- do not change it silently mid-campaign.")
+    ap.add_argument("--mix", default=None,
+                    help="Regime mixture p_full,p_interview,p_k0,p_k1 (sums to 1). Default keeps the "
+                         "module's 45/45/5/5. Author directive 2026-08-01: interviews are the priority, "
+                         "so the certification run uses 0.30,0.60,0.05,0.05, with a full-profile budget "
+                         "of 1-2 NDCG points against the certified 0.3482.")
     ap.add_argument("--fresh", action="store_true",
                     help="Start a new run: ARCHIVES any existing best/last checkpoints (timestamped) "
                          "rather than resuming or deleting. Without it, an existing _last resumes.")
@@ -139,6 +144,11 @@ def main():
     Hn = H / max(H.max(), 1e-9); Fn = np.log1p(cnt) / max(np.log1p(cnt).max(), 1e-9)
     helf = 2.0 * Hn * Fn / np.clip(Hn + Fn, 1e-9, None)
     fam = StrategyFamily(cnt, H, H0, helf)
+    if a.mix:
+        import interview_curriculum as _ic
+        _pf, _pi, _p0, _p1 = (float(x) for x in a.mix.split(","))
+        _ic.set_mixture(_pf, _pi, _p0, _p1)
+        L(f"[i26] regime mixture SET to full={_pf} interview={_pi} k0={_p0} k1={_p1}")
 
     ma = argparse.Namespace(arch="i26", teacher="warm_init", t_hidden=600, t_latent=200, token="film",
                             train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=a.lr,

@@ -92,6 +92,7 @@ function Check {
         Start-Process -FilePath $py `
             -ArgumentList @('-u', $script,
                             '--init', 'recvae',
+                            '--mix', '0.30,0.60,0.05,0.05',
                             '--epochs', '24',
                             '--tag', 't2i26c',
                             '--steps_per_epoch', '400') `
