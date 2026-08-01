@@ -41,26 +41,51 @@ BUDGETS = (1, 2, 4, 8, 16, 32)
 # 2026-07-31: full-profile share raised 0.35 -> 0.45 after the epoch-2 G-FULL abort. The certified
 # recipe trains 50% of examples in the dropout regime; starving it to 35% while ALSO over-truncating
 # them (drop_max 0.8 vs 0.5) cost 0.014-0.018 full-profile NDCG. The interview share stays substantial.
-P_FULL, P_INTERVIEW, P_K0, P_K1 = 0.45, 0.45, 0.05, 0.05
+P_FULL, P_SMALL, P_INTERVIEW, P_K0, P_K1 = 0.45, 0.00, 0.45, 0.05, 0.05
+SMALL_KMAX = 8          # matches train_tower_t2.INTERVIEW_KMAX -- the certified small-set regime
 
 
-def set_mixture(p_full, p_interview, p_k0, p_k1):
-    """Override the regime mixture at runtime (the trainer's --mix flag writes through this).
+def make_small_dense_example(u, rng, kmax=SMALL_KMAX):
+    """THE DENSE SMALL-SET REGIME -- restored 2026-08-01 after it was found MISSING from the i26
+    curriculum.
 
-    AUTHOR DIRECTIVE 2026-08-01: "the curriculum should be interview heavy, with realistic interviews.
-    interviews are a priority, trying to not lose more than 1-2 points on full." So the mixture spends
-    on interviews, and the full-profile share exists only to hold that budget. Reference: at 45/45 the
-    run lost 0.0066 full profile (0.3482 -> 0.3416), well inside a 1-2 point allowance, so there is room
-    to shift.
+    k ~ U{1..8} items drawn at random from the user's OWN RATED HISTORY, every one ANSWERED with its
+    real graded level (all bands, so dislikes are included). No unseen/refusal tokens.
 
-    NOTE this is the ONLY sanctioned way to change the mixture -- an earlier run shifted it to 30/60
-    while ALSO dropping warm_lr_scale to 0.01, which nearly froze the taste path; interview learning
-    went flat and the mixture change could not be evaluated on its own. Change the mixture OR the
-    learning rate, not both."""
-    global P_FULL, P_INTERVIEW, P_K0, P_K1
-    tot = p_full + p_interview + p_k0 + p_k1
+    WHY IT IS NOT REDUNDANT WITH THE INTERVIEW REGIME. An interview asks k STRATEGY-SELECTED items and
+    only ~1.6 of 8 come back answered; the rest arrive as refusal tokens. So the interview regime
+    supervises SPARSE, refusal-dominated sets. This one supervises DENSE sets of real ratings. They are
+    different folding problems, and the evidence is direct: the run trained without this bucket trails
+    the run that had it (via its i25 warm start) by 0.0104 / 0.0142 / 0.0133 on dense k=2 / k=4 / k=8
+    fold-ins, while BEATING it by 0.0089 at full profile and matching it by k=16. Worse exactly where
+    dense small sets matter, better everywhere else.
+
+    This is the p_int branch of train_tower_t2.make_input_target, whose own docstring says it
+    "supervises the small-set fold the interview lives in". Dropping it was a regression."""
+    its = np.asarray(u["items"], np.int64)
+    n = len(its)
+    if n < 2:
+        return None
+    k = int(rng.integers(1, min(kmax, n) + 1))
+    j = rng.choice(n, size=k, replace=False)
+    inp_s = its[j]
+    inp_l = np.asarray(u["levels"], np.int64)[j]
+    inp_v = np.asarray(u["vals"], np.float32)[j]
+    tg = np.setdiff1d(np.asarray(u["liked"], np.int64), inp_s, assume_unique=False)
+    if len(tg) == 0:
+        return None
+    negs = np.setdiff1d(u.get("disliked", np.empty(0, np.int64)), inp_s, assume_unique=False)
+    return (inp_s, inp_l, inp_v, np.empty(0, np.int64), tg, negs)
+
+
+def set_mixture(p_full, p_small, p_interview, p_k0, p_k1):
+    """Override the five-way regime mixture at runtime (the trainer's --mix flag writes through here)."""
+    global P_FULL, P_SMALL, P_INTERVIEW, P_K0, P_K1
+    tot = p_full + p_small + p_interview + p_k0 + p_k1
     assert abs(tot - 1.0) < 1e-9, f"mixture must sum to 1, got {tot}"
-    P_FULL, P_INTERVIEW, P_K0, P_K1 = p_full, p_interview, p_k0, p_k1
+    P_FULL, P_SMALL, P_INTERVIEW, P_K0, P_K1 = p_full, p_small, p_interview, p_k0, p_k1
+
+
 def zs(x):
     x = np.asarray(x, np.float64)
     return (x - x.mean()) / max(x.std(), 1e-9)
@@ -191,8 +216,10 @@ def draw(u, rng, fam, make_full, bank=None):
             return None
         inp, lv, sv, tgt, negs = out
         return (inp, lv, sv, np.empty(0, np.int64), tgt, negs)
-    if r < P_FULL + P_INTERVIEW:
+    if r < P_FULL + P_SMALL:
+        return make_small_dense_example(u, rng)
+    if r < P_FULL + P_SMALL + P_INTERVIEW:
         return make_interview_example(u, rng, fam, bank=bank)
-    if r < P_FULL + P_INTERVIEW + P_K0:
+    if r < P_FULL + P_SMALL + P_INTERVIEW + P_K0:
         return make_empty_example(u, rng, n_keep=0)
     return make_empty_example(u, rng, n_keep=1)
