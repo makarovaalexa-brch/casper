@@ -2,9 +2,8 @@
 #
 # SEPARATE FILE from i26_watchdog.ps1 ON PURPOSE. That one is pinned to tag t2i26 with --epochs 14 and
 # NONE of the certification flags. If it ever fired at this run it would relaunch with a DIFFERENT
-# CONFIG -- warm_lr_scale 0.1 instead of 0.01, the 45/45 mixture instead of 30/60, and a warm start from
-# t2final_best instead of RecVAE -- and the resumed epochs would be silently incomparable to the earlier
-# ones. A checkpoint is only as good as the config that produced it, so the relaunch command here is
+# CONFIG -- a warm start from t2final_best instead of RecVAE -- and the resumed epochs would be
+# silently incomparable to the earlier ones. A checkpoint is only as good as the config that produced it, so the relaunch command here is
 # byte-identical to the launch command, and the old watchdog must NOT be running at the same time.
 #
 # LAUNCH COMMAND OF RECORD (2026-07-31 22:38, commit 5f5d2dc):
@@ -93,8 +92,6 @@ function Check {
         Start-Process -FilePath $py `
             -ArgumentList @('-u', $script,
                             '--init', 'recvae',
-                            '--warm_lr_scale', '0.01',
-                            '--mix', '0.30,0.60,0.05,0.05',
                             '--epochs', '24',
                             '--tag', 't2i26c',
                             '--steps_per_epoch', '400') `

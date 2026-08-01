@@ -42,26 +42,6 @@ BUDGETS = (1, 2, 4, 8, 16, 32)
 # recipe trains 50% of examples in the dropout regime; starving it to 35% while ALSO over-truncating
 # them (drop_max 0.8 vs 0.5) cost 0.014-0.018 full-profile NDCG. The interview share stays substantial.
 P_FULL, P_INTERVIEW, P_K0, P_K1 = 0.45, 0.45, 0.05, 0.05
-
-
-def set_mixture(p_full, p_interview, p_k0, p_k1):
-    """Override the regime mixture at runtime (the trainer's --mix flag writes through this).
-
-    Rationale for making it settable (2026-07-31): with the taste path warm-started from RecVAE it
-    already scores val_full 0.3510 at STEP 0 -- parity with RecVAE's own 0.3512 and above the certified
-    i25's 0.3451. Full profile therefore no longer needs defending with DATA SHARE; it is defended by a
-    tiny WARM learning rate. The trainable capacity that remains is interview-specific, so the mixture
-    should spend on interviews. Fable verdict: 30/60/5/5."""
-    global P_FULL, P_INTERVIEW, P_K0, P_K1
-    tot = p_full + p_interview + p_k0 + p_k1
-    assert abs(tot - 1.0) < 1e-9, f"mixture must sum to 1, got {tot}"
-    P_FULL, P_INTERVIEW, P_K0, P_K1 = p_full, p_interview, p_k0, p_k1
-
-# Named corners, for reference and for reporting. None is withheld from training.
-NAMED = {"popularity": (1.0, 0.0, 0.0, 0.0, 0.0), "pure_entropy": (0.0, 1.0, 0.0, 0.0, 0.0),
-         "entropy0": (0.0, 0.0, 1.0, 0.0, 0.0), "helf": (0.0, 0.0, 0.0, 1.0, 0.0)}
-
-
 def zs(x):
     x = np.asarray(x, np.float64)
     return (x - x.mean()) / max(x.std(), 1e-9)
