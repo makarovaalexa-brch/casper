@@ -144,6 +144,9 @@ def main():
     Hn = H / max(H.max(), 1e-9); Fn = np.log1p(cnt) / max(np.log1p(cnt).max(), 1e-9)
     helf = 2.0 * Hn * Fn / np.clip(Hn + Fn, 1e-9, None)
     fam = StrategyFamily(cnt, H, H0, helf)
+    import interview_curriculum as _icc
+    _icc.set_item_counts(np.maximum(cnt, 1.0))
+    L(f"[i26] dense-set sampler: rare-title weighting cnt^-{_icc.SMALL_RARE_POW}")
     if a.mix:
         import interview_curriculum as _ic
         _v = [float(x) for x in a.mix.split(",")]

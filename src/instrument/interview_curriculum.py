@@ -43,6 +43,23 @@ BUDGETS = (1, 2, 4, 8, 16, 32)
 # them (drop_max 0.8 vs 0.5) cost 0.014-0.018 full-profile NDCG. The interview share stays substantial.
 P_FULL, P_SMALL, P_INTERVIEW, P_K0, P_K1 = 0.45, 0.00, 0.45, 0.05, 0.05
 SMALL_KMAX = 8          # matches train_tower_t2.INTERVIEW_KMAX -- the certified small-set regime
+SMALL_RARE_POW = 0.5    # dense-set sampling weight ~ cnt^-SMALL_RARE_POW. 0 = uniform over the user's
+                        # history (which is popularity-skewed, so rare titles are starved); 0.5 = 1/sqrt
+                        # popularity, which lifts rare titles without abandoning the natural mix.
+_ITEM_CNT = None        # per-item train rating counts; set by set_item_counts() before training
+
+
+def set_item_counts(cnt):
+    """Give the dense-set sampler the popularity vector it needs to up-weight rare titles.
+
+    AUTHOR DIRECTIVE 2026-08-01: "i want rare movies appearing in short dense interview too". Uniform
+    sampling over a user's history inherits that history's popularity skew: measured over the 24-epoch
+    run at 400 steps/epoch, head items appeared in ~5,211 dense sets each while the median TAIL item
+    appeared 24.9 times and 10.7% of the catalogue appeared fewer than 5 times in total. Weighting by
+    cnt^-0.5 shifts that mass toward the tail, which is where our headline metric lives."""
+    global _ITEM_CNT
+    import numpy as _np
+    _ITEM_CNT = _np.asarray(cnt, dtype=_np.float64)
 
 
 def make_small_dense_example(u, rng, kmax=SMALL_KMAX):
@@ -67,7 +84,13 @@ def make_small_dense_example(u, rng, kmax=SMALL_KMAX):
     if n < 2:
         return None
     k = int(rng.integers(1, min(kmax, n) + 1))
-    j = rng.choice(n, size=k, replace=False)
+    if _ITEM_CNT is not None and SMALL_RARE_POW > 0.0:
+        w = _ITEM_CNT[its] ** (-SMALL_RARE_POW)
+        ssum = w.sum()
+        j = (rng.choice(n, size=k, replace=False, p=w / ssum) if ssum > 0
+             else rng.choice(n, size=k, replace=False))
+    else:
+        j = rng.choice(n, size=k, replace=False)
     inp_s = its[j]
     inp_l = np.asarray(u["levels"], np.int64)[j]
     inp_v = np.asarray(u["vals"], np.float32)[j]

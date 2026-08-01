@@ -8,7 +8,7 @@
 #
 # LAUNCH COMMAND OF RECORD (2026-07-31 22:38, commit 5f5d2dc):
 #   python -u src/instrument/train_i26.py --init recvae --warm_lr_scale 0.01 \
-#          --mix 0.25,0.30,0.35,0.05,0.05 --epochs 24 --tag t2i26c --steps_per_epoch 400
+#          --mix 0.25,0.30,0.35,0.05,0.05 --epochs 24 --tag t2i26c --steps_per_epoch 800
 #
 # RESUME SEMANTICS: train_i26.py reads t2i26c_last.pt, which carries encoder + optimiser state + epoch +
 # best + hist, and is written atomically at the END of every epoch. So a relaunch continues from the last
@@ -95,7 +95,7 @@ function Check {
                             '--mix', '0.25,0.30,0.35,0.05,0.05',
                             '--epochs', '24',
                             '--tag', 't2i26c',
-                            '--steps_per_epoch', '400') `
+                            '--steps_per_epoch', '800') `
             -WorkingDirectory $root -WindowStyle Hidden `
             -RedirectStandardOutput ($runlog + '.relaunch') -RedirectStandardError ($runlog + '.relaunch.err')
     }
