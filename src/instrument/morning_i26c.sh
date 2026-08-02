@@ -51,8 +51,8 @@ python -u src/baselines/run_interview_table.py --arch i26 --snapshot $SEL \
 echo
 echo "############ 4. the same table WITH the floor (robustness check only) ############"
 python -u src/baselines/run_interview_table.py --arch i26 --snapshot $SEL \
-    --only ours,golbandi_leaf,rbmf,belief_mf --budgets 8 --no_floor --label k8_i26c_NOFLOOR 2>&1 \
-    | tee $OUT/interview_k8_i26c_nofloor.out
+    --only ours,golbandi_leaf,rbmf,belief_mf --budgets 8 --label k8_i26c_FLOORED 2>&1 \
+    | tee $OUT/interview_k8_i26c_floored.out
 
 echo
 echo "############ 5. interview curve, ours only, all budgets ############"
