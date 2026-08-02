@@ -53,10 +53,10 @@ meets. The demanding part is \emph{ingestion}: folding an arbitrary-length set o
 that is already at the accuracy frontier. We state that as five requirements---\textbf{R1} state-of-the-art
 full-profile accuracy, \textbf{R2} an open set-valued input interface (any number of observations, and directions
 that need not have existed when the model was fitted---concepts, entities, phrases, policy-emitted vectors),
-\textbf{R3} a queryable belief over the user, \textbf{R4} monotonicity (a truthful answer never lowers ranking
-quality), and \textbf{R5} answers that carry sign and intensity---and an
-acceptance battery (one verification item per requirement, \textbf{V1--V5}, plus two integrity items) that
-operationalises them. R2 carries most of the weight: R3 is what the instrument \emph{provides} to a policy, and what
+\textbf{R3} monotonicity (a truthful answer does not lower ranking
+quality beyond noise), and \textbf{R4} answers that carry sign and intensity---and an
+acceptance battery (one verification item per requirement, \textbf{V1--V4}, plus two integrity items) that
+operationalises them. R2 carries most of the weight: it is what the instrument \emph{provides} to a policy, and what
 a policy should do with it is the companion chapter's subject. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
 the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite{steck2019ease} and
 RecVAE~\cite{ren2020recvae}) are item-only point estimators, while the models with an uncertainty-native, multi-channel
@@ -66,8 +66,8 @@ published system that occupies the conjunction of all five. The instrument that 
 shallow-SOTA tower over whose latent every channel is folded as a direction paired with a value, with an analytic
 conjugate-Gaussian belief maintained over the same latent for a policy to query; three of its input legs---signed/graded values, concepts
 whose vocabulary is not fixed when the model is fitted, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
-models. Each requirement carries one verification item, V1--V5, and all five are met. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
-and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then V1--V5 on the
+models. Each requirement carries one verification item, V1--V4, and all four are met. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
+and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then V1--V4 on the
 ML-25M harness). Our in-house RecVAE realisation sets the bar at full/tail NDCG@10 $0.3540/0.2497$ on the canonical
 ML-25M protocol, and the graded-native interview tower now \emph{meets} it: a single certified training run reaches
 $0.3482/0.2462$ on the held-out test cohort---a paired-bootstrap tie with the bar---while reproducing the frozen
@@ -116,18 +116,15 @@ An instrument fit for measuring conversational elicitation must simultaneously s
         is a property of the user. Since abstraction has no natural ceiling---``psychological thrillers'', ``films
         about grief'', ``the quiet dignity of losing''---any vocabulary fixed at training time forecloses part of
         what a user could have told us, and which part is decided before the user arrives.
-  \item[R3 --- queryable belief.] It must expose an explicit covariance over the user belief, not only a point
-        estimate, so that a policy \emph{can} act on what is not yet known. The instrument's obligation is to
-        provide and verify that belief; whether and how a policy exploits it is a separate question.
-  \item[R4 --- monotonicity.] A truthful answer must never \emph{lower} ranking quality; adding evidence should, in
-        expectation, only help.
-  \item[R5 --- expressive answers.] An answer must be able to say what a star rating says and an indicator cannot:
+  \item[R3 --- monotonicity.] A truthful answer must not \emph{lower} ranking quality beyond noise; adding
+        evidence should, in expectation, only help.
+  \item[R4 --- expressive answers.] An answer must be able to say what a star rating says and an indicator cannot:
         that the user \emph{dislikes} something, and \emph{how strongly}. Sign and intensity are information a
         one-hot cannot carry at all.
 \end{description}
 
 \paragraph{The bifurcation observation.}
-The central empirical fact this chapter documents is that R1 and $\{$R2, R3, R4, R5$\}$ are \emph{anti-correlated across
+The central empirical fact this chapter documents is that R1 and $\{$R2, R3, R4$\}$ are \emph{anti-correlated across
 the published literature}. The models that hit the full-profile bar---closed-form linear autoencoders
 (EASE~\cite{steck2019ease}, EDLAE~\cite{steck2020edlae}) and amortised VAEs (Mult-VAE~\cite{liang2018variational},
 RecVAE~\cite{ren2020recvae}), together with the training-free graph filters
@@ -146,7 +143,7 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         shallow baseline on a shared ruler, over whose latent every channel is folded as a direction paired with a
         value: item factors, out-of-catalogue concept directions, and directions produced outside the catalogue
         entirely. The unification is of the \emph{representation}---one space, one form of observation---not of the
-        code path. We frame R1$\wedge$R2$\wedge$R3$\wedge$R4$\wedge$R5 as a single requirement no published system
+        code path. We frame R1$\wedge$R2$\wedge$R3$\wedge$R4 as a single requirement no published system
         meets, and give a six-family taxonomy and per-near-miss gap analysis
         (\S\ref{sec:related},~\S\ref{sec:gap}) locating which requirement each candidate fails.
   \item \textbf{Three architecturally-inexpressible legs.} We isolate the three input channels that are impossible
@@ -165,7 +162,7 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         preserved (V1), posterior strictly shrinks per question (V3), and cold-start per-question NDCG rises on
         \emph{full and tail} versus random (V4)---and, because outcome checks alone admit several false positives
         (a sign-blind fold, a circular answer model, a decorative covariance), pair them with one verification item
-        per requirement, V1--V5, and two integrity items. We propose this as a portable certificate any
+        per requirement, V1--V4, and two integrity items. We propose this as a portable certificate any
         interview-compatible recommender should pass (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
 \end{enumerate}
 
@@ -199,12 +196,10 @@ $s_i(\bmu_t)$ of the base tower.
         the new observation only through the pair $(\bphi_{t+1},y_{t+1})\in\R^{d}\times\R$, so any entity with an
         embedding is a legal member of the evidence set. The requirement is on the \emph{observation}, not on the
         number of code paths that consume it.
-  \item[R3.] $\bSigma_t$ is an explicit covariance, shrinking over answers and directionally informative, readable
-        by a policy for any direction $w$ as $w^\top\bSigma_t w$.
-  \item[R4.] For a truthful answer $y_{t+1}$, $\mathbb E\bigl[\mathrm{NDCG}@10(s(\bmu_{t+1}))\bigr]\ge
-        \mathrm{NDCG}@10(s(\bmu_t))$. We treat R4 as an \emph{empirical} property to be demonstrated, not a
-        theorem for a learned ranker (\S\ref{sec:limits}).
-  \item[R5.] The answer value $y_j$ carries \emph{sign} and \emph{magnitude}: $y_j<0$ expresses dislike and $|y_j|$
+  \item[R3.] For a truthful answer $y_{t+1}$, $\mathbb E\bigl[\mathrm{NDCG}@10(s_{t+1})\bigr]\ge
+        \mathrm{NDCG}@10(s_t)$ up to measurement noise. We treat R3 as an \emph{empirical} property to be
+        demonstrated, not a theorem for a learned ranker (\S\ref{sec:limits}).
+  \item[R4.] The answer value $y_j$ carries \emph{sign} and \emph{magnitude}: $y_j<0$ expresses dislike and $|y_j|$
         expresses intensity. An indicator basis has neither---a one-hot can record that an item was seen, not that
         it was disliked, nor how much.
 \end{description}
@@ -219,7 +214,7 @@ establishes (\S\ref{sec:limits}).
 \end{definition}
 
 \paragraph{Verification: one check per requirement.}
-Each requirement carries exactly one verification item, V1--V5. Two integrity
+Each requirement carries exactly one verification item, V1--V4. Two integrity
 items, I1--I2, apply across all five and exist because the per-requirement checks admit false positives
 (below). Table~\ref{tab:battery} is the compact reference; the definitions follow. Separately, the
 \emph{ruler} itself is certified by the published-number bridge of \S\ref{sec:bridge}---that is a property
@@ -246,15 +241,11 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         require instead is that the movement be \emph{specific}: folding a like on a concept must move that
         concept's members differently from folding a dislike on it, and differently again from folding some other
         answerable concept.
-  \item[V3 --- queryable belief (R3).] The posterior covariance shrinks in expectation over answers; the shrinkage
-        is at least twice as large along the queried $\bphi_{t+1}$ as elsewhere; and replacing $\bSigma$ with an
-        isotropic $c\Imat$ \emph{degrades} a downstream number, else the R3 claim is withdrawn. The belief and the
-        ranking are invariant to answer order and to conflicting re-asks.
-  \item[V4 --- monotonicity (R4).] Starting cold, per-question full and tail NDCG@10 \emph{increase} to budget on a
+  \item[V3 --- monotonicity (R3).] Starting cold, per-question full and tail NDCG@10 \emph{increase} to budget on a
         question set fixed in advance, so the rise comes from answer content rather than from adaptive selection.
         Judged by the curve at budget rather than every-step significance, with a canary that a single answer from
         cold already clears the no-answer intercept on both channels.
-  \item[V5 --- expressive answers (R5).] \emph{Sign}: negating every answer lowers NDCG with a CI excluding zero.
+  \item[V4 --- expressive answers (R4).] \emph{Sign}: negating every answer lowers NDCG with a CI excluding zero.
         \emph{Intensity}: neutralising values to ``indifferent'' while freezing membership costs NDCG, quality is
         monotone in the stated level, and graded input beats a fair binarising ablation where the extra bits should
         matter most---on the short interview, before collaborative signal fills in.
@@ -265,7 +256,7 @@ of our measuring apparatus, not of the instrument, and it is reported there.
   \item[I1 --- existential controls.] Wrong-user, shuffled, and placebo-constant answers through the identical
         pipeline \emph{gain nothing} relative to the true-answer arm (a control may legitimately fall \emph{below}
         the no-answer intercept---a stranger's taste is worse than no information, not equivalent to it), and
-        duplicating an answer changes nothing (the belief responds to information, not cardinality).
+        duplicating an answer changes nothing (the fold responds to information, not cardinality).
   \item[I2 --- answers carry no recommender geometry.] Every answer is computed from observed behaviour alone: an
         item answer is the user's own rating, and a concept answer is a log watch-lift,
         $\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, formed from the user's watched members $n_c$ and the
@@ -660,7 +651,7 @@ recommender, carry a conjugate belief beside it, and the grid fills in. Three co
 this.
 
 \emph{Most of the frontier has nothing to carry a belief over.} A belief of the form
-Eq.~\eqref{eq:precacc} needs a user vector in a dense latent, and a direction in that latent to be a
+The fold needs a user vector in a dense latent, and a direction in that latent to be a
 meaningful query. EASE has neither: its parameters are an item--item weight matrix and its ``user'' is the
 raw interaction row, one coordinate per catalogue item. There is no low-dimensional taste vector to be
 uncertain about and no direction to read $w^\top\bSigma w$ along. The same holds for EDLAE and for the
@@ -729,101 +720,26 @@ separately~\cite{biyik2023soft}. We cite that convergence as independent support
 retraining risks V1). The tower is now \emph{selected and certified}: the graded-native set-encoder T2$'$, trained
 once in its pre-registered configuration, scores $0.3482/0.2462$ full/tail on the held-out test cohort---a
 paired-bootstrap tie with the $0.3540/0.2497$ RecVAE bar---and reproduces the frozen decoder exactly at the empty
-interview (\S\ref{sec:expdesign}). It is this checkpoint that the belief layer below is placed over.
-
-\subsection{Analytic conjugate-Gaussian belief layer}
-Over the frozen latent we place a Gaussian belief on the user vector, $\uu\sim\mathcal N(\bmu_0,\bSigma_0)$, and model
-each answer as a noisy linear read-out along the queried direction:
-\begin{equation}\label{eq:obs}
-  y_j \;=\; \bphi_j^\top\uu + \varepsilon_j,\qquad \varepsilon_j\sim\mathcal N(0,\sigma_j^2).
-\end{equation}
-Because the observation is linear-Gaussian, the posterior after $\mathcal E_t$ is Gaussian in closed form; maintaining
-it in \emph{precision} form (a precision accumulator) makes the any-length fold-in a single running sum:
-\begin{equation}\label{eq:precacc}
-  \bLambda_t \;=\; \bLambda_0 + \sum_{j=1}^{t}\sigma_j^{-2}\,\bphi_j\bphi_j^\top,\qquad
-  \bLambda_t\,\bmu_t \;=\; \bLambda_0\bmu_0 + \sum_{j=1}^{t}\sigma_j^{-2}\,y_j\,\bphi_j,\qquad
-  \bSigma_t=\bLambda_t^{-1}.
-\end{equation}
-Equation~\eqref{eq:precacc} is exactly the mechanism BCIE~\cite{toroghi2023bcie} uses for critiques over a frozen
-factorisation; our contribution is doing it over a \emph{certified full-profile SOTA} tower with channel-agnostic
-tokens, and certifying it against V1--V5. Three properties fall out by construction: it is a permutation-invariant
-\emph{set} operation defined for every $t\ge 0$ (R2); each update adds a rank-1 term along $\bphi_{t+1}$, so
-$\bLambda_t$ only grows and $\det\bSigma_t$ only shrinks (V3); and conjugate updates are
-monotone in \emph{expected utility}~\cite{good1967principle,blackwell1953equivalent}. The last is why R4 is plausible, but---because the tower's dot-product ranker does not act
-optimally under the belief---per-question NDCG monotonicity is \emph{not} automatic and must be shown empirically
-(\S\ref{sec:limits}).
-
-\paragraph{A single answer tightens a correlated region, which accounts for coarse-to-fine ordering.}
-Because each update adds a rank-one term, the Sherman--Morrison identity gives the effect of asking
-$\bphi$ on the uncertainty along \emph{any other} direction $w$ in closed form:
-\begin{equation}\label{eq:region}
-  w^\top\bSigma_t w \;-\; w^\top\bSigma_{t+1} w
-  \;=\; \frac{\sigma^{-2}\,\bigl(w^\top\bSigma_t\bphi\bigr)^{2}}{1+\sigma^{-2}\,\bphi^\top\bSigma_t\bphi}.
-\end{equation}
-The reduction is proportional to $(w^\top\bSigma_t\bphi)^2$---the squared covariance between $w$ and the
-queried direction under the current belief. A question therefore does not sharpen one axis; it sharpens a
-whole \emph{correlated region}, in proportion to how strongly that region moves with what was asked. The
-consequence for a mixed question bank is immediate and geometric rather than heuristic: a concept
-direction is by construction close to many item directions at once, so folding it collapses a large region
-per question, whereas an idiosyncratic item collapses little beyond itself. Breadth-before-depth is thus a
-property of the covariance geometry, not a scheduling rule imposed from outside---and it is what we
-observe when a purely accuracy-driven greedy is allowed to choose freely from items and concepts together
-(\S\ref{sec:concept:results}). Coarse-to-fine itself is long known in the interview
-literature~\cite{golbandi2011adaptive,rashid2002getting}; what Eq.~\eqref{eq:region} adds is an account of
-\emph{why} it holds in a latent-factor instrument, and a way to compute it for any channel.
-
-\paragraph{The belief separates cleanly into an answer-independent and an answer-dependent part.}
-A property of Eq.~\eqref{eq:precacc} deserves to be stated explicitly, because anyone building elicitation
-on this instrument needs it. The precision $\bLambda_t$ accumulates $\sigma_j^{-2}\bphi_j\bphi_j^\top$
-terms: it depends on \emph{which} directions were queried and on the noise assigned to each, but
-\emph{not on the answers themselves}. The covariance $\bSigma_t$ is therefore the same for two users who
-were asked the same questions and replied differently. The mean is not: $\bmu_t$ carries
-$\sum_j\sigma_j^{-2}y_j\bphi_j$ and moves with every $y_j$.
-
-This asymmetry is informative for elicitation. A question-selection rule that reads only the covariance
-is, by construction, answer-independent---it produces the same sequence for every user, which is the
-linear-Gaussian, variance-only case in which adaptive selection provably gains nothing over a fixed
-schedule~\cite{krause2007nonmyopic,jedynak2012twenty}. A rule that reads the mean, or any quantity derived
-from it such as the current ranking, is not. Our instrument exposes both, so the choice is available to a
-policy designer rather than forced by the substrate; which rule to use, and what it is worth, is the
-companion chapter's question.
-
-One qualification, which the refusal band supplies. The per-observation noise $\sigma_j$ is not constant
-across answer types: an unanswerable question is not folded at all, so whether a user \emph{could} answer
-changes which terms enter $\bLambda_t$. The covariance is consequently answer-dependent to the extent that
-answerability varies across users---and it varies a great deal, since items and concepts are answered at
-very different rates (\S\ref{sec:concept:results}). Answerability thus enters the belief itself, not only
-the accounting of a wasted turn.
-
-\paragraph{What the belief layer provides.} The layer is built and fitted: $\bLambda_0,\bmu_0$ are taken
-from the tower, and the per-channel noise reduces to eight fitted scalars (a $2\times3$
-channel$\times$confidence precision grid plus a prior scale and a variance floor), calibrated on real data
-with a likelihood-ratio sign proof on held-out concept triples. It passes V3, V4 and V5
-(Table~\ref{tab:batteryresults}): the posterior shrinks monotonically over answers, shrinks $11.5\times$
-more along the queried direction than elsewhere, is order-invariant to $5\times10^{-7}$, and is unmoved by
-a refusal. Uncertainty along any direction $w$---an item, a concept, a phrase---is read off as
-$w^\top\bSigma_t w$.
-
-That is the instrument's obligation discharged: a belief that is correct, queryable for any channel, and
-available to a policy. What a policy should do with it---and in particular whether reading the covariance
-is a good way to choose questions---is a separate question, and the companion chapter's subject.
+interview (\S\ref{sec:expdesign}). It is this checkpoint that every channel below is folded into.
 
 \subsection{Channel-agnostic tokens: one representation, one form of observation}
-Every channel supplies the same kind of thing---a direction $\bphi_j\in\R^{d}$ in the frozen latent and a value
-$y_j\in\R$---and it is this that makes the channel set open (R2). Two folds consume those pairs in the system we
+Every channel supplies the same kind of thing: an observation is a pair
+\begin{equation}\label{eq:obs}
+  (\bphi_j,\,y_j)\ \in\ \R^{d}\times\R,
+\end{equation}
+a direction $\bphi_j$ in the frozen latent and a value $y_j$, and it is this that makes the channel set open (R2).
+Two folds consume those pairs in the system we
 report: the tower's own set encoder for item evidence, and a trained gated operator for concept evidence
-(\S\ref{sec:concept:fold}); the conjugate update of Eq.~\eqref{eq:precacc} maintains the belief over the same
-latent alongside them. We are explicit that these are distinct operators rather than one code path, because the
+(\S\ref{sec:concept:fold}). We are explicit that these are distinct operators rather than one code path, because the
 unification that matters is of the representation: any entity with an embedding is expressible as an observation,
 which is what no item-indicator model can say.
 
-\paragraph{Why the belief is maintained alongside the ranking rather than inside it.} The conjugate posterior mean
-is itself a legal ranker---score item $i$ by $\Q_i^\top\bmu_t+\beta_i$---and it would make Eq.~\eqref{eq:precacc}
-the single fold for every channel. We measured that option rather than assuming it: a conjugate-Gaussian belief
-over a frozen factorisation, ranked by its posterior mean, reaches full/tail NDCG@10 $0.2019/0.1200$ on our ruler,
-against $0.3482/0.2462$ for the learned fold (Table~\ref{tab:g0}). Ranking on the posterior mean therefore costs
-roughly $0.15$ full NDCG---it forfeits R1 to buy uniformity---and that is why the belief is carried beside the
-ranking path and read by a policy, not used to produce the rankings we report.
+\paragraph{Why a learned fold rather than a closed-form one.} A closed-form conjugate accumulator over the frozen
+factorisation is itself a legal ranker---score item $i$ by $\Q_i^\top\bmu_t+\beta_i$---and it would make one
+uniform fold serve every channel. We measured that option rather than assuming it: ranked by its accumulated mean
+it reaches full/tail NDCG@10 $0.2019/0.1200$ on our ruler, against $0.3496/0.2491$ for the learned fold
+(Table~\ref{tab:g0}). Uniformity therefore costs roughly $0.15$ full NDCG---it forfeits R1---which is why the
+instrument folds with a learned set encoder and pays for the extra operator.
 
 The channels, then, are:
 \begin{itemize}[leftmargin=1.4em,itemsep=1.5pt]
@@ -844,7 +760,7 @@ The signed/graded, out-of-catalogue, and continuous legs are the three channels 
 measured (V5, Figure~\ref{fig:gradedcurve}). The concept leg is delivered over the genome vocabulary.
 The third leg---an \emph{arbitrary} direction, including one for an entity that has no catalogue column and
 was never seen in training---is a property of the interface rather than of any particular channel:
-everything downstream of Eq.~\eqref{eq:precacc} consumes a pair $(\bphi,y)$, so any entity with an
+everything downstream of Eq.~\eqref{eq:obs} consumes a pair $(\bphi,y)$, so any entity with an
 embedding is admissible. We illustrate that concretely.
 
 Each of the $1{,}031$ genome concepts has a direction in the latent and a name in English, so those pairs
@@ -939,7 +855,7 @@ the quality of any such interaction would rest on the text adapter whose limits 
 The out-of-catalogue concept leg is the most demanding of the three inexpressible channels---it is the one with no
 catalogue column, no interaction count, and no sign in the item-indicator basis---so we work it out in full. Three
 things must be made concrete: how a concept answer becomes an observation pair $(\bphi_c, y_c)$ for the belief update
-of Eq.~\eqref{eq:precacc}; where each piece sits in the published record (so that we claim only the conjunction, never
+of Eq.~\eqref{eq:obs}; where each piece sits in the published record (so that we claim only the conjunction, never
 a component); and why this channel is the one that forces the battery to gate what a \emph{deployed} interview
 elicits and not only what the operator can express. This section
 is written at derivation level; the concept-channel numbers below are measured on the internal ML-25M interview
@@ -1141,7 +1057,7 @@ optimiser spends its first four questions on concepts. The emergent combined ord
 returning at position nine. Nothing in the objective encodes ``ask broad things first.'' Coarse-to-fine is
 long known in the interview literature~\cite{golbandi2011adaptive,rashid2002getting} and we claim no
 discovery; what is new here is that it emerges unprompted in a \emph{mixed} action space, and that
-\S\ref{sec:method} gives a geometric account of why (Eq.~\eqref{eq:region}).
+a concept direction is aligned with a large region of the frozen decoder's item cloud, so folding it moves many catalogue scores at once, where an idiosyncratic item moves little beyond itself.
 
 \emph{Concepts dominate the tail at every budget, without being asked to.} At $q{=}8$ the concept bank
 reaches $.0698$ tail against items' $.0538$, a $30\%$ margin, and the combined bank is the best tail arm at
