@@ -36,15 +36,20 @@ python -u src/baselines/arm_n_paired.py --arch i26 --snapshot $SEL --arm A --riv
 python -u src/baselines/arm_n_paired.py --arch i26 --snapshot $SEL --arm N --rival recvae 2>&1 | tee $OUT/paired_i26c_armN.out
 
 echo
-echo "############ 3. G2  interview table, k=8, uniform floor, elicitation baselines ############"
-# The uniform floor (no per-model exemption) is the fair contract: no-floor destroys models with no
-# prior (rbmf scores 0.0011 on pure_entropy, i.e. random), floor slightly penalises models that can
-# read unknowns (golbandi 0.1948 -> 0.1899). Report this as primary, no-floor as robustness.
+echo "############ 3. G2  interview table, k=8, NO FLOOR (PRIMARY), elicitation baselines ############"
+# NO FLOOR IS PRIMARY (author ruling 2026-08-02, superseding the 2026-07-30 floor ruling). i26 LEARNS
+# the popularity prior in the k=0 curriculum bucket -- at zero evidence it reproduces the popularity
+# ranking at Spearman 0.96 -- so the floor swapped our prediction for a near-identical one, and it was
+# SUPPRESSING us: no-floor minus floored at k=8 is +0.0031 full / +0.0093 tail on helf, positive on every
+# informative arm. Every model is now scored on its own predictions, no fallback, no per-model exemption.
+# Honest caveat to report alongside: rbmf has no user prior (mu0=0 by construction) and collapses to
+# ~0.001 on refusal-heavy arms; belief_mf is the same model WITH an empirical prior and does not. That
+# contrast is an intended ablation, not an artifact.
 python -u src/baselines/run_interview_table.py --arch i26 --snapshot $SEL \
-    --only ours,golbandi_leaf,rbmf,belief_mf --budgets 8 --label k8_i26c 2>&1 | tee $OUT/interview_k8_i26c.out
+    --only ours,golbandi_leaf,rbmf,belief_mf --budgets 8 --no_floor --label k8_i26c 2>&1 | tee $OUT/interview_k8_i26c.out
 
 echo
-echo "############ 4. the same table, no floor (robustness) ############"
+echo "############ 4. the same table WITH the floor (robustness check only) ############"
 python -u src/baselines/run_interview_table.py --arch i26 --snapshot $SEL \
     --only ours,golbandi_leaf,rbmf,belief_mf --budgets 8 --no_floor --label k8_i26c_NOFLOOR 2>&1 \
     | tee $OUT/interview_k8_i26c_nofloor.out
@@ -52,7 +57,7 @@ python -u src/baselines/run_interview_table.py --arch i26 --snapshot $SEL \
 echo
 echo "############ 5. interview curve, ours only, all budgets ############"
 python -u src/baselines/run_interview_table.py --arch i26 --snapshot $SEL \
-    --only ours --budgets 1,2,4,8,16 --label curve_i26c 2>&1 | tee $OUT/interview_curve_i26c.out
+    --only ours --budgets 1,2,4,8,16 --no_floor --label curve_i26c 2>&1 | tee $OUT/interview_curve_i26c.out
 
 echo
 echo "################################ VERDICT BLOCK ################################"
