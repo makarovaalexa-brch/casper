@@ -57,15 +57,20 @@ def main():
     banks["conc_pop"] = np.argsort(-mc)
 
     blob = torch.load(a.ckpt, map_location="cpu")
-    net = ConceptFoldNet(len(S["tags"]), d=S["enc"].d_out, h=a.hidden, conc_init=S["d_c"].numpy(),
-                         use_refusal=blob.get("use_refusal", False))
+    # Read the ARCHITECTURE AND THE ANSWER CONTRACT from the checkpoint, never from CLI defaults:
+    # cv5 is hidden=1024 with graded meh, and scoring it with 256 / zeroed meh either crashes (as it
+    # did) or, worse, silently measures a different system.
+    net = ConceptFoldNet(len(S["tags"]), d=S["enc"].d_out, h=blob.get("hidden", a.hidden),
+                         conc_init=S["d_c"].numpy(), use_refusal=blob.get("use_refusal", False))
     net.load_state_dict(blob["net"])
-    log(f"concept net = {os.path.basename(a.ckpt)} ep{blob['epoch']}")
+    keep_meh = bool(blob.get("keep_meh", False))
+    log(f"concept net = {os.path.basename(a.ckpt)} ep{blob['epoch']} "
+        f"hidden={blob.get('hidden', a.hidden)} keep_meh={keep_meh}")
 
     out = {}
     for b in BANKS:
         ci = score(None, S, cold_item_interviews(S, banks[f"item_{b}"], n_users=a.n_users), head_mask)
-        cc = score(net, S, cold_interviews(S, mc, n_users=a.n_users, rank=banks[f"conc_{b}"]), head_mask)
+        cc = score(net, S, cold_interviews(S, mc, n_users=a.n_users, rank=banks[f"conc_{b}"], keep_meh=keep_meh), head_mask)
         assert abs(ci[0][0] - cc[0][0]) < 1e-9, "ARMS-MATCHED CANARY FAILED: m=0 must be identical"
         out[b] = {"item": ci, "conc": cc}
         log(f"--- bank={b} (m=0 canary {ci[0][0]:.4f}/{ci[0][1]:.4f} OK)")
