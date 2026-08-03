@@ -159,10 +159,46 @@ def build_banks(S, n_est=2000, log=log):
         p = c / np.maximum(c.sum(1, keepdims=True), 1e-9)
         return -(p * np.log(np.maximum(p, 1e-12))).sum(1)
 
+    def polar(c, min_support=0.02):
+        """DISCRIMINATION, decoupled from answerability: H over {like,meh,dislike} GIVEN answered.
+
+        4-way entropy that includes the unanswerable bucket is DEGENERATE on a sparse catalogue: for
+        almost every item the distribution is ~100% 'unseen', so only ultra-popular items score at all
+        and the ranking collapses onto popularity (measured: top-16 of the 4-way bank sits at the 99.9th
+        popularity percentile and overlaps items-pop 12/16, with identical 59.8% burn). Conditioning on
+        'answered' is what actually asks "does this question SPLIT people?".
+
+        Support floor: an item three people answered must not win on noise.
+        """
+        ans = c[:, :3]
+        tot = ans.sum(1)
+        h = H(ans)
+        h[tot < min_support * max(c.sum(1).max(), 1.0)] = -np.inf
+        return h
+
+    def expinfo(c, min_support=0.02):
+        """EXPECTED INFORMATION = P(answered) * H(bands | answered).
+
+        The two extremes are both wrong. 4-way entropy collapses onto popularity (answerability
+        dominates a sparse catalogue); pure conditional entropy picks maximally divisive questions that
+        almost nobody can answer (measured: 5.4% answer rate, so 16 asks return <1 answer). A question is
+        worth asking in proportion to how likely it is to be answered TIMES how much the answer splits
+        people. This is the defensible static bank.
+        """
+        tot = c.sum(1)
+        p_ans = c[:, :3].sum(1) / np.maximum(tot, 1e-9)
+        v = p_ans * H(c[:, :3])
+        v[c[:, :3].sum(1) < min_support * max(tot.max(), 1.0)] = -np.inf
+        return v
+
     hc, hi = H(cc), H(ci)
+    pc, pi = polar(cc), polar(ci)
+    ec, ei = expinfo(cc), expinfo(ci)
     log(f"[banks] estimated on {n_used} held-out training users "
-        f"(eval users are the LAST {1500}, disjoint)")
+        f"(eval users are the LAST 1500, disjoint)")
     return {"conc_entropy": np.argsort(-hc), "item_entropy": np.argsort(-hi),
+            "conc_polar": np.argsort(-pc), "item_polar": np.argsort(-pi),
+            "conc_expinfo": np.argsort(-ec), "item_expinfo": np.argsort(-ei),
             "conc_H": hc, "item_H": hi}
 
 
@@ -228,7 +264,7 @@ def main():
     ap.add_argument("--ckpt", default="", help="explicit comma-separated checkpoint paths (overrides --tag)")
     ap.add_argument("--arm_kind", default="concept", choices=("concept", "item"),
                     help="item = matched-budget ITEM interview through the same protocol")
-    ap.add_argument("--bank", default="random", choices=("random", "pop", "entropy"),
+    ap.add_argument("--bank", default="random", choices=("random", "pop", "entropy", "polar"),
                     help="RANKED question bank shared by both arms: pop = most answerable, "
                          "entropy = most discriminative. 'random' keeps the old --policy draw "
                          "(concept arm only) and is NOT comparable to the item arm.")
@@ -245,10 +281,10 @@ def main():
     tr = M.load_train(S["ni"], os.path.join(_ROOT, "data", "ml-25m", "proc"))
     head_mask, _ = compute_head_mask(tr, S["ni"])
 
-    banks = build_banks(S) if a.bank == "entropy" else None
+    banks = build_banks(S) if a.bank in ("entropy", "polar") else None
     if a.arm_kind == "item":
-        if a.bank == "entropy":
-            item_rank = banks["item_entropy"]
+        if a.bank in ("entropy", "polar"):
+            item_rank = banks["item_entropy" if a.bank == "entropy" else "item_polar"]
         else:
             item_rank = np.argsort(-np.asarray(tr.sum(axis=0)).ravel())
         log(f"building COLD ITEM interviews (bank={a.bank}, unrated burns the question) ...")
@@ -261,8 +297,9 @@ def main():
                                     f"item_arm_{a.bank}_coldcheck.json"), "w"), indent=2)
         return
 
-    crank = banks["conc_entropy"] if a.bank == "entropy" else (
-        np.argsort(-mc) if a.bank == "pop" else None)
+    crank = (banks["conc_entropy"] if a.bank == "entropy" else
+             banks["conc_polar"] if a.bank == "polar" else
+             np.argsort(-mc) if a.bank == "pop" else None)
     log(f"building COLD interviews (zero items, bank={a.bank}, policy={a.policy}) ...")
     packs = cold_interviews(S, mc, n_users=a.n_users, policy=a.policy, rank=crank)
     log(f"  {len(packs[0])} users x budgets {MS}")

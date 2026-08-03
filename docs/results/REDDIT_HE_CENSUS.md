@@ -1,0 +1,289 @@
+# He-corpus census (`ZhankuiHe/reddit_movie_raw` + `…_large_v1`) — CENSUS phase, no LLM
+
+Executes steps 1–3 of `docs/design/DS_REDDIT_LINKING.md`. Run 2026-08-03.
+Scripts: `scripts/reddit/download_he.py`, `scripts/reddit/census_he.py`
+(`raw` / `v1` / `coverage` / `gold` phases). Machine-readable outputs:
+`data/reddit_he/census/*.json` (not committed — `data/reddit_he/` is gitignored).
+
+**No LLM call was made. No Reddit API call was made** — everything below comes from the
+public Hugging Face release. Nothing was sampled, capped or truncated in any count: all
+18 raw files and all three V1 CSVs were streamed end to end. The only sample drawn is the
+300-mention gold set requested for human labelling.
+
+---
+
+## 0. What actually ships (this reframes questions 3 and 4)
+
+| repo | what it is | size |
+|---|---|---|
+| `ZhankuiHe/reddit_movie_raw` | 5 raw subreddit `*.jsonl` (one JSON object per **thread**), `sentences.jsonl`, `IMDB-database/` | 3.01 GB |
+| `ZhankuiHe/reddit_movie_large_v1` | `{train,valid,test}.csv` + `id2name.json` — **this is the only place their entity links live** | 2.36 GB |
+| `ZhankuiHe/reddit_movie_small_v1` | same, 2022 only | 0.51 GB |
+| `ZhankuiHe/reddit_cikm` | the CIKM'23 *benchmark* subset (`*_data_processed.jsonl`) | 0.18 GB |
+
+**The raw release carries NO entity annotations at all.** `sentences.jsonl` is sentence-split
+raw text keyed by `("<subreddit>", "<t3_/t1_ id>", "<field>")` — no ids, no spans.
+`IMDB-database/` is a *gazetteer* (`title.basics` + `title.ratings` filtered to
+`titleType=='movie'`, runtime 60–360 min), i.e. the input to a matcher, not a matching.
+So "their machine-matched movie mentions" = the **V1 processed release**, where the
+`processed` column is the utterance with every linked mention substituted **in place** by an
+IMDb tconst and `raw` is the same utterance with the original surface strings. Recovering
+(tconst, surface span) pairs is a word-level diff of `processed` against `raw` — done here in
+`align_mentions()`.
+
+Raw thread record: `{submission: {t3_id: {...}}, valid_comments: {t1_id: {...}}, head_comments,
+ghost_comments}`; comments carry `parent_id`, `child_ids`, `author`, `score`, `is_submitter`.
+
+### Protocol (fixed for everything below)
+- **Thread = one `t3_…` submission id.** Raw: the single key of the `submission` dict.
+  V1: `conv_id` minus the trailing `_<path>/<npaths>` (`t3_rt7enj_0/14` → `t3_rt7enj`).
+- **Turn dedup:** V1 rows are *path expansions* of a thread, so the same reddit turn recurs
+  many times; turns are deduplicated by `turn_id` **within** a thread. Confirmed safe: all
+  rows of a thread are contiguous (`threads_reopened_out_of_order = 0`).
+  Scale of the trap here: **1,669,720 CSV rows → 971,185 unique turns → 58,623 threads.**
+- **Linking source:** He et al.'s own V1 links. No new linker was run.
+- **Catalogue map:** `data/movielens/links.csv` (`movieId`↔`imdbId`, 62,423 rows) restricted to
+  the 18,359 ids in `data/ml-25m/proc/unique_sid.txt`. All 18,359 resolve.
+- **Year** = UTC year of `created_utc` / `utc_time`.
+- **Privacy:** every author/user string is sha256-hashed (first 12 hex) before it is written
+  anywhere. No request text is reproduced in this document.
+
+---
+
+## 1 ★ THE DATE QUESTION — settled, and the answer is split
+
+### Raw release: pre-2019 data DOES exist, but not in r/MovieSuggestions
+
+Threads (deduplicated by submission id) per year per file. Every file's per-year counts sum
+exactly to its total and no duplicate submission ids were found (sanity control passed for all
+five files; `year_sum_check: true`, `duplicate_submission_ids_dropped: 0`).
+
+| year | bestofnetflix | movies | moviesuggestions | netflixbestof | truefilm | **total** |
+|---|---|---|---|---|---|---|
+| 2012 | 227 | 0 | 0 | 7 | 0 | 234 |
+| 2013 | 959 | 0 | 0 | 24 | 0 | 983 |
+| 2014 | 783 | 853 | 0 | 48 | 0 | 1,684 |
+| 2015 | 675 | 2,490 | 0 | 771 | 0 | 3,936 |
+| 2016 | 649 | 2,168 | 0 | 805 | 21 | 3,643 |
+| 2017 | 307 | 1,201 | 0 | 845 | 1 | 2,354 |
+| 2018 | 441 | 1,206 | 0 | 763 | 10 | 2,420 |
+| 2019 | 542 | 1,617 | 4,931 | 1,351 | 27 | 8,468 |
+| 2020 | 363 | 3,199 | 17,032 | 2,192 | 87 | 22,873 |
+| 2021 | 640 | 3,101 | 15,054 | 2,032 | 54 | 20,881 |
+| 2022 | 519 | 3,855 | 17,529 | 1,298 | 108 | 23,309 |
+| **total** | **6,105** | **19,690** | **54,546** | **10,136** | **308** | **90,785** |
+
+- **Reproduction control PASSED exactly:** `moviesuggestions.jsonl` = **54,546 threads,
+  2019–2022 only** — the Jul-31 measurement reproduces to the unit, and the 0/1,480 Eberhard
+  overlap is fully explained.
+- The HF card's "Jan 2012 – Dec 2022" is true **of the bundle**, not of any single file.
+  Earliest data: r/bestofnetflix and r/netflixbestof from 2012, r/movies from 2014,
+  r/truefilm from 2016, r/MovieSuggestions from 2019.
+- **≤2018: 15,254 threads. ≤2019 (inclusive): 23,722 threads.** None of them is a
+  r/MovieSuggestions request.
+
+### V1 (the linked data): pre-2019 does NOT exist
+
+Measured directly on the `utc_time` column: the large-V1 range is
+**2018-06-29 03:36:03 UTC → 2022-12-31 23:59:46 UTC.** Per-year V1 threads:
+2018 → 958, 2019 → 7,172, 2020 → 16,830, 2021 → 15,271, 2022 → 18,392 (sum = 58,623 = total,
+sanity control passed). Its own dataset card also claims 2012–2022; **that claim is false for
+the file that actually carries the links.**
+
+**Verdict (a).** Pre-2019 threads exist in the raw dump — 15,254 of them — but (i) none is
+from the request subreddit and (ii) none of them was processed into the entity-linked V1
+release. A ≤2019 evaluation slice therefore exists **only if we link it ourselves**, and it
+would be built from r/movies / r/bestofnetflix / r/netflixbestof, which are discussion and
+"here's a good film" posts, not requests. The pre-2019 *request* corpus remains Eberhard's,
+and Eberhard still ships no request text.
+
+---
+
+## 2. Threads and replies (raw release, all five files)
+
+| file | threads | comments | mean | p10 | median | p90 | max |
+|---|---|---|---|---|---|---|---|
+| bestofnetflix | 6,105 | 82,667 | 13.54 | 1 | 8 | 31 | 760 |
+| movies | 19,690 | 806,478 | 40.96 | 1 | 12 | 71 | 4,519 |
+| **moviesuggestions** | **54,546** | **1,346,056** | **24.68** | **2** | **12** | **43** | **3,140** |
+| netflixbestof | 10,136 | 409,453 | 40.40 | 4 | 16 | 89 | 1,089 |
+| truefilm | 308 | 6,348 | 20.61 | 1 | 6 | 58 | 252 |
+| **all** | **90,785** | **2,651,002** | — | — | — | — | — |
+
+`ghost_comments` is empty in every thread of every file (0 across the corpus).
+V1 turns-per-thread (post-dedup): mean 16.57, p10 3, median 10, p90 30, max 2,037; of these,
+non-seeker turns mean 13.96, median 8.
+
+---
+
+## 3. Catalogue fit — and the 61.3% figure reconciled
+
+All numbers from He et al.'s own links, turn-deduplicated, over **all** of large-V1
+(1,355,236 mentions, 50,075 distinct tconsts).
+
+| slice | mentions | % mentions in catalogue | distinct items | % distinct in catalogue |
+|---|---|---|---|---|
+| **large-V1, all years** | 1,355,236 | **74.59%** | 50,075 | **28.63%** |
+| 2018 (n=958 threads) | 24,250 | 66.70% | 6,833 | 54.35% |
+| 2019 | 211,023 | 74.35% | 21,739 | 45.33% |
+| 2020 | 498,652 | 75.51% | 31,773 | 37.80% |
+| 2021 | 266,386 | 74.20% | 24,118 | 44.50% |
+| 2022 | 354,925 | 74.27% | 28,628 | 40.58% |
+
+**The 75.1% mention figure reproduces (74.59%). The 61.3% distinct-item figure does not —
+and the disagreement is a denominator, not an error.** Both numbers are reported; neither is
+averaged away. Measured variants:
+
+| item universe | distinct in 18,359 catalogue | distinct in full `links.csv` (62,423) |
+|---|---|---|
+| large-V1 mention vocabulary (50,075) | 28.63% | 49.34% |
+| `id2name.json` (51,203) | 28.22% | 50.35% |
+| small-V1 (2022 only) vocabulary (28,138) | 41.20% | 59.42% |
+| **`reddit_cikm` test split (7,413)** | **63.87%** | 74.07% |
+| `reddit_cikm` valid split (10,691) | **60.26%** | 72.26% |
+| `reddit_cikm` train split (21,032) | 48.51% | 65.46% |
+
+The Jul-31 pair "61.3% distinct / 75.1% mentions" sits exactly on the `reddit_cikm`
+**benchmark subset** (valid 60.26%/74.97%, test 63.87%/74.00%) — the CIKM'23 release, which
+applies a popularity/frequency cut to the item vocabulary before releasing it. Over the full
+V1 corpus the same catalogue covers only 28.6% of the *types* while still covering 74.6% of
+the *tokens*: the un-covered 35,741 tconsts are overwhelmingly long-tail, non-film, or
+post-2019 entries. **Practical read: the mention-level number (~75%) is the one that governs
+ground-truth retention and it is stable across every slice (73.6–75.5%); the distinct-item
+number is only interpretable against a stated vocabulary.**
+
+The by-year split does **not** show the hoped-for pre-2019 lift, because V1 has no real
+pre-2019 mass: 2018's 66.7% is *worse* than 2020's 75.5% (n=958 threads, and those threads
+are r/movies-style discussion of then-current releases). The recency-coverage argument cannot
+be tested on this corpus.
+
+---
+
+## 4. How good is their entity linking?
+
+**Coverage.**
+- V1 keeps **58,623 of the 90,785 raw threads (64.6%)**, and none from before mid-2018.
+- **99.87% of V1 threads (58,544)** carry ≥1 link; **73.67% of V1 turns (715,482 of 971,185)**
+  carry ≥1 link, 255,703 turns carry none.
+- Mentions: 1,355,236 total — 180,479 in seeker turns, 1,174,757 in replier turns
+  (mean 23.1 linked mentions per thread).
+- Independent free signal in the raw dump (no model needed): **19,070 threads (21.0%) contain
+  an explicit `imdb.com/title/tt…` URL, 157,879 such URLs in total** — mostly bot posts
+  (`movie_info_bot` and kin), which V1 drops. This is a usable, zero-cost precision anchor
+  for validating any future linker.
+
+**Quality.** Their pipeline is gazetteer string matching, and its failure mode is
+over-linking common words as titles. It is visible in the released benchmark itself — e.g. a
+`reddit_cikm` test record where the ordinary word *"Movie"* is linked to `tt1040023`
+("Movie (2007)"), producing a spurious recommendation target; the same record links it twice.
+The surface-span audit over the whole corpus (below, §7) quantifies how common this class is.
+Note also He et al.'s own disclaimer: *"processing is not perfect… we do observe some failure
+cases"*, and the explicit invitation to build a V2.
+
+**Verdict (c).** Their linking is good enough for a *coverage* claim and useless as a
+*precision* claim. A re-linking pass is still needed — but the census changes its shape and
+its size: it is **not** a corpus-wide extraction job, because V1 already supplies candidate
+spans. The job is (i) precision filtering of the ~1.36 M existing links (the single largest
+win, and a large fraction is reachable with a stop-title blocklist plus a year/context check —
+no LLM), and (ii) recall recovery on the 255,703 unlinked turns and the 32,162 raw threads V1
+dropped, which *is* LLM-shaped. Scoped to the threads that would actually become evaluation
+items (see §6), the LLM job is ~36 k threads, not 90 k.
+
+---
+
+## 5. Organic follow-up subset (OP answered in the reply tree)
+
+Measured on the **raw** files, since V1 discards the `is_submitter` flag. Two definitions,
+both reported:
+- *OP follow-up*: OP posted ≥1 comment in their own thread.
+- *OP answered someone*: OP posted a comment whose parent is a comment by a **different**
+  author — the strict "answered a clarifying question" event.
+
+`is_submitter` is missing on older records (present in 2,693/6,105 bestofnetflix threads but
+all 54,546 moviesuggestions threads), so the flag is OR-ed with an author-identity check
+against the hashed submission author (`[deleted]` and `AutoModerator` excluded).
+
+| file | threads | OP follow-up | % | OP answered someone | % |
+|---|---|---|---|---|---|
+| bestofnetflix | 6,105 | 2,796 | 45.80 | 2,238 | 36.66 |
+| movies | 19,690 | 10,550 | 53.58 | 9,665 | 49.09 |
+| **moviesuggestions** | **54,546** | **24,216** | **44.40** | **23,434** | **42.96** |
+| netflixbestof | 10,136 | 5,607 | 55.32 | 5,462 | 53.89 |
+| truefilm | 308 | 155 | 50.32 | 149 | 48.38 |
+| **all** | **90,785** | **43,324** | **47.72** | **40,948** | **45.10** |
+
+This is much larger than expected and is the one place on this corpus where adaptivity can be
+measured without simulating an answerer: **23,434 r/MovieSuggestions threads (43.0%)** contain
+a genuine OP reply to someone else's comment.
+
+---
+
+## 6. Ground-truth viability
+
+Ground truth = distinct in-catalogue items mentioned in **replier** turns, minus every
+in-catalogue item the **seeker** named anywhere in the thread (V1's `is_seeker` makes this
+distinction cleanly, so the Eberhard OP-exclusion protocol is directly implementable).
+
+- Set size per thread: mean **11.26**, p10 1, median 7, p90 25, max 579; 660,345 items total.
+- **35,982 of 58,623 threads (61.38%) have ≥5 in-catalogue reply items** — these survive the
+  design sheet's filter; the filter drops 22,641 threads (38.6%).
+- By year: 2018 → 420, 2019 → 4,642, 2020 → 11,434, 2021 → 8,254, 2022 → 11,232.
+- **≤2019 slice: 5,062 threads** pass the ≥5 filter. Non-trivial in isolation, but it is
+  2018–19 only, mostly non-request subreddits, and it is *not* the pre-2019 slice the design
+  sheet hoped for.
+- Ceiling reminder (unchanged): with median 7 / mean 11.3 ground-truth items, Recall@10 is
+  capped well below 1 and must be reported alongside every number.
+
+---
+
+## 7. Gold sample for hand labelling
+
+`data/reddit_he/gold_sample_unlabeled.csv` — **300 mentions**, stratified over
+year × mention-context, context ∈ {`request` (seeker, turn 0), `seeker_followup` (seeker,
+later turn), `reply` (non-seeker)}. Reservoir sampling, seed 98765, over **every** alignable
+mention in large-V1 (no pre-filtering of the population). Columns: `thread_id`, `turn_id`,
+`user_hash` (sha256[:12]), `year`, `context`, `he_tconst` (their link, to be judged),
+`mention_span`, `sentence`, and an **empty** `label_tconst_or_NONE`.
+
+**It is unlabelled by construction — no LLM and no guessing was applied.** Label it before
+looking at any linker output, per step 3 of the design sheet.
+
+GOLD_PLACEHOLDER
+
+---
+
+## Verdicts
+
+**(a) The date question.** Settled, both ways. The HF card is right about the *bundle* and
+wrong about r/MovieSuggestions: that file is 2019–2022, exactly 54,546 threads, reproducing
+the Jul-31 measurement to the unit. Pre-2019 raw threads do exist — 15,254 of them, from
+r/movies, r/bestofnetflix, r/netflixbestof and r/truefilm — but **He et al.'s linked V1
+release starts 2018-06-29 and contains none of them.**
+
+**(b) Does the ≤2019 slice become the primary evaluation slice?** **No.** It fails on three
+counts: the pre-2019 threads are not requests (no r/MovieSuggestions before 2019); they carry
+no entity links at all, so building the slice means linking 15,254 threads from scratch with
+nothing to validate against; and the coverage premise behind the idea is not supported —
+V1's 2018 mention-level catalogue fit is 66.7%, *below* 2020's 75.5%. The primary slice stays
+the 2019–2022 r/MovieSuggestions request corpus, and the recency-bias scope condition stays a
+first-class limitation rather than shrinking to a caveat. The ≤2019 idea is not dead, but it
+is a separate, linking-first work item, not a shortcut.
+
+**(c) Is LLM re-linking still needed, and how big?** Yes, but smaller and differently shaped
+than the "3–5 weeks of extraction" estimate. V1 already gives 1.36 M candidate (span → tconst)
+pairs at 99.9% thread coverage / 73.7% turn coverage, so the work is *adjudication*, not
+extraction. Sized against the evaluation set that actually matters — the 35,982 threads with
+≥5 in-catalogue reply items, ~23 linked mentions per thread — the batch is on the order of
+1 M mention judgements, and a large share of the precision problem (generic-word titles) is reachable by
+a deterministic blocklist first. Recommended order: gold-label the 300 → measure V1's raw
+precision/recall → apply the no-LLM blocklist and re-measure → only then take a scoped LLM
+pass to the author-approval gate (step 4), sized on what the first two steps leave.
+
+## Known limitations of this census
+- Catalogue fit inherits He et al.'s linking errors: a mention wrongly linked to an
+  in-catalogue title counts as in-catalogue here. §7's gold set is what corrects this.
+- `by_year` mention counts are keyed on the **turn's** timestamp, thread counts on the
+  submission's; they differ for threads whose replies cross a year boundary.
+- The OP-follow-up count uses hashed-author identity where `is_submitter` is absent; a
+  deleted/renamed account can therefore be missed (counted conservatively, never inflated).
+- V1's `is_seeker` is He et al.'s own label; it was not independently verified.

@@ -122,3 +122,6 @@ data/ml25m/
 data/ml20m/
 data/ml-20m/
 data/ml-25m/
+
+# He et al. Reddit-Movie corpus (3 GB third-party release, do not commit)
+data/reddit_he/
