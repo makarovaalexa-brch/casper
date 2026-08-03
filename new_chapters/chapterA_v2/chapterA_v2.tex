@@ -51,11 +51,11 @@
 \begin{abstract}
 \noindent Before one can study \emph{how} to interview a cold-start user---which questions to ask, in what
 order---one needs a recommender that can \emph{be} interviewed: a model that folds an arbitrary-length,
-mixed-channel set of answers into its belief and re-ranks a large catalogue, without per-user retraining and
+mixed-channel set of answers into its user representation and re-ranks a large catalogue, without per-user retraining and
 without trading away full-profile accuracy. We argue that this recommender is a \emph{measuring instrument} for the
 entire elicitation-policy literature, and that its requirements are more demanding than any single published system
 meets. The demanding part is \emph{ingestion}: folding an arbitrary-length set of mixed-type answers into a recommender
-that is already at the accuracy frontier. We state that as five requirements---\textbf{R1} state-of-the-art
+that is already at the accuracy frontier. We state that as four requirements---\textbf{R1} state-of-the-art
 full-profile accuracy, \textbf{R2} an open set-valued input interface (any number of observations, and directions
 that need not have existed when the model was fitted---concepts, entities, phrases, policy-emitted vectors),
 \textbf{R3} monotonicity (a truthful answer does not lower ranking
@@ -67,9 +67,9 @@ the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite
 RecVAE~\cite{ren2020recvae}) are item-only point estimators, while the models with an uncertainty-native, multi-channel
 belief (soft-attribute Gaussian elicitation~\cite{biyik2023soft}, unified item$+$attribute bandits~\cite{li2021seamlessly},
 conjugate critique folds~\cite{toroghi2023bcie}) do not report full-profile accuracy at the R1 bar. We are aware of no
-published system that occupies the conjunction of all five. The instrument that closes this gap is a \emph{frozen} certified
-shallow-SOTA tower over whose latent every channel is folded as a direction paired with a value, with an analytic
-conjugate-Gaussian belief maintained over the same latent for a policy to query; three of its input legs---signed/graded values, concepts
+published system that occupies the conjunction of all four. The instrument that closes this gap is a \emph{frozen} certified
+shallow-SOTA tower over whose latent every channel is folded as a direction paired with a value by a
+permutation-invariant set encoder; three of its input legs---signed/graded values, concepts
 whose vocabulary is not fixed when the model is fitted, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
 models. Each requirement carries one verification item, V1--V4, and all four are met. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
 and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then V1--V4 on the
@@ -135,11 +135,11 @@ the published literature}. The models that hit the full-profile bar---closed-for
 (EASE~\cite{steck2019ease}, EDLAE~\cite{steck2020edlae}) and amortised VAEs (Mult-VAE~\cite{liang2018variational},
 RecVAE~\cite{ren2020recvae}), together with the training-free graph filters
 (GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf}) that claim the frontier on other
-corpora---are \emph{item-only point estimators} on a one-hot indicator basis. The models with an uncertainty-native, multi-channel belief---soft-attribute
+corpora---are \emph{item-only point estimators} on a one-hot indicator basis. The models with a multi-channel elicitation interface---soft-attribute
 Gaussian elicitation~\cite{biyik2023soft}, item$+$attribute Thompson bandits~\cite{li2021seamlessly}, conjugate critique
 folds over a frozen factorisation~\cite{toroghi2023bcie}, and per-item Bayesian NL elicitation~\cite{austin2024bayesian}---do
-\emph{not} report full-profile accuracy at the R1 bar. We call these the \emph{accuracy corner} and the \emph{belief
-corner}. No published system we are aware of occupies both (\S\ref{sec:gap}).
+\emph{not} report full-profile accuracy at the R1 bar. We call these the \emph{accuracy corner} and the
+\emph{elicitation corner}. No published system we are aware of occupies both (\S\ref{sec:gap}).
 
 \paragraph{Contributions.}
 This chapter is the instrument paper of the thesis. It does not claim a new elicitation policy (that is the companion
@@ -156,10 +156,9 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         (not merely untuned) in the item-indicator basis of every R1-bar model: (i) signed/graded per-entity values,
         (ii) concepts whose vocabulary is not fixed at training time, and (iii) continuous direction tokens. These are the narrow, defensible novelty
         legs of the channel-agnostic interface (\S\ref{sec:gap},~\S\ref{sec:method}).
-  \item \textbf{The instrument.} A design for a \emph{frozen} certified shallow-SOTA tower with an analytic
-        conjugate-Gaussian precision-accumulator belief layer over its latent, into which every channel folds as a
-        linear observation (\S\ref{sec:method}). The frozen-tower$+$exact-conjugacy shape is the one mechanism with a
-        principled monotonicity story~\cite{toroghi2023bcie}. Freezing is \emph{not} what separates us from the
+  \item \textbf{The instrument.} A design for a \emph{frozen} certified shallow-SOTA tower with a
+        permutation-invariant set encoder over its latent, into which every channel folds as a
+        direction paired with a value (\S\ref{sec:method}). Freezing is \emph{not} what separates us from the
         soft-attribute line---G\"opfert et al.~\cite{gopfert2024cav} and B\i y\i k et al.~\cite{biyik2023soft} both
         freeze the collaborative model and learn attribute directions separately, and say so explicitly. What
         separates us is an \emph{open} concept vocabulary carrying no per-concept supervision, at the R1 accuracy
@@ -188,16 +187,18 @@ We now state the requirements and gates formally. Let the catalogue have $n$ ite
 $d$-dimensional latent in which each item $i$ has a factor row $\Q_i\in\R^{d}$. An \emph{evidence set} after $t$
 questions is a set of observations $\mathcal E_t=\{(\bphi_j, y_j)\}_{j=1}^{t}$, where $\bphi_j\in\R^{d}$ is the latent
 direction of the queried entity (an item factor, a concept centroid, an entity embedding, or a continuous direction
-token) and $y_j\in\R$ is the (possibly graded, possibly signed) answer. The instrument maintains a belief
-$b(\mathcal E_t)=(\bmu_t,\bSigma_t)$ over the user latent $\uu\in\R^{d}$ and scores item $i$ by a fixed read-out
-$s_i(\bmu_t)$ of the base tower.
+token) and $y_j\in\R$ is the (possibly graded, possibly signed) answer. The instrument maps the evidence set to a
+point $\bmu_t = f(\mathcal E_t)$ in the user latent $\uu\in\R^{d}$---$f$ is a permutation-invariant set encoder, so
+$\bmu_t$ depends on the set and not on the order it arrived in---and scores item $i$ by a fixed read-out
+$s_i(\bmu_t)$ of the base tower. Nothing in what follows requires a distribution over $\uu$; a policy that wants one
+can be built on top, which is the companion chapter's subject.
 
 \paragraph{Requirements (formal).}
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
   \item[R1.] With $\mathcal E$ equal to a user's full history, $\mathrm{NDCG}@10\bigl(s(\bmu(\mathcal E))\bigr)$ ties
         the strongest shallow baseline on a shared harness (Def.~\ref{def:tie}).
-  \item[R2.] $b(\mathcal E_t)$ is defined and computable for every $t\ge 0$ with no gradient step at inference
-        ($t{=}0$ yields the prior belief), \emph{and} the admissible $\bphi_j$ are all of $\R^{d}$ rather than a
+  \item[R2.] $f(\mathcal E_t)$ is defined and computable for every $t\ge 0$ with no gradient step at inference
+        ($t{=}0$ yields the learned no-evidence latent), \emph{and} the admissible $\bphi_j$ are all of $\R^{d}$ rather than a
         finite set fixed when the model was fitted. The update from $\mathcal E_t$ to $\mathcal E_{t+1}$ depends on
         the new observation only through the pair $(\bphi_{t+1},y_{t+1})\in\R^{d}\times\R$, so any entity with an
         embedding is a legal member of the evidence set. The requirement is on the \emph{observation}, not on the
@@ -227,12 +228,12 @@ items, I1--I2, apply across all five and exist because the per-requirement check
 of our measuring apparatus, not of the instrument, and it is reported there.
 
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
-  \item[V1 --- full strength and identity (R1).] Evaluating on the belief mean with the full profile reproduces the
-        frozen tower's full-profile NDCG@10 (full \emph{and} tail)---a paired-bootstrap tie---and with an
+  \item[V1 --- full strength and identity (R1).] Evaluating the fold on the full profile reproduces the
+        frozen tower's full-profile NDCG@10 (full \emph{and} tail) to within a stated, paired-bootstrapped margin---and with an
         \emph{empty} evidence set the ranking is the frozen decoder's exactly, not approximately. The identity half
         is what licenses reading every later curve as evidence about ingestion rather than about a shifted baseline.
   \item[V2 --- an open set-valued input interface (R2).] Two halves, and only the second can fail. The set half is
-        structural: the belief is defined for every $t\ge0$ with no gradient step, because the fold is a running sum
+        structural: the fold is defined for every $t\ge0$ with no gradient step, because it is a running sum
         over observations. The \emph{open} half is measured: a concept must be a specific direction rather than a
         popularity proxy---ranking its member items above matched non-members in the latent, and lifting the cold
         ranking beyond what the concept's own popularity explains (its top principal component partialled out)---and
@@ -274,20 +275,17 @@ of our measuring apparatus, not of the instrument, and it is reported there.
 \end{description}
 
 \paragraph{Why the outcome checks alone are insufficient.}
-V1, V3 and V4 are outcome checks, and several broken instruments pass all three. A \emph{sign-blind} fold that
-updates its belief from only the \emph{direction} of the queried entity but never the answer \emph{value} still
-reproduces the frozen tower (V1), still shrinks $\bSigma$ along $\bphi$ per question (V3), and still beats a
+V1 and V3 are outcome checks, and broken instruments pass both. A \emph{sign-blind} fold that
+updates from only the \emph{direction} of the queried entity but never the answer \emph{value} still
+reproduces the frozen tower (V1) and still beats a
 random-question control---because beating random certifies that a good question was \emph{selected}, not that the
-answer was \emph{ingested}; only V5's sign-flip and V4's fixed-bank arm expose it. A
-\emph{circular} answer model that generates answers from the instrument's own latent geometry would inflate the V4
+answer was \emph{ingested}; only V4's sign-flip and V3's fixed-bank arm expose it. A
+\emph{circular} answer model that generates answers from the instrument's own latent geometry would inflate the V3
 curve with no transferable signal. The risk is not hypothetical in this literature: evaluations commonly grant the
 simulated user privileged access to the target---PEBOL's simulator answers from the ground-truth item
 description~\cite{austin2024bayesian}, and unified item-and-attribute CRS work assumes the user holds and reveals
 clear preferences over every attribute and item~\cite{deng2021unicorn}. I2 closes this by construction rather than
-by measurement (\S\ref{sec:reqs}). And a
-\emph{decorative} covariance that is maintained but never enters a reported number passes V1 and V5
-trivially; only replacing $\bSigma$ with an isotropic matrix and demanding a degradation---V3's third clause---shows
-whether the uncertainty is load-bearing. V2, V5 and the two integrity items exist precisely to close these
+by measurement (\S\ref{sec:reqs}). V2, V4 and the two integrity items exist precisely to close these
 outcome-check false positives.
 
 We report \emph{both} full and tail NDCG@10 for every gate (a project reporting rule: full-only or tail-only hides the
@@ -301,21 +299,20 @@ effect, which is typically much larger on the tail than on the full catalogue). 
 \toprule
 Check & One-line criterion & Failure class it excludes \\
 \midrule
-V1 (R1) & Belief mean reproduces the frozen tower's full/tail NDCG@10 (tie); an empty interview is the decoder exactly. & Full-profile regression from the belief layer. \\
+V1 (R1) & The fold reproduces the frozen tower's full/tail NDCG@10 to within a stated, paired-bootstrapped margin; an empty interview is the decoder exactly. & Full-profile regression from the ingestion path. \\
 V2 (R2) & Any $t\ge0$, no gradient step; \emph{and} a concept is a specific direction, not a popularity proxy, with a held-out concept folding from its name alone. & Per-user retraining; a vocabulary fixed at fit time; popularity-parasite concepts. \\
-V3 (R3) & $\bSigma$ shrinks, shrinks directionally along $\bphi$, and beats isotropic $c\Imat$; order- and re-ask-invariant. & Unusable posterior; scale-only or decorative $\bSigma$. \\
-V4 (R4) & Cold full/tail curve rises to budget on a bank fixed in advance. & Flat model; selection masquerading as ingestion. \\
-V5 (R5) & Sign-flip lowers NDCG; neutralisation costs NDCG; graded beats a fair binarising ablation on the short interview. & Sign-blind and intensity-blind folds. \\
+V3 (R3) & Cold full/tail curve rises to budget on a bank fixed in advance. & Flat model; selection masquerading as ingestion. \\
+V4 (R4) & Sign-flip lowers NDCG; neutralisation costs NDCG; graded beats a fair binarising ablation on the short interview. & Sign-blind and intensity-blind folds. \\
 \midrule
-\multicolumn{3}{l}{\emph{Integrity items, across all five}}\\
+\multicolumn{3}{l}{\emph{Integrity items, across all four}}\\
 I1 & Wrong-user, shuffled, placebo, and duplicated answers gain nothing over the true-answer arm. & Cardinality confound; existential leakage. \\
 I2 & Answers come from fold-in behaviour only: no recommender-derived quantity, no target-half information. & Circular answer model; target leakage. \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Verification: one check per requirement, plus two integrity items.} Each of V1--V5 is stated so
-that it can fail, and each certifies exactly one requirement. I1 and I2 apply across all five and exist because the
-per-requirement checks admit false positives---a sign-blind fold, a decorative covariance, or a circular answer
-model can pass V1, V4 and V5 while carrying no signal (text). The \emph{ruler} is certified separately by the
+\caption{\textbf{Verification: one check per requirement, plus two integrity items.} Each of V1--V4 is stated so
+that it can fail, and each certifies exactly one requirement. I1 and I2 apply across all four and exist because the
+per-requirement checks admit false positives---a sign-blind fold or a circular answer
+model can pass V1 and V3 while carrying no signal (text). The \emph{ruler} is certified separately by the
 published-number bridge (\S\ref{sec:bridge}), which is a property of the measuring apparatus rather than of the
 instrument.}
 \label{tab:battery}
@@ -325,103 +322,110 @@ instrument.}
 \section{Related work: a six-family taxonomy}\label{sec:related}
 % =====================================================================
 
-We organise interview-relevant recommenders into six families and score each against R1--R5
+We organise interview-relevant recommenders into six families and score each against R1--R4
 (Table~\ref{tab:taxonomy}). The reading is consistent across families: no family is strong on both the accuracy
-axis (R1) and the interview axis (R2--R5). Figure~\ref{fig:gapmap} plots the same fact quantitatively, with
+axis (R1) and the interview axis (R2--R4). Figure~\ref{fig:gapmap} plots the same fact quantitatively, with
 measured full-profile accuracy on one axis. Table~\ref{tab:taxonomy} is the compact conceptual overview; the chapter's anchor is the per-system
-\emph{master table} (Table~\ref{tab:master}), which classifies every reasonable candidate against R1--R5
+\emph{master table} (Table~\ref{tab:master}), which classifies every reasonable candidate against R1--R4
 \emph{and}, where one exists, prints its full/tail NDCG@10 on our shared ML-25M ruler---so that the bifurcation
 is not merely asserted from published claims but is visible in the one column of measured numbers.
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.15}
-\begin{tabular}{p{2.5cm}p{2.7cm}cccccp{3.0cm}}
+\begin{tabular}{p{2.5cm}p{2.7cm}ccccp{3.0cm}}
 \toprule
-Family & Representatives & R1 & R2 & R3 & R4 & R5 & One-line verdict \\
+Family & Representatives & R1 & R2 & R3 & R4 & One-line verdict \\
 \midrule
 (i) retrain / meta-learn per user &
   MeLU, TaNP~\cite{lin2021tanp}, CDRNP &
-  \xmark & \xmark & \cmark & \xmark & \cmark &
+  \xmark & \xmark & \xmark & \cmark &
   Set-input and belief precedent; not full-profile SOTA, not channel-open. \\
 (ii) fold-in linear / closed-form &
   EASE~\cite{steck2019ease}, SLIM, GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf} &
-  \cmark & \xmark & \xmark & \xmark & \xmark &
-  EASE/SLIM hold the bar (V1); the graph filters do not on this ruler. Item-indicator basis $\Rightarrow$ R2, R5 impossible. \\
+  \cmark & \xmark & \xmark & \xmark &
+  EASE/SLIM hold the bar (V1); the graph filters do not on this ruler. Item-indicator basis $\Rightarrow$ R2, R4 impossible. \\
 (iii) amortised inference encoders &
   Mult-VAE~\cite{liang2018variational}, RecVAE~\cite{ren2020recvae}, EDLAE~\cite{steck2020edlae}, EDDI~\cite{ma2019eddi} &
-  \cmark & \xmark & \xmark & \xmark & \xmark &
+  \cmark & \xmark & \xmark & \xmark &
   The architecture we live in; VAEs item-only, EDDI right shape/wrong domain. \\
-(iv) Bayesian belief over item space &
+(iv) Bayesian elicitation over item space &
   B\i y\i k~\cite{biyik2023soft}, ConTS~\cite{li2021seamlessly}, BCIE~\cite{toroghi2023bcie}, ICF~\cite{zhao2013interactive} &
-  \xmark & \xmark & \cmark & \xmark & \cmark &
+  \xmark & \xmark & \xmark & \cmark &
   The belief heart; belief layers, not full-profile towers. \\
 (v) sequence models &
   SASRec~\cite{kang2018sasrec}, BERT4Rec~\cite{sun2019bert4rec} &
-  \xmark & \xmark & \xmark & \xmark & \xmark &
+  \xmark & \xmark & \xmark & \xmark &
   Interview $\ne$ ordered session; tokens item-only, order-sensitive. \\
 (vi) LLM-as-recommender / CRS &
   PEBOL~\cite{austin2024bayesian}, GATE~\cite{li2023eliciting}, LLM-CRS~\cite{he2023large} &
-  \xmark & \cmark & \xmark & \xmark & \cmark &
+  \xmark & \cmark & \xmark & \cmark &
   Best R2 (open text); weakest R1 (weak collaborative signal). \\
 \midrule
 \textbf{CASPER (delivered)} & \textbf{this chapter} &
-  \cmark & \cmark & \cmark & \cmark & \cmark &
+  \cmark & \cmark & \cmark & \cmark &
   \textbf{The conjunction; no published system occupies it.} \\
 \bottomrule
 \end{tabular}
-\caption{Six-family taxonomy scored against R1--R5. \cmark~met, \xmark~not met---there are no half marks: a mark is met only if the system provides the capability as a designed, demonstrated feature. Scores for the
+\caption{Six-family taxonomy scored against R1--R4. \cmark~met, \xmark~not met---there are no half marks: a mark is met only if the system provides the capability as a designed, demonstrated feature. Scores for the
 six published families are our reading of their \emph{published} claims and are qualitative; the last row is this
 chapter's instrument, whose marks are the measured verification results of Table~\ref{tab:batteryresults} rather
-than a reading. R1 and $\{$R2,R3,R4,R5$\}$ are anti-correlated across the published families: (ii)/(iii) hold the
-accuracy corner, (iv) the belief corner, and none spans both. }
+than a reading. R1 and $\{$R2,R3,R4$\}$ are anti-correlated across the published families: (ii)/(iii) hold the
+accuracy corner, (iv) the elicitation corner, and none spans both.
+\emph{What these four axes do not score.} An earlier version of this taxonomy carried a fifth axis for
+uncertainty-native modelling---maintaining a posterior over user taste rather than a point estimate. We removed it
+because this chapter makes no claim there, and we state plainly that the removal is not neutral: ConTS and UNICORN
+are designed around exactly that capability, and they are the two systems that lose every mark when the axis goes.
+Their design merit is not in dispute and is not measured here. The bifurcation this table reports survives the
+removal---we re-scored every row without the axis, and only those two entries change---but a reader who cares about
+uncertainty-native modelling should read those rows as unscored rather than as failed.}
 \label{tab:taxonomy}
 \end{table}
 
 \begin{sidewaystable}[p]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.18}
-\begin{tabular}{p{4.1cm}ccccc r@{\,/\,}l l p{4.9cm}}
+\begin{tabular}{p{4.1cm}cccc r@{\,/\,}l l p{4.9cm}}
 \toprule
-System (rep.\ / cite) & R1 & R2 & R3 & R4 & R5 &
+System (rep.\ / cite) & R1 & R2 & R3 & R4 &
   \multicolumn{2}{c}{full/tail NDCG@10} & status & published full-profile anchor \\
- & & & & & & \multicolumn{2}{c}{(our ML-25M ruler)} & & (own benchmark, \emph{NOT} comparable) \\
+ & & & & & \multicolumn{2}{c}{(our ML-25M ruler)} & & (own benchmark, \emph{NOT} comparable) \\
 \midrule
-\multicolumn{10}{l}{\emph{(a) Classic / linear full-profile}}\\
-Most-Popular & \xmark & \xmark & \xmark & \xmark & \xmark & $.1345$ & $.0226$ & measured   & n/r (non-personalised floor) \\
-Item-kNN (cosine) & \xmark & \xmark & \xmark & \xmark & \xmark & $.2428$ & $.1297$ & measured   & @100 $\sim0.36$ class~\cite{cremonesi2010performance} \\
-PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & \xmark & $.2442$ & $.1853$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
-EASE~\cite{steck2019ease} & \cmark & \xmark & \xmark & \xmark & \xmark & $.3476$ & $.2441$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
-EDLAE~\cite{steck2020edlae} & \cmark & \xmark & \xmark & \xmark & \xmark & $.3433$ & $.2395$ & measured & @100 $\approx0.42$--$0.44$ class \\
-Turbo-CF~\cite{park2024turbocf} & \xmark & \xmark & \xmark & \xmark & \xmark & $.2622$ & $.1621$ & measured (val-tuned) & n/r (ML-20M not reported) \\
-GF-CF / BSPM~\cite{shen2021gfcf,choi2023bspm} & \xmark & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (ML-20M not reported) \\
+\multicolumn{9}{l}{\emph{(a) Classic / linear full-profile}}\\
+Most-Popular & \xmark & \xmark & \xmark & \xmark & $.1345$ & $.0226$ & measured   & n/r (non-personalised floor) \\
+Item-kNN (cosine) & \xmark & \xmark & \xmark & \xmark & $.2428$ & $.1297$ & measured   & @100 $\sim0.36$ class~\cite{cremonesi2010performance} \\
+PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & $.2442$ & $.1853$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
+EASE~\cite{steck2019ease} & \cmark & \xmark & \xmark & \xmark & $.3476$ & $.2441$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
+EDLAE~\cite{steck2020edlae} & \cmark & \xmark & \xmark & \xmark & $.3433$ & $.2395$ & measured & @100 $\approx0.42$--$0.44$ class \\
+Turbo-CF~\cite{park2024turbocf} & \xmark & \xmark & \xmark & \xmark & $.2622$ & $.1621$ & measured (val-tuned) & n/r (ML-20M not reported) \\
+GF-CF / BSPM~\cite{shen2021gfcf,choi2023bspm} & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (ML-20M not reported) \\
 \midrule
-\multicolumn{10}{l}{\emph{(b) Amortized / neural full-profile}}\\
-Mult-DAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & \emph{dropped} (snap failed) & @100 $0.419$ (ours $0.397$, \textbf{FAIL} $-.022$) \\
-Mult-VAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & \xmark & $.3202$ & $.2194$ & measured & @100 $0.426$ (ours $0.422$, near-snap $-.004$) \\
-RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \xmark & \xmark & \xmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
-SASRec~\cite{kang2018sasrec}                 & \xmark & \xmark & \xmark & \xmark & \xmark & $.1486$ & $.0805$ & measured (best-effort) & n/r (next-item task) \\
-BERT4Rec~\cite{sun2019bert4rec}              & \xmark & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp} (MeLU / CDRNP line) & \xmark & \xmark & \cmark & \xmark & \cmark & $.2645$ & $.1635$ & measured (best-effort) & n/r (own cold-start benchmark) \\
+\multicolumn{9}{l}{\emph{(b) Amortized / neural full-profile}}\\
+Mult-DAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & \emph{dropped} (snap failed) & @100 $0.419$ (ours $0.397$, \textbf{FAIL} $-.022$) \\
+Mult-VAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & $.3202$ & $.2194$ & measured & @100 $0.426$ (ours $0.422$, near-snap $-.004$) \\
+RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \xmark & \xmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
+SASRec~\cite{kang2018sasrec}                 & \xmark & \xmark & \xmark & \xmark & $.1486$ & $.0805$ & measured (best-effort) & n/r (next-item task) \\
+BERT4Rec~\cite{sun2019bert4rec}              & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (repl.~\cite{petrov2022replicability}) \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line) & \xmark & \xmark & \xmark & \cmark & $.2645$ & $.1635$ & measured (best-effort) & n/r (own cold-start benchmark) \\
 \midrule
-\multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the belief corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi} & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not run here & n/r (non-recsys; UCI/MNIST) \\
-Golbandi tree~\cite{golbandi2011adaptive} & \xmark & \xmark & \xmark & \xmark & \cmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
-RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \xmark & \xmark & \xmark & \cmark & $.2534$ & $.1764$ & measured (best-effort) & n/r (elicitation RMSE) \\
-B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (16 users, slates of 5) \\
-ICF~\cite{zhao2013interactive} & \xmark & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
-ConTS~\cite{li2021seamlessly} & \xmark & \xmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (cold-start CRS metrics) \\
-BCIE~\cite{toroghi2023bcie} & \xmark & \xmark & \cmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (critique metrics) \\
-UNICORN~\cite{deng2021unicorn} & \xmark & \xmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (graph-RL CRS; own metrics) \\
-PEBOL~\cite{austin2024bayesian} & \xmark & \cmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not runnable at full catalogue & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
-GATE~\cite{li2023eliciting} & \xmark & \cmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not runnable (no ranker) & n/r (elicitation-only; no full ranking) \\
-LLM zero-shot CRS~\cite{he2023large} & \xmark & \cmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not runnable at scale & n/r (weak collaborative signal) \\
+\multicolumn{9}{l}{\emph{(c) Elicitation / CRS systems --- the elicitation corner}}\\
+EDDI / Partial-VAE~\cite{ma2019eddi} & \xmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not run here & n/r (non-recsys; UCI/MNIST) \\
+Golbandi tree~\cite{golbandi2011adaptive} & \xmark & \xmark & \xmark & \cmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
+RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \xmark & \xmark & \cmark & $.2534$ & $.1764$ & measured (best-effort) & n/r (elicitation RMSE) \\
+B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (16 users, slates of 5) \\
+ICF~\cite{zhao2013interactive} & \xmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
+ConTS~\cite{li2021seamlessly} & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (cold-start CRS metrics) \\
+BCIE~\cite{toroghi2023bcie} & \xmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (critique metrics) \\
+UNICORN~\cite{deng2021unicorn} & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (graph-RL CRS; own metrics) \\
+PEBOL~\cite{austin2024bayesian} & \xmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not runnable at full catalogue & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
+GATE~\cite{li2023eliciting} & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not runnable (no ranker) & n/r (elicitation-only; no full ranking) \\
+LLM zero-shot CRS~\cite{he2023large} & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not runnable at scale & n/r (weak collaborative signal) \\
 \midrule
-\multicolumn{10}{l}{\emph{(d) Ours}}\\
-\textbf{The instrument (this chapter)} & \cmark & \cmark & \cmark & \cmark & \cmark & $\mathbf{.3496}$ & $\mathbf{.2491}$ & \textbf{measured (certified)} & n/a (in-house; graded-native tower) \\
+\multicolumn{9}{l}{\emph{(d) Ours}}\\
+\textbf{The instrument (this chapter)} & \cmark & \cmark & \cmark & \cmark & $\mathbf{.3496}$ & $\mathbf{.2491}$ & \textbf{measured (certified)} & n/a (in-house; graded-native tower) \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Master table: every reasonable system by R1--R5 and by measured full-profile accuracy on one
+\caption{\textbf{Master table: every reasonable system by R1--R4 and by measured full-profile accuracy on one
 shared ruler.} \cmark~met, \xmark~not met, with no intermediate grade: a requirement counts as met only where the system provides it as a designed, demonstrated capability (our reading of each system's \emph{published} claims,
 consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on the canonical Liang-recipe
 strong-generalization ML-25M split (catalog restricted to the 18{,}430-item project catalog, train vocabulary 18{,}359; train 140{,}768 /
@@ -454,10 +458,10 @@ The same caution applies to ICF, whose ceiling we take from the measured iALS ro
 probabilistic MF over ratings, while iALS is implicit-with-confidence, so that substitution crosses an
 input regime as well as a model family. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the cost of ranking on a conjugate posterior mean, which is a decision about \emph{our} architecture. The belief corner is blank in this column because full-catalogue top-$N$ accuracy is not what these papers report---and that is a defect in the record rather than a neutral choice of emphasis, for the reason set out in \S\ref{sec:gap:why}. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2442$).
 
-\paragraph{The measured-accuracy column falls across the belief corner.}
+\paragraph{The measured-accuracy column falls across the elicitation corner.}
 Read Table~\ref{tab:master} down its measured-accuracy column. Every \emph{competitive} number---a full/tail
 NDCG@10 at or near the frontier on our shared ML-25M ruler---sits in block (a) or (b): the item-only linear and
-amortised recommenders (RecVAE $0.3540$, EASE $0.3476$, EDLAE $0.3433$). The belief corner, block (c), is either
+amortised recommenders (RecVAE $0.3540$, EASE $0.3476$, EDLAE $0.3433$). The elicitation corner, block (c), is either
 \emph{blank} or \emph{measurably weak}. Both of its runnable cores land well below the frontier---the Golbandi node
 recommender at $0.3065/0.1895$ and the RBMF/Functional-MF seed at $0.2534/0.1764$---and both carry an \xmark\ on R1.
 The rest of the corner---EDDI, BCIE, UNICORN, PEBOL, GATE, the LLM-zero-shot CRS---has a blank accuracy column
@@ -467,7 +471,7 @@ several \emph{cannot produce it by construction}: a per-item Beta posterior (PEB
 (Golbandi, whose node recommender we measure only as a best-effort core) does not induce a ranking over the whole
 catalogue, and an LLM CRS needs an API call per candidate to score one. Conversely, every system at the frontier is
 item-only and point-estimate---\xmark\ on R2 and R3. The two blocks are disjoint: no row combines a frontier
-accuracy number with \cmark s across R2--R5. The top-right cell of the
+accuracy number with \cmark s across R2--R4. The top-right cell of the
 gap map---all five requirements met \emph{and} a competitive full-profile number---is empty across the published
 literature, and is occupied by the instrument this chapter builds. That is the chapter's thesis, and the master
 table is where it is impossible to miss.
@@ -482,10 +486,10 @@ warning: most deeper ``SOTA'' gains vanish on this exact split. The graph-filter
 (GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf}) are the 2023--24 speed$+$accuracy
 front on Gowalla/Yelp/Amazon but do not report this ML-20M split, so they are admissible to our accuracy tier only if
 re-run on our harness. Turbo-CF is, and lands at $0.2622/0.1621$---mid-pack rather than frontier at this catalogue size. All of family (ii)/(iii) are item-only: their input is a one-hot (or set-indicator) interaction
-vector, which \emph{cannot encode} a signed value, an out-of-catalogue concept, or a continuous direction---R2 and R5 are an
+vector, which \emph{cannot encode} a signed value, an out-of-catalogue concept, or a continuous direction---R2 and R4 are an
 architecture property here, not a tuning gap.
 
-\paragraph{The belief corner (family iv, and vi).}
+\paragraph{The elicitation corner (family iv, and vi).}
 B\i y\i k et al.~\cite{biyik2023soft} maintain a multivariate-Gaussian belief over a user embedding and treat both item
 comparisons and ``soft attributes'' (e.g.\ ``scarier'') as directions (concept-activation vectors) in the item space,
 selecting queries by expected value of information---the nearest thing to R2$+$R3$+$R4 together.
@@ -505,7 +509,7 @@ conjunction.
 
 \paragraph{The gap map.}
 Figure~\ref{fig:gapmap} places every system on two axes: \emph{interview-compatibility} on the $x$-axis---a coarse
-ordinal capability count, the number of \textbf{R2--R5} marks a system satisfies in the master table
+ordinal capability count, the number of \textbf{R2--R4} marks a system satisfies in the master table
 (R1 is excluded because accuracy is the $y$-axis)---and \emph{measured full-profile NDCG@10 on our
 ML-25M ruler} (R1) on the $y$-axis. The population is bimodal: the accuracy corner collapses onto $x\le1.5$, the
 interview-capable systems sit at $x\ge2$ with weak or non-existent full-profile accuracy, and no system bridges---the
@@ -515,7 +519,7 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
 \begin{tikzpicture}
 \begin{axis}[
     width=13.5cm, height=9cm,
-    xlabel={interview-compatibility score (number of R2--R5 requirements met)},
+    xlabel={interview-compatibility score (number of R2--R4 requirements met)},
     ylabel={measured full-profile NDCG@10 (our ML-25M ruler)},
     xmin=0, xmax=4, ymin=0.068, ymax=0.38,
     xtick={0,1,2,3,4},
@@ -532,7 +536,7 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
         at (axis cs:4.0,0.3496) {};
   \node[green!45!black,font=\scriptsize,align=center,anchor=north east] at (axis cs:3.94,0.3466)
         {\textbf{CASPER} (this chapter)\\{\tiny R2--R4 all \cmark, $0.3496$}};
-  % --- measured points (filled); x = R2..R5 marks ONLY (R1 excluded: accuracy is the y-axis) ---
+  % --- measured points (filled); x = R2..R4 marks ONLY (R1 excluded: accuracy is the y-axis) ---
   \addplot[only marks,mark=*,mark size=2.6pt,color=blue!55!black] coordinates {
     (0.0,0.1345) (0.0,0.2428) (0.0,0.2442) (3.0,0.2019)
     (1.0,0.3065) (0.0,0.3433) (0.0,0.3476) (0.0,0.3540)
@@ -562,7 +566,7 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
 \end{axis}
 \end{tikzpicture}
 \caption{\textbf{The gap map (measured axes).} $y$-axis: measured full-profile NDCG@10 on our canonical ML-25M ruler.
-$x$-axis: an \emph{interview-compatibility score}, defined as the number of \textbf{R2--R5} marks a system carries in
+$x$-axis: an \emph{interview-compatibility score}, defined as the number of \textbf{R2--R4} marks a system carries in
 the master table (Table~\ref{tab:master}), maximum $4$. There are no half marks, so the axis is an integer count. \emph{R1 is
 deliberately excluded from the score}: accuracy is the $y$-axis, and letting it also inflate $x$ would blur the very
 trade-off the figure exists to show. The score is a \emph{coarse ordinal capability count, not a measurement}, so the
@@ -576,7 +580,7 @@ star is this chapter's certified instrument at $0.3496$---the only measured poin
 frontier bar and at full interview compatibility.
 The instrument sits at $x{=}4$---no published system exceeds two---the only point in the top-right cell: R2 by V2's member lift and its
 open-vocabulary fold, R3 by V3's directional and load-bearing covariance, R4 by V4's rising fixed-bank curve, and
-R5 by V5's sign and intensity arms---each verified rather than asserted (Table~\ref{tab:batteryresults}). The population is otherwise \emph{bimodal}: the entire accuracy corner
+R4 by V4's sign and intensity arms---each verified rather than asserted (Table~\ref{tab:batteryresults}). The population is otherwise \emph{bimodal}: the entire accuracy corner
 (Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x{=}0$---strong recommenders that can fold items
 and nothing else---while every system with genuine interview machinery sits at $x\ge1$ and reports no
 full-catalogue accuracy at all. The one point plotted at $x{=}3$ is not a rival but our own conjugate posterior-mean
@@ -592,7 +596,7 @@ system with an actionable belief.}
 
 \paragraph{The verdict.}
 No single published system satisfies all of $\{$R1 SOTA-full-profile $\wedge$ R2 any-length set $\wedge$ R3
-uncertainty-native $\wedge$ R4 monotone $\wedge$ R5 expressive answers$\}$. The binding
+R3 monotone $\wedge$ R4 expressive answers$\}$. The binding
 near-miss is B\i y\i k et al.~\cite{biyik2023soft}: it fails R1 (a $d{=}50$ ALS two-tower rather than a
 certified RecVAE-class tower, and it reports no full-catalogue accuracy---its NDCG is computed between a user's true
 top-$|S|$ items and the top-$|S|$ estimated from the posterior, over 16 sampled test users on slates of 5, an
@@ -604,7 +608,7 @@ conjunction.
 \paragraph{Where each near-miss falls short.}
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
   \item \textbf{B\i y\i k et al.~2023}~\cite{biyik2023soft} --- holds \emph{part} of R2 (items and soft attributes
-        both enter as directions) and R3 (a Gaussian belief), over a \emph{frozen} item tower---they train the CF model
+        both enter as directions), over a \emph{frozen} item tower---they train the CF model
         and the attribute directions separately, as we do. \emph{Fails R1}: a $d{=}50$ ALS two-tower, and accuracy is
         reported on their own elicitation task (in-simulator top-$|S|$ agreement over 16 users, slates of 5), not the
         EASE/RecVAE bar. \emph{Fails R2} in the sense that decides it: the directions are \emph{per-attribute supervised
@@ -620,15 +624,15 @@ conjunction.
         \emph{Fails R1} (not a recommendation model / no CF SOTA) and \emph{R2} (a fixed feature set; no attribute or
         concept channel as demonstrated).
   \item \textbf{RecVAE / EASE}~\cite{ren2020recvae,steck2019ease} --- \emph{R1 yes.} \emph{Fail R2} (an item-only
-        one-hot / indicator basis admits no concept and no continuous direction), \emph{R5} (nor a signed or graded
+        one-hot / indicator basis admits no concept and no continuous direction), \emph{R4} (nor a signed or graded
         value), and \emph{R3} (point estimate; RecVAE's latent posterior is item-only and is not used as an actionable
         belief).
   \item \textbf{PEBOL}~\cite{austin2024bayesian} --- R3 (per-item Beta) $+$ R2 (LLM-extracted aspects, an open
         vocabulary) $+$ strong cold-start.
         \emph{Fails R1} (no full-profile CF ranking) and its belief is \emph{per item}, not a shared user covariance; no
-        monotonicity guarantee, and a yes/no answer carries no intensity (R5).
+        monotonicity guarantee, and a yes/no answer carries no intensity (R4).
   \item \textbf{SASRec / BERT4Rec}~\cite{kang2018sasrec,sun2019bert4rec} --- re-encode the sequence at inference.
-        \emph{Fail R2, R3, R4 and R5} (item-only, order-sensitive, point estimate, non-monotone---a later token can
+        \emph{Fail R2, R3 and R4} (item-only, order-sensitive, point estimate, non-monotone---a later token can
         reorder everything). Token input is trivially satisfied but is \emph{not} value-carrying or mixed-type, so
         ``interview $=$ tokens'' does not hold; and BERT4Rec's fold-in advantage carries a replicability
         caveat~\cite{petrov2022replicability}.
@@ -763,7 +767,7 @@ The signed/graded, out-of-catalogue, and continuous legs are the three channels 
 (\S\ref{sec:gap}).
 
 \paragraph{Any direction is a legal observation: an illustration.} The signed/graded leg is delivered and
-measured (V5, Figure~\ref{fig:gradedcurve}). The concept leg is delivered over the genome vocabulary.
+measured (V4, Figure~\ref{fig:gradedcurve}). The concept leg is delivered over the genome vocabulary.
 The third leg---an \emph{arbitrary} direction, including one for an entity that has no catalogue column and
 was never seen in training---is a property of the interface rather than of any particular channel:
 everything downstream of Eq.~\eqref{eq:obs} consumes a pair $(\bphi,y)$, so any entity with an
@@ -850,7 +854,7 @@ the quality of any such interaction would rest on the text adapter whose limits 
     express); against the \emph{all-as-like} control, which mislabels dislikes as likes, the apparent premium
     instead \emph{grows} with $k$ (dotted)---a control artifact (more revealed items $\Rightarrow$ more dislikes
     corrupted), not value from gradation. Mirroring the star signs costs $-0.2985$ on the full-profile
-    arm of V5 (Table~\ref{tab:batteryresults}). }
+    arm of V4 (Table~\ref{tab:batteryresults}). }
   \label{fig:gradedcurve}
 \end{figure}
 
@@ -979,7 +983,7 @@ components are borrowed; only their conjunction is claimed.
 A gate on what an operator \emph{can} express must be paired with a gate on what the deployed system
 \emph{does} express, and the concept channel is where the distinction bites. The fold of
 Eq.~\eqref{eq:cfold} is sign-capable: negating every \emph{concept} answer moves NDCG by $-0.2012$ with a
-clean CI, so the concept channel passes V5's sign-flip test on its own operator. But that certifies the operator, not the interview. Driven down a
+clean CI, so the concept channel passes V4's sign-flip test on its own operator. But that certifies the operator, not the interview. Driven down a
 realistic, user-independent question bank, most concept answers are weak positives, and an answer model
 that never emits a negative can accumulate them until the ranking drifts \emph{below} the no-answer
 intercept while every capability gate still reads green.
@@ -1161,7 +1165,7 @@ carry the frozen-fold as the concept operator of record; the tokens-in-tower arm
 place. The V1 comparison above is a genuine tie on the certified ruler.
 
 \paragraph{The methodological consequence for verification design.} The concept channel's near-miss is the sharpest
-argument in this chapter for \emph{why verification has the shape it does}. A capability check (V5's sign-flip) passed on
+argument in this chapter for \emph{why verification has the shape it does}. A capability check (V4's sign-flip) passed on
 a fold that, as actually driven down a realistic question bank, never emitted a negative answer---the answer model, not
 the operator, was sign-blind, and the operator's certified capability was vacuous in deployment. Only the
 deployment-currency evaluation---a fixed, user-independent bank under a per-question budget, scored at the endpoint
@@ -1169,7 +1173,7 @@ deployment-currency evaluation---a fixed, user-independent bank under a per-ques
 never exercises the negative half. This is a general failure class, not a concept-specific accident: \emph{a gate on
 what an operator \emph{can} do must be paired with a gate on what the deployed system \emph{does}}. We record the
 deployment-currency endpoint as the concept channel's acceptance form, and fold the signed-retrain numbers into
-the V4/V5 rows of Table~\ref{tab:batteryresults}.
+the V3/V4 rows of Table~\ref{tab:batteryresults}.
 
 % =====================================================================
 \section{Experimental design}\label{sec:expdesign}
@@ -1357,9 +1361,8 @@ Check & Criterion & Measured & Verdict \\
 \midrule
 V1 & parity on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, parity), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 V2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction (the fold is a running sum, $t{=}0$ is the prior). Open half measured: the direction ranks its members at AUC $0.94$ whitened (raw $0.44$, below chance---whitening is what makes a concept a direction); the fold is \emph{concept-specific}---a like lifts $c$'s members to AUC $0.626$, a dislike pushes them to $0.416$, and folding a \emph{different} answerable concept leaves them at chance ($0.498$), giving a sign contrast of $+0.2096$ (CI $[+0.1986,+0.2208]$) and an identity contrast of $+0.1278$ (CI $[+0.1195,+0.1361]$); it beats the concept's own popularity projection by $+0.0087$; and a concept \emph{held out of the adapter's fit} folds from its name alone and recovers its own top-10 at $>300\times$ chance & \textbf{PASS} \\
-V3 & $\bSigma$ shrinks, is directional, and is load-bearing & $\mathrm{tr}\,\bSigma$ $1881.9\!\to\!1805.1$ monotone; along-$\bphi$ $0.996$ vs $0.086$ elsewhere $=\mathbf{11.5\times}$; beats isotropic $c\Imat$ by $+0.0089$ at $q{=}16$ (CI $[0.0071,0.0107]$); order deviation $5\!\times\!10^{-7}$ & \textbf{PASS} \\
-V4$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; fixed-bank rise $+0.1218$ (CI $[0.1184,0.1252]$), monotone $\rho=1.0$; canary: one answer from cold clears the intercept on both channels (items $0.1405/0.0275$, concepts $0.1436/0.0323$) & \textbf{PASS}$^\ddagger$ \\
-V5 & sign and intensity are carried & sign-flip $0.4279\!\to\!0.1294$, $-0.2985$ (CI $[-0.3047,-0.2922]$); neutralisation $0.4190\!\to\!0.1321$, tail $0.2999\!\to\!0.0368$; intensity staircase $\rho=0.927$; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$) and $+0.0083$ at $k{=}4$ & \textbf{PASS} \\
+V3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; fixed-bank rise $+0.1218$ (CI $[0.1184,0.1252]$), monotone $\rho=1.0$; canary: one answer from cold clears the intercept on both channels (items $0.1405/0.0275$, concepts $0.1436/0.0323$) & \textbf{PASS}$^\ddagger$ \\
+V4 & sign and intensity are carried & sign-flip $0.4279\!\to\!0.1294$, $-0.2985$ (CI $[-0.3047,-0.2922]$); neutralisation $0.4190\!\to\!0.1321$, tail $0.2999\!\to\!0.0368$; intensity staircase $\rho=0.927$; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$) and $+0.0083$ at $k{=}4$ & \textbf{PASS} \\
 \midrule
 I1 & wrong-user / shuffle / placebo / duplicate gain nothing & true arm beats shuffled by $+0.0371$ and placebo by $+0.0168$ (both CI-clean); duplicate assert fired; wrong-user $-0.0986$ (a stranger's taste is worse than silence) & \textbf{PASS} \\
 I2 & answers carry no recommender geometry, no target half & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts, both read from the fold-in only & \textbf{by construction} \\
@@ -1372,7 +1375,7 @@ $|\rho|=0.70$, where the belief's own $\sigma$ reaches $0.24$---so a scale-calib
 which users happen to have easy targets. The directional margin, $11.5\times$ against a $2\times$ bar, is the
 load-bearing evidence that the covariance carries per-direction information. $^\ddagger$V4's cold curve is measured
 on a bank filtered per user to the questions they can answer, so it isolates \emph{ingestion} from question
-\emph{availability}; a deployed static sequence faces availability separately (\S\ref{sec:concept}). V5's sign and
+\emph{availability}; a deployed static sequence faces availability separately (\S\ref{sec:concept}). V4's sign and
 neutralisation arms are \emph{full-profile} corruptions---the user's whole rated history is folded and then flipped
 or neutralised---so their uncorrupted references ($0.4279$ and $0.4190$ full, $0.2999$ tail) sit above the $80/20$
 fold-in values of Table~\ref{tab:g0}, which withhold a fifth of each profile as targets. The verdict is the
@@ -1441,7 +1444,7 @@ published anchors. Every headline delta carries a paired per-user bootstrap CI o
         rated-and-disliked items that can never be targets. This is a property of the shared ruler rather
         than of any row on it: the discard is identical for every system, so comparative statements are
         unaffected, and we make a parity claim on this protocol rather than an absolute one. It does,
-        however, bear asymmetrically on R5, and we are precise about which half. \emph{Intensity} within
+        however, bear asymmetrically on R4, and we are precise about which half. \emph{Intensity} within
         likes is measurable on this protocol and is worth $-0.0002$ at the full profile
         (\S\ref{sec:expdesign}). \emph{Sign} is not measurable on it at all, because a fold-in filtered to
         $r>3.5$ contains no dislike to fold: the protocol does not merely leave that capability unrewarded,
