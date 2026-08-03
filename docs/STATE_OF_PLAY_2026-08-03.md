@@ -47,7 +47,15 @@ this is why the hand-coded per-item bias was deleted and why the evaluation floo
 
 ## 2. PAPER A — WHAT IS DONE AND WHAT REMAINS
 
-### 2.1 The belief layer is DELETED from Paper A (done, committed `31c9d49`)
+### 2.1 The belief layer is HALF-deleted from Paper A (`31c9d49` did the SUBSECTION only)
+
+**CORRECTION 2026-08-03: this section previously read "DELETED (done)". That was wrong.** `31c9d49`
+removed 121 lines -- the dedicated belief subsection and the mechanism claim -- but the REQUIREMENT STRIP
+is untouched. Verified in the current file: **R1--R5 are still five requirements** (never renumbered to
+four), V1--V5 still exist, `Sigma` appears 10 times, "belief" 53 times, the V3 covariance row is still
+in the verification table, the "belief corner" framing is still in the gap analysis, and the abstract-level
+contribution list at l.160 still advertises a "conjugate-Gaussian precision-accumulator belief layer".
+Task #75 is the REST of this job, and it is larger than one table column.
 
 Author ruling 2026-08-02. Not "reported as a negative result" — removed, because papers present the
 working version. Justified by code, not argument: `i26_encoder.forward` folds by SUM-POOL over tokens
@@ -58,7 +66,8 @@ Also: the evidence against the belief tested the WRONG USE. Variance-weighted de
 is uncertainty applied to RANKING, which was never proposed. The proposal is uncertainty for SELECTION →
 Paper B (#76). Paper A makes no claim about it, so carries no negative result about it.
 
-**Requirements are now FOUR** (renumbered, done):
+**Requirements were SUPPOSED to become FOUR — NOT DONE IN THE FILE.** The plan below is correct and
+agreed; it has not been applied. The chapter still carries R1--R5 and V1--V5. Treat this as the spec for #75:
 - R1 full-profile parity · R2 open any-length fold · R3 monotonicity ("does not lower beyond noise")
   · R4 sign and intensity
 - V battery: V1 parity · V2 concept-fold specificity · V3 monotonicity · V4 sign/intensity. All
@@ -76,7 +85,8 @@ Paper B (#76). Paper A makes no claim about it, so carries no negative result ab
 0.2300; tail 0.0399 / 0.0475 / 0.0577 / 0.0770 / 0.0915. Also helf 0.1624→0.2138, popularity
 0.1622→0.2221. k0→k1 passes every epoch in training. No posterior required.
 
-**Chapter compiles clean under Tectonic, zero undefined refs.**
+**Chapter compiles clean under Tectonic** (after `\REDO` was finally DEFINED on 2026-08-03 -- it had been
+used in three places but never declared, so any build touching those lines failed).
 
 ### 2.2 STILL TO DO on the chapter (#75)
 
@@ -90,10 +100,17 @@ Paper B (#76). Paper A makes no claim about it, so carries no negative result ab
 4. **KNOWN TRAP**: `belief_mf` stays as a BASELINE RECOMMENDER in the interview table
    (Bıyık-belief + ConTS-mean). Do not let a global search-and-replace delete the rival's row.
 
-### 2.3 NUMBER AUDIT (#73) — every number in the chapter is stale
+### 2.3 NUMBER AUDIT (#73) — TOWER NUMBERS DONE 2026-08-03 (`5a11fe6`), CONCEPT NUMBERS STILL STALE
 
-The chapter still says **0.3482/0.2462** throughout. The tower is **0.3496/0.2491**. Every number, table,
-figure and inline value must be re-derived. A half-updated chapter is worse than an un-updated one.
+DONE: 0.3482/0.2462 → 0.3496/0.2491 in prose, taxonomy table, G0 table, frontier figure and the V1 gate
+row; the CLAIM restated (tail parity, full separated at −0.0043, 1.2% relative — "ties the bar" retired);
+the unpaired `1.96*sqrt(2)*SE` signature purged from all three places that cited 0.0069/0.0070 as paired
+(true paired half-widths ±0.0016 full / ±0.0014 tail).
+
+STILL STALE — the concept-channel section is entirely old-tower (ep4 / i25-era) numbers:
+`0.1630/0.0639`, `0.1566/0.0577`, `0.1379` at q16, the `0.1052` crater. Gated on the cv5 concept run.
+Three values are marked `\REDO{}` in the file: NDCG@100 on the certified checkpoint (never measured),
+the graded-vs-binarised arm, and the tokens-in-tower V1 arm (both superseded tower + unpaired interval).
 
 ### 2.4 THE NEW FRAMING (#73) — the chapter's spine
 

@@ -40,6 +40,7 @@ import gzip
 import hashlib
 import json
 import random
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -89,6 +90,18 @@ def sha1(s: str) -> str:
     return hashlib.sha1(s.encode("utf-8")).hexdigest()
 
 
+USER_RE = re.compile(r"(?<![\w/])/?u/[A-Za-z0-9_-]{2,21}\b")
+
+
+def redact(s: str) -> str:
+    """Strip reddit handles a commenter typed into their own text (`u/x`, `/u/x`).
+
+    Applied at OUTPUT time only -- the linking decision runs on the untouched surface string, so
+    census parity is unaffected.  Subreddit names (`r/movies`) are not usernames and stay.
+    """
+    return USER_RE.sub("u/[USER]", s)
+
+
 # ------------------------------------------------------------------ candidate index
 
 
@@ -135,8 +148,9 @@ def stream(cand: dict):
             stats["eval_mentions"] += 1
             if rec["decision"] == "ACCEPT":
                 stats["accept"] += 1
+                span = redact(rec["span"])
                 accepted.append((t["tid"], rec["turn_id"], rec["year"], rec["context"],
-                                 sha1(rec["span"]), rec["span"], rec["tconst"]))
+                                 sha1(span), span, rec["tconst"]))
             else:
                 stats["defer"] += 1
                 defer_by_thread.setdefault(t["tid"], []).append(rec)
@@ -241,8 +255,10 @@ def write_batches(batches, defer_by_thread) -> tuple[list[dict], int]:
                 for rec in defer_by_thread[tid]:
                     obj = {
                         "id": gid, "batch": bi, "thread_id": tid, "turn_id": rec["turn_id"],
-                        "year": rec["year"], "context": rec["context"], "span": rec["span"],
-                        "sentence": rec["sentence"], "candidates": rec["candidates"],
+                        "year": rec["year"], "context": rec["context"],
+                        "span": redact(rec["span"]),
+                        "sentence": redact(rec["sentence"]),
+                        "candidates": rec["candidates"],
                     }
                     f.write(json.dumps(obj, ensure_ascii=False) + "\n")
                     gid += 1
