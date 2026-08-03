@@ -848,7 +848,8 @@ the quality of any such interaction would rest on the text adapter whose limits 
     at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$ (CI $[+0.0063,+0.0103]$)---and fades to a tie from
     $k{=}8$ onward ($-0.0006$, CI $[-0.0024,+0.0012]$) as collaborative signal fills in: the extra bits a star
     carries are most decisive when few items are known. At the \emph{full} profile the premium narrows but
-    does not vanish: $+0.0039$ full and $+0.0020$ tail over all $10{,}000$ users ($0.3496$ vs $0.3457$ full,
+    does not vanish: $+0.0039$ full (paired CI $[+0.0025,+0.0053]$, $n{=}10{,}000$) and $+0.0020$ tail
+    (paired CI $[+0.0007,+0.0031]$, $n{=}9{,}281$) over all test users ($0.3496$ vs $0.3457$ full,
     $0.2491$ vs $0.2471$ tail), on identical support. The
     \emph{mechanism} is that a signed answer encodes a dislike (a negative $y_j$ the item-indicator basis cannot
     express); against the \emph{all-as-like} control, which mislabels dislikes as likes, the apparent premium
@@ -1337,7 +1338,7 @@ built aligned to it, with an equal-\emph{nnz} assertion), differing only in that
 half-star level where the others carry a $1$. That difference is worth something, and we can say how much:
 holding the support identical and replacing every star level with a single ``liked'' level costs
 $0.3496\rightarrow0.3457$ full and $0.2491\rightarrow0.2471$ tail over all $10{,}000$ users, so the
-intensity channel is worth $+0.0039$ full and $+0.0020$ tail at full profile. That number is worth reading
+intensity channel is worth $+0.0039$ full (paired CI $[+0.0025,+0.0053]$) and $+0.0020$ tail (paired CI $[+0.0007,+0.0031]$) at full profile---both intervals exclude zero. That number is worth reading
 next to the gap to the bar. On the binary information RecVAE consumes, this tower would score $0.3457$,
 some $-0.0083$ behind it; folding the half-star levels it already has recovers about half of that.
 Interviewability costs the architecture something on the full profile, and the intensity channel buys back
@@ -1369,7 +1370,7 @@ Check & Criterion & Measured & Verdict \\
 V1 & parity on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, parity), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 V2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction (the fold is a running sum, $t{=}0$ is the prior). Open half measured: the direction ranks its members at AUC $0.94$ whitened (raw $0.44$, below chance---whitening is what makes a concept a direction); the fold is \emph{concept-specific}---a like lifts $c$'s members to AUC $0.626$, a dislike pushes them to $0.416$, and folding a \emph{different} answerable concept leaves them at chance ($0.498$), giving a sign contrast of $+0.2096$ (CI $[+0.1986,+0.2208]$) and an identity contrast of $+0.1278$ (CI $[+0.1195,+0.1361]$); it beats the concept's own popularity projection by $+0.0087$; and a concept \emph{held out of the adapter's fit} folds from its name alone and recovers its own top-10 at $>300\times$ chance & \textbf{PASS} \\
 V3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1279\!\to\!0.2724$ full, $0.0192\!\to\!0.1305$ tail; fixed-bank rise $+0.1218$ (CI $[0.1184,0.1252]$), monotone $\rho=1.0$; canary: one answer from cold clears the intercept on both channels (items $0.1405/0.0275$, concepts $0.1436/0.0323$) & \textbf{PASS}$^\ddagger$ \\
-V4 & sign and intensity are carried & sign-flip $0.4279\!\to\!0.1294$, $-0.2985$ (CI $[-0.3047,-0.2922]$); neutralisation $0.4190\!\to\!0.1321$, tail $0.2999\!\to\!0.0368$; intensity staircase $\rho=0.927$; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$, and $+0.0039$ full / $+0.0020$ tail at full profile on identical support & \textbf{PASS} \\
+V4 & sign and intensity are carried & sign-flip $0.4279\!\to\!0.1294$, $-0.2985$ (CI $[-0.3047,-0.2922]$); neutralisation $0.4190\!\to\!0.1321$, tail $0.2999\!\to\!0.0368$; intensity staircase $\rho=0.927$; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$, and, at full profile on identical support, $+0.0039$ full (CI $[+0.0025,+0.0053]$) / $+0.0020$ tail (CI $[+0.0007,+0.0031]$) & \textbf{PASS} \\
 \midrule
 I1 & wrong-user / shuffle / placebo / duplicate gain nothing & true arm beats shuffled by $+0.0371$ and placebo by $+0.0168$ (both CI-clean); duplicate assert fired; wrong-user $-0.0986$ (a stranger's taste is worse than silence) & \textbf{PASS} \\
 I2 & answers carry no recommender geometry, no target half & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts, both read from the fold-in only & \textbf{by construction} \\
