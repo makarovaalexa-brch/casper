@@ -59,6 +59,12 @@ P_INTERVIEW, P_DENSE, P_KC0, P_KC1 = 0.55, 0.30, 0.05, 0.10
 P_ITEM_ZERO = 0.0
 KEEP_MEH = False        # keep the graded MEH value instead of zeroing it (see signed_for_pool)
 
+# WARNING (2026-08-03): the kc0 regime is a PURE NO-OP for the concept bolt-on. With zero concept answers
+# the fold loop never executes, U = z - z_items = 0, the output is exactly the tower's prior, and NO
+# parameter of the net is touched -- the gradient is identically zero, with or without item context. A
+# zero-concept bucket earns its place in the ITEM tower, which must learn a prior; here it only burns
+# steps. Keep P_KC0 at 0 unless something downstream starts depending on it.
+
 # Ask policies for the INTERVIEW regime. MEASURED answerability over 3000 users x 1031 concepts:
 #   ask 50 broadest -> 97.3% answered ( 2.7% refusal)
 #   ask uniformly   -> 57.4% answered (42.6% refusal)
