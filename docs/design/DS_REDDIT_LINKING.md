@@ -74,9 +74,22 @@ downstream of it. Two legs + a bridge:
 - **Leg 1 (dispersion, no answers needed):** fold each request into the certified tower; compute
   the loss-optimal next question per thread; measure across-thread dispersion of that argmax.
   Contrast with the (expected ≈0) dispersion under standard banks on ML-25M. Fully offline.
-- **Leg 2 (payoff, thread-revealed-preference oracle):** LLM pass extracts each OP's thread-wide
-  statements into typed slots (genre/era/tone/seen-X/constraints) = the ANSWER POOL. Answers come
-  ONLY from the OP's own words (behavioral firewall; reply-set GT stays quarantined for scoring).
+- **Leg 2 (payoff, thread-revealed-preference oracle):** LLM pass extracts each OP's statements
+  into typed slots (genre/era/tone/seen-X/constraints) = the ANSWER POOL. Answers come ONLY from
+  the OP's own words (behavioral firewall; reply-set GT stays quarantined for scoring).
+  **UPDATED after the follow-up census (2026-08-04): the REQUEST TEXT is the primary pool
+  source** — organic follow-ups are near-absent (median 0 OP replies; ~0.1–0.2 genuine probes per
+  thread; see `REDDIT_FOLLOWUP_CENSUS.md`), but requests are multi-sentence and carry several
+  distinct revealed preferences. **WITHHELD-SLOT REPLAY:** fold a PARTIAL request as the initial
+  placement (e.g. anchor films only); the remaining slots the user volunteered are the answerable
+  pool; adaptive picks which withheld slot to ask for from the placement, static uses a fixed
+  slot order. Claim shape: "could an interviewer have elicited what this user was going to say,
+  in fewer questions, by choosing per-user?" Nothing simulated — every answer is the user's own
+  written words. CONCEDE PLAINLY: no live user answers our question anywhere on this corpus;
+  realism tops out at replaying verifiably-possessed information (the 300-user study is the only
+  path above that ceiling). Census bonus figures: crowd asks probes in only ~10% of threads yet
+  users answer 51% when asked (the unfilled-niche motivation panel); 19.7% of threads carry an
+  acknowledged-recommendation outcome label (secondary scoring target, ~10.6k events).
   TWO VARIANTS, run BOTH (author ruling):
   1. **PRIMARY — pool-restricted, refusal-free:** both arms choose only from that thread's
      available pool; budget counts answered questions only. Static = global priority order over

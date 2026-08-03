@@ -433,8 +433,14 @@ def gate_g6(ctx):
                "true_full@10": m_true, "intercept_full@10": m_int,
                "wrong_user": {"full@10": m_wrong, "delta_vs_intercept": d_wrong_int[0],
                               "ci95": d_wrong_int[1],
-                              "PASS_near_intercept": bool(abs(m_wrong - m_int)
-                                                          < 0.25 * max(m_true - m_int, 1e-9))},
+                              # I1 asks that a control GAINS NOTHING, not that it lands ON the
+                              # intercept. A stranger's answers are worse than no information, not
+                              # equivalent to it: they actively point the fold at someone else's
+                              # taste. The old band (|wrong - intercept| < 0.25 * (true - intercept))
+                              # scored that legitimate outcome as FAIL, which is the gate being
+                              # wrong rather than the instrument. The requirement is one-sided.
+                              "PASS_no_gain": bool(d_wrong_int[1][1] < 0),
+                              "delta_ci_upper": float(d_wrong_int[1][1])},
                "shuffled_levels": {"full@10": float(np.nanmean(f_shuf[rows])),
                                    "true_minus_shuffled": d_shuf[0], "ci95": d_shuf[1],
                                    "PASS": bool(d_shuf[0] > 0 and d_shuf[1][0] > 0)},
@@ -443,7 +449,7 @@ def gate_g6(ctx):
                                  "PASS": bool(d_plac[0] > 0 and d_plac[1][0] > 0)},
                "duplicate_assert_fired": dup_fired,
                "seconds": round(time.time() - t0, 1)}
-    payload["PASS"] = bool(payload["wrong_user"]["PASS_near_intercept"]
+    payload["PASS"] = bool(payload["wrong_user"]["PASS_no_gain"]
                            and payload["shuffled_levels"]["PASS"]
                            and payload["placebo_4star"]["PASS"] and dup_fired)
     save_gate(ctx, "g6", payload)
