@@ -218,6 +218,10 @@ def main():
     ap.add_argument("--max_users", type=int, default=0)
     ap.add_argument("--m_max", type=int, default=16)
     ap.add_argument("--mix", default=None, help="p_broad,p_dense,p_interview,p_kc0,p_kc1")
+    ap.add_argument("--keep_meh", action="store_true",
+                    help="keep the graded MEH value instead of zeroing it (V is already continuous)")
+    ap.add_argument("--p_item_zero", type=float, default=0.0,
+                    help="extra probability of forcing ZERO item context (cold eval has none)")
     ap.add_argument("--smoke", action="store_true")
     a = ap.parse_args()
 
@@ -242,6 +246,9 @@ def main():
     S["users"] = S["users"][:-N_VAL]          # val slice NEVER trained on
     log(f"[cv3] train users {len(S['users'])} | val users {N_VAL} (held out of training)")
 
+    CV2.KEEP_MEH = bool(a.keep_meh)
+    CV2.P_ITEM_ZERO = float(a.p_item_zero)
+    log(f"[cfg] hidden={a.hidden} keep_meh={CV2.KEEP_MEH} p_item_zero={CV2.P_ITEM_ZERO}")
     net = ConceptFoldNet(len(S["tags"]), d=S["enc"].d_out, h=a.hidden,
                          conc_init=S["d_c"].numpy(), use_refusal=True)
     opt = torch.optim.Adam(net.parameters(), lr=a.lr)
@@ -265,7 +272,9 @@ def main():
                 f"m4={v[4][0]:.4f} m8={v[8][0]:.4f} | SEL={sel:.4f}"
                 + ("  !! CRATER (below 0.1279 intercept)" if crater else ""))
         torch.save({"net": net.state_dict(), "epoch": ep, "nll": r["nll"], "hist": hist,
-                    "use_refusal": True, "snapshot": os.path.basename(a.snapshot)},
+                    "use_refusal": True, "snapshot": os.path.basename(a.snapshot),
+                    "hidden": a.hidden, "keep_meh": bool(a.keep_meh),
+                    "p_item_zero": float(a.p_item_zero)},
                    os.path.join(CKPT_DIR, f"{a.tag}_ep{ep:02d}.pt"))
     os.makedirs(OUT, exist_ok=True)
     json.dump(hist, open(os.path.join(OUT, f"{a.tag}_hist.json"), "w"), indent=2)

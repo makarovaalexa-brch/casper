@@ -53,6 +53,11 @@ from signed_answers import signed_for_pool, cap_negatives, BAND_REFUSE
 # BROAD is GONE. It revealed 50-100% of a user's answerable concepts, but the median user can answer 573
 # of 1031 -- there is no "warm concept user", so that bucket trained a state that never occurs.
 P_INTERVIEW, P_DENSE, P_KC0, P_KC1 = 0.55, 0.30, 0.05, 0.10
+# cv5: the COLD eval hands the model zero item history, but a uniform k~U{0..8} draw makes only ~11% of
+# training examples zero-item -- the model mostly learns to fold concepts ON TOP OF items, then is scored
+# folding them onto the bare prior. P_ITEM_ZERO forces the zero-item case on top of the uniform draw.
+P_ITEM_ZERO = 0.0
+KEEP_MEH = False        # keep the graded MEH value instead of zeroing it (see signed_for_pool)
 
 # Ask policies for the INTERVIEW regime. MEASURED answerability over 3000 users x 1031 concepts:
 #   ask 50 broadest -> 97.3% answered ( 2.7% refusal)
@@ -176,7 +181,7 @@ def draw(u, rng, Mm, grate, member_sets, item_mean, prereg, member_count=None, n
         return None
 
     stars = (pool_l.astype(np.float32) + 1.0) / 2.0
-    V, B, ans = signed_for_pool(pool_s, stars, item_mean, Mm, grate, prereg)
+    V, B, ans = signed_for_pool(pool_s, stars, item_mean, Mm, grate, prereg, keep_meh=KEEP_MEH)
     nC = n_concepts if n_concepts is not None else len(V)
     answerable = np.flatnonzero(ans & (B != BAND_REFUSE))
 
@@ -231,7 +236,7 @@ def draw(u, rng, Mm, grate, member_sets, item_mean, prereg, member_count=None, n
     if len(rem_s) == 0:
         in_s = np.empty(0, np.int64); in_l = np.empty(0, np.int64)
     else:
-        k = int(rng.integers(0, min(ITEM_KMAX, len(rem_s)) + 1))     # 0..8 items alongside
+        k = 0 if rng.random() < P_ITEM_ZERO else int(rng.integers(0, min(ITEM_KMAX, len(rem_s)) + 1))
         if k == 0:
             in_s = np.empty(0, np.int64); in_l = np.empty(0, np.int64)
         else:

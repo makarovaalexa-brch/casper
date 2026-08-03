@@ -139,7 +139,7 @@ def signed_values(items_list, stars_list, item_mean, Mm, pexp, ni, prereg, apply
     return V, F, B, answerable
 
 
-def signed_for_pool(pool_sids, pool_stars, item_mean, Mm, pexp, prereg):
+def signed_for_pool(pool_sids, pool_stars, item_mean, Mm, pexp, prereg, keep_meh=False):
     """Single-user fast path (training examples): signed v per concept from the INPUT POOL only.
     Returns (V (C,), B (C,), answerable (C,)). NO neg-cap here -- cap post-selection over the
     REVEALED negatives via cap_negatives (the folded set is what the cap governs)."""
@@ -159,8 +159,14 @@ def signed_for_pool(pool_sids, pool_stars, item_mean, Mm, pexp, prereg):
     B[V > prereg["t_like_p60pos"]] = BAND_LIKE
     B[V < -prereg["t_neg_absp25"]] = BAND_DISLIKE
     B[E < TAU_REF] = BAND_REFUSE
-    V = np.where(B == BAND_MEH, 0.0, V).astype(np.float32)
-    return V, B, nc >= 2
+    # keep_meh: V is ALREADY continuous (NPMI + w_val*VAL, clipped to [-1,1]) -- the bands only classify.
+    # The single thing banding destroys is the MEH value, forced to 0. Keeping it hands the fold a graded
+    # "mildly positive / mildly negative" signal instead of silence. The refusal flag (a separate input
+    # dimension) is what distinguishes "cannot answer" from "feels neutral", so meh no longer has to be 0
+    # to stay distinguishable from a refusal.
+    if not keep_meh:
+        V = np.where(B == BAND_MEH, 0.0, V).astype(np.float32)
+    return V.astype(np.float32), B, nc >= 2
 
 
 def cap_negatives(vals, c_neg=C_NEG):

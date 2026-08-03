@@ -45,7 +45,7 @@ def log(m):
     print(f"[{time.strftime('%H:%M:%S')}] {m}", flush=True)
 
 
-def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad", rank=None):
+def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad", rank=None, keep_meh=False):
     """One cold interview per user per budget: NO items, m concepts asked under `policy`.
 
     `rank`: optional deterministic ranking (top-m asked in order). This is what makes the concept arm
@@ -71,7 +71,8 @@ def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad", rank=None):
         if len(pool_s) < 2:
             continue
         stars = (pool_l.astype(np.float32) + 1.0) / 2.0
-        V, B, ans = signed_for_pool(pool_s, stars, S["item_mean"], S["Mm"], S["grate"], S["prereg"])
+        V, B, ans = signed_for_pool(pool_s, stars, S["item_mean"], S["Mm"], S["grate"], S["prereg"],
+                                    keep_meh=keep_meh)
         for m in MS:
             if m == 0:
                 cids = np.empty(0, np.int64); ok = np.empty(0, bool)
@@ -264,7 +265,9 @@ def main():
     ap.add_argument("--ckpt", default="", help="explicit comma-separated checkpoint paths (overrides --tag)")
     ap.add_argument("--arm_kind", default="concept", choices=("concept", "item"),
                     help="item = matched-budget ITEM interview through the same protocol")
-    ap.add_argument("--bank", default="random", choices=("random", "pop", "entropy", "polar"),
+    ap.add_argument("--keep_meh", action="store_true",
+                    help="MUST match how the checkpoint was trained (stored in the ckpt as keep_meh)")
+    ap.add_argument("--bank", default="random", choices=("random", "pop", "entropy", "polar", "expinfo"),
                     help="RANKED question bank shared by both arms: pop = most answerable, "
                          "entropy = most discriminative. 'random' keeps the old --policy draw "
                          "(concept arm only) and is NOT comparable to the item arm.")
@@ -301,7 +304,8 @@ def main():
              banks["conc_polar"] if a.bank == "polar" else
              np.argsort(-mc) if a.bank == "pop" else None)
     log(f"building COLD interviews (zero items, bank={a.bank}, policy={a.policy}) ...")
-    packs = cold_interviews(S, mc, n_users=a.n_users, policy=a.policy, rank=crank)
+    packs = cold_interviews(S, mc, n_users=a.n_users, policy=a.policy, rank=crank,
+                            keep_meh=a.keep_meh)
     log(f"  {len(packs[0])} users x budgets {MS}")
 
     # CANARY: with no net at all, every budget must give the SAME number -- the no-evidence prior.
@@ -317,7 +321,11 @@ def main():
     rows = []
     for p in paths:
         blob = torch.load(p, map_location="cpu")
-        net = ConceptFoldNet(len(S["tags"]), d=S["enc"].d_out, h=a.hidden,
+        _h = blob.get("hidden", a.hidden)
+        if blob.get("keep_meh", False) != bool(a.keep_meh):
+            raise SystemExit(f"MISMATCH: ckpt keep_meh={blob.get('keep_meh', False)} but --keep_meh="
+                             f"{bool(a.keep_meh)}. The answer values must match training.")
+        net = ConceptFoldNet(len(S["tags"]), d=S["enc"].d_out, h=_h,
                              conc_init=S["d_c"].numpy(), use_refusal=blob.get("use_refusal", False))
         net.load_state_dict(blob["net"])
         r = score(net, S, packs, head_mask)

@@ -26,8 +26,13 @@ for m in MODELS:
         p = SCRATCH / f"{m}_b{b}.csv"
         if not p.exists():
             continue
-        for r in csv.DictReader(open(p, encoding="utf-8-sig")):
-            preds[int(r["id"])] = r["pred"].strip()
+        for r in csv.DictReader(open(p, encoding="utf-8-sig"), restkey="_rest"):
+            if r.get("id") is None or not str(r["id"]).strip().isdigit():
+                continue
+            pred = (r.get("pred") or "").strip()
+            if r.get("_rest"):
+                pred = ",".join([pred] + [x.strip() for x in r["_rest"]])
+            preds[int(r["id"])] = pred
     raw[m] = preds
     for v in preds.values():
         if v.upper().startswith("TITLE:"):
