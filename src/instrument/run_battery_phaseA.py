@@ -586,6 +586,19 @@ def gate_g5(ctx, betas=(2, 5, 10, 20, 50)):
         return Zs
 
     def shift_mat_trained(net_and_map):
+        """INVALID AS WRITTEN -- kept only to document why, do not re-enable without fixing the base.
+
+        G5's k0 path treats the returned matrix AS the whole latent (S0 = Zs @ Wd.T + bd), which suits
+        the centroid arm (a shift used as z, by design) but NOT a fold net. ConceptFoldNet expects its
+        running vector to be the tower's LEARNED no-evidence latent z0 -- what you get by folding an
+        empty item set -- and returns z0 + U. Handing it zeros puts it far outside its input
+        distribution: measured k0 = 0.0040, an order of magnitude below even the member-bag control,
+        which is a base mismatch and not a property of the operator.
+
+        The equivalent measurement already exists and is computed correctly:
+        concept_cold_check.py folds the empty set for the base and gives one concept, no items =
+        0.1301 vs a 0.1277 floor. Use that for V2; G5's k0 arm stays a centroid diagnostic.
+        """
         net, name2idx = net_and_map
         """The DEPLOYED operator: fold the same concept, at v=+1, through the trained fold net."""
         import torch as _t

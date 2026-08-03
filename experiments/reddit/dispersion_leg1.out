@@ -1,0 +1,24 @@
+[00:06:59] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[00:07:14] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[00:07:15] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[00:07:15] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[00:07:15] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[00:07:15] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[00:07:15] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[00:07:15] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[00:07:18] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[00:07:32] [concepts] 1031 genome concepts (relevance>=0.5, >=30 members)
+[00:07:32] [cfold] cv3_ep07.pt ep7 use_refusal=True
+[00:07:35] [bank] items = 297 (union of top-200 of pop/entropy0/helf); covers first-16 of each order: {'popularity': True, 'entropy0': True, 'helf': True}
+[00:07:35] [answer-model] L (median VAL user rated items) = 63
+[00:07:35] [states] arm C: k=1 -> 11 distinct states over 10000 users; k=2 -> 112 distinct
+[00:07:45] [sbert] 25,323 sentences over 4,431 requests
+[00:12:11] [states] arm A: 4431 threads -> 4188 distinct states (2639 anchored, 1792 zero-anchor); mean concepts folded 4.00
+[00:12:11] [states] TOTAL distinct states to score = 4313
+[00:12:17] [states] scored; V(prior) = 0.04453
+[00:12:18] [crit] state 1/4313 | 0.86s/state | eta 61.7 min
+[00:12:19] [crit] state 2/4313 | 0.89s/state | eta 64.0 min
+[00:12:20] [crit] state 3/4313 | 0.91s/state | eta 65.2 min
+[00:12:21] [crit] state 4/4313 | 0.91s/state | eta 65.5 min
+[00:13:54] [crit] state 100/4313 | 0.97s/state | eta 68.3 min
+[00:15:47] [crit] state 200/4313 | 1.05s/state | eta 71.8 min
