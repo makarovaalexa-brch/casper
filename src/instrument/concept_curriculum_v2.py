@@ -49,8 +49,24 @@ import numpy as np
 
 from signed_answers import signed_for_pool, cap_negatives, BAND_REFUSE
 
-# ---- regime mixture, transposed from the item tower's 25/30/35/5/5 -----------------------------------
-P_BROAD, P_DENSE, P_INTERVIEW, P_KC0, P_KC1 = 0.25, 0.30, 0.35, 0.05, 0.05
+# ---- regime mixture v3 (author + Fable 2026-08-03) --------------------------------------------------
+# BROAD is GONE. It revealed 50-100% of a user's answerable concepts, but the median user can answer 573
+# of 1031 -- there is no "warm concept user", so that bucket trained a state that never occurs.
+P_INTERVIEW, P_DENSE, P_KC0, P_KC1 = 0.55, 0.30, 0.05, 0.10
+
+# Ask policies for the INTERVIEW regime. MEASURED answerability over 3000 users x 1031 concepts:
+#   ask 50 broadest -> 97.3% answered ( 2.7% refusal)
+#   ask uniformly   -> 57.4% answered (42.6% refusal)
+#   ask 50 nichest  -> 16.3% answered (84%   refusal)
+# Training samples these UNIFORMLY so the model sees the whole 3-84% refusal range; deployment realism
+# (broad-first, coarse-to-fine) belongs in the VAL METRIC, not in the training distribution. Skewing
+# training broad-first would starve exactly the refusal signal this regime exists to supply.
+ASK_POLICIES = ("broad", "uniform", "niche")
+P_DENSE_RARE = 0.5      # half the DENSE bucket rare-weighted, half uniform-over-answerable.
+                        # "dense + rare + answerable" silently selects HEAVY RATERS, because niche
+                        # concepts are answerable mainly by users with large profiles -- the bucket would
+                        # confound rarity with user activity. The niche-refusal signal is already carried
+                        # by INTERVIEW.
 
 RARE_POW = 0.5          # uniform-half pick ~ clip(member_count, RARE_CLIP)^-RARE_POW; 0 = natural rate
 RARE_CLIP = (30.0, 1000.0)  # clip counts BEFORE exponentiating. Concept member counts span 3+ orders,
@@ -67,11 +83,38 @@ ITEM_KMAX = 8           # item context per example, k ~ U{1..ITEM_KMAX}
 P_CONC_ONLY = 0.35      # unchanged from the old curriculum: 35% concepts-only, 65% with item context
 
 
-def set_mixture(p_broad, p_dense, p_interview, p_kc0, p_kc1):
-    global P_BROAD, P_DENSE, P_INTERVIEW, P_KC0, P_KC1
-    tot = p_broad + p_dense + p_interview + p_kc0 + p_kc1
+def set_mixture(p_interview, p_dense, p_kc0, p_kc1):
+    global P_INTERVIEW, P_DENSE, P_KC0, P_KC1
+    tot = p_interview + p_dense + p_kc0 + p_kc1
     assert abs(tot - 1.0) < 1e-9, f"mixture must sum to 1, got {tot}"
-    P_BROAD, P_DENSE, P_INTERVIEW, P_KC0, P_KC1 = p_broad, p_dense, p_interview, p_kc0, p_kc1
+    P_INTERVIEW, P_DENSE, P_KC0, P_KC1 = p_interview, p_dense, p_kc0, p_kc1
+
+
+def sample_kc_loguniform(rng, budgets=INTERVIEW_KCS):
+    """kc sampled so mass sits at 1-8; 32 is a TAIL REGULARISER, not a target. kc=32 is ~6% of the
+    median user's 573 answerable concepts, so it is not the warm-user state that killed the v2 BROAD
+    bucket -- but a uniform draw over {1..32} would put a sixth of training at a length no interview
+    reaches."""
+    # The grid is GEOMETRIC (1,2,4,8,16,32), so a UNIFORM draw over it is already log-uniform -- and it
+    # is exactly what the item tower sampled. A 1/b harmonic weighting put 50% of interviews at kc=1,
+    # which with the separate kc=1 bucket would have made ~38% of all training a single question.
+    return int(rng.choice(budgets))
+
+
+def ask_pool(policy, n_concepts, member_count, rng, kc):
+    """Draw kc concept ids from the WHOLE bank under an ask policy. Answerability is then decided by the
+    USER'S HISTORY, exactly as an item ask is decided by whether they rated it -- not by pre-filtering
+    the candidate set, which is what capped refusals at 2.9%."""
+    mcv = np.clip(np.asarray(member_count, np.float64), RARE_CLIP[0], RARE_CLIP[1])
+    if policy == "broad":
+        w = mcv
+    elif policy == "niche":
+        w = mcv ** (-1.0)
+    else:
+        w = np.ones_like(mcv)
+    w = w / w.sum()
+    kc = min(kc, n_concepts)
+    return rng.choice(n_concepts, size=kc, replace=False, p=w)
 
 
 def _pick_concepts(cand, V, kc, rng, member_count, mode):
@@ -108,14 +151,16 @@ def _pick_concepts(cand, V, kc, rng, member_count, mode):
     return np.concatenate([top, rest]).astype(np.int64)
 
 
-def draw(u, rng, Mm, grate, member_sets, item_mean, prereg, member_count=None):
-    """One FRESH curriculum example. Returns
+def draw(u, rng, Mm, grate, member_sets, item_mean, prereg, member_count=None, n_concepts=None):
+    """One FRESH curriculum example (v3). Returns
         (in_s, in_l, cids, cvals, crefs, tgt, regime, n_refusal)
-    or None. No teacher basis is returned: the distillation term is deleted.
+    or None.
 
-    in_s/in_l  item context (may be empty), members of revealed concepts dropped
-    cids/cvals concept ids and their signed four-band values; refusals carry 0.0
-    tgt        held-out liked items, chosen BEFORE anything is revealed so nothing can leak
+    THE KEY CHANGE vs v2: the INTERVIEW regime draws its asks from the WHOLE concept bank and lets the
+    USER'S HISTORY decide answerability, exactly as an item ask is decided by whether they rated it.
+    v2 pre-filtered candidates to concepts the user already had >=2 rated members for, which excluded
+    every concept they had never encountered and capped refusals at 2.9%. Measured truth: asking
+    uniformly gives 42.6% refusals, the 50 nichest give 84%, the 50 broadest 2.7%.
     """
     items = np.asarray(u["items"], np.int64)
     lv = np.asarray(u["levels"], np.int64)
@@ -123,7 +168,6 @@ def draw(u, rng, Mm, grate, member_sets, item_mean, prereg, member_count=None):
     if len(items) < 4 or len(liked) < 2:
         return None
 
-    # targets first -- an interview must never be able to ask about a target
     ntg = max(1, len(liked) // 3)
     tg = rng.choice(liked, size=ntg, replace=False)
     keep = ~np.isin(items, tg)
@@ -133,62 +177,66 @@ def draw(u, rng, Mm, grate, member_sets, item_mean, prereg, member_count=None):
 
     stars = (pool_l.astype(np.float32) + 1.0) / 2.0
     V, B, ans = signed_for_pool(pool_s, stars, item_mean, Mm, grate, prereg)
-    answerable = np.flatnonzero(ans & (B != BAND_REFUSE))     # can give a signed value
-    refusable = np.flatnonzero(ans & (B == BAND_REFUSE))      # asked -> "I don't know this one"
+    nC = n_concepts if n_concepts is not None else len(V)
+    answerable = np.flatnonzero(ans & (B != BAND_REFUSE))
 
     r = rng.random()
     n_ref = 0
-    if r < P_BROAD:
-        regime = "broad"
-        if len(answerable) == 0:
-            return None
-        frac = rng.uniform(*BROAD_FRAC)
-        kc = max(1, min(BROAD_CAP, int(round(frac * len(answerable)))))
-        cids = _pick_concepts(answerable, V, kc, rng, member_count, "mixed")
-    elif r < P_BROAD + P_DENSE:
+    if r < P_INTERVIEW:
+        regime = "interview"
+        kc = sample_kc_loguniform(rng)
+        policy = str(rng.choice(ASK_POLICIES))
+        asked = ask_pool(policy, nC, member_count, rng, kc)
+        # answerability decided by the user's own history, not by pre-filtering the bank
+        ok = np.array([bool(ans[c]) and B[c] != BAND_REFUSE for c in asked])
+        cids = asked
+        n_ref = int((~ok).sum())
+        regime = f"interview_{policy}"
+    elif r < P_INTERVIEW + P_DENSE:
         regime = "dense"
         if len(answerable) == 0:
             return None
         kc = int(rng.integers(1, DENSE_KCMAX + 1))
-        cids = _pick_concepts(answerable, V, kc, rng, member_count, "random")
-    elif r < P_BROAD + P_DENSE + P_INTERVIEW:
-        # THE REGIME THE OLD CURRICULUM NEVER HAD: refusals are ASKED and FED, not filtered away.
-        regime = "interview"
-        kc = int(rng.choice(INTERVIEW_KCS))
-        askable = np.concatenate([answerable, refusable]) if len(refusable) else answerable
-        if len(askable) == 0:
-            return None
-        cids = _pick_concepts(askable, V, kc, rng, member_count, "mixed")
-        n_ref = int(np.isin(cids, refusable).sum())
-    elif r < P_BROAD + P_DENSE + P_INTERVIEW + P_KC0:
-        regime = "kc0"                                        # no concepts at all: the channel must be
-        cids = np.empty(0, np.int64)                          # a no-op-safe additive input
+        mode = "random" if rng.random() < P_DENSE_RARE else "uniform_answerable"
+        if mode == "random":
+            cids = _pick_concepts(answerable, V, kc, rng, member_count, "random")
+        else:
+            kk = min(kc, len(answerable))
+            cids = rng.choice(answerable, size=kk, replace=False)
+        ok = np.ones(len(cids), bool)
+    elif r < P_INTERVIEW + P_DENSE + P_KC0:
+        regime = "kc0"
+        cids = np.empty(0, np.int64); ok = np.empty(0, bool)
     else:
         regime = "kc1"
         if len(answerable) == 0:
             return None
         cids = _pick_concepts(answerable, V, 1, rng, member_count, "random")
+        ok = np.ones(len(cids), bool)
 
-    # refusal-band concepts contribute a token with value 0.0 -- asked, and the user could not answer
-    cvals = cap_negatives([float(V[c]) if B[c] != BAND_REFUSE else 0.0 for c in cids])
-    crefs = [1.0 if B[c] == BAND_REFUSE else 0.0 for c in cids]   # marks refusal vs a genuine meh
+    cvals = cap_negatives([float(V[c]) if ok[j] else 0.0 for j, c in enumerate(cids)])
+    crefs = [0.0 if ok[j] else 1.0 for j in range(len(cids))]
 
-    # member-drop: the revealed concepts' own rated members leave the item input, so the concept token
-    # must carry signal the items do not already supply
-    if len(cids):
-        support = [np.intersect1d(pool_s, member_sets[int(c)]) for c in cids]
+    # member-drop applies ONLY to concepts the user could actually answer: a refused concept reveals
+    # nothing about their ratings, so dropping its members would leak the answer.
+    ansd = [int(c) for j, c in enumerate(cids) if ok[j]]
+    if ansd:
+        support = [np.intersect1d(pool_s, member_sets[int(c)]) for c in ansd]
         drop = np.unique(np.concatenate(support)) if support else np.empty(0, np.int64)
     else:
         drop = np.empty(0, np.int64)
     mk = ~np.isin(pool_s, drop)
     rem_s, rem_l = pool_s[mk], pool_l[mk]
 
-    if rng.random() < P_CONC_ONLY or len(rem_s) == 0:
+    if len(rem_s) == 0:
         in_s = np.empty(0, np.int64); in_l = np.empty(0, np.int64)
     else:
-        k = int(rng.integers(1, min(ITEM_KMAX, len(rem_s)) + 1))
-        pick = rng.choice(len(rem_s), size=k, replace=False)
-        in_s, in_l = rem_s[pick], rem_l[pick]
+        k = int(rng.integers(0, min(ITEM_KMAX, len(rem_s)) + 1))     # 0..8 items alongside
+        if k == 0:
+            in_s = np.empty(0, np.int64); in_l = np.empty(0, np.int64)
+        else:
+            pick = rng.choice(len(rem_s), size=k, replace=False)
+            in_s, in_l = rem_s[pick], rem_l[pick]
 
     tgt = np.setdiff1d(tg, in_s)
     if len(tgt) == 0:
