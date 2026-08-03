@@ -1161,24 +1161,13 @@ what this chapter owes the companion method chapter, whose job is to close the g
 line of Golbandi et al.~\cite{golbandi2011adaptive} on \emph{this} instrument and harness. The instrument chapter's job
 is to make the gap \emph{measurable}; closing it is the method chapter's.
 
-\paragraph{Training concepts into the tower preserves item accuracy but yields no concept gain.} We evaluated two homes for the signed
-concept fold: a trained fold-to-point on the \emph{frozen} tower (call it the frozen-fold), and concept tokens trained
-\emph{into} the tower itself (the tokens-in-tower variant). Both preserve full-profile strength, as V1 demands. The
-frozen-fold inherits the tower's V1 by construction (a zero-initialised fold is bit-identical on the full profile).
-The tokens-in-tower variant is retrained and therefore must re-earn V1, and it does: full/tail NDCG@10 $0.3487/0.2471$
-on the test users against the $0.3540/0.2497$ RecVAE bar (difference $-0.0053$ full), with cold-start accuracy if
-anything marginally higher.\footnote{\REDO{This arm was measured on the superseded tower and its interval was
-computed unpaired; the full-profile difference is of the same order as the certified tower's own separated
-$-0.0043$, so it should be re-run and re-tested paired before submission. The qualitative conclusion the
-paragraph draws---that tokens-in-tower costs little on items and gains little on concepts---does not turn on it.}} So \emph{training concepts into the tower costs
-essentially nothing on items.} It also, however, \emph{gains} essentially nothing on concepts, and it is worse where it
-matters most. On per-answer concept curves the frozen-fold is higher at eight answers ($0.1630/0.0639$ versus
-$0.1566/0.0577$), and in deployment currency the difference is decisive: the frozen-fold stays above the intercept
-through sixteen questions ($0.1379$ at $q{=}16$ in the ledger's paired sweep), whereas the tokens-in-tower
-variant, measured in the same sweep, \emph{craters} to $0.1052$,
-below the no-answer intercept, as the long tail of the fixed bank floods it with weak-support concepts. We therefore
-carry the frozen-fold as the concept operator of record; the tokens-in-tower arm is item-safe but does not earn its
-place. The V1 comparison above is a genuine tie on the certified ruler.
+\paragraph{The concept fold sits on the frozen tower, and inherits V1 by construction.} The signed concept fold is a
+trained fold-to-point over the \emph{frozen} certified tower rather than a set of concept tokens trained into the
+tower itself. That choice is what makes V1 free rather than re-earned: the fold's final layer is zero-initialised,
+so at an empty interview it is bit-identical to the tower on the full profile, and no concept training can put the
+certified full-profile number at risk. It also keeps the channel replaceable---a better concept operator can be
+fitted and swapped without retraining or recertifying the recommender, which is the property that makes this an
+instrument rather than a model.
 
 \paragraph{The methodological consequence for verification design.} The concept channel's near-miss is the sharpest
 argument in this chapter for \emph{why verification has the shape it does}. A capability check (V4's sign-flip) passed on
