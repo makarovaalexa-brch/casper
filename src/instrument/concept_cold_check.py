@@ -35,6 +35,7 @@ import concept_curriculum_v2 as CV2
 from concept_fold import ConceptFoldNet, fold_items_frozen
 import concept_distill_train as CD
 from signed_answers import signed_for_pool, cap_negatives, BAND_REFUSE
+from i26_encoder import UNSEEN_LEVEL
 
 CKPT_DIR = os.path.join(_ROOT, ".cache", "instrument")
 MS = (0, 1, 2, 4, 8, 16)
@@ -46,7 +47,11 @@ def log(m):
 
 def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad"):
     """One cold interview per user per budget: NO items, m concepts asked under `policy`."""
-    rng = np.random.default_rng(seed)
+    # SEPARATE STREAMS: targets must not depend on how many concepts get drawn, or the concept and
+    # item arms end up with different held-out sets and are no longer comparable. Canary: at m=0 both
+    # arms fold nothing, so they must score bit-identically.
+    rng_t = np.random.default_rng(seed)
+    rng = np.random.default_rng(seed + 1)
     users = S["users"][-n_users:]
     packs = {m: [] for m in MS}
     for u in users:
@@ -55,7 +60,7 @@ def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad"):
         if len(items) < 4 or len(liked) < 2:
             continue
         ntg = max(1, len(liked) // 3)
-        tg = rng.choice(liked, size=ntg, replace=False)
+        tg = rng_t.choice(liked, size=ntg, replace=False)
         keep = ~np.isin(items, tg)
         pool_s, pool_l = items[keep], lv[keep]
         if len(pool_s) < 2:
@@ -72,7 +77,43 @@ def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad"):
             crefs = [0.0 if ok[j] else 1.0 for j in range(len(cids))]
             packs[m].append((np.empty(0, np.int64), np.empty(0, np.int64),      # ZERO ITEMS
                              [int(c) for c in cids], [float(v) for v in cvals],
-                             [float(x) for x in crefs], tg))
+                             [float(x) for x in crefs], tg, np.empty(0, np.int64)))
+    return packs
+
+
+def cold_item_interviews(S, pop_rank, n_users=1500, seed=4242):
+    """MATCHED item arm: same users, same targets, same budgets -- but the q questions are ITEMS.
+
+    Realistic deployment contract, mirroring the concept arm question for question:
+      * user-independent fixed bank, asked in popularity order (`items-pop`, the strongest item
+        strategy in the deployment ledger)
+      * an item the user has not rated BURNS the question, exactly as a concept refusal does. It is
+        folded as an exposure token (UNSEEN_LEVEL), which is the tower's native "asked, not seen".
+      * an asked item that is a held-out TARGET is also folded as unseen -- we must not reveal it.
+      * answered items are masked out of the candidate list (never recommend back what they just told
+        you they have seen). The concept arm has no such items, so nothing is masked there.
+    """
+    rng_t = np.random.default_rng(seed)          # SAME target stream as the concept arm
+    users = S["users"][-n_users:]
+    packs = {m: [] for m in MS}
+    for u in users:
+        items = np.asarray(u["items"], np.int64); lv = np.asarray(u["levels"], np.int64)
+        liked = np.asarray(u["liked"], np.int64)
+        if len(items) < 4 or len(liked) < 2:
+            continue
+        ntg = max(1, len(liked) // 3)
+        tg = rng_t.choice(liked, size=ntg, replace=False)
+        keep = ~np.isin(items, tg)
+        pool_s, pool_l = items[keep], lv[keep]
+        if len(pool_s) < 2:
+            continue
+        lvl_of = dict(zip(pool_s.tolist(), pool_l.tolist()))
+        for m in MS:
+            asked = pop_rank[:m]
+            ids = np.asarray(asked, np.int64)
+            lvs = np.asarray([lvl_of.get(int(i), UNSEEN_LEVEL) for i in asked], np.int64)
+            answered = ids[lvs < UNSEEN_LEVEL]
+            packs[m].append((ids, lvs, [], [], [], tg, answered))
     return packs
 
 
@@ -118,6 +159,8 @@ def score(net, S, packs, head_mask, batch=256):
                                                [e[4] for e in blk])
                 sc = (z @ Wd.T + bd).numpy()
                 for r, e in enumerate(blk):
+                    if len(e) > 6 and len(e[6]):
+                        sc[r, e[6]] = -np.inf          # never recommend back an answered item
                     f, t = ndcg_at(sc[r], e[5], head_mask)
                     fs.append(f)
                     if t is not None:
@@ -134,6 +177,8 @@ def main():
     ap.add_argument("--snapshot", default=os.path.join(_ROOT, "models", "i26c_ep31", "t2i26c_ep31.pt"))
     ap.add_argument("--policy", default="broad", choices=("broad", "uniform", "niche"))
     ap.add_argument("--ckpt", default="", help="explicit comma-separated checkpoint paths (overrides --tag)")
+    ap.add_argument("--arm_kind", default="concept", choices=("concept", "item"),
+                    help="item = matched-budget ITEM interview through the same protocol")
     ap.add_argument("--n_users", type=int, default=1500)
     ap.add_argument("--hidden", type=int, default=256)
     ap.add_argument("--max_users", type=int, default=0)
@@ -146,6 +191,19 @@ def main():
     import metrics as M
     tr = M.load_train(S["ni"], os.path.join(_ROOT, "data", "ml-25m", "proc"))
     head_mask, _ = compute_head_mask(tr, S["ni"])
+
+    if a.arm_kind == "item":
+        pop = np.asarray(tr.sum(axis=0)).ravel()
+        pop_rank = np.argsort(-pop)
+        log("building COLD ITEM interviews (items-pop bank, unrated burns the question) ...")
+        packs = cold_item_interviews(S, pop_rank, n_users=a.n_users)
+        log(f"  {len(packs[0])} users x budgets {MS}")
+        r = score(None, S, packs, head_mask)          # items ride the tower; no concept net
+        log("ITEM ARM (matched protocol) " + "  ".join(f"m{m}={r[m][0]:.4f}/{r[m][1]:.4f}" for m in MS))
+        json.dump({str(m): r[m] for m in MS},
+                  open(os.path.join(_ROOT, "experiments", "instrument", "item_arm_coldcheck.json"), "w"),
+                  indent=2)
+        return
 
     log(f"building COLD interviews (zero items, policy={a.policy}) ...")
     packs = cold_interviews(S, mc, n_users=a.n_users, policy=a.policy)

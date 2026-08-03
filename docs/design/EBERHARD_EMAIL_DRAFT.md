@@ -1,4 +1,8 @@
-# DRAFT — email to Lukas Eberhard (TU Graz), task #68 — NOT SENT, author to review/send
+# SHELVED (author ruling 2026-08-03: no emails — likely ignored, too slow to gate anything)
+# Plan of record instead: ZhankuiHe/reddit_movie_raw + LLM-assisted linking (see memory
+# paperb-kickoff-artifacts-2026-08-03). Draft kept only in case the parallel-shot option is revived.
+
+# DRAFT — email to Lukas Eberhard (TU Graz), task #68 — NOT SENT
 
 Subject: Request texts for your r/MovieSuggestions dataset (IUI 2019)
 
