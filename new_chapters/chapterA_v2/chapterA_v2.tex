@@ -1425,6 +1425,69 @@ log-count popularity floor), plus NDCG@100 (and Recall@20/50) on the ML-20M brid
 published anchors. Every headline delta carries a paired per-user bootstrap CI on one shared harness. Every cell reported is measured on this harness.
 
 % =====================================================================
+\section{Why the instrument matters: strategy rankings invert with the recommender}\label{sec:instrdep}
+% =====================================================================
+
+Everything above argues that a certified, interviewable recommender is \emph{buildable}. This section argues it is
+\emph{necessary}---that without one, a comparison between elicitation strategies does not have a stable answer.
+
+The classical cold-start question-selection heuristics were validated on the recommenders of their day. Rashid et
+al.~\cite{rashid2002getting} report the order \textsc{helf} $>$ \textsc{entropy0} $>$ \textsc{popularity}, and that
+order has been carried forward as a property of the \emph{heuristics}. We ran all three under a fixed interview
+protocol---identical users, identical budget $k{=}8$, identical answer model, a question bank fixed in advance,
+no popularity floor---and varied only the recommender that consumes the answers.
+
+\begin{table}[t]\centering\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lccc l}
+\toprule
+Recommender consuming the answers & \textsc{helf} & \textsc{entropy0} & \textsc{popularity} & Induced order \\
+\midrule
+\multicolumn{5}{l}{\emph{full NDCG@10}}\\
+This chapter's instrument & $.1892$ & $\mathbf{.2053}$ & $.1943$ & E0 $>$ P $>$ H \\
+Golbandi tree (node model)~\cite{golbandi2011adaptive} & $\mathbf{.1948}$ & $.1686$ & $.1716$ & \textbf{H $>$ P $>$ E0} \\
+RBMF~\cite{zhou2011functional} & $.0729$ & $\mathbf{.1644}$ & $.1637$ & E0 $>$ P $>$ H \\
+Belief-MF (B\i y\i k-style)~\cite{biyik2023soft} & $.1623$ & $\mathbf{.1634}$ & $.1632$ & E0 $>$ P $>$ H \\
+\midrule
+\multicolumn{5}{l}{\emph{tail NDCG@10}}\\
+This chapter's instrument & $.0725$ & $\mathbf{.0792}$ & $.0686$ & E0 $>$ H $>$ P \\
+Golbandi tree (node model) & $\mathbf{.0792}$ & $.0677$ & $.0696$ & \textbf{H $>$ P $>$ E0} \\
+RBMF & $\mathbf{.0396}$ & $.0369$ & $.0344$ & H $>$ E0 $>$ P \\
+Belief-MF & $\mathbf{.0331}$ & $.0300$ & $.0300$ & H $>$ E0 $>$ P \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{The same three question-selection heuristics, ranked differently by different recommenders.}
+$k{=}8$, one shared interview harness, uniform protocol, \emph{no popularity floor}, $10{,}000$ held-out test users;
+only the consuming recommender varies. Rashid's published order is \textsc{helf} $>$ \textsc{entropy0} $>$
+\textsc{popularity}; among these four consumers only the Golbandi tree---the node model closest to what the
+heuristics were originally validated on---reproduces it. The inversion holds on both metrics and under both floor
+contracts.}
+\label{tab:instrdep}
+\end{table}
+
+Three readings, and we are careful about which we claim.
+
+\emph{The ranking is not a property of the heuristic alone.} Under our instrument \textsc{entropy0} leads on both
+metrics; under the Golbandi node model \textsc{helf} leads on both. A paper reporting either result in isolation,
+with its own recommender, would be reporting something true and non-transferable. This is the concrete sense in
+which elicitation results are instrument-relative, and it is why we think a documented, certified, reusable
+consumer is a contribution rather than plumbing.
+
+\emph{We do not claim the heuristics are wrong, or that ours is the right consumer.} On the tail, \textsc{helf} is
+first for three of the four consumers---the inversion is not a refutation of \textsc{helf}. Nor does our instrument
+scoring highest in absolute terms settle which ordering an interview designer should trust: absolute accuracy and
+faithfulness to the deployment recommender are different desiderata, and a designer whose production system is a
+tree should arguably believe the tree. What the table forecloses is treating any single such ordering as a
+property of the heuristics.
+
+\emph{The instrument's own numbers are the strongest cells, which is the point of R1.} Our best cell exceeds the
+Golbandi tree's best by $+0.0105$ on full and matches it exactly on tail ($.0792$ both). A consumer that were merely
+different, rather than strong, would leave open the objection that the inversion is an artifact of a weak
+recommender---which is exactly the objection Dacrema et al.~\cite{dacrema2019progress} showed to be usually
+correct. R1 exists to close it.
+
+% =====================================================================
 \section{Limitations and threats to validity}\label{sec:limits}
 % =====================================================================
 
