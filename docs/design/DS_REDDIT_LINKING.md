@@ -109,6 +109,21 @@ downstream of it. Two legs + a bridge:
 - Sequencing: smoke trio (MostPop gate, copy-OP, tower request-fold) → leg 1 figure → ML-25M
   matched-dispersion probe → oracle extraction pass → leg 2 both variants.
 
+## ★ TEXT→REC-SPACE MAPPING LADDER (author-approved 2026-08-04)
+Request-named FILMS need no mapping (linked items → item-evidence fold; the floor arm). For the
+rest of the request text, three rungs, funded only by measured headroom on the new ruler:
+1. **SBERT zero-shot** (existing Paper A open-vocab path: phrase → nearest genome concepts →
+   concept fold). Try FIRST as a one-line ablation over items-only.
+2. **LLM slot parsing** (request → typed slots → fold per channel) — doubles as the
+   withheld-slot extraction; expected biggest gain (handles "like X but less Y" composition).
+3. **Learned text→latent projection** trained on a TRAIN split of threads (supervised; changes
+   the claim — runs alongside the zero-shot arm, never replaces it).
+DECISION RULE: iterate a rung only if the previous rung leaves a measured NDCG gap on the
+5,441-thread ruler (references: published doc2vec 0.126, GPT-4o >0.21, MostPop 0.082 on the
+Eberhard variant). Every mapper variant now gets honest supervision — no more proxy-only checks.
+**IN FLIGHT: assembly + smoke trio with arms {MostPop gate, OP-overlap stat, tower items-only
+fold, tower items+SBERT-concepts fold}, paired bootstrap, on the 5,441 clean threads.**
+
 ## Effort estimate
 Steps 1–3: ~2–3 days. Step 4–5: days once approved (batch size ~54k submissions + reply trees —
 cost estimate delivered with the approval request). Total 1–2 weeks, no external dependency.

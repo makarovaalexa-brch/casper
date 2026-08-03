@@ -570,10 +570,34 @@ def gate_g5(ctx, betas=(2, 5, 10, 20, 50)):
     Zk2 = fold_z(ctx.enc, ctx.k2_tokens, list(range(ctx.n)))
     f_k2, t_k2 = eval_tokens(ctx, ctx.k2_tokens, mask_parity, rows=rows)
     def shift_mat(beta):
+        """The July arm-A operator: a scaled centroid added straight to z. NO learned parameters.
+
+        RETAINED AS A DIAGNOSTIC ONLY (2026-08-03). This is a BUILDING BLOCK, not the concept
+        operator this chapter deploys -- that is the trained ConceptFoldNet (`--cfold`). Gating R2 on
+        the untrained centroid certifies code we abandoned in July, and its verdict was being read as
+        a verdict on the shipped channel: the raw centroid sits BELOW the popularity intercept
+        (0.1234 vs 0.1299) while the trained fold over the same centroids rises monotonically above it
+        (0.1277 -> 0.1489 at sixteen answers). Two different objects, opposite conclusions.
+        """
         Zs = np.zeros((ctx.n, ctx.decoder.weight.shape[1]), np.float32)
         for r in rows:
             t = user_tag[r]
             Zs[r] = beta * w_c[t] * 1.0 * d_c[t]                          # v=+1 (loved)
+        return Zs
+
+    def shift_mat_trained(net):
+        """The DEPLOYED operator: fold the same concept, at v=+1, through the trained fold net."""
+        import torch as _t
+        Zs = np.zeros((ctx.n, ctx.decoder.weight.shape[1]), np.float32)
+        net.eval()
+        with _t.no_grad():
+            for st in range(0, len(rows), 256):
+                chunk = rows[st:st + 256]
+                z0 = _t.zeros(len(chunk), ctx.decoder.weight.shape[1])
+                cids = [[int(user_tag[r])] for r in chunk]
+                cvals = [[1.0] for _ in chunk]
+                crefs = [[0.0] for _ in chunk]
+                Zs[chunk] = (net(z0, cids, cvals, crefs) - z0).numpy()
         return Zs
     def auc_members(Smat_rows, rows_sel):
         aucs = []
@@ -584,8 +608,10 @@ def gate_g5(ctx, betas=(2, 5, 10, 20, 50)):
             aucs.append((ranks - k * (k - 1) / 2) / (k * k))
         return float(np.mean(aucs))
     armA = {}
-    for beta in betas:
-        Zs = shift_mat(beta)
+    arms = [("centroid_beta%d" % b, shift_mat(b)) for b in betas]
+    if getattr(ctx, "cfold_net", None) is not None:
+        arms.append(("TRAINED_FOLD", shift_mat_trained(ctx.cfold_net)))
+    for beta, Zs in arms:
         # k0: z = shift only -> scores directly (no encoder pass)
         S0 = Zs @ WdT + bd[None, :]
         f0 = np.full(ctx.n, np.nan)
@@ -601,7 +627,8 @@ def gate_g5(ctx, betas=(2, 5, 10, 20, 50)):
                       "k0_ci95": d0[1], "k0_member_AUC_popmatched": auc0,
                       "k2_full@10": float(np.nanmean(f2[rows])), "k2_vs_k2only": d2[0],
                       "k2_ci95": d2[1], "k2_tail@10": float(np.nanmean(t2[rows]))}
-    best_beta = max(armA, key=lambda b: armA[b]["k0_full@10"])
+    best_beta = max([k for k in armA if k != "TRAINED_FOLD"],
+                    key=lambda b: armA[b]["k0_full@10"])
     # Arm B comparator: member-bag token fold (level 8 tokens), k0 and k2
     bag0, bag2 = [], []
     for r in range(ctx.n):
@@ -621,8 +648,10 @@ def gate_g5(ctx, betas=(2, 5, 10, 20, 50)):
     payload = {"gate": "G5-armA-firstpass", "n_users": len(rows), "n_concepts": len(used_tags),
                "whitening": "center + strip top-1 PC of decoder rows (July recipe); IDF=1/log1p(|m|)",
                "armA_by_beta": armA, "best_beta": best_beta,
-               "G_collinearity_PASS": bool(armA[best_beta]["k0_full@10"]
-                                           > float(np.nanmean(f_int[rows]))),
+               # Scored on the DEPLOYED operator when one is supplied; the centroid rows are diagnostics.
+               "G_operator_PASS": bool(armA.get("TRAINED_FOLD", armA[best_beta])["k0_full@10"]
+                                       > float(np.nanmean(f_int[rows]))),
+               "scored_on": "TRAINED_FOLD" if "TRAINED_FOLD" in armA else "centroid (DIAGNOSTIC ONLY)",
                "intercept_full@10": float(np.nanmean(f_int[rows])),
                "k2only_full@10": float(np.nanmean(f_k2[rows])),
                "armB_memberbag": {"k0_full@10": float(np.nanmean(fb0[rows])),
