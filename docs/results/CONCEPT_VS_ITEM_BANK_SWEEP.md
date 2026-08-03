@@ -141,3 +141,49 @@ the intrinsic thinness of 16 genre-scale answers), but nothing downstream is str
 answer granularity UNABLATED.** Not "optimal" — nobody has evidence for that. Fable retracted its earlier
 "don't spend a run on capacity": flat NLL under a fresh-resampled curriculum proves *converged*, not
 *capacity-saturated*.
+
+---
+
+# cv5 (hidden 1024, graded meh, 30 epochs) vs cv3 — MATCHED BANKS, 2026-08-04
+
+## CORRECTION to what was reported at ~23:40
+
+I told the author cv5 ep24 beat cv3 ep11 by **+0.0148 full / +0.0083 tail at m=16**. That was
+**contract mixing and is retracted.** `concept_cold_check.py --bank expinfo` had no `expinfo` branch in
+its ranking chain, so it fell through to `crank=None` — random popularity-weighted draws — while still
+logging `bank=expinfo`. cv5's number was a RANDOM-DRAW score; cv3's was a genuine ranked-bank score.
+Fixed in `26fe795` (total dispatch + assert: every named bank must resolve to a ranking).
+
+## The matched numbers (both from `bank_sweep.py`, identical protocol, canary passing per bank)
+
+delta = cv5 ep24 − cv3 ep11, full/tail:
+
+| bank | m=1 | m=2 | m=4 | m=8 | m=16 |
+|---|---|---|---|---|---|
+| pop | +.0004/−.0012 | +.0014/+.0018 | −.0015/+.0041 | −.0037/−.0003 | +.0050/+.0028 |
+| entropy | +.0010/+.0013 | −.0003/−.0006 | −.0003/+.0002 | −.0009/−.0004 | +.0016/−.0019 |
+| polar | +.0015/+.0020 | +.0020/+.0018 | +.0016/+.0013 | +.0038/+.0015 | +.0016/+.0001 |
+| expinfo | +.0015/+.0020 | +.0020/+.0018 | +.0016/+.0013 | +.0038/+.0015 | +.0016/+.0001 |
+
+**VERDICT: cv5 ≈ cv3.** Every delta is inside the ±.003–.004 per-user noise band at n=1500, and several
+are negative. Under the two discriminative banks the sign is consistently positive but tiny; under `pop`
+and `entropy` it is mixed. **The combined config change — hidden 256→1024, graded meh instead of zeroed,
+kc0 dropped, zero-item share raised, 12→30 epochs — bought nothing measurable.**
+
+That is a real negative result and it is worth more than it looks:
+
+1. **Capacity was not binding**, which is what Fable's prior said and its retraction left untested. A 4×
+   wider network trained 2.5× longer moved nothing. The flat-NLL reading was right after all.
+2. **The remaining headroom is not in the network.** It is in the question bank (the `polar` result: which
+   questions you ask changes which CHANNEL wins) and in the answer channel's own information content.
+3. It cost ~11 hours of compute to learn, because all four levers moved at once — the trade the author
+   explicitly accepted ("just one best bet at architecture, we don't need any analysis"). Worth restating
+   the cost, not to relitigate the call, but because a single-lever run would have cost the same and
+   answered which lever mattered.
+
+**Which checkpoint the paper uses:** cv5 ep24, per the author's ruling to select on best full under the
+pre-registered rule. Since cv5 ≈ cv3 this is a free choice; cv5 is preferred only because it is the run
+whose config is fully recorded in the checkpoint (`hidden`, `keep_meh`, `p_item_zero`).
+
+**cv5 ep24 absolute numbers, `expinfo` bank, floor .1277/.0267:**
+m1 .1323/.0422 · m2 .1351/.0455 · m4 .1372/.0508 · m8 .1449/.0634 · m16 .1467/.0705.
