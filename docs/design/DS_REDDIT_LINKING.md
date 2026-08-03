@@ -18,6 +18,16 @@ OP-named items excluded at scoring.
    release (their processed files carry links — measure how far they get us before any new
    linking), reproduction of the 61.3%/75.1% catalogue-fit number, thread-level dedup
    (the V1-CSV trap: 17,176 conv_ids ≈ 1,620 real threads — evaluate at THREAD level only).
+   **★ DECISIVE CHECK (added 2026-08-03): the HF dataset card claims the LARGE version covers
+   Jan 2012 – Dec 2022 (5 subreddits, 3.01 GB), but our Jul-31 measurement of the
+   moviesuggestions file found ONLY 2019–2022 (54,546 submissions; consistent with 0/1,480
+   Eberhard overlap). Verify per-file, per-year counts on the LARGE download. If pre-2019
+   threads exist, the ≤2019 slice has near-Eberhard catalogue coverage (~99%) WITH request
+   text — it becomes the primary evaluation slice and the recency-bias scope condition shrinks
+   to a secondary-slice caveat.**
+   Also census: count threads where the OP answered clarifying questions in comments
+   (`is_submitter` in the reply tree) — the organic-follow-up subset that permits any
+   adaptivity measurement on this corpus (see "What this ruler is NOT").
 3. **Validation sample**: hand-label ~300 mentions (text span → IMDb tconst or NONE), drawn
    stratified over years and thread lengths. This is the gold set every linker is measured on.
    Label before seeing any linker output.
@@ -50,6 +60,13 @@ OP-named items excluded at scoring.
 - Not graded by votes (votes at most a coarse binary inclusion filter).
 - Not a data contribution claim (pre-empted: Bogers & Koolen, Eberhard, He). The contribution is
   the MEASUREMENT downstream of a real request.
+- **Not an adaptivity simulator.** No OP is available to answer follow-up questions; simulating
+  answers from the reply set is circular (firewall) and from the request text alone makes
+  follow-ups uninformative by construction. Adaptivity on this corpus is measured ONLY on the
+  organic-follow-up subset (OP actually answered clarifying comments); everything else here
+  evaluates the request-conditioned cold ranking. Controlled adaptivity magnitudes stay on
+  ML-25M. Ground truth = union of reply-suggested movies, OP-named excluded (crowd relevance —
+  say so); secondary = OP acknowledgement via `is_submitter` (no LLM needed).
 
 ## Effort estimate
 Steps 1–3: ~2–3 days. Step 4–5: days once approved (batch size ~54k submissions + reply trees —

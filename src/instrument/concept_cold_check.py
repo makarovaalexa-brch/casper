@@ -45,8 +45,13 @@ def log(m):
     print(f"[{time.strftime('%H:%M:%S')}] {m}", flush=True)
 
 
-def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad"):
-    """One cold interview per user per budget: NO items, m concepts asked under `policy`."""
+def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad", rank=None):
+    """One cold interview per user per budget: NO items, m concepts asked under `policy`.
+
+    `rank`: optional deterministic ranking (top-m asked in order). This is what makes the concept arm
+    comparable to the item arm -- items are asked from a RANKED user-independent bank, so drawing
+    concepts at random handicaps them. With `rank` set, `policy` is ignored.
+    """
     # SEPARATE STREAMS: targets must not depend on how many concepts get drawn, or the concept and
     # item arms end up with different held-out sets and are no longer comparable. Canary: at m=0 both
     # arms fold nothing, so they must score bit-identically.
@@ -71,7 +76,8 @@ def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad"):
             if m == 0:
                 cids = np.empty(0, np.int64); ok = np.empty(0, bool)
             else:
-                cids = CV2.ask_pool(policy, len(S["tags"]), mc, rng, m)
+                cids = (np.asarray(rank[:m], np.int64) if rank is not None
+                        else CV2.ask_pool(policy, len(S["tags"]), mc, rng, m))
                 ok = np.array([bool(ans[c]) and B[c] != BAND_REFUSE for c in cids])
             cvals = cap_negatives([float(V[c]) if ok[j] else 0.0 for j, c in enumerate(cids)])
             crefs = [0.0 if ok[j] else 1.0 for j in range(len(cids))]
@@ -115,6 +121,49 @@ def cold_item_interviews(S, pop_rank, n_users=1500, seed=4242):
             answered = ids[lvs < UNSEEN_LEVEL]
             packs[m].append((ids, lvs, [], [], [], tg, answered))
     return packs
+
+
+def build_banks(S, n_est=2000, log=log):
+    """Rank the concept bank and the item bank by the SAME criterion, so the two arms are comparable.
+
+    Criterion = Shannon entropy of the 4-way outcome of ASKING the question, over held-out training
+    users (disjoint from the eval users, which are S["users"][-n_users:]):
+
+        concepts : {like, meh, dislike, REFUSE}      bands straight from signed_for_pool
+        items    : {like, meh, dislike, UNSEEN}      like = level>=7 (r>3.5, canonical binarisation),
+                                                     dislike = level<=4 (r<=2.5), unseen = not rated
+
+    Popularity ranks how ANSWERABLE a question is; entropy ranks how much it DISCRIMINATES. A blockbuster
+    everybody liked is maximally answerable and carries almost no signal.
+    """
+    est = S["users"][:n_est]
+    nC, ni = len(S["tags"]), S["ni"]
+    cc = np.zeros((nC, 4), np.float64)
+    ci = np.zeros((ni, 4), np.float64)
+    n_used = 0
+    for u in est:
+        items = np.asarray(u["items"], np.int64); lv = np.asarray(u["levels"], np.int64)
+        if len(items) < 4:
+            continue
+        n_used += 1
+        stars = (lv.astype(np.float32) + 1.0) / 2.0
+        _V, B, _a = signed_for_pool(items, stars, S["item_mean"], S["Mm"], S["grate"], S["prereg"])
+        np.add.at(cc, (np.arange(nC), np.asarray(B, np.int64)), 1.0)
+        ib = np.full(len(items), 1, np.int64)                  # meh
+        ib[lv >= 7] = 0                                        # like   (r > 3.5)
+        ib[lv <= 4] = 2                                        # dislike(r <= 2.5)
+        np.add.at(ci, (items, ib), 1.0)
+    ci[:, 3] = n_used - ci[:, :3].sum(1)                       # unseen = never rated by these users
+
+    def H(c):
+        p = c / np.maximum(c.sum(1, keepdims=True), 1e-9)
+        return -(p * np.log(np.maximum(p, 1e-12))).sum(1)
+
+    hc, hi = H(cc), H(ci)
+    log(f"[banks] estimated on {n_used} held-out training users "
+        f"(eval users are the LAST {1500}, disjoint)")
+    return {"conc_entropy": np.argsort(-hc), "item_entropy": np.argsort(-hi),
+            "conc_H": hc, "item_H": hi}
 
 
 def ndcg_at(sc_row, targets, head_mask, k=10):
@@ -179,6 +228,10 @@ def main():
     ap.add_argument("--ckpt", default="", help="explicit comma-separated checkpoint paths (overrides --tag)")
     ap.add_argument("--arm_kind", default="concept", choices=("concept", "item"),
                     help="item = matched-budget ITEM interview through the same protocol")
+    ap.add_argument("--bank", default="random", choices=("random", "pop", "entropy"),
+                    help="RANKED question bank shared by both arms: pop = most answerable, "
+                         "entropy = most discriminative. 'random' keeps the old --policy draw "
+                         "(concept arm only) and is NOT comparable to the item arm.")
     ap.add_argument("--n_users", type=int, default=1500)
     ap.add_argument("--hidden", type=int, default=256)
     ap.add_argument("--max_users", type=int, default=0)
@@ -192,21 +245,26 @@ def main():
     tr = M.load_train(S["ni"], os.path.join(_ROOT, "data", "ml-25m", "proc"))
     head_mask, _ = compute_head_mask(tr, S["ni"])
 
+    banks = build_banks(S) if a.bank == "entropy" else None
     if a.arm_kind == "item":
-        pop = np.asarray(tr.sum(axis=0)).ravel()
-        pop_rank = np.argsort(-pop)
-        log("building COLD ITEM interviews (items-pop bank, unrated burns the question) ...")
-        packs = cold_item_interviews(S, pop_rank, n_users=a.n_users)
+        if a.bank == "entropy":
+            item_rank = banks["item_entropy"]
+        else:
+            item_rank = np.argsort(-np.asarray(tr.sum(axis=0)).ravel())
+        log(f"building COLD ITEM interviews (bank={a.bank}, unrated burns the question) ...")
+        packs = cold_item_interviews(S, item_rank, n_users=a.n_users)
         log(f"  {len(packs[0])} users x budgets {MS}")
         r = score(None, S, packs, head_mask)          # items ride the tower; no concept net
-        log("ITEM ARM (matched protocol) " + "  ".join(f"m{m}={r[m][0]:.4f}/{r[m][1]:.4f}" for m in MS))
+        log(f"ITEM ARM bank={a.bank} " + "  ".join(f"m{m}={r[m][0]:.4f}/{r[m][1]:.4f}" for m in MS))
         json.dump({str(m): r[m] for m in MS},
-                  open(os.path.join(_ROOT, "experiments", "instrument", "item_arm_coldcheck.json"), "w"),
-                  indent=2)
+                  open(os.path.join(_ROOT, "experiments", "instrument",
+                                    f"item_arm_{a.bank}_coldcheck.json"), "w"), indent=2)
         return
 
-    log(f"building COLD interviews (zero items, policy={a.policy}) ...")
-    packs = cold_interviews(S, mc, n_users=a.n_users, policy=a.policy)
+    crank = banks["conc_entropy"] if a.bank == "entropy" else (
+        np.argsort(-mc) if a.bank == "pop" else None)
+    log(f"building COLD interviews (zero items, bank={a.bank}, policy={a.policy}) ...")
+    packs = cold_interviews(S, mc, n_users=a.n_users, policy=a.policy, rank=crank)
     log(f"  {len(packs[0])} users x budgets {MS}")
 
     # CANARY: with no net at all, every budget must give the SAME number -- the no-evidence prior.
