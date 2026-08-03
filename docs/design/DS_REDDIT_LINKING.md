@@ -71,3 +71,22 @@ OP-named items excluded at scoring.
 ## Effort estimate
 Steps 1–3: ~2–3 days. Step 4–5: days once approved (batch size ~54k submissions + reply trees —
 cost estimate delivered with the approval request). Total 1–2 weeks, no external dependency.
+
+## ★ PIPELINE OF RECORD (author decision 2026-08-03, after the 500-gold audition)
+- **Rules tier auto-accepts** (48.6% coverage @ 0.971 on gold; `linker_rules_tier.py`, thresholds
+  frozen) → **OPUS adjudicates the DEFER tier** (audition: 0.949 on DEFER; pipeline 0.960 overall
+  vs He's raw 0.572). FINAL author decision 2026-08-03 (after initially weighing Sonnet 0.930):
+  label errors are permanent bias in the ground truth while sample size is recoverable variance,
+  and the thread-shuffle makes stopping early the clean budget lever — so maximize quality per
+  label. Run in waves of 10 batches with a progress/percent report between waves; stoppable at any
+  wave boundary.
+- **Thread-level shuffle, fixed seed**: scope = DEFER mentions in the 35,982 eval threads;
+  threads shuffled once (seed 98765), batched ~500 mentions keeping threads intact. Any prefix of
+  completed batches = unbiased random subsample of eval threads with FULLY adjudicated ground
+  truth (label errors are bias, sample size is variance — downsampling by stopping early is the
+  clean budget lever).
+- Batches run as subagent waves (~10 at a time), one checkpoint file per batch under
+  `data/reddit_he/adjudication/`; resumable across plan resets. TITLE: answers resolved with a
+  punctuation/alias-tolerant resolver (fixes the exact-string near-misses found in the audition).
+- Print in the paper: linker precision measured on the 500-mention gold set, rules/Sonnet split,
+  and the residual ~7% label-error floor as a stated limitation.
