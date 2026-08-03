@@ -163,11 +163,21 @@ def _build_train_stack(args):
     head_mask, cnt = compute_head_mask(train_mat, ni)
     unique_uid, tr_set, vd_set, te_set, n_train, raw, show2id, usid = reproduce_partition()
     users = build_train_profiles(raw, tr_set, show2id, max_users=(args.max_users or None))
-    a = argparse.Namespace(arch="i25", teacher="warm_init", t_hidden=600, t_latent=200, token="film",
+    # Architecture read from the checkpoint, not assumed (2026-08-03): an i26 state dict carries the
+    # exposure-branch keys and cannot load into an I25Encoder.
+    blob = torch.load(args.snapshot, map_location="cpu")
+    _arch = blob.get("arch", "i25")
+    a = argparse.Namespace(arch=_arch, teacher="warm_init", t_hidden=600, t_latent=200, token="film",
                            train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=3e-4,
                            warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
-    enc, decoder, _, _, _ = build_model(a, ni, cnt)
-    blob = torch.load(args.snapshot, map_location="cpu")
+    if _arch == "i26":
+        from i26_encoder import build_i26
+        from train_tower_t2 import load_recvae_teacher, apply_sign_prior
+        _src = load_recvae_teacher(ni, hidden=600, latent=200)
+        enc, decoder, _, _ = build_i26(ni, _src, a, log=log)
+        apply_sign_prior(enc)
+    else:
+        enc, decoder, _, _, _ = build_model(a, ni, cnt)
     enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"]); enc.eval()
     for p in list(enc.parameters()) + list(decoder.parameters()):
         p.requires_grad_(False)

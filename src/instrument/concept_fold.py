@@ -83,16 +83,23 @@ class ConceptFoldNet(nn.Module):
     """Gated recursive fold-to-point over concept answers, composing with the frozen tower fold.
     Zero-init (delta final layer) => bit-exact no-op at init. Per-user norm cap (anti-saturation)."""
 
-    def __init__(self, nc, d=200, h=256, conc_init=None, init_scale=1.0):
+    def __init__(self, nc, d=200, h=256, conc_init=None, init_scale=1.0, use_refusal=False):
         super().__init__()
         self.nc, self.d = nc, d
+        # use_refusal (2026-08-03): a REFUSAL ("I don't know this concept") and a genuine MEH both carry
+        # v=0.0, because signed_for_pool zeroes the meh band. Without a separate marker the two are
+        # indistinguishable to this net, so the interview regime that feeds refusals could not teach the
+        # distinction it exists to teach. One extra input dimension separates them; the item tower solved
+        # the same problem for unseen items with a sentinel LEVEL rather than a sentinel value, because a
+        # sentinel value pollutes the value channel's geometry.
+        self.use_refusal = use_refusal
         self.emb = nn.Embedding(nc, d)
         if conc_init is not None:                            # whitened member centroids (July: LEARNED
             with torch.no_grad():                            # emb beats frozen; init from the geometry)
                 self.emb.weight.copy_(torch.as_tensor(conc_init, dtype=torch.float32) * init_scale)
         else:
             nn.init.normal_(self.emb.weight, std=0.02)
-        d_in = 2 * d + 1                                     # [z_run, p, v]
+        d_in = 2 * d + (2 if use_refusal else 1)             # [z_run, p, v] (+ refusal flag)
         self.gate = nn.Sequential(nn.Linear(d_in, h), nn.GELU(), nn.Linear(h, 1))
         self.mlp = nn.Sequential(nn.Linear(d_in, h), nn.GELU(), nn.Linear(h, d))
         nn.init.zeros_(self.mlp[-1].weight); nn.init.zeros_(self.mlp[-1].bias)   # no-op at init
@@ -104,12 +111,17 @@ class ConceptFoldNet(nn.Module):
         idx = sorted(range(len(cids)), key=lambda i: (-float(vals[i]), int(cids[i])))
         return [cids[i] for i in idx], [vals[i] for i in idx]
 
-    def forward(self, z_items, conc_ids, conc_vals):
+    def forward(self, z_items, conc_ids, conc_vals, conc_refs=None):
         """z_items: (B,d) frozen tower folds. conc_ids/vals: length-B lists of per-user answer lists.
+        conc_refs: matching 0/1 lists marking REFUSAL tokens ("asked, user could not answer"). Required
+        when the net was built with use_refusal=True, because a refusal and a genuine MEH both carry
+        v=0.0 and are otherwise indistinguishable.
         Returns (B,d). Sequential over the max answer count; users with fewer answers stop updating."""
         B = z_items.shape[0]
         z = z_items
         mmax = max((len(c) for c in conc_ids), default=0)
+        if self.use_refusal and conc_refs is None:
+            raise ValueError("net built with use_refusal=True but conc_refs was not supplied")
         for step in range(mmax):
             has = torch.tensor([len(conc_ids[r]) > step for r in range(B)])
             if not bool(has.any()):
@@ -118,7 +130,12 @@ class ConceptFoldNet(nn.Module):
             val = torch.tensor([float(conc_vals[r][step]) if len(conc_vals[r]) > step else 0.0
                                 for r in range(B)]).unsqueeze(1)
             p = self.emb(cid) * val
-            x = torch.cat([z, p, val], dim=1)
+            if self.use_refusal:
+                ref = torch.tensor([float(conc_refs[r][step]) if len(conc_refs[r]) > step else 0.0
+                                    for r in range(B)]).unsqueeze(1)
+                x = torch.cat([z, p, val, ref], dim=1)
+            else:
+                x = torch.cat([z, p, val], dim=1)
             g = torch.sigmoid(self.gate(x))
             delta = self.mlp(x)
             upd = g * delta * has.float().unsqueeze(1)
