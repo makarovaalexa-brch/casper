@@ -284,7 +284,7 @@ def main():
     tr = M.load_train(S["ni"], os.path.join(_ROOT, "data", "ml-25m", "proc"))
     head_mask, _ = compute_head_mask(tr, S["ni"])
 
-    banks = build_banks(S) if a.bank in ("entropy", "polar") else None
+    banks = build_banks(S) if a.bank in ("entropy", "polar", "expinfo") else None
     if a.arm_kind == "item":
         if a.bank in ("entropy", "polar"):
             item_rank = banks["item_entropy" if a.bank == "entropy" else "item_polar"]
@@ -300,9 +300,15 @@ def main():
                                     f"item_arm_{a.bank}_coldcheck.json"), "w"), indent=2)
         return
 
-    crank = (banks["conc_entropy"] if a.bank == "entropy" else
-             banks["conc_polar"] if a.bank == "polar" else
-             np.argsort(-mc) if a.bank == "pop" else None)
+    # EVERY named bank must resolve to a ranking. `expinfo` was missing here and fell through to
+    # crank=None, i.e. RANDOM draws, while still logging "bank=expinfo" -- so a run labelled with a
+    # ranked bank silently measured a different contract. Assert rather than trust the chain.
+    crank = {"entropy": lambda: banks["conc_entropy"],
+             "polar":   lambda: banks["conc_polar"],
+             "expinfo": lambda: banks["conc_expinfo"],
+             "pop":     lambda: np.argsort(-mc),
+             "random":  lambda: None}[a.bank]()
+    assert (crank is None) == (a.bank == "random"),         f"bank={a.bank} must resolve to a ranking; only 'random' may be unranked"
     log(f"building COLD interviews (zero items, bank={a.bank}, policy={a.policy}) ...")
     packs = cold_interviews(S, mc, n_users=a.n_users, policy=a.policy, rank=crank,
                             keep_meh=a.keep_meh)
