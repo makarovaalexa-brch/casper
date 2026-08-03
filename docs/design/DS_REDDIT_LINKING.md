@@ -68,6 +68,34 @@ OP-named items excluded at scoring.
   ML-25M. Ground truth = union of reply-suggested movies, OP-named excluded (crowd relevance —
   say so); secondary = OP acknowledgement via `is_submitter` (no LLM needed).
 
+## ★ ADAPTIVITY-ON-REDDIT PROTOCOL (author + Fable, 2026-08-04 early hours)
+The Reddit cell's thesis: real requests give users an INITIAL PLACEMENT; show adaptivity pays
+downstream of it. Two legs + a bridge:
+- **Leg 1 (dispersion, no answers needed):** fold each request into the certified tower; compute
+  the loss-optimal next question per thread; measure across-thread dispersion of that argmax.
+  Contrast with the (expected ≈0) dispersion under standard banks on ML-25M. Fully offline.
+- **Leg 2 (payoff, thread-revealed-preference oracle):** LLM pass extracts each OP's thread-wide
+  statements into typed slots (genre/era/tone/seen-X/constraints) = the ANSWER POOL. Answers come
+  ONLY from the OP's own words (behavioral firewall; reply-set GT stays quarantined for scoring).
+  TWO VARIANTS, run BOTH (author ruling):
+  1. **PRIMARY — pool-restricted, refusal-free:** both arms choose only from that thread's
+     available pool; budget counts answered questions only. Static = global priority order over
+     question types fitted on train threads, take highest-priority available; adaptive = choose
+     from pool by posterior placement, re-decide per answer. Isolates SELECTION given
+     answerability — the ML-25M SEL-firewall analogue. HEAVY CAVEATS to print: pool composition
+     is itself informative and shaped by what commenters happened to ask (selection bias); gains
+     conflate answer content with pool information; comparison is clean, absolutes are not.
+  2. **SECONDARY — unrestricted with refusals:** both arms ask anything; unanswered = refusal,
+     counts toward budget. Measures the answerability-targeting channel that variant 1
+     deliberately neutralizes. Sparse and noisy — report as the channel decomposition, never as
+     the headline.
+- **Bridge:** measure the dispersion real requests induce (leg 1), reproduce that dispersion on
+  ML-25M with constructed initial-evidence sets, run full adaptive-vs-static there with complete
+  behavioral answers. Claim shape: "real requests place users at dispersion X (ecological); at
+  dispersion X adaptivity buys Y (controlled)".
+- Sequencing: smoke trio (MostPop gate, copy-OP, tower request-fold) → leg 1 figure → ML-25M
+  matched-dispersion probe → oracle extraction pass → leg 2 both variants.
+
 ## Effort estimate
 Steps 1–3: ~2–3 days. Step 4–5: days once approved (batch size ~54k submissions + reply trees —
 cost estimate delivered with the approval request). Total 1–2 weeks, no external dependency.
