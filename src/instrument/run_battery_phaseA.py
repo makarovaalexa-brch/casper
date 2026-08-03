@@ -169,12 +169,24 @@ def build_real_ctx(snapshot, split="validation"):
     unique_uid, tr_set, vd_set, te_set, ntr, raw, show2id, usid = reproduce_partition()
     ctx.raw, ctx.tr_set, ctx.show2id = raw, tr_set, show2id      # stashed for strategy_ladder entropies
     # model from snapshot (i25 arm A)
-    a = argparse.Namespace(arch="i25", teacher="warm_init", t_hidden=600, t_latent=200, token="film",
+    # Architecture is INFERRED from the checkpoint rather than assumed. An i26 state dict carries the
+    # exposure-branch keys and cannot be loaded into an I25Encoder; assuming i25 here is what made every
+    # downstream concept script reject the certified ep31 tower (2026-08-03).
+    blob = torch.load(snapshot, map_location="cpu")
+    _arch = blob.get("arch", "i25")
+    a = argparse.Namespace(arch=_arch, teacher="warm_init", t_hidden=600, t_latent=200, token="film",
                            train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=3e-4,
                            warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
-    enc, decoder, teacher, params, groups = build_model(a, ctx.ni, cnt)
-    blob = torch.load(snapshot, map_location="cpu")
-    enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"])
+    if _arch == "i26":
+        from i26_encoder import build_i26
+        from train_tower_t2 import load_recvae_teacher, apply_sign_prior
+        _src = load_recvae_teacher(ctx.ni, hidden=600, latent=200)
+        enc, decoder, params, groups = build_i26(ctx.ni, _src, a, log=log)
+        apply_sign_prior(enc); teacher = None
+    else:
+        enc, decoder, teacher, params, groups = build_model(a, ctx.ni, cnt)
+    _miss = enc.load_state_dict(blob["enc"], strict=True)
+    decoder.load_state_dict(blob["decoder"])
     enc.eval(); ctx.enc, ctx.decoder = enc, decoder
     log(f"[ctx] snapshot loaded: {os.path.basename(snapshot)} ep={blob.get('epoch', '?')} "
         f"val_full={blob.get('val_full', float('nan')):.4f}")
