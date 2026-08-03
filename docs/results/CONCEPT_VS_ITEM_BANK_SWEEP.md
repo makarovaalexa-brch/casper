@@ -106,3 +106,38 @@ where it beats items on full. Under every other bank items win full comfortably.
   comparable. Both are ranked now; `--bank random` is retained but is concept-arm-only and non-comparable.
 - Tail must be scored on a head-deleted candidate list. Scoring it globally pins the no-evidence prior at
   exactly 0.0000 and produced the phantom "tail collapse" earlier the same day.
+
+---
+
+# Structural diagnostics (2026-08-03, `src/instrument/concept_diagnostics.py`, cv3 ep11)
+
+Three free measurements (no training) proposed by Fable to separate "weak fold" from "thin channel".
+**All three suspects CLEARED.**
+
+| diagnostic | result | verdict |
+|---|---|---|
+| D1 norm-cap binding | clipped 18.9% (m1) → 50.4% (m4) → **83.2% (m16)**; ‖U‖ mean 7.15 vs cap 3.61 | binds hard — but see below |
+| D2 gate self-throttling | per-step ‖g·delta‖ 1.607 → 0.721, decay **2.23×** (threshold 3×) | recursion OK, not throttling |
+| D3 oracle-z decoder ceiling | **0.9844 full / 0.9831 tail** | frozen decoder EXONERATED |
+
+**D1 follow-up — the cap is load-bearing, not a ceiling.** Raising it at test time (no retrain):
+
+| cap | m=8 full/tail | m=16 full/tail |
+|---|---|---|
+| 3.61 (trained) | **.1411**/.0619 | **.1451**/.0704 |
+| 7.22 (×2) | .1276/.0607 | .1303/**.0716** |
+| 14.44 (×4) | .1225/.0592 | .1196/.0695 |
+| uncapped | .1225/.0592 | .1196/.0695 |
+
+Full craters −.0148 at m=16 while tail gains +.0012. The net was trained *with* the cap, so its updates are
+calibrated to being clipped; removing it lets overshoot through. **83% clipping is the mechanism working,
+not a defect.** A small full/tail tradeoff lives in the cap; there is no free headroom.
+
+**Scoping consequence of D3.** The whole gap from .1451 to a ~0.98 attainable ceiling is input + fold —
+**none** of it is attributable to the frozen tower. That does not say the gap is recoverable (much of it is
+the intrinsic thinness of 16 genre-scale answers), but nothing downstream is structurally blocked.
+
+**Status of the architecture: CONVERGED under the current configuration; capacity, curriculum mixture and
+answer granularity UNABLATED.** Not "optimal" — nobody has evidence for that. Fable retracted its earlier
+"don't spend a run on capacity": flat NLL under a fresh-resampled curriculum proves *converged*, not
+*capacity-saturated*.
