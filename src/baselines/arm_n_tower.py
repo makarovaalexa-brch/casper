@@ -45,6 +45,10 @@ OUT = os.path.join(_ROOT, "experiments", "baselines", "arm_n")
 SNAP_DEFAULT = os.path.join(_ROOT, ".cache", "instrument", "t2final_best.pt")
 COLD_SEED = 4242
 BUDGETS = [2, 4, 8, 16]
+# Stored encoding is level+1 (0 == absent). Level 7 is the lowest star band the canonical binarisation
+# admits (r > 3.5) and the lowest whose signed value is a full +1.0 under the tower's sign prior, so it
+# is what "the system knows only that this was liked" folds. Levels 8/9 carry the same +1.0.
+LIKE_LEVEL = 8.0
 
 
 def logln(m):
@@ -71,6 +75,10 @@ def main():
                          "row is a LIKES-ONLY fold-in with no asked-but-unseen items, so the exposure "
                          "branch is inert on that row -- this measures the same quantity as the "
                          "certified 0.3482 and is directly comparable to it.")
+    ap.add_argument("--graded_ab", action="store_true",
+                    help="add the graded-vs-binarised full-profile A/B on identical support")
+    ap.add_argument("--expect", type=float, default=0.3482,
+                    help="certified arm-A full@10 for THIS checkpoint (i25 0.3482, i26c ep31 0.3496)")
     a = ap.parse_args()
 
     t0 = time.time()
@@ -122,9 +130,26 @@ def main():
               f"ndcg@100={r['ndcg@100']:.4f} ({(time.time() - ts) / 60:.1f} m)")
         return r
 
-    # Row 1: arm A reproduction. MUST snap to 0.3482 / 0.2462 -- proves the checkpoint and path are the
-    # ones that produced the chapter's number before anything else is believed.
+    # Row 1: arm A reproduction. MUST snap to the checkpoint's own certified number -- proves the
+    # checkpoint and path are the ones that produced the chapter's number before anything else is
+    # believed. --expect carries that number (0.3482 = old i25 tower, 0.3496 = certified i26c ep31).
     run("A_full", L_A, D["te_tr"])
+
+    # GRADED vs BINARISED, full profile, SAME SUPPORT. The chapter claims the intensity channel is worth
+    # nothing at full profile and earns its place only on the short interview. That claim was carried by
+    # numbers whose originating run could not be located in the logs (2026-08-03), so it is measured here
+    # rather than quoted. The binarised arm keeps the identical nonzero support and replaces every star
+    # level with a single "liked" level, which is what a system that only knows r>3.5 would fold.
+    if a.graded_ab:
+        L_bin = L_A.copy()
+        L_bin.data = np.full_like(L_bin.data, LIKE_LEVEL)
+        assert L_bin.nnz == L_A.nnz, "binarised arm must keep the identical support"
+        rg, rb = res["A_full"], run("A_full_binarised", L_bin, D["te_tr"])
+        logln(f"[graded_ab] graded {rg['ndcg@10']:.4f}/{rg['tail_ndcg@10']:.4f}  vs  "
+              f"binarised {rb['ndcg@10']:.4f}/{rb['tail_ndcg@10']:.4f}  "
+              f"diff full {rg['ndcg@10'] - rb['ndcg@10']:+.4f} tail "
+              f"{rg['tail_ndcg@10'] - rb['tail_ndcg@10']:+.4f} "
+              f"(identical support, {L_A.nnz} tokens; levels -> {LIKE_LEVEL})")
     # Row 2: the pool change alone, likes-only input. Isolates "what the fairer pool is worth".
     run("A_input_N_pool", L_A, D["pool"])
     # Row 3: the full arm-N contract.
@@ -134,8 +159,8 @@ def main():
         run(f"A_k{k}_N_pool", L_A, D["pool"], k=k)
         run(f"N_k{k}", L_N, D["pool"], k=k)
 
-    snap_ok = abs(res["A_full"]["ndcg@10"] - 0.3482) <= 1e-3
-    logln(f"[gate] SNAP arm-A full@10 {res['A_full']['ndcg@10']:.4f} vs chapter 0.3482 -> "
+    snap_ok = abs(res["A_full"]["ndcg@10"] - a.expect) <= 1e-3
+    logln(f"[gate] SNAP arm-A full@10 {res['A_full']['ndcg@10']:.4f} vs expected {a.expect:.4f} -> "
           f"{'PASS' if snap_ok else '*** FAIL -- stop, wrong checkpoint or path ***'}")
     with open(os.path.join(OUT, "tower.json"), "w") as f:
         json.dump({"snapshot": os.path.basename(a.snapshot), "snap_ok": bool(snap_ok),
