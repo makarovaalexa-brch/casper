@@ -1062,7 +1062,11 @@ combined      & $\mathbf{.1436}/\mathbf{.0323}$ & $.1504/\mathbf{.0434}$ & $.164
 \end{tabular}
 \caption{\textbf{Best static question sequences, one strategy-free criterion per bank.} Full/tail NDCG@10 at each
 budget, sequences built by lazy greedy on the $10{,}000$ validation users over a $500$-item and/or $500$-concept
-bank and scored once on the $10{,}000$ disjoint test users; no refusals; intercept $0.1279/0.0192$. The last
+bank and scored once on the $10{,}000$ disjoint test users; no refusals; intercept $0.1279/0.0192$.
+\REDO{This table is the one remaining result measured on the superseded tower and the superseded concept
+fold; the certified tower's intercept is $0.1277/0.0267$. The 2026-08-04 re-run on the certified pair
+reproduces the SHAPE on a cheaper protocol (concepts lead the opening on both metrics, items take full
+accuracy by $q{=}8$, concepts hold the tail) but the cells here are not yet the certified numbers.} The last
 column is the mean number of the first eight questions a user can actually answer. Bold marks the best bank in
 each column. For comparisons of this kind---two \emph{arms of the same model} over the same users, whose
 per-user differences are strongly correlated---paired bootstrap intervals on $10{,}000$ users have half-widths
