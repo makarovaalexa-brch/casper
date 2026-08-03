@@ -968,11 +968,26 @@ merge~\cite{antognini2021mmvae}; its successor adds an independent \emph{signed}
 positive/negative conditioning tokens, and reports that negative critiquing saturates after about five
 turns~\cite{antognini2022posneg}---a concrete ceiling for any signed-attribute channel, consistent with our own
 front-loaded concept curves. BK-VAE folds keyphrase-activation-vector directions by a Bayesian critiquing
-step~\cite{luo2021bkvae}; the gate/MLP of Eq.~\eqref{eq:cfold} is a per-token generalisation of FiLM
+step~\cite{yang2021bkvae}; the gate/MLP of Eq.~\eqref{eq:cfold} is a per-token generalisation of FiLM
 conditioning~\cite{perez2018film}, which a single global affine cannot do because it would apply the same modulation to
 item and concept tokens alike. And the decision to \emph{freeze} the tower rather than co-train a concept head is a
 direct reading of the cautionary result that a bolt-on critique head costs recommendation
-accuracy~\cite{luo2019deepcritiquing}. What none of these holds jointly---and what we are aware of no system holding---is
+accuracy~\cite{wu2019dlc,luo2020cevae}.
+
+\paragraph{The critiquing family looks channel-open and is not.} It is worth being precise here, because
+critiquing is the one line that appears to accept free-form input and therefore appears to satisfy R2. It does
+not: across the family the critique is defined as a \emph{one-hot indicator over a closed set}. DLC embeds a
+one-hot keyphrase~\cite{wu2019dlc}; LLC states that critiques ``are encoded as one-hot keyphrase
+indicators''~\cite{luo2020llc}; CE-VAE defines ``a one-hot vector with keyphrase length $s$''~\cite{luo2020cevae};
+M\&Ms-VAE uses ``a one-hot vector of length $|K|$''~\cite{antognini2021mmvae}; Bot Play accumulates over a fixed
+aspect set~\cite{li2021botplay}. The vocabularies are small---$40$ or $75$ keyphrases for catalogues of thousands
+of items. Where the representation is continuous, the continuity is \emph{downstream of an argmax}. The lineage is
+older than the neural work and has the same shape: FindMe's tweaks are fixed operations on a slot-value
+schema~\cite{burke1996findme}, and Chen and Pu's survey defines a unit critique as one that ``can only constrain
+over a single feature at a time''~\cite{chenpu2012critiquing}. The nearest counterexample is BCIE, whose critique
+is a knowledge-graph fact drawn from $\sim$$57$k entities and $46$ relations~\cite{toroghi2023bcie}---three orders
+of magnitude larger, and the right place to hedge R2's strength---but the fact must still be one the system
+surfaced. What none of these holds jointly---and what we are aware of no system holding---is
 the conjunction this channel occupies: \emph{continuous, out-of-catalogue concept directions} (a whitened centroid, or
 a text-adapter image, with no per-attribute probe to train), driven by a \emph{signed, exposure-corrected implicit
 affinity} (Eqs.~\eqref{eq:sel}--\eqref{eq:val}), folded over a \emph{frozen, certified full-profile SOTA tower}. The

@@ -157,20 +157,15 @@
   journal = {arXiv preprint arXiv:2204.02162},
   year    = {2022}}
 
-@inproceedings{luo2021bkvae,
-  title     = {Deep Critiquing for {VAE}-based Recommender Systems with Keyphrase Activation Vectors},
-  author    = {Luo, Kai and Yang, Hojin and Wu, Ga and Sanner, Scott},
-  booktitle = {Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)},
-  year      = {2021},
-  doi       = {10.1145/3404835.3463108}}
+% luo2021bkvae REMOVED 2026-08-03 (task #69) -- WRONG TITLE AND WRONG AUTHORS. It conflated BK-VAE
+% with the CE-VAE line. BK-VAE is "Bayesian Critiquing with Keyphrase Activation Vectors for VAE-based
+% Recommender Systems", Yang/Shen/Sanner, SIGIR 2021 -> now `yang2021bkvae` below. Printing this entry
+% would have misattributed the paper.
 
-@inproceedings{luo2019deepcritiquing,
-  title     = {Deep Language-based Critiquing for Recommender Systems},
-  author    = {Luo, Kai and Sanner, Scott and Wu, Ga and Li, Hanze and Yang, Hojin},
-  booktitle = {Proceedings of the 13th ACM Conference on Recommender Systems (RecSys)},
-  pages     = {137--145},
-  year      = {2019},
-  doi       = {10.1145/3298689.3347009}}
+% luo2019deepcritiquing REMOVED 2026-08-03 (task #69) -- CONFLATED TWO PAPERS. It carried DLC's title
+% and venue (RecSys'19) with an author list mixing DLC and the CE-VAE line, and was cited in the .tex
+% for a claim that spans both. Split into `wu2019dlc` (Wu/Luo/Sanner/Soh, RecSys 2019) and
+% `luo2020cevae` (Luo/Yang/Wu/Sanner, SIGIR 2020) below; the citation now names both.
 
 @inproceedings{perez2018film,
   title     = {{FiLM}: Visual Reasoning with a General Conditioning Layer},
@@ -263,3 +258,78 @@
 % elahi2016survey REMOVED 2026-08-03: duplicated ../references.bib, and the resulting BibTeX
 % "Repeated entry" error ABORTED the whole bibliography -- all 366 citations in the chapter were
 % rendering as [?]. If you re-add a reference here, check it is not already in the master file.
+
+% =====================================================================================
+% Critiquing lineage (added 2026-08-03, task #69). Source of record:
+%   external_literature/findings/critiquing_vocabulary_is_closed.md
+% These support the R2 claim that the one family which LOOKS like it takes free-form
+% input does not: every system below defines the critique as a one-hot over a closed set.
+%
+% VERIFICATION STATUS -- read before quoting any of these:
+%   * DLC (wu2019dlc): NO sentence from the paper itself has been verified. ACM 403s
+%     behind Cloudflare, unpaywall is_oa=false, no arXiv version. Everything we assert
+%     about DLC comes from the RELEASED CODE (the 40- and 75-keyphrase CSVs). DO NOT
+%     quote DLC prose; get the PDF through institutional access first.
+%   * BK-VAE (yang2021bkvae): vocabulary SIZE is UNVERIFIED and the recommendation-
+%     performance claim is from the ABSTRACT ONLY. No accessible PDF. Both cells are
+%     marked unquotable in the findings file; the mechanism description is provisional.
+% =====================================================================================
+
+@inproceedings{wu2019dlc,
+  title     = {Deep Language-based Critiquing for Recommender Systems},
+  author    = {Wu, Ga and Luo, Kai and Sanner, Scott and Soh, Harold},
+  booktitle = {Proceedings of the 13th ACM Conference on Recommender Systems (RecSys)},
+  pages     = {137--145},
+  year      = {2019},
+  doi       = {10.1145/3298689.3347009},
+  note      = {Code: \url{https://github.com/wuga214/DeepCritiquingForRecSys}}}
+
+@inproceedings{luo2020llc,
+  title     = {Latent Linear Critiquing for Conversational Recommender Systems},
+  author    = {Luo, Kai and Yang, Hojin and Wu, Ga and Sanner, Scott},
+  booktitle = {Proceedings of The Web Conference (WWW)},
+  year      = {2020},
+  doi       = {10.1145/3366423.3380003},
+  note      = {Code: \url{https://github.com/k9luo/LatentLinearCritiquingforConvRecSys}}}
+
+@inproceedings{luo2020cevae,
+  title     = {Deep Critiquing for VAE-based Recommender Systems},
+  author    = {Luo, Kai and Yang, Hojin and Wu, Ga and Sanner, Scott},
+  booktitle = {Proceedings of the 43rd International ACM SIGIR Conference on Research and
+               Development in Information Retrieval (SIGIR)},
+  year      = {2020},
+  doi       = {10.1145/3397271.3401091},
+  note      = {Code: \url{https://github.com/k9luo/DeepCritiquingForVAEBasedRecSys}}}
+
+@inproceedings{yang2021bkvae,
+  title     = {Bayesian Critiquing with Keyphrase Activation Vectors for VAE-based
+               Recommender Systems},
+  author    = {Yang, Hojin and Shen, Tianshu and Sanner, Scott},
+  booktitle = {Proceedings of the 44th International ACM SIGIR Conference on Research and
+               Development in Information Retrieval (SIGIR)},
+  year      = {2021},
+  doi       = {10.1145/3404835.3463108},
+  note      = {Code: \url{https://github.com/hojinYang/bayesian-critiquing-recommender}}}
+
+@article{li2021botplay,
+  title   = {Self-Supervised Bot Play for Conversational Recommendation with Justifications},
+  author  = {Li, Shuyang and Majumder, Bodhisattwa Prasad and McAuley, Julian},
+  journal = {arXiv preprint arXiv:2112.05197},
+  year    = {2021}}
+
+@inproceedings{burke1996findme,
+  title     = {Knowledge-based Navigation of Complex Information Spaces},
+  author    = {Burke, Robin D. and Hammond, Kristian J. and Young, Benjamin C.},
+  booktitle = {Proceedings of the Thirteenth National Conference on Artificial Intelligence (AAAI)},
+  pages     = {462--468},
+  year      = {1996}}
+
+@article{chenpu2012critiquing,
+  title   = {Critiquing-based recommenders: survey and emerging trends},
+  author  = {Chen, Li and Pu, Pearl},
+  journal = {User Modeling and User-Adapted Interaction},
+  volume  = {22},
+  number  = {1--2},
+  pages   = {125--150},
+  year    = {2012},
+  doi     = {10.1007/s11257-011-9108-6}}
