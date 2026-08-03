@@ -1,9 +1,19 @@
 # He-corpus census (`ZhankuiHe/reddit_movie_raw` + `…_large_v1`) — CENSUS phase, no LLM
 
 Executes steps 1–3 of `docs/design/DS_REDDIT_LINKING.md`. Run 2026-08-03.
-Scripts: `scripts/reddit/download_he.py`, `scripts/reddit/census_he.py`
-(`raw` / `v1` / `coverage` / `gold` phases). Machine-readable outputs:
-`data/reddit_he/census/*.json` (not committed — `data/reddit_he/` is gitignored).
+Reproduce (from `C:/dev/phd/casper`):
+
+```
+poetry run python scripts/reddit/download_he.py --which raw
+poetry run python scripts/reddit/download_he.py --which v1_large
+poetry run python scripts/reddit/census_he.py raw
+poetry run python scripts/reddit/census_he.py v1
+poetry run python scripts/reddit/census_he.py gold       # also dumps v1 thread ids
+poetry run python scripts/reddit/census_he.py coverage    # needs the gold pass first
+```
+
+Machine-readable outputs: `data/reddit_he/census/{raw_census,v1_census,v1_coverage,
+gold_sample_summary}.json` (not committed — `data/reddit_he/` was added to `.gitignore`).
 
 **No LLM call was made. No Reddit API call was made** — everything below comes from the
 public Hugging Face release. Nothing was sampled, capped or truncated in any count: all
@@ -144,11 +154,12 @@ averaged away. Measured variants:
 | `reddit_cikm` train split (21,032) | 48.51% | 65.46% |
 
 The Jul-31 pair "61.3% distinct / 75.1% mentions" sits exactly on the `reddit_cikm`
-**benchmark subset** (valid 60.26%/74.97%, test 63.87%/74.00%) — the CIKM'23 release, which
-applies a popularity/frequency cut to the item vocabulary before releasing it. Over the full
-V1 corpus the same catalogue covers only 28.6% of the *types* while still covering 74.6% of
-the *tokens*: the un-covered 35,741 tconsts are overwhelmingly long-tail, non-film, or
-post-2019 entries. **Practical read: the mention-level number (~75%) is the one that governs
+**benchmark subset** (valid 60.26%/74.97%, test 63.87%/74.00%) — the CIKM'23 release, whose
+item vocabulary is far smaller than V1's (7,413 in test, 21,032 in train, vs 50,075) and
+therefore much better covered. Over the full V1 corpus the same catalogue covers only 28.6%
+of the *types* while still covering 74.6% of the *tokens*: the 35,741 uncovered tconsts are
+long-tail and post-2019 titles (all of them are IMDb `titleType=='movie'` — see §4 — so the
+gap is genuinely catalogue coverage, not junk ids). **Practical read: the mention-level number (~75%) is the one that governs
 ground-truth retention and it is stable across every slice (73.6–75.5%); the distinct-item
 number is only interpretable against a stated vocabulary.**
 
@@ -161,7 +172,22 @@ be tested on this corpus.
 
 ## 4. How good is their entity linking?
 
-**Coverage.**
+**Coverage.** Joining V1 thread ids back to the raw dump (sanity control: the per-subreddit
+kept-counts sum to 58,623, exactly the V1 thread total):
+
+| file | raw threads | kept in V1 | % kept | kept ≤2017 |
+|---|---|---|---|---|
+| bestofnetflix | 6,105 | 1,492 | 24.4 | **0** |
+| movies | 19,690 | 8,077 | 41.0 | **0** |
+| moviesuggestions | 54,546 | 42,901 | 78.7 | (no pre-2019 data) |
+| netflixbestof | 10,136 | 5,980 | 59.0 | **0** |
+| truefilm | 308 | 173 | 56.2 | **0** |
+| **all** | **90,785** | **58,623** | **64.6** | **0** |
+
+r/MovieSuggestions supplies **73.2% of all V1 threads**. 2018 is partial in every file
+(157/441, 460/1,206, 340/763, 1/10) consistent with the 2018-06-29 start; every year before
+that is kept at exactly zero.
+
 - V1 keeps **58,623 of the 90,785 raw threads (64.6%)**, and none from before mid-2018.
 - **99.87% of V1 threads (58,544)** carry ≥1 link; **73.67% of V1 turns (715,482 of 971,185)**
   carry ≥1 link, 255,703 turns carry none.
@@ -172,13 +198,31 @@ be tested on this corpus.
   (`movie_info_bot` and kin), which V1 drops. This is a usable, zero-cost precision anchor
   for validating any future linker.
 
-**Quality.** Their pipeline is gazetteer string matching, and its failure mode is
-over-linking common words as titles. It is visible in the released benchmark itself — e.g. a
-`reddit_cikm` test record where the ordinary word *"Movie"* is linked to `tt1040023`
-("Movie (2007)"), producing a spurious recommendation target; the same record links it twice.
-The surface-span audit over the whole corpus (below, §7) quantifies how common this class is.
-Note also He et al.'s own disclaimer: *"processing is not perfect… we do observe some failure
-cases"*, and the explicit invitation to build a V2.
+**Quality.** Their pipeline is gazetteer string matching (`IMDB-database/clean.py`:
+`titleType=='movie'`, runtime 60–360 min → 355,749 candidate titles), and its failure mode is
+over-linking. Two deterministic checks:
+
+*Type check passes trivially.* All 51,203 ids in `id2name.json` are in the movie gazetteer —
+100% are IMDb `titleType=='movie'`. So type filtering catches nothing; the errors are all
+*wrong-entity*, not *wrong-type*.
+
+*Surface-span audit* (all 949,067 alignable mentions in large-V1, spans recovered by diffing
+`processed` against `raw`; 100,365 distinct spans). The top-60 spans by frequency contain
+unmistakable false-positive classes:
+- **platform / generic nouns**: `netflix` (2,173 mentions), `dark` (2,517 — the adjective in
+  "dark thriller"), `mother`, `drive`, `arrival`, `prisoners`, `alien`, `the thing`,
+  `about time`, `good time`, `coherence`;
+- **TV series matched to same-titled films**: `breaking bad`, `black mirror`, `ozark`,
+  `mindhunter`, `the office`, `stranger things`, `the good place`, `the oa` — each linked to
+  an IMDb *movie* with that title, so the type check cannot see them.
+
+Two worked examples from the shipped data: a `reddit_cikm` test record links the ordinary
+word *"Movie"* to `tt1040023` ("Movie (2007)"), twice, creating a spurious recommendation
+target; a 2018 large-V1 comment links the genre phrase *"True Crime"* to `tt0139668`
+(Eastwood's *True Crime*). Note also He et al.'s own disclaimer: *"processing is not
+perfect… we do observe some failure cases"*, and the explicit invitation to build a V2.
+
+No precision/recall number is claimed here — that is exactly what the gold set in §7 is for.
 
 **Verdict (c).** Their linking is good enough for a *coverage* claim and useless as a
 *precision* claim. A re-linking pass is still needed — but the census changes its shape and
@@ -241,14 +285,32 @@ distinction cleanly, so the Eberhard OP-exclusion protocol is directly implement
 `data/reddit_he/gold_sample_unlabeled.csv` — **300 mentions**, stratified over
 year × mention-context, context ∈ {`request` (seeker, turn 0), `seeker_followup` (seeker,
 later turn), `reply` (non-seeker)}. Reservoir sampling, seed 98765, over **every** alignable
-mention in large-V1 (no pre-filtering of the population). Columns: `thread_id`, `turn_id`,
+mention in large-V1 whose surface span could be recovered unambiguously (see the note on the
+sampling frame below). Columns: `thread_id`, `turn_id`,
 `user_hash` (sha256[:12]), `year`, `context`, `he_tconst` (their link, to be judged),
 `mention_span`, `sentence`, and an **empty** `label_tconst_or_NONE`.
 
 **It is unlabelled by construction — no LLM and no guessing was applied.** Label it before
 looking at any linker output, per step 3 of the design sheet.
 
-GOLD_PLACEHOLDER
+Population and allocation (15 non-empty strata = 5 years × 3 contexts, 20 mentions each):
+
+| year | request | seeker_followup | reply |
+|---|---|---|---|
+| 2018 | 1,493 | 904 | 16,438 |
+| 2019 | 9,439 | 6,122 | 135,583 |
+| 2020 | 23,222 | 15,635 | 297,045 |
+| 2021 | 21,797 | 8,291 | 149,249 |
+| 2022 | 27,060 | 10,587 | 226,202 |
+
+Population total **949,067 alignable mentions** (of 1,355,236 linked mentions; the 30% gap is
+mentions whose surface span the word-level diff could not isolate unambiguously — e.g. two
+tconsts inside one replaced run. This affects the *sampling frame* for hand labelling only,
+not any count in §1–§6, and it is deliberately conservative: ambiguous alignments are
+excluded rather than guessed). Equal allocation over-samples `request` and
+`seeker_followup` relative to their natural frequency — that is intended: those are the
+contexts the ruler conditions on, and the 2018 cells are otherwise too thin to estimate.
+Reweight to the population column when reporting a corpus-level precision.
 
 ---
 
