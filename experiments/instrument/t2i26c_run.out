@@ -1,122 +1,231 @@
-[09:25:52] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
-[09:25:52] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
-[09:25:52] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
-[09:25:57] [i26] 136768 train / 4000 held-out profiles from the TRAIN cohort
-[09:25:57] [i26] regime mixture SET to full=0.3 interview=0.6 k0=0.05 k1=0.05
-[09:25:58] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
-[09:25:58] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
-[09:25:58] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
-[09:25:58] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
-[09:25:58] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
-[09:25:58] [i26] INIT=recvae: taste path left at build_i26's RecVAE-derived init. Provenance chain is RecVAE -> i26, ONE hop from a published anchor; t2final_best.pt is NOT read.
-[09:25:59] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
-[09:26:14] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
-[09:26:32] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
-[09:26:47] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
-[09:27:12] [i26] val interview oracle: 1356475 rated cells over 10000 val users
-[09:27:12] [i26] references MEASURED on val/arm-A: MostPop=0.1326 (empty-set floor); full-profile floor=0.3436 (certified val 0.3451 - CI 0.0015)
-[09:45:47] [i26] ep 1 TRAIN full=5.4556 interview=6.8041 empty=7.9197 | HELD-OUT full=5.3848 interview=6.6398 empty=7.4782
-[09:45:47] [i26] ep 1 SELECT sel=0.1338 (k2=0.1266 k8=0.1410) | COST full=0.3302/0.2474 | k0=0.1302 k1=0.1550 (monotone PASS) | 18.6m   [all VAL cohort]
-[09:45:47] [i26] saved t2i26c_ep01.pt (sel=0.1338 full=0.3302)
-[09:45:47] [i26] new best SHORT-INTERVIEW sel=0.1338 (full-profile cost 0.3302) -> t2i26c_best.pt (atomic)
-[09:45:47] [i26] ep 1 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3302 < 0.3436), IMPROVING +0.0000; G-EMPTY below floor (0.1302 < 0.13258885812726418)
-[10:04:13] [i26] ep 2 TRAIN full=5.4387 interview=6.6280 empty=7.2397 | HELD-OUT full=5.4227 interview=6.6089 empty=6.9575
-[10:04:13] [i26] ep 2 SELECT sel=0.1320 (k2=0.1272 k8=0.1369) | COST full=0.3333/0.2449 | k0=0.1305 k1=0.1521 (monotone PASS) | 37.0m   [all VAL cohort]
-[10:04:13] [i26] saved t2i26c_ep02.pt (sel=0.1320 full=0.3333)
-[10:04:13] [i26] ep 2 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3333 < 0.3436), IMPROVING +0.0031; G-EMPTY below floor (0.1305 < 0.13258885812726418)
-[10:22:49] [i26] ep 3 TRAIN full=5.4271 interview=6.6306 empty=6.9154 | HELD-OUT full=5.3895 interview=6.6128 empty=6.7478
-[10:22:49] [i26] ep 3 SELECT sel=0.1334 (k2=0.1280 k8=0.1388) | COST full=0.3436/0.2474 | k0=0.1307 k1=0.1519 (monotone PASS) | 55.6m   [all VAL cohort]
-[10:22:49] [i26] saved t2i26c_ep03.pt (sel=0.1334 full=0.3436)
-[10:22:49] [i26] ep 3 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1307 < 0.13258885812726418)
-[10:42:03] [i26] ep 4 TRAIN full=5.4030 interview=6.6251 empty=6.7694 | HELD-OUT full=5.3866 interview=6.5759 empty=6.6978
-[10:42:03] [i26] ep 4 SELECT sel=0.1337 (k2=0.1291 k8=0.1383) | COST full=0.3446/0.2480 | k0=0.1308 k1=0.1521 (monotone PASS) | 74.8m   [all VAL cohort]
-[10:42:03] [i26] saved t2i26c_ep04.pt (sel=0.1337 full=0.3446)
-[10:42:03] [i26] ep 4 GATE FLAGS (reporting only, run CONTINUES): short-interview not improving for 3 epochs (best 0.1338); G-EMPTY below floor (0.1308 < 0.13258885812726418)
-[11:00:08] [i26] ep 5 TRAIN full=5.3971 interview=6.5946 empty=6.6990 | HELD-OUT full=5.4183 interview=6.5864 empty=6.6261
-[11:00:08] [i26] ep 5 SELECT sel=0.1325 (k2=0.1280 k8=0.1371) | COST full=0.3434/0.2473 | k0=0.1308 k1=0.1526 (monotone PASS) | 92.9m   [all VAL cohort]
-[11:00:08] [i26] saved t2i26c_ep05.pt (sel=0.1325 full=0.3434)
-[11:00:08] [i26] ep 5 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3434 < 0.3436), flat/falling -0.0012; short-interview not improving for 3 epochs (best 0.1338); G-EMPTY below floor (0.1308 < 0.13258885812726418)
-[11:19:03] [i26] ep 6 TRAIN full=5.4111 interview=6.5959 empty=6.7064 | HELD-OUT full=5.4132 interview=6.5551 empty=6.6217
-[11:19:03] [i26] ep 6 SELECT sel=0.1332 (k2=0.1287 k8=0.1377) | COST full=0.3482/0.2492 | k0=0.1308 k1=0.1527 (monotone PASS) | 111.8m   [all VAL cohort]
-[11:19:03] [i26] saved t2i26c_ep06.pt (sel=0.1332 full=0.3482)
-[11:19:03] [i26] ep 6 GATE FLAGS (reporting only, run CONTINUES): short-interview not improving for 3 epochs (best 0.1338); G-EMPTY below floor (0.1308 < 0.13258885812726418)
-[11:37:41] [i26] ep 7 TRAIN full=5.3997 interview=6.5781 empty=6.6756 | HELD-OUT full=5.3942 interview=6.5547 empty=6.6018
-[11:37:41] [i26] ep 7 SELECT sel=0.1328 (k2=0.1289 k8=0.1367) | COST full=0.3450/0.2480 | k0=0.1311 k1=0.1527 (monotone PASS) | 130.5m   [all VAL cohort]
-[11:37:41] [i26] saved t2i26c_ep07.pt (sel=0.1328 full=0.3450)
-[11:37:41] [i26] ep 7 GATE FLAGS (reporting only, run CONTINUES): short-interview not improving for 3 epochs (best 0.1338); G-EMPTY below floor (0.1311 < 0.13258885812726418)
-[11:55:31] [i26] ep 8 TRAIN full=5.4385 interview=6.5552 empty=6.6704 | HELD-OUT full=5.4035 interview=6.5596 empty=6.5659
-[11:55:31] [i26] ep 8 SELECT sel=0.1327 (k2=0.1289 k8=0.1364) | COST full=0.3470/0.2485 | k0=0.1312 k1=0.1529 (monotone PASS) | 148.3m   [all VAL cohort]
-[11:55:31] [i26] saved t2i26c_ep08.pt (sel=0.1327 full=0.3470)
-[11:55:31] [i26] ep 8 GATE FLAGS (reporting only, run CONTINUES): short-interview not improving for 3 epochs (best 0.1338); G-EMPTY below floor (0.1312 < 0.13258885812726418)
-[12:14:54] [i26] ep 9 TRAIN full=5.4271 interview=6.5547 empty=6.6497 | HELD-OUT full=5.3839 interview=6.5541 empty=6.5608
-[12:14:54] [i26] ep 9 SELECT sel=0.1330 (k2=0.1284 k8=0.1375) | COST full=0.3415/0.2454 | k0=0.1311 k1=0.1534 (monotone PASS) | 167.7m   [all VAL cohort]
-[12:14:54] [i26] saved t2i26c_ep09.pt (sel=0.1330 full=0.3415)
-[12:14:54] [i26] ep 9 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3415 < 0.3436), flat/falling -0.0055; short-interview not improving for 3 epochs (best 0.1338); G-EMPTY below floor (0.1311 < 0.13258885812726418)
-[12:33:10] [i26] ep10 TRAIN full=5.4194 interview=6.5575 empty=6.6112 | HELD-OUT full=5.3948 interview=6.5416 empty=6.5578
-[12:33:10] [i26] ep10 SELECT sel=0.1337 (k2=0.1296 k8=0.1379) | COST full=0.3407/0.2463 | k0=0.1313 k1=0.1537 (monotone PASS) | 186.0m   [all VAL cohort]
-[12:33:10] [i26] saved t2i26c_ep10.pt (sel=0.1337 full=0.3407)
-[12:33:10] [i26] ep10 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3407 < 0.3436), flat/falling -0.0008; short-interview not improving for 3 epochs (best 0.1338); G-EMPTY below floor (0.1313 < 0.13258885812726418)
-[12:51:10] [i26] ep11 TRAIN full=5.4106 interview=6.5681 empty=6.6395 | HELD-OUT full=5.3798 interview=6.5456 empty=6.5853
-[12:51:10] [i26] ep11 SELECT sel=0.1338 (k2=0.1292 k8=0.1383) | COST full=0.3384/0.2442 | k0=0.1311 k1=0.1541 (monotone PASS) | 204.0m   [all VAL cohort]
-[12:51:10] [i26] saved t2i26c_ep11.pt (sel=0.1338 full=0.3384)
-[12:51:10] [i26] ep11 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3384 < 0.3436), flat/falling -0.0023; short-interview not improving for 3 epochs (best 0.1338); G-EMPTY below floor (0.1311 < 0.13258885812726418)
-[13:08:55] [i26] ep12 TRAIN full=5.3954 interview=6.5585 empty=6.6015 | HELD-OUT full=5.3976 interview=6.5492 empty=6.5454
-[13:08:55] [i26] ep12 SELECT sel=0.1339 (k2=0.1295 k8=0.1382) | COST full=0.3353/0.2433 | k0=0.1309 k1=0.1546 (monotone PASS) | 221.7m   [all VAL cohort]
-[13:08:55] [i26] saved t2i26c_ep12.pt (sel=0.1339 full=0.3353)
-[13:08:55] [i26] new best SHORT-INTERVIEW sel=0.1339 (full-profile cost 0.3353) -> t2i26c_best.pt (atomic)
-[13:08:55] [i26] ep12 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3353 < 0.3436), flat/falling -0.0031; G-EMPTY below floor (0.1309 < 0.13258885812726418)
-[13:27:56] [i26] ep13 TRAIN full=5.3879 interview=6.5798 empty=6.6011 | HELD-OUT full=5.3767 interview=6.5497 empty=6.5653
-[13:27:56] [i26] ep13 SELECT sel=0.1346 (k2=0.1301 k8=0.1391) | COST full=0.3445/0.2473 | k0=0.1312 k1=0.1546 (monotone PASS) | 240.7m   [all VAL cohort]
-[13:27:56] [i26] saved t2i26c_ep13.pt (sel=0.1346 full=0.3445)
-[13:27:56] [i26] new best SHORT-INTERVIEW sel=0.1346 (full-profile cost 0.3445) -> t2i26c_best.pt (atomic)
-[13:27:56] [i26] ep13 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1312 < 0.13258885812726418)
-[13:46:00] [i26] ep14 TRAIN full=5.4072 interview=6.5440 empty=6.6404 | HELD-OUT full=5.4118 interview=6.5351 empty=6.5482
-[13:46:00] [i26] ep14 SELECT sel=0.1336 (k2=0.1292 k8=0.1379) | COST full=0.3414/0.2455 | k0=0.1312 k1=0.1549 (monotone PASS) | 258.8m   [all VAL cohort]
-[13:46:00] [i26] saved t2i26c_ep14.pt (sel=0.1336 full=0.3414)
-[13:46:00] [i26] ep14 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3414 < 0.3436), flat/falling -0.0031; G-EMPTY below floor (0.1312 < 0.13258885812726418)
-[14:03:51] [i26] ep15 TRAIN full=5.3934 interview=6.5371 empty=6.6418 | HELD-OUT full=5.3838 interview=6.5258 empty=6.5554
-[14:03:51] [i26] ep15 SELECT sel=0.1336 (k2=0.1289 k8=0.1382) | COST full=0.3385/0.2446 | k0=0.1313 k1=0.1555 (monotone PASS) | 276.6m   [all VAL cohort]
-[14:03:51] [i26] saved t2i26c_ep15.pt (sel=0.1336 full=0.3385)
-[14:03:51] [i26] ep15 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3385 < 0.3436), flat/falling -0.0030; G-EMPTY below floor (0.1313 < 0.13258885812726418)
-[14:23:05] [i26] ep16 TRAIN full=5.3978 interview=6.5593 empty=6.5918 | HELD-OUT full=5.3695 interview=6.5331 empty=6.5414
-[14:23:05] [i26] ep16 SELECT sel=0.1348 (k2=0.1298 k8=0.1397) | COST full=0.3403/0.2468 | k0=0.1314 k1=0.1555 (monotone PASS) | 295.9m   [all VAL cohort]
-[14:23:05] [i26] saved t2i26c_ep16.pt (sel=0.1348 full=0.3403)
-[14:23:05] [i26] new best SHORT-INTERVIEW sel=0.1348 (full-profile cost 0.3403) -> t2i26c_best.pt (atomic)
-[14:23:05] [i26] ep16 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3403 < 0.3436), IMPROVING +0.0018; G-EMPTY below floor (0.1314 < 0.13258885812726418)
-[14:41:32] [i26] ep17 TRAIN full=5.4226 interview=6.5570 empty=6.6050 | HELD-OUT full=5.3588 interview=6.5336 empty=6.5555
-[14:41:32] [i26] ep17 SELECT sel=0.1354 (k2=0.1299 k8=0.1409) | COST full=0.3448/0.2479 | k0=0.1313 k1=0.1560 (monotone PASS) | 314.3m   [all VAL cohort]
-[14:41:32] [i26] saved t2i26c_ep17.pt (sel=0.1354 full=0.3448)
-[14:41:32] [i26] new best SHORT-INTERVIEW sel=0.1354 (full-profile cost 0.3448) -> t2i26c_best.pt (atomic)
-[14:41:32] [i26] ep17 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1313 < 0.13258885812726418)
-[15:01:01] [i26] ep18 TRAIN full=5.3783 interview=6.5590 empty=6.5887 | HELD-OUT full=5.3855 interview=6.5221 empty=6.5577
-[15:01:01] [i26] ep18 SELECT sel=0.1347 (k2=0.1300 k8=0.1394) | COST full=0.3422/0.2465 | k0=0.1313 k1=0.1568 (monotone PASS) | 333.8m   [all VAL cohort]
-[15:01:01] [i26] saved t2i26c_ep18.pt (sel=0.1347 full=0.3422)
-[15:01:01] [i26] ep18 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3422 < 0.3436), flat/falling -0.0026; G-EMPTY below floor (0.1313 < 0.13258885812726418)
-[15:19:37] [i26] ep19 TRAIN full=5.4073 interview=6.5523 empty=6.5939 | HELD-OUT full=5.3866 interview=6.5359 empty=6.5200
-[15:19:37] [i26] ep19 SELECT sel=0.1358 (k2=0.1304 k8=0.1411) | COST full=0.3454/0.2486 | k0=0.1312 k1=0.1570 (monotone PASS) | 352.4m   [all VAL cohort]
-[15:19:37] [i26] saved t2i26c_ep19.pt (sel=0.1358 full=0.3454)
-[15:19:37] [i26] new best SHORT-INTERVIEW sel=0.1358 (full-profile cost 0.3454) -> t2i26c_best.pt (atomic)
-[15:19:37] [i26] ep19 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1312 < 0.13258885812726418)
-[15:37:20] [i26] ep20 TRAIN full=5.4064 interview=6.5223 empty=6.5598 | HELD-OUT full=5.3644 interview=6.5188 empty=6.5407
-[15:37:20] [i26] ep20 SELECT sel=0.1354 (k2=0.1301 k8=0.1407) | COST full=0.3449/0.2485 | k0=0.1312 k1=0.1574 (monotone PASS) | 370.1m   [all VAL cohort]
-[15:37:20] [i26] saved t2i26c_ep20.pt (sel=0.1354 full=0.3449)
-[15:37:20] [i26] ep20 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1312 < 0.13258885812726418)
-[16:03:59] [i26] ep21 TRAIN full=5.4247 interview=6.5385 empty=6.5769 | HELD-OUT full=5.4010 interview=6.5262 empty=6.5242
-[16:03:59] [i26] ep21 SELECT sel=0.1361 (k2=0.1298 k8=0.1424) | COST full=0.3391/0.2461 | k0=0.1311 k1=0.1575 (monotone PASS) | 396.8m   [all VAL cohort]
-[16:03:59] [i26] saved t2i26c_ep21.pt (sel=0.1361 full=0.3391)
-[16:03:59] [i26] new best SHORT-INTERVIEW sel=0.1361 (full-profile cost 0.3391) -> t2i26c_best.pt (atomic)
-[16:03:59] [i26] ep21 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3391 < 0.3436), flat/falling -0.0058; G-EMPTY below floor (0.1311 < 0.13258885812726418)
-[16:24:02] [i26] ep22 TRAIN full=5.3863 interview=6.5344 empty=6.5973 | HELD-OUT full=5.3608 interview=6.5317 empty=6.5360
-[16:24:02] [i26] ep22 SELECT sel=0.1360 (k2=0.1298 k8=0.1422) | COST full=0.3452/0.2476 | k0=0.1311 k1=0.1581 (monotone PASS) | 416.8m   [all VAL cohort]
-[16:24:02] [i26] saved t2i26c_ep22.pt (sel=0.1360 full=0.3452)
-[16:24:02] [i26] ep22 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1311 < 0.13258885812726418)
-[16:45:10] [i26] ep23 TRAIN full=5.4144 interview=6.5310 empty=6.5681 | HELD-OUT full=5.3823 interview=6.5037 empty=6.5357
-[16:45:10] [i26] ep23 SELECT sel=0.1358 (k2=0.1299 k8=0.1417) | COST full=0.3470/0.2488 | k0=0.1310 k1=0.1583 (monotone PASS) | 438.0m   [all VAL cohort]
-[16:45:10] [i26] saved t2i26c_ep23.pt (sel=0.1358 full=0.3470)
-[16:45:10] [i26] ep23 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1310 < 0.13258885812726418)
-[17:03:57] [i26] ep24 TRAIN full=5.3861 interview=6.5659 empty=6.5833 | HELD-OUT full=5.4029 interview=6.5076 empty=6.5486
-[17:03:57] [i26] ep24 SELECT sel=0.1365 (k2=0.1304 k8=0.1425) | COST full=0.3422/0.2473 | k0=0.1309 k1=0.1588 (monotone PASS) | 456.7m   [all VAL cohort]
-[17:03:57] [i26] saved t2i26c_ep24.pt (sel=0.1365 full=0.3422)
-[17:03:57] [i26] new best SHORT-INTERVIEW sel=0.1365 (full-profile cost 0.3422) -> t2i26c_best.pt (atomic)
-[17:03:57] [i26] ep24 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3422 < 0.3436), flat/falling -0.0048; G-EMPTY below floor (0.1309 < 0.13258885812726418)
-[17:03:57] [i26] done. best short-interview sel=0.1365 @ep24
+[22:14:51] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[22:14:51] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[22:14:51] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[22:14:56] [i26] 136768 train / 4000 held-out profiles from the TRAIN cohort
+[22:14:57] [i26] dense-set sampler: rare-title weighting cnt^-0.5
+[22:14:57] [i26] regime mixture SET to full=0.25 DENSE-SMALL=0.3 interview=0.35 k0=0.05 k1=0.05
+[22:14:58] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[22:14:58] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[22:14:58] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[22:14:58] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[22:14:58] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[22:14:58] [i26] INIT=recvae: taste path left at build_i26's RecVAE-derived init. Provenance chain is RecVAE -> i26, ONE hop from a published anchor; t2final_best.pt is NOT read.
+[22:15:00] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[22:15:14] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[22:15:33] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[22:15:47] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[22:16:12] [i26] val interview oracle: 1356475 rated cells over 10000 val users
+[22:16:12] [i26] references MEASURED on val/arm-A: MostPop=0.1326 (empty-set floor); full-profile floor=0.3436 (certified val 0.3451 - CI 0.0015)
+[22:53:29] [i26] ep 1 TRAIN full=5.7224 interview=6.8007 empty=7.2912 | HELD-OUT full=5.6900 interview=6.7256 empty=6.8367
+[22:53:29] [i26] ep 1 SELECT sel=0.1349 (k2=0.1286 k8=0.1411) | COST full=0.3406/0.2482 | k0=0.1307 k1=0.1537 (monotone PASS) | 37.3m   [all VAL cohort]
+[22:53:29] [i26] saved t2i26c_ep01.pt (sel=0.1349 full=0.3406)
+[22:53:29] [i26] new best SHORT-INTERVIEW sel=0.1349 (full-profile cost 0.3406) -> t2i26c_best.pt (atomic)
+[22:53:29] [i26] ep 1 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3406 < 0.3436), IMPROVING +0.0000; G-EMPTY below floor (0.1307 < 0.13258885812726418)
+[23:36:31] [i26] ep 2 TRAIN full=5.6984 interview=6.6680 empty=6.7673 | HELD-OUT full=5.6691 interview=6.6891 empty=6.6758
+[23:36:31] [i26] ep 2 SELECT sel=0.1351 (k2=0.1284 k8=0.1417) | COST full=0.3410/0.2471 | k0=0.1312 k1=0.1529 (monotone PASS) | 80.3m   [all VAL cohort]
+[23:36:31] [i26] saved t2i26c_ep02.pt (sel=0.1351 full=0.3410)
+[23:36:31] [i26] new best SHORT-INTERVIEW sel=0.1351 (full-profile cost 0.3410) -> t2i26c_best.pt (atomic)
+[23:36:31] [i26] ep 2 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3410 < 0.3436), IMPROVING +0.0004; G-EMPTY below floor (0.1312 < 0.13258885812726418)
+[00:16:05] [i26] ep 3 TRAIN full=5.6937 interview=6.6401 empty=6.6741 | HELD-OUT full=5.6645 interview=6.6753 empty=6.5846
+[00:16:05] [i26] ep 3 SELECT sel=0.1346 (k2=0.1284 k8=0.1408) | COST full=0.3464/0.2489 | k0=0.1312 k1=0.1528 (monotone PASS) | 119.9m   [all VAL cohort]
+[00:16:05] [i26] saved t2i26c_ep03.pt (sel=0.1346 full=0.3464)
+[00:16:05] [i26] ep 3 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1312 < 0.13258885812726418)
+[00:48:45] [i26] ep 4 TRAIN full=5.6893 interview=6.6002 empty=6.6310 | HELD-OUT full=5.6643 interview=6.6364 empty=6.5880
+[00:48:45] [i26] ep 4 SELECT sel=0.1339 (k2=0.1282 k8=0.1396) | COST full=0.3426/0.2472 | k0=0.1312 k1=0.1528 (monotone PASS) | 152.5m   [all VAL cohort]
+[00:48:45] [i26] saved t2i26c_ep04.pt (sel=0.1339 full=0.3426)
+[00:48:45] [i26] ep 4 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3426 < 0.3436), flat/falling -0.0039; G-EMPTY below floor (0.1312 < 0.13258885812726418)
+[01:23:14] [i26] ep 5 TRAIN full=5.6831 interview=6.5806 empty=6.5955 | HELD-OUT full=5.6621 interview=6.6240 empty=6.5766
+[01:23:14] [i26] ep 5 SELECT sel=0.1348 (k2=0.1285 k8=0.1412) | COST full=0.3459/0.2479 | k0=0.1313 k1=0.1535 (monotone PASS) | 187.0m   [all VAL cohort]
+[01:23:14] [i26] saved t2i26c_ep05.pt (sel=0.1348 full=0.3459)
+[01:23:14] [i26] ep 5 GATE FLAGS (reporting only, run CONTINUES): short-interview not improving for 3 epochs (best 0.1351); G-EMPTY below floor (0.1313 < 0.13258885812726418)
+[01:56:44] [i26] ep 6 TRAIN full=5.6880 interview=6.5819 empty=6.5894 | HELD-OUT full=5.6605 interview=6.6130 empty=6.5562
+[01:56:44] [i26] ep 6 SELECT sel=0.1357 (k2=0.1299 k8=0.1414) | COST full=0.3479/0.2487 | k0=0.1312 k1=0.1538 (monotone PASS) | 220.5m   [all VAL cohort]
+[01:56:44] [i26] saved t2i26c_ep06.pt (sel=0.1357 full=0.3479)
+[01:56:44] [i26] new best SHORT-INTERVIEW sel=0.1357 (full-profile cost 0.3479) -> t2i26c_best.pt (atomic)
+[01:56:44] [i26] ep 6 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1312 < 0.13258885812726418)
+[02:30:05] [i26] ep 7 TRAIN full=5.6875 interview=6.5370 empty=6.5646 | HELD-OUT full=5.6526 interview=6.6161 empty=6.5513
+[02:30:05] [i26] ep 7 SELECT sel=0.1354 (k2=0.1297 k8=0.1411) | COST full=0.3430/0.2458 | k0=0.1312 k1=0.1546 (monotone PASS) | 253.9m   [all VAL cohort]
+[02:30:05] [i26] saved t2i26c_ep07.pt (sel=0.1354 full=0.3430)
+[02:30:05] [i26] ep 7 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3430 < 0.3436), flat/falling -0.0049; G-EMPTY below floor (0.1312 < 0.13258885812726418)
+[03:04:17] [i26] ep 8 TRAIN full=5.6882 interview=6.5497 empty=6.5691 | HELD-OUT full=5.6429 interview=6.6091 empty=6.5642
+[03:04:17] [i26] ep 8 SELECT sel=0.1361 (k2=0.1297 k8=0.1425) | COST full=0.3429/0.2478 | k0=0.1312 k1=0.1551 (monotone PASS) | 288.1m   [all VAL cohort]
+[03:04:17] [i26] saved t2i26c_ep08.pt (sel=0.1361 full=0.3429)
+[03:04:17] [i26] new best SHORT-INTERVIEW sel=0.1361 (full-profile cost 0.3429) -> t2i26c_best.pt (atomic)
+[03:04:17] [i26] ep 8 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3429 < 0.3436), flat/falling -0.0000; G-EMPTY below floor (0.1312 < 0.13258885812726418)
+[03:36:27] [i26] ep 9 TRAIN full=5.6651 interview=6.5311 empty=6.5861 | HELD-OUT full=5.6505 interview=6.5868 empty=6.5355
+[03:36:27] [i26] ep 9 SELECT sel=0.1363 (k2=0.1298 k8=0.1428) | COST full=0.3442/0.2474 | k0=0.1312 k1=0.1565 (monotone PASS) | 320.2m   [all VAL cohort]
+[03:36:27] [i26] saved t2i26c_ep09.pt (sel=0.1363 full=0.3442)
+[03:36:27] [i26] new best SHORT-INTERVIEW sel=0.1363 (full-profile cost 0.3442) -> t2i26c_best.pt (atomic)
+[03:36:27] [i26] ep 9 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1312 < 0.13258885812726418)
+[04:09:59] [i26] ep10 TRAIN full=5.6629 interview=6.5414 empty=6.5727 | HELD-OUT full=5.6461 interview=6.5929 empty=6.5415
+[04:09:59] [i26] ep10 SELECT sel=0.1369 (k2=0.1296 k8=0.1442) | COST full=0.3454/0.2479 | k0=0.1314 k1=0.1577 (monotone PASS) | 353.8m   [all VAL cohort]
+[04:09:59] [i26] saved t2i26c_ep10.pt (sel=0.1369 full=0.3454)
+[04:09:59] [i26] new best SHORT-INTERVIEW sel=0.1369 (full-profile cost 0.3454) -> t2i26c_best.pt (atomic)
+[04:09:59] [i26] ep10 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1314 < 0.13258885812726418)
+[04:42:56] [i26] ep11 TRAIN full=5.6663 interview=6.5605 empty=6.5517 | HELD-OUT full=5.6490 interview=6.5940 empty=6.5211
+[04:42:56] [i26] ep11 SELECT sel=0.1363 (k2=0.1288 k8=0.1437) | COST full=0.3415/0.2462 | k0=0.1311 k1=0.1588 (monotone PASS) | 386.7m   [all VAL cohort]
+[04:42:56] [i26] saved t2i26c_ep11.pt (sel=0.1363 full=0.3415)
+[04:42:56] [i26] ep11 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3415 < 0.3436), flat/falling -0.0039; G-EMPTY below floor (0.1311 < 0.13258885812726418)
+[05:15:49] [i26] ep12 TRAIN full=5.6563 interview=6.5411 empty=6.5419 | HELD-OUT full=5.6403 interview=6.5947 empty=6.5373
+[05:15:49] [i26] ep12 SELECT sel=0.1369 (k2=0.1295 k8=0.1444) | COST full=0.3333/0.2453 | k0=0.1310 k1=0.1597 (monotone PASS) | 419.6m   [all VAL cohort]
+[05:15:49] [i26] saved t2i26c_ep12.pt (sel=0.1369 full=0.3333)
+[05:15:49] [i26] new best SHORT-INTERVIEW sel=0.1369 (full-profile cost 0.3333) -> t2i26c_best.pt (atomic)
+[05:15:49] [i26] ep12 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3333 < 0.3436), flat/falling -0.0082; G-EMPTY below floor (0.1310 < 0.13258885812726418)
+[05:47:42] [i26] ep13 TRAIN full=5.6424 interview=6.5505 empty=6.5311 | HELD-OUT full=5.6539 interview=6.5691 empty=6.5299
+[05:47:42] [i26] ep13 SELECT sel=0.1369 (k2=0.1301 k8=0.1437) | COST full=0.3345/0.2439 | k0=0.1307 k1=0.1606 (monotone PASS) | 451.5m   [all VAL cohort]
+[05:47:43] [i26] saved t2i26c_ep13.pt (sel=0.1369 full=0.3345)
+[05:47:43] [i26] ep13 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3345 < 0.3436), IMPROVING +0.0012; G-EMPTY below floor (0.1307 < 0.13258885812726418)
+[06:19:22] [i26] ep14 TRAIN full=5.6297 interview=6.5429 empty=6.5592 | HELD-OUT full=5.6355 interview=6.5757 empty=6.5126
+[06:19:22] [i26] ep14 SELECT sel=0.1376 (k2=0.1299 k8=0.1452) | COST full=0.3370/0.2447 | k0=0.1309 k1=0.1607 (monotone PASS) | 483.2m   [all VAL cohort]
+[06:19:22] [i26] saved t2i26c_ep14.pt (sel=0.1376 full=0.3370)
+[06:19:22] [i26] new best SHORT-INTERVIEW sel=0.1376 (full-profile cost 0.3370) -> t2i26c_best.pt (atomic)
+[06:19:22] [i26] ep14 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3370 < 0.3436), IMPROVING +0.0026; G-EMPTY below floor (0.1309 < 0.13258885812726418)
+[06:52:59] [i26] ep15 TRAIN full=5.6370 interview=6.5293 empty=6.4969 | HELD-OUT full=5.6384 interview=6.5698 empty=6.5182
+[06:52:59] [i26] ep15 SELECT sel=0.1366 (k2=0.1291 k8=0.1441) | COST full=0.3459/0.2487 | k0=0.1306 k1=0.1612 (monotone PASS) | 516.8m   [all VAL cohort]
+[06:52:59] [i26] saved t2i26c_ep15.pt (sel=0.1366 full=0.3459)
+[06:52:59] [i26] ep15 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1306 < 0.13258885812726418)
+[07:25:05] [i26] ep16 TRAIN full=5.6474 interview=6.5191 empty=6.5436 | HELD-OUT full=5.6374 interview=6.5727 empty=6.5160
+[07:25:05] [i26] ep16 SELECT sel=0.1380 (k2=0.1300 k8=0.1459) | COST full=0.3407/0.2472 | k0=0.1306 k1=0.1620 (monotone PASS) | 548.9m   [all VAL cohort]
+[07:25:05] [i26] saved t2i26c_ep16.pt (sel=0.1380 full=0.3407)
+[07:25:05] [i26] new best SHORT-INTERVIEW sel=0.1380 (full-profile cost 0.3407) -> t2i26c_best.pt (atomic)
+[07:25:05] [i26] ep16 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3407 < 0.3436), flat/falling -0.0052; G-EMPTY below floor (0.1306 < 0.13258885812726418)
+[07:57:42] [i26] ep17 TRAIN full=5.6570 interview=6.5360 empty=6.5513 | HELD-OUT full=5.6388 interview=6.6005 empty=6.4863
+[07:57:42] [i26] ep17 SELECT sel=0.1380 (k2=0.1299 k8=0.1461) | COST full=0.3457/0.2476 | k0=0.1305 k1=0.1624 (monotone PASS) | 581.5m   [all VAL cohort]
+[07:57:42] [i26] saved t2i26c_ep17.pt (sel=0.1380 full=0.3457)
+[07:57:42] [i26] new best SHORT-INTERVIEW sel=0.1380 (full-profile cost 0.3457) -> t2i26c_best.pt (atomic)
+[07:57:42] [i26] ep17 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1305 < 0.13258885812726418)
+[08:30:23] [i26] ep18 TRAIN full=5.6338 interview=6.4909 empty=6.5516 | HELD-OUT full=5.6262 interview=6.5671 empty=6.5230
+[08:30:23] [i26] ep18 SELECT sel=0.1385 (k2=0.1302 k8=0.1469) | COST full=0.3424/0.2475 | k0=0.1305 k1=0.1626 (monotone PASS) | 614.2m   [all VAL cohort]
+[08:30:23] [i26] saved t2i26c_ep18.pt (sel=0.1385 full=0.3424)
+[08:30:23] [i26] new best SHORT-INTERVIEW sel=0.1385 (full-profile cost 0.3424) -> t2i26c_best.pt (atomic)
+[08:30:23] [i26] ep18 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3424 < 0.3436), flat/falling -0.0033; G-EMPTY below floor (0.1305 < 0.13258885812726418)
+[09:04:10] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[09:04:11] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[09:04:11] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[09:04:16] [i26] 136768 train / 4000 held-out profiles from the TRAIN cohort
+[09:04:16] [i26] dense-set sampler: rare-title weighting cnt^-0.5
+[09:04:16] [i26] regime mixture SET to full=0.25 DENSE-SMALL=0.3 interview=0.35 k0=0.05 k1=0.05
+[09:04:17] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[09:04:17] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[09:04:17] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[09:04:17] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[09:04:17] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[09:04:17] [i26] INIT=recvae: taste path left at build_i26's RecVAE-derived init. Provenance chain is RecVAE -> i26, ONE hop from a published anchor; t2final_best.pt is NOT read.
+[09:04:19] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[09:04:34] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[09:04:53] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[09:05:08] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[09:05:32] [i26] val interview oracle: 1356475 rated cells over 10000 val users
+[09:05:32] [i26] references MEASURED on val/arm-A: MostPop=0.1326 (empty-set floor); full-profile floor=0.3436 (certified val 0.3451 - CI 0.0015)
+[09:05:32] [i26] RESUMED from t2i26c_last.pt at epoch 19 (best val_full=0.1385 @ep18)
+[09:40:44] [i26] ep19 TRAIN full=5.6285 interview=6.5296 empty=6.5326 | HELD-OUT full=5.6235 interview=6.5757 empty=6.5069
+[09:40:44] [i26] ep19 SELECT sel=0.1392 (k2=0.1301 k8=0.1482) | COST full=0.3405/0.2460 | k0=0.1305 k1=0.1628 (monotone PASS) | 35.2m   [all VAL cohort]
+[09:40:44] [i26] saved t2i26c_ep19.pt (sel=0.1392 full=0.3405)
+[09:40:44] [i26] new best SHORT-INTERVIEW sel=0.1392 (full-profile cost 0.3405) -> t2i26c_best.pt (atomic)
+[09:40:44] [i26] ep19 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3405 < 0.3436), flat/falling -0.0018; G-EMPTY below floor (0.1305 < 0.13258885812726418)
+[10:25:03] [i26] ep20 TRAIN full=5.6329 interview=6.5298 empty=6.5337 | HELD-OUT full=5.6325 interview=6.5497 empty=6.5179
+[10:25:03] [i26] ep20 SELECT sel=0.1379 (k2=0.1301 k8=0.1457) | COST full=0.3457/0.2479 | k0=0.1307 k1=0.1631 (monotone PASS) | 79.5m   [all VAL cohort]
+[10:25:03] [i26] saved t2i26c_ep20.pt (sel=0.1379 full=0.3457)
+[10:25:03] [i26] ep20 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1307 < 0.13258885812726418)
+[11:25:27] [i26] ep21 TRAIN full=5.6342 interview=6.5163 empty=6.5296 | HELD-OUT full=5.6280 interview=6.5608 empty=6.5140
+[11:25:27] [i26] ep21 SELECT sel=0.1378 (k2=0.1295 k8=0.1461) | COST full=0.3391/0.2470 | k0=0.1304 k1=0.1633 (monotone PASS) | 139.9m   [all VAL cohort]
+[11:25:27] [i26] saved t2i26c_ep21.pt (sel=0.1378 full=0.3391)
+[11:25:27] [i26] ep21 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3391 < 0.3436), flat/falling -0.0066; G-EMPTY below floor (0.1304 < 0.13258885812726418)
+[12:07:36] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[12:07:36] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[12:07:36] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[12:07:44] [i26] 136768 train / 4000 held-out profiles from the TRAIN cohort
+[12:07:45] [i26] dense-set sampler: rare-title weighting cnt^-0.5
+[12:07:45] [i26] regime mixture SET to full=0.25 DENSE-SMALL=0.3 interview=0.35 k0=0.05 k1=0.05
+[12:07:46] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[12:07:47] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[12:07:47] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[12:07:47] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[12:07:47] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[12:07:47] [i26] INIT=recvae: taste path left at build_i26's RecVAE-derived init. Provenance chain is RecVAE -> i26, ONE hop from a published anchor; t2final_best.pt is NOT read.
+[12:07:51] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[12:08:12] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[12:08:39] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[12:08:59] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[12:09:35] [i26] val interview oracle: 1356475 rated cells over 10000 val users
+[12:09:35] [i26] references MEASURED on val/arm-A: MostPop=0.1326 (empty-set floor); full-profile floor=0.3436 (certified val 0.3451 - CI 0.0015)
+[12:09:35] [i26] RESUMED from t2i26c_last.pt at epoch 22 (best val_full=0.1392 @ep19)
+[12:49:48] [i26] ep22 TRAIN full=5.6298 interview=6.5329 empty=6.5203 | HELD-OUT full=5.6161 interview=6.5661 empty=6.4942
+[12:49:48] [i26] ep22 SELECT sel=0.1399 (k2=0.1309 k8=0.1488) | COST full=0.3443/0.2487 | k0=0.1305 k1=0.1633 (monotone PASS) | 40.2m   [all VAL cohort]
+[12:49:48] [i26] saved t2i26c_ep22.pt (sel=0.1399 full=0.3443)
+[12:49:48] [i26] new best SHORT-INTERVIEW sel=0.1399 (full-profile cost 0.3443) -> t2i26c_best.pt (atomic)
+[12:49:48] [i26] ep22 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1305 < 0.13258885812726418)
+[13:21:02] [i26] ep23 TRAIN full=5.6281 interview=6.4981 empty=6.5586 | HELD-OUT full=5.6220 interview=6.5551 empty=6.4840
+[13:21:02] [i26] ep23 SELECT sel=0.1389 (k2=0.1303 k8=0.1474) | COST full=0.3442/0.2473 | k0=0.1304 k1=0.1636 (monotone PASS) | 71.4m   [all VAL cohort]
+[13:21:02] [i26] saved t2i26c_ep23.pt (sel=0.1389 full=0.3442)
+[13:21:02] [i26] ep23 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1304 < 0.13258885812726418)
+[13:51:13] [i26] ep24 TRAIN full=5.6292 interview=6.5384 empty=6.5254 | HELD-OUT full=5.6178 interview=6.5643 empty=6.4829
+[13:51:13] [i26] ep24 SELECT sel=0.1401 (k2=0.1305 k8=0.1497) | COST full=0.3433/0.2474 | k0=0.1303 k1=0.1639 (monotone PASS) | 101.6m   [all VAL cohort]
+[13:51:13] [i26] saved t2i26c_ep24.pt (sel=0.1401 full=0.3433)
+[13:51:13] [i26] new best SHORT-INTERVIEW sel=0.1401 (full-profile cost 0.3433) -> t2i26c_best.pt (atomic)
+[13:51:13] [i26] ep24 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3433 < 0.3436), flat/falling -0.0010; G-EMPTY below floor (0.1303 < 0.13258885812726418)
+[14:23:47] [i26] ep25 TRAIN full=5.6362 interview=6.5061 empty=6.5314 | HELD-OUT full=5.6154 interview=6.5614 empty=6.4773
+[14:23:47] [i26] ep25 SELECT sel=0.1395 (k2=0.1303 k8=0.1486) | COST full=0.3439/0.2477 | k0=0.1302 k1=0.1638 (monotone PASS) | 134.2m   [all VAL cohort]
+[14:23:47] [i26] saved t2i26c_ep25.pt (sel=0.1395 full=0.3439)
+[14:23:47] [i26] ep25 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1302 < 0.13258885812726418)
+[14:56:18] [i26] ep26 TRAIN full=5.6299 interview=6.5223 empty=6.5391 | HELD-OUT full=5.6347 interview=6.5588 empty=6.4840
+[14:56:18] [i26] ep26 SELECT sel=0.1394 (k2=0.1305 k8=0.1483) | COST full=0.3435/0.2467 | k0=0.1302 k1=0.1641 (monotone PASS) | 166.7m   [all VAL cohort]
+[14:56:18] [i26] saved t2i26c_ep26.pt (sel=0.1394 full=0.3435)
+[14:56:18] [i26] ep26 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3435 < 0.3436), flat/falling -0.0004; G-EMPTY below floor (0.1302 < 0.13258885812726418)
+[15:27:34] [i26] ep27 TRAIN full=5.6325 interview=6.4833 empty=6.5186 | HELD-OUT full=5.6176 interview=6.5384 empty=6.5050
+[15:27:34] [i26] ep27 SELECT sel=0.1395 (k2=0.1301 k8=0.1490) | COST full=0.3385/0.2451 | k0=0.1301 k1=0.1644 (monotone PASS) | 198.0m   [all VAL cohort]
+[15:27:34] [i26] saved t2i26c_ep27.pt (sel=0.1395 full=0.3385)
+[15:27:34] [i26] ep27 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3385 < 0.3436), flat/falling -0.0050; short-interview not improving for 3 epochs (best 0.1401); G-EMPTY below floor (0.1301 < 0.13258885812726418)
+[16:00:31] [i26] ep28 TRAIN full=5.6372 interview=6.5097 empty=6.4900 | HELD-OUT full=5.6149 interview=6.5739 empty=6.4769
+[16:00:31] [i26] ep28 SELECT sel=0.1405 (k2=0.1304 k8=0.1506) | COST full=0.3433/0.2472 | k0=0.1300 k1=0.1645 (monotone PASS) | 230.9m   [all VAL cohort]
+[16:00:31] [i26] saved t2i26c_ep28.pt (sel=0.1405 full=0.3433)
+[16:00:31] [i26] new best SHORT-INTERVIEW sel=0.1405 (full-profile cost 0.3433) -> t2i26c_best.pt (atomic)
+[16:00:31] [i26] ep28 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3433 < 0.3436), IMPROVING +0.0048; G-EMPTY below floor (0.1300 < 0.13258885812726418)
+[16:38:33] [i26] ep29 TRAIN full=5.6272 interview=6.5110 empty=6.5376 | HELD-OUT full=5.6127 interview=6.5566 empty=6.4674
+[16:38:33] [i26] ep29 SELECT sel=0.1384 (k2=0.1293 k8=0.1476) | COST full=0.3441/0.2482 | k0=0.1299 k1=0.1645 (monotone PASS) | 269.0m   [all VAL cohort]
+[16:38:33] [i26] saved t2i26c_ep29.pt (sel=0.1384 full=0.3441)
+[16:38:33] [i26] ep29 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1299 < 0.13258885812726418)
+[17:42:30] [i26] ep30 TRAIN full=5.6153 interview=6.5179 empty=6.5255 | HELD-OUT full=5.6076 interview=6.5658 empty=6.4548
+[17:42:30] [i26] ep30 SELECT sel=0.1408 (k2=0.1308 k8=0.1507) | COST full=0.3427/0.2469 | k0=0.1299 k1=0.1647 (monotone PASS) | 332.9m   [all VAL cohort]
+[17:42:30] [i26] saved t2i26c_ep30.pt (sel=0.1408 full=0.3427)
+[17:42:30] [i26] new best SHORT-INTERVIEW sel=0.1408 (full-profile cost 0.3427) -> t2i26c_best.pt (atomic)
+[17:42:30] [i26] ep30 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3427 < 0.3436), flat/falling -0.0014; G-EMPTY below floor (0.1299 < 0.13258885812726418)
+[18:41:44] [i26] ep31 TRAIN full=5.6275 interview=6.5211 empty=6.4856 | HELD-OUT full=5.6079 interview=6.5649 empty=6.4473
+[18:41:44] [i26] ep31 SELECT sel=0.1407 (k2=0.1309 k8=0.1504) | COST full=0.3466/0.2485 | k0=0.1299 k1=0.1645 (monotone PASS) | 392.1m   [all VAL cohort]
+[18:41:44] [i26] saved t2i26c_ep31.pt (sel=0.1407 full=0.3466)
+[18:41:44] [i26] ep31 GATE FLAGS (reporting only, run CONTINUES): G-EMPTY below floor (0.1299 < 0.13258885812726418)
+[19:49:41] [i26] ep32 TRAIN full=5.6088 interview=6.4887 empty=6.4842 | HELD-OUT full=5.6052 interview=6.5521 empty=6.4775
+[19:49:41] [i26] ep32 SELECT sel=0.1402 (k2=0.1309 k8=0.1495) | COST full=0.3391/0.2456 | k0=0.1301 k1=0.1647 (monotone PASS) | 460.1m   [all VAL cohort]
+[19:49:41] [i26] saved t2i26c_ep32.pt (sel=0.1402 full=0.3391)
+[19:49:41] [i26] ep32 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3391 < 0.3436), flat/falling -0.0075; G-EMPTY below floor (0.1301 < 0.13258885812726418)
+[19:51:32] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[19:51:32] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[19:51:32] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[19:51:37] [i26] 136768 train / 4000 held-out profiles from the TRAIN cohort
+[19:51:38] [i26] dense-set sampler: rare-title weighting cnt^-0.5
+[19:51:38] [i26] regime mixture SET to full=0.25 DENSE-SMALL=0.3 interview=0.35 k0=0.05 k1=0.05
+[19:51:38] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:51:39] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[19:51:39] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[19:51:39] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[19:51:39] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:51:39] [i26] INIT=recvae: taste path left at build_i26's RecVAE-derived init. Provenance chain is RecVAE -> i26, ONE hop from a published anchor; t2final_best.pt is NOT read.
+[19:51:40] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[19:51:56] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[19:52:16] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[19:52:31] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[19:52:57] [i26] val interview oracle: 1356475 rated cells over 10000 val users
+[19:52:57] [i26] references MEASURED on val/arm-A: MostPop=0.1326 (empty-set floor); full-profile floor=0.3436 (certified val 0.3451 - CI 0.0015)
+[19:52:57] [i26] RESUMED from t2i26c_last.pt at epoch 33 (best val_full=0.1408 @ep30)
+[20:25:08] [i26] ep33 TRAIN full=5.6207 interview=6.5202 empty=6.5088 | HELD-OUT full=5.6179 interview=6.5374 empty=6.4527
+[20:25:08] [i26] ep33 SELECT sel=0.1403 (k2=0.1307 k8=0.1499) | COST full=0.3441/0.2480 | k0=0.1300 k1=0.1646 (monotone PASS) | 32.2m   [all VAL cohort]
+[20:25:08] [i26] saved t2i26c_ep33.pt (sel=0.1403 full=0.3441)
+[20:25:08] [i26] ep33 GATE FLAGS (reporting only, run CONTINUES): short-interview not improving for 3 epochs (best 0.1408); G-EMPTY below floor (0.1300 < 0.13258885812726418)
+[20:56:24] [i26] ep34 TRAIN full=5.6108 interview=6.5102 empty=6.5213 | HELD-OUT full=5.6005 interview=6.5446 empty=6.4519
+[20:56:24] [i26] ep34 SELECT sel=0.1402 (k2=0.1310 k8=0.1494) | COST full=0.3383/0.2448 | k0=0.1301 k1=0.1653 (monotone PASS) | 63.4m   [all VAL cohort]
+[20:56:24] [i26] saved t2i26c_ep34.pt (sel=0.1402 full=0.3383)
+[20:56:24] [i26] ep34 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3383 < 0.3436), flat/falling -0.0058; short-interview not improving for 3 epochs (best 0.1408); G-EMPTY below floor (0.1301 < 0.13258885812726418)
+[21:27:47] [i26] ep35 TRAIN full=5.6419 interview=6.4938 empty=6.4865 | HELD-OUT full=5.6109 interview=6.5495 empty=6.4550
+[21:27:47] [i26] ep35 SELECT sel=0.1402 (k2=0.1311 k8=0.1493) | COST full=0.3368/0.2453 | k0=0.1300 k1=0.1652 (monotone PASS) | 94.8m   [all VAL cohort]
+[21:27:47] [i26] saved t2i26c_ep35.pt (sel=0.1402 full=0.3368)
+[21:27:47] [i26] ep35 GATE FLAGS (reporting only, run CONTINUES): G-FULL below floor (0.3368 < 0.3436), flat/falling -0.0015; short-interview not improving for 3 epochs (best 0.1408); G-EMPTY below floor (0.1300 < 0.13258885812726418)

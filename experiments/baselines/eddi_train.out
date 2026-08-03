@@ -1,0 +1,48 @@
+[eddi] ep  1 loss 606.5419 anneal 0.001 val 0.1596 10.5m
+[eddi] ep  2 loss 571.1580 anneal 0.003 val 0.1947 16.2m
+[eddi] ep  3 loss 562.6875 anneal 0.004 val 0.1934 22.5m
+[eddi] ep  4 loss 561.6998 anneal 0.006 val 0.1980 32.7m
+[eddi] ep  5 loss 560.7970 anneal 0.007 val 0.1970 48.2m
+[eddi] ep  6 loss 556.8671 anneal 0.008 val 0.2069 63.7m
+[eddi] ep  7 loss 555.9341 anneal 0.010 val 0.2045 77.9m
+[eddi] ep  8 loss 555.1402 anneal 0.011 val 0.2053 92.4m
+[eddi] ep  9 loss 554.2383 anneal 0.013 val 0.2001 106.7m
+[eddi] ep 10 loss 553.6712 anneal 0.014 val 0.2049 121.3m
+[eddi] ep 11 loss 554.2278 anneal 0.016 val 0.2038 130.0m
+[eddi] ep 12 loss 554.1593 anneal 0.017 val 0.2041 135.2m
+[eddi] ep 13 loss 553.7838 anneal 0.018 val 0.2072 140.5m
+[eddi] ep 14 loss 553.4785 anneal 0.020 val 0.2034 145.8m
+[eddi] ep 15 loss 553.4962 anneal 0.021 val 0.2073 151.2m
+[eddi] ep 16 loss 553.3686 anneal 0.023 val 0.2090 156.6m
+[eddi] ep 17 loss 553.5653 anneal 0.024 val 0.2011 161.9m
+[eddi] ep 18 loss 554.5269 anneal 0.025 val 0.2061 167.4m
+[eddi] ep 19 loss 554.7072 anneal 0.027 val 0.2093 172.8m
+[eddi] ep 20 loss 554.0120 anneal 0.028 val 0.2076 178.2m
+[eddi] ep 21 loss 553.4597 anneal 0.030 val 0.2084 183.6m
+[eddi] ep 22 loss 553.5023 anneal 0.031 val 0.2079 189.1m
+[eddi] ep 23 loss 553.2305 anneal 0.032 val 0.2084 194.5m
+[eddi] ep 24 loss 553.1840 anneal 0.034 val 0.2072 200.0m
+[eddi] ep 25 loss 552.8449 anneal 0.035 val 0.2096 205.4m
+[eddi] ep 26 loss 553.0433 anneal 0.037 val 0.2088 210.9m
+[eddi] ep 27 loss 552.8745 anneal 0.038 val 0.2097 216.3m
+[eddi] ep 28 loss 552.4953 anneal 0.039 val 0.2080 221.7m
+[eddi] ep 29 loss 552.3560 anneal 0.041 val 0.2094 227.2m
+[eddi] ep 30 loss 551.8862 anneal 0.042 val 0.2090 232.6m
+[eddi] ep 31 loss 551.5239 anneal 0.044 val 0.2120 238.0m
+[eddi] ep 32 loss 551.7346 anneal 0.045 val 0.2089 243.5m
+[eddi] ep 33 loss 551.6776 anneal 0.047 val 0.2104 249.0m
+[eddi] ep 34 loss 551.4968 anneal 0.048 val 0.2090 254.4m
+[eddi] ep 35 loss 551.4060 anneal 0.049 val 0.2084 259.9m
+[eddi] ep 36 loss 551.8697 anneal 0.051 val 0.2078 265.4m
+[eddi] ep 37 loss 551.9438 anneal 0.052 val 0.2063 270.8m
+[eddi] ep 38 loss 551.9146 anneal 0.054 val 0.2109 276.3m
+[eddi] ep 39 loss 551.6944 anneal 0.055 val 0.2108 281.8m
+[eddi] ep 40 loss 551.6172 anneal 0.056 val 0.2108 287.3m
+[eddi] ep 41 loss 551.5549 anneal 0.058 val 0.2087 292.8m
+[eddi] ep 42 loss 551.8155 anneal 0.059 val 0.2058 298.2m
+[eddi] ep 43 loss 552.6222 anneal 0.061 val 0.2078 303.7m
+[eddi] wall budget 300.0m hit @ep43; re-run to resume
+[eddi] test full@10=0.2153 tail@10=0.1077
+[eddi] RESUMED ep43 best=0.2120
+[eddi] RESUMED ep43 best=0.2120
+[eddi] ep 44 loss 552.7740 anneal 0.062 val 0.2067 8.1m

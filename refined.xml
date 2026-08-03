@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/UNJFdEt622Q7Bv2iaXrb4ZmhFO8</id>
+  <title>arXiv Query: search_query=abs:"ReFinED"&amp;id_list=&amp;start=0&amp;max_results=5</title>
+  <updated>2026-07-31T15:14:39Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=abs:%22ReFinED%22&amp;start=0&amp;max_results=5&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>5</opensearch:itemsPerPage>
+  <opensearch:totalResults>54013</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/1111.0525v1</id>
+    <title>Refined Hopf Link Revisited</title>
+    <updated>2011-11-02T15:08:54Z</updated>
+    <link href="https://arxiv.org/abs/1111.0525v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/1111.0525v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We establish a relation between the refined Hopf link invariant and the S-matrix of the refined Chern-Simons theory. We show that the refined open string partition function corresponding to the Hopf link, calculated using the refined topological vertex, when expressed in the basis of Macdonald polynomials gives the S-matrix of the refined Chern-Simons theory.</summary>
+    <category term="hep-th" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2011-11-02T15:08:54Z</published>
+    <arxiv:comment>17 pages</arxiv:comment>
+    <arxiv:primary_category term="hep-th"/>
+    <author>
+      <name>Amer Iqbal</name>
+    </author>
+    <author>
+      <name>Can Kozçaz</name>
+    </author>
+    <arxiv:doi>10.1007/JHEP04(2012)046</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1007/JHEP04(2012)046" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1202.4456v1</id>
+    <title>Orientifolds and the Refined Topological String</title>
+    <updated>2012-02-20T21:00:04Z</updated>
+    <link href="https://arxiv.org/abs/1202.4456v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/1202.4456v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We study refined topological string theory in the presence of orientifolds by counting second-quantized BPS states in M-theory. This leads us to propose a new integrality condition for both refined and unrefined topological strings when orientifolds are present. We define the SO(2N) refined Chern-Simons theory which computes refined open string amplitudes for branes wrapping Seifert three-manifolds. We use the SO(2N) refined Chern-Simons theory to compute new invariants of torus knots that generalize the Kauffman polynomials. At large N, the SO(2N) refined Chern-Simons theory on the three-sphere is dual to refined topological strings on an orientifold of the resolved conifold, generalizing the Gopakumar-Sinha-Vafa duality. Finally, we use the (2,0) theory to define and solve refined Chern-Simons theory for all ADE gauge groups.</summary>
+    <category term="hep-th" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.AG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.GT" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.RT" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2012-02-20T21:00:04Z</published>
+    <arxiv:primary_category term="hep-th"/>
+    <author>
+      <name>Mina Aganagic</name>
+    </author>
+    <author>
+      <name>Kevin Schaeffer</name>
+    </author>
+    <arxiv:doi>10.1007/JHEP09(2012)084</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1007/JHEP09(2012)084" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1210.1865v1</id>
+    <title>Refined Black Hole Ensembles and Topological Strings</title>
+    <updated>2012-10-05T20:45:01Z</updated>
+    <link href="https://arxiv.org/abs/1210.1865v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/1210.1865v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We formulate a refined version of the Ooguri-Strominger-Vafa (OSV) conjecture. The OSV conjecture that Z_{BH} = |Z_{top}|^2 relates the BPS black hole partition function to the topological string partition function Z_{top}. In the refined conjecture, Z_{BH} is the partition function of BPS black holes counted with spin, or more precisely the protected spin character. Z_{top} becomes the partition function of the refined topological string, which is itself an index. Both the original and the refined conjecture are examples of large N duality in the 't Hooft sense. The refined conjecture applies to non-compact Calabi-Yau manifolds only, so the black holes are really BPS particles with large entropy, of order N^2. The refined OSV conjecture states that the refined BPS partition function has a large N dual which is captured by the refined topological string. We provide evidence that the conjecture holds by studying local Calabi-Yau threefolds consisting of line bundles over a genus g Riemann surface. We show that the refined topological string partition function on these geometries is computed by a two-dimensional TQFT. We also study the refined black hole partition function arising from N D4 branes on the Calabi-Yau, and argue that it reduces to a (q,t)-deformed version of two-dimensional SU(N) Yang-Mills. Finally, we show that in the large N limit this theory factorizes to the square of the refined topological string in accordance with the refined OSV conjecture.</summary>
+    <category term="hep-th" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.AG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2012-10-05T20:45:01Z</published>
+    <arxiv:comment>49+17 pages, 5 figures</arxiv:comment>
+    <arxiv:primary_category term="hep-th"/>
+    <author>
+      <name>Mina Aganagic</name>
+    </author>
+    <author>
+      <name>Kevin Schaeffer</name>
+    </author>
+    <arxiv:doi>10.1007/JHEP01(2013)060</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1007/JHEP01(2013)060" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1210.2733v1</id>
+    <title>Refined Chern-Simons Theory and Topological String</title>
+    <updated>2012-10-09T20:04:18Z</updated>
+    <link href="https://arxiv.org/abs/1210.2733v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/1210.2733v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We show that refined Chern-Simons theory and large N duality can be used to study the refined topological string with and without branes. We derive the refined topological vertex of hep-th/0701156 and hep-th/0502061 from a link invariant of the refined SU(N) Chern-Simons theory on S^3, at infinite N. Quiver-like Chern-Simons theories, arising from Calabi-Yau manifolds with branes wrapped on several minimal S^3's, give a dual description of a large class of toric Calabi-Yau. We use this to derive the refined topological string amplitudes on a toric Calabi-Yau containing a shrinking P^2 surface. The result is suggestive of the refined topological vertex formalism for arbitrary toric Calabi-Yau manifolds in terms of a pair of vertices and a choice of a Morse flow on the toric graph, determining the vertex decomposition. The dependence on the flow is reminiscent of the approach to the refined topological string in upcoming work of Nekrasov and Okounkov. As a byproduct, we show that large N duality of the refined topological string explains the ``mirror symmetry`` of the refined colored HOMFLY invariants of knots.</summary>
+    <category term="hep-th" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.AG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2012-10-09T20:04:18Z</published>
+    <arxiv:comment>58 pages, 18 figures</arxiv:comment>
+    <arxiv:primary_category term="hep-th"/>
+    <author>
+      <name>Mina Aganagic</name>
+    </author>
+    <author>
+      <name>Shamil Shakirov</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1112.0549v1</id>
+    <title>DSm Vector Spaces of Refined Labels</title>
+    <updated>2011-12-02T19:57:19Z</updated>
+    <link href="https://arxiv.org/abs/1112.0549v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/1112.0549v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>In this book the authors introduce the notion of DSm vector spaces of refined labels. They also realize the refined labels as a plane and a n-dimensional space. Further, using these refined labels, several algebraic structures are defined. Finally DSm semivector space or refined labels is described. Authors also propose some research problems.</summary>
+    <category term="math.GM" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2011-12-02T19:57:19Z</published>
+    <arxiv:comment>214 pages</arxiv:comment>
+    <arxiv:primary_category term="math.GM"/>
+    <arxiv:journal_ref>book published by Zip Pbl. Hse., 2011</arxiv:journal_ref>
+    <author>
+      <name>W. B. Vasantha Kandasamy</name>
+    </author>
+    <author>
+      <name>Florentin Smarandache</name>
+    </author>
+  </entry>
+</feed>

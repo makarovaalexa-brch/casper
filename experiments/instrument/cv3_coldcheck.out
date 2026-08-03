@@ -1,0 +1,25 @@
+[13:16:03] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[13:16:18] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[13:17:22] [data] materialised 140768 train graded profiles
+[13:17:22] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[13:17:23] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[13:17:23] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[13:17:23] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[13:17:23] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[13:17:28] [cd] tower=t2i26c_ep31.pt ni=18359 concepts=1031 users=140768 w_val=0.242
+[13:17:30] building COLD interviews (zero items, policy=broad) ...
+[13:17:32]   1500 users x budgets (0, 1, 2, 4, 8, 16)
+[13:17:47] CANARY no-net: m0=0.1267 spread across budgets=0.00e+00 PASS
+[13:18:02] ep01 m0=0.1267/0.0000  m1=0.1288/0.0000  m2=0.1323/0.0000  m4=0.1337/0.0000  m8=0.1392/0.0000  m16=0.1425/0.0000 | SEL=0.1339 
+[13:18:17] ep02 m0=0.1267/0.0000  m1=0.1287/0.0000  m2=0.1324/0.0000  m4=0.1325/0.0001  m8=0.1401/0.0002  m16=0.1445/0.0000 | SEL=0.1338 
+[13:18:33] ep03 m0=0.1267/0.0000  m1=0.1287/0.0000  m2=0.1341/0.0000  m4=0.1339/0.0000  m8=0.1426/0.0001  m16=0.1473/0.0001 | SEL=0.1350 
+[13:18:48] ep04 m0=0.1267/0.0000  m1=0.1284/0.0000  m2=0.1342/0.0000  m4=0.1342/0.0000  m8=0.1420/0.0002  m16=0.1489/0.0001 | SEL=0.1349 
+[13:19:03] ep05 m0=0.1267/0.0000  m1=0.1281/0.0000  m2=0.1338/0.0001  m4=0.1343/0.0002  m8=0.1408/0.0006  m16=0.1483/0.0004 | SEL=0.1344 
+[13:19:19] ep06 m0=0.1267/0.0000  m1=0.1287/0.0000  m2=0.1345/0.0001  m4=0.1361/0.0005  m8=0.1436/0.0010  m16=0.1487/0.0008 | SEL=0.1362 
+[13:19:34] ep07 m0=0.1267/0.0000  m1=0.1294/0.0000  m2=0.1342/0.0000  m4=0.1369/0.0001  m8=0.1425/0.0007  m16=0.1489/0.0003 | SEL=0.1363 
+[13:19:50] ep08 m0=0.1267/0.0000  m1=0.1292/0.0000  m2=0.1345/0.0001  m4=0.1370/0.0005  m8=0.1423/0.0010  m16=0.1499/0.0006 | SEL=0.1362 
+[13:20:06] ep09 m0=0.1267/0.0000  m1=0.1281/0.0000  m2=0.1325/0.0001  m4=0.1344/0.0002  m8=0.1421/0.0005  m16=0.1457/0.0003 | SEL=0.1349 
+[13:20:22] ep10 m0=0.1267/0.0000  m1=0.1291/0.0001  m2=0.1333/0.0001  m4=0.1356/0.0003  m8=0.1413/0.0004  m16=0.1475/0.0004 | SEL=0.1353 
+[13:20:37] ep11 m0=0.1267/0.0000  m1=0.1290/0.0000  m2=0.1334/0.0002  m4=0.1352/0.0003  m8=0.1417/0.0011  m16=0.1487/0.0008 | SEL=0.1353 
+[13:20:53] ep12 m0=0.1267/0.0000  m1=0.1292/0.0000  m2=0.1338/0.0002  m4=0.1360/0.0004  m8=0.1415/0.0010  m16=0.1486/0.0010 | SEL=0.1356 
+[13:20:53] SELECTED ep7 SEL=0.1363 no_crater=True

@@ -1,0 +1,17 @@
+[09:27:31] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[09:27:50] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[09:27:51] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[09:27:51] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[09:27:51] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[09:27:51] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[09:27:51] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[09:27:51] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[09:27:56] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[09:28:08] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[09:28:15] [g5] 1031 concepts with >= 30 members
+[09:28:27] [ledger] SIGNED valuation arrays built (prereg cache found)
+[09:28:29] [leak] fold-in INTERSECT held-out empty for all 10000 users: PASS
+[09:28:35] [intercept] 0.12987/0.02284 snap=True
+[09:28:36] [buckets] concept 0/1031 rc=1370 (0.0m)
+[09:41:44] [buckets] concept 100/1031 rc=126 (13.2m)
+[09:59:01] [buckets] concept 200/1031 rc=1280 (30.4m)

@@ -77,16 +77,29 @@ def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad"):
 
 
 def ndcg_at(sc_row, targets, head_mask, k=10):
-    order = np.argsort(-sc_row)[:k]
+    """full = NDCG@10 over ALL items. tail = NDCG@10 over the TAIL-ONLY candidate list.
+
+    The tail arm MUST delete head items from the candidate list (`sc[head] = -inf`), matching
+    run_battery_phaseA.ndcg10_from_scores: that is the canonical definition and the one every
+    published CASPER tail number uses. Scoring tail globally instead -- counting tail targets that
+    survive in the unrestricted top-10 -- returns 0.0000 identically at the no-evidence prior,
+    because the 10 most popular items fill every slot. That is a metric artifact, not a channel
+    property; it is what produced the phantom "tail collapse" of 2026-08-03.
+    """
     disc = 1.0 / np.log2(np.arange(2, k + 2))
+    order = np.argsort(-sc_row)[:k]
     rel = np.isin(order, targets).astype(np.float64)
-    idcg = (np.ones(min(len(targets), k)) * disc[:min(len(targets), k)]).sum()
+    idcg = disc[:min(len(targets), k)].sum()
     full = (rel * disc).sum() / max(idcg, 1e-9)
-    nt = int((~head_mask[targets]).sum())
-    if nt == 0:
+
+    t_tg = targets[~head_mask[targets]]
+    if len(t_tg) == 0:
         return full, None
-    rt = (np.isin(order, targets) & ~head_mask[order]).astype(np.float64)
-    it = (np.ones(min(nt, k)) * disc[:min(nt, k)]).sum()
+    sct = sc_row.copy()
+    sct[head_mask] = -np.inf                      # TAIL-ONLY candidate list
+    order_t = np.argsort(-sct)[:k]
+    rt = np.isin(order_t, t_tg).astype(np.float64)
+    it = disc[:min(len(t_tg), k)].sum()
     return full, (rt * disc).sum() / max(it, 1e-9)
 
 
@@ -120,6 +133,7 @@ def main():
     ap.add_argument("--tag", default="cv3")
     ap.add_argument("--snapshot", default=os.path.join(_ROOT, "models", "i26c_ep31", "t2i26c_ep31.pt"))
     ap.add_argument("--policy", default="broad", choices=("broad", "uniform", "niche"))
+    ap.add_argument("--ckpt", default="", help="explicit comma-separated checkpoint paths (overrides --tag)")
     ap.add_argument("--n_users", type=int, default=1500)
     ap.add_argument("--hidden", type=int, default=256)
     ap.add_argument("--max_users", type=int, default=0)
@@ -140,11 +154,15 @@ def main():
     # CANARY: with no net at all, every budget must give the SAME number -- the no-evidence prior.
     base = score(None, S, packs, head_mask)
     spread = max(v[0] for v in base.values()) - min(v[0] for v in base.values())
-    log(f"CANARY no-net: m0={base[0][0]:.4f} spread across budgets={spread:.2e} "
+    log(f"CANARY no-net: m0={base[0][0]:.4f}/{base[0][1]:.4f} (full/TAIL) "
+        f"spread across budgets={spread:.2e} "
         f"{'PASS' if spread < 1e-9 else 'FAIL -- concepts leaking without a net'}")
+    log(f"  BASELINE floor to beat: full={base[0][0]:.4f} tail={base[0][1]:.4f}")
 
+    paths = ([p.strip() for p in a.ckpt.split(",") if p.strip()] if a.ckpt
+             else sorted(glob.glob(os.path.join(CKPT_DIR, f"{a.tag}_ep*.pt"))))
     rows = []
-    for p in sorted(glob.glob(os.path.join(CKPT_DIR, f"{a.tag}_ep*.pt"))):
+    for p in paths:
         blob = torch.load(p, map_location="cpu")
         net = ConceptFoldNet(len(S["tags"]), d=S["enc"].d_out, h=a.hidden,
                              conc_init=S["d_c"].numpy(), use_refusal=blob.get("use_refusal", False))

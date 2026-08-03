@@ -1,0 +1,231 @@
+{
+  "lit_rank": {
+    "helf": 1,
+    "entropy0": 2,
+    "popularity": 3,
+    "pure_entropy": 4,
+    "random_bank": 5,
+    "random_catalog": 6
+  },
+  "cites": {
+    "helf": "rashid2002getting; rashid2008learning",
+    "entropy0": "rashid2008learning",
+    "popularity": "rashid2002getting; golbandi2010",
+    "pure_entropy": "rashid2002getting",
+    "random_bank": "no exact lit counterpart (protocol caveat)",
+    "random_catalog": "rashid2002getting; elahi2016survey"
+  },
+  "budgets": [
+    8
+  ],
+  "arch": "i26",
+  "snapshot": "t2i26c_SELECTED.pt",
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "helf": {
+        "k8": {
+          "full": 0.18922483249137528,
+          "tail": 0.07249979445569031,
+          "answered": 1.5878,
+          "floored": 0
+        }
+      },
+      "entropy0": {
+        "k8": {
+          "full": 0.20526394292312922,
+          "tail": 0.07922116628163539,
+          "answered": 3.1,
+          "floored": 0
+        }
+      },
+      "popularity": {
+        "k8": {
+          "full": 0.19433153094211686,
+          "tail": 0.06864831389149503,
+          "answered": 3.0512,
+          "floored": 0
+        }
+      },
+      "pure_entropy": {
+        "k8": {
+          "full": 0.15857574763830812,
+          "tail": 0.031718618671276996,
+          "answered": 0.0356,
+          "floored": 0
+        }
+      },
+      "random_bank": {
+        "k8": {
+          "full": 0.15937453040094282,
+          "tail": 0.03291996249098564,
+          "answered": 0.0665,
+          "floored": 0
+        }
+      },
+      "random_catalog": {
+        "k8": {
+          "full": 0.15926371936681813,
+          "tail": 0.031513089056602384,
+          "answered": 0.0599,
+          "floored": 0
+        }
+      }
+    },
+    "golbandi_leaf": {
+      "helf": {
+        "k8": {
+          "full": 0.19479928858972123,
+          "tail": 0.07924870274001786,
+          "answered": 1.5878,
+          "floored": 0
+        }
+      },
+      "entropy0": {
+        "k8": {
+          "full": 0.16860320832579923,
+          "tail": 0.06768866682324698,
+          "answered": 3.1,
+          "floored": 0
+        }
+      },
+      "popularity": {
+        "k8": {
+          "full": 0.17162070444444757,
+          "tail": 0.06960004546567712,
+          "answered": 3.0512,
+          "floored": 0
+        }
+      },
+      "pure_entropy": {
+        "k8": {
+          "full": 0.1649612079949122,
+          "tail": 0.03244996681194349,
+          "answered": 0.0356,
+          "floored": 0
+        }
+      },
+      "random_bank": {
+        "k8": {
+          "full": 0.1658007405133996,
+          "tail": 0.03533858721661325,
+          "answered": 0.0665,
+          "floored": 0
+        }
+      },
+      "random_catalog": {
+        "k8": {
+          "full": 0.16636293363752863,
+          "tail": 0.035083171986279305,
+          "answered": 0.0599,
+          "floored": 0
+        }
+      }
+    },
+    "rbmf": {
+      "helf": {
+        "k8": {
+          "full": 0.07286208577892984,
+          "tail": 0.03957863551255399,
+          "answered": 1.5878,
+          "floored": 0
+        }
+      },
+      "entropy0": {
+        "k8": {
+          "full": 0.16444979257304684,
+          "tail": 0.036939582053801705,
+          "answered": 3.1,
+          "floored": 0
+        }
+      },
+      "popularity": {
+        "k8": {
+          "full": 0.16372792944115389,
+          "tail": 0.03439361533921869,
+          "answered": 3.0512,
+          "floored": 0
+        }
+      },
+      "pure_entropy": {
+        "k8": {
+          "full": 0.0012742798869507317,
+          "tail": 0.001427229559191589,
+          "answered": 0.0356,
+          "floored": 0
+        }
+      },
+      "random_bank": {
+        "k8": {
+          "full": 0.005679274685253521,
+          "tail": 0.004425571394917633,
+          "answered": 0.0665,
+          "floored": 0
+        }
+      },
+      "random_catalog": {
+        "k8": {
+          "full": 0.0051360268495901,
+          "tail": 0.003993718338332782,
+          "answered": 0.0599,
+          "floored": 0
+        }
+      }
+    },
+    "belief_mf": {
+      "helf": {
+        "k8": {
+          "full": 0.16226176210849425,
+          "tail": 0.033090073118347975,
+          "answered": 1.5878,
+          "floored": 0
+        }
+      },
+      "entropy0": {
+        "k8": {
+          "full": 0.16339997471220888,
+          "tail": 0.030014284503971863,
+          "answered": 3.1,
+          "floored": 0
+        }
+      },
+      "popularity": {
+        "k8": {
+          "full": 0.1632403762024914,
+          "tail": 0.030000865783260812,
+          "answered": 3.0512,
+          "floored": 0
+        }
+      },
+      "pure_entropy": {
+        "k8": {
+          "full": 0.16090022913095992,
+          "tail": 0.026174118994004045,
+          "answered": 0.0356,
+          "floored": 0
+        }
+      },
+      "random_bank": {
+        "k8": {
+          "full": 0.16094645268721708,
+          "tail": 0.02688464937204529,
+          "answered": 0.0665,
+          "floored": 0
+        }
+      },
+      "random_catalog": {
+        "k8": {
+          "full": 0.1609555412531617,
+          "tail": 0.02675764410481296,
+          "answered": 0.0599,
+          "floored": 0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "nll": 6.861363252003987,
+    "minutes": 0.04063382546106974,
+    "seed": 9876796296,
+    "regime_mix": {
+      "dense": 0.289,
+      "interview_broad": 0.184,
+      "interview_niche": 0.202,
+      "interview_uniform": 0.18,
+      "kc0": 0.042,
+      "kc1": 0.104
+    },
+    "refusal_token_share": 0.4511
+  }
+]

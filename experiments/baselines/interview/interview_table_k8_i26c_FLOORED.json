@@ -1,0 +1,231 @@
+{
+  "lit_rank": {
+    "helf": 1,
+    "entropy0": 2,
+    "popularity": 3,
+    "pure_entropy": 4,
+    "random_bank": 5,
+    "random_catalog": 6
+  },
+  "cites": {
+    "helf": "rashid2002getting; rashid2008learning",
+    "entropy0": "rashid2008learning",
+    "popularity": "rashid2002getting; golbandi2010",
+    "pure_entropy": "rashid2002getting",
+    "random_bank": "no exact lit counterpart (protocol caveat)",
+    "random_catalog": "rashid2002getting; elahi2016survey"
+  },
+  "budgets": [
+    8
+  ],
+  "arch": "i26",
+  "snapshot": "t2i26c_SELECTED.pt",
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "helf": {
+        "k8": {
+          "full": 0.18613244965040954,
+          "tail": 0.06323845101851724,
+          "answered": 1.5878,
+          "floored": 3737
+        }
+      },
+      "entropy0": {
+        "k8": {
+          "full": 0.20473169160919932,
+          "tail": 0.0769732755637239,
+          "answered": 3.1,
+          "floored": 1463
+        }
+      },
+      "popularity": {
+        "k8": {
+          "full": 0.1937255799559679,
+          "tail": 0.0655965464299413,
+          "answered": 3.0512,
+          "floored": 1425
+        }
+      },
+      "pure_entropy": {
+        "k8": {
+          "full": 0.16292168827783593,
+          "tail": 0.02726381139342257,
+          "answered": 0.0356,
+          "floored": 9728
+        }
+      },
+      "random_bank": {
+        "k8": {
+          "full": 0.16304468809969322,
+          "tail": 0.02928987891050155,
+          "answered": 0.0665,
+          "floored": 9408
+        }
+      },
+      "random_catalog": {
+        "k8": {
+          "full": 0.16296452215848536,
+          "tail": 0.028848940242219644,
+          "answered": 0.0599,
+          "floored": 9459
+        }
+      }
+    },
+    "golbandi_leaf": {
+      "helf": {
+        "k8": {
+          "full": 0.19479928858972123,
+          "tail": 0.07924870274001786,
+          "answered": 1.5878,
+          "floored": 0
+        }
+      },
+      "entropy0": {
+        "k8": {
+          "full": 0.16860320832579923,
+          "tail": 0.06768866682324698,
+          "answered": 3.1,
+          "floored": 0
+        }
+      },
+      "popularity": {
+        "k8": {
+          "full": 0.17162070444444757,
+          "tail": 0.06960004546567712,
+          "answered": 3.0512,
+          "floored": 0
+        }
+      },
+      "pure_entropy": {
+        "k8": {
+          "full": 0.1649612079949122,
+          "tail": 0.03244996681194349,
+          "answered": 0.0356,
+          "floored": 0
+        }
+      },
+      "random_bank": {
+        "k8": {
+          "full": 0.1658007405133996,
+          "tail": 0.03533858721661325,
+          "answered": 0.0665,
+          "floored": 0
+        }
+      },
+      "random_catalog": {
+        "k8": {
+          "full": 0.16636293363752863,
+          "tail": 0.035083171986279305,
+          "answered": 0.0599,
+          "floored": 0
+        }
+      }
+    },
+    "rbmf": {
+      "helf": {
+        "k8": {
+          "full": 0.11255176505207733,
+          "tail": 0.04526404282068758,
+          "answered": 1.5878,
+          "floored": 3737
+        }
+      },
+      "entropy0": {
+        "k8": {
+          "full": 0.1721805057710649,
+          "tail": 0.038193277910193224,
+          "answered": 3.1,
+          "floored": 1463
+        }
+      },
+      "popularity": {
+        "k8": {
+          "full": 0.17190813091036403,
+          "tail": 0.034795471884705054,
+          "answered": 3.0512,
+          "floored": 1425
+        }
+      },
+      "pure_entropy": {
+        "k8": {
+          "full": 0.15654983068299852,
+          "tail": 0.025504060022509604,
+          "answered": 0.0356,
+          "floored": 9728
+        }
+      },
+      "random_bank": {
+        "k8": {
+          "full": 0.14999462445007908,
+          "tail": 0.026386690255287438,
+          "answered": 0.0665,
+          "floored": 9408
+        }
+      },
+      "random_catalog": {
+        "k8": {
+          "full": 0.15127067240195854,
+          "tail": 0.026577216647888004,
+          "answered": 0.0599,
+          "floored": 9459
+        }
+      }
+    },
+    "belief_mf": {
+      "helf": {
+        "k8": {
+          "full": 0.16055792368150856,
+          "tail": 0.034838240449446334,
+          "answered": 1.5878,
+          "floored": 3737
+        }
+      },
+      "entropy0": {
+        "k8": {
+          "full": 0.16379135072921994,
+          "tail": 0.03093524596162293,
+          "answered": 3.1,
+          "floored": 1463
+        }
+      },
+      "popularity": {
+        "k8": {
+          "full": 0.16392607018144814,
+          "tail": 0.03103021900278853,
+          "answered": 3.0512,
+          "floored": 1425
+        }
+      },
+      "pure_entropy": {
+        "k8": {
+          "full": 0.1621271425092411,
+          "tail": 0.026039050579404022,
+          "answered": 0.0356,
+          "floored": 9728
+        }
+      },
+      "random_bank": {
+        "k8": {
+          "full": 0.16259070531765854,
+          "tail": 0.027821169211007673,
+          "answered": 0.0665,
+          "floored": 9408
+        }
+      },
+      "random_catalog": {
+        "k8": {
+          "full": 0.16257739665390983,
+          "tail": 0.027518483647005272,
+          "answered": 0.0599,
+          "floored": 9459
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+[09:42:35] [cv2] mixture broad=0.25 dense=0.3 interview=0.35 kc0=0.05 kc1=0.05 | rare pow=0.5 clip=(30.0, 1000.0) broad_cap=64
+[09:42:40] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[09:43:13] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[09:45:48] [data] materialised 140768 train graded profiles
+[09:45:50] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[09:45:50] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[09:45:50] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[09:45:50] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[09:45:50] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[09:46:04] [cd] tower=t2i26c_ep31.pt ni=18359 concepts=1031 users=140768 w_val=0.242
+[09:46:04] [cv2] member counts: min 30 median 291 max 13746
+[09:46:07] [cv2] net params 464,194 (use_refusal=True)
+[09:49:54]   ep1 step 100/400 NLL=7.0661 (3.8m)
+[09:53:29]   ep1 step 200/400 NLL=7.0109 (7.4m)
+[09:56:53]   ep1 step 300/400 NLL=6.9880 (10.8m)
+[10:00:19]   ep1 step 400/400 NLL=6.9683 (14.2m)
+[10:00:19] [cv2] ep1 NLL=6.9683 14.2m seed=9876796296 mix={'broad': 0.25, 'dense': 0.3, 'interview': 0.35, 'kc0': 0.05, 'kc1': 0.05} refusal_tokens=0.029
+[10:03:10]   ep2 step 100/400 NLL=6.9190 (2.8m)
+[10:05:24]   ep2 step 200/400 NLL=6.9113 (5.1m)
+[10:07:38]   ep2 step 300/400 NLL=6.9014 (7.3m)
+[10:09:53]   ep2 step 400/400 NLL=6.8929 (9.6m)
+[10:09:53] [cv2] ep2 NLL=6.8929 9.6m seed=9876796297 mix={'broad': 0.25, 'dense': 0.303, 'interview': 0.348, 'kc0': 0.05, 'kc1': 0.049} refusal_tokens=0.029
+[10:12:05]   ep3 step 100/400 NLL=6.8757 (2.2m)
+[10:14:17]   ep3 step 200/400 NLL=6.8706 (4.4m)
+[10:16:28]   ep3 step 300/400 NLL=6.8641 (6.6m)
+[10:18:42]   ep3 step 400/400 NLL=6.8600 (8.8m)
+[10:18:42] [cv2] ep3 NLL=6.8600 8.8m seed=9876796298 mix={'broad': 0.251, 'dense': 0.299, 'interview': 0.35, 'kc0': 0.05, 'kc1': 0.05} refusal_tokens=0.029
+[10:20:58]   ep4 step 100/400 NLL=6.8365 (2.3m)
+[10:23:10]   ep4 step 200/400 NLL=6.8348 (4.5m)
+[10:25:22]   ep4 step 300/400 NLL=6.8333 (6.7m)
+[10:27:34]   ep4 step 400/400 NLL=6.8338 (8.9m)
+[10:27:34] [cv2] ep4 NLL=6.8338 8.9m seed=9876796299 mix={'broad': 0.251, 'dense': 0.3, 'interview': 0.349, 'kc0': 0.05, 'kc1': 0.05} refusal_tokens=0.029
+[10:29:49]   ep5 step 100/400 NLL=6.8150 (2.2m)
+[10:32:02]   ep5 step 200/400 NLL=6.8111 (4.5m)
+[10:34:18]   ep5 step 300/400 NLL=6.8128 (6.7m)
+[10:36:31]   ep5 step 400/400 NLL=6.8099 (9.0m)
+[10:36:31] [cv2] ep5 NLL=6.8099 9.0m seed=9876796300 mix={'broad': 0.252, 'dense': 0.299, 'interview': 0.349, 'kc0': 0.05, 'kc1': 0.05} refusal_tokens=0.029
+[10:38:45]   ep6 step 100/400 NLL=6.8049 (2.2m)
+[10:40:57]   ep6 step 200/400 NLL=6.7970 (4.4m)
+[10:43:09]   ep6 step 300/400 NLL=6.7954 (6.6m)
+[10:45:20]   ep6 step 400/400 NLL=6.7964 (8.8m)
+[10:45:20] [cv2] ep6 NLL=6.7964 8.8m seed=9876796301 mix={'broad': 0.25, 'dense': 0.298, 'interview': 0.35, 'kc0': 0.05, 'kc1': 0.052} refusal_tokens=0.029
+[10:47:32]   ep7 step 100/400 NLL=6.7923 (2.2m)
+[10:49:44]   ep7 step 200/400 NLL=6.7904 (4.4m)
+[10:51:55]   ep7 step 300/400 NLL=6.7938 (6.6m)
+[10:54:06]   ep7 step 400/400 NLL=6.7881 (8.8m)
+[10:54:06] [cv2] ep7 NLL=6.7881 8.8m seed=9876796302 mix={'broad': 0.248, 'dense': 0.301, 'interview': 0.351, 'kc0': 0.049, 'kc1': 0.051} refusal_tokens=0.029
+[10:56:18]   ep8 step 100/400 NLL=6.7845 (2.2m)
+[10:58:29]   ep8 step 200/400 NLL=6.7826 (4.4m)
+[11:00:40]   ep8 step 300/400 NLL=6.7809 (6.6m)
+[11:02:54]   ep8 step 400/400 NLL=6.7775 (8.8m)
+[11:02:54] [cv2] ep8 NLL=6.7775 8.8m seed=9876796303 mix={'broad': 0.248, 'dense': 0.3, 'interview': 0.35, 'kc0': 0.051, 'kc1': 0.051} refusal_tokens=0.029
+[11:05:05]   ep9 step 100/400 NLL=6.7867 (2.2m)
+[11:07:16]   ep9 step 200/400 NLL=6.7831 (4.4m)
+[11:09:29]   ep9 step 300/400 NLL=6.7763 (6.6m)
+[11:11:40]   ep9 step 400/400 NLL=6.7748 (8.8m)
+[11:11:40] [cv2] ep9 NLL=6.7748 8.8m seed=9876796304 mix={'broad': 0.25, 'dense': 0.3, 'interview': 0.351, 'kc0': 0.05, 'kc1': 0.049} refusal_tokens=0.029
+[11:13:54]   ep10 step 100/400 NLL=6.7644 (2.2m)
+[11:16:05]   ep10 step 200/400 NLL=6.7637 (4.4m)
+[11:18:16]   ep10 step 300/400 NLL=6.7682 (6.6m)
+[11:20:27]   ep10 step 400/400 NLL=6.7636 (8.8m)
+[11:20:27] [cv2] ep10 NLL=6.7636 8.8m seed=9876796305 mix={'broad': 0.255, 'dense': 0.298, 'interview': 0.349, 'kc0': 0.049, 'kc1': 0.049} refusal_tokens=0.029
+[11:22:39]   ep11 step 100/400 NLL=6.7486 (2.2m)
+[11:24:50]   ep11 step 200/400 NLL=6.7533 (4.4m)
+[11:27:01]   ep11 step 300/400 NLL=6.7505 (6.6m)
+[11:29:12]   ep11 step 400/400 NLL=6.7537 (8.7m)
+[11:29:12] [cv2] ep11 NLL=6.7537 8.7m seed=9876796306 mix={'broad': 0.25, 'dense': 0.3, 'interview': 0.35, 'kc0': 0.05, 'kc1': 0.05} refusal_tokens=0.029
+[11:31:24]   ep12 step 100/400 NLL=6.7587 (2.2m)
+[11:33:36]   ep12 step 200/400 NLL=6.7630 (4.4m)
+[11:35:51]   ep12 step 300/400 NLL=6.7633 (6.7m)

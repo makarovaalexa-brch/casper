@@ -215,35 +215,49 @@ historical **0.1279** intercept — so this protocol lines up with the one the o
 
 **SELECTED ep7** (rule: max mean NDCG@10 over m∈{1,4,8} subject to every m ≥ m0):
 
-| budget | new ep7 full | old sclite full | delta | new tail | old tail |
-|---|---|---|---|---|---|
-| m=0 | 0.1267 | 0.1279 | — | 0.0000 | — |
-| m=2 | 0.1342 | 0.1320 | +0.0022 | 0.0000 | .0298 |
-| m=4 | 0.1369 | 0.1345 | +0.0024 | 0.0001 | .0257 |
-| m=8 | 0.1425 | 0.1417 | +0.0008 | 0.0007 | .0334 |
-| m=16 | 0.1489 | 0.1379 | **+0.0110** | 0.0003 | .0324 |
+**RESOLVED 2026-08-03 — the "tail collapse" was A METRIC BUG IN THIS SCRIPT, not a channel property.**
+The first version of `concept_cold_check.ndcg_at` scored tail by ranking ALL 18,359 items and counting
+tail targets surviving in the unrestricted top-10. Canonical CASPER tail
+(`run_battery_phaseA.ndcg10_from_scores`, line 114) instead **deletes head items from the candidate
+list** (`S[:, head_mask] = -inf`) and ranks tail-only. Under the broken version the no-evidence prior
+scores **exactly 0.0000** by construction — the 10 most popular titles fill every slot — so the whole
+column was pinned near zero regardless of channel quality. Fixed; `ndcg_at`'s docstring now carries the
+warning. **Every tail number below is the canonical definition.**
 
-**THE WIN**: beats the old channel at every budget, no crater, and the SHAPE IS FIXED — the old channel
-peaked at q8 and FELL BACK by q16 (.1417 → .1379); the new one keeps climbing (.1425 → .1489).
+Matched protocol, each net on ITS OWN tower, broad policy, same 1500 users:
 
-**THE RED FLAG, UNRESOLVED — THIS IS THE LIVE ISSUE**: **tail has collapsed to ~0.0000–0.0011 against
-the old channel's 0.0257–0.0334, a ~30× drop.**
+| budget | new ep7 full | old sclite full | **new tail** | **old tail** |
+|---|---|---|---|---|
+| m=0 (floor) | 0.1267 | 0.1255 | 0.0268 | 0.0213 |
+| m=1 | 0.1294 | 0.1246 *(craters)* | 0.0324 | 0.0320 |
+| m=2 | 0.1342 | 0.1281 | 0.0389 | 0.0347 |
+| m=4 | 0.1369 | 0.1293 | 0.0485 | 0.0369 |
+| m=8 | 0.1425 | 0.1317 | 0.0629 | 0.0438 |
+| m=16 | **0.1489** | 0.1365 | **0.0714** | 0.0455 |
 
-**Leading hypothesis, grounded in our own record**: ML-25M Phase 2 (commit `254587d`) found
-*"B4 concept-TAIL advantage reversed (genome centroids rank-4 head-aligned; learned-channel fix tried,
-no rescue) → Paper B scope condition"*. The cold check was scored under the **broad-first** policy, and
-broad concepts are precisely the head-aligned ones. So we may be asking questions that move popular
-items and never reach the tail.
+**Lift over each tower's own floor at m=16: full +0.0222 vs +0.0110 (2.0x); tail +0.0446 vs +0.0242
+(1.8x).** The lift columns are the fair comparison — the two towers differ, so the absolute columns are
+not strictly like-for-like.
 
-**THE NEXT EXPERIMENT, NOT YET RUN** (cheap — ~15 s per checkpoint):
-```
-python src/instrument/concept_cold_check.py --tag cv3 --policy uniform
-python src/instrument/concept_cold_check.py --tag cv3 --policy niche
-```
-If niche recovers tail, the tail collapse is a property of the ASK POLICY, not the channel, and the
-selection rule should not be scored broad-first. If niche does NOT recover tail, the head-alignment is
-in the genome centroids themselves and it is a **scope condition on the whole concept line** that Paper B
-inherits — which must then be stated, not buried.
+**VERDICT: the v3 rebuild is a clean win on BOTH axes at every budget.** Monotone throughout; the old
+channel craters at m=1 (.1246 below its own .1255 floor) and its published deployment curve fell back by
+q16 (.1417 → .1379) where the new one keeps climbing.
+
+**DO NOT re-derive the old .0298/.0257/.0334 figures from `CONCEPT_CHANNEL_RESULT.md` §4 and compare
+them to this table** — those came from a *selected* fixed bank on the ep4 tower, a different information
+contract. The matched-protocol old-channel numbers are the `old tail` column above.
+
+**METHODS LESSON, and it is the same one for the fourth time.** Three separate false stories were
+built on this one broken column before the metric was checked: (1) "tail collapsed 30x"; (2) "genome
+centroids are head-aligned, so it's a scope condition on the whole concept line"; (3) "the old number
+came from a greedy-selected bank, so concepts only buy tail under selection". All three were plausible,
+all three cited real prior findings, and all three were wrong. **When a number is pinned at exactly
+0.0000, suspect the metric before the model** — an exact zero is a structural signature, not a
+measurement. Related: [[surprise-means-debug-the-harness]].
+
+**Optional, no longer diagnostic** (`--policy uniform` / `--policy niche`): still worth one run to see
+whether niche asks buy more tail than broad ones, but that is now an ask-policy question for Paper B's
+selector, NOT evidence of a defect.
 
 **ALSO UNRESOLVED — a contradiction in our own record that I have been quoting selectively:**
 `254587d` says the concept-tail advantage REVERSED on ML-25M; the Jul-27 note says concepts win tail at
