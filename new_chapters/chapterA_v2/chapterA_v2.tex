@@ -410,7 +410,7 @@ BERT4Rec~\cite{sun2019bert4rec}              & \xmark & \xmark & \xmark & \xmark
 TaNP~\cite{lin2021tanp} (MeLU / CDRNP line) & \xmark & \xmark & \xmark & \cmark & $.2645$ & $.1635$ & measured (best-effort) & n/r (own cold-start benchmark) \\
 \midrule
 \multicolumn{9}{l}{\emph{(c) Elicitation / CRS systems --- the elicitation corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi} & \xmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not run here & n/r (non-recsys; UCI/MNIST) \\
+EDDI / Partial-VAE~\cite{ma2019eddi} & \xmark & \xmark & \xmark & \cmark & $.2153$ & $.1077$ & measured & n/r (non-recsys; UCI/MNIST) \\
 Golbandi tree~\cite{golbandi2011adaptive} & \xmark & \xmark & \xmark & \cmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
 RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \xmark & \xmark & \cmark & $.2534$ & $.1764$ & measured (best-effort) & n/r (elicitation RMSE) \\
 B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (16 users, slates of 5) \\
@@ -1290,6 +1290,7 @@ Item-kNN (cosine) & $0.2428$ & $0.1297$ & @100 $0.3200$; neighbourhood fold-in \
 iALS-WMF & $0.2442$ & $0.1853$ & @100 $0.3704$; MF fold-in \\
 RBMF / Functional-MF seed & $0.2534$ & $0.1764$ & @100 $0.3607$; best-effort seed core \\
 TaNP~\cite{lin2021tanp} & $0.2645$ & $0.1635$ & @100 $0.3661$; best-effort, rating channel binarised \\
+EDDI / Partial-VAE~\cite{ma2019eddi} & $0.2153$ & $0.1077$ & @100 $0.3110$; early stop ep46, val-selected ep31 \\
 Turbo-CF~\cite{park2024turbocf} & $0.2622$ & $0.1621$ & @100 $0.3569$; val-tuned $\alpha{=}0.5$, $s{=}1$, 2nd-order \\
 Golbandi node recommender & $0.3065$ & $0.1895$ & @100 $0.3958$; best-effort tree core \\
 Mult-VAE~\cite{liang2018variational} & $0.3202$ & $0.2194$ & @100 $0.4303$; near-snap $-0.004$ \\
