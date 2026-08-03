@@ -557,7 +557,14 @@ a title matched but no candidate sat within +-1 of the stated year -- dropped, n
   ruler doing its job, not a leak -- but it means the ruler's thread count is not a fixed fraction
   of the 35,982.
 - Out-of-catalogue loss is the disclosed recency truncation (corpus 2019-22, ML-25M ends late
-  2019); reported above per link source rather than hidden.
+  2019); reported above per link source rather than hidden. It is strongly asymmetric between the
+  two link sources -- {pct(f['in_catalogue_rules'], f['rules_links_in_ruler_threads'])} of
+  rules-tier links are in catalogue vs {pct(f['in_catalogue_model'], f['model_links'])} of model
+  links -- which is expected rather than alarming: the rules tier auto-accepts unambiguous
+  high-vote classics, so everything hard, new, foreign or TV-shaped was DEFERred to the model.
+- {f['pred_NONE_dropped']:,} DEFER mentions ({pct(f['pred_NONE_dropped'], f['adjudicated_mentions_in'])})
+  were adjudicated NONE -- i.e. the model rejected He's link outright rather than repairing it.
+  That is the intended behaviour on the population where He's raw precision was 0.572.
 - Ground truth is entity-anchored: it can only contain titles someone actually named in a reply.
 
 Raw counts: `data/reddit_he/ruler/RULER_STATS.json`. Ruler: `data/reddit_he/ruler/ruler_v1.csv.gz`.

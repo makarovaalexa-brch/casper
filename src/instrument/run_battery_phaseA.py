@@ -585,7 +585,8 @@ def gate_g5(ctx, betas=(2, 5, 10, 20, 50)):
             Zs[r] = beta * w_c[t] * 1.0 * d_c[t]                          # v=+1 (loved)
         return Zs
 
-    def shift_mat_trained(net):
+    def shift_mat_trained(net_and_map):
+        net, name2idx = net_and_map
         """The DEPLOYED operator: fold the same concept, at v=+1, through the trained fold net."""
         import torch as _t
         Zs = np.zeros((ctx.n, ctx.decoder.weight.shape[1]), np.float32)
@@ -593,8 +594,11 @@ def gate_g5(ctx, betas=(2, 5, 10, 20, 50)):
         with _t.no_grad():
             for st in range(0, len(rows), 256):
                 chunk = rows[st:st + 256]
+                chunk = [r for r in chunk if user_tag[r] in name2idx]
+                if not chunk:
+                    continue
                 z0 = _t.zeros(len(chunk), ctx.decoder.weight.shape[1])
-                cids = [[int(user_tag[r])] for r in chunk]
+                cids = [[int(name2idx[user_tag[r]])] for r in chunk]
                 cvals = [[1.0] for _ in chunk]
                 crefs = [[0.0] for _ in chunk]
                 Zs[chunk] = (net(z0, cids, cvals, crefs) - z0).numpy()
@@ -675,8 +679,31 @@ def main():
     ap.add_argument("--only", default=None)
     ap.add_argument("--snapshot", default=SNAP_DEFAULT)
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--cfold", default="",
+                    help="trained ConceptFoldNet checkpoint. G5 then scores the DEPLOYED operator "
+                         "instead of the July centroid building block. Concept ids are mapped BY TAG "
+                         "NAME: the gate builds its own sorted tag list from the genome file, the net "
+                         "was trained on concept_distill_train's list, and the two orderings differ.")
     args = ap.parse_args()
     ctx = build_smoke_ctx() if args.smoke else build_real_ctx(args.snapshot)
+    ctx.cfold_net = None
+    if args.cfold:
+        # Attach the DEPLOYED concept operator so G5 scores it instead of the July centroid.
+        sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
+        import concept_distill_train as CD
+        from concept_fold import ConceptFoldNet
+        _a = argparse.Namespace(snapshot=args.snapshot, lam=0.0, arm="s1", tau=1.0, eps_l2=0.0,
+                                m_max=16, hidden=256, max_users=0)
+        S = CD._build_train_stack(_a)
+        blob = torch.load(args.cfold, map_location="cpu")
+        net = ConceptFoldNet(len(S["tags"]), d=S["enc"].d_out, h=blob.get("hidden", 256),
+                             conc_init=S["d_c"].numpy(), use_refusal=blob.get("use_refusal", False))
+        net.load_state_dict(blob["net"])
+        name2idx = {t: i for i, t in enumerate(S["tags"])}
+        ctx.cfold_net = (net, name2idx)
+        log(f"[g5] DEPLOYED operator attached: {os.path.basename(args.cfold)} ep{blob.get('epoch')} "
+            f"hidden={blob.get('hidden', 256)} keep_meh={blob.get('keep_meh')} "
+            f"({len(name2idx)} concepts, mapped by tag name)")
     todo = ORDER if not args.only else [g for g in ORDER if g in set(args.only.split(","))]
     results = {}
     for g in todo:
