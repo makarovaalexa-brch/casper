@@ -166,7 +166,7 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
   \item \textbf{An acceptance battery as a reusable certificate.} We define three headline outcome gates---full-strength
         preserved (V1), posterior strictly shrinks per question (V3), and cold-start per-question NDCG rises on
         \emph{full and tail} versus random (V4)---and, because outcome checks alone admit several false positives
-        (a sign-blind fold, a circular answer model, a decorative covariance), pair them with one verification item
+        (a sign-blind fold, a circular answer model), pair them with one verification item
         per requirement, V1--V4, and two integrity items. We propose this as a portable certificate any
         interview-compatible recommender should pass (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
 \end{enumerate}
@@ -580,8 +580,7 @@ models, graph filters, EDDI, TaNP) are \emph{absent} from the figure and join th
 star is this chapter's certified instrument at $0.3496$---the only measured point that is simultaneously at the
 frontier bar and at full interview compatibility.
 The instrument sits at $x{=}4$---no published system exceeds two---the only point in the top-right cell: R2 by V2's member lift and its
-open-vocabulary fold, R3 by V3's directional and load-bearing covariance, R4 by V4's rising fixed-bank curve, and
-R4 by V4's sign and intensity arms---each verified rather than asserted (Table~\ref{tab:batteryresults}). The population is otherwise \emph{bimodal}: the entire accuracy corner
+open-vocabulary fold, R3 by V3's rising fixed-bank curve, and R4 by V4's sign and intensity arms---each verified rather than asserted (Table~\ref{tab:batteryresults}). The population is otherwise \emph{bimodal}: the entire accuracy corner
 (Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x{=}0$---strong recommenders that can fold items
 and nothing else---while every system with genuine interview machinery sits at $x\ge1$ and reports no
 full-catalogue accuracy at all. The one point plotted at $x{=}3$ is not a rival but our own conjugate posterior-mean
@@ -958,8 +957,7 @@ survives) and the accumulated shift norm-capped per user. In the concept-operato
 ($0.1759/0.0841$ full/tail at eight answers, up from $0.1322/0.0503$ at one) and, crucially,
 \emph{redundancy-robust}: feeding it eight \emph{correlated} top-SEL concepts still reaches $0.1685/0.0906$,
 above its four-answer level ($0.1572/0.0777$), exactly where the additive-union operator degraded. The gated fold is the concept operator we adopt;
-Eq.~\eqref{eq:cfold} is the concept-channel instantiation of the linear-observation fold, with the belief covariance
-maintained analytically as in \S\ref{sec:method}.
+Eq.~\eqref{eq:cfold} is the concept-channel instantiation of the channel-agnostic fold of \S\ref{sec:method}.
 
 \paragraph{Lineage.} The skeleton---an attribute as a latent direction, folded by a Bayesian belief update over a
 frozen factor space---is well-trodden, and we claim none of it in isolation. B\i y\i k et al.~\cite{biyik2023soft} treat a
@@ -1353,8 +1351,8 @@ is what licenses reading every later interview curve as evidence about \emph{ing
 baseline. The cold intercept of every curve in this chapter, $0.1279/0.0192$, is that same non-personalised read-out.
 Accuracy is therefore settled for this instrument: V1 is evaluated on the belief mean, so the tie is one the
 belief layer preserves rather than one it is measured beside, and the layer passes its own gates as well
-(\S\ref{sec:batteryresults}). The rankings reported in this chapter are read from the posterior \emph{mean};
-putting the covariance to work in question selection is the companion chapter's subject.
+(\S\ref{sec:batteryresults}). Ranking here reads the folded point directly; whether an uncertainty estimate over
+that point would help a policy \emph{choose} questions is the companion chapter's subject, not a claim of this one.
 
 \subsection{The battery, measured}\label{sec:batteryresults}
 
@@ -1377,12 +1375,8 @@ I1 & wrong-user / shuffle / placebo / duplicate gain nothing & true arm beats sh
 I2 & answers carry no recommender geometry, no target half & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts, both read from the fold-in only & \textbf{by construction} \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Verification, measured.} Every requirement is checked and every check passes. V4 gates the
-covariance on its \emph{structure} and not on the absolute scale of its uncertainty: the scale question is
-confounded by target difficulty---the mean popularity of a user's held-out items predicts their NLL with
-$|\rho|=0.70$, where the belief's own $\sigma$ reaches $0.24$---so a scale-calibration check would largely measure
-which users happen to have easy targets. The directional margin, $11.5\times$ against a $2\times$ bar, is the
-load-bearing evidence that the covariance carries per-direction information. $^\ddagger$V4's cold curve is measured
+\caption{\textbf{Verification, measured.} Every requirement is checked and every check passes.
+$^\ddagger$V3's cold curve is measured
 on a bank filtered per user to the questions they can answer, so it isolates \emph{ingestion} from question
 \emph{availability}; a deployed static sequence faces availability separately (\S\ref{sec:concept}). V4's sign and
 neutralisation arms are \emph{full-profile} corruptions---the user's whole rated history is folded and then flipped
