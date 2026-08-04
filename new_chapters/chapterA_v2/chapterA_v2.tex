@@ -714,10 +714,10 @@ in one frozen certified tower, plus the three inexpressible legs and the accepta
 % =====================================================================
 
 The design follows directly from the gap analysis: use the shallow frozen tower that already holds the accuracy
-corner (R1, and the flat-since-2019 frontier means no deep-net detour is warranted), and add the one belief mechanism
-with a principled monotonicity story---exact linear-Gaussian conjugacy---over its frozen latent (R3, R4), with a
-channel-agnostic linear-observation interface (R2). The tower half is built and certified
-(\S\ref{sec:expdesign}); the belief layer is derived here, fitted on real data, and gated in
+corner (R1, and the flat-since-2019 frontier means no deep-net detour is warranted), and add over its frozen latent
+a permutation-invariant set encoder that folds an evidence set of any length to a point (R2, R3), with every
+channel entering as a direction paired with a value (R4). The tower half is built and certified
+(\S\ref{sec:expdesign}); the fold is derived here, fitted on real data, and gated in
 \S\ref{sec:batteryresults}.
 
 \subsection{Frozen shallow-SOTA tower}
@@ -764,7 +764,7 @@ The channels, then, are:
   \item \textbf{Entities / free text.} An embedding is projected into the latent by a fixed adapter and folded
         identically.
   \item \textbf{Continuous direction tokens.} A policy may emit any $\bphi_j\in\R^{d}$ directly (the continuous-action
-        interface the companion chapter uses); the belief update does not distinguish it from a catalogue entity.
+        interface the companion chapter uses); the fold does not distinguish it from a catalogue entity.
 \end{itemize}
 The signed/graded, out-of-catalogue, and continuous legs are the three channels inexpressible in the R1-bar basis
 (\S\ref{sec:gap}).
@@ -868,7 +868,7 @@ the quality of any such interaction would rest on the text adapter whose limits 
 
 The out-of-catalogue concept leg is the most demanding of the three inexpressible channels---it is the one with no
 catalogue column, no interaction count, and no sign in the item-indicator basis---so we work it out in full. Three
-things must be made concrete: how a concept answer becomes an observation pair $(\bphi_c, y_c)$ for the belief update
+things must be made concrete: how a concept answer becomes an observation pair $(\bphi_c, y_c)$ for the fold
 of Eq.~\eqref{eq:obs}; where each piece sits in the published record (so that we claim only the conjunction, never
 a component); and why this channel is the one that forces the battery to gate what a \emph{deployed} interview
 elicits and not only what the operator can express. This section
