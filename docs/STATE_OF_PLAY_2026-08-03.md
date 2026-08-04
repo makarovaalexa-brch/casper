@@ -392,9 +392,12 @@ ten hours on the same checkpoint files. The fix is to ask the OS process table, 
 
 ## Certified artefacts (both frozen, both in models/i26c_ep31/)
 - **Tower** `t2i26c_ep31.pt` — TEST 0.3496/0.2491. Unchanged.
-- **Concept channel** `concept_cv5_ep24.pt` (= `.cache/instrument/cv5_ep24.pt`) — author ruled select on
-  best FULL under the pre-registered rule. Config is IN the checkpoint: hidden 1024, keep_meh True,
-  p_item_zero 0.15, 30 epochs.
+- **Concept channel** `concept_cv3_ep08.pt` (= `.cache/instrument/cv3_ep08.pt`) — **REVERTED TO cv3 on
+  2026-08-04**, author ruling: prefer the simpler architecture where results are indistinguishable. 464k
+  params (hidden 256, keep_meh False) vs cv5's 1.24M. Re-selected under the FIXED ranked bank, where it
+  is BETTER, not merely equal: SEL 0.1411 vs 0.1381, m16 .1498/.0673 vs .1467/.0705. Polar CIs all ten
+  cells separated, full margins larger than cv5's at every budget (peak m8 +.0189 / +.0310).
+  NOTE the earlier cv3 pick of ep7 was made under the random-draw bug; ep8 is the fixed-bank selection.
 
 ## RETRACTION — cv5 does NOT beat cv3
 Reported at ~23:40 as "+0.0148 full / +0.0083 tail at m=16". **Wrong: contract mixing.**
