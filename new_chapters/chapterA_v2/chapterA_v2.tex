@@ -1023,8 +1023,9 @@ no-answer intercept at budget.'' This is the criterion the signed four-band esti
 The signed retrain of \S\ref{sec:concept:fail} has since landed, and we ran the two channels---concepts and
 items---through \emph{one} deployment-currency harness (10{,}000 held-out cold users, per-question budget, every
 question spending budget whether answered or not, scored on full \emph{and} tail NDCG@10 against the no-answer
-intercept $0.1279/0.0192$). They tell a consistent story: the signed answer keeps the deployed interview above the intercept, and the concept channel's value is \emph{shaped}---it owns the
-opening of an interview and cedes the long tail of it to items---and its largest prize is one we do not yet capture.
+intercept $0.1279/0.0192$). They tell a consistent story: the signed answer keeps the deployed interview
+above the intercept, and which channel leads depends on how the question bank is ranked---so the comparison
+is only meaningful once that ranking is stated, which is the finding this subsection builds to.
 
 \paragraph{The signed answer turns the deployment decline into a gain.} Re-running the pre-registered triple gate on
 the \emph{retrained} model (not merely the eval-only fold of \S\ref{sec:concept:fail}) clears all three taste

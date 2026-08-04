@@ -18,6 +18,11 @@ RECOMMENDERS, each on its own published input contract:
                   like/dislike/unknown pattern. k<=8 only (see golbandi_leaf.MAX_DEPTH)
   rbmf            ridge seed onto a frozen basis, signed targets
   belief_mf       conjugate Gaussian belief, signed observations
+  eddi            EDDI's Partial-VAE (Ma et al. ICML'19) as a CONSUMER: a permutation-invariant set
+                  encoder over the observed coordinates, so it eats the same binary likes CSR as
+                  recvae_likes. Trained checkpoint .cache/baselines/eddi_ml25m_liang.pt (full-profile
+                  0.2153/0.1077). Its NATIVE question-selection (myopic info-gain) is a SELECTOR, not
+                  a consumer -- see adaptive_harness.py / eddi_selector.py.
   mostpop         the PRIOR: ignores the answers entirely, so it is ONE number, not a curve --
                   a horizontal reference line, evaluated once
 
@@ -82,7 +87,7 @@ sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
 from i26_encoder import UNSEEN_LEVEL
 
 OUT = os.path.join(_ROOT, "experiments", "baselines", "interview")
-RECS = ["ours", "recvae_likes", "golbandi_leaf", "rbmf", "belief_mf", "tanp"]
+RECS = ["ours", "recvae_likes", "golbandi_leaf", "rbmf", "belief_mf", "tanp", "eddi"]
 # Models whose input contract INCLUDES the unknowns, so they are never information-free -> never floored.
 CONSUMES_UNKNOWNS = {"golbandi_leaf"}
 GLOBAL_ARMS = {"popularity", "pure_entropy", "entropy0", "helf"}
@@ -158,6 +163,142 @@ def cursor_predict(score_matrix_fn, batch=500):
     return predict
 
 
+# ------------------------------------------------------------------ recommender construction
+def build_recommenders(recs, D, arch="i25", snapshot=SNAP_DEFAULT, log=logln):
+    """Build every requested consumer as (input_mode, object). EXTRACTED VERBATIM from main() on
+    2026-08-04 so the adaptive harness drives the IDENTICAL consumers rather than a second copy that
+    can drift. Nothing in the bodies changed; only the surrounding loop moved out."""
+    ni = D["n_items"]
+    _hm, cnt = compute_head_mask(D["train"], ni)
+    built = {}
+    if "ours" in recs:
+        ma = argparse.Namespace(arch=arch, teacher="warm_init", t_hidden=600, t_latent=200,
+                                token="film", train_decoder=False, sign_prior=True, unfreeze_emb=False,
+                                lr=3e-4, warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
+        if arch == "i26":
+            sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
+            from i26_encoder import build_i26
+            from train_tower_t2 import load_recvae_teacher, apply_sign_prior
+            src = load_recvae_teacher(ni, hidden=600, latent=200)
+            enc, dec, _p26, _g26 = build_i26(ni, src, ma, log=log)
+            apply_sign_prior(enc)
+        else:
+            enc, dec, _t, _p, _g = build_model(ma, ni, cnt)
+        blob = torch.load(snapshot, map_location="cpu")
+        if arch == "i26":
+            # A certified i25 checkpoint has no exposure-branch keys, so strict=True rejects it -- but
+            # loading it into i26 is exactly the BEFORE-TRAINING control we want (zero-init branch =>
+            # unseen tokens inert => it must reproduce the i25 numbers). Allow it, but ALLOWLIST what
+            # may be missing: blanket strict=False is how a partial model gets loaded in silence.
+            ALLOWED = {"W_white", "gate_e", "psi.0.weight", "psi.0.bias", "psi.2.weight", "psi.2.bias",
+                       "rho_expo.0.weight", "rho_expo.0.bias", "rho_expo.2.weight", "rho_expo.2.bias"}
+            miss = enc.load_state_dict(blob["enc"], strict=False)
+            unexpected = set(miss.unexpected_keys)
+            bad = set(miss.missing_keys) - ALLOWED
+            if bad or unexpected:
+                raise SystemExit(f"[interview] REFUSING to load: unexpected={sorted(unexpected)} "
+                                 f"missing-and-not-allowed={sorted(bad)}")
+            if miss.missing_keys:
+                log(f"[interview] BEFORE-TRAINING control: exposure branch left at zero-init "
+                    f"({len(miss.missing_keys)} keys) -- unseen tokens are inert, so this must "
+                    f"reproduce the certified i25 numbers")
+        else:
+            enc.load_state_dict(blob["enc"])
+        dec.load_state_dict(blob["decoder"]); enc.eval()
+        log(f"[interview] ours = {arch} from {os.path.basename(snapshot)} "
+            f"(ep={blob.get('epoch','?')} val_full={blob.get('val_full','?')})")
+        # i26 must RECEIVE the unseen channel it was trained on; i25 has no such channel.
+        built["ours"] = ("levels_unseen" if arch == "i26" else "levels",
+                         (enc, dec.weight.detach(), dec.bias.detach()))
+    if "recvae_likes" in recs:
+        ck = os.path.join(_ROOT, ".cache", "baselines", "recvae_ml25m_liang.pt")
+        ra = recvae._defaults()
+        ra.epochs = int(torch.load(ck, map_location="cpu")["state"]["epoch"]); ra.max_minutes = 0.0
+        built["recvae_likes"] = ("likes", recvae.fit(D["train"], ni, args=ra, ckpt=ck, log=log))
+    if "rbmf" in recs:
+        built["rbmf"] = ("signed", rbmf_seed.fit(D["train"], ni, log=log))
+    if "belief_mf" in recs:
+        built["belief_mf"] = ("signed", belief_mf.fit(D["train"], ni, log=log))
+    if "tanp" in recs:
+        # TaNP needs no bespoke adapter: its predict takes a likes CSR, the same contract as
+        # recvae_likes, so the interview harness can drive it unchanged. Epochs are pinned to the
+        # trained checkpoint so this reloads rather than retrains.
+        import tanp_bestefffort as tanp
+        tck = os.path.join(_ROOT, ".cache", "baselines", "tanp_ml25m_liang.pt")
+        ta = tanp._defaults()
+        ta.epochs = int(torch.load(tck, map_location="cpu")["state"]["epoch"])
+        ta.max_minutes = 0.0
+        built["tanp"] = ("likes", tanp.fit(D["train"], ni, args=ta, ckpt=tck, log=log))
+    if "eddi" in recs:
+        # EDDI's Partial-VAE consumes the OBSERVED SET, which under the binary implicit contract is
+        # exactly the likes CSR every other set-input baseline eats. No adapter, no retrain: the
+        # checkpoint (trained 2026-08-03) is loaded at its best epoch.
+        import eddi_pvae
+        eck = os.path.join(_ROOT, ".cache", "baselines", "eddi_ml25m_liang.pt")
+        built["eddi"] = ("likes", eddi_pvae.load_trained(eck, ni, log=log))
+    if "golbandi_leaf" in recs:
+        built["golbandi_leaf"] = ("raw", GolbandiLeaf(D["g_train"], ni, lam=8.0, log=log))
+    return built
+
+
+# ------------------------------------------------------------------ one (consumer, ask-set) cell
+def score_arm(name, mode, obj, asked, answered, D, pop_row, no_floor=False, global_asked=None,
+              batch_size=500):
+    """Score ONE cell: a consumer against ONE realised (asked, answered) interview. EXTRACTED VERBATIM
+    from main()'s inner loop on 2026-08-04.
+
+    The extraction is the point: the adaptive harness changes only HOW `asked`/`answered` are produced.
+    The answer->input contract, the Most-Popular floor rule, the evaluate() cursor discipline and the
+    fixed arm-N candidate pool must be the SAME CODE for the static and the sequential path, because
+    the regression assert in adaptive_harness only covers the ASK side. Two copies of this block would
+    drift silently and the assert would never see it.
+
+    `global_asked` is the shared ask-list when EVERY user was asked the same items (all four static
+    global arms, and turn-0 of any adaptive selector); it lets GolbandiLeaf build the partition once.
+    Pass None whenever the ask-lists differ per user -- exactly today's rule."""
+    n, ni = D["te_tr"].shape[0], D["n_items"]
+    n_ans = float(np.mean([len(t) for t in answered]))
+    if mode == "raw":
+        sc = obj.scores(asked, answered, global_asked=global_asked)
+        base = cursor_predict(lambda s, e, _sc=sc: _sc[s:e].copy())
+        Xin = D["te_tr"]
+    else:
+        Xi = answers_to_csr(answered, n, ni, mode, asked=asked)
+        if name == "ours":
+            e_, W_, b_ = obj
+            base = make_graded_predict_fn(e_, W_, b_, Xi, check_nnz=False)
+        else:
+            base = obj
+        Xin = Xi
+    floored = {"n": 0, "cursor": 0}
+    use_floor = (name not in CONSUMES_UNKNOWNS) and not no_floor
+
+    def pr(X, _b=base, _st=floored, _f=use_floor):
+        out = np.array(_b(X), dtype=np.float32, copy=True)
+        lo = _st["cursor"]; hi = lo + X.shape[0]
+        if _f:
+            _st["n"] += apply_pop_floor(out, answered, pop_row, lo, hi)
+        _st["cursor"] = hi
+        return out
+    if hasattr(base, "reset"):
+        base.reset()
+    res = M.evaluate(pr, Xin, D["te_te"], batch_size=batch_size, head_mask=D["head_mask"],
+                     mask_X=D["pool"])
+    return {"full": res["ndcg@10"], "tail": res["tail_ndcg@10"],
+            "answered": n_ans, "floored": floored["n"]}
+
+
+def mostpop_row(D, log=logln):
+    """The popularity prior: the floor vector itself, plus its one-number NDCG row."""
+    pr_pop = pop.fit(D["train"], D["n_items"], log=log)
+    pop_row = np.asarray(pr_pop(D["te_tr"][:1]), dtype=np.float32).ravel().copy()
+    r = M.evaluate(pr_pop, D["te_tr"], D["te_te"], batch_size=500, head_mask=D["head_mask"],
+                   mask_X=D["pool"])
+    log(f"[interview] mostpop PRIOR (constant, answer-independent): "
+        f"full={r['ndcg@10']:.4f} tail={r['tail_ndcg@10']:.4f}")
+    return pop_row, {"full": r["ndcg@10"], "tail": r["tail_ndcg@10"]}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--budgets", default="1,2,4,8,16")
@@ -186,87 +327,20 @@ def main():
 
     D = load_arm_n(log=logln)
     ni, n = D["n_items"], D["te_tr"].shape[0]
-    pool, head_mask, te_te = D["pool"], D["head_mask"], D["te_te"]
-    _hm, cnt = compute_head_mask(D["train"], ni)
 
     glob, bank = ST.build_orders(D["g_train"], D["train"], ni, log=logln)
     lvl = ST.level_lookup(D["g_te_tr"])
     logln(f"[interview] {len(recs)} recommenders x {len(arms)} strategies x {len(budgets)} budgets")
 
-    # ---------------------------------------------------------------- recommenders
-    built = {}
-    if "ours" in recs:
-        ma = argparse.Namespace(arch=a.arch, teacher="warm_init", t_hidden=600, t_latent=200,
-                                token="film", train_decoder=False, sign_prior=True, unfreeze_emb=False,
-                                lr=3e-4, warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
-        if a.arch == "i26":
-            sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
-            from i26_encoder import build_i26
-            from train_tower_t2 import load_recvae_teacher, apply_sign_prior
-            src = load_recvae_teacher(ni, hidden=600, latent=200)
-            enc, dec, _p26, _g26 = build_i26(ni, src, ma, log=logln)
-            apply_sign_prior(enc)
-        else:
-            enc, dec, _t, _p, _g = build_model(ma, ni, cnt)
-        blob = torch.load(a.snapshot, map_location="cpu")
-        if a.arch == "i26":
-            # A certified i25 checkpoint has no exposure-branch keys, so strict=True rejects it -- but
-            # loading it into i26 is exactly the BEFORE-TRAINING control we want (zero-init branch =>
-            # unseen tokens inert => it must reproduce the i25 numbers). Allow it, but ALLOWLIST what
-            # may be missing: blanket strict=False is how a partial model gets loaded in silence.
-            ALLOWED = {"W_white", "gate_e", "psi.0.weight", "psi.0.bias", "psi.2.weight", "psi.2.bias",
-                       "rho_expo.0.weight", "rho_expo.0.bias", "rho_expo.2.weight", "rho_expo.2.bias"}
-            miss = enc.load_state_dict(blob["enc"], strict=False)
-            unexpected = set(miss.unexpected_keys)
-            bad = set(miss.missing_keys) - ALLOWED
-            if bad or unexpected:
-                raise SystemExit(f"[interview] REFUSING to load: unexpected={sorted(unexpected)} "
-                                 f"missing-and-not-allowed={sorted(bad)}")
-            if miss.missing_keys:
-                logln(f"[interview] BEFORE-TRAINING control: exposure branch left at zero-init "
-                      f"({len(miss.missing_keys)} keys) -- unseen tokens are inert, so this must "
-                      f"reproduce the certified i25 numbers")
-        else:
-            enc.load_state_dict(blob["enc"])
-        dec.load_state_dict(blob["decoder"]); enc.eval()
-        logln(f"[interview] ours = {a.arch} from {os.path.basename(a.snapshot)} "
-              f"(ep={blob.get('epoch','?')} val_full={blob.get('val_full','?')})")
-        # i26 must RECEIVE the unseen channel it was trained on; i25 has no such channel.
-        built["ours"] = ("levels_unseen" if a.arch == "i26" else "levels",
-                         (enc, dec.weight.detach(), dec.bias.detach()))
-    if "recvae_likes" in recs:
-        ck = os.path.join(_ROOT, ".cache", "baselines", "recvae_ml25m_liang.pt")
-        ra = recvae._defaults()
-        ra.epochs = int(torch.load(ck, map_location="cpu")["state"]["epoch"]); ra.max_minutes = 0.0
-        built["recvae_likes"] = ("likes", recvae.fit(D["train"], ni, args=ra, ckpt=ck, log=logln))
-    if "rbmf" in recs:
-        built["rbmf"] = ("signed", rbmf_seed.fit(D["train"], ni, log=logln))
-    if "belief_mf" in recs:
-        built["belief_mf"] = ("signed", belief_mf.fit(D["train"], ni, log=logln))
-    if "tanp" in recs:
-        # TaNP needs no bespoke adapter: its predict takes a likes CSR, the same contract as
-        # recvae_likes, so the interview harness can drive it unchanged. Epochs are pinned to the
-        # trained checkpoint so this reloads rather than retrains.
-        import tanp_bestefffort as tanp
-        tck = os.path.join(_ROOT, ".cache", "baselines", "tanp_ml25m_liang.pt")
-        ta = tanp._defaults()
-        ta.epochs = int(torch.load(tck, map_location="cpu")["state"]["epoch"])
-        ta.max_minutes = 0.0
-        built["tanp"] = ("likes", tanp.fit(D["train"], ni, args=ta, ckpt=tck, log=logln))
-    if "golbandi_leaf" in recs:
-        built["golbandi_leaf"] = ("raw", GolbandiLeaf(D["g_train"], ni, lam=8.0, log=logln))
+    built = build_recommenders(recs, D, arch=a.arch, snapshot=a.snapshot, log=logln)
 
     results = {}
     lbl = a.label or a.arch
     outp = os.path.join(OUT, f"interview_table_{lbl}.json")
 
     # ---------------------------------------------------------------- MostPop: one number
-    pr_pop = pop.fit(D["train"], ni, log=logln)
-    pop_row = np.asarray(pr_pop(D["te_tr"][:1]), dtype=np.float32).ravel().copy()   # the floor itself
-    r = M.evaluate(pr_pop, D["te_tr"], te_te, batch_size=500, head_mask=head_mask, mask_X=pool)
-    results["mostpop"] = {"_prior": {"full": r["ndcg@10"], "tail": r["tail_ndcg@10"]}}
-    logln(f"[interview] mostpop PRIOR (constant, answer-independent): "
-          f"full={r['ndcg@10']:.4f} tail={r['tail_ndcg@10']:.4f}")
+    pop_row, prior = mostpop_row(D, log=logln)
+    results["mostpop"] = {"_prior": prior}
 
     for name in recs:
         mode, obj = built[name]
@@ -281,42 +355,19 @@ def main():
                     continue
                 ts = time.time()
                 asked, answered = ST.ask(arm, glob, bank, n, ni, lvl, k)
-                n_ans = float(np.mean([len(t) for t in answered]))
-                if mode == "raw":
-                    ga = asked[0] if arm in GLOBAL_ARMS else None
-                    sc = obj.scores(asked, answered, global_asked=ga)
-                    base = cursor_predict(lambda s, e, _sc=sc: _sc[s:e].copy())
-                    Xin = D["te_tr"]
-                else:
-                    Xi = answers_to_csr(answered, n, ni, mode, asked=asked)
-                    if name == "ours":
-                        e_, W_, b_ = obj
-                        base = make_graded_predict_fn(e_, W_, b_, Xi, check_nnz=False)
-                    else:
-                        base = obj
-                    Xin = Xi
-                floored = {"n": 0, "cursor": 0}
-                use_floor = (name not in CONSUMES_UNKNOWNS) and not a.no_floor
-
-                def pr(X, _b=base, _st=floored, _f=use_floor):
-                    out = np.array(_b(X), dtype=np.float32, copy=True)
-                    lo = _st["cursor"]; hi = lo + X.shape[0]
-                    if _f:
-                        _st["n"] += apply_pop_floor(out, answered, pop_row, lo, hi)
-                    _st["cursor"] = hi
-                    return out
-                if hasattr(base, "reset"):
-                    base.reset()
-                res = M.evaluate(pr, Xin, te_te, batch_size=500, head_mask=head_mask, mask_X=pool)
-                results[name][arm][f"k{k}"] = {"full": res["ndcg@10"], "tail": res["tail_ndcg@10"],
-                                               "answered": n_ans, "floored": floored["n"]}
-                logln(f"[interview] {name:14s} {arm:14s} k={k:2d} answered={n_ans:4.1f}/{k} "
-                      f"floored={floored['n']:5d} full={res['ndcg@10']:.4f} "
-                      f"tail={res['tail_ndcg@10']:.4f} ({(time.time() - ts) / 60:.1f}m)")
+                ga = asked[0] if arm in GLOBAL_ARMS else None
+                cell = score_arm(name, mode, obj, asked, answered, D, pop_row,
+                                 no_floor=a.no_floor, global_asked=ga)
+                results[name][arm][f"k{k}"] = cell
+                logln(f"[interview] {name:14s} {arm:14s} k={k:2d} "
+                      f"answered={cell['answered']:4.1f}/{k} floored={cell['floored']:5d} "
+                      f"full={cell['full']:.4f} tail={cell['tail']:.4f} "
+                      f"({(time.time() - ts) / 60:.1f}m)")
                 json.dump({"lit_rank": ST.LIT_RANK, "cites": ST.CITES, "budgets": budgets,
                            "arch": a.arch, "snapshot": os.path.basename(a.snapshot),
                            "results": results}, open(outp, "w"), indent=2)
     logln(f"[interview] done -> {outp}")
+
 
 
 if __name__ == "__main__":

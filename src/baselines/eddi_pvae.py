@@ -112,6 +112,34 @@ def make_predict_fn(model):
     return predict
 
 
+def load_trained(ckpt, n_items, log=print):
+    """Rebuild the trained Partial-VAE from a checkpoint at its BEST epoch and return a predict_fn.
+
+    Why an explicit loader rather than fit(..., epochs=best): fit() would re-enter the training loop
+    and, with an evaluator=None, silently overwrite `best_state` with nothing. The interview table and
+    the EDDI acquisition both need the exact certified weights, so the load is spelled out. The
+    returned predict_fn carries `.model` so the selector can reach the encoder/decoder heads without a
+    second load of a 250 MB checkpoint."""
+    blob = torch.load(ckpt, map_location="cpu")
+    a = argparse.Namespace(**blob["args"])
+    model = PartialVAE(n_items, emb=a.emb, feat=a.feat, hidden=a.hidden, latent=a.latent,
+                       dropout=a.dropout)
+    st = blob["state"]
+    best = st.get("best_state")
+    sd = blob["model"] if best is None else best
+    model.load_state_dict(sd)
+    model.eval()
+    predict = make_predict_fn(model)
+    predict.model = model
+    predict.best_val = st.get("best", float("nan"))
+    predict.best_epoch = st.get("best_epoch", -1)
+    predict.from_best_state = best is not None
+    log(f"[eddi] loaded {os.path.basename(ckpt)} "
+        f"({'best_state' if best is not None else 'LAST state (no best_state in ckpt!)'} "
+        f"ep={predict.best_epoch} val_full={predict.best_val:.4f}) latent={a.latent} feat={a.feat}")
+    return predict
+
+
 def _defaults():
     return argparse.Namespace(
         epochs=200, batch=500, lr=1e-3, anneal_cap=0.2, total_anneal_steps=200000,
