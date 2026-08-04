@@ -683,8 +683,8 @@ chance}, and only whitening makes it a direction ($0.94$). The channel is built,
 argument for an instrument, and it is empirical rather than rhetorical. On a strong ingestion model,
 differences between question-selection strategies compress: a \emph{random} question from an answerable
 bank matches popularity-ranked items at $q{=}1,2,4,8$ and loses only at $q{=}16$; a one-level adaptive
-probe pays $+0.0015$ full (CI $[+0.0007,+0.0024]$); and $\bSigma$-greedy beats random by $+0.0036$ at the
-largest budget alone. A weaker recommender leaves more of the work to the question, so the same strategy
+probe pays $+0.0015$ full (CI $[+0.0007,+0.0024]$); and an uncertainty-guided selector beats random by
+$+0.0036$ at the largest budget alone. A weaker recommender leaves more of the work to the question, so the same strategy
 gap measured there is larger---and, if strategies are affected unequally, need not even preserve the
 \emph{ordering}. A policy result obtained on a weak recommender therefore carries an unknown amount of its
 own substrate, which is exactly the confound this chapter exists to remove.
@@ -1436,11 +1436,14 @@ fold-in values of Table~\ref{tab:g0}, which withhold a fifth of each profile as 
 \paragraph{Within an answerable bank, question choice matters far less than answerability itself.}
 In the V3 curves, a \emph{random} question drawn from the answerable bank beats popularity-ranked items at
 $q{=}1,2,4,8$ (e.g.\ $0.2358$ vs $0.2230$ full at $q{=}8$) and is only overtaken at $q{=}16$ ($+0.0022$,
-CI-clean). HELF and the $\bSigma$-greedy selector are likewise within noise of random until the largest
-budget, where $\bSigma$-greedy wins by $+0.0036$ (CI $[0.0016,0.0057]$). This is not a contradiction of V3's fixed-bank arm,
-whose random arm is drawn from the \emph{whole catalogue} and is therefore mostly unanswerable (mean
-$1.4$ of $16$ questions answered, versus $13.5$ for the popularity bank) and which the popularity bank
-beats by $+0.1264$: the two ``random'' controls are different objects, and we name them separately. The
+CI-clean). HELF and an uncertainty-guided selector are likewise within noise of random until the largest
+budget, where that selector wins by $+0.0036$ (CI $[0.0016,0.0057]$)---a selection result we report for
+completeness and do not claim, selection being the companion chapter's subject. This is not a
+contradiction of V3's fixed-bank arm, whose random arm is drawn from the \emph{whole catalogue} and is
+therefore mostly unanswerable: on the certified tower the fixed bank has $1.97$ of a user's first two
+questions answered against $0.79$ for the whole-catalogue random arm, and rises $+0.1035$
+(CI $[0.1000,0.1071]$) from $q{=}2$ to $q{=}16$ where the random arm rises $+0.0051$. The two ``random''
+controls are different objects, and we name them separately. The
 lesson is that once a bank is restricted to answerable questions, \emph{which} of them is asked matters far
 less than that they are answerable---which is precisely why the selection problem is deferred to the
 companion chapter and why we decline to claim a selection result here.
