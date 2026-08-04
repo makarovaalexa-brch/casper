@@ -267,7 +267,12 @@ def unified_walk(rung, rows, item_score, conc_score, budgets=BUDGETS):
 
 
 def _greedy_build_ev(rung, rows, seq, fold_refusals=False, refuse_level=4):
-    """Per-user (item_ev, conc_ev) for a fixed sequence of (chan, id): item iff rated, concept iff
+    """LEGACY (i25/sclite contract, 2026-07-27). Superseded for the certified stack by
+    `genv_eval` below; kept because greedy_polish.py imports this and `_greedy_avg`, and because the
+    recorded Jul-27 numbers were produced by it. DO NOT use it with an i26 tower: it has no exposure
+    (UNSEEN) token and no refusal token, so it measures a different information contract.
+
+    Per-user (item_ev, conc_ev) for a fixed sequence of (chan, id): item iff rated, concept iff
     structurally answerable. Static -> same seq for every user.
     If fold_refusals: an asked-but-unrated item that is NOT the user's held-out target is folded as a
     mild-negative 'refusal' at level=refuse_level (heuristic; the model was not trained for refusals).
@@ -316,7 +321,9 @@ def _seq_answered(sh, rows, seq):
 
 
 def greedy_static_seq(rung, rows, pool, L, fold_refusals=False, refuse_level=4, objective="full"):
-    """Lazy-greedy (CELF) best static sequence of length L from pool=[(chan,id),...], maximizing
+    """LEGACY (i25/sclite contract). The certified-stack driver is `greedy_certified` below.
+
+    Lazy-greedy (CELF) best static sequence of length L from pool=[(chan,id),...], maximizing
     mean NDCG@10 over rows. Exploits submodularity: recompute a candidate's marginal gain only
     when it reaches the top with a stale bound. Returns (seq, gains, n_evals).
 

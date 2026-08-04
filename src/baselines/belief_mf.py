@@ -58,12 +58,57 @@ def _fit_prior_and_basis(train, hp, log=print):
     return Y, mu0, Sig0
 
 
+class GaussianBelief:
+    """The conjugate linear-Gaussian posterior, as an OBJECT.
+
+    Factored out 2026-08-04 (Paper B Act 1) so the interview bandit selectors -- GLM-UCB and Thompson
+    sampling, `bandit_selectors.py` -- read the SAME posterior the belief_mf consumer scores with. The
+    module header already argues that one posterior legitimately backs both the Biyik row and the ConTS
+    row: this class is that argument made structural. There is exactly ONE implementation of the
+    update; `_make_predict` below is now a thin mean read-out over it, and the arithmetic inside
+    `posterior()` is line-for-line the code that produced the published belief_mf row.
+
+      prior       u ~ N(mu0, Sigma0)
+      likelihood  r_i = <u, Y_i> + eps,  eps ~ N(0, s2)
+      posterior   A       = Sigma0^-1 + (1/s2) Y_S^T Y_S        (PRECISION; covariance = A^-1)
+                  mu_post = A^-1 ( Sigma0^-1 mu0 + (1/s2) Y_S^T r )
+
+    NOTE the property the bandits exploit: A depends only on WHICH items were observed, never on the
+    answers' values. So the UCB width vector is shared by every user with the same observed set, which
+    is what makes an exact (non-subsampled) 10k-user x 18,359-candidate sweep affordable."""
+
+    def __init__(self, Y, mu0, Sig0, obs_noise, prior_scale, jitter):
+        f = Y.shape[1]
+        self.Y = Y
+        self.mu0 = mu0
+        self.Sig0 = prior_scale * Sig0 + jitter * np.eye(f)  # jitter: keep SPD if cov is rank-deficient
+        self.Sig0_inv = np.linalg.inv(self.Sig0)
+        self.Sig0_inv_mu0 = self.Sig0_inv @ mu0
+        self.inv_s2 = 1.0 / float(obs_noise)
+
+    def precision(self, cols):
+        """A = Sigma0^-1 + (1/s2) Y_S^T Y_S. Value-free by construction."""
+        if len(cols) == 0:
+            return self.Sig0_inv
+        Ys = self.Y[cols]
+        return self.Sig0_inv + self.inv_s2 * (Ys.T @ Ys)
+
+    def posterior(self, cols, vals):
+        """(mu_post, A). vals are the OBSERVED VALUES: the binary contract passes 1.0 and reduces
+        EXACTLY to the old Y_S^T 1 (the published row is bit-identical); the signed interview contract
+        passes level_to_sv, so a dislike enters as a NEGATIVE measurement of the user's utility.
+        Frozen basis and empirical prior unchanged -- see rbmf_seed for the caveat about Y."""
+        if len(cols) == 0:
+            return self.mu0, self.Sig0_inv                  # no evidence -> posterior == prior
+        Ys = self.Y[cols]                                   # (|S| x f)
+        A = self.Sig0_inv + self.inv_s2 * (Ys.T @ Ys)       # posterior precision
+        obs = Ys.T @ np.asarray(vals, dtype=np.float64)
+        rhs = self.Sig0_inv_mu0 + self.inv_s2 * obs         # Y_S^T r
+        return np.linalg.solve(A, rhs), A
+
+
 def _make_predict(Y, mu0, Sig0, obs_noise, prior_scale, jitter, log=print):
-    f = Y.shape[1]
-    Sig0 = prior_scale * Sig0 + jitter * np.eye(f)         # jitter: keep SPD if cov is rank-deficient
-    Sig0_inv = np.linalg.inv(Sig0)
-    Sig0_inv_mu0 = Sig0_inv @ mu0
-    inv_s2 = 1.0 / float(obs_noise)
+    bel = GaussianBelief(Y, mu0, Sig0, obs_noise, prior_scale, jitter)
 
     def predict(X_csr):
         Xc = X_csr.tocsr()
@@ -72,21 +117,10 @@ def _make_predict(Y, mu0, Sig0, obs_noise, prior_scale, jitter, log=print):
         for r in range(b):
             s0, e0 = Xc.indptr[r], Xc.indptr[r + 1]
             cols = Xc.indices[s0:e0]
-            if len(cols) == 0:
-                # no evidence -> posterior == prior -> score by prior-mean utility
-                scores[r] = (Y @ mu0).astype(np.float32)
-                continue
-            Ys = Y[cols]                                   # (|S| x f)
-            A = Sig0_inv + inv_s2 * (Ys.T @ Ys)            # posterior precision
-            # OBSERVATION = the VALUE carried by the input matrix. Binary contract: every entry is 1.0,
-            # so this reduces EXACTLY to the old Y_S^T 1 and the published row is bit-identical. Signed
-            # interview contract: a dislike enters as a NEGATIVE measurement of the user's utility.
-            # Frozen basis and empirical prior unchanged -- see rbmf_seed for the caveat about Y.
-            obs = Ys.T @ Xc.data[s0:e0].astype(np.float64)
-            rhs = Sig0_inv_mu0 + inv_s2 * obs              # Y_S^T r
-            mu_post = np.linalg.solve(A, rhs)
+            mu_post, _A = bel.posterior(cols, Xc.data[s0:e0].astype(np.float64))
             scores[r] = (Y @ mu_post).astype(np.float32)
         return scores
+    predict.belief = bel
     return predict
 
 
