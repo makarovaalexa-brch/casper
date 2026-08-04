@@ -1,0 +1,301 @@
+thread_id,turn_id,user_hash,year,context,he_tconst,mention_span,sentence,label_tconst_or_NONE,note
+t3_r1okvh,t1_hm0m6ac,2f34de13e263,2021,reply,tt1706620,Snowpiercer,Action: Snowpiercer,tt1706620,2013 film default; 2020 TV plausible
+t3_9vryip,t1_e9fyzqk,a798f8b9c867,2018,reply,tt0139668,True Crime,Serial made True Crime mainstream.,NONE,"'True Crime' = the genre (Serial podcast context), not a title"
+t3_9zltkm,t1_eaa82hl,7bdda184b465,2018,seeker_followup,tt0090756,blue velvet,Kinda reminds me of that old David lynch flick blue velvet,tt0090756,
+t3_gtlkvc,t1_fseqs9u,10400b698156,2020,seeker_followup,tt0238380,Equilibrium,Equilibrium has been on my shelf for months I should really just watch it XD,tt0238380,
+t3_qabao9,t3_qabao9,3dd34f6c6a22,2021,request,tt0113118,friday.,Looking for a movie like friday.,tt0113118,
+t3_fondam,t1_flg5cl1,1552ad6d5617,2020,seeker_followup,tt3500544,Ofcourse.,Ofcourse.,NONE,conversational ('Of course')
+t3_qav7ic,t1_hh5kegw,83c161bfa141,2021,seeker_followup,tt1798709,Her,"Woah great list, I've watched some of them, Her was outstanding, I'll try the others.",tt1798709,
+t3_wpuew0,t3_wpuew0,f498fbcc5ef8,2022,request,tt3118452,Circle (2015),* Circle (2015),tt3118452,
+t3_wcs369,t3_wcs369,f6bdfa6e13f4,2022,request,tt5665256,Infinity War,I was just seeing Infinity War and Endgame for the third time.,tt4154756,Avengers: Infinity War; he=Infinity Baby wrong
+t3_ujr4i1,t1_ivzzkmm,2203d336842c,2022,reply,tt3728746,9 April,9 April,tt3542188,April 9th (2015 Danish); he=25 April wrong
+t3_p6hbnm,t3_p6hbnm,119de4854047,2021,request,tt6096500,"""In","I randomly remembered Joan Cusack and how funny I found her in ""In and Out"" and ""Addams Family Values""",tt0119360,truncated span; In & Out 1997 (Joan Cusack); he=2017 film wrong
+t3_cj06pk,t1_evac336,6023da341496,2019,seeker_followup,tt0464141,The Orphanage,Let the Right One In and The Orphanage are masterpieces.,tt0464141,
+t3_uh65y7,t1_i75ebht,c3c897fce53c,2022,seeker_followup,tt6259380,Code 8,"Code 8 has Max from The Babysitter, so that alone should get me to watch it.",tt6259380,
+t3_grllks,t1_fs0cjcn,d8adddf5411c,2020,reply,tt4550098,Nocturnal Animals.,Nocturnal Animals.,tt4550098,
+t3_lq4t17,t3_lq4t17,14028ca226e4,2021,request,tt2105044,V/H/S,* V/H/S,tt2105044,
+t3_rpl5yx,t1_hq50cpm,abd5e2f69b8f,2021,reply,tt0298203,[X Files,"But, if you liked that movie, and wanted to just watch episodes that are about that main storyline, you can do that by going to the [X Files list of episodes Wikipedia page](https://en.",tt0106179,X-Files TV series (episode list context); he=8 Mile wrong
+t3_ximfq7,t3_ximfq7,703fe44580cc,2022,request,tt0450278,Hostel,"As the title says, I'm looking for movies with an unrealistically high amount of blood, not something like Eden Lake or Hostel with disturbing, realistic &amp; grotesque gore, I mean movies that almost make you laugh because of how bloody they get.",tt0450278,
+t3_e6baa2,t1_f9q1fn4,da9a7aed961c,2019,seeker_followup,tt0092099,Maverick,"In Top Gun, Maverick has to just get the fuck over himself.",NONE,"Maverick = character in Top Gun, not a title mention"
+t3_g98x5x,t1_fovazji,1444f085f0db,2020,seeker_followup,tt0255100,bottle movie?,"Also, I keep seeing Resevour Dogs on this thread, but I cannot see how that film counts as a bottle movie? I think of bottle movies as taking place at least 90% in a small area, and all characters being introduced in the beginning (disregard the “diner” scene.",NONE,'bottle movie' = genre term; he=Bitter Movie wrong
+t3_zst75k,t1_j1c4rds,b097bc1ed1f3,2022,seeker_followup,tt3175452,"King Naresuan,","Thanks for the suggestions, I've watched the Ong Bak movies but I'll certainly check King Naresuan, tnx",tt0817940,"franchise: King Naresuan pt1 (2007, aka Kingdom of War); he=pt5 partial"
+t3_cb653q,t3_cb653q,aacbe280907b,2019,request,tt1643222,"Hell,","This would include Hell, or Valhalla, or from other religions.",NONE,"Hell = the place/afterlife concept, not the 2011 film"
+t3_f8id4n,t1_filjc5y,01d16b24a327,2020,seeker_followup,tt0064622,The magic christian,The magic christian looks crazy.,tt0064622,
+t3_pqlk7k,t3_pqlk7k,6e06f8a98f50,2021,request,tt0087597,'The Last Starfighter',"Some others that either related to the topic or had great stylization of either that era, or early home computers, that I've discovered over the years: 1983 'WarGames' / 1983 'Nightmares' / 1981 'Evilspeak' / 1984 'Electric Dreams' / 1992 'The Lawnmower Man' / 1984 'The Last Starfighter' / 1999 'eXistenZ' / 2001 'Antitrust' / 2001 'How to Make a Monster' / 1977 'Demon Seed' / 1983 'Brainstorm' / 1",tt0087597,
+t3_d5a845,t1_f0mgn5y,7b9c72a080e0,2019,seeker_followup,tt0070544,"fantastic planet,","I’ve seen this movie, I really enjoyed it, I’d say not as much as fantastic planet, but I find I shouldn’t compare the two",tt0070544,
+t3_rv4qct,t1_hr371yu,be9ccf56aaf6,2022,reply,tt26911927,Black Summer,- Black Summer (TV show),tt8923854,explicitly '(TV show)'; he=2021 movie wrong
+t3_yuoyit,t1_iwciyjw,10a6daafd9b5,2022,reply,tt2582802,Whiplash,Whiplash,tt2582802,
+t3_9dazwg,t1_e5gi7vk,805a309af2f4,2018,seeker_followup,tt3682448,"""Bridge of Spies""","I don't think i did, but gonna watch ""Bridge of Spies""",tt3682448,
+t3_wdw3ez,t1_iimiz9v,10a6daafd9b5,2022,reply,tt0829482,Superbad,Superbad,tt0829482,
+t3_a10caw,t1_ealzmtw,32e638e0962f,2018,reply,tt2103217,Maniac,"Maniac for sure, so good",tt5580146,2018 Netflix miniseries most likely in 2018; he=2012 film; UNCERTAIN
+t3_gltjub,t3_gltjub,abc06da4eb10,2020,request,tt0061722,The Catcher in The Rye.,The dude is an empty void and so cynical and lost in the world like Holden Caulifield in The Catcher in The Rye.,NONE,book analogy (Holden Caulfield); he=The Graduate wrong
+t3_jcj25h,t1_g92uhnv,de6d58bf1e4e,2020,seeker_followup,tt0108052,Schindler's List,Only Schindler's List was acceptable for subs,tt0108052,
+t3_e83m7j,t1_fa9f0yr,54e1d8d4ff11,2019,reply,tt3830162,V Wars.,"New this week, V Wars.",tt7403736,V-Wars Netflix TV (new Dec 2019); he=A War wrong
+t3_9uvt5o,t3_9uvt5o,12d121e5a26f,2018,request,tt1259528,Den of Thieves?,Have you seen Den of Thieves?,tt1259528,
+t3_iucca5,t1_g5ka62o,899c89e8f9d0,2020,seeker_followup,tt4052882,The Shallows.,"Ah, The Shallows.",tt4052882,
+t3_lw4x54,t1_gphold4,72eebd9e9cc7,2021,seeker_followup,tt7984734,The Lighthouse,Definitely been thinking about checking out The Lighthouse so am gonna give that one a watch for sure,tt7984734,
+t3_8wjxza,t1_e1wb2fy,fe79d83dafd0,2018,reply,tt7784604,hereditary,My expectations for hereditary were through the roof.,tt7784604,
+t3_k2ljby,t3_k2ljby,4bff27c46314,2020,request,tt2124845,Luna Nera,"I thought it may be Luna Nera when searching Netflix but it is not unfortunately, although it has some similar aspects.",tt8403622,Netflix series; he=Luna Mesa wrong
+t3_fozdcb,t3_fozdcb,bcb0647dde78,2020,request,tt3799694,'The Nice Guys',Finally watched 'The Nice Guys' (2016) and I need more of that!,tt3799694,
+t3_if23wm,t1_g2lqp0d,cbc346003a19,2020,seeker_followup,tt0110759,"TNCFU,","I think we got more of that because the director of TNCFU, Timo Tjahjanto, is heavily associated with the horror genre.",tt6116856,TNCFU = The Night Comes for Us (Tjahjanto); he=PCU wrong
+t3_co66d8,t1_ewk1jxv,d96bf545d8f1,2019,seeker_followup,tt0105236,Reservoir Dogs,Reservoir Dogs is especially the kind of thing I'm looking for.,tt0105236,
+t3_aaea0u,t1_ecrk048,4b1f406dd11f,2018,seeker_followup,tt0115759,Broken Arrow?,Really? No love for Broken Arrow? The music alone is worth a viewing.,tt0115759,1996 John Woo (Zimmer score context)
+t3_9zltkm,t1_eaacl3w,7bdda184b465,2018,seeker_followup,tt1783732,John dies at the end.,Pretty sure blade of the immortal was made by the same production co that did John dies at the end.,tt1783732,
+t3_dabevr,t3_dabevr,a4e9634523f9,2019,request,tt0480242,Dan in Real Life,Movies with a similar vibe to Dan in Real Life and Away we Go?.,tt0480242,
+t3_ncgiyn,t3_ncgiyn,a3ebb3f2edba,2021,request,tt0245712,Amores Perros,"For me, there's 8 ½, Portrait of a Lady on Fire, The Crying Game &amp; Amores Perros among others.",tt0245712,
+t3_bzky6g,t1_eqztd6z,e94fa6e2180c,2019,reply,tt5483082,Daughter,Mother used the Woman as bait knowing she would try to get Daughter to leave.,NONE,Daughter = character in mother! (2017)
+t3_98852a,t3_98852a,0bfb9a709f81,2018,request,tt3722062,Bokeh,"[EN] Bokeh - A Scandinavian post-apocalyptic movie -- turn on ""English Description"" in audio as the movie goes on, it becomes an excellently-written spoken story as the dialogue itself diminishes.",tt3722062,
+t3_kssl1k,t1_gihwqlh,cbe63e977a9a,2021,seeker_followup,tt7984734,"The Lighthouse,","I’ve seen The Lighthouse, and I really like it.",tt7984734,
+t3_isyste,t3_isyste,cd512bb6aa51,2020,request,tt7349662,Blackkklansman,I’m thinking of either watching Django Unchained or Blackkklansman because I haven’t seen either.,tt7349662,
+t3_v3kgd0,t1_ib06sdy,377279265655,2022,reply,tt14832552,Carry On,"For innuendo and double entendres, try the British Carry On films.",tt0051453,franchise: Carry On films -> first (1958); he=2022 movie wrong
+t3_yxs0ff,t1_iwq3b9e,da867759f365,2022,reply,tt1059786,Eagle Eye,Eagle Eye,tt1059786,
+t3_recfdf,t1_ho6x9p8,505eb3623b7f,2021,reply,tt4364194,The Peanut Butter Falcon,"The Peanut Butter Falcon was a good one, but I think itâs listed as adventure/drama",tt4364194,
+t3_uhmhe3,t3_uhmhe3,6b7afaa7f781,2022,request,tt0080421,Battle Beyond The Stars,- Battle Beyond The Stars,tt0080421,
+t3_h8j6gt,t3_h8j6gt,c30142c59a1f,2020,request,tt8361028,Cam,* Cam,tt8361028,
+t3_dvbt5z,t1_f7c7nr5,fc394d211200,2019,reply,tt0386573,Threads.,Threads.,tt0090163,Threads = 1984 BBC nuclear film; he=2003 (16 votes) wrong
+t3_efwbbm,t1_fc40m7v,063e15df0df6,2019,reply,tt0110912,pulp fiction,Especially pulp fiction and inglourious basterds.,tt0110912,
+t3_dak6oz,t1_f1qzerp,4668b3fff4dc,2019,reply,tt1951181,The Immigrant,Then I saw The Immigrant and made the unconscious decision that I would watch every film he makes in the cinema.,tt1951181,James Gray context
+t3_wb6vtz,t1_ii4v00b,1ea268d4fbaf,2022,reply,tt1210166,Moneyball,Moneyball,tt1210166,
+t3_ckwrdt,t1_evu26y2,01d16b24a327,2019,seeker_followup,tt5649144,The Florida Project,I think I've seen The Florida Project and Into the Wild is one of my favourites.,tt5649144,
+t3_podnwi,t1_hcwwnvg,82248290ed49,2021,reply,tt0051201,Witness for the Prosecution,Witness for the Prosecution is also classic noir that's just great too.,tt0051201,
+t3_du6amp,t3_du6amp,36f3a5e26e2d,2019,request,tt11482244,Mr. Miyagi,Like Mr.,NONE,Mr. Miyagi = character (Karate Kid); he=Mr. Miao wrong
+t3_fmbeq3,t3_fmbeq3,f06e8c3a6b27,2020,request,tt7984734,"the lighthouse,","Movies such as the lighthouse, and the shining.",tt7984734,
+t3_m42dxi,t3_m42dxi,72a39804549b,2021,request,tt0361748,Inglourious Basterds,I have just finished watching Inglourious Basterds for the first time.,tt0361748,
+t3_bjkz7a,t1_em977a6,5a5ec0360c54,2019,seeker_followup,tt0869112,New Girl,I’ve seen the good place (and loved it) and New Girl (also enjoyed) so I know I’ll like your suggestions.,tt1826940,New Girl TV; he=1985 movie wrong
+t3_lyliea,t3_lyliea,3649e8fc1428,2021,request,tt8106534,"Six Underground,","Another one we've watched together recently was Six Underground, and that one was a big hit with them.",tt8106534,
+t3_fiv1ju,t1_fkk8a5u,f7b2c834231a,2020,reply,tt0120863,The Thin Red Line,Any movies directed by Terrence Malick - The Thin Red Line in particular.,tt0120863,
+t3_vqurxd,t1_iergqf1,a8805928ed40,2022,reply,tt0223550,Italian job,Italian job,tt0317740,bare mention; 2003 default over 1969; he=Italian Boys wrong; AMBIGUOUS
+t3_a90a6m,t1_ecfjkmv,8313a6911910,2018,reply,tt0160518,Me,"If you want a good coming of age movie, 2 of my favorites over the past few years are Me and Earl and The Dying Girl and The Edge of Seventeen.",tt2582496,truncated span of Me and Earl and the Dying Girl; he=Me and Will wrong
+t3_kz19zp,t1_gjjz4mp,a59482adf218,2021,seeker_followup,tt0137523,fight club,I never really thought about it but yeah fight club kinda fits this.,tt0137523,
+t3_ijs5bf,t1_g3h54sb,d02fb67d53ce,2020,seeker_followup,tt0084787,"""The Thing","oh yeah ""The Thing "" does fit the description",tt0084787,1982 default
+t3_y9g8c8,t3_y9g8c8,45f4281b3365,2022,request,tt0469494,There Will Be Blood,Daniel Plainview: There Will Be Blood,tt0469494,
+t3_flj7ad,t1_fkz2xb3,807de187881e,2020,reply,tt0144084,American Psycho,Thriller: American Psycho,tt0144084,
+t3_e9en8z,t3_e9en8z,2357ca368814,2019,request,tt6491178,Dragged across concrete,- Dragged across concrete,tt6491178,
+t3_l4o08x,t1_gkpkpg2,201e0c3a43f3,2021,seeker_followup,tt14575898,Lord of the Rings,Was it Ralph Bakshi that made the 70s direct to TV Lord of the Rings adaptation?,tt0077869,Bakshi 1978 animated; he=Lord of the Ants wrong
+t3_wcp1tt,t3_wcp1tt,13f11eeac71f,2022,request,tt5638642,The Ritual,Also we watched Midsommar and The Ritual but we hated the disturbing scenes at the beginning of the movies that are kind of ârealâ and unrelated to the scary element of the movie.,tt5638642,
+t3_k8bzqc,t3_k8bzqc,88ca792de521,2020,request,tt8178396,False confessions,False confessions leading to more false confessions.,NONE,"'false confessions' = the phenomenon, not the 2018 film"
+t3_9vzrwh,t3_9vzrwh,182bf96c0be2,2018,request,tt0470752,Ex Machina.,Ex Machina.,tt0470752,
+t3_ky3chj,t1_gjeit4t,42574bbbeb0e,2021,reply,tt2704998,Game night?,Game night?,tt2704998,
+t3_tvjktq,t1_i3ai1xv,75f62cbc2223,2022,seeker_followup,tt0110912,Pulp Fiction,The difference between Pulp Fiction and Magnolia is Tarantino has his own distinct voice.,tt0110912,
+t3_oxb6kw,t3_oxb6kw,b52525ed21f7,2021,request,tt4981966,Eraserhead,"Although it was pretty funny watching my buddy stare at his beer quietly for the entire evening when we went to the bar after I took him to see Eraserhead at my small, local theater.",tt0074486,he=24 wrong
+t3_99a2iz,t3_99a2iz,eba15711bb30,2018,request,tt0294870,Coco,Coco (a Disney movie),tt2380307,Coco (Pixar); he=Rent wrong
+t3_9cni64,t1_e5cj6ww,e778ab2c1d7a,2018,reply,tt0404215,Mafia,Not Mafia but pretty close.,NONE,'Not Mafia but pretty close' = genre/organization; UNCERTAIN
+t3_tupksy,t1_i35a7sp,8eea41534774,2022,seeker_followup,tt1838603,"Last Wave,","Not seen Performance or Last Wave, thanks",tt0076299,The Last Wave (Weir; Performance context); he=Last Love wrong
+t3_ccwsrz,t1_etryb2j,e23dcd5b0538,2019,reply,tt3783958,La La Land.,La La Land.,tt3783958,
+t3_xpnhng,t1_iq5dq61,1d1b11aad4ec,2022,seeker_followup,tt0105236,"Reservoir Dogs,","I remember it being touted as a Japanese Reservoir Dogs, which I didnât appreciate because itâs a very different animal.",tt0105236,
+t3_v0jy08,t1_iaho6mi,ac31bd5cb62d,2022,reply,tt0367941,Kuroneko (1968),"I'd also recommend Kuroneko (1968) and Onibaba (1964), both directed by Kaneto Shindo.",tt0122136,Kuroneko 1968 = Black Cat (Shindo); he=Kuroi neko 1965 wrong
+t3_c8nccq,t1_eso6e28,aa73b32f7d9b,2019,seeker_followup,tt8814348,British Mafia,The British Mafia one right?,NONE,anaphora ('the British Mafia one')
+t3_thpjrb,t3_thpjrb,7755a34a3ffa,2022,request,tt8399288,memoria (2021)?.,movies like memoria (2021)?.,tt8399288,
+t3_coow73,t1_ewkjbwt,a8473b101620,2019,seeker_followup,tt3748172,Gerald’s Game,I read Gerald’s Game last year and haven’t gotten to the movie yet.,tt3748172,"book read, movie pending; movie referent"
+t3_cr41k1,t3_cr41k1,c754af9ec3ab,2019,request,tt0092732,Castaway.,Movies about a person presumed dead whose significant other moved on as in Castaway.,tt0162222,Cast Away (2000) plot described; he=Castaway 1986 wrong
+t3_p3klc7,t1_h8vefep,9a9a513e81ca,2021,seeker_followup,tt0284494,skins,"i finished watching skins too, thank you!",tt0840196,Skins UK TV; he=2002 movie wrong
+t3_rfdr13,t3_rfdr13,2a8233f3e72a,2021,request,tt0110912,Pulp Fiction,- Pulp Fiction,tt0110912,
+t3_9ie829,t1_e6jj8dh,e91d40fa5cc9,2018,seeker_followup,tt0120197,"Star Wars,","Already have Star Wars, don't like Marvel, thanks for your input :)",tt0076759,franchise -> A New Hope; he=Star Maps wrong
+t3_9phv2y,t1_e881a6e,29e154959283,2018,seeker_followup,tt2008562,Not bad.,Not bad.,NONE,conversational
+t3_j48qdw,t1_g7i5g8s,a6bb6fe5d2d7,2020,reply,tt0469494,There Will Be Blood (2007),There Will Be Blood (2007) Daniel Plainview is a ruthless oil prospector who goes on a relentless pursuit to become the most powerful oil tycoon.,tt0469494,
+t3_he6qcm,t3_he6qcm,c4cebed6703c,2020,request,tt0103639,Batman.,Like in Batman.,tt0096895,'Like in Batman' -> 1989 exact-title default; he=Aladdin wrong; FRANCHISE-AMBIGUOUS
+t3_clvfd1,t1_evy1yae,38ce34bbed9d,2019,seeker_followup,tt4052882,"the shallows,","I have seen the shallows, which I enjoyed!",tt4052882,
+t3_wdkpnw,t3_wdkpnw,e9e55b9bb25f,2022,request,tt0104797,Malcolm X.,"Basically movies like JFK, Nixon and Malcolm X.",tt0104797,
+t3_a42yeg,t3_a42yeg,8e73583a301a,2018,request,tt0455944,the equalizer.,"So I've just watched the John Wick, Jack Reacher and the equalizer.",tt0455944,
+t3_fasdld,t3_fasdld,97634a14c700,2020,request,tt0180093,Requiem for a Dream,Already saw Trainspotting and Requiem for a Dream and loved them both.,tt0180093,
+t3_smb66w,t1_hvvlk57,b7a3edfa09ef,2022,seeker_followup,tt0209144,memento,Think We are going to give memento a watch.,tt0209144,
+t3_fv77fz,t1_fmgux8s,866118cdd996,2020,seeker_followup,tt0106673,have,yes i have hulu!,NONE,conversational ('i have hulu'); he=Dave wrong
+t3_whvuz8,t3_whvuz8,3ab6e36c321c,2022,request,tt0361748,Casablanca,\- Casablanca,tt0034583,he=Inglourious Basterds wrong
+t3_mo206v,t3_mo206v,f7d412ec2946,2021,request,tt0078748,United 93,To answer my own question: United 93 would be another,tt0475276,he=Alien wrong
+t3_9vxwj6,t3_9vxwj6,1f13d4909cf3,2018,request,tt0084783,A Clockwork Orange,A Clockwork Orange,tt0066921,he=Tex wrong
+t3_9yolsm,t3_9yolsm,cb89ed75aee5,2018,request,tt4062536,Green Room,"Green Room - At the end of their low budget your, a punk band accepts a gig at an isolated rural club, only to discover that their hosts are neo-Nazis.",tt4062536,
+t3_nzn2w3,t1_h1qbgcu,90917a70eeb2,2021,seeker_followup,tt2911666,John Wick!!,John Wick!,tt2911666,
+t3_es94o0,t1_ffcel9e,c74a05d343b8,2020,reply,tt0499549,"Avatar,","Edit: Actually the same thing happend to Avatar, im not putting Avatar on the classics list at all, but its not as bad as people seem to agree on now.",tt0499549,Cameron 2009
+t3_9qt87s,t1_e8cayfh,51b135c71328,2018,reply,tt3099498,Tusk,I think Dogma was his best movie and Red State and Tusk show that he could make a great movie at some point.,tt3099498,Kevin Smith context
+t3_d9zhrv,t1_f1mwya4,2b4dd894cfbb,2019,seeker_followup,tt14515572,true,true i have seen it.,NONE,conversational ('true i have seen it')
+t3_hoa7b7,t1_fxh4d1t,e09bf8053526,2020,seeker_followup,tt2866360,Coherence,Coherence looks very interesting!,tt2866360,
+t3_c3v7ua,t3_c3v7ua,0aae00a9db64,2019,request,tt0993842,deadwood,I recently tried deadwood since I loved Longmire and Justified but I have trouble getting into shows that are not set in current time period.,tt0348914,Deadwood TV ('shows'); he=Hanna wrong
+t3_a4gg4z,t3_a4gg4z,ffd439e989f6,2018,request,tt0106364,"""Batman: Year Two""","Batman: Mask of the Phantasm (1993) Taking elements from both ""Batman: Year One"" and ""Batman: Year Two"" we get a story that explores the character of Bruce Wayne in a way that had never been done before, where we see him actually beg his dead parents if he can give up on his vow of vengeance because he'd fallen in love, ""*Please!",NONE,"'Batman: Year Two' = comic book, not a film"
+t3_s07vqi,t1_hs0yzqq,2456298f56ee,2022,seeker_followup,tt0419706,doom,I mean I play doom so,NONE,doom = the video game ('I play doom')
+t3_a4ikqw,t1_ebfylvw,019330e52d12,2018,reply,tt1529572,Schraeder,"Even so, Schraeder sure does a good job of pitch climate change as a compelling issue to get fixated on and depressed about.",NONE,Schraeder = person (Paul Schrader); he=Trust wrong
+t3_g9kbgn,t3_g9kbgn,f824b5d176d7,2020,request,tt1472584,Max Steel,"I got three examples, Spider man into the spider verse, Max Steel https://youtu.",tt1472584,
+t3_wpi055,t3_wpi055,498ca0803021,2022,request,tt1288558,Evil Dead,Evil Dead,tt1288558,exact title = 2013; The Evil Dead 1981 plausible; AMBIGUOUS
+t3_nwcvhi,t3_nwcvhi,a4f5325b768e,2021,request,tt0158714,Lady snow blood,Anything similar to Lady snow blood (but it doesn’t have to be female led) but not Kill bill.,tt0158714,
+t3_swiaub,t3_swiaub,d77f4a8d1ecb,2022,request,tt0082198,Conan the Barbarian,The Scorpion King (2001) is a better Conan the Barbarian movie than the 2011 Conan movie.,tt0082198,1982 explicitly contrasted with 2011
+t3_kjiu2q,t1_ggysb6e,d4a543b5de95,2020,reply,tt1655441,The Age of Adaline,- The Age of Adaline,tt1655441,
+t3_tm43i2,t3_tm43i2,9e6f49233c51,2022,request,tt0993846,The Wolf Of Wall Street,* The Wolf Of Wall Street,tt0993846,
+t3_ydek4c,t1_itt4pu1,f68e076ddd67,2022,reply,tt14479746,That,That and Big Time Adolescence.,NONE,'That' = anaphora; he=Thar wrong
+t3_z9pe37,t1_iyhtylz,5a6773409f59,2022,seeker_followup,tt0465203,Tyvm.,Tyvm.,NONE,conversational ('Tyvm'); he=Them wrong
+t3_mttq1q,t1_gv41f3z,a45f24f5b268,2021,reply,tt0083658,blade runner,alien and blade runner will always be classics.,tt0083658,
+t3_vz0h6y,t1_ig60m9m,49cb801f8250,2022,reply,tt2570920,Lobster,"Haha same here, Lobster wasnât my cup of tea but based on your list I think youâll be amused.",tt3464902,The Lobster; he=Mobster wrong
+t3_u9ybwk,t1_i5wqrnq,ffe2e47969ee,2022,reply,tt0120201,Starship troopers 3.,Starship troopers 3.,tt0844760,Starship Troopers 3: Marauder; he=ST1 wrong
+t3_egb1p7,t1_fc5flbs,36327c396d2d,2019,reply,tt3820922,rimless,Oh I loved rimless and if u liked it too watch 12 monkeys it’s also about time travel,tt5511582,probable typo for Timeless (time-travel context); he=Aimless wrong; UNCERTAIN
+t3_oc1t5m,t3_oc1t5m,e8adcc0a663b,2021,request,tt0256380,Shallow Hal?.,Can anything top Shallow Hal?.,tt0256380,
+t3_b30x4n,t1_eixg8jl,e993653c42d1,2019,reply,tt0093493,"Mannequin,","Mannequin, excellent choice",tt0093493,1987
+t3_gfm4ef,t3_gfm4ef,b304ef8e10f9,2020,request,tt0252076,Maid in Manhattan,So throw in more of the Maid in Manhattan type of movies please.,tt0252076,
+t3_el5wj6,t1_fdg5fdq,485a7ffa73db,2020,reply,tt5057140,Hold the Dark,Hold the Dark,tt5057140,
+t3_mc4zhv,t1_gs464gx,df3d0d47a94e,2021,reply,tt0758758,Into the Wild,Into the Wild,tt0758758,
+t3_c2ppv9,t1_erojyti,e3b0c44298fc,2019,reply,tt4062536,Green Room,I’m so sick of unrealistic gore; Green Room approached violence in a very realistic way.,tt4062536,
+t3_hkewqn,t1_fwshhdf,4b8daecad291,2020,reply,tt1335975,47 Ronin,My best guess is they meant 47 Ronin,tt1335975,2013 default
+t3_dnv4wg,t3_dnv4wg,7e56c6af57fa,2019,request,tt9904820,American Horror Story,We’ve watched American Horror Story with mixed results (there’s a LOT of sex in that show).,tt1844624,TV; he=American Terror Story wrong
+t3_c5gaiv,t3_c5gaiv,4cbbe9f9a38b,2019,request,tt0308280,Big Bang Theory,"Binge-watched all seasons of Friends in about a week, and now i’m looking for series that’s similar to Friends or Big Bang Theory",tt0898266,TV; he=Friends 2001 movie wrong
+t3_vnviic,t1_iecub10,def2fc442647,2022,reply,tt3072482,Hardcore Henry,"Hardcore Henry - (2015) Directed by Ilya Naishuller: The whole movie is your best action sequence, shot in first person perspective.",tt3072482,
+t3_a1xs1k,t3_a1xs1k,0db19fab49a9,2018,request,tt0407887,"""The Departed""","But I just watched Scorsese's ""The Departed"" for the first time and have to share my experience.",tt0407887,
+t3_mp3hja,t1_gu9036s,23d08d194952,2021,seeker_followup,tt9893250,"I Care A Lot,","Mark Wahlberg was certainly a bigger character than the one in I Care A Lot, but almost forgot about him too.",tt9893250,
+t3_cc93pj,t1_etlsmps,d3bde8ae0147,2019,reply,tt0119174,the game,I just watched 'The Game' (1997) for the first time and the scene where the TV news anchor starts speaking directly to Michael Douglas and explaining the game was spooky,tt0119174,(1997) stated
+t3_a2vqoc,t1_eb1jd6w,a13706d37165,2018,reply,tt0145487,Spider-Man,No Spider-Man is Venom’s son confirmed.,NONE,Spider-Man = character (Venom lore discussion)
+t3_jxjjvl,t1_gcyd9r8,44abb46049c1,2020,seeker_followup,tt1182345,moon,"Also, just watched shame and moon again which were great movies",tt1182345,Moon 2009 (with Shame)
+t3_x0hatk,t1_im8ae8u,4148b0fbe129,2022,seeker_followup,tt0119174,"The Game,","Have to rewatch The Game, saw it some time ago.",tt0119174,
+t3_8voapb,t1_e1qi82p,26643cc1a0f7,2018,seeker_followup,tt6131712,Kubo,"My husband and I had wanted to see Kubo when it came out in theaters, but never got around too far it; I honestly had forgotten about it, so we will definitely give it, and your other recommendations, a watch!",tt4302938,Kubo and the Two Strings; he=Kuso wrong
+t3_eyoug4,t1_fglsxw0,a67854ecd44c,2020,seeker_followup,tt8359414,Colossus,"Sometimes I’d like to Twilight Zone myself into the parallel world where Martin Brest directed his darker version of WarGames, Beverly Hills Cop starred Sylvester Stallone as a gritty actioner, Christopher Reeve was Ben Richards in The Running Man, Eric Stoltz was Marty McFly, Tom Selleck was Indiana Jones, and we had a Colossus remake.",tt0064177,'a Colossus remake' -> Colossus: The Forbin Project; he wrong
+t3_dvammn,t1_f7bjwg7,f0b981319621,2019,seeker_followup,tt0081505,The Shining,The Shining feels like I could appreciate it though!,tt0081505,
+t3_k0oxj0,t1_gdjh1ay,4b8883e46f07,2020,reply,tt0374102,Open Water,Open Water,tt0374102,
+t3_pg90ad,t1_hb9uxck,68aeb6970dcd,2021,reply,tt0059934,Yoyo,* Yoyo,tt0059934,Etaix 1965
+t3_lk6ige,t1_gnicu4g,f15e5a133943,2021,seeker_followup,tt8613070,Portrait of a Lady on Fire,Portrait of a Lady on Fire is next on my list to watch.,tt8613070,
+t3_nl9uls,t1_gzhmspk,8811dd5b4403,2021,seeker_followup,tt0078748,alien,alien was a horror movie.,tt0078748,
+t3_8vlkte,t3_8vlkte,cbc4046b6215,2018,request,tt1766094,So Undercover,- So Undercover,tt1766094,
+t3_egkg1s,t3_egkg1s,82acaf1bfcac,2019,request,tt4738360,"The Last Kingdom,","[REQUEST] finished The Last Kingdom, need a similar show.",tt4179452,TV ('need a similar show'); he=The Last King wrong
+t3_9y8q5r,t3_9y8q5r,5ba26fb65027,2018,request,tt1130884,Shutter Island,[Request] I'm looking for films like Inception or Shutter Island on Netflix.,tt1130884,
+t3_zgy46o,t1_izjl1ah,18e0c5df3477,2022,seeker_followup,tt13866630,matrix,All three of them are amazing movies especially world war z a like this movie so much and matrix am not sure which one i have seen but i have seen 2 parts if am not wrong i think i have seen the first and second part but i liked it,tt0133093,The Matrix; he=Matria wrong
+t3_miy6to,t1_gt84c6w,83ee146013f4,2021,reply,tt5715874,The Killing Of A Sacred Deer,The Killing Of A Sacred Deer,tt5715874,
+t3_91k8ih,t3_91k8ih,72d66ff1ac29,2018,request,tt0045991,Law and Order,"I have recently watched Law and Order (SVU), Better Call Saul and Jessica Jones (actually not a bad detective show).",tt0203259,'(SVU)' stated; he=1953 movie wrong
+t3_d894xn,t1_f18rs7b,8ea2f11b8187,2019,seeker_followup,tt4266638,Krisha,Krisha is actually on my watchlist but I wasn't sure if it had this trope.,tt4266638,
+t3_gppq9j,t1_fro10cp,6e6fe84e0fe9,2020,reply,tt7964424,Mirage,Since you've watched and liked Contratiempo and El Cuerpo I suggest you watch the third of Oriol's masterpieces - Mirage,tt6908274,Oriol Paulo's Mirage/Durante la tormenta; he=same-name 0-vote title wrong
+t3_aaoh9b,t1_ecwe3ok,e3b0c44298fc,2018,seeker_followup,tt4824500,"The Closer Look,","And the YouTube critics I ACTUALLY watch instead of just having as entertaining background noise are The Closer Look, Raycevick and Every Frame a Painting.",NONE,YouTube channel
+t3_cinban,t1_evaomh5,4c95e43e99e7,2019,reply,tt2543164,Arrival (2016),Incendies (2010) &amp; Arrival (2016) *dir.,tt2543164,
+t3_vvvzti,t3_vvvzti,997df3e1703d,2022,request,tt7160176,'The Fortress',"and just started watching the movie 'The Fortress' today, which is more of a historical drama, but obviously set in the same kind of time period.",tt7160176,
+t3_i5b4lz,t3_i5b4lz,8b4283c823d8,2020,request,tt5478478,Hostiles?,More great anti-westerns like Unforgiven and Hostiles?.,tt5478478,
+t3_mcbr79,t3_mcbr79,38b3bc88be92,2021,request,tt0297284,Mindhunter,I really enjoyed Mindhunter and The Sinner.,tt5290382,TV; he=Mindhunters 2004 wrong
+t3_a7hdn9,t1_ec5gkqq,47f5a6872e8c,2018,seeker_followup,tt6155172,Roma.,it's all about Roma.,tt6155172,2018
+t3_e20epz,t1_f8ts8zf,fd343b07d922,2019,reply,tt0364569,Oldboy,Oldboy the original Korean film is great,tt0364569,original Korean stated
+t3_qhdhf6,t1_him4gka,8ff82f8394a9,2021,seeker_followup,tt0070468,the office,I almost feel like the office fits the bill cause they open up to the pretend camera man.,tt0386676,The Office US default (UK plausible); he=The Offence wrong; UNCERTAIN
+t3_viccbz,t1_idgjmtw,dd9811b8d9f4,2022,seeker_followup,tt0094349,Yeeeeah,Yeeeeah,NONE,conversational; he=Yeelen wrong
+t3_dx24wm,t1_f7ntdh0,6a99711f7d8d,2019,reply,tt0878804,The Blindside,The Blindside,tt0878804,
+t3_9x6jhk,t1_e9pz6de,40d8cabe4a5c,2018,seeker_followup,tt0140281,imposters,What's imposters about?,tt5212822,Imposters TV 2017; he=1979 wrong
+t3_gx5lat,t1_ft199hw,4ef6801c9a1f,2020,reply,tt0088930,Clue,Clue,tt0088930,
+t3_k090y7,t1_gdh7zlc,813a6a7a9bf8,2020,seeker_followup,tt0470752,Ex machina,Didnt watch Ex machina so I probably will.,tt0470752,
+t3_nkz74i,t1_gzfnuvh,bbf3c63b2c4a,2021,seeker_followup,tt2531344,Blockers looking cool,"Oke, that looks fun, hahaha, i watched 21 and over but i totally forgot about it, ill rewatch it, binge and Blockers looking cool aswell, and same actors, thanks",tt2531344,
+t3_91evhm,t3_91evhm,acc271e7627d,2018,request,tt0088846,Brazil,"Brazil -1985, directed by Terry Gilliam.",tt0088846,1985 stated
+t3_knyt54,t1_gholyc7,54f8d2a909c3,2021,reply,tt0114746,12 Monkeys,12 Monkeys,tt0114746,movie default
+t3_a9kq7k,t1_ecln62a,f284d08e3c3a,2018,reply,tt4076760,Diablo,I will give it a try while playing some Diablo or something.,NONE,Diablo = video game
+t3_cxlcdy,t1_eyn9r29,c05e3e7e32b8,2019,reply,tt0464141,The Orphanage,\- The Orphanage,tt0464141,
+t3_mm30p0,t1_gtqd3h5,70ca0b5c71b9,2021,reply,tt0120394,Twin Town.,Twin Town.,tt0120394,
+t3_zt3y6k,t1_j1cn8oj,4e0ff3525fa5,2022,reply,tt0116908,The Long Kiss Goodnight,The Long Kiss Goodnight,tt0116908,
+t3_a1cnfq,t1_eaorlj8,e8db255ae59d,2018,reply,tt1039969,The Last Jedi,"For me, this movie and The Last Jedi ended up being flipped as far as my views on them.",tt2527336,he=The Last Lear wrong
+t3_a5ak59,t1_eblo49q,82993c58a7b5,2018,reply,tt1825683,Black Panther.,Nobody gives a fuck if you don’t like Black Panther.,tt1825683,
+t3_f4vqih,t1_fhu7s8y,c0f066e1081d,2020,seeker_followup,tt7613162,Lovecraft.,"Ooohh, I like Lovecraft.",NONE,Lovecraft = author; he=Lovecut wrong
+t3_9pyrdp,t1_e85pecx,dbdda2487871,2018,seeker_followup,tt1038686,"""Legion""","&gt;I haven't seen Rubicon but suggest ""Legion"" if you like rabbit holes and questioning reality.",tt5114356,Legion FX TV (Rubicon/reality context); he=2010 film; UNCERTAIN
+t3_d4xes3,t1_f0xu9tp,9c6d4c2f4a6b,2019,seeker_followup,tt0066583,Wow.,Wow.,NONE,conversational
+t3_e5gsox,t1_f9jlxyq,e7e3f34f58c4,2019,seeker_followup,tt1232829,"21 jump street,","the only movies on this I haven't seen are knives out &amp; 21 jump street, but I would defintely agree with spider-verse and the lego movie!",tt1232829,2012 movie (movies list)
+t3_qus3o7,t3_qus3o7,242f9201d221,2021,request,tt2852406,full metal Alchemist.,Anything by studio Ghibli or full metal Alchemist.,tt0421357,franchise: FMA anime; Brotherhood tt1355642 equally defensible; he=Omar wrong
+t3_dsd8xz,t3_dsd8xz,6a7ce857b7e0,2019,request,tt1663662,Pacific Rim,I keep telling him that aspect ratio is just an artistic choice but he thinks stuff like Jurassic Park and Pacific Rim is ugly so I've come here looking for recommendations on some beautiful 16:9 films.,tt1663662,
+t3_ozaw7y,t1_h7yg9eo,79203ede36c0,2021,reply,tt3260564,Dexter,Dexter - TV series.,tt0773262,'TV series' stated; he=Lexter wrong
+t3_avlpj9,t1_ehigasc,ce4aaaa75e8f,2019,reply,tt0048527,Queer Eye,Queer Eye meant a whole more to me than I thought it would when I was in a dark place.,tt7259746,2018 reboot (2019 comment); he=Queen Bee wrong
+t3_gm3t9q,t1_fr245o6,2f2eb04620ac,2020,reply,tt4016994,Why me?,Why me? (2015) [https://www.,tt4016994,(2015) stated
+t3_wmbo8e,t1_ijydrjr,a728df591c67,2022,seeker_followup,tt1922777,Sinister!,Haha my go-to is Sinister!,tt1922777,
+t3_u7cmui,t1_i5dsynl,7cf2ac95d877,2022,seeker_followup,tt2798920,Annihilation,I've seen It Follows and actually bought Annihilation on UHD bc of how much I loved Ex Machina.,tt2798920,
+t3_v31685,t1_iaw58v3,3bb092a1f38f,2022,reply,tt3890160,Baby Driver,"Though in fairness, I only saw Baby Driver once, in theaters when it first came out, and I vividly remember going into it not expecting to like it.",tt3890160,
+t3_vzlblr,t1_igtew2f,f9e8ec0ef6b5,2022,reply,tt9173418,Brahms: The Boy II).,I think this is on Netflix but you should try The Boy + The Boy II (Otherwise known as Brahms: The Boy II).,tt9173418,
+t3_9yt437,t3_9yt437,2fa4c7a83044,2018,request,tt0083658,Blade Runner,"Blade Runner touches on it, Harry Potter and the Deathly Hallows touches on it, any movie with a single guy in a grubby apartment touches on it, but is there a name for the opposite of that? And how would you express those themes anyway?",tt0083658,
+t3_q0j2uo,t3_q0j2uo,6b91f9725110,2021,request,tt0107206,In the Line of Fire (1993),I rewatched In the Line of Fire (1993) for the first time in 20+ years and itâs phenomenal.,tt0107206,
+t3_j4qiao,t3_j4qiao,67e01e5863f4,2020,request,tt1070874,Molly's Game,"I also like Moneyball and A Few Good Men, and also thought Molly's Game was pretty solid.",tt4209788,he=Trial of the Chicago 7 wrong
+t3_cnh6uf,t3_cnh6uf,b0e95cc884f3,2019,request,tt1148204,"""Bates Motel""","I also wanted to watch Psycho because I wanted to watch the series ""Bates Motel"" but I'm scared that the movie has a lot of jump scares and possibly really bloody.",tt2188671,'the series' stated; he=Orphan wrong
+t3_tbsuyk,t3_tbsuyk,1d0471232d83,2022,request,tt2042568,Inside Llewyn Davis.,"I've seen and enjoyed Adult World, The Last Word and Inside Llewyn Davis.",tt2042568,
+t3_r9f75g,t1_hnc63cz,6629a54ac326,2021,seeker_followup,tt0101529,"""Cabeza de Vaca""","From myself, I could also recommend ""Cabeza de Vaca"" in that vein.",tt0101529,
+t3_9d4b2z,t1_e5fi263,805c0b824449,2018,reply,tt0233469,collateral damage.,This movie had an ever lasting impact on me and gave me a little insight to the sufferings who are have often been referred to as collateral damage.,NONE,"'collateral damage' = the phrase, not the film"
+t3_kgwvue,t1_ggjtjwd,133c19e9b9a4,2020,reply,tt4131686,I want to live.,"Terms of endearment, ordinary people, away from her, simon birch, my girl, imitation of life, I want to live.",tt0051758,I Want to Live! 1958 (classics list); he=2015 wrong
+t3_kjtqj3,t3_kjtqj3,4cc769e7a583,2020,request,tt0780536,In Bruges.,Just watched In Bruges.,tt0780536,
+t3_9ve8ci,t1_e9bsqnd,3eb7f190f949,2018,reply,tt9583950,Futurama,That one episode of Futurama was more parody/satire than I realized!,tt0149460,TV; he=Futura wrong
+t3_csb4l5,t3_csb4l5,991ed0211dab,2019,request,tt0120689,the green mile,- the green mile,tt0120689,
+t3_a10caw,t1_eap6w41,3bebf6dbee9d,2018,reply,tt0246578,donnie darko,I think donnie darko is the most mind fuck movie i have ever seen.,tt0246578,
+t3_9gxw07,t3_9gxw07,e3b0c44298fc,2018,request,tt1202044,13 reasons why.,[REQUEST] shows with Drama similar to Atypical or 13 reasons why.,tt1837492,'shows'; he=Six Reasons Why wrong
+t3_smreg3,t1_hvyrjro,8b4534b8ae2f,2022,seeker_followup,tt8447664,jojo's part 1,"I guess they have similar ""gentleman""ly vibe like jojo's part 1",tt2359704,JoJo's Bizarre Adventure part 1 (anime); he=Kinsman wrong
+t3_okl9bv,t1_h5ajt5x,412978b6b234,2021,seeker_followup,tt0070735,The Sting,The Sting is a classic.,tt0070735,
+t3_r2dz5k,t3_r2dz5k,4204138a5231,2021,request,tt2210441,"Manhattan/Annie Hall?. Bittersweet, metropolitan love",Movies like Manhattan/Annie Hall?.,tt0079522,compound span Manhattan+Annie Hall (tt0075686); first title labeled; he=Bittersweet wrong
+t3_zkdmp5,t3_zkdmp5,406cec085993,2022,request,tt4857264,The Invisible Guest (2016),I thought the plot sounded intriguing and when I read it was directed by the same person who wrote and directed The Invisible Guest (2016) which I love I had to watch it.,tt4857264,
+t3_bnaswl,t1_en65ms9,37de870cb811,2019,reply,tt0118849,Children of Heaven,Children of Heaven,tt0118849,
+t3_ai4go8,t1_eemhk21,f160c6894948,2019,reply,tt0081505,The Shining,"I was deeply disappointed, as The Shining is not favorite book of all time and the sequel is hot garbage.",NONE,explicitly the BOOK ('not favorite book'); UNCERTAIN
+t3_i1m782,t1_fzz7c3r,d23e79afa6db,2020,reply,tt0365686,Revolver,"Revolver - a Guy Ritchie film starring Jason Statham and Andre 3000 and many others, really a great cast.",tt0365686,
+t3_9flc7z,t1_e5xlwic,7ee08b71c532,2018,reply,tt0063426,Netflix,Netflix fixed the viewing order mostly.,NONE,platform; he=Petulia wrong
+t3_o7iwa0,t3_o7iwa0,9ead1430a31c,2021,request,tt0081505,the shining,"I've watched the shining, silence of the lambs, and It as my gateway films to horror but it never really did it for me.",tt0081505,
+t3_93hwfk,t1_e3diq77,0f2343cd2db7,2018,reply,tt2278388,The Grand Budapest Hotel,* The Grand Budapest Hotel (hotelier vs the world),tt2278388,
+t3_jy56vg,t3_jy56vg,d826017493c9,2020,request,tt0064407,Harry Potter,Looking for a fantasy or sci-fi movie that has great world building and gives me the feeling I had when I first watched Harry Potter or Avatar.,tt0241527,franchise -> first film; he=Harry Munter wrong
+t3_9zltkm,t1_eaaawvf,7bdda184b465,2018,seeker_followup,tt0361748,inglorious basterds,Django is by far my favorite followed closely by inglorious basterds,tt0361748,
+t3_l74ol7,t1_glfgkei,8ab1ffdb06eb,2021,seeker_followup,tt0077504,The end.,The end.,NONE,conversational 'The end.'; The End 1978 plausible; UNCERTAIN
+t3_fr1b8x,t1_fltd8ca,49b37ea08b15,2020,seeker_followup,tt0259446,My Big Fat Greek Wedding,"Haha, my mom goes nuts for My Big Fat Greek Wedding movies!",tt0259446,
+t3_mx3y12,t1_gvmeb28,8ee921815448,2021,seeker_followup,tt6127136,The Outsider,The Outsider was pretty intense,tt8550800,The Outsider HBO 2020 most likely 2021; tt2011311 (2018 film) plausible; he=0-vote entity wrong; UNCERTAIN
+t3_t59yer,t1_hz48pac,78c0a336b32e,2022,reply,tt2714900,Finding Vivian Maier,Finding Vivian Maier,tt2714900,
+t3_vh7lo2,t3_vh7lo2,1d5eade02ed9,2022,request,tt2053463,Side Effects,- Side Effects,tt2053463,
+t3_9vd9i6,t1_e9bg3c0,fdbd89010989,2018,seeker_followup,tt1927068,Shameless,I've been recommended Shameless multiple times but haven't started it yet.,tt1586680,Shameless US default (UK plausible); he=2012 movie wrong; UNCERTAIN
+t3_pbt36m,t1_haipsfq,329afadd16f5,2021,seeker_followup,tt8398768,Dang.,Dang.,NONE,conversational
+t3_g3wbzc,t1_fnvu3jr,760457d692b6,2020,reply,tt8367814,The Gentlemen,Hugh Grant in The Gentlemen,tt8367814,
+t3_w3cmhb,t1_igvjuiz,05d742ec5e1c,2022,reply,tt4382824,Army of one,Army of one (lundgren),tt0106309,Army of One (Lundgren) = Joshua Tree 1993; he=Nic Cage 2016 wrong
+t3_qjz5tz,t1_hitbi10,ffd5765a6143,2021,seeker_followup,tt1160419,NTTD,"I thought so, I know this is only a part one but did the ending give you a stinky feeling or something ? The reason I was excited to go see NTTD was because it was the finale of the craig movies so knowing that Dune doesnt really have a satisfying ending makes me more biased for NTTD",tt2382320,NTTD = No Time to Die; he=Dune wrong
+t3_eeg8rp,t3_eeg8rp,92c3e342955f,2019,request,tt0093389,The Last Emperor,": Marco Polo on Netflix, Crouching Tiger Hidden Dragon and The Last Emperor (well the aesthetic at least).",tt0093389,
+t3_e5exzc,t3_e5exzc,63a68145a7c3,2019,request,tt0080745,Flash Gordon.,", Or Flash Gordon.",tt0080745,1980
+t3_fexori,t1_fjusk88,6591bc4c16ee,2020,reply,tt0042210,Dirk Gently,"Dirk Gently actually took their composer, color scheme, and a few of its directors.",tt4047038,2016 series (production ties context); 2010 plausible; he=Utopia wrong; UNCERTAIN
+t3_l3evd5,t3_l3evd5,1b8b74ef97cf,2021,request,tt0078748,Alien,"I love a lot of movies, it's hard to really put a finger on what I describe because it's all subjective, even movies like Alien and Pitch Black, or Resiviour Dogs and Shutter Island, there are so many examples I could give, but I don't want some biased selection, I really want to know what you think falls in this kind of category and watch them to see what makes you think they're so great.",tt0078748,
+t3_ju467u,t3_ju467u,c9542d9a0076,2020,request,tt0120197,Star Wars,"Just watched Highlander for the first time, love the trope of characters meeting after so long to finish a duel, Star Wars touches on that with the Vader vs Obi Wan fight.",tt0076759,Vader vs Obi-Wan = A New Hope; he=Star Maps wrong
+t3_m6vp7y,t1_gr8kilq,2b822d51c07e,2021,seeker_followup,tt0033563,Dumbo,"I already don't have a high opinion of the recent trend of Disney live action remakes, so I won't touch Dumbo with a ten foot pole.",tt3861390,the 2019 remake is what they won't touch; he=1941 wrong
+t3_g0pjke,t1_fnb4h6t,1acfbb6746f0,2020,seeker_followup,tt22408766,attack on titan,I did see attack on titan in there.,tt2560140,anime TV; he=2022 movie wrong
+t3_mlbhiu,t1_gtl9p2h,83cdb369078e,2021,reply,tt0108550,What's eating Gilbert Grape.,This might be a stretch to fit this category but I am going to say: What's eating Gilbert Grape.,tt0108550,
+t3_8vfqti,t3_8vfqti,3509e4439955,2018,request,tt3397884,Sicario,Movies like Sicario and Sicario: Day of Soldado.,tt3397884,
+t3_gcfcrk,t3_gcfcrk,95f680c9eb6b,2020,request,tt0056172,Lawrence of Arabia:,Lawrence of Arabia: &gt;!,tt0056172,
+t3_kypkoj,t3_kypkoj,372f228dd3d4,2021,request,tt4062536,Green Room,"I've recently watched Imperium and Shot Caller, familiar with America History X and Green Room as well.",tt4062536,
+t3_i9w704,t1_g1kscjh,60771914d5a0,2020,seeker_followup,tt2397535,"Predestination,","I watched Predestination, it was great, but I can't really say it's a minimalist movie.",tt2397535,
+t3_zegwt3,t1_iz76d0y,5ab0ceab208f,2022,seeker_followup,tt3005242,Cantinflas,I have several Cantinflas pictures on my list already.,NONE,Cantinflas = actor ('Cantinflas pictures'); he=biopic wrong
+t3_fqds8h,t1_icmz8wt,773626c7d180,2022,seeker_followup,tt0332280,the notebook,Only like the notebook out of those ð¥²,tt0332280,
+t3_e9amcq,t3_e9amcq,f903d55579d4,2019,request,tt0086199,Crime and Punishment?.,Best movie adaptation for Crime and Punishment?.,NONE,the NOVEL ('best movie adaptation for...'); he=1983 arbitrary
+t3_wh7ssu,t3_wh7ssu,e17c967750a8,2022,request,tt11388406,Horse girl (2020),Horse girl (2020) weird but also great.,tt11388406,
+t3_9yolsm,t1_ea3enkm,2c239a9f723b,2018,reply,tt1323605,Suck,Suck a great movie.,tt1323605,2009 rock-vampire
+t3_a7v960,t3_a7v960,1dada3849502,2018,request,tt6736812,Support the Girls,Support the Girls (Andrew Bujalski),tt6859352,he=The Green Fog wrong
+t3_wo1mbx,t1_ikaqc4i,fe9a4b3021d4,2022,reply,tt0180093,"Requiem For a Dream,","My top picks were The Road and Requiem For a Dream, but since those were mentioned here's an odd one: The Wild Hunt (2009).",tt0180093,
+t3_emkazq,t3_emkazq,9f506e7555df,2020,request,tt0359950,The Secret Life of Walter Mitty,Just finished watching The Secret Life of Walter Mitty (if you haven’t seen it please watch it!,tt0359950,2013 (just watched)
+t3_eu1rr0,t1_ffqn1di,d2b19985bcbc,2020,seeker_followup,tt3289494,Cheers.,Cheers.,NONE,'Cheers.' = thanks; he=2013 movie wrong
+t3_dhco0v,t3_dhco0v,ab5e254b3d90,2019,request,tt5742374,You Were Never Really Here,* You Were Never Really Here,tt5742374,
+t3_9k6clp,t1_e6wpuyp,a67854ecd44c,2018,seeker_followup,tt0110932,Quiz Show,"I've seen Quiz Show before which I loved, but am going to watch all of Redford's directorial efforts now as I love his measured approach, being respectful of the intelligence of the audience.",tt0110932,
+t3_a1mxaz,t1_earcom0,ef9e3eb3ed72,2018,reply,tt0120903,X-Men,"I'd agree with quite a few of those takes: Molly's Game, Civil War, Doctor Strange, Winter Soldier, The Big Short, Pacific Rim and HTTYD 2 being mediocre movies, Monsters University being superior to Finding Dory, Star Wars 6 being superior to 7 (actually a popular opinion I think), X-Men being superior to the second one, and The Last Stand being superior to Wolverine.",tt0120903,2000 film ('superior to the second one')
+t3_kp5ity,t1_ghv2doi,d84a603e7f78,2021,reply,tt0407304,War of the worlds,War of the worlds,tt0407304,2005 default; AMBIGUOUS
+t3_fhf2cq,t1_fkazaw9,81b5e17e54ee,2020,seeker_followup,tt1499658,"Horribile bosses,","Seen Horribile bosses, good comedy.",tt1499658,typo'd Horrible Bosses
+t3_fpk08p,t3_fpk08p,94936ddfcf3e,2020,request,tt1023114,"The Way Back,","After his performance in The Way Back, I have no other intention than suggesting basically all of the movies he's ever directed &amp; starred in.",tt8544498,Affleck 2020 ('his performance'); he=2010 Weir wrong
+t3_8vobzz,t1_e1p42k3,8dd504f9c0dc,2018,seeker_followup,tt3265678,Elvira.,"Bit of trivia, the nurse with the lipstick on the outside of her mask was Cassandra Peterson, aka Elvira.",NONE,Elvira = person (Cassandra Peterson); he=2013 wrong
+t3_ccytk4,t1_etqg92p,76dd65b5d74d,2019,reply,tt0094812,Bull Durham (1988),\- Bull Durham (1988),tt0094812,
+t3_bq4yzo,t1_eo3e2kq,3ca89194fe36,2019,seeker_followup,tt0163676,the IT Crowd.,Will check out the IT Crowd.,tt0487831,TV; he=The in Crowd wrong
+t3_l361p6,t3_l361p6,b2ad4e398198,2021,request,tt2932536,47 Meters Down,I've watched 47 Meters Down which I really liked.,tt2932536,
+t3_9petkw,t3_9petkw,cb89ed75aee5,2018,request,tt3824458,Tangerine,"Tangerine - Fresh out of a stint in jail, transgender prostitute Sin-Dee and her pal Alexandra hit the crazy streets of LA to get revenge on her fickle pimp.",tt3824458,
+t3_bmsyae,t1_en0a84o,96542e578a8a,2019,seeker_followup,tt1229822,"Jane Doe,","If you liked Jane Doe, check out The Corpse of Anna Fritz too.",tt3289956,The Autopsy of Jane Doe (Anna Fritz context); he=Jane Eyre wrong
+t3_dm0fkn,t1_f4xljt6,5ac406cf4004,2019,seeker_followup,tt0303021,Second time,Second time was much better.,NONE,conversational
+t3_pgp04d,t1_hbd5q75,78c0a336b32e,2021,reply,tt0218839,Best in Show,Best in Show,tt0218839,
+t3_ctety3,t1_exnrq8g,5f7d5f12845b,2019,seeker_followup,tt3458510,Dude.,Dude.,NONE,conversational 'Dude.'
+t3_uct5jo,t3_uct5jo,1978fc5f3513,2022,request,tt0368891,The Davinci Code.,"As a child, I really enjoyed National Treasure and The Davinci Code.",tt0382625,The Da Vinci Code; he=National Treasure (other title in sentence) wrong
+t3_nf72zo,t1_gyjyuye,b190d35701cb,2021,reply,tt0021749,city lights),Any movie of Charlie Chaplin( my fav city lights),tt0021749,
+t3_g7werb,t1_foki65v,0d74fff9b8b9,2020,reply,tt0058946,The Battle of Algiers,The Battle of Algiers 1966,tt0058946,
+t3_a42yeg,t1_ebb5a3j,8e73583a301a,2018,seeker_followup,tt1527788,"""The Man from Nowhere""","Ill try and get my hands on ""The Man from Nowhere"" and some Tony Jaa.",tt1527788,2010 Korean
+t3_uszziy,t1_i9e2zb8,c6a1402c1e12,2022,seeker_followup,tt0884328,Cloverfield,&lt; and Cloverfield aren't exactly post apocalypse.,tt1060277,he=The Mist wrong
+t3_i2cxld,t1_g07a7vo,32851970ace6,2020,reply,tt0073195,"mechanical shark,","I wondered why there were so few scenes of the mechanical shark, but Spielberg was having a lot of trouble w/it, so John Williams' score made up for the lack of screen time.",NONE,"'the mechanical shark' = Jaws prop, span not a title mention"
+t3_bmg9g8,t3_bmg9g8,0dd8a11daace,2019,request,tt16288856,Missouri,"* Three Billboards outside Ebbing, Missouri",tt5027774,truncated span of Three Billboards...; he=Mansour wrong
+t3_wwt2w4,t1_iln7q1r,123b1e402e93,2022,seeker_followup,tt4102346,(Mubi?,"May I ask you how do you get access to the new films? Like, where I could watch the above mentioned films once they are available? (Mubi? or any platforms similar?)",NONE,Mubi = platform
+t3_ff1cbu,t1_fjuotbg,5b786d35fa75,2020,reply,tt0258000,Panic room,Panic room (Thriller),tt0258000,
+t3_dxhz32,t1_f7qtouf,5ae5fc092b3a,2019,reply,tt0054215,Psycho,Psycho - lead is killed off 1/3 of the way through,tt0054215,1960
+t3_9c4vsz,t1_e58df4n,e0d0e88ac630,2018,seeker_followup,tt0046876,Creature of the black lagoon,Creature of the black lagoon was legit frightening.,tt0046876,
+t3_a42yeg,t1_ebb9gnv,8e73583a301a,2018,seeker_followup,tt0479884,Crank,Crank and the follow up are two of my biggest guilty pleasure films.,tt0479884,
+t3_pwlbrj,t1_hejaubr,0e280c9968cc,2021,reply,tt5635086,God's Own Country (2017),God's Own Country (2017) is a must watch if you're looking for a great queer film :),tt5635086,
+t3_drymnf,t3_drymnf,24590b3299a8,2019,request,tt0050212,the Wild One,I have also seen the Wild One and The Night of the Following Day and I don't remember enjoying them that much.,tt0047677,1953 Brando; he=Bridge on the River Kwai wrong
+t3_isuurr,t3_isuurr,52541603be8a,2020,request,tt0039973,"""The Web""","a 3min movie called ""The Web"" made for Nathan Fielder's comedy central show.",tt5021522,"Nathan Fielder short (2013, 2k votes); he=1947 wrong; UNCERTAIN"
+t3_9ie829,t3_9ie829,e91d40fa5cc9,2018,request,tt0151804,Deadpool,* Deadpool,tt1431045,he=Office Space wrong
+t3_bv6yfb,t1_eplzhhe,72c4c7a33578,2019,seeker_followup,tt10289996,Dark,The Dark Knight,tt0468569,truncated span of The Dark Knight; he=Black Godfather wrong
+t3_fbl6q0,t1_fj5nu9g,9551f7ad3f11,2020,seeker_followup,tt0162222,Cast Away,Hanks kills it in Cast Away,tt0162222,
+t3_l2ia4w,t1_gk5yqcy,e3b0c44298fc,2021,reply,tt0451279,Wonder Woman,* Wonder Woman,tt0451279,2017 default
+t3_csz77h,t3_csz77h,1bf9af57437d,2019,request,tt0095765,Cinema Paradiso (1990),* Cinema Paradiso (1990),tt0095765,
+t3_vdydiy,t1_icoefe7,29fdb48eadaa,2022,reply,tt0073440,Nashville,Nashville is my favorite Altman and in my top 3 of all time.,tt0073440,
+t3_9s6ram,t1_e8mkm1s,e3b0c44298fc,2018,seeker_followup,tt4240654,Wiccan,"I mean, maybe if they'll ever adapt Young Avengers, Wiccan would be close to it, but.",NONE,Wiccan = comic character; he=Siccin wrong
+t3_ytjjt5,t3_ytjjt5,e7bce6eeb992,2022,request,tt5052448,Get Out,I guess some similar movies are Get Out by Jordan Peele and You the Netflix series but more grotesque and alien-like.,tt5052448,
+t3_ubgvxb,t1_i64hwqz,afb4cbb17cf8,2022,seeker_followup,tt5238904,Assimilate,Iâll check out Assimilate,tt5238904,
+t3_p1zcd6,t1_h8goaea,48624fa06204,2021,seeker_followup,tt0019164,Midnight Gospel,Iâve also enjoyed Midnight Gospel although thatâs an entierly different cup of mushroom tea.,tt11639414,TV; he=Midnight Rose wrong
+t3_9v4mp2,t1_e99fa03,64b04bb78342,2018,reply,tt1706593,Chronicle.,"I know you mean horror, but a fantastic found-footage film with a fantastical but realistic-feeling story is Chronicle.",tt1706593,
+t3_d11l48,t1_ezgll47,8e9118c38d76,2019,reply,tt0119174,The Game.,The Game.,tt0119174,bare; 1997 default; AMBIGUOUS
+t3_izd9g0,t1_g6iu762,99f06e034f12,2020,reply,tt2251281,Dark was the Night.,Dark was the Night.,tt2251281,2014
+t3_9o1yyk,t1_e7qrkv3,276ed76feab7,2018,seeker_followup,tt0108399,True Romance.,I am going to have to get into those more obscure ones like True Romance.,tt0108399,
+t3_9wbmgm,t3_9wbmgm,4513b0031928,2018,request,tt6104058,I Am A Killer.,"I've already seen the basics that everyone watches; Forensic Files, Unacknowledged, Encounters With Evil, Dark Tourist and I Am A Killer.",tt8300324,docuseries; he=I'm a Killer 2016 wrong
+t3_9jzlh0,t1_e6vw7p2,846228ff29d5,2018,reply,tt1077368,"you, Dark Shadows.","I'm looking at you, Dark Shadows.",tt1077368,Burton 2012 most likely; 1966 soap plausible
+t3_ccytk4,t3_ccytk4,50b0b4c21a01,2019,request,tt0044741,(Ikiru,"I've already got The Seventh Seal and a couple of Kurosawa films (Ikiru and Rashomon), would like to give more movies a try while I have some free time this summer",tt0044741,
+t3_os39fm,t1_h6n144q,fdecff4c8533,2021,reply,tt1182345,mention Stargate,Just in case have to mention Stargate and Battlestar Galactica,tt0111282,Stargate 1994 film exact-title; SG-1 TV plausible (BSG context); he=Moon wrong; UNCERTAIN
+t3_oxw2mz,t1_h7s834p,ab4300256f29,2021,reply,tt0448134,Sunshine,Sunshine is great.,tt0448134,Boyle 2007 default
+t3_cms8zy,t1_ew4lqm1,cff471fd7ccd,2019,seeker_followup,tt1229822,Jane Doe,Jane Doe was a fun one.,tt3289956,same as #259; he=Jane Eyre wrong
+t3_xbsy74,t1_io263av,838f923c8fb4,2022,seeker_followup,tt0109506,the crown,I was thinking about watching the crown tbh as the queen died I thought Iâd would be kinda fitting,tt4786824,The Crown TV ('as the queen died'); he=The Crow wrong
+t3_wk8ypq,t3_wk8ypq,3962cc765c77,2022,request,tt0120338,Titanic?.,Could you recommend stylish movies like Tourist or Titanic?.,tt0120338,1997 default
