@@ -165,8 +165,8 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         separates us is an \emph{open} concept vocabulary carrying no per-concept supervision, at the R1 accuracy
         bar (\S\ref{sec:gap}).
   \item \textbf{An acceptance battery as a reusable certificate.} We define three headline outcome gates---full-strength
-        preserved (V1), posterior strictly shrinks per question (V3), and cold-start per-question NDCG rises on
-        \emph{full and tail} versus random (V4)---and, because outcome checks alone admit several false positives
+        preserved (V1), cold-start per-question NDCG rises on \emph{full and tail} versus random (V3), and
+        a truthful answer carries sign and intensity (V4)---and, because outcome checks alone admit several false positives
         (a sign-blind fold, a circular answer model), pair them with one verification item
         per requirement, V1--V4, and two integrity items. We propose this as a portable certificate any
         interview-compatible recommender should pass (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
@@ -1441,7 +1441,7 @@ Cold-start per-question NDCG@10 curves (full and tail) versus a random-question 
 baselines; mixed channels (concepts, signed values, continuous tokens) are foldable only by our instrument, which is
 the point of the comparison---the rivals cap out at what an item-only interview can carry. Symmetric access is
 enforced where a baseline \emph{can} fold a channel; where it structurally cannot, that is reported as an architecture
-limit, not hidden. The items-only V4 curves and the V3 shrinkage diagnostic are measured
+limit, not hidden. The items-only V3 curves and the V4 sign and intensity arms are measured
 (\S\ref{sec:batteryresults}), and the mixed-channel comparison is reported in \S\ref{sec:concept:results}
 under one strategy-free criterion. No item-only baseline appears in that comparison, because none can fold
 a concept at all---which is the architecture limit itself, argued in (iv) below.
