@@ -385,3 +385,58 @@ new_chapters/chapterA_v2/chapterA_v2.tex   compiles clean, belief removed, numbe
 **Watchdog lesson worth keeping**: restarting by hand means kill → delete state file → relaunch, and in
 that window the watchdog saw no state file, concluded "dead", and launched a SECOND trainer. Two ran for
 ten hours on the same checkpoint files. The fix is to ask the OS process table, not the state file.
+
+---
+
+# NIGHT OF 2026-08-03/04 — what changed, and one retraction
+
+## Certified artefacts (both frozen, both in models/i26c_ep31/)
+- **Tower** `t2i26c_ep31.pt` — TEST 0.3496/0.2491. Unchanged.
+- **Concept channel** `concept_cv5_ep24.pt` (= `.cache/instrument/cv5_ep24.pt`) — author ruled select on
+  best FULL under the pre-registered rule. Config is IN the checkpoint: hidden 1024, keep_meh True,
+  p_item_zero 0.15, 30 epochs.
+
+## RETRACTION — cv5 does NOT beat cv3
+Reported at ~23:40 as "+0.0148 full / +0.0083 tail at m=16". **Wrong: contract mixing.**
+`concept_cold_check --bank expinfo` had no `expinfo` branch and fell through to `crank=None` (RANDOM
+draws) while still logging `bank=expinfo`. cv5 was scored on random draws, cv3 on a ranked bank.
+
+Matched (`bank_sweep`, both checkpoints, four banks): **cv5 ≈ cv3.** Every delta inside the ±.003–.004
+noise band at n=1500; several negative under `pop` and `entropy`; consistently positive but tiny under
+`polar`/`expinfo`. **The whole config change bought nothing measurable.** Capacity was not binding — a 4×
+wider net trained 2.5× longer moved nothing, so the flat-NLL reading was right all along. Remaining
+headroom is in the QUESTION BANK and the ANSWER CHANNEL, not the network. Full table: `docs/results/
+CONCEPT_VS_ITEM_BANK_SWEEP.md`. Fix + assert in `concept_cold_check.py` (every named bank must resolve to
+a ranking; only `random` may be unranked).
+
+## cv5 ep24, certified concept numbers (`expinfo` bank, floor .1277/.0267)
+m1 .1323/.0422 · m2 .1351/.0455 · m4 .1372/.0508 · m8 .1449/.0634 · m16 .1467/.0705
+
+## Other movements
+- **EDDI measured**: 0.2153/0.1077, @100 0.3110 (early stop ep46, val-selected ep31). Both chapter rows
+  updated — it is the R2 architecture and it lands far below the R1 bar, which strengthens the gap claim.
+- **G6 gate was mis-specified**, now fixed and PASSING: it demanded the wrong-user control land NEAR the
+  intercept, but the chapter's own I1 text says a stranger's answers are *worse* than no information.
+  One-sided now (`PASS_no_gain`: CI upper bound below zero). Measured −0.0980 [−0.1016, −0.0944].
+- **G5 was certifying dead code** — a scaled genome centroid added straight to z, the July operator,
+  not the trained fold. Repointing it at the trained fold produced k0=0.0040, which is a BASE-LATENT
+  MISMATCH in my harness (G5's k0 path uses the returned matrix AS the latent; ConceptFoldNet needs the
+  tower's learned empty-fold latent as its running vector). Documented, not shipped. **V2 should cite the
+  cold check**, which measures the same quantity correctly.
+- **V4 row refreshed** on the certified tower; all arms still pass. Neutralisation endpoint is higher
+  (0.1714 vs 0.1321) and the staircase lower (ρ 0.794/0.818 vs a single 0.927 previously quoted — the
+  gate computes two coefficients and the chapter was quoting one that matched neither).
+- **Intensity premium at full profile**: +0.0039 full (paired CI [+0.0025,+0.0053]) / +0.0020 tail
+  ([+0.0007,+0.0031]), both separated. Replaced the old claim that intensity was worth ~nothing there.
+
+## STILL OPEN
+1. **Greedy best-static table** is the last old-tower result (its 0.1279/0.0192 intercept gives it away).
+   568-min run, NOT launched: `strategy_channel_suite.py` builds ConceptFoldNet with `len(blob["tags"])`
+   and `h=blob["hidden"]`, passing neither `conc_init` nor `use_refusal` — and cv5's blob has **no `tags`
+   key**. Fix both call sites (~540, ~579), smoke, then launch.
+2. **TaNP into the interview table** needs a real ADAPTER (a per-user adaptation step consuming k
+   answers), not a registry line. `RECS` is at `run_interview_table.py:85`. No training required.
+3. Paired CIs on concept-vs-item deltas — running as `concept_vs_item_paired.py`.
+4. Rendered-PDF read-through. **Build-clean is not verification**: tonight alone a bibliography that
+   silently emitted nothing, four false "five requirements" phrases, and a mislabelled bank all compiled
+   without a warning.
