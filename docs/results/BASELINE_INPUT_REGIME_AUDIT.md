@@ -67,3 +67,38 @@ frontier, fix the regime before believing anything it says.
 The 0.3894; both result tables; any claim in either direction about graded input; the "lower bound"
 framing; and the archaeology of this episode. Per the project rule, the paper presents the working version —
 here that is the canonical table plus the one-line adaptation footnote.
+
+---
+
+## AUTHOR STATEMENT, 2026-08-04 — recorded, unreconciled
+
+The author states, for the record: **"we did graded / binarised not just for us, but for baselines as
+well. Some elicitation ones improved as a result. Remember we did a big rerun and retrain? Those should be
+2 number columns."**
+
+This is recorded as given. It is **not yet reconciled** with the body of this file, which currently
+concludes the opposite:
+
+- §"not ordered": numbers from the two input contracts are *"not ordered against these — not higher, not
+  lower, not comparable"*.
+- The elicitation improvement under graded input is documented here as an artifact **twice**: Golbandi at
+  0.3894 "beating RecVAE" was a masking leak (richer fold-in deleted 2.26x more candidates); the fix
+  flipped it to "graded hurts", also an artifact. The decisive control — binary model + graded mask — is
+  noted as never run.
+- §"the graded question remains unmeasured", with the spec for answering it properly: give graded input to
+  **every** method including EASE/RecVAE/the tower, and fix the candidate-pool leak.
+
+**Two possibilities, and they are cheap to separate:**
+
+1. The runs the author means are a LATER, clean set that this file predates or does not cover — plausibly
+   the arm-A/arm-N work in `ARM_N_PHASE1.md`. If so this file is stale and should be superseded, and the
+   two-column master table is sound.
+2. The runs are the ones adjudicated here, in which case the numbers are confounded and must not be shown
+   side by side as comparable.
+
+**Next action (do this before building the two-column table, task #80):** read `ARM_N_PHASE1.md` and the
+arm-N logs, and establish whether a clean graded-vs-binarised pair exists per baseline on ONE contract with
+the pool fixed. Report which of the two possibilities holds. Do not resolve it by preferring either the
+author's recollection or this file — check the runs.
+
+Recorded by Claude, 2026-08-04, at the author's instruction.

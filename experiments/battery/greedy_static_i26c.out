@@ -9,3 +9,36 @@
 [15:50:34] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
 [15:50:34] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
 [15:50:47] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[15:51:51] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[15:52:15] [g5] 1031 concepts with >= 30 members
+[15:53:13] [ledger] SIGNED valuation arrays built (prereg cache found)
+[15:53:26] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[15:53:33] [BUILD(val)] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[15:53:33] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[15:54:24] [gate a] m=0 empty interview on 10000 val users: full=0.12987 tail=0.02284 | tower's recorded cold k0=0.12987 | delta=+0.00000 tol=0.002 -> PASS
+[15:54:24] [banks] item bank='pop' -> pool 500 items | concept bank='answerable' -> pool 500 concepts | combined 1000 | L=16 | objective=full
+[15:54:24] [banks] top-5 items [5, 121, 8, 123, 59] | top-5 concepts [673, 429, 594, 425, 406] (answer rate [1.0, 1.0, 1.0, 1.0, 1.0])
+[15:54:24] [greedy] SELECTION on 10000 VALIDATION users; the test cohort is not built yet.
+[16:04:22] [greedy items-only] seed 25/500 (10.0m, 23.94s/eval)
+[16:14:22] [greedy items-only] seed 50/500 (20.0m, 23.97s/eval)
+[16:21:35] [greedy items-only] seed 75/500 (27.2m, 21.75s/eval)
+[16:26:14] [greedy items-only] seed 100/500 (31.8m, 19.10s/eval)
+[16:31:03] [greedy items-only] seed 125/500 (36.7m, 17.59s/eval)
+[16:36:25] [greedy items-only] seed 150/500 (42.0m, 16.81s/eval)
+[16:41:43] [greedy items-only] seed 175/500 (47.3m, 16.22s/eval)
+[16:50:09] [greedy items-only] seed 200/500 (55.8m, 16.73s/eval)
+[16:58:23] [greedy items-only] seed 225/500 (64.0m, 17.06s/eval)
+[17:05:40] [greedy items-only] seed 250/500 (71.3m, 17.11s/eval)
+[17:13:04] [greedy items-only] seed 275/500 (78.7m, 17.17s/eval)
+[17:20:24] [greedy items-only] seed 300/500 (86.0m, 17.20s/eval)
+[17:27:23] [greedy items-only] seed 325/500 (93.0m, 17.17s/eval)
+[17:34:28] [greedy items-only] seed 350/500 (100.1m, 17.15s/eval)
+[17:41:24] [greedy items-only] seed 375/500 (107.0m, 17.12s/eval)
+[17:48:26] [greedy items-only] seed 400/500 (114.0m, 17.10s/eval)
+[17:55:23] [greedy items-only] seed 425/500 (121.0m, 17.08s/eval)
+[18:02:21] [greedy items-only] seed 450/500 (128.0m, 17.06s/eval)
+[18:09:18] [greedy items-only] seed 475/500 (134.9m, 17.04s/eval)
+[18:16:16] [greedy items-only] seed 500/500 (141.9m, 17.02s/eval)
+[18:16:16] [greedy items-only] pick 1/16 = item 83 gain +0.01639 -> 0.14627 (nev=500, 141.9m)
+[18:23:47] [greedy items-only] pick 2/16 = item 583 gain +0.00740 -> 0.15366 (nev=525, 149.4m)
+[19:23:20] [greedy items-only] pick 3/16 = item 19 gain +0.00891 -> 0.16257 (nev=532, 208.9m)

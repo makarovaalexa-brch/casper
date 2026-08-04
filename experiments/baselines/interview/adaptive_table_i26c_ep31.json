@@ -558,6 +558,28 @@
           "score_minutes": 68.46,
           "interview_minutes": 0.05,
           "distinct_prefixes": 7
+        },
+        "k8": {
+          "full": 0.18170214611855282,
+          "tail": 0.0643359073542537,
+          "answered": 1.8006,
+          "floored": 0,
+          "score_minutes": 4.29,
+          "interview_minutes": 0.47,
+          "distinct_prefixes": 99
+        }
+      }
+    },
+    "belief_mf": {
+      "entropy0-static": {
+        "k1": {
+          "full": 0.1608487010002156,
+          "tail": 0.02762234549889447,
+          "answered": 0.4367,
+          "floored": 0,
+          "score_minutes": 1.52,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
         }
       }
     }
