@@ -499,7 +499,7 @@ comparisons and ``soft attributes'' (e.g.\ ``scarier'') as directions (concept-a
 selecting queries by expected value of information---the nearest thing to R2$+$R3$+$R4 together.
 ConTS~\cite{li2021seamlessly} unifies items and attributes as Thompson-sampling arms with a posterior over a cold-start
 user. BCIE~\cite{toroghi2023bcie} folds critiques into a \emph{frozen} factorisation by exact conjugate-Gaussian
-updates---the closest published analogue of our belief mechanism. PEBOL~\cite{austin2024bayesian} keeps a per-item Beta
+updates---the closest published analogue of our frozen-tower fold. PEBOL~\cite{austin2024bayesian} keeps a per-item Beta
 posterior updated by LLM-extracted aspects and NLI scoring, reporting cold-start MRR@10 $0.27$ versus a $0.17$ baseline.
 None of these reports full-profile accuracy at the EASE/RecVAE bar; each is a belief layer, not a certified tower.
 
@@ -598,7 +598,7 @@ system with an actionable belief.}
 % =====================================================================
 
 \paragraph{The verdict.}
-No single published system satisfies all of $\{$R1 SOTA-full-profile $\wedge$ R2 any-length set $\wedge$ R3
+No single published system satisfies all of $\{$R1 SOTA-full-profile $\wedge$ R2 any-length set $\wedge$
 R3 monotone $\wedge$ R4 expressive answers$\}$. The binding
 near-miss is B\i y\i k et al.~\cite{biyik2023soft}: it fails R1 (a $d{=}50$ ALS two-tower rather than a
 certified RecVAE-class tower, and it reports no full-catalogue accuracy---its NDCG is computed between a user's true
