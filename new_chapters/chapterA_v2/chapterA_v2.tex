@@ -1008,7 +1008,7 @@ intercept while every capability gate still reads green.
 
 We therefore evaluate the channel in \emph{deployment currency}: a fixed, user-independent bank under a
 per-question budget where every question spends budget whether or not it is answered, scored at the
-endpoint against the intercept (V4's fixed-bank setting). The acceptance form of the concept
+endpoint against the intercept (V3's fixed-bank setting). The acceptance form of the concept
 channel is not ``can the operator express dislike'' but ``does the realizable interview stay above the
 no-answer intercept at budget.'' This is the criterion the signed four-band estimator of
 \S\ref{sec:concept:est} is built to satisfy, and \S\ref{sec:concept:results} reports it.
@@ -1211,7 +1211,7 @@ argument in this chapter for \emph{why verification has the shape it does}. A ca
 a fold that, as actually driven down a realistic question bank, never emitted a negative answer---the answer model, not
 the operator, was sign-blind, and the operator's certified capability was vacuous in deployment. Only the
 deployment-currency evaluation---a fixed, user-independent bank under a per-question budget, scored at the endpoint
-(V4's fixed-bank setting)---exposed it, because there the declining curve penalises an answer model that
+(V3's fixed-bank setting)---exposed it, because there the declining curve penalises an answer model that
 never exercises the negative half. This is a general failure class, not a concept-specific accident: \emph{a gate on
 what an operator \emph{can} do must be paired with a gate on what the deployed system \emph{does}}. We record the
 deployment-currency endpoint as the concept channel's acceptance form, and fold the signed-retrain numbers into
@@ -1430,10 +1430,10 @@ fold-in values of Table~\ref{tab:g0}, which withhold a fifth of each profile as 
 \end{table}
 
 \paragraph{Within an answerable bank, question choice matters far less than answerability itself.}
-In the V4 curves, a \emph{random} question drawn from the answerable bank beats popularity-ranked items at
+In the V3 curves, a \emph{random} question drawn from the answerable bank beats popularity-ranked items at
 $q{=}1,2,4,8$ (e.g.\ $0.2358$ vs $0.2230$ full at $q{=}8$) and is only overtaken at $q{=}16$ ($+0.0022$,
 CI-clean). HELF and the $\bSigma$-greedy selector are likewise within noise of random until the largest
-budget, where $\bSigma$-greedy wins by $+0.0036$ (CI $[0.0016,0.0057]$). This is not a contradiction of V4's fixed-bank arm,
+budget, where $\bSigma$-greedy wins by $+0.0036$ (CI $[0.0016,0.0057]$). This is not a contradiction of V3's fixed-bank arm,
 whose random arm is drawn from the \emph{whole catalogue} and is therefore mostly unanswerable (mean
 $1.4$ of $16$ questions answered, versus $13.5$ for the popularity bank) and which the popularity bank
 beats by $+0.1264$: the two ``random'' controls are different objects, and we name them separately. The
