@@ -298,3 +298,68 @@ nine must appear in the write-up as fix / stratification / scope sentence):**
    the request-state dispersion** (target: same order as perplexity ~95; collapse to bank-like
    levels = the bridge leaks, stop and redesign). This converts attack 1's strongest form into
    a figure.
+
+---
+
+# ADDENDUM 2026-08-04 (2): POLICY-POSITIVE RE-CENTERING (author ruling: "paper B is all about
+the policy — adaptivity and coarse-to-fine emerging"; open questions merged in from the old
+Paper D thread; continuous policy + LLM question verbalization HELD OUT as the author's
+separate bet — B defines the discrete interface that the later paper relaxes)
+
+**Thesis of record:** *Adaptivity pays exactly when the interview has placed the user, and when
+it pays, the emergent structure is coarse-to-fine. Standard elicitation never reaches that
+regime — which is why the literature's adaptive machinery, replicated faithfully, shows no gap
+over a strongest static order.* The four-act spine stands, but Act 1's null is the SETUP, not
+the paper's identity; the paper's identity is the positive conditional structure.
+
+**COARSE-TO-FINE ALREADY HAS A MEASURED SEED — the channel flip in leg-1's expected-gain table:**
+at ML cold states the loss-optimal channel is CONCEPT by 12× (+0.0238 vs +0.0019); after two
+closed openers still concept by 8×; at Reddit request-placed states it flips to ITEM by ~2×
+(+0.0138 vs +0.0076; anchored +0.0179 vs +0.0082). Mechanism in one line: early, fine questions
+are unanswerable (2.18/8 items vs 6.02/8 concepts answered — Paper A's fact) and coarse ones
+informative; once placed, coarse is exhausted and fine becomes answerable-in-expectation AND
+discriminative. Coarse-to-fine = consequence of loss-optimal selection under an
+answerability-aware answer model, not a curriculum (the old forensics-sheet mechanism, now with
+a certified-stack measurement path). Act-4 exhibit: granularity of the chosen question (channel,
+concept breadth, item popularity rank) vs turn/placement quality, pre-registered prediction
+"granularity descends", controls = answerability-matched banks + shuffle.
+
+**Act-3 centerpiece PROMOTED: Reddit-mined openers run on ML-25M interviews** (author question
+"where do you use reddit openers for movielens + held-out items" — it was buried as the
+init-shaping bridge; now stated plainly): the QUESTIONS come from what 4,431 real requests
+volunteer (slots_v2: anchors 63%, genre 40%, era/tone/constraints); the USERS, ANSWERS (real
+held-out ratings) and SCORING (held-out items, full+tail NDCG@10) are all ML-25M. Reddit
+contributes the opener distribution; MovieLens contributes ground truth. The emulated
+favorite-movie / favorite-genre / hidden-gem openers are the simplest members of this
+Reddit-derived opener family (hidden-gem = the old Paper-D wording lever, head-vs-tail recall,
+re-established here). Threat model (9 points above) governs.
+
+**Act-3 risk RESTATED DOWN (author correction):** the precedent is the Jul-14 tree probe, which
+ran exactly this shape cleanly on ML-25M — genre opener → per-cluster follow-up, tail
+0.0414→0.0608, CI [+0.0186,+0.0203], no learned policy, behavioral. The bet is not existence;
+it is re-establishing magnitude on the certified tower (pre-Jul-22 ⇒ direction-only) against the
+strongest-static comparator (incl. init-aware-but-fixed static, threat #3).
+
+**FACE-VALIDITY EXHIBIT (author requirement, mandatory for every emergent-strategy claim):**
+(a) handpicked trajectory examples a human can read and nod at — the template is the tree
+probe's own result, where winning follow-ups after the genre opener were niche films OF that
+genre (horror→Poltergeist, animation→Ghibli), nobody hand-coded it; (b) a small quantitative
+coherence check that adaptation is semantically sensible, not just mechanically divergent —
+e.g. genre-congruence rate of chosen follow-ups vs a matched-divisiveness random control, or
+genome-space similarity(opener answer, chosen follow-up). Cheap; it is the difference between
+"the policy branches" and "the policy branches sensibly".
+
+**Act-1 modernization (author ruling: "Golbandi alone is too old to argue"):** an Opus lit
+survey (external_literature first, then web) is building the ranked list of 2018–2026 strong
+REPLICABLE adaptive baselines fitting our contract (binary implicit, cold user, behavioral
+answers, full+tail NDCG@10); shortlist lands in `external_literature/findings/` + here. Wired
+so far: golbandi_leaf, rbmf, belief_mf, TaNP. Candidates under audit: NICF, IGCN, meta-learning
+line (MeLU/MAMO), attribute-CRS line (EAR/SCPR/UNICORN — contract fit questionable), bandit
+lines (ConTS), PEBOL. Rule: a baseline whose information contract can't be honored is EXCLUDED
+with a stated reason, never force-compared. Old-arena anomaly to resolve on the new stack:
+Golbandi adaptive scored BELOW his static (0.343/0.124 vs 0.352/0.129) — unexplained
+reimplementation red flag; must vanish or be explained before Act 1 prints.
+
+**First run of the new arc:** the channel-flip-vs-depth curve (dispersion + best-channel at
+every interview depth under closed vs open openers) — CPU-only, certified artifacts, no LLM;
+simultaneously the Act-2 centerpiece and the Act-4 seed.
