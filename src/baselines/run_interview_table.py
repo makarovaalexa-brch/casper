@@ -82,7 +82,7 @@ sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
 from i26_encoder import UNSEEN_LEVEL
 
 OUT = os.path.join(_ROOT, "experiments", "baselines", "interview")
-RECS = ["ours", "recvae_likes", "golbandi_leaf", "rbmf", "belief_mf"]
+RECS = ["ours", "recvae_likes", "golbandi_leaf", "rbmf", "belief_mf", "tanp"]
 # Models whose input contract INCLUDES the unknowns, so they are never information-free -> never floored.
 CONSUMES_UNKNOWNS = {"golbandi_leaf"}
 GLOBAL_ARMS = {"popularity", "pure_entropy", "entropy0", "helf"}
@@ -243,6 +243,16 @@ def main():
         built["rbmf"] = ("signed", rbmf_seed.fit(D["train"], ni, log=logln))
     if "belief_mf" in recs:
         built["belief_mf"] = ("signed", belief_mf.fit(D["train"], ni, log=logln))
+    if "tanp" in recs:
+        # TaNP needs no bespoke adapter: its predict takes a likes CSR, the same contract as
+        # recvae_likes, so the interview harness can drive it unchanged. Epochs are pinned to the
+        # trained checkpoint so this reloads rather than retrains.
+        import tanp_bestefffort as tanp
+        tck = os.path.join(_ROOT, ".cache", "baselines", "tanp_ml25m_liang.pt")
+        ta = tanp._defaults()
+        ta.epochs = int(torch.load(tck, map_location="cpu")["state"]["epoch"])
+        ta.max_minutes = 0.0
+        built["tanp"] = ("likes", tanp.fit(D["train"], ni, args=ta, ckpt=tck, log=logln))
     if "golbandi_leaf" in recs:
         built["golbandi_leaf"] = ("raw", GolbandiLeaf(D["g_train"], ni, lam=8.0, log=logln))
 
