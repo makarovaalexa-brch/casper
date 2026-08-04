@@ -1,0 +1,11 @@
+[15:49:14] [cert] tower t2i26c_ep31.pt arch=i26 ep31 val_full=0.3466 val_tail=0.2485 k0=0.1299 sel=0.1407
+[15:49:14] === building BUILD(val) env (split=validation) ===
+[15:49:26] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[15:50:32] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[15:50:34] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[15:50:34] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[15:50:34] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[15:50:34] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[15:50:34] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[15:50:34] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[15:50:47] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes

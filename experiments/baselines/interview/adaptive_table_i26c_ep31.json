@@ -1,0 +1,565 @@
+{
+  "meta": {
+    "selectors": [
+      "entropy0-static",
+      "glm_ucb",
+      "thompson",
+      "eddi_ig"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "consumers": [
+      "ours",
+      "recvae_likes",
+      "golbandi_leaf",
+      "belief_mf",
+      "tanp",
+      "eddi"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 10000,
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "eddi_cand_topm": 0
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "entropy0-static": {
+        "k1": {
+          "full": 0.16348255500939268,
+          "tail": 0.043279889667582394,
+          "answered": 0.4367,
+          "floored": 0,
+          "score_minutes": 0.86,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.1705622860886546,
+          "tail": 0.05282299574227912,
+          "answered": 0.8552,
+          "floored": 0,
+          "score_minutes": 0.67,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.183103289031884,
+          "tail": 0.06358371419603398,
+          "answered": 1.6408,
+          "floored": 0,
+          "score_minutes": 0.68,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.20526394292312922,
+          "tail": 0.07922116628163539,
+          "answered": 3.1,
+          "floored": 0,
+          "score_minutes": 0.97,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.2303094391526304,
+          "tail": 0.09241298222416917,
+          "answered": 5.5247,
+          "floored": 0,
+          "score_minutes": 0.76,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        }
+      },
+      "glm_ucb": {
+        "k1": {
+          "full": 0.16059835644333517,
+          "tail": 0.0399555252569825,
+          "answered": 0.4197,
+          "floored": 0,
+          "score_minutes": 0.64,
+          "interview_minutes": 6.67,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.1634713123570019,
+          "tail": 0.045210697806000275,
+          "answered": 0.8141,
+          "floored": 0,
+          "score_minutes": 0.66,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 3
+        },
+        "k4": {
+          "full": 0.1755593793239384,
+          "tail": 0.05778501174883185,
+          "answered": 1.655,
+          "floored": 0,
+          "score_minutes": 0.69,
+          "interview_minutes": 0.55,
+          "distinct_prefixes": 23
+        },
+        "k8": {
+          "full": 0.19015535688882723,
+          "tail": 0.06729879421491185,
+          "answered": 2.9648,
+          "floored": 0,
+          "score_minutes": 0.71,
+          "interview_minutes": 7.36,
+          "distinct_prefixes": 335
+        },
+        "k16": {
+          "full": 0.21609196751578733,
+          "tail": 0.08329496449004702,
+          "answered": 5.2407,
+          "floored": 0,
+          "score_minutes": 0.73,
+          "interview_minutes": 40.47,
+          "distinct_prefixes": 5739
+        }
+      },
+      "thompson": {
+        "k1": {
+          "full": 0.1626515842114901,
+          "tail": 0.03757244021036668,
+          "answered": 0.2092,
+          "floored": 0,
+          "score_minutes": 0.64,
+          "interview_minutes": 0.2,
+          "distinct_prefixes": 759
+        },
+        "k2": {
+          "full": 0.16760096552869697,
+          "tail": 0.04374741305892794,
+          "answered": 0.4291,
+          "floored": 0,
+          "score_minutes": 0.66,
+          "interview_minutes": 0.28,
+          "distinct_prefixes": 8083
+        },
+        "k4": {
+          "full": 0.1747573576113833,
+          "tail": 0.05507256775498737,
+          "answered": 0.8624,
+          "floored": 0,
+          "score_minutes": 0.67,
+          "interview_minutes": 0.99,
+          "distinct_prefixes": 10000
+        },
+        "k8": {
+          "full": 0.19076364253502923,
+          "tail": 0.06765791284681277,
+          "answered": 1.7065,
+          "floored": 0,
+          "score_minutes": 0.68,
+          "interview_minutes": 3.29,
+          "distinct_prefixes": 10000
+        },
+        "k16": {
+          "full": 0.21349754317050665,
+          "tail": 0.08782964902235921,
+          "answered": 3.3908,
+          "floored": 0,
+          "score_minutes": 0.72,
+          "interview_minutes": 10.3,
+          "distinct_prefixes": 10000
+        }
+      },
+      "eddi_ig": {
+        "k1": {
+          "full": 0.15371633631220374,
+          "tail": 0.033625404710075815,
+          "answered": 0.2592,
+          "floored": 0,
+          "score_minutes": 0.64,
+          "interview_minutes": 0.65,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.15394451759743155,
+          "tail": 0.03726325490119794,
+          "answered": 0.4198,
+          "floored": 0,
+          "score_minutes": 0.65,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 2
+        },
+        "k4": {
+          "full": 0.16180916005061272,
+          "tail": 0.04320321824772285,
+          "answered": 0.7921,
+          "floored": 0,
+          "score_minutes": 0.64,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 7
+        },
+        "k8": {
+          "full": 0.17470264232790414,
+          "tail": 0.06111285331915891,
+          "answered": 1.8006,
+          "floored": 0,
+          "score_minutes": 0.68,
+          "interview_minutes": 0.47,
+          "distinct_prefixes": 99
+        },
+        "k16": {
+          "full": 0.19168491364176013,
+          "tail": 0.07493459086516495,
+          "answered": 3.8437,
+          "floored": 0,
+          "score_minutes": 0.71,
+          "interview_minutes": 13.83,
+          "distinct_prefixes": 1993
+        }
+      }
+    },
+    "recvae_likes": {
+      "entropy0-static": {
+        "k1": {
+          "full": 0.060732302401755305,
+          "tail": 0.021770467276429575,
+          "answered": 0.4367,
+          "floored": 0,
+          "score_minutes": 0.55,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.09605909659883044,
+          "tail": 0.03233236701379965,
+          "answered": 0.8552,
+          "floored": 0,
+          "score_minutes": 0.6,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.14431078469230874,
+          "tail": 0.043760581535492865,
+          "answered": 1.6408,
+          "floored": 0,
+          "score_minutes": 0.62,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.17178036057383197,
+          "tail": 0.05763465934479662,
+          "answered": 3.1,
+          "floored": 0,
+          "score_minutes": 0.63,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.22145303324043353,
+          "tail": 0.0741999941161578,
+          "answered": 5.5247,
+          "floored": 0,
+          "score_minutes": 0.64,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        }
+      },
+      "glm_ucb": {
+        "k1": {
+          "full": 0.06637403483843854,
+          "tail": 0.01919182810352625,
+          "answered": 0.4197,
+          "floored": 0,
+          "score_minutes": 0.56,
+          "interview_minutes": 6.67,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.09682898740086048,
+          "tail": 0.02752097668952513,
+          "answered": 0.8141,
+          "floored": 0,
+          "score_minutes": 0.59,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 3
+        },
+        "k4": {
+          "full": 0.12478646312713813,
+          "tail": 0.03823682577457001,
+          "answered": 1.655,
+          "floored": 0,
+          "score_minutes": 0.63,
+          "interview_minutes": 0.55,
+          "distinct_prefixes": 23
+        },
+        "k8": {
+          "full": 0.16587022292191927,
+          "tail": 0.04661327232860771,
+          "answered": 2.9648,
+          "floored": 0,
+          "score_minutes": 0.62,
+          "interview_minutes": 7.36,
+          "distinct_prefixes": 335
+        },
+        "k16": {
+          "full": 0.20282411965685437,
+          "tail": 0.06496617102125747,
+          "answered": 5.2407,
+          "floored": 0,
+          "score_minutes": 0.63,
+          "interview_minutes": 40.47,
+          "distinct_prefixes": 5739
+        }
+      },
+      "thompson": {
+        "k1": {
+          "full": 0.030940215927585547,
+          "tail": 0.00973688471067407,
+          "answered": 0.2092,
+          "floored": 0,
+          "score_minutes": 0.51,
+          "interview_minutes": 0.2,
+          "distinct_prefixes": 759
+        },
+        "k2": {
+          "full": 0.0565698275196421,
+          "tail": 0.0182402623785271,
+          "answered": 0.4291,
+          "floored": 0,
+          "score_minutes": 0.55,
+          "interview_minutes": 0.28,
+          "distinct_prefixes": 8083
+        },
+        "k4": {
+          "full": 0.09174909738379564,
+          "tail": 0.030867405776100275,
+          "answered": 0.8624,
+          "floored": 0,
+          "score_minutes": 0.61,
+          "interview_minutes": 0.99,
+          "distinct_prefixes": 10000
+        },
+        "k8": {
+          "full": 0.13648157869290062,
+          "tail": 0.04897438247278161,
+          "answered": 1.7065,
+          "floored": 0,
+          "score_minutes": 0.6,
+          "interview_minutes": 3.29,
+          "distinct_prefixes": 10000
+        },
+        "k16": {
+          "full": 0.1884752876430433,
+          "tail": 0.07217935784949839,
+          "answered": 3.3908,
+          "floored": 0,
+          "score_minutes": 0.64,
+          "interview_minutes": 10.3,
+          "distinct_prefixes": 10000
+        }
+      },
+      "eddi_ig": {
+        "k1": {
+          "full": 0.018480070600450507,
+          "tail": 0.009919540062424482,
+          "answered": 0.2592,
+          "floored": 0,
+          "score_minutes": 0.53,
+          "interview_minutes": 0.65,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.03575430134240018,
+          "tail": 0.01359834896632057,
+          "answered": 0.4198,
+          "floored": 0,
+          "score_minutes": 0.56,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 2
+        },
+        "k4": {
+          "full": 0.05873751256824954,
+          "tail": 0.02145914544636749,
+          "answered": 0.7921,
+          "floored": 0,
+          "score_minutes": 0.57,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 7
+        },
+        "k8": {
+          "full": 0.12056513707647556,
+          "tail": 0.0426826267670099,
+          "answered": 1.8006,
+          "floored": 0,
+          "score_minutes": 0.63,
+          "interview_minutes": 0.47,
+          "distinct_prefixes": 99
+        },
+        "k16": {
+          "full": 0.15660834208485616,
+          "tail": 0.05719684632230988,
+          "answered": 3.8437,
+          "floored": 0,
+          "score_minutes": 0.7,
+          "interview_minutes": 13.83,
+          "distinct_prefixes": 1993
+        }
+      }
+    },
+    "golbandi_leaf": {
+      "entropy0-static": {
+        "k1": {
+          "full": 0.15791559065714283,
+          "tail": 0.03472958353951599,
+          "answered": 0.4367,
+          "floored": 0,
+          "score_minutes": 1.64,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.15625608463573734,
+          "tail": 0.041384614758805435,
+          "answered": 0.8552,
+          "floored": 0,
+          "score_minutes": 0.57,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.16804918622511125,
+          "tail": 0.06697632265862186,
+          "answered": 1.6408,
+          "floored": 0,
+          "score_minutes": 0.58,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.16860320832579923,
+          "tail": 0.06768866682324698,
+          "answered": 3.1,
+          "floored": 0,
+          "score_minutes": 0.66,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        }
+      },
+      "glm_ucb": {
+        "k1": {
+          "full": 0.15314776336937388,
+          "tail": 0.033144304682370854,
+          "answered": 0.4197,
+          "floored": 0,
+          "score_minutes": 0.57,
+          "interview_minutes": 6.67,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.1538479377875614,
+          "tail": 0.04091074565872303,
+          "answered": 0.8141,
+          "floored": 0,
+          "score_minutes": 6.38,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 3
+        },
+        "k4": {
+          "full": 0.14874487804890368,
+          "tail": 0.052504146502896976,
+          "answered": 1.655,
+          "floored": 0,
+          "score_minutes": 4.88,
+          "interview_minutes": 0.55,
+          "distinct_prefixes": 23
+        },
+        "k8": {
+          "full": 0.16979737926818997,
+          "tail": 0.06854234271339,
+          "answered": 2.9648,
+          "floored": 0,
+          "score_minutes": 6.12,
+          "interview_minutes": 7.36,
+          "distinct_prefixes": 335
+        }
+      },
+      "thompson": {
+        "k1": {
+          "full": 0.1682139943385495,
+          "tail": 0.03993079653047164,
+          "answered": 0.2092,
+          "floored": 0,
+          "score_minutes": 8.84,
+          "interview_minutes": 0.2,
+          "distinct_prefixes": 759
+        },
+        "k2": {
+          "full": 0.17430594278589634,
+          "tail": 0.047782802734057175,
+          "answered": 0.4291,
+          "floored": 0,
+          "score_minutes": 9.1,
+          "interview_minutes": 0.28,
+          "distinct_prefixes": 8083
+        },
+        "k4": {
+          "full": 0.1844176548038724,
+          "tail": 0.061617683598345886,
+          "answered": 0.8624,
+          "floored": 0,
+          "score_minutes": 6.45,
+          "interview_minutes": 0.99,
+          "distinct_prefixes": 10000
+        },
+        "k8": {
+          "full": 0.1974321436117682,
+          "tail": 0.07498705260438156,
+          "answered": 1.7065,
+          "floored": 0,
+          "score_minutes": 5.2,
+          "interview_minutes": 3.29,
+          "distinct_prefixes": 10000
+        }
+      },
+      "eddi_ig": {
+        "k1": {
+          "full": 0.16760981471529543,
+          "tail": 0.03821226459640694,
+          "answered": 0.2592,
+          "floored": 0,
+          "score_minutes": 0.57,
+          "interview_minutes": 0.65,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.16929664055267363,
+          "tail": 0.0413208427193544,
+          "answered": 0.4198,
+          "floored": 0,
+          "score_minutes": 10.76,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 2
+        },
+        "k4": {
+          "full": 0.17099873325220163,
+          "tail": 0.04952602749269977,
+          "answered": 0.7921,
+          "floored": 0,
+          "score_minutes": 68.46,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 7
+        }
+      }
+    }
+  }
+}
