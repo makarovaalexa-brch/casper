@@ -440,3 +440,32 @@ m1 .1323/.0422 · m2 .1351/.0455 · m4 .1372/.0508 · m8 .1449/.0634 · m16 .146
 4. Rendered-PDF read-through. **Build-clean is not verification**: tonight alone a bibliography that
    silently emitted nothing, four false "five requirements" phrases, and a mislabelled bank all compiled
    without a warning.
+
+## Rendered read-through — what it found (night of Aug 3/4)
+
+Pages read as RENDERED: 1, 2, 3, 4, 6, 18, 19, 23, 24, 30. Every defect below compiled with zero warnings
+and most survived keyword greps. **Build-clean is not verification** — this is now demonstrated, not
+asserted.
+
+| defect | why greps missed it |
+|---|---|
+| bibliography emitted NOTHING (one duplicate entry aborted BibTeX; all 366 citations `[?]`) | exit code 0 |
+| four "five requirements" phrases after renumbering to four | searched for R5/V5, not the English word |
+| `channel\'s` → `channelś` (LaTeX `\'` is an acute accent) | not a word, a glyph |
+| a mislabelled question bank (`--bank expinfo` scoring random draws) | the LOG said expinfo |
+| "posterior strictly shrinks (V3)", "the V3 shrinkage diagnostic" | belief claims with no "belief" |
+| three "ties the strongest shallow baseline" + one "belief mean" | swept for changed NUMBERS, not the WORDS |
+| fixed-bank gate called V4 in four places (it is V3) | gate names look correct in isolation |
+| a "Σ-greedy selector" | names a deleted layer without naming it |
+| `\date{July 2026}` | nobody greps the date |
+| abstract claiming tail wins "throughout", which the CIs refute | prose, not a number |
+
+**The pattern: a claim survives a keyword sweep when the prose paraphrases the concept.** Reading is the
+only thing that finds those.
+
+### Pages NOT yet read: 5, 7–17, 20–22, 25–29, 31–39.
+
+### Two old-tower numbers left on p.23, deliberately unresolved
+"popularity bank beats by +0.1264" and "mean 1.4 of 16 answered vs 13.5". Tonight's G9 gives the same
+quantities on the certified tower but on a q=2..16 basis (1.97 of the first two answered vs 0.79; rise
++0.1035 vs +0.0051). Restate on the new basis or mark old-tower — **do not mix**.
