@@ -1,0 +1,34 @@
+{
+  "threads": 4431,
+  "is_request": 4166,
+  "is_request_share": 0.9402,
+  "n_slots": {
+    "mean": 5.91,
+    "median": 5,
+    "p90": 10,
+    "max": 241,
+    "zero": 56
+  },
+  "slot_values_total": {
+    "anchors_pos": 9655,
+    "anchors_neg": 3194,
+    "genres_pos": 2378,
+    "genres_neg": 242,
+    "era": 433,
+    "tone": 1365,
+    "constraints": 1930,
+    "context": 612,
+    "other": 6388
+  },
+  "threads_with_field": {
+    "anchors_neg": 730,
+    "genres_pos": 1763,
+    "constraints": 1360,
+    "context": 612,
+    "anchors_pos": 2793,
+    "tone": 946,
+    "other": 3518,
+    "genres_neg": 184,
+    "era": 433
+  }
+}
