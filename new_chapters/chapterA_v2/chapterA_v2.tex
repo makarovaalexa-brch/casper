@@ -43,7 +43,7 @@
 
 \title{\textbf{The Interview-Compatible Recommender:\\A Measuring Instrument for Cold-Start Conversational Recommendation}\\[4pt]\large Thesis Chapter A (v2)}
 \author{}
-\date{July 2026}
+\date{August 2026}
 
 \begin{document}
 \maketitle
@@ -81,8 +81,9 @@ decoder's ranking exactly at the empty interview, so V1 (full strength preserved
 remaining verification items have all been run and are met. With the tower fixed, a quantity the elicitation
 literature has long treated qualitatively---how often a cold user can answer the question at all---becomes
 directly measurable: in our harness, at an eight-question budget, a user answers $2.18$ of the item questions
-and $6.02$ of the concept questions, and the concept channel leads on the opening of an interview and on tail
-accuracy throughout.
+and $6.02$ of the concept questions. Which channel wins turns out to depend on how the question bank is
+ranked: rank it by how much a question \emph{discriminates} and the concept channel beats the item channel
+on both metrics at every budget, because a maximally divisive item is one almost nobody has seen.
 \end{abstract}
 
 \tableofcontents
@@ -100,7 +101,7 @@ can measure elicitation strategies in isolation, we need to fix the recommender-
 strong and flexible enough that a good interview is not wasted on it. We call such a recommender an
 \emph{interview-compatible instrument}.
 
-\paragraph{Five requirements.}
+\paragraph{Four requirements.}
 An instrument fit for measuring conversational elicitation must simultaneously satisfy:
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
   \item[R1 --- full-profile SOTA.] On a full interaction history it must rank at the level of the strongest shallow
