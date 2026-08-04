@@ -62,3 +62,7 @@
 [01:30:27] [crit] state 4000/4313 | 1.17s/state | eta 6.1 min
 [01:32:22] [crit] state 4100/4313 | 1.17s/state | eta 4.2 min
 [01:34:17] [crit] state 4200/4313 | 1.17s/state | eta 2.2 min
+[01:36:15] [crit] state 4300/4313 | 1.17s/state | eta 0.3 min
+[01:37:53] [control] determinism (100 threads, concept bank): PASS
+[01:37:53] -> C:\dev\phd\casper\data\reddit_he\ruler\dispersion_leg1.json
+[01:37:53] -> C:\dev\phd\casper\docs\results\REDDIT_DISPERSION_LEG1.md (91.0 min)
