@@ -80,8 +80,9 @@ profile---while reproducing the frozen
 decoder's ranking exactly at the empty interview, so V1 (full strength preserved) is passed rather than assumed. The
 remaining verification items have all been run and are met. With the tower fixed, a quantity the elicitation
 literature has long treated qualitatively---how often a cold user can answer the question at all---becomes
-directly measurable: in our harness, at an eight-question budget, a user answers $2.18$ of the item questions
-and $6.02$ of the concept questions. Which channel wins turns out to depend on how the question bank is
+directly measurable, and it does not depend on how a question bank is ranked: a held-out user has rated
+$25.2\%$ of the hundred \emph{most popular} films in the catalogue and can answer $53.0\%$ of the $1{,}031$
+concepts. Which channel wins turns out to depend on how the question bank is
 ranked: rank it by how much a question \emph{discriminates} and the concept channel beats the item channel
 on both metrics at every budget, because a maximally divisive item is one almost nobody has seen.
 \end{abstract}
@@ -1044,83 +1045,13 @@ out-of-catalogue concepts, a channel no R1-bar baseline can express at all, lift
 substantially and monotonically above its $0.1279/0.0192$ starting point, and so does an interview conducted entirely
 in items.
 
-What we deliberately do \emph{not} state here is a ranking between the two channels, and the reason is methodological
-rather than diplomatic. Any such comparison is only as meaningful as the question-selection strategy each channel is
-given, and pairing one hand-picked heuristic per channel---a popularity-ordered item bank against a
-polarization-ordered concept bank, say---measures the two heuristics at least as much as it measures the two channels.
-We therefore compare the channels under a single strategy-free criterion: the \emph{best static question sequence}
-for NDCG over an items-only bank, a concepts-only bank, and a combined bank of both, with the sequences constructed
-on the validation cohort and scored on the disjoint test cohort. Every bank meets the same criterion on the same
-cohorts at the same budgets, and the combined bank \emph{contains} the items-only bank, so what separates the arms
-is the channel rather than whichever heuristics happened to be paired. All three arms
-are in Table~\ref{tab:beststatic}. The answerability figure underneath them is the striking one: across a
-sixteen-question interview a user answers on average only $3.6$ of the item questions, the rest being
-items they have not seen. That is the structural pressure the concept channel exists to relieve.
-\begin{table}[t]\centering\small
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{lccccc c}
-\toprule
-bank & $q{=}1$ & $q{=}2$ & $q{=}4$ & $q{=}8$ & $q{=}16$ & answered of 8 \\
-\midrule
-items-only    & $.1405/.0275$ & $.1524/.0387$ & $.1656/.0445$ & $\mathbf{.1863}/.0538$ & $\mathbf{.2098}/.0679$ & $2.18$ \\
-concepts-only & $\mathbf{.1436}/\mathbf{.0323}$ & $.1504/\mathbf{.0434}$ & $.1647/\mathbf{.0551}$ & $.1776/\mathbf{.0698}$ & $.1808/.0758$ & $\mathbf{6.02}$ \\
-combined      & $\mathbf{.1436}/\mathbf{.0323}$ & $.1504/\mathbf{.0434}$ & $.1647/\mathbf{.0551}$ & $.1817/.0616$ & $.2049/\mathbf{.0776}$ & $4.67$ \\
-\bottomrule
-\end{tabular}
-\caption{\textbf{Best static question sequences, one strategy-free criterion per bank.} Full/tail NDCG@10 at each
-budget, sequences built by lazy greedy on the $10{,}000$ validation users over a $500$-item and/or $500$-concept
-bank and scored once on the $10{,}000$ disjoint test users; no refusals; intercept $0.1279/0.0192$.
-\REDO{This table is the one remaining result measured on the superseded tower and the superseded concept
-fold; the certified tower's intercept is $0.1277/0.0267$. The 2026-08-04 re-run on the certified pair
-reproduces the SHAPE on a cheaper protocol (concepts lead the opening on both metrics, items take full
-accuracy by $q{=}8$, concepts hold the tail) but the cells here are not yet the certified numbers.} The last
-column is the mean number of the first eight questions a user can actually answer. Bold marks the best bank in
-each column. For comparisons of this kind---two \emph{arms of the same model} over the same users, whose
-per-user differences are strongly correlated---paired bootstrap intervals on $10{,}000$ users have half-widths
-of $\pm0.002$--$0.003$, and the differences read in the text are the ones comfortably above that. The same holds
-\emph{across models} whenever both score the identical cohort: the tower-versus-RecVAE comparison of
-\S\ref{sec:expdesign} has a paired half-width of $\pm0.0016$ on the full profile and $\pm0.0014$ on the tail. An
-unpaired interval for that comparison would be $0.0069$, roughly $4.5\times$ wider; we report paired intervals
-throughout, because both systems rank the same $10{,}000$ users and treating their scores as independent
-discards that pairing and would understate every separation in this chapter.}
-\label{tab:beststatic}
-\end{table}
-
-\noindent Three things follow.
-
-\emph{Concepts own the opening, on both metrics.} At one question the concept bank leads on full
-($.1436$ vs $.1405$) and on tail ($.0323$ vs $.0275$), and the combined bank is \emph{identical} to
-concepts-only through $q{=}4$---given free choice over five hundred items and five hundred concepts, the
-optimiser spends its first four questions on concepts. The emergent combined order is
-\texttt{c\,c\,c\,c\,i\,i\,i\,i\,c\,i\,i\,i\,i\,i\,i\,i}: concepts first, then items, with one concept
-returning at position nine. Nothing in the objective encodes ``ask broad things first.'' Coarse-to-fine is
-long known in the interview literature~\cite{golbandi2011adaptive,rashid2002getting} and we claim no
-discovery; what is new here is that it emerges unprompted in a \emph{mixed} action space, and that
-a concept direction is aligned with a large region of the frozen decoder's item cloud, so folding it moves many catalogue scores at once, where an idiosyncratic item moves little beyond itself.
-
-\emph{Concepts dominate the tail at every budget, without being asked to.}\footnote{This arm and the two
-below it are read off Table~\ref{tab:beststatic}, which is the superseded-tower measurement flagged in its
-caption. The certified matched re-measurement is reported later in this subsection, and it \emph{narrows}
-this claim: with paired intervals the concept channel's tail advantage holds at every budget only when the
-question bank is ranked by discrimination.} At $q{=}8$ the concept bank
-reaches $.0698$ tail against items' $.0538$, a $30\%$ margin, and the combined bank is the best tail arm at
-$q{=}16$ ($.0776$ vs $.0679$, $+14\%$). \textbf{The greedy maximised full NDCG@10 only}---the tail was never
-an objective in any arm---so the tail advantage is a property of the channel, not something the optimiser
-was steered toward.
-
-\emph{Items win full accuracy on the long interview.} From $q{=}8$ the item bank leads on full
-($.1863$ vs $.1776$), and at $q{=}16$ combined trails items-only by $-0.0049$. Neither figure is an
-artifact of the construction cohort: build and held-out curves differ by $-0.0047$, $-0.0002$ and
-$-0.0025$ across the three arms, so the test cohort scores \emph{higher} than the cohort the sequences
-were built on. The criterion is prefix-optimal by construction---each arm's sequence is the best its bank
-can do at every budget under the same one-step rule---and that is the property an interview needs, because
-a question budget is a deployment choice rather than a constant. It is also the property that makes the
-sixteen-question column the one place a bank can be behind: a prefix-optimal path commits its opening
-slots on immediate gain and does not revisit them, and NDCG over a sequence is not guaranteed submodular,
-so containment of the item bank inside the combined bank binds at the optimum rather than along the path.
-Read across the table, the shape is consistent and it is the shape the rest of this section explains:
-the concept channel owns the opening and the tail, the item channel owns full accuracy once enough
-questions have been answered---and how many that is depends on how many the user can answer at all.
+What we deliberately do \emph{not} state here is a ranking between the two channels read off hand-picked
+heuristics---a popularity-ordered item bank against a polarization-ordered concept bank, say---because such a
+pairing measures the two heuristics at least as much as it measures the two channels. Constructing
+\emph{optimal} question sequences per bank would answer it, but that is a selection result, and selection is
+the companion chapter's subject rather than this one's. We therefore compare the channels the only way an
+instrument paper can: hold the selection criterion fixed, apply it identically to both banks, and vary
+nothing else.
 
 \paragraph{Which channel wins depends on how the bank is ranked, and under one ranking the concept
 channel wins outright.} The comparison above ranks each bank by a single criterion. That choice is not
@@ -1190,12 +1121,16 @@ opening turns of a dialogue and items the later ones. Both report the crossover 
 
 \paragraph{What we do claim, and how far it reaches.} Not that concepts are more answerable---the
 literature above establishes that---but that on this instrument the quantity is \emph{visible}, so a
-channel comparison can be read against it rather than inferred. In our harness, at an eight-question
-budget, a user answers $2.18$ of the item questions and $6.02$ of the concept questions. That figure is a
-property of \emph{this} setup and we make no claim beyond it: it depends on the question banks (a
-popularity-ordered item bank is answered $3.0$ times in eight, an NDCG-greedy one $2.18$), on the
-structural rule that decides when an item or concept counts as answerable, and on a catalogue where items
-are films. What generalises is the ordering and its cause, both of which predate us; what is ours is that
+channel comparison can be read against it rather than inferred. The cleanest form of the measurement does
+not involve a question bank at all. Take the hundred \emph{most popular} films in the catalogue---the most
+answerable items that exist---and a held-out user has rated $25.2\%$ of them; widen to five hundred and it
+falls to $13.1\%$. Against the whole $1{,}031$-concept vocabulary, unranked and unfiltered, the same users
+can answer $53.0\%$. The gap is structural and unsurprising once stated: a concept is answerable if the
+user has rated as few as two of its member films, so its answerability accrues from hundreds of chances,
+where an item has exactly one. We are quantifying a property of \emph{generality}, not discovering an
+advantage. What still depends on the setup is any per-budget count, which moves with the bank ranking and
+the shortlist length, and the structural rule that decides when an item or concept counts as answerable;
+the catalogue being films matters too. What generalises is the ordering and its cause, both of which predate us; what is ours is that
 the instrument reports the number at all, and that the item channel turns out to face a trade-off the
 concept channel does not---an item bank can be answerable or informative, and the two orderings differ.
 
