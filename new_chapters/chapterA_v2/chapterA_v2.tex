@@ -327,112 +327,62 @@ instrument.}
 \section{Related work: a six-family taxonomy}\label{sec:related}
 % =====================================================================
 
-We organise interview-relevant recommenders into six families and score each against R1--R4
-(Table~\ref{tab:taxonomy}). The reading is consistent across families: no family is strong on both the accuracy
-axis (R1) and the interview axis (R2--R4). Figure~\ref{fig:gapmap} plots the same fact quantitatively, with
-measured full-profile accuracy on one axis. Table~\ref{tab:taxonomy} is the compact conceptual overview; the chapter's anchor is the per-system
+We organise interview-relevant recommenders into six families---per-user retraining and meta-learning;
+fold-in linear and closed-form models; amortised inference encoders; Bayesian elicitation over item space;
+sequence models; and LLM-as-recommender or conversational systems---and the reading is consistent across
+all of them: no family is strong on both the accuracy axis (R1) and the interview axis (R2--R4).
+Figure~\ref{fig:gapmap} plots that fact quantitatively. The chapter's anchor is the per-system
 \emph{master table} (Table~\ref{tab:master}), which classifies every reasonable candidate against R1--R4
 \emph{and}, where one exists, prints its full/tail NDCG@10 on our shared ML-25M ruler---so that the bifurcation
 is not merely asserted from published claims but is visible in the one column of measured numbers.
 
-\begin{table}[t]\centering\small
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{p{2.5cm}p{2.7cm}ccccp{3.0cm}}
-\toprule
-Family & Representatives & R1 & R2 & R3 & R4 & One-line verdict \\
-\midrule
-(i) retrain / meta-learn per user &
-  MeLU, TaNP~\cite{lin2021tanp}, CDRNP &
-  \xmark & \xmark & \xmark & \cmark &
-  Set-input and belief precedent; not full-profile SOTA, not channel-open. \\
-(ii) fold-in linear / closed-form &
-  EASE~\cite{steck2019ease}, SLIM, GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf} &
-  \cmark & \xmark & \xmark & \xmark &
-  EASE/SLIM hold the bar (R1); the graph filters do not on this ruler. Item-indicator basis $\Rightarrow$ R2, R4 impossible. \\
-(iii) amortised inference encoders &
-  Mult-VAE~\cite{liang2018variational}, RecVAE~\cite{ren2020recvae}, EDLAE~\cite{steck2020edlae}, EDDI~\cite{ma2019eddi} &
-  \cmark & \xmark & \xmark & \xmark &
-  The architecture we live in; VAEs item-only, EDDI right shape/wrong domain. \\
-(iv) Bayesian elicitation over item space &
-  B\i y\i k~\cite{biyik2023soft}, ConTS~\cite{li2021seamlessly}, BCIE~\cite{toroghi2023bcie}, ICF~\cite{zhao2013interactive} &
-  \xmark & \xmark & \xmark & \cmark &
-  The belief heart; belief layers, not full-profile towers. \\
-(v) sequence models &
-  SASRec~\cite{kang2018sasrec}, BERT4Rec~\cite{sun2019bert4rec} &
-  \xmark & \xmark & \xmark & \xmark &
-  Interview $\ne$ ordered session; tokens item-only, order-sensitive. \\
-(vi) LLM-as-recommender / CRS &
-  PEBOL~\cite{austin2024bayesian}, GATE~\cite{li2023eliciting}, LLM-CRS~\cite{he2023large} &
-  \xmark & \cmark & \xmark & \cmark &
-  Best R2 (open text); weakest R1 (weak collaborative signal). \\
-\midrule
-\textbf{CASPER (delivered)} & \textbf{this chapter} &
-  \cmark & \cmark & \cmark & \cmark &
-  \textbf{The conjunction; no published system occupies it.} \\
-\bottomrule
-\end{tabular}
-\caption{Six-family taxonomy scored against R1--R4. \cmark~met, \xmark~not met---there are no half marks: a mark is met only if the system provides the capability as a designed, demonstrated feature. Scores for the
-six published families are our reading of their \emph{published} claims and are qualitative; the last row is this
-chapter's instrument, whose marks are the measured verification results of Table~\ref{tab:batteryresults} rather
-than a reading. R1 and $\{$R2,R3,R4$\}$ are anti-correlated across the published families: (ii)/(iii) hold the
-accuracy corner, (iv) the elicitation corner, and none spans both.
-\emph{What these four axes do not score.} An earlier version of this taxonomy carried a fifth axis for
-uncertainty-native modelling---maintaining a posterior over user taste rather than a point estimate. We removed it
-because this chapter makes no claim there, and we state plainly that the removal is not neutral: ConTS and UNICORN
-are designed around exactly that capability, and they are the two systems that lose every mark when the axis goes.
-Their design merit is not in dispute and is not measured here. The bifurcation this table reports survives the
-removal---we re-scored every row without the axis, and only those two entries change---but a reader who cares about
-uncertainty-native modelling should read those rows as unscored rather than as failed.}
-\label{tab:taxonomy}
-\end{table}
 
 \begin{sidewaystable}[p]\centering\scriptsize
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.05}
-\begin{tabular}{p{3.6cm}cccc r@{\,/\,}l l p{4.4cm}}
+\begin{tabular}{p{4.6cm}cccc r@{\,/\,}l l}
 \toprule
 System (rep.\ / cite) & R1 & R2 & R3 & R4 &
-  \multicolumn{2}{c}{full/tail NDCG@10} & status & published full-profile anchor \\
- & & & & & \multicolumn{2}{c}{(our ML-25M ruler)} & & (own benchmark, \emph{NOT} comparable) \\
+  \multicolumn{2}{c}{full/tail NDCG@10} & status \\
+ & & & & & \multicolumn{2}{c}{(our ML-25M ruler)} & \\
 \midrule
-\multicolumn{9}{l}{\emph{(a) Classic / linear full-profile}}\\
-Most-Popular & \xmark & \xmark & \xmark & \xmark & $.1345$ & $.0226$ & measured   & n/r (non-personalised floor) \\
-Item-kNN (cosine) & \xmark & \xmark & \xmark & \xmark & $.2428$ & $.1297$ & measured   & @100 $\sim0.36$ class~\cite{cremonesi2010performance} \\
-PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & $.2442$ & $.1853$ & measured (iALS) & @100 $0.386$ (WMF, ML-20M) \\
-EASE~\cite{steck2019ease} & \cmark & \xmark & \xmark & \xmark & $.3476$ & $.2441$ & measured & @100 $0.420$ (ours \textbf{PASS} $+.0003$) \\
-EDLAE~\cite{steck2020edlae} & \cmark & \xmark & \xmark & \xmark & $.3433$ & $.2395$ & measured & @100 $\approx0.42$--$0.44$ class \\
-Turbo-CF~\cite{park2024turbocf} & \xmark & \xmark & \xmark & \xmark & $.2622$ & $.1621$ & measured (val-tuned) & n/r (ML-20M not reported) \\
-GF-CF / BSPM~\cite{shen2021gfcf,choi2023bspm} & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (ML-20M not reported) \\
+\multicolumn{8}{l}{\emph{(a) Classic / linear full-profile}}\\
+Most-Popular   & \xmark   & \xmark   & \xmark   & \xmark   & $.1345$   & $.0226$ \\
+Item-kNN (cosine)   & \xmark   & \xmark   & \xmark   & \xmark   & $.2428$   & $.1297$ \\
+PureSVD / iALS-WMF   & \xmark   & \xmark   & \xmark   & \xmark   & $.2442$   & $.1853$ \\
+EASE~\cite{steck2019ease}   & \cmark   & \xmark   & \xmark   & \xmark   & $.3476$   & $.2441$ \\
+EDLAE~\cite{steck2020edlae}   & \cmark   & \xmark   & \xmark   & \xmark   & $.3433$   & $.2395$ \\
+Turbo-CF~\cite{park2024turbocf}   & \xmark   & \xmark   & \xmark   & \xmark   & $.2622$   & $.1621$ \\
+GF-CF / BSPM~\cite{shen2021gfcf,choi2023bspm}  & \xmark  & \xmark  & \xmark  & \xmark  & \multicolumn{2}{c}{---}  & not run \\
 \midrule
-\multicolumn{9}{l}{\emph{(b) Amortized / neural full-profile}}\\
-Mult-DAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & \emph{dropped} (snap failed) & @100 $0.419$ (ours $0.397$, \textbf{FAIL} $-.022$) \\
-Mult-VAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & $.3202$ & $.2194$ & measured & @100 $0.426$ (ours $0.422$, near-snap $-.004$) \\
-RecVAE~\cite{ren2020recvae} (paper config; our run) & \cmark & \xmark & \xmark & \xmark & $\mathbf{.3540}$ & $\mathbf{.2497}$ & measured & @100 $0.442$ (impl.\ \textbf{PASS} $+.0005$) \\
-SASRec~\cite{kang2018sasrec}                 & \xmark & \xmark & \xmark & \xmark & $.1486$ & $.0805$ & measured (best-effort) & n/r (next-item task) \\
-BERT4Rec~\cite{sun2019bert4rec}              & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not run here & n/r (repl.~\cite{petrov2022replicability}) \\
-TaNP~\cite{lin2021tanp} (MeLU / CDRNP line) & \xmark & \xmark & \xmark & \cmark & $.2645$ & $.1635$ & measured (best-effort) & n/r (own cold-start benchmark) \\
+\multicolumn{8}{l}{\emph{(b) Amortized / neural full-profile}}\\
+Mult-DAE~\cite{liang2018variational}  & \cmark  & \xmark  & \xmark  & \xmark  & \multicolumn{2}{c}{---}  & \emph{dropped} \\
+Mult-VAE~\cite{liang2018variational}   & \cmark   & \xmark   & \xmark   & \xmark   & $.3202$   & $.2194$ \\
+RecVAE~\cite{ren2020recvae} (paper config; our run)   & \cmark   & \xmark   & \xmark   & \xmark   & $\mathbf{.3540}$   & $\mathbf{.2497}$ \\
+SASRec~\cite{kang2018sasrec}                   & \xmark   & \xmark   & \xmark   & \xmark   & $.1486$   & $.0805$ \\
+BERT4Rec~\cite{sun2019bert4rec}               & \xmark  & \xmark  & \xmark  & \xmark  & \multicolumn{2}{c}{---}  & not run \\
+TaNP~\cite{lin2021tanp} (MeLU / CDRNP line)   & \xmark   & \xmark   & \xmark   & \cmark   & $.2645$   & $.1635$ \\
 \midrule
-\multicolumn{9}{l}{\emph{(c) Elicitation / CRS systems --- the elicitation corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi} & \xmark & \xmark & \xmark & \cmark & $.2153$ & $.1077$ & measured & n/r (non-recsys; UCI/MNIST) \\
-Golbandi tree~\cite{golbandi2011adaptive} & \xmark & \xmark & \xmark & \cmark & $.3065$ & $.1895$ & measured (core) & n/r (Netflix RMSE) \\
-RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & \xmark & \xmark & \xmark & \cmark & $.2534$ & $.1764$ & measured (best-effort) & n/r (elicitation RMSE) \\
-B\i y\i k soft-attributes~\cite{biyik2023soft} & \xmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (16 users, slates of 5) \\
-ICF~\cite{zhao2013interactive} & \xmark & \xmark & \xmark & \cmark & \multicolumn{2}{c}{---} & core $\approx$ iALS (measured) & n/r (online CF; own protocol) \\
-ConTS~\cite{li2021seamlessly} & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & reports no full-catalogue accuracy & n/r (cold-start CRS metrics) \\
-BCIE~\cite{toroghi2023bcie} & \xmark & \xmark & \cmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (critique metrics) \\
-UNICORN~\cite{deng2021unicorn} & \xmark & \xmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not portable (needs their KG) & n/r (graph-RL CRS; own metrics) \\
-PEBOL~\cite{austin2024bayesian} & \xmark & \cmark & \xmark & \xmark & \multicolumn{2}{c}{---} & not runnable at full catalogue & MRR@10 $0.27$ vs $0.17$ (cold-start only) \\
-GATE~\cite{li2023eliciting} & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not runnable (no ranker) & n/r (elicitation-only; no full ranking) \\
-LLM zero-shot CRS~\cite{he2023large} & \xmark & \cmark & \xmark & \cmark & \multicolumn{2}{c}{---} & not runnable at scale & n/r (weak collaborative signal) \\
+\multicolumn{8}{l}{\emph{(c) Elicitation / CRS systems --- the elicitation corner}}\\
+EDDI / Partial-VAE~\cite{ma2019eddi}   & \xmark   & \xmark   & \xmark   & \cmark   & $.2153$   & $.1077$ \\
+Golbandi tree~\cite{golbandi2011adaptive}   & \xmark   & \xmark   & \xmark   & \cmark   & $.3065$   & $.1895$ \\
+RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional}   & \xmark   & \xmark   & \xmark   & \cmark   & $.2534$   & $.1764$ \\
+B\i y\i k soft-attributes~\cite{biyik2023soft}  & \xmark  & \xmark  & \xmark  & \cmark  & \multicolumn{2}{c}{---}  & n/a$^\dagger$ \\
+ICF~\cite{zhao2013interactive}  & \xmark  & \xmark  & \xmark  & \cmark  & \multicolumn{2}{c}{---}  & best-effort \\
+ConTS~\cite{li2021seamlessly}  & \xmark  & \xmark  & \xmark  & \xmark  & \multicolumn{2}{c}{---}  & n/a$^\dagger$ \\
+BCIE~\cite{toroghi2023bcie}  & \xmark  & \xmark  & \cmark  & \xmark  & \multicolumn{2}{c}{---}  & n/a$^\dagger$ \\
+UNICORN~\cite{deng2021unicorn}  & \xmark  & \xmark  & \xmark  & \xmark  & \multicolumn{2}{c}{---}  & n/a$^\dagger$ \\
+PEBOL~\cite{austin2024bayesian}  & \xmark  & \cmark  & \xmark  & \xmark  & \multicolumn{2}{c}{---}  & n/a$^\dagger$ \\
+GATE~\cite{li2023eliciting}  & \xmark  & \cmark  & \xmark  & \cmark  & \multicolumn{2}{c}{---}  & n/a$^\dagger$ \\
+LLM zero-shot CRS~\cite{he2023large}  & \xmark  & \cmark  & \xmark  & \cmark  & \multicolumn{2}{c}{---}  & n/a$^\dagger$ \\
 \midrule
-\multicolumn{9}{l}{\emph{(d) Ours}}\\
-\textbf{The instrument (this chapter)} & \cmark & \cmark & \cmark & \cmark & $\mathbf{.3496}$ & $\mathbf{.2491}$ & \textbf{measured (certified)} & n/a (in-house; graded-native tower) \\
+\multicolumn{8}{l}{\emph{(d) Ours}}\\
+\textbf{The instrument (this chapter)}   & \cmark   & \cmark   & \cmark   & \cmark   & $\mathbf{.3496}$   & $\mathbf{.2491}$ \\
 \bottomrule
 \end{tabular}
 \caption{\textbf{Master table: every reasonable system by R1--R4 and by measured full-profile accuracy on one
 shared ruler.} \cmark~met, \xmark~not met, with no intermediate grade: a requirement counts as met only where the system provides it as a designed, demonstrated capability (our reading of each system's \emph{published} claims,
-consistent with Table~\ref{tab:taxonomy}). \emph{full/tail NDCG@10} is on the canonical Liang-recipe
+consistent throughout). $^\dagger$\,n/a marks a system that cannot produce a full-profile number on this ruler---no full-catalogue ranker, not portable without its authors' resources, or the paper reports no full-catalogue accuracy; the per-system reason is given in \S\ref{sec:gap}. \emph{full/tail NDCG@10} is on the canonical Liang-recipe
 strong-generalization ML-25M split (catalog restricted to the 18{,}430-item project catalog, train vocabulary 18{,}359; train 140{,}768 /
 val 10k / test 10k users; per-user 80/20 fold-in; tail $=$ top-33\%-train-mass head mask, 190 head items), scored
 with the decoder's learned bias. The B\i y\i k and ConTS rows carry a dash because neither reports full-catalogue
@@ -845,24 +795,22 @@ the quality of any such interaction would rest on the text adapter whose limits 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.98\linewidth]{fig_graded_curve.png}
-  \caption{\textbf{Graded input helps over binarized input, most on the short interview} (ML-25M interview
-    harness, full NDCG@10 vs.\ interview length $k$). \textbf{(a)} The same
-    revealed set is fed three ways: \emph{graded} (real signed star levels), \emph{likes-only} (sub-threshold
-    answers dropped---exactly what a positive-only tower such as RecVAE does at $r{>}3.5$), the fair binary
-    comparator. \textbf{(b)} Against the
-    fair positive-only baseline, the graded premium is \emph{CI-clean positive on the short interview}---$+0.0147$
-    at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$ (CI $[+0.0063,+0.0103]$)---and fades to a tie from
-    $k{=}8$ onward ($-0.0006$, CI $[-0.0024,+0.0012]$) as collaborative signal fills in: the extra bits a star
-    carries are most decisive when few items are known. At the \emph{full} profile the premium narrows but
-    does not vanish: $+0.0039$ full (paired CI $[+0.0025,+0.0053]$, $n{=}10{,}000$) and $+0.0020$ tail
-    (paired CI $[+0.0007,+0.0031]$, $n{=}9{,}281$) over all test users ($0.3496$ vs $0.3457$ full,
-    $0.2491$ vs $0.2471$ tail), on identical support. The
-    \emph{mechanism} is that a signed answer encodes a dislike (a negative $y_j$ the item-indicator basis cannot
-    express. A naive \emph{all-as-like} encoding---every answered item recorded as a like, dislikes included---is
-    far worse than either arm shown and we do not plot it: mislabelling dislikes corrupts more of the input the
-    longer the interview runs, so the gap against it grows with $k$ for a reason that has nothing to do with
-    gradation. Mirroring the star signs costs $-0.2953$ on the full-profile
-    arm of R4 (Table~\ref{tab:batteryresults}). }
+  \caption{\textbf{Graded input helps over binarised input, most on the short interview.}
+    ML-25M interview harness, full NDCG@10 against interview length $k$. The same revealed set is fed two
+    ways: \emph{graded} (real signed star levels) and \emph{likes-only} (sub-threshold answers dropped,
+    exactly what a positive-only tower such as RecVAE does at $r{>}3.5$), which is the fair binary
+    comparator. The premium over that comparator is positive with a clean interval only while evidence is
+    scarce---$+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$) and $+0.0083$ at $k{=}4$
+    (CI $[+0.0063,+0.0103]$)---and is indistinguishable from zero from $k{=}8$ onward
+    ($-0.0006$, CI $[-0.0024,+0.0012]$), as collaborative signal fills in: the extra bits a star carries
+    matter most when few items are known. A separate full-profile A/B on identical support---a different
+    protocol from this harness, so not a point on this curve---finds the intensity channel worth $+0.0039$
+    full (paired CI $[+0.0025,+0.0053]$) and $+0.0020$ tail (CI $[+0.0007,+0.0031]$); see
+    \S\ref{sec:batteryresults}. The mechanism is that a signed answer encodes a dislike, a negative $y_j$
+    the item-indicator basis cannot express; mirroring the star signs costs $-0.2953$ on the full-profile
+    arm of R4 (Table~\ref{tab:batteryresults}). A naive \emph{all-as-like} encoding, recording every
+    answered item as a like, is far worse than either arm and is not plotted: it corrupts more of the input
+    the longer the interview runs, for a reason unrelated to gradation. }
   \label{fig:gradedcurve}
 \end{figure}
 
@@ -1183,13 +1131,13 @@ comparable to ours until bridged (\S\ref{sec:bridge}); we print them only to sho
 Baseline & Type & Reported anchor & Why the slot \\
 \midrule
 \multicolumn{4}{l}{\emph{Tier 1 --- classic floors (must clear)}}\\
-Most-Popular & non-personalised & popb floor (our harness) & the ``did we learn anything'' line; the R4 curve must clear it at budget. \\
+Most-Popular & non-personalised & popb floor (our harness) & the ``did we learn anything'' line; the R3 cold curve must clear it at budget. \\
 Item-kNN (cosine) & neighbourhood & ML-20M NDCG@100 $\sim0.36$ class & instant fold-in; Cremonesi-era strong-simple~\cite{cremonesi2010performance}. \\
 PureSVD / iALS-WMF & linear MF fold-in & WMF ML-20M NDCG@100 $0.386$ & cheap fold-in reference. \\
 SLIM & sparse linear item-item & ML-20M NDCG@100 $0.401$ & direct EASE ancestor. \\
 \midrule
-\multicolumn{4}{l}{\emph{Tier 2 --- full-profile SOTA (the R1 / R1 bar)}}\\
-EASE~\cite{steck2019ease} & closed-form item-item & NDCG@100 $0.420$ & the bar to tie; item-only shows the R3 gap. \\
+\multicolumn{4}{l}{\emph{Tier 2 --- full-profile SOTA (the R1 bar)}}\\
+EASE~\cite{steck2019ease} & closed-form item-item & NDCG@100 $0.420$ & the bar to tie; item-only shows the R2 gap. \\
 RecVAE~\cite{ren2020recvae} & amortised VAE & NDCG@100 $0.442$ & top of the ML-20M split; our in-house frontier. \\
 Mult-VAE~\cite{liang2018variational} & amortised VAE & NDCG@100 $0.426$ (ours $0.422$) & canonical amortised anchor; near-snap. \\
 \emph{Mult-DAE} (dropped) & DAE & NDCG@100 $0.419$ (ours $0.397$) & snap \textbf{failed} $-0.022$; disqualified. \\
@@ -1197,7 +1145,7 @@ EDLAE~\cite{steck2020edlae} & denoising higher-order EASE & $\approx$ RecVAE cla
 GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & closed-form graph filter & SOTA on Gowalla/Yelp (ML-20M not reported) & admit only if re-run on our split, which Turbo-CF now is: $0.2622/0.1621$, val-tuned. \\
 SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & self-attentive sequence & strong next-item (not this split) & sequence fold-in; SASRec measured at $0.1486/0.0805$, far off the bar. \\
 \midrule
-\multicolumn{4}{l}{\emph{Tier 3 --- elicitation-compatible rivals (decide R3/R4)}}\\
+\multicolumn{4}{l}{\emph{Tier 3 --- elicitation-compatible rivals (decide R3 and R4)}}\\
 EDDI / Partial-VAE~\cite{ma2019eddi} & set-encoder $+$ info-gain & non-recsys (UCI/MNIST) & the R2 architecture; myopic info-gain baseline. \\
 B\i y\i k soft-attributes~\cite{biyik2023soft} & Gaussian belief $+$ EVOI & own elicitation task (16 users, slates of 5) & the central threat; open-vocabulary and R1-bar wedge. \\
 ConTS~\cite{li2021seamlessly} & Thompson bandit, item$+$attr arms & cold-start CRS metrics & unified-space $+$ uncertainty; fixed schema. \\
@@ -1208,7 +1156,7 @@ RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & MF-embedding seed
 \bottomrule
 \end{tabular}
 \caption{Baseline bank. Anchors are on each system's own split/metric and are \emph{not} comparable to ours until the
-bridge (\S\ref{sec:bridge}) is run; R1 is decided against EASE$+$RecVAE, R3/R4 against the Tier-3 rivals plus a
+bridge (\S\ref{sec:bridge}) is run; R1 is decided against EASE$+$RecVAE, R3 and R4 against the Tier-3 rivals plus a
 random-question control. Any deep-net ``SOTA'' not snapping to Tier-2 numbers on our split is
 inadmissible~\cite{dacrema2019progress}.}
 \label{tab:baselines}

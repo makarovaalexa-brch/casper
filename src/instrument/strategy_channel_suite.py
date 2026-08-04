@@ -834,15 +834,40 @@ def greedy_main(args):
         f"(answer rate {[round(float(ans_rate[c]), 3) for _, c in conc_pool[:5]]})")
 
     # ---- the greedy search: VALIDATION USERS ONLY ---------------------------------------------
+    # Each arm's frozen sequence is written to a sidecar the moment it finishes, and a relaunch with
+    # the SAME contract resumes from it. This is a multi-hour search with no natural checkpoint; the
+    # sidecar is signed with the contract so a changed tower/ckpt/bank/pool/cohort cannot be resumed
+    # into silently.
+    PARTIAL = GRJSON.replace(".json", ".partial.json")
+    sig = {"tower": os.path.basename(args.snapshot), "conc": os.path.basename(args.concept_ckpt),
+           "objective": args.objective, "item_bank": args.item_bank, "conc_bank": args.conc_bank,
+           "n_items": len(item_pool), "n_concepts": len(conc_pool), "L": max(BUDGETS),
+           "n_build_users": len(build_rows), "build_head": int(build_rows[0]),
+           "build_tail": int(build_rows[-1])}
+    part = json.load(open(PARTIAL)) if os.path.exists(PARTIAL) else {}
+    if part.get("sig") != sig:
+        if part:
+            log(f"[greedy] sidecar {os.path.basename(PARTIAL)} has a DIFFERENT contract -- ignoring it")
+        part = {"sig": sig, "arms": {}}
     log(f"[greedy] SELECTION on {len(build_rows)} VALIDATION users; the test cohort is not built yet.")
     seqs = {}
     for name, pool in [("items-only", item_pool), ("concepts-only", conc_pool),
                        ("combined", item_pool + conc_pool)]:
+        if name in part["arms"]:
+            p = part["arms"][name]
+            seqs[name] = ([(int(a), int(b)) for a, b in p["sequence"]], p["gains"], p["n_evals"])
+            log(f"[greedy {name}] RESUMED from sidecar (order={p['order']}, nev={p['n_evals']})")
+            continue
         t0 = time.time()
         seq, gains, nev = greedy_certified(Eb, build_rows, pool, max(BUDGETS), args.objective, name)
         seqs[name] = (seq, gains, nev)
-        log(f"[greedy {name}] DONE order={''.join('c' if ch else 'i' for ch, _ in seq)} "
-            f"nev={nev} ({(time.time() - t0) / 60:.1f}m)")
+        order = "".join("c" if ch else "i" for ch, _ in seq)
+        part["arms"][name] = {"sequence": [[int(a), int(b)] for a, b in seq],
+                              "gains": [float(g) for g in gains], "n_evals": nev, "order": order,
+                              "minutes": round((time.time() - t0) / 60, 1)}
+        json.dump(part, open(PARTIAL, "w"), indent=2)
+        log(f"[greedy {name}] DONE order={order} nev={nev} ({(time.time() - t0) / 60:.1f}m) "
+            f"-> sidecar {os.path.basename(PARTIAL)}")
 
     # ---- REPORTING cohort: built only now, read only here -------------------------------------
     if args.eval_test:

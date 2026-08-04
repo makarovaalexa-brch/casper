@@ -43,29 +43,21 @@ hi = np.array([d["per_k"][k]["deltas"].get("graded_over_binary(true-likes)", {})
                for k in ks])
 prem_naive = true - memb  # graded over naive all-as-like binarization
 
-fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(8.6, 3.4))
+fig, ax0 = plt.subplots(1, 1, figsize=(5.2, 3.4))
 
+# Single panel: the three encodings as curves. The former panel (b) -- the graded-minus-
+# likes-only premium -- was DROPPED 2026-08-04 (author): it is positive and CI-clean only
+# at k=2 and k=4 and sits at ~0 for k>=8, so three of five plotted points were at or below
+# zero and the chart read against the claim it illustrated. Two numbers belong in prose,
+# not a panel. It also invited confusion with the separate full-profile A/B (+0.0039 on
+# identical support), which is a DIFFERENT protocol from this harness's k=full point.
 # (a) NDCG curves
 ax0.plot(x, true, "-o", color="#1b6ca8", lw=2, label="graded (signed star levels)")
 ax0.plot(x, likes, "-s", color="#0a9396", lw=1.8, label="likes-only (positive-only)")
-# all-as-like DROPPED 2026-08-04 (author): it records every answered item as a 4-star like,
-# mislabelling dislikes, so it is a strawman. Its degradation is stated in prose instead.
 ax0.set_xticks(x); ax0.set_xticklabels(ks)
 ax0.set_xlabel("interview length $k$"); ax0.set_ylabel("NDCG@10 (full)")
 ax0.set_title("(a) input encodings", fontsize=9)
 ax0.grid(True, alpha=0.3); ax0.legend(fontsize=7, loc="upper left", framealpha=0.9)
-
-# (b) graded-over-binary premium with CI
-ax1.axhline(0, color="#888", lw=0.8, ls="--")
-if not np.isnan(lo).all():
-    ax1.fill_between(x, lo, hi, color="#1b6ca8", alpha=0.18, label="95% CI")
-ax1.plot(x, prem, "-o", color="#1b6ca8", lw=2, label="graded $-$ likes-only (fair binary)")
-ax1.set_xticks(x); ax1.set_xticklabels(ks)
-ax1.set_xlabel("interview length $k$"); ax1.set_ylabel("$\\Delta$ NDCG@10 (full)")
-ax1.set_title("(b) stars over binary: help most when $k$ small", fontsize=9)
-ax1.grid(True, alpha=0.3); ax1.legend(fontsize=7, loc="upper left", framealpha=0.9)
-ax1.annotate(f"+{prem[0]:.3f}", (x[0], prem[0]), textcoords="offset points", xytext=(4, 5),
-             fontsize=7.5, color="#1b6ca8")
 
 fig.tight_layout()
 fig.savefig(OUT + ".png", dpi=160)
