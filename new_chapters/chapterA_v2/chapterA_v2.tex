@@ -663,8 +663,8 @@ One objection to the analysis above is that the conjunction is inexpensive to sa
 recommender, carry a conjugate belief beside it, and the grid fills in. Three considerations tell against
 this.
 
-\emph{Most of the frontier has nothing to carry a belief over.} A belief of the form
-The fold needs a user vector in a dense latent, and a direction in that latent to be a
+\emph{Most of the frontier has nothing to carry a belief over.} A belief over a user latent needs two
+things to be well posed: a user vector in a dense latent, and a direction in that latent to serve as a
 meaningful query. EASE has neither: its parameters are an item--item weight matrix and its ``user'' is the
 raw interaction row, one coordinate per catalogue item. There is no low-dimensional taste vector to be
 uncertain about and no direction to read $w^\top\bSigma w$ along. The same holds for EDLAE and for the
@@ -672,7 +672,7 @@ training-free graph filters. For the closed-form family---most of the accuracy c
 not difficult, it is undefined. It is available to the amortised-encoder family, and that is where we build
 it.
 
-\emph{Where it is available, it carries a cost.} The layer has to leave full-profile accuracy exactly intact,
+\emph{Where it is available, it carries a cost.} Such a layer has to leave full-profile accuracy exactly intact,
 which is a property to be measured and not assumed: our empty interview reproduces the frozen decoder's
 ranking identically (Spearman $1.0000$, $|\bmu_0|=0$), and the obvious alternative---ranking on the
 conjugate mean---forfeits $0.15$ full NDCG (\S\ref{sec:method}). Nor does a dense latent accept concepts
