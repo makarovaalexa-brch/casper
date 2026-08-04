@@ -211,3 +211,64 @@ The proposed gloss — "reduces uncertainty along the directions *separating* th
 **Floor:** bet 2's inversions die under DiD CIs *and* the splitter is null. What remains: contract mispricing with the Golbandi exhibit, the strongest-static artifact, and a hardened exploitability null with both diagnostic legs measured. That is an honest ECIR/RecSys-reproducibility-track paper plus a strong thesis chapter — smaller than hoped, but nothing about it is an apology, and it is *unconditionally reachable from results already in hand*.
 
 **Scoreboard on the challenges:** the author beat the design document on 1 and 2 (restated headline; diagnostic promoted and the probe now gates the writing plan); split ruling on 3; gloss corrected on 4. The revised design is better than the one I delivered, and the single action that most reduces uncertainty about what Paper B is — before any writing — is the k=2 splitter probe.
+
+---
+
+# ADDENDUM 2026-08-04: THE FOUR-ACT SPINE (author's architecture, adopted — supersedes the bet
+ordering above where they conflict; the bets survive as ingredients)
+
+Formed after the Reddit results week: smoke trio passed (request anchors lift NDCG ~3× over prior,
+shuffle-killed), leg-1 dispersion measured (ML-25M cold = 1.00 effective next question; after two
+entropy0 openers = 5.04, only 112 reachable states; real open requests = 95.13, 19×), follow-up
+census (crowd asks probes in ~10% of threads, users answer 51% when asked), slot pilot (median ~5
+volunteered preference slots per request). Records: `docs/results/REDDIT_*`, memory note
+`paperb-kickoff-artifacts-2026-08-03`.
+
+**Act 1 — Replication + strongest-static null.** Prefix-optimal greedy static bank (built) as the
+comparator. Replicate every realistically replicable elicitation method from the literature
+(Golbandi tree, entropy0/HELF/popularity, belief-MF/ConTS-class, RBMF, KG) and show none beats the
+strongest static arm under the standard closed-opener protocol. WE BUILD NO POLICY OF OUR OWN in
+this act. Citation discipline (author ruling): there is NO published field-wide adaptivity null to
+cite and our sub-MDE corpus is in-paper results, never citable background; the published prior is
+Golbandi's ADAPTIVE GAINS against unoptimized static orders — a claim this act MEASURES (his tree
+is one of our consumers), not asserts against.
+
+**Act 2 — The mechanism: dispersion.** Downstream of closed bank openers, users occupy ~112
+states with ~5 effective next questions — adaptive and static are choosing among a handful of
+distinguishable situations, so they tie. Loss-coupled criterion (M11), controls as in
+`REDDIT_DISPERSION_LEG1.md`. Guardrails: dispersion ≠ payoff; mean expected gain runs the other
+way on request-placed states (further along the curve).
+
+**Act 3 — The intervention: open the opener, rerun everything.** Emulate open openers on ML-25M
+behaviorally ("favorite movie" = top-rated/most-distinctive-liked item; "favorite genre" =
+SEL-max genre; answer rule PRE-REGISTERED with a sensitivity row across alternatives), then rerun
+the SAME lit methods downstream and measure whether the adaptive-static gap opens. Both outcomes
+publish: gap opens → "the field's methods were starved by their openers, the fix is one open
+question"; gap stays shut → the hardened divergence-without-exploitability null (the off-diagonal
+cell). **THE OPENNESS GRADIENT is the paper's spine figure:** closed item question → broad genre
+→ open favorite-movie → full free-text request (Reddit), with dispersion AND downstream
+adaptive-static gap at each rung; Reddit = the measured ecological endpoint (perplexity 95;
+Aliannejadi's open-question intuition, now with a curve). Internal precedent: the demoted Paper-D
+open-recall finding — this is its clean re-establishment.
+
+**Act 4 (conditional) — our own policy**, built only if Act 3 shows exploitable headroom;
+motivated by a measured gap, not novelty.
+
+**Reddit's role under the spine (author question 2026-08-04, resolved):** the gradient's
+ecological endpoint + the withheld-slot replay + the unfilled-niche motivation figure — i.e. a
+first-class measured cell, NOT the primary experimental platform. The 4,431-thread ruler
+suffices for all of it; corpus completion (581 remaining batches) is NOT needed for Paper B —
+it is only needed if the cleaned-links corpus is released as a dataset artifact (decision
+deferred; trickle-fund from idle budget if ever).
+
+**Reddit→ML-25M profile matching (author idea 2026-08-04, split verdict):** as identity
+replacement ("treat the matched ML user as the Reddit requester, keep Reddit GT") — REJECTED:
+matching on a few slots is massively underdetermined, the doppelgänger's answers measure
+within-ML heterogeneity not the requester's taste, and the answer/GT coupling breaks. As
+INIT-SHAPING — ADOPTED as the clean form of the Act-3 bridge: select ML users whose real profiles
+are consistent with a real request's slots (rated the anchors positively, genre-consistent), fold
+the request-shaped evidence as their initial placement, then run the full behavioral interview
+and score on the ML user's own held-out data. Everything after init is standard protocol; the
+request only makes the init distribution ecologically real. Report match counts/quality and the
+popular-anchor selection effect. Claim shape: "downstream of initial placements drawn from 4,431
+real requests, adaptivity buys Y — with complete behavioral answers."
