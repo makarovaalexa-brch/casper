@@ -57,6 +57,8 @@ from run_battery_phaseA import (build_real_ctx, build_smoke_ctx, ndcg10_from_sco
 from tradeoff_ledger import build_shared, Rung
 from strategy_ladder import train_entropies
 from adaptive_concept_arms import train_concept_stats, score_users
+from concept_fold import fold_items_frozen
+from i26_encoder import UNSEEN_LEVEL
 
 assert not hasattr(sys.modules[__name__], "load_answerer")
 
@@ -350,6 +352,302 @@ def greedy_static_seq(rung, rows, pool, L, fold_refusals=False, refuse_level=4, 
     return seq, gains, nev
 
 
+# ==========================================================================================
+# CERTIFIED-STACK GREEDY  (tower i26c ep31 + concept channel cv3 ep08)          2026-08-04
+# ==========================================================================================
+# WHY A SECOND IMPLEMENTATION AND NOT AN EDIT. The Jul-27 greedy ran the i25 contract: an asked item
+# the user had not rated contributed NOTHING (or, under --fold_refusals, a hand-picked mild-negative
+# level the tower was never trained on), and an unanswerable concept was silently dropped. The
+# certified stack has native tokens for both cases and was TRAINED on them:
+#   * item asked, not rated -> exposure token at UNSEEN_LEVEL (i26's exposure branch)
+#   * concept asked, not answerable -> refusal token, value 0.0 with the refusal flag set
+#     (cv3 was built with use_refusal=True; 41.6% of its training concept tokens were refusals)
+# Folding those away instead of folding them in would hand both channels a contract the models were
+# not trained for, and would silently make an unanswered question free. The conventions below are
+# copied from the certified-era callers (concept_cold_check.py / bank_sweep.py / concept_train_v2.py)
+# rather than re-derived:
+#   - ask order, NOT canonical desc-value order: the trainer feeds cids in ask order.
+#   - values from signed_for_pool's construction with keep_meh=False, cap_negatives applied over the
+#     REVEALED list only (the population-wide cap in build_shared is a different, harsher object).
+#   - only ANSWERED items are masked out of the candidate list; an asked-but-unseen item is not
+#     revealed to the user, so it neither burns a target nor leaves the ranking.
+# LEGACY code above is untouched so greedy_polish.py and the recorded Jul-27 numbers stay readable.
+CERT_TOWER = os.path.join(_ROOT, "models", "i26c_ep31", "t2i26c_ep31.pt")
+CERT_CONC = os.path.join(_ROOT, "models", "i26c_ep31", "concept_cv3_ep08.pt")
+CONCSTATS = os.path.join(_ROOT, ".cache", "instrument", "signed_train_concstats.npz")
+N_TRAIN_USERS = 140768.0                       # canonical Liang split train cohort (answer-rate denom)
+
+
+def load_certified_concept_net(path, n_concepts, d, conc_init, tower_basename=None):
+    """Load the concept channel EXACTLY as bank_sweep.py does: architecture and answer contract read
+    from the checkpoint, never from CLI defaults. Refuses rather than partially loads."""
+    from concept_fold import ConceptFoldNet
+    blob = torch.load(path, map_location="cpu")
+    sd = blob["net"]
+    h = int(sd["mlp.0.weight"].shape[0])
+    use_refusal = bool(blob.get("use_refusal", False))
+    keep_meh = bool(blob.get("keep_meh", False))
+    # keep_meh governs the ANSWER VALUES, so it must match how this harness builds them. We build with
+    # keep_meh=False (meh -> 0.0), which is what cv3 trained on; a keep_meh=True checkpoint (cv5) would
+    # be scored on values it never saw.
+    assert not keep_meh, (f"{os.path.basename(path)} was trained with keep_meh=True; this harness "
+                          f"builds keep_meh=False values (meh zeroed). Scoring it here would measure "
+                          f"a different system.")
+    exp_in = 2 * d + (2 if use_refusal else 1)
+    assert int(sd["mlp.0.weight"].shape[1]) == exp_in, \
+        f"fold input width {int(sd['mlp.0.weight'].shape[1])} != expected {exp_in} (d={d}, " \
+        f"use_refusal={use_refusal}) -- wrong tower latent or wrong answer contract"
+    assert tuple(sd["emb.weight"].shape) == (n_concepts, d), \
+        f"concept vocabulary drift: ckpt {tuple(sd['emb.weight'].shape)} vs harness ({n_concepts}, {d})"
+    if "tags" in blob:
+        assert len(blob["tags"]) == n_concepts, "concept vocabulary drift (tags length)"
+    if tower_basename is not None and blob.get("snapshot"):
+        assert os.path.basename(blob["snapshot"]) == tower_basename, \
+            f"PAIR MISMATCH: concept ckpt was trained on {blob['snapshot']}, tower is {tower_basename}"
+    net = ConceptFoldNet(n_concepts, d=d, h=h, conc_init=conc_init, use_refusal=use_refusal)
+    net.load_state_dict(sd)                                  # strict: must fully populate
+    net.eval()
+    # G0 item-tie: with no concept answers the fold is bit-identical to the tower.
+    zr = torch.randn(4, d)
+    with torch.no_grad():
+        z_out = net(zr, [[]] * 4, [[]] * 4, [[]] * 4 if use_refusal else None)
+    assert torch.equal(z_out, zr), "G0 broken: empty-concept fold is not bit-identical to the tower"
+    log(f"[cert] concept channel {os.path.basename(path)} ep{blob.get('epoch')} hidden={h} "
+        f"use_refusal={use_refusal} keep_meh={keep_meh} params={net.n_params():,} "
+        f"(trained on {blob.get('snapshot')}) | G0 item-tie PASS")
+    return net, blob
+
+
+def build_greedy_env(snapshot, split, conc_ckpt, label, need_entropy=False):
+    """One scoring environment (tower + concept channel + answers) on ONE canonical cohort.
+
+    split='validation' -> the 10k VAL users (the SELECTION cohort)
+    split='test'       -> the disjoint 10k TEST users (the REPORTING cohort)
+    """
+    from concept_fold import build_member_matrix
+    from signed_answers import load_prereg, signed_values
+    log(f"=== building {label} env (split={split}) ===")
+    ctx = build_real_ctx(snapshot, split=split)
+    sh = build_shared(ctx)                                    # sets ctx.Wd / ctx.bd / ctx.d
+    assert sh.get("signed_available"), "signed prereg cache required"
+    tags = sh["tags"]; C = len(tags)
+    # ANSWER VALUES, certified convention. build_shared's own conc_value_signed applies the C_NEG cap
+    # across ALL 1031 concepts at once; the trainer and every certified-era caller apply it over the
+    # REVEALED list only (cap_negatives), which is a much weaker shrink. Recompute uncapped here and
+    # cap per revealed set at fold time.
+    Mm = build_member_matrix(sh["members"], tags, ctx.ni)
+    pexp = (ctx.cnt @ np.asarray(Mm.todense())) / max(ctx.cnt.sum(), 1e-9)
+    prereg, item_mean = load_prereg()
+    items_l = [np.asarray(s, np.int64) for s, l in ctx.allb]
+    stars_l = [((np.asarray(l, np.float64) + 1) / 2).astype(np.float32) for s, l in ctx.allb]
+    V, Fb, Bb, ansm = signed_values(items_l, stars_l, item_mean, Mm, pexp, ctx.ni, prereg,
+                                    apply_neg_cap=False)
+    foldable = (Fb & ansm)                                   # ans[c] and B[c] != BAND_REFUSE
+    net, cblob = load_certified_concept_net(conc_ckpt, C, ctx.d, sh["d_c"].numpy(),
+                                            tower_basename=os.path.basename(snapshot))
+    rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0]
+    item_H = train_entropies(ctx)[0] if need_entropy else None
+    # ctx.raw is a full copy of the 25M-row ratings frame, stashed only for train_entropies (already
+    # consumed inside build_shared). Two cohorts alive at once would double it for nothing. Deleted
+    # rather than set to None because train_entropies branches on hasattr(ctx, "raw").
+    del ctx.raw
+    E = {"name": label, "split": split, "ctx": ctx, "sh": sh, "net": net, "cblob": cblob,
+         "V": V, "foldable": foldable, "rows": rows, "lvl": sh["lvl_lookup"], "C": C, "item_H": item_H,
+         "cneg": float(prereg.get("C_NEG", 2.0)), "cache": {}, "n_evals": 0, "t_evals": 0.0}
+    set_active_rows(E, rows)
+    ans_rate_c = float(foldable[np.asarray(rows)].mean())
+    log(f"[{label}] {len(rows)} cohort users; {C} concepts; concept answer rate over the whole bank "
+        f"= {ans_rate_c:.3f}; tower latent d={ctx.d}")
+    return E
+
+
+def set_active_rows(E, rows):
+    """Fix the cohort this env scores. Everything below is indexed POSITIONALLY against it."""
+    a = np.asarray(rows, np.int64)
+    pos = np.full(E["ctx"].n, -1, np.int64); pos[a] = np.arange(len(a))
+    E["active"] = a; E["posmap"] = pos; E["cache"] = {}
+    return a
+
+
+def _env_item_state(E, item_ids):
+    """(Zi, answered-item CSR) over the env's ACTIVE rows for a fixed asked-ITEM list.
+
+    Cached on the item part alone: in a CELF sweep every CONCEPT candidate shares the prefix's item
+    set, so half the candidate evaluations skip the tower fold entirely. Exact, not an approximation.
+    """
+    key = tuple(item_ids)
+    c = E["cache"]
+    if c.get("key") == key:
+        return c["Zi"], c["ans"]
+    ctx = E["ctx"]; lvl = E["lvl"]; act = E["active"]
+    ids = np.asarray(item_ids, np.int64)
+    seqs = []; ar = []; ac = []
+    for j, r in enumerate(act):
+        d = lvl[r]
+        lv = (np.fromiter((d.get(int(i), UNSEEN_LEVEL) for i in ids), np.int64, len(ids))
+              if len(ids) else np.empty(0, np.int64))
+        seqs.append((ids, lv))
+        if len(ids):
+            m = lv < UNSEEN_LEVEL                            # ANSWERED (the user rated it)
+            k = int(m.sum())
+            if k:
+                ar.extend([j] * k); ac.extend(ids[m].tolist())
+    # ALWAYS fold through the tower, even with zero items: i26's no-evidence latent is the trainable
+    # z0, not the zero vector. Handing the concept net zeros is the documented G5 base-mismatch bug.
+    Zi = fold_items_frozen(ctx.enc, seqs, batch=500)
+    ans = sparse.csr_matrix((np.ones(len(ar), np.float32), (ar, ac)), shape=(len(act), ctx.ni))
+    # An asked-but-unrated item is never revealed to the user, so it must not leave the ranking; an
+    # ANSWERED item can never be a held-out target (lvl_lookup is built with te excluded). Assert it.
+    assert ans.multiply(ctx.va_te[act]).nnz == 0, "an answered item is also a held-out target"
+    E["cache"] = {"key": key, "Zi": Zi, "ans": ans}
+    return Zi, ans
+
+
+def genv_eval(E, seq, rows, batch=500):
+    """Per-user (full, tail) NDCG@10 for ONE static ask sequence under the certified contract.
+
+    seq = [(chan, id), ...] in ASK ORDER; chan 0 = item, 1 = concept. Every asked question burns the
+    budget for every user. NO FLOOR, learned decoder bias, canonical head mask.
+    """
+    t0 = time.time()
+    item_ids = [int(i) for ch, i in seq if ch == 0]
+    conc_ids = [int(c) for ch, c in seq if ch == 1]
+    Zi, ans = _env_item_state(E, item_ids)
+    ctx = E["ctx"]; net = E["net"]
+    ridx = np.asarray(rows, np.int64)
+    jj = E["posmap"][ridx]                                   # positions inside the ACTIVE cohort
+    assert (jj >= 0).all(), "genv_eval called on rows outside the env's active cohort"
+    full = np.full(len(rows), np.nan); tail = np.full(len(rows), np.nan)
+    cvals_all = crefs_all = None
+    if conc_ids:
+        cc = np.asarray(conc_ids, np.int64)
+        ok = E["foldable"][np.ix_(ridx, cc)]                 # answerable AND not the refuse band
+        vv = np.where(ok, E["V"][np.ix_(ridx, cc)], 0.0).astype(np.float64)
+        # cap_negatives over the REVEALED set, vectorised (identical formula, asserted in the smoke)
+        s = -np.minimum(vv, 0.0).sum(1)
+        sc = np.minimum(1.0, E["cneg"] / np.maximum(s, 1e-9))
+        cvals_all = np.where(vv < 0, vv * sc[:, None], vv)
+        crefs_all = (~ok).astype(np.float64)                 # refusal token: "asked, cannot answer"
+    with torch.no_grad():
+        for st in range(0, len(rows), batch):
+            ch = ridx[st:st + batch]; cj = jj[st:st + batch]
+            Zb = Zi[torch.from_numpy(cj)]
+            if conc_ids:
+                B = len(ch)
+                z = net(Zb, [conc_ids] * B, cvals_all[st:st + B].tolist(),
+                        crefs_all[st:st + B].tolist() if net.use_refusal else None)
+            else:
+                z = Zb
+            S = (z @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
+            mask = ctx.va_tr[ch] + ans[cj]                   # tower cold parity + answered items
+            mask.data[:] = 1.0
+            f, t = ndcg10_from_scores(S, mask.tocsr(), ctx.va_te[ch], ctx.head_mask)
+            full[st:st + len(ch)] = f; tail[st:st + len(ch)] = t
+    E["n_evals"] += 1; E["t_evals"] += time.time() - t0
+    return full, tail
+
+
+def contract_selftest(E, rows, n=8):
+    """The vectorised revealed-set negative cap must equal signed_answers.cap_negatives exactly.
+    Cheap, and it is the one place where this harness re-implements a certified-era primitive."""
+    from signed_answers import cap_negatives
+    rng = np.random.default_rng(SEED)
+    cc = rng.choice(E["C"], size=min(6, E["C"]), replace=False)
+    for r in rng.choice(np.asarray(rows), size=min(n, len(rows)), replace=False):
+        r = int(r)
+        ref = cap_negatives([float(E["V"][r, c]) if E["foldable"][r, c] else 0.0 for c in cc],
+                            c_neg=E["cneg"])
+        ok = E["foldable"][r, cc]
+        vv = np.where(ok, E["V"][r, cc], 0.0).astype(np.float64)
+        s = -np.minimum(vv, 0.0).sum()
+        sc = min(1.0, E["cneg"] / max(s, 1e-9))
+        assert np.allclose(ref, np.where(vv < 0, vv * sc, vv), atol=1e-6), "cap_negatives mismatch"
+    log("[selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set")
+
+
+def genv_mean(E, seq, rows):
+    """Cohort-mean (full, tail) for a sequence, MEMOISED on the exact sequence.
+
+    Exact, not an approximation: a static sequence over a fixed cohort has one value. It matters
+    because the three arms share a seeding pass -- every length-1 item sequence the items-only arm
+    scores is scored again by the combined arm, and likewise for concepts. That is ~1000 of the ~3100
+    evaluations in a 500+500 run, i.e. a third of the wall clock, recomputed for nothing.
+    """
+    memo = E.setdefault("memo", {})
+    key = tuple(seq) if len(rows) == len(E["active"]) else None
+    if key is not None and key in memo:
+        E["n_memo"] = E.get("n_memo", 0) + 1
+        return memo[key]
+    f, t = genv_eval(E, seq, rows)
+    val = (float(np.nanmean(f)), float(np.nanmean(t)))
+    if key is not None:
+        memo[key] = val
+    return val
+
+
+def genv_answered(E, seq, rows):
+    """Mean ANSWERED items and ANSWERED concepts per user for the sequence (the answerability row)."""
+    item_ids = [int(i) for ch, i in seq if ch == 0]
+    conc_ids = [int(c) for ch, c in seq if ch == 1]
+    ridx = np.asarray(rows, np.int64)
+    ia = 0.0
+    if item_ids:
+        lvl = E["lvl"]
+        ia = float(np.mean([sum(1 for i in item_ids if i in lvl[r]) for r in rows]))
+    ca = (float(E["foldable"][np.ix_(ridx, np.asarray(conc_ids, np.int64))].sum(1).mean())
+          if conc_ids else 0.0)
+    return ia, ca
+
+
+def greedy_certified(E, rows, pool, L, objective, tag, log_every=25):
+    """Lazy-greedy (CELF) best STATIC sequence of length L from pool=[(chan,id),...], maximising the
+    cohort-mean NDCG@10 of `objective` ('full' or 'tail'). Returns (seq, gains, n_evals)."""
+    import heapq
+    assert objective in ("full", "tail"), objective
+    j = 0 if objective == "full" else 1
+    t0 = time.time()
+    base = genv_mean(E, [], rows)[j]
+    heap = []; nev = 0
+    for q in pool:
+        v = genv_mean(E, [q], rows)[j]; nev += 1
+        heapq.heappush(heap, (-(v - base), q, 0))
+        if nev % log_every == 0:
+            el = time.time() - t0
+            log(f"[greedy {tag}] seed {nev}/{len(pool)} ({el / 60:.1f}m, {el / nev:.2f}s/eval)")
+    seq = []; gains = []; cur = base
+    while len(seq) < L and heap:
+        neg, q, upd = heapq.heappop(heap)
+        if upd == len(seq):
+            seq.append(q); gains.append(-neg); cur += -neg
+            log(f"[greedy {tag}] pick {len(seq)}/{L} = {'concept' if q[0] else 'item'} {q[1]} "
+                f"gain {-neg:+.5f} -> {cur:.5f} (nev={nev}, {(time.time() - t0) / 60:.1f}m)")
+        else:
+            v = genv_mean(E, seq + [q], rows)[j]; nev += 1
+            heapq.heappush(heap, (-(v - cur), q, len(seq)))
+    return seq, gains, nev
+
+
+def _ranked_pool(name, tables, n_take, kind):
+    """Resolve a NAMED bank to a real ranking, or die.
+
+    This is the assert from concept_cold_check.py (fix 26fe795) in its general form. There, `--bank
+    expinfo` was missing from the lookup, fell through to `crank=None` -- i.e. RANDOM draws -- and
+    still logged "bank=expinfo", so a run labelled with a ranked bank silently measured a different
+    contract for eleven hours. A KeyError here (not a .get default) makes that unreachable, and the
+    monotonicity assert makes it impossible for an unranked order to masquerade as a named one.
+    """
+    key = np.asarray(tables[name], np.float64)               # KeyError = unknown bank, never a default
+    rank = np.argsort(-key, kind="stable")
+    assert rank.ndim == 1 and len(np.unique(rank)) == len(rank), f"{kind} bank '{name}' is not a permutation"
+    kk = key[rank]
+    assert np.all(np.diff(kk) <= 1e-9), \
+        (f"{kind} bank '{name}' is NOT sorted by its own criterion -- an unranked/RANDOM order must "
+         f"never masquerade as a named bank (the --bank expinfo fallthrough, fixed 26fe795)")
+    take = rank[:n_take]
+    assert np.isfinite(key[take]).all(), f"{kind} bank '{name}' has non-finite scores in the top-{n_take}"
+    return take
+
+
 def make_greedy_png(results, intercept, path):
     """Best-static curves: items-only / concepts-only / combined; full & tail, EQUAL y-axes."""
     import matplotlib
@@ -454,6 +752,184 @@ def make_png(results, intercept, path):
     plt.close(fig)
 
 
+# ============================================================================= greedy driver
+def greedy_main(args):
+    """Best-static greedy question sequence on the CERTIFIED stack.
+
+    USER SPLIT -- stated plainly, because getting this wrong is a recorded fatal review point:
+      SELECTION (the greedy search, i.e. which questions get chosen) runs on the canonical 10k
+      VALIDATION users and NOTHING else. The TEST cohort is built only after the sequences are frozen
+      and is touched exactly once per (arm, budget) to report. No checkpoint, epoch, bank, pool or
+      question is ever chosen using a test number. --eval_test is therefore the paper-grade mode;
+      without it the run reports on a disjoint slice of VAL and is labelled a PEEK.
+    """
+    t00 = time.time()
+    SMOKE = args.smoke_users > 0
+    assert not args.fold_refusals, (
+        "--fold_refusals is the LEGACY i25 heuristic (an invented mild-negative level the tower was "
+        "never trained on). The certified i26 tower folds an asked-but-unrated item as a native "
+        "UNSEEN exposure token, which this path always does.")
+    sfx = ("" if args.objective == "full" else f"_{args.objective}") + ("_SMOKE" if SMOKE else "")
+    GRJSON = os.path.join(_ROOT, "experiments", "battery", f"greedy_static_i26c{sfx}.json")
+    GRPNG = os.path.join(_ROOT, "experiments", "battery", f"greedy_static_i26c{sfx}.png")
+    if SMOKE:
+        log("#" * 100)
+        log(f"# SMOKE MODE: {args.smoke_users} users per cohort. Pipeline check ONLY -- these numbers "
+            f"are NOT citable and land in *_SMOKE.json.")
+        log("#" * 100)
+    tblob = torch.load(args.snapshot, map_location="cpu")
+    log(f"[cert] tower {os.path.basename(args.snapshot)} arch={tblob.get('arch')} "
+        f"ep{tblob.get('epoch')} val_full={tblob.get('val_full'):.4f} "
+        f"val_tail={tblob.get('val_tail'):.4f} k0={tblob.get('k0'):.4f} sel={tblob.get('sel'):.4f}")
+    assert tblob.get("arch") == "i26", \
+        f"certified greedy expects the i26 tower; got arch={tblob.get('arch')}"
+
+    # ---- SELECTION cohort (validation) --------------------------------------------------------
+    Eb = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, "BUILD(val)",
+                          need_entropy=(args.item_bank == "entropy"))
+    build_rows = Eb["rows"]
+    if SMOKE:
+        build_rows = build_rows[:args.smoke_users]
+        set_active_rows(Eb, build_rows)          # SMOKE ONLY: labelled user truncation, never citable
+
+    contract_selftest(Eb, build_rows)
+
+    # ---- GATE (a): the empty interview must reproduce the tower's own certified cold number -----
+    i_full, i_tail = genv_mean(Eb, [], build_rows)
+    ref = float(tblob["k0"])
+    ok = abs(i_full - ref) <= args.intercept_tol
+    log(f"[gate a] m=0 empty interview on {len(build_rows)} val users: full={i_full:.5f} "
+        f"tail={i_tail:.5f} | tower's recorded cold k0={ref:.5f} | delta={i_full - ref:+.5f} "
+        f"tol={args.intercept_tol} -> {'PASS' if ok else 'FAIL'}")
+    if not ok:
+        assert SMOKE, ("GATE (a) FAILED: the empty-interview row does not reproduce the tower's "
+                       "certified cold number. Something in the fold/mask/metric path differs from "
+                       "the contract that certified the tower -- do not run 10 hours on top of it.")
+        log("[gate a] SMOKE: not enforced (a 50-user subset is not the 10k cohort the k0 reference "
+            "was measured on). It IS enforced on the real run.")
+    intercept = {"full": i_full, "tail": i_tail}
+
+    # ---- banks + pools ------------------------------------------------------------------------
+    # Every bank is a RANKED, user-independent order; the pool is its top-N. No random draws anywhere.
+    assert os.path.exists(CONCSTATS), f"train concept stats missing ({CONCSTATS})"
+    z = np.load(CONCSTATS)
+    ans_rate = (z["n"] / N_TRAIN_USERS).astype(np.float64)   # fraction of TRAIN users who can answer
+    std_v = np.asarray(z["std"], np.float64)                 # train spread of the signed value
+    pol_n = std_v / max(std_v.max(), 1e-9)
+    ar_n = ans_rate / max(ans_rate.max(), 1e-9)
+    conc_tables = {"answerable": ans_rate, "polar": std_v,
+                   "helf": 2 * pol_n * ar_n / np.clip(pol_n + ar_n, 1e-9, None)}
+    assert len(ans_rate) == Eb["C"], f"concept stats width {len(ans_rate)} != {Eb['C']} concepts"
+    item_tables = {"pop": np.asarray(Eb["ctx"].cnt, np.float64)}
+    if Eb["item_H"] is not None:
+        item_tables["entropy"] = np.asarray(Eb["item_H"], np.float64)
+    n_it, n_cc = args.n_items, args.n_concepts
+    item_pool = [(0, int(i)) for i in _ranked_pool(args.item_bank, item_tables, n_it, "item")]
+    conc_pool = [(1, int(c)) for c in _ranked_pool(args.conc_bank, conc_tables, n_cc, "concept")]
+    log(f"[banks] item bank='{args.item_bank}' -> pool {len(item_pool)} items | "
+        f"concept bank='{args.conc_bank}' -> pool {len(conc_pool)} concepts | "
+        f"combined {len(item_pool) + len(conc_pool)} | L={max(BUDGETS)} | objective={args.objective}")
+    log(f"[banks] top-5 items {[i for _, i in item_pool[:5]]} | "
+        f"top-5 concepts {[c for _, c in conc_pool[:5]]} "
+        f"(answer rate {[round(float(ans_rate[c]), 3) for _, c in conc_pool[:5]]})")
+
+    # ---- the greedy search: VALIDATION USERS ONLY ---------------------------------------------
+    log(f"[greedy] SELECTION on {len(build_rows)} VALIDATION users; the test cohort is not built yet.")
+    seqs = {}
+    for name, pool in [("items-only", item_pool), ("concepts-only", conc_pool),
+                       ("combined", item_pool + conc_pool)]:
+        t0 = time.time()
+        seq, gains, nev = greedy_certified(Eb, build_rows, pool, max(BUDGETS), args.objective, name)
+        seqs[name] = (seq, gains, nev)
+        log(f"[greedy {name}] DONE order={''.join('c' if ch else 'i' for ch, _ in seq)} "
+            f"nev={nev} ({(time.time() - t0) / 60:.1f}m)")
+
+    # ---- REPORTING cohort: built only now, read only here -------------------------------------
+    if args.eval_test:
+        Ee = build_greedy_env(args.snapshot, "test", args.concept_ckpt, "EVAL(test)")
+        eval_rows = Ee["rows"]
+        if SMOKE:
+            eval_rows = eval_rows[:args.smoke_users]
+            set_active_rows(Ee, eval_rows)
+        eval_split = "test"
+    else:
+        Ee = Eb
+        nfit = args.fit_users if args.fit_users > 0 else len(build_rows) // 2
+        eval_rows = [r for r in Eb["rows"] if r not in set(build_rows[:nfit])][:nfit]
+        set_active_rows(Eb, sorted(set(build_rows) | set(eval_rows)))
+        eval_split = "val-disjoint(PEEK)"
+        log("[greedy] PEEK MODE: no test cohort. Selection and evaluation share a cohort's users' "
+            "answer table; report nothing from this run.")
+    ie_full, ie_tail = genv_mean(Ee, [], eval_rows)
+    log(f"[gate a/eval] m=0 on {len(eval_rows)} {eval_split} users: {ie_full:.5f}/{ie_tail:.5f}")
+
+    greedy_res = {}
+    for name, (seq, gains, nev) in seqs.items():
+        curve = {}
+        for q in BUDGETS:
+            f, t = genv_mean(Ee, seq[:q], eval_rows)          # held-out (the reported number)
+            bf, bt = genv_mean(Eb, seq[:q], build_rows)       # build set (the overfit reference)
+            ia, ca = genv_answered(Ee, seq[:q], eval_rows)
+            curve[str(q)] = {"full@10": f, "tail@10": t, "build_full@10": bf, "build_tail@10": bt,
+                             "item_answered": round(ia, 3), "conc_answered": round(ca, 3),
+                             "item_asked": sum(1 for ch, _ in seq[:q] if ch == 0),
+                             "conc_asked": sum(1 for ch, _ in seq[:q] if ch == 1)}
+        comp = "".join("c" if ch == 1 else "i" for ch, _ in seq)
+        greedy_res[name] = {"curve": curve, "order": comp,
+                            "sequence": [[int(ch), int(idx)] for ch, idx in seq],
+                            "gains": [float(g) for g in gains], "n_evals": nev}
+        log(f"[greedy {name}] order={comp} " + " ".join(
+            f"q{q}:{curve[str(q)]['full@10']:.4f}/{curve[str(q)]['tail@10']:.4f}" for q in BUDGETS)
+            + f" | answered@16={curve['16']['item_answered']}i/{curve['16']['conc_answered']}c")
+
+    out = {"analysis": "greedy_static_seq_certified",
+           "SMOKE": bool(SMOKE),
+           "citable": not SMOKE,
+           "tower": os.path.basename(args.snapshot), "tower_epoch": tblob.get("epoch"),
+           "concept_ckpt": os.path.basename(args.concept_ckpt),
+           "concept_epoch": Eb["cblob"].get("epoch"),
+           "use_refusal": bool(Eb["net"].use_refusal),
+           "contract": ("NO-FLOOR, learned decoder bias, full+tail NDCG@10, canonical Liang ML-25M "
+                        "split. Every asked question burns the budget: an unrated item is folded as "
+                        "an i26 UNSEEN exposure token, an unanswerable concept as a cv3 refusal "
+                        "token. Only ANSWERED items are masked out of the candidate list."),
+           "selection_users": f"{len(build_rows)} canonical VALIDATION users",
+           "reporting_users": f"{len(eval_rows)} {eval_split} users",
+           "n_build_users": len(build_rows), "n_eval_users": len(eval_rows),
+           "eval_split": eval_split, "objective": args.objective,
+           "item_bank": args.item_bank, "conc_bank": args.conc_bank,
+           "n_items_pool": len(item_pool), "n_concepts_pool": len(conc_pool),
+           "gate_m0_full": i_full, "gate_m0_tail": i_tail, "gate_m0_ref_tower_k0": ref,
+           "gate_m0_pass": bool(ok),
+           "budgets": list(BUDGETS), "intercept": intercept,
+           "intercept_eval": {"full": ie_full, "tail": ie_tail}, "arms": greedy_res,
+           "seconds": round(time.time() - t00, 1),
+           "sec_per_eval_build": round(Eb["t_evals"] / max(Eb["n_evals"], 1), 3),
+           "n_evals_total": Eb["n_evals"] + Ee["n_evals"],
+           "n_memo_hits_build": Eb.get("n_memo", 0)}
+    os.makedirs(os.path.dirname(GRJSON), exist_ok=True)
+    json.dump(out, open(GRJSON, "w"), indent=2, default=float)
+    try:
+        make_greedy_png(greedy_res, {"full": ie_full, "tail": ie_tail}, GRPNG)
+    except Exception as e:                                    # a figure must never lose the numbers
+        log(f"[greedy] PNG failed ({type(e).__name__}: {e}); JSON is written")
+    spe = Eb["t_evals"] / max(Eb["n_evals"], 1)
+    log(f"[greedy] wrote {os.path.basename(GRJSON)} ({(time.time() - t00) / 60:.1f}m total; "
+        f"{Eb['n_evals']} build evals at {spe:.2f}s each, {Eb.get('n_memo', 0)} memo hits)")
+    if SMOKE:
+        n_ev_ref = 754 + 878 + 1423 + 30                     # the Jul-27 CELF eval counts + curves
+        scale = 10000.0 / max(len(build_rows), 1)
+        log("#" * 100)
+        log(f"# SMOKE PROJECTION: {spe:.2f}s/eval at {len(build_rows)} users -> "
+            f"~{spe * scale:.1f}s/eval at 10,000 users; "
+            f"~{n_ev_ref} evals (Jul-27 CELF counts) => ~{spe * scale * n_ev_ref / 3600:.1f} h. "
+            f"Pools here were {len(item_pool)}i/{len(conc_pool)}c vs 500/500 in the real run -- "
+            f"scale the CELF seeding pass accordingly.")
+        log("# SMOKE numbers are NOT citable.")
+        log("#" * 100)
+    return out
+
+
 # ============================================================================= main
 def main():
     ap = argparse.ArgumentParser()
@@ -474,24 +950,43 @@ def main():
                          "instead of raw [0,1] scores (which let concepts crowd out items)")
     ap.add_argument("--greedy", action="store_true",
                     help="best-static greedy sequence (lazy CELF) for NDCG: items-only / concepts-only "
-                         "/ combined; shows the emergent optimal concept+item order")
+                         "/ combined; shows the emergent optimal concept+item order. Runs on the "
+                         "CERTIFIED stack (i26c ep31 + concept cv3 ep08) unless --snapshot is given.")
     ap.add_argument("--objective", default="full", choices=["full", "tail"],
                     help="metric the greedy maximises. The 2026-07-27 run used 'full' and discarded "
                          "tail, so its tail numbers were incidental; 'tail' gives the concept channel "
                          "its first tail-optimised sequence. Output filenames are suffixed by objective.")
-    ap.add_argument("--n_items", type=int, default=500, help="greedy: top-N popular items in the pool")
-    ap.add_argument("--n_concepts", type=int, default=500,
-                    help="greedy: top-M most-answerable concepts in the pool")
+    ap.add_argument("--concept_ckpt", default=CERT_CONC,
+                    help="greedy: concept-channel checkpoint (certified = concept_cv3_ep08.pt). Its "
+                         "architecture and answer contract are read from the file, never from flags.")
+    ap.add_argument("--n_items", type=int, default=500, help="greedy: top-N items in the pool")
+    ap.add_argument("--n_concepts", type=int, default=500, help="greedy: top-M concepts in the pool")
+    ap.add_argument("--item_bank", default="pop", choices=["pop", "entropy"],
+                    help="greedy: which RANKED item bank the pool is the top of (Jul-27 used pop)")
+    ap.add_argument("--conc_bank", default="answerable", choices=["answerable", "polar", "helf"],
+                    help="greedy: which RANKED concept bank the pool is the top of. 'answerable' = "
+                         "train answer rate (what Jul-27 used); 'polar' = train std of the signed "
+                         "value; 'helf' = their harmonic mean. Every name must resolve to a real "
+                         "ranking -- see _ranked_pool.")
     ap.add_argument("--fit_users", type=int, default=0,
                     help="greedy: #val users to fit+eval on (0=all val). PEEK: small value.")
     ap.add_argument("--fold_refusals", action="store_true",
-                    help="greedy: fold asked-but-unrated (non-target) items as a mild-negative refusal")
-    ap.add_argument("--refuse_level", type=int, default=4,
-                    help="greedy: fold level for item refusals (0-9; <5 = negative pull-away)")
+                    help="LEGACY i25 heuristic; refused on the certified stack (i26 has a native "
+                         "UNSEEN exposure token for an asked-but-unrated item)")
+    ap.add_argument("--refuse_level", type=int, default=4, help="LEGACY (see --fold_refusals)")
     ap.add_argument("--eval_test", action="store_true",
                     help="greedy: BUILD on all val, EVAL on the disjoint TEST cohort (paper-grade "
                          "split-construct). Ignores --fit_users.")
+    ap.add_argument("--smoke_users", type=int, default=0,
+                    help="greedy SMOKE: run the WHOLE pipeline end-to-end on this many users per "
+                         "cohort. Output is written to *_SMOKE.json and is NEVER citable.")
+    ap.add_argument("--intercept_tol", type=float, default=0.002,
+                    help="greedy gate (a): allowed |m=0 full@10 - the tower's own certified cold k0|")
     args = ap.parse_args()
+    if args.greedy and args.snapshot == PA.SNAP_DEFAULT:
+        args.snapshot = CERT_TOWER            # the certified pair is the default for the greedy run
+    if args.greedy:
+        return greedy_main(args)
     t00 = time.time()
     ctx = build_smoke_ctx() if args.smoke else build_real_ctx(args.snapshot)
     sh = build_shared(ctx)
@@ -568,77 +1063,6 @@ def main():
         cur = results[name]
         log(f"[{name}] " + " ".join(f"q{q}={cur[q]['full@10']:.4f}/{cur[q]['tail@10']:.4f}"
                                     for q in BUDGETS) + f" ({(time.time()-t0)/60:.1f}m)")
-    if args.greedy:
-        # best-static greedy sequence for NDCG: items-only / concepts-only / combined.
-        _sfx = "" if args.objective == "full" else f"_{args.objective}"
-        GRJSON = os.path.join(_ROOT, "experiments", "battery", f"greedy_static{_sfx}.json")
-        GRPNG = os.path.join(_ROOT, "experiments", "battery", f"greedy_static{_sfx}.png")
-        # split-construct: BUILD greedy on val, EVAL on a DISJOINT set (greedy maximizes eval NDCG,
-        # so fit==eval overfits -> always split).
-        if args.eval_test:
-            build_rows = rows                                   # all val users
-            log("[greedy] building disjoint TEST-eval context (test cohort)...")
-            ctx_te = build_real_ctx(args.snapshot, split="test")
-            sh_te = build_shared(ctx_te)
-            assert sh_te.get("signed_available"), "signed prereg required for test ctx"
-            from concept_fold import ConceptFoldNet
-            _blob = torch.load(args.sclite_ckpt, map_location="cpu")
-            _net = ConceptFoldNet(len(_blob["tags"]), d=ctx_te.d, h=_blob["hidden"])
-            _net.load_state_dict(_blob["net"]); _net.eval()
-            eval_rung = Rung("sclite", ctx_te, sh_te, clite_net=_net, val_source="signed")
-            eval_rows = [r for r in range(ctx_te.n) if ctx_te.va_te[r].nnz > 0]
-        else:
-            nfit = args.fit_users if args.fit_users > 0 else len(rows) // 2
-            build_rows = rows[:nfit]
-            eval_rows = rows[nfit:2 * nfit] if 2 * nfit <= len(rows) else rows[nfit:]
-            eval_rung = rung
-        item_pool = [(0, int(i)) for i in ord_pop[:args.n_items]]
-        conc_pool = [(1, int(c)) for c in np.argsort(-ans_rate)[:args.n_concepts]]
-        log(f"[greedy] build={len(build_rows)} val / eval={len(eval_rows)} "
-            f"{'TEST' if args.eval_test else 'disjoint-val'}; "
-            f"item_pool={len(item_pool)} conc_pool={len(conc_pool)} (top-answerable) "
-            f"L={max(BUDGETS)} fold_refusals={args.fold_refusals}"
-            + (f" @level{args.refuse_level}" if args.fold_refusals else ""))
-        greedy_res = {}
-        for name, pool in [("items-only", item_pool), ("concepts-only", conc_pool),
-                           ("combined", item_pool + conc_pool)]:
-            t0 = time.time()
-            seq, gains, nev = greedy_static_seq(rung, build_rows, pool, max(BUDGETS),
-                                                args.fold_refusals, args.refuse_level,
-                                                objective=args.objective)
-            curve = {}
-            for q in BUDGETS:
-                f, t = _greedy_avg(eval_rung, eval_rows, seq[:q],
-                                   args.fold_refusals, args.refuse_level)    # held-out (honest)
-                bf, bt = _greedy_avg(rung, build_rows, seq[:q],
-                                     args.fold_refusals, args.refuse_level)   # on build set (overfit ref)
-                ia, ca = _seq_answered(eval_rung.sh, eval_rows, seq[:q])
-                curve[str(q)] = {"full@10": f, "tail@10": t,
-                                 "build_full@10": bf, "build_tail@10": bt,
-                                 "item_answered": round(ia, 3), "conc_answered": round(ca, 3)}
-            comp = "".join("c" if ch == 1 else "i" for ch, _ in seq)
-            greedy_res[name] = {"curve": curve, "order": comp,
-                                "sequence": [[int(ch), int(idx)] for ch, idx in seq],
-                                "gains": [float(g) for g in gains], "n_evals": nev}
-            log(f"[greedy {name}] order={comp} nev={nev} " + " ".join(
-                f"q{q}:{curve[str(q)]['full@10']:.4f}/{curve[str(q)]['tail@10']:.4f}"
-                for q in BUDGETS)
-                + f" | answered@16={curve['16']['item_answered']}i/{curve['16']['conc_answered']}c"
-                + f" ({(time.time()-t0)/60:.1f}m)")
-        out = {"analysis": "greedy_static_seq", "n_build_users": len(build_rows),
-               "n_eval_users": len(eval_rows), "eval_split": "test" if args.eval_test else "val-disjoint",
-               "objective": args.objective, "fold_refusals": bool(args.fold_refusals),
-               "n_items_pool": len(item_pool), "n_concepts_pool": len(conc_pool),
-               "note": ("build on ALL val, eval on disjoint TEST cohort (paper-grade)"
-                        if args.eval_test else
-                        "build on val[:nfit], eval on disjoint val[nfit:2nfit] (peek)"),
-               "budgets": BUDGETS, "intercept": intercept, "arms": greedy_res}
-        os.makedirs(os.path.dirname(GRJSON), exist_ok=True)
-        json.dump(out, open(GRJSON, "w"), indent=2)
-        make_greedy_png(greedy_res, intercept, GRPNG)
-        log(f"[greedy] wrote {os.path.basename(GRJSON)} + {os.path.basename(GRPNG)} "
-            f"({(time.time()-t00)/60:.1f}m)")
-        return
     if args.qbank:
         # question-bank expansion: items-only vs unified items+concepts, 3 cross-channel scores.
         runlog("items-pop", items_walk, rung, rows, lambda r: ord_pop)

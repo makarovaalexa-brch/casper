@@ -48,7 +48,8 @@ fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(8.6, 3.4))
 # (a) NDCG curves
 ax0.plot(x, true, "-o", color="#1b6ca8", lw=2, label="graded (signed star levels)")
 ax0.plot(x, likes, "-s", color="#0a9396", lw=1.8, label="likes-only (positive-only)")
-ax0.plot(x, memb, "-^", color="#bb3e03", lw=1.8, label="all-as-like (naive binarization)")
+# all-as-like DROPPED 2026-08-04 (author): it records every answered item as a 4-star like,
+# mislabelling dislikes, so it is a strawman. Its degradation is stated in prose instead.
 ax0.set_xticks(x); ax0.set_xticklabels(ks)
 ax0.set_xlabel("interview length $k$"); ax0.set_ylabel("NDCG@10 (full)")
 ax0.set_title("(a) input encodings", fontsize=9)
@@ -59,8 +60,6 @@ ax1.axhline(0, color="#888", lw=0.8, ls="--")
 if not np.isnan(lo).all():
     ax1.fill_between(x, lo, hi, color="#1b6ca8", alpha=0.18, label="95% CI")
 ax1.plot(x, prem, "-o", color="#1b6ca8", lw=2, label="graded $-$ likes-only (fair binary)")
-ax1.plot(x, prem_naive, ":", color="#bb3e03", lw=1.4, alpha=0.8,
-         label="graded $-$ all-as-like (mislabels dislikes)")
 ax1.set_xticks(x); ax1.set_xticklabels(ks)
 ax1.set_xlabel("interview length $k$"); ax1.set_ylabel("$\\Delta$ NDCG@10 (full)")
 ax1.set_title("(b) stars over binary: help most when $k$ small", fontsize=9)

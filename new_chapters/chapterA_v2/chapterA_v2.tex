@@ -60,7 +60,7 @@ full-profile accuracy, \textbf{R2} an open set-valued input interface (any numbe
 that need not have existed when the model was fitted---concepts, entities, phrases, policy-emitted vectors),
 \textbf{R3} monotonicity (a truthful answer does not lower ranking
 quality beyond noise), and \textbf{R4} answers that carry sign and intensity---and an
-acceptance battery (one verification item per requirement, \textbf{V1--V4}, plus two integrity items) that
+acceptance battery (one verification item per requirement, \textbf{R1--R4}, plus two integrity items) that
 operationalises them. R2 carries most of the weight: it is what the instrument \emph{provides} to a policy, and what
 a policy should do with it is the companion chapter's subject. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
 the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite{steck2019ease} and
@@ -71,13 +71,13 @@ published system that occupies the conjunction of all four. The instrument that 
 shallow-SOTA tower over whose latent every channel is folded as a direction paired with a value by a
 permutation-invariant set encoder; three of its input legs---signed/graded values, concepts
 whose vocabulary is not fixed when the model is fitted, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
-models. Each requirement carries one verification item, V1--V4, and all four are met. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
-and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then V1--V4 on the
+models. Each requirement carries one verification item, R1--R4, and all four are met. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
+and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then R1--R4 on the
 ML-25M harness). Our in-house RecVAE realisation sets the bar at full/tail NDCG@10 $0.3540/0.2497$ on the canonical
 ML-25M protocol, and the graded-native interview tower comes within $1.2\%$ of it: a single certified training run reaches
 $0.3496/0.2491$ on the held-out test cohort---parity on the tail and a $1.2\%$ relative shortfall on the full
 profile---while reproducing the frozen
-decoder's ranking exactly at the empty interview, so V1 (full strength preserved) is passed rather than assumed. The
+decoder's ranking exactly at the empty interview, so R1 (full strength preserved) is passed rather than assumed. The
 remaining verification items have all been run and are met. With the tower fixed, a quantity the elicitation
 literature has long treated qualitatively---how often a cold user can answer the question at all---becomes
 directly measurable, and it does not depend on how a question bank is ranked: a held-out user has rated
@@ -167,10 +167,10 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         separates us is an \emph{open} concept vocabulary carrying no per-concept supervision, at the R1 accuracy
         bar (\S\ref{sec:gap}).
   \item \textbf{An acceptance battery as a reusable certificate.} We define three headline outcome gates---full-strength
-        preserved (V1), cold-start per-question NDCG rises on \emph{full and tail} versus random (V3), and
-        a truthful answer carries sign and intensity (V4)---and, because outcome checks alone admit several false positives
+        preserved (R1), cold-start per-question NDCG rises on \emph{full and tail} versus random (R3), and
+        a truthful answer carries sign and intensity (R4)---and, because outcome checks alone admit several false positives
         (a sign-blind fold, a circular answer model), pair them with one verification item
-        per requirement, V1--V4, and two integrity items. We propose this as a portable certificate any
+        per requirement, R1--R4, and two integrity items. We propose this as a portable certificate any
         interview-compatible recommender should pass (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
 \end{enumerate}
 
@@ -224,19 +224,19 @@ not read it as a claim about absolute recommendation quality, which no offline b
 establishes (\S\ref{sec:limits}).
 \end{definition}
 
-\paragraph{Verification: one check per requirement.}
-Each requirement carries exactly one verification item, V1--V4. Two integrity
-items, I1--I2, apply across all four and exist because the per-requirement checks admit false positives
+\paragraph{How each requirement is checked.}
+Each requirement carries exactly one verification item, R1--R4. Two integrity
+controls apply across all four and exist because the per-requirement checks admit false positives
 (below). Table~\ref{tab:battery} is the compact reference; the definitions follow. Separately, the
 \emph{ruler} itself is certified by the published-number bridge of \S\ref{sec:bridge}---that is a property
 of our measuring apparatus, not of the instrument, and it is reported there.
 
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
-  \item[V1 --- full strength and identity (R1).] Evaluating the fold on the full profile reproduces the
+  \item[R1 --- full strength and identity (R1).] Evaluating the fold on the full profile reproduces the
         frozen tower's full-profile NDCG@10 (full \emph{and} tail) to within a stated, paired-bootstrapped margin---and with an
         \emph{empty} evidence set the ranking is the frozen decoder's exactly, not approximately. The identity half
         is what licenses reading every later curve as evidence about ingestion rather than about a shifted baseline.
-  \item[V2 --- an open set-valued input interface (R2).] Two halves, and only the second can fail. The set half is
+  \item[R2 --- an open set-valued input interface (R2).] Two halves, and only the second can fail. The set half is
         structural: the fold is defined for every $t\ge0$ with no gradient step, because it is a running sum
         over observations. The \emph{open} half is measured: a concept must be a specific direction rather than a
         popularity proxy---ranking its member items above matched non-members in the latent, and lifting the cold
@@ -252,11 +252,11 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         require instead is that the movement be \emph{specific}: folding a like on a concept must move that
         concept's members differently from folding a dislike on it, and differently again from folding some other
         answerable concept.
-  \item[V3 --- monotonicity (R3).] Starting cold, per-question full and tail NDCG@10 \emph{increase} to budget on a
+  \item[R3 --- monotonicity (R3).] Starting cold, per-question full and tail NDCG@10 \emph{increase} to budget on a
         question set fixed in advance, so the rise comes from answer content rather than from adaptive selection.
         Judged by the curve at budget rather than every-step significance, with a canary that a single answer from
         cold already clears the no-answer intercept on both channels.
-  \item[V4 --- expressive answers (R4).] \emph{Sign}: negating every answer lowers NDCG with a CI excluding zero.
+  \item[R4 --- expressive answers (R4).] \emph{Sign}: negating every answer lowers NDCG with a CI excluding zero.
         \emph{Intensity}: neutralising values to ``indifferent'' while freezing membership costs NDCG, quality is
         monotone in the stated level, and graded input beats a fair binarising ablation on identical support---by
         most where the extra bits should matter most, on the short interview before collaborative signal fills in,
@@ -265,11 +265,11 @@ of our measuring apparatus, not of the instrument, and it is reported there.
 
 \emph{Integrity items} (across all four):
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
-  \item[I1 --- existential controls.] Wrong-user, shuffled, and placebo-constant answers through the identical
+  \item[Existential controls.] Wrong-user, shuffled, and placebo-constant answers through the identical
         pipeline \emph{gain nothing} relative to the true-answer arm (a control may legitimately fall \emph{below}
         the no-answer intercept---a stranger's taste is worse than no information, not equivalent to it), and
         duplicating an answer changes nothing (the fold responds to information, not cardinality).
-  \item[I2 --- answers carry no recommender geometry.] Every answer is computed from observed behaviour alone: an
+  \item[Answers carry no recommender geometry.] Every answer is computed from observed behaviour alone: an
         item answer is the user's own rating, and a concept answer is a log watch-lift,
         $\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, formed from the user's watched members $n_c$ and the
         count $e_c$ expected from their volume and the concept's catalogue popularity. Both are read from the
@@ -280,22 +280,22 @@ of our measuring apparatus, not of the instrument, and it is reported there.
 \end{description}
 
 \paragraph{Why the outcome checks alone are insufficient.}
-V1 and V3 are outcome checks, and broken instruments pass both. A \emph{sign-blind} fold that
+R1 and R3 are outcome checks, and broken instruments pass both. A \emph{sign-blind} fold that
 updates from only the \emph{direction} of the queried entity but never the answer \emph{value} still
-reproduces the frozen tower (V1) and still beats a
+reproduces the frozen tower (R1) and still beats a
 random-question control---because beating random certifies that a good question was \emph{selected}, not that the
-answer was \emph{ingested}; only V4's sign-flip and V3's fixed-bank arm expose it. A
-\emph{circular} answer model that generates answers from the instrument's own latent geometry would inflate the V3
+answer was \emph{ingested}; only R4's sign-flip and R3's fixed-bank arm expose it. A
+\emph{circular} answer model that generates answers from the instrument's own latent geometry would inflate the R3
 curve with no transferable signal. The risk is not hypothetical in this literature: evaluations commonly grant the
 simulated user privileged access to the target---PEBOL's simulator answers from the ground-truth item
 description~\cite{austin2024bayesian}, and unified item-and-attribute CRS work assumes the user holds and reveals
-clear preferences over every attribute and item~\cite{deng2021unicorn}. I2 closes this by construction rather than
-by measurement (\S\ref{sec:reqs}). V2, V4 and the two integrity items exist precisely to close these
+clear preferences over every attribute and item~\cite{deng2021unicorn}. The answer-provenance rule closes this by construction rather than
+by measurement (\S\ref{sec:reqs}). R2, R4 and the two integrity items exist precisely to close these
 outcome-check false positives.
 
 We report \emph{both} full and tail NDCG@10 for every gate (a project reporting rule: full-only or tail-only hides the
 effect, which is typically much larger on the tail than on the full catalogue). Every per-build gate has been run and passes
-(Table~\ref{tab:batteryresults}); V1 is reported in full in \S\ref{sec:expdesign}.
+(Table~\ref{tab:batteryresults}); R1 is reported in full in \S\ref{sec:expdesign}.
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{5pt}
@@ -304,20 +304,20 @@ effect, which is typically much larger on the tail than on the full catalogue). 
 \toprule
 Check & One-line criterion & Failure class it excludes \\
 \midrule
-V1 (R1) & The fold reproduces the frozen tower's full/tail NDCG@10 to within a stated, paired-bootstrapped margin; an empty interview is the decoder exactly. & Full-profile regression from the ingestion path. \\
-V2 (R2) & Any $t\ge0$, no gradient step; \emph{and} a concept is a specific direction, not a popularity proxy, with a held-out concept folding from its name alone. & Per-user retraining; a vocabulary fixed at fit time; popularity-parasite concepts. \\
-V3 (R3) & Cold full/tail curve rises to budget on a bank fixed in advance. & Flat model; selection masquerading as ingestion. \\
-V4 (R4) & Sign-flip lowers NDCG; neutralisation costs NDCG; graded beats a fair binarising ablation on the short interview. & Sign-blind and intensity-blind folds. \\
+R1 (R1) & The fold reproduces the frozen tower's full/tail NDCG@10 to within a stated, paired-bootstrapped margin; an empty interview is the decoder exactly. & Full-profile regression from the ingestion path. \\
+R2 (R2) & Any $t\ge0$, no gradient step; \emph{and} a concept is a specific direction, not a popularity proxy, with a held-out concept folding from its name alone. & Per-user retraining; a vocabulary fixed at fit time; popularity-parasite concepts. \\
+R3 (R3) & Cold full/tail curve rises to budget on a bank fixed in advance. & Flat model; selection masquerading as ingestion. \\
+R4 (R4) & Sign-flip lowers NDCG; neutralisation costs NDCG; graded beats a fair binarising ablation on the short interview. & Sign-blind and intensity-blind folds. \\
 \midrule
 \multicolumn{3}{l}{\emph{Integrity items, across all four}}\\
-I1 & Wrong-user, shuffled, placebo, and duplicated answers gain nothing over the true-answer arm. & Cardinality confound; existential leakage. \\
-I2 & Answers come from fold-in behaviour only: no recommender-derived quantity, no target-half information. & Circular answer model; target leakage. \\
+Existential controls & Wrong-user, shuffled, placebo, and duplicated answers gain nothing over the true-answer arm. & Cardinality confound; existential leakage. \\
+Answer provenance & Answers come from fold-in behaviour only: no recommender-derived quantity, no target-half information. & Circular answer model; target leakage. \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Verification: one check per requirement, plus two integrity items.} Each of V1--V4 is stated so
-that it can fail, and each certifies exactly one requirement. I1 and I2 apply across all four and exist because the
+\caption{\textbf{Verification: one check per requirement, plus two integrity items.} Each of R1--R4 is stated so
+that it can fail, and each certifies exactly one requirement. The two integrity controls apply across all four and exist because the
 per-requirement checks admit false positives---a sign-blind fold or a circular answer
-model can pass V1 and V3 while carrying no signal (text). The \emph{ruler} is certified separately by the
+model can pass R1 and R3 while carrying no signal (text). The \emph{ruler} is certified separately by the
 published-number bridge (\S\ref{sec:bridge}), which is a property of the measuring apparatus rather than of the
 instrument.}
 \label{tab:battery}
@@ -349,7 +349,7 @@ Family & Representatives & R1 & R2 & R3 & R4 & One-line verdict \\
 (ii) fold-in linear / closed-form &
   EASE~\cite{steck2019ease}, SLIM, GF-CF~\cite{shen2021gfcf}, BSPM~\cite{choi2023bspm}, Turbo-CF~\cite{park2024turbocf} &
   \cmark & \xmark & \xmark & \xmark &
-  EASE/SLIM hold the bar (V1); the graph filters do not on this ruler. Item-indicator basis $\Rightarrow$ R2, R4 impossible. \\
+  EASE/SLIM hold the bar (R1); the graph filters do not on this ruler. Item-indicator basis $\Rightarrow$ R2, R4 impossible. \\
 (iii) amortised inference encoders &
   Mult-VAE~\cite{liang2018variational}, RecVAE~\cite{ren2020recvae}, EDLAE~\cite{steck2020edlae}, EDDI~\cite{ma2019eddi} &
   \cmark & \xmark & \xmark & \xmark &
@@ -387,10 +387,10 @@ uncertainty-native modelling should read those rows as unscored rather than as f
 \label{tab:taxonomy}
 \end{table}
 
-\begin{sidewaystable}[p]\centering\footnotesize
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.18}
-\begin{tabular}{p{4.1cm}cccc r@{\,/\,}l l p{4.9cm}}
+\begin{sidewaystable}[p]\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{p{3.6cm}cccc r@{\,/\,}l l p{4.4cm}}
 \toprule
 System (rep.\ / cite) & R1 & R2 & R3 & R4 &
   \multicolumn{2}{c}{full/tail NDCG@10} & status & published full-profile anchor \\
@@ -583,8 +583,9 @@ master-table dispositions); only their $x$ position is meaningful. Runnable-but-
 models, graph filters, EDDI, TaNP) are \emph{absent} from the figure and join the plot when their numbers land. The
 star is this chapter's certified instrument at $0.3496$---the only measured point that is simultaneously at the
 frontier bar and at full interview compatibility.
-The instrument sits at $x{=}4$---no published system exceeds two---the only point in the top-right cell: R2 by V2's member lift and its
-open-vocabulary fold, R3 by V3's rising fixed-bank curve, and R4 by V4's sign and intensity arms---each verified rather than asserted (Table~\ref{tab:batteryresults}). The population is otherwise \emph{bimodal}: the entire accuracy corner
+The instrument sits at $x{=}4$---no published system exceeds two---the only point in the top-right cell: R2 by
+member lift and an open-vocabulary fold, R3 by a rising fixed-bank curve, and R4 by the sign and intensity
+arms---each verified rather than asserted (Table~\ref{tab:batteryresults}). The population is otherwise \emph{bimodal}: the entire accuracy corner
 (Pop through RecVAE, $0.343$--$0.354$ at the top) collapses onto $x{=}0$---strong recommenders that can fold items
 and nothing else---while every system with genuine interview machinery sits at $x\ge1$ and reports no
 full-catalogue accuracy at all. The one point plotted at $x{=}3$ is not a rival but our own conjugate posterior-mean
@@ -725,13 +726,13 @@ channel entering as a direction paired with a value (R4). The tower half is buil
 The substrate is a certified shallow recommender---a RecVAE-class amortised encoder or a closed-form
 autoencoder~\cite{ren2020recvae,steck2019ease}---trained once on the full catalogue and then \emph{frozen}. It exposes
 (a) item factor rows $\Q_i\in\R^{d}$, (b) a decoder read-out $s_i(\uu)=\Q_i^\top\uu + \beta_i$ with a learned bias
-$\beta_i$, and (c) the encoder that maps a full interaction set to a latent. Freezing is the guarantee that V1 (full strength preserved) is a property of the substrate, not of the
+$\beta_i$, and (c) the encoder that maps a full interaction set to a latent. Freezing is the guarantee that R1 (full strength preserved) is a property of the substrate, not of the
 fold placed over it. It is a design choice we share with the soft-attribute line rather than one that distinguishes us:
 G\"opfert et al. are explicit that ``we do not use the tag data when training the collaborative filtering
 model''~\cite{gopfert2024cav}, and B\i y\i k et al. train the CF model and the attribute directions
 separately~\cite{biyik2023soft}. We cite that convergence as independent support for the frozen-substrate design. We deliberately do \emph{not} extend the linear basis with concept columns
 (that stays in the item-indicator world and fails R2, because the vocabulary would again be fixed when the
-model is fitted), nor retrain the tower to accommodate a channel, which would put V1 back at risk for no
+model is fitted), nor retrain the tower to accommodate a channel, which would put R1 back at risk for no
 stated gain. The tower is now \emph{selected and certified}: the graded-native set-encoder T2$'$, trained
 once in its pre-registered configuration, scores $0.3496/0.2491$ full/tail on the held-out test cohort---parity with
 the $0.3540/0.2497$ RecVAE bar on the tail, and $1.2\%$ short of it on the full profile---and reproduces the frozen decoder exactly at the empty
@@ -772,7 +773,7 @@ The signed/graded, out-of-catalogue, and continuous legs are the three channels 
 (\S\ref{sec:gap}).
 
 \paragraph{Any direction is a legal observation: an illustration.} The signed/graded leg is delivered and
-measured (V4, Figure~\ref{fig:gradedcurve}). The concept leg is delivered over the genome vocabulary.
+measured (R4, Figure~\ref{fig:gradedcurve}). The concept leg is delivered over the genome vocabulary.
 The third leg---an \emph{arbitrary} direction, including one for an entity that has no catalogue column and
 was never seen in training---is a property of the interface rather than of any particular channel:
 everything downstream of Eq.~\eqref{eq:obs} consumes a pair $(\bphi,y)$, so any entity with an
@@ -847,8 +848,8 @@ the quality of any such interaction would rest on the text adapter whose limits 
   \caption{\textbf{Graded input helps over binarized input, most on the short interview} (ML-25M interview
     harness, full NDCG@10 vs.\ interview length $k$). \textbf{(a)} The same
     revealed set is fed three ways: \emph{graded} (real signed star levels), \emph{likes-only} (sub-threshold
-    answers dropped---exactly what a positive-only tower such as RecVAE does at $r{>}3.5$), and \emph{all-as-like}
-    (every answered item recorded as a $4$-star like---naive implicit binarization). \textbf{(b)} Against the
+    answers dropped---exactly what a positive-only tower such as RecVAE does at $r{>}3.5$), the fair binary
+    comparator. \textbf{(b)} Against the
     fair positive-only baseline, the graded premium is \emph{CI-clean positive on the short interview}---$+0.0147$
     at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$ (CI $[+0.0063,+0.0103]$)---and fades to a tie from
     $k{=}8$ onward ($-0.0006$, CI $[-0.0024,+0.0012]$) as collaborative signal fills in: the extra bits a star
@@ -857,10 +858,11 @@ the quality of any such interaction would rest on the text adapter whose limits 
     (paired CI $[+0.0007,+0.0031]$, $n{=}9{,}281$) over all test users ($0.3496$ vs $0.3457$ full,
     $0.2491$ vs $0.2471$ tail), on identical support. The
     \emph{mechanism} is that a signed answer encodes a dislike (a negative $y_j$ the item-indicator basis cannot
-    express); against the \emph{all-as-like} control, which mislabels dislikes as likes, the apparent premium
-    instead \emph{grows} with $k$ (dotted)---a control artifact (more revealed items $\Rightarrow$ more dislikes
-    corrupted), not value from gradation. Mirroring the star signs costs $-0.2953$ on the full-profile
-    arm of V4 (Table~\ref{tab:batteryresults}). }
+    express. A naive \emph{all-as-like} encoding---every answered item recorded as a like, dislikes included---is
+    far worse than either arm shown and we do not plot it: mislabelling dislikes corrupts more of the input the
+    longer the interview runs, so the gap against it grows with $k$ for a reason that has nothing to do with
+    gradation. Mirroring the star signs costs $-0.2953$ on the full-profile
+    arm of R4 (Table~\ref{tab:batteryresults}). }
   \label{fig:gradedcurve}
 \end{figure}
 
@@ -958,7 +960,7 @@ frozen decoder apply the full collaborative (intersection) structure:
 \begin{equation}\label{eq:cfold}
   \uu \;\leftarrow\; \uu + \sigma\!\bigl(g([\uu;\bphi_c;y_c])\bigr)\;\odot\;h([\uu;\bphi_c;y_c]),
 \end{equation}
-with the gate $g$ and the delta MLP $h$ \emph{zero-initialised} (so at initialisation $\uu$ is unchanged and V1
+with the gate $g$ and the delta MLP $h$ \emph{zero-initialised} (so at initialisation $\uu$ is unchanged and R1
 survives) and the accumulated shift norm-capped per user. In the concept-operator ablation it is monotone in the number of answers to eight
 ($0.1759/0.0841$ full/tail at eight answers, up from $0.1322/0.0503$ at one) and, crucially,
 \emph{redundancy-robust}: feeding it eight \emph{correlated} top-SEL concepts still reaches $0.1685/0.0906$,
@@ -1006,14 +1008,14 @@ components are borrowed; only their conjunction is claimed.
 A gate on what an operator \emph{can} express must be paired with a gate on what the deployed system
 \emph{does} express, and the concept channel is where the distinction bites. The fold of
 Eq.~\eqref{eq:cfold} is sign-capable: negating every \emph{concept} answer moves NDCG by $-0.2012$ with a
-clean CI, so the concept channel passes V4's sign-flip test on its own operator. But that certifies the operator, not the interview. Driven down a
+clean CI, so the concept channel passes R4's sign-flip test on its own operator. But that certifies the operator, not the interview. Driven down a
 realistic, user-independent question bank, most concept answers are weak positives, and an answer model
 that never emits a negative can accumulate them until the ranking drifts \emph{below} the no-answer
 intercept while every capability gate still reads green.
 
 We therefore evaluate the channel in \emph{deployment currency}: a fixed, user-independent bank under a
 per-question budget where every question spends budget whether or not it is answered, scored at the
-endpoint against the intercept (V3's fixed-bank setting). The acceptance form of the concept
+endpoint against the intercept (R3's fixed-bank setting). The acceptance form of the concept
 channel is not ``can the operator express dislike'' but ``does the realizable interview stay above the
 no-answer intercept at budget.'' This is the criterion the signed four-band estimator of
 \S\ref{sec:concept:est} is built to satisfy, and \S\ref{sec:concept:results} reports it.
@@ -1144,24 +1146,24 @@ what this chapter owes the companion method chapter, whose job is to close the g
 line of Golbandi et al.~\cite{golbandi2011adaptive} on \emph{this} instrument and harness. The instrument chapter's job
 is to make the gap \emph{measurable}; closing it is the method chapter's.
 
-\paragraph{The concept fold sits on the frozen tower, and inherits V1 by construction.} The signed concept fold is a
+\paragraph{The concept fold sits on the frozen tower, and inherits R1 by construction.} The signed concept fold is a
 trained fold-to-point over the \emph{frozen} certified tower rather than a set of concept tokens trained into the
-tower itself. That choice is what makes V1 free rather than re-earned: the fold's final layer is zero-initialised,
+tower itself. That choice is what makes R1 free rather than re-earned: the fold's final layer is zero-initialised,
 so at an empty interview it is bit-identical to the tower on the full profile, and no concept training can put the
 certified full-profile number at risk. It also keeps the channel replaceable---a better concept operator can be
 fitted and swapped without retraining or recertifying the recommender, which is the property that makes this an
 instrument rather than a model.
 
 \paragraph{The methodological consequence for verification design.} The concept channel's near-miss is the sharpest
-argument in this chapter for \emph{why verification has the shape it does}. A capability check (V4's sign-flip) passed on
+argument in this chapter for \emph{why verification has the shape it does}. A capability check (R4's sign-flip) passed on
 a fold that, as actually driven down a realistic question bank, never emitted a negative answer---the answer model, not
 the operator, was sign-blind, and the operator's certified capability was vacuous in deployment. Only the
 deployment-currency evaluation---a fixed, user-independent bank under a per-question budget, scored at the endpoint
-(V3's fixed-bank setting)---exposed it, because there the declining curve penalises an answer model that
+(R3's fixed-bank setting)---exposed it, because there the declining curve penalises an answer model that
 never exercises the negative half. This is a general failure class, not a concept-specific accident: \emph{a gate on
 what an operator \emph{can} do must be paired with a gate on what the deployed system \emph{does}}. We record the
 deployment-currency endpoint as the concept channel's acceptance form, and fold the signed-retrain numbers into
-the V3/V4 rows of Table~\ref{tab:batteryresults}.
+the R3/R4 rows of Table~\ref{tab:batteryresults}.
 
 % =====================================================================
 \section{Experimental design}\label{sec:expdesign}
@@ -1169,8 +1171,8 @@ the V3/V4 rows of Table~\ref{tab:batteryresults}.
 
 \subsection{Baseline bank}
 The baseline bank (Table~\ref{tab:baselines}) is three tiers: classic floors that every curve must clear
-(Dacrema et al.~\cite{dacrema2019progress} demands them), the full-profile SOTA bar that decides V1, and the
-elicitation-compatible rivals that decide V3/V4. Reported anchors are on the systems' \emph{own} splits and are not
+(Dacrema et al.~\cite{dacrema2019progress} demands them), the full-profile SOTA bar that decides R1, and the
+elicitation-compatible rivals that decide R3/R4. Reported anchors are on the systems' \emph{own} splits and are not
 comparable to ours until bridged (\S\ref{sec:bridge}); we print them only to show what parity on this protocol will mean.
 
 \begin{table}[t]\centering\small
@@ -1181,12 +1183,12 @@ comparable to ours until bridged (\S\ref{sec:bridge}); we print them only to sho
 Baseline & Type & Reported anchor & Why the slot \\
 \midrule
 \multicolumn{4}{l}{\emph{Tier 1 --- classic floors (must clear)}}\\
-Most-Popular & non-personalised & popb floor (our harness) & the ``did we learn anything'' line; the V4 curve must clear it at budget. \\
+Most-Popular & non-personalised & popb floor (our harness) & the ``did we learn anything'' line; the R4 curve must clear it at budget. \\
 Item-kNN (cosine) & neighbourhood & ML-20M NDCG@100 $\sim0.36$ class & instant fold-in; Cremonesi-era strong-simple~\cite{cremonesi2010performance}. \\
 PureSVD / iALS-WMF & linear MF fold-in & WMF ML-20M NDCG@100 $0.386$ & cheap fold-in reference. \\
 SLIM & sparse linear item-item & ML-20M NDCG@100 $0.401$ & direct EASE ancestor. \\
 \midrule
-\multicolumn{4}{l}{\emph{Tier 2 --- full-profile SOTA (the R1 / V1 bar)}}\\
+\multicolumn{4}{l}{\emph{Tier 2 --- full-profile SOTA (the R1 / R1 bar)}}\\
 EASE~\cite{steck2019ease} & closed-form item-item & NDCG@100 $0.420$ & the bar to tie; item-only shows the R3 gap. \\
 RecVAE~\cite{ren2020recvae} & amortised VAE & NDCG@100 $0.442$ & top of the ML-20M split; our in-house frontier. \\
 Mult-VAE~\cite{liang2018variational} & amortised VAE & NDCG@100 $0.426$ (ours $0.422$) & canonical amortised anchor; near-snap. \\
@@ -1195,7 +1197,7 @@ EDLAE~\cite{steck2020edlae} & denoising higher-order EASE & $\approx$ RecVAE cla
 GF-CF / BSPM / Turbo-CF~\cite{shen2021gfcf,choi2023bspm,park2024turbocf} & closed-form graph filter & SOTA on Gowalla/Yelp (ML-20M not reported) & admit only if re-run on our split, which Turbo-CF now is: $0.2622/0.1621$, val-tuned. \\
 SASRec / BERT4Rec~\cite{kang2018sasrec,sun2019bert4rec} & self-attentive sequence & strong next-item (not this split) & sequence fold-in; SASRec measured at $0.1486/0.0805$, far off the bar. \\
 \midrule
-\multicolumn{4}{l}{\emph{Tier 3 --- elicitation-compatible rivals (decide V3/V4)}}\\
+\multicolumn{4}{l}{\emph{Tier 3 --- elicitation-compatible rivals (decide R3/R4)}}\\
 EDDI / Partial-VAE~\cite{ma2019eddi} & set-encoder $+$ info-gain & non-recsys (UCI/MNIST) & the R2 architecture; myopic info-gain baseline. \\
 B\i y\i k soft-attributes~\cite{biyik2023soft} & Gaussian belief $+$ EVOI & own elicitation task (16 users, slates of 5) & the central threat; open-vocabulary and R1-bar wedge. \\
 ConTS~\cite{li2021seamlessly} & Thompson bandit, item$+$attr arms & cold-start CRS metrics & unified-space $+$ uncertainty; fixed schema. \\
@@ -1206,14 +1208,14 @@ RBMF / Functional-MF~\cite{liu2011wisdom,zhou2011functional} & MF-embedding seed
 \bottomrule
 \end{tabular}
 \caption{Baseline bank. Anchors are on each system's own split/metric and are \emph{not} comparable to ours until the
-bridge (\S\ref{sec:bridge}) is run; V1 is decided against EASE$+$RecVAE, V3/V4 against the Tier-3 rivals plus a
+bridge (\S\ref{sec:bridge}) is run; R1 is decided against EASE$+$RecVAE, R3/R4 against the Tier-3 rivals plus a
 random-question control. Any deep-net ``SOTA'' not snapping to Tier-2 numbers on our split is
 inadmissible~\cite{dacrema2019progress}.}
 \label{tab:baselines}
 \end{table}
 
 \subsection{Evaluation protocol}
-The protocol items below instantiate the certification bridge and the two outcome checks V1 and V4. The remaining
+The protocol items below instantiate the certification bridge and the two outcome checks R1 and R4. The remaining
 verification items and the two integrity items, which close the false positives those outcome checks admit, are
 specified in Table~\ref{tab:battery}, and each headline result is reported against them.
 
@@ -1255,7 +1257,7 @@ being compared with another unbridged number. Only EASE, RecVAE and (as a near-s
 status on this ruler. The
 bifurcation argument must stand on those or not at all.
 
-\paragraph{(ii) V1 --- full-profile on ML-25M, items-only.}
+\paragraph{(ii) R1 --- full-profile on ML-25M, items-only.}
 On the baselines' native input (items only), evaluate full and tail NDCG@10 on the full ML-25M catalogue with a
 paired per-user bootstrap CI, confirming the instrument's fold reproduces the frozen tower and sits at parity
 with EASE/RecVAE on the tail, within a stated margin on the full profile. The item-only baselines are measured (Table~\ref{tab:g0}).
@@ -1283,10 +1285,10 @@ EASE~\cite{steck2019ease} & $0.3476$ & $0.2441$ & @100 $0.4375$ \\
 RecVAE (paper config; our run)~\cite{ren2020recvae} & $\mathbf{0.3540}$ & $\mathbf{0.2497}$ & @100 $0.4537$; nominal frontier \\
 \midrule
 \multicolumn{4}{l}{\emph{Ours}}\\
-Set-encoder tower T2$'$ (certified) & $0.3496$ & $0.2491$ & @100 $0.4492$; \textbf{V1}: tail parity ($-0.0006$, CI $[-0.0020,+0.0008]$), full $-0.0043$ (CI $[-0.0059,-0.0028]$) \\
+Set-encoder tower T2$'$ (certified) & $0.3496$ & $0.2491$ & @100 $0.4492$; \textbf{R1}: tail parity ($-0.0006$, CI $[-0.0020,+0.0008]$), full $-0.0043$ (CI $[-0.0059,-0.0028]$) \\
 \bottomrule
 \end{tabular}
-\caption{V1 --- full-profile, items-only, on the canonical Liang-recipe strong-generalization ML-25M split
+\caption{R1 --- full-profile, items-only, on the canonical Liang-recipe strong-generalization ML-25M split
 (catalog restricted to the 18{,}430-item project catalog, train vocabulary 18{,}359; train 140{,}768 / val 10k / test 10k users; per-user
 80/20 fold-in; seed 98765), NDCG@10 (full and tail); tail $=$ top-33\%-train-mass head mask (190 head items);
 scored with the decoder's learned bias. The belief-MF, RBMF and Golbandi rows are best-effort cores of the
@@ -1304,10 +1306,10 @@ as a system separated from EASE. All rows share the same split, cohort, tail def
 and NDCG@10 routine (verified by code inspection). The point of interest for the instrument is that on this ruler a
 properly-trained amortised VAE---not a closed-form model---sits at the top of the frontier; the instrument's R1
 obligation is precisely to \emph{stand on this bar}, reproducing RecVAE-class full/tail accuracy through the frozen
-tower and then preserving it through the fold at V1. We report the whole frontier rather than excluding the stronger
+tower and then preserving it through the fold at R1. We report the whole frontier rather than excluding the stronger
 baselines.
 
-\paragraph{V1 is passed: the interview tower reaches parity on the tail at a $1.2\%$ full-profile cost, and is exactly the frozen decoder when the interview is
+\paragraph{R1 is passed: the interview tower reaches parity on the tail at a $1.2\%$ full-profile cost, and is exactly the frozen decoder when the interview is
 empty.} One certified training run of the graded-native set-encoder tower T2$'$---a single run of the pre-registered
 winning configuration, selected on validation and scored once on the held-out test cohort---reaches full/tail NDCG@10
 $\mathbf{0.3496/0.2491}$ against the RecVAE bar's $0.3540/0.2497$. Under a paired per-user bootstrap on the same
@@ -1330,7 +1332,7 @@ Interviewability costs the architecture something on the full profile, and the i
 roughly half the cost. The channel is \emph{most} valuable on the short interview, where the extra bits
 arrive before collaborative signal can fill in (Figure~\ref{fig:gradedcurve}), but it is not free there and
 worthless here.
-Second, the V1 \emph{identity} half holds exactly and
+Second, the R1 \emph{identity} half holds exactly and
 not merely statistically: with an empty evidence set the tower emits a zero latent ($|\bmu_0|=0$ to numerical
 precision) and its scores are a rank-identical image of the frozen decoder's learned bias (Spearman $1.0000$), which
 is what licenses reading every later interview curve as evidence about \emph{ingestion} rather than about a shifted
@@ -1338,7 +1340,7 @@ baseline. The cold intercept of the interview curves in this chapter, $0.1279/0.
 non-personalised read-out; the zero-item concept curves of \S\ref{sec:concept:results} are scored under
 their own protocol and carry their own intercept, $0.1277/0.0267$, which is why the two are never
 compared across.
-Accuracy is therefore settled for this instrument: V1 is evaluated through the same fold that every later
+Accuracy is therefore settled for this instrument: R1 is evaluated through the same fold that every later
 curve uses, so the full-profile standing reported here is a property of the ingestion path itself rather
 than of a separate scoring route (\S\ref{sec:batteryresults}). Ranking here reads the folded point directly; whether an uncertainty estimate over
 that point would help a policy \emph{choose} questions is the companion chapter's subject, not a claim of this one.
@@ -1355,19 +1357,19 @@ Table~\ref{tab:batteryresults} reports every gate.
 \toprule
 Check & Criterion & Measured & Verdict \\
 \midrule
-V1 & parity on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, parity), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
-V2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction (the fold is a running sum, $t{=}0$ is the prior). Open half measured: the direction ranks its members at AUC $0.94$ whitened (raw $0.44$, below chance---whitening is what makes a concept a direction); the fold is \emph{concept-specific}---a like lifts $c$'s members to AUC $0.626$, a dislike pushes them to $0.416$, and folding a \emph{different} answerable concept leaves them at chance ($0.498$), giving a sign contrast of $+0.2096$ (CI $[+0.1986,+0.2208]$) and an identity contrast of $+0.1278$ (CI $[+0.1195,+0.1361]$); it beats the concept's own popularity projection by $+0.0087$; and a concept \emph{held out of the adapter's fit} folds from its name alone and recovers its own top-10 at $>300\times$ chance. Deployed, on the certified fold with no item history at all, one concept answer clears the no-answer intercept ($0.1327/0.0412$ vs $0.1277/0.0267$) and sixteen reach $0.1498/0.0673$ & \textbf{PASS} \\
-V3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1574\!\to\!0.2609$ full and $0.0505\!\to\!0.1062$ tail from $q{=}2$ to $q{=}16$; fixed-bank rise $+0.1035$ (CI $[0.1000,0.1071]$), monotone $\rho=1.0$. The rise is \emph{ingestion}, not selection: the same tower over a \emph{random} bank rises only $+0.0051$ across the same budgets, because its questions are mostly unanswered ($0.79$ of the first two answered, against $1.97$ for the fixed bank) & \textbf{PASS}$^\ddagger$ \\
-V4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation to ``indifferent'' $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho=0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$, and, at full profile on identical support, $+0.0039$ full (CI $[+0.0025,+0.0053]$) / $+0.0020$ tail (CI $[+0.0007,+0.0031]$) & \textbf{PASS} \\
+R1 & parity on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, parity), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
+R2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction (the fold is a running sum, $t{=}0$ is the prior). Open half measured: the direction ranks its members at AUC $0.94$ whitened (raw $0.44$, below chance---whitening is what makes a concept a direction); the fold is \emph{concept-specific}---a like lifts $c$'s members to AUC $0.626$, a dislike pushes them to $0.416$, and folding a \emph{different} answerable concept leaves them at chance ($0.498$), giving a sign contrast of $+0.2096$ (CI $[+0.1986,+0.2208]$) and an identity contrast of $+0.1278$ (CI $[+0.1195,+0.1361]$); it beats the concept's own popularity projection by $+0.0087$; and a concept \emph{held out of the adapter's fit} folds from its name alone and recovers its own top-10 at $>300\times$ chance. Deployed, on the certified fold with no item history at all, one concept answer clears the no-answer intercept ($0.1327/0.0412$ vs $0.1277/0.0267$) and sixteen reach $0.1498/0.0673$ & \textbf{PASS} \\
+R3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1574\!\to\!0.2609$ full and $0.0505\!\to\!0.1062$ tail from $q{=}2$ to $q{=}16$; fixed-bank rise $+0.1035$ (CI $[0.1000,0.1071]$), monotone $\rho=1.0$. The rise is \emph{ingestion}, not selection: the same tower over a \emph{random} bank rises only $+0.0051$ across the same budgets, because its questions are mostly unanswered ($0.79$ of the first two answered, against $1.97$ for the fixed bank) & \textbf{PASS}$^\ddagger$ \\
+R4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation to ``indifferent'' $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho=0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$, and, at full profile on identical support, $+0.0039$ full (CI $[+0.0025,+0.0053]$) / $+0.0020$ tail (CI $[+0.0007,+0.0031]$) & \textbf{PASS} \\
 \midrule
-I1 & wrong-user / shuffle / placebo / duplicate gain nothing & true arm beats shuffled by $+0.0371$ and placebo by $+0.0168$ (both CI-clean); duplicate assert fired; wrong-user $-0.0986$ (a stranger's taste is worse than silence) & \textbf{PASS} \\
-I2 & answers carry no recommender geometry, no target half & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts, both read from the fold-in only & \textbf{by construction} \\
+Existential controls & wrong-user / shuffle / placebo / duplicate gain nothing & true arm beats shuffled by $+0.0371$ and placebo by $+0.0168$ (both CI-clean); duplicate assert fired; wrong-user $-0.0986$ (a stranger's taste is worse than silence) & \textbf{PASS} \\
+Answer provenance & answers carry no recommender geometry, no target half & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts, both read from the fold-in only & \textbf{by construction} \\
 \bottomrule
 \end{tabular}
 \caption{\textbf{Verification, measured.} Every requirement is checked and every check passes.
-$^\ddagger$V3's cold curve is measured
+$^\ddagger$R3's cold curve is measured
 on a bank filtered per user to the questions they can answer, so it isolates \emph{ingestion} from question
-\emph{availability}; a deployed static sequence faces availability separately (\S\ref{sec:concept}). V4's sign and
+\emph{availability}; a deployed static sequence faces availability separately (\S\ref{sec:concept}). R4's sign and
 neutralisation arms are \emph{full-profile} corruptions---the user's whole rated history is folded and then flipped
 or neutralised---so their uncorrupted references ($0.4298$ and $0.4198$ full, $0.2999$ tail) sit above the $80/20$
 fold-in values of Table~\ref{tab:g0}, which withhold a fifth of each profile as targets. The verdict is the
@@ -1376,12 +1378,12 @@ fold-in values of Table~\ref{tab:g0}, which withhold a fifth of each profile as 
 \end{table}
 
 \paragraph{Within an answerable bank, question choice matters far less than answerability itself.}
-In the V3 curves, a \emph{random} question drawn from the answerable bank beats popularity-ranked items at
+In the R3 curves, a \emph{random} question drawn from the answerable bank beats popularity-ranked items at
 $q{=}1,2,4,8$ (e.g.\ $0.2358$ vs $0.2230$ full at $q{=}8$) and is only overtaken at $q{=}16$ ($+0.0022$,
 CI-clean). HELF and an uncertainty-guided selector are likewise within noise of random until the largest
 budget, where that selector wins by $+0.0036$ (CI $[0.0016,0.0057]$)---a selection result we report for
 completeness and do not claim, selection being the companion chapter's subject. This is not a
-contradiction of V3's fixed-bank arm, whose random arm is drawn from the \emph{whole catalogue} and is
+contradiction of R3's fixed-bank arm, whose random arm is drawn from the \emph{whole catalogue} and is
 therefore mostly unanswerable: on the certified tower the fixed bank has $1.97$ of a user's first two
 questions answered against $0.79$ for the whole-catalogue random arm, and rises $+0.1035$
 (CI $[0.1000,0.1071]$) from $q{=}2$ to $q{=}16$ where the random arm rises $+0.0051$. The two ``random''
@@ -1390,12 +1392,12 @@ lesson is that once a bank is restricted to answerable questions, \emph{which} o
 less than that they are answerable---which is precisely why the selection problem is deferred to the
 companion chapter and why we decline to claim a selection result here.
 
-\paragraph{(iii) V4 --- per-question curves.}
+\paragraph{(iii) R4 --- per-question curves.}
 Cold-start per-question NDCG@10 curves (full and tail) versus a random-question control. Items are foldable by all
 baselines; mixed channels (concepts, signed values, continuous tokens) are foldable only by our instrument, which is
 the point of the comparison---the rivals cap out at what an item-only interview can carry. Symmetric access is
 enforced where a baseline \emph{can} fold a channel; where it structurally cannot, that is reported as an architecture
-limit, not hidden. The items-only V3 curves and the V4 sign and intensity arms are measured
+limit, not hidden. The items-only R3 curves and the R4 sign and intensity arms are measured
 (\S\ref{sec:batteryresults}), and the mixed-channel comparison is reported in \S\ref{sec:concept:results}
 under one strategy-free criterion. No item-only baseline appears in that comparison, because none can fold
 a concept at all---which is the architecture limit itself, argued in (iv) below.
@@ -1495,7 +1497,7 @@ correct. R1 exists to close it.
         licensed---the ML-25M and ML-20M numbers live on different rulers.
   \item \textbf{Monotonicity is empirical, not a theorem.} Conjugate-Gaussian updates are monotone in expected
         utility~\cite{good1967principle,blackwell1953equivalent} \emph{only in expectation}, and only if the ranker acts optimally under the
-        belief---which a fixed dot-product / NDCG ranker does not. R4 (and V4's rising curve) is therefore a
+        belief---which a fixed dot-product / NDCG ranker does not. R3, and the rising curve that checks it, is therefore a
         \emph{measured} property with a per-question CI, not a guarantee; a truthful answer can in principle still
         lower NDCG at a given step, and we report any such step rather than suppress it.
   \item \textbf{The protocol discards sub-threshold interactions.} The canonical recipe filters to
@@ -1514,8 +1516,8 @@ correct. R1 exists to close it.
         masking the disliked items out of the candidate pool would \emph{not} be a repair: it would supply
         every model with a dislike-avoidance oracle the models themselves were denied, and in doing so
         remove precisely the items a dislike-aware recommender earns its advantage by demoting.
-  \item \textbf{Answers come from recorded behaviour.} V3 and V4 are measured under the answer model that
-        integrity item I2 fixes: an item answer is the user's own recorded rating and a concept answer is a log
+  \item \textbf{Answers come from recorded behaviour.} R3 and R4 are measured under the answer model that
+        the answer-provenance rule fixes: an item answer is the user's own recorded rating and a concept answer is a log
         watch-lift over raw counts and item marginals, so no recommender-derived quantity can enter an answer and
         the self-simulator inversion is closed by construction rather than by measurement. These are real
         preferences, but they are not a person responding to a rendered question, and the chapter makes no claim
