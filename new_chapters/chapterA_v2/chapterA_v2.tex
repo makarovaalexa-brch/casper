@@ -1128,16 +1128,18 @@ construction---under four rankings of the same question banks: \textsc{pop} (mos
 (pure discrimination), and \textsc{expinfo} $=P(\text{answered})\cdot H(\text{bands}\mid\text{answered})$.
 
 Under \textsc{polar} the concept channel beats the item channel on \emph{both} metrics at \emph{every}
-budget, every difference separated by a paired per-user bootstrap: at one question $+0.0042$ full
-(CI $[+0.0016,+0.0067]$) and $+0.0120$ tail (CI $[+0.0071,+0.0171]$); at sixteen, $+0.0115$ full
-(CI $[+0.0054,+0.0177]$) and $+0.0297$ tail (CI $[+0.0227,+0.0366]$). Under the other three rankings the
+budget, every difference separated by a paired per-user bootstrap: at one question $+0.0045$ full
+(CI $[+0.0017,+0.0073]$) and $+0.0109$ tail (CI $[+0.0062,+0.0159]$); at eight, $+0.0189$ full
+(CI $[+0.0140,+0.0238]$) and $+0.0310$ tail (CI $[+0.0243,+0.0374]$); at sixteen, $+0.0146$ full
+(CI $[+0.0094,+0.0197]$) and $+0.0265$ tail (CI $[+0.0204,+0.0325]$). Under the other three rankings the
 item channel wins full accuracy decisively---at $m{=}16$ under \textsc{pop} by $-0.0720$
 (CI $[-0.0798,-0.0641]$)---and the tail difference is mostly not separated.
 
 The mechanism is structural rather than a property of our fold, and it is measurable directly. A
 maximally divisive \emph{item} is, by construction, one that few people have seen: the \textsc{polar}
 item bank is answered $4.8\%$ of the time, so it burns almost every question and the item arm collapses
-to $0.1352/0.0409$ at sixteen questions, barely above the $0.1277/0.0267$ no-answer intercept. A
+to $0.1352/0.0409$ at sixteen questions, barely above the $0.1277/0.0267$ no-answer intercept, while the
+concept arm reaches $0.1498/0.0673$. A
 maximally divisive \emph{concept} aggregates hundreds of films and stays answerable $97.2\%$ of the time
 \emph{while still splitting people}. Concepts decouple discrimination from answerability; items cannot.
 This is the R2 case in its strongest form: an instrument restricted to catalogue items cannot ask the
@@ -1414,7 +1416,7 @@ Table~\ref{tab:batteryresults} reports every gate.
 Check & Criterion & Measured & Verdict \\
 \midrule
 V1 & parity on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, parity), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
-V2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction (the fold is a running sum, $t{=}0$ is the prior). Open half measured: the direction ranks its members at AUC $0.94$ whitened (raw $0.44$, below chance---whitening is what makes a concept a direction); the fold is \emph{concept-specific}---a like lifts $c$'s members to AUC $0.626$, a dislike pushes them to $0.416$, and folding a \emph{different} answerable concept leaves them at chance ($0.498$), giving a sign contrast of $+0.2096$ (CI $[+0.1986,+0.2208]$) and an identity contrast of $+0.1278$ (CI $[+0.1195,+0.1361]$); it beats the concept's own popularity projection by $+0.0087$; and a concept \emph{held out of the adapter's fit} folds from its name alone and recovers its own top-10 at $>300\times$ chance. Deployed, on the certified fold with no item history at all, one concept answer clears the no-answer intercept ($0.1323/0.0422$ vs $0.1277/0.0267$) and sixteen reach $0.1467/0.0705$ & \textbf{PASS} \\
+V2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction (the fold is a running sum, $t{=}0$ is the prior). Open half measured: the direction ranks its members at AUC $0.94$ whitened (raw $0.44$, below chance---whitening is what makes a concept a direction); the fold is \emph{concept-specific}---a like lifts $c$'s members to AUC $0.626$, a dislike pushes them to $0.416$, and folding a \emph{different} answerable concept leaves them at chance ($0.498$), giving a sign contrast of $+0.2096$ (CI $[+0.1986,+0.2208]$) and an identity contrast of $+0.1278$ (CI $[+0.1195,+0.1361]$); it beats the concept's own popularity projection by $+0.0087$; and a concept \emph{held out of the adapter's fit} folds from its name alone and recovers its own top-10 at $>300\times$ chance. Deployed, on the certified fold with no item history at all, one concept answer clears the no-answer intercept ($0.1327/0.0412$ vs $0.1277/0.0267$) and sixteen reach $0.1498/0.0673$ & \textbf{PASS} \\
 V3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1574\!\to\!0.2609$ full and $0.0505\!\to\!0.1062$ tail from $q{=}2$ to $q{=}16$; fixed-bank rise $+0.1035$ (CI $[0.1000,0.1071]$), monotone $\rho=1.0$. The rise is \emph{ingestion}, not selection: the same tower over a \emph{random} bank rises only $+0.0051$ across the same budgets, because its questions are mostly unanswered ($0.79$ of the first two answered, against $1.97$ for the fixed bank) & \textbf{PASS}$^\ddagger$ \\
 V4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation to ``indifferent'' $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho=0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), $+0.0083$ at $k{=}4$, and, at full profile on identical support, $+0.0039$ full (CI $[+0.0025,+0.0053]$) / $+0.0020$ tail (CI $[+0.0007,+0.0031]$) & \textbf{PASS} \\
 \midrule
