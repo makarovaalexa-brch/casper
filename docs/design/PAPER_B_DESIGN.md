@@ -363,3 +363,56 @@ reimplementation red flag; must vanish or be explained before Act 1 prints.
 **First run of the new arc:** the channel-flip-vs-depth curve (dispersion + best-channel at
 every interview depth under closed vs open openers) — CPU-only, certified artifacts, no LLM;
 simultaneously the Act-2 centerpiece and the Act-4 seed.
+
+---
+
+# ADDENDUM 2026-08-04 (3): ACT-1 BASELINE ROSTER (Opus lit survey + internal audit; full table
+in `external_literature/findings/adaptive_elicitation_baselines.md`)
+
+**Framing correction from the survey:** the strongest static elicitor in the lit is NOT
+popularity/RBMF — it is **DRE (Kweon WWW'20)**, an end-to-end learned seed set that beat
+RBMF/RMVA on ML-20M NDCG@10 (public PyTorch). And the adaptive bar that dates Golbandi is
+**PERE (UAI'24)**: frozen-embedding region-based elicitation, DPP burn-in + halfspace-cut
+info-gain, MovieLens NDCG@10 — its whole thesis is that personalized adaptive beats fixed
+seeds. Act 1's question is live in the 2020s literature, not a strawman. Neither's published
+numbers are citable as a bar (different split/budget) — both re-run on our ruler.
+
+**ROSTER (in-table):**
+1. **DRE** — must; the learned static bar; retrain per k (M, 2–3d).
+2. **PERE** — must; reimplement (no code): DPP + halfspace cuts + LP on the frozen tower
+   embedding (M–H, 4–6d). Headline "3–10% rel." is search-summary grade — verify before quoting.
+3. **GLM-UCB + Thompson over the existing `belief_mf` posterior** — must; NICF's own baselines;
+   read-out change, <1d. Turns "one adaptive method" into "the bandit family".
+4. **EDDI** — must; checkpoint ALREADY TRAINED (full-profile 0.2153/0.1077, Aug 3); wire into
+   RECS (one line). The arm an active-learning reviewer looks for first.
+5. **Golbandi SPLIT SEARCH** — must-build (1–2d): only his leaf/consumer half exists; the
+   adaptive tree selector is not implemented on the current stack (all archived impls dead).
+6. **IGCN per-answer re-clustering** — must-build (<1d): the 2025 tree line still benchmarks
+   against it; our entropy0/helf are static orders, not IGCN.
+7. NICE: RMVA (~50 lines, named baseline of both DRE and PERE); fMF; 2025 pairwise/attribute
+   tree MECHANISM only (concept-question arm; never its Yahoo-RMSE numbers); PEBOL acquisition
+   with behavioural answers as one LLM-free ablation row.
+
+**EXCLUDED with stated reasons (never table their numbers):** NICF/RLT4Rec as published
+(cumulative reward DURING probing, no post-interview held-out ranking); EAR/SCPR/UNICORN/
+ConTS/CRM (omniscient target-item simulator, SuccessRate@turn, closed schema); PEBOL as
+published (100% LLM-simulated preferences); 2025 tree numbers (Yahoo RMSE). Cite 2026
+arXiv:2605.00696 as evidence greedy one-step-lookahead entropy is STILL the SOTA criterion
+(defends our greedy selector choice), and arXiv:2405.00554 (IPS selection bias) as the
+confound our fixed candidate pool guards.
+
+**HARNESS GAP (blocking, from the internal audit):** the interview harness has ZERO adaptive
+question selectors — all six arms are static global orders; golbandi_leaf is a consumer, not a
+selector. Step one of Act 1 is a new harness branch where the selector sees answers-so-far and
+chooses the next question per user (the `mode="raw"` hook is the template). Also: greedy
+prefix-optimal static (strongest-static comparator) was last computed on the pre-certification
+tower — re-run `strategy_channel_suite.py --greedy` on i26c ep31 (~9.5h) before any Act-1 row
+prints. TaNP no-floor run (Aug 4) lands BELOW MostPop on zero-answer arms (~0.101 vs 0.1626)
+— report honestly, produce the floored arm too.
+
+**Anomaly RESOLVED-in-principle:** Golbandi-adaptive-below-static is a published phenomenon —
+Sepliarskaia RecSys'18 report the same inversion with the same mechanism (tree splits on a
+variance surrogate ≠ task loss); our archived TREE_VS_STATIC replication adds a second
+measured mechanism (near-chain trees, low-n side branches fit cohort noise: in-sample tree
+wins, held-out −0.0094 [−0.0158,−0.0033]). Act 1 explains the inversion with citations +
+measurement instead of hiding it.
