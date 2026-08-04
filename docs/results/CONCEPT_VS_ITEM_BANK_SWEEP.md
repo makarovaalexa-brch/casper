@@ -231,3 +231,30 @@ negative** by m=8. The defensible claims are:
 Claim (1) is the one the chapter should carry, with the mechanism already recorded above: a divisive item
 is one few people have seen (4.8% answered) so the item arm collapses, while a divisive concept stays
 97.2% answerable.
+
+---
+
+# CERTIFIED CHANNEL IS cv3 ep8 (2026-08-04, author ruling: prefer the simpler architecture)
+
+`models/i26c_ep31/concept_cv3_ep08.pt` — hidden 256, keep_meh FALSE, **464k params** vs cv5's 1.24M.
+
+Re-selected under the FIXED ranked bank (the earlier cv3 pick of ep7 was made under the random-draw bug).
+cv3 ep8 is not merely indistinguishable from cv5 ep24, it is **better**: SEL **0.1411** vs 0.1381, and
+m16 **.1498/.0673** vs .1467/.0705. The simpler model wins outright, so the eleven hours cv5 cost bought a
+negative result twice over — no gain, and the wider net was slightly worse.
+
+**cv3 ep8, `polar` bank, all ten cells SEPARATED (paired, n=1500 full / 1448 tail):**
+
+| m | concept | item | full Δ | tail Δ |
+|---|---|---|---|---|
+| 1 | .1327/.0412 | .1281/.0302 | +.0045 [+.0017,+.0073] | +.0109 [+.0062,+.0159] |
+| 2 | .1357/.0463 | .1282/.0313 | +.0075 [+.0041,+.0108] | +.0151 [+.0097,+.0205] |
+| 4 | .1415/.0521 | .1312/.0329 | +.0103 [+.0059,+.0147] | +.0192 [+.0138,+.0245] |
+| 8 | **.1492/.0656** | .1303/.0346 | **+.0189** [+.0140,+.0238] | **+.0310** [+.0243,+.0374] |
+| 16 | .1498/.0673 | .1352/.0409 | +.0146 [+.0094,+.0197] | +.0265 [+.0204,+.0325] |
+
+Full-profile margins are **larger than cv5's at every budget**. The other three banks behave as before:
+items win full decisively, tail mostly not separated.
+
+**Everything above about cv5 stands as the reason we reverted** — the null result is what licensed
+choosing the smaller model, and it should be kept, not deleted.
