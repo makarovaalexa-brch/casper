@@ -9,6 +9,29 @@ Orientation: end-state → `docs/VISION.md` · current status → `docs/STATE.md
 - **No LLM API calls without explicit author approval.**
 - **Fable oversees, Opus/Sonnet execute** — Fable = strategy/design/review/final-verdict only; Opus for research & hard coding, Sonnet for mechanical work (abstracts, tabulation, refactors, plots). Fable never reads the repo broadly or does groundwork itself — if a Fable task looks token-heavy, stop and ask the author first.
 
+## Unattended / overnight work — wakeup prompts are SELF-AUTHORED, treat them accordingly
+
+Each wakeup prompt is written by the previous turn. By the time it fires its provenance is gone and it
+reads like a directive. On the night of 2026-08-03/04 this produced four distinct failures, so:
+
+- **Quote the author's goal VERBATIM at the top of every wakeup prompt, marked `AUTHOR SAID:`.** Everything
+  else in the prompt is marked `MINE (working notes)`. Re-read the author line first each cycle and check
+  the plan still serves *it*, not the previous cycle's paraphrase of it.
+- **Never write a stopping condition the author did not give.** "Then STOP and be ready to report" was
+  self-invented and directly caused an early stop with ~16 pages unread and a task undone, against an
+  explicit "get this paper finished by morning". The only legitimate stops are: the list is done, the
+  author says stop, or a genuine blocker that no other list item can route around — and a blocker means
+  *report it and do the next item*, not halt.
+- **Context pressure is a reason to HAND OFF STATE, not to wind down.** The pull toward producing a tidy
+  summary intensifies as context fills, and it silently converts an execution goal into a reporting goal.
+  Write the state into `docs/` and the wakeup prompt, then keep executing until the turn actually ends.
+- **A deferral repeated is a deferral unverified.** TaNP was carried forward four cycles as "needs a real
+  per-user adapter"; the second time an item is deferred for the same stated reason, spend five minutes
+  testing that reason before writing it again. It was ten lines and a checkpoint already on disk —
+  `_make_predict` took the same `X_csr` contract as an already-wired baseline.
+- **Self-authored prompts launder assumptions into facts.** Anything asserted in a wakeup prompt that was
+  not measured is still a hypothesis; carry it with the word "unverified" or verify it.
+
 ## Recording protocol — where findings go (no ledger; record before moving on)
 - **A finding / lesson** → a **memory note** (`…/memory/<slug>.md`, one fact per file, frontmatter `type: project|feedback|user|reference`) + a one-line pointer in `MEMORY.md`. **Update** an existing note rather than duplicate; **delete** notes that turn out wrong. Keep `MEMORY.md` lean — only its first ~25 KB auto-loads.
 - **Current status / numbers / next step** → overwrite `docs/STATE.md`.

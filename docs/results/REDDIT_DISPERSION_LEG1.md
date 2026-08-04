@@ -119,8 +119,14 @@ with at least one named film are the most divergent (concept perplexity 128, 41%
 figure), while threads whose only evidence is SBERT-mapped request text still reach perplexity 38 --
 above the openers by 7.6x, so the divergence is not merely "the OP listed some films".
 
-Read against the M11 framing, this is the missing conditional. The adaptivity nulls in this corpus and
-in the field were measured downstream of openers that leave essentially no divergence to exploit: an
+Read against the M11 framing, this is the missing conditional — with a citation discipline the
+write-up must keep (author ruling 2026-08-04): there is NO published field-wide adaptivity null to
+cite, and OUR sub-MDE measurements are in-paper results, not citable background. The published
+prior runs the other way — Golbandi 2011 and the tree line report adaptive GAINS, measured against
+unoptimized static orders; whether those survive a strongest-static comparator is a question this
+paper MEASURES (his tree is one of our consumers), not asserts. What this figure explains is our
+own measured sub-MDE gaps, and it delimits rather than contradicts the tree line: those designs —
+and ours — were measured downstream of openers that leave essentially no divergence to exploit: an
 adaptive policy and a static one are choosing between at most a handful of distinguishable situations,
 so there is nothing for adaptivity to be right about. Real requests do create that divergence for free,
 before any question is asked. What this measurement does **not** show is that the divergence can be
