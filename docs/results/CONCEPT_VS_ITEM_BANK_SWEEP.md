@@ -187,3 +187,47 @@ whose config is fully recorded in the checkpoint (`hidden`, `keep_meh`, `p_item_
 
 **cv5 ep24 absolute numbers, `expinfo` bank, floor .1277/.0267:**
 m1 .1323/.0422 · m2 .1351/.0455 · m4 .1372/.0508 · m8 .1449/.0634 · m16 .1467/.0705.
+
+---
+
+# PAIRED CIs on concept-minus-item (2026-08-04, cv5 ep24, `concept_vs_item_paired.py`)
+
+10k-resample paired bootstrap, n=1500 full / n=1448 tail (tail excludes users with no tail target).
+Both arms score identical users with identical held-out targets; m=0 arms-matched canary asserted.
+
+**`polar` — the load-bearing result, SEPARATED ON BOTH AXES AT EVERY BUDGET:**
+
+| m | full | tail |
+|---|---|---|
+| 1 | +.0042 [+.0016,+.0067] | +.0120 [+.0071,+.0171] |
+| 2 | +.0069 [+.0029,+.0108] | +.0143 [+.0086,+.0201] |
+| 4 | +.0060 [+.0007,+.0112] | +.0179 [+.0120,+.0236] |
+| 8 | +.0147 [+.0086,+.0208] | +.0288 [+.0219,+.0354] |
+| 16 | +.0115 [+.0054,+.0177] | +.0297 [+.0227,+.0366] |
+
+**The other three banks — items win full decisively; the tail story is WEAKER than reported:**
+
+| bank | tail m=1 | m=2 | m=4 | m=8 | m=16 |
+|---|---|---|---|---|---|
+| pop | −.0038 ns | +.0026 ns | +.0077 SEP | +.0027 ns | +.0028 ns |
+| entropy | +.0081 SEP | +.0067 SEP | +.0009 ns | **−.0089 SEP** | **−.0138 SEP** |
+| expinfo | −.0010 ns | +.0068 SEP | +.0027 ns | −.0044 ns | −.0054 ns |
+
+Full is separated NEGATIVE almost everywhere off `polar` (e.g. `pop` m=16 −.0720 [−.0798,−.0641]).
+
+## CORRECTION to the 2026-08-03 reading
+
+That entry said *"concepts win TAIL at short budgets under 3 of 4 banks"*. With intervals that is too
+strong. Only **`polar` (all budgets)** and **`entropy` at m=1–2** are separated positive; under `pop`
+only m=4 separates, and under `expinfo` only m=2. Under `entropy` the sign **flips to separated
+negative** by m=8. The defensible claims are:
+
+1. **Under a pure-discrimination bank the concept channel beats the item channel on both axes at every
+   budget** — separated, and the only bank where concepts win full at all.
+2. **Off that bank, items win full decisively and the tail is a wash or a loss.**
+3. The crossover story survives only as: concepts lead early on tail under discriminative banks, items
+   take over as budget grows. The *crossover budget* is not identified.
+
+Claim (1) is the one the chapter should carry, with the mechanism already recorded above: a divisive item
+is one few people have seen (4.8% answered) so the item arm collapses, while a divisive concept stays
+97.2% answerable.
