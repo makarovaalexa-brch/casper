@@ -146,8 +146,9 @@ folds over a frozen factorisation~\cite{toroghi2023bcie}, and per-item Bayesian 
 This chapter is the instrument paper of the thesis. It does not claim a new elicitation policy (that is the companion
 method chapter); it claims the \emph{recommender that makes policy measurement possible}. Concretely:
 \begin{enumerate}[leftmargin=1.5em,itemsep=1.5pt]
-  \item \textbf{One latent, many channels, at the accuracy frontier.} A frozen tower that ties the strongest
-        shallow baseline on a shared ruler, over whose latent every channel is folded as a direction paired with a
+  \item \textbf{One latent, many channels, at the accuracy frontier.} A frozen tower that comes within $1.2\%$ of the strongest
+        shallow baseline on a shared ruler---parity on the tail, a small and stated shortfall on the full
+        profile--- over whose latent every channel is folded as a direction paired with a
         value: item factors, out-of-catalogue concept directions, and directions produced outside the catalogue
         entirely. The unification is of the \emph{representation}---one space, one form of observation---not of the
         code path. We frame R1$\wedge$R2$\wedge$R3$\wedge$R4 as a single requirement no published system
@@ -196,8 +197,9 @@ can be built on top, which is the companion chapter's subject.
 
 \paragraph{Requirements (formal).}
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
-  \item[R1.] With $\mathcal E$ equal to a user's full history, $\mathrm{NDCG}@10\bigl(s(\bmu(\mathcal E))\bigr)$ ties
-        the strongest shallow baseline on a shared harness (Def.~\ref{def:tie}).
+  \item[R1.] With $\mathcal E$ equal to a user's full history, $\mathrm{NDCG}@10\bigl(s(\bmu(\mathcal E))\bigr)$ is at
+        parity with the strongest shallow baseline on a shared harness (Def.~\ref{def:tie}), or within a stated
+        and separated margin of it.
   \item[R2.] $f(\mathcal E_t)$ is defined and computable for every $t\ge 0$ with no gradient step at inference
         ($t{=}0$ yields the learned no-evidence latent), \emph{and} the admissible $\bphi_j$ are all of $\R^{d}$ rather than a
         finite set fixed when the model was fitted. The update from $\mathcal E_t$ to $\mathcal E_{t+1}$ depends on
@@ -1309,8 +1311,8 @@ bifurcation argument must stand on those or not at all.
 
 \paragraph{(ii) V1 --- full-profile on ML-25M, items-only.}
 On the baselines' native input (items only), evaluate full and tail NDCG@10 on the full ML-25M catalogue with a
-paired per-user bootstrap CI, confirming the instrument's belief mean reproduces the frozen tower and ties
-EASE/RecVAE on the shared harness. The item-only baselines are measured (Table~\ref{tab:g0}).
+paired per-user bootstrap CI, confirming the instrument's fold reproduces the frozen tower and sits at parity
+with EASE/RecVAE on the tail, within a stated margin on the full profile. The item-only baselines are measured (Table~\ref{tab:g0}).
 
 \begin{table}[t]\centering\small
 \setlength{\tabcolsep}{7pt}
