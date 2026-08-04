@@ -724,13 +724,14 @@ channel entering as a direction paired with a value (R4). The tower half is buil
 The substrate is a certified shallow recommender---a RecVAE-class amortised encoder or a closed-form
 autoencoder~\cite{ren2020recvae,steck2019ease}---trained once on the full catalogue and then \emph{frozen}. It exposes
 (a) item factor rows $\Q_i\in\R^{d}$, (b) a decoder read-out $s_i(\uu)=\Q_i^\top\uu + \beta_i$ with a learned bias
-$\beta_i$, and (c) the encoder that maps a full interaction set to a latent. Freezing is the guarantee that V1 (full strength preserved) is a property of the substrate, not of the belief
-layer. It is a design choice we share with the soft-attribute line rather than one that distinguishes us:
+$\beta_i$, and (c) the encoder that maps a full interaction set to a latent. Freezing is the guarantee that V1 (full strength preserved) is a property of the substrate, not of the
+fold placed over it. It is a design choice we share with the soft-attribute line rather than one that distinguishes us:
 G\"opfert et al. are explicit that ``we do not use the tag data when training the collaborative filtering
 model''~\cite{gopfert2024cav}, and B\i y\i k et al. train the CF model and the attribute directions
 separately~\cite{biyik2023soft}. We cite that convergence as independent support for the frozen-substrate design. We deliberately do \emph{not} extend the linear basis with concept columns
-(that stays in the item-indicator world and fails R3), nor learn the uncertainty head (no monotonicity story, and
-retraining risks V1). The tower is now \emph{selected and certified}: the graded-native set-encoder T2$'$, trained
+(that stays in the item-indicator world and fails R2, because the vocabulary would again be fixed when the
+model is fitted), nor retrain the tower to accommodate a channel, which would put V1 back at risk for no
+stated gain. The tower is now \emph{selected and certified}: the graded-native set-encoder T2$'$, trained
 once in its pre-registered configuration, scores $0.3496/0.2491$ full/tail on the held-out test cohort---parity with
 the $0.3540/0.2497$ RecVAE bar on the tail, and $1.2\%$ short of it on the full profile---and reproduces the frozen decoder exactly at the empty
 interview (\S\ref{sec:expdesign}). It is this checkpoint that every channel below is folded into.
