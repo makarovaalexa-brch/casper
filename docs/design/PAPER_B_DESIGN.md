@@ -272,3 +272,29 @@ and score on the ML user's own held-out data. Everything after init is standard 
 request only makes the init distribution ecologically real. Report match counts/quality and the
 popular-anchor selection effect. Claim shape: "downstream of initial placements drawn from 4,431
 real requests, adaptivity buys Y — with complete behavioral answers."
+
+**THREAT MODEL for the init-shaping bridge (adversarial pass 2026-08-04, author-requested; all
+nine must appear in the write-up as fix / stratification / scope sentence):**
+1. Selection shift (BITES): anchor-conditioned matching → heavier raters, anchor-flavored
+   targets, higher answerability. Comparison internally valid; MAGNITUDES need caveat +
+   answerability stratification + match-coverage table (+ weighting or per-request caps for the
+   popular-anchor skew).
+2. Scope (BITES): bridge spans the ANCHORED ~60% only; text-only requests (distinct placement
+   population, perplexity 38) stay Reddit-only. State it.
+3. Comparator staleness (BITES): Act-3 static arms must include init-aware-but-fixed static
+   (best fixed order fitted ON the initialized population), not just the closed-opener bank —
+   else we commit the comparator-construction sin ourselves.
+4. Anchor double-dipping: anchors live in the fold-in split, never targets; selection on raw
+   ratings only.
+5. Slot→evidence translation is OUR modeling: primary analysis = anchor-only inits
+   (translation-free); slot-augmented secondary with sensitivity row.
+6. Model-free matching only (raw ratings + genome tags; never tower embeddings) — else the
+   adaptive policy can harvest selection artifacts.
+7. Population non-identity (scope sentence): claim ceiling = "in a rating population conditioned
+   on request-shaped evidence", never "for Reddit requesters".
+8. Written post ≠ live open answer (scope sentence): Reddit bounds open-answer richness from
+   above; the favorite-movie rung bounds from below.
+9. **VALIDATION GATE (run before interpreting Act-3): matched-init dispersion must reproduce
+   the request-state dispersion** (target: same order as perplexity ~95; collapse to bank-like
+   levels = the bridge leaks, stop and redesign). This converts attack 1's strongest form into
+   a figure.

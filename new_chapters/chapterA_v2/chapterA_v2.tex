@@ -961,7 +961,10 @@ survives) and the accumulated shift norm-capped per user. In the concept-operato
 ($0.1759/0.0841$ full/tail at eight answers, up from $0.1322/0.0503$ at one) and, crucially,
 \emph{redundancy-robust}: feeding it eight \emph{correlated} top-SEL concepts still reaches $0.1685/0.0906$,
 above its four-answer level ($0.1572/0.0777$), exactly where the additive-union operator degraded. The gated fold is the concept operator we adopt;
-Eq.~\eqref{eq:cfold} is the concept-channel instantiation of the channel-agnostic fold of \S\ref{sec:method}.
+Eq.~\eqref{eq:cfold} is the concept-channel instantiation of the channel-agnostic fold of \S\ref{sec:method}.\footnote{This
+operator ablation ran on the earlier tower. It settles the \emph{operator choice}---additive-union craters
+where the gated fold stays monotone and redundancy-robust---rather than the absolute level; the deployed
+numbers on the certified pair are in \S\ref{sec:concept:results}.}
 
 \paragraph{Lineage.} The skeleton---an attribute as a latent direction, folded by a Bayesian belief update over a
 frozen factor space---is well-trodden, and we claim none of it in isolation. B\i y\i k et al.~\cite{biyik2023soft} treat a
