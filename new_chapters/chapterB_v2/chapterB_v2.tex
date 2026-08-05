@@ -219,7 +219,11 @@ The ordering repeats when the consumer is changed to RecVAE, to TaNP, or to EDDI
 against $.1769/.0480$ for the static order at sixteen questions), so on these four consumers the
 result is not an artefact of pairing a selector with a recommender it was not designed for.
 Section~\ref{sec:flip} reports the fifth consumer, on which it reverses.
-\REDO{paired bootstrap CIs on every gap in Table~\ref{tab:act1}; point estimates only at present}
+All thirty comparisons in Table~\ref{tab:act1} separate under a paired bootstrap ($10{,}000$
+resamples over the per-user difference, the same $10{,}000$ users in both arms, self-comparison
+returning exactly zero): full-axis deltas against the static order run from $-.0029$ to $-.0137$
+for GLM-UCB, $-.0022$ to $-.0177$ for Thompson, and $-.0098$ to $-.0386$ for the latent-only
+info-gain arm as the budget grows from one question to sixteen.
 
 \subsection{The battery so far, in one contract}
 \label{sec:battery}
@@ -264,11 +268,19 @@ latent-only info-gain$^\dagger$ & adaptive & .1537/.0336 & .1539/.0373 & .1618/.
 \end{tabular}
 \end{table}
 
-Read down the table: the optimised static comparator leads every adaptive selector at every budget,
-the adaptive selectors sit between the conventional heuristics and the degenerate ones, and the
-three degenerate arms are degenerate for a diagnosable reason --- they collect roughly one tenth of
-an answer per interview. The gap that matters for Act 1 is the item-bank one at $k{=}16$: greedy
-items-only $.2449$ against the best adaptive selector's $.2161$.
+Read down the table, with paired bootstrap intervals attached (10{,}000 resamples over the per-user
+difference; a selector compared with itself returns exactly zero). The optimised static comparator
+leads every adaptive selector at every budget, and every one of those thirty comparisons separates.
+The three degenerate arms are degenerate for a diagnosable reason --- they collect roughly one tenth
+of an answer per interview --- and they are mutually indistinguishable, as they should be. The
+middle of the table is less ordered than it looks: the two bandit selectors are mostly
+indistinguishable from HELF, while the latent-only info-gain arm sits significantly \emph{below}
+all three conventional heuristics ($-.0240$ against HELF and $-.0311$ against popularity at
+$k{=}16$, both separating). Among the static arms, entropy$_0$ separates above both popularity and
+HELF everywhere, but popularity and HELF do not separate from each other at one, two or four
+questions and HELF wins the tail at eight --- so the conventional ladder is entropy$_0$ above an
+unordered pair, not a total order. The gap that matters for Act 1 is the item-bank one at $k{=}16$:
+greedy items-only $.2449$ against the best adaptive selector's $.2161$.
 
 \begin{table}[t]
 \centering
@@ -408,10 +420,17 @@ to be either priced explicitly or inherited from a target-coupled objective.}
 \subsection{The result that complicates the story, reported rather than buried}
 \label{sec:flip}
 
-On one consumer the ordering reverses. With Golbandi's leaf model as the consumer --- which matches
-a cold user to the train users sharing their like/dislike/unknown pattern --- Thompson sampling
-beats the static order at every budget it can be run at ($.1974/.0750$ against $.1686/.0677$ at
-eight questions), and EDDI's acquisition beats it too.
+On one consumer the ordering reverses, though only on one axis and only for some selectors, and the
+qualification is part of the finding. With Golbandi's leaf model as the consumer --- which matches a
+cold user to the train users sharing their like/dislike/unknown pattern --- Thompson sampling beats
+the static order on full accuracy at every budget it can be run at, with paired intervals excluding
+zero throughout ($+.0100$, $+.0171$, $+.0148$, $+.0281$ at one, two, four and eight questions).
+On the tail the reversal is not general: Thompson separates \emph{against} the static order at four
+questions ($-.0064$, CI $[-.0095,-.0033]$) while separating for it at one, two and eight. The
+latent-only info-gain arm shows the same split at eight questions ($+.0131$ on full,
+$-.0034$ on tail, both separating). GLM-UCB does not participate in the reversal at all: $+.0007$
+full and $+.0008$ tail, neither separating. So this is a property of the \emph{sampling} selectors
+on the \emph{full} axis, not of adaptive selection in general.
 
 The mechanism is not mysterious, and it sharpens rather than weakens the chapter. That consumer is
 paid in \emph{patterns}: its estimate improves when users are spread across distinct answer
