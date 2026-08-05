@@ -164,21 +164,31 @@ arm, three adaptive selectors --- GLM-UCB and Thompson sampling over the probabi
 interview line), and EDDI's myopic information gain over a trained Partial-VAE --- lose at every
 budget on both axes, on this consumer.
 
-\paragraph{The two tables are not on one scale, and must not be read as one.}
-Table~\ref{tab:greedy} and Table~\ref{tab:act1} come from \emph{different information contracts}:
-the greedy sequences are computed and scored in the joint item-plus-concept environment, whose
-empty-interview row is $0.1314/0.0234$, while the selector comparison runs in the item-question
-interview harness, whose answer-free reference is the popularity prior $0.1626/0.0262$. Their
-columns are therefore not comparable cell by cell, and the apparent fact that the entropy$_0$ arm
-of Table~\ref{tab:act1} exceeds the greedy combined arm of Table~\ref{tab:greedy} at $q{=}16$
-($.2303$ against $.2115$) is an artefact of that difference, not evidence that a heuristic beats
-the prefix-optimal sequence. The consequence for this section is stated plainly rather than
-smoothed over: \textbf{the null of Table~\ref{tab:act1} is currently measured against the strongest
-of six literature-anchored static arms, not against the greedy prefix-optimal sequence of
-Section~\ref{sec:act1}}. \REDO{re-run the three adaptive selectors inside the joint environment,
-against the greedy combined sequence, so that the hard comparator and the null sit in one contract.
-The null can only harden --- the greedy arm dominates every static arm available inside its own
-environment --- but until that run exists this chapter does not claim it}
+\paragraph{Two candidate pools, and why the comparison must be made inside one.}
+Table~\ref{tab:greedy} was computed under a narrower candidate mask than Table~\ref{tab:act1}: the
+greedy environment removes the user's positive fold-in items and whatever they answered
+($62.6$ items per user), while the interview harness removes every rated fold-in item, likes and
+dislikes alike ($141.2$ per user), which is this project's protocol-level definition of the pool.
+Removing more candidates makes the task easier, so the two tables' columns are not comparable, and
+the apparent fact that the entropy$_0$ arm reaches $.2303$ where the greedy combined arm reaches
+$.2115$ compares one row from each. Re-scoring both fixed sequences under each mask settles it:
+under the wider pool the empty interview alone moves from $.1314$ to $.1586$, and
+\textbf{the greedy sequence beats entropy$_0$ at every budget on both axes under \emph{both} masks}
+--- by $+.0122$ full / $+.0148$ tail at $q{=}16$ under the narrow pool, and $+.0253$ / $+.0174$
+under the protocol pool. The re-scoring reproduces each published table to four decimal places once
+its own mask is applied, which is what licenses the comparison below.
+
+Placed in the protocol pool alongside the selectors, the strongest static order is therefore
+stronger than the strongest heuristic, and the null of Table~\ref{tab:act1} widens rather than
+narrows. Restricting attention to the item bank --- the fair comparison, since none of the adaptive
+selectors has access to the concept channel --- at $q{=}16$: greedy items-only $.2449/.0967$,
+entropy$_0$ $.2303/.0924$, GLM-UCB $.2161/.0833$, Thompson $.2135/.0878$, EDDI $.1917/.0749$. The
+best adaptive selector trails the strongest static order by $+.0288$ full and $+.0134$ tail, twice
+its deficit against the heuristic. Two caveats travel with that row: the greedy sequence was
+\emph{selected} under the narrower mask, so scoring it under the protocol pool is a lower bound on
+what a search optimised for that pool would reach (conservative, in the direction that weakens our
+own claim), and \REDO{a greedy re-run whose selection contract is the protocol pool, plus paired
+CIs on every gap}
 
 \begin{table}[t]
 \centering
