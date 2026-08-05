@@ -36,8 +36,21 @@ comparator silently swaps — the exact failure this chapter is about.
 
 ### NOW (native snaps, in this order)
 1. **SNAP-3 DRE** (Kweon WWW'20) — public PyTorch, binarises >3.5 like us, ML-20M NDCG@10.
-   *First action: extract the published table from the paper — a secondary source implies a
-   ~0.57-class NDCG@10 and that is unverified.* We already have a Liang ML-20M bridge from Paper A.
+   **STEP 0 COMPLETE 2026-08-05 [V]** — target extracted from the arXiv LaTeX source (`5ex.tex`,
+   Table 2, **k=50**), cross-checked against the ar5iv render:
+
+   | | P@10 | P@20 | NDCG@10 | NDCG@20 |
+   |---|---|---|---|---|
+   | **ML-1M** DRE | .5396 | .4734 | **.5688** | .5197 |
+   | ML-1M best baseline (RMVA) | .5063 | .4373 | .5387 | .4887 |
+   | **ML-20M** DRE | .5712 | .4875 | **.6077** | .5373 |
+   | ML-20M best baseline (RMVA) | .5116 | .4382 | .5444 | .4851 |
+
+   ★ **The "~0.57-class NDCG@10 on ML-20M" figure our notes carried is KILLED as stated**: .5688 is
+   the **ML-1M** row; ML-20M is **.6077**. A secondary source conflated the two datasets. This is
+   exactly why step 0 gates the rest.
+   NB these are k=50 under DRE's own split and metric definitions — **not orderable against our
+   k≤16 Liang numbers**; the snap is inside their setup, the port comes after.
    Est. 6–10 agent-h. **The peer-reviewed static bar.**
 2. **SNAP-5 Golbandi tree** (WSDM'11) — split search, the piece missing from our harness. Snap the
    *shape* on ML-100k RMSE first; archived precedent `scripts/_archive/paper1_v1/golbandi_tree.py`
