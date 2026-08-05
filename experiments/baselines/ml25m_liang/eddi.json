@@ -1,0 +1,11 @@
+{
+  "model": "eddi",
+  "ndcg@10": 0.2153,
+  "tail_ndcg@10": 0.1077,
+  "note": "Canonical arm-A row, TRANSCRIBED from experiments/baselines/eddi_resume.log (the run that produced it): '[eddi] test full@10=0.2153 tail@10=0.1077'. Recorded here on 2026-08-05 only so run_arm_n.py's per-row snap gate has something to check EDDI against -- until now canonical() returned None for EDDI and the gate silently skipped it. Values are as-logged to 4 d.p., which is inside the gate's 1e-3 tolerance.",
+  "provenance": "experiments/baselines/eddi_resume.log",
+  "early_stop_epoch": 46,
+  "val_selected_epoch": 31,
+  "best_val": 0.2120,
+  "transcribed": true
+}

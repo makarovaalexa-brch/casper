@@ -36,7 +36,11 @@ def _fit_model(train, factors, reg, alpha, iterations, log=print):
     os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")  # implicit warns; avoid oversubscription
     # implicit >=0.5 expects a user-items CSR; confidence handled by multiplying the matrix by alpha.
     Cui = (train.tocsr().astype(np.float32)) * alpha
-    model = AlternatingLeastSquares(factors=factors, regularization=reg,
+    # random_state pinned: implicit's ALS initialises its factors randomly, so an UNSEEDED fit gives a
+    # different basis every run. That is what made rbmf_seed (which freezes this basis) miss its own
+    # canonical snap by 0.0031 on 2026-07-30, and it drifted iALS's own tail by 0.0017. Seeded here so
+    # both rows are reproducible; SEED is the project-canonical 98765.
+    model = AlternatingLeastSquares(factors=factors, regularization=reg, random_state=98765,
                                     iterations=iterations, use_gpu=False, calculate_training_loss=False)
     t0 = time.time()
     model.fit(Cui, show_progress=False)

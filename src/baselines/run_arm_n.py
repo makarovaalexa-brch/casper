@@ -25,7 +25,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import metrics as M
 import pop, itemknn, ease, ials, edlae, multvae, recvae, turbocf, golbandi_node, rbmf_seed, belief_mf
-import sasrec, tanp_bestefffort as tanp
+import sasrec, tanp_bestefffort as tanp, eddi_pvae
 from arm_n import load_arm_n, _ROOT
 from run_ml25m_liang import IALS_HP
 
@@ -33,7 +33,7 @@ OUTDIR = os.path.join(_ROOT, "experiments", "baselines", "arm_n")
 CKPT = os.path.join(_ROOT, ".cache", "baselines")
 CANON_DIR = os.path.join(_ROOT, "experiments", "baselines", "ml25m_liang")
 ORDER = ["pop", "itemknn", "ease", "ials", "edlae", "turbocf", "golbandi_node", "rbmf_seed",
-         "belief_mf", "recvae", "multvae", "tanp", "sasrec"]
+         "belief_mf", "recvae", "multvae", "tanp", "sasrec", "eddi"]
 TURBOCF_HP = {"alpha": 0.5, "power": 1.0, "filter": 2}   # val-selected, experiments/.../turbocf.json
 
 
@@ -93,6 +93,14 @@ def build(name, D, max_minutes, log):
     if name == "belief_mf":
         pr = belief_mf.fit(train, ni, log=log)
         return pr, getattr(pr, "hp", {})
+    if name == "eddi":
+        # EDDI needs its EXPLICIT loader, not the neural fit() path below: fit() would re-enter the
+        # training loop and, with evaluator=None, overwrite best_state with nothing (eddi_pvae.py:115).
+        # Binary-native as a consumer, so arm N is a re-eval under the protocol pool, not a retrain.
+        if not os.path.exists(ck):
+            raise SystemExit(f"[eddi] no checkpoint at {ck}; arm N re-evaluates, it does not train")
+        pr = eddi_pvae.load_trained(ck, train.shape[1], log=log)
+        return pr, {"loader": "load_trained (best epoch)"}
     if name in ("recvae", "multvae", "tanp", "sasrec"):
         mod = {"recvae": recvae, "multvae": multvae, "tanp": tanp, "sasrec": sasrec}[name]
         a = mod._defaults("vae") if name == "multvae" else mod._defaults()
