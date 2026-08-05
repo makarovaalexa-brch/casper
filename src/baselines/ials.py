@@ -16,6 +16,15 @@ and alpha on validation, reporting the chosen values. **Flagged in DESIGN_SHEET 
 (no verbatim paper hyperparameters exist for their WMF).
 
 Interface: fit(train, n_items, evaluator=None, args=None, ckpt=None, log=print) -> predict_fn
+
+THREADS. OpenBLAS reads its thread count when numpy first loads, so setting OPENBLAS_NUM_THREADS from
+inside this module is too late to have any effect -- numpy is already imported by the caller. The
+setdefault below is kept only as a fallback for `python ials.py` run directly. When this module is used
+from a runner, the variable must be set in the ENVIRONMENT BEFORE python starts, or implicit will spawn
+one BLAS thread per core per process; with several jobs sharing the machine that oversubscription is
+catastrophic, not merely wasteful (measured 2026-08-05: an arm-N re-eval that had taken 8.2 min ran for
+over two hours without finishing, alongside two other python jobs, while implicit's own
+check_blas_config() warning fired on every run).
 """
 import os
 import sys
