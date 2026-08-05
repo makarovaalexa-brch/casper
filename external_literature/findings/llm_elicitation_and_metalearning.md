@@ -9,6 +9,7 @@ Verification levels: **[V]** primary full text extracted · **[A]** abstract/lan
 **[S]** secondary (search summary / third party). Nothing is quoted unless it came from [V].
 
 Read **with** `adaptive_elicitation_baselines.md` (the non-LLM elicitation family and the harness audit),
+`active_learning_elicitation.md` (the acquisition-theory family — BALD/BED/CAT; added the same day),
 `simulator_circularity_conv_rec.md` (the firewall argument), `critiquing_vocabulary_is_closed.md`
 (the closed-vocabulary count), and `text_to_cf_projection.md` (ELM, the reverse direction).
 
@@ -537,25 +538,140 @@ LLM-Powered Approaches"*, arXiv:2508.02096 [S].
 
 ## 5. Simulator validity — 2024–2026 update to `simulator_circularity_conv_rec.md`
 
-- **Yoon, He, Echterhoff & McAuley, "Evaluating Large Language Models as Generative User Simulators for
-  Conversational Recommendation", NAACL 2024, arXiv:2403.09738** [A]. **Five probe tasks** on which a
-  synthetic user must behave like a real one: (1) choosing which items to discuss, (2) expressing binary
-  preferences, (3) expressing open-ended preferences, (4) requesting recommendations, (5) providing feedback.
-  Finds measurable deviations from human behaviour and offers model-selection/prompting mitigations.
-  **THE citation for "LLM simulators demonstrably diverge from real users on exactly the behaviours an
-  elicitation study depends on."**
-- **Balog & Zhai, "User Simulation for Evaluating Information Access Systems", Foundations and Trends in IR
-  18(1–2):1–261, 2024; arXiv:2306.08550** [V metadata]; also a SIGIR-AP 2023 tutorial (10.1145/3624918.3629549).
-  The field's monograph — cite as the standard reference for simulation-based evaluation.
-- **Balog et al., "User Simulation in the Era of Generative AI: User Modeling, Synthetic Data Generation, and
-  System Evaluation", arXiv:2501.04410, 2025** [S].
-- **MirrorBench**, arXiv:2601.08118, 2026 — "A Benchmark to Evaluate Conversational User-Proxy Agents for
-  Human-Likeness" [S, unfetched].
-- Simulator-CONSTRUCTION work found but **not** validity studies (do not cite as evidence either way):
-  CSHI (OpenReview H9BYGURN9M), RecUserSim, PersonaLens, arXiv:2605.05250, arXiv:2606.22803, arXiv:2607.00010 [S].
-- **Every LLM-era elicitation method in §1 and §2 uses a simulated answerer, and not one runs a human study
-  except GATE.** That is the strongest single sentence available for our firewall argument: the family that
-  most needs a validity argument has, with one exception, not made one.
+**Structural fact to lead with: every LLM-era elicitation method in §1 and §2 uses a simulated answerer, and
+not one runs a human study except GATE and OPEN.** The family that most needs a validity argument has, with
+two exceptions, not made one.
+
+### 5.1 The measured failures — cite these, they now have numbers
+
+**★ Yoon, He, Echterhoff & McAuley, "Evaluating LLMs as Generative User Simulators for Conversational
+Recommendation", NAACL 2024, arXiv:2403.09738 [V, full text].** Code
+https://github.com/granelle/naacl24-user-sim (verified). Data: ReDial (11,348 conv / 6,925 movies), Reddit
+(634,392 conv → 23,167 requests), MovieLens, IMDB. Five tasks — ItemsTalk, BinPref, OpenPref, RecRequest,
+Feedback. **The concrete deviations:**
+- **Item-selection diversity collapses 2–3×** (entropy, Table 2): human **12.61 / 11.73 / 9.71**
+  (IMDB/Reddit/ReDial) vs GPT-3.5+DI **4.79 / 3.97 / 4.00**, GPT-4+DI 5.29 / 4.78 / 4.18.
+  ⇒ **the simulator does not talk about the same items a human would** — fatal for an elicitation study.
+- **Binary-preference correlation with real human preferences (Table 3): r = 0.18–0.24** with
+  demographic-info prompting (GPT-3.5 0.18 frequent / 0.12 infrequent; GPT-4 0.24 / 0.53). It reaches
+  **0.75 / 0.76 only after prompt-engineering a "pickiness personality" in** — i.e. the fix is a researcher
+  degree of freedom, which is exactly what the firewall removes. *"Positive rates remain constant regardless
+  of human preferences"*; with text-davinci-003 + DI, **all the answers were "yes"**.
+- **Sentiment entropy**: human **1.19** vs 0.29 / 1.11 / 0.18. Aspect entropy: human **5.85** vs 4.86–5.63.
+- **Request diversity**: GPT-4, the most diverse simulator, generates **23% less diverse requests than
+  humans**; stock phrases recur ("gripping", "mind-bending", "keeps me on the edge of my seat").
+- **Incoherent feedback: 3% (GPT-3.5) to 35% (text-davinci-003).**
+
+**★ Meshi, Balog, Goldman, Caciularu, Tennenholtz, Jeong, Globerson & Boutilier, "ConvApparel: A Benchmark
+Dataset and Validation Framework for User Simulators in Conversational Recommenders", EACL 2026,
+arXiv:2602.16938 [A].** The CRS-specific one, with maximum citational authority (Balog + Boutilier).
+Dual-agent collection using deliberately *good* and *bad* recommenders to enable **counterfactual
+validation**; first-person satisfaction annotations. *"Our experiments reveal a significant realism gap
+across all simulators."* ⚠ **Double-edged** — see §5.3.
+
+**Zhou et al., "Mind the Sim2Real Gap in User Simulation for Agentic Tasks", COLM 2026, arXiv:2603.11245
+[A].** First full τ-bench protocol with **451 real participants, 165 tasks, 31 LLM simulators**, "User-Sim
+Index". *"LLM simulators are excessively cooperative, stylistically uniform, and lack realistic frustration
+or ambiguity, creating an 'easy mode' that **inflates agent success rates above the human baseline**"* and —
+critically for us — *"**higher general model capability does not necessarily yield more faithful user
+simulation**."* You cannot buy validity by upgrading the backbone.
+
+**Chen, "Simulated Customers Never Walk Away: Decision Fidelity of LLM User Simulators Measured Against Real
+Purchase Outcomes", arXiv:2606.20708 [A].** The most precise result found and the closest in spirit to our
+ruling: 2,790 production conversations, **793 with verified payment outcomes**. Simulators *"reproduce
+eventual buyers almost exactly (depth bias +0.09) but inflate eventual non-buyers toward the purchase frame
+(depth bias +0.40; d=0.38, p<0.001), **halving expressed resistance (25.1%→13.5%)** and **nearly doubling
+deliberation (21.9%→40.1%)**"*; replicates on DeepSeek. Names the structural blind spot: *"when the goal is
+assigned, the user's willingness is exogenous"* — target-conditioned simulation **cannot test decision
+fidelity at all**.
+
+**Seshadri et al., "Lost in Simulation", arXiv:2601.17087 [A]** — agent success varies **by up to 9 points**
+purely from which LLM plays the user; *"systematic miscalibration, underestimating agent performance on
+challenging tasks and overestimating it on moderately difficult ones"*; worst for AAVE and Indian English.
+**Mehri et al., arXiv:2605.07847 [A]** — 24 simulators, *"a large distributional gap from real users."*
+**Liu et al., "Synthetic Users, Real Differences", arXiv:2605.02624 [A]** — simulators *"struggle at
+capturing communication frictions… which could make evaluations based on such simulations overly
+optimistic."*
+
+### 5.2 Criteria we should adopt rather than invent
+**Balog & Zhai, "User Simulation in the Era of Generative AI", arXiv:2501.04410** [V] — §"Requirements and
+Desiderata" (**cite by section title, not number — the ar5iv and arXiv-HTML renderings disagree, 2.5 vs
+2.6**). Five desiderata, verbatim from the arXiv HTML v2 rendering:
+> **Validity** — *"Simulated behaviours align with empirical observations of real user behaviour in similar
+> contexts"* · **Interpretability** · **Cognitive plausibility** · **Variation** — *"Incorporates natural
+> human variability and occasional outliers rather than merely replicating average behaviour"* ·
+> **Adaptability**.
+⚠ Two passages a reviewer can use **against** us: *"there often exists a trade-off"* between validity and
+interpretability, and *"simulation does not need to be perfect in order to be useful in a specific
+application context"*.
+**★ The cleanest form of our argument: adopt Balog & Zhai's criteria, then show that Yoon et al.'s r = 0.18–0.24
+and the 2–3× entropy collapse are measured failures of *Validity* and *Variation* specifically.**
+The monograph — **Balog & Zhai, FnTIR 18(1–2):1–261, 2024, arXiv:2306.08550** (SIGIR-AP 2023 tutorial
+10.1145/3624918.3629549) — is the standard reference, but ⚠ **its full text could not be obtained**
+(the `v3` URLs 404; ar5iv truncates a 261-page monograph). **Do not attribute an explicit criteria list to
+it** — use 2501.04410 for that.
+
+### 5.3 The counterarguments — pre-empt them, do not let a reviewer raise them first
+1. **SimulatorArena — Dou, Galley, Peng, Kedzie, Cai, Ritter, Quirk, Xu & Gao, EMNLP 2025 Main,
+   arXiv:2510.05444 [A]. The strongest threat.** 909 annotated human-LLM conversations: *"simulators
+   conditioned on user profiles… reach **Spearman's ρ of 0.7 on both tasks**, providing a practical, scalable
+   alternative to human evaluation."* **Fair statement:** validity is a property of the simulator
+   *configuration*, not of simulation as such; blanket "circular" over-generalises from bad configurations.
+   **Our honest reply:** ρ = 0.7 is *system-ranking* agreement on assistant quality, not *per-user preference*
+   agreement; and the conditioning that buys it is itself a coupling to user information. In our setting the
+   simulator's answers feed the very model being evaluated — a strictly tighter loop.
+2. **SimEval-IR — Zerhoudi, SIGIR 2026, arXiv:2604.27878 [A]. Attacks from the other side:** the
+   classifier-discriminator "human-likeness" check — *"the dominant realism test in the literature"* — has
+   **essentially no pooled predictive power for system-ranking validity (r = +0.09, n = 48)**, while
+   marginal click-depth distance and Fréchet distance over session embeddings give |r| = 0.43 and 0.40
+   (p ≤ 0.005). A reviewer can say our firewall optimises realism and realism does not predict validity.
+   **Our reply:** we do not use a human-likeness discriminator; we use held-out behaviour, which sits on the
+   *distributional* side that their own study found predictive.
+3. **ConvApparel's second half** finds *data-driven* simulators beat prompted ones on counterfactual
+   validation — a reviewer sympathetic to simulation will say the answer is a **better simulator**, not a
+   firewall.
+4. Older pro-simulation results from Balog's own group: Zhang & Balog arXiv:2006.08732 (*"high correlation
+   between automatic evaluation measures and manual human assessments"*), Takanobu et al. arXiv:2005.07362 [S].
+5. **Bernard & Balog SIGIR-AP 2025, arXiv:2510.05624** — mostly supports us (*"a striking disconnect between
+   self-reported user satisfaction and performance scores"* across nine CRSs) but ends with an ambiguous
+   *"improved correlation with system rankings compared to human evaluation."* ⚠ **Full text not read — do
+   not quote that sentence either way.**
+
+### 5.4 ★ Our behavioural firewall HAS named precedent — adopt the vocabulary, do not coin our own
+This is a correction to how we have been framing it. **The firewall is not novel as a mechanism; claiming
+novelty there is a reviewer target. It is defensible as rigour.**
+1. **"Counterfactual validation"** — ConvApparel (EACL 2026, Balog + Boutilier). The closest published
+   formalisation of what we do, with the right authors attached.
+2. **"Decision fidelity" vs "communicative fidelity"** — Chen, arXiv:2606.20708. **This is the term of art
+   for our claim**: talking like a user vs *deciding* like one, grounded in real outcomes.
+3. **RealUserSim** — Zhu et al., arXiv:2605.20204 [A]: 7,275 behavioural profiles from 14,000+ real WildChat
+   conversations; grounding raises match rate **24.2% → 45.3%**; a *"Formalism Ceiling"* of only **6–8% style
+   match** for ungrounded simulators; grounded simulation surfaces agent failures worth **−3.2% to −3.5%**
+   task success that cooperative simulators hide.
+4. **Hsu et al., arXiv:2409.17436** (already ours) — the industrial precedent, *"counterfactually robust user
+   behavior models"* validated against real deployment. Pair with ConvApparel: together they make
+   "counterfactual robustness" a **lineage**, not an invention.
+5. **PEPPER, arXiv:2411.16160** (already ours) — target-free simulation from real histories.
+6. **"Verifiable User Simulation"** — Ma, Wanyan, Hettiachchi, Xu, Ren & Chan, SIGIR 2026 tutorial,
+   arXiv:2606.14474 [A] — simulators as *auditable artifacts* checked for *"fidelity, credibility, and
+   demographic bias"*. The governance framing.
+
+**Recommended framing sentence:** *"counterfactual / decision-fidelity validation in the sense of Meshi et al.
+(EACL 2026) and Chen (2026)"* — which makes our constraint read as standard practice we followed, not an
+idiosyncratic house rule.
+
+### 5.5 Build-only, NOT validity studies — do not cite as fidelity evidence
+All verified as build-only from their abstracts [A]: **Hesitator** (arXiv:2605.05250 — validates by
+reproducing patterns from psychological economics, i.e. theory-conformance, not human agreement; but its
+motivation is quotable: simulators *"rarely exhibit the hesitation or decision deferral commonly observed in
+real consumer behavior, resulting in overly high acceptance probabilities"*); **AdaptSim**
+(arXiv:2606.22803); **Prompt-Optimization multi-objective** (arXiv:2607.00010, ICDEW 2026 — claims behavioural
+alignment, **states no numbers**); **RecUserSim** (arXiv:2507.22897, TheWebConf'25 Industry);
+**CSHI** (arXiv:2405.08035 = OpenReview H9BYGURN9M); **PersonaLens** (arXiv:2506.09902, ACL 2025 Findings —
+it benchmarks *assistants*, not simulators).
+**MirrorBench** (Hathidara et al., arXiv:2601.08118, **KDD 2026 Dataset & Benchmark Track**) is a genuine
+fidelity benchmark, *"explicitly decoupled from downstream task success"*, with Human-Human and Proxy-Proxy
+calibration controls — but ⚠ **no numbers obtained; full text not read.**
 
 ---
 
@@ -655,24 +771,57 @@ kNN snap that Wolpertinger (2015) and Info-Synth (2026) both still require.*
 
 ## 7. What belongs in the 2026 Paper B baseline battery
 
-**From this pass, exactly two things change the battery:**
+**Only three things from this pass change the battery. Everything else is a citation, not a run.**
 
-1. **PEBOL acquisition, behavioural answers** — ONE ablation row. Beta-Bernoulli posterior per item +
-   Thompson/UCB, run over our tower with real held-out answers, no LLM anywhere in the path. **~0.5 agent-day**
-   (the posterior and the harness already exist). It closes "you ignored the LLM-era PE method" without
-   importing the circularity.
-2. **MeLU evidence-candidate score as a bank ranker** — `norm(mean gradient magnitude) × norm(popularity)`,
-   slotted beside `pop` / `expinfo` / `polar` / `entropy` in the existing bank comparison. **~0.5 agent-day**,
-   no retraining. It is the only published prior instance of the exact object our bank sweep studies.
+### 7.1 MUST-INCLUDE — "PEBOL acquisition, behavioural answers" (~0.5 agent-day)
+Beta-Bernoulli posterior per item; selection by **TS / UCB(k-th percentile) / ER(max variance) / Greedy**;
+question phrased by a fixed template over the item or concept; answer = our real held-out rating / SEL.
+**Zero LLM in the path.** The posterior and the harness already exist. This closes "you ignored the LLM-era
+PE method" without importing the circularity, and it is honest because **PEBOL's own selection stage is
+LLM-free by construction** (§1.1) — we are not crippling the method, we are running the half it defines.
+Report all four selection rules; ER and Greedy are free extra arms.
 
-**Everything else in this family is a CITATION, not a run.** The full battery still comes from
-`adaptive_elicitation_baselines.md` §7: **DRE (static bar), PERE (adaptive bar), GLM-UCB/Thompson over our
-belief posterior, EDDI, Golbandi's tree as a genuine selector** — and the standing harness finding that
-**Act 1 currently has zero adaptive question selectors** is unchanged and remains the first job.
+### 7.2 MUST-INCLUDE — MeLU evidence-candidate score as a bank ranker (~0.5 agent-day)
+`norm(mean local-update gradient magnitude) × norm(popularity)`, top-k. Slot it beside `pop` / `expinfo` /
+`polar` / `entropy` in the existing bank comparison. No retraining. It is **the only published prior instance
+of the exact object our bank sweep studies**, and its user study independently reproduces our answerability
+collapse (§3.1) — so it earns a row *and* a sentence.
 
-**Do NOT build:** a meta-learning arm (Buffelli 2023 contests its value; and MAMO/TaNP/CDRNP do not select),
-a Bıyık reimplementation (unrefereed preprint, no code, MH/HMC + slate optimiser), or any LLM-in-the-loop
-baseline (project rule + circularity ruling).
+### 7.3 NICE — OPEN's EIG-over-particle-filter as a second principled acquisition (~1–2 agent-days)
+EIG over a Bradley–Terry posterior approximated by a particle filter, with our concept bank as the feature
+space (§1.5b). Needs one adaptation: BT is pairwise, our protocol is pointwise yes/no. Worth doing **only if
+the reviewer-facing claim is about the acquisition criterion**; otherwise §7.1 plus EDDI already covers
+information-gain acquisition.
+
+### 7.4 Do NOT build
+- **A meta-learning arm.** MAMO/TaNP/CDRNP do not select, and Buffelli et al. (arXiv:2308.08354) already
+  contests meta-learning's value against tuned baselines — cite it and move on.
+- **A Bıyık reimplementation.** Unrefereed preprint, no code, MH/HMC posterior + slate optimiser, 16
+  simulated users, no held-out ranking metric. Cite and differentiate.
+- **Any LLM-in-the-loop baseline** (project rule + circularity ruling). BED-LLM in particular is
+  **not legitimately ablatable** — its EIG is computed against the *LLM's own predictive distribution*, so
+  removing the LLM removes the posterior. Cite it as the clean contrast case against PEBOL and OPEN.
+- **CLARINET's finetuned generator** (free-text output); its rank-gain *criterion* and its EIG/KL baselines
+  are portable over a fixed question bank, but we already have both.
+
+**The full battery is still the one in `adaptive_elicitation_baselines.md` §7** — DRE (static bar), PERE
+(adaptive bar), GLM-UCB/Thompson over our belief posterior, EDDI, Golbandi's tree as a genuine selector —
+plus §7.1 and §7.2 here. **The standing harness finding that Act 1 currently has ZERO adaptive question
+selectors is unchanged and remains the first job.** Adopt **Pep's adaptivity diagnostic** (§1.1b) as the
+cheap check that a new selector is genuinely adaptive: *how often does the follow-up change when the answer
+changes?* (Pep 39–62%, RL 0–28%.)
+
+### 7.5 Effort summary
+| Item | Effort | Verdict |
+|---|---|---|
+| PEBOL acquisition (TS/UCB/ER/Greedy), behavioural answers | ~0.5 agent-day | **MUST-INCLUDE** |
+| MeLU evidence-candidate bank ranker | ~0.5 agent-day | **MUST-INCLUDE** |
+| Pep adaptivity diagnostic on existing arms | ~0.25 agent-day | **MUST-INCLUDE (diagnostic, not a baseline)** |
+| OPEN EIG + particle filter over the concept bank | 1–2 agent-days | NICE |
+| CLARINET rank-gain-greedy over a fixed bank | 1 agent-day | NICE (largely = our greedy selector) |
+| Bıyık soft-attribute belief | 2+ weeks | UNFIT (preprint, no code, no held-out ranking) |
+| GATE / Montazeralghaem / BED-LLM / COPE / RSO / MACRS / PPDPP | — | UNFIT — cite only |
+| MAMO / TaNP / CDRNP / ColdNAS / MetaKG / M2EU | — | UNFIT as elicitation (category error); TaNP stays a consumer row |
 
 ---
 
@@ -690,9 +839,33 @@ baseline (project rule + circularity ruling).
    ranking metric. The "MIND / 160k articles" detail is **unverified — do not cite**.
 6. `critiquing_vocabulary_is_closed.md` — count goes from **8 systems, 0 exceptions** to **10, 0**.
 
+7. **PEBOL's catalogue is 100 items** — correct this wherever the chapter or any findings file states ~1k
+   or 1–5k. Also correct the headline: "0.27 vs 0.17" mixes datasets; per-dataset at turn 10 it is
+   0.27/0.12 Yelp, 0.18/0.09 ML, 0.17/0.11 Recipe-MPR (vs GPT-MonoLLM).
+8. **The behavioural firewall is NOT novel as a mechanism** (§5.4). Reframe it as *counterfactual /
+   decision-fidelity validation* after Meshi et al. (EACL 2026) and Chen (2026), citing Hsu et al. and PEPPER
+   as lineage. Claiming novelty there is a reviewer target.
+9. **Never write "nobody has a continuous policy action rendered by an LLM"** — LDPP (AAAI 2025) does exactly
+   that, and ELM decodes synthesised latent points. Use the reframing in §6.6.
+
 **Still unverified / do not quote:**
-- BED-LLM catalogue size (a first pass said "1,682 movies"; **not confirmed**).
+- BED-LLM catalogue size (a first pass said "1,682 movies"; **not confirmed**) and its full experimental setup.
 - Zawia et al. IEEE Access DOI and page range.
-- MirrorBench (arXiv:2601.08118), arXiv:2510.17132, and the 2025–26 simulator-construction papers — [S] only.
-- Buffelli 2023 experimental section — abstract only.
-- Yoon et al. NAACL 2024 — abstract only; the concrete measured deviations are not yet extracted.
+- **Balog & Zhai FnTIR monograph (arXiv:2306.08550) full text** — the `v3` URLs 404 and ar5iv truncates.
+  Do **not** attribute an explicit validity-criteria list to it; use arXiv:2501.04410 for that, and cite that
+  section **by title** ("Requirements and Desiderata"), not by number.
+- MirrorBench (arXiv:2601.08118) — no numbers obtained. arXiv:2510.17132 — [S] only.
+- Buffelli 2023 experimental section; Pep (arXiv:2602.15012) experimental setup; MACRS mechanism;
+  Zhang/Knox/Choi ICLR 2025 mechanism; PPDPP and iEvaLM — abstract or search summary only.
+- Bernard & Balog (arXiv:2510.05624) "improved correlation with system rankings" sentence — ambiguous on the
+  abs page, full text not read; do not quote it as support **or** as threat.
+- **"STARDUST" could not be verified to exist**; **PersonalWAB entirely unverified**; CSUSER/CSALES
+  (arXiv:2504.08754) grounding data unverified. Do not cite any of the three.
+- GATE's "MIND / 160k articles" detail — contradicted by the verbatim text. Do not cite.
+
+**Reliability note.** Four independent research passes fed this file. Each was instructed not to fabricate,
+and each explicitly reported its failed fetches (arXiv PDF binaries, IEEE Xplore, OpenReview's bot wall,
+Nature's auth redirect, Semantic Scholar 429s). Everything marked [V] was read as primary text or extracted
+locally with pypdf. **Two facts in this file were CORRECTED mid-pass by a better source** — PEBOL's catalogue
+size and BED-LLM's metric — which is the expected failure mode: a small summariser model filling a gap with a
+plausible number. Treat any figure not marked [V] as provisional.
