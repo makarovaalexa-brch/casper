@@ -61,17 +61,23 @@ that need not have existed when the model was fitted---concepts, entities, phras
 \textbf{R3} monotonicity (a truthful answer does not lower ranking
 quality beyond noise), and \textbf{R4} answers that carry sign and intensity---and an
 acceptance battery (one verification item per requirement, \textbf{R1--R4}, plus two integrity items) that
-operationalises them. R2 carries most of the weight: it is what the instrument \emph{provides} to a policy, and what
+operationalises them.
+
+R2 carries most of the weight: it is what the instrument \emph{provides} to a policy, and what
 a policy should do with it is the companion chapter's subject. A survey of six model families shows the literature is \emph{bifurcated}: the models that hit
 the full-profile bar (shallow linear/autoencoder recommenders such as EASE~\cite{steck2019ease} and
 RecVAE~\cite{ren2020recvae}) are item-only point estimators, while the models with an uncertainty-native, multi-channel
 belief (soft-attribute Gaussian elicitation~\cite{biyik2023soft}, unified item$+$attribute bandits~\cite{li2021seamlessly},
 conjugate critique folds~\cite{toroghi2023bcie}) do not report full-profile accuracy at the R1 bar. We are aware of no
-published system that occupies the conjunction of all four. The instrument that closes this gap is a \emph{frozen} certified
+published system that occupies the conjunction of all four.
+
+The instrument that closes this gap is a \emph{frozen} certified
 shallow frontier tower over whose latent every channel is folded as a direction paired with a value by a
 permutation-invariant set encoder; three of its input legs---signed/graded values, concepts
 whose vocabulary is not fixed when the model is fitted, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
-models. Each requirement carries one verification item, R1--R4, and all four are met. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
+models. Each requirement carries one verification item, R1--R4, and all four are met.
+
+This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
 and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then R1--R4 on the
 ML-25M harness). Our in-house RecVAE realisation sets the bar at full/tail NDCG@10 $0.3540/0.2497$ on the canonical
 ML-25M protocol, and the graded-native interview tower comes within $1.2\%$ of it: a single certified training run reaches
@@ -247,7 +253,7 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         a user's actual targets, and a user who likes film noir does not like every noir film; an operator that
         pushed all of a concept's members up the ranking would be behaving as a genre filter, which is a failure
         mode rather than the property to gate on. The ablation of \S\ref{sec:concept:fold} measures that trade-off
-        directly---the additive-union operator reaches member AUC $0.820$ and \emph{craters} to $0.0991$ full
+        directly---the additive-union operator reaches member AUC $0.820$ but falls to $0.0991$ full
         NDCG@10, below the no-answer intercept, while the gated fold sits at $0.626$ and reaches $0.1759$. What we
         require instead is that the movement be \emph{specific}: folding a like on a concept must move that
         concept's members differently from folding a dislike on it, and differently again from folding some other
@@ -891,7 +897,7 @@ a popularity floor, $s_i=\beta_i+\sum_c w_c\,\langle \W_d\Q_i,\bphi_c\rangle$. I
 empty interview scores exactly $\beta_i$) but the wrong composition: it scores the \emph{union} of directions, so
 correlated sibling concepts (``dark,'' ``gritty,'' ``noir'') re-add the same acclaim axis and over-count. Measured
 against a no-answer intercept of $0.1279$ full NDCG@10, the additive channel peaks early (about $+0.011$ at two
-answers) and then \emph{craters} as answers accumulate, reaching $0.0991$ at eight answers---below the intercept. A
+answers) and then declines as answers accumulate, reaching $0.0991$ at eight answers---below the intercept. A
 \emph{trained gated fold-to-point} operator fixes this by folding the answers into the latent itself and letting a
 frozen decoder apply the full collaborative (intersection) structure:
 \begin{equation}\label{eq:cfold}
@@ -903,7 +909,7 @@ survives) and the accumulated shift norm-capped per user. In the concept-operato
 \emph{redundancy-robust}: feeding it eight \emph{correlated} top-SEL concepts still reaches $0.1685/0.0906$,
 above its four-answer level ($0.1572/0.0777$), exactly where the additive-union operator degraded. The gated fold is the concept operator we adopt;
 Eq.~\eqref{eq:cfold} is the concept-channel instantiation of the channel-agnostic fold of \S\ref{sec:method}.\footnote{This
-operator ablation ran on the earlier tower. It settles the \emph{operator choice}---additive-union craters
+operator ablation ran on the earlier tower. It settles the \emph{operator choice}---additive-union declines
 where the gated fold stays monotone and redundancy-robust---rather than the absolute level; the deployed
 numbers on the certified pair are in \S\ref{sec:concept:results}.}
 
