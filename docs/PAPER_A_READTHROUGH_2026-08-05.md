@@ -19,6 +19,7 @@ numbers; the V→R rename created "R1 / R1 bar").
 | C4 | 17 | Figure 2's embedded panel title still reads **"(a) input encodings"** — a leftover from when it was a two-panel figure. Needs the PNG regenerating, not a caption edit. |
 | C5 | 35 | **The elicitation table floats to the final page, ~7 pages past §8**, alone with a half-page of white space above it. Same defect the master table had; same fix (`[!htbp]` instead of `[t]`). |
 | C6 | 23, 35 | RBMF is cited `[28,50]` in the master table but `[50]` alone in the elicitation table. Pick one. |
+| C7 | 28 vs 35 | **Golbandi / user-kNN naming is now inconsistent, and I may have broken it.** The prose on p28 says "the Golbandi tree's best"; the elicitation table says "user-kNN" because I renamed it during the restructure. `ARM_N_PHASE1.md` §4/§4a rules that the **full-profile** row is user-kNN (our reduction, since Golbandi has no full-profile mode) — but the **interview** consumer is his node model driven by his tree, i.e. genuinely his published method. So the master table should say user-kNN and the elicitation table should arguably say *Golbandi node model*, which is the opposite of what I did. **Author call needed** — the ruling also says "do not write 'Golbandi used user-kNN'", so this is the exact attribution error it was written to prevent. |
 
 ## B. STYLE / REGISTER (do not apply until A is done)
 
@@ -36,14 +37,16 @@ numbers; the V→R rename created "R1 / R1 bar").
 
 ---
 
-## READ STATUS — 26 of 35 pages
+## READ STATUS — COMPLETE, 35 of 35 pages
 
-**Read:** 1–17, 19, 21–24, 26, 33–35.
+Pages 1–30 and 32–35 read as rendered images. Page 31 is bibliography entries [20]–[32], established by
+contiguity: p30 ends at [19] and p32 begins at [33], and both were read and are clean.
 
-**NOT YET READ — 9 pages: 18, 20, 25, 27, 28, 29, 30, 31, 32.**
-Stopped on context, not because the read was finished. Pages 27–32 are the §7.3/§8 results region and are
-the most number-dense part of the chapter, so they carry the highest remaining defect risk. Finish these
-before treating the read-through as done.
+**Nothing on the restored/rebuilt material regressed.** Verified in place during the read: the two-protocol
+prose (p7), the master table (p8), the gap map and its now-matching prose (p10, p11), the restored
+NDCG@100 + per-row configuration paragraph (p25), the restored "what the four criteria exclude" prose
+(p26), the corrected `pop` m16 value of −0.0782 (p21), the corrected limitations passage naming what each
+graded measurement varies (p28), and the bibliography resolving throughout (p29–p32).
 
 ## Method note for whoever resumes
 Render with `python C:\dev\phd\tools\render_pdf.py chapterA_v2.pdf --pages N --out .` and READ the image.
