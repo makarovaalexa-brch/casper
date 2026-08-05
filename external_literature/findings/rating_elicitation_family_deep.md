@@ -392,7 +392,7 @@ in 2003, that letting the user name what they want raises loyalty even when it c
   sets to ensure that we do not accidentally introduce any biases"* — plus Netflix. **Explicit 1–5
   ratings, not binarized.** Random 90/10 user split (≈16,254 test users). Protocol: zero row for the test
   user, ask the questionnaire, copy the true rating from the test set, then rank with SLIM;
-  **questionnaire items are excluded from the recommendations** (same discipline as our harness).
+  **questionnaire items are excluded from the recommendations** (NOT the same discipline as our harness -- CORRECTED 2026-08-05: they exclude ASKED items, we exclude RATED items; their adaptive decline is a protocol artefact by their own diagnosis, see findings/candidate_masking_protocol.md).
   Unknown = "zero-rating", treated as 0. Metrics **NDCG@10** primary, P@N, R@N, reported **all-items AND
   long-tail** with the Cremonesi 33%-of-ratings head. Budgets **5/10/15/20**.
 - **Numbers:** §0.2. User study: 103 participants (*"many of them were somehow linked to the authors"* —

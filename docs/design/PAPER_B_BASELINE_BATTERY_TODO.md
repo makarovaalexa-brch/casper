@@ -19,9 +19,20 @@ the most-popular 33% of ratings — verbatim our head mask. Static Greedy SLIM v
 monotonically*. Tail: 0.1163/0.1543/0.1674/0.1779 vs 0.1183/0.1465/0.1488/0.1466 (adaptive wins
 only the k=5 tail cell). On **Netflix it goes the other way at k≤10** — report that too.
 
+**⚠ CORRECTED 2026-08-05 — this comparison is a PROTOCOL ARTEFACT by its own authors' diagnosis.**
+Greedy SLIM §3.3.2 requires `I_Q ∩ I_R = ∅` — asked items are excluded from the recommendable set
+**on the ask, not the answer** (only 34–49% of their questions drew a rating) — and §6.5 states
+plainly: *"the main reason for the decreasing NDCG is that the questionnaires are not allowed to
+recommend items that they contain as questions."* An adaptive selector asks more user-specific,
+target-adjacent items, so this tax compounds with budget and falls hardest on the adaptive arm.
+**Greedy SLIM can no longer be cited as clean evidence that static beats adaptive.** It remains a
+must-run baseline (its static questionnaire is real) and a must-cite for protocol design, but the
+QBandit decline is theirs, not nature's. See `findings/candidate_masking_protocol.md`.
+
 Consequences, all of which the chapter must absorb:
-1. We are **not alone and not first**; the honest frame is "a third independent confirmation, on a
-   certified instrument, with a mechanism" — not "we discovered adaptivity does not pay".
+1. We are **not alone and not first**; the honest frame is "an independent measurement on a
+   certified instrument, with a mechanism" — not "we discovered adaptivity does not pay", and not
+   "a third confirmation" now that one of the two prior pillars is protocol-confounded.
 2. It is a **must-run baseline** (it is the strongest static bar available: prefix-optimal, so one
    fit gives every budget) AND a must-cite.
 3. Two prior comparisons of best-static vs best-adaptive both go to static (SPQ/Sepliarskaia 2018,
@@ -42,7 +53,8 @@ better-posed question than "does adaptivity work".
 | 0.1 | **Paired bootstrap CIs on every Act-1 cell** (same 10k users; never the `1.96·√2·SE` unpaired form) | 3 | Every Act-1 number is a point estimate. The unpaired form already killed one claim in this project. |
 | 0.2 | **Re-run EDDI with a 3-outcome response model** | 4–8 | Two-outcome likelihood cannot represent "no answer arrives", so our answerability mechanism claim is currently unsupported. If the answer rate recovers this is a *better* result. |
 | 0.3 | **Re-run the three selectors inside the JOINT environment against the greedy sequence** | 6–10 | Act 1's null is currently measured against entropy₀, not against the prefix-optimal comparator the chapter builds. The two tables are on different masks (141.2 vs 62.6 items/user ⇒ +0.027 at the cold state). |
-| 0.4 | **Protocol threat check: Parapar & Radlinski (WSDM'21)** — TestItems is sensitive to missing ratings and *systematically favours entropy-based elicitation*; they propose AvailablePreferences | 4 | We run entropy arms and entropy₀ is our headline static winner. If our protocol has this bias, Act 1's comparator is flattered. Must check and state. |
+| 0.4 | **RE-WORDED 2026-08-05.** Parapar & Radlinski's `AvailablePreferences` is a **judgment-set** change, not a candidate-set change, and the bias it documents favours **popularity-seeking** elicitation (they run no entropy baseline). Apply it as a robustness row on top of policy B — zero cost, no recommender re-run | 2 | Not the threat we thought. It is the **published mechanism** for our own finding that the 4-way entropy bank is popularity in disguise, and our popularity-agnostic `polar` bank is the least-exposed arm. |
+| 0.7 | **★ ADOPT CANDIDATE-MASK POLICY B BATTERY-WIDE** (mask every rated fold-in item; `arm_n.build_pool` is the reference). Seven disagreeing conventions are live in the repo. Fixes: strip the asked-mask and `te[j,i]=0` from `strategy_ladder`; fixed pool in `genv_eval`; full rated mask in `concept_cold_check`; add B as a *second column* to `gate_g9` (never silently change a Paper A number). Two asserts: mask identical across arms within a budget, `te` never modified by an arm. Canary MostPop + EASE first | 8 | **A→B is worth +0.027 NDCG at the cold state** — an order of magnitude above the effects the battery resolves. Until this lands, cells from different scripts are not orderable. Supersedes and unblocks 0.3. |
 | 0.5 | **Scope statement from Elahi (TIST'14)**: per-user evaluation isolated from natural rating acquisition can mislead | 1 | Our protocol is exactly that configuration. Cite and scope, don't wait to be told. |
 | 0.6 | **Floored arm of Act 1** (drop `--no_floor`) | 1 | Never produced. TaNP sits *below* MostPop on zero-answer arms — precisely what the floor exists to expose. |
 
