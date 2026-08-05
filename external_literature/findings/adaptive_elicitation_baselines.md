@@ -1,3 +1,14 @@
+> # ⚠ SUPERSEDED IN PART — READ `rating_elicitation_family_deep.md` §0 FIRST (added 2026-08-05)
+> A second, exhaustive pass found **eleven corrections to this file**, including three that change
+> conclusions: **(a)** the closest contract match in the whole literature — **Greedy SLIM, ML-25M,
+> NDCG@10, our exact Cremonesi tail split** — is missing here entirely, and it is the new strongest
+> static bar; **(b)** the **"PERE gives 3–10% relative NDCG@10" figure is not in the PERE paper** and is
+> refuted (real margins <3% on five of six settings); **(c)** **Sepliarskaia never compares against
+> Golbandi**, ties everything below 5 questions, and attributes the tree's loss to its objective rather
+> than to staticness. Also: this file's **§8b harness audit is stale** (adaptive selectors now exist),
+> and the **Trinity College Dublin MCTS/RLT4Rec line** is absent. Do not cite from this file without
+> checking the corrections list.
+
 # Adaptive cold-start elicitation baselines, 2018–2026 — what Paper B Act 1 must beat
 
 *Added 2026-08-04. Question asked: "Golbandi (WSDM'11) alone is too old to argue Act 1. What are the

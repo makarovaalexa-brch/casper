@@ -11,6 +11,10 @@ Prior agent passes on this project have fabricated citations; every row here car
 "do not cite unchecked" list at the end is binding.
 
 **Read this WITH** `adaptive_elicitation_baselines.md` (the rating-elicitation family + DRE/PERE),
+`rating_elicitation_family_deep.md` (the parallel 2026-08-05 deep pass on the RATING-ELICITATION family,
+which independently found Greedy SLIM and carries the fuller treatment of it — **read its §0 before citing
+anything from the elicitation side; this file covers Greedy SLIM only from the bandit angle, because its
+adaptive foil "QBandit" is Christakopoulou KDD'16**),
 `answerability_in_elicitation.md` (the omniscient-simulator audit table + the CRM/EAR/SCPR/UNICORN/ConTS
 verbatim chain), `simulator_circularity_conv_rec.md`, `rank_targeted_acquisition.md`.
 Those files settled the *base* CRS-RL papers and the rating-elicitation line. **This file adds three
@@ -53,6 +57,19 @@ the user never saw scores 0 — **identical to an item the user disliked**. No m
 price a burned question, because burning and being wrong are the same event under their metric. That is a
 clean, verifiable novelty claim for our "unanswerable questions BURN the budget" contract, sourced from the
 founding paper's own metric definition rather than from our reading of its intent.
+
+**4. And the answer to "does ANYONE in 2023–2026 use a post-interview held-out ranking without target
+leakage?" is: exactly one paper — GREEDY SLIM (arXiv:2406.06061, §3.4), which we had missed.** It runs on
+**unfiltered ML-25M (162,541 users / 59,047 items)**, cold user = a zero row, answers copied from real
+held-out ratings, **no item sampling**, **NDCG@10 at k ∈ {5,10,15,20}**, and — the part that matters most —
+**a long-tail split defined exactly as ours (Cremonesi 33%-of-ratings short head)**. Its adaptive baseline
+is Christakopoulou'16 ("QBandit"), whose NDCG **decreases past k≈10 on both full and tail** while the
+*static* Greedy-SLIM questionnaire keeps climbing. That is an independent external replication of the
+bank-quality effect our own sweep has been chasing, and a published precedent for the *shape* of Act 1's
+result. It is an unpublished preprint (CoRR only, DBLP-verified) — cite it as such.
+A ~93-query arXiv+DBLP sweep found nothing else; the cleanest supporting citation is Gupta, Oosterhuis &
+de Rijke's own admission that **"no publicly available recommendation dataset that has preference
+elicitation interactions"** exists [V].
 
 **Bonus, and it is load-bearing for how we describe the CRS-RL line:** **MINICORN** (arXiv:2206.14468) [V]
 uses **no RL at all** — Monte-Carlo-dropout epistemic uncertainty over attribute beliefs, query the
@@ -334,11 +351,160 @@ industrial. **VERIFICATION DEBT: the offline protocol and metrics are UNVERIFIED
 not extract (a wrong PDF came back on one attempt).** Do not state its offline metric.
 **Verdict: NICE (cite as the industrial precedent for topic/concept questions); UNFIT to run (no data).**
 
-### 3.3 NICF / RLT4Rec — already audited in `adaptive_elicitation_baselines.md`
+### 3.3 ★ Greedy SLIM — Proissl, Vatić & Waldschmidt, arXiv:2406.06061 (11 Jun 2024) **[V, full text]**
+**The single most contract-matching paper found in this entire pass, and it was missed by the Aug-4 sweep.**
+It is a *questionnaire* paper that reports **NDCG@10 on ML-25M after a k-question interview**, which is
+almost exactly our protocol — and it uses **Christakopoulou et al. 2016 (`christakopoulou2016towards`,
+already in our bib) as its main baseline under the name "QBandit"**, which is why it belongs in this file
+rather than the elicitation one.
+
+- **Mechanism.** SLIM (`min ‖X − XW‖²_F + λ_F‖W‖²_F + λ₁‖W‖₁`) is unsuitable for elicitation as normally
+  trained; they propose **Greedy SLIM**, which computes the SLIM matrix **row by row, greedily choosing the
+  next row/item to minimise the SLIM loss** [V]. The questionnaire `QGSLIM` = the first k rows chosen.
+  **The questionnaire is STATIC** ("As our questionnaire is static, we can compute the SLIM matrix in a
+  preprocessing step") [V] — so this is a *static* bar, alongside DRE.
+- **Protocol [V], and it is ours in all but the split.** Random 90/10 user split; for each test user, a zero
+  row is added to `X_train`, the questionnaire is called iteratively, answers are copied in, then the
+  recommender ranks. **NDCG@N / Precision@N / Recall@N**, gain `2^{x_ui} − 1`. `I_R ⊆ I` is the pool the
+  recommender may draw from — **and it EXCLUDES the asked items**, which they identify as the reason
+  QBandit's NDCG *decreases* after ~10 questions ("questionnaires are not allowed to recommend items that
+  they contain as questions… using popular items as questions may have a negative impact") [V].
+  **This is a live design decision for us: do we exclude asked items from the candidate pool?** They do; it
+  penalises popularity-heavy questionnaires. Worth checking what `run_interview_table.py` does.
+- **No sampling, full catalogue [V]:** "we do not apply any kind of item sampling to avoid the problems
+  reported in Krichene and Rendle"; candidates are all items with `x_ui = 0`.
+- **Datasets [V]: MovieLens-25M and Netflix, UNFILTERED** — "We do not filter these sets to ensure that we
+  do not accidentally introduce any biases." **ML-25M at full size: 162,541 users / 59,047 items /
+  25,000,095 ratings**; Netflix 480,189 / 17,770 / 100,480,507. Questionnaire size up to **20**; budgets
+  reported at **k ∈ {5, 10, 15, 20}**.
+- **★ AND IT REPORTS A TAIL SPLIT, defined the way we define ours [V]:** "Following Cremonesi et al. (2010),
+  we refer to the set of most popular items that represent **33% of the ratings** as short-head items. The
+  remaining items are called long-tail items… the questionnaires are still allowed to contain short-head
+  items, of course, but the **top-N recommendation is restricted to long-tail items**." That is our
+  full-and-tail pair, on ML-25M, from an independent group.
+- **Numbers [V]** — ML-25M NDCG@10, QGSLIM vs QBandit, ALL items and LONG-TAIL:
+  | k | ALL: QGSLIM | ALL: QBandit | TAIL: QGSLIM | TAIL: QBandit |
+  |---|---|---|---|---|
+  | 5 | **0.3390** | 0.3382 | 0.1163 | **0.1183** |
+  | 10 | **0.3594** | 0.3456 | **0.1543** | 0.1465 |
+  | 15 | **0.3709** | 0.3221 | **0.1674** | 0.1488 |
+  | 20 | **0.3752** | 0.2916 | **0.1779** | 0.1466 |
+  (Netflix NDCG@10 at k=5: QGSLIM 0.2859 vs QBandit 0.3030; at k=10: 0.3042 vs 0.3251 — QBandit wins there.)
+- **★ The most useful single fact in this paper: QBandit's NDCG *DECREASES* past k≈10 on BOTH axes**
+  (ALL 0.3456 → 0.2916; TAIL 0.1465 → 0.1466 flat then down), and the authors attribute it to popular
+  question items being barred from the recommendation pool [V]. **That is an independent external
+  replication of the bank-quality effect our own concept-vs-item bank sweep has been chasing** — a
+  popularity-heavy question bank stops paying and then costs. Cite it.
+  Their own summary [V]: "QBandit seems to perform slightly better than QGSLIM if the questionnaire consists
+  of very few questions… QGSLIM is able to profit from every additional question, which leads to favorable
+  results if the questionnaire consists of ten or more questions." **A published budget-dependent crossover
+  between two elicitation strategies on ML-25M — directly relevant to our k∈{1,2,4,8,16} sweep, and note the
+  direction: the STATIC method wins at long budgets and the ADAPTIVE bandit wins only at very short ones.**
+  ⚠ **Do NOT put these numbers beside ours.** Their NDCG uses graded gain `2^r − 1` on raw 1–5 ratings (we
+  are binary implicit), their split is a random 90/10 user split with *everything unasked* as the target set
+  (not Liang's 80/20 fold-in/eval), and their candidate pool excludes asked items. Same *shape* of number
+  and the same tail definition — **different information contract, so not ordered against 0.3496/0.2491.**
+- **Baselines** [V]: QBandit (= Christakopoulou 2016, with **PureSVD** as the LFM), plus their own QPop
+  (most-rated), QVar (Golbandi entropy×popularity trade-off), RGain, QGreedy.
+- **A reproducibility datapoint we should record and can cite:** "For Golbandi et al. [2011] and
+  Sepliarskaia et al. [2018] we, unfortunately, **obtained poor results**. We therefore decided to not
+  include them in our official experiments" [V] — an independent 2024 group failed to reproduce Golbandi
+  usefully. Also: "the **reproducibility issue** within the recommender systems community is also an issue
+  when it comes to questionnaires. **We had to implement all the baselines we wanted to consider on our
+  own**" [V]. That is a *citable* statement of exactly the hole our baseline battery fills.
+- **User study** [V]: 10 movies rated on 1–5 **with an explicit "don't know" zero-rating option**, then 10
+  recommendations judged (bad / good / very good / don't know). Small, authors say "might not be
+  representative" and explicitly ask for help repeating it at scale. **Their zero-rating IS our
+  unanswerable branch**, in a human study, in 2024.
+- **Cost caveat [V]:** 19 minutes *per SLIM row* on ML-25M (9 min on Netflix); 20 rows = hours. They scan
+  every item as a candidate for each row. For k≤16 this is ~5 hours of compute, which is affordable.
+- **Code: OSF anonymous view-only link in the paper —
+  `https://osf.io/myh2q/?view_only=a9a747dee8704203ae594ae0a8cc88f8`** [V link present; **not opened,
+  language/framework UNVERIFIED**]. **Venue: CoRR/arXiv ONLY** — DBLP has exactly one record,
+  `journals/corr/abs-2406-06061`, venue "CoRR", 2024; **no conference or journal version** [V, DBLP API].
+  **It is not peer-reviewed — say so in any citation.**
+- **Answerability: implied by construction, never stated offline.** "copy the user-item interaction `r_ui`
+  from `X_test`" means an unrated asked item copies nothing while consuming a turn, and QGSLIM is a static
+  top-k list asked of everyone — so the burn is structurally forced. But the paper never analyses it.
+  Its limitations paragraph is the closest [V]: "the information contained in `X_test` may be incomplete
+  because the users do not rate all the items they know. Second, a real new user most likely knows less
+  items than the users contained in `X_test`. We found that these points **might have a severe impact on the
+  results**, which is why we additionally conducted an online user study."
+  **Frame it precisely: they IDENTIFY unanswerability as the threat to their own offline protocol and go
+  online to address it; they do not price it. That is a gift for our answerability argument, not a rival.**
+- (a) **NDCG@10 AFTER the interview** — the only method in this whole file that prices our quantity.
+  (b) **No target item, no simulator** — answers are copied from the real interaction matrix. (c) **YES.**
+  (d) Ports fully.
+- **Verdict: MUST-INCLUDE.** It is a static ML-25M NDCG@10 questionnaire bar that we did not know existed,
+  it names Christakopoulou'16 as the bandit questionnaire to beat, and its budget-dependent crossover is a
+  published precedent for the shape of result Act 1 is measuring. Effort: **~12–20 agent-hours** (greedy
+  row-wise SLIM + the questionnaire; the loss is a plain elastic-net least-squares per row).
+
+### 3.4 NICF / RLT4Rec — already audited in `adaptive_elicitation_baselines.md`
 One correction to record: **RLT4Rec's authorship is now [V] — Dilina Chandika Rajapakse and Douglas Leith,
 arXiv:2412.07403, 10 Dec 2024.** Abstract verified verbatim: transformer over the user's (item,rating)
 history → next item, "no need to input a state observation or estimate". **Datasets, metrics, session
 length and code remain UNVERIFIED** (the HTML build 404s and the PDF would not extract).
+
+---
+
+### 3.5 THE HARD SEARCH — "do ANY 2023–2026 CRS/elicitation papers use a post-interview held-out ranking with no target leakage?"
+
+**Answer: essentially no. Exactly ONE paper satisfies the full contract — Greedy SLIM (§3.3) — and it is an
+unpublished preprint whose own authors distrusted it enough to run a user study to check.**
+
+Coverage behind that negative (so it can be judged): ~93 distinct searches — **43 arXiv API abstract
+queries** (≥2022-06, sorted by date) and **50 DBLP publication-API queries**, plus DBLP TOC fetches for
+RecSys 2025/2024 and SIGIR 2025. **WebSearch was unavailable (session budget 200/200 exhausted) and ACM DL
+returns 403 to automated fetches**, so SIGIR 2024/2026, WSDM, WWW, TORS, UMAP and CIKM were reached only by
+DBLP keyword search, not by reading TOCs end to end. **Known hole:** `"cold start" + "interview" +
+"recommender"` returns **zero** arXiv abstracts since 2023 — the Golbandi "interview" vocabulary is dead, so
+a 2025 paper doing our contract under another name could be missed.
+
+**The claim to make in the paper:** across those searches, the number of 2023–2026 papers that (i) end the
+interaction, (ii) rank the full unsampled catalogue, (iii) score NDCG on *held-out* items, (iv) with answers
+from real ratings and no known target, and (v) report a tail split, is **one**. Every other 2023–2026
+elicitation paper substitutes one of: a small filtered catalogue (≤5k items), a target-aware LLM simulator,
+a success-rate/regret/coverage metric, a text-reconstruction metric, or a user study.
+
+**The best supporting citation is someone else's admission, not ours** [V]: Gupta, Oosterhuis & de Rijke
+(`gupta2024pebias`, CONSEQUENCES@RecSys 2023 / arXiv:2405.00554) had to *simulate* elicitation because
+**"no publicly available recommendation dataset that has preference elicitation interactions"** exists.
+That is the gap, stated by a UvA/Radboud group, and it is the cleanest justification for why our contract
+had to be built rather than adopted.
+
+**Near-miss worth a paragraph of related work — ICER / MD-DICER (Google DeepMind), on OUR dataset:**
+Ryu, Hsu, Chow, Ghavamzadeh & Boutilier, "Synthetic Dialogue Generation for Interactive Conversational
+Elicitation & Recommendation", **GENNEXT@SIGIR'25 workshop, arXiv:2510.02331** [V]. 100K CRS dialogues built
+on **MovieLens-25M**, restricted to **2,109 movies with ≥1,000 ratings** and 3,650 users with ≥50 ratings;
+7-turn budget; EVOI-style item *and* attribute queries; dataset public on Kaggle (`googleai/md-dicer`).
+**But: no full-catalogue held-out ranking.** Evaluation is human raters on eight dialogue-quality dimensions
+plus an LM ranking **two-item pairs** (accuracy and NDCG *on pairs*). The answer model is a learned
+choice/response model with access to ground-truth CF user embeddings — a simulator [V].
+**Verdict: UNFIT as a comparator; NICE as evidence that a Google-scale team, on our exact dataset, with an
+EVOI item-and-attribute query design, still declined to report post-interview catalogue NDCG.**
+
+**PEPPER venue correction:** `kim2024targetfree` is **EMNLP 2025 Findings** (arXiv:2411.16160v4), not an
+arXiv-only preprint. It *does* report Recall/NDCG/MRR@{20,50} alongside Preference Coverage, but on
+ReDial/OpenDialKG-scale catalogues (~3.3k users) with gpt-4o-mini as simulator and GPT-4o as judge — so it
+stays **MUST-CITE for the leakage argument, UNFIT as a comparator.** The practical consequence: *stop
+carrying the "target-biased simulator is a guessing game" claim on our own authority — it is now published.*
+
+**Other 2023–2026 candidates checked and rejected, with the reason:** Montazeralghaem et al.
+arXiv:2510.12015 (MovieLens, 10 questions — but scored with **ROUGE/BLEU on reconstructed profiles**, and
+the LLM simulator is given the ground-truth profile); Hsu et al. arXiv:2409.17436 (proprietary YouTube-Music
+logs, metric is agreement with live A/B, no NDCG); Harne et al. arXiv:2606.24194 (simulator "accesses the
+full product description and profile" of the target; ~2,000 items pre-filtered to top-200);
+Tran et al. arXiv:2603.11399 (150 LLM personas holding explicit ground-truth preferences);
+Boroomand & Wright arXiv:2508.14911 (**pretrained with 55 comparisons per user — not cold**);
+Bose et al. ICLR 2026 arXiv:2602.15012 (T=5 questions but MedQA/AIME domain, LLM-judge rubric score);
+Wang et al. WWW'25 Companion arXiv:2412.06949 (Reddit-ML32M, 22,014 items, full-catalogue NDCG@k — but
+ground truth is items **named inside the conversation**, i.e. exactly the He CIKM'23 circularity we already
+documented). **[S]-level, unfetched, ACM-DL-blocked:** Wang et al. "Towards Efficient Conversational
+Recommendations: EVOI Meets Bandit Learning", **WWW 2025, 10.1145/3696410.3714773** — by title and venue it
+completes the EVOI×bandit thread and **should be fetched manually**; UMAP 2026 "Investigating Preference
+Elicitation Strategies in CRS" (10.1145/3774935.3803059); CIKM'24 SAQRec; SIGIR'25 "Action First";
+WSDM'23 "Meta Policy Learning for Cold-Start CRS"; CHIIR'26 "Expanded Tag Genomes".
 
 ---
 
@@ -430,9 +596,12 @@ PEPPER and Interplay for the second clause.
 | **Question-based RS** (Qrec, NICF, RLT4Rec) | Cumulative Precision/Recall/α-NDCG@T; Recall/MRR **against the target** | **YES, omniscient** (Qrec's answerer has "full knowledge of … the target item") | **No** | Acquisition rules port (GBS half-split; NICF's Q-network as a selector) |
 | **Attribute-asking CRS** (CRM→EAR→SCPR→UNICORN→ConTS→CRIF/MCMIPL/HutCRS/DAHCR/CoCHPL/CRSIRL/VPMCR/SAPIENT/TCRS) | **Success Rate@turn, Average Turns**, hDCG *within the recommended list* | **YES, always**, and the candidate pool is **seeded by an attribute of the target** (`p₀`) | **No — not one paper** | **Mostly no** (rewards are target-defined). Portable *ideas*: HutCRS coarse→fine asking, MCMIPL multi-choice format, CoCHPL diverse question chain, SAPIENT MCTS lookahead, MINICORN uncertainty criterion |
 | **Rating elicitation** (DRE, PERE, trees) — see the other file | NDCG@N **after** the interview | No | **YES** | Yes |
+| **Greedy SLIM** (arXiv:2406.06061) — §3.3 | **NDCG@10 after the interview, full catalogue AND long tail, ML-25M** | **No** — answers copied from real held-out ratings | **YES — the only one** | Yes |
 
 **Conclusion, stated for the paper:** *outside the rating-elicitation family, we found **no** method in the
-bandit/RL/CRS literature that reports a post-interview held-out ranking metric over a full catalogue.*
+bandit/RL/CRS literature that reports a post-interview held-out ranking metric over a full catalogue*
+— with a single exception, an unpublished 2024 preprint (Greedy SLIM) that also happens to use our dataset
+and our tail definition.
 The family scores the probes themselves (bandits) or hitting a known target (CRS). Their numbers are
 therefore not orderable against ours — **but several of their policies are portable, and a policy whose
 numbers are unusable is still a must-include baseline once re-scored under our contract.**
@@ -466,6 +635,13 @@ are *additions to a working rig*, not new infrastructure.
    "your static concept bar is a heuristic".
 4. **CLiME's low-eigendirection rule** `argmax_c |d_cᵀv_i|` over the small-eigenvalue eigenvectors of `M_t`.
    **~3 agent-hours** once (1) exists. The 2025 SOTA criterion; nearly free as a second arm.
+4b. **★ Greedy SLIM's `QGSLIM` questionnaire as a STATIC item bar, and `QBandit` (Christakopoulou'16 over
+   PureSVD) as its adaptive foil.** **~12–20 agent-hours** (greedy row-wise SLIM is an elastic-net
+   least-squares per row; their own implementation takes 19 min/row on ML-25M, so ~5–6 h compute for k≤16).
+   This is the *only* published protocol sibling we have, on our dataset, with our tail definition — and its
+   QBandit-declines-past-k=10 curve is external corroboration of our bank result. Also check whether
+   `run_interview_table.py` excludes asked items from the candidate pool, because they do and it changes the
+   sign of the popularity arm's late-budget behaviour.
 5. **HutCRS-style coarse→fine concept asking** (genome tag-cluster level first, then tag within accepted
    clusters). **~20–30 agent-hours.** Real value for the concept arm and the only baseline whose stated
    motivation — users cannot answer attribute questions they have no knowledge of — is *our* motivation.
@@ -532,6 +708,16 @@ Interactive-CF paper's own policy set" instead of "we tried a bandit".
 - RelativeConUCB and ConDuel — named only in third-party lineage lists.
 - The `juanfacabian/InPE` repo attributed to Xia/Zhang/Wang (arXiv:2607.06765) — the org name does not match
   the author list; verify the repo exists before citing it.
+- **Greedy SLIM's OSF repo** (`osf.io/myh2q/?view_only=…`) — link present in the paper but **not opened**;
+  language/framework/completeness UNVERIFIED. Also: it is **CoRR-only, not peer-reviewed** (DBLP-verified) —
+  never present it as a published bar.
+- **Bıyık et al. 2023 soft attributes — its EVALUATION PROTOCOL is still unverified** (arXiv HTML 404s;
+  abstract only). Given that Bıyık is the standing threat to Paper A, **this is the verification debt to
+  close first** — fetch the TeX source at `arxiv.org/src/2311.02085`. Assert nothing about its metric until
+  then. (This debt is also standing in `text_to_cf_projection.md` and `adaptive_elicitation_baselines.md`.)
+- **Wang et al., "Towards Efficient Conversational Recommendations: EVOI Meets Bandit Learning", WWW 2025,
+  10.1145/3696410.3714773** — ACM DL 403'd every automated fetch. By title it joins EVOI to the bandit
+  family, i.e. it sits exactly between our belief line and this file's family. **Fetch manually.** [S]
 - **Unaudited (search budget exhausted at 200/200):** TUT4CRS (MM'24, 10.1145/3664647.3681259); graph-based
   dynamic attribute clipping (Discover Computing 2024, 10.1007/s10791-024-09437-6); Confident Action
   Decision via Hierarchical Policy Learning (WWW'23, 10.1145/3543507.3583536); the TORS fuzzy-feedback MCR
