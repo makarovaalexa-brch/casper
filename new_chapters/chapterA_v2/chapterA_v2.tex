@@ -55,7 +55,7 @@ mixed-channel set of answers into its user representation and re-ranks a large c
 without trading away full-profile accuracy. We argue that this recommender is a \emph{measuring instrument} for the
 entire elicitation-policy literature, and that its requirements are more demanding than any single published system
 meets. The demanding part is \emph{ingestion}: folding an arbitrary-length set of mixed-type answers into a recommender
-that is already at the accuracy frontier. We state that as four requirements---\textbf{R1} state-of-the-art
+that is already at the accuracy frontier. We state that as four requirements---\textbf{R1} frontier-parity
 full-profile accuracy, \textbf{R2} an open set-valued input interface (any number of observations, and directions
 that need not have existed when the model was fitted---concepts, entities, phrases, policy-emitted vectors),
 \textbf{R3} monotonicity (a truthful answer does not lower ranking
@@ -105,7 +105,7 @@ strong and flexible enough that a good interview is not wasted on it. We call su
 \paragraph{Four requirements.}
 An instrument fit for measuring conversational elicitation must simultaneously satisfy:
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
-  \item[R1 --- full-profile SOTA.] On a full interaction history it must rank at the level of the strongest shallow
+  \item[R1 --- frontier-parity full profile.] On a full interaction history it must rank at the level of the strongest shallow
         collaborative-filtering baselines (EASE~\cite{steck2019ease}, RecVAE~\cite{ren2020recvae}), so that
         elicitation is measured against a recommender nobody can dismiss as weak~\cite{dacrema2019progress}.
   \item[R2 --- an open set-valued input interface.] It must ingest an evidence set of \emph{any} cardinality, from
@@ -473,9 +473,10 @@ conjunction.
 Figure~\ref{fig:gapmap} places every system on two axes: \emph{interview-compatibility} on the $x$-axis---a coarse
 ordinal capability count, the number of \textbf{R2--R4} marks a system satisfies in the master table
 (R1 is excluded because accuracy is the $y$-axis)---and \emph{measured full-profile NDCG@10 on our
-ML-25M ruler} (R1) on the $y$-axis. The population is bimodal: the accuracy corner collapses onto $x\le1.5$, the
-interview-capable systems sit at $x\ge2$ with weak or non-existent full-profile accuracy, and no system bridges---the
-top-right, high compatibility \emph{and} frontier accuracy, is empty.
+ML-25M ruler} (R1) on the $y$-axis. The population is bimodal: the accuracy corner collapses onto $x{=}0$, the
+interview-capable systems sit at $x\ge1$ with weak or non-existent full-profile accuracy, no published system
+exceeds $x{=}2$, and no system bridges---the top-right, high compatibility \emph{and} frontier accuracy, is
+empty.
 
 \begin{figure}[t]\centering
 \begin{tikzpicture}
@@ -483,8 +484,8 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
     width=13.5cm, height=9cm,
     xlabel={interview-compatibility score (number of R2--R4 requirements met)},
     ylabel={measured full-profile NDCG@10 (our ML-25M ruler)},
-    xmin=0, xmax=4, ymin=0.068, ymax=0.38,
-    xtick={0,1,2,3,4},
+    xmin=-0.06, xmax=3.18, ymin=0.068, ymax=0.38,
+    xtick={0,1,2,3},
     ytick={0.10,0.15,0.20,0.25,0.30,0.35},
     ymajorgrids=true,
     extra y ticks={0.068}, extra y tick labels={},
@@ -495,36 +496,35 @@ top-right, high compatibility \emph{and} frontier accuracy, is empty.
 ]
   % --- the instrument: MEASURED, and the only point in the top-right cell ---
   \node[star,star points=5,draw=green!45!black,fill=yellow!85!red,minimum size=11pt,inner sep=0pt]
-        at (axis cs:4.0,0.3496) {};
-  \node[green!45!black,font=\scriptsize,align=center,anchor=north east] at (axis cs:3.94,0.3466)
+        at (axis cs:3.0,0.3496) {};
+  \node[green!45!black,font=\scriptsize,align=center,anchor=north east] at (axis cs:2.94,0.3466)
         {\textbf{CASPER} (this chapter)\\{\tiny R2--R4 all \cmark, $0.3496$}};
-  % --- measured points (filled); x = R2..R4 marks ONLY (R1 excluded: accuracy is the y-axis) ---
+  % --- measured points (filled); x = R2..R4 marks ONLY (R1 excluded: accuracy is the y-axis).
+  %     Every x is the count of R2-R4 checkmarks that system carries in tab:master. Do not hand-place.
   \addplot[only marks,mark=*,mark size=2.6pt,color=blue!55!black] coordinates {
-    (0.0,0.1345) (0.0,0.2428) (0.0,0.2442) (3.0,0.2019)
+    (0.0,0.1345) (0.0,0.2428) (0.0,0.2442) (1.0,0.2019)
     (1.0,0.3065) (0.0,0.3433) (0.0,0.3476) (0.0,0.3540)
   };
-  % measured-point labels (accuracy cluster stacked at x=1.5, spread by y)
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.1345) {Most-Popular};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.2360) {item-kNN};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.2510) {iALS};
-  \node[font=\scriptsize,anchor=west] at (axis cs:1.08,0.3065) {Golbandi-node};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.3400) {EDLAE};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.3490) {EASE};
-  \node[font=\scriptsize,anchor=west] at (axis cs:0.08,0.3585) {\textbf{RecVAE}};
-  \node[font=\scriptsize,anchor=south east] at (axis cs:2.94,0.2019) {conjugate belief over frozen MF};
+  % measured-point labels (accuracy cluster all at x=0, spread by y)
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.1345) {Most-Popular};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.2360) {item-kNN};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.2510) {iALS};
+  \node[font=\scriptsize,anchor=west] at (axis cs:1.06,0.3065) {user-kNN};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.3340) {EDLAE};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.3495) {EASE};
+  \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.3650) {\textbf{RecVAE}};
+  \node[font=\scriptsize,anchor=west] at (axis cs:1.06,0.2019) {conjugate belief (frozen MF)};
   % --- "no full-profile number" strip: BELOW the measured y-scale, visually separated ---
-  \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:4,0.094);
-  \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:4,0.094);
+  \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:3,0.094);
+  \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:3,0.094);
   \addplot[only marks,mark=o,mark size=2.6pt,color=gray!70!black] coordinates {
-    (1.0,0.076) (1.94,0.076) (2.06,0.076)
+    (0.0,0.076) (0.94,0.076) (1.06,0.076) (2.0,0.076)
   };
-  \node[gray!60!black,font=\tiny,anchor=south] at (axis cs:2.0,0.079) {PEBOL, BCIE, GATE, LLM-CRS};
-  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:1.0,0.0745) {UNICORN};
-  
-  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:2.75,0.086)
-        {no full-profile ranker exists};
-  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:2.75,0.079)
-        {(by construction; $x$ only)};
+  \node[gray!60!black,font=\tiny,anchor=west] at (axis cs:0.06,0.0765) {ConTS, UNICORN};
+  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:1.0,0.0745) {B\i y\i k, ICF, BCIE, PEBOL};
+  \node[gray!60!black,font=\tiny,anchor=north] at (axis cs:2.0,0.0745) {GATE, LLM-CRS};
+  \node[gray!60!black,font=\tiny,anchor=east] at (axis cs:3.16,0.0870)
+        {no full-profile ranker exists ($x$ only)};
 \end{axis}
 \end{tikzpicture}
 \caption{\textbf{The gap map.} $y$: measured full-profile NDCG@10 on our ML-25M ruler (\textsc{liang}).
@@ -535,8 +535,8 @@ measurement. Filled markers have a full-profile number on this ruler; hollow mar
 the scale cannot produce one by construction, so only their $x$ position is meaningful. Runnable-but-unmeasured
 systems are absent rather than guessed at. The population is \emph{bimodal}: the whole accuracy corner
 collapses onto $x{=}0$, while every system with genuine interview machinery sits at $x\ge1$ and reports no
-full-catalogue accuracy. The star is this chapter's instrument---the only measured point at both the frontier
-bar and full interview compatibility.}
+full-catalogue accuracy. No published system exceeds $x{=}2$. The star is this chapter's instrument, alone
+at $x{=}3$---the only measured point at both the frontier bar and full interview compatibility.}
 \label{fig:gapmap}
 \end{figure}
 
@@ -545,7 +545,7 @@ bar and full interview compatibility.}
 % =====================================================================
 
 \paragraph{The verdict.}
-No single published system satisfies all of $\{$R1 SOTA-full-profile $\wedge$ R2 any-length set $\wedge$
+No single published system satisfies all of $\{$R1 frontier-parity full-profile $\wedge$ R2 any-length set $\wedge$
 R3 monotone $\wedge$ R4 expressive answers$\}$. The binding
 near-miss is B\i y\i k et al.~\cite{biyik2023soft}: it fails R1 (a $d{=}50$ ALS two-tower rather than a
 certified RecVAE-class tower, and it reports no full-catalogue accuracy---its NDCG is computed between a user's true
