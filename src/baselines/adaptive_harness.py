@@ -73,9 +73,12 @@ import interview_strategies as ST
 from arm_n import load_arm_n
 from arm_n_tower import SNAP_DEFAULT
 from golbandi_leaf import MAX_DEPTH
-from run_interview_table import (OUT, RECS, build_recommenders, score_arm, mostpop_row, logln)
+from run_interview_table import (OUT, RECS, build_recommenders, score_arm, mostpop_row, logln,
+                                 answers_to_csr)
 
 STATIC_SUFFIX = "-static"
+# The conversational-bandit (key-term) family: the only selectors with a TWO-TYPE action space.
+CONV_BANDIT_SPECS = ("conlinucb_mcr", "conlinucb_bs", "conlinucb_bs_static", "clime", "conucb")
 
 
 # ===================================================================== selector interface
@@ -153,50 +156,97 @@ class StaticArmSelector(Selector):
 
 # ===================================================================== the sequential loop
 def run_interview(selector, k, n_users, n_items, lvl, ctx=None, sel_batch=0, log=logln,
-                  collect_dispersion=True):
+                  collect_dispersion=True, conc=None):
     """Ask `k` questions sequentially, re-invoking `selector` after every answer.
 
     Returns (asked, answered, info):
-      asked[u]    list of k item ids, in ask order
+      asked[u]    list of the ITEM ids asked, in ask order (this is what the scoring path consumes)
       answered[u] list of (item_id, level) for the subset the user could actually answer
       info        per-turn wall time and the number of DISTINCT ask-prefixes (the dispersion
                   diagnostic Act 2 wants; free to collect here, so we do)
 
     NO USER IS EVER DROPPED, SAMPLED OR CAPPED: the loop covers range(n_users) every turn.
+
+    THE TWO-TYPE ACTION SPACE (added 2026-08-05 for the conversational-bandit family, whose whole
+    point is that a key-term question and an item question live in ONE action space; see
+    conversational_bandit_selectors.py). It is OPT-IN and inert unless `conc` is supplied:
+
+        action id in [0, n_items)            -> ask about that ITEM               (the only case today)
+        action id in [n_items, n_items + C)  -> ask about key-term c = a - n_items
+
+    `conc` is {"n_concepts": C, "answer": fn(u, c) -> (answerable, value)}. The selector sees the FULL
+    action ids in `asked[u]`, so the no-re-ask assert covers both types and the k-question budget is
+    genuinely SHARED between them -- a concept question costs exactly one item question, which is the
+    contract that makes the comparison mean anything. An unanswerable concept (BAND_REFUSE, or fewer
+    than 2 rated members) BURNS the turn exactly as an unrated item does.
+
+    Concept answers are handed back to the selector through `ctx["conc_state"]`, a dict of two lists
+    mutated in place. That is deliberate: `Selector.select(turn, users, asked, answered)` is the
+    published API and every other selector implements it, so widening the signature would break the
+    contract this file exists to define. The item-side return values are unchanged, so the entire
+    scoring path (`score_arm`, the floor rule, the pool) sees exactly what it saw before.
     """
-    asked = [[] for _ in range(n_users)]
+    acts = [[] for _ in range(n_users)]                      # FULL action ids (items + key-terms)
+    asked = [[] for _ in range(n_users)]                     # ITEM ids only -> the scoring path
     answered = [[] for _ in range(n_users)]
-    base_ctx = {"n_users": n_users, "n_items": n_items, "q_max": int(k), "log": log}
+    n_conc = int(conc["n_concepts"]) if conc else 0
+    conc_state = {"asked": [[] for _ in range(n_users)], "answered": [[] for _ in range(n_users)],
+                  "tokens": [[] for _ in range(n_users)]}
+    base_ctx = {"n_users": n_users, "n_items": n_items, "q_max": int(k), "log": log,
+                "conc_state": conc_state, "n_concepts": n_conc}
     base_ctx.update(ctx or {})
     selector.reset(base_ctx)
 
     all_users = np.arange(n_users, dtype=np.int64)
     step = n_users if sel_batch in (0, None) else int(sel_batch)
-    info = {"turn_seconds": [], "distinct_prefixes": [], "answer_rate": []}
+    info = {"turn_seconds": [], "distinct_prefixes": [], "answer_rate": [], "concept_asks": []}
     for t in range(k):
         t0 = time.time()
         for s in range(0, n_users, step):
             users = all_users[s:s + step]
-            q = np.asarray(selector.select(t, users, asked, answered), dtype=np.int64)
+            q = np.asarray(selector.select(t, users, acts, answered), dtype=np.int64)
             assert q.shape == (len(users),), f"selector {selector.name} returned {q.shape}"
             for u, i in zip(users.tolist(), q.tolist()):
-                assert 0 <= i < n_items, f"selector {selector.name} returned item {i} out of range"
-                assert i not in asked[u], (
-                    f"selector {selector.name} re-asked item {i} to user {u} at turn {t}; a repeat "
+                assert 0 <= i < n_items + n_conc, (
+                    f"selector {selector.name} returned action {i} out of range "
+                    f"[0,{n_items + n_conc})")
+                assert i not in acts[u], (
+                    f"selector {selector.name} re-asked action {i} to user {u} at turn {t}; a repeat "
                     f"burns a question for zero information and silently shortens the interview")
-                asked[u].append(i)
-                d = lvl[u]
-                if i in d:                                   # identical test to interview_strategies.ask
-                    answered[u].append((i, d[i]))
+                acts[u].append(i)
+                if i < n_items:
+                    asked[u].append(i)
+                    d = lvl[u]
+                    if i in d:                               # identical test to interview_strategies.ask
+                        answered[u].append((i, d[i]))
+                else:
+                    c = i - n_items
+                    ok, v = conc["answer"](u, c)
+                    conc_state["asked"][u].append(c)
+                    # tokens: what a concept-consuming recommender folds -- a REFUSAL is a token too
+                    # (v=0, ref=1), exactly as concept_cold_check folds a burned concept question.
+                    conc_state["tokens"][u].append((c, v if ok else 0.0, 0.0 if ok else 1.0))
+                    if ok:
+                        conc_state["answered"][u].append((c, v))
         dt = time.time() - t0
         info["turn_seconds"].append(round(dt, 2))
         info["answer_rate"].append(round(float(np.mean([len(a) for a in answered])), 4))
+        info["concept_asks"].append(int(sum(len(a) for a in conc_state["asked"])))
         if collect_dispersion:
-            info["distinct_prefixes"].append(len({tuple(a) for a in asked}))
+            info["distinct_prefixes"].append(len({tuple(a) for a in acts}))
         log(f"[adaptive] {selector.name:16s} turn {t + 1}/{k}: {dt:.1f}s  "
             f"answered so far {info['answer_rate'][-1]:.2f}  "
+            f"concept-asks {info['concept_asks'][-1]}  "
             f"distinct ask-prefixes {info['distinct_prefixes'][-1] if collect_dispersion else '-'}")
     info.update(selector.stats())
+    if conc and info["concept_asks"][-1] == 0:
+        # A key-term arm that never asked a key-term is NOT a result about concepts -- it is the arm
+        # degenerating to its item-only special case. Say so loudly so no table row can be read as
+        # "the concept channel did not help" when the concept channel was never used.
+        log(f"[adaptive] *** {selector.name}: ZERO key-term questions asked in {k} turns -- this arm "
+            f"DEGENERATED to item-only. Do not read this row as evidence about concepts. ***")
+    info["_conc_state"] = conc_state
+    info["_acts"] = acts
     return asked, answered, info
 
 
@@ -285,8 +335,45 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         return E.EDDIThreeOutcomeSelector(
             cache["eddi"], D["g_train"],
             dislike_mode="zero" if spec == "eddi_ig3_zero" else "signed", beta=args.eddi_beta)
+    if spec in CONV_BANDIT_SPECS:
+        # THE CONVERSATIONAL-BANDIT FAMILY (ConUCB WWW'20 / ConLinUCB AAAI'23 / CLiME KDD'25). These
+        # are the only arms with a TWO-TYPE action space: they may ask about an item or about a
+        # key-term (a genome concept) at any turn, out of one shared k-question budget. The posterior
+        # is `belief_mf.GaussianBelief` -- the SAME object glm_ucb and thompson use, so the difference
+        # between those rows and these is the action space and nothing else.
+        import conversational_bandit_selectors as CB
+        if "belief" not in cache:
+            import belief_mf
+            cache["belief"] = belief_mf.fit(D["train"], D["n_items"], log=log).belief
+        bel = cache["belief"]
+        # ConUCB's Eq. 4 DEFINES its key-term feature as the weight-normalised member mean, so that arm
+        # pins the representation unless the caller overrides it on purpose (--keyterm_repr_conucb).
+        repr_mode = args.keyterm_repr
+        if spec == "conucb" and not getattr(args, "keyterm_repr_conucb", False):
+            repr_mode = "uniform_member_mean"
+        ckey = ("conc_stack", repr_mode, bool(args.keyterm_norm_match), int(args.keyterm_n_rep))
+        if ckey not in cache:
+            cache[ckey] = CB.build_concept_stack(
+                D, args.snapshot, keyterm_repr=repr_mode, n_rep=args.keyterm_n_rep,
+                norm_match=args.keyterm_norm_match, Y=bel.Y, log=log)
+            cache[ckey]["_repr"] = repr_mode
+        stack = cache[ckey]
+        kw = dict(alpha=args.ucb_alpha, beta=args.conv_beta, seed=args.ts_seed,
+                  b_schedule=args.conv_b_schedule,
+                  turn_rule=(args.conv_turn_rule or None))
+        if spec == "conlinucb_mcr":
+            return CB.ConLinUCBMCRSelector(bel, stack, **kw)
+        if spec == "conlinucb_bs":
+            return CB.ConLinUCBBSSelector(bel, stack, **kw)
+        if spec == "conlinucb_bs_static":
+            return CB.ConLinUCBBSSelector(bel, stack, key_term_only=True, **kw)
+        if spec == "clime":
+            return CB.CLiMESelector(bel, stack, n_eig=args.clime_n_eig,
+                                    smooth_sigma=args.clisk_sigma, **kw)
+        return CB.ConUCBSelector(bel, stack, lam=args.conucb_lam, lam_til=args.conucb_lam_til, **kw)
     raise SystemExit(f"unknown selector spec '{spec}'. Known: <arm>{STATIC_SUFFIX} for arm in "
-                     f"{ST.ARMS}, plus glm_ucb, thompson, eddi_ig, eddi_ig3, eddi_ig3_zero")
+                     f"{ST.ARMS}, plus glm_ucb, thompson, eddi_ig, eddi_ig3, eddi_ig3_zero, "
+                     f"{','.join(CONV_BANDIT_SPECS)}")
 
 
 def _smoke_slice(D, n_smoke, log=logln):
@@ -328,6 +415,53 @@ def main():
     ap.add_argument("--eddi_beta", type=float, default=1.0,
                     help="eddi_ig3 only: how hard the frozen decoder tilts the item's base like-rate "
                          "per user, in logit units per z-score. 1.0 = default, NOT tuned.")
+    # ---------------- conversational-bandit family (see conversational_bandit_selectors.py) --------
+    ap.add_argument("--keyterm_repr", default="uniform_member_mean",
+                    choices=["uniform_member_mean", "representative", "whitened_centroid"],
+                    help="THE key-term feature vector. uniform_member_mean = ConUCB Eq.4's own "
+                         "definition; representative = Hier-UCB's claim that a few representative "
+                         "items drive key-term reward; whitened_centroid = OUR concept direction "
+                         "(build_concept_dirs' recipe on the bandit's basis). Three papers, three "
+                         "answers -- running all three adjudicates our own concept-fold design.")
+    ap.add_argument("--keyterm_repr_conucb", action="store_true",
+                    help="let --keyterm_repr override ConUCB's own Eq.4 definition. OFF by default: "
+                         "ConUCB on a non-member-mean key-term vector is a hybrid, not ConUCB.")
+    ap.add_argument("--keyterm_n_rep", type=int, default=20,
+                    help="'representative' mode: top-N members by train count. NOT tuned; Hier-UCB "
+                         "gives no number.")
+    ap.add_argument("--keyterm_norm_match", type=int, default=1,
+                    help="1 = rescale every key-term feature to the mean member ||y_a||, so the three "
+                         "representations differ only in DIRECTION and the comparison is not "
+                         "confounded by magnitude. 0 = raw scales.")
+    ap.add_argument("--conv_beta", type=float, default=None,
+                    help="ConLinUCB's ridge beta. Unset = our empirical population precision "
+                         "Sigma_0^-1 (belief_mf's prior); a float = the paper's literal beta*I "
+                         "(their default 1.0).")
+    ap.add_argument("--conv_turn_rule", default=None, choices=[None, "schedule", "width"],
+                    help="how the turn TYPE is chosen. Unset = each arm's own paper's rule "
+                         "(schedule for ConUCB/ConLinUCB, width for CLiME). 'width' is the "
+                         "one-action-space variant: items and key-terms in ONE argmax over "
+                         "alpha*||phi||_{M^-1}.")
+    ap.add_argument("--conv_b_schedule", default="5logt", choices=["5logt", "5t50", "always", "never"],
+                    help="ConUCB's conversation frequency b(t). 5logt = 5*floor(log t) [verbatim]. "
+                         "5t50 = 5*floor(t/50), the paper's other setting, which never fires at k<=16.")
+    ap.add_argument("--conucb_lam", type=float, default=0.5,
+                    help="ConUCB's shrinkage toward the key-term fit. The paper's own value is NOT "
+                         "verified in our audit; 0.5 is the neutral midpoint of its stated range.")
+    ap.add_argument("--conucb_lam_til", type=float, default=1.0)
+    ap.add_argument("--clime_n_eig", type=int, default=1,
+                    help="CLiME: how many smallest-eigenvalue eigendirections of M_t to score against.")
+    ap.add_argument("--clisk_sigma", type=float, default=0.0,
+                    help="CLiSK's Gaussian key-term-context smoothing (0 = pure CLiME).")
+    ap.add_argument("--concept_ckpt",
+                    default=os.path.join(_ROOT, "models", "i26c_ep31", "concept_cv3_ep08.pt"),
+                    help="CERTIFIED concept channel used to CONSUME key-term answers on the 'ours' "
+                         "row. Without it a concept question burns a turn and reaches no consumer, "
+                         "which would test our harness rather than the method.")
+    ap.add_argument("--no_concept_consumer", action="store_true",
+                    help="score conversational arms with the ITEM-ONLY consumer (concept answers "
+                         "burn the turn and are then discarded). Diagnostic only -- it is the "
+                         "'what does the concept channel buy' ablation, and it is a FLOOR, not a row.")
     ap.add_argument("--regression", action="store_true",
                     help="run the static-arm equivalence assert and exit")
     ap.add_argument("--smoke_users", type=int, default=0,
@@ -375,10 +509,20 @@ def main():
         for k in budgets:
             t_int = time.time()
             sel = build_selector(spec, D, glob, bank, k, a, cache, log=logln)
+            conc = None
+            if spec in CONV_BANDIT_SPECS:
+                import conversational_bandit_selectors as CB
+                stk = sel.stack
+                conc = {"n_concepts": stk["n_concepts"],
+                        "answer": (lambda u, c, _s=stk: CB.concept_answer(_s, u, c))}
+                meta["keyterm_repr"] = stk.get("_repr")
+                meta["n_concepts"] = int(stk["n_concepts"])
             asked, answered, info = run_interview(sel, k, n, ni, lvl,
                                                   ctx={"D": D, "glob": glob, "bank": bank},
-                                                  sel_batch=a.sel_batch, log=logln)
+                                                  sel_batch=a.sel_batch, log=logln, conc=conc)
             info["interview_minutes"] = round((time.time() - t_int) / 60.0, 2)
+            if conc is not None:
+                info["_stack"] = sel.stack
             interviews[(spec, k)] = (asked, answered, info)
             logln(f"[adaptive] INTERVIEW {spec:16s} k={k:2d} done in "
                   f"{info['interview_minutes']:.2f}m; answered={info['answer_rate'][-1]:.2f}/{k}; "
@@ -395,8 +539,55 @@ def main():
                     continue
                 asked, answered, info = interviews[(spec, k)]
                 ts = time.time()
-                cell = score_arm(name, mode, obj, asked, answered, D, pop_row,
-                                 no_floor=a.no_floor, global_asked=common_asked(asked))
+                s_name, s_mode, s_obj = name, mode, obj
+                # THE CONCEPT-ANSWER CONSUMER. A conversational arm may have spent turns on key-terms;
+                # the item-only scoring path cannot hear them, so scoring it that way would measure our
+                # harness, not the method. On the 'ours' row we fold the concept answers through the
+                # CERTIFIED concept channel on top of the certified tower, and hand score_arm a plain
+                # predict_fn -- score_arm itself is NOT modified (for any name != "ours" it just calls
+                # obj(X)), so the floor rule, the pool and the evaluate() cursor stay literally the
+                # same code the static path uses.
+                cs = info.get("_conc_state")
+                n_ct = sum(len(t) for t in cs["tokens"]) if cs else 0
+                if name == "ours" and n_ct and not a.no_concept_consumer:
+                    import conversational_bandit_selectors as CB
+                    from concept_fold import ConceptFoldNet
+                    import torch
+                    stk = info["_stack"]
+                    if "cfnet" not in cache:
+                        cblob = torch.load(a.concept_ckpt, map_location="cpu")
+                        sd = cblob["net"]
+                        # Shape-inferred, not assumed: the cv3 checkpoints carry no `tags`/`hidden`
+                        # key, so the concept vocabulary size and the hidden width are read off the
+                        # state dict. The vocabulary-drift check then becomes an equality on C, which
+                        # is the thing that can actually silently misalign (a concept id folded here
+                        # must mean the same genome tag the selector asked about).
+                        _nc, _d = tuple(sd["emb.weight"].shape)
+                        _h = int(sd["gate.0.weight"].shape[0])
+                        assert _nc == stk["n_concepts"], (
+                            f"CONCEPT VOCABULARY DRIFT: checkpoint has {_nc} concepts, the selector's "
+                            f"genome bank has {stk['n_concepts']}; the ids do not mean the same thing")
+                        assert _d == obj[0].d_out, "concept net latent width != tower latent width"
+                        _net = ConceptFoldNet(_nc, d=_d, h=_h,
+                                              use_refusal=cblob.get("use_refusal", False))
+                        _net.load_state_dict(sd); _net.eval()
+                        cache["cfnet"] = _net
+                        logln(f"[adaptive] concept consumer = {os.path.basename(a.concept_ckpt)} "
+                              f"(ep{cblob.get('epoch','?')}, C={_nc}, h={_h}, use_refusal="
+                              f"{cblob.get('use_refusal', False)}, snapshot="
+                              f"{cblob.get('snapshot','?')})")
+                    e_, W_, b_ = obj
+                    Lc = answers_to_csr(answered, n, ni, mode, asked=asked)
+                    s_obj = CB.make_concept_aware_predict(e_, W_, b_, Lc, cs["tokens"],
+                                                          cache["cfnet"])
+                    s_name, s_mode = "ours_conc", mode
+                # global_asked is the SHARED ITEM ask-list, and it is shared only if the full ACTION
+                # lists agree (a key-term turn is part of the prefix that decides that).
+                ga = asked[0] if common_asked(info.get("_acts", asked)) is not None else None
+                cell = score_arm(s_name, s_mode, s_obj, asked, answered, D, pop_row,
+                                 no_floor=a.no_floor, global_asked=ga)
+                cell["concept_tokens"] = n_ct
+                cell["concept_consumer"] = bool(s_name == "ours_conc")
                 cell["score_minutes"] = round((time.time() - ts) / 60.0, 2)
                 cell["interview_minutes"] = info["interview_minutes"]
                 cell["distinct_prefixes"] = info["distinct_prefixes"][-1]

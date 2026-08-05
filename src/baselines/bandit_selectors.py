@@ -146,10 +146,17 @@ class GLMUCBSelector(_PosteriorSelector):
         super().reset(ctx)
         self._width = {}
 
+    def _wkey(self, key):
+        """The cache key for the WIDTH: the answered ITEM SET, order- and value-free (A depends only
+        on which items were answered). A hook rather than an inline expression because subclasses with
+        a richer interview state -- the conversational bandits, whose state is (item answers, key-term
+        answers) -- must widen this key while reusing the Cholesky machinery below verbatim."""
+        return tuple(sorted(i for (i, _lv) in key))
+
     def _width_vec(self, key):
         """sqrt(diag(Y A^-1 Y^T)) for every catalogue item. Keyed on the ANSWERED ITEM SET only,
         because A is value-free -- a coarser and therefore cheaper key than the posterior mean's."""
-        wkey = tuple(sorted(i for (i, _lv) in key))
+        wkey = self._wkey(key)
         if wkey not in self._width:
             _mu, A = self._posterior(key)
             c, low = sla.cho_factor(A, lower=True)
