@@ -275,8 +275,18 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
             eck = os.path.join(_ROOT, ".cache", "baselines", "eddi_ml25m_liang.pt")
             cache["eddi"] = eddi_pvae.load_trained(eck, D["n_items"], log=log).model
         return E.EDDIInfoGainSelector(cache["eddi"], cand_topm=args.eddi_topm)
+    if spec in ("eddi_ig3", "eddi_ig3_zero"):
+        # THREE-OUTCOME response model (unanswered / like / dislike); see eddi_selector.py.
+        import eddi_selector as E
+        if "eddi" not in cache:
+            import eddi_pvae
+            eck = os.path.join(_ROOT, ".cache", "baselines", "eddi_ml25m_liang.pt")
+            cache["eddi"] = eddi_pvae.load_trained(eck, D["n_items"], log=log).model
+        return E.EDDIThreeOutcomeSelector(
+            cache["eddi"], D["g_train"],
+            dislike_mode="zero" if spec == "eddi_ig3_zero" else "signed", beta=args.eddi_beta)
     raise SystemExit(f"unknown selector spec '{spec}'. Known: <arm>{STATIC_SUFFIX} for arm in "
-                     f"{ST.ARMS}, plus glm_ucb, thompson, eddi_ig")
+                     f"{ST.ARMS}, plus glm_ucb, thompson, eddi_ig, eddi_ig3, eddi_ig3_zero")
 
 
 def _smoke_slice(D, n_smoke, log=logln):
@@ -315,6 +325,9 @@ def main():
     ap.add_argument("--eddi_topm", type=int, default=0,
                     help="0 = score the FULL 18,359-item candidate pool (the default and the only "
                          "citable setting). >0 truncates the candidate pool and requires sign-off.")
+    ap.add_argument("--eddi_beta", type=float, default=1.0,
+                    help="eddi_ig3 only: how hard the frozen decoder tilts the item's base like-rate "
+                         "per user, in logit units per z-score. 1.0 = default, NOT tuned.")
     ap.add_argument("--regression", action="store_true",
                     help="run the static-arm equivalence assert and exit")
     ap.add_argument("--smoke_users", type=int, default=0,
