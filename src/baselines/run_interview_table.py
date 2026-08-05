@@ -243,7 +243,7 @@ def build_recommenders(recs, D, arch="i25", snapshot=SNAP_DEFAULT, log=logln):
 
 # ------------------------------------------------------------------ one (consumer, ask-set) cell
 def score_arm(name, mode, obj, asked, answered, D, pop_row, no_floor=False, global_asked=None,
-              batch_size=500):
+              batch_size=500, per_user=False):
     """Score ONE cell: a consumer against ONE realised (asked, answered) interview. EXTRACTED VERBATIM
     from main()'s inner loop on 2026-08-04.
 
@@ -283,9 +283,16 @@ def score_arm(name, mode, obj, asked, answered, D, pop_row, no_floor=False, glob
     if hasattr(base, "reset"):
         base.reset()
     res = M.evaluate(pr, Xin, D["te_te"], batch_size=batch_size, head_mask=D["head_mask"],
-                     mask_X=D["pool"])
-    return {"full": res["ndcg@10"], "tail": res["tail_ndcg@10"],
+                     mask_X=D["pool"], per_user=per_user)
+    cell = {"full": res["ndcg@10"], "tail": res["tail_ndcg@10"],
             "answered": n_ans, "floored": floored["n"]}
+    if per_user:
+        # For interview_paired.py. The two vectors cover DIFFERENT user subsets (tail drops users with
+        # no tail target), but each subset is fixed by the DATA, not by the arm -- so a given key is
+        # row-aligned across arms and models, which is exactly what makes the pairing valid.
+        cell["full_per_user"] = res["ndcg@10_per_user"]
+        cell["tail_per_user"] = res["tail_ndcg@10_per_user"]
+    return cell
 
 
 def mostpop_row(D, log=logln):
