@@ -243,10 +243,25 @@ The answered column of Table~\ref{tab:act1} carries part of the mechanism. At si
 static order collects $5.52$ answers; Thompson collects $3.39$ and EDDI $3.84$. Both criteria
 prefer questions with high posterior movement or high score uncertainty, and on an implicit-feedback
 catalogue those are precisely the items almost nobody has seen, so they spend budget on questions
-the user cannot answer. This is the same asymmetry Chapter A measured on the question \emph{bank}
---- $2.18$ of eight item questions answered against $6.02$ of eight concept questions ---
-reappearing as a property of the \emph{policy}. Any elicitation criterion blind to answerability
-inherits it.
+the user cannot answer. This is the same asymmetry that separates the two question channels on this
+stack --- sixteen item questions yield $4.20$ answers where sixteen concept questions yield $12.87$
+(Table~\ref{tab:greedy}) --- reappearing as a property of the \emph{policy} rather than of the bank.
+Chapter A reports the channel version of this figure at a budget of eight; the numbers quoted here
+are this chapter's own, measured on the certified pair.
+
+We state the criterion-side conclusion carefully, because the obvious strong form is not ours to
+make. Answerability-weighted acquisition is not new: expected information gain multiplied by an
+estimated probability that the user can answer appears in Rashid's popularity-times-entropy
+(2002), in a granted patent, in an ``asking easy questions'' formulation that subtracts the human's
+own answer entropy, and in recent active learning with instance rejection. What we add is not the
+weighting but the observation that it is a reason to change \emph{channel}: prior work prices
+answerability within one fixed question space, whereas the coarse and fine channels here differ in
+answer rate by a factor of three, and the loss-optimal channel changes with placement
+(Section~\ref{sec:act4}). \REDO{our EDDI arm uses a two-outcome response model, under which
+``has not seen it'' and ``dislikes it'' are the same observation, so the acquisition cannot
+represent --- and therefore cannot price --- the event that no answer arrives. Re-run it with a
+three-outcome response model before this section's mechanism claim stands; if the answer rate
+recovers, that is the stronger result}
 
 It is not the whole mechanism, and the same table says so: GLM-UCB collects $5.24$ answers,
 essentially the static order's rate, and still loses at every budget. Unanswerability explains the
