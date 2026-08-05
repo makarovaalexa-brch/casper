@@ -318,6 +318,24 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         if spec == "glm_ucb":
             return B.GLMUCBSelector(cache["belief"], alpha=args.ucb_alpha)
         return B.ThompsonSelector(cache["belief"], seed=args.ts_seed)
+    if spec == "golbandi_tree":
+        # WSDM'11 SPLIT SEARCH (golbandi_tree_selector.py). Grown ONCE per process on the TRAIN
+        # users, to the LARGEST budget in the run, and shared across budgets: a depth-d prefix of the
+        # tree IS the depth-d tree, so re-growing per budget could only introduce disagreement.
+        # Pair it with the `golbandi_leaf` consumer for the method as published; any other consumer
+        # is the selector ported onto a different node model, and must be labelled that way.
+        import golbandi_tree_selector as GT
+        ck = ("golbandi_tree", int(args.golbandi_depth or 0))
+        if ck not in cache:
+            depth = int(args.golbandi_depth) if args.golbandi_depth else max(
+                k, *[int(x) for x in args.budgets.split(",")])
+            sel = GT.GolbandiTreeSelector(D["g_train"], D["n_items"], depth=depth,
+                                          like_level=GT.LIKE_MIN_LEVEL, like_min=4.0,
+                                          xi=args.golbandi_xi,
+                                          min_child_users=args.golbandi_min_child, log=log)
+            sel.fit()
+            cache[ck] = sel
+        return cache[ck]
     if spec == "eddi_ig":
         import eddi_selector as E
         if "eddi" not in cache:
@@ -372,7 +390,8 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
                                     smooth_sigma=args.clisk_sigma, **kw)
         return CB.ConUCBSelector(bel, stack, lam=args.conucb_lam, lam_til=args.conucb_lam_til, **kw)
     raise SystemExit(f"unknown selector spec '{spec}'. Known: <arm>{STATIC_SUFFIX} for arm in "
-                     f"{ST.ARMS}, plus glm_ucb, thompson, eddi_ig, eddi_ig3, eddi_ig3_zero, "
+                     f"{ST.ARMS}, plus golbandi_tree, glm_ucb, thompson, eddi_ig, eddi_ig3, "
+                     f"eddi_ig3_zero, "
                      f"{','.join(CONV_BANDIT_SPECS)}")
 
 
@@ -412,6 +431,15 @@ def main():
     ap.add_argument("--eddi_topm", type=int, default=0,
                     help="0 = score the FULL 18,359-item candidate pool (the default and the only "
                          "citable setting). >0 truncates the candidate pool and requires sign-off.")
+    ap.add_argument("--golbandi_depth", type=int, default=0,
+                    help="tree depth for the golbandi_tree selector; 0 = the largest budget in the "
+                         "run. NOTE golbandi_leaf.MAX_DEPTH=8 caps the CONSUMER side for the same "
+                         "reason (3^k answer patterns fragment the train cohort).")
+    ap.add_argument("--golbandi_xi", type=float, default=None,
+                    help="min node rating mass before a node may split. Default = the paper's "
+                         "0.2%% of corpus rating mass (200,000/100M on Netflix).")
+    ap.add_argument("--golbandi_min_child", type=int, default=0,
+                    help="0 = paper-faithful (the paper relies on shrinkage, not a size floor).")
     ap.add_argument("--eddi_beta", type=float, default=1.0,
                     help="eddi_ig3 only: how hard the frozen decoder tilts the item's base like-rate "
                          "per user, in logit units per z-score. 1.0 = default, NOT tuned.")

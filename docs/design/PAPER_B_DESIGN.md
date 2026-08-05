@@ -410,6 +410,21 @@ tower — re-run `strategy_channel_suite.py --greedy` on i26c ep31 (~9.5h) befor
 prints. TaNP no-floor run (Aug 4) lands BELOW MostPop on zero-answer arms (~0.101 vs 0.1626)
 — report honestly, produce the floored arm too.
 
+**★ ANOMALY CLOSED BY MEASUREMENT 2026-08-05 — DO NOT REPORT AN INVERSION.** The native snap
+(`docs/results/SNAP5_GOLBANDI_NATIVE.md`) rebuilt the tree leak-free with exhaustive search and
+three static comparators through identical machinery: **on RMSE, the paper's metric, there is no
+inversion at any depth, shrinkage or seed** — at the paper's own λ₁=200 the adaptive tree beats
+every static everywhere with CIs excluding zero, so the snap PASSES. On ranking it is a **tie**,
+not an inversion: point estimates lead but no paired CI excludes zero against HELF or Var. **The
+honest statement is "the metric decides"** — the split search is genuinely good at what it
+optimises (squared loss) and indistinguishable from a strong static order at what we score
+(ranking). The old ML-1M arena number (.343/.124 vs .352/.129) is RETIRED: it measured a different
+object, with an answer leak and an 80-item pool. Two things also fall out: **λ₁ is load-bearing**
+(at the archived λ₁=8 the interview actively HURTS past depth 1, 1.0143→1.0458), and
+**answerability is NOT the mechanism for tree selection** (its questions are answered by 24–38% of
+cold users vs 36–44% for popularity — a modest cost, not a collapse), so that story belongs to the
+item-vs-concept channel only. Superseded reading below, kept for provenance:
+
 **Anomaly RESOLVED-in-principle:** Golbandi-adaptive-below-static is a published phenomenon —
 Sepliarskaia RecSys'18 report the same inversion with the same mechanism (tree splits on a
 variance surrogate ≠ task loss); our archived TREE_VS_STATIC replication adds a second

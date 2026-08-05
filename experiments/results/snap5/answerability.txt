@@ -1,0 +1,15 @@
+
+=== QUESTION ANSWERABILITY by depth (cold users, fold-in side only), 3 seeds ===
+depth |                   adaptive |                 popularity |                        var |                       helf
+      |   ansrate  medPopRank    n |   ansrate  medPopRank    n |   ansrate  medPopRank    n |   ansrate  medPopRank    n
+    1 |    0.320           9   600 |    0.438           0   600 |    0.370           6   600 |    0.348           4   600
+    2 |    0.335           5   600 |    0.385           1   600 |    0.377           5   600 |    0.363           5   600
+    3 |    0.383           6   472 |    0.385           2   600 |    0.363           5   600 |    0.398           6   600
+    4 |    0.345          19   200 |    0.422           3   569 |    0.293           9   600 |    0.320           9   600
+    5 |    0.380           5   200 |    0.368           4   511 |    0.324          12   592 |    0.248          27   593
+    6 |    0.308          49   185 |    0.368           5   451 |    0.420           2   528 |    0.173          59   498
+    7 |    0.242          29   120 |    0.394           6   348 |    0.360           1   372 |    0.239          34   397
+    8 |    0.238          20    42 |    0.358           7   204 |    0.400           0   230 |    0.227          33   317
+
+ansrate = fraction of cold users who had rated the question they were asked at that depth (the rest take the UNKNOWN branch and the question buys almost nothing).
+medPopRank = median popularity rank of the asked item (0 = most-rated item in train).
