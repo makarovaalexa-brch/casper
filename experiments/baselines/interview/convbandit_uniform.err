@@ -1,0 +1,30 @@
+C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\implicit\cpu\als.py:96: RuntimeWarning: OpenBLAS is configured to use 8 threads. It is highly recommended to disable its internal threadpool by setting the environment variable 'OPENBLAS_NUM_THREADS=1' or by calling 'threadpoolctl.threadpool_limits(1, "blas")'. Having OpenBLAS use a threadpool can lead to severe performance issues here.
+  check_blas_config()
+Traceback (most recent call last):
+  File "C:\dev\phd\casper\src\baselines\adaptive_harness.py", line 605, in <module>
+    main()
+  File "C:\dev\phd\casper\src\baselines\adaptive_harness.py", line 520, in main
+    asked, answered, info = run_interview(sel, k, n, ni, lvl,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\dev\phd\casper\src\baselines\adaptive_harness.py", line 207, in run_interview
+    q = np.asarray(selector.select(t, users, acts, answered), dtype=np.int64)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\dev\phd\casper\src\baselines\conversational_bandit_selectors.py", line 637, in select
+    item_s = self._item_scores(key, mu)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\dev\phd\casper\src\baselines\conversational_bandit_selectors.py", line 601, in _item_scores
+    return self.Y @ mu + self.alpha * self._width_vec(key)
+                                      ^^^^^^^^^^^^^^^^^^^^
+  File "C:\dev\phd\casper\src\baselines\bandit_selectors.py", line 163, in _width_vec
+    B = sla.cho_solve((c, low), self.Y.T)           # (f x n_items) = A^-1 Y^T
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\scipy\linalg\_decomp_cholesky.py", line 230, in cho_solve
+    return _cho_solve(c, b, lower, overwrite_b=overwrite_b, check_finite=check_finite)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\scipy\_lib\_util.py", line 1181, in wrapper
+    return f(*arrays, *other_args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\scipy\linalg\_decomp_cholesky.py", line 256, in _cho_solve
+    x, info = potrs(c, b1, lower=lower, overwrite_b=overwrite_b)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+numpy.core._exceptions._ArrayMemoryError: Unable to allocate 28.0 MiB for an array with shape (200, 18359) and data type float64

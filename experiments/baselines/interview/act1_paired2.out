@@ -1,0 +1,310 @@
+[20:27:43] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[20:27:43] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[20:27:43] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[20:27:44] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[20:27:45] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[20:27:45] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[20:27:45] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[20:27:45] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[20:27:45] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[20:27:45] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[20:27:46] [golbandi_leaf] node model over 140768 train users, lambda=8.0, mode=ternary
+[20:27:46] [pop] fitted item popularity over 140768 train users, 18359 items
+[20:28:00] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[20:28:00] [act1] 10000 users, 18359 items; mostpop prior {'full': 0.16255947303941118, 'tail': 0.026243274849789923}
+[20:28:00] [act1] resumed 48 cells from C:\dev\phd\casper\experiments\baselines\interview\act1_per_user_vectors.npz
+[20:29:01] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (1.0m)
+[20:29:01] [belief_mf] frozen iALS f=200 (1.0m); prior mu0|=8.028 tr(Sig0)=335.583; obs_noise=1.0
+[20:33:21] [act1] interview thompson           k=16 in 5.36m; answered=3.423; global=False
+[20:33:43] [act1]   score ours           thompson           k=16 full=0.2126 tail=0.0878 (n_full=10000 n_tail=9281) 0.36m
+[20:33:44] [eddi] loaded eddi_ml25m_liang.pt (best_state ep=31 val_full=0.2120) latent=200 feat=600
+[20:34:08] [act1] interview eddi_ig            k= 1 in 0.41m; answered=0.259; global=True
+[20:34:23] [act1]   score ours           eddi_ig            k= 1 full=0.1537 tail=0.0336 (n_full=10000 n_tail=9281) 0.26m
+[20:34:24] [act1] interview eddi_ig            k= 2 in 0.02m; answered=0.420; global=False
+[20:34:40] [act1]   score ours           eddi_ig            k= 2 full=0.1539 tail=0.0373 (n_full=10000 n_tail=9281) 0.26m
+[20:34:42] [act1] interview eddi_ig            k= 4 in 0.04m; answered=0.792; global=False
+[20:34:58] [act1]   score ours           eddi_ig            k= 4 full=0.1618 tail=0.0432 (n_full=10000 n_tail=9281) 0.26m
+[20:35:17] [act1] interview eddi_ig            k= 8 in 0.32m; answered=1.801; global=False
+[20:35:34] [act1]   score ours           eddi_ig            k= 8 full=0.1747 tail=0.0611 (n_full=10000 n_tail=9281) 0.27m
+[20:36:48] [act1]   score golbandi_leaf  eddi_ig            k= 8 full=0.1817 tail=0.0643 (n_full=10000 n_tail=9281) 1.22m
+[20:44:20] [act1] interview eddi_ig            k=16 in 7.54m; answered=3.844; global=False
+[20:44:38] [act1]   score ours           eddi_ig            k=16 full=0.1917 tail=0.0749 (n_full=10000 n_tail=9281) 0.29m
+[20:44:38] [canary] all 55 cells row-aligned: n_full=10000, n_tail=9281
+[20:44:38] === control: recomputed means vs the stored Act-1 tables ===
+[20:44:38] [control] DRIFT golbandi_leaf/glm_ucb/k8/full: recomputed 0.169282 vs stored 0.169797 (-0.000515)
+[20:44:38] [control] DRIFT golbandi_leaf/glm_ucb/k8/tail: recomputed 0.068522 vs stored 0.068542 (-0.000020)
+[20:44:38] [control] DRIFT golbandi_leaf/thompson/k1/full: recomputed 0.167952 vs stored 0.168214 (-0.000262)
+[20:44:38] [control] DRIFT golbandi_leaf/thompson/k1/tail: recomputed 0.041911 vs stored 0.039931 (+0.001980)
+[20:44:38] [control] DRIFT golbandi_leaf/thompson/k2/full: recomputed 0.173327 vs stored 0.174306 (-0.000979)
+[20:44:38] [control] DRIFT golbandi_leaf/thompson/k2/tail: recomputed 0.049542 vs stored 0.047783 (+0.001759)
+[20:44:38] [control] DRIFT golbandi_leaf/thompson/k4/full: recomputed 0.182840 vs stored 0.184418 (-0.001577)
+[20:44:38] [control] DRIFT golbandi_leaf/thompson/k4/tail: recomputed 0.060535 vs stored 0.061618 (-0.001083)
+[20:44:38] [control] DRIFT golbandi_leaf/thompson/k8/full: recomputed 0.196739 vs stored 0.197432 (-0.000693)
+[20:44:38] [control] DRIFT golbandi_leaf/thompson/k8/tail: recomputed 0.076185 vs stored 0.074987 (+0.001198)
+[20:44:38] [control] DRIFT ours/glm_ucb/k4/full: recomputed 0.175449 vs stored 0.175559 (-0.000111)
+[20:44:38] [control] DRIFT ours/glm_ucb/k4/tail: recomputed 0.057974 vs stored 0.057785 (+0.000189)
+[20:44:38] [control] DRIFT ours/glm_ucb/k8/full: recomputed 0.190170 vs stored 0.190155 (+0.000014)
+[20:44:38] [control] DRIFT ours/glm_ucb/k8/tail: recomputed 0.067593 vs stored 0.067299 (+0.000294)
+[20:44:38] [control] DRIFT ours/glm_ucb/k16/full: recomputed 0.216618 vs stored 0.216092 (+0.000526)
+[20:44:38] [control] DRIFT ours/glm_ucb/k16/tail: recomputed 0.083922 vs stored 0.083295 (+0.000627)
+[20:44:38] [control] DRIFT ours/thompson/k1/full: recomputed 0.161303 vs stored 0.162652 (-0.001349)
+[20:44:38] [control] DRIFT ours/thompson/k1/tail: recomputed 0.037843 vs stored 0.037572 (+0.000270)
+[20:44:38] [control] DRIFT ours/thompson/k2/full: recomputed 0.165394 vs stored 0.167601 (-0.002207)
+[20:44:38] [control] DRIFT ours/thompson/k2/tail: recomputed 0.043536 vs stored 0.043747 (-0.000212)
+[20:44:38] [control] DRIFT ours/thompson/k4/full: recomputed 0.174805 vs stored 0.174757 (+0.000047)
+[20:44:38] [control] DRIFT ours/thompson/k4/tail: recomputed 0.052452 vs stored 0.055073 (-0.002620)
+[20:44:38] [control] DRIFT ours/thompson/k8/full: recomputed 0.191575 vs stored 0.190764 (+0.000812)
+[20:44:38] [control] DRIFT ours/thompson/k8/tail: recomputed 0.069863 vs stored 0.067658 (+0.002205)
+[20:44:38] [control] DRIFT ours/thompson/k16/full: recomputed 0.212612 vs stored 0.213498 (-0.000886)
+[20:44:38] [control] DRIFT ours/thompson/k16/tail: recomputed 0.087812 vs stored 0.087830 (-0.000017)
+[20:44:38] [control] 26 cell/axis values differ from the stored table
+[20:44:38] === self-test: an arm against ITSELF must give a CI containing exactly zero ===
+[20:44:40]     SELFTEST/ours/full/k1/entropy0-static-minus-itself             +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:42]     SELFTEST/ours/tail/k1/entropy0-static-minus-itself             +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:44]     SELFTEST/ours/full/k2/entropy0-static-minus-itself             +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:46]     SELFTEST/ours/tail/k2/entropy0-static-minus-itself             +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:48]     SELFTEST/ours/full/k4/entropy0-static-minus-itself             +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:50]     SELFTEST/ours/tail/k4/entropy0-static-minus-itself             +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:52]     SELFTEST/ours/full/k8/entropy0-static-minus-itself             +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:54]     SELFTEST/ours/tail/k8/entropy0-static-minus-itself             +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:56]     SELFTEST/ours/full/k16/entropy0-static-minus-itself            +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:58]     SELFTEST/ours/tail/k16/entropy0-static-minus-itself            +0.0000 CI [+0.0000,+0.0000] ns 
+[20:44:58] [self-test] PASS: 10 self-comparisons, all exactly [0,0]
+[20:44:58] === D1: consumer `ours`, each adaptive selector MINUS entropy0-static ===
+[20:45:00]     ours/full/k1/glm_ucb-minus-entropy0_static                     -0.0029 CI [-0.0046,-0.0012] SEP
+[20:45:03]     ours/tail/k1/glm_ucb-minus-entropy0_static                     -0.0033 CI [-0.0054,-0.0013] SEP
+[20:45:05]     ours/full/k2/glm_ucb-minus-entropy0_static                     -0.0071 CI [-0.0091,-0.0051] SEP
+[20:45:07]     ours/tail/k2/glm_ucb-minus-entropy0_static                     -0.0076 CI [-0.0098,-0.0055] SEP
+[20:45:09]     ours/full/k4/glm_ucb-minus-entropy0_static                     -0.0077 CI [-0.0095,-0.0058] SEP
+[20:45:11]     ours/tail/k4/glm_ucb-minus-entropy0_static                     -0.0056 CI [-0.0073,-0.0039] SEP
+[20:45:13]     ours/full/k8/glm_ucb-minus-entropy0_static                     -0.0151 CI [-0.0173,-0.0129] SEP
+[20:45:15]     ours/tail/k8/glm_ucb-minus-entropy0_static                     -0.0116 CI [-0.0138,-0.0094] SEP
+[20:45:17]     ours/full/k16/glm_ucb-minus-entropy0_static                    -0.0137 CI [-0.0159,-0.0114] SEP
+[20:45:19]     ours/tail/k16/glm_ucb-minus-entropy0_static                    -0.0085 CI [-0.0107,-0.0063] SEP
+[20:45:21]     ours/full/k1/thompson-minus-entropy0_static                    -0.0022 CI [-0.0039,-0.0005] SEP
+[20:45:23]     ours/tail/k1/thompson-minus-entropy0_static                    -0.0054 CI [-0.0076,-0.0033] SEP
+[20:45:25]     ours/full/k2/thompson-minus-entropy0_static                    -0.0052 CI [-0.0074,-0.0030] SEP
+[20:45:27]     ours/tail/k2/thompson-minus-entropy0_static                    -0.0093 CI [-0.0119,-0.0068] SEP
+[20:45:29]     ours/full/k4/thompson-minus-entropy0_static                    -0.0083 CI [-0.0110,-0.0057] SEP
+[20:45:31]     ours/tail/k4/thompson-minus-entropy0_static                    -0.0111 CI [-0.0139,-0.0084] SEP
+[20:45:33]     ours/full/k8/thompson-minus-entropy0_static                    -0.0137 CI [-0.0165,-0.0108] SEP
+[20:45:35]     ours/tail/k8/thompson-minus-entropy0_static                    -0.0094 CI [-0.0122,-0.0065] SEP
+[20:45:37]     ours/full/k16/thompson-minus-entropy0_static                   -0.0177 CI [-0.0207,-0.0146] SEP
+[20:45:39]     ours/tail/k16/thompson-minus-entropy0_static                   -0.0046 CI [-0.0075,-0.0016] SEP
+[20:45:42]     ours/full/k1/eddi_ig-minus-entropy0_static                     -0.0098 CI [-0.0117,-0.0079] SEP
+[20:45:44]     ours/tail/k1/eddi_ig-minus-entropy0_static                     -0.0097 CI [-0.0118,-0.0075] SEP
+[20:45:46]     ours/full/k2/eddi_ig-minus-entropy0_static                     -0.0166 CI [-0.0189,-0.0144] SEP
+[20:45:48]     ours/tail/k2/eddi_ig-minus-entropy0_static                     -0.0156 CI [-0.0182,-0.0130] SEP
+[20:45:50]     ours/full/k4/eddi_ig-minus-entropy0_static                     -0.0213 CI [-0.0241,-0.0185] SEP
+[20:45:52]     ours/tail/k4/eddi_ig-minus-entropy0_static                     -0.0204 CI [-0.0233,-0.0176] SEP
+[20:45:54]     ours/full/k8/eddi_ig-minus-entropy0_static                     -0.0306 CI [-0.0336,-0.0275] SEP
+[20:45:56]     ours/tail/k8/eddi_ig-minus-entropy0_static                     -0.0181 CI [-0.0211,-0.0152] SEP
+[20:45:58]     ours/full/k16/eddi_ig-minus-entropy0_static                    -0.0386 CI [-0.0419,-0.0353] SEP
+[20:46:00]     ours/tail/k16/eddi_ig-minus-entropy0_static                    -0.0175 CI [-0.0205,-0.0145] SEP
+[20:46:00] === D2: consumer `ours`, each adaptive selector MINUS the strongest static at that cell ===
+[20:46:00]   strongest static k= 1 full: entropy0 (0.1635)
+[20:46:00]   strongest static k= 1 tail: entropy0 (0.0433)
+[20:46:00]   strongest static k= 2 full: entropy0 (0.1706)
+[20:46:00]   strongest static k= 2 tail: entropy0 (0.0528)
+[20:46:00]   strongest static k= 4 full: entropy0 (0.1831)
+[20:46:00]   strongest static k= 4 tail: entropy0 (0.0636)
+[20:46:00]   strongest static k= 8 full: entropy0 (0.2053)
+[20:46:00]   strongest static k= 8 tail: entropy0 (0.0792)
+[20:46:00]   strongest static k=16 full: entropy0 (0.2303)
+[20:46:00]   strongest static k=16 tail: entropy0 (0.0924)
+[20:46:02]     ours/full/k1/glm_ucb-minus-BEST_STATIC[entropy0]               -0.0029 CI [-0.0046,-0.0012] SEP
+[20:46:04]     ours/tail/k1/glm_ucb-minus-BEST_STATIC[entropy0]               -0.0033 CI [-0.0054,-0.0013] SEP
+[20:46:06]     ours/full/k2/glm_ucb-minus-BEST_STATIC[entropy0]               -0.0071 CI [-0.0091,-0.0051] SEP
+[20:46:08]     ours/tail/k2/glm_ucb-minus-BEST_STATIC[entropy0]               -0.0076 CI [-0.0098,-0.0055] SEP
+[20:46:10]     ours/full/k4/glm_ucb-minus-BEST_STATIC[entropy0]               -0.0077 CI [-0.0095,-0.0058] SEP
+[20:46:12]     ours/tail/k4/glm_ucb-minus-BEST_STATIC[entropy0]               -0.0056 CI [-0.0073,-0.0039] SEP
+[20:46:14]     ours/full/k8/glm_ucb-minus-BEST_STATIC[entropy0]               -0.0151 CI [-0.0173,-0.0129] SEP
+[20:46:16]     ours/tail/k8/glm_ucb-minus-BEST_STATIC[entropy0]               -0.0116 CI [-0.0138,-0.0094] SEP
+[20:46:18]     ours/full/k16/glm_ucb-minus-BEST_STATIC[entropy0]              -0.0137 CI [-0.0159,-0.0114] SEP
+[20:46:20]     ours/tail/k16/glm_ucb-minus-BEST_STATIC[entropy0]              -0.0085 CI [-0.0107,-0.0063] SEP
+[20:46:22]     ours/full/k1/thompson-minus-BEST_STATIC[entropy0]              -0.0022 CI [-0.0039,-0.0005] SEP
+[20:46:24]     ours/tail/k1/thompson-minus-BEST_STATIC[entropy0]              -0.0054 CI [-0.0076,-0.0033] SEP
+[20:46:27]     ours/full/k2/thompson-minus-BEST_STATIC[entropy0]              -0.0052 CI [-0.0074,-0.0030] SEP
+[20:46:29]     ours/tail/k2/thompson-minus-BEST_STATIC[entropy0]              -0.0093 CI [-0.0119,-0.0068] SEP
+[20:46:31]     ours/full/k4/thompson-minus-BEST_STATIC[entropy0]              -0.0083 CI [-0.0110,-0.0057] SEP
+[20:46:33]     ours/tail/k4/thompson-minus-BEST_STATIC[entropy0]              -0.0111 CI [-0.0139,-0.0084] SEP
+[20:46:35]     ours/full/k8/thompson-minus-BEST_STATIC[entropy0]              -0.0137 CI [-0.0165,-0.0108] SEP
+[20:46:37]     ours/tail/k8/thompson-minus-BEST_STATIC[entropy0]              -0.0094 CI [-0.0122,-0.0065] SEP
+[20:46:39]     ours/full/k16/thompson-minus-BEST_STATIC[entropy0]             -0.0177 CI [-0.0207,-0.0146] SEP
+[20:46:41]     ours/tail/k16/thompson-minus-BEST_STATIC[entropy0]             -0.0046 CI [-0.0075,-0.0016] SEP
+[20:46:43]     ours/full/k1/eddi_ig-minus-BEST_STATIC[entropy0]               -0.0098 CI [-0.0117,-0.0079] SEP
+[20:46:45]     ours/tail/k1/eddi_ig-minus-BEST_STATIC[entropy0]               -0.0097 CI [-0.0118,-0.0075] SEP
+[20:46:47]     ours/full/k2/eddi_ig-minus-BEST_STATIC[entropy0]               -0.0166 CI [-0.0189,-0.0144] SEP
+[20:46:49]     ours/tail/k2/eddi_ig-minus-BEST_STATIC[entropy0]               -0.0156 CI [-0.0182,-0.0130] SEP
+[20:46:51]     ours/full/k4/eddi_ig-minus-BEST_STATIC[entropy0]               -0.0213 CI [-0.0241,-0.0185] SEP
+[20:46:53]     ours/tail/k4/eddi_ig-minus-BEST_STATIC[entropy0]               -0.0204 CI [-0.0233,-0.0176] SEP
+[20:46:55]     ours/full/k8/eddi_ig-minus-BEST_STATIC[entropy0]               -0.0306 CI [-0.0336,-0.0275] SEP
+[20:46:57]     ours/tail/k8/eddi_ig-minus-BEST_STATIC[entropy0]               -0.0181 CI [-0.0211,-0.0152] SEP
+[20:46:59]     ours/full/k16/eddi_ig-minus-BEST_STATIC[entropy0]              -0.0386 CI [-0.0419,-0.0353] SEP
+[20:47:01]     ours/tail/k16/eddi_ig-minus-BEST_STATIC[entropy0]              -0.0175 CI [-0.0205,-0.0145] SEP
+[20:47:01] === D3: static ladder separations (consumer `ours`) ===
+[20:47:03]     ours/full/k1/entropy0-minus-popularity                         +0.0029 CI [+0.0012,+0.0046] SEP
+[20:47:06]     ours/tail/k1/entropy0-minus-popularity                         +0.0033 CI [+0.0013,+0.0054] SEP
+[20:47:08]     ours/full/k2/entropy0-minus-popularity                         +0.0058 CI [+0.0042,+0.0075] SEP
+[20:47:10]     ours/tail/k2/entropy0-minus-popularity                         +0.0058 CI [+0.0040,+0.0077] SEP
+[20:47:12]     ours/full/k4/entropy0-minus-popularity                         +0.0085 CI [+0.0067,+0.0103] SEP
+[20:47:14]     ours/tail/k4/entropy0-minus-popularity                         +0.0057 CI [+0.0041,+0.0073] SEP
+[20:47:16]     ours/full/k8/entropy0-minus-popularity                         +0.0109 CI [+0.0090,+0.0129] SEP
+[20:47:18]     ours/tail/k8/entropy0-minus-popularity                         +0.0106 CI [+0.0085,+0.0127] SEP
+[20:47:20]     ours/full/k16/entropy0-minus-popularity                        +0.0075 CI [+0.0055,+0.0096] SEP
+[20:47:22]     ours/tail/k16/entropy0-minus-popularity                        +0.0076 CI [+0.0056,+0.0096] SEP
+[20:47:24]     ours/full/k1/popularity-minus-helf                             +0.0003 CI [-0.0012,+0.0017] ns 
+[20:47:26]     ours/tail/k1/popularity-minus-helf                             +0.0046 CI [+0.0027,+0.0065] SEP
+[20:47:28]     ours/full/k2/popularity-minus-helf                             +0.0020 CI [-0.0004,+0.0045] ns 
+[20:47:30]     ours/tail/k2/popularity-minus-helf                             +0.0050 CI [+0.0023,+0.0077] SEP
+[20:47:32]     ours/full/k4/popularity-minus-helf                             -0.0009 CI [-0.0038,+0.0020] ns 
+[20:47:34]     ours/tail/k4/popularity-minus-helf                             -0.0009 CI [-0.0039,+0.0021] ns 
+[20:47:36]     ours/full/k8/popularity-minus-helf                             +0.0051 CI [+0.0019,+0.0083] SEP
+[20:47:38]     ours/tail/k8/popularity-minus-helf                             -0.0039 CI [-0.0071,-0.0006] SEP
+[20:47:40]     ours/full/k16/popularity-minus-helf                            +0.0071 CI [+0.0037,+0.0104] SEP
+[20:47:43]     ours/tail/k16/popularity-minus-helf                            +0.0010 CI [-0.0024,+0.0044] ns 
+[20:47:45]     ours/full/k1/entropy0-minus-helf                               +0.0032 CI [+0.0016,+0.0048] SEP
+[20:47:47]     ours/tail/k1/entropy0-minus-helf                               +0.0079 CI [+0.0059,+0.0100] SEP
+[20:47:49]     ours/full/k2/entropy0-minus-helf                               +0.0078 CI [+0.0054,+0.0103] SEP
+[20:47:51]     ours/tail/k2/entropy0-minus-helf                               +0.0108 CI [+0.0081,+0.0137] SEP
+[20:47:53]     ours/full/k4/entropy0-minus-helf                               +0.0076 CI [+0.0046,+0.0106] SEP
+[20:47:55]     ours/tail/k4/entropy0-minus-helf                               +0.0048 CI [+0.0018,+0.0079] SEP
+[20:47:57]     ours/full/k8/entropy0-minus-helf                               +0.0160 CI [+0.0127,+0.0194] SEP
+[20:47:59]     ours/tail/k8/entropy0-minus-helf                               +0.0067 CI [+0.0034,+0.0102] SEP
+[20:48:01]     ours/full/k16/entropy0-minus-helf                              +0.0146 CI [+0.0112,+0.0180] SEP
+[20:48:03]     ours/tail/k16/entropy0-minus-helf                              +0.0086 CI [+0.0053,+0.0119] SEP
+[20:48:05]     ours/full/k1/entropy0-minus-pure_entropy                       +0.0053 CI [+0.0038,+0.0068] SEP
+[20:48:07]     ours/tail/k1/entropy0-minus-pure_entropy                       +0.0114 CI [+0.0095,+0.0133] SEP
+[20:48:09]     ours/full/k2/entropy0-minus-pure_entropy                       +0.0128 CI [+0.0108,+0.0147] SEP
+[20:48:11]     ours/tail/k2/entropy0-minus-pure_entropy                       +0.0201 CI [+0.0177,+0.0224] SEP
+[20:48:13]     ours/full/k4/entropy0-minus-pure_entropy                       +0.0251 CI [+0.0225,+0.0277] SEP
+[20:48:15]     ours/tail/k4/entropy0-minus-pure_entropy                       +0.0313 CI [+0.0286,+0.0341] SEP
+[20:48:17]     ours/full/k8/entropy0-minus-pure_entropy                       +0.0467 CI [+0.0435,+0.0498] SEP
+[20:48:19]     ours/tail/k8/entropy0-minus-pure_entropy                       +0.0475 CI [+0.0444,+0.0507] SEP
+[20:48:21]     ours/full/k16/entropy0-minus-pure_entropy                      +0.0704 CI [+0.0667,+0.0740] SEP
+[20:48:23]     ours/tail/k16/entropy0-minus-pure_entropy                      +0.0567 CI [+0.0534,+0.0600] SEP
+[20:48:25]     ours/full/k1/entropy0-minus-random_bank                        +0.0049 CI [+0.0034,+0.0064] SEP
+[20:48:28]     ours/tail/k1/entropy0-minus-random_bank                        +0.0122 CI [+0.0103,+0.0142] SEP
+[20:48:30]     ours/full/k2/entropy0-minus-random_bank                        +0.0118 CI [+0.0098,+0.0137] SEP
+[20:48:32]     ours/tail/k2/entropy0-minus-random_bank                        +0.0217 CI [+0.0194,+0.0241] SEP
+[20:48:34]     ours/full/k4/entropy0-minus-random_bank                        +0.0243 CI [+0.0217,+0.0269] SEP
+[20:48:36]     ours/tail/k4/entropy0-minus-random_bank                        +0.0320 CI [+0.0293,+0.0349] SEP
+[20:48:38]     ours/full/k8/entropy0-minus-random_bank                        +0.0459 CI [+0.0428,+0.0490] SEP
+[20:48:40]     ours/tail/k8/entropy0-minus-random_bank                        +0.0463 CI [+0.0432,+0.0495] SEP
+[20:48:42]     ours/full/k16/entropy0-minus-random_bank                       +0.0696 CI [+0.0659,+0.0732] SEP
+[20:48:44]     ours/tail/k16/entropy0-minus-random_bank                       +0.0571 CI [+0.0538,+0.0606] SEP
+[20:48:46]     ours/full/k1/entropy0-minus-random_catalog                     +0.0050 CI [+0.0034,+0.0065] SEP
+[20:48:48]     ours/tail/k1/entropy0-minus-random_catalog                     +0.0123 CI [+0.0104,+0.0142] SEP
+[20:48:50]     ours/full/k2/entropy0-minus-random_catalog                     +0.0118 CI [+0.0098,+0.0137] SEP
+[20:48:52]     ours/tail/k2/entropy0-minus-random_catalog                     +0.0218 CI [+0.0194,+0.0242] SEP
+[20:48:54]     ours/full/k4/entropy0-minus-random_catalog                     +0.0242 CI [+0.0216,+0.0268] SEP
+[20:48:56]     ours/tail/k4/entropy0-minus-random_catalog                     +0.0318 CI [+0.0291,+0.0346] SEP
+[20:48:58]     ours/full/k8/entropy0-minus-random_catalog                     +0.0460 CI [+0.0428,+0.0491] SEP
+[20:49:00]     ours/tail/k8/entropy0-minus-random_catalog                     +0.0477 CI [+0.0446,+0.0509] SEP
+[20:49:02]     ours/full/k16/entropy0-minus-random_catalog                    +0.0691 CI [+0.0654,+0.0727] SEP
+[20:49:05]     ours/tail/k16/entropy0-minus-random_catalog                    +0.0583 CI [+0.0550,+0.0617] SEP
+[20:49:07]     ours/full/k1/popularity-minus-pure_entropy                     +0.0024 CI [+0.0011,+0.0037] SEP
+[20:49:09]     ours/tail/k1/popularity-minus-pure_entropy                     +0.0081 CI [+0.0065,+0.0097] SEP
+[20:49:11]     ours/full/k2/popularity-minus-pure_entropy                     +0.0070 CI [+0.0052,+0.0088] SEP
+[20:49:13]     ours/tail/k2/popularity-minus-pure_entropy                     +0.0143 CI [+0.0122,+0.0164] SEP
+[20:49:15]     ours/full/k4/popularity-minus-pure_entropy                     +0.0165 CI [+0.0141,+0.0190] SEP
+[20:49:17]     ours/tail/k4/popularity-minus-pure_entropy                     +0.0256 CI [+0.0231,+0.0281] SEP
+[20:49:19]     ours/full/k8/popularity-minus-pure_entropy                     +0.0358 CI [+0.0329,+0.0386] SEP
+[20:49:21]     ours/tail/k8/popularity-minus-pure_entropy                     +0.0369 CI [+0.0342,+0.0398] SEP
+[20:49:23]     ours/full/k16/popularity-minus-pure_entropy                    +0.0629 CI [+0.0595,+0.0661] SEP
+[20:49:25]     ours/tail/k16/popularity-minus-pure_entropy                    +0.0491 CI [+0.0460,+0.0522] SEP
+[20:49:27]     ours/full/k1/popularity-minus-random_bank                      +0.0020 CI [+0.0007,+0.0032] SEP
+[20:49:29]     ours/tail/k1/popularity-minus-random_bank                      +0.0089 CI [+0.0073,+0.0105] SEP
+[20:49:31]     ours/full/k2/popularity-minus-random_bank                      +0.0059 CI [+0.0040,+0.0079] SEP
+[20:49:33]     ours/tail/k2/popularity-minus-random_bank                      +0.0159 CI [+0.0137,+0.0180] SEP
+[20:49:35]     ours/full/k4/popularity-minus-random_bank                      +0.0158 CI [+0.0133,+0.0182] SEP
+[20:49:37]     ours/tail/k4/popularity-minus-random_bank                      +0.0263 CI [+0.0237,+0.0290] SEP
+[20:49:39]     ours/full/k8/popularity-minus-random_bank                      +0.0350 CI [+0.0321,+0.0378] SEP
+[20:49:41]     ours/tail/k8/popularity-minus-random_bank                      +0.0357 CI [+0.0329,+0.0386] SEP
+[20:49:43]     ours/full/k16/popularity-minus-random_bank                     +0.0621 CI [+0.0588,+0.0654] SEP
+[20:49:45]     ours/tail/k16/popularity-minus-random_bank                     +0.0495 CI [+0.0464,+0.0527] SEP
+[20:49:47]     ours/full/k1/popularity-minus-random_catalog                   +0.0021 CI [+0.0008,+0.0033] SEP
+[20:49:49]     ours/tail/k1/popularity-minus-random_catalog                   +0.0090 CI [+0.0073,+0.0106] SEP
+[20:49:52]     ours/full/k2/popularity-minus-random_catalog                   +0.0060 CI [+0.0041,+0.0079] SEP
+[20:49:54]     ours/tail/k2/popularity-minus-random_catalog                   +0.0160 CI [+0.0138,+0.0181] SEP
+[20:49:56]     ours/full/k4/popularity-minus-random_catalog                   +0.0157 CI [+0.0132,+0.0181] SEP
+[20:49:58]     ours/tail/k4/popularity-minus-random_catalog                   +0.0261 CI [+0.0236,+0.0288] SEP
+[20:50:00]     ours/full/k8/popularity-minus-random_catalog                   +0.0351 CI [+0.0322,+0.0379] SEP
+[20:50:02]     ours/tail/k8/popularity-minus-random_catalog                   +0.0371 CI [+0.0343,+0.0401] SEP
+[20:50:04]     ours/full/k16/popularity-minus-random_catalog                  +0.0616 CI [+0.0582,+0.0648] SEP
+[20:50:06]     ours/tail/k16/popularity-minus-random_catalog                  +0.0507 CI [+0.0476,+0.0539] SEP
+[20:50:08]     ours/full/k1/helf-minus-pure_entropy                           +0.0021 CI [+0.0012,+0.0030] SEP
+[20:50:10]     ours/tail/k1/helf-minus-pure_entropy                           +0.0035 CI [+0.0022,+0.0047] SEP
+[20:50:12]     ours/full/k2/helf-minus-pure_entropy                           +0.0050 CI [+0.0030,+0.0068] SEP
+[20:50:14]     ours/tail/k2/helf-minus-pure_entropy                           +0.0092 CI [+0.0071,+0.0113] SEP
+[20:50:16]     ours/full/k4/helf-minus-pure_entropy                           +0.0175 CI [+0.0153,+0.0197] SEP
+[20:50:18]     ours/tail/k4/helf-minus-pure_entropy                           +0.0265 CI [+0.0242,+0.0288] SEP
+[20:50:20]     ours/full/k8/helf-minus-pure_entropy                           +0.0306 CI [+0.0281,+0.0331] SEP
+[20:50:22]     ours/tail/k8/helf-minus-pure_entropy                           +0.0408 CI [+0.0382,+0.0433] SEP
+[20:50:24]     ours/full/k16/helf-minus-pure_entropy                          +0.0557 CI [+0.0526,+0.0588] SEP
+[20:50:26]     ours/tail/k16/helf-minus-pure_entropy                          +0.0481 CI [+0.0453,+0.0510] SEP
+[20:50:28]     ours/full/k1/helf-minus-random_bank                            +0.0017 CI [+0.0007,+0.0026] SEP
+[20:50:30]     ours/tail/k1/helf-minus-random_bank                            +0.0043 CI [+0.0031,+0.0056] SEP
+[20:50:32]     ours/full/k2/helf-minus-random_bank                            +0.0039 CI [+0.0020,+0.0058] SEP
+[20:50:34]     ours/tail/k2/helf-minus-random_bank                            +0.0109 CI [+0.0088,+0.0128] SEP
+[20:50:36]     ours/full/k4/helf-minus-random_bank                            +0.0167 CI [+0.0145,+0.0190] SEP
+[20:50:38]     ours/tail/k4/helf-minus-random_bank                            +0.0272 CI [+0.0249,+0.0295] SEP
+[20:50:40]     ours/full/k8/helf-minus-random_bank                            +0.0299 CI [+0.0273,+0.0324] SEP
+[20:50:42]     ours/tail/k8/helf-minus-random_bank                            +0.0396 CI [+0.0369,+0.0422] SEP
+[20:50:44]     ours/full/k16/helf-minus-random_bank                           +0.0550 CI [+0.0519,+0.0581] SEP
+[20:50:47]     ours/tail/k16/helf-minus-random_bank                           +0.0486 CI [+0.0455,+0.0517] SEP
+[20:50:49]     ours/full/k1/helf-minus-random_catalog                         +0.0018 CI [+0.0008,+0.0027] SEP
+[20:50:51]     ours/tail/k1/helf-minus-random_catalog                         +0.0044 CI [+0.0031,+0.0057] SEP
+[20:50:53]     ours/full/k2/helf-minus-random_catalog                         +0.0040 CI [+0.0020,+0.0058] SEP
+[20:50:55]     ours/tail/k2/helf-minus-random_catalog                         +0.0110 CI [+0.0089,+0.0130] SEP
+[20:50:57]     ours/full/k4/helf-minus-random_catalog                         +0.0166 CI [+0.0144,+0.0188] SEP
+[20:50:59]     ours/tail/k4/helf-minus-random_catalog                         +0.0270 CI [+0.0247,+0.0293] SEP
+[20:51:01]     ours/full/k8/helf-minus-random_catalog                         +0.0300 CI [+0.0273,+0.0325] SEP
+[20:51:03]     ours/tail/k8/helf-minus-random_catalog                         +0.0410 CI [+0.0383,+0.0436] SEP
+[20:51:05]     ours/full/k16/helf-minus-random_catalog                        +0.0545 CI [+0.0513,+0.0575] SEP
+[20:51:07]     ours/tail/k16/helf-minus-random_catalog                        +0.0497 CI [+0.0468,+0.0528] SEP
+[20:51:09]     ours/full/k1/pure_entropy-minus-random_bank                    -0.0004 CI [-0.0009,+0.0000] ns 
+[20:51:11]     ours/tail/k1/pure_entropy-minus-random_bank                    +0.0008 CI [+0.0002,+0.0015] SEP
+[20:51:13]     ours/full/k2/pure_entropy-minus-random_bank                    -0.0010 CI [-0.0017,-0.0004] SEP
+[20:51:15]     ours/tail/k2/pure_entropy-minus-random_bank                    +0.0016 CI [+0.0008,+0.0024] SEP
+[20:51:17]     ours/full/k4/pure_entropy-minus-random_bank                    -0.0007 CI [-0.0015,+0.0000] ns 
+[20:51:19]     ours/tail/k4/pure_entropy-minus-random_bank                    +0.0007 CI [-0.0003,+0.0017] ns 
+[20:51:21]     ours/full/k8/pure_entropy-minus-random_bank                    -0.0008 CI [-0.0018,+0.0002] ns 
+[20:51:23]     ours/tail/k8/pure_entropy-minus-random_bank                    -0.0012 CI [-0.0024,-0.0000] SEP
+[20:51:25]     ours/full/k16/pure_entropy-minus-random_bank                   -0.0008 CI [-0.0018,+0.0003] ns 
+[20:51:27]     ours/tail/k16/pure_entropy-minus-random_bank                   +0.0005 CI [-0.0011,+0.0019] ns 
+[20:51:29]     ours/full/k1/random_bank-minus-random_catalog                  +0.0001 CI [-0.0005,+0.0007] ns 
+[20:51:31]     ours/tail/k1/random_bank-minus-random_catalog                  +0.0001 CI [-0.0007,+0.0008] ns 
+[20:51:34]     ours/full/k2/random_bank-minus-random_catalog                  +0.0000 CI [-0.0007,+0.0007] ns 
+[20:51:36]     ours/tail/k2/random_bank-minus-random_catalog                  +0.0001 CI [-0.0008,+0.0010] ns 
+[20:51:38]     ours/full/k4/random_bank-minus-random_catalog                  -0.0001 CI [-0.0010,+0.0008] ns 
+[20:51:40]     ours/tail/k4/random_bank-minus-random_catalog                  -0.0002 CI [-0.0013,+0.0009] ns 
+[20:51:42]     ours/full/k8/random_bank-minus-random_catalog                  +0.0001 CI [-0.0009,+0.0011] ns 
+[20:51:44]     ours/tail/k8/random_bank-minus-random_catalog                  +0.0014 CI [+0.0001,+0.0028] SEP
+[20:51:46]     ours/full/k16/random_bank-minus-random_catalog                 -0.0005 CI [-0.0018,+0.0007] ns 
+[20:51:48]     ours/tail/k16/random_bank-minus-random_catalog                 +0.0012 CI [-0.0003,+0.0027] ns 
+[20:51:50]     ours/full/k1/pure_entropy-minus-random_catalog                 -0.0003 CI [-0.0009,+0.0002] ns 
+[20:51:52]     ours/tail/k1/pure_entropy-minus-random_catalog                 +0.0009 CI [+0.0003,+0.0015] SEP
+[20:51:54]     ours/full/k2/pure_entropy-minus-random_catalog                 -0.0010 CI [-0.0017,-0.0003] SEP
+[20:51:56]     ours/tail/k2/pure_entropy-minus-random_catalog                 +0.0017 CI [+0.0009,+0.0026] SEP
+[20:51:58]     ours/full/k4/pure_entropy-minus-random_catalog                 -0.0009 CI [-0.0016,-0.0001] SEP
+[20:52:00]     ours/tail/k4/pure_entropy-minus-random_catalog                 +0.0005 CI [-0.0005,+0.0015] ns 
+[20:52:02]     ours/full/k8/pure_entropy-minus-random_catalog                 -0.0007 CI [-0.0017,+0.0003] ns 
+[20:52:04]     ours/tail/k8/pure_entropy-minus-random_catalog                 +0.0002 CI [-0.0010,+0.0014] ns 
+[20:52:06]     ours/full/k16/pure_entropy-minus-random_catalog                -0.0013 CI [-0.0024,-0.0001] SEP
+[20:52:08]     ours/tail/k16/pure_entropy-minus-random_catalog                +0.0017 CI [+0.0002,+0.0031] SEP
+[20:52:08] === D4: golbandi_leaf -- does the REVERSAL separate? ===
+[20:52:10]     golbandi_leaf/full/k1/thompson-minus-entropy0_static           +0.0100 CI [+0.0081,+0.0120] SEP
+[20:52:13]     golbandi_leaf/tail/k1/thompson-minus-entropy0_static           +0.0072 CI [+0.0047,+0.0096] SEP
+[20:52:15]     golbandi_leaf/full/k2/thompson-minus-entropy0_static           +0.0171 CI [+0.0142,+0.0199] SEP
+[20:52:17]     golbandi_leaf/tail/k2/thompson-minus-entropy0_static           +0.0082 CI [+0.0056,+0.0108] SEP
+[20:52:19]     golbandi_leaf/full/k4/thompson-minus-entropy0_static           +0.0148 CI [+0.0111,+0.0183] SEP
+[20:52:21]     golbandi_leaf/tail/k4/thompson-minus-entropy0_static           -0.0064 CI [-0.0095,-0.0033] SEP
+[20:52:23]     golbandi_leaf/full/k8/thompson-minus-entropy0_static           +0.0281 CI [+0.0241,+0.0322] SEP
+[20:52:25]     golbandi_leaf/tail/k8/thompson-minus-entropy0_static           +0.0085 CI [+0.0053,+0.0117] SEP
+[20:52:27]     golbandi_leaf/full/k8/glm_ucb-minus-entropy0_static            +0.0007 CI [-0.0026,+0.0040] ns 
+[20:52:29]     golbandi_leaf/tail/k8/glm_ucb-minus-entropy0_static            +0.0008 CI [-0.0018,+0.0034] ns 
+[20:52:31]     golbandi_leaf/full/k8/eddi_ig-minus-entropy0_static            +0.0131 CI [+0.0090,+0.0172] SEP
+[20:52:33]     golbandi_leaf/tail/k8/eddi_ig-minus-entropy0_static            -0.0034 CI [-0.0065,-0.0002] SEP
+[20:52:33] [act1] analysis written -> C:\dev\phd\casper\experiments\baselines\interview\act1_paired.json
+[20:52:33] [act1] done in 24.9m

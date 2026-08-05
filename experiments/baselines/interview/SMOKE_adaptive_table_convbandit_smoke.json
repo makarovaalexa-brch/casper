@@ -1,0 +1,327 @@
+{
+  "meta": {
+    "selectors": [
+      "conlinucb_mcr",
+      "conlinucb_bs",
+      "conlinucb_bs_static",
+      "clime",
+      "conucb"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "consumers": [
+      "ours"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 200,
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "eddi_cand_topm": 0,
+    "SMOKE_NOT_CITABLE": true,
+    "smoke_users": 200,
+    "keyterm_repr": "uniform_member_mean",
+    "n_concepts": 1031
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16295431422935305,
+        "tail": 0.029945854193633506
+      }
+    },
+    "ours": {
+      "conlinucb_mcr": {
+        "k1": {
+          "full": 0.1638601367875478,
+          "tail": 0.03481657614167626,
+          "answered": 0.415,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 3.81,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.1712047553221069,
+          "tail": 0.04024306460957295,
+          "answered": 0.81,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.18067938647096096,
+          "tail": 0.060813011401230424,
+          "answered": 1.23,
+          "floored": 0,
+          "concept_tokens": 200,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.09,
+          "distinct_prefixes": 3
+        },
+        "k8": {
+          "full": 0.20351856989774883,
+          "tail": 0.06714953398813271,
+          "answered": 2.385,
+          "floored": 0,
+          "concept_tokens": 400,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.67,
+          "distinct_prefixes": 24
+        },
+        "k16": {
+          "full": 0.22556699018241627,
+          "tail": 0.07988429638610534,
+          "answered": 4.865,
+          "floored": 0,
+          "concept_tokens": 400,
+          "concept_consumer": true,
+          "score_minutes": 0.04,
+          "interview_minutes": 3.58,
+          "distinct_prefixes": 153
+        }
+      },
+      "conlinucb_bs": {
+        "k1": {
+          "full": 0.1638601367875478,
+          "tail": 0.03481657614167626,
+          "answered": 0.415,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.03,
+          "interview_minutes": 0.03,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.1712047553221069,
+          "tail": 0.04024306460957295,
+          "answered": 0.81,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.03,
+          "interview_minutes": 0.04,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.17667595621138285,
+          "tail": 0.051623373420872,
+          "answered": 1.255,
+          "floored": 0,
+          "concept_tokens": 200,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.08,
+          "distinct_prefixes": 4
+        },
+        "k8": {
+          "full": 0.1970141636021534,
+          "tail": 0.05802153788677368,
+          "answered": 2.39,
+          "floored": 0,
+          "concept_tokens": 400,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.66,
+          "distinct_prefixes": 16
+        },
+        "k16": {
+          "full": 0.22061073413576487,
+          "tail": 0.06890351313017663,
+          "answered": 4.805,
+          "floored": 0,
+          "concept_tokens": 400,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 2.86,
+          "distinct_prefixes": 144
+        }
+      },
+      "conlinucb_bs_static": {
+        "k1": {
+          "full": 0.15691465747435443,
+          "tail": 0.030732485189319463,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 200,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.04,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.15702336422083182,
+          "tail": 0.02917727969390533,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 400,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.04,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.16750006081121477,
+          "tail": 0.04569384020561293,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 800,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.08,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.1701974201146843,
+          "tail": 0.05390595836639909,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 1600,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.25,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.18970337598978693,
+          "tail": 0.05662022403937461,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 3200,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 1.0,
+          "distinct_prefixes": 1
+        }
+      },
+      "clime": {
+        "k1": {
+          "full": 0.1638601367875478,
+          "tail": 0.03481657614167626,
+          "answered": 0.415,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.1712047553221069,
+          "tail": 0.04024306460957295,
+          "answered": 0.81,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.03,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.17543773390583844,
+          "tail": 0.05723545143548555,
+          "answered": 1.64,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.09,
+          "distinct_prefixes": 7
+        },
+        "k8": {
+          "full": 0.19276975150911377,
+          "tail": 0.05662488901281528,
+          "answered": 3.01,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.74,
+          "distinct_prefixes": 38
+        },
+        "k16": {
+          "full": 0.22093171409281176,
+          "tail": 0.06904352163963996,
+          "answered": 5.33,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 3.24,
+          "distinct_prefixes": 165
+        }
+      },
+      "conucb": {
+        "k1": {
+          "full": 0.16187887060760522,
+          "tail": 0.025167271487844863,
+          "answered": 0.215,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.15955184728300104,
+          "tail": 0.03075861779757721,
+          "answered": 0.36,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.16644568044429847,
+          "tail": 0.043051308075118706,
+          "answered": 0.435,
+          "floored": 0,
+          "concept_tokens": 200,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.18,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.18547421329103997,
+          "tail": 0.05653820135957642,
+          "answered": 0.855,
+          "floored": 0,
+          "concept_tokens": 400,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.84,
+          "distinct_prefixes": 27
+        },
+        "k16": {
+          "full": 0.1906017365179703,
+          "tail": 0.0657929150197671,
+          "answered": 1.835,
+          "floored": 0,
+          "concept_tokens": 400,
+          "concept_consumer": true,
+          "score_minutes": 0.02,
+          "interview_minutes": 3.08,
+          "distinct_prefixes": 122
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+[11:04:59] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[11:04:59] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[11:04:59] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[11:05:00] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[11:05:00] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:05:01] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[11:05:01] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[11:05:01] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[11:05:01] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:05:01] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[11:08:39] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (3.6m)
+[11:08:39] [rbmf_seed] frozen iALS f=200 (3.6m); ls_reg=1.0
+[11:12:05] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (3.4m)
+[11:12:05] [belief_mf] frozen iALS f=200 (3.4m); prior mu0|=8.228 tr(Sig0)=347.606; obs_noise=1.0
+[11:12:07] [tanp] RESUMED ep98 best=0.2623
+[11:12:08] [golbandi_leaf] node model over 140768 train users, lambda=8.0, mode=ternary
+[11:12:08] [pop] fitted item popularity over 140768 train users, 18359 items
+[11:12:21] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[11:12:39] [cell] ours           helf        k=8 full=0.1892 tail=0.0725 (n_full=10000, n_tail=9281)
+[11:12:57] [cell] ours           entropy0    k=8 full=0.2053 tail=0.0792 (n_full=10000, n_tail=9281)
+[11:13:15] [cell] ours           popularity  k=8 full=0.1943 tail=0.0686 (n_full=10000, n_tail=9281)
+[11:13:31] [cell] golbandi_leaf  helf        k=8 full=0.1948 tail=0.0792 (n_full=10000, n_tail=9281)
+[11:13:46] [cell] golbandi_leaf  entropy0    k=8 full=0.1686 tail=0.0677 (n_full=10000, n_tail=9281)
+[11:14:00] [cell] golbandi_leaf  popularity  k=8 full=0.1716 tail=0.0696 (n_full=10000, n_tail=9281)
+[11:15:00] [cell] rbmf           helf        k=8 full=0.0723 tail=0.0399 (n_full=10000, n_tail=9281)
+[11:16:17] [cell] rbmf           entropy0    k=8 full=0.1636 tail=0.0381 (n_full=10000, n_tail=9281)
+[11:17:41] [cell] rbmf           popularity  k=8 full=0.1636 tail=0.0340 (n_full=10000, n_tail=9281)
+[11:18:43] [cell] belief_mf      helf        k=8 full=0.1628 tail=0.0336 (n_full=10000, n_tail=9281)
+[11:19:55] [cell] belief_mf      entropy0    k=8 full=0.1631 tail=0.0305 (n_full=10000, n_tail=9281)
+[11:21:07] [cell] belief_mf      popularity  k=8 full=0.1631 tail=0.0304 (n_full=10000, n_tail=9281)
+[11:21:23] [cell] tanp           helf        k=8 full=0.1259 tail=0.0449 (n_full=10000, n_tail=9281)
+[11:21:37] [cell] tanp           entropy0    k=8 full=0.1742 tail=0.0531 (n_full=10000, n_tail=9281)
+[11:21:52] [cell] tanp           popularity  k=8 full=0.1699 tail=0.0401 (n_full=10000, n_tail=9281)
+[11:21:52] [canary] all arms row-aligned: n_full=10000, n_tail=9281
+[11:21:52] === within-model strategy gaps (the inversion claim) ===
+[11:21:52]   -- ours
+[11:21:54]     ours/full/entropy0-minus-helf                        +0.0160 CI [+0.0127,+0.0194] SEP
+[11:21:56]     ours/full/entropy0-minus-popularity                  +0.0109 CI [+0.0090,+0.0129] SEP
+[11:21:58]     ours/full/popularity-minus-helf                      +0.0051 CI [+0.0019,+0.0083] SEP
+[11:22:01]     ours/tail/entropy0-minus-helf                        +0.0067 CI [+0.0034,+0.0102] SEP
+[11:22:03]     ours/tail/entropy0-minus-popularity                  +0.0106 CI [+0.0085,+0.0127] SEP
+[11:22:05]     ours/tail/popularity-minus-helf                      -0.0039 CI [-0.0071,-0.0006] SEP
+[11:22:05]   -- golbandi_leaf
+[11:22:08]     golbandi_leaf/full/entropy0-minus-helf               -0.0262 CI [-0.0304,-0.0221] SEP
+[11:22:10]     golbandi_leaf/full/entropy0-minus-popularity         -0.0030 CI [-0.0060,-0.0000] SEP
+[11:22:12]     golbandi_leaf/full/popularity-minus-helf             -0.0232 CI [-0.0276,-0.0188] SEP
+[11:22:15]     golbandi_leaf/tail/entropy0-minus-helf               -0.0116 CI [-0.0149,-0.0082] SEP
+[11:22:17]     golbandi_leaf/tail/entropy0-minus-popularity         -0.0019 CI [-0.0043,+0.0005] ns 
+[11:22:19]     golbandi_leaf/tail/popularity-minus-helf             -0.0096 CI [-0.0129,-0.0064] SEP
+[11:22:19]   -- rbmf
+[11:22:21]     rbmf/full/entropy0-minus-helf                        +0.0913 CI [+0.0871,+0.0954] SEP
+[11:22:24]     rbmf/full/entropy0-minus-popularity                  +0.0000 CI [-0.0013,+0.0013] ns 
+[11:22:26]     rbmf/full/popularity-minus-helf                      +0.0913 CI [+0.0871,+0.0954] SEP
+[11:22:29]     rbmf/tail/entropy0-minus-helf                        -0.0018 CI [-0.0046,+0.0012] ns 
+[11:22:31]     rbmf/tail/entropy0-minus-popularity                  +0.0041 CI [+0.0026,+0.0056] SEP
+[11:22:33]     rbmf/tail/popularity-minus-helf                      -0.0058 CI [-0.0086,-0.0030] SEP
+[11:22:33]   -- belief_mf
+[11:22:35]     belief_mf/full/entropy0-minus-helf                   +0.0003 CI [-0.0004,+0.0010] ns 
+[11:22:38]     belief_mf/full/entropy0-minus-popularity             -0.0000 CI [-0.0005,+0.0004] ns 
+[11:22:40]     belief_mf/full/popularity-minus-helf                 +0.0003 CI [-0.0004,+0.0010] ns 
+[11:22:42]     belief_mf/tail/entropy0-minus-helf                   -0.0031 CI [-0.0044,-0.0018] SEP
+[11:22:44]     belief_mf/tail/entropy0-minus-popularity             +0.0002 CI [-0.0005,+0.0009] ns 
+[11:22:47]     belief_mf/tail/popularity-minus-helf                 -0.0032 CI [-0.0046,-0.0019] SEP
+[11:22:47]   -- tanp
+[11:22:49]     tanp/full/entropy0-minus-helf                        +0.0483 CI [+0.0442,+0.0525] SEP
+[11:22:51]     tanp/full/entropy0-minus-popularity                  +0.0043 CI [+0.0022,+0.0064] SEP
+[11:22:53]     tanp/full/popularity-minus-helf                      +0.0440 CI [+0.0402,+0.0478] SEP
+[11:22:56]     tanp/tail/entropy0-minus-helf                        +0.0082 CI [+0.0049,+0.0116] SEP
+[11:22:58]     tanp/tail/entropy0-minus-popularity                  +0.0130 CI [+0.0108,+0.0152] SEP
+[11:23:00]     tanp/tail/popularity-minus-helf                      -0.0048 CI [-0.0078,-0.0018] SEP
+[11:23:00] === cross-model at each model's best strategy (the no-deficit claim) ===
+[11:23:00]   best strategy per model: {'ours': 'entropy0', 'golbandi_leaf': 'helf', 'rbmf': 'entropy0', 'belief_mf': 'popularity', 'tanp': 'entropy0'}
+[11:23:02]     ours(entropy0)-minus-golbandi_leaf(helf)/full        +0.0105 CI [+0.0072,+0.0137] SEP
+[11:23:04]     ours(entropy0)-minus-golbandi_leaf(helf)/tail        -0.0000 CI [-0.0032,+0.0032] ns 
+[11:23:07]     ours(entropy0)-minus-rbmf(entropy0)/full             +0.0416 CI [+0.0387,+0.0447] SEP
+[11:23:09]     ours(entropy0)-minus-rbmf(entropy0)/tail             +0.0411 CI [+0.0383,+0.0440] SEP
+[11:23:11]     ours(entropy0)-minus-belief_mf(popularity)/full      +0.0422 CI [+0.0390,+0.0452] SEP
+[11:23:13]     ours(entropy0)-minus-belief_mf(popularity)/tail      +0.0489 CI [+0.0456,+0.0522] SEP
+[11:23:16]     ours(entropy0)-minus-tanp(entropy0)/full             +0.0311 CI [+0.0283,+0.0339] SEP
+[11:23:18]     ours(entropy0)-minus-tanp(entropy0)/tail             +0.0261 CI [+0.0234,+0.0289] SEP
+[11:23:18] done -> C:\dev\phd\casper\experiments\baselines\interview\interview_paired.json

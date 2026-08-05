@@ -1,0 +1,103 @@
+[14:27:31] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[14:27:31] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[14:27:31] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[14:27:34] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[14:27:37] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[14:27:38] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[14:27:38] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[14:27:38] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[14:27:38] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[14:27:38] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[14:27:40] [golbandi_leaf] node model over 140768 train users, lambda=8.0, mode=ternary
+[14:27:40] [pop] fitted item popularity over 140768 train users, 18359 items
+[14:28:18] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[14:28:18] [act1] 10000 users, 18359 items; mostpop prior {'full': 0.16255947303941118, 'tail': 0.026243274849789923}
+[14:28:18] [act1] interview helf-static        k= 1 in 0.00m; answered=0.216; global=True
+[14:28:58] [act1]   score ours           helf-static        k= 1 full=0.1603 tail=0.0354 (n_full=10000 n_tail=9281) 0.66m
+[14:28:58] [act1] interview helf-static        k= 2 in 0.00m; answered=0.499; global=True
+[14:29:46] [act1]   score ours           helf-static        k= 2 full=0.1628 tail=0.0420 (n_full=10000 n_tail=9281) 0.81m
+[14:29:47] [act1] interview helf-static        k= 4 in 0.00m; answered=0.819; global=True
+[14:32:22] [act1]   score ours           helf-static        k= 4 full=0.1755 tail=0.0588 (n_full=10000 n_tail=9281) 2.59m
+[14:32:23] [act1] interview helf-static        k= 8 in 0.02m; answered=1.588; global=True
+[14:35:43] [act1]   score ours           helf-static        k= 8 full=0.1892 tail=0.0725 (n_full=10000 n_tail=9281) 3.32m
+[14:35:44] [act1] interview helf-static        k=16 in 0.03m; answered=3.337; global=True
+[14:36:59] [act1]   score ours           helf-static        k=16 full=0.2157 tail=0.0838 (n_full=10000 n_tail=9281) 1.25m
+[14:36:59] [act1] interview entropy0-static    k= 1 in 0.00m; answered=0.437; global=True
+[14:38:00] [act1]   score ours           entropy0-static    k= 1 full=0.1635 tail=0.0433 (n_full=10000 n_tail=9281) 1.01m
+[14:38:48] [act1]   score golbandi_leaf  entropy0-static    k= 1 full=0.1579 tail=0.0347 (n_full=10000 n_tail=9281) 0.80m
+[14:38:48] [act1] interview entropy0-static    k= 2 in 0.00m; answered=0.855; global=True
+[14:39:45] [act1]   score ours           entropy0-static    k= 2 full=0.1706 tail=0.0528 (n_full=10000 n_tail=9281) 0.96m
+[14:40:32] [act1]   score golbandi_leaf  entropy0-static    k= 2 full=0.1563 tail=0.0414 (n_full=10000 n_tail=9281) 0.77m
+[14:40:32] [act1] interview entropy0-static    k= 4 in 0.00m; answered=1.641; global=True
+[14:41:34] [act1]   score ours           entropy0-static    k= 4 full=0.1831 tail=0.0636 (n_full=10000 n_tail=9281) 1.02m
+[14:42:17] [act1]   score golbandi_leaf  entropy0-static    k= 4 full=0.1680 tail=0.0670 (n_full=10000 n_tail=9281) 0.71m
+[14:42:17] [act1] interview entropy0-static    k= 8 in 0.01m; answered=3.100; global=True
+[14:43:10] [act1]   score ours           entropy0-static    k= 8 full=0.2053 tail=0.0792 (n_full=10000 n_tail=9281) 0.88m
+[14:44:03] [act1]   score golbandi_leaf  entropy0-static    k= 8 full=0.1686 tail=0.0677 (n_full=10000 n_tail=9281) 0.88m
+[14:44:05] [act1] interview entropy0-static    k=16 in 0.02m; answered=5.525; global=True
+[14:45:02] [act1]   score ours           entropy0-static    k=16 full=0.2303 tail=0.0924 (n_full=10000 n_tail=9281) 0.96m
+[14:45:02] [act1] interview popularity-static  k= 1 in 0.00m; answered=0.420; global=True
+[14:45:55] [act1]   score ours           popularity-static  k= 1 full=0.1606 tail=0.0400 (n_full=10000 n_tail=9281) 0.88m
+[14:45:56] [act1] interview popularity-static  k= 2 in 0.00m; answered=0.838; global=True
+[14:47:18] [act1]   score ours           popularity-static  k= 2 full=0.1647 tail=0.0470 (n_full=10000 n_tail=9281) 1.38m
+[14:47:19] [act1] interview popularity-static  k= 4 in 0.01m; answered=1.670; global=True
+[14:49:27] [act1]   score ours           popularity-static  k= 4 full=0.1746 tail=0.0579 (n_full=10000 n_tail=9281) 2.15m
+[14:49:28] [act1] interview popularity-static  k= 8 in 0.01m; answered=3.051; global=True
+[14:50:53] [act1]   score ours           popularity-static  k= 8 full=0.1943 tail=0.0686 (n_full=10000 n_tail=9281) 1.41m
+[14:50:54] [act1] interview popularity-static  k=16 in 0.01m; answered=5.424; global=True
+[14:51:58] [act1]   score ours           popularity-static  k=16 full=0.2228 tail=0.0848 (n_full=10000 n_tail=9281) 1.07m
+[14:51:59] [act1] interview pure_entropy-static k= 1 in 0.00m; answered=0.007; global=True
+[14:52:41] [act1]   score ours           pure_entropy-static k= 1 full=0.1582 tail=0.0319 (n_full=10000 n_tail=9281) 0.70m
+[14:52:42] [act1] interview pure_entropy-static k= 2 in 0.00m; answered=0.009; global=True
+[14:53:21] [act1]   score ours           pure_entropy-static k= 2 full=0.1578 tail=0.0327 (n_full=10000 n_tail=9281) 0.66m
+[14:53:21] [act1] interview pure_entropy-static k= 4 in 0.00m; answered=0.010; global=True
+[14:54:09] [act1]   score ours           pure_entropy-static k= 4 full=0.1580 tail=0.0323 (n_full=10000 n_tail=9281) 0.80m
+[14:54:09] [act1] interview pure_entropy-static k= 8 in 0.00m; answered=0.036; global=True
+[14:54:53] [act1]   score ours           pure_entropy-static k= 8 full=0.1586 tail=0.0317 (n_full=10000 n_tail=9281) 0.73m
+[14:54:54] [act1] interview pure_entropy-static k=16 in 0.01m; answered=0.080; global=True
+[14:55:44] [act1]   score ours           pure_entropy-static k=16 full=0.1599 tail=0.0357 (n_full=10000 n_tail=9281) 0.84m
+[14:55:47] [act1] interview random_bank-static k= 1 in 0.05m; answered=0.008; global=False
+[14:56:32] [act1]   score ours           random_bank-static k= 1 full=0.1586 tail=0.0310 (n_full=10000 n_tail=9281) 0.75m
+[14:56:35] [act1] interview random_bank-static k= 2 in 0.03m; answered=0.017; global=False
+[14:57:19] [act1]   score ours           random_bank-static k= 2 full=0.1588 tail=0.0311 (n_full=10000 n_tail=9281) 0.74m
+[14:57:22] [act1] interview random_bank-static k= 4 in 0.03m; answered=0.033; global=False
+[14:58:07] [act1]   score ours           random_bank-static k= 4 full=0.1588 tail=0.0316 (n_full=10000 n_tail=9281) 0.75m
+[14:58:10] [act1] interview random_bank-static k= 8 in 0.04m; answered=0.067; global=False
+[14:58:56] [act1]   score ours           random_bank-static k= 8 full=0.1594 tail=0.0329 (n_full=10000 n_tail=9281) 0.78m
+[14:58:59] [act1] interview random_bank-static k=16 in 0.05m; answered=0.124; global=False
+[14:59:47] [act1]   score ours           random_bank-static k=16 full=0.1607 tail=0.0353 (n_full=10000 n_tail=9281) 0.80m
+[14:59:50] [act1] interview random_catalog-static k= 1 in 0.04m; answered=0.009; global=False
+[15:00:35] [act1]   score ours           random_catalog-static k= 1 full=0.1585 tail=0.0310 (n_full=10000 n_tail=9281) 0.75m
+[15:00:38] [act1] interview random_catalog-static k= 2 in 0.05m; answered=0.015; global=False
+[15:01:19] [act1]   score ours           random_catalog-static k= 2 full=0.1588 tail=0.0310 (n_full=10000 n_tail=9281) 0.68m
+[15:01:22] [act1] interview random_catalog-static k= 4 in 0.04m; answered=0.031; global=False
+[15:02:10] [act1]   score ours           random_catalog-static k= 4 full=0.1589 tail=0.0318 (n_full=10000 n_tail=9281) 0.81m
+[15:02:14] [act1] interview random_catalog-static k= 8 in 0.06m; answered=0.060; global=False
+[15:03:22] [act1]   score ours           random_catalog-static k= 8 full=0.1593 tail=0.0315 (n_full=10000 n_tail=9281) 1.12m
+[15:03:27] [act1] interview random_catalog-static k=16 in 0.07m; answered=0.123; global=False
+[15:04:17] [act1]   score ours           random_catalog-static k=16 full=0.1612 tail=0.0341 (n_full=10000 n_tail=9281) 0.84m
+[15:11:21] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (7.0m)
+[15:11:22] [belief_mf] frozen iALS f=200 (7.1m); prior mu0|=8.103 tr(Sig0)=339.435; obs_noise=1.0
+[15:11:23] [act1] interview glm_ucb            k= 1 in 7.09m; answered=0.420; global=True
+[15:12:12] [act1]   score ours           glm_ucb            k= 1 full=0.1606 tail=0.0400 (n_full=10000 n_tail=9281) 0.81m
+[15:12:15] [act1] interview glm_ucb            k= 2 in 0.06m; answered=0.814; global=False
+[15:13:04] [act1]   score ours           glm_ucb            k= 2 full=0.1635 tail=0.0452 (n_full=10000 n_tail=9281) 0.81m
+[15:14:01] [act1] interview glm_ucb            k= 4 in 0.94m; answered=1.654; global=False
+[15:14:51] [act1]   score ours           glm_ucb            k= 4 full=0.1754 tail=0.0580 (n_full=10000 n_tail=9281) 0.84m
+[15:30:26] [act1] interview glm_ucb            k= 8 in 15.57m; answered=2.966; global=False
+[15:31:23] [act1]   score ours           glm_ucb            k= 8 full=0.1902 tail=0.0676 (n_full=10000 n_tail=9281) 0.96m
+[15:35:49] [act1]   score golbandi_leaf  glm_ucb            k= 8 full=0.1693 tail=0.0685 (n_full=10000 n_tail=9281) 4.42m
+[16:42:49] [act1] interview glm_ucb            k=16 in 67.00m; answered=5.263; global=False
+[16:43:33] [act1]   score ours           glm_ucb            k=16 full=0.2166 tail=0.0839 (n_full=10000 n_tail=9281) 0.72m
+[16:43:51] [act1] interview thompson           k= 1 in 0.30m; answered=0.215; global=False
+[16:44:29] [act1]   score ours           thompson           k= 1 full=0.1613 tail=0.0378 (n_full=10000 n_tail=9281) 0.62m
+[17:04:04] [act1]   score golbandi_leaf  thompson           k= 1 full=0.1680 tail=0.0419 (n_full=10000 n_tail=9281) 19.58m
+[17:09:49] [act1] interview thompson           k= 2 in 5.76m; answered=0.432; global=False
+[17:10:27] [act1]   score ours           thompson           k= 2 full=0.1654 tail=0.0435 (n_full=10000 n_tail=9281) 0.63m
+[17:16:56] [act1]   score golbandi_leaf  thompson           k= 2 full=0.1733 tail=0.0495 (n_full=10000 n_tail=9281) 6.47m
+[17:39:15] [act1] interview thompson           k= 4 in 22.32m; answered=0.858; global=False
+[17:40:10] [act1]   score ours           thompson           k= 4 full=0.1748 tail=0.0525 (n_full=10000 n_tail=9281) 0.91m
+[17:44:52] [act1]   score golbandi_leaf  thompson           k= 4 full=0.1828 tail=0.0605 (n_full=10000 n_tail=9281) 4.70m
+[19:17:24] [act1] interview thompson           k= 8 in 92.53m; answered=1.708; global=False
+[19:19:51] [act1]   score ours           thompson           k= 8 full=0.1916 tail=0.0699 (n_full=10000 n_tail=9281) 2.45m
+[19:26:10] [act1]   score golbandi_leaf  thompson           k= 8 full=0.1967 tail=0.0762 (n_full=10000 n_tail=9281) 6.30m
