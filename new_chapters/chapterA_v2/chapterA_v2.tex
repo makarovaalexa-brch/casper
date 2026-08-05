@@ -49,7 +49,16 @@
 \maketitle
 
 \begin{abstract}
-\noindent Before one can study \emph{how} to interview a cold-start user---which questions to ask, in what
+\noindent \textbf{The published ranking of cold-start question-selection heuristics is not a property of the
+heuristics.} Holding the questions, the users, the answers and the candidate pool fixed and varying only the
+recommender that consumes the answers, Rashid et al.'s reported ordering reproduces under the node model of
+Golbandi et al.\ and \emph{inverts} under a frontier-accuracy consumer---on both metrics, with every gap that
+decides an ordering separated by a paired per-user bootstrap. An elicitation result is therefore a claim about a
+strategy \emph{and} the recommender it was measured through, and the field has largely reported the pair as though
+it were the strategy.
+
+Establishing that requires the thing it is a claim about. Before one can study \emph{how} to interview a cold-start
+user---which questions to ask, in what
 order---one needs a recommender that can \emph{be} interviewed: a model that folds an arbitrary-length,
 mixed-channel set of answers into its user representation and re-ranks a large catalogue, without per-user retraining and
 without trading away full-profile accuracy. We argue that this recommender is a \emph{measuring instrument} for the
@@ -107,6 +116,30 @@ routinely conflate a better \emph{question-selection strategy} with a better \em
 can measure elicitation strategies in isolation, we need to fix the recommender---and not just any recommender, but one
 strong and flexible enough that a good interview is not wasted on it. We call such a recommender an
 \emph{interview-compatible instrument}.
+
+\paragraph{The confound is not hypothetical, and it changes published conclusions.}
+The ranking of the classical cold-start selection heuristics is not a property of the heuristics. Under the node
+model of Golbandi et al.~\cite{golbandi2011adaptive}, the order Rashid et al.~\cite{rashid2002getting} report
+reproduces; under a frontier-accuracy consumer it \emph{inverts}, on both full and tail NDCG@10, with every gap
+that decides an ordering separated by a paired per-user bootstrap---the questions, users, answers, budget and
+candidate pool held fixed throughout, so the only thing that varies is the model reading the answers
+(\S\ref{sec:instrdep}). A paper reporting either ordering in isolation, with its own recommender, would be
+reporting something true and non-transferable.
+
+This is the concrete sense in which elicitation results are instrument-relative, and it is why the rest of this
+chapter is about the instrument rather than about a policy: the requirements below are not a wish-list, they are
+what a recommender must satisfy before a strategy comparison measured through it means anything. We state them
+first, build and certify the instrument against them (\S\ref{sec:method}--\S\ref{sec:expdesign}), and only then
+return to the comparison above, once there is something to trust it with (\S\ref{sec:instrdep}).
+
+\paragraph{What this chapter measures, and what it does not.}
+The answers folded here come from recorded behaviour: an item answer is a user's own rating, a concept answer a
+log watch-lift over raw counts. That is a deliberate scope, not an omission. It lets us measure exactly what a
+recommender can extract from \emph{truthful, behaviour-grounded} answers, with no recommender-derived quantity
+anywhere in the answer path---a property we enforce in code and state as a first-class part of the protocol
+(\S\ref{sec:firewall}). What it does not measure is how a person phrases, hedges or misreads a rendered question.
+Human answer noise is a property of the elicitation layer, and it belongs to the companion chapter that studies
+that layer; conflating the two is how a simulator flatters the system it is simulating.
 
 \paragraph{Four requirements.}
 An instrument fit for measuring conversational elicitation must simultaneously satisfy:
@@ -1345,6 +1378,44 @@ is not a tuning inconvenience: it means the set of expressible concepts is froze
 existing concept, a concept invented after deployment, a direction produced by snapping a continuous query to the
 nearest meaningful axis---none of these can be answered without retraining, because none of them has a column. The
 pseudo-item is not merely a lossy encoding of a concept; it is a \emph{closed} one.
+
+\subsection{The answer firewall: what may not enter an answer}\label{sec:firewall}
+
+An interview evaluation is only as trustworthy as the thing that answers it, and the failure mode is specific: if
+any quantity derived from the recommender reaches the answer, the interview curve measures the recommender
+recovering its own geometry rather than ingesting evidence. That inflates every downstream number without
+transferring to a real user, and it cannot be detected from the curve, because a circular answer model produces a
+curve of exactly the shape a working one produces. We therefore treat the answer path as a protocol object in its
+own right, with a rule stated in advance and enforced in code rather than checked afterwards.
+
+\paragraph{The rule.} An answer may be computed only from the user's \emph{fold-in} behaviour and from
+catalogue-level counts. Concretely: an item answer is the user's own recorded rating; a concept answer is the
+signed log watch-lift of Eq.~\eqref{eq:sel}, formed from the user's watched members and a count expected from
+their volume and the concept's catalogue popularity. Three things are excluded by construction, and the exclusion
+is asserted rather than assumed:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \textbf{No recommender-derived quantity.} No latent, no factor, no score, no similarity and no
+        model-predicted rating enters an answer at any point. The answer path never reads the tower.
+  \item \textbf{No target-half information.} Answers are computed from the fold-in half only, so an answer cannot
+        encode the held-out items it will be scored against.
+  \item \textbf{No oracle over unobserved preference.} Where a user has no evidence about a concept, the estimator
+        emits a \emph{refusal} rather than an imputed preference: an unexposed user is not assumed to hold a view.
+\end{itemize}
+
+\paragraph{Why this is worth stating as a criterion rather than a caveat.} Applied as a checklist, it separates
+this literature sharply. PEBOL's simulated user answers from the ground-truth item
+description~\cite{austin2024bayesian}---the answer is a function of the target. Unified item-and-attribute
+conversational work assumes the user holds and reveals a clear preference over every attribute and every
+item~\cite{deng2021unicorn}, which supplies an oracle exactly where a cold user has no evidence. Bandit-over-arms
+formulations draw answers from the same latent space the recommender ranks in~\cite{li2021seamlessly}, which is
+the circularity in its purest form. None of these is a careless choice; each is a reasonable simulator design. But
+each makes the resulting interview curve a statement about the simulator as much as about the method, and none of
+the three would pass the rule above.
+
+We make no claim that our answers are what a \emph{person} would say---that is the scope boundary of
+\S\ref{sec:intro} and the limitation of \S\ref{sec:limits}. The claim is narrower and checkable: whatever these
+answers are, they are not the recommender talking to itself.
 
 \paragraph{Metrics.}
 Full \emph{and} tail NDCG@10 on ML-25M (the project reporting rule, scored with the decoder's learned bias, not a
