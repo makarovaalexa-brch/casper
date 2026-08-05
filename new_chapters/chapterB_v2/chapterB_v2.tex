@@ -135,13 +135,16 @@ is scored on}. Chapter A establishes that greedy is prefix-optimal here, which i
 $10{,}000$ validation users only; the test cohort was not constructed until all sequences were
 frozen. On those validation users the empty-interview row reproduces the tower's certified cold
 number to five decimal places ($0.12987$ against a recorded $0.12987$), which is how we know the
-harness is measuring the certified system; the test cohort's own empty-interview row, reported as
-the intercept of Table~\ref{tab:greedy}, is $0.1314/0.0234$.
+harness is measuring the certified system. That bridge is computed under the recommender's own
+certification pool; the interview tables that follow use the protocol pool defined below, under
+which the same empty interview on the test cohort reads $0.1586/0.0282$ --- the intercept of
+Table~\ref{tab:greedy}.
 
 \begin{table}[t]
 \centering
 \caption{Greedy prefix-optimal static sequences on the certified stack, test cohort
-($10{,}000$ users), full/tail NDCG@10. Intercept (no questions): $0.1314/0.0234$.}
+($10{,}000$ users), full/tail NDCG@10, protocol candidate pool. Intercept (no questions):
+$0.1586/0.0282$.}
 \label{tab:greedy}
 \footnotesize
 \setlength{\tabcolsep}{2pt}
@@ -149,9 +152,9 @@ the intercept of Table~\ref{tab:greedy}, is $0.1314/0.0234$.
 \toprule
 arm & emergent order & $q{=}1$ & $q{=}2$ & $q{=}4$ & $q{=}8$ & $q{=}16$ & answered@16 \\
 \midrule
-items-only & \texttt{iiiiiiiiiiiiiiii} & .1471/.0351 & .1563/.0441 & .1719/.0542 & .1922/.0598 & .2104/.0761 & 4.20 i \\
-concepts-only & \texttt{cccccccccccccccc} & .1487/.0398 & .1590/.0457 & .1738/\textbf{.0620} & .1898/\textbf{.0815} & .1997/\textbf{.0921} & 12.87 c \\
-combined & \texttt{ccciccii\,iicciiii} & .1487/.0398 & .1590/.0457 & .1738/.0588 & .1918/.0763 & \textbf{.2115}/.0880 & 2.25 i / 6.66 c \\
+items-only & \texttt{iiiiiiiiiiiiiiii} & .1760/.0434 & .1907/.0581 & .2066/.0703 & .2247/.0776 & .2449/.0967 & 4.20 i \\
+concepts-only & \texttt{cccccccccccccccc} & .1783/.0478 & .1909/.0548 & .2147/\textbf{.0775} & .2362/\textbf{.1022} & .2473/\textbf{.1154} & 12.87 c \\
+combined & \texttt{ccciccii\,iicciiii} & .1783/.0478 & .1909/.0548 & .2135/.0755 & .2335/.0962 & \textbf{.2556}/.1098 & 2.25 i / 6.66 c \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -243,7 +246,7 @@ selector & type & $k{=}1$ & $k{=}2$ & $k{=}4$ & $k{=}8$ & $k{=}16$ & ans@16 \\
 \multicolumn{8}{l}{\emph{optimised static (this chapter's comparator)}}\\
 greedy combined (item+concept) & static & \textbf{.1783/.0478} & \textbf{.1909/.0548} & \textbf{.2135/.0755} & \textbf{.2335/.0962} & \textbf{.2556/.1098} & 2.3i/6.7c \\
 greedy items-only & static & .1760/.0434 & .1907/.0581 & .2066/.0703 & .2247/.0776 & .2449/.0967 & 4.20 \\
-greedy concepts-only & static & \multicolumn{5}{c}{\PLAN{not re-scored in this contract}} & 12.87 \\
+greedy concepts-only & static & .1783/.0478 & .1909/.0548 & .2147/.0775 & .2362/.1022 & .2473/\textbf{.1154} & 12.87 \\
 \midrule
 \multicolumn{8}{l}{\emph{literature-anchored static heuristics}}\\
 entropy$_0$ & static & .1635/.0433 & .1706/.0528 & .1831/.0636 & .2053/.0792 & .2303/.0924 & 5.52 \\
@@ -515,12 +518,18 @@ discriminative. Coarse-to-fine is therefore a property of loss-optimal selection
 answerability-aware answer model, not a design choice, and it is visible without training any
 policy at all.
 
-The channels also divide the axes: concepts own the tail at every budget ($.0921$ against $.0761$
-at sixteen questions) and items own full accuracy at long budgets ($.2104$ against $.1997$), with
-the combined sequence taking the better of both ($.2115/.0880$). The composition is visibly steered
-by the objective, which is why a tail-objective sequence is required before any tail-optimised
-claim is made. \REDO{the \texttt{--objective tail} greedy sequence; the table above is
-full-objective only}
+The channels also divide the axes, though not in the way we first recorded. Under a candidate pool
+that masked only the user's liked history and the items they had just answered about, the reading
+was that concepts own the tail while items own full accuracy at long budgets. That comparison was
+unfair to the concept channel in a way worth stating: an item question that gets answered deletes
+that item from the candidate list, and an arm asking item questions collects about four such
+deletions per user, while a concept question deletes nothing. Re-scoring under a pool defined by the
+protocol rather than by what each arm happened to ask --- every rated item removed, identically for
+every arm --- \textbf{the concept channel leads on both axes at sixteen questions}
+($.2473/.1154$ against items-only's $.2449/.0967$), with the combined sequence still highest on full
+($.2556/.1098$). The composition remains visibly steered by the objective, which is why a
+tail-objective sequence is required before any tail-optimised claim. \REDO{the \texttt{--objective
+tail} greedy sequence; the table above is full-objective only}
 
 \paragraph{Face validity.} A policy that branches is not the same as a policy that branches
 \emph{sensibly}, and mechanical divergence statistics cannot tell them apart. We therefore report,

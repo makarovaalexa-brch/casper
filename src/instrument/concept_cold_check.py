@@ -14,6 +14,14 @@ nothing else. Folded clean:
 Training needs no redo: the curriculum samples item context k ~ U{0..8}, so pure-concept examples are
 already ~11% of it. Only the measurement was wrong, and every epoch is checkpointed.
 
+CANDIDATE POOL (changed 2026-08-05, ruling in external_literature/findings/candidate_masking_protocol.md):
+POLICY B -- every rated fold-in-side item of the user (likes AND dislikes, targets excluded) is -inf,
+identically for the concept arm and the item arm at every budget. The previous rule masked only the
+ANSWERED asked items and applied no fold-in mask at all, which handed the item arm a free lift the
+concept arm could not receive by construction (a concept question masks nothing). Everything this file
+and `bank_sweep.py` printed before that date is on the old pool and moves -- see
+docs/results/CONCEPT_VS_ITEM_BANK_SWEEP_POLICYB.md.
+
   python src/instrument/concept_cold_check.py --tag cv3 --snapshot models/i26c_ep31/t2i26c_ep31.pt
 """
 import os
@@ -36,6 +44,7 @@ from concept_fold import ConceptFoldNet, fold_items_frozen
 import concept_distill_train as CD
 from signed_answers import signed_for_pool, cap_negatives, BAND_REFUSE
 from i26_encoder import UNSEEN_LEVEL
+import mask_contract as MCK
 
 CKPT_DIR = os.path.join(_ROOT, ".cache", "instrument")
 MS = (0, 1, 2, 4, 8, 16)
@@ -84,7 +93,8 @@ def cold_interviews(S, mc, n_users=1500, seed=4242, policy="broad", rank=None, k
             crefs = [0.0 if ok[j] else 1.0 for j in range(len(cids))]
             packs[m].append((np.empty(0, np.int64), np.empty(0, np.int64),      # ZERO ITEMS
                              [int(c) for c in cids], [float(v) for v in cvals],
-                             [float(x) for x in crefs], tg, np.empty(0, np.int64)))
+                             [float(x) for x in crefs], tg, np.empty(0, np.int64),
+                             pool_s))                       # [7] POLICY-B candidate exclusion
     return packs
 
 
@@ -97,8 +107,11 @@ def cold_item_interviews(S, pop_rank, n_users=1500, seed=4242):
       * an item the user has not rated BURNS the question, exactly as a concept refusal does. It is
         folded as an exposure token (UNSEEN_LEVEL), which is the tower's native "asked, not seen".
       * an asked item that is a held-out TARGET is also folded as unseen -- we must not reveal it.
-      * answered items are masked out of the candidate list (never recommend back what they just told
-        you they have seen). The concept arm has no such items, so nothing is masked there.
+      * CANDIDATE POOL = POLICY B, identical to the concept arm's (see `score`). It used to be
+        "answered items are masked; the concept arm has no items so nothing is masked there" --
+        i.e. the item arm got a free lift, worth ~4 top-ranked guaranteed non-targets per user at
+        m=16, that the concept arm structurally could not get. The pool is now the same object for
+        both arms at every budget, so it cancels in the comparison instead of funding one side.
     """
     rng_t = np.random.default_rng(seed)          # SAME target stream as the concept arm
     users = S["users"][-n_users:]
@@ -120,7 +133,8 @@ def cold_item_interviews(S, pop_rank, n_users=1500, seed=4242):
             ids = np.asarray(asked, np.int64)
             lvs = np.asarray([lvl_of.get(int(i), UNSEEN_LEVEL) for i in asked], np.int64)
             answered = ids[lvs < UNSEEN_LEVEL]
-            packs[m].append((ids, lvs, [], [], [], tg, answered))
+            packs[m].append((ids, lvs, [], [], [], tg, answered,
+                             pool_s))                       # [7] POLICY-B candidate exclusion
     return packs
 
 
@@ -230,7 +244,25 @@ def ndcg_at(sc_row, targets, head_mask, k=10):
     return full, (rt * disc).sum() / max(it, 1e-9)
 
 
-def score(net, S, packs, head_mask, batch=256):
+def apply_pool_mask(sc_row, e, uid, tag):
+    """POLICY B: -inf every rated fold-in-side item of this user (likes AND dislikes), whatever the
+    arm asked. e[7] is `pool_s` -- the user's full rated list with their held-out targets removed --
+    so targets stay rankable and the mask is the same object for the concept arm and the item arm at
+    every budget. The contract assert makes that equality machine-checked rather than asserted in a
+    docstring: same user => same mask, same targets, across arms and budgets.
+
+    BEFORE 2026-08-05 this masked only `e[6]` (the answered asked items) with NO fold-in mask at all,
+    which is policy C-answered: strategy-dependent, channel-dependent (a concept question masks
+    nothing), and a free lift to whichever arm asks items the user has actually seen.
+    """
+    MCK.assert_fixed_user_mask(tag, uid, e[7], e[5])
+    assert not np.isin(e[5], e[7]).any(), "POOL/TARGET LEAK: a held-out target is inside the mask"
+    if len(e[7]):
+        sc_row[e[7]] = -np.inf
+    return sc_row
+
+
+def score(net, S, packs, head_mask, batch=256, tag="cold_check"):
     Wd, bd = S["Wd"], S["bd"]
     out = {}
     if net is not None:
@@ -245,8 +277,7 @@ def score(net, S, packs, head_mask, batch=256):
                                                [e[4] for e in blk])
                 sc = (z @ Wd.T + bd).numpy()
                 for r, e in enumerate(blk):
-                    if len(e) > 6 and len(e[6]):
-                        sc[r, e[6]] = -np.inf          # never recommend back an answered item
+                    apply_pool_mask(sc[r], e, st + r, tag)
                     f, t = ndcg_at(sc[r], e[5], head_mask)
                     fs.append(f)
                     if t is not None:

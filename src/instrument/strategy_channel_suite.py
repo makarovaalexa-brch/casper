@@ -369,8 +369,9 @@ def greedy_static_seq(rung, rows, pool, L, fold_refusals=False, refuse_level=4, 
 #   - ask order, NOT canonical desc-value order: the trainer feeds cids in ask order.
 #   - values from signed_for_pool's construction with keep_meh=False, cap_negatives applied over the
 #     REVEALED list only (the population-wide cap in build_shared is a different, harsher object).
-#   - only ANSWERED items are masked out of the candidate list; an asked-but-unseen item is not
-#     revealed to the user, so it neither burns a target nor leaves the ranking.
+#   - CANDIDATE POOL: policy B since 2026-08-05 (was: only ANSWERED items masked, on top of the
+#     liked fold-in). Every rated fold-in-side item is masked for every arm, ask-independent; an
+#     asked item is never removed from the ranking because it was asked. See genv_eval.
 # LEGACY code above is untouched so greedy_polish.py and the recorded Jul-27 numbers stay readable.
 CERT_TOWER = os.path.join(_ROOT, "models", "i26c_ep31", "t2i26c_ep31.pt")
 CERT_CONC = os.path.join(_ROOT, "models", "i26c_ep31", "concept_cv3_ep08.pt")
@@ -446,6 +447,10 @@ def build_greedy_env(snapshot, split, conc_ckpt, label, need_entropy=False):
     net, cblob = load_certified_concept_net(conc_ckpt, C, ctx.d, sh["d_c"].numpy(),
                                             tower_basename=os.path.basename(snapshot))
     rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0]
+    # POLICY-B CANDIDATE POOL, built ONCE per environment, before any question exists. It is a
+    # property of the PROTOCOL, not of the arm: every sequence this env ever scores gets this exact
+    # mask (2026-08-05 ruling, external_literature/findings/candidate_masking_protocol.md).
+    pool_b = PA.ctx_pool_b(ctx)
     item_H = train_entropies(ctx)[0] if need_entropy else None
     # ctx.raw is a full copy of the 25M-row ratings frame, stashed only for train_entropies (already
     # consumed inside build_shared). Two cohorts alive at once would double it for nothing. Deleted
@@ -453,7 +458,8 @@ def build_greedy_env(snapshot, split, conc_ckpt, label, need_entropy=False):
     del ctx.raw
     E = {"name": label, "split": split, "ctx": ctx, "sh": sh, "net": net, "cblob": cblob,
          "V": V, "foldable": foldable, "rows": rows, "lvl": sh["lvl_lookup"], "C": C, "item_H": item_H,
-         "cneg": float(prereg.get("C_NEG", 2.0)), "cache": {}, "n_evals": 0, "t_evals": 0.0}
+         "cneg": float(prereg.get("C_NEG", 2.0)), "cache": {}, "n_evals": 0, "t_evals": 0.0,
+         "pool": pool_b, "pool_policy": "B", "contract_tag": f"genv:{label}:{split}"}
     set_active_rows(E, rows)
     ans_rate_c = float(foldable[np.asarray(rows)].mean())
     log(f"[{label}] {len(rows)} cohort users; {C} concepts; concept answer rate over the whole bank "
@@ -508,11 +514,27 @@ def genv_eval(E, seq, rows, batch=500):
 
     seq = [(chan, id), ...] in ASK ORDER; chan 0 = item, 1 = concept. Every asked question burns the
     budget for every user. NO FLOOR, learned decoder bias, canonical head mask.
+
+    CANDIDATE POOL = POLICY B, 2026-08-05 ruling. Was `ctx.va_tr[ch] + ans[cj]` -- policy A (liked
+    fold-in only) plus the answered asked items. Two things were wrong with it. The `ans` term made
+    the pool a property of the ARM: an arm that asks answerable items deletes guaranteed non-targets
+    that the just-informed model would have ranked high, which FREES top-10 slots -- a lift
+    proportional to answer rate, landing hardest on the item channel (a concept question masks
+    nothing at all, so the rule was channel-dependent in a comparison about channels). And the policy
+    A base left the user's unasked dislikes in the pool as permanent unmaskable non-targets, putting
+    this harness on a different ruler from the arm-N battery (measured: +0.027 at the cold state).
+
+    Under policy B `ans` is redundant -- an answered item is a rated fold-in-side item and is already
+    out of the pool for EVERY arm, whether or not anybody asked about it -- which is the point. The
+    assert in `_env_item_state` (no answered item is a held-out target) is kept: it is a leak check
+    on the answer simulator, independent of the pool.
     """
     t0 = time.time()
     item_ids = [int(i) for ch, i in seq if ch == 0]
     conc_ids = [int(c) for ch, c in seq if ch == 1]
-    Zi, ans = _env_item_state(E, item_ids)
+    # `_ans` is no longer a mask (policy B already excludes every rated item); the call is kept
+    # because _env_item_state carries the answered-item-is-never-a-target leak assert.
+    Zi, _ans = _env_item_state(E, item_ids)
     ctx = E["ctx"]; net = E["net"]
     ridx = np.asarray(rows, np.int64)
     jj = E["posmap"][ridx]                                   # positions inside the ACTIVE cohort
@@ -539,12 +561,37 @@ def genv_eval(E, seq, rows, batch=500):
             else:
                 z = Zb
             S = (z @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
-            mask = ctx.va_tr[ch] + ans[cj]                   # tower cold parity + answered items
-            mask.data[:] = 1.0
-            f, t = ndcg10_from_scores(S, mask.tocsr(), ctx.va_te[ch], ctx.head_mask)
+            f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
+                                      contract=(E["contract_tag"], ch))
             full[st:st + len(ch)] = f; tail[st:st + len(ch)] = t
     E["n_evals"] += 1; E["t_evals"] += time.time() - t0
     return full, tail
+
+
+def genv_intercept_policyA(E, rows, batch=500):
+    """The m=0 intercept under POLICY A (liked fold-in only) -- the CERTIFICATION BRIDGE only.
+
+    Gate (a) checks that the empty interview reproduces the tower's own recorded cold k0, and that
+    k0 was measured under policy A. Moving the harness to policy B lifts the intercept by ~+0.027,
+    which would fail a 0.002-tolerance gate for a reason that has nothing to do with the fold path.
+    So the gate keeps its own ruler.
+
+    It takes NO sequence and returns ONE number by construction: no arm can route a curve through
+    it, which is what keeps policy A out of the reported battery.
+    """
+    ctx = E["ctx"]
+    ridx = np.asarray(rows, np.int64)
+    jj = E["posmap"][ridx]
+    assert (jj >= 0).all(), "genv_intercept_policyA called on rows outside the env's active cohort"
+    Zi, _ans = _env_item_state(E, [])
+    full = np.full(len(rows), np.nan); tail = np.full(len(rows), np.nan)
+    with torch.no_grad():
+        for st in range(0, len(rows), batch):
+            ch = ridx[st:st + batch]; cj = jj[st:st + batch]
+            S = (Zi[torch.from_numpy(cj)] @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
+            f, t = ndcg10_from_scores(S, ctx.va_tr[ch], ctx.va_te[ch], ctx.head_mask)
+            full[st:st + len(ch)] = f; tail[st:st + len(ch)] = t
+    return float(np.nanmean(full)), float(np.nanmean(tail))
 
 
 def contract_selftest(E, rows, n=8):
@@ -795,12 +842,17 @@ def greedy_main(args):
     contract_selftest(Eb, build_rows)
 
     # ---- GATE (a): the empty interview must reproduce the tower's own certified cold number -----
+    # The tower's k0 was certified under POLICY A, so the bridge check is measured under policy A.
+    # The REPORTED intercept below it is the policy-B one, which is what every arm is scored on.
+    a_full, a_tail = genv_intercept_policyA(Eb, build_rows)
     i_full, i_tail = genv_mean(Eb, [], build_rows)
     ref = float(tblob["k0"])
-    ok = abs(i_full - ref) <= args.intercept_tol
-    log(f"[gate a] m=0 empty interview on {len(build_rows)} val users: full={i_full:.5f} "
-        f"tail={i_tail:.5f} | tower's recorded cold k0={ref:.5f} | delta={i_full - ref:+.5f} "
-        f"tol={args.intercept_tol} -> {'PASS' if ok else 'FAIL'}")
+    ok = abs(a_full - ref) <= args.intercept_tol
+    log(f"[gate a] m=0 empty interview on {len(build_rows)} val users, POLICY A (bridge): "
+        f"full={a_full:.5f} tail={a_tail:.5f} | tower's recorded cold k0={ref:.5f} | "
+        f"delta={a_full - ref:+.5f} tol={args.intercept_tol} -> {'PASS' if ok else 'FAIL'}")
+    log(f"[gate a] m=0 REPORTED intercept, POLICY B (the battery pool): {i_full:.5f}/{i_tail:.5f} "
+        f"(A->B pool shift {i_full - a_full:+.5f} full / {i_tail - a_tail:+.5f} tail)")
     if not ok:
         assert SMOKE, ("GATE (a) FAILED: the empty-interview row does not reproduce the tower's "
                        "certified cold number. Something in the fold/mask/metric path differs from "
@@ -917,15 +969,24 @@ def greedy_main(args):
            "contract": ("NO-FLOOR, learned decoder bias, full+tail NDCG@10, canonical Liang ML-25M "
                         "split. Every asked question burns the budget: an unrated item is folded as "
                         "an i26 UNSEEN exposure token, an unanswerable concept as a cv3 refusal "
-                        "token. Only ANSWERED items are masked out of the candidate list."),
+                        "token. CANDIDATE POOL = POLICY B (2026-08-05 ruling): every rated "
+                        "fold-in-side item, likes AND dislikes, fixed per user before the interview "
+                        "starts, identical for every arm/channel/budget and independent of what was "
+                        "asked; the target matrix is never modified. An asked item is NEVER removed "
+                        "from the candidate list because it was asked."),
+           "pool_policy": "B (arm_n.build_pool equivalent)",
+           "gate_m0_policyA_bridge": {"full": a_full, "tail": a_tail},
            "selection_users": f"{len(build_rows)} canonical VALIDATION users",
            "reporting_users": f"{len(eval_rows)} {eval_split} users",
            "n_build_users": len(build_rows), "n_eval_users": len(eval_rows),
            "eval_split": eval_split, "objective": args.objective,
            "item_bank": args.item_bank, "conc_bank": args.conc_bank,
            "n_items_pool": len(item_pool), "n_concepts_pool": len(conc_pool),
-           "gate_m0_full": i_full, "gate_m0_tail": i_tail, "gate_m0_ref_tower_k0": ref,
-           "gate_m0_pass": bool(ok),
+           # the BRIDGE gate is on policy A (the pool the tower's k0 was certified under); the
+           # reported m=0 row is the policy-B intercept in "intercept" below.
+           "gate_m0_full_policyA": a_full, "gate_m0_tail_policyA": a_tail,
+           "gate_m0_ref_tower_k0": ref, "gate_m0_pass": bool(ok),
+           "m0_policyB_full": i_full, "m0_policyB_tail": i_tail,
            "budgets": list(BUDGETS), "intercept": intercept,
            "intercept_eval": {"full": ie_full, "tail": ie_tail}, "arms": greedy_res,
            "seconds": round(time.time() - t00, 1),

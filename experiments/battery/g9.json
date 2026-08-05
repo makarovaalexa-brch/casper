@@ -38,6 +38,18 @@
         "8": 0.08210242334665213,
         "16": 0.10624195195794664
       },
+      "full@10_policyB": {
+        "2": 0.18171646618409623,
+        "4": 0.21268713970874292,
+        "8": 0.24218666076094747,
+        "16": 0.27854680164465784
+      },
+      "tail@10_policyB": {
+        "2": 0.062349503374160224,
+        "4": 0.07846313985282172,
+        "8": 0.09693432391214565,
+        "16": 0.12508159098285293
+      },
       "rise_last_minus_first": {
         "mean": 0.10353772601807724,
         "ci95": [
@@ -45,7 +57,15 @@
           0.107070473965662
         ]
       },
-      "monotone_spearman": 1.0
+      "monotone_spearman": 1.0,
+      "rise_last_minus_first_policyB": {
+        "mean": 0.09683033546056158,
+        "ci95": [
+          0.09329020456802212,
+          0.1004196939008355
+        ]
+      },
+      "monotone_spearman_policyB": 1.0
     },
     "rand": {
       "answer_rate": {
@@ -78,6 +98,18 @@
         "8": 0.054479861800058794,
         "16": 0.054779892773662305
       },
+      "full@10_policyB": {
+        "2": 0.1720561630839979,
+        "4": 0.1768608641210997,
+        "8": 0.17721637531015957,
+        "16": 0.17679354309888168
+      },
+      "tail@10_policyB": {
+        "2": 0.056119204704173295,
+        "4": 0.06229560451393617,
+        "8": 0.06496672066540352,
+        "16": 0.06511265281902677
+      },
       "rise_last_minus_first": {
         "mean": 0.00510533047381283,
         "ci95": [
@@ -85,9 +117,20 @@
           0.006241548384855376
         ]
       },
-      "monotone_spearman": 1.0
+      "monotone_spearman": 1.0,
+      "rise_last_minus_first_policyB": {
+        "mean": 0.00473738001488381,
+        "ci95": [
+          0.0035112551166537735,
+          0.006010730035782199
+        ]
+      },
+      "monotone_spearman_policyB": 0.39999999999999997
     }
   },
+  "pool_A": "PUBLISHED: liked fold-in (va_tr) + answered asked items (C-answered)",
+  "pool_B": "policy B: every rated fold-in-side item, fixed per user, ask-independent",
+  "pool_note": "both columns are reported; A is the number Paper A printed, B is the battery-wide rule. Never tabulate one next to the other.",
   "pop_vs_rand": {
     "2": {
       "pop_minus_rand": 0.013912126953573604,
@@ -122,6 +165,41 @@
       "PASS": true
     }
   },
+  "pop_vs_rand_policyB": {
+    "2": {
+      "pop_minus_rand": 0.00966030310009836,
+      "ci95": [
+        0.006712893607527054,
+        0.01257619957195342
+      ],
+      "PASS": true
+    },
+    "4": {
+      "pop_minus_rand": 0.03582627558764324,
+      "ci95": [
+        0.03227670517919443,
+        0.03939299696108412
+      ],
+      "PASS": true
+    },
+    "8": {
+      "pop_minus_rand": 0.0649702854507879,
+      "ci95": [
+        0.0610144086377556,
+        0.0689594436259409
+      ],
+      "PASS": true
+    },
+    "16": {
+      "pop_minus_rand": 0.10175325854577613,
+      "ci95": [
+        0.09753452080578215,
+        0.106001871124993
+      ],
+      "PASS": true
+    }
+  },
   "PASS": true,
-  "seconds": 120.4
+  "PASS_policyB": true,
+  "seconds": 1077.8
 }

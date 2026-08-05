@@ -25,9 +25,16 @@ golbandi2010 (RecSys'10 static bootstrapping) is referenced in the annotations -
 absent from the bib.
 
 PROTOCOL: VAL cohort, budgets q in {0,1,2,4,8,16} (headline q8), answers = REAL graded ratings from the
-all-bands reconstruction (held te excluded), CREDIT-NEUTRAL masking of every ASKED item (answered or not:
-it was shown) -- masked from candidates AND dropped from the IDCG denominator; candidate mask also unions
-the canonical va_tr fold-in (tower cold parity, the G9 convention). Paired per-user bootstrap CIs.
+all-bands reconstruction (held te excluded). CANDIDATE POOL = POLICY B (2026-08-05 ruling,
+external_literature/findings/candidate_masking_protocol.md): every rated fold-in-side item, likes AND
+dislikes, fixed per user before the interview starts, IDENTICAL for every arm and every budget, and
+independent of what was asked. The held-out target matrix is never modified. An asked-but-unanswered
+item still BURNS the question (the lit protocol); it simply stays rankable. Paired per-user bootstrap CIs.
+
+  SUPERSEDED (pre-2026-08-05): this file used to mask every ASKED item from the candidates AND drop it
+  from the IDCG denominator ("credit-neutral"). That is full policy C: it deleted held-out targets and
+  made the target set itself arm-dependent. Every number produced under it is arm-dependent and must be
+  re-run before being cited -- see eval_budget's docstring.
 
 AUTO REPLICATION FLAGS: for every arm pair (i,j) with lit_rank_i < lit_rank_j (i expected better), the
 measured q8 full@10 paired delta d = arm_i - arm_j:
@@ -61,7 +68,6 @@ import time
 import argparse
 import numpy as np
 import torch
-from scipy import sparse
 
 torch.set_num_threads(int(_NT))
 
@@ -166,8 +172,32 @@ def simulate_arm(ctx, name, glob, bank_rand, rows, lvl_lookup, q_max):
 
 
 def eval_budget(ctx, asked, toks, rows, q, batch=256):
-    """Fold each user's answered tokens within the first q ASKED; credit-neutral mask over asked[:q]
-    (mask from candidates AND drop from IDCG), unioned with the canonical va_tr fold-in (G9 parity)."""
+    """Fold each user's answered tokens within the first q ASKED; score against the FIXED policy-B
+    pool and the UNTOUCHED target matrix.
+
+    WHAT CHANGED, 2026-08-05 (ruling: external_literature/findings/candidate_masking_protocol.md).
+    This function used to implement full policy C: it masked every ASKED item (answered or not) out
+    of the candidate list AND deleted it from the ground truth (`te[j, i] = 0`). Both are gone.
+
+      * masking asked-but-UNANSWERED items deletes held-out targets -- under our answer model an
+        asked item that is a target is indistinguishable from "unanswered" (lvl_lookup is built with
+        te excluded), so the old code was removing real positives and then papering over it by
+        dropping them from the IDCG denominator as well;
+      * deleting from the ground truth made the measured TASK arm-dependent: two arms were scored
+        against different target sets, which voids the paired bootstrap this file's own replication
+        flags rely on;
+      * and the tax was proportional to answer rate, i.e. a confound sitting on exactly the axis the
+        strategy ladder is measuring.
+
+    The pool is now `ctx_pool_b` -- every rated fold-in-side item, likes u dislikes, fixed per user
+    before any question is asked, IDENTICAL for all six arms and all budgets. The mask contract
+    asserts that per scored batch, so a future arm-dependent pool cannot come back silently.
+
+    NOTE: every number this file produced before 2026-08-05 was arm-dependent and must be re-run
+    before being cited (they are cited nowhere, grep-verified, and were produced on the
+    pre-certification snapshot t2i25_EP4_SNAP.pt, so this is a fix and not a retraction).
+    """
+    pool = PA.ctx_pool_b(ctx)
     Wd = ctx.decoder.weight.detach(); bd = ctx.decoder.bias.detach()
     full = np.full(ctx.n, np.nan); tail = np.full(ctx.n, np.nan)
     n_ans = np.zeros(ctx.n)
@@ -175,28 +205,19 @@ def eval_budget(ctx, asked, toks, rows, q, batch=256):
     with torch.no_grad():
         for st in range(0, len(rows), batch):
             chunk = rows[st:st + batch]
-            packrows = []; mrows = []; mcols = []; te_drop = []
+            packrows = []
             for j, r in enumerate(chunk):
                 aq = set(asked[r][:q])
                 tq = [(s, l) for s, l in toks[r] if s in aq]
                 n_ans[r] = len(tq)
                 s = np.array([x[0] for x in tq], np.int64); l = np.array([x[1] for x in tq], np.int64)
                 packrows.append((s, l, level_to_sv(l)))
-                for i in aq:
-                    mrows.append(j); mcols.append(i)
-                te_drop.append(aq)
             ids, vals, pad, lvs = pack_tokens(packrows)
             z = ctx.enc(ids, vals, pad, lvs)
             S = (z @ Wd.T + bd).numpy().astype(np.float32)
-            extra = sparse.csr_matrix((np.ones(len(mrows), np.float32), (mrows, mcols)),
-                                      shape=(len(chunk), ctx.ni))
-            mask = ctx.va_tr[chunk] + extra; mask.data[:] = 1.0
-            te = ctx.va_te[chunk].tolil()
-            for j, aq in enumerate(te_drop):
-                for i in aq:
-                    te[j, i] = 0
-            te = te.tocsr(); te.eliminate_zeros()
-            f, t = ndcg10_from_scores(S, mask.tocsr(), te, ctx.head_mask)
+            # FIXED pool, UNMODIFIED targets -- neither depends on what this arm asked.
+            f, t = ndcg10_from_scores(S, pool[chunk], ctx.va_te[chunk], ctx.head_mask,
+                                      contract=("strategy_ladder", chunk))
             full[np.asarray(chunk)] = f; tail[np.asarray(chunk)] = t
     return full, tail, n_ans
 
@@ -236,7 +257,10 @@ def main():
                "random_bank (fixed random-200 shortlist) has no exact lit counterpart; lit's 'random' "
                "is our random_catalog",
                "entropy from a catalog-restricted (>=20 ratings) matrix compresses the entropy range",
-               "asked-but-unrated burns the question in ALL arms (the lit protocol)"],
+               "asked-but-unrated burns the question in ALL arms (the lit protocol)",
+               "candidate pool = POLICY B (every rated fold-in-side item, likes AND dislikes), fixed "
+               "per user, identical for every arm and budget, independent of what was asked; the "
+               "held-out target matrix is never modified (2026-08-05 ruling)"],
            "arms": {}}
 
     q8_full = {}

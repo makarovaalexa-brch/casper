@@ -41,6 +41,11 @@ def main():
     ap.add_argument("--n_users", type=int, default=1500)
     ap.add_argument("--hidden", type=int, default=256)
     ap.add_argument("--max_users", type=int, default=0)
+    ap.add_argument("--out", default=os.path.join(_ROOT, "experiments", "instrument",
+                                                  "bank_sweep.json"),
+                    help="output JSON. Pass a NEW filename when the protocol changes -- the "
+                         "2026-08-05 policy-B pool moves every cell, and the pre-B artifact must "
+                         "stay readable next to the doc that quotes it.")
     a = ap.parse_args()
     a.lam = 0.0; a.arm = "s1"; a.tau = 1.0; a.eps_l2 = 0.0; a.m_max = 16
 
@@ -78,8 +83,12 @@ def main():
             d = cc[m][1] - ci[m][1]
             log(f"    m{m:2d}  conc {cc[m][0]:.4f}/{cc[m][1]:.4f}   item {ci[m][0]:.4f}/{ci[m][1]:.4f}"
                 f"   tail_delta {d:+.4f} {'CONC' if d > 0 else 'item'}")
-    json.dump({b: {k: {str(m): v[m] for m in MS} for k, v in r.items()} for b, r in out.items()},
-              open(os.path.join(_ROOT, "experiments", "instrument", "bank_sweep.json"), "w"), indent=2)
+    payload = {b: {k: {str(m): v[m] for m in MS} for k, v in r.items()} for b, r in out.items()}
+    payload["_pool_policy"] = ("B -- every rated fold-in-side item of the user (likes AND dislikes, "
+                               "held-out targets excluded) is masked, identically for the item arm "
+                               "and the concept arm at every budget (2026-08-05 ruling)")
+    json.dump(payload, open(a.out, "w"), indent=2)
+    log(f"wrote {a.out}")
 
 
 if __name__ == "__main__":

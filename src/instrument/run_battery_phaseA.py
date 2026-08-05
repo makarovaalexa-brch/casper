@@ -19,8 +19,11 @@ EXCLUDED -- C2 leak clause); NO LLM artifacts anywhere; `load_answerer` is retir
 FOLD ENVIRONMENT for G3/G6 (documented): the ALL-BANDS graded reconstruction -- every raw catalog rating
 of a val user EXCLUDING their held te-half items (the canonical proc fold-in is likes-only; the flip /
 neutralize / shuffle tests are about DISLIKE and intensity handling, which need the full band range).
-G9 folds true graded answers to a fixed bank; masking = full canonical tr fold-in UNION revealed tokens
-(tower cold parity + credit-neutral masking of asked items).
+G9 folds true graded answers to a fixed bank and reports TWO POOL COLUMNS (2026-08-05 ruling,
+external_literature/findings/candidate_masking_protocol.md): the PUBLISHED column A = canonical tr
+fold-in UNION revealed tokens (tower cold parity + credit-neutral masking of asked items), which a
+Paper A number depends on and which is therefore left exactly as it was; and column B = the policy-B
+pool (every rated fold-in-side item, fixed per user, ask-independent), which is the battery-wide rule.
 
 STATS: paired per-user deltas with a 10k-resample bootstrap 95% CI (the standing protocol rule).
 Usage:
@@ -49,6 +52,8 @@ from train_tower_t2 import (reproduce_partition, build_graded_eval_matrix, trunc
                             pack_tokens, build_model, COLD_SEED, LIKE_MIN_LEVEL, NLEV,
                             level_to_sv, log)
 import train_tower_t2 as T2
+import mask_contract as MC
+from mask_contract import policy_b_pool
 
 # Retired-answerer ban (Jul-22 audit): the retired loader must not exist anywhere in the import chain.
 assert not hasattr(T2, "load_answerer"), "retired answerer loader must not exist in the tower module"
@@ -96,9 +101,18 @@ def fold_z(enc, tokens, rows, batch=256):
     return Z
 
 
-def ndcg10_from_scores(S, mask_rows, te_rows, head_mask=None):
+def ndcg10_from_scores(S, mask_rows, te_rows, head_mask=None, contract=None):
     """Per-user full (and tail) NDCG@10 for a score batch. mask_rows/te_rows: csr slices aligned to S.
-    Returns (full, tail) with NaN where the user has no (tail) target."""
+    Returns (full, tail) with NaN where the user has no (tail) target.
+
+    `contract=(tag, rows)` turns on the policy-B mask contract (mask_contract.assert_fixed_mask):
+    for that cohort slice the candidate mask and the target set must be bit-identical across every
+    arm and every budget. It lives HERE, inside the only funnel through which an instrument arm can
+    turn scores into a number, so an arm cannot produce an unchecked NDCG without editing this call.
+    Paths that are deliberately on policy A (the certification bridge, the retained G9 column, the
+    G3a staircase) pass contract=None and say so at the call site."""
+    if contract is not None:
+        MC.assert_fixed_mask(contract[0], contract[1], mask_rows, te_rows)
     S = S.copy()
     S[mask_rows.nonzero()] = -np.inf
     n = S.shape[0]
@@ -116,8 +130,23 @@ def ndcg10_from_scores(S, mask_rows, te_rows, head_mask=None):
     return full, tail
 
 
-def eval_tokens(ctx, tokens, mask_csr, rows=None, batch=256, z_shift=None):
-    """Fold tokens -> scores -> per-user full/tail NDCG@10. z_shift: optional (n,d) added to z."""
+def ctx_pool_b(ctx, log=log):
+    """The POLICY-B candidate pool for this ctx's cohort, built ONCE and cached on the ctx.
+
+    Cohort analogue of arm_n.build_pool: `binarize(g_te_tr) | binarize(te_tr)` becomes
+    `binarize(ctx.allb_mask) | binarize(ctx.va_tr)` -- ctx.allb is the same all-bands reconstruction
+    (every catalogue rating of the cohort user, held-out targets excluded) that graded_data builds
+    for arm N, so on the test cohort the two objects coincide. It is a property of the USER, computed
+    before any question is asked, and must be handed to every arm unchanged.
+    """
+    if getattr(ctx, "_pool_b", None) is None:
+        ctx._pool_b = policy_b_pool(ctx.allb_mask, ctx.va_tr, targets=ctx.va_te, log=log)
+    return ctx._pool_b
+
+
+def eval_tokens(ctx, tokens, mask_csr, rows=None, batch=256, z_shift=None, contract_tag=None):
+    """Fold tokens -> scores -> per-user full/tail NDCG@10. z_shift: optional (n,d) added to z.
+    contract_tag: enable the policy-B mask contract under this tag (see ndcg10_from_scores)."""
     rows = rows if rows is not None else list(range(ctx.n))
     Wd, bd = ctx.decoder.weight.detach(), ctx.decoder.bias.detach()
     full = np.full(ctx.n, np.nan); tail = np.full(ctx.n, np.nan)
@@ -135,7 +164,9 @@ def eval_tokens(ctx, tokens, mask_csr, rows=None, batch=256, z_shift=None):
             if z_shift is not None:
                 z = z + torch.from_numpy(z_shift[chunk])
             S = (z @ Wd.T + bd).numpy().astype(np.float32)
-            f, t = ndcg10_from_scores(S, mask_csr[chunk], ctx.va_te[chunk], ctx.head_mask)
+            f, t = ndcg10_from_scores(S, mask_csr[chunk], ctx.va_te[chunk], ctx.head_mask,
+                                      contract=None if contract_tag is None
+                                      else (contract_tag, chunk))
             full[chunk] = f; tail[chunk] = t
     return full, tail
 
@@ -458,13 +489,33 @@ def gate_g6(ctx):
 
 # ============================================================================= G9 INGESTION-ISOLATION
 def gate_g9(ctx, budgets=(2, 4, 8, 16)):
+    """TWO POOL COLUMNS, reported side by side (candidate_masking_protocol.md section 3, item 2).
+
+    `pool_A` -- the PUBLISHED column: policy A (liked fold-in) + C-answered. Paper A's R3+ interview
+                curve (0.1574 -> 0.2609 full, 0.0505 -> 0.1062 tail, fixed-bank rise +0.1035) traces
+                to this gate's artifact, so the column is NOT changed. Silently moving a printed
+                number is the failure this whole task exists to prevent.
+    `pool_B` -- the battery-wide rule from the ruling: every rated fold-in-side item, fixed per user,
+                identical for every arm and budget, independent of what was asked. This is the column
+                Paper B must quote; the two must never appear in one table.
+
+    PASS is still decided on the published column A. The B column carries its own PASS_policyB so a
+    disagreement between the pools is visible rather than silently resolved.
+    """
     t0 = time.time()
     rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0]
-    out = {"gate": "G9", "budgets": list(budgets), "banks": {}}
+    pool_b = ctx_pool_b(ctx)
+    out = {"gate": "G9", "budgets": list(budgets), "banks": {},
+           "pool_A": "PUBLISHED: liked fold-in (va_tr) + answered asked items (C-answered)",
+           "pool_B": "policy B: every rated fold-in-side item, fixed per user, ask-independent",
+           "pool_note": ("both columns are reported; A is the number Paper A printed, B is the "
+                         "battery-wide rule. Never tabulate one next to the other.")}
     per_bank_full = {}
+    per_bank_full_b = {}
     for bname, (bank, answers) in ctx.banks.items():
-        cur = {"answer_rate": {}, "full@10": {}, "tail@10": {}}
-        fq = {}
+        cur = {"answer_rate": {}, "full@10": {}, "tail@10": {},
+               "full@10_policyB": {}, "tail@10_policyB": {}}
+        fq = {}; fqb = {}
         for q in budgets:
             toks = []
             for r in range(ctx.n):
@@ -472,10 +523,14 @@ def gate_g9(ctx, budgets=(2, 4, 8, 16)):
                 toks.append((s[:q], l[:q]))
             mask = ctx.va_tr + rows_to_csr(toks, ctx.n, ctx.ni)      # tower parity + credit-neutral
             mask.data[:] = 1.0
-            f, tl = eval_tokens(ctx, toks, mask.tocsr(), rows=rows)
-            fq[q] = f
+            f, tl = eval_tokens(ctx, toks, mask.tocsr(), rows=rows)  # column A: policy A, unchecked
+            # column B: the fixed pool, contract-checked -- identical mask for every bank and budget
+            fb, tlb = eval_tokens(ctx, toks, pool_b, rows=rows, contract_tag="g9_policyB")
+            fq[q] = f; fqb[q] = fb
             cur["full@10"][q] = float(np.nanmean(f[rows]))
             cur["tail@10"][q] = float(np.nanmean(tl[rows]))
+            cur["full@10_policyB"][q] = float(np.nanmean(fb[rows]))
+            cur["tail@10_policyB"][q] = float(np.nanmean(tlb[rows]))
             avail = np.array([min(q, len(answers[r][0])) for r in rows], float)
             cur["answer_rate"][q] = {"mean_answered": float(avail.mean()),
                                      "frac_full_budget": float((avail >= q).mean())}
@@ -483,21 +538,37 @@ def gate_g9(ctx, budgets=(2, 4, 8, 16)):
         cur["rise_last_minus_first"] = {"mean": rise[0], "ci95": rise[1]}
         cur["monotone_spearman"] = spearman(list(budgets),
                                             [cur["full@10"][q] for q in budgets])
+        rise_b = bootstrap_ci(fqb[budgets[-1]][rows] - fqb[budgets[0]][rows])
+        cur["rise_last_minus_first_policyB"] = {"mean": rise_b[0], "ci95": rise_b[1]}
+        cur["monotone_spearman_policyB"] = spearman(list(budgets),
+                                                    [cur["full@10_policyB"][q] for q in budgets])
         out["banks"][bname] = cur
         per_bank_full[bname] = fq
+        per_bank_full_b[bname] = fqb
     # pop bank must beat random bank at each q (paired)
-    vs = {}
+    vs = {}; vs_b = {}
     for q in budgets:
         d = bootstrap_ci(per_bank_full["pop"][q][rows] - per_bank_full["rand"][q][rows])
         vs[q] = {"pop_minus_rand": d[0], "ci95": d[1], "PASS": bool(d[0] > 0 and d[1][0] > 0)}
+        db = bootstrap_ci(per_bank_full_b["pop"][q][rows] - per_bank_full_b["rand"][q][rows])
+        vs_b[q] = {"pop_minus_rand": db[0], "ci95": db[1], "PASS": bool(db[0] > 0 and db[1][0] > 0)}
     out["pop_vs_rand"] = vs
+    out["pop_vs_rand_policyB"] = vs_b
     pop = out["banks"]["pop"]
     out["PASS"] = bool(pop["rise_last_minus_first"]["mean"] > 0
                        and pop["rise_last_minus_first"]["ci95"][0] > 0
                        and pop["monotone_spearman"] > 0
                        and all(v["PASS"] for v in vs.values()))
+    out["PASS_policyB"] = bool(pop["rise_last_minus_first_policyB"]["mean"] > 0
+                               and pop["rise_last_minus_first_policyB"]["ci95"][0] > 0
+                               and pop["monotone_spearman_policyB"] > 0
+                               and all(v["PASS"] for v in vs_b.values()))
     out["seconds"] = round(time.time() - t0, 1)
     save_gate(ctx, "g9", out)
+    log(f"[g9] pool A (published) pop full@10: "
+        + " ".join(f"q{q}={pop['full@10'][q]:.4f}" for q in budgets))
+    log(f"[g9] pool B (policy B)  pop full@10: "
+        + " ".join(f"q{q}={pop['full@10_policyB'][q]:.4f}" for q in budgets))
     return out
 
 

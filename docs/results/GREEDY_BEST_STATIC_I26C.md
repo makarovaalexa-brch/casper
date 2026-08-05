@@ -54,11 +54,15 @@ First five greedy gains, combined arm: +0.0166, +0.0100, +0.0074, +0.0075, +0.00
    re-establishment of the demoted Jul-14 probe's direction (genre opener → niche congruent film)
    and of the leg-1 channel-flip prediction (concept-optimal when cold, item-optimal once placed).
    It is a property of the loss surface, not of a trained policy.
-2. **The channels split the axes.** Concepts own the tail at every budget (.0921 vs .0761 at q16,
-   .0815 vs .0598 at q8); items own full at long budgets (.2104 vs .1997 at q16). The combined arm
-   takes the best of both (.2115 full, .0880 tail) — it beats items-only on full at q16 *and*
-   concepts-only would have beaten it on tail, so the objective (`full`) is visibly steering the
-   composition. **A `--objective tail` run is therefore not optional** for the paper's tail claims.
+2. **~~The channels split the axes.~~ RE-CUT 2026-08-05 under candidate-mask policy B —
+   the item channel's "win" on full was an artefact of the pool.** Under policy A + answered-item
+   masking the numbers above read "concepts own the tail, items own full at long budgets
+   (.2104 vs .1997 at q16)". Re-scored under policy B (every rated fold-in item masked, identically
+   for every arm — see `MASK_POLICY_B_MIGRATION.md`), **concepts-only wins BOTH axes at q16:
+   .2473/.1154 against items-only .2449/.0967**, and combined reaches .2556/.1098. The item channel
+   had been receiving a free lift that the concept channel could not receive, because answered
+   *items* were deleted from the candidate list (5.42/user) while answered *concepts* delete
+   nothing. **A `--objective tail` run remains not optional** for the paper's tail claims.
 3. **Answerability is the mechanism, quantified again:** 16 item questions yield 4.20 answers;
    16 concept questions yield 12.87. Same budget, 3.1× the evidence.
 4. **This is Paper B's strongest-static comparator.** Any adaptive policy is measured against the
