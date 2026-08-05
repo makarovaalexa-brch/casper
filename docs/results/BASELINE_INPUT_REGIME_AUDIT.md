@@ -3,6 +3,29 @@
 **Date:** 2026-07-29 · **Trigger:** author question — "why did we rebuild them binary, if our goal was to
 create a graded instrument? and probably made them artificially worse?" · **Adjudicated by Fable.**
 
+## ⛔ SUPERSEDED, 2026-08-05 — read this box before anything below it
+
+**This file predates arm N and its central conclusion is no longer current.** Where it says *"the graded
+question remains unmeasured"* and that the two contracts are *"not ordered — not higher, not lower, not
+comparable"*, read: **that was true on 2026-07-29 and was answered on 2026-07-30** by the two-arm design in
+`PROTOCOL_DISLIKE_DISCARD.md` §11, executed in `ARM_N_PHASE1.md`.
+
+Arm N is exactly the measurement this file specifies as missing: **each model gets its own published input
+contract** (graded/signed where its paper says so), and the candidate pool excludes **all rated fold-in-side
+items** — likes *and* dislikes — identically for every model regardless of what it consumed. That closes
+both defects diagnosed below: the mask is an explicit argument to `metrics.evaluate`, so Regime 1's
+over-masking cannot recur, and the pool covers every rated item, so Regime 2's under-masking cannot either.
+
+**The author's 2026-08-04 statement at the foot of this file is therefore correct**, and possibility (1)
+there is the one that holds. Eleven of thirteen arm-N rows are complete; the outstanding work is the three
+native retrains of §11.1 stage (iv), of which only Golbandi ran — tracked as task #82.
+
+**What still stands from this file:** everything about the 2026-07-29 runs themselves. They remain void and
+must never be compared against arm-N numbers. `golbandi_node_graded.json`, `rbmf_seed_graded.json` and
+`golbandi_node_allbands_binary.json` are the confounded set.
+
+*Verified against the spec, the runner and the outputs on 2026-08-05 (task #81).*
+
 ## ⚠ THIS FILE PREVIOUSLY ASSERTED THE OPPOSITE. It was wrong. Read the verdict.
 
 ## Verdict
@@ -67,6 +90,24 @@ frontier, fix the regime before believing anything it says.
 The 0.3894; both result tables; any claim in either direction about graded input; the "lower bound"
 framing; and the archaeology of this episode. Per the project rule, the paper presents the working version —
 here that is the canonical table plus the one-line adaptation footnote.
+
+---
+
+## AUTHOR STATEMENT, 2026-08-04 — RECONCILED 2026-08-05: the author was right
+
+**Resolution (task #81).** Possibility (1) below holds. `PROTOCOL_DISLIKE_DISCARD.md` §11.1, an author
+decision of 2026-07-30, specifies precisely what the author recalled here, and `ARM_N_PHASE1.md` executed
+it across thirteen baselines. This file predates that work by one day and does not cover it.
+
+One correction to how the arm-N columns should be *read*, since it is easy to get wrong (I did): for the
+binary-native models — EASE, RecVAE, Mult-VAE, iALS, EDLAE, TurboCF, itemKNN, SASRec, Most-Popular — the
+arm-N input is byte-identical to arm A, because their published contract **is** binary implicit feedback.
+That is the design working as intended, not a gap: those models have no way to consume a grade. The
+richer input applies to the models whose papers are ratings-native (ours, user-kNN, RBMF, TaNP), and the
+all-rated pool applies to everyone. So the column is "native contract, fair pool", not "graded input for
+all" — and it is a legitimate second column either way.
+
+The statement as originally recorded follows, unedited.
 
 ---
 
