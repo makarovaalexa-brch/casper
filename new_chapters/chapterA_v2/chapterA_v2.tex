@@ -794,8 +794,8 @@ the quality of any such interaction would rest on the text adapter whose limits 
     ML-25M interview harness, full NDCG@10 against interview length $k$. The same revealed set is fed two
     ways: \emph{graded} (real signed star levels) and \emph{likes-only} (sub-threshold answers dropped,
     exactly what a positive-only tower such as RecVAE does at $r{>}3.5$). The premium is positive with a
-    clean interval only while evidence is scarce---$+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$),
-    $+0.0083$ at $k{=}4$---and is indistinguishable from zero from $k{=}8$ onward
+    clean interval only while evidence is scarce---$+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$) and
+    $+0.0083$ at $k{=}4$ (CI $[+0.0063,+0.0103]$)---and is indistinguishable from zero from $k{=}8$ onward
     ($-0.0006$, CI $[-0.0024,+0.0012]$): the extra bits a star carries matter most when few items are
     known. Mechanism and the separate full-profile A/B in \S\ref{sec:batteryresults}.}
   \label{fig:gradedcurve}
@@ -1173,6 +1173,17 @@ On the baselines' native input (items only), evaluate full and tail NDCG@10 on t
 paired per-user bootstrap CI, confirming the instrument's fold reproduces the frozen tower and sits at parity
 with EASE/RecVAE on the tail, within a stated margin on the full profile. The item-only baselines are measured (Table~\ref{tab:master}, \textsc{liang} column).
 
+\textbf{NDCG@100, the secondary metric}, orders the \textsc{liang} column identically and is reported here
+rather than as a third pair of table columns: RecVAE $0.4537$, ours $0.4492$, EASE $0.4375$, EDLAE
+$0.4330$, Mult-VAE $0.4303$, user-kNN $0.3958$, iALS $0.3704$, TaNP $0.3661$, RBMF $0.3607$, Turbo-CF
+$0.3569$, Item-kNN $0.3200$, EDDI $0.3110$, the conjugate belief $0.2886$, SASRec $0.2465$, Most-Popular
+$0.1975$. \textbf{Per-row configuration}, where a row required a choice: EDLAE at val-selected $p{=}0.4$;
+Turbo-CF at val-tuned $\alpha{=}0.5$, $s{=}1$, second-order; EDDI early-stopped at epoch $46$ with epoch
+$31$ val-selected; Mult-VAE a near-snap at $-0.004$ against its published anchor; TaNP best-effort with its
+rating channel binarised, which is the row the \textsc{native} column still owes a graded retrain for; and
+user-kNN, RBMF and the conjugate belief are best-effort cores of the elicitation-corner systems
+(\S\ref{sec:related}) rather than their published systems.
+
 \paragraph{A properly-trained RecVAE leads the closed-form frontier, and sets the bar.} On our canonical ML-25M
 ruler our in-house paper-config RecVAE attains $0.3540$ full / $0.2497$ tail, the nominally strongest measured
 system---ahead of the closed-form leaders EASE ($0.3476/0.2441$) and EDLAE ($0.3433/0.2395$). The top of this ruler
@@ -1237,7 +1248,7 @@ Check & Criterion & Measured & Verdict \\
 R1 & parity on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, parity), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 R2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction. Open half: concept direction ranks its members at AUC $0.94$ whitened; sign contrast $+0.2096$ (CI $[+0.1986,+0.2208]$), identity contrast $+0.1278$ (CI $[+0.1195,+0.1361]$); a held-out concept folds from its name alone at $>300\times$ chance & \textbf{PASS} \\
 R3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1574\!\to\!0.2609$ full, $0.0505\!\to\!0.1062$ tail ($q{=}2\!\to\!16$); rise $+0.1035$ (CI $[0.1000,0.1071]$), monotone $\rho{=}1.0$ & \textbf{PASS}$^\ddagger$ \\
-R4 & sign and intensity are carried & sign-flip $-0.2953$ (CI $[-0.3013,-0.2892]$); neutralisation $-0.2484$ (CI $[0.2436,0.2532]$); intensity staircase $\rho{=}0.794$; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), and $+0.0039$ full / $+0.0020$ tail at full profile on identical support & \textbf{PASS} \\
+R4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, i.e.\ $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho{=}0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), and $+0.0039$ full / $+0.0020$ tail at full profile on identical support & \textbf{PASS} \\
 \midrule
 Controls & wrong-user / shuffle / placebo / duplicate gain nothing & true arm beats shuffled by $+0.0371$ and placebo by $+0.0168$ (both CI-clean); duplicate assert fired; wrong-user $-0.0986$ (a stranger's taste is worse than silence) & \textbf{PASS} \\
 Provenance & answers carry no recommender geometry, no target half & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts, both read from the fold-in only & \textbf{PASS}$^{*}$ \\
@@ -1247,8 +1258,10 @@ Provenance & answers carry no recommender geometry, no target half & item answer
 requirement passes. $^{*}$holds by construction rather than by measurement: no recommender-derived
 quantity can enter an answer, so there is nothing to measure. $^\ddagger$R3's bank is filtered per user to
 answerable questions, isolating \emph{ingestion} from \emph{availability}. R4's sign and neutralisation arms
-are full-profile corruptions, so the verdict is the \emph{drop} within an arm; references are never compared
-across arms.}
+are full-profile corruptions---the user's whole rated history is folded and then flipped or
+neutralised---so their uncorrupted references ($0.4298$ and $0.4198$ full, $0.2999$ tail) sit above the
+$80/20$ fold-in values of Table~\ref{tab:master}, which withhold a fifth of each profile as targets. The
+verdict is the \emph{drop} within an arm; references are never compared across arms.}
 \label{tab:batteryresults}
 \end{table}
 
@@ -1267,6 +1280,9 @@ rises only $+0.0051$ across the same budgets, because its questions are mostly u
 first two answered, against $1.97$ for the fixed bank). R4 excludes sign-blind and intensity-blind folds.
 The two integrity items apply across all four, and exist because the per-requirement checks admit false
 positives---a sign-blind fold or a circular answer model can pass R1 and R3 while carrying no signal. The
+existential controls exclude a \emph{cardinality confound} (a curve that rises because more tokens were
+folded, not because they were the right ones) and existential leakage; answer provenance excludes a
+circular answer model and target leakage. The
 \emph{ruler} is certified separately, by the published-number bridge (\S\ref{sec:bridge}), which is a
 property of the measuring apparatus rather than of the instrument.
 
