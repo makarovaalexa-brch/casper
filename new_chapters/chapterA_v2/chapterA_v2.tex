@@ -53,8 +53,8 @@
 order---one needs a recommender that can \emph{be} interviewed: a model that folds an arbitrary-length,
 mixed-channel set of answers into its user representation and re-ranks a large catalogue, without per-user retraining and
 without trading away full-profile accuracy. We argue that this recommender is a \emph{measuring instrument} for the
-entire elicitation-policy literature, and that its requirements are more demanding than any single published system
-meets. The demanding part is \emph{ingestion}: folding an arbitrary-length set of mixed-type answers into a recommender
+elicitation-policy literature, and that its requirements are more demanding than any single published system we
+surveyed meets. The demanding part is \emph{ingestion}: folding an arbitrary-length set of mixed-type answers into a recommender
 that is already at the accuracy frontier. We state that as four requirements---\textbf{R1} frontier-parity
 full-profile accuracy, \textbf{R2} an open set-valued input interface (any number of observations, and directions
 that need not have existed when the model was fitted---concepts, entities, phrases, policy-emitted vectors),
@@ -74,14 +74,14 @@ published system that occupies the conjunction of all four.
 The instrument that closes this gap is a \emph{frozen} certified
 shallow frontier tower over whose latent every channel is folded as a direction paired with a value by a
 permutation-invariant set encoder; three of its input legs---signed/graded values, concepts
-whose vocabulary is not fixed when the model is fitted, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
+whose vocabulary is not fixed when the model is fitted, and continuous direction tokens---have no faithful encoding in the item-indicator basis of the R1-bar
 models. Each requirement carries one verification item, R1--R4, and all four are met.
 
 This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
 and the experimental protocol (a metric-certification bridge to the published ML-20M numbers, then R1--R4 on the
 ML-25M harness). Our in-house RecVAE realisation sets the bar at full/tail NDCG@10 $0.3540/0.2497$ on the canonical
 ML-25M protocol, and the graded-native interview tower comes within $1.2\%$ of it: a single certified training run reaches
-$0.3496/0.2491$ on the held-out test cohort---parity on the tail and a $1.2\%$ relative shortfall on the full
+$0.3496/0.2491$ on the held-out test cohort---statistically indistinguishable on the tail, a $1.2\%$ relative shortfall on the full
 profile---while reproducing the frozen
 decoder's ranking exactly at the empty interview, so R1 (full strength preserved) is passed rather than assumed. The
 remaining verification items have all been run and are met. With the tower fixed, a quantity the elicitation
@@ -154,14 +154,14 @@ This chapter is the instrument paper of the thesis. It does not claim a new elic
 method chapter); it claims the \emph{recommender that makes policy measurement possible}. Concretely:
 \begin{enumerate}[leftmargin=1.5em,itemsep=1.5pt]
   \item \textbf{One latent, many channels, at the accuracy frontier.} A frozen tower that comes within $1.2\%$ of the strongest
-        shallow baseline on a shared ruler---parity on the tail, a small and stated shortfall on the full
+        shallow baseline on a shared ruler---indistinguishable on the tail, a small and stated shortfall on the full
         profile---over whose latent every channel is folded as a direction paired with a
         value: item factors, out-of-catalogue concept directions, and directions produced outside the catalogue
         entirely. The unification is of the \emph{representation}---one space, one form of observation---not of the
         code path. We frame R1$\wedge$R2$\wedge$R3$\wedge$R4 as a single requirement no published system
         meets, and give a six-family taxonomy and per-near-miss gap analysis
         (\S\ref{sec:related},~\S\ref{sec:gap}) locating which requirement each candidate fails.
-  \item \textbf{Three architecturally-inexpressible legs.} We isolate the three input channels that are impossible
+  \item \textbf{Three legs the item-indicator basis cannot carry.} We isolate the three input channels that have no faithful encoding
         (not merely untuned) in the item-indicator basis of every R1-bar model: (i) signed/graded per-entity values,
         (ii) concepts whose vocabulary is not fixed at training time, and (iii) continuous direction tokens. These are the narrow, defensible novelty
         legs of the channel-agnostic interface (\S\ref{sec:gap},~\S\ref{sec:method}).
@@ -205,7 +205,7 @@ can be built on top, which is the companion chapter's subject.
 \paragraph{Requirements (formal).}
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
   \item[R1.] With $\mathcal E$ equal to a user's full history, $\mathrm{NDCG}@10\bigl(s(\bmu(\mathcal E))\bigr)$ is at
-        parity with the strongest shallow baseline on a shared harness (Def.~\ref{def:tie}), or within a stated
+        indistinguishable from the strongest shallow baseline on a shared harness (Def.~\ref{def:tie}), or within a stated
         and separated margin of it.
   \item[R2.] $f(\mathcal E_t)$ is defined and computable for every $t\ge 0$ with no gradient step at inference
         ($t{=}0$ yields the learned no-evidence latent), \emph{and} the admissible $\bphi_j$ are all of $\R^{d}$ rather than a
@@ -221,13 +221,16 @@ can be built on top, which is the companion chapter's subject.
         it was disliked, nor how much.
 \end{description}
 
-\begin{definition}[Parity on a shared protocol]\label{def:tie}
-A recommender attains \emph{parity} with a baseline on a metric if their scores are within the paired per-user
-bootstrap confidence interval on one shared harness (same users, items, split, metric depth). A number computed
-on a different metric/split (e.g.\ NDCG@10 on ML-25M vs.\ NDCG@100 on the ML-20M strong-generalisation split) is
-\emph{not} parity until bridged (\S\ref{sec:bridge}). Parity is a claim about standing on a stated protocol; we do
-not read it as a claim about absolute recommendation quality, which no offline benchmark of this kind
-establishes (\S\ref{sec:limits}).
+\begin{definition}[Indistinguishability on a shared protocol]\label{def:tie}
+A recommender is \emph{statistically indistinguishable} from a baseline on a metric if their difference's paired
+per-user bootstrap confidence interval, on one shared harness (same users, items, split, metric depth), contains
+zero. \textbf{This is a failure to separate, not a demonstration of equivalence.} An interval containing zero is
+consistent with a small real difference in either direction that the test lacked the power to resolve, and we
+never read it as evidence that two systems are equally good. A number computed on a different metric/split
+(e.g.\ NDCG@10 on ML-25M vs.\ NDCG@100 on the ML-20M strong-generalisation split) is not comparable at all until
+bridged (\S\ref{sec:bridge}). Indistinguishability is a claim about standing on a stated protocol; we do not read
+it as a claim about absolute recommendation quality, which no offline benchmark of this kind establishes
+(\S\ref{sec:limits}).
 \end{definition}
 
 \paragraph{How each requirement is checked.}
@@ -596,13 +599,23 @@ conjunction.
         caveat~\cite{petrov2022replicability}.
 \end{itemize}
 
-\paragraph{The three inexpressible legs.}
-Three input channels are \emph{architecturally impossible} (not merely untuned) in the item-indicator basis of every
-R1-bar model: (i) graded/signed per-entity values (the basis has no sign and no magnitude---a ``dislike'' is not
-representable as a negative one-hot without changing the likelihood), (ii) concepts whose vocabulary is not fixed
-when the model is fitted (a column exists only for an entity that was present at fit time), and (iii) arbitrary
-continuous direction tokens. Folding these as
-\emph{linear observations in a frozen latent} is the one leg of the conjunction we find nowhere in the literature.
+\paragraph{The three legs an item-indicator basis cannot carry.}
+Three input channels have no faithful encoding in the item-indicator basis of every R1-bar model: (i)
+graded/signed per-entity values (the basis has no sign and no magnitude---a ``dislike'' is not representable as a
+negative one-hot without changing the likelihood), (ii) concepts whose vocabulary is not fixed when the model is
+fitted (a column exists only for an entity present at fit time), and (iii) arbitrary continuous direction tokens.
+Folding these as \emph{linear observations in a frozen latent} is the one leg of the conjunction we find nowhere in
+the literature.
+
+\emph{We should be precise about which of these is impossible and which is merely lossy}, because one obvious
+reduction exists and we do not want to overstate. A concept \emph{all of whose members are already in the
+catalogue} can be approximated by a weighted indicator over those members, and that vector can be fed to EASE or
+RecVAE without adding any column at all. We do not claim that reduction fails; we have not run it. What it cannot
+do is carry a sign or a magnitude (leg i), and it cannot exist at all for a concept coined after the model was
+fitted, for a phrase with no curated counterpart, or for a direction a policy emits (legs ii and iii)---because
+there are no member columns to weight. So the honest statement is: for an in-catalogue concept the item basis
+offers a lossy approximation whose losses are exactly legs (i) and (ii); for an out-of-catalogue or name-only
+direction it offers nothing, and that case is impossible rather than lossy.
 
 The distinction that matters is between an \emph{open} and a \emph{closed} channel. An item-indicator model can be
 extended with a concept---as a pseudo-item column, or an extra input unit---but only by adding a column, and a column
@@ -662,7 +675,7 @@ conjugate-Gaussian folds over a frozen factorisation~\cite{toroghi2023bcie}; per
 information-gain acquisition~\cite{ma2019eddi}; value-carrying set-input cold-start recommenders~\cite{lin2021tanp};
 the non-degradation-of-information principle~\cite{good1967principle,blackwell1953equivalent}; and the now-crowded ``uncertainty-native
 recommender'' area~\cite{wang2025bdecf}. Our defensible novelty is only the \emph{conjunction} of all four requirements
-in one frozen certified tower, plus the three inexpressible legs and the acceptance battery that certifies them.
+in one frozen certified tower, plus the three unencodable legs and the acceptance battery that certifies them.
 
 % =====================================================================
 \section{The instrument}\label{sec:method}
@@ -687,7 +700,7 @@ separately~\cite{biyik2023soft}. We cite that convergence as independent support
 (that stays in the item-indicator world and fails R2, because the vocabulary would again be fixed when the
 model is fitted), nor retrain the tower to accommodate a channel, which would put R1 back at risk for no
 stated gain. The tower is now \emph{selected and certified}: the graded-native set-encoder T2$'$, trained
-once in its pre-registered configuration, scores $0.3496/0.2491$ full/tail on the held-out test cohort---parity with
+once in its pre-registered configuration, scores $0.3496/0.2491$ full/tail on the held-out test cohort---indistinguishable from
 the $0.3540/0.2497$ RecVAE bar on the tail, and $1.2\%$ short of it on the full profile---and reproduces the frozen decoder exactly at the empty
 interview (\S\ref{sec:expdesign}). It is this checkpoint that every channel below is folded into.
 
@@ -722,7 +735,7 @@ The channels, then, are:
   \item \textbf{Continuous direction tokens.} A policy may emit any $\bphi_j\in\R^{d}$ directly (the continuous-action
         interface the companion chapter uses); the fold does not distinguish it from a catalogue entity.
 \end{itemize}
-The signed/graded, out-of-catalogue, and continuous legs are the three channels inexpressible in the R1-bar basis
+The signed/graded, out-of-catalogue, and continuous legs are the three channels the R1-bar basis cannot carry
 (\S\ref{sec:gap}).
 
 \paragraph{Any direction is a legal observation: an illustration.} The signed/graded leg is delivered and
@@ -813,7 +826,7 @@ the quality of any such interaction would rest on the text adapter whose limits 
 \section{The concept channel: derivation, lineage, and deployment currency}\label{sec:concept}
 % =====================================================================
 
-The out-of-catalogue concept leg is the most demanding of the three inexpressible channels---it is the one with no
+The out-of-catalogue concept leg is the most demanding of the three---it is the one with no
 catalogue column, no interaction count, and no sign in the item-indicator basis---so we work it out in full. Three
 things must be made concrete: how a concept answer becomes an observation pair $(\bphi_c, y_c)$ for the fold
 of Eq.~\eqref{eq:obs}; where each piece sits in the published record (so that we claim only the conjunction, never
@@ -1178,8 +1191,8 @@ bifurcation argument must stand on those or not at all.
 
 \paragraph{(ii) R1 --- full-profile on ML-25M, items-only.}
 On the baselines' native input (items only), evaluate full and tail NDCG@10 on the full ML-25M catalogue with a
-paired per-user bootstrap CI, confirming the instrument's fold reproduces the frozen tower and sits at parity
-with EASE/RecVAE on the tail, within a stated margin on the full profile. The item-only baselines are measured (Table~\ref{tab:master}, \textsc{liang} column).
+paired per-user bootstrap CI, confirming the instrument's fold reproduces the frozen tower and is indistinguishable
+from EASE/RecVAE on the tail, within a stated margin on the full profile. The item-only baselines are measured (Table~\ref{tab:master}, \textsc{liang} column).
 
 \textbf{NDCG@100, the secondary metric}, orders the \textsc{liang} column identically and is reported here
 rather than as a third pair of table columns: RecVAE $0.4537$, ours $0.4492$, EASE $0.4375$, EDLAE
@@ -1205,13 +1218,13 @@ obligation is precisely to \emph{stand on this bar}, reproducing RecVAE-class fu
 tower and then preserving it through the fold at R1. We report the whole frontier rather than excluding the stronger
 baselines.
 
-\paragraph{R1 is passed: the interview tower reaches parity on the tail at a $1.2\%$ full-profile cost, and is exactly the frozen decoder when the interview is
+\paragraph{R1 is passed: the interview tower is indistinguishable from the bar on the tail at a $1.2\%$ full-profile cost, and is exactly the frozen decoder when the interview is
 empty.} One certified training run of the graded-native set-encoder tower T2$'$---a single run of the pre-registered
 winning configuration, selected on validation and scored once on the held-out test cohort---reaches full/tail NDCG@10
 $\mathbf{0.3496/0.2491}$ against the RecVAE bar's $0.3540/0.2497$. Under a paired per-user bootstrap on the same
-$10{,}000$ users, the tail difference is $-0.0006$ with CI $[-0.0020,+0.0008]$---parity in the sense of
-Definition~\ref{def:tie}---while the full-profile difference is $-0.0043$ with CI $[-0.0059,-0.0028]$, which
-\emph{excludes} zero. We therefore claim parity on the tail and a bounded, separated shortfall of $1.2\%$ relative on
+$10{,}000$ users, the tail difference is $-0.0006$ with CI $[-0.0020,+0.0008]$, which contains zero---indistinguishable in
+the sense of Definition~\ref{def:tie}, i.e.\ a failure to separate rather than a demonstration of equivalence---while the full-profile difference is $-0.0043$ with CI $[-0.0059,-0.0028]$, which
+\emph{excludes} zero. We therefore claim only that we cannot separate the two on the tail, alongside a bounded, separated shortfall of $1.2\%$ relative on
 the full profile: interviewability is not free, and the price is small and stated rather than absorbed into a
 significance test. Two properties of these numbers matter more than their size. First,
 they are on the \emph{same} ruler as every other row of Table~\ref{tab:master}---same split, cohort, tail mask, and NDCG
@@ -1253,7 +1266,7 @@ Table~\ref{tab:batteryresults} reports every gate.
 \toprule
 Check & Criterion & Measured & Verdict \\
 \midrule
-R1 & parity on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, parity), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
+R1 & indistinguishable on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, contains zero), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 R2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction. Open half: concept direction ranks its members at AUC $0.94$ whitened; sign contrast $+0.2096$ (CI $[+0.1986,+0.2208]$), identity contrast $+0.1278$ (CI $[+0.1195,+0.1361]$); a held-out concept folds from its name alone at $>300\times$ chance & \textbf{PASS} \\
 R3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1574\!\to\!0.2609$ full, $0.0505\!\to\!0.1062$ tail ($q{=}2\!\to\!16$); rise $+0.1035$ (CI $[0.1000,0.1071]$), monotone $\rho{=}1.0$ & \textbf{PASS}$^\ddagger$ \\
 R4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, i.e.\ $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho{=}0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), and $+0.0039$ full / $+0.0020$ tail at full profile on identical support & \textbf{PASS} \\
@@ -1426,7 +1439,7 @@ correct. R1 exists to close it.
         dislikes---is absent from every model's input, ours included, and the candidate pool contains
         rated-and-disliked items that can never be targets. This is a property of the shared ruler rather
         than of any row on it: the discard is identical for every system, so comparative statements are
-        unaffected, and we make a parity claim on this protocol rather than an absolute one. It does,
+        unaffected, and our claim is one about standing on this protocol rather than an absolute one. It does,
         however, bear asymmetrically on R4, and we are precise about which half---and about what each
         measurement varies, since the two are easily confused. \emph{Intensity} within likes is measurable on
         this protocol: holding the fold-in support \emph{identical} and varying only the star level each item
