@@ -218,6 +218,99 @@ result is not an artefact of pairing a selector with a recommender it was not de
 Section~\ref{sec:flip} reports the fifth consumer, on which it reverses.
 \REDO{paired bootstrap CIs on every gap in Table~\ref{tab:act1}; point estimates only at present}
 
+\subsection{The battery so far, in one contract}
+\label{sec:battery}
+
+Table~\ref{tab:battery} collects every selection method measured to date under a single information
+contract, and Table~\ref{tab:coverage} states what is still missing. Both are working-draft
+inventories: the point of printing them is that the empty cells are as visible as the full ones.
+
+\begin{table}[t]
+\centering
+\caption{Every selector measured to date. One contract throughout: consumer = certified tower,
+protocol candidate pool (every rated fold-in item removed), NO-FLOOR, behavioural answers, all
+$10{,}000$ test users, no sampling. full/tail NDCG@10. Answer-free reference (popularity prior):
+$.1626/.0262$. Greedy rows are \emph{lower bounds} --- the sequences were selected under a narrower
+mask (Section~\ref{sec:act1}).}
+\label{tab:coverage-note}
+\label{tab:battery}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llccccc c}
+\toprule
+selector & type & $k{=}1$ & $k{=}2$ & $k{=}4$ & $k{=}8$ & $k{=}16$ & ans@16 \\
+\midrule
+\multicolumn{8}{l}{\emph{optimised static (this chapter's comparator)}}\\
+greedy combined (item+concept) & static & \textbf{.1783/.0478} & \textbf{.1909/.0548} & \textbf{.2135/.0755} & \textbf{.2335/.0962} & \textbf{.2556/.1098} & 2.3i/6.7c \\
+greedy items-only & static & .1760/.0434 & .1907/.0581 & .2066/.0703 & .2247/.0776 & .2449/.0967 & 4.20 \\
+greedy concepts-only & static & \multicolumn{5}{c}{\PLAN{not re-scored in this contract}} & 12.87 \\
+\midrule
+\multicolumn{8}{l}{\emph{literature-anchored static heuristics}}\\
+entropy$_0$ & static & .1635/.0433 & .1706/.0528 & .1831/.0636 & .2053/.0792 & .2303/.0924 & 5.52 \\
+popularity & static & .1606/.0400 & .1647/.0470 & .1746/.0579 & .1943/.0686 & .2228/.0848 & 5.42 \\
+HELF & static & .1603/.0354 & .1628/.0420 & .1755/.0588 & .1892/.0725 & .2157/.0838 & 3.34 \\
+pure entropy & static & .1582/.0319 & .1578/.0327 & .1580/.0323 & .1586/.0317 & .1599/.0357 & 0.08 \\
+random (bank) & static & .1586/.0310 & .1588/.0311 & .1588/.0316 & .1594/.0329 & .1607/.0353 & 0.12 \\
+random (catalogue) & static & .1585/.0310 & .1588/.0310 & .1589/.0318 & .1593/.0315 & .1612/.0341 & 0.12 \\
+\midrule
+\multicolumn{8}{l}{\emph{adaptive}}\\
+GLM-UCB & adaptive & .1606/.0400 & .1635/.0452 & .1756/.0578 & .1902/.0673 & .2161/.0833 & 5.24 \\
+Thompson & adaptive & .1627/.0376 & .1676/.0437 & .1748/.0551 & .1908/.0677 & .2135/.0878 & 3.39 \\
+EDDI info-gain & adaptive & .1537/.0336 & .1539/.0373 & .1618/.0432 & .1747/.0611 & .1917/.0749 & 3.84 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Read down the table: the optimised static comparator leads every adaptive selector at every budget,
+the adaptive selectors sit between the conventional heuristics and the degenerate ones, and the
+three degenerate arms are degenerate for a diagnosable reason --- they collect roughly one tenth of
+an answer per interview. The gap that matters for Act 1 is the item-bank one at $k{=}16$: greedy
+items-only $.2449$ against the best adaptive selector's $.2161$.
+
+\begin{table}[t]
+\centering
+\caption{Battery coverage. \cmark{} = measured in the contract of Table~\ref{tab:battery};
+\xmark{} = not yet. ``Native'' = run with the recommender the method was published with; ``own
+static'' = compared against the static baseline its own paper used.}
+\label{tab:coverage}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lllcccc}
+\toprule
+method & family & type & built & ours & native & own static \\
+\midrule
+greedy prefix-optimal & this chapter & static & \cmark & \cmark & n/a & n/a \\
+entropy$_0$ / HELF / pop / random & Rashid'02,'08 & static & \cmark & \cmark & \xmark & n/a \\
+GLM-UCB, Thompson & Zhao CIKM'13 & adaptive & \cmark & \cmark & \xmark & \xmark \\
+EDDI info-gain & Ma ICML'19 & adaptive & \cmark & \cmark & \cmark & \xmark \\
+\midrule
+ConLinUCB-MCR / ConUCB & AAAI'23, WWW'20 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+CLiSK / CLiME & KDD'25 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+ICF (4 policies) & Zhao CIKM'13 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+Golbandi tree (split search) & WSDM'11 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+IGCN & Rashid'08 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+DPE (topic bandit) & WSDM'21 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+BALD / SEL-BALD & 2011 / NeurIPS'24 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+A-optimal design & WWW'15 & static & \xmark & \xmark & \xmark & \xmark \\
+PEBOL acquisition & RecSys'24 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+fMF & SIGIR'11 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+PERE & UAI'24 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+DRE & WWW'20 & static & \xmark & \xmark & \xmark & \xmark \\
+Greedy SLIM / QBandit & 2024 & static/adaptive & \xmark & \xmark & \xmark & \xmark \\
+RBMF (maxvol) / RMVA & RecSys'11 / ICDM'16 & static & \xmark & \xmark & \xmark & \xmark \\
+GreedyExtend & CIKM'10 & static & \xmark & \xmark & \xmark & \xmark \\
+MeLU candidate score & KDD'19 & static bank & \xmark & \xmark & \xmark & \xmark \\
+a-stratification & CAT, 1999 & static bank & \xmark & \xmark & \xmark & \xmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\PLAN{the \xmark{} rows of Table~\ref{tab:coverage}, ordered by leverage: the conversational-bandit
+family first (it is the only published adaptive line whose action space is ours --- an attribute or
+an item, one algorithm, no target item and no simulator), then the classical tree line, then the
+learned static bars. Also owed on the measured rows: paired bootstrap CIs on every gap, the floored
+arm, and a greedy re-run whose selection contract matches the scoring contract.}
+
 \subsection{The loss is not a failure to branch}
 
 The obvious objection --- ``your adaptive policies simply did not adapt'' --- is refuted by the
