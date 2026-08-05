@@ -37,7 +37,14 @@ from run_interview_table import (build_recommenders, mostpop_row, score_arm, GLO
 
 OUT = os.path.join(_ROOT, "experiments", "baselines", "interview")
 ARMS = ("helf", "entropy0", "popularity")
-RECS = ("ours", "golbandi_leaf", "rbmf", "belief_mf", "tanp")
+# recvae_likes is the STRONG-BUT-CRUDE control, and it is a control rather than a rival: it fails R2 (no
+# concepts, no sign, no continuous directions) but it is a frontier-accuracy full-profile model, and the
+# three strategies here rank ITEMS, so it can consume this interview in the degenerate way any item-only
+# model can -- the likes among the asked items as a fold-in vector. It can hear a yes and structurally
+# cannot hear a no. Without it the inversion is demonstrated only across our tower and four WEAK
+# consumers, which leaves open the reading "weak recommenders scramble everything" rather than "the
+# ordering is a property of the strategy-recommender pair".
+RECS = ("ours", "recvae_likes", "golbandi_leaf", "rbmf", "belief_mf", "tanp")
 K = 8
 
 

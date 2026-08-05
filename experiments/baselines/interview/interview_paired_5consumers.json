@@ -1,0 +1,435 @@
+{
+  "k": 8,
+  "no_floor": true,
+  "snapshot": "t2i26c_ep31.pt",
+  "boot": 10000,
+  "mostpop_prior": {
+    "full": 0.16255947303941118,
+    "tail": 0.026243274849789923
+  },
+  "points": {
+    "ours": {
+      "helf": {
+        "full": 0.18922483249137528,
+        "tail": 0.07249979445569031
+      },
+      "entropy0": {
+        "full": 0.20526394292312922,
+        "tail": 0.07922116628163539
+      },
+      "popularity": {
+        "full": 0.19433153094211686,
+        "tail": 0.06864831389149503
+      }
+    },
+    "golbandi_leaf": {
+      "helf": {
+        "full": 0.19479928858972123,
+        "tail": 0.07924870274001786
+      },
+      "entropy0": {
+        "full": 0.16860320832579923,
+        "tail": 0.06768866682324698
+      },
+      "popularity": {
+        "full": 0.17162070444444757,
+        "tail": 0.06960004546567712
+      }
+    },
+    "rbmf": {
+      "helf": {
+        "full": 0.07233789399172011,
+        "tail": 0.03985599030744359
+      },
+      "entropy0": {
+        "full": 0.1636315734680738,
+        "tail": 0.03809979271738462
+      },
+      "popularity": {
+        "full": 0.1636259640459779,
+        "tail": 0.03401143244154607
+      }
+    },
+    "belief_mf": {
+      "helf": {
+        "full": 0.16276485188353196,
+        "tail": 0.033597018170141504
+      },
+      "entropy0": {
+        "full": 0.16308224753805994,
+        "tail": 0.030515128305915525
+      },
+      "popularity": {
+        "full": 0.1631096821124206,
+        "tail": 0.030356307920242766
+      }
+    },
+    "tanp": {
+      "helf": {
+        "full": 0.12588102160590325,
+        "tail": 0.04489997068741209
+      },
+      "entropy0": {
+        "full": 0.17419107729993535,
+        "tail": 0.05311839438073218
+      },
+      "popularity": {
+        "full": 0.16988866172267553,
+        "tail": 0.040134571947627526
+      }
+    }
+  },
+  "within_model_strategy": {
+    "ours/full/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": 0.016039110431753947,
+      "ci": [
+        0.012724497515582953,
+        0.019396919676374247
+      ],
+      "separated": true
+    },
+    "ours/full/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.010932411981012363,
+      "ci": [
+        0.00899911117026695,
+        0.012885727543792965
+      ],
+      "separated": true
+    },
+    "ours/full/popularity-minus-helf": {
+      "n": 10000,
+      "delta": 0.00510669845074158,
+      "ci": [
+        0.001928463520858041,
+        0.008325160708426553
+      ],
+      "separated": true
+    },
+    "ours/tail/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": 0.0067213718259450835,
+      "ci": [
+        0.003430846072259023,
+        0.01017215075423822
+      ],
+      "separated": true
+    },
+    "ours/tail/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.010572852390140351,
+      "ci": [
+        0.0084657486367028,
+        0.012705640584193281
+      ],
+      "separated": true
+    },
+    "ours/tail/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.0038514805641952665,
+      "ci": [
+        -0.007081795869751055,
+        -0.0006013486880639694
+      ],
+      "separated": true
+    },
+    "golbandi_leaf/full/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.02619608026392197,
+      "ci": [
+        -0.030416926844423077,
+        -0.022090286443054115
+      ],
+      "separated": true
+    },
+    "golbandi_leaf/full/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": -0.003017496118648314,
+      "ci": [
+        -0.006016173245065976,
+        -3.191217887094909e-05
+      ],
+      "separated": true
+    },
+    "golbandi_leaf/full/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.023178584145273656,
+      "ci": [
+        -0.027648258952194662,
+        -0.018818600024837852
+      ],
+      "separated": true
+    },
+    "golbandi_leaf/tail/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.011560035916770869,
+      "ci": [
+        -0.014874140433386229,
+        -0.008207647171981152
+      ],
+      "separated": true
+    },
+    "golbandi_leaf/tail/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": -0.0019113786424301224,
+      "ci": [
+        -0.0043089649256425515,
+        0.0005118484204209197
+      ],
+      "separated": false
+    },
+    "golbandi_leaf/tail/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.009648657274340748,
+      "ci": [
+        -0.012894023912354557,
+        -0.006388228809834147
+      ],
+      "separated": true
+    },
+    "rbmf/full/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": 0.09129367947635368,
+      "ci": [
+        0.08711864333910312,
+        0.09540087600770593
+      ],
+      "separated": true
+    },
+    "rbmf/full/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 5.609422095896921e-06,
+      "ci": [
+        -0.0013224603812578774,
+        0.0013406568366040302
+      ],
+      "separated": false
+    },
+    "rbmf/full/popularity-minus-helf": {
+      "n": 10000,
+      "delta": 0.09128807005425779,
+      "ci": [
+        0.08714861623804318,
+        0.09540954201111708
+      ],
+      "separated": true
+    },
+    "rbmf/tail/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.0017561975900589736,
+      "ci": [
+        -0.004619128684542754,
+        0.0011551507552550854
+      ],
+      "separated": false
+    },
+    "rbmf/tail/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.004088360275838539,
+      "ci": [
+        0.002609210157982089,
+        0.005646526041655074
+      ],
+      "separated": true
+    },
+    "rbmf/tail/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.005844557865897513,
+      "ci": [
+        -0.008623186191830324,
+        -0.0030392878732915835
+      ],
+      "separated": true
+    },
+    "belief_mf/full/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": 0.00031739565452797587,
+      "ci": [
+        -0.0004021793437001703,
+        0.0010219372387866381
+      ],
+      "separated": false
+    },
+    "belief_mf/full/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": -2.743457436067338e-05,
+      "ci": [
+        -0.00047988241451546074,
+        0.0004258755899285231
+      ],
+      "separated": false
+    },
+    "belief_mf/full/popularity-minus-helf": {
+      "n": 10000,
+      "delta": 0.0003448302288886492,
+      "ci": [
+        -0.0003552886994265525,
+        0.0010257069286270799
+      ],
+      "separated": false
+    },
+    "belief_mf/tail/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.003081889864225979,
+      "ci": [
+        -0.004408460204261126,
+        -0.0017664782193790114
+      ],
+      "separated": true
+    },
+    "belief_mf/tail/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.00015882038567276177,
+      "ci": [
+        -0.0005279030178307507,
+        0.0008585522259154855
+      ],
+      "separated": false
+    },
+    "belief_mf/tail/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.003240710249898741,
+      "ci": [
+        -0.004578970358291754,
+        -0.0019283364463869401
+      ],
+      "separated": true
+    },
+    "tanp/full/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": 0.048310055694032156,
+      "ci": [
+        0.04420619029812484,
+        0.05248511799051787
+      ],
+      "separated": true
+    },
+    "tanp/full/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.004302415577259812,
+      "ci": [
+        0.0021836425826446708,
+        0.006434612954930841
+      ],
+      "separated": true
+    },
+    "tanp/full/popularity-minus-helf": {
+      "n": 10000,
+      "delta": 0.04400764011677233,
+      "ci": [
+        0.04016703998351716,
+        0.047839047379388586
+      ],
+      "separated": true
+    },
+    "tanp/tail/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": 0.00821842369332009,
+      "ci": [
+        0.0048567037038501175,
+        0.011570294090686564
+      ],
+      "separated": true
+    },
+    "tanp/tail/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.012983822433104648,
+      "ci": [
+        0.010827858379474033,
+        0.015181070242025344
+      ],
+      "separated": true
+    },
+    "tanp/tail/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.00476539873978456,
+      "ci": [
+        -0.007804123050865828,
+        -0.0017912688380463998
+      ],
+      "separated": true
+    }
+  },
+  "cross_model": {
+    "ours(entropy0)-minus-golbandi_leaf(helf)/full": {
+      "n": 10000,
+      "delta": 0.010464654333407984,
+      "ci": [
+        0.007166123164937563,
+        0.013656383886154234
+      ],
+      "separated": true
+    },
+    "ours(entropy0)-minus-golbandi_leaf(helf)/tail": {
+      "n": 9281,
+      "delta": -2.7536458382464962e-05,
+      "ci": [
+        -0.0032248121163420784,
+        0.0031911194269296362
+      ],
+      "separated": false
+    },
+    "ours(entropy0)-minus-rbmf(entropy0)/full": {
+      "n": 10000,
+      "delta": 0.04163236945505543,
+      "ci": [
+        0.03865709427342246,
+        0.04465268946817613
+      ],
+      "separated": true
+    },
+    "ours(entropy0)-minus-rbmf(entropy0)/tail": {
+      "n": 9281,
+      "delta": 0.041121373564250774,
+      "ci": [
+        0.03833405196602224,
+        0.04395857722485315
+      ],
+      "separated": true
+    },
+    "ours(entropy0)-minus-belief_mf(popularity)/full": {
+      "n": 10000,
+      "delta": 0.0421542608107086,
+      "ci": [
+        0.039016979394832264,
+        0.045239152819133904
+      ],
+      "separated": true
+    },
+    "ours(entropy0)-minus-belief_mf(popularity)/tail": {
+      "n": 9281,
+      "delta": 0.04886485836139263,
+      "ci": [
+        0.04556635399036869,
+        0.05215296424301992
+      ],
+      "separated": true
+    },
+    "ours(entropy0)-minus-tanp(entropy0)/full": {
+      "n": 10000,
+      "delta": 0.03107286562319385,
+      "ci": [
+        0.028285129219858735,
+        0.03390738640696863
+      ],
+      "separated": true
+    },
+    "ours(entropy0)-minus-tanp(entropy0)/tail": {
+      "n": 9281,
+      "delta": 0.026102771900903207,
+      "ci": [
+        0.023394566560329608,
+        0.02885990640257557
+      ],
+      "separated": true
+    }
+  },
+  "best_strategy": {
+    "ours": "entropy0",
+    "golbandi_leaf": "helf",
+    "rbmf": "entropy0",
+    "belief_mf": "popularity",
+    "tanp": "entropy0"
+  }
+}
