@@ -56,7 +56,7 @@ ax0.plot(x, true, "-o", color="#1b6ca8", lw=2, label="graded (signed star levels
 ax0.plot(x, likes, "-s", color="#0a9396", lw=1.8, label="likes-only (positive-only)")
 ax0.set_xticks(x); ax0.set_xticklabels(ks)
 ax0.set_xlabel("interview length $k$"); ax0.set_ylabel("NDCG@10 (full)")
-ax0.set_title("(a) input encodings", fontsize=9)
+ax0.set_title("input encodings", fontsize=9)   # no "(a)": panel (b) was dropped, this is single-panel
 ax0.grid(True, alpha=0.3); ax0.legend(fontsize=7, loc="upper left", framealpha=0.9)
 
 fig.tight_layout()

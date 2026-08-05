@@ -15,7 +15,7 @@
 \pgfplotsset{compat=1.17}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
 \usepackage{subcaption}
-\usepackage{rotating} % sidewaystable for the master classification table
+\usepackage{placeins} % \FloatBarrier: keep a section's tables inside that section
 
 % --- notation macros (carried from Paper A v1 for consistency) ---
 \newcommand{\R}{\mathbb{R}}
@@ -68,7 +68,7 @@ RecVAE~\cite{ren2020recvae}) are item-only point estimators, while the models wi
 belief (soft-attribute Gaussian elicitation~\cite{biyik2023soft}, unified item$+$attribute bandits~\cite{li2021seamlessly},
 conjugate critique folds~\cite{toroghi2023bcie}) do not report full-profile accuracy at the R1 bar. We are aware of no
 published system that occupies the conjunction of all four. The instrument that closes this gap is a \emph{frozen} certified
-shallow-SOTA tower over whose latent every channel is folded as a direction paired with a value by a
+shallow frontier tower over whose latent every channel is folded as a direction paired with a value by a
 permutation-invariant set encoder; three of its input legs---signed/graded values, concepts
 whose vocabulary is not fixed when the model is fitted, and continuous direction tokens---are architecturally inexpressible in the item-indicator basis of the R1-bar
 models. Each requirement carries one verification item, R1--R4, and all four are met. This chapter contributes the requirement framework, the taxonomy and gap analysis, the instrument's design,
@@ -149,7 +149,7 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
 \begin{enumerate}[leftmargin=1.5em,itemsep=1.5pt]
   \item \textbf{One latent, many channels, at the accuracy frontier.} A frozen tower that comes within $1.2\%$ of the strongest
         shallow baseline on a shared ruler---parity on the tail, a small and stated shortfall on the full
-        profile--- over whose latent every channel is folded as a direction paired with a
+        profile---over whose latent every channel is folded as a direction paired with a
         value: item factors, out-of-catalogue concept directions, and directions produced outside the catalogue
         entirely. The unification is of the \emph{representation}---one space, one form of observation---not of the
         code path. We frame R1$\wedge$R2$\wedge$R3$\wedge$R4 as a single requirement no published system
@@ -159,7 +159,7 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         (not merely untuned) in the item-indicator basis of every R1-bar model: (i) signed/graded per-entity values,
         (ii) concepts whose vocabulary is not fixed at training time, and (iii) continuous direction tokens. These are the narrow, defensible novelty
         legs of the channel-agnostic interface (\S\ref{sec:gap},~\S\ref{sec:method}).
-  \item \textbf{The instrument.} A design for a \emph{frozen} certified shallow-SOTA tower with a
+  \item \textbf{The instrument.} A design for a \emph{frozen} certified shallow frontier tower with a
         permutation-invariant set encoder over its latent, into which every channel folds as a
         direction paired with a value (\S\ref{sec:method}). Freezing is \emph{not} what separates us from the
         soft-attribute line---G\"opfert et al.~\cite{gopfert2024cav} and B\i y\i k et al.~\cite{biyik2023soft} both
@@ -175,7 +175,7 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
 \end{enumerate}
 
 We are careful throughout to distinguish what is \emph{new} (the conjunction; the frozen-certified-tower wedge; the
-acceptance battery on a SOTA tower) from what is \emph{pre-empted} and must be cited (attributes-as-directions plus a
+acceptance battery on a frontier tower) from what is \emph{pre-empted} and must be cited (attributes-as-directions plus a
 Bayesian fold~\cite{biyik2023soft}; unified item$+$attribute belief~\cite{li2021seamlessly}; conjugate folds over a
 frozen factorisation~\cite{toroghi2023bcie}; permutation-invariant set-encoders with information-gain
 acquisition~\cite{ma2019eddi}; value-carrying set-input cold-start recommenders~\cite{lin2021tanp}; the
@@ -258,9 +258,11 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         cold already clears the no-answer intercept on both channels.
   \item[R4 --- expressive answers (R4).] \emph{Sign}: negating every answer lowers NDCG with a CI excluding zero.
         \emph{Intensity}: neutralising values to ``indifferent'' while freezing membership costs NDCG, quality is
-        monotone in the stated level, and graded input beats a fair binarising ablation on identical support---by
-        most where the extra bits should matter most, on the short interview before collaborative signal fills in,
-        and by a smaller but non-zero margin at the full profile.
+        monotone in the stated level. Graded input then beats a fair binarising ablation on two distinct
+        comparisons, and we name what each varies: holding the fold-in support \emph{identical} and
+        re-valuing each item by its star level pays $+0.0039$ full at the full profile, while \emph{adding}
+        the sub-threshold answers pays far more on the short interview---$+0.0147$ at $k{=}2$---and nothing
+        from $k{=}8$ onward.
 \end{description}
 
 \emph{Integrity items} (across all four):
@@ -465,7 +467,7 @@ None of these reports full-profile accuracy at the EASE/RecVAE bar; each is a be
 EDDI/Partial-VAE~\cite{ma2019eddi} is the permutation-invariant set-encoder over an arbitrary observed subset with
 information-gain acquisition---exactly R2's architecture, but demonstrated outside recommendation and without a full-profile
 CF result or an attribute/concept channel. TaNP~\cite{lin2021tanp} gives a neural-process, stochastic-process
-uncertainty over a value-carrying set input for cold-start---the R2$+$R4 shape, but not at full-profile SOTA nor
+uncertainty over a value-carrying set input for cold-start---the R2$+$R4 shape, but not at the full-profile frontier nor
 channel-agnostic. These are cited as the mechanism precedents our design instantiates, not as rivals for the
 conjunction.
 
@@ -571,7 +573,7 @@ conjunction.
         \emph{Fails R2} (a fixed categorical attribute schema; no arbitrary embedding, no continuous or open token) and
         \emph{R1} (a bandit over arms, not a full-profile encoder).
   \item \textbf{EDDI / Partial-VAE}~\cite{ma2019eddi} --- R3 (information-gain over a belief) $+$ set input.
-        \emph{Fails R1} (not a recommendation model / no CF SOTA) and \emph{R2} (a fixed feature set; no attribute or
+        \emph{Fails R1} (not a recommendation model / no full-catalogue CF ranking) and \emph{R2} (a fixed feature set; no attribute or
         concept channel as demonstrated).
   \item \textbf{RecVAE / EASE}~\cite{ren2020recvae,steck2019ease} --- \emph{R1 yes.} \emph{Fail R2} (an item-only
         one-hot / indicator basis admits no concept and no continuous direction), \emph{R4} (nor a signed or graded
@@ -667,7 +669,7 @@ channel entering as a direction paired with a value (R4). The tower half is buil
 (\S\ref{sec:expdesign}); the fold is derived here, fitted on real data, and gated in
 \S\ref{sec:batteryresults}.
 
-\subsection{Frozen shallow-SOTA tower}
+\subsection{Frozen shallow frontier tower}
 The substrate is a certified shallow recommender---a RecVAE-class amortised encoder or a closed-form
 autoencoder~\cite{ren2020recvae,steck2019ease}---trained once on the full catalogue and then \emph{frozen}. It exposes
 (a) item factor rows $\Q_i\in\R^{d}$, (b) a decoder read-out $s_i(\uu)=\Q_i^\top\uu + \beta_i$ with a learned bias
@@ -935,7 +937,7 @@ of magnitude larger, and the right place to hedge R2's strength---but the fact m
 surfaced. What none of these holds jointly---and what we are aware of no system holding---is
 the conjunction this channel occupies: \emph{continuous, out-of-catalogue concept directions} (a whitened centroid, or
 a text-adapter image, with no per-attribute probe to train), driven by a \emph{signed, exposure-corrected implicit
-affinity} (Eqs.~\eqref{eq:sel}--\eqref{eq:val}), folded over a \emph{frozen, certified full-profile SOTA tower}. The
+affinity} (Eqs.~\eqref{eq:sel}--\eqref{eq:val}), folded over a \emph{frozen, certified full-profile frontier tower}. The
 components are borrowed; only their conjunction is claimed.
 
 \subsection{Deployment currency: why a capability gate is not enough}\label{sec:concept:fail}
@@ -1110,7 +1112,7 @@ The bank has three tiers, and each row of Table~\ref{tab:master} belongs to one 
 that every curve must clear, which Dacrema et al.~\cite{dacrema2019progress} demand: Most-Popular as the
 ``did we learn anything'' line, Item-kNN as the Cremonesi-era strong-simple
 baseline~\cite{cremonesi2010performance}, and PureSVD/iALS as cheap fold-in references. \emph{Full-profile
-SOTA}, which decides R1: EASE~\cite{steck2019ease} and RecVAE~\cite{ren2020recvae} as the bar,
+frontier}, which decides R1: EASE~\cite{steck2019ease} and RecVAE~\cite{ren2020recvae} as the bar,
 Mult-VAE~\cite{liang2018variational} as the canonical amortised anchor, EDLAE~\cite{steck2020edlae} to
 confirm the frontier is flat, plus the graph-filter and sequence families
 (Turbo-CF~\cite{park2024turbocf}, SASRec~\cite{kang2018sasrec}). \emph{Elicitation-compatible rivals}, which
@@ -1343,7 +1345,7 @@ order has been carried forward as a property of the \emph{heuristics}. We ran al
 protocol---identical users, identical budget $k{=}8$, identical answer model, a question bank fixed in advance,
 no popularity floor---and varied only the recommender that consumes the answers.
 
-\begin{table}[t]\centering\scriptsize
+\begin{table}[!htbp]\centering\scriptsize
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.18}
 \begin{tabular}{p{3.45cm}ccc l l}
@@ -1353,14 +1355,14 @@ Recommender consuming the answers & \textsc{helf} & \textsc{ent0} & \textsc{pop}
 \midrule
 \multicolumn{6}{l}{\emph{full NDCG@10}}\\
 This chapter's instrument & $.1892$ & $\mathbf{.2053}$ & $.1943$ & E0 $>$ P $>$ H & --- \\
-user-kNN~\cite{golbandi2011adaptive} & $\mathbf{.1948}$ & $.1686$ & $.1716$ & \textbf{H $>$ P $>$ E0} & $+.0105$ $[+.0072,+.0137]$ \\
-RBMF~\cite{zhou2011functional} & $.0723$ & $\mathbf{.1636}$ & $.1636$ & E0 $\approx$ P $>$ H & $+.0416$ $[+.0387,+.0447]$ \\
+Golbandi node model~\cite{golbandi2011adaptive} & $\mathbf{.1948}$ & $.1686$ & $.1716$ & \textbf{H $>$ P $>$ E0} & $+.0105$ $[+.0072,+.0137]$ \\
+RBMF~\cite{liu2011wisdom,zhou2011functional} & $.0723$ & $\mathbf{.1636}$ & $.1636$ & E0 $\approx$ P $>$ H & $+.0416$ $[+.0387,+.0447]$ \\
 Conjugate belief (frozen MF), after~\cite{biyik2023soft} & $.1628$ & $.1631$ & $.1631$ & \emph{flat} & $+.0422$ $[+.0390,+.0452]$ \\
 TaNP~\cite{lin2021tanp} & $.1259$ & $\mathbf{.1742}$ & $.1699$ & E0 $>$ P $>$ H & $+.0311$ $[+.0283,+.0339]$ \\
 \midrule
 \multicolumn{6}{l}{\emph{tail NDCG@10}}\\
 This chapter's instrument & $.0725$ & $\mathbf{.0792}$ & $.0686$ & E0 $>$ H $>$ P & --- \\
-user-kNN & $\mathbf{.0792}$ & $.0677$ & $.0696$ & \textbf{H $>$ P $>$ E0} & $-.0000$ $[-.0032,+.0032]$ \\
+Golbandi node model & $\mathbf{.0792}$ & $.0677$ & $.0696$ & \textbf{H $>$ P $>$ E0} & $-.0000$ $[-.0032,+.0032]$ \\
 RBMF & $\mathbf{.0399}$ & $.0381$ & $.0340$ & H $>$ E0 $>$ P & $+.0411$ $[+.0383,+.0440]$ \\
 Conjugate belief (frozen MF) & $\mathbf{.0336}$ & $.0305$ & $.0304$ & H $>$ E0 $>$ P & $+.0489$ $[+.0456,+.0522]$ \\
 TaNP & $.0449$ & $\mathbf{.0531}$ & $.0401$ & E0 $>$ H $>$ P & $+.0261$ $[+.0234,+.0289]$ \\
@@ -1369,7 +1371,7 @@ TaNP & $.0449$ & $\mathbf{.0531}$ & $.0401$ & E0 $>$ H $>$ P & $+.0261$ $[+.0234
 \caption{\textbf{The same three question-selection heuristics, ranked differently by different
 recommenders.} $k{=}8$, one shared harness, \textsc{native} pool, no popularity floor, $10{,}000$ held-out
 users; only the consuming recommender varies. Rashid's published order is \textsc{helf} $>$
-\textsc{entropy0} $>$ \textsc{popularity}; among these five consumers only user-kNN---the node model closest
+\textsc{entropy0} $>$ \textsc{popularity}; among these five consumers only the Golbandi node model---the model closest
 to what the heuristics were validated on---reproduces it. Every within-row gap that decides an order is
 separated by a paired per-user bootstrap ($10{,}000$ resamples), except the conjugate belief, which is flat to within
 noise on the full profile. \emph{Ours $-$ this} compares each system at its own best strategy against ours
@@ -1393,12 +1395,13 @@ tree should arguably believe the tree. What the table forecloses is treating any
 property of the heuristics.
 
 \emph{The instrument's own numbers are the strongest cells, which is the point of R1.} Our best cell exceeds the
-Golbandi tree's best by $+0.0105$ on full and matches it exactly on tail ($.0792$ both). A consumer that were merely
+Golbandi node model's best by $+0.0105$ on full and matches it exactly on tail ($.0792$ both). A consumer that were merely
 different, rather than strong, would leave open the objection that the inversion is an artifact of a weak
 recommender---which is exactly the objection Dacrema et al.~\cite{dacrema2019progress} showed to be usually
 correct. R1 exists to close it.
 
 % =====================================================================
+\FloatBarrier
 \section{Limitations and threats to validity}\label{sec:limits}
 % =====================================================================
 
