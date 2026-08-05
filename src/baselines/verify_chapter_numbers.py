@@ -79,10 +79,20 @@ if iv:
     chk('ours E0 k8 tail', 0.0792, dig(p, 'ours', 'entropy0', 'tail'), 'interview_paired.json')
     chk('user-kNN HELF k8 tail', 0.0792, dig(p, 'golbandi_leaf', 'helf', 'tail'), 'interview_paired.json')
     chk('TaNP E0 k8 full', 0.1742, dig(p, 'tanp', 'entropy0', 'full'), 'interview_paired.json')
-    chk('RBMF E0 k8 full', 0.1636, dig(p, 'rbmf', 'entropy0', 'full'), 'interview_paired.json')
+    chk('RBMF E0 k8 full', 0.1644, dig(p, 'rbmf', 'entropy0', 'full'), 'interview_paired.json')
+    chk('recvae_likes POP k8 full', 0.1760, dig(p, 'recvae_likes', 'popularity', 'full'), 'interview_paired.json')
+    chk('recvae_likes E0 k8 full', 0.1718, dig(p, 'recvae_likes', 'entropy0', 'full'), 'interview_paired.json')
+    chk('recvae_likes HELF k8 full', 0.1003, dig(p, 'recvae_likes', 'helf', 'full'), 'interview_paired.json')
+    chk('recvae_likes POP k8 tail', 0.0534, dig(p, 'recvae_likes', 'popularity', 'tail'), 'interview_paired.json')
+    chk('belief_mf HELF k8 full', 0.1614, dig(p, 'belief_mf', 'helf', 'full'), 'interview_paired.json')
+    chk('RBMF HELF k8 full', 0.0698, dig(p, 'rbmf', 'helf', 'full'), 'interview_paired.json')
     cm = dig(iv, 'cross_model') or {}
     chk('ours-minus-userkNN full', 0.0105,
         dig(cm, 'ours(entropy0)-minus-golbandi_leaf(helf)/full', 'delta'), 'interview_paired.json')
+    chk('ours-minus-recvae_likes full', 0.0293,
+        dig(cm, 'ours(entropy0)-minus-recvae_likes(popularity)/full', 'delta'), 'interview_paired.json')
+    chk('ours-minus-recvae_likes tail', 0.0258,
+        dig(cm, 'ours(entropy0)-minus-recvae_likes(popularity)/tail', 'delta'), 'interview_paired.json')
 
 # ---- arm A / arm N master table rows --------------------------------------------
 for name, a_full, a_tail, n_full, n_tail in [

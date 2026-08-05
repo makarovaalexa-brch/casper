@@ -1444,41 +1444,68 @@ Recommender consuming the answers & \textsc{helf} & \textsc{ent0} & \textsc{pop}
   Order & Ours $-$ this \\
 \midrule
 \multicolumn{6}{l}{\emph{full NDCG@10}}\\
-This chapter's instrument & $.1892$ & $\mathbf{.2053}$ & $.1943$ & E0 $>$ P $>$ H & --- \\
+This chapter's instrument & $.1892$ & $\mathbf{.2053}$ & $.1943$ & \textbf{E0 $>$ P $>$ H} & --- \\
+RecVAE, likes-only~\cite{ren2020recvae}$^{\S}$ & $.1003$ & $.1718$ & $\mathbf{.1760}$ & \textbf{P $>$ E0 $>$ H} & $+.0293$ $[+.0267,+.0320]$ \\
 Golbandi node model~\cite{golbandi2011adaptive} & $\mathbf{.1948}$ & $.1686$ & $.1716$ & \textbf{H $>$ P $>$ E0} & $+.0105$ $[+.0072,+.0137]$ \\
-RBMF~\cite{liu2011wisdom,zhou2011functional} & $.0723$ & $\mathbf{.1636}$ & $.1636$ & E0 $\approx$ P $>$ H & $+.0416$ $[+.0387,+.0447]$ \\
-Conjugate belief (frozen MF), after~\cite{biyik2023soft} & $.1628$ & $.1631$ & $.1631$ & \emph{flat} & $+.0422$ $[+.0390,+.0452]$ \\
+RBMF~\cite{liu2011wisdom,zhou2011functional} & $.0698$ & $\mathbf{.1644}$ & $.1643$ & E0 $\approx$ P $>$ H & $+.0409$ $[+.0378,+.0438]$ \\
+Conjugate belief (frozen MF), after~\cite{biyik2023soft} & $.1614$ & $.1630$ & $.1627$ & \emph{flat} & $+.0422$ $[+.0391,+.0454]$ \\
 TaNP~\cite{lin2021tanp} & $.1259$ & $\mathbf{.1742}$ & $.1699$ & E0 $>$ P $>$ H & $+.0311$ $[+.0283,+.0339]$ \\
 \midrule
 \multicolumn{6}{l}{\emph{tail NDCG@10}}\\
 This chapter's instrument & $.0725$ & $\mathbf{.0792}$ & $.0686$ & E0 $>$ H $>$ P & --- \\
+RecVAE, likes-only$^{\S}$ & $.0418$ & $\mathbf{.0576}$ & $.0534$ & E0 $>$ P $>$ H & $+.0258$ $[+.0231,+.0285]$ \\
 Golbandi node model & $\mathbf{.0792}$ & $.0677$ & $.0696$ & \textbf{H $>$ P $>$ E0} & $-.0000$ $[-.0032,+.0032]$ \\
-RBMF & $\mathbf{.0399}$ & $.0381$ & $.0340$ & H $>$ E0 $>$ P & $+.0411$ $[+.0383,+.0440]$ \\
-Conjugate belief (frozen MF) & $\mathbf{.0336}$ & $.0305$ & $.0304$ & H $>$ E0 $>$ P & $+.0489$ $[+.0456,+.0522]$ \\
+RBMF & $.0371$ & $\mathbf{.0376}$ & $.0342$ & E0 $\approx$ H $>$ P & $+.0416$ $[+.0387,+.0446]$ \\
+Conjugate belief (frozen MF) & $\mathbf{.0338}$ & $.0300$ & $.0300$ & H $>$ E0 $\approx$ P & $+.0492$ $[+.0459,+.0525]$ \\
 TaNP & $.0449$ & $\mathbf{.0531}$ & $.0401$ & E0 $>$ H $>$ P & $+.0261$ $[+.0234,+.0289]$ \\
 \bottomrule
 \end{tabular}
 \caption{\textbf{The same three question-selection heuristics, ranked differently by different
 recommenders.} $k{=}8$, one shared harness, \textsc{native} pool, no popularity floor, $10{,}000$ held-out
 users; only the consuming recommender varies. Rashid's published order is \textsc{helf} $>$
-\textsc{entropy0} $>$ \textsc{popularity}; among these five consumers only the Golbandi node model---the model closest
-to what the heuristics were validated on---reproduces it. Every within-row gap that decides an order is
-separated by a paired per-user bootstrap ($10{,}000$ resamples), except the conjugate belief, which is flat to within
-noise on the full profile. \emph{Ours $-$ this} compares each system at its own best strategy against ours
-at ours, paired on the same users.}
+\textsc{entropy0} $>$ \textsc{popularity}; among these six consumers only the Golbandi node model---the model closest
+to what the heuristics were validated on---reproduces it, and the six rows realise \emph{three distinct
+orderings}. Every within-row gap that decides an order is separated by a paired per-user bootstrap
+($10{,}000$ resamples), except where marked $\approx$ or \emph{flat}. \emph{Ours $-$ this} compares each system at
+its own best strategy against ours at ours, paired on the same users.
+$^{\S}$\,RecVAE restricted to the \emph{likes} among the asked items---a frontier-accuracy recommender with the
+crudest admissible interface, since a bag-of-items vector has no slot for a ``no''. It is a control, not a rival:
+it is the row that distinguishes \emph{the ordering depends on the strategy--recommender pair} from \emph{weak
+recommenders scramble everything}. Reported without the floor like every other row; only its \textsc{helf} cell is
+materially affected (that arm yields $1.6$ answers of $8$, and a likes-only consumer has no fallback when a user
+answers nothing), and the ordering each consumer induces is identical under both floor contracts, so no conclusion
+here depends on that choice.}
 \label{tab:instrdep}
 \end{table}
 
-Three readings, and we are careful about which we claim.
+Five readings, and we are careful about which we claim.
 
 \emph{The ranking is not a property of the heuristic alone.} Under our instrument \textsc{entropy0} leads on both
-metrics; under the Golbandi node model \textsc{helf} leads on both. A paper reporting either result in isolation,
-with its own recommender, would be reporting something true and non-transferable. This is the concrete sense in
+metrics; under the Golbandi node model \textsc{helf} leads on both; under a likes-only RecVAE
+\textsc{popularity} leads on the full profile. Asked which heuristic is best, the three consumers give three
+different answers, and each answer is separated. A paper reporting any one of them in isolation, with its own
+recommender, would be reporting something true and non-transferable. This is the concrete sense in
 which elicitation results are instrument-relative, and it is why we think a documented, certified, reusable
 consumer is a contribution rather than plumbing.
 
+\emph{The disagreement is not an artifact of weak recommenders.} The likes-only RecVAE row is the control that
+settles this: it is the same frontier-accuracy model that sets the R1 bar, given the crudest interface an
+item-only architecture admits, and it disagrees with our instrument \emph{and} with the Golbandi node model.
+Whatever drives the disagreement, it is not that the other consumers are simply bad at recommending. The same row
+carries a second reading worth stating plainly: at full profile that model beats ours ($0.3540$ against $0.3496$),
+and at an eight-question interview it loses to ours by $+0.0293$ full and $+0.0258$ tail, each system on its own
+best strategy, both separated. Same architecture, same frozen weights, same questions---only what it can hear
+differs. Full-profile strength does not transfer to the interview on its own, which is the bifurcation of
+\S\ref{sec:gap} demonstrated inside a single experiment rather than across a literature.
+
+\emph{The winning heuristic can depend on the metric as well as on the consumer.} For the likes-only RecVAE the
+gap between \textsc{entropy0} and \textsc{popularity} is $-0.0042$ on the full profile and $+0.0042$ on the
+tail---the same magnitude in opposite directions, both intervals excluding zero. So even holding the consumer
+fixed, ``which heuristic wins'' is not answered until the metric is named. We report full \emph{and} tail
+throughout for exactly this reason.
+
 \emph{We do not claim the heuristics are wrong, or that ours is the right consumer.} On the tail, \textsc{helf} is
-first for three of the five consumers---the inversion is not a refutation of \textsc{helf}. Nor does our instrument
+first for two of the six consumers---the inversion is not a refutation of \textsc{helf}. Nor does our instrument
 scoring highest in absolute terms settle which ordering an interview designer should trust: absolute accuracy and
 faithfulness to the deployment recommender are different desiderata, and a designer whose production system is a
 tree should arguably believe the tree. What the table forecloses is treating any single such ordering as a
