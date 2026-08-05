@@ -1,0 +1,401 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{definition}{Definition}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{pifont}
+
+% --- notation macros (carried from Chapter A v2 for consistency) ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbf{Q}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\yy}{\mathbf{y}}
+\newcommand{\Amat}{\mathbf{A}}
+\newcommand{\W}{\mathbf{W}}
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\bSigma}{\boldsymbol{\Sigma}}
+\newcommand{\zz}{\mathbf{z}}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+% \REDO{...}: a number that is REAL but was measured on a superseded checkpoint/protocol and must be
+% re-run before submission. \PLAN{...}: an experiment that is designed and specified but NOT YET RUN --
+% no number exists. Both render visibly so neither can survive to camera-ready unnoticed.
+\newcommand{\REDO}[1]{\textcolor{red}{[REDO: #1]}}
+\newcommand{\PLAN}[1]{\textcolor{blue}{[PLANNED, NOT YET RUN: #1]}}
+
+\title{\textbf{When Does Asking Adaptively Pay?\\Placement, Dispersion, and the Emergence of
+Coarse-to-Fine Interviews}\\[4pt]\large Thesis Chapter B (v2) --- working draft}
+\author{}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent A cold-start conversational recommender must choose what to ask. The literature's answer is
+overwhelmingly \emph{adaptive}: condition each question on the answers so far. We measure that
+premise on a certified instrument and find it does not pay under standard practice --- and then we
+show why, and when it does. Our contributions are three. \textbf{(i) A replication null with a hard
+comparator.} Against a prefix-optimal static order optimised on the same recommender it is scored
+on, the bandit family (GLM-UCB, Thompson sampling over a probabilistic matrix-factorisation
+posterior) and a myopic information-gain acquisition (EDDI) lose at every budget from one to
+sixteen questions, on 10{,}000 held-out users. The loss is not for want of branching: Thompson
+sampling gives all 10{,}000 users a distinct interview by the fourth question and still loses.
+\textbf{(ii) A mechanism.} Adaptive selection can only pay where users occupy distinguishable
+states, and standard question banks do not create them: after two standard openers, 10{,}000 cold
+users occupy 112 distinct states and the loss-optimal next question collapses to an effective 5.0
+distinct questions. A single free-text request places its author in an essentially unique state and
+the loss-optimal next question spreads to an effective 95. Adaptivity has nothing to be right about
+until the user has been placed. \textbf{(iii) Coarse-to-fine, as a consequence rather than a
+design.} Nobody specified a curriculum, yet the greedy prefix-optimal sequence opens with three
+broad concept questions and hands over to specific item questions in its back half; the
+loss-optimal channel flips from concept to item exactly as placement improves. We trace this to
+answerability: a specific question is uninformative early because the cold user cannot answer it.
+Finally, we open the opener --- replacing the closed first question with an open one mined from
+real requests --- and re-run the same baselines. \PLAN{the open-opener intervention and its
+difference-in-differences; Section~\ref{sec:act3}}
+\end{abstract}
+
+\section{Introduction}
+
+\paragraph{The claim this chapter makes.} \emph{Adaptivity pays exactly when the interview has
+placed the user, and when it pays, the structure that emerges is coarse-to-fine. Standard
+elicitation never reaches that regime --- which is why the field's adaptive machinery, replicated
+faithfully, shows no gap over a strongest static order.}
+
+\paragraph{What this chapter is not claiming.} It is not claiming that selection does not matter:
+the difference between a good and a bad static order is large (a fixed bank moves full NDCG@10 from
+the popularity prior's $0.1626$ to $0.2303$ at sixteen questions), and nothing here licenses the
+reading that question choice is unimportant. It is not claiming a field-wide adaptivity null: no
+such published null exists, and our own sub-threshold measurements are results \emph{in} this
+chapter, not background it can cite. The published prior runs the other way --- the decision-tree
+line reports adaptive gains against unoptimised static orders --- and this chapter measures that
+claim rather than asserting against it.
+
+\paragraph{Relationship to Chapter A.} Chapter A built and certified the \emph{instrument}: a
+recommender that ingests an arbitrary-length, mixed-channel set of answers without per-user
+retraining and without conceding full-profile accuracy (four requirements R1--R4). It explicitly
+deferred policy: ``it does not claim a new elicitation policy (that is the companion method
+chapter); it claims the recommender that makes policy measurement possible.'' This chapter is that
+companion. Everything below runs on the certified pair --- tower \texttt{i26c ep31} (test full/tail
+NDCG@10 $0.3496/0.2491$) and concept channel \texttt{cv3 ep08} ($464$k parameters) --- both frozen
+and read-only throughout. No model is trained in this chapter.
+
+\section{Setup}
+\label{sec:setup}
+
+\paragraph{Ruler.} The canonical Liang-recipe strong-generalisation split of ML-25M restricted to
+the project catalogue: $18{,}359$ train-vocabulary items, $140{,}768$ train / $10{,}000$ validation
+/ $10{,}000$ test users, per-user 80/20 fold-in/target, seed $98765$. Primary metric: full
+\emph{and} tail NDCG@10, tail measured on a head-deleted candidate list, scored with the
+recommender's learned decoder bias. The interview contract is NO-FLOOR (a model that received no
+answer is scored on what it actually predicts, not overwritten by the popularity row); the floored
+arm is a robustness row, not the headline.
+
+\paragraph{Answers are behavioural.} A question is answered from the user's own held-out ratings:
+an item question by their half-star level if they rated it, a concept question by the signed
+implicit-watch statistic over their profile. An asked question the user cannot answer \emph{burns
+the budget} --- items fold as the tower's native unseen-exposure token, concepts as the concept
+channel's refusal token. There is no simulator and no language model anywhere in the measurement
+path. This matters because a simulator that answers everything would erase the single most
+important asymmetry in the results below.
+
+\paragraph{Selection interface.} A \emph{selector} sees, per user, the questions asked so far and
+the answers actually obtained, and returns the next question; a \emph{consumer} is the recommender
+that folds the final answer set and ranks the catalogue. The two are independent, and we vary them
+independently. Static orders are the degenerate case in which the selector ignores the answers.
+Before any adaptive number was produced we verified that all six static arms driven through the
+sequential loop reproduce the batch implementation \emph{exactly} --- list equality of asked items,
+answered items and half-star levels, over $30$ (arm, budget) cells on all $10{,}000$ users.
+
+\section{Act 1: the frontier under standard practice}
+\label{sec:act1}
+
+\subsection{The comparator is the hard one}
+
+An adaptivity null is only interesting if the static bar is genuinely strong. Ours is the greedy
+prefix-optimal sequence over a bank of $500$ popularity-ranked items and $500$ answerability-ranked
+concepts, computed by lazy greedy maximisation of held-out NDCG@10 \emph{on the same recommender it
+is scored on}. Chapter A establishes that greedy is prefix-optimal here, which is what makes
+``strongest static'' a computable object rather than an aspiration. The search ran on the
+$10{,}000$ validation users only; the test cohort was not constructed until all sequences were
+frozen. The empty-interview row reproduces the tower's certified cold number to five decimal places
+($0.12987$ against $0.12987$), which is how we know the harness is measuring the certified system.
+
+\begin{table}[t]
+\centering
+\caption{Greedy prefix-optimal static sequences on the certified stack, test cohort
+($10{,}000$ users), full/tail NDCG@10. Intercept (no questions): $0.1314/0.0234$.}
+\label{tab:greedy}
+\small
+\begin{tabular}{llccccc c}
+\toprule
+arm & emergent order & $q{=}1$ & $q{=}2$ & $q{=}4$ & $q{=}8$ & $q{=}16$ & answered@16 \\
+\midrule
+items-only & \texttt{iiiiiiiiiiiiiiii} & .1471/.0351 & .1563/.0441 & .1719/.0542 & .1922/.0598 & .2104/.0761 & 4.20 i \\
+concepts-only & \texttt{cccccccccccccccc} & .1487/.0398 & .1590/.0457 & .1738/\textbf{.0620} & .1898/\textbf{.0815} & .1997/\textbf{.0921} & 12.87 c \\
+combined & \texttt{ccciccii\,iicciiii} & .1487/.0398 & .1590/.0457 & .1738/.0588 & .1918/.0763 & \textbf{.2115}/.0880 & 2.25 i / 6.66 c \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Adaptive selection does not beat it}
+
+Table~\ref{tab:act1} is the chapter's first result. Against the strongest \emph{lit-anchored} static
+arm, three adaptive selectors --- GLM-UCB and Thompson sampling over the probabilistic-MF posterior
+(the interactive-collaborative-filtering bandit family, and the standard baselines of the deep-RL
+interview line), and EDDI's myopic information gain over a trained Partial-VAE --- lose at every
+budget on both axes.
+
+\begin{table}[t]
+\centering
+\caption{Adaptive selectors versus a static order, consumer = the certified tower, $10{,}000$ test
+users, NO-FLOOR, full/tail NDCG@10. MostPop prior $0.1626/0.0262$. Static wins every cell.}
+\label{tab:act1}
+\small
+\begin{tabular}{lccccc c}
+\toprule
+selector & $k{=}1$ & $k{=}2$ & $k{=}4$ & $k{=}8$ & $k{=}16$ & answered@16 \\
+\midrule
+static (entropy$_0$) & \textbf{.1635/.0433} & \textbf{.1706/.0528} & \textbf{.1831/.0636} & \textbf{.2053/.0792} & \textbf{.2303/.0924} & 5.52 \\
+GLM-UCB & .1606/.0400 & .1635/.0452 & .1756/.0578 & .1902/.0673 & .2161/.0833 & 5.24 \\
+Thompson & .1627/.0376 & .1676/.0437 & .1748/.0551 & .1908/.0677 & .2135/.0878 & 3.39 \\
+EDDI info-gain & .1537/.0336 & .1539/.0373 & .1618/.0432 & .1747/.0611 & .1917/.0749 & 3.84 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ordering repeats when the consumer is changed to RecVAE, to TaNP, or to EDDI's own Partial-VAE
+--- including the self-consistent cell in which EDDI selects and EDDI consumes ($.1493/.0488$
+against $.1769/.0480$ for the static order at sixteen questions), so this is not an
+instrument-mismatch artefact. \REDO{paired bootstrap CIs on every gap in Table~\ref{tab:act1};
+point estimates only at present}
+
+\subsection{The loss is not a failure to branch}
+
+The obvious objection --- ``your adaptive policies simply did not adapt'' --- is refuted by the
+harness's own diagnostic. Counting distinct question-prefixes over the $10{,}000$ users:
+
+\begin{table}[h]
+\centering
+\caption{Distinct interviews actually conducted (ask-prefixes over $10{,}000$ users).}
+\label{tab:prefixes}
+\small
+\begin{tabular}{lccccc}
+\toprule
+selector & $k{=}1$ & $k{=}2$ & $k{=}4$ & $k{=}8$ & $k{=}16$ \\
+\midrule
+static (entropy$_0$) & 1 & 1 & 1 & 1 & 1 \\
+GLM-UCB & 1 & 3 & 23 & 335 & 5{,}739 \\
+Thompson & 759 & 8{,}083 & 10{,}000 & 10{,}000 & 10{,}000 \\
+EDDI info-gain & 1 & 2 & 7 & 99 & 1{,}993 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Thompson sampling conducts a distinct interview for every user from the fourth question onward and
+still loses to one order asked of everybody. This is \emph{divergence without exploitability},
+measured directly rather than inferred, and it is the honest form of the mechanism claim in
+Section~\ref{sec:act2}: manufacturing per-user variety is not the same as having something to
+adapt to.
+
+\subsection{What the adaptive selectors spend their budget on}
+\label{sec:answerability}
+
+The answered column of Table~\ref{tab:act1} carries the mechanism. At sixteen questions the static
+order collects $5.52$ answers; Thompson collects $3.39$ and EDDI $3.84$. Both adaptive criteria
+prefer questions with high posterior movement or high score uncertainty, and on an implicit-feedback
+catalogue those are precisely the items almost nobody has seen. The policies spend their budget on
+questions the user cannot answer. This is the same asymmetry Chapter A measured on the question
+\emph{bank} --- $2.18$ of eight item questions answered against $6.02$ of eight concept questions
+--- reappearing as a property of the \emph{policy}. Any elicitation criterion that is blind to
+answerability inherits it.
+
+\subsection{The result that complicates the story, reported rather than buried}
+\label{sec:flip}
+
+On one consumer the ordering reverses. With Golbandi's leaf model as the consumer --- which matches
+a cold user to the train users sharing their like/dislike/unknown pattern --- Thompson sampling
+beats the static order at every budget it can be run at ($.1974/.0750$ against $.1686/.0677$ at
+eight questions), and EDDI's acquisition beats it too.
+
+The mechanism is not mysterious, and it sharpens rather than weakens the chapter. That consumer is
+paid in \emph{patterns}: its estimate improves when users are spread across distinct answer
+signatures, so a per-user randomised selector helps it by construction, while a single global order
+concentrates most users in a few cells. It is also the one consumer whose input contract includes
+the unknowns, so a question the user cannot answer is still informative to it. Which selector wins
+therefore depends on which recommender one assumes --- the selection-side appearance of Chapter A's
+instrument-dependence result, and a caution that applies to every published comparison in this
+literature, including ours.
+
+\section{Act 2: the mechanism --- placement and dispersion}
+\label{sec:act2}
+
+If adaptive selection is to pay, users must occupy states in which \emph{different} questions are
+optimal. We measure that directly, with a loss-coupled criterion: for state $\zz$ and question $q$,
+$U(q\mid \zz)=\sum_a P(a\mid \zz)\,V(\zz\oplus(q,a))$, where $V$ is the discounted top-ten mass of
+the recommender's own predictive distribution --- i.e.\ the expected NDCG@10 of the slate it would
+show. Because the criterion marginalises over the answer, it is not a variance-only criterion whose
+dispersion is zero by construction. We then ask how many \emph{distinct} questions are optimal
+across a population, reported as the perplexity of the argmax distribution (an effective number of
+questions).
+
+\begin{table}[h]
+\centering
+\caption{Effective number of distinct loss-optimal next questions (perplexity of the argmax
+distribution), concept bank of $1{,}031$ questions.}
+\label{tab:dispersion}
+\small
+\begin{tabular}{lrrr}
+\toprule
+population & $n$ & distinct $q^\star$ & effective \#questions \\
+\midrule
+ML-25M cold, $k{=}0$ & 10{,}000 & 1 & 1.00 \\
+ML-25M after one standard opener & 10{,}000 & 5 & 2.88 \\
+ML-25M after two standard openers & 10{,}000 & 9 & 5.04 \\
+Real free-text request, placed & 4{,}431 & 442 & \textbf{95.13} \\
+\quad with $\geq 1$ named film & 2{,}639 & 413 & 128.46 \\
+\quad text-only (no named film) & 1{,}792 & 171 & 38.23 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At the cold start every user has the same state, so the loss-optimal question is one question for
+everybody --- a floor that is verified rather than assumed. Two standard openers barely move it:
+the population still occupies $112$ distinct states and the optimal next question collapses to an
+effective five, with $41\%$ of users sharing a single argmax. A single real request spreads it to
+an effective $95$. Adaptive and static policies downstream of a closed opener are choosing between
+a handful of distinguishable situations; that is the regime in which Act 1's null was measured, and
+it is the regime the field's evaluations inhabit.
+
+Two guardrails travel with this figure and must not be dropped. First, \textbf{dispersion is not
+payoff}: Section~\ref{sec:act1} shows a policy can manufacture ten thousand distinct interviews and
+still lose, so a divergent criterion surface is necessary, not sufficient. Second, \textbf{mean
+expected gain runs the other way} --- the best available question is worth more at the cold ML
+states ($+0.0283$ for the best concept after two openers) than at the request-placed states
+($+0.0076$), because a placed user is already further along the curve. Dispersion and headroom are
+different quantities and this chapter never conflates them.
+
+\section{Act 3: the intervention --- open the opener}
+\label{sec:act3}
+
+Act 2 identifies placement as the binding constraint, which yields a falsifiable intervention:
+replace the closed first question with an open one, and re-run the identical baselines. The
+question distribution is mined from $4{,}431$ real free-text movie requests
+(Section~\ref{sec:reddit}); the users, the answers and the held-out scoring remain ML-25M
+throughout, so ground truth is never compromised. The primary analysis is a difference-in-differences:
+(adaptive $-$ static) under an open opener, minus the same difference under a closed opener.
+Both outcomes are publishable --- a gap that opens says the field's methods were starved by their
+openers; a gap that stays shut hardens the null from ``we never created divergence'' to ``divergence
+exists, is real, and cannot be cashed''. A validation gate runs first: the matched-initialisation
+dispersion must reproduce the request-state dispersion of Table~\ref{tab:dispersion}, or the bridge
+leaks and the analysis stops.
+
+\PLAN{the open-opener runs (favourite-film, favourite-genre, and a distinctiveness-framed variant),
+the difference-in-differences with paired CIs, and the dispersion validation gate. Comparators must
+include an init-aware-but-fixed static order --- the best fixed order fitted on the initialised
+population --- or we commit the comparator-construction error this chapter criticises.}
+
+\section{Act 4: coarse-to-fine as a consequence, not a curriculum}
+\label{sec:act4}
+
+Nobody specified a curriculum. Yet the greedy prefix-optimal sequence over the joint bank
+(Table~\ref{tab:greedy}, combined arm) opens with \textbf{three concept questions} and holds
+concepts in six of its first seven slots before items take over the back half:
+\texttt{c\,c\,c\,i\,c\,c\,i\,i\,i\,i\,c\,c\,i\,i\,i\,i}. The same ordering appears in the
+loss-coupled criterion of Section~\ref{sec:act2}: at cold states the optimal question is a concept
+by a factor of twelve in expected gain ($+0.0238$ against $+0.0019$), and at request-placed states
+the optimum flips to items ($+0.0138$ against $+0.0076$).
+
+The mechanism is answerability, and it is the same one that explains Act 1's failures. Early, a
+specific question is uninformative \emph{because the cold user cannot answer it}; a broad question
+is coarse but answerable. Once placement has happened, broad questions are exhausted --- the user's
+region is already known --- and specific questions become both answerable in expectation and
+discriminative. Coarse-to-fine is therefore a property of loss-optimal selection under an
+answerability-aware answer model, not a design choice, and it is visible without training any
+policy at all.
+
+The channels also divide the axes: concepts own the tail at every budget ($.0921$ against $.0761$
+at sixteen questions) and items own full accuracy at long budgets ($.2104$ against $.1997$), with
+the combined sequence taking the better of both ($.2115/.0880$). The composition is visibly steered
+by the objective, which is why a tail-objective sequence is required before any tail-optimised
+claim is made. \REDO{the \texttt{--objective tail} greedy sequence; the table above is
+full-objective only}
+
+\paragraph{Face validity.} A policy that branches is not the same as a policy that branches
+\emph{sensibly}, and mechanical divergence statistics cannot tell them apart. We therefore report,
+alongside every emergent-strategy claim, (i) hand-picked trajectories a reader can inspect, and
+(ii) a quantitative coherence check --- the genre-congruence rate of chosen follow-ups against a
+matched-divisiveness random control. The template is our earlier probe in which the best follow-up
+after a genre question was, without anyone encoding it, a niche film \emph{of that genre}.
+\PLAN{both face-validity exhibits on the certified stack}
+
+\section{Act 5: external validity --- real requests}
+\label{sec:reddit}
+
+The open-opener distribution and the dispersion measurement both rest on a corpus of real requests:
+$4{,}431$ threads, each an unprompted free-text request with ground-truth items, linked to the
+catalogue by a two-tier pipeline (deterministic rules for unambiguous spans, a language model
+adjudicating the remainder) whose precision we measured against a $500$-mention hand-labelled gold
+standard: $0.572$ for the corpus's own links, $0.960$ for our pipeline. Every request is parsed into
+typed preference slots ($94.0\%$ are genuine requests; median five slots; positive anchors in
+$63\%$ of threads, explicit dislikes in $16.5\%$). These artefacts serve three roles: they supply
+the opener distribution for Act 3, they are the ecological endpoint of the openness gradient in
+Table~\ref{tab:dispersion}, and their volunteered slots form the answer pool for a withheld-slot
+replay in which the interview must recover what the user would have said. \PLAN{the withheld-slot
+replay, both the pool-restricted refusal-free variant and the refusal-counting variant}
+
+\section{Limitations}
+
+\textbf{The criterion in Section~\ref{sec:act2} scores against the recommender's own predictive
+distribution}, so it measures self-consistent expected gain: a divergence in what the model thinks
+is worth asking is necessary but not sufficient for a divergence in what pays. A ground-truth-coupled
+criterion would be clairvoyant and could not be computed at interview time.
+\textbf{Answerability is simulated from the same history that scores the user}, which is the
+standard protocol in this literature and is stated, not hidden.
+\textbf{The adaptive selectors maintain their own posteriors}, because the certified tower is
+deterministic and has none --- so no selector here can use the instrument's own uncertainty. That
+is a real gap in the interface and it is where a continuous-action policy would live; it is out of
+scope for this chapter by design.
+\textbf{One free constant} (the UCB exploration weight) was fixed at one posterior standard
+deviation and never tuned; tuning it on validation users is open work.
+\textbf{The written-request corpus bounds open-answer richness from above}, since a composed post
+is not a live spoken answer, while the favourite-film opener bounds it from below; the claim ceiling
+is a population conditioned on request-shaped evidence, never ``for real requesters''.
+
+\section{Positioning}
+
+Two literatures meet here and only one is commensurable with our protocol. The \emph{rating
+elicitation} line --- interview trees, functional matrix factorisation, seed-set optimisation, and
+their recent region-based and learned-static successors --- shares our contract: a cold user, a
+question budget, and a held-out ranking metric afterwards. Those methods are re-run on our ruler
+rather than compared through their published numbers, which were measured on different splits and
+budgets. The \emph{interactive/conversational RL} line prices a different quantity --- cumulative
+reward during the interaction, or success rate at a turn against a known target item --- and its
+simulators typically see the target's attributes. Its policies are portable; its numbers are not,
+and we do not order them against ours. \REDO{full related-work section; the ranked baseline survey
+and its exclusion reasons live in the project's literature index}
+
+\PLAN{Two named comparators remain to be run on our ruler: a learned static seed-set method
+(the strongest published \emph{static} bar) and a recent region-based adaptive method over a frozen
+embedding space (the strongest published \emph{adaptive} bar). Act 1's null is stated against the
+bandit and information-gain families until those land.}
+
+\section*{Reproducibility}
+
+Every number in this draft is from the certified pair (tower \texttt{i26c ep31}, concept channel
+\texttt{cv3 ep08}), the canonical split, NO-FLOOR, behavioural answers, all $10{,}000$ test users
+with no sampling. Run records: the greedy sequences and their gates; the adaptive-versus-static
+table with its exact-equivalence regression gate; the dispersion measurement with shuffle,
+existential and determinism controls; the linking pipeline's gold-standard precision; the slot
+parse. Selection ran on validation users only in every experiment that selects anything.
+
+\end{document}
