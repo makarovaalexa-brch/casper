@@ -139,7 +139,16 @@ recommender can extract from \emph{truthful, behaviour-grounded} answers, with n
 anywhere in the answer path---a property we enforce in code and state as a first-class part of the protocol
 (\S\ref{sec:firewall}). What it does not measure is how a person phrases, hedges or misreads a rendered question.
 Human answer noise is a property of the elicitation layer, and it belongs to the companion chapter that studies
-that layer; conflating the two is how a simulator flatters the system it is simulating.
+that layer; conflating the two is how a simulator comes to flatter the system it is simulating.
+
+\paragraph{Accuracy at full profile does not imply accuracy after an interview.} One number makes the point
+concretely, and it concerns a baseline rather than our instrument, so it can be stated before the instrument is
+described. The strongest full-profile model on our ruler, RecVAE~\cite{ren2020recvae}, when restricted to the
+likes among the asked items---the only encoding an item-indicator input admits---scores below our instrument by
+$0.029$ full NDCG@10 after eight questions, each system on its own best question-selection strategy, on
+$10{,}000$ held-out users with a paired confidence interval excluding zero (\S\ref{sec:instrdep}). The same model
+is \emph{above} ours at full profile. Whatever else separates the two systems, a strong full-profile score is not
+by itself sufficient for a strong short interview.
 
 \paragraph{Four requirements.}
 An instrument fit for measuring conversational elicitation must simultaneously satisfy:
@@ -147,6 +156,10 @@ An instrument fit for measuring conversational elicitation must simultaneously s
   \item[R1 --- frontier-parity full profile.] On a full interaction history it must rank at the level of the strongest shallow
         collaborative-filtering baselines (EASE~\cite{steck2019ease}, RecVAE~\cite{ren2020recvae}), so that
         elicitation is measured against a recommender nobody can dismiss as weak~\cite{dacrema2019progress}.
+        \emph{Frontier-parity names a tolerance, not an equality}: we fix it in advance at within $1.5\%$
+        relative of the strongest measured baseline on \emph{both} axes, on one shared harness. A system may
+        satisfy R1 while being separably behind the bar, and ours is---the requirement is that the shortfall be
+        small, stated, and bounded, not that it be statistically absent.
   \item[R2 --- an open set-valued input interface.] It must ingest an evidence set of \emph{any} cardinality, from
         $0$ (fully cold) upward, without per-user retraining---and, the part that bites, the members of that set
         must be \emph{arbitrary embeddings rather than pre-committed ones}. Any-length input alone is undemanding: every
@@ -440,7 +453,7 @@ LLM zero-shot CRS~\cite{he2023large}\,$^{\dagger}$ & \xmark & \cmark & \xmark & 
 \xmark~not met, no intermediate grade; a requirement counts as met only where the system provides it as a
 designed, demonstrated capability, read from its \emph{published} claims. \textsc{in} is the input contract the
 system consumes: \textbf{b}~binary implicit feedback (its \textsc{native} input is then identical to its
-\textsc{liang} input --- these systems have no slot for a grade), \textbf{g}~ratings-native. Protocols are defined
+\textsc{liang} input --- these systems admit no graded value), \textbf{g}~ratings-native. Protocols are defined
 in \S\ref{sec:protocols}; both are NDCG@10 (full and tail) on one ruler and one harness.
 $^{\dagger}$~no full-catalogue ranker on this ruler (per-system reason in \S\ref{sec:gap}).
 $^{\ddagger}$~cold-start or elicitation method scored off its design point: the full-profile row is a reduction we
@@ -643,12 +656,21 @@ the literature.
 \emph{We should be precise about which of these is impossible and which is merely lossy}, because one obvious
 reduction exists and we do not want to overstate. A concept \emph{all of whose members are already in the
 catalogue} can be approximated by a weighted indicator over those members, and that vector can be fed to EASE or
-RecVAE without adding any column at all. We do not claim that reduction fails; we have not run it. What it cannot
-do is carry a sign or a magnitude (leg i), and it cannot exist at all for a concept coined after the model was
-fitted, for a phrase with no curated counterpart, or for a direction a policy emits (legs ii and iii)---because
-there are no member columns to weight. So the honest statement is: for an in-catalogue concept the item basis
-offers a lossy approximation whose losses are exactly legs (i) and (ii); for an out-of-catalogue or name-only
-direction it offers nothing, and that case is impossible rather than lossy.
+RecVAE without adding any column at all.
+
+That reduction is nonetheless bounded in two ways, and the first is the one that matters, because it applies to
+\emph{every} concept rather than to an exotic subset. A nonnegative indicator over member items has no encoding
+for a negative answer: ``I dislike westerns'' is not expressible as a weighted bag of westerns, whatever the
+weights, because the basis carries no sign. The same limit is what the critiquing literature runs into---across
+eight systems we find the critique is a one-hot indicator over a closed set, without exception (\S\ref{sec:related})---and it is
+what our own sign contrast measures directly ($+0.2096$, CI $[+0.1986,+0.2208]$). Signed concept answers are
+therefore inexpressible in the item basis for in-catalogue and out-of-catalogue concepts alike.
+
+The second bound is absolute rather than lossy, and applies to a narrower set: for a concept coined after the
+model was fitted, for a phrase with no curated counterpart, or for a direction a policy emits, there are no
+member columns to weight, so no reduction exists at any fidelity. The two together are why we describe the legs
+as having no faithful encoding rather than as untuned: sign fails universally, and expandability fails
+absolutely.
 
 The distinction that matters is between an \emph{open} and a \emph{closed} channel. An item-indicator model can be
 extended with a concept---as a pseudo-item column, or an extra input unit---but only by adding a column, and a column
@@ -1415,7 +1437,7 @@ the three would pass the rule above.
 
 We make no claim that our answers are what a \emph{person} would say---that is the scope boundary of
 \S\ref{sec:intro} and the limitation of \S\ref{sec:limits}. The claim is narrower and checkable: whatever these
-answers are, they are not the recommender talking to itself.
+answers are, they are computed independently of the model being evaluated.
 
 \paragraph{Metrics.}
 Full \emph{and} tail NDCG@10 on ML-25M (the project reporting rule, scored with the decoder's learned bias, not a
@@ -1469,7 +1491,7 @@ orderings}. Every within-row gap that decides an order is separated by a paired 
 ($10{,}000$ resamples), except where marked $\approx$ or \emph{flat}. \emph{Ours $-$ this} compares each system at
 its own best strategy against ours at ours, paired on the same users.
 $^{\S}$\,RecVAE restricted to the \emph{likes} among the asked items---a frontier-accuracy recommender with the
-crudest admissible interface, since a bag-of-items vector has no slot for a ``no''. It is a control, not a rival:
+crudest admissible interface, since a binary indicator vector cannot represent a negative response. It is a control, not a rival:
 it is the row that distinguishes \emph{the ordering depends on the strategy--recommender pair} from \emph{weak
 recommenders scramble everything}. Reported without the floor like every other row; only its \textsc{helf} cell is
 materially affected (that arm yields $1.6$ answers of $8$, and a likes-only consumer has no fallback when a user
@@ -1488,19 +1510,24 @@ recommender, would be reporting something true and non-transferable. This is the
 which elicitation results are instrument-relative, and it is why we think a documented, certified, reusable
 consumer is a contribution rather than plumbing.
 
-\emph{The disagreement is not an artifact of weak recommenders.} The likes-only RecVAE row is the control that
-settles this: it is the same frontier-accuracy model that sets the R1 bar, given the crudest interface an
+\emph{This disagreement is not attributable to weak recommenders.} The likes-only RecVAE row is the control: it is the same frontier-accuracy model that sets the R1 bar, given the crudest interface an
 item-only architecture admits, and it disagrees with our instrument \emph{and} with the Golbandi node model.
 Whatever drives the disagreement, it is not that the other consumers are simply bad at recommending. The same row
-carries a second reading worth stating plainly: at full profile that model beats ours ($0.3540$ against $0.3496$),
-and at an eight-question interview it loses to ours by $+0.0293$ full and $+0.0258$ tail, each system on its own
-best strategy, both separated. Same architecture, same frozen weights, same questions---only what it can hear
-differs. Full-profile strength does not transfer to the interview on its own, which is the bifurcation of
-\S\ref{sec:gap} demonstrated inside a single experiment rather than across a literature.
+carries a second reading. At full profile that model exceeds ours ($0.3540$ against $0.3496$); at an
+eight-question interview it falls below ours by $+0.0293$ full and $+0.0258$ tail, each system on its own best
+strategy, both separated. The ordering of the two systems therefore reverses between the two operating points.
+We are careful about what that does and does not establish. It is not a controlled attribution: our tower is
+initialised from that model but subsequently trained on interviews, so the difference confounds the input
+contract with that training, and we do not separate them here. What it does establish is the weaker and
+sufficient claim---that full-profile accuracy is not sufficient for interview accuracy, since the system with
+the higher full-profile score is the lower-scoring interview consumer. That is the bifurcation of
+\S\ref{sec:gap} observed within a single experiment rather than inferred across a literature.
 
 \emph{The winning heuristic can depend on the metric as well as on the consumer.} For the likes-only RecVAE the
 gap between \textsc{entropy0} and \textsc{popularity} is $-0.0042$ on the full profile and $+0.0042$ on the
-tail---the same magnitude in opposite directions, both intervals excluding zero. So even holding the consumer
+tail. The two magnitudes coincide to four decimal places, which is a coincidence of rounding rather than a
+shared decomposition: the full and tail metrics are computed over different candidate sets and different user
+subsets ($10{,}000$ and $9{,}281$), so neither difference constrains the other. So even holding the consumer
 fixed, ``which heuristic wins'' is not answered until the metric is named. We report full \emph{and} tail
 throughout for exactly this reason.
 
