@@ -489,3 +489,22 @@ to interview).
 | `rubens2007influence` | Rubens & Sugiyama. Influence-based collaborative active learning. RecSys 2007 | *(already owed)* |
 | `yu2006ted` | Yu, Bi & Tresp. Active learning via transductive experimental design. ICML 2006 | *(already owed)* — also a legit STATIC arm |
 | `elahi2014active` | Elahi, Ricci & Rubens. Active learning strategies for rating elicitation in CF. ACM TIST 5(1), 2014 | *(already owed by `answerability_in_elicitation.md`)* — Binary Prediction = learned `A_i` |
+
+### 0.7 ✅ VERIFIED FROM PRIMARY TEXT — EDDI uses NO recommendation data, and no ratings (2026-08-06)
+A review suggested Ma et al. (ICML 2019) run the Partial-VAE on **MovieLens ratings** with a Gaussian
+likelihood, which would have obliged us to add a ratings-native EDDI row. **This is false.** Extracted the
+full 22-page PDF (arXiv 1809.11142) locally with PyMuPDF and searched it:
+
+  MovieLens 0 · rating 0 · UCI 28 · MNIST 7 · NHANES 11
+
+The paper's own contribution list: *"the Partial VAE framework on an image inpainting task (Section 4.1)
+… 6 different datasets from the Machine Learning repository of University of Irvine (UCI) … Finally, we
+evaluate EDDI on two real-life healthcare applications: risk assessment in intensive care (Section 4.3)
+and public health assessment using a national survey (Section 4.4)."*
+
+**Consequences.** (1) EDDI is binary-native for our purposes and its NATIVE column legitimately equals its
+LIANG column — no ratings retrain is owed. (2) Our chapter's framing "demonstrated outside recommendation"
+is CORRECT; the parenthetical "(UCI/MNIST)" is incomplete and should read "(UCI, MNIST, healthcare)".
+(3) Method note: the remote fetch returned an unparseable PDF; extracting locally with PyMuPDF
+(`C:\dev\phd\tools\pylibs`) worked first try. Use that route for the remaining verification debts in
+task #55 rather than accepting search snippets — this is the same failure mode recorded there.
