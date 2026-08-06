@@ -1,0 +1,1713 @@
+{
+  "meta": {
+    "label": "gtport13_paired",
+    "boot": 10000,
+    "seed": 98765,
+    "source_vectors": "adaptive_table_gtport13_per_user.npz",
+    "form": "paired percentile bootstrap over the per-user difference vector",
+    "contract": "canonical Liang ML-25M, policy-B pool, NO-FLOOR, 10,000 test users",
+    "n_full_scored": 10000,
+    "n_tail_scored": 9281,
+    "cells_present": [
+      "golbandi_leaf_lam200|entropy0-static|k1",
+      "golbandi_leaf_lam200|entropy0-static|k2",
+      "golbandi_leaf_lam200|entropy0-static|k4",
+      "golbandi_leaf_lam200|entropy0-static|k8",
+      "golbandi_leaf_lam200|golbandi_tree|k1",
+      "golbandi_leaf_lam200|golbandi_tree|k2",
+      "golbandi_leaf_lam200|golbandi_tree|k4",
+      "golbandi_leaf_lam200|golbandi_tree|k8",
+      "golbandi_leaf_lam200|treestatic:entropy0|k1",
+      "golbandi_leaf_lam200|treestatic:entropy0|k2",
+      "golbandi_leaf_lam200|treestatic:entropy0|k4",
+      "golbandi_leaf_lam200|treestatic:entropy0|k8",
+      "golbandi_leaf_lam200|treestatic:helf|k1",
+      "golbandi_leaf_lam200|treestatic:helf|k2",
+      "golbandi_leaf_lam200|treestatic:helf|k4",
+      "golbandi_leaf_lam200|treestatic:helf|k8",
+      "golbandi_leaf_lam200|treestatic:popularity|k1",
+      "golbandi_leaf_lam200|treestatic:popularity|k2",
+      "golbandi_leaf_lam200|treestatic:popularity|k4",
+      "golbandi_leaf_lam200|treestatic:popularity|k8",
+      "golbandi_leaf|entropy0-static|k1",
+      "golbandi_leaf|entropy0-static|k2",
+      "golbandi_leaf|entropy0-static|k4",
+      "golbandi_leaf|entropy0-static|k8",
+      "golbandi_leaf|golbandi_tree|k1",
+      "golbandi_leaf|golbandi_tree|k2",
+      "golbandi_leaf|golbandi_tree|k4",
+      "golbandi_leaf|golbandi_tree|k8",
+      "golbandi_leaf|treestatic:entropy0|k1",
+      "golbandi_leaf|treestatic:entropy0|k2",
+      "golbandi_leaf|treestatic:entropy0|k4",
+      "golbandi_leaf|treestatic:entropy0|k8",
+      "golbandi_leaf|treestatic:helf|k1",
+      "golbandi_leaf|treestatic:helf|k2",
+      "golbandi_leaf|treestatic:helf|k4",
+      "golbandi_leaf|treestatic:helf|k8",
+      "golbandi_leaf|treestatic:popularity|k1",
+      "golbandi_leaf|treestatic:popularity|k2",
+      "golbandi_leaf|treestatic:popularity|k4",
+      "golbandi_leaf|treestatic:popularity|k8",
+      "ours|entropy0-static|k1",
+      "ours|entropy0-static|k2",
+      "ours|entropy0-static|k4",
+      "ours|entropy0-static|k8",
+      "ours|golbandi_tree|k1",
+      "ours|golbandi_tree|k2",
+      "ours|golbandi_tree|k4",
+      "ours|golbandi_tree|k8",
+      "ours|treestatic:entropy0|k1",
+      "ours|treestatic:entropy0|k2",
+      "ours|treestatic:entropy0|k4",
+      "ours|treestatic:entropy0|k8",
+      "ours|treestatic:helf|k1",
+      "ours|treestatic:helf|k2",
+      "ours|treestatic:helf|k4",
+      "ours|treestatic:helf|k8",
+      "ours|treestatic:popularity|k1",
+      "ours|treestatic:popularity|k2",
+      "ours|treestatic:popularity|k4",
+      "ours|treestatic:popularity|k8"
+    ],
+    "self_test_pass": true,
+    "greedy": {
+      "greedy_npz": "C:\\dev\\phd\\casper\\experiments\\baselines\\interview\\gtport13_greedy_per_user.npz",
+      "admitted": true,
+      "entropy0_canary_max_abs_per_user_diff": 0.0
+    },
+    "skipped_for_missing_cells": []
+  },
+  "points": {
+    "ours|golbandi_tree|k1": {
+      "full": 0.1556746282745192,
+      "tail": 0.03513476284122084
+    },
+    "ours|golbandi_tree|k2": {
+      "full": 0.1613953814934699,
+      "tail": 0.047831204683655246
+    },
+    "ours|golbandi_tree|k4": {
+      "full": 0.1863502400875906,
+      "tail": 0.06503966928052468
+    },
+    "ours|golbandi_tree|k8": {
+      "full": 0.21167423194295543,
+      "tail": 0.08439155566560672
+    },
+    "ours|treestatic:popularity|k1": {
+      "full": 0.16059835644333517,
+      "tail": 0.0399555252569825
+    },
+    "ours|treestatic:popularity|k2": {
+      "full": 0.1647439573409754,
+      "tail": 0.046996157421280764
+    },
+    "ours|treestatic:popularity|k4": {
+      "full": 0.17459007094788623,
+      "tail": 0.05790764088766846
+    },
+    "ours|treestatic:popularity|k8": {
+      "full": 0.19433153094211686,
+      "tail": 0.06864831389149503
+    },
+    "ours|treestatic:helf|k1": {
+      "full": 0.16028823789388108,
+      "tail": 0.03537760688664441
+    },
+    "ours|treestatic:helf|k2": {
+      "full": 0.16275016907271908,
+      "tail": 0.041990758131147124
+    },
+    "ours|treestatic:helf|k4": {
+      "full": 0.17551972987647424,
+      "tail": 0.05882072630093617
+    },
+    "ours|treestatic:helf|k8": {
+      "full": 0.18922483249137528,
+      "tail": 0.07249979445569031
+    },
+    "ours|treestatic:entropy0|k1": {
+      "full": 0.16348255500939268,
+      "tail": 0.043279889667582394
+    },
+    "ours|treestatic:entropy0|k2": {
+      "full": 0.1705622860886546,
+      "tail": 0.05282299574227912
+    },
+    "ours|treestatic:entropy0|k4": {
+      "full": 0.183103289031884,
+      "tail": 0.06358371419603398
+    },
+    "ours|treestatic:entropy0|k8": {
+      "full": 0.20526394292312922,
+      "tail": 0.07922116628163539
+    },
+    "ours|entropy0-static|k1": {
+      "full": 0.16348255500939268,
+      "tail": 0.043279889667582394
+    },
+    "ours|entropy0-static|k2": {
+      "full": 0.1705622860886546,
+      "tail": 0.05282299574227912
+    },
+    "ours|entropy0-static|k4": {
+      "full": 0.183103289031884,
+      "tail": 0.06358371419603398
+    },
+    "ours|entropy0-static|k8": {
+      "full": 0.20526394292312922,
+      "tail": 0.07922116628163539
+    },
+    "golbandi_leaf|golbandi_tree|k1": {
+      "full": 0.16956836367583358,
+      "tail": 0.04051375525997383
+    },
+    "golbandi_leaf|golbandi_tree|k2": {
+      "full": 0.1711636109753454,
+      "tail": 0.048564718930399625
+    },
+    "golbandi_leaf|golbandi_tree|k4": {
+      "full": 0.18672368937890302,
+      "tail": 0.07112863831180942
+    },
+    "golbandi_leaf|golbandi_tree|k8": {
+      "full": 0.1934391473128348,
+      "tail": 0.0791500532347125
+    },
+    "golbandi_leaf|treestatic:popularity|k1": {
+      "full": 0.15314776336937388,
+      "tail": 0.033144304682370854
+    },
+    "golbandi_leaf|treestatic:popularity|k2": {
+      "full": 0.15338575026014564,
+      "tail": 0.04253072209771851
+    },
+    "golbandi_leaf|treestatic:popularity|k4": {
+      "full": 0.14447346192022384,
+      "tail": 0.050108033786596215
+    },
+    "golbandi_leaf|treestatic:popularity|k8": {
+      "full": 0.17162070444444757,
+      "tail": 0.06960004546567712
+    },
+    "golbandi_leaf|treestatic:helf|k1": {
+      "full": 0.16648157937764738,
+      "tail": 0.0401601382276939
+    },
+    "golbandi_leaf|treestatic:helf|k2": {
+      "full": 0.1739353747017557,
+      "tail": 0.047348565267201985
+    },
+    "golbandi_leaf|treestatic:helf|k4": {
+      "full": 0.1890154151310554,
+      "tail": 0.07132909816968232
+    },
+    "golbandi_leaf|treestatic:helf|k8": {
+      "full": 0.19479928858972123,
+      "tail": 0.07924870274001786
+    },
+    "golbandi_leaf|treestatic:entropy0|k1": {
+      "full": 0.15791559065714283,
+      "tail": 0.03472958353951599
+    },
+    "golbandi_leaf|treestatic:entropy0|k2": {
+      "full": 0.15625608463573734,
+      "tail": 0.041384614758805435
+    },
+    "golbandi_leaf|treestatic:entropy0|k4": {
+      "full": 0.16804918622511125,
+      "tail": 0.06697632265862186
+    },
+    "golbandi_leaf|treestatic:entropy0|k8": {
+      "full": 0.16860320832579923,
+      "tail": 0.06768866682324698
+    },
+    "golbandi_leaf|entropy0-static|k1": {
+      "full": 0.15791559065714283,
+      "tail": 0.03472958353951599
+    },
+    "golbandi_leaf|entropy0-static|k2": {
+      "full": 0.15625608463573734,
+      "tail": 0.041384614758805435
+    },
+    "golbandi_leaf|entropy0-static|k4": {
+      "full": 0.16804918622511125,
+      "tail": 0.06697632265862186
+    },
+    "golbandi_leaf|entropy0-static|k8": {
+      "full": 0.16860320832579923,
+      "tail": 0.06768866682324698
+    },
+    "golbandi_leaf_lam200|golbandi_tree|k1": {
+      "full": 0.1695925460870385,
+      "tail": 0.04048076852064546
+    },
+    "golbandi_leaf_lam200|golbandi_tree|k2": {
+      "full": 0.1711249306552264,
+      "tail": 0.0485100364181951
+    },
+    "golbandi_leaf_lam200|golbandi_tree|k4": {
+      "full": 0.1861682233013526,
+      "tail": 0.07114718823434059
+    },
+    "golbandi_leaf_lam200|golbandi_tree|k8": {
+      "full": 0.19230962847509203,
+      "tail": 0.07794699836417884
+    },
+    "golbandi_leaf_lam200|treestatic:popularity|k1": {
+      "full": 0.15319182679211557,
+      "tail": 0.03314478855088204
+    },
+    "golbandi_leaf_lam200|treestatic:popularity|k2": {
+      "full": 0.15327526040203066,
+      "tail": 0.04249735505094781
+    },
+    "golbandi_leaf_lam200|treestatic:popularity|k4": {
+      "full": 0.1447115108829838,
+      "tail": 0.050103580585785186
+    },
+    "golbandi_leaf_lam200|treestatic:popularity|k8": {
+      "full": 0.18692515616450706,
+      "tail": 0.06988528208481712
+    },
+    "golbandi_leaf_lam200|treestatic:helf|k1": {
+      "full": 0.1664541233285961,
+      "tail": 0.04015834078729209
+    },
+    "golbandi_leaf_lam200|treestatic:helf|k2": {
+      "full": 0.17398221222346802,
+      "tail": 0.047318008790167405
+    },
+    "golbandi_leaf_lam200|treestatic:helf|k4": {
+      "full": 0.18822034012808467,
+      "tail": 0.07111594977609428
+    },
+    "golbandi_leaf_lam200|treestatic:helf|k8": {
+      "full": 0.19099288973565182,
+      "tail": 0.07743732997847051
+    },
+    "golbandi_leaf_lam200|treestatic:entropy0|k1": {
+      "full": 0.1578899778208689,
+      "tail": 0.034713917170934645
+    },
+    "golbandi_leaf_lam200|treestatic:entropy0|k2": {
+      "full": 0.156166649587289,
+      "tail": 0.04138996112817753
+    },
+    "golbandi_leaf_lam200|treestatic:entropy0|k4": {
+      "full": 0.167450770100219,
+      "tail": 0.06683967522591919
+    },
+    "golbandi_leaf_lam200|treestatic:entropy0|k8": {
+      "full": 0.1807227913188039,
+      "tail": 0.06725944384173907
+    },
+    "golbandi_leaf_lam200|entropy0-static|k1": {
+      "full": 0.1578899778208689,
+      "tail": 0.034713917170934645
+    },
+    "golbandi_leaf_lam200|entropy0-static|k2": {
+      "full": 0.156166649587289,
+      "tail": 0.04138996112817753
+    },
+    "golbandi_leaf_lam200|entropy0-static|k4": {
+      "full": 0.167450770100219,
+      "tail": 0.06683967522591919
+    },
+    "golbandi_leaf_lam200|entropy0-static|k8": {
+      "full": 0.1807227913188039,
+      "tail": 0.06725944384173907
+    }
+  },
+  "self_test": {
+    "SELFTEST/ours/full/k1/golbandi_tree-minus-itself": {
+      "n": 10000,
+      "delta": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "separates": false,
+      "direction": "ns"
+    },
+    "SELFTEST/ours/tail/k1/golbandi_tree-minus-itself": {
+      "n": 9281,
+      "delta": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "separates": false,
+      "direction": "ns"
+    },
+    "SELFTEST/ours/full/k2/golbandi_tree-minus-itself": {
+      "n": 10000,
+      "delta": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "separates": false,
+      "direction": "ns"
+    },
+    "SELFTEST/ours/tail/k2/golbandi_tree-minus-itself": {
+      "n": 9281,
+      "delta": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "separates": false,
+      "direction": "ns"
+    },
+    "SELFTEST/ours/full/k4/golbandi_tree-minus-itself": {
+      "n": 10000,
+      "delta": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "separates": false,
+      "direction": "ns"
+    },
+    "SELFTEST/ours/tail/k4/golbandi_tree-minus-itself": {
+      "n": 9281,
+      "delta": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "separates": false,
+      "direction": "ns"
+    },
+    "SELFTEST/ours/full/k8/golbandi_tree-minus-itself": {
+      "n": 10000,
+      "delta": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "separates": false,
+      "direction": "ns"
+    },
+    "SELFTEST/ours/tail/k8/golbandi_tree-minus-itself": {
+      "n": 9281,
+      "delta": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "separates": false,
+      "direction": "ns"
+    }
+  },
+  "C1_tree_vs_entropy0_ours": {
+    "ours/full/k1/golbandi_tree-minus-entropy0": {
+      "n": 10000,
+      "delta": -0.007807926734873517,
+      "lo": -0.009948474448134377,
+      "hi": -0.005644342661396448,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k1/golbandi_tree-minus-entropy0": {
+      "n": 9281,
+      "delta": -0.008145126826361555,
+      "lo": -0.010646010943032597,
+      "hi": -0.005706406580406929,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/full/k2/golbandi_tree-minus-entropy0": {
+      "n": 10000,
+      "delta": -0.00916690459518467,
+      "lo": -0.011453337620937972,
+      "hi": -0.006928587893858999,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k2/golbandi_tree-minus-entropy0": {
+      "n": 9281,
+      "delta": -0.004991791058623873,
+      "lo": -0.0074809578157683495,
+      "hi": -0.0025183454309584564,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/full/k4/golbandi_tree-minus-entropy0": {
+      "n": 10000,
+      "delta": 0.00324695105570659,
+      "lo": 0.0005680060362216699,
+      "hi": 0.005896093106475298,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k4/golbandi_tree-minus-entropy0": {
+      "n": 9281,
+      "delta": 0.0014559550844907068,
+      "lo": -0.00111289628520752,
+      "hi": 0.003985338557989438,
+      "separates": false,
+      "direction": "ns"
+    },
+    "ours/full/k8/golbandi_tree-minus-entropy0": {
+      "n": 10000,
+      "delta": 0.0064102890198262175,
+      "lo": 0.0036713841361092777,
+      "hi": 0.009070402612081212,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k8/golbandi_tree-minus-entropy0": {
+      "n": 9281,
+      "delta": 0.005170389383971319,
+      "lo": 0.002377323653322297,
+      "hi": 0.00789852889374105,
+      "separates": true,
+      "direction": "+"
+    }
+  },
+  "C2_tree_vs_greedy_ours": {
+    "ours/full/k1/golbandi_tree-minus-greedy_items": {
+      "n": 10000,
+      "delta": -0.020310095689970324,
+      "lo": -0.022675509662306897,
+      "hi": -0.017943301916308246,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/full/k1/entropy0-minus-greedy_items": {
+      "n": 10000,
+      "delta": -0.012502168955096808,
+      "lo": -0.014625197982422952,
+      "hi": -0.01039445007289906,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k1/golbandi_tree-minus-greedy_items": {
+      "n": 9281,
+      "delta": -0.008276349779829351,
+      "lo": -0.010424471691835436,
+      "hi": -0.0061477236821090185,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k1/entropy0-minus-greedy_items": {
+      "n": 9281,
+      "delta": -0.00013122295346779773,
+      "lo": -0.0022870717297255078,
+      "hi": 0.002080784070284914,
+      "separates": false,
+      "direction": "ns"
+    },
+    "ours/full/k2/golbandi_tree-minus-greedy_items": {
+      "n": 10000,
+      "delta": -0.029278249681270664,
+      "lo": -0.03212121396615234,
+      "hi": -0.026385458007165036,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/full/k2/entropy0-minus-greedy_items": {
+      "n": 10000,
+      "delta": -0.020111345086085988,
+      "lo": -0.02261959442132787,
+      "hi": -0.017547757267229666,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k2/golbandi_tree-minus-greedy_items": {
+      "n": 9281,
+      "delta": -0.01023456729275638,
+      "lo": -0.013019116172976119,
+      "hi": -0.0074624452608647715,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k2/entropy0-minus-greedy_items": {
+      "n": 9281,
+      "delta": -0.005242776234132509,
+      "lo": -0.007733295780668021,
+      "hi": -0.0027222324849890023,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/full/k4/golbandi_tree-minus-greedy_items": {
+      "n": 10000,
+      "delta": -0.02029224323752863,
+      "lo": -0.023400200341073516,
+      "hi": -0.017242201698143885,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/full/k4/entropy0-minus-greedy_items": {
+      "n": 10000,
+      "delta": -0.02353919429323522,
+      "lo": -0.026225911909117904,
+      "hi": -0.02087194063241122,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k4/golbandi_tree-minus-greedy_items": {
+      "n": 9281,
+      "delta": -0.005310153964870363,
+      "lo": -0.008146219280884314,
+      "hi": -0.0024540450145780126,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k4/entropy0-minus-greedy_items": {
+      "n": 9281,
+      "delta": -0.00676610904936107,
+      "lo": -0.009254177371768056,
+      "hi": -0.004233269073120329,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/full/k8/golbandi_tree-minus-greedy_items": {
+      "n": 10000,
+      "delta": -0.012989969519005839,
+      "lo": -0.01600289986986938,
+      "hi": -0.010030107236526144,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/full/k8/entropy0-minus-greedy_items": {
+      "n": 10000,
+      "delta": -0.019400258538832055,
+      "lo": -0.022169542170284974,
+      "hi": -0.016650483857762053,
+      "separates": true,
+      "direction": "-"
+    },
+    "ours/tail/k8/golbandi_tree-minus-greedy_items": {
+      "n": 9281,
+      "delta": 0.006824768590382174,
+      "lo": 0.003946584486963005,
+      "hi": 0.009786933481739778,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k8/entropy0-minus-greedy_items": {
+      "n": 9281,
+      "delta": 0.001654379206410856,
+      "lo": -0.0008763332159843515,
+      "hi": 0.00430116920972953,
+      "separates": false,
+      "direction": "ns"
+    }
+  },
+  "C3_tree_vs_helf_golbandi": {
+    "golbandi_leaf/full/k1/golbandi_tree-minus-helf": {
+      "n": 10000,
+      "delta": 0.0030867842981861606,
+      "lo": 0.00172085061890506,
+      "hi": 0.004469991436920037,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k1/golbandi_tree-minus-helf": {
+      "n": 9281,
+      "delta": 0.00035361703227993185,
+      "lo": -0.002322466068873687,
+      "hi": 0.003068870815516411,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/full/k2/golbandi_tree-minus-helf": {
+      "n": 10000,
+      "delta": -0.0027717637264103308,
+      "lo": -0.004852165900918545,
+      "hi": -0.0007056865870141893,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k2/golbandi_tree-minus-helf": {
+      "n": 9281,
+      "delta": 0.0012161536631976385,
+      "lo": -0.0010254910253924081,
+      "hi": 0.0034985877290893094,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/full/k4/golbandi_tree-minus-helf": {
+      "n": 10000,
+      "delta": -0.0022917257521523618,
+      "lo": -0.005522258001473913,
+      "hi": 0.0009630499411673128,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/tail/k4/golbandi_tree-minus-helf": {
+      "n": 9281,
+      "delta": -0.00020045985787288766,
+      "lo": -0.0030588613838902446,
+      "hi": 0.00265287036067419,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/full/k8/golbandi_tree-minus-helf": {
+      "n": 10000,
+      "delta": -0.001360141276886448,
+      "lo": -0.005340626007166157,
+      "hi": 0.002499646986812531,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/tail/k8/golbandi_tree-minus-helf": {
+      "n": 9281,
+      "delta": -9.864950530535794e-05,
+      "lo": -0.003227051688603589,
+      "hi": 0.0030368099403538375,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/full/k1/golbandi_tree-minus-entropy0": {
+      "n": 10000,
+      "delta": 0.011652773018690731,
+      "lo": 0.009795425726697685,
+      "hi": 0.01350144958277559,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k1/golbandi_tree-minus-entropy0": {
+      "n": 9281,
+      "delta": 0.005784171720457847,
+      "lo": 0.003298113043860672,
+      "hi": 0.008224608516226297,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/full/k2/golbandi_tree-minus-entropy0": {
+      "n": 10000,
+      "delta": 0.01490752633960805,
+      "lo": 0.01270556336469039,
+      "hi": 0.017139474262801668,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k2/golbandi_tree-minus-entropy0": {
+      "n": 9281,
+      "delta": 0.007180104171594189,
+      "lo": 0.004896785782901115,
+      "hi": 0.00949075638936764,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/full/k4/golbandi_tree-minus-entropy0": {
+      "n": 10000,
+      "delta": 0.01867450315379179,
+      "lo": 0.015305629112636,
+      "hi": 0.021997179392825496,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k4/golbandi_tree-minus-entropy0": {
+      "n": 9281,
+      "delta": 0.004152315653187563,
+      "lo": 0.00130515423482045,
+      "hi": 0.006937579590625163,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/full/k8/golbandi_tree-minus-entropy0": {
+      "n": 10000,
+      "delta": 0.024835938987035525,
+      "lo": 0.02104900196187224,
+      "hi": 0.028659264558305662,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k8/golbandi_tree-minus-entropy0": {
+      "n": 9281,
+      "delta": 0.01146138641146551,
+      "lo": 0.008403803780629035,
+      "hi": 0.014517935645788505,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/full/k1/golbandi_tree-minus-popularity": {
+      "n": 10000,
+      "delta": 0.01642060030645966,
+      "lo": 0.014016365927518355,
+      "hi": 0.01883738344027612,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k1/golbandi_tree-minus-popularity": {
+      "n": 9281,
+      "delta": 0.007369450577602983,
+      "lo": 0.0050734100574401165,
+      "hi": 0.009675007874579096,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/full/k2/golbandi_tree-minus-popularity": {
+      "n": 10000,
+      "delta": 0.017777860715199746,
+      "lo": 0.015163387361343416,
+      "hi": 0.020363411773983743,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k2/golbandi_tree-minus-popularity": {
+      "n": 9281,
+      "delta": 0.006033996832681118,
+      "lo": 0.003800680723833099,
+      "hi": 0.008304773263160153,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/full/k4/golbandi_tree-minus-popularity": {
+      "n": 10000,
+      "delta": 0.04225022745867916,
+      "lo": 0.03876414222392242,
+      "hi": 0.045788547060424546,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k4/golbandi_tree-minus-popularity": {
+      "n": 9281,
+      "delta": 0.02102060452521321,
+      "lo": 0.018105792212926932,
+      "hi": 0.02396465846427998,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/full/k8/golbandi_tree-minus-popularity": {
+      "n": 10000,
+      "delta": 0.02181844286838721,
+      "lo": 0.017893962028185335,
+      "hi": 0.025718997035526107,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k8/golbandi_tree-minus-popularity": {
+      "n": 9281,
+      "delta": 0.009550007769035388,
+      "lo": 0.0066280229677322415,
+      "hi": 0.012452967545387444,
+      "separates": true,
+      "direction": "+"
+    }
+  },
+  "C4_static_ladder": {
+    "ours/full/k1/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.0028841985660575196,
+      "lo": 0.001206999353731021,
+      "hi": 0.004557161986017436,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k1/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.0033243644105998963,
+      "lo": 0.0012633894612615127,
+      "hi": 0.005386383016739705,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k2/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.00581832874767916,
+      "lo": 0.004163356844615811,
+      "hi": 0.007528280990892703,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k2/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.005826838320998351,
+      "lo": 0.004025535642345551,
+      "hi": 0.007654294399801329,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k4/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.008513218083997777,
+      "lo": 0.006743621074090758,
+      "hi": 0.010309280717142625,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k4/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.005676073308365518,
+      "lo": 0.00410571236269034,
+      "hi": 0.00731372081047166,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k8/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.010932411981012363,
+      "lo": 0.00899911117026695,
+      "hi": 0.012885727543792965,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k8/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.010572852390140351,
+      "lo": 0.0084657486367028,
+      "hi": 0.012705640584193281,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k1/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": 0.003194317115511622,
+      "lo": 0.0015653659634250153,
+      "hi": 0.004838886653506203,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k1/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": 0.007902282780937983,
+      "lo": 0.005927577170320663,
+      "hi": 0.00998954267340435,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k2/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": 0.007812117015935488,
+      "lo": 0.005363239468004292,
+      "hi": 0.010274523899345649,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k2/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": 0.01083223761113199,
+      "lo": 0.008067748456184283,
+      "hi": 0.013699608458985138,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k4/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": 0.0075835591554097945,
+      "lo": 0.00457127306166453,
+      "hi": 0.01057343507259655,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k4/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": 0.004762987895097807,
+      "lo": 0.00176154502961183,
+      "hi": 0.007887140577320892,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k8/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": 0.016039110431753947,
+      "lo": 0.012724497515582953,
+      "hi": 0.019396919676374247,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k8/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": 0.0067213718259450835,
+      "lo": 0.003430846072259023,
+      "hi": 0.01017215075423822,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k1/popularity-minus-helf": {
+      "n": 10000,
+      "delta": 0.0003101185494541013,
+      "lo": -0.0011613910135777842,
+      "hi": 0.0017345001603756981,
+      "separates": false,
+      "direction": "ns"
+    },
+    "ours/tail/k1/popularity-minus-helf": {
+      "n": 9281,
+      "delta": 0.004577918370338087,
+      "lo": 0.0026552599104192353,
+      "hi": 0.006495811843813741,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k2/popularity-minus-helf": {
+      "n": 10000,
+      "delta": 0.001993788268256327,
+      "lo": -0.0003787219101950002,
+      "hi": 0.0044691098103506475,
+      "separates": false,
+      "direction": "ns"
+    },
+    "ours/tail/k2/popularity-minus-helf": {
+      "n": 9281,
+      "delta": 0.0050053992901336365,
+      "lo": 0.002341650660418228,
+      "hi": 0.007663588869928981,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/full/k4/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.0009296589285879822,
+      "lo": -0.0038397857385165115,
+      "hi": 0.002005122375803336,
+      "separates": false,
+      "direction": "ns"
+    },
+    "ours/tail/k4/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.0009130854132677097,
+      "lo": -0.00392164909603589,
+      "hi": 0.002143134399539854,
+      "separates": false,
+      "direction": "ns"
+    },
+    "ours/full/k8/popularity-minus-helf": {
+      "n": 10000,
+      "delta": 0.00510669845074158,
+      "lo": 0.001928463520858041,
+      "hi": 0.008325160708426553,
+      "separates": true,
+      "direction": "+"
+    },
+    "ours/tail/k8/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.0038514805641952665,
+      "lo": -0.007081795869751055,
+      "hi": -0.0006013486880639694,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/full/k1/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.004767827287768927,
+      "lo": 0.002230014901049552,
+      "hi": 0.007334643800358639,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k1/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.0015852788571451362,
+      "lo": -0.0004276197561692031,
+      "hi": 0.0036861137671305296,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/full/k2/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.0028703343755916958,
+      "lo": 0.0005001136279221095,
+      "hi": 0.0052702311468389015,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k2/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": -0.0011461073389130692,
+      "lo": -0.002961152342443873,
+      "hi": 0.0006615038277102692,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/full/k4/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.023575724304887365,
+      "lo": 0.02038607819347858,
+      "hi": 0.026793390581328496,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/tail/k4/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.016868288872025648,
+      "lo": 0.0145486307170369,
+      "hi": 0.019138307012652213,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf/full/k8/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": -0.003017496118648314,
+      "lo": -0.006016173245065976,
+      "hi": -3.191217887094909e-05,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k8/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": -0.0019113786424301224,
+      "lo": -0.0043089649256425515,
+      "hi": 0.0005118484204209197,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf/full/k1/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.008565988720504571,
+      "lo": -0.010328981600359258,
+      "hi": -0.006879663382970496,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k1/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.005430554688177915,
+      "lo": -0.00771748669332712,
+      "hi": -0.0031417626422298815,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/full/k2/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.017679290066018385,
+      "lo": -0.0203241227475511,
+      "hi": -0.015053868385820868,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k2/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.00596395050839655,
+      "lo": -0.008487306329454257,
+      "hi": -0.003483128139027764,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/full/k4/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.02096622890594415,
+      "lo": -0.024769948170221302,
+      "hi": -0.017219270514347306,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k4/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.004352775511060451,
+      "lo": -0.0073607081194239435,
+      "hi": -0.0011596141770860815,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/full/k8/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.02619608026392197,
+      "lo": -0.030416926844423077,
+      "hi": -0.022090286443054115,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k8/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.011560035916770869,
+      "lo": -0.014874140433386229,
+      "hi": -0.008207647171981152,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/full/k1/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.013333816008273498,
+      "lo": -0.01566912615052414,
+      "hi": -0.011008556879725472,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k1/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.007015833545323052,
+      "lo": -0.009396567045611984,
+      "hi": -0.004601646098688478,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/full/k2/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.02054962444161008,
+      "lo": -0.0235566311776881,
+      "hi": -0.0174604719111028,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k2/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.004817843169483479,
+      "lo": -0.0074555411232813795,
+      "hi": -0.002197924044081636,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/full/k4/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.044541953210831514,
+      "lo": -0.04827532301741778,
+      "hi": -0.040829201604577696,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k4/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.021221064383086102,
+      "lo": -0.0243157052656956,
+      "hi": -0.018070721943716225,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/full/k8/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.023178584145273656,
+      "lo": -0.027648258952194662,
+      "hi": -0.018818600024837852,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf/tail/k8/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.009648657274340748,
+      "lo": -0.012894023912354557,
+      "hi": -0.006388228809834147,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k1/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.004698151028753286,
+      "lo": 0.0021589889055055674,
+      "hi": 0.007259046822927562,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf_lam200/tail/k1/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.0015691286200526027,
+      "lo": -0.0004534115857755966,
+      "hi": 0.0036804212777969813,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf_lam200/full/k2/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.0028913891852583758,
+      "lo": 0.0005301140997655673,
+      "hi": 0.005278270729089137,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf_lam200/tail/k2/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": -0.0011073939227702802,
+      "lo": -0.00291907978318004,
+      "hi": 0.0007056470065353653,
+      "separates": false,
+      "direction": "ns"
+    },
+    "golbandi_leaf_lam200/full/k4/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": 0.022739259217235186,
+      "lo": 0.01959082703779957,
+      "hi": 0.025939331172999344,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf_lam200/tail/k4/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": 0.016736094640134012,
+      "lo": 0.014420653773461162,
+      "hi": 0.018993931202594724,
+      "separates": true,
+      "direction": "+"
+    },
+    "golbandi_leaf_lam200/full/k8/entropy0-minus-popularity": {
+      "n": 10000,
+      "delta": -0.006202364845703132,
+      "lo": -0.008751107787029654,
+      "hi": -0.0036017606732834944,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k8/entropy0-minus-popularity": {
+      "n": 9281,
+      "delta": -0.0026258382430780543,
+      "lo": -0.004850306199661658,
+      "hi": -0.0004787776102707499,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k1/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.008564145507727237,
+      "lo": -0.010325738662523539,
+      "hi": -0.00688477201544523,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k1/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.005444423616357452,
+      "lo": -0.007722719097661396,
+      "hi": -0.0031487893323217573,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k2/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.017815562636178978,
+      "lo": -0.020449187374238578,
+      "hi": -0.015203411233381396,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k2/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.005928047661989872,
+      "lo": -0.008423777547728686,
+      "hi": -0.0034408076429849224,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k4/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.020769570027865683,
+      "lo": -0.024428265293485307,
+      "hi": -0.01714084485105611,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k4/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.0042762745501750965,
+      "lo": -0.007287107557263054,
+      "hi": -0.0011439017713022023,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k8/entropy0-minus-helf": {
+      "n": 10000,
+      "delta": -0.01027009841684793,
+      "lo": -0.013387410669168378,
+      "hi": -0.007155273900594176,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k8/entropy0-minus-helf": {
+      "n": 9281,
+      "delta": -0.01017788613673145,
+      "lo": -0.013326591171478367,
+      "hi": -0.007023045263310434,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k1/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.013262296536480525,
+      "lo": -0.015593893846519796,
+      "hi": -0.010947416988264928,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k1/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.007013552236410056,
+      "lo": -0.009395199672858843,
+      "hi": -0.0046101257708405,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k2/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.020706951821437353,
+      "lo": -0.023703876815411026,
+      "hi": -0.017637424958976085,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k2/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.004820653739219591,
+      "lo": -0.007460287721677329,
+      "hi": -0.0022032911077233142,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k4/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.04350882924510087,
+      "lo": -0.04718326576129262,
+      "hi": -0.03992872103570653,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k4/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.02101236919030911,
+      "lo": -0.024053208958296254,
+      "hi": -0.017907042841748946,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/full/k8/popularity-minus-helf": {
+      "n": 10000,
+      "delta": -0.0040677335711447994,
+      "lo": -0.0075028826752664745,
+      "hi": -0.0007108082467120576,
+      "separates": true,
+      "direction": "-"
+    },
+    "golbandi_leaf_lam200/tail/k8/popularity-minus-helf": {
+      "n": 9281,
+      "delta": -0.007552047893653397,
+      "lo": -0.010626795928451255,
+      "hi": -0.004466466138842641,
+      "separates": true,
+      "direction": "-"
+    }
+  },
+  "C5_leaf_shrinkage": {
+    "lam200-minus-lam8/full/k1/golbandi_tree": {
+      "n": 10000,
+      "delta": 2.418241120494141e-05,
+      "lo": -3.4952226176298834e-05,
+      "hi": 8.789367970730791e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/tail/k1/golbandi_tree": {
+      "n": 9281,
+      "delta": -3.298673932837717e-05,
+      "lo": -8.711505171279486e-05,
+      "hi": 1.1134564025159116e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k2/golbandi_tree": {
+      "n": 10000,
+      "delta": -3.8680320119006216e-05,
+      "lo": -0.00018547558078313556,
+      "hi": 0.00010131201687683127,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/tail/k2/golbandi_tree": {
+      "n": 9281,
+      "delta": -5.468251220452875e-05,
+      "lo": -0.0001313525928775002,
+      "hi": 1.2061053471624393e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k4/golbandi_tree": {
+      "n": 10000,
+      "delta": -0.0005554660775504236,
+      "lo": -0.001090972384691149,
+      "hi": -2.505578210254214e-05,
+      "separates": true,
+      "direction": "-"
+    },
+    "lam200-minus-lam8/tail/k4/golbandi_tree": {
+      "n": 9281,
+      "delta": 1.8549922531160314e-05,
+      "lo": -0.0002599177605676579,
+      "hi": 0.00029335697421826914,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k8/golbandi_tree": {
+      "n": 10000,
+      "delta": -0.0011295188377427657,
+      "lo": -0.003522472101573959,
+      "hi": 0.0012999178705747569,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/tail/k8/golbandi_tree": {
+      "n": 9281,
+      "delta": -0.0012030548705336504,
+      "lo": -0.0022873807467928995,
+      "hi": -0.00014790823173741456,
+      "separates": true,
+      "direction": "-"
+    },
+    "lam200-minus-lam8/full/k1/treestatic:helf": {
+      "n": 10000,
+      "delta": -2.7456049051280123e-05,
+      "lo": -9.70492650269527e-05,
+      "hi": 4.188337506188092e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/tail/k1/treestatic:helf": {
+      "n": 9281,
+      "delta": -1.797440401804599e-06,
+      "lo": -4.315068027436214e-05,
+      "hi": 3.8742048331487713e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k2/treestatic:helf": {
+      "n": 10000,
+      "delta": 4.683752171228294e-05,
+      "lo": -0.00010618050182240388,
+      "hi": 0.0001989737519353779,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/tail/k2/treestatic:helf": {
+      "n": 9281,
+      "delta": -3.055647703458607e-05,
+      "lo": -0.00012946375132500003,
+      "hi": 6.078574057276597e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k4/treestatic:helf": {
+      "n": 10000,
+      "delta": -0.0007950750029707177,
+      "lo": -0.0013033220605777607,
+      "hi": -0.000279960127007781,
+      "separates": true,
+      "direction": "-"
+    },
+    "lam200-minus-lam8/tail/k4/treestatic:helf": {
+      "n": 9281,
+      "delta": -0.00021314839358802266,
+      "lo": -0.0005000990402107949,
+      "hi": 8.742608894815503e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k8/treestatic:helf": {
+      "n": 10000,
+      "delta": -0.003806398854069404,
+      "lo": -0.0051303455503735815,
+      "hi": -0.002502435220393589,
+      "separates": true,
+      "direction": "-"
+    },
+    "lam200-minus-lam8/tail/k8/treestatic:helf": {
+      "n": 9281,
+      "delta": -0.0018113727615473418,
+      "lo": -0.002686075130631155,
+      "hi": -0.0009534389019121293,
+      "separates": true,
+      "direction": "-"
+    },
+    "lam200-minus-lam8/full/k1/treestatic:entropy0": {
+      "n": 10000,
+      "delta": -2.5612836273949024e-05,
+      "lo": -5.224503345549808e-05,
+      "hi": -5.287439909450054e-06,
+      "separates": true,
+      "direction": "-"
+    },
+    "lam200-minus-lam8/tail/k1/treestatic:entropy0": {
+      "n": 9281,
+      "delta": -1.566636858134232e-05,
+      "lo": -8.793881325154825e-05,
+      "hi": 5.301731948060769e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k2/treestatic:entropy0": {
+      "n": 10000,
+      "delta": -8.943504844831409e-05,
+      "lo": -0.0002160122595947375,
+      "hi": 3.544371928161832e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/tail/k2/treestatic:entropy0": {
+      "n": 9281,
+      "delta": 5.346369372092004e-06,
+      "lo": -7.155766489966901e-05,
+      "hi": 8.333742904858081e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k4/treestatic:entropy0": {
+      "n": 10000,
+      "delta": -0.0005984161248922485,
+      "lo": -0.001156851472021888,
+      "hi": -4.645075659592967e-05,
+      "separates": true,
+      "direction": "-"
+    },
+    "lam200-minus-lam8/tail/k4/treestatic:entropy0": {
+      "n": 9281,
+      "delta": -0.00013664743270266715,
+      "lo": -0.00038464740603075346,
+      "hi": 0.0001113038460410737,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k8/treestatic:entropy0": {
+      "n": 10000,
+      "delta": 0.012119582993004639,
+      "lo": 0.009382691412182986,
+      "hi": 0.014876626461076814,
+      "separates": true,
+      "direction": "+"
+    },
+    "lam200-minus-lam8/tail/k8/treestatic:entropy0": {
+      "n": 9281,
+      "delta": -0.00042922298150792327,
+      "lo": -0.001556438456308771,
+      "hi": 0.0007081822521090355,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k1/treestatic:popularity": {
+      "n": 10000,
+      "delta": 4.406342274169292e-05,
+      "lo": 9.912746183125538e-06,
+      "hi": 8.109770509435259e-05,
+      "separates": true,
+      "direction": "+"
+    },
+    "lam200-minus-lam8/tail/k1/treestatic:popularity": {
+      "n": 9281,
+      "delta": 4.838685111910812e-07,
+      "lo": -2.7079567038755556e-05,
+      "hi": 2.7762943157351978e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k2/treestatic:popularity": {
+      "n": 10000,
+      "delta": -0.00011048985811499397,
+      "lo": -0.00023507423038501946,
+      "hi": 8.35404565125951e-06,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/tail/k2/treestatic:popularity": {
+      "n": 9281,
+      "delta": -3.336704677069752e-05,
+      "lo": -7.991774691171152e-05,
+      "hi": 1.0082983971610277e-05,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k4/treestatic:popularity": {
+      "n": 10000,
+      "delta": 0.0002380489627599296,
+      "lo": -0.0003041747778585091,
+      "hi": 0.0007539050382291768,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/tail/k4/treestatic:popularity": {
+      "n": 9281,
+      "delta": -4.453200811032112e-06,
+      "lo": -0.00026836401219350645,
+      "hi": 0.00025133281495902686,
+      "separates": false,
+      "direction": "ns"
+    },
+    "lam200-minus-lam8/full/k8/treestatic:popularity": {
+      "n": 10000,
+      "delta": 0.015304451720059455,
+      "lo": 0.012772476131840836,
+      "hi": 0.017895459904772815,
+      "separates": true,
+      "direction": "+"
+    },
+    "lam200-minus-lam8/tail/k8/treestatic:popularity": {
+      "n": 9281,
+      "delta": 0.0002852366191400085,
+      "lo": -0.0007763104928748152,
+      "hi": 0.0013448299461722138,
+      "separates": false,
+      "direction": "ns"
+    }
+  },
+  "C6_identity_checks": {
+    "ours/full/k1": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "ours/tail/k1": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "ours/full/k2": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "ours/tail/k2": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "ours/full/k4": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "ours/tail/k4": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "ours/full/k8": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "ours/tail/k8": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf/full/k1": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf/tail/k1": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf/full/k2": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf/tail/k2": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf/full/k4": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf/tail/k4": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf/full/k8": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf/tail/k8": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf_lam200/full/k1": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf_lam200/tail/k1": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf_lam200/full/k2": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf_lam200/tail/k2": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf_lam200/full/k4": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf_lam200/tail/k4": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf_lam200/full/k8": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    },
+    "golbandi_leaf_lam200/tail/k8": {
+      "max_abs_per_user_diff": 0.0,
+      "mean_diff": 0.0
+    }
+  }
+}
