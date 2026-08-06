@@ -417,7 +417,7 @@ System (rep.\ / cite) & R1 & R2 & R3 & R4 & in & \multicolumn{2}{c}{full/tail} &
 \multicolumn{10}{l}{\emph{(a) Classic / linear full-profile}}\\
 Most-Popular & \xmark & \xmark & \xmark & \xmark & b & $.1345$ & $.0226$ & $.1626$ & $.0262$ \\
 Item-kNN (cosine) & \xmark & \xmark & \xmark & \xmark & b & $.2428$ & $.1297$ & $.2946$ & $.1593$ \\
-PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & b & $.2442$ & $.1853$ & $.3052$ & $.2276$ \\
+PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & b & $.2427$ & $.1855$ & $.3044$ & $.2293$ \\
 EASE~\cite{steck2019ease} & \cmark & \xmark & \xmark & \xmark & b & $.3476$ & $.2441$ & $.4135$ & $.2941$ \\
 EDLAE~\cite{steck2020edlae} & \cmark & \xmark & \xmark & \xmark & b & $.3433$ & $.2395$ & $.4110$ & $.2893$ \\
 Turbo-CF~\cite{park2024turbocf} & \xmark & \xmark & \xmark & \xmark & b & $.2622$ & $.1621$ & $.3285$ & $.2034$ \\
@@ -432,10 +432,10 @@ BERT4Rec~\cite{sun2019bert4rec} & \xmark & \xmark & \xmark & \xmark & b & \multi
 TaNP~\cite{lin2021tanp} (MeLU line)\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2645$ & $.1635$ & \multicolumn{2}{c}{\REDO{graded}} \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the elicitation corner}}\\
-EDDI / Partial-VAE~\cite{ma2019eddi}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & b & $.2153$ & $.1077$ & \multicolumn{2}{c}{\REDO{arm N}} \\
+EDDI / Partial-VAE~\cite{ma2019eddi}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & b & $.2153$ & $.1077$ & $.2718$ & $.1383$ \\
 user-kNN~\cite{golbandi2011adaptive}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.3065$ & $.1895$ & $.3756$ & $.2377$ \\
-RBMF~\cite{liu2011wisdom,zhou2011functional}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2534$ & $.1764$ & \multicolumn{2}{c}{\REDO{snap}} \\
-Conjugate belief (frozen MF)\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2019$ & $.1200$ & $.2521$ & $.1522$ \\
+RBMF~\cite{liu2011wisdom,zhou2011functional}\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.2457$ & $.1722$ & $.3015$ & $.2078$ \\
+Conjugate belief (frozen MF)\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2015$ & $.1201$ & $.2521$ & $.1511$ \\
 B\i y\i k soft-attributes~\cite{biyik2023soft}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \cmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
 ICF~\cite{zhao2013interactive}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \cmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
 ConTS~\cite{li2021seamlessly}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \xmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
@@ -459,12 +459,12 @@ $^{\dagger}$~no full-catalogue ranker on this ruler (per-system reason in \S\ref
 $^{\ddagger}$~cold-start or elicitation method scored off its design point: the full-profile row is a reduction we
 construct, not a result its paper reports, and the real comparison is Table~\ref{tab:instrdep}.
 $^{\S}$~dropped: our implementation failed its ML-20M snap ($0.397$ vs.\ the published $0.419$), and a failed
-bridge disqualifies a row (\S\ref{sec:bridge}). Red cells are owed measurements, not missing capability.
+bridge disqualifies a row (\S\ref{sec:bridge}). $^{\P}$\,RBMF's \textsc{native} cell is its \emph{binary} build. Its graded refit was run---a ridge seed on targets centred at the protocol threshold, which makes $41.4\%$ of them negative---and it \emph{lost}, $.2314/.1472$ against $.3015/.2078$; the uncentred variant also lost ($.2950/.2027$). We therefore report the strongest build, as for user-kNN, and treat the graded attempt as the measurement that justifies the choice (\S\ref{sec:bridge}). Red cells are owed measurements, not missing capability.
 No number is invented: a value appears only if we measured it on this ruler.}
 \label{tab:master}
 \end{table}
 
-\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Not run here}: GF-CF, BSPM, BERT4Rec and EDDI have public code and are runnable on this ruler, but carry no number in this chapter; the graph-filter family is represented by the measured Turbo-CF row and the sequence family by the measured SASRec row. \emph{Best-effort measured}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated---the node recommender that is the Golbandi tree's core, at $0.3065/0.1895$, and the RBMF/Functional-MF seed at $0.2534/0.1764$. \textbf{One class of adaptation is worth naming.} Three rows are ratings-native by publication---Golbandi's
+\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Not run here}: GF-CF, BSPM, BERT4Rec and EDDI have public code and are runnable on this ruler, but carry no number in this chapter; the graph-filter family is represented by the measured Turbo-CF row and the sequence family by the measured SASRec row. \emph{Best-effort measured}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated---the node recommender that is the Golbandi tree's core, at $0.3065/0.1895$, and the RBMF/Functional-MF seed at $0.2457/0.1722$. \textbf{One class of adaptation is worth naming.} Three rows are ratings-native by publication---Golbandi's
 interview tree routes users by \emph{lovers, haters and unknowns} and is evaluated on RMSE,
 RBMF/Functional-MF is a rating regression, and TaNP is episodic meta-learning for rating prediction---while
 the canonical protocol is implicit and binary (\S\ref{sec:bridge}). We adapt their mechanisms to the
@@ -1251,8 +1251,8 @@ from EASE/RecVAE on the tail, within a stated margin on the full profile. The it
 
 \textbf{NDCG@100, the secondary metric}, orders the \textsc{liang} column identically and is reported here
 rather than as a third pair of table columns: RecVAE $0.4537$, ours $0.4492$, EASE $0.4375$, EDLAE
-$0.4330$, Mult-VAE $0.4303$, user-kNN $0.3958$, iALS $0.3704$, TaNP $0.3661$, RBMF $0.3607$, Turbo-CF
-$0.3569$, Item-kNN $0.3200$, EDDI $0.3110$, the conjugate belief $0.2886$, SASRec $0.2465$, Most-Popular
+$0.4330$, Mult-VAE $0.4303$, user-kNN $0.3958$, iALS $0.3700$, TaNP $0.3661$, RBMF $0.3533$, Turbo-CF
+$0.3569$, Item-kNN $0.3200$, EDDI $0.3110$, the conjugate belief $0.2883$, SASRec $0.2465$, Most-Popular
 $0.1975$. \textbf{Per-row configuration}, where a row required a choice: EDLAE at val-selected $p{=}0.4$;
 Turbo-CF at val-tuned $\alpha{=}0.5$, $s{=}1$, second-order; EDDI early-stopped at epoch $46$ with epoch
 $31$ val-selected; Mult-VAE a near-snap at $-0.004$ against its published anchor; TaNP best-effort with its

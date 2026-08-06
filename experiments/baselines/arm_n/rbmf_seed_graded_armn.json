@@ -1,0 +1,23 @@
+{
+  "centred": {
+    "ndcg@10": 0.23142712430637935,
+    "tail_ndcg@10": 0.1471642765791586,
+    "ndcg@100": 0.2862595520261818
+  },
+  "raw_diagnostic": {
+    "ndcg@10": 0.29498508961165065,
+    "tail_ndcg@10": 0.20268177808968113,
+    "ndcg@100": 0.3895365081433307
+  },
+  "binary_arm_n": {
+    "ndcg@10": 0.3014949189748304,
+    "tail_ndcg@10": 0.2078401936298631
+  },
+  "_meta": {
+    "model": "rbmf_seed",
+    "arm": "N",
+    "threshold": 3.5,
+    "native_cell": "centred",
+    "note": "Frozen Y from the binary iALS fit (seeded). Raw arm is a diagnostic only: uncentred ratings make every target positive, so a 1-star reads as a weak endorsement rather than a dislike."
+  }
+}

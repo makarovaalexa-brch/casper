@@ -224,6 +224,8 @@ class GolbandiTree:
     def fit(self):
         if self._grown:
             return self
+        assert not getattr(self, "_released", False), (
+            "this tree was loaded from cache / released; it has no training matrices and cannot grow")
         t0 = time.time()
         rows_root = np.arange(self.n_users, dtype=np.int64)
         prof_root = (self.global_like.copy() if self.profile_kind == "like_rate"
@@ -357,6 +359,62 @@ class GolbandiTree:
         json.dump(self.to_dict(), open(path, "w"))
         return path
 
+    # ---------------------------------------------------------------- persistence / memory (RULE 11)
+    def release(self):
+        """Drop every training matrix. Growth is over; ROUTING needs only `nodes`, `depth` and
+        `like_min`, so at ML-25M scale this returns ~1.5 GB (six float64 CSRs over 21.7M nnz) that the
+        selector would otherwise hold for the whole scoring run. Calling anything that re-reads the
+        data (fit, recompute_profiles, _profile) after this is an error, and asserts as one."""
+        for attr in ("R", "M", "X", "X2", "Lo", "Ha"):
+            setattr(self, attr, None)
+        self._rows_of = None
+        self._profiles = None
+        self._released = True
+        return self
+
+
+def load_tree(path, log=print):
+    """Rebuild a ROUTING-ONLY tree from `GolbandiTree.save()` output.
+
+    A grown tree at ML-25M scale costs hours; the harness must be able to crash, be relaunched and
+    reuse it (HARD RULE 11b). What comes back has `nodes`, `depth`, `like_min` and `occupancy()` --
+    everything `GolbandiTreeSelector` touches at select time -- and no matrices, so it cannot silently
+    be re-fitted against a different contract: `fit()` on a loaded tree raises."""
+    blob = json.load(open(path))
+    t = GolbandiTree.__new__(GolbandiTree)
+    t.nodes = blob["nodes"]
+    t.depth = int(blob["depth"])
+    t.like_min = float(blob["like_min"])
+    t.xi = float(blob["xi"])
+    t.lam1 = float(blob.get("lam1", LAMBDA1_LEAF))
+    t.beta = float(blob.get("beta", BETA_USER_BIAS))
+    t.bias_correct = bool(blob.get("bias_correct", True))
+    t.min_child_users = int(blob.get("min_child_users", 0))
+    t.n_items = int(blob["n_items"])
+    t.n_users = int(blob["n_train"])
+    t.forced_order = None
+    t.profiles = None
+    t._rows_of = None
+    t._grown = True
+    t._released = True
+    for attr in ("R", "M", "X", "X2", "Lo", "Ha"):
+        setattr(t, attr, None)
+    t.log = log
+    log(f"[golbandi_tree] LOADED cached tree {os.path.basename(path)}: depth<={t.depth} "
+        f"nodes={len(t.nodes)} internal={sum(1 for nd in t.nodes if nd['item'] is not None)} "
+        f"xi={t.xi:.0f} n_train={t.n_users} n_items={t.n_items}")
+    return t
+
+
+def tree_contract(g_train, n_items, depth, like_min, xi, min_child_users, bias_correct):
+    """The signature a cached tree must match before it may be reused. A cache that was grown under a
+    different contract is not the same tree, and silently reusing it is exactly the failure HARD RULE
+    11(b) names."""
+    return {"n_train": int(g_train.shape[0]), "n_items": int(n_items), "nnz": int(g_train.nnz),
+            "depth": int(depth), "like_min": float(like_min),
+            "xi": None if xi is None else float(xi),
+            "min_child_users": int(min_child_users), "bias_correct": bool(bias_correct)}
+
 
 # ============================================================================ the Selector
 try:
@@ -388,7 +446,8 @@ class GolbandiTreeSelector(_Selector):
 
     def __init__(self, g_train=None, n_items=None, depth=None, like_level=LIKE_MIN_LEVEL,
                  like_min=None, xi=None, min_child_users=0, bias_correct=True, chunk=256,
-                 candidates=None, fallback_order=None, tree=None, log=print):
+                 candidates=None, fallback_order=None, tree=None, cache_path=None, log=print):
+        self.cache_path = cache_path
         self.g_train, self.n_items = g_train, n_items
         self.depth = depth
         self.like_level = int(like_level)     # harness half-star level cut (>=7 == r>=4.0)
@@ -402,15 +461,38 @@ class GolbandiTreeSelector(_Selector):
         self._asks = 0
         self._leaf_depths = []
 
-    def fit(self, g_train=None, n_items=None, depth=None):
+    def fit(self, g_train=None, n_items=None, depth=None, cache_path=None):
+        """Grow the tree, or REUSE a cached one whose contract matches exactly.
+
+        `cache_path` is the HARD RULE 11(b) resumable sidecar: growth at ML-25M scale is the one
+        genuinely expensive step here, and it is deterministic, so it is written once and reloaded.
+        The contract (`tree_contract`) is stored alongside the nodes and a mismatch REFUSES to load
+        rather than quietly reusing a tree grown on other data."""
         g_train = self.g_train if g_train is None else g_train
         n_items = self.n_items if n_items is None else n_items
         depth = self.depth if depth is None else depth
         lm = self.like_min if self.like_min is not None else float(self.like_level)
+        want = tree_contract(g_train, n_items, depth, lm, self.xi, self.min_child_users,
+                             self.bias_correct)
+        if cache_path and os.path.exists(cache_path):
+            got = json.load(open(cache_path)).get("_contract")
+            if got == want:
+                self.tree = load_tree(cache_path, log=self.log)
+                return self
+            self.log(f"[golbandi_tree] cache {cache_path} REFUSED: contract mismatch\n"
+                     f"    cached={got}\n    wanted={want}")
         self.tree = GolbandiTree(g_train, like_min=lm, depth=int(depth), xi=self.xi,
                                  min_child_users=self.min_child_users,
                                  bias_correct=self.bias_correct, candidates=self.candidates,
                                  store_profiles=False, chunk=self.chunk, log=self.log).fit()
+        if cache_path:
+            blob = self.tree.to_dict()
+            blob["_contract"] = want
+            blob["occupancy"] = self.tree.occupancy()
+            os.makedirs(os.path.dirname(cache_path) or ".", exist_ok=True)
+            json.dump(blob, open(cache_path, "w"))
+            self.log(f"[golbandi_tree] tree CHECKPOINTED -> {cache_path}")
+        self.tree.release()          # routing needs only `nodes`; free the six training CSRs
         return self
 
     def reset(self, ctx):
@@ -426,7 +508,7 @@ class GolbandiTreeSelector(_Selector):
         if self.tree is None or self.tree.depth < q_max:
             # ONE tree, grown to the LARGEST budget seen; a depth-d prefix of it is exactly the
             # depth-d tree, because growth is top-down and depth-independent.
-            self.fit(depth=max(q_max, int(self.depth or 0)))
+            self.fit(depth=max(q_max, int(self.depth or 0)), cache_path=self.cache_path)
         self._fallbacks = 0
         self._asks = 0
         self._leaf_depths = []

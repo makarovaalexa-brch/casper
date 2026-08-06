@@ -1,13 +1,13 @@
 {
-  "ndcg@100": 0.2885873362848711,
+  "ndcg@100": 0.2883054020736759,
   "ndcg@100_se": 0.0018980061734622524,
-  "ndcg@10": 0.2018844474001703,
+  "ndcg@10": 0.20148718550962957,
   "ndcg@10_se": 0.0020818708131428417,
-  "recall@20": 0.24755316723137544,
+  "recall@20": 0.24698284677697602,
   "recall@20_se": 0.0022511232866356088,
-  "recall@50": 0.35202876018924406,
+  "recall@50": 0.3513667934255385,
   "recall@50_se": 0.0025996227187832653,
-  "tail_ndcg@10": 0.11998741108473172,
+  "tail_ndcg@10": 0.12010774928783384,
   "tail_ndcg@10_se": 0.001829174825269907,
   "seconds": 333.1002764701843,
   "hp": {
@@ -18,5 +18,11 @@
     "obs_noise": 1.0,
     "prior_scale": 1.0,
     "role": "Biyik-belief + ConTS-mean"
+  },
+  "reseeded": true,
+  "reseeded_note": "Reference row RESEEDED 2026-08-06. This model rides an implicit-ALS basis that was previously constructed with no random_state, so every run produced a different basis and the stored value was one unreproducible draw -- which also meant run_arm_n.py's per-row snap gate could not distinguish 'the harness changed' from 'a different random draw', the exact failure it exists to detect. ials.py now pins random_state=98765. These values are the arm-A block of the seeded arm-N run, i.e. the canonical protocol computed from the same fitted model as the arm-N row. The previous unreproducible values are preserved under superseded_unseeded/.",
+  "superseded_values": {
+    "ndcg@10": 0.2018844474001703,
+    "tail_ndcg@10": 0.11998741108473172
   }
 }

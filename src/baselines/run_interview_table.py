@@ -88,6 +88,12 @@ from i26_encoder import UNSEEN_LEVEL
 
 OUT = os.path.join(_ROOT, "experiments", "baselines", "interview")
 RECS = ["ours", "recvae_likes", "golbandi_leaf", "rbmf", "belief_mf", "tanp", "eddi"]
+# Consumers that exist but are NOT in the default sweep -- they must be named with --only. `dre` is
+# here rather than in RECS because its decoder is BUDGET-SPECIFIC (a separate trained artifact per k)
+# and it exists to serve exactly one cell, the DRE port's "their recommender" arm. Putting it in RECS
+# would make every default run try to load five checkpoints it has no use for.
+OPTIONAL_RECS = ["dre"]
+ALL_RECS = RECS + OPTIONAL_RECS
 # Models whose input contract INCLUDES the unknowns, so they are never information-free -> never floored.
 CONSUMES_UNKNOWNS = {"golbandi_leaf"}
 GLOBAL_ARMS = {"popularity", "pure_entropy", "entropy0", "helf"}
@@ -164,7 +170,7 @@ def cursor_predict(score_matrix_fn, batch=500):
 
 
 # ------------------------------------------------------------------ recommender construction
-def build_recommenders(recs, D, arch="i25", snapshot=SNAP_DEFAULT, log=logln):
+def build_recommenders(recs, D, arch="i25", snapshot=SNAP_DEFAULT, log=logln, dre_tag=""):
     """Build every requested consumer as (input_mode, object). EXTRACTED VERBATIM from main() on
     2026-08-04 so the adaptive harness drives the IDENTICAL consumers rather than a second copy that
     can drift. Nothing in the bodies changed; only the surrounding loop moved out."""
@@ -238,6 +244,13 @@ def build_recommenders(recs, D, arch="i25", snapshot=SNAP_DEFAULT, log=logln):
         built["eddi"] = ("likes", eddi_pvae.load_trained(eck, ni, log=log))
     if "golbandi_leaf" in recs:
         built["golbandi_leaf"] = ("raw", GolbandiLeaf(D["g_train"], ni, lam=8.0, log=log))
+    if "dre" in recs:
+        # DRE's OWN recommender (Kweon WWW'20 Sec 4.3): the decoder retrained on the frozen seed
+        # columns. Its input contract is the likes CSR -- DRE binarises at >3.5, which IS the Liang
+        # binarisation, so no adapter. Budget-specific: the caller must invoke `set_budget(k)` inside
+        # the budget loop (adaptive_harness does; see dre_selector.DREConsumer).
+        import dre_selector as DRE
+        built["dre"] = ("likes", DRE.DREConsumer(tag=dre_tag, log=log))
     return built
 
 
@@ -329,7 +342,7 @@ def main():
                          "both arms and report the difference rather than switching silently.")
     a = ap.parse_args()
     budgets = [int(x) for x in a.budgets.split(",")]
-    recs = RECS if not a.only else [r for r in RECS if r in set(a.only.split(","))]
+    recs = RECS if not a.only else [r for r in ALL_RECS if r in set(a.only.split(","))]
     arms = ST.ARMS if not a.arms else [s for s in ST.ARMS if s in set(a.arms.split(","))]
 
     D = load_arm_n(log=logln)

@@ -73,8 +73,8 @@ import interview_strategies as ST
 from arm_n import load_arm_n
 from arm_n_tower import SNAP_DEFAULT
 from golbandi_leaf import MAX_DEPTH
-from run_interview_table import (OUT, RECS, build_recommenders, score_arm, mostpop_row, logln,
-                                 answers_to_csr)
+from run_interview_table import (OUT, RECS, ALL_RECS, build_recommenders, score_arm, mostpop_row,
+                                 logln, answers_to_csr)
 
 STATIC_SUFFIX = "-static"
 # The conversational-bandit (key-term) family: the only selectors with a TWO-TYPE action space.
@@ -332,10 +332,28 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
             sel = GT.GolbandiTreeSelector(D["g_train"], D["n_items"], depth=depth,
                                           like_level=GT.LIKE_MIN_LEVEL, like_min=4.0,
                                           xi=args.golbandi_xi,
-                                          min_child_users=args.golbandi_min_child, log=log)
-            sel.fit()
+                                          min_child_users=args.golbandi_min_child,
+                                          cache_path=args.golbandi_tree_cache, log=log)
+            sel.fit(cache_path=args.golbandi_tree_cache)
             cache[ck] = sel
         return cache[ck]
+    if spec.startswith("treestatic:"):
+        # THE SYMMETRIC COMPARATOR, through golbandi_tree_selector's OWN class rather than through
+        # StaticArmSelector. Both return order[turn] to every user, so they are behaviourally the same
+        # object; running one of each (treestatic:entropy0 alongside entropy0-static) turns that claim
+        # into a measured identity instead of a code-reading claim.
+        import golbandi_tree_selector as GT
+        arm = spec.split(":", 1)[1]
+        assert arm in glob, f"treestatic: unknown global order '{arm}'; have {sorted(glob)}"
+        s = GT.StaticOrderTreeSelector(glob[arm], log=log)
+        s.name = spec
+        return s
+    if spec == "dre":
+        # DRE (Kweon WWW'20): a LEARNED STATIC seed set, one per budget, trained offline by
+        # scripts/baselines/dre_train_ours.py on the TRAIN users only. It is not cached across
+        # budgets on purpose -- the k=2 set is not a prefix of the k=16 set.
+        import dre_selector as DRE
+        return DRE.DRESelector(k, tag=args.dre_tag, dup_policy=args.dre_dup_policy, log=log)
     if spec == "eddi_ig":
         import eddi_selector as E
         if "eddi" not in cache:
@@ -390,7 +408,7 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
                                     smooth_sigma=args.clisk_sigma, **kw)
         return CB.ConUCBSelector(bel, stack, lam=args.conucb_lam, lam_til=args.conucb_lam_til, **kw)
     raise SystemExit(f"unknown selector spec '{spec}'. Known: <arm>{STATIC_SUFFIX} for arm in "
-                     f"{ST.ARMS}, plus golbandi_tree, glm_ucb, thompson, eddi_ig, eddi_ig3, "
+                     f"{ST.ARMS}, plus dre, golbandi_tree, glm_ucb, thompson, eddi_ig, eddi_ig3, "
                      f"eddi_ig3_zero, "
                      f"{','.join(CONV_BANDIT_SPECS)}")
 
@@ -440,6 +458,34 @@ def main():
                          "0.2%% of corpus rating mass (200,000/100M on Netflix).")
     ap.add_argument("--golbandi_min_child", type=int, default=0,
                     help="0 = paper-faithful (the paper relies on shrinkage, not a size floor).")
+    ap.add_argument("--per_user", action="store_true",
+                    help="also keep the PER-USER full/tail NDCG vector for every cell, in an npz "
+                         "sidecar next to the JSON. It costs nothing (score_arm already computes "
+                         "them) and it is the only thing a PAIRED bootstrap can be run from later -- "
+                         "the unpaired 1.96*sqrt(2)*SE form is banned (ARM_N_PHASE1 sec 4b).")
+    ap.add_argument("--golbandi_tree_cache", default=None,
+                    help="path for the CONTRACT-SIGNED grown-tree sidecar (HARD RULE 11b). Growing "
+                         "the tree on 140,768 train users is the only expensive step in this arm and "
+                         "it is deterministic, so it is written once and reloaded; a cache whose "
+                         "contract does not match is refused, never silently reused.")
+    ap.add_argument("--golbandi_lam", default=None,
+                    help="comma list of leaf shrinkage values for the golbandi_leaf CONSUMER "
+                         "(default: its built-in 8.0, which is the ARCHIVED constant). SNAP-5 showed "
+                         "lambda1 is load-bearing in the tree's own hierarchical leaf -- at 8 the "
+                         "interview HURTS past depth 1, at the paper's 200 it helps monotonically -- "
+                         "so the port must state and vary it. Each value becomes its own consumer row "
+                         "named golbandi_leaf_lam<v>.")
+    # ---------------- DRE (Kweon WWW'20), the peer-reviewed LEARNED-STATIC bar -----------------
+    ap.add_argument("--dre_tag", default="",
+                    help="suffix of the trained DRE artifacts to use "
+                         "(.cache/baselines/dre_ml25m_liang_k<K><TAG>.pt). '' = the citable sets; "
+                         "'_SMOKE' = the reduced-epoch code-path artifacts, which stamp the run.")
+    ap.add_argument("--dre_dup_policy", default="waste", choices=list(("waste", "extend")),
+                    help="DRE selects its k columns by independent argmax with NO duplicate guard, so "
+                         "an item can be chosen twice; our harness forbids re-asking. 'waste' (default, "
+                         "faithful) fills the wasted turn with DRE's LEAST-preferred item, which its "
+                         "own decoder cannot see. 'extend' fills it with DRE's next-best item, which "
+                         "REPAIRS the published method and must be labelled as a repair.")
     ap.add_argument("--eddi_beta", type=float, default=1.0,
                     help="eddi_ig3 only: how hard the frozen decoder tilts the item's base like-rate "
                          "per user, in logit units per z-score. 1.0 = default, NOT tuned.")
@@ -498,7 +544,7 @@ def main():
 
     budgets = [int(x) for x in a.budgets.split(",")]
     specs = [s.strip() for s in a.selectors.split(",") if s.strip()]
-    recs = RECS if not a.only else [r for r in RECS if r in set(a.only.split(","))]
+    recs = RECS if not a.only else [r for r in ALL_RECS if r in set(a.only.split(","))]
 
     D = load_arm_n(log=logln)
     if a.regression:
@@ -513,16 +559,36 @@ def main():
     n = D["te_tr"].shape[0]
     lvl = ST.level_lookup(D["g_te_tr"])
 
-    built = build_recommenders(recs, D, arch=a.arch, snapshot=a.snapshot, log=logln)
+    built = build_recommenders(recs, D, arch=a.arch, snapshot=a.snapshot, log=logln,
+                               dre_tag=a.dre_tag)
+    # ---- extra golbandi_leaf rows at other shrinkages. The consumer's lambda is hardcoded to the
+    # ARCHIVED 8.0 in build_recommenders; SNAP-5 measured that constant as the one at which the
+    # interview degrades with depth, so a port that never varies it cannot tell a null from a
+    # mis-set constant. Same class, same mode ("raw"), same score_arm -- only lambda differs.
+    if a.golbandi_lam:
+        from golbandi_leaf import GolbandiLeaf
+        import run_interview_table as _RIT
+        for v in [float(x) for x in a.golbandi_lam.split(",") if x.strip()]:
+            nm = f"golbandi_leaf_lam{v:g}"
+            built[nm] = ("raw", GolbandiLeaf(D["g_train"], ni, lam=v, log=logln))
+            # it is the same consumer, so it inherits the same never-floored status
+            _RIT.CONSUMES_UNKNOWNS = set(_RIT.CONSUMES_UNKNOWNS) | {nm}
+            if nm not in recs:
+                recs.append(nm)
     pop_row, prior = mostpop_row(D, log=logln)
 
     lbl = a.label or a.arch
     outp = os.path.join(OUT, f"{'SMOKE_' if smoke else ''}adaptive_table_{lbl}.json")
+    vecp = outp.replace(".json", "_per_user.npz")
+    vecs = {}
     results = {"mostpop": {"_prior": prior}}
     meta = {"selectors": specs, "budgets": budgets, "consumers": recs, "arch": a.arch,
             "snapshot": os.path.basename(a.snapshot), "no_floor": bool(a.no_floor),
             "n_test_users": n, "ucb_alpha": a.ucb_alpha, "ts_seed": a.ts_seed,
-            "eddi_cand_topm": a.eddi_topm}
+            "eddi_cand_topm": a.eddi_topm,
+            "golbandi": {"depth": a.golbandi_depth, "xi": a.golbandi_xi,
+                         "min_child": a.golbandi_min_child, "leaf_lam": a.golbandi_lam,
+                         "tree_cache": a.golbandi_tree_cache}}
     if smoke:
         meta["SMOKE_NOT_CITABLE"] = True
         meta["smoke_users"] = a.smoke_users
@@ -562,12 +628,17 @@ def main():
         for spec in specs:
             results[name][spec] = {}
             for k in budgets:
-                if name == "golbandi_leaf" and k > MAX_DEPTH:
+                if name.startswith("golbandi_leaf") and k > MAX_DEPTH:
                     logln(f"[adaptive] SKIP golbandi_leaf k={k} > {MAX_DEPTH} (3^k leaf collapse)")
                     continue
                 asked, answered, info = interviews[(spec, k)]
                 ts = time.time()
                 s_name, s_mode, s_obj = name, mode, obj
+                # DRE's own recommender is BUDGET-SPECIFIC (one trained decoder per k, over that k's
+                # own seed columns), and build_recommenders runs once per process, before this loop.
+                # This is the only hook it needs; it is inert for every other consumer.
+                if hasattr(s_obj, "set_budget"):
+                    s_obj.set_budget(k)
                 # THE CONCEPT-ANSWER CONSUMER. A conversational arm may have spent turns on key-terms;
                 # the item-only scoring path cannot hear them, so scoring it that way would measure our
                 # harness, not the method. On the 'ours' row we fold the concept answers through the
@@ -613,12 +684,32 @@ def main():
                 # lists agree (a key-term turn is part of the prefix that decides that).
                 ga = asked[0] if common_asked(info.get("_acts", asked)) is not None else None
                 cell = score_arm(s_name, s_mode, s_obj, asked, answered, D, pop_row,
-                                 no_floor=a.no_floor, global_asked=ga)
+                                 no_floor=a.no_floor, global_asked=ga, per_user=a.per_user)
+                if a.per_user:
+                    # Straight to an npz sidecar, written after EVERY cell (HARD RULE 11a): 10k
+                    # float64 per cell would bloat the JSON, and a run that dies must not take the
+                    # only material a paired bootstrap can be computed from with it.
+                    vecs[f"{name}|{spec}|k{k}|full"] = np.asarray(cell.pop("full_per_user"))
+                    vecs[f"{name}|{spec}|k{k}|tail"] = np.asarray(cell.pop("tail_per_user"))
+                    np.savez_compressed(vecp, **vecs)
                 cell["concept_tokens"] = n_ct
                 cell["concept_consumer"] = bool(s_name == "ours_conc")
                 cell["score_minutes"] = round((time.time() - ts) / 60.0, 2)
                 cell["interview_minutes"] = info["interview_minutes"]
                 cell["distinct_prefixes"] = info["distinct_prefixes"][-1]
+                # SELECTOR DIAGNOSTICS INTO THE CELL, not just the log. For golbandi_tree these are
+                # the numbers that decide whether the row is the method at all: a user who reaches a
+                # LEAF before the budget is spent is asked the next unasked popularity item instead,
+                # so an arm with a high fallback rate is part popularity and must be read as such.
+                for key in ("fallback_asks", "total_asks", "fallback_rate", "tree_nodes",
+                            "tree_depth", "leaf_reached_depth_mean"):
+                    if key in info:
+                        cell[key] = info[key]
+                # The DRE duplicate-seed defect is a measured property of the published method and
+                # must be readable off EVERY cell, not just the training log.
+                for _dk, _dv in info.items():
+                    if _dk.startswith("dre_"):
+                        cell[_dk] = _dv
                 results[name][spec][f"k{k}"] = cell
                 logln(f"[adaptive] {name:14s} {spec:16s} k={k:2d} "
                       f"answered={cell['answered']:4.1f}/{k} floored={cell['floored']:5d} "

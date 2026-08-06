@@ -1,0 +1,18 @@
+[08:54:12] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[08:54:12] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[08:54:12] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[08:54:12] === arm N re-eval start; order=['ials', 'rbmf_seed', 'eddi'] ===
+[08:54:12] --- ials ---
+[08:57:28] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (3.2m)
+[08:58:44] [snap] ials: arm A 0.2427 vs canonical 0.2442 -> *** FAIL ***
+[08:58:44] [done] ials: A full=0.2427 tail=0.1855 | N full=0.3044 tail=0.2293 | delta full=+0.0617 tail=+0.0438 (4.5m)
+[08:58:44] --- rbmf_seed ---
+[09:01:43] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (3.0m)
+[09:01:43] [rbmf_seed] frozen iALS f=200 (3.0m); ls_reg=1.0
+[09:03:39] [snap] rbmf_seed: arm A 0.2457 vs canonical 0.2534 -> *** FAIL ***
+[09:03:39] [done] rbmf_seed: A full=0.2457 tail=0.1722 | N full=0.3015 tail=0.2078 | delta full=+0.0558 tail=+0.0357 (4.9m)
+[09:03:39] --- eddi ---
+[09:03:40] [eddi] loaded eddi_ml25m_liang.pt (best_state ep=31 val_full=0.2120) latent=200 feat=600
+[09:05:01] [snap] eddi: arm A 0.2153 vs canonical 0.2153 -> PASS
+[09:05:01] [done] eddi: A full=0.2153 tail=0.1077 | N full=0.2718 tail=0.1383 | delta full=+0.0565 tail=+0.0307 (1.4m)
+[09:05:01] === arm N re-eval complete ===

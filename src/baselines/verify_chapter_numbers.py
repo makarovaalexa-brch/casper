@@ -100,8 +100,9 @@ for name, a_full, a_tail, n_full, n_tail in [
         ('ease', .3476, .2441, .4135, .2941), ('edlae', .3433, .2395, .4110, .2893),
         ('turbocf', .2622, .1621, .3285, .2034), ('recvae', .3540, .2497, .4273, .3051),
         ('multvae', .3202, .2194, .3904, .2682), ('sasrec', .1486, .0805, .1842, .0986),
-        ('golbandi_node', .3065, .1895, .3756, .2377), ('ials', .2442, .1853, .3052, .2276),
-        ('belief_mf', .2019, .1200, .2521, .1522), ('tanp', .2645, .1635, .3324, .2078)]:
+        ('golbandi_node', .3065, .1895, .3756, .2377), ('ials', .2427, .1855, .3044, .2293),
+        ('belief_mf', .2015, .1201, .2521, .1511), ('tanp', .2645, .1635, .3324, .2078),
+        ('rbmf_seed', .2457, .1722, .3015, .2078), ('eddi', .2153, .1077, .2718, .1383)]:
     d = J('experiments/baselines/arm_n/%s.json' % name)
     can = J('experiments/baselines/ml25m_liang/%s.json' % name)
     chk('%s LIANG full' % name, a_full, dig(can, 'ndcg@10'), 'ml25m_liang/%s.json' % name)
