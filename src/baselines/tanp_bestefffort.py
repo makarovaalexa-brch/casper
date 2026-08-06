@@ -78,10 +78,16 @@ class TaNPCore(nn.Module):
         self.dec = nn.Sequential(nn.Linear(zdim, hidden), nn.ReLU(), nn.Dropout(dropout),
                                  nn.Linear(hidden, d))
 
-    def encode(self, support):                          # support: (B, n_items) multi-hot float
-        deg = support.sum(1, keepdim=True).clamp(min=1.0)
-        ctx = (support @ self.item_emb.weight) / deg     # (B, d) mean item embedding
-        rating = torch.ones(support.shape[0], 1, device=support.device)  # implicit rating = 1
+    def encode(self, support):                          # support: (B, n_items), values = the contract
+        # BIT-IDENTICAL ON BINARY INPUT, and genuinely graded on graded input. `cnt` is the number of
+        # OBSERVED items (not the value sum), so for a binary support cnt == support.sum(1) and both
+        # lines below reduce exactly to the previous implementation: ctx is the mean item embedding and
+        # the rating scalar is 1. Handed real ratings, ctx becomes a rating-WEIGHTED mean and the scalar
+        # becomes the user's actual mean rating -- which is what TaNP's encoder was always meant to read
+        # (its paper consumes explicit ratings; our ruler had binarised them away).
+        cnt = (support != 0).sum(1, keepdim=True).to(support.dtype).clamp(min=1.0)
+        ctx = (support @ self.item_emb.weight) / cnt      # (B, d)
+        rating = support.sum(1, keepdim=True) / cnt       # (B, 1); == 1.0 for a binary support
         h = self.enc(torch.cat([ctx, rating], dim=1))
         return self.enc_mu(h), self.enc_lv(h)
 
