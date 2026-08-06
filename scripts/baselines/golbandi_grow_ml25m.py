@@ -12,7 +12,18 @@ It also prints the OCCUPANCY table, which is the mechanism behind the harness's 
 user whose node is a leaf before the budget is spent gets the next unasked popularity item instead, and
 an arm that is mostly fallback is not this method.
 
-    python scripts/baselines/golbandi_grow_ml25m.py --depth 8
+PROGRESS AND RESUME (added 2026-08-06). The 2026-08-06 depth-8 run took 6.5 hours and printed NOTHING
+until it was over, with the only checkpoint written at the very end -- so there was no way to estimate
+progress and a crash at hour six would have cost all six. Growth is now level-synchronous and reports a
+line per completed depth (nodes, splits, users still askable, elapsed, and a mass-ratio ETA for the next
+depth), writing the contract-signed sidecar after EVERY depth. Relaunching with the same contract picks
+up from the deepest banked level instead of starting over:
+
+    python scripts/baselines/golbandi_grow_ml25m.py --depth 8      # grows, or resumes, to depth 8
+    python scripts/baselines/golbandi_grow_ml25m.py --depth 8 --fresh   # ignore the sidecar, regrow
+
+The occupancy table below is UNCHANGED in format -- it is reported in
+`docs/results/GOLBANDI_PORT_ON_OUR_RULER.md`.
 """
 import os
 import sys
@@ -39,15 +50,30 @@ def main():
     ap.add_argument("--min_child", type=int, default=0)
     ap.add_argument("--out", default=os.path.join(_ROOT, ".cache", "snap5",
                                                   "tree_ml25m_liang_d8.json"))
+    ap.add_argument("--fresh", action="store_true",
+                    help="ignore any existing sidecar and regrow from depth 0 (the default RESUMES "
+                         "from the deepest banked level whose contract matches)")
     a = ap.parse_args()
 
     D = load_arm_n(log=logln)
     g, ni = D["g_train"], D["n_items"]
     logln(f"[grow] train {g.shape[0]} users x {ni} items, nnz={g.nnz}; "
           f"like cut = star >= 4.0 (== half-star level >= {GT.LIKE_MIN_LEVEL})")
+    if os.path.exists(a.out):
+        prev = json.load(open(a.out))
+        logln(f"[grow] sidecar present: depth={prev.get('depth')} "
+              f"target={prev.get('target_depth', prev.get('depth'))} "
+              f"complete={prev.get('complete', True)} nodes={len(prev.get('nodes', []))}"
+              + ("  -- IGNORED (--fresh): regrowing from depth 0" if a.fresh else
+                 "  -- will LOAD or RESUME if its contract matches"))
+        if a.fresh:
+            os.replace(a.out, a.out + ".superseded")
+            logln(f"[grow] moved aside -> {a.out}.superseded (nothing is deleted)")
     sel = GT.GolbandiTreeSelector(g, ni, depth=a.depth, like_level=GT.LIKE_MIN_LEVEL, like_min=4.0,
                                   xi=a.xi, min_child_users=a.min_child, log=logln)
     t0 = time.time()
+    # The per-depth progress lines and per-depth sidecar writes come from GolbandiTree.fit itself, so
+    # any other caller of the growth (the ML-100k snap, the harness's lazy fit) gets them too.
     sel.fit(cache_path=a.out)
     logln(f"[grow] total {(time.time() - t0) / 60:.1f} min -> {a.out}")
 

@@ -60,6 +60,15 @@ Profiles are OPT-IN (`store_profiles`) because a dense (n_nodes x n_items) table
 ML-25M scale and the SELECTOR does not need it: the selector only picks questions, and
 `golbandi_leaf` consumes the answers.
 
+GROWTH IS LEVEL-SYNCHRONOUS, AND THAT IS WHY IT IS RESUMABLE. The tree is grown one whole depth at a
+time rather than by recursion, because after depth d is finished the structure above it is final and
+every node at depth d is a leaf -- i.e. the partial tree IS the tree that `depth=d` would have
+produced. So a checkpoint after each depth costs nothing (nothing is recomputed or invalidated when
+growth continues), a crash loses at most one level, and progress is reportable: on 2026-08-06 the
+ML-25M depth-8 growth ran 6.5 hours with no output at all, which is the failure HARD RULE 11 names.
+Resuming replays the banked levels by ROUTING with the items already chosen -- the split search, the
+only expensive part, is never repeated -- and refuses across a changed contract.
+
 DEPTH IS OUR QUESTION BUDGET. A depth-d tree asks exactly d questions, so `MAX_DEPTH` in
 `golbandi_leaf` (8, because 3^k answer patterns fragment the training cohort) is the same constraint
 seen from the consumer side. When a user reaches a leaf before the budget is spent -- which happens
@@ -116,11 +125,19 @@ class GolbandiTree:
     profile_kind : "mean" (the paper's rating mean -> RMSE) or "like_rate" (the fraction of the
                    node's users who liked each item -> the ranking adaptation documented in
                    `golbandi_leaf.py`; a mean rating is a known disaster as a top-N score).
+    checkpoint_path : None, or a path written after EVERY completed depth (HARD RULE 11a). Growth is
+                   breadth-first by level and a depth-d prefix of a depth-D tree IS the depth-d tree,
+                   so every one of those writes is a complete, valid, usable tree -- a crash costs at
+                   most one level, never the run. The sidecar records the depth actually GROWN (not
+                   the target), so a partial file can never be mistaken for a finished one.
+    checkpoint_contract : None, or the `tree_contract` dict stamped into the sidecar as `_contract`.
+                   Its `depth` field is rewritten at each write to the depth actually grown.
     """
 
     def __init__(self, R, like_min=4.0, depth=6, xi=None, min_child_users=0, bias_correct=True,
                  candidates=None, forced_order=None, store_profiles=False, profile_kind="mean",
-                 lam1=LAMBDA1_LEAF, beta=BETA_USER_BIAS, chunk=256, store_rows=False, log=print):
+                 lam1=LAMBDA1_LEAF, beta=BETA_USER_BIAS, chunk=256, store_rows=False,
+                 checkpoint_path=None, checkpoint_contract=None, log=print):
         self.R = R.tocsr().astype(np.float64)
         self.R.eliminate_zeros()
         self.n_users, self.n_items = self.R.shape
@@ -134,6 +151,8 @@ class GolbandiTree:
         self.lam1 = float(lam1)
         self.beta = float(beta)
         self.chunk = int(chunk)
+        self.checkpoint_path = checkpoint_path
+        self.checkpoint_contract = checkpoint_contract
         self.log = log
         n_ratings = float(self.R.nnz)
         self.xi = float(xi) if xi is not None else XI_FRACTION * n_ratings
@@ -168,6 +187,7 @@ class GolbandiTree:
 
         self.nodes = []              # each: dict(item, children{L,H,U}, n_users, n_ratings, depth)
         self.profiles = None
+        self._last_ckpt_depth = None
         self._rows_of = [] if store_rows else None
         self._grown = False
 
@@ -221,7 +241,25 @@ class GolbandiTree:
         return best_i, best_e, e2_node
 
     # ------------------------------------------------------------------ growth
-    def fit(self):
+    def fit(self, resume_from=None):
+        """Grow the tree LEVEL BY LEVEL, logging and checkpointing after every completed depth.
+
+        WHY BREADTH-FIRST AND NOT THE OBVIOUS RECURSION. The criterion is depth-local: a node's
+        splitter depends only on the users routed to it and on its ancestors' items, so depth-first
+        and level-synchronous growth produce the SAME tree (only the id numbering differs, and every
+        reference in `nodes` is by id, so nothing downstream can tell). What level-synchronous growth
+        buys is that the partial tree is USEFUL at every pause: after finishing depth d, every node at
+        depth d is a leaf and the structure above it is final, i.e. it is exactly the tree that
+        `depth=d` would have produced. That makes a per-depth checkpoint free -- nothing is
+        recomputed or invalidated on resume -- and it makes progress reportable, which a 6.5-hour
+        silent depth-8 growth on 2026-08-06 was not.
+
+        `resume_from`: a sidecar blob (`_checkpoint` output / `save()` output) grown under the SAME
+        contract to a SHALLOWER depth. Its levels are REPLAYED -- re-routed with the items it already
+        chose, never re-searched -- which restores the per-node user sets that the sidecar cannot
+        store, at routing cost only, and growth then continues at its depth. The replay asserts that
+        each replayed node's user count matches the sidecar's; a mismatch means the sidecar does not
+        describe this data and is a hard error rather than a silent divergence."""
         if self._grown:
             return self
         assert not getattr(self, "_released", False), (
@@ -231,7 +269,72 @@ class GolbandiTree:
         prof_root = (self.global_like.copy() if self.profile_kind == "like_rate"
                      else self.global_mean.copy())
         self._profiles = [] if self.store_profiles else None
-        self._build(rows_root, 0, banned=set(), parent_profile=prof_root)
+
+        ref_nodes, resume_depth = None, 0
+        if resume_from is not None:
+            ref_nodes = resume_from["nodes"]
+            resume_depth = int(resume_from["depth"])
+            self.log(f"[golbandi_tree] RESUMING from a depth-{resume_depth} checkpoint "
+                     f"({len(ref_nodes)} nodes): replaying {resume_depth} level(s) by ROUTING "
+                     f"(no split search), then growing depths {resume_depth + 1}..{self.depth}")
+
+        # frontier entry = (node id, its train rows, banned ancestor items, profile to hand children,
+        #                   the id of the same node in `ref_nodes` while replaying)
+        root_id, root_pp = self._new_node(rows_root, 0, prof_root)
+        frontier = [(root_id, rows_root, set(), root_pp, 0)]
+        t_lvl = time.time()
+        mass_prev = self._splittable_mass(frontier)
+        for d in range(self.depth):
+            replaying = ref_nodes is not None and d < resume_depth
+            nxt, n_internal, n_leaf = [], 0, 0
+            for (nid, rows, banned, pp, rid) in frontier:
+                node = self.nodes[nid]
+                if replaying:
+                    ref = ref_nodes[rid]
+                    if int(ref["n_users"]) != node["n_users"]:
+                        raise AssertionError(
+                            f"[golbandi_tree] RESUME REFUSED: replayed node {nid} (depth {d}) holds "
+                            f"{node['n_users']} users, the checkpoint's node {rid} holds "
+                            f"{ref['n_users']}. The checkpoint was not grown on this data.")
+                    item = ref["item"]
+                else:
+                    item = self._choose_item(rows, d, banned, node["n_ratings"])
+                if item is None:
+                    n_leaf += 1
+                    continue
+                mL, mH, mU = self._split_rows(rows, int(item))
+                node["item"] = int(item)
+                node["child_sizes"] = [int(mL.sum()), int(mH.sum()), int(mU.sum())]
+                nb = banned | {int(item)}
+                for key, mask in (("L", mL), ("H", mH), ("U", mU)):
+                    cid, cpp = self._new_node(rows[mask], d + 1, pp)
+                    node[key] = cid
+                    nxt.append((cid, rows[mask], nb, cpp, (ref[key] if replaying else None)))
+                n_internal += 1
+            frontier = nxt
+            done_depth = d + 1
+            secs = time.time() - t_lvl
+            t_lvl = time.time()
+            mass_next = self._splittable_mass(frontier)
+            if replaying:
+                self.log(f"[golbandi_tree] depth {done_depth}/{self.depth} REPLAYED from checkpoint: "
+                         f"{len(frontier)} nodes, {n_internal} parents split ({secs:.1f}s)")
+            else:
+                self._log_depth(done_depth, frontier, n_internal, n_leaf, secs,
+                                mass_prev, mass_next, time.time() - t0)
+            mass_prev = mass_next
+            if not replaying:
+                # A depth-d prefix IS the depth-d tree: this write is a finished artifact, not a dump.
+                self._checkpoint(done_depth, complete=(not frontier or done_depth >= self.depth))
+            if not frontier:
+                break
+        # Final write. If growth stopped EARLY (no node left that may split) the tree is already the
+        # tree for ANY depth, so the sidecar is stamped with the depth REQUESTED, not the depth
+        # reached -- otherwise re-running the same request would see banked depth < wanted depth and
+        # replay for nothing. Idempotent: skipped when the last per-level write already said this.
+        if self._last_ckpt_depth != int(self.depth):
+            self._checkpoint(self.depth, complete=True)
+
         self.profiles = (np.asarray(self._profiles, dtype=np.float32)
                          if self.store_profiles else None)
         self._grown = True
@@ -240,6 +343,91 @@ class GolbandiTree:
                  f"xi={self.xi:.0f} bias={self.bias_correct} forced={self.forced_order is not None} "
                  f"({time.time() - t0:.1f}s)")
         return self
+
+    # ---- growth helpers -------------------------------------------------------------------------
+    def _new_node(self, rows, depth, parent_profile):
+        """Register one node and return (its id, the profile its children should shrink toward)."""
+        prof = self._profile(rows, parent_profile) if (self.store_profiles or depth == 0) else None
+        nid = len(self.nodes)
+        self.nodes.append({"item": None, "L": None, "H": None, "U": None, "depth": depth,
+                           "n_users": int(len(rows)), "n_ratings": int(self.M[rows].nnz)})
+        if self._rows_of is not None:
+            self._rows_of.append(rows)
+        if self.store_profiles:
+            self._profiles.append(prof if prof is not None else parent_profile)
+        return nid, (prof if prof is not None else parent_profile)
+
+    def _split_rows(self, rows, item):
+        """The paper's ternary branch on the RAW rating of `item` (absent == UNKNOWN)."""
+        col = self.R[rows][:, item].toarray().ravel()
+        mL = col >= self.like_min
+        mH = (col > 0) & ~mL
+        return mL, mH, ~(mL | mH)
+
+    def _choose_item(self, rows, depth, banned, n_ratings):
+        """The question at this node, or None if the paper's stopping rules fire (depth budget /
+        node rating mass below xi / no strict error reduction)."""
+        if depth >= self.depth or n_ratings < self.xi:
+            return None
+        if self.forced_order is not None:
+            if depth >= len(self.forced_order):
+                return None
+            item = int(self.forced_order[depth])
+            return None if item in banned else item
+        item, err, e2_node = self._best_split(rows, banned)
+        if item is None or not (err < e2_node):      # paper: stop on NO STRICT error reduction
+            return None
+        return int(item)
+
+    def _splittable_mass(self, frontier):
+        """Rating mass sitting at frontier nodes that are still allowed to search. The split search
+        is O(node rating mass x candidates), so this is the honest scale factor between levels."""
+        return float(sum(self.nodes[e[0]]["n_ratings"] for e in frontier
+                         if self.nodes[e[0]]["n_ratings"] >= self.xi))
+
+    def _log_depth(self, done_depth, frontier, n_internal, n_leaf, secs,
+                   mass_prev, mass_next, elapsed):
+        users = sum(self.nodes[e[0]]["n_users"] for e in frontier)
+        tot = max(self.nodes[0]["n_users"], 1)
+        # ETA only when there IS a previous level to scale from and mass to scale by; the search cost
+        # is proportional to the rating mass still eligible to be searched, so that is the ratio used.
+        # No previous level, no eligible mass, or nothing left to grow -> no number, not a guess.
+        eta = ""
+        if frontier and mass_prev > 0 and mass_next > 0 and secs > 0:
+            eta = (f" | eta d{done_depth + 1}~{secs * mass_next / mass_prev / 60:.1f}m "
+                   f"(mass-ratio est)")
+        self.log(f"[golbandi_tree] depth {done_depth}/{self.depth} DONE: {len(frontier)} nodes "
+                 f"(from {n_internal} split / {n_leaf} stopped at d={done_depth - 1}) | "
+                 f"{users}/{tot} users ({users / tot:.1%}) still askable | "
+                 f"level {secs / 60:.1f}m | elapsed {elapsed / 60:.1f}m{eta}")
+
+    def _checkpoint(self, grown_depth, complete):
+        """Write the contract-signed sidecar for the tree AS IT STANDS (HARD RULE 11a/b).
+
+        `depth` in the file is the depth actually grown, NOT the target, and the `_contract` copies
+        it -- so a resumed reader knows how much work is banked and a partial file can never be
+        loaded as if it were a finished depth-8 tree. Written via a temp file + os.replace so a
+        crash mid-write cannot leave a truncated sidecar behind."""
+        if not self.checkpoint_path:
+            return None
+        blob = self.to_dict()
+        blob["depth"] = int(grown_depth)
+        blob["target_depth"] = int(self.depth)
+        blob["complete"] = bool(complete)
+        blob["order"] = "bfs"
+        blob["occupancy"] = self.occupancy()
+        if self.checkpoint_contract is not None:
+            blob["_contract"] = dict(self.checkpoint_contract, depth=int(grown_depth))
+        p = self.checkpoint_path
+        os.makedirs(os.path.dirname(p) or ".", exist_ok=True)
+        tmp = p + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(blob, fh)
+        os.replace(tmp, p)
+        self._last_ckpt_depth = int(grown_depth)
+        self.log(f"[golbandi_tree] CHECKPOINT depth={grown_depth} nodes={len(self.nodes)} "
+                 f"complete={complete} -> {p}")
+        return p
 
     def recompute_profiles(self, lam1=None, profile_kind=None):
         """Re-derive every node's profile on the ALREADY-GROWN structure. Growth does not depend on
@@ -273,45 +461,6 @@ class GolbandiTree:
         s = np.asarray(self.R[rows].sum(axis=0)).ravel()
         n = np.asarray(self.M[rows].sum(axis=0)).ravel()
         return ((s + self.lam1 * parent_profile) / (n + self.lam1)).astype(np.float32)
-
-    def _build(self, rows, depth, banned, parent_profile):
-        prof = self._profile(rows, parent_profile) if (self.store_profiles or depth == 0) else None
-        nid = len(self.nodes)
-        node = {"item": None, "L": None, "H": None, "U": None, "depth": depth,
-                "n_users": int(len(rows)), "n_ratings": int(self.M[rows].nnz)}
-        self.nodes.append(node)
-        if self._rows_of is not None:
-            self._rows_of.append(rows)
-        if self.store_profiles:
-            self._profiles.append(prof if prof is not None else parent_profile)
-
-        if depth >= self.depth or node["n_ratings"] < self.xi:
-            return nid
-        if self.forced_order is not None:
-            if depth >= len(self.forced_order):
-                return nid
-            item = int(self.forced_order[depth])
-            if item in banned:
-                return nid
-            col = self.R[rows][:, item].toarray().ravel()
-            mL = col >= self.like_min
-            mH = (col > 0) & ~mL
-        else:
-            item, err, e2_node = self._best_split(rows, banned)
-            if item is None or not (err < e2_node):      # paper: stop on NO STRICT error reduction
-                return nid
-            col = self.R[rows][:, item].toarray().ravel()
-            mL = col >= self.like_min
-            mH = (col > 0) & ~mL
-        mU = ~(mL | mH)
-        node["item"] = int(item)
-        node["child_sizes"] = [int(mL.sum()), int(mH.sum()), int(mU.sum())]
-        nb = banned | {int(item)}
-        pp = prof if prof is not None else parent_profile
-        node["L"] = self._build(rows[mL], depth + 1, nb, pp)
-        node["H"] = self._build(rows[mH], depth + 1, nb, pp)
-        node["U"] = self._build(rows[mU], depth + 1, nb, pp)
-        return nid
 
     # ------------------------------------------------------------------ traversal / diagnostics
     def route(self, answers, max_steps=None):
@@ -400,9 +549,15 @@ def load_tree(path, log=print):
     for attr in ("R", "M", "X", "X2", "Lo", "Ha"):
         setattr(t, attr, None)
     t.log = log
+    t.complete = bool(blob.get("complete", True))
+    t.target_depth = int(blob.get("target_depth", t.depth))
     log(f"[golbandi_tree] LOADED cached tree {os.path.basename(path)}: depth<={t.depth} "
         f"nodes={len(t.nodes)} internal={sum(1 for nd in t.nodes if nd['item'] is not None)} "
         f"xi={t.xi:.0f} n_train={t.n_users} n_items={t.n_items}")
+    if not t.complete:
+        log(f"[golbandi_tree] NOTE: that sidecar is a PARTIAL checkpoint of a depth-{t.target_depth} "
+            f"growth. It is a complete, valid depth-{t.depth} tree and is used as one; growth to "
+            f"depth {t.target_depth} would resume from here.")
     return t
 
 
@@ -414,6 +569,20 @@ def tree_contract(g_train, n_items, depth, like_min, xi, min_child_users, bias_c
             "depth": int(depth), "like_min": float(like_min),
             "xi": None if xi is None else float(xi),
             "min_child_users": int(min_child_users), "bias_correct": bool(bias_correct)}
+
+
+def contract_core(c):
+    """The part of a contract that decides whether a cached tree is THE SAME TREE.
+
+    Everything except `depth`. Depth is handled separately and deliberately: a depth-d prefix of a
+    depth-D tree IS the depth-d tree, so a sidecar grown to depth 3 is not a *different* tree from the
+    depth-5 one asked for -- it is the first three levels of it, and the honest response is to resume,
+    not to refuse and pay for those levels twice. Any disagreement on the data (n_train, n_items,
+    nnz), on the branch rule (like_min), or on the stopping rules (xi, min_child_users, bias_correct)
+    still REFUSES, which is the guarantee HARD RULE 11(b) actually asks for."""
+    if not isinstance(c, dict):
+        return None
+    return {k: v for k, v in c.items() if k != "depth"}
 
 
 # ============================================================================ the Selector
@@ -467,30 +636,44 @@ class GolbandiTreeSelector(_Selector):
         `cache_path` is the HARD RULE 11(b) resumable sidecar: growth at ML-25M scale is the one
         genuinely expensive step here, and it is deterministic, so it is written once and reloaded.
         The contract (`tree_contract`) is stored alongside the nodes and a mismatch REFUSES to load
-        rather than quietly reusing a tree grown on other data."""
+        rather than quietly reusing a tree grown on other data. Three outcomes, in order:
+
+          contract matches, banked depth >= wanted   -> LOAD and stop (what it always did)
+          contract matches, banked depth <  wanted   -> RESUME: replay the banked levels, grow the rest
+          contract differs                           -> REGROW from scratch, loudly
+
+        The sidecar is now written after EVERY depth, not once at the end (see `GolbandiTree.fit`),
+        so the resume branch is reachable from a crash, not only from a deliberate shallower run."""
         g_train = self.g_train if g_train is None else g_train
         n_items = self.n_items if n_items is None else n_items
         depth = self.depth if depth is None else depth
         lm = self.like_min if self.like_min is not None else float(self.like_level)
         want = tree_contract(g_train, n_items, depth, lm, self.xi, self.min_child_users,
                              self.bias_correct)
+        resume = None
         if cache_path and os.path.exists(cache_path):
-            got = json.load(open(cache_path)).get("_contract")
-            if got == want:
-                self.tree = load_tree(cache_path, log=self.log)
-                return self
-            self.log(f"[golbandi_tree] cache {cache_path} REFUSED: contract mismatch\n"
-                     f"    cached={got}\n    wanted={want}")
+            blob = json.load(open(cache_path))
+            got = blob.get("_contract")
+            if contract_core(got) == contract_core(want):
+                banked = int(got.get("depth", blob.get("depth", 0)))
+                if banked >= int(depth):
+                    self.tree = load_tree(cache_path, log=self.log)
+                    return self
+                self.log(f"[golbandi_tree] cache {cache_path} RESUMABLE: banked depth {banked} < "
+                         f"wanted {int(depth)}, same contract -> replaying {banked} level(s) and "
+                         f"growing on (a depth-d prefix of a depth-D tree IS the depth-d tree)")
+                resume = blob
+            else:
+                self.log(f"[golbandi_tree] cache {cache_path} REFUSED: contract mismatch -- "
+                         f"REGROWING FROM SCRATCH and overwriting it\n"
+                         f"    cached={got}\n    wanted={want}")
         self.tree = GolbandiTree(g_train, like_min=lm, depth=int(depth), xi=self.xi,
                                  min_child_users=self.min_child_users,
                                  bias_correct=self.bias_correct, candidates=self.candidates,
-                                 store_profiles=False, chunk=self.chunk, log=self.log).fit()
+                                 store_profiles=False, chunk=self.chunk,
+                                 checkpoint_path=cache_path, checkpoint_contract=want,
+                                 log=self.log).fit(resume_from=resume)
         if cache_path:
-            blob = self.tree.to_dict()
-            blob["_contract"] = want
-            blob["occupancy"] = self.tree.occupancy()
-            os.makedirs(os.path.dirname(cache_path) or ".", exist_ok=True)
-            json.dump(blob, open(cache_path, "w"))
             self.log(f"[golbandi_tree] tree CHECKPOINTED -> {cache_path}")
         self.tree.release()          # routing needs only `nodes`; free the six training CSRs
         return self
