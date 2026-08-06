@@ -228,6 +228,20 @@ info-gain arm as the budget grows from one question to sixteen.
 \subsection{The battery so far, in one contract}
 \label{sec:battery}
 
+\paragraph{One scope statement governs every table below: this literature asks about items.}
+Golbandi's tree, DRE, RBMF, RMVA, IGCN, fMF, EDDI, the interactive-collaborative-filtering bandits
+and the recent SLIM-based questionnaires all select \emph{items} to ask about, and so do all six of
+our literature-anchored static arms and all three of our adaptive selectors. The exceptions are
+narrow and we name them because they are the only available rivals for the coarse channel: the
+conversational-bandit family, which asks about a key-term or an item in one algorithm, and the
+topic bandit. Consequently \textbf{the adaptive-versus-static comparison of Act 1 is a result about
+the item channel}, and the correct comparator for those selectors is the greedy \emph{items-only}
+sequence, not the combined one, which draws on a channel no adaptive selector here can reach. Where
+the combined sequence appears it is a bound on what selection can buy given both channels, never a
+like-for-like opponent. The concept channel's own comparison is a separate claim with its own
+comparators, and conflating the two would repeat, at the level of the action space, exactly the
+contract error the candidate-pool discussion above warns about.
+
 Table~\ref{tab:battery} collects every selection method measured to date under a single information
 contract, and Table~\ref{tab:coverage} states what is still missing. Both are working-draft
 inventories: the point of printing them is that the empty cells are as visible as the full ones.
