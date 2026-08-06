@@ -1,0 +1,13 @@
+{
+  "model": "tanp",
+  "arm": "N",
+  "contract": "graded ratings centred at 3.5",
+  "ndcg@10": 0.17452599524454207,
+  "tail_ndcg@10": 0.06951515462630918,
+  "ndcg@100": 0.2388712006071933,
+  "epochs_requested": 200,
+  "binary_arm_n": {
+    "ndcg@10": 0.3324450643920424,
+    "tail_ndcg@10": 0.20784654331130853
+  }
+}
