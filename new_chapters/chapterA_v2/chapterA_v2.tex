@@ -384,10 +384,11 @@ question, because the canonical one is not neutral between the families we are c
 in \S\ref{sec:expdesign}: the fold-in is the user's \emph{likes} ($r>3.5$), and the candidate pool excludes
 those likes. It is the protocol every published number on this split was obtained under, and it is what
 makes our rows recognisable. But it discards a rating below the threshold entirely---a ``no'' does not
-exist---which is exactly the signal the elicitation family is built to consume.
+exist---which is exactly the signal the elicitation family is built to consume. Reporting that family only
+on \textsc{liang} would therefore mean reporting it with its designed input removed.
 
-\textsc{native} removes that handicap without creating a new one. Each system receives \emph{its own
-published input contract}: binary implicit feedback for the models whose papers specify it (which is why
+\textsc{native} exists to give those systems their best shot, and we report it whether or not the shot
+lands. Each system receives \emph{its own published input contract}: binary implicit feedback for the models whose papers specify it (which is why
 their two columns are identical---the input is byte-identical, and only the pool moves), and the full rated
 history, signed and graded, for the ratings-native ones. To keep the comparison fair once the inputs
 differ, the candidate pool then excludes \emph{every} rated fold-in item---likes and dislikes alike---for
@@ -401,6 +402,33 @@ reason that has nothing to do with capability: the larger exclusion hands back t
 personalised model was spending on items the user had already seen. Most-Popular gains $+0.028$ from this
 alone and EASE $+0.066$, so the protocol systematically favours personalisation over popularity. Read each
 column against its own rows, never a number in one against a number in the other.
+
+\paragraph{Giving the ratings back does not help these methods, which is worth reporting because we
+expected it to.} The premise of the \textsc{native} column is that the threshold filter withholds the
+signal these designs were built for. For every ratings-native baseline we were able to test, restoring it
+made them \emph{worse} at ranking. User-kNN falls from $0.3756$ on binary co-occurrence to $0.2808$ on
+mean-centred ratings; RBMF falls from $0.3015$ to $0.2314$ once its ridge seed regresses centred ratings
+rather than ones, and to $0.2950$ even with the ratings left uncentred, so the loss is not an artefact of
+how we defined a dislike. Both columns of the master table therefore report each system's \emph{strongest}
+build, with the graded attempt recorded as the measurement that chose it.
+
+Two mechanisms account for this, and neither is a defect of the protocol. The first is general and long
+known: rating prediction and top-$N$ ranking are different objectives, so a model tuned to reproduce a
+rating need not order a catalogue better~\cite{cremonesi2010performance}. Mean-centring in particular
+destroys the ``this user watched it at all'' signal that co-occurrence runs on, and widely-watched but
+divisive films accumulate negative mass---which is exactly where hit probability is concentrated. The
+second is specific to RBMF and stated in its own construction: the frozen basis it folds onto was fitted on
+binary data, so the latent has no dislike geometry for a negative target to exploit. A negative value
+pushes the seed into a region the basis cannot represent.
+
+The consequence for how this chapter argues is worth being explicit about. We are \emph{not} entitled to
+say the canonical binarisation handicaps the elicitation family at full profile; on the evidence here it
+does not. What the sub-threshold signal is worth is a question about the \emph{interview}, where evidence
+is scarce and a single ``no'' is a large fraction of what the model knows---and there it pays, by
+$+0.023$ full at a two-question budget, decaying to nothing by eight (\S\ref{sec:batteryresults}). The
+\textsc{native} column's value is therefore that it forecloses an objection rather than that it changes an
+ordering: no reader need wonder whether these systems were beaten only because the protocol had removed
+their input.
 
 
 \begin{table}[!htbp]\centering\scriptsize
