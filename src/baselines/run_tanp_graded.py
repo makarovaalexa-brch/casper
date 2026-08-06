@@ -68,9 +68,26 @@ def main():
     logln(f"graded+centred train: {g_train_c.nnz} nnz, {neg:.1%} negative "
           f"(binary train was {D['train'].nnz} nnz, all +1)")
 
+    # EPOCH SELECTION ON THE SAME CONTRACT WE TRAIN ON. Passing evaluator=None would be silently
+    # destructive here: tanp.fit only records best_state (and only writes the checkpoint) inside
+    # `if sc > state["best"]`, and with no evaluator sc is -1.0 every epoch against an initial best of
+    # -1.0, so the branch never fires -- 200 epochs, no checkpoint written, no early stop possible, and
+    # FINAL-epoch weights returned. The binary TaNP row is val-selected (best 0.2623 @ep98), so a
+    # final-epoch graded row would not be comparable to it.
+    from metrics import load_val
+    from graded_data import load_graded_val
+    va_tr_bin, va_te = load_val(ni, os.path.join(_ROOT, "data", "ml-25m", "proc"))
+    g_va = centred(load_graded_val(va_te, log=logln))
+
+    def ev(pred):
+        m = M.evaluate(pred, g_va, va_te, batch_size=500, head_mask=D["head_mask"])
+        return m["ndcg@10"], m
+
     a = tanp._defaults()
     a.epochs, a.max_minutes = a0.epochs, a0.max_minutes
-    predict = tanp.fit(g_train_c, ni, evaluator=None, args=a, ckpt=CKPT, log=logln)
+    predict = tanp.fit(g_train_c, ni, evaluator=ev, args=a, ckpt=CKPT, log=logln)
+    logln(f"val-selected epoch {getattr(predict, 'best_epoch', '?')} "
+          f"(val NDCG@10 {getattr(predict, 'best_val', float('nan')):.4f})")
 
     r = M.evaluate(predict, g_te_tr_c, D["te_te"], batch_size=500,
                    head_mask=D["head_mask"], mask_X=D["pool"])

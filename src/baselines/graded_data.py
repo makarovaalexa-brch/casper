@@ -66,6 +66,22 @@ def _graded_rows(user_ids, show2id, raw, exclude=None):
     return X
 
 
+def load_graded_val(va_te, log=print):
+    """Graded VALIDATION fold-in, over the canonical val user slice with held-out targets removed.
+
+    Needed so a graded retrain can select its epoch on the SAME contract it trains on. Without it the
+    only options are selecting on binary validation (mixes contracts at the one point that decides which
+    weights ship) or not selecting at all (final-epoch weights, which is not what any other neural row in
+    this chapter reports -- they are all val-selected)."""
+    unique_uid, show2id, raw = _partition()
+    n_all = len(unique_uid)
+    val_ids = unique_uid[n_all - 2 * 10000: n_all - 10000]
+    Xva = _graded_rows(val_ids, show2id, raw, exclude=va_te)
+    log(f"[graded] val fold-in {Xva.shape} nnz={Xva.nnz} mean={Xva.data.mean():.3f} "
+        f"frac_sub3.5={float((Xva.data <= 3.5).mean()):.3f}")
+    return Xva
+
+
 def load_graded(te_te, log=print):
     """(graded_train, graded_test_foldin). Train = the canonical 140,768; test = the last 10,000 with
     held-out targets removed. Both carry catalogue ratings across all bands."""
