@@ -387,8 +387,8 @@ makes our rows recognisable. But it discards a rating below the threshold entire
 exist---which is exactly the signal the elicitation family is built to consume. Reporting that family only
 on \textsc{liang} would therefore mean reporting it with its designed input removed.
 
-\textsc{native} exists to give those systems their best shot, and we report it whether or not the shot
-lands. Each system receives \emph{its own published input contract}: binary implicit feedback for the models whose papers specify it (which is why
+\textsc{native} evaluates each system under the input its own design assumes, and we report the outcome
+whether or not it favours that system. Each system receives \emph{its own published input contract}: binary implicit feedback for the models whose papers specify it (which is why
 their two columns are identical---the input is byte-identical, and only the pool moves), and the full rated
 history, signed and graded, for the ratings-native ones. To keep the comparison fair once the inputs
 differ, the candidate pool then excludes \emph{every} rated fold-in item---likes and dislikes alike---for
@@ -403,10 +403,10 @@ personalised model was spending on items the user had already seen. Most-Popular
 alone and EASE $+0.066$, so the protocol systematically favours personalisation over popularity. Read each
 column against its own rows, never a number in one against a number in the other.
 
-\paragraph{Giving the ratings back does not help these methods, which is worth reporting because we
-expected it to.} The premise of the \textsc{native} column is that the threshold filter withholds the
-signal these designs were built for. For every ratings-native baseline we were able to test, restoring it
-made them \emph{worse} at ranking. User-kNN falls from $0.3756$ on binary co-occurrence to $0.2808$ on
+\paragraph{Restoring the ratings does not improve these methods, contrary to the premise of the column.}
+The premise of the \textsc{native} column is that the threshold filter withholds the signal these designs
+were built for. For every ratings-native baseline we were able to test, restoring it made them
+\emph{worse} at ranking. User-kNN falls from $0.3756$ on binary co-occurrence to $0.2808$ on
 mean-centred ratings; RBMF falls from $0.3015$ to $0.2314$ once its ridge seed regresses centred ratings
 rather than ones, and to $0.2950$ even with the ratings left uncentred, so the loss is not an artefact of
 how we defined a dislike. Both columns of the master table therefore report each system's \emph{strongest}
@@ -427,8 +427,8 @@ does not. What the sub-threshold signal is worth is a question about the \emph{i
 is scarce and a single ``no'' is a large fraction of what the model knows---and there it pays, by
 $+0.023$ full at a two-question budget, decaying to nothing by eight (\S\ref{sec:batteryresults}). The
 \textsc{native} column's value is therefore that it forecloses an objection rather than that it changes an
-ordering: no reader need wonder whether these systems were beaten only because the protocol had removed
-their input.
+ordering: it removes any doubt that these systems scored below the instrument only because the protocol
+had withheld the input their designs assume.
 
 
 \begin{table}[!htbp]\centering\scriptsize
