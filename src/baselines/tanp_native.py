@@ -125,6 +125,14 @@ def _make_predict(model):
 def fit(train, n_items, evaluator=None, args=None, ckpt=None, log=print):
     a = args or _defaults()
     model = TaNPNative(n_items, a.d, a.hidden, a.zdim, a.dropout)
+    # Start the decoder ON THE RATING SCALE. Zero-init biases mean the model opens predicting ~0 against
+    # targets averaging ~3.5, so the first epochs are spent climbing to the intercept rather than learning
+    # taste -- standard practice in rating factorisation is to seed the global bias at the global mean.
+    # Inert for ranking (a constant added to every item), so this buys optimisation, not accuracy.
+    with torch.no_grad():
+        model.global_bias.fill_(float(train.data.mean()) if train.nnz else 0.0)
+    log(f"[tanp-native] global bias initialised at the training mean rating "
+        f"{float(train.data.mean()) if train.nnz else 0.0:.3f}")
     opt = torch.optim.Adam(model.parameters(), lr=a.lr, weight_decay=a.l2)
     state = {"epoch": 0, "best": -1.0, "best_state": None, "best_epoch": 0, "history": []}
     if ckpt and getattr(a, "resume", True) and os.path.exists(ckpt):
