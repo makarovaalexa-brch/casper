@@ -313,10 +313,11 @@ entropy$_0$ / HELF / pop / random & Rashid'02,'08 & static & \cmark & \cmark & \
 GLM-UCB, Thompson & Zhao CIKM'13 & adaptive & \cmark & \cmark & \xmark & \xmark \\
 latent-only info-gain$^\dagger$ & Ma ICML'19 & adaptive & \cmark & \cmark & \cmark & \xmark \\
 \midrule
-ConLinUCB-MCR / ConUCB & AAAI'23, WWW'20 & adaptive & \xmark & \xmark & \xmark & \xmark \\
-CLiSK / CLiME & KDD'25 & adaptive & \xmark & \xmark & \xmark & \xmark \\
+ConLinUCB-MCR / -BS / ConUCB & AAAI'23, WWW'20 & adaptive & \cmark & \cmark & \xmark & \xmark \\
+CLiME & KDD'25 & adaptive & \cmark & \cmark & \xmark & \xmark \\
+ConLinUCB-BS-static & AAAI'23 & static (concepts) & \cmark & \cmark & \xmark & \xmark \\
+Golbandi tree (split search) & WSDM'11 & adaptive & \cmark & \cmark & \cmark & \cmark \\
 ICF (4 policies) & Zhao CIKM'13 & adaptive & \xmark & \xmark & \xmark & \xmark \\
-Golbandi tree (split search) & WSDM'11 & adaptive & \xmark & \xmark & \xmark & \xmark \\
 IGCN & Rashid'08 & adaptive & \xmark & \xmark & \xmark & \xmark \\
 DPE (topic bandit) & WSDM'21 & adaptive & \xmark & \xmark & \xmark & \xmark \\
 BALD / SEL-BALD & 2011 / NeurIPS'24 & adaptive & \xmark & \xmark & \xmark & \xmark \\
@@ -334,11 +335,30 @@ a-stratification & CAT, 1999 & static bank & \xmark & \xmark & \xmark & \xmark \
 \end{tabular}
 \end{table}
 
-\PLAN{the \xmark{} rows of Table~\ref{tab:coverage}, ordered by leverage: the conversational-bandit
-family first (it is the only published adaptive line whose action space is ours --- an attribute or
-an item, one algorithm, no target item and no simulator), then the classical tree line, then the
-learned static bars. Also owed on the measured rows: paired bootstrap CIs on every gap, the floored
-arm, and a greedy re-run whose selection contract matches the scoring contract.}
+\paragraph{The published methods, measured.} Two families have since been snap-validated against
+their own papers and run here. \textbf{Golbandi's interview tree} is the first adaptive selector in
+this battery to beat a static comparator: on our tower it loses at one and two questions
+($-.0078$, $-.0092$, both separated) and wins at eight ($+.0064$ full, $+.0052$ tail, separated),
+and against the strongest static it takes the tail at eight questions ($+.0068$
+$[+.0039,+.0098]$) while losing full at every budget. \textbf{The conversational-bandit family} ---
+the only published line that asks about a concept or an item in one algorithm, with no target item
+and no simulator --- tops out at $.2218/.0897$ (CLiME at sixteen questions), above our own bandit
+reimplementations but below both entropy$_0$ ($-.0085$) and the strongest static ($-.0231$).
+
+Two features of that family are worth stating because they are properties of the published
+method, not of our port. Its own key-term schedule fires on turns three and eight only, so
+\textbf{sixteen questions spend two of them on concepts} and the one- and two-question rows contain
+no concept questions at all --- the method is item-dominated by construction. And its pure concept
+arm, whose order is the barycentric spanner of the key-term features, is \textbf{the first
+published opponent our concept channel has had}: it reaches $.1891/.0700$ where the greedy
+concepts-only sequence reaches $.2473/.1154$, a gap of $+.0582$ full and $+.0454$ tail,
+static-against-static in the same channel at the same budget.
+
+\PLAN{the remaining \xmark{} rows, ordered by leverage: the learned static bars (DRE is built and
+its native snap passed; Greedy SLIM is the only published protocol sibling), then IGCN and the
+information-theoretic arms. Also owed: paired CIs on the conversational-bandit gaps, the two
+remaining key-term representations (which together adjudicate how a concept should be represented),
+and a greedy re-run whose selection contract matches the scoring contract.}
 
 \subsection{The loss is not a failure to branch}
 
