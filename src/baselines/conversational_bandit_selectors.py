@@ -224,7 +224,8 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
 
 from adaptive_harness import Selector                                    # noqa: E402
-from bandit_selectors import GLMUCBSelector, _obs, NEG                   # noqa: E402
+from bandit_selectors import (GLMUCBSelector, LRUCache, DEFAULT_MAX_STATES,   # noqa: E402
+                              WIDTH_DTYPE, _obs, NEG)
 
 CACHE_DIR = os.path.join(_ROOT, ".cache", "baselines")
 KEYTERM_MODES = ("uniform_member_mean", "representative", "whitened_centroid")
@@ -475,8 +476,8 @@ class _ConvBanditBase(GLMUCBSelector):
     name = "conv_bandit"
 
     def __init__(self, belief, stack, alpha=1.0, beta=None, turn_rule=None,
-                 b_schedule="5logt", seed=98765, pool=None):
-        super().__init__(belief, alpha=alpha, pool=pool)
+                 b_schedule="5logt", seed=98765, pool=None, max_states=DEFAULT_MAX_STATES):
+        super().__init__(belief, alpha=alpha, pool=pool, max_states=max_states)
         self.stack = stack
         self.Xt = np.ascontiguousarray(stack["Xtilde"])                  # (C x f)
         self.C = int(stack["n_concepts"])
@@ -486,14 +487,14 @@ class _ConvBanditBase(GLMUCBSelector):
         self.b_schedule = b_schedule
         assert b_schedule in B_SCHEDULES, f"unknown b_schedule {b_schedule}"
         self.seed = int(seed)
-        self._ktw = {}
+        self._ktw = LRUCache(self.max_states, "ktw")
         self._n_kt = []
         self.n_items = None
 
     # ------------------------------------------------------------------ state / posterior
     def reset(self, ctx):
         super().reset(ctx)
-        self._ktw = {}
+        self._ktw.clear()
         self._n_kt = []
         self.n_items = int(ctx["n_items"])
         self.conc = ctx["conc_state"]
@@ -537,9 +538,12 @@ class _ConvBanditBase(GLMUCBSelector):
         row and cannot be addressed by an item id. Nothing else differs:
             beta is None : M = Sigma_0^-1 + (1/s2) Phi^T Phi     (the population prior; the default)
             beta float   : M = beta I     + (1/s2) Phi^T Phi     (ConLinUCB's literal ridge)
+
+        MEMORY (2026-08-07, HARD RULE 11c): M is REBUILT on every call and only the 200-float mean is
+        cached. Phi has at most k <= 16 rows, so `Phi.T @ Phi` is a ~1 ms Gram, while keeping M alive
+        cost 320 KB per interview state and was the largest single term in the 2026-08-05 OOM. The
+        arithmetic below is unchanged, line for line.
         """
-        if key in self._mu:
-            return self._mu[key], self._A[key]
         bel = self.belief
         Phi, r = self._rows(key)
         f = self.Y.shape[1]
@@ -549,12 +553,12 @@ class _ConvBanditBase(GLMUCBSelector):
             P0, rhs0 = self.beta * np.eye(f), np.zeros(f)
         if Phi.shape[0] == 0:
             mu = np.linalg.solve(P0, rhs0) if self.beta is not None else bel.mu0
-            self._mu[key], self._A[key] = mu, P0
             return mu, P0
         M = P0 + bel.inv_s2 * (Phi.T @ Phi)
-        b = rhs0 + bel.inv_s2 * (Phi.T @ r)
-        mu = np.linalg.solve(M, b)
-        self._mu[key], self._A[key] = mu, M
+        mu = self._mu.get(key)
+        if mu is None:
+            b = rhs0 + bel.inv_s2 * (Phi.T @ r)
+            mu = self._mu.put(key, np.linalg.solve(M, b))
         return mu, M
 
     def _wkey(self, key):
@@ -567,13 +571,14 @@ class _ConvBanditBase(GLMUCBSelector):
         """||xtilde_k||_{M^-1} for every key-term. Second Cholesky solve, against Xtilde^T (200 x ~1k)
         rather than Y^T (200 x 18,359), so it costs ~5% of the item width and is cached the same way."""
         wkey = self._wkey(key)
-        if wkey not in self._ktw:
+        w = self._ktw.get(wkey)
+        if w is None:
             _mu, M = self._posterior(key)
             c, low = sla.cho_factor(M, lower=True)
             B = sla.cho_solve((c, low), self.Xt.T)
             v = np.einsum("ij,ji->i", self.Xt, B)
-            self._ktw[wkey] = np.sqrt(np.maximum(v, 0.0))
-        return self._ktw[wkey]
+            w = self._ktw.put(wkey, np.sqrt(np.maximum(v, 0.0)).astype(WIDTH_DTYPE))
+        return w
 
     # ------------------------------------------------------------------ turn type
     def _b(self, t):
@@ -601,27 +606,37 @@ class _ConvBanditBase(GLMUCBSelector):
         return self.Y @ mu + self.alpha * self._width_vec(key)
 
     # ------------------------------------------------------------------ selection
-    def _pick_mixed(self, item_s, kt_s, u, asked_u, force_kt):
+    def _pick_mixed(self, item_s_fn, kt_s, u, asked_u, force_kt):
         """One argmax over the mixed action space, with each user's own asked-mask applied to BOTH
         halves. `force_kt` is the turn-type decision: True = this turn is a key-term turn (the paper's
-        schedule), None = let the width criterion choose (the one-action-space variant)."""
+        schedule), None = let the width criterion choose (the one-action-space variant).
+
+        `item_s_fn` is a ZERO-ARGUMENT CALLABLE, not an array, and that is the whole reason a key-term
+        turn is now cheap: on a scheduled key-term turn the 18,359-item acquisition -- one 200x200
+        Cholesky solve against Y^T per interview state -- is never needed, so it is never computed. It
+        is still computed, on demand and memoised per state, in the one case where it IS needed: every
+        key-term has already been asked, so the turn falls back to an item. Selections are unchanged;
+        only the work not done differs."""
         a = np.asarray(asked_u, dtype=np.int64)
         it = a[a < self.n_items]
         kt = a[a >= self.n_items] - self.n_items
-        s_i = item_s.copy()
+        # MUST be a copy: `kt_s` is shared by every user in the state group and is masked per user.
+        s_k = np.array(kt_s, dtype=np.float64, copy=True)    # also lifts a float32 width cache
+        if len(kt):
+            s_k[kt] = NEG
+        bk = int(np.argmax(s_k))
+        if force_kt is True and s_k[bk] > NEG:
+            return self.n_items + bk
+
+        s_i = np.asarray(item_s_fn(), dtype=np.float64).copy()
         if self.pool is not None:
             keep = np.full(s_i.shape, NEG, dtype=s_i.dtype)
             keep[self.pool] = s_i[self.pool]
             s_i = keep
         if len(it):
             s_i[it] = NEG
-        s_k = kt_s.copy()
-        if len(kt):
-            s_k[kt] = NEG
-        bi, bk = int(np.argmax(s_i)), int(np.argmax(s_k))
-        if force_kt is True:
-            return self.n_items + bk if s_k[bk] > NEG else bi
-        if force_kt is False:
+        bi = int(np.argmax(s_i))
+        if force_kt is not None:                             # True with every key-term exhausted, or False
             return bi
         return (self.n_items + bk) if s_k[bk] >= s_i[bi] else bi
 
@@ -634,10 +649,16 @@ class _ConvBanditBase(GLMUCBSelector):
         force = self._scheduled_keyterm(turn) if self.turn_rule == "schedule" else None
         for key, us in groups.items():
             mu, _M = self._posterior(key)
-            item_s = self._item_scores(key, mu)
             kt_s = self._keyterm_scores(key, mu)
+            box = {}                                          # memoises the item acquisition per state
+
+            def item_s_fn(_key=key, _mu=mu, _box=box):
+                if "v" not in _box:
+                    _box["v"] = self._item_scores(_key, _mu)
+                return _box["v"]
+
             for u in us:
-                q = self._pick_mixed(item_s, kt_s, u, asked[u], force)
+                q = self._pick_mixed(item_s_fn, kt_s, u, asked[u], force)
                 out[idx_of[u]] = q
                 n_kt += int(q >= self.n_items)
         self._n_kt.append(n_kt)
@@ -739,20 +760,21 @@ class CLiMESelector(_ConvBanditBase):
         super().__init__(belief, stack, **kw)
         self.n_eig = int(n_eig)
         self.smooth_sigma = float(smooth_sigma)
-        self._eig = {}
+        self._eig = LRUCache(self.max_states, "eig")
 
     def reset(self, ctx):
         super().reset(ctx)
-        self._eig = {}
+        self._eig.clear()
         self._turn = 0
 
     def _small_eigvecs(self, key):
         wkey = self._wkey(key)
-        if wkey not in self._eig:
+        Vv = self._eig.get(wkey)
+        if Vv is None:
             _mu, M = self._posterior(key)
-            w, Vv = np.linalg.eigh(M)                                    # ascending eigenvalues
-            self._eig[wkey] = Vv[:, :self.n_eig]                         # (f x n_eig), smallest first
-        return self._eig[wkey]
+            w, V = np.linalg.eigh(M)                                     # ascending eigenvalues
+            Vv = self._eig.put(wkey, V[:, :self.n_eig])                  # (f x n_eig), smallest first
+        return Vv
 
     def _keyterm_scores(self, key, mu):
         Vv = self._small_eigvecs(key)
@@ -802,11 +824,11 @@ class ConUCBSelector(_ConvBanditBase):
         self.lam = float(lam)
         self.lam_til = float(lam_til)
         self._G = None
-        self._mtil = {}
+        self._mtil = LRUCache(self.max_states, "mtil")
 
     def reset(self, ctx):
         super().reset(ctx)
-        self._mtil = {}
+        self._mtil.clear()
         Ypool = self.Y if self.pool is None else self.Y[self.pool]
         self._G = Ypool.T @ Ypool                                        # X_t^T X_t, f x f
         ctx["log"](f"[{self.name}] lam={self.lam} (NOT the paper's verified value -- neutral midpoint) "
@@ -816,7 +838,8 @@ class ConUCBSelector(_ConvBanditBase):
     def _keyterm_fit(self, key):
         """(theta~, Mtil^-1) from the key-term-level ridge over the ANSWERED key-terms."""
         ckey = key[1]
-        if ckey not in self._mtil:
+        got = self._mtil.get(ckey)
+        if got is None:
             f = self.Y.shape[1]
             Mt = self.lam_til * np.eye(f)
             bt = np.zeros(f)
@@ -827,25 +850,27 @@ class ConUCBSelector(_ConvBanditBase):
                 Mt = Mt + Xk.T @ Xk
                 bt = Xk.T @ cv
             Mti = np.linalg.inv(Mt)
-            self._mtil[ckey] = (Mti @ bt, Mti)
-        return self._mtil[ckey]
+            got = self._mtil.put(ckey, (Mti @ bt, Mti))
+        return got
 
     def _posterior(self, key):
         """ConUCB's SHRUNK item-level fit. Overridden so the inherited `_width_vec` (Cholesky solve
-        against Y^T) computes ||x_a||_{M_t^-1} against ConUCB's own M_t, not ConLinUCB's."""
-        if key in self._mu:
-            return self._mu[key], self._A[key]
+        against Y^T) computes ||x_a||_{M_t^-1} against ConUCB's own M_t, not ConLinUCB's.
+
+        As in the base class (HARD RULE 11c) M is rebuilt per call -- it is a <=16x200 Gram plus a
+        scaled identity -- and only the mean is cached."""
         f = self.Y.shape[1]
         cols, vals = _obs(key[0])
         theta_til, _Mti = self._keyterm_fit(key)
         M = (1.0 - self.lam) * np.eye(f)
-        b = (1.0 - self.lam) * theta_til
         if len(cols):
-            Ys = self.Y[cols]
-            M = M + self.lam * (Ys.T @ Ys)
-            b = b + self.lam * (Ys.T @ vals)
-        mu = np.linalg.solve(M, b)
-        self._mu[key], self._A[key] = mu, M
+            M = M + self.lam * (self.Y[cols].T @ self.Y[cols])
+        mu = self._mu.get(key)
+        if mu is None:
+            b = (1.0 - self.lam) * theta_til
+            if len(cols):
+                b = b + self.lam * (self.Y[cols].T @ vals)
+            mu = self._mu.put(key, np.linalg.solve(M, b))
         return mu, M
 
     def _keyterm_scores(self, key, mu):

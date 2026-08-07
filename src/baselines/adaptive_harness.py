@@ -155,8 +155,75 @@ class StaticArmSelector(Selector):
 
 
 # ===================================================================== the sequential loop
+def _json_ready(o):
+    """numpy scalars -> python scalars, tuples -> lists, recursively. json.dump's default= hook."""
+    if isinstance(o, (np.integer,)):
+        return int(o)
+    if isinstance(o, (np.floating,)):
+        return float(o)
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    raise TypeError(f"not JSON-serialisable: {type(o)}")
+
+
+def _write_atomic(path, blob, indent=None):
+    """tmp + os.replace, so a crash mid-write can never leave a truncated checkpoint behind."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump(blob, fh, default=_json_ready, indent=indent)
+    os.replace(tmp, path)
+    return path
+
+
+def _savez_atomic(path, **arrays):
+    """np.savez_compressed via tmp + os.replace. The per-user npz is rewritten after EVERY cell, so
+    without this a crash during the write would destroy every previously banked vector."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    tmp = path + ".tmp.npz"
+    np.savez_compressed(tmp, **arrays)
+    os.replace(tmp, path)
+    return path
+
+
+def _load_interview_ckpt(path, contract, log=logln):
+    """Read a per-turn interview sidecar, REFUSING it unless the contract matches exactly.
+
+    Returns None (start from turn 0) or the restored state. Everything that was a TUPLE when the
+    interview ran is restored as a tuple, not as a list: `answered[u]` is hashed by the selectors'
+    state grouping (`tuple(answered[u])`), and a list inside that tuple is unhashable -- so a sloppy
+    reload would not be subtly wrong, it would crash. Restored as tuples, it is bit-identical."""
+    if not path or not os.path.exists(path):
+        return None
+    try:
+        blob = json.load(open(path))
+    except Exception as e:                                    # a torn file is not a reason to die
+        log(f"[adaptive] interview checkpoint {path} UNREADABLE ({e}) -- starting this cell fresh")
+        return None
+    if blob.get("_contract") != contract:
+        log(f"[adaptive] interview checkpoint {path} REFUSED: contract mismatch -- recomputing\n"
+            f"    cached={blob.get('_contract')}\n    wanted={contract}")
+        return None
+    cs = blob["conc_state"]
+    st = {
+        "turns_done": int(blob["turns_done"]),
+        "acts": [list(map(int, a)) for a in blob["acts"]],
+        "asked": [list(map(int, a)) for a in blob["asked"]],
+        "answered": [[(int(i), int(v)) for i, v in a] for a in blob["answered"]],
+        "conc_state": {
+            "asked": [[int(c) for c in a] for a in cs["asked"]],
+            "answered": [[(int(c), float(v)) for c, v in a] for a in cs["answered"]],
+            "tokens": [[(int(c), float(v), float(f)) for c, v, f in a] for a in cs["tokens"]],
+        },
+        "info": blob["info"],
+    }
+    log(f"[adaptive] interview checkpoint {os.path.basename(path)} ACCEPTED: "
+        f"{st['turns_done']} turn(s) already banked -> resuming from turn {st['turns_done'] + 1}")
+    return st
+
+
 def run_interview(selector, k, n_users, n_items, lvl, ctx=None, sel_batch=0, log=logln,
-                  collect_dispersion=True, conc=None):
+                  collect_dispersion=True, conc=None, ckpt_path=None, ckpt_contract=None):
     """Ask `k` questions sequentially, re-invoking `selector` after every answer.
 
     Returns (asked, answered, info):
@@ -185,6 +252,22 @@ def run_interview(selector, k, n_users, n_items, lvl, ctx=None, sel_batch=0, log
     published API and every other selector implements it, so widening the signature would break the
     contract this file exists to define. The item-side return values are unchanged, so the entire
     scoring path (`score_arm`, the floor rule, the pool) sees exactly what it saw before.
+
+    PER-TURN CHECKPOINTING (added 2026-08-07; HARD RULE 11a/b). `ckpt_path` + `ckpt_contract` bank the
+    interview state -- acts, asked, answered, the concept state and the per-turn diagnostics -- after
+    EVERY turn, atomically, signed with the contract that produced it. A rerun with the same contract
+    resumes at the first unfinished turn; a rerun with any other contract refuses the file and
+    recomputes. This is exactly the failure that cost a 4-hour run on 2026-08-05: it died at turn
+    14/16 and nothing was on disk.
+
+    RESUMING IS EXACT, and the reason is worth stating because it is the thing that could silently be
+    wrong. Every selector in this family is a pure function of (turn, asked, answered, concept state):
+    the posterior caches are memoisation, the ConLinUCB-BS uniform draw is seeded on (seed, turn), and
+    CLiSK's smoothing noise on (seed, turn, 7). So replaying from a banked state at turn t gives the
+    same questions the uninterrupted run would have asked. The only things that do NOT survive are the
+    selector's own per-turn DIAGNOSTIC lists (distinct states, key-term asks), which start empty on a
+    fresh object -- so the banked prefix of every per-turn list is stitched back on at the end, and the
+    cell records `resumed_from_turn` so a stitched row is never mistaken for an uninterrupted one.
     """
     acts = [[] for _ in range(n_users)]                      # FULL action ids (items + key-terms)
     asked = [[] for _ in range(n_users)]                     # ITEM ids only -> the scoring path
@@ -192,6 +275,22 @@ def run_interview(selector, k, n_users, n_items, lvl, ctx=None, sel_batch=0, log
     n_conc = int(conc["n_concepts"]) if conc else 0
     conc_state = {"asked": [[] for _ in range(n_users)], "answered": [[] for _ in range(n_users)],
                   "tokens": [[] for _ in range(n_users)]}
+    info = {"turn_seconds": [], "distinct_prefixes": [], "answer_rate": [], "concept_asks": []}
+    t_start, banked = 0, {}
+    st = _load_interview_ckpt(ckpt_path, ckpt_contract, log=log)
+    if st is not None and st["turns_done"] < int(k):
+        acts, asked, answered = st["acts"], st["asked"], st["answered"]
+        conc_state = st["conc_state"]
+        banked = st["info"]
+        t_start = int(st["turns_done"])
+        info = {key: list(banked.get(key, []))[:t_start] for key in info}
+    elif st is not None:
+        # Fully banked: replay nothing at all, this cell's interview is done.
+        acts, asked, answered = st["acts"], st["asked"], st["answered"]
+        conc_state, banked = st["conc_state"], st["info"]
+        t_start = int(k)
+        info = {key: list(banked.get(key, []))[:t_start] for key in info}
+
     base_ctx = {"n_users": n_users, "n_items": n_items, "q_max": int(k), "log": log,
                 "conc_state": conc_state, "n_concepts": n_conc}
     base_ctx.update(ctx or {})
@@ -199,8 +298,7 @@ def run_interview(selector, k, n_users, n_items, lvl, ctx=None, sel_batch=0, log
 
     all_users = np.arange(n_users, dtype=np.int64)
     step = n_users if sel_batch in (0, None) else int(sel_batch)
-    info = {"turn_seconds": [], "distinct_prefixes": [], "answer_rate": [], "concept_asks": []}
-    for t in range(k):
+    for t in range(t_start, k):
         t0 = time.time()
         for s in range(0, n_users, step):
             users = all_users[s:s + step]
@@ -238,7 +336,25 @@ def run_interview(selector, k, n_users, n_items, lvl, ctx=None, sel_batch=0, log
             f"answered so far {info['answer_rate'][-1]:.2f}  "
             f"concept-asks {info['concept_asks'][-1]}  "
             f"distinct ask-prefixes {info['distinct_prefixes'][-1] if collect_dispersion else '-'}")
+        if ckpt_path:
+            ck_info = dict(banked)
+            ck_info.update(info)
+            ck_info.update(selector.stats())
+            for key, v in list(ck_info.items()):
+                # per-turn lists from a FRESH selector cover only the turns run in THIS process;
+                # re-attach the banked prefix so the sidecar always describes turns 1..t.
+                if isinstance(v, list) and len(v) < t + 1 and isinstance(banked.get(key), list):
+                    ck_info[key] = banked[key][:t + 1 - len(v)] + v
+            _write_atomic(ckpt_path, {
+                "_contract": ckpt_contract, "turns_done": t + 1, "k": int(k),
+                "selector": selector.name, "acts": acts, "asked": asked, "answered": answered,
+                "conc_state": conc_state, "info": ck_info})
+    if t_start:
+        info["resumed_from_turn"] = t_start
     info.update(selector.stats())
+    for key, v in list(info.items()):
+        if isinstance(v, list) and len(v) < k and isinstance(banked.get(key), list):
+            info[key] = banked[key][:k - len(v)] + v
     if conc and info["concept_asks"][-1] == 0:
         # A key-term arm that never asked a key-term is NOT a result about concepts -- it is the arm
         # degenerating to its item-only special case. Say so loudly so no table row can be read as
@@ -310,14 +426,18 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
     Partial-VAE) so they are fitted/loaded ONCE per process, not once per budget."""
     if spec.endswith(STATIC_SUFFIX):
         return StaticArmSelector(spec[:-len(STATIC_SUFFIX)], glob, bank, q_max=k)
+    ms = int(getattr(args, "conv_max_states", 0) or 0)
     if spec in ("glm_ucb", "thompson"):
         import bandit_selectors as B
         if "belief" not in cache:
-            import belief_mf
-            cache["belief"] = belief_mf.fit(D["train"], D["n_items"], log=log).belief
+            # BANKED frozen basis: the seeded 10-minute iALS fit is the one thing a RESUMED run would
+            # otherwise repay in full before doing any new work (HARD RULE 11b). Bit-identical on a
+            # hit -- see bandit_selectors.load_or_fit_belief.
+            cache["belief"] = B.load_or_fit_belief(D["train"], D["n_items"], log=log)
+        ms = ms or B.DEFAULT_MAX_STATES
         if spec == "glm_ucb":
-            return B.GLMUCBSelector(cache["belief"], alpha=args.ucb_alpha)
-        return B.ThompsonSelector(cache["belief"], seed=args.ts_seed)
+            return B.GLMUCBSelector(cache["belief"], alpha=args.ucb_alpha, max_states=ms)
+        return B.ThompsonSelector(cache["belief"], seed=args.ts_seed, max_states=ms)
     if spec == "golbandi_tree":
         # WSDM'11 SPLIT SEARCH (golbandi_tree_selector.py). Grown ONCE per process on the TRAIN
         # users, to the LARGEST budget in the run, and shared across budgets: a depth-d prefix of the
@@ -377,11 +497,15 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         # key-term (a genome concept) at any turn, out of one shared k-question budget. The posterior
         # is `belief_mf.GaussianBelief` -- the SAME object glm_ucb and thompson use, so the difference
         # between those rows and these is the action space and nothing else.
+        import bandit_selectors as B
         import conversational_bandit_selectors as CB
         if "belief" not in cache:
-            import belief_mf
-            cache["belief"] = belief_mf.fit(D["train"], D["n_items"], log=log).belief
+            # BANKED frozen basis: the seeded 10-minute iALS fit is the one thing a RESUMED run would
+            # otherwise repay in full before doing any new work (HARD RULE 11b). Bit-identical on a
+            # hit -- see bandit_selectors.load_or_fit_belief.
+            cache["belief"] = B.load_or_fit_belief(D["train"], D["n_items"], log=log)
         bel = cache["belief"]
+        ms = ms or B.DEFAULT_MAX_STATES
         # ConUCB's Eq. 4 DEFINES its key-term feature as the weight-normalised member mean, so that arm
         # pins the representation unless the caller overrides it on purpose (--keyterm_repr_conucb).
         repr_mode = args.keyterm_repr
@@ -395,7 +519,7 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
             cache[ckey]["_repr"] = repr_mode
         stack = cache[ckey]
         kw = dict(alpha=args.ucb_alpha, beta=args.conv_beta, seed=args.ts_seed,
-                  b_schedule=args.conv_b_schedule,
+                  b_schedule=args.conv_b_schedule, max_states=ms,
                   turn_rule=(args.conv_turn_rule or None))
         if spec == "conlinucb_mcr":
             return CB.ConLinUCBMCRSelector(bel, stack, **kw)
@@ -425,6 +549,82 @@ def _smoke_slice(D, n_smoke, log=logln):
     for key in ("te_tr", "te_te", "g_te_tr", "pool"):
         Ds[key] = D[key][:n_smoke]
     return Ds
+
+
+# ===================================================================== run contracts / run lock
+# Every CLI argument that can change WHICH QUESTIONS get asked. A banked interview may be reused only
+# if all of these agree; anything outside this list (consumers, the tower snapshot, --per_user) affects
+# only the SCORING half and cannot invalidate an interview.
+_ASK_ARGS = ("sel_batch", "ucb_alpha", "ts_seed", "eddi_topm", "eddi_beta",
+             "golbandi_depth", "golbandi_xi", "golbandi_min_child", "golbandi_tree_cache",
+             "dre_tag", "dre_dup_policy",
+             "keyterm_repr", "keyterm_repr_conucb", "keyterm_n_rep", "keyterm_norm_match",
+             "conv_beta", "conv_turn_rule", "conv_b_schedule", "conucb_lam", "conucb_lam_til",
+             "clime_n_eig", "clisk_sigma", "smoke_users")
+
+
+def interview_contract(a, spec, k, n_users, n_items, extra=None):
+    """The signature a banked interview must match before a single turn of it may be reused.
+
+    Deliberately NOT a hash: it is written into the sidecar in full, so a refusal prints exactly which
+    field moved. `budgets` is absent on purpose -- an interview is banked per (selector, budget), so k
+    is already in the key -- and the CONSUMER side is absent because it cannot change a question."""
+    c = {"spec": spec, "k": int(k), "n_users": int(n_users), "n_items": int(n_items)}
+    for key in _ASK_ARGS:
+        v = getattr(a, key, None)
+        c[key] = v if v is None or isinstance(v, (int, float, str, bool)) else str(v)
+    c.update(extra or {})
+    return c
+
+
+def results_contract(a, specs, budgets, recs, n_users):
+    """The signature the OUTPUT json is stamped with. A rerun that matches it resumes into the same
+    file, skipping cells already scored; a rerun that does not match REFUSES rather than mixing two
+    information contracts into one table (the failure `surprise-means-debug-the-harness` names)."""
+    c = interview_contract(a, "*", 0, n_users, 0)
+    c.update({"specs": list(specs), "budgets": list(budgets), "consumers": list(recs),
+              "arch": a.arch, "snapshot": os.path.basename(a.snapshot), "no_floor": bool(a.no_floor),
+              "concept_ckpt": os.path.basename(a.concept_ckpt),
+              "no_concept_consumer": bool(a.no_concept_consumer),
+              "golbandi_lam": a.golbandi_lam})
+    c.pop("spec"), c.pop("k")
+    return c
+
+
+def _pid_alive(pid):
+    try:
+        import ctypes
+        h = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))
+        if not h:
+            return False
+        ctypes.windll.kernel32.CloseHandle(h)
+        return True
+    except Exception:
+        return os.path.exists(f"/proc/{int(pid)}")
+
+
+def acquire_run_lock(outp, log=logln):
+    """HARD RULE 11(e): refuse to open an output file another LIVE process holds.
+
+    On 2026-08-05 a relaunch of an identical cell truncated the log its still-live twin was writing
+    to and destroyed a 105-CPU-minute progress trace. A pid file next to the output makes that a
+    refusal instead of a silent overwrite; a stale lock (the writer is gone) is reclaimed and said so."""
+    lockp = outp + ".lock"
+    if os.path.exists(lockp):
+        try:
+            old = json.load(open(lockp))
+        except Exception:
+            old = {}
+        pid = int(old.get("pid", -1))
+        if pid > 0 and pid != os.getpid() and _pid_alive(pid):
+            raise SystemExit(
+                f"[adaptive] REFUSING TO START: {outp} is held by LIVE pid {pid} "
+                f"(started {old.get('started')}, label {old.get('label')}). Two runs must never "
+                f"share an output path (HARD RULE 11e). Use a different --label, or stop that run.")
+        log(f"[adaptive] stale run lock from dead pid {pid} reclaimed ({lockp})")
+    _write_atomic(lockp, {"pid": os.getpid(), "started": time.strftime("%Y-%m-%d %H:%M:%S"),
+                          "label": os.path.basename(outp), "argv": sys.argv})
+    return lockp
 
 
 # ===================================================================== main
@@ -536,6 +736,15 @@ def main():
                     help="score conversational arms with the ITEM-ONLY consumer (concept answers "
                          "burn the turn and are then discarded). Diagnostic only -- it is the "
                          "'what does the concept channel buy' ablation, and it is a FLOOR, not a row.")
+    ap.add_argument("--conv_max_states", type=int, default=0,
+                    help="cap on the number of interview STATES any per-state cache in the bandit "
+                         "family may hold (HARD RULE 11c; 0 = bandit_selectors.DEFAULT_MAX_STATES). "
+                         "Eviction costs recomputation, never correctness -- every cached value is a "
+                         "pure function of its key -- and the realised hit rate lands in each cell.")
+    ap.add_argument("--no_resume", action="store_true",
+                    help="ignore any banked interview sidecars and scored cells and recompute "
+                         "everything. The default is to RESUME, refusing any sidecar whose contract "
+                         "does not match exactly.")
     ap.add_argument("--regression", action="store_true",
                     help="run the static-arm equivalence assert and exit")
     ap.add_argument("--smoke_users", type=int, default=0,
@@ -580,30 +789,72 @@ def main():
     lbl = a.label or a.arch
     outp = os.path.join(OUT, f"{'SMOKE_' if smoke else ''}adaptive_table_{lbl}.json")
     vecp = outp.replace(".json", "_per_user.npz")
+    ckdir = outp.replace(".json", "_interviews")
+    lockp = acquire_run_lock(outp, log=logln)
+    contract = results_contract(a, specs, budgets, recs, n)
+    max_states = int(a.conv_max_states) or None
     vecs = {}
     results = {"mostpop": {"_prior": prior}}
     meta = {"selectors": specs, "budgets": budgets, "consumers": recs, "arch": a.arch,
             "snapshot": os.path.basename(a.snapshot), "no_floor": bool(a.no_floor),
             "n_test_users": n, "ucb_alpha": a.ucb_alpha, "ts_seed": a.ts_seed,
-            "eddi_cand_topm": a.eddi_topm,
+            "eddi_cand_topm": a.eddi_topm, "conv_max_states": max_states,
             "golbandi": {"depth": a.golbandi_depth, "xi": a.golbandi_xi,
                          "min_child": a.golbandi_min_child, "leaf_lam": a.golbandi_lam,
-                         "tree_cache": a.golbandi_tree_cache}}
+                         "tree_cache": a.golbandi_tree_cache},
+            "_contract": contract}
     if smoke:
         meta["SMOKE_NOT_CITABLE"] = True
         meta["smoke_users"] = a.smoke_users
     if a.eddi_topm:
         meta["CANDIDATE_POOL_TRUNCATED"] = True
+
+    # ---------------- RESUME (HARD RULE 11a/b) -------------------------------------------------
+    # A scored cell already in the output file is not recomputed, and the interview behind it is not
+    # recomputed either. Resuming is allowed ONLY into a file stamped with the identical contract;
+    # anything else refuses, because mixing two information contracts into one table is the exact
+    # failure `surprise-means-debug-the-harness` records.
+    if os.path.exists(outp) and not a.no_resume:
+        old = json.load(open(outp))
+        if old.get("meta", {}).get("_contract") != contract:
+            raise SystemExit(
+                f"[adaptive] REFUSING TO RESUME {outp}: its contract differs from this run's.\n"
+                f"    banked = {old.get('meta', {}).get('_contract')}\n    wanted = {contract}\n"
+                f"  Use a fresh --label, or --no_resume to overwrite deliberately.")
+        results = old.get("results", results)
+        results.setdefault("mostpop", {"_prior": prior})
+        n_done = sum(len(kk) for nm, sp in results.items() if nm != "mostpop"
+                     for kk in sp.values() if isinstance(kk, dict))
+        logln(f"[adaptive] RESUMING into {outp}: {n_done} scored cell(s) already banked")
+        if a.per_user and os.path.exists(vecp):
+            vecs = {kk: v for kk, v in np.load(vecp).items()}
+            logln(f"[adaptive] resumed {len(vecs)} per-user vector(s) from {os.path.basename(vecp)}")
     logln(f"[adaptive] {len(recs)} consumers x {len(specs)} selectors x {len(budgets)} budgets "
-          f"over {n} users; floor={'OFF' if a.no_floor else 'ON'}")
+          f"over {n} users; floor={'OFF' if a.no_floor else 'ON'}; "
+          f"interview checkpoints -> {ckdir}")
+
+    def _flush():
+        _write_atomic(outp, {"meta": meta, "results": results}, indent=2)
 
     cache = {}
-    interviews = {}
     for spec in specs:
         for k in budgets:
+            # THE UNIT OF LOSS IS ONE (selector, budget, consumer) CELL. Everything below -- the
+            # interview and every consumer's score -- is written to disk as it completes, so a crash
+            # costs the turn in flight, not the run (HARD RULE 11a).
+            want = [nm for nm in recs if not (nm.startswith("golbandi_leaf") and k > MAX_DEPTH)]
+            todo = [nm for nm in want
+                    if f"k{k}" not in results.get(nm, {}).get(spec, {})]
+            if len(want) < len(recs):
+                logln(f"[adaptive] SKIP golbandi_leaf k={k} > {MAX_DEPTH} (3^k leaf collapse)")
+            if not todo:
+                logln(f"[adaptive] {spec:16s} k={k:2d}: all {len(want)} consumer cell(s) already "
+                      f"banked -- neither the interview nor the scoring is repeated")
+                continue
             t_int = time.time()
             sel = build_selector(spec, D, glob, bank, k, a, cache, log=logln)
             conc = None
+            ex = {}
             if spec in CONV_BANDIT_SPECS:
                 import conversational_bandit_selectors as CB
                 stk = sel.stack
@@ -611,27 +862,31 @@ def main():
                         "answer": (lambda u, c, _s=stk: CB.concept_answer(_s, u, c))}
                 meta["keyterm_repr"] = stk.get("_repr")
                 meta["n_concepts"] = int(stk["n_concepts"])
+                # n_concepts only: the cache CAP is deliberately NOT in the contract, because eviction
+                # changes what is recomputed and never which question is asked.
+                ex = {"n_concepts": int(stk["n_concepts"])}
+            ckpt = os.path.join(ckdir, f"{spec}_k{k}.json")
+            if a.no_resume and os.path.exists(ckpt):
+                os.remove(ckpt)
             asked, answered, info = run_interview(sel, k, n, ni, lvl,
                                                   ctx={"D": D, "glob": glob, "bank": bank},
-                                                  sel_batch=a.sel_batch, log=logln, conc=conc)
+                                                  sel_batch=a.sel_batch, log=logln, conc=conc,
+                                                  ckpt_path=ckpt,
+                                                  ckpt_contract=interview_contract(
+                                                      a, spec, k, n, ni, extra=ex))
             info["interview_minutes"] = round((time.time() - t_int) / 60.0, 2)
             if conc is not None:
                 info["_stack"] = sel.stack
-            interviews[(spec, k)] = (asked, answered, info)
             logln(f"[adaptive] INTERVIEW {spec:16s} k={k:2d} done in "
                   f"{info['interview_minutes']:.2f}m; answered={info['answer_rate'][-1]:.2f}/{k}; "
-                  f"distinct ask-prefixes={info['distinct_prefixes'][-1]}")
-
-    for name in recs:
-        mode, obj = built[name]
-        results[name] = {}
-        for spec in specs:
-            results[name][spec] = {}
-            for k in budgets:
-                if name.startswith("golbandi_leaf") and k > MAX_DEPTH:
-                    logln(f"[adaptive] SKIP golbandi_leaf k={k} > {MAX_DEPTH} (3^k leaf collapse)")
-                    continue
-                asked, answered, info = interviews[(spec, k)]
+                  f"distinct ask-prefixes={info['distinct_prefixes'][-1]}; "
+                  f"cache={info.get('cache')}")
+            # The selector is the memory hog (its per-state caches); nothing below needs it, and the
+            # NEXT cell builds a fresh one, so drop it before the scoring pass allocates.
+            del sel
+            for name in todo:
+                mode, obj = built[name]
+                results.setdefault(name, {}).setdefault(spec, {})
                 ts = time.time()
                 s_name, s_mode, s_obj = name, mode, obj
                 # DRE's own recommender is BUDGET-SPECIFIC (one trained decoder per k, over that k's
@@ -691,12 +946,18 @@ def main():
                     # only material a paired bootstrap can be computed from with it.
                     vecs[f"{name}|{spec}|k{k}|full"] = np.asarray(cell.pop("full_per_user"))
                     vecs[f"{name}|{spec}|k{k}|tail"] = np.asarray(cell.pop("tail_per_user"))
-                    np.savez_compressed(vecp, **vecs)
+                    _savez_atomic(vecp, **vecs)
                 cell["concept_tokens"] = n_ct
                 cell["concept_consumer"] = bool(s_name == "ours_conc")
                 cell["score_minutes"] = round((time.time() - ts) / 60.0, 2)
                 cell["interview_minutes"] = info["interview_minutes"]
                 cell["distinct_prefixes"] = info["distinct_prefixes"][-1]
+                # Provenance for a cell whose interview was stitched across a crash, plus the realised
+                # cache pressure, so a cap set too low is readable off the table (HARD RULE 11b/c).
+                for key in ("resumed_from_turn", "cache", "max_states", "width_dtype",
+                            "keyterm_asks_per_turn"):
+                    if key in info:
+                        cell[key] = info[key]
                 # SELECTOR DIAGNOSTICS INTO THE CELL, not just the log. For golbandi_tree these are
                 # the numbers that decide whether the row is the method at all: a user who reaches a
                 # LEAF before the budget is spent is asked the next unasked popularity item instead,
@@ -716,7 +977,12 @@ def main():
                       f"full={cell['full']:.4f} tail={cell['tail']:.4f} "
                       f"(interview {cell['interview_minutes']:.2f}m + score "
                       f"{cell['score_minutes']:.2f}m)")
-                json.dump({"meta": meta, "results": results}, open(outp, "w"), indent=2)
+                _flush()                      # HARD RULE 11a: the cell is on disk before the next one starts
+            del asked, answered, info
+    try:
+        os.remove(lockp)
+    except OSError:
+        pass
     logln(f"[adaptive] done -> {outp}")
 
 
