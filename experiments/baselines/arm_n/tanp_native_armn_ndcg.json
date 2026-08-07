@@ -1,0 +1,24 @@
+{
+  "model": "tanp",
+  "arm": "N",
+  "contract": "rating regression on explicit ratings (published)",
+  "ndcg@10": 0.011807651139319747,
+  "tail_ndcg@10": 0.0010313360365113214,
+  "ndcg@100": 0.02944707157607274,
+  "val_ndcg@10": 0.01108215785021526,
+  "val_epoch": 2,
+  "val_rmse_best": 0.6960438260792473,
+  "val_rmse_mean_predictor": 0.954931914806366,
+  "binary_arm_n": {
+    "ndcg@10": 0.3324450643920424,
+    "tail_ndcg@10": 0.20784654331130853
+  },
+  "gates": {
+    "mostpop": true,
+    "rmse_beats_mean": true,
+    "spread_nondegenerate": true,
+    "latent_not_collapsed": true,
+    "distinct_top10_lists": 1801,
+    "above_mostpop": false
+  }
+}

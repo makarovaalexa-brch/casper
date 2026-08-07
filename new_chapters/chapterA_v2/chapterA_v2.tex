@@ -403,10 +403,36 @@ personalised model was spending on items the user had already seen. Most-Popular
 alone and EASE $+0.066$, so the protocol systematically favours personalisation over popularity. Read each
 column against its own rows, never a number in one against a number in the other.
 
+\paragraph{One system has no native cell, and the reason is a property of the ruler rather than a gap in our
+measurements.}\label{sec:nativelimit} A native cell is admissible only where constructing it does not require
+optimising an objective this ruler contradicts. For every other system in the table, ``native'' names an
+\emph{input} contract, and the ruler's objective touches the system only at scoring. TaNP is the exception:
+its published contribution \emph{is} the training objective---episodic meta-learning for rating
+regression---so the two options are not comparable. Run it as published and it is optimising rating error,
+which is not the task this ruler scores; port its objective to ranking and it is no longer the published
+method. There is no cell that is both faithful and comparable, so we report TaNP through its
+objective-ported implicit adaptation in both columns and say why here rather than leaving a dash.
+
+We did build and train the published version, because the alternative is asserting an incompatibility we
+have not checked. It reaches full/tail NDCG@10 of $\REDO{rmse-selected}$, an order of magnitude below the
+non-personalised popularity floor of $0.1626$, while being a perfectly good rating predictor---validation
+RMSE $0.696$ against $0.955$ for predicting the global mean, and a healthy latent producing $1{,}801$
+distinct top-10 rankings across $2{,}000$ users. The diagnostic is the anticorrelation: over training the
+loss fell from $0.862$ to $0.696$ while validation NDCG@10 drifted from $0.0111$ down to $0.0061$. \emph{The
+better it became at its own objective, the worse it ranked.} Selecting adversarially on validation NDCG
+instead of on its own criterion raises the number only to $0.0118$. The mechanism is the one
+Cremonesi et al.~\cite{cremonesi2010performance} identified: a rating model scores quality independently of
+exposure, whereas held-out likes are exposure-weighted, so it surfaces well-regarded but comparatively
+unwatched films.
+
+\emph{This says nothing about graded input.} The objective and the input change together in that run, so it
+carries no evidence either way about whether reading ratings helps; that question is answerable only with the
+objective held fixed, which is what the two rows below do.
+
 \paragraph{Restoring the ratings does not improve these methods, contrary to the premise of the column.}
 The premise of the \textsc{native} column is that the threshold filter withholds the signal these designs
 were built for. For every ratings-native baseline we were able to test, restoring it made them
-\emph{worse} at ranking. User-kNN falls from $0.3756$ on binary co-occurrence to $0.2808$ on
+\emph{worse} at ranking. User-kNN falls from $0.3756$ on binary co-occurrence to $0.2815$ on
 mean-centred ratings; RBMF falls from $0.3015$ to $0.2314$ once its ridge seed regresses centred ratings
 rather than ones, and to $0.2950$ even with the ratings left uncentred, so the loss is not an artefact of
 how we defined a dislike. Both columns of the master table therefore report each system's \emph{strongest}
@@ -457,7 +483,7 @@ Mult-VAE~\cite{liang2018variational} & \cmark & \xmark & \xmark & \xmark & b & $
 RecVAE~\cite{ren2020recvae} (our run) & \cmark & \xmark & \xmark & \xmark & b & $\mathbf{.3540}$ & $\mathbf{.2497}$ & $\mathbf{.4273}$ & $\mathbf{.3051}$ \\
 SASRec~\cite{kang2018sasrec} & \xmark & \xmark & \xmark & \xmark & b & $.1486$ & $.0805$ & $.1842$ & $.0986$ \\
 BERT4Rec~\cite{sun2019bert4rec} & \xmark & \xmark & \xmark & \xmark & b & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
-TaNP~\cite{lin2021tanp} (MeLU line)\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2645$ & $.1635$ & \multicolumn{2}{c}{\REDO{graded}} \\
+TaNP~\cite{lin2021tanp} (MeLU line)\,$^{\ddagger\ast}$ & \xmark & \xmark & \xmark & \cmark & b & $.2645$ & $.1635$ & $.3324$ & $.2078$ \\
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the elicitation corner}}\\
 EDDI / Partial-VAE~\cite{ma2019eddi}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & b & $.2153$ & $.1077$ & $.2718$ & $.1383$ \\
@@ -487,7 +513,9 @@ $^{\dagger}$~no full-catalogue ranker on this ruler (per-system reason in \S\ref
 $^{\ddagger}$~cold-start or elicitation method scored off its design point: the full-profile row is a reduction we
 construct, not a result its paper reports, and the real comparison is Table~\ref{tab:instrdep}.
 $^{\S}$~dropped: our implementation failed its ML-20M snap ($0.397$ vs.\ the published $0.419$), and a failed
-bridge disqualifies a row (\S\ref{sec:bridge}). $^{\P}$\,RBMF's \textsc{native} cell is its \emph{binary} build. Its graded refit was run---a ridge seed on targets centred at the protocol threshold, which makes $41.4\%$ of them negative---and it \emph{lost}, $.2314/.1472$ against $.3015/.2078$; the uncentred variant also lost ($.2950/.2027$). We therefore report the strongest build, as for user-kNN, and treat the graded attempt as the measurement that justifies the choice (\S\ref{sec:bridge}). Red cells are owed measurements, not missing capability.
+bridge disqualifies a row (\S\ref{sec:bridge}). $^{\ast}$\,TaNP is represented by the objective-ported implicit adaptation in \emph{both} columns; it has no
+\textsc{native} cell, and the reason is not a missing measurement (\S\ref{sec:nativelimit}).
+$^{\P}$\,RBMF's \textsc{native} cell is its \emph{binary} build. Its graded refit was run---a ridge seed on targets centred at the protocol threshold, which makes $41.4\%$ of them negative---and it \emph{lost}, $.2314/.1472$ against $.3015/.2078$; the uncentred variant also lost ($.2950/.2027$). We therefore report the strongest build, as for user-kNN, and treat the graded attempt as the measurement that justifies the choice (\S\ref{sec:bridge}). Red cells are owed measurements, not missing capability.
 No number is invented: a value appears only if we measured it on this ruler.}
 \label{tab:master}
 \end{table}

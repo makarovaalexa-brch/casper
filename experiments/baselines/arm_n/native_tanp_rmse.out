@@ -1,0 +1,9 @@
+[21:41:55] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[21:41:55] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[21:41:55] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[21:41:55] [pop] fitted item popularity over 140768 train users, 18359 items
+[21:42:09] [G1] MostPop this path 0.1626 vs arm-N 0.1626 -> PASS
+[21:42:09] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[21:42:26] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[21:42:51] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
+[21:42:51] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv

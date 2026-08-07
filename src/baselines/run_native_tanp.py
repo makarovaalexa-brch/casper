@@ -41,7 +41,7 @@ from arm_n import load_arm_n
 from graded_data import load_graded_val
 
 OUTDIR = os.path.join(_ROOT, "experiments", "baselines", "arm_n")
-CKPT = os.path.join(_ROOT, ".cache", "baselines", "tanp_native_armn.pt")
+CKPT_FMT = os.path.join(_ROOT, ".cache", "baselines", "tanp_native_armn_%s.pt")
 
 
 def logln(msg):
@@ -68,6 +68,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--epochs", type=int, default=200)
     ap.add_argument("--max_minutes", type=float, default=1e9)
+    ap.add_argument("--select", choices=["ndcg", "rmse"], default="rmse",
+                    help="rmse = the model's OWN criterion, as its paper would select. Default, per the "
+                         "2026-08-07 ruling: selecting on val NDCG for a model whose training descends "
+                         "AWAY from NDCG picks the least-trained checkpoint, which is neither TaNP nor a "
+                         "ranker. ndcg is retained to reproduce that adversarially-favourable upper bound.")
     a0 = ap.parse_args()
 
     D = load_arm_n(log=logln)
@@ -103,11 +108,13 @@ def main():
         rm = rmse_on(pred, g_va, g_va_ho)
         hist["rmse"].append(rm)
         logln(f"      val NDCG@10 {m['ndcg@10']:.4f} | val RMSE {rm:.4f}")
-        return m["ndcg@10"], m
+        m["ndcg_at_this_epoch"] = m["ndcg@10"]
+        # fit() maximises the returned score, so RMSE selection returns its negation.
+        return (-rm if a0.select == "rmse" else m["ndcg@10"]), m
 
     a = tanp_native._defaults()
     a.epochs, a.max_minutes = a0.epochs, a0.max_minutes
-    predict = tanp_native.fit(D["g_train"], ni, evaluator=ev, args=a, ckpt=CKPT, log=logln)
+    predict = tanp_native.fit(D["g_train"], ni, evaluator=ev, args=a, ckpt=CKPT_FMT % a0.select, log=logln)
 
     best_rmse = min(hist["rmse"]) if hist["rmse"] else float("nan")
     g2 = best_rmse < base_rmse
@@ -143,7 +150,7 @@ def main():
     logln(f"[contrast] native minus binary: {r['ndcg@10'] - b['ndcg@10']:+.4f} full, "
           f"{r['tail_ndcg@10'] - b['tail_ndcg@10']:+.4f} tail")
 
-    out = {"model": "tanp", "arm": "N", "contract": "rating regression on explicit ratings (published)",
+    out = {"model": "tanp", "arm": "N", "contract": "rating regression on explicit ratings (published)", "selection": a0.select,
            "ndcg@10": r["ndcg@10"], "tail_ndcg@10": r["tail_ndcg@10"], "ndcg@100": r["ndcg@100"],
            "val_ndcg@10": getattr(predict, "best_val", None),
            "val_epoch": getattr(predict, "best_epoch", None),
@@ -152,7 +159,7 @@ def main():
            "gates": {"mostpop": bool(ok), "rmse_beats_mean": bool(g2),
                      "spread_nondegenerate": bool(spread > 0.1), "latent_not_collapsed": bool(g3b),
                      "distinct_top10_lists": int(n_distinct), "above_mostpop": bool(g4)}}
-    p = os.path.join(OUTDIR, "tanp_native_armn.json")
+    p = os.path.join(OUTDIR, "tanp_native_armn_%s.json" % a0.select)
     json.dump(out, open(p, "w"), indent=2)
     logln(f"done -> {p}")
 
