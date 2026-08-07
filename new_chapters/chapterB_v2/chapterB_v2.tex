@@ -350,9 +350,15 @@ method, not of our port. Its own key-term schedule fires on turns three and eigh
 \textbf{sixteen questions spend two of them on concepts} and the one- and two-question rows contain
 no concept questions at all --- the method is item-dominated by construction. And its pure concept
 arm, whose order is the barycentric spanner of the key-term features, is \textbf{the first
-published opponent our concept channel has had}: it reaches $.1891/.0700$ where the greedy
-concepts-only sequence reaches $.2473/.1154$, a gap of $+.0582$ full and $+.0454$ tail,
-static-against-static in the same channel at the same budget.
+published opponent our concept channel has had}. Our bank beats it by a wide, separated margin at
+every budget on both axes; the size depends on which of two answer conventions both arms are scored
+under, and we report both rather than pick: $+.0407$ $[+.0381,+.0432]$ full and $+.0276$
+$[+.0246,+.0308]$ tail at sixteen questions under the convention the bandit harness uses, and
+$+.0553$ $[+.0524,+.0582]$ full and $+.0408$ $[+.0378,+.0440]$ tail under the convention the
+concept channel was trained on. \REDO{the conversational-bandit family produced all of its concept
+answers under the convention it was \emph{not} trained on, which costs a concept-only order up to
+$.0177$ tail --- so its concept numbers are floors, and the family should be re-run before any of
+them is quoted as an estimate}
 
 \PLAN{the remaining \xmark{} rows, ordered by leverage: the learned static bars (DRE is built and
 its native snap passed; Greedy SLIM is the only published protocol sibling), then IGCN and the

@@ -33,19 +33,38 @@ the only available opponent for our concept channel.
 loses to entropy₀ by −.0085 full and to the strongest static by −.0231. The strongest published
 adaptive line whose action space matches ours does not beat a good static order.
 
-**2. ★ The concept channel now has a published opponent, and the gap is large.**
-`ConLinUCB-BS-static` is the pure concept arm — zero item answers, all sixteen questions are
-key-terms, its order is the barycentric spanner of the key-term feature set, i.e. **the published
-method for choosing which concepts to ask**. It reaches **.1891/.0700** where our greedy
-concepts-only reaches **.2473/.1154**: **+.0582 full and +.0454 tail**, static-versus-static inside
-the same channel, same budget, same contract. This is the comparison the battery was missing —
-until now the concept result had no rival because the literature asks about items.
+**2. ★ The concept channel now has a published opponent, and it loses — but the first number we
+wrote was a cross-contract subtraction.** `ConLinUCB-BS-static` is the pure concept arm — zero item
+answers, all sixteen questions are key-terms, its order is the barycentric spanner of the key-term
+feature set, i.e. **the published method for choosing which concepts to ask**.
 
-**3. ConUCB, the 2020 original, is the worst arm in its own family, and answerability is why.**
-1.80 answered items at k=16 against ~4.8 for its successors, and it trails them by ~.034 full. The
-same answerability failure measured for Thompson and the latent-only info-gain arm, now in a
-**published** method purpose-built for a mixed item/attribute action space — a far stronger version
-of the point than our own reimplementations could support.
+**CORRECTED 2026-08-07.** The originally reported *"+.0582 full / +.0454 tail, same contract"*
+differenced two runs that use different **concept ANSWER conventions**: the convbandit harness
+builds answers with `signed_values(apply_neg_cap=True)` — a population-wide negative-mass cap over
+all 1,031 concepts — while `build_greedy_env`, the certified-era path **cv3 was trained under**,
+uses `apply_neg_cap=False` plus `cap_negatives` over the *revealed* list only. The same 16 greedy
+concepts score `.2473/.1154` under the certified-era convention and only `.2298/.0977` under the
+convbandit one, so the two published figures were never ordered. Every static row here has now been
+**re-scored in-harness** (controls reproduce at 0.0e+00 per user), giving two like-for-like
+readings, **both separated at every budget on both axes (10/10 each)**:
+
+| reading | full @k=16 | tail @k=16 |
+|---|---|---|
+| in the **convbandit** answer contract | **+.0407** [+.0381,+.0432] | **+.0276** [+.0246,+.0308] |
+| under **certified-era** answers (BS-static rises to .1921/.0745) | **+.0553** [+.0524,+.0582] | **+.0408** [+.0378,+.0440] |
+
+The claim survives on both readings — our concept bank beats the published concept selector by a
+wide, separated margin — only the original number was wrong. This is the same class of error as the
+candidate-mask contract: an apparent ordering manufactured by differencing across conventions.
+
+**3. ConUCB, the 2020 original, trails its three item-asking successors, and answerability is why.**
+1.80 answered items at k=16 against ~4.8 for them, and it trails by −.0316…−.0344 full at k=16,
+**all separated**. The same answerability failure measured for Thompson and the latent-only
+info-gain arm, now in a **published** method purpose-built for a mixed item/attribute action space
+— a far stronger version of the point than our own reimplementations could support.
+**CORRECTED:** *"worst arm in its own family"* is not supported — against `ConLinUCB-BS-static`,
+which answers **zero** items, ConUCB is **ns at k=8 and k=16 on both axes**. The supportable claim
+is that it trails the three arms that ask items.
 
 **4. The short-budget rows say nothing about concepts, by construction.** Under the published
 schedule `b(t)=5⌊log t⌋` only turns 3 and 8 are key-term turns, so k=1 and k=2 fire **zero**
@@ -64,10 +83,19 @@ family contests the concept channel only weakly except through the BS-static arm
 * Interviews checkpoint per turn to contract-signed sidecars; each scored cell is flushed
   atomically. A mid-interview resume reproduced all ten per-user NDCG vectors bit-identically.
 
+## ★ C5 — every concept number this family produced is a FLOOR, not an estimate
+
+The answer-convention split above is not only a comparison problem. `ConLinUCB-BS`, `-MCR`, `CLiME`
+and `BS-static` all produced their concept answers under `apply_neg_cap=True`, **a convention cv3
+was not trained on**, and the split costs a concept-only order up to **+.0177 tail**. So the
+published values for this family understate it: they are floors. **Re-run the family with
+`apply_neg_cap=False` before any of its concept numbers is quoted as an estimate** — including,
+symmetrically, before the concept-channel margin above is quoted at its larger value.
+
 ## Owed
 
-* **Paired CIs on every gap here** — `--per_user` vectors are on disk. The load-bearing number is
-  the +.0582/+.0454 concept-channel gap.
+* Paired CIs are DONE → `docs/results/CONVBANDIT_PAIRED_CIS.md` (10,000 resamples, seed 98765;
+  arm-vs-itself and the schedule self-test both exact).
 * The other two key-term representations (`representative` per Hier-UCB, `whitened_centroid` =
   ours) — that trio is the concept-fold adjudication and is a separate experiment.
 * CLiME under its own width rule (task #10): under a pure uncertainty trigger it asks **zero**
