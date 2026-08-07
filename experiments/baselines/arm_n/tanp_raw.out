@@ -1,0 +1,47 @@
+[18:51:19] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[18:51:19] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[18:51:19] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[18:51:19] graded[raw] train: 21682110 nnz, 0.0% negative, range [0.50,5.00] (binary train was 10851052 nnz, all +1)
+[18:51:19] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[18:51:34] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[18:51:57] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
+[18:53:44] [tanp] ep  1 loss 624.1873 val 0.1210 1.7m
+[18:55:30] [tanp] ep  2 loss 597.6649 val 0.0904 3.5m
+[18:57:13] [tanp] ep  3 loss 593.1002 val 0.1353 5.2m
+[18:59:03] [tanp] ep  4 loss 589.2716 val 0.1382 7.1m
+[19:00:46] [tanp] ep  5 loss 584.5968 val 0.1545 8.8m
+[19:02:38] [tanp] ep  6 loss 582.1927 val 0.1265 10.7m
+[19:04:18] [tanp] ep  7 loss 580.1908 val 0.1305 12.3m
+[19:06:10] [tanp] ep  8 loss 577.8999 val 0.1403 14.2m
+[19:08:01] [tanp] ep  9 loss 575.8887 val 0.1657 16.0m
+[19:09:44] [tanp] ep 10 loss 575.1368 val 0.1458 17.7m
+[19:11:31] [tanp] ep 11 loss 574.0915 val 0.1560 19.5m
+[19:13:25] [tanp] ep 12 loss 573.4670 val 0.1445 21.4m
+[19:15:17] [tanp] ep 13 loss 572.9866 val 0.1591 23.3m
+[19:17:09] [tanp] ep 14 loss 572.5380 val 0.1537 25.2m
+[19:19:03] [tanp] ep 15 loss 572.1672 val 0.1586 27.1m
+[19:20:55] [tanp] ep 16 loss 571.8431 val 0.1488 28.9m
+[19:22:47] [tanp] ep 17 loss 571.4943 val 0.1552 30.8m
+[19:24:39] [tanp] ep 18 loss 570.9213 val 0.1610 32.7m
+[19:26:17] [tanp] ep 19 loss 570.3836 val 0.1684 34.3m
+[19:28:09] [tanp] ep 20 loss 569.9703 val 0.1691 36.2m
+[19:30:02] [tanp] ep 21 loss 569.8990 val 0.1407 38.0m
+[19:31:59] [tanp] ep 22 loss 569.5391 val 0.1567 40.0m
+[19:33:42] [tanp] ep 23 loss 569.4044 val 0.1588 41.7m
+[19:35:39] [tanp] ep 24 loss 569.2910 val 0.1453 43.7m
+[19:37:38] [tanp] ep 25 loss 569.2027 val 0.1449 45.7m
+[19:39:37] [tanp] ep 26 loss 569.1315 val 0.1666 47.6m
+[19:41:46] [tanp] ep 27 loss 568.7131 val 0.1691 49.8m
+[19:43:55] [tanp] ep 28 loss 568.8297 val 0.1490 51.9m
+[19:46:08] [tanp] ep 29 loss 568.4177 val 0.1686 54.2m
+[19:48:15] [tanp] ep 30 loss 568.2866 val 0.1594 56.3m
+[19:50:22] [tanp] ep 31 loss 568.0860 val 0.1474 58.4m
+[19:52:32] [tanp] ep 32 loss 567.9163 val 0.1565 60.6m
+[19:54:43] [tanp] ep 33 loss 567.7454 val 0.1651 62.7m
+[19:56:44] [tanp] ep 34 loss 567.7231 val 0.1613 64.8m
+[19:58:57] [tanp] ep 35 loss 567.7811 val 0.1604 67.0m
+[19:58:57] [tanp] early stop @ep35 best 0.1691 @ep20
+[19:58:57] val-selected epoch 20 (val NDCG@10 0.1691)
+[19:59:12] [tanp graded arm N] full=0.1684 tail=0.0962
+[19:59:12] [contrast] graded minus binary, arm N: -0.1641 full, -0.1117 tail
+[19:59:12] done -> C:\dev\phd\casper\experiments\baselines\arm_n\tanp_graded_armn_raw.json

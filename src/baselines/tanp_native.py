@@ -39,8 +39,17 @@ import torch.nn.functional as F
 
 
 def _defaults():
+    # beta RESCALED for the change of reconstruction objective, 2026-08-07. The implicit row's softmax
+    # NLL runs at ~600; this module's masked MSE runs at ~0.88 -- a factor of ~680. Carrying beta=0.2
+    # across unchanged made the KL term dominate the loss, the encoder collapsed to the prior, and the
+    # decoder emitted item bias for everyone: 39 distinct top-10 lists across 1,000 users, predictions
+    # spanning only 2.45..3.92 over the whole catalogue, val RMSE a healthy 0.845 (item means alone
+    # predict ratings well) and NDCG 0.0146, an order of magnitude BELOW the popularity floor.
+    # beta is therefore set to preserve the SAME reconstruction-to-KL ratio as the implicit row,
+    # 0.2 * (0.88/600) ~ 3e-4, rather than being re-guessed -- the training contract is the only thing
+    # this module is supposed to vary.
     return argparse.Namespace(
-        d=200, hidden=512, zdim=64, dropout=0.5, target_prop=0.5, beta=0.2,
+        d=200, hidden=512, zdim=64, dropout=0.5, target_prop=0.5, beta=3e-4,
         lr=1e-3, batch=500, l2=0.0, epochs=200, patience=15, max_minutes=1e9, resume=True)
 
 

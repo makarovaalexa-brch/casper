@@ -1,0 +1,20 @@
+{
+  "model": "user_knn",
+  "arm": "N",
+  "contract": "mean-centred ratings (published)",
+  "k": 100,
+  "lambda": 400.0,
+  "val_ndcg@10": 0.27626377115037065,
+  "ndcg@10": 0.28151717371623364,
+  "tail_ndcg@10": 0.13958498864869337,
+  "ndcg@100": 0.32860833955356406,
+  "binary_arm_n": {
+    "ndcg@10": 0.37555024621935146,
+    "tail_ndcg@10": 0.23771171681043032
+  },
+  "gates": {
+    "mostpop_reproduced": true,
+    "within_band_of_prior_run": true,
+    "zero_score_cells": 0.8993038836537938
+  }
+}

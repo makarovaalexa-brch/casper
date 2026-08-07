@@ -12,6 +12,9 @@ GATES, fixed before the run so a bad number cannot be rationalised afterwards:
      bug produces.
   G3 per-user predicted-rating spread across the catalogue must be non-degenerate (std > 0.1). Constant
      output means a broken loss even when NDCG looks plausible.
+  G3b LATENT COLLAPSE: distinct top-10 lists across users must exceed 25% of users. G3 alone
+     cannot catch collapse -- a model that has learned only item biases still shows healthy per-user
+     spread ACROSS ITEMS while producing a near-identical ranking for everyone.
   G4 NDCG below Most-Popular is a bug, not a finding. Anywhere in [MostPop, 0.33] is a plausible result.
   Also logged: the NDCG of the val-RMSE-selected epoch alongside the val-NDCG-selected one. The gap
   between the two selections measures objective misalignment directly and costs nothing to record.
@@ -116,6 +119,20 @@ def main():
     logln(f"[G3] mean per-user prediction spread across the catalogue = {spread:.4f} -> "
           f"{'PASS' if spread > 0.1 else '*** FAIL: constant output ***'}")
 
+    # G3b LATENT COLLAPSE. G3 measures spread ACROSS items for one user, which stays healthy even when
+    # the model has learned only item biases -- that is exactly how the 2026-08-07 beta bug slipped past
+    # G2 and G3 (val RMSE 0.845, spread 0.19, yet 39 distinct top-10 lists across 1,000 users because
+    # the KL term had collapsed the latent). This measures spread ACROSS USERS, which is the thing
+    # ranking actually needs, and it is the cheapest direct test for posterior collapse.
+    Sm = S.copy(); Sm[D["pool"][:2000].nonzero()] = -np.inf
+    tops = np.argsort(-Sm, axis=1)[:, :10]
+    n_distinct = len(set(map(tuple, tops.tolist())))
+    cross_user = float(np.std(S, axis=0).mean())
+    g3b = n_distinct > 0.25 * tops.shape[0]
+    logln(f"[G3b] distinct top-10 lists across {tops.shape[0]} users = {n_distinct}; "
+          f"mean per-item spread ACROSS users = {cross_user:.4f} -> "
+          f"{'PASS' if g3b else '*** FAIL: latent collapsed, the model is ranking item bias ***'}")
+
     r = M.evaluate(predict, D["g_te_tr"], te_te, batch_size=500, head_mask=hm, mask_X=pool)
     g4 = r["ndcg@10"] >= mostpop
     logln(f"[G4] NDCG {r['ndcg@10']:.4f} vs MostPop {mostpop:.4f} -> "
@@ -133,7 +150,8 @@ def main():
            "val_rmse_best": best_rmse, "val_rmse_mean_predictor": base_rmse,
            "binary_arm_n": {"ndcg@10": b["ndcg@10"], "tail_ndcg@10": b["tail_ndcg@10"]},
            "gates": {"mostpop": bool(ok), "rmse_beats_mean": bool(g2),
-                     "spread_nondegenerate": bool(spread > 0.1), "above_mostpop": bool(g4)}}
+                     "spread_nondegenerate": bool(spread > 0.1), "latent_not_collapsed": bool(g3b),
+                     "distinct_top10_lists": int(n_distinct), "above_mostpop": bool(g4)}}
     p = os.path.join(OUTDIR, "tanp_native_armn.json")
     json.dump(out, open(p, "w"), indent=2)
     logln(f"done -> {p}")
