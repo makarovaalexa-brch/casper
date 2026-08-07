@@ -363,7 +363,7 @@ def barycentric_spanner(X, iters=50, log=print):
 
 # ===================================================================== the concept answer table
 def build_concept_stack(D, snapshot, keyterm_repr="uniform_member_mean", n_rep=20, norm_match=True,
-                        Y=None, log=print, cache=True):
+                        Y=None, log=print, cache=True, apply_neg_cap=True):
     """Everything the key-term half of the action space needs, for the harness's OWN test cohort.
 
     Returns a dict with:
@@ -371,6 +371,16 @@ def build_concept_stack(D, snapshot, keyterm_repr="uniform_member_mean", n_rep=2
                                      IDENTICAL bank definition `concept_fold` / `concept_distill_train`
                                      use, so the certified concept channel and this selector talk about
                                      the same objects.
+    *** THE ANSWER CONVENTION IS A CONTRACT, NOT A DETAIL (2026-08-07). *** `apply_neg_cap=True` (the
+    default, and what every run before 2026-08-08 used) applies `signed_values`' POPULATION-wide
+    negative-mass cap across all 1,031 concepts at once. `apply_neg_cap=False` is the CERTIFIED-ERA
+    convention -- what `strategy_channel_suite.build_greedy_env` uses, and what the concept channel
+    cv3 was TRAINED under -- and it must be paired with `signed_answers.cap_negatives` over the
+    REVEALED token list at fold time (the caller does that; see `adaptive_harness`'s
+    `--concept_neg_cap 0` path and `convbandit_greedy_rescore.py`). The same 16 greedy concepts score
+    .2473/.1154 under the certified-era convention and .2298/.0977 under the capped one, so numbers
+    from the two conventions are NEVER differenced. Every run states which it used.
+
       V, ANSWERABLE                  (n_test_users x C) signed implicit-watch values and the
                                      answerability mask, from `signed_answers.signed_values` on the
                                      users' fold-in-side rated history `g_te_tr` (held-out targets
@@ -428,15 +438,18 @@ def build_concept_stack(D, snapshot, keyterm_repr="uniform_member_mean", n_rep=2
         items_list.append(G.indices[s:e].astype(np.int64))
         stars_list.append(G.data[s:e].astype(np.float32))
     t0 = time.time()
-    V, FOLD, BAND, ANS = signed_values(items_list, stars_list, item_mean, Mm, pexp, ni, prereg)
+    V, FOLD, BAND, ANS = signed_values(items_list, stars_list, item_mean, Mm, pexp, ni, prereg,
+                                       apply_neg_cap=apply_neg_cap)
     answerable = ANS & (BAND != BAND_REFUSE)
     log(f"[conv_bandit] concept answers for {G.shape[0]} test users x {C} concepts in "
         f"{time.time() - t0:.1f}s: answerable rate {float(answerable.mean()):.3f}, "
-        f"mean |v| on answerable {float(np.abs(V[answerable]).mean()):.3f}")
+        f"mean |v| on answerable {float(np.abs(V[answerable]).mean()):.3f}; "
+        f"ANSWER CONVENTION = "
+        f"{'population neg-cap (apply_neg_cap=True)' if apply_neg_cap else 'CERTIFIED-ERA (apply_neg_cap=False; cap_negatives over the revealed list at fold time)'}")
 
     out = {"n_concepts": C, "tags": tags, "member_sets": member_sets, "Mm": Mm,
            "V": V.astype(np.float64), "answerable": answerable, "band": BAND,
-           "cnt": cnt, "prereg": prereg}
+           "cnt": cnt, "prereg": prereg, "apply_neg_cap": bool(apply_neg_cap)}
     if Y is not None:
         out["Xtilde"] = keyterm_features(Y, member_sets, cnt, mode=keyterm_repr, n_rep=n_rep,
                                          norm_match=norm_match, log=log)

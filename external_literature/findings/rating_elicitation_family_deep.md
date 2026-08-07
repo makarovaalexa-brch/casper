@@ -559,6 +559,56 @@ RBMF↔Golbandi hybrid, and conceptually the closest published thing to what our
 - **Verdict: MUST-INCLUDE** — the only elicitation paper whose subject is the *bank*, it is adaptive, it
   is cheap, and it is the concept/attribute-channel analogue we currently have no named rival for.
 
+#### 3.8-bis STEP-0 RE-EXTRACTION, 2026-08-07 (task #18) — **three corrections above are load-bearing** [V, full text via `https://storage.googleapis.com/gweb-research2023-media/pubtools/6086.pdf`]
+
+**(1) ★ DPE'S BANDIT IS OVER TOPICS; DPE'S QUESTIONS ARE ITEMS.** Algorithm 1, verbatim: `next_topic
+← argmax_a θ_a` … `forall i in next_topic do δ_i ← score_div(i, P[u])` … `next_item ← argmax_i δ_i` …
+`r(t) ← reward_f(next_item, r(u, next_item))` … `P[u].add(next_item)`. **The user is never asked about
+a topic.** The topic is a latent structure over the ITEM action space, used to force topical spread
+among the items asked. So the battery TODO's *"our only named concept-channel rival"* and the DS ladder's
+*"concept/attribute channel"* framing are **wrong as stated**: DPE's faithful row belongs in the ITEM
+column next to Golbandi/DRE/RBMF, annotated "topical selection criterion". `ConLinUCB-BS-static`
+remains the only *published* selector that actually asks key-terms. A concept-asking variant is
+buildable (DPE's Thompson bandit with genome concepts as arms, the arm being the question) but it is
+**our deviation and must be labelled as such** — implemented as `dpe_concept` in `src/baselines/dpe_selector.py`.
+
+**(2) ★ THE PAPER REPORTS NO NUMBERS AT ALL.** Table 1 is dataset statistics. Every result is a curve:
+**Figure 1** = ML-20M, 8 metrics (P@10, P@100, nDCG@10, nDCG@100, serendipity@10/@100, topdiv@10/@100)
+× {TestItems, AvailablePreferences}; **Figure 2** = Amazon, 4 metrics at cut-off 100 under
+AvailablePreferences only. There is **no scalar to snap to** — only ORDERINGS (listed below). Recommender
+= **WSR** (Valcarce, Parapar & Barreiro, ECIR'16 language-model CF neighbourhoods), *k* ∈ {5,10,…,100}
+tuned per algorithm on total-AUC nDCG@100. Budget 5→75 elicited items. Relevance for P@k = rating ≥ 4;
+nDCG via `trec_eval` defaults with **ratings as graded gain**.
+
+**(3) ★ THEIR PROTOCOL HAS A 100 % ANSWER RATE BY CONSTRUCTION.** Users are filtered to ≥100 ratings
+*"given that our evaluation elicits up to 75 preferences per user"*; *"the actual preferences are
+obtained directly from the held-out ratings from the user"*; unasked rated items are *"leftovers"*.
+For 75 answered preferences to exist the ask must land inside the user's own rated set. §4.2.1 concedes
+it: offline evaluation *"only allows answers over items previously rated by the user"*. **DPE never
+models an unanswerable question** — one more named method whose published protocol assumes away the
+thing our answerability thesis measures, and the strongest such example yet because it is *adaptive*.
+
+**THE ORDERING TARGETS (the only snappable content), ML-20M §5.1–5.2:**
+* O1 TestItems @cut-off **10**: *"the Greedy baseline achieves the best performance both in terms of accuracy (graded and ungraded) and diversity."*
+* O2 TestItems @cut-off **100**: *"the Greedy baseline is surpassed by DPE for most question counts"*; larger for P@100, serendipity@100, topdiv@100.
+* O3 **AvailablePreferences**: *"for every cut-off and metric, the Greedy baseline performs much worse than DPE."*
+* O4 DPE's curves are *"quite stable with the number of elicited ratings"*; Greedy's are not.
+* O5 ILD and Hellinger beat **DPE-Oracle** on accuracy; DPE-ILD best on serendipity; DPE-Oracle best on topdiv.
+* O6 Greedy+MMR is good at small budgets then *"quickly degrading accuracy"*.
+
+**TABLE 1 REPRODUCTION — PASS, and it recovered an undocumented off-by-one in their filter.** Their
+prose says *"removing those with fewer than 100 ratings"* (i.e. keep ≥100), which gives **52,596** users.
+Their code must have kept users with **strictly more than 100** ratings, which gives **51,869 — their
+published number exactly**. Under `>100`: users 51,869 [51,869 ✓], items 26,654 [26,654 ✓], ratings
+15,970,204 [15,970,206 — off by 2, two duplicate rows], ratings/user 308 [308 ✓], ratings/item 599
+[600 ✓], categories **20** [20 ✓ — they KEEP `(no genres listed)` as a topic]. Only categories/item
+2.00 vs 2.04 is unresolved. **Use `>100`, not `≥100`, in any DPE reproduction.**
+
+**BLOCKER on the ordering snap:** WSR (ECIR'16) is not implemented here, and the paper's own claim that
+*"we expect similar relative performance given any recommender algorithm"* is an expectation, not a
+result — substituting a recommender makes the snap a test of our substitute. Either implement WSR or
+report the snap as **setup-verified, ordering-not-attempted**.
+
 ### 3.9 PERE — Nguyen, Nguyen, Doan & Nguyen, UAI 2024 **[V, full text]**
 - UAI 2024 / PMLR v244, arXiv:2406.00973. VinAI / VinUniversity / CUHK.
 - **Mechanism, exactly.** Item embeddings normalised into `H = [0,1]^d`, fixed. Answers ∈ {+1,−1,NA}.

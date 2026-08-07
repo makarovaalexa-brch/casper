@@ -79,6 +79,13 @@ from run_interview_table import (OUT, RECS, ALL_RECS, build_recommenders, score_
 STATIC_SUFFIX = "-static"
 # The conversational-bandit (key-term) family: the only selectors with a TWO-TYPE action space.
 CONV_BANDIT_SPECS = ("conlinucb_mcr", "conlinucb_bs", "conlinucb_bs_static", "clime", "conucb")
+# DPE (Parapar & Radlinski WSDM'21). `dpe*` asks ITEMS through a topic bandit -- that is the PUBLISHED
+# method; `dpe_concept` is OUR labelled deviation that puts the same bandit on the concept action
+# space. See dpe_selector.py's header for why those are two different rows.
+DPE_SPECS = ("dpe", "dpe_hellinger", "dpe_oracle", "dpe_concept")
+# Every spec that can spend a turn on a KEY-TERM, and therefore needs the concept action space wired
+# up and the concept consumer attached.
+CONCEPT_ASK_SPECS = CONV_BANDIT_SPECS + ("dpe_concept",)
 
 
 # ===================================================================== selector interface
@@ -421,6 +428,28 @@ def regression_check(D=None, budgets=(1, 2, 4, 8, 16), arms=None, log=logln):
 
 
 # ===================================================================== selector construction
+def _concept_stack(D, a, cache, Y=None, repr_mode=None, log=logln):
+    """The shared concept action space (genome bank + behavioural answers), built ONCE per process.
+
+    The cache key carries the ANSWER CONVENTION (`--concept_neg_cap`) as well as the key-term
+    representation, because those two things change the stack in ways that are not interchangeable:
+    `apply_neg_cap=True` is the population-wide negative-mass cap over all 1,031 concepts, while 0 is
+    the CERTIFIED-ERA convention the concept channel cv3 was trained under (`build_greedy_env`), which
+    must be paired with `cap_negatives` over the revealed token list at fold time. Numbers from the
+    two are never differenced -- see docs/results/CONVBANDIT_PORT_ON_OUR_RULER.md sec. C5."""
+    import conversational_bandit_selectors as CB
+    repr_mode = repr_mode or a.keyterm_repr
+    neg_cap = bool(int(getattr(a, "concept_neg_cap", 1)))
+    ckey = ("conc_stack", repr_mode, bool(a.keyterm_norm_match), int(a.keyterm_n_rep),
+            neg_cap, Y is not None)
+    if ckey not in cache:
+        cache[ckey] = CB.build_concept_stack(
+            D, a.snapshot, keyterm_repr=repr_mode, n_rep=a.keyterm_n_rep,
+            norm_match=a.keyterm_norm_match, Y=Y, log=log, apply_neg_cap=neg_cap)
+        cache[ckey]["_repr"] = repr_mode
+    return cache[ckey]
+
+
 def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
     """spec -> Selector. `cache` holds the expensive shared artifacts (the frozen iALS belief, the
     Partial-VAE) so they are fitted/loaded ONCE per process, not once per budget."""
@@ -491,6 +520,21 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         return E.EDDIThreeOutcomeSelector(
             cache["eddi"], D["g_train"],
             dislike_mode="zero" if spec == "eddi_ig3_zero" else "signed", beta=args.eddi_beta)
+    if spec in DPE_SPECS:
+        # DPE (Parapar & Radlinski, WSDM 2021). The published arm asks ITEMS via a Thompson bandit
+        # over topics; `dpe_concept` is the labelled deviation onto the key-term action space. The
+        # score_div is carried on the spec name so the three published arm-rankers (ILD, Hellinger,
+        # Oracle) are three rows, exactly as the paper plots them.
+        import dpe_selector as DPE
+        if spec == "dpe_concept":
+            stack = _concept_stack(D, a=args, cache=cache, log=log)
+            sel = DPE.DPEConceptSelector(stack["n_concepts"], seed=args.ts_seed,
+                                         burn=args.dpe_burn, update=args.dpe_update, log=log)
+            sel.stack = stack
+            return sel
+        args.dpe_score_div = {"dpe": "ild", "dpe_hellinger": "hellinger",
+                              "dpe_oracle": "oracle"}[spec]
+        return DPE.build_dpe(D, args, cache, k, log=log)
     if spec in CONV_BANDIT_SPECS:
         # THE CONVERSATIONAL-BANDIT FAMILY (ConUCB WWW'20 / ConLinUCB AAAI'23 / CLiME KDD'25). These
         # are the only arms with a TWO-TYPE action space: they may ask about an item or about a
@@ -511,13 +555,7 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         repr_mode = args.keyterm_repr
         if spec == "conucb" and not getattr(args, "keyterm_repr_conucb", False):
             repr_mode = "uniform_member_mean"
-        ckey = ("conc_stack", repr_mode, bool(args.keyterm_norm_match), int(args.keyterm_n_rep))
-        if ckey not in cache:
-            cache[ckey] = CB.build_concept_stack(
-                D, args.snapshot, keyterm_repr=repr_mode, n_rep=args.keyterm_n_rep,
-                norm_match=args.keyterm_norm_match, Y=bel.Y, log=log)
-            cache[ckey]["_repr"] = repr_mode
-        stack = cache[ckey]
+        stack = _concept_stack(D, args, cache, Y=bel.Y, repr_mode=repr_mode, log=log)
         kw = dict(alpha=args.ucb_alpha, beta=args.conv_beta, seed=args.ts_seed,
                   b_schedule=args.conv_b_schedule, max_states=ms,
                   turn_rule=(args.conv_turn_rule or None))
@@ -534,7 +572,7 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
     raise SystemExit(f"unknown selector spec '{spec}'. Known: <arm>{STATIC_SUFFIX} for arm in "
                      f"{ST.ARMS}, plus dre, golbandi_tree, glm_ucb, thompson, eddi_ig, eddi_ig3, "
                      f"eddi_ig3_zero, "
-                     f"{','.join(CONV_BANDIT_SPECS)}")
+                     f"{','.join(CONV_BANDIT_SPECS)}, {','.join(DPE_SPECS)}")
 
 
 def _smoke_slice(D, n_smoke, log=logln):
@@ -560,7 +598,8 @@ _ASK_ARGS = ("sel_batch", "ucb_alpha", "ts_seed", "eddi_topm", "eddi_beta",
              "dre_tag", "dre_dup_policy",
              "keyterm_repr", "keyterm_repr_conucb", "keyterm_n_rep", "keyterm_norm_match",
              "conv_beta", "conv_turn_rule", "conv_b_schedule", "conucb_lam", "conucb_lam_til",
-             "clime_n_eig", "clisk_sigma", "smoke_users")
+             "clime_n_eig", "clisk_sigma", "smoke_users",
+             "dpe_topics", "dpe_burn", "dpe_update", "concept_neg_cap")
 
 
 def interview_contract(a, spec, k, n_users, n_items, extra=None):
@@ -727,6 +766,31 @@ def main():
                     help="CLiME: how many smallest-eigenvalue eigendirections of M_t to score against.")
     ap.add_argument("--clisk_sigma", type=float, default=0.0,
                     help="CLiSK's Gaussian key-term-context smoothing (0 = pure CLiME).")
+    # ---------------- DPE (Parapar & Radlinski WSDM'21); see dpe_selector.py -----------------------
+    ap.add_argument("--dpe_topics", default="genres", choices=["genres", "genome"],
+                    help="DPE's arm set. 'genres' = the paper's own granularity (20 MovieLens "
+                         "genres, an item may belong to several) [V]; 'genome' = the 1,031-concept "
+                         "genome bank every other concept row here uses.")
+    ap.add_argument("--dpe_burn", default="none", choices=["none", "zero"],
+                    help="what an UNANSWERABLE question pays the topic bandit. DPE's published "
+                         "protocol has no burns (it asks inside the user's own rated set), so this "
+                         "is ours: 'none' = no update at all (the conversational-bandit family's "
+                         "convention, and the default); 'zero' = reward 0, i.e. the bandit learns "
+                         "which topics are hard to answer -- a labelled repair, not the paper.")
+    ap.add_argument("--dpe_update", default="paper", choices=["paper", "mean"],
+                    help="Algorithm 1 prints mu <- (mu*k + r)/(k+2). 'paper' implements it as "
+                         "printed; 'mean' uses the running-mean denominator k+1 and is a labelled "
+                         "REPAIR. Never mix the two in one table.")
+    ap.add_argument("--concept_neg_cap", type=int, default=1, choices=[0, 1],
+                    help="THE CONCEPT ANSWER CONVENTION, and it is a contract (see "
+                         "docs/results/CONVBANDIT_PORT_ON_OUR_RULER.md sec. C5). 1 = "
+                         "signed_values(apply_neg_cap=True), the population-wide negative-mass cap "
+                         "over all 1,031 concepts -- what every run before 2026-08-08 used. 0 = the "
+                         "CERTIFIED-ERA convention the concept channel cv3 was TRAINED under "
+                         "(apply_neg_cap=False plus cap_negatives over the REVEALED token list at "
+                         "fold time), i.e. strategy_channel_suite.build_greedy_env's. The same 16 "
+                         "greedy concepts score .2473/.1154 under 0 and .2298/.0977 under 1, so a "
+                         "number from one convention may NEVER be differenced against the other.")
     ap.add_argument("--concept_ckpt",
                     default=os.path.join(_ROOT, "models", "i26c_ep31", "concept_cv3_ep08.pt"),
                     help="CERTIFIED concept channel used to CONSUME key-term answers on the 'ours' "
@@ -855,13 +919,16 @@ def main():
             sel = build_selector(spec, D, glob, bank, k, a, cache, log=logln)
             conc = None
             ex = {}
-            if spec in CONV_BANDIT_SPECS:
+            if spec in CONCEPT_ASK_SPECS:
                 import conversational_bandit_selectors as CB
                 stk = sel.stack
                 conc = {"n_concepts": stk["n_concepts"],
                         "answer": (lambda u, c, _s=stk: CB.concept_answer(_s, u, c))}
                 meta["keyterm_repr"] = stk.get("_repr")
                 meta["n_concepts"] = int(stk["n_concepts"])
+                meta["concept_answer_convention"] = (
+                    "population neg-cap (apply_neg_cap=True)" if stk.get("apply_neg_cap", True)
+                    else "CERTIFIED-ERA (apply_neg_cap=False + cap_negatives over revealed)")
                 # n_concepts only: the cache CAP is deliberately NOT in the contract, because eviction
                 # changes what is recomputed and never which question is asked.
                 ex = {"n_concepts": int(stk["n_concepts"])}
@@ -932,8 +999,18 @@ def main():
                               f"{cblob.get('snapshot','?')})")
                     e_, W_, b_ = obj
                     Lc = answers_to_csr(answered, n, ni, mode, asked=asked)
-                    s_obj = CB.make_concept_aware_predict(e_, W_, b_, Lc, cs["tokens"],
-                                                          cache["cfnet"])
+                    toks = cs["tokens"]
+                    if not int(a.concept_neg_cap):
+                        # CERTIFIED-ERA convention: the negative-mass cap is applied over the
+                        # REVEALED list at fold time, not over all 1,031 concepts at answer time.
+                        # This is the second half of --concept_neg_cap 0 and must never be omitted:
+                        # apply_neg_cap=False alone is an UNCAPPED answer, which is a third
+                        # convention nobody trained or measured under. Identical to
+                        # convbandit_greedy_rescore.py's NO_NEG_CAP path, deliberately.
+                        from signed_answers import cap_negatives
+                        toks = [[(c, v2, r) for (c, _v, r), v2 in
+                                 zip(t, cap_negatives([x[1] for x in t]))] for t in toks]
+                    s_obj = CB.make_concept_aware_predict(e_, W_, b_, Lc, toks, cache["cfnet"])
                     s_name, s_mode = "ours_conc", mode
                 # global_asked is the SHARED ITEM ask-list, and it is shared only if the full ACTION
                 # lists agree (a key-term turn is part of the prefix that decides that).
