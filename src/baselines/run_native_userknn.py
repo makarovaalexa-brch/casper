@@ -9,12 +9,14 @@ GATES, fixed in advance (a number that trips one is a bug, not a finding):
   G1 MostPop through this exact eval path must reproduce the canonical MostPop row.
   G2 the result must land within +/-0.05 of the .2808 on record; a swing to .05 or .38 is the
      masking-leak signature, not a result.
-  G3 FALLBACK DIAGNOSTIC. Items with no rating neighbour get -inf and are ranked below everything scored,
-     tie-broken deterministically by item id -- NEVER by popularity, which would splice MostPop into the
-     row. We then measure whether that choice matters: the fraction of top-10 slots filled by fallback
-     items, and the NDCG delta between fallback=-inf and fallback=popularity. If that delta exceeds the
-     paired-CI half-width the row is measuring its own fallback and must be footnoted as such.
-     Checked separately on tail, where fallback exposure concentrates.
+  G3 FALLBACK DIAGNOSTIC. CORRECTED 2026-08-07 -- an earlier version of this docstring claimed unscored
+     items receive -inf. THEY DO NOT. golbandi_native allocates `scores = np.zeros(...)` and a cell with
+     no rating neighbour keeps the value 0, which is the published behaviour (an unsupported item falls
+     back to the user mean, i.e. zero in centred space). The consequence is the opposite of what -inf
+     would give: a zero-evidence item ranks ABOVE any item whose neighbours disliked it, and ties inside
+     that mass break by item id. That is defensible but it must be MEASURED rather than argued, because
+     the exposure concentrates on the tail: report the fraction of the realised top-10 filled by
+     zero-evidence items, and tail NDCG with those items in versus out.
   G4 lambda is re-tuned on VALIDATION NDCG@10; inheriting the old harness's lambda would be a silent
      chimera of the kind that voided the graded arms.
 
