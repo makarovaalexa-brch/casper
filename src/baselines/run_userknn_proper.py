@@ -52,6 +52,11 @@ from graded_data import load_graded_val
 OUTDIR = os.path.join(_ROOT, "experiments", "baselines", "arm_n")
 OUTP = os.path.join(OUTDIR, "userknn_proper_armn.json")
 LAM_GRID = [8.0, 25.0, 50.0, 100.0, 200.0, 400.0, 800.0, 1600.0, 3200.0]
+# Batch 250, not the usual 500. golbandi_native.predict materialises a DENSE (batch x n_train_users)
+# similarity block -- 500 x 140,768 float32 = 281 MB per batch. This run was launched, at the author's
+# explicit instruction, alongside a live adaptive_harness job with only ~4.4 GB free, so the batch is
+# halved to cap that block at ~141 MB. Batching does not affect any reported number.
+BATCH = 250
 STATE = {}
 
 
@@ -77,7 +82,7 @@ def sweep(name, train, va_in, va_te, hm, k, centre):
         prd = golbandi_native.fit(train, train.shape[1],
                                   args=argparse.Namespace(k=k, lam=lam, centre=centre),
                                   log=lambda *_: None)
-        m = M.evaluate(prd, va_in, va_te, batch_size=500, head_mask=hm)
+        m = M.evaluate(prd, va_in, va_te, batch_size=BATCH, head_mask=hm)
         logln(f"  [{name}] lam={lam:7.1f} val full={m['ndcg@10']:.4f} tail={m['tail_ndcg@10']:.4f} "
               f"({(time.time()-t0)/60:.1f}m)")
         STATE["sweeps"][name].append({"lam": lam, "val_full": m["ndcg@10"],
@@ -99,9 +104,9 @@ def fallback_diagnostics(predict, te_in, pool, te_te, hm, n_users):
     list, and the tail metric with fallback items removed from contention entirely.
     """
     occ, n_zero_top1, seen = [], 0, 0
-    for st in range(0, n_users, 500):
-        S = predict(te_in[st:st + 500])
-        P = pool[st:st + 500].tocsr()
+    for st in range(0, n_users, BATCH):
+        S = predict(te_in[st:st + BATCH])
+        P = pool[st:st + BATCH].tocsr()
         S[P.nonzero()] = -np.inf
         top = np.argpartition(-S, 10, axis=1)[:, :10]
         vals = np.take_along_axis(S, top, axis=1)
@@ -118,7 +123,7 @@ def fallback_diagnostics(predict, te_in, pool, te_te, hm, n_users):
         S = predict(X)
         S[S == 0.0] = -np.inf          # remove zero-evidence items from contention entirely
         return S
-    r = M.evaluate(predict_no_fallback, te_in, te_te, batch_size=500, head_mask=hm, mask_X=pool)
+    r = M.evaluate(predict_no_fallback, te_in, te_te, batch_size=BATCH, head_mask=hm, mask_X=pool)
     logln(f"[G3] with fallback items EXCLUDED: full={r['ndcg@10']:.4f} tail={r['tail_ndcg@10']:.4f}")
     return {"top10_fallback_occupancy": float(occ.mean()),
             "rank1_no_evidence_frac": n_zero_top1 / max(seen, 1),
@@ -135,7 +140,7 @@ def main():
     n_users = D["te_tr"].shape[0]
 
     pr_pop = pop.fit(D["train"], ni, log=logln)
-    rp = M.evaluate(pr_pop, D["te_tr"], te_te, batch_size=500, head_mask=hm, mask_X=pool)
+    rp = M.evaluate(pr_pop, D["te_tr"], te_te, batch_size=BATCH, head_mask=hm, mask_X=pool)
     canon = json.load(open(os.path.join(OUTDIR, "pop.json")))["N"]
     ok = abs(rp["ndcg@10"] - canon["ndcg@10"]) <= 1e-4
     logln(f"[G1] MostPop this path {rp['ndcg@10']:.4f} vs arm-N {canon['ndcg@10']:.4f} -> "
@@ -153,7 +158,7 @@ def main():
     lam_g, val_g, edge_g = sweep("graded", D["g_train"], g_va, va_te, hm, a0.k, centre=True)
     prd = golbandi_native.fit(D["g_train"], ni, args=argparse.Namespace(k=a0.k, lam=lam_g, centre=True),
                               log=logln)
-    r_g = M.evaluate(prd, D["g_te_tr"], te_te, batch_size=500, head_mask=hm, mask_X=pool)
+    r_g = M.evaluate(prd, D["g_te_tr"], te_te, batch_size=BATCH, head_mask=hm, mask_X=pool)
     logln(f"[row] user-kNN native (mean-centred ratings): full={r_g['ndcg@10']:.4f} "
           f"tail={r_g['tail_ndcg@10']:.4f}")
     STATE["graded"] = {"lam": lam_g, "val_full": val_g, "lam_at_edge": edge_g,
@@ -169,7 +174,7 @@ def main():
     lam_b, val_b, edge_b = sweep("binary", D["train"], va_tr_bin, va_te, hm, a0.k, centre=False)
     prb = golbandi_native.fit(D["train"], ni, args=argparse.Namespace(k=a0.k, lam=lam_b, centre=False),
                               log=logln)
-    r_b = M.evaluate(prb, D["te_tr"], te_te, batch_size=500, head_mask=hm, mask_X=pool)
+    r_b = M.evaluate(prb, D["te_tr"], te_te, batch_size=BATCH, head_mask=hm, mask_X=pool)
     ref = json.load(open(os.path.join(OUTDIR, "golbandi_node.json")))["N"]
     gap = r_b["ndcg@10"] - ref["ndcg@10"]
     logln(f"[twin] binary through the native path: full={r_b['ndcg@10']:.4f} tail={r_b['tail_ndcg@10']:.4f}")
