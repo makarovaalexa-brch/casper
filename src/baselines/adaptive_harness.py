@@ -460,7 +460,21 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
     if spec.endswith(STATIC_SUFFIX):
         return StaticArmSelector(spec[:-len(STATIC_SUFFIX)], glob, bank, q_max=k)
     ms = int(getattr(args, "conv_max_states", 0) or 0)
-    if spec in ("glm_ucb", "thompson"):
+    if spec in ("glm_ucb", "thompson", "bald", "aopt"):
+        # FOUR acquisitions, ONE posterior (`belief_mf.GaussianBelief`, the same object the belief_mf
+        # CONSUMER row scores with), so the only thing that differs between these rows is the rule that
+        # turns a posterior into a question:
+        #   glm_ucb  mean + alpha*width                                 (Filippi NeurIPS'10 / ICF CIKM'13)
+        #   thompson argmax over one posterior draw                     (Chapelle & Li NeurIPS'11)
+        #   bald     mutual information I(u; r_i)                       (Houlsby arXiv:1112.5745)
+        #            -- under this Gaussian likelihood it REDUCES to 0.5*log(1+sig^2/s2), a monotone
+        #               function of the width, i.e. pure exploration. Documented, measured, not hidden.
+        #   aopt     argmin tr(A_{t+1}^-1), closed form                 (Yu ICML'06 / Anava WWW'15)
+        #            -- VALUE-FREE: it adapts only to which questions proved answerable, so it is a
+        #               (near-)static design and belongs beside DRE in any table, not beside the
+        #               adaptive arms.
+        # Neither new arm takes a hyperparameter: s2 is belief_mf's own obs_noise, so there is nothing
+        # to tune and nothing new in the interview contract (_ASK_ARGS is unchanged).
         import bandit_selectors as B
         if "belief" not in cache:
             # BANKED frozen basis: the seeded 10-minute iALS fit is the one thing a RESUMED run would
@@ -470,6 +484,10 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         ms = ms or B.DEFAULT_MAX_STATES
         if spec == "glm_ucb":
             return B.GLMUCBSelector(cache["belief"], alpha=args.ucb_alpha, max_states=ms)
+        if spec == "bald":
+            return B.BALDSelector(cache["belief"], max_states=ms)
+        if spec == "aopt":
+            return B.AOptimalSelector(cache["belief"], max_states=ms)
         return B.ThompsonSelector(cache["belief"], seed=args.ts_seed, max_states=ms)
     if spec == "golbandi_tree":
         # WSDM'11 SPLIT SEARCH (golbandi_tree_selector.py). Grown ONCE per process on the TRAIN
@@ -630,7 +648,8 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
                                     smooth_sigma=args.clisk_sigma, **kw)
         return CB.ConUCBSelector(bel, stack, lam=args.conucb_lam, lam_til=args.conucb_lam_til, **kw)
     raise SystemExit(f"unknown selector spec '{spec}'. Known: <arm>{STATIC_SUFFIX} for arm in "
-                     f"{ST.ARMS}, plus dre, golbandi_tree, glm_ucb, thompson, eddi_ig, eddi_ig3, "
+                     f"{ST.ARMS}, plus dre, golbandi_tree, glm_ucb, thompson, bald, aopt, "
+                     f"eddi_ig, eddi_ig3, "
                      f"eddi_ig3_zero, {','.join(IGCN_SPECS)}, "
                      f"{','.join(CONV_BANDIT_SPECS)}, {','.join(DPE_SPECS)}")
 
@@ -1140,8 +1159,11 @@ def main():
                 # must be readable off EVERY cell, not just the training log. Same for IGCN's
                 # `igcn_personalised_rate`: an IGCN row at rate 0 is the global-IG STATIC order, and
                 # that has to be readable off the table rather than inferred from the budget.
+                # `bald_`/`aopt_` join them for the same reason: BALD's reduction to a pure variance
+                # rule and A-optimal's value-free (near-static) character are properties a reader must
+                # not have to infer from the module docstring, so each cell states them itself.
                 for _dk, _dv in info.items():
-                    if _dk.startswith("dre_") or _dk.startswith("igcn_"):
+                    if _dk.startswith(("dre_", "igcn_", "bald_", "aopt_")):
                         cell[_dk] = _dv
                 results[name][spec][f"k{k}"] = cell
                 logln(f"[adaptive] {name:14s} {spec:16s} k={k:2d} "

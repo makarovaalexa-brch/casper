@@ -1,1 +1,0 @@
-{"pid": 29004, "started": "2026-08-08 10:50:47", "label": "adaptive_table_dpe_v1.json", "argv": ["src/baselines/adaptive_harness.py", "--selectors", "dpe,dpe_hellinger,dpe_oracle,dpe_concept", "--budgets", "1,2,4,8,16", "--only", "ours", "--arch", "i26", "--snapshot", "models/i26c_ep31/t2i26c_ep31.pt", "--no_floor", "--concept_neg_cap", "0", "--per_user", "--label", "dpe_v1"]}

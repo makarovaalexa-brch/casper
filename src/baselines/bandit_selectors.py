@@ -43,6 +43,23 @@ ACQUISITION 2 -- Thompson sampling  (`ThompsonSelector`)
   The draw is seeded per (seed, turn, user) so the run is reproducible regardless of how the harness
   chunks or groups users.
 
+ACQUISITION 3 -- BALD  (`BALDSelector`)
+    q_t = argmax_i  I(u ; r_i | S_t) = H[E_u p(r_i|u)] - E_u H[p(r_i|u)]
+  Houlsby, Huszar, Ghahramani & Lengyel, arXiv:1112.5745. UNDER THE belief_mf GAUSSIAN LIKELIHOOD THIS
+  COLLAPSES TO 0.5*log(1 + sig_i^2/s2), a monotone function of the GLM-UCB width -- i.e. to pure
+  exploration, GLM-UCB with the mean term deleted. That degeneracy is the reportable fact, it is
+  measured by `--acq-check`, and the class docstring says why it happens and which likelihood would
+  break it. Same disclosure discipline as GLM-UCB's identity link.
+
+ACQUISITION 4 -- A-OPTIMAL DESIGN  (`AOptimalSelector`)
+    q_t = argmin_i tr(A_{t+1}(i)^-1),  A_{t+1}(i) = A_t + (1/s2) y_i y_i^T
+        = argmax_i ||A_t^-1 y_i||^2 / (s2 + y_i^T A_t^-1 y_i)          [Sherman-Morrison, exact]
+  Yu, Bi & Tresp (ICML 2006) transductive experimental design; Anava et al. (WWW 2015) for the
+  recommender seed-set instantiation. The closed form reads both quadratic forms off the SAME
+  B = A^-1 Y^T the width already needs, so no per-candidate inverse exists anywhere. It is a
+  VALUE-FREE (classically static) criterion -- it adapts only to which questions turned out to be
+  answerable -- and must be reported beside DRE rather than beside the adaptive arms.
+
 WHAT THE SELECTOR OBSERVES. Answered questions only, with the SIGNED value contract the belief_mf
 consumer row uses: r_i = level_to_sv(level) (+1 at 5.0 stars, 0 at 2.75, -1 at 0.5). An asked-but-
 unrated item burns the question and contributes NOTHING to the posterior -- belief_mf has no unknown
@@ -171,6 +188,19 @@ def _obs(key):
     return cols, vals
 
 
+def _a_inv_Yt(A, Y):
+    """B = A^-1 Y^T, (f x n_items), by one Cholesky factorisation and one solve.
+
+    THE one place the posterior covariance ever meets the catalogue. Three acquisitions read different
+    quadratic forms off the SAME B -- the UCB/BALD width diag(Y A^-1 Y^T) = einsum('ij,ji->i', Y, B),
+    and A-optimal's ||A^-1 y_i||^2 = einsum('ji,ji->i', B, B) -- so factoring it out is what stops a
+    second acquisition from becoming a second 1.5-GFLOP solve of its own. No 200x200 inverse is formed.
+    Extracted verbatim from GLMUCBSelector._width_vec (same cho_factor/cho_solve calls, same order), so
+    every width this function now produces is bit-identical to the pre-2026-08-08 one."""
+    c, low = sla.cho_factor(A, lower=True)
+    return sla.cho_solve((c, low), Y.T)
+
+
 class _PosteriorSelector(Selector):
     """Shared plumbing: state grouping, the posterior cache, the ask-mask and the argmax."""
 
@@ -205,6 +235,15 @@ class _PosteriorSelector(Selector):
             self._mu.put(key, mu)
             return mu, A
         return mu, self.belief.precision(cols)
+
+    def _wkey(self, key):
+        """The cache key for any VALUE-FREE per-state quantity (the UCB width, the BALD score, the
+        A-optimal gain): the answered ITEM SET, order- and value-free, because A depends only on which
+        items were answered. A hook rather than an inline expression because subclasses with a richer
+        interview state -- the conversational bandits, whose state is (item answers, key-term answers)
+        -- must widen this key while reusing the Cholesky machinery verbatim. Lives on the shared base
+        (moved up from GLMUCBSelector 2026-08-08) because three acquisitions now key on it."""
+        return tuple(sorted(i for (i, _lv) in key))
 
     def _pick(self, base_scores, users, asked, out, idx_of):
         """base_scores: (n_items,) acquisition shared by the group. Mask each user's asked items and
@@ -241,13 +280,6 @@ class GLMUCBSelector(_PosteriorSelector):
         super().reset(ctx)
         self._width.clear()
 
-    def _wkey(self, key):
-        """The cache key for the WIDTH: the answered ITEM SET, order- and value-free (A depends only
-        on which items were answered). A hook rather than an inline expression because subclasses with
-        a richer interview state -- the conversational bandits, whose state is (item answers, key-term
-        answers) -- must widen this key while reusing the Cholesky machinery below verbatim."""
-        return tuple(sorted(i for (i, _lv) in key))
-
     def _width_vec(self, key):
         """sqrt(diag(Y A^-1 Y^T)) for every catalogue item. Keyed on the ANSWERED ITEM SET only,
         because A is value-free -- a coarser and therefore cheaper key than the posterior mean's."""
@@ -255,8 +287,7 @@ class GLMUCBSelector(_PosteriorSelector):
         w = self._width.get(wkey)
         if w is None:
             _mu, A = self._posterior(key)
-            c, low = sla.cho_factor(A, lower=True)
-            B = sla.cho_solve((c, low), self.Y.T)           # (f x n_items) = A^-1 Y^T
+            B = _a_inv_Yt(A, self.Y)                        # (f x n_items) = A^-1 Y^T
             v = np.einsum("ij,ji->i", self.Y, B)            # y_i^T A^-1 y_i
             # The solve stays float64; only the CACHED result is narrowed (header, MEMORY (2)).
             w = self._width.put(wkey, np.sqrt(np.maximum(v, 0.0)).astype(WIDTH_DTYPE))
@@ -272,6 +303,184 @@ class GLMUCBSelector(_PosteriorSelector):
             base = self.Y @ mu + self.alpha * self._width_vec(key)
             self._pick(base, us, asked, out, idx_of)
         return out
+
+
+class BALDSelector(GLMUCBSelector):
+    r"""BALD -- Bayesian Active Learning by Disagreement (Houlsby, Huszar, Ghahramani & Lengyel,
+    arXiv:1112.5745, 2011). Acquisition = the mutual information between the PARAMETERS and the
+    predicted answer:
+
+        a_BALD(i) = I(u ; r_i | S_t) = H[ E_u p(r_i|u) ]  -  E_u H[ p(r_i|u) ]
+
+    i.e. prefer the question on which the posterior DISAGREES WITH ITSELF -- high predictive entropy
+    that is not explained by observation noise -- rather than the question whose predictive is merely
+    uncertain. That distinction is the whole content of the paper.
+
+    ================================================================================================
+    WHICH LIKELIHOOD WE ASSUME, AND WHAT BALD REDUCES TO UNDER IT (read this before citing the row)
+    ================================================================================================
+    We assume the likelihood Paper B is holding fixed, `belief_mf`'s and nobody else's:
+
+        r_i = <u, y_i> + eps,     eps ~ N(0, s2),     u | S_t ~ N(mu_t, A_t^-1)
+
+    -- a Gaussian observation with a variance s2 that does not depend on u or on i. Then, writing
+    sig_i^2 = y_i^T A_t^-1 y_i for the posterior variance of the noiseless utility:
+
+        p(r_i | u)      = N(<u,y_i>, s2)          =>  H[p(r_i|u)]      = 0.5*log(2*pi*e*s2)   (const)
+        p(r_i | S_t)    = N(<mu_t,y_i>, sig_i^2 + s2)
+                                                  =>  H[p(r_i|S_t)]    = 0.5*log(2*pi*e*(sig_i^2+s2))
+
+        a_BALD(i) = 0.5 * log( 1 + sig_i^2 / s2 )                                        [in nats]
+
+    SO, PLAINLY: under a homoscedastic Gaussian likelihood BALD COLLAPSES TO A PURE VARIANCE RULE. The
+    second term -- the expected conditional entropy, which is the entire point of BALD, the thing that
+    makes it prefer disagreement over noise -- is a CONSTANT here, because a linear-Gaussian model puts
+    the same aleatoric noise on every question. `log(1 + sig^2/s2)` is strictly increasing in sig^2, so
+
+        argmax_i a_BALD(i)  ==  argmax_i sig_i^2  ==  argmax_i width_i  ==  GLM-UCB with alpha -> inf
+
+    and this row is behaviourally "GLM-UCB's exploration term with the exploit term deleted". It is
+    NOT a new source of signal on this model, and it must never be sold as one. We implement and report
+    it anyway for two reasons: (i) it is a named, cited acquisition a reviewer will ask about, and the
+    honest answer "it degenerates HERE, and here is the run" is worth more than an omission; (ii) the
+    degeneracy is a property of the LIKELIHOOD, not of BALD -- it is exactly the same disclosure we
+    made for GLM-UCB's identity link. The identity is not asserted, it is MEASURED:
+    `python src/baselines/bandit_selectors.py --acq-check` re-runs both argmaxes and diffs them.
+
+    WHERE IT WOULD NOT COLLAPSE (stated so the reduction is not mistaken for a general claim): any
+    likelihood whose conditional entropy depends on u -- a Bernoulli/probit like/dislike head, or a
+    three-outcome answerability model of the kind `eddi_selector.EDDIThreeOutcomeSelector` carries. We
+    do not fit one here, because swapping the observation model would make this a different method's
+    row rather than BALD on our posterior.
+
+    We score in NATS and keep the log rather than shortcutting to sig^2: the number in the log is then
+    a real mutual information, comparable across turns, and a reader can check the units. `alpha` is
+    inherited from GLMUCBSelector and is INERT -- the mean term never enters this acquisition."""
+    name = "bald"
+
+    def __init__(self, belief, pool=None, max_states=DEFAULT_MAX_STATES):
+        super().__init__(belief, alpha=0.0, pool=pool, max_states=max_states)
+        self.s2 = 1.0 / float(belief.inv_s2)
+
+    def _bald_vec(self, key):
+        """0.5*log(1 + sig_i^2/s2), nats, per catalogue item. Reuses the CACHED width, so a run with
+        both `glm_ucb` and `bald` in it pays for the Cholesky solve once per state, not twice."""
+        w = self._width_vec(key).astype(np.float64)
+        return 0.5 * np.log1p(w * w / self.s2)
+
+    def select(self, turn, users, asked, answered):
+        groups = _group_by_state(users, answered)
+        self._n_states.append(len(groups))
+        out = np.empty(len(users), dtype=np.int64)
+        idx_of = {int(u): j for j, u in enumerate(users.tolist())}
+        for key, us in groups.items():
+            self._pick(self._bald_vec(key), us, asked, out, idx_of)
+        return out
+
+    def stats(self):
+        s = super().stats()
+        s["bald_obs_noise_s2"] = self.s2
+        s["bald_reduces_to"] = ("0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a "
+                                "MONOTONE function of the GLM-UCB width, i.e. pure exploration")
+        return s
+
+
+class AOptimalSelector(_PosteriorSelector):
+    r"""A-OPTIMAL (transductive) EXPERIMENTAL DESIGN -- Yu, Bi & Tresp, "Active Learning via
+    Transductive Experimental Design" (ICML 2006); applied to recommender seed-set selection by Anava,
+    Golan, Golbandi, Karnin, Lempel, Rokhlenko & Somekh, "Budget-Constrained Item Cold-Start Handling
+    in Collaborative Filtering Recommenders via Optimal Design" (WWW 2015). Acquisition: ask the
+    question that minimises the TRACE of the posterior covariance after folding it in --
+
+        q_t = argmin_{i not yet asked}  tr( A_{t+1}(i)^-1 ),     A_{t+1}(i) = A_t + (1/s2) y_i y_i^T
+
+    i.e. minimise the total posterior variance of the user vector (A-optimality), as against
+    D-optimality's log-determinant or E-optimality's largest eigenvalue.
+
+    THE CLOSED FORM (why this is near-free rather than 18,359 matrix inversions per turn). By
+    Sherman-Morrison, with c = 1/s2,
+
+        A_{t+1}(i)^-1 = A_t^-1  -  c * (A_t^-1 y_i)(A_t^-1 y_i)^T / (1 + c * y_i^T A_t^-1 y_i)
+
+    and taking the trace of a rank-one term is just a squared norm:
+
+        tr(A_{t+1}(i)^-1) = tr(A_t^-1)  -  ||A_t^-1 y_i||^2 / (s2 + y_i^T A_t^-1 y_i)
+
+    tr(A_t^-1) is the same for every candidate, so MINIMISING the post-fold trace is exactly
+
+        q_t = argmax_i  g_i,      g_i = ||A_t^-1 y_i||^2 / (s2 + sig_i^2)
+
+    Both quadratic forms are columns of ONE solve B = A_t^-1 Y^T (`_a_inv_Yt`): g's numerator is the
+    squared column norm of B, its denominator the same diag(Y A^-1 Y^T) the UCB width uses. So the
+    whole 18,359-candidate criterion costs one 200x200 Cholesky plus two einsums per interview STATE --
+    the same bill GLM-UCB already pays -- and no per-candidate inverse is ever formed. The identity
+    against a brute-force explicit inverse is CHECKED, not asserted: `--acq-check`.
+
+    NOTE what g_i is NOT: it is not the width. ||A^-1 y||^2 = y^T A^-2 y weights the posterior's small
+    eigendirections quadratically where the width weights them linearly, so A-optimal leans harder into
+    the least-determined directions of taste and the two rankings genuinely differ.
+
+    ================================================================================================
+    STATIC OR SEQUENTIAL? -- SEQUENTIAL, BUT VALUE-FREE. Say it this way and no other.
+    ================================================================================================
+    Classical A-optimal design is a STATIC criterion: A_{t+1} does not contain the answers, only the
+    QUESTIONS, so a greedy A-optimal sequence can be computed offline before the interview starts and
+    handed to every user identically. That is how Anava et al. use it -- a budgeted seed SET.
+
+    Our implementation is the greedy sequential form, and on our harness it is not quite static, for
+    exactly one reason: an asked-but-UNRATED item burns the turn and enters no measurement (the
+    belief_mf contract -- there is no unknown channel), so A_t differs between a user who could answer
+    the opener and one who could not. The criterion therefore adapts to WHICH questions were
+    answerable and never to WHAT was answered. Two consequences to report, not to hide:
+      * the distinct-ask-prefix count grows with turn, but only up to the number of distinct
+        ANSWERABILITY patterns -- far below an answer-dependent policy's fan-out. That number is the
+        diagnostic, and it is printed per turn by the harness;
+      * with a hypothetical always-answerable user population this arm would be exactly one static
+        order. So it belongs BESIDE DRE, in the learned/derived-static family, and not beside the
+        adaptive arms -- a table that lists it as adaptive is overclaiming.
+    The candidate's own contribution is folded in ASSUMING IT WILL BE ANSWERED, which is the classical
+    criterion as published; A-optimal has no answerability model and we do not give it one."""
+    name = "aopt"
+
+    def __init__(self, belief, pool=None, max_states=DEFAULT_MAX_STATES):
+        super().__init__(belief, pool=pool, max_states=max_states)
+        self.s2 = 1.0 / float(belief.inv_s2)
+        self._gain = LRUCache(self.max_states, "aopt_gain")
+
+    def reset(self, ctx):
+        super().reset(ctx)
+        self._gain.clear()
+
+    def _gain_vec(self, key):
+        """g_i = ||A^-1 y_i||^2 / (s2 + y_i^T A^-1 y_i), the trace REDUCTION candidate i would buy.
+        Keyed on the answered ITEM SET (`_wkey`) because, like the width, A is value-free."""
+        gk = self._wkey(key)
+        g = self._gain.get(gk)
+        if g is None:
+            _mu, A = self._posterior(key)
+            B = _a_inv_Yt(A, self.Y)                        # (f x n_items) = A^-1 Y^T
+            num = np.einsum("ji,ji->i", B, B)               # ||A^-1 y_i||^2 = y_i^T A^-2 y_i
+            den = self.s2 + np.einsum("ij,ji->i", self.Y, B)
+            # float32 for the CACHED vector, as for the width: consumed by an argmax, never summed.
+            g = self._gain.put(gk, (num / den).astype(WIDTH_DTYPE))
+        return g
+
+    def select(self, turn, users, asked, answered):
+        groups = _group_by_state(users, answered)
+        self._n_states.append(len(groups))
+        out = np.empty(len(users), dtype=np.int64)
+        idx_of = {int(u): j for j, u in enumerate(users.tolist())}
+        for key, us in groups.items():
+            self._pick(self._gain_vec(key), us, asked, out, idx_of)
+        return out
+
+    def stats(self):
+        s = super().stats()
+        s["aopt_obs_noise_s2"] = self.s2
+        s["aopt_design_class"] = ("greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were "
+                                  "answerable, never to the answers. Report beside DRE, not beside "
+                                  "the adaptive arms.")
+        return s
 
 
 class ThompsonSelector(_PosteriorSelector):
@@ -418,15 +627,90 @@ def dtype_check(belief=None, n_items=18359, f=200, states=(0, 1, 2, 3, 4, 8, 16,
             "min_top1_top2_gap": worst_gap}
 
 
+def acq_check(belief=None, n_items=2000, f=40, states=(0, 1, 2, 4, 8, 16), s2=1.0, seed=98765,
+              log=print):
+    """The two claims the new acquisitions rest on, MEASURED rather than asserted (HARD RULE 5).
+
+    (1) BALD DEGENERACY. Under the Gaussian likelihood, a_BALD = 0.5*log(1+sig^2/s2) is monotone in the
+        UCB width, so BALD's argmax must equal a pure-width argmax on every state and every asked-mask.
+        A disagreement would mean the derivation in BALDSelector's docstring is wrong.
+    (2) A-OPTIMAL CLOSED FORM. tr(A^-1) - g_i must equal the BRUTE-FORCE trace of the explicitly
+        inverted A + (1/s2) y_i y_i^T, item by item. This is the Sherman-Morrison step, and it is the
+        one place an algebra slip would be invisible in the output (a wrong-but-smooth ranking).
+        Deliberately run at a SMALL f and n so the brute force -- 2,000 explicit 40x40 inverses per
+        state -- is affordable; the identity is dimension-free.
+
+    Synthetic basis by default (shape-realistic is irrelevant here: this is algebra, not data); pass
+    the real GaussianBelief for the citable version."""
+    rng = np.random.default_rng(seed)
+    if belief is None:
+        import belief_mf
+        Y = rng.standard_normal((n_items, f)) * 0.09
+        U = rng.standard_normal((2000, f)) * 0.5
+        belief = belief_mf.GaussianBelief(Y, U.mean(0), np.cov(U, rowvar=False), s2, 1.0, 1e-6)
+        log(f"[acq-check] SYNTHETIC basis {Y.shape}, s2={s2}")
+    Y = belief.Y
+    n_items, f = Y.shape
+    s2 = 1.0 / float(belief.inv_s2)
+    n_bald_cmp = n_bald_dis = 0
+    worst_trace_err = 0.0
+    n_aopt_argmax_dis = 0
+    for s in states:
+        cols = rng.choice(n_items, size=s, replace=False) if s else np.empty(0, dtype=np.int64)
+        vals = rng.uniform(-1.0, 1.0, size=s)
+        _mu, A = belief.posterior(cols.astype(np.int64), vals)
+        B = _a_inv_Yt(A, Y)
+        sig2 = np.einsum("ij,ji->i", Y, B)
+        # ---- (1) BALD vs pure width
+        bald = 0.5 * np.log1p(np.maximum(sig2, 0.0) / s2)
+        width = np.sqrt(np.maximum(sig2, 0.0))
+        for _rep in range(25):
+            mask = rng.choice(n_items, size=max(s, 1), replace=False)
+            b, w = bald.copy(), width.copy()
+            b[mask] = NEG
+            w[mask] = NEG
+            n_bald_cmp += 1
+            n_bald_dis += int(int(np.argmax(b)) != int(np.argmax(w)))
+        # ---- (2) A-optimal closed form vs brute force
+        g = np.einsum("ji,ji->i", B, B) / (s2 + sig2)
+        Ainv = np.linalg.inv(A)
+        tr0 = float(np.trace(Ainv))
+        closed = tr0 - g
+        brute = np.empty(n_items)
+        for i in range(n_items):
+            y = Y[i]
+            brute[i] = float(np.trace(np.linalg.inv(A + (1.0 / s2) * np.outer(y, y))))
+        worst_trace_err = max(worst_trace_err,
+                              float(np.max(np.abs(closed - brute) / np.abs(brute))))
+        n_aopt_argmax_dis += int(int(np.argmax(g)) != int(np.argmin(brute)))
+    log(f"[acq-check] BALD: {n_bald_dis}/{n_bald_cmp} argmax disagreements against a PURE-WIDTH rule "
+        f"-- 0 confirms BALD reduces to exploration under the Gaussian likelihood")
+    log(f"[acq-check] A-optimal: worst relative error of the Sherman-Morrison post-fold trace vs an "
+        f"EXPLICIT inverse = {worst_trace_err:.3e} over {len(states)} states x {n_items} candidates; "
+        f"{n_aopt_argmax_dis} argmax/argmin disagreements")
+    assert n_bald_dis == 0, "BALD did not match the pure-width rule -- the derivation is wrong"
+    assert worst_trace_err < 1e-9, f"Sherman-Morrison trace off by {worst_trace_err:.3e}"
+    assert n_aopt_argmax_dis == 0, "A-optimal closed form picked a different item than brute force"
+    return {"bald_comparisons": n_bald_cmp, "bald_disagreements": n_bald_dis,
+            "aopt_worst_rel_trace_err": worst_trace_err,
+            "aopt_argmax_disagreements": n_aopt_argmax_dis}
+
+
 if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--dtype-check", dest="dtype_check", action="store_true",
                     help="float32-vs-float64 width: do the SELECTED ITEMS ever differ?")
+    ap.add_argument("--acq-check", dest="acq_check", action="store_true",
+                    help="BALD's Gaussian degeneracy + A-optimal's Sherman-Morrison identity, both "
+                         "measured against brute force")
     ap.add_argument("--real-basis", action="store_true",
                     help="run the dtype check on the REAL frozen iALS basis (loads/fits it)")
     _a = ap.parse_args()
-    if _a.dtype_check:
+    if _a.acq_check:
+        acq_check()
+        print("[acq-check] PASS")
+    elif _a.dtype_check:
         _bel = None
         if _a.real_basis:
             from arm_n import load_arm_n

@@ -22,23 +22,395 @@
       75
     ],
     "knn_k": 30,
-    "gate": "G1 IGCN beats HELF; G2 IGCN best of four"
+    "gate": "G1 IGCN beats HELF; G2 IGCN best of four",
+    "paired_ci": {
+      "igcn_rescaled-entropy0|k15": {
+        "delta": -0.01626,
+        "lo": -0.02676,
+        "hi": -0.00552,
+        "separated": true
+      },
+      "igcn_rescaled-helf|k15": {
+        "delta": -0.02113,
+        "lo": -0.03171,
+        "hi": -0.01045,
+        "separated": true
+      },
+      "igcn_rescaled-popularity|k15": {
+        "delta": -0.021,
+        "lo": -0.03179,
+        "hi": -0.0102,
+        "separated": true
+      },
+      "igcn_rescaled-random|k15": {
+        "delta": 0.00406,
+        "lo": -0.00427,
+        "hi": 0.01226,
+        "separated": false
+      },
+      "igcn_rescaled-none|k15": {
+        "delta": 0.03068,
+        "lo": 0.02403,
+        "hi": 0.03742,
+        "separated": true
+      },
+      "igcn_literal-entropy0|k15": {
+        "delta": -0.00131,
+        "lo": -0.00984,
+        "hi": 0.00737,
+        "separated": false
+      },
+      "igcn_literal-helf|k15": {
+        "delta": -0.00618,
+        "lo": -0.01609,
+        "hi": 0.00359,
+        "separated": false
+      },
+      "igcn_literal-popularity|k15": {
+        "delta": -0.00605,
+        "lo": -0.01505,
+        "hi": 0.00277,
+        "separated": false
+      },
+      "igcn_literal-random|k15": {
+        "delta": 0.01901,
+        "lo": 0.00776,
+        "hi": 0.03016,
+        "separated": true
+      },
+      "igcn_literal-none|k15": {
+        "delta": 0.04562,
+        "lo": 0.03552,
+        "hi": 0.05594,
+        "separated": true
+      },
+      "igcn_rescaled-entropy0|k30": {
+        "delta": -0.01949,
+        "lo": -0.02993,
+        "hi": -0.00903,
+        "separated": true
+      },
+      "igcn_rescaled-helf|k30": {
+        "delta": -0.01622,
+        "lo": -0.02728,
+        "hi": -0.005,
+        "separated": true
+      },
+      "igcn_rescaled-popularity|k30": {
+        "delta": -0.01825,
+        "lo": -0.02845,
+        "hi": -0.00802,
+        "separated": true
+      },
+      "igcn_rescaled-random|k30": {
+        "delta": -0.01022,
+        "lo": -0.01974,
+        "hi": -0.00048,
+        "separated": true
+      },
+      "igcn_rescaled-none|k30": {
+        "delta": 0.02336,
+        "lo": 0.01555,
+        "hi": 0.03107,
+        "separated": true
+      },
+      "igcn_literal-entropy0|k30": {
+        "delta": -0.00151,
+        "lo": -0.00977,
+        "hi": 0.00666,
+        "separated": false
+      },
+      "igcn_literal-helf|k30": {
+        "delta": 0.00176,
+        "lo": -0.00772,
+        "hi": 0.01124,
+        "separated": false
+      },
+      "igcn_literal-popularity|k30": {
+        "delta": -0.00027,
+        "lo": -0.00864,
+        "hi": 0.008,
+        "separated": false
+      },
+      "igcn_literal-random|k30": {
+        "delta": 0.00776,
+        "lo": -0.00466,
+        "hi": 0.01994,
+        "separated": false
+      },
+      "igcn_literal-none|k30": {
+        "delta": 0.04134,
+        "lo": 0.03058,
+        "hi": 0.05178,
+        "separated": true
+      },
+      "igcn_rescaled-entropy0|k45": {
+        "delta": -0.01842,
+        "lo": -0.02868,
+        "hi": -0.00828,
+        "separated": true
+      },
+      "igcn_rescaled-helf|k45": {
+        "delta": -0.01641,
+        "lo": -0.02838,
+        "hi": -0.0044,
+        "separated": true
+      },
+      "igcn_rescaled-popularity|k45": {
+        "delta": -0.01993,
+        "lo": -0.0303,
+        "hi": -0.01,
+        "separated": true
+      },
+      "igcn_rescaled-random|k45": {
+        "delta": -0.01906,
+        "lo": -0.03052,
+        "hi": -0.00776,
+        "separated": true
+      },
+      "igcn_rescaled-none|k45": {
+        "delta": 0.01656,
+        "lo": 0.00765,
+        "hi": 0.0253,
+        "separated": true
+      },
+      "igcn_literal-entropy0|k45": {
+        "delta": -0.00467,
+        "lo": -0.01334,
+        "hi": 0.00366,
+        "separated": false
+      },
+      "igcn_literal-helf|k45": {
+        "delta": -0.00266,
+        "lo": -0.01234,
+        "hi": 0.00738,
+        "separated": false
+      },
+      "igcn_literal-popularity|k45": {
+        "delta": -0.00619,
+        "lo": -0.0146,
+        "hi": 0.002,
+        "separated": false
+      },
+      "igcn_literal-random|k45": {
+        "delta": -0.00531,
+        "lo": -0.01912,
+        "hi": 0.00782,
+        "separated": false
+      },
+      "igcn_literal-none|k45": {
+        "delta": 0.03031,
+        "lo": 0.01878,
+        "hi": 0.04153,
+        "separated": true
+      },
+      "igcn_rescaled-entropy0|k60": {
+        "delta": -0.01862,
+        "lo": -0.02951,
+        "hi": -0.00778,
+        "separated": true
+      },
+      "igcn_rescaled-helf|k60": {
+        "delta": -0.0092,
+        "lo": -0.02078,
+        "hi": 0.00223,
+        "separated": false
+      },
+      "igcn_rescaled-popularity|k60": {
+        "delta": -0.01677,
+        "lo": -0.02777,
+        "hi": -0.00588,
+        "separated": true
+      },
+      "igcn_rescaled-random|k60": {
+        "delta": -0.02106,
+        "lo": -0.03293,
+        "hi": -0.00944,
+        "separated": true
+      },
+      "igcn_rescaled-none|k60": {
+        "delta": 0.01422,
+        "lo": 0.00479,
+        "hi": 0.02334,
+        "separated": true
+      },
+      "igcn_literal-entropy0|k60": {
+        "delta": -0.00492,
+        "lo": -0.01383,
+        "hi": 0.00389,
+        "separated": false
+      },
+      "igcn_literal-helf|k60": {
+        "delta": 0.0045,
+        "lo": -0.00544,
+        "hi": 0.01421,
+        "separated": false
+      },
+      "igcn_literal-popularity|k60": {
+        "delta": -0.00307,
+        "lo": -0.0121,
+        "hi": 0.00596,
+        "separated": false
+      },
+      "igcn_literal-random|k60": {
+        "delta": -0.00737,
+        "lo": -0.02107,
+        "hi": 0.00608,
+        "separated": false
+      },
+      "igcn_literal-none|k60": {
+        "delta": 0.02792,
+        "lo": 0.01599,
+        "hi": 0.03997,
+        "separated": true
+      },
+      "igcn_rescaled-entropy0|k75": {
+        "delta": -0.01721,
+        "lo": -0.02793,
+        "hi": -0.00654,
+        "separated": true
+      },
+      "igcn_rescaled-helf|k75": {
+        "delta": -0.01134,
+        "lo": -0.02262,
+        "hi": -9e-05,
+        "separated": true
+      },
+      "igcn_rescaled-popularity|k75": {
+        "delta": -0.0175,
+        "lo": -0.02811,
+        "hi": -0.00685,
+        "separated": true
+      },
+      "igcn_rescaled-random|k75": {
+        "delta": -0.02329,
+        "lo": -0.03529,
+        "hi": -0.01153,
+        "separated": true
+      },
+      "igcn_rescaled-none|k75": {
+        "delta": 0.00937,
+        "lo": -0.00083,
+        "hi": 0.01909,
+        "separated": false
+      },
+      "igcn_literal-entropy0|k75": {
+        "delta": -0.01251,
+        "lo": -0.02102,
+        "hi": -0.0037,
+        "separated": true
+      },
+      "igcn_literal-helf|k75": {
+        "delta": -0.00665,
+        "lo": -0.0162,
+        "hi": 0.00291,
+        "separated": false
+      },
+      "igcn_literal-popularity|k75": {
+        "delta": -0.01281,
+        "lo": -0.02154,
+        "hi": -0.00381,
+        "separated": true
+      },
+      "igcn_literal-random|k75": {
+        "delta": -0.0186,
+        "lo": -0.0314,
+        "hi": -0.00553,
+        "separated": true
+      },
+      "igcn_literal-none|k75": {
+        "delta": 0.01407,
+        "lo": 0.002,
+        "hi": 0.02641,
+        "separated": true
+      }
+    },
+    "verdict": {
+      "G1_beats_helf": true,
+      "G2_best_of_four": true,
+      "verdict": "PASS",
+      "mean_mae": {
+        "_diag_full_profile": {
+          "15": NaN,
+          "30": NaN,
+          "45": NaN,
+          "60": NaN,
+          "75": NaN
+        },
+        "entropy0": {
+          "15": 0.8805766666666667,
+          "30": 0.8700199999999999,
+          "45": 0.86225,
+          "60": 0.8605666666666667,
+          "75": 0.8527800000000001
+        },
+        "helf": {
+          "15": 0.8829966666666667,
+          "30": 0.8719533333333334,
+          "45": 0.8662833333333334,
+          "60": 0.8558866666666667,
+          "75": 0.8525200000000001
+        },
+        "igcn_literal": {
+          "15": 0.8818866666666666,
+          "30": 0.8678366666666667,
+          "45": 0.85358,
+          "60": 0.8476466666666668,
+          "75": 0.8359033333333333
+        },
+        "igcn_rescaled": {
+          "15": 0.8770233333333334,
+          "30": 0.8646966666666667,
+          "45": 0.85374,
+          "60": 0.84784,
+          "75": 0.8395633333333333
+        },
+        "none": {
+          "15": 0.8350333333333334,
+          "30": 0.8350333333333334,
+          "45": 0.8350333333333334,
+          "60": 0.8350333333333334,
+          "75": 0.8350333333333334
+        },
+        "popularity": {
+          "15": 0.8814733333333334,
+          "30": 0.87161,
+          "45": 0.8634666666666666,
+          "60": 0.85801,
+          "75": 0.8536033333333334
+        },
+        "random": {
+          "15": 0.8666,
+          "30": 0.8668266666666667,
+          "45": 0.86326,
+          "60": 0.8597733333333334,
+          "75": 0.8543633333333333
+        }
+      }
+    }
   },
   "cells": [
     {
       "seed": 98765,
+      "arm": "_diag_full_profile",
+      "budget": -1,
+      "mae": 0.77782,
+      "seen": 74.635
+    },
+    {
+      "seed": 98765,
       "arm": "entropy0",
       "budget": 15,
-      "mae": 0.93923,
+      "mae": 0.91312,
       "seen": 4.9,
       "distinct_ask_prefixes": 1,
-      "minutes": 0.01
+      "minutes": 0.0
     },
     {
       "seed": 98765,
       "arm": "helf",
       "budget": 15,
-      "mae": 0.98145,
+      "mae": 0.92577,
       "seen": 3.885,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -47,16 +419,16 @@
       "seed": 98765,
       "arm": "popularity",
       "budget": 15,
-      "mae": 0.94453,
+      "mae": 0.91566,
       "seen": 4.915,
       "distinct_ask_prefixes": 1,
-      "minutes": 0.01
+      "minutes": 0.0
     },
     {
       "seed": 98765,
       "arm": "random",
       "budget": 15,
-      "mae": 0.86182,
+      "mae": 0.88853,
       "seen": 0.645,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -65,7 +437,7 @@
       "seed": 98765,
       "arm": "none",
       "budget": 15,
-      "mae": 0.84015,
+      "mae": 0.86684,
       "seen": 0.0,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -74,7 +446,7 @@
       "seed": 98765,
       "arm": "igcn_rescaled",
       "budget": 15,
-      "mae": 0.9525,
+      "mae": 0.91601,
       "seen": 2.96,
       "distinct_ask_prefixes": 59,
       "minutes": 0.01,
@@ -93,10 +465,10 @@
       "seed": 98765,
       "arm": "igcn_literal",
       "budget": 15,
-      "mae": 0.97293,
+      "mae": 0.92987,
       "seen": 4.185,
       "distinct_ask_prefixes": 74,
-      "minutes": 0.04,
+      "minutes": 0.03,
       "igcn_personalised_asks": 389,
       "igcn_global_asks": 2611,
       "igcn_total_asks": 3000,
@@ -112,7 +484,7 @@
       "seed": 98765,
       "arm": "entropy0",
       "budget": 30,
-      "mae": 0.93439,
+      "mae": 0.90975,
       "seen": 8.76,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -121,7 +493,7 @@
       "seed": 98765,
       "arm": "helf",
       "budget": 30,
-      "mae": 0.94664,
+      "mae": 0.91603,
       "seen": 7.61,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -130,16 +502,16 @@
       "seed": 98765,
       "arm": "popularity",
       "budget": 30,
-      "mae": 0.93127,
+      "mae": 0.91057,
       "seen": 8.745,
       "distinct_ask_prefixes": 1,
-      "minutes": 0.01
+      "minutes": 0.0
     },
     {
       "seed": 98765,
       "arm": "random",
       "budget": 30,
-      "mae": 0.93094,
+      "mae": 0.89167,
       "seen": 1.575,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -148,7 +520,7 @@
       "seed": 98765,
       "arm": "none",
       "budget": 30,
-      "mae": 0.84015,
+      "mae": 0.86684,
       "seen": 0.0,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -157,10 +529,10 @@
       "seed": 98765,
       "arm": "igcn_rescaled",
       "budget": 30,
-      "mae": 0.92003,
+      "mae": 0.91235,
       "seen": 5.605,
       "distinct_ask_prefixes": 90,
-      "minutes": 0.03,
+      "minutes": 0.02,
       "igcn_personalised_asks": 1546,
       "igcn_global_asks": 4454,
       "igcn_total_asks": 6000,
@@ -176,10 +548,10 @@
       "seed": 98765,
       "arm": "igcn_literal",
       "budget": 30,
-      "mae": 0.92511,
+      "mae": 0.89786,
       "seen": 7.995,
       "distinct_ask_prefixes": 135,
-      "minutes": 0.13,
+      "minutes": 0.1,
       "igcn_personalised_asks": 2040,
       "igcn_global_asks": 3960,
       "igcn_total_asks": 6000,
@@ -195,7 +567,7 @@
       "seed": 98765,
       "arm": "entropy0",
       "budget": 45,
-      "mae": 0.92953,
+      "mae": 0.90636,
       "seen": 12.08,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -204,7 +576,7 @@
       "seed": 98765,
       "arm": "helf",
       "budget": 45,
-      "mae": 0.95099,
+      "mae": 0.90702,
       "seen": 10.05,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -213,16 +585,16 @@
       "seed": 98765,
       "arm": "popularity",
       "budget": 45,
-      "mae": 0.92798,
+      "mae": 0.9021,
       "seen": 12.14,
       "distinct_ask_prefixes": 1,
-      "minutes": 0.01
+      "minutes": 0.0
     },
     {
       "seed": 98765,
       "arm": "random",
       "budget": 45,
-      "mae": 0.95371,
+      "mae": 0.88405,
       "seen": 2.125,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -231,7 +603,7 @@
       "seed": 98765,
       "arm": "none",
       "budget": 45,
-      "mae": 0.84015,
+      "mae": 0.86684,
       "seen": 0.0,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -240,7 +612,7 @@
       "seed": 98765,
       "arm": "igcn_rescaled",
       "budget": 45,
-      "mae": 0.91297,
+      "mae": 0.89902,
       "seen": 8.165,
       "distinct_ask_prefixes": 98,
       "minutes": 0.03,
@@ -259,10 +631,10 @@
       "seed": 98765,
       "arm": "igcn_literal",
       "budget": 45,
-      "mae": 0.90991,
+      "mae": 0.8885,
       "seen": 11.64,
       "distinct_ask_prefixes": 154,
-      "minutes": 0.15,
+      "minutes": 0.14,
       "igcn_personalised_asks": 4257,
       "igcn_global_asks": 4743,
       "igcn_total_asks": 9000,
@@ -278,7 +650,7 @@
       "seed": 98765,
       "arm": "entropy0",
       "budget": 60,
-      "mae": 0.92028,
+      "mae": 0.90151,
       "seen": 14.88,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -287,7 +659,7 @@
       "seed": 98765,
       "arm": "helf",
       "budget": 60,
-      "mae": 0.93824,
+      "mae": 0.89372,
       "seen": 12.55,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -296,7 +668,7 @@
       "seed": 98765,
       "arm": "popularity",
       "budget": 60,
-      "mae": 0.91975,
+      "mae": 0.89501,
       "seen": 15.03,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -305,7 +677,7 @@
       "seed": 98765,
       "arm": "random",
       "budget": 60,
-      "mae": 0.95384,
+      "mae": 0.87576,
       "seen": 2.67,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -314,7 +686,7 @@
       "seed": 98765,
       "arm": "none",
       "budget": 60,
-      "mae": 0.84015,
+      "mae": 0.86684,
       "seen": 0.0,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -323,7 +695,7 @@
       "seed": 98765,
       "arm": "igcn_rescaled",
       "budget": 60,
-      "mae": 0.89918,
+      "mae": 0.88756,
       "seen": 10.43,
       "distinct_ask_prefixes": 104,
       "minutes": 0.03,
@@ -342,10 +714,10 @@
       "seed": 98765,
       "arm": "igcn_literal",
       "budget": 60,
-      "mae": 0.89651,
+      "mae": 0.87541,
       "seen": 15.135,
       "distinct_ask_prefixes": 169,
-      "minutes": 0.17,
+      "minutes": 0.16,
       "igcn_personalised_asks": 6684,
       "igcn_global_asks": 5316,
       "igcn_total_asks": 12000,
@@ -361,7 +733,7 @@
       "seed": 98765,
       "arm": "entropy0",
       "budget": 75,
-      "mae": 0.90654,
+      "mae": 0.88721,
       "seen": 17.655,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -370,7 +742,7 @@
       "seed": 98765,
       "arm": "helf",
       "budget": 75,
-      "mae": 0.91964,
+      "mae": 0.89089,
       "seen": 15.255,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -379,7 +751,7 @@
       "seed": 98765,
       "arm": "popularity",
       "budget": 75,
-      "mae": 0.90537,
+      "mae": 0.88663,
       "seen": 17.69,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -388,7 +760,7 @@
       "seed": 98765,
       "arm": "random",
       "budget": 75,
-      "mae": 0.94429,
+      "mae": 0.86424,
       "seen": 3.505,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -397,7 +769,7 @@
       "seed": 98765,
       "arm": "none",
       "budget": 75,
-      "mae": 0.84015,
+      "mae": 0.86684,
       "seen": 0.0,
       "distinct_ask_prefixes": 1,
       "minutes": 0.0
@@ -406,7 +778,7 @@
       "seed": 98765,
       "arm": "igcn_rescaled",
       "budget": 75,
-      "mae": 0.88816,
+      "mae": 0.8762,
       "seen": 12.83,
       "distinct_ask_prefixes": 109,
       "minutes": 0.03,
@@ -420,6 +792,869 @@
       "igcn_switch_i": 5,
       "igcn_recompute_every": 1,
       "igcn_nbr_states_cached": 1994
+    },
+    {
+      "seed": 98765,
+      "arm": "igcn_literal",
+      "budget": 75,
+      "mae": 0.8656,
+      "seen": 18.485,
+      "distinct_ask_prefixes": 181,
+      "minutes": 0.18,
+      "igcn_personalised_asks": 9303,
+      "igcn_global_asks": 5697,
+      "igcn_total_asks": 15000,
+      "igcn_personalised_rate": 0.6202,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 2872
+    },
+    {
+      "seed": 1,
+      "arm": "_diag_full_profile",
+      "budget": -1,
+      "mae": 0.76937,
+      "seen": 68.7
+    },
+    {
+      "seed": 1,
+      "arm": "entropy0",
+      "budget": 15,
+      "mae": 0.84929,
+      "seen": 4.785,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "helf",
+      "budget": 15,
+      "mae": 0.8581,
+      "seen": 3.65,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "popularity",
+      "budget": 15,
+      "mae": 0.84772,
+      "seen": 4.945,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "random",
+      "budget": 15,
+      "mae": 0.84421,
+      "seen": 0.58,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "none",
+      "budget": 15,
+      "mae": 0.80942,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_rescaled",
+      "budget": 15,
+      "mae": 0.842,
+      "seen": 2.785,
+      "distinct_ask_prefixes": 57,
+      "minutes": 0.01,
+      "igcn_personalised_asks": 331,
+      "igcn_global_asks": 2669,
+      "igcn_total_asks": 3000,
+      "igcn_personalised_rate": 0.1103,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 177
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_literal",
+      "budget": 15,
+      "mae": 0.84589,
+      "seen": 4.03,
+      "distinct_ask_prefixes": 66,
+      "minutes": 0.02,
+      "igcn_personalised_asks": 318,
+      "igcn_global_asks": 2682,
+      "igcn_total_asks": 3000,
+      "igcn_personalised_rate": 0.106,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 173
+    },
+    {
+      "seed": 1,
+      "arm": "entropy0",
+      "budget": 30,
+      "mae": 0.83658,
+      "seen": 8.285,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "helf",
+      "budget": 30,
+      "mae": 0.83976,
+      "seen": 6.73,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "popularity",
+      "budget": 30,
+      "mae": 0.83759,
+      "seen": 8.35,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "random",
+      "budget": 30,
+      "mae": 0.8422,
+      "seen": 1.415,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "none",
+      "budget": 30,
+      "mae": 0.80942,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_rescaled",
+      "budget": 30,
+      "mae": 0.83706,
+      "seen": 5.145,
+      "distinct_ask_prefixes": 88,
+      "minutes": 0.02,
+      "igcn_personalised_asks": 1408,
+      "igcn_global_asks": 4592,
+      "igcn_total_asks": 6000,
+      "igcn_personalised_rate": 0.2347,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 572
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_literal",
+      "budget": 30,
+      "mae": 0.83927,
+      "seen": 7.35,
+      "distinct_ask_prefixes": 129,
+      "minutes": 0.09,
+      "igcn_personalised_asks": 1897,
+      "igcn_global_asks": 4103,
+      "igcn_total_asks": 6000,
+      "igcn_personalised_rate": 0.3162,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 721
+    },
+    {
+      "seed": 1,
+      "arm": "entropy0",
+      "budget": 45,
+      "mae": 0.83154,
+      "seen": 11.49,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "helf",
+      "budget": 45,
+      "mae": 0.83443,
+      "seen": 9.17,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "popularity",
+      "budget": 45,
+      "mae": 0.83313,
+      "seen": 11.45,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "random",
+      "budget": 45,
+      "mae": 0.84161,
+      "seen": 1.935,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "none",
+      "budget": 45,
+      "mae": 0.80942,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_rescaled",
+      "budget": 45,
+      "mae": 0.81969,
+      "seen": 7.39,
+      "distinct_ask_prefixes": 97,
+      "minutes": 0.02,
+      "igcn_personalised_asks": 2799,
+      "igcn_global_asks": 6201,
+      "igcn_total_asks": 9000,
+      "igcn_personalised_rate": 0.311,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 994
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_literal",
+      "budget": 45,
+      "mae": 0.82346,
+      "seen": 10.88,
+      "distinct_ask_prefixes": 156,
+      "minutes": 0.13,
+      "igcn_personalised_asks": 4009,
+      "igcn_global_asks": 4991,
+      "igcn_total_asks": 9000,
+      "igcn_personalised_rate": 0.4454,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 1373
+    },
+    {
+      "seed": 1,
+      "arm": "entropy0",
+      "budget": 60,
+      "mae": 0.83286,
+      "seen": 14.175,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "helf",
+      "budget": 60,
+      "mae": 0.82364,
+      "seen": 11.98,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "popularity",
+      "budget": 60,
+      "mae": 0.83264,
+      "seen": 14.33,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "random",
+      "budget": 60,
+      "mae": 0.84156,
+      "seen": 2.575,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "none",
+      "budget": 60,
+      "mae": 0.80942,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_rescaled",
+      "budget": 60,
+      "mae": 0.82322,
+      "seen": 9.76,
+      "distinct_ask_prefixes": 101,
+      "minutes": 0.03,
+      "igcn_personalised_asks": 4267,
+      "igcn_global_asks": 7733,
+      "igcn_total_asks": 12000,
+      "igcn_personalised_rate": 0.3556,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 1437
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_literal",
+      "budget": 60,
+      "mae": 0.82221,
+      "seen": 14.18,
+      "distinct_ask_prefixes": 170,
+      "minutes": 0.15,
+      "igcn_personalised_asks": 6445,
+      "igcn_global_asks": 5555,
+      "igcn_total_asks": 12000,
+      "igcn_personalised_rate": 0.5371,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 2019
+    },
+    {
+      "seed": 1,
+      "arm": "entropy0",
+      "budget": 75,
+      "mae": 0.82525,
+      "seen": 16.86,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "helf",
+      "budget": 75,
+      "mae": 0.82711,
+      "seen": 13.99,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "popularity",
+      "budget": 75,
+      "mae": 0.82965,
+      "seen": 16.93,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "random",
+      "budget": 75,
+      "mae": 0.84,
+      "seen": 2.9,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "none",
+      "budget": 75,
+      "mae": 0.80942,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_rescaled",
+      "budget": 75,
+      "mae": 0.81282,
+      "seen": 12.045,
+      "distinct_ask_prefixes": 107,
+      "minutes": 0.03,
+      "igcn_personalised_asks": 5825,
+      "igcn_global_asks": 9175,
+      "igcn_total_asks": 15000,
+      "igcn_personalised_rate": 0.3883,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 1840
+    },
+    {
+      "seed": 1,
+      "arm": "igcn_literal",
+      "budget": 75,
+      "mae": 0.81396,
+      "seen": 17.32,
+      "distinct_ask_prefixes": 181,
+      "minutes": 0.18,
+      "igcn_personalised_asks": 9091,
+      "igcn_global_asks": 5909,
+      "igcn_total_asks": 15000,
+      "igcn_personalised_rate": 0.6061,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 2645
+    },
+    {
+      "seed": 2,
+      "arm": "_diag_full_profile",
+      "budget": -1,
+      "mae": 0.77217,
+      "seen": 75.275
+    },
+    {
+      "seed": 2,
+      "arm": "entropy0",
+      "budget": 15,
+      "mae": 0.87932,
+      "seen": 5.045,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "helf",
+      "budget": 15,
+      "mae": 0.86512,
+      "seen": 4.02,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "popularity",
+      "budget": 15,
+      "mae": 0.88104,
+      "seen": 5.06,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "random",
+      "budget": 15,
+      "mae": 0.86706,
+      "seen": 1.05,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "none",
+      "budget": 15,
+      "mae": 0.82884,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_rescaled",
+      "budget": 15,
+      "mae": 0.87306,
+      "seen": 3.28,
+      "distinct_ask_prefixes": 68,
+      "minutes": 0.01,
+      "igcn_personalised_asks": 410,
+      "igcn_global_asks": 2590,
+      "igcn_total_asks": 3000,
+      "igcn_personalised_rate": 0.1367,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 216
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_literal",
+      "budget": 15,
+      "mae": 0.8699,
+      "seen": 4.265,
+      "distinct_ask_prefixes": 78,
+      "minutes": 0.03,
+      "igcn_personalised_asks": 424,
+      "igcn_global_asks": 2576,
+      "igcn_total_asks": 3000,
+      "igcn_personalised_rate": 0.1413,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 219
+    },
+    {
+      "seed": 2,
+      "arm": "entropy0",
+      "budget": 30,
+      "mae": 0.86373,
+      "seen": 8.935,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "helf",
+      "budget": 30,
+      "mae": 0.86007,
+      "seen": 7.395,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "popularity",
+      "budget": 30,
+      "mae": 0.86667,
+      "seen": 9.025,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "random",
+      "budget": 30,
+      "mae": 0.86661,
+      "seen": 1.335,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "none",
+      "budget": 30,
+      "mae": 0.82884,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_rescaled",
+      "budget": 30,
+      "mae": 0.84468,
+      "seen": 6.08,
+      "distinct_ask_prefixes": 101,
+      "minutes": 0.03,
+      "igcn_personalised_asks": 1709,
+      "igcn_global_asks": 4291,
+      "igcn_total_asks": 6000,
+      "igcn_personalised_rate": 0.2848,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 710
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_literal",
+      "budget": 30,
+      "mae": 0.86638,
+      "seen": 8.16,
+      "distinct_ask_prefixes": 135,
+      "minutes": 0.11,
+      "igcn_personalised_asks": 2136,
+      "igcn_global_asks": 3864,
+      "igcn_total_asks": 6000,
+      "igcn_personalised_rate": 0.356,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 864
+    },
+    {
+      "seed": 2,
+      "arm": "entropy0",
+      "budget": 45,
+      "mae": 0.84885,
+      "seen": 12.25,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "helf",
+      "budget": 45,
+      "mae": 0.8574,
+      "seen": 10.175,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "popularity",
+      "budget": 45,
+      "mae": 0.85517,
+      "seen": 12.28,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "random",
+      "budget": 45,
+      "mae": 0.86412,
+      "seen": 2.3,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "none",
+      "budget": 45,
+      "mae": 0.82884,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_rescaled",
+      "budget": 45,
+      "mae": 0.84251,
+      "seen": 8.8,
+      "distinct_ask_prefixes": 110,
+      "minutes": 0.03,
+      "igcn_personalised_asks": 3265,
+      "igcn_global_asks": 5735,
+      "igcn_total_asks": 9000,
+      "igcn_personalised_rate": 0.3628,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 1241
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_literal",
+      "budget": 45,
+      "mae": 0.84878,
+      "seen": 11.745,
+      "distinct_ask_prefixes": 159,
+      "minutes": 0.15,
+      "igcn_personalised_asks": 4366,
+      "igcn_global_asks": 4634,
+      "igcn_total_asks": 9000,
+      "igcn_personalised_rate": 0.4851,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 1546
+    },
+    {
+      "seed": 2,
+      "arm": "entropy0",
+      "budget": 60,
+      "mae": 0.84733,
+      "seen": 15.24,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "helf",
+      "budget": 60,
+      "mae": 0.8503,
+      "seen": 12.935,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "popularity",
+      "budget": 60,
+      "mae": 0.84638,
+      "seen": 15.46,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "random",
+      "budget": 60,
+      "mae": 0.862,
+      "seen": 3.22,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "none",
+      "budget": 60,
+      "mae": 0.82884,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_rescaled",
+      "budget": 60,
+      "mae": 0.83274,
+      "seen": 11.445,
+      "distinct_ask_prefixes": 113,
+      "minutes": 0.03,
+      "igcn_personalised_asks": 4926,
+      "igcn_global_asks": 7074,
+      "igcn_total_asks": 12000,
+      "igcn_personalised_rate": 0.4105,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 1720
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_literal",
+      "budget": 60,
+      "mae": 0.84532,
+      "seen": 15.415,
+      "distinct_ask_prefixes": 180,
+      "minutes": 0.17,
+      "igcn_personalised_asks": 6911,
+      "igcn_global_asks": 5089,
+      "igcn_total_asks": 12000,
+      "igcn_personalised_rate": 0.5759,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 2252
+    },
+    {
+      "seed": 2,
+      "arm": "entropy0",
+      "budget": 75,
+      "mae": 0.84588,
+      "seen": 18.205,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "helf",
+      "budget": 75,
+      "mae": 0.83956,
+      "seen": 15.045,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "popularity",
+      "budget": 75,
+      "mae": 0.84453,
+      "seen": 18.26,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "random",
+      "budget": 75,
+      "mae": 0.85885,
+      "seen": 3.98,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "none",
+      "budget": 75,
+      "mae": 0.82884,
+      "seen": 0.0,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_rescaled",
+      "budget": 75,
+      "mae": 0.82967,
+      "seen": 13.9,
+      "distinct_ask_prefixes": 118,
+      "minutes": 0.03,
+      "igcn_personalised_asks": 6641,
+      "igcn_global_asks": 8359,
+      "igcn_total_asks": 15000,
+      "igcn_personalised_rate": 0.4427,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 2199
+    },
+    {
+      "seed": 2,
+      "arm": "igcn_literal",
+      "budget": 75,
+      "mae": 0.82815,
+      "seen": 18.8,
+      "distinct_ask_prefixes": 191,
+      "minutes": 0.18,
+      "igcn_personalised_asks": 9675,
+      "igcn_global_asks": 5325,
+      "igcn_total_asks": 15000,
+      "igcn_personalised_rate": 0.645,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 2933
     }
   ]
 }

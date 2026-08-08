@@ -1,0 +1,24 @@
+[11:02:39] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[11:02:39] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[11:02:39] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[11:02:39] [pop] fitted item popularity over 140768 train users, 18359 items
+[11:02:54] [G1] MostPop this path 0.1626 vs arm-N 0.1626 -> PASS
+[11:07:12] [rung] r0_binary_likes_reg01        reg=0.1   alpha=50.0  full=0.3044 tail=0.2293 (4.3m)
+[11:10:55] [rung] r1_binary_likes_reg001       reg=0.01  alpha=10.0  full=0.3301 tail=0.2631 (3.7m)
+[11:17:08] [rung] r2_binary_allrated_reg001    reg=0.01  alpha=5.0   full=0.3213 tail=0.2529 (6.2m)
+[11:23:15] [rung] r3_graded_allrated_reg001    reg=0.01  alpha=2.5   full=0.3495 tail=0.2566 (6.1m)
+[11:23:15] ---- paired, per-user, 10000 bootstrap resamples ----
+[11:23:17]   regularisation            r1-r0    full +0.0257 CI [+0.0224,+0.0291] SEP (n=10000)
+[11:23:19]   regularisation            r1-r0    tail +0.0337 CI [+0.0308,+0.0367] SEP (n=9281)
+[11:23:21]   support (values erased)   r2-r1    full -0.0088 CI [-0.0125,-0.0052] SEP (n=10000)
+[11:23:23]   support (values erased)   r2-r1    tail -0.0101 CI [-0.0139,-0.0062] SEP (n=9281)
+[11:23:26]   GRADES at fixed support   r3-r2    full +0.0282 CI [+0.0261,+0.0302] SEP (n=10000)
+[11:23:28]   GRADES at fixed support   r3-r2    tail +0.0037 CI [+0.0018,+0.0056] SEP (n=9281)
+[11:23:30]   grades vs best binary     r3-r1    full +0.0194 CI [+0.0157,+0.0231] SEP (n=10000)
+[11:23:32]   grades vs best binary     r3-r1    tail -0.0064 CI [-0.0102,-0.0026] SEP (n=9281)
+[11:23:34]   headline                  r3-r0    full +0.0451 CI [+0.0410,+0.0490] SEP (n=10000)
+[11:23:37]   headline                  r3-r0    tail +0.0273 CI [+0.0233,+0.0315] SEP (n=9281)
+[11:23:37] ==============================================================================
+[11:23:37] [verdict] grades at fixed support: full +0.0282 SEPARATED | tail +0.0037 SEPARATED
+[11:23:37] ==============================================================================
+[11:23:37] done -> C:\dev\phd\casper\experiments\baselines\arm_n\ials_ladder_paired.json

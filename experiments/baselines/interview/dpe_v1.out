@@ -85,3 +85,119 @@
 [10:57:35] [adaptive] dpe_hellinger    turn 7/8: 6.0s  answered so far 2.04  concept-asks 0  distinct ask-prefixes 9997
 [10:57:43] [adaptive] dpe_hellinger    turn 8/8: 5.4s  answered so far 2.33  concept-asks 0  distinct ask-prefixes 10000
 [10:57:43] [adaptive] INTERVIEW dpe_hellinger    k= 8 done in 0.62m; answered=2.33/8; distinct ask-prefixes=10000; cache=None
+[10:58:30] [adaptive] ours           dpe_hellinger    k= 8 answered= 2.3/8 floored=    0 full=0.2002 tail=0.0765 (interview 0.62m + score 0.78m)
+[10:58:31] [dpe_hellinger] topics=19 score_div=hellinger burn=none update=paper seed=98765
+[10:58:32] [adaptive] dpe_hellinger    turn 1/16: 1.5s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 14
+[10:58:38] [adaptive] dpe_hellinger    turn 2/16: 6.1s  answered so far 0.54  concept-asks 0  distinct ask-prefixes 187
+[10:58:45] [adaptive] dpe_hellinger    turn 3/16: 6.0s  answered so far 0.85  concept-asks 0  distinct ask-prefixes 2205
+[10:58:51] [adaptive] dpe_hellinger    turn 4/16: 5.5s  answered so far 1.15  concept-asks 0  distinct ask-prefixes 7567
+[10:58:57] [adaptive] dpe_hellinger    turn 5/16: 5.7s  answered so far 1.45  concept-asks 0  distinct ask-prefixes 9674
+[10:59:03] [adaptive] dpe_hellinger    turn 6/16: 5.7s  answered so far 1.74  concept-asks 0  distinct ask-prefixes 9968
+[10:59:09] [adaptive] dpe_hellinger    turn 7/16: 5.5s  answered so far 2.04  concept-asks 0  distinct ask-prefixes 9997
+[10:59:14] [adaptive] dpe_hellinger    turn 8/16: 4.2s  answered so far 2.33  concept-asks 0  distinct ask-prefixes 10000
+[10:59:19] [adaptive] dpe_hellinger    turn 9/16: 3.9s  answered so far 2.61  concept-asks 0  distinct ask-prefixes 10000
+[10:59:22] [adaptive] dpe_hellinger    turn 10/16: 3.1s  answered so far 2.88  concept-asks 0  distinct ask-prefixes 10000
+[10:59:26] [adaptive] dpe_hellinger    turn 11/16: 3.0s  answered so far 3.15  concept-asks 0  distinct ask-prefixes 10000
+[10:59:29] [adaptive] dpe_hellinger    turn 12/16: 3.3s  answered so far 3.42  concept-asks 0  distinct ask-prefixes 10000
+[10:59:33] [adaptive] dpe_hellinger    turn 13/16: 3.1s  answered so far 3.69  concept-asks 0  distinct ask-prefixes 10000
+[10:59:37] [adaptive] dpe_hellinger    turn 14/16: 3.2s  answered so far 3.95  concept-asks 0  distinct ask-prefixes 10000
+[10:59:41] [adaptive] dpe_hellinger    turn 15/16: 3.2s  answered so far 4.21  concept-asks 0  distinct ask-prefixes 10000
+[10:59:44] [adaptive] dpe_hellinger    turn 16/16: 3.1s  answered so far 4.46  concept-asks 0  distinct ask-prefixes 10000
+[10:59:45] [adaptive] INTERVIEW dpe_hellinger    k=16 done in 1.24m; answered=4.46/16; distinct ask-prefixes=10000; cache=None
+[11:00:06] [adaptive] ours           dpe_hellinger    k=16 answered= 4.5/16 floored=    0 full=0.2192 tail=0.0925 (interview 1.24m + score 0.35m)
+[11:00:06] [dpe_oracle] topics=19 score_div=oracle burn=none update=paper seed=98765  *** ORACLE ARM: reads the user's own ratings at selection time; upper bound only ***
+[11:00:13] [adaptive] dpe_oracle       turn 1/1: 6.1s  answered so far 0.84  concept-asks 0  distinct ask-prefixes 1242
+[11:00:13] [adaptive] INTERVIEW dpe_oracle       k= 1 done in 0.11m; answered=0.84/1; distinct ask-prefixes=1242; cache=None
+[11:00:31] [adaptive] ours           dpe_oracle       k= 1 answered= 0.8/1 floored=    0 full=0.1893 tail=0.0680 (interview 0.11m + score 0.30m)
+[11:00:31] [dpe_oracle] topics=19 score_div=oracle burn=none update=paper seed=98765  *** ORACLE ARM: reads the user's own ratings at selection time; upper bound only ***
+[11:00:37] [adaptive] dpe_oracle       turn 1/2: 5.9s  answered so far 0.84  concept-asks 0  distinct ask-prefixes 1242
+[11:00:46] [adaptive] dpe_oracle       turn 2/2: 8.4s  answered so far 1.70  concept-asks 0  distinct ask-prefixes 7616
+[11:00:46] [adaptive] INTERVIEW dpe_oracle       k= 2 done in 0.25m; answered=1.70/2; distinct ask-prefixes=7616; cache=None
+[11:01:03] [adaptive] ours           dpe_oracle       k= 2 answered= 1.7/2 floored=    0 full=0.2194 tail=0.0965 (interview 0.25m + score 0.29m)
+[11:01:04] [dpe_oracle] topics=19 score_div=oracle burn=none update=paper seed=98765  *** ORACLE ARM: reads the user's own ratings at selection time; upper bound only ***
+[11:01:10] [adaptive] dpe_oracle       turn 1/4: 6.1s  answered so far 0.84  concept-asks 0  distinct ask-prefixes 1242
+[11:01:16] [adaptive] dpe_oracle       turn 2/4: 6.2s  answered so far 1.70  concept-asks 0  distinct ask-prefixes 7616
+[11:01:23] [adaptive] dpe_oracle       turn 3/4: 6.7s  answered so far 2.54  concept-asks 0  distinct ask-prefixes 9907
+[11:01:30] [adaptive] dpe_oracle       turn 4/4: 7.0s  answered so far 3.37  concept-asks 0  distinct ask-prefixes 9996
+[11:01:31] [adaptive] INTERVIEW dpe_oracle       k= 4 done in 0.45m; answered=3.37/4; distinct ask-prefixes=9996; cache=None
+[11:01:49] [adaptive] ours           dpe_oracle       k= 4 answered= 3.4/4 floored=    0 full=0.2544 tail=0.1281 (interview 0.45m + score 0.31m)
+[11:01:50] [dpe_oracle] topics=19 score_div=oracle burn=none update=paper seed=98765  *** ORACLE ARM: reads the user's own ratings at selection time; upper bound only ***
+[11:01:55] [adaptive] dpe_oracle       turn 1/8: 5.6s  answered so far 0.84  concept-asks 0  distinct ask-prefixes 1242
+[11:02:02] [adaptive] dpe_oracle       turn 2/8: 6.8s  answered so far 1.70  concept-asks 0  distinct ask-prefixes 7616
+[11:02:10] [adaptive] dpe_oracle       turn 3/8: 7.2s  answered so far 2.54  concept-asks 0  distinct ask-prefixes 9907
+[11:02:17] [adaptive] dpe_oracle       turn 4/8: 7.3s  answered so far 3.37  concept-asks 0  distinct ask-prefixes 9996
+[11:02:25] [adaptive] dpe_oracle       turn 5/8: 7.0s  answered so far 4.19  concept-asks 0  distinct ask-prefixes 10000
+[11:02:33] [adaptive] dpe_oracle       turn 6/8: 7.8s  answered so far 5.00  concept-asks 0  distinct ask-prefixes 10000
+[11:02:41] [adaptive] dpe_oracle       turn 7/8: 8.1s  answered so far 5.80  concept-asks 0  distinct ask-prefixes 10000
+[11:02:49] [adaptive] dpe_oracle       turn 8/8: 7.7s  answered so far 6.58  concept-asks 0  distinct ask-prefixes 10000
+[11:02:50] [adaptive] INTERVIEW dpe_oracle       k= 8 done in 1.01m; answered=6.58/8; distinct ask-prefixes=10000; cache=None
+[11:03:11] [adaptive] ours           dpe_oracle       k= 8 answered= 6.6/8 floored=    0 full=0.2930 tail=0.1597 (interview 1.01m + score 0.35m)
+[11:03:11] [dpe_oracle] topics=19 score_div=oracle burn=none update=paper seed=98765  *** ORACLE ARM: reads the user's own ratings at selection time; upper bound only ***
+[11:03:17] [adaptive] dpe_oracle       turn 1/16: 6.2s  answered so far 0.84  concept-asks 0  distinct ask-prefixes 1242
+[11:03:25] [adaptive] dpe_oracle       turn 2/16: 7.5s  answered so far 1.70  concept-asks 0  distinct ask-prefixes 7616
+[11:03:33] [adaptive] dpe_oracle       turn 3/16: 7.5s  answered so far 2.54  concept-asks 0  distinct ask-prefixes 9907
+[11:03:41] [adaptive] dpe_oracle       turn 4/16: 7.7s  answered so far 3.37  concept-asks 0  distinct ask-prefixes 9996
+[11:03:49] [adaptive] dpe_oracle       turn 5/16: 7.5s  answered so far 4.19  concept-asks 0  distinct ask-prefixes 10000
+[11:03:56] [adaptive] dpe_oracle       turn 6/16: 7.5s  answered so far 5.00  concept-asks 0  distinct ask-prefixes 10000
+[11:04:04] [adaptive] dpe_oracle       turn 7/16: 7.3s  answered so far 5.80  concept-asks 0  distinct ask-prefixes 10000
+[11:04:12] [adaptive] dpe_oracle       turn 8/16: 7.5s  answered so far 6.58  concept-asks 0  distinct ask-prefixes 10000
+[11:04:20] [adaptive] dpe_oracle       turn 9/16: 7.0s  answered so far 7.36  concept-asks 0  distinct ask-prefixes 10000
+[11:04:27] [adaptive] dpe_oracle       turn 10/16: 6.5s  answered so far 8.11  concept-asks 0  distinct ask-prefixes 10000
+[11:04:34] [adaptive] dpe_oracle       turn 11/16: 6.5s  answered so far 8.86  concept-asks 0  distinct ask-prefixes 10000
+[11:04:41] [adaptive] dpe_oracle       turn 12/16: 6.5s  answered so far 9.59  concept-asks 0  distinct ask-prefixes 10000
+[11:04:48] [adaptive] dpe_oracle       turn 13/16: 6.4s  answered so far 10.31  concept-asks 0  distinct ask-prefixes 10000
+[11:04:55] [adaptive] dpe_oracle       turn 14/16: 6.4s  answered so far 11.02  concept-asks 0  distinct ask-prefixes 10000
+[11:05:02] [adaptive] dpe_oracle       turn 15/16: 6.5s  answered so far 11.71  concept-asks 0  distinct ask-prefixes 10000
+[11:05:09] [adaptive] dpe_oracle       turn 16/16: 6.7s  answered so far 12.39  concept-asks 0  distinct ask-prefixes 10000
+[11:05:10] [adaptive] INTERVIEW dpe_oracle       k=16 done in 1.99m; answered=12.39/16; distinct ask-prefixes=10000; cache=None
+[11:05:32] [adaptive] ours           dpe_oracle       k=16 answered=12.4/16 floored=    0 full=0.3292 tail=0.1927 (interview 1.99m + score 0.36m)
+[11:05:32] [conv_bandit] genome bank from cache: 1031 concepts
+[11:05:36] [conv_bandit] concept answers for 10000 test users x 1031 concepts in 3.4s: answerable rate 0.507, mean |v| on answerable 0.184; ANSWER CONVENTION = CERTIFIED-ERA (apply_neg_cap=False; cap_negatives over the revealed list at fold time)
+[11:05:36] [dpe_concept] DEVIATION ARM: DPE's Thompson bandit over 1031 genome concepts, the arm IS the question (the published method asks ITEMS). burn=none update=paper seed=98765
+[11:05:36] [adaptive] dpe_concept      turn 1/1: 0.8s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1031
+[11:05:37] [adaptive] INTERVIEW dpe_concept      k= 1 done in 0.08m; answered=0.00/1; distinct ask-prefixes=1031; cache=None
+[11:05:37] [adaptive] concept consumer = concept_cv3_ep08.pt (ep8, C=1031, h=256, use_refusal=True, snapshot=t2i26c_ep31.pt)
+[11:05:54] [adaptive] ours           dpe_concept      k= 1 answered= 0.0/1 floored=    0 full=0.1621 tail=0.0344 (interview 0.08m + score 0.28m)
+[11:05:54] [dpe_concept] DEVIATION ARM: DPE's Thompson bandit over 1031 genome concepts, the arm IS the question (the published method asks ITEMS). burn=none update=paper seed=98765
+[11:05:54] [adaptive] dpe_concept      turn 1/2: 0.8s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1031
+[11:05:56] [adaptive] dpe_concept      turn 2/2: 0.8s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 9956
+[11:05:56] [adaptive] INTERVIEW dpe_concept      k= 2 done in 0.04m; answered=0.00/2; distinct ask-prefixes=9956; cache=None
+[11:06:13] [adaptive] ours           dpe_concept      k= 2 answered= 0.0/2 floored=    0 full=0.1661 tail=0.0406 (interview 0.04m + score 0.29m)
+[11:06:13] [dpe_concept] DEVIATION ARM: DPE's Thompson bandit over 1031 genome concepts, the arm IS the question (the published method asks ITEMS). burn=none update=paper seed=98765
+[11:06:14] [adaptive] dpe_concept      turn 1/4: 0.8s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1031
+[11:06:15] [adaptive] dpe_concept      turn 2/4: 0.8s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 9956
+[11:06:16] [adaptive] dpe_concept      turn 3/4: 0.9s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 10000
+[11:06:17] [adaptive] dpe_concept      turn 4/4: 0.9s  answered so far 0.00  concept-asks 40000  distinct ask-prefixes 10000
+[11:06:18] [adaptive] INTERVIEW dpe_concept      k= 4 done in 0.08m; answered=0.00/4; distinct ask-prefixes=10000; cache=None
+[11:06:36] [adaptive] ours           dpe_concept      k= 4 answered= 0.0/4 floored=    0 full=0.1729 tail=0.0499 (interview 0.08m + score 0.29m)
+[11:06:36] [dpe_concept] DEVIATION ARM: DPE's Thompson bandit over 1031 genome concepts, the arm IS the question (the published method asks ITEMS). burn=none update=paper seed=98765
+[11:06:36] [adaptive] dpe_concept      turn 1/8: 0.8s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1031
+[11:06:38] [adaptive] dpe_concept      turn 2/8: 0.9s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 9956
+[11:06:39] [adaptive] dpe_concept      turn 3/8: 0.9s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 10000
+[11:06:40] [adaptive] dpe_concept      turn 4/8: 0.9s  answered so far 0.00  concept-asks 40000  distinct ask-prefixes 10000
+[11:06:42] [adaptive] dpe_concept      turn 5/8: 0.9s  answered so far 0.00  concept-asks 50000  distinct ask-prefixes 10000
+[11:06:43] [adaptive] dpe_concept      turn 6/8: 0.9s  answered so far 0.00  concept-asks 60000  distinct ask-prefixes 10000
+[11:06:45] [adaptive] dpe_concept      turn 7/8: 1.0s  answered so far 0.00  concept-asks 70000  distinct ask-prefixes 10000
+[11:06:47] [adaptive] dpe_concept      turn 8/8: 1.0s  answered so far 0.00  concept-asks 80000  distinct ask-prefixes 10000
+[11:06:48] [adaptive] INTERVIEW dpe_concept      k= 8 done in 0.20m; answered=0.00/8; distinct ask-prefixes=10000; cache=None
+[11:07:06] [adaptive] ours           dpe_concept      k= 8 answered= 0.0/8 floored=    0 full=0.1832 tail=0.0615 (interview 0.20m + score 0.30m)
+[11:07:06] [dpe_concept] DEVIATION ARM: DPE's Thompson bandit over 1031 genome concepts, the arm IS the question (the published method asks ITEMS). burn=none update=paper seed=98765
+[11:07:07] [adaptive] dpe_concept      turn 1/16: 0.8s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1031
+[11:07:08] [adaptive] dpe_concept      turn 2/16: 1.0s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 9956
+[11:07:09] [adaptive] dpe_concept      turn 3/16: 0.9s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 10000
+[11:07:10] [adaptive] dpe_concept      turn 4/16: 0.9s  answered so far 0.00  concept-asks 40000  distinct ask-prefixes 10000
+[11:07:12] [adaptive] dpe_concept      turn 5/16: 0.9s  answered so far 0.00  concept-asks 50000  distinct ask-prefixes 10000
+[11:07:13] [adaptive] dpe_concept      turn 6/16: 0.9s  answered so far 0.00  concept-asks 60000  distinct ask-prefixes 10000
+[11:07:15] [adaptive] dpe_concept      turn 7/16: 0.9s  answered so far 0.00  concept-asks 70000  distinct ask-prefixes 10000
+[11:07:17] [adaptive] dpe_concept      turn 8/16: 1.0s  answered so far 0.00  concept-asks 80000  distinct ask-prefixes 10000
+[11:07:19] [adaptive] dpe_concept      turn 9/16: 1.0s  answered so far 0.00  concept-asks 90000  distinct ask-prefixes 10000
+[11:07:21] [adaptive] dpe_concept      turn 10/16: 1.0s  answered so far 0.00  concept-asks 100000  distinct ask-prefixes 10000
+[11:07:23] [adaptive] dpe_concept      turn 11/16: 0.9s  answered so far 0.00  concept-asks 110000  distinct ask-prefixes 10000
+[11:07:25] [adaptive] dpe_concept      turn 12/16: 1.0s  answered so far 0.00  concept-asks 120000  distinct ask-prefixes 10000
+[11:07:27] [adaptive] dpe_concept      turn 13/16: 1.0s  answered so far 0.00  concept-asks 130000  distinct ask-prefixes 10000
+[11:07:30] [adaptive] dpe_concept      turn 14/16: 1.0s  answered so far 0.00  concept-asks 140000  distinct ask-prefixes 10000
+[11:07:32] [adaptive] dpe_concept      turn 15/16: 1.0s  answered so far 0.00  concept-asks 150000  distinct ask-prefixes 10000
+[11:07:35] [adaptive] dpe_concept      turn 16/16: 1.0s  answered so far 0.00  concept-asks 160000  distinct ask-prefixes 10000
+[11:07:37] [adaptive] INTERVIEW dpe_concept      k=16 done in 0.52m; answered=0.00/16; distinct ask-prefixes=10000; cache=None
+[11:07:56] [adaptive] ours           dpe_concept      k=16 answered= 0.0/16 floored=    0 full=0.2018 tail=0.0795 (interview 0.52m + score 0.32m)
+[11:07:56] [adaptive] done -> C:\dev\phd\casper\experiments\baselines\interview\adaptive_table_dpe_v1.json

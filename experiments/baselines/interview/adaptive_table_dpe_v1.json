@@ -83,7 +83,10 @@
       "concept_ckpt": "concept_cv3_ep08.pt",
       "no_concept_consumer": false,
       "golbandi_lam": null
-    }
+    },
+    "keyterm_repr": "uniform_member_mean",
+    "n_concepts": 1031,
+    "concept_answer_convention": "CERTIFIED-ERA (apply_neg_cap=False + cap_negatives over revealed)"
   },
   "results": {
     "mostpop": {
@@ -240,6 +243,85 @@
           "score_minutes": 0.31,
           "interview_minutes": 0.45,
           "distinct_prefixes": 9996
+        },
+        "k8": {
+          "full": 0.29295091227106856,
+          "tail": 0.15971966414854624,
+          "answered": 6.5827,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.35,
+          "interview_minutes": 1.01,
+          "distinct_prefixes": 10000
+        },
+        "k16": {
+          "full": 0.32918333357750673,
+          "tail": 0.1926524660513447,
+          "answered": 12.3907,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.36,
+          "interview_minutes": 1.99,
+          "distinct_prefixes": 10000
+        }
+      },
+      "dpe_concept": {
+        "k1": {
+          "full": 0.1620722250828557,
+          "tail": 0.03438091104298813,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": true,
+          "score_minutes": 0.28,
+          "interview_minutes": 0.08,
+          "distinct_prefixes": 1031
+        },
+        "k2": {
+          "full": 0.16607366789821007,
+          "tail": 0.04055908415858208,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": true,
+          "score_minutes": 0.29,
+          "interview_minutes": 0.04,
+          "distinct_prefixes": 9956
+        },
+        "k4": {
+          "full": 0.17290234507489,
+          "tail": 0.0498734366427664,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 40000,
+          "concept_consumer": true,
+          "score_minutes": 0.29,
+          "interview_minutes": 0.08,
+          "distinct_prefixes": 10000
+        },
+        "k8": {
+          "full": 0.1831760876226378,
+          "tail": 0.06152908508086399,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 80000,
+          "concept_consumer": true,
+          "score_minutes": 0.3,
+          "interview_minutes": 0.2,
+          "distinct_prefixes": 10000
+        },
+        "k16": {
+          "full": 0.20184766741023283,
+          "tail": 0.07954621697384395,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 160000,
+          "concept_consumer": true,
+          "score_minutes": 0.32,
+          "interview_minutes": 0.52,
+          "distinct_prefixes": 10000
         }
       }
     }

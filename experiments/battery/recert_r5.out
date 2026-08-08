@@ -1,0 +1,12 @@
+[18:08:07] re-certifying R5 on t2i26c_ep31.pt; 2 steps, strictly sequential
+[18:08:07] --- step 1/2: premium_vs_k (graded premium vs interview length, VAL, parity mask)
+[18:08:25] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[18:09:28] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[18:09:30] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[18:09:33] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[18:09:33] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[18:09:33] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[18:09:33] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[18:09:33] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[18:09:46] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[18:13:57] [k=2] true=0.1772 memb4=0.1747 likes=0.1670 flip=0.1388 | values=+0.0025 reveal=+0.0077 flip=-0.0385 (3.2m)

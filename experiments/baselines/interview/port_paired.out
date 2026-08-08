@@ -1,0 +1,18 @@
+[18:12:42] [dre] 20 vectors from adaptive_table_dre_port_v1_per_user.npz
+[18:12:43] [dpe] 40 vectors from adaptive_table_dpe_v1_per_user.npz
+[18:12:43] [igcn] 50 vectors from adaptive_table_igcn_port01_per_user.npz
+[18:12:43] [canary] all cells row-aligned: n_full=10000, n_tail=9281
+[18:12:43] === equivalence: chunked bootstrap vs the gtport_paired reference (must be IDENTICAL) ===
+[18:13:14] [equiv] igcn|k16|full - entropy0-static                      ref=(-0.009624228435706261, -0.00327339526979401) chunked=(-0.009624228435706261, -0.00327339526979401) IDENTICAL
+[18:13:47] [equiv] igcn|k8|tail - fixedorder:greedy_items               ref=(-0.0054734439548121926, -0.00010926948970905097) chunked=(-0.0054734439548121926, -0.00010926948970905097) IDENTICAL
+[18:13:47] === admission: in-run entropy0-static vs banked act1 entropy0, per user ===
+[18:13:48] [admission] max per-user |in-run entropy0 - banked act1 entropy0| = 0.000e+00 (PASS)
+[18:13:48] === self-test: an arm against ITSELF must give delta 0.0000 with CI [0.0000,0.0000] ===
+[18:13:57]     SELFTEST/full/k1/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:14:10]     SELFTEST/tail/k1/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:14:25]     SELFTEST/full/k2/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:14:39]     SELFTEST/tail/k2/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:14:53]     SELFTEST/full/k4/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:15:03]     SELFTEST/tail/k4/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:15:11]     SELFTEST/full/k8/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:15:20]     SELFTEST/tail/k8/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
