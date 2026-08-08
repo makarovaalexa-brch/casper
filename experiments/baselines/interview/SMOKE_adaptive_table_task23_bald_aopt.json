@@ -1,0 +1,712 @@
+{
+  "meta": {
+    "selectors": [
+      "bald",
+      "aopt",
+      "glm_ucb",
+      "fixedorder:entropy0",
+      "fixedorder:greedy_items"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "consumers": [
+      "ours"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 200,
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "golbandi": {
+      "depth": 0,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": null
+    },
+    "_contract": {
+      "n_users": 200,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 0,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": null,
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "igcn_clusters": 300,
+      "igcn_nbr": 150,
+      "igcn_switch": 5,
+      "igcn_recompute": 1,
+      "igcn_kmeans_iter": 10,
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 200,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 1,
+      "specs": [
+        "bald",
+        "aopt",
+        "glm_ucb",
+        "fixedorder:entropy0",
+        "fixedorder:greedy_items"
+      ],
+      "budgets": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "consumers": [
+        "ours"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    },
+    "SMOKE_NOT_CITABLE": true,
+    "smoke_users": 200
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16295431422935305,
+        "tail": 0.029945854193633506
+      }
+    },
+    "ours": {
+      "bald": {
+        "k1": {
+          "full": 0.18002853538215977,
+          "tail": 0.0460470913070474,
+          "answered": 0.31,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration"
+        },
+        "k2": {
+          "full": 0.18705641315097707,
+          "tail": 0.048568987586568545,
+          "answered": 0.51,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.03,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 2,
+          "cache": {
+            "_mu": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 10,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.8333
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration"
+        },
+        "k4": {
+          "full": 0.19984963328909694,
+          "tail": 0.05693566213575369,
+          "answered": 0.9,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 4,
+          "cache": {
+            "_mu": {
+              "size": 8,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 8,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 8,
+              "cap": 4096,
+              "hits": 86,
+              "misses": 8,
+              "evictions": 0,
+              "hit_rate": 0.9149
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration"
+        },
+        "k8": {
+          "full": 0.2130423857862952,
+          "tail": 0.06641704085675752,
+          "answered": 1.585,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.18,
+          "distinct_prefixes": 37,
+          "cache": {
+            "_mu": {
+              "size": 54,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 54,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 54,
+              "cap": 4096,
+              "hits": 384,
+              "misses": 54,
+              "evictions": 0,
+              "hit_rate": 0.8767
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration"
+        },
+        "k16": {
+          "full": 0.22946962615861322,
+          "tail": 0.08208671452441214,
+          "answered": 2.69,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.75,
+          "distinct_prefixes": 103,
+          "cache": {
+            "_mu": {
+              "size": 230,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 230,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 230,
+              "cap": 4096,
+              "hits": 1244,
+              "misses": 230,
+              "evictions": 0,
+              "hit_rate": 0.844
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration"
+        }
+      },
+      "aopt": {
+        "k1": {
+          "full": 0.17304856771194063,
+          "tail": 0.05219518298235067,
+          "answered": 0.19,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_gain": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k2": {
+          "full": 0.1749126954219076,
+          "tail": 0.049607925418424105,
+          "answered": 0.33,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 2,
+          "cache": {
+            "_gain": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 7,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.7778
+            },
+            "_mu": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k4": {
+          "full": 0.17073603217344235,
+          "tail": 0.055880019487558316,
+          "answered": 0.575,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 8,
+          "cache": {
+            "_gain": {
+              "size": 8,
+              "cap": 4096,
+              "hits": 63,
+              "misses": 8,
+              "evictions": 0,
+              "hit_rate": 0.8873
+            },
+            "_mu": {
+              "size": 8,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 8,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k8": {
+          "full": 0.1717701987814424,
+          "tail": 0.054312738688705,
+          "answered": 0.975,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.23,
+          "distinct_prefixes": 35,
+          "cache": {
+            "_gain": {
+              "size": 56,
+              "cap": 4096,
+              "hits": 231,
+              "misses": 56,
+              "evictions": 0,
+              "hit_rate": 0.8049
+            },
+            "_mu": {
+              "size": 56,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 56,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k16": {
+          "full": 0.17562621666506104,
+          "tail": 0.06337747413295972,
+          "answered": 1.835,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.62,
+          "distinct_prefixes": 70,
+          "cache": {
+            "_gain": {
+              "size": 173,
+              "cap": 4096,
+              "hits": 784,
+              "misses": 173,
+              "evictions": 0,
+              "hit_rate": 0.8192
+            },
+            "_mu": {
+              "size": 173,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 173,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        }
+      },
+      "glm_ucb": {
+        "k1": {
+          "full": 0.1638601367875478,
+          "tail": 0.03481657614167626,
+          "answered": 0.415,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 1,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.5
+            },
+            "_width": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k2": {
+          "full": 0.1712047553221069,
+          "tail": 0.04024306460957295,
+          "answered": 0.81,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_mu": {
+              "size": 7,
+              "cap": 4096,
+              "hits": 3,
+              "misses": 7,
+              "evictions": 0,
+              "hit_rate": 0.3
+            },
+            "_width": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 6,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.75
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k4": {
+          "full": 0.17552051782427164,
+          "tail": 0.05804836895374005,
+          "answered": 1.63,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.19,
+          "distinct_prefixes": 7,
+          "cache": {
+            "_mu": {
+              "size": 90,
+              "cap": 4096,
+              "hits": 41,
+              "misses": 90,
+              "evictions": 0,
+              "hit_rate": 0.313
+            },
+            "_width": {
+              "size": 13,
+              "cap": 4096,
+              "hits": 105,
+              "misses": 13,
+              "evictions": 0,
+              "hit_rate": 0.8898
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k8": {
+          "full": 0.19139418567486247,
+          "tail": 0.059378771041601816,
+          "answered": 3.005,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.73,
+          "distinct_prefixes": 38,
+          "cache": {
+            "_mu": {
+              "size": 350,
+              "cap": 4096,
+              "hits": 420,
+              "misses": 350,
+              "evictions": 0,
+              "hit_rate": 0.5455
+            },
+            "_width": {
+              "size": 113,
+              "cap": 4096,
+              "hits": 544,
+              "misses": 113,
+              "evictions": 0,
+              "hit_rate": 0.828
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k16": {
+          "full": 0.22197674492330371,
+          "tail": 0.06928986961164002,
+          "answered": 5.32,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 3.62,
+          "distinct_prefixes": 169,
+          "cache": {
+            "_mu": {
+              "size": 812,
+              "cap": 4096,
+              "hits": 1768,
+              "misses": 812,
+              "evictions": 0,
+              "hit_rate": 0.6853
+            },
+            "_width": {
+              "size": 527,
+              "cap": 4096,
+              "hits": 1526,
+              "misses": 527,
+              "evictions": 0,
+              "hit_rate": 0.7433
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        }
+      },
+      "fixedorder:entropy0": {
+        "k1": {
+          "full": 0.15788454507283553,
+          "tail": 0.04019875648231342,
+          "answered": 0.38,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.16733185228949446,
+          "tail": 0.046944139532164225,
+          "answered": 0.82,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.17661858518615794,
+          "tail": 0.04847687108019712,
+          "answered": 1.63,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.03,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.20373661401704676,
+          "tail": 0.05788088829138604,
+          "answered": 3.03,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.05,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.23291416069499554,
+          "tail": 0.07244032165568895,
+          "answered": 5.46,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        }
+      },
+      "fixedorder:greedy_items": {
+        "k1": {
+          "full": 0.17807617276788573,
+          "tail": 0.0409129580962436,
+          "answered": 0.305,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.19959126468879312,
+          "tail": 0.05492915425115366,
+          "answered": 0.575,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.20561480578229485,
+          "tail": 0.06900131774280355,
+          "answered": 1.255,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.23205564709246163,
+          "tail": 0.06724513159735566,
+          "answered": 2.42,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.02,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.24296374007266242,
+          "tail": 0.08959771263884476,
+          "answered": 4.125,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.04,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        }
+      }
+    }
+  }
+}

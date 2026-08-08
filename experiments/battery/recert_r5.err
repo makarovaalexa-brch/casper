@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\dev\phd\casper\src\baselines\arm_n_sign_probe.py", line 114, in <module>
+    main()
+  File "C:\dev\phd\casper\src\baselines\arm_n_sign_probe.py", line 80, in main
+    enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"]); enc.eval()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\torch\nn\modules\module.py", line 2189, in load_state_dict
+    raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
+RuntimeError: Error(s) in loading state_dict for I25Encoder:
+	Unexpected key(s) in state_dict: "gate_e", "W_white", "psi.0.weight", "psi.0.bias", "psi.2.weight", "psi.2.bias", "rho_expo.0.weight", "rho_expo.0.bias", "rho_expo.2.weight", "rho_expo.2.bias". 

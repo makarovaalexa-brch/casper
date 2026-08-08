@@ -16,3 +16,169 @@
 [18:15:03]     SELFTEST/tail/k4/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
 [18:15:11]     SELFTEST/full/k8/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
 [18:15:20]     SELFTEST/tail/k8/dre-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:15:26]     SELFTEST/full/k16/dre-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:15:39]     SELFTEST/tail/k16/dre-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:15:48]     SELFTEST/full/k1/dpe-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:15:58]     SELFTEST/tail/k1/dpe-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:16:06]     SELFTEST/full/k2/dpe-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:16:17]     SELFTEST/tail/k2/dpe-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:16:26]     SELFTEST/full/k4/dpe-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:16:33]     SELFTEST/tail/k4/dpe-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:16:44]     SELFTEST/full/k8/dpe-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:16:50]     SELFTEST/tail/k8/dpe-minus-itself                                        +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:16:57]     SELFTEST/full/k16/dpe-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:17:07]     SELFTEST/tail/k16/dpe-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:17:19]     SELFTEST/full/k1/igcn-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:17:29]     SELFTEST/tail/k1/igcn-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:17:39]     SELFTEST/full/k2/igcn-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:17:48]     SELFTEST/tail/k2/igcn-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:17:55]     SELFTEST/full/k4/igcn-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:18:05]     SELFTEST/tail/k4/igcn-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:18:13]     SELFTEST/full/k8/igcn-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:18:21]     SELFTEST/tail/k8/igcn-minus-itself                                       +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:18:28]     SELFTEST/full/k16/igcn-minus-itself                                      +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:18:37]     SELFTEST/tail/k16/igcn-minus-itself                                      +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:18:37] [self-test] PASS
+[18:18:37] === C1: dpe (ILD) budget ladder -- is MORE questions WORSE, per user? ===
+[18:18:46]     full/dpe/k2-minus-k1                                                     -0.0006 CI [-0.0011,-0.0000] SEP in-run
+[18:18:54]     tail/dpe/k2-minus-k1                                                     +0.0003 CI [-0.0004,+0.0010] ns  in-run
+[18:19:03]     full/dpe/k4-minus-k1                                                     -0.0014 CI [-0.0020,-0.0006] SEP in-run
+[18:19:14]     tail/dpe/k4-minus-k1                                                     -0.0001 CI [-0.0009,+0.0008] ns  in-run
+[18:19:23]     full/dpe/k8-minus-k1                                                     -0.0018 CI [-0.0025,-0.0009] SEP in-run
+[18:19:31]     tail/dpe/k8-minus-k1                                                     -0.0008 CI [-0.0017,+0.0001] ns  in-run
+[18:19:41]     full/dpe/k16-minus-k1                                                    -0.0024 CI [-0.0032,-0.0015] SEP in-run
+[18:19:50]     tail/dpe/k16-minus-k1                                                    -0.0024 CI [-0.0034,-0.0013] SEP in-run
+[18:19:58]     full/dpe/k16-minus-k8                                                    -0.0006 CI [-0.0011,-0.0001] SEP in-run
+[18:20:06]     tail/dpe/k16-minus-k8                                                    -0.0015 CI [-0.0022,-0.0008] SEP in-run
+[18:20:06] === C1b: the same k16-minus-k1 contrast for every other arm (the control) ===
+[18:20:16]     full/dpe_hellinger/k16-minus-k1                                          +0.0566 CI [+0.0534,+0.0598] SEP in-run
+[18:20:24]     tail/dpe_hellinger/k16-minus-k1                                          +0.0527 CI [+0.0497,+0.0560] SEP in-run
+[18:20:31]     full/dpe_oracle/k16-minus-k1                                             +0.1399 CI [+0.1357,+0.1440] SEP in-run
+[18:20:40]     tail/dpe_oracle/k16-minus-k1                                             +0.1246 CI [+0.1204,+0.1289] SEP in-run
+[18:20:49]     full/dpe_concept/k16-minus-k1                                            +0.0398 CI [+0.0373,+0.0422] SEP in-run
+[18:20:57]     tail/dpe_concept/k16-minus-k1                                            +0.0452 CI [+0.0424,+0.0480] SEP in-run
+[18:21:05]     full/dre/k16-minus-k1                                                    +0.0527 CI [+0.0496,+0.0557] SEP in-run
+[18:21:15]     tail/dre/k16-minus-k1                                                    +0.0502 CI [+0.0473,+0.0532] SEP in-run
+[18:21:24]     full/igcn/k16-minus-k1                                                   +0.0554 CI [+0.0521,+0.0586] SEP in-run
+[18:21:32]     tail/igcn/k16-minus-k1                                                   +0.0505 CI [+0.0475,+0.0535] SEP in-run
+[18:21:40]     full/igcn_i1/k16-minus-k1                                                +0.0502 CI [+0.0473,+0.0532] SEP in-run
+[18:21:49]     tail/igcn_i1/k16-minus-k1                                                +0.0481 CI [+0.0452,+0.0511] SEP in-run
+[18:21:57]     full/entropy0-static/k16-minus-k1                                        +0.0668 CI [+0.0634,+0.0703] SEP in-run
+[18:22:06]     tail/entropy0-static/k16-minus-k1                                        +0.0491 CI [+0.0461,+0.0522] SEP in-run
+[18:22:24]     full/fixedorder:greedy_items/k16-minus-k1                                +0.0689 CI [+0.0657,+0.0722] SEP in-run
+[18:22:33]     tail/fixedorder:greedy_items/k16-minus-k1                                +0.0532 CI [+0.0500,+0.0566] SEP in-run
+[18:22:33] === C2: dpe_oracle (a CEILING -- it reads the user's own ratings at selection time) ===
+[18:22:43]     full/k1/dpe_oracle-minus-greedy_items                                    +0.0133 CI [+0.0106,+0.0160] SEP cross-run (admitted)
+[18:22:52]     full/k1/dpe_oracle-minus-entropy0                                        +0.0258 CI [+0.0233,+0.0283] SEP cross-run (admitted)
+[18:23:05]     tail/k1/dpe_oracle-minus-greedy_items                                    +0.0246 CI [+0.0220,+0.0273] SEP cross-run (admitted)
+[18:23:23]     tail/k1/dpe_oracle-minus-entropy0                                        +0.0247 CI [+0.0221,+0.0274] SEP cross-run (admitted)
+[18:23:33]     full/k2/dpe_oracle-minus-greedy_items                                    +0.0287 CI [+0.0255,+0.0318] SEP cross-run (admitted)
+[18:23:51]     full/k2/dpe_oracle-minus-entropy0                                        +0.0488 CI [+0.0456,+0.0519] SEP cross-run (admitted)
+[18:24:01]     tail/k2/dpe_oracle-minus-greedy_items                                    +0.0385 CI [+0.0353,+0.0417] SEP cross-run (admitted)
+[18:24:13]     tail/k2/dpe_oracle-minus-entropy0                                        +0.0437 CI [+0.0404,+0.0469] SEP cross-run (admitted)
+[18:24:23]     full/k4/dpe_oracle-minus-greedy_items                                    +0.0477 CI [+0.0443,+0.0511] SEP cross-run (admitted)
+[18:24:33]     full/k4/dpe_oracle-minus-entropy0                                        +0.0713 CI [+0.0678,+0.0748] SEP cross-run (admitted)
+[18:24:41]     tail/k4/dpe_oracle-minus-greedy_items                                    +0.0578 CI [+0.0542,+0.0614] SEP cross-run (admitted)
+[18:24:50]     tail/k4/dpe_oracle-minus-entropy0                                        +0.0645 CI [+0.0609,+0.0682] SEP cross-run (admitted)
+[18:24:58]     full/k8/dpe_oracle-minus-greedy_items                                    +0.0683 CI [+0.0645,+0.0720] SEP cross-run (admitted)
+[18:25:11]     full/k8/dpe_oracle-minus-entropy0                                        +0.0877 CI [+0.0839,+0.0914] SEP cross-run (admitted)
+[18:25:25]     tail/k8/dpe_oracle-minus-greedy_items                                    +0.0822 CI [+0.0781,+0.0862] SEP cross-run (admitted)
+[18:25:34]     tail/k8/dpe_oracle-minus-entropy0                                        +0.0805 CI [+0.0765,+0.0844] SEP cross-run (admitted)
+[18:25:42]     full/k16/dpe_oracle-minus-greedy_items                                   +0.0843 CI [+0.0804,+0.0881] SEP cross-run (admitted)
+[18:25:54]     full/k16/dpe_oracle-minus-entropy0                                       +0.0989 CI [+0.0950,+0.1027] SEP cross-run (admitted)
+[18:26:06]     tail/k16/dpe_oracle-minus-greedy_items                                   +0.0960 CI [+0.0917,+0.1002] SEP cross-run (admitted)
+[18:26:18]     tail/k16/dpe_oracle-minus-entropy0                                       +0.1002 CI [+0.0960,+0.1045] SEP cross-run (admitted)
+[18:26:18] === C3: DRE (WWW'20 learned static) vs entropy0 (2008) and vs greedy items-only ===
+[18:26:27]     full/k1/dre-minus-entropy0                                               +0.0023 CI [+0.0005,+0.0041] SEP cross-run (admitted)
+[18:26:37]     full/k1/dre-minus-greedy_items                                           -0.0102 CI [-0.0123,-0.0081] SEP cross-run (admitted)
+[18:26:45]     tail/k1/dre-minus-entropy0                                               -0.0037 CI [-0.0060,-0.0015] SEP cross-run (admitted)
+[18:26:53]     tail/k1/dre-minus-greedy_items                                           -0.0038 CI [-0.0057,-0.0020] SEP cross-run (admitted)
+[18:27:07]     full/k2/dre-minus-entropy0                                               -0.0013 CI [-0.0036,+0.0010] ns  cross-run (admitted)
+[18:27:27]     full/k2/dre-minus-greedy_items                                           -0.0214 CI [-0.0240,-0.0188] SEP cross-run (admitted)
+[18:27:58]     tail/k2/dre-minus-entropy0                                               -0.0064 CI [-0.0090,-0.0038] SEP cross-run (admitted)
+[18:28:34]     tail/k2/dre-minus-greedy_items                                           -0.0116 CI [-0.0141,-0.0092] SEP cross-run (admitted)
+[18:29:07]     full/k4/dre-minus-entropy0                                               -0.0068 CI [-0.0097,-0.0039] SEP cross-run (admitted)
+[18:29:31]     full/k4/dre-minus-greedy_items                                           -0.0303 CI [-0.0334,-0.0272] SEP cross-run (admitted)
+[18:29:42]     tail/k4/dre-minus-entropy0                                               -0.0050 CI [-0.0080,-0.0019] SEP cross-run (admitted)
+[18:29:54]     tail/k4/dre-minus-greedy_items                                           -0.0117 CI [-0.0147,-0.0088] SEP cross-run (admitted)
+[18:30:05]     full/k8/dre-minus-entropy0                                               +0.0021 CI [-0.0011,+0.0052] ns  cross-run (admitted)
+[18:30:17]     full/k8/dre-minus-greedy_items                                           -0.0173 CI [-0.0201,-0.0143] SEP cross-run (admitted)
+[18:30:28]     tail/k8/dre-minus-entropy0                                               -0.0003 CI [-0.0034,+0.0027] ns  cross-run (admitted)
+[18:30:36]     tail/k8/dre-minus-greedy_items                                           +0.0013 CI [-0.0015,+0.0043] ns  cross-run (admitted)
+[18:30:44]     full/k16/dre-minus-entropy0                                              -0.0118 CI [-0.0153,-0.0083] SEP cross-run (admitted)
+[18:30:52]     full/k16/dre-minus-greedy_items                                          -0.0264 CI [-0.0296,-0.0232] SEP cross-run (admitted)
+[18:31:01]     tail/k16/dre-minus-entropy0                                              -0.0027 CI [-0.0058,+0.0006] ns  cross-run (admitted)
+[18:31:11]     tail/k16/dre-minus-greedy_items                                          -0.0069 CI [-0.0100,-0.0037] SEP cross-run (admitted)
+[18:31:11] === C3b: DRE's two consumers against each other (IN-RUN, exact) ===
+[18:31:22]     full/k1/ours_tower-minus-dre_own_decoder                                 -0.0019 CI [-0.0036,-0.0002] SEP in-run
+[18:31:33]     tail/k1/ours_tower-minus-dre_own_decoder                                 +0.0031 CI [+0.0012,+0.0049] SEP in-run
+[18:31:44]     full/k2/ours_tower-minus-dre_own_decoder                                 -0.0016 CI [-0.0032,-0.0001] SEP in-run
+[18:31:54]     tail/k2/ours_tower-minus-dre_own_decoder                                 -0.0023 CI [-0.0042,-0.0005] SEP in-run
+[18:32:12]     full/k4/ours_tower-minus-dre_own_decoder                                 -0.0068 CI [-0.0085,-0.0051] SEP in-run
+[18:32:24]     tail/k4/ours_tower-minus-dre_own_decoder                                 -0.0037 CI [-0.0059,-0.0016] SEP in-run
+[18:32:34]     full/k8/ours_tower-minus-dre_own_decoder                                 +0.0003 CI [-0.0017,+0.0023] ns  in-run
+[18:32:47]     tail/k8/ours_tower-minus-dre_own_decoder                                 +0.0010 CI [-0.0010,+0.0029] ns  in-run
+[18:32:59]     full/k16/ours_tower-minus-dre_own_decoder                                +0.0003 CI [-0.0020,+0.0025] ns  in-run
+[18:33:08]     tail/k16/ours_tower-minus-dre_own_decoder                                +0.0003 CI [-0.0020,+0.0026] ns  in-run
+[18:33:08] === C4: dpe_hellinger vs entropy0 (the k=16 TAIL dead heat, .0925 vs .0924) ===
+[18:33:18]     full/k1/dpe_hellinger-minus-entropy0                                     -0.0008 CI [-0.0025,+0.0009] ns  cross-run (admitted)
+[18:33:26]     full/k1/dpe_hellinger-minus-greedy_items                                 -0.0133 CI [-0.0154,-0.0113] SEP cross-run (admitted)
+[18:33:34]     tail/k1/dpe_hellinger-minus-entropy0                                     -0.0035 CI [-0.0055,-0.0014] SEP cross-run (admitted)
+[18:33:42]     tail/k1/dpe_hellinger-minus-greedy_items                                 -0.0036 CI [-0.0056,-0.0016] SEP cross-run (admitted)
+[18:33:50]     full/k2/dpe_hellinger-minus-entropy0                                     -0.0025 CI [-0.0047,-0.0004] SEP cross-run (admitted)
+[18:33:58]     full/k2/dpe_hellinger-minus-greedy_items                                 -0.0227 CI [-0.0252,-0.0201] SEP cross-run (admitted)
+[18:34:12]     tail/k2/dpe_hellinger-minus-entropy0                                     -0.0048 CI [-0.0072,-0.0024] SEP cross-run (admitted)
+[18:34:20]     tail/k2/dpe_hellinger-minus-greedy_items                                 -0.0101 CI [-0.0125,-0.0076] SEP cross-run (admitted)
+[18:34:27]     full/k4/dpe_hellinger-minus-entropy0                                     -0.0014 CI [-0.0038,+0.0011] ns  cross-run (admitted)
+[18:34:35]     full/k4/dpe_hellinger-minus-greedy_items                                 -0.0249 CI [-0.0277,-0.0221] SEP cross-run (admitted)
+[18:34:45]     tail/k4/dpe_hellinger-minus-entropy0                                     -0.0026 CI [-0.0050,-0.0002] SEP cross-run (admitted)
+[18:34:53]     tail/k4/dpe_hellinger-minus-greedy_items                                 -0.0094 CI [-0.0120,-0.0067] SEP cross-run (admitted)
+[18:35:01]     full/k8/dpe_hellinger-minus-entropy0                                     -0.0051 CI [-0.0077,-0.0025] SEP cross-run (admitted)
+[18:35:10]     full/k8/dpe_hellinger-minus-greedy_items                                 -0.0245 CI [-0.0273,-0.0216] SEP cross-run (admitted)
+[18:35:18]     tail/k8/dpe_hellinger-minus-entropy0                                     -0.0027 CI [-0.0053,-0.0002] SEP cross-run (admitted)
+[18:35:26]     tail/k8/dpe_hellinger-minus-greedy_items                                 -0.0011 CI [-0.0038,+0.0018] ns  cross-run (admitted)
+[18:35:35]     full/k16/dpe_hellinger-minus-entropy0                                    -0.0111 CI [-0.0138,-0.0084] SEP cross-run (admitted)
+[18:35:43]     full/k16/dpe_hellinger-minus-greedy_items                                -0.0257 CI [-0.0289,-0.0225] SEP cross-run (admitted)
+[18:35:52]     tail/k16/dpe_hellinger-minus-entropy0                                    +0.0001 CI [-0.0026,+0.0029] ns  cross-run (admitted)
+[18:35:59]     tail/k16/dpe_hellinger-minus-greedy_items                                -0.0041 CI [-0.0074,-0.0008] SEP cross-run (admitted)
+[18:35:59] === C5: IGCN vs entropy0 and greedy items-only (exact by construction, same run) ===
+[18:36:08]     full/k1/igcn-minus-entropy0                                              +0.0050 CI [+0.0031,+0.0070] SEP in-run
+[18:36:19]     full/k1/igcn-minus-greedy_items                                          -0.0075 CI [-0.0099,-0.0051] SEP in-run
+[18:36:27]     tail/k1/igcn-minus-entropy0                                              -0.0026 CI [-0.0047,-0.0005] SEP in-run
+[18:36:35]     tail/k1/igcn-minus-greedy_items                                          -0.0027 CI [-0.0049,-0.0005] SEP in-run
+[18:36:43]     full/k2/igcn-minus-entropy0                                              +0.0095 CI [+0.0071,+0.0119] SEP in-run
+[18:36:51]     full/k2/igcn-minus-greedy_items                                          -0.0106 CI [-0.0126,-0.0086] SEP in-run
+[18:36:59]     tail/k2/igcn-minus-entropy0                                              +0.0040 CI [+0.0015,+0.0066] SEP in-run
+[18:37:06]     tail/k2/igcn-minus-greedy_items                                          -0.0012 CI [-0.0031,+0.0007] ns  in-run
+[18:37:14]     full/k4/igcn-minus-entropy0                                              +0.0113 CI [+0.0083,+0.0141] SEP in-run
+[18:37:22]     full/k4/igcn-minus-greedy_items                                          -0.0123 CI [-0.0151,-0.0095] SEP in-run
+[18:37:31]     tail/k4/igcn-minus-entropy0                                              +0.0065 CI [+0.0037,+0.0094] SEP in-run
+[18:37:39]     tail/k4/igcn-minus-greedy_items                                          -0.0003 CI [-0.0026,+0.0021] ns  in-run
+[18:37:47]     full/k8/igcn-minus-entropy0                                              -0.0022 CI [-0.0055,+0.0011] ns  in-run
+[18:37:56]     full/k8/igcn-minus-greedy_items                                          -0.0216 CI [-0.0244,-0.0188] SEP in-run
+[18:38:04]     tail/k8/igcn-minus-entropy0                                              -0.0045 CI [-0.0074,-0.0015] SEP in-run
+[18:38:12]     tail/k8/igcn-minus-greedy_items                                          -0.0028 CI [-0.0055,-0.0001] SEP in-run
+[18:38:21]     full/k16/igcn-minus-entropy0                                             -0.0065 CI [-0.0096,-0.0033] SEP in-run
+[18:38:28]     full/k16/igcn-minus-greedy_items                                         -0.0211 CI [-0.0241,-0.0179] SEP in-run
+[18:38:37]     tail/k16/igcn-minus-entropy0                                             -0.0012 CI [-0.0043,+0.0018] ns  in-run
+[18:38:46]     tail/k16/igcn-minus-greedy_items                                         -0.0055 CI [-0.0085,-0.0025] SEP in-run
+[18:38:53]     full/k1/igcn_i1-minus-entropy0                                           +0.0050 CI [+0.0031,+0.0070] SEP in-run
+[18:39:02]     full/k1/igcn_i1-minus-greedy_items                                       -0.0075 CI [-0.0099,-0.0051] SEP in-run
+[18:39:11]     tail/k1/igcn_i1-minus-entropy0                                           -0.0026 CI [-0.0047,-0.0005] SEP in-run
+[18:39:19]     tail/k1/igcn_i1-minus-greedy_items                                       -0.0027 CI [-0.0049,-0.0005] SEP in-run
+[18:39:27]     full/k2/igcn_i1-minus-entropy0                                           +0.0110 CI [+0.0088,+0.0133] SEP in-run
+[18:39:35]     full/k2/igcn_i1-minus-greedy_items                                       -0.0091 CI [-0.0112,-0.0069] SEP in-run
+[18:39:45]     tail/k2/igcn_i1-minus-entropy0                                           +0.0056 CI [+0.0032,+0.0082] SEP in-run
+[18:39:55]     tail/k2/igcn_i1-minus-greedy_items                                       +0.0004 CI [-0.0016,+0.0024] ns  in-run
+[18:40:03]     full/k4/igcn_i1-minus-entropy0                                           +0.0129 CI [+0.0103,+0.0155] SEP in-run
+[18:40:13]     full/k4/igcn_i1-minus-greedy_items                                       -0.0106 CI [-0.0132,-0.0081] SEP in-run
+[18:40:22]     tail/k4/igcn_i1-minus-entropy0                                           +0.0054 CI [+0.0027,+0.0081] SEP in-run
+[18:40:33]     tail/k4/igcn_i1-minus-greedy_items                                       -0.0014 CI [-0.0036,+0.0010] ns  in-run
+[18:40:40]     full/k8/igcn_i1-minus-entropy0                                           -0.0035 CI [-0.0063,-0.0007] SEP in-run
+[18:40:46]     full/k8/igcn_i1-minus-greedy_items                                       -0.0229 CI [-0.0256,-0.0203] SEP in-run
+[18:40:52]     tail/k8/igcn_i1-minus-entropy0                                           -0.0033 CI [-0.0061,-0.0004] SEP in-run
+[18:40:58]     tail/k8/igcn_i1-minus-greedy_items                                       -0.0016 CI [-0.0043,+0.0012] ns  in-run
+[18:41:03]     full/k16/igcn_i1-minus-entropy0                                          -0.0116 CI [-0.0147,-0.0084] SEP in-run
+[18:41:10]     full/k16/igcn_i1-minus-greedy_items                                      -0.0262 CI [-0.0293,-0.0230] SEP in-run
+[18:41:16]     tail/k16/igcn_i1-minus-entropy0                                          -0.0036 CI [-0.0065,-0.0006] SEP in-run
+[18:41:21]     tail/k16/igcn_i1-minus-greedy_items                                      -0.0078 CI [-0.0109,-0.0047] SEP in-run

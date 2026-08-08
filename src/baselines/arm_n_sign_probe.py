@@ -104,9 +104,18 @@ def main():
               f"tail={row['A']['tail_ndcg@10']:.4f}  |  N(all signed) full={row['N']['ndcg@10']:.4f} "
               f"tail={row['N']['tail_ndcg@10']:.4f}  |  GAP full={g_full:+.4f} tail={g_tail:+.4f}")
 
-    with open(os.path.join(OUT, "sign_probe.json"), "w") as f:
-        json.dump({"snapshot": os.path.basename(a.snapshot), "seed": COLD_SEED,
-                   "like_min_level": LIKE_MIN_LEVEL, "results": res}, f, indent=2)
+    # HARD RULE 11(e): stamp the output with the tower. This wrote to a single fixed sign_probe.json, so
+    # re-running on a new snapshot destroyed the previous tower's result in place -- and because the file
+    # kept its name, the chapter went on quoting it without anyone re-reading its `snapshot` field. That
+    # is how the whole R5 claim came to sit on the pre-certification tower. The unstamped name is still
+    # written, so existing readers keep working, but the stamped copy is the citable artefact.
+    snap = os.path.basename(a.snapshot).replace("_best", "").rsplit(".", 1)[0]
+    blob = {"snapshot": os.path.basename(a.snapshot), "seed": COLD_SEED,
+            "like_min_level": LIKE_MIN_LEVEL, "results": res}
+    for name in (f"sign_probe_{snap}.json", "sign_probe.json"):
+        with open(os.path.join(OUT, name), "w") as f:
+            json.dump(blob, f, indent=2)
+    logln(f"[probe] wrote sign_probe_{snap}.json (citable) and sign_probe.json (compatibility)")
     logln(f"[probe] done in {(time.time() - t0) / 60:.1f} m")
 
 

@@ -1,0 +1,234 @@
+﻿[18:17:48] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[18:17:48] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[18:17:48] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[18:17:50] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[18:17:50] ====================================================================================================
+[18:17:50] [adaptive] *** SMOKE: TRUNCATING THE TEST COHORT TO THE FIRST 200 USERS ***
+[18:17:50] [adaptive] *** every number from this run is a CODE-PATH CHECK and is NOT CITABLE ***
+[18:17:50] ====================================================================================================
+[18:17:52] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[18:17:53] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[18:17:53] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[18:17:53] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[18:17:53] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[18:17:53] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[18:17:53] [pop] fitted item popularity over 140768 train users, 18359 items
+[18:17:54] [interview] mostpop PRIOR (constant, answer-independent): full=0.1630 tail=0.0299
+[18:17:54] [adaptive] 1 consumers x 5 selectors x 5 budgets over 200 users; floor=OFF; interview checkpoints -> C:\dev\phd\casper\experiments\baselines\interview\SMOKE_adaptive_table_task23_bald_aopt_interviews
+[18:17:54] [belief_mf] frozen basis from cache belief_mf_basis_140768x18359_nnz10851052_f200_r0.1_a50.0_it15.npz (Y=(18359, 200)); the 10-minute iALS fit is NOT repeated
+[18:17:55] [adaptive] bald             turn 1/1: 0.1s  answered so far 0.31  concept-asks 0  distinct ask-prefixes 1
+[18:17:55] [adaptive] INTERVIEW bald             k= 1 done in 0.01m; answered=0.31/1; distinct ask-prefixes=1; cache={'_mu': {'size': 1, 'cap': 4096, 'hits': 0, 'misses': 1, 'evictions': 0, 'hit_rate': 0.0}, '_width': {'size': 1, 'cap': 4096, 'hits': 0, 'misses': 1, 'evictions': 0, 'hit_rate': 0.0}}
+[18:17:56] [adaptive] ours           bald             k= 1 answered= 0.3/1 floored=    0 full=0.1800 tail=0.0460 (interview 0.01m + score 0.02m)
+[18:17:56] [adaptive] bald             turn 1/2: 0.1s  answered so far 0.31  concept-asks 0  distinct ask-prefixes 1
+[18:17:56] [adaptive] bald             turn 2/2: 0.3s  answered so far 0.51  concept-asks 0  distinct ask-prefixes 2
+[18:17:56] [adaptive] INTERVIEW bald             k= 2 done in 0.01m; answered=0.51/2; distinct ask-prefixes=2; cache={'_mu': {'size': 2, 'cap': 4096, 'hits': 0, 'misses': 2, 'evictions': 0, 'hit_rate': 0.0}, '_width': {'size': 2, 'cap': 4096, 'hits': 10, 'misses': 2, 'evictions': 0, 'hit_rate': 0.8333}}
+[18:17:58] [adaptive] ours           bald             k= 2 answered= 0.5/2 floored=    0 full=0.1871 tail=0.0486 (interview 0.01m + score 0.03m)
+[18:17:58] [adaptive] bald             turn 1/4: 0.3s  answered so far 0.31  concept-asks 0  distinct ask-prefixes 1
+[18:17:59] [adaptive] bald             turn 2/4: 0.5s  answered so far 0.51  concept-asks 0  distinct ask-prefixes 2
+[18:18:00] [adaptive] bald             turn 3/4: 1.0s  answered so far 0.65  concept-asks 0  distinct ask-prefixes 3
+[18:18:01] [adaptive] bald             turn 4/4: 1.0s  answered so far 0.90  concept-asks 0  distinct ask-prefixes 4
+[18:18:01] [adaptive] INTERVIEW bald             k= 4 done in 0.05m; answered=0.90/4; distinct ask-prefixes=4; cache={'_mu': {'size': 8, 'cap': 4096, 'hits': 0, 'misses': 8, 'evictions': 0, 'hit_rate': 0.0}, '_width': {'size': 8, 'cap': 4096, 'hits': 86, 'misses': 8, 'evictions': 0, 'hit_rate': 0.9149}}
+[18:18:02] [adaptive] ours           bald             k= 4 answered= 0.9/4 floored=    0 full=0.1998 tail=0.0569 (interview 0.05m + score 0.02m)
+[18:18:02] [adaptive] bald             turn 1/8: 0.1s  answered so far 0.31  concept-asks 0  distinct ask-prefixes 1
+[18:18:03] [adaptive] bald             turn 2/8: 0.1s  answered so far 0.51  concept-asks 0  distinct ask-prefixes 2
+[18:18:03] [adaptive] bald             turn 3/8: 0.5s  answered so far 0.65  concept-asks 0  distinct ask-prefixes 3
+[18:18:04] [adaptive] bald             turn 4/8: 0.8s  answered so far 0.90  concept-asks 0  distinct ask-prefixes 4
+[18:18:06] [adaptive] bald             turn 5/8: 1.7s  answered so far 1.05  concept-asks 0  distinct ask-prefixes 10
+[18:18:08] [adaptive] bald             turn 6/8: 2.5s  answered so far 1.17  concept-asks 0  distinct ask-prefixes 20
+[18:18:11] [adaptive] bald             turn 7/8: 2.4s  answered so far 1.43  concept-asks 0  distinct ask-prefixes 27
+[18:18:13] [adaptive] bald             turn 8/8: 2.8s  answered so far 1.58  concept-asks 0  distinct ask-prefixes 37
+[18:18:13] [adaptive] INTERVIEW bald             k= 8 done in 0.18m; answered=1.58/8; distinct ask-prefixes=37; cache={'_mu': {'size': 54, 'cap': 4096, 'hits': 0, 'misses': 54, 'evictions': 0, 'hit_rate': 0.0}, '_width': {'size': 54, 'cap': 4096, 'hits': 384, 'misses': 54, 'evictions': 0, 'hit_rate': 0.8767}}
+[18:18:14] [adaptive] ours           bald             k= 8 answered= 1.6/8 floored=    0 full=0.2130 tail=0.0664 (interview 0.18m + score 0.01m)
+[18:18:14] [adaptive] bald             turn 1/16: 0.1s  answered so far 0.31  concept-asks 0  distinct ask-prefixes 1
+[18:18:15] [adaptive] bald             turn 2/16: 0.2s  answered so far 0.51  concept-asks 0  distinct ask-prefixes 2
+[18:18:15] [adaptive] bald             turn 3/16: 0.4s  answered so far 0.65  concept-asks 0  distinct ask-prefixes 3
+[18:18:16] [adaptive] bald             turn 4/16: 0.9s  answered so far 0.90  concept-asks 0  distinct ask-prefixes 4
+[18:18:17] [adaptive] bald             turn 5/16: 1.5s  answered so far 1.05  concept-asks 0  distinct ask-prefixes 10
+[18:18:20] [adaptive] bald             turn 6/16: 2.4s  answered so far 1.17  concept-asks 0  distinct ask-prefixes 20
+[18:18:22] [adaptive] bald             turn 7/16: 2.0s  answered so far 1.43  concept-asks 0  distinct ask-prefixes 27
+[18:18:24] [adaptive] bald             turn 8/16: 2.4s  answered so far 1.58  concept-asks 0  distinct ask-prefixes 37
+[18:18:27] [adaptive] bald             turn 9/16: 3.2s  answered so far 1.73  concept-asks 0  distinct ask-prefixes 44
+[18:18:31] [adaptive] bald             turn 10/16: 3.6s  answered so far 1.84  concept-asks 0  distinct ask-prefixes 56
+[18:18:35] [adaptive] bald             turn 11/16: 3.8s  answered so far 1.99  concept-asks 0  distinct ask-prefixes 65
+[18:18:40] [adaptive] bald             turn 12/16: 4.9s  answered so far 2.12  concept-asks 0  distinct ask-prefixes 74
+[18:18:44] [adaptive] bald             turn 13/16: 4.0s  answered so far 2.31  concept-asks 0  distinct ask-prefixes 80
+[18:18:50] [adaptive] bald             turn 14/16: 6.2s  answered so far 2.44  concept-asks 0  distinct ask-prefixes 88
+[18:18:54] [adaptive] bald             turn 15/16: 4.3s  answered so far 2.57  concept-asks 0  distinct ask-prefixes 98
+[18:19:00] [adaptive] bald             turn 16/16: 5.1s  answered so far 2.69  concept-asks 0  distinct ask-prefixes 103
+[18:19:00] [adaptive] INTERVIEW bald             k=16 done in 0.75m; answered=2.69/16; distinct ask-prefixes=103; cache={'_mu': {'size': 230, 'cap': 4096, 'hits': 0, 'misses': 230, 'evictions': 0, 'hit_rate': 0.0}, '_width': {'size': 230, 'cap': 4096, 'hits': 1244, 'misses': 230, 'evictions': 0, 'hit_rate': 0.844}}
+[18:19:00] [adaptive] ours           bald             k=16 answered= 2.7/16 floored=    0 full=0.2295 tail=0.0821 (interview 0.75m + score 0.01m)
+[18:19:01] [adaptive] aopt             turn 1/1: 0.1s  answered so far 0.19  concept-asks 0  distinct ask-prefixes 1
+[18:19:01] [adaptive] INTERVIEW aopt             k= 1 done in 0.00m; answered=0.19/1; distinct ask-prefixes=1; cache={'_gain': {'size': 1, 'cap': 4096, 'hits': 0, 'misses': 1, 'evictions': 0, 'hit_rate': 0.0}, '_mu': {'size': 1, 'cap': 4096, 'hits': 0, 'misses': 1, 'evictions': 0, 'hit_rate': 0.0}}
+[18:19:02] [adaptive] ours           aopt             k= 1 answered= 0.2/1 floored=    0 full=0.1730 tail=0.0522 (interview 0.00m + score 0.02m)
+[18:19:02] [adaptive] aopt             turn 1/2: 0.1s  answered so far 0.19  concept-asks 0  distinct ask-prefixes 1
+[18:19:02] [adaptive] aopt             turn 2/2: 0.2s  answered so far 0.33  concept-asks 0  distinct ask-prefixes 2
+[18:19:02] [adaptive] INTERVIEW aopt             k= 2 done in 0.01m; answered=0.33/2; distinct ask-prefixes=2; cache={'_gain': {'size': 2, 'cap': 4096, 'hits': 7, 'misses': 2, 'evictions': 0, 'hit_rate': 0.7778}, '_mu': {'size': 2, 'cap': 4096, 'hits': 0, 'misses': 2, 'evictions': 0, 'hit_rate': 0.0}}
+[18:19:03] [adaptive] ours           aopt             k= 2 answered= 0.3/2 floored=    0 full=0.1749 tail=0.0496 (interview 0.01m + score 0.01m)
+[18:19:03] [adaptive] aopt             turn 1/4: 0.1s  answered so far 0.19  concept-asks 0  distinct ask-prefixes 1
+[18:19:03] [adaptive] aopt             turn 2/4: 0.2s  answered so far 0.33  concept-asks 0  distinct ask-prefixes 2
+[18:19:04] [adaptive] aopt             turn 3/4: 0.4s  answered so far 0.45  concept-asks 0  distinct ask-prefixes 4
+[18:19:04] [adaptive] aopt             turn 4/4: 0.7s  answered so far 0.57  concept-asks 0  distinct ask-prefixes 8
+[18:19:04] [adaptive] INTERVIEW aopt             k= 4 done in 0.02m; answered=0.57/4; distinct ask-prefixes=8; cache={'_gain': {'size': 8, 'cap': 4096, 'hits': 63, 'misses': 8, 'evictions': 0, 'hit_rate': 0.8873}, '_mu': {'size': 8, 'cap': 4096, 'hits': 0, 'misses': 8, 'evictions': 0, 'hit_rate': 0.0}}
+[18:19:05] [adaptive] ours           aopt             k= 4 answered= 0.6/4 floored=    0 full=0.1707 tail=0.0559 (interview 0.02m + score 0.01m)
+[18:19:05] [adaptive] aopt             turn 1/8: 0.1s  answered so far 0.19  concept-asks 0  distinct ask-prefixes 1
+[18:19:06] [adaptive] aopt             turn 2/8: 0.2s  answered so far 0.33  concept-asks 0  distinct ask-prefixes 2
+[18:19:06] [adaptive] aopt             turn 3/8: 0.4s  answered so far 0.45  concept-asks 0  distinct ask-prefixes 4
+[18:19:07] [adaptive] aopt             turn 4/8: 0.8s  answered so far 0.57  concept-asks 0  distinct ask-prefixes 8
+[18:19:09] [adaptive] aopt             turn 5/8: 2.4s  answered so far 0.67  concept-asks 0  distinct ask-prefixes 13
+[18:19:12] [adaptive] aopt             turn 6/8: 2.9s  answered so far 0.78  concept-asks 0  distinct ask-prefixes 25
+[18:19:16] [adaptive] aopt             turn 7/8: 3.5s  answered so far 0.85  concept-asks 0  distinct ask-prefixes 28
+[18:19:19] [adaptive] aopt             turn 8/8: 3.0s  answered so far 0.97  concept-asks 0  distinct ask-prefixes 35
+[18:19:19] [adaptive] INTERVIEW aopt             k= 8 done in 0.23m; answered=0.97/8; distinct ask-prefixes=35; cache={'_gain': {'size': 56, 'cap': 4096, 'hits': 231, 'misses': 56, 'evictions': 0, 'hit_rate': 0.8049}, '_mu': {'size': 56, 'cap': 4096, 'hits': 0, 'misses': 56, 'evictions': 0, 'hit_rate': 0.0}}
+[18:19:20] [adaptive] ours           aopt             k= 8 answered= 1.0/8 floored=    0 full=0.1718 tail=0.0543 (interview 0.23m + score 0.02m)
+[18:19:20] [adaptive] aopt             turn 1/16: 0.1s  answered so far 0.19  concept-asks 0  distinct ask-prefixes 1
+[18:19:21] [adaptive] aopt             turn 2/16: 0.3s  answered so far 0.33  concept-asks 0  distinct ask-prefixes 2
+[18:19:21] [adaptive] aopt             turn 3/16: 0.6s  answered so far 0.45  concept-asks 0  distinct ask-prefixes 4
+[18:19:22] [adaptive] aopt             turn 4/16: 0.8s  answered so far 0.57  concept-asks 0  distinct ask-prefixes 8
+[18:19:24] [adaptive] aopt             turn 5/16: 1.5s  answered so far 0.67  concept-asks 0  distinct ask-prefixes 13
+[18:19:27] [adaptive] aopt             turn 6/16: 3.0s  answered so far 0.78  concept-asks 0  distinct ask-prefixes 25
+[18:19:30] [adaptive] aopt             turn 7/16: 3.4s  answered so far 0.85  concept-asks 0  distinct ask-prefixes 28
+[18:19:33] [adaptive] aopt             turn 8/16: 2.7s  answered so far 0.97  concept-asks 0  distinct ask-prefixes 35
+[18:19:35] [adaptive] aopt             turn 9/16: 2.6s  answered so far 1.11  concept-asks 0  distinct ask-prefixes 40
+[18:19:38] [adaptive] aopt             turn 10/16: 2.9s  answered so far 1.26  concept-asks 0  distinct ask-prefixes 44
+[18:19:42] [adaptive] aopt             turn 11/16: 3.5s  answered so far 1.33  concept-asks 0  distinct ask-prefixes 50
+[18:19:45] [adaptive] aopt             turn 12/16: 3.4s  answered so far 1.41  concept-asks 0  distinct ask-prefixes 53
+[18:19:48] [adaptive] aopt             turn 13/16: 2.4s  answered so far 1.51  concept-asks 0  distinct ask-prefixes 59
+[18:19:50] [adaptive] aopt             turn 14/16: 2.6s  answered so far 1.64  concept-asks 0  distinct ask-prefixes 64
+[18:19:54] [adaptive] aopt             turn 15/16: 3.6s  answered so far 1.72  concept-asks 0  distinct ask-prefixes 68
+[18:19:58] [adaptive] aopt             turn 16/16: 3.6s  answered so far 1.83  concept-asks 0  distinct ask-prefixes 70
+[18:19:58] [adaptive] INTERVIEW aopt             k=16 done in 0.62m; answered=1.83/16; distinct ask-prefixes=70; cache={'_gain': {'size': 173, 'cap': 4096, 'hits': 784, 'misses': 173, 'evictions': 0, 'hit_rate': 0.8192}, '_mu': {'size': 173, 'cap': 4096, 'hits': 0, 'misses': 173, 'evictions': 0, 'hit_rate': 0.0}}
+[18:19:59] [adaptive] ours           aopt             k=16 answered= 1.8/16 floored=    0 full=0.1756 tail=0.0634 (interview 0.62m + score 0.02m)
+[18:19:59] [adaptive] glm_ucb          turn 1/1: 0.1s  answered so far 0.41  concept-asks 0  distinct ask-prefixes 1
+[18:19:59] [adaptive] INTERVIEW glm_ucb          k= 1 done in 0.00m; answered=0.41/1; distinct ask-prefixes=1; cache={'_mu': {'size': 1, 'cap': 4096, 'hits': 1, 'misses': 1, 'evictions': 0, 'hit_rate': 0.5}, '_width': {'size': 1, 'cap': 4096, 'hits': 0, 'misses': 1, 'evictions': 0, 'hit_rate': 0.0}}
+[18:20:00] [adaptive] ours           glm_ucb          k= 1 answered= 0.4/1 floored=    0 full=0.1639 tail=0.0348 (interview 0.00m + score 0.02m)
+[18:20:00] [adaptive] glm_ucb          turn 1/2: 0.1s  answered so far 0.41  concept-asks 0  distinct ask-prefixes 1
+[18:20:01] [adaptive] glm_ucb          turn 2/2: 0.7s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 1
+[18:20:01] [adaptive] INTERVIEW glm_ucb          k= 2 done in 0.01m; answered=0.81/2; distinct ask-prefixes=1; cache={'_mu': {'size': 7, 'cap': 4096, 'hits': 3, 'misses': 7, 'evictions': 0, 'hit_rate': 0.3}, '_width': {'size': 2, 'cap': 4096, 'hits': 6, 'misses': 2, 'evictions': 0, 'hit_rate': 0.75}}
+[18:20:02] [adaptive] ours           glm_ucb          k= 2 answered= 0.8/2 floored=    0 full=0.1712 tail=0.0402 (interview 0.01m + score 0.02m)
+[18:20:02] [adaptive] glm_ucb          turn 1/4: 0.1s  answered so far 0.41  concept-asks 0  distinct ask-prefixes 1
+[18:20:03] [adaptive] glm_ucb          turn 2/4: 0.6s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 1
+[18:20:06] [adaptive] glm_ucb          turn 3/4: 2.7s  answered so far 1.26  concept-asks 0  distinct ask-prefixes 4
+[18:20:13] [adaptive] glm_ucb          turn 4/4: 7.8s  answered so far 1.63  concept-asks 0  distinct ask-prefixes 7
+[18:20:13] [adaptive] INTERVIEW glm_ucb          k= 4 done in 0.19m; answered=1.63/4; distinct ask-prefixes=7; cache={'_mu': {'size': 90, 'cap': 4096, 'hits': 41, 'misses': 90, 'evictions': 0, 'hit_rate': 0.313}, '_width': {'size': 13, 'cap': 4096, 'hits': 105, 'misses': 13, 'evictions': 0, 'hit_rate': 0.8898}}
+[18:20:15] [adaptive] ours           glm_ucb          k= 4 answered= 1.6/4 floored=    0 full=0.1755 tail=0.0580 (interview 0.19m + score 0.02m)
+[18:20:15] [adaptive] glm_ucb          turn 1/8: 0.1s  answered so far 0.41  concept-asks 0  distinct ask-prefixes 1
+[18:20:16] [adaptive] glm_ucb          turn 2/8: 0.6s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 1
+[18:20:18] [adaptive] glm_ucb          turn 3/8: 2.6s  answered so far 1.26  concept-asks 0  distinct ask-prefixes 4
+[18:20:24] [adaptive] glm_ucb          turn 4/8: 5.3s  answered so far 1.63  concept-asks 0  distinct ask-prefixes 7
+[18:20:30] [adaptive] glm_ucb          turn 5/8: 6.4s  answered so far 1.95  concept-asks 0  distinct ask-prefixes 11
+[18:20:38] [adaptive] glm_ucb          turn 6/8: 7.8s  answered so far 2.40  concept-asks 0  distinct ask-prefixes 16
+[18:20:48] [adaptive] glm_ucb          turn 7/8: 9.9s  answered so far 2.70  concept-asks 0  distinct ask-prefixes 24
+[18:20:59] [adaptive] glm_ucb          turn 8/8: 10.7s  answered so far 3.00  concept-asks 0  distinct ask-prefixes 38
+[18:20:59] [adaptive] INTERVIEW glm_ucb          k= 8 done in 0.73m; answered=3.00/8; distinct ask-prefixes=38; cache={'_mu': {'size': 350, 'cap': 4096, 'hits': 420, 'misses': 350, 'evictions': 0, 'hit_rate': 0.5455}, '_width': {'size': 113, 'cap': 4096, 'hits': 544, 'misses': 113, 'evictions': 0, 'hit_rate': 0.828}}
+[18:20:59] [adaptive] ours           glm_ucb          k= 8 answered= 3.0/8 floored=    0 full=0.1914 tail=0.0594 (interview 0.73m + score 0.01m)
+[18:21:00] [adaptive] glm_ucb          turn 1/16: 0.1s  answered so far 0.41  concept-asks 0  distinct ask-prefixes 1
+[18:21:00] [adaptive] glm_ucb          turn 2/16: 0.7s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 1
+[18:21:03] [adaptive] glm_ucb          turn 3/16: 2.4s  answered so far 1.26  concept-asks 0  distinct ask-prefixes 4
+[18:21:09] [adaptive] glm_ucb          turn 4/16: 6.2s  answered so far 1.63  concept-asks 0  distinct ask-prefixes 7
+[18:21:17] [adaptive] glm_ucb          turn 5/16: 7.6s  answered so far 1.95  concept-asks 0  distinct ask-prefixes 11
+[18:21:24] [adaptive] glm_ucb          turn 6/16: 7.8s  answered so far 2.40  concept-asks 0  distinct ask-prefixes 16
+[18:21:34] [adaptive] glm_ucb          turn 7/16: 9.4s  answered so far 2.70  concept-asks 0  distinct ask-prefixes 24
+[18:21:45] [adaptive] glm_ucb          turn 8/16: 10.9s  answered so far 3.00  concept-asks 0  distinct ask-prefixes 38
+[18:21:54] [adaptive] glm_ucb          turn 9/16: 9.4s  answered so far 3.35  concept-asks 0  distinct ask-prefixes 52
+[18:22:06] [adaptive] glm_ucb          turn 10/16: 11.7s  answered so far 3.67  concept-asks 0  distinct ask-prefixes 74
+[18:22:30] [adaptive] glm_ucb          turn 11/16: 24.2s  answered so far 3.95  concept-asks 0  distinct ask-prefixes 94
+[18:22:49] [adaptive] glm_ucb          turn 12/16: 19.0s  answered so far 4.25  concept-asks 0  distinct ask-prefixes 112
+[18:23:26] [adaptive] glm_ucb          turn 13/16: 37.2s  answered so far 4.53  concept-asks 0  distinct ask-prefixes 126
+[18:23:56] [adaptive] glm_ucb          turn 14/16: 29.3s  answered so far 4.79  concept-asks 0  distinct ask-prefixes 143
+[18:24:18] [adaptive] glm_ucb          turn 15/16: 21.8s  answered so far 5.04  concept-asks 0  distinct ask-prefixes 159
+[18:24:36] [adaptive] glm_ucb          turn 16/16: 18.8s  answered so far 5.32  concept-asks 0  distinct ask-prefixes 169
+[18:24:36] [adaptive] INTERVIEW glm_ucb          k=16 done in 3.62m; answered=5.32/16; distinct ask-prefixes=169; cache={'_mu': {'size': 812, 'cap': 4096, 'hits': 1768, 'misses': 812, 'evictions': 0, 'hit_rate': 0.6853}, '_width': {'size': 527, 'cap': 4096, 'hits': 1526, 'misses': 527, 'evictions': 0, 'hit_rate': 0.7433}}
+[18:24:38] [adaptive] ours           glm_ucb          k=16 answered= 5.3/16 floored=    0 full=0.2220 tail=0.0693 (interview 3.62m + score 0.02m)
+[18:24:38] [fixedorder] entropy0: first 1 questions [8]
+[18:24:38] [adaptive] fixedorder:entropy0 turn 1/1: 0.0s  answered so far 0.38  concept-asks 0  distinct ask-prefixes 1
+[18:24:38] [adaptive] INTERVIEW fixedorder:entropy0 k= 1 done in 0.00m; answered=0.38/1; distinct ask-prefixes=1; cache=None
+[18:24:38] [adaptive] ours           fixedorder:entropy0 k= 1 answered= 0.4/1 floored=    0 full=0.1579 tail=0.0402 (interview 0.00m + score 0.01m)
+[18:24:38] [fixedorder] entropy0: first 2 questions [8, 121]
+[18:24:38] [adaptive] fixedorder:entropy0 turn 1/2: 0.0s  answered so far 0.38  concept-asks 0  distinct ask-prefixes 1
+[18:24:38] [adaptive] fixedorder:entropy0 turn 2/2: 0.0s  answered so far 0.82  concept-asks 0  distinct ask-prefixes 1
+[18:24:38] [adaptive] INTERVIEW fixedorder:entropy0 k= 2 done in 0.00m; answered=0.82/2; distinct ask-prefixes=1; cache=None
+[18:24:40] [adaptive] ours           fixedorder:entropy0 k= 2 answered= 0.8/2 floored=    0 full=0.1673 tail=0.0469 (interview 0.00m + score 0.02m)
+[18:24:40] [fixedorder] entropy0: first 4 questions [8, 121, 59, 123]
+[18:24:40] [adaptive] fixedorder:entropy0 turn 1/4: 0.0s  answered so far 0.38  concept-asks 0  distinct ask-prefixes 1
+[18:24:40] [adaptive] fixedorder:entropy0 turn 2/4: 0.0s  answered so far 0.82  concept-asks 0  distinct ask-prefixes 1
+[18:24:40] [adaptive] fixedorder:entropy0 turn 3/4: 0.0s  answered so far 1.24  concept-asks 0  distinct ask-prefixes 1
+[18:24:40] [adaptive] fixedorder:entropy0 turn 4/4: 0.0s  answered so far 1.63  concept-asks 0  distinct ask-prefixes 1
+[18:24:40] [adaptive] INTERVIEW fixedorder:entropy0 k= 4 done in 0.00m; answered=1.63/4; distinct ask-prefixes=1; cache=None
+[18:24:42] [adaptive] ours           fixedorder:entropy0 k= 4 answered= 1.6/4 floored=    0 full=0.1766 tail=0.0485 (interview 0.00m + score 0.03m)
+[18:24:42] [fixedorder] entropy0: first 8 questions [8, 121, 59, 123, 5, 4, 631, 0]
+[18:24:42] [adaptive] fixedorder:entropy0 turn 1/8: 0.0s  answered so far 0.38  concept-asks 0  distinct ask-prefixes 1
+[18:24:42] [adaptive] fixedorder:entropy0 turn 2/8: 0.0s  answered so far 0.82  concept-asks 0  distinct ask-prefixes 1
+[18:24:42] [adaptive] fixedorder:entropy0 turn 3/8: 0.0s  answered so far 1.24  concept-asks 0  distinct ask-prefixes 1
+[18:24:42] [adaptive] fixedorder:entropy0 turn 4/8: 0.0s  answered so far 1.63  concept-asks 0  distinct ask-prefixes 1
+[18:24:42] [adaptive] fixedorder:entropy0 turn 5/8: 0.0s  answered so far 2.04  concept-asks 0  distinct ask-prefixes 1
+[18:24:42] [adaptive] fixedorder:entropy0 turn 6/8: 0.0s  answered so far 2.38  concept-asks 0  distinct ask-prefixes 1
+[18:24:42] [adaptive] fixedorder:entropy0 turn 7/8: 0.0s  answered so far 2.72  concept-asks 0  distinct ask-prefixes 1
+[18:24:42] [adaptive] fixedorder:entropy0 turn 8/8: 0.0s  answered so far 3.03  concept-asks 0  distinct ask-prefixes 1
+[18:24:42] [adaptive] INTERVIEW fixedorder:entropy0 k= 8 done in 0.01m; answered=3.03/8; distinct ask-prefixes=1; cache=None
+[18:24:45] [adaptive] ours           fixedorder:entropy0 k= 8 answered= 3.0/8 floored=    0 full=0.2037 tail=0.0579 (interview 0.01m + score 0.05m)
+[18:24:45] [fixedorder] entropy0: first 16 questions [8, 121, 59, 123, 5, 4, 631, 0, 113, 14, 83, 157, 12, 19, 22, 155]
+[18:24:45] [adaptive] fixedorder:entropy0 turn 1/16: 0.0s  answered so far 0.38  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 2/16: 0.0s  answered so far 0.82  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 3/16: 0.0s  answered so far 1.24  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 4/16: 0.0s  answered so far 1.63  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 5/16: 0.0s  answered so far 2.04  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 6/16: 0.0s  answered so far 2.38  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 7/16: 0.0s  answered so far 2.72  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 8/16: 0.0s  answered so far 3.03  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 9/16: 0.0s  answered so far 3.29  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 10/16: 0.0s  answered so far 3.59  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 11/16: 0.0s  answered so far 3.90  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 12/16: 0.0s  answered so far 4.22  concept-asks 0  distinct ask-prefixes 1
+[18:24:45] [adaptive] fixedorder:entropy0 turn 13/16: 0.0s  answered so far 4.57  concept-asks 0  distinct ask-prefixes 1
+[18:24:46] [adaptive] fixedorder:entropy0 turn 14/16: 0.0s  answered so far 4.87  concept-asks 0  distinct ask-prefixes 1
+[18:24:46] [adaptive] fixedorder:entropy0 turn 15/16: 0.0s  answered so far 5.15  concept-asks 0  distinct ask-prefixes 1
+[18:24:46] [adaptive] fixedorder:entropy0 turn 16/16: 0.0s  answered so far 5.46  concept-asks 0  distinct ask-prefixes 1
+[18:24:46] [adaptive] INTERVIEW fixedorder:entropy0 k=16 done in 0.01m; answered=5.46/16; distinct ask-prefixes=1; cache=None
+[18:24:47] [adaptive] ours           fixedorder:entropy0 k=16 answered= 5.5/16 floored=    0 full=0.2329 tail=0.0724 (interview 0.01m + score 0.01m)
+[18:24:47] [fixedorder] greedy_items: first 1 questions [83]
+[18:24:47] [adaptive] fixedorder:greedy_items turn 1/1: 0.0s  answered so far 0.30  concept-asks 0  distinct ask-prefixes 1
+[18:24:47] [adaptive] INTERVIEW fixedorder:greedy_items k= 1 done in 0.00m; answered=0.30/1; distinct ask-prefixes=1; cache=None
+[18:24:48] [adaptive] ours           fixedorder:greedy_items k= 1 answered= 0.3/1 floored=    0 full=0.1781 tail=0.0409 (interview 0.00m + score 0.02m)
+[18:24:48] [fixedorder] greedy_items: first 2 questions [83, 583]
+[18:24:48] [adaptive] fixedorder:greedy_items turn 1/2: 0.0s  answered so far 0.30  concept-asks 0  distinct ask-prefixes 1
+[18:24:48] [adaptive] fixedorder:greedy_items turn 2/2: 0.0s  answered so far 0.57  concept-asks 0  distinct ask-prefixes 1
+[18:24:48] [adaptive] INTERVIEW fixedorder:greedy_items k= 2 done in 0.00m; answered=0.57/2; distinct ask-prefixes=1; cache=None
+[18:24:49] [adaptive] ours           fixedorder:greedy_items k= 2 answered= 0.6/2 floored=    0 full=0.1996 tail=0.0549 (interview 0.00m + score 0.02m)
+[18:24:49] [fixedorder] greedy_items: first 4 questions [83, 583, 19, 8]
+[18:24:49] [adaptive] fixedorder:greedy_items turn 1/4: 0.0s  answered so far 0.30  concept-asks 0  distinct ask-prefixes 1
+[18:24:49] [adaptive] fixedorder:greedy_items turn 2/4: 0.0s  answered so far 0.57  concept-asks 0  distinct ask-prefixes 1
+[18:24:49] [adaptive] fixedorder:greedy_items turn 3/4: 0.0s  answered so far 0.88  concept-asks 0  distinct ask-prefixes 1
+[18:24:49] [adaptive] fixedorder:greedy_items turn 4/4: 0.0s  answered so far 1.25  concept-asks 0  distinct ask-prefixes 1
+[18:24:49] [adaptive] INTERVIEW fixedorder:greedy_items k= 4 done in 0.00m; answered=1.25/4; distinct ask-prefixes=1; cache=None
+[18:24:50] [adaptive] ours           fixedorder:greedy_items k= 4 answered= 1.3/4 floored=    0 full=0.2056 tail=0.0690 (interview 0.00m + score 0.02m)
+[18:24:50] [fixedorder] greedy_items: first 8 questions [83, 583, 19, 8, 22, 89, 123, 140]
+[18:24:50] [adaptive] fixedorder:greedy_items turn 1/8: 0.0s  answered so far 0.30  concept-asks 0  distinct ask-prefixes 1
+[18:24:50] [adaptive] fixedorder:greedy_items turn 2/8: 0.0s  answered so far 0.57  concept-asks 0  distinct ask-prefixes 1
+[18:24:50] [adaptive] fixedorder:greedy_items turn 3/8: 0.0s  answered so far 0.88  concept-asks 0  distinct ask-prefixes 1
+[18:24:50] [adaptive] fixedorder:greedy_items turn 4/8: 0.0s  answered so far 1.25  concept-asks 0  distinct ask-prefixes 1
+[18:24:51] [adaptive] fixedorder:greedy_items turn 5/8: 0.0s  answered so far 1.53  concept-asks 0  distinct ask-prefixes 1
+[18:24:51] [adaptive] fixedorder:greedy_items turn 6/8: 0.0s  answered so far 1.84  concept-asks 0  distinct ask-prefixes 1
+[18:24:51] [adaptive] fixedorder:greedy_items turn 7/8: 0.0s  answered so far 2.24  concept-asks 0  distinct ask-prefixes 1
+[18:24:51] [adaptive] fixedorder:greedy_items turn 8/8: 0.0s  answered so far 2.42  concept-asks 0  distinct ask-prefixes 1
+[18:24:51] [adaptive] INTERVIEW fixedorder:greedy_items k= 8 done in 0.00m; answered=2.42/8; distinct ask-prefixes=1; cache=None
+[18:24:52] [adaptive] ours           fixedorder:greedy_items k= 8 answered= 2.4/8 floored=    0 full=0.2321 tail=0.0672 (interview 0.00m + score 0.02m)
+[18:24:52] [fixedorder] greedy_items: first 16 questions [83, 583, 19, 8, 22, 89, 123, 140, 2195, 146, 343, 14, 155, 631, 127, 29]
+[18:24:52] [adaptive] fixedorder:greedy_items turn 1/16: 0.0s  answered so far 0.30  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 2/16: 0.0s  answered so far 0.57  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 3/16: 0.0s  answered so far 0.88  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 4/16: 0.0s  answered so far 1.25  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 5/16: 0.0s  answered so far 1.53  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 6/16: 0.0s  answered so far 1.84  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 7/16: 0.0s  answered so far 2.24  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 8/16: 0.0s  answered so far 2.42  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 9/16: 0.0s  answered so far 2.48  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 10/16: 0.0s  answered so far 2.60  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 11/16: 0.0s  answered so far 2.69  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 12/16: 0.0s  answered so far 2.99  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 13/16: 0.0s  answered so far 3.30  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 14/16: 0.0s  answered so far 3.63  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 15/16: 0.0s  answered so far 3.92  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] fixedorder:greedy_items turn 16/16: 0.0s  answered so far 4.12  concept-asks 0  distinct ask-prefixes 1
+[18:24:52] [adaptive] INTERVIEW fixedorder:greedy_items k=16 done in 0.01m; answered=4.12/16; distinct ask-prefixes=1; cache=None
+[18:24:54] [adaptive] ours           fixedorder:greedy_items k=16 answered= 4.1/16 floored=    0 full=0.2430 tail=0.0896 (interview 0.01m + score 0.04m)
+[18:24:54] [adaptive] done -> C:\dev\phd\casper\experiments\baselines\interview\SMOKE_adaptive_table_task23_bald_aopt.json

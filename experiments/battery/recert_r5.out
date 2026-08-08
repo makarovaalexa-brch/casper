@@ -10,3 +10,28 @@
 [18:09:33] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
 [18:09:46] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
 [18:13:57] [k=2] true=0.1772 memb4=0.1747 likes=0.1670 flip=0.1388 | values=+0.0025 reveal=+0.0077 flip=-0.0385 (3.2m)
+[18:16:40] [k=4] true=0.2022 memb4=0.1855 likes=0.1942 flip=0.1333 | values=+0.0166 reveal=-0.0087 flip=-0.0689 (2.7m)
+[18:19:05] [k=8] true=0.2275 memb4=0.1953 likes=0.2265 flip=0.1179 | values=+0.0322 reveal=-0.0312 flip=-0.1096 (2.4m)
+[18:22:13] [k=16] true=0.2601 memb4=0.2020 likes=0.2615 flip=0.0900 | values=+0.0581 reveal=-0.0595 flip=-0.1701 (3.1m)
+[18:40:46] [k=full] true=0.3489 memb4=0.2457 likes=0.3466 flip=0.0574 | values=+0.1032 reveal=-0.1010 flip=-0.2915 (18.6m)
+
+=== GRADED PREMIUM vs EVIDENCE SIZE (t2i26c_ep31.pt, VAL, parity mask; full@10) ===
+    k     true    memb4    likes     flip  values_prem  reveal_prem  flip_delta likes_eff
+    2   0.1772   0.1747   0.1670   0.1388      +0.0025      +0.0077     -0.0385       1.1
+    4   0.2022   0.1855   0.1942   0.1333      +0.0166      -0.0087     -0.0689       2.1
+    8   0.2275   0.1953   0.2265   0.1179      +0.0322      -0.0312     -0.1096       4.3
+   16   0.2601   0.2020   0.2615   0.0900      +0.0581      -0.0595     -0.1701       8.5
+ full   0.3489   0.2457   0.3466   0.0574      +0.1032      -0.1010     -0.2915      61.9
+JSON -> C:\dev\phd\casper\experiments\battery\premium_vs_k_t2i26c_ep31.json
+[18:40:50] --- step 1 exit=0 in 32.7 min
+[18:40:50] --- step 2/2: sign_probe (same questions, different answer expressiveness, TEST, protocol pool)
+[18:41:05] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[18:41:05] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[18:41:05] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[18:41:07] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[18:41:07] [model] i25 arm A: decoder FROZEN RecVAE W+b (G0-identity restored)
+[18:41:07] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[18:41:07] [model] arch=i25 d_lat=200 TRAINABLE=838,250 FROZEN=7,362,159 (+ unregistered frozen native encoder ~13.4M params, not counted/saved) train_decoder=False
+[18:41:09] --- step 2 exit=1 in 0.3 min
+[18:41:09] *** step 2 FAILED -- continuing to the next step; this one must be re-run ***
+[18:41:09] done
