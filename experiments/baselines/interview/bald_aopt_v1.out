@@ -122,3 +122,6 @@
 [19:20:57] [adaptive] glm_ucb          turn 3/16: 3.4s  answered so far 1.23  concept-asks 0  distinct ask-prefixes 9
 [19:21:14] [adaptive] glm_ucb          turn 4/16: 16.6s  answered so far 1.66  concept-asks 0  distinct ask-prefixes 22
 [19:21:58] [adaptive] glm_ucb          turn 5/16: 43.3s  answered so far 2.00  concept-asks 0  distinct ask-prefixes 39
+[19:23:44] [adaptive] glm_ucb          turn 6/16: 106.5s  answered so far 2.38  concept-asks 0  distinct ask-prefixes 82
+[19:25:22] [adaptive] glm_ucb          turn 7/16: 97.5s  answered so far 2.67  concept-asks 0  distinct ask-prefixes 159
+[19:28:04] [adaptive] glm_ucb          turn 8/16: 161.3s  answered so far 2.97  concept-asks 0  distinct ask-prefixes 314
