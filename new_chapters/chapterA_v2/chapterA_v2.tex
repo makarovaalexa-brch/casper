@@ -440,7 +440,7 @@ trained as published on rating regression, reaches $0.0060$ against $0.3324$ for
 Every one of those three makes the rating the quantity it \emph{predicts}. The exception is
 iALS with ratings as confidence~\cite{hu2008collaborative}, $c_{ui}=1+\alpha r_{ui}$, in which the rating
 never becomes a target and only sets how strongly each observation counts: it gains
-$+0.0282$ full NDCG@10 (CI $[+0.0261,+0.0302]$) over the identically-supported binary model.
+$+0.0194$ full NDCG@10 (CI $[+0.0157,+0.0231]$) over the best binary build of the same model.
 
 Isolating that requires care, because the graded fold-in is $2.26\times$ richer than the likes-only one, so
 a naive graded-versus-binary contrast confounds the values with the evidence volume, and with the
@@ -449,8 +449,11 @@ every step separated in a paired bootstrap: re-tuning the ridge alone is worth $
 (CI $[+0.0224,+0.0291]$)---the canonical implicit row is simply under-tuned---while folding the
 \emph{same} additional rated items in with their values \emph{erased} is worth $-0.0088$
 (CI $[-0.0125,-0.0052]$). More evidence, recorded as though every rating were a like, makes the model
-worse. Putting the true values back on that identical support is what recovers $+0.0282$. The effect is a
-matter of sign, not of volume.
+worse. Putting the true values back on that identical support recovers $+0.0282$
+(CI $[+0.0261,+0.0302]$), and the net against the best binary build remains $+0.0194$. The effect is a
+matter of sign, not of volume. We use the fixed-support step to locate \emph{where} the rating acts and
+never as the headline: a control that mislabels dislikes as likes is not the baseline any deployed
+positive-only system presents.
 
 This locates the mechanism more precisely than ``rating prediction and top-$N$ ranking are different
 objectives''~\cite{cremonesi2010performance}, which is true but does not distinguish the four rows. A
@@ -472,15 +475,19 @@ that family are worse on their own ratings, and the one system that does gain fr
 elicitation method at all. Nor are we entitled to present graded input as something only the instrument
 turns to account---iALS is a second system that gains from values, and it is a plain matrix factorisation.
 
-What separates the two is which comparison one makes, and the two must not be interchanged. Re-valuing a
-\emph{fixed} revealed set---the contrast that isolates the values---pays $+0.1032$ full for the instrument
-(CI $[+0.0999,+0.1065]$) against iALS's $+0.0282$. \emph{Adding} the sub-threshold items pays the reverse
-way: $+0.0022$ for the instrument (CI $[+0.0008,+0.0036]$) against iALS's $+0.0194$. The instrument gains
-almost nothing from hearing about more items and a great deal from hearing them valued correctly, which is
-the same asymmetry the confidence ladder shows from the other side, where erasing values on a fixed support
-costs $-0.0088$. The two figures are measured on different cohorts and masks---validation under the parity
-mask for the instrument, test under the protocol pool for iALS---so we read the direction and the
-asymmetry from them, not the ratio.
+Against the honest baseline---a positive-only system, which \emph{drops} sub-threshold answers rather than
+mislabelling them---iALS gains more from ratings at full profile than the instrument does: $+0.0194$
+against $+0.0022$ (CI $[+0.0008,+0.0036]$). Our full-profile standing does not rest on graded input, and
+the tower is initialised from a binary-trained recommender. What the levels buy the instrument is
+concentrated in the interview, where they are worth $+0.0102$ at $k{=}2$ and nothing from $k{=}8$
+(Fig.~\ref{fig:gradedcurve}).
+
+One comparison must be kept out of that sentence. Re-valuing a fixed revealed set against a control that
+records \emph{every} answered item as a like is worth far more---$+0.1032$ for the instrument, $+0.0282$
+for iALS---but that control mislabels dislikes rather than discarding them, so its margin grows with
+interview length simply because more revealed items means more corrupted ones. It is the right rung for
+\emph{decomposing} where a rating acts, which is how the confidence ladder above uses it, and the wrong
+number for claiming what graded input is worth. We report it only in the former role.
 
 What the sub-threshold signal is worth to \emph{us} is a question about the \emph{interview}, where evidence
 is scarce and a single ``no'' is a large fraction of what the model knows (\S\ref{sec:batteryresults}). The

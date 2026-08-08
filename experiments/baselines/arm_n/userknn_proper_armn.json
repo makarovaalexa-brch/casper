@@ -1,5 +1,14 @@
 {
   "gates": {
     "mostpop": true
+  },
+  "sweeps": {
+    "graded": [
+      {
+        "lam": 8.0,
+        "val_full": 0.2502561411881085,
+        "val_tail": 0.11618070017169561
+      }
+    ]
   }
 }

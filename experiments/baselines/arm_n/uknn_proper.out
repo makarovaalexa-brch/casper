@@ -7,3 +7,4 @@
 [19:04:01] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
 [19:04:41] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
 [19:04:41] --- arm 1/2: mean-centred ratings (published contract), lambda grid extended to 3200 ---
+[19:08:54]   [graded] lam=    8.0 val full=0.2503 tail=0.1162 (4.2m)

@@ -371,6 +371,39 @@
           "width_dtype": "float32",
           "aopt_obs_noise_s2": 1.0,
           "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k8": {
+          "full": 0.16940817554952017,
+          "tail": 0.05444236762389392,
+          "answered": 1.0067,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.31,
+          "interview_minutes": 0.26,
+          "distinct_prefixes": 118,
+          "cache": {
+            "_gain": {
+              "size": 128,
+              "cap": 4096,
+              "hits": 5071,
+              "misses": 128,
+              "evictions": 0,
+              "hit_rate": 0.9754
+            },
+            "_mu": {
+              "size": 128,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 128,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
         }
       }
     }
