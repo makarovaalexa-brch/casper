@@ -172,6 +172,17 @@
           "score_minutes": 0.42,
           "interview_minutes": 0.13,
           "distinct_prefixes": 187
+        },
+        "k4": {
+          "full": 0.1817492088074021,
+          "tail": 0.06097139363250475,
+          "answered": 1.1501,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.31,
+          "interview_minutes": 0.18,
+          "distinct_prefixes": 7567
         }
       }
     }

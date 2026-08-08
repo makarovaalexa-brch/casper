@@ -81,6 +81,13 @@ def fit(train, n_items, evaluator=None, args=None, ckpt=None, log=print):
     # rating still contributes POSITIVELY -- no sign-awareness.
     # Neither is strictly the published model; the paper's node model is an RMSE estimate. Report both.
     C, _mu = (_centre(train) if centre else (train.tocsr().astype(np.float32), None))
+    # A centred matrix whose every entry is 0 gives a zero cosine basis and therefore a zero score for
+    # every (user, item) -- silently, with no exception and a plausible-looking near-zero NDCG. That is
+    # exactly what centring a BINARY matrix does (row mean 1, values 1). Fail loudly instead.
+    if C.nnz and float(np.abs(C.data).max()) < 1e-8:
+        raise SystemExit("[golbandi_native] the input is annihilated by centring -- every centred value "
+                         "is 0. This happens when a binary/indicator matrix is row-centred. Pass "
+                         "centre=False for an indicator input.")
     Cn = _l2_normalize(C)                   # cosine basis over centred rows
     A = C.copy()
     A.data = np.ones_like(A.data)           # rated-indicator, for the per-item support denominator
@@ -206,8 +213,18 @@ def main():
           + (" [BINARY CONTROL: same estimator, binary input]" if a.binary_control else ""))
     ts = time.time()
     train_X, foldin_X = (D["train"], D["te_tr"]) if a.binary_control else (D["g_train"], D["g_te_tr"])
+    # CENTRING MUST NOT CROSS INTO THE BINARY CONTROL. Row-centring a binary matrix subtracts a row mean
+    # of exactly 1 from values that are all exactly 1: every entry becomes 0, the cosine basis is the zero
+    # matrix, and every score is 0. That is not a weak control, it is an arithmetically empty one -- and it
+    # is what golbandi_native_binctrl.json recorded, ndcg@10 = 7.8e-05, a number that sat on disk looking
+    # like a finding. The `centre` flag is correct for ratings and annihilating for indicators, so it
+    # cannot be carried across the contract change; the binary twin is uncentred cosine, which is the
+    # standard user-kNN recipe anyway.
+    centre = (not a.no_centre) and not a.binary_control
+    if a.binary_control:
+        logln("[golbandi_native] BINARY CONTROL: centring FORCED OFF (centring a binary matrix zeroes it)")
     pr = fit(train_X, D["n_items"],
-             args=argparse.Namespace(k=k, lam=lam, centre=not a.no_centre), log=logln)
+             args=argparse.Namespace(k=k, lam=lam, centre=centre), log=logln)
     t = M.evaluate(pr, foldin_X, D["te_te"], batch_size=500, head_mask=D["head_mask"],
                    mask_X=D["pool"])
     logln(f"[golbandi_native] ARM-N TEST full@10={t['ndcg@10']:.4f} tail@10={t['tail_ndcg@10']:.4f} "

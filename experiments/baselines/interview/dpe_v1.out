@@ -62,3 +62,13 @@
 [10:55:19] [dpe_hellinger] topics=19 score_div=hellinger burn=none update=paper seed=98765
 [10:55:20] [adaptive] dpe_hellinger    turn 1/1: 1.5s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 14
 [10:55:21] [adaptive] INTERVIEW dpe_hellinger    k= 1 done in 0.03m; answered=0.32/1; distinct ask-prefixes=14; cache=None
+[10:56:03] [adaptive] ours           dpe_hellinger    k= 1 answered= 0.3/1 floored=    0 full=0.1627 tail=0.0398 (interview 0.03m + score 0.71m)
+[10:56:03] [dpe_hellinger] topics=19 score_div=hellinger burn=none update=paper seed=98765
+[10:56:05] [adaptive] dpe_hellinger    turn 1/2: 1.4s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 14
+[10:56:11] [adaptive] dpe_hellinger    turn 2/2: 5.6s  answered so far 0.54  concept-asks 0  distinct ask-prefixes 187
+[10:56:11] [adaptive] INTERVIEW dpe_hellinger    k= 2 done in 0.13m; answered=0.54/2; distinct ask-prefixes=187; cache=None
+[10:56:36] [adaptive] ours           dpe_hellinger    k= 2 answered= 0.5/2 floored=    0 full=0.1680 tail=0.0480 (interview 0.13m + score 0.42m)
+[10:56:37] [dpe_hellinger] topics=19 score_div=hellinger burn=none update=paper seed=98765
+[10:56:37] [adaptive] dpe_hellinger    turn 1/4: 0.8s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 14
+[10:56:40] [adaptive] dpe_hellinger    turn 2/4: 3.0s  answered so far 0.54  concept-asks 0  distinct ask-prefixes 187
+[10:56:43] [adaptive] dpe_hellinger    turn 3/4: 2.8s  answered so far 0.85  concept-asks 0  distinct ask-prefixes 2205
