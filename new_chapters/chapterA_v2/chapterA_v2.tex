@@ -445,8 +445,9 @@ $+0.0194$ full NDCG@10 (CI $[+0.0157,+0.0231]$) over the best binary build of th
 Isolating that requires care, because the graded fold-in is $2.26\times$ richer than the likes-only one, so
 a naive graded-versus-binary contrast confounds the values with the evidence volume, and with the
 regularisation each build happens to prefer. Holding one variable at a time on the same $10{,}000$ users,
-every step separated in a paired bootstrap: re-tuning the ridge alone is worth $+0.0257$
-(CI $[+0.0224,+0.0291]$)---the canonical implicit row is simply under-tuned---while folding the
+every step separated in a paired bootstrap: re-selecting the hyperparameters on the reported metric is
+worth $+0.0257$ (CI $[+0.0224,+0.0291]$)---the setting on record was chosen by a validation sweep that
+optimised NDCG@100, and the knob that moves is the confidence scale $lpha$, not the ridge---while folding the
 \emph{same} additional rated items in with their values \emph{erased} is worth $-0.0088$
 (CI $[-0.0125,-0.0052]$). More evidence, recorded as though every rating were a like, makes the model
 worse. Putting the true values back on that identical support recovers $+0.0282$

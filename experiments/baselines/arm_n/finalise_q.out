@@ -12,3 +12,43 @@
 [20:29:38] [pop] fitted item popularity over 140768 train users, 18359 items
 [20:29:50] [G1] MostPop 0.1626 vs 0.1626 -> PASS
 [20:29:50] --- sweeping the shared iALS/RBMF/belief-MF setting on THIS ruler, selecting on NDCG@10 ---
+[20:33:20]   reg=0.001  alpha=  1.0 val @10=0.2113 @100=0.2719 (3.5m)
+[20:36:54]   reg=0.001  alpha= 10.0 val @10=0.2627 @100=0.3626 (3.6m)
+[20:40:27]   reg=0.001  alpha= 50.0 val @10=0.2278 @100=0.3494 (3.6m)
+[20:43:53]   reg=0.01   alpha=  1.0 val @10=0.2115 @100=0.2722 (3.4m)
+[20:47:26]   reg=0.01   alpha= 10.0 val @10=0.2642 @100=0.3647 (3.6m)
+[20:51:04]   reg=0.01   alpha= 50.0 val @10=0.2333 @100=0.3562 (3.6m)
+[20:54:30]   reg=0.1    alpha=  1.0 val @10=0.2121 @100=0.2728 (3.4m)
+[20:58:05]   reg=0.1    alpha= 10.0 val @10=0.2666 @100=0.3670 (3.6m)
+[21:01:39]   reg=0.1    alpha= 50.0 val @10=0.2427 @100=0.3672 (3.6m)
+[21:01:39] [select] on NDCG@10 : reg=0.1 alpha=10.0 (val 0.2666)
+[21:01:39] [select] on NDCG@100: reg=0.1 alpha=50.0 (val 0.3672)   <- the rule that produced the row on record
+[21:01:39] [select] the two criteria DISAGREE on this ruler
+[21:04:37] [ials] trained f=200 reg=0.1 alpha=10.0 it=15 (3.0m)
+[21:05:13] [iALS arm A] reselected: full=0.2703 tail=0.2150
+[21:05:50] [iALS arm N] reselected: full=0.3325 tail=0.2629
+[21:05:50] [delta arm A] +0.0275 full, +0.0294 tail (was 0.2427/0.1855)
+[21:05:50] [delta arm N] +0.0281 full, +0.0336 tail (was 0.3044/0.2293)
+[21:05:50] NOTE: RBMF and belief-MF share this setting and must be re-fitted under the same rule before any of the three rows is quoted; this run establishes the rule and the iALS row.
+[21:05:50] done -> C:\dev\phd\casper\experiments\baselines\arm_n\reselect_ndcg10.json
+[21:05:50] --- step 1 exit=0 in 36.3 min
+[21:05:50] --- step 2/2: within-model weight-vs-estimand test
+[21:05:56] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[21:05:56] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[21:05:56] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[21:05:56] [pop] fitted item popularity over 140768 train users, 18359 items
+[21:06:07] [G1] MostPop this path 0.1626 vs arm-N 0.1626 -> PASS
+[21:06:08] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[21:06:22] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[21:06:44] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
+[21:06:44] --- arm W: rating as WEIGHT (c = 1 + alpha*r), target 1 ---
+[21:10:04]   [W] reg=0.01 alpha=  1.0 val full=0.3314
+[21:13:25]   [W] reg=0.01 alpha=  2.5 val full=0.3493
+[21:16:45]   [W] reg=0.01 alpha=  5.0 val full=0.3394
+[21:20:06]   [W] reg=0.01 alpha= 10.0 val full=0.3095
+[21:23:26]   [W] reg=0.1 alpha=  1.0 val full=0.3330
+[21:26:48]   [W] reg=0.1 alpha=  2.5 val full=0.3528
+[21:30:09]   [W] reg=0.1 alpha=  5.0 val full=0.3435
+[21:33:29]   [W] reg=0.1 alpha= 10.0 val full=0.3135
+[21:34:05] [W] selected reg=0.1 alpha=2.5 -> TEST full=0.3527 tail=0.2574
+[21:34:06] --- arm E_estimand: explicit MF regressing the RATING ---
