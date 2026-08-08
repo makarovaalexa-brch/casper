@@ -1,0 +1,424 @@
+{
+  "meta": {
+    "selectors": [
+      "dre"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "consumers": [
+      "ours",
+      "dre"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 10000,
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "golbandi": {
+      "depth": 0,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": null
+    },
+    "_contract": {
+      "n_users": 10000,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 0,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": null,
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 0,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 1,
+      "specs": [
+        "dre"
+      ],
+      "budgets": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "consumers": [
+        "ours",
+        "dre"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    }
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "dre": {
+        "k1": {
+          "full": 0.1657771254596973,
+          "tail": 0.03956315798078854,
+          "answered": 0.2107,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.27,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 1,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            142
+          ],
+          "dre_ask_order": [
+            142
+          ],
+          "dre_smoke_artifact": false
+        },
+        "k2": {
+          "full": 0.16926944722763446,
+          "tail": 0.04645515325302416,
+          "answered": 0.3034,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.26,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 2,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            695,
+            111
+          ],
+          "dre_ask_order": [
+            695,
+            111
+          ],
+          "dre_smoke_artifact": false
+        },
+        "k4": {
+          "full": 0.17632454983442186,
+          "tail": 0.05861957607353614,
+          "answered": 0.685,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.27,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 4,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            549,
+            142,
+            619,
+            304
+          ],
+          "dre_ask_order": [
+            549,
+            142,
+            619,
+            304
+          ],
+          "dre_smoke_artifact": false
+        },
+        "k8": {
+          "full": 0.20737654156596874,
+          "tail": 0.0788953929517215,
+          "answered": 1.5065,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.28,
+          "interview_minutes": 0.03,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 8,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            89,
+            137,
+            174,
+            350,
+            143,
+            10,
+            36,
+            480
+          ],
+          "dre_ask_order": [
+            89,
+            137,
+            174,
+            350,
+            143,
+            10,
+            36,
+            480
+          ],
+          "dre_smoke_artifact": false
+        },
+        "k16": {
+          "full": 0.2185097673725251,
+          "tail": 0.08975506334718394,
+          "answered": 2.8808,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.3,
+          "interview_minutes": 0.07,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 16,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            136,
+            530,
+            549,
+            77,
+            87,
+            25,
+            1174,
+            131,
+            350,
+            1,
+            142,
+            668,
+            98,
+            619,
+            10,
+            480
+          ],
+          "dre_ask_order": [
+            136,
+            530,
+            549,
+            77,
+            87,
+            25,
+            1174,
+            131,
+            350,
+            1,
+            142,
+            668,
+            98,
+            619,
+            10,
+            480
+          ],
+          "dre_smoke_artifact": false
+        }
+      }
+    },
+    "dre": {
+      "dre": {
+        "k1": {
+          "full": 0.16765605296112698,
+          "tail": 0.036507345844011725,
+          "answered": 0.2107,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.25,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 1,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            142
+          ],
+          "dre_ask_order": [
+            142
+          ],
+          "dre_smoke_artifact": false
+        },
+        "k2": {
+          "full": 0.17091927489725453,
+          "tail": 0.048782864067571236,
+          "answered": 0.3034,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.24,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 2,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            695,
+            111
+          ],
+          "dre_ask_order": [
+            695,
+            111
+          ],
+          "dre_smoke_artifact": false
+        },
+        "k4": {
+          "full": 0.18312273735495188,
+          "tail": 0.062349630363342685,
+          "answered": 0.685,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.23,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 4,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            549,
+            142,
+            619,
+            304
+          ],
+          "dre_ask_order": [
+            549,
+            142,
+            619,
+            304
+          ],
+          "dre_smoke_artifact": false
+        },
+        "k8": {
+          "full": 0.2070515147154747,
+          "tail": 0.07792258635202591,
+          "answered": 1.5065,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.28,
+          "interview_minutes": 0.03,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 8,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            89,
+            137,
+            174,
+            350,
+            143,
+            10,
+            36,
+            480
+          ],
+          "dre_ask_order": [
+            89,
+            137,
+            174,
+            350,
+            143,
+            10,
+            36,
+            480
+          ],
+          "dre_smoke_artifact": false
+        },
+        "k16": {
+          "full": 0.21825695552515367,
+          "tail": 0.08949691087561534,
+          "answered": 2.8808,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.25,
+          "interview_minutes": 0.07,
+          "distinct_prefixes": 1,
+          "dre_duplicate_seeds": 0,
+          "dre_distinct_seeds": 16,
+          "dre_wasted_turns": 0,
+          "dre_dup_policy": "waste",
+          "dre_itemseed_raw": [
+            136,
+            530,
+            549,
+            77,
+            87,
+            25,
+            1174,
+            131,
+            350,
+            1,
+            142,
+            668,
+            98,
+            619,
+            10,
+            480
+          ],
+          "dre_ask_order": [
+            136,
+            530,
+            549,
+            77,
+            87,
+            25,
+            1174,
+            131,
+            350,
+            1,
+            142,
+            668,
+            98,
+            619,
+            10,
+            480
+          ],
+          "dre_smoke_artifact": false
+        }
+      }
+    }
+  }
+}
