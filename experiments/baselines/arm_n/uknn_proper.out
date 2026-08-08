@@ -8,3 +8,7 @@
 [19:04:41] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
 [19:04:41] --- arm 1/2: mean-centred ratings (published contract), lambda grid extended to 3200 ---
 [19:08:54]   [graded] lam=    8.0 val full=0.2503 tail=0.1162 (4.2m)
+[19:13:29]   [graded] lam=   25.0 val full=0.2663 tail=0.1302 (4.6m)
+[19:18:13]   [graded] lam=   50.0 val full=0.2713 tail=0.1343 (4.7m)
+[19:23:00]   [graded] lam=  100.0 val full=0.2737 tail=0.1365 (4.8m)
+[19:27:45]   [graded] lam=  200.0 val full=0.2754 tail=0.1377 (4.7m)

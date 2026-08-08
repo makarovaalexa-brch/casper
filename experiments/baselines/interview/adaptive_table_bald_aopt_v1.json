@@ -404,6 +404,165 @@
           "width_dtype": "float32",
           "aopt_obs_noise_s2": 1.0,
           "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k16": {
+          "full": 0.17402634524767432,
+          "tail": 0.05634868216130335,
+          "answered": 1.8112,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.31,
+          "interview_minutes": 4.65,
+          "distinct_prefixes": 1524,
+          "cache": {
+            "_gain": {
+              "size": 2740,
+              "cap": 4096,
+              "hits": 23523,
+              "misses": 2740,
+              "evictions": 0,
+              "hit_rate": 0.8957
+            },
+            "_mu": {
+              "size": 2740,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 2740,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        }
+      },
+      "glm_ucb": {
+        "k1": {
+          "full": 0.16059835644333517,
+          "tail": 0.0399555252569825,
+          "answered": 0.4197,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.27,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 1,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.5
+            },
+            "_width": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k2": {
+          "full": 0.16338311674150394,
+          "tail": 0.045238334980015296,
+          "answered": 0.8148,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.28,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 3,
+          "cache": {
+            "_mu": {
+              "size": 11,
+              "cap": 4096,
+              "hits": 3,
+              "misses": 11,
+              "evictions": 0,
+              "hit_rate": 0.2143
+            },
+            "_width": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 10,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.8333
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k4": {
+          "full": 0.17510657710837446,
+          "tail": 0.058078390417833,
+          "answered": 1.6566,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.29,
+          "interview_minutes": 0.35,
+          "distinct_prefixes": 22,
+          "cache": {
+            "_mu": {
+              "size": 483,
+              "cap": 4096,
+              "hits": 108,
+              "misses": 483,
+              "evictions": 0,
+              "hit_rate": 0.1827
+            },
+            "_width": {
+              "size": 17,
+              "cap": 4096,
+              "hits": 557,
+              "misses": 17,
+              "evictions": 0,
+              "hit_rate": 0.9704
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k8": {
+          "full": 0.19014537503281084,
+          "tail": 0.06763588971634242,
+          "answered": 2.9711,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.3,
+          "interview_minutes": 6.83,
+          "distinct_prefixes": 314,
+          "cache": {
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 3936,
+              "misses": 9605,
+              "evictions": 5509,
+              "hit_rate": 0.2907
+            },
+            "_width": {
+              "size": 317,
+              "cap": 4096,
+              "hits": 12907,
+              "misses": 317,
+              "evictions": 0,
+              "hit_rate": 0.976
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
         }
       }
     }
