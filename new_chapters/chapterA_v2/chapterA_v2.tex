@@ -528,7 +528,7 @@ TaNP~\cite{lin2021tanp} (MeLU line)\,$^{\ddagger\ast}$ & \xmark & \xmark & \xmar
 \midrule
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the elicitation corner}}\\
 EDDI / Partial-VAE~\cite{ma2019eddi}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & b & $.2153$ & $.1077$ & $.2718$ & $.1383$ \\
-user-kNN~\cite{golbandi2011adaptive}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.3065$ & $.1895$ & $.3756$ & $.2377$ \\
+user-kNN~\cite{golbandi2011adaptive}\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.3065$ & $.1895$ & $.3756$ & $.2377$ \\
 RBMF~\cite{liu2011wisdom,zhou2011functional}\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.2457$ & $.1722$ & $.3015$ & $.2078$ \\
 Conjugate belief (frozen MF)\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2015$ & $.1201$ & $.2521$ & $.1511$ \\
 B\i y\i k soft-attributes~\cite{biyik2023soft}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \cmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
@@ -556,7 +556,7 @@ construct, not a result its paper reports, and the real comparison is Table~\ref
 $^{\S}$~dropped: our implementation failed its ML-20M snap ($0.397$ vs.\ the published $0.419$), and a failed
 bridge disqualifies a row (\S\ref{sec:bridge}). $^{\ast}$\,TaNP is represented by the objective-ported implicit adaptation in \emph{both} columns; it has no
 \textsc{native} cell, and the reason is not a missing measurement (\S\ref{sec:nativelimit}).
-$^{\P}$\,RBMF's \textsc{native} cell is its \emph{binary} build. Its graded refit was run---a ridge seed on targets centred at the protocol threshold, which makes $41.4\%$ of them negative---and it \emph{lost}, $.2314/.1472$ against $.3015/.2078$; the uncentred variant also lost ($.2950/.2027$). We therefore report the strongest build, as for user-kNN, and treat the graded attempt as the measurement that justifies the choice (\S\ref{sec:bridge}). Red cells are owed measurements, not missing capability.
+$^{\P}$\,RBMF's \textsc{native} cell is its \emph{binary} build. Its graded refit was run---a ridge seed on targets centred at the protocol threshold, which makes $41.4\%$ of them negative---and it \emph{lost}, $.2314/.1472$ against $.3015/.2078$; the uncentred variant also lost ($.2950/.2027$). We therefore report the strongest build, as for user-kNN, and treat the graded attempt as the measurement that justifies the choice (\S\ref{sec:bridge}).
 No number is invented: a value appears only if we measured it on this ruler.}
 \label{tab:master}
 \end{table}
