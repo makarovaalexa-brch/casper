@@ -1,0 +1,243 @@
+{
+  "meta": {
+    "selectors": [
+      "bald",
+      "aopt",
+      "glm_ucb",
+      "fixedorder:entropy0",
+      "fixedorder:greedy_items"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "consumers": [
+      "ours"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 10000,
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "golbandi": {
+      "depth": 0,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": null
+    },
+    "_contract": {
+      "n_users": 10000,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 0,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": null,
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "igcn_clusters": 300,
+      "igcn_nbr": 150,
+      "igcn_switch": 5,
+      "igcn_recompute": 1,
+      "igcn_kmeans_iter": 10,
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 0,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 1,
+      "specs": [
+        "bald",
+        "aopt",
+        "glm_ucb",
+        "fixedorder:entropy0",
+        "fixedorder:greedy_items"
+      ],
+      "budgets": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "consumers": [
+        "ours"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    }
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "bald": {
+        "k1": {
+          "full": 0.1754112750327545,
+          "tail": 0.04478833363044735,
+          "answered": 0.2721,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.69,
+          "interview_minutes": 0.03,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration",
+          "bald_design_class": "VALUE-FREE, like aopt: the width depends on WHICH items were answered, never on the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k2": {
+          "full": 0.1853047318005311,
+          "tail": 0.0473332379840026,
+          "answered": 0.4678,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.69,
+          "interview_minutes": 0.06,
+          "distinct_prefixes": 2,
+          "cache": {
+            "_mu": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 10,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.8333
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration",
+          "bald_design_class": "VALUE-FREE, like aopt: the width depends on WHICH items were answered, never on the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k4": {
+          "full": 0.19342024897489227,
+          "tail": 0.05724666829690456,
+          "answered": 0.871,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.63,
+          "interview_minutes": 0.09,
+          "distinct_prefixes": 4,
+          "cache": {
+            "_mu": {
+              "size": 8,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 8,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 8,
+              "cap": 4096,
+              "hits": 527,
+              "misses": 8,
+              "evictions": 0,
+              "hit_rate": 0.985
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration",
+          "bald_design_class": "VALUE-FREE, like aopt: the width depends on WHICH items were answered, never on the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k8": {
+          "full": 0.2056899639548571,
+          "tail": 0.06825892288598483,
+          "answered": 1.5711,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.69,
+          "interview_minutes": 0.49,
+          "distinct_prefixes": 80,
+          "cache": {
+            "_mu": {
+              "size": 125,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 125,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 125,
+              "cap": 4096,
+              "hits": 7047,
+              "misses": 125,
+              "evictions": 0,
+              "hit_rate": 0.9826
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration",
+          "bald_design_class": "VALUE-FREE, like aopt: the width depends on WHICH items were answered, never on the answers. Report beside DRE, not beside the adaptive arms."
+        }
+      }
+    }
+  }
+}
