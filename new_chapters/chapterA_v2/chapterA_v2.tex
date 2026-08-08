@@ -525,9 +525,12 @@ interview tree routes users by \emph{lovers, haters and unknowns} and is evaluat
 RBMF/Functional-MF is a rating regression, and TaNP is episodic meta-learning for rating prediction---while
 the canonical protocol is implicit and binary (\S\ref{sec:bridge}). We adapt their mechanisms to the
 implicit contract rather than importing their task, which is what Liang et al.\ do for the ratings-native
-baselines in the study that defines this split~\cite{liang2018variational}. Every row on this ruler
+baselines in the study that defines this split~\cite{liang2018variational}. Under \textsc{liang} every row
 therefore sees the same information: the same binarised fold-in, the same candidate pool, the same binary
-targets. Numbers obtained under a different contract are not comparable to these in either direction, so we
+targets. The second column exists precisely to relax the first of those---each system reads the input its
+own publication assumes, while the pool and the targets stay fixed for everyone---so that a low score
+cannot be attributed to a representation the system was never designed to consume. Numbers obtained under
+a contract we have not run are not comparable to either column in either direction, so we
 report only on-ruler values and do not claim that a row would be higher or lower under its original task.
 The same caution applies to ICF, whose ceiling we take from the measured iALS row: ICF is Bayesian
 probabilistic MF over ratings, while iALS is implicit-with-confidence, so that substitution crosses an
