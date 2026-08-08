@@ -1,0 +1,63 @@
+[12:34:44] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[12:34:44] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[12:34:44] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[12:34:46] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[12:34:46] ====================================================================================================
+[12:34:46] [adaptive] *** SMOKE: TRUNCATING THE TEST COHORT TO THE FIRST 200 USERS ***
+[12:34:46] [adaptive] *** every number from this run is a CODE-PATH CHECK and is NOT CITABLE ***
+[12:34:46] ====================================================================================================
+[12:34:47] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[12:34:48] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[12:34:48] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[12:34:48] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[12:34:48] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[12:34:49] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[12:34:49] [pop] fitted item popularity over 140768 train users, 18359 items
+[12:34:49] [interview] mostpop PRIOR (constant, answer-independent): full=0.1630 tail=0.0299
+[12:34:49] [adaptive] 1 consumers x 5 selectors x 1 budgets over 200 users; floor=OFF; interview checkpoints -> C:\dev\phd\casper\experiments\baselines\interview\SMOKE_adaptive_table_cbfix_smoke_interviews
+[12:36:41] [ials] trained f=200 reg=0.1 alpha=50.0 it=15 (1.9m)
+[12:36:42] [belief_mf] frozen iALS f=200 (1.9m); prior mu0|=8.028 tr(Sig0)=335.583; obs_noise=1.0
+[12:36:42] [belief_mf] frozen basis BANKED -> C:\dev\phd\casper\.cache\baselines\belief_mf_basis_140768x18359_nnz10851052_f200_r0.1_a50.0_it15.npz
+[12:36:42] [conv_bandit] genome bank from cache: 1031 concepts
+[12:36:43] [conv_bandit] concept answers for 200 test users x 1031 concepts in 0.1s: answerable rate 0.518, mean |v| on answerable 0.092
+[12:36:45] [conv_bandit] key-term features: mode=uniform_member_mean C=1031 f=200 norm_match=1 n_rep=- mean||xtilde||=0.1176 (mean||y_a||=0.0942)
+[12:36:45] [conlinucb_mcr] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=5logt pool=FULL vocabulary
+[12:36:46] [adaptive] conlinucb_mcr    turn 1/4: 0.2s  answered so far 0.41  concept-asks 0  distinct ask-prefixes 1
+[12:36:46] [adaptive] conlinucb_mcr    turn 2/4: 0.2s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 1
+[12:36:46] [adaptive] conlinucb_mcr    turn 3/4: 0.1s  answered so far 0.81  concept-asks 200  distinct ask-prefixes 1
+[12:36:47] [adaptive] conlinucb_mcr    turn 4/4: 1.5s  answered so far 1.22  concept-asks 200  distinct ask-prefixes 4
+[12:36:47] [adaptive] INTERVIEW conlinucb_mcr    k= 4 done in 1.97m; answered=1.22/4; distinct ask-prefixes=4; cache={'_ktw': {'size': 8, 'cap': 4096, 'hits': 123, 'misses': 8, 'evictions': 0, 'hit_rate': 0.9389}, '_mu': {'size': 110, 'cap': 4096, 'hits': 31, 'misses': 110, 'evictions': 0, 'hit_rate': 0.2199}, '_width': {'size': 8, 'cap': 4096, 'hits': 89, 'misses': 8, 'evictions': 0, 'hit_rate': 0.9175}}
+[12:36:47] [adaptive] concept consumer = concept_cv3_ep08.pt (ep8, C=1031, h=256, use_refusal=True, snapshot=t2i26c_ep31.pt)
+[12:36:48] [adaptive] ours           conlinucb_mcr    k= 4 answered= 1.2/4 floored=    0 full=0.1791 tail=0.0612 (interview 1.97m + score 0.01m)
+[12:36:48] [conlinucb_bs] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=5logt pool=FULL vocabulary
+[12:36:49] [conv_bandit] barycentric spanner: 200 key-terms, 0 swaps, log|det|=-780.78
+[12:36:50] [adaptive] conlinucb_bs     turn 1/4: 0.2s  answered so far 0.41  concept-asks 0  distinct ask-prefixes 1
+[12:36:50] [adaptive] conlinucb_bs     turn 2/4: 0.2s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 1
+[12:36:50] [adaptive] conlinucb_bs     turn 3/4: 0.0s  answered so far 0.81  concept-asks 200  distinct ask-prefixes 1
+[12:36:51] [adaptive] conlinucb_bs     turn 4/4: 1.5s  answered so far 1.27  concept-asks 200  distinct ask-prefixes 4
+[12:36:51] [adaptive] INTERVIEW conlinucb_bs     k= 4 done in 0.05m; answered=1.27/4; distinct ask-prefixes=4; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 175, 'cap': 4096, 'hits': 10, 'misses': 175, 'evictions': 0, 'hit_rate': 0.0541}, '_width': {'size': 6, 'cap': 4096, 'hits': 144, 'misses': 6, 'evictions': 0, 'hit_rate': 0.96}}
+[12:36:52] [adaptive] ours           conlinucb_bs     k= 4 answered= 1.3/4 floored=    0 full=0.1828 tail=0.0481 (interview 0.05m + score 0.01m)
+[12:36:52] [conlinucb_bs_static] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=always pool=FULL vocabulary
+[12:36:53] [conv_bandit] barycentric spanner: 200 key-terms, 0 swaps, log|det|=-780.78
+[12:36:53] [adaptive] conlinucb_bs_static turn 1/4: 0.0s  answered so far 0.00  concept-asks 200  distinct ask-prefixes 1
+[12:36:53] [adaptive] conlinucb_bs_static turn 2/4: 0.1s  answered so far 0.00  concept-asks 400  distinct ask-prefixes 1
+[12:36:53] [adaptive] conlinucb_bs_static turn 3/4: 0.1s  answered so far 0.00  concept-asks 600  distinct ask-prefixes 1
+[12:36:54] [adaptive] conlinucb_bs_static turn 4/4: 0.2s  answered so far 0.00  concept-asks 800  distinct ask-prefixes 1
+[12:36:54] [adaptive] INTERVIEW conlinucb_bs_static k= 4 done in 0.03m; answered=0.00/4; distinct ask-prefixes=1; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 276, 'cap': 4096, 'hits': 34, 'misses': 276, 'evictions': 0, 'hit_rate': 0.1097}, '_width': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}}
+[12:36:54] [adaptive] ours           conlinucb_bs_static k= 4 answered= 0.0/4 floored=    0 full=0.1722 tail=0.0394 (interview 0.03m + score 0.01m)
+[12:36:54] [clime] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=5logt pool=FULL vocabulary
+[12:36:54] [adaptive] clime            turn 1/4: 0.2s  answered so far 0.41  concept-asks 0  distinct ask-prefixes 1
+[12:36:55] [adaptive] clime            turn 2/4: 0.2s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 1
+[12:36:55] [adaptive] clime            turn 3/4: 0.1s  answered so far 0.81  concept-asks 200  distinct ask-prefixes 1
+[12:36:56] [adaptive] clime            turn 4/4: 1.2s  answered so far 1.26  concept-asks 200  distinct ask-prefixes 4
+[12:36:56] [adaptive] INTERVIEW clime            k= 4 done in 0.03m; answered=1.26/4; distinct ask-prefixes=4; cache={'_eig': {'size': 8, 'cap': 4096, 'hits': 146, 'misses': 8, 'evictions': 0, 'hit_rate': 0.9481}, '_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 145, 'cap': 4096, 'hits': 17, 'misses': 145, 'evictions': 0, 'hit_rate': 0.1049}, '_width': {'size': 6, 'cap': 4096, 'hits': 114, 'misses': 6, 'evictions': 0, 'hit_rate': 0.95}}
+[12:36:57] [adaptive] ours           clime            k= 4 answered= 1.3/4 floored=    0 full=0.1848 tail=0.0492 (interview 0.03m + score 0.01m)
+[12:36:57] [conucb] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=5logt pool=FULL vocabulary
+[12:36:57] [conucb] lam=0.5 (NOT the paper's verified value -- neutral midpoint) lam_til=1.0; Gram over 18359 candidate arms
+[12:36:57] [adaptive] conucb           turn 1/4: 0.2s  answered so far 0.14  concept-asks 0  distinct ask-prefixes 1
+[12:36:58] [adaptive] conucb           turn 2/4: 0.5s  answered so far 0.36  concept-asks 0  distinct ask-prefixes 1
+[12:36:58] [adaptive] conucb           turn 3/4: 0.8s  answered so far 0.36  concept-asks 200  distinct ask-prefixes 1
+[12:37:02] [adaptive] conucb           turn 4/4: 4.0s  answered so far 0.45  concept-asks 200  distinct ask-prefixes 3
+[12:37:03] [adaptive] INTERVIEW conucb           k= 4 done in 0.09m; answered=0.45/4; distinct ask-prefixes=3; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mtil': {'size': 71, 'cap': 4096, 'hits': 301, 'misses': 71, 'evictions': 0, 'hit_rate': 0.8091}, '_mu': {'size': 114, 'cap': 4096, 'hits': 136, 'misses': 114, 'evictions': 0, 'hit_rate': 0.544}, '_width': {'size': 6, 'cap': 4096, 'hits': 92, 'misses': 6, 'evictions': 0, 'hit_rate': 0.9388}}
+[12:37:03] [adaptive] ours           conucb           k= 4 answered= 0.5/4 floored=    0 full=0.1676 tail=0.0442 (interview 0.09m + score 0.01m)
+[12:37:03] [adaptive] done -> C:\dev\phd\casper\experiments\baselines\interview\SMOKE_adaptive_table_cbfix_smoke.json

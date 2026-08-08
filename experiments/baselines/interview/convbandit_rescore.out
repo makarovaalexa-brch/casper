@@ -1,0 +1,99 @@
+[19:42:14] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[19:42:14] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[19:42:14] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[19:42:15] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[19:42:16] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:42:16] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[19:42:16] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[19:42:16] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[19:42:16] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:42:16] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[19:42:17] [pop] fitted item popularity over 140768 train users, 18359 items
+[19:42:29] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[19:42:29] [rescore] 10000 users, 18359 items; mostpop prior {'full': 0.16255947303941118, 'tail': 0.026243274849789923}
+[19:42:29] [conv_bandit] genome bank from cache: 1031 concepts
+[19:42:33] [conv_bandit] concept answers for 10000 test users x 1031 concepts in 3.0s: answerable rate 0.507, mean |v| on answerable 0.097
+[19:42:33] [rescore] concept bank C=1031
+[19:42:33] [rescore] entropy0-top16: [8, 121, 59, 123, 5, 4, 631, 0, 113, 14, 83, 157, 12, 19, 22, 155]
+[19:42:33] [rescore] greedy-items-only: [83, 583, 19, 8, 22, 89, 123, 140, 2195, 146, 343, 14, 155, 631, 127, 29]
+[19:42:33] [rescore] greedy-concepts-only: [18989, 18601, 18532, 18610, 18371, 18896, 18483, 19276, 19166, 18739, 19263, 19048, 19113, 19247, 18401, 19143]
+[19:42:48] [rescore] entropy0-top16         k= 1 items_answered=0.44 concept_tokens=0 full=0.1635 tail=0.0433 (0.26m)
+[19:43:05] [rescore] entropy0-top16         k= 2 items_answered=0.86 concept_tokens=0 full=0.1706 tail=0.0528 (0.27m)
+[19:43:22] [rescore] entropy0-top16         k= 4 items_answered=1.64 concept_tokens=0 full=0.1831 tail=0.0636 (0.29m)
+[19:43:40] [rescore] entropy0-top16         k= 8 items_answered=3.10 concept_tokens=0 full=0.2053 tail=0.0792 (0.30m)
+[19:43:59] [rescore] entropy0-top16         k=16 items_answered=5.52 concept_tokens=0 full=0.2303 tail=0.0924 (0.31m)
+[19:44:15] [rescore] greedy-items-only      k= 1 items_answered=0.30 concept_tokens=0 full=0.1760 tail=0.0434 (0.27m)
+[19:44:32] [rescore] greedy-items-only      k= 2 items_answered=0.56 concept_tokens=0 full=0.1907 tail=0.0581 (0.27m)
+[19:44:49] [rescore] greedy-items-only      k= 4 items_answered=1.29 concept_tokens=0 full=0.2066 tail=0.0703 (0.29m)
+[19:45:07] [rescore] greedy-items-only      k= 8 items_answered=2.44 concept_tokens=0 full=0.2247 tail=0.0776 (0.30m)
+[19:45:27] [rescore] greedy-items-only      k=16 items_answered=4.20 concept_tokens=0 full=0.2449 tail=0.0967 (0.32m)
+[19:45:27] [rescore] concept consumer = concept_cv3_ep08.pt (ep8, C=1031, h=256)
+[19:45:42] [rescore] greedy-concepts-only   k= 1 items_answered=0.00 concept_tokens=10000 full=0.1773 tail=0.0471 (0.26m)
+[19:45:58] [rescore] greedy-concepts-only   k= 2 items_answered=0.00 concept_tokens=20000 full=0.1845 tail=0.0510 (0.26m)
+[19:46:14] [rescore] greedy-concepts-only   k= 4 items_answered=0.00 concept_tokens=40000 full=0.2048 tail=0.0691 (0.27m)
+[19:46:31] [rescore] greedy-concepts-only   k= 8 items_answered=0.00 concept_tokens=80000 full=0.2189 tail=0.0863 (0.28m)
+[19:46:49] [rescore] greedy-concepts-only   k=16 items_answered=0.00 concept_tokens=160000 full=0.2298 tail=0.0977 (0.29m)
+[19:46:49] [control] entropy0 k=1 full: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=1 tail: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=2 full: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=2 tail: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=4 full: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=4 tail: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=8 full: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=8 tail: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=16 full: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] entropy0 k=16 tail: max per-user |re-score - act1| = 0.000e+00
+[19:46:49] [control] PASS: worst per-user diff 0.000e+00
+[19:54:07] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[19:54:07] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[19:54:07] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[19:54:08] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[19:54:09] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:54:09] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[19:54:09] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[19:54:09] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[19:54:09] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:54:09] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[19:54:09] [pop] fitted item popularity over 140768 train users, 18359 items
+[19:54:22] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[19:54:22] [rescore] 10000 users, 18359 items; mostpop prior {'full': 0.16255947303941118, 'tail': 0.026243274849789923}
+[19:54:22] [conv_bandit] genome bank from cache: 1031 concepts
+[19:54:25] [conv_bandit] concept answers for 10000 test users x 1031 concepts in 3.0s: answerable rate 0.507, mean |v| on answerable 0.097
+[19:54:25] [rescore] concept bank C=1031
+[19:54:25] [rescore] entropy0-top16: [8, 121, 59, 123, 5, 4, 631, 0, 113, 14, 83, 157, 12, 19, 22, 155]
+[19:54:25] [rescore] greedy-items-only: [83, 583, 19, 8, 22, 89, 123, 140, 2195, 146, 343, 14, 155, 631, 127, 29]
+[19:54:25] [rescore] greedy-concepts-only: [18989, 18601, 18532, 18610, 18371, 18896, 18483, 19276, 19166, 18739, 19263, 19048, 19113, 19247, 18401, 19143]
+[19:54:25] [rescore] conlinucb_bs_static: [18862, 18721, 18691, 18720, 19269, 18500, 18461, 18954, 18752, 18902, 19349, 18807, 19149, 18595, 18388, 19343]
+[19:54:25] [rescore] resumed 30 vectors from convbandit_rescore_per_user.npz
+[19:54:25] [rescore] entropy0-top16 k=1 already banked -- skipped
+[19:54:25] [rescore] entropy0-top16 k=2 already banked -- skipped
+[19:54:25] [rescore] entropy0-top16 k=4 already banked -- skipped
+[19:54:25] [rescore] entropy0-top16 k=8 already banked -- skipped
+[19:54:25] [rescore] entropy0-top16 k=16 already banked -- skipped
+[19:54:25] [rescore] greedy-items-only k=1 already banked -- skipped
+[19:54:25] [rescore] greedy-items-only k=2 already banked -- skipped
+[19:54:25] [rescore] greedy-items-only k=4 already banked -- skipped
+[19:54:25] [rescore] greedy-items-only k=8 already banked -- skipped
+[19:54:25] [rescore] greedy-items-only k=16 already banked -- skipped
+[19:54:25] [rescore] greedy-concepts-only k=1 already banked -- skipped
+[19:54:25] [rescore] greedy-concepts-only k=2 already banked -- skipped
+[19:54:25] [rescore] greedy-concepts-only k=4 already banked -- skipped
+[19:54:25] [rescore] greedy-concepts-only k=8 already banked -- skipped
+[19:54:25] [rescore] greedy-concepts-only k=16 already banked -- skipped
+[19:54:25] [rescore] concept consumer = concept_cv3_ep08.pt (ep8, C=1031, h=256)
+[19:54:40] [rescore] conlinucb_bs_static    k= 1 items_answered=0.00 concept_tokens=10000 full=0.1644 tail=0.0374 (0.25m)
+[19:54:55] [rescore] conlinucb_bs_static    k= 2 items_answered=0.00 concept_tokens=20000 full=0.1659 tail=0.0402 (0.25m)
+[19:55:11] [rescore] conlinucb_bs_static    k= 4 items_answered=0.00 concept_tokens=40000 full=0.1724 tail=0.0468 (0.26m)
+[19:55:27] [rescore] conlinucb_bs_static    k= 8 items_answered=0.00 concept_tokens=80000 full=0.1829 tail=0.0598 (0.26m)
+[19:55:44] [rescore] conlinucb_bs_static    k=16 items_answered=0.00 concept_tokens=160000 full=0.1891 tail=0.0700 (0.29m)
+[19:55:44] [control] entropy0 k=1 full: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=1 tail: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=2 full: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=2 tail: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=4 full: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=4 tail: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=8 full: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=8 tail: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=16 full: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] entropy0 k=16 tail: max per-user |re-score - act1| = 0.000e+00
+[19:55:44] [control] PASS: worst per-user diff 0.000e+00

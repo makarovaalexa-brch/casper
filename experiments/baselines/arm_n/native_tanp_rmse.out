@@ -7,3 +7,46 @@
 [21:42:26] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
 [21:42:51] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
 [21:42:51] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[21:43:12] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[21:43:13] [G2] predict-the-global-mean baseline val RMSE = 0.9549 (mean rating 3.540)
+[21:43:13] [tanp-native] global bias initialised at the training mean rating 3.540
+[21:45:48]       val NDCG@10 0.0056 | val RMSE 0.6960
+[21:45:48] [tanp-native] ep  1 loss 0.8617 val -0.6960 2.1m
+[21:48:20]       val NDCG@10 0.0111 | val RMSE 0.7292
+[21:48:20] [tanp-native] ep  2 loss 0.7589 val -0.7292 4.6m
+[21:50:52]       val NDCG@10 0.0094 | val RMSE 0.7283
+[21:50:52] [tanp-native] ep  3 loss 0.7428 val -0.7283 7.1m
+[21:53:25]       val NDCG@10 0.0086 | val RMSE 0.7512
+[21:53:25] [tanp-native] ep  4 loss 0.7359 val -0.7512 9.7m
+[21:56:02]       val NDCG@10 0.0090 | val RMSE 0.7365
+[21:56:02] [tanp-native] ep  5 loss 0.7281 val -0.7365 12.3m
+[21:58:39]       val NDCG@10 0.0097 | val RMSE 0.7509
+[21:58:39] [tanp-native] ep  6 loss 0.7220 val -0.7509 14.9m
+[22:01:22]       val NDCG@10 0.0104 | val RMSE 0.7460
+[22:01:22] [tanp-native] ep  7 loss 0.7184 val -0.7460 17.6m
+[22:03:56]       val NDCG@10 0.0099 | val RMSE 0.7358
+[22:03:56] [tanp-native] ep  8 loss 0.7150 val -0.7358 20.2m
+[22:06:28]       val NDCG@10 0.0057 | val RMSE 0.7493
+[22:06:28] [tanp-native] ep  9 loss 0.7121 val -0.7493 22.7m
+[22:09:02]       val NDCG@10 0.0051 | val RMSE 0.7511
+[22:09:02] [tanp-native] ep 10 loss 0.7101 val -0.7511 25.3m
+[22:11:33]       val NDCG@10 0.0051 | val RMSE 0.7545
+[22:11:33] [tanp-native] ep 11 loss 0.7078 val -0.7545 27.8m
+[22:14:03]       val NDCG@10 0.0056 | val RMSE 0.7413
+[22:14:03] [tanp-native] ep 12 loss 0.7044 val -0.7413 30.3m
+[22:16:35]       val NDCG@10 0.0053 | val RMSE 0.7425
+[22:16:35] [tanp-native] ep 13 loss 0.7030 val -0.7425 32.8m
+[22:19:05]       val NDCG@10 0.0086 | val RMSE 0.7597
+[22:19:05] [tanp-native] ep 14 loss 0.7013 val -0.7597 35.3m
+[22:21:36]       val NDCG@10 0.0064 | val RMSE 0.7531
+[22:21:36] [tanp-native] ep 15 loss 0.6995 val -0.7531 37.9m
+[22:24:07]       val NDCG@10 0.0066 | val RMSE 0.7342
+[22:24:07] [tanp-native] ep 16 loss 0.6971 val -0.7342 40.4m
+[22:24:07] [tanp-native] early stop @ep16 best -0.6960 @ep1
+[22:24:07] [G2] best val RMSE 0.6960 vs mean-predictor 0.9549 -> PASS
+[22:24:08] [G3] mean per-user prediction spread across the catalogue = 0.3089 -> PASS
+[22:24:12] [G3b] distinct top-10 lists across 2000 users = 1370; mean per-item spread ACROSS users = 0.2399 -> PASS
+[22:24:38] [G4] NDCG 0.0060 vs MostPop 0.1626 -> *** FAIL: below the popularity floor, presume harness bug ***
+[22:24:38] [row] TaNP native (rating regression): full=0.0060 tail=0.0005
+[22:24:38] [contrast] native minus binary: -0.3264 full, -0.2073 tail
+[22:24:38] done -> C:\dev\phd\casper\experiments\baselines\arm_n\tanp_native_armn_rmse.json

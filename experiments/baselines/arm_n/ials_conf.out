@@ -1,0 +1,19 @@
+[23:10:09] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[23:10:09] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[23:10:09] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[23:10:09] [pop] fitted item popularity over 140768 train users, 18359 items
+[23:10:32] [G1] MostPop this path 0.1626 vs arm-N 0.1626 -> PASS
+[23:10:32] graded train nnz=21682110 range [0.5,5.0] -- confidence c = 1 + alpha*r, so every rated item keeps weight >= 1 and exposure survives
+[23:10:32] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[23:11:07] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[23:11:58] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
+[23:15:27] [tune] alpha=  1.0 val full=0.3314 tail=0.2654
+[23:18:56] [tune] alpha=  2.5 val full=0.3495 tail=0.2605
+[23:22:22] [tune] alpha=  5.0 val full=0.3394 tail=0.2485
+[23:25:48] [tune] alpha= 10.0 val full=0.3094 tail=0.2302
+[23:29:14] [tune] alpha= 20.0 val full=0.2698 tail=0.2055
+[23:29:14] [tune] val-selected alpha=2.5 (val NDCG@10 0.3495)
+[23:30:29] [row] iALS ratings-as-confidence: full=0.3495 tail=0.2566
+[23:30:29] [contrast] vs binary iALS 0.3044/0.2293: +0.0451 full, +0.0273 tail
+[23:30:29] [verdict] GRADES HELP under an exposure-preserving contract -- the chapter's claim that no ratings-native baseline benefits from its grades is WRONG and must be rewritten.
+[23:30:29] done -> C:\dev\phd\casper\experiments\baselines\arm_n\ials_confidence_armn.json

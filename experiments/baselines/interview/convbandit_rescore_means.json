@@ -1,0 +1,32 @@
+{
+  "conlinucb_bs_static|k1": {
+    "full": 0.16442902009295618,
+    "tail": 0.037438563124236185,
+    "answered_items": 0.0,
+    "concept_tokens": 10000
+  },
+  "conlinucb_bs_static|k2": {
+    "full": 0.1658766073290866,
+    "tail": 0.04018156412761111,
+    "answered_items": 0.0,
+    "concept_tokens": 20000
+  },
+  "conlinucb_bs_static|k4": {
+    "full": 0.17239881598420276,
+    "tail": 0.046771989467921875,
+    "answered_items": 0.0,
+    "concept_tokens": 40000
+  },
+  "conlinucb_bs_static|k8": {
+    "full": 0.1828939825908216,
+    "tail": 0.059813893430467543,
+    "answered_items": 0.0,
+    "concept_tokens": 80000
+  },
+  "conlinucb_bs_static|k16": {
+    "full": 0.189094839349541,
+    "tail": 0.07004372408363779,
+    "answered_items": 0.0,
+    "concept_tokens": 160000
+  }
+}

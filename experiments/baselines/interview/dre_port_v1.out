@@ -1,0 +1,75 @@
+[10:30:48] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[10:30:48] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[10:30:48] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[10:30:49] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[10:30:50] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[10:30:50] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[10:30:50] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[10:30:50] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[10:30:50] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[10:30:51] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[10:30:51] [pop] fitted item popularity over 140768 train users, 18359 items
+[10:31:04] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[10:31:04] [adaptive] 2 consumers x 1 selectors x 5 budgets over 10000 users; floor=OFF; interview checkpoints -> C:\dev\phd\casper\experiments\baselines\interview\adaptive_table_dre_port_v1_interviews
+[10:31:04] [dre] k=1 seed set from dre_ml25m_liang_k1.pt | distinct=1 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:31:04] [adaptive] dre              turn 1/1: 0.0s  answered so far 0.21  concept-asks 0  distinct ask-prefixes 1
+[10:31:04] [adaptive] INTERVIEW dre              k= 1 done in 0.00m; answered=0.21/1; distinct ask-prefixes=1; cache=None
+[10:31:20] [adaptive] ours           dre              k= 1 answered= 0.2/1 floored=    0 full=0.1658 tail=0.0396 (interview 0.00m + score 0.27m)
+[10:31:20] [dre] k=1 seed set from dre_ml25m_liang_k1.pt | distinct=1 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:31:20] [dre] consumer = DRE's own retrained decoder for k=1 (dup_seeds=0)
+[10:31:35] [adaptive] dre            dre              k= 1 answered= 0.2/1 floored=    0 full=0.1677 tail=0.0365 (interview 0.00m + score 0.25m)
+[10:31:35] [dre] k=2 seed set from dre_ml25m_liang_k2.pt | distinct=2 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:31:35] [adaptive] dre              turn 1/2: 0.0s  answered so far 0.13  concept-asks 0  distinct ask-prefixes 1
+[10:31:35] [adaptive] dre              turn 2/2: 0.0s  answered so far 0.30  concept-asks 0  distinct ask-prefixes 1
+[10:31:36] [adaptive] INTERVIEW dre              k= 2 done in 0.00m; answered=0.30/2; distinct ask-prefixes=1; cache=None
+[10:31:51] [adaptive] ours           dre              k= 2 answered= 0.3/2 floored=    0 full=0.1693 tail=0.0465 (interview 0.00m + score 0.26m)
+[10:31:51] [dre] k=2 seed set from dre_ml25m_liang_k2.pt | distinct=2 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:31:51] [dre] consumer = DRE's own retrained decoder for k=2 (dup_seeds=0)
+[10:32:06] [adaptive] dre            dre              k= 2 answered= 0.3/2 floored=    0 full=0.1709 tail=0.0488 (interview 0.00m + score 0.24m)
+[10:32:06] [dre] k=4 seed set from dre_ml25m_liang_k4.pt | distinct=4 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:32:06] [adaptive] dre              turn 1/4: 0.0s  answered so far 0.15  concept-asks 0  distinct ask-prefixes 1
+[10:32:06] [adaptive] dre              turn 2/4: 0.0s  answered so far 0.36  concept-asks 0  distinct ask-prefixes 1
+[10:32:06] [adaptive] dre              turn 3/4: 0.0s  answered so far 0.46  concept-asks 0  distinct ask-prefixes 1
+[10:32:06] [adaptive] dre              turn 4/4: 0.0s  answered so far 0.69  concept-asks 0  distinct ask-prefixes 1
+[10:32:07] [adaptive] INTERVIEW dre              k= 4 done in 0.01m; answered=0.69/4; distinct ask-prefixes=1; cache=None
+[10:32:23] [adaptive] ours           dre              k= 4 answered= 0.7/4 floored=    0 full=0.1763 tail=0.0586 (interview 0.01m + score 0.27m)
+[10:32:23] [dre] k=4 seed set from dre_ml25m_liang_k4.pt | distinct=4 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:32:23] [dre] consumer = DRE's own retrained decoder for k=4 (dup_seeds=0)
+[10:32:37] [adaptive] dre            dre              k= 4 answered= 0.7/4 floored=    0 full=0.1831 tail=0.0623 (interview 0.01m + score 0.23m)
+[10:32:37] [dre] k=8 seed set from dre_ml25m_liang_k8.pt | distinct=8 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:32:37] [adaptive] dre              turn 1/8: 0.0s  answered so far 0.27  concept-asks 0  distinct ask-prefixes 1
+[10:32:37] [adaptive] dre              turn 2/8: 0.0s  answered so far 0.44  concept-asks 0  distinct ask-prefixes 1
+[10:32:37] [adaptive] dre              turn 3/8: 0.0s  answered so far 0.57  concept-asks 0  distinct ask-prefixes 1
+[10:32:37] [adaptive] dre              turn 4/8: 0.0s  answered so far 0.78  concept-asks 0  distinct ask-prefixes 1
+[10:32:37] [adaptive] dre              turn 5/8: 0.0s  answered so far 0.87  concept-asks 0  distinct ask-prefixes 1
+[10:32:37] [adaptive] dre              turn 6/8: 0.0s  answered so far 1.14  concept-asks 0  distinct ask-prefixes 1
+[10:32:38] [adaptive] dre              turn 7/8: 0.0s  answered so far 1.37  concept-asks 0  distinct ask-prefixes 1
+[10:32:38] [adaptive] dre              turn 8/8: 0.0s  answered so far 1.51  concept-asks 0  distinct ask-prefixes 1
+[10:32:38] [adaptive] INTERVIEW dre              k= 8 done in 0.03m; answered=1.51/8; distinct ask-prefixes=1; cache=None
+[10:32:55] [adaptive] ours           dre              k= 8 answered= 1.5/8 floored=    0 full=0.2074 tail=0.0789 (interview 0.03m + score 0.28m)
+[10:32:55] [dre] k=8 seed set from dre_ml25m_liang_k8.pt | distinct=8 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:32:55] [dre] consumer = DRE's own retrained decoder for k=8 (dup_seeds=0)
+[10:33:12] [adaptive] dre            dre              k= 8 answered= 1.5/8 floored=    0 full=0.2071 tail=0.0779 (interview 0.03m + score 0.28m)
+[10:33:12] [dre] k=16 seed set from dre_ml25m_liang_k16.pt | distinct=16 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:33:12] [adaptive] dre              turn 1/16: 0.0s  answered so far 0.14  concept-asks 0  distinct ask-prefixes 1
+[10:33:12] [adaptive] dre              turn 2/16: 0.0s  answered so far 0.25  concept-asks 0  distinct ask-prefixes 1
+[10:33:13] [adaptive] dre              turn 3/16: 0.0s  answered so far 0.40  concept-asks 0  distinct ask-prefixes 1
+[10:33:13] [adaptive] dre              turn 4/16: 0.0s  answered so far 0.64  concept-asks 0  distinct ask-prefixes 1
+[10:33:13] [adaptive] dre              turn 5/16: 0.0s  answered so far 0.80  concept-asks 0  distinct ask-prefixes 1
+[10:33:13] [adaptive] dre              turn 6/16: 0.0s  answered so far 1.06  concept-asks 0  distinct ask-prefixes 1
+[10:33:13] [adaptive] dre              turn 7/16: 0.0s  answered so far 1.14  concept-asks 0  distinct ask-prefixes 1
+[10:33:14] [adaptive] dre              turn 8/16: 0.0s  answered so far 1.33  concept-asks 0  distinct ask-prefixes 1
+[10:33:14] [adaptive] dre              turn 9/16: 0.0s  answered so far 1.53  concept-asks 0  distinct ask-prefixes 1
+[10:33:14] [adaptive] dre              turn 10/16: 0.0s  answered so far 1.79  concept-asks 0  distinct ask-prefixes 1
+[10:33:14] [adaptive] dre              turn 11/16: 0.0s  answered so far 2.00  concept-asks 0  distinct ask-prefixes 1
+[10:33:15] [adaptive] dre              turn 12/16: 0.0s  answered so far 2.10  concept-asks 0  distinct ask-prefixes 1
+[10:33:15] [adaptive] dre              turn 13/16: 0.0s  answered so far 2.38  concept-asks 0  distinct ask-prefixes 1
+[10:33:15] [adaptive] dre              turn 14/16: 0.0s  answered so far 2.48  concept-asks 0  distinct ask-prefixes 1
+[10:33:16] [adaptive] dre              turn 15/16: 0.0s  answered so far 2.75  concept-asks 0  distinct ask-prefixes 1
+[10:33:16] [adaptive] dre              turn 16/16: 0.0s  answered so far 2.88  concept-asks 0  distinct ask-prefixes 1
+[10:33:17] [adaptive] INTERVIEW dre              k=16 done in 0.07m; answered=2.88/16; distinct ask-prefixes=1; cache=None
+[10:33:35] [adaptive] ours           dre              k=16 answered= 2.9/16 floored=    0 full=0.2185 tail=0.0898 (interview 0.07m + score 0.30m)
+[10:33:35] [dre] k=16 seed set from dre_ml25m_liang_k16.pt | distinct=16 duplicates=0 | trained on data/ml-25m/proc/train.csv (train users only)
+[10:33:35] [dre] consumer = DRE's own retrained decoder for k=16 (dup_seeds=0)
+[10:33:50] [adaptive] dre            dre              k=16 answered= 2.9/16 floored=    0 full=0.2183 tail=0.0895 (interview 0.07m + score 0.25m)
+[10:33:50] [adaptive] done -> C:\dev\phd\casper\experiments\baselines\interview\adaptive_table_dre_port_v1.json

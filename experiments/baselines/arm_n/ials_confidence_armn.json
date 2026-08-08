@@ -1,0 +1,29 @@
+{
+  "model": "ials_confidence",
+  "arm": "N",
+  "contract": "Hu/Koren/Volinsky c_ui = 1 + alpha*r_ui (exposure-preserving graded)",
+  "alpha": 2.5,
+  "factors": 200,
+  "reg": 0.01,
+  "val_ndcg@10": 0.34948518816457824,
+  "ndcg@10": 0.34950921420819603,
+  "tail_ndcg@10": 0.2566343820047529,
+  "ndcg@100": 0.44583566142905573,
+  "binary_arm_n": {
+    "ndcg@100": 0.41884299925897284,
+    "ndcg@100_se": 0.002155095464311152,
+    "ndcg@10": 0.30442357045221186,
+    "ndcg@10_se": 0.0023692742299214796,
+    "recall@20": 0.38330432581994894,
+    "recall@20_se": 0.0026808933998974547,
+    "recall@50": 0.5174975411687841,
+    "recall@50_se": 0.0028212373659319934,
+    "tail_ndcg@10": 0.22931759205826624,
+    "tail_ndcg@10_se": 0.0024800661552780183
+  },
+  "delta_full": 0.04508564375598417,
+  "gates": {
+    "mostpop": true,
+    "alpha_interior": true
+  }
+}

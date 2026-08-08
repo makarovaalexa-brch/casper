@@ -35,6 +35,19 @@ rec = J('experiments/baselines/ml25m_liang/recvae.json')
 chk('RecVAE arm-A full', 0.3540, dig(rec, 'ndcg@10'), 'ml25m_liang/recvae.json')
 chk('RecVAE arm-A tail', 0.2497, dig(rec, 'tail_ndcg@10'), 'ml25m_liang/recvae.json')
 
+# ---- OUR OWN ROWS. Added 2026-08-08 after finding that tower.json was loaded here and never read
+# from: 93 checks resolved every baseline against its source file and left the instrument's own four
+# master-table cells unverified. That is the worst possible place to have a blind spot, and it had
+# already cost us -- the NATIVE pair sat at .4179/.2955 in the chapter while the certified ep31 tower
+# gives .4244/.3017. The snapshot assertion below is the part that matters most: a number can be
+# arithmetically right and still be the wrong tower's, which is exactly the R5 defect found the same day.
+chk('tower snapshot is the certified ep31', 1.0,
+    1.0 if (t or {}).get('snapshot') == 't2i26c_ep31.pt' else 0.0, 'arm_n/tower.json:snapshot')
+chk('ours arm-A (LIANG) full', 0.3496, dig(t, 'results', 'A_full', 'ndcg@10'), 'arm_n/tower.json')
+chk('ours arm-A (LIANG) tail', 0.2491, dig(t, 'results', 'A_full', 'tail_ndcg@10'), 'arm_n/tower.json')
+chk('ours arm-N (NATIVE) full', 0.4244, dig(t, 'results', 'N_full', 'ndcg@10'), 'arm_n/tower.json')
+chk('ours arm-N (NATIVE) tail', 0.3017, dig(t, 'results', 'N_full', 'tail_ndcg@10'), 'arm_n/tower.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:

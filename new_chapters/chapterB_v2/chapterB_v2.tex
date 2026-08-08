@@ -69,10 +69,14 @@ difference-in-differences; Section~\ref{sec:act3}}
 
 \section{Introduction}
 
-\paragraph{The claim this chapter makes.} \emph{Adaptivity pays exactly when the interview has
-placed the user, and when it pays, the structure that emerges is coarse-to-fine. Standard
-elicitation never reaches that regime --- which is why the field's adaptive machinery, replicated
-faithfully, shows no gap over a strongest static order.}
+\paragraph{The claim this chapter makes.} \emph{Adaptivity pays once the interview has placed the
+user, and when it pays, the structure that emerges is coarse-to-fine. Standard elicitation mostly
+does not reach that regime --- which is why the field's methods, replicated faithfully and scored
+on one ruler, fall below a well-chosen fixed order.} The evidence is a conditional rather than a
+null: across four method families and sixteen selectors, adaptive selection loses at every budget
+we test --- except that one published adaptive method, an interview tree, crosses over and wins once
+it has enough depth to partition users. Section~\ref{sec:act1result} states exactly how far that
+generalises, which is not as far as we would like.
 
 \paragraph{What this chapter is not claiming.} It is not claiming that selection does not matter:
 the difference between a good and a bad static order is large (a fixed bank moves full NDCG@10 from
@@ -159,13 +163,52 @@ combined & \texttt{ccciccii\,iicciiii} & .1783/.0478 & .1909/.0548 & .2135/.0755
 \end{tabular}
 \end{table}
 
-\subsection{Adaptive selection does not beat a static order}
+\subsection{What the battery actually shows}
+\label{sec:act1result}
 
-Table~\ref{tab:act1} is the chapter's first result. Against the strongest \emph{lit-anchored} static
-arm, three adaptive selectors --- GLM-UCB and Thompson sampling over the probabilistic-MF posterior
-(the interactive-collaborative-filtering bandit family, and the standard baselines of the deep-RL
-interview line), and EDDI's myopic information gain over a trained Partial-VAE --- lose at every
-budget on both axes, on this consumer.
+The result is not the flat null we expected, and the shape it does have is more informative. Three
+statements, in decreasing order of how well they are supported.
+
+\paragraph{(a) Every published elicitation method we ran lands below a well-chosen fixed order.}
+At sixteen questions on the certified tower, in one contract: our greedy items-only sequence
+$.2449/.0967$; entropy$_0$, a 2008 heuristic, $.2303/.0924$; CLiME, a 2025 conversational bandit,
+$.2218/.0897$; DRE, the peer-reviewed learned-static bar, $.2185/.0898$; GLM-UCB $.2161/.0833$;
+Thompson $.2135/.0878$; Golbandi's interview tree $.2117/.0844$. The cleanest way to say this is
+not about adaptivity at all: \emph{published elicitation methods of every kind --- learned static,
+classical adaptive, modern conversational bandit --- fall below a fixed order chosen by greedy
+search on the recommender they are scored with.} That the strongest published \emph{learned static}
+method is beaten by a 2008 entropy heuristic ($-.0118$) is the sharpest single instance.
+
+\paragraph{(b) The acquisition families lose everywhere, and not for want of branching.}
+Against the strongest lit-anchored static arm, GLM-UCB, Thompson sampling and the latent-only
+information gain lose at \emph{every} budget on \emph{both} axes --- thirty of thirty comparisons,
+all with paired intervals excluding zero. The best published conversational bandit loses all thirty
+of its comparisons against all three static arms. And the loss is not a failure to adapt: Thompson
+gives all $10{,}000$ users a distinct interview by the fourth question and still loses. This is the
+part of the result that is robust, contract-invariant (it survives the floored arm unchanged), and
+supported by four independent method families.
+
+\paragraph{(c) But one published adaptive method does win, once it has depth --- and that is the
+finding this chapter should be read for.} Golbandi's interview tree loses at one and two questions
+($-.0078$ and $-.0092$ against entropy$_0$, both separated) and \emph{wins} at eight ($+.0064$ full,
+$+.0052$ tail, separated); against the strongest static order it takes the tail at eight questions
+($+.0068$, CI $[+.0039,+.0098]$) while losing full at every budget. A depth-8 tree cannot partition
+anything until it has depth, so the crossover sits exactly where the mechanism predicts it should.
+
+\paragraph{The claim, stated conditionally.} Adaptive selection does not pay in the regime the field
+evaluates in --- short budgets, closed item banks, cold users who occupy barely distinguishable
+states --- and begins to pay once the interview has accumulated enough evidence to partition users
+meaningfully. That is a conditional, not a null, and Section~\ref{sec:act2} supplies the mechanism:
+downstream of standard openers there is almost nothing to adapt \emph{to}.
+
+\paragraph{What would falsify it, and what currently limits it.} The conditional rests on
+\textbf{one} method crossing over. Two others (GLM-UCB, Thompson) never cross within sixteen
+questions and one (the information-gain arm) diverges further with budget, so ``adaptivity pays at
+depth'' is not yet a property of adaptive selection in general --- it is a property of the tree.
+A second independent crossover would settle it; its absence is the honest limit of this section.
+\REDO{the remaining published methods most likely to cross --- IGCN, fMF --- and a
+sparsity-stratified re-analysis, since one line of prior work reports that adaptivity pays on dense
+data and vanishes on sparse}
 
 \paragraph{Two candidate pools, and why the comparison must be made inside one.}
 Table~\ref{tab:greedy} was computed under a narrower candidate mask than Table~\ref{tab:act1}: the
