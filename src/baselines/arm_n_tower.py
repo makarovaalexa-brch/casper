@@ -42,7 +42,12 @@ from train_tower_t2 import (build_model, make_graded_predict_fn, build_graded_ev
                             truncate_graded, reproduce_partition, star_to_level, compute_head_mask)
 
 OUT = os.path.join(_ROOT, "experiments", "baselines", "arm_n")
-SNAP_DEFAULT = os.path.join(_ROOT, ".cache", "instrument", "t2final_best.pt")
+# The CERTIFIED tower, 2026-08-02. Repointed 2026-08-08: this default still read t2final_best.pt, the
+# pre-certification tower, five days after ep31 was certified and frozen -- and it is imported by
+# arm_n_sign_probe.py and (transitively) by the graded-premium curve, so every R5 number in the chapter
+# was measured on the superseded weights. A stale default is worse than a missing one: it produces a
+# plausible number nobody re-checks. Anything published off this file must assert the snapshot name.
+SNAP_DEFAULT = os.path.join(_ROOT, ".cache", "instrument", "t2i26c_ep31.pt")
 COLD_SEED = 4242
 BUDGETS = [2, 4, 8, 16]
 # Stored encoding is level+1 (0 == absent). Level 7 is the lowest star band the canonical binarisation

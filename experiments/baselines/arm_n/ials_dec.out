@@ -18,3 +18,4 @@
 [10:44:41] --- rung 2: binary, ALL-rated, reg 0.01   (isolates SUPPORT SIZE -- the decisive one) ---
 [10:46:44]   [r2] alpha=   2.5 val full=0.3088 tail=0.2609
 [10:48:51]   [r2] alpha=   5.0 val full=0.3206 tail=0.2545
+[10:51:41]   [r2] alpha=  10.0 val full=0.3109 tail=0.2398

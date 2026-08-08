@@ -115,6 +115,28 @@
           "score_minutes": 0.3,
           "interview_minutes": 0.07,
           "distinct_prefixes": 200
+        },
+        "k4": {
+          "full": 0.16130511793276828,
+          "tail": 0.039720062257671614,
+          "answered": 0.3185,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.7,
+          "interview_minutes": 0.19,
+          "distinct_prefixes": 7924
+        },
+        "k8": {
+          "full": 0.1608997665601189,
+          "tail": 0.038980509840433594,
+          "answered": 0.319,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.66,
+          "interview_minutes": 0.68,
+          "distinct_prefixes": 10000
         }
       }
     }

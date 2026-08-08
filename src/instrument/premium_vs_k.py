@@ -1,6 +1,6 @@
 """premium_vs_k.py -- GRADED PREMIUM AS A FUNCTION OF EVIDENCE SIZE (the likely headline figure).
 
-On the frozen ep4 tower snapshot, VAL cohort, PARITY MASK throughout (only liked fold-in items masked,
+On a frozen tower snapshot (certified ep31 by default), VAL cohort, PARITY MASK throughout (only liked fold-in items masked,
 every arm): at k in {2, 4, 8, 16, full}, with FIXED random k-subsets sampled from the ALL-BANDS token
 set (truncate_graded; one draw shared by every arm at that k):
   arm (i)   true graded tokens                         (sids, real levels)
@@ -32,6 +32,7 @@ sys.path.insert(0, _HERE)
 from run_battery_phaseA import build_real_ctx, eval_tokens, bootstrap_ci, rows_to_csr, SNAP_DEFAULT
 from train_tower_t2 import truncate_graded, COLD_SEED, NLEV, LIKE_MIN_LEVEL, log
 
+# superseded by the per-snapshot --out path below; kept only so an old import does not break
 OUTP = os.path.join(_ROOT, "experiments", "battery", "premium_vs_k.json")
 KSEEDS = {2: COLD_SEED, 4: COLD_SEED + 2, 8: COLD_SEED + 1, 16: COLD_SEED + 3}
 
@@ -39,7 +40,15 @@ KSEEDS = {2: COLD_SEED, 4: COLD_SEED + 2, 8: COLD_SEED + 1, 16: COLD_SEED + 3}
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--snapshot", default=SNAP_DEFAULT)
+    # HARD RULE 11(e): never let two runs share an output path. The module-level OUTP is a single fixed
+    # file, so re-running on a new tower silently overwrote the old curve and left the chapter's figure
+    # pointing at a JSON whose snapshot field nobody re-read. Stamp the output with the tower.
+    ap.add_argument("--out", default=None,
+                    help="output JSON; defaults to premium_vs_k_<snapshot stem>.json")
     args = ap.parse_args()
+    outp = args.out or os.path.join(
+        _ROOT, "experiments", "battery",
+        "premium_vs_k_%s.json" % os.path.basename(args.snapshot).replace("_best", "").rsplit(".", 1)[0])
     ctx = build_real_ctx(args.snapshot)
     rows = [r for r in range(ctx.n) if ctx.va_te[r].nnz > 0]
     # all-bands carrier (levels+1) for subset sampling
@@ -87,15 +96,15 @@ def main():
             row["deltas"][dname] = {"mean": m, "ci95": ci, "n": nn_}
         row["seconds"] = round(time.time() - t0, 1)
         out["per_k"][kname] = row
-        os.makedirs(os.path.dirname(OUTP), exist_ok=True)
-        json.dump(out, open(OUTP, "w"), indent=2)
+        os.makedirs(os.path.dirname(outp), exist_ok=True)
+        json.dump(out, open(outp, "w"), indent=2)
         log(f"[k={kname}] " + " ".join(f"{a}={row['arms'][a]['full@10']:.4f}" for a in arms) +
             f" | values={row['deltas']['values_premium(true-memb4)']['mean']:+.4f}"
             f" reveal={row['deltas']['reveal_premium(memb4-likes)']['mean']:+.4f}"
             f" flip={row['deltas']['flip_delta(flip-true)']['mean']:+.4f}"
             f" ({row['seconds']/60:.1f}m)")
 
-    print("\n=== GRADED PREMIUM vs EVIDENCE SIZE (tower ep4, VAL, parity mask; full@10) ===")
+    print("\n=== GRADED PREMIUM vs EVIDENCE SIZE (%s, VAL, parity mask; full@10) ===" % out["snapshot"] + "")
     print(f"{'k':>5} {'true':>8} {'memb4':>8} {'likes':>8} {'flip':>8} "
           f"{'values_prem':>12} {'reveal_prem':>12} {'flip_delta':>11} {'likes_eff':>9}")
     for kname in list(map(str, sorted(KSEEDS))) + ["full"]:
@@ -106,7 +115,7 @@ def main():
               f"{d['reveal_premium(memb4-likes)']['mean']:+12.4f} "
               f"{d['flip_delta(flip-true)']['mean']:+11.4f} "
               f"{r['likes_effective_size']['mean']:9.1f}")
-    print(f"JSON -> {OUTP}")
+    print(f"JSON -> {outp}")
 
 
 if __name__ == "__main__":

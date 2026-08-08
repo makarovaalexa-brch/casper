@@ -331,7 +331,7 @@ concept protocol give different levels. This has cost real time three separate t
 
 - **EDDI**: PAUSED at epoch 44 of 200, checkpoint `.cache/baselines/eddi_ml25m_liang.pt`, resumes with
   the same command. Best so far test full@10 0.2153 / tail 0.1077 (val 0.2078). Author ruling: TRAIN IT
-  and report best-effort with the caveat that it has no published recsys anchor (its paper is UCI/MNIST)
+  and report best-effort with the caveat that it has no published recsys anchor (its paper is UCI, MNIST and healthcare tabular data)
   — same status RBMF, TaNP and SASRec already carry. It was still improving at the wall.
 - **TaNP**: trained, checkpoint exists (`tanp_ml25m_liang.pt`), full-profile row 0.2645/0.1635.
   NOT yet in the interview table — needs an answer-contract adapter only, no training (#72).

@@ -20,9 +20,11 @@ import matplotlib.pyplot as plt
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
 import sys
-# default to the CERTIFIED tower's curve; pass a path to plot the pre-certification one instead
+# The default below named premium_vs_k_t2final.json and called it "the CERTIFIED tower's curve".
+# It was not: t2final_best.pt is the PRE-certification tower, and the comment kept anyone from
+# re-checking. Corrected 2026-08-08 to the ep31 curve. Pass a path to plot any other tower.
 INP = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    _ROOT, "experiments", "battery", "premium_vs_k_t2final.json")
+    _ROOT, "experiments", "battery", "premium_vs_k_t2i26c_ep31.json")
 OUT = os.path.join(_ROOT, "new_chapters", "chapterA_v2", "fig_graded_curve")
 
 d = json.load(open(INP))

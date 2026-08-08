@@ -152,7 +152,7 @@ Tier 3 — closest elicitation-compatible matches (the real rivals for the instr
 
 | Baseline | Type | Reported anchor | Code | Why the slot |
 |---|---|---|---|---|
-| **EDDI / Partial-VAE** `ma2019eddi` | set-encoder + info-gain | non-recsys (UCI/MNIST) | public | The R2 architecture; the myopic info-gain baseline our tree generalizes. |
+| **EDDI / Partial-VAE** `ma2019eddi` | set-encoder + info-gain | non-recsys (UCI, MNIST, healthcare) | public | The R2 architecture; the myopic info-gain baseline our tree generalizes. |
 | **Biyik soft-attributes** `biyik2023soft` | Gaussian belief + EVOI | their elicitation task (not full-profile SOTA) | partial | THE central threat: nearest R2+R3+R4 system; the co-trained-encoder / non-frozen distinction is our wedge. |
 | **ConTS** `li2021seamlessly` | Thompson bandit, items+attrs arms | cold-start CRS metrics | public | Unified-space + uncertainty prior-art; fixed schema = R3 gap. |
 | **BCIE** `toroghi2023bcie` | conjugate-Gaussian critique fold | frozen-factorization critique | — | Exact-conjugacy-over-frozen-space precedent; closest to our R4/R5 mechanism. |

@@ -61,7 +61,10 @@ assert not hasattr(sys.modules[__name__], "load_answerer")
 
 PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
 GENOME = os.path.join(_ROOT, "data", "movielens", "genome-scores.csv")
-SNAP_DEFAULT = os.path.join(_ROOT, ".cache", "instrument", "t2i25_EP4_SNAP.pt")
+# The CERTIFIED tower, 2026-08-02. Repointed 2026-08-08: this still named the i25 ep4 snapshot, two
+# towers behind. Everything downstream (premium_vs_k, the graded-premium figure, the sign probe)
+# inherits it, so a stale default here silently dated every R5 number in Chapter A.
+SNAP_DEFAULT = os.path.join(_ROOT, ".cache", "instrument", "t2i26c_ep31.pt")
 OUTDIR = os.path.join(_ROOT, "experiments", "battery")
 BOOT = 10_000
 SEED = 4242
