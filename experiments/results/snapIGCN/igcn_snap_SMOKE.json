@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "target": "Rashid, Karypis & Riedl, SIGKDD Explorations 10(2) 2008 -- IGCN",
+    "published_ordering_MAE_userkNN": {
+      "igcn": 0.67,
+      "popularity": 0.73,
+      "entropy0": 0.73,
+      "helf": 0.84
+    },
+    "SNAP_KIND": "ORDERING snap on ML-100k -- NOT a numeric snap; the paper's corpus is the live MovieLens site of 2008 and its headline numbers come from a 381-subject online study, both irreproducible",
+    "n_cold": 40,
+    "seeds": [
+      98765
+    ],
+    "budgets": [
+      15
+    ],
+    "knn_k": 30,
+    "gate": "G1 IGCN beats HELF; G2 IGCN best of four",
+    "verdict": {
+      "G1_beats_helf": true,
+      "G2_best_of_four": true,
+      "verdict": "PASS",
+      "mean_mae": {
+        "entropy0": {
+          "15": 0.91396
+        },
+        "helf": {
+          "15": 0.90511
+        },
+        "igcn_literal": {
+          "15": 0.94123
+        },
+        "igcn_rescaled": {
+          "15": 0.87965
+        },
+        "popularity": {
+          "15": 0.90554
+        },
+        "random": {
+          "15": 0.85375
+        }
+      }
+    }
+  },
+  "cells": [
+    {
+      "seed": 98765,
+      "arm": "entropy0",
+      "budget": 15,
+      "mae": 0.91396,
+      "seen": 4.925,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 98765,
+      "arm": "helf",
+      "budget": 15,
+      "mae": 0.90511,
+      "seen": 3.675,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 98765,
+      "arm": "popularity",
+      "budget": 15,
+      "mae": 0.90554,
+      "seen": 5.1,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 98765,
+      "arm": "random",
+      "budget": 15,
+      "mae": 0.85375,
+      "seen": 0.675,
+      "distinct_ask_prefixes": 1,
+      "minutes": 0.0
+    },
+    {
+      "seed": 98765,
+      "arm": "igcn_rescaled",
+      "budget": 15,
+      "mae": 0.87965,
+      "seen": 3.975,
+      "distinct_ask_prefixes": 18,
+      "minutes": 0.0,
+      "igcn_personalised_asks": 120,
+      "igcn_global_asks": 480,
+      "igcn_total_asks": 600,
+      "igcn_personalised_rate": 0.2,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 20,
+      "igcn_n_neighbours": 10,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 59
+    },
+    {
+      "seed": 98765,
+      "arm": "igcn_literal",
+      "budget": 15,
+      "mae": 0.94123,
+      "seen": 4.175,
+      "distinct_ask_prefixes": 17,
+      "minutes": 0.01,
+      "igcn_personalised_asks": 81,
+      "igcn_global_asks": 519,
+      "igcn_total_asks": 600,
+      "igcn_personalised_rate": 0.135,
+      "igcn_degenerate_falls": 0,
+      "igcn_n_clusters": 300,
+      "igcn_n_neighbours": 150,
+      "igcn_switch_i": 5,
+      "igcn_recompute_every": 1,
+      "igcn_nbr_states_cached": 39
+    }
+  ]
+}

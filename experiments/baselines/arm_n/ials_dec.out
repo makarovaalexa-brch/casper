@@ -19,3 +19,15 @@
 [10:46:44]   [r2] alpha=   2.5 val full=0.3088 tail=0.2609
 [10:48:51]   [r2] alpha=   5.0 val full=0.3206 tail=0.2545
 [10:51:41]   [r2] alpha=  10.0 val full=0.3109 tail=0.2398
+[10:54:29]   [r2] alpha=  25.0 val full=0.2669 tail=0.2078
+[10:57:14]   [r2] alpha=  50.0 val full=0.2259 tail=0.1798
+[11:00:00]   [r2] alpha= 100.0 val full=0.1861 tail=0.1525
+[11:00:50] [RUNG r2] alpha*=5.0 (val 0.3206) -> TEST full=0.3213 tail=0.2529
+[11:00:50] ==============================================================================
+[11:00:50] [decompose] total .3044 -> .3495 = +0.0451 full
+[11:00:50] [decompose]   regularisation  +0.0257 full  +0.0337 tail
+[11:00:50] [decompose]   SUPPORT (likes -> all rated, still binary)  -0.0088 full  -0.0101 tail
+[11:00:50] [decompose]   GRADES  (values on identical support)       +0.0282 full  +0.0037 tail
+[11:00:50] ==============================================================================
+[11:00:50] [verdict] grades account for 45% of the movement. The grades carry real signal on fixed support -- the chapter's claim that no ratings-native baseline benefits from its grades is WRONG and must be rewritten.
+[11:00:50] done -> C:\dev\phd\casper\experiments\baselines\arm_n\ials_conf_decompose.json

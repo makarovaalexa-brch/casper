@@ -122,7 +122,7 @@ class UserKNN:
         isum = np.asarray(self.R.sum(0)).ravel()
         self.item_mu = np.where(icnt > 0, isum / np.maximum(icnt, 1), 0.0)
         self.glob = float(self.R.data.mean())
-        self.rated = (self.R > 0).tocsc()
+        self.Rcsc = self.R.tocsc()          # per-item rater lists AND their ratings, in one place
 
     def predict(self, answers, targets):
         """answers: list of (item, rating). targets: array of item ids. -> predicted ratings."""
@@ -143,17 +143,20 @@ class UserKNN:
         sim = np.asarray((v @ self.CnT).todense()).ravel() / nv
         top = np.argsort(-np.abs(sim))[:self.k]
         top = top[np.abs(sim[top]) > 1e-9]
+        keep = np.zeros(self.R.shape[0], bool)
+        keep[top] = True
         out = np.empty(len(targets), np.float64)
         for j, t in enumerate(targets):
-            s, e = self.rated.indptr[t], self.rated.indptr[t + 1]
-            raters = self.rated.indices[s:e]
-            sel = np.intersect1d(raters, top, assume_unique=False)
-            if len(sel) == 0:
+            s, e = self.Rcsc.indptr[t], self.Rcsc.indptr[t + 1]
+            raters, vals = self.Rcsc.indices[s:e], self.Rcsc.data[s:e]
+            m = keep[raters]
+            if not m.any():
                 out[j] = self.item_mu[t] if self.item_mu[t] > 0 else self.glob
                 continue
+            sel = raters[m]
             w = sim[sel]
-            r = np.asarray(self.R[sel, t]).ravel() - self.mu[sel]
-            out[j] = mu_u + float((w * r).sum() / max(np.abs(w).sum(), 1e-12))
+            out[j] = mu_u + float((w * (vals[m] - self.mu[sel])).sum()
+                                  / max(np.abs(w).sum(), 1e-12))
         return np.clip(out, 1.0, 5.0)
 
 
@@ -257,6 +260,10 @@ def main():
 
         arms = {nm: static_order_fn(glob[nm]) for nm in ("entropy0", "helf", "popularity")}
         arms["random"] = static_order_fn(rng.permutation(n_items))
+        # EXISTENTIAL CONTROL (HARD RULE 5). `none` asks nothing, so the consumer answers from item
+        # means alone. If an elicitation arm does not beat it, the CONSUMER is broken and no ordering
+        # between the arms means anything -- the arms would be ranked on how little they interfere.
+        arms["none"] = static_order_fn(np.empty(0, np.int64))
         sels = {}
         for vn, kw in variants.items():
             sel = IG.IGCNSelector(train, n_items, switch_i=IG.SWITCH_AFTER, recompute_every=1,

@@ -1,0 +1,49 @@
+{
+  "question": "does iALS-confidence's +0.045 come from the grades, the support, or the reg?",
+  "rungs": {
+    "r1_binary_likes_reg001": {
+      "alpha": 10.0,
+      "val_ndcg@10": 0.26429787725231074,
+      "alpha_at_edge": false,
+      "ndcg@10": 0.33013551727687906,
+      "tail_ndcg@10": 0.2630528814570565,
+      "ndcg@100": 0.4153427095069079,
+      "reg": 0.01,
+      "train_nnz": 10851052,
+      "foldin_nnz": 625946
+    },
+    "r2_binary_allrated_reg001": {
+      "alpha": 5.0,
+      "val_ndcg@10": 0.3205679635083176,
+      "alpha_at_edge": false,
+      "ndcg@10": 0.3213486904937945,
+      "tail_ndcg@10": 0.25292522846077276,
+      "ndcg@100": 0.42281139797679806,
+      "reg": 0.01,
+      "train_nnz": 21682110,
+      "foldin_nnz": 1411761
+    },
+    "r0_binary_likes_reg01": {
+      "ndcg@10": 0.30442357045221186,
+      "tail_ndcg@10": 0.22931759205826624,
+      "reg": 0.1,
+      "alpha": 50.0,
+      "source": "ials.json (on record)"
+    },
+    "r3_graded_allrated_reg001": {
+      "ndcg@10": 0.34950921420819603,
+      "tail_ndcg@10": 0.2566343820047529,
+      "reg": 0.01,
+      "alpha": 2.5,
+      "source": "ials_confidence_armn.json (on record)"
+    }
+  },
+  "deltas": {
+    "reg": 0.02571194682466721,
+    "support": -0.008786826783084567,
+    "grades": 0.02816052371440153
+  },
+  "gates": {
+    "mostpop": true
+  }
+}
