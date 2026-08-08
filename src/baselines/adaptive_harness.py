@@ -83,6 +83,10 @@ CONV_BANDIT_SPECS = ("conlinucb_mcr", "conlinucb_bs", "conlinucb_bs_static", "cl
 # method; `dpe_concept` is OUR labelled deviation that puts the same bandit on the concept action
 # space. See dpe_selector.py's header for why those are two different rows.
 DPE_SPECS = ("dpe", "dpe_hellinger", "dpe_oracle", "dpe_concept")
+# IGCN (Rashid, Karypis & Riedl, SIGKDD Expl. 2008): information gain over USER-CLUSTER labels,
+# recomputed from the current 150-nearest-neighbour pool as answers arrive. See igcn_selector.py.
+IGCN_SPECS = ("igcn", "igcn_i1", "igcn_page15")
+PAGE_RECOMPUTE = 15                         # the paper's page size n, as a re-rank period
 # Every spec that can spend a turn on a KEY-TERM, and therefore needs the concept action space wired
 # up and the concept consumer attached.
 CONCEPT_ASK_SPECS = CONV_BANDIT_SPECS + ("dpe_concept",)
@@ -486,6 +490,62 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
             sel.fit(cache_path=args.golbandi_tree_cache)
             cache[ck] = sel
         return cache[ck]
+    if spec in IGCN_SPECS:
+        # IGCN (Rashid, Karypis & Riedl, SIGKDD Expl. 2008) -- the ONE adaptive member of the family
+        # our entropy0/HELF/popularity arms come from. Clusters and the global-IG order are built
+        # ONCE per process on the TRAIN users and shared across budgets (both are budget-independent
+        # by construction), exactly as golbandi_tree shares its tree.
+        #   igcn        = the paper's parameters (c=300, l=150, switch after i=5 answers)
+        #   igcn_i1     = LABELLED DEVIATION, switch after 1 answer. At k<=4 no user can reach 5
+        #                 answers, so the published form is EXACTLY the global-IG static order there;
+        #                 this row is the one that exercises the personalized step at every budget.
+        #                 It is a different row, never a repair of the first.
+        #   igcn_page15 = the paper-LITERAL re-rank period (one page of n=15 items). At k<=16 it can
+        #                 fire at most once, which is why it is not the default.
+        import igcn_selector as IGS
+        sw = 1 if spec == "igcn_i1" else int(args.igcn_switch)
+        rc = PAGE_RECOMPUTE if spec == "igcn_page15" else int(args.igcn_recompute)
+        ck = ("igcn", int(args.igcn_clusters), int(args.igcn_nbr), sw, rc)
+        if ck not in cache:
+            sel = IGS.IGCNSelector(D["g_train"], D["n_items"],
+                                   n_clusters=args.igcn_clusters, n_nbr=args.igcn_nbr,
+                                   switch_i=sw, recompute_every=rc, seed=args.ts_seed,
+                                   kmeans_iter=args.igcn_kmeans_iter,
+                                   nn_chunk=args.igcn_nn_chunk, ig_chunk=args.igcn_ig_chunk,
+                                   cache_path=args.igcn_cluster_cache, log=log)
+            sel.fit()
+            cache[ck] = sel
+        sel = cache[ck]
+        sel.name = spec
+        # counters are cumulative on a shared object; zero them so each (spec, budget) cell reports
+        # its own personalised_rate rather than the run-to-date total
+        sel._n_pers = sel._n_glob = sel._n_degen = 0
+        sel._pers_per_turn = []
+        return sel
+    if spec.startswith("fixedorder:"):
+        # A STORED question order, walked inside THIS harness. It exists so a comparator like the
+        # greedy items-only sequence can be differenced PER USER against the arms in the same run:
+        # `gtport_greedy_rescore.py` had to re-score it in a separate file and then prove the
+        # entropy0 control matched at 0.0e+00 before any difference was allowed. Running it as a
+        # selector in the same output makes that identity hold by construction instead.
+        #   fixedorder:greedy_items -> experiments/battery/greedy_static_i26c.json, arm "items-only",
+        #                              channel-0 (item) steps only, verbatim; nothing is re-selected.
+        import golbandi_tree_selector as GT
+        which = spec.split(":", 1)[1]
+        if which == "greedy_items":
+            gj = json.load(open(os.path.join(_ROOT, "experiments", "battery",
+                                             "greedy_static_i26c.json")))
+            order = [int(i) for ch, i in gj["arms"]["items-only"]["sequence"] if int(ch) == 0]
+            assert len(order) >= k, (
+                f"fixedorder:greedy_items has {len(order)} item steps < budget {k}; the stored "
+                f"sequence cannot answer this budget and must not be silently extended")
+        else:
+            assert which in glob, f"fixedorder: unknown stored order '{which}'; have {sorted(glob)}"
+            order = list(glob[which])
+        s = GT.StaticOrderTreeSelector(order, log=log)
+        s.name = spec
+        log(f"[fixedorder] {which}: first {k} questions {list(order[:k])}")
+        return s
     if spec.startswith("treestatic:"):
         # THE SYMMETRIC COMPARATOR, through golbandi_tree_selector's OWN class rather than through
         # StaticArmSelector. Both return order[turn] to every user, so they are behaviourally the same
@@ -571,7 +631,7 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         return CB.ConUCBSelector(bel, stack, lam=args.conucb_lam, lam_til=args.conucb_lam_til, **kw)
     raise SystemExit(f"unknown selector spec '{spec}'. Known: <arm>{STATIC_SUFFIX} for arm in "
                      f"{ST.ARMS}, plus dre, golbandi_tree, glm_ucb, thompson, eddi_ig, eddi_ig3, "
-                     f"eddi_ig3_zero, "
+                     f"eddi_ig3_zero, {','.join(IGCN_SPECS)}, "
                      f"{','.join(CONV_BANDIT_SPECS)}, {','.join(DPE_SPECS)}")
 
 
@@ -596,6 +656,7 @@ def _smoke_slice(D, n_smoke, log=logln):
 _ASK_ARGS = ("sel_batch", "ucb_alpha", "ts_seed", "eddi_topm", "eddi_beta",
              "golbandi_depth", "golbandi_xi", "golbandi_min_child", "golbandi_tree_cache",
              "dre_tag", "dre_dup_policy",
+             "igcn_clusters", "igcn_nbr", "igcn_switch", "igcn_recompute", "igcn_kmeans_iter",
              "keyterm_repr", "keyterm_repr_conucb", "keyterm_n_rep", "keyterm_norm_match",
              "conv_beta", "conv_turn_rule", "conv_b_schedule", "conucb_lam", "conucb_lam_til",
              "clime_n_eig", "clisk_sigma", "smoke_users",
@@ -766,6 +827,33 @@ def main():
                     help="CLiME: how many smallest-eigenvalue eigendirections of M_t to score against.")
     ap.add_argument("--clisk_sigma", type=float, default=0.0,
                     help="CLiSK's Gaussian key-term-context smoothing (0 = pure CLiME).")
+    # ---------------- IGCN (Rashid, Karypis & Riedl, SIGKDD Expl. 2008) ---------------------------
+    ap.add_argument("--igcn_clusters", type=int, default=300,
+                    help="c, the number of bisecting-k-means user clusters IGCN computes its "
+                         "information gain over. 300 is the paper's own value [V].")
+    ap.add_argument("--igcn_nbr", type=int, default=150,
+                    help="l, the neighbourhood the PERSONALIZED step recomputes information gain "
+                         "from. 150 is the paper's own value [V]; it is the thing that makes IGCN "
+                         "adaptive rather than a seventh static order.")
+    ap.add_argument("--igcn_switch", type=int, default=5,
+                    help="i, answers required before the personalized step takes over. 5 is the "
+                         "paper's own value [V]. NOTE at k<=4 no user can reach it, so the `igcn` "
+                         "row IS the global-IG static order there -- read `igcn_personalised_rate` "
+                         "off the cell before calling any k<=4 number adaptive.")
+    ap.add_argument("--igcn_recompute", type=int, default=1,
+                    help="turns between neighbourhood/IG recomputations. The paper re-ranks per "
+                         "PAGE of 15 items; our budgets are k<=16, so the literal period fires at "
+                         "most once and 1 (re-rank after every turn) is the default. The literal "
+                         "setting is the separate `igcn_page15` spec, not a flag change.")
+    ap.add_argument("--igcn_kmeans_iter", type=int, default=10)
+    ap.add_argument("--igcn_cluster_cache", default=None,
+                    help="path for the CONTRACT-SIGNED cluster sidecar (HARD RULE 11b). Clustering "
+                         "140,768 users is the only expensive setup step and it is deterministic.")
+    ap.add_argument("--igcn_nn_chunk", type=int, default=128,
+                    help="interview STATES per neighbour-search block. Memory device only (HARD "
+                         "RULE 11c): every user is searched against every training user.")
+    ap.add_argument("--igcn_ig_chunk", type=int, default=256,
+                    help="interview STATES per personalised-IG block. Memory device only.")
     # ---------------- DPE (Parapar & Radlinski WSDM'21); see dpe_selector.py -----------------------
     ap.add_argument("--dpe_topics", default="genres", choices=["genres", "genome"],
                     help="DPE's arm set. 'genres' = the paper's own granularity (20 MovieLens "
@@ -932,7 +1020,12 @@ def main():
                 # n_concepts only: the cache CAP is deliberately NOT in the contract, because eviction
                 # changes what is recomputed and never which question is asked.
                 ex = {"n_concepts": int(stk["n_concepts"])}
-            ckpt = os.path.join(ckdir, f"{spec}_k{k}.json")
+            # ':' is legal in a selector spec (`treestatic:entropy0`, `fixedorder:greedy_items`) and
+            # ILLEGAL in a Windows filename -- os.replace fails with WinError 87 at the first
+            # checkpoint write, i.e. the persistence rule silently turns into a crash for exactly the
+            # comparator arms. The spec itself still goes in the checkpoint CONTRACT, so sanitising
+            # the filename cannot make two different specs share a sidecar.
+            ckpt = os.path.join(ckdir, f"{spec.replace(':', '__')}_k{k}.json")
             if a.no_resume and os.path.exists(ckpt):
                 os.remove(ckpt)
             asked, answered, info = run_interview(sel, k, n, ni, lvl,
@@ -1044,9 +1137,11 @@ def main():
                     if key in info:
                         cell[key] = info[key]
                 # The DRE duplicate-seed defect is a measured property of the published method and
-                # must be readable off EVERY cell, not just the training log.
+                # must be readable off EVERY cell, not just the training log. Same for IGCN's
+                # `igcn_personalised_rate`: an IGCN row at rate 0 is the global-IG STATIC order, and
+                # that has to be readable off the table rather than inferred from the budget.
                 for _dk, _dv in info.items():
-                    if _dk.startswith("dre_"):
+                    if _dk.startswith("dre_") or _dk.startswith("igcn_"):
                         cell[_dk] = _dv
                 results[name][spec][f"k{k}"] = cell
                 logln(f"[adaptive] {name:14s} {spec:16s} k={k:2d} "

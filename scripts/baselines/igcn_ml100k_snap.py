@@ -102,61 +102,73 @@ def split_cold(R, n_cold, seed):
 
 # --------------------------------------------------------------------------- the consumer
 class UserKNN:
-    """Mean-centred cosine user-kNN -- the paper's own recommender family, and the one its MAE table
-    is computed with. Predicts from the ANSWERED ratings only; unanswered questions contribute
-    nothing, which is the whole reason answerability matters to this method."""
+    """Cosine user-kNN over BASELINE RESIDUALS -- the paper's own recommender family (user-kNN), in
+    the textbook baseline-predictor form  rhat = mu + b_u + b_i + kNN(residual).
+
+    WHY THE BASELINE AND NOT A PLAIN USER MEAN, and it is load-bearing rather than a detail. The
+    first version of this consumer centred each cold user on the MEAN OF THEIR OWN ANSWERS. Every
+    elicitation arm asks about popular, well-liked items, so that mean is biased upward by an amount
+    that DEPENDS ON THE ARM -- and the existential control caught it: the `none` arm (ask nothing,
+    predict from item means) beat every elicitation arm at every budget, i.e. the arms were being
+    ranked on how little they corrupted the centring. Estimating b_u against the ITEM baselines
+    instead removes the item-selection bias by construction:
+
+        b_i = SUM_{u in R(i)} (r_ui - mu) / (|R(i)| + beta_i)
+        b_u = SUM_{i in answers} (r_ui - mu - b_i) / (n_answers + beta_u)
+
+    so an arm that asks only items with b_i = +0.6 contributes nothing to b_u through that channel.
+    beta_i = 25, beta_u = 10 are the standard Koren shrinkages, applied IDENTICALLY to every arm and
+    to the control, and never varied per arm."""
+
+    BETA_I, BETA_U = 25.0, 10.0
 
     def __init__(self, R_train, k=KNN_K):
         self.R = R_train.tocsr()
         self.k = int(k)
-        cnt = np.diff(self.R.indptr)
-        s = np.asarray(self.R.sum(1)).ravel()
-        self.mu = np.where(cnt > 0, s / np.maximum(cnt, 1), 0.0)
-        C = self.R.copy().astype(np.float64)
-        C.data = C.data - np.repeat(self.mu, cnt)             # mean-centred
-        self.C = C.tocsr()
-        nrm = np.sqrt(np.asarray(C.multiply(C).sum(1)).ravel())
-        self.Cn = sparse.diags(1.0 / np.maximum(nrm, 1e-12)).dot(C).tocsr()
-        self.CnT = self.Cn.T.tocsr()
-        icnt = np.asarray((self.R > 0).sum(0)).ravel()
-        isum = np.asarray(self.R.sum(0)).ravel()
-        self.item_mu = np.where(icnt > 0, isum / np.maximum(icnt, 1), 0.0)
         self.glob = float(self.R.data.mean())
-        self.Rcsc = self.R.tocsc()          # per-item rater lists AND their ratings, in one place
+        icnt = np.asarray((self.R > 0).sum(0)).ravel().astype(np.float64)
+        isum = np.asarray(self.R.sum(0)).ravel() - self.glob * icnt
+        self.b_i = isum / (icnt + self.BETA_I)
+        cnt = np.diff(self.R.indptr)
+        base_rated = self.glob + self.b_i[self.R.indices]
+        dev = self.R.data - base_rated
+        su = np.add.reduceat(dev, self.R.indptr[:-1]) * (cnt > 0)
+        self.b_u = su / (cnt + self.BETA_U)
+        C = self.R.copy().astype(np.float64)
+        C.data = dev - np.repeat(self.b_u, cnt)               # residual off the full baseline
+        nrm = np.sqrt(np.asarray(C.multiply(C).sum(1)).ravel())
+        self.CnT = sparse.diags(1.0 / np.maximum(nrm, 1e-12)).dot(C).tocsr().T.tocsr()
+        self.Ccsc = C.tocsc()
+        self.Rcsc = self.R.tocsc()
 
     def predict(self, answers, targets):
         """answers: list of (item, rating). targets: array of item ids. -> predicted ratings."""
+        targets = np.asarray(targets, np.int64)
         if not answers:
-            out = self.item_mu[targets].copy()
-            out[out == 0] = self.glob
-            return out
+            return np.clip(self.glob + self.b_i[targets], 1.0, 5.0)
         it = np.asarray([a[0] for a in answers], np.int64)
         rv = np.asarray([a[1] for a in answers], np.float64)
-        mu_u = float(rv.mean())
-        v = sparse.csr_matrix((rv - mu_u, (np.zeros(len(it), np.int64), it)),
-                              shape=(1, self.R.shape[1]))
+        b_u = float((rv - self.glob - self.b_i[it]).sum() / (len(it) + self.BETA_U))
+        base = self.glob + b_u + self.b_i[targets]
+        res = rv - self.glob - b_u - self.b_i[it]
+        v = sparse.csr_matrix((res, (np.zeros(len(it), np.int64), it)), shape=(1, self.R.shape[1]))
         nv = float(np.sqrt(v.multiply(v).sum()))
         if nv <= 1e-12:
-            out = self.item_mu[targets].copy()
-            out[out == 0] = self.glob
-            return out
+            return np.clip(base, 1.0, 5.0)
         sim = np.asarray((v @ self.CnT).todense()).ravel() / nv
         top = np.argsort(-np.abs(sim))[:self.k]
         top = top[np.abs(sim[top]) > 1e-9]
         keep = np.zeros(self.R.shape[0], bool)
         keep[top] = True
-        out = np.empty(len(targets), np.float64)
+        out = base.copy()
         for j, t in enumerate(targets):
-            s, e = self.Rcsc.indptr[t], self.Rcsc.indptr[t + 1]
-            raters, vals = self.Rcsc.indices[s:e], self.Rcsc.data[s:e]
+            s, e = self.Ccsc.indptr[t], self.Ccsc.indptr[t + 1]
+            raters, resid = self.Ccsc.indices[s:e], self.Ccsc.data[s:e]
             m = keep[raters]
             if not m.any():
-                out[j] = self.item_mu[t] if self.item_mu[t] > 0 else self.glob
                 continue
-            sel = raters[m]
-            w = sim[sel]
-            out[j] = mu_u + float((w * (vals[m] - self.mu[sel])).sum()
-                                  / max(np.abs(w).sum(), 1e-12))
+            w = sim[raters[m]]
+            out[j] = base[j] + float((w * resid[m]).sum() / max(np.abs(w).sum(), 1e-12))
         return np.clip(out, 1.0, 5.0)
 
 
@@ -203,18 +215,36 @@ def igcn_order_fn(sel, fold, n_items):
     return gen
 
 
-def mae_of(knn, answered, ev):
+def mae_of(knn, answered, ev, per_user=False):
+    """Pooled MAE over all eval ratings, and (optionally) the PER-USER mean absolute error.
+
+    The per-user vector is the only thing a PAIRED bootstrap can be run from -- the unpaired
+    1.96*sqrt(2)*SE form is banned repo-wide (ARM_N_PHASE1 sec 4b), and every gap in this table is
+    small enough that the distinction decides whether there is a claim at all."""
     E = ev.tocsr()
     err, n = 0.0, 0
+    pu = np.full(E.shape[0], np.nan)
     for u in range(E.shape[0]):
         s, e = E.indptr[u], E.indptr[u + 1]
         if e == s:
             continue
         tg, tr = E.indices[s:e], E.data[s:e]
         pr = knn.predict([(i, r) for i, r in answered[u]], tg)
-        err += float(np.abs(pr - tr).sum())
+        a = np.abs(pr - tr)
+        err += float(a.sum())
         n += len(tg)
-    return err / max(n, 1)
+        pu[u] = float(a.mean())
+    return (err / max(n, 1), pu) if per_user else err / max(n, 1)
+
+
+def paired_ci(x, y, n_boot=10000, seed=98765):
+    """Paired bootstrap over USERS of mean(x - y). Returns (delta, lo, hi)."""
+    d = np.asarray(x, np.float64) - np.asarray(y, np.float64)
+    d = d[np.isfinite(d)]
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(d), size=(n_boot, len(d)))
+    bs = d[idx].mean(1)
+    return float(d.mean()), float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))
 
 
 def main():
@@ -248,6 +278,7 @@ def main():
 
     variants = {"rescaled": dict(n_clusters=20, n_nbr=10),
                 "literal": dict(n_clusters=IG.N_CLUSTERS, n_nbr=IG.N_NEIGHBOURS)}
+    pu_vec = {}
 
     for seed in seeds:
         train, fold, ev = split_cold(R, a.n_cold, seed)
@@ -273,6 +304,20 @@ def main():
             arms[f"igcn_{vn}"] = igcn_order_fn(sel, fold, n_items)
             sels[f"igcn_{vn}"] = sel
 
+        # CONSUMER SANITY (HARD RULE 5, second control). The `none` floor alone cannot tell "the
+        # interview is too short to help this consumer" from "this consumer ignores information".
+        # Feeding it the cold user's WHOLE fold-in profile separates the two, once per seed.
+        F0 = fold.tocsr()
+        fullp = [[(int(i), float(v)) for i, v in
+                  zip(F0.indices[F0.indptr[u]:F0.indptr[u + 1]],
+                      F0.data[F0.indptr[u]:F0.indptr[u + 1]])] for u in range(F0.shape[0])]
+        mae_full = mae_of(knn, fullp, ev)
+        blob["cells"].append({"seed": seed, "arm": "_diag_full_profile", "budget": -1,
+                              "mae": round(mae_full, 5),
+                              "seen": round(float(np.mean([len(x) for x in fullp])), 3)})
+        log(f"[snapIGCN] seed={seed} CONSUMER SANITY: full fold-in profile "
+            f"({np.mean([len(x) for x in fullp]):.1f} ratings) MAE={mae_full:.4f}")
+
         for b in budgets:
             for nm, fn in arms.items():
                 t0 = time.time()
@@ -287,7 +332,8 @@ def main():
                         answered.append([(i, have[i]) for i in gseq if i in have])
                 else:
                     asked, answered = run_arm(fn, fold, b, n_items)
-                mae = mae_of(knn, answered, ev)
+                mae, pu = mae_of(knn, answered, ev, per_user=True)
+                pu_vec[(seed, nm, b)] = pu
                 seen = float(np.mean([len(t) for t in answered]))
                 distinct = len({tuple(x) for x in asked})
                 cell = {"seed": seed, "arm": nm, "budget": b, "mae": round(mae, 5),
@@ -317,6 +363,23 @@ def main():
     log(hdr)
     for nm in names:
         log(nm.ljust(16) + "".join(f"  {tab[nm][b]:<9.4f}" for b in budgets))
+    # ---------------- paired bootstrap over users, IGCN vs each comparator, per budget
+    log("-" * 96)
+    log("paired over users (10,000 resamples, seed 98765); NEGATIVE delta = IGCN has LOWER MAE")
+    cis = {}
+    for b in budgets:
+        for ign in ("igcn_rescaled", "igcn_literal"):
+            for cmp_ in ("entropy0", "helf", "popularity", "random", "none"):
+                x = np.concatenate([pu_vec[(s, ign, b)] for s in seeds])
+                y = np.concatenate([pu_vec[(s, cmp_, b)] for s in seeds])
+                d, lo, hi = paired_ci(x, y)
+                sep = "SEP" if (lo > 0 or hi < 0) else "ns "
+                cis[f"{ign}-{cmp_}|k{b}"] = {"delta": round(d, 5), "lo": round(lo, 5),
+                                             "hi": round(hi, 5), "separated": sep == "SEP"}
+                log(f"  k={b:3d}  {ign:14s} - {cmp_:11s} = {d:+.4f} "
+                    f"[{lo:+.4f},{hi:+.4f}] {sep}")
+    blob["meta"]["paired_ci"] = cis
+
     ig_nm = "igcn_rescaled"
     g1 = all(tab[ig_nm][b] < tab["helf"][b] for b in budgets)
     g2 = all(tab[ig_nm][b] <= min(tab[o][b] for o in ("helf", "entropy0", "popularity"))
