@@ -1,1 +1,14 @@
 [19:29:47] user-kNN still running; holding the queue (0 min waited)
+[19:39:56] user-kNN still running; holding the queue (10 min waited)
+[19:50:05] user-kNN still running; holding the queue (20 min waited)
+[20:00:13] user-kNN still running; holding the queue (30 min waited)
+[20:10:21] user-kNN still running; holding the queue (40 min waited)
+[20:20:29] user-kNN still running; holding the queue (50 min waited)
+[20:29:33] user-kNN finished: graded full=0.2821709594173751 tail=0.14006851560787054 citable=False
+[20:29:33] --- step 1/2: re-select the shared MF setting on NDCG@10 (both arms)
+[20:29:38] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[20:29:38] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[20:29:38] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[20:29:38] [pop] fitted item popularity over 140768 train users, 18359 items
+[20:29:50] [G1] MostPop 0.1626 vs 0.1626 -> PASS
+[20:29:50] --- sweeping the shared iALS/RBMF/belief-MF setting on THIS ruler, selecting on NDCG@10 ---
