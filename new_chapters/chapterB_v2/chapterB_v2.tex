@@ -177,7 +177,16 @@ Thompson $.2135/.0878$; Golbandi's interview tree $.2117/.0844$. The cleanest wa
 not about adaptivity at all: \emph{published elicitation methods of every kind --- learned static,
 classical adaptive, modern conversational bandit --- fall below a fixed order chosen by greedy
 search on the recommender they are scored with.} That the strongest published \emph{learned static}
-method is beaten by a 2008 entropy heuristic ($-.0118$) is the sharpest single instance.
+method is beaten on full accuracy by a 2008 entropy heuristic ($-.0118$, $[-.0153,-.0083]$) is the
+sharpest single instance --- though note the same gap is \emph{not} separated on the tail, so the
+two axes disagree about that particular pair.
+
+The comparator that carries the claim is therefore the greedy order and not the heuristic. Against
+entropy$_0$ specifically the picture is mixed: IGCN separably beats it at one, two and four
+questions ($+.0050$, $+.0095$, $+.0113$ full). That is worth stating precisely, because it is
+\emph{not} a win for adaptivity --- IGCN's personalised step is active on exactly $0.0\%$ of turns
+at those budgets (see (d)), so what beats entropy$_0$ early is IGCN's global information-gain
+\emph{static} order.
 
 \paragraph{(b) The acquisition families lose everywhere, and not for want of branching.}
 Against the strongest lit-anchored static arm, GLM-UCB, Thompson sampling and the latent-only
