@@ -1,0 +1,17 @@
+[18:42:56] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[18:42:56] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[18:42:56] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[18:42:56] [probe] snapshot t2i26c_ep31.pt ep=31 arch=i26
+[18:42:57] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[18:42:58] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[18:42:58] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[18:42:58] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[18:42:58] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[18:44:11] [probe] k=  1  A(likes only,  0.5/1 usable) full=0.1834 tail=0.0615  |  N(all signed) full=0.1921 tail=0.0715  |  GAP full=+0.0088 tail=+0.0100
+[18:45:23] [probe] k=  2  A(likes only,  1.1/2 usable) full=0.2046 tail=0.0861  |  N(all signed) full=0.2190 tail=0.0964  |  GAP full=+0.0144 tail=+0.0103
+[18:46:40] [probe] k=  4  A(likes only,  2.1/4 usable) full=0.2377 tail=0.1177  |  N(all signed) full=0.2478 tail=0.1245  |  GAP full=+0.0102 tail=+0.0068
+[18:47:58] [probe] k=  8  A(likes only,  4.2/8 usable) full=0.2783 tail=0.1578  |  N(all signed) full=0.2764 tail=0.1583  |  GAP full=-0.0018 tail=+0.0005
+[18:49:14] [probe] k= 16  A(likes only,  8.5/16 usable) full=0.3207 tail=0.1985  |  N(all signed) full=0.3149 tail=0.1958  |  GAP full=-0.0059 tail=-0.0027
+[18:50:33] [probe] k= 32  A(likes only, 15.8/32 usable) full=0.3631 tail=0.2361  |  N(all signed) full=0.3624 tail=0.2349  |  GAP full=-0.0008 tail=-0.0013
+[18:50:33] [probe] wrote sign_probe_t2i26c_ep31.json (citable) and sign_probe.json (compatibility)
+[18:50:33] [probe] done in 7.7 m

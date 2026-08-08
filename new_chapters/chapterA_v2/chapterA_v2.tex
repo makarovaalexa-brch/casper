@@ -315,8 +315,8 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         \emph{Intensity}: neutralising values to ``indifferent'' while freezing membership costs NDCG, quality is
         monotone in the stated level. Graded input then beats a fair binarising ablation on two distinct
         comparisons, and we name what each varies: holding the fold-in support \emph{identical} and
-        re-valuing each item by its star level pays $+0.0039$ full at the full profile, while \emph{adding}
-        the sub-threshold answers pays far more on the short interview---$+0.0147$ at $k{=}2$---and nothing
+        re-valuing each item by its star level pays $+0.0022$ full at the full profile, while \emph{adding}
+        the sub-threshold answers pays far more on the short interview---$+0.0144$ at $k{=}2$---and nothing
         from $k{=}8$ onward.
 \end{description}
 
@@ -956,9 +956,9 @@ the quality of any such interaction would rest on the text adapter whose limits 
     ML-25M interview harness, full NDCG@10 against interview length $k$. The same revealed set is fed two
     ways: \emph{graded} (real signed star levels) and \emph{likes-only} (sub-threshold answers dropped,
     exactly what a positive-only tower such as RecVAE does at $r{>}3.5$). The premium is positive with a
-    clean interval only while evidence is scarce---$+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$) and
-    $+0.0083$ at $k{=}4$ (CI $[+0.0063,+0.0103]$)---and is indistinguishable from zero from $k{=}8$ onward
-    ($-0.0006$, CI $[-0.0024,+0.0012]$): the extra bits a star carries matter most when few items are
+    clean interval only while evidence is scarce---$+0.0102$ at $k{=}2$ (CI $[+0.0087,+0.0118]$) and
+    $+0.0080$ at $k{=}4$ (CI $[+0.0063,+0.0097]$)---and is indistinguishable from zero from $k{=}8$ onward
+    ($+0.0010$, CI $[-0.0007,+0.0026]$): the extra bits a star carries matter most when few items are
     known. Mechanism and the separate full-profile A/B in \S\ref{sec:batteryresults}.}
   \label{fig:gradedcurve}
 \end{figure}
@@ -1410,7 +1410,7 @@ Check & Criterion & Measured & Verdict \\
 R1 & indistinguishable on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, contains zero), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 R2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction. Open half: concept direction ranks its members at AUC $0.94$ whitened; sign contrast $+0.2096$ (CI $[+0.1986,+0.2208]$), identity contrast $+0.1278$ (CI $[+0.1195,+0.1361]$); a held-out concept folds from its name alone at $>300\times$ chance & \textbf{PASS} \\
 R3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1574\!\to\!0.2609$ full, $0.0505\!\to\!0.1062$ tail ($q{=}2\!\to\!16$); rise $+0.1035$ (CI $[0.1000,0.1071]$), monotone $\rho{=}1.0$ & \textbf{PASS}$^\ddagger$ \\
-R4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, i.e.\ $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho{=}0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0147$ at $k{=}2$ (CI $[+0.0127,+0.0167]$), and $+0.0039$ full / $+0.0020$ tail at full profile on identical support & \textbf{PASS} \\
+R4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, i.e.\ $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho{=}0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0102$ at $k{=}2$ (CI $[+0.0087,+0.0118]$), and $+0.0022$ full at full profile on identical support (CI $[+0.0008,+0.0036]$) & \textbf{PASS} \\
 \midrule
 Controls & wrong-user / shuffle / placebo / duplicate gain nothing & true arm beats shuffled by $+0.0371$ and placebo by $+0.0168$ (both CI-clean); duplicate assert fired; wrong-user $-0.0986$ (a stranger's taste is worse than silence) & \textbf{PASS} \\
 Provenance & answers carry no recommender geometry, no target half & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts, both read from the fold-in only & \textbf{PASS}$^{*}$ \\

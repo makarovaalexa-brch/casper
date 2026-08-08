@@ -194,3 +194,54 @@
 [18:42:21]     full/k4/igcn_page15-minus-greedy_items                                   -0.0123 CI [-0.0151,-0.0095] SEP in-run
 [18:42:26]     tail/k4/igcn_page15-minus-entropy0                                       +0.0065 CI [+0.0037,+0.0094] SEP in-run
 [18:42:32]     tail/k4/igcn_page15-minus-greedy_items                                   -0.0003 CI [-0.0026,+0.0021] ns  in-run
+[18:42:37]     full/k8/igcn_page15-minus-entropy0                                       -0.0025 CI [-0.0059,+0.0008] ns  in-run
+[18:42:43]     full/k8/igcn_page15-minus-greedy_items                                   -0.0219 CI [-0.0248,-0.0190] SEP in-run
+[18:42:48]     tail/k8/igcn_page15-minus-entropy0                                       -0.0044 CI [-0.0073,-0.0014] SEP in-run
+[18:42:52]     tail/k8/igcn_page15-minus-greedy_items                                   -0.0027 CI [-0.0053,+0.0001] ns  in-run
+[18:42:58]     full/k16/igcn_page15-minus-entropy0                                      -0.0086 CI [-0.0119,-0.0052] SEP in-run
+[18:43:05]     full/k16/igcn_page15-minus-greedy_items                                  -0.0232 CI [-0.0264,-0.0200] SEP in-run
+[18:43:11]     tail/k16/igcn_page15-minus-entropy0                                      -0.0006 CI [-0.0037,+0.0025] ns  in-run
+[18:43:17]     tail/k16/igcn_page15-minus-greedy_items                                  -0.0049 CI [-0.0079,-0.0018] SEP in-run
+[18:43:17] === C5b: what the i=1 deviation and the page-15 period are worth against `igcn` ===
+[18:43:23]     full/k1/igcn_i1-minus-igcn                                               +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:43:30]     tail/k1/igcn_i1-minus-igcn                                               +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:43:36]     full/k2/igcn_i1-minus-igcn                                               +0.0015 CI [+0.0003,+0.0027] SEP in-run
+[18:43:42]     tail/k2/igcn_i1-minus-igcn                                               +0.0016 CI [+0.0004,+0.0028] SEP in-run
+[18:43:48]     full/k4/igcn_i1-minus-igcn                                               +0.0016 CI [-0.0002,+0.0036] ns  in-run
+[18:43:54]     tail/k4/igcn_i1-minus-igcn                                               -0.0011 CI [-0.0027,+0.0005] ns  in-run
+[18:44:00]     full/k8/igcn_i1-minus-igcn                                               -0.0013 CI [-0.0038,+0.0011] ns  in-run
+[18:44:06]     tail/k8/igcn_i1-minus-igcn                                               +0.0012 CI [-0.0008,+0.0033] ns  in-run
+[18:44:13]     full/k16/igcn_i1-minus-igcn                                              -0.0051 CI [-0.0078,-0.0025] SEP in-run
+[18:44:20]     tail/k16/igcn_i1-minus-igcn                                              -0.0023 CI [-0.0048,-0.0000] SEP in-run
+[18:44:25]     full/k1/igcn_page15-minus-igcn                                           +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:44:32]     tail/k1/igcn_page15-minus-igcn                                           +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:44:38]     full/k2/igcn_page15-minus-igcn                                           +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:44:44]     tail/k2/igcn_page15-minus-igcn                                           +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:44:50]     full/k4/igcn_page15-minus-igcn                                           +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:44:56]     tail/k4/igcn_page15-minus-igcn                                           +0.0000 CI [+0.0000,+0.0000] ns  in-run
+[18:45:02]     full/k8/igcn_page15-minus-igcn                                           -0.0003 CI [-0.0009,+0.0002] ns  in-run
+[18:45:09]     tail/k8/igcn_page15-minus-igcn                                           +0.0001 CI [-0.0004,+0.0007] ns  in-run
+[18:45:15]     full/k16/igcn_page15-minus-igcn                                          -0.0021 CI [-0.0036,-0.0008] SEP in-run
+[18:45:21]     tail/k16/igcn_page15-minus-igcn                                          +0.0006 CI [-0.0007,+0.0019] ns  in-run
+[18:45:21] === C6: dpe / dpe_concept, secondary rows ===
+[18:45:28]     full/k1/dpe-minus-entropy0                                               -0.0008 CI [-0.0025,+0.0009] ns  cross-run (admitted)
+[18:45:34]     full/k1/dpe_concept-minus-dpe                                            -0.0006 CI [-0.0023,+0.0011] ns  in-run
+[18:45:40]     tail/k1/dpe-minus-entropy0                                               -0.0035 CI [-0.0055,-0.0014] SEP cross-run (admitted)
+[18:45:47]     tail/k1/dpe_concept-minus-dpe                                            -0.0054 CI [-0.0074,-0.0035] SEP in-run
+[18:45:53]     full/k2/dpe-minus-entropy0                                               -0.0085 CI [-0.0106,-0.0065] SEP cross-run (admitted)
+[18:46:00]     full/k2/dpe_concept-minus-dpe                                            +0.0040 CI [+0.0022,+0.0059] SEP in-run
+[18:46:06]     tail/k2/dpe-minus-entropy0                                               -0.0128 CI [-0.0151,-0.0104] SEP cross-run (admitted)
+[18:46:12]     tail/k2/dpe_concept-minus-dpe                                            +0.0005 CI [-0.0017,+0.0027] ns  in-run
+[18:46:18]     full/k4/dpe-minus-entropy0                                               -0.0218 CI [-0.0243,-0.0193] SEP cross-run (admitted)
+[18:46:24]     full/k4/dpe_concept-minus-dpe                                            +0.0116 CI [+0.0095,+0.0137] SEP in-run
+[18:46:31]     tail/k4/dpe-minus-entropy0                                               -0.0239 CI [-0.0265,-0.0213] SEP cross-run (admitted)
+[18:46:37]     tail/k4/dpe_concept-minus-dpe                                            +0.0102 CI [+0.0077,+0.0126] SEP in-run
+[18:46:43]     full/k8/dpe-minus-entropy0                                               -0.0444 CI [-0.0474,-0.0413] SEP cross-run (admitted)
+[18:46:49]     full/k8/dpe_concept-minus-dpe                                            +0.0223 CI [+0.0199,+0.0247] SEP in-run
+[18:46:55]     tail/k8/dpe-minus-entropy0                                               -0.0402 CI [-0.0433,-0.0374] SEP cross-run (admitted)
+[18:47:02]     tail/k8/dpe_concept-minus-dpe                                            +0.0225 CI [+0.0199,+0.0253] SEP in-run
+[18:47:09]     full/k16/dpe-minus-entropy0                                              -0.0700 CI [-0.0735,-0.0665] SEP cross-run (admitted)
+[18:47:16]     full/k16/dpe_concept-minus-dpe                                           +0.0416 CI [+0.0389,+0.0443] SEP in-run
+[18:47:22]     tail/k16/dpe-minus-entropy0                                              -0.0550 CI [-0.0582,-0.0517] SEP cross-run (admitted)
+[18:47:28]     tail/k16/dpe_concept-minus-dpe                                           +0.0421 CI [+0.0391,+0.0451] SEP in-run
+[18:47:29] [port_paired] analysis written -> C:\dev\phd\casper\experiments\baselines\interview\port_paired.json

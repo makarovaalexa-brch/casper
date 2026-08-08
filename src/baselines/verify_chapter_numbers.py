@@ -70,6 +70,41 @@ chk('TaNP native mean-predictor RMSE', 0.9549, dig(_tr, 'val_rmse_mean_predictor
 chk('TaNP native ndcg-selected full (the adversarial variant)', 0.0118, dig(_tn, 'ndcg@10'),
     'tanp_native_armn_ndcg.json')
 
+# ---- R5, and the snapshot assertions that were missing ---------------------------------------------
+# Both R5 artefacts were measured on the PRE-certification tower until 2026-08-08 -- three chained stale
+# defaults, plus arm_n_sign_probe being hardcoded to the i25 architecture so the certified tower could not
+# be loaded at all. Assert the snapshot FIRST in each block: a number can match its file exactly and still
+# belong to the wrong tower, which is the failure these checks exist to prevent.
+_pv = J('experiments/battery/premium_vs_k_t2i26c_ep31.json')
+chk('premium_vs_k snapshot is the certified ep31', 1.0,
+    1.0 if (_pv or {}).get('snapshot') == 't2i26c_ep31.pt' else 0.0, 'premium_vs_k_t2i26c_ep31.json')
+for _k, _v, _lo, _hi in (('2', 0.0102, 0.0087, 0.0118), ('4', 0.0080, 0.0063, 0.0097),
+                         ('8', 0.0010, -0.0007, 0.0026), ('full', 0.0022, 0.0008, 0.0036)):
+    _d = dig(_pv, 'per_k', _k, 'deltas', 'graded_over_binary(true-likes)')
+    chk(f'graded premium k={_k} (fig:gradedcurve)', _v, dig(_d, 'mean'), 'premium_vs_k_t2i26c_ep31.json')
+    chk(f'graded premium k={_k} CI lo', _lo, (_d or {}).get('ci95', [None, None])[0],
+        'premium_vs_k_t2i26c_ep31.json')
+    chk(f'graded premium k={_k} CI hi', _hi, (_d or {}).get('ci95', [None, None])[1],
+        'premium_vs_k_t2i26c_ep31.json')
+
+_sp = J('experiments/baselines/arm_n/sign_probe_t2i26c_ep31.json')
+chk('sign_probe snapshot is the certified ep31', 1.0,
+    1.0 if (_sp or {}).get('snapshot') == 't2i26c_ep31.pt' else 0.0, 'sign_probe_t2i26c_ep31.json')
+chk('sign gap k=2 full (the value quoted in prose)', 0.0144, dig(_sp, 'results', 'k2', 'gap_full'),
+    'sign_probe_t2i26c_ep31.json')
+chk('sign gap k=8 full (gone by eight)', -0.0018, dig(_sp, 'results', 'k8', 'gap_full'),
+    'sign_probe_t2i26c_ep31.json')
+
+# ---- iALS graded ladder (sec:nativemech) ------------------------------------------------------------
+_lp = J('experiments/baselines/arm_n/ials_ladder_paired.json')
+for _lbl, _key, _ax, _v in (
+        ('grades at fixed support full', 'GRADES at fixed support   r3-r2', 'full', 0.0282),
+        ('grades at fixed support tail', 'GRADES at fixed support   r3-r2', 'tail', 0.0037),
+        ('support with values erased full', 'support (values erased)   r2-r1', 'full', -0.0088),
+        ('regularisation full', 'regularisation            r1-r0', 'full', 0.0257),
+        ('grades vs best binary tail', 'grades vs best binary     r3-r1', 'tail', -0.0064)):
+    chk(f'iALS ladder: {_lbl}', _v, dig(_lp, 'contrasts', _key, _ax, 'delta'), 'ials_ladder_paired.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:
