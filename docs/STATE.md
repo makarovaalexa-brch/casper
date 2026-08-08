@@ -1,7 +1,46 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-07-31 (Reddit-opener idea; i26 retrain running)**.
+> End-state is in `VISION.md`. Last updated: **2026-08-08 (graded-input audit; R5 evidence found stale)**.
+
+## ★★★ 2026-08-08 — THE GRADED-INPUT AUDIT, AND A STALENESS CLASS WE HAD NOT NAMED
+
+**Why this ran.** The author's standing objection: *"other models are many, many points below binary.
+THAT makes no sense to me, if graded is their native."* Every graded row we had was confounded with
+mean-centring, so none of them was a fair test of grades. iALS with ratings as confidence
+(Hu/Koren/Volinsky, `c = 1 + alpha*r`) is the published exposure-preserving way to use grades, and is
+the one arm that cannot be dismissed as mis-configured.
+
+**Headline, and why it is not yet citable.** iALS-confidence scores **.3495/.2566** against binary iALS's
+**.3044/.2293** (+0.0451/+0.0273), G1 passed, alpha interior at 2.5. But that contrast moves THREE things
+at once — values, support (likes-only 625,946 nnz vs all-rated 1,411,761, a 2.26x evidence advantage),
+and regularisation (0.1 vs 0.01, which I changed by accident). `run_ials_conf_decompose.py` runs the
+one-variable-per-rung ladder. **Rung 1 is in: the regularisation alone is worth +0.0257 full / +0.0338
+tail** — the published binary iALS row is simply under-tuned, and the honest binary comparator is
+**.3301/.2631**, not .3044. More than half the "graded win" was never about grades.
+
+**The bigger finding — R5's whole evidence base was on the wrong tower.** Both numbers behind the chapter's
+graded-premium claim (`premium_vs_k_t2final.json`, `sign_probe.json`) were measured on `t2final_best.pt`,
+the PRE-certification tower, five days after ep31 was certified and frozen. Three stale defaults chained
+into it (`run_battery_phaseA` → `t2i25_EP4_SNAP.pt`, `arm_n_tower` → `t2final_best.pt`,
+`plot_graded_curve` → the t2final curve *under a comment calling it "the CERTIFIED tower's curve"*).
+All three repointed to `t2i26c_ep31.pt`; re-runs are task #93.
+
+**The class of failure, stated once.** *A stale default is worse than a missing one.* A missing path fails
+loudly; a stale one returns a plausible number nobody re-checks. `verify_chapter_numbers.py` had 93 checks
+that all asked *does this number match its file* and none that asked *is this the right file* — and it
+loaded `tower.json` into a variable it never dereferenced, so the instrument's own four master-table cells
+were the only unverified rows in the chapter. That is how our NATIVE cell sat at .4179/.2955 while the
+certified tower gives **.4244/.3017**. Now 99 checks including a snapshot assertion.
+
+**Also fixed today.** iALS arm-A appeared as .2427 in the master table and .2442 in the ICF-ceiling
+sentence and the gap-map coordinates — one row, two numbers; .2427 is correct. EDDI's dataset
+parenthetical now reads "(UCI, MNIST, healthcare)".
+
+**Open, in order:** #90 ladder (running) → #93 re-run premium_vs_k + sign_probe on ep31 → #92 rewrite the
+mechanism passage and rename the NATIVE column → #88 user-kNN (lambda pinned at the grid edge; 89.9% of
+score cells are the zero-evidence fallback; the "binary control" artefact is degenerate at 7.8e-05 and
+must not be cited) → #89 RBMF, author decision.
 
 ## ★★★ TOP OF THE QUEUE — THE ORGANIC OPEN REQUEST (task #68, author idea 2026-07-31, CORRECTED SAME DAY)
 Memory: `reddit-mined-open-request-opener.md`. Full lit record:

@@ -149,6 +149,30 @@
           "interview_minutes": 0.8,
           "distinct_prefixes": 10000
         }
+      },
+      "dpe_hellinger": {
+        "k1": {
+          "full": 0.1626562180796035,
+          "tail": 0.03980413156308628,
+          "answered": 0.3176,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.71,
+          "interview_minutes": 0.03,
+          "distinct_prefixes": 14
+        },
+        "k2": {
+          "full": 0.1680123597473201,
+          "tail": 0.04799633346757065,
+          "answered": 0.5433,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.42,
+          "interview_minutes": 0.13,
+          "distinct_prefixes": 187
+        }
       }
     }
   }
