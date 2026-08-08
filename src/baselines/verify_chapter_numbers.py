@@ -87,6 +87,15 @@ for _k, _v, _lo, _hi in (('2', 0.0102, 0.0087, 0.0118), ('4', 0.0080, 0.0063, 0.
     chk(f'graded premium k={_k} CI hi', _hi, (_d or {}).get('ci95', [None, None])[1],
         'premium_vs_k_t2i26c_ep31.json')
 
+# The VALUES premium on a FIXED revealed set -- a DIFFERENT quantity from graded-vs-likes-only, which
+# also changes the support. Conflating the two is how the chapter briefly claimed the instrument gained
+# 'nothing' from grades at full profile (+0.0022, the likes-only contrast) while quoting iALS's
+# fixed-support +0.0282 beside it. Both are checked here so the pair cannot drift apart again.
+for _k, _v in (('2', 0.0025), ('4', 0.0166), ('8', 0.0322), ('16', 0.0581), ('full', 0.1032)):
+    chk(f'values premium on fixed support k={_k}', _v,
+        dig(_pv, 'per_k', _k, 'deltas', 'values_premium(true-memb4)', 'mean'),
+        'premium_vs_k_t2i26c_ep31.json')
+
 _sp = J('experiments/baselines/arm_n/sign_probe_t2i26c_ep31.json')
 chk('sign_probe snapshot is the certified ep31', 1.0,
     1.0 if (_sp or {}).get('snapshot') == 't2i26c_ep31.pt' else 0.0, 'sign_probe_t2i26c_ep31.json')

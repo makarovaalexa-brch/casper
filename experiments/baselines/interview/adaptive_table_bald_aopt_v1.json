@@ -236,6 +236,141 @@
           "bald_obs_noise_s2": 1.0,
           "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration",
           "bald_design_class": "VALUE-FREE, like aopt: the width depends on WHICH items were answered, never on the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k16": {
+          "full": 0.22032427435444887,
+          "tail": 0.08235941851115522,
+          "answered": 2.7967,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.32,
+          "interview_minutes": 7.71,
+          "distinct_prefixes": 1872,
+          "cache": {
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 4168,
+              "evictions": 72,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 32871,
+              "misses": 4168,
+              "evictions": 72,
+              "hit_rate": 0.8875
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "bald_obs_noise_s2": 1.0,
+          "bald_reduces_to": "0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a MONOTONE function of the GLM-UCB width, i.e. pure exploration",
+          "bald_design_class": "VALUE-FREE, like aopt: the width depends on WHICH items were answered, never on the answers. Report beside DRE, not beside the adaptive arms."
+        }
+      },
+      "aopt": {
+        "k1": {
+          "full": 0.16926155947080057,
+          "tail": 0.0498239821667443,
+          "answered": 0.2047,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.27,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_gain": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k2": {
+          "full": 0.17238278735741672,
+          "tail": 0.05228633211756526,
+          "answered": 0.3387,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.28,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 2,
+          "cache": {
+            "_gain": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 10,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.8333
+            },
+            "_mu": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
+        },
+        "k4": {
+          "full": 0.17022746350795784,
+          "tail": 0.054924847517762436,
+          "answered": 0.5999,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.29,
+          "interview_minutes": 0.03,
+          "distinct_prefixes": 8,
+          "cache": {
+            "_gain": {
+              "size": 8,
+              "cap": 4096,
+              "hits": 370,
+              "misses": 8,
+              "evictions": 0,
+              "hit_rate": 0.9788
+            },
+            "_mu": {
+              "size": 8,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 8,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "aopt_obs_noise_s2": 1.0,
+          "aopt_design_class": "greedy A-optimal, VALUE-FREE: adapts only to WHICH questions were answerable, never to the answers. Report beside DRE, not beside the adaptive arms."
         }
       }
     }

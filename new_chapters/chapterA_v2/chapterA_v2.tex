@@ -466,14 +466,21 @@ The effect is also axis-dependent, and we report both axes throughout. On the ta
 the re-tuned binary model reaches $0.2631$ against the graded model's $0.2566$, a paired $-0.0064$
 (CI $[-0.0102,-0.0026]$). Grades buy head accuracy here, not tail accuracy.
 
-The consequence for how this chapter argues is worth being explicit about, and it cuts against us in one
-place. We are \emph{not} entitled to say that the canonical binarisation handicaps the elicitation family
-at full profile: the three systems in that family are worse on their own ratings, and the one system that
-does gain from them, iALS, is not an elicitation method at all. Nor are we entitled to present graded input
-as something only the instrument turns to account. At full profile the instrument gains
-$+0.0007$ from reading real levels rather than likes---nothing---while iALS gains $+0.0282$. Our
-full-profile standing does not rest on graded input, and the tower is initialised from a binary-trained
-recommender.
+The consequence for how this chapter argues is worth being explicit about. We are \emph{not} entitled to
+say that the canonical binarisation handicaps the elicitation family at full profile: the three systems in
+that family are worse on their own ratings, and the one system that does gain from them, iALS, is not an
+elicitation method at all. Nor are we entitled to present graded input as something only the instrument
+turns to account---iALS is a second system that gains from values, and it is a plain matrix factorisation.
+
+What separates the two is which comparison one makes, and the two must not be interchanged. Re-valuing a
+\emph{fixed} revealed set---the contrast that isolates the values---pays $+0.1032$ full for the instrument
+(CI $[+0.0999,+0.1065]$) against iALS's $+0.0282$. \emph{Adding} the sub-threshold items pays the reverse
+way: $+0.0022$ for the instrument (CI $[+0.0008,+0.0036]$) against iALS's $+0.0194$. The instrument gains
+almost nothing from hearing about more items and a great deal from hearing them valued correctly, which is
+the same asymmetry the confidence ladder shows from the other side, where erasing values on a fixed support
+costs $-0.0088$. The two figures are measured on different cohorts and masks---validation under the parity
+mask for the instrument, test under the protocol pool for iALS---so we read the direction and the
+asymmetry from them, not the ratio.
 
 What the sub-threshold signal is worth to \emph{us} is a question about the \emph{interview}, where evidence
 is scarce and a single ``no'' is a large fraction of what the model knows (\S\ref{sec:batteryresults}). The

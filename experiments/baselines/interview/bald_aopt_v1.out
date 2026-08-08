@@ -42,3 +42,10 @@
 [18:58:12] [adaptive] bald             turn 5/16: 2.0s  answered so far 1.05  concept-asks 0  distinct ask-prefixes 10
 [18:58:16] [adaptive] bald             turn 6/16: 4.0s  answered so far 1.18  concept-asks 0  distinct ask-prefixes 21
 [18:58:22] [adaptive] bald             turn 7/16: 5.1s  answered so far 1.41  concept-asks 0  distinct ask-prefixes 43
+[18:58:35] [adaptive] bald             turn 8/16: 12.2s  answered so far 1.57  concept-asks 0  distinct ask-prefixes 80
+[18:59:04] [adaptive] bald             turn 9/16: 28.5s  answered so far 1.73  concept-asks 0  distinct ask-prefixes 143
+[18:59:41] [adaptive] bald             turn 10/16: 36.4s  answered so far 1.87  concept-asks 0  distinct ask-prefixes 250
+[19:00:17] [adaptive] bald             turn 11/16: 34.6s  answered so far 2.04  concept-asks 0  distinct ask-prefixes 409
+[19:01:13] [adaptive] bald             turn 12/16: 55.4s  answered so far 2.20  concept-asks 0  distinct ask-prefixes 639
+[19:02:02] [adaptive] bald             turn 13/16: 48.1s  answered so far 2.36  concept-asks 0  distinct ask-prefixes 909
+[19:02:50] [adaptive] bald             turn 14/16: 47.6s  answered so far 2.50  concept-asks 0  distinct ask-prefixes 1219
