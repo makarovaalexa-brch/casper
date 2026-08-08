@@ -137,6 +137,17 @@
           "score_minutes": 0.66,
           "interview_minutes": 0.68,
           "distinct_prefixes": 10000
+        },
+        "k16": {
+          "full": 0.16028017979335574,
+          "tail": 0.037451591675210096,
+          "answered": 0.3205,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.73,
+          "interview_minutes": 0.8,
+          "distinct_prefixes": 10000
         }
       }
     }

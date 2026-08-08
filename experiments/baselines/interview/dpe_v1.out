@@ -28,3 +28,31 @@
 [10:51:40] [adaptive] dpe              turn 3/4: 2.9s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 2533
 [10:51:44] [adaptive] dpe              turn 4/4: 3.6s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 7924
 [10:51:44] [adaptive] INTERVIEW dpe              k= 4 done in 0.19m; answered=0.32/4; distinct ask-prefixes=7924; cache=None
+[10:52:27] [adaptive] ours           dpe              k= 4 answered= 0.3/4 floored=    0 full=0.1613 tail=0.0397 (interview 0.19m + score 0.70m)
+[10:52:27] [dpe] topics=19 score_div=ild burn=none update=paper seed=98765
+[10:52:28] [adaptive] dpe              turn 1/8: 1.6s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 14
+[10:52:34] [adaptive] dpe              turn 2/8: 5.4s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 200
+[10:52:39] [adaptive] dpe              turn 3/8: 4.7s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 2533
+[10:52:44] [adaptive] dpe              turn 4/8: 4.8s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 7924
+[10:52:50] [adaptive] dpe              turn 5/8: 5.2s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 9793
+[10:52:55] [adaptive] dpe              turn 6/8: 4.7s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 9987
+[10:53:01] [adaptive] dpe              turn 7/8: 5.0s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 9999
+[10:53:07] [adaptive] dpe              turn 8/8: 5.6s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000
+[10:53:07] [adaptive] INTERVIEW dpe              k= 8 done in 0.68m; answered=0.32/8; distinct ask-prefixes=10000; cache=None
+[10:53:47] [adaptive] ours           dpe              k= 8 answered= 0.3/8 floored=    0 full=0.1609 tail=0.0390 (interview 0.68m + score 0.66m)
+[10:53:47] [dpe] topics=19 score_div=ild burn=none update=paper seed=98765
+[10:53:48] [adaptive] dpe              turn 1/16: 0.8s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 14
+[10:53:51] [adaptive] dpe              turn 2/16: 2.5s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 200
+[10:53:53] [adaptive] dpe              turn 3/16: 2.5s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 2533
+[10:53:56] [adaptive] dpe              turn 4/16: 2.6s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 7924
+[10:53:59] [adaptive] dpe              turn 5/16: 2.4s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 9793
+[10:54:01] [adaptive] dpe              turn 6/16: 2.4s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 9987
+[10:54:04] [adaptive] dpe              turn 7/16: 2.6s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 9999
+[10:54:07] [adaptive] dpe              turn 8/16: 2.4s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000
+[10:54:10] [adaptive] dpe              turn 9/16: 2.7s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000
+[10:54:12] [adaptive] dpe              turn 10/16: 2.5s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000
+[10:54:15] [adaptive] dpe              turn 11/16: 2.9s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000
+[10:54:19] [adaptive] dpe              turn 12/16: 3.0s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000
+[10:54:22] [adaptive] dpe              turn 13/16: 2.8s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000
+[10:54:25] [adaptive] dpe              turn 14/16: 2.7s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000
+[10:54:28] [adaptive] dpe              turn 15/16: 2.6s  answered so far 0.32  concept-asks 0  distinct ask-prefixes 10000

@@ -48,6 +48,13 @@ chk('ours arm-A (LIANG) tail', 0.2491, dig(t, 'results', 'A_full', 'tail_ndcg@10
 chk('ours arm-N (NATIVE) full', 0.4244, dig(t, 'results', 'N_full', 'ndcg@10'), 'arm_n/tower.json')
 chk('ours arm-N (NATIVE) tail', 0.3017, dig(t, 'results', 'N_full', 'tail_ndcg@10'), 'arm_n/tower.json')
 
+# iALS arm A. The chapter printed .2427 in the master table and .2442 in the ICF-ceiling sentence and in
+# the gap-map coordinates -- the same row, two values, because the ceiling prose was written against an
+# earlier run and never re-resolved. Checked here so one row cannot hold two numbers again.
+_ia = J('experiments/baselines/arm_n/ials.json')
+chk('iALS arm-A full (master table AND the ICF-ceiling sentence AND the gap map)',
+    0.2427, dig(_ia, 'A', 'ndcg@10'), 'arm_n/ials.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:
