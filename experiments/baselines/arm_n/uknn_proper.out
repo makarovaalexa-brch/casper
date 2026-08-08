@@ -12,3 +12,31 @@
 [19:18:13]   [graded] lam=   50.0 val full=0.2713 tail=0.1343 (4.7m)
 [19:23:00]   [graded] lam=  100.0 val full=0.2737 tail=0.1365 (4.8m)
 [19:27:45]   [graded] lam=  200.0 val full=0.2754 tail=0.1377 (4.7m)
+[19:32:47]   [graded] lam=  400.0 val full=0.2763 tail=0.1383 (5.0m)
+[19:37:15]   [graded] lam=  800.0 val full=0.2767 tail=0.1386 (4.5m)
+[19:41:44]   [graded] lam= 1600.0 val full=0.2770 tail=0.1387 (4.5m)
+[19:46:14]   [graded] lam= 3200.0 val full=0.2770 tail=0.1387 (4.5m)
+[19:46:14] [graded] val-selected lam=3200.0 (val 0.2770)   *** STILL AT THE GRID EDGE -- row remains unquotable ***
+[19:46:15] [golbandi_native] centred user-kNN: 140768 train users, k=100, lambda=3200.0
+[19:50:48] [row] user-kNN native (mean-centred ratings): full=0.2822 tail=0.1401
+[19:55:09] [G3] realised top-10 that is zero-evidence fallback: 0.13% of slots; users whose RANK-1 item has no neighbour evidence: 13/10000 (0.13%)
+[19:59:46] [G3] with fallback items EXCLUDED: full=0.2822 tail=0.1401
+[19:59:46] --- arm 2/2: BINARY TWIN through the same estimator code, uncentred ---
+[20:03:09]   [binary] lam=    8.0 val full=0.3008 tail=0.1921 (3.4m)
+[20:06:35]   [binary] lam=   25.0 val full=0.3008 tail=0.1921 (3.4m)
+[20:10:04]   [binary] lam=   50.0 val full=0.3008 tail=0.1921 (3.5m)
+[20:13:32]   [binary] lam=  100.0 val full=0.3008 tail=0.1921 (3.5m)
+[20:16:58]   [binary] lam=  200.0 val full=0.3008 tail=0.1921 (3.4m)
+[20:20:03]   [binary] lam=  400.0 val full=0.3008 tail=0.1921 (3.1m)
+[20:22:37]   [binary] lam=  800.0 val full=0.3008 tail=0.1921 (2.6m)
+[20:24:52]   [binary] lam= 1600.0 val full=0.3008 tail=0.1921 (2.3m)
+[20:27:01]   [binary] lam= 3200.0 val full=0.3008 tail=0.1921 (2.1m)
+[20:27:01] [binary] val-selected lam=8.0 (val 0.3008)   *** STILL AT THE GRID EDGE -- row remains unquotable ***
+[20:27:01] [golbandi_native] UNCENTRED user-kNN: 140768 train users, k=100, lambda=8.0
+[20:29:10] [twin] binary through the native path: full=0.3756 tail=0.2377
+[20:29:10] [twin] vs the node recommender's binary row 0.3756: +0.0000 -> code path VALIDATED (within 0.005)
+[20:29:10] ==============================================================================
+[20:29:10] [verdict] graded minus binary THROUGH ONE CODE PATH: -0.0934 full, -0.0976 tail
+[20:29:10] [verdict] citable? NO -- a lambda is still at the grid edge
+[20:29:10] ==============================================================================
+[20:29:10] done -> C:\dev\phd\casper\experiments\baselines\arm_n\userknn_proper_armn.json

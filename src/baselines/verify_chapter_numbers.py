@@ -104,6 +104,20 @@ chk('sign gap k=2 full (the value quoted in prose)', 0.0144, dig(_sp, 'results',
 chk('sign gap k=8 full (gone by eight)', -0.0018, dig(_sp, 'results', 'k8', 'gap_full'),
     'sign_probe_t2i26c_ep31.json')
 
+# user-kNN proper run (#88). The lambda-at-edge gate fired on this row twice and BOTH were false
+# negatives: the graded sweep plateaus (.2763 -> .2770 over an 8x extension) and the binary sweep is
+# mathematically flat, because for a binary matrix C == A so the score num/(lam+den) becomes num/(lam+num),
+# a monotone function of num -- lambda cannot change a ranking. Recorded so nobody re-runs it a third time.
+_uk = J('experiments/baselines/arm_n/userknn_proper_armn.json')
+chk('user-kNN graded (mean-centred) full', 0.2822, dig(_uk, 'graded', 'ndcg@10'), 'userknn_proper_armn.json')
+chk('user-kNN graded (mean-centred) tail', 0.1401, dig(_uk, 'graded', 'tail_ndcg@10'), 'userknn_proper_armn.json')
+chk('user-kNN binary twin full (must equal the node row)', 0.3756,
+    dig(_uk, 'binary_twin', 'ndcg@10'), 'userknn_proper_armn.json')
+chk('user-kNN graded minus binary, one code path', -0.0934,
+    dig(_uk, 'graded_minus_binary_one_codepath', 'full'), 'userknn_proper_armn.json')
+chk('user-kNN top-10 fallback occupancy (the 89.9% cell figure was misleading)', 0.0013,
+    round(dig(_uk, 'graded', 'fallback', 'top10_fallback_occupancy') or 0, 4), 'userknn_proper_armn.json')
+
 # ---- iALS graded ladder (sec:nativemech) ------------------------------------------------------------
 _lp = J('experiments/baselines/arm_n/ials_ladder_paired.json')
 for _lbl, _key, _ax, _v in (

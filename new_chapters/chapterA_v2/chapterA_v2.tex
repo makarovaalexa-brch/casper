@@ -433,7 +433,7 @@ objective held fixed, which is what the two rows below do.
 \paragraph{Ratings help or hurt according to where in the model they enter.}
 The premise of the \textsc{native} column is that the threshold filter withholds the signal these designs
 were built for. Restoring it helps exactly one of them, and the exception is more informative than the
-rule. User-kNN falls from $0.3756$ on binary co-occurrence to $0.2815$ on mean-centred ratings; RBMF falls
+rule. User-kNN falls from $0.3756$ on binary co-occurrence to $0.2822$ on mean-centred ratings---one estimator, one code path, two inputs, a paired drop of $-0.0934$ full and $-0.0976$ tail; RBMF falls
 from $0.3015$ to $0.2314$ once its ridge seed regresses centred ratings rather than ones, and to $0.2950$
 even with the ratings left uncentred, so the loss is not an artefact of how we defined a dislike; TaNP,
 trained as published on rating regression, reaches $0.0060$ against $0.3324$ for its implicit adaptation.
