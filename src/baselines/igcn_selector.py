@@ -152,24 +152,21 @@ def bisecting_kmeans(X, n_clusters=N_CLUSTERS, seed=98765, n_iter=10, log=print)
     Xn = sparse.diags(1.0 / np.maximum(norms, 1e-12)).dot(X).tocsr()
     labels = np.zeros(n, np.int32)
     sizes = {0: np.arange(n, dtype=np.int64)}
-    rng = np.random.default_rng(seed)
+    frozen = set()                      # clusters that cannot be split (all-empty rows, or a
+    rng = np.random.default_rng(seed)   # degenerate 2-means); never reconsidered
     nxt = 1
     while nxt < n_clusters:
         # largest cluster that can actually be split
-        cand = [c for c, m in sizes.items() if len(m) >= 2]
+        cand = [c for c, m in sizes.items() if len(m) >= 2 and c not in frozen]
         if not cand:
             log(f"[igcn] bisecting k-means stopped early at {nxt} clusters: nothing left to split")
             break
         c = max(cand, key=lambda c: len(sizes[c]))
         mem = sizes[c]
         S = Xn[mem]
-        nz = np.asarray((S.getnnz(axis=1) > 0)).ravel()
-        pool = np.flatnonzero(nz)
+        pool = np.flatnonzero(np.asarray(S.getnnz(axis=1) > 0).ravel())
         if len(pool) < 2:
-            # all-empty (or all-but-one-empty) group: cannot be split meaningfully
-            sizes[c] = mem
-            del sizes[c]
-            sizes[(c, "frozen", nxt)] = mem
+            frozen.add(c)               # all-empty (or all-but-one-empty): not splittable
             continue
         a, b = rng.choice(pool, size=2, replace=False)
         Cn = sparse.vstack([S[a], S[b]]).tocsr()
@@ -191,7 +188,7 @@ def bisecting_kmeans(X, n_clusters=N_CLUSTERS, seed=98765, n_iter=10, log=print)
             Cn = sparse.csr_matrix(np.vstack(cen).astype(np.float32))
         left, right = mem[side == 0], mem[side == 1]
         if len(left) == 0 or len(right) == 0:                  # never emit an empty cluster
-            sizes[(c, "frozen", nxt)] = sizes.pop(c)
+            frozen.add(c)
             continue
         sizes[c] = left
         sizes[nxt] = right
@@ -487,7 +484,6 @@ class IGCNSelector(_Selector):
         pers_idx, pers_state = [], []
         n_pers_turn = 0
         # phase split: paper's rule, on the number of ANSWERS the user has actually given
-        personalize = (turn % self.recompute_every == 0) or True   # see _pick_cache note below
         for j, u in enumerate(users):
             u = int(u)
             n_ans = len(answered[u])
