@@ -55,6 +55,21 @@ _ia = J('experiments/baselines/arm_n/ials.json')
 chk('iALS arm-A full (master table AND the ICF-ceiling sentence AND the gap map)',
     0.2427, dig(_ia, 'A', 'ndcg@10'), 'arm_n/ials.json')
 
+# TaNP native (sec:nativelimit). The headline cell is the RMSE-selected run -- the model's own criterion,
+# as its paper selects. The NDCG-selected run is the adversarially-favourable variant quoted alongside it;
+# the two have DIFFERENT distinct-top-10 counts (1370 vs 1801) and the prose had taken the wrong one.
+_tr = J('experiments/baselines/arm_n/tanp_native_armn_rmse.json')
+_tn = J('experiments/baselines/arm_n/tanp_native_armn_ndcg.json')
+chk('TaNP native rmse-selected full', 0.0060, dig(_tr, 'ndcg@10'), 'tanp_native_armn_rmse.json')
+chk('TaNP native rmse-selected tail', 0.0005, dig(_tr, 'tail_ndcg@10'), 'tanp_native_armn_rmse.json')
+chk('TaNP native rmse-selected distinct top-10 lists', 1370,
+    dig(_tr, 'gates', 'distinct_top10_lists'), 'tanp_native_armn_rmse.json')
+chk('TaNP native val RMSE', 0.6960, dig(_tr, 'val_rmse_best'), 'tanp_native_armn_rmse.json')
+chk('TaNP native mean-predictor RMSE', 0.9549, dig(_tr, 'val_rmse_mean_predictor'),
+    'tanp_native_armn_rmse.json')
+chk('TaNP native ndcg-selected full (the adversarial variant)', 0.0118, dig(_tn, 'ndcg@10'),
+    'tanp_native_armn_ndcg.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:

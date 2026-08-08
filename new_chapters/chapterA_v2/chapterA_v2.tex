@@ -414,11 +414,12 @@ method. There is no cell that is both faithful and comparable, so we report TaNP
 objective-ported implicit adaptation in both columns and say why here rather than leaving a dash.
 
 We did build and train the published version, because the alternative is asserting an incompatibility we
-have not checked. It reaches full/tail NDCG@10 of $\REDO{rmse-selected}$, an order of magnitude below the
-non-personalised popularity floor of $0.1626$, while being a perfectly good rating predictor---validation
-RMSE $0.696$ against $0.955$ for predicting the global mean, and a healthy latent producing $1{,}801$
+have not checked. Selected on its own criterion, as its paper selects, it reaches full/tail NDCG@10 of
+$0.0060/0.0005$---more than an order of magnitude below the
+non-personalised popularity floor of $0.1626$---while being a perfectly good rating predictor: validation
+RMSE $0.696$ against $0.955$ for predicting the global mean, and a healthy latent producing $1{,}370$
 distinct top-10 rankings across $2{,}000$ users. The diagnostic is the anticorrelation: over training the
-loss fell from $0.862$ to $0.696$ while validation NDCG@10 drifted from $0.0111$ down to $0.0061$. \emph{The
+loss fell from $0.862$ to $0.697$ while validation NDCG@10 drifted from $0.0111$ down to $0.0066$. \emph{The
 better it became at its own objective, the worse it ranked.} Selecting adversarially on validation NDCG
 instead of on its own criterion raises the number only to $0.0118$. The mechanism is the one
 Cremonesi et al.~\cite{cremonesi2010performance} identified: a rating model scores quality independently of

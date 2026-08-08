@@ -194,6 +194,30 @@
           "score_minutes": 0.78,
           "interview_minutes": 0.62,
           "distinct_prefixes": 10000
+        },
+        "k16": {
+          "full": 0.21923644640771364,
+          "tail": 0.09253644920700871,
+          "answered": 4.4575,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.35,
+          "interview_minutes": 1.24,
+          "distinct_prefixes": 10000
+        }
+      },
+      "dpe_oracle": {
+        "k1": {
+          "full": 0.18927811280302284,
+          "tail": 0.0680216900246328,
+          "answered": 0.8449,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.3,
+          "interview_minutes": 0.11,
+          "distinct_prefixes": 1242
         }
       }
     }
