@@ -182,3 +182,15 @@
 [18:41:10]     full/k16/igcn_i1-minus-greedy_items                                      -0.0262 CI [-0.0293,-0.0230] SEP in-run
 [18:41:16]     tail/k16/igcn_i1-minus-entropy0                                          -0.0036 CI [-0.0065,-0.0006] SEP in-run
 [18:41:21]     tail/k16/igcn_i1-minus-greedy_items                                      -0.0078 CI [-0.0109,-0.0047] SEP in-run
+[18:41:27]     full/k1/igcn_page15-minus-entropy0                                       +0.0050 CI [+0.0031,+0.0070] SEP in-run
+[18:41:32]     full/k1/igcn_page15-minus-greedy_items                                   -0.0075 CI [-0.0099,-0.0051] SEP in-run
+[18:41:38]     tail/k1/igcn_page15-minus-entropy0                                       -0.0026 CI [-0.0047,-0.0005] SEP in-run
+[18:41:45]     tail/k1/igcn_page15-minus-greedy_items                                   -0.0027 CI [-0.0049,-0.0005] SEP in-run
+[18:41:51]     full/k2/igcn_page15-minus-entropy0                                       +0.0095 CI [+0.0071,+0.0119] SEP in-run
+[18:41:57]     full/k2/igcn_page15-minus-greedy_items                                   -0.0106 CI [-0.0126,-0.0086] SEP in-run
+[18:42:02]     tail/k2/igcn_page15-minus-entropy0                                       +0.0040 CI [+0.0015,+0.0066] SEP in-run
+[18:42:07]     tail/k2/igcn_page15-minus-greedy_items                                   -0.0012 CI [-0.0031,+0.0007] ns  in-run
+[18:42:15]     full/k4/igcn_page15-minus-entropy0                                       +0.0113 CI [+0.0083,+0.0141] SEP in-run
+[18:42:21]     full/k4/igcn_page15-minus-greedy_items                                   -0.0123 CI [-0.0151,-0.0095] SEP in-run
+[18:42:26]     tail/k4/igcn_page15-minus-entropy0                                       +0.0065 CI [+0.0037,+0.0094] SEP in-run
+[18:42:32]     tail/k4/igcn_page15-minus-greedy_items                                   -0.0003 CI [-0.0026,+0.0021] ns  in-run

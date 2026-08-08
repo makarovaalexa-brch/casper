@@ -75,11 +75,31 @@ def main():
     ma = argparse.Namespace(arch="i25", teacher="warm_init", t_hidden=600, t_latent=200, token="film",
                             train_decoder=False, sign_prior=True, unfreeze_emb=False, lr=3e-4,
                             warm_lr_scale=0.1, full_kd=False, full_kd_w=0.3)
-    enc, decoder, _t, _p, _g = build_model(ma, ni, cnt)
+    # ARCHITECTURE COMES FROM THE CHECKPOINT, not from a flag and not from a hardcoded string. This file
+    # built an I25Encoder unconditionally, so it could only ever load an i25 tower -- which is why every
+    # R5 number in the chapter was measured on t2final_best.pt and why pointing it at the certified ep31
+    # raised "Unexpected key(s): gate_e, W_white, psi.*, rho_expo.*" (the i26 exposure branch). A stale
+    # default made the wrong tower convenient; this hardcoding made the right one impossible. Every
+    # checkpoint we write already records `arch`, so read it and let a mismatch fail loudly.
     blob = torch.load(a.snapshot, map_location="cpu")
-    enc.load_state_dict(blob["enc"]); decoder.load_state_dict(blob["decoder"]); enc.eval()
+    arch = blob.get("arch", "i25")
+    logln(f"[probe] snapshot {os.path.basename(a.snapshot)} ep={blob.get('epoch', '?')} arch={arch}")
+    if arch == "i26":
+        sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
+        from i26_encoder import build_i26
+        from train_tower_t2 import load_recvae_teacher, apply_sign_prior
+        ma.arch = "i26"
+        src = load_recvae_teacher(ni, hidden=600, latent=200)
+        enc, decoder, _p, _g = build_i26(ni, src, ma, log=logln)
+        apply_sign_prior(enc)
+    else:
+        enc, decoder, _t, _p, _g = build_model(ma, ni, cnt)
+    miss = enc.load_state_dict(blob["enc"], strict=(arch != "i26"))
+    if arch == "i26" and (miss.missing_keys or miss.unexpected_keys):
+        raise SystemExit(f"[probe] REFUSING to load: missing={sorted(miss.missing_keys)} "
+                         f"unexpected={sorted(miss.unexpected_keys)}")
+    decoder.load_state_dict(blob["decoder"]); enc.eval()
     Wd, bd = decoder.weight.detach(), decoder.bias.detach()
-    logln(f"[probe] snapshot {os.path.basename(a.snapshot)} ep={blob.get('epoch', '?')}")
 
     L_full = graded_to_levels(D["g_te_tr"])
     res = {}
