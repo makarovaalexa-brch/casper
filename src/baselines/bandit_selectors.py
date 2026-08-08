@@ -49,7 +49,8 @@ ACQUISITION 3 -- BALD  (`BALDSelector`)
   COLLAPSES TO 0.5*log(1 + sig_i^2/s2), a monotone function of the GLM-UCB width -- i.e. to pure
   exploration, GLM-UCB with the mean term deleted. That degeneracy is the reportable fact, it is
   measured by `--acq-check`, and the class docstring says why it happens and which likelihood would
-  break it. Same disclosure discipline as GLM-UCB's identity link.
+  break it. Same disclosure discipline as GLM-UCB's identity link. Because the deleted mean term was
+  GLM-UCB's ONLY value-dependent half, BALD here is value-free in exactly the sense acquisition 4 is.
 
 ACQUISITION 4 -- A-OPTIMAL DESIGN  (`AOptimalSelector`)
     q_t = argmin_i tr(A_{t+1}(i)^-1),  A_{t+1}(i) = A_t + (1/s2) y_i y_i^T
@@ -96,6 +97,36 @@ selected item:
       asserted: `python src/baselines/bandit_selectors.py --dtype-check` re-runs a real-basis width
       at both precisions and compares the SELECTED ITEMS, and the harness's own smoke can be diffed
       end-to-end through its interview sidecar.
+LAUNCH RECIPE for the two 2026-08-08 acquisitions (HARD RULE 11d/e: one heavy job at a time -- check
+free RAM and `Get-CimInstance Win32_Process` for a live twin before starting).
+
+  # algebra first: BALD's Gaussian degeneracy and A-optimal's Sherman-Morrison identity, both against
+  # brute force. Seconds, synthetic, no data load.
+  python src/baselines/bandit_selectors.py --acq-check
+
+  # code path: first 200 test users, stamped SMOKE_NOT_CITABLE by the harness.
+  python src/baselines/adaptive_harness.py \
+      --selectors bald,aopt,glm_ucb,fixedorder:entropy0,fixedorder:greedy_items \
+      --budgets 1,2,4,8,16 --only ours --arch i26 \
+      --snapshot .cache/instrument/t2i26c_ep31.pt --no_floor --smoke_users 200 \
+      --label task23_bald_aopt
+
+  # THE RUN: all 10,000 canonical Liang test users, policy-B pool (the arm_n default -- there is no
+  # flag; `--eddi_topm 0`-style truncation does not exist for these arms and the candidate set is the
+  # full 18,359-item train vocabulary), NO-FLOOR, certified tower ep31 as the consumer.
+  # The two COMPARATORS ride in the SAME run through `fixedorder:` for one reason: a later paired
+  # bootstrap of (bald - entropy0) or (aopt - greedy) is then exact BY CONSTRUCTION -- same cohort,
+  # same answer lookup, same scoring cursor, per-user vectors in one npz -- instead of being justified
+  # across two files the way gtport_greedy_rescore had to. `--per_user` is what banks those vectors;
+  # without it no paired test is possible later and the unpaired 1.96*sqrt(2)*SE form is banned.
+  python src/baselines/adaptive_harness.py \
+      --selectors bald,aopt,glm_ucb,fixedorder:entropy0,fixedorder:greedy_items \
+      --budgets 1,2,4,8,16 --only ours --arch i26 \
+      --snapshot .cache/instrument/t2i26c_ep31.pt \
+      --no_floor --per_user --label bald_aopt_v1
+  # -> experiments/baselines/interview/adaptive_table_bald_aopt_v1.json
+  #    + ..._per_user.npz + ..._interviews/ (per-turn, contract-signed, resumable)
+
   (3) EVERY PER-STATE CACHE IS AN `LRUCache` WITH AN EXPLICIT CAP (`max_states`, default 4,096 ->
       ~300 MB for the width cache). Eviction costs recomputation, never correctness: every cached
       value is a pure function of its key. Hit/miss/eviction counts land in `stats()` so a cap set
@@ -347,6 +378,16 @@ class BALDSelector(GLMUCBSelector):
     made for GLM-UCB's identity link. The identity is not asserted, it is MEASURED:
     `python src/baselines/bandit_selectors.py --acq-check` re-runs both argmaxes and diffs them.
 
+    THE SECOND CONSEQUENCE, WHICH IS THE ONE THAT MATTERS FOR THE TABLE. sig_i^2 is a function of A_t,
+    and A_t is VALUE-FREE -- it contains which items were answered and not what the answers were (see
+    GaussianBelief's note). The posterior MEAN is the only value-dependent half of GLM-UCB, and BALD is
+    precisely GLM-UCB with that half deleted. So BALD on this model is not an answer-adaptive policy at
+    all: like `AOptimalSelector` it adapts only to WHICH questions proved answerable, and with an
+    always-answerable population it would degenerate to a single static order. Its distinct-ask-prefix
+    count will track A-optimal's, and both belong beside DRE rather than beside glm_ucb/thompson in any
+    adaptive-vs-static table. This is not a defect of the implementation; it is what BALD IS under a
+    homoscedastic Gaussian likelihood, and a table that files it as adaptive is overclaiming.
+
     WHERE IT WOULD NOT COLLAPSE (stated so the reduction is not mistaken for a general claim): any
     likelihood whose conditional entropy depends on u -- a Bernoulli/probit like/dislike head, or a
     three-outcome answerability model of the kind `eddi_selector.EDDIThreeOutcomeSelector` carries. We
@@ -382,6 +423,9 @@ class BALDSelector(GLMUCBSelector):
         s["bald_obs_noise_s2"] = self.s2
         s["bald_reduces_to"] = ("0.5*log(1+sig^2/s2) under the Gaussian belief_mf likelihood -- a "
                                 "MONOTONE function of the GLM-UCB width, i.e. pure exploration")
+        s["bald_design_class"] = ("VALUE-FREE, like aopt: the width depends on WHICH items were "
+                                  "answered, never on the answers. Report beside DRE, not beside "
+                                  "the adaptive arms.")
         return s
 
 

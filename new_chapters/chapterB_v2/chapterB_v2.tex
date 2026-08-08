@@ -201,6 +201,32 @@ states --- and begins to pay once the interview has accumulated enough evidence 
 meaningfully. That is a conditional, not a null, and Section~\ref{sec:act2} supplies the mechanism:
 downstream of standard openers there is almost nothing to adapt \emph{to}.
 
+\paragraph{(d) And a fourth statement, which we did not anticipate and which explains a good deal of
+(b): several named adaptive selectors do not condition on the answers at all in this regime.}
+Building them was what revealed it, and the mechanism differs in each case. \textbf{IGCN} switches to
+its personalised step after five \emph{ratings}; at an answer rate near $0.3$ per question it is
+$98\%$ static at eight questions and \emph{exactly} the global-information-gain static order at four
+or fewer. \textbf{BALD} is an information-theoretic criterion whose expected-conditional-entropy
+term is constant under a homoscedastic linear-Gaussian likelihood, so it reduces algebraically to a
+posterior-variance rule --- and since that variance depends only on \emph{which} questions were
+answered and never on \emph{what} was answered, it is not answer-adaptive at all. \textbf{A-optimal
+design} contains the questions and not the answers by construction. And the conversational-bandit
+schedule fires a key-term turn only twice in sixteen, so at short budgets its three variants are
+numerically identical.
+
+The diagnostic that makes this legible is not the number of distinct interviews a selector conducts
+but the number it conducts \emph{per distinct answer-state}: a method can branch widely and still be
+ignoring what it hears. At the second question BALD faced eleven distinct answer-states and asked
+two distinct questions. We therefore report, beside every adaptive row, the fraction of turns on
+which the method actually adapted.
+
+This changes what the null means. ``Adaptive selection does not pay'' invites the reply that we
+implemented these methods badly. The more accurate and more useful statement is that \emph{several
+named adaptive selectors are structurally unable to condition on answers in a cold-start interview}
+--- through a warm-up threshold denominated in ratings, an algebraic collapse under the standard
+likelihood, a value-free criterion, or a schedule that rarely fires --- and that this is a property
+of the methods as published, measurable, and different in each case.
+
 \paragraph{What would falsify it, and what currently limits it.} The conditional rests on
 \textbf{one} method crossing over. Two others (GLM-UCB, Thompson) never cross within sixteen
 questions and one (the information-gain arm) diverges further with budget, so ``adaptivity pays at
