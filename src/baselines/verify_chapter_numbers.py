@@ -163,6 +163,18 @@ chk('RBMF graded-vs-binary paired tail', 0.0046,
 chk('RBMF values at fixed support, paired full', 0.0454,
     dig(_rp, 'contrasts', 'values at fixed support', 'full', 'delta'), 'rbmf_graded_paired.json')
 
+# The three re-selected rows AS THEY NOW APPEAR IN THE MASTER TABLE, plus the two derived values that
+# quote them: the ICF ceiling is defined as the iALS row, and the gap map plots the belief row. Those two
+# have drifted from their source before -- the belief row was .2015/.1201 in the table and 0.2019/0.1200
+# in the prose and the figure, one row with two numbers. Checked together so they move together.
+chk('master table: iALS arm A', 0.2703, dig(_rs, 'ials_reselected', 'A', 'ndcg@10'), 'reselect_ndcg10.json')
+chk('master table: iALS arm N tail', 0.2629, dig(_rs, 'ials_reselected', 'N', 'tail_ndcg@10'), 'reselect_ndcg10.json')
+chk('master table: RBMF arm A tail', 0.2071, dig(_rf, 'rbmf', 'rows', 'A', 'tail_ndcg@10'), 'refit_shared_mf.json')
+chk('master table: RBMF arm N tail', 0.2572, dig(_rf, 'rbmf', 'rows', 'N', 'tail_ndcg@10'), 'refit_shared_mf.json')
+chk('master table: belief arm A (== ICF/gap-map source)', 0.2267, dig(_rf, 'belief_mf', 'rows', 'A', 'ndcg@10'), 'refit_shared_mf.json')
+chk('master table: belief arm A tail', 0.1300, dig(_rf, 'belief_mf', 'rows', 'A', 'tail_ndcg@10'), 'refit_shared_mf.json')
+chk('master table: belief arm N tail', 0.1616, dig(_rf, 'belief_mf', 'rows', 'N', 'tail_ndcg@10'), 'refit_shared_mf.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:

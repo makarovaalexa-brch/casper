@@ -513,7 +513,7 @@ System (rep.\ / cite) & R1 & R2 & R3 & R4 & in & \multicolumn{2}{c}{full/tail} &
 \multicolumn{10}{l}{\emph{(a) Classic / linear full-profile}}\\
 Most-Popular & \xmark & \xmark & \xmark & \xmark & b & $.1345$ & $.0226$ & $.1626$ & $.0262$ \\
 Item-kNN (cosine) & \xmark & \xmark & \xmark & \xmark & b & $.2428$ & $.1297$ & $.2946$ & $.1593$ \\
-PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & b & $.2427$ & $.1855$ & $.3044$ & $.2293$ \\
+PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & b & $.2703$ & $.2150$ & $.3325$ & $.2629$ \\
 EASE~\cite{steck2019ease} & \cmark & \xmark & \xmark & \xmark & b & $.3476$ & $.2441$ & $.4135$ & $.2941$ \\
 EDLAE~\cite{steck2020edlae} & \cmark & \xmark & \xmark & \xmark & b & $.3433$ & $.2395$ & $.4110$ & $.2893$ \\
 Turbo-CF~\cite{park2024turbocf} & \xmark & \xmark & \xmark & \xmark & b & $.2622$ & $.1621$ & $.3285$ & $.2034$ \\
@@ -530,8 +530,8 @@ TaNP~\cite{lin2021tanp} (MeLU line)\,$^{\ddagger\ast}$ & \xmark & \xmark & \xmar
 \multicolumn{10}{l}{\emph{(c) Elicitation / CRS systems --- the elicitation corner}}\\
 EDDI / Partial-VAE~\cite{ma2019eddi}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & b & $.2153$ & $.1077$ & $.2718$ & $.1383$ \\
 user-kNN~\cite{golbandi2011adaptive}\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.3065$ & $.1895$ & $.3756$ & $.2377$ \\
-RBMF~\cite{liu2011wisdom,zhou2011functional}\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.2457$ & $.1722$ & $.3015$ & $.2078$ \\
-Conjugate belief (frozen MF)\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2015$ & $.1201$ & $.2521$ & $.1511$ \\
+RBMF~\cite{liu2011wisdom,zhou2011functional}\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.2915$ & $.2071$ & $.3616$ & $.2572$ \\
+Conjugate belief (frozen MF)\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2267$ & $.1300$ & $.2788$ & $.1616$ \\
 B\i y\i k soft-attributes~\cite{biyik2023soft}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \cmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
 ICF~\cite{zhao2013interactive}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \cmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
 ConTS~\cite{li2021seamlessly}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \xmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
@@ -562,7 +562,7 @@ No number is invented: a value appears only if we measured it on this ruler.}
 \label{tab:master}
 \end{table}
 
-\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Not run here}: GF-CF, BSPM, BERT4Rec and EDDI have public code and are runnable on this ruler, but carry no number in this chapter; the graph-filter family is represented by the measured Turbo-CF row and the sequence family by the measured SASRec row. \emph{Best-effort measured}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated---the node recommender that is the Golbandi tree's core, at $0.3065/0.1895$, and the RBMF/Functional-MF seed at $0.2457/0.1722$. \textbf{One class of adaptation is worth naming.} Three rows are ratings-native by publication---Golbandi's
+\paragraph{No dash is an unexplained omission.} Every unmeasured row carries one of three dispositions. (Systems with neither a measurable number nor a distinct capability profile---e.g.\ SLIM, strictly dominated by its closed-form successor EASE in every published comparison---are cited in the text but given no row.) \emph{Not run here}: GF-CF, BSPM, BERT4Rec and EDDI have public code and are runnable on this ruler, but carry no number in this chapter; the graph-filter family is represented by the measured Turbo-CF row and the sequence family by the measured SASRec row. \emph{Best-effort measured}: for systems whose full-profile core is runnable but whose exact recipe is unpublished or benchmark-bound, we report a best-effort replication of that core with every substitution stated---the node recommender that is the Golbandi tree's core, at $0.3065/0.1895$, and the RBMF/Functional-MF seed at $0.2915/0.2071$. \textbf{One class of adaptation is worth naming.} Three rows are ratings-native by publication---Golbandi's
 interview tree routes users by \emph{lovers, haters and unknowns} and is evaluated on RMSE,
 RBMF/Functional-MF is a rating regression, and TaNP is episodic meta-learning for rating prediction---while
 the canonical protocol is implicit and binary (\S\ref{sec:bridge}). We adapt their mechanisms to the
@@ -576,7 +576,7 @@ a contract we have not run are not comparable to either column in either directi
 report only on-ruler values and do not claim that a row would be higher or lower under its original task.
 The same caution applies to ICF, whose ceiling we take from the measured iALS row: ICF is Bayesian
 probabilistic MF over ratings, while iALS is implicit-with-confidence, so that substitution crosses an
-input regime as well as a model family. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the \emph{rejected alternative} against which our learned fold is justified---ranking on a closed-form accumulator's accumulated mean scores $0.2019/0.1200$ where the learned fold reaches $0.3496/0.2491$, so uniformity costs roughly $0.15$ full NDCG. We do not maintain such an accumulator; we measured one to establish what forgoing it is worth. The elicitation corner is blank in this column because full-catalogue top-$N$ accuracy is not what these papers report---and that is a defect in the record rather than a neutral choice of emphasis, for the reason set out in \S\ref{sec:gap:why}. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2427$).
+input regime as well as a model family. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the \emph{rejected alternative} against which our learned fold is justified---ranking on a closed-form accumulator's accumulated mean scores $0.2267/0.1300$ where the learned fold reaches $0.3496/0.2491$, so uniformity costs roughly $0.12$ full NDCG. We do not maintain such an accumulator; we measured one to establish what forgoing it is worth. The elicitation corner is blank in this column because full-catalogue top-$N$ accuracy is not what these papers report---and that is a defect in the record rather than a neutral choice of emphasis, for the reason set out in \S\ref{sec:gap:why}. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2703$).
 
 \paragraph{The measured-accuracy column falls across the elicitation corner.}
 Read Table~\ref{tab:master} down its measured-accuracy column. Every \emph{competitive} number---a full/tail
@@ -660,7 +660,7 @@ empty.
   % --- measured points (filled); x = R2..R4 marks ONLY (R1 excluded: accuracy is the y-axis).
   %     Every x is the count of R2-R4 checkmarks that system carries in tab:master. Do not hand-place.
   \addplot[only marks,mark=*,mark size=2.6pt,color=blue!55!black] coordinates {
-    (0.0,0.1345) (0.0,0.2428) (0.0,0.2427) (1.0,0.2019)
+    (0.0,0.1345) (0.0,0.2428) (0.0,0.2703) (1.0,0.2267)
     (1.0,0.3065) (0.0,0.3433) (0.0,0.3476) (0.0,0.3540)
   };
   % measured-point labels (accuracy cluster all at x=0, spread by y)
@@ -671,7 +671,7 @@ empty.
   \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.3340) {EDLAE};
   \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.3495) {EASE};
   \node[font=\scriptsize,anchor=west] at (axis cs:0.06,0.3650) {\textbf{RecVAE}};
-  \node[font=\scriptsize,anchor=west] at (axis cs:1.06,0.2019) {conjugate belief (frozen MF)};
+  \node[font=\scriptsize,anchor=west] at (axis cs:1.06,0.2267) {conjugate belief (frozen MF)};
   % --- "no full-profile number" strip: BELOW the measured y-scale, visually separated ---
   \fill[gray!10] (axis cs:0,0.068) rectangle (axis cs:3,0.094);
   \draw[gray!60,dashed] (axis cs:0,0.094) -- (axis cs:3,0.094);
@@ -875,8 +875,8 @@ which is what no item-indicator model can say.
 \paragraph{Why a learned fold rather than a closed-form one.} A closed-form conjugate accumulator over the frozen
 factorisation is itself a legal ranker---score item $i$ by $\Q_i^\top\bmu_t+\beta_i$---and it would make one
 uniform fold serve every channel. We measured that option rather than assuming it: ranked by its accumulated mean
-it reaches full/tail NDCG@10 $0.2019/0.1200$ on our ruler, against $0.3496/0.2491$ for the learned fold
-(Table~\ref{tab:master}). Uniformity therefore costs roughly $0.15$ full NDCG---it forfeits R1---which is why the
+it reaches full/tail NDCG@10 $0.2267/0.1300$ on our ruler, against $0.3496/0.2491$ for the learned fold
+(Table~\ref{tab:master}). Uniformity therefore costs roughly $0.12$ full NDCG---it forfeits R1---which is why the
 instrument folds with a learned set encoder and pays for the extra operator.
 
 The channels, then, are:
