@@ -450,16 +450,7 @@ like, makes the model worse; the values are what pay. We use that fixed-support 
 never as a headline, because a control that mislabels dislikes as likes is not the baseline any deployed
 positive-only system presents.
 
-We tested one explanation for the split and it did not survive, so we report it as ruled out rather than
-omit it. The hypothesis was that a rating helps where it enters as a \emph{weight} on an observation and
-costs where it becomes the quantity the model \emph{predicts}---which would separate iALS from the
-rating-regression methods. Holding a single frozen item basis and varying only the fold-in rule, the
-confidence solve reaches $0.3459$ and the ridge regression of the user's actual ratings reaches $0.3580$:
-the estimand rule is \emph{better}, not worse, and within it the values are worth $+0.0454$ over the same
-regression against a constant target. Whatever separates the four systems, it is not the role the rating
-plays in them.
-
-What the evidence does support is duller and more useful: configuration. The three rating-native rows
+What separates the two is configuration rather than anything about ratings as such. The three rating-native rows
 shared one hyperparameter setting, selected by a validation sweep that optimised NDCG@100 on a previous
 dataset while this chapter reports NDCG@10. Re-selecting on the reported metric moves RBMF by $+0.0601$
 full in this column, iALS by $+0.0281$ and belief-MF by $+0.0267$, and RBMF's own regularisation---not the
