@@ -450,7 +450,17 @@ like, makes the model worse; the values are what pay. We use that fixed-support 
 never as a headline, because a control that mislabels dislikes as likes is not the baseline any deployed
 positive-only system presents.
 
-What separates the two is configuration rather than anything about ratings as such. The three rating-native rows
+Two of the losses on record turn out to be configuration rather than anything about ratings. RBMF's graded
+arm was recorded at $-0.070$ against its binary build; re-selecting each arm's ridge on validation and
+holding one frozen basis, the same comparison is $-0.0045$ full (CI $[-0.0069,-0.0022]$) and $+0.0046$
+tail (CI $[+0.0021,+0.0071]$)---both intervals exclude zero, so the effect is real on each axis and points
+in opposite directions, but the magnitude is a twentieth of what was reported. The decomposition says
+where the old number came from: mean-centring the targets costs $0.0981$ full on its own, and folding the
+sub-threshold items in with their values erased costs a further $0.0499$, while restoring the true values
+on that identical support is worth $+0.0454$ (CI $[+0.0428,+0.0479]$). The published centring, not the
+rating contract, is what sank that row.
+
+This is a general point about the column rather than a fact about one system. The three rating-native rows
 shared one hyperparameter setting, selected by a validation sweep that optimised NDCG@100 on a previous
 dataset while this chapter reports NDCG@10. Re-selecting on the reported metric moves RBMF by $+0.0601$
 full in this column, iALS by $+0.0281$ and belief-MF by $+0.0267$, and RBMF's own regularisation---not the
@@ -461,9 +471,9 @@ restoring the published rating contract does not reliably improve these systems,
 helps uses ratings as confidence in a plain factorisation, and we make no claim about why.
 
 The consequence for how this chapter argues is worth being explicit about. We are \emph{not} entitled to
-say that the canonical binarisation handicaps the elicitation family at full profile: the two systems in
-that family with a clean graded measurement are worse on their own ratings, and the one system that does
-gain from them, iALS, is not an elicitation method at all. Nor are we entitled to present graded input as something only the instrument
+say that the canonical binarisation handicaps the elicitation family at full profile: user-kNN is much
+worse on its own ratings, RBMF is within half a point either way, and the one system that gains
+clearly, iALS, is not an elicitation method at all. Nor are we entitled to present graded input as something only the instrument
 turns to account---iALS is a second system that gains from values, and it is a plain matrix factorisation.
 
 Against the honest baseline---a positive-only system, which \emph{drops} sub-threshold answers rather than
@@ -547,7 +557,7 @@ construct, not a result its paper reports, and the real comparison is Table~\ref
 $^{\S}$~dropped: our implementation failed its ML-20M snap ($0.397$ vs.\ the published $0.419$), and a failed
 bridge disqualifies a row (\S\ref{sec:bridge}). $^{\ast}$\,TaNP is represented by the objective-ported implicit adaptation in \emph{both} columns; it has no
 \textsc{native} cell, and the reason is not a missing measurement (\S\ref{sec:nativelimit}).
-$^{\P}$\,RBMF's and user-kNN's \textsc{native} cells are their \emph{binary} builds. A graded RBMF refit was run---a ridge seed on targets centred at the protocol threshold, which makes $41.4\%$ of them negative---and it lost, as did an uncentred variant; both fits predate the hyperparameter re-selection of \S\ref{sec:bridge} and are therefore not comparable to the re-selected binary build reported here, so we quote no graded RBMF number. User-kNN's graded build \emph{is} comparable---one estimator, one code path, two inputs---and loses by $-0.0934$ full.
+$^{\P}$\,RBMF's and user-kNN's \textsc{native} cells are their \emph{binary} builds, and for both the graded build was measured through the same estimator rather than asserted. RBMF's graded seed on raw ratings comes within $-0.0045$ full and $+0.0046$ tail of its binary build (both intervals exclude zero); its \emph{centred} variant, the published recipe, loses a further $0.0981$. User-kNN's centred build loses $-0.0934$ full. We report the stronger build in the cell and give the comparison in \S\ref{sec:bridge}.
 No number is invented: a value appears only if we measured it on this ruler.}
 \label{tab:master}
 \end{table}

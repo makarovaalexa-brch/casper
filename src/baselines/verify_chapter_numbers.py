@@ -146,6 +146,23 @@ chk('mechanism Eb (constant target) full', 0.3127, dig(_fw, 'Eb_control', 'ndcg@
 chk('mechanism NOT supported (W-E is negative)', 0.0,
     1.0 if dig(_fw, 'verdict', 'mechanism_supported') else 0.0, 'foldin_weight_vs_estimand.json')
 
+# RBMF's graded arm under the RE-SELECTED configuration, with paired intervals. The number on record
+# was -0.070; almost all of it was configuration and centring. Both axes separate and they point in
+# OPPOSITE directions, which is why this must never be written as a tie.
+_rg = J('experiments/baselines/arm_n/rbmf_graded_reselected.json')
+_rp = J('experiments/baselines/arm_n/rbmf_graded_paired.json')
+chk('RBMF binary likes-only (reproduces the refit)', 0.3625, dig(_rg, 'B_likes', 'ndcg@10'), 'rbmf_graded_reselected.json')
+chk('RBMF graded raw ratings', 0.3580, dig(_rg, 'G_raw', 'ndcg@10'), 'rbmf_graded_reselected.json')
+chk('RBMF graded CENTRED (the published recipe)', 0.2599, dig(_rg, 'G_centred', 'ndcg@10'), 'rbmf_graded_reselected.json')
+chk('RBMF centring cost (raw minus centred)', 0.0981,
+    round((dig(_rg, 'G_raw', 'ndcg@10') or 0) - (dig(_rg, 'G_centred', 'ndcg@10') or 0), 4), 'rbmf_graded_reselected.json')
+chk('RBMF graded-vs-binary paired full', -0.0045,
+    dig(_rp, 'contrasts', 'graded vs binary (contract)', 'full', 'delta'), 'rbmf_graded_paired.json')
+chk('RBMF graded-vs-binary paired tail', 0.0046,
+    dig(_rp, 'contrasts', 'graded vs binary (contract)', 'tail', 'delta'), 'rbmf_graded_paired.json')
+chk('RBMF values at fixed support, paired full', 0.0454,
+    dig(_rp, 'contrasts', 'values at fixed support', 'full', 'delta'), 'rbmf_graded_paired.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:
