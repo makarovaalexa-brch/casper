@@ -1,0 +1,42 @@
+[19:06:12] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[19:06:12] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[19:06:12] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[19:06:12] [pop] fitted item popularity over 140768 train users, 18359 items
+[19:06:38] [G1] MostPop 0.1626 vs 0.1626 -> PASS
+[19:06:38] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[19:07:15] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[19:08:05] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
+[19:08:05] [basis] one frozen iALS basis at the RE-SELECTED setting (f=200, reg=0.1, alpha=10.0); every arm below folds onto it
+[19:10:39] [ials] trained f=200 reg=0.1 alpha=10.0 it=15 (2.6m)
+[19:10:39] --- B_likes: constant target, likes-only support ---
+[19:11:23]   [B_likes] ls_reg=   0.1 val full=0.2271 tail=0.1840
+[19:12:08]   [B_likes] ls_reg=   1.0 val full=0.2812 tail=0.2108
+[19:12:51]   [B_likes] ls_reg=  10.0 val full=0.2902 tail=0.2113
+[19:13:35]   [B_likes] ls_reg= 100.0 val full=0.2908 tail=0.2112
+[19:14:21] [B_likes] ls_reg=100.0 -> TEST full=0.3625 tail=0.2564
+[19:14:21] --- B_allrated: constant target, ALL-RATED support ---
+[19:15:09]   [B_allrated] ls_reg=   0.1 val full=0.2044 tail=0.1674
+[19:15:55]   [B_allrated] ls_reg=   1.0 val full=0.2920 tail=0.2202
+[19:16:42]   [B_allrated] ls_reg=  10.0 val full=0.3117 tail=0.2295
+[19:17:29]   [B_allrated] ls_reg= 100.0 val full=0.3137 tail=0.2303
+[19:18:18] [B_allrated] ls_reg=100.0 -> TEST full=0.3127 tail=0.2262
+[19:18:18] --- G_raw: raw ratings, ALL-RATED support ---
+[19:19:05]   [G_raw] ls_reg=   0.1 val full=0.2953 tail=0.2264
+[19:19:50]   [G_raw] ls_reg=   1.0 val full=0.3548 tail=0.2637
+[19:20:37]   [G_raw] ls_reg=  10.0 val full=0.3503 tail=0.2551
+[19:21:24]   [G_raw] ls_reg= 100.0 val full=0.3477 tail=0.2525
+[19:22:15] [G_raw] ls_reg=1.0 -> TEST full=0.3580 tail=0.2610
+[19:22:15] --- G_centred: ratings - 3.5, ALL-RATED support ---
+[19:23:05]   [G_centred] ls_reg=   0.1 val full=0.1871 tail=0.1234
+[19:23:52]   [G_centred] ls_reg=   1.0 val full=0.2469 tail=0.1647
+[19:24:37]   [G_centred] ls_reg=  10.0 val full=0.2549 tail=0.1703
+[19:25:25]   [G_centred] ls_reg= 100.0 val full=0.2531 tail=0.1685
+[19:26:11] [G_centred] ls_reg=10.0 -> TEST full=0.2599 tail=0.1683
+[19:26:11] ==============================================================================
+[19:26:11] [contract] best graded (G_raw) minus binary likes-only: -0.0045 full, +0.0046 tail
+[19:26:11] [decompose] support alone (B_allrated - B_likes): -0.0499 full
+[19:26:11] [decompose] values at fixed support (G_raw - B_allrated): +0.0454 full
+[19:26:11] [centring] raw minus centred: +0.0981 full
+[19:26:11] [verdict] RBMF's graded arm still loses under the re-selected configuration -- the finding survives re-tuning and can be stated as a property of the method.
+[19:26:11] ==============================================================================
+[19:26:11] done -> C:\dev\phd\casper\experiments\baselines\arm_n\rbmf_graded_reselected.json

@@ -112,3 +112,11 @@
 [18:54:44] [adaptive] conlinucb_bs_static turn 8/16: 79.9s  answered so far 0.00  concept-asks 80000  distinct ask-prefixes 1
 [18:56:21] [adaptive] conlinucb_bs_static turn 9/16: 96.5s  answered so far 0.00  concept-asks 90000  distinct ask-prefixes 1
 [19:01:18] [adaptive] conlinucb_bs_static turn 10/16: 296.1s  answered so far 0.00  concept-asks 100000  distinct ask-prefixes 1
+[19:04:40] [adaptive] conlinucb_bs_static turn 11/16: 201.5s  answered so far 0.00  concept-asks 110000  distinct ask-prefixes 1
+[19:12:14] [adaptive] conlinucb_bs_static turn 12/16: 452.3s  answered so far 0.00  concept-asks 120000  distinct ask-prefixes 1
+[19:19:28] [adaptive] conlinucb_bs_static turn 13/16: 432.8s  answered so far 0.00  concept-asks 130000  distinct ask-prefixes 1
+[19:26:27] [adaptive] conlinucb_bs_static turn 14/16: 417.5s  answered so far 0.00  concept-asks 140000  distinct ask-prefixes 1
+[19:28:54] [adaptive] conlinucb_bs_static turn 15/16: 146.1s  answered so far 0.00  concept-asks 150000  distinct ask-prefixes 1
+[19:30:46] [adaptive] conlinucb_bs_static turn 16/16: 110.0s  answered so far 0.00  concept-asks 160000  distinct ask-prefixes 1
+[19:30:47] [adaptive] INTERVIEW conlinucb_bs_static k=16 done in 40.83m; answered=0.00/16; distinct ask-prefixes=1; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 4096, 'cap': 4096, 'hits': 7610, 'misses': 62864, 'evictions': 58768, 'hit_rate': 0.108}, '_width': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}}
+[19:31:04] [adaptive] ours           conlinucb_bs_static k=16 answered= 0.0/16 floored=    0 full=0.1801 tail=0.0585 (interview 40.83m + score 0.29m)

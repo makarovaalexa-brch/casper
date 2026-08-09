@@ -1,0 +1,46 @@
+{
+  "gates": {
+    "mostpop": true
+  },
+  "basis": {
+    "factors": 200,
+    "reg": 0.1,
+    "alpha": 10.0
+  },
+  "B_likes": {
+    "ls_reg": 100.0,
+    "val": 0.29080587321012763,
+    "ndcg@10": 0.3625374415533204,
+    "tail_ndcg@10": 0.256432608019775,
+    "note": "constant target, likes-only support"
+  },
+  "B_allrated": {
+    "ls_reg": 100.0,
+    "val": 0.31372248550806414,
+    "ndcg@10": 0.31265263842234875,
+    "tail_ndcg@10": 0.22616225330602044,
+    "note": "constant target, ALL-RATED support"
+  },
+  "G_raw": {
+    "ls_reg": 1.0,
+    "val": 0.3548077267386335,
+    "ndcg@10": 0.35801282013584673,
+    "tail_ndcg@10": 0.2610385926817112,
+    "note": "raw ratings, ALL-RATED support"
+  },
+  "G_centred": {
+    "ls_reg": 10.0,
+    "val": 0.25494176064245205,
+    "ndcg@10": 0.25992059263048767,
+    "tail_ndcg@10": 0.16828348267583124,
+    "note": "ratings - 3.5, ALL-RATED support"
+  },
+  "verdict": {
+    "best_graded_arm": "G_raw",
+    "graded_minus_binary_full": -0.004524621417473673,
+    "graded_minus_binary_tail": 0.00460598466193618,
+    "support_alone": -0.049884803130971656,
+    "values_at_fixed_support": 0.04536018171349798,
+    "graded_wins": false
+  }
+}

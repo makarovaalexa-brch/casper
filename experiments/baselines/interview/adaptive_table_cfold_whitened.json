@@ -528,6 +528,64 @@
             10000,
             10000
           ]
+        },
+        "k16": {
+          "full": 0.18008068238972397,
+          "tail": 0.05846408333993833,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 160000,
+          "concept_consumer": true,
+          "score_minutes": 0.29,
+          "interview_minutes": 40.83,
+          "distinct_prefixes": 1,
+          "keyterm_repr": "whitened_centroid",
+          "cache": {
+            "_ktw": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 7610,
+              "misses": 62864,
+              "evictions": 58768,
+              "hit_rate": 0.108
+            },
+            "_width": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "keyterm_asks_per_turn": [
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000
+          ]
         }
       }
     }

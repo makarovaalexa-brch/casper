@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\dev\phd\casper\src\baselines\adaptive_harness.py", line 1195, in <module>
+    main()
+  File "C:\dev\phd\casper\src\baselines\adaptive_harness.py", line 1026, in main
+    sel = build_selector(spec, D, glob, bank, k, a, cache, log=logln)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\dev\phd\casper\src\baselines\adaptive_harness.py", line 561, in build_selector
+    assert which in glob, f"fixedorder: unknown stored order '{which}'; have {sorted(glob)}"
+           ^^^^^^^^^^^^^
+AssertionError: fixedorder: unknown stored order 'greedy_concepts'; have ['entropy0', 'helf', 'popularity', 'pure_entropy']
