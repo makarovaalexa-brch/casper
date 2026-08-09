@@ -1,7 +1,7 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-08-08 (graded-input audit; R5 evidence found stale)**.
+> End-state is in `VISION.md`. Last updated: **2026-08-09 (Paper A measurement-complete; graded question settled)**.
 
 ## ★★★ 2026-08-09 — PAPER A IS MEASUREMENT-COMPLETE. The graded question is SETTLED.
 
@@ -40,10 +40,10 @@ wrong statistic — 0.13% of realised top-10 slots), #89 RBMF, #90 iALS ladder, 
 (.4179→**.4244/.3017**), #93 R5, #94 re-selection. Verifier: **159 checks**, 0 mismatches, now including
 snapshot assertions. Chapter compiles, 40pp.
 
-**Open, in order:** #90 ladder (running) → #93 re-run premium_vs_k + sign_probe on ep31 → #92 rewrite the
-mechanism passage and rename the NATIVE column → #88 user-kNN (lambda pinned at the grid edge; 89.9% of
-score cells are the zero-evidence fallback; the "binary control" artefact is degenerate at 7.8e-05 and
-must not be cited) → #89 RBMF, author decision.
+**Open on Paper A:** nothing measured. Remaining is editorial only --- a final read-through, and the
+author's call on whether iALS-with-confidence (.3495/.2566, NATIVE) enters the master table as its own
+row with input contract `g` or as a footnote to the iALS row. The NATIVE column is FROZEN by author
+decision: cells that failed their gate get a dash and one sentence, not another run.
 
 ## ★★★ TOP OF THE QUEUE — THE ORGANIC OPEN REQUEST (task #68, author idea 2026-07-31, CORRECTED SAME DAY)
 Memory: `reddit-mined-open-request-opener.md`. Full lit record:
