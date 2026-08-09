@@ -241,9 +241,12 @@ of the methods as published, measurable, and different in each case.
 questions and one (the information-gain arm) diverges further with budget, so ``adaptivity pays at
 depth'' is not yet a property of adaptive selection in general --- it is a property of the tree.
 A second independent crossover would settle it; its absence is the honest limit of this section.
-\REDO{the remaining published methods most likely to cross --- IGCN, fMF --- and a
-sparsity-stratified re-analysis, since one line of prior work reports that adaptivity pays on dense
-data and vanishes on sparse}
+IGCN has since been run and does \emph{not} supply a second crossover: it separably beats
+entropy$_0$ at one, two and four questions, but its personalised step is active on exactly $0.0\%$
+of turns at those budgets, so what wins early is its global-information-gain \emph{static} order.
+\REDO{fMF --- the remaining published method most likely to cross, being an interview tree with
+latent leaves --- and a sparsity-stratified re-analysis, since one line of prior work reports that
+adaptivity pays on dense data and vanishes on sparse}
 
 \paragraph{Two candidate pools, and why the comparison must be made inside one.}
 Table~\ref{tab:greedy} was computed under a narrower candidate mask than Table~\ref{tab:act1}: the
