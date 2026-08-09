@@ -212,9 +212,258 @@ def ndcg_at_k_block(scores, gains, cand, k=10):
     return out, nz
 
 
+# =============================================================================================
+# CONTRACT-SIGNED SIDECARS (HARD RULE 11b)
+# =============================================================================================
+def _sig(**kw):
+    return hashlib.sha1(json.dumps(kw, sort_keys=True).encode()).hexdigest()[:12]
+
+
+def _sidecar(name, sig):
+    os.makedirs(CACHE, exist_ok=True)
+    return os.path.join(CACHE, "%s_%s.npz" % (name, sig))
+
+
+# =============================================================================================
+# ITEM-ITEM GRAM  G = X_tr^T X_tr, thresholded at lambda_1/2 -- and the threshold is EXACT.
+#
+# The greedy criterion only ever needs entries with c_ij > lambda_1/2, where
+#     c = X^T Xhat = G - G[:,S] W[S,:]   with  G >= 0 elementwise and  W >= 0  (w* is clipped at 0)
+# so the correction is subtractive:  c <= G  elementwise, hence  c_ij > t  ==>  G_ij > t.
+# Dropping G entries <= lambda_1/2 therefore loses NOTHING (this is not a truncation under
+# HARD RULE 1 -- it is an exact algebraic bound, asserted in the code below).
+#
+# Doing this ONCE is why our fit is ~25x cheaper than the authors' reported 19 min/row: they
+# recompute the residual every round, but G is constant and only the rank-|S| correction moves.
+# =============================================================================================
+def build_gram(Xtr, thresh=LAMBDA_1 / 2.0, block=512, log=None):
+    sig = _sig(kind="gram", nnz=int(Xtr.nnz), shape=list(Xtr.shape), thresh=float(thresh))
+    path = _sidecar("gram", sig)
+    if os.path.exists(path):
+        z = np.load(path)
+        G = sp.csr_matrix((z["data"], z["indices"], z["indptr"]), shape=tuple(z["shape"]))
+        logln("gram sidecar HIT %s nnz=%d" % (os.path.basename(path), G.nnz), log)
+        return G
+    n = Xtr.shape[1]
+    Xc = Xtr.tocsc()
+    rows, cols, vals = [], [], []
+    t0 = time.time()
+    for s in range(0, n, block):
+        e = min(s + block, n)
+        Gb = (Xc[:, s:e].T @ Xtr).toarray()
+        np.fill_diagonal(Gb[:, s:e], 0.0)          # j != i
+        r, c = np.nonzero(Gb > thresh)
+        rows.append(r.astype(np.int32) + s)
+        cols.append(c.astype(np.int32))
+        vals.append(Gb[r, c].astype(np.float32))
+        if (s // block) % 10 == 0:
+            logln("  gram %d/%d  kept=%d  %.1f min" % (e, n, sum(len(v) for v in vals),
+                                                       (time.time() - t0) / 60), log)
+    G = sp.csr_matrix((np.concatenate(vals), (np.concatenate(rows), np.concatenate(cols))),
+                      shape=(n, n))
+    G.sort_indices()
+    np.savez(path, data=G.data, indices=G.indices, indptr=G.indptr, shape=np.array(G.shape))
+    logln("gram built nnz=%d in %.1f min -> %s" % (G.nnz, (time.time() - t0) / 60, path), log)
+    return G
+
+
+# =============================================================================================
+# GREEDY SLIM -- the questionnaire IS the order in which rows of W are filled.
+#   w*_ij = max(0, (c_ij - l1/2) / (lF + a_i));   Delta_ij = -(c_ij - l1/2)^2 / (lF + a_i)
+#   i* = argmin_i sum_{j != i} Delta_ij   ==   argmax_i sum_j max(0, c_ij - l1/2)^2 / (lF + a_i)
+# STATIC and PREFIX-OPTIMAL: one fit gives every budget k.
+# =============================================================================================
+def greedy_slim(Xtr, G, k, lam1=LAMBDA_1, lamF=LAMBDA_F, log=None, rowblock=4096):
+    n = Xtr.shape[1]
+    a = np.asarray(Xtr.multiply(Xtr).sum(axis=0)).ravel().astype(np.float64)   # a_i = sum_u x_ui^2
+    half = lam1 / 2.0
+    sel, Wrows = [], np.zeros((k, n), dtype=np.float32)
+    Gcsc = G.tocsc()
+    indptr, indices, data = G.indptr, G.indices, G.data
+    for rnd in range(k):
+        t0 = time.time()
+        Gs = np.zeros((n, len(sel)), dtype=np.float32)
+        if sel:
+            Gs = Gcsc[:, sel].toarray()            # G[:, S]  (n x |S|)
+        score = np.zeros(n, dtype=np.float64)
+        for s in range(0, n, rowblock):
+            e = min(s + rowblock, n)
+            lo, hi = indptr[s], indptr[e]
+            if hi == lo:
+                continue
+            cols = indices[lo:hi]
+            c = data[lo:hi].astype(np.float64)
+            if sel:
+                ridx = np.repeat(np.arange(s, e), np.diff(indptr[s:e + 1]))
+                for t, si in enumerate(sel):
+                    c -= Gs[ridx, t].astype(np.float64) * Wrows[t, cols].astype(np.float64)
+            g = c - half
+            np.maximum(g, 0.0, out=g)
+            np.multiply(g, g, out=g)
+            np.add.at(score, np.repeat(np.arange(s, e), np.diff(indptr[s:e + 1])), g)
+        score /= (lamF + a)
+        score[sel] = -np.inf
+        istar = int(np.argmax(score))
+        # fill row istar of W against the CURRENT residual
+        lo, hi = indptr[istar], indptr[istar + 1]
+        cols, c = indices[lo:hi], data[lo:hi].astype(np.float64)
+        if sel:
+            for t, si in enumerate(sel):
+                c -= float(Gs[istar, t]) * Wrows[t, cols].astype(np.float64)
+        w = np.maximum(0.0, (c - half) / (lamF + a[istar]))
+        Wrows[rnd, cols] = w.astype(np.float32)
+        sel.append(istar)
+        logln("  GSLIM round %2d -> item %6d  gain=%.4e  nnz(w)=%d  %.1f min"
+              % (rnd + 1, istar, score[istar], int((w > 0).sum()), (time.time() - t0) / 60), log)
+    return np.array(sel, dtype=np.int64), Wrows
+
+
+# =============================================================================================
+# PureSVD -- the latent factor model QBandit runs on (paper: "PureSVD")
+# =============================================================================================
+def pure_svd(Xtr, d=50, log=None):
+    sig = _sig(kind="puresvd", nnz=int(Xtr.nnz), shape=list(Xtr.shape), d=int(d))
+    path = _sidecar("puresvd", sig)
+    if os.path.exists(path):
+        z = np.load(path)
+        logln("puresvd sidecar HIT d=%d" % d, log)
+        return z["V"]
+    from scipy.sparse.linalg import svds
+    t0 = time.time()
+    _, _, Vt = svds(Xtr.astype(np.float32), k=d)
+    V = np.ascontiguousarray(Vt.T.astype(np.float32))     # (n_items, d)
+    np.savez(path, V=V)
+    logln("puresvd d=%d in %.1f min -> %s" % (d, (time.time() - t0) / 60, path), log)
+    return V
+
+
+# =============================================================================================
+# QUESTIONNAIRES
+# =============================================================================================
+def q_pop(Xtr, k):
+    """QPop: the k most-rated items. Static. Control arm: isolates 'asks popular items' from
+    'is adaptive'."""
+    cnt = np.asarray((Xtr > 0).sum(axis=0)).ravel()
+    return np.argsort(-cnt, kind="stable")[:k].astype(np.int64)
+
+
+def qbandit_interview(Rte_ask, V, k, sigma2=1.0, lam=1.0, seed=98765, ublock=256, log=None):
+    """QBandit (Christakopoulou et al. KDD'16) over a PureSVD item space.
+    Bayesian linear model r_ui = theta_u^T v_i + noise; Thompson sampling picks the next item to
+    ask (sample theta~N(mu,Sigma), ask argmax_i theta^T v_i among unasked).  Recommendation uses
+    the posterior MEAN.  Returns asked (U,k) int64, and the posterior means after every budget.
+    Rte_ask : CSR of the ratings the interview is ALLOWED to reveal (their protocol = all of the
+    test user's ratings; ARM A = the ask-side 80% only)."""
+    U, d = Rte_ask.shape[0], V.shape[1]
+    rng = np.random.RandomState(seed)
+    asked = np.zeros((U, k), dtype=np.int64)
+    mus = {}
+    Vt = np.ascontiguousarray(V.T)
+    P0 = lam * np.eye(d, dtype=np.float64)
+    for s in range(0, U, ublock):
+        e = min(s + ublock, U)
+        B = e - s
+        Prec = np.repeat(P0[None], B, axis=0)                    # (B,d,d)
+        b = np.zeros((B, d), dtype=np.float64)
+        blocked = np.zeros((B, V.shape[0]), dtype=bool)
+        R = Rte_ask[s:e]
+        for t in range(k):
+            Cov = np.linalg.inv(Prec)
+            mu = np.einsum("bij,bj->bi", Cov, b)
+            L = np.linalg.cholesky(Cov + 1e-9 * np.eye(d)[None])
+            th = mu + np.einsum("bij,bj->bi", L, rng.randn(B, d))
+            sc = th.astype(np.float32) @ Vt                      # (B, n_items)
+            sc[blocked] = -np.inf
+            pick = np.argmax(sc, axis=1)
+            asked[s:e, t] = pick
+            blocked[np.arange(B), pick] = True
+            r = np.asarray(R[np.arange(B), pick]).ravel()        # 0 if the user cannot answer
+            ans = r > 0
+            if ans.any():
+                vv = V[pick[ans]].astype(np.float64)
+                Prec[ans] += np.einsum("bi,bj->bij", vv, vv) / sigma2
+                b[ans] += vv * (r[ans][:, None] / sigma2)
+            if (t + 1) in BUDGETS:
+                Cov = np.linalg.inv(Prec)
+                mus.setdefault(t + 1, np.zeros((U, d), dtype=np.float32))
+                mus[t + 1][s:e] = np.einsum("bij,bj->bi", Cov, b).astype(np.float32)
+        if log and (s // ublock) % 8 == 0:
+            logln("  qbandit users %d/%d" % (e, U), log)
+    return asked, mus
+
+
+# =============================================================================================
+# EVALUATION -- the three exclusion arms
+#
+#   ARM C  "theirs"        I_R = {x'_ui = 0} \ I_Q        their published rule
+#   ARM B  "exclusion off" I_R = {x'_ui = 0}              drops I_Q ∩ I_R = ∅ ONLY
+#   ARM A  "no self-eating" fixed 20% eval side, never answerable; I_R = I \ (ask-side rated)
+#
+# In every arm the gains are 2^r - 1 and IDCG is taken over I_R (their definition).
+# =============================================================================================
+ARMS = ("C_theirs", "B_no_ask_excl", "A_heldout")
+
+
+def eval_cell(scores_fn, asked_k, Rrev, Reval, tail, n_items, arm, ublock=256):
+    """scores_fn(lo,hi) -> (B, n_items) float32 ; Rrev = CSR of ratings the interview revealed
+    (already restricted to the asked items) ; Reval = CSR of the target ratings."""
+    U = Reval.shape[0]
+    full = np.zeros(U); tl = np.zeros(U)
+    okf = np.zeros(U, bool); okt = np.zeros(U, bool)
+    nrev = np.zeros(U); ncand = np.zeros(U)
+    for s in range(0, U, ublock):
+        e = min(s + ublock, U); B = e - s
+        rows = np.arange(B)[:, None]
+        sc = scores_fn(s, e)
+        gains = np.zeros((B, n_items), dtype=np.float32)
+        Rb = Reval[s:e].toarray()
+        nz = Rb > 0
+        gains[nz] = np.exp2(Rb[nz]) - 1.0
+        revb = (Rrev[s:e].toarray() > 0)
+        cand = ~revb
+        if arm == "C_theirs":
+            cand[rows, asked_k[s:e]] = False
+        elif arm == "A_heldout":
+            pass                      # revb here is the whole ask side already
+        f, of_ = ndcg_at_k_block(sc, gains, cand)
+        t_, ot_ = ndcg_at_k_block(sc, gains, cand & tail[None, :])
+        full[s:e], okf[s:e] = f, of_
+        tl[s:e], okt[s:e] = t_, ot_
+        nrev[s:e] = revb.sum(1); ncand[s:e] = cand.sum(1)
+    return dict(full=float(full[okf].mean()), tail=float(tl[okt].mean()),
+                n_full=int(okf.sum()), n_tail=int(okt.sum()),
+                revealed_per_user=float(nrev.mean()), cand_per_user=float(ncand.mean()),
+                per_user_full=full, per_user_tail=tl, ok_full=okf, ok_tail=okt)
+
+
+def write_cell(outpath, key, cell, log=None):
+    """HARD RULE 11a: one cell, one write, the moment it completes."""
+    doc = {}
+    if os.path.exists(outpath):
+        with open(outpath, encoding="utf-8") as fh:
+            doc = json.load(fh)
+    doc[key] = {k: v for k, v in cell.items() if not isinstance(v, np.ndarray)}
+    tmp = outpath + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh, indent=1)
+    os.replace(tmp, outpath)
+    logln("  CELL %-42s full=%.4f tail=%.4f  rev/u=%.2f" %
+          (key, cell["full"], cell["tail"], cell["revealed_per_user"]), log)
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--probe", action="store_true")
+    ap.add_argument("--run", action="store_true")
+    ap.add_argument("--label", required=False, default=None,
+                    help="unique run label; stamps every output path (HARD RULE 11e)")
+    ap.add_argument("--questionnaires", default="qgslim,qbandit,qpop")
+    ap.add_argument("--arms", default=",".join(ARMS))
+    ap.add_argument("--budgets", default="5,10,15,20")
+    ap.add_argument("--svd_rank", type=int, default=50)
+    ap.add_argument("--seed", type=int, default=98765)
+    ap.add_argument("--smoke_users", type=int, default=0,
+                    help="SMOKE ONLY -- stamps SMOKE_NOT_CITABLE and refuses a citable filename")
     a = ap.parse_args()
     if a.probe:
         os.makedirs(OUTDIR, exist_ok=True)
@@ -227,3 +476,139 @@ if __name__ == "__main__":
         logln("head items = %d of %d (33%% of train ratings)" % (nh, X.shape[1]), lg)
         pl = np.diff(X.indptr)
         logln("ratings/user: mean=%.1f median=%d max=%d" % (pl.mean(), np.median(pl), pl.max()), lg)
+
+    if a.run:
+        if not a.label:
+            raise SystemExit("--label is required (HARD RULE 11e: unique run label)")
+        label = ("SMOKE_%d_" % a.smoke_users if a.smoke_users else "") + a.label
+        os.makedirs(OUTDIR, exist_ok=True)
+        lg = os.path.join(OUTDIR, "%s.log" % label)
+        outp = os.path.join(OUTDIR, "%s.json" % label)
+        lock = outp + ".lock"
+        if os.path.exists(lock):
+            raise SystemExit("output %s is held by a live process (%s) -- refusing (HARD RULE 11e)"
+                             % (outp, open(lock).read().strip()))
+        with open(lock, "w") as fh:
+            fh.write("pid=%d started=%s" % (os.getpid(), time.strftime("%Y-%m-%d %H:%M:%S")))
+        try:
+            budgets = [int(x) for x in a.budgets.split(",")]
+            qs = [q.strip() for q in a.questionnaires.split(",") if q.strip()]
+            arms = [x.strip() for x in a.arms.split(",") if x.strip()]
+            bad = [x for x in arms if x not in ARMS]
+            if bad:                       # validate names AT STARTUP, not at first use
+                raise SystemExit("unknown arm(s) %s; valid: %s" % (bad, list(ARMS)))
+            bad = [q for q in qs if q not in ("qgslim", "qbandit", "qpop")]
+            if bad:
+                raise SystemExit("unknown questionnaire(s) %s" % bad)
+            kmax = max(budgets)
+            logln("LABEL=%s  questionnaires=%s arms=%s budgets=%s svd_rank=%d%s"
+                  % (label, qs, arms, budgets, a.svd_rank,
+                     "  *** SMOKE_NOT_CITABLE ***" if a.smoke_users else ""), lg)
+
+            X = load_ml25m(lg)
+            tr, te = split_users(X.shape[0], a.seed)
+            Xtr = X[tr].astype(np.float32)
+            Rte = X[te].astype(np.float32)
+            if a.smoke_users:
+                Rte = Rte[:a.smoke_users]
+            U, n_items = Rte.shape
+            hd, nh = head_mask(Xtr)
+            tail = ~hd
+            logln("train=%d test=%d items=%d head=%d tail=%d" % (Xtr.shape[0], U, n_items, nh,
+                                                                 int(tail.sum())), lg)
+
+            # ---- ARM A: fixed 80/20 per-user split of the TEST user's ratings, before any ask
+            rngA = np.random.RandomState(a.seed + 1)
+            keep = rngA.rand(Rte.nnz) >= 0.20
+            # NB copy indices/indptr -- eliminate_zeros() mutates in place and would corrupt Rte
+            Rask = sp.csr_matrix((Rte.data * keep, Rte.indices.copy(), Rte.indptr.copy()),
+                                 shape=Rte.shape)
+            Rask.eliminate_zeros()
+            Reval_A = sp.csr_matrix((Rte.data * (~keep), Rte.indices.copy(), Rte.indptr.copy()),
+                                    shape=Rte.shape)
+            Reval_A.eliminate_zeros()
+            assert Rask.multiply(Reval_A).nnz == 0, "ARM A ask/eval sides overlap"
+
+            V = pure_svd(Xtr, a.svd_rank, lg)
+            Vt = np.ascontiguousarray(V.T)
+
+            def posterior_mu(Rrev, lam=1.0, sigma2=1.0, blk=2048):
+                """Bayesian ridge over the PureSVD item space from the revealed ratings.
+                The SAME recommender for qbandit and qpop -> the questionnaire is the only
+                thing that differs between them."""
+                d = V.shape[1]
+                mu = np.zeros((Rrev.shape[0], d), dtype=np.float32)
+                P0 = lam * np.eye(d)
+                for s0 in range(0, Rrev.shape[0], blk):
+                    e0 = min(s0 + blk, Rrev.shape[0])
+                    for u in range(s0, e0):
+                        lo, hi = Rrev.indptr[u], Rrev.indptr[u + 1]
+                        if hi == lo:
+                            continue
+                        vv = V[Rrev.indices[lo:hi]].astype(np.float64)
+                        r = Rrev.data[lo:hi].astype(np.float64)
+                        mu[u] = np.linalg.solve(P0 + vv.T @ vv / sigma2,
+                                                vv.T @ r / sigma2).astype(np.float32)
+                return mu
+
+            # ---- questionnaires ------------------------------------------------------------
+            ASK = {}
+            if "qgslim" in qs:
+                G = build_gram(Xtr, log=lg)
+                sel, Wrows = greedy_slim(Xtr, G, kmax, log=lg)
+                del G
+                logln("QGSLIM order: %s" % sel.tolist(), lg)
+                ASK["qgslim"] = np.repeat(sel[None, :], U, axis=0)
+            if "qpop" in qs:
+                pop = q_pop(Xtr, kmax)
+                logln("QPOP order: %s" % pop.tolist(), lg)
+                ASK["qpop"] = np.repeat(pop[None, :], U, axis=0)
+
+            for arm in arms:
+                Rsrc = Rask if arm == "A_heldout" else Rte           # what the interview may reveal
+                Rtgt = Reval_A if arm == "A_heldout" else Rte        # the ground truth
+                if "qbandit" in qs:
+                    t0 = time.time()
+                    ab, _ = qbandit_interview(Rsrc, V, kmax, seed=a.seed, log=lg)
+                    logln("qbandit interview (%s) %.1f min" % (arm, (time.time() - t0) / 60), lg)
+                    ASK["qbandit"] = ab
+                for q in qs:
+                    asked_full = ASK[q]
+                    for k in budgets:
+                        t0 = time.time()
+                        asked_k = np.ascontiguousarray(asked_full[:, :k])
+                        # revealed = asked AND rated on the allowed side
+                        rows = np.repeat(np.arange(U), k)
+                        vals = np.asarray(Rsrc[rows, asked_k.ravel()]).ravel()
+                        xprime = sp.csr_matrix((vals, (rows, asked_k.ravel())), shape=(U, n_items))
+                        xprime.sum_duplicates(); xprime.eliminate_zeros()
+                        if arm == "A_heldout":
+                            Rrev_mask = Rask                # policy B: mask the whole ask side
+                        else:
+                            Rrev_mask = xprime
+                        if q == "qgslim":
+                            coef = xprime[:, sel[:k]].toarray()
+                            Wk = Wrows[:k]
+                            def sfn(lo, hi, coef=coef, Wk=Wk):
+                                return coef[lo:hi] @ Wk
+                        else:
+                            mu = posterior_mu(xprime)
+                            def sfn(lo, hi, mu=mu):
+                                return mu[lo:hi] @ Vt
+                        cell = eval_cell(sfn, asked_k, Rrev_mask, Rtgt, tail, n_items, arm)
+                        cell["k"] = k; cell["arm"] = arm; cell["questionnaire"] = q
+                        cell["answer_rate"] = float(xprime.nnz) / (U * k)
+                        cell["minutes"] = round((time.time() - t0) / 60, 2)
+                        if a.smoke_users:
+                            cell["SMOKE_NOT_CITABLE"] = True
+                        pub = PUBLISHED.get((q, "all"), {}).get(k)
+                        if pub and arm == "C_theirs":
+                            cell["published_full"] = pub
+                            cell["delta_full"] = round(cell["full"] - pub, 4)
+                            cell["published_tail"] = PUBLISHED[(q, "tail")][k]
+                            cell["delta_tail"] = round(cell["tail"] - PUBLISHED[(q, "tail")][k], 4)
+                        write_cell(outp, "%s|%s|k%d" % (arm, q, k), cell, lg)
+            logln("DONE -> %s" % outp, lg)
+        finally:
+            if os.path.exists(lock):
+                os.remove(lock)

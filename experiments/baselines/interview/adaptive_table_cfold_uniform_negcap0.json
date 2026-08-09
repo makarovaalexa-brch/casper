@@ -232,6 +232,56 @@
             10000,
             0
           ]
+        },
+        "k8": {
+          "full": 0.19020633906247866,
+          "tail": 0.07144525572800244,
+          "answered": 2.3651,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": true,
+          "score_minutes": 0.32,
+          "interview_minutes": 12.93,
+          "distinct_prefixes": 131,
+          "keyterm_repr": "uniform_member_mean",
+          "cache": {
+            "_ktw": {
+              "size": 268,
+              "cap": 4096,
+              "hits": 19621,
+              "misses": 268,
+              "evictions": 0,
+              "hit_rate": 0.9865
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 3835,
+              "misses": 16455,
+              "evictions": 12359,
+              "hit_rate": 0.189
+            },
+            "_width": {
+              "size": 143,
+              "cap": 4096,
+              "hits": 14212,
+              "misses": 143,
+              "evictions": 0,
+              "hit_rate": 0.99
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "keyterm_asks_per_turn": [
+            0,
+            0,
+            10000,
+            0,
+            0,
+            0,
+            0,
+            10000
+          ]
         }
       }
     }

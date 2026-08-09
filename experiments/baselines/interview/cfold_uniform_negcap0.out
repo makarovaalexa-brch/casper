@@ -41,3 +41,4 @@
 [21:02:43] [adaptive] conlinucb_mcr    turn 4/8: 77.7s  answered so far 1.24  concept-asks 10000  distinct ask-prefixes 11
 [21:04:41] [adaptive] conlinucb_mcr    turn 5/8: 117.6s  answered so far 1.66  concept-asks 10000  distinct ask-prefixes 26
 [21:05:53] [adaptive] conlinucb_mcr    turn 6/8: 71.5s  answered so far 2.00  concept-asks 10000  distinct ask-prefixes 52
+[21:08:56] [adaptive] conlinucb_mcr    turn 7/8: 182.4s  answered so far 2.37  concept-asks 10000  distinct ask-prefixes 94
