@@ -513,7 +513,7 @@ System (rep.\ / cite) & R1 & R2 & R3 & R4 & in & \multicolumn{2}{c}{full/tail} &
 \multicolumn{10}{l}{\emph{(a) Classic / linear full-profile}}\\
 Most-Popular & \xmark & \xmark & \xmark & \xmark & b & $.1345$ & $.0226$ & $.1626$ & $.0262$ \\
 Item-kNN (cosine) & \xmark & \xmark & \xmark & \xmark & b & $.2428$ & $.1297$ & $.2946$ & $.1593$ \\
-PureSVD / iALS-WMF & \xmark & \xmark & \xmark & \xmark & b & $.2703$ & $.2150$ & $.3325$ & $.2629$ \\
+PureSVD / iALS-WMF~\cite{hu2008collaborative}\,$^{\natural}$ & \xmark & \xmark & \xmark & \xmark & g & $.2703$ & $.2150$ & $.3495$ & $.2566$ \\
 EASE~\cite{steck2019ease} & \cmark & \xmark & \xmark & \xmark & b & $.3476$ & $.2441$ & $.4135$ & $.2941$ \\
 EDLAE~\cite{steck2020edlae} & \cmark & \xmark & \xmark & \xmark & b & $.3433$ & $.2395$ & $.4110$ & $.2893$ \\
 Turbo-CF~\cite{park2024turbocf} & \xmark & \xmark & \xmark & \xmark & b & $.2622$ & $.1621$ & $.3285$ & $.2034$ \\
@@ -557,6 +557,7 @@ construct, not a result its paper reports, and the real comparison is Table~\ref
 $^{\S}$~dropped: our implementation failed its ML-20M snap ($0.397$ vs.\ the published $0.419$), and a failed
 bridge disqualifies a row (\S\ref{sec:bridge}). $^{\ast}$\,TaNP is represented by the objective-ported implicit adaptation in \emph{both} columns; it has no
 \textsc{native} cell, and the reason is not a missing measurement (\S\ref{sec:nativelimit}).
+$^{\natural}$\,iALS's \textsc{native} cell is the published confidence form, $c_{ui}=1+\alpha r_{ui}$~\cite{hu2008collaborative}: the rating scales how strongly each observation counts and is never predicted. Its \textsc{liang} cell is the binary build, because that protocol admits no graded value---$r\equiv1$ is the degenerate case of the same formula, not a different method. The binary build scored under the \textsc{native} pool reaches $.3325/.2629$, so $+0.0170$ full of this cell is the confidence weighting rather than the pool.
 $^{\P}$\,RBMF's and user-kNN's \textsc{native} cells are their \emph{binary} builds, and for both the graded build was measured through the same estimator rather than asserted. RBMF's graded seed on raw ratings comes within $-0.0045$ full and $+0.0046$ tail of its binary build (both intervals exclude zero); its \emph{centred} variant, the published recipe, loses a further $0.0981$. User-kNN's centred build loses $-0.0934$ full. We report the stronger build in the cell and give the comparison in \S\ref{sec:bridge}.
 No number is invented: a value appears only if we measured it on this ruler.}
 \label{tab:master}

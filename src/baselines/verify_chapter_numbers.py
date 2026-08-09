@@ -175,6 +175,17 @@ chk('master table: belief arm A (== ICF/gap-map source)', 0.2267, dig(_rf, 'beli
 chk('master table: belief arm A tail', 0.1300, dig(_rf, 'belief_mf', 'rows', 'A', 'tail_ndcg@10'), 'refit_shared_mf.json')
 chk('master table: belief arm N tail', 0.1616, dig(_rf, 'belief_mf', 'rows', 'N', 'tail_ndcg@10'), 'refit_shared_mf.json')
 
+# The iALS row's NATIVE cell is the CONFIDENCE build (author ruling 2026-08-09): the NATIVE column is
+# defined as each system reading its own published contract, and Hu/Koren/Volinsky publish
+# c = 1 + alpha*r. The binary build is r == 1, the degenerate case. Both are checked -- the cell that is
+# printed, and the binary reference the footnote quotes beside it.
+chk('iALS NATIVE cell = confidence build', 0.3495,
+    dig(lad, 'r3_graded_allrated_reg001', 'ndcg@10') if (lad := (J('experiments/baselines/arm_n/ials_conf_decompose.json') or {}).get('rungs')) else None,
+    'ials_conf_decompose.json')
+chk('iALS NATIVE cell tail', 0.2566, dig(lad, 'r3_graded_allrated_reg001', 'tail_ndcg@10'), 'ials_conf_decompose.json')
+chk('iALS binary reference quoted in the footnote', 0.3325,
+    dig(_rs, 'ials_reselected', 'N', 'ndcg@10'), 'reselect_ndcg10.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:

@@ -30,3 +30,14 @@
 [20:57:59] [adaptive] conlinucb_mcr    turn 1/4: 0.4s  answered so far 0.42  concept-asks 0  distinct ask-prefixes 1
 [20:58:00] [adaptive] conlinucb_mcr    turn 2/4: 1.1s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 3
 [20:58:06] [adaptive] conlinucb_mcr    turn 3/4: 5.7s  answered so far 0.81  concept-asks 10000  distinct ask-prefixes 3
+[21:01:00] [adaptive] conlinucb_mcr    turn 4/4: 174.0s  answered so far 1.24  concept-asks 10000  distinct ask-prefixes 11
+[21:01:00] [adaptive] INTERVIEW conlinucb_mcr    k= 4 done in 3.04m; answered=1.24/4; distinct ask-prefixes=11; cache={'_ktw': {'size': 12, 'cap': 4096, 'hits': 2802, 'misses': 12, 'evictions': 0, 'hit_rate': 0.9957}, '_mu': {'size': 2735, 'cap': 4096, 'hits': 97, 'misses': 2735, 'evictions': 0, 'hit_rate': 0.0343}, '_width': {'size': 12, 'cap': 4096, 'hits': 2706, 'misses': 12, 'evictions': 0, 'hit_rate': 0.9956}}
+[21:01:00] [adaptive] concept consumer = concept_cv3_ep08.pt (ep8, C=1031, h=256, use_refusal=True, snapshot=t2i26c_ep31.pt)
+[21:01:18] [adaptive] ours           conlinucb_mcr    k= 4 answered= 1.2/4 floored=    0 full=0.1744 tail=0.0586 (interview 3.04m + score 0.30m)
+[21:01:18] [conlinucb_mcr] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=5logt pool=FULL vocabulary
+[21:01:18] [adaptive] conlinucb_mcr    turn 1/8: 0.4s  answered so far 0.42  concept-asks 0  distinct ask-prefixes 1
+[21:01:20] [adaptive] conlinucb_mcr    turn 2/8: 1.1s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 3
+[21:01:25] [adaptive] conlinucb_mcr    turn 3/8: 5.3s  answered so far 0.81  concept-asks 10000  distinct ask-prefixes 3
+[21:02:43] [adaptive] conlinucb_mcr    turn 4/8: 77.7s  answered so far 1.24  concept-asks 10000  distinct ask-prefixes 11
+[21:04:41] [adaptive] conlinucb_mcr    turn 5/8: 117.6s  answered so far 1.66  concept-asks 10000  distinct ask-prefixes 26
+[21:05:53] [adaptive] conlinucb_mcr    turn 6/8: 71.5s  answered so far 2.00  concept-asks 10000  distinct ask-prefixes 52
