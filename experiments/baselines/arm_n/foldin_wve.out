@@ -1,0 +1,35 @@
+[17:59:02] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[17:59:02] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[17:59:02] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[17:59:02] [pop] fitted item popularity over 140768 train users, 18359 items
+[17:59:26] [G1] MostPop 0.1626 vs 0.1626 -> PASS
+[17:59:26] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[18:00:03] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[18:00:52] [graded] val fold-in (10000, 18359) nnz=1356475 mean=3.467 frac_sub3.5=0.544
+[18:00:52] [basis] freezing ONE iALS item basis (f=200, reg=0.1, alpha=10.0) -- every arm below folds onto this same Y
+[18:03:16] [ials] trained f=200 reg=0.1 alpha=10.0 it=15 (2.3m)
+[18:03:16] [basis] done in 2.4m; Y is (18359, 200)
+[18:03:16] --- arm W: iALS confidence fold-in, rating scales the weight, target 1 ---
+[18:04:44]   [W] alpha=  1.0 val full=0.3424
+[18:06:09]   [W] alpha=  2.5 val full=0.3297
+[18:07:31]   [W] alpha=  5.0 val full=0.3098
+[18:08:52]   [W] alpha= 10.0 val full=0.2823
+[18:10:13] [W] alpha=1.0 -> TEST full=0.3459 tail=0.2606
+[18:10:13] --- arm E_estimand: ridge LS regressing the user's RATINGS (RBMF's seed rule) ---
+[18:11:00]   [E_estimand] ridge=   0.1 val full=0.2953
+[18:11:46]   [E_estimand] ridge=   1.0 val full=0.3548
+[18:12:32]   [E_estimand] ridge=  10.0 val full=0.3503
+[18:13:18]   [E_estimand] ridge= 100.0 val full=0.3477
+[18:14:05] [E_estimand] ridge=1.0 -> TEST full=0.3580 tail=0.2610
+[18:14:05] --- arm Eb_control: the same ridge LS regressing a CONSTANT ---
+[18:14:52]   [Eb_control] ridge=   0.1 val full=0.2044
+[18:15:38]   [Eb_control] ridge=   1.0 val full=0.2920
+[18:16:25]   [Eb_control] ridge=  10.0 val full=0.3117
+[18:17:11]   [Eb_control] ridge= 100.0 val full=0.3137
+[18:17:59] [Eb_control] ridge=100.0 -> TEST full=0.3127 tail=0.2262
+[18:17:59] ==============================================================================
+[18:17:59] [verdict] WEIGHT minus ESTIMAND, one frozen basis, only the fold-in rule varying: -0.0121
+[18:17:59] [verdict] mechanism NOT supported once the basis is held fixed. The four-row pattern is about model family. Delete the paragraph.
+[18:17:59] [control] values INSIDE the estimand rule are worth +0.0454 (E minus Eb)
+[18:17:59] ==============================================================================
+[18:17:59] done -> C:\dev\phd\casper\experiments\baselines\arm_n\foldin_weight_vs_estimand.json

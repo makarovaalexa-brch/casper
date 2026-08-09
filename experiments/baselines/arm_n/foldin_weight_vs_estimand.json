@@ -1,0 +1,36 @@
+{
+  "gates": {
+    "mostpop": true
+  },
+  "basis": {
+    "factors": 200,
+    "reg": 0.1,
+    "alpha": 10.0
+  },
+  "W_weight": {
+    "alpha": 1.0,
+    "val": 0.3423886086593704,
+    "ndcg@10": 0.3459317704461615,
+    "tail_ndcg@10": 0.26063393515797734
+  },
+  "E_estimand": {
+    "ridge": 1.0,
+    "val": 0.3548077267386335,
+    "ndcg@10": 0.35801282013584673,
+    "tail_ndcg@10": 0.2610385926817112,
+    "note": "ridge LS regressing the user's RATINGS (RBMF's seed rule)"
+  },
+  "Eb_control": {
+    "ridge": 100.0,
+    "val": 0.31372248550806414,
+    "ndcg@10": 0.31265263842234875,
+    "tail_ndcg@10": 0.22616225330602044,
+    "note": "the same ridge LS regressing a CONSTANT"
+  },
+  "verdict": {
+    "weight_minus_estimand": -0.012081049689685208,
+    "values_within_estimand": 0.04536018171349798,
+    "mechanism_supported": false,
+    "scope": "fold-in rule only; does NOT vary the training objective"
+  }
+}

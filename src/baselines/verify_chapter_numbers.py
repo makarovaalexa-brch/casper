@@ -128,6 +128,24 @@ for _lbl, _key, _ax, _v in (
         ('grades vs best binary tail', 'grades vs best binary     r3-r1', 'tail', -0.0064)):
     chk(f'iALS ladder: {_lbl}', _v, dig(_lp, 'contrasts', _key, _ax, 'delta'), 'ials_ladder_paired.json')
 
+# Re-selection on the primary metric (sec:bridge) and the refit of the two rows sharing that setting.
+_rs = J('experiments/baselines/arm_n/reselect_ndcg10.json')
+_rf = J('experiments/baselines/arm_n/refit_shared_mf.json')
+chk('iALS reselected arm A full', 0.2703, dig(_rs, 'ials_reselected', 'A', 'ndcg@10'), 'reselect_ndcg10.json')
+chk('iALS reselected arm N full', 0.3325, dig(_rs, 'ials_reselected', 'N', 'ndcg@10'), 'reselect_ndcg10.json')
+chk('RBMF refit arm N full', 0.3616, dig(_rf, 'rbmf', 'rows', 'N', 'ndcg@10'), 'refit_shared_mf.json')
+chk('RBMF refit arm A full', 0.2915, dig(_rf, 'rbmf', 'rows', 'A', 'ndcg@10'), 'refit_shared_mf.json')
+chk('belief-MF refit arm N full', 0.2788, dig(_rf, 'belief_mf', 'rows', 'N', 'ndcg@10'), 'refit_shared_mf.json')
+
+# The within-model mechanism test that RULED OUT the weight-vs-estimand story. Checked because a negative
+# result is as easy to misquote as a positive one, and this one reversed a paragraph.
+_fw = J('experiments/baselines/arm_n/foldin_weight_vs_estimand.json')
+chk('mechanism W (rating as weight) full', 0.3459, dig(_fw, 'W_weight', 'ndcg@10'), 'foldin_weight_vs_estimand.json')
+chk('mechanism E (rating as estimand) full', 0.3580, dig(_fw, 'E_estimand', 'ndcg@10'), 'foldin_weight_vs_estimand.json')
+chk('mechanism Eb (constant target) full', 0.3127, dig(_fw, 'Eb_control', 'ndcg@10'), 'foldin_weight_vs_estimand.json')
+chk('mechanism NOT supported (W-E is negative)', 0.0,
+    1.0 if dig(_fw, 'verdict', 'mechanism_supported') else 0.0, 'foldin_weight_vs_estimand.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:

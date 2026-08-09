@@ -430,50 +430,49 @@ unwatched films.
 carries no evidence either way about whether reading ratings helps; that question is answerable only with the
 objective held fixed, which is what the two rows below do.
 
-\paragraph{Ratings help or hurt according to where in the model they enter.}
+\paragraph{What restoring the ratings is worth, and what we cannot conclude from it.}
 The premise of the \textsc{native} column is that the threshold filter withholds the signal these designs
-were built for. Restoring it helps exactly one of them, and the exception is more informative than the
-rule. User-kNN falls from $0.3756$ on binary co-occurrence to $0.2822$ on mean-centred ratings---one estimator, one code path, two inputs, a paired drop of $-0.0934$ full and $-0.0976$ tail; RBMF falls
-from $0.3015$ to $0.2314$ once its ridge seed regresses centred ratings rather than ones, and to $0.2950$
-even with the ratings left uncentred, so the loss is not an artefact of how we defined a dislike; TaNP,
-trained as published on rating regression, reaches $0.0060$ against $0.3324$ for its implicit adaptation.
-Every one of those three makes the rating the quantity it \emph{predicts}. The exception is
-iALS with ratings as confidence~\cite{hu2008collaborative}, $c_{ui}=1+\alpha r_{ui}$, in which the rating
-never becomes a target and only sets how strongly each observation counts: it gains
-$+0.0194$ full NDCG@10 (CI $[+0.0157,+0.0231]$) over the best binary build of the same model.
+were built for. Restoring it helps one system and hurts another, and the honest summary is that the
+difference is not principled.
 
-Isolating that requires care, because the graded fold-in is $2.26\times$ richer than the likes-only one, so
-a naive graded-versus-binary contrast confounds the values with the evidence volume, and with the
-regularisation each build happens to prefer. Holding one variable at a time on the same $10{,}000$ users,
-every step separated in a paired bootstrap: re-selecting the hyperparameters on the reported metric is
-worth $+0.0257$ (CI $[+0.0224,+0.0291]$)---the setting on record was chosen by a validation sweep that
-optimised NDCG@100, and the knob that moves is the confidence scale $lpha$, not the ridge---while folding the
-\emph{same} additional rated items in with their values \emph{erased} is worth $-0.0088$
-(CI $[-0.0125,-0.0052]$). More evidence, recorded as though every rating were a like, makes the model
-worse. Putting the true values back on that identical support recovers $+0.0282$
-(CI $[+0.0261,+0.0302]$), and the net against the best binary build remains $+0.0194$. The effect is a
-matter of sign, not of volume. We use the fixed-support step to locate \emph{where} the rating acts and
-never as the headline: a control that mislabels dislikes as likes is not the baseline any deployed
+The clearest loss is user-kNN, measured through one estimator and one code path on two inputs: $0.3756$ on
+binary co-occurrence against $0.2822$ on mean-centred ratings, a drop of $-0.0934$ full and $-0.0976$ tail.
+The clearest gain is iALS with ratings as confidence~\cite{hu2008collaborative}, $c_{ui}=1+\alpha r_{ui}$,
+which gains $+0.0194$ full NDCG@10 (CI $[+0.0157,+0.0231]$) over the best binary build of the same model.
+Isolating that gain requires care, because the graded fold-in is $2.26\times$ richer than the likes-only
+one, so a naive contrast confounds the values with the evidence volume and with the hyperparameters each
+build prefers. Holding one variable at a time on the same $10{,}000$ users, every step separated in a
+paired bootstrap: re-selecting the hyperparameters on the reported metric is worth $+0.0257$
+(CI $[+0.0224,+0.0291]$); folding the \emph{same} additional rated items in with their values
+\emph{erased} is worth $-0.0088$ (CI $[-0.0125,-0.0052]$); putting the true values back on that identical
+support recovers $+0.0282$ (CI $[+0.0261,+0.0302]$). More evidence, recorded as though every rating were a
+like, makes the model worse; the values are what pay. We use that fixed-support step to decompose and
+never as a headline, because a control that mislabels dislikes as likes is not the baseline any deployed
 positive-only system presents.
 
-This locates the mechanism more precisely than ``rating prediction and top-$N$ ranking are different
-objectives''~\cite{cremonesi2010performance}, which is true but does not distinguish the four rows. A
-rating used as a \emph{weight} leaves the exposure pattern---who rated what at all---intact and merely
-modulates confidence in it. A rating used as an \emph{estimand} replaces that pattern: mean-centring in
-particular subtracts it away, so widely watched but divisive films accumulate negative mass exactly where
-hit probability is concentrated, and under the missing-not-at-random exposure of a
-consumption log the centred estimator and the ranking objective are no longer aligned~\cite{steck2010training,marlin2009collaborative}. RBMF adds a
-construction-specific version of the same thing: the frozen basis it folds onto was fitted on binary data,
-so the latent has no dislike geometry for a negative target to exploit.
+We tested one explanation for the split and it did not survive, so we report it as ruled out rather than
+omit it. The hypothesis was that a rating helps where it enters as a \emph{weight} on an observation and
+costs where it becomes the quantity the model \emph{predicts}---which would separate iALS from the
+rating-regression methods. Holding a single frozen item basis and varying only the fold-in rule, the
+confidence solve reaches $0.3459$ and the ridge regression of the user's actual ratings reaches $0.3580$:
+the estimand rule is \emph{better}, not worse, and within it the values are worth $+0.0454$ over the same
+regression against a constant target. Whatever separates the four systems, it is not the role the rating
+plays in them.
 
-The effect is also axis-dependent, and we report both axes throughout. On the tail the ordering reverses:
-the re-tuned binary model reaches $0.2631$ against the graded model's $0.2566$, a paired $-0.0064$
-(CI $[-0.0102,-0.0026]$). Grades buy head accuracy here, not tail accuracy.
+What the evidence does support is duller and more useful: configuration. The three rating-native rows
+shared one hyperparameter setting, selected by a validation sweep that optimised NDCG@100 on a previous
+dataset while this chapter reports NDCG@10. Re-selecting on the reported metric moves RBMF by $+0.0601$
+full in this column, iALS by $+0.0281$ and belief-MF by $+0.0267$, and RBMF's own regularisation---not the
+shared basis---accounts for most of its gain. User-kNN's loss likewise has a specific cause rather than a
+general one: mean-centring is applied to the value \emph{and} to the cosine basis, so the centred build
+differs from its binary twin in two ways at once. We therefore claim only what we measured. On this ruler,
+restoring the published rating contract does not reliably improve these systems, the one system it clearly
+helps uses ratings as confidence in a plain factorisation, and we make no claim about why.
 
 The consequence for how this chapter argues is worth being explicit about. We are \emph{not} entitled to
-say that the canonical binarisation handicaps the elicitation family at full profile: the three systems in
-that family are worse on their own ratings, and the one system that does gain from them, iALS, is not an
-elicitation method at all. Nor are we entitled to present graded input as something only the instrument
+say that the canonical binarisation handicaps the elicitation family at full profile: the two systems in
+that family with a clean graded measurement are worse on their own ratings, and the one system that does
+gain from them, iALS, is not an elicitation method at all. Nor are we entitled to present graded input as something only the instrument
 turns to account---iALS is a second system that gains from values, and it is a plain matrix factorisation.
 
 Against the honest baseline---a positive-only system, which \emph{drops} sub-threshold answers rather than
@@ -557,7 +556,7 @@ construct, not a result its paper reports, and the real comparison is Table~\ref
 $^{\S}$~dropped: our implementation failed its ML-20M snap ($0.397$ vs.\ the published $0.419$), and a failed
 bridge disqualifies a row (\S\ref{sec:bridge}). $^{\ast}$\,TaNP is represented by the objective-ported implicit adaptation in \emph{both} columns; it has no
 \textsc{native} cell, and the reason is not a missing measurement (\S\ref{sec:nativelimit}).
-$^{\P}$\,RBMF's \textsc{native} cell is its \emph{binary} build. Its graded refit was run---a ridge seed on targets centred at the protocol threshold, which makes $41.4\%$ of them negative---and it \emph{lost}, $.2314/.1472$ against $.3015/.2078$; the uncentred variant also lost ($.2950/.2027$). We therefore report the strongest build, as for user-kNN, and treat the graded attempt as the measurement that justifies the choice (\S\ref{sec:bridge}).
+$^{\P}$\,RBMF's and user-kNN's \textsc{native} cells are their \emph{binary} builds. A graded RBMF refit was run---a ridge seed on targets centred at the protocol threshold, which makes $41.4\%$ of them negative---and it lost, as did an uncentred variant; both fits predate the hyperparameter re-selection of \S\ref{sec:bridge} and are therefore not comparable to the re-selected binary build reported here, so we quote no graded RBMF number. User-kNN's graded build \emph{is} comparable---one estimator, one code path, two inputs---and loses by $-0.0934$ full.
 No number is invented: a value appears only if we measured it on this ruler.}
 \label{tab:master}
 \end{table}
