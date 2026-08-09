@@ -1031,7 +1031,12 @@ def main():
                 stk = sel.stack
                 conc = {"n_concepts": stk["n_concepts"],
                         "answer": (lambda u, c, _s=stk: CB.concept_answer(_s, u, c))}
-                meta["keyterm_repr"] = stk.get("_repr")
+                # PER-SELECTOR, never one value for the run. Arms legitimately differ: ConUCB pins
+                # uniform_member_mean because its Eq. 4 DEFINES the key-term feature that way, while
+                # the ConLinUCB arms honour --keyterm_repr. On 2026-08-09 a mixed run wrote a single
+                # meta["keyterm_repr"] and so MISDESCRIBED the arm that had honoured the flag. The
+                # per-cell copy below (cell["keyterm_repr"]) is the authoritative record.
+                meta.setdefault("keyterm_repr_by_selector", {})[spec] = stk.get("_repr")
                 meta["n_concepts"] = int(stk["n_concepts"])
                 meta["concept_answer_convention"] = (
                     "population neg-cap (apply_neg_cap=True)" if stk.get("apply_neg_cap", True)
@@ -1141,6 +1146,12 @@ def main():
                 cell["score_minutes"] = round((time.time() - ts) / 60.0, 2)
                 cell["interview_minutes"] = info["interview_minutes"]
                 cell["distinct_prefixes"] = info["distinct_prefixes"][-1]
+                # Provenance that must survive being read out of context: the key-term
+                # representation is a property of the SELECTOR, not of the command line, and a run
+                # may legitimately mix them (see the note where meta is written). Copy it from the
+                # selector's own stats onto every cell so no cell can be quoted without it.
+                if "keyterm_repr" in info:
+                    cell["keyterm_repr"] = info["keyterm_repr"]
                 # Provenance for a cell whose interview was stitched across a crash, plus the realised
                 # cache pressure, so a cap set too low is readable off the table (HARD RULE 11b/c).
                 for key in ("resumed_from_turn", "cache", "max_states", "width_dtype",
