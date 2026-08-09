@@ -240,9 +240,18 @@ Same mechanism stated earlier for their own all-items setting, §4:
 > the questionnaire, asking questions about popular items may have a negative effect on the recommendation
 > performance.**"*
 
-**How we must now cite it.** The "adaptive degrades past k≈10" curve in that paper is, *by the authors' own
-diagnosis*, a **protocol artefact** — and more precisely a **popularity-of-asked-items × exclusion-policy**
-interaction, not a property of adaptivity. Q_Bandit (Christakopoulou et al. 2016) asks popular items;
+**How we must now cite it. ⚠ CORRECTED 2026-08-10 BY MEASUREMENT** — see
+`docs/results/SNAP4_GREEDY_SLIM_ABLATION.md`. The "adaptive degrades past k≈10" curve **is** a protocol
+artefact, but **the authors' stated cause is measurably false and must not be repeated**. We rebuilt their
+setup and ran the ablation they imply: removing the `I_Q ∩ I_R = ∅` rule they blame **helps** Q_Bandit by
++.034…+.119 (paired CIs exclude zero at every budget) and reveals a **steeper** decline — −46% instead of
+−14%. The rule was *masking* the effect, not causing it. The real cause, isolated: their design gives a test
+user **no held-out split**, so every answered question deletes one of that user's own high-gain targets;
+under an arm-independent held-out split (= our policy B) the decline **disappears entirely**
+(Q_Bandit .1637→.1761→.1857→.1936, monotone on both axes), while a popularity control declines only −.012
+against Q_Bandit's −.045 at a matched answer rate, so **adaptivity carries the effect**.
+The honest line is: **the decline reproduces; the stated cause does not.** It is a
+popularity-of-asked-items × target-formation interaction, not a property of adaptivity. Q_Bandit (Christakopoulou et al. 2016) asks popular items;
 Q_GSLIM does not. Note also Q_Bandit still **wins at short budgets** (*"Q_Bandit clearly outperforms
 Q_GSLIM during the first ten questions"*). Never cite this paper as evidence that adaptive selection stops
 paying at long budgets. Cite it as **published evidence that policy C penalises whichever arm asks the most
