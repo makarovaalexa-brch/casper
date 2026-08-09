@@ -111,3 +111,4 @@
 [18:53:23] [adaptive] conlinucb_bs_static turn 7/16: 61.6s  answered so far 0.00  concept-asks 70000  distinct ask-prefixes 1
 [18:54:44] [adaptive] conlinucb_bs_static turn 8/16: 79.9s  answered so far 0.00  concept-asks 80000  distinct ask-prefixes 1
 [18:56:21] [adaptive] conlinucb_bs_static turn 9/16: 96.5s  answered so far 0.00  concept-asks 90000  distinct ask-prefixes 1
+[19:01:18] [adaptive] conlinucb_bs_static turn 10/16: 296.1s  answered so far 0.00  concept-asks 100000  distinct ask-prefixes 1
