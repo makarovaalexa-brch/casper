@@ -52,3 +52,6 @@
 [21:33:29]   [W] reg=0.1 alpha= 10.0 val full=0.3135
 [21:34:05] [W] selected reg=0.1 alpha=2.5 -> TEST full=0.3527 tail=0.2574
 [21:34:06] --- arm E_estimand: explicit MF regressing the RATING ---
+[14:34:58] --- step 2 exit=1 in 1049.1 min
+[14:34:58] *** step 2 FAILED -- continuing; this one must be re-run ***
+[14:34:58] queue done

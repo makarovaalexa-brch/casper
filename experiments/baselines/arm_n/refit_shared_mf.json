@@ -1,0 +1,11 @@
+{
+  "selection_rule": "validation NDCG@10 on this ruler; per-model sweep; alpha NOT inherited",
+  "old_shared_setting": {
+    "factors": 200,
+    "reg": 0.1,
+    "alpha": 50.0
+  },
+  "gates": {
+    "mostpop": true
+  }
+}
