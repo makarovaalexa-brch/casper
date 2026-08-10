@@ -146,6 +146,13 @@ def channels(specs=None, label=NEW_LABEL, as_json=False):
                 rows.append({"spec": spec, "k": k, "status": "not run"})
                 continue
             d = json.load(open(p))
+            if int(d.get("turns_done", 0)) != k:
+                # A LIVE cell's per-turn checkpoint is a PREFIX of the interview, so reading it would
+                # report (say) 5 turns of concept asks against an 8-turn denominator and understate
+                # the concept fraction. Report it as unfinished, never as a number.
+                rows.append({"spec": spec, "k": k, "status": "not run",
+                             "turns_done": int(d.get("turns_done", 0))})
+                continue
             n = len(d["acts"])
             turns = n * k
             casks = sum(len(a) for a in d["conc_state"]["asked"])
