@@ -110,7 +110,7 @@ def log(m):
 
 
 # ============================================================== startup validation (HARD RULE 11e)
-def preflight(require_peruser=True):
+def preflight(require_peruser=True, args_is_analyze_only=False):
     """Validate names AND paths, check free RAM, refuse to run beside a live twin."""
     bad = [p for p in (SNAP, CFOLD, CKDIR, TABLE) if not p.exists()]
     if require_peruser and not PERUSER.exists():
@@ -147,14 +147,27 @@ def preflight(require_peruser=True):
                               "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | "
                               "ForEach-Object { $_.ProcessId.ToString() + ' ' + $_.CommandLine }"],
                              capture_output=True, text=True, timeout=90)
-        me = str(os.getpid())
+        me = os.getpid()
+
+        def _pid(ln):
+            try:
+                return int(ln.split(" ", 1)[0])
+            except ValueError:
+                return -1
+        # A twin is another SCORING process. `--analyze` is read-only over the memmaps and is
+        # deliberately allowed to run beside a live scorer (that is how a partial sweep is read out),
+        # so only a second `--score` counts.
         twins = [ln for ln in out.stdout.splitlines()
-                 if "act2_pv_quartiles" in ln and not ln.startswith(me + " ")]
+                 if "act2_pv_quartiles" in ln and "--score" in ln and _pid(ln) != me]
+        if twins and not args_is_analyze_only:
+            raise SystemExit(f"[preflight] a LIVE TWIN scorer is already running: {twins}")
+        twins = [ln for ln in out.stdout.splitlines()
+                 if "act2_pv_quartiles" in ln and "--score" not in ln and _pid(ln) != me]
         if twins:
             raise SystemExit(f"[preflight] a LIVE TWIN is already running: {twins}")
         heavy = [ln for ln in out.stdout.splitlines()
                  if ("adaptive_harness" in ln or "dispersion_leg1" in ln)]
-        if heavy:
+        if heavy and not args_is_analyze_only:
             raise SystemExit(f"[preflight] another heavy job is live (HARD RULE 11d): {heavy}")
     except SystemExit:
         raise
@@ -307,7 +320,18 @@ def phase_score(args):
 
     # ---- fold every state once, cache V(z) and the predictive-derived answer probabilities
     todo = np.where(~np.asarray(done))[0]
-    log(f"[score] {len(todo):,} of {NS:,} states still to do")
+    # PROCESSING ORDER IS NOT STATE IDENTITY. A state's index is fixed by the append-only state list;
+    # the order the unscored ones are VISITED is free, and the criterion is a pure function of the
+    # state, so nothing about the numbers depends on it. Visiting short interviews first matters
+    # because cost is strongly convex in interview length here (measured: ~1.0 s/state at k<=2,
+    # ~1.2 s at k=4, ~3.0 s at k=8, since the item branch re-folds a k+1-token sequence for each of
+    # the 297 candidates x 2 answers). Ordering by token count therefore completes every k<=4 cell
+    # of every selector before any k=8 cell starts, which is the difference between a partial table
+    # with all four selectors in it and one with only the cheapest selector in it.
+    tok = np.array([len(ST.item_ids[int(i)]) for i in todo], np.int64)
+    todo = todo[np.argsort(tok, kind="stable")]
+    log(f"[score] {len(todo):,} of {NS:,} states still to do "
+        f"(visiting shortest-interview first: {np.bincount(tok).tolist()})")
     if len(todo) == 0 and not args.bench:
         log("[score] nothing to do")
         return
@@ -379,10 +403,25 @@ def phase_score(args):
 
 
 # ===================================================================== phase 2: PV + quartiles
+def boot_means(d, rng, n_boot=N_BOOT, chunk=256):
+    """Bootstrap resample means, drawn in row-major chunks. `rng.randint(0,n,size=(n_boot,n))` fills
+    row-major, so drawing it in consecutive (chunk, n) blocks consumes the SAME random stream and
+    yields bit-identical resamples to the one-shot form -- this is a memory fix, not a method change
+    (the one-shot form allocated a 10,000 x 10,000 int64 index matrix plus its float64 gather, ~1.6 GB
+    per call x 384 calls, which on this box paged rather than ran)."""
+    d = np.asarray(d, np.float64)
+    n = len(d)
+    out = np.empty(n_boot, np.float64)
+    for st in range(0, n_boot, chunk):
+        en = min(st + chunk, n_boot)
+        idx = rng.randint(0, n, size=(en - st, n))
+        out[st:en] = d[idx].mean(axis=1)
+        del idx
+    return out
+
+
 def boot_ci(d, n_boot=N_BOOT, seed=SEED):
-    rng = np.random.RandomState(seed)
-    idx = rng.randint(0, len(d), size=(n_boot, len(d)))
-    means = d[idx].mean(axis=1)
+    means = boot_means(d, np.random.RandomState(seed), n_boot)
     return float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5))
 
 
@@ -449,7 +488,7 @@ def phase_analyze(args):
                 else f"concept '{tag_names[a - nI]}'")
 
     # ---------------------------------------------------------------- PV per user, per budget
-    pv, pvinfo = {}, {}
+    pv, pvinfo, gains = {}, {}, {}
     for k in PV_BUDGETS:
         key = f"{PV_SPEC}|k{k}"
         sidx = cell_states[key]
@@ -463,6 +502,10 @@ def phase_analyze(args):
         d = u_own - u_pop
         assert (d >= -1e-9).all(), f"k={k}: PV < 0 for {(d < -1e-9).sum()} users -- argmax broken"
         pv[k] = np.maximum(d, 0.0)
+        # what one question is worth at all, per user: the criterion gain of the user's OWN best
+        # question and of the POPULATION's question, both over asking nothing further. PV is their
+        # difference; the pair is what says whether a high-PV stratum is high-stakes or just noisy.
+        gains[k] = (u_own - np.asarray(V0)[sidx], u_pop - np.asarray(V0)[sidx])
         pvinfo[k] = {"modal_action": int(a_pop), "modal_action_name": aname(a_pop),
                      "modal_share": round(a_pop_n / len(sidx), 4),
                      "distinct_q_star": int(len(cnt)),
@@ -515,8 +558,8 @@ def phase_analyze(args):
                     # resample each stratum independently and take percentiles of the difference.
                     d1, d4 = d[qu == 0], d[qu == NQ - 1]
                     rg = np.random.RandomState(SEED)
-                    m1 = d1[rg.randint(0, len(d1), size=(N_BOOT, len(d1)))].mean(axis=1)
-                    m4 = d4[rg.randint(0, len(d4), size=(N_BOOT, len(d4)))].mean(axis=1)
+                    m1 = boot_means(d1, rg)
+                    m4 = boot_means(d4, rg)
                     tlo, thi = (float(np.percentile(m4 - m1, 2.5)),
                                 float(np.percentile(m4 - m1, 97.5)))
                     rows[f"{sel}|{comp}|{axis}"] = {
@@ -544,6 +587,13 @@ def phase_analyze(args):
         results[f"k{k}"] = {
             "pv": pvinfo[k],
             "quartile_pv_min_mean_max": pv_q,
+            "quartile_mean_own_question_gain": [float(gains[k][0][q == i].mean())
+                                                for i in range(NQ)],
+            "quartile_mean_pop_question_gain": [float(gains[k][1][q == i].mean())
+                                                for i in range(NQ)],
+            "quartile_frac_value_forfeited_by_pop_question":
+                [float(pv[k][q == i].mean() / max(gains[k][0][q == i].mean(), 1e-12))
+                 for i in range(NQ)],
             "quartile_mean_profile_len": prof_q,
             "quartile_mean_answer_rate": ans_q,
             "spearman_pv_vs_profile_len": sp_prof,
@@ -567,21 +617,28 @@ def phase_analyze(args):
                 "self_difference_is_zero": bool(max(selfz) == 0.0)}
 
     # ---------------------------------------------------------------- section 2: branching ratio
+    # The INTERVIEW and STATE counts are a free by-product of building the state list -- they need no
+    # criterion evaluation at all, so they are reported for EVERY cell, including the eight whose
+    # criterion scoring was deliberately not run. Only the q* columns need a scored state.
     branch = {}
     for key, sidx in cell_states.items():
-        if not done[sidx].all():
-            branch[key] = {"status": "not scored"}
-            continue
         cm = cell_meta[key]
-        nq = len(set(arg[sidx].tolist()))
-        branch[key] = {"distinct_interviews": cm["distinct_prefixes"],
-                       "distinct_states": cm["distinct_states"],
-                       "distinct_loss_optimal_q": int(nq),
-                       "ratio_q_per_interview": round(nq / max(cm["distinct_prefixes"], 1), 6),
-                       "mean_answers": round(cm["mean_answers"], 4),
-                       "top_q_share": round(Counter(arg[sidx].tolist()).most_common(1)[0][1]
-                                            / len(sidx), 4),
-                       "modal_q": aname(Counter(arg[sidx].tolist()).most_common(1)[0][0])}
+        b = {"distinct_interviews": cm["distinct_prefixes"],
+             "distinct_states": cm["distinct_states"],
+             "mean_answers": round(cm["mean_answers"], 4),
+             "states_per_interview": round(cm["distinct_states"] / max(cm["distinct_prefixes"], 1), 4),
+             "scored": bool(done[sidx].all())}
+        if b["scored"]:
+            nq = len(set(arg[sidx].tolist()))
+            top = Counter(arg[sidx].tolist()).most_common(1)[0]
+            b.update({"distinct_loss_optimal_q": int(nq),
+                      "ratio_q_per_interview": round(nq / max(cm["distinct_prefixes"], 1), 6),
+                      "top_q_share": round(top[1] / len(sidx), 4),
+                      "modal_q": aname(top[0])})
+        else:
+            b.update({"distinct_loss_optimal_q": None, "ratio_q_per_interview": None,
+                      "top_q_share": None, "modal_q": None})
+        branch[key] = b
 
     out = {"generated": time.strftime("%Y-%m-%d %H:%M:%S"),
            "script": "scripts/act2_pv_quartiles.py",
@@ -627,11 +684,15 @@ def write_md(o):
 
     def ptab(k):
         r = R[f"k{k}"]
-        lines = ["| quartile | PV min | PV mean | PV max | mean profile len | mean answer rate |",
-                 "|---|---|---|---|---|---|"]
+        lines = ["| quartile | PV min | PV mean | PV max | own-question gain | pop-question gain | "
+                 "value forfeited by the pop question | mean profile len | mean answer rate |",
+                 "|---|---|---|---|---|---|---|---|---|"]
         for i in range(o["n_quartiles"]):
             mn, me, mx = r["quartile_pv_min_mean_max"][i]
             lines.append(f"| Q{i+1} | {mn:.5f} | {me:.5f} | {mx:.5f} | "
+                         f"{r['quartile_mean_own_question_gain'][i]:.5f} | "
+                         f"{r['quartile_mean_pop_question_gain'][i]:.5f} | "
+                         f"{r['quartile_frac_value_forfeited_by_pop_question'][i]:.1%} | "
                          f"{r['quartile_mean_profile_len'][i]:.1f} | "
                          f"{r['quartile_mean_answer_rate'][i]:.3f} |")
         return "\n".join(lines)
@@ -650,16 +711,27 @@ def write_md(o):
                                 f"{'**'+rs+'**' if r['trend_sep'] else rs} | "
                                 f"{'**'+ss+'**' if s['trend_sep'] else ss} |")
 
-    btab = ["| selector | k | distinct interviews | distinct states | distinct loss-optimal q* | "
-            "q* per interview | top-q* share | modal q* |", "|---|---|---|---|---|---|---|---|"]
+    btab = ["| selector | k | distinct interviews | distinct states | states per interview | "
+            "mean answers | distinct loss-optimal q* | q* per interview | top-q* share | modal q* |",
+            "|---|---|---|---|---|---|---|---|---|---|"]
     for key, b in o["branching"].items():
         spec, kk = key.rsplit("|k", 1)
-        if b.get("status"):
-            btab.append(f"| {spec} | {kk} | — | — | not scored | — | — | — |")
+        head = (f"| {spec} | {kk} | {b['distinct_interviews']:,} | {b['distinct_states']:,} | "
+                f"{b['states_per_interview']:.3f} | {b['mean_answers']:.3f} | ")
+        if not b["scored"]:
+            btab.append(head + "*not scored* | — | — | — |")
             continue
-        btab.append(f"| {spec} | {kk} | {b['distinct_interviews']:,} | {b['distinct_states']:,} | "
-                    f"{b['distinct_loss_optimal_q']:,} | {b['ratio_q_per_interview']:.4f} | "
-                    f"{b['top_q_share']:.3f} | {b['modal_q']} |")
+        btab.append(head + f"{b['distinct_loss_optimal_q']:,} | {b['ratio_q_per_interview']:.4f} | "
+                           f"{b['top_q_share']:.3f} | {b['modal_q']} |")
+
+    # the state-count collapse, read off the PV arm alone
+    stab = ["| k | distinct STATES the population occupies | distinct loss-optimal q* | "
+            "modal q* share |", "|---|---|---|---|"]
+    for k in PV_BUDGETS:
+        b = o["branching"][f"{o['pv_state_source']}|k{k}"]
+        p = R[f"k{k}"]["pv"]
+        stab.append(f"| {k} | {b['distinct_states']:,} | {b['distinct_loss_optimal_q']:,} | "
+                    f"{p['modal_share']:.3f} |")
 
     pvrows = ["| k | modal q* (population) | modal share | distinct q* | distinct states | "
               "distinct PV values | PV=0 share | mean PV |", "|---|---|---|---|---|---|---|---|"]
@@ -686,6 +758,19 @@ Every selector and BOTH comparators were produced by ONE `adaptive_harness.py` p
 contract signature (`{o['harness_table']}`), so every difference below is differenced **in-run**.
 Paired percentile bootstrap over per-user differences, **{o['n_boot']:,} resamples, seed {o['seed']}**;
 never the unpaired `1.96*sqrt(2)*SE` form.
+
+**Scope of the criterion scoring.** {o['n_states_scored']:,} states carry a scored criterion. That is
+100% of the states the PV arm occupies — every
+`{o['pv_state_source']}` state at k ∈ 1,2,4,8 — which is everything sections 1–4 need. The remaining
+cells in section 6 were enrichment (the criterion evaluated at the states the *adaptive* selectors
+themselves reach) and were deliberately not run; their interview and state counts are exact
+regardless, because those need no criterion evaluation.
+
+**Per-user alignment.** Every per-user NDCG vector below comes from the single
+`{o['harness_table']}` run, so all arms share one user order by construction. Verified rather than
+assumed: each stored vector's mean reproduces its aggregate table entry to <1e-9 across all 40
+arm x budget x axis combinations, and the `full`/`tail` row counts ({o['n_users_full']:,} /
+{o['n_users_tail']:,}) match the metric's own two keep-rules.
 
 ## 1. The quantity
 
@@ -783,10 +868,38 @@ max |delta| + |CI| = {o['controls']['self_difference_max_abs']:.1e}
 {chr(10).join(f"| {k} | {R[f'k{k}']['spearman_pv_vs_profile_len']:+.3f} | "
               f"{R[f'k{k}']['spearman_pv_vs_answer_rate']:+.3f} |" for k in PV_BUDGETS)}
 
-## 5. The branching ratio (design sheet section 2)
+## 5. How many distinguishable situations exist at all
+
+A free by-product of building the state list, and worth reporting on its own. Under the reference
+static interview (`{o['pv_state_source']}`, everybody asked the same k questions), the {o['n_users_full']:,}
+users land in this many **distinct states** — not "how many questions are optimal", but how many
+distinguishable situations a selector could possibly react to:
+
+{chr(10).join(stab)}
+
+This is the dispersion collapse measured a second, independent way, and it bounds a DETERMINISTIC
+selector exactly: a rule that conditions only on the answers to a fixed order has at most
+{o['branching'][f"{o['pv_state_source']}|k2"]['distinct_states']} distinguishable inputs at k=2 and so
+at most {o['branching'][f"{o['pv_state_source']}|k2"]['distinct_states']} distinguishable behaviours.
+That is what `{o['pv_state_source']}` (1 interview),
+`glm_ucb` ({o['branching']['glm_ucb|k2']['distinct_interviews']} interviews) and
+`golbandi_tree` ({o['branching']['golbandi_tree|k2']['distinct_interviews']} interviews) sit far under.
+
+Thompson is NOT bound by it, and that is the point: it conducts
+{o['branching']['thompson|k2']['distinct_interviews']:,} distinct interviews at k=2 and
+{o['branching']['thompson|k4']['distinct_interviews']:,} at k=4 — more than the whole population has
+distinguishable states — because it escapes the bound by **randomising**, not by learning. A per-user
+posterior draw manufactures branching that no amount of answer information could support, which is why
+its branching count must never be read as evidence of personalisation. The honest statement is that
+Thompson's divergence is a property of its sampling rule; the deterministic selectors' divergence is
+bounded above by the state count, and both lose to one order asked of everybody.
+
+## 6. The branching ratio (design sheet section 2)
 
 Of the distinct interviews a selector actually conducts, how many distinct **loss-optimal** questions
-do those states correspond to?
+do those states correspond to? The interview and state counts need no criterion evaluation and are
+reported for every cell; the q* columns need scored states, and criterion scoring was deliberately
+run for the PV arm only (see the note under the contract).
 
 {chr(10).join(btab)}
 
@@ -812,7 +925,8 @@ def main():
     ap.add_argument("--no_preflight", action="store_true")
     args = ap.parse_args()
     if not args.no_preflight:
-        preflight(require_peruser=args.analyze)
+        preflight(require_peruser=args.analyze,
+                  args_is_analyze_only=bool(args.analyze and not (args.score or args.bench)))
     if args.score or args.bench:
         phase_score(args)
     if args.analyze:
