@@ -52,16 +52,22 @@ with, including the one each was built for. The loss is not for want of branchin
 sampling gives all 10{,}000 users a distinct interview by the fourth question and still loses. On
 the fifth recommender the ordering reverses, and we report why: which selector wins depends on
 which recommender one assumes, so a selection result stated without its consumer is not a result.
-\textbf{(ii) A mechanism, and a correction to the obvious version of it.} Adaptive selection
-can only pay where users occupy distinguishable states, and standard question banks barely create
-them: after two standard openers, 10{,}000 cold users occupy 112 distinct states and the
-loss-optimal next question collapses to an effective 5.0 distinct questions, while a single
-free-text request spreads it to an effective 95. It is tempting to stop there and conclude that
-adaptivity has nothing to be right about. Ranking the same ten thousand users by how much a
-perfect personaliser would gain on their own state shows otherwise: three quarters have strictly
-positive room at eight questions, and the adaptive-minus-static deficit \emph{widens} with it ---
-thirty-eight of forty-eight separated comparisons, none in the opposite direction, and nothing
-under a shuffled control. The exploitable structure is scarce but real, and it goes uncashed.
+\textbf{(ii) Why that comparison does not license a claim about adaptivity, and what it does
+establish.} A fixed order is a special case of an adaptive policy --- one that ignores its inputs
+--- so an optimal adaptive policy cannot be worse than the best fixed order, and any observed loss
+is a statement about the selectors we ran rather than about adaptivity. It is a sharp statement
+about them: not one of the twenty-one optimises held-out ranking quality. They reduce
+rating-variance within a node, maximise posterior information, or minimise bandit regret, while the
+fixed order they are measured against maximises exactly the quantity we report. What we can measure
+is the shape of the selection surface under that quantity, and it is narrow: after two standard
+openers 10{,}000 cold users occupy 112 distinct states, and at eight questions 5{,}767 states yield
+only 78 distinct loss-optimal questions, with a quarter of users for whom the population's question
+is already their own. Ranked by how much a perfect personaliser would gain under the model's own
+criterion, the adaptive-minus-static deficit \emph{widens} with that quantity --- thirty-eight of
+forty-eight separated comparisons, none in the opposite direction, nothing under a shuffled
+control. We report that pattern as measured and do not claim it demonstrates exploitable structure:
+the criterion is the model's belief about its own gain, and whether maximising it yields accuracy
+is a question this chapter leaves open.
 \textbf{(iii) Coarse-to-fine, as a consequence rather than a
 design.} Nobody specified a curriculum, yet the greedy prefix-optimal sequence opens with three
 broad concept questions and hands over to specific item questions in its back half; the
@@ -74,17 +80,23 @@ difference-in-differences; Section~\ref{sec:act3}}
 
 \section{Introduction}
 
-\paragraph{The claim this chapter makes.} \emph{Cold-start interviews do contain exploitable
-per-user structure, and published adaptive selectors do not exploit it --- they fail most severely
-exactly where it is largest.} That is a sharper statement than the one we set out to make, and it
-is not the one the literature's framing would predict. Across six method families and twenty-one
-selectors on a single ruler, adaptive selection loses to a well-chosen fixed order at every budget
-we test. The obvious explanation --- that cold users are too alike for adaptivity to have anything
-to work with --- is measured in Section~\ref{sec:act2} and is \emph{wrong as a complete account}:
-rank the same ten thousand users by how much a perfect personaliser would gain on their own state,
-and the adaptive-minus-static deficit \emph{widens} monotonically with that quantity, in thirty-eight
-of forty-eight separated comparisons and none in the opposite direction. Divergence is scarce, and
-what little exists goes uncashed.
+\paragraph{The claim this chapter makes.} \emph{Every published adaptive selector we could
+replicate loses to a well-chosen fixed order at every budget we test --- and that is a finding
+about those methods, not about adaptivity.} The distinction is not a hedge, it is forced. A fixed
+order is an adaptive policy that ignores its inputs, so the optimal adaptive policy is at least as
+good as the optimal fixed one; a measured loss can only mean the particular selectors fall short.
+Two things make that unsurprising in hindsight and are, we think, the useful contribution here.
+First, \textbf{none of the twenty-one selectors optimises the quantity anyone reports}: they
+maximise information, minimise regret, or reduce within-node rating variance, while the fixed order
+we hold them to is built by directly maximising held-out NDCG@10. Second, \textbf{the surface they
+are searching is narrow} --- at eight questions, 5{,}767 distinct user states admit only 78 distinct
+loss-optimal questions, and for a quarter of users the population's question is already their own.
+We therefore report a replication result and a measurement of the selection surface, and we are
+explicit about the claim we cannot yet make: that there is per-user structure worth having. Under
+the model's own criterion the adaptive-minus-static deficit widens with the value of personalising
+(thirty-eight of forty-eight separated comparisons, none opposite, nothing under shuffle), but that
+criterion is the model's belief about its own gain, and Section~\ref{sec:act2} states plainly what
+would be needed to turn it into a claim about accuracy.
 
 Two consequences follow, and both are stated where they arise rather than smoothed over. The one
 selector that beats the static order overall does so \emph{entirely} among users for whom
@@ -213,19 +225,22 @@ gives all $10{,}000$ users a distinct interview by the fourth question and still
 part of the result that is robust, contract-invariant (it survives the floored arm unchanged), and
 supported by four independent method families.
 
-\paragraph{(c) One published adaptive method does beat the static order --- but not by adapting.}
-Golbandi's interview tree loses at one and two questions ($-.0078$ and $-.0092$ against
-entropy$_0$, both separated) and \emph{wins} at eight ($+.0064$ full, $+.0052$ tail, separated);
-against the strongest static order it takes the tail at eight questions ($+.0068$, CI
-$[+.0039,+.0098]$) while losing full at every budget. We first read that as adaptivity beginning to
-pay once a tree has enough depth to partition users. The stratification in Section~
-ef{sec:act2}
-refutes that reading: 	extbf{the whole of the tree's advantage sits among users for whom
-personalising is worth exactly nothing} --- $+.0243$ full at eight questions in the zero-value
-quartile, decaying monotonically to $-.0003$ in the highest. It is therefore a better \emph{fixed}
-opener for the un-personalisable, not a method that converts per-user structure into accuracy. We
-report the correction because the first reading is the one a reader would reach unaided, and the
-data do not support it.
+\paragraph{(c) One method beats the weak static baseline, and still loses to the strong one.}
+Golbandi's interview tree loses to entropy$_0$ at one and two questions ($-.0078$ and $-.0092$,
+both separated) and beats it at four and eight ($+.0032$ and $+.0064$ full, $+.0052$ tail at eight).
+Against the greedy order, however, it loses full NDCG at \emph{every} budget ($-.0203$, $-.0293$,
+$-.0203$, $-.0130$), taking only the tail at eight questions ($+.0068$, CI $[+.0039,+.0098]$).
+Since entropy$_0$ is a heuristic and the greedy order is the arm actually built to maximise the
+metric, the honest summary is the narrow one: \textbf{no selector in the battery beats the strong
+static order on full NDCG at any budget}, and a win over the weak one is not a crossover.
+
+We note, and decline to build on, one further observation. Stratifying by the value of
+personalising (Section~\ref{sec:act2}) places the tree's advantage over entropy$_0$ among users for
+whom that value is zero ($+.0243$ full at eight questions in the lowest stratum, $-.0003$ in the
+highest). It is tempting to read this as the tree being a better \emph{fixed} opener for the
+un-personalisable. We do not make that claim: it rests on one method, in one stratum of four,
+against the weaker of two comparators, and the tree is fitted to maximise over the whole cohort
+rather than any stratum. Subgroup heterogeneity is the more parsimonious reading.
 
 \paragraph{The claim, stated conditionally.} Adaptive selection does not pay in the regime the field
 evaluates in --- short budgets, closed item banks, cold users who occupy barely distinguishable
