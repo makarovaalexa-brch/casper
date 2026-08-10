@@ -11,7 +11,9 @@
 $env:OMP_NUM_THREADS = "8"
 $env:OPENBLAS_NUM_THREADS = "8"
 $env:MKL_NUM_THREADS = "8"
-$py = "C:\Users\Tech\AppData\Local\pypoetry\Cache\virtualenvs\casper-rAThf-mq-py3.12\Scripts\python.exe"
+# The interpreter this project's runs actually use (the poetry venv on this box is EMPTY -- it has no
+# numpy; every prior launcher in scripts/ points here). Verified before use, not assumed.
+$py = "C:\Program Files\Python312\python.exe"
 & $py src\baselines\adaptive_harness.py `
   --selectors "fixedorder:entropy0,fixedorder:greedy_items,fixedorder:greedy_concepts,dpe_concept,conlinucb_bs_static,conlinucb_mcr,conucb" `
   --budgets 1,2,4,8 `
