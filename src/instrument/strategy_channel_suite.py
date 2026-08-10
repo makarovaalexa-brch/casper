@@ -646,17 +646,27 @@ def genv_answered(E, seq, rows):
     return ia, ca
 
 
-def greedy_certified(E, rows, pool, L, objective, tag, log_every=25):
+def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), on_pick=None):
     """Lazy-greedy (CELF) best STATIC sequence of length L from pool=[(chan,id),...], maximising the
-    cohort-mean NDCG@10 of `objective` ('full' or 'tail'). Returns (seq, gains, n_evals)."""
+    cohort-mean NDCG@10 of `objective` ('full' or 'tail'). Returns (seq, gains, n_evals).
+
+    `prefix` = a FIXED, already-asked head that every candidate sequence carries and that the search
+    may not change. With prefix=() (the default, and what greedy_main uses) this is bit-identical to
+    the original: every genv_mean key below reduces to the old one. The returned `seq` is the L NEW
+    steps only -- the caller owns the concatenation, so a partial written to disk is unambiguous.
+    `on_pick(seq, gains, nev)` fires after every pick, for HARD RULE 11(a) incremental persistence.
+    """
     import heapq
     assert objective in ("full", "tail"), objective
     j = 0 if objective == "full" else 1
+    pre = [tuple(q) for q in prefix]
+    assert not (set(pre) & set(tuple(q) for q in pool)), \
+        "a prefix question is still in the candidate pool -- it would be asked twice"
     t0 = time.time()
-    base = genv_mean(E, [], rows)[j]
+    base = genv_mean(E, pre, rows)[j]
     heap = []; nev = 0
     for q in pool:
-        v = genv_mean(E, [q], rows)[j]; nev += 1
+        v = genv_mean(E, pre + [q], rows)[j]; nev += 1
         heapq.heappush(heap, (-(v - base), q, 0))
         if nev % log_every == 0:
             el = time.time() - t0
@@ -668,8 +678,10 @@ def greedy_certified(E, rows, pool, L, objective, tag, log_every=25):
             seq.append(q); gains.append(-neg); cur += -neg
             log(f"[greedy {tag}] pick {len(seq)}/{L} = {'concept' if q[0] else 'item'} {q[1]} "
                 f"gain {-neg:+.5f} -> {cur:.5f} (nev={nev}, {(time.time() - t0) / 60:.1f}m)")
+            if on_pick is not None:
+                on_pick(list(seq), list(gains), nev)
         else:
-            v = genv_mean(E, seq + [q], rows)[j]; nev += 1
+            v = genv_mean(E, pre + seq + [q], rows)[j]; nev += 1
             heapq.heappush(heap, (-(v - cur), q, len(seq)))
     return seq, gains, nev
 
