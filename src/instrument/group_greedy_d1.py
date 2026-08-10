@@ -163,8 +163,11 @@ def main():
         f"q1 (top-5 {[i for _, i in pool_all[:5]]})")
     L = args.L
     if args.sanity:
-        pool = pool[:12]
         L = 2
+        # The global head must stay IN the truncated pool, or the built-in >= check is not a check:
+        # it would fail because the reference order was outside the search space, not because
+        # anything is wrong.
+        pool = list(dict.fromkeys([q for q in global_seq[1:1 + L]] + pool[:12]))
 
     sig = {"tower": os.path.basename(args.snapshot), "conc": os.path.basename(args.concept_ckpt),
            "objective": args.objective, "item_bank": "pop", "n_items": len(pool_all),
@@ -221,21 +224,26 @@ def main():
                     "minutes": round((time.time() - t0) / 60, 2)})
         rec["curve_own"] = _curve(E, own, grows)
         rec["curve_global"] = _curve(E, global_seq, grows)
-        j = "full@10" if args.objective == "full" else "tail@10"
-        o16 = rec["curve_own"]["16"][j]; g16 = rec["curve_global"]["16"][j]
-        rec["own_minus_global@16"] = o16 - g16
+        # LENGTH-MATCHED, always. The check is "same budget, one conditioned on q1's answer and one
+        # not"; comparing a 3-step sanity order against 16 global questions would fail by construction.
+        jj = 0 if args.objective == "full" else 1
+        K = len(own)
+        o16 = genv_mean(E, own, grows)[jj]
+        g16 = genv_mean(E, global_seq[:K], grows)[jj]
+        rec["cmp_budget"] = K
+        rec[f"own_minus_global@{K}"] = o16 - g16
         rec["sanity_pass"] = bool(o16 >= g16 - 1e-9)
         rec["done"] = True
         flush()
         log(f"[{gname}] DONE {len(grows)} users, {nev} evals, {spe:.3f}s/eval "
             f"({(time.time() - t0) / 60:.1f}m) | order {[i for _, i in own]}")
         if rec["sanity_pass"]:
-            log(f"[{gname}] SANITY OK: own {o16:.5f} >= global {g16:.5f} on its own users "
+            log(f"[{gname}] SANITY OK: own {o16:.5f} >= global {g16:.5f} at budget {K} on its own users "
                 f"({o16 - g16:+.5f})")
         else:
             log("!" * 100)
             log(f"[{gname}] SANITY *** FAIL *** : the group's OWN greedy order scores BELOW the "
-                f"GLOBAL order on the group's OWN selection users: own {o16:.5f} < global "
+                f"GLOBAL order on the group's OWN selection users at budget {K}: own {o16:.5f} < global "
                 f"{g16:.5f} ({o16 - g16:+.5f}). The global order is inside the search space, so "
                 f"this cannot happen if the search, the cohort masking and the memo are correct. "
                 f"DO NOT INTERPRET THIS GROUP.")
