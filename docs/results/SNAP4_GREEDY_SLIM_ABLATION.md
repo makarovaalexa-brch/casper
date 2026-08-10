@@ -23,12 +23,13 @@ QGSLIM itself was not run: the greedy fit is implemented and verified **exactly*
 force (identical 5-round selection, weights to 1.2e-08), but its 16-minute gram did not fit the
 session. Resumable command recorded.
 
-## ★ The ablation — the decline is an artefact, and their stated cause is measurably wrong
+## ★ The ablation — the decline is an artefact, and the mechanism they name is not the one doing the damage
 
 Their §3.3.2 requires `I_Q ∩ I_R = ∅`, and their §6.5 states: *"the main reason for the decreasing
 NDCG is that the questionnaires are not allowed to recommend items that they contain as questions."*
 Three outcomes were pre-registered before running. The result is outcome **(b)** — the decline
-persists without the rule — **with the sign reversed from their explanation**:
+persists without the rule — and the sign of the rule's effect is the opposite of what their
+explanation implies:
 
 * Their candidate rule is already "all items with `x_ui = 0`", so `I_Q ∩ I_R = ∅` bites **only on
   asked-but-unanswered items**, which offline are guaranteed non-targets.
@@ -72,8 +73,8 @@ is manufactured by a protocol choice and vanishes under ours.
 It also changes how the paper may be cited. **A previous entry in
 `external_literature/findings/candidate_masking_protocol.md` recorded the decline as "a protocol
 artefact by its own authors' diagnosis". That is now corrected**: the decline *is* an artefact, but
-the authors' diagnosis of its cause is measurably false. The honest line is: **the decline
-reproduces; the stated cause does not.**
+the mechanism they name is not the one doing the damage. The honest line is **"right symptom, wrong
+set"** — see the fair statement above.
 
 ## A control caught a real thing (worth keeping)
 

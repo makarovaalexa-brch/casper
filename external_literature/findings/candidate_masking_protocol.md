@@ -242,7 +242,7 @@ Same mechanism stated earlier for their own all-items setting, §4:
 
 **How we must now cite it. ⚠ CORRECTED 2026-08-10 BY MEASUREMENT** — see
 `docs/results/SNAP4_GREEDY_SLIM_ABLATION.md`. The "adaptive degrades past k≈10" curve **is** a protocol
-artefact, but **the authors' stated cause is measurably false and must not be repeated**. We rebuilt their
+artefact, but **the mechanism the authors name is not the one doing the damage** -- they identify the right symptom and the wrong set (see the fair statement below). We rebuilt their
 setup and ran the ablation they imply: removing the `I_Q ∩ I_R = ∅` rule they blame **helps** Q_Bandit by
 +.034…+.119 (paired CIs exclude zero at every budget) and reveals a **steeper** decline — −46% instead of
 −14%. The rule was *masking* the effect, not causing it. The real cause, isolated: their design gives a test
@@ -267,7 +267,7 @@ So the authors identify the right **symptom** (asked items vanish) and the wrong
 The fair summary is therefore *"right symptom, wrong set"* — not "their cause does not reproduce",
 which overstates the disagreement.
 
-The honest line is: **the decline reproduces; the stated cause does not.** It is a
+The honest line is **"right symptom, wrong set"**: the decline reproduces, and the damage is target-set shrinkage rather than candidate-pool exclusion. It is a
 popularity-of-asked-items × target-formation interaction, not a property of adaptivity. Q_Bandit (Christakopoulou et al. 2016) asks popular items;
 Q_GSLIM does not. Note also Q_Bandit still **wins at short budgets** (*"Q_Bandit clearly outperforms
 Q_GSLIM during the first ten questions"*). Never cite this paper as evidence that adaptive selection stops
