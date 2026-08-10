@@ -1,7 +1,7 @@
 {
-  "generated": "2026-08-10 19:08:11",
+  "generated": "2026-08-10 20:35:36",
   "script": "scripts/act2_pv_quartiles.py",
-  "script_sha256": "0c3ca8632958519d",
+  "script_sha256": "5624474e730fb673",
   "contract": {
     "tower": "t2i26c_ep31.pt",
     "concept_net": "concept_cv3_ep08.pt",
@@ -100,7 +100,8 @@
         "max_pv": 0.007560886442661285,
         "frac_pv_zero": 0.8956,
         "mean_V0": 0.046281035989522934,
-        "mean_own_gain": 0.02758029357548803
+        "mean_own_gain": 0.02758029357548803,
+        "frac_q_star_is_concept": 1.0
       },
       "quartile_pv_min_mean_max": [
         [
@@ -1301,7 +1302,8 @@
         "max_pv": 0.05214571952819824,
         "frac_pv_zero": 0.4256,
         "mean_V0": 0.04845235124230385,
-        "mean_own_gain": 0.029573366103693842
+        "mean_own_gain": 0.029573366103693842,
+        "frac_q_star_is_concept": 1.0
       },
       "quartile_pv_min_mean_max": [
         [
@@ -2502,7 +2504,8 @@
         "max_pv": 0.0412110760807991,
         "frac_pv_zero": 0.3528,
         "mean_V0": 0.04670875892043114,
-        "mean_own_gain": 0.030831592889968305
+        "mean_own_gain": 0.030831592889968305,
+        "frac_q_star_is_concept": 1.0
       },
       "quartile_pv_min_mean_max": [
         [
@@ -3703,7 +3706,8 @@
         "max_pv": 0.07729221880435944,
         "frac_pv_zero": 0.2517,
         "mean_V0": 0.05048271641135216,
-        "mean_own_gain": 0.03158027870636433
+        "mean_own_gain": 0.03158027870636433,
+        "frac_q_star_is_concept": 0.9904
       },
       "quartile_pv_min_mean_max": [
         [
@@ -5119,6 +5123,6 @@
       "modal_q": null
     }
   },
-  "n_states_scored": 10214,
+  "n_states_scored": 12019,
   "n_states_total": 56231
 }

@@ -1,0 +1,11 @@
+[16:46:55] [preflight] free RAM 5260 MB
+[16:46:57] [preflight] OK
+[16:47:10] [analyze] scored users: full=10000 tail=9281 (head items 190)
+[16:47:10] [analyze] states scored 8,646/56,231
+[16:47:11] [PV] k=1: modal concept 'vengeance' share 0.896; mean PV 0.00050; zero for 89.6%
+[16:47:11] [PV] k=2: modal concept 'awesome soundtrack' share 0.426; mean PV 0.01100; zero for 42.6%
+[16:47:11] [PV] k=4: modal concept 'violent' share 0.353; mean PV 0.00765; zero for 35.3%
+[16:47:11] [PV] k=8: modal concept 'violent' share 0.252; mean PV 0.00850; zero for 25.2%
+[18:41:26] [gaps] k=1 done (profile-len rho=+0.116, answer-rate rho=+0.222)
+[18:45:02] [gaps] k=2 done (profile-len rho=+0.297, answer-rate rho=+0.758)
+[18:48:45] [gaps] k=4 done (profile-len rho=+0.100, answer-rate rho=+0.350)

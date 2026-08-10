@@ -1,7 +1,56 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-08-10 (Paper A closed pending author read; focus moves to Paper B)**.
+> End-state is in `VISION.md`. Last updated: **2026-08-10 (Act-2 PV stratification run; Paper A closed pending author read)**.
+
+## ★★★ 2026-08-10 — ACT 2 MEASURED ON THE SAME USERS: the gap tracks personalisation value, BACKWARDS
+
+`docs/results/ACT2_PV_QUARTILES.md` + `.json`, from `scripts/act2_pv_quartiles.py`. Per-user **PV(u) = U(q*_u|z_u) − U(q*_pop|z_u)** on the leg-1 loss-coupled criterion, all
+10,000 TEST users at k ∈ {1,2,4,8}, certified pair (tower `t2i26c_ep31` + concept `cv3_ep08`), NO-FLOOR,
+behavioural answers, comparators differenced IN-RUN from one `adaptive_harness` process
+(`adaptive_table_act2pv.json`).
+
+**The finding.** Of 48 Q4−Q1 trend cells, **38 separate from zero and ALL 38 are negative; none is
+positive**; under the PV shuffle **0 of 48** separate. The adaptive selectors lose *hardest* where
+personalising is worth most (Thompson vs entropy0 at k=8: +0.0004 ns in Q1 → −0.0285 in Q4). This is
+the **"methods cannot find it"** branch, not "nothing to adapt to" — and it redirects Act 4.
+
+**Second finding.** `golbandi_tree` — the only arm that beats the static order on our consumer
+(+0.0064 full / +0.0052 tail at k=8) — earns *all* of it in the PV=0 quartile (+0.0243 → −0.0003 across
+Q1→Q4). Its crossover is a better static opener for the un-personalisable, not exploitation of PV.
+
+**Confound, stated plainly.** ρ(PV, answer rate) = **+0.76 at k=2** (so the k=2 cut is largely "did you
+answer"), +0.35/+0.41 at k=4/8; ρ(PV, profile length) only +0.10…+0.30, and mean profile length is
+NON-MONOTONE and *lowest* in Q4 at k=4/8 — profile size is not doing the work at the budgets that carry
+the result.
+
+**Branching ratio (§2).** `entropy0`: **1** interview → 5,767 distinct states at k=8 → only **78**
+distinct loss-optimal questions, modal question optimal for 25% of users. Thompson at k=1 spreads **760
+distinct interviews across 25 distinct loss-optimal questions** — 0.033 optimal questions per interview.
+
+**FRONTIER STOPPED at 12,019 / 56,231 states — 11 of 20 §6 cells scored. This was a decision, not a
+failure.** Scored: the whole PV arm (`fixedorder:entropy0`, k=1/2/4/8 — everything §§1–4 need),
+`golbandi_tree` / `glm_ucb` / `fixedorder:greedy_items` at k=1,2, and `thompson` k=1. The remaining 12
+cells are the q\* columns at k≥4 and are marked *not scored*, never estimated; their interview and state
+counts are exact regardless, because those need no criterion evaluation.
+
+*Why stopped:* ~11 h of box time for a sharper version of an argument §5 already makes **exactly** — a
+deterministic selector conditioning on a fixed order has at most 112 distinguishable inputs at k=2, which
+bounds it without any criterion scoring — plus Thompson k=1, which already carries the ratio. Under HARD
+RULE 11(d) it was blocking the concept-bank test (TODO 1.2), the direct test of the chapter's mechanism
+hypothesis. **Fully reversible:** `python scripts/act2_pv_quartiles.py --score` resumes from the
+contract-signed sidecar in `.cache/act2_pv/`, then `--analyze` refreshes §6 in place (~9 min).
+
+*Scheduled task removed.* The sweep had been driven by `scripts/act2_pv_score_daemon.cmd` under a Windows
+scheduled task `casper_act2pv_score`; **that task is deleted and no scorer is live.** Five launches were
+killed mid-run — the `.err` file holds exactly two bytes, `^C`, so these were console interrupts delivered
+to the process group (which is why `cmd.exe` died alongside `python` and no traceback ever appeared), not
+the job failing. If ever resumed, drive it from a real console, not a background launcher.
+
+*Defect found and fixed in the same pass:* the §6 scope sentence counted `b.get('status')` — a key that
+does not exist in the branching dict, so it was always falsy and every cell counted as scored ("20 of
+20") beside a table showing 12 cells *not scored*. Now counts `b['scored']`; reads 11 of 20, which matches
+an independently derived cell list.
 
 ## ★★★ 2026-08-10 — PAPER A CLOSED. Author read-through pending; not submitting yet. Focus moves to Paper B.
 

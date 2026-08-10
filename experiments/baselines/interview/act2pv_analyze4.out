@@ -1,0 +1,14 @@
+[18:56:36] [preflight] free RAM 5015 MB
+[18:56:36] [preflight] OK
+[18:56:43] [analyze] scored users: full=10000 tail=9281 (head items 190)
+[18:56:43] [analyze] states scored 9,848/56,231
+[18:56:43] [PV] k=1: modal concept 'vengeance' share 0.896; mean PV 0.00050; zero for 89.6%
+[18:56:43] [PV] k=2: modal concept 'awesome soundtrack' share 0.426; mean PV 0.01100; zero for 42.6%
+[18:56:43] [PV] k=4: modal concept 'violent' share 0.353; mean PV 0.00765; zero for 35.3%
+[18:56:43] [PV] k=8: modal concept 'violent' share 0.252; mean PV 0.00850; zero for 25.2%
+[19:00:32] [gaps] k=1 done (profile-len rho=+0.116, answer-rate rho=+0.222)
+[19:03:43] [gaps] k=2 done (profile-len rho=+0.297, answer-rate rho=+0.758)
+[19:05:51] [gaps] k=4 done (profile-len rho=+0.100, answer-rate rho=+0.350)
+[19:08:02] [gaps] k=8 done (profile-len rho=+0.141, answer-rate rho=+0.408)
+[19:08:11] -> C:\dev\phd\casper\docs\results\ACT2_PV_QUARTILES.json
+[19:08:11] -> C:\dev\phd\casper\docs\results\ACT2_PV_QUARTILES.md

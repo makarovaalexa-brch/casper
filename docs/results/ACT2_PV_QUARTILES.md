@@ -1,6 +1,6 @@
 # Act 2: does the adaptive-minus-static gap track PERSONALISATION VALUE, on the same users?
 
-Run 2026-08-10 19:08:11 by `scripts/act2_pv_quartiles.py` (sha256 `0c3ca8632958519d`).
+Run 2026-08-10 20:35:36 by `scripts/act2_pv_quartiles.py` (sha256 `5624474e730fb673`).
 Design sheet: `docs/design/DS_ACT2_DISPERSION_STRATIFICATION.md` sections 1 and 2.
 Criterion machinery imported verbatim from `scripts/reddit/dispersion_leg1.py`.
 
@@ -15,12 +15,17 @@ contract signature (`experiments\baselines\interview\adaptive_table_act2pv.json`
 Paired percentile bootstrap over per-user differences, **10,000 resamples, seed 98765**;
 never the unpaired `1.96*sqrt(2)*SE` form.
 
-**Scope of the criterion scoring.** 10,214 states carry a scored criterion. That is
-100% of the states the PV arm occupies — every
-`fixedorder:entropy0` state at k ∈ 1,2,4,8 — which is everything sections 1–4 need. The remaining
-cells in section 6 were enrichment (the criterion evaluated at the states the *adaptive* selectors
-themselves reach) and were deliberately not run; their interview and state counts are exact
-regardless, because those need no criterion evaluation.
+**Scope of the criterion scoring.** 12,019 of 56,231 states carry a
+scored criterion, including **100% of the states the PV arm occupies** — every `fixedorder:entropy0`
+state at k ∈ 1,2,4,8 — which is everything sections 1–4 need, and
+11 of 20 cells of
+section 6. The rest is a compute frontier, not a choice: the criterion costs one encoder fold plus one
+full 18,359-way decode per (state, candidate, answer), measured at ~1.0 s/state for k ≤ 2, ~1.2 s at
+k = 4 and ~3.0 s at k = 8, so the remaining
+44,212 states are a ~30 h job. Scoring resumes from a
+contract-signed sidecar (`.cache/act2_pv/`); re-running `--analyze` refreshes section 6 in place. Every
+cell's **interview and state counts are exact regardless** — those need no criterion evaluation — and
+no number anywhere in this file is an estimate.
 
 **Per-user alignment.** Every per-user NDCG vector below comes from the single
 `experiments\baselines\interview\adaptive_table_act2pv.json` run, so all arms share one user order by construction. Verified rather than
@@ -305,8 +310,13 @@ bounded above by the state count, and both lose to one order asked of everybody.
 
 Of the distinct interviews a selector actually conducts, how many distinct **loss-optimal** questions
 do those states correspond to? The interview and state counts need no criterion evaluation and are
-reported for every cell; the q* columns need scored states, and criterion scoring was deliberately
-run for the PV arm only (see the note under the contract).
+exact for every cell; the q* columns need scored states, and the cells still on the compute frontier
+are marked *not scored* rather than estimated (see the scope note under the contract).
+
+Read the **q\* per interview** column. A static order is ≥ 1 by construction — one interview, many
+optimal questions across the states it produces. A selector that manufactures interviews faster than
+the criterion surface can distinguish situations drives that ratio **below 1**, and that is the whole
+of "divergence without exploitability" in one number.
 
 | selector | k | distinct interviews | distinct states | states per interview | mean answers | distinct loss-optimal q* | q* per interview | top-q* share | modal q* |
 |---|---|---|---|---|---|---|---|---|---|
@@ -362,9 +372,9 @@ nothing to them. The branching ratio makes the Act-1 observation quantitative: `
 questions per interview, i.e. thirty interviews manufactured for every genuinely distinguishable
 decision. §5 states the bound precisely and its limit: it constrains the deterministic selectors
 exactly, and Thompson escapes it only by randomising, which is why its branching count is not
-evidence of personalisation. The q* column for the adaptive selectors' *own* states at k≥4 was
-enrichment and was not part of this run; the interview and state counts there need no criterion
-evaluation and are exact.
+evidence of personalisation. The q* column for the adaptive selectors' *own* states at k≥4 is still
+on the compute frontier and is marked *not scored*, never estimated; the interview and state counts
+there need no criterion evaluation and are exact.
 
 **The top quartile is high-stakes, not noise.** In Q4 the population's question forfeits **80.5% of
 the best question's value at k=2, 57.3% at k=4 and 61.2% at k=8** (own-question gain 0.0398 vs

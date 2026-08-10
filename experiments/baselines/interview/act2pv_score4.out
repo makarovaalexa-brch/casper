@@ -1,0 +1,42 @@
+[19:31:28] [preflight] free RAM 6030 MB
+[19:31:28] [preflight] OK
+[19:31:31] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[19:31:45] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[19:31:45] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:31:46] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[19:31:46] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[19:31:46] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[19:31:46] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:31:46] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[19:31:49] [ctx] all-bands reconstruction: 1411761 tokens; 7622 users with >=3 dislikes
+[19:32:02] [concepts] 1031 genome concepts (relevance>=0.5, >=30 members)
+[19:32:03] [cfold] concept_cv3_ep08.pt ep8 use_refusal=True
+[19:32:05] [bank] items=297 concepts=1031
+[19:32:05] [answer-model] L (median TEST profile) = 64
+[19:32:05] [states] fixedorder:entropy0      k=1: prefixes=     1 states=    11  (cum 11)
+[19:32:05] [states] fixedorder:entropy0      k=2: prefixes=     1 states=   112  (cum 123)
+[19:32:05] [states] fixedorder:entropy0      k=4: prefixes=     1 states=  1463  (cum 1586)
+[19:32:05] [states] fixedorder:entropy0      k=8: prefixes=     1 states=  5767  (cum 7353)
+[19:32:06] [states] golbandi_tree            k=1: prefixes=     1 states=    11  (cum 7364)
+[19:32:06] [states] golbandi_tree            k=2: prefixes=     3 states=    92  (cum 7456)
+[19:32:06] [states] golbandi_tree            k=4: prefixes=    25 states=  1054  (cum 8510)
+[19:32:06] [states] golbandi_tree            k=8: prefixes=   345 states=  5371  (cum 13881)
+[19:32:06] [states] glm_ucb                  k=1: prefixes=     1 states=    11  (cum 13892)
+[19:32:06] [states] glm_ucb                  k=2: prefixes=     3 states=    96  (cum 13988)
+[19:32:06] [states] glm_ucb                  k=4: prefixes=    22 states=  1391  (cum 15379)
+[19:32:06] [states] glm_ucb                  k=8: prefixes=   314 states=  5452  (cum 20831)
+[19:32:06] [states] fixedorder:greedy_items  k=1: prefixes=     1 states=    11  (cum 20842)
+[19:32:07] [states] fixedorder:greedy_items  k=2: prefixes=     1 states=    92  (cum 20934)
+[19:32:07] [states] fixedorder:greedy_items  k=4: prefixes=     1 states=  1160  (cum 22094)
+[19:32:07] [states] fixedorder:greedy_items  k=8: prefixes=     1 states=  3997  (cum 26091)
+[19:32:07] [states] thompson                 k=1: prefixes=   760 states=  1468  (cum 27525)
+[19:32:07] [states] thompson                 k=2: prefixes=  8006 states=  8727  (cum 36232)
+[19:32:07] [states] thompson                 k=4: prefixes= 10000 states=  9999  (cum 46231)
+[19:32:07] [states] thompson                 k=8: prefixes= 10000 states= 10000  (cum 56231)
+[19:32:07] [states] TOTAL distinct states = 56,231
+[19:32:08] [resume] banked state list is a valid prefix: 56,231 of 56,231
+[19:32:08] [score] 46,017 of 56,231 states still to do (visiting shortest-interview first: [0, 0, 7593, 0, 13604, 0, 0, 0, 24820])
+[19:32:09] [score] 1/46,017 | 1.41s/state | eta 17.98 h
+[19:32:10] [score] 2/46,017 | 1.12s/state | eta 14.33 h
+[19:32:11] [score] 3/46,017 | 1.05s/state | eta 13.39 h
+[19:33:37] [score] 100/46,017 | 0.90s/state | eta 11.43 h

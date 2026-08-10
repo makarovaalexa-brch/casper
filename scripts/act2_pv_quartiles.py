@@ -391,6 +391,13 @@ def phase_score(args):
                 el = time.time() - t0
                 log(f"[score] {n_done:,}/{limit:,} | {el/n_done:.2f}s/state | "
                     f"eta {(limit-n_done)*el/n_done/3600:.2f} h")
+            # FLUSH INSIDE THE STATE LOOP, not once per 512-state batch. This process has twice been
+            # killed by the OS with no traceback and no stderr (2026-08-10, 15:27 and 19:02, roughly
+            # 3-4 h after launch each time); a per-batch flush put up to 512 states of work -- about
+            # ten minutes -- inside the blast radius, which is more than HARD RULE 11's "never lose
+            # more than one cell" allows for a job this long. A memmap flush is a page write.
+            if n_done % 25 == 0:
+                U_item.flush(); U_conc.flush(); V0m.flush(); done.flush()
             if args.bench and n_done >= 8:
                 break
         U_item.flush(); U_conc.flush(); V0m.flush(); done.flush()
@@ -514,7 +521,13 @@ def phase_analyze(args):
                      "mean_pv": float(pv[k].mean()), "max_pv": float(pv[k].max()),
                      "frac_pv_zero": float((pv[k] <= 1e-12).mean()),
                      "mean_V0": float(np.asarray(V0)[sidx].mean()),
-                     "mean_own_gain": float((u_own - np.asarray(V0)[sidx]).mean())}
+                     "mean_own_gain": float((u_own - np.asarray(V0)[sidx]).mean()),
+                     # Which CHANNEL the loss-optimal question comes from. Recorded because all three
+                     # selectors in this battery shop in the item bank, so if the criterion's argmax
+                     # is a concept for essentially everybody, none of them can reach it -- a
+                     # candidate mechanism for the whole result, and one that must be a logged number
+                     # rather than a sentence in the prose.
+                     "frac_q_star_is_concept": float((arg[sidx] >= nI).mean())}
         log(f"[PV] k={k}: modal {aname(a_pop)} share {a_pop_n/len(sidx):.3f}; "
             f"mean PV {pv[k].mean():.5f}; zero for {(pv[k] <= 1e-12).mean():.1%}")
 
@@ -759,12 +772,17 @@ contract signature (`{o['harness_table']}`), so every difference below is differ
 Paired percentile bootstrap over per-user differences, **{o['n_boot']:,} resamples, seed {o['seed']}**;
 never the unpaired `1.96*sqrt(2)*SE` form.
 
-**Scope of the criterion scoring.** {o['n_states_scored']:,} states carry a scored criterion. That is
-100% of the states the PV arm occupies — every
-`{o['pv_state_source']}` state at k ∈ 1,2,4,8 — which is everything sections 1–4 need. The remaining
-cells in section 6 were enrichment (the criterion evaluated at the states the *adaptive* selectors
-themselves reach) and were deliberately not run; their interview and state counts are exact
-regardless, because those need no criterion evaluation.
+**Scope of the criterion scoring.** {o['n_states_scored']:,} of {o['n_states_total']:,} states carry a
+scored criterion, including **100% of the states the PV arm occupies** — every `{o['pv_state_source']}`
+state at k ∈ 1,2,4,8 — which is everything sections 1–4 need, and
+{sum(1 for b in o['branching'].values() if b['scored'])} of {len(o['branching'])} cells of
+section 6. The rest is a compute frontier, not a choice: the criterion costs one encoder fold plus one
+full 18,359-way decode per (state, candidate, answer), measured at ~1.0 s/state for k ≤ 2, ~1.2 s at
+k = 4 and ~3.0 s at k = 8, so the remaining
+{o['n_states_total'] - o['n_states_scored']:,} states are a ~30 h job. Scoring resumes from a
+contract-signed sidecar (`.cache/act2_pv/`); re-running `--analyze` refreshes section 6 in place. Every
+cell's **interview and state counts are exact regardless** — those need no criterion evaluation — and
+no number anywhere in this file is an estimate.
 
 **Per-user alignment.** Every per-user NDCG vector below comes from the single
 `{o['harness_table']}` run, so all arms share one user order by construction. Verified rather than
@@ -898,8 +916,13 @@ bounded above by the state count, and both lose to one order asked of everybody.
 
 Of the distinct interviews a selector actually conducts, how many distinct **loss-optimal** questions
 do those states correspond to? The interview and state counts need no criterion evaluation and are
-reported for every cell; the q* columns need scored states, and criterion scoring was deliberately
-run for the PV arm only (see the note under the contract).
+exact for every cell; the q* columns need scored states, and the cells still on the compute frontier
+are marked *not scored* rather than estimated (see the scope note under the contract).
+
+Read the **q\\* per interview** column. A static order is ≥ 1 by construction — one interview, many
+optimal questions across the states it produces. A selector that manufactures interviews faster than
+the criterion surface can distinguish situations drives that ratio **below 1**, and that is the whole
+of "divergence without exploitability" in one number.
 
 {chr(10).join(btab)}
 
