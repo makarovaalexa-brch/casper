@@ -92,6 +92,45 @@ SEED = 98765
 N_BOOT = 10000
 NQ = 4
 
+# ============================================================== the GAP source (--gaps_label)
+# THE STRATA AND THE GAPS COME FROM DIFFERENT PLACES, AND THAT IS THE WHOLE POINT OF THIS SPLIT.
+# `PV` is a property of the criterion surface at the reference static states, so it is read -- always,
+# in every table this script writes -- off `fixedorder:entropy0` in the `act2pv` run and its banked
+# criterion cache in `.cache/act2_pv/`. Nothing about the PV side is re-scored, no cell is reordered
+# (the resume rule refuses a non-prefix state list) and nothing entering `contract_of` moves. What
+# `--gaps_label` changes is only WHICH RUN'S per-user NDCG vectors are differenced inside those strata.
+#
+# Reusing the banked PV across runs is legitimate ONLY because `fixedorder:entropy0` reproduces
+# exactly: `scripts/act2pvc_gates.py --gate` asserts the interview payload is byte-identical between
+# the two runs and that the scored per-user vectors agree at 0.0e+00. That gate is a precondition,
+# not a courtesy -- if it fails the strata do not transfer and no number below means anything.
+#
+# `G` defaults to the PV run itself, which is what makes a no-flag `--analyze` bit-identical to the
+# published `ACT2_PV_QUARTILES.md` rather than merely similar to it.
+G = {}
+
+
+def set_gaps(label=None, specs=None, comparators=None, out_stem=None):
+    """Resolve the gap source ONCE, in main. Every default is the published table's own value."""
+    lbl = label or LABEL
+    stem = out_stem or "ACT2_PV_QUARTILES"
+    G.clear()
+    G.update({
+        "label": lbl,
+        "is_default": lbl == LABEL and specs is None and comparators is None and out_stem is None,
+        "peruser": IVIEW / f"adaptive_table_{lbl}_per_user.npz",
+        "ckdir": IVIEW / f"adaptive_table_{lbl}_interviews",
+        "table": IVIEW / f"adaptive_table_{lbl}.json",
+        "selectors": tuple(specs) if specs else SELECTORS,
+        "comparators": tuple(comparators) if comparators else COMPARATORS,
+        "out_json": ROOT / "docs" / "results" / f"{stem}.json",
+        "out_md": ROOT / "docs" / "results" / f"{stem}.md",
+    })
+    return G
+
+
+set_gaps()
+
 # Cells whose states get scored, IN PRIORITY ORDER. The state list is append-only, so a later entry
 # can be dropped or added without invalidating an earlier one (see the resume rule in the header).
 CELLS = ([("fixedorder:entropy0", k) for k in (1, 2, 4, 8)]         # PV -- the primary object
@@ -112,19 +151,23 @@ def log(m):
 # ============================================================== startup validation (HARD RULE 11e)
 def preflight(require_peruser=True, args_is_analyze_only=False):
     """Validate names AND paths, check free RAM, refuse to run beside a live twin."""
-    bad = [p for p in (SNAP, CFOLD, CKDIR, TABLE) if not p.exists()]
-    if require_peruser and not PERUSER.exists():
-        bad.append(PERUSER)
+    bad = [p for p in (SNAP, CFOLD, CKDIR, TABLE, G["ckdir"], G["table"]) if not p.exists()]
+    if require_peruser and not G["peruser"].exists():
+        bad.append(G["peruser"])
     if bad:
         raise SystemExit(f"[preflight] MISSING: {bad}")
-    # every (spec, k) checkpoint this run will read
+    # every (spec, k) checkpoint this run will read -- the PV side out of the PV run's checkpoint
+    # directory, the GAP arms out of the gap run's (the same directory in the default case)
     missing = [f"{s}_k{k}" for s, k in CELLS
                if not (CKDIR / f"{s.replace(':', '__')}_k{k}.json").exists()]
+    missing += [f"[{G['label']}] {s}_k{k}"
+                for s in list(G["selectors"]) + list(G["comparators"]) for k in PV_BUDGETS
+                if not (G["ckdir"] / f"{s.replace(':', '__')}_k{k}.json").exists()]
     if missing:
         raise SystemExit(f"[preflight] missing interview checkpoints: {missing}")
     if require_peruser:
-        keys = set(np.load(PERUSER).files)
-        want = [f"ours|{s}|k{k}|{ax}" for s in list(SELECTORS) + list(COMPARATORS)
+        keys = set(np.load(G["peruser"]).files)
+        want = [f"ours|{s}|k{k}|{ax}" for s in list(G["selectors"]) + list(G["comparators"])
                 for k in PV_BUDGETS for ax in ("full", "tail")]
         gone = [w for w in want if w not in keys]
         if gone:
@@ -176,25 +219,55 @@ def preflight(require_peruser=True, args_is_analyze_only=False):
     log("[preflight] OK")
 
 
-def read_interview(spec, k):
-    p = CKDIR / f"{spec.replace(':', '__')}_k{k}.json"
+def read_interview(spec, k, ckdir=None):
+    """The harness's own interview checkpoint -> (asked items, answered items, concept tokens).
+
+    CONCEPT TURNS ARE CARRIED, NOT ASSERTED AWAY (2026-08-10, DS_ACT2_CONCEPT_BANK_PV section 3).
+    This function used to refuse any cell that spent a turn on a concept:
+
+        assert all(len(t) == 0 for t in d["conc_state"]["asked"])
+
+    which was correct while every arm in the table was item-only, and is exactly what blocked the
+    concept-asking arms. The criterion machinery ALREADY supports concept tokens (`L1.canon` and
+    `States.add`'s third slot), and the harness ALREADY records them in the shape the criterion
+    wants -- `conc_state["tokens"][u] = (concept id, value, refused flag)`, a REFUSAL being a token
+    too (v=0, ref=1), exactly as the concept consumer folds a burned concept question. So the gap
+    was in this state builder alone and closing it changes nothing for an item-only cell: its token
+    list is empty, `canon([], [], [])` is `([], [], [])`, and `States._key` appends the same empty
+    concept half it appended before. Bit-identity on the existing table is a regression gate, not a
+    hope -- see the header of `write_md`.
+    """
+    p = (ckdir or CKDIR) / f"{spec.replace(':', '__')}_k{k}.json"
     d = json.load(open(p))
     assert int(d["k"]) == k and d["selector"] == spec, f"{p} is not {spec}/k{k}"
     assert int(d["turns_done"]) == k, f"{p} incomplete: {d['turns_done']}/{k}"
-    assert all(len(t) == 0 for t in d["conc_state"]["asked"]), \
-        f"{spec}/k{k} spent turns on concepts; the state builder here is item-only"
-    return d["asked"], d["answered"]
+    toks = d["conc_state"]["tokens"]
+    # The two lists the harness maintains must agree about how many concept turns were spent: every
+    # concept ASK appends exactly one token (answered or refused). A mismatch would mean a burned
+    # turn had gone unrecorded, which would silently shorten the state.
+    assert all(len(a) == len(t) for a, t in zip(d["conc_state"]["asked"], toks)), \
+        f"{spec}/k{k}: concept asked/token lists disagree -- a burned turn went unrecorded"
+    return d["asked"], d["answered"], toks
 
 
-def states_of(asked, answered):
-    """(asked, answered) -> the `levels_unseen` state of every user: the asked item list with the
-    user's own half-star level, or the UNSEEN sentinel where they could not answer."""
+def states_of(asked, answered, toks=None):
+    """(asked, answered, concept tokens) -> the state of every user, as the criterion wants it:
+
+      items    the asked item list with the user's own half-star level, or the UNSEEN sentinel
+               where they could not answer (the `levels_unseen` contract the consumer is fed);
+      concepts the revealed token list in `ConceptFoldNet.canonical_order` (DESC value, ties by
+               concept id), carrying the refusal flag -- i.e. `L1.canon`, the same function the
+               criterion uses when it appends a candidate concept to a state.
+    """
     out = []
     for u in range(len(asked)):
         lk = {int(i): int(l) for i, l in answered[u]}
         sids = np.asarray([int(q) for q in asked[u]], np.int64)
         lvls = np.asarray([lk.get(int(q), UNSEEN) for q in asked[u]], np.int64)
-        out.append((sids, lvls))
+        t = (toks[u] if toks is not None else [])
+        cc = (L1.canon([int(c) for c, _v, _r in t], [float(v) for _c, v, _r in t],
+                       [float(r) for _c, _v, r in t]) if t else ([], [], []))
+        out.append((sids, lvls, cc))
     return out
 
 
@@ -249,14 +322,13 @@ def phase_score(args):
 
     # ---- assemble the globally de-duplicated state list, cell by cell, in priority order
     ST = L1.States()
-    empty_c = ([], [], [])
     cell_states, cell_meta = {}, {}
     cells = [c for c in CELLS if not args.cells or f"{c[0]}|k{c[1]}" in args.cells.split(",")]
     for spec, k in cells:
-        asked, answered = read_interview(spec, k)
+        asked, answered, toks = read_interview(spec, k)
         assert len(asked) == ctx.n, f"{spec}/k{k}: {len(asked)} users != {ctx.n}"
-        seqs = states_of(asked, answered)
-        idx = np.array([ST.add(s, l, empty_c)[0] for s, l in seqs], np.int64)
+        seqs = states_of(asked, answered, toks)
+        idx = np.array([ST.add(s, l, c)[0] for s, l, c in seqs], np.int64)
         cell_states[f"{spec}|k{k}"] = idx
         cell_meta[f"{spec}|k{k}"] = {
             "n_users": int(ctx.n),
@@ -532,7 +604,7 @@ def phase_analyze(args):
             f"mean PV {pv[k].mean():.5f}; zero for {(pv[k] <= 1e-12).mean():.1%}")
 
     # ---------------------------------------------------------------- quartiles + gaps
-    Z = np.load(PERUSER)
+    Z = np.load(G["peruser"])
     ansrate = {k: np.asarray(cell_meta[f"{PV_SPEC}|k{k}"]["answers_per_user"], np.float64)
                for k in PV_BUDGETS}
 
@@ -547,8 +619,8 @@ def phase_analyze(args):
 
     def gap_table(qlab, k):
         rows = {}
-        for sel in SELECTORS:
-            for comp in COMPARATORS:
+        for sel in G["selectors"]:
+            for comp in G["comparators"]:
                 for axis, users in (("full", full_users), ("tail", tail_users)):
                     a = Z[f"ours|{sel}|k{k}|{axis}"]
                     b = Z[f"ours|{comp}|k{k}|{axis}"]
@@ -628,6 +700,26 @@ def phase_analyze(args):
             selfz.append(abs(dd.mean()) + abs(lo) + abs(hi))
     controls = {"self_difference_max_abs": float(max(selfz)),
                 "self_difference_is_zero": bool(max(selfz) == 0.0)}
+    if not G["is_default"]:
+        # The published table differences ONE arm against itself. When the gap arms come from a
+        # different run the control has to cover THOSE vectors, so every arm in the gap table is
+        # differenced against itself, on both axes, inside every quartile of every budget.
+        sz = []
+        for spec in list(G["selectors"]) + list(G["comparators"]):
+            for k in PV_BUDGETS:
+                q = cut(pv[k])
+                for axis, users in (("full", full_users), ("tail", tail_users)):
+                    a = np.asarray(Z[f"ours|{spec}|k{k}|{axis}"], np.float64)
+                    d = a - a
+                    for qi in range(NQ):
+                        dd = d[q[users] == qi]
+                        lo, hi = boot_ci(dd)
+                        sz.append(abs(dd.mean()) + abs(lo) + abs(hi))
+        controls["self_difference_all_arms_max_abs"] = float(max(sz))
+        controls["self_difference_all_arms_is_zero"] = bool(max(sz) == 0.0)
+        controls["self_difference_all_arms_n_cells"] = int(len(sz))
+        log(f"[control] self-difference over {len(sz)} (arm,k,axis,quartile) cells: "
+            f"max = {max(sz):.1e}")
 
     # ---------------------------------------------------------------- section 2: branching ratio
     # The INTERVIEW and STATE counts are a free by-product of building the state list -- they need no
@@ -662,14 +754,40 @@ def phase_analyze(args):
            "n_users_full": int(len(full_users)), "n_users_tail": int(len(tail_users)),
            "n_boot": N_BOOT, "seed": SEED, "n_quartiles": NQ,
            "pv_state_source": PV_SPEC,
-           "selectors": list(SELECTORS), "comparators": list(COMPARATORS),
+           "selectors": list(G["selectors"]), "comparators": list(G["comparators"]),
            "results": results, "controls": controls, "branching": branch,
            "n_states_scored": int(done.sum()), "n_states_total": int(len(done))}
-    OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    OUT_JSON.write_text(json.dumps(out, indent=2))
-    log(f"-> {OUT_JSON}")
-    write_md(out)
-    log(f"-> {OUT_MD}")
+    if not G["is_default"]:
+        # CONTROL 5 -- channel accounting, read straight off the gap run's own interview checkpoints
+        # (no criterion evaluation involved, so it is exact for every cell). A "concept-asking"
+        # selector that asks few concepts has not tested the hypothesis and this table is what makes
+        # that visible instead of letting a null ride on an unfired schedule.
+        import act2pvc_gates as GT
+        gspecs = list(G["selectors"]) + list(G["comparators"])
+        GT.BUDGETS = tuple(PV_BUDGETS)
+        out["gaps_label"] = G["label"]
+        out["gaps_harness_table"] = str(G["table"].relative_to(ROOT))
+        out["gaps_harness_contract"] = json.load(open(G["table"]))["meta"].get("_contract")
+        out["gaps_harness_meta"] = {kk: vv for kk, vv in json.load(open(G["table"]))["meta"].items()
+                                    if kk in ("keyterm_repr_by_selector", "n_concepts",
+                                              "concept_answer_convention", "snapshot", "arch",
+                                              "no_floor", "n_test_users")}
+        out["channels"] = GT.channels(specs=gspecs, label=G["label"], as_json=True)
+        out["pv_label"] = LABEL
+        # CONTROL 2 is RE-RUN here rather than quoted, so the document can never claim a gate that
+        # was not evaluated for the numbers it prints.
+        GT.NEW_LABEL = G["label"]
+        GT.SHARED_SPECS = tuple(s for s in GT.SHARED_SPECS if s in set(gspecs))
+        out["entropy0_gate_pass"] = bool(GT.gate())
+        out["entropy0_gate_specs"] = list(GT.SHARED_SPECS)
+        assert out["entropy0_gate_pass"], (
+            "entropy0 REPRODUCTION GATE FAILED -- the PV strata do not transfer and this table is "
+            "invalid. Stop and report; do not reconcile by hand (design sheet section 5.2).")
+    G["out_json"].parent.mkdir(parents=True, exist_ok=True)
+    G["out_json"].write_text(json.dumps(out, indent=2))
+    log(f'-> {G["out_json"]}')
+    (write_md if G["is_default"] else write_md_concept)(out)
+    log(f'-> {G["out_md"]}')
 
 
 def write_md(o):
@@ -930,13 +1048,264 @@ of "divergence without exploitability" in one number.
 
 (written after the run)
 """
-    OUT_MD.parent.mkdir(parents=True, exist_ok=True)
-    if OUT_MD.exists():
-        old = OUT_MD.read_text(encoding="utf-8")
+    G["out_md"].parent.mkdir(parents=True, exist_ok=True)
+    if G["out_md"].exists():
+        old = G["out_md"].read_text(encoding="utf-8")
         cut_at = old.find("## Verdict")
         if cut_at >= 0:
             md = md[: md.find("## Verdict")] + old[cut_at:]
-    OUT_MD.write_text(md, encoding="utf-8")
+    G["out_md"].write_text(md, encoding="utf-8")
+
+
+# ===================================================================== the --gaps_label report
+def write_md_concept(o):
+    """The CONCEPT-BANK table (DS_ACT2_CONCEPT_BANK_PV.md). Same quartile cut, same paired and
+    two-sample bootstraps, same shuffle -- literally the same functions -- over a different run's
+    per-user vectors, so the two documents are commensurable by construction rather than by
+    argument. Everything below is generated from measured numbers; anything unscored is printed as
+    'not scored' and never estimated."""
+    R = o["results"]
+
+    def gtab(k, axis, shuffled=False):
+        src = R[f"k{k}"]["gaps_shuffled" if shuffled else "gaps"]
+        lines = ["| comparison | Q1 (low PV) | Q2 | Q3 | Q4 (high PV) | all 10k | "
+                 "TREND Q4−Q1 [95% CI] |", "|---|---|---|---|---|---|---|"]
+        for sel in o["selectors"]:
+            for comp in o["comparators"]:
+                if sel == comp:
+                    continue
+                r = src[f"{sel}|{comp}|{axis}"]
+                cs = []
+                for c in r["quartiles"]:
+                    s = f"{c['delta']:+.4f} [{c['lo']:+.4f}, {c['hi']:+.4f}]"
+                    cs.append(f"**{s}**" if c["sep"] else s)
+                a = r["all"]
+                astr = f"{a['delta']:+.4f} [{a['lo']:+.4f}, {a['hi']:+.4f}]"
+                tstr = (f"{r['trend_q4_minus_q1']:+.4f} "
+                        f"[{r['trend_lo']:+.4f}, {r['trend_hi']:+.4f}]")
+                lines.append(f"| {sel} − {comp.split(':')[-1]} | " + " | ".join(cs)
+                             + f" | {'**' + astr + '**' if a['sep'] else astr} "
+                               f"| {'**' + tstr + '**' if r['trend_sep'] else tstr} |")
+        return "\n".join(lines)
+
+    # ---- trend summary (the primary object), real vs shuffled
+    ttab = ["| comparison | axis | k | TREND Q4−Q1 (real PV) | TREND Q4−Q1 (SHUFFLED PV) |",
+            "|---|---|---|---|---|"]
+    n_sep = n_neg = n_pos = n_tot = n_shuf = 0
+    for sel in o["selectors"]:
+        for comp in o["comparators"]:
+            if sel == comp:
+                continue
+            for axis in ("full", "tail"):
+                for k in PV_BUDGETS:
+                    r = R[f"k{k}"]["gaps"][f"{sel}|{comp}|{axis}"]
+                    s = R[f"k{k}"]["gaps_shuffled"][f"{sel}|{comp}|{axis}"]
+                    n_tot += 1
+                    n_sep += int(r["trend_sep"])
+                    n_neg += int(r["trend_sep"] and r["trend_q4_minus_q1"] < 0)
+                    n_pos += int(r["trend_sep"] and r["trend_q4_minus_q1"] > 0)
+                    n_shuf += int(s["trend_sep"])
+                    rs = f"{r['trend_q4_minus_q1']:+.4f} [{r['trend_lo']:+.4f}, {r['trend_hi']:+.4f}]"
+                    ss = f"{s['trend_q4_minus_q1']:+.4f} [{s['trend_lo']:+.4f}, {s['trend_hi']:+.4f}]"
+                    ttab.append(f"| {sel} − {comp.split(':')[-1]} | {axis} | {k} | "
+                                f"{'**' + rs + '**' if r['trend_sep'] else rs} | "
+                                f"{'**' + ss + '**' if s['trend_sep'] else ss} |")
+
+    # ---- CONTROL 5: channel accounting
+    ctab = ["| selector | k | asked turns | concept asks | **% of turns that were concepts** | "
+            "concept refusals | refusal rate | item answer rate | turns that produced an answer | "
+            "distinct interviews |",
+            "|---|---|---|---|---|---|---|---|---|---|"]
+    for r in o["channels"]:
+        if r["status"] != "ok":
+            ctab.append(f"| {r['spec']} | {r['k']} | *not run* | — | — | — | — | — | — | — |")
+            continue
+        rr = "n/a" if r["concept_refusal_rate"] is None else f"{r['concept_refusal_rate']:.3f}"
+        ia = "n/a" if r["item_answer_rate"] is None else f"{r['item_answer_rate']:.3f}"
+        ctab.append(f"| {r['spec']} | {r['k']} | {r['turns']:,} | {r['concept_asks']:,} | "
+                    f"**{r['concept_turn_frac']:.1%}** | {r['concept_refusals']:,} | {rr} | {ia} | "
+                    f"{r['answered_turns_frac']:.3f} | {r['distinct_prefixes']:,} |")
+
+    # ---- the PV strata, reprinted so this document stands alone
+    def ptab(k):
+        r = R[f"k{k}"]
+        lines = ["| quartile | PV min | PV mean | PV max | mean profile len | mean answer rate |",
+                 "|---|---|---|---|---|---|"]
+        for i in range(o["n_quartiles"]):
+            mn, me, mx = r["quartile_pv_min_mean_max"][i]
+            lines.append(f"| Q{i + 1} | {mn:.5f} | {me:.5f} | {mx:.5f} | "
+                         f"{r['quartile_mean_profile_len'][i]:.1f} | "
+                         f"{r['quartile_mean_answer_rate'][i]:.3f} |")
+        return "\n".join(lines)
+
+    gm = o["gaps_harness_meta"]
+    krs = gm.get("keyterm_repr_by_selector") or {}
+    krtab = "; ".join(f"`{s}` → {v}" for s, v in sorted(krs.items())) or "n/a"
+    kr = (o["gaps_harness_contract"] or {}).get("keyterm_repr")
+    nc = (o["gaps_harness_contract"] or {}).get("concept_neg_cap")
+    md = f"""# Act 2 / TODO 1.2: does an adaptive selector convert PV *once it can ask concepts*?
+
+Run {o['generated']} by `{o['script']}` (sha256 `{o['script_sha256']}`).
+Design sheet: `docs/design/DS_ACT2_CONCEPT_BANK_PV.md`. Parent result:
+`docs/results/ACT2_PV_QUARTILES.md`. Criterion machinery imported verbatim from
+`scripts/reddit/dispersion_leg1.py`; the quartile cut, the paired bootstrap, the two-sample trend
+bootstrap and the shuffle are **the same functions** the parent table used — one script, two tables,
+so the two are commensurable by construction rather than by argument.
+
+**Contract of every NDCG number below.** Consumer = certified tower `{o['contract']['tower']}`
+(arch i26) with concept channel `{o['contract']['concept_net']}`; **NO-FLOOR**; policy-B / fixed
+arm-N candidate pool; **all {o['n_users_full']:,} canonical TEST users** ({o['n_users_tail']:,}
+scored on tail — users whose held-out set is all head have no tail target and are dropped by the
+metric, identically for every arm); **behavioural answers** on both channels (items: the user's own
+half-star level, asked-but-unrated folds as the i26 UNSEEN sentinel; concepts: the signed
+implicit-watch value, an unanswerable concept BURNS the turn and is folded as a refusal token).
+**Concept answer convention `--concept_neg_cap {nc}`** — the CERTIFIED-ERA convention
+`concept_cv3_ep08` was actually trained under. **Key-term representation `{kr}`** — the value all
+four carried-forward Act-1 concept-asker cells used, read off their run JSONs. Numbers from the two
+concept conventions are NEVER differenced. The representation is a property of the SELECTOR, not of
+the command line, and this run's realised per-selector values are: {krtab}.
+Concept bank: {gm.get('n_concepts', 'n/a')} genome concepts. Concept answer convention as recorded by
+the harness: {gm.get('concept_answer_convention', 'n/a')}.
+
+Every selector and every comparator in the gap tables was produced by ONE `adaptive_harness.py`
+process under one contract signature (`{o['gaps_harness_table']}`), so **every difference below is
+differenced in-run, per user**. Paired percentile bootstrap over per-user difference vectors,
+**{o['n_boot']:,} resamples, seed {o['seed']}**; never the unpaired `1.96*sqrt(2)*SE` form. The
+trend Q4−Q1 is a two-sample bootstrap (Q1 and Q4 are disjoint user sets, each resampled
+independently) and it is the primary object; the {4 * n_tot} cell CIs are shown so nothing is hidden.
+
+**Where PV comes from, and the gate that licenses it.** `PV(u) = U(q*_u | z_u) − U(q*_pop | z_u)` is
+read at the `{o['pv_state_source']}` states of the **parent** run (`{o['pv_label']}`) off its banked
+criterion cache — not re-scored, not re-cut, nothing entering the criterion contract moved. That is
+legitimate only because `{o['pv_state_source']}` reproduces exactly across the two runs, which is
+**control 2** and was re-evaluated for this document:
+
+> **entropy0 REPRODUCTION GATE: {'PASS' if o['entropy0_gate_pass'] else 'FAIL'}.** The interview
+> payload (`acts`, `asked`, `answered`, `conc_state`, `turns_done`, `k`, `selector`) is
+> byte-identical between `{o['pv_label']}` and `{o['gaps_label']}` for
+> {', '.join('`' + s + '`' for s in o['entropy0_gate_specs'])} at k ∈ 1, 2, 4, 8, and the **scored
+> per-user full/tail NDCG vectors agree at max\\|delta\\| = 0.0e+00** on every one of those cells.
+> Two checkpoint fields are excluded and printed rather than dropped: `info` (wall-clock
+> `turn_seconds`, not an interview) and `_contract` (it carries `concept_neg_cap`, which the design
+> sheet itself requires to move 1 → 0). Whole-file byte-identity is unattainable for any two runs
+> because of the timings, so the gate is asserted on the payload — the same standard
+> `adaptive_harness --regression` uses.
+
+## 1. CONTROL 5 — channel accounting, read FIRST
+
+**A selector that barely asks concepts has not tested the hypothesis.** ConLinUCB/ConUCB decide the
+turn type by ConUCB's fixed schedule `b(t) = 5*floor(log t)`, which fires when `b(t) > b(t-1)` — at
+k ≤ 8 that is turn 3 and turn 8 only. So this table must be read before any trend below, and the
+guard arms are `conlinucb_bs_static` (it can ONLY ask concepts) and `dpe_concept` (its arm IS the
+question). Every number here is exact — it needs no criterion evaluation.
+
+{chr(10).join(ctab)}
+
+## 2. The strata (inherited from the parent run, unchanged)
+
+Rank-cut into {o['n_quartiles']} equal strata of {o['n_users_full'] // o['n_quartiles']:,} users on
+`PV` at the `{o['pv_state_source']}` states. Reprinted so this document stands alone; the full
+own-question / pop-question decomposition is in the parent table.
+
+| k | modal q* (population) | modal share | distinct q* | distinct states | PV=0 share | mean PV | q* is a CONCEPT for |
+|---|---|---|---|---|---|---|---|
+{chr(10).join(f"| {k} | {R[f'k{k}']['pv']['modal_action_name']} | {R[f'k{k}']['pv']['modal_share']:.3f} | {R[f'k{k}']['pv']['distinct_q_star']} | {R[f'k{k}']['pv']['distinct_states']:,} | {R[f'k{k}']['pv']['frac_pv_zero']:.3f} | {R[f'k{k}']['pv']['mean_pv']:.5f} | {R[f'k{k}']['pv']['frac_q_star_is_concept']:.1%} |" for k in PV_BUDGETS)}
+
+### k = 1
+{ptab(1)}
+
+### k = 2
+{ptab(2)}
+
+### k = 4
+{ptab(4)}
+
+### k = 8
+{ptab(8)}
+
+## 3. TREND SUMMARY — the primary object
+
+Negative = the selector loses to the comparator **more** in the high-PV quartile than in the low-PV
+one, i.e. it fails hardest where personalising is worth most. **Bold** = the 95% two-sample
+bootstrap CI excludes zero.
+
+Of the {n_tot} trend cells, **{n_sep} separate from zero: {n_neg} negative, {n_pos} positive**.
+Under the shuffle control, **{n_shuf} of {n_tot}** separate.
+
+{chr(10).join(ttab)}
+
+## 4. Gap by quartile, every budget and axis
+
+**Bold** = the 95% paired CI excludes zero. Negative = the selector LOSES to the comparator.
+
+### k = 1 — full NDCG@10
+{gtab(1, 'full')}
+
+### k = 1 — tail NDCG@10
+{gtab(1, 'tail')}
+
+### k = 2 — full NDCG@10
+{gtab(2, 'full')}
+
+### k = 2 — tail NDCG@10
+{gtab(2, 'tail')}
+
+### k = 4 — full NDCG@10
+{gtab(4, 'full')}
+
+### k = 4 — tail NDCG@10
+{gtab(4, 'tail')}
+
+### k = 8 — full NDCG@10
+{gtab(8, 'full')}
+
+### k = 8 — tail NDCG@10
+{gtab(8, 'tail')}
+
+## 5. Controls
+
+**Control 1 — self-difference.** Every arm in this table differenced against itself, on both axes,
+inside every quartile of every budget ({o['controls']['self_difference_all_arms_n_cells']} cells):
+max \\|delta\\| + \\|CI\\| = {o['controls']['self_difference_all_arms_max_abs']:.1e}
+(exactly zero: {o['controls']['self_difference_all_arms_is_zero']}). The parent table's
+single-arm form is also reported: {o['controls']['self_difference_max_abs']:.1e}
+(exactly zero: {o['controls']['self_difference_is_zero']}).
+
+**Control 2 — entropy0 reproduction gate.** {'PASS' if o['entropy0_gate_pass'] else 'FAIL'}; see the
+contract block above for exactly what was compared and what was excluded.
+
+**Control 3 — shuffle.** `PV` is permuted across users and the quartiles re-cut; every trend is
+recomputed. **{n_shuf} of {n_tot}** shuffled trends separate from zero (column 5 of section 3).
+
+**Control 4 — answer rate per quartile.** Printed in section 2. ρ(PV, answer rate) is
+{R['k2']['spearman_pv_vs_answer_rate']:+.3f} at k=2, so **the k=2 stratification is substantially a
+split on "did you answer the two entropy0 questions"** and must not be read as pure PV. At k=4 and
+k=8 it is {R['k4']['spearman_pv_vs_answer_rate']:+.3f} / {R['k8']['spearman_pv_vs_answer_rate']:+.3f}
+and mean profile length is non-monotone and lowest in Q4, so **k=4 and k=8 carry the result**.
+
+| k | rho(PV, profile length) | rho(PV, answer rate) |
+|---|---|---|
+{chr(10).join(f"| {k} | {R[f'k{k}']['spearman_pv_vs_profile_len']:+.3f} | {R[f'k{k}']['spearman_pv_vs_answer_rate']:+.3f} |" for k in PV_BUDGETS)}
+
+**Control 5 — channel accounting.** Section 1.
+
+**Multiplicity.** The quartile tables in section 4 hold many cell CIs; the TREND is the object and it
+carries its own interval. The cells are shown so nothing is hidden.
+
+**Not scored, never estimated.** The criterion `q*` columns for these new arms' OWN states are out of
+scope by the design sheet (section 6) and are **not scored**; no number in this file is an estimate.
+
+## Verdict
+
+(written after the run)
+"""
+    G["out_md"].parent.mkdir(parents=True, exist_ok=True)
+    if G["out_md"].exists():
+        old = G["out_md"].read_text(encoding="utf-8")
+        cut_at = old.find("## Verdict")
+        if cut_at >= 0:
+            md = md[: md.find("## Verdict")] + old[cut_at:]
+    G["out_md"].write_text(md, encoding="utf-8")
 
 
 def main():
@@ -946,7 +1315,30 @@ def main():
     ap.add_argument("--bench", action="store_true")
     ap.add_argument("--cells", default="", help="comma list of 'spec|kK' to restrict scoring to")
     ap.add_argument("--no_preflight", action="store_true")
+    # ---- the GAP source. With none of these set the script is the published table, byte for byte.
+    ap.add_argument("--gaps_label", default=None,
+                    help="harness --label whose PER-USER NDCG vectors the quartile gaps are computed "
+                         "from. Default = the PV run itself. The PV strata are ALWAYS read off the "
+                         "act2pv criterion cache; this flag never re-scores or re-cuts anything, and "
+                         "using it requires the entropy0 reproduction gate to pass.")
+    ap.add_argument("--gaps_specs", default=None,
+                    help="comma list of SELECTOR specs for the gap table (default: the published "
+                         "glm_ucb,thompson,golbandi_tree)")
+    ap.add_argument("--gaps_comparators", default=None,
+                    help="comma list of COMPARATOR specs for the gap table (default: the published "
+                         "fixedorder:entropy0,fixedorder:greedy_items)")
+    ap.add_argument("--out_stem", default=None,
+                    help="basename under docs/results/ for the .md/.json (default ACT2_PV_QUARTILES)")
     args = ap.parse_args()
+    set_gaps(label=args.gaps_label,
+             specs=[s.strip() for s in args.gaps_specs.split(",")] if args.gaps_specs else None,
+             comparators=([s.strip() for s in args.gaps_comparators.split(",")]
+                          if args.gaps_comparators else None),
+             out_stem=args.out_stem)
+    if not G["is_default"]:
+        log(f"[gaps] per-user vectors from {G['peruser'].name}; "
+            f"selectors={list(G['selectors'])} comparators={list(G['comparators'])}; "
+            f"-> {G['out_md'].name}. PV strata still from {LABEL}/{PV_SPEC}.")
     if not args.no_preflight:
         preflight(require_peruser=args.analyze,
                   args_is_analyze_only=bool(args.analyze and not (args.score or args.bench)))
