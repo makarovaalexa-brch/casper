@@ -1,49 +1,48 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-08-09 (Paper A measurement-complete; graded question settled)**.
+> End-state is in `VISION.md`. Last updated: **2026-08-10 (Paper A closed pending author read; focus moves to Paper B)**.
 
-## ★★★ 2026-08-09 — PAPER A IS MEASUREMENT-COMPLETE. The graded question is SETTLED.
+## ★★★ 2026-08-10 — PAPER A CLOSED. Author read-through pending; not submitting yet. Focus moves to Paper B.
 
-**The headline: it was CENTRING and CONFIGURATION, not gradedness.** The claim this project carried since
-July — *every ratings-native baseline gets worse with its ratings* — is dead. Under one stated selection
-rule (validation NDCG@10 on this ruler, every knob selected per contract):
+**State: 41pp, compiles clean, 165 automated checks resolving every numeric claim against its own source
+file, 0 mismatches — including assertions that the checkpoint is the certified `t2i26c_ep31.pt`.** No
+measurement work outstanding. Two Fable reviews closed: every point either actioned or declined with the
+reason recorded (`docs/PAPER_A_FABLE_REVIEW_2026-08-09.md`).
 
-| arm | graded vs its own binary build |
-|---|---|
-| iALS as confidence | **+0.0194** — the clear gain |
-| RBMF, raw ratings | **−0.0045** full / **+0.0046** tail — both separated, opposite directions |
-| user-kNN, mean-centred | **−0.0934** |
-| TaNP, rating regression | −0.3264 — a different task; cell dropped, prose only |
-| ours | +0.0144 at k=2, ~0 at full profile |
+**Do not reopen without cause.** Declined deliberately: a second dataset (limitation now stated in the
+text instead); ordering-stability across checkpoints (available checkpoints are one training run); a
+defensive paragraph on why our model is the fixed consumer (the argument is made once already, and a
+longer version was judged to weaken it).
 
-RBMF's −0.070 on record decomposes cleanly: mean-centring **−0.0981**, values-erased support **−0.0499**,
-true values restored **+0.0454**.
+### What changed this week — the headline claim was rewritten
 
-**A mechanism was proposed and FALSIFIED — do not revive it.** "Ratings help as a weight, hurt as an
-estimand" failed its own within-model test: one frozen basis, only the fold-in rule varying, confidence
-.3459 vs ridge-on-ratings **.3580**. The estimand rule is better. Model family had been confounded with
-the category all along. Paragraph deleted from the chapter at the author's instruction.
+*Every ratings-native baseline gets worse with its ratings* is **dead**. Replaced by: **centring and
+configuration did the damage, gradedness itself does roughly nothing at full profile.**
+iALS-as-confidence **+0.0194**; RBMF **−0.0045 full / +0.0046 tail** (both separated, opposite
+directions); user-kNN **−0.0934** (centring); ours +0.0144 at k=2, ~0 at full profile.
+RBMF's old −0.070 decomposes as centring −0.0981, values-erased support −0.0499, values restored +0.0454.
 
-**The baselines were never "untuned"** — I said that and it was wrong. A real 9-point sweep ran on
-2026-07-20, on **ML-20M**, selecting on **NDCG@100** while the chapter reports **NDCG@10**. Re-selecting
-moves RBMF **+0.0601** (arm N), iALS +0.0281, belief-MF +0.0267. The mis-set knob is **alpha** (50→10),
-not the ridge.
+A **weight-vs-estimand mechanism was proposed and FALSIFIED** by its own within-model test (estimand rule
+scored .3580 vs .3459 for weight). Paragraph deleted. **Do not revive it.**
 
-**R5 was measured on the wrong tower** and is re-measured on certified ep31: sign gap at k=2
-**+0.023 → +0.0144**, graded premium **+0.0147 → +0.0102**, shape intact (gone by k=8). Cause was three
-chained stale snapshot defaults *and* `arm_n_sign_probe` being hardcoded to the i25 architecture, so the
-certified tower could not be loaded at all. See `stale-default-worse-than-missing-default`.
+**The inversion now has a mechanism** (the last review item, ~30 min not the estimated 4 h): at k=8, HELF
+returns **1.59** graded answers of eight against **3.10** (entropy0) and **3.05** (popularity). HELF's 1.59
+reproduces a 1.6 published independently in a footnote. Fold-in consumers are paid per graded answer and
+starve; Golbandi's tree is paid in partition, so an unanswerable question still routes a user. Stated
+limit: E0 and P differ by 0.05 answers and still swap, so this explains why HELF divides the table, not
+the rest.
 
-**Closed:** #88 user-kNN (graded−binary −0.0934 through one code path; the 89.9% fallback figure was the
-wrong statistic — 0.13% of realised top-10 slots), #89 RBMF, #90 iALS ladder, #91 our stale NATIVE cell
-(.4179→**.4244/.3017**), #93 R5, #94 re-selection. Verifier: **159 checks**, 0 mismatches, now including
-snapshot assertions. Chapter compiles, 40pp.
+### Verdict on file
+ACM TORS regular paper. **70–75% after one revision round** (second review, with the mechanism paragraph
+in). Avoid SIGIR/TOIS — "the method loses to RecVAE by 1%" triggers a reflexive reject there regardless of
+the methodological contribution.
 
-**Open on Paper A:** nothing measured. Remaining is editorial only --- a final read-through, and the
-author's call on whether iALS-with-confidence (.3495/.2566, NATIVE) enters the master table as its own
-row with input contract `g` or as a footnote to the iALS row. The NATIVE column is FROZEN by author
-decision: cells that failed their gate get a dash and one sentence, not another run.
+### Next: Paper B
+Live queue: **#52** (GO/NO-GO on across-user dispersion of top-K(mu) — decides the whole selector line),
+#53, #55, #56, #68, #70, #76. **Ready artefact:** `experiments/baselines/interview/adaptive_table_bald_aopt_v1.json`
+completed 2026-08-08 — BALD / A-opt / GLM-UCB / entropy0 / greedy-items × budgets 1–16 on the certified
+tower, 10k users, per-cell `answered` counts included. Nothing has been read from it yet.
 
 ## ★★★ TOP OF THE QUEUE — THE ORGANIC OPEN REQUEST (task #68, author idea 2026-07-31, CORRECTED SAME DAY)
 Memory: `reddit-mined-open-request-opener.md`. Full lit record:
