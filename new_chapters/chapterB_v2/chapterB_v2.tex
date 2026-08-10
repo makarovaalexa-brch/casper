@@ -312,12 +312,27 @@ its authors never evaluated. EDDI is not a recommender method at all --- its dat
 MIMIC and NHANES --- and enters here as an imported active-feature-acquisition function. We label
 these rows accordingly rather than reporting them as underperforming recommenders.
 
-The precedent for the difficulty is published. The Greedy SLIM authors attempted the same transfer
-and abandoned it: ``For Golbandi et al.\ and Sepliarskaia et al.\ we, unfortunately, obtained poor
-results. We therefore decided to not include them in our official experiments.'' We include them,
-labelled. So the contribution is narrower and firmer than ``the field optimises the wrong thing'':
-the surrogate-to-ranking transfer was \emph{demonstrated} by six of thirteen, \emph{assumed} by the
-other seven, and this battery is the first place that assumption is measured on one contract.
+The precedent here is a reproducibility one. A recent benchmark study working on this dataset and
+this metric --- ML-25M, NDCG@10, the same long-tail split --- set out to include the RMSE-era
+interview methods and could not: ``For Golbandi et al.\ and Sepliarskaia et al.\ we, unfortunately,
+obtained poor results. We therefore decided to not include them in our official experiments.'' Their
+own diagnosis follows a sentence later: ``the reproducibility issue within the recommender systems
+community is also an issue when it comes to questionnaires. \emph{We had to implement all the
+baselines we wanted to consider on our own.}'' We read that as a statement about the availability of
+working implementations rather than about the methods themselves, and note that the study is an
+unrefereed preprint.
+
+The consequence we draw is correspondingly narrow, and does not require interpreting anyone's
+failure: \textbf{the RMSE-era interview methods have not been successfully evaluated on a ranking
+metric by anyone, including a group that attempted it on this dataset and this metric.} That is the
+gap this battery fills, and it is why each port here is gated on reproducing its published
+construction natively \emph{before} it is scored on our ruler --- with the gate's failures reported
+as failures rather than quietly scored: EDDI's native snap did not pass, and Greedy SLIM's passed
+only in part.
+
+So the contribution is narrower and firmer than ``the field optimises the wrong thing'': the
+surrogate-to-ranking transfer was \emph{demonstrated} by six of thirteen, \emph{assumed} by the other
+seven, and this battery is the first place that assumption is measured on one contract.
 
 What the audit does establish is that our comparator is not merely \emph{a} strong static order but
 the only arm in the battery built by directly maximising the reported metric, and that a reader
