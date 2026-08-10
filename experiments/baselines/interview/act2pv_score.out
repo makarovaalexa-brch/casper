@@ -1,0 +1,90 @@
+[11:06:41] [preflight] free RAM 6096 MB
+[11:06:41] [preflight] OK
+[11:06:44] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[11:06:58] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[11:06:58] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[11:06:58] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[11:06:58] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[11:06:58] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[11:06:58] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[11:06:58] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[11:07:01] [ctx] all-bands reconstruction: 1411761 tokens; 7622 users with >=3 dislikes
+[11:07:16] [concepts] 1031 genome concepts (relevance>=0.5, >=30 members)
+[11:07:16] [cfold] concept_cv3_ep08.pt ep8 use_refusal=True
+[11:07:18] [bank] items=297 concepts=1031
+[11:07:18] [answer-model] L (median TEST profile) = 64
+[11:07:18] [states] fixedorder:entropy0      k=1: prefixes=     1 states=    11  (cum 11)
+[11:07:18] [states] fixedorder:entropy0      k=2: prefixes=     1 states=   112  (cum 123)
+[11:07:18] [states] fixedorder:entropy0      k=4: prefixes=     1 states=  1463  (cum 1586)
+[11:07:19] [states] fixedorder:entropy0      k=8: prefixes=     1 states=  5767  (cum 7353)
+[11:07:19] [states] golbandi_tree            k=1: prefixes=     1 states=    11  (cum 7364)
+[11:07:19] [states] golbandi_tree            k=2: prefixes=     3 states=    92  (cum 7456)
+[11:07:19] [states] golbandi_tree            k=4: prefixes=    25 states=  1054  (cum 8510)
+[11:07:19] [states] golbandi_tree            k=8: prefixes=   345 states=  5371  (cum 13881)
+[11:07:19] [states] glm_ucb                  k=1: prefixes=     1 states=    11  (cum 13892)
+[11:07:19] [states] glm_ucb                  k=2: prefixes=     3 states=    96  (cum 13988)
+[11:07:19] [states] glm_ucb                  k=4: prefixes=    22 states=  1391  (cum 15379)
+[11:07:20] [states] glm_ucb                  k=8: prefixes=   314 states=  5452  (cum 20831)
+[11:07:20] [states] fixedorder:greedy_items  k=1: prefixes=     1 states=    11  (cum 20842)
+[11:07:20] [states] fixedorder:greedy_items  k=2: prefixes=     1 states=    92  (cum 20934)
+[11:07:20] [states] fixedorder:greedy_items  k=4: prefixes=     1 states=  1160  (cum 22094)
+[11:07:20] [states] fixedorder:greedy_items  k=8: prefixes=     1 states=  3997  (cum 26091)
+[11:07:20] [states] thompson                 k=1: prefixes=   760 states=  1468  (cum 27525)
+[11:07:20] [states] thompson                 k=2: prefixes=  8006 states=  8727  (cum 36232)
+[11:07:20] [states] thompson                 k=4: prefixes= 10000 states=  9999  (cum 46231)
+[11:07:21] [states] thompson                 k=8: prefixes= 10000 states= 10000  (cum 56231)
+[11:07:21] [states] TOTAL distinct states = 56,231
+[11:07:21] [score] 56,231 of 56,231 states still to do
+[11:07:22] [score] 1/56,231 | 1.42s/state | eta 22.16 h
+[11:07:23] [score] 2/56,231 | 1.13s/state | eta 17.69 h
+[11:07:24] [score] 3/56,231 | 1.06s/state | eta 16.51 h
+[11:08:56] [score] 100/56,231 | 0.95s/state | eta 14.82 h
+[11:10:35] [score] 200/56,231 | 0.97s/state | eta 15.08 h
+[11:12:15] [score] 300/56,231 | 0.98s/state | eta 15.21 h
+[11:13:54] [score] 400/56,231 | 0.98s/state | eta 15.24 h
+[11:15:33] [score] 500/56,231 | 0.98s/state | eta 15.24 h
+[11:17:13] [score] 600/56,231 | 0.99s/state | eta 15.26 h
+[11:18:52] [score] 700/56,231 | 0.99s/state | eta 15.24 h
+[11:20:33] [score] 800/56,231 | 0.99s/state | eta 15.24 h
+[11:22:14] [score] 900/56,231 | 0.99s/state | eta 15.25 h
+[11:23:56] [score] 1,000/56,231 | 1.00s/state | eta 15.27 h
+[11:25:37] [score] 1,100/56,231 | 1.00s/state | eta 15.26 h
+[11:27:17] [score] 1,200/56,231 | 1.00s/state | eta 15.23 h
+[11:28:56] [score] 1,300/56,231 | 1.00s/state | eta 15.20 h
+[11:30:36] [score] 1,400/56,231 | 1.00s/state | eta 15.17 h
+[11:32:15] [score] 1,500/56,231 | 1.00s/state | eta 15.14 h
+[11:33:54] [score] 1,600/56,231 | 1.00s/state | eta 15.11 h
+[11:35:36] [score] 1,700/56,231 | 1.00s/state | eta 15.10 h
+[11:37:16] [score] 1,800/56,231 | 1.00s/state | eta 15.08 h
+[11:38:58] [score] 1,900/56,231 | 1.00s/state | eta 15.06 h
+[11:40:39] [score] 2,000/56,231 | 1.00s/state | eta 15.05 h
+[11:42:20] [score] 2,100/56,231 | 1.00s/state | eta 15.03 h
+[11:44:02] [score] 2,200/56,231 | 1.00s/state | eta 15.02 h
+[11:45:44] [score] 2,300/56,231 | 1.00s/state | eta 15.00 h
+[11:47:25] [score] 2,400/56,231 | 1.00s/state | eta 14.98 h
+[11:49:05] [score] 2,500/56,231 | 1.00s/state | eta 14.95 h
+[11:50:48] [score] 2,600/56,231 | 1.00s/state | eta 14.94 h
+[11:52:29] [score] 2,700/56,231 | 1.00s/state | eta 14.92 h
+[11:54:11] [score] 2,800/56,231 | 1.00s/state | eta 14.90 h
+[11:55:53] [score] 2,900/56,231 | 1.00s/state | eta 14.87 h
+[11:57:34] [score] 3,000/56,231 | 1.00s/state | eta 14.85 h
+[11:59:17] [score] 3,100/56,231 | 1.01s/state | eta 14.83 h
+[12:03:00] [score] 3,200/56,231 | 1.04s/state | eta 15.37 h
+[12:07:39] [score] 3,300/56,231 | 1.10s/state | eta 16.12 h
+[12:12:20] [score] 3,400/56,231 | 1.15s/state | eta 16.83 h
+[12:17:02] [score] 3,500/56,231 | 1.19s/state | eta 17.50 h
+[12:21:46] [score] 3,600/56,231 | 1.24s/state | eta 18.13 h
+[12:26:33] [score] 3,700/56,231 | 1.28s/state | eta 18.74 h
+[12:31:19] [score] 3,800/56,231 | 1.33s/state | eta 19.31 h
+[12:36:03] [score] 3,900/56,231 | 1.36s/state | eta 19.84 h
+[12:40:48] [score] 4,000/56,231 | 1.40s/state | eta 20.34 h
+[12:45:39] [score] 4,100/56,231 | 1.44s/state | eta 20.83 h
+[12:50:26] [score] 4,200/56,231 | 1.47s/state | eta 21.29 h
+[12:55:19] [score] 4,300/56,231 | 1.51s/state | eta 21.73 h
+[13:00:11] [score] 4,400/56,231 | 1.54s/state | eta 22.15 h
+[13:05:16] [score] 4,500/56,231 | 1.57s/state | eta 22.59 h
+[13:10:26] [score] 4,600/56,231 | 1.61s/state | eta 23.02 h
+[13:15:19] [score] 4,700/56,231 | 1.63s/state | eta 23.39 h
+[13:20:18] [score] 4,800/56,231 | 1.66s/state | eta 23.74 h
+[13:25:01] [score] 4,900/56,231 | 1.69s/state | eta 24.03 h
+[13:31:02] [score] 5,000/56,231 | 1.72s/state | eta 24.54 h

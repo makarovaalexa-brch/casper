@@ -1,6 +1,20 @@
 # Repo cleanup audit — 2026-08-10
 
-**Nothing has been deleted.** This is a classification for the author to approve. The project has a scar
+> **EXECUTED the same day, author-approved.** `.cache` **11 GB → 8.2 GB**; 58 zero-byte `.err` removed;
+> 33 of 35 `t2i26c` epoch checkpoints, the three `t2warm` generations, both retired-arena probe caches and
+> the i25-EP4 cache deleted. Four superseded docs moved to `docs/archive/` and every archived file
+> bannered. **Gate passed after deletion: 165/165 checks, and the certified chain still constructs** —
+> ep31 loads (arch i26, val_full .3466) and the RecVAE teacher resolves, now from `models/`.
+>
+> **The audit changed during execution.** Answering "any more to keep?" surfaced that
+> `models/i26c_ep31/` was **not self-sufficient**: `build_i26` needs the frozen RecVAE decoder to
+> construct the architecture before ep31's weights can load, and that 347 MB file existed only in the
+> gitignored scratch we were about to prune. Five baseline checkpoints (1.05 GB) were rescued to
+> `models/baselines_ml25m_liang/` with a committed sha256 manifest before anything was deleted. Had the
+> cleanup run as first written, the certified tower would have become unloadable — the exact
+> `anchor-provenance-hole-pbc-recvae` failure, one level up.
+
+This was a classification for the author to approve. The project has a scar
 here: pbC's recorded $0.4946$ became permanently unreproducible when its weights were lost
 (memory `anchor-provenance-hole-pbc-recvae`), so the rule applied throughout is *a file that backs a
 number we still cite is not clutter, whatever its size*.

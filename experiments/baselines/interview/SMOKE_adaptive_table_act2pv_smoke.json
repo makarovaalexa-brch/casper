@@ -1,0 +1,311 @@
+{
+  "meta": {
+    "selectors": [
+      "thompson",
+      "glm_ucb",
+      "golbandi_tree",
+      "fixedorder:entropy0",
+      "fixedorder:greedy_items"
+    ],
+    "budgets": [
+      1,
+      2
+    ],
+    "consumers": [
+      "ours"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 200,
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "golbandi": {
+      "depth": 8,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": ".cache/snap5/tree_ml25m_liang_d8.json"
+    },
+    "_contract": {
+      "n_users": 200,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 8,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": ".cache/snap5/tree_ml25m_liang_d8.json",
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "igcn_clusters": 300,
+      "igcn_nbr": 150,
+      "igcn_switch": 5,
+      "igcn_recompute": 1,
+      "igcn_kmeans_iter": 10,
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 200,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 1,
+      "specs": [
+        "thompson",
+        "glm_ucb",
+        "golbandi_tree",
+        "fixedorder:entropy0",
+        "fixedorder:greedy_items"
+      ],
+      "budgets": [
+        1,
+        2
+      ],
+      "consumers": [
+        "ours"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    },
+    "SMOKE_NOT_CITABLE": true,
+    "smoke_users": 200
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16295431422935305,
+        "tail": 0.029945854193633506
+      }
+    },
+    "ours": {
+      "thompson": {
+        "k1": {
+          "full": 0.1609659050234122,
+          "tail": 0.02661605506988965,
+          "answered": 0.24,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 118,
+          "cache": {
+            "_chol": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 1,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.5
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k2": {
+          "full": 0.17158392662474195,
+          "tail": 0.04209879198248456,
+          "answered": 0.465,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 200,
+          "cache": {
+            "_chol": {
+              "size": 43,
+              "cap": 4096,
+              "hits": 1,
+              "misses": 43,
+              "evictions": 0,
+              "hit_rate": 0.0227
+            },
+            "_mu": {
+              "size": 43,
+              "cap": 4096,
+              "hits": 44,
+              "misses": 43,
+              "evictions": 0,
+              "hit_rate": 0.5057
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        }
+      },
+      "glm_ucb": {
+        "k1": {
+          "full": 0.1638601367875478,
+          "tail": 0.03481657614167626,
+          "answered": 0.415,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 1,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.5
+            },
+            "_width": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k2": {
+          "full": 0.1712047553221069,
+          "tail": 0.04024306460957295,
+          "answered": 0.81,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "cache": {
+            "_mu": {
+              "size": 7,
+              "cap": 4096,
+              "hits": 3,
+              "misses": 7,
+              "evictions": 0,
+              "hit_rate": 0.3
+            },
+            "_width": {
+              "size": 2,
+              "cap": 4096,
+              "hits": 6,
+              "misses": 2,
+              "evictions": 0,
+              "hit_rate": 0.75
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        }
+      },
+      "golbandi_tree": {
+        "k1": {
+          "full": 0.16141238542961822,
+          "tail": 0.03733732769535259,
+          "answered": 0.255,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1,
+          "fallback_asks": 0,
+          "total_asks": 200,
+          "fallback_rate": 0.0,
+          "tree_nodes": 1360,
+          "tree_depth": 8
+        },
+        "k2": {
+          "full": 0.16116200482931264,
+          "tail": 0.03845963310435143,
+          "answered": 0.615,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 3,
+          "fallback_asks": 0,
+          "total_asks": 400,
+          "fallback_rate": 0.0,
+          "tree_nodes": 1360,
+          "tree_depth": 8
+        }
+      },
+      "fixedorder:entropy0": {
+        "k1": {
+          "full": 0.15788454507283553,
+          "tail": 0.04019875648231342,
+          "answered": 0.38,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.16733185228949446,
+          "tail": 0.046944139532164225,
+          "answered": 0.82,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        }
+      },
+      "fixedorder:greedy_items": {
+        "k1": {
+          "full": 0.17807617276788573,
+          "tail": 0.0409129580962436,
+          "answered": 0.305,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.19959126468879312,
+          "tail": 0.05492915425115366,
+          "answered": 0.575,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.01,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        }
+      }
+    }
+  }
+}
