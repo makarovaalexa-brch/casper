@@ -449,3 +449,38 @@ Not yet in `references.bib`. Verification level: [V]=primary text, [A]=abstract 
 | canamares2020targetsampling | Cañamares & Castells 2020 | On Target Item Sampling in Offline Recommender System Evaluation | RecSys '20, DOI 10.1145/3383313.3412259 | ⚠ **NOT OBTAINED — closed access, no OA copy (Unpaywall: zero locations).** Its TITLE is the closest match to our candidate-masking question in the entire literature. **VERIFICATION DEBT: pull through institutional access BEFORE writing any novelty claim about candidate-set construction** — a reviewer will ask. [S metadata only] | rec-model | A,B |
 | canamares2018crowd | Cañamares & Castells 2018 | Should I Follow the Crowd? A Probabilistic Analysis of the Effectiveness of Popularity | SIGIR '18 pp. 415–424, DOI 10.1145/3209978.3210014 | Crowdsourced unbiased dataset showing *"**contradictions between the accuracy that would be measured in a common biased offline experimental setting, and the actual accuracy that can be measured with unbiased observations**"*; finds conditions under which popularity is effective *"or quite the opposite"*. Cite for the general principle that a filtered/biased candidate set is not a neutral choice; **silent on asked items.** **Closed access confirmed** (S2 `CLOSED`, no OA location, ir.ii.uam.es offline). [A abstract verbatim] | rec-model | A,B |
 | gupta2024selectionbias | Gupta et al. 2024 | Selection bias in preference elicitation (IPS) | arXiv:2405.00554 | *Which items you ask about* is itself a biased sample; ignoring it degrades downstream recommendation. Already logged in `findings/adaptive_elicitation_baselines.md` §5; this file is the justification for the note that our fixed strategy-independent pool is the guard. [V per earlier pass] | elicit-AL | B |
+
+## Addendum — WHAT EACH BASELINE'S ORIGINAL PAPER *REPORTED* (added 2026-08-10; see `findings/baseline_reported_metrics.md`)
+
+> Companion to `docs/results/BASELINE_OBJECTIVE_AUDIT.md` (which audits what each selector *optimises*).
+> Author's question: **"did we pick wrong baselines where the authors did not care about NDCG?"** For all 13
+> named methods: (a) headline metric actually reported, (b) primary or auxiliary, (c) was a ranking-improvement
+> claim made and the verbatim quote, (d) dataset + interview budget. Full per-method records + summary table →
+> `findings/baseline_reported_metrics.md`.
+>
+> **VERDICT: the answer is NO, but the battery is three different things and the chapter must label them.**
+> **Tally over 13 source papers: 5 report a RANKING metric as the PRIMARY result and claim a ranking gain**
+> (DRE WWW'20 NDCG@N; **Greedy SLIM/QGSLIM 2024 NDCG@10 all+tail on ML-25M with our exact Cremonesi tail**;
+> RBMF RecSys'11 P@10/MAP/AUC — the paper that *starts* the ranking era in this family; DPE WSDM'21
+> nDCG@10/@100 but **curves only, zero scalars**; PEBOL RecSys'24 MRR@10 on a **100-item** catalogue) —
+> **+ SPQ/A-optimal RecSys'18 P@10 makes 6.** For these the comparison is fair on their own headline.
+> **5 report RATING ERROR only** (Golbandi WSDM'11 + CIKM'10 **RMSE**; Rashid IUI'02 & SIGKDD-Expl'08 —
+> the source of entropy0/HELF/popularity/pure_entropy **and** IGCN — **MAE** + #seen + Expected Utility;
+> fMF SIGIR'11 **RMSE**; EDDI ICML'19 **RMSE/NLL information curves, and it is not a recsys paper at all** —
+> verified 0 hits for "MovieLens"/"rating" in the full PDF, datasets are UCI/MNIST/MIMIC/NHANES).
+> **3 report CUMULATIVE REGRET with no held-out target** (ConUCB, ConLinUCB-MCR/-BS AAAI'23, CLiME KDD'25 —
+> whose "ML-25M" is 5,000 arms / 200 users / T=6,000 rounds).
+> **★ Golbandi self-disclaims being a recommender**: *"a decision-tree recommender delivers a quite high RMSE.
+> This makes decision-trees undesirable as a traditional recommendation system."* It is an INSTRUMENT paper,
+> like Paper A. **★ Greedy SLIM's group TRIED to put the RMSE lineage in an NDCG table and failed** —
+> *"For Golbandi et al. [2011] and Sepliarskaia et al. [2018] we, unfortunately, obtained poor results. We
+> therefore decided to not include them in our official experiments"* — both a warning and the published
+> precedent that our faithful ports are a contribution. **★ `conlinucb_bs_static` and `dpe_concept` are OUR
+> deviations, not published arms** (DPE's bandit is over topics but its QUESTIONS are items).
+> **ACTIONS:** split the battery table into ranking-validated / rating-error-lineage / regret-lineage /
+> imported-acquisition blocks; carry the `interview_strategies.py:24-26` sentence ("the published ranks
+> transfer as PRIORS, not as certified numbers") into the chapter caption; never table Golbandi/fMF/Rashid
+> published numbers beside ours, cite the ordering only. This does NOT soften the objective audit — it explains
+> why a surrogate is reasonable and shows the surrogate→ranking transfer was only ever *demonstrated* by 6 of 13.
+> **Open debts:** EDDI's "AUIC" wording is [V-prior] (the PMLR PDF is image-only); ConUCB's venue WWW'20 vs
+> SIGIR'20 needs confirming before the bib freezes. `rel=B,A`.
