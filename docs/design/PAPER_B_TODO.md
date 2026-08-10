@@ -47,7 +47,8 @@ finding**. Floored arm done. Oracle ceiling measured.
 | **1.9** | Golbandi with OUR objective = the recursive version of 1.7 (split at every turn, not once). **Structural rewrite, not a local change** — see `docs/results/BASELINE_OBJECTIVE_AUDIT.md`: no held-out targets in the growth contract, the Eq. 3/4 subtraction trick dies, and the stopping test inverts. Do NOT start before 1.7. | open, expensive |
 | — | **★ AUDIT LANDED**: `docs/results/BASELINE_OBJECTIVE_AUDIT.md`. **1 of 21 distinct selection rules optimises held-out ranking quality — ours.** 12 of 23 rows are VALUE-FREE (adapt to which questions were answerable, never to what was answered). `conlinucb_bs_static` joins `bald`/`aopt` as structurally non-adaptive. This reframes Act 1 and belongs in the paper as a table. | recorded |
 | — | fMF | **RULED OUT by the author** |
-| — | RBMF, RMVA, PERE, GreedyExtend, MeLU, PEBOL, a-stratification, SEL-BALD | dropped, reasons recorded |
+| **1.10** | **★ RBMF (maxvol selector) — UN-DROPPED 2026-08-10.** The reported-metric audit puts it in the *fair-fight* half: Liu et al., RecSys 2011 reported **P@10, MAP, AUC as its primary result**, claimed an improvement over MostPopular (.501 vs .432), and evaluated at **k = 5, 10, 20** — straddling our budgets exactly. Dropping a baseline whose authors claimed the very thing we measure, at our budgets, is the kind of gap a reviewer finds. Re-run the snap (was task "SNAP 2"), then port. | **OPEN — reinstated** |
+| — | RMVA, PERE, GreedyExtend, MeLU, PEBOL, a-stratification, SEL-BALD | dropped, reasons recorded |
 
 ## ACT 2 — the mechanism. **MEASURED, AND IT CHANGED THE STORY.**
 
