@@ -52,12 +52,17 @@ with, including the one each was built for. The loss is not for want of branchin
 sampling gives all 10{,}000 users a distinct interview by the fourth question and still loses. On
 the fifth recommender the ordering reverses, and we report why: which selector wins depends on
 which recommender one assumes, so a selection result stated without its consumer is not a result.
-\textbf{(ii) A mechanism.} Adaptive selection can only pay where users occupy distinguishable
-states, and standard question banks do not create them: after two standard openers, 10{,}000 cold
-users occupy 112 distinct states and the loss-optimal next question collapses to an effective 5.0
-distinct questions. A single free-text request places its author in an essentially unique state and
-the loss-optimal next question spreads to an effective 95. Adaptivity has nothing to be right about
-until the user has been placed. \textbf{(iii) Coarse-to-fine, as a consequence rather than a
+\textbf{(ii) A mechanism, and a correction to the obvious version of it.} Adaptive selection
+can only pay where users occupy distinguishable states, and standard question banks barely create
+them: after two standard openers, 10{,}000 cold users occupy 112 distinct states and the
+loss-optimal next question collapses to an effective 5.0 distinct questions, while a single
+free-text request spreads it to an effective 95. It is tempting to stop there and conclude that
+adaptivity has nothing to be right about. Ranking the same ten thousand users by how much a
+perfect personaliser would gain on their own state shows otherwise: three quarters have strictly
+positive room at eight questions, and the adaptive-minus-static deficit \emph{widens} with it ---
+thirty-eight of forty-eight separated comparisons, none in the opposite direction, and nothing
+under a shuffled control. The exploitable structure is scarce but real, and it goes uncashed.
+\textbf{(iii) Coarse-to-fine, as a consequence rather than a
 design.} Nobody specified a curriculum, yet the greedy prefix-optimal sequence opens with three
 broad concept questions and hands over to specific item questions in its back half; the
 loss-optimal channel flips from concept to item exactly as placement improves. We trace this to
@@ -69,14 +74,25 @@ difference-in-differences; Section~\ref{sec:act3}}
 
 \section{Introduction}
 
-\paragraph{The claim this chapter makes.} \emph{Adaptivity pays once the interview has placed the
-user, and when it pays, the structure that emerges is coarse-to-fine. Standard elicitation mostly
-does not reach that regime --- which is why the field's methods, replicated faithfully and scored
-on one ruler, fall below a well-chosen fixed order.} The evidence is a conditional rather than a
-null: across four method families and sixteen selectors, adaptive selection loses at every budget
-we test --- except that one published adaptive method, an interview tree, crosses over and wins once
-it has enough depth to partition users. Section~\ref{sec:act1result} states exactly how far that
-generalises, which is not as far as we would like.
+\paragraph{The claim this chapter makes.} \emph{Cold-start interviews do contain exploitable
+per-user structure, and published adaptive selectors do not exploit it --- they fail most severely
+exactly where it is largest.} That is a sharper statement than the one we set out to make, and it
+is not the one the literature's framing would predict. Across six method families and twenty-one
+selectors on a single ruler, adaptive selection loses to a well-chosen fixed order at every budget
+we test. The obvious explanation --- that cold users are too alike for adaptivity to have anything
+to work with --- is measured in Section~\ref{sec:act2} and is \emph{wrong as a complete account}:
+rank the same ten thousand users by how much a perfect personaliser would gain on their own state,
+and the adaptive-minus-static deficit \emph{widens} monotonically with that quantity, in thirty-eight
+of forty-eight separated comparisons and none in the opposite direction. Divergence is scarce, and
+what little exists goes uncashed.
+
+Two consequences follow, and both are stated where they arise rather than smoothed over. The one
+selector that beats the static order overall does so \emph{entirely} among users for whom
+personalising is worth nothing (Section~\ref{sec:act1result}) --- it is a better fixed opener, not
+an exploiter of structure. And the structure that goes unexploited has an identifiable shape: the
+loss-optimal question is a \emph{concept} rather than an item for essentially every user at every
+budget, while every adaptive selector in this battery chooses from the item bank
+(Section~\ref{sec:act4}).
 
 \paragraph{What this chapter is not claiming.} It is not claiming that selection does not matter:
 the difference between a good and a bad static order is large (a fixed bank moves full NDCG@10 from
@@ -197,12 +213,19 @@ gives all $10{,}000$ users a distinct interview by the fourth question and still
 part of the result that is robust, contract-invariant (it survives the floored arm unchanged), and
 supported by four independent method families.
 
-\paragraph{(c) But one published adaptive method does win, once it has depth --- and that is the
-finding this chapter should be read for.} Golbandi's interview tree loses at one and two questions
-($-.0078$ and $-.0092$ against entropy$_0$, both separated) and \emph{wins} at eight ($+.0064$ full,
-$+.0052$ tail, separated); against the strongest static order it takes the tail at eight questions
-($+.0068$, CI $[+.0039,+.0098]$) while losing full at every budget. A depth-8 tree cannot partition
-anything until it has depth, so the crossover sits exactly where the mechanism predicts it should.
+\paragraph{(c) One published adaptive method does beat the static order --- but not by adapting.}
+Golbandi's interview tree loses at one and two questions ($-.0078$ and $-.0092$ against
+entropy$_0$, both separated) and \emph{wins} at eight ($+.0064$ full, $+.0052$ tail, separated);
+against the strongest static order it takes the tail at eight questions ($+.0068$, CI
+$[+.0039,+.0098]$) while losing full at every budget. We first read that as adaptivity beginning to
+pay once a tree has enough depth to partition users. The stratification in Section~
+ef{sec:act2}
+refutes that reading: 	extbf{the whole of the tree's advantage sits among users for whom
+personalising is worth exactly nothing} --- $+.0243$ full at eight questions in the zero-value
+quartile, decaying monotonically to $-.0003$ in the highest. It is therefore a better \emph{fixed}
+opener for the un-personalisable, not a method that converts per-user structure into accuracy. We
+report the correction because the first reading is the one a reader would reach unaided, and the
+data do not support it.
 
 \paragraph{The claim, stated conditionally.} Adaptive selection does not pay in the regime the field
 evaluates in --- short budgets, closed item banks, cold users who occupy barely distinguishable
