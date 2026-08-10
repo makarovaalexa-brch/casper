@@ -274,6 +274,37 @@ what a search optimised for that pool would reach (conservative, in the directio
 own claim), and \REDO{a greedy re-run whose selection contract is the protocol pool, plus paired
 CIs on every gap}
 
+\paragraph{This is not a housekeeping point: a published adaptive-degradation result is
+manufactured by it.} The most direct evidence we have that candidate and target formation are
+load-bearing comes from outside our own harness. A recent preprint reports, on this very dataset
+and metric, that an adaptive questionnaire's accuracy \emph{falls} past roughly ten questions while
+a static one keeps rising --- and, to its authors' credit, attributes the fall to their own protocol
+rather than to adaptivity. We rebuilt their setup and ran the ablation their text implies. The
+decline is indeed an artefact of protocol, but of a different part of it than they name, and the
+two parts are separable.
+
+They blame the rule forbidding a questionnaire to recommend the items it asked about, i.e. a
+restriction of the \emph{candidate pool}. In their setup that pool is already restricted to items
+the user has not rated, so an \emph{answered} item is excluded regardless; their extra rule removes
+only asked-but-unanswered items, which offline are guaranteed non-targets. Removing non-targets from
+a candidate pool is close to free --- and indeed switching their rule off makes the decline
+\emph{steeper} ($-46\%$ against $-14\%$), which cannot happen if that rule is the cause.
+
+What actually shrinks is the \emph{target set}. Their design gives a test user no held-out split, so
+the same ratings serve as the answers and as the ground truth: every answered question converts an
+item the metric could have credited into an item it can no longer see. Under an arm-independent
+held-out split the decline disappears completely and the adaptive arm rises monotonically
+($.1637 \to .1761 \to .1857 \to .1936$), while a popularity control declines only $-.012$ against
+the adaptive arm's $-.045$ at a matched answer rate --- so the effect is carried by adaptivity, as
+they said, and removed by the protocol, as they suspected.
+
+The general form is the rule we adopt: \textbf{the ground truth must not depend on what was asked.}
+A protocol that violates it penalises exactly the arms that ask well, and the penalty compounds with
+budget, so it is most severe for the methods a study is usually trying to promote. We cite that
+paper as motivation rather than as a counterexample: it observed something real, diagnosed it as
+protocol rather than blaming the method, and its residual mis-attribution is precisely the
+distinction this section exists to draw.
+
 \begin{table}[t]
 \centering
 \caption{Adaptive selectors versus a static order, consumer = the certified tower, $10{,}000$ test
@@ -359,6 +390,20 @@ random (catalogue) & static & .1585/.0310 & .1588/.0310 & .1589/.0318 & .1593/.0
 GLM-UCB & adaptive & .1606/.0400 & .1635/.0452 & .1756/.0578 & .1902/.0673 & .2161/.0833 & 5.24 \\
 Thompson & adaptive & .1627/.0376 & .1676/.0437 & .1748/.0551 & .1908/.0677 & .2135/.0878 & 3.39 \\
 latent-only info-gain$^\dagger$ & adaptive & .1537/.0336 & .1539/.0373 & .1618/.0432 & .1747/.0611 & .1917/.0749 & 3.84 \\
+\midrule
+\multicolumn{8}{l}{\emph{published methods, snap-validated and ported}}\\
+Golbandi tree (WSDM'11) & adaptive & .1557/.0351 & .1614/.0478 & .1864/.0650 & .2117/.0844 & --- & 2.75 \\
+DRE (WWW'20) & learned static & .1658/.0396 & .1693/.0465 & .1763/.0586 & .2074/.0789 & .2185/.0898 & 4.6 \\
+CLiME (KDD'25) & adaptive & .1606/.0400 & .1634/.0452 & .1776/.0549 & .1914/.0701 & .2218/.0897 & 4.80 \\
+ConLinUCB-BS-static & static (concepts) & .1644/.0374 & .1659/.0402 & .1724/.0468 & .1829/.0598 & .1891/.0700 & 0.00 \\
+ConUCB (WWW'20) & adaptive & .1584/.0346 & .1591/.0364 & .1651/.0447 & .1805/.0574 & .1874/.0699 & 1.80 \\
+DPE-Hellinger (WSDM'21) & adaptive & .1627/.0398 & .1680/.0480 & .1817/.0610 & .2002/.0765 & .2192/.0925 & 3.9 \\
+DPE-ILD (WSDM'21) & adaptive & .1627/.0398 & .1621/.0401 & .1613/.0397 & .1609/.0390 & .1603/.0375 & 0.32 \\
+BALD (2011)$^\S$ & value-free & .1754/.0448 & .1853/.0473 & .1934/.0572 & .2057/.0683 & .2203/.0824 & 2.80 \\
+A-optimal (ICML'06)$^\S$ & value-free & .1693/.0498 & .1724/.0523 & .1702/.0549 & .1694/.0544 & .1740/.0563 & 1.81 \\
+\midrule
+\multicolumn{8}{l}{\emph{ceiling --- reads the user's own ratings at selection time; NEVER a baseline}}\\
+clairvoyant oracle & --- & .1893/.0680 & .2194/.0965 & .2544/.1281 & .2930/.1597 & \textbf{.3292/.1927} & 12.9 \\
 \bottomrule
 \end{tabular}
 \end{table}
