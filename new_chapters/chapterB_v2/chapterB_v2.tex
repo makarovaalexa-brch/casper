@@ -649,6 +649,26 @@ an effective $95$. Adaptive and static policies downstream of a closed opener ar
 a handful of distinguishable situations; that is the regime in which Act 1's null was measured, and
 it is the regime the field's evaluations inhabit.
 
+\paragraph{The same measurement, read against what the selectors actually did.} Act~1 records that
+Thompson sampling gives all $10{,}000$ users a distinct interview by the fourth question, and that
+GLM-UCB reaches $5{,}739$ distinct interviews by the sixteenth. Set those against the table above:
+downstream of two standard openers there are roughly \emph{five} questions genuinely worth asking.
+A selector can therefore manufacture thousands of different interviews while choosing among a
+handful of materially different options --- which is what ``divergence without exploitability''
+means, stated as two numbers from two independent measurements rather than as an interpretation.
+
+\paragraph{What the placement figure does and does not compare.} The bottom rows of
+Table~\ref{tab:dispersion} are a different population from the top rows: $4{,}431$ people who wrote
+a free-text request, against $10{,}000$ MovieLens users. The contrast is therefore between
+\emph{regimes}, not a within-user effect, and on its own it establishes that placement and
+dispersion travel together rather than that one causes the other.
+\PLAN{a within-user version: rank the same $10{,}000$ users by how much a perfect personaliser
+would gain over a one-size-fits-all order on their own state, cut into quartiles, and report the
+adaptive-minus-static gap per quartile. If the gap tracks that quantity the mechanism is measured on
+one population; if it does not, the honest reading changes from ``there is nothing to adapt to'' to
+``the methods cannot find it'', which is a different claim and would redirect
+Section~\ref{sec:act4}}
+
 Two guardrails travel with this figure and must not be dropped. First, \textbf{dispersion is not
 payoff}: Section~\ref{sec:act1} shows a policy can manufacture ten thousand distinct interviews and
 still lose, so a divergent criterion surface is necessary, not sufficient. Second, \textbf{headroom

@@ -31,7 +31,7 @@ For each quartile report the **adaptive-minus-static gap** (per-user paired, sam
 everywhere else: in-run `fixedorder:` comparators, paired percentile bootstrap, 10k resamples,
 seed 98765).
 
-**The pre-registered reading, both branches publishable:**
+**How to read it (author ruling 2026-08-10: no pre-registration -- just run it and report what comes out):**
 * **Gap grows with PV** → the mechanism is measured on the same users. "Adaptivity fails because
   there is nothing to adapt to" becomes a demonstrated relationship rather than a story.
 * **Gap flat or absent even in the top quartile** → the story is *not* "nothing to adapt to" but
@@ -101,9 +101,13 @@ Act-2 stratification — it is the **Act-3 intervention**. The distinction:
 | what it shows | that the gap tracks the constraint | that relieving the constraint changes the outcome |
 | Reddit's role | none (ML users only) | supplies what real open answers look like |
 
-Act 2 measures the constraint; Act 3 relieves it. The genre/film emulation, the pre-registered
-answer rule and its sensitivity row all stay in Act 3 (`sec:act3`), with the 9-point threat model
+Act 2 measures the constraint; Act 3 relieves it. The genre/film emulation, the answer rule and its sensitivity row all stay in Act 3 (`sec:act3`), with the 9-point threat model
 already recorded in `PAPER_B_DESIGN.md`.
+
+**No pre-registration.** The author has ruled (2026-08-03, reaffirmed 2026-08-10) that Paper B does
+not pre-register; the internal exploratory/confirmatory ledger in `PAPER_B_EVIDENCE_POLICY.md` is
+the substitute. The two readings above are stated so the result is not retrofitted after the fact,
+not as a registration.
 
 ---
 
