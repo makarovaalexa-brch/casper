@@ -49,7 +49,7 @@ the job failing. If ever resumed, drive it from a real console, not a background
 
 *Defect found and fixed in the same pass:* the §6 scope sentence counted `b.get('status')` — a key that
 does not exist in the branching dict, so it was always falsy and every cell counted as scored ("20 of
-20") beside a table showing 12 cells *not scored*. Now counts `b['scored']`; reads 11 of 20, which matches
+20") beside a table showing 9 rows *not scored*. Now counts `b['scored']`; reads 11 of 20, which matches
 an independently derived cell list.
 
 ## ★★★ 2026-08-10 — PAPER A CLOSED. Author read-through pending; not submitting yet. Focus moves to Paper B.
