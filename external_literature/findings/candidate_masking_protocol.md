@@ -250,6 +250,23 @@ user **no held-out split**, so every answered question deletes one of that user'
 under an arm-independent held-out split (= our policy B) the decline **disappears entirely**
 (Q_Bandit .1637→.1761→.1857→.1936, monotone on both axes), while a popularity control declines only −.012
 against Q_Bandit's −.045 at a matched answer rate, so **adaptivity carries the effect**.
+**The distinction, stated fairly (refined 2026-08-10 after author challenge).** Both explanations
+are about "asked items disappearing", but from **two different sets**:
+
+* the **candidate pool** — what the recommender may rank. This is the rule their §6.5 names. In
+  their setup the pool is *already* restricted to items the user has not rated, so an **answered**
+  item is excluded anyway; their extra rule removes only asked-**unanswered** items, which offline
+  are guaranteed non-targets. Deleting non-targets from the pool is nearly free — and indeed
+  turning the rule OFF makes the decline *worse*, which is impossible if it were the cause.
+* the **target set** — the held-out items the metric scores against. This is what actually shrinks,
+  because a test user has **no held-out split**: their ratings are simultaneously the answers and
+  the ground truth, so every answered question converts a scorable target into a known item.
+
+So the authors identify the right **symptom** (asked items vanish) and the wrong **mechanism**
+(they blame the pool; the damage is in the targets). The two are separable and we separate them.
+The fair summary is therefore *"right symptom, wrong set"* — not "their cause does not reproduce",
+which overstates the disagreement.
+
 The honest line is: **the decline reproduces; the stated cause does not.** It is a
 popularity-of-asked-items × target-formation interaction, not a property of adaptivity. Q_Bandit (Christakopoulou et al. 2016) asks popular items;
 Q_GSLIM does not. Note also Q_Bandit still **wins at short budgets** (*"Q_Bandit clearly outperforms

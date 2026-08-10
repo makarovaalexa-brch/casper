@@ -36,6 +36,23 @@ persists without the rule — **with the sign reversed from their explanation**:
   budget, growing with budget). It was **masking** a steeper decline: without it QBandit falls
   **−46%** instead of −14%.
 
+**The distinction, stated fairly (refined 2026-08-10 after author challenge).** Both explanations
+are about "asked items disappearing", but from **two different sets**:
+
+* the **candidate pool** — what the recommender may rank. This is the rule their §6.5 names. In
+  their setup the pool is *already* restricted to items the user has not rated, so an **answered**
+  item is excluded anyway; their extra rule removes only asked-**unanswered** items, which offline
+  are guaranteed non-targets. Deleting non-targets from the pool is nearly free — and indeed
+  turning the rule OFF makes the decline *worse*, which is impossible if it were the cause.
+* the **target set** — the held-out items the metric scores against. This is what actually shrinks,
+  because a test user has **no held-out split**: their ratings are simultaneously the answers and
+  the ground truth, so every answered question converts a scorable target into a known item.
+
+So the authors identify the right **symptom** (asked items vanish) and the wrong **mechanism**
+(they blame the pool; the damage is in the targets). The two are separable and we separate them.
+The fair summary is therefore *"right symptom, wrong set"* — not "their cause does not reproduce",
+which overstates the disagreement.
+
 **The real cause, isolated:** their design gives a test user **no held-out split**, so every
 answered question deletes one of that user's own high-gain targets. Under **ARM A** — a fixed 20%
 held out *before* the interview, so the ground truth is arm-independent — **the decline disappears
