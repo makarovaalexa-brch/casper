@@ -1203,7 +1203,7 @@ answer to ``which channel is better?'' is not a property of the channels alone, 
 structural point this chapter makes about the recommender in \S\ref{sec:instrdep}, now for the selection
 criterion.
 
-\paragraph{The concept channel's advantage is answerability, which is neither new nor surprising.}
+\paragraph{The concept channel's advantage is answerability, which is neither new nor surprising.}\label{sec:answerability}
 That a cold user can answer a question about a broad property more readily than one about a particular
 title is close to common sense: the concept question asks whether they like a kind of film, the item
 question presupposes they have seen a specific one. We claim no discovery here, and the direction is
@@ -1624,7 +1624,22 @@ recommender, would be reporting something true and non-transferable. This is the
 which elicitation results are instrument-relative, and it is why we think a documented, certified, reusable
 consumer is a contribution rather than plumbing.
 
-\emph{This disagreement is not attributable to weak recommenders.} The likes-only RecVAE row is the control: it is the same frontier-accuracy model that sets the R1 bar, given the crudest interface an
+\emph{What the consumers disagree about is what to do with a question nobody can answer.} The three
+heuristics do not put equal numbers of graded answers in front of a model. Over the same $10{,}000$ users
+at $k{=}8$, \textsc{helf} returns $1.59$ graded answers of eight, against $3.10$ for \textsc{entropy0} and
+$3.05$ for \textsc{popularity}: a maximally divisive item is one few people have seen, so the strategy that
+finds the most discriminative questions also finds the least answerable ones. A consumer that folds
+observations is paid per graded answer, and \textsc{helf} therefore starves it---which is where the
+likes-only RecVAE ($0.1003$) and RBMF ($0.0698$) sit. The Golbandi node model is paid differently: it
+partitions users into lovers, haters and unknowns, so a question the user cannot answer still routes them,
+and the same $1.59$-answer interview is the one it does best on ($0.1948$, its own strongest cell and the
+strongest \textsc{helf} cell in the table). This is the instrument-relativity of answerability
+(\S\ref{sec:answerability}) made concrete: the residual that is worthless to one consumer is the signal
+another is built on. We claim no more than the account supports---\textsc{entropy0} and \textsc{popularity}
+are within $0.05$ answers of each other and still change places between consumers, so answerability
+explains why \textsc{helf} divides the table, not the remaining orderings.
+
+\emph{This disagreement is not attributable to weak recommenders.} The likes-only RecVAE row is the control: it is the same frontier-accuracy model that sets the R1 bar,given the crudest interface an
 item-only architecture admits, and it disagrees with our instrument \emph{and} with the Golbandi node model.
 Whatever drives the disagreement, it is not that the other consumers are simply bad at recommending. The same row
 carries a second reading. At full profile that model exceeds ours ($0.3540$ against $0.3496$); at an

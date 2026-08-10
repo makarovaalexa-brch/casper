@@ -186,6 +186,27 @@ chk('iALS NATIVE cell tail', 0.2566, dig(lad, 'r3_graded_allrated_reg001', 'tail
 chk('iALS binary reference quoted in the footnote', 0.3325,
     dig(_rs, 'ials_reselected', 'N', 'ndcg@10'), 'reselect_ndcg10.json')
 
+# Per-strategy answerability at k=8 -- the mechanism paragraph after the inversion table. Computed by
+# counting, not inference: build_orders is deterministic from the train matrices, and a question counts as
+# answered when the user holds a rating for it. HELF's 1.59 reproduces the 1.6 already published in the
+# table footnote, which was measured independently -- a snap the method was not fitted to.
+_ans = {"helf": 1.59, "entropy0": 3.10, "popularity": 3.05}
+try:
+    import sys as _sys
+    _sys.path.insert(0, os.path.join(ROOT, 'src', 'baselines'))
+    import numpy as _np, interview_strategies as _ST
+    from arm_n import load_arm_n as _lan
+    _D = _lan(log=lambda *a, **k: None)
+    _g, _b = _ST.build_orders(_D["g_train"], _D["train"], _D["n_items"], log=lambda *a, **k: None)
+    _G = _D["g_te_tr"].tocsc()
+    for _name, _want in _ans.items():
+        _c = _np.zeros(_G.shape[0])
+        for _i in _g[_name][:8]:
+            _c += (_np.asarray(_G[:, _i].todense()).ravel() != 0)
+        chk('answerability k=8: %s' % _name, _want, round(float(_c.mean()), 2), 'recomputed from build_orders')
+except Exception as _e:
+    chk('answerability k=8 recompute failed: %s' % _e.__class__.__name__, 1.0, 0.0, 'build_orders')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:
