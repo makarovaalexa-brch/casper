@@ -386,8 +386,23 @@ value. The adaptive selectors are furthest behind in the second group.
 A further observation from the criterion surface, reported because it is a candidate mechanism rather
 than a controlled test: **the loss-optimal question is a *concept*, not an item, for ~100% of users at
 every budget** (100.0% at k=1/2/4, 99.0% at k=8; the modal q* is `vengeance`, `awesome soundtrack`,
-`violent`, `violent`). The three adaptive selectors in this battery all shop in the item bank. That is
-a concrete hypothesis for *why* they cannot convert PV, and it is testable directly.
+`violent`, `violent`). The three adaptive selectors in this battery all shop in the item bank.
+
+> **RETRACTION (2026-08-10, after the fact was tested).** The sentence that stood here — that this is
+> "a concrete hypothesis for *why* they cannot convert PV" — is **withdrawn**. It was tested directly
+> in `docs/results/ACT2_CONCEPT_BANK_PV.md` (design sheet `DS_ACT2_CONCEPT_BANK_PV.md`), which ran
+> four published concept-*asking* selectors through the same quartile machinery on the same users,
+> against `entropy0`, `greedy_items` and the concept-channel static order `greedy_concepts`, in one
+> harness process under the certified-era concept answer convention. **Giving the selector the
+> concept bank does not fix it: 77 of 96 trend cells separate, 75 of them negative, and the two
+> positive cells are an arm that asked zero concepts at that budget.** Two guard arms ask concepts on
+> 100% of turns at every budget, so the result does not ride on an unfired schedule. Concepts are
+> also *more* answerable than items (the fixed concept order is answered on 79–90% of turns against
+> 39–44% for `entropy0`), so answerability is not the escape either. The action space is therefore
+> **not** the binding constraint, and the finding hardens to: adaptive selection fails to convert
+> personalisation value *even when the optimal action type is available to it*, and fails harder.
+> That earlier `fixedorder:entropy0` states and vectors are shared across the two runs is not assumed
+> — the interview payloads are byte-identical and the scored per-user vectors agree at 0.0e+00.
 
 **The confound is partly real and must be stated.** `PV` correlates with the answer rate — ρ = +0.76
 at k=2, +0.35/+0.41 at k=4/8 — and only weakly with profile length (ρ = +0.10 to +0.30). At **k=2 the
