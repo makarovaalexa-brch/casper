@@ -1,6 +1,6 @@
 # Paper B — the single TODO (state of the whole paper, one page)
 
-Maintained 2026-08-10. This is the one place to see the paper's state; per-stream task lists and the
+Maintained 2026-08-10 (TODO 1.2 closed). This is the one place to see the paper's state; per-stream task lists and the
 per-act design sheets hang off it. Draft: `new_chapters/chapterB_v2/chapterB_v2.tex` (14 pp, builds
 clean, 8 red REDO + 7 blue PLAN markers so nothing unfinished is invisible).
 
@@ -15,6 +15,15 @@ trend cells separated, all negative, shuffle control clean. So the finding is *m
 the structure that exists*, which is stronger than a flat null and different from what Acts 1–2 said
 a week ago.
 
+**And it is not the action space either (settled 2026-08-10, TODO 1.2).** Handing the selector the
+concept bank — the channel the criterion says is optimal for ~100% of users — does not fix it:
+77 of 96 trend cells separate, 75 negative, shuffle 1/96, and the concept askers fail *harder* than
+the item askers. Two guard arms ask concepts on 100% of turns at every budget, so no null rides on an
+unfired schedule. The claim's final form: **adaptive selection fails to convert personalisation value
+even when the optimal action type is available to it.** The best use of the concept bank is a FIXED
+ORDER — `fixedorder:greedy_concepts` is the strongest arm we have at every budget on both axes
+(0.2362/0.1022 at k=8). → `docs/results/ACT2_CONCEPT_BANK_PV.md`.
+
 ---
 
 ## ACT 1 — the battery. **EXPERIMENTALLY COMPLETE.**
@@ -27,7 +36,8 @@ finding**. Floored arm done. Oracle ceiling measured.
 | # | item | state |
 |---|---|---|
 | 1.1 | Revise the Act-1 conditional — **the tree's crossover is a PV=0 effect** (see Act 2) | **OPEN, blocking** |
-| 1.2 | Concept-bank test: give an adaptive selector the concept bank, see if it can then convert PV | **OPEN — the key experiment** |
+| 1.2 | Concept-bank test: give an adaptive selector the concept bank, see if it can then convert PV | **DONE 2026-08-10 — NO. 77/96 trends separate, 75 negative, shuffle 1/96; concept askers fail HARDER. Mechanism hypothesis RETRACTED in `ACT2_PV_QUARTILES.md`. → `docs/results/ACT2_CONCEPT_BANK_PV.md`** |
+| 1.2b | `_pick_mixed` extension of `glm_ucb` to the unified action space — now the worth-building follow-up, since the question has narrowed to "does ANY acquisition rule convert PV?" | open, next |
 | 1.3 | EDDI full Eq. 9 (both terms); current row is relabelled, not fixed | open |
 | 1.4 | CLiME width-rule run (measured negative: zero concept questions under a pure uncertainty trigger) | open |
 | 1.5 | Re-run DRE + DPE with in-run `fixedorder:` comparators (currently cross-run, admitted on a 0.0e+00 control) | open, cosmetic |
@@ -58,15 +68,17 @@ MovieLens. Difference-in-differences against the closed opener. 9-point threat m
 ## ACT 4 — coarse-to-fine. **PARTLY MEASURED, NEEDS REDIRECTING.**
 
 Greedy emits `c c c i c c i i i i c c i i i i` with no curriculum specified; the channel flips with
-placement. **New lead from Act 2:** the loss-optimal question is a *concept* for ~100% of users at
-every budget while all three adaptive selectors shop in the item bank — a concrete hypothesis for
-why they cannot convert PV, and testable (1.2).
+placement. ~~**New lead from Act 2:** ... a concrete hypothesis for why they cannot convert PV~~ —
+**TESTED AND FALSE (1.2, 2026-08-10).** Concept-asking selectors do not convert PV either, and fail
+harder. What survives is the *bank*, not the *selection*: the fixed concept order is the strongest arm
+we have and is answered ~3× as often as an item order. See 4.4.
 
 | # | item | state |
 |---|---|---|
 | 4.1 | `--objective tail` greedy sequence (required before any tail-optimised claim) | open |
 | 4.2 | Face-validity exhibits: hand-picked trajectories + genre-congruence vs matched-divisiveness control | open |
 | 4.3 | `--conc_bank polar` in the greedy suite (needs the `H(bands\|answered)` estimator ported) | open |
+| 4.4 | **NEW from 1.2**: the concept channel's value is real but STATIC — `greedy_concepts` beats `greedy_items` and `entropy0` at every budget on both axes, and is answered on 79–90% of turns vs 30–44%. Act 4's coarse-to-fine story should be built on the fixed concept order, not on adaptive concept selection | open, high value |
 
 ## ACT 5 — Reddit external validity. **ARTIFACTS BUILT, CELLS NOT RUN.**
 
@@ -91,7 +103,7 @@ why they cannot convert PV, and testable (1.2).
 ## ORDER I WOULD WORK IN
 
 1. **1.1 + 2.1** — the chapter currently states a conditional the data no longer supports. Writing, no compute.
-2. **1.2** — the concept-bank test. One experiment, and it is the direct test of the only mechanism hypothesis we have for the central finding.
+2. ~~**1.2** — the concept-bank test.~~ **DONE 2026-08-10; the hypothesis is dead and the retraction is made.** Successor is **1.2b** (`_pick_mixed`), and it is now optional rather than blocking: four published concept-askers already failed, so a fifth negative adds little, while 4.4 (build on the fixed concept order) is a constructive lead the same run produced.
 3. **2.3 / 2.4** — the answerability decomposition; cheap and it closes the chapter's own loop.
 4. **4.1, 4.2** — tail-objective greedy and face validity.
 5. **Act 3** — the intervention, once the mechanism is settled.

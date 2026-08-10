@@ -1,7 +1,82 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-08-10 (Act-2 PV stratification run; Paper A closed pending author read)**.
+> End-state is in `VISION.md`. Last updated: **2026-08-10 (TODO 1.2 concept-bank PV test DONE — the mechanism hypothesis is dead; Paper A closed pending author read)**.
+
+## ★★★ 2026-08-10 — TODO 1.2 SETTLED: the ACTION SPACE was not the constraint. **Mechanism hypothesis RETRACTED.**
+
+`docs/results/ACT2_CONCEPT_BANK_PV.md` + `.json`, design sheet `docs/design/DS_ACT2_CONCEPT_BANK_PV.md`,
+from ONE `adaptive_harness` run (label **act2pvc**, 28 cells, 43 min) analysed by the SAME
+`scripts/act2_pv_quartiles.py` that produced the parent table — one script, two tables, so they are
+commensurable by construction. Arms: `conlinucb_bs_static`, `conlinucb_mcr`, `conucb`, `dpe_concept`
+vs `fixedorder:entropy0` / `greedy_concepts` / `greedy_items`, k ∈ {1,2,4,8}, all 10,000 TEST users,
+certified pair, NO-FLOOR, policy-B pool, behavioural answers on both channels, **`--concept_neg_cap 0`**
+(the certified-era convention cv3 was trained under) and **`--keyterm_repr uniform_member_mean`** (the
+value all four carried-forward Act-1 concept-asker cells used — read off their run JSONs, not guessed).
+
+**The question.** Act 2's one mechanism hypothesis was: the loss-optimal question is a CONCEPT for
+~100% of users at every budget, and every adaptive selector in that battery shops in the ITEM bank.
+Give an adaptive selector the concept bank and it should convert PV.
+
+**It does not.** Of **96** Q4−Q1 trend cells, **77 separate from zero and 75 are negative**; the shuffle
+control separates **1 of 96**. The two positive cells are `conlinucb_mcr` vs `greedy_concepts` at k=2,
+where channel accounting shows that arm asked **zero** concepts. Against `greedy_concepts` at k=8 the
+trends run **−0.038 to −0.080**, *deeper* than the item-bank battery's −0.021…−0.035 against
+`greedy_items`. **The concept askers fail harder, not less.**
+
+**Why this is not an unfired-schedule artefact (control 5).** `conlinucb_bs_static` and `dpe_concept`
+ask concepts on **100% of turns at every budget** and both are negative against `entropy0` everywhere.
+`conlinucb_mcr`/`conucb` ask **0% at k=1,2 and 25% at k=4,8** — `b(t)=5⌊log t⌋` fires at turn 3 and turn
+8 only — so their k≤2 rows are reported as **uninformative, not as a null**. Restricted to the two arms
+that genuinely condition the next concept on previous answers, at k=4/8: **21 of 24 trend cells
+separate, all negative**, −0.0111…−0.0665.
+
+**Answerability is not the escape.** The fixed concept order is answered on **90/89/90/79%** of turns at
+k=1/2/4/8, vs **44/43/41/39%** for `entropy0` and **30/28/32/30%** for `greedy_items`. Roughly 3× the
+answers per turn, the criterion says a concept is optimal for ~100% of users, and adaptive still loses.
+
+**The concept bank's best use is a FIXED ORDER.** `fixedorder:greedy_concepts` is the best arm in the
+table at every budget on both axes — **0.2362 / 0.1022 at k=8** vs `greedy_items` 0.2247/0.0776 and
+`entropy0` 0.2053/0.0792. Every concept-*asking* adaptive arm sits far below all three static orders
+(best of them `conlinucb_mcr` 0.1902/0.0714 at k=8).
+
+**Caveat, measured not argued.** `conlinucb_bs_static` conducts **1 distinct interview** over 10,000
+users — the barycentric spanner is user-independent by the paper's own construction — so its row is a
+**bank** result (the spanner is a bad bank: −0.0540 full vs `greedy_concepts` at k=8, refusal rate
+0.129→0.581), not an adaptivity result. `dpe_concept` branches 10,000 ways but its published
+initialisation makes that a seeded random permutation.
+
+**CONTROLS — all passed, all printed in the doc.**
+* **entropy0 REPRODUCTION GATE — PASS.** Interview payload byte-identical between `act2pv` and `act2pvc`
+  for `fixedorder:entropy0` **and** `fixedorder:greedy_items` at k=1,2,4,8, and the **scored per-user
+  vectors agree at 0.0e+00** on all 16 (spec, budget, axis) cells. This is what licenses reading PV off
+  the banked `act2pv` criterion cache; nothing on the PV side was re-scored or re-cut.
+  (`scripts/act2pvc_gates.py --gate`; two fields are excluded and *printed* — `info`, i.e. wall-clock
+  timings, and `_contract`, which carries the `concept_neg_cap` 1→0 the design sheet requires.)
+* **Self-difference** over 224 (arm, k, axis, quartile) cells: **0.0e+00 exactly**.
+* **Shuffle**: 1 of 96.
+* **Answer rate per quartile** printed; ρ(PV, answer rate) **+0.758 at k=2** is stated as a "did you
+  answer" split — **k=4/8 carry the result**.
+* **Channel accounting** (control 5): section 1 of the doc.
+* **Free cross-run control**: before its schedule fires (k=1,2) `conlinucb_mcr` reproduces `glm_ucb`'s
+  per-user vectors from the *parent* run at **0.0e+00** on both axes — same LinUCB index over the same
+  `GaussianBelief` while `M_t` has no key-term row — and diverges at k=4/8 where key-term rows enter.
+  The identity breaks exactly where the suspected cause appears.
+
+**REGRESSION GATE (HARD RULE 8).** `scripts/act2_pv_quartiles.py` was EXTENDED, never forked, so both
+tables share the quartile cut, the paired bootstrap, the trend bootstrap and the shuffle. Re-running
+`--analyze` with no new flags reproduces `ACT2_PV_QUARTILES.json` byte-identically over all 121,089
+bytes once the two structurally volatile keys are removed, and the `.md` differs on **2 of 420 lines** —
+both halves of the `Run <timestamp> ... (sha256 ...)` header, neither of which can be constant across
+any two invocations. The published files were restored from git afterwards.
+
+**CONSEQUENCE — the retraction is made, in place.** The mechanism paragraph in
+`docs/results/ACT2_PV_QUARTILES.md` is **withdrawn inside that document** with the numbers that killed
+it. The claim hardens to: **adaptive selection fails to convert personalisation value even when the
+optimal action type is available to it.** Next candidate, per the design sheet, is the `_pick_mixed`
+extension of `glm_ucb` to the unified action space — the question has narrowed from "can they reach the
+right action type?" (they can; it does not help) to "does ANY acquisition rule convert PV?". A null is
+not citable on its own (author ruling); this one's job was to say which chapter sentence is true.
 
 ## ★★★ 2026-08-10 — ACT 2 MEASURED ON THE SAME USERS: the gap tracks personalisation value, BACKWARDS
 
