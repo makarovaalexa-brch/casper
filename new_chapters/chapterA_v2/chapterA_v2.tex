@@ -127,8 +127,8 @@ candidate pool held fixed throughout, so the only thing that varies is the model
 reporting something true and non-transferable.
 
 This is the concrete sense in which elicitation results are instrument-relative, and it is why the rest of this
-chapter is about the instrument rather than about a policy: the requirements below are not a wish-list, they are
-what a recommender must satisfy before a strategy comparison measured through it means anything. We state them
+chapter is about the instrument rather than about a policy: the requirements below are not desiderata, they are
+conditions a recommender must satisfy before a strategy comparison measured through it means anything. We state them
 first, build and certify the instrument against them (\S\ref{sec:method}--\S\ref{sec:expdesign}), and only then
 return to the comparison above, once there is something to trust it with (\S\ref{sec:instrdep}).
 
@@ -432,8 +432,8 @@ objective held fixed, which is what the two rows below do.
 
 \paragraph{What restoring the ratings is worth, and what we cannot conclude from it.}
 The premise of the \textsc{native} column is that the threshold filter withholds the signal these designs
-were built for. Restoring it helps one system and hurts another, and the honest summary is that the
-difference is not principled.
+were built for. Restoring it helps one system and hurts another, and we are unable to attribute the
+difference to any property of the rating contract itself.
 
 The clearest loss is user-kNN, measured through one estimator and one code path on two inputs: $0.3756$ on
 binary co-occurrence against $0.2822$ on mean-centred ratings, a drop of $-0.0934$ full and $-0.0976$ tail.
@@ -446,7 +446,7 @@ paired bootstrap: re-selecting the hyperparameters on the reported metric is wor
 (CI $[+0.0224,+0.0291]$); folding the \emph{same} additional rated items in with their values
 \emph{erased} is worth $-0.0088$ (CI $[-0.0125,-0.0052]$); putting the true values back on that identical
 support recovers $+0.0282$ (CI $[+0.0261,+0.0302]$). More evidence, recorded as though every rating were a
-like, makes the model worse; the values are what pay. We use that fixed-support step to decompose and
+like, makes the model worse; the values, not the additional evidence, carry the gain. We use that fixed-support step to decompose and
 never as a headline, because a control that mislabels dislikes as likes is not the baseline any deployed
 positive-only system presents.
 
@@ -458,7 +458,7 @@ in opposite directions, but the magnitude is a twentieth of what was reported. T
 where the old number came from: mean-centring the targets costs $0.0981$ full on its own, and folding the
 sub-threshold items in with their values erased costs a further $0.0499$, while restoring the true values
 on that identical support is worth $+0.0454$ (CI $[+0.0428,+0.0479]$). The published centring, not the
-rating contract, is what sank that row.
+rating contract, accounts for the loss reported previously.
 
 This is a general point about the column rather than a fact about one system. The three rating-native rows
 shared one hyperparameter setting, selected by a validation sweep that optimised NDCG@100 on a previous
@@ -1217,6 +1217,16 @@ afterthought~\cite{golbandi2011adaptive}; and the active-learning survey of Elah
 property its own taxonomy category, as \emph{rateability} or acquisition
 probability~\cite{elahi2016survey}. We adopt the term \emph{answerability} for readability, but we are
 renaming a known quantity, not introducing one.
+
+The term needs one qualification, because it is easy to read as more than it is. A user confronted with an
+unseen film can always respond; what they cannot supply is a \emph{value}. Answerability here is the
+probability that a question admits a graded response, not that it admits any response at all---Elahi et
+al.'s \emph{rateability} is the more literal name for it. The distinction matters because the two consumers
+that disagree most sharply in Table~\ref{tab:instrdep} treat the residual differently: a model that folds
+observations gains nothing from ``I have not seen it'', whereas a tree that partitions users into lovers,
+haters and unknowns is routed by precisely that response. Answerability is therefore not a property of a
+question alone but of a question and the model reading its answer, which is the same
+instrument-relativity this chapter documents for strategy orderings, one level down.
 
 The sharpest prior statement of the problem is Sun et al.~\cite{sun2013learning}, by three of Functional
 MF's own authors, whose entire contribution is an answerability fix: they report that a cold-start
