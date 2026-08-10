@@ -3,6 +3,37 @@
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
 > End-state is in `VISION.md`. Last updated: **2026-08-10 (TODO 1.2 concept-bank PV test DONE — the mechanism hypothesis is dead; Paper A closed pending author read)**.
 
+## ⏳ LIVE RUN 2026-08-10 23:24 — depth-1 group-conditioned greedy (`groupgreedy_d1`)
+
+The one-branch-point control for Act 1: same objective, same optimiser (`greedy_certified`), same
+top-500-popularity item pool, same cohort — the ONLY thing that varies is whether the 15 steps after
+q1 were chosen knowing the answer to q1. Design sheet `docs/design/DS_GROUP_GREEDY_D1.md`; code
+`src/instrument/group_greedy_d1.py` (committed `795fcd3`, fix `d8966bf`) — `greedy_certified` gained
+`prefix=`/`on_pick=`, bit-identical with `prefix=()`.
+
+* **q1 = (channel 0, item 83)**, READ from `experiments/battery/greedy_static_i26c.json` arm
+  `items-only` step 0, never re-derived.
+* **Partition of the 10,000 VALIDATION users** on q1 by the harness's own behavioural rule:
+  **like 2,099 · dislike 856 · did-not-answer 7,045**. Exact partition, nothing dropped.
+* **VALIDATION ONLY.** The test cohort is not built, not loaded, not touched.
+* Outputs (unique label, shared with nothing): `experiments/battery/groupgreedy_d1.log`,
+  `groupgreedy_d1_partial.json` (rewritten after EVERY pick), `groupgreedy_d1.json` at the end.
+* Sanity mode PASSED end to end first: on the 856-user dislike group, own `[83,21,19]` **0.20441** ≥
+  global `[83,583,19]` **0.19836** (+0.00605), 1.637 s/eval.
+* **Cost finding (this was the point of the abandoned "cost smoke"): per-eval scales with cohort
+  size.** 1.637 s/eval at 856 users vs the recorded **13.543 s/eval at 10,000**. Fits
+  `≈0.5 + 1.3e-3·n`, so ETA ≈ **3.5 h** total (≈03:00), not 3 × 3.2 h.
+
+**Driven by a Windows scheduled task.** Delete it with:
+`schtasks /Delete /TN casper_groupgreedy_d1 /F`
+It needed `DisallowStartIfOnBatteries=$false` — the box is **on battery**, and with the schtasks
+default the task sat at `Status: Queued` reporting `Last Result: 0` while doing nothing. If a future
+scheduled task "runs" and produces no output file, check the battery flag first.
+
+**Also removed:** the leftover one-time task `casper_act2pv_score`, still queued for 23:59 tonight
+even though the section below records it as deleted. It would have started the ~11 h Act-2 scorer
+alongside this run (HARD RULE 11d). Resume is unchanged and documented below.
+
 ## ★★★ 2026-08-10 — TODO 1.2 SETTLED: the ACTION SPACE was not the constraint. **Mechanism hypothesis RETRACTED.**
 
 `docs/results/ACT2_CONCEPT_BANK_PV.md` + `.json`, design sheet `docs/design/DS_ACT2_CONCEPT_BANK_PV.md`,
