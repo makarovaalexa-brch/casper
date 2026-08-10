@@ -242,11 +242,13 @@ un-personalisable. We do not make that claim: it rests on one method, in one str
 against the weaker of two comparators, and the tree is fitted to maximise over the whole cohort
 rather than any stratum. Subgroup heterogeneity is the more parsimonious reading.
 
-\paragraph{The claim, stated conditionally.} Adaptive selection does not pay in the regime the field
-evaluates in --- short budgets, closed item banks, cold users who occupy barely distinguishable
-states --- and begins to pay once the interview has accumulated enough evidence to partition users
-meaningfully. That is a conditional, not a null, and Section~\ref{sec:act2} supplies the mechanism:
-downstream of standard openers there is almost nothing to adapt \emph{to}.
+\paragraph{The claim, and the claim we are careful not to make.} Every published elicitation method
+we could replicate lands below a well-chosen fixed order, at every budget, on one contract. What that
+does \emph{not} establish is anything about adaptivity. A fixed order is an adaptive policy that
+ignores its inputs, so the optimal adaptive policy is at least as good as the optimal fixed one, and
+no measurement can put adaptivity below staticness --- only particular methods. The result is a
+statement about those methods, and the next two paragraphs are our attempt to say precisely which
+property of them it is a statement about.
 
 \paragraph{(d) And a fourth statement, which we did not anticipate and which explains a good deal of
 (b): several named adaptive selectors do not condition on the answers at all in this regime.}
@@ -272,19 +274,55 @@ implemented these methods badly. The more accurate and more useful statement is 
 named adaptive selectors are structurally unable to condition on answers in a cold-start interview}
 --- through a warm-up threshold denominated in ratings, an algebraic collapse under the standard
 likelihood, a value-free criterion, or a schedule that rarely fires --- and that this is a property
-of the methods as published, measurable, and different in each case.
+of the methods as published, measurable, and different in each case. Counted across the whole
+battery, \textbf{twelve of twenty-three rows are value-free}: the rule responds to \emph{which}
+questions the user could answer and never to \emph{what} they answered. If adaptivity means
+conditioning on answers, then over half the battery is not adaptive in the sense the word is used.
 
-\paragraph{What would falsify it, and what currently limits it.} The conditional rests on
-\textbf{one} method crossing over. Two others (GLM-UCB, Thompson) never cross within sixteen
-questions and one (the information-gain arm) diverges further with budget, so ``adaptivity pays at
-depth'' is not yet a property of adaptive selection in general --- it is a property of the tree.
-A second independent crossover would settle it; its absence is the honest limit of this section.
-IGCN has since been run and does \emph{not} supply a second crossover: it separably beats
-entropy$_0$ at one, two and four questions, but its personalised step is active on exactly $0.0\%$
-of turns at those budgets, so what wins early is its global-information-gain \emph{static} order.
-\REDO{fMF --- the remaining published method most likely to cross, being an interview tree with
-latent leaves --- and a sparsity-stratified re-analysis, since one line of prior work reports that
-adaptivity pays on dense data and vanishes on sparse}
+\paragraph{(e) Every method optimises a surrogate for the quantity it is judged on --- except the
+fixed order.} Auditing what each rule actually maximises when it picks the next question gives the
+plainest available explanation of (a), and it is not a claim about adaptivity at all.
+\textbf{Exactly one of the twenty-one distinct selection rules in this battery optimises held-out
+ranking quality, and it is the static greedy order.} The others maximise information gain about a
+latent variable or a cluster label, minimise posterior variance or an A-optimality trace, reduce
+squared error of \emph{rating} prediction, or maximise a UCB index over a predicted rating. The
+heuristic orders were tuned against rating-prediction error by their own authors --- Rashid reports
+MAE and Golbandi RMSE --- and transfer to a ranking metric as priors rather than as certified
+numbers.
+
+We are careful about what follows from this. Optimising a surrogate is not a defect: expected
+NDCG@10 under a neural fold is not tractable inside a bandit index or a tree split, and reaching for
+information gain is the reasonable engineering response. The comparison is fair to the extent that
+the original authors claimed a ranking improvement from their surrogate, and unfair to the extent
+that they claimed only better rating prediction and we have held them to something else.
+\PLAN{the reported-metric audit --- for each baseline, what its own paper reported as the headline
+metric, so that arms whose authors never claimed a ranking result are reframed rather than
+scored against one}
+
+What the audit does establish is that our comparator is not merely \emph{a} strong static order but
+the only arm in the battery built by directly maximising the reported metric, and that a reader
+should discount the margin accordingly. It also identifies the missing experiment: an adaptive
+policy built with the \emph{same} objective and the same optimiser, so that conditioning is the only
+thing that varies. Section~\ref{sec:act4} returns to this.
+
+\paragraph{What would falsify this, and what currently limits it.} The reading above would be
+overturned by an adaptive policy that beats the greedy order on full NDCG at any budget. None in this
+battery does, and the two nearest misses are instructive rather than encouraging: IGCN separably
+beats entropy$_0$ at one, two and four questions while its personalised step is active on exactly
+$0.0\%$ of turns, so what wins is its global-information-gain \emph{static} order; and Golbandi's
+tree beats entropy$_0$ at depth while losing to greedy at every budget.
+
+The honest limit is that no arm here isolates the variable of interest. Every comparison confounds
+\emph{conditioning on answers} with \emph{choice of objective}, because the only arm optimising the
+reported metric is also the only arm that is static. The experiment that separates them is an
+adaptive policy built with the same objective and the same optimiser as the greedy order --- users
+partitioned into groups, the identical greedy search run within each, and each group's order applied
+to held-out users of that group. Static is nested inside that construction: if the best thing to do
+is ask everyone the same questions, every group recovers the same order. On the selection cohort it
+therefore cannot do worse, which makes the whole question one of \emph{generalisation} --- whether a
+partition learned on validation users still pays on test users. \PLAN{the group-conditioned greedy
+arm, at a partition coarse enough to keep groups large; and its recursive form, which is Golbandi's
+tree structure with the ranking objective substituted for the squared-error split}
 
 \paragraph{Two candidate pools, and why the comparison must be made inside one.}
 Table~\ref{tab:greedy} was computed under a narrower candidate mask than Table~\ref{tab:act1}: the
