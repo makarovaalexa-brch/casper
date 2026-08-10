@@ -125,3 +125,6 @@ data/ml-25m/
 
 # He et al. Reddit-Movie corpus (3 GB third-party release, do not commit)
 data/reddit_he/
+
+# Rescued baseline checkpoints: the MANIFEST (README.md) is committed, the 1.05GB of weights is not.
+models/baselines_ml25m_liang/*.pt
