@@ -1664,6 +1664,14 @@ correct. R1 exists to close it.
 % =====================================================================
 
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{One dataset, and the central claim is a general one.} Every number here is ML-25M under a
+        single split recipe. The claim that a strategy ordering is a property of the strategy--recommender
+        pair is demonstrated on six consumers, but on one catalogue, one rating culture and one interaction
+        density; we have not shown that the \emph{same three} orderings arise elsewhere, only that a single
+        ordering is not safe to report. The argument that a comparison must fix its consumer does not
+        depend on the dataset, but the strength of the effect may; a replication on a second corpus is the
+        first thing we would run next, and until it exists the quantitative inversion should be read as
+        established for this ruler rather than for recommendation at large.
   \item \textbf{Metric non-comparability until the bridge is run.} Our frontier number $0.3540/0.2497$ is NDCG@10
         on ML-25M; the published bar is NDCG@100 on ML-20M. Until \S\ref{sec:bridge} snaps our code to the published
         numbers (done for EASE/RecVAE, \S\ref{sec:bridge}), \emph{no} parity claim across the two rulers is
