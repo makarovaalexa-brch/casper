@@ -315,7 +315,7 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         \emph{Intensity}: neutralising values to ``indifferent'' while freezing membership costs NDCG, quality is
         monotone in the stated level. Graded input then beats a fair binarising ablation on two distinct
         comparisons, and we name what each varies: holding the fold-in support \emph{identical} and
-        re-valuing each item by its star level pays $+0.0022$ full at the full profile, while \emph{adding}
+        re-valuing each item by its star level pays $+0.0039$ full at the full profile, while \emph{adding}
         the sub-threshold answers pays far more on the short interview---$+0.0144$ at $k{=}2$---and nothing
         from $k{=}8$ onward.
 \end{description}
@@ -428,7 +428,7 @@ unwatched films.
 
 \emph{This says nothing about graded input.} The objective and the input change together in that run, so it
 carries no evidence either way about whether reading ratings helps; that question is answerable only with the
-objective held fixed, which is what the two rows below do.
+objective held fixed, which is what the rows below do.
 
 \paragraph{What restoring the ratings is worth, and what we cannot conclude from it.}
 The premise of the \textsc{native} column is that the threshold filter withholds the signal these designs
@@ -450,7 +450,7 @@ like, makes the model worse; the values, not the additional evidence, carry the 
 never as a headline, because a control that mislabels dislikes as likes is not the baseline any deployed
 positive-only system presents.
 
-Two of the losses on record turn out to be configuration rather than anything about ratings. RBMF's graded
+The largest loss on record turns out to be configuration rather than anything about ratings. RBMF's graded
 arm was recorded at $-0.070$ against its binary build; re-selecting each arm's ridge on validation and
 holding one frozen basis, the same comparison is $-0.0045$ full (CI $[-0.0069,-0.0022]$) and $+0.0046$
 tail (CI $[+0.0021,+0.0071]$)---both intervals exclude zero, so the effect is real on each axis and points
@@ -460,7 +460,7 @@ sub-threshold items in with their values erased costs a further $0.0499$, while 
 on that identical support is worth $+0.0454$ (CI $[+0.0428,+0.0479]$). The published centring, not the
 rating contract, accounts for the loss reported previously.
 
-This is a general point about the column rather than a fact about one system. The three rating-native rows
+This is a general point about the column rather than a fact about one system. Three of the ratings-native rows---iALS, RBMF and the conjugate belief---
 shared one hyperparameter setting, selected by a validation sweep that optimised NDCG@100 on a previous
 dataset while this chapter reports NDCG@10. Re-selecting on the reported metric moves RBMF by $+0.0601$
 full in this column, iALS by $+0.0281$ and belief-MF by $+0.0267$, and RBMF's own regularisation---not the
@@ -531,7 +531,7 @@ TaNP~\cite{lin2021tanp} (MeLU line)\,$^{\ddagger\ast}$ & \xmark & \xmark & \xmar
 EDDI / Partial-VAE~\cite{ma2019eddi}\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & b & $.2153$ & $.1077$ & $.2718$ & $.1383$ \\
 user-kNN~\cite{golbandi2011adaptive}\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.3065$ & $.1895$ & $.3756$ & $.2377$ \\
 RBMF~\cite{liu2011wisdom,zhou2011functional}\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.2915$ & $.2071$ & $.3616$ & $.2572$ \\
-Conjugate belief (frozen MF)\,$^{\ddagger}$ & \xmark & \xmark & \xmark & \cmark & g & $.2267$ & $.1300$ & $.2788$ & $.1616$ \\
+Conjugate belief (frozen MF)\,$^{\ddagger\P}$ & \xmark & \xmark & \xmark & \cmark & g & $.2267$ & $.1300$ & $.2788$ & $.1616$ \\
 B\i y\i k soft-attributes~\cite{biyik2023soft}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \cmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
 ICF~\cite{zhao2013interactive}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \cmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
 ConTS~\cite{li2021seamlessly}\,$^{\dagger}$ & \xmark & \xmark & \xmark & \xmark & --- & \multicolumn{2}{c}{---} & \multicolumn{2}{c}{---} \\
@@ -558,7 +558,7 @@ $^{\S}$~dropped: our implementation failed its ML-20M snap ($0.397$ vs.\ the pub
 bridge disqualifies a row (\S\ref{sec:bridge}). $^{\ast}$\,TaNP is represented by the objective-ported implicit adaptation in \emph{both} columns; it has no
 \textsc{native} cell, and the reason is not a missing measurement (\S\ref{sec:nativelimit}).
 $^{\natural}$\,iALS's \textsc{native} cell is the published confidence form, $c_{ui}=1+\alpha r_{ui}$~\cite{hu2008collaborative}: the rating scales how strongly each observation counts and is never predicted. Its \textsc{liang} cell is the binary build, because that protocol admits no graded value---$r\equiv1$ is the degenerate case of the same formula, not a different method. The binary build scored under the \textsc{native} pool reaches $.3325/.2629$, so $+0.0170$ full of this cell is the confidence weighting rather than the pool.
-$^{\P}$\,RBMF's and user-kNN's \textsc{native} cells are their \emph{binary} builds, and for both the graded build was measured through the same estimator rather than asserted. RBMF's graded seed on raw ratings comes within $-0.0045$ full and $+0.0046$ tail of its binary build (both intervals exclude zero); its \emph{centred} variant, the published recipe, loses a further $0.0981$. User-kNN's centred build loses $-0.0934$ full. We report the stronger build in the cell and give the comparison in \S\ref{sec:bridge}.
+$^{\P}$\,RBMF's, user-kNN's and the conjugate belief's \textsc{native} cells are their \emph{binary} builds; for the first two the graded build was measured through the same estimator rather than asserted, and the conjugate belief is scored on the binary fold-in because its published construction folds onto a basis fitted on binary data. RBMF's graded seed on raw ratings comes within $-0.0045$ full and $+0.0046$ tail of its binary build (both intervals exclude zero); its \emph{centred} variant, the published recipe, loses a further $0.0981$. User-kNN's centred build loses $-0.0934$ full. We report the stronger build in the cell and give the comparison in \S\ref{sec:bridge}.
 No number is invented: a value appears only if we measured it on this ruler.}
 \label{tab:master}
 \end{table}
@@ -1436,7 +1436,7 @@ Check & Criterion & Measured & Verdict \\
 R1 & indistinguishable on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, contains zero), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
 R2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction. Open half: concept direction ranks its members at AUC $0.94$ whitened; sign contrast $+0.2096$ (CI $[+0.1986,+0.2208]$), identity contrast $+0.1278$ (CI $[+0.1195,+0.1361]$); a held-out concept folds from its name alone at $>300\times$ chance & \textbf{PASS} \\
 R3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1574\!\to\!0.2609$ full, $0.0505\!\to\!0.1062$ tail ($q{=}2\!\to\!16$); rise $+0.1035$ (CI $[0.1000,0.1071]$), monotone $\rho{=}1.0$ & \textbf{PASS}$^\ddagger$ \\
-R4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, i.e.\ $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho{=}0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0102$ at $k{=}2$ (CI $[+0.0087,+0.0118]$), and $+0.0022$ full at full profile on identical support (CI $[+0.0008,+0.0036]$) & \textbf{PASS} \\
+R4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, i.e.\ $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho{=}0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0102$ at $k{=}2$ (CI $[+0.0087,+0.0118]$), and $+0.0039$ full at full profile on identical support (CI $[+0.0025,+0.0053]$) & \textbf{PASS} \\
 \midrule
 Controls & wrong-user / shuffle / placebo / duplicate gain nothing & true arm beats shuffled by $+0.0371$ and placebo by $+0.0168$ (both CI-clean); duplicate assert fired; wrong-user $-0.0986$ (a stranger's taste is worse than silence) & \textbf{PASS} \\
 Provenance & answers carry no recommender geometry, no target half & item answer $=$ own rating; concept answer $=$ log watch-lift over raw counts, both read from the fold-in only & \textbf{PASS}$^{*}$ \\
@@ -1639,7 +1639,7 @@ another is built on. We claim no more than the account supports---\textsc{entrop
 are within $0.05$ answers of each other and still change places between consumers, so answerability
 explains why \textsc{helf} divides the table, not the remaining orderings.
 
-\emph{This disagreement is not attributable to weak recommenders.} The likes-only RecVAE row is the control: it is the same frontier-accuracy model that sets the R1 bar,given the crudest interface an
+\emph{This disagreement is not attributable to weak recommenders.} The likes-only RecVAE row is the control: it is the same frontier-accuracy model that sets the R1 bar, given the crudest interface an
 item-only architecture admits, and it disagrees with our instrument \emph{and} with the Golbandi node model.
 Whatever drives the disagreement, it is not that the other consumers are simply bad at recommending. The same row
 carries a second reading. At full profile that model exceeds ours ($0.3540$ against $0.3496$); at an

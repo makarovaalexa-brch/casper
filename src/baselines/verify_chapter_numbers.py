@@ -207,6 +207,16 @@ try:
 except Exception as _e:
     chk('answerability k=8 recompute failed: %s' % _e.__class__.__name__, 1.0, 0.0, 'build_orders')
 
+# THE TWO GRADED FULL-PROFILE QUANTITIES, checked together because they were swapped for each other.
+# They are NOT the same contrast and the labels in the text distinguish them:
+#   identical support, re-value the stars only  -> graded_ab_paired.json, +0.0039
+#   graded vs likes-only, support ALSO changes  -> premium_vs_k, full, +0.0022
+# On 2026-08-08 I replaced the first with the second while leaving the words "on identical support" in
+# place, in two separate passages. Caught in the 2026-08-10 read-through, not by any earlier check.
+_ab = J('experiments/baselines/arm_n/graded_ab_paired.json')
+chk('R4 identical-support re-value, full', 0.0039, dig(_ab, 'ndcg@10', 'mean_diff'), 'graded_ab_paired.json')
+chk('R4 identical-support re-value, tail', 0.0020, dig(_ab, 'tail_ndcg@10', 'mean_diff'), 'graded_ab_paired.json')
+
 # ---- R1 paired CI ---------------------------------------------------------------
 pa = J('experiments/baselines/arm_n/paired_recvae_armA.json')
 if pa:
