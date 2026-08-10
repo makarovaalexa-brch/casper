@@ -292,12 +292,32 @@ numbers.
 
 We are careful about what follows from this. Optimising a surrogate is not a defect: expected
 NDCG@10 under a neural fold is not tractable inside a bandit index or a tree split, and reaching for
-information gain is the reasonable engineering response. The comparison is fair to the extent that
-the original authors claimed a ranking improvement from their surrogate, and unfair to the extent
-that they claimed only better rating prediction and we have held them to something else.
-\PLAN{the reported-metric audit --- for each baseline, what its own paper reported as the headline
-metric, so that arms whose authors never claimed a ranking result are reframed rather than
-scored against one}
+information gain is the reasonable engineering response. The question that decides fairness is not
+what a method optimises but what its authors \emph{claimed}, and we audited that separately. Of the
+thirteen published methods, \textbf{six put a held-out ranking metric in their primary table and
+claimed a ranking improvement} --- DRE ($+11.6\%$ NDCG@10), Greedy SLIM (NDCG@10 on ML-25M, with the
+same long-tail definition we use), RBMF, DPE, PEBOL, and A-optimal design in its recommender
+incarnation. For those, holding them to NDCG@10 is holding them to their own headline, and the
+comparison needs no apology.
+
+\textbf{The other seven were never validated on a ranking metric by their authors, and each fails to
+transfer in a different way.} Golbandi and the Rashid lineage --- which supplies entropy$_0$, HELF,
+popularity and IGCN --- report RMSE and MAE; Golbandi's paper goes further and disclaims the
+application outright (``a decision-tree recommender delivers a quite high RMSE. This makes
+decision-trees undesirable as a traditional recommendation system''), which makes it an instrument
+paper rather than a recommender paper. The conversational-bandit trio prices \emph{cumulative regret}
+over thousands of rounds against re-drawn arm sets: there is no cold user, no interview budget, and no
+held-out target anywhere in their protocol, so our rows are ports of a selection rule into a setting
+its authors never evaluated. EDDI is not a recommender method at all --- its datasets are UCI, MNIST,
+MIMIC and NHANES --- and enters here as an imported active-feature-acquisition function. We label
+these rows accordingly rather than reporting them as underperforming recommenders.
+
+The precedent for the difficulty is published. The Greedy SLIM authors attempted the same transfer
+and abandoned it: ``For Golbandi et al.\ and Sepliarskaia et al.\ we, unfortunately, obtained poor
+results. We therefore decided to not include them in our official experiments.'' We include them,
+labelled. So the contribution is narrower and firmer than ``the field optimises the wrong thing'':
+the surrogate-to-ranking transfer was \emph{demonstrated} by six of thirteen, \emph{assumed} by the
+other seven, and this battery is the first place that assumption is measured on one contract.
 
 What the audit does establish is that our comparator is not merely \emph{a} strong static order but
 the only arm in the battery built by directly maximising the reported metric, and that a reader
