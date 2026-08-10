@@ -86,7 +86,8 @@
       "golbandi_lam": null
     },
     "keyterm_repr_by_selector": {
-      "conlinucb_mcr": "uniform_member_mean"
+      "conlinucb_mcr": "uniform_member_mean",
+      "conlinucb_bs_static": "uniform_member_mean"
     },
     "n_concepts": 1031,
     "concept_answer_convention": "CERTIFIED-ERA (apply_neg_cap=False + cap_negatives over revealed)"
@@ -280,6 +281,307 @@
             0,
             0,
             0,
+            10000
+          ]
+        },
+        "k16": {
+          "full": 0.2168089423738109,
+          "tail": 0.08771757165711162,
+          "answered": 4.7784,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": true,
+          "score_minutes": 0.48,
+          "interview_minutes": 158.88,
+          "distinct_prefixes": 4785,
+          "keyterm_repr": "uniform_member_mean",
+          "cache": {
+            "_ktw": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 64230,
+              "misses": 13360,
+              "evictions": 9264,
+              "hit_rate": 0.8278
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 30101,
+              "misses": 74148,
+              "evictions": 70052,
+              "hit_rate": 0.2887
+            },
+            "_width": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 58737,
+              "misses": 13319,
+              "evictions": 9223,
+              "hit_rate": 0.8152
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "keyterm_asks_per_turn": [
+            0,
+            0,
+            10000,
+            0,
+            0,
+            0,
+            0,
+            10000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "conlinucb_bs_static": {
+        "k1": {
+          "full": 0.16429772079771313,
+          "tail": 0.03788910431454543,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": true,
+          "score_minutes": 0.29,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 1,
+          "keyterm_repr": "uniform_member_mean",
+          "cache": {
+            "_ktw": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            },
+            "_mu": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            },
+            "_width": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "keyterm_asks_per_turn": [
+            10000
+          ]
+        },
+        "k2": {
+          "full": 0.16630251203380977,
+          "tail": 0.04119009841931214,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": true,
+          "score_minutes": 0.41,
+          "interview_minutes": 9.4,
+          "distinct_prefixes": 1,
+          "keyterm_repr": "uniform_member_mean",
+          "cache": {
+            "_ktw": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            },
+            "_mu": {
+              "size": 3942,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 3942,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_width": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "keyterm_asks_per_turn": [
+            10000,
+            10000
+          ]
+        },
+        "k4": {
+          "full": 0.1732443441243566,
+          "tail": 0.049356121376966176,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 40000,
+          "concept_consumer": true,
+          "score_minutes": 0.35,
+          "interview_minutes": 34.89,
+          "distinct_prefixes": 1,
+          "keyterm_repr": "uniform_member_mean",
+          "cache": {
+            "_ktw": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 471,
+              "misses": 15122,
+              "evictions": 11026,
+              "hit_rate": 0.0302
+            },
+            "_width": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "keyterm_asks_per_turn": [
+            10000,
+            10000,
+            10000,
+            10000
+          ]
+        },
+        "k8": {
+          "full": 0.18221350379733045,
+          "tail": 0.06184404281205909,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 80000,
+          "concept_consumer": true,
+          "score_minutes": 0.28,
+          "interview_minutes": 16.12,
+          "distinct_prefixes": 1,
+          "keyterm_repr": "uniform_member_mean",
+          "cache": {
+            "_ktw": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 471,
+              "misses": 44312,
+              "evictions": 40216,
+              "hit_rate": 0.0105
+            },
+            "_width": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "keyterm_asks_per_turn": [
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000
+          ]
+        },
+        "k16": {
+          "full": 0.1920524264351146,
+          "tail": 0.07453913732289942,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 160000,
+          "concept_consumer": true,
+          "score_minutes": 0.3,
+          "interview_minutes": 26.43,
+          "distinct_prefixes": 1,
+          "keyterm_repr": "uniform_member_mean",
+          "cache": {
+            "_ktw": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 471,
+              "misses": 108420,
+              "evictions": 104324,
+              "hit_rate": 0.0043
+            },
+            "_width": {
+              "size": 0,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 0,
+              "evictions": 0,
+              "hit_rate": null
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32",
+          "keyterm_asks_per_turn": [
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
+            10000,
             10000
           ]
         }

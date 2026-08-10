@@ -110,6 +110,7 @@ import argparse
 
 import numpy as np
 import scipy.sparse as sp
+from scipy.linalg import solve_triangular
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
@@ -187,25 +188,54 @@ def head_mask(Xtr, frac=0.33):
 # =============================================================================================
 # METRIC -- their NDCG@10 exactly: gain 2^r - 1, IDCG over the candidate set I_R
 # =============================================================================================
-def ndcg_at_k_block(scores, gains, cand, k=10):
-    """scores, gains, cand : (B, n_items).  cand is a boolean candidate mask (I_R).
-    Returns (B,) NDCG@k with gain already in `gains` (0 where not a target).
-    IDCG is the best achievable DCG@k using only items in I_R -- their definition."""
+def csr_lookup(R, rows, cols):
+    """Vectorised elementwise CSR lookup R[rows[t], cols[t]] -> 0 where absent.
+    Exploits the fact that a sorted-indices CSR is globally sorted on (row*n + col)."""
+    n = R.shape[1]
+    glob = (np.repeat(np.arange(R.shape[0], dtype=np.int64), np.diff(R.indptr)) * n
+            + R.indices.astype(np.int64))
+    key = rows.astype(np.int64) * n + cols.astype(np.int64)
+    pos = np.clip(np.searchsorted(glob, key), 0, max(len(glob) - 1, 0))
+    if len(glob) == 0:
+        return np.zeros(len(rows), dtype=np.float32)
+    hit = glob[pos] == key
+    return np.where(hit, R.data[pos], 0.0).astype(np.float32)
+
+
+def ndcg_at_k_block(scores, tgt_idx, tgt_gain, cand, k=10):
+    """Their NDCG@k.  scores, cand : dense (B, n_items).  Targets are SPARSE per row
+    (tgt_idx[b], tgt_gain[b] = item ids and 2^r - 1 gains), because a user has ~154 ratings out
+    of 59,047 items and materialising a dense gain matrix dominated the runtime.
+
+    DCG  = gains of the top-k CANDIDATE items by score.
+    IDCG = the best DCG@k achievable using only items in I_R -- "the DCG normalized by the
+           maximum DCG among all subsets I subset I_R", i.e. IDCG is also restricted to cand."""
     B = scores.shape[0]
     disc = 1.0 / np.log2(np.arange(2, k + 2))
     s = np.where(cand, scores, -np.inf)
     top = np.argpartition(-s, k, axis=1)[:, :k]
     rows = np.arange(B)[:, None]
-    tv = s[rows, top]
-    ordr = np.argsort(-tv, axis=1, kind="stable")
+    ordr = np.argsort(-s[rows, top], axis=1, kind="stable")
     top = top[rows, ordr]
-    g = np.where(cand[rows, top], gains[rows, top], 0.0)
-    dcg = (g * disc[None, :]).sum(axis=1)
+    okc = cand[rows, top]
 
-    gc = np.where(cand, gains, 0.0)
-    ktop = np.argpartition(-gc, k, axis=1)[:, :k]
-    iv = np.sort(gc[rows, ktop], axis=1)[:, ::-1]
-    idcg = (iv * disc[None, :]).sum(axis=1)
+    dcg = np.zeros(B); idcg = np.zeros(B)
+    for b in range(B):
+        ti, tg = tgt_idx[b], tgt_gain[b]
+        if len(ti) == 0:
+            continue
+        keep = cand[b, ti]
+        ti, tg = ti[keep], tg[keep]
+        if len(ti) == 0:
+            continue
+        # DCG: gain of each of the k ranked slots (0 unless that slot is a target)
+        pos = np.searchsorted(ti, top[b])
+        pos = np.clip(pos, 0, len(ti) - 1)
+        hit = (ti[pos] == top[b]) & okc[b]
+        dcg[b] = (np.where(hit, tg[pos], 0.0) * disc).sum()
+        # IDCG over I_R
+        best = np.sort(tg)[::-1][:k]
+        idcg[b] = (best * disc[:len(best)]).sum()
     out = np.zeros(B, dtype=np.float64)
     nz = idcg > 0
     out[nz] = dcg[nz] / idcg[nz]
@@ -293,14 +323,15 @@ def greedy_slim(Xtr, G, k, lam1=LAMBDA_1, lamF=LAMBDA_F, log=None, rowblock=4096
                 continue
             cols = indices[lo:hi]
             c = data[lo:hi].astype(np.float64)
+            ridx = np.repeat(np.arange(s, e), np.diff(indptr[s:e + 1]))
             if sel:
-                ridx = np.repeat(np.arange(s, e), np.diff(indptr[s:e + 1]))
-                for t, si in enumerate(sel):
+                for t, _si in enumerate(sel):
                     c -= Gs[ridx, t].astype(np.float64) * Wrows[t, cols].astype(np.float64)
             g = c - half
             np.maximum(g, 0.0, out=g)
             np.multiply(g, g, out=g)
-            np.add.at(score, np.repeat(np.arange(s, e), np.diff(indptr[s:e + 1])), g)
+            # bincount, not np.add.at -- the latter is unbuffered and ~50x slower here
+            score[s:e] += np.bincount(ridx - s, weights=g, minlength=e - s)
         score /= (lamF + a)
         score[sel] = -np.inf
         istar = int(np.argmax(score))
@@ -347,49 +378,87 @@ def q_pop(Xtr, k):
     return np.argsort(-cnt, kind="stable")[:k].astype(np.int64)
 
 
-def qbandit_interview(Rte_ask, V, k, sigma2=1.0, lam=1.0, seed=98765, ublock=256, log=None):
+def empirical_prior(Xtr, V, log=None):
+    """Prior over a user's latent vector = the empirical mean/covariance of the TRAINING users'
+    own PureSVD factors.  Required for scale-correctness: V has orthonormal columns, so a fixed
+    lambda*I prior is mis-scaled against the likelihood and hands each revealed rating unbounded
+    leverage (measured: it drove NDCG *below* the no-interview popularity floor).  It is also
+    what makes a user who answers nothing fall back to population-average recommendations rather
+    than to noise -- ~19% of users answer nothing at k=5.
+
+    Returned in a WHITENED basis, theta = zbar + W alpha with alpha ~ N(0, I) and W = Q Lam^1/2
+    from S0 = Q Lam Q^T.  This is an exact change of variables, and it is not optional: S0's
+    eigenvalues span ~10 orders of magnitude, so the raw precision matrix S0^-1 is full of
+    denormals and a batched 50x50 np.linalg.inv cost 38 ms per matrix (~1000x normal) -- 4.5 h
+    per interview.  Whitened, the prior precision is the identity and the same inverse is free.
+
+    base[i]  = v_i . zbar          (population-average predicted rating for item i)
+    Vtil[i]  = W^T v_i             (whitened item factors)
+    score[i] = base[i] + Vtil[i] . alpha
+    """
+    Utr = np.asarray(Xtr @ V, dtype=np.float64)
+    zbar = Utr.mean(0)
+    S0 = np.cov(Utr.T)
+    del Utr
+    lam, Q = np.linalg.eigh(S0)
+    lam = np.clip(lam, max(lam.max(), 1e-12) * 1e-10, None)
+    W = Q * np.sqrt(lam)[None, :]
+    base = (V.astype(np.float64) @ zbar).astype(np.float32)
+    Vtil = np.ascontiguousarray((V.astype(np.float64) @ W).astype(np.float32))
+    logln("empirical prior whitened: eig span %.3e .. %.3e" % (lam.min(), lam.max()), log)
+    return base, Vtil
+
+
+def qbandit_interview(Rte_ask, V, k, prior, sigma2=1.0, seed=98765, ublock=256, log=None):
     """QBandit (Christakopoulou et al. KDD'16) over a PureSVD item space.
     Bayesian linear model r_ui = theta_u^T v_i + noise; Thompson sampling picks the next item to
     ask (sample theta~N(mu,Sigma), ask argmax_i theta^T v_i among unasked).  Recommendation uses
     the posterior MEAN.  Returns asked (U,k) int64, and the posterior means after every budget.
     Rte_ask : CSR of the ratings the interview is ALLOWED to reveal (their protocol = all of the
     test user's ratings; ARM A = the ask-side 80% only)."""
-    U, d = Rte_ask.shape[0], V.shape[1]
+    base, Vtil = prior                                           # whitened basis, prior N(0, I)
+    U, d = Rte_ask.shape[0], Vtil.shape[1]
     rng = np.random.RandomState(seed)
     asked = np.zeros((U, k), dtype=np.int64)
-    mus = {}
-    Vt = np.ascontiguousarray(V.T)
-    P0 = lam * np.eye(d, dtype=np.float64)
+    VtilT = np.ascontiguousarray(Vtil.T)
+    I_d = np.eye(d)
     for s in range(0, U, ublock):
         e = min(s + ublock, U)
         B = e - s
-        Prec = np.repeat(P0[None], B, axis=0)                    # (B,d,d)
+        Prec = np.repeat(I_d[None], B, axis=0)                   # (B,d,d) prior precision = I
         b = np.zeros((B, d), dtype=np.float64)
-        blocked = np.zeros((B, V.shape[0]), dtype=bool)
-        R = Rte_ask[s:e]
+        Rb = Rte_ask[s:e].toarray()          # dense block: CSR fancy-indexing per turn is ~100x slower
+        ar = np.arange(B)
         for t in range(k):
-            Cov = np.linalg.inv(Prec)
-            mu = np.einsum("bij,bj->bi", Cov, b)
-            L = np.linalg.cholesky(Cov + 1e-9 * np.eye(d)[None])
-            th = mu + np.einsum("bij,bj->bi", L, rng.randn(B, d))
-            sc = th.astype(np.float32) @ Vt                      # (B, n_items)
-            sc[blocked] = -np.inf
+            # NB Cholesky only.  On this numpy build batched np.linalg.inv / .solve on
+            # (256,50,50) cost 4.38 s / 3.24 s while batched cholesky costs 0.0067 s -- a ~500x
+            # pathology in the batched getrf/getri path.  Using inv here cost 4.5 h per
+            # interview; this costs ~2 min.  Prec = L L^T, so:
+            #   mu = Prec^-1 b            (forward then back substitution)
+            #   theta = mu + L^-T z       since (L^-T)(L^-T)^T = (L L^T)^-1 = Cov
+            L = np.linalg.cholesky(Prec)
+            z = rng.randn(B, d)
+            mu = np.empty((B, d)); th = np.empty((B, d))
+            for bb in range(B):
+                Lb = L[bb]
+                y = solve_triangular(Lb, b[bb], lower=True)
+                mu[bb] = solve_triangular(Lb.T, y, lower=False)
+                th[bb] = mu[bb] + solve_triangular(Lb.T, z[bb], lower=False)
+            th = th.astype(np.float32)
+            sc = base[None, :] + th @ VtilT                      # (B, n_items)
+            if t:                                                # never re-ask (sparse, not a
+                sc[ar[:, None], asked[s:e, :t]] = -np.inf        # 15M-element mask scan)
             pick = np.argmax(sc, axis=1)
             asked[s:e, t] = pick
-            blocked[np.arange(B), pick] = True
-            r = np.asarray(R[np.arange(B), pick]).ravel()        # 0 if the user cannot answer
+            r = Rb[ar, pick]                                     # 0 if the user cannot answer
             ans = r > 0
             if ans.any():
-                vv = V[pick[ans]].astype(np.float64)
+                vv = Vtil[pick[ans]].astype(np.float64)
                 Prec[ans] += np.einsum("bi,bj->bij", vv, vv) / sigma2
-                b[ans] += vv * (r[ans][:, None] / sigma2)
-            if (t + 1) in BUDGETS:
-                Cov = np.linalg.inv(Prec)
-                mus.setdefault(t + 1, np.zeros((U, d), dtype=np.float32))
-                mus[t + 1][s:e] = np.einsum("bij,bj->bi", Cov, b).astype(np.float32)
-        if log and (s // ublock) % 8 == 0:
+                b[ans] += vv * ((r[ans] - base[pick[ans]])[:, None] / sigma2)
+        if log and (s // ublock) % 16 == 0:
             logln("  qbandit users %d/%d" % (e, U), log)
-    return asked, mus
+    return asked, None
 
 
 # =============================================================================================
@@ -415,21 +484,23 @@ def eval_cell(scores_fn, asked_k, Rrev, Reval, tail, n_items, arm, ublock=256):
         e = min(s + ublock, U); B = e - s
         rows = np.arange(B)[:, None]
         sc = scores_fn(s, e)
-        gains = np.zeros((B, n_items), dtype=np.float32)
-        Rb = Reval[s:e].toarray()
-        nz = Rb > 0
-        gains[nz] = np.exp2(Rb[nz]) - 1.0
-        revb = (Rrev[s:e].toarray() > 0)
-        cand = ~revb
+        tgt_idx, tgt_gain = [], []
+        for b in range(B):
+            lo, hi = Reval.indptr[s + b], Reval.indptr[s + b + 1]
+            tgt_idx.append(Reval.indices[lo:hi])
+            tgt_gain.append(np.exp2(Reval.data[lo:hi].astype(np.float64)) - 1.0)
+        cand = np.ones((B, n_items), dtype=bool)
+        for b in range(B):
+            lo, hi = Rrev.indptr[s + b], Rrev.indptr[s + b + 1]
+            cand[b, Rrev.indices[lo:hi]] = False
+            nrev[s + b] = hi - lo
         if arm == "C_theirs":
-            cand[rows, asked_k[s:e]] = False
-        elif arm == "A_heldout":
-            pass                      # revb here is the whole ask side already
-        f, of_ = ndcg_at_k_block(sc, gains, cand)
-        t_, ot_ = ndcg_at_k_block(sc, gains, cand & tail[None, :])
+            cand[rows, asked_k[s:e]] = False       # I_Q ∩ I_R = ∅ -- their extra rule
+        f, of_ = ndcg_at_k_block(sc, tgt_idx, tgt_gain, cand)
+        t_, ot_ = ndcg_at_k_block(sc, tgt_idx, tgt_gain, cand & tail[None, :])
         full[s:e], okf[s:e] = f, of_
         tl[s:e], okt[s:e] = t_, ot_
-        nrev[s:e] = revb.sum(1); ncand[s:e] = cand.sum(1)
+        ncand[s:e] = cand.sum(1)
     return dict(full=float(full[okf].mean()), tail=float(tl[okt].mean()),
                 n_full=int(okf.sum()), n_tail=int(okt.sum()),
                 revealed_per_user=float(nrev.mean()), cand_per_user=float(ncand.mean()),
@@ -437,7 +508,14 @@ def eval_cell(scores_fn, asked_k, Rrev, Reval, tail, n_items, arm, ublock=256):
 
 
 def write_cell(outpath, key, cell, log=None):
-    """HARD RULE 11a: one cell, one write, the moment it completes."""
+    """HARD RULE 11a: one cell, one write, the moment it completes.
+    Per-user vectors go to a sibling .npz so arms can be differenced PAIRED, per user -- a
+    matching mean is never a licence to difference."""
+    pu = outpath[:-5] + "_per_user"
+    os.makedirs(pu, exist_ok=True)
+    np.savez_compressed(os.path.join(pu, key.replace("|", "__") + ".npz"),
+                        full=cell["per_user_full"], tail=cell["per_user_tail"],
+                        ok_full=cell["ok_full"], ok_tail=cell["ok_tail"])
     doc = {}
     if os.path.exists(outpath):
         with open(outpath, encoding="utf-8") as fh:
@@ -532,24 +610,27 @@ if __name__ == "__main__":
             V = pure_svd(Xtr, a.svd_rank, lg)
             Vt = np.ascontiguousarray(V.T)
 
-            def posterior_mu(Rrev, lam=1.0, sigma2=1.0, blk=2048):
-                """Bayesian ridge over the PureSVD item space from the revealed ratings.
-                The SAME recommender for qbandit and qpop -> the questionnaire is the only
-                thing that differs between them."""
-                d = V.shape[1]
-                mu = np.zeros((Rrev.shape[0], d), dtype=np.float32)
-                P0 = lam * np.eye(d)
-                for s0 in range(0, Rrev.shape[0], blk):
-                    e0 = min(s0 + blk, Rrev.shape[0])
-                    for u in range(s0, e0):
-                        lo, hi = Rrev.indptr[u], Rrev.indptr[u + 1]
-                        if hi == lo:
-                            continue
-                        vv = V[Rrev.indices[lo:hi]].astype(np.float64)
-                        r = Rrev.data[lo:hi].astype(np.float64)
-                        mu[u] = np.linalg.solve(P0 + vv.T @ vv / sigma2,
-                                                vv.T @ r / sigma2).astype(np.float32)
-                return mu
+            prior = empirical_prior(Xtr, V, lg)
+            base, Vtil = prior
+            VtilT = np.ascontiguousarray(Vtil.T)
+            Id = np.eye(Vtil.shape[1])
+
+            def posterior_mu(Rrev, sigma2=1.0):
+                """Posterior mean of the user's WHITENED latent vector (prior N(0,I)).
+                The SAME recommender for qbandit and qpop -> the questionnaire is the only thing
+                that differs between them, which is what makes qpop a clean control for
+                'asks popular items' as distinct from 'is adaptive'.  A user who answered
+                nothing keeps alpha = 0, i.e. the population-average ranking."""
+                mu = np.zeros((Rrev.shape[0], Vtil.shape[1]))
+                for u in range(Rrev.shape[0]):
+                    lo, hi = Rrev.indptr[u], Rrev.indptr[u + 1]
+                    if hi == lo:
+                        continue
+                    idx = Rrev.indices[lo:hi]
+                    vv = Vtil[idx].astype(np.float64)
+                    r = Rrev.data[lo:hi].astype(np.float64) - base[idx]
+                    mu[u] = np.linalg.solve(Id + vv.T @ vv / sigma2, vv.T @ r / sigma2)
+                return mu.astype(np.float32)
 
             # ---- questionnaires ------------------------------------------------------------
             ASK = {}
@@ -564,22 +645,34 @@ if __name__ == "__main__":
                 logln("QPOP order: %s" % pop.tolist(), lg)
                 ASK["qpop"] = np.repeat(pop[None, :], U, axis=0)
 
+            qb_cache = {}
             for arm in arms:
                 Rsrc = Rask if arm == "A_heldout" else Rte           # what the interview may reveal
                 Rtgt = Reval_A if arm == "A_heldout" else Rte        # the ground truth
                 if "qbandit" in qs:
-                    t0 = time.time()
-                    ab, _ = qbandit_interview(Rsrc, V, kmax, seed=a.seed, log=lg)
-                    logln("qbandit interview (%s) %.1f min" % (arm, (time.time() - t0) / 60), lg)
-                    ASK["qbandit"] = ab
+                    # ARMS C and B differ ONLY in the candidate rule -- the interview they induce
+                    # is bit-identical (same source, same seed).  Compute it once and assert it.
+                    ckey = "A" if arm == "A_heldout" else "CB"
+                    if ckey not in qb_cache:
+                        t0 = time.time()
+                        ab, _ = qbandit_interview(Rsrc, V, kmax, prior, seed=a.seed, log=lg)
+                        qb_cache[ckey] = ab
+                        logln("qbandit interview (%s) %.1f min" % (ckey, (time.time() - t0) / 60), lg)
+                    ASK["qbandit"] = qb_cache[ckey]
                 for q in qs:
                     asked_full = ASK[q]
                     for k in budgets:
+                        ckey2 = "%s|%s|k%d" % (arm, q, k)
+                        if os.path.exists(outp):
+                            with open(outp, encoding="utf-8") as fh:
+                                if ckey2 in json.load(fh):
+                                    logln("  RESUME skip %s" % ckey2, lg)
+                                    continue
                         t0 = time.time()
                         asked_k = np.ascontiguousarray(asked_full[:, :k])
                         # revealed = asked AND rated on the allowed side
                         rows = np.repeat(np.arange(U), k)
-                        vals = np.asarray(Rsrc[rows, asked_k.ravel()]).ravel()
+                        vals = csr_lookup(Rsrc, rows, asked_k.ravel())
                         xprime = sp.csr_matrix((vals, (rows, asked_k.ravel())), shape=(U, n_items))
                         xprime.sum_duplicates(); xprime.eliminate_zeros()
                         if arm == "A_heldout":
@@ -594,7 +687,7 @@ if __name__ == "__main__":
                         else:
                             mu = posterior_mu(xprime)
                             def sfn(lo, hi, mu=mu):
-                                return mu[lo:hi] @ Vt
+                                return base[None, :] + mu[lo:hi] @ VtilT
                         cell = eval_cell(sfn, asked_k, Rrev_mask, Rtgt, tail, n_items, arm)
                         cell["k"] = k; cell["arm"] = arm; cell["questionnaire"] = q
                         cell["answer_rate"] = float(xprime.nnz) / (U * k)

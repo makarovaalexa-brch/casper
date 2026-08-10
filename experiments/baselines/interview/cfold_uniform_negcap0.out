@@ -42,3 +42,77 @@
 [21:04:41] [adaptive] conlinucb_mcr    turn 5/8: 117.6s  answered so far 1.66  concept-asks 10000  distinct ask-prefixes 26
 [21:05:53] [adaptive] conlinucb_mcr    turn 6/8: 71.5s  answered so far 2.00  concept-asks 10000  distinct ask-prefixes 52
 [21:08:56] [adaptive] conlinucb_mcr    turn 7/8: 182.4s  answered so far 2.37  concept-asks 10000  distinct ask-prefixes 94
+[21:14:14] [adaptive] conlinucb_mcr    turn 8/8: 317.5s  answered so far 2.37  concept-asks 20000  distinct ask-prefixes 131
+[21:14:14] [adaptive] INTERVIEW conlinucb_mcr    k= 8 done in 12.93m; answered=2.37/8; distinct ask-prefixes=131; cache={'_ktw': {'size': 268, 'cap': 4096, 'hits': 19621, 'misses': 268, 'evictions': 0, 'hit_rate': 0.9865}, '_mu': {'size': 4096, 'cap': 4096, 'hits': 3835, 'misses': 16455, 'evictions': 12359, 'hit_rate': 0.189}, '_width': {'size': 143, 'cap': 4096, 'hits': 14212, 'misses': 143, 'evictions': 0, 'hit_rate': 0.99}}
+[21:14:33] [adaptive] ours           conlinucb_mcr    k= 8 answered= 2.4/8 floored=    0 full=0.1902 tail=0.0714 (interview 12.93m + score 0.32m)
+[21:14:33] [conlinucb_mcr] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=5logt pool=FULL vocabulary
+[21:14:34] [adaptive] conlinucb_mcr    turn 1/16: 0.4s  answered so far 0.42  concept-asks 0  distinct ask-prefixes 1
+[21:14:35] [adaptive] conlinucb_mcr    turn 2/16: 1.1s  answered so far 0.81  concept-asks 0  distinct ask-prefixes 3
+[21:14:41] [adaptive] conlinucb_mcr    turn 3/16: 5.5s  answered so far 0.81  concept-asks 10000  distinct ask-prefixes 3
+[21:21:15] [adaptive] conlinucb_mcr    turn 4/16: 393.9s  answered so far 1.24  concept-asks 10000  distinct ask-prefixes 11
+[21:24:20] [adaptive] conlinucb_mcr    turn 5/16: 185.0s  answered so far 1.66  concept-asks 10000  distinct ask-prefixes 26
+[21:26:36] [adaptive] conlinucb_mcr    turn 6/16: 135.9s  answered so far 2.00  concept-asks 10000  distinct ask-prefixes 52
+[21:39:11] [adaptive] conlinucb_mcr    turn 7/16: 753.7s  answered so far 2.37  concept-asks 10000  distinct ask-prefixes 94
+[21:44:47] [adaptive] conlinucb_mcr    turn 8/16: 335.2s  answered so far 2.37  concept-asks 20000  distinct ask-prefixes 131
+[21:54:34] [adaptive] conlinucb_mcr    turn 9/16: 586.2s  answered so far 2.67  concept-asks 20000  distinct ask-prefixes 248
+[22:05:56] [adaptive] conlinucb_mcr    turn 10/16: 681.9s  answered so far 2.97  concept-asks 20000  distinct ask-prefixes 453
+[22:13:27] [adaptive] conlinucb_mcr    turn 11/16: 449.3s  answered so far 3.28  concept-asks 20000  distinct ask-prefixes 747
+[22:35:02] [adaptive] conlinucb_mcr    turn 12/16: 1294.2s  answered so far 3.61  concept-asks 20000  distinct ask-prefixes 1252
+[22:49:56] [adaptive] conlinucb_mcr    turn 13/16: 893.4s  answered so far 3.92  concept-asks 20000  distinct ask-prefixes 1906
+[23:09:26] [adaptive] conlinucb_mcr    turn 14/16: 1169.5s  answered so far 4.21  concept-asks 20000  distinct ask-prefixes 2742
+[23:30:31] [adaptive] conlinucb_mcr    turn 15/16: 1263.4s  answered so far 4.50  concept-asks 20000  distinct ask-prefixes 3728
+[23:53:25] [adaptive] conlinucb_mcr    turn 16/16: 1373.1s  answered so far 4.78  concept-asks 20000  distinct ask-prefixes 4785
+[23:53:26] [adaptive] INTERVIEW conlinucb_mcr    k=16 done in 158.88m; answered=4.78/16; distinct ask-prefixes=4785; cache={'_ktw': {'size': 4096, 'cap': 4096, 'hits': 64230, 'misses': 13360, 'evictions': 9264, 'hit_rate': 0.8278}, '_mu': {'size': 4096, 'cap': 4096, 'hits': 30101, 'misses': 74148, 'evictions': 70052, 'hit_rate': 0.2887}, '_width': {'size': 4096, 'cap': 4096, 'hits': 58737, 'misses': 13319, 'evictions': 9223, 'hit_rate': 0.8152}}
+[23:53:55] [adaptive] ours           conlinucb_mcr    k=16 answered= 4.8/16 floored=    0 full=0.2168 tail=0.0877 (interview 158.88m + score 0.48m)
+[23:53:55] [conlinucb_bs_static] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=always pool=FULL vocabulary
+[23:53:56] [conv_bandit] barycentric spanner: 200 key-terms, 0 swaps, log|det|=-780.78
+[23:53:56] [adaptive] conlinucb_bs_static turn 1/1: 0.1s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[23:53:57] [adaptive] INTERVIEW conlinucb_bs_static k= 1 done in 0.02m; answered=0.00/1; distinct ask-prefixes=1; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_width': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}}
+[23:54:14] [adaptive] ours           conlinucb_bs_static k= 1 answered= 0.0/1 floored=    0 full=0.1643 tail=0.0379 (interview 0.02m + score 0.29m)
+[23:54:14] [conlinucb_bs_static] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=always pool=FULL vocabulary
+[23:54:15] [conv_bandit] barycentric spanner: 200 key-terms, 0 swaps, log|det|=-780.78
+[23:54:15] [adaptive] conlinucb_bs_static turn 1/2: 0.2s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[00:03:38] [adaptive] conlinucb_bs_static turn 2/2: 562.1s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 1
+[00:03:38] [adaptive] INTERVIEW conlinucb_bs_static k= 2 done in 9.40m; answered=0.00/2; distinct ask-prefixes=1; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 3942, 'cap': 4096, 'hits': 0, 'misses': 3942, 'evictions': 0, 'hit_rate': 0.0}, '_width': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}}
+[00:04:03] [adaptive] ours           conlinucb_bs_static k= 2 answered= 0.0/2 floored=    0 full=0.1663 tail=0.0412 (interview 9.40m + score 0.41m)
+[00:04:03] [conlinucb_bs_static] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=always pool=FULL vocabulary
+[00:04:04] [conv_bandit] barycentric spanner: 200 key-terms, 0 swaps, log|det|=-780.78
+[00:04:05] [adaptive] conlinucb_bs_static turn 1/4: 0.2s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[00:12:38] [adaptive] conlinucb_bs_static turn 2/4: 513.5s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 1
+[00:22:15] [adaptive] conlinucb_bs_static turn 3/4: 576.4s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 1
+[00:38:56] [adaptive] conlinucb_bs_static turn 4/4: 1000.1s  answered so far 0.00  concept-asks 40000  distinct ask-prefixes 1
+[00:38:57] [adaptive] INTERVIEW conlinucb_bs_static k= 4 done in 34.89m; answered=0.00/4; distinct ask-prefixes=1; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 4096, 'cap': 4096, 'hits': 471, 'misses': 15122, 'evictions': 11026, 'hit_rate': 0.0302}, '_width': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}}
+[00:39:18] [adaptive] ours           conlinucb_bs_static k= 4 answered= 0.0/4 floored=    0 full=0.1732 tail=0.0494 (interview 34.89m + score 0.35m)
+[00:39:18] [conlinucb_bs_static] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=always pool=FULL vocabulary
+[00:39:19] [conv_bandit] barycentric spanner: 200 key-terms, 0 swaps, log|det|=-780.78
+[00:39:19] [adaptive] conlinucb_bs_static turn 1/8: 0.2s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[00:42:12] [adaptive] conlinucb_bs_static turn 2/8: 172.9s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 1
+[00:45:28] [adaptive] conlinucb_bs_static turn 3/8: 195.6s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 1
+[00:47:15] [adaptive] conlinucb_bs_static turn 4/8: 106.5s  answered so far 0.00  concept-asks 40000  distinct ask-prefixes 1
+[00:49:01] [adaptive] conlinucb_bs_static turn 5/8: 105.3s  answered so far 0.00  concept-asks 50000  distinct ask-prefixes 1
+[00:51:07] [adaptive] conlinucb_bs_static turn 6/8: 125.5s  answered so far 0.00  concept-asks 60000  distinct ask-prefixes 1
+[00:53:10] [adaptive] conlinucb_bs_static turn 7/8: 122.3s  answered so far 0.00  concept-asks 70000  distinct ask-prefixes 1
+[00:55:24] [adaptive] conlinucb_bs_static turn 8/8: 133.4s  answered so far 0.00  concept-asks 80000  distinct ask-prefixes 1
+[00:55:25] [adaptive] INTERVIEW conlinucb_bs_static k= 8 done in 16.12m; answered=0.00/8; distinct ask-prefixes=1; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 4096, 'cap': 4096, 'hits': 471, 'misses': 44312, 'evictions': 40216, 'hit_rate': 0.0105}, '_width': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}}
+[00:55:42] [adaptive] ours           conlinucb_bs_static k= 8 answered= 0.0/8 floored=    0 full=0.1822 tail=0.0618 (interview 16.12m + score 0.28m)
+[00:55:42] [conlinucb_bs_static] key-term repr=uniform_member_mean C=1031 alpha=1.0 beta=population-prior turn_rule=schedule b_schedule=always pool=FULL vocabulary
+[00:55:43] [conv_bandit] barycentric spanner: 200 key-terms, 0 swaps, log|det|=-780.78
+[00:55:43] [adaptive] conlinucb_bs_static turn 1/16: 0.1s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[00:56:41] [adaptive] conlinucb_bs_static turn 2/16: 58.2s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 1
+[00:57:40] [adaptive] conlinucb_bs_static turn 3/16: 58.5s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 1
+[00:59:21] [adaptive] conlinucb_bs_static turn 4/16: 100.0s  answered so far 0.00  concept-asks 40000  distinct ask-prefixes 1
+[01:01:16] [adaptive] conlinucb_bs_static turn 5/16: 115.3s  answered so far 0.00  concept-asks 50000  distinct ask-prefixes 1
+[01:03:03] [adaptive] conlinucb_bs_static turn 6/16: 106.2s  answered so far 0.00  concept-asks 60000  distinct ask-prefixes 1
+[01:04:39] [adaptive] conlinucb_bs_static turn 7/16: 95.6s  answered so far 0.00  concept-asks 70000  distinct ask-prefixes 1
+[01:06:29] [adaptive] conlinucb_bs_static turn 8/16: 108.4s  answered so far 0.00  concept-asks 80000  distinct ask-prefixes 1
+[01:08:22] [adaptive] conlinucb_bs_static turn 9/16: 112.7s  answered so far 0.00  concept-asks 90000  distinct ask-prefixes 1
+[01:10:22] [adaptive] conlinucb_bs_static turn 10/16: 119.3s  answered so far 0.00  concept-asks 100000  distinct ask-prefixes 1
+[01:12:18] [adaptive] conlinucb_bs_static turn 11/16: 114.4s  answered so far 0.00  concept-asks 110000  distinct ask-prefixes 1
+[01:14:08] [adaptive] conlinucb_bs_static turn 12/16: 108.8s  answered so far 0.00  concept-asks 120000  distinct ask-prefixes 1
+[01:16:05] [adaptive] conlinucb_bs_static turn 13/16: 115.8s  answered so far 0.00  concept-asks 130000  distinct ask-prefixes 1
+[01:18:06] [adaptive] conlinucb_bs_static turn 14/16: 120.4s  answered so far 0.00  concept-asks 140000  distinct ask-prefixes 1
+[01:20:04] [adaptive] conlinucb_bs_static turn 15/16: 116.4s  answered so far 0.00  concept-asks 150000  distinct ask-prefixes 1
+[01:22:07] [adaptive] conlinucb_bs_static turn 16/16: 121.0s  answered so far 0.00  concept-asks 160000  distinct ask-prefixes 1
+[01:22:08] [adaptive] INTERVIEW conlinucb_bs_static k=16 done in 26.43m; answered=0.00/16; distinct ask-prefixes=1; cache={'_ktw': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}, '_mu': {'size': 4096, 'cap': 4096, 'hits': 471, 'misses': 108420, 'evictions': 104324, 'hit_rate': 0.0043}, '_width': {'size': 0, 'cap': 4096, 'hits': 0, 'misses': 0, 'evictions': 0, 'hit_rate': None}}
+[01:22:26] [adaptive] ours           conlinucb_bs_static k=16 answered= 0.0/16 floored=    0 full=0.1921 tail=0.0745 (interview 26.43m + score 0.30m)
+[01:22:26] [adaptive] done -> C:\dev\phd\casper\experiments\baselines\interview\adaptive_table_cfold_uniform_negcap0.json

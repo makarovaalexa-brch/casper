@@ -1591,7 +1591,9 @@ users; only the consuming recommender varies. Rashid's published order is \texts
 to what the heuristics were validated on---reproduces it, and the six rows realise \emph{three distinct
 orderings}. Every within-row gap that decides an order is separated by a paired per-user bootstrap
 ($10{,}000$ resamples), except where marked $\approx$ or \emph{flat}. \emph{Ours $-$ this} compares each system at
-its own best strategy against ours at ours, paired on the same users.
+its own best strategy against ours at ours, paired on the same users. That advantage is a full-profile
+one: on the tail the Golbandi node model's \textsc{helf} arm matches ours ($-.0000$, CI
+$[-.0032,+.0032]$), so the instrument is the strongest consumer here on full NDCG@10 and not on both axes.
 $^{\S}$\,RecVAE restricted to the \emph{likes} among the asked items---a frontier-accuracy recommender with the
 crudest admissible interface, since a binary indicator vector cannot represent a negative response. It is a control, not a rival:
 it is the row that distinguishes \emph{the ordering depends on the strategy--recommender pair} from \emph{weak

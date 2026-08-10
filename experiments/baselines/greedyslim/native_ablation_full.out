@@ -1,0 +1,41 @@
+[22:37:33] LABEL=native_ablation_full  questionnaires=['qbandit', 'qpop'] arms=['C_theirs', 'B_no_ask_excl', 'A_heldout'] budgets=[5, 10, 15, 20] svd_rank=50
+[22:37:34] loaded cached ML-25M (162541, 59047) nnz=25000095
+[22:37:34] train=146287 test=16254 items=59047 head=296 tail=58751
+[22:37:35] puresvd sidecar HIT d=50
+[22:37:36] empirical prior whitened: eig span 2.690e+00 .. 2.106e+02
+[22:37:36] QPOP order: [351, 314, 292, 585, 2480, 257, 475, 522, 108, 2867, 581, 0, 1166, 4887, 49, 1179, 1168, 2766, 840, 5840]
+[22:37:40]   qbandit users 256/16254
+[22:38:34]   qbandit users 4352/16254
+[22:39:28]   qbandit users 8448/16254
+[22:40:22]   qbandit users 12544/16254
+[22:41:11] qbandit interview (CB) 3.6 min
+[22:45:58]   CELL C_theirs|qbandit|k5                        full=0.3142 tail=0.0823  rev/u=2.04
+[22:51:08]   CELL C_theirs|qbandit|k10                       full=0.3035 tail=0.0956  rev/u=4.09
+[22:56:05]   CELL C_theirs|qbandit|k15                       full=0.2841 tail=0.1055  rev/u=6.02
+[23:01:14]   CELL C_theirs|qbandit|k20                       full=0.2696 tail=0.1135  rev/u=7.83
+[23:05:42]   CELL C_theirs|qpop|k5                           full=0.2835 tail=0.0754  rev/u=2.39
+[23:10:34]   CELL C_theirs|qpop|k10                          full=0.2893 tail=0.0887  rev/u=4.30
+[23:15:15]   CELL C_theirs|qpop|k15                          full=0.2914 tail=0.0938  rev/u=6.04
+[23:19:15]   CELL C_theirs|qpop|k20                          full=0.2796 tail=0.0972  rev/u=7.68
+[23:22:49]   CELL B_no_ask_excl|qbandit|k5                   full=0.2802 tail=0.0823  rev/u=2.04
+[23:26:43]   CELL B_no_ask_excl|qbandit|k10                  full=0.2360 tail=0.0956  rev/u=4.09
+[23:30:32]   CELL B_no_ask_excl|qbandit|k15                  full=0.1888 tail=0.1055  rev/u=6.02
+[23:34:27]   CELL B_no_ask_excl|qbandit|k20                  full=0.1509 tail=0.1135  rev/u=7.83
+[23:37:52]   CELL B_no_ask_excl|qpop|k5                      full=0.2096 tail=0.0754  rev/u=2.39
+[23:41:33]   CELL B_no_ask_excl|qpop|k10                     full=0.2023 tail=0.0887  rev/u=4.30
+[23:45:13]   CELL B_no_ask_excl|qpop|k15                     full=0.1811 tail=0.0938  rev/u=6.04
+[23:48:54]   CELL B_no_ask_excl|qpop|k20                     full=0.1417 tail=0.0972  rev/u=7.68
+[23:48:57]   qbandit users 256/16254
+[23:49:50]   qbandit users 4352/16254
+[23:50:43]   qbandit users 8448/16254
+[23:51:36]   qbandit users 12544/16254
+[23:52:23] qbandit interview (A) 3.5 min
+[23:54:32]   CELL A_heldout|qbandit|k5                       full=0.1637 tail=0.0315  rev/u=122.66
+[00:01:34]   CELL A_heldout|qbandit|k10                      full=0.1761 tail=0.0375  rev/u=122.66
+[00:05:13]   CELL A_heldout|qbandit|k15                      full=0.1857 tail=0.0415  rev/u=122.66
+[00:12:39]   CELL A_heldout|qbandit|k20                      full=0.1936 tail=0.0456  rev/u=122.66
+[00:19:05]   CELL A_heldout|qpop|k5                          full=0.1571 tail=0.0289  rev/u=122.66
+[00:26:12]   CELL A_heldout|qpop|k10                         full=0.1715 tail=0.0348  rev/u=122.66
+[00:33:47]   CELL A_heldout|qpop|k15                         full=0.1811 tail=0.0361  rev/u=122.66
+[00:40:03]   CELL A_heldout|qpop|k20                         full=0.1892 tail=0.0383  rev/u=122.66
+[00:40:03] DONE -> C:\dev\phd\casper\experiments\baselines\greedyslim\native_ablation_full.json
