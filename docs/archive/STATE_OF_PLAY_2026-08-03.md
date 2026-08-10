@@ -1,3 +1,7 @@
+> **ARCHIVED — NOT CURRENT.** Kept for its narrative, which is not duplicated elsewhere. For where
+> the project stands now read `docs/STATE.md`. Numbers here are frozen at the time of writing and
+> many have since moved; do not cite from this file.
+
 # STATE OF PLAY — 2026-08-03 (written for a cold start; assume the reader has no memory of the session)
 
 Everything Paper A needs, plus the concept-channel situation in full. Numbers here are measured, with the

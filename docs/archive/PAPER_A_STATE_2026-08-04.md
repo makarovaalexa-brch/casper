@@ -1,3 +1,7 @@
+> **ARCHIVED — NOT CURRENT.** Kept for its narrative, which is not duplicated elsewhere. For where
+> the project stands now read `docs/STATE.md`. Numbers here are frozen at the time of writing and
+> many have since moved; do not cite from this file.
+
 # PAPER A — state and remaining work, 2026-08-04
 
 Chapter: `new_chapters/chapterA_v2/chapterA_v2.tex` → `chapterA_v2.pdf` (37 pages).

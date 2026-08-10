@@ -1,3 +1,7 @@
+> **ARCHIVED — NOT CURRENT.** Kept for its narrative, which is not duplicated elsewhere. For where
+> the project stands now read `docs/STATE.md`. Numbers here are frozen at the time of writing and
+> many have since moved; do not cite from this file.
+
 # REPO AUDIT — 2026-07-20 (adversarial, SECOND PASS)
 
 > Second adversarial pass after the first-round fixes + the `simulator_ui/` removal.
