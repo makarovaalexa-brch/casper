@@ -91,6 +91,56 @@ PAGE_RECOMPUTE = 15                         # the paper's page size n, as a re-r
 # up and the concept consumer attached.
 CONCEPT_ASK_SPECS = CONV_BANDIT_SPECS + ("dpe_concept",)
 
+# --------------------------------------------------------------------- stored greedy orders
+# The three prefix-optimal greedy sequences from `experiments/battery/greedy_static_i26c.json`,
+# registered as `fixedorder:` names so they can be walked inside THIS harness and differenced per
+# user against the arms in the same run. Before 2026-08-10 only `greedy_items` was wired, as a
+# hardcoded branch, and `fixedorder:greedy_concepts` therefore died on the line-561 assert -- at the
+# LAST step of a 4-hour run, because the name was only looked up when the cell was reached.
+#
+# TWO PROPERTIES THIS REGISTRY MUST HAVE, both of them scars:
+#  (1) NAMES ARE VALIDATED AT STARTUP (`validate_specs`, called from main before any work), not at
+#      first use. A stored-order typo must cost seconds, not hours.
+#  (2) A STORED ORDER CARRIES NO ANSWER CONVENTION OF ITS OWN. Only the channel/id pairs are read
+#      off the JSON; its `use_refusal` / `concept_ckpt` / `contract` provenance fields are
+#      deliberately IGNORED. The sequence is walked under whatever the CELL declares
+#      (`--concept_neg_cap`, `--keyterm_repr`, `--snapshot`), exactly like every other selector, so
+#      one stored order can be measured under two conventions and the difference is attributable.
+#      (To reproduce this file's own published curve, the cell must set `--concept_neg_cap 0`, which
+#      is the CERTIFIED-ERA convention it was built under -- but that is the CELL's job to declare.)
+GREEDY_ORDER_FILE = os.path.join(_ROOT, "experiments", "battery", "greedy_static_i26c.json")
+GREEDY_FIXED_ORDERS = {"greedy_items": "items-only",
+                       "greedy_concepts": "concepts-only",
+                       "greedy_combined": "combined"}
+
+
+def load_greedy_order(which, n_items, path=GREEDY_ORDER_FILE):
+    """`fixedorder:<which>` -> (action-id list, asks_concepts).
+
+    The JSON stores channel-tagged pairs [channel, id] with channel 0 = ITEM and channel 1 = CONCEPT,
+    and the concept ids are RAW concept indices (0..C-1), not offset. The harness action space is
+        [0, n_items)            -> ask that item
+        [n_items, n_items + C)  -> ask key-term (id - n_items)
+    so channel-1 steps are offset here, at load time, which is the only place that mapping belongs.
+    Nothing is re-selected and nothing is re-ordered: the sequence is read verbatim.
+    """
+    arm = GREEDY_FIXED_ORDERS[which]
+    gj = json.load(open(path))
+    seq = gj["arms"][arm]["sequence"]
+    order = [int(i) if int(ch) == 0 else n_items + int(i) for ch, i in seq]
+    asks_conc = any(int(ch) == 1 for ch, _i in seq)
+    return order, asks_conc
+
+
+def asks_concepts(spec):
+    """Does this spec need the concept action space and the concept consumer wired up?"""
+    if spec in CONCEPT_ASK_SPECS:
+        return True
+    if spec.startswith("fixedorder:"):
+        which = spec.split(":", 1)[1]
+        return which in GREEDY_FIXED_ORDERS and GREEDY_FIXED_ORDERS[which] != "items-only"
+    return False
+
 
 # ===================================================================== selector interface
 class Selector:
@@ -454,6 +504,73 @@ def _concept_stack(D, a, cache, Y=None, repr_mode=None, log=logln):
     return cache[ckey]
 
 
+def validate_specs(specs, glob, budgets, log=logln):
+    """STARTUP pre-flight on every selector spec. Names only -- nothing expensive is built.
+
+    THE SCAR THIS EXISTS FOR. `build_selector` is only called from inside the (spec x budget) loop,
+    so an unknown `fixedorder:` name raised its assert at the moment that cell was REACHED. With the
+    bad spec last in the list, that was the last step of a 4-hour run. Every name a run depends on
+    is now resolved before the first interview turn, and a typo costs seconds.
+
+    Also checks stored-order LENGTH against the largest budget, which is the other way a stored
+    order fails late: a 16-step sequence asked for k=32 must refuse, not silently repeat or extend.
+
+    TWO PHASES, because the two registries become available at different times. `glob=None` is the
+    EARLY phase, run straight after argument parsing -- it resolves everything that needs no data
+    (stored greedy names, their file, their length, static arm names), so a typo there costs seconds
+    rather than the ML-25M load. The full call, after `ST.build_orders`, additionally resolves the
+    scored orders in `glob`. Both run before the first interview turn.
+    """
+    known_static = {a for a in ST.ARMS}
+    phase = "EARLY (pre-data)" if glob is None else "FULL"
+    bad = []
+    for spec in specs:
+        if spec.startswith("fixedorder:") or spec.startswith("treestatic:"):
+            which = spec.split(":", 1)[1]
+            if which in GREEDY_FIXED_ORDERS and spec.startswith("fixedorder:"):
+                if not os.path.exists(GREEDY_ORDER_FILE):
+                    bad.append(f"{spec}: stored-order file missing at {GREEDY_ORDER_FILE}")
+                    continue
+                try:
+                    order, _ac = load_greedy_order(which, 0)
+                except Exception as e:                                    # noqa: BLE001
+                    bad.append(f"{spec}: unreadable stored order ({e})")
+                    continue
+                if len(order) < max(budgets):
+                    bad.append(f"{spec}: {len(order)} stored steps < largest budget {max(budgets)}")
+            elif glob is not None and which not in glob:
+                bad.append(f"{spec}: unknown stored order '{which}'; have "
+                           f"{sorted(set(glob) | set(GREEDY_FIXED_ORDERS))}")
+        elif spec.endswith(STATIC_SUFFIX):
+            if spec[:-len(STATIC_SUFFIX)] not in known_static:
+                bad.append(f"{spec}: unknown static arm; have {sorted(known_static)}")
+        elif spec not in (("glm_ucb", "thompson", "bald", "aopt", "golbandi", "golbandi_leaf")
+                          + CONV_BANDIT_SPECS + DPE_SPECS + IGCN_SPECS):
+            # Not a hard failure: build_selector owns the full list and raises its own SystemExit.
+            log(f"[preflight] NOTE: '{spec}' is not in the pre-flight table; build_selector will "
+                f"resolve or reject it at its cell")
+    if bad:
+        raise SystemExit(f"[preflight/{phase}] refusing to start -- bad selector spec(s):\n  "
+                         + "\n  ".join(bad))
+    log(f"[preflight/{phase}] {len(specs)} selector spec(s) validated: {', '.join(specs)}")
+
+
+def validate_paths(a, log=logln):
+    """STARTUP existence check on every FILE the run names. Same scar as `validate_specs`, one level
+    down: `--snapshot t2i26c_ep31.pt` (a bare basename rather than the path) parses fine, survives
+    the whole data load, and only dies inside `torch.load` when the tower is first touched. Anything
+    the run cannot finish without is resolved here, before the ML-25M load."""
+    named = [("--snapshot", getattr(a, "snapshot", None)),
+             ("--concept_ckpt", getattr(a, "concept_ckpt", None))]
+    missing = [f"{flag} {p!r} does not exist" for flag, p in named
+               if p and not os.path.exists(p)]
+    if missing:
+        raise SystemExit("[preflight] refusing to start -- missing file(s):\n  "
+                         + "\n  ".join(missing))
+    log("[preflight] all named checkpoint paths exist: "
+        + ", ".join(os.path.basename(p) for _f, p in named if p))
+
+
 def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
     """spec -> Selector. `cache` holds the expensive shared artifacts (the frozen iALS belief, the
     Partial-VAE) so they are fitted/loaded ONCE per process, not once per budget."""
@@ -550,16 +667,31 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         #                              channel-0 (item) steps only, verbatim; nothing is re-selected.
         import golbandi_tree_selector as GT
         which = spec.split(":", 1)[1]
-        if which == "greedy_items":
-            gj = json.load(open(os.path.join(_ROOT, "experiments", "battery",
-                                             "greedy_static_i26c.json")))
-            order = [int(i) for ch, i in gj["arms"]["items-only"]["sequence"] if int(ch) == 0]
+        ni = int(D["n_items"])
+        if which in GREEDY_FIXED_ORDERS:
+            order, asks_conc = load_greedy_order(which, ni)
             assert len(order) >= k, (
-                f"fixedorder:greedy_items has {len(order)} item steps < budget {k}; the stored "
-                f"sequence cannot answer this budget and must not be silently extended")
-        else:
-            assert which in glob, f"fixedorder: unknown stored order '{which}'; have {sorted(glob)}"
-            order = list(glob[which])
+                f"fixedorder:{which} has {len(order)} steps < budget {k}; the stored sequence "
+                f"cannot answer this budget and must not be silently extended")
+            s = GT.StaticOrderTreeSelector(order, log=log)
+            if asks_conc:
+                # The concept ACTION SPACE only. The stored order contributes no answer convention:
+                # the stack is built from THIS cell's flags (--concept_neg_cap, --keyterm_repr), and
+                # the greedy JSON's own provenance fields are never consulted.
+                s.stack = _concept_stack(D, args, cache, log=log)
+                nc = int(s.stack["n_concepts"])
+                bad = [q for q in order[:k] if q >= ni + nc]
+                assert not bad, (f"fixedorder:{which} has concept ids beyond the {nc}-concept "
+                                 f"action space: {bad}")
+            s.name = spec
+            kinds = "".join("c" if q >= ni else "i" for q in order[:k])
+            log(f"[fixedorder] {which}: {len(order)} stored steps, first {k} = {kinds} "
+                f"{list(order[:k])} (concept ids shown offset by n_items={ni}); "
+                f"answer convention comes from THIS cell, not the stored order")
+            return s
+        assert which in glob, (f"fixedorder: unknown stored order '{which}'; have "
+                               f"{sorted(set(glob) | set(GREEDY_FIXED_ORDERS))}")
+        order = list(glob[which])
         s = GT.StaticOrderTreeSelector(order, log=log)
         s.name = spec
         log(f"[fixedorder] {which}: first {k} questions {list(order[:k])}")
@@ -926,6 +1058,10 @@ def main():
     specs = [s.strip() for s in a.selectors.split(",") if s.strip()]
     recs = RECS if not a.only else [r for r in ALL_RECS if r in set(a.only.split(","))]
 
+    # EARLY name check, BEFORE the ML-25M load: a stored-order typo must cost seconds, not the
+    # data load and certainly not four hours (the `fixedorder:greedy_concepts` scar).
+    validate_specs(specs, None, budgets, log=logln)
+    validate_paths(a, log=logln)
     D = load_arm_n(log=logln)
     if a.regression:
         regression_check(D, budgets=budgets, log=logln)
@@ -933,6 +1069,7 @@ def main():
 
     ni = D["n_items"]
     glob, bank = ST.build_orders(D["g_train"], D["train"], ni, log=logln)
+    validate_specs(specs, glob, budgets, log=logln)      # STARTUP name check (HARD RULE: fail fast)
     smoke = a.smoke_users > 0
     if smoke:
         D = _smoke_slice(D, a.smoke_users, log=logln)
@@ -1026,7 +1163,7 @@ def main():
             sel = build_selector(spec, D, glob, bank, k, a, cache, log=logln)
             conc = None
             ex = {}
-            if spec in CONCEPT_ASK_SPECS:
+            if asks_concepts(spec):
                 import conversational_bandit_selectors as CB
                 stk = sel.stack
                 conc = {"n_concepts": stk["n_concepts"],
@@ -1036,7 +1173,12 @@ def main():
                 # the ConLinUCB arms honour --keyterm_repr. On 2026-08-09 a mixed run wrote a single
                 # meta["keyterm_repr"] and so MISDESCRIBED the arm that had honoured the flag. The
                 # per-cell copy below (cell["keyterm_repr"]) is the authoritative record.
-                meta.setdefault("keyterm_repr_by_selector", {})[spec] = stk.get("_repr")
+                # A STORED ORDER SELECTS NOTHING, so no key-term FEATURE is ever consulted and
+                # `keyterm_repr` is not a property of the cell -- recording one would invite exactly
+                # the misreading the 2026-08-09 mixed run produced. Say so explicitly instead.
+                meta.setdefault("keyterm_repr_by_selector", {})[spec] = (
+                    "n/a (stored order: no key-term features are used)"
+                    if spec.startswith("fixedorder:") else stk.get("_repr"))
                 meta["n_concepts"] = int(stk["n_concepts"])
                 meta["concept_answer_convention"] = (
                     "population neg-cap (apply_neg_cap=True)" if stk.get("apply_neg_cap", True)

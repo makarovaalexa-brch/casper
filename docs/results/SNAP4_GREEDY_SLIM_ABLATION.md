@@ -19,9 +19,58 @@ diagnosis is that this is a *consumer* gap rather than a protocol one: **a zero-
 Most-Popular canary already scores .2960 in their setup**, so their k=5 number is only +.042 above
 popularity. Their code is an OSF view-only link, so the recommender cannot be matched. Not tuned to
 close it — raising SVD rank makes it measurably *worse* (d=200 → .0992).
-QGSLIM itself was not run: the greedy fit is implemented and verified **exactly** against brute
-force (identical 5-round selection, weights to 1.2e-08), but its 16-minute gram did not fit the
-session. Resumable command recorded.
+~~QGSLIM itself was not run~~ — **RUN 2026-08-10**, see the section below. (The greedy fit had been
+implemented and verified against brute force — identical 5-round selection, weights to 1.2e-08 —
+but that verification was an ad-hoc in-session snippet and **no committed test re-runs it**; it is
+not on disk and not in git history. Treat it as unreproduced until a test exists.) The gram cost
+**1.0 min, not 16** (11.2M nnz kept at the exact λ₁/2 bound), and all 12 cells finished in 7 min.
+
+## ★★ QGSLIM's own cells — RUN 2026-08-10. Verdict: PARTIAL (diagnosed); TAIL effectively SNAPS
+
+`native_qgslim` label; `experiments/baselines/greedyslim/native_qgslim.json`, 12 cells, per-user
+vectors banked. Selected order (20 rounds): `[2480, 584, 898, 13244, 1219, 10406, 534, 21787, 6588,
+93, 1358, 1334, 35, 4670, 159, 16703, 999, 948, 4342, 20607]`.
+
+**ARM C (their protocol), against the published targets:**
+
+| k | ours full | published | Δ full | ours tail | published | Δ tail | rev/u |
+|---|---|---|---|---|---|---|---|
+| 5 | .2898 | .3390 | **−.0492** | .1069 | .1163 | −.0094 | 1.11 |
+| 10 | .3270 | .3594 | −.0324 | .1477 | .1543 | −.0066 | 1.74 |
+| 15 | .3447 | .3709 | −.0262 | .1619 | .1674 | −.0055 | 2.25 |
+| 20 | .3518 | .3752 | −.0234 | .1767 | .1779 | **−.0012** | 2.57 |
+
+**The tail axis snaps.** Every tail cell is inside −.0094, and k=20 is −.0012 — flat exact. On this
+project's own calibration (Mult-DAE dropped for −.0221; DRE passed at −.0095) the **tail passes at
+every budget**. The **full axis misses by −.023 to −.049 and the miss is largest where the answer
+rate is lowest** — which is the diagnosis, not a coincidence: at k=5 only 1.11 of 5 questions are
+answered (22%), and QGSLIM's recommender is `x'W` with only the k selected rows of W non-zero, so a
+user who answers nothing scores an **all-zero vector and ranks at chance**. Our k=5 full (.2898)
+sits **below the zero-question MostPop canary (.2960)** — the paper's §6.5 prediction, confirmed
+from the other side. Either their answer rate is far higher than ours or they have an unstated
+fallback. **Consumer gap, as before; not tuned to close it.**
+
+### ★ ARM A control — the STATIC arm's shape never changed, so ARM A is not what fixed QBandit
+
+The natural control for the ablation finding. Shape in k, full NDCG@10:
+
+| arm | QGSLIM (static) | QBandit (adaptive) | QPop |
+|---|---|---|---|
+| C_theirs | .2898→.3518 **RISES** (+.0620) | .3142→.2696 DECLINES (−.0446) | DECLINES (−.0039) |
+| B_no_ask_excl | .2803→.3415 **RISES** (+.0612) | .2802→.1509 DECLINES (−.1293) | DECLINES (−.0679) |
+| A_heldout | .1362→.1793 **RISES** (+.0431) | .1637→.1936 RISES (+.0299) | RISES (+.0321) |
+
+**Answer: no, the static arm does not change shape.** QGSLIM rises monotonically under **all three**
+arms, including the two where both adaptive/popularity arms decline. ARM A moves QGSLIM's LEVEL
+(.29 → .14, as it moves everything) but not its SHAPE, because QGSLIM never had the pathology to
+begin with. That sharpens the ablation's conclusion: the decline is not a property of the metric or
+of the exclusion rule as such — it is what happens when a questionnaire **chooses questions the user
+is likely to rate highly and thereby eats its own targets**. A fixed, user-independent order cannot
+do that. (Levels are not comparable across arms; only shape is.)
+
+Secondary: under ARM A, QGSLIM is *below* QBandit on full at every budget (.1362/.1625/.1752/.1793
+vs .1637/.1761/.1857/.1936) but *above* it on tail (.0425/.0642/.0723/.0801 vs
+.0315/.0375/.0415/.0456) — the static arm trades head accuracy for tail coverage.
 
 ## ★ The ablation — the decline is an artefact, and the mechanism they name is not the one doing the damage
 

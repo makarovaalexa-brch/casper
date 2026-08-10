@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "selectors": [
+      "fixedorder:greedy_combined"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "consumers": [
+      "ours"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 10000,
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "golbandi": {
+      "depth": 0,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": null
+    },
+    "_contract": {
+      "n_users": 10000,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 0,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": null,
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "igcn_clusters": 300,
+      "igcn_nbr": 150,
+      "igcn_switch": 5,
+      "igcn_recompute": 1,
+      "igcn_kmeans_iter": 10,
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 0,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 0,
+      "specs": [
+        "fixedorder:greedy_combined"
+      ],
+      "budgets": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "consumers": [
+        "ours"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    },
+    "keyterm_repr_by_selector": {
+      "fixedorder:greedy_combined": "n/a (stored order: no key-term features are used)"
+    },
+    "n_concepts": 1031,
+    "concept_answer_convention": "CERTIFIED-ERA (apply_neg_cap=False + cap_negatives over revealed)"
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "fixedorder:greedy_combined": {
+        "k1": {
+          "full": 0.17833230843945372,
+          "tail": 0.047797958397571574,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": true,
+          "score_minutes": 0.25,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.1909404662488249,
+          "tail": 0.05475926890630642,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": true,
+          "score_minutes": 0.25,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.21351977454693388,
+          "tail": 0.07554169470384829,
+          "answered": 0.2936,
+          "floored": 0,
+          "concept_tokens": 30000,
+          "concept_consumer": true,
+          "score_minutes": 0.26,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.23350287355346863,
+          "tail": 0.09624319096278526,
+          "answered": 0.8364,
+          "floored": 0,
+          "concept_tokens": 50000,
+          "concept_consumer": true,
+          "score_minutes": 0.28,
+          "interview_minutes": 0.06,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.25564851537587513,
+          "tail": 0.10982280196840183,
+          "answered": 2.2541,
+          "floored": 0,
+          "concept_tokens": 70000,
+          "concept_consumer": true,
+          "score_minutes": 0.3,
+          "interview_minutes": 0.18,
+          "distinct_prefixes": 1
+        }
+      }
+    }
+  }
+}

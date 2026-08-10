@@ -1,0 +1,66 @@
+[09:42:33] [preflight/EARLY (pre-data)] 1 selector spec(s) validated: fixedorder:greedy_combined
+[09:42:33] [preflight] all named checkpoint paths exist: t2i26c_ep31.pt, concept_cv3_ep08.pt
+[09:42:36] [arm_n] graded matrices from cache: train nnz=21682110 test nnz=1411761
+[09:42:36] [arm_n] pool nnz=1411761 (te_tr 625946, graded 1411761); te_tr items absent from the graded rebuild: 0
+[09:42:36] [arm_n] ruler: 18359 items, 10000 test users, head=190; pool excludes 141.2 items/user vs 62.6 in arm A; target leak 0
+[09:42:36] [strategies] orders built over 18359 items; top-5 popularity=[5, 121, 8, 123, 59] helf=[551, 463, 154, 339, 77]
+[09:42:36] [preflight/FULL] 1 selector spec(s) validated: fixedorder:greedy_combined
+[09:42:37] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[09:42:37] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[09:42:37] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[09:42:37] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[09:42:37] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[09:42:37] [interview] ours = i26 from t2i26c_ep31.pt (ep=31 val_full=0.3466289798275289)
+[09:42:37] [pop] fitted item popularity over 140768 train users, 18359 items
+[09:42:49] [interview] mostpop PRIOR (constant, answer-independent): full=0.1626 tail=0.0262
+[09:42:49] [adaptive] 1 consumers x 1 selectors x 5 budgets over 10000 users; floor=OFF; interview checkpoints -> C:\dev\phd\casper\experiments\baselines\interview\adaptive_table_fixedorder_greedy_combined_interviews
+[09:42:49] [conv_bandit] genome bank from cache: 1031 concepts
+[09:42:52] [conv_bandit] concept answers for 10000 test users x 1031 concepts in 2.7s: answerable rate 0.507, mean |v| on answerable 0.184; ANSWER CONVENTION = CERTIFIED-ERA (apply_neg_cap=False; cap_negatives over the revealed list at fold time)
+[09:42:52] [fixedorder] greedy_combined: 16 stored steps, first 1 = c [18989] (concept ids shown offset by n_items=18359); answer convention comes from THIS cell, not the stored order
+[09:42:53] [adaptive] fixedorder:greedy_combined turn 1/1: 0.0s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[09:42:53] [adaptive] INTERVIEW fixedorder:greedy_combined k= 1 done in 0.05m; answered=0.00/1; distinct ask-prefixes=1; cache=None
+[09:42:53] [adaptive] concept consumer = concept_cv3_ep08.pt (ep8, C=1031, h=256, use_refusal=True, snapshot=t2i26c_ep31.pt)
+[09:43:08] [adaptive] ours           fixedorder:greedy_combined k= 1 answered= 0.0/1 floored=    0 full=0.1783 tail=0.0478 (interview 0.05m + score 0.25m)
+[09:43:08] [fixedorder] greedy_combined: 16 stored steps, first 2 = cc [18989, 18601] (concept ids shown offset by n_items=18359); answer convention comes from THIS cell, not the stored order
+[09:43:08] [adaptive] fixedorder:greedy_combined turn 1/2: 0.0s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[09:43:08] [adaptive] fixedorder:greedy_combined turn 2/2: 0.0s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 1
+[09:43:08] [adaptive] INTERVIEW fixedorder:greedy_combined k= 2 done in 0.01m; answered=0.00/2; distinct ask-prefixes=1; cache=None
+[09:43:23] [adaptive] ours           fixedorder:greedy_combined k= 2 answered= 0.0/2 floored=    0 full=0.1909 tail=0.0548 (interview 0.01m + score 0.25m)
+[09:43:23] [fixedorder] greedy_combined: 16 stored steps, first 4 = ccci [18989, 18601, 18532, 22] (concept ids shown offset by n_items=18359); answer convention comes from THIS cell, not the stored order
+[09:43:23] [adaptive] fixedorder:greedy_combined turn 1/4: 0.1s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[09:43:23] [adaptive] fixedorder:greedy_combined turn 2/4: 0.0s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 1
+[09:43:24] [adaptive] fixedorder:greedy_combined turn 3/4: 0.0s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 1
+[09:43:24] [adaptive] fixedorder:greedy_combined turn 4/4: 0.0s  answered so far 0.29  concept-asks 30000  distinct ask-prefixes 1
+[09:43:25] [adaptive] INTERVIEW fixedorder:greedy_combined k= 4 done in 0.02m; answered=0.29/4; distinct ask-prefixes=1; cache=None
+[09:43:40] [adaptive] ours           fixedorder:greedy_combined k= 4 answered= 0.3/4 floored=    0 full=0.2135 tail=0.0755 (interview 0.02m + score 0.26m)
+[09:43:40] [fixedorder] greedy_combined: 16 stored steps, first 8 = ccciccii [18989, 18601, 18532, 22, 18921, 18896, 8, 112] (concept ids shown offset by n_items=18359); answer convention comes from THIS cell, not the stored order
+[09:43:40] [adaptive] fixedorder:greedy_combined turn 1/8: 0.0s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[09:43:41] [adaptive] fixedorder:greedy_combined turn 2/8: 0.0s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 1
+[09:43:41] [adaptive] fixedorder:greedy_combined turn 3/8: 0.0s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 1
+[09:43:41] [adaptive] fixedorder:greedy_combined turn 4/8: 0.0s  answered so far 0.29  concept-asks 30000  distinct ask-prefixes 1
+[09:43:42] [adaptive] fixedorder:greedy_combined turn 5/8: 0.0s  answered so far 0.29  concept-asks 40000  distinct ask-prefixes 1
+[09:43:42] [adaptive] fixedorder:greedy_combined turn 6/8: 0.0s  answered so far 0.29  concept-asks 50000  distinct ask-prefixes 1
+[09:43:43] [adaptive] fixedorder:greedy_combined turn 7/8: 0.0s  answered so far 0.73  concept-asks 50000  distinct ask-prefixes 1
+[09:43:43] [adaptive] fixedorder:greedy_combined turn 8/8: 0.0s  answered so far 0.84  concept-asks 50000  distinct ask-prefixes 1
+[09:43:44] [adaptive] INTERVIEW fixedorder:greedy_combined k= 8 done in 0.06m; answered=0.84/8; distinct ask-prefixes=1; cache=None
+[09:44:01] [adaptive] ours           fixedorder:greedy_combined k= 8 answered= 0.8/8 floored=    0 full=0.2335 tail=0.0962 (interview 0.06m + score 0.28m)
+[09:44:01] [fixedorder] greedy_combined: 16 stored steps, first 16 = cccicciiiicciiii [18989, 18601, 18532, 22, 18921, 18896, 8, 112, 83, 130, 19113, 18539, 21, 19, 219, 80] (concept ids shown offset by n_items=18359); answer convention comes from THIS cell, not the stored order
+[09:44:01] [adaptive] fixedorder:greedy_combined turn 1/16: 0.0s  answered so far 0.00  concept-asks 10000  distinct ask-prefixes 1
+[09:44:01] [adaptive] fixedorder:greedy_combined turn 2/16: 0.0s  answered so far 0.00  concept-asks 20000  distinct ask-prefixes 1
+[09:44:01] [adaptive] fixedorder:greedy_combined turn 3/16: 0.0s  answered so far 0.00  concept-asks 30000  distinct ask-prefixes 1
+[09:44:02] [adaptive] fixedorder:greedy_combined turn 4/16: 0.0s  answered so far 0.29  concept-asks 30000  distinct ask-prefixes 1
+[09:44:02] [adaptive] fixedorder:greedy_combined turn 5/16: 0.0s  answered so far 0.29  concept-asks 40000  distinct ask-prefixes 1
+[09:44:03] [adaptive] fixedorder:greedy_combined turn 6/16: 0.0s  answered so far 0.29  concept-asks 50000  distinct ask-prefixes 1
+[09:44:03] [adaptive] fixedorder:greedy_combined turn 7/16: 0.0s  answered so far 0.73  concept-asks 50000  distinct ask-prefixes 1
+[09:44:04] [adaptive] fixedorder:greedy_combined turn 8/16: 0.0s  answered so far 0.84  concept-asks 50000  distinct ask-prefixes 1
+[09:44:05] [adaptive] fixedorder:greedy_combined turn 9/16: 0.0s  answered so far 1.13  concept-asks 50000  distinct ask-prefixes 1
+[09:44:05] [adaptive] fixedorder:greedy_combined turn 10/16: 0.0s  answered so far 1.29  concept-asks 50000  distinct ask-prefixes 1
+[09:44:06] [adaptive] fixedorder:greedy_combined turn 11/16: 0.0s  answered so far 1.29  concept-asks 60000  distinct ask-prefixes 1
+[09:44:07] [adaptive] fixedorder:greedy_combined turn 12/16: 0.0s  answered so far 1.29  concept-asks 70000  distinct ask-prefixes 1
+[09:44:08] [adaptive] fixedorder:greedy_combined turn 13/16: 0.0s  answered so far 1.58  concept-asks 70000  distinct ask-prefixes 1
+[09:44:09] [adaptive] fixedorder:greedy_combined turn 14/16: 0.0s  answered so far 1.88  concept-asks 70000  distinct ask-prefixes 1
+[09:44:10] [adaptive] fixedorder:greedy_combined turn 15/16: 0.0s  answered so far 2.07  concept-asks 70000  distinct ask-prefixes 1
+[09:44:11] [adaptive] fixedorder:greedy_combined turn 16/16: 0.0s  answered so far 2.25  concept-asks 70000  distinct ask-prefixes 1
+[09:44:12] [adaptive] INTERVIEW fixedorder:greedy_combined k=16 done in 0.18m; answered=2.25/16; distinct ask-prefixes=1; cache=None
+[09:44:30] [adaptive] ours           fixedorder:greedy_combined k=16 answered= 2.3/16 floored=    0 full=0.2556 tail=0.1098 (interview 0.18m + score 0.30m)
+[09:44:30] [adaptive] done -> C:\dev\phd\casper\experiments\baselines\interview\adaptive_table_fixedorder_greedy_combined.json

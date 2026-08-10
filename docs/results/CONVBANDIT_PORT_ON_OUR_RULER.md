@@ -100,3 +100,77 @@ symmetrically, before the concept-channel margin above is quoted at its larger v
   ours) — that trio is the concept-fold adjudication and is a separate experiment.
 * CLiME under its own width rule (task #10): under a pure uncertainty trigger it asks **zero**
   concept questions, which is a measured negative worth reporting.
+
+## ★ ConUCB is slow for ONE reason: Eq. 8 is VALUE-FREE but is cached as if it were not
+
+**Symptom.** ConUCB spent ~14 h at 86% CPU inside a single k=8 turn while its k=1, 2, 4 cells took
+seconds to minutes. Profiled 2026-08-10 (`--profile only`, no ConUCB cell re-run).
+
+**The rule.** `ConUCBSelector._keyterm_scores` implements Eq. 8:
+
+```
+    s_k = || X_t M_t^-1 Mtil_{t-1}^-1 xtilde_k ||^2  /  ( 1 + xtilde_k^T Mtil_{t-1}^-1 xtilde_k )
+```
+
+**Cost per call, measured at the run's true shapes** (f=200, C=1031, pool=18,359; `G = Y^T Y` is
+200×200 and built once per pool):
+
+| step | complexity | ms |
+|---|---|---|
+| `Mti @ Xt.T` | O(f²C) | 1.6 |
+| `solve(M, f×C rhs)` | O(f³ + f²C) | **44.0** |
+| `Vk.T @ G` | O(C f²) | 1.7 |
+| denominator — recomputes `Mti @ Xt.T` a second time | O(f²C) | 1.8 |
+| **whole call** | **O(f³ + f²C)** | **102.6** |
+
+ConLinUCB-MCR's key-term rule on the same shapes costs **3.95 ms — 26× less**.
+
+**The actual defect is not the 103 ms, it is the CALL COUNT.** Every quantity Eq. 8 consumes is
+value-free: `M = (1−λ)I + λ Y[cols]^T Y[cols]` depends only on WHICH items were answered, and
+`Mtil^-1 = (λ̃I + Xk^T Xk)^-1` only on WHICH key-terms were. Confirmed empirically — holding the
+answered SETS fixed and changing every answer VALUE gives `max|Δs| = 0.000e+00`. Yet
+`_keyterm_scores` is **not cached at all**, and `select()` calls it once per **value-bearing**
+interview state, every turn. MCR's equivalent is cached on `_wkey` — the value-FREE
+(item-ids, concept-ids) key — which is precisely the collapse ConUCB never gets.
+
+From the run's own banked telemetry (`adaptive_table_cfold_representative_PARTIAL.json`):
+
+| budget | value-states (`_mu` misses) | asked-set states (`_width` misses) | ratio |
+|---|---|---|---|
+| k=4 (ConUCB) | 3,612 | **8** | **451×** |
+| k=8 (MCR) | 17,599 | 145 | 121× |
+| k=16 (MCR) | 77,370 | 13,550 | 5.7× |
+
+The model checks out at the one ConUCB budget that completed: k=4 has ~3.6k distinct states over 4
+turns; at 103 ms/call that predicts ~18 min against **15.85 min observed**. The `_width` cache
+(the 18,359-item acquisition) is already keyed value-free and sat at **99.8% hit rate with 8
+misses** — the item side is not the problem.
+
+**Complexity, stated.** Total ConUCB key-term cost is
+
+```
+    O( SUM_t S_t  ·  (f^3 + f^2 C) )        S_t = distinct VALUE-bearing states at turn t
+```
+
+where `S_t` grows toward `n_users` as soon as a key-term turn fires, because concept answers are
+continuous (signed implicit-watch V) and so nearly every user forms his own state. It should be
+
+```
+    O( SUM_t A_t  ·  (f^3 + f^2 C) )        A_t = distinct ASKED-SET states  (A_t << S_t)
+```
+
+**Honest bound on the attribution.** With `S_t` capped at 10,000 users over 8 turns, Eq. 8 alone
+accounts for **at most 2.3 h** of the observed ~14 h. The k=4 agreement says the per-call cost and
+the mechanism are right; what is NOT measured is ConUCB's own k=8 state count, because the cell was
+killed and was deliberately not re-run. So: Eq. 8 is the dominant term and the only one with a
+451× headroom, but the full 14 h is not yet fully attributed.
+
+**The fix (not applied — diagnosis only).** In order of payoff:
+1. Cache `_keyterm_scores` on `self._wkey(key)`, exactly as `_width_vec_kt` is cached. Provably
+   sound, since Eq. 8 is value-free. At k=4 that is 8 calls instead of 3,612.
+2. Skip Eq. 8 entirely on non-key-term turns. `select()` computes it unconditionally, but
+   `keyterm_asks_per_turn` shows k=8 fires key-terms on only turns 3 and 8 — 6 of 8 turns compute
+   a 103 ms quantity and discard it.
+3. Hoist the duplicated `Mti @ Xt.T` (computed once for `Vk`, again for the denominator).
+4. `_mtil`/`_mu` are LRU-capped at 4,096 against 17.6k–77.4k distinct states (13,503 evictions
+   measured at k=8), so they thrash. Keying (1) value-free removes most of the pressure.

@@ -1,0 +1,52 @@
+[09:27:52] LABEL=native_qgslim  questionnaires=['qgslim'] arms=['C_theirs', 'B_no_ask_excl', 'A_heldout'] budgets=[5, 10, 15, 20] svd_rank=50
+[09:27:52] loaded cached ML-25M (162541, 59047) nnz=25000095
+[09:27:53] train=146287 test=16254 items=59047 head=296 tail=58751
+[09:27:53] puresvd sidecar HIT d=50
+[09:27:53] empirical prior whitened: eig span 2.690e+00 .. 2.106e+02
+[09:27:57]   gram 512/59047  kept=904019  0.1 min
+[09:28:18]   gram 5632/59047  kept=7029321  0.4 min
+[09:28:28]   gram 10752/59047  kept=8822023  0.6 min
+[09:28:37]   gram 15872/59047  kept=10166777  0.7 min
+[09:28:42]   gram 20992/59047  kept=10812251  0.8 min
+[09:28:46]   gram 26112/59047  kept=11063538  0.9 min
+[09:28:49]   gram 31232/59047  kept=11161214  0.9 min
+[09:28:52]   gram 36352/59047  kept=11208821  1.0 min
+[09:28:55]   gram 41472/59047  kept=11301709  1.0 min
+[09:28:58]   gram 46592/59047  kept=11371820  1.1 min
+[09:29:01]   gram 51712/59047  kept=11419055  1.1 min
+[09:29:03]   gram 56832/59047  kept=11442631  1.2 min
+[09:29:04] gram built nnz=11443392 in 1.2 min -> C:\dev\phd\casper\.cache\greedyslim\gram_0bf65901680e.npz
+[09:29:05]   GSLIM round  1 -> item   2480  gain=2.8911e+07  nnz(w)=7636  0.0 min
+[09:29:05]   GSLIM round  2 -> item    584  gain=7.8891e+06  nnz(w)=5436  0.0 min
+[09:29:06]   GSLIM round  3 -> item    898  gain=3.3886e+06  nnz(w)=5593  0.0 min
+[09:29:07]   GSLIM round  4 -> item  13244  gain=2.7785e+06  nnz(w)=3045  0.0 min
+[09:29:07]   GSLIM round  5 -> item   1219  gain=1.4455e+06  nnz(w)=3675  0.0 min
+[09:29:09]   GSLIM round  6 -> item  10406  gain=1.3057e+06  nnz(w)=2393  0.0 min
+[09:29:10]   GSLIM round  7 -> item    534  gain=1.1943e+06  nnz(w)=2236  0.0 min
+[09:29:12]   GSLIM round  8 -> item  21787  gain=7.5365e+05  nnz(w)=1813  0.0 min
+[09:29:13]   GSLIM round  9 -> item   6588  gain=6.5524e+05  nnz(w)=2942  0.0 min
+[09:29:15]   GSLIM round 10 -> item     93  gain=5.7336e+05  nnz(w)=1272  0.0 min
+[09:29:17]   GSLIM round 11 -> item   1358  gain=5.1808e+05  nnz(w)=2638  0.0 min
+[09:29:20]   GSLIM round 12 -> item   1334  gain=3.5525e+05  nnz(w)=1974  0.0 min
+[09:29:22]   GSLIM round 13 -> item     35  gain=3.1407e+05  nnz(w)=1322  0.0 min
+[09:29:25]   GSLIM round 14 -> item   4670  gain=2.7755e+05  nnz(w)=1908  0.0 min
+[09:29:28]   GSLIM round 15 -> item    159  gain=2.4802e+05  nnz(w)=360  0.0 min
+[09:29:31]   GSLIM round 16 -> item  16703  gain=2.4097e+05  nnz(w)=1409  0.1 min
+[09:29:34]   GSLIM round 17 -> item    999  gain=2.2524e+05  nnz(w)=1074  0.1 min
+[09:29:38]   GSLIM round 18 -> item    948  gain=2.0848e+05  nnz(w)=1281  0.1 min
+[09:29:41]   GSLIM round 19 -> item   4342  gain=2.0333e+05  nnz(w)=1666  0.1 min
+[09:29:45]   GSLIM round 20 -> item  20607  gain=2.0052e+05  nnz(w)=1135  0.1 min
+[09:29:45] QGSLIM order: [2480, 584, 898, 13244, 1219, 10406, 534, 21787, 6588, 93, 1358, 1334, 35, 4670, 159, 16703, 999, 948, 4342, 20607]
+[09:30:09]   CELL C_theirs|qgslim|k5                         full=0.2898 tail=0.1069  rev/u=1.11
+[09:30:32]   CELL C_theirs|qgslim|k10                        full=0.3270 tail=0.1477  rev/u=1.74
+[09:30:56]   CELL C_theirs|qgslim|k15                        full=0.3447 tail=0.1619  rev/u=2.25
+[09:31:20]   CELL C_theirs|qgslim|k20                        full=0.3518 tail=0.1767  rev/u=2.57
+[09:31:43]   CELL B_no_ask_excl|qgslim|k5                    full=0.2803 tail=0.1069  rev/u=1.11
+[09:32:07]   CELL B_no_ask_excl|qgslim|k10                   full=0.3165 tail=0.1477  rev/u=1.74
+[09:32:31]   CELL B_no_ask_excl|qgslim|k15                   full=0.3348 tail=0.1608  rev/u=2.25
+[09:32:55]   CELL B_no_ask_excl|qgslim|k20                   full=0.3415 tail=0.1760  rev/u=2.57
+[09:33:18]   CELL A_heldout|qgslim|k5                        full=0.1362 tail=0.0425  rev/u=122.66
+[09:33:41]   CELL A_heldout|qgslim|k10                       full=0.1625 tail=0.0642  rev/u=122.66
+[09:34:05]   CELL A_heldout|qgslim|k15                       full=0.1752 tail=0.0723  rev/u=122.66
+[09:34:28]   CELL A_heldout|qgslim|k20                       full=0.1793 tail=0.0801  rev/u=122.66
+[09:34:28] DONE -> C:\dev\phd\casper\experiments\baselines\greedyslim\native_qgslim.json
