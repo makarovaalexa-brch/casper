@@ -957,12 +957,29 @@ Table~\ref{tab:dispersion} are a different population from the top rows: $4{,}43
 a free-text request, against $10{,}000$ MovieLens users. The contrast is therefore between
 \emph{regimes}, not a within-user effect, and on its own it establishes that placement and
 dispersion travel together rather than that one causes the other.
-\PLAN{a within-user version: rank the same $10{,}000$ users by how much a perfect personaliser
-would gain over a one-size-fits-all order on their own state, cut into quartiles, and report the
-adaptive-minus-static gap per quartile. If the gap tracks that quantity the mechanism is measured on
-one population; if it does not, the honest reading changes from ``there is nothing to adapt to'' to
-``the methods cannot find it'', which is a different claim and would redirect
-Section~\ref{sec:act4}}
+\paragraph{The within-user version, and it reverses the reading.} We therefore rank the same
+$10{,}000$ users by \emph{personalisation value} --- what a perfect personaliser would gain over a
+one-size-fits-all order, evaluated on that user's own state --- cut them into quartiles, and report
+the adaptive-minus-static gap per quartile. The quantity uses no held-out information: it is a
+function of the answers so far, so a selector could in principle compute it at ask time.
+
+The gap does track it, and it runs the wrong way. Of forty-eight trend cells (three selectors, two
+comparators, two axes, four budgets) \textbf{thirty-eight separate from zero and every one of them is
+negative}; none is positive; under a shuffle of the ranking across users, \textbf{none of the
+forty-eight} separates. The adaptive selectors are furthest behind exactly where personalising is
+worth the most --- Thompson gives up nothing against the static order in the zero-value quartile at
+eight questions ($+.0004$, not separating) and $-.0285$ in the top quartile. So the honest reading is
+not ``there is nothing to adapt to'' but \textbf{the methods cannot find what is there}, and a
+quarter of the cohort has personalisation value of exactly zero at eight questions while the top
+quartile carries a mean of $+.024$.
+
+Two qualifications travel with that. The ranking correlates with the answer rate ($\rho=+0.76$ at two
+questions, $+0.35$ and $+0.41$ at four and eight), so the two-question cut is substantially a split on
+\emph{whether the user answered at all}; the budgets that carry the result are four and eight, where
+the answer rate is flat across the upper three quartiles and mean profile length is non-monotone and
+\emph{lowest} in the top quartile. And the criterion is the recommender's own belief about its own
+gain, so this measures dispersion of that belief --- which is why we do not claim from it that the
+structure is worth capturing, only that the methods do not capture it.
 
 Two guardrails travel with this figure and must not be dropped. First, \textbf{dispersion is not
 payoff}: Section~\ref{sec:act1} shows a policy can manufacture ten thousand distinct interviews and
