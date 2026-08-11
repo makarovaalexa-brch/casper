@@ -283,7 +283,11 @@ conditioning on answers, then over half the battery is not adaptive in the sense
 fixed order.} Auditing what each rule actually maximises when it picks the next question gives the
 plainest available explanation of (a), and it is not a claim about adaptivity at all.
 \textbf{Exactly one of the twenty-one distinct selection rules in this battery optimises held-out
-ranking quality, and it is the static greedy order.} The others maximise information gain about a
+ranking quality, and it is the static greedy order.} The nearest prior work on this specific point is
+Hu and Yu (RecSys 2013), an interview tree whose split can be grown against a \emph{pairwise rank
+loss} rather than squared error, evaluated with MAP on sampled negatives (ten per positive) against a
+top-$k$-popular static comparator; it does not appear in the battery above.
+\REDO{bib key collision check} The others maximise information gain about a
 latent variable or a cluster label, minimise posterior variance or an A-optimality trace, reduce
 squared error of \emph{rating} prediction, or maximise a UCB index over a predicted rating. The
 heuristic orders were tuned against rating-prediction error by their own authors --- Rashid reports
@@ -355,9 +359,10 @@ partitioned into groups, the identical greedy search run within each, and each g
 to held-out users of that group. Static is nested inside that construction: if the best thing to do
 is ask everyone the same questions, every group recovers the same order. On the selection cohort it
 therefore cannot do worse, which makes the whole question one of \emph{generalisation} --- whether a
-partition learned on validation users still pays on test users. \PLAN{the group-conditioned greedy
-arm, at a partition coarse enough to keep groups large; and its recursive form, which is Golbandi's
-tree structure with the ranking objective substituted for the squared-error split}
+partition learned on validation users still pays on test users. Section~\ref{sec:groupgreedy} runs
+exactly that experiment, at the coarsest partition available, and it is the one arm in this chapter
+that clears the bar. \PLAN{the recursive form of the same construction, which is Golbandi's tree
+structure with the ranking objective substituted for the squared-error split}
 
 \paragraph{Two candidate pools, and why the comparison must be made inside one.}
 Table~\ref{tab:greedy} was computed under a narrower candidate mask than Table~\ref{tab:act1}: the
@@ -717,6 +722,163 @@ the unknowns, so a question the user cannot answer is still informative to it. W
 therefore depends on which recommender one assumes --- the selection-side appearance of Chapter A's
 instrument-dependence result, and a caution that applies to every published comparison in this
 literature, including ours.
+
+\subsection{The one arm that clears the bar: the same greedy search, run inside groups}
+\label{sec:groupgreedy}
+
+Every comparison above confounds two things. The only arm optimising the reported metric is also the
+only arm that is static, so ``conditioning on answers'' and ``choice of objective'' vary together and
+the null cannot be attributed to either. This subsection removes the confound in the only way that is
+clean: hold the objective, the optimiser, the bank, the contract and the val/test discipline fixed,
+and vary \emph{only} what the search is conditioned on.
+
+\paragraph{Construction.} Users are partitioned by favourite genre, computed from each user's own
+\emph{fold-in} ratings alone --- the most frequent genre among their liked fold-in items, with
+targets excluded (asserted zero leaks out of $10{,}000$ users on both splits). The identical greedy
+search, on the identical objective (cohort-mean held-out NDCG@10) with the identical optimiser, is
+then run separately inside each group. Selection runs on the $10{,}000$ canonical validation users;
+everything reported below is on the disjoint $10{,}000$ test users. Each group's order is fifteen
+items and the comparator is the global fifteen-item order, compared item-for-item at equal $K$. Static
+is nested in this construction: if one order for everyone were the best thing to do, each group's
+search could recover it, and all eighteen groups do pass that containment check on validation.
+
+\paragraph{The generous assumption, stated first because it bounds everything that follows.} The
+genre answer is treated as \textbf{free side information}. It costs no turn and it is \emph{not}
+folded into the recommender; it changes only which fifteen items are asked. A deployed system would
+have to spend a turn asking it. Every number in this subsection is therefore an upper bound.
+
+\begin{table}[t]
+\centering
+\caption{Group-conditioned greedy, per group. Gains are against the global fifteen-item order at
+$K{=}15$, item-for-item. ``Overlap'' is the number of the group's fifteen picks that also appear in
+the global order. ``Congruence'' counts how many of the fifteen picks carry the group's own genre
+tag, beside the same count for the \emph{global} order on the same genre (a matched control); ``lift''
+is the difference. Test gains marked (ns) do not separate under the paired bootstrap.}
+\label{tab:groupgreedy}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+group & val $n$ & test $n$ & val gain & test gain & shrinkage & overlap & congr. & global & lift \\
+\midrule
+Drama     & 5{,}481 & 5{,}493 & $+.00697$ & $-.00111$ (ns) & $-.00808$ & 6 & 8 & 5 & $+3$ \\
+Action    & 1{,}582 & 1{,}545 & $+.02594$ & $+.01686$ & $-.00908$ & 2 & 12 & 5 & $+7$ \\
+Comedy    & 1{,}475 & 1{,}445 & $+.02270$ & $+.02212$ & $-.00059$ & 4 & 8 & 2 & $+6$ \\
+Adventure & 534 & 565 & $+.05565$ & $+.03244$ & $-.02321$ & 2 & 14 & 6 & $+8$ \\
+Thriller  & 451 & 499 & $+.03524$ & $+.02291$ & $-.01233$ & 3 & 11 & 4 & $+7$ \\
+\midrule
+\multicolumn{10}{l}{\emph{below the pre-specified 200-user threshold --- routed to the global order by the FALLBACK-200 arm}}\\
+Sci-Fi    & 161 & 142 & $+.10498$ & $+.08955$ & $-.01543$ & 2 & 14 & 4 & $+10$ \\
+Romance   & 88 & 90 & $+.06414$ & $+.02655$ (ns) & $-.03759$ & 1 & 11 & 3 & $+8$ \\
+Crime     & 79 & 80 & $+.08940$ & $-.04331$ & $-.13271$ & 0 & 6 & 5 & $+1$ \\
+Horror    & 51 & 56 & $+.06517$ & $-.00131$ (ns) & $-.06648$ & 1 & 3 & 1 & $+2$ \\
+Animation & 44 & 25 & $+.13971$ & $+.03805$ (ns) & $-.10166$ & 0 & 10 & 0 & $+10$ \\
+Children  & 29 & 32 & $+.12155$ & $+.09427$ & $-.02729$ & 2 & 5 & 0 & $+5$ \\
+Fantasy   & 11 & 15 & $+.12734$ & $-.11562$ & $-.24296$ & 2 & 5 & 3 & $+2$ \\
+Western   & 2 & 0 & \multicolumn{7}{l}{empty on test --- reported, not merged away} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The partition itself.} All $10{,}000$ validation users are partitioned, none dropped and
+none merged; the answer rate is $100\%$ and the \texttt{none} group is empty, since every user with
+liked fold-in items has a most-frequent genre among them. The distribution is dominated by one tag:
+Drama $5{,}481$, Action $1{,}582$, Comedy $1{,}475$, Adventure $534$, Thriller $451$, Sci-Fi $161$,
+Romance $88$, Crime $79$, Horror $51$, Animation $44$, Children $29$, Fantasy $11$, Western $2$, and
+five residual groups of three users or fewer (Musical, Documentary and Mystery at three each, War at
+two, Film-Noir at one). \REDO{per-group validation and test cells for those five smallest groups,
+which are partitioned and routed but not reported individually in Table~\ref{tab:groupgreedy}}
+
+\paragraph{Validation, then the one test look.} On the selection cohort the cohort-weighted gain over
+the global order rises with budget: $+0.00421$, $+0.00606$, $+0.00768$, $+0.01478$, $+0.02046$ at
+$K{=}1$, $2$, $4$, $8$ and $15$. The orders that produce it are genuinely different objects --- each
+group's fifteen picks share between zero and six items with the global fifteen. The test cohort was
+then looked at once, under a pre-specified paired percentile bootstrap ($10{,}000$ resamples, seed
+$98765$, all test users), for two arms fixed before the look: \textsc{all-groups}, which routes every
+user to their own group's order, and \textsc{fallback-200}, which routes users whose group had fewer
+than $200$ validation users back to the global order --- $453$ of the $10{,}000$ test users, which is
+$4.53\%$ of them.
+
+At $K{=}15$, \textsc{all-groups} gains $+0.00955$ full (CI $+0.00668$ to $+0.01243$) and $+0.01071$
+tail ($+0.00770$ to $+0.01373$); \textsc{fallback-200} gains $+0.00817$ full ($+0.00539$ to
+$+0.01097$) and $+0.00891$ tail ($+0.00598$ to $+0.01185$). Against a global baseline of $0.24356$ at
+$K{=}15$, the fallback arm is $\sim\!3.4\%$ relative. \textbf{This is the first arm in this chapter to
+beat the strong static order on held-out users.} It is also budget-dependent in a way that matters:
+both arms are \emph{null} at $K{=}1$, $2$ and $4$ --- every interval crosses zero, e.g.\
+\textsc{all-groups} $+0.00144$ ($-0.00078$ to $+0.00366$) at one question and $+0.00121$ ($-0.00099$
+to $+0.00342$) at two --- and they separate only from $K{=}8$.
+
+\paragraph{What this is not.} It is not evidence that adaptive selection works. Every group still asks
+a \emph{fixed} order; nothing conditions on anything during the interview. What pays is knowing one
+crude fact \emph{before} the interview starts. The leverage is at the opener, not in the loop --- which
+is precisely what Act 3 goes on to test.
+
+\paragraph{Validation overstates the effect, uniformly.} All seventeen non-empty groups shrank from
+validation to test; not one held its gain, and the cohort-weighted effect is overstated on validation
+by roughly $2.1\times$. We report the shrinkage column rather than the validation column as the
+finding, and note that this is the failure mode the construction was designed to expose: on the
+selection cohort a nested search cannot lose, so the entire question was ever only whether the
+conditioning generalises.
+
+\paragraph{Genre congruence predicts generalisation.} Counting how many of a group's fifteen picks
+carry that group's genre tag, against the global order's congruence on the same genre as a matched
+control, gives a diagnostic with real discriminative power. \textbf{Every group with a lift of $+5$ or
+more has a positive test gain} --- Sci-Fi ($14$ against $4$), Adventure ($14$ against $6$), Romance
+($11$ against $3$), Action ($12$ against $5$), Thriller ($11$ against $4$), Comedy ($8$ against $2$),
+Animation ($10$ against $0$), Children ($5$ against $0$) --- and \textbf{every group with a lift of
+$+3$ or less is null or negative}: Drama ($8$ against $5$), Horror ($3$ against $1$), Fantasy ($5$
+against $3$), Crime ($6$ against $5$). Face validity, with a matched control, is here a working
+predictor of whether a conditioned order survives the split.
+
+\paragraph{The modest size of the pooled effect is explained by Drama.} Drama is $54.8\%$ of the
+cohort and has the weakest congruence lift of any large group ($+3$); its picks are a grab-bag
+(Table~\ref{tab:firstthree}). ``Favourite genre = Drama'' is not a taste but a default bucket --- the
+largest and vaguest tag, which collects everyone whose taste is broad. That group is not a taste
+cluster, so there is nothing to condition on inside it, and since it carries more than half the
+weight it drags the cohort-weighted number down accordingly. Where the partition is real --- Sci-Fi,
+Adventure, Thriller, Action --- gains run from $+0.017$ to $+0.090$.
+
+\begin{table}[t]
+\centering
+\caption{The first three questions of each order. The global order is the comparator; each group's
+order is produced by the same search on the same objective, differing only in which users it is
+optimising for.}
+\label{tab:firstthree}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{1.6cm}p{3.4cm}p{3.4cm}p{3.6cm}}
+\toprule
+order & question 1 & question 2 & question 3 \\
+\midrule
+global & Lord of the Rings: The Fellowship of the Ring & Batman (1989) & Star Wars: Episode V --- The Empire Strikes Back \\
+\addlinespace
+Sci-Fi & The Terminator (1984) & Star Wars: Episode VI --- Return of the Jedi & Alien (1979) \\
+Adventure & Lord of the Rings: The Fellowship of the Ring & Harry Potter and the Goblet of Fire (2005) & Harry Potter and the Deathly Hallows: Part 1 \\
+Action & Lord of the Rings: The Return of the King & The Terminator (1984) & Star Wars: Episode V --- The Empire Strikes Back \\
+Thriller & True Lies (1994) & The Fugitive (1993) & The Rock (1996) \\
+\addlinespace
+Drama & Clear and Present Danger (1994) & Lord of the Rings: The Fellowship of the Ring & 2001: A Space Odyssey (1968) \\
+Horror & From Dusk Till Dawn (1996) & Alien (1979) & \textbf{Shrek 2 (2004)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The small-group failures are noise, and read like it.} Horror, fitted on $51$ validation
+users, puts \emph{Shrek 2} third in a horror interview; Fantasy, fitted on $11$, lands at $-0.116$ on
+test. These are not surprising and we do not interpret them --- they are what a search with a free
+parameter per group does when the group is small, and they are the reason the \textsc{fallback-200}
+arm exists and was fixed before the test look.
+
+\paragraph{Cost.} Per-evaluation cost scales down with cohort size, which is what makes the design
+affordable at all: seconds per evaluation run $10.97$ at $n{=}5{,}481$, $3.10$ at $1{,}582$, $0.66$ at
+$534$, $0.42$ at $451$ and $0.18$ at $161$.
+
+\paragraph{The ceiling, stated honestly.} The genre answer is free here, and the $K{\leq}4$ null is
+the reason that matters: charging it a turn would very plausibly erase the gain at short budgets,
+where the arm is not separated from the global order in the first place. \PLAN{charge the genre turn
+--- each group's order at $K{-}1$ items against the global order at $K$ --- and, separately, fold the
+genre answer through the concept channel instead of discarding it, so that the turn buys a
+recommender update as well as a routing decision}
 
 \section{Act 2: the mechanism --- placement and dispersion}
 \label{sec:act2}
