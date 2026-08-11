@@ -1,0 +1,456 @@
+Inter view Process Learning for Top-N Recommendation
+Fangwei Hu, Y ong Y u
+Dept. of Computer Science and Engineering
+Shanghai Jiao T ong University
+800 Dongchuan Road, Shanghai China, 200240
+{hufangwei,yyu}@apex.sjtu.edu.cn
+ABSTRACT
+In the ﬁeld of recommendation system research, a key challenge is
+how to effectively recommend items for new users, a problem gen-
+erally known as cold-start recommendation. In order to alleviate
+cold-start problem, recently systems try to get the users’ interests
+by progressively querying users’ preference on predeﬁned items.
+Constructing the query process via machine learning based tech-
+niques becomes an important direction to solve cold-start problem.
+In this paper, we propose a novel interview process learning algo-
+rithm. Different from previous approaches which focus on rate pre-
+diction, our model is able to handle wide ranges of loss functions
+and can be used in collaborative ranking task. Experimental results
+on three real world recommendation dataset demonstrate that our
+proposed method outperforms several baseline methods.
+Categories and Subject Descriptors
+H.3.3 [Information Search and Retrieval]: Information ﬁltering;
+I.2.6 [Artiﬁcial Intelligence]: Learning
+General Terms
+Algorithms, Performance, Experimentation
+Keywords
+Recommender System; Cold-start problem; Ranking; Decision tree;
+Functional matrix factorization
+1. INTRODUCTION
+With the development of Internet, recommendation systems have
+become a signiﬁcant component in the domain of data mining.
+However, a key challenge for building an effective recommender
+system is the well-known cold-start problem, which is to recom-
+mend items to new users. While existing collaborative ﬁltering al-
+gorithms can obtain high performance under warm-start condition,
+they will fail to recommend items for fresh users since the recom-
+mender system rarely knows the interests of those users. Recently
+cold-start problem has attracted much attention from researchers,
+which becomes a hot topic in the ﬁeld of recommendation.
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for proﬁt or commercial advantage and that copies bear this notice and the full cita-
+tion on the ﬁrst page. Copyrights for components of this work owned by others than
+ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or re-
+publish, to post on servers or to redistribute to lists, requires prior speciﬁc permission
+and/or a fee. Request permissions from permissions@acm.org.
+RecSys’13,October 12–16, 2013, Hong Kong, China.
+Copyright 2013 ACM 978-1-4503-2409-0/13/10 ...$15.00.
+http://dx.doi.org/10.1145/2507157.2507205.
+An intuitive approach to solving the cold-start problem is to mod-
+el new users’ preferences by querying their responses adaptively in
+an interview process [1, 3, 4]. While there has been researches
+on the interview process learning, existing literatures focus learn-
+ing models that optimizing root mean squared error (RMSE) for
+rate prediction task. While collaborative ranking is equally impor-
+tant as rate prediction, interview process learning for collaborative
+ranking is not explored.
+In this paper, we propose a novel learning algorithm to learn
+interview questions for collaborative ranking task. The proposed
+method is based on factorization of the sparse user-item rating ma-
+trix, but we deﬁne the user latent factor to be the output of a func-
+tion in the form of a decision tree, whose input is the users’ answers
+to the interview queries. The learning task is effectively carried out
+with the coordinate descent based update algorithm and a estima-
+tion method for general loss function reduction beyond square loss.
+The contribution of the paper is listed as follows. (1) We propose
+a general framework of interview decision tree which can handle
+ranking task. (2) We empirically demonstrate the effectiveness of
+the proposed method on three real-world datasets.
+Outline: In Section 2, we brieﬂy present existing research works
+for cold-start collaborative ﬁltering. In Section 3, we ﬁrst introduce
+basic matrix factorization algorithm for collaborative ﬁltering, then
+we present our method which models users’ preference by con-
+structing the interview process in the form of decision tree. Then,
+we test our proposed method’s performance on three datasets and
+prove that our model can outperform other baselines in Section 4.
+Finally we conclude our work and discuss about several future di-
+rections in Section 5.
+2. ALGORITHM
+In this section, we describe our method for cold-start collabo-
+rative ﬁltering which incorporate interview process into the matrix
+factorization model. The key contribution is that we propose a gen-
+eral framework of interview decision tree which can handle ranking
+task.
+2.1 Matrix Factorization
+Before describing our method, we ﬁrst introduce basic matrix
+factorization algorithm for collaborative ﬁltering. Let rij denote
+the rating of user i for item j, where i = 1; 2; : : : ; N and j =
+1; 2; : : : M. We generally use matrix R to present the whole rating
+matrix. We deﬁne observed rating set O = {(i; j)|rij is observed}.
+The goal of collaborative ﬁltering is to predict the unknown ratings
+in R. One method for collaborative ﬁltering is matrix factorization.
+Speciﬁcally, we assign a d-dimension vector ui ∈ Rd for each user
+i and vj ∈ Rd for each item j. The rating rij of user i for item j
+can be estimated by inner production of ui and vj, i.e. ˆrij = uT
+i vj.
+331W
+e can also rewrite the expression above in matrix format, i.e.
+ˆR = U T V . Our object is to estimate the parameters U and V
+ﬁtting the training data by solving the following optimization prob-
+lem:
+min
+U;V
+L(R; ˆR) + Reg(U; V ) (1)
+where L is a loss function that measuring the difference between
+the prediction ˆR and the target R. Reg(U; V ) is the regularization
+term. For the loss function L, it can be square loss, logistic loss,
+pairwise rank loss, etc.
+2.2 Layer-wise Functional Matrix Factoriza-
+tion
+In the basic matrix factorization model described in Section 3.1,
+the user latent factor ui is learned by optimizing the loss on the
+observed data. However, in order to model the new user’s latent
+factor, we propose to search a function which can map the new
+user’s responses into latent space. Speciﬁcally, assume we would
+like to ask users k interview questions, i.e. show k items to users in
+proper order to ask for their ratings. We also assume an answer to
+a question can be positive value presenting the rating or zero which
+means "Unknown". Furthermore, let xi denote the k-dimension
+vector representing the answer of user i to the k questions. And
+we associate xi with ui by assuming ui = f (xi), where f is a
+function which maps the answer vector xi ∈ Rk to the user latent
+vector ui ∈ Rd. Then we can rewrite the rating estimation the user
+i give for item j as ˆrij = vT
+j f (xi).
+Our goal is to learn both f and vj from the training data. By
+substituting ui = f (xi) into 1, we have the following optimization
+problem:
+min
+f 2F ;V
+L(R; f(X)T V ) + ∥V ∥2 + Ω(f ) (2)
+where f (X) = (f (x1); : : : ; f(xN )) is the matrix of all item latent
+factors mapped from their response vectors. And F is the func-
+tion space from which f (x) is selected and the second term is the
+regularization term in which ∥ · ∥ represent Frobenius norm. Ω(f )
+deﬁnes the complexity of the function f .
+Furthermore, our system should query adaptively, that is follow-
+up questions should be selected based on the user’s response to
+the previous questions. What’s more, since we allow the user to
+answer "Unknown", our system need to be capable with this situ-
+ation. Following prior works [2, 4, 5], we use a decision tree to
+represent function f (x), i.e. the function space F is decision tree
+space. Speciﬁcally, each node of the decision tree represents an
+interview question, and it has three branches which mean "higher
+than threshold", "lower than threshold" and "Unknown", respec-
+tively. After the user answer a series of questions, we can obtain
+a path from the root node to the leaf node according to the user’s
+responses.
+We further utilize the decision tree structure to encourage the
+latent factors of each nodes close to their parents. To achieve this,
+we assign a preference vector to each node in the decision tree,
+and deﬁne the latent factor of each node to be the sum of all the
+vectors along the path to the root. This can be formally expressed
+by following equation
+f (xi) =
+∑
+s2path(xi)
+∆us (3)
+where path(xi) gives the node on the path that corresponds to an-
+swers xi in the tree. We use symbol ∆us to emphasize that each
+parameter is the difference between current nodes’ latent factor to
+Figur
+e 1: Layer-wise Functional MF
+its parent’s latent factor. We further deﬁne the Ω(f ) as
+Ω(f ) =
+∑
+s
+|∆us|2 (4)
+This allows the optimization step to encourage the latent factor of
+each node to be close to its parent. We call our model layer-wise
+functional matrix factorization model. Figure (1) gives the outline
+of our methods.
+2.3 Alternating Optimization
+The objective function deﬁned in 2 can be optimized through an
+alternating minimization process. Speciﬁcally, we can partition all
+parameters in Equation (2) into two parts and then optimize them
+separately between the following two steps:
+1. Fix f (x), we can update vj by regularized coordinate descent.
+According to the objective function 2, we update one parameter p
+among all parameters V for each iteration:
+p = argmin
+p
+L(R; f(X)T V ) + ∥V ∥2 (5)
+2. Fix vj, we try to learn a function f formed in decision tree s.t.
+f = argmin
+f 2F
+L(R; ˆR) (6)
+The most signiﬁcant problem now is how to ﬁnd the optimal de-
+cision tree from a large function space. Since it is computationally
+impossible for us to ﬁnd out the global optimal function, we pro-
+pose a layer-wise additive update with an efﬁcient greedy update
+algorithm to ﬁnd a approximate solution instead.
+2.4 Layer-wise Additive Training
+In our work, the objective function is deﬁned in Equation (2),
+and we now describe a greedy algorithm to construct a decision
+tree which ﬁt the training data approximately best. Speciﬁcally,
+at each node, we select a best interview question(i.e. a best item
+to rate) and a best rating threshold by optimizing the loss function
+Equation (2); then the tree will split the user set into three parts. We
+repeat this procedure recursively until the tree reaches the redeﬁned
+depth limit. In our experiments, the depth limit is usually set to a
+small number between 3 and 10.
+332F
+ormally, starting from the root node, once the interview ques-
+tion q and the rating threshold t are ﬁxed, we can divide the set of
+users at current node into three disjoint subsets Cl(q; t), Cr(q; t)
+and Cm(q; t) as mentioned above. For any subset C, we would like
+to ﬁnd out the optimal increment on the user factor,
+∆ubest = argmin
+∆u
+L(R|C; (uP +∆u; : : : ; uP +∆u)T V )+u∥∆u∥2
+(7)
+Here R|C means that constrain R on the user set C, and (uP +
+∆u; : : : ; uP + ∆u) represents that make |C| copies for the latent
+factor uP + ∆u. The vector uP means the user latent factor ob-
+tained by parent node where Cl ∪ Cr ∪ Cm belongs to. Our method
+adds a leaf node for each subset, and thus add a ∆u to latent factors
+of each subset.
+It is time consuming to directly calculate the ∆ubest for general
+loss, we use a more effective approximated solution instead. The
+ﬁrst part of the objective function can be approximated by Taylor
+expansion as:
+L (R|C; (uP + ∆u; : : : ; uP + ∆u)T V ) + u∥∆u∥2
+≃ L (R|C; (uP ; : : : ; uP )T V ) + ∆uT (∇L + 2u∆u)
++ 1
+2 ∆uT (H +
+2u)∆u
+= eL (∆u)
+Here ∇L means gradient of loss function L and H means the Hes-
+sian matrix of L which is formally deﬁned as:
+H =
+
+
+@L
+@∆u2
+1
+@L
+@∆u2∆u1
+:
+: :
+@L
+@∆u1∆u2
+@L
+@∆u2
+2
+:
+: :
+...
+... . . .
+
+ (8)
+We use eL(∆u) to ﬁnd the best user latent factor ∆ubest. Let g =
+∇L + 2u∆u and eH = H + 2u, and we can rewrite eL as:
+eL(∆u) = eL(0) + ∆uT g + 1
+2 ∆uT eH∆u (9)
+Mathematically
+, the optimal ∆u has a closed-form solution given
+by ∆ubest = − eH 1g. Substituting the equation into 9, we can get
+the result that
+min
+∆u
+eL(∆u) = eL(0) − gT ( eH 1)T g + 1
+2 gT ( eH 1)T g(10)
+= eL(0) − 1
+2 gT ( eH 1)T g (11)
+Ha
+ving above approximate expression for the optimal value of loss
+function, we can decide which partition strategy is the best one.
+However, it is also time consuming to calculate the inverse matrix,
+so we use the diagonal approximation of of eH. Since the inverse
+matrix of a diagonal matrix is easy to get, we would use the diago-
+nal matrix to estimate ∆ubest. Denote D as the diagonal matrix of
+eH, and Equation (10) can be simpliﬁed as
+min
+∆u
+eL(∆u) ≃ eL(0) − 1
+2 gT D 1g (12)
+W
+e can use Equation (12) to ﬁnd the optimal interview question
+q and the best threshold t. Note since there are approximations
+in the derivations, we only use it to ﬁnd the interview question.
+After the question is found, we use coordinate descent to obtain
+optimal ∆u. The update process will enumerate every dimension
+of ∆ui and ﬁx other dimensions to optimize ∆ui. After the root
+node is constructed, its children can be constructed in a similar way
+recursively until the depth of the tree reaches the depth limit.
+3. EXPERIMENTS
+In this section, we design a set of experiments on three bench-
+mark datasets to make comparison between our method and other
+baselines.
+3.1 Datasets and Experiments Setting
+Firstly, we describe our three datasets which are used in experi-
+ments.
+• The MovieLens 1M dataset contains 6040 users, 3952 movies
+and about 1 million ratings.
+• The Netﬂix is a large dataset for testing collaborative ﬁltering
+algorithm. It contains 480189 users, 17770 items and over
+100 million ratings.
+• The Y ahoo! Music KDDCup Track 1 dataset which contains
+253 million ratings includes 1 million users and over 624
+thousand music from the Y ahoo! Music website.
+We test the ranking performance in our experiments. The perfor-
+mance of ranking task can be measured by mean average precision
+(MAP), which is deﬁned as follows
+M AP = ( 1
+|U
+|
+∑
+i2U
+( 1
+|Oi|
+∑
+j2Oi
+P @(r
+anki(j))) (13)
+where U represents the set of all users included in test set, Oi means
+the observed item set of user i and ranki(j) calculates the rank of
+item j in the ranking list of user i. Furthermore, P @n calculates
+the fraction of top n recommended items that are positive.
+Our experiment setting is as same as that in Zhou et al. [5]. For
+each dataset, we split the users into two disjoint subsets, the train-
+ing set and the test set. The ratings of each user in the test set are
+partitioned into two sets: the ﬁrst set is used to generate the user
+responses while the second set is used to evaluate the performance.
+For ranking task, our experimental setting here is to sample nega-
+tive instances for training data and test data separately. For test da-
+ta, to simulate users’ rank list, we randomly sample negative items
+10 times as positive items for each user as test data.
+The algorithms tested in our experiments are summarized as fol-
+lows,
+• EIP It is our algorithm which is short for efﬁcient interview
+process. It can handle various kinds of loss function includ-
+ing rank loss, and it has excellent efﬁciency. We set u at 10
+in our experiments by cross validation.
+• FixQ It is short for "ﬁxed questions" which represents the
+method that select top-k popular items as static interview
+questions, and then use feature based MF to solve the prob-
+lem by leverage the answers to interview as implicit feed-
+back.
+• Warm-MF Additionally, we combine training set and an-
+swer set together as a new training set to simulate the situa-
+tion of warm-start matrix factorization.
+• fMF It is proposed in Zhou et al. [5], in which they use
+closed-form solution to optimize loss function alternately.
+Although it cannot handle other loss function but square loss,
+for completeness, we also conduct experiment on rate predic-
+tion and use it as a baseline.
+3.2 Results on Ranking
+In this section, we test the ranking performance of our algorithm
+on three datasets.
+333(a)
+MAP on MovieLens
+ (b)
+MAP on Netﬂix
+(c)
+MAP on Y ahoo! Music
+ (d)
+RMSE on MovieLens
+Figure 2: Experimental Results
+3.2.1 MAP Performance on MovieLens
+Firstly, we evaluate the MAP for EIP , FixQ and Warm-MF on
+MovieLens since fMF cannot handle the logistic loss. We test four
+sets of results by setting number of interview questions at 3, 5, 8,
+10 respectively. The detailed MAP results of three algorithms are
+shown in Figure (2(a)). From the MAP results of each of the al-
+gorithm, we can get some basic observations. Firstly, we ﬁnd that
+our proposed approach EIP do outperforms FixQ in this rank task.
+And MAP of EIP is higher than FixQ by 2% averagely. Second-
+ly, Warm-MF works better than EIP . And the gap between these
+two algorithm is quite large, which is about 6%. That is, on this
+dataset, the advantage of warm-start situation is obvious. Finally,
+the improvement of MAP caused by the increment of the number
+of interview question is quite notable.
+3.2.2 MAP Performance on Netﬂix
+In this section, we report the performance of three algorithms on
+Netﬂix. We give the comparison of our method against other two in
+Figure (2(b)). And here we also set the number of interview ques-
+tions at 3, 5, 8, 10, which is similar to that in previous sections. It
+is evident that EIP achieves a signiﬁcant improvement over FixQ.
+Here the MAP of EIP is still higher than that of EIP by about 2%.
+The warm-start situation also has obvious advantage, which out-
+perform EIP by 5% approximately. Furthermore, the effect of the
+increment of the number of interview questions is still evident here.
+3.2.3 MAP Performance on Yahoo! Music
+Finally, experiments are conducted on Y ahoo! Music dataset,
+the largest dataset mentioned in this paper. Different from previous
+sections, we set the number of interview questions at 3, 4, 5, 6 to
+make the training time shorter because of the scale of the dataset.
+We present MAP results of three algorithm as Figure (2(c)). Fig-
+ure (2(c)) gives us an abstract impression that EIP outperform FixQ
+obviously. The gap between EIP and FixQ reaches about 7% aver-
+agely. And another bright spot in Figure (2(c)) is that EIP outper-
+forms Warm-MF by a bit less than 3%, which means our method
+almost reaches the rank performance of warm-start situation in this
+dataset. Last but not the least, the improvement caused by the depth
+of the decision tree is not as evident as above. Even when the depth
+reaches 6, the MAP begins to decrease, which means our model
+becomes overﬁtting.
+3.3 Results on Prediction
+In this subsection, we show more experimental results of our
+algorithm on prediction tasks and we use widely used metric RMSE
+as evaluate the performance of each algorithm.
+We compare the prediction performance on MovieLens. We also
+involve fMF here to make a comparison with other two algorithm-
+s. As Figure (2(d)) shows, our method outperforms fMF and FixQ.
+However, we can also ﬁnd that the RMSE performance of cold-start
+algorithms is far worse than that of Warm-MF, which is not similar
+to MAP performance. Furthermore, when the depth becomes deep-
+er, the results of fMF and EIP show signs of deterioration. We think
+that this phenomenon is caused by overﬁtting since the skewness of
+small dataset.
+4. CONCLUSIONS
+The main focus of this paper is on the cold-start problem in rec-
+ommender systems. We have proposed a framework for effectively
+learning a decision tree to handle different kinds of tasks including
+ranking task. We can simulate interview process to model the laten-
+t factors for new-come users. Furthermore, our framework is able
+to handle different types of loss function; even they do not have
+closed form solution of the optimal point. We have established
+learning algorithm based on alternating optimization. At last, we
+have demonstrated the effectiveness of our method on real-world
+recommendation benchmarks and compared our method with other
+baselines.
+The current model make the use of Taylor expansion and some
+inequality estimation to speed our method up and it may cause the
+harm to the performance. For future work, we plan to investigate
+how to make the update rules used in coordinate descent more pre-
+cise, as well as the expected optimal value of loss function. More-
+over, we also plan to apply more kinds of loss function for different
+tasks.
+5. REFERENCES
+[1] N. Golbandi, Y . Koren, and R. Lempel. On bootstrapping
+recommender systems. In Proceedings of the 19th ACM
+international conference on Information and knowledge
+management, CIKM ’10, pages 1805–1808, New Y ork, NY ,
+USA, 2010. ACM.
+[2] N. Golbandi, Y . Koren, and R. Lempel. Adaptive
+bootstrapping of recommender systems using decision trees.
+In Proceedings of the fourth ACM international conference on
+Web search and data mining, WSDM ’11, pages 595–604,
+New Y ork, NY , USA, 2011. ACM.
+[3] A. M. Rashid, I. Albert, D. Cosley, S. K. Lam, S. M. McNee,
+J. A. Konstan, and J. Riedl. Getting to know you: learning new
+user preferences in recommender systems. In Proceedings of
+the 7th international conference on Intelligent user interfaces ,
+IUI ’02, pages 127–134, New Y ork, NY , USA, 2002. ACM.
+[4] A. M. Rashid, G. Karypis, and J. Riedl. Learning preferences
+of new users in recommender systems: an information
+theoretic approach. SIGKDD Explor . Newsl., 10(2):90–100,
+Dec. 2008.
+[5] K. Zhou, S.-H. Y ang, and H. Zha. Functional matrix
+factorizations for cold-start recommendation. In Proceedings
+of the 34th international ACM SIGIR conference on Research
+and development in Information Retrieval, pages 315–324.
+ACM, 2011.
+334
