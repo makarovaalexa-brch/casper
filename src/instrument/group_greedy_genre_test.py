@@ -235,7 +235,7 @@ def main():
             f"@K={PRIMARY_K} own {c['group_full@10']:.5f} vs global {c['global_full@10']:.5f} = "
             f"{c['diff_full@10']:+.5f} [{c['paired_ci_full']['lo']:+.5f}, {c['paired_ci_full']['hi']:+.5f}] "
             f"| val was {c['val_diff_full@10']} | shrinkage {c['shrinkage_full@10']} "
-            f"| overlap {c['overlap']['set_overlap']}/16")
+            f"| overlap {c['overlap']['set_overlap']}/{PRIMARY_K}")
 
     # ---- the two arms, cohort-wide, paired ------------------------------------------------------
     arms_out = {}
@@ -275,7 +275,7 @@ def main():
         f"excludes zero: {prim2['excludes_zero']}")
     log("-" * 108)
     log(f"{'group':<14}{'val n':>7}{'test n':>8}{'val gain':>11}{'test gain':>11}"
-        f"{'shrinkage':>11}{'overlap16':>11}")
+        f"{'shrinkage':>11}{f'overlap@K{PRIMARY_K}':>11}")
     for g in sorted(per_group, key=lambda k: -(val_sizes.get(k, 0))):
         r = per_group[g]
         if not r.get("has_order") or "curve" not in r:

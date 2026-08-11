@@ -1,54 +1,105 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-08-11 (genre-split group-conditioned greedy LAUNCHED; depth-1 predecessor FINISHED)**.
+> End-state is in `VISION.md`. Last updated: **2026-08-11 (genre-split conditioned greedy MEASURED ON TEST: FALLBACK-200 +0.00817 [+0.00539,+0.01097] full NDCG@10 at K=15, but Drama — 55% of users — is a null and all 17 groups shrank val→test)**.
 
-## ⏳ LIVE 2026-08-11 23:01 — genre-split greedy **16 vs 16**, stage 1 (`groupgreedy_genre16`)
+## ★★★ 2026-08-11 — GENRE-SPLIT CONDITIONED GREEDY, MEASURED ON TEST (`groupgreedy_genre15`)
 
-**Author redesign, verbatim:** *"can you not fold in the genre question? but instead partition by
+**Author instructions, verbatim:** *"can you not fold in the genre question? but instead partition by
 genre, evaluate the static order vs adaptive order found per group? so 16 vs 16, would just show,
-hopefully, that adaptive order is indeed optimal"* · **and:** *"only result on test users is
-interesting"*.
+hopefully, that adaptive order is indeed optimal"* · *"only result on test users is interesting"* ·
+*"ok, do 15 for now, that is fine. add missing groups and kill long run"*.
 
-The 15-step/charged-turn variant launched at 19:05 was **killed at ~15 min and discarded**; its
-outputs are renamed `experiments/battery/groupgreedy_genre_ABANDONED_15step*`. Design sheet
-`docs/design/DS_GROUP_GREEDY_GENRE.md` (rewritten, and it now carries the **pre-specified stage-2
-test plan**); code `src/instrument/group_greedy_genre.py` (stage 1) +
-`src/instrument/group_greedy_genre_test.py` (stage 2), committed `439a295` **before** launch.
+Design sheet `docs/design/DS_GROUP_GREEDY_GENRE.md` (stage-2 plan **pre-registered and committed
+before any test number existed**). Code `src/instrument/group_greedy_genre.py` +
+`group_greedy_genre_test.py`. Artifacts `experiments/battery/groupgreedy_genre15{,_TEST}.json`
+(+ `_per_user.npz`). **All tasks deleted; nothing is running.**
 
-* **L = 16 item steps per group, no prefix**; comparison is **item-for-item**, group's first K vs the
-  global order's first K, K ∈ {1,2,4,8,16}. The total-budget curve is **dropped**.
-* **THE GENEROUS ASSUMPTION, and it must stay visible:** the genre answer is **free side
-  information** — no turn charged, not folded into the recommender. A deployed system would pay a
-  turn for it. **Every gain reported is an upper bound.** Repeated in the log header, in
-  `generous_assumption` in both output JSONs, and in the design sheet.
-* **`sanity_pass` is now only a harness check.** At 16-vs-16 on the *selection* cohort the group
-  order is **guaranteed** ≥ the global order (it is inside the search space), so a win is **not**
-  evidence that conditioning pays. What carries information: gain **magnitude**, **gain vs group
-  size** (the overfitting read, tabulated sorted by n), and **order overlap** with the global order.
-* Per-user score vectors banked to `groupgreedy_genre16_per_user.npz` so every CI is paired.
-* Partition unchanged and re-verified live (18 groups, `none` empty, 13/18 under 200 users).
-* Sanity PASSED on the rebuild (Thriller n=451, L=2): own 0.22593 ≥ global 0.22392, overlap 1/2
-  items, 2 positions differ.
-* **ETA ≈ 4 h → ~03:00.** Delete with `schtasks /Delete /TN casper_groupgreedy_genre16 /F`.
+### THE HEADLINE (TEST, 10,000 users, paired bootstrap 10k resamples, seed 98765)
 
-### Stage 2 — TEST, pre-specified and committed BEFORE any test number exists
+**Primary endpoint — cohort-weighted group-order minus global-order, full NDCG@10 at K=15:**
 
-Author has authorised the test evaluation and called it the only interesting result. Plan is fixed in
-`DS_GROUP_GREEDY_GENRE.md` and in the stage-2 script docstring; **one look, no variant re-runs, no
-post-hoc tuning of threshold / rule / pool / budget.**
+| arm | diff full | 95% CI | diff tail | 95% CI |
+|---|---|---|---|---|
+| **ALL-GROUPS** | **+0.00955** | [+0.00668, +0.01243] | +0.01071 | [+0.00770, +0.01373] |
+| **FALLBACK-200** (deployable) | **+0.00817** | [+0.00539, +0.01097] | +0.00891 | [+0.00598, +0.01185] |
 
-* **Primary endpoint:** cohort-weighted group-order minus global-order, **full NDCG@10 at K=16, all
-  10,000 TEST users, paired** percentile bootstrap, **10,000 resamples, seed 98765**. Never the
-  unpaired `1.96*sqrt(2)*SE` form.
-* **Two arms, both reported: ALL-GROUPS** and **FALLBACK-200** (test users whose genre group had
-  <200 *validation* users get the global order — the deployable policy; the threshold is the one
-  stage 1 already flags with and is fixed in advance so it cannot become tuned).
-* Also pre-registered: test-side genre distribution beside validation, per-group test gain vs
-  validation group size, order overlap, and **validation-to-test shrinkage** per group — the
-  overfitting measurement, and the most likely thing to carry the finding.
-* Same rule on the test side, from test users' **own fold-in** ratings; `partition_by_genre` is
-  imported, never re-implemented; `leak_assert` re-run on test.
+Global at K=15 = 0.24356 full. So the conditioned orders are **~+3.9% relative** — real, separated
+from zero, and **an upper bound**: the genre answer is charged nothing (see below).
+
+**It only appears at long budgets.** Both arms are a NULL at K=1,2,4 (all CIs cross zero) and turn
+on at K=8: ALL-GROUPS +0.00144 / +0.00121 / +0.00239 / **+0.00814** / **+0.00955**. Conditioning
+does not buy a better *first* question; it buys a better *tail* of the interview.
+
+### THE FINDING UNDERNEATH: it is not the big groups
+
+| group | val n | test n | val gain | **test gain** | shrinkage | overlap@K15 |
+|---|---|---|---|---|---|---|
+| Drama | 5,481 | 5,493 | +0.00697 | **−0.00111** [−0.00461,+0.00245] | −0.00808 | 6/15 |
+| Action | 1,582 | 1,545 | +0.02594 | **+0.01686** | −0.00908 | 2/15 |
+| Comedy | 1,475 | 1,445 | +0.02270 | **+0.02212** | −0.00059 | 4/15 |
+| Adventure | 534 | 565 | +0.05565 | **+0.03244** | −0.02321 | 2/15 |
+| Thriller | 451 | 499 | +0.03524 | **+0.02291** | −0.01233 | 3/15 |
+| Sci-Fi | 161 | 142 | +0.10498 | **+0.08955** | −0.01543 | 2/15 |
+| Romance | 88 | 90 | +0.06414 | +0.02655 (ns) | −0.03759 | 1/15 |
+| Crime | 79 | 80 | +0.08940 | **−0.04331** | −0.13271 | 0/15 |
+| Horror | 51 | 56 | +0.06517 | −0.00131 (ns) | −0.06648 | 1/15 |
+| Animation | 44 | 25 | +0.13971 | +0.03805 (ns) | −0.10166 | 0/15 |
+| Children | 29 | 32 | +0.12155 | **+0.09427** | −0.02729 | 2/15 |
+| Fantasy | 11 | 15 | +0.12734 | **−0.11562** | −0.24296 | 2/15 |
+| Musical 3·Documentary 3·Mystery 3·War 2·Film-Noir 1 | | 4·3·2·1·3 | +0.024…+0.311 | ~0 / −0.036 / +0.085 | −0.024…−0.303 | 1–2/15 |
+| **Western** | **2** | **0** | +0.00000 | **empty on test** — reported, not merged | | 2/15 |
+
+* **Drama is a NULL on test** — and it is **54.9% of the cohort**. The headline is carried entirely by
+  Action, Comedy, Adventure, Thriller and Sci-Fi.
+* **EVERY ONE OF THE 17 GROUPS SHRANK from validation to test. Not one held its gain.** That is the
+  overfitting measurement, and it is unanimous.
+* **Shrinkage tracks group size almost perfectly.** Comedy (n=1,475) lost 0.0006; Fantasy (n=11) lost
+  0.243; Mystery (n=3) lost its entire +0.303. The validation table's beautiful gain-vs-size gradient
+  (+0.007 at n=5,481 rising to +0.311 at n=2) was **almost all noise**, exactly as pre-registered.
+* **The conditioned orders are genuinely different** — 0–6 of 15 items shared with the global order,
+  and no group reproduced its positions. So this is not "there was nothing to condition on"; the
+  orders diverge hard and *still* mostly fail to generalise.
+
+### Which arm is the headline
+
+**FALLBACK-200 (+0.00817).** It is the only one that describes a shippable policy: you cannot deploy
+an order fitted on 3 users, and ALL-GROUPS gets part of its number from groups (Children n=29,
+War n=1) whose test cells are noise in both directions. The two arms agree closely (+0.00955 vs
++0.00817) precisely because the sub-200 groups are only 4.53% of test users — which is itself the
+point: **the small groups are loud in the per-group table and nearly irrelevant in the cohort mean.**
+
+### The caveats that must travel with this number
+
+1. **The genre answer is FREE.** No turn is charged and it is not folded into the recommender — the
+   comparison is 15 items vs 15 items. A real system pays a turn for it. **+0.00817 is an upper
+   bound**, and at K=1–4 the gain is indistinguishable from zero, so a charged turn would very
+   plausibly erase it at short budgets.
+2. **Validation `sanity_pass` is meaningless as evidence** — at 15-vs-15 on the selection cohort the
+   group order is guaranteed to win. All 18 passed; that only says the harness is correct.
+3. Validation cohort-weighted gain was **+0.02046** at K=15 vs **+0.00955** on test: **the selection
+   cohort overstates the effect by ~2.1×.**
+
+### Provenance
+
+* Four orders (Drama, Action, Comedy, Adventure = 9,072 of 10,000 val users) were **imported** from
+  the abandoned 15-step run after an **11-field contract assertion** (tower, concept ckpt, objective,
+  bank, pool size, branch rule, split, cohort size, L, sanity flag, full group-size map) — **all
+  matched**, logged field by field into `contract_assertion`. The other 14 groups were searched here
+  (19.2 min). Curves/overlap/per-user vectors were recomputed for all 18 by the same code.
+* Grouping honesty asserted on **both** cohorts: 0/10,000 validation and 0/10,000 test users have a
+  held-out target inside the grouping lookup. Test grouping used test users' own fold-in only, via
+  the *imported* `partition_by_genre`.
+* Genre distributions are stable val→test (Drama 54.81→54.93%, Action 15.82→15.45%).
+* **Defect found and fixed:** the stage-1 summary emitted keys named `@16` while the values were
+  computed at K=15. Values were always right; keys renamed in place to `@K15`, `key_name_correction`
+  recorded in the artifact, and the source now derives the key from K.
+
+### Next
+
+Nothing is running. Open question for the author: this is the *upper bound* — the obvious next cut is
+to charge the genre turn (14 items + 1 genre question vs 15 items), which the K=1–8 curve suggests
+would eat most of it at short budgets.
 
 ## ✅ ABANDONED 2026-08-11 19:20 — 15-step/charged-turn variant (`groupgreedy_genre`)
 
