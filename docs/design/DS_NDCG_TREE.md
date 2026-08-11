@@ -93,10 +93,22 @@ rebuilding the static combined order under policy B (~12 h). Flagged for the aut
 
 ### Cost
 
-Per node ≈ 1,000 seed evals (+ lazy re-evals at leaves), at `s/eval ≈ 0.29 + 7.4e-4·n`. With the
-≤74-node bound and Σ users per level = 10,000, the estimate is **≈15–25 h** depending on how deep the
-fat branch runs (Σ over nodes of n is the driver, and that is 10,000 × the number of levels that
-still contain internal nodes). This is **above** the ~15 h line and is reported rather than cut.
+Measured `s/eval` across the sanity run and the live root pass — n = 285 → 0.24 s, 401 → 0.30,
+1,020 → 0.75, 1,753 → 1.36, 2,439 → 1.79, 6,541 → 5.18, 10,000 → **8.53** — is **linear in cohort
+size with essentially zero fixed overhead**: `s/eval ≈ 8.5e-4 · n`. That is the number that decides
+the bill, and it is better than the pessimistic model: since the nodes at one level partition the
+10,000 users, **Σ s/eval over a whole level is ~8.5 s no matter how many nodes it has**, so a full
+level costs ≈ 1,000 × 8.5 s = **2.4 h** regardless of tree width. The root's live seed pass confirms
+it (`seed 25/1000 (3.6m, 8.53s/eval)`).
+
+Total ≈ 2.4 h × (number of levels still containing internal nodes, weighted by the user fraction
+still internal) + ~1.2 h of leaf greedy tails ⇒ **≈10–16 h** for a realised depth of 6–10.
+
+**Nothing is cut.** The run launches with `--wall_hours 0` (no operational limit). Growth is
+**level-synchronous**, so the partial tree on disk after every level is exactly the tree a shallower
+request would have produced — the run can be stopped at any level and still yields a complete, valid,
+citable tree, and it resumes deterministically from its per-node CELF-heap sidecars if the author
+wants more depth later.
 
 Nothing is cut: the run launches with `--wall_hours 0` (no operational limit). Growth is
 **level-synchronous**, so the partial tree on disk after every level is exactly the tree a shallower
