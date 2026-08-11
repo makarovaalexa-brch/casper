@@ -1,9 +1,55 @@
 # STATE — where the project is now
 
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
-> End-state is in `VISION.md`. Last updated: **2026-08-10 (TODO 1.2 concept-bank PV test DONE — the mechanism hypothesis is dead; Paper A closed pending author read)**.
+> End-state is in `VISION.md`. Last updated: **2026-08-11 (genre-split group-conditioned greedy LAUNCHED; depth-1 predecessor FINISHED)**.
 
-## ⏳ LIVE RUN 2026-08-10 23:24 — depth-1 group-conditioned greedy (`groupgreedy_d1`)
+## ⏳ LIVE RUN 2026-08-11 19:0x — genre-split group-conditioned greedy (`groupgreedy_genre`)
+
+The answerable-branch successor to `groupgreedy_d1` below. That run branched on ONE popular ITEM and
+**70.45% of the cohort could not answer it**; the conditioning gain in exactly that 70% was **+0.0019**
+against **+0.0129** (like) and **+0.0237** (dislike). So depth-1 was limited by ANSWERABILITY, not by
+conditioning. This run swaps the branch for an **OPEN "what is your favourite genre?"**, answered
+faithfully from the user's own **LIKED FOLD-IN** items. Design sheet
+`docs/design/DS_GROUP_GREEDY_GENRE.md`; code `src/instrument/group_greedy_genre.py`.
+
+* **Branch rule:** most frequent MovieLens genre over liked fold-in items (level ≥ 7 = ≥ 4.0 stars),
+  **ties alphabetical**; no liked/genred item → explicit `none` group (**empty in practice: 0 users**).
+  Genres from `data/movielens/movies.csv` × `data/ml-25m/proc/unique_sid.txt`; **18,235/18,359
+  (99.32%)** catalogue items carry ≥1 genre; sid map asserted equal to `ctx.show2id`, 0 mismatches.
+* **Honesty asserted, not assumed:** `_leak_assert` confirms 0/10,000 users have a held-out target
+  inside the grouping lookup.
+* **18 groups over 10,000 VALIDATION users** (nothing merged, nothing dropped — HARD RULE 1):
+  Drama 5,481 · Action 1,582 · Comedy 1,475 · Adventure 534 · Thriller 451 · Sci-Fi 161 · Romance 88
+  · Crime 79 · Horror 51 · Animation 44 · Children 29 · Fantasy 11 · Documentary 3 · Musical 3 ·
+  Mystery 3 · War 2 · Western 2 · Film-Noir 1. **13/18 are under 200 users and are flagged
+  `small_group: true` / statistically untrustworthy.** Merging is an author decision, not a runtime one.
+* **The genre answer conditions the SELECTOR only** — it is not folded into the recommender — and it
+  **COSTS A TURN**. Two comparisons are therefore stored side by side:
+  * `curve_total_budget[T]` (**headline**): group's first **T−1 items** vs global's first **T items**,
+    T ∈ {1,2,4,8,16}.
+  * `curve_item_matched[K]` (**containment**): K items vs K items. **`sanity_pass` gates on this one
+    only** — the "global order is inside the search space" argument is true at matched item count and
+    FALSE at matched total budget, where a shortfall is a finding, not a bug.
+* **Sanity mode PASSED** (Thriller, 451 users, L=2, 13-item pool incl. the comparator's whole head):
+  item-matched own `[583,123]` **0.22593** ≥ global `[583,123]`-prefix **0.22392** (**+0.00201**);
+  total-budget @3 turns **0.22593** vs global 3 items **0.22654** (**−0.00061**) — i.e. at a 3-turn
+  budget the genre turn does not pay for itself. 0.891 s/eval at 451 users.
+* **VALIDATION ONLY.** The test cohort is not built, not loaded, not touched.
+* Outputs (unique label, shared with nothing): `experiments/battery/groupgreedy_genre.log`,
+  `groupgreedy_genre_partial.json` (rewritten after EVERY pick), `groupgreedy_genre.json` at the end.
+* **ETA ≈ 3.5–4.5 h** (s/eval ≈ 1.8e-3·n; Drama alone ≈ 1.9 h).
+
+**Driven by a Windows scheduled task.** Delete it with:
+`schtasks /Delete /TN casper_groupgreedy_genre /F`
+It needs `DisallowStartIfOnBatteries=$false` + `StopIfGoingOnBatteries=$false` — the box is on
+battery, and with the `schtasks /Create` default the task sits at `Status: Queued` reporting
+`Last Result: 0` while doing nothing.
+
+## ✅ FINISHED 2026-08-11 03:12 — depth-1 group-conditioned greedy (`groupgreedy_d1`)
+
+**Result (validation, item-matched at 16):** like (n=2,099) **+0.0129** · dislike (n=856) **+0.0237**
+· did-not-answer (n=7,045) **+0.0019**. All three sanity gates passed. s/eval 4.853 / 1.621 / 12.784.
+Task deleted. Superseded as the live job by `groupgreedy_genre` above.
 
 The one-branch-point control for Act 1: same objective, same optimiser (`greedy_certified`), same
 top-500-popularity item pool, same cohort — the ONLY thing that varies is whether the 15 steps after

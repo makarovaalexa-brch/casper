@@ -1,0 +1,143 @@
+{
+  "sig": {
+    "tower": "t2i26c_ep31.pt",
+    "conc": "concept_cv3_ep08.pt",
+    "objective": "full",
+    "item_bank": "pop",
+    "n_items": 500,
+    "branch": "favourite_genre_from_liked_foldin",
+    "L_items_after_genre": 2,
+    "split": "validation",
+    "n_cohort": 10000,
+    "sizes": {
+      "Drama": 5481,
+      "Action": 1582,
+      "Thriller": 451,
+      "Sci-Fi": 161,
+      "Comedy": 1475,
+      "Romance": 88,
+      "Fantasy": 11,
+      "Adventure": 534,
+      "Horror": 51,
+      "Children": 29,
+      "Crime": 79,
+      "Animation": 44,
+      "Musical": 3,
+      "Western": 2,
+      "Documentary": 3,
+      "Mystery": 3,
+      "War": 2,
+      "Film-Noir": 1
+    },
+    "sanity": true
+  },
+  "groups": {
+    "Thriller": {
+      "n_users": 451,
+      "branch_answer": "Thriller",
+      "done": true,
+      "small_group": false,
+      "items": [
+        [
+          0,
+          583
+        ],
+        [
+          0,
+          123
+        ]
+      ],
+      "interview": [
+        "GENRE:Thriller",
+        583,
+        123
+      ],
+      "gains": [
+        0.055679099141503596,
+        0.01621178016757563
+      ],
+      "n_evals": 20,
+      "sec_per_eval": 0.891,
+      "minutes": 0.31,
+      "curve_total_budget": {
+        "1": {
+          "group_items_asked": 0,
+          "global_items_asked": 1,
+          "group_full@10": 0.15404191980479967,
+          "group_tail@10": 0.03919357610595199,
+          "global_full@10": 0.17053847930662844,
+          "global_tail@10": 0.04814301856802152,
+          "diff_full@10": -0.016496559501828767,
+          "diff_tail@10": -0.00894944246206953,
+          "group_item_answered": 0.0
+        },
+        "2": {
+          "group_items_asked": 1,
+          "global_items_asked": 2,
+          "group_full@10": 0.20972101894630327,
+          "group_tail@10": 0.08843649687245271,
+          "global_full@10": 0.22391867941472074,
+          "global_tail@10": 0.10177220608495331,
+          "diff_full@10": -0.014197660468417472,
+          "diff_tail@10": -0.013335709212500602,
+          "group_item_answered": 0.421
+        },
+        "4": {
+          "group_items_asked": 2,
+          "global_items_asked": 4,
+          "group_full@10": 0.2259327991138789,
+          "group_tail@10": 0.10528798937466917,
+          "global_full@10": 0.23313023981208966,
+          "global_tail@10": 0.12796918458914835,
+          "diff_full@10": -0.007197440698210766,
+          "diff_tail@10": -0.022681195214479186,
+          "group_item_answered": 0.933
+        },
+        "8": {
+          "group_items_asked": 2,
+          "global_items_asked": 8,
+          "group_full@10": 0.2259327991138789,
+          "group_tail@10": 0.10528798937466917,
+          "global_full@10": 0.2544762647979709,
+          "global_tail@10": 0.1323206540781972,
+          "diff_full@10": -0.028543465684092023,
+          "diff_tail@10": -0.02703266470352804,
+          "group_item_answered": 0.933
+        },
+        "16": {
+          "group_items_asked": 2,
+          "global_items_asked": 16,
+          "group_full@10": 0.2259327991138789,
+          "group_tail@10": 0.10528798937466917,
+          "global_full@10": 0.28131929394353483,
+          "global_tail@10": 0.15428715982262795,
+          "diff_full@10": -0.055386494829655936,
+          "diff_tail@10": -0.048999170447958776,
+          "group_item_answered": 0.933
+        }
+      },
+      "curve_item_matched": {
+        "1": {
+          "group_full@10": 0.20972101894630327,
+          "global_full@10": 0.17053847930662844,
+          "diff_full@10": 0.03918253963967483,
+          "group_tail@10": 0.08843649687245271,
+          "global_tail@10": 0.04814301856802152,
+          "diff_tail@10": 0.04029347830443119
+        },
+        "2": {
+          "group_full@10": 0.2259327991138789,
+          "global_full@10": 0.22391867941472074,
+          "diff_full@10": 0.0020141196991581567,
+          "group_tail@10": 0.10528798937466917,
+          "global_tail@10": 0.10177220608495331,
+          "diff_tail@10": 0.003515783289715857
+        }
+      },
+      "n_items_compared": 2,
+      "own_minus_global_ITEM_MATCHED@2": 0.0020141196991581567,
+      "own_minus_global_TOTAL_BUDGET@3": -0.0006121681099179044,
+      "sanity_pass": true
+    }
+  }
+}
