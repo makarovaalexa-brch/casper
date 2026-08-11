@@ -1,0 +1,218 @@
+{
+  "analysis": "group_conditioned_greedy_depth1",
+  "label": "groupgreedy_d1",
+  "SANITY": true,
+  "citable": false,
+  "split": "validation",
+  "test_touched": false,
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "objective": "full",
+  "item_bank": "pop",
+  "n_items_pool": 500,
+  "q1": [
+    0,
+    83
+  ],
+  "q1_source": "greedy_static_i26c.json",
+  "global_sequence": [
+    [
+      0,
+      83
+    ],
+    [
+      0,
+      583
+    ],
+    [
+      0,
+      19
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      22
+    ],
+    [
+      0,
+      89
+    ],
+    [
+      0,
+      123
+    ],
+    [
+      0,
+      140
+    ],
+    [
+      0,
+      2195
+    ],
+    [
+      0,
+      146
+    ],
+    [
+      0,
+      343
+    ],
+    [
+      0,
+      14
+    ],
+    [
+      0,
+      155
+    ],
+    [
+      0,
+      631
+    ],
+    [
+      0,
+      127
+    ],
+    [
+      0,
+      29
+    ]
+  ],
+  "answer_rule": "lvl_lookup absent -> noanswer; level >= 7 -> like; else dislike",
+  "n_cohort": 10000,
+  "group_sizes": {
+    "like": 2099,
+    "dislike": 856,
+    "noanswer": 7045
+  },
+  "budgets": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "groups": {
+    "dislike": {
+      "n_users": 856,
+      "q1": [
+        0,
+        83
+      ],
+      "done": true,
+      "steps_after_q1": [
+        [
+          0,
+          21
+        ],
+        [
+          0,
+          19
+        ]
+      ],
+      "sequence": [
+        [
+          0,
+          83
+        ],
+        [
+          0,
+          21
+        ],
+        [
+          0,
+          19
+        ]
+      ],
+      "gains": [
+        0.0037076779754268985,
+        0.004969873084896048
+      ],
+      "n_evals": 14,
+      "sec_per_eval": 1.637,
+      "minutes": 0.41,
+      "curve_own": {
+        "1": {
+          "full@10": 0.19573367840314165,
+          "tail@10": 0.03312127925122351,
+          "item_answered": 1.0
+        },
+        "2": {
+          "full@10": 0.19944135637856855,
+          "tail@10": 0.03996192871125862,
+          "item_answered": 1.487
+        },
+        "4": {
+          "full@10": 0.2044112294634646,
+          "tail@10": 0.04293737192978894,
+          "item_answered": 1.982
+        },
+        "8": {
+          "full@10": 0.2044112294634646,
+          "tail@10": 0.04293737192978894,
+          "item_answered": 1.982
+        },
+        "16": {
+          "full@10": 0.2044112294634646,
+          "tail@10": 0.04293737192978894,
+          "item_answered": 1.982
+        }
+      },
+      "curve_global": {
+        "1": {
+          "full@10": 0.19573367840314165,
+          "tail@10": 0.03312127925122351,
+          "item_answered": 1.0
+        },
+        "2": {
+          "full@10": 0.1911073344202828,
+          "tail@10": 0.03984532908053048,
+          "item_answered": 1.238
+        },
+        "4": {
+          "full@10": 0.20355765620242863,
+          "tail@10": 0.0488504245401328,
+          "item_answered": 2.318
+        },
+        "8": {
+          "full@10": 0.2183379778882272,
+          "tail@10": 0.05584374075422673,
+          "item_answered": 4.315
+        },
+        "16": {
+          "full@10": 0.23965996627158329,
+          "tail@10": 0.08362410843504405,
+          "item_answered": 7.082
+        }
+      },
+      "cmp_budget": 3,
+      "own_minus_global@3": 0.00604763066460362,
+      "sanity_pass": true
+    }
+  },
+  "sig": {
+    "tower": "t2i26c_ep31.pt",
+    "conc": "concept_cv3_ep08.pt",
+    "objective": "full",
+    "item_bank": "pop",
+    "n_items": 500,
+    "q1": [
+      0,
+      83
+    ],
+    "L_after_q1": 2,
+    "split": "validation",
+    "n_cohort": 10000,
+    "sizes": {
+      "like": 2099,
+      "dislike": 856,
+      "noanswer": 7045
+    },
+    "sanity": true
+  },
+  "seconds": 86.9,
+  "baseline_sec_per_eval_10k": 13.543
+}

@@ -1,0 +1,43 @@
+{
+  "sig": {
+    "tower": "t2i26c_ep31.pt",
+    "conc": "concept_cv3_ep08.pt",
+    "objective": "full",
+    "item_bank": "pop",
+    "n_items": 500,
+    "branch": "favourite_genre_from_liked_foldin",
+    "L_items": 16,
+    "charged_for_genre": 0,
+    "split": "validation",
+    "n_cohort": 10000,
+    "sizes": {
+      "Drama": 5481,
+      "Action": 1582,
+      "Thriller": 451,
+      "Sci-Fi": 161,
+      "Comedy": 1475,
+      "Romance": 88,
+      "Fantasy": 11,
+      "Adventure": 534,
+      "Horror": 51,
+      "Children": 29,
+      "Crime": 79,
+      "Animation": 44,
+      "Musical": 3,
+      "Western": 2,
+      "Documentary": 3,
+      "Mystery": 3,
+      "War": 2,
+      "Film-Noir": 1
+    },
+    "sanity": false
+  },
+  "groups": {
+    "Drama": {
+      "n_users": 5481,
+      "branch_answer": "Drama",
+      "done": false,
+      "small_group": false
+    }
+  }
+}
