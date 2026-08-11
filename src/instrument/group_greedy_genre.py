@@ -1,4 +1,4 @@
-"""Genre-split group-conditioned greedy, STAGE 1 (build) -- label `groupgreedy_genre16`.
+"""Genre-split group-conditioned greedy, STAGE 1 (build) -- label `groupgreedy_genre15`.
 
 WHY THIS EXISTS. `group_greedy_d1.py` branched on the answer to ONE popular ITEM (item 83, the global
 greedy's own first pick). 70.45% of the validation cohort could not answer it, and in exactly that
@@ -20,13 +20,13 @@ THE BRANCH.
 
 *** THE GENEROUS ASSUMPTION, STATED UP FRONT (author ruling 2026-08-11) ***
   The genre answer is treated as FREE SIDE INFORMATION. It costs the interview NOTHING: no turn is
-  charged for it, and the comparison is 16 ITEMS vs 16 ITEMS. A real system would have to ask for it
+  charged for it, and the comparison is L ITEMS vs L ITEMS (L=15 as run). A real system would ask
   and would pay a turn. This is deliberately GENEROUS TO THE CONDITIONED ARM and must be visible to
   any reader: it is repeated in the output JSON under `generous_assumption`, in the design sheet and
   in the log. Every number this script produces is an UPPER BOUND on what genre conditioning buys.
 
 WHAT THE SANITY GATE DOES AND DOES NOT MEAN.
-  At 16-vs-16 on the SELECTION cohort the group's own order is GUARANTEED to be >= the global order,
+  At L-vs-L on the SELECTION cohort the group's own order is GUARANTEED to be >= the global order,
   because the global order is inside every group's search space (modulo CELF's step-wise argmax). So
   `sanity_pass` is a pure HARNESS check -- A WIN IS NOT EVIDENCE THAT CONDITIONING PAYS. The three
   quantities that carry information are:
@@ -67,15 +67,16 @@ MOVIES_CSV = os.path.join(_ROOT, "data", "movielens", "movies.csv")     # the ML
 UNIQUE_SID = os.path.join(_ROOT, "data", "ml-25m", "proc", "unique_sid.txt")
 NO_GENRE = "(no genres listed)"
 NONE_GROUP = "none"
-ITEM_BUDGETS = (1, 2, 4, 8, 16)            # ITEM questions on BOTH sides -- 16 vs 16, nothing charged
+ITEM_BUDGETS = (1, 2, 4, 8, 16)            # candidate budgets; the run adds its own L and
+                                           # compares ITEM-FOR-ITEM, nothing charged for the genre
 SMALL_GROUP = 200                          # below this a group is flagged untrustworthy, never merged
 
 GENEROUS = ("The favourite-genre answer is treated as FREE SIDE INFORMATION: it costs NO turn and is "
-            "NOT folded into the recommender, so the comparison is 16 ITEMS vs 16 ITEMS. A deployed "
+            "NOT folded into the recommender, so the comparison is ITEM-FOR-ITEM at equal K. A deployed "
             "system would have to ask for it and would pay a turn. This is GENEROUS TO THE "
             "CONDITIONED ARM by construction -- every gain here is an UPPER BOUND.")
 SANITY_MEANING = ("`sanity_pass` is a HARNESS check, NOT evidence. On the SELECTION cohort the "
-                  "group's own 16-item order is GUARANTEED to be >= the global 16-item order, "
+                  "group's own L-item order is GUARANTEED to be >= the global order's first L items, "
                   "because the global order lies inside every group's search space. A pass means the "
                   "search, the cohort masking and the memo are correct and NOTHING ELSE. What "
                   "carries information: the MAGNITUDE of the gain, the gain-vs-group-size relation "
@@ -203,12 +204,13 @@ def _log_gain_table(rows_tbl, weighted):
     log("GAIN vs GROUP SIZE  (validation/SELECTION cohort -- a win here is GUARANTEED, see below)")
     log(SANITY_MEANING)
     log("-" * 108)
-    log(f"{'group':<14}{'n':>7}{'diff_full@16':>14}{'diff_tail@16':>14}"
-        f"{'overlap@16':>12}{'pos_differ@16':>15}{'small?':>9}")
+    KK = rows_tbl[0]["K"] if rows_tbl else 0
+    log(f"{'group':<14}{'n':>7}{f'diff_full@K{KK}':>14}{f'diff_tail@K{KK}':>14}"
+        f"{f'overlap@K{KK}':>12}{f'pos_differ@K{KK}':>15}{'small?':>9}")
     for t in rows_tbl:
-        log(f"{t['group']:<14}{t['n_users']:>7}{t['diff_full@16']:>14.5f}{t['diff_tail@16']:>14.5f}"
-            f"{t['set_overlap@16']:>12}{t['positions_differ@16']:>15}"
-            f"{('YES' if t['small_group'] else ''):>9}")
+        log(f"{t['group']:<14}{t['n_users']:>7}{t[f'diff_full@K{KK}']:>14.5f}"
+            f"{t[f'diff_tail@K{KK}']:>14.5f}{t[f'set_overlap@K{KK}']:>12}"
+            f"{t[f'positions_differ@K{KK}']:>15}{('YES' if t['small_group'] else ''):>9}")
     log("-" * 108)
     for K in sorted(weighted, key=int):
         w = weighted[K]
@@ -483,9 +485,11 @@ def main():
     for g in sorted(done, key=lambda k: -part["groups"][k]["n_users"]):
         r = part["groups"][g]; c = r["curve_item_matched"]; Kc = str(r["n_items_compared"])
         tbl.append({"group": g, "n_users": r["n_users"], "small_group": r["small_group"],
-                    "diff_full@16": c[Kc]["diff_full@10"], "diff_tail@16": c[Kc]["diff_tail@10"],
-                    "set_overlap@16": c[Kc]["overlap"]["set_overlap"],
-                    "positions_differ@16": c[Kc]["overlap"]["positions_differ"],
+                    "K": int(Kc),          # the key names below carry K so they can never be misread
+                    f"diff_full@K{Kc}": c[Kc]["diff_full@10"],
+                    f"diff_tail@K{Kc}": c[Kc]["diff_tail@10"],
+                    f"set_overlap@K{Kc}": c[Kc]["overlap"]["set_overlap"],
+                    f"positions_differ@K{Kc}": c[Kc]["overlap"]["positions_differ"],
                     "sanity_pass": r["sanity_pass"], "sec_per_eval": r["sec_per_eval"]})
     weighted = {}
     for K in budgets:
