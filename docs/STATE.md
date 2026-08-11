@@ -37,7 +37,13 @@ faithfully from the user's own **LIKED FOLD-IN** items. Design sheet
 * **VALIDATION ONLY.** The test cohort is not built, not loaded, not touched.
 * Outputs (unique label, shared with nothing): `experiments/battery/groupgreedy_genre.log`,
   `groupgreedy_genre_partial.json` (rewritten after EVERY pick), `groupgreedy_genre.json` at the end.
-* **ETA ≈ 3.5–4.5 h** (s/eval ≈ 1.8e-3·n; Drama alone ≈ 1.9 h).
+* **Launched 19:05, task Status=Running, PID 22740.** Liveness confirmed on the ARTIFACT, not a PID:
+  the log grew across samples 19:07:32 → 19:11:59 → 19:16:13 (>3 min apart) and process CPU time
+  climbed 45.3 s → 55.1 s → 92.4 s over the same window.
+* **Measured s/eval: 0.891 at n=451, 10.42 at n=5,481** → almost exactly proportional,
+  `s/eval ≈ 1.90e-3·n + 0.04`. (d1's points 1.62@856, 4.85@2,099, 12.78@7,045, 13.54@10,000 sit on
+  the same line except at 10k, where it flattens.) **ETA ≈ 3.9 h → ~23:00**, dominated by Drama
+  (≈2.0 h); the 13 sub-200 groups together cost under 20 min.
 
 **Driven by a Windows scheduled task.** Delete it with:
 `schtasks /Delete /TN casper_groupgreedy_genre /F`
