@@ -646,7 +646,26 @@ def genv_answered(E, seq, rows):
     return ia, ca
 
 
-def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), on_pick=None):
+def celf_heap_sig(E, rows, pool, objective, prefix):
+    """The contract a persisted CELF heap must match before it may be resumed (HARD RULE 11b).
+
+    Everything the heap's contents depend on: the scoring environment (tower+concept+cohort, carried
+    by `contract_tag`), the objective, the fixed prefix, the exact candidate pool IN ORDER (the seed
+    order decides tie-breaks) and the exact user set. `L` is deliberately NOT in it -- extending a
+    banked order by one more pick is the whole point.
+    """
+    import hashlib
+
+    def _sha(o):
+        return hashlib.sha1(json.dumps(o, separators=(",", ":")).encode()).hexdigest()
+    return {"v": 1, "contract_tag": E["contract_tag"], "split": E["split"], "objective": objective,
+            "prefix": [[int(a), int(b)] for a, b in prefix],
+            "n_pool": len(pool), "pool_sha1": _sha([[int(a), int(b)] for a, b in pool]),
+            "n_rows": len(rows), "rows_sha1": _sha(sorted(int(r) for r in rows))}
+
+
+def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), on_pick=None,
+                     heap_path=None):
     """Lazy-greedy (CELF) best STATIC sequence of length L from pool=[(chan,id),...], maximising the
     cohort-mean NDCG@10 of `objective` ('full' or 'tail'). Returns (seq, gains, n_evals).
 
@@ -655,6 +674,17 @@ def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), 
     the original: every genv_mean key below reduces to the old one. The returned `seq` is the L NEW
     steps only -- the caller owns the concatenation, so a partial written to disk is unambiguous.
     `on_pick(seq, gains, nev)` fires after every pick, for HARD RULE 11(a) incremental persistence.
+
+    `heap_path` (2026-08-11) PERSISTS THE LAZY HEAP, which pays the standing debt that a banked order
+    could only ever be EXTENDED by paying the whole cold seed pass again (~485 evals ~= 1.8 h at 10k
+    users) for what costs ~55 evals in process. The heap plus (base, cur, seq, gains, nev) is the
+    complete state of the search, so it is written next to the picks after the seed pass and after
+    EVERY pick, under a contract signature (`celf_heap_sig`). A resume with a DIFFERENT contract is
+    ignored loudly, never merged. Two invariants make the resumed search bit-identical to a cold one:
+    every heap entry carries a distinct question, so `heappop` order is fully determined by the tuple
+    ordering and not by the internal array layout; and the seed order (which sets those tuples) is
+    part of the signature. With `heap_path=None` NOTHING below changes -- not one extra evaluation,
+    not one different branch.
     """
     import heapq
     assert objective in ("full", "tail"), objective
@@ -663,21 +693,63 @@ def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), 
     assert not (set(pre) & set(tuple(q) for q in pool)), \
         "a prefix question is still in the candidate pool -- it would be asked twice"
     t0 = time.time()
-    base = genv_mean(E, pre, rows)[j]
-    heap = []; nev = 0
-    for q in pool:
-        v = genv_mean(E, pre + [q], rows)[j]; nev += 1
-        heapq.heappush(heap, (-(v - base), q, 0))
-        if nev % log_every == 0:
-            el = time.time() - t0
-            log(f"[greedy {tag}] seed {nev}/{len(pool)} ({el / 60:.1f}m, {el / nev:.2f}s/eval)")
-    seq = []; gains = []; cur = base
+    sig = celf_heap_sig(E, rows, pool, objective, pre) if heap_path else None
+
+    def _save(heap, seq, gains, base, cur, nev):
+        if not heap_path:
+            return
+        blob = {"sig": sig, "tag": tag, "base": float(base), "cur": float(cur), "nev": int(nev),
+                "seq": [[int(a), int(b)] for a, b in seq], "gains": [float(g) for g in gains],
+                "heap": [[float(a), [int(q[0]), int(q[1])], int(u)] for a, q, u in heap]}
+        os.makedirs(os.path.dirname(heap_path) or ".", exist_ok=True)
+        with open(heap_path + ".tmp", "w") as fh:
+            json.dump(blob, fh)
+        os.replace(heap_path + ".tmp", heap_path)
+
+    banked = None
+    if heap_path and os.path.exists(heap_path):
+        try:
+            blob = json.load(open(heap_path))
+        except Exception as e:                                   # a truncated sidecar is not a resume
+            blob = None
+            log(f"[greedy {tag}] heap sidecar unreadable ({e}) -- ignored, seeding cold")
+        if blob is not None and blob.get("sig") == sig:
+            banked = blob
+        elif blob is not None:
+            log(f"[greedy {tag}] heap sidecar {os.path.basename(heap_path)} carries a DIFFERENT "
+                f"contract -- IGNORED (nothing merged), seeding cold")
+
+    if banked is not None:
+        base = float(banked["base"]); cur = float(banked["cur"]); nev = int(banked["nev"])
+        seq = [(int(a), int(b)) for a, b in banked["seq"]]
+        gains = [float(g) for g in banked["gains"]]
+        heap = [(float(a), (int(q[0]), int(q[1])), int(u)) for a, q, u in banked["heap"]]
+        heapq.heapify(heap)
+        log(f"[greedy {tag}] RESUMED from {os.path.basename(heap_path)}: {len(seq)} pick(s) banked, "
+            f"{len(heap)} heap entries, {nev} evals already paid -> extending to L={L} "
+            f"(a cold restart would re-pay the {len(pool)}-candidate seed pass)")
+        if len(seq) >= L:
+            log(f"[greedy {tag}] banked order already has {len(seq)} >= L={L} picks -- returning its "
+                f"first {L} (greedy prefixes are exact: pick k does not depend on L)")
+            return seq[:L], gains[:L], nev
+    else:
+        base = genv_mean(E, pre, rows)[j]
+        heap = []; nev = 0
+        for q in pool:
+            v = genv_mean(E, pre + [q], rows)[j]; nev += 1
+            heapq.heappush(heap, (-(v - base), q, 0))
+            if nev % log_every == 0:
+                el = time.time() - t0
+                log(f"[greedy {tag}] seed {nev}/{len(pool)} ({el / 60:.1f}m, {el / nev:.2f}s/eval)")
+        seq = []; gains = []; cur = base
+        _save(heap, seq, gains, base, cur, nev)
     while len(seq) < L and heap:
         neg, q, upd = heapq.heappop(heap)
         if upd == len(seq):
             seq.append(q); gains.append(-neg); cur += -neg
             log(f"[greedy {tag}] pick {len(seq)}/{L} = {'concept' if q[0] else 'item'} {q[1]} "
                 f"gain {-neg:+.5f} -> {cur:.5f} (nev={nev}, {(time.time() - t0) / 60:.1f}m)")
+            _save(heap, seq, gains, base, cur, nev)
             if on_pick is not None:
                 on_pick(list(seq), list(gains), nev)
         else:
