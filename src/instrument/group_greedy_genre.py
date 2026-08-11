@@ -223,8 +223,14 @@ def main():
     ap.add_argument("--concept_ckpt", default=CERT_CONC)
     ap.add_argument("--n_items", type=int, default=500)
     ap.add_argument("--objective", default="full", choices=["full", "tail"])
-    ap.add_argument("--L", type=int, default=16, help="ITEM steps per group (16 vs the global 16)")
+    ap.add_argument("--L", type=int, default=16, help="ITEM steps per group (vs the global order's L)")
     ap.add_argument("--label", default=LABEL)
+    ap.add_argument("--import_banked", default=None,
+                    help="A *_partial.json from an earlier run whose COMPLETED groups' orders are "
+                         "reused instead of re-searched. The contract is asserted FIELD BY FIELD "
+                         "first; any mismatch aborts. Curves/overlap/per-user vectors are always "
+                         "recomputed here, so imported and freshly-searched groups are measured by "
+                         "the same code on the same env.")
     ap.add_argument("--sanity", action="store_true",
                     help="end-to-end pipeline check: L=2 on ONE group from a 12-item pool. Writes "
                          "*_SANITY.json and is NEVER citable.")
@@ -301,7 +307,7 @@ def main():
     _poolset = set(pool)
     assert all(q in _poolset for q in global_seq[:L]), \
         f"the global order's first {L} items are not all inside the candidate pool"
-    budgets = [K for K in ITEM_BUDGETS if K <= L] or [L]
+    budgets = sorted(set([K for K in ITEM_BUDGETS if K <= L] + [L]))
     log(f"[pool] items-only, bank='pop', top-{args.n_items} -> {len(pool)} candidates; "
         f"L = {L} item steps per group, compared ITEM-FOR-ITEM against the global order at K in "
         f"{budgets}. Nothing is charged for the genre answer.")
@@ -318,6 +324,56 @@ def main():
 
     def flush():
         json.dump(part, open(PARTIAL, "w"), indent=2, default=float)
+
+    # ---- IMPORT BANKED ORDERS, but only across an IDENTICAL contract -----------------------------
+    # Field-by-field, with the older sidecar's field NAMES mapped explicitly. A silent pool across
+    # two contracts is exactly the failure mode HARD RULE 8 and the stale-default scar are about.
+    imported, contract_check = {}, None
+    if args.import_banked:
+        bp = args.import_banked if os.path.isabs(args.import_banked) \
+            else os.path.join(OUTDIR, args.import_banked)
+        assert os.path.exists(bp), f"--import_banked file missing: {bp}"
+        bank = json.load(open(bp))
+        bsig = bank.get("sig", {})
+        # ("field", value_here, value_there) -- the older sidecar called L `L_items_after_genre`.
+        checks = [("tower", sig["tower"], bsig.get("tower")),
+                  ("concept_ckpt", sig["conc"], bsig.get("conc")),
+                  ("objective", sig["objective"], bsig.get("objective")),
+                  ("item_bank", sig["item_bank"], bsig.get("item_bank")),
+                  ("n_items_pool", sig["n_items"], bsig.get("n_items")),
+                  ("branch_rule", sig["branch"], bsig.get("branch")),
+                  ("split", sig["split"], bsig.get("split")),
+                  ("n_cohort", sig["n_cohort"], bsig.get("n_cohort")),
+                  ("L_items", L, bsig.get("L_items", bsig.get("L_items_after_genre"))),
+                  ("sanity", sig["sanity"], bsig.get("sanity")),
+                  ("group_sizes", sig["sizes"], bsig.get("sizes"))]
+        bad = [(f, a, b) for f, a, b in checks if a != b]
+        contract_check = {"source": os.path.basename(bp),
+                          "fields": [{"field": f, "this_run": a, "banked": b, "match": a == b}
+                                     for f, a, b in checks],
+                          "all_match": not bad}
+        log("=" * 108)
+        log(f"[contract] asserting the banked contract in {os.path.basename(bp)} field by field:")
+        for f, a, b in checks:
+            mark = "OK " if a == b else "*** MISMATCH ***"
+            sa = str(a) if f != "group_sizes" else f"<{len(a)} groups>"
+            sb = str(b) if f != "group_sizes" else f"<{len(b or {})} groups>"
+            log(f"[contract]   {mark} {f:<16} this_run={sa}   banked={sb}")
+        if bad:
+            log("!" * 108)
+            for f, a, b in bad:
+                log(f"[contract] MISMATCH on '{f}': this run {a!r} vs banked {b!r}")
+            raise SystemExit("REFUSING to pool results across two different contracts. "
+                             "Nothing was merged; nothing was written.")
+        log("[contract] ALL FIELDS MATCH -- the banked orders were produced under this exact "
+            "contract, so they may be reused.")
+        for g, r in bank.get("groups", {}).items():
+            if r.get("done") and len(r.get("items", [])) == L:
+                imported[g] = r
+        log(f"[contract] importing {len(imported)} completed group order(s): "
+            + ", ".join(f"{g}(n={imported[g]['n_users']})" for g in imported))
+        log(f"[contract] {len(order_groups) - len(imported)} group(s) still to search.")
+        log("=" * 108)
 
     run_groups = order_groups
     if args.sanity:
@@ -349,9 +405,21 @@ def main():
             _r["minutes"] = round((time.time() - _t) / 60, 2)
             flush()                          # HARD RULE 11(a): on disk after EVERY pick
 
-        own_items, gains, nev = greedy_certified(E, grows, pool, L, args.objective, gname,
-                                                 on_pick=on_pick)
-        spe = E["t_evals"] / max(E["n_evals"], 1)
+        if gname in imported:
+            b = imported[gname]
+            assert b["n_users"] == len(grows), \
+                f"banked '{gname}' has n_users={b['n_users']} but this cohort has {len(grows)}"
+            own_items = [(int(a), int(b2)) for a, b2 in b["items"]]
+            gains, nev, spe = b.get("gains", []), int(b.get("n_evals", 0)), b.get("sec_per_eval", 0.0)
+            rec["order_source"] = f"IMPORTED from {os.path.basename(args.import_banked)} " \
+                                  f"(identical contract, asserted field by field)"
+            rec["search_minutes_original"] = b.get("minutes")
+            log(f"[{gname}] order IMPORTED (not re-searched): {[i for _, i in own_items]}")
+        else:
+            rec["order_source"] = "searched in this run"
+            own_items, gains, nev = greedy_certified(E, grows, pool, L, args.objective, gname,
+                                                     on_pick=on_pick)
+            spe = E["t_evals"] / max(E["n_evals"], 1)
         rec.update({"items": [[int(a), int(b)] for a, b in own_items],
                     "order": [int(b) for _, b in own_items],
                     "gains": [float(g) for g in gains], "n_evals": int(nev),
@@ -458,7 +526,8 @@ def main():
            "n_cohort": len(rows), "n_groups": len(sizes), "group_sizes": sizes,
            "small_group_threshold": SMALL_GROUP,
            "n_groups_below_threshold": n_small,
-           "budgets_items": budgets,
+           "budgets_items": budgets, "L_items": L,
+           "contract_assertion": contract_check,
            "gain_vs_group_size": tbl, "cohort_weighted": weighted,
            "per_user_npz": os.path.basename(NPZ),
            "groups": part["groups"], "sig": sig,

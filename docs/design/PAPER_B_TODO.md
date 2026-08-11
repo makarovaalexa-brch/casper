@@ -105,6 +105,15 @@ we have and is answered ~3× as often as an item order. See 4.4.
   across BLAS thread counts; the basis is now banked, but pre-fix cells must not be compared to
   post-fix cells at 4 dp.
 
+* **Harness debt — `greedy_certified` should persist its CELF heap alongside the picks.** Right now
+  only the picked sequence and gains are written, so *extending a stored greedy order by one step*
+  costs a full cold seeding pass (~485 evals for a 500-item pool) instead of the ~55 it costs
+  in-process, where the lazy heap and its staleness counters are still warm. On 2026-08-11 that
+  turned "add a 16th item to four banked 15-item orders" into a ~3 h job and forced the genre-split
+  endpoint down to K=15. Cheap to fix — bank `[(neg_gain, q, upd)]` plus `cur` into the sidecar next
+  to `gains` — and it makes **every banked order extendable**, which every group-conditioned or
+  per-cohort design will want.
+
 ## ORDER I WOULD WORK IN
 
 1. **1.1 + 2.1** — the chapter currently states a conditional the data no longer supports. Writing, no compute.

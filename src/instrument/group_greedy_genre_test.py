@@ -1,4 +1,4 @@
-"""Genre-split group-conditioned greedy, STAGE 2 (evaluate) -- label `groupgreedy_genre16_TEST`.
+"""Genre-split group-conditioned greedy, STAGE 2 (evaluate) -- label `groupgreedy_genre15_TEST`.
 
 ONE-SHOT EVALUATION ON THE 10,000 CANONICAL TEST USERS. The analysis plan below was PRE-SPECIFIED
 and COMMITTED before any test number existed (`docs/design/DS_GROUP_GREEDY_GENRE.md` §Stage 2). If a
@@ -7,8 +7,9 @@ differently. Nothing in this file may be tuned after a test number is seen: not 
 the grouping rule, not the pool, not the budget, not the number of resamples.
 
 WHAT IS CARRIED OVER, AND WHAT IS RECOMPUTED
-  * CARRIED: the per-group 16-item orders built on VALIDATION by `group_greedy_genre.py`, read from
-    `groupgreedy_genre16.json`. They are never rebuilt here -- that is the whole point.
+  * CARRIED: the per-group L-item orders built on VALIDATION by `group_greedy_genre.py`, read from
+    `groupgreedy_genre15.json`. They are never rebuilt here -- that is the whole point. L, the budget
+    list and the primary K are READ from that file, never re-declared in this script.
   * RECOMPUTED on the test side: each test user's genre group, by the SAME rule, from their OWN
     fold-in ratings (`partition_by_genre`, imported, not re-implemented). The leak assertion is
     re-run: 0/10,000 test users may have a held-out target inside the grouping lookup.
@@ -23,11 +24,20 @@ THE TWO PRE-SPECIFIED ARMS (both reported, always)
                    and must never become one.
 
 PRIMARY ENDPOINT (pre-specified): cohort-weighted group-order minus global-order, FULL NDCG@10 at
-K=16, over all 10,000 test users, with a PAIRED percentile bootstrap CI.
+K = the interview length stage 1 actually built (`L_items`, currently 15), over all 10,000 test
+users, with a PAIRED percentile bootstrap CI.
+
+  PRE-DATA CHANGE, 2026-08-11, recorded so it is visibly NOT post-hoc: the endpoint moved from K=16
+  to K=15 BEFORE any test number existed, for COST reasons only. Four group orders (Drama, Action,
+  Comedy, Adventure = 9,072 of 10,000 validation users) were already banked at 15 items, and
+  `greedy_certified` does not persist its CELF heap -- so extending a stored order by ONE pick costs
+  a full cold ~485-eval seeding pass per group instead of the ~55 it costs in-process, turning a
+  16th item into a ~3 h job. Nothing else in the plan changed.
 
 INFERENCE: paired percentile bootstrap over the PER-USER DIFFERENCE vector, 10,000 resamples, seed
 98765. Never the unpaired `1.96*sqrt(2)*SE` form -- that signature is what made the earlier "tie"
-claim wrong (memory `paired-test-kills-the-tie-claim`). Reported at K in {1,2,4,8,16}, full and tail.
+claim wrong (memory `paired-test-kills-the-tie-claim`). Reported at every stage-1 budget
+(currently K in {1,2,4,8,15}), full and tail.
 
 ALSO REPORTED (all decided in advance): the test-side genre distribution beside the validation one;
 per-group TEST gain against VALIDATION group size; order overlap with the global order; and the
@@ -51,11 +61,11 @@ import numpy as np
 from strategy_channel_suite import (log, build_greedy_env, set_active_rows, genv_eval,
                                     genv_answered, contract_selftest, CERT_TOWER, CERT_CONC)
 from group_greedy_genre import (load_item_genres, partition_by_genre, leak_assert, order_overlap,
-                                UNIQUE_SID, SMALL_GROUP, NONE_GROUP, ITEM_BUDGETS, GENEROUS)
+                                UNIQUE_SID, SMALL_GROUP, NONE_GROUP, GENEROUS)
 
-LABEL = "groupgreedy_genre16_TEST"
+LABEL = "groupgreedy_genre15_TEST"
 OUTDIR = os.path.join(_ROOT, "experiments", "battery")
-STAGE1_JSON = os.path.join(OUTDIR, "groupgreedy_genre16.json")
+STAGE1_JSON = os.path.join(OUTDIR, "groupgreedy_genre15.json")
 N_BOOT = 10000
 BOOT_SEED = 98765
 ARMS = ("all_groups", "fallback_200")
@@ -99,18 +109,27 @@ def main():
     assert os.path.basename(args.concept_ckpt) == s1["concept_ckpt"], "concept ckpt mismatch"
     global_seq = [(int(a), int(b)) for a, b in s1["global_sequence"]]
     val_sizes = dict(s1["group_sizes"])
+    ITEM_BUDGETS = tuple(int(k) for k in s1["budgets_items"])   # read, never re-declared here
+    L_ITEMS = int(s1.get("L_items", max(ITEM_BUDGETS)))
+    PRIMARY_K = L_ITEMS
+    assert PRIMARY_K in ITEM_BUDGETS, f"primary K={PRIMARY_K} is not among stage-1 budgets"
+    assert len(global_seq) >= L_ITEMS, "global order is shorter than the group orders"
     orders = {}
     val_gain = {}
     for g, r in s1["groups"].items():
         assert r.get("done"), f"stage-1 group '{g}' did not finish -- refusing to evaluate on test"
         orders[g] = [(int(a), int(b)) for a, b in r["items"]]
-        assert len(orders[g]) == 16, f"group '{g}' order is {len(orders[g])} items, expected 16"
+        assert len(orders[g]) == L_ITEMS, \
+            f"group '{g}' order is {len(orders[g])} items, expected {L_ITEMS}"
         val_gain[g] = {K: r["curve_item_matched"][str(K)]["diff_full@10"]
                        for K in ITEM_BUDGETS if str(K) in r["curve_item_matched"]}
+    assert len(orders) == s1["n_groups"], \
+        f"stage 1 recorded {s1['n_groups']} groups but only {len(orders)} carry an order"
     log("#" * 108)
     log("# STAGE 2 -- ONE-SHOT TEST EVALUATION. The plan was pre-specified and committed.")
     log("# GENEROUS ASSUMPTION: " + GENEROUS)
-    log(f"# Carrying {len(orders)} validation-built 16-item orders onto the TEST cohort.")
+    log(f"# Carrying {len(orders)} validation-built {L_ITEMS}-item orders onto the TEST cohort. "
+        f"Budgets {list(ITEM_BUDGETS)}; PRIMARY ENDPOINT K={PRIMARY_K} (pre-data change, cost only).")
     log("#" * 108)
 
     E = build_greedy_env(args.snapshot, "test", args.concept_ckpt, f"{args.label}(test)")
@@ -211,9 +230,9 @@ def main():
         part["groups"][g] = rec
         json.dump(part, open(PARTIAL, "w"), indent=2, default=float)
         np.savez_compressed(NPZ, **banked)
-        c = rec["curve"]["16"]
+        c = rec["curve"][str(PRIMARY_K)]
         log(f"[{g}] test n={len(grows)} (val n={rec['n_val']}{' SMALL' if rec['small_on_val'] else ''}) "
-            f"@K=16 own {c['group_full@10']:.5f} vs global {c['global_full@10']:.5f} = "
+            f"@K={PRIMARY_K} own {c['group_full@10']:.5f} vs global {c['global_full@10']:.5f} = "
             f"{c['diff_full@10']:+.5f} [{c['paired_ci_full']['lo']:+.5f}, {c['paired_ci_full']['hi']:+.5f}] "
             f"| val was {c['val_diff_full@10']} | shrinkage {c['shrinkage_full@10']} "
             f"| overlap {c['overlap']['set_overlap']}/16")
@@ -245,10 +264,10 @@ def main():
             banked[f"ARM_{arm}|{K}|diff_full"] = df.astype(np.float32)
             banked[f"ARM_{arm}|{K}|diff_tail"] = dt.astype(np.float32)
 
-    prim = arms_out["all_groups"]["16"]["paired_ci_full"]
-    prim2 = arms_out["fallback_200"]["16"]["paired_ci_full"]
+    prim = arms_out["all_groups"][str(PRIMARY_K)]["paired_ci_full"]
+    prim2 = arms_out["fallback_200"][str(PRIMARY_K)]["paired_ci_full"]
     log("=" * 108)
-    log("PRIMARY ENDPOINT (pre-specified): cohort-weighted group minus global, FULL NDCG@10, K=16, "
+    log(f"PRIMARY ENDPOINT (pre-specified): cohort-weighted group minus global, FULL NDCG@10, K={PRIMARY_K}, "
         f"all {len(rows)} TEST users, paired percentile bootstrap {N_BOOT} resamples seed {BOOT_SEED}")
     log(f"  ALL-GROUPS   {prim['mean']:+.5f}  95% CI [{prim['lo']:+.5f}, {prim['hi']:+.5f}]  "
         f"excludes zero: {prim['excludes_zero']}")
@@ -262,7 +281,7 @@ def main():
         if not r.get("has_order") or "curve" not in r:
             log(f"{g:<14}{val_sizes.get(g, 0):>7}{r.get('n_test', 0):>8}   {r.get('note', '')}")
             continue
-        c = r["curve"]["16"]
+        c = r["curve"][str(PRIMARY_K)]
         log(f"{g:<14}{r['n_val']:>7}{r['n_test']:>8}{(c['val_diff_full@10'] or 0):>11.5f}"
             f"{c['diff_full@10']:>11.5f}{(c['shrinkage_full@10'] or 0):>11.5f}"
             f"{c['overlap']['set_overlap']:>11}")
@@ -273,7 +292,7 @@ def main():
            "prespecified": True,
            "prespecification": (
                "Plan fixed and committed before any test number existed: primary endpoint = "
-               "cohort-weighted group minus global, FULL NDCG@10, K=16, all test users, paired "
+               f"cohort-weighted group minus global, FULL NDCG@10, K={PRIMARY_K}, all test users, paired "
                "percentile bootstrap (10,000 resamples, seed 98765). Two arms, ALL-GROUPS and "
                "FALLBACK-200 (threshold 200 VALIDATION users, the same one stage 1 flags with). "
                "One look; no variant re-runs; no post-hoc tuning of threshold, rule, pool or budget."),
@@ -288,9 +307,9 @@ def main():
            "n_test_users_on_global_under_fallback": n_fallback,
            "small_group_threshold": SMALL_GROUP,
            "global_sequence": [[int(a), int(b)] for a, b in global_seq],
-           "budgets_items": list(ITEM_BUDGETS),
+           "budgets_items": list(ITEM_BUDGETS), "L_items": L_ITEMS, "primary_K": PRIMARY_K,
            "arms": arms_out, "per_group": per_group,
-           "primary_endpoint": {"definition": "arms.all_groups.16.paired_ci_full",
+           "primary_endpoint": {"definition": f"arms.all_groups.{PRIMARY_K}.paired_ci_full",
                                 "all_groups": prim, "fallback_200": prim2},
            "per_user_npz": os.path.basename(NPZ),
            "seconds": round(time.time() - t00, 1)}
