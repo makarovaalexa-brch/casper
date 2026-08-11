@@ -732,6 +732,15 @@ the null cannot be attributed to either. This subsection removes the confound in
 clean: hold the objective, the optimiser, the bank, the contract and the val/test discipline fixed,
 and vary \emph{only} what the search is conditioned on.
 
+One qualification belongs here rather than in a footnote, because it runs in our favour. The
+comparator's sequence was \emph{selected} under the earlier candidate-masking policy, before the
+protocol was tightened; every arm below is \emph{scored} under the current one, re-run in-process, so
+the comparison is fair question-for-question. But the conditioned orders were also \emph{chosen} under
+the protocol they are scored on, and the comparator was not. Some unknown part of the margin below may
+therefore reflect that difference rather than conditioning. \REDO{rebuild the static comparator under
+the current masking policy and re-run this comparison; the sequences are what matters and the rebuild
+is a few hours of search}
+
 \paragraph{Construction.} Users are partitioned by favourite genre, computed from each user's own
 \emph{fold-in} ratings alone --- the most frequent genre among their liked fold-in items, with
 targets excluded (asserted zero leaks out of $10{,}000$ users on both splits). The identical greedy
