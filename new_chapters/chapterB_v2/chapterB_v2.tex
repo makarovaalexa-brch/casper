@@ -775,8 +775,17 @@ Horror    & 51 & 56 & $+.06517$ & $-.00131$ (ns) & $-.06648$ & 1 & 3 & 1 & $+2$ 
 Animation & 44 & 25 & $+.13971$ & $+.03805$ (ns) & $-.10166$ & 0 & 10 & 0 & $+10$ \\
 Children  & 29 & 32 & $+.12155$ & $+.09427$ & $-.02729$ & 2 & 5 & 0 & $+5$ \\
 Fantasy   & 11 & 15 & $+.12734$ & $-.11562$ & $-.24296$ & 2 & 5 & 3 & $+2$ \\
-Western   & 2 & 0 & \multicolumn{7}{l}{empty on test --- reported, not merged away} \\
+\addlinespace
+\multicolumn{10}{l}{\emph{the six smallest groups --- $13$ test users between them, all on the global order under \textsc{fallback-200}}}\\
+Musical    & 3 & 4 & --- & $+.00000$ (ns) & --- & --- & --- & --- & --- \\
+Documentary& 3 & 3 & --- & $-.03631$ (ns) & --- & --- & --- & --- & --- \\
+Mystery    & 3 & 2 & --- & $+.00000$ (ns) & --- & --- & --- & --- & --- \\
+War$^\ddagger$ & 2 & 1 & --- & $+.08514^\ddagger$ & --- & --- & --- & --- & --- \\
+Film-Noir  & 1 & 3 & --- & $+.00000$ (ns) & --- & --- & --- & --- & --- \\
+Western    & 2 & 0 & \multicolumn{7}{l}{empty on test --- reported, not merged away} \\
 \bottomrule
+\multicolumn{10}{l}{\footnotesize $^\ddagger$ $n{=}1$: the paired bootstrap redraws the same single user, so the interval}\\
+\multicolumn{10}{l}{\footnotesize collapses to a point. This row is \textbf{not} a separated result and must not be read as one.}\\
 \end{tabular}
 \end{table}
 
@@ -784,10 +793,14 @@ Western   & 2 & 0 & \multicolumn{7}{l}{empty on test --- reported, not merged aw
 none merged; the answer rate is $100\%$ and the \texttt{none} group is empty, since every user with
 liked fold-in items has a most-frequent genre among them. The distribution is dominated by one tag:
 Drama $5{,}481$, Action $1{,}582$, Comedy $1{,}475$, Adventure $534$, Thriller $451$, Sci-Fi $161$,
-Romance $88$, Crime $79$, Horror $51$, Animation $44$, Children $29$, Fantasy $11$, Western $2$, and
-five residual groups of three users or fewer (Musical, Documentary and Mystery at three each, War at
-two, Film-Noir at one). \REDO{per-group validation and test cells for those five smallest groups,
-which are partitioned and routed but not reported individually in Table~\ref{tab:groupgreedy}}
+Romance $88$, Crime $79$, Horror $51$, Animation $44$, Children $29$, Fantasy $11$, and six residual
+groups of three validation users or fewer (Musical, Documentary and Mystery at three each, War and
+Western at two, Film-Noir at one). Those six are reported in Table~\ref{tab:groupgreedy} rather than
+folded away, but they are $13$ test users between them and carry nothing: three of them score
+\emph{exactly} zero difference, which is what one expects when almost nothing in either order is
+answerable to two-to-four users, and the one apparently large cell is a single test user whose
+bootstrap interval is degenerate by construction. All six fall below the pre-specified threshold, so
+under \textsc{fallback-200} those users are on the global order in any case.
 
 \paragraph{Validation, then the one test look.} On the selection cohort the cohort-weighted gain over
 the global order rises with budget: $+0.00421$, $+0.00606$, $+0.00768$, $+0.01478$, $+0.02046$ at
