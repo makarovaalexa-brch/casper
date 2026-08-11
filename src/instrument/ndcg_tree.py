@@ -36,11 +36,19 @@ IDENTICAL to the plain mean over S_t. We do not hide this, we MEASURE it at ever
     tree is MYOPIC in the same sense Golbandi's is (his criterion is also the immediate within-node
     error, with no lookahead). Adaptivity does not come from the criterion looking ahead; it comes
     from the CHILDREN being free to ask different next questions.
-  * therefore the ROOT question is forced to equal the global greedy order's first question, with the
-    same gain. Both are ASSERTED against the banked `greedy_static_i26c.json`, which makes the tree
-    exactly nested in the comparator at K=1 (difference identically 0) and makes every K>=2 difference
-    attributable to conditioning alone. It is also a full-scale bit-identity check that the CELF-heap
-    persistence added on 2026-08-11 changed nothing.
+  * therefore the ROOT question is the same question a global greedy over this pool would pick first.
+    When it matches the banked comparator's first question the tree is exactly NESTED in the
+    comparator at K=1 (difference identically 0, asserted), and every K>=2 difference is attributable
+    to conditioning alone. It need not match, and the reason is recorded in RULER_NOTE below: the
+    banked build is a POLICY-A artifact and this harness scores under POLICY B, so an argmax can move
+    when the ruler moves. A mismatch is logged as a loud, quantified caveat, not swallowed.
+
+THE COMPARATOR IS ON A DIFFERENT RULER, AND THAT IS MEASURED, NOT ASSUMED. `greedy_static_i26c.json`
+records intercept.full = 0.12987336; that is the POLICY-A m=0 value. Under POLICY B (the 2026-08-05
+candidate-masking ruling this harness implements) the same 10,000 validation users give m=0 =
+0.15686538. Its stored `gains` and `curve` are therefore NOT comparable to anything measured here.
+Only its SEQUENCES are used, and every comparison re-scores them IN THIS RUN under policy B -- the
+same thing `group_greedy_genre.py` does. See RULER_NOTE.
 
 THE ACTION SPACE IS THE COMBINED POOL (author redirect, 2026-08-11). Items AND concepts compete in one
 argmax, exactly as the global build's `combined` arm does: top-500 items by popularity + top-500
@@ -143,6 +151,17 @@ NO_GUARANTEE = (
     "below it. A negative leaf gain is a RESULT here, not a harness failure. The one mechanical "
     "guarantee is that the root splitter equals the global order's first question, so the K=1 "
     "difference is identically zero; that is asserted against the banked global build.")
+RULER_NOTE = (
+    "THE BANKED GLOBAL BUILD IS A POLICY-A ARTIFACT (measured 2026-08-12, this run's sanity gate). "
+    "`greedy_static_i26c.json` records intercept.full = 0.12987336, which is the POLICY-A m=0 value; "
+    "today's harness scores under POLICY B (2026-08-05 ruling, candidate_masking_protocol.md) and "
+    "gives m=0 = 0.15686538 on the same 10,000 validation users. Its stored `gains` and `curve` are "
+    "therefore on a DIFFERENT RULER and are NOT comparable to anything measured here -- numbers from "
+    "different information contracts are not ordered. What IS used from that file is the SEQUENCE of "
+    "questions, which is re-scored IN THIS RUN under policy B for every comparison (the same thing "
+    "`group_greedy_genre.py` does). Residual caveat, stated rather than buried: the comparator's "
+    "ORDER was selected under policy A, so it is not exactly 'the same objective under the same "
+    "protocol'. Closing that would mean rebuilding the static combined order under policy B (~12 h).")
 NEG_CAP_NOTE = (
     "Concept answer values follow the CERTIFIED-ERA convention that `concept_cv3_ep08` was trained "
     "under and that produced the comparator: uncapped signed values, with `cap_negatives` applied "
@@ -395,6 +414,12 @@ def main():
                          "so the depth can be extended later deterministically. Whether it fired is "
                          "recorded in the output as `growth_wall_limited`.")
     ap.add_argument("--label", default=LABEL)
+    ap.add_argument("--full_threads", action="store_true",
+                    help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv): use all "
+                         "cores rather than its default 4. Declared here only so argparse accepts "
+                         "it. The BLAS env vars must ALSO be exported by the launcher BEFORE python "
+                         "starts -- numpy is imported before the suite's os.environ lines run, so "
+                         "setting them in-process is the no-op recorded on 2026-08-05.")
     ap.add_argument("--preflight", action="store_true",
                     help="build the env, measure s/eval by channel, tabulate the ternary partition "
                          "of every candidate at the root, and STOP. No tree is grown. Not citable.")
@@ -426,6 +451,7 @@ def main():
     log("# " + CHARGED)
     log("# " + MIN_LEAF_JUSTIFICATION)
     log("# " + NEG_CAP_NOTE)
+    log("# " + RULER_NOTE)
     log("# " + NO_GUARANTEE)
     log("#" * 110)
 
@@ -695,24 +721,36 @@ def main():
 
     # ---- THE NESTING CHECK, at full scale --------------------------------------------------------
     rr = nodes["root"]
+    same_q = [int(x) for x in rr["splitter"]] == [int(x) for x in comp[HEADLINE_ARM]["sequence"][0]]
     nest = {"root_splitter": [int(x) for x in rr["splitter"]],
             "headline_first_question": [int(x) for x in comp[HEADLINE_ARM]["sequence"][0]],
-            "root_gain": float(rr["splitter_gain"]),
-            "headline_first_gain": float(comp[HEADLINE_ARM]["gains"][0]),
-            "gain_abs_err": abs(float(rr["splitter_gain"]) - float(comp[HEADLINE_ARM]["gains"][0])),
-            "K1_cohort_diff_full": weighted["1"][f"diff_full@10_vs_{HEADLINE_ARM}"]}
+            "root_first_question_matches_comparator": bool(same_q),
+            "root_gain_policyB": float(rr["splitter_gain"]),
+            "headline_first_gain_banked_policyA": float(comp[HEADLINE_ARM]["gains"][0]),
+            "K1_cohort_diff_full": weighted["1"][f"diff_full@10_vs_{HEADLINE_ARM}"],
+            "ruler_note": RULER_NOTE}
     log("=" * 110)
     log(f"[nesting] root splitter {nest['root_splitter']} vs the global '{HEADLINE_ARM}' arm's first "
-        f"question {nest['headline_first_question']}; gain {nest['root_gain']:.12f} vs banked "
-        f"{nest['headline_first_gain']:.12f} (|err| {nest['gain_abs_err']:.2e}); cohort diff at K=1 "
-        f"= {nest['K1_cohort_diff_full']:+.2e}")
-    assert nest["root_splitter"] == nest["headline_first_question"], \
-        ("the root splitter is not the global combined order's first question -- the criterion, the "
-         "pool or the cohort has drifted from the global build")
-    assert nest["gain_abs_err"] < 1e-9, \
-        ("the root gain does not reproduce the banked global build's first gain -- something in the "
-         "greedy path changed (this is the full-scale bit-identity check on the CELF-heap change)")
-    assert abs(nest["K1_cohort_diff_full"]) < 1e-12, "the K=1 tie is not exact"
+        f"question {nest['headline_first_question']} -> match={same_q}; this run's gain "
+        f"{nest['root_gain_policyB']:.12f} (policy B) vs the file's banked "
+        f"{nest['headline_first_gain_banked_policyA']:.12f} (policy A -- NOT comparable, see below); "
+        f"cohort diff at K=1 = {nest['K1_cohort_diff_full']:+.2e}")
+    log("[nesting] " + RULER_NOTE)
+    if same_q:
+        assert abs(nest["K1_cohort_diff_full"]) < 1e-12, \
+            "the root splitter equals the comparator's first question but the K=1 difference is not 0"
+        log("[nesting] K=1 TIE EXACT: the tree is nested in the comparator at the first question, so "
+            "every K>=2 difference is attributable to conditioning alone.")
+    else:
+        log("!" * 110)
+        log(f"[nesting] THE TREE'S FIRST QUESTION DIFFERS FROM THE COMPARATOR'S. That is not a "
+            f"harness fault: the banked order was SELECTED under the retired policy-A candidate "
+            f"mask, this run selects under policy B, and an argmax can move when the ruler moves. "
+            f"CONSEQUENCE: the K=1 difference ({nest['K1_cohort_diff_full']:+.5f}) is NOT zero and is "
+            f"NOT conditioning -- it is the policy-A/B selection difference, and it sits inside every "
+            f"K>=2 number as an offset. Do not report the K>=2 gains as pure conditioning without "
+            f"subtracting it or without rebuilding the static comparator under policy B.")
+        log("!" * 110)
 
     # ---- report ----------------------------------------------------------------------------------
     depth_reached = max(r["depth"] for r in nodes.values())
@@ -756,6 +794,7 @@ def main():
            "split": "validation", "test_touched": False,
            "charged": CHARGED, "min_leaf_justification": MIN_LEAF_JUSTIFICATION,
            "no_guarantee": NO_GUARANTEE, "concept_answer_convention": NEG_CAP_NOTE,
+           "ruler_note": RULER_NOTE,
            "criterion": sig["criterion"],
            "criterion_note": ("NDCG@10 is per-user, so the node-size-weighted mean over the ternary "
                               "partition is algebraically the node mean; the split search is "
