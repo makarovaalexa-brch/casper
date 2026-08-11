@@ -3,7 +3,54 @@
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
 > End-state is in `VISION.md`. Last updated: **2026-08-11 (genre-split group-conditioned greedy LAUNCHED; depth-1 predecessor FINISHED)**.
 
-## ⏳ LIVE RUN 2026-08-11 19:0x — genre-split group-conditioned greedy (`groupgreedy_genre`)
+## ⏳ LIVE 2026-08-11 23:01 — genre-split greedy **16 vs 16**, stage 1 (`groupgreedy_genre16`)
+
+**Author redesign, verbatim:** *"can you not fold in the genre question? but instead partition by
+genre, evaluate the static order vs adaptive order found per group? so 16 vs 16, would just show,
+hopefully, that adaptive order is indeed optimal"* · **and:** *"only result on test users is
+interesting"*.
+
+The 15-step/charged-turn variant launched at 19:05 was **killed at ~15 min and discarded**; its
+outputs are renamed `experiments/battery/groupgreedy_genre_ABANDONED_15step*`. Design sheet
+`docs/design/DS_GROUP_GREEDY_GENRE.md` (rewritten, and it now carries the **pre-specified stage-2
+test plan**); code `src/instrument/group_greedy_genre.py` (stage 1) +
+`src/instrument/group_greedy_genre_test.py` (stage 2), committed `439a295` **before** launch.
+
+* **L = 16 item steps per group, no prefix**; comparison is **item-for-item**, group's first K vs the
+  global order's first K, K ∈ {1,2,4,8,16}. The total-budget curve is **dropped**.
+* **THE GENEROUS ASSUMPTION, and it must stay visible:** the genre answer is **free side
+  information** — no turn charged, not folded into the recommender. A deployed system would pay a
+  turn for it. **Every gain reported is an upper bound.** Repeated in the log header, in
+  `generous_assumption` in both output JSONs, and in the design sheet.
+* **`sanity_pass` is now only a harness check.** At 16-vs-16 on the *selection* cohort the group
+  order is **guaranteed** ≥ the global order (it is inside the search space), so a win is **not**
+  evidence that conditioning pays. What carries information: gain **magnitude**, **gain vs group
+  size** (the overfitting read, tabulated sorted by n), and **order overlap** with the global order.
+* Per-user score vectors banked to `groupgreedy_genre16_per_user.npz` so every CI is paired.
+* Partition unchanged and re-verified live (18 groups, `none` empty, 13/18 under 200 users).
+* Sanity PASSED on the rebuild (Thriller n=451, L=2): own 0.22593 ≥ global 0.22392, overlap 1/2
+  items, 2 positions differ.
+* **ETA ≈ 4 h → ~03:00.** Delete with `schtasks /Delete /TN casper_groupgreedy_genre16 /F`.
+
+### Stage 2 — TEST, pre-specified and committed BEFORE any test number exists
+
+Author has authorised the test evaluation and called it the only interesting result. Plan is fixed in
+`DS_GROUP_GREEDY_GENRE.md` and in the stage-2 script docstring; **one look, no variant re-runs, no
+post-hoc tuning of threshold / rule / pool / budget.**
+
+* **Primary endpoint:** cohort-weighted group-order minus global-order, **full NDCG@10 at K=16, all
+  10,000 TEST users, paired** percentile bootstrap, **10,000 resamples, seed 98765**. Never the
+  unpaired `1.96*sqrt(2)*SE` form.
+* **Two arms, both reported: ALL-GROUPS** and **FALLBACK-200** (test users whose genre group had
+  <200 *validation* users get the global order — the deployable policy; the threshold is the one
+  stage 1 already flags with and is fixed in advance so it cannot become tuned).
+* Also pre-registered: test-side genre distribution beside validation, per-group test gain vs
+  validation group size, order overlap, and **validation-to-test shrinkage** per group — the
+  overfitting measurement, and the most likely thing to carry the finding.
+* Same rule on the test side, from test users' **own fold-in** ratings; `partition_by_genre` is
+  imported, never re-implemented; `leak_assert` re-run on test.
+
+## ✅ ABANDONED 2026-08-11 19:20 — 15-step/charged-turn variant (`groupgreedy_genre`)
 
 The answerable-branch successor to `groupgreedy_d1` below. That run branched on ONE popular ITEM and
 **70.45% of the cohort could not answer it**; the conditioning gain in exactly that 70% was **+0.0019**
