@@ -1,5 +1,61 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-12 — NDCG-OBJECTIVE INTERVIEW TREE: TEST LOOK RUNNING; POLICY-B COMPARATOR REBUILD **PAUSED**
+
+**Author, verbatim:** *"i do want 16 or consistency"* · *"actually, i think adding 16th q and then
+running on test would be right, wdyt?"* · *"add 16th step, run on test. we are changing comparator, we
+are NOT changing this tree, don't see a problem"* · *"i also need total ndcg for the tree. we will
+compare to current static with assumption that current static is weak."*
+
+Design sheet `docs/design/DS_NDCG_TREE.md`. Code `src/instrument/ndcg_tree.py` (grower),
+`ndcg_tree_extend16.py` (comparator rebuild), `ndcg_tree_test16.py` (extend + test look).
+
+**The tree is FROZEN and must not be regrown:** `experiments/battery/ndcgtree.json` — depth 5, 22
+nodes, 15 leaves, grown 10.33 h on the 10,000 validation users, combined pool (500 pop items + 500
+answerable concepts), min-leaf 200 as the only stopping rule, every question charged and folded.
+
+### PAUSED JOB — the policy-B static combined comparator (RESUME THIS)
+
+`greedy_static_i26c.json`'s `combined` arm was **selected under policy A** (confirmed:
+`docs/results/MASK_POLICY_B_MIGRATION.md` line 86 records its `intercept_eval` 0.13139/0.02343 as the
+policy-A bridge; policy B is 0.15855/0.02819). The rebuild resumes the CELF heap the tree's root node
+already built — that heap **is** the search's 1,000-candidate seed pass.
+
+**Killed cleanly at 15:07 on 2026-08-12 with 7 of 16 picks banked** (pick 8 in progress was lost,
+~12 min). Banked sidecar:
+`experiments/battery/ndcgtree16_heaps/greedy_static_policyB_combined_heap.json` — 7 picks, nev 1497,
+993 heap entries, cur 0.23253419940036288.
+
+Picks so far: `[[1,114],[1,173],[0,19],[1,748],[1,785],[0,83],[0,583]]`
+
+**EXACT RESUME COMMAND** (do not delete the heap sidecar; it is the only thing that makes this cheap):
+
+```
+schtasks /Run /TN casper_ndcgtree16
+```
+or directly:
+```
+cd /d C:\dev\phd\casper
+set OMP_NUM_THREADS=8 & set OPENBLAS_NUM_THREADS=8 & set MKL_NUM_THREADS=8
+"C:\Program Files\Python312\python.exe" src\instrument
+dcg_tree_extend16.py --full_threads
+```
+It re-resumes from the banked heap automatically (contract-signed) and continues at pick 8. Remaining
+cost ≈ 9 picks × ~30–40 min ≈ **4.5–6 h** at the observed rate (~41 min/pick late in the search).
+
+### RUNNING NOW — the test look (`ndcgtree16test`)
+
+Extends the 15 leaf tails 15→16 from their banked heaps (prefix-unchanged asserted), re-measures on
+validation, then routes the 10,000 canonical TEST users through the frozen tree and scores K ∈
+{1,2,4,8,16}. Comparator is the **policy-A-selected** `combined` order, labelled as such everywhere.
+Paired percentile bootstrap, 10,000 resamples, seed 98765. Absolute NDCG for both arms plus the m=0
+intercept on test are reported, not only differences.
+
+**Validation result at 15 questions (in-sample, against the policy-A comparator):** cohort-weighted
++0.0314 full / +0.0226 tail at K=15; +0.0278 at K=8. **Spearman(n_users, gain) = −0.55 (p=0.035)** —
+small leaves gain most, the overfitting signature. Leaves ≥700 users +0.0223, leaves <700 +0.0464.
+
+
 > The single current-status doc. **Overwrite as things change.** Pointed to from `MEMORY.md`.
 > End-state is in `VISION.md`. Last updated: **2026-08-11 (genre-split conditioned greedy MEASURED ON TEST: FALLBACK-200 +0.00817 [+0.00539,+0.01097] full NDCG@10 at K=15, but Drama — 55% of users — is a null and all 17 groups shrank val→test)**.
 
