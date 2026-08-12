@@ -1,0 +1,72 @@
+[18:25:21] ##############################################################################################################
+[18:25:21] # A3/A4 -- REBUILDING THE 'items-only' STATIC ORDER UNDER POLICY B, 16 picks, 10,000 canonical validation users, objective=full.
+[18:25:21] # TEST IS NOT BUILT, NOT LOADED, NOT TOUCHED.
+[18:25:21] ##############################################################################################################
+[18:25:21] === building greedy_static_policyB_items(val) env (split=validation) ===
+[18:25:23] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[18:25:37] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[18:25:37] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[18:25:38] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[18:25:38] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[18:25:38] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[18:25:38] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[18:25:38] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[18:25:41] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[18:25:49] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[18:25:54] [g5] 1031 concepts with >= 30 members
+[18:26:02] [ledger] SIGNED valuation arrays built (prereg cache found)
+[18:26:05] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[18:26:06] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[18:26:06] [greedy_static_policyB_items(val)] pool contract (DERIVED): policy=B nnz=1356475 per_user=135.6475 fp=c282962b49a2d67ef47ff07544519f20
+[18:26:06] [greedy_static_policyB_items(val)] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[18:26:06] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[18:26:06] [leak/validation] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[18:26:06] [pool] 500 items-only candidates (the items-only block of the combined 1000-candidate pool, same ids, same order). NO truncation: this IS the full declared bank.
+[18:26:06] [pool] contract (DERIVED): {"v": 1, "policy": "B", "n_rows": 10000, "n_items": 18359, "nnz": 1356475, "per_user": 135.6475, "fp": "c282962b49a2d67ef47ff07544519f20"}
+[18:26:14] [seed/items] base check PASS: m=0 = 0.15686538118354684 == banked base, exactly
+[18:27:16] [seed/items] 8 candidates re-evaluated from scratch; every reconstructed value EXACT
+[18:27:16] [seed/items] wrote a verified 500-entry seed sidecar -> experiments\battery\greedy_static_policyB_items_heaps\search.json (500 evaluations NOT re-paid)
+[18:27:16] [greedy items] RESUMED from search.json: 0 pick(s) banked, 500 heap entries, 500 evals already paid -> extending to L=16 (a cold restart would re-pay the 500-candidate seed pass)
+[18:27:16] [greedy items] pick 1/16 = item 83 gain +0.01740 -> 0.17426 (nev=500, 0.0m)
+[18:27:16] [cost] 1 picks in 0.0m (0.0 m/pick, 7.71s/eval measured this process)
+[18:27:41] [greedy items] pick 2/16 = item 7 gain +0.01395 -> 0.18822 (nev=503, 0.4m)
+[18:27:41] [cost] 2 picks in 0.4m (0.2 m/pick, 7.88s/eval measured this process)
+[18:32:26] [greedy items] pick 3/16 = item 19 gain +0.00795 -> 0.19616 (nev=536, 5.2m)
+[18:32:26] [cost] 3 picks in 5.2m (1.7 m/pick, 8.42s/eval measured this process)
+[18:38:07] [greedy items] pick 4/16 = item 631 gain +0.00585 -> 0.20201 (nev=575, 10.9m)
+[18:38:07] [cost] 4 picks in 10.9m (2.7 m/pick, 8.58s/eval measured this process)
+[18:45:34] [greedy items] pick 5/16 = item 2195 gain +0.00538 -> 0.20739 (nev=625, 18.3m)
+[18:45:34] [cost] 5 picks in 18.3m (3.7 m/pick, 8.71s/eval measured this process)
+[18:50:06] [greedy items] pick 6/16 = item 140 gain +0.00460 -> 0.21199 (nev=655, 22.8m)
+[18:50:06] [cost] 6 picks in 22.8m (3.8 m/pick, 8.78s/eval measured this process)
+[18:50:34] [greedy items] pick 7/16 = item 22 gain +0.00387 -> 0.21586 (nev=658, 23.3m)
+[18:50:34] [cost] 7 picks in 23.3m (3.3 m/pick, 8.78s/eval measured this process)
+[18:55:04] [greedy items] pick 8/16 = item 396 gain +0.00391 -> 0.21977 (nev=687, 27.8m)
+[18:55:04] [cost] 8 picks in 27.8m (3.5 m/pick, 8.86s/eval measured this process)
+[18:55:33] [greedy items] pick 9/16 = item 494 gain +0.00383 -> 0.22360 (nev=690, 28.3m)
+[18:55:33] [cost] 9 picks in 28.3m (3.1 m/pick, 8.87s/eval measured this process)
+[18:56:11] [greedy items] pick 10/16 = item 343 gain +0.00361 -> 0.22720 (nev=694, 28.9m)
+[18:56:11] [cost] 10 picks in 28.9m (2.9 m/pick, 8.89s/eval measured this process)
+[19:07:35] [greedy items] pick 11/16 = item 873 gain +0.00270 -> 0.22990 (nev=765, 40.3m)
+[19:07:35] [cost] 11 picks in 40.3m (3.7 m/pick, 9.08s/eval measured this process)
+[19:13:19] [greedy items] pick 12/16 = item 506 gain +0.00225 -> 0.23215 (nev=800, 46.1m)
+[19:13:19] [cost] 12 picks in 46.1m (3.8 m/pick, 9.16s/eval measured this process)
+[19:15:51] [greedy items] pick 13/16 = item 212 gain +0.00219 -> 0.23434 (nev=815, 48.6m)
+[19:15:51] [cost] 13 picks in 48.6m (3.7 m/pick, 9.21s/eval measured this process)
+[19:16:22] [greedy items] pick 14/16 = item 549 gain +0.00269 -> 0.23703 (nev=818, 49.1m)
+[19:16:22] [cost] 14 picks in 49.1m (3.5 m/pick, 9.22s/eval measured this process)
+[19:16:43] [greedy items] pick 15/16 = item 228 gain +0.00285 -> 0.23987 (nev=820, 49.4m)
+[19:16:43] [cost] 15 picks in 49.4m (3.3 m/pick, 9.22s/eval measured this process)
+[19:19:56] [greedy items] pick 16/16 = item 135 gain +0.00294 -> 0.24281 (nev=839, 52.7m)
+[19:19:56] [cost] 16 picks in 52.7m (3.3 m/pick, 9.28s/eval measured this process)
+[19:20:04] [gate] pick #1 gain re-derived from a fresh evaluation = 0.017397846251898497 == recorded, exactly
+[19:21:36] ==============================================================================================================
+[19:21:36] [items] policy-B order = [[0, 83], [0, 7], [0, 19], [0, 631], [0, 2195], [0, 140], [0, 22], [0, 396], [0, 494], [0, 343], [0, 873], [0, 506], [0, 212], [0, 549], [0, 228], [0, 135]]
+[19:21:36] [items] vs the policy-A order: 2/16 positions identical, 7/16 questions shared
+[19:21:36] [items] K=1   policy-B order 0.17426/0.04216   policy-A order rescored 0.17426/0.04216   delta +0.00000/+0.00000
+[19:21:36] [items] K=2   policy-B order 0.18822/0.05330   policy-A order rescored 0.18728/0.05480   delta +0.00094/-0.00151
+[19:21:36] [items] K=4   policy-B order 0.20201/0.06469   policy-A order rescored 0.20205/0.06785   delta -0.00004/-0.00316
+[19:21:36] [items] K=8   policy-B order 0.21977/0.08332   policy-A order rescored 0.21933/0.07588   delta +0.00044/+0.00744
+[19:21:36] [items] K=16  policy-B order 0.24281/0.10112   policy-A order rescored 0.23953/0.09410   delta +0.00328/+0.00702
+[19:21:36] [done] wrote greedy_static_policyB_items.json in 56.3m (52.7m search, 839 cumulative evals, 9.272s/eval)
+[cmd] exit code 0 
