@@ -1,16 +1,22 @@
 # Conditioned selection on held-out users: the tree, the genre split, and the static orders
 
-Written 2026-08-12. **REVISED 2026-08-12 17:45 — the tree is now measured against the REBUILT
-POLICY-B comparator (A2). §7's contamination caveat is DISCHARGED FOR THE TREE; it still stands for
-the genre arm.** Every number below is on the **10,000 canonical TEST users** unless marked
+Written 2026-08-12. **REVISED 2026-08-12 17:45 (A2, the tree) and again 2026-08-12 21:50 (A3/A4, the
+single-channel orders). §7's contamination caveat is now DISCHARGED FOR EVERY ARM IN THIS FILE** —
+the items-only and concepts-only orders have been rebuilt under policy B, the genre arm has been
+re-measured against the rebuilt items order, and the bank decomposition is now at equal budget with
+both sides policy-B-selected. Every number below is on the **10,000 canonical TEST users** unless marked
 otherwise, scored with the certified pair (`t2i26c_ep31.pt` + `concept_cv3_ep08.pt`), NO-FLOOR,
 policy-B candidate pool, learned decoder bias, behavioural answers. Paired percentile bootstrap over
 per-user differences, 10,000 resamples, seed 98765 — never the unpaired form.
 
 Sources: `experiments/battery/ndcgtree16test_policyB.json` (the current tree numbers),
-`greedy_static_policyB_combined.json` (the rebuilt comparator), `ndcgtree16.json` (validation),
-`ndcgtree16test.json` (the superseded policy-A measurement, kept for the before/after),
-`groupgreedy_genre15_TEST.json`, `ndcgtree.json`, `docs/results/MASK_POLICY_B_MIGRATION.md`.
+`greedy_static_policyB_combined.json` / `_items.json` / `_concepts.json` (the three rebuilt static
+orders), `channel_orders_policyB_test.json` (the three orders on test + the bank decomposition),
+`groupgreedy_genre15_TEST_policyB.json` (the genre arm against the rebuilt comparator),
+`groupgreedy_genre15_VAL_policyB.json` (its validation side, re-differenced onto the same ruler),
+`ndcgtree16.json` (validation), `ndcgtree16test.json` and `groupgreedy_genre15_TEST.json` (the
+superseded policy-A measurements, kept for the before/after), `ndcgtree.json`,
+`docs/results/MASK_POLICY_B_MIGRATION.md`.
 
 ---
 
@@ -19,15 +25,19 @@ Sources: `experiments/battery/ndcgtree16test_policyB.json` (the current tree num
 | arm | pool | Q | full@10 | tail@10 | gain vs its own static |
 |---|---|---|---|---|---|
 | **ask nothing (m=0)** | — | 0 | 0.15855 | 0.02819 | — |
-| static items-only (policy-A selected) | items | 15 | 0.24356 | 0.09689 | — |
+| static items-only (policy-A selected, superseded) | items | 15 | 0.24356 | 0.09689 | — |
+| **static items-only, REBUILT under policy B (A3)** | items | 15 | **0.24295** | **0.10041** | — |
+| **static items-only, REBUILT under policy B (A3)** | items | 16 | **0.24470** | **0.10171** | — |
+| **static concepts-only, REBUILT under policy B (A4)** | concepts | 16 | **0.24467** | **0.11607** | — |
 | static combined (policy-A selected, superseded) | combined | 16 | 0.25565 | 0.10982 | — |
-| **static combined, REBUILT under policy B** | combined | 16 | **0.25900** | **0.12370** | — |
-| genre split, fallback-200 | items | 15 | 0.25173\* | 0.10580\* | +0.00817 / +0.00891 |
-| genre split, all-groups | items | 15 | 0.25311\* | 0.10760\* | +0.00955 / +0.01071 |
+| **static combined, REBUILT under policy B (A1)** | combined | 16 | **0.25900** | **0.12370** | — |
+| genre split, fallback-200 | items | 15 | 0.25157\* | 0.10632\* | **+0.00862 / +0.00591** |
+| genre split, all-groups | items | 15 | 0.25310\* | 0.10760\* | **+0.01015 / +0.00719** |
 | **NDCG tree** | combined | 16 | **0.26936** | **0.13074** | **+0.01035 / +0.00705** |
 
 \* derived as comparator + difference; the genre artifact stores differences and the comparator's absolute.
-The genre rows are still against a **policy-A-selected items order** — A3 rebuilds it.
+**All three static orders are now policy-B-selected**, so every gain column compares an arm against a
+comparator chosen under the arm's own masking protocol.
 
 The m=0 intercept reproduces `MASK_POLICY_B_MIGRATION.md`'s banked policy-B test figure
 (0.15855 / 0.02819) **exactly** — an independent check that the ruler is right, against a number
@@ -85,31 +95,60 @@ exactly the static order. Conditioning needs a few answers before it pays.
 
 ---
 
-## 3. Changing the *bank* buys MORE than conditioning does
+## 3. Changing the *bank* buys MORE than conditioning does — now measured cleanly
 
-Static items-only → static combined is **+0.01544 with no conditioning at all** (0.24356 → 0.25900),
-now **larger than the tree's entire conditioning gain (+0.01035)** and nearly double the genre arm's
-(+0.00817). Against the superseded comparator these two were a dead heat (+0.01209 vs +0.01371); with
-the clean comparator the bank wins outright.
+**CLEAN NUMBER (A3/A4, `channel_orders_policyB_test.json`).** Both sides policy-B-selected, both at
+**16 questions**, paired over the same 10,000 test users:
 
-As a share of what the interview buys over asking nothing (items static lifts +0.0850, rebuilt
-combined +0.1005):
+> **static items-only → static combined = +0.01430 full [+0.01124, +0.01739] and +0.02199 tail
+> [+0.01872, +0.02516], with no conditioning at all** (0.24470 → 0.25900 full, 0.10171 → 0.12370 tail).
 
-| change | gain | share of the static's own lift |
+The published +0.01544 was two defects in one figure: an items order selected under policy A, and a
+15-vs-16 budget mismatch. Fixing both moves it to +0.01430. For continuity, the unequal-budget form
+on clean orders (items 15 vs combined 16) is +0.01605 — i.e. roughly +0.0018 of the old figure was
+the free 16th question, and the rest was comparator selection.
+
+**The conclusion survives the fix.** +0.01430 is still larger than the tree's entire conditioning
+gain (+0.01035) and larger than the genre arm's (+0.00862). Against the superseded comparator the
+tree and the bank were a dead heat (+0.01209 vs +0.01371); on clean orders the bank wins outright,
+and on tail it is not close (+0.02199 vs +0.00705).
+
+As a share of what the interview buys over asking nothing (rebuilt items static lifts +0.08615 full
+at 16, rebuilt combined +0.10045):
+
+| change | gain (full) | share of the static's own lift |
 |---|---|---|
-| items pool → combined pool | +0.01544 | 18.2% |
-| genre conditioning (items pool) | +0.00817 | 9.6% |
-| tree conditioning (combined pool) | +0.01035 | 10.3% |
-
-**CAVEAT, stated rather than buried: the items-only order is still policy-A-selected**, so the
-+0.01544 is an upper bound on the pool effect exactly the way the tree's +0.01371 was. A3 rebuilds it
-and this row must be recomputed. The *direction* — a bank change bought at least as much as
-conditioning — held under both comparators for the tree, so it is unlikely to reverse, but the
-magnitude is not yet clean.
+| items pool → combined pool, equal budget | **+0.01430** | 16.6% |
+| genre conditioning (items pool, K=15) | +0.00862 | 10.2% |
+| tree conditioning (combined pool, K=16) | +0.01035 | 10.3% |
 
 Small effects beside the interview itself either way. **If you can change one thing, change what you
 ask about, not how you decide what to ask.** Consistent with the concept-bank result
 (`ACT2_CONCEPT_BANK_PV.md`): the bank's value is real and it is static.
+
+### 3a. Which single channel is the better bank — Act 4's comparison on rebuilt orders
+
+On test, at 16 questions, all three orders policy-B-selected:
+
+| contrast @K=16 | full | 95% CI | tail | 95% CI |
+|---|---|---|---|---|
+| concepts − items | **−0.00003** | [−0.00315, +0.00310] | **+0.01436** | [+0.01093, +0.01776] |
+| combined − items | +0.01430 | [+0.01124, +0.01739] | +0.02199 | [+0.01872, +0.02516] |
+| combined − concepts | +0.01434 | [+0.01161, +0.01699] | +0.00763 | [+0.00466, +0.01063] |
+
+**On full, items and concepts are a dead heat at 16** — the interval is symmetric about zero and
+0.0003 wide of it. The chapter's current sentence (concepts .2473 / .1154 vs items .2449 / .0967,
+concepts the strongest single channel) was measured on validation with policy-A-selected orders; on
+test with rebuilt orders the honest statement is **concepts win the tail decisively and tie on full**,
+and the combined bank beats both on both axes.
+
+The channel ordering *does* depend on budget, and that is the answerability story, not a wobble:
+concepts lead on full at every early budget (+0.00481 at K=1, +0.00781 at K=2, +0.01035 at K=4,
++0.01116 at K=8, all excluding zero) and the items order only catches up by 16. Cold users can answer
+concepts; the item bank needs a longer interview to find questions they have seen.
+
+At K=1 and K=2 the combined order IS the concepts order (its first two picks are c114, c173), so
+those two contrast cells are exactly 0.0 by construction — a nesting check, not a result.
 
 ---
 
@@ -125,7 +164,17 @@ on the wrong ruler. Against the rebuilt comparator (tail 0.12370):
 | tree, tail@10, K=16, **vs policy-B** | +0.01055 | +0.00705 | **1.50×** |
 | *(superseded: full vs policy-A)* | *+0.03091* | *+0.01371* | *2.26×* |
 | *(superseded: tail vs policy-A)* | *+0.02161* | *+0.02092* | *1.03×* |
-| genre, full@10, K=15 (policy-A comparator) | +0.02046 | +0.00817 | ~2.5× |
+| genre, full@10, K=15, **both sides vs the rebuilt policy-B comparator** | **+0.01831** | **+0.01015** | **1.80×** |
+| genre, tail@10, K=15, **both sides vs the rebuilt policy-B comparator** | **+0.00730** | **+0.00719** | **1.02×** |
+| *(superseded: genre full, mixed rulers)* | *+0.02046* | *+0.00817* | *~2.5×* |
+
+The genre row needed its own correction beyond the comparator swap: the stage-2 re-run's `shrinkage`
+column subtracts a validation gain measured against the **policy-A** order from a test gain measured
+against the **rebuilt** one. `groupgreedy_genre15_VAL_policyB.json` re-differences the validation side
+onto the rebuilt comparator (stage 1's own banked per-user vectors, nothing re-searched; the policy-A
+order re-scored as a free contract check and bit-identical in all 90 group × budget cells). On one
+ruler the genre arm shrinks **1.80×** on full, not 2.5× — and its **tail barely shrinks at all
+(1.02×)**, which is the same asymmetry the tree shows, in a stronger form, on a different partition.
 
 The asymmetry **survives in direction** — tail generalises better than full, 1.50× against 2.70× —
 but "tail does not shrink" is gone, and with it the strongest version of the niche-items reading.
@@ -188,9 +237,11 @@ to. (At K=2 it is behind on tail; at K=1 it is the static order exactly.)
 
 **DEAD, and this is the sharper version: the emulated opener lost to the closed interview.** The genre
 split gave the selector one free fact — no turn charged, not folded into the recommender — and bought
-+0.00817. Charged closed questions bought +0.01035 against the clean comparator. The margin is now
-thin, and **both figures still carry a policy-A items comparator on the genre side** (A3), so this
-comparison is not yet settled — but the opener did not beat the thing it was introduced to rescue.
+**+0.00862** against its own rebuilt comparator. Charged closed questions bought +0.01035 against
+theirs. **Both sides are now on policy-B-selected comparators (A3), so the comparison is settled as
+far as comparator hygiene goes**: the free opener did not beat the thing it was introduced to rescue,
+though the margin is thin (+0.00173) and the two arms sit on different pools and budgets, so this is
+a direction, not a ranking.
 
 **ALIVE: reach.** Closed questions cannot get anything out of ~14% of users. That is measured, and it
 is a different claim from differentiation. **Act 3's motivation should move from "closed questions
@@ -203,7 +254,7 @@ on held-out users. **The field's null is about objectives, not about adaptivity.
 
 ---
 
-## 7. Comparator hygiene — DISCHARGED FOR THE TREE, still open for the genre arm
+## 7. Comparator hygiene — DISCHARGED FOR EVERY ARM IN THIS FILE
 
 **The tree's caveat is closed (A2, 2026-08-12).** `greedy_static_policyB_combined` rebuilt the
 combined static order under policy B — same 10,000 validation users, same 1,000-candidate pool, same
@@ -229,12 +280,38 @@ resamples is different. On test at K=16 the tree's lead falls from +0.01371 to *
 and from +0.02092 to **+0.00705** on tail — a quarter of the full advantage and **two thirds of the
 tail advantage** were comparator weakness.
 
+**The genre arm's caveat is closed too (A3, 2026-08-12 19:25).** `greedy_static_policyB_items` rebuilt
+the items-only order under policy B (16 picks, 839 evaluations, 52.7 min) and the genre arm was
+re-measured against it as a **stage-2 re-run only** — the 17 group orders, the grouping rule, the
+budgets, the primary K, the two pre-specified arms, the 200 threshold and the bootstrap seed are the
+stage-1 ones, unchanged and not re-searched. What the fix was worth, and it is **not a subtraction and
+not one-signed**:
+
+| genre arm, K=15 | full, vs policy-A | full, vs rebuilt | tail, vs policy-A | tail, vs rebuilt |
+|---|---|---|---|---|
+| FALLBACK-200 | +0.00817 | **+0.00862** [+0.00595,+0.01131] | +0.00891 | **+0.00591** [+0.00326,+0.00862] |
+| ALL-GROUPS | +0.00955 | **+0.01015** [+0.00733,+0.01296] | +0.01071 | **+0.00719** [+0.00443,+0.01002] |
+
+Both primary intervals still exclude zero. The reason full goes *up* while tail goes *down* is that
+the rebuilt items order is not uniformly stronger on the reporting cohort: it beat the policy-A order
+by +0.00328 full on the **selection** cohort, but on **test** at K=15 it scores 0.24295 / 0.10041
+against 0.24356 / 0.09689 — marginally weaker on full, clearly stronger on tail. A rebuilt comparator
+is a *correctly selected* comparator, not necessarily a better-scoring one.
+
+Two further changes to what the genre arm licenses, both of which must travel with it:
+- **K=2 and K=4 now separate** on both axes and both arms; they were nulls. "Null at K=1, 2, 4, only
+  separating at K=8" is retracted.
+- **K=8 tail stops separating** (+0.00934 → +0.00203 [−0.00073, +0.00482]).
+- K=1 is unchanged to the bit (+0.00144 all-groups): both comparators open with item 83, so the
+  per-user vectors are identical (max abs diff 0.0). Unlike the tree, the genre orders are **not**
+  nested in the comparator at the first question, so K=1 is a small real difference, not a gate.
+- Drama — 55% of the cohort — is still a null, but its point estimate flips sign, −0.00111 →
+  **+0.00150** [−0.00187, +0.00486].
+
 **Still open:**
-- **The genre arm's items-only comparator has NOT been rebuilt** (A3). Every genre number in §1 and §3,
-  and the items→combined bank comparison, is still against a policy-A-selected order and is an upper
-  bound.
 - Budgets differ across arms (15 vs 16). The 16th question is worth +0.0010 to +0.0037 with one leaf
-  negative, so that difference is cosmetic (A5).
+  negative, so that difference is cosmetic (A5). The rebuilt items order now has a 16th pick banked
+  (i135, +0.00294 on validation), so A5 is cheap.
 - The one test shot so far included a mid-run 16th-step extension and now a comparator swap, so it is
   **exploratory** in the ledger's sense; a clean confirmatory evaluation is A8.
 
@@ -284,3 +361,41 @@ positions**.
 The front of the order is concept-heavy (c114, c173, then one item) and the item block arrives late —
 the same answerability-orders-the-channels pattern the policy-A order showed, so that reading is not
 an artifact of the retired mask.
+
+---
+
+## 10. The two single-channel orders, for reference (A3 / A4)
+
+Same machinery, same objective, same 10,000 validation users, same certified stack, policy B, 16
+picks. Both reuse the tree root's completed 1,000-candidate CELF seed pass — a seed gain does not
+depend on the rest of the pool — transplanted into a sidecar signed by the current v2 signature and
+verified three ways before use (banked signature fields; `base` recomputed and equal exactly; a
+sample of candidates re-evaluated from scratch and exact; plus pick #1's gain re-derived afterwards).
+
+**`greedy_static_policyB_items`** — 839 cumulative evaluations (339 new beyond the seed), **52.7 min**.
+
+| # | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| item | 83 | 7 | 19 | 631 | 2195 | 140 | 22 | 396 | 494 | 343 | 873 | 506 | 212 | 549 | 228 | 135 |
+| gain | .0174 | .0140 | .0079 | .0059 | .0054 | .0046 | .0039 | .0039 | .0038 | .0036 | .0027 | .0023 | .0022 | .0027 | .0028 | .0029 |
+
+Validation at K=16: **0.24281 / 0.10112** (the policy-A order rescored under policy B: 0.23953 /
+0.09410). Shares **7 of 16 questions** and **2 of 16 positions** with the order it replaces.
+
+**`greedy_static_policyB_concepts`** — 1,546 cumulative evaluations (1,046 new), **134.3 min**.
+
+| # | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| concept | 114 | 173 | 785 | 312 | 215 | 377 | 124 | 1010 | 233 | 12 | 912 | 294 | 488 | 467 | 753 | 851 |
+| gain | .0205 | .0163 | .0108 | .0081 | .0069 | .0054 | .0039 | .0034 | .0031 | .0021 | .0015 | .0010 | .0009 | .0006 | .0006 | .0005 |
+
+Validation at K=16: **0.24250 / 0.11809** (policy-A order rescored: 0.24283 / 0.11576). Shares **3 of
+16 questions** and **1 of 16 positions**. Note the sign: the rebuilt concept order is ahead at K=1, 2,
+4 and 8 on full and at every budget on tail, but **0.00032 behind at exactly K=16 on full**. Greedy is
+prefix-optimal, not optimal at a chosen length, so "rebuilt is better" is not a law — the point of the
+rebuild is that the order was *selected under the protocol it is scored under*, not that it wins.
+
+**Cost is a property of the bank, not the budget.** Identical pool size (500) and identical budget:
+the item search paid 339 lazy re-evaluations, the concept search 1,046. Concept marginal gains sit
+close together, so CELF's upper bounds go stale far more often. Both came in well under the
+`PAPER_B_TODO` 1.17 estimates (~2 h items, ~3.5 h concepts) — 52.7 min and 134.3 min.

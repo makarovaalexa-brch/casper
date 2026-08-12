@@ -28,15 +28,30 @@ is the method** — same exact objective, no partition, scales with depth.
 gate), seven of the eight K≥2 intervals exclude zero in the tree's favour, and **tail at K=2
 excludes zero AGAINST the tree** (−0.00262 [−0.00481,−0.00051]).
 
+**UPDATED 2026-08-12 21:50 — A3 and A4 landed; the whole static family is now policy-B-selected.**
+
 Size qualifiers that travel with every statement of the claim:
 - Conditioning gain on test at K=16 is **+0.01035 full / +0.00705 tail** against the rebuilt policy-B
   comparator (was +0.01371/+0.02092 against the policy-A-selected one — a quarter of the full and
   **two thirds of the tail** advantage was comparator weakness). That is **~10% of the interview's own
-  lift**, and it is now **smaller** than the gain from changing the question BANK with no conditioning
-  (+0.01544, itself still on a policy-A items order until A3). "Adaptivity pays", never "adaptivity is
-  large".
+  lift**, and it is **smaller** than the gain from changing the question BANK with no conditioning,
+  which is now clean: **+0.01430 full [+0.01124,+0.01739] / +0.02199 tail at EQUAL budget** (16 vs 16,
+  both orders policy-B-selected). The old +0.01544 carried two defects — a policy-A items order and a
+  15-vs-16 budget mismatch — and the conclusion survives fixing both. "Adaptivity pays", never
+  "adaptivity is large".
 - "Tail does not shrink" is **RETRACTED** too: val→test is 2.70× on full and 1.50× on tail. The
-  asymmetry survives in direction only.
+  asymmetry survives in direction only. The genre arm, re-differenced onto one ruler, shrinks 1.80×
+  on full and **1.02× on tail** — the same asymmetry, stronger, on a different partition.
+- The genre arm against its own rebuilt comparator is **+0.00862 full [+0.00595,+0.01131] /
+  +0.00591 tail** (fallback-200) and **+0.01015 / +0.00719** (all-groups) at K=15. Full went up, tail
+  went down: the rebuilt items order is stronger on the selection cohort but marginally weaker on
+  test's full metric and clearly stronger on its tail. K=2 and K=4 now separate (they were nulls);
+  **K=8 tail stops separating**. Drama (55% of users) is still a null with its sign flipped to +.
+- Channel comparison at 16 on test, rebuilt orders: **concepts − items is a dead heat on full**
+  (−0.00003 [−0.00315,+0.00310]) and **+0.01436 on tail** for concepts. Concepts lead full at every
+  budget below 16 and items only catch up at 16 — answerability ordering the channels, measured on
+  held-out users. The chapter's ".2473/.1154 vs .2449/.0967, concepts strongest" sentence is on
+  validation with policy-A orders and must be re-cut.
 - 4/15 leaves negative on test (32.8% of cohort); ~14% of users answer nothing and sit at 0.087.
 
 Historical frame (verified, `rating_elicitation_family_deep.md` §2.4–2.5): Golbandi WSDM'11 beat his
@@ -56,8 +71,9 @@ again.
   tail** against the clean comparator — the "tail does not shrink" 1.03× figure was a comparator
   artifact and is RETRACTED; the asymmetry survives in direction only), partition generalises,
   negative leaves reported in full (**6/15, 39.3% of the cohort**, on the clean comparator),
-  bank-vs-conditioning decomposition (**the bank now exceeds conditioning: +0.01544 vs +0.01035**,
-  pending A3). Hu & Yu objective ablation lives here (nearest rival).
+  bank-vs-conditioning decomposition (**the bank exceeds conditioning: +0.01430 [+0.01124,+0.01739]
+  at equal budget vs +0.01035** — A3/A4 done, both sides policy-B-selected). Hu & Yu objective
+  ablation lives here (nearest rival).
 - **Act 4 — REFRAMED (author correction 2026-08-12): "answerability orders the channels", NOT
   "coarse-to-fine curriculum".** A static order is not a strategy — nothing informs anything. The
   measured fact: concepts front-load because cold users can answer them (three independent
@@ -90,12 +106,21 @@ K=1 lead of +0.00246, where conditioning is impossible.
   **Contract gate PASSED: K=1 difference exactly 0.0 on all 20,000 users, both axes.** Reuse gate
   (bit-identical per-user vectors + routed row ids) and banked-headline assert (every policy-A number
   reproduced to 0.0e+00) both passed. New K=16 test: +0.01035 full / +0.00705 tail.
-- **A3.** Rebuild ITEMS-ONLY order under policy B (~2h); re-measure the genre arm against it
-  (stage-2 re-run only; groups and orders unchanged).
-- **A4.** Rebuild CONCEPTS order under policy B (~3.5h) — completes the fixedorder family; Act 4's
-  channel table re-scored on rebuilt orders.
+- **A3 (DONE 19:25).** `greedy_static_policyB_items.json`, 16 picks, 839 evals, **52.7 min** (est. 2 h).
+  Shares 7/16 questions and 2/16 positions with the policy-A order. Genre arm re-measured against it
+  (`groupgreedy_genre15_TEST_policyB.json`, stage-2 only) and its validation side re-differenced onto
+  the same comparator (`groupgreedy_genre15_VAL_policyB.json`, banked assert bit-identical in all 90
+  cells). Both primary intervals still exclude zero; see §0 for what moved.
+- **A4 (DONE 21:44).** `greedy_static_policyB_concepts.json`, 16 picks, 1,546 evals, **134.3 min**
+  (est. 3.5 h). Shares 3/16 questions and 1/16 positions. Act 4's channel table re-scored on test
+  (`channel_orders_policyB_test.json`), which also carries the clean bank decomposition and a **banked
+  assert that PASSED**: the combined comparator re-scored from scratch reproduces the tree run's
+  per-user test vectors bit-identically at all five budgets on both axes.
+  *Cost lesson worth keeping: identical pool size and budget, 339 lazy re-evaluations for items vs
+  1,046 for concepts. Concept marginal gains sit close together, so CELF's bounds go stale far more
+  often — search cost is a property of the BANK, not of the budget.*
 - **A5.** Budget consistency: 16 everywhere (genre arm gets its 16th pick from the persisted heaps,
-  now cheap after the `heap_path` fix).
+  now cheap after the `heap_path` fix; the rebuilt items order already carries its 16th pick, i135).
 - **A6 (REDO in tex).** Tail-objective greedy sequence — required before any tail-optimised claim.
 - **A7 (1.19).** CELF signature debt.
 - **A8.** Clean confirmatory tree evaluation logged in the exploratory/confirmatory ledger — the
@@ -182,9 +207,10 @@ Staged design, gates before each promotion:
 
 ## 8. Execution order
 
-1. **Now:** A1 (running) → A2 (K=1 gate) → A3 → genre re-measure → A9. In parallel: C1 (cheap),
-   D2 (cheap, banked data), B1(i) snap.
-2. **Then:** A4, A5, B1(ii) ablation, B2, A6, A10.
+1. **DONE:** A1 → A2 (K=1 gate) → A3 → genre re-measure → A4 → channel table + bank decomposition.
+   **Next:** A9 (swap Act 1's greedy row for the rebuilt numbers). In parallel: C1 (cheap),
+   D2 (done), B1(i) snap.
+2. **Then:** A5, B1(ii) ablation, B2, A6, A10.
 3. **Then:** E1 → E2 (→ E3 if needed), with F and writing (C2, D1, F1) interleaved.
 4. Confirmatory pass A8 + ledger before any abstract number is final.
 
@@ -193,6 +219,7 @@ Staged design, gates before each promotion:
 - Never "adaptivity is large" — size qualifiers of §0 travel everywhere.
 - No routing/curriculum claim unless D2 separates from its control.
 - No tail-optimised claim before A6.
-- Genre numbers remain UPPER BOUNDS (all 17 groups shrank val→test; Drama null).
+- Genre numbers remain UPPER BOUNDS — the free genre fact costs no turn — and **all 17 groups still
+  shrink val→test on ONE ruler** (1.80× cohort-weighted on full), with Drama still a null.
 - Nulls are not citable (author ruling); Hu & Yu ablation outcome (b)≈(c) is reported as a
   narrowing, not marketed.
