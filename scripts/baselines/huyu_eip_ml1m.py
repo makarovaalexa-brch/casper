@@ -655,8 +655,11 @@ def build_data(kind, pos_u, pos_i, pos_r, rated, n_users, n_items, d, seed):
     raise ValueError(kind)
 
 
+INIT_SCALE = 0.5   # not specified by the paper; see the note in main()
+
+
 def init_V(n_items, d, seed=7):
-    return np.random.default_rng(seed).normal(0, 0.05, size=(n_items, d))
+    return np.random.default_rng(seed).normal(0, INIT_SCALE, size=(n_items, d))
 
 
 def answers_by_user(au, ai, ar):
@@ -830,7 +833,10 @@ def main():
     ap.add_argument("--depths", default="3,5,8,10")
     ap.add_argument("--outer", type=int, default=OUTER_ITERS)
     ap.add_argument("--arms", default="")
+    ap.add_argument("--init-scale", type=float, default=INIT_SCALE)
     args = ap.parse_args()
+    global INIT_SCALE
+    INIT_SCALE = args.init_scale
     os.makedirs(OUT, exist_ok=True)
     log_fh = open(os.path.join(OUT, "run_%s.log" % args.stage), "a")
     depths = [int(x) for x in args.depths.split(",")]
