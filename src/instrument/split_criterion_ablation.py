@@ -248,6 +248,26 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
     rng = np.random.default_rng(seed)
     stats = {}
     nodes, leaves = {}, []
+    # HARD RULE 11(b): the per-node partial is now READ, not merely written. A node is reusable only
+    # if it was completed under the SAME contract -- same criterion, budget, min-leaf mode, pool size
+    # and cohort -- and only if it carries the fields a completed node must have. Anything else is
+    # ignored loudly and regrown, never merged.
+    banked_nodes = {}
+    if os.path.exists(out_path + ".partial"):
+        try:
+            pb = json.load(open(out_path + ".partial"))
+        except Exception as e:
+            pb = None
+            log(f"[{kind}/resume] partial unreadable ({e}) -- ignored, growing cold")
+        want = {"criterion": kind, "total_L": total_L, "min_leaf": min_leaf,
+                "minleaf_mode": minleaf_mode, "n_pool": len(pool), "n_cohort": len(rows_all),
+                "seed": int(seed)}
+        if pb is not None and pb.get("sig") == want:
+            banked_nodes = {k: v for k, v in pb.get("nodes", {}).items()
+                            if v.get("split") is not None and v.get("steps")}
+            log(f"[{kind}/resume] {len(banked_nodes)} completed node(s) reusable from the partial")
+        elif pb is not None:
+            log(f"[{kind}/resume] partial carries a DIFFERENT contract -- IGNORED, growing cold")
     frontier = [{"nid": "root", "depth": 0, "path": [], "rows": [int(r) for r in rows_all],
                  "branch_from": None}]
     pool_pos = {tuple(q): i for i, q in enumerate(pool)}
@@ -261,6 +281,28 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
             prefix = [(int(a), int(b)) for a, b in nd["path"]]
             cand = [pool_pos[tuple(q)] for q in pool if tuple(q) not in set(prefix)]
             t0 = time.time()
+            bk = banked_nodes.get(nid)
+            if bk is not None and bk.get("n_users") == len(rows) and bk.get("depth") == depth:
+                rec = bk
+                log(f"[{kind}/{nid}] reused from the partial (splitter {rec['splitter']}, "
+                    f"split={rec['split']})")
+                nodes[nid] = rec
+                if rec["split"]:
+                    kids, _a, _z = split_rows(E, rows, tuple(rec["splitter"]))
+                    cpath = rec["path"] + [list(rec["splitter"])]
+                    for k in BRANCHES:
+                        if minleaf_mode == "nonempty" and not kids[k]:
+                            continue
+                        nxt.append({"nid": f"{nid}.{k}", "depth": depth + 1, "path": cpath,
+                                    "rows": kids[k], "branch_from": k})
+                else:
+                    own = [(int(a), int(b)) for a, b in rec["path"]] +                           [(int(a), int(b)) for a, b in rec["steps"]]
+                    assert len(own) == total_L
+                    rec["own_sequence"] = [[a, b] for a, b in own]
+                    nd["own"] = own; nd["rec"] = rec
+                    leaves.append(nd)
+                continue
+            E["memo"] = {}          # belt and braces: nothing is cached across nodes in this job
             sc, info = score_candidates(kind, E, ev, memL, memD, pos_of, [rows], cand, prefix,
                                         rows, rng, Wd, bd, stats)
             if kind == "random_ml":
@@ -367,8 +409,12 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
                     f"{n_inf}/{len(tail_info)} tail steps (the rest fell to the whole-leaf "
                     f"tie-break), order {asked}")
             nodes[nid] = rec
-            with open(out_path + ".partial", "w") as fh:
-                json.dump({"criterion": kind, "nodes": nodes}, fh, indent=2, default=float)
+            with open(out_path + ".partial.tmp", "w") as fh:
+                json.dump({"sig": {"criterion": kind, "total_L": total_L, "min_leaf": min_leaf,
+                                   "minleaf_mode": minleaf_mode, "n_pool": len(pool),
+                                   "n_cohort": len(rows_all), "seed": int(seed)},
+                           "criterion": kind, "nodes": nodes}, fh, indent=2, default=float)
+            os.replace(out_path + ".partial.tmp", out_path + ".partial")
             if will_split:
                 cpath = rec["path"] + [[q[0], q[1]]]
                 for k in BRANCHES:
@@ -717,7 +763,11 @@ def main():
     trees = {}
     for kind in arms:
         tp = os.path.join(OUTDIR, args.label + sfx + "_tree_" + kind + ".json")
-        if "grow" in stages:
+        if "grow" in stages and os.path.exists(tp):
+            log("[grow] criterion `" + kind + "` already complete on disk (" + os.path.basename(tp)
+                + ") -- REUSED, not regrown")
+            blob = json.load(open(tp))
+        elif "grow" in stages:
             log("=" * 110)
             log("[grow] criterion `" + kind + "`")
             nodes, leaves, st = grow(kind, Ev, ev, memL, memD, pos_of, pool, rows_val, total_L,
@@ -738,6 +788,15 @@ def main():
     trees["ndcg"] = {"criterion": "ndcg", "nodes": nd_nodes, "leaf_orders": nd_leaves}
     out["structure"]["ndcg"] = structure("ndcg", nd_nodes, [{"nid": n} for n in nd_leaves], total_L)
     all_arms = list(arms) + ["ndcg"]
+    # MEASUREMENT ORDER IS A RISK DECISION, NOT A COSMETIC ONE. The measure stage flushes the JSON and
+    # the per-user npz after EVERY arm, so if the box dies mid-stage whatever has been measured is
+    # already banked. Therefore measure the DECISIVE CONTRAST FIRST -- the first named arm, then the
+    # `ndcg` arm it is being compared against -- and leave the controls to last. The overnight
+    # instruction is explicit that if the full ablation cannot finish, the contrast that must exist by
+    # morning is pairwise-rank-loss versus measured NDCG.
+    measure_order = [arms[0], "ndcg"] + [a for a in arms[1:]]
+    log("[order] arms will be MEASURED in this order, decisive contrast first, controls last: "
+        + ", ".join(measure_order))
 
     qsets = {k: {tuple(q) for q in out["structure"][k]["distinct_questions_asked"]} for k in all_arms}
     ssets = {k: {tuple(q) for q in out["structure"][k]["splitters"]} for k in all_arms}
@@ -777,7 +836,7 @@ def main():
                     "CANONICAL SNAP FAILED on test: " + repr(ic) + " vs the banked 0.15855/0.02819")
                 log("[snap/test] PASS -- reproduces MASK_POLICY_B_MIGRATION's banked test intercept")
                 out["intercept_test_m0"] = {"full@10": ic[0], "tail@10": ic[1]}
-            for kind in all_arms:
+            for kind in measure_order:
                 log("-" * 110)
                 log("[measure/" + tag + "] arm `" + kind + "`")
                 _pl, curves = measure(E, tag, kind, trees[kind]["leaf_orders"],
@@ -820,7 +879,7 @@ def main():
     log("=" * 110)
     log("arm".ljust(12) + "K".rjust(4) + "VAL full".rjust(12) + "VAL tail".rjust(12)
         + "TEST full".rjust(12) + "TEST tail".rjust(12) + "sepF".rjust(6) + "sepT".rjust(6))
-    for kind in all_arms:
+    for kind in measure_order:
         a = out["arms"].get(kind, {})
         for K in BUDGETS:
             v = a.get("cohort_val", {}).get(str(K), {})
