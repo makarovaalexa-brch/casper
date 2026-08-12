@@ -1,0 +1,860 @@
+{
+  "analysis": "genre_group_orders_validation_redifferenced_vs_policyB_comparator",
+  "label": "groupgreedy_genre15_VAL_policyB",
+  "citable": true,
+  "split": "validation",
+  "test_touched": false,
+  "why": "the stage-2 re-run's shrinkage column mixed rulers: test gains against the rebuilt policy-B items order, validation gains against the policy-A one. This puts both sides on the rebuilt comparator. Nothing is re-searched -- the group orders' own per-user validation vectors are read from stage 1's npz.",
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "mask_policy": "B",
+  "pool_policy": "B",
+  "pool_contract": {
+    "v": 1,
+    "policy": "B",
+    "n_rows": 10000,
+    "n_items": 18359,
+    "nnz": 1356475,
+    "per_user": 135.6475,
+    "fp": "c282962b49a2d67ef47ff07544519f20"
+  },
+  "n_cohort": 10000,
+  "budgets_items": [
+    1,
+    2,
+    4,
+    8,
+    15
+  ],
+  "L_items": 15,
+  "comparator_policyB": {
+    "file": "greedy_static_policyB_items.json",
+    "label": "greedy_static_policyB_items",
+    "sequence": [
+      [
+        0,
+        83
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        0,
+        19
+      ],
+      [
+        0,
+        631
+      ],
+      [
+        0,
+        2195
+      ],
+      [
+        0,
+        140
+      ],
+      [
+        0,
+        22
+      ],
+      [
+        0,
+        396
+      ],
+      [
+        0,
+        494
+      ],
+      [
+        0,
+        343
+      ],
+      [
+        0,
+        873
+      ],
+      [
+        0,
+        506
+      ],
+      [
+        0,
+        212
+      ],
+      [
+        0,
+        549
+      ],
+      [
+        0,
+        228
+      ],
+      [
+        0,
+        135
+      ]
+    ]
+  },
+  "comparator_policyA": [
+    [
+      0,
+      83
+    ],
+    [
+      0,
+      583
+    ],
+    [
+      0,
+      19
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      22
+    ],
+    [
+      0,
+      89
+    ],
+    [
+      0,
+      123
+    ],
+    [
+      0,
+      140
+    ],
+    [
+      0,
+      2195
+    ],
+    [
+      0,
+      146
+    ],
+    [
+      0,
+      343
+    ],
+    [
+      0,
+      14
+    ],
+    [
+      0,
+      155
+    ],
+    [
+      0,
+      631
+    ],
+    [
+      0,
+      127
+    ],
+    [
+      0,
+      29
+    ]
+  ],
+  "banked_assert_cells": 90,
+  "banked_assert_all_bit_identical": true,
+  "groups": {
+    "Drama": {
+      "n_val": 5481,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.0010962355356945368,
+          "val_diff_tail_vs_policyB": 0.001024395223217502,
+          "val_diff_full_vs_policyA": 0.0010962355356945368,
+          "stage1_val_diff_full": 0.0010962355290956634
+        },
+        "2": {
+          "val_diff_full_vs_policyB": -7.37967120843494e-11,
+          "val_diff_tail_vs_policyB": -1.4414726817232387e-11,
+          "val_diff_full_vs_policyA": 0.00261809355457705,
+          "stage1_val_diff_full": 0.002618093628373762
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.004164404568904312,
+          "val_diff_tail_vs_policyB": 0.0008080292922485287,
+          "val_diff_full_vs_policyA": 0.003857185492222646,
+          "stage1_val_diff_full": 0.0038571853544194764
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.006466670602277124,
+          "val_diff_tail_vs_policyB": -0.00014945259045751172,
+          "val_diff_full_vs_policyA": 0.003994826078915257,
+          "stage1_val_diff_full": 0.003994826082067095
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.005376522658777859,
+          "val_diff_tail_vs_policyB": -0.0028003660809293508,
+          "val_diff_full_vs_policyA": 0.006974411556041927,
+          "stage1_val_diff_full": 0.006974411512537593
+        }
+      }
+    },
+    "Action": {
+      "n_val": 1582,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.0002415050490208696,
+          "val_diff_tail_vs_policyB": 0.003310866469981974,
+          "val_diff_full_vs_policyA": 0.0002415050490208696,
+          "stage1_val_diff_full": 0.00024150513356376032
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.001492268771202621,
+          "val_diff_tail_vs_policyB": -0.0008595156332850505,
+          "val_diff_full_vs_policyA": 0.0012165119938586293,
+          "stage1_val_diff_full": 0.001216511956242703
+        },
+        "4": {
+          "val_diff_full_vs_policyB": -0.004233041510605954,
+          "val_diff_tail_vs_policyB": -0.00763805555312649,
+          "val_diff_full_vs_policyA": -0.001565792682145438,
+          "stage1_val_diff_full": -0.0015657929453349647
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.006156001373097008,
+          "val_diff_tail_vs_policyB": 0.005154188951138955,
+          "val_diff_full_vs_policyA": 0.01660298629937965,
+          "stage1_val_diff_full": 0.01660298633121806
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.022162346582609876,
+          "val_diff_tail_vs_policyB": 0.015148363252216324,
+          "val_diff_full_vs_policyA": 0.025943759180457614,
+          "stage1_val_diff_full": 0.025943759297285113
+        }
+      }
+    },
+    "Comedy": {
+      "n_val": 1475,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.0041450715815137965,
+          "val_diff_tail_vs_policyB": 0.0015531533576642318,
+          "val_diff_full_vs_policyA": 0.0041450715815137965,
+          "stage1_val_diff_full": 0.00414507165055735
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.00519139918716761,
+          "val_diff_tail_vs_policyB": 0.010031316899592536,
+          "val_diff_full_vs_policyA": 0.0056855121156135,
+          "stage1_val_diff_full": 0.005685512220047826
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.004851969476236664,
+          "val_diff_tail_vs_policyB": 0.002332212201660707,
+          "val_diff_full_vs_policyA": 0.0019544214998889887,
+          "stage1_val_diff_full": 0.0019544217857078556
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.012663289879710327,
+          "val_diff_tail_vs_policyB": 0.009753507439891715,
+          "val_diff_full_vs_policyA": 0.011375715788064884,
+          "stage1_val_diff_full": 0.01137571595699957
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.022918157238978762,
+          "val_diff_tail_vs_policyB": 0.013991076595127747,
+          "val_diff_full_vs_policyA": 0.02270397131198553,
+          "stage1_val_diff_full": 0.022703971393806047
+        }
+      }
+    },
+    "Adventure": {
+      "n_val": 534,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 6.824890951489811e-11,
+          "val_diff_tail_vs_policyB": -2.4362538538834435e-11,
+          "val_diff_full_vs_policyA": 6.824890951489811e-11,
+          "stage1_val_diff_full": 0.0
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.021990788562061967,
+          "val_diff_tail_vs_policyB": 0.040829130768336254,
+          "val_diff_full_vs_policyA": 0.020188705201579768,
+          "stage1_val_diff_full": 0.02018870495420416
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.03092094617297191,
+          "val_diff_tail_vs_policyB": 0.04352291651688774,
+          "val_diff_full_vs_policyA": 0.023966624113853044,
+          "stage1_val_diff_full": 0.023966623449591808
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.031236130274741078,
+          "val_diff_tail_vs_policyB": 0.017779255707570506,
+          "val_diff_full_vs_policyA": 0.03967099599036215,
+          "stage1_val_diff_full": 0.03967099592478763
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.03934191660471438,
+          "val_diff_tail_vs_policyB": 0.024841708941674135,
+          "val_diff_full_vs_policyA": 0.055650335353341254,
+          "stage1_val_diff_full": 0.055650334702252884
+        }
+      }
+    },
+    "Thriller": {
+      "n_val": 451,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.04412521029838769,
+          "val_diff_tail_vs_policyB": 0.034186140919646536,
+          "val_diff_full_vs_policyA": 0.04412521029838769,
+          "stage1_val_diff_full": 0.044125210016462954
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.01869582211449333,
+          "val_diff_tail_vs_policyB": 0.016001983142688598,
+          "val_diff_full_vs_policyA": 0.010826025035592634,
+          "stage1_val_diff_full": 0.010826024152430296
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.02055556726413823,
+          "val_diff_tail_vs_policyB": 0.013838369883782564,
+          "val_diff_full_vs_policyA": 0.027435608981835655,
+          "stage1_val_diff_full": 0.027435608651570714
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.04942623786266367,
+          "val_diff_tail_vs_policyB": 0.029738023065938743,
+          "val_diff_full_vs_policyA": 0.04065948831977858,
+          "stage1_val_diff_full": 0.04065948790587439
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.03635462557222871,
+          "val_diff_tail_vs_policyB": 0.015304287800677073,
+          "val_diff_full_vs_policyA": 0.035237112917370014,
+          "stage1_val_diff_full": 0.035237112634038864
+        }
+      }
+    },
+    "Sci-Fi": {
+      "n_val": 161,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.02129926770156194,
+          "val_diff_tail_vs_policyB": 0.019451572010279004,
+          "val_diff_full_vs_policyA": 0.02129926770156194,
+          "stage1_val_diff_full": 0.021299268245736403
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.052936529002216626,
+          "val_diff_tail_vs_policyB": 0.03848190747677213,
+          "val_diff_full_vs_policyA": 0.05187205632202948,
+          "stage1_val_diff_full": 0.05187205688749827
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.05471523243667398,
+          "val_diff_tail_vs_policyB": 0.04443278797582309,
+          "val_diff_full_vs_policyA": 0.06772963914815207,
+          "stage1_val_diff_full": 0.06772963923105511
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.0829128385519293,
+          "val_diff_tail_vs_policyB": 0.044688778839722304,
+          "val_diff_full_vs_policyA": 0.101469761843145,
+          "stage1_val_diff_full": 0.10146976146648287
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.11450946958697934,
+          "val_diff_tail_vs_policyB": 0.07016475878730478,
+          "val_diff_full_vs_policyA": 0.104983605250992,
+          "stage1_val_diff_full": 0.1049836045712395
+        }
+      }
+    },
+    "Romance": {
+      "n_val": 88,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.004944418158551403,
+          "val_diff_tail_vs_policyB": -0.008958519799489773,
+          "val_diff_full_vs_policyA": 0.004944418158551403,
+          "stage1_val_diff_full": 0.004944418101816751
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.02837973431956882,
+          "val_diff_tail_vs_policyB": -0.005997235474706741,
+          "val_diff_full_vs_policyA": 0.03860593034226659,
+          "stage1_val_diff_full": 0.03860593011631191
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.0334207197328596,
+          "val_diff_tail_vs_policyB": 0.011184160701557257,
+          "val_diff_full_vs_policyA": 0.023677113144129347,
+          "stage1_val_diff_full": 0.023677113071690768
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.05484592862655409,
+          "val_diff_tail_vs_policyB": 0.020660907610519884,
+          "val_diff_full_vs_policyA": 0.048626447730551824,
+          "stage1_val_diff_full": 0.04862644790366537
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.064143247297072,
+          "val_diff_tail_vs_policyB": 0.04605719659977751,
+          "val_diff_full_vs_policyA": 0.06413808967981961,
+          "stage1_val_diff_full": 0.06413809042465991
+        }
+      }
+    },
+    "Crime": {
+      "n_val": 79,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.026321759203727275,
+          "val_diff_tail_vs_policyB": 0.007504588600011412,
+          "val_diff_full_vs_policyA": 0.026321759203727275,
+          "stage1_val_diff_full": 0.026321758874507405
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.049370424857264276,
+          "val_diff_tail_vs_policyB": 0.016255968982762797,
+          "val_diff_full_vs_policyA": 0.04296748109115207,
+          "stage1_val_diff_full": 0.04296748115410751
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.07689035210138302,
+          "val_diff_tail_vs_policyB": 0.021216272549741923,
+          "val_diff_full_vs_policyA": 0.08171745332503733,
+          "stage1_val_diff_full": 0.08171745296579815
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.09662403971729666,
+          "val_diff_tail_vs_policyB": 0.05054069238512955,
+          "val_diff_full_vs_policyA": 0.10115016912334886,
+          "stage1_val_diff_full": 0.10115016784644293
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.11433721342148341,
+          "val_diff_tail_vs_policyB": 0.04727502759235384,
+          "val_diff_full_vs_policyA": 0.08939764308610637,
+          "stage1_val_diff_full": 0.08939764154958559
+        }
+      }
+    },
+    "Horror": {
+      "n_val": 51,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.0050488074795322305,
+          "val_diff_tail_vs_policyB": 0.002392301740853683,
+          "val_diff_full_vs_policyA": 0.0050488074795322305,
+          "stage1_val_diff_full": 0.005048807980027566
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.011658585458555623,
+          "val_diff_tail_vs_policyB": 0.00772004801294078,
+          "val_diff_full_vs_policyA": 0.005081305781123013,
+          "stage1_val_diff_full": 0.005081306921376508
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.036716294279531846,
+          "val_diff_tail_vs_policyB": 0.009973106570245398,
+          "val_diff_full_vs_policyA": 0.045399025671125866,
+          "stage1_val_diff_full": 0.045399025955661504
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.06562398733277106,
+          "val_diff_tail_vs_policyB": 0.03668334451317216,
+          "val_diff_full_vs_policyA": 0.07104194036796359,
+          "stage1_val_diff_full": 0.07104194129943574
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.06089871946757242,
+          "val_diff_tail_vs_policyB": 0.018622416441034052,
+          "val_diff_full_vs_policyA": 0.06517257197231104,
+          "stage1_val_diff_full": 0.0651725713201402
+        }
+      }
+    },
+    "Animation": {
+      "n_val": 44,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.019485194890243397,
+          "val_diff_tail_vs_policyB": 0.021076579649045708,
+          "val_diff_full_vs_policyA": 0.019485194890243397,
+          "stage1_val_diff_full": 0.019485195512647494
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.04621053036151355,
+          "val_diff_tail_vs_policyB": 0.030748788884934895,
+          "val_diff_full_vs_policyA": 0.04454905415168981,
+          "stage1_val_diff_full": 0.044549054075159994
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.07801416455901831,
+          "val_diff_tail_vs_policyB": 0.05279380321032058,
+          "val_diff_full_vs_policyA": 0.0846665393491541,
+          "stage1_val_diff_full": 0.08466654091996119
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.1156230817326769,
+          "val_diff_tail_vs_policyB": 0.05086862836337267,
+          "val_diff_full_vs_policyA": 0.1016344448666951,
+          "stage1_val_diff_full": 0.10163444393579008
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.10150554378443344,
+          "val_diff_tail_vs_policyB": 0.08382142468882059,
+          "val_diff_full_vs_policyA": 0.13970726321138421,
+          "stage1_val_diff_full": 0.13970726250846643
+        }
+      }
+    },
+    "Children": {
+      "n_val": 29,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.04506912152278713,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.04506912152278713,
+          "stage1_val_diff_full": 0.045069121168057745
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.051558790057761414,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.028532095133251723,
+          "stage1_val_diff_full": 0.02853209530325689
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.06377374134983677,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.049525341938448555,
+          "stage1_val_diff_full": 0.04952534189249606
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.11124392137044214,
+          "val_diff_tail_vs_policyB": 0.06065514173144627,
+          "val_diff_full_vs_policyA": 0.08866859156968564,
+          "stage1_val_diff_full": 0.08866859039790234
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.11399093416020654,
+          "val_diff_tail_vs_policyB": 0.038148468972859055,
+          "val_diff_full_vs_policyA": 0.12155284459289917,
+          "stage1_val_diff_full": 0.12155284485479256
+        }
+      }
+    },
+    "Fantasy": {
+      "n_val": 11,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.03583896600578333,
+          "val_diff_tail_vs_policyB": 0.05152823803981759,
+          "val_diff_full_vs_policyA": 0.03583896600578333,
+          "stage1_val_diff_full": 0.0358389671004172
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.07388798519663459,
+          "val_diff_tail_vs_policyB": 0.03378194163620099,
+          "val_diff_full_vs_policyA": 0.0752915726905,
+          "stage1_val_diff_full": 0.07529157397081142
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.126835756443701,
+          "val_diff_tail_vs_policyB": 0.055787987191547185,
+          "val_diff_full_vs_policyA": 0.14055349604165077,
+          "stage1_val_diff_full": 0.14055349658284835
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.12117474471905258,
+          "val_diff_tail_vs_policyB": -0.003298799371262937,
+          "val_diff_full_vs_policyA": 0.1691873401064071,
+          "stage1_val_diff_full": 0.16918733940669128
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.11560353508353984,
+          "val_diff_tail_vs_policyB": 0.01045585564312194,
+          "val_diff_full_vs_policyA": 0.12734278437168858,
+          "stage1_val_diff_full": 0.1273427828791921
+        }
+      }
+    },
+    "Documentary": {
+      "n_val": 3,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.11218086775911666,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.11218086775911666,
+          "stage1_val_diff_full": 0.11218086861922678
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.1332657202182587,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.13788788890698264,
+          "stage1_val_diff_full": 0.13788788657625187
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.19517969466252158,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.17906674057575414,
+          "stage1_val_diff_full": 0.17906673571709295
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.11004588800770132,
+          "val_diff_tail_vs_policyB": -0.07834851647149514,
+          "val_diff_full_vs_policyA": 0.18994239609424035,
+          "stage1_val_diff_full": 0.1899423912355791
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.1228664904918494,
+          "val_diff_tail_vs_policyB": -0.07834851647149514,
+          "val_diff_full_vs_policyA": 0.12790917628853224,
+          "stage1_val_diff_full": 0.12790917142987102
+        }
+      }
+    },
+    "Musical": {
+      "n_val": 3,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": 6.923178511956488e-10,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": 0.02707643876166142,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": -0.023143740299433502,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": -0.07336392209936006,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.024454640845457714,
+          "val_diff_tail_vs_policyB": 0.005085838569906205,
+          "val_diff_full_vs_policyA": 0.024454640845457714,
+          "stage1_val_diff_full": 0.024454640699786687
+        }
+      }
+    },
+    "Mystery": {
+      "n_val": 3,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.06152522942172988,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.06152522942172988,
+          "stage1_val_diff_full": 0.06152523225985606
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.07317419231680536,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.08367701949472352,
+          "stage1_val_diff_full": 0.083677023282556
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.19632004698117575,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.1469730618201982,
+          "stage1_val_diff_full": 0.1469730660840522
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.2537293814225287,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.2509342859143111,
+          "stage1_val_diff_full": 0.25093428724124606
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.3030763665835063,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.3030763665835063,
+          "stage1_val_diff_full": 0.3030763679104412
+        }
+      }
+    },
+    "War": {
+      "n_val": 2,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.027522431668776215,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.027522431668776215,
+          "stage1_val_diff_full": 0.027522432016438267
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.08426982264616284,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.09606515250861776,
+          "stage1_val_diff_full": 0.09606515580448542
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.20848843810460563,
+          "val_diff_tail_vs_policyB": 0.2517167292535305,
+          "val_diff_full_vs_policyA": 0.2060326301992837,
+          "stage1_val_diff_full": 0.20603262987877688
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.3094740769018888,
+          "val_diff_tail_vs_policyB": 0.24623872339725494,
+          "val_diff_full_vs_policyA": 0.3038745284739648,
+          "stage1_val_diff_full": 0.3038745285713514
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.3038745284739648,
+          "val_diff_tail_vs_policyB": 0.32862985134124756,
+          "val_diff_full_vs_policyA": 0.31145798049628864,
+          "stage1_val_diff_full": 0.3114579805936753
+        }
+      }
+    },
+    "Western": {
+      "n_val": 2,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.0,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.0,
+          "stage1_val_diff_full": 0.0
+        }
+      }
+    },
+    "Film-Noir": {
+      "n_val": 1,
+      "curve": {
+        "1": {
+          "val_diff_full_vs_policyB": 0.39038005471229553,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.39038005471229553,
+          "stage1_val_diff_full": 0.3903800499921017
+        },
+        "2": {
+          "val_diff_full_vs_policyB": 0.39038005471229553,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.39038005471229553,
+          "stage1_val_diff_full": 0.3903800499921017
+        },
+        "4": {
+          "val_diff_full_vs_policyB": 0.14407766597156554,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.2393604364844903,
+          "stage1_val_diff_full": 0.23936043176429644
+        },
+        "8": {
+          "val_diff_full_vs_policyB": 4.720193846896592e-09,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.2393604364844903,
+          "stage1_val_diff_full": 0.23936043176429644
+        },
+        "15": {
+          "val_diff_full_vs_policyB": 0.14407766597156554,
+          "val_diff_tail_vs_policyB": 0.0,
+          "val_diff_full_vs_policyA": 0.2513238752015199,
+          "stage1_val_diff_full": 0.2513238704813261
+        }
+      }
+    }
+  },
+  "cohort_weighted": {
+    "1": {
+      "all_groups_full_vs_policyB": 0.004213130241388552,
+      "all_groups_tail_vs_policyB": 0.0031492995836709,
+      "all_groups_full_vs_policyA": 0.004213130241388552,
+      "global_policyB_full": 0.17426322743544534,
+      "global_policyA_full": 0.17426322743544534
+    },
+    "2": {
+      "all_groups_full_vs_policyB": 0.005122750419235619,
+      "all_groups_tail_vs_policyB": 0.005033755394410402,
+      "all_groups_full_vs_policyA": 0.006058903105122024,
+      "global_policyB_full": 0.18821500100805721,
+      "global_policyA_full": 0.18727884832217082
+    },
+    "4": {
+      "all_groups_full_vs_policyB": 0.007717728425312451,
+      "all_groups_tail_vs_policyB": 0.0037679555126713723,
+      "all_groups_full_vs_policyA": 0.007681484148920801,
+      "global_policyB_full": 0.20201170297439058,
+      "global_policyA_full": 0.20204794725078223
+    },
+    "8": {
+      "all_groups_full_vs_policyB": 0.014334451185100613,
+      "all_groups_tail_vs_policyB": 0.006122429650118112,
+      "all_groups_full_vs_policyA": 0.014776635432945199,
+      "global_policyB_full": 0.21976750346056287,
+      "global_policyA_full": 0.2193253192127183
+    },
+    "15": {
+      "all_groups_full_vs_policyB": 0.01831040985524879,
+      "all_groups_tail_vs_policyB": 0.007300945316189639,
+      "all_groups_full_vs_policyA": 0.020461356185330074,
+      "global_policyB_full": 0.23987198213621747,
+      "global_policyA_full": 0.2377210358061362
+    }
+  },
+  "shrinkage_on_one_ruler@L": {
+    "Drama": -0.0038793485496142113,
+    "Action": -0.005052708476326759,
+    "Comedy": -0.007842028970323059,
+    "Adventure": -0.0072244820120607595,
+    "Thriller": -0.013014561341847704,
+    "Sci-Fi": -0.024964454589830723,
+    "Romance": -0.039185784290933404,
+    "Crime": -0.1451822529942376,
+    "Horror": -0.06132149496505617,
+    "Animation": -0.04187209878779493,
+    "Children": -0.0593365968275037,
+    "Fantasy": -0.1440656939179119,
+    "Documentary": -0.1482476040643106,
+    "Musical": -0.024454640845457714,
+    "Mystery": -0.3030763665835063,
+    "War": -0.21873141083234376,
+    "Film-Noir": -0.14407766597156554
+  },
+  "n_groups_shrank": 17,
+  "n_groups": 17,
+  "per_user_npz": "groupgreedy_genre15_VAL_policyB_per_user.npz",
+  "seconds": 135.9
+}
