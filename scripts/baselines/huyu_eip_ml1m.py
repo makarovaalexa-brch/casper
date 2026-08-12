@@ -65,7 +65,7 @@ NEG_PER_POS_TRAIN = 10
 NEG_PER_POS_TEST = 10        # THEIR number
 LAMBDA_U = 10.0              # theirs
 MIN_LEAF = 30                # not specified by the paper
-OUTER_ITERS = 4              # tree <-> V alternations; not specified
+OUTER_ITERS = 8              # tree <-> V alternations; not specified
 V_SWEEPS = 3                 # coordinate-descent sweeps over V per outer iteration
 U_SWEEPS = 3                 # coordinate-descent sweeps for Delta-u per tree level
 FIXQ_LIKE_THRESHOLD = 3      # FixQ's fixed "higher than" threshold (EIP searches it)
@@ -560,8 +560,15 @@ def fit_tree(data, V, depth, rec, n_users, lam_u, exact=False, random_q=False,
 class Evaluator:
     """Their Eq. 13 MAP on 10 sampled negatives per positive, paired across arms."""
 
-    def __init__(self, split, n_items):
+    def __init__(self, split, n_items, pos_min=1):
+        """`pos_min` = the rating at which an eval-half item counts as a POSITIVE.
+        pos_min=1 is the literal reading of their Eq. 13 ("O_i, the observed item
+        set of user i"); pos_min=4 is the usual implicit-feedback reading.  The
+        candidate list is always |O_i| positives + 10|O_i| sampled negatives."""
+        self.pos_min = pos_min
         eu, ei, er = split.ev
+        keep = er >= pos_min
+        eu, ei, er = eu[keep], ei[keep], er[keep]
         self.users = np.unique(eu)
         rated = rated_sets_of(split.all_u, split.all_i, split.n_users)
         rng = np.random.default_rng(SEED_TEST_NEG)
@@ -866,40 +873,82 @@ def main():
         % (len(u), u.max() + 1, i.max() + 1))
 
     if args.stage == "sweep":
+        # d and lambda_v are NOT specified by the paper.  Select them on a
+        # VALIDATION cohort carved out of the training users and treated exactly
+        # like the test cohort (answer half -> u, eval half -> MAP).  The selection
+        # arm is Warm-MF, which shares the item-factor capacity with every other
+        # arm and costs no tree fit.  Nothing here looks at the test cohort or at
+        # the paper's figure.
         base = Split(u, i, r)
         rng = np.random.default_rng(777)
         val = np.sort(rng.permutation(base.train_users)[
             :int(round(VAL_FRAC * len(base.train_users)))])
         sp = Split(u, i, r, holdout_users=val, drop_users=val)
         log("SWEEP cohort: " + json.dumps(sp.leak_check()))
-        ev = Evaluator(sp, sp.n_items)
-        res = {}
-        for dd in (5, 10, 20):
+        ev = Evaluator(sp, sp.n_items, pos_min=1)
+        ev4 = Evaluator(sp, sp.n_items, pos_min=4)
+        res, best = {}, (-1, None)
+        for dd in (5, 10, 20, 40):
             for lam_v in (1.0, 10.0, 100.0):
                 t0 = time.time()
-                tree, V = run_eip("logistic", 5, sp, dd, lam_v, outer=args.outer)
-                U, _ = eip_predict(tree, sp, ev.users)
-                ev.V = V
-                m, _ = ev.map_score(U)
-                res["d%d_lv%g" % (dd, lam_v)] = m
-                log("SWEEP d=%d lam_v=%g: val MAP=%.4f (%.0fs)"
-                    % (dd, lam_v, m, time.time() - t0))
+                U, V = run_warm("logistic", sp, dd, lam_v, outer=args.outer)
+                ev.V = ev4.V = V
+                m = ev.map_score(U[ev.users])[0]
+                m4 = ev4.map_score(U[ev4.users])[0]
+                res["d%d_lv%g" % (dd, lam_v)] = {"MAP": m, "MAP_ge4": m4,
+                                                 "seconds": time.time() - t0}
+                if m > best[0]:
+                    best = (m, {"d": dd, "lam_v": lam_v})
+                log("SWEEP d=%d lam_v=%g: val MAP=%.4f  MAP(r>=4)=%.4f  (%.0fs)"
+                    % (dd, lam_v, m, m4, time.time() - t0))
+                res["best"] = best[1]
                 write_cell("sweep", res)
+        log("SWEEP best: " + json.dumps(best[1]))
         return
 
     sp = Split(u, i, r)
     lk = sp.leak_check()
     log("LEAK CHECK: " + json.dumps(lk))
-    ev = Evaluator(sp, sp.n_items)
+    ev = Evaluator(sp, sp.n_items, pos_min=1)
+    ev4 = Evaluator(sp, sp.n_items, pos_min=4)
     d, lam_v = args.d, args.lam_v
+    if d == 0:                       # take (d, lambda_v) from the validation sweep
+        with open(cell_path("sweep")) as fh:
+            b = json.load(fh)["best"]
+        d, lam_v = b["d"], b["lam_v"]
+    log("CONFIG: d=%d lambda_v=%g lambda_u=%g min_leaf=%d outer=%d sweeps=%d/%d "
+        "init=%g neg_train=%d neg_test=%d"
+        % (d, lam_v, LAMBDA_U, MIN_LEAF, args.outer, U_SWEEPS, V_SWEEPS,
+           INIT_SCALE, NEG_PER_POS_TRAIN, NEG_PER_POS_TEST))
+
+    def score(U):
+        """Both readings of O_i, from one set of model scores."""
+        return ev.map_score(U)[0], ev4.map_score(U)[0]
 
     if args.stage in ("main", "smoke", "controls"):
         pop = np.bincount(sp.tr[1], minlength=sp.n_items).astype(float)
-        mp, _ = ev.map_score_static(pop)
-        rnd, _ = ev.map_score_static(np.random.default_rng(0).random(sp.n_items))
-        log("CANONICAL SNAP  most-popular MAP=%.4f   random MAP=%.4f" % (mp, rnd))
-        write_cell("canonical", {"most_popular_MAP": mp, "random_MAP": rnd,
-                                 "leak_check": lk})
+        rr = np.random.default_rng(0).random(sp.n_items)
+        mp, rnd = ev.map_score_static(pop)[0], ev.map_score_static(rr)[0]
+        mp4, rnd4 = ev4.map_score_static(pop)[0], ev4.map_score_static(rr)[0]
+        log("CANONICAL SNAP  most-popular MAP=%.4f (r>=4: %.4f)   "
+            "random MAP=%.4f (r>=4: %.4f)" % (mp, mp4, rnd, rnd4))
+        write_cell("canonical", {
+            "most_popular_MAP": mp, "random_MAP": rnd,
+            "most_popular_MAP_ge4": mp4, "random_MAP_ge4": rnd4,
+            "leak_check": lk,
+            "RULER": {
+                "O_i": "eval half of each test user; MAP = their Eq.13, untruncated AP",
+                "positive_threshold_primary": 1,
+                "positive_threshold_secondary": 4,
+                "negatives_per_positive": NEG_PER_POS_TEST,
+                "negatives_drawn_from": "items the user never rated anywhere in ML-1M",
+                "tie_break": "fixed uniform random key per candidate, seed %d, "
+                             "identical across arms" % SEED_TIEBREAK,
+                "seed_user_split": SEED_USER_SPLIT, "seed_half": SEED_HALF,
+                "seed_test_neg": SEED_TEST_NEG, "seed_train_neg": SEED_TRAIN_NEG,
+                "test_frac": TEST_FRAC, "neg_per_pos_train": NEG_PER_POS_TRAIN,
+                "lambda_u": LAMBDA_U, "min_leaf": MIN_LEAF,
+                "analytic_random_MAP": 0.1040}})
 
     if args.stage == "smoke":
         return
@@ -914,12 +963,14 @@ def main():
                     t0 = time.time()
                     tree, V = run_eip(kind, k, sp, d, lam_v, outer=args.outer)
                     U, dep = eip_predict(tree, sp, ev.users)
-                    ev.V = V
-                    m, aps = ev.map_score(U)
-                    log("%s depth=%d: MAP=%.4f (%.0fs, mean questions used=%.2f)"
-                        % (tag, k, m, time.time() - t0, dep.mean()))
+                    ev.V = ev4.V = V
+                    m, m4 = score(U)
+                    log("%s depth=%d: MAP=%.4f MAP(r>=4)=%.4f "
+                        "(%.0fs, mean questions used=%.2f)"
+                        % (tag, k, m, m4, time.time() - t0, dep.mean()))
                     write_cell("%s_d%d" % (tag, k),
-                               dict(arm=tag, depth=k, MAP=m, d=d, lam_v=lam_v,
+                               dict(arm=tag, depth=k, MAP=m, MAP_ge4=m4, d=d,
+                                    lam_v=lam_v,
                                     seconds=time.time() - t0,
                                     mean_depth_reached=float(dep.mean()),
                                     n_test_users=len(ev.users), n_nodes=len(tree.q)))
@@ -928,20 +979,21 @@ def main():
                     t0 = time.time()
                     items, A, V, F = run_fixq(kind, k, sp, d, lam_v, outer=args.outer)
                     U = fixq_predict(items, A, F, sp, ev.users, d)
-                    ev.V = V
-                    m, _ = ev.map_score(U)
-                    log("fixq_%s k=%d: MAP=%.4f (%.0fs)"
-                        % (kind, k, m, time.time() - t0))
+                    ev.V = ev4.V = V
+                    m, m4 = score(U)
+                    log("fixq_%s k=%d: MAP=%.4f MAP(r>=4)=%.4f (%.0fs)"
+                        % (kind, k, m, m4, time.time() - t0))
                     write_cell("fixq_%s_d%d" % (kind, k),
-                               dict(arm="fixq_" + kind, depth=k, MAP=m, d=d,
-                                    lam_v=lam_v))
+                               dict(arm="fixq_" + kind, depth=k, MAP=m, MAP_ge4=m4,
+                                    d=d, lam_v=lam_v))
             if not arms or ("warm_" + kind) in arms:
                 U, V = run_warm(kind, sp, d, lam_v, outer=args.outer)
-                ev.V = V
-                m, _ = ev.map_score(U[ev.users])
-                log("warm_%s: MAP=%.4f" % (kind, m))
+                ev.V = ev4.V = V
+                m, m4 = ev.map_score(U[ev.users])[0], ev4.map_score(U[ev4.users])[0]
+                log("warm_%s: MAP=%.4f MAP(r>=4)=%.4f" % (kind, m, m4))
                 write_cell("warm_%s" % kind,
-                           dict(arm="warm_" + kind, MAP=m, d=d, lam_v=lam_v))
+                           dict(arm="warm_" + kind, MAP=m, MAP_ge4=m4, d=d,
+                                lam_v=lam_v))
 
     if args.stage == "controls":
         for k in depths:
@@ -949,11 +1001,13 @@ def main():
             tree, V = run_eip("logistic", k, sp, d, lam_v, random_q=True,
                               outer=args.outer)
             U, _ = eip_predict(tree, sp, ev.users)
-            ev.V = V
-            m, _ = ev.map_score(U)
-            log("randq depth=%d: MAP=%.4f (%.0fs)" % (k, m, time.time() - t0))
+            ev.V = ev4.V = V
+            m, m4 = score(U)
+            log("randq depth=%d: MAP=%.4f MAP(r>=4)=%.4f (%.0fs)"
+                % (k, m, m4, time.time() - t0))
             write_cell("randq_d%d" % k,
-                       dict(arm="randq", depth=k, MAP=m, d=d, lam_v=lam_v))
+                       dict(arm="randq", depth=k, MAP=m, MAP_ge4=m4, d=d,
+                            lam_v=lam_v))
 
     if args.stage == "rmse":
         for k in depths:
