@@ -380,14 +380,113 @@ def _selftest():
     assert out["controls"]["state_swap_applicable"]
     assert "state_swap" in out["rows"]["glm_ucb"]
     log("  state swap applied against a derangement                                PASS")
+    # ---- the renderer, against a SCRATCH COPY of the doc (the real one is never touched here)
+    scratch = tmp / "doc.md"
+    scratch.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(DOC, scratch)
+    res = {"inference": "synthetic", "pool_restriction": "synthetic",
+           "budgets": {"k1|full": out}}
+    render_doc(res, doc=scratch)
+    txt = open(scratch, encoding="utf-8").read()
+    assert "no per-candidate score at a user state" in txt, "the absent row lost its reason"
+    assert "*undef*" in txt, "an UNDEFINED statistic was rendered as a number"
+    assert "judged against this, never against 1.0" in txt, "the ceiling caveat is missing"
+    assert txt.count(SEC7_START) == 1 and txt.index(SEC6_START) < txt.index(SEC7_START)
+    log("  renderer: undefined stays *undef*, absent row keeps its reason, doc structure intact  "
+        "PASS")
     shutil.rmtree(tmp, ignore_errors=True)
     log("SELFTEST PASSED (phases 2/3 analysis path)")
+
+
+# ===================================================================== the results document
+SEC6_START = "## 6. RESULTS"
+SEC7_START = "## 7. Not claimed"
+
+
+def _cell(d, key="mean", fmt="{:+.3f}"):
+    """One table cell, with its interval when the blob carries one. `*undef*` is printed for a
+    genuinely undefined statistic (a constant score vector has no ranking) and is NOT rendered as
+    a number, because a reader who sees 0.000 will read it as a measured floor."""
+    if not isinstance(d, dict):
+        return "---"
+    v = d.get(key)
+    if v is None or not np.isfinite(v):
+        return "*undef*"
+    s = fmt.format(v)
+    lo, hi = d.get("lo"), d.get("hi")
+    if key == "mean" and lo is not None and np.isfinite(lo):
+        s += f" [{lo:+.3f},{hi:+.3f}]"
+    return s
+
+
+def render_doc(res, doc=DOC):
+    """Rewrite section 6 of the results document from the analysis blob.
+
+    TABULATION ONLY -- every number printed here is READ from `res`, none is recomputed. That is
+    deliberate and it is a scar: `verify-the-artifact-not-a-proxy` records a generated document
+    whose summary line and whose table read different fields and disagreed. Here the doc cannot
+    disagree with the JSON, because it has no other source.
+    """
+    nl = "\n"
+    L = [SEC6_START, ""]
+    L.append(f"Generated from `{OUTJSON.name}` by `act2_surrogate_phase23.py --render`. "
+             f"{res['inference']}.")
+    L.append("")
+    L.append(f"**Pool restriction carried by every rho below:** {res['pool_restriction']}")
+    for bk in [b for b in res["budgets"] if b.endswith("|full")]:
+        b = res["budgets"][bk]
+        if b.get("status") == "UNAVAILABLE":
+            L += ["", f"### {bk} — NOT MEASURED ({b['why']})"]
+            continue
+        ceil = b["controls"]["ceiling_split_half"]
+        L += ["", f"### k={b['budget']} — {b['n_states']} states, {b['n_users']} users, "
+                  f"{b['n_pool']} candidates", ""]
+        L.append("| row | channel | Spearman rho | rho (states >=10 users) | top-1 | top-10 | "
+                 "regret (NDCG@10) | FLOOR | state-swap |")
+        L.append("|---|---|---|---|---|---|---|---|---|")
+        for spec, _chan, _vf in ROWS:
+            r = b["rows"].get(spec, {})
+            if r.get("status") != "OK":
+                L.append(f"| `{spec}` | | *{r.get('status', 'NOT_MEASURED')}* | | | | | | |")
+                continue
+            c = r["primary"]["combined"]
+            L.append(f"| `{spec}` | {r['channel']} | {_cell(c['spearman'])} | "
+                     f"{_cell(c['spearman'], 'ge10_mean')} | {_cell(c['top1'], fmt='{:.3f}')} | "
+                     f"{_cell(c['top10'], fmt='{:.3f}')} | "
+                     f"{_cell(c['regret'], fmt='{:.5f}')} | {_cell(r['floor'])} | "
+                     f"{_cell(r.get('state_swap', {}))} |")
+        for spec in ABSENT:
+            L.append(f"| `{spec}` | items | *no per-candidate score at a user state* | | | | | | |")
+        L += ["", f"**CEILING** (split-half, Spearman-Brown corrected): {_cell(ceil)}, defined on "
+                  f"**{ceil['defined_user_mass']:.3f}** of the cohort's user mass. "
+                  f"**Every row above is judged against this, never against 1.0.**", ""]
+        gg = b["controls"]["G_G_shuffle_floor_pass"]
+        L.append(f"Gate G-G (shuffle floor near zero for every row): "
+                 f"**{'PASS' if gg else 'FAIL — ' + str(b['controls']['G_G_offenders'])}**. "
+                 f"State-swap control applicable: {b['controls']['state_swap_applicable']}.")
+        for spec, r in b["rows"].items():
+            idn = r.get("identity")
+            if idn and not idn.get("pass"):
+                L.append("")
+                L.append(f"> ★ IDENTITY CONTROL FAILED for `{spec}`: {idn}. A failed control is a "
+                         f"broken instrument, not a result (HARD RULE 5).")
+    L += ["", "### 6e. Verdict against the §1 decision rule", "",
+          "*Written by hand once every gate in §5 has passed — deliberately not generated.*", ""]
+
+    cur = open(doc, encoding="utf-8").read()
+    i, j = cur.find(SEC6_START), cur.find(SEC7_START)
+    assert i > 0 and j > i, "cannot locate the section 6/7 markers in the results document"
+    open(doc, "w", encoding="utf-8", newline="").write(cur[:i] + nl.join(L) + nl + cur[j:])
+    log(f"[render] section 6 of {doc.name} rewritten from {OUTJSON.name}")
+    return res
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--surrogates", action="store_true")
     ap.add_argument("--analyze", action="store_true")
+    ap.add_argument("--render", action="store_true",
+                    help="rewrite section 6 of the results doc from the banked analysis JSON")
     ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--budgets", default="")
     ap.add_argument("--rows", default="")
@@ -407,7 +506,9 @@ def main():
     if a.surrogates:
         return phase_surrogates(a)
     if a.analyze:
-        return phase_analyze(a)
+        return render_doc(phase_analyze(a))
+    if a.render:
+        return render_doc(json.load(open(OUTJSON)))
     ap.error("choose one of --selftest / --surrogates / --analyze")
 
 
