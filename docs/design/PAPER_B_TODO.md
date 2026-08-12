@@ -88,6 +88,7 @@ we have and is answered ~3× as often as an item order. See 4.4.
 
 | # | item | state |
 |---|---|---|
+| **4.5** | **★ A MECHANISM FOR COARSE-TO-FINE, from the NDCG tree (2026-08-12).** The tree picks a **concept at the root** (concept 114) and an **item one level down** (item 83, inside the users who like concept 114) — the coarse-to-fine shape falling out of the greedy again, with no curriculum specified, now in a *conditional* setting rather than a fixed order. The mechanism is visible in the numbers: **item 83's answer rate is 0.518 inside that branch against ~0.30 cohort-wide.** Asking a broad concept first *selects users who can answer specific items*, so answerability appears here as a **selection effect** rather than as the policy failure Act 1 diagnosed. If it holds across the other branches this is the causal story Act 4 has been missing — check `root.dislike` and `root.noanswer` before claiming it. | open — verify across branches |
 | 4.1 | `--objective tail` greedy sequence (required before any tail-optimised claim) | open |
 | 4.2 | Face-validity exhibits: hand-picked trajectories + genre-congruence vs matched-divisiveness control | open |
 | 4.3 | `--conc_bank polar` in the greedy suite (needs the `H(bands\|answered)` estimator ported) | open |
