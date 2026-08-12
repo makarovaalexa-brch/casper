@@ -128,9 +128,12 @@ K=1 lead of +0.00246, where conditioning is impossible.
   The TREE ITSELF is not regrown (author ruling: "we are NOT changing this tree").
 - **A9.** Swap Act 1's greedy row for rebuilt numbers; assert banked numbers wherever a new arm
   nests in an old one (free contract check).
-- **A10 (1.18/1.18b).** The min-leaf/answerability interaction: the 200-user floor penalises
-  answerable questions (a question everyone answers splits three ways and hits the floor sooner).
-  Quantify before any depth conclusion is written.
+- **A10 (1.18/1.18b, DONE 2026-08-12).** The min-leaf/answerability interaction, quantified:
+  `docs/results/TREE_DEPTH_AND_MINLEAF.md` — all 15 stops are floor stops with a positive gain in
+  hand (0 for want of a split), 8 forced by node size and 7 by shape, the floor is a window
+  `[400/n, 1−200/n]` that closes at n=600, and 8 of the 15 stops are a concept 92.7–100% of the node
+  could answer; **depth measures the rule, not the data — and no claim that deeper would pay is
+  licensed either.**
 
 ## 3. Workstream B — Act 1 baseline additions
 

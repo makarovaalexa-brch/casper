@@ -1,0 +1,2933 @@
+{
+  "analysis": "tree_depth_and_minleaf_audit",
+  "todo": "PAPER_B_PLAN A10 / PAPER_B_TODO 1.18 + 1.18b",
+  "tree_source": "ndcgtree.json",
+  "min_leaf": 200,
+  "n_nodes": 22,
+  "n_leaves": 15,
+  "depth_reached": 5,
+  "gates": {
+    "root_candidates_matching_preflight": 1000,
+    "nodes_matching_banked_splitter_partition": 22,
+    "leaf_rows_partition_cohort": true
+  },
+  "stop_cause_counts": {
+    "SHAPE": 7,
+    "SIZE_ternary_impossible(400<=n<600)": 3,
+    "SIZE_impossible(n<400)": 5
+  },
+  "stop_cause_counts_by_depth": {
+    "2": {
+      "SHAPE": 4,
+      "SIZE_impossible(n<400)": 2,
+      "SIZE_ternary_impossible(400<=n<600)": 2
+    },
+    "3": {
+      "SHAPE": 1,
+      "SIZE_impossible(n<400)": 0,
+      "SIZE_ternary_impossible(400<=n<600)": 1
+    },
+    "4": {
+      "SHAPE": 1,
+      "SIZE_impossible(n<400)": 1,
+      "SIZE_ternary_impossible(400<=n<600)": 0
+    },
+    "5": {
+      "SHAPE": 1,
+      "SIZE_impossible(n<400)": 2,
+      "SIZE_ternary_impossible(400<=n<600)": 0
+    }
+  },
+  "n_stopped_for_want_of_positive_gain": 0,
+  "pooled": {
+    "mean_answer_rate_all_candidates": 0.4753796711414387,
+    "mean_answer_rate_feasible": 0.6018676104245976,
+    "mean_gap": 0.11702471515214631,
+    "n_nodes_with_negative_gap": 3,
+    "n_nodes_scored": 12
+  },
+  "alternative_rules": {
+    "constrained_search": {
+      "stopped_nodes_that_would_continue": [
+        "root.dislike.dislike.dislike.like",
+        "root.dislike.like",
+        "root.like.like",
+        "root.like.noanswer",
+        "root.noanswer.noanswer"
+      ],
+      "n_stopped_nodes_with_zero_feasible_candidates": 10,
+      "users_in_stopped_nodes_that_would_continue": 5476
+    },
+    "per_child_routing": {
+      "stopped_nodes_that_would_continue": [
+        "root.dislike.dislike.dislike.like",
+        "root.dislike.dislike.dislike.noanswer.dislike",
+        "root.dislike.dislike.like",
+        "root.dislike.dislike.noanswer",
+        "root.dislike.like",
+        "root.dislike.noanswer",
+        "root.like.like",
+        "root.like.noanswer",
+        "root.noanswer.dislike",
+        "root.noanswer.noanswer"
+      ],
+      "n_stopped_nodes_that_would_continue": 10,
+      "users_in_stopped_nodes_that_would_continue": 8398,
+      "users_conditioned_further_using_the_chosen_splitter": 3781,
+      "users_routed_to_parent_tail": 270
+    }
+  },
+  "per_node": {
+    "root": {
+      "depth": 0,
+      "n_users": 10000,
+      "split": true,
+      "stop_reason_banked": null,
+      "stop_cause": null,
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        1,
+        114
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.020490556975873986,
+      "splitter_answer_rate": 0.742,
+      "splitter_min_child": 2580,
+      "splitter_feasible": true,
+      "n_candidates": 1000,
+      "n_feasible": 876,
+      "frac_excluded": 0.124,
+      "n_feasible_by_channel": {
+        "item": 448,
+        "concept": 428
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 500
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.98,
+        "floor_2x_minleaf_over_n": 0.04,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 72,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 5
+      },
+      "binding_branch_of_infeasible": {
+        "like": 0,
+        "dislike": 52,
+        "noanswer": 72
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 0,
+        "dislike": 0,
+        "noanswer": 72
+      },
+      "answer_rate": {
+        "all": {
+          "n": 1000,
+          "mean": 0.456261,
+          "median": 0.45675,
+          "min": 0.0363,
+          "max": 1.0,
+          "p10": 0.0643,
+          "p90": 0.96533
+        },
+        "feasible": {
+          "n": 876,
+          "mean": 0.43614965753424656,
+          "median": 0.30925,
+          "min": 0.0494,
+          "max": 0.9797,
+          "p10": 0.07039999999999999,
+          "p90": 0.9256
+        },
+        "infeasible": {
+          "n": 124,
+          "mean": 0.5983379032258065,
+          "median": 0.986,
+          "min": 0.0363,
+          "max": 1.0,
+          "p10": 0.04496,
+          "p90": 0.99827
+        },
+        "concepts_all": {
+          "n": 500,
+          "mean": 0.7980624000000001,
+          "median": 0.8419,
+          "min": 0.4872,
+          "max": 1.0,
+          "p10": 0.5511900000000001,
+          "p90": 0.9884299999999999
+        },
+        "concepts_feasible": {
+          "n": 428,
+          "mean": 0.7654343457943924,
+          "median": 0.79385,
+          "min": 0.4872,
+          "max": 0.9797,
+          "p10": 0.54531,
+          "p90": 0.95628
+        },
+        "items_all": {
+          "n": 500,
+          "mean": 0.11445960000000001,
+          "median": 0.094,
+          "min": 0.0363,
+          "max": 0.4263,
+          "p10": 0.05586,
+          "p90": 0.19616000000000008
+        },
+        "items_feasible": {
+          "n": 448,
+          "mean": 0.12156517857142858,
+          "median": 0.10264999999999999,
+          "min": 0.0494,
+          "max": 0.4263,
+          "p10": 0.06157,
+          "p90": 0.20786000000000002
+        }
+      },
+      "answerability_penalty": {
+        "observed_gap": -0.020111342465753468,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.004343097702565047,
+        "z": -4.630644724818336,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.03262805420560766,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.0029590088380875334,
+        "z": -11.026683592704584,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 1000,
+        "n_gains_degraded": 0,
+        "n_positive_gain_among_known": 929,
+        "best_feasible_gain_known": 0.019562633400380808,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": 0.0,
+        "max_intact_gain_any_candidate": 0.01961318921195812,
+        "best_feasible_gain_lower_bound": 0.020490556975873986,
+        "best_feasible_gain_upper_bound": 0.020490556975873986,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 3,
+        "users_routed_to_parent_tail_chosen_splitter": 0,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 1000,
+        "would_continue": true
+      }
+    },
+    "root.dislike": {
+      "depth": 1,
+      "n_users": 4814,
+      "split": true,
+      "stop_reason_banked": null,
+      "stop_cause": null,
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        1,
+        283
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.015142188537264845,
+      "splitter_answer_rate": 0.8901,
+      "splitter_min_child": 529,
+      "splitter_feasible": true,
+      "n_candidates": 999,
+      "n_feasible": 645,
+      "frac_excluded": 0.35435435435435436,
+      "n_feasible_by_channel": {
+        "item": 302,
+        "concept": 343
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.9584545076859161,
+        "floor_2x_minleaf_over_n": 0.08309098462816784,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 149,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 114
+      },
+      "binding_branch_of_infeasible": {
+        "like": 78,
+        "dislike": 127,
+        "noanswer": 149
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 7,
+        "dislike": 0,
+        "noanswer": 149
+      },
+      "answer_rate": {
+        "all": {
+          "n": 999,
+          "mean": 0.49879147947282554,
+          "median": 0.4582467802243457,
+          "min": 0.018280016618196927,
+          "max": 1.0,
+          "p10": 0.07685916078105526,
+          "p90": 0.9798919817199834
+        },
+        "feasible": {
+          "n": 645,
+          "mean": 0.5137473712009224,
+          "median": 0.6289987536352306,
+          "min": 0.08496053178230162,
+          "max": 0.9578313253012049,
+          "p10": 0.12230992937266308,
+          "p90": 0.9151225592023267
+        },
+        "infeasible": {
+          "n": 354,
+          "mean": 0.4715413377648526,
+          "median": 0.1217282924802659,
+          "min": 0.018280016618196927,
+          "max": 1.0,
+          "p10": 0.04991690901537184,
+          "p90": 0.9966763606148733
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.8535338229429361,
+          "median": 0.8872039883672621,
+          "min": 0.5976319069380972,
+          "max": 1.0,
+          "p10": 0.6582467802243457,
+          "p90": 0.9944329040299127
+        },
+        "concepts_feasible": {
+          "n": 343,
+          "mean": 0.8009958805766949,
+          "median": 0.8076443705857914,
+          "min": 0.5976319069380972,
+          "max": 0.9578313253012049,
+          "p10": 0.6477357706688824,
+          "p90": 0.9370585791441629
+        },
+        "items_all": {
+          "n": 500,
+          "mean": 0.14475862068965517,
+          "median": 0.12484420440382218,
+          "min": 0.018280016618196927,
+          "max": 0.4582467802243457,
+          "p10": 0.05664727877025343,
+          "p90": 0.2607602825093478
+        },
+        "items_feasible": {
+          "n": 302,
+          "mean": 0.18750154763837262,
+          "median": 0.1705442459493145,
+          "min": 0.08496053178230162,
+          "max": 0.4582467802243457,
+          "p10": 0.11051100955546324,
+          "p90": 0.29042376402160375
+        }
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.01495589172809686,
+        "perm_p_two_sided": 0.0857,
+        "null_sd": 0.008684932194745492,
+        "z": 1.7220504884477266,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.05253794236624121,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.0038255032602510794,
+        "z": -13.73360282087251,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 999,
+        "n_gains_degraded": 0,
+        "n_positive_gain_among_known": 794,
+        "best_feasible_gain_known": 0.014052898271845998,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": 0.0,
+        "max_intact_gain_any_candidate": 0.014052898271845998,
+        "best_feasible_gain_lower_bound": 0.015142188537264845,
+        "best_feasible_gain_upper_bound": 0.015142188537264845,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 3,
+        "users_routed_to_parent_tail_chosen_splitter": 0,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 923,
+        "would_continue": true
+      }
+    },
+    "root.like": {
+      "depth": 1,
+      "n_users": 2606,
+      "split": true,
+      "stop_reason_banked": null,
+      "stop_cause": null,
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        83
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.011783668228240562,
+      "splitter_answer_rate": 0.518,
+      "splitter_min_child": 340,
+      "splitter_feasible": true,
+      "n_candidates": 999,
+      "n_feasible": 312,
+      "frac_excluded": 0.6876876876876876,
+      "n_feasible_by_channel": {
+        "item": 86,
+        "concept": 226
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.9232540291634689,
+        "floor_2x_minleaf_over_n": 0.15349194167306215,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 195,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 348
+      },
+      "binding_branch_of_infeasible": {
+        "like": 192,
+        "dislike": 300,
+        "noanswer": 195
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 78,
+        "dislike": 0,
+        "noanswer": 195
+      },
+      "answer_rate": {
+        "all": {
+          "n": 999,
+          "mean": 0.473125850332297,
+          "median": 0.4696853415195702,
+          "min": 0.001918649270913277,
+          "max": 1.0,
+          "p10": 0.030237912509593252,
+          "p90": 0.9766692248656945
+        },
+        "feasible": {
+          "n": 312,
+          "mean": 0.6325565263592893,
+          "median": 0.7110514198004605,
+          "min": 0.16155026861089794,
+          "max": 0.9228702993092862,
+          "p10": 0.23100537221795858,
+          "p90": 0.8909056024558711
+        },
+        "infeasible": {
+          "n": 687,
+          "mean": 0.4007206524859773,
+          "median": 0.14927091327705294,
+          "min": 0.001918649270913277,
+          "max": 1.0,
+          "p10": 0.024558710667689946,
+          "p90": 0.9866462010744436
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.8272846537280241,
+          "median": 0.8760552570990023,
+          "min": 0.4155794320798158,
+          "max": 1.0,
+          "p10": 0.5976976208749041,
+          "p90": 0.9917881811204912
+        },
+        "concepts_feasible": {
+          "n": 226,
+          "mean": 0.7663509667954821,
+          "median": 0.7814658480429777,
+          "min": 0.4769762087490407,
+          "max": 0.9228702993092862,
+          "p10": 0.6047582501918649,
+          "p90": 0.9017651573292402
+        },
+        "items_all": {
+          "n": 500,
+          "mean": 0.11967536454336147,
+          "median": 0.08979278587874137,
+          "min": 0.001918649270913277,
+          "max": 0.5636991557943208,
+          "p10": 0.018802762854950115,
+          "p90": 0.2552570990023024
+        },
+        "items_feasible": {
+          "n": 86,
+          "mean": 0.28095718288743327,
+          "median": 0.2538372985418266,
+          "min": 0.16155026861089794,
+          "max": 0.5636991557943208,
+          "p10": 0.1980046047582502,
+          "p90": 0.420951650038373
+        }
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.1594306760269923,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.017835396966684985,
+        "z": 8.939003506610776,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.060933686932541975,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.00753099775335204,
+        "z": -8.091051003888621,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 999,
+        "n_gains_degraded": 0,
+        "n_positive_gain_among_known": 703,
+        "best_feasible_gain_known": 0.011561775092154919,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": 0.0,
+        "max_intact_gain_any_candidate": 0.011561775092154919,
+        "best_feasible_gain_lower_bound": 0.011783668228240562,
+        "best_feasible_gain_upper_bound": 0.011783668228240562,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 3,
+        "users_routed_to_parent_tail_chosen_splitter": 0,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 691,
+        "would_continue": true
+      }
+    },
+    "root.noanswer": {
+      "depth": 1,
+      "n_users": 2580,
+      "split": true,
+      "stop_reason_banked": null,
+      "stop_cause": null,
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        514
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.047622224914263614,
+      "splitter_answer_rate": 0.3081,
+      "splitter_min_child": 357,
+      "splitter_feasible": true,
+      "n_candidates": 999,
+      "n_feasible": 267,
+      "frac_excluded": 0.7327327327327327,
+      "n_feasible_by_channel": {
+        "item": 30,
+        "concept": 237
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.9224806201550387,
+        "floor_2x_minleaf_over_n": 0.15503875968992248,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 115,
+        "n_concepts_below_floor": 2,
+        "n_items_below_floor": 451
+      },
+      "binding_branch_of_infeasible": {
+        "like": 292,
+        "dislike": 325,
+        "noanswer": 115
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 147,
+        "dislike": 0,
+        "noanswer": 115
+      },
+      "answer_rate": {
+        "all": {
+          "n": 999,
+          "mean": 0.35876031069829517,
+          "median": 0.23565891472868217,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.004573643410852718,
+          "p90": 0.9404651162790698
+        },
+        "feasible": {
+          "n": 267,
+          "mean": 0.6532561042882442,
+          "median": 0.7170542635658915,
+          "min": 0.17286821705426356,
+          "max": 0.9193798449612403,
+          "p10": 0.3044186046511628,
+          "p90": 0.8870542635658915
+        },
+        "infeasible": {
+          "n": 732,
+          "mean": 0.2513417630363875,
+          "median": 0.0560077519379845,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.002364341085271321,
+          "p90": 0.962015503875969
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.665477466561029,
+          "median": 0.7317829457364341,
+          "min": 0.12829457364341085,
+          "max": 1.0,
+          "p10": 0.2888372093023256,
+          "p90": 0.9763565891472868
+        },
+        "concepts_feasible": {
+          "n": 237,
+          "mean": 0.702616687927256,
+          "median": 0.7538759689922481,
+          "min": 0.27054263565891473,
+          "max": 0.9193798449612403,
+          "p10": 0.4417829457364341,
+          "p90": 0.8933333333333333
+        },
+        "items_all": {
+          "n": 500,
+          "mean": 0.052656589147286825,
+          "median": 0.027131782945736434,
+          "min": 0.0,
+          "max": 0.40968992248062014,
+          "p10": 0.0011627906976744186,
+          "p90": 0.14767441860465133
+        },
+        "items_feasible": {
+          "n": 30,
+          "mean": 0.26330749354005173,
+          "median": 0.24573643410852714,
+          "min": 0.17286821705426356,
+          "max": 0.40968992248062014,
+          "p10": 0.18728682170542635,
+          "p90": 0.35864341085271323
+        }
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.29449579358994904,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.018870688763296208,
+        "z": 15.605990713107838,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": 0.03713922136622694,
+        "perm_p_two_sided": 0.0024,
+        "null_sd": 0.012249723050831841,
+        "z": 3.031841716919872,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 999,
+        "n_gains_degraded": 0,
+        "n_positive_gain_among_known": 914,
+        "best_feasible_gain_known": 0.047033888536632304,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": 0.0,
+        "max_intact_gain_any_candidate": 0.047364891805426815,
+        "best_feasible_gain_lower_bound": 0.047622224914263614,
+        "best_feasible_gain_upper_bound": 0.047622224914263614,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 3,
+        "users_routed_to_parent_tail_chosen_splitter": 0,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 557,
+        "would_continue": true
+      }
+    },
+    "root.dislike.dislike": {
+      "depth": 2,
+      "n_users": 3562,
+      "split": true,
+      "stop_reason_banked": null,
+      "stop_cause": null,
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        1,
+        36
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.014519785937813362,
+      "splitter_answer_rate": 0.8439,
+      "splitter_min_child": 556,
+      "splitter_feasible": true,
+      "n_candidates": 998,
+      "n_feasible": 469,
+      "frac_excluded": 0.5300601202404809,
+      "n_feasible_by_channel": {
+        "item": 261,
+        "concept": 208
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 498
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.9438517686692869,
+        "floor_2x_minleaf_over_n": 0.11229646266142616,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 226,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 158
+      },
+      "binding_branch_of_infeasible": {
+        "like": 163,
+        "dislike": 140,
+        "noanswer": 226
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 64,
+        "dislike": 0,
+        "noanswer": 226
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.531044964718882,
+          "median": 0.5009825940482875,
+          "min": 0.019932622122403144,
+          "max": 1.0,
+          "p10": 0.09107243121841663,
+          "p90": 0.9927007299270073
+        },
+        "feasible": {
+          "n": 469,
+          "mean": 0.5000766201877433,
+          "median": 0.35906793935991016,
+          "min": 0.120157215047726,
+          "max": 0.9438517686692869,
+          "p10": 0.153228523301516,
+          "p90": 0.9057271195957327
+        },
+        "infeasible": {
+          "n": 529,
+          "mean": 0.5585008316094375,
+          "median": 0.7456485120718698,
+          "min": 0.019932622122403144,
+          "max": 1.0,
+          "p10": 0.060471645143177995,
+          "p90": 0.9983717012914093
+        },
+        "concepts_all": {
+          "n": 498,
+          "mean": 0.8956246096119458,
+          "median": 0.9296743402582819,
+          "min": 0.6493542953396968,
+          "max": 1.0,
+          "p10": 0.738265019651881,
+          "p90": 0.9985962942167321
+        },
+        "concepts_feasible": {
+          "n": 208,
+          "mean": 0.8367422688204551,
+          "median": 0.844329028635598,
+          "min": 0.6493542953396968,
+          "max": 0.9438517686692869,
+          "p10": 0.7313026389668725,
+          "p90": 0.9296181920269512
+        },
+        "items_all": {
+          "n": 500,
+          "mean": 0.16792363840539026,
+          "median": 0.15117911285794497,
+          "min": 0.019932622122403144,
+          "max": 0.5087029758562606,
+          "p10": 0.05892756878158338,
+          "p90": 0.3032846715328467
+        },
+        "items_feasible": {
+          "n": 261,
+          "mean": 0.2317760266413677,
+          "median": 0.21645143177989892,
+          "min": 0.120157215047726,
+          "max": 0.5087029758562606,
+          "p10": 0.1403705783267827,
+          "p90": 0.35906793935991016
+        }
+      },
+      "answerability_penalty": {
+        "observed_gap": -0.030968344531138614,
+        "perm_p_two_sided": 0.0168,
+        "null_sd": 0.012881012544964902,
+        "z": -2.4041855733805586,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.058882340791490684,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.005256321624463606,
+        "z": -11.202195184831268,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 998,
+        "n_gains_degraded": 0,
+        "n_positive_gain_among_known": 723,
+        "best_feasible_gain_known": 0.013815897747909783,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": 0.0,
+        "max_intact_gain_any_candidate": 0.013815897747909783,
+        "best_feasible_gain_lower_bound": 0.014519785937813362,
+        "best_feasible_gain_upper_bound": 0.014519785937813362,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 3,
+        "users_routed_to_parent_tail_chosen_splitter": 0,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 875,
+        "would_continue": true
+      }
+    },
+    "root.dislike.like": {
+      "depth": 2,
+      "n_users": 723,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 53 < 200",
+      "stop_cause": "SHAPE",
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        1,
+        312
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.011554615632813625,
+      "splitter_answer_rate": 0.9267,
+      "splitter_min_child": 53,
+      "splitter_feasible": false,
+      "n_candidates": 998,
+      "n_feasible": 1,
+      "frac_excluded": 0.998997995991984,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 1
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 498
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.7233748271092669,
+        "floor_2x_minleaf_over_n": 0.5532503457814661,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 388,
+        "n_concepts_below_floor": 30,
+        "n_items_below_floor": 496
+      },
+      "binding_branch_of_infeasible": {
+        "like": 347,
+        "dislike": 308,
+        "noanswer": 342
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 155,
+        "dislike": 0,
+        "noanswer": 342
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.48656372218849875,
+          "median": 0.4633471645919779,
+          "min": 0.0027662517289073307,
+          "max": 1.0,
+          "p10": 0.03872752420470263,
+          "p90": 0.9986168741355463
+        },
+        "feasible": {
+          "n": 1,
+          "mean": 0.6196403872752421,
+          "median": 0.6196403872752421,
+          "min": 0.6196403872752421,
+          "max": 0.6196403872752421,
+          "p10": 0.6196403872752421,
+          "p90": 0.6196403872752421
+        },
+        "infeasible": {
+          "n": 997,
+          "mean": 0.48643024509212285,
+          "median": 0.46196403872752423,
+          "min": 0.0027662517289073307,
+          "max": 1.0,
+          "p10": 0.03872752420470263,
+          "p90": 0.9986168741355463
+        },
+        "concepts_all": {
+          "n": 498,
+          "mean": 0.8636982230443212,
+          "median": 0.9453665283540802,
+          "min": 0.40525587828492393,
+          "max": 1.0,
+          "p10": 0.6085753803596127,
+          "p90": 1.0
+        },
+        "concepts_feasible": {
+          "n": 1,
+          "mean": 0.6196403872752421,
+          "median": 0.6196403872752421,
+          "min": 0.6196403872752421,
+          "max": 0.6196403872752421,
+          "p10": 0.6196403872752421,
+          "p90": 0.6196403872752421
+        },
+        "items_all": {
+          "n": 500,
+          "mean": 0.11093775933609959,
+          "median": 0.07330567081604426,
+          "min": 0.0027662517289073307,
+          "max": 0.6542185338865837,
+          "p10": 0.024896265560165973,
+          "p90": 0.24633471645919783
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.13307666508674332,
+        "perm_p_two_sided": 0.9139,
+        "null_sd": 0.39918523975926434,
+        "z": 0.33337070570795035,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.24405783576907913,
+        "perm_p_two_sided": 0.1255,
+        "null_sd": 0.16036650052640136,
+        "z": -1.5218754226597315,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 743,
+        "n_gains_degraded": 255,
+        "n_positive_gain_among_known": 134,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 1,
+        "best_feasible_gain_is_exact": false,
+        "cost_vs_unconstrained_upper_bound": 0.009926670775903035,
+        "max_intact_gain_any_candidate": 0.0016279448569105903,
+        "best_feasible_gain_lower_bound": 0.0016279448569105903,
+        "best_feasible_gain_upper_bound": 0.011554615632813625,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 204,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 364,
+        "would_continue": true
+      }
+    },
+    "root.dislike.noanswer": {
+      "depth": 2,
+      "n_users": 529,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 45 < 200",
+      "stop_cause": "SIZE_ternary_impossible(400<=n<600)",
+      "arith": {
+        "ternary_possible_n>=600": false,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        15
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.03386459966675363,
+      "splitter_answer_rate": 0.2552,
+      "splitter_min_child": 45,
+      "splitter_feasible": false,
+      "n_candidates": 998,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 498
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.6219281663516067,
+        "floor_2x_minleaf_over_n": 0.7561436672967864,
+        "window_is_empty": true,
+        "n_concepts_above_ceiling": 212,
+        "n_concepts_below_floor": 321,
+        "n_items_below_floor": 500
+      },
+      "binding_branch_of_infeasible": {
+        "like": 537,
+        "dislike": 337,
+        "noanswer": 124
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 369,
+        "dislike": 5,
+        "noanswer": 124
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.29475775748093536,
+          "median": 0.11531190926275993,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.005671077504725898,
+          "p90": 0.9098298676748584
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 998,
+          "mean": 0.29475775748093536,
+          "median": 0.11531190926275993,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.005671077504725898,
+          "p90": 0.9098298676748584
+        },
+        "concepts_all": {
+          "n": 498,
+          "mean": 0.5555568208562037,
+          "median": 0.5170132325141776,
+          "min": 0.030245746691871456,
+          "max": 1.0,
+          "p10": 0.16257088846880907,
+          "p90": 0.9684310018903592
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 500,
+          "mean": 0.035001890359168245,
+          "median": 0.01890359168241966,
+          "min": 0.0,
+          "max": 0.387523629489603,
+          "p10": 0.001890359168241966,
+          "p90": 0.07939508506616257
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 841,
+        "n_gains_degraded": 157,
+        "n_positive_gain_among_known": 161,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.0017812157337342982,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 135,
+        "max_children_over_floor_over_pool": 2,
+        "n_candidates_with_2plus_children_over_floor": 79,
+        "would_continue": true
+      }
+    },
+    "root.like.dislike": {
+      "depth": 2,
+      "n_users": 340,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 20 < 200",
+      "stop_cause": "SIZE_impossible(n<400)",
+      "arith": {
+        "ternary_possible_n>=600": false,
+        "binary_effective_possible_n>=400": false
+      },
+      "splitter": [
+        1,
+        911
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.013520075900453232,
+      "splitter_answer_rate": 0.9412,
+      "splitter_min_child": 20,
+      "splitter_feasible": false,
+      "n_candidates": 998,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.4117647058823529,
+        "floor_2x_minleaf_over_n": 1.1764705882352942,
+        "window_is_empty": true,
+        "n_concepts_above_ceiling": 499,
+        "n_concepts_below_floor": 499,
+        "n_items_below_floor": 499
+      },
+      "binding_branch_of_infeasible": {
+        "like": 487,
+        "dislike": 173,
+        "noanswer": 338
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 161,
+        "dislike": 0,
+        "noanswer": 338
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.5373629612165507,
+          "median": 0.6102941176470589,
+          "min": 0.0029411764705882353,
+          "max": 1.0,
+          "p10": 0.041176470588235294,
+          "p90": 1.0
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 998,
+          "mean": 0.5373629612165507,
+          "median": 0.6102941176470589,
+          "min": 0.0029411764705882353,
+          "max": 1.0,
+          "p10": 0.041176470588235294,
+          "p90": 1.0
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.9109277378285983,
+          "median": 0.95,
+          "min": 0.5411764705882353,
+          "max": 1.0,
+          "p10": 0.7523529411764706,
+          "p90": 1.0
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 499,
+          "mean": 0.16379818460450313,
+          "median": 0.1323529411764706,
+          "min": 0.0029411764705882353,
+          "max": 0.7911764705882353,
+          "p10": 0.02588235294117648,
+          "p90": 0.34411764705882353
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 569,
+        "n_gains_degraded": 429,
+        "n_positive_gain_among_known": 150,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.002121143927704211,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 83,
+        "max_children_over_floor_over_pool": 1,
+        "n_candidates_with_2plus_children_over_floor": 0,
+        "would_continue": false
+      }
+    },
+    "root.like.like": {
+      "depth": 2,
+      "n_users": 1010,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 109 < 200",
+      "stop_cause": "SHAPE",
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        112
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.017965713680523354,
+      "splitter_answer_rate": 0.3446,
+      "splitter_min_child": 109,
+      "splitter_feasible": false,
+      "n_candidates": 998,
+      "n_feasible": 16,
+      "frac_excluded": 0.9839679358717435,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 16
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.801980198019802,
+        "floor_2x_minleaf_over_n": 0.39603960396039606,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 384,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 475
+      },
+      "binding_branch_of_infeasible": {
+        "like": 259,
+        "dislike": 384,
+        "noanswer": 339
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 143,
+        "dislike": 1,
+        "noanswer": 339
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.5242951249032719,
+          "median": 0.5792079207920792,
+          "min": 0.0029702970297029703,
+          "max": 1.0,
+          "p10": 0.0402970297029703,
+          "p90": 0.999009900990099
+        },
+        "feasible": {
+          "n": 16,
+          "mean": 0.7524133663366337,
+          "median": 0.7688118811881188,
+          "min": 0.6702970297029703,
+          "max": 0.801980198019802,
+          "p10": 0.6915841584158415,
+          "p90": 0.7945544554455446
+        },
+        "infeasible": {
+          "n": 982,
+          "mean": 0.5205783307454982,
+          "median": 0.5277227722772277,
+          "min": 0.0029702970297029703,
+          "max": 1.0,
+          "p10": 0.039603960396039604,
+          "p90": 0.999009900990099
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.8969840671441894,
+          "median": 0.9445544554455445,
+          "min": 0.5207920792079208,
+          "max": 1.0,
+          "p10": 0.7182178217821782,
+          "p90": 1.0
+        },
+        "concepts_feasible": {
+          "n": 16,
+          "mean": 0.7524133663366337,
+          "median": 0.7688118811881188,
+          "min": 0.6702970297029703,
+          "max": 0.801980198019802,
+          "p10": 0.6915841584158415,
+          "p90": 0.7945544554455446
+        },
+        "items_all": {
+          "n": 499,
+          "mean": 0.15160618266235443,
+          "median": 0.11287128712871287,
+          "min": 0.0029702970297029703,
+          "max": 0.7485148514851485,
+          "p10": 0.02455445544554456,
+          "p90": 0.3289108910891089
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.2281182414333618,
+        "perm_p_two_sided": 0.0161,
+        "null_sd": 0.09629115528328015,
+        "z": 2.369046676844388,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.14457070080755574,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.027934447406299315,
+        "z": -5.1753556712546445,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 433,
+        "n_gains_degraded": 565,
+        "n_positive_gain_among_known": 164,
+        "best_feasible_gain_known": 0.0015002501411963132,
+        "n_degraded_and_feasible": 9,
+        "best_feasible_gain_is_exact": false,
+        "cost_vs_unconstrained_upper_bound": 0.01607274571391637,
+        "max_intact_gain_any_candidate": 0.0018929679666069843,
+        "best_feasible_gain_lower_bound": 0.0018929679666069843,
+        "best_feasible_gain_upper_bound": 0.017965713680523354,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 2,
+        "users_routed_to_parent_tail_chosen_splitter": 109,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 431,
+        "would_continue": true
+      }
+    },
+    "root.like.noanswer": {
+      "depth": 2,
+      "n_users": 1256,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 37 < 200",
+      "stop_cause": "SHAPE",
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        1,
+        377
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.006723587088539401,
+      "splitter_answer_rate": 0.9705,
+      "splitter_min_child": 37,
+      "splitter_feasible": false,
+      "n_candidates": 998,
+      "n_feasible": 99,
+      "frac_excluded": 0.9008016032064128,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 99
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.8407643312101911,
+        "floor_2x_minleaf_over_n": 0.3184713375796178,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 217,
+        "n_concepts_below_floor": 1,
+        "n_items_below_floor": 493
+      },
+      "binding_branch_of_infeasible": {
+        "like": 286,
+        "dislike": 399,
+        "noanswer": 214
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 185,
+        "dislike": 1,
+        "noanswer": 214
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.41449618983189307,
+          "median": 0.34394904458598724,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.019904458598726114,
+          "p90": 0.9546178343949044
+        },
+        "feasible": {
+          "n": 99,
+          "mean": 0.6770571961654763,
+          "median": 0.6871019108280255,
+          "min": 0.4355095541401274,
+          "max": 0.8407643312101911,
+          "p10": 0.5234076433121019,
+          "p90": 0.8151273885350319
+        },
+        "infeasible": {
+          "n": 899,
+          "mean": 0.38558235264944063,
+          "median": 0.17834394904458598,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.01910828025477707,
+          "p90": 0.9601910828025477
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.7485943224027672,
+          "median": 0.7961783439490446,
+          "min": 0.29697452229299365,
+          "max": 1.0,
+          "p10": 0.45143312101910826,
+          "p90": 0.9829617834394904
+        },
+        "concepts_feasible": {
+          "n": 99,
+          "mean": 0.6770571961654763,
+          "median": 0.6871019108280255,
+          "min": 0.4355095541401274,
+          "max": 0.8407643312101911,
+          "p10": 0.5234076433121019,
+          "p90": 0.8151273885350319
+        },
+        "items_all": {
+          "n": 499,
+          "mean": 0.08039805726101885,
+          "median": 0.05652866242038217,
+          "min": 0.0,
+          "max": 0.44028662420382164,
+          "p10": 0.01194267515923567,
+          "p90": 0.17770700636942674
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.26256100633358326,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.034634726305557736,
+        "z": 7.580859857739105,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.07153712623729092,
+        "perm_p_two_sided": 0.0001,
+        "null_sd": 0.01806437057825898,
+        "z": -3.960122824505606,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 765,
+        "n_gains_degraded": 233,
+        "n_positive_gain_among_known": 411,
+        "best_feasible_gain_known": 0.001748984270818793,
+        "n_degraded_and_feasible": 39,
+        "best_feasible_gain_is_exact": false,
+        "cost_vs_unconstrained_upper_bound": 0.004974602817720608,
+        "max_intact_gain_any_candidate": 0.001748984270818793,
+        "best_feasible_gain_lower_bound": 0.001748984270818793,
+        "best_feasible_gain_upper_bound": 0.006723587088539401,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 2,
+        "users_routed_to_parent_tail_chosen_splitter": 37,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 503,
+        "would_continue": true
+      }
+    },
+    "root.noanswer.dislike": {
+      "depth": 2,
+      "n_users": 438,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 121 < 200",
+      "stop_cause": "SIZE_ternary_impossible(400<=n<600)",
+      "arith": {
+        "ternary_possible_n>=600": false,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        1
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.042514161784951376,
+      "splitter_answer_rate": 0.7169,
+      "splitter_min_child": 121,
+      "splitter_feasible": false,
+      "n_candidates": 998,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.54337899543379,
+        "floor_2x_minleaf_over_n": 0.91324200913242,
+        "window_is_empty": true,
+        "n_concepts_above_ceiling": 364,
+        "n_concepts_below_floor": 305,
+        "n_items_below_floor": 499
+      },
+      "binding_branch_of_infeasible": {
+        "like": 683,
+        "dislike": 164,
+        "noanswer": 151
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 348,
+        "dislike": 1,
+        "noanswer": 150
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.4023846780318628,
+          "median": 0.3207762557077626,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.0,
+          "p90": 0.9847031963470321
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 998,
+          "mean": 0.4023846780318628,
+          "median": 0.3207762557077626,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.0,
+          "p90": 0.9847031963470321
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.736111492391175,
+          "median": 0.815068493150685,
+          "min": 0.0593607305936073,
+          "max": 1.0,
+          "p10": 0.3415525114155251,
+          "p90": 0.997716894977169
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 499,
+          "mean": 0.06865786367255058,
+          "median": 0.0045662100456621,
+          "min": 0.0,
+          "max": 0.7922374429223744,
+          "p10": 0.0,
+          "p90": 0.268493150684931
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 160,
+        "n_gains_degraded": 838,
+        "n_positive_gain_among_known": 1,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": -0.0007993268013890553,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 0,
+        "users_routed_to_parent_tail_chosen_splitter": 438,
+        "max_children_over_floor_over_pool": 2,
+        "n_candidates_with_2plus_children_over_floor": 30,
+        "would_continue": true
+      }
+    },
+    "root.noanswer.like": {
+      "depth": 2,
+      "n_users": 357,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 0 < 200",
+      "stop_cause": "SIZE_impossible(n<400)",
+      "arith": {
+        "ternary_possible_n>=600": false,
+        "binary_effective_possible_n>=400": false
+      },
+      "splitter": [
+        1,
+        354
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.023513297503629238,
+      "splitter_answer_rate": 1.0,
+      "splitter_min_child": 0,
+      "splitter_feasible": false,
+      "n_candidates": 998,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.43977591036414565,
+        "floor_2x_minleaf_over_n": 1.1204481792717087,
+        "window_is_empty": true,
+        "n_concepts_above_ceiling": 386,
+        "n_concepts_below_floor": 499,
+        "n_items_below_floor": 499
+      },
+      "binding_branch_of_infeasible": {
+        "like": 660,
+        "dislike": 201,
+        "noanswer": 137
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 361,
+        "dislike": 3,
+        "noanswer": 135
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.3831191795355417,
+          "median": 0.2689075630252101,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.0,
+          "p90": 0.969187675070028
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 998,
+          "mean": 0.3831191795355417,
+          "median": 0.2689075630252101,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.0,
+          "p90": 0.969187675070028
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.7024244567566506,
+          "median": 0.7787114845938375,
+          "min": 0.05042016806722689,
+          "max": 1.0,
+          "p10": 0.29299719887955183,
+          "p90": 0.9943977591036415
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 499,
+          "mean": 0.06381390231443279,
+          "median": 0.0056022408963585435,
+          "min": 0.0,
+          "max": 0.8067226890756303,
+          "p10": 0.0,
+          "p90": 0.22745098039215683
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 219,
+        "n_gains_degraded": 779,
+        "n_positive_gain_among_known": 70,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.0009850134052059034,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 0,
+        "users_routed_to_parent_tail_chosen_splitter": 357,
+        "max_children_over_floor_over_pool": 1,
+        "n_candidates_with_2plus_children_over_floor": 0,
+        "would_continue": false
+      }
+    },
+    "root.noanswer.noanswer": {
+      "depth": 2,
+      "n_users": 1785,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 124 < 200",
+      "stop_cause": "SHAPE",
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        1
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.016341449928472612,
+      "splitter_answer_rate": 0.1944,
+      "splitter_min_child": 124,
+      "splitter_feasible": false,
+      "n_candidates": 998,
+      "n_feasible": 168,
+      "frac_excluded": 0.8316633266533067,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 168
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 499
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.8879551820728291,
+        "floor_2x_minleaf_over_n": 0.22408963585434175,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 128,
+        "n_concepts_below_floor": 36,
+        "n_items_below_floor": 494
+      },
+      "binding_branch_of_infeasible": {
+        "like": 364,
+        "dislike": 339,
+        "noanswer": 127
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 204,
+        "dislike": 0,
+        "noanswer": 127
+      },
+      "answer_rate": {
+        "all": {
+          "n": 998,
+          "mean": 0.34325738311356613,
+          "median": 0.16946778711484595,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.006554621848739498,
+          "p90": 0.925826330532213
+        },
+        "feasible": {
+          "n": 168,
+          "mean": 0.7079931972789116,
+          "median": 0.735014005602241,
+          "min": 0.29747899159663865,
+          "max": 0.8873949579831932,
+          "p10": 0.49215686274509807,
+          "p90": 0.868515406162465
+        },
+        "infeasible": {
+          "n": 830,
+          "mean": 0.26943133880058046,
+          "median": 0.08123249299719888,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.00392156862745098,
+          "p90": 0.9468347338935574
+        },
+        "concepts_all": {
+          "n": 499,
+          "mean": 0.6407560218476168,
+          "median": 0.684593837535014,
+          "min": 0.0969187675070028,
+          "max": 1.0,
+          "p10": 0.24358543417366946,
+          "p90": 0.9706442577030812
+        },
+        "concepts_feasible": {
+          "n": 168,
+          "mean": 0.7079931972789116,
+          "median": 0.735014005602241,
+          "min": 0.29747899159663865,
+          "max": 0.8873949579831932,
+          "p10": 0.49215686274509807,
+          "p90": 0.868515406162465
+        },
+        "items_all": {
+          "n": 499,
+          "mean": 0.04575874437951533,
+          "median": 0.03417366946778711,
+          "min": 0.0,
+          "max": 0.2907563025210084,
+          "p10": 0.0016806722689075631,
+          "p90": 0.1026330532212885
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.3647358141653455,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.025115436246725888,
+        "z": 14.522376222427487,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": 0.06723717543129482,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.01705157693388826,
+        "z": 3.9431646522772814,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 783,
+        "n_gains_degraded": 215,
+        "n_positive_gain_among_known": 406,
+        "best_feasible_gain_known": 0.0020998080916402317,
+        "n_degraded_and_feasible": 75,
+        "best_feasible_gain_is_exact": false,
+        "cost_vs_unconstrained_upper_bound": 0.01420930067720802,
+        "max_intact_gain_any_candidate": 0.0021321492512645923,
+        "best_feasible_gain_lower_bound": 0.0021321492512645923,
+        "best_feasible_gain_upper_bound": 0.016341449928472612,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 2,
+        "users_routed_to_parent_tail_chosen_splitter": 124,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 504,
+        "would_continue": true
+      }
+    },
+    "root.dislike.dislike.dislike": {
+      "depth": 3,
+      "n_users": 2346,
+      "split": true,
+      "stop_reason_banked": null,
+      "stop_cause": null,
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        19
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.012249282431245428,
+      "splitter_answer_rate": 0.4506,
+      "splitter_min_child": 355,
+      "splitter_feasible": true,
+      "n_candidates": 997,
+      "n_feasible": 217,
+      "frac_excluded": 0.7823470411233702,
+      "n_feasible_by_channel": {
+        "item": 180,
+        "concept": 37
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 497
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.9147485080988917,
+        "floor_2x_minleaf_over_n": 0.17050298380221654,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 351,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 219
+      },
+      "binding_branch_of_infeasible": {
+        "like": 308,
+        "dislike": 160,
+        "noanswer": 312
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 148,
+        "dislike": 0,
+        "noanswer": 312
+      },
+      "answer_rate": {
+        "all": {
+          "n": 997,
+          "mean": 0.57263478414784,
+          "median": 0.5656436487638533,
+          "min": 0.028985507246376812,
+          "max": 1.0,
+          "p10": 0.11449275362318842,
+          "p90": 0.9982949701619779
+        },
+        "feasible": {
+          "n": 217,
+          "mean": 0.4051744119807811,
+          "median": 0.30562659846547313,
+          "min": 0.17902813299232737,
+          "max": 0.912617220801364,
+          "p10": 0.20699062233589088,
+          "p90": 0.8682864450127877
+        },
+        "infeasible": {
+          "n": 780,
+          "mean": 0.6192231184558551,
+          "median": 0.8742540494458653,
+          "min": 0.028985507246376812,
+          "max": 1.0,
+          "p10": 0.09965899403239557,
+          "p90": 0.9991474850809889
+        },
+        "concepts_all": {
+          "n": 497,
+          "mean": 0.9433197651381434,
+          "median": 0.969309462915601,
+          "min": 0.7306052855924978,
+          "max": 1.0,
+          "p10": 0.8358908780903666,
+          "p90": 0.9995737425404945
+        },
+        "concepts_feasible": {
+          "n": 37,
+          "mean": 0.8702449252321374,
+          "median": 0.8806479113384484,
+          "min": 0.7306052855924978,
+          "max": 0.912617220801364,
+          "p10": 0.8237851662404092,
+          "p90": 0.9074168797953964
+        },
+        "items_all": {
+          "n": 500,
+          "mean": 0.20417391304347826,
+          "median": 0.18840579710144928,
+          "min": 0.028985507246376812,
+          "max": 0.5912190963341859,
+          "p10": 0.07753623188405796,
+          "p90": 0.3649190110826939
+        },
+        "items_feasible": {
+          "n": 180,
+          "mean": 0.3095765842568911,
+          "median": 0.2870843989769821,
+          "min": 0.17902813299232737,
+          "max": 0.5912190963341859,
+          "p10": 0.20319693094629157,
+          "p90": 0.45098039215686275
+        }
+      },
+      "answerability_penalty": {
+        "observed_gap": -0.1674603721670589,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.02267592023803334,
+        "z": -7.3849427237878915,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.07307483990600605,
+        "perm_p_two_sided": 0.0,
+        "null_sd": 0.009895970081452883,
+        "z": -7.384302832823189,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 997,
+        "n_gains_degraded": 0,
+        "n_positive_gain_among_known": 665,
+        "best_feasible_gain_known": 0.011808977933494363,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": 0.0,
+        "max_intact_gain_any_candidate": 0.011808977933494363,
+        "best_feasible_gain_lower_bound": 0.012249282431245428,
+        "best_feasible_gain_upper_bound": 0.012249282431245428,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 3,
+        "users_routed_to_parent_tail_chosen_splitter": 0,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 633,
+        "would_continue": true
+      }
+    },
+    "root.dislike.dislike.like": {
+      "depth": 3,
+      "n_users": 660,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 118 < 200",
+      "stop_cause": "SHAPE",
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        951
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.021588885665574487,
+      "splitter_answer_rate": 0.4348,
+      "splitter_min_child": 118,
+      "splitter_feasible": false,
+      "n_candidates": 997,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 497
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.696969696969697,
+        "floor_2x_minleaf_over_n": 0.6060606060606061,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 471,
+        "n_concepts_below_floor": 6,
+        "n_items_below_floor": 497
+      },
+      "binding_branch_of_infeasible": {
+        "like": 322,
+        "dislike": 382,
+        "noanswer": 293
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 204,
+        "dislike": 0,
+        "noanswer": 293
+      },
+      "answer_rate": {
+        "all": {
+          "n": 997,
+          "mean": 0.5221847360262606,
+          "median": 0.5681818181818182,
+          "min": 0.0015151515151515152,
+          "max": 1.0,
+          "p10": 0.04030303030303031,
+          "p90": 0.9984848484848485
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 997,
+          "mean": 0.5221847360262606,
+          "median": 0.5681818181818182,
+          "min": 0.0015151515151515152,
+          "max": 1.0,
+          "p10": 0.04030303030303031,
+          "p90": 0.9984848484848485
+        },
+        "concepts_all": {
+          "n": 497,
+          "mean": 0.9051246875190537,
+          "median": 0.946969696969697,
+          "min": 0.5575757575757576,
+          "max": 1.0,
+          "p10": 0.7424242424242424,
+          "p90": 1.0
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 500,
+          "mean": 0.14154242424242425,
+          "median": 0.10833333333333334,
+          "min": 0.0015151515151515152,
+          "max": 0.6712121212121213,
+          "p10": 0.01818181818181818,
+          "p90": 0.31681818181818183
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 235,
+        "n_gains_degraded": 762,
+        "n_positive_gain_among_known": 77,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.001397497526363034,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 287,
+        "max_children_over_floor_over_pool": 2,
+        "n_candidates_with_2plus_children_over_floor": 103,
+        "would_continue": true
+      }
+    },
+    "root.dislike.dislike.noanswer": {
+      "depth": 3,
+      "n_users": 556,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 25 < 200",
+      "stop_cause": "SIZE_ternary_impossible(400<=n<600)",
+      "arith": {
+        "ternary_possible_n>=600": false,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        499
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.016205626516389363,
+      "splitter_answer_rate": 0.0971,
+      "splitter_min_child": 25,
+      "splitter_feasible": false,
+      "n_candidates": 997,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 500,
+        "concept": 497
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.6402877697841727,
+        "floor_2x_minleaf_over_n": 0.7194244604316546,
+        "window_is_empty": true,
+        "n_concepts_above_ceiling": 297,
+        "n_concepts_below_floor": 239,
+        "n_items_below_floor": 500
+      },
+      "binding_branch_of_infeasible": {
+        "like": 486,
+        "dislike": 303,
+        "noanswer": 208
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 289,
+        "dislike": 0,
+        "noanswer": 208
+      },
+      "answer_rate": {
+        "all": {
+          "n": 997,
+          "mean": 0.36406702120750745,
+          "median": 0.17805755395683454,
+          "min": 0.0017985611510791368,
+          "max": 1.0,
+          "p10": 0.017985611510791366,
+          "p90": 0.9658273381294964
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 997,
+          "mean": 0.36406702120750745,
+          "median": 0.17805755395683454,
+          "min": 0.0017985611510791368,
+          "max": 1.0,
+          "p10": 0.017985611510791366,
+          "p90": 0.9658273381294964
+        },
+        "concepts_all": {
+          "n": 497,
+          "mean": 0.6837680760823936,
+          "median": 0.7464028776978417,
+          "min": 0.10431654676258993,
+          "max": 1.0,
+          "p10": 0.27086330935251796,
+          "p90": 0.9928057553956835
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 500,
+          "mean": 0.04628417266187051,
+          "median": 0.0341726618705036,
+          "min": 0.0017985611510791368,
+          "max": 0.32014388489208634,
+          "p10": 0.012410071942446053,
+          "p90": 0.09532374100719425
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 514,
+        "n_gains_degraded": 483,
+        "n_positive_gain_among_known": 346,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.0014715055192986992,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 54,
+        "max_children_over_floor_over_pool": 2,
+        "n_candidates_with_2plus_children_over_floor": 67,
+        "would_continue": true
+      }
+    },
+    "root.dislike.dislike.dislike.dislike": {
+      "depth": 4,
+      "n_users": 355,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 0 < 200",
+      "stop_cause": "SIZE_impossible(n<400)",
+      "arith": {
+        "ternary_possible_n>=600": false,
+        "binary_effective_possible_n>=400": false
+      },
+      "splitter": [
+        1,
+        784
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.01650184417469419,
+      "splitter_answer_rate": 1.0,
+      "splitter_min_child": 0,
+      "splitter_feasible": false,
+      "n_candidates": 996,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 497
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.43661971830985913,
+        "floor_2x_minleaf_over_n": 1.1267605633802817,
+        "window_is_empty": true,
+        "n_concepts_above_ceiling": 497,
+        "n_concepts_below_floor": 497,
+        "n_items_below_floor": 499
+      },
+      "binding_branch_of_infeasible": {
+        "like": 473,
+        "dislike": 131,
+        "noanswer": 392
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 106,
+        "dislike": 0,
+        "noanswer": 391
+      },
+      "answer_rate": {
+        "all": {
+          "n": 996,
+          "mean": 0.6184993495107189,
+          "median": 0.747887323943662,
+          "min": 0.04225352112676056,
+          "max": 1.0,
+          "p10": 0.14929577464788732,
+          "p90": 1.0
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 996,
+          "mean": 0.6184993495107189,
+          "median": 0.747887323943662,
+          "min": 0.04225352112676056,
+          "max": 1.0,
+          "p10": 0.14929577464788732,
+          "p90": 1.0
+        },
+        "concepts_all": {
+          "n": 497,
+          "mean": 0.9767053022359509,
+          "median": 0.9943661971830986,
+          "min": 0.856338028169014,
+          "max": 1.0,
+          "p10": 0.9211267605633803,
+          "p90": 1.0
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 499,
+          "mean": 0.2617290919867905,
+          "median": 0.23380281690140844,
+          "min": 0.04225352112676056,
+          "max": 0.7746478873239436,
+          "p10": 0.11211267605633804,
+          "p90": 0.4490140845070422
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 583,
+        "n_gains_degraded": 413,
+        "n_positive_gain_among_known": 162,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.0015562592286019195,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 42,
+        "max_children_over_floor_over_pool": 1,
+        "n_candidates_with_2plus_children_over_floor": 0,
+        "would_continue": false
+      }
+    },
+    "root.dislike.dislike.dislike.like": {
+      "depth": 4,
+      "n_users": 702,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 125 < 200",
+      "stop_cause": "SHAPE",
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        0,
+        614
+      ],
+      "splitter_channel": "item",
+      "splitter_gain": 0.01362610519292301,
+      "splitter_answer_rate": 0.4259,
+      "splitter_min_child": 125,
+      "splitter_feasible": false,
+      "n_candidates": 996,
+      "n_feasible": 1,
+      "frac_excluded": 0.998995983935743,
+      "n_feasible_by_channel": {
+        "item": 1,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 497
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.7150997150997151,
+        "floor_2x_minleaf_over_n": 0.5698005698005698,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 497,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 480
+      },
+      "binding_branch_of_infeasible": {
+        "like": 248,
+        "dislike": 316,
+        "noanswer": 431
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 66,
+        "dislike": 0,
+        "noanswer": 431
+      },
+      "answer_rate": {
+        "all": {
+          "n": 996,
+          "mean": 0.6297783727502604,
+          "median": 0.7243589743589743,
+          "min": 0.03133903133903134,
+          "max": 1.0,
+          "p10": 0.16025641025641024,
+          "p90": 1.0
+        },
+        "feasible": {
+          "n": 1,
+          "mean": 0.6524216524216524,
+          "median": 0.6524216524216524,
+          "min": 0.6524216524216524,
+          "max": 0.6524216524216524,
+          "p10": 0.6524216524216524,
+          "p90": 0.6524216524216524
+        },
+        "infeasible": {
+          "n": 995,
+          "mean": 0.629755615685264,
+          "median": 0.7407407407407407,
+          "min": 0.03133903133903134,
+          "max": 1.0,
+          "p10": 0.16011396011396012,
+          "p90": 1.0
+        },
+        "concepts_all": {
+          "n": 497,
+          "mean": 0.982272552695088,
+          "median": 0.9971509971509972,
+          "min": 0.8561253561253561,
+          "max": 1.0,
+          "p10": 0.941025641025641,
+          "p90": 1.0
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 499,
+          "mean": 0.2786969951298609,
+          "median": 0.2606837606837607,
+          "min": 0.03133903133903134,
+          "max": 0.7407407407407407,
+          "p10": 0.10541310541310542,
+          "p90": 0.4720797720797721
+        },
+        "items_feasible": {
+          "n": 1,
+          "mean": 0.6524216524216524,
+          "median": 0.6524216524216524,
+          "min": 0.6524216524216524,
+          "max": 0.6524216524216524,
+          "p10": 0.6524216524216524,
+          "p90": 0.6524216524216524
+        }
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.022643279671392014,
+        "perm_p_two_sided": 0.9964,
+        "null_sd": 0.36643040509162805,
+        "z": 0.06179421619155739,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 606,
+        "n_gains_degraded": 390,
+        "n_positive_gain_among_known": 148,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 1,
+        "best_feasible_gain_is_exact": false,
+        "cost_vs_unconstrained_upper_bound": 0.012045086201487198,
+        "max_intact_gain_any_candidate": 0.001581018991435812,
+        "best_feasible_gain_lower_bound": 0.001581018991435812,
+        "best_feasible_gain_upper_bound": 0.01362610519292301,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 299,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 80,
+        "would_continue": true
+      }
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+      "depth": 4,
+      "n_users": 1289,
+      "split": true,
+      "stop_reason_banked": null,
+      "stop_cause": null,
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        1,
+        334
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.01765070276664729,
+      "splitter_answer_rate": 0.841,
+      "splitter_min_child": 205,
+      "splitter_feasible": true,
+      "n_candidates": 996,
+      "n_feasible": 18,
+      "frac_excluded": 0.9819277108433735,
+      "n_feasible_by_channel": {
+        "item": 7,
+        "concept": 11
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 497
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.8448409619860358,
+        "floor_2x_minleaf_over_n": 0.3103180760279286,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 376,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 468
+      },
+      "binding_branch_of_infeasible": {
+        "like": 418,
+        "dislike": 284,
+        "noanswer": 276
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 210,
+        "dislike": 0,
+        "noanswer": 276
+      },
+      "answer_rate": {
+        "all": {
+          "n": 996,
+          "mean": 0.5291055611117861,
+          "median": 0.5027152831652444,
+          "min": 0.015515903801396431,
+          "max": 1.0,
+          "p10": 0.07602792862684252,
+          "p90": 0.9968968192397207
+        },
+        "feasible": {
+          "n": 18,
+          "mean": 0.6719248340660289,
+          "median": 0.8002327385570209,
+          "min": 0.35065942591155935,
+          "max": 0.8448409619860356,
+          "p10": 0.4009309542280838,
+          "p90": 0.8437548487199379
+        },
+        "infeasible": {
+          "n": 978,
+          "mean": 0.5264769855359412,
+          "median": 0.42513576415826226,
+          "min": 0.015515903801396431,
+          "max": 1.0,
+          "p10": 0.07525213343677269,
+          "p90": 0.9968968192397207
+        },
+        "concepts_all": {
+          "n": 497,
+          "mean": 0.9129111363292244,
+          "median": 0.9495733126454616,
+          "min": 0.626066718386346,
+          "max": 1.0,
+          "p10": 0.7599689681923972,
+          "p90": 0.9992242048099301
+        },
+        "concepts_feasible": {
+          "n": 11,
+          "mean": 0.8250934480569857,
+          "median": 0.8308766485647789,
+          "min": 0.7967416602017068,
+          "max": 0.8448409619860356,
+          "p10": 0.7982932505818464,
+          "p90": 0.8448409619860356
+        },
+        "items_all": {
+          "n": 499,
+          "mean": 0.14683828479301503,
+          "median": 0.1287820015515904,
+          "min": 0.015515903801396431,
+          "max": 0.5244375484871994,
+          "p10": 0.048719937936384794,
+          "p90": 0.26314972847168344
+        },
+        "items_feasible": {
+          "n": 7,
+          "mean": 0.43123129779452507,
+          "median": 0.42668735453840184,
+          "min": 0.35065942591155935,
+          "max": 0.5244375484871994,
+          "p10": 0.3795190069821567,
+          "p90": 0.4876648564778898
+        }
+      },
+      "answerability_penalty": {
+        "observed_gap": 0.1428192729542428,
+        "perm_p_two_sided": 0.1217,
+        "null_sd": 0.09184183432282893,
+        "z": 1.5550568431835263,
+        "n_perm": 10000
+      },
+      "answerability_penalty_concepts": {
+        "observed_gap": -0.08781768827223868,
+        "perm_p_two_sided": 0.0015,
+        "null_sd": 0.027753180504691378,
+        "z": -3.1642387169785473,
+        "n_perm": 10000
+      },
+      "constrained": {
+        "n_gains_known_exactly": 996,
+        "n_gains_degraded": 0,
+        "n_positive_gain_among_known": 758,
+        "best_feasible_gain_known": 0.007954301891795856,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": 0.0,
+        "max_intact_gain_any_candidate": 0.015951103236666014,
+        "best_feasible_gain_lower_bound": 0.01765070276664729,
+        "best_feasible_gain_upper_bound": 0.01765070276664729,
+        "would_continue": true
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 3,
+        "users_routed_to_parent_tail_chosen_splitter": 0,
+        "max_children_over_floor_over_pool": 3,
+        "n_candidates_with_2plus_children_over_floor": 237,
+        "would_continue": true
+      }
+    },
+    "root.dislike.dislike.dislike.noanswer.dislike": {
+      "depth": 5,
+      "n_users": 739,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 18 < 200",
+      "stop_cause": "SHAPE",
+      "arith": {
+        "ternary_possible_n>=600": true,
+        "binary_effective_possible_n>=400": true
+      },
+      "splitter": [
+        1,
+        251
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.011429920522106424,
+      "splitter_answer_rate": 0.9756,
+      "splitter_min_child": 18,
+      "splitter_feasible": false,
+      "n_candidates": 995,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 496
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.72936400541272,
+        "floor_2x_minleaf_over_n": 0.5412719891745602,
+        "window_is_empty": false,
+        "n_concepts_above_ceiling": 496,
+        "n_concepts_below_floor": 0,
+        "n_items_below_floor": 498
+      },
+      "binding_branch_of_infeasible": {
+        "like": 386,
+        "dislike": 268,
+        "noanswer": 341
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 155,
+        "dislike": 0,
+        "noanswer": 341
+      },
+      "answer_rate": {
+        "all": {
+          "n": 995,
+          "mean": 0.5630167073527312,
+          "median": 0.5128552097428958,
+          "min": 0.02571041948579161,
+          "max": 1.0,
+          "p10": 0.10419485791610285,
+          "p90": 0.9986468200270636
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 995,
+          "mean": 0.5630167073527312,
+          "median": 0.5128552097428958,
+          "min": 0.02571041948579161,
+          "max": 1.0,
+          "p10": 0.10419485791610285,
+          "p90": 0.9986468200270636
+        },
+        "concepts_all": {
+          "n": 496,
+          "mean": 0.9470732026714392,
+          "median": 0.9742895805142084,
+          "min": 0.7523680649526387,
+          "max": 1.0,
+          "p10": 0.8450608930987822,
+          "p90": 1.0
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 499,
+          "mean": 0.18126916891970682,
+          "median": 0.16238159675236807,
+          "min": 0.02571041948579161,
+          "max": 0.5602165087956699,
+          "p10": 0.07036535859269283,
+          "p90": 0.3047361299052774
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 805,
+        "n_gains_degraded": 190,
+        "n_positive_gain_among_known": 292,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.0024619758584660534,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 158,
+        "max_children_over_floor_over_pool": 2,
+        "n_candidates_with_2plus_children_over_floor": 24,
+        "would_continue": true
+      }
+    },
+    "root.dislike.dislike.dislike.noanswer.like": {
+      "depth": 5,
+      "n_users": 345,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 9 < 200",
+      "stop_cause": "SIZE_impossible(n<400)",
+      "arith": {
+        "ternary_possible_n>=600": false,
+        "binary_effective_possible_n>=400": false
+      },
+      "splitter": [
+        1,
+        455
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.020971389518982864,
+      "splitter_answer_rate": 0.9739,
+      "splitter_min_child": 9,
+      "splitter_feasible": false,
+      "n_candidates": 995,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 496
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.42028985507246375,
+        "floor_2x_minleaf_over_n": 1.1594202898550725,
+        "window_is_empty": true,
+        "n_concepts_above_ceiling": 493,
+        "n_concepts_below_floor": 496,
+        "n_items_below_floor": 499
+      },
+      "binding_branch_of_infeasible": {
+        "like": 467,
+        "dislike": 295,
+        "noanswer": 233
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 264,
+        "dislike": 0,
+        "noanswer": 232
+      },
+      "answer_rate": {
+        "all": {
+          "n": 995,
+          "mean": 0.4985740295681305,
+          "median": 0.5130434782608696,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.020289855072463767,
+          "p90": 0.9971014492753624
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 995,
+          "mean": 0.4985740295681305,
+          "median": 0.5130434782608696,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.020289855072463767,
+          "p90": 0.9971014492753624
+        },
+        "concepts_all": {
+          "n": 496,
+          "mean": 0.8840521271622254,
+          "median": 0.9405797101449276,
+          "min": 0.3507246376811594,
+          "max": 1.0,
+          "p10": 0.682608695652174,
+          "p90": 1.0
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 499,
+          "mean": 0.11541343556678574,
+          "median": 0.06376811594202898,
+          "min": 0.0,
+          "max": 0.7739130434782608,
+          "p10": 0.008695652173913044,
+          "p90": 0.32753623188405795
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 796,
+        "n_gains_degraded": 199,
+        "n_positive_gain_among_known": 379,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.004670539113862726,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 1,
+        "users_routed_to_parent_tail_chosen_splitter": 39,
+        "max_children_over_floor_over_pool": 1,
+        "n_candidates_with_2plus_children_over_floor": 0,
+        "would_continue": false
+      }
+    },
+    "root.dislike.dislike.dislike.noanswer.noanswer": {
+      "depth": 5,
+      "n_users": 205,
+      "split": false,
+      "stop_reason_banked": "min_leaf: smallest child 0 < 200",
+      "stop_cause": "SIZE_impossible(n<400)",
+      "arith": {
+        "ternary_possible_n>=600": false,
+        "binary_effective_possible_n>=400": false
+      },
+      "splitter": [
+        1,
+        306
+      ],
+      "splitter_channel": "concept",
+      "splitter_gain": 0.014360265513278722,
+      "splitter_answer_rate": 1.0,
+      "splitter_min_child": 0,
+      "splitter_feasible": false,
+      "n_candidates": 995,
+      "n_feasible": 0,
+      "frac_excluded": 1.0,
+      "n_feasible_by_channel": {
+        "item": 0,
+        "concept": 0
+      },
+      "n_candidates_by_channel": {
+        "item": 499,
+        "concept": 496
+      },
+      "answer_rate_window": {
+        "ceiling_1_minus_minleaf_over_n": 0.024390243902439046,
+        "floor_2x_minleaf_over_n": 1.951219512195122,
+        "window_is_empty": true,
+        "n_concepts_above_ceiling": 496,
+        "n_concepts_below_floor": 496,
+        "n_items_below_floor": 499
+      },
+      "binding_branch_of_infeasible": {
+        "like": 429,
+        "dislike": 288,
+        "noanswer": 278
+      },
+      "binding_branch_of_infeasible_concepts": {
+        "like": 218,
+        "dislike": 0,
+        "noanswer": 278
+      },
+      "answer_rate": {
+        "all": {
+          "n": 995,
+          "mean": 0.45627160191199906,
+          "median": 0.32682926829268294,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.024390243902439025,
+          "p90": 0.9951219512195122
+        },
+        "feasible": null,
+        "infeasible": {
+          "n": 995,
+          "mean": 0.45627160191199906,
+          "median": 0.32682926829268294,
+          "min": 0.0,
+          "max": 1.0,
+          "p10": 0.024390243902439025,
+          "p90": 0.9951219512195122
+        },
+        "concepts_all": {
+          "n": 496,
+          "mean": 0.8392407553107789,
+          "median": 0.9024390243902439,
+          "min": 0.3170731707317073,
+          "max": 1.0,
+          "p10": 0.5439024390243903,
+          "p90": 1.0
+        },
+        "concepts_feasible": null,
+        "items_all": {
+          "n": 499,
+          "mean": 0.07560486827313165,
+          "median": 0.05853658536585366,
+          "min": 0.0,
+          "max": 0.37073170731707317,
+          "p10": 0.014634146341463415,
+          "p90": 0.15121951219512195
+        },
+        "items_feasible": null
+      },
+      "answerability_penalty": null,
+      "answerability_penalty_concepts": null,
+      "constrained": {
+        "n_gains_known_exactly": 685,
+        "n_gains_degraded": 310,
+        "n_positive_gain_among_known": 317,
+        "best_feasible_gain_known": null,
+        "n_degraded_and_feasible": 0,
+        "best_feasible_gain_is_exact": true,
+        "cost_vs_unconstrained_upper_bound": null,
+        "max_intact_gain_any_candidate": 0.003017724544824976,
+        "best_feasible_gain_lower_bound": null,
+        "best_feasible_gain_upper_bound": null,
+        "would_continue": false
+      },
+      "per_child_routing": {
+        "children_over_floor_chosen_splitter": 0,
+        "users_routed_to_parent_tail_chosen_splitter": 205,
+        "max_children_over_floor_over_pool": 1,
+        "n_candidates_with_2plus_children_over_floor": 0,
+        "would_continue": false
+      }
+    }
+  },
+  "seconds": 45.7
+}
