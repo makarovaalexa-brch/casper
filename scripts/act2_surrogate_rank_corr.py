@@ -298,6 +298,10 @@ def score_budget(E, pool, k, cdir, args):
     np.save(cdir / "state_id.npy", sid)
 
     rows = E["rows"]
+    # The pool itself, not just its sha1: phases 2 and 3 must be able to map a candidate index back
+    # to a (channel, id) WITHOUT rebuilding the scoring environment, which is the whole reason they
+    # are cheap. Banked per cell so it is covered by the same contract guard as the gains.
+    np.save(cdir / "pool.npy", np.asarray([[int(a), int(b)] for a, b in pool], np.int64))
     t0 = time.time()
     bf, bt = genv_eval(E, prefix, rows)
     np.save(cdir / "base_full.npy", bf.astype(np.float32))
