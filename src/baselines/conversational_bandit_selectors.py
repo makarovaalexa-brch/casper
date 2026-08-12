@@ -653,6 +653,65 @@ class _ConvBanditBase(GLMUCBSelector):
             return bi
         return (self.n_items + bk) if s_k[bk] >= s_i[bi] else bi
 
+    def _mixed_vec(self, item_s_fn, kt_s, asked_u, force_kt):
+        """The vector `_pick_mixed` argmaxes, over the harness action space [items | key-terms].
+
+        Branch for branch identical to `_pick_mixed` (gate G-F, C1 / TODO 1.11): same key-term mask,
+        same candidate pool, same asked-item mask, same turn-type gate. On a SCHEDULED key-term turn
+        the item half is genuinely unscoreable -- the arm cannot ask an item on that turn -- so it is
+        NEG, and that is the honest representation of what this rule ranks at that state, not a
+        convenience.
+
+        ONE KNOWN LIMIT, declared rather than hidden: under `turn_rule="width"` (`force_kt is None`)
+        the two halves are compared on one axis and `_pick_mixed` breaks an exact tie IN FAVOUR OF
+        THE KEY-TERM (`s_k[bk] >= s_i[bi]`), whereas `np.argmax` over the concatenation would take
+        the item, which has the lower index. A tie between two float scores is measure-zero and every
+        battery arm in this family runs `turn_rule="schedule"` (the published schedule), where the
+        branch is exact; G-F asserts per state, so if it ever happened the run would stop rather than
+        report a mismatched vector."""
+        a = np.asarray(asked_u, dtype=np.int64)
+        it = a[a < self.n_items]
+        kt = a[a >= self.n_items] - self.n_items
+        s_k = np.array(kt_s, dtype=np.float64, copy=True)
+        if len(kt):
+            s_k[kt] = NEG
+        v = np.full(self.n_items + self.C, NEG, dtype=np.float64)
+        if force_kt is True and s_k.size and float(np.max(s_k)) > NEG:
+            v[self.n_items:] = s_k
+            return v
+        s_i = np.asarray(item_s_fn(), dtype=np.float64).copy()
+        if self.pool is not None:
+            keep = np.full(s_i.shape, NEG, dtype=s_i.dtype)
+            keep[self.pool] = s_i[self.pool]
+            s_i = keep
+        if len(it):
+            s_i[it] = NEG
+        v[:self.n_items] = s_i
+        if force_kt is None:
+            v[self.n_items:] = s_k
+        return v
+
+    def score_vector(self, turn, users, asked, answered):
+        """See `Selector.score_vector`. Mirrors `select`'s grouping and turn-type decision exactly."""
+        self._turn = int(turn)                       # the BS arm's spanner draw reads this
+        groups = self._group(users, answered)
+        idx_of = {int(u): j for j, u in enumerate(users.tolist())}
+        out = np.full((len(users), self.n_items + self.C), NEG, dtype=np.float64)
+        force = self._scheduled_keyterm(turn) if self.turn_rule == "schedule" else None
+        for key, us in groups.items():
+            mu, _M = self._posterior(key)
+            kt_s = self._keyterm_scores(key, mu)
+            box = {}
+
+            def item_s_fn(_key=key, _mu=mu, _box=box):
+                if "v" not in _box:
+                    _box["v"] = self._item_scores(_key, _mu)
+                return _box["v"]
+
+            for u in us:
+                out[idx_of[u]] = self._mixed_vec(item_s_fn, kt_s, asked[u], force)
+        return out
+
     def select(self, turn, users, asked, answered):
         groups = self._group(users, answered)
         self._n_states.append(len(groups))

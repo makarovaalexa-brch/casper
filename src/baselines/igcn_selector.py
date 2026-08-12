@@ -478,6 +478,59 @@ class IGCNSelector(_Selector):
                 self._nbr_cache[st] = top[j].astype(np.int64)
         return np.vstack([self._nbr_cache[s] for s in states])
 
+    # ---------------------------------------------------------------- score vector (gate G-F)
+    def score_vector(self, turn, users, asked, answered):
+        """See `Selector.score_vector`. EXACT for the GLOBAL phase; the personalised phase is
+        reported as UNSCOREABLE rather than approximated, and the split is counted.
+
+        Two facts about this arm force that shape, and both are already in the chapter:
+
+        (1) THE GLOBAL PHASE DOES NOT ARGMAX `self.ig_global`. It walks the precomputed lexsorted
+            `self.order` (`_next_global`), whose key is `(-information gain, -rating count)` -- and
+            the gain has a large hard-zero tail where an argsort of `ig` alone is not even
+            reproducible. So the honest score vector for this phase is the RANK IN THAT ORDER, i.e.
+            `-position`, with the user's asked items unscoreable. That reproduces `_next_global`
+            item for item, which `ig_global` plus an asked-mask would not.
+
+        (2) THE PERSONALISED PHASE HAS NO DENSE VECTOR. `personalised_ig` returns sparse triples
+            over (user, item) pairs with neighbour support only, then applies a strict positivity
+            gate and, if it fails, DEGENERATES BACK to the global order. Emitting a dense
+            approximation of that would be inventing a ranking the method never forms.
+
+        The cost of (2) is bounded and is reported, not waved away: the phase fires only once a user
+        has given `switch_i` ANSWERS, so at the Act-2 reference states it is inactive for the great
+        majority of users at every budget this study scores. `score_vector_coverage()` returns the
+        exact per-call split so the results table can print it beside the row."""
+        rank = np.empty(self.n_items, dtype=np.float64)
+        rank[self.order] = -np.arange(len(self.order), dtype=np.float64)
+        out = np.full((len(users), self.n_items), -np.inf, dtype=np.float64)
+        n_glob = n_pers = 0
+        for j, u in enumerate(users):
+            u = int(u)
+            personalised = (len(answered[u]) >= self.switch_i
+                            and (turn % self.recompute_every) == 0)
+            if personalised:
+                out[j, :] = np.nan          # UNSCOREABLE, and counted -- never approximated
+                n_pers += 1
+                continue
+            v = rank.copy()
+            a = np.asarray(asked[u], dtype=np.int64)
+            if len(a):
+                v[a[a < self.n_items]] = -np.inf
+            out[j] = v
+            n_glob += 1
+        self._sv_glob = getattr(self, "_sv_glob", 0) + n_glob
+        self._sv_pers = getattr(self, "_sv_pers", 0) + n_pers
+        return out
+
+    def score_vector_coverage(self):
+        """(global, personalised) user-turns emitted by `score_vector` so far. The personalised
+        count is the user mass this row's rank correlation is NOT measured on, and it is printed
+        beside the row rather than left implicit."""
+        g, p = getattr(self, "_sv_glob", 0), getattr(self, "_sv_pers", 0)
+        return {"global_user_turns": int(g), "personalised_user_turns": int(p),
+                "scoreable_fraction": (float(g) / (g + p)) if (g + p) else None}
+
     # ---------------------------------------------------------------- select
     def select(self, turn, users, asked, answered):
         out = np.empty(len(users), np.int64)

@@ -71,6 +71,27 @@ LIKE_LEVEL = 7          # level >= 7 == r >= 4.0 == the binary "like" cut used b
 NEG = -np.inf
 
 
+def _eddi_score_vector(sel, users, asked, keyfn):
+    """Shared body of both EDDI arms' `score_vector` (gate G-F, C1 / TODO 1.11).
+
+    Mirrors their `select()` exactly -- same grouping, same `_acquisition`, same asked-mask -- and
+    returns the masked vector instead of its argmax. Written once and shared because the two arms'
+    select() bodies are identical apart from the state key, and a second divergent copy of the mask
+    is precisely what G-F exists to catch."""
+    idx_of = {int(u): j for j, u in enumerate(users.tolist())}
+    out = np.full((len(users), sel.n_items), NEG, dtype=np.float64)
+    groups = {}
+    for u in users.tolist():
+        groups.setdefault(keyfn(int(u)), []).append(int(u))
+    for key, us in groups.items():
+        R = sel._acquisition(key)
+        for u in us:
+            s = np.asarray(R, dtype=np.float64).copy()
+            s[np.asarray(asked[u], dtype=np.int64)] = NEG
+            out[idx_of[u]] = s
+    return out
+
+
 class EDDIInfoGainSelector(Selector):
     """EDDI single-order info-gain over a trained `eddi_pvae.PartialVAE`."""
     name = "eddi_ig"
@@ -147,6 +168,12 @@ class EDDIInfoGainSelector(Selector):
                 s[np.asarray(asked[u], dtype=np.int64)] = NEG
                 out[idx_of[u]] = int(np.argmax(s))
         return out
+
+    def score_vector(self, turn, users, asked, answered):
+        """See `Selector.score_vector`. Key = the LIKE set, exactly as `select` groups on."""
+        return _eddi_score_vector(
+            self, users, asked,
+            lambda u: tuple(sorted(i for (i, lv) in answered[u] if lv >= LIKE_LEVEL)))
 
     def stats(self):
         return {"distinct_states_per_turn": self._n_states}
@@ -313,6 +340,13 @@ class EDDIThreeOutcomeSelector(Selector):
                 s[np.asarray(asked[u], dtype=np.int64)] = NEG
                 out[idx_of[u]] = int(np.argmax(s))
         return out
+
+    def score_vector(self, turn, users, asked, answered):
+        """See `Selector.score_vector`. Key = (likes, dislikes), exactly as `select` groups on."""
+        def _k(u):
+            return (tuple(sorted(i for (i, lv) in answered[u] if lv >= LIKE_LEVEL)),
+                    tuple(sorted(i for (i, lv) in answered[u] if lv < LIKE_LEVEL)))
+        return _eddi_score_vector(self, users, asked, _k)
 
     def stats(self):
         return {"distinct_states_per_turn": self._n_states,

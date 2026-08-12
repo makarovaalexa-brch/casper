@@ -390,6 +390,38 @@ class DPESelector(Selector):
             out[j] = int(cand[int(np.argmax(s))])
         return out
 
+    def score_vector(self, turn, users, asked, answered):
+        """See `Selector.score_vector`. THE TOPIC GATE IS PART OF THE POLICY AND IS REPRODUCED.
+
+        This arm never masks with NEG: it argmaxes over `cand`, the drawn topic's members with the
+        user's asked items REMOVED. So the faithful full-catalogue vector is NEG everywhere except
+        those candidates -- an item outside the drawn topic is not merely disfavoured by this rule,
+        it is unreachable, and a vector that scored it would be a different policy. The design sheet
+        says this row is reported only with the gate reproduced, and this is that reproduction.
+
+        The draw is re-derived from `[seed, user, turn]` inside `_draw_topic` and never stored, so a
+        fresh object at turn k reproduces the same topic; `_sync_acc`'s accumulator is a pure
+        function of `asked[u]` in order."""
+        out = np.full((len(users), self.n_items), NEG, dtype=np.float64)
+        for j, u in enumerate(users.tolist()):
+            u = int(u)
+            au = [int(i) for i in asked[u] if int(i) < self.n_items]
+            mu, kk = self._bandit(asked[u], answered[u])
+            a = self._draw_topic(u, turn, mu, kk)
+            cand = self.member_sets[a]
+            if au:
+                cand = cand[~np.isin(cand, au)]
+            if not len(cand):
+                for a2 in np.argsort(-mu):
+                    c2 = self.member_sets[int(a2)]
+                    c2 = c2[~np.isin(c2, au)] if au else c2
+                    if len(c2):
+                        a, cand = int(a2), c2
+                        break
+            if len(cand):
+                out[j, cand] = np.asarray(self._scores(u, asked[u], cand), dtype=np.float64)
+        return out
+
     def stats(self):
         return {"dpe_topics": self.A, "dpe_score_div": self.score_div, "dpe_burn": self.burn,
                 "dpe_update": self.update, "dpe_oracle": self.score_div == "oracle",
@@ -463,6 +495,26 @@ class DPEConceptSelector(Selector):
             if len(done):
                 theta[done] = NEG
             out[j] = self.n_items + int(np.argmax(theta))
+        return out
+
+    def score_vector(self, turn, users, asked, answered):
+        """See `Selector.score_vector`. Concept-axis rule: the item half is NEG because this arm
+        cannot ask an item at all, and the concept half is the same Thompson-perturbed `theta` its
+        own `select` argmaxes, masked at the concepts already asked.
+
+        Note the state this reads: the concept channel lives in `ctx["conc_state"]`, not in the
+        `asked`/`answered` arguments. At the C1 states that dict is EMPTY for every user (the
+        reference interview spends zero concept turns), which the probe asserts rather than assumes."""
+        out = np.full((len(users), self.n_items + self.C), NEG, dtype=np.float64)
+        for j, u in enumerate(users.tolist()):
+            u = int(u)
+            mu, kk = self._bandit(u)
+            rng = np.random.default_rng([self.seed, u, int(turn)])
+            theta = mu + rng.standard_normal(self.C) / np.sqrt(kk + 1.0)
+            done = np.asarray([int(c) for c in self.conc["asked"][u]], dtype=np.int64)
+            if len(done):
+                theta[done] = NEG
+            out[j, self.n_items:] = theta
         return out
 
     def stats(self):
