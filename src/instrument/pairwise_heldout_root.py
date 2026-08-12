@@ -105,31 +105,38 @@ def eval_both(E, seq, rows, batch=500):
             f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
                                       contract=(E["contract_tag"], ch))
             full[st:st + len(ch)] = f; tail[st:st + len(ch)] = t
-            # ---- the untruncated, undiscounted half, off the SAME masked scores
-            Sm = S.copy()
-            Sm[E["pool"][ch].nonzero()] = -np.inf                # the policy-B candidate mask
+            # ---- the untruncated, undiscounted half, off the SAME masked scores.
+            # The whole batch is sorted in ONE numpy call (a per-user sort of 18,359 floats, ten
+            # thousand times, is the dominant cost otherwise). Masked candidates are given a finite
+            # sentinel below every real score rather than -inf, so one sorted row serves every
+            # target lookup; policy B guarantees a held-out target is never masked, so a target's
+            # score is always a real one and the sentinel can never be counted above it.
+            pool_nz = E["pool"][ch].nonzero()
+            Sm = S.astype(np.float64)
+            n_mask = np.zeros(Sm.shape[0], np.int64)
+            np.add.at(n_mask, pool_nz[0], 1)
+            SENT = -1e30
+            Sm[pool_nz] = SENT
+            srt = np.sort(Sm, axis=1)
             te = ctx.va_te[ch]
+            ni = Sm.shape[1]
             for u in range(Sm.shape[0]):
                 tg = te[u].indices
-                if len(tg) == 0:
-                    continue
-                row = Sm[u]
-                fin = np.isfinite(row)
-                cand = row[fin]
-                nc = cand.size
                 npos = len(tg)
+                if npos == 0:
+                    continue
+                nc = ni - int(n_mask[u])                 # candidates the mask leaves alive
                 nneg = nc - npos
                 if nneg <= 0:
                     continue
-                srt = np.sort(cand)
-                sv = row[tg]
-                # #candidates with score >= s, for each target; ties count against us
-                ge = nc - np.searchsorted(srt, sv, side="left")
-                # subtract the targets that are themselves >= s (they are not negatives)
+                sv = Sm[u, tg]
+                assert (sv > SENT).all(), "a held-out target was inside the policy-B mask"
+                # #candidates scoring >= s, for each target; TIES COUNT AS ERRORS (conservative)
+                ge = ni - np.searchsorted(srt[u], sv, side="left")
+                # subtract the targets that are themselves >= s -- they are not negatives
                 svs = np.sort(sv)
                 ge_pos = npos - np.searchsorted(svs, sv, side="left")
-                bad = (ge - ge_pos).sum()
-                pw[st + u] = bad / float(npos * nneg)
+                pw[st + u] = float((ge - ge_pos).sum()) / float(npos * nneg)
     E["n_evals"] += 1
     return full, tail, pw
 

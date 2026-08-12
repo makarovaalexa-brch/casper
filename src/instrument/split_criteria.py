@@ -223,6 +223,17 @@ def variance_scores(ev, memL, memD, sub, cand, chunk=256):
     REDUCTION the split buys. Argmax of this == argmin of Golbandi's Err_t.
     """
     Xr, X2r, Mr = ev["Xb"][sub], ev["X2"][sub], ev["M"][sub]
+    # RESTRICT THE ITEM AXIS TO THE ITEMS THIS BLOCK'S USERS ACTUALLY RATED. Eq. (4) sums over items
+    # with n_j > 0, so an item nobody here rated contributes exactly zero to the node's e2 and to
+    # every child's -- dropping it is exact. It matters because the criterion's cost is dominated by
+    # the DENSE (chunk x n_items) output of each sparse product, which is otherwise 18,359 columns
+    # wide no matter how few users the block holds. The refining leaf tail evaluates this on hundreds
+    # of small blocks, where the full width was ~99% empty and turned a seconds-long step into a
+    # minutes-long one.
+    if Mr.nnz:
+        cols = np.unique(Mr.indices)
+        if len(cols) < Mr.shape[1]:
+            Xr = Xr[:, cols]; X2r = X2r[:, cols]; Mr = Mr[:, cols]
     s_tot = np.asarray(Xr.sum(axis=0)).ravel()
     s2_tot = np.asarray(X2r.sum(axis=0)).ravel()
     n_tot = np.asarray(Mr.sum(axis=0)).ravel()

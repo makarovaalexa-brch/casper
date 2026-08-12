@@ -13,7 +13,8 @@ tree's split"* is not available to us and is not claimed anywhere. This file est
 
 Three parts: **A** the faithful snap on their protocol (HARD RULE 2); **B** the objective ablation
 inside our harness, which is the real deliverable; **C** positioning — the four separations, verified
-line by line, written as chapter-ready prose.
+line by line, written as chapter-ready prose. **§D is a live run log** — if you are picking this up
+in the morning, read §D first: it says what ran, what did not, and what it cost.
 
 ---
 
@@ -319,3 +320,69 @@ of how far that surrogate is from the thing being reported, at real states.
 
 *(pending — written once B lands, and written to whichever of the three pre-registered outcomes
 occurs)*
+
+---
+
+## D. Run log and current state (live — newest entry last)
+
+Kept so a morning review can start from this file rather than from a chat message. Every entry
+records what ran, what it cost, and what it changed.
+
+| when | what | outcome |
+|---|---|---|
+| 22:13 | ML-1M downloaded (6040 users / 3952 movie ids / 1,000,209 ratings — matches the paper's stated counts exactly) | Part A can use their own dataset. Netflix and Yahoo! Music are NOT held and are not replicated. |
+| 22:18 | Figure 2 digitised at 400 and 800 dpi | values in §A.1 / the findings file |
+| 22:2x | Criterion maths self-test | PASS (§B.1) |
+| 22:28 | Part A canonical snap | most-popular MAP 0.4468, random MAP 0.1011, leak check clean (0 answer/eval pair overlap, 0 train/eval pair overlap, 0 train/test user overlap) |
+| 23:12 | Part B grow stage v1 launched | **KILLED at 23:17.** Not a correctness fault: the refining leaf tail was going quadratic in block count, because after a few tail questions most blocks are singletons and the cost was dominated by per-block call overhead. |
+| 23:19 | Part B grow stage v2 launched after two exact fixes — dense membership matrices, and skipping singleton blocks (exactly zero contribution for the variance criterion, a candidate-independent constant for the Hu & Yu criteria) | **KILLED at 23:22.** Still too slow, and the real cause was different: each sparse product's DENSE output is `(chunk x 18,359)` no matter how few users the block holds, so a three-user block paid the same 37 MB allocation as the root. |
+| 23:22 | Part B grow stage v3, third exact fix: the variance criterion now restricts the item axis to the items the block's users actually rated. Eq. (4) sums over items with `n_j > 0`, so an item nobody in the block rated contributes zero to the node's e2 and to every child's — dropping it changes no number. | running |
+| ~23:20 | Part A first cells | **RED FLAG, see below** |
+
+### Part A: a red flag that must be resolved before any snap is reported
+
+`eip_logistic_d3` MAP = **0.4455**, `canonical` most-popular MAP = **0.4468**, `warm_logistic` MAP =
+**0.5996**, random MAP = 0.1011. Their Figure 2(a) at depth 3 has FixQ 0.7175, EIP 0.7383,
+Warm-MF 0.8018.
+
+Two separate problems, and only the second is fatal:
+1. *The level is far below theirs* (≈0.45 vs ≈0.72). The random baseline at 0.1011 is almost exactly
+   the analytic 1/11 expected for ten sampled negatives per positive, so **the negative-sampling ratio
+   and the AP implementation are right**; the gap is model strength or the definition of `O_i`, not
+   the metric plumbing.
+2. **EIP is not beating most-popular** — it is 0.0013 *below* it. A three-question interview tree that
+   loses to ranking by popularity is not reproducing a method whose entire claim is that it beats
+   top-k-popular. Under the project's own rule ("a surprising number is a harness bug until proven
+   otherwise") this is a harness fault until shown otherwise. The leading suspect is the latent
+   dimension: the cells record `d = 10`, the paper never states `d`, and a d=10 factorisation on ML-1M
+   is close to a popularity model. A d sweep is under way. Second suspect: the Warm-MF logistic loss
+   trace is not monotone (0.210 → 0.196 → 0.182 → 0.190 → 0.188 → 0.173 → 0.183 → 0.182), which
+   suggests the alternating fit is not converging — and Warm-MF is the *ceiling* in their figure, so
+   an under-fitted Warm-MF corrupts every comparison.
+
+**FixQ has not been run yet and is the comparison that matters** — their ranking claim is exactly
+"EIP outperforms FixQ ... by 2% averagely", and our chapter's positioning rests on FixQ being top-k
+popular. Note FixQ is a *stronger* baseline than most-popular ranking: it asks the top-k popular items
+as an interview and folds the answers into a feature-based MF.
+
+### Things already established, before any citable ablation number
+
+- The **variance (Golbandi) criterion does grow a real tree** on our pool under min-leaf 200: its
+  root splitter is **concept 731** (answer rate 0.916, children 4861 / 4297 / 842), and it splits
+  again at depth 1 on both the like and dislike branches. It is not degenerate, so arm (a) is a
+  genuine comparison and not a straw man.
+- Its root choice is **already different from ours**: our NDCG tree's root is concept 114
+  (answer rate 0.742, children 2606 / 4814 / 2580). Two criteria, same 1,000 candidates, same
+  10,000 users, same state — different first question.
+- **Cost of the criteria, measured:** ~17 s to score all 1,000 candidates at 10,000 users for
+  `variance`; the Hu & Yu criteria add one candidate-independent gradient pass (~11 s at 10,000
+  users, 137,591,707 pairs, nothing sampled) and are then masked sums. Our exact NDCG criterion
+  needs a tower fold per candidate and cost 37,191 s for the whole tree. **That ratio is the
+  Taylor trick's entire value proposition, and it is now measured rather than asserted.**
+- **A caveat that must travel with arms (b)/(b′):** the Hu & Yu criteria are drawn to
+  100%-answerable concepts, whose DID-NOT-ANSWER branch is empty; the all-three-branches min-leaf
+  rule then refuses the split outright. The rule is held identical across all arms (the brief
+  requires it, and arm (c)'s tree cannot be regrown), but a `nonempty` min-leaf mode is implemented
+  as a robustness check, because Golbandi's own selector constrains only the like and hate branches
+  (`golbandi_tree_selector._best_split`: `(cL >= min) & (cH >= min)`). This is the same interaction
+  as TODO 1.18 / plan A10.
