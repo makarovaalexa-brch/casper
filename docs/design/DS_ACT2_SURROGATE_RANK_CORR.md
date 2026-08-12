@@ -309,15 +309,44 @@ Three phases, deliberately split so the only heavy thing is phase 1 and it needs
 at all**:
 
 1. **`--score` (heavy, ~12 h, resumable)** — realised per-user NDCG for every (budget, candidate).
+   `scripts/act2_surrogate_rank_corr.py`. **NOT YET RUN.**
 2. **`--surrogates` (cheap)** — per-state score vectors for every row in §4, via a `score_vector`
    hook added to `Selector` returning `None` by default (so no existing arm changes behaviour) and
    implemented as a 1–3 line delegation on the arms that already compute the vector internally. For
    `glm_ucb` this needs `bandit_selectors.py:334` extracted into `_ucb_vec(key)` — a pure extraction,
    the same pattern as `_a_inv_Yt`. The probe walks the BANKED interview sidecars; **no interview is
    re-run.** Gate G-F is what makes the extraction self-verifying.
-3. **`--analyze` (cheap)** — statistics, the three controls, `docs/results/ACT2_SURROGATE_VS_NDCG.md`.
+3. **`--analyze` (cheap)** — statistics, the three controls,
+   `docs/results/ACT2_SURROGATE_RANK_CORRELATION.md`.
 
-Phases 2–3 are built while phase 1 runs; they contend for nothing.
+**BUILD STATUS 2026-08-12 23:30 (phases 2 and 3 written while the box belongs to another job).**
+
+| piece | file | state |
+|---|---|---|
+| `Selector.score_vector` hook (`None` by default) | `src/baselines/adaptive_harness.py` | **built** |
+| `_mask_vec` / `_ucb_vec` pure extractions + `_acq_vec` on the four posterior arms | `bandit_selectors.py` | **built**, and the extraction is proven selection-preserving |
+| EDDI (both), the conversational-bandit family, DPE, DPE-concept, IGCN | their own files | **built** |
+| **G-F on synthetic inputs** — 1,920 (user, turn) cells on the posterior family, plus 1,440 legacy-masking regression actions | `src/baselines/score_vector_gate.py` | **PASSES** |
+| statistics, 3 controls, identity | `scripts/act2_surrogate_stats.py` | **built, 8/8 selftest** |
+| `--surrogates`, `--analyze`, synthetic end-to-end | `scripts/act2_surrogate_phase23.py` | **built, selftest passes** |
+| phase 1 `pool.npy` persistence (so 2/3 need no env) | `act2_surrogate_rank_corr.py` | **built** |
+| phase 1 `--smoke` and `--score` | — | **HELD, unrun** |
+| phase 2 against the real selectors | — | **unrun** (needs the split + model stacks) |
+
+Two decisions taken during the build that change what a row means, both recorded here because they
+are not reversible in the write-up:
+
+- **IGCN is exact for its GLOBAL phase and reports its personalised phase as UNSCOREABLE, counted.**
+  The global phase walks a lexsorted order rather than argmaxing `ig_global` (whose hard-zero tail is
+  not reproducibly sortable), so the honest score is the rank in that order; the personalised phase
+  returns sparse triples behind a strict positivity gate that degenerates back to the global order,
+  and a dense approximation of it would be inventing a ranking the method never forms.
+  `score_vector_coverage()` prints the split beside the row.
+- **The conversational-bandit vector carries the turn-type gate.** On a scheduled key-term turn the
+  item half is NEG because the arm *cannot* ask an item that turn. Under the non-default
+  `turn_rule="width"` an exact tie between the halves resolves to the key-term in `_pick_mixed` and
+  to the item under `argmax`; every battery arm runs the published schedule, and G-F asserts per
+  state, so a tie stops the run rather than being reported.
 
 **Launch sequence.** Nothing starts until the box is free — HARD RULE 11(d) forbids a second heavy
 job. *Status 2026-08-12 23:00: A1–A4 have landed and cleared, but the box is now the Hu & Yu
