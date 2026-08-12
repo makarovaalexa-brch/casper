@@ -976,7 +976,8 @@ def main():
             if arms and tag not in arms and ("fixq_" + kind) not in arms \
                     and ("warm_" + kind) not in arms:
                 continue
-            if (not arms or ("warm_" + kind) in arms) \n                    and not have_cell("warm_%s" % kind):
+            want_warm = (not arms) or ("warm_" + kind) in arms
+            if want_warm and not have_cell("warm_%s" % kind):
                 U, V = run_warm(kind, sp, d, lam_v, outer=args.outer)
                 ev.V = ev4.V = V
                 m, m4 = ev.map_score(U[ev.users])[0], ev4.map_score(U[ev4.users])[0]
