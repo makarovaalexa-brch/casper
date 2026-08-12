@@ -1,0 +1,896 @@
+{
+  "analysis": "policyB_static_channel_orders_on_test",
+  "label": "channel_orders_policyB_test",
+  "citable": true,
+  "split": "test",
+  "purpose": "the bank-vs-conditioning decomposition and Act 4's channel comparison, both on orders SELECTED under policy B (A3/A4) rather than under the retired policy-A mask",
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "mask_policy": "B",
+  "pool_policy": "B",
+  "pool_contract": {
+    "v": 1,
+    "policy": "B",
+    "n_rows": 10000,
+    "n_items": 18359,
+    "nnz": 1411761,
+    "per_user": 141.1761,
+    "fp": "cc002b4eb984ed9880346c98fc0a2970"
+  },
+  "n_test_users": 10000,
+  "budgets": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "orders": {
+    "items": [
+      [
+        0,
+        83
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        0,
+        19
+      ],
+      [
+        0,
+        631
+      ],
+      [
+        0,
+        2195
+      ],
+      [
+        0,
+        140
+      ],
+      [
+        0,
+        22
+      ],
+      [
+        0,
+        396
+      ],
+      [
+        0,
+        494
+      ],
+      [
+        0,
+        343
+      ],
+      [
+        0,
+        873
+      ],
+      [
+        0,
+        506
+      ],
+      [
+        0,
+        212
+      ],
+      [
+        0,
+        549
+      ],
+      [
+        0,
+        228
+      ],
+      [
+        0,
+        135
+      ]
+    ],
+    "concepts": [
+      [
+        1,
+        114
+      ],
+      [
+        1,
+        173
+      ],
+      [
+        1,
+        785
+      ],
+      [
+        1,
+        312
+      ],
+      [
+        1,
+        215
+      ],
+      [
+        1,
+        377
+      ],
+      [
+        1,
+        124
+      ],
+      [
+        1,
+        1010
+      ],
+      [
+        1,
+        233
+      ],
+      [
+        1,
+        12
+      ],
+      [
+        1,
+        912
+      ],
+      [
+        1,
+        294
+      ],
+      [
+        1,
+        488
+      ],
+      [
+        1,
+        467
+      ],
+      [
+        1,
+        753
+      ],
+      [
+        1,
+        851
+      ]
+    ],
+    "combined": [
+      [
+        1,
+        114
+      ],
+      [
+        1,
+        173
+      ],
+      [
+        0,
+        19
+      ],
+      [
+        1,
+        748
+      ],
+      [
+        1,
+        785
+      ],
+      [
+        0,
+        83
+      ],
+      [
+        0,
+        583
+      ],
+      [
+        1,
+        243
+      ],
+      [
+        1,
+        231
+      ],
+      [
+        1,
+        809
+      ],
+      [
+        1,
+        455
+      ],
+      [
+        0,
+        22
+      ],
+      [
+        0,
+        77
+      ],
+      [
+        0,
+        88
+      ],
+      [
+        1,
+        18
+      ],
+      [
+        1,
+        838
+      ]
+    ]
+  },
+  "order_sources": {
+    "items": {
+      "file": "greedy_static_policyB_items.json",
+      "label": "greedy_static_policyB_items",
+      "positions_identical_to_policyA_order": 2
+    },
+    "concepts": {
+      "file": "greedy_static_policyB_concepts.json",
+      "label": "greedy_static_policyB_concepts",
+      "positions_identical_to_policyA_order": 1
+    },
+    "combined": {
+      "file": "greedy_static_policyB_combined.json",
+      "label": "greedy_static_policyB_combined",
+      "positions_identical_to_policyA_order": 0
+    }
+  },
+  "m0_full@10": 0.15855464334646144,
+  "m0_tail@10": 0.028185191294182937,
+  "test_curves": {
+    "items": {
+      "1": {
+        "full@10": 0.17598472396448953,
+        "tail@10": 0.04341111262105019,
+        "items_answered": 0.298,
+        "concepts_answered": 0.0
+      },
+      "2": {
+        "full@10": 0.1883771504862771,
+        "tail@10": 0.0562555366757968,
+        "items_answered": 0.454,
+        "concepts_answered": 0.0
+      },
+      "4": {
+        "full@10": 0.20376089115303647,
+        "tail@10": 0.06767222238144631,
+        "items_answered": 1.112,
+        "concepts_answered": 0.0
+      },
+      "8": {
+        "full@10": 0.22352083472530912,
+        "tail@10": 0.08597711596805285,
+        "items_answered": 1.79,
+        "concepts_answered": 0.0
+      },
+      "16": {
+        "full@10": 0.24470099978536555,
+        "tail@10": 0.1017062861267869,
+        "items_answered": 3.108,
+        "concepts_answered": 0.0
+      },
+      "15": {
+        "full@10": 0.24294904931934408,
+        "tail@10": 0.10041348213926343
+      }
+    },
+    "concepts": {
+      "1": {
+        "full@10": 0.1807898256302669,
+        "tail@10": 0.053734311019292665,
+        "items_answered": 0.0,
+        "concepts_answered": 0.752
+      },
+      "2": {
+        "full@10": 0.19618335412261423,
+        "tail@10": 0.0701172515557377,
+        "items_answered": 0.0,
+        "concepts_answered": 1.751
+      },
+      "4": {
+        "full@10": 0.21411417316789938,
+        "tail@10": 0.08576958677490135,
+        "items_answered": 0.0,
+        "concepts_answered": 3.568
+      },
+      "8": {
+        "full@10": 0.23468391782418274,
+        "tail@10": 0.10739582445092814,
+        "items_answered": 0.0,
+        "concepts_answered": 6.847
+      },
+      "16": {
+        "full@10": 0.2446677423520305,
+        "tail@10": 0.1160660930189811,
+        "items_answered": 0.0,
+        "concepts_answered": 12.36
+      }
+    },
+    "combined": {
+      "1": {
+        "full@10": 0.1807898256302669,
+        "tail@10": 0.053734311019292665,
+        "items_answered": 0.0,
+        "concepts_answered": 0.752
+      },
+      "2": {
+        "full@10": 0.19618335412261423,
+        "tail@10": 0.0701172515557377,
+        "items_answered": 0.0,
+        "concepts_answered": 1.751
+      },
+      "4": {
+        "full@10": 0.21782675893005848,
+        "tail@10": 0.08566393780006333,
+        "items_answered": 0.301,
+        "concepts_answered": 2.661
+      },
+      "8": {
+        "full@10": 0.23862276611065592,
+        "tail@10": 0.10333591865490684,
+        "items_answered": 0.858,
+        "concepts_answered": 4.523
+      },
+      "16": {
+        "full@10": 0.259003306957361,
+        "tail@10": 0.12369686411443184,
+        "items_answered": 1.512,
+        "concepts_answered": 9.245
+      }
+    }
+  },
+  "validation_curves": {
+    "items": {
+      "1": {
+        "full@10": 0.17426322743544534,
+        "tail@10": 0.042161080120612766,
+        "items_answered": 0.295,
+        "concepts_answered": 0.0
+      },
+      "2": {
+        "full@10": 0.18821500100805721,
+        "tail@10": 0.053297433552969065,
+        "items_answered": 0.449,
+        "concepts_answered": 0.0
+      },
+      "4": {
+        "full@10": 0.20201170297439058,
+        "tail@10": 0.06469331736620026,
+        "items_answered": 1.106,
+        "concepts_answered": 0.0
+      },
+      "8": {
+        "full@10": 0.21976750346056287,
+        "tail@10": 0.08331802622128781,
+        "items_answered": 1.775,
+        "concepts_answered": 0.0
+      },
+      "16": {
+        "full@10": 0.2428081265667196,
+        "tail@10": 0.10111517752587719,
+        "items_answered": 3.067,
+        "concepts_answered": 0.0
+      }
+    },
+    "concepts": {
+      "1": {
+        "full@10": 0.17735593815942083,
+        "tail@10": 0.052350931752596155,
+        "items_answered": 0.0,
+        "concepts_answered": 0.742
+      },
+      "2": {
+        "full@10": 0.19363055287519845,
+        "tail@10": 0.06794829653107652,
+        "items_answered": 0.0,
+        "concepts_answered": 1.74
+      },
+      "4": {
+        "full@10": 0.21250467238391435,
+        "tail@10": 0.08337143734268476,
+        "items_answered": 0.0,
+        "concepts_answered": 3.548
+      },
+      "8": {
+        "full@10": 0.23219958656486625,
+        "tail@10": 0.10477430338749481,
+        "items_answered": 0.0,
+        "concepts_answered": 6.807
+      },
+      "16": {
+        "full@10": 0.24250280653956366,
+        "tail@10": 0.11809393205194435,
+        "items_answered": 0.0,
+        "concepts_answered": 12.298
+      }
+    },
+    "combined": {
+      "1": {
+        "full@10": 0.17735593815942083,
+        "tail@10": 0.052350931752596155,
+        "items_answered": 0.0,
+        "concepts_answered": 0.742
+      },
+      "2": {
+        "full@10": 0.19363055287519845,
+        "tail@10": 0.06794829653107652,
+        "items_answered": 0.0,
+        "concepts_answered": 1.74
+      },
+      "4": {
+        "full@10": 0.21496335984617726,
+        "tail@10": 0.08468358215437376,
+        "items_answered": 0.305,
+        "concepts_answered": 2.647
+      },
+      "8": {
+        "full@10": 0.2362498141943894,
+        "tail@10": 0.10290470383793361,
+        "items_answered": 0.841,
+        "concepts_answered": 4.501
+      },
+      "16": {
+        "full@10": 0.25561016113602253,
+        "tail@10": 0.12366492106552922,
+        "items_answered": 1.478,
+        "concepts_answered": 9.222
+      }
+    }
+  },
+  "contrasts": {
+    "combined_minus_items@K1": {
+      "note": "THE BANK EFFECT at equal budget: change the question bank, condition on nothing.",
+      "diff_full@10": 0.004805101665777403,
+      "diff_tail@10": 0.01032319839824247,
+      "paired_ci_full": {
+        "mean": 0.004805101665777403,
+        "lo": 0.0027322501573768783,
+        "hi": 0.006881039471574474,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.010323198398242469,
+        "lo": 0.00825384013275578,
+        "hi": 0.012379921314823973,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_concepts@K1": {
+      "note": "combined pool vs the concepts-only pool, no conditioning either side",
+      "diff_full@10": 0.0,
+      "diff_tail@10": 0.0,
+      "paired_ci_full": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": false
+      },
+      "paired_ci_tail": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": false
+      }
+    },
+    "concepts_minus_items@K1": {
+      "note": "which single channel is the better bank, at equal budget",
+      "diff_full@10": 0.004805101665777403,
+      "diff_tail@10": 0.01032319839824247,
+      "paired_ci_full": {
+        "mean": 0.004805101665777403,
+        "lo": 0.0027322501573768783,
+        "hi": 0.006881039471574474,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.010323198398242469,
+        "lo": 0.00825384013275578,
+        "hi": 0.012379921314823973,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_items@K2": {
+      "note": "THE BANK EFFECT at equal budget: change the question bank, condition on nothing.",
+      "diff_full@10": 0.007806203636337123,
+      "diff_tail@10": 0.013861714879940899,
+      "paired_ci_full": {
+        "mean": 0.007806203636337123,
+        "lo": 0.005056646370073251,
+        "hi": 0.01056536347338348,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.013861714879940895,
+        "lo": 0.011087858226290437,
+        "hi": 0.01663175115529771,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_concepts@K2": {
+      "note": "combined pool vs the concepts-only pool, no conditioning either side",
+      "diff_full@10": 0.0,
+      "diff_tail@10": 0.0,
+      "paired_ci_full": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": false
+      },
+      "paired_ci_tail": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": false
+      }
+    },
+    "concepts_minus_items@K2": {
+      "note": "which single channel is the better bank, at equal budget",
+      "diff_full@10": 0.007806203636337123,
+      "diff_tail@10": 0.013861714879940899,
+      "paired_ci_full": {
+        "mean": 0.007806203636337123,
+        "lo": 0.005056646370073251,
+        "hi": 0.01056536347338348,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.013861714879940895,
+        "lo": 0.011087858226290437,
+        "hi": 0.01663175115529771,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_items@K4": {
+      "note": "THE BANK EFFECT at equal budget: change the question bank, condition on nothing.",
+      "diff_full@10": 0.014065867777022012,
+      "diff_tail@10": 0.017991715418617014,
+      "paired_ci_full": {
+        "mean": 0.014065867777022012,
+        "lo": 0.011239353188195687,
+        "hi": 0.01683074514651359,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.017991715418617014,
+        "lo": 0.01505377847663603,
+        "hi": 0.02095990915785667,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_concepts@K4": {
+      "note": "combined pool vs the concepts-only pool, no conditioning either side",
+      "diff_full@10": 0.00371258576215907,
+      "diff_tail@10": -0.0001056489748380103,
+      "paired_ci_full": {
+        "mean": 0.00371258576215907,
+        "lo": 0.0015821201533166049,
+        "hi": 0.005849106120790987,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": -0.00010564897483801054,
+        "lo": -0.0022650205585173547,
+        "hi": 0.0021275728254354417,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": false
+      }
+    },
+    "concepts_minus_items@K4": {
+      "note": "which single channel is the better bank, at equal budget",
+      "diff_full@10": 0.01035328201486294,
+      "diff_tail@10": 0.018097364393455027,
+      "paired_ci_full": {
+        "mean": 0.01035328201486294,
+        "lo": 0.007318646887582353,
+        "hi": 0.013370609338291485,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.018097364393455023,
+        "lo": 0.014980012854227676,
+        "hi": 0.02117439860645269,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_items@K8": {
+      "note": "THE BANK EFFECT at equal budget: change the question bank, condition on nothing.",
+      "diff_full@10": 0.015101931385346814,
+      "diff_tail@10": 0.01735880268685399,
+      "paired_ci_full": {
+        "mean": 0.015101931385346814,
+        "lo": 0.012173413679601704,
+        "hi": 0.018087521530315075,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.01735880268685399,
+        "lo": 0.014354944364870736,
+        "hi": 0.020300255781941914,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_concepts@K8": {
+      "note": "combined pool vs the concepts-only pool, no conditioning either side",
+      "diff_full@10": 0.003938848286473166,
+      "diff_tail@10": -0.0040599057960213,
+      "paired_ci_full": {
+        "mean": 0.003938848286473166,
+        "lo": 0.0014954714839835158,
+        "hi": 0.006380840152464935,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": -0.004059905796021301,
+        "lo": -0.006543073705514158,
+        "hi": -0.00158771740319946,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "concepts_minus_items@K8": {
+      "note": "which single channel is the better bank, at equal budget",
+      "diff_full@10": 0.011163083098873644,
+      "diff_tail@10": 0.021418708482875293,
+      "paired_ci_full": {
+        "mean": 0.011163083098873644,
+        "lo": 0.008110279348142747,
+        "hi": 0.014282386499848141,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.021418708482875293,
+        "lo": 0.018086395368123495,
+        "hi": 0.024721947454023105,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_items@K16": {
+      "note": "THE BANK EFFECT at equal budget: change the question bank, condition on nothing.",
+      "diff_full@10": 0.014302307171995562,
+      "diff_tail@10": 0.021990577987644942,
+      "paired_ci_full": {
+        "mean": 0.014302307171995562,
+        "lo": 0.011239260595086118,
+        "hi": 0.017389655715623356,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.021990577987644946,
+        "lo": 0.018715717991948565,
+        "hi": 0.025162537170831053,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined_minus_concepts@K16": {
+      "note": "combined pool vs the concepts-only pool, no conditioning either side",
+      "diff_full@10": 0.014335564605330586,
+      "diff_tail@10": 0.007630771095450724,
+      "paired_ci_full": {
+        "mean": 0.014335564605330586,
+        "lo": 0.01161152714853929,
+        "hi": 0.01699133878865633,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.007630771095450724,
+        "lo": 0.0046585270611572685,
+        "hi": 0.010627541928864503,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "concepts_minus_items@K16": {
+      "note": "which single channel is the better bank, at equal budget",
+      "diff_full@10": -3.3257433335023026e-05,
+      "diff_tail@10": 0.01435980689219422,
+      "paired_ci_full": {
+        "mean": -3.3257433335023026e-05,
+        "lo": -0.0031483222903332824,
+        "hi": 0.0030974884203988974,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": false
+      },
+      "paired_ci_tail": {
+        "mean": 0.014359806892194217,
+        "lo": 0.010930256001514056,
+        "hi": 0.01775727072292926,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "combined16_minus_items15": {
+      "note": "the published unequal-budget form (items 15 vs combined 16), for continuity only",
+      "diff_full@10": 0.01605425763801706,
+      "diff_tail@10": 0.023283381975168414,
+      "paired_ci_full": {
+        "mean": 0.01605425763801706,
+        "lo": 0.013024905617416482,
+        "hi": 0.019160093656088836,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "paired_ci_tail": {
+        "mean": 0.023283381975168414,
+        "lo": 0.019993000455342576,
+        "hi": 0.02651420012498068,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    }
+  },
+  "banked_assert": {
+    "npz": "ndcgtree16test_policyB_per_user.npz",
+    "checked": [
+      {
+        "K": 1,
+        "axis": "full",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 1,
+        "axis": "tail",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 2,
+        "axis": "full",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 2,
+        "axis": "tail",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 4,
+        "axis": "full",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 4,
+        "axis": "tail",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 8,
+        "axis": "full",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 8,
+        "axis": "tail",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 16,
+        "axis": "full",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      },
+      {
+        "K": 16,
+        "axis": "tail",
+        "bit_identical": true,
+        "nan_masks_agree": true,
+        "max_abs_diff": 0.0
+      }
+    ],
+    "all_bit_identical": true
+  },
+  "inference": "paired percentile bootstrap over per-user differences, 10000 resamples, seed 98765",
+  "per_user_npz": "channel_orders_policyB_test_per_user.npz",
+  "seconds": 213.3
+}

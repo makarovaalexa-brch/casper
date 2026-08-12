@@ -1,0 +1,45 @@
+[21:45:30] [order] items     greedy_static_policyB_items.json: [(0, 83), (0, 7), (0, 19), (0, 631), (0, 2195), (0, 140), (0, 22), (0, 396), (0, 494), (0, 343), (0, 873), (0, 506), (0, 212), (0, 549), (0, 228), (0, 135)]
+[21:45:30] [order] concepts  greedy_static_policyB_concepts.json: [(1, 114), (1, 173), (1, 785), (1, 312), (1, 215), (1, 377), (1, 124), (1, 1010), (1, 233), (1, 12), (1, 912), (1, 294), (1, 488), (1, 467), (1, 753), (1, 851)]
+[21:45:30] [order] combined  greedy_static_policyB_combined.json: [(1, 114), (1, 173), (0, 19), (1, 748), (1, 785), (0, 83), (0, 583), (1, 243), (1, 231), (1, 809), (1, 455), (0, 22), (0, 77), (0, 88), (1, 18), (1, 838)]
+[21:45:30] === building channel_orders_policyB_test(test) env (split=test) ===
+[21:45:32] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[21:45:46] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[21:45:47] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[21:45:47] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[21:45:47] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[21:45:47] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[21:45:47] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[21:45:47] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[21:45:51] [ctx] all-bands reconstruction: 1411761 tokens; 7622 users with >=3 dislikes
+[21:45:59] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[21:46:03] [g5] 1031 concepts with >= 30 members
+[21:46:12] [ledger] SIGNED valuation arrays built (prereg cache found)
+[21:46:15] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[21:46:16] [policy-B] pool nnz=1411761 = 141.2 items/user (binary fold-in 62.6/user); target leak 0
+[21:46:16] [channel_orders_policyB_test(test)] pool contract (DERIVED): policy=B nnz=1411761 per_user=141.1761 fp=cc002b4eb984ed9880346c98fc0a2970
+[21:46:16] [channel_orders_policyB_test(test)] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.507; tower latent d=200
+[21:46:16] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[21:46:16] [leak/test] 0/10000 users have any held-out target inside the grouping lookup -- the favourite-genre answer is derived from FOLD-IN ratings only
+[21:46:24] [m0] ask nothing: full 0.15855 tail 0.02819
+[21:47:08] [test] items     @K=16 full 0.24470 tail 0.10171
+[21:47:46] [test] concepts  @K=16 full 0.24467 tail 0.11607
+[21:48:28] [test] combined  @K=16 full 0.25900 tail 0.12370
+[21:48:38] [gate] BANKED ASSERT PASS: the combined comparator's per-user TEST vectors are BIT-IDENTICAL to ndcgtree16test_policyB's, at all 5 budgets on both axes
+[21:48:40] [contrast] combined_minus_items@K1            full +0.00481 [+0.00273,+0.00688]  tail +0.01032 [+0.00825,+0.01238]
+[21:48:41] [contrast] combined_minus_concepts@K1         full +0.00000 [+0.00000,+0.00000]  tail +0.00000 [+0.00000,+0.00000]
+[21:48:43] [contrast] concepts_minus_items@K1            full +0.00481 [+0.00273,+0.00688]  tail +0.01032 [+0.00825,+0.01238]
+[21:48:44] [contrast] combined_minus_items@K2            full +0.00781 [+0.00506,+0.01057]  tail +0.01386 [+0.01109,+0.01663]
+[21:48:46] [contrast] combined_minus_concepts@K2         full +0.00000 [+0.00000,+0.00000]  tail +0.00000 [+0.00000,+0.00000]
+[21:48:47] [contrast] concepts_minus_items@K2            full +0.00781 [+0.00506,+0.01057]  tail +0.01386 [+0.01109,+0.01663]
+[21:48:49] [contrast] combined_minus_items@K4            full +0.01407 [+0.01124,+0.01683]  tail +0.01799 [+0.01505,+0.02096]
+[21:48:51] [contrast] combined_minus_concepts@K4         full +0.00371 [+0.00158,+0.00585]  tail -0.00011 [-0.00227,+0.00213]
+[21:48:52] [contrast] concepts_minus_items@K4            full +0.01035 [+0.00732,+0.01337]  tail +0.01810 [+0.01498,+0.02117]
+[21:48:54] [contrast] combined_minus_items@K8            full +0.01510 [+0.01217,+0.01809]  tail +0.01736 [+0.01435,+0.02030]
+[21:48:55] [contrast] combined_minus_concepts@K8         full +0.00394 [+0.00150,+0.00638]  tail -0.00406 [-0.00654,-0.00159]
+[21:48:57] [contrast] concepts_minus_items@K8            full +0.01116 [+0.00811,+0.01428]  tail +0.02142 [+0.01809,+0.02472]
+[21:48:59] [contrast] combined_minus_items@K16           full +0.01430 [+0.01124,+0.01739]  tail +0.02199 [+0.01872,+0.02516]
+[21:49:00] [contrast] combined_minus_concepts@K16        full +0.01434 [+0.01161,+0.01699]  tail +0.00763 [+0.00466,+0.01063]
+[21:49:02] [contrast] concepts_minus_items@K16           full -0.00003 [-0.00315,+0.00310]  tail +0.01436 [+0.01093,+0.01776]
+[21:49:03] [contrast] combined16_minus_items15           full +0.01605 [+0.01302,+0.01916]  tail +0.02328 [+0.01999,+0.02651]
+[21:49:03] [done] wrote channel_orders_policyB_test.json in 3.6m
+[cmd] exit code 0 
