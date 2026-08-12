@@ -658,6 +658,12 @@ def build_data(kind, pos_u, pos_i, pos_r, rated, n_users, n_items, d, seed):
 INIT_SCALE = 0.5   # not specified by the paper; see the note in main()
 
 
+def mean_loss(data, z):
+    if data.kind == "square":
+        return float(((z - data.ey) ** 2).mean())
+    return float(np.logaddexp(0.0, -np.clip(z, -30, 30)).mean())
+
+
 def init_V(n_items, d, seed=7):
     return np.random.default_rng(seed).normal(0, INIT_SCALE, size=(n_items, d))
 
@@ -687,9 +693,10 @@ def run_eip(kind, depth, split, d, lam_v, exact=False, random_q=False, seed=0,
         if it < outer:
             z = data.z_of(U, V)
             V, z = update_V(data, U, V, z, lam_v, V_SWEEPS)
-        log("    [%s%s%s depth=%d] iter %d: tree %.1fs V %.1fs nodes=%d"
+        log("    [%s%s%s depth=%d] iter %d: tree %.1fs V %.1fs nodes=%d loss=%.5f"
             % (kind, "/exact" if exact else "", "/rand" if random_q else "",
-               depth, it, t1 - t0, time.time() - t1, len(tree.q)))
+               depth, it, t1 - t0, time.time() - t1, len(tree.q),
+               mean_loss(data, data.z_of(U, V))))
     return tree, V
 
 
@@ -808,6 +815,8 @@ def run_warm(kind, split, d, lam_v, outer=None):
         if it < outer:
             z = data.z_of(U, V)
             V, z = update_V(data, U, V, z, lam_v, V_SWEEPS)
+        log("    [warm %s] iter %d loss=%.5f" % (kind, it,
+                                                 mean_loss(data, data.z_of(U, V))))
     return U, V
 
 
@@ -824,7 +833,7 @@ def write_cell(tag, rec):
 
 
 def main():
-    global log_fh
+    global log_fh, INIT_SCALE
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="main",
                     choices=["sweep", "main", "controls", "rmse", "smoke"])
@@ -835,7 +844,6 @@ def main():
     ap.add_argument("--arms", default="")
     ap.add_argument("--init-scale", type=float, default=INIT_SCALE)
     args = ap.parse_args()
-    global INIT_SCALE
     INIT_SCALE = args.init_scale
     os.makedirs(OUT, exist_ok=True)
     log_fh = open(os.path.join(OUT, "run_%s.log" % args.stage), "a")
