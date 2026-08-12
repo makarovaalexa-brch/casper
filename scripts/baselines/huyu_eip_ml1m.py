@@ -852,6 +852,11 @@ def cell_path(tag):
     return os.path.join(CELLS, tag + ".json")
 
 
+def have_cell(tag):
+    """Resume guard: a completed cell is never recomputed (HARD RULE 11)."""
+    return os.path.exists(cell_path(tag))
+
+
 def write_cell(tag, rec):
     with open(cell_path(tag), "w") as fh:
         json.dump(rec, fh, indent=2)
@@ -971,8 +976,33 @@ def main():
             if arms and tag not in arms and ("fixq_" + kind) not in arms \
                     and ("warm_" + kind) not in arms:
                 continue
+            if (not arms or ("warm_" + kind) in arms) \n                    and not have_cell("warm_%s" % kind):
+                U, V = run_warm(kind, sp, d, lam_v, outer=args.outer)
+                ev.V = ev4.V = V
+                m, m4 = ev.map_score(U[ev.users])[0], ev4.map_score(U[ev4.users])[0]
+                log("warm_%s: MAP=%.4f MAP(r>=4)=%.4f" % (kind, m, m4))
+                write_cell("warm_%s" % kind,
+                           dict(arm="warm_" + kind, MAP=m, MAP_ge4=m4, d=d,
+                                lam_v=lam_v))
+
+            if not arms or ("fixq_" + kind) in arms:
+                for k in depths:
+                    if have_cell("fixq_%s_d%d" % (kind, k)):
+                        continue
+                    t0 = time.time()
+                    items, A, V, F = run_fixq(kind, k, sp, d, lam_v, outer=args.outer)
+                    U = fixq_predict(items, A, F, sp, ev.users, d)
+                    ev.V = ev4.V = V
+                    m, m4 = score(U)
+                    log("fixq_%s k=%d: MAP=%.4f MAP(r>=4)=%.4f (%.0fs)"
+                        % (kind, k, m, m4, time.time() - t0))
+                    write_cell("fixq_%s_d%d" % (kind, k),
+                               dict(arm="fixq_" + kind, depth=k, MAP=m, MAP_ge4=m4,
+                                    d=d, lam_v=lam_v))
             if not arms or tag in arms:
                 for k in depths:
+                    if have_cell("%s_d%d" % (tag, k)):
+                        continue
                     t0 = time.time()
                     tree, V = run_eip(kind, k, sp, d, lam_v, outer=args.outer)
                     U, dep = eip_predict(tree, sp, ev.users)
@@ -987,29 +1017,10 @@ def main():
                                     seconds=time.time() - t0,
                                     mean_depth_reached=float(dep.mean()),
                                     n_test_users=len(ev.users), n_nodes=len(tree.q)))
-            if not arms or ("fixq_" + kind) in arms:
-                for k in depths:
-                    t0 = time.time()
-                    items, A, V, F = run_fixq(kind, k, sp, d, lam_v, outer=args.outer)
-                    U = fixq_predict(items, A, F, sp, ev.users, d)
-                    ev.V = ev4.V = V
-                    m, m4 = score(U)
-                    log("fixq_%s k=%d: MAP=%.4f MAP(r>=4)=%.4f (%.0fs)"
-                        % (kind, k, m, m4, time.time() - t0))
-                    write_cell("fixq_%s_d%d" % (kind, k),
-                               dict(arm="fixq_" + kind, depth=k, MAP=m, MAP_ge4=m4,
-                                    d=d, lam_v=lam_v))
-            if not arms or ("warm_" + kind) in arms:
-                U, V = run_warm(kind, sp, d, lam_v, outer=args.outer)
-                ev.V = ev4.V = V
-                m, m4 = ev.map_score(U[ev.users])[0], ev4.map_score(U[ev4.users])[0]
-                log("warm_%s: MAP=%.4f MAP(r>=4)=%.4f" % (kind, m, m4))
-                write_cell("warm_%s" % kind,
-                           dict(arm="warm_" + kind, MAP=m, MAP_ge4=m4, d=d,
-                                lam_v=lam_v))
-
     if args.stage == "controls":
         for k in depths:
+            if have_cell("randq_d%d" % k):
+                continue
             t0 = time.time()
             tree, V = run_eip("logistic", k, sp, d, lam_v, random_q=True,
                               outer=args.outer)
@@ -1025,6 +1036,8 @@ def main():
     if args.stage == "rmse":
         for k in depths:
             for exact, tag in ((False, "eip_square"), (True, "fmf")):
+                if have_cell("%s_d%d" % (tag, k)):
+                    continue
                 t0 = time.time()
                 tree, V = run_eip("square", k, sp, d, lam_v, exact=exact,
                                   outer=args.outer)
