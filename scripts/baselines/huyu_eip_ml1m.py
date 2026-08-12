@@ -283,75 +283,116 @@ def _backtrack(data, z, dz, base, tries=14):
     return 0.0
 
 
-def fit_delta_groups(data, V, z, group_of_user, n_groups, lam_u, sweeps,
-                     delta=None, frozen=None):
-    """Coordinate descent for one Delta-u per group (a whole tree LEVEL at once).
+def _W(data, V):
+    """Per-example vector w with  z = u . w  (float32, freed by the caller)."""
+    if data.kind == "pairwise":
+        W = V[data.ep] - V[data.en]
+    elif data.kind == "logistic":
+        W = V[data.ei] * data.ey[:, None]
+    else:
+        W = V[data.ei]
+    return np.ascontiguousarray(W, dtype=np.float32)
 
-    The loss is linearised once per SWEEP; every coordinate of every group takes a
-    Newton step on the diagonal curvature, and the resulting joint step is then
-    damped by a backtracking line search.  An undamped Newton step is not globally
-    convergent and diverged here (train loss 0.43 -> 7.59), so the line search is
-    what makes the fit monotone.  Examples of users outside any live group are
-    routed to a garbage-bin group whose step is forced to zero, which avoids
-    materialising a boolean mask over the ~8M examples on every pass.
+
+def _block_solve(G, H, lam, d):
+    """Newton step for every group: -(H + 2*lam*I)^-1 (G + 2*lam*theta)."""
+    H = H + 2.0 * lam * np.eye(d)[None]
+    return -np.linalg.solve(H, G[..., None])[..., 0]
+
+
+def fit_delta_groups(data, V, z, group_of_user, n_groups, lam_u, sweeps,
+                     delta=None, frozen=None, W=None):
+    """Fit one Delta-u per group (a whole tree LEVEL at once).
+
+    Each group's Delta-u is obtained by an EXACT block-Newton solve on that group's
+    own d x d Hessian -- the paper asks for the "optimal Delta-u" from coordinate
+    descent, and a block solve is what gets there; the diagonal approximation is
+    what the paper reserves for the SPLIT CRITERION.  The joint step is then damped
+    by a backtracking line search: an undamped Newton step is not globally
+    convergent and diverged here (train loss 0.43 -> 7.59).
+
+    Examples of users outside any live group are routed to a garbage-bin group
+    whose step is forced to zero, avoiding a boolean mask over ~8M examples.
     """
+    d = data.d
     if delta is None:
-        delta = np.zeros((n_groups, data.d), np.float64)
+        delta = np.zeros((n_groups, d), np.float64)
     ge = group_of_user[data.eu].astype(np.int64)
     ge[ge < 0] = n_groups
     nb = n_groups + 1
+    own_W = W is None
+    if own_W:
+        W = _W(data, V)
     for _ in range(sweeps):
         c1, c2 = data.coefs(z)
         base = mean_loss(data, z)
-        step = np.zeros((nb, data.d))
-        dz = np.zeros_like(z)
-        for k in range(data.d):
-            wk = data.w(V, k)
-            g = np.bincount(ge, weights=c1 * wk, minlength=nb)[:n_groups]
-            h = np.bincount(ge, weights=c2 * wk * wk, minlength=nb)[:n_groups]
-            g = g + 2.0 * lam_u * delta[:, k]
-            h = h + 2.0 * lam_u
-            sk = -g / np.maximum(h, 1e-9)
-            if frozen is not None:
-                sk[frozen] = 0.0
-            step[:n_groups, k] = sk
-            dz += (step[ge, k] * wk).astype(np.float32)
+        G = np.empty((nb, d))
+        H = np.empty((nb, d, d))
+        for k1 in range(d):
+            a = c1 * W[:, k1]
+            G[:, k1] = np.bincount(ge, weights=a, minlength=nb)
+            a = c2 * W[:, k1]
+            for k2 in range(k1, d):
+                v = np.bincount(ge, weights=a * W[:, k2], minlength=nb)
+                H[:, k1, k2] = v
+                H[:, k2, k1] = v
+        G = G[:n_groups] + 2.0 * lam_u * delta
+        step = _block_solve(G, H[:n_groups], lam_u, d)
+        if frozen is not None:
+            step[frozen] = 0.0
+        full = np.zeros((nb, d))
+        full[:n_groups] = step
+        dz = np.einsum("ed,ed->e", full[ge], W).astype(np.float32)
         eta = _backtrack(data, z, dz, base)
         if eta == 0.0:
             break
-        delta += eta * step[:n_groups]
+        delta += eta * step
         z += (eta * dz).astype(np.float32)
+    if own_W:
+        del W
     return delta, z
 
 
 def update_V(data, U, V, z, lam_v, sweeps):
-    """Regularised coordinate descent on V (their Eq. 5), damped the same way."""
+    """Regularised coordinate descent on V (their Eq. 5): one exact block-Newton
+    solve per ITEM, damped by the same line search."""
+    d, M = data.d, data.n_items
+    Ue = np.ascontiguousarray(U[data.eu], dtype=np.float32)
     for _ in range(sweeps):
         c1, c2 = data.coefs(z)
         base = mean_loss(data, z)
-        step = np.zeros_like(V)
-        dz = np.zeros_like(z)
-        for k in range(data.d):
-            uk = U[data.eu, k]
-            if data.kind == "pairwise":
-                g = (np.bincount(data.ep, weights=c1 * uk, minlength=data.n_items)
-                     - np.bincount(data.en, weights=c1 * uk, minlength=data.n_items))
-                h = (np.bincount(data.ep, weights=c2 * uk * uk, minlength=data.n_items)
-                     + np.bincount(data.en, weights=c2 * uk * uk,
-                                   minlength=data.n_items))
-            else:
-                sg = data.ey if data.kind == "logistic" else 1.0
-                g = np.bincount(data.ei, weights=c1 * uk * sg, minlength=data.n_items)
-                h = np.bincount(data.ei, weights=c2 * uk * uk, minlength=data.n_items)
-            g = g + 2.0 * lam_v * V[:, k]
-            h = h + 2.0 * lam_v
-            sk = -g / np.maximum(h, 1e-9)
-            step[:, k] = sk
-            if data.kind == "pairwise":
-                dz += (uk * (sk[data.ep] - sk[data.en])).astype(np.float32)
-            else:
-                sg = data.ey if data.kind == "logistic" else 1.0
-                dz += (uk * sk[data.ei] * sg).astype(np.float32)
+        G = np.zeros((M, d))
+        H = np.zeros((M, d, d))
+        if data.kind == "pairwise":
+            for k1 in range(d):
+                a = c1 * Ue[:, k1]
+                G[:, k1] = (np.bincount(data.ep, weights=a, minlength=M)
+                            - np.bincount(data.en, weights=a, minlength=M))
+                a = c2 * Ue[:, k1]
+                for k2 in range(k1, d):
+                    w = a * Ue[:, k2]
+                    v = (np.bincount(data.ep, weights=w, minlength=M)
+                         + np.bincount(data.en, weights=w, minlength=M))
+                    H[:, k1, k2] = v
+                    H[:, k2, k1] = v
+        else:
+            sg = data.ey if data.kind == "logistic" else 1.0
+            for k1 in range(d):
+                G[:, k1] = np.bincount(data.ei, weights=c1 * Ue[:, k1] * sg,
+                                       minlength=M)
+                a = c2 * Ue[:, k1]
+                for k2 in range(k1, d):
+                    v = np.bincount(data.ei, weights=a * Ue[:, k2], minlength=M)
+                    H[:, k1, k2] = v
+                    H[:, k2, k1] = v
+        G = G + 2.0 * lam_v * V
+        step = _block_solve(G, H, lam_v, d)
+        if data.kind == "pairwise":
+            dz = np.einsum("ed,ed->e", step[data.ep] - step[data.en], Ue)
+        else:
+            sg = data.ey if data.kind == "logistic" else 1.0
+            dz = np.einsum("ed,ed->e", step[data.ei], Ue) * sg
+        dz = dz.astype(np.float32)
         eta = _backtrack(data, z, dz, base)
         if eta == 0.0:
             break
