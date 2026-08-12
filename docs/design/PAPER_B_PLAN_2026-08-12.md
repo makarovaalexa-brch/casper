@@ -60,6 +60,16 @@ era's reported metric. The field moved the metric to ranking and kept the rating
 nobody rebuilt the greedy comparator. We change the criterion back to the metric and adaptivity wins
 again.
 
+**CONFIRMED 2026-08-12 by the modern-CRS positioning survey (B6/1.21) — and this is now the chapter's
+LEAD concession, not a background note.** GreedyExtend is the *only* metric-optimised static comparator
+found anywhere in the literature, so **"nobody ever compared adaptivity against one" is FALSE and must
+never be written**; the claim is scoped to the period after the reported metric moved to truncated top-k
+ranking. The deep-RL CRS family was checked baseline-table by baseline-table and has none; the LLM
+elicitation line has none; the conversational-bandit line has none. ⚠ *GreedyExtend's own CIKM'10 full
+text is [A/S] — closed on every route tried — so this concession rests on a reconstruction from
+WSDM'11 §3.1.1 [V], patent US8510248B2 [V] and RMVA's description [V], plus WSDM'11 Fig. 3 [V]. Get the
+PDF through institutional access before it goes to print.*
+
 ## 1. Chapter structure
 
 - **Act 1 — the puzzle.** Published adaptive selectors vs a static order built by maximising the
@@ -149,8 +159,18 @@ K=1 lead of +0.00246, where conditioning is impossible.
 
 ## 3. Workstream B — Act 1 baseline additions
 
-- **B1 (1.12, promoted MANDATORY). IN PROGRESS 2026-08-12 — full re-read done, harness built and
-  committed (`7d3e302`), run HELD pending the box.** Everything lives in
+- **B1 (1.12, promoted MANDATORY). ABLATION DONE 2026-08-13 00:27 — the mechanism claim holds in
+  its strongest form.** On 10,000 TEST users at K=16, gain vs the policy-B static order:
+  **ours +0.01035 [+0.00749,+0.01328] / +0.00705 tail; Hu & Yu pairwise -0.03041; Golbandi
+  variance -0.03061; Hu & Yu logistic (the loss they ACTUALLY RAN) -0.08627.** Every interval
+  excludes zero; ours is the only arm above the static order; the adverse case did not occur.
+  Banked-headline assert PASS at 2.81e-07. **Unpredicted and chapter-worthy: (b) ~= (a), so
+  upgrading a rating surrogate to a ranking surrogate buys nothing measurable — the separating
+  axis is measured-vs-surrogate, not ranking-vs-rating.** Act 3 should state this: hold the tree
+  code, the split rule, min-leaf, the answers, the recommender, the mask, the pool, both cohorts
+  and the budget fixed, change only the scalar a question is scored by, and the SIGN of the
+  conditioning gain flips. Part A (the snap on their own protocol) is still open and has a red
+  flag (EIP below most-popular at d=10). Everything lives in
   `docs/results/HU_YU_2013_REPLICATION_AND_ABLATION.md` (design sheet §0, pre-registered
   interpretation §0.8); the findings file is rewritten; bib key `hu2013interview` added to
   `new_chapters/references.bib` after checking all four `.bib` files for a collision (none).
@@ -172,9 +192,39 @@ K=1 lead of +0.00246, where conditioning is impossible.
 - **B3 (task 9).** EDDI full Eq. 9 re-run.
 - **B4 (task 25).** ConUCB k=8: resolve or report UNINFORMATIVE with the b(t) schedule stated.
 - **B5 (task 10).** CLiME width-rule run — make the degeneration citable.
-- **B6 (1.21, NEW).** Deep-RL CRS family (CRM/EAR/SCPR/UNICORN) as AUDIT ROWS + positioning text:
-  adaptive, metric-as-RL-reward, but simulator-circular (our firewall) and attribute-loop protocol.
-  Cite, don't run. Our 1.16 = the non-circular version.
+- **B6 (1.21, SURVEY DONE 2026-08-12).** Deep-RL CRS family (CRM/EAR/SCPR/UNICORN/ConTS + the 2022–26
+  successor layer) and the LLM elicitation line as AUDIT ROWS + positioning text. Evidence:
+  `external_literature/findings/modern_crs_positioning.md`; chapter-ready prose and the borrow list for
+  E/1.16: `docs/results/POSITION_VS_MODERN_CRS.md`. **Cite, don't run — confirmed, with the rebuild cost
+  itemised: their RL reward IS target-hitting, so breaking the circularity deletes the method and leaves
+  workstream E with their state encoder.** Four things this survey changes for the chapter:
+  1. **★ The comparator claim must be SCOPED.** *"Nobody compared adaptivity against a metric-optimised
+     static order"* is **FALSE**: Golbandi WSDM'11 beat **GreedyExtend** (CIKM'10), a static seed set
+     built by greedily minimising **RMSE with the recommender refit on seed-restricted data** — the
+     reported metric of its era — needing 6 questions where GreedyExtend needed >20. **This is evidence
+     FOR §0's objective-mismatch frame, and it must be presented by us, not found by a reviewer.** The
+     surviving claim: *since the reported metric moved to truncated top-k ranking, no adaptive selector
+     has been tested against a static order built by maximising it.*
+  2. **★ The objective claim must be SCOPED too.** A truncated, position-discounted ranking metric HAS
+     been an acquisition function — **Bilgic & Bennett, SIGIR 2012** (`M = DCG@10 / NDCG@10` inside an
+     ELO regret; arms `dcgELOq`/`ndcgELOq`), and **ELO-DCG, SIGIR 2010** has the discount without the
+     truncation. Both are **regret**, both select **training labels**, neither asks a user anything.
+     Our four surviving deltas: improvement-not-regret · held-out cohort metric · a question to a user ·
+     full catalogue. **Also: greedy forward selection with an NDCG wrapper is ordinary in LTR feature
+     selection — claim the conjunction, never the technique.**
+  3. **★ Two more concessions.** **The FacT (SIGIR 2019)** is a confirmed ranking-split *interview* tree
+     (BPR term in the split, "interview questions" verbatim) — so "a ranking loss in an interview tree's
+     split" is 2019 prior art, not only Hu & Yu's 2013 framework. And **Hu & Yu has SEVEN citers in
+     thirteen years**, none an interview-tree method paper, **nobody ever instantiating the pairwise
+     rank loss** — the third measured instance of this subfield's dormancy pattern, and an argument for
+     running the B1 ablation rather than citing a number.
+  4. **Corrections to our own records:** SCPR is **KDD** 2020; **hDCG is UNICORN-onward** and
+     CRM/EAR/SCPR/ConTS report no rank-sensitive metric at all; the circularity is **label-based, not
+     representational** (never write "the simulator is built from the recommender's embeddings");
+     PEBOL's stored DOI was wrong. 16 bib keys added, collision-checked across all four `.bib` files;
+     **three carry PLACEHOLDER TITLES flagged in-file and must be fixed before any compile.**
+  Outstanding under B6: add the audit rows to `BASELINE_OBJECTIVE_AUDIT.md`, and fold the position doc
+  into the chapter's Positioning section.
 
 ## 4. Workstream C — Act 2 exhibits
 
