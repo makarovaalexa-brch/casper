@@ -46,6 +46,20 @@ the overfitting measurement and is the most likely thing to carry the finding.
 
 CONTRACT: full AND tail NDCG@10, learned decoder bias, NO floor, policy-B candidate pool, canonical
 head mask -- i.e. `genv_eval`, the same function stage 1 used, unchanged.
+
+--------------------------------------------------------------------------------------------------
+STAGE-2 RE-RUN, 2026-08-12 (A3). `--global_from <items-only policy-B build>` swaps ONE thing: the
+GLOBAL COMPARATOR. The original run compared the group orders against `greedy_static_i26c.json`'s
+items-only arm, which was SELECTED under the retired policy-A candidate mask; A1 measured what that
+costs on the combined pool (0 of 16 positions survived the fix). Nothing else may move, and nothing
+else does: the grouping rule, the group orders, the budgets, the primary K, the arms, the threshold,
+the bootstrap and its seed are all still READ from stage 1 and are NOT re-searched. The re-run writes
+to its own label so the pre-registered artifact is never overwritten (HARD RULE 11e).
+
+`--global_extra_K` additionally scores the GLOBAL ORDER ALONE at budgets outside the stage-1 list
+(default 16) and banks its per-user vectors. That is not part of the genre endpoint -- it exists so
+the items-vs-combined bank decomposition can be paired at EQUAL budget against the combined order's
+banked test vectors.
 """
 import os
 import sys
@@ -90,8 +104,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--snapshot", default=CERT_TOWER)
     ap.add_argument("--concept_ckpt", default=CERT_CONC)
-    ap.add_argument("--label", default=LABEL)
+    ap.add_argument("--label", default=None)
+    ap.add_argument("--global_from", default=None,
+                    help="path to a rebuilt items-only static order; swaps ONLY the comparator")
+    ap.add_argument("--global_extra_K", type=int, nargs="*", default=[16],
+                    help="extra budgets at which to score the GLOBAL order alone (banked per-user, "
+                         "for the equal-budget bank decomposition); ignored if longer than the order")
     args = ap.parse_args()
+    if args.label is None:
+        args.label = LABEL + ("_policyB" if args.global_from else "")
+    assert not (args.global_from and args.label == LABEL), \
+        "a re-run with a swapped comparator must not overwrite the pre-registered artifact"
 
     t00 = time.time()
     OUT = os.path.join(OUTDIR, f"{args.label}.json")
@@ -108,6 +131,37 @@ def main():
     assert os.path.basename(args.snapshot) == s1["tower"], "tower mismatch vs the stage-1 build"
     assert os.path.basename(args.concept_ckpt) == s1["concept_ckpt"], "concept ckpt mismatch"
     global_seq = [(int(a), int(b)) for a, b in s1["global_sequence"]]
+    global_src = {"source": os.path.basename(STAGE1_JSON),
+                  "selected_under": "policy A (greedy_static_i26c items-only arm)"}
+    if args.global_from:
+        assert os.path.isabs(args.global_from) and os.path.exists(args.global_from), args.global_from
+        gb = json.load(open(args.global_from))
+        assert gb.get("citable") and not gb.get("SANITY"), "the replacement comparator is not citable"
+        assert gb["split"] == "validation" and not gb["test_touched"], \
+            "the replacement comparator was not built on validation"
+        assert gb["channel"] == "items" and gb["n_pool"] == 500 and gb["item_bank"] == "pop", \
+            f"the replacement comparator is not the 500-item items-only build: {gb.get('channel')}"
+        assert gb.get("pool_policy") == "B" and gb["mask_policy"] == "B", "not a policy-B build"
+        assert gb["objective"] == "full", f"objective {gb['objective']}"
+        assert gb["tower"] == os.path.basename(args.snapshot) and \
+            gb["concept_ckpt"] == os.path.basename(args.concept_ckpt), "stack mismatch"
+        assert gb["n_cohort"] == s1["n_cohort"], "comparator cohort differs from stage 1's"
+        global_seq = [(int(a), int(b)) for a, b in gb["sequence"]]
+        global_src = {"source": os.path.basename(args.global_from),
+                      "selected_under": "policy B (rebuilt, A3)",
+                      "label": gb["label"], "L": gb["L"],
+                      "pool_contract": gb["pool_contract"],
+                      "positions_identical_to_policyA_order":
+                          gb.get("positions_identical_to_policyA_order"),
+                      "replaces": ("the policy-A-selected items-only arm of greedy_static_i26c.json, "
+                                   "which stage 1 recorded as `global_sequence`")}
+        log("#" * 108)
+        log(f"# COMPARATOR SWAP (A3): the global order is now {gb['label']}, rebuilt under POLICY B "
+            f"({gb['L']} picks, {gb.get('positions_identical_to_policyA_order')} positions identical "
+            f"to the policy-A order it replaces). NOTHING ELSE CHANGES -- the group orders, the "
+            f"grouping rule, the budgets, the arms, the threshold and the bootstrap are read from "
+            f"stage 1 exactly as before and are NOT re-searched.")
+        log("#" * 108)
     val_sizes = dict(s1["group_sizes"])
     ITEM_BUDGETS = tuple(int(k) for k in s1["budgets_items"])   # read, never re-declared here
     L_ITEMS = int(s1.get("L_items", max(ITEM_BUDGETS)))
@@ -190,6 +244,16 @@ def main():
         banked[f"__global__|{K}|tail"] = t.astype(np.float32)
         log(f"[global] K={K:<3} full {np.nanmean(f):.5f}  tail {np.nanmean(t):.5f} "
             f"({E['t_evals'] / max(E['n_evals'], 1):.2f}s/eval)")
+    # Extra budgets for the GLOBAL ORDER ALONE. Not part of the genre endpoint; banked so the
+    # items-vs-combined bank decomposition can be paired at EQUAL budget (A3).
+    extra_K = sorted({int(k) for k in (args.global_extra_K or [])
+                      if int(k) not in ITEM_BUDGETS and int(k) <= len(global_seq)})
+    for K in extra_K:
+        f, t = genv_eval(E, global_seq[:K], rows)
+        banked[f"__global__|{K}|full"] = f.astype(np.float32)
+        banked[f"__global__|{K}|tail"] = t.astype(np.float32)
+        log(f"[global] K={K:<3} full {np.nanmean(f):.5f}  tail {np.nanmean(t):.5f}  "
+            f"(EXTRA budget: comparator only, not a genre-arm endpoint)")
     banked["__rows__"] = np.asarray(rows, np.int64)
     pos = {int(r): i for i, r in enumerate(rows)}
     json.dump({"stage": 2, "global_done": True}, open(PARTIAL, "w"))
@@ -312,6 +376,12 @@ def main():
            "n_test_users_on_global_under_fallback": n_fallback,
            "small_group_threshold": SMALL_GROUP,
            "global_sequence": [[int(a), int(b)] for a, b in global_seq],
+           "global_comparator": global_src,
+           "global_extra_budgets_scored": extra_K,
+           "stage2_rerun_note": (None if not args.global_from else
+               "STAGE-2 RE-RUN with a rebuilt comparator (A3). The group orders and the grouping "
+               "rule are the stage-1 ones, unchanged and NOT re-searched; only the global order "
+               "against which they are measured was rebuilt under policy B."),
            "budgets_items": list(ITEM_BUDGETS), "L_items": L_ITEMS, "primary_K": PRIMARY_K,
            "arms": arms_out, "per_group": per_group,
            "primary_endpoint": {"definition": f"arms.all_groups.{PRIMARY_K}.paired_ci_full",
