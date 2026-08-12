@@ -568,6 +568,129 @@ def genv_eval(E, seq, rows, batch=500):
     return full, tail
 
 
+def genv_eval_multi(E, rows, item_seqs, conc_seqs, batch=500, Zi_items=None, return_Zi=False):
+    """Per-user (full, tail) NDCG@10 where EVERY USER CARRIES ITS OWN ask sequence.
+
+    `genv_eval` scores ONE sequence for a whole cohort. TODO 1.11 needs the opposite shape: 10,000
+    users sitting in up to 5,767 DIFFERENT interview states, each asked the SAME candidate question,
+    scored in one pass. Calling `genv_eval` once per state would pay ~5.8M small-batch calls for what
+    is one 10,000-user pass, so this function exists -- but it is the SAME contract, not a second
+    ruler: same policy-B pool, same learned decoder bias, same `ndcg10_from_scores` funnel with the
+    mask contract enabled, same certified concept fold with `cap_negatives` over the REVEALED set.
+    `genv_eval_multi == genv_eval` bit-for-bit whenever every user carries the same sequence, and
+    that is asserted by the caller's G-C gate rather than left as a comment.
+
+      rows        cohort rows to score, inside E's ACTIVE set. THE ORDER IS SIGNIFICANT and must be
+                  held fixed across calls: `ndcg10_from_scores`'s mask contract fingerprints each
+                  batch's csr slice, so re-ordering users between candidates would trip it. The
+                  caller passes state-major order once and reuses it.
+      item_seqs   list (len == len(rows)) of ITEM id lists, in ask order, for that user.
+      conc_seqs   list (len == len(rows)) of CONCEPT id lists for that user.
+      Zi_items    optional precomputed item-fold latents for exactly these rows/sequences. Every
+                  CONCEPT candidate leaves the item prefix untouched, so the whole 500-concept block
+                  of a budget shares one fold; `return_Zi=True` on the baseline pass hands it over.
+
+    THREE EXACT OPTIMISATIONS, NO APPROXIMATION ANYWHERE:
+      (1) state-major user order, so a batch is state-homogeneous;
+      (2) inside a batch, users whose recommender input is BIT-IDENTICAL (same item ids, same exact
+          levels, same concept ids/values/refusals) are deduplicated before the tower fold, the
+          concept fold and the decoder matmul, and the scores are scattered back. Exact because the
+          state key carries the exact half-star levels, not the like/dislike bucket. At k=1 a
+          500-user batch holds at most 11*11 distinct inputs;
+      (3) NDCG stays per-user -- it must, every user has their own mask and their own targets.
+    Memory is bounded by `batch`: at most `batch` x 18,359 float32 scores are alive (37 MB at 500).
+    """
+    t0 = time.time()
+    ctx = E["ctx"]; net = E["net"]; lvl = E["lvl"]
+    ridx = np.asarray(rows, np.int64)
+    n = len(ridx)
+    assert len(item_seqs) == n and len(conc_seqs) == n, "per-user sequence lists must match `rows`"
+    jj = E["posmap"][ridx]
+    assert (jj >= 0).all(), "genv_eval_multi called on rows outside the env's active cohort"
+
+    # ---- per-user recommender input, built once ------------------------------------------------
+    ikeys = []                                            # (item ids, exact levels) per user
+    for u in range(n):
+        ids = tuple(int(i) for i in item_seqs[u])
+        d = lvl[int(ridx[u])]
+        ikeys.append((ids, tuple(int(d.get(i, UNSEEN_LEVEL)) for i in ids)))
+    # An ANSWERED asked item can never be a held-out target (lvl_lookup is built with te excluded).
+    # `_env_item_state` asserts this for the single-sequence path; the heterogeneous path must not
+    # lose the leak check just because the sequences differ per user.
+    ar, ac = [], []
+    for u in range(n):
+        ids, lvs = ikeys[u]
+        for i, L in zip(ids, lvs):
+            if L < UNSEEN_LEVEL:
+                ar.append(u); ac.append(i)
+    ansm = sparse.csr_matrix((np.ones(len(ar), np.float32), (ar, ac)), shape=(n, ctx.ni))
+    assert ansm.multiply(ctx.va_te[ridx]).nnz == 0, "an answered item is also a held-out target"
+
+    ckeys = []                                            # (ids, capped values, refusal flags)
+    any_conc = False
+    for u in range(n):
+        cids = [int(c) for c in conc_seqs[u]]
+        if not cids:
+            ckeys.append(((), (), ()))
+            continue
+        any_conc = True
+        r = int(ridx[u])
+        ok = np.asarray([bool(E["foldable"][r, c]) for c in cids])
+        vv = np.where(ok, np.asarray([float(E["V"][r, c]) for c in cids], np.float64), 0.0)
+        s = -np.minimum(vv, 0.0).sum()                    # cap_negatives over the REVEALED set
+        sc = min(1.0, E["cneg"] / max(s, 1e-9))
+        vv = np.where(vv < 0, vv * sc, vv)
+        ckeys.append((tuple(cids), tuple(float(x) for x in vv),
+                      tuple(0.0 if o else 1.0 for o in ok)))
+
+    # ---- item fold (deduplicated), reusable across a whole concept block ------------------------
+    if Zi_items is None:
+        uniq, order = {}, []
+        inv = np.empty(n, np.int64)
+        for u, k in enumerate(ikeys):
+            j = uniq.get(k)
+            if j is None:
+                j = len(order); uniq[k] = j; order.append(k)
+            inv[u] = j
+        seqs = [(np.asarray(k[0], np.int64), np.asarray(k[1], np.int64)) for k in order]
+        Zu = fold_items_frozen(ctx.enc, seqs, batch=500)
+        Zi_items = Zu[torch.from_numpy(inv)]
+    assert Zi_items.shape[0] == n, "Zi_items does not match `rows`"
+
+    # ---- score ---------------------------------------------------------------------------------
+    full = np.full(n, np.nan); tail = np.full(n, np.nan)
+    with torch.no_grad():
+        for st in range(0, n, batch):
+            en = min(st + batch, n)
+            ch = ridx[st:en]
+            # dedup INSIDE the batch on the full recommender input
+            bmap, binv = {}, np.empty(en - st, np.int64)
+            for u in range(st, en):
+                k = (ikeys[u], ckeys[u])
+                j = bmap.get(k)
+                if j is None:
+                    j = len(bmap); bmap[k] = j
+                binv[u - st] = j
+            pick = np.empty(len(bmap), np.int64)
+            for u in range(st, en):
+                pick[binv[u - st]] = u
+            Zb = Zi_items[torch.from_numpy(pick)]
+            if any_conc and any(len(ckeys[int(p)][0]) for p in pick):
+                cid = [list(ckeys[int(p)][0]) for p in pick]
+                cvl = [list(ckeys[int(p)][1]) for p in pick]
+                crf = [list(ckeys[int(p)][2]) for p in pick]
+                z = net(Zb, cid, cvl, crf if net.use_refusal else None)
+            else:
+                z = Zb
+            Su = (z @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
+            S = Su[binv]
+            f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
+                                      contract=(E["contract_tag"], ch))
+            full[st:en] = f; tail[st:en] = t
+    E["n_evals"] += 1; E["t_evals"] += time.time() - t0
+    return (full, tail, Zi_items) if return_Zi else (full, tail)
+
+
 def genv_intercept_policyA(E, rows, batch=500):
     """The m=0 intercept under POLICY A (liked fold-in only) -- the CERTIFICATION BRIDGE only.
 
