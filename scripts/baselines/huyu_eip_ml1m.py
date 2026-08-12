@@ -64,6 +64,8 @@ VAL_FRAC = 0.20              # carved out of TRAIN users for the d / lambda swee
 NEG_PER_POS_TRAIN = 10
 NEG_PER_POS_TEST = 10        # THEIR number
 LAMBDA_U = 10.0              # theirs
+SWEEP_D = (10, 20, 40)       # d is not specified by the paper
+SWEEP_LV = (10.0,)           # Eq.2 weights ||V||^2 by 1; lambda_u = 10 is stated
 MIN_LEAF = 30                # not specified by the paper
 OUTER_ITERS = 8              # tree <-> V alternations; not specified
 V_SWEEPS = 3                 # coordinate-descent sweeps over V per outer iteration
@@ -744,8 +746,10 @@ def _feature_matrix(items, ans, users, thr=FIXQ_LIKE_THRESHOLD):
 
 def fit_feature_mf(data, V, rows_by_user, F, users, lam_u, lam_v, outer, d,
                    n_users):
-    """Feature-based MF: u_i = sum_f x_if a_f, fitted by coordinate descent on a
-    per-dimension quadratic model of the loss (exact CD for square loss)."""
+    """FixQ's model: feature-based MF, u_i = sum_f x_if a_f, where the features are
+    the user's answers to the k fixed interview questions.  A is fitted by cyclic
+    coordinate descent over the features on the same majorised quadratic model used
+    everywhere else, alternating with the coordinate descent on V."""
     A = np.zeros((F, d))
     U = np.zeros((n_users, d))
     ptr = np.zeros(len(users) + 1, np.int64)
@@ -756,9 +760,10 @@ def fit_feature_mf(data, V, rows_by_user, F, users, lam_u, lam_v, outer, d,
     urow = np.repeat(np.arange(len(users)), np.diff(ptr))
     uid = np.asarray(users)
     feat_rows = [urow[cols == f] for f in range(F)]
+    du_full = np.zeros(n_users)
+    z = data.z_of(U, V)
     for it in range(outer + 1):
         for _ in range(U_SWEEPS):
-            z = data.z_of(U, V)
             for k in range(d):
                 c1, c2 = data.coefs(z, bound=True)
                 wk = data.w(V, k)
@@ -766,7 +771,7 @@ def fit_feature_mf(data, V, rows_by_user, F, users, lam_u, lam_v, outer, d,
                 h_i = np.bincount(data.eu, weights=c2 * wk * wk, minlength=n_users)
                 gi, hi = g_i[uid], h_i[uid]
                 du = np.zeros(len(users))
-                for _gs in range(8):                 # Gauss-Seidel over features
+                for _gs in range(8):           # cyclic CD over the answer features
                     for f in range(F):
                         rr = feat_rows[f]
                         if len(rr) == 0:
@@ -777,9 +782,12 @@ def fit_feature_mf(data, V, rows_by_user, F, users, lam_u, lam_v, outer, d,
                         A[f, k] += step
                         du[rr] += step
                 U[uid, k] += du
-                z = data.z_of(U, V)
+                du_full[uid] = du
+                z += (du_full[data.eu] * wk).astype(np.float32)
+                du_full[uid] = 0.0
         if it < outer:
-            V, _ = update_V(data, U, V, data.z_of(U, V), lam_v, V_SWEEPS)
+            V, z = update_V(data, U, V, z, lam_v, V_SWEEPS)
+        log("    [fixq %s] iter %d loss=%.5f" % (data.kind, it, mean_loss(data, z)))
     return A, V
 
 
@@ -888,8 +896,8 @@ def main():
         ev = Evaluator(sp, sp.n_items, pos_min=1)
         ev4 = Evaluator(sp, sp.n_items, pos_min=4)
         res, best = {}, (-1, None)
-        for dd in (5, 10, 20, 40):
-            for lam_v in (1.0, 10.0, 100.0):
+        for dd in SWEEP_D:
+            for lam_v in SWEEP_LV:
                 t0 = time.time()
                 U, V = run_warm("logistic", sp, dd, lam_v, outer=args.outer)
                 ev.V = ev4.V = V
