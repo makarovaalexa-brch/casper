@@ -94,7 +94,19 @@ agreement is measured on the space the chapter's claim is about.
 Candidates already in a state's prefix are excluded per budget (marked NaN, never scored, never
 counted); at k=8 that is at most 8 of the 1,000.
 
-**DECLARED SHORTCUT (HARD RULE 1 — needs author sign-off before launch).** The published item-side
+> ### ★ AUTHOR SIGN-OFF OBTAINED — 2026-08-12
+>
+> **The 1,000-candidate combined pool (500 popularity-ranked items + 500 answerable concepts) is
+> APPROVED by the author**, on the stated basis that **phase 1b separately evaluates each arm's TRUE
+> UNRESTRICTED argmax at every state**, so the headline regret number is pool-free. The non-lossy
+> alternative — all 19,390 candidates (18,359 items × 1,031 concepts), costed at **≈ 230 wall-clock
+> hours** — was put to the author with its cost and **declined**.
+>
+> **This sign-off covers this one restriction and nothing else. NO OTHER REDUCTION IS APPROVED**: not
+> users, not states, not budgets, not resamples, not the number of rows. Every ρ in the results
+> document carries the pool restriction in its caption (§9); only the regret statistic is pool-free.
+
+**DECLARED SHORTCUT (HARD RULE 1 — sign-off obtained 2026-08-12, see the box above).** The published item-side
 selectors argmax over all 18,359 items and the conversational arms over all 1,031 concepts. The pool
 is therefore a restriction of their native action space.
 - **Non-lossy alternative:** 18,359 items × 1,031 concepts = 19,390 candidates → **19.4× the cost,
@@ -307,9 +319,11 @@ at all**:
 
 Phases 2–3 are built while phase 1 runs; they contend for nothing.
 
-**Launch sequence.** Nothing starts until the box is free — workstream A1 (`ndcg_tree_extend16`,
-PID 24120) and the re-measurement queued behind it own the machine, and HARD RULE 11(d) forbids a
-second heavy job.
+**Launch sequence.** Nothing starts until the box is free — HARD RULE 11(d) forbids a second heavy
+job. *Status 2026-08-12 23:00: A1–A4 have landed and cleared, but the box is now the Hu & Yu
+replication's for the night (author priority: "replicate hu & yu as fully as you can"), and its
+ablation may grow up to three trees over 10,000 users. Phase 1 is HELD until the coordinator releases
+the machine; phases 2 and 3 are being built in the meantime, since they need no CPU.*
 
 ```
 python scripts/act2_surrogate_rank_corr.py --selftest      # seconds, no env  -- ALREADY PASSES
