@@ -315,20 +315,26 @@ def main():
         g = np.array([intact.get(q, np.nan) for q in qs])
         g[[i for i, q in enumerate(qs) if q == splitq]] = float(rec["splitter_gain"])
         known = np.isfinite(g)
-        # best feasible candidate: exact if no DEGRADED candidate is feasible, else bracketed
-        feas_known = feas & known
+        # WHAT WOULD CONSTRAINED SEARCH HAVE PICKED HERE?
+        # If the node SPLIT, its argmax was already feasible and the constrained pick is the same
+        # question -- cost zero, exactly. If it stopped, the argmax is infeasible by definition, so
+        # the constrained pick is some other candidate. Its gain is known exactly when no DEGRADED
+        # candidate is feasible; otherwise it is bracketed: every degraded candidate was popped at
+        # level 0 while it was the heap maximum, so its node-level gain is >= every intact heap
+        # entry's, and it is < the (unconstrained, infeasible) argmax's.
+        is_split = [i for i, q in enumerate(qs) if q == splitq][0]
+        not_split = np.array([q != splitq for q in qs])
+        feas_known = feas & known & not_split
         best_known = float(g[feas_known].max()) if feas_known.any() else None
-        deg_feas = [q for q in qs if q in degraded and tab[q] and min(tab[q]) >= MIN_LEAF]
+        deg_feas = [q for q in qs if q in degraded and min(tab[q]) >= MIN_LEAF]
         n_pos_known = int((g[known] > 0).sum())
-        # Every degraded candidate was popped at level 0 while it was the heap maximum, so its
-        # node-level gain is >= every intact candidate's. That turns "unknown" into a two-sided
-        # bracket on what CONSTRAINED SEARCH would have found at this node.
-        max_intact = float(g[known].max()) if known.any() else None
-        lo = [x for x in (best_known, (max_intact if deg_feas else None)) if x is not None]
-        best_feas_lower = max(lo) if lo else None
-        best_feas_upper = float(rec["splitter_gain"]) if (deg_feas or (
-            best_known is not None and bool(feas[[i for i, q in enumerate(qs)
-                                                  if q == splitq][0]]))) else best_known
+        max_intact = float(g[known & not_split].max()) if (known & not_split).any() else None
+        if bool(feas[is_split]):                       # the node split: constrained == unconstrained
+            best_feas_lower = best_feas_upper = float(rec["splitter_gain"])
+        else:
+            lo = [x for x in (best_known, (max_intact if deg_feas else None)) if x is not None]
+            best_feas_lower = max(lo) if lo else None
+            best_feas_upper = float(rec["splitter_gain"]) if deg_feas else best_known
         # PER-CHILD ROUTING: the split is allowed and any child under the floor inherits the
         # parent's greedy tail (which is exactly what the whole node gets today). A node can
         # continue iff some candidate puts at least TWO children over the floor.
