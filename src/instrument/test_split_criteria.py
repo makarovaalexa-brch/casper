@@ -91,7 +91,7 @@ def main():
     nc = 5
     like = rng.random((nc, nu)) < 0.3
     dis = (~like) & (rng.random((nc, nu)) < 0.3)
-    memL = sparse.csr_matrix(like); memD = sparse.csr_matrix(dis)
+    memL = np.asarray(like, bool); memD = np.asarray(dis, bool)   # DENSE, as in production
     sub = np.arange(nu)
     s, e2n = SC.variance_scores(ev, memL, memD, sub, list(range(nc)), chunk=2)
     Xd = np.asarray(Xb.todense()); Md = np.asarray(M.todense())

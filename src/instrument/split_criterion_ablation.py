@@ -148,15 +148,28 @@ def score_candidates(kind, E, ev, memL, memD, pos_of, blocks, cand_idx, seq, row
         return rng.random(n_c), {}
     tot = np.zeros(n_c, np.float64)
     info = {}
+    # SINGLETON BLOCKS ARE SKIPPED, AND THAT IS EXACT, NOT AN APPROXIMATION.
+    #   variance: a one-user block has n_j = 1 for every item it rates, so `s2 - s^2/n` is identically
+    #             zero for every child and for the block itself -- it contributes 0 to every candidate.
+    #   Hu & Yu: a one-user block always lands ENTIRELY in one branch whichever question is asked, so
+    #             its gain is 0.5 * sum_k g_u[k]^2 / (h_u[k] + 2 lam) regardless of the candidate -- a
+    #             constant added to all candidates, which cannot move an argmax.
+    # It matters because the refining leaf tail produces mostly singletons after a few questions, and
+    # the per-block cost is dominated by call overhead rather than by arithmetic.
+    live = [b for b in blocks if len(b) > 1]
+    info["n_blocks"] = len(blocks)
+    info["n_blocks_scored"] = len(live)
+    if not live:
+        return tot, info
     if kind == "variance":
-        for b in blocks:
+        for b in live:
             sub = np.asarray([pos_of[int(r)] for r in b], np.int64)
             s, e2n = SC.variance_scores(ev, memL, memD, sub, cand_idx)
             tot += s
             info["e2_node"] = info.get("e2_node", 0.0) + e2n
         return tot, info
     # ---- Hu & Yu: one latent fold + one gradient pass over ALL the node's users, then masked sums
-    all_rows = [int(r) for b in blocks for r in b]
+    all_rows = [int(r) for b in live for r in b]
     Z = genv_latent(E, seq, all_rows)
     sub_all = np.asarray([pos_of[r] for r in all_rows], np.int64)
     t0 = time.time()
@@ -165,7 +178,7 @@ def score_candidates(kind, E, ev, memL, memD, pos_of, blocks, cand_idx, seq, row
     info["n_terms"] = npair
     off = 0
     nclip = 0
-    for b in blocks:
+    for b in live:
         k = len(b)
         sub = sub_all[off:off + k]
         s, nc = SC.huyu_scores(G[off:off + k], H[off:off + k], memL, memD, sub, cand_idx)
@@ -614,8 +627,8 @@ def main():
     memL, memD = SC.build_membership(Ev, rows_val, pool, log)
     for j in (0, 1, len(pool) // 2, len(pool) - 1):
         lab, _ar, _z = branch_of(Ev, rows_val, pool[j])
-        assert np.array_equal(np.asarray(memL[j].todense()).ravel().astype(bool), lab == "like")
-        assert np.array_equal(np.asarray(memD[j].todense()).ravel().astype(bool), lab == "dislike")
+        assert np.array_equal(memL[j], lab == "like")
+        assert np.array_equal(memD[j], lab == "dislike")
     log("[selftest] membership matrices == ndcg_tree.branch_of on spot-checked candidates")
     pos_of = {int(r): i for i, r in enumerate(rows_val)}
     Wd = np.asarray(Ev["ctx"].Wd.detach().numpy(), np.float64)

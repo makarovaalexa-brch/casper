@@ -198,11 +198,11 @@ def build_membership(E, rows_all, pool, log=print):
             ans = E["foldable"][idx, int(q)]
             like = ans & (E["V"][idx, int(q)] > 0)
         nL.append(like); nD.append(ans & ~like)
-    L = sparse.csr_matrix(np.asarray(nL))
-    D = sparse.csr_matrix(np.asarray(nD))
-    log(f"[membership] {L.shape[0]} candidates x {L.shape[1]} users; mean like rate "
-        f"{L.nnz / L.shape[0] / L.shape[1]:.4f}, dislike {D.nnz / D.shape[0] / D.shape[1]:.4f}, "
-        f"noanswer {1 - (L.nnz + D.nnz) / L.shape[0] / L.shape[1]:.4f}")
+    L = np.asarray(nL, bool)
+    D = np.asarray(nD, bool)
+    log(f"[membership] {L.shape[0]} candidates x {L.shape[1]} users (dense bool, "
+        f"{L.nbytes / 1e6:.0f} MB each); mean like rate {L.mean():.4f}, dislike {D.mean():.4f}, "
+        f"noanswer {1 - L.mean() - D.mean():.4f}")
     return L, D
 
 
@@ -216,7 +216,7 @@ def _e2(s, s2, n):
     return v.sum(axis=-1)
 
 
-def variance_scores(ev, memL, memD, sub, cand, chunk=64):
+def variance_scores(ev, memL, memD, sub, cand, chunk=256):
     """Golbandi's criterion over the node's users `sub` (positional), for candidates `cand`.
 
     Returns HIGHER-IS-BETTER scores: the node's own e2 MINUS the partition's e2, i.e. the variance
@@ -228,12 +228,12 @@ def variance_scores(ev, memL, memD, sub, cand, chunk=64):
     n_tot = np.asarray(Mr.sum(axis=0)).ravel()
     e2_node = float(_e2(s_tot, s2_tot, n_tot))
     out = np.empty(len(cand), np.float64)
-    Lall = memL[:, sub]
-    Dall = memD[:, sub]
+    cnd = np.asarray(cand, np.int64)
+    Lall = memL[np.ix_(cnd, sub)]
+    Dall = memD[np.ix_(cnd, sub)]
     for a in range(0, len(cand), chunk):
-        cc = np.asarray(cand[a:a + chunk], np.int64)
-        Lc = Lall[cc].astype(np.float64)
-        Dc = Dall[cc].astype(np.float64)
+        Lc = sparse.csr_matrix(Lall[a:a + chunk].astype(np.float64))
+        Dc = sparse.csr_matrix(Dall[a:a + chunk].astype(np.float64))
         sL = np.asarray((Lc @ Xr).todense()); s2L = np.asarray((Lc @ X2r).todense())
         nL = np.asarray((Lc @ Mr).todense())
         sD = np.asarray((Dc @ Xr).todense()); s2D = np.asarray((Dc @ X2r).todense())
@@ -241,7 +241,8 @@ def variance_scores(ev, memL, memD, sub, cand, chunk=64):
         sU = s_tot[None, :] - sL - sD                      # Eq. (3): the unknown branch by SUBTRACTION
         s2U = s2_tot[None, :] - s2L - s2D
         nU = n_tot[None, :] - nL - nD
-        out[a:a + len(cc)] = e2_node - (_e2(sL, s2L, nL) + _e2(sD, s2D, nD) + _e2(sU, s2U, nU))
+        out[a:a + Lc.shape[0]] = e2_node - (_e2(sL, s2L, nL) + _e2(sD, s2D, nD)
+                                            + _e2(sU, s2U, nU))
     return out, e2_node
 
 
@@ -302,11 +303,15 @@ def _taylor_gain(gL, hL, gD, hD, gU, hU, lam=LAM_U):
 
 
 def huyu_scores(G, H, memL, memD, sub, cand, lam=LAM_U):
-    """Hu & Yu's split gain for every candidate. HIGHER IS BETTER (their loss is minimised)."""
+    """Hu & Yu's split gain for every candidate. HIGHER IS BETTER (their loss is minimised).
+
+    `memL`/`memD` are DENSE boolean (n_pool x n_cohort), so the aggregation of per-user gradients into
+    per-child sums is one BLAS matmul per branch rather than a sparse product per candidate.
+    """
     gT = G.sum(0); hT = H.sum(0)
-    cc = np.asarray(cand, np.int64)
-    Lc = memL[:, sub][cc].astype(np.float64)
-    Dc = memD[:, sub][cc].astype(np.float64)
+    cnd = np.asarray(cand, np.int64)
+    Lc = memL[np.ix_(cnd, sub)].astype(np.float64)
+    Dc = memD[np.ix_(cnd, sub)].astype(np.float64)
     gL = Lc @ G; hL = Lc @ H
     gD = Dc @ G; hD = Dc @ H
     gU = gT[None, :] - gL - gD                             # the unknown branch by SUBTRACTION
