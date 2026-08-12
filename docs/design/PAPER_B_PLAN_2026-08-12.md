@@ -52,17 +52,23 @@ again.
 - **Act 2 — the diagnosis: objective mismatch.** (a) the objective audit; (b) PV-quartile trend —
   deficit widens where personalising pays most; (c) the direct test, TODO 1.11 rank correlation.
   Placement/dispersion material MOVES OUT (to Act 5, as a reach diagnostic).
-- **Act 3 — the demonstration.** The NDCG tree: design, val→test, tail does not shrink (1.03× vs
-  full 2.26×), partition generalises, negative leaves reported in full, bank-vs-conditioning
-  decomposition. Hu & Yu objective ablation lives here (nearest rival).
+- **Act 3 — the demonstration.** The NDCG tree: design, val→test shrinkage (**2.70× full / 1.50×
+  tail** against the clean comparator — the "tail does not shrink" 1.03× figure was a comparator
+  artifact and is RETRACTED; the asymmetry survives in direction only), partition generalises,
+  negative leaves reported in full (**6/15, 39.3% of the cohort**, on the clean comparator),
+  bank-vs-conditioning decomposition (**the bank now exceeds conditioning: +0.01544 vs +0.01035**,
+  pending A3). Hu & Yu objective ablation lives here (nearest rival).
 - **Act 4 — REFRAMED (author correction 2026-08-12): "answerability orders the channels", NOT
   "coarse-to-fine curriculum".** A static order is not a strategy — nothing informs anything. The
   measured fact: concepts front-load because cold users can answer them (three independent
   measurements: greedy order composition c c c i…, per-state criterion ×12 concept advantage cold
   flipping to items when placed, tree root = concept while the best item split dumps 70% into
   no-answer). Any ROUTING claim ("broad answers determine which finer questions follow") is a claim
-  about the TREE and is currently UNSUPPORTED — no channel dominance by depth (5c/4i at depth 2,
-  8c/7i among 16th picks). New measurement 1.20 decides it.
+  about the TREE and is **now SETTLED NEGATIVE by 1.20** (`TREE_ROUTING_SPECIALISATION.md`): the tree
+  **partitions and diverges but does not demonstrably route.** Licensed: 80/105 leaf pairs share no
+  free pick, median 14/15 positions differ, overlap 3.5× below matched chance. NOT licensed:
+  answer-congruence is a null — matched-availability control p=0.82, branch-label shuffle p=0.61.
+  **No routing claim goes in the chapter.**
 - **Act 5 — reach.** ~14% answer nothing; answering at all is worth ~+0.25 vs +0.048 for the best
   question choice. Open opener as the only instrument that can touch these users; Reddit corpus,
   DiD with init-aware static comparator, withheld-slot replay. CUTTABLE if scope demands — the core
