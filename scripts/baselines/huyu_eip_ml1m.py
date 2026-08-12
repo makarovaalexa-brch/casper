@@ -247,9 +247,18 @@ class Data:
             z += U[self.eu, k] * self.w(V, k)
         return z
 
-    def coefs(self, z):
+    def coefs(self, z, bound=False):
+        """`bound=True` replaces the curvature by its global upper bound (1/4 for
+        the logistic and pairwise-logistic losses).  A Newton step on the true
+        curvature is not globally convergent -- it diverged here (train loss
+        0.43 -> 7.59) -- whereas the bound makes every coordinate step a
+        majorise-minimise step, so the loss cannot increase.  The TRUE Hessian is
+        still what enters the split criterion, which is what the paper specifies."""
         y = self.ey if self.kind == "square" else None
-        return self.loss.coefs(z, y)
+        c1, c2 = self.loss.coefs(z, y)
+        if bound and self.kind in ("logistic", "pairwise"):
+            c2 = np.full_like(c2, 0.25)
+        return c1, c2
 
 
 def user_grad_hess(data, U, V, z):
@@ -279,10 +288,10 @@ def fit_delta_groups(data, V, z, group_of_user, n_groups, lam_u, sweeps,
     ge = group_of_user[data.eu].astype(np.int64)
     ge[ge < 0] = n_groups
     nb = n_groups + 1
+    step = np.zeros((nb, data.d))
     for _ in range(sweeps):
-        c1, c2 = data.coefs(z)
-        step = np.zeros((nb, data.d))
         for k in range(data.d):
+            c1, c2 = data.coefs(z, bound=True)
             wk = data.w(V, k)
             g = np.bincount(ge, weights=c1 * wk, minlength=nb)[:n_groups]
             h = np.bincount(ge, weights=c2 * wk * wk, minlength=nb)[:n_groups]
@@ -301,7 +310,7 @@ def update_V(data, U, V, z, lam_v, sweeps):
     """Regularised coordinate descent on V (their Eq. 5), one dimension at a time."""
     for _ in range(sweeps):
         for k in range(data.d):
-            c1, c2 = data.coefs(z)
+            c1, c2 = data.coefs(z, bound=True)
             uk = U[data.eu, k]
             if data.kind == "pairwise":
                 gp = np.bincount(data.ep, weights=c1 * uk, minlength=data.n_items)
@@ -742,7 +751,7 @@ def fit_feature_mf(data, V, rows_by_user, F, users, lam_u, lam_v, outer, d,
         for _ in range(U_SWEEPS):
             z = data.z_of(U, V)
             for k in range(d):
-                c1, c2 = data.coefs(z)
+                c1, c2 = data.coefs(z, bound=True)
                 wk = data.w(V, k)
                 g_i = np.bincount(data.eu, weights=c1 * wk, minlength=n_users)
                 h_i = np.bincount(data.eu, weights=c2 * wk * wk, minlength=n_users)
