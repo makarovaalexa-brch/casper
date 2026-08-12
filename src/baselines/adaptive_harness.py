@@ -153,6 +153,33 @@ class Selector:
     def select(self, turn, users, asked, answered):
         raise NotImplementedError
 
+    def score_vector(self, turn, users, asked, answered):
+        """OPTIONAL. The vector this selector's own `select()` TAKES AN ARGMAX OVER, per user.
+
+        Added 2026-08-12 for Act 2 / C1 / TODO 1.11 (`docs/design/DS_ACT2_SURROGATE_RANK_CORR.md`),
+        which measures whether a published acquisition score ranks candidate questions the way the
+        reported metric does. Returning `None` by default is deliberate: **no existing arm changes
+        behaviour**, and an arm that has no per-candidate score at a user state says so by not
+        implementing this rather than by emitting something plausible.
+
+        Contract, and it is exact rather than approximate:
+          * returns a `(len(users), n_actions)` float64 array, ALREADY MASKED exactly the way
+            `select()` masks -- the user's asked items, any candidate pool, any unasked-key-term
+            mask, any turn-type gate. Unscoreable entries are `-inf` (or the arm's own NEG).
+          * therefore `np.argmax(score_vector(...)[i]) == select(...)[i]` for every user, which is
+            gate **G-F** and is asserted rather than assumed. An arm whose score vector does not
+            reproduce its own action is not emitting the vector it argmaxes, and its rank
+            correlation would be measuring the wrong object.
+          * `n_actions` is `n_items` for an item-only rule and `n_items + n_concepts` for the
+            mixed-action-space (key-term) family, matching the harness's own action encoding.
+
+        Returning `None` is the honest answer for `golbandi_tree`: its split criterion is a
+        within-node squared error over TRAIN users evaluated during growth, and the object at
+        interview time does pure ternary routing, so there is no per-candidate score at a test
+        user's state at all. That absence is reported in the results table, not worked around.
+        """
+        return None
+
     def stats(self):
         """Optional per-run diagnostics, merged into the output JSON cell."""
         return {}

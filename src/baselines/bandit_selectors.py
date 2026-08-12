@@ -276,17 +276,44 @@ class _PosteriorSelector(Selector):
         (moved up from GLMUCBSelector 2026-08-08) because three acquisitions now key on it."""
         return tuple(sorted(i for (i, _lv) in key))
 
+    def _mask_vec(self, base_scores, asked_u):
+        """One user's masked acquisition vector: pool first, then their own asked items.
+
+        PURE EXTRACTION of `_pick`'s loop body (2026-08-12, for the C1 `score_vector` hook). It is
+        factored out rather than duplicated so there is exactly ONE masking implementation in this
+        class -- `_pick` argmaxes what this returns, and `score_vector` emits it, so gate G-F cannot
+        be satisfied by a second copy that has drifted."""
+        s = np.asarray(base_scores).copy()
+        if self.pool is not None:
+            keep = np.full(s.shape, NEG, dtype=s.dtype)
+            keep[self.pool] = s[self.pool]
+            s = keep
+        s[np.asarray(asked_u, dtype=np.int64)] = NEG
+        return s
+
     def _pick(self, base_scores, users, asked, out, idx_of):
         """base_scores: (n_items,) acquisition shared by the group. Mask each user's asked items and
         take the argmax. Kept as a separate step so the pool/mask logic exists exactly once."""
         for u in users:
-            s = base_scores.copy()
-            if self.pool is not None:
-                keep = np.full(s.shape, NEG, dtype=s.dtype)
-                keep[self.pool] = s[self.pool]
-                s = keep
-            s[np.asarray(asked[u], dtype=np.int64)] = NEG
-            out[idx_of[u]] = int(np.argmax(s))
+            out[idx_of[u]] = int(np.argmax(self._mask_vec(base_scores, asked[u])))
+
+    def _acq_vec(self, key, turn, u):
+        """The UNMASKED acquisition this arm argmaxes, at state `key`. Subclasses override.
+
+        `turn` and `u` are passed because the randomised arm (Thompson) draws per (seed, turn, user);
+        the deterministic arms ignore both."""
+        raise NotImplementedError
+
+    def score_vector(self, turn, users, asked, answered):
+        """See `Selector.score_vector`. Emits exactly what `_pick` argmaxes, via `_mask_vec`."""
+        groups = _group_by_state(users, answered)
+        idx_of = {int(u): j for j, u in enumerate(users.tolist())}
+        out = np.full((len(users), self.Y.shape[0]), NEG, dtype=np.float64)
+        for key, us in groups.items():
+            for u in us:
+                out[idx_of[u]] = self._mask_vec(
+                    np.asarray(self._acq_vec(key, turn, u), dtype=np.float64), asked[u])
+        return out
 
     def _cache_stats(self):
         """Every bounded cache on this object, by attribute name. Reported so a cap that is too small
@@ -324,15 +351,23 @@ class GLMUCBSelector(_PosteriorSelector):
             w = self._width.put(wkey, np.sqrt(np.maximum(v, 0.0)).astype(WIDTH_DTYPE))
         return w
 
+    def _ucb_vec(self, key):
+        """<y_i, mu_t> + alpha * width_i, the index this arm argmaxes. PURE EXTRACTION of the
+        expression that was inline in `select` (2026-08-12, for the C1 `score_vector` hook) -- same
+        operands, same order, so the selection is unchanged and `--acq-check` still holds."""
+        mu, _A = self._posterior(key)
+        return self.Y @ mu + self.alpha * self._width_vec(key)
+
+    def _acq_vec(self, key, turn, u):
+        return self._ucb_vec(key)
+
     def select(self, turn, users, asked, answered):
         groups = _group_by_state(users, answered)
         self._n_states.append(len(groups))
         out = np.empty(len(users), dtype=np.int64)
         idx_of = {int(u): j for j, u in enumerate(users.tolist())}
         for key, us in groups.items():
-            mu, _A = self._posterior(key)
-            base = self.Y @ mu + self.alpha * self._width_vec(key)
-            self._pick(base, us, asked, out, idx_of)
+            self._pick(self._ucb_vec(key), us, asked, out, idx_of)
         return out
 
 
@@ -408,6 +443,9 @@ class BALDSelector(GLMUCBSelector):
         both `glm_ucb` and `bald` in it pays for the Cholesky solve once per state, not twice."""
         w = self._width_vec(key).astype(np.float64)
         return 0.5 * np.log1p(w * w / self.s2)
+
+    def _acq_vec(self, key, turn, u):
+        return self._bald_vec(key)
 
     def select(self, turn, users, asked, answered):
         groups = _group_by_state(users, answered)
@@ -509,6 +547,9 @@ class AOptimalSelector(_PosteriorSelector):
             g = self._gain.put(gk, (num / den).astype(WIDTH_DTYPE))
         return g
 
+    def _acq_vec(self, key, turn, u):
+        return self._gain_vec(key)
+
     def select(self, turn, users, asked, answered):
         groups = _group_by_state(users, answered)
         self._n_states.append(len(groups))
@@ -552,6 +593,19 @@ class ThompsonSelector(_PosteriorSelector):
             # is not one of the vectors the header narrows.
             L = self._chol.put(key, np.linalg.cholesky(A))  # lower L with A = L L^T
         return L
+
+    def _acq_vec(self, key, turn, u):
+        """The single-user form of the block draw in `select`.
+
+        Bit-identical to it BY CONSTRUCTION, not by coincidence: the RNG is re-derived from
+        `[seed, turn, user]` on every call and never stored, so the draw does not depend on how the
+        users were grouped or chunked -- which is exactly the property the block version was written
+        to have (see the comment in `select`). `solve_triangular(L.T, z, lower=False)` on a single
+        vector is the same operation the block form applies to `Z.T` column-wise."""
+        mu, _A = self._posterior(key)
+        L = self._cholesky(key)
+        z = np.random.default_rng([self.seed, int(turn), int(u)]).standard_normal(self.Y.shape[1])
+        return self.Y @ (mu + sla.solve_triangular(L.T, z, lower=False))
 
     def select(self, turn, users, asked, answered):
         groups = _group_by_state(users, answered)
