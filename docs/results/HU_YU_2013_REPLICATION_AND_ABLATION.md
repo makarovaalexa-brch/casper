@@ -223,7 +223,38 @@ clean-looking, entirely fictitious ablation.
 
 ### B.3 Structural comparison
 
-*(pending)*
+All six trees, same pool, same cohort, same min-leaf 200, same 16-question budget:
+
+| criterion | depth | nodes | leaves | root splitter | root answer rate | root children (L/D/U) | distinct questions asked |
+|---|---|---|---|---|---|---|---|
+| (a) variance (Golbandi) | 5 | 25 | 17 | concept 731 | 0.916 | 4861 / 4297 / 842 | 145 |
+| (b) pairwise (Hu & Yu) | 2 | 7 | 5 | concept 511 | 0.688 | 1209 / 5668 / 3123 | 71 |
+| (b′) logistic (Hu & Yu, as run) | **1** | 4 | 3 | **concept 114** | 0.742 | 2606 / 4814 / 2580 | 46 |
+| **(c) measured NDCG@10 (ours)** | **5** | **22** | **15** | **concept 114** | 0.742 | 2606 / 4814 / 2580 | **159** |
+| (r) random | 0 | 1 | 1 | item 1246 | 0.045 | 267 / 181 / 9552 | 16 |
+| (r′) random, min-leaf respecting | 7 | 40 | 27 | item 458 | 0.186 | 639 / 1223 / 8138 | 286 |
+
+Four things worth stating in the chapter.
+
+**The criteria do not merely disagree, they share almost nothing.** Pairwise splitter overlap between
+any two criteria is **0 or 1 splitter out of the whole tree**, including ours against Golbandi's (0)
+and ours against Hu & Yu's pairwise (1). Question-set overlaps are `ndcg|variance` 32, `ndcg|pairwise`
+15, `ndcg|logistic` 7. Same 1,000 candidates, same 10,000 users, same states — different interviews.
+
+**The logistic criterion opens exactly where we do and then stops.** Its root splitter is concept 114
+with an identical ternary partition to ours, so at K=1 it is nested in our tree *and* in the static
+comparator and the difference is exactly zero by construction. It then reaches depth 1 and quits: with
+only 3 leaves and 46 distinct questions, it is close to a static order with one branch point.
+
+**Depth is not virtue.** `random_ml` — a uniform draw among candidates that clear min-leaf — reaches
+depth 7 with 27 leaves and 286 distinct questions, deeper and more varied than every real criterion.
+Any argument of the form "our tree is better because it is deeper / asks more distinct questions" is
+refuted by this row, and that is exactly why the fair random control was worth running.
+
+**The plain random control collapses, as expected and as designed.** Its root question is answered by
+4.5% of users, dumping 9,552 of 10,000 into a single branch, so min-leaf refuses to split and it
+degenerates to a static 16-question order. This is the confound that makes `random_ml` the informative
+control rather than this one.
 
 ### B.4 Controls
 
@@ -248,7 +279,48 @@ This is the direct, quantitative form of Act 2's "1 of 21 rules optimises the re
 (`BASELINE_OBJECTIVE_AUDIT.md`): it turns a description of what each rule optimises into a measurement
 of how far that surrogate is from the thing being reported, at real states.
 
-*(results pending)*
+### RESULT — the surrogates are barely distinguishable from guessing
+
+22 nodes, ~1,000 candidates each, exact measured NDCG@10 marginal gains from the real 10.3 h build.
+
+| criterion | mean Spearman | nodes with rho>0 | argmax == NDCG argmax | mean top-10 recall | **user-weighted regret** |
+|---|---|---|---|---|---|
+| (a) variance (Golbandi) | **+0.010** | 13/22 | **1/22** | 0.03 | **+0.01664** |
+| (b) pairwise rank loss (Hu & Yu) | **−0.060** | 10/22 | **0/22** | 0.01 | **+0.01738** |
+| (b′) logistic loss (Hu & Yu, as run) | **−0.104** | 9/22 | **1/22** | 0.03 | **+0.01282** |
+| *control: uniform random pick* | — | — | — | 0.10 by construction | **+0.01955** |
+
+Read the last column first. **Following any of these three criteria forgoes between 66% and 89% of the
+NDCG@10 that a uniform random pick would forgo.** Not 5%, not 20% — they recover a third of the way
+from random to optimal at best. The rank correlations are ~0 and two of the three are *negative*, so
+these are not weak-but-aligned surrogates; at the states this tree actually visits they are close to
+uninformative about the quantity the field reports. Golbandi's criterion picks the measured argmax at
+1 node of 22; Hu & Yu's pairwise loss picks it at **0 of 22**; top-10 recall is 0.01–0.03 against 0.10
+for a random draw, i.e. **the pairwise criterion's top ten candidates overlap the metric's top ten
+less often than chance**.
+
+This is the cleanest exhibit in the file, and it is free: the ground truth was already banked.
+
+### The root is a real and instructive exception
+
+| criterion at the ROOT | its argmax | measured NDCG gain of its pick | regret | rank it gives the metric's argmax | Spearman |
+|---|---|---|---|---|---|
+| variance | concept 731 | +0.00414 | +0.01635 | **250** of 1,000 | −0.212 |
+| pairwise | concept 511 | +0.00576 | +0.01473 | **75** of 1,000 | −0.149 |
+| **logistic** | **concept 114** | **+0.02049** | **0.00000** | **1** | **+0.187** |
+| measured NDCG@10 (ours) | concept 114 | +0.02049 | — | 1 | — |
+
+**Hu & Yu's actually-run loss picks exactly the right first question and then loses the plot.** At the
+root the logistic criterion's argmax *is* the metric's argmax — concept 114, the same question our
+tree and the policy-B static order both open with — with regret identically zero and top-10 recall
+0.3. One level down its mean regret is no better than the others. So the honest statement is not
+"their criterion is bad", it is **"their criterion agrees with the metric where the cohort is largest
+and the signal is strongest, and stops agreeing exactly where an adaptive method has to earn its
+keep."** That is a more interesting claim than a flat dismissal and it is what the numbers support.
+
+Note also what this does to the variance criterion: it ranks the metric's own best question **250th of
+1,000** at the root. The gap between a rating-variance surrogate and a ranking metric is not a
+rescaling.
 
 ---
 
