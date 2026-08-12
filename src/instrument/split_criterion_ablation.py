@@ -131,6 +131,58 @@ def genv_latent(E, seq, rows, batch=500):
 
 
 # --------------------------------------------------------------------------- the criterion, one call
+def score_partitions(kind, E, ev, memL, memD, pos_of, partitions, node_rows, cand_idx, seq, rng,
+                     Wd, bd, stats):
+    """Score `cand_idx` under criterion `kind` for EACH partition in `partitions`, sharing work.
+
+    The Hu & Yu criteria need one tower fold and one gradient pass over the node's users; those
+    depend on the already-asked prefix, NOT on the partition, so every partition in the list is
+    scored from the same G and H. That is what makes the leaf tail's whole-leaf tie-break free
+    instead of doubling the cost.
+    """
+    n_c = len(cand_idx)
+    if kind in ("random", "random_ml"):
+        r = rng.random(n_c)
+        return [r for _ in partitions], {}
+    info = {}
+    if kind == "variance":
+        outs = []
+        for blocks in partitions:
+            tot = np.zeros(n_c, np.float64)
+            for b in blocks:
+                if len(b) <= 1:
+                    continue                      # exactly zero contribution; see the note below
+                sub = np.asarray([pos_of[int(r)] for r in b], np.int64)
+                sc, e2n = SC.variance_scores(ev, memL, memD, sub, cand_idx)
+                tot += sc
+            outs.append(tot)
+        return outs, info
+    # ---- Hu & Yu: ONE latent fold + ONE gradient pass over the node's users, reused by every
+    #      partition. Singletons are kept here (they cost nothing extra) and simply add a
+    #      candidate-independent constant wherever they appear as their own block.
+    nr = [int(r) for r in node_rows]
+    Z = genv_latent(E, seq, nr)
+    sub_node = np.asarray([pos_of[r] for r in nr], np.int64)
+    t0 = time.time()
+    G, H, npair = SC.loss_grad_hess(kind, Z, Wd, bd, ev["pos"], ev["neg"], sub_node)
+    info["grad_seconds"] = round(time.time() - t0, 1)
+    info["n_terms"] = npair
+    loc = {r: i for i, r in enumerate(nr)}
+    outs = []
+    nclip = 0
+    for blocks in partitions:
+        tot = np.zeros(n_c, np.float64)
+        for b in blocks:
+            if len(b) <= 1:
+                continue
+            li = np.asarray([loc[int(r)] for r in b], np.int64)
+            sc, nc = SC.huyu_scores(G[li], H[li], memL, memD, sub_node[li], cand_idx)
+            tot += sc; nclip += nc
+        outs.append(tot)
+    info["hessian_negative_clips"] = nclip
+    return outs, info
+
+
 def score_candidates(kind, E, ev, memL, memD, pos_of, blocks, cand_idx, seq, rows_for_state, rng,
                      Wd, bd, stats):
     """Score every candidate in `cand_idx` (indices INTO THE POOL) under criterion `kind`, summed over
@@ -271,13 +323,33 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
                 # question -- so min-leaf does not apply here.
                 asked = [q]
                 blocks = [v for v in (kids[k] for k in BRANCHES) if v]
+                tail_info = []
                 while len(asked) < remaining:
                     seq = prefix + asked
                     cand2 = [pool_pos[tuple(x)] for x in pool
                              if tuple(x) not in set(prefix) | set(asked)]
-                    s2, _i2 = score_candidates(kind, E, ev, memL, memD, pos_of, blocks, cand2, seq,
-                                               rows, rng, Wd, bd, stats)
-                    qq = tuple(int(x) for x in pool[cand2[int(np.argmax(s2))]])
+                    (s2, s_whole), _i2 = score_partitions(
+                        kind, E, ev, memL, memD, pos_of, [blocks, [rows]], rows, cand2, seq, rng,
+                        Wd, bd, stats)
+                    # THE REFINED PARTITION RUNS OUT OF SIGNAL, AND THAT MUST NOT BECOME AN ARGMAX
+                    # OF ZEROS. After enough tail questions almost every block is a singleton, and a
+                    # singleton contributes nothing a candidate can change: `s2` goes identically
+                    # flat and `np.argmax` would silently return pool index 0, i.e. the tail would
+                    # stop being criterion-driven and start being pool-order-driven. That would
+                    # handicap arms (a)/(b)/(b') against arm (c) for a reason that is an artifact of
+                    # our budget-equalising tail rather than a property of their criterion.
+                    # DECLARED TIE-BREAK: rank primarily by the refined-partition score, and break
+                    # ties by the SAME criterion evaluated on the leaf as ONE block -- the coarsest
+                    # informative signal the same objective can offer. Deterministic, never
+                    # arbitrary, and the number of steps where the refined score was actually
+                    # informative is recorded per leaf and reported.
+                    informative = bool(np.ptp(s2) > 0)
+                    pick = int(np.lexsort((-s_whole, -s2))[0])
+                    tail_info.append({"step": len(asked) + 1, "n_blocks": len(blocks),
+                                      "refined_informative": informative,
+                                      "refined_ptp": float(np.ptp(s2)),
+                                      "whole_leaf_ptp": float(np.ptp(s_whole))})
+                    qq = tuple(int(x) for x in pool[cand2[pick]])
                     asked.append(qq)
                     nb = []
                     for b in blocks:
@@ -287,8 +359,13 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
                 assert len(asked) == remaining
                 rec["steps"] = [[int(a), int(b)] for a, b in asked]
                 rec["n_tail_blocks"] = len(blocks)
+                rec["tail_steps"] = tail_info
+                n_inf = sum(1 for t in tail_info if t["refined_informative"])
+                rec["n_tail_steps_refined_informative"] = n_inf
                 log(f"[{kind}/{nid}] leaf tail complete: {len(asked)} question(s), "
-                    f"{len(blocks)} refinement blocks, order {asked}")
+                    f"{len(blocks)} refinement blocks, refined criterion informative at "
+                    f"{n_inf}/{len(tail_info)} tail steps (the rest fell to the whole-leaf "
+                    f"tie-break), order {asked}")
             nodes[nid] = rec
             with open(out_path + ".partial", "w") as fh:
                 json.dump({"criterion": kind, "nodes": nodes}, fh, indent=2, default=float)
