@@ -273,27 +273,15 @@ def user_grad_hess(data, U, V, z):
     return G, H
 
 
-def _line_search(data, z, dz, base, eta0=4.0, tries=16):
-    """First eta in {eta0, eta0/2, ...} that does not increase the loss.
-
-    The step direction uses the MAJORISING curvature (1/4 for the logistic and
-    pairwise-logistic losses), so eta = 1 is already a descent step; the larger
-    trial values are free acceleration, and the smaller ones are the safety net.
-    An undamped Newton step on the true curvature is not globally convergent and
-    diverged here (train loss 0.43 -> 7.59)."""
-    eta = eta0
-    for _ in range(tries):
-        if mean_loss(data, z + eta * dz) <= base:
-            return eta
-        eta *= 0.5
-    return 0.0
-
-
 def fit_delta_groups(data, V, z, group_of_user, n_groups, lam_u, sweeps,
                      delta=None, frozen=None):
-    """Fit one Delta-u per group (a whole tree LEVEL at once) by coordinate
-    descent, line-searched.  The DIAGONAL approximation the paper reserves for the
-    split criterion is not used here for the score -- only the curvature bound is.
+    """Fit one Delta-u per group (a whole tree LEVEL at once) by cyclic coordinate
+    descent.  Every coordinate takes a Newton step on the MAJORISING curvature
+    (1/4 for the logistic and pairwise-logistic losses, exact for the square loss),
+    which makes each step a majorise-minimise step and therefore monotone; an
+    undamped Newton step on the true curvature is not globally convergent and
+    diverged here (train loss 0.43 -> 7.59).  The diagonal approximation the paper
+    reserves for the split criterion is used there and only there.
 
     Examples of users outside any live group are routed to a garbage-bin group
     whose step is forced to zero, avoiding a boolean mask over ~8M examples.
@@ -304,37 +292,29 @@ def fit_delta_groups(data, V, z, group_of_user, n_groups, lam_u, sweeps,
     ge = group_of_user[data.eu].astype(np.int64)
     ge[ge < 0] = n_groups
     nb = n_groups + 1
+    step = np.zeros(nb)
     for _ in range(sweeps):
-        c1, c2 = data.coefs(z, bound=True)
-        base = mean_loss(data, z)
-        step = np.zeros((nb, d))
-        dz = np.zeros_like(z)
         for k in range(d):
+            c1, c2 = data.coefs(z, bound=True)
             wk = data.w(V, k)
             g = np.bincount(ge, weights=c1 * wk, minlength=nb)[:n_groups]
             h = np.bincount(ge, weights=c2 * wk * wk, minlength=nb)[:n_groups]
             sk = -(g + 2.0 * lam_u * delta[:, k]) / np.maximum(h + 2.0 * lam_u, 1e-9)
             if frozen is not None:
                 sk[frozen] = 0.0
-            step[:n_groups, k] = sk
-            dz += (step[ge, k] * wk).astype(np.float32)
-        eta = _line_search(data, z, dz, base)
-        if eta == 0.0:
-            break
-        delta += eta * step[:n_groups]
-        z += (eta * dz).astype(np.float32)
+            delta[:, k] += sk
+            step[:n_groups] = sk
+            step[n_groups] = 0.0
+            z += (step[ge] * wk).astype(np.float32)
     return delta, z
 
 
 def update_V(data, U, V, z, lam_v, sweeps):
-    """Regularised coordinate descent on V (their Eq. 5), line-searched."""
+    """Regularised coordinate descent on V (their Eq. 5), same majorising step."""
     d, M = data.d, data.n_items
     for _ in range(sweeps):
-        c1, c2 = data.coefs(z, bound=True)
-        base = mean_loss(data, z)
-        step = np.zeros_like(V)
-        dz = np.zeros_like(z)
         for k in range(d):
+            c1, c2 = data.coefs(z, bound=True)
             uk = U[data.eu, k]
             if data.kind == "pairwise":
                 g = (np.bincount(data.ep, weights=c1 * uk, minlength=M)
@@ -347,17 +327,12 @@ def update_V(data, U, V, z, lam_v, sweeps):
                 g = np.bincount(data.ei, weights=c1 * uk * sg, minlength=M)
                 h = np.bincount(data.ei, weights=c2 * uk * uk, minlength=M)
             sk = -(g + 2.0 * lam_v * V[:, k]) / np.maximum(h + 2.0 * lam_v, 1e-9)
-            step[:, k] = sk
+            V[:, k] += sk
             if data.kind == "pairwise":
-                dz += (uk * (sk[data.ep] - sk[data.en])).astype(np.float32)
+                z += (uk * (sk[data.ep] - sk[data.en])).astype(np.float32)
             else:
                 sg = data.ey if data.kind == "logistic" else 1.0
-                dz += (uk * sk[data.ei] * sg).astype(np.float32)
-        eta = _line_search(data, z, dz, base)
-        if eta == 0.0:
-            break
-        V += eta * step
-        z += (eta * dz).astype(np.float32)
+                z += (uk * sk[data.ei] * sg).astype(np.float32)
     return V, z
 
 
