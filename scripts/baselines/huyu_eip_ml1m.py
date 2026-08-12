@@ -921,9 +921,14 @@ def main():
         % (d, lam_v, LAMBDA_U, MIN_LEAF, args.outer, U_SWEEPS, V_SWEEPS,
            INIT_SCALE, NEG_PER_POS_TRAIN, NEG_PER_POS_TEST))
 
+    # ev4 drops test users with no rating >= 4 in their eval half, so its user
+    # list is a SUBSEQUENCE of ev's; re-index rather than assume alignment.
+    sub4 = np.searchsorted(ev.users, ev4.users)
+    assert (ev.users[sub4] == ev4.users).all()
+
     def score(U):
         """Both readings of O_i, from one set of model scores."""
-        return ev.map_score(U)[0], ev4.map_score(U)[0]
+        return ev.map_score(U)[0], ev4.map_score(U[sub4])[0]
 
     if args.stage in ("main", "smoke", "controls"):
         pop = np.bincount(sp.tr[1], minlength=sp.n_items).astype(float)
