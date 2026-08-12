@@ -320,6 +320,23 @@ def main():
         best_known = float(g[feas_known].max()) if feas_known.any() else None
         deg_feas = [q for q in qs if q in degraded and tab[q] and min(tab[q]) >= MIN_LEAF]
         n_pos_known = int((g[known] > 0).sum())
+        # Every degraded candidate was popped at level 0 while it was the heap maximum, so its
+        # node-level gain is >= every intact candidate's. That turns "unknown" into a two-sided
+        # bracket on what CONSTRAINED SEARCH would have found at this node.
+        max_intact = float(g[known].max()) if known.any() else None
+        lo = [x for x in (best_known, (max_intact if deg_feas else None)) if x is not None]
+        best_feas_lower = max(lo) if lo else None
+        best_feas_upper = float(rec["splitter_gain"]) if (deg_feas or (
+            best_known is not None and bool(feas[[i for i, q in enumerate(qs)
+                                                  if q == splitq][0]]))) else best_known
+        # PER-CHILD ROUTING: the split is allowed and any child under the floor inherits the
+        # parent's greedy tail (which is exactly what the whole node gets today). A node can
+        # continue iff some candidate puts at least TWO children over the floor.
+        k_ge = (sizes >= MIN_LEAF).sum(1)
+        best_k = int(k_ge.max())
+        split_k = int((np.array(tab[splitq]) >= MIN_LEAF).sum())
+        big = np.array(tab[splitq])
+        routed = int(big[big < MIN_LEAF].sum())
 
         # arithmetic eligibility
         ternary_possible = n >= 3 * MIN_LEAF
@@ -357,6 +374,18 @@ def main():
                                       "concept": int(feas[chan == 1].sum())},
             "n_candidates_by_channel": {"item": int((chan == 0).sum()),
                                         "concept": int((chan == 1).sum())},
+            # The floor turns into a WINDOW on the answer rate: a candidate needs its
+            # did-not-answer child over the floor (answer rate <= 1 - 200/n) AND both answered
+            # children over it (answer rate >= 400/n, and only if the like/dislike split is even).
+            "answer_rate_window": {"ceiling_1_minus_minleaf_over_n": 1 - MIN_LEAF / n,
+                                   "floor_2x_minleaf_over_n": 2 * MIN_LEAF / n,
+                                   "window_is_empty": bool(1 - MIN_LEAF / n < 2 * MIN_LEAF / n),
+                                   "n_concepts_above_ceiling": int(
+                                       ((chan == 1) & (ar > 1 - MIN_LEAF / n)).sum()),
+                                   "n_concepts_below_floor": int(
+                                       ((chan == 1) & (ar < 2 * MIN_LEAF / n)).sum()),
+                                   "n_items_below_floor": int(
+                                       ((chan == 0) & (ar < 2 * MIN_LEAF / n)).sum())},
             "binding_branch_of_infeasible": {
                 b: int(((~feas) & (binding == i)).sum()) for i, b in enumerate(BRANCHES)},
             "binding_branch_of_infeasible_concepts": {
@@ -378,7 +407,18 @@ def main():
                 "n_degraded_and_feasible": len(deg_feas),
                 "best_feasible_gain_is_exact": bool(len(deg_feas) == 0),
                 "cost_vs_unconstrained_upper_bound": (
-                    None if best_known is None else float(rec["splitter_gain"] - best_known))},
+                    None if best_feas_lower is None else
+                    float(rec["splitter_gain"] - best_feas_lower)),
+                "max_intact_gain_any_candidate": max_intact,
+                "best_feasible_gain_lower_bound": best_feas_lower,
+                "best_feasible_gain_upper_bound": best_feas_upper,
+                "would_continue": bool(feas.any())},
+            "per_child_routing": {
+                "children_over_floor_chosen_splitter": split_k,
+                "users_routed_to_parent_tail_chosen_splitter": routed,
+                "max_children_over_floor_over_pool": best_k,
+                "n_candidates_with_2plus_children_over_floor": int((k_ge >= 2).sum()),
+                "would_continue": bool(best_k >= 2)},
         }
         log(f"[node {nid:<46}] d={rec['depth']} n={n:<5} split={int(rec['split'])} "
             f"cause={str(cause):<32} feasible={int(feas.sum()):>4}/{len(qs)} "
@@ -417,6 +457,32 @@ def main():
                    "mean_gap": float(np.mean(pooled_gap)),
                    "n_nodes_with_negative_gap": int(sum(1 for x in pooled_gap if x < 0)),
                    "n_nodes_scored": len(pooled_gap)},
+        "alternative_rules": {
+            "constrained_search": {
+                "stopped_nodes_that_would_continue": sorted(
+                    nid for nid, v in per_node.items()
+                    if not v["split"] and v["constrained"]["would_continue"]),
+                "n_stopped_nodes_with_zero_feasible_candidates": sum(
+                    1 for v in stopped if not v["constrained"]["would_continue"]),
+                "users_in_stopped_nodes_that_would_continue": sum(
+                    v["n_users"] for v in stopped if v["constrained"]["would_continue"])},
+            "per_child_routing": {
+                "stopped_nodes_that_would_continue": sorted(
+                    nid for nid, v in per_node.items()
+                    if not v["split"] and v["per_child_routing"]["would_continue"]),
+                "n_stopped_nodes_that_would_continue": sum(
+                    1 for v in stopped if v["per_child_routing"]["would_continue"]),
+                "users_in_stopped_nodes_that_would_continue": sum(
+                    v["n_users"] for v in stopped if v["per_child_routing"]["would_continue"]),
+                "users_conditioned_further_using_the_chosen_splitter": sum(
+                    v["n_users"] - v["per_child_routing"][
+                        "users_routed_to_parent_tail_chosen_splitter"]
+                    for v in stopped
+                    if v["per_child_routing"]["children_over_floor_chosen_splitter"] >= 2),
+                "users_routed_to_parent_tail": sum(
+                    v["per_child_routing"]["users_routed_to_parent_tail_chosen_splitter"]
+                    for v in stopped
+                    if v["per_child_routing"]["children_over_floor_chosen_splitter"] >= 2)}},
         "per_node": per_node,
         "seconds": round(time.time() - t0, 1),
     }
