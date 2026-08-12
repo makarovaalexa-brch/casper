@@ -266,24 +266,34 @@ def user_grad_hess(data, U, V, z):
 
 def fit_delta_groups(data, V, z, group_of_user, n_groups, lam_u, sweeps,
                      delta=None, frozen=None):
-    """Coordinate descent for one Delta-u per group (a tree LEVEL at a time)."""
+    """Coordinate descent for one Delta-u per group (a whole tree LEVEL at a time).
+
+    The loss is re-linearised once per SWEEP (a diagonal Gauss-Newton/IRLS step) and
+    every coordinate of every group is then updated from that linearisation; for the
+    square loss this is exactly coordinate descent.  Examples of users outside any
+    live group are routed to a garbage bin group whose step is forced to zero, which
+    avoids materialising a boolean mask over the ~8M examples on every pass.
+    """
     if delta is None:
         delta = np.zeros((n_groups, data.d), np.float64)
-    ge = group_of_user[data.eu]
-    ok = ge >= 0
+    ge = group_of_user[data.eu].astype(np.int64)
+    ge[ge < 0] = n_groups
+    nb = n_groups + 1
     for _ in range(sweeps):
+        c1, c2 = data.coefs(z)
+        step = np.zeros((nb, data.d))
         for k in range(data.d):
             wk = data.w(V, k)
-            c1, c2 = data.coefs(z)
-            g = np.bincount(ge[ok], weights=(c1 * wk)[ok], minlength=n_groups)
-            h = np.bincount(ge[ok], weights=(c2 * wk * wk)[ok], minlength=n_groups)
+            g = np.bincount(ge, weights=c1 * wk, minlength=nb)[:n_groups]
+            h = np.bincount(ge, weights=c2 * wk * wk, minlength=nb)[:n_groups]
             g += 2.0 * lam_u * delta[:, k]
             h += 2.0 * lam_u
-            step = -g / np.maximum(h, 1e-9)
+            sk = -g / np.maximum(h, 1e-9)
             if frozen is not None:
-                step[frozen] = 0.0
-            delta[:, k] += step
-            z[ok] += (step[ge[ok]] * wk[ok]).astype(np.float32)
+                sk[frozen] = 0.0
+            delta[:, k] += sk
+            step[:n_groups, k] = sk
+            z += (step[ge, k] * wk).astype(np.float32)
     return delta, z
 
 
