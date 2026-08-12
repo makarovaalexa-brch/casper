@@ -1,0 +1,72 @@
+[19:27:16] ##############################################################################################################
+[19:27:16] # A3/A4 -- REBUILDING THE 'concepts-only' STATIC ORDER UNDER POLICY B, 16 picks, 10,000 canonical validation users, objective=full.
+[19:27:16] # TEST IS NOT BUILT, NOT LOADED, NOT TOUCHED.
+[19:27:16] ##############################################################################################################
+[19:27:16] === building greedy_static_policyB_concepts(val) env (split=validation) ===
+[19:27:19] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[19:27:33] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[19:27:33] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:27:33] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[19:27:33] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[19:27:33] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[19:27:33] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:27:33] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[19:27:36] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[19:27:45] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[19:27:49] [g5] 1031 concepts with >= 30 members
+[19:27:58] [ledger] SIGNED valuation arrays built (prereg cache found)
+[19:28:01] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[19:28:01] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[19:28:02] [greedy_static_policyB_concepts(val)] pool contract (DERIVED): policy=B nnz=1356475 per_user=135.6475 fp=c282962b49a2d67ef47ff07544519f20
+[19:28:02] [greedy_static_policyB_concepts(val)] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[19:28:02] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[19:28:02] [leak/validation] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[19:28:02] [pool] 500 concepts-only candidates (the concepts-only block of the combined 1000-candidate pool, same ids, same order). NO truncation: this IS the full declared bank.
+[19:28:02] [pool] contract (DERIVED): {"v": 1, "policy": "B", "n_rows": 10000, "n_items": 18359, "nnz": 1356475, "per_user": 135.6475, "fp": "c282962b49a2d67ef47ff07544519f20"}
+[19:28:10] [seed/concepts] base check PASS: m=0 = 0.15686538118354684 == banked base, exactly
+[19:29:06] [seed/concepts] 8 candidates re-evaluated from scratch; every reconstructed value EXACT
+[19:29:06] [seed/concepts] wrote a verified 500-entry seed sidecar -> experiments\battery\greedy_static_policyB_concepts_heaps\search.json (500 evaluations NOT re-paid)
+[19:29:06] [greedy concepts] RESUMED from search.json: 0 pick(s) banked, 500 heap entries, 500 evals already paid -> extending to L=16 (a cold restart would re-pay the 500-candidate seed pass)
+[19:29:06] [greedy concepts] pick 1/16 = concept 114 gain +0.02049 -> 0.17736 (nev=500, 0.0m)
+[19:29:06] [cost] 1 picks in 0.0m (0.0 m/pick, 7.04s/eval measured this process)
+[19:31:55] [greedy concepts] pick 2/16 = concept 173 gain +0.01627 -> 0.19363 (nev=524, 2.8m)
+[19:31:55] [cost] 2 picks in 2.8m (1.4 m/pick, 7.05s/eval measured this process)
+[19:40:51] [greedy concepts] pick 3/16 = concept 785 gain +0.01077 -> 0.20440 (nev=599, 11.8m)
+[19:40:51] [cost] 3 picks in 11.8m (3.9 m/pick, 7.11s/eval measured this process)
+[19:47:07] [greedy concepts] pick 4/16 = concept 312 gain +0.00810 -> 0.21250 (nev=651, 18.0m)
+[19:47:07] [cost] 4 picks in 18.0m (4.5 m/pick, 7.15s/eval measured this process)
+[19:52:51] [greedy concepts] pick 5/16 = concept 215 gain +0.00691 -> 0.21941 (nev=698, 23.8m)
+[19:52:51] [cost] 5 picks in 23.8m (4.8 m/pick, 7.19s/eval measured this process)
+[20:08:41] [greedy concepts] pick 6/16 = concept 377 gain +0.00542 -> 0.22483 (nev=826, 39.6m)
+[20:08:41] [cost] 6 picks in 39.6m (6.6 m/pick, 7.27s/eval measured this process)
+[20:23:55] [greedy concepts] pick 7/16 = concept 124 gain +0.00394 -> 0.22877 (nev=947, 54.8m)
+[20:23:55] [cost] 7 picks in 54.8m (7.8 m/pick, 7.35s/eval measured this process)
+[20:28:06] [greedy concepts] pick 8/16 = concept 1010 gain +0.00343 -> 0.23220 (nev=980, 59.0m)
+[20:28:06] [cost] 8 picks in 59.0m (7.4 m/pick, 7.36s/eval measured this process)
+[20:33:21] [greedy concepts] pick 9/16 = concept 233 gain +0.00307 -> 0.23527 (nev=1021, 64.3m)
+[20:33:21] [cost] 9 picks in 64.3m (7.1 m/pick, 7.39s/eval measured this process)
+[20:48:34] [greedy concepts] pick 10/16 = concept 12 gain +0.00209 -> 0.23735 (nev=1139, 79.5m)
+[20:48:34] [cost] 10 picks in 79.5m (7.9 m/pick, 7.45s/eval measured this process)
+[20:58:09] [greedy concepts] pick 11/16 = concept 912 gain +0.00153 -> 0.23888 (nev=1212, 89.0m)
+[20:58:09] [cost] 11 picks in 89.0m (8.1 m/pick, 7.49s/eval measured this process)
+[21:16:09] [greedy concepts] pick 12/16 = concept 294 gain +0.00097 -> 0.23985 (nev=1347, 107.0m)
+[21:16:09] [cost] 12 picks in 107.0m (8.9 m/pick, 7.57s/eval measured this process)
+[21:18:50] [greedy concepts] pick 13/16 = concept 488 gain +0.00090 -> 0.24074 (nev=1367, 109.7m)
+[21:18:50] [cost] 13 picks in 109.7m (8.4 m/pick, 7.58s/eval measured this process)
+[21:30:35] [greedy concepts] pick 14/16 = concept 467 gain +0.00065 -> 0.24139 (nev=1453, 121.5m)
+[21:30:35] [cost] 14 picks in 121.5m (8.7 m/pick, 7.64s/eval measured this process)
+[21:42:51] [greedy concepts] pick 15/16 = concept 753 gain +0.00064 -> 0.24203 (nev=1542, 133.8m)
+[21:42:51] [cost] 15 picks in 133.8m (8.9 m/pick, 7.69s/eval measured this process)
+[21:43:25] [greedy concepts] pick 16/16 = concept 851 gain +0.00048 -> 0.24250 (nev=1546, 134.3m)
+[21:43:25] [cost] 16 picks in 134.3m (8.4 m/pick, 7.69s/eval measured this process)
+[21:43:32] [gate] pick #1 gain re-derived from a fresh evaluation = 0.020490556975873986 == recorded, exactly
+[21:44:47] ==============================================================================================================
+[21:44:47] [concepts] policy-B order = [[1, 114], [1, 173], [1, 785], [1, 312], [1, 215], [1, 377], [1, 124], [1, 1010], [1, 233], [1, 12], [1, 912], [1, 294], [1, 488], [1, 467], [1, 753], [1, 851]]
+[21:44:47] [concepts] vs the policy-A order: 1/16 positions identical, 3/16 questions shared
+[21:44:47] [concepts] K=1   policy-B order 0.17736/0.05235   policy-A order rescored 0.17643/0.04817   delta +0.00093/+0.00418
+[21:44:47] [concepts] K=2   policy-B order 0.19363/0.06795   policy-A order rescored 0.18764/0.05662   delta +0.00599/+0.01133
+[21:44:47] [concepts] K=4   policy-B order 0.21250/0.08337   policy-A order rescored 0.21067/0.07740   delta +0.00183/+0.00597
+[21:44:47] [concepts] K=8   policy-B order 0.23220/0.10477   policy-A order rescored 0.23127/0.10265   delta +0.00093/+0.00212
+[21:44:47] [concepts] K=16  policy-B order 0.24250/0.11809   policy-A order rescored 0.24283/0.11576   delta -0.00032/+0.00234
+[21:44:47] [done] wrote greedy_static_policyB_concepts.json in 137.5m (134.3m search, 1546 cumulative evals, 7.691s/eval)
+[cmd] exit code 0 

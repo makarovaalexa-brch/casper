@@ -1,0 +1,256 @@
+{
+  "label": "greedy_static_policyB_concepts",
+  "channel": "concepts",
+  "arm": "concepts-only",
+  "sequence": [
+    [
+      1,
+      114
+    ],
+    [
+      1,
+      173
+    ],
+    [
+      1,
+      785
+    ],
+    [
+      1,
+      312
+    ],
+    [
+      1,
+      215
+    ],
+    [
+      1,
+      377
+    ],
+    [
+      1,
+      124
+    ],
+    [
+      1,
+      1010
+    ],
+    [
+      1,
+      233
+    ],
+    [
+      1,
+      12
+    ],
+    [
+      1,
+      912
+    ],
+    [
+      1,
+      294
+    ],
+    [
+      1,
+      488
+    ],
+    [
+      1,
+      467
+    ],
+    [
+      1,
+      753
+    ],
+    [
+      1,
+      851
+    ]
+  ],
+  "gains": [
+    0.020490556975873986,
+    0.016274614715777624,
+    0.01077008979793495,
+    0.008104029710780947,
+    0.0069071470840720295,
+    0.005415231515144753,
+    0.003939086217448595,
+    0.0034334493642865227,
+    0.003066504411129739,
+    0.0020880251148777396,
+    0.0015275411308904863,
+    0.0009652795414329951,
+    0.0008963985838714161,
+    0.0006476107668079989,
+    0.000635640843578783,
+    0.00047621958210825044
+  ],
+  "n_evals": 1546,
+  "minutes": 134.32,
+  "minutes_per_pick": 8.39,
+  "done": true,
+  "analysis": "static_global_greedy_concepts_only_POLICY_B",
+  "citable": true,
+  "supersedes": "This order SUPERSEDES the 'concepts-only' arm of greedy_static_i26c.json. That arm was SELECTED under the retired policy-A candidate mask, so any comparison against it carried a selection-protocol offset. Same pool (500 candidates, the same ids in the same order as the combined build's concepts-only block), same objective (cohort-mean held-out full NDCG@10), same 10,000 canonical validation users, same certified stack -- under POLICY B.",
+  "ruler_note": "THE BANKED GLOBAL BUILD IS A POLICY-A ARTIFACT (measured 2026-08-12, this run's sanity gate). `greedy_static_i26c.json` records intercept.full = 0.12987336, which is the POLICY-A m=0 value; today's harness scores under POLICY B (2026-08-05 ruling, candidate_masking_protocol.md) and gives m=0 = 0.15686538 on the same 10,000 validation users. Its stored `gains` and `curve` are therefore on a DIFFERENT RULER and are NOT comparable to anything measured here -- numbers from different information contracts are not ordered. What IS used from that file is the SEQUENCE of questions, which is re-scored IN THIS RUN under policy B for every comparison (the same thing `group_greedy_genre.py` does). Residual caveat, stated rather than buried: the comparator's ORDER was selected under policy A, so it is not exactly 'the same objective under the same protocol'. Closing that would mean rebuilding the static combined order under policy B (~12 h).",
+  "split": "validation",
+  "test_touched": false,
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "objective": "full",
+  "item_bank": "pop",
+  "conc_bank": "answerable",
+  "n_items_pool": 500,
+  "n_concepts_pool": 500,
+  "n_pool": 500,
+  "mask_policy": "B",
+  "pool_policy": "B",
+  "pool_contract": {
+    "v": 1,
+    "policy": "B",
+    "n_rows": 10000,
+    "n_items": 18359,
+    "nnz": 1356475,
+    "per_user": 135.6475,
+    "fp": "c282962b49a2d67ef47ff07544519f20"
+  },
+  "n_cohort": 10000,
+  "L": 16,
+  "intercept_policyB_full": 0.15686538118354684,
+  "seed_pass": "transplanted+verified from ndcgtree_heaps/node_root.json",
+  "curve_policyB": {
+    "1": {
+      "full@10": 0.17735593815942083,
+      "tail@10": 0.052350931752596155,
+      "items_answered": 0.0,
+      "concepts_answered": 0.742
+    },
+    "2": {
+      "full@10": 0.19363055287519845,
+      "tail@10": 0.06794829653107652,
+      "items_answered": 0.0,
+      "concepts_answered": 1.74
+    },
+    "4": {
+      "full@10": 0.21250467238391435,
+      "tail@10": 0.08337143734268476,
+      "items_answered": 0.0,
+      "concepts_answered": 3.548
+    },
+    "8": {
+      "full@10": 0.23219958656486625,
+      "tail@10": 0.10477430338749481,
+      "items_answered": 0.0,
+      "concepts_answered": 6.807
+    },
+    "16": {
+      "full@10": 0.24250280653956366,
+      "tail@10": 0.11809393205194435,
+      "items_answered": 0.0,
+      "concepts_answered": 12.298
+    }
+  },
+  "policyA_order_for_reference": [
+    [
+      1,
+      630
+    ],
+    [
+      1,
+      242
+    ],
+    [
+      1,
+      173
+    ],
+    [
+      1,
+      251
+    ],
+    [
+      1,
+      12
+    ],
+    [
+      1,
+      537
+    ],
+    [
+      1,
+      124
+    ],
+    [
+      1,
+      917
+    ],
+    [
+      1,
+      807
+    ],
+    [
+      1,
+      380
+    ],
+    [
+      1,
+      904
+    ],
+    [
+      1,
+      689
+    ],
+    [
+      1,
+      754
+    ],
+    [
+      1,
+      888
+    ],
+    [
+      1,
+      42
+    ],
+    [
+      1,
+      784
+    ]
+  ],
+  "policyA_order_rescored_under_policyB": {
+    "1": {
+      "full@10": 0.17642801458392765,
+      "tail@10": 0.04817290507890329,
+      "items_answered": 0.0,
+      "concepts_answered": 0.898
+    },
+    "2": {
+      "full@10": 0.1876396787644047,
+      "tail@10": 0.05662051518012034,
+      "items_answered": 0.0,
+      "concepts_answered": 1.774
+    },
+    "4": {
+      "full@10": 0.2106729654133001,
+      "tail@10": 0.07739767649725843,
+      "items_answered": 0.0,
+      "concepts_answered": 3.585
+    },
+    "8": {
+      "full@10": 0.23126660841574076,
+      "tail@10": 0.10265295394238273,
+      "items_answered": 0.0,
+      "concepts_answered": 6.282
+    },
+    "16": {
+      "full@10": 0.2428263517448981,
+      "tail@10": 0.11575652746873807,
+      "items_answered": 0.0,
+      "concepts_answered": 12.83
+    }
+  },
+  "positions_identical_to_policyA_order": 1,
+  "questions_shared_with_policyA_order": 3,
+  "sec_per_eval": 7.691,
+  "seconds": 8251.3
+}
