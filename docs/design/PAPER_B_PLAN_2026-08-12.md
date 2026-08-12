@@ -137,11 +137,25 @@ K=1 lead of +0.00246, where conditioning is impossible.
 
 ## 3. Workstream B — Act 1 baseline additions
 
-- **B1 (1.12, promoted MANDATORY).** Hu & Yu 2013: (i) snap on their protocol (MAP, 10 sampled
-  negatives, FixQ) per HARD RULE 2; (ii) **objective ablation in OUR tree harness** — same code,
-  same answers, three split criteria: variance (Golbandi) / pairwise rank loss (Hu & Yu) / measured
-  NDCG@10 (ours). (c)>(b)>(a) makes the mechanism airtight; (b)≈(c) narrows novelty to "the exact
-  reported metric", field claim survives. Bib key `hu2013interview`, check collision first.
+- **B1 (1.12, promoted MANDATORY). IN PROGRESS 2026-08-12 — full re-read done, harness built and
+  committed (`7d3e302`), run HELD pending the box.** Everything lives in
+  `docs/results/HU_YU_2013_REPLICATION_AND_ABLATION.md` (design sheet §0, pre-registered
+  interpretation §0.8); the findings file is rewritten; bib key `hu2013interview` added to
+  `new_chapters/references.bib` after checking all four `.bib` files for a collision (none).
+  (i) snap on their protocol (MAP, 10 sampled negatives, FixQ) per HARD RULE 2 — ML-1M only, we do
+  not hold Netflix or Yahoo; their results are FIGURE-ONLY, so "matching" can mean the arm ordering,
+  the direction with budget and the gap sizes to pixel precision, and cannot mean a published digit.
+  (ii) **objective ablation in OUR tree harness** — same code, same answers, same min-leaf, same
+  certified pair, same policy-B mask, same 1,000-candidate pool, same cohorts, same 16-budget:
+  variance (Golbandi) / pairwise rank loss (Hu & Yu) / **logistic loss (what Hu & Yu ACTUALLY RAN)**
+  / measured NDCG@10 (ours), plus two shuffle controls. Three corrections the full read forced are
+  recorded in TODO 1.12 and in the findings file; the biggest is that their ranking experiments ran a
+  logistic loss and pairwise rank loss appears exactly once, in a list, never instantiated.
+  The `pairwise_heldout` arm — their LOSS under OUR protocol, the clean single-factor test of the
+  training-loss-vs-measured-value separation — is specified and QUEUED, not run: it needs a tower
+  fold per candidate, so it costs what the NDCG tree cost (10.3 h). The cheap exact substitute that
+  IS run: criterion-vs-MEASURED-NDCG rank correlation and regret over all 1,000 candidates at every
+  node of the real tree, read out of the banked CELF heap sidecars for free.
 - **B2 (1.10).** RBMF snap + port (static; threatens the comparator, not the adaptive claim).
 - **B3 (task 9).** EDDI full Eq. 9 re-run.
 - **B4 (task 25).** ConUCB k=8: resolve or report UNINFORMATIVE with the b(t) schedule stated.

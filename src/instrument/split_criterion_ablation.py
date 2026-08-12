@@ -81,6 +81,7 @@ import split_criteria as SC
 OUTDIR = os.path.join(_ROOT, "experiments", "battery")
 STATICB_JSON = os.path.join(OUTDIR, "greedy_static_policyB_combined.json")
 NDCGTREE_JSON = os.path.join(OUTDIR, "ndcgtree16.json")
+NDCGSTRUCT_JSON = os.path.join(OUTDIR, "ndcgtree.json")
 NDCGTEST_JSON = os.path.join(OUTDIR, "ndcgtree16test_policyB.json")
 
 LABEL = "splitcrit"
@@ -176,7 +177,8 @@ def score_candidates(kind, E, ev, memL, memD, pos_of, blocks, cand_idx, seq, row
 
 
 # --------------------------------------------------------------------------- growth
-def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, seed, out_path, Wd, bd):
+def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, seed, out_path, Wd, bd,
+         minleaf_mode="all3"):
     """Level-synchronous growth, structurally identical to `ndcg_tree.py`'s. Returns (nodes, leaves)."""
     rng = np.random.default_rng(seed)
     stats = {}
@@ -211,8 +213,21 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
             q = tuple(int(x) for x in pool[cand[best]])
             kids, ar, n_zero = split_rows(E, rows, q)
             sizes = {k: len(v) for k, v in kids.items()}
-            small = min(sizes.values())
-            will_split = (remaining >= 2) and (small >= min_leaf)
+            # MIN-LEAF, AND THE ONE PLACE THIS ABLATION HAS A CHOICE TO DECLARE.
+            #   `all3`     -- the floor applies to all three branches, INCLUDING an empty
+            #                 DID-NOT-ANSWER branch. This is `ndcg_tree.py`'s rule verbatim and it is
+            #                 the PRIMARY mode, because the brief requires min-leaf 200 held fixed and
+            #                 arm (c)'s tree cannot be regrown under any other rule.
+            #   `nonempty` -- the floor applies only to branches that actually receive users, so a
+            #                 question EVERYONE can answer splits binarily instead of being refused.
+            #                 Reported as a ROBUSTNESS CHECK among the cheap arms only, because
+            #                 Golbandi's own selector constrains only the like and hate branches
+            #                 (`golbandi_tree_selector._best_split`: `(cL >= min) & (cH >= min)`),
+            #                 and because a criterion that prefers fully answerable questions is
+            #                 otherwise penalised by a rule that has nothing to do with its objective.
+            live = [v for v in sizes.values() if v > 0] if minleaf_mode == "nonempty"                 else list(sizes.values())
+            small = min(live) if live else 0
+            will_split = (remaining >= 2) and (small >= min_leaf) and (len(live) >= 2)
             rec = {"nid": nid, "depth": depth, "n_users": len(rows),
                    "path": [[int(a), int(b)] for a, b in prefix], "branch_from": nd["branch_from"],
                    "remaining_budget": remaining, "splitter": [q[0], q[1]],
@@ -220,10 +235,12 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
                    "splitter_score": float(sc[best]), "child_sizes": sizes,
                    "answer_rate": round(ar, 4), "n_zero_value_answers": n_zero,
                    "min_child": int(small), "split": bool(will_split),
+                   "minleaf_mode": minleaf_mode, "n_live_branches": len(live),
                    "stop_reason": (None if will_split else
                                    ("budget_exhausted (1 question left, nothing to split into)"
                                     if remaining < 2 else
-                                    f"min_leaf: smallest child {small} < {min_leaf}")),
+                                    f"min_leaf({minleaf_mode}): smallest live child {small} < "
+                                    f"{min_leaf} (live branches {len(live)})")),
                    "criterion_info": info,
                    "score_top10": [[int(pool[cand[i]][0]), int(pool[cand[i]][1]), float(sc[i])]
                                    for i in np.argsort(-sc)[:10]],
@@ -265,6 +282,8 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
             if will_split:
                 cpath = rec["path"] + [[q[0], q[1]]]
                 for k in BRANCHES:
+                    if minleaf_mode == "nonempty" and not kids[k]:
+                        continue          # an empty branch is not a child; the split is binary
                     nxt.append({"nid": f"{nid}.{k}", "depth": depth + 1, "path": cpath,
                                 "rows": kids[k], "branch_from": k})
             else:
@@ -283,6 +302,8 @@ def grow(kind, E, ev, memL, memD, pos_of, pool, rows_all, total_L, min_leaf, see
 
 # --------------------------------------------------------------------------- measurement
 def route(E, nodes, nid, rows_all):
+    """Walk a frozen tree with its banked splitters. Works for either min-leaf mode: a branch that
+    the grower dropped as empty simply has no node id, so it is never routed to."""
     parts = nid.split(".")
     assert parts[0] == "root", nid
     rows, cur = list(rows_all), "root"
@@ -332,8 +353,9 @@ def measure(E, tag, arm, leaf_orders, nodes, rows_all, seq_static, npz_bank):
                          "set_overlap_vs_static": len(set(a) & set(b))}
         npz_bank[f"{tag}|{arm}|{nid}|rows"] = np.asarray(rows, np.int64)
         curves[nid] = c
-        log(f"[{tag}/{arm}/{nid}] n={len(rows)} @16 {c['16']['diff_full@10']:+.5f} full / "
-            f"{c['16']['diff_tail@10']:+.5f} tail")
+        kk = str(max(BUDGETS))
+        log(f"[{tag}/{arm}/{nid}] n={len(rows)} @K={kk} {c[kk]['diff_full@10']:+.5f} full / "
+            f"{c[kk]['diff_tail@10']:+.5f} tail")
     set_active_rows(E, rows_all)
     return per_leaf, curves
 
@@ -508,6 +530,10 @@ def main():
     ap.add_argument("--min_leaf", type=int, default=MIN_LEAF)
     ap.add_argument("--total_L", type=int, default=TOTAL_L)
     ap.add_argument("--seed", type=int, default=BOOT_SEED)
+    ap.add_argument("--minleaf_mode", default="all3", choices=["all3", "nonempty"],
+                    help="all3 = the floor applies to all three branches (ndcg_tree.py's rule, and "
+                         "the PRIMARY mode); nonempty = only to branches that receive users, so a "
+                         "fully answerable question splits binarily. See the note in `grow`.")
     ap.add_argument("--full_threads", action="store_true")
     ap.add_argument("--smoke", action="store_true",
                     help="60-candidate pool, budget 4, min_leaf 2000. Pipeline check only, NOT citable.")
@@ -525,16 +551,22 @@ def main():
     BUDGETS = tuple(sorted({K for K in BUDGETS if K <= total_L} | {total_L}))
 
     for nm, p in (("static policy-B", STATICB_JSON), ("ndcgtree16", NDCGTREE_JSON),
+                  ("ndcgtree structure", NDCGSTRUCT_JSON),
                   ("ndcgtree test", NDCGTEST_JSON), ("snapshot", args.snapshot),
                   ("concept_ckpt", args.concept_ckpt)):
         assert os.path.exists(p), nm + " missing: " + p
     stb = json.load(open(STATICB_JSON))
     nd16 = json.load(open(NDCGTREE_JSON))
     ndt = json.load(open(NDCGTEST_JSON))
+    ndst = json.load(open(NDCGSTRUCT_JSON))
     assert stb["mask_policy"] == "B" and stb["split"] == "validation" and stb["objective"] == "full"
     assert stb["n_pool"] == 1000 and stb["L"] == 16
     assert stb["tower"] == os.path.basename(args.snapshot)
-    assert nd16["total_L"] == 16 and nd16["min_leaf"] == 200
+    # the 16-question leaf ORDERS live in ndcgtree16.json; the tree STRUCTURE (splitters, which
+    # is what routing needs) lives in the original ndcgtree.json. Same object, two artifacts.
+    assert nd16["total_L"] == 16 and nd16["citable"]
+    assert ndst["min_leaf"] == 200 and ndst["citable"] and ndst["split"] == "validation"
+    assert ndst["n_leaves"] == len(nd16["leaf_table"]) == 15
     seq_static = [(int(a), int(b)) for a, b in stb["sequence"]][:total_L]
 
     log("#" * 110)
@@ -552,6 +584,7 @@ def main():
            "tower": os.path.basename(args.snapshot),
            "concept_ckpt": os.path.basename(args.concept_ckpt),
            "objective": "full", "mask_policy": "B", "total_L": total_L, "min_leaf": min_leaf,
+           "minleaf_mode": args.minleaf_mode,
            "budgets": list(BUDGETS), "lam_u": SC.LAM_U, "seed": args.seed,
            "static_comparator": {"label": stb["label"], "sequence": [[a, b] for a, b in seq_static]},
            "bootstrap": {"kind": "paired percentile over per-user differences", "n_resamples": BOOT,
@@ -598,7 +631,7 @@ def main():
             log("=" * 110)
             log("[grow] criterion `" + kind + "`")
             nodes, leaves, st = grow(kind, Ev, ev, memL, memD, pos_of, pool, rows_val, total_L,
-                                     min_leaf, args.seed, tp, Wd, bd)
+                                     min_leaf, args.seed, tp, Wd, bd, args.minleaf_mode)
             blob = {"criterion": kind, "nodes": nodes,
                     "leaf_orders": {l["nid"]: nodes[l["nid"]]["own_sequence"] for l in leaves},
                     "stats": st}
@@ -610,7 +643,7 @@ def main():
         out["structure"][kind] = structure(kind, blob["nodes"],
                                            [{"nid": n} for n in blob["leaf_orders"]], total_L)
 
-    nd_nodes = nd16["nodes"]
+    nd_nodes = ndst["nodes"]
     nd_leaves = {r["nid"]: r["own_sequence"] for r in nd16["leaf_table"]}
     trees["ndcg"] = {"criterion": "ndcg", "nodes": nd_nodes, "leaf_orders": nd_leaves}
     out["structure"]["ndcg"] = structure("ndcg", nd_nodes, [{"nid": n} for n in nd_leaves], total_L)
@@ -690,7 +723,7 @@ def main():
         log("=" * 110)
         log("[corr] criterion-vs-MEASURED-NDCG over all candidates at every node of the real tree")
         set_active_rows(Ev, rows_val); Ev["memo"] = {}
-        corr_stage(Ev, ev, memL, memD, pos_of, pool, rows_val, nd16["nodes"],
+        corr_stage(Ev, ev, memL, memD, pos_of, pool, rows_val, ndst["nodes"],
                    os.path.join(OUTDIR, "ndcgtree_heaps"), Wd, bd, out)
 
     # ------------------------------------------------------------------ report
