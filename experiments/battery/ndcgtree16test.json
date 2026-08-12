@@ -1,0 +1,3891 @@
+{
+  "analysis": "ndcg_objective_interview_tree_TEST_LOOK_budget16",
+  "stage": "2_test",
+  "label": "ndcgtree16test",
+  "citable": true,
+  "authorisation": "author-authorised single test look, 2026-08-12: 'add 16th step, run on test. we are changing comparator, we are NOT changing this tree'",
+  "tree_regrown": false,
+  "tree_source": "ndcgtree.json",
+  "depth_reached": 5,
+  "n_nodes": 22,
+  "n_leaves": 15,
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "objective": "full",
+  "mask_policy": "B",
+  "total_L": 16,
+  "budgets": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "n_val": 10000,
+  "n_test": 10000,
+  "comparator_label": "combined_POLICY_A_SELECTED",
+  "comparator_note": "THE POLICY-A-SELECTED COMPARATOR. This is the `combined` arm of greedy_static_i26c.json, whose ORDER was selected under the retired policy-A candidate mask (docs/results/MASK_POLICY_B_MIGRATION.md records its intercept_eval 0.13139/0.02343 as the policy-A bridge; policy B is 0.15855/0.02819). Its SEQUENCE is re-scored in-run under policy B here, so the comparison is question-for-question at equal K -- but because its order was CHOSEN on a different ruler, the K=1 difference carries a selection-protocol offset (+0.00093 full on validation) that is NOT conditioning and that sits inside every K>=2 number. The clean policy-B comparator is paused mid-rebuild with 7 of 16 picks banked. DO NOT quote these gains as if that rebuild had happened.",
+  "comparator_sequence": [
+    [
+      1,
+      630
+    ],
+    [
+      1,
+      242
+    ],
+    [
+      1,
+      173
+    ],
+    [
+      0,
+      22
+    ],
+    [
+      1,
+      562
+    ],
+    [
+      1,
+      537
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      112
+    ],
+    [
+      0,
+      83
+    ],
+    [
+      0,
+      130
+    ],
+    [
+      1,
+      754
+    ],
+    [
+      1,
+      180
+    ],
+    [
+      0,
+      21
+    ],
+    [
+      0,
+      19
+    ],
+    [
+      0,
+      219
+    ],
+    [
+      0,
+      80
+    ]
+  ],
+  "policyB_comparator_status": "PAUSED mid-rebuild with 7 of 16 picks banked in ndcgtree16_heaps/greedy_static_policyB_combined_heap.json; resumes after this look.",
+  "bootstrap": {
+    "kind": "paired percentile over per-user differences",
+    "n_resamples": 10000,
+    "seed": 98765
+  },
+  "negative_leaf_note": "A NEGATIVE leaf is a RESULT, not a bug. A leaf must carry its ancestors' questions, which were chosen for its PARENTS' cohorts, so the static order is NOT inside a leaf's search space and a leaf can legitimately score below it.",
+  "n_leaves_negative_val": 0,
+  "n_leaves_negative_test": 4,
+  "intercept_val_m0": {
+    "full@10": 0.15686538118354684,
+    "tail@10": 0.02747733123666661
+  },
+  "intercept_test_m0": {
+    "full@10": 0.15855464334646144,
+    "tail@10": 0.028185191294182937
+  },
+  "absolute_reporting_note": "Absolute cohort-weighted NDCG@10 is reported for BOTH arms at every K, alongside the m=0 intercept (what a user gets for answering nothing). The author intends to read these against the current static ON THE EXPLICIT ASSUMPTION THAT IT IS WEAK, because its order was selected under policy A. Absolutes make that assumption inspectable: if the tree's absolute sits close to the static's, a weak comparator cannot be hiding much; if it is far above, the comparator's weakness matters more. Differences alone do not let a reader make that judgement, which is why the intercept is included -- it is the first time it has been printed for the test cohort.",
+  "cohort_weighted_val": {
+    "1": {
+      "tree_full@10": 0.17735593020915985,
+      "tree_tail@10": 0.052350934594869614,
+      "cmp_full@10": 0.17642802000045776,
+      "cmp_tail@10": 0.048172902315855026,
+      "diff_full@10": 0.0009279234908521175,
+      "ci95_full": [
+        -0.0009148329299688339,
+        0.0026891973079368465
+      ],
+      "diff_tail@10": 0.004178026719977725,
+      "ci95_tail": [
+        0.002430217483060614,
+        0.005993884059757049
+      ],
+      "n_users": 10000,
+      "separates_full": false,
+      "separates_tail": true
+    },
+    "2": {
+      "tree_full@10": 0.2000027298927307,
+      "tree_tail@10": 0.06619653105735779,
+      "cmp_full@10": 0.18763969838619232,
+      "cmp_tail@10": 0.056620512157678604,
+      "diff_full@10": 0.012363067004829646,
+      "ci95_full": [
+        0.009997624476328492,
+        0.014719998280629516
+      ],
+      "diff_tail@10": 0.009576022796340112,
+      "ci95_tail": [
+        0.007114738382999688,
+        0.012153489485033824
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    },
+    "4": {
+      "tree_full@10": 0.2293233573436737,
+      "tree_tail@10": 0.09292571991682053,
+      "cmp_full@10": 0.2104492485523224,
+      "cmp_tail@10": 0.07639772444963455,
+      "diff_full@10": 0.018874148112535478,
+      "ci95_full": [
+        0.016078071760758757,
+        0.021715898887999355
+      ],
+      "diff_tail@10": 0.01652799372680407,
+      "ci95_tail": [
+        0.013493620611572034,
+        0.01965328293414078
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    },
+    "8": {
+      "tree_full@10": 0.2578393220901489,
+      "tree_tail@10": 0.114857979118824,
+      "cmp_full@10": 0.23004008829593658,
+      "cmp_tail@10": 0.09971654415130615,
+      "diff_full@10": 0.027799213952571154,
+      "ci95_full": [
+        0.024708972755949944,
+        0.030865595656912773
+      ],
+      "diff_tail@10": 0.015141434253743017,
+      "ci95_tail": [
+        0.012039788319546682,
+        0.01838939215988325
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    },
+    "16": {
+      "tree_full@10": 0.2835496962070465,
+      "tree_tail@10": 0.13421310484409332,
+      "cmp_full@10": 0.2526359558105469,
+      "cmp_tail@10": 0.1126059740781784,
+      "diff_full@10": 0.03091375985145569,
+      "ci95_full": [
+        0.027782725526615978,
+        0.03408969928462058
+      ],
+      "diff_tail@10": 0.021607146882837554,
+      "ci95_tail": [
+        0.018425509219713736,
+        0.024812168161315748
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    }
+  },
+  "cohort_weighted_test": {
+    "1": {
+      "tree_full@10": 0.18078981339931488,
+      "tree_tail@10": 0.05373430997133255,
+      "cmp_full@10": 0.17833229899406433,
+      "cmp_tail@10": 0.04779795557260513,
+      "diff_full@10": 0.002457517170906067,
+      "ci95_full": [
+        0.0006359418074414135,
+        0.004254906885102391
+      ],
+      "diff_tail@10": 0.00593635265268574,
+      "ci95_tail": [
+        0.004073865949210872,
+        0.007783683849296529
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    },
+    "2": {
+      "tree_full@10": 0.20146533846855164,
+      "tree_tail@10": 0.06749307364225388,
+      "cmp_full@10": 0.1909404844045639,
+      "cmp_tail@10": 0.05475926771759987,
+      "diff_full@10": 0.010524886275827885,
+      "ci95_full": [
+        0.008159687185585499,
+        0.01290458387862891
+      ],
+      "diff_tail@10": 0.012733805119066502,
+      "ci95_tail": [
+        0.010162905987997165,
+        0.015334287840604472
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    },
+    "4": {
+      "tree_full@10": 0.22673574090003967,
+      "tree_tail@10": 0.09048177301883698,
+      "cmp_full@10": 0.21351978182792664,
+      "cmp_tail@10": 0.07554169744253159,
+      "diff_full@10": 0.013215964739769697,
+      "ci95_full": [
+        0.01020258989661932,
+        0.016243528833221645
+      ],
+      "diff_tail@10": 0.014940080687591529,
+      "ci95_tail": [
+        0.011969457052579029,
+        0.017972398886424774
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    },
+    "8": {
+      "tree_full@10": 0.24924223124980927,
+      "tree_tail@10": 0.11168231070041656,
+      "cmp_full@10": 0.23350287973880768,
+      "cmp_tail@10": 0.09624318778514862,
+      "diff_full@10": 0.015739368169754745,
+      "ci95_full": [
+        0.012758728400096297,
+        0.01871518443105742
+      ],
+      "diff_tail@10": 0.015439123233167946,
+      "ci95_tail": [
+        0.012308314898712711,
+        0.01866887613240693
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    },
+    "16": {
+      "tree_full@10": 0.2693559527397156,
+      "tree_tail@10": 0.1307423859834671,
+      "cmp_full@10": 0.25564852356910706,
+      "cmp_tail@10": 0.10982279479503632,
+      "diff_full@10": 0.013707438370585441,
+      "ci95_full": [
+        0.010607924071047456,
+        0.01679595036059618
+      ],
+      "diff_tail@10": 0.020919573646130687,
+      "ci95_tail": [
+        0.017607570218773076,
+        0.02427441069990551
+      ],
+      "n_users": 10000,
+      "separates_full": true,
+      "separates_tail": true
+    }
+  },
+  "size_vs_gain": {
+    "test_spearman_rho": -0.049999999999999996,
+    "test_p_value": 0.859540943467457,
+    "val_spearman_rho": -0.6,
+    "val_p_value": 0.018050087941499978,
+    "test_weighted_gain_leaves_ge_700": 0.008779746552457396,
+    "test_weighted_gain_leaves_lt_700": 0.021788436737240735,
+    "n_test_users_ge_700": 6212,
+    "n_test_users_lt_700": 3788,
+    "interpretation": "On validation the relationship was Spearman -0.55 (p=0.035): small leaves gained most, which is the overfitting signature the genre experiment was built to detect. Whether it PERSISTS on test is what decides how much of the validation gain is real. A negative rho surviving to test would mean the small leaves are genuinely better served; a rho that goes to zero or flips means the validation pattern was fitted noise."
+  },
+  "leaf_table": [
+    {
+      "nid": "root.noanswer.noanswer",
+      "depth": 2,
+      "n_val": 1785,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          243
+        ],
+        [
+          1,
+          408
+        ],
+        [
+          1,
+          785
+        ],
+        [
+          1,
+          726
+        ],
+        [
+          1,
+          29
+        ],
+        [
+          0,
+          10
+        ],
+        [
+          0,
+          123
+        ],
+        [
+          1,
+          241
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          0,
+          128
+        ],
+        [
+          0,
+          442
+        ],
+        [
+          1,
+          247
+        ]
+      ],
+      "new_question": [
+        1,
+        247
+      ],
+      "new_question_gain": 0.002065637647495344,
+      "prefix_unchanged": true,
+      "n_evals_new": 57,
+      "minutes_extend": 3.44,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 1129,
+          "frac": 0.6325
+        },
+        {
+          "genre": "Comedy",
+          "n": 312,
+          "frac": 0.1748
+        },
+        {
+          "genre": "Action",
+          "n": 105,
+          "frac": 0.0588
+        },
+        {
+          "genre": "Thriller",
+          "n": 68,
+          "frac": 0.0381
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.008979863273587341,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.08686319232022774,
+          "tree_tail@10": 0.023066082211830714,
+          "cmp_full@10": 0.08993361263103784,
+          "cmp_tail@10": 0.028739142284262317,
+          "diff_full@10": -0.0030704203108101015,
+          "diff_tail@10": -0.005673060072431599,
+          "items_answered": 0.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.08723790926401588,
+          "tree_tail@10": 0.018850121667931555,
+          "cmp_full@10": 0.10118414227252288,
+          "cmp_tail@10": 0.03423103228816544,
+          "diff_full@10": -0.013946233008506984,
+          "diff_tail@10": -0.015380910620233884,
+          "items_answered": 0.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.11605152120890942,
+          "tree_tail@10": 0.046541910019250426,
+          "cmp_full@10": 0.1212100713512046,
+          "cmp_tail@10": 0.04959661623658845,
+          "diff_full@10": -0.005158550142295174,
+          "diff_tail@10": -0.0030547062173380333,
+          "items_answered": 0.194,
+          "concepts_answered": 0.9,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.13327195727477778,
+          "tree_tail@10": 0.06494156739485368,
+          "cmp_full@10": 0.1313403591683663,
+          "cmp_tail@10": 0.057573628954466625,
+          "diff_full@10": 0.0019315981064114663,
+          "diff_tail@10": 0.007367938440387055,
+          "items_answered": 0.194,
+          "concepts_answered": 4.249,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.15528327975577658,
+          "tree_tail@10": 0.07754257851101493,
+          "cmp_full@10": 0.14445157390465174,
+          "cmp_tail@10": 0.07039576649209622,
+          "diff_full@10": 0.01083170585112485,
+          "diff_tail@10": 0.007146812018918696,
+          "items_answered": 1.309,
+          "concepts_answered": 5.732,
+          "set_overlap": 1
+        }
+      },
+      "val_gain_at16": 0.01083170585112485,
+      "val_gain_at16_tail": 0.007146812018918696,
+      "n_test": 1696,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.08665142339304531,
+          "tree_tail@10": 0.023603262211243498,
+          "cmp_full@10": 0.09228714683631987,
+          "cmp_tail@10": 0.026303705816604475,
+          "diff_full@10": -0.005635723443274565,
+          "diff_tail@10": -0.002700443605360983,
+          "items_answered": 0.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.08499516643791273,
+          "tree_tail@10": 0.017584267817010623,
+          "cmp_full@10": 0.10207887821564594,
+          "cmp_tail@10": 0.03260651347110022,
+          "diff_full@10": -0.0170837117777332,
+          "diff_tail@10": -0.015022245654089595,
+          "items_answered": 0.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.11204488251877529,
+          "tree_tail@10": 0.04102113113056245,
+          "cmp_full@10": 0.12329902777543887,
+          "cmp_tail@10": 0.04924289322442329,
+          "diff_full@10": -0.011254145256663592,
+          "diff_tail@10": -0.008221762093860835,
+          "items_answered": 0.189,
+          "concepts_answered": 0.886,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.12993143757660564,
+          "tree_tail@10": 0.06188399300506727,
+          "cmp_full@10": 0.13178623642083317,
+          "cmp_tail@10": 0.059174390841036074,
+          "diff_full@10": -0.0018547988442275483,
+          "diff_tail@10": 0.0027096021640312016,
+          "items_answered": 0.189,
+          "concepts_answered": 4.197,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.15172007904754528,
+          "tree_tail@10": 0.08358273839289601,
+          "cmp_full@10": 0.15172176287823527,
+          "cmp_tail@10": 0.07737886701366013,
+          "diff_full@10": -1.6838306899834837e-06,
+          "diff_tail@10": 0.006203871379235887,
+          "items_answered": 1.254,
+          "concepts_answered": 5.666,
+          "set_overlap": 1
+        }
+      },
+      "test_gain_at16": -1.6838306899834837e-06,
+      "test_gain_at16_tail": 0.006203871379235887,
+      "test_full@10_at16": 0.15172007904754528,
+      "test_tail@10_at16": 0.08358273839289601,
+      "shrinkage_val_to_test": -6432.776119094905
+    },
+    {
+      "nid": "root.like.noanswer",
+      "depth": 2,
+      "n_val": 1256,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          1,
+          377
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          1118
+        ],
+        [
+          0,
+          104
+        ],
+        [
+          0,
+          22
+        ],
+        [
+          1,
+          730
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          343
+        ],
+        [
+          0,
+          976
+        ],
+        [
+          0,
+          89
+        ],
+        [
+          0,
+          499
+        ],
+        [
+          0,
+          366
+        ],
+        [
+          0,
+          391
+        ],
+        [
+          1,
+          56
+        ]
+      ],
+      "new_question": [
+        1,
+        56
+      ],
+      "new_question_gain": 0.0017377899150127496,
+      "prefix_unchanged": true,
+      "n_evals_new": 12,
+      "minutes_extend": 0.57,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 463,
+          "frac": 0.3686
+        },
+        {
+          "genre": "Action",
+          "n": 390,
+          "frac": 0.3105
+        },
+        {
+          "genre": "Comedy",
+          "n": 174,
+          "frac": 0.1385
+        },
+        {
+          "genre": "Adventure",
+          "n": 95,
+          "frac": 0.0756
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.02910674132120978,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.16095797045847302,
+          "tree_tail@10": 0.07260643131519791,
+          "cmp_full@10": 0.14534861408399824,
+          "cmp_tail@10": 0.054875116040661975,
+          "diff_full@10": 0.01560935637447475,
+          "diff_tail@10": 0.017731315274535944,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.15856387120636628,
+          "tree_tail@10": 0.07193014883038318,
+          "cmp_full@10": 0.15049768852021184,
+          "cmp_tail@10": 0.060830053087300266,
+          "diff_full@10": 0.008066182686154423,
+          "diff_tail@10": 0.01110009574308291,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.1722028255003346,
+          "tree_tail@10": 0.0890168411609267,
+          "cmp_full@10": 0.15245476293635,
+          "cmp_tail@10": 0.06232238967637051,
+          "diff_full@10": 0.019748062563984637,
+          "diff_tail@10": 0.026694451484556195,
+          "items_answered": 0.165,
+          "concepts_answered": 1.971,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.1885207856017616,
+          "tree_tail@10": 0.10844473715627065,
+          "cmp_full@10": 0.17997947372070855,
+          "cmp_tail@10": 0.0951760061188322,
+          "diff_full@10": 0.008541311881053065,
+          "diff_tail@10": 0.013268731037438449,
+          "items_answered": 0.636,
+          "concepts_answered": 2.927,
+          "set_overlap": 2
+        },
+        "16": {
+          "tree_full@10": 0.21808947208299617,
+          "tree_tail@10": 0.12109812680499644,
+          "cmp_full@10": 0.19144061281644148,
+          "cmp_tail@10": 0.09926097219099932,
+          "diff_full@10": 0.02664885926655468,
+          "diff_tail@10": 0.021837154613997097,
+          "items_answered": 1.771,
+          "concepts_answered": 3.604,
+          "set_overlap": 4
+        }
+      },
+      "val_gain_at16": 0.02664885926655468,
+      "val_gain_at16_tail": 0.021837154613997097,
+      "n_test": 1235,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.16440851101313972,
+          "tree_tail@10": 0.06860883099329412,
+          "cmp_full@10": 0.15657211245507402,
+          "cmp_tail@10": 0.05259025095320997,
+          "diff_full@10": 0.00783639855806571,
+          "diff_tail@10": 0.01601858004008416,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.1617718453059647,
+          "tree_tail@10": 0.06973084988620064,
+          "cmp_full@10": 0.16332092528436168,
+          "cmp_tail@10": 0.05484184267750599,
+          "diff_full@10": -0.0015490799783969727,
+          "diff_tail@10": 0.014889007208694634,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.17072921730920163,
+          "tree_tail@10": 0.08160396872336194,
+          "cmp_full@10": 0.16633630646515205,
+          "cmp_tail@10": 0.05566873726887597,
+          "diff_full@10": 0.004392910844049572,
+          "diff_tail@10": 0.02593523145448596,
+          "items_answered": 0.167,
+          "concepts_answered": 1.972,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.18848003927527787,
+          "tree_tail@10": 0.09398453313407107,
+          "cmp_full@10": 0.1876253834613492,
+          "cmp_tail@10": 0.08538870322319995,
+          "diff_full@10": 0.000854655813928686,
+          "diff_tail@10": 0.008595829910871114,
+          "items_answered": 0.68,
+          "concepts_answered": 2.925,
+          "set_overlap": 2
+        },
+        "16": {
+          "tree_full@10": 0.21871099180186981,
+          "tree_tail@10": 0.11012162358671537,
+          "cmp_full@10": 0.19705036146606372,
+          "cmp_tail@10": 0.08871013797770681,
+          "diff_full@10": 0.02166063033580609,
+          "diff_tail@10": 0.02141148560900855,
+          "items_answered": 1.823,
+          "concepts_answered": 3.607,
+          "set_overlap": 4
+        }
+      },
+      "test_gain_at16": 0.02166063033580609,
+      "test_gain_at16_tail": 0.02141148560900855,
+      "test_full@10_at16": 0.21871099180186981,
+      "test_tail@10_at16": 0.11012162358671537,
+      "shrinkage_val_to_test": 1.2302901094481449
+    },
+    {
+      "nid": "root.like.like",
+      "depth": 2,
+      "n_val": 1010,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          1,
+          926
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          87
+        ],
+        [
+          1,
+          801
+        ],
+        [
+          1,
+          280
+        ],
+        [
+          1,
+          940
+        ],
+        [
+          1,
+          490
+        ],
+        [
+          1,
+          839
+        ],
+        [
+          0,
+          154
+        ],
+        [
+          1,
+          17
+        ],
+        [
+          0,
+          153
+        ],
+        [
+          1,
+          223
+        ],
+        [
+          1,
+          985
+        ]
+      ],
+      "new_question": [
+        1,
+        985
+      ],
+      "new_question_gain": 0.0016106891845513727,
+      "prefix_unchanged": true,
+      "n_evals_new": 36,
+      "minutes_extend": 1.35,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 401,
+          "frac": 0.397
+        },
+        {
+          "genre": "Action",
+          "n": 331,
+          "frac": 0.3277
+        },
+        {
+          "genre": "Adventure",
+          "n": 168,
+          "frac": 0.1663
+        },
+        {
+          "genre": "Comedy",
+          "n": 61,
+          "frac": 0.0604
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.020363913630751324,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.29846708103336045,
+          "tree_tail@10": 0.12480647863139868,
+          "cmp_full@10": 0.3038087503457213,
+          "cmp_tail@10": 0.10205119271254344,
+          "diff_full@10": -0.005341669312360841,
+          "diff_tail@10": 0.02275528591885523,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.3285053260270303,
+          "tree_tail@10": 0.12139826206153286,
+          "cmp_full@10": 0.31343910489652216,
+          "cmp_tail@10": 0.10796036998362236,
+          "diff_full@10": 0.015066221130508118,
+          "diff_tail@10": 0.013437892077910489,
+          "items_answered": 1.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.35673235510585605,
+          "tree_tail@10": 0.1545679835324582,
+          "cmp_full@10": 0.3118944624397938,
+          "cmp_tail@10": 0.10920357389018147,
+          "diff_full@10": 0.044837892666062244,
+          "diff_tail@10": 0.045364409642276726,
+          "items_answered": 1.345,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.38554788419235475,
+          "tree_tail@10": 0.16149567647727264,
+          "cmp_full@10": 0.34712507105552715,
+          "cmp_tail@10": 0.15553218626170384,
+          "diff_full@10": 0.0384228131368276,
+          "diff_tail@10": 0.005963490215568771,
+          "items_answered": 2.21,
+          "concepts_answered": 3.772,
+          "set_overlap": 1
+        },
+        "16": {
+          "tree_full@10": 0.4065971994527123,
+          "tree_tail@10": 0.18666092894886374,
+          "cmp_full@10": 0.3862307672451723,
+          "cmp_tail@10": 0.16934658328455932,
+          "diff_full@10": 0.02036643220753995,
+          "diff_tail@10": 0.0173143456643044,
+          "items_answered": 2.596,
+          "concepts_answered": 9.48,
+          "set_overlap": 3
+        }
+      },
+      "val_gain_at16": 0.02036643220753995,
+      "val_gain_at16_tail": 0.0173143456643044,
+      "n_test": 1031,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.30034452483629626,
+          "tree_tail@10": 0.12465512425454695,
+          "cmp_full@10": 0.2979897282397147,
+          "cmp_tail@10": 0.0985741165558129,
+          "diff_full@10": 0.0023547965965815777,
+          "diff_tail@10": 0.026081007698734046,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.3274485913804443,
+          "tree_tail@10": 0.12448147789627757,
+          "cmp_full@10": 0.3104723929699803,
+          "cmp_tail@10": 0.10221065627972671,
+          "diff_full@10": 0.016976198410463945,
+          "diff_tail@10": 0.022270821616550866,
+          "items_answered": 1.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.352574372681281,
+          "tree_tail@10": 0.15002960969827692,
+          "cmp_full@10": 0.3092683438591654,
+          "cmp_tail@10": 0.1050536424755273,
+          "diff_full@10": 0.043306028822115546,
+          "diff_tail@10": 0.04497596722274961,
+          "items_answered": 1.352,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.37728457670473053,
+          "tree_tail@10": 0.16540128791302044,
+          "cmp_full@10": 0.34246601501814916,
+          "cmp_tail@10": 0.14579221519593294,
+          "diff_full@10": 0.034818561686581394,
+          "diff_tail@10": 0.019609072717087495,
+          "items_answered": 2.239,
+          "concepts_answered": 3.791,
+          "set_overlap": 1
+        },
+        "16": {
+          "tree_full@10": 0.3913049935214099,
+          "tree_tail@10": 0.1821646150360059,
+          "cmp_full@10": 0.38045215530875065,
+          "cmp_tail@10": 0.1634251174789658,
+          "diff_full@10": 0.010852838212659276,
+          "diff_tail@10": 0.018739497557040116,
+          "items_answered": 2.642,
+          "concepts_answered": 9.469,
+          "set_overlap": 3
+        }
+      },
+      "test_gain_at16": 0.010852838212659276,
+      "test_gain_at16_tail": 0.018739497557040116,
+      "test_full@10_at16": 0.3913049935214099,
+      "test_tail@10_at16": 0.1821646150360059,
+      "shrinkage_val_to_test": 1.8765996330603694
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.noanswer.dislike",
+      "depth": 5,
+      "n_val": 739,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ],
+        [
+          1,
+          251
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          74
+        ],
+        [
+          0,
+          77
+        ],
+        [
+          1,
+          124
+        ],
+        [
+          0,
+          454
+        ],
+        [
+          0,
+          733
+        ],
+        [
+          1,
+          769
+        ],
+        [
+          1,
+          98
+        ],
+        [
+          1,
+          343
+        ],
+        [
+          1,
+          249
+        ]
+      ],
+      "new_question": [
+        1,
+        249
+      ],
+      "new_question_gain": 0.0021921530611433426,
+      "prefix_unchanged": true,
+      "n_evals_new": 29,
+      "minutes_extend": 0.83,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 523,
+          "frac": 0.7077
+        },
+        {
+          "genre": "Comedy",
+          "n": 153,
+          "frac": 0.207
+        },
+        {
+          "genre": "Action",
+          "n": 24,
+          "frac": 0.0325
+        },
+        {
+          "genre": "Thriller",
+          "n": 19,
+          "frac": 0.0257
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.01724996350669558,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.18910991301492122,
+          "tree_tail@10": 0.03780060393665953,
+          "cmp_full@10": 0.18843040612473128,
+          "cmp_tail@10": 0.0386552133309471,
+          "diff_full@10": 0.0006795068901898916,
+          "diff_tail@10": -0.0008546093942875695,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.19566361123635317,
+          "tree_tail@10": 0.046756088960200906,
+          "cmp_full@10": 0.19407621028630584,
+          "cmp_tail@10": 0.04608006789919474,
+          "diff_full@10": 0.0015874009500473735,
+          "diff_tail@10": 0.0006760210610061588,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.19645727889224893,
+          "tree_tail@10": 0.04872056610673265,
+          "cmp_full@10": 0.20496565540203993,
+          "cmp_tail@10": 0.06087865776089275,
+          "diff_full@10": -0.008508376509791037,
+          "diff_tail@10": -0.012158091654160092,
+          "items_answered": 0.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.22938500524858496,
+          "tree_tail@10": 0.07692675587632113,
+          "cmp_full@10": 0.22098561788808463,
+          "cmp_tail@10": 0.08505702326511744,
+          "diff_full@10": 0.008399387360500296,
+          "diff_tail@10": -0.0081302673887963,
+          "items_answered": 0.556,
+          "concepts_answered": 4.976,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.260684390802111,
+          "tree_tail@10": 0.10823155518836344,
+          "cmp_full@10": 0.24413703750166524,
+          "cmp_tail@10": 0.09547088787696997,
+          "diff_full@10": 0.016547353300445704,
+          "diff_tail@10": 0.012760667311393466,
+          "items_answered": 1.391,
+          "concepts_answered": 9.77,
+          "set_overlap": 1
+        }
+      },
+      "val_gain_at16": 0.016547353300445704,
+      "val_gain_at16_tail": 0.012760667311393466,
+      "n_test": 745,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.20021032594990276,
+          "tree_tail@10": 0.043911272683765226,
+          "cmp_full@10": 0.19429649075345198,
+          "cmp_tail@10": 0.03853654759930582,
+          "diff_full@10": 0.005913835196450745,
+          "diff_tail@10": 0.005374725084459412,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.20619736189199758,
+          "tree_tail@10": 0.04792132438963654,
+          "cmp_full@10": 0.20890287669757115,
+          "cmp_tail@10": 0.043661625188944515,
+          "diff_full@10": -0.002705514805573611,
+          "diff_tail@10": 0.0042596992006920225,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.20497340088869104,
+          "tree_tail@10": 0.04715359095384102,
+          "cmp_full@10": 0.22284125964587617,
+          "cmp_tail@10": 0.0576162602234387,
+          "diff_full@10": -0.017867858757185145,
+          "diff_tail@10": -0.010462669269597692,
+          "items_answered": 0.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.2306948774701427,
+          "tree_tail@10": 0.06756639096861752,
+          "cmp_full@10": 0.2473269246950211,
+          "cmp_tail@10": 0.07478374980069905,
+          "diff_full@10": -0.01663204722487841,
+          "diff_tail@10": -0.007217358832081524,
+          "items_answered": 0.525,
+          "concepts_answered": 4.97,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.25522515442672045,
+          "tree_tail@10": 0.09839742107613224,
+          "cmp_full@10": 0.2644342455717845,
+          "cmp_tail@10": 0.09072735323758593,
+          "diff_full@10": -0.00920909114506413,
+          "diff_tail@10": 0.007670067838546309,
+          "items_answered": 1.354,
+          "concepts_answered": 9.805,
+          "set_overlap": 1
+        }
+      },
+      "test_gain_at16": -0.00920909114506413,
+      "test_gain_at16_tail": 0.007670067838546309,
+      "test_full@10_at16": 0.25522515442672045,
+      "test_tail@10_at16": 0.09839742107613224,
+      "shrinkage_val_to_test": -1.7968497694058247
+    },
+    {
+      "nid": "root.dislike.like",
+      "depth": 2,
+      "n_val": 723,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          502
+        ],
+        [
+          1,
+          689
+        ],
+        [
+          1,
+          228
+        ],
+        [
+          1,
+          864
+        ],
+        [
+          0,
+          174
+        ],
+        [
+          1,
+          477
+        ],
+        [
+          1,
+          343
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          1,
+          14
+        ],
+        [
+          1,
+          672
+        ],
+        [
+          1,
+          652
+        ],
+        [
+          1,
+          809
+        ]
+      ],
+      "new_question": [
+        1,
+        809
+      ],
+      "new_question_gain": 0.0010287537439552796,
+      "prefix_unchanged": true,
+      "n_evals_new": 75,
+      "minutes_extend": 1.75,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 616,
+          "frac": 0.852
+        },
+        {
+          "genre": "Thriller",
+          "n": 28,
+          "frac": 0.0387
+        },
+        {
+          "genre": "Comedy",
+          "n": 24,
+          "frac": 0.0332
+        },
+        {
+          "genre": "Action",
+          "n": 20,
+          "frac": 0.0277
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.028116238919052544,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.20098863656917748,
+          "tree_tail@10": 0.011941882392649442,
+          "cmp_full@10": 0.1998685930683015,
+          "cmp_tail@10": 0.011549126755123864,
+          "diff_full@10": 0.001120043500875978,
+          "diff_tail@10": 0.0003927556375255773,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.2567964610343342,
+          "tree_tail@10": 0.04396264250230972,
+          "cmp_full@10": 0.2420905300298113,
+          "cmp_tail@10": 0.030798367059733843,
+          "diff_full@10": 0.014705931004522915,
+          "diff_tail@10": 0.013164275442575877,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.27791676934723863,
+          "tree_tail@10": 0.07373990630691318,
+          "cmp_full@10": 0.2570553033737145,
+          "cmp_tail@10": 0.046954604101757794,
+          "diff_full@10": 0.02086146597352411,
+          "diff_tail@10": 0.026785302205155383,
+          "items_answered": 0.0,
+          "concepts_answered": 3.844,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.2966424020401831,
+          "tree_tail@10": 0.08513596199663058,
+          "cmp_full@10": 0.26976438505312034,
+          "cmp_tail@10": 0.07964597837612733,
+          "diff_full@10": 0.026878016987062773,
+          "diff_tail@10": 0.005489983620503242,
+          "items_answered": 0.243,
+          "concepts_answered": 6.657,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.31874538043710327,
+          "tree_tail@10": 0.1006263494061475,
+          "cmp_full@10": 0.2894916258443343,
+          "cmp_tail@10": 0.08875251210132645,
+          "diff_full@10": 0.029253754592769004,
+          "diff_tail@10": 0.011873837304821064,
+          "items_answered": 0.975,
+          "concepts_answered": 12.156,
+          "set_overlap": 2
+        }
+      },
+      "val_gain_at16": 0.029253754592769004,
+      "val_gain_at16_tail": 0.011873837304821064,
+      "n_test": 736,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.19878580464285922,
+          "tree_tail@10": 0.020679993035249672,
+          "cmp_full@10": 0.18781140185185222,
+          "cmp_tail@10": 0.012907865966612971,
+          "diff_full@10": 0.010974402791006994,
+          "diff_tail@10": 0.007772127068636701,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.2485682854502743,
+          "tree_tail@10": 0.044981840267270014,
+          "cmp_full@10": 0.23417132902886234,
+          "cmp_tail@10": 0.02912508166421548,
+          "diff_full@10": 0.014396956421411929,
+          "diff_tail@10": 0.015856758603054532,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.26222419215727505,
+          "tree_tail@10": 0.06181252713453522,
+          "cmp_full@10": 0.24592000864372318,
+          "cmp_tail@10": 0.0380488635795271,
+          "diff_full@10": 0.01630418351355189,
+          "diff_tail@10": 0.02376366355500811,
+          "items_answered": 0.0,
+          "concepts_answered": 3.826,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.27359038444929407,
+          "tree_tail@10": 0.07128396430376611,
+          "cmp_full@10": 0.25327552846692736,
+          "cmp_tail@10": 0.055815434082831024,
+          "diff_full@10": 0.0203148559823667,
+          "diff_tail@10": 0.015468530220935098,
+          "items_answered": 0.231,
+          "concepts_answered": 6.656,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.29104044392817924,
+          "tree_tail@10": 0.08253703284186911,
+          "cmp_full@10": 0.27269845964237793,
+          "cmp_tail@10": 0.06793306315378059,
+          "diff_full@10": 0.01834198428580131,
+          "diff_tail@10": 0.014603969688088523,
+          "items_answered": 0.879,
+          "concepts_answered": 12.163,
+          "set_overlap": 2
+        }
+      },
+      "test_gain_at16": 0.01834198428580131,
+      "test_gain_at16_tail": 0.014603969688088523,
+      "test_full@10_at16": 0.29104044392817924,
+      "test_tail@10_at16": 0.08253703284186911,
+      "shrinkage_val_to_test": 1.5949067525597322
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.like",
+      "depth": 4,
+      "n_val": 702,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          614
+        ],
+        [
+          1,
+          708
+        ],
+        [
+          1,
+          461
+        ],
+        [
+          0,
+          26
+        ],
+        [
+          1,
+          455
+        ],
+        [
+          1,
+          173
+        ],
+        [
+          0,
+          153
+        ],
+        [
+          1,
+          622
+        ],
+        [
+          0,
+          643
+        ],
+        [
+          0,
+          164
+        ],
+        [
+          1,
+          994
+        ],
+        [
+          0,
+          77
+        ]
+      ],
+      "new_question": [
+        0,
+        77
+      ],
+      "new_question_gain": 0.0013813304996412312,
+      "prefix_unchanged": true,
+      "n_evals_new": 29,
+      "minutes_extend": 0.77,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 484,
+          "frac": 0.6895
+        },
+        {
+          "genre": "Comedy",
+          "n": 123,
+          "frac": 0.1752
+        },
+        {
+          "genre": "Action",
+          "n": 64,
+          "frac": 0.0912
+        },
+        {
+          "genre": "Adventure",
+          "n": 23,
+          "frac": 0.0328
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.04631110461843604,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.3471246703370289,
+          "tree_tail@10": 0.06701508061626274,
+          "cmp_full@10": 0.3297379986749095,
+          "cmp_tail@10": 0.05454690610846044,
+          "diff_full@10": 0.01738667166211937,
+          "diff_tail@10": 0.0124681745078023,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.35860172249798833,
+          "tree_tail@10": 0.08203466980094258,
+          "cmp_full@10": 0.34253076331723814,
+          "cmp_tail@10": 0.06371881727720367,
+          "diff_full@10": 0.016070959180750213,
+          "diff_tail@10": 0.018315852523738903,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.39593207762654115,
+          "tree_tail@10": 0.10219766014592167,
+          "cmp_full@10": 0.3673437939838788,
+          "cmp_tail@10": 0.08861311413680645,
+          "diff_full@10": 0.02858828364266236,
+          "diff_tail@10": 0.013584546009115232,
+          "items_answered": 1.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.4310357812849836,
+          "tree_tail@10": 0.1399739166867411,
+          "cmp_full@10": 0.3863781119318922,
+          "cmp_tail@10": 0.12211770075407645,
+          "diff_full@10": 0.0446576693530913,
+          "diff_tail@10": 0.017856215932664676,
+          "items_answered": 1.655,
+          "concepts_answered": 4.947,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.45958643990598275,
+          "tree_tail@10": 0.1737856674310011,
+          "cmp_full@10": 0.4183023125967623,
+          "cmp_tail@10": 0.12473835363594638,
+          "diff_full@10": 0.041284127309220514,
+          "diff_tail@10": 0.04904731379505473,
+          "items_answered": 2.934,
+          "concepts_answered": 8.946,
+          "set_overlap": 2
+        }
+      },
+      "val_gain_at16": 0.041284127309220514,
+      "val_gain_at16_tail": 0.04904731379505473,
+      "n_test": 769,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.3533278956183097,
+          "tree_tail@10": 0.0782632990956874,
+          "cmp_full@10": 0.3297413321577535,
+          "cmp_tail@10": 0.05923326689533374,
+          "diff_full@10": 0.023586563460556122,
+          "diff_tail@10": 0.019030032200353673,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.36740099101878615,
+          "tree_tail@10": 0.09217103517152846,
+          "cmp_full@10": 0.3398560120121183,
+          "cmp_tail@10": 0.06750972924124923,
+          "diff_full@10": 0.027544979006667816,
+          "diff_tail@10": 0.024661305930279227,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.41091504626689423,
+          "tree_tail@10": 0.12250485201405655,
+          "cmp_full@10": 0.36441644502346476,
+          "cmp_tail@10": 0.09428702247817142,
+          "diff_full@10": 0.046498601243429506,
+          "diff_tail@10": 0.028217829535885135,
+          "items_answered": 1.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.4292966127241004,
+          "tree_tail@10": 0.14864461896508496,
+          "cmp_full@10": 0.4032553077715406,
+          "cmp_tail@10": 0.1374883428679208,
+          "diff_full@10": 0.026041304952559803,
+          "diff_tail@10": 0.011156276097164164,
+          "items_answered": 1.698,
+          "concepts_answered": 4.951,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.4595785267035409,
+          "tree_tail@10": 0.17902287374905923,
+          "cmp_full@10": 0.44662201283167313,
+          "cmp_tail@10": 0.14014219020389487,
+          "diff_full@10": 0.012956513871867786,
+          "diff_tail@10": 0.03888068354516433,
+          "items_answered": 3.052,
+          "concepts_answered": 8.949,
+          "set_overlap": 2
+        }
+      },
+      "test_gain_at16": 0.012956513871867786,
+      "test_gain_at16_tail": 0.03888068354516433,
+      "test_full@10_at16": 0.4595785267035409,
+      "test_tail@10_at16": 0.17902287374905923,
+      "shrinkage_val_to_test": 3.1863607539416834
+    },
+    {
+      "nid": "root.dislike.dislike.like",
+      "depth": 3,
+      "n_val": 660,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          951
+        ],
+        [
+          1,
+          12
+        ],
+        [
+          1,
+          354
+        ],
+        [
+          0,
+          1488
+        ],
+        [
+          1,
+          854
+        ],
+        [
+          1,
+          377
+        ],
+        [
+          1,
+          696
+        ],
+        [
+          0,
+          461
+        ],
+        [
+          0,
+          545
+        ],
+        [
+          0,
+          88
+        ],
+        [
+          0,
+          1489
+        ],
+        [
+          0,
+          541
+        ],
+        [
+          0,
+          1294
+        ]
+      ],
+      "new_question": [
+        0,
+        1294
+      ],
+      "new_question_gain": 0.0012401167351334674,
+      "prefix_unchanged": true,
+      "n_evals_new": 36,
+      "minutes_extend": 0.82,
+      "genre_face_validity": [
+        {
+          "genre": "Action",
+          "n": 206,
+          "frac": 0.3121
+        },
+        {
+          "genre": "Drama",
+          "n": 202,
+          "frac": 0.3061
+        },
+        {
+          "genre": "Comedy",
+          "n": 103,
+          "frac": 0.1561
+        },
+        {
+          "genre": "Sci-Fi",
+          "n": 56,
+          "frac": 0.0848
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.03375273963083483,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.17484971107785716,
+          "tree_tail@10": 0.033995817889006526,
+          "cmp_full@10": 0.1784395444298984,
+          "cmp_tail@10": 0.03643731404262362,
+          "diff_full@10": -0.0035898333520412553,
+          "diff_tail@10": -0.0024414961536170926,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.18641732673046377,
+          "tree_tail@10": 0.03691075988782863,
+          "cmp_full@10": 0.19005377190292988,
+          "cmp_tail@10": 0.03850059187812984,
+          "diff_full@10": -0.003636445172466102,
+          "diff_tail@10": -0.001589831990301209,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.28155029721531344,
+          "tree_tail@10": 0.11235020931168123,
+          "cmp_full@10": 0.23175153388067532,
+          "cmp_tail@10": 0.07061696238005398,
+          "diff_full@10": 0.04979876333463814,
+          "diff_tail@10": 0.04173324693162724,
+          "items_answered": 0.435,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.3118950695660778,
+          "tree_tail@10": 0.12635153268149182,
+          "cmp_full@10": 0.2666897521872182,
+          "cmp_tail@10": 0.09776614458873449,
+          "diff_full@10": 0.0452053173788596,
+          "diff_tail@10": 0.02858538809275734,
+          "items_answered": 0.635,
+          "concepts_answered": 5.98,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.33444945014621175,
+          "tree_tail@10": 0.13549506162317865,
+          "cmp_full@10": 0.3009544039269603,
+          "cmp_tail@10": 0.11722368278595567,
+          "diff_full@10": 0.033495046219251416,
+          "diff_tail@10": 0.018271378837222973,
+          "items_answered": 1.318,
+          "concepts_answered": 7.935,
+          "set_overlap": 0
+        }
+      },
+      "val_gain_at16": 0.033495046219251416,
+      "val_gain_at16_tail": 0.018271378837222973,
+      "n_test": 641,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.16640883439866855,
+          "tree_tail@10": 0.030332013846746827,
+          "cmp_full@10": 0.16535898280487235,
+          "cmp_tail@10": 0.030260258428938057,
+          "diff_full@10": 0.0010498515937961837,
+          "diff_tail@10": 7.175541780876943e-05,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.178242599615086,
+          "tree_tail@10": 0.034685688155080135,
+          "cmp_full@10": 0.17357641254983472,
+          "cmp_tail@10": 0.03445314076103583,
+          "diff_full@10": 0.004666187065251294,
+          "diff_tail@10": 0.00023254739404430028,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.26033553505419266,
+          "tree_tail@10": 0.10490573130109389,
+          "cmp_full@10": 0.21170874455367897,
+          "cmp_tail@10": 0.0625489088847214,
+          "diff_full@10": 0.04862679050051372,
+          "diff_tail@10": 0.04235682241637247,
+          "items_answered": 0.41,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.2850493693899895,
+          "tree_tail@10": 0.11423971851686568,
+          "cmp_full@10": 0.24793374215009084,
+          "cmp_tail@10": 0.09249371396049068,
+          "diff_full@10": 0.037115627239898655,
+          "diff_tail@10": 0.021746004556374984,
+          "items_answered": 0.587,
+          "concepts_answered": 5.961,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.29745341847049633,
+          "tree_tail@10": 0.13077789441892876,
+          "cmp_full@10": 0.2781189507425017,
+          "cmp_tail@10": 0.10784688120913147,
+          "diff_full@10": 0.0193344677279946,
+          "diff_tail@10": 0.0229310132097973,
+          "items_answered": 1.218,
+          "concepts_answered": 7.914,
+          "set_overlap": 0
+        }
+      },
+      "test_gain_at16": 0.0193344677279946,
+      "test_gain_at16_tail": 0.0229310132097973,
+      "test_full@10_at16": 0.29745341847049633,
+      "test_tail@10_at16": 0.13077789441892876,
+      "shrinkage_val_to_test": 1.7324007410223945
+    },
+    {
+      "nid": "root.dislike.dislike.noanswer",
+      "depth": 3,
+      "n_val": 556,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          499
+        ],
+        [
+          0,
+          15
+        ],
+        [
+          0,
+          463
+        ],
+        [
+          1,
+          107
+        ],
+        [
+          1,
+          594
+        ],
+        [
+          1,
+          189
+        ],
+        [
+          1,
+          333
+        ],
+        [
+          0,
+          781
+        ],
+        [
+          1,
+          181
+        ],
+        [
+          0,
+          1793
+        ],
+        [
+          1,
+          713
+        ],
+        [
+          1,
+          857
+        ],
+        [
+          0,
+          679
+        ]
+      ],
+      "new_question": [
+        0,
+        679
+      ],
+      "new_question_gain": 0.0015848169475442264,
+      "prefix_unchanged": true,
+      "n_evals_new": 31,
+      "minutes_extend": 0.71,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 365,
+          "frac": 0.6565
+        },
+        {
+          "genre": "Comedy",
+          "n": 91,
+          "frac": 0.1637
+        },
+        {
+          "genre": "Action",
+          "n": 37,
+          "frac": 0.0665
+        },
+        {
+          "genre": "Thriller",
+          "n": 27,
+          "frac": 0.0486
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.03229738613060061,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.08602608796217748,
+          "tree_tail@10": 0.026270430983268485,
+          "cmp_full@10": 0.08603691446077524,
+          "cmp_tail@10": 0.029985363240761075,
+          "diff_full@10": -1.0826498597774729e-05,
+          "diff_tail@10": -0.003714932257492592,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.08764192877639884,
+          "tree_tail@10": 0.02302638001483255,
+          "cmp_full@10": 0.0911604192450481,
+          "cmp_tail@10": 0.03244084116903177,
+          "diff_full@10": -0.0035184904686492687,
+          "diff_tail@10": -0.009414461154199225,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.10344976373510004,
+          "tree_tail@10": 0.02817386726008848,
+          "cmp_full@10": 0.09607459059802467,
+          "cmp_tail@10": 0.03383014277015058,
+          "diff_full@10": 0.007375173137075368,
+          "diff_tail@10": -0.0056562755100621025,
+          "items_answered": 0.097,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.1285530467249491,
+          "tree_tail@10": 0.06050294848660155,
+          "cmp_full@10": 0.10896284045888273,
+          "cmp_tail@10": 0.04689490490300643,
+          "diff_full@10": 0.01959020626606636,
+          "diff_tail@10": 0.013608043583595113,
+          "items_answered": 0.408,
+          "concepts_answered": 3.968,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.1489522911624517,
+          "tree_tail@10": 0.0777362048911959,
+          "cmp_full@10": 0.11562272035694594,
+          "cmp_tail@10": 0.05381844223219219,
+          "diff_full@10": 0.03332957080550577,
+          "diff_tail@10": 0.023917762659003722,
+          "items_answered": 0.538,
+          "concepts_answered": 7.651,
+          "set_overlap": 0
+        }
+      },
+      "val_gain_at16": 0.03332957080550577,
+      "val_gain_at16_tail": 0.023917762659003722,
+      "n_test": 611,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.08776657413849714,
+          "tree_tail@10": 0.03047860074345892,
+          "cmp_full@10": 0.09192011599990584,
+          "cmp_tail@10": 0.029688890170030315,
+          "diff_full@10": -0.004153541861408696,
+          "diff_tail@10": 0.0007897105734286005,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.08915827897830546,
+          "tree_tail@10": 0.029764571760315262,
+          "cmp_full@10": 0.09597097330412108,
+          "cmp_tail@10": 0.032974716064516255,
+          "diff_full@10": -0.006812694325815614,
+          "diff_tail@10": -0.0032101443042010015,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.1045454203982557,
+          "tree_tail@10": 0.030544119948561366,
+          "cmp_full@10": 0.10479669480195515,
+          "cmp_tail@10": 0.0333738473799899,
+          "diff_full@10": -0.0002512744036994566,
+          "diff_tail@10": -0.002829727431428526,
+          "items_answered": 0.105,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.12018715850091648,
+          "tree_tail@10": 0.05514160576326798,
+          "cmp_full@10": 0.1163513656297889,
+          "cmp_tail@10": 0.04415424040947066,
+          "diff_full@10": 0.0038357928711275657,
+          "diff_tail@10": 0.01098736535379732,
+          "items_answered": 0.414,
+          "concepts_answered": 3.962,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.12318504966038119,
+          "tree_tail@10": 0.0628533525719429,
+          "cmp_full@10": 0.12699789365684058,
+          "cmp_tail@10": 0.049841525889081605,
+          "diff_full@10": -0.003812843996459386,
+          "diff_tail@10": 0.013011826682861292,
+          "items_answered": 0.574,
+          "concepts_answered": 7.717,
+          "set_overlap": 0
+        }
+      },
+      "test_gain_at16": -0.003812843996459386,
+      "test_gain_at16_tail": 0.013011826682861292,
+      "test_full@10_at16": 0.12318504966038119,
+      "test_tail@10_at16": 0.0628533525719429,
+      "shrinkage_val_to_test": -8.741393782818198
+    },
+    {
+      "nid": "root.dislike.noanswer",
+      "depth": 2,
+      "n_val": 529,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          0,
+          15
+        ],
+        [
+          0,
+          463
+        ],
+        [
+          0,
+          438
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          107
+        ],
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          252
+        ],
+        [
+          1,
+          976
+        ],
+        [
+          1,
+          162
+        ],
+        [
+          1,
+          336
+        ],
+        [
+          0,
+          501
+        ],
+        [
+          1,
+          691
+        ],
+        [
+          1,
+          830
+        ],
+        [
+          1,
+          851
+        ]
+      ],
+      "new_question": [
+        1,
+        851
+      ],
+      "new_question_gain": 0.001139408208429754,
+      "prefix_unchanged": true,
+      "n_evals_new": 46,
+      "minutes_extend": 0.78,
+      "genre_face_validity": [
+        {
+          "genre": "Comedy",
+          "n": 142,
+          "frac": 0.2684
+        },
+        {
+          "genre": "Action",
+          "n": 139,
+          "frac": 0.2628
+        },
+        {
+          "genre": "Drama",
+          "n": 126,
+          "frac": 0.2382
+        },
+        {
+          "genre": "Adventure",
+          "n": 52,
+          "frac": 0.0983
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.0746809231253666,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.04890719991808588,
+          "tree_tail@10": 0.03643832072612733,
+          "cmp_full@10": 0.05722117332419423,
+          "cmp_tail@10": 0.040003027722412106,
+          "diff_full@10": -0.008313973406108342,
+          "diff_tail@10": -0.003564706996284776,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.053761258015251535,
+          "tree_tail@10": 0.04052689324065461,
+          "cmp_full@10": 0.062135402719901305,
+          "cmp_tail@10": 0.04534205834764934,
+          "diff_full@10": -0.00837414470464977,
+          "diff_tail@10": -0.004815165106994728,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.11339583448870859,
+          "tree_tail@10": 0.0861200159667476,
+          "cmp_full@10": 0.07034925772484069,
+          "cmp_tail@10": 0.03895564910119162,
+          "diff_full@10": 0.043046576763867916,
+          "diff_tail@10": 0.047164366865555994,
+          "items_answered": 0.643,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.15494265290786824,
+          "tree_tail@10": 0.10856016624645927,
+          "cmp_full@10": 0.08052205086967418,
+          "cmp_tail@10": 0.05155268484547539,
+          "diff_full@10": 0.07442060203819409,
+          "diff_tail@10": 0.05700748140098388,
+          "items_answered": 1.043,
+          "concepts_answered": 2.739,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.17780889877838235,
+          "tree_tail@10": 0.12154090459199869,
+          "cmp_full@10": 0.10527908567212471,
+          "cmp_tail@10": 0.07495596190450016,
+          "diff_full@10": 0.07252981310625763,
+          "diff_tail@10": 0.046584942687498514,
+          "items_answered": 1.278,
+          "concepts_answered": 6.524,
+          "set_overlap": 0
+        }
+      },
+      "val_gain_at16": 0.07252981310625763,
+      "val_gain_at16_tail": 0.046584942687498514,
+      "n_test": 499,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.050708777973128415,
+          "tree_tail@10": 0.0289694722900243,
+          "cmp_full@10": 0.06476953309331217,
+          "cmp_tail@10": 0.03842670083180823,
+          "diff_full@10": -0.01406075512018375,
+          "diff_tail@10": -0.009457228541783932,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.05151212776117111,
+          "tree_tail@10": 0.03230573389955093,
+          "cmp_full@10": 0.0686177748811882,
+          "cmp_tail@10": 0.03844323531729166,
+          "diff_full@10": -0.01710564712001709,
+          "diff_tail@10": -0.00613750141774073,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.11708638609118584,
+          "tree_tail@10": 0.08411358952102534,
+          "cmp_full@10": 0.07285024717416515,
+          "cmp_tail@10": 0.03340194055029273,
+          "diff_full@10": 0.04423613891702069,
+          "diff_tail@10": 0.050711648970732603,
+          "items_answered": 0.635,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.14259937207394527,
+          "tree_tail@10": 0.11228037159184719,
+          "cmp_full@10": 0.08573236524431055,
+          "cmp_tail@10": 0.044520007831364936,
+          "diff_full@10": 0.05686700682963471,
+          "diff_tail@10": 0.06776036376048225,
+          "items_answered": 1.084,
+          "concepts_answered": 2.733,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.1663947356536999,
+          "tree_tail@10": 0.12678496446843737,
+          "cmp_full@10": 0.108030826003111,
+          "cmp_tail@10": 0.0739414775797171,
+          "diff_full@10": 0.05836390965058892,
+          "diff_tail@10": 0.05284348688872029,
+          "items_answered": 1.305,
+          "concepts_answered": 6.649,
+          "set_overlap": 0
+        }
+      },
+      "test_gain_at16": 0.05836390965058892,
+      "test_gain_at16_tail": 0.05284348688872029,
+      "test_full@10_at16": 0.1663947356536999,
+      "test_tail@10_at16": 0.12678496446843737,
+      "shrinkage_val_to_test": 1.2427168354635023
+    },
+    {
+      "nid": "root.noanswer.dislike",
+      "depth": 2,
+      "n_val": 438,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          15
+        ],
+        [
+          1,
+          251
+        ],
+        [
+          1,
+          178
+        ],
+        [
+          0,
+          450
+        ],
+        [
+          1,
+          125
+        ],
+        [
+          0,
+          116
+        ],
+        [
+          0,
+          162
+        ],
+        [
+          1,
+          127
+        ],
+        [
+          1,
+          694
+        ],
+        [
+          1,
+          456
+        ],
+        [
+          0,
+          1123
+        ],
+        [
+          0,
+          550
+        ],
+        [
+          1,
+          381
+        ]
+      ],
+      "new_question": [
+        1,
+        381
+      ],
+      "new_question_gain": -0.0005241744304294027,
+      "prefix_unchanged": true,
+      "n_evals_new": 3,
+      "minutes_extend": 0.05,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 287,
+          "frac": 0.6553
+        },
+        {
+          "genre": "Comedy",
+          "n": 49,
+          "frac": 0.1119
+        },
+        {
+          "genre": "Thriller",
+          "n": 46,
+          "frac": 0.105
+        },
+        {
+          "genre": "Action",
+          "n": 31,
+          "frac": 0.0708
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.051664976428588055,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.19676924855890643,
+          "tree_tail@10": 0.06297001386540532,
+          "cmp_full@10": 0.22225584706712478,
+          "cmp_tail@10": 0.07306297369477918,
+          "diff_full@10": -0.025486598508218352,
+          "diff_tail@10": -0.010092959829373848,
+          "items_answered": 0.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.3201321087800992,
+          "tree_tail@10": 0.1538680832419575,
+          "cmp_full@10": 0.2328306481084383,
+          "cmp_tail@10": 0.09994078063655845,
+          "diff_full@10": 0.08730146067166092,
+          "diff_tail@10": 0.05392730260539905,
+          "items_answered": 1.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.3765988001397574,
+          "tree_tail@10": 0.2163626924371118,
+          "cmp_full@10": 0.33542442211403156,
+          "cmp_tail@10": 0.20401966768885146,
+          "diff_full@10": 0.04117437802572577,
+          "diff_tail@10": 0.012343024748260366,
+          "items_answered": 1.717,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.3999346215325144,
+          "tree_tail@10": 0.22760871394413837,
+          "cmp_full@10": 0.34108611115207266,
+          "cmp_tail@10": 0.21024413912821222,
+          "diff_full@10": 0.05884851038044165,
+          "diff_tail@10": 0.017364574815926143,
+          "items_answered": 2.288,
+          "concepts_answered": 3.189,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.4105231998211863,
+          "tree_tail@10": 0.24733903019947168,
+          "cmp_full@10": 0.3614296617426463,
+          "cmp_tail@10": 0.22589799010082526,
+          "diff_full@10": 0.04909353807854006,
+          "diff_tail@10": 0.02144104009864639,
+          "items_answered": 3.183,
+          "concepts_answered": 5.436,
+          "set_overlap": 0
+        }
+      },
+      "val_gain_at16": 0.04909353807854006,
+      "val_gain_at16_tail": 0.02144104009864639,
+      "n_test": 434,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.20517058730576163,
+          "tree_tail@10": 0.0633488610145467,
+          "cmp_full@10": 0.22723307498687537,
+          "cmp_tail@10": 0.07940668827270433,
+          "diff_full@10": -0.02206248768111373,
+          "diff_tail@10": -0.016057827258157638,
+          "items_answered": 0.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.3247757746250874,
+          "tree_tail@10": 0.1621810329448952,
+          "cmp_full@10": 0.242467968100931,
+          "cmp_tail@10": 0.09336155834804295,
+          "diff_full@10": 0.08230780652415641,
+          "diff_tail@10": 0.06881947459685224,
+          "items_answered": 1.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.3706491943195287,
+          "tree_tail@10": 0.23441752300154833,
+          "cmp_full@10": 0.33236012050811364,
+          "cmp_tail@10": 0.19581727366536067,
+          "diff_full@10": 0.03828907381141502,
+          "diff_tail@10": 0.03860024933618768,
+          "items_answered": 1.7,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.38175883733831983,
+          "tree_tail@10": 0.24048832699288544,
+          "cmp_full@10": 0.3485244757068992,
+          "cmp_tail@10": 0.1878871699316632,
+          "diff_full@10": 0.0332343616314206,
+          "diff_tail@10": 0.05260115706122219,
+          "items_answered": 2.272,
+          "concepts_answered": 3.283,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.39220163183013684,
+          "tree_tail@10": 0.25252428134591776,
+          "cmp_full@10": 0.3648938909437572,
+          "cmp_tail@10": 0.21116732702404709,
+          "diff_full@10": 0.027307740886379602,
+          "diff_tail@10": 0.04135695432187068,
+          "items_answered": 3.168,
+          "concepts_answered": 5.578,
+          "set_overlap": 0
+        }
+      },
+      "test_gain_at16": 0.027307740886379602,
+      "test_gain_at16_tail": 0.04135695432187068,
+      "test_full@10_at16": 0.39220163183013684,
+      "test_tail@10_at16": 0.25252428134591776,
+      "shrinkage_val_to_test": 1.7977883371167718
+    },
+    {
+      "nid": "root.noanswer.like",
+      "depth": 2,
+      "n_val": 357,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ],
+        [
+          1,
+          354
+        ],
+        [
+          0,
+          504
+        ],
+        [
+          1,
+          339
+        ],
+        [
+          1,
+          203
+        ],
+        [
+          0,
+          14
+        ],
+        [
+          1,
+          556
+        ],
+        [
+          0,
+          130
+        ],
+        [
+          1,
+          150
+        ],
+        [
+          0,
+          113
+        ],
+        [
+          1,
+          773
+        ],
+        [
+          1,
+          117
+        ],
+        [
+          0,
+          122
+        ],
+        [
+          0,
+          844
+        ],
+        [
+          0,
+          875
+        ]
+      ],
+      "new_question": [
+        0,
+        875
+      ],
+      "new_question_gain": 0.0015063272003533745,
+      "prefix_unchanged": true,
+      "n_evals_new": 5,
+      "minutes_extend": 0.11,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 157,
+          "frac": 0.4398
+        },
+        {
+          "genre": "Thriller",
+          "n": 74,
+          "frac": 0.2073
+        },
+        {
+          "genre": "Action",
+          "n": 54,
+          "frac": 0.1513
+        },
+        {
+          "genre": "Comedy",
+          "n": 43,
+          "frac": 0.1204
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.0759573305715231,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.18340612603826986,
+          "tree_tail@10": 0.06755388200752059,
+          "cmp_full@10": 0.19551114412807497,
+          "cmp_tail@10": 0.0648766475782075,
+          "diff_full@10": -0.012105018089805138,
+          "diff_tail@10": 0.0026772344293130813,
+          "items_answered": 0.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.37434040547035907,
+          "tree_tail@10": 0.2697025775620797,
+          "cmp_full@10": 0.20937951278687467,
+          "cmp_tail@10": 0.08798448298799627,
+          "diff_full@10": 0.16496089268348443,
+          "diff_tail@10": 0.18171809457408347,
+          "items_answered": 1.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.4104073238419902,
+          "tree_tail@10": 0.29677422710919105,
+          "cmp_full@10": 0.34456530938542385,
+          "cmp_tail@10": 0.24297196654416342,
+          "diff_full@10": 0.06584201445656634,
+          "diff_tail@10": 0.05380226056502763,
+          "items_answered": 1.527,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.4370776901118005,
+          "tree_tail@10": 0.3072143001674105,
+          "cmp_full@10": 0.3441772784285287,
+          "cmp_tail@10": 0.2300597800288161,
+          "diff_full@10": 0.09290041168327172,
+          "diff_tail@10": 0.0771545201385944,
+          "items_answered": 1.972,
+          "concepts_answered": 3.874,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.4520260108629882,
+          "tree_tail@10": 0.3221780594814122,
+          "cmp_full@10": 0.37839415265432164,
+          "cmp_tail@10": 0.260527674729121,
+          "diff_full@10": 0.07363185820866651,
+          "diff_tail@10": 0.061650384752291294,
+          "items_answered": 2.249,
+          "concepts_answered": 6.779,
+          "set_overlap": 1
+        }
+      },
+      "val_gain_at16": 0.07363185820866651,
+      "val_gain_at16_tail": 0.061650384752291294,
+      "n_test": 345,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.16233881797821056,
+          "tree_tail@10": 0.07938392815330796,
+          "cmp_full@10": 0.17085627021436897,
+          "cmp_tail@10": 0.08934164417927543,
+          "diff_full@10": -0.008517452236158393,
+          "diff_tail@10": -0.00995771602596748,
+          "items_answered": 0.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.340692373242482,
+          "tree_tail@10": 0.2733480656247953,
+          "cmp_full@10": 0.18880198796727513,
+          "cmp_tail@10": 0.11387118420007747,
+          "diff_full@10": 0.15189038527520687,
+          "diff_tail@10": 0.1594768814247178,
+          "items_answered": 1.0,
+          "concepts_answered": 0.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.3603991046447517,
+          "tree_tail@10": 0.2925061757768857,
+          "cmp_full@10": 0.31812421540006947,
+          "cmp_tail@10": 0.26184577114118907,
+          "diff_full@10": 0.04227488924468227,
+          "diff_tail@10": 0.03066040463569657,
+          "items_answered": 1.507,
+          "concepts_answered": 0.997,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.3799721470161933,
+          "tree_tail@10": 0.29332839437864333,
+          "cmp_full@10": 0.32487767597441497,
+          "cmp_tail@10": 0.24685686763518438,
+          "diff_full@10": 0.05509447104177836,
+          "diff_tail@10": 0.046471526743458925,
+          "items_answered": 2.0,
+          "concepts_answered": 3.864,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.39008990123632187,
+          "tree_tail@10": 0.29555734798843314,
+          "cmp_full@10": 0.3454437146748336,
+          "cmp_tail@10": 0.2687486498318482,
+          "diff_full@10": 0.044646186561488256,
+          "diff_tail@10": 0.026808698156584956,
+          "items_answered": 2.246,
+          "concepts_answered": 6.777,
+          "set_overlap": 1
+        }
+      },
+      "test_gain_at16": 0.044646186561488256,
+      "test_gain_at16_tail": 0.026808698156584956,
+      "test_full@10_at16": 0.39008990123632187,
+      "test_tail@10_at16": 0.29555734798843314,
+      "shrinkage_val_to_test": 1.6492306259406544
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.dislike",
+      "depth": 4,
+      "n_val": 355,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          784
+        ],
+        [
+          1,
+          202
+        ],
+        [
+          1,
+          511
+        ],
+        [
+          0,
+          77
+        ],
+        [
+          0,
+          219
+        ],
+        [
+          1,
+          680
+        ],
+        [
+          1,
+          203
+        ],
+        [
+          0,
+          392
+        ],
+        [
+          1,
+          458
+        ],
+        [
+          0,
+          348
+        ],
+        [
+          1,
+          464
+        ],
+        [
+          0,
+          331
+        ]
+      ],
+      "new_question": [
+        0,
+        331
+      ],
+      "new_question_gain": 0.001370519474650389,
+      "prefix_unchanged": true,
+      "n_evals_new": 47,
+      "minutes_extend": 0.78,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 264,
+          "frac": 0.7437
+        },
+        {
+          "genre": "Comedy",
+          "n": 52,
+          "frac": 0.1465
+        },
+        {
+          "genre": "Action",
+          "n": 21,
+          "frac": 0.0592
+        },
+        {
+          "genre": "Thriller",
+          "n": 8,
+          "frac": 0.0225
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.03915442887991151,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.2516849850658101,
+          "tree_tail@10": 0.059399123868422,
+          "cmp_full@10": 0.23560513734988822,
+          "cmp_tail@10": 0.03757006837334416,
+          "diff_full@10": 0.016079847715921945,
+          "diff_tail@10": 0.02182905549507783,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.2633616328385123,
+          "tree_tail@10": 0.06816635366284776,
+          "cmp_full@10": 0.24564361871691548,
+          "cmp_tail@10": 0.049341351003333915,
+          "diff_full@10": 0.01771801412159685,
+          "diff_tail@10": 0.01882500265951384,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.280312134434441,
+          "tree_tail@10": 0.08325848518743453,
+          "cmp_full@10": 0.25396003002650136,
+          "cmp_tail@10": 0.06278601302401397,
+          "diff_full@10": 0.02635210440793961,
+          "diff_tail@10": 0.020472472163420567,
+          "items_answered": 1.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.32515524806819884,
+          "tree_tail@10": 0.12014388376772388,
+          "cmp_full@10": 0.29606009788361953,
+          "cmp_tail@10": 0.09679870415683073,
+          "diff_full@10": 0.029095150184579307,
+          "diff_tail@10": 0.023345179610893167,
+          "items_answered": 1.521,
+          "concepts_answered": 5.935,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.35918056746695953,
+          "tree_tail@10": 0.14901445844583727,
+          "cmp_full@10": 0.3183132591558753,
+          "cmp_tail@10": 0.1106890657749887,
+          "diff_full@10": 0.04086730831108424,
+          "diff_tail@10": 0.03832539267084853,
+          "items_answered": 2.211,
+          "concepts_answered": 9.901,
+          "set_overlap": 2
+        }
+      },
+      "val_gain_at16": 0.04086730831108424,
+      "val_gain_at16_tail": 0.03832539267084853,
+      "n_test": 350,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.26485639651748866,
+          "tree_tail@10": 0.05244163714461843,
+          "cmp_full@10": 0.2395654742126984,
+          "cmp_tail@10": 0.03626876186436232,
+          "diff_full@10": 0.0252909223047903,
+          "diff_tail@10": 0.0161728752802561,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.26973971148134995,
+          "tree_tail@10": 0.061332524146648235,
+          "cmp_full@10": 0.24900864569868958,
+          "cmp_tail@10": 0.04673224643977962,
+          "diff_full@10": 0.02073106578266039,
+          "diff_tail@10": 0.0146002777068686,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.2865796940054967,
+          "tree_tail@10": 0.07361244624078292,
+          "cmp_full@10": 0.27343441159984033,
+          "cmp_tail@10": 0.07297290005031393,
+          "diff_full@10": 0.013145282405656409,
+          "diff_tail@10": 0.0006395461904690009,
+          "items_answered": 1.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.313658979698887,
+          "tree_tail@10": 0.11535398240592137,
+          "cmp_full@10": 0.3053698373804461,
+          "cmp_tail@10": 0.10592375099066755,
+          "diff_full@10": 0.00828914231844092,
+          "diff_tail@10": 0.009430231415253836,
+          "items_answered": 1.543,
+          "concepts_answered": 5.931,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.3238917862268814,
+          "tree_tail@10": 0.137339985879306,
+          "cmp_full@10": 0.3166225946344902,
+          "cmp_tail@10": 0.09973868588414418,
+          "diff_full@10": 0.007269191592391203,
+          "diff_tail@10": 0.03760129999516181,
+          "items_answered": 2.254,
+          "concepts_answered": 9.897,
+          "set_overlap": 2
+        }
+      },
+      "test_gain_at16": 0.007269191592391203,
+      "test_gain_at16_tail": 0.03760129999516181,
+      "test_full@10_at16": 0.3238917862268814,
+      "test_tail@10_at16": 0.137339985879306,
+      "shrinkage_val_to_test": 5.621988056259351
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.noanswer.like",
+      "depth": 5,
+      "n_val": 345,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ],
+        [
+          1,
+          455
+        ],
+        [
+          0,
+          22
+        ],
+        [
+          0,
+          454
+        ],
+        [
+          0,
+          1476
+        ],
+        [
+          0,
+          464
+        ],
+        [
+          0,
+          460
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          1,
+          754
+        ],
+        [
+          0,
+          447
+        ],
+        [
+          0,
+          92
+        ],
+        [
+          0,
+          554
+        ]
+      ],
+      "new_question": [
+        0,
+        554
+      ],
+      "new_question_gain": 0.003655201308377376,
+      "prefix_unchanged": true,
+      "n_evals_new": 85,
+      "minutes_extend": 0.98,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 182,
+          "frac": 0.5275
+        },
+        {
+          "genre": "Action",
+          "n": 57,
+          "frac": 0.1652
+        },
+        {
+          "genre": "Comedy",
+          "n": 51,
+          "frac": 0.1478
+        },
+        {
+          "genre": "Thriller",
+          "n": 42,
+          "frac": 0.1217
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.05132226958583211,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.19359534093241956,
+          "tree_tail@10": 0.048916977831087595,
+          "cmp_full@10": 0.19823149388629088,
+          "cmp_tail@10": 0.08337619559484934,
+          "diff_full@10": -0.0046361529538713545,
+          "diff_tail@10": -0.03445921776376173,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.20289467697636918,
+          "tree_tail@10": 0.06012957803250913,
+          "cmp_full@10": 0.20820085679874106,
+          "cmp_tail@10": 0.09971050013480072,
+          "diff_full@10": -0.005306179822371934,
+          "diff_tail@10": -0.03958092210229158,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.2016436925354237,
+          "tree_tail@10": 0.07162484308935153,
+          "cmp_full@10": 0.26163842413954264,
+          "cmp_tail@10": 0.13225015646369656,
+          "diff_full@10": -0.0599947316041189,
+          "diff_tail@10": -0.060625313374345034,
+          "items_answered": 0.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.30557847415105555,
+          "tree_tail@10": 0.14857650874087105,
+          "cmp_full@10": 0.2896101057209826,
+          "cmp_tail@10": 0.13940192149715044,
+          "diff_full@10": 0.015968368430072925,
+          "diff_tail@10": 0.009174587243720589,
+          "items_answered": 0.574,
+          "concepts_answered": 4.974,
+          "set_overlap": 1
+        },
+        "16": {
+          "tree_full@10": 0.3706897177939757,
+          "tree_tail@10": 0.1874832309869714,
+          "cmp_full@10": 0.32049586674672725,
+          "cmp_tail@10": 0.16822675082892885,
+          "diff_full@10": 0.050193851047248474,
+          "diff_tail@10": 0.019256480158042537,
+          "items_answered": 2.728,
+          "concepts_answered": 5.971,
+          "set_overlap": 4
+        }
+      },
+      "val_gain_at16": 0.050193851047248474,
+      "val_gain_at16_tail": 0.019256480158042537,
+      "n_test": 377,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.1777387489954697,
+          "tree_tail@10": 0.034011606800168036,
+          "cmp_full@10": 0.18841485150101295,
+          "cmp_tail@10": 0.06511233937912098,
+          "diff_full@10": -0.010676102505543279,
+          "diff_tail@10": -0.031100732578952957,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.1836690013145538,
+          "tree_tail@10": 0.045180234682966655,
+          "cmp_full@10": 0.19900403223760568,
+          "cmp_tail@10": 0.077169625739838,
+          "diff_full@10": -0.015335030923051876,
+          "diff_tail@10": -0.031989391056871354,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.17682417645413429,
+          "tree_tail@10": 0.04943252279578444,
+          "cmp_full@10": 0.2488743661490769,
+          "cmp_tail@10": 0.1242324085884538,
+          "diff_full@10": -0.07205018969494263,
+          "diff_tail@10": -0.07479988579266937,
+          "items_answered": 0.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.280609294684868,
+          "tree_tail@10": 0.14816770758417133,
+          "cmp_full@10": 0.26217526450429585,
+          "cmp_tail@10": 0.1290056863325063,
+          "diff_full@10": 0.018434030180572145,
+          "diff_tail@10": 0.01916202125166502,
+          "items_answered": 0.568,
+          "concepts_answered": 4.971,
+          "set_overlap": 1
+        },
+        "16": {
+          "tree_full@10": 0.3250840718752546,
+          "tree_tail@10": 0.19197433251247276,
+          "cmp_full@10": 0.2851905058914183,
+          "cmp_tail@10": 0.16098436363853258,
+          "diff_full@10": 0.03989356598383631,
+          "diff_tail@10": 0.030989968873940142,
+          "items_answered": 2.721,
+          "concepts_answered": 5.971,
+          "set_overlap": 4
+        }
+      },
+      "test_gain_at16": 0.03989356598383631,
+      "test_gain_at16_tail": 0.030989968873940142,
+      "test_full@10_at16": 0.3250840718752546,
+      "test_tail@10_at16": 0.19197433251247276,
+      "shrinkage_val_to_test": 1.258194142573906
+    },
+    {
+      "nid": "root.like.dislike",
+      "depth": 2,
+      "n_val": 340,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          1,
+          911
+        ],
+        [
+          1,
+          612
+        ],
+        [
+          1,
+          824
+        ],
+        [
+          1,
+          336
+        ],
+        [
+          1,
+          305
+        ],
+        [
+          1,
+          464
+        ],
+        [
+          0,
+          228
+        ],
+        [
+          1,
+          559
+        ],
+        [
+          0,
+          174
+        ],
+        [
+          0,
+          2195
+        ],
+        [
+          1,
+          799
+        ],
+        [
+          0,
+          20
+        ],
+        [
+          0,
+          346
+        ],
+        [
+          0,
+          87
+        ]
+      ],
+      "new_question": [
+        0,
+        87
+      ],
+      "new_question_gain": 0.0026641832259644005,
+      "prefix_unchanged": true,
+      "n_evals_new": 4,
+      "minutes_extend": 0.07,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 155,
+          "frac": 0.4559
+        },
+        {
+          "genre": "Action",
+          "n": 94,
+          "frac": 0.2765
+        },
+        {
+          "genre": "Comedy",
+          "n": 46,
+          "frac": 0.1353
+        },
+        {
+          "genre": "Adventure",
+          "n": 22,
+          "frac": 0.0647
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.017663574557522342,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.20277770203928155,
+          "tree_tail@10": 0.07864826347616527,
+          "cmp_full@10": 0.1886075734289661,
+          "cmp_tail@10": 0.0532506361802568,
+          "diff_full@10": 0.014170128610315453,
+          "diff_tail@10": 0.02539762729590847,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.21270888033291224,
+          "tree_tail@10": 0.08363926128321783,
+          "cmp_full@10": 0.1919245412116423,
+          "cmp_tail@10": 0.05936575762657945,
+          "diff_full@10": 0.02078433912126997,
+          "diff_tail@10": 0.02427350365663839,
+          "items_answered": 1.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.23622060317479981,
+          "tree_tail@10": 0.0998047379046531,
+          "cmp_full@10": 0.20663782388994997,
+          "cmp_tail@10": 0.06512583592164198,
+          "diff_full@10": 0.029582779284849838,
+          "diff_tail@10": 0.03467890198301113,
+          "items_answered": 1.0,
+          "concepts_answered": 2.932,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.25670716795748727,
+          "tree_tail@10": 0.12191748842244907,
+          "cmp_full@10": 0.22872212960515872,
+          "cmp_tail@10": 0.102351378583775,
+          "diff_full@10": 0.027985038352328583,
+          "diff_tail@10": 0.019566109838674062,
+          "items_answered": 1.0,
+          "concepts_answered": 6.721,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.28423125914512354,
+          "tree_tail@10": 0.1399324607784326,
+          "cmp_full@10": 0.26677991280428914,
+          "cmp_tail@10": 0.12771692968490234,
+          "diff_full@10": 0.017451346340834444,
+          "diff_tail@10": 0.01221553109353028,
+          "items_answered": 2.812,
+          "concepts_answered": 8.574,
+          "set_overlap": 1
+        }
+      },
+      "val_gain_at16": 0.017451346340834444,
+      "val_gain_at16_tail": 0.01221553109353028,
+      "n_test": 308,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.2165232044471108,
+          "tree_tail@10": 0.09713211271769322,
+          "cmp_full@10": 0.19138971143785116,
+          "cmp_tail@10": 0.06494733485762666,
+          "diff_full@10": 0.02513349300925964,
+          "diff_tail@10": 0.03218477786006656,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.23536298838502903,
+          "tree_tail@10": 0.10806471066493734,
+          "cmp_full@10": 0.20523472137632967,
+          "cmp_tail@10": 0.07346424004086026,
+          "diff_full@10": 0.030128267008699312,
+          "diff_tail@10": 0.03460047062407708,
+          "items_answered": 1.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.24415395089930497,
+          "tree_tail@10": 0.11537487554826795,
+          "cmp_full@10": 0.22176502852957775,
+          "cmp_tail@10": 0.08361253433709913,
+          "diff_full@10": 0.022388922369727247,
+          "diff_tail@10": 0.03176234121116881,
+          "items_answered": 1.0,
+          "concepts_answered": 2.961,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.2601049252867527,
+          "tree_tail@10": 0.13804885007785073,
+          "cmp_full@10": 0.2422962055051309,
+          "cmp_tail@10": 0.11576518697666378,
+          "diff_full@10": 0.017808719781621806,
+          "diff_tail@10": 0.022283663101186933,
+          "items_answered": 1.0,
+          "concepts_answered": 6.74,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.28486938643668125,
+          "tree_tail@10": 0.1549111377273723,
+          "cmp_full@10": 0.2787791177766154,
+          "cmp_tail@10": 0.12937456802737554,
+          "diff_full@10": 0.006090268660065787,
+          "diff_tail@10": 0.025536569699996785,
+          "items_answered": 2.682,
+          "concepts_answered": 8.575,
+          "set_overlap": 1
+        }
+      },
+      "test_gain_at16": 0.006090268660065787,
+      "test_gain_at16_tail": 0.025536569699996785,
+      "test_full@10_at16": 0.28486938643668125,
+      "test_tail@10_at16": 0.1549111377273723,
+      "shrinkage_val_to_test": 2.8654477027037975
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.noanswer.noanswer",
+      "depth": 5,
+      "n_val": 205,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ]
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ],
+        [
+          1,
+          306
+        ],
+        [
+          1,
+          753
+        ],
+        [
+          1,
+          251
+        ],
+        [
+          0,
+          583
+        ],
+        [
+          1,
+          22
+        ],
+        [
+          1,
+          951
+        ],
+        [
+          1,
+          280
+        ],
+        [
+          1,
+          699
+        ],
+        [
+          0,
+          538
+        ],
+        [
+          1,
+          11
+        ],
+        [
+          1,
+          238
+        ]
+      ],
+      "new_question": [
+        1,
+        238
+      ],
+      "new_question_gain": 0.00305903195946422,
+      "prefix_unchanged": true,
+      "n_evals_new": 95,
+      "minutes_extend": 0.77,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 127,
+          "frac": 0.6195
+        },
+        {
+          "genre": "Comedy",
+          "n": 51,
+          "frac": 0.2488
+        },
+        {
+          "genre": "Action",
+          "n": 9,
+          "frac": 0.0439
+        },
+        {
+          "genre": "Children",
+          "n": 4,
+          "frac": 0.0195
+        }
+      ],
+      "val_gain_at15_vs_policyA": 0.0419940122394864,
+      "curve_val": {
+        "1": {
+          "tree_full@10": 0.09901448866360558,
+          "tree_tail@10": 0.02100508055297749,
+          "cmp_full@10": 0.09724089820718598,
+          "cmp_tail@10": 0.023852930771842827,
+          "diff_full@10": 0.001773590456419589,
+          "diff_tail@10": -0.0028478502188653385,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.10482450562044869,
+          "tree_tail@10": 0.02511400720819723,
+          "cmp_full@10": 0.10374823275823358,
+          "cmp_tail@10": 0.02355269851749827,
+          "diff_full@10": 0.0010762728622151134,
+          "diff_tail@10": 0.001561308690698955,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.10365427189930942,
+          "tree_tail@10": 0.021771152948573694,
+          "cmp_full@10": 0.1085265876081695,
+          "cmp_tail@10": 0.026808890088448195,
+          "diff_full@10": -0.004872315708860054,
+          "diff_tail@10": -0.0050377371398745005,
+          "items_answered": 0.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.1419901419565531,
+          "tree_tail@10": 0.033200488320379584,
+          "cmp_full@10": 0.1242846046019361,
+          "cmp_tail@10": 0.040181478647011167,
+          "diff_full@10": 0.017705537354616975,
+          "diff_tail@10": -0.0069809903266315814,
+          "items_answered": 0.0,
+          "concepts_answered": 5.834,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.18132427362845435,
+          "tree_tail@10": 0.050256876779476704,
+          "cmp_full@10": 0.13816570196117497,
+          "cmp_tail@10": 0.0486522991565614,
+          "diff_full@10": 0.04315857166727934,
+          "diff_tail@10": 0.0016045776229152932,
+          "items_answered": 0.132,
+          "concepts_answered": 9.951,
+          "set_overlap": 1
+        }
+      },
+      "val_gain_at16": 0.04315857166727934,
+      "val_gain_at16_tail": 0.0016045776229152932,
+      "n_test": 223,
+      "curve_test": {
+        "1": {
+          "tree_full@10": 0.10771788416254408,
+          "tree_tail@10": 0.02009197083737184,
+          "cmp_full@10": 0.10667149376907982,
+          "cmp_tail@10": 0.019736525725141313,
+          "diff_full@10": 0.001046390393464253,
+          "diff_tail@10": 0.000355445112230523,
+          "items_answered": 0.0,
+          "concepts_answered": 1.0,
+          "set_overlap": 0
+        },
+        "2": {
+          "tree_full@10": 0.11188389067729267,
+          "tree_tail@10": 0.019416354291276142,
+          "cmp_full@10": 0.11322803353590961,
+          "cmp_tail@10": 0.023609930738457453,
+          "diff_full@10": -0.0013441428586169484,
+          "diff_tail@10": -0.004193576447181315,
+          "items_answered": 0.0,
+          "concepts_answered": 2.0,
+          "set_overlap": 0
+        },
+        "4": {
+          "tree_full@10": 0.1109226374582641,
+          "tree_tail@10": 0.01810423583012603,
+          "cmp_full@10": 0.1194379718220512,
+          "cmp_tail@10": 0.04128365786535681,
+          "diff_full@10": -0.008515334363787106,
+          "diff_tail@10": -0.023179422035230778,
+          "items_answered": 0.0,
+          "concepts_answered": 3.0,
+          "set_overlap": 0
+        },
+        "8": {
+          "tree_full@10": 0.12189091486437706,
+          "tree_tail@10": 0.03599440503687026,
+          "cmp_full@10": 0.13211190960075098,
+          "cmp_tail@10": 0.044884164211348505,
+          "diff_full@10": -0.010220994736373912,
+          "diff_tail@10": -0.008889759174478257,
+          "items_answered": 0.0,
+          "concepts_answered": 5.74,
+          "set_overlap": 0
+        },
+        "16": {
+          "tree_full@10": 0.12338372877009078,
+          "tree_tail@10": 0.043641899422685745,
+          "cmp_full@10": 0.13848295197964008,
+          "cmp_tail@10": 0.05330986442189688,
+          "diff_full@10": -0.015099223209549293,
+          "diff_tail@10": -0.009667964999211118,
+          "items_answered": 0.135,
+          "concepts_answered": 9.673,
+          "set_overlap": 1
+        }
+      },
+      "test_gain_at16": -0.015099223209549293,
+      "test_gain_at16_tail": -0.009667964999211118,
+      "test_full@10_at16": 0.12338372877009078,
+      "test_tail@10_at16": 0.043641899422685745,
+      "shrinkage_val_to_test": -2.8583305954431024
+    }
+  ],
+  "per_user_npz": "ndcgtree16test_per_user.npz",
+  "seconds": 1546.0
+}

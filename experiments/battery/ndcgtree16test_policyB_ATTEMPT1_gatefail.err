@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\dev\phd\casper\src\instrument\ndcg_tree_policyB_test.py", line 439, in <module>
+    main()
+  File "C:\dev\phd\casper\src\instrument\ndcg_tree_policyB_test.py", line 287, in main
+    gate_max = max(gate_max, exact(of, zt[f"test|{nid}|{K}|own_full"], f"{nid} K={K} own_full"))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\dev\phd\casper\src\instrument\ndcg_tree_policyB_test.py", line 96, in exact
+    assert mx == 0.0, (f"{what}: RECOMPUTATION DOES NOT REPRODUCE THE BANKED VECTORS "
+           ^^^^^^^^^
+AssertionError: root.noanswer.noanswer K=1 own_full: RECOMPUTATION DOES NOT REPRODUCE THE BANKED VECTORS (max |diff| = 2.943e-08, 557 users differ). The banked artifact and this harness are not on the same ruler -- STOP.
