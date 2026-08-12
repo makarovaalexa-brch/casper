@@ -1,0 +1,3475 @@
+{
+  "analysis": "tree_routing_specialisation",
+  "todo": "1.20",
+  "plan_item": "D2",
+  "design_sheet": "docs/design/TREE_ROUTING_SPECIALISATION_DESIGN.md",
+  "source_tree": "ndcgtree.json",
+  "banked_only": true,
+  "rescored": false,
+  "seed": 98765,
+  "similarity": "cosine in the 1,128-dim genome tag-relevance space; item = raw genome row, concept = mean genome row over its members (relevance >= 0.5)",
+  "S1_divergence": {
+    "n_leaves": 15,
+    "n_pairs": 105,
+    "full_sequence_overlap_of_15": {
+      "n": 105,
+      "min": 1.0,
+      "q25": 1.0,
+      "median": 2.0,
+      "mean": 2.1619047619047618,
+      "q75": 3.0,
+      "max": 6.0,
+      "hist": {
+        "1": 40,
+        "2": 29,
+        "3": 23,
+        "4": 7,
+        "5": 4,
+        "6": 2
+      }
+    },
+    "free_pick_overlap": {
+      "n": 105,
+      "min": 0.0,
+      "q25": 0.0,
+      "median": 0.0,
+      "mean": 0.26666666666666666,
+      "q75": 0.0,
+      "max": 3.0,
+      "hist": {
+        "0": 80,
+        "1": 23,
+        "2": 1,
+        "3": 1
+      }
+    },
+    "positions_differing_of_15": {
+      "n": 105,
+      "min": 10.0,
+      "q25": 13.0,
+      "median": 14.0,
+      "mean": 13.247619047619047,
+      "q75": 14.0,
+      "max": 14.0,
+      "hist": {
+        "10": 3,
+        "11": 7,
+        "12": 13,
+        "13": 20,
+        "14": 62
+      }
+    },
+    "mean_free_pick_length": 12.0,
+    "union_all_questions": 159,
+    "union_free_questions": 154,
+    "chance_overlap_random_pool_1000": 0.225,
+    "chance_free_overlap_matched_availability": 0.935064935064935,
+    "overlap_with_global_static": {
+      "root.noanswer.noanswer": 1,
+      "root.like.noanswer": 4,
+      "root.like.like": 3,
+      "root.dislike.dislike.dislike.noanswer.dislike": 1,
+      "root.dislike.like": 2,
+      "root.dislike.dislike.dislike.like": 2,
+      "root.dislike.dislike.like": 0,
+      "root.dislike.dislike.noanswer": 0,
+      "root.dislike.noanswer": 0,
+      "root.noanswer.dislike": 0,
+      "root.noanswer.like": 1,
+      "root.dislike.dislike.dislike.dislike": 2,
+      "root.dislike.dislike.dislike.noanswer.like": 4,
+      "root.like.dislike": 1,
+      "root.dislike.dislike.dislike.noanswer.noanswer": 1
+    },
+    "global_static_in_union": 9,
+    "per_pair": [
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.like.noanswer",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.like.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.dislike.dislike.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.dislike.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 12,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.dislike.noanswer",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 12,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 3,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.noanswer.like",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.like.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.like.like",
+        "full_overlap": 4,
+        "free_overlap": 2,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.dislike",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.like",
+        "full_overlap": 3,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.dislike.dislike.like",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.dislike.like",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 12,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.dislike.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 12,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.noanswer",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 3,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.like.dislike",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.like.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.dislike.dislike.noanswer.dislike",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.like",
+        "full_overlap": 3,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.dislike.dislike.like",
+        "full_overlap": 3,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.dislike.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 12,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.dislike.noanswer",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 12,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.noanswer",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.like.dislike",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.like.like",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 3,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.dislike.like",
+        "full_overlap": 4,
+        "free_overlap": 1,
+        "free_len_a": 10,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.dislike.dislike.dislike.like",
+        "full_overlap": 4,
+        "free_overlap": 0,
+        "free_len_a": 10,
+        "free_len_b": 11,
+        "positions_differing": 11
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.dislike.dislike.like",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 10,
+        "free_len_b": 12,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.dislike.dislike.noanswer",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 10,
+        "free_len_b": 12,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.dislike.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 10,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 10,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 10,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 5,
+        "free_overlap": 1,
+        "free_len_a": 10,
+        "free_len_b": 11,
+        "positions_differing": 11
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 6,
+        "free_overlap": 1,
+        "free_len_a": 10,
+        "free_len_b": 10,
+        "positions_differing": 10
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.like.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 10,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.dislike",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 6,
+        "free_overlap": 1,
+        "free_len_a": 10,
+        "free_len_b": 10,
+        "positions_differing": 10
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.dislike.dislike.dislike.like",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.dislike.dislike.like",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 12,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.dislike.dislike.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 12,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.dislike.noanswer",
+        "full_overlap": 3,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.like.dislike",
+        "full_overlap": 3,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.like",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.dislike.dislike.like",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 12,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.dislike.dislike.noanswer",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 12,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.dislike.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 4,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 11,
+        "positions_differing": 11
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 5,
+        "free_overlap": 1,
+        "free_len_a": 11,
+        "free_len_b": 10,
+        "positions_differing": 11
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.like.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.like",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 4,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 10,
+        "positions_differing": 11
+      },
+      {
+        "a": "root.dislike.dislike.like",
+        "b": "root.dislike.dislike.noanswer",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 12,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.like",
+        "b": "root.dislike.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.dislike.like",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.like",
+        "b": "root.noanswer.like",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 12,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.like",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 11,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.like",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 10,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.like",
+        "b": "root.like.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.like",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 10,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.noanswer",
+        "b": "root.dislike.noanswer",
+        "full_overlap": 5,
+        "free_overlap": 3,
+        "free_len_a": 12,
+        "free_len_b": 13,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.noanswer",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.noanswer",
+        "b": "root.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.noanswer",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 11,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 10,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.dislike.noanswer",
+        "b": "root.like.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 3,
+        "free_overlap": 0,
+        "free_len_a": 12,
+        "free_len_b": 10,
+        "positions_differing": 12
+      },
+      {
+        "a": "root.dislike.noanswer",
+        "b": "root.noanswer.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.noanswer",
+        "b": "root.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.noanswer",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.dislike.noanswer",
+        "b": "root.like.dislike",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.noanswer",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.noanswer.dislike",
+        "b": "root.noanswer.like",
+        "full_overlap": 2,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 13
+      },
+      {
+        "a": "root.noanswer.dislike",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.dislike",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.dislike",
+        "b": "root.like.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.dislike",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.like",
+        "b": "root.dislike.dislike.dislike.dislike",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 13,
+        "free_len_b": 11,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.like",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.like",
+        "b": "root.like.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.noanswer.like",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.dislike",
+        "b": "root.dislike.dislike.dislike.noanswer.like",
+        "full_overlap": 4,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 10,
+        "positions_differing": 11
+      },
+      {
+        "a": "root.dislike.dislike.dislike.dislike",
+        "b": "root.like.dislike",
+        "full_overlap": 2,
+        "free_overlap": 1,
+        "free_len_a": 11,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.dislike",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 4,
+        "free_overlap": 0,
+        "free_len_a": 11,
+        "free_len_b": 10,
+        "positions_differing": 11
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.like",
+        "b": "root.like.dislike",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 10,
+        "free_len_b": 13,
+        "positions_differing": 14
+      },
+      {
+        "a": "root.dislike.dislike.dislike.noanswer.like",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 5,
+        "free_overlap": 0,
+        "free_len_a": 10,
+        "free_len_b": 10,
+        "positions_differing": 10
+      },
+      {
+        "a": "root.like.dislike",
+        "b": "root.dislike.dislike.dislike.noanswer.noanswer",
+        "full_overlap": 1,
+        "free_overlap": 0,
+        "free_len_a": 13,
+        "free_len_b": 10,
+        "positions_differing": 14
+      }
+    ]
+  },
+  "S2_congruence": {
+    "per_node": [
+      {
+        "nid": "root",
+        "depth": 0,
+        "n_users": 10000,
+        "splitter": [
+          1,
+          114
+        ],
+        "channel": "concept",
+        "child_sizes": {
+          "like": 2606,
+          "dislike": 4814,
+          "noanswer": 2580
+        },
+        "like_questions": [
+          [
+            0,
+            83
+          ],
+          [
+            1,
+            377
+          ],
+          [
+            0,
+            112
+          ],
+          [
+            0,
+            1118
+          ],
+          [
+            0,
+            104
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            1,
+            730
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            0,
+            343
+          ],
+          [
+            0,
+            976
+          ],
+          [
+            0,
+            89
+          ],
+          [
+            0,
+            499
+          ],
+          [
+            0,
+            366
+          ],
+          [
+            0,
+            391
+          ],
+          [
+            1,
+            911
+          ],
+          [
+            1,
+            612
+          ],
+          [
+            1,
+            824
+          ],
+          [
+            1,
+            336
+          ],
+          [
+            1,
+            305
+          ],
+          [
+            1,
+            464
+          ],
+          [
+            0,
+            228
+          ],
+          [
+            1,
+            559
+          ],
+          [
+            0,
+            174
+          ],
+          [
+            0,
+            2195
+          ],
+          [
+            1,
+            799
+          ],
+          [
+            0,
+            20
+          ],
+          [
+            0,
+            346
+          ],
+          [
+            1,
+            926
+          ],
+          [
+            0,
+            87
+          ],
+          [
+            1,
+            801
+          ],
+          [
+            1,
+            280
+          ],
+          [
+            1,
+            940
+          ],
+          [
+            1,
+            490
+          ],
+          [
+            1,
+            839
+          ],
+          [
+            0,
+            154
+          ],
+          [
+            1,
+            17
+          ],
+          [
+            0,
+            153
+          ],
+          [
+            1,
+            223
+          ]
+        ],
+        "like_n": 38,
+        "like_congruence": 0.8261379035378185,
+        "like_next_only": 0.7810208889850853,
+        "like_n_concepts": 18,
+        "dislike_questions": [
+          [
+            1,
+            283
+          ],
+          [
+            0,
+            15
+          ],
+          [
+            0,
+            463
+          ],
+          [
+            0,
+            438
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            107
+          ],
+          [
+            1,
+            312
+          ],
+          [
+            1,
+            252
+          ],
+          [
+            1,
+            976
+          ],
+          [
+            1,
+            162
+          ],
+          [
+            1,
+            336
+          ],
+          [
+            0,
+            501
+          ],
+          [
+            1,
+            691
+          ],
+          [
+            1,
+            830
+          ],
+          [
+            1,
+            36
+          ],
+          [
+            0,
+            499
+          ],
+          [
+            1,
+            594
+          ],
+          [
+            1,
+            189
+          ],
+          [
+            1,
+            333
+          ],
+          [
+            0,
+            781
+          ],
+          [
+            1,
+            181
+          ],
+          [
+            0,
+            1793
+          ],
+          [
+            1,
+            713
+          ],
+          [
+            1,
+            857
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            1,
+            334
+          ],
+          [
+            1,
+            306
+          ],
+          [
+            1,
+            753
+          ],
+          [
+            1,
+            251
+          ],
+          [
+            0,
+            583
+          ],
+          [
+            1,
+            22
+          ],
+          [
+            1,
+            951
+          ],
+          [
+            1,
+            280
+          ],
+          [
+            1,
+            699
+          ],
+          [
+            0,
+            538
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            0,
+            29
+          ],
+          [
+            0,
+            74
+          ],
+          [
+            0,
+            77
+          ],
+          [
+            1,
+            124
+          ],
+          [
+            0,
+            454
+          ],
+          [
+            0,
+            733
+          ],
+          [
+            1,
+            769
+          ],
+          [
+            1,
+            98
+          ],
+          [
+            1,
+            343
+          ],
+          [
+            1,
+            455
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            1476
+          ],
+          [
+            0,
+            464
+          ],
+          [
+            0,
+            460
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            754
+          ],
+          [
+            0,
+            447
+          ],
+          [
+            0,
+            92
+          ],
+          [
+            1,
+            784
+          ],
+          [
+            1,
+            202
+          ],
+          [
+            1,
+            511
+          ],
+          [
+            0,
+            219
+          ],
+          [
+            1,
+            680
+          ],
+          [
+            1,
+            203
+          ],
+          [
+            0,
+            392
+          ],
+          [
+            1,
+            458
+          ],
+          [
+            0,
+            348
+          ],
+          [
+            1,
+            464
+          ],
+          [
+            0,
+            614
+          ],
+          [
+            1,
+            708
+          ],
+          [
+            1,
+            461
+          ],
+          [
+            0,
+            26
+          ],
+          [
+            1,
+            173
+          ],
+          [
+            0,
+            153
+          ],
+          [
+            1,
+            622
+          ],
+          [
+            0,
+            643
+          ],
+          [
+            0,
+            164
+          ],
+          [
+            1,
+            994
+          ],
+          [
+            0,
+            951
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            1,
+            354
+          ],
+          [
+            0,
+            1488
+          ],
+          [
+            1,
+            854
+          ],
+          [
+            1,
+            377
+          ],
+          [
+            1,
+            696
+          ],
+          [
+            0,
+            461
+          ],
+          [
+            0,
+            545
+          ],
+          [
+            0,
+            88
+          ],
+          [
+            0,
+            1489
+          ],
+          [
+            0,
+            541
+          ],
+          [
+            1,
+            502
+          ],
+          [
+            1,
+            689
+          ],
+          [
+            1,
+            228
+          ],
+          [
+            1,
+            864
+          ],
+          [
+            0,
+            174
+          ],
+          [
+            1,
+            477
+          ],
+          [
+            0,
+            83
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            1,
+            672
+          ],
+          [
+            1,
+            652
+          ]
+        ],
+        "dislike_n": 96,
+        "dislike_congruence": 0.8369998661579402,
+        "dislike_next_only": 0.7981814939607033,
+        "dislike_n_concepts": 56,
+        "noanswer_questions": [
+          [
+            0,
+            514
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            243
+          ],
+          [
+            1,
+            408
+          ],
+          [
+            1,
+            785
+          ],
+          [
+            1,
+            726
+          ],
+          [
+            1,
+            29
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            123
+          ],
+          [
+            1,
+            241
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            128
+          ],
+          [
+            0,
+            442
+          ],
+          [
+            1,
+            15
+          ],
+          [
+            1,
+            251
+          ],
+          [
+            1,
+            178
+          ],
+          [
+            0,
+            450
+          ],
+          [
+            1,
+            125
+          ],
+          [
+            0,
+            116
+          ],
+          [
+            0,
+            162
+          ],
+          [
+            1,
+            127
+          ],
+          [
+            1,
+            694
+          ],
+          [
+            1,
+            456
+          ],
+          [
+            0,
+            1123
+          ],
+          [
+            0,
+            550
+          ],
+          [
+            1,
+            354
+          ],
+          [
+            0,
+            504
+          ],
+          [
+            1,
+            339
+          ],
+          [
+            1,
+            203
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            1,
+            556
+          ],
+          [
+            0,
+            130
+          ],
+          [
+            1,
+            150
+          ],
+          [
+            0,
+            113
+          ],
+          [
+            1,
+            773
+          ],
+          [
+            1,
+            117
+          ],
+          [
+            0,
+            122
+          ],
+          [
+            0,
+            844
+          ]
+        ],
+        "noanswer_n": 39,
+        "noanswer_congruence": 0.8305146637417766,
+        "noanswer_next_only": 0.8385136638587155,
+        "noanswer_n_concepts": 20,
+        "delta_like_minus_dislike": -0.010861962620121735
+      },
+      {
+        "nid": "root.dislike",
+        "depth": 1,
+        "n_users": 4814,
+        "splitter": [
+          1,
+          283
+        ],
+        "channel": "concept",
+        "child_sizes": {
+          "like": 723,
+          "dislike": 3562,
+          "noanswer": 529
+        },
+        "like_questions": [
+          [
+            1,
+            312
+          ],
+          [
+            1,
+            502
+          ],
+          [
+            1,
+            689
+          ],
+          [
+            1,
+            228
+          ],
+          [
+            1,
+            864
+          ],
+          [
+            0,
+            174
+          ],
+          [
+            1,
+            477
+          ],
+          [
+            1,
+            343
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            0,
+            83
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            1,
+            672
+          ],
+          [
+            1,
+            652
+          ]
+        ],
+        "like_n": 13,
+        "like_congruence": 0.8524452536143367,
+        "like_next_only": 0.7917868500728954,
+        "like_n_concepts": 10,
+        "dislike_questions": [
+          [
+            1,
+            36
+          ],
+          [
+            0,
+            499
+          ],
+          [
+            0,
+            15
+          ],
+          [
+            0,
+            463
+          ],
+          [
+            1,
+            107
+          ],
+          [
+            1,
+            594
+          ],
+          [
+            1,
+            189
+          ],
+          [
+            1,
+            333
+          ],
+          [
+            0,
+            781
+          ],
+          [
+            1,
+            181
+          ],
+          [
+            0,
+            1793
+          ],
+          [
+            1,
+            713
+          ],
+          [
+            1,
+            857
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            1,
+            334
+          ],
+          [
+            1,
+            306
+          ],
+          [
+            1,
+            753
+          ],
+          [
+            1,
+            251
+          ],
+          [
+            0,
+            583
+          ],
+          [
+            1,
+            22
+          ],
+          [
+            1,
+            951
+          ],
+          [
+            1,
+            280
+          ],
+          [
+            1,
+            699
+          ],
+          [
+            0,
+            538
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            0,
+            29
+          ],
+          [
+            0,
+            74
+          ],
+          [
+            0,
+            77
+          ],
+          [
+            1,
+            124
+          ],
+          [
+            0,
+            454
+          ],
+          [
+            0,
+            733
+          ],
+          [
+            1,
+            769
+          ],
+          [
+            1,
+            98
+          ],
+          [
+            1,
+            343
+          ],
+          [
+            1,
+            455
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            1476
+          ],
+          [
+            0,
+            464
+          ],
+          [
+            0,
+            460
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            754
+          ],
+          [
+            0,
+            447
+          ],
+          [
+            0,
+            92
+          ],
+          [
+            1,
+            784
+          ],
+          [
+            1,
+            202
+          ],
+          [
+            1,
+            511
+          ],
+          [
+            0,
+            219
+          ],
+          [
+            1,
+            680
+          ],
+          [
+            1,
+            203
+          ],
+          [
+            0,
+            392
+          ],
+          [
+            1,
+            458
+          ],
+          [
+            0,
+            348
+          ],
+          [
+            1,
+            464
+          ],
+          [
+            0,
+            614
+          ],
+          [
+            1,
+            708
+          ],
+          [
+            1,
+            461
+          ],
+          [
+            0,
+            26
+          ],
+          [
+            1,
+            173
+          ],
+          [
+            0,
+            153
+          ],
+          [
+            1,
+            622
+          ],
+          [
+            0,
+            643
+          ],
+          [
+            0,
+            164
+          ],
+          [
+            1,
+            994
+          ],
+          [
+            0,
+            951
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            1,
+            354
+          ],
+          [
+            0,
+            1488
+          ],
+          [
+            1,
+            854
+          ],
+          [
+            1,
+            377
+          ],
+          [
+            1,
+            696
+          ],
+          [
+            0,
+            461
+          ],
+          [
+            0,
+            545
+          ],
+          [
+            0,
+            88
+          ],
+          [
+            0,
+            1489
+          ],
+          [
+            0,
+            541
+          ]
+        ],
+        "dislike_n": 75,
+        "dislike_congruence": 0.7936587262696563,
+        "dislike_next_only": 0.764605728496732,
+        "dislike_n_concepts": 40,
+        "noanswer_questions": [
+          [
+            0,
+            15
+          ],
+          [
+            0,
+            463
+          ],
+          [
+            0,
+            438
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            107
+          ],
+          [
+            1,
+            312
+          ],
+          [
+            1,
+            252
+          ],
+          [
+            1,
+            976
+          ],
+          [
+            1,
+            162
+          ],
+          [
+            1,
+            336
+          ],
+          [
+            0,
+            501
+          ],
+          [
+            1,
+            691
+          ],
+          [
+            1,
+            830
+          ]
+        ],
+        "noanswer_n": 13,
+        "noanswer_congruence": 0.7956622307579095,
+        "noanswer_next_only": 0.681327144847245,
+        "noanswer_n_concepts": 8,
+        "delta_like_minus_dislike": 0.05878652734468037
+      },
+      {
+        "nid": "root.like",
+        "depth": 1,
+        "n_users": 2606,
+        "splitter": [
+          0,
+          83
+        ],
+        "channel": "item",
+        "child_sizes": {
+          "like": 1010,
+          "dislike": 340,
+          "noanswer": 1256
+        },
+        "like_questions": [
+          [
+            0,
+            112
+          ],
+          [
+            1,
+            926
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            0,
+            87
+          ],
+          [
+            1,
+            801
+          ],
+          [
+            1,
+            280
+          ],
+          [
+            1,
+            940
+          ],
+          [
+            1,
+            490
+          ],
+          [
+            1,
+            839
+          ],
+          [
+            0,
+            154
+          ],
+          [
+            1,
+            17
+          ],
+          [
+            0,
+            153
+          ],
+          [
+            1,
+            223
+          ]
+        ],
+        "like_n": 13,
+        "like_congruence": 0.760346498039091,
+        "like_next_only": 0.7678576294025399,
+        "like_n_concepts": 8,
+        "dislike_questions": [
+          [
+            1,
+            911
+          ],
+          [
+            1,
+            612
+          ],
+          [
+            1,
+            824
+          ],
+          [
+            1,
+            336
+          ],
+          [
+            1,
+            305
+          ],
+          [
+            1,
+            464
+          ],
+          [
+            0,
+            228
+          ],
+          [
+            1,
+            559
+          ],
+          [
+            0,
+            174
+          ],
+          [
+            0,
+            2195
+          ],
+          [
+            1,
+            799
+          ],
+          [
+            0,
+            20
+          ],
+          [
+            0,
+            346
+          ]
+        ],
+        "dislike_n": 13,
+        "dislike_congruence": 0.7441486456548668,
+        "dislike_next_only": 0.7310988866228737,
+        "dislike_n_concepts": 8,
+        "noanswer_questions": [
+          [
+            1,
+            377
+          ],
+          [
+            0,
+            112
+          ],
+          [
+            0,
+            1118
+          ],
+          [
+            0,
+            104
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            1,
+            730
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            0,
+            343
+          ],
+          [
+            0,
+            976
+          ],
+          [
+            0,
+            89
+          ],
+          [
+            0,
+            499
+          ],
+          [
+            0,
+            366
+          ],
+          [
+            0,
+            391
+          ]
+        ],
+        "noanswer_n": 13,
+        "noanswer_congruence": 0.759262837367682,
+        "noanswer_next_only": 0.7777133798941998,
+        "noanswer_n_concepts": 2,
+        "delta_like_minus_dislike": 0.01619785238422422
+      },
+      {
+        "nid": "root.noanswer",
+        "depth": 1,
+        "n_users": 2580,
+        "splitter": [
+          0,
+          514
+        ],
+        "channel": "item",
+        "child_sizes": {
+          "like": 357,
+          "dislike": 438,
+          "noanswer": 1785
+        },
+        "like_questions": [
+          [
+            1,
+            354
+          ],
+          [
+            0,
+            504
+          ],
+          [
+            1,
+            339
+          ],
+          [
+            1,
+            203
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            1,
+            556
+          ],
+          [
+            0,
+            130
+          ],
+          [
+            1,
+            150
+          ],
+          [
+            0,
+            113
+          ],
+          [
+            1,
+            773
+          ],
+          [
+            1,
+            117
+          ],
+          [
+            0,
+            122
+          ],
+          [
+            0,
+            844
+          ]
+        ],
+        "like_n": 13,
+        "like_congruence": 0.7222122643108121,
+        "like_next_only": 0.8472186086350015,
+        "like_n_concepts": 7,
+        "dislike_questions": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            15
+          ],
+          [
+            1,
+            251
+          ],
+          [
+            1,
+            178
+          ],
+          [
+            0,
+            450
+          ],
+          [
+            1,
+            125
+          ],
+          [
+            0,
+            116
+          ],
+          [
+            0,
+            162
+          ],
+          [
+            1,
+            127
+          ],
+          [
+            1,
+            694
+          ],
+          [
+            1,
+            456
+          ],
+          [
+            0,
+            1123
+          ],
+          [
+            0,
+            550
+          ]
+        ],
+        "dislike_n": 13,
+        "dislike_congruence": 0.708925755293249,
+        "dislike_next_only": 0.6307463190654816,
+        "dislike_n_concepts": 7,
+        "noanswer_questions": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            243
+          ],
+          [
+            1,
+            408
+          ],
+          [
+            1,
+            785
+          ],
+          [
+            1,
+            726
+          ],
+          [
+            1,
+            29
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            123
+          ],
+          [
+            1,
+            241
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            128
+          ],
+          [
+            0,
+            442
+          ]
+        ],
+        "noanswer_n": 13,
+        "noanswer_congruence": 0.6878792017421618,
+        "noanswer_next_only": 0.6307463190654816,
+        "noanswer_n_concepts": 6,
+        "delta_like_minus_dislike": 0.01328650901756312
+      },
+      {
+        "nid": "root.dislike.dislike",
+        "depth": 2,
+        "n_users": 3562,
+        "splitter": [
+          1,
+          36
+        ],
+        "channel": "concept",
+        "child_sizes": {
+          "like": 660,
+          "dislike": 2346,
+          "noanswer": 556
+        },
+        "like_questions": [
+          [
+            0,
+            951
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            1,
+            354
+          ],
+          [
+            0,
+            1488
+          ],
+          [
+            1,
+            854
+          ],
+          [
+            1,
+            377
+          ],
+          [
+            1,
+            696
+          ],
+          [
+            0,
+            461
+          ],
+          [
+            0,
+            545
+          ],
+          [
+            0,
+            88
+          ],
+          [
+            0,
+            1489
+          ],
+          [
+            0,
+            541
+          ]
+        ],
+        "like_n": 12,
+        "like_congruence": 0.7718368633131005,
+        "like_next_only": 0.8601771029389498,
+        "like_n_concepts": 5,
+        "dislike_questions": [
+          [
+            0,
+            19
+          ],
+          [
+            1,
+            334
+          ],
+          [
+            1,
+            306
+          ],
+          [
+            1,
+            753
+          ],
+          [
+            1,
+            251
+          ],
+          [
+            0,
+            583
+          ],
+          [
+            1,
+            22
+          ],
+          [
+            1,
+            951
+          ],
+          [
+            1,
+            280
+          ],
+          [
+            1,
+            699
+          ],
+          [
+            0,
+            538
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            0,
+            29
+          ],
+          [
+            0,
+            74
+          ],
+          [
+            0,
+            77
+          ],
+          [
+            1,
+            124
+          ],
+          [
+            0,
+            454
+          ],
+          [
+            0,
+            733
+          ],
+          [
+            1,
+            769
+          ],
+          [
+            1,
+            98
+          ],
+          [
+            1,
+            343
+          ],
+          [
+            1,
+            455
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            1476
+          ],
+          [
+            0,
+            464
+          ],
+          [
+            0,
+            460
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            754
+          ],
+          [
+            0,
+            447
+          ],
+          [
+            0,
+            92
+          ],
+          [
+            1,
+            784
+          ],
+          [
+            1,
+            202
+          ],
+          [
+            1,
+            511
+          ],
+          [
+            0,
+            219
+          ],
+          [
+            1,
+            680
+          ],
+          [
+            1,
+            203
+          ],
+          [
+            0,
+            392
+          ],
+          [
+            1,
+            458
+          ],
+          [
+            0,
+            348
+          ],
+          [
+            1,
+            464
+          ],
+          [
+            0,
+            614
+          ],
+          [
+            1,
+            708
+          ],
+          [
+            1,
+            461
+          ],
+          [
+            0,
+            26
+          ],
+          [
+            1,
+            173
+          ],
+          [
+            0,
+            153
+          ],
+          [
+            1,
+            622
+          ],
+          [
+            0,
+            643
+          ],
+          [
+            0,
+            164
+          ],
+          [
+            1,
+            994
+          ]
+        ],
+        "dislike_n": 50,
+        "dislike_congruence": 0.7675309106725493,
+        "dislike_next_only": 0.7975158211852384,
+        "dislike_n_concepts": 27,
+        "noanswer_questions": [
+          [
+            0,
+            499
+          ],
+          [
+            0,
+            15
+          ],
+          [
+            0,
+            463
+          ],
+          [
+            1,
+            107
+          ],
+          [
+            1,
+            594
+          ],
+          [
+            1,
+            189
+          ],
+          [
+            1,
+            333
+          ],
+          [
+            0,
+            781
+          ],
+          [
+            1,
+            181
+          ],
+          [
+            0,
+            1793
+          ],
+          [
+            1,
+            713
+          ],
+          [
+            1,
+            857
+          ]
+        ],
+        "noanswer_n": 12,
+        "noanswer_congruence": 0.7991399106609519,
+        "noanswer_next_only": 0.6547531875124566,
+        "noanswer_n_concepts": 7,
+        "delta_like_minus_dislike": 0.004305952640551225
+      },
+      {
+        "nid": "root.dislike.dislike.dislike",
+        "depth": 3,
+        "n_users": 2346,
+        "splitter": [
+          0,
+          19
+        ],
+        "channel": "item",
+        "child_sizes": {
+          "like": 702,
+          "dislike": 355,
+          "noanswer": 1289
+        },
+        "like_questions": [
+          [
+            0,
+            614
+          ],
+          [
+            1,
+            708
+          ],
+          [
+            1,
+            461
+          ],
+          [
+            0,
+            26
+          ],
+          [
+            1,
+            455
+          ],
+          [
+            1,
+            173
+          ],
+          [
+            0,
+            153
+          ],
+          [
+            1,
+            622
+          ],
+          [
+            0,
+            643
+          ],
+          [
+            0,
+            164
+          ],
+          [
+            1,
+            994
+          ]
+        ],
+        "like_n": 11,
+        "like_congruence": 0.7155760947850546,
+        "like_next_only": 0.7283738186063976,
+        "like_n_concepts": 6,
+        "dislike_questions": [
+          [
+            1,
+            784
+          ],
+          [
+            1,
+            202
+          ],
+          [
+            1,
+            511
+          ],
+          [
+            0,
+            77
+          ],
+          [
+            0,
+            219
+          ],
+          [
+            1,
+            680
+          ],
+          [
+            1,
+            203
+          ],
+          [
+            0,
+            392
+          ],
+          [
+            1,
+            458
+          ],
+          [
+            0,
+            348
+          ],
+          [
+            1,
+            464
+          ]
+        ],
+        "dislike_n": 11,
+        "dislike_congruence": 0.741213318284776,
+        "dislike_next_only": 0.7509393058870307,
+        "dislike_n_concepts": 7,
+        "noanswer_questions": [
+          [
+            1,
+            334
+          ],
+          [
+            1,
+            306
+          ],
+          [
+            1,
+            753
+          ],
+          [
+            1,
+            251
+          ],
+          [
+            0,
+            583
+          ],
+          [
+            1,
+            22
+          ],
+          [
+            1,
+            951
+          ],
+          [
+            1,
+            280
+          ],
+          [
+            1,
+            699
+          ],
+          [
+            0,
+            538
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            0,
+            29
+          ],
+          [
+            0,
+            74
+          ],
+          [
+            0,
+            77
+          ],
+          [
+            1,
+            124
+          ],
+          [
+            0,
+            454
+          ],
+          [
+            0,
+            733
+          ],
+          [
+            1,
+            769
+          ],
+          [
+            1,
+            98
+          ],
+          [
+            1,
+            343
+          ],
+          [
+            1,
+            455
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            1476
+          ],
+          [
+            0,
+            464
+          ],
+          [
+            0,
+            460
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            754
+          ],
+          [
+            0,
+            447
+          ],
+          [
+            0,
+            92
+          ]
+        ],
+        "noanswer_n": 29,
+        "noanswer_congruence": 0.7409557372841008,
+        "noanswer_next_only": 0.7521824580348483,
+        "noanswer_n_concepts": 15,
+        "delta_like_minus_dislike": -0.025637223499721418
+      },
+      {
+        "nid": "root.dislike.dislike.dislike.noanswer",
+        "depth": 4,
+        "n_users": 1289,
+        "splitter": [
+          1,
+          334
+        ],
+        "channel": "concept",
+        "child_sizes": {
+          "like": 345,
+          "dislike": 739,
+          "noanswer": 205
+        },
+        "like_questions": [
+          [
+            1,
+            455
+          ],
+          [
+            0,
+            22
+          ],
+          [
+            0,
+            454
+          ],
+          [
+            0,
+            1476
+          ],
+          [
+            0,
+            464
+          ],
+          [
+            0,
+            460
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            754
+          ],
+          [
+            0,
+            447
+          ],
+          [
+            0,
+            92
+          ]
+        ],
+        "like_n": 10,
+        "like_congruence": 0.7446012861491287,
+        "like_next_only": 0.7723910065432543,
+        "like_n_concepts": 2,
+        "dislike_questions": [
+          [
+            1,
+            251
+          ],
+          [
+            0,
+            29
+          ],
+          [
+            0,
+            74
+          ],
+          [
+            0,
+            77
+          ],
+          [
+            1,
+            124
+          ],
+          [
+            0,
+            454
+          ],
+          [
+            0,
+            733
+          ],
+          [
+            1,
+            769
+          ],
+          [
+            1,
+            98
+          ],
+          [
+            1,
+            343
+          ]
+        ],
+        "dislike_n": 10,
+        "dislike_congruence": 0.762530658342381,
+        "dislike_next_only": 0.804691220442184,
+        "dislike_n_concepts": 5,
+        "noanswer_questions": [
+          [
+            1,
+            306
+          ],
+          [
+            1,
+            753
+          ],
+          [
+            1,
+            251
+          ],
+          [
+            0,
+            583
+          ],
+          [
+            1,
+            22
+          ],
+          [
+            1,
+            951
+          ],
+          [
+            1,
+            280
+          ],
+          [
+            1,
+            699
+          ],
+          [
+            0,
+            538
+          ],
+          [
+            1,
+            11
+          ]
+        ],
+        "noanswer_n": 10,
+        "noanswer_congruence": 0.7896632299861542,
+        "noanswer_next_only": 0.7645932936414798,
+        "noanswer_n_concepts": 8,
+        "delta_like_minus_dislike": -0.017929372193252302
+      }
+    ],
+    "pooled_like": {
+      "unweighted_mean": 0.7704508805356204,
+      "per_node": [
+        0.8261379035378185,
+        0.8524452536143367,
+        0.760346498039091,
+        0.7222122643108121,
+        0.7718368633131005,
+        0.7155760947850546,
+        0.7446012861491287
+      ],
+      "user_weighted_mean": 0.7908241806041489
+    },
+    "pooled_dislike": {
+      "unweighted_mean": 0.7650011258107742,
+      "per_node": [
+        0.8369998661579402,
+        0.7936587262696563,
+        0.7441486456548668,
+        0.708925755293249,
+        0.7675309106725493,
+        0.741213318284776,
+        0.762530658342381
+      ],
+      "user_weighted_mean": 0.797770220735418
+    },
+    "pooled_noanswer": {
+      "unweighted_mean": 0.7718682587915339,
+      "per_node": [
+        0.8305146637417766,
+        0.7956622307579095,
+        0.759262837367682,
+        0.6878792017421618,
+        0.7991399106609519,
+        0.7409557372841008,
+        0.7896632299861542
+      ],
+      "user_weighted_mean": 0.7690763840490417
+    },
+    "pooled_delta_like_minus_dislike": {
+      "unweighted_mean": 0.005449754724846212,
+      "per_node": [
+        -0.010861962620121735,
+        0.05878652734468037,
+        0.01619785238422422,
+        0.01328650901756312,
+        0.004305952640551225,
+        -0.025637223499721418,
+        -0.017929372193252302
+      ]
+    }
+  },
+  "C1_matched_control": {
+    "like": {
+      "mean": 0.7691019973448179,
+      "p2.5": 0.7571728278586269,
+      "p97.5": 0.7821388543139308,
+      "observed": 0.7704508805356204,
+      "observed_minus_control_mean": 0.0013488831908025078,
+      "p_two_sided": 0.8235882058970515,
+      "outside_central_95": false
+    },
+    "dislike": {
+      "mean": 0.7691240155972137,
+      "p2.5": 0.7591137770838337,
+      "p97.5": 0.7792618542504223,
+      "observed": 0.7650011258107742,
+      "observed_minus_control_mean": -0.0041228897864394876,
+      "p_two_sided": 0.4367816091954023,
+      "outside_central_95": false
+    },
+    "noanswer": {
+      "mean": 0.7693956672122116,
+      "p2.5": 0.7577408677829103,
+      "p97.5": 0.7811891931642402,
+      "observed": 0.7718682587915339,
+      "observed_minus_control_mean": 0.0024725915793222253,
+      "p_two_sided": 0.6721639180409795,
+      "outside_central_95": false
+    },
+    "delta_like_minus_dislike": {
+      "mean": -2.2018252395817142e-05,
+      "p2.5": -0.016330532293750033,
+      "p97.5": 0.016289264800435296,
+      "observed": 0.005449754724846212,
+      "observed_minus_control_mean": 0.005471772977242029,
+      "p_two_sided": 0.4912543728135932,
+      "outside_central_95": false
+    },
+    "n_draws": 2000,
+    "n_widened_cells": 4000
+  },
+  "C2_label_shuffle": {
+    "delta_like_minus_dislike": {
+      "mean": -0.0001249764580397527,
+      "p2.5": -0.020017715885081534,
+      "p97.5": 0.0200000242443382,
+      "observed": 0.005449754724846212,
+      "observed_minus_control_mean": 0.0055747311828859645,
+      "p_two_sided": 0.6091954022988506,
+      "outside_central_95": false
+    },
+    "like_congruence": {
+      "mean": 0.7689941981406687,
+      "p2.5": 0.7582148506230851,
+      "p97.5": 0.7809844070882804,
+      "observed": 0.7704508805356204,
+      "observed_minus_control_mean": 0.0014566823949516694,
+      "p_two_sided": 0.8170914542728636,
+      "outside_central_95": false
+    },
+    "n_permutations": 2000,
+    "note": "within each split node the three children's question sets are permuted across the labels {like, dislike, noanswer}; congruence is recomputed against the same splitter. Tests whether congruence is tied to WHICH answer made the branch."
+  },
+  "root_secondary": {
+    "root_concept_index": 114,
+    "root_tagId": 129,
+    "root_n_members": 868,
+    "like_direct_relevance_to_root_tag_items": {
+      "n_items": 20,
+      "mean": 0.4348124861717224
+    },
+    "dislike_direct_relevance_to_root_tag_items": {
+      "n_items": 40,
+      "mean": 0.32729372382164
+    },
+    "noanswer_direct_relevance_to_root_tag_items": {
+      "n_items": 19,
+      "mean": 0.3111973702907562
+    },
+    "pool_mean_direct_relevance_to_root_tag": 0.3123859763145447,
+    "matched_control": {
+      "like": {
+        "mean": 0.33791494455188514,
+        "p2.5": 0.27679969295859336,
+        "p97.5": 0.40532060414552684,
+        "observed": 0.4348124861717224,
+        "observed_minus_control_mean": 0.09689754161983727,
+        "p_two_sided": 0.00399800099950025,
+        "outside_central_95": true
+      },
+      "dislike": {
+        "mean": 0.3146646177843213,
+        "p2.5": 0.2737960882484913,
+        "p97.5": 0.35996845960617063,
+        "observed": 0.32729372382164,
+        "observed_minus_control_mean": 0.012629106037318705,
+        "p_two_sided": 0.5567216391804098,
+        "outside_central_95": false
+      },
+      "noanswer": {
+        "mean": 0.3188014179617166,
+        "p2.5": 0.26207991391420365,
+        "p97.5": 0.3798036016523838,
+        "observed": 0.3111973702907562,
+        "observed_minus_control_mean": -0.007604047670960401,
+        "p_two_sided": 0.7971014492753623,
+        "outside_central_95": false
+      },
+      "like_minus_dislike": {
+        "mean": 0.02325032676756382,
+        "p2.5": -0.05152047798037529,
+        "p97.5": 0.10012876540422437,
+        "observed": 0.1075187623500824,
+        "observed_minus_control_mean": 0.08426843558251858,
+        "p_two_sided": 0.03648175912043978,
+        "outside_central_95": true
+      }
+    },
+    "control_note": "SECONDARY. Pre-registered as interpretable colour, not as a decision statistic: the admissibility rule in the design sheet is the S2 congruence pair (C1 + C2), and this number cannot license a routing claim on its own. It carries the same matched control anyway."
+  },
+  "decision_rule": "routing admissible only if pooled like-congruence exceeds the C1 matched control's 97.5th percentile AND the pooled like-minus-dislike delta exceeds the C2 shuffle's 97.5th percentile",
+  "ROUTING_CLAIM_ADMISSIBLE": false
+}
