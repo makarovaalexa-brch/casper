@@ -86,16 +86,31 @@ def route(E, nodes, nid, rows_all):
 
 
 def exact(a, b, what):
-    """The reuse gate: bit-identical, per user, no tolerance."""
-    a = np.asarray(a, np.float64); b = np.asarray(b, np.float64)
-    assert a.shape == b.shape, f"{what}: shape {a.shape} vs {b.shape}"
-    fa, fb = np.isnan(a), np.isnan(b)
+    """The reuse gate: BIT-IDENTICAL per user against the BANKED PAYLOAD, no tolerance.
+
+    The comparison is made in the banked payload's own dtype. `genv_eval` returns float64 and the
+    banked npz stores float32 (`ndcg_tree_test16.py` casts on the way in), so comparing the raw
+    float64 against the stored float32 measures the STORAGE cast, not agreement -- it fired at
+    2.9e-08 on the first leaf, which is float32 resolution at NDCG~0.2, not a harness difference.
+    What must be identical is what was banked: float32(recomputed) == banked float32, exactly.
+    The float64-vs-stored deviation is returned as well, and asserted to stay inside float32
+    resolution, so a REAL divergence hiding under the cast cannot pass either.
+    """
+    a64 = np.asarray(a, np.float64)
+    b32 = np.asarray(b, np.float32)
+    a32 = a64.astype(np.float32)
+    assert a32.shape == b32.shape, f"{what}: shape {a32.shape} vs {b32.shape}"
+    fa, fb = np.isnan(a32), np.isnan(b32)
     assert (fa == fb).all(), f"{what}: NaN pattern differs"
-    d = np.abs(a[~fa] - b[~fb])
+    assert np.array_equal(a32[~fa], b32[~fb]), (
+        f"{what}: RECOMPUTATION DOES NOT REPRODUCE THE BANKED VECTORS. "
+        f"{int((a32[~fa] != b32[~fb]).sum())} of {int((~fa).sum())} users differ in float32, "
+        f"max |diff| = {float(np.abs(a32[~fa] - b32[~fb]).max()):.3e}. The banked artifact and this "
+        f"harness are not on the same ruler -- STOP.")
+    d = np.abs(a64[~fa] - b32[~fb].astype(np.float64))
     mx = float(d.max()) if d.size else 0.0
-    assert mx == 0.0, (f"{what}: RECOMPUTATION DOES NOT REPRODUCE THE BANKED VECTORS "
-                       f"(max |diff| = {mx:.3e}, {int((d > 0).sum())} users differ). The banked "
-                       f"artifact and this harness are not on the same ruler -- STOP.")
+    assert mx < 1e-6, (f"{what}: the float32 payloads match but the float64 recomputation is "
+                       f"{mx:.3e} away from the stored value -- too large for a storage cast.")
     return mx
 
 
@@ -226,7 +241,7 @@ def main():
                 for ax in ("full", "tail"):
                     k = f"{nid}|{K}|{arm}_{ax}"
                     assert k in zv.files, f"missing banked validation vector {k}"
-                    vbank[f"val|{nid}|{K}|{arm}_{ax}"] = zv[k].astype(np.float64)
+                    vbank[f"val|{nid}|{K}|{arm}_{ax}"] = zv[k].astype(np.float32)
         assert len(zv[f"{nid}|rows"]) == r["n_users"]
     w_val = weighted_table(vbank, vleaves, "val", ("policyB", "policyA"))
     k1_gate(w_val, "validation")
@@ -286,8 +301,10 @@ def main():
             # ---- REUSE GATE: the tree's own vectors must reproduce the banked ones exactly
             gate_max = max(gate_max, exact(of, zt[f"test|{nid}|{K}|own_full"], f"{nid} K={K} own_full"))
             gate_max = max(gate_max, exact(ot, zt[f"test|{nid}|{K}|own_tail"], f"{nid} K={K} own_tail"))
-            tbank[f"test|{nid}|{K}|own_full"] = of
-            tbank[f"test|{nid}|{K}|own_tail"] = ot
+            # stored float32, the SAME dtype the banked test look used, so every difference the
+            # bootstrap resamples is formed exactly as the policy-A numbers were
+            tbank[f"test|{nid}|{K}|own_full"] = of.astype(np.float32)
+            tbank[f"test|{nid}|{K}|own_tail"] = ot.astype(np.float32)
             row = {"tree_full@10": float(np.nanmean(of)), "tree_tail@10": float(np.nanmean(ot))}
             ia, ca = genv_answered(Et, a, rows)
             row["items_answered"] = round(ia, 3); row["concepts_answered"] = round(ca, 3)
@@ -300,8 +317,8 @@ def main():
                                                    f"{nid} K={K} policyA_full"))
                     gate_max = max(gate_max, exact(gt, zt[f"test|{nid}|{K}|cmp_tail"],
                                                    f"{nid} K={K} policyA_tail"))
-                tbank[f"test|{nid}|{K}|{arm}_full"] = gf
-                tbank[f"test|{nid}|{K}|{arm}_tail"] = gt
+                tbank[f"test|{nid}|{K}|{arm}_full"] = gf.astype(np.float32)
+                tbank[f"test|{nid}|{K}|{arm}_tail"] = gt.astype(np.float32)
                 row[f"{arm}_full@10"] = float(np.nanmean(gf))
                 row[f"{arm}_tail@10"] = float(np.nanmean(gt))
                 row[f"diff_full@10_vs_{arm}"] = float(np.nanmean(of - gf))
@@ -322,12 +339,30 @@ def main():
             f"{c['diff_full@10_vs_policyB']:+.5f}/{c['diff_tail@10_vs_policyB']:+.5f} | vs policyA "
             f"{c['diff_full@10_vs_policyA']:+.5f}/{c['diff_tail@10_vs_policyA']:+.5f}")
 
-    log(f"[reuse-gate] PASS: every recomputed tree and policy-A per-user vector on all 10,000 test "
-        f"users reproduces the banked test look EXACTLY (max |diff| over the whole run = "
-        f"{gate_max:.1e}). The two runs are on the same ruler; only the comparator changed.")
+    log(f"[reuse-gate] PASS: every recomputed tree and policy-A per-user float32 payload on all "
+        f"10,000 test users is BIT-IDENTICAL to the banked test look, as are the routed row ids. "
+        f"(The float64 recomputation sits at most {gate_max:.1e} from the stored float32 -- that is "
+        f"the storage cast, inside float32 resolution.) Same ruler; only the comparator changed.")
 
     w_test = weighted_table(tbank, tleaves, "test", ("policyB", "policyA"))
     k1_gate(w_test, "test")
+
+    # ---- ASSERT THE BANKED HEADLINE. A new arm nested in a banked one must reproduce the banked
+    # number, which is a free contract check on the whole chain (memory:
+    # `banked-global-greedy-is-a-policy-A-artifact`). The policy-A column recomputed here IS the
+    # published test result; if it does not come back, nothing else in this file is trustworthy.
+    banked_check = {}
+    for K in BUDGETS:
+        for ax in ("full", "tail"):
+            got = w_test[str(K)][f"diff_{ax}@10_vs_policyA"]
+            want = t16["cohort_weighted_test"][str(K)][f"diff_{ax}@10"]
+            dev = abs(got - want)
+            banked_check[f"K{K}_{ax}"] = {"recomputed": got, "banked": want, "abs_dev": dev}
+            assert dev < 1e-6, (f"BANKED HEADLINE NOT REPRODUCED at K={K} {ax}: recomputed {got!r} vs "
+                                f"banked {want!r} (dev {dev:.3e}) -- STOP.")
+    log(f"[banked-assert] PASS: every published policy-A test number is reproduced by this run "
+        f"(max deviation {max(v['abs_dev'] for v in banked_check.values()):.2e}; the only source of "
+        f"deviation is float summation order across leaves).")
 
     # ---------------- report -----------------------------------------------------------------------
     n_neg_B = sum(1 for r in per_leaf if r["test_gain_at16_vs_policyB"] < 0)
@@ -416,7 +451,9 @@ def main():
            "reuse_gate": {"what": ("tree own + policy-A comparator per-user vectors on all 10,000 test "
                                    "users, and the routed row ids per leaf, recomputed and compared to "
                                    "ndcgtree16test_per_user.npz"),
-                          "max_abs_diff": gate_max, "bit_identical": gate_max == 0.0},
+                          "float32_payloads_bit_identical": True,
+                          "max_float64_vs_stored_float32_deviation": gate_max},
+           "banked_headline_assert": banked_check,
            "bootstrap": {"kind": "paired percentile over per-user differences",
                          "n_resamples": BOOT, "seed": BOOT_SEED},
            "intercept_test_m0": {"full@10": icpt_t[0], "tail@10": icpt_t[1]},
