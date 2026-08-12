@@ -1,0 +1,167 @@
+[12:31:28] ##############################################################################################################
+[12:31:28] # BUDGET 15 -> 16. The TREE STRUCTURE IS NOT REGROWN: same 22 nodes, same 15 leaves, same depth 5. Only each leaf's greedy tail gains ONE more question, and the static comparator is rebuilt under POLICY B.
+[12:31:28] # This order SUPERSEDES the `combined` arm of greedy_static_i26c.json as the static comparator. That arm was SELECTED under the retired policy-A candidate mask (its intercept_eval 0.13139/0.02343 is the policy-A intercept; policy B is 0.1586/0.0282), so comparing a policy-B arm against it carried a selection-protocol offset -- measured at +0.00093 full at K=1 -- inside every K>=2 number. This rebuild uses the SAME pool (500 pop items + 500 answerable concepts, items first), the SAME objective (cohort-mean held-out full NDCG@10), the SAME 10,000 canonical validation users and the SAME certified stack, under POLICY B. It reuses the completed CELF heap the tree's root node built, which is exactly this search's seed pass.
+[12:31:28] # TEST IS NOT BUILT, NOT LOADED, NOT TOUCHED.
+[12:31:28] ##############################################################################################################
+[12:31:28] === building ndcgtree(val) env (split=validation) ===
+[12:31:36] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[12:32:25] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[12:32:27] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[12:32:28] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[12:32:28] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[12:32:28] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[12:32:28] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[12:32:28] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[12:32:39] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[12:33:01] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[12:33:15] [g5] 1031 concepts with >= 30 members
+[12:33:37] [ledger] SIGNED valuation arrays built (prereg cache found)
+[12:33:45] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[12:33:46] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[12:33:46] [ndcgtree(val)] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[12:33:47] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[12:33:48] [leak/validation] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[12:33:48] [pool] 500 items + 500 concepts = 1000 candidates (identical to the tree's)
+[12:33:48] ==============================================================================================================
+[12:33:48] [static] TASK 1 -- rebuilding the static COMBINED order under POLICY B, to 16 picks, by resuming the CELF heap the tree's ROOT node already built (that heap IS this search's seed pass: empty prefix, all 10,000 validation users, the full 1,000-candidate pool).
+[12:33:48] [static] COPIED experiments\battery\ndcgtree_heaps\node_root.json -> experiments\battery\ndcgtree16_heaps\greedy_static_policyB_combined_heap.json (the tree's own sidecar is left untouched)
+[12:33:48] [greedy staticB] RESUMED from greedy_static_policyB_combined_heap.json: 1 pick(s) banked, 999 heap entries, 1000 evals already paid -> extending to L=16 (a cold restart would re-pay the 1000-candidate seed pass)
+[12:40:39] [greedy staticB] pick 2/16 = concept 173 gain +0.01627 -> 0.19363 (nev=1027, 6.8m)
+[12:51:44] [greedy staticB] pick 3/16 = item 19 gain +0.01146 -> 0.20509 (nev=1070, 17.9m)
+[13:03:42] [greedy staticB] pick 4/16 = concept 748 gain +0.00987 -> 0.21496 (nev=1114, 29.9m)
+[13:45:30] [greedy staticB] pick 5/16 = concept 785 gain +0.00696 -> 0.22193 (nev=1261, 71.7m)
+[14:26:31] [greedy staticB] pick 6/16 = item 83 gain +0.00522 -> 0.22715 (nev=1406, 112.7m)
+[14:54:59] [greedy staticB] pick 7/16 = item 583 gain +0.00539 -> 0.23253 (nev=1497, 141.2m)
+[15:38:20] ##############################################################################################################
+[15:38:20] # BUDGET 15 -> 16. The TREE STRUCTURE IS NOT REGROWN: same 22 nodes, same 15 leaves, same depth 5. Only each leaf's greedy tail gains ONE more question, and the static comparator is rebuilt under POLICY B.
+[15:38:20] # This order SUPERSEDES the `combined` arm of greedy_static_i26c.json as the static comparator. That arm was SELECTED under the retired policy-A candidate mask (its intercept_eval 0.13139/0.02343 is the policy-A intercept; policy B is 0.1586/0.0282), so comparing a policy-B arm against it carried a selection-protocol offset -- measured at +0.00093 full at K=1 -- inside every K>=2 number. This rebuild uses the SAME pool (500 pop items + 500 answerable concepts, items first), the SAME objective (cohort-mean held-out full NDCG@10), the SAME 10,000 canonical validation users and the SAME certified stack, under POLICY B. It reuses the completed CELF heap the tree's root node built, which is exactly this search's seed pass.
+[15:38:20] # TEST IS NOT BUILT, NOT LOADED, NOT TOUCHED.
+[15:38:20] ##############################################################################################################
+[15:38:20] === building ndcgtree(val) env (split=validation) ===
+[15:38:27] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[15:39:12] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[15:39:14] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[15:39:15] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[15:39:15] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[15:39:15] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[15:39:15] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[15:39:15] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[15:39:25] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[15:39:50] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[15:40:04] [g5] 1031 concepts with >= 30 members
+[15:40:26] [ledger] SIGNED valuation arrays built (prereg cache found)
+[15:40:34] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[15:40:35] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[15:40:35] [ndcgtree(val)] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[15:40:35] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[15:40:37] [leak/validation] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[15:40:37] [pool] 500 items + 500 concepts = 1000 candidates (identical to the tree's)
+[15:40:37] ==============================================================================================================
+[15:40:37] [static] TASK 1 -- rebuilding the static COMBINED order under POLICY B, to 16 picks, by resuming the CELF heap the tree's ROOT node already built (that heap IS this search's seed pass: empty prefix, all 10,000 validation users, the full 1,000-candidate pool).
+[15:40:37] [greedy staticB] RESUMED from greedy_static_policyB_combined_heap.json: 7 pick(s) banked, 993 heap entries, 1497 evals already paid -> extending to L=16 (a cold restart would re-pay the 1000-candidate seed pass)
+[15:59:45] [greedy staticB] pick 8/16 = concept 243 gain +0.00372 -> 0.23625 (nev=1600, 19.1m)
+[16:07:20] [greedy staticB] pick 9/16 = concept 231 gain +0.00344 -> 0.23969 (nev=1651, 26.7m)
+[16:24:10] [greedy staticB] pick 10/16 = concept 809 gain +0.00291 -> 0.24260 (nev=1768, 43.6m)
+[16:31:59] [greedy staticB] pick 11/16 = concept 455 gain +0.00271 -> 0.24531 (nev=1822, 51.4m)
+[16:39:18] [greedy staticB] pick 12/16 = item 22 gain +0.00242 -> 0.24772 (nev=1871, 58.7m)
+[16:46:37] [greedy staticB] pick 13/16 = item 77 gain +0.00236 -> 0.25008 (nev=1921, 66.0m)
+[16:56:17] [greedy staticB] pick 14/16 = item 88 gain +0.00206 -> 0.25214 (nev=1984, 75.7m)
+[16:58:38] [greedy staticB] pick 15/16 = concept 18 gain +0.00201 -> 0.25415 (nev=1999, 78.0m)
+[17:25:15] [greedy staticB] pick 16/16 = concept 838 gain +0.00146 -> 0.25561 (nev=2167, 104.6m)
+[17:25:15] [static] DONE in 104.6m: 2167 cumulative evals (670 NEW; a cold rebuild would have paid 1000 for the seed alone)
+[17:25:15] [static] policy-B order = [[1, 114], [1, 173], [0, 19], [1, 748], [1, 785], [0, 83], [0, 583], [1, 243], [1, 231], [1, 809], [1, 455], [0, 22], [0, 77], [0, 88], [1, 18], [1, 838]]
+[17:26:49] [static] wrote greedy_static_policyB_combined.json; 0/16 positions identical to the policy-A order
+[17:26:49] ==============================================================================================================
+[17:26:49] [leaves] TASK 2 -- extending 15 leaf orders from 15 to 16 questions, each by RESUMING its own banked heap.
+[17:26:49] [greedy root.noanswer.noanswer/ext] RESUMED from node_root.noanswer.noanswer.json: 13 pick(s) banked, 985 heap entries, 1268 evals already paid -> extending to L=14 (a cold restart would re-pay the 998-candidate seed pass)
+[17:28:29] [greedy root.noanswer.noanswer/ext] pick 14/14 = concept 247 gain +0.00207 -> 0.15528 (nev=1325, 1.7m)
+[17:28:29] [leaf root.noanswer.noanswer] n=1785 d=2: +1 question = concept 247 gain +0.00207 | prefix UNCHANGED | 57 new evals (1.7m)
+[17:28:29] [greedy root.like.noanswer/ext] RESUMED from node_root.like.noanswer.json: 13 pick(s) banked, 985 heap entries, 1270 evals already paid -> extending to L=14 (a cold restart would re-pay the 998-candidate seed pass)
+[17:28:46] [greedy root.like.noanswer/ext] pick 14/14 = concept 56 gain +0.00174 -> 0.21809 (nev=1282, 0.3m)
+[17:28:46] [leaf root.like.noanswer] n=1256 d=2: +1 question = concept 56 gain +0.00174 | prefix UNCHANGED | 12 new evals (0.3m)
+[17:28:46] [greedy root.like.like/ext] RESUMED from node_root.like.like.json: 13 pick(s) banked, 985 heap entries, 1728 evals already paid -> extending to L=14 (a cold restart would re-pay the 998-candidate seed pass)
+[17:29:26] [greedy root.like.like/ext] pick 14/14 = concept 985 gain +0.00161 -> 0.40660 (nev=1764, 0.7m)
+[17:29:26] [leaf root.like.like] n=1010 d=2: +1 question = concept 985 gain +0.00161 | prefix UNCHANGED | 36 new evals (0.7m)
+[17:29:26] [greedy root.dislike.dislike.dislike.noanswer.dislike/ext] RESUMED from node_root.dislike.dislike.dislike.noanswer.dislike.json: 10 pick(s) banked, 985 heap entries, 1209 evals already paid -> extending to L=11 (a cold restart would re-pay the 995-candidate seed pass)
+[17:29:50] [greedy root.dislike.dislike.dislike.noanswer.dislike/ext] pick 11/11 = concept 249 gain +0.00219 -> 0.26068 (nev=1238, 0.4m)
+[17:29:50] [leaf root.dislike.dislike.dislike.noanswer.dislike] n=739 d=5: +1 question = concept 249 gain +0.00219 | prefix UNCHANGED | 29 new evals (0.4m)
+[17:29:50] [greedy root.dislike.like/ext] RESUMED from node_root.dislike.like.json: 13 pick(s) banked, 985 heap entries, 1323 evals already paid -> extending to L=14 (a cold restart would re-pay the 998-candidate seed pass)
+[17:30:46] [greedy root.dislike.like/ext] pick 14/14 = concept 809 gain +0.00103 -> 0.31875 (nev=1398, 0.9m)
+[17:30:46] [leaf root.dislike.like] n=723 d=2: +1 question = concept 809 gain +0.00103 | prefix UNCHANGED | 75 new evals (0.9m)
+[17:30:46] [greedy root.dislike.dislike.dislike.like/ext] RESUMED from node_root.dislike.dislike.dislike.like.json: 11 pick(s) banked, 985 heap entries, 1462 evals already paid -> extending to L=12 (a cold restart would re-pay the 996-candidate seed pass)
+[17:31:10] [greedy root.dislike.dislike.dislike.like/ext] pick 12/12 = item 77 gain +0.00138 -> 0.45959 (nev=1491, 0.4m)
+[17:31:10] [leaf root.dislike.dislike.dislike.like] n=702 d=4: +1 question = item 77 gain +0.00138 | prefix UNCHANGED | 29 new evals (0.4m)
+[17:31:10] [greedy root.dislike.dislike.like/ext] RESUMED from node_root.dislike.dislike.like.json: 12 pick(s) banked, 985 heap entries, 2031 evals already paid -> extending to L=13 (a cold restart would re-pay the 997-candidate seed pass)
+[17:31:35] [greedy root.dislike.dislike.like/ext] pick 13/13 = item 1294 gain +0.00124 -> 0.33445 (nev=2067, 0.4m)
+[17:31:35] [leaf root.dislike.dislike.like] n=660 d=3: +1 question = item 1294 gain +0.00124 | prefix UNCHANGED | 36 new evals (0.4m)
+[17:31:35] [greedy root.dislike.dislike.noanswer/ext] RESUMED from node_root.dislike.dislike.noanswer.json: 12 pick(s) banked, 985 heap entries, 1534 evals already paid -> extending to L=13 (a cold restart would re-pay the 997-candidate seed pass)
+[17:31:53] [greedy root.dislike.dislike.noanswer/ext] pick 13/13 = item 679 gain +0.00158 -> 0.14895 (nev=1565, 0.3m)
+[17:31:53] [leaf root.dislike.dislike.noanswer] n=556 d=3: +1 question = item 679 gain +0.00158 | prefix UNCHANGED | 31 new evals (0.3m)
+[17:31:53] [greedy root.dislike.noanswer/ext] RESUMED from node_root.dislike.noanswer.json: 13 pick(s) banked, 985 heap entries, 1200 evals already paid -> extending to L=14 (a cold restart would re-pay the 998-candidate seed pass)
+[17:32:15] [greedy root.dislike.noanswer/ext] pick 14/14 = concept 851 gain +0.00114 -> 0.17781 (nev=1246, 0.4m)
+[17:32:15] [leaf root.dislike.noanswer] n=529 d=2: +1 question = concept 851 gain +0.00114 | prefix UNCHANGED | 46 new evals (0.4m)
+[17:32:15] [greedy root.noanswer.dislike/ext] RESUMED from node_root.noanswer.dislike.json: 13 pick(s) banked, 985 heap entries, 2150 evals already paid -> extending to L=14 (a cold restart would re-pay the 998-candidate seed pass)
+[17:32:16] [greedy root.noanswer.dislike/ext] pick 14/14 = concept 381 gain -0.00052 -> 0.41052 (nev=2153, 0.0m)
+[17:32:16] [leaf root.noanswer.dislike] n=438 d=2: +1 question = concept 381 gain -0.00052 | prefix UNCHANGED | 3 new evals (0.0m)
+[17:32:16] [greedy root.noanswer.like/ext] RESUMED from node_root.noanswer.like.json: 13 pick(s) banked, 985 heap entries, 1842 evals already paid -> extending to L=14 (a cold restart would re-pay the 998-candidate seed pass)
+[17:32:19] [greedy root.noanswer.like/ext] pick 14/14 = item 875 gain +0.00151 -> 0.45203 (nev=1847, 0.0m)
+[17:32:19] [leaf root.noanswer.like] n=357 d=2: +1 question = item 875 gain +0.00151 | prefix UNCHANGED | 5 new evals (0.0m)
+[17:32:19] [greedy root.dislike.dislike.dislike.dislike/ext] RESUMED from node_root.dislike.dislike.dislike.dislike.json: 11 pick(s) banked, 985 heap entries, 1491 evals already paid -> extending to L=12 (a cold restart would re-pay the 996-candidate seed pass)
+[17:32:37] [greedy root.dislike.dislike.dislike.dislike/ext] pick 12/12 = item 331 gain +0.00137 -> 0.35918 (nev=1538, 0.3m)
+[17:32:37] [leaf root.dislike.dislike.dislike.dislike] n=355 d=4: +1 question = item 331 gain +0.00137 | prefix UNCHANGED | 47 new evals (0.3m)
+[17:32:37] [greedy root.dislike.dislike.dislike.noanswer.like/ext] RESUMED from node_root.dislike.dislike.dislike.noanswer.like.json: 10 pick(s) banked, 985 heap entries, 1218 evals already paid -> extending to L=11 (a cold restart would re-pay the 995-candidate seed pass)
+[17:33:07] [greedy root.dislike.dislike.dislike.noanswer.like/ext] pick 11/11 = item 554 gain +0.00366 -> 0.37069 (nev=1303, 0.5m)
+[17:33:07] [leaf root.dislike.dislike.dislike.noanswer.like] n=345 d=5: +1 question = item 554 gain +0.00366 | prefix UNCHANGED | 85 new evals (0.5m)
+[17:33:07] [greedy root.like.dislike/ext] RESUMED from node_root.like.dislike.json: 13 pick(s) banked, 985 heap entries, 1491 evals already paid -> extending to L=14 (a cold restart would re-pay the 998-candidate seed pass)
+[17:33:08] [greedy root.like.dislike/ext] pick 14/14 = item 87 gain +0.00266 -> 0.28423 (nev=1495, 0.0m)
+[17:33:08] [leaf root.like.dislike] n=340 d=2: +1 question = item 87 gain +0.00266 | prefix UNCHANGED | 4 new evals (0.0m)
+[17:33:08] [greedy root.dislike.dislike.dislike.noanswer.noanswer/ext] RESUMED from node_root.dislike.dislike.dislike.noanswer.noanswer.json: 10 pick(s) banked, 985 heap entries, 1332 evals already paid -> extending to L=11 (a cold restart would re-pay the 995-candidate seed pass)
+[17:33:31] [greedy root.dislike.dislike.dislike.noanswer.noanswer/ext] pick 11/11 = concept 238 gain +0.00306 -> 0.18132 (nev=1427, 0.4m)
+[17:33:31] [leaf root.dislike.dislike.dislike.noanswer.noanswer] n=205 d=5: +1 question = concept 238 gain +0.00306 | prefix UNCHANGED | 95 new evals (0.4m)
+[17:33:31] ==============================================================================================================
+[17:33:31] [measure] TASK 3 -- validation, K in [1, 2, 4, 8, 16], vs the REBUILT policy-B comparator (and the policy-A one beside it).
+[17:33:55] [leaf root.noanswer.noanswer] n=1785 | @K=16 vs policyB +0.01050/+0.00299 | vs policyA +0.01083/+0.00715
+[17:34:13] [leaf root.like.noanswer] n=1256 | @K=16 vs policyB +0.02584/+0.00762 | vs policyA +0.02665/+0.02184
+[17:34:29] [leaf root.like.like] n=1010 | @K=16 vs policyB +0.01960/+0.00972 | vs policyA +0.02037/+0.01731
+[17:34:40] [leaf root.dislike.dislike.dislike.noanswer.dislike] n=739 | @K=16 vs policyB +0.01317/-0.00023 | vs policyA +0.01655/+0.01276
+[17:34:50] [leaf root.dislike.like] n=723 | @K=16 vs policyB +0.03733/+0.00073 | vs policyA +0.02925/+0.01187
+[17:35:02] [leaf root.dislike.dislike.dislike.like] n=702 | @K=16 vs policyB +0.02535/+0.01566 | vs policyA +0.04128/+0.04905
+[17:35:12] [leaf root.dislike.dislike.like] n=660 | @K=16 vs policyB +0.02877/+0.00348 | vs policyA +0.03350/+0.01827
+[17:35:20] [leaf root.dislike.dislike.noanswer] n=556 | @K=16 vs policyB +0.03685/+0.02515 | vs policyA +0.03333/+0.02392
+[17:35:28] [leaf root.dislike.noanswer] n=529 | @K=16 vs policyB +0.06458/+0.02870 | vs policyA +0.07253/+0.04658
+[17:35:34] [leaf root.noanswer.dislike] n=438 | @K=16 vs policyB +0.03433/+0.00594 | vs policyA +0.04909/+0.02144
+[17:35:40] [leaf root.noanswer.like] n=357 | @K=16 vs policyB +0.07166/+0.06809 | vs policyA +0.07363/+0.06165
+[17:35:45] [leaf root.dislike.dislike.dislike.dislike] n=355 | @K=16 vs policyB +0.02531/+0.01533 | vs policyA +0.04087/+0.03833
+[17:35:51] [leaf root.dislike.dislike.dislike.noanswer.like] n=345 | @K=16 vs policyB +0.04607/+0.01274 | vs policyA +0.05019/+0.01926
+[17:35:56] [leaf root.like.dislike] n=340 | @K=16 vs policyB +0.01762/+0.00974 | vs policyA +0.01745/+0.01222
+[17:36:00] [leaf root.dislike.dislike.dislike.noanswer.noanswer] n=205 | @K=16 vs policyB +0.04265/+0.00325 | vs policyA +0.04316/+0.00160
+[17:36:00] ==============================================================================================================
+[17:36:00] [gate] tree root splitter (1, 114) vs rebuilt policy-B comparator's first question (1, 114); cohort K=1 difference = 0.0 full / 0.0 tail
+[17:36:00] [gate] PASS: K=1 difference is EXACTLY 0.0 on both axes. The tree is nested in the comparator at the first question, so every K>=2 difference is conditioning alone -- the +0.00093 policy-A/B selection offset is gone.
+[17:36:01] --------------------------------------------------------------------------------------------------------------
+[17:36:01] leaf                                              d      n   vsB_full   vsB_tail   vsA_full             +16th
+[17:36:01] root.noanswer.noanswer                            2   1785    0.01050    0.00299    0.01083       concept 247
+[17:36:01] root.like.noanswer                                2   1256    0.02584    0.00762    0.02665        concept 56
+[17:36:01] root.like.like                                    2   1010    0.01960    0.00972    0.02037       concept 985
+[17:36:01] root.dislike.dislike.dislike.noanswer.dislike     5    739    0.01317   -0.00023    0.01655       concept 249
+[17:36:01] root.dislike.like                                 2    723    0.03733    0.00073    0.02925       concept 809
+[17:36:01] root.dislike.dislike.dislike.like                 4    702    0.02535    0.01566    0.04128           item 77
+[17:36:01] root.dislike.dislike.like                         3    660    0.02877    0.00348    0.03350         item 1294
+[17:36:01] root.dislike.dislike.noanswer                     3    556    0.03685    0.02515    0.03333          item 679
+[17:36:01] root.dislike.noanswer                             2    529    0.06458    0.02870    0.07253       concept 851
+[17:36:01] root.noanswer.dislike                             2    438    0.03433    0.00594    0.04909       concept 381
+[17:36:01] root.noanswer.like                                2    357    0.07166    0.06809    0.07363          item 875
+[17:36:01] root.dislike.dislike.dislike.dislike              4    355    0.02531    0.01533    0.04087          item 331
+[17:36:01] root.dislike.dislike.dislike.noanswer.like        5    345    0.04607    0.01274    0.05019          item 554
+[17:36:01] root.like.dislike                                 2    340    0.01762    0.00974    0.01745           item 87
+[17:36:01] root.dislike.dislike.dislike.noanswer.noanswer    5    205    0.04265    0.00325    0.04316       concept 238
+[17:36:01] --------------------------------------------------------------------------------------------------------------
+[17:36:01] COHORT-WEIGHTED (10000 users) @K=1   vs policy-B +0.00000/+0.00000   vs policy-A +0.00093/+0.00418
+[17:36:01] COHORT-WEIGHTED (10000 users) @K=2   vs policy-B +0.00637/-0.00175   vs policy-A +0.01236/+0.00958
+[17:36:01] COHORT-WEIGHTED (10000 users) @K=4   vs policy-B +0.01436/+0.00824   vs policy-A +0.01887/+0.01653
+[17:36:01] COHORT-WEIGHTED (10000 users) @K=8   vs policy-B +0.02159/+0.01195   vs policy-A +0.02780/+0.01514
+[17:36:01] COHORT-WEIGHTED (10000 users) @K=16  vs policy-B +0.02794/+0.01055   vs policy-A +0.03091/+0.02161
+[17:36:01] [size-gain] spearman(n, gain@K16 vs policy-B) = -0.479 (p=0.0711); >=700 users +0.02020 vs <700 +0.04065
+[17:36:01] ==============================================================================================================
+[17:36:01] [done] wrote ndcgtree16.json, greedy_static_policyB_combined.json and ndcgtree16_per_user.npz in 117.7m
+[cmd] exit code 0 

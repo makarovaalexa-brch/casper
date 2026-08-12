@@ -1,0 +1,239 @@
+{
+  "analysis": "static_global_greedy_combined_POLICY_B",
+  "label": "greedy_static_policyB_combined",
+  "citable": true,
+  "supersedes": "This order SUPERSEDES the `combined` arm of greedy_static_i26c.json as the static comparator. That arm was SELECTED under the retired policy-A candidate mask (its intercept_eval 0.13139/0.02343 is the policy-A intercept; policy B is 0.1586/0.0282), so comparing a policy-B arm against it carried a selection-protocol offset -- measured at +0.00093 full at K=1 -- inside every K>=2 number. This rebuild uses the SAME pool (500 pop items + 500 answerable concepts, items first), the SAME objective (cohort-mean held-out full NDCG@10), the SAME 10,000 canonical validation users and the SAME certified stack, under POLICY B. It reuses the completed CELF heap the tree's root node built, which is exactly this search's seed pass.",
+  "ruler_note": "THE BANKED GLOBAL BUILD IS A POLICY-A ARTIFACT (measured 2026-08-12, this run's sanity gate). `greedy_static_i26c.json` records intercept.full = 0.12987336, which is the POLICY-A m=0 value; today's harness scores under POLICY B (2026-08-05 ruling, candidate_masking_protocol.md) and gives m=0 = 0.15686538 on the same 10,000 validation users. Its stored `gains` and `curve` are therefore on a DIFFERENT RULER and are NOT comparable to anything measured here -- numbers from different information contracts are not ordered. What IS used from that file is the SEQUENCE of questions, which is re-scored IN THIS RUN under policy B for every comparison (the same thing `group_greedy_genre.py` does). Residual caveat, stated rather than buried: the comparator's ORDER was selected under policy A, so it is not exactly 'the same objective under the same protocol'. Closing that would mean rebuilding the static combined order under policy B (~12 h).",
+  "split": "validation",
+  "test_touched": false,
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "objective": "full",
+  "item_bank": "pop",
+  "conc_bank": "answerable",
+  "n_items_pool": 500,
+  "n_concepts_pool": 500,
+  "n_pool": 1000,
+  "mask_policy": "B",
+  "n_cohort": 10000,
+  "L": 16,
+  "sequence": [
+    [
+      1,
+      114
+    ],
+    [
+      1,
+      173
+    ],
+    [
+      0,
+      19
+    ],
+    [
+      1,
+      748
+    ],
+    [
+      1,
+      785
+    ],
+    [
+      0,
+      83
+    ],
+    [
+      0,
+      583
+    ],
+    [
+      1,
+      243
+    ],
+    [
+      1,
+      231
+    ],
+    [
+      1,
+      809
+    ],
+    [
+      1,
+      455
+    ],
+    [
+      0,
+      22
+    ],
+    [
+      0,
+      77
+    ],
+    [
+      0,
+      88
+    ],
+    [
+      1,
+      18
+    ],
+    [
+      1,
+      838
+    ]
+  ],
+  "gains": [
+    0.020490556975873986,
+    0.016274614715777624,
+    0.011459639797254534,
+    0.009873167173724273,
+    0.00696209989087479,
+    0.005222610242480635,
+    0.0053861294208301935,
+    0.003715614794026517,
+    0.0034399475771822174,
+    0.0029053523438671014,
+    0.0027128096822797154,
+    0.0024163652607293307,
+    0.0023597107100965242,
+    0.0020588019338153574,
+    0.002006216582464304,
+    0.0014611428511985824
+  ],
+  "n_evals": 2167,
+  "n_evals_new_this_job": 670,
+  "seed_pass_reused_from": "ndcgtree_heaps/node_root.json (copied, not shared)",
+  "curve_policyB": {
+    "1": {
+      "full@10": 0.17735593815942083,
+      "tail@10": 0.052350931752596155,
+      "items_answered": 0.0,
+      "concepts_answered": 0.742
+    },
+    "2": {
+      "full@10": 0.19363055287519845,
+      "tail@10": 0.06794829653107652,
+      "items_answered": 0.0,
+      "concepts_answered": 1.74
+    },
+    "4": {
+      "full@10": 0.21496335984617726,
+      "tail@10": 0.08468358215437376,
+      "items_answered": 0.305,
+      "concepts_answered": 2.647
+    },
+    "8": {
+      "full@10": 0.2362498141943894,
+      "tail@10": 0.10290470383793361,
+      "items_answered": 0.841,
+      "concepts_answered": 4.501
+    },
+    "16": {
+      "full@10": 0.25561016113602253,
+      "tail@10": 0.12366492106552922,
+      "items_answered": 1.478,
+      "concepts_answered": 9.222
+    }
+  },
+  "policyA_order_for_reference": [
+    [
+      1,
+      630
+    ],
+    [
+      1,
+      242
+    ],
+    [
+      1,
+      173
+    ],
+    [
+      0,
+      22
+    ],
+    [
+      1,
+      562
+    ],
+    [
+      1,
+      537
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      112
+    ],
+    [
+      0,
+      83
+    ],
+    [
+      0,
+      130
+    ],
+    [
+      1,
+      754
+    ],
+    [
+      1,
+      180
+    ],
+    [
+      0,
+      21
+    ],
+    [
+      0,
+      19
+    ],
+    [
+      0,
+      219
+    ],
+    [
+      0,
+      80
+    ]
+  ],
+  "policyA_order_rescored_under_policyB": {
+    "1": {
+      "full@10": 0.17642801458392765,
+      "tail@10": 0.04817290507890329,
+      "items_answered": 0.0,
+      "concepts_answered": 0.898
+    },
+    "2": {
+      "full@10": 0.1876396787644047,
+      "tail@10": 0.05662051518012034,
+      "items_answered": 0.0,
+      "concepts_answered": 1.774
+    },
+    "4": {
+      "full@10": 0.21044923457086714,
+      "tail@10": 0.07639772432086712,
+      "items_answered": 0.293,
+      "concepts_answered": 2.772
+    },
+    "8": {
+      "full@10": 0.23004009734276432,
+      "tail@10": 0.09971654051856176,
+      "items_answered": 0.824,
+      "concepts_answered": 4.694
+    },
+    "16": {
+      "full@10": 0.2526359583732126,
+      "tail@10": 0.11260597244835971,
+      "items_answered": 2.24,
+      "concepts_answered": 6.656
+    }
+  },
+  "positions_identical_to_policyA_order": 0,
+  "minutes": 106.2
+}

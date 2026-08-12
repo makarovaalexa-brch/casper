@@ -1,0 +1,3971 @@
+{
+  "analysis": "ndcg_objective_interview_tree_budget16_vs_policyB_static",
+  "stage": "1b_extend_and_remeasure_on_validation",
+  "label": "ndcgtree16",
+  "citable": true,
+  "split": "validation",
+  "test_touched": false,
+  "budget_change": {
+    "from": 15,
+    "to": 16,
+    "why": "15 was inherited from the genre experiment's turn accounting, where the genre question consumed one of 16 turns. Nothing in this tree consumes an extra turn, so the budget is max(BUDGETS) = 16, the length the static orders were built to.",
+    "tree_regrown": false,
+    "note": "The tree STRUCTURE is untouched -- same nodes, same splitters, same leaves, same depth. Only each leaf's greedy tail gained one question, by resuming its banked CELF heap."
+  },
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "objective": "full",
+  "mask_policy": "B",
+  "n_cohort": 10000,
+  "total_L": 16,
+  "budgets": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "depth_reached": 5,
+  "n_nodes": 22,
+  "n_leaves": 15,
+  "comparator": {
+    "headline": "greedy_static_policyB_combined",
+    "file": "greedy_static_policyB_combined.json",
+    "sequence": [
+      [
+        1,
+        114
+      ],
+      [
+        1,
+        173
+      ],
+      [
+        0,
+        19
+      ],
+      [
+        1,
+        748
+      ],
+      [
+        1,
+        785
+      ],
+      [
+        0,
+        83
+      ],
+      [
+        0,
+        583
+      ],
+      [
+        1,
+        243
+      ],
+      [
+        1,
+        231
+      ],
+      [
+        1,
+        809
+      ],
+      [
+        1,
+        455
+      ],
+      [
+        0,
+        22
+      ],
+      [
+        0,
+        77
+      ],
+      [
+        0,
+        88
+      ],
+      [
+        1,
+        18
+      ],
+      [
+        1,
+        838
+      ]
+    ],
+    "gains": [
+      0.020490556975873986,
+      0.016274614715777624,
+      0.011459639797254534,
+      0.009873167173724273,
+      0.00696209989087479,
+      0.005222610242480635,
+      0.0053861294208301935,
+      0.003715614794026517,
+      0.0034399475771822174,
+      0.0029053523438671014,
+      0.0027128096822797154,
+      0.0024163652607293307,
+      0.0023597107100965242,
+      0.0020588019338153574,
+      0.002006216582464304,
+      0.0014611428511985824
+    ],
+    "supersedes": "This order SUPERSEDES the `combined` arm of greedy_static_i26c.json as the static comparator. That arm was SELECTED under the retired policy-A candidate mask (its intercept_eval 0.13139/0.02343 is the policy-A intercept; policy B is 0.1586/0.0282), so comparing a policy-B arm against it carried a selection-protocol offset -- measured at +0.00093 full at K=1 -- inside every K>=2 number. This rebuild uses the SAME pool (500 pop items + 500 answerable concepts, items first), the SAME objective (cohort-mean held-out full NDCG@10), the SAME 10,000 canonical validation users and the SAME certified stack, under POLICY B. It reuses the completed CELF heap the tree's root node built, which is exactly this search's seed pass.",
+    "positions_identical_to_policyA": 0,
+    "curve_policyB": {
+      "1": {
+        "full@10": 0.17735593815942083,
+        "tail@10": 0.052350931752596155,
+        "items_answered": 0.0,
+        "concepts_answered": 0.742
+      },
+      "2": {
+        "full@10": 0.19363055287519845,
+        "tail@10": 0.06794829653107652,
+        "items_answered": 0.0,
+        "concepts_answered": 1.74
+      },
+      "4": {
+        "full@10": 0.21496335984617726,
+        "tail@10": 0.08468358215437376,
+        "items_answered": 0.305,
+        "concepts_answered": 2.647
+      },
+      "8": {
+        "full@10": 0.2362498141943894,
+        "tail@10": 0.10290470383793361,
+        "items_answered": 0.841,
+        "concepts_answered": 4.501
+      },
+      "16": {
+        "full@10": 0.25561016113602253,
+        "tail@10": 0.12366492106552922,
+        "items_answered": 1.478,
+        "concepts_answered": 9.222
+      }
+    },
+    "policyA_order_rescored_under_policyB": {
+      "1": {
+        "full@10": 0.17642801458392765,
+        "tail@10": 0.04817290507890329,
+        "items_answered": 0.0,
+        "concepts_answered": 0.898
+      },
+      "2": {
+        "full@10": 0.1876396787644047,
+        "tail@10": 0.05662051518012034,
+        "items_answered": 0.0,
+        "concepts_answered": 1.774
+      },
+      "4": {
+        "full@10": 0.21044923457086714,
+        "tail@10": 0.07639772432086712,
+        "items_answered": 0.293,
+        "concepts_answered": 2.772
+      },
+      "8": {
+        "full@10": 0.23004009734276432,
+        "tail@10": 0.09971654051856176,
+        "items_answered": 0.824,
+        "concepts_answered": 4.694
+      },
+      "16": {
+        "full@10": 0.2526359583732126,
+        "tail@10": 0.11260597244835971,
+        "items_answered": 2.24,
+        "concepts_answered": 6.656
+      }
+    }
+  },
+  "k1_gate": {
+    "root_splitter": [
+      1,
+      114
+    ],
+    "comparator_first_question": [
+      1,
+      114
+    ],
+    "K1_diff_full": 0.0,
+    "K1_diff_tail": 0.0,
+    "exactly_zero": true
+  },
+  "leaf_table": [
+    {
+      "nid": "root.noanswer.noanswer",
+      "depth": 2,
+      "n_users": 1785,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ]
+      ],
+      "steps": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          243
+        ],
+        [
+          1,
+          408
+        ],
+        [
+          1,
+          785
+        ],
+        [
+          1,
+          726
+        ],
+        [
+          1,
+          29
+        ],
+        [
+          0,
+          10
+        ],
+        [
+          0,
+          123
+        ],
+        [
+          1,
+          241
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          0,
+          128
+        ],
+        [
+          0,
+          442
+        ],
+        [
+          1,
+          247
+        ]
+      ],
+      "gains": [
+        0.016341449928472612,
+        0.012472162016420929,
+        0.006708680211460719,
+        0.0038364706024196504,
+        0.0033764085789222686,
+        0.0032988766730657204,
+        0.0030567837558393707,
+        0.002859832087218156,
+        0.0023535823688782265,
+        0.0027617735029028256,
+        0.0027832291627805927,
+        0.0023891532514091762,
+        0.0037413307044751043,
+        0.002065637647495344
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          243
+        ],
+        [
+          1,
+          408
+        ],
+        [
+          1,
+          785
+        ],
+        [
+          1,
+          726
+        ],
+        [
+          1,
+          29
+        ],
+        [
+          0,
+          10
+        ],
+        [
+          0,
+          123
+        ],
+        [
+          1,
+          241
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          0,
+          128
+        ],
+        [
+          0,
+          442
+        ],
+        [
+          1,
+          247
+        ]
+      ],
+      "new_question": [
+        1,
+        247
+      ],
+      "new_question_gain": 0.002065637647495344,
+      "prefix_unchanged": true,
+      "n_evals": 1325,
+      "n_evals_new_this_job": 57,
+      "sec_per_eval": 1.76,
+      "minutes": 1.67,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 1129,
+          "frac": 0.6325
+        },
+        {
+          "genre": "Comedy",
+          "n": 312,
+          "frac": 0.1748
+        },
+        {
+          "genre": "Action",
+          "n": 105,
+          "frac": 0.0588
+        },
+        {
+          "genre": "Thriller",
+          "n": 68,
+          "frac": 0.0381
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.08686319232022774,
+          "tree_tail@10": 0.023066082211830714,
+          "policyB_full@10": 0.08686319232022774,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.08993361263103784,
+          "diff_full@10_vs_policyA": -0.0030704203108101015,
+          "diff_tail@10_vs_policyA": -0.005673060072431599,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.08723790926401588,
+          "tree_tail@10": 0.018850121667931555,
+          "policyB_full@10": 0.10557965339612699,
+          "diff_full@10_vs_policyB": -0.018341744132111103,
+          "diff_tail@10_vs_policyB": -0.018350316091561056,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.10118414227252288,
+          "diff_full@10_vs_policyA": -0.013946233008506984,
+          "diff_tail@10_vs_policyA": -0.015380910620233884,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.11605152120890942,
+          "tree_tail@10": 0.046541910019250426,
+          "policyB_full@10": 0.11388816543206269,
+          "diff_full@10_vs_policyB": 0.002163355776846737,
+          "diff_tail@10_vs_policyB": 0.004947695024198899,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.1212100713512046,
+          "diff_full@10_vs_policyA": -0.005158550142295174,
+          "diff_tail@10_vs_policyA": -0.0030547062173380333,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.13327195727477778,
+          "tree_tail@10": 0.06494156739485368,
+          "policyB_full@10": 0.13433354826029256,
+          "diff_full@10_vs_policyB": -0.001061590985514797,
+          "diff_tail@10_vs_policyB": -0.0016192043348013318,
+          "set_overlap_vs_policyB": 3,
+          "policyA_full@10": 0.1313403591683663,
+          "diff_full@10_vs_policyA": 0.0019315981064114663,
+          "diff_tail@10_vs_policyA": 0.007367938440387055,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.15528327975577658,
+          "tree_tail@10": 0.07754257851101493,
+          "policyB_full@10": 0.14478139817019478,
+          "diff_full@10_vs_policyB": 0.010501881585581789,
+          "diff_tail@10_vs_policyB": 0.002989880824781314,
+          "set_overlap_vs_policyB": 3,
+          "policyA_full@10": 0.14445157390465174,
+          "diff_full@10_vs_policyA": 0.01083170585112485,
+          "diff_tail@10_vs_policyA": 0.007146812018918696,
+          "set_overlap_vs_policyA": 1
+        }
+      }
+    },
+    {
+      "nid": "root.like.noanswer",
+      "depth": 2,
+      "n_users": 1256,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ]
+      ],
+      "steps": [
+        [
+          1,
+          377
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          1118
+        ],
+        [
+          0,
+          104
+        ],
+        [
+          0,
+          22
+        ],
+        [
+          1,
+          730
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          343
+        ],
+        [
+          0,
+          976
+        ],
+        [
+          0,
+          89
+        ],
+        [
+          0,
+          499
+        ],
+        [
+          0,
+          366
+        ],
+        [
+          0,
+          391
+        ],
+        [
+          1,
+          56
+        ]
+      ],
+      "gains": [
+        0.006723587088539401,
+        0.0069153672054289295,
+        0.005345829149576847,
+        0.003718590727911808,
+        0.0037999785870237446,
+        0.0034535616369145983,
+        0.0032992700047830004,
+        0.0038925375656168604,
+        0.0051118094801870795,
+        0.00683790494306688,
+        0.0031417152565664797,
+        0.0037971527361332913,
+        0.0017505065798682218,
+        0.0017377899150127496
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          1,
+          377
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          1118
+        ],
+        [
+          0,
+          104
+        ],
+        [
+          0,
+          22
+        ],
+        [
+          1,
+          730
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          343
+        ],
+        [
+          0,
+          976
+        ],
+        [
+          0,
+          89
+        ],
+        [
+          0,
+          499
+        ],
+        [
+          0,
+          366
+        ],
+        [
+          0,
+          391
+        ],
+        [
+          1,
+          56
+        ]
+      ],
+      "new_question": [
+        1,
+        56
+      ],
+      "new_question_gain": 0.0017377899150127496,
+      "prefix_unchanged": true,
+      "n_evals": 1282,
+      "n_evals_new_this_job": 12,
+      "sec_per_eval": 1.358,
+      "minutes": 0.27,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 463,
+          "frac": 0.3686
+        },
+        {
+          "genre": "Action",
+          "n": 390,
+          "frac": 0.3105
+        },
+        {
+          "genre": "Comedy",
+          "n": 174,
+          "frac": 0.1385
+        },
+        {
+          "genre": "Adventure",
+          "n": 95,
+          "frac": 0.0756
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.16095797045847302,
+          "tree_tail@10": 0.07260643131519791,
+          "policyB_full@10": 0.16095797045847302,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.14534861408399824,
+          "diff_full@10_vs_policyA": 0.01560935637447475,
+          "diff_tail@10_vs_policyA": 0.017731315274535944,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.15856387120636628,
+          "tree_tail@10": 0.07193014883038318,
+          "policyB_full@10": 0.16085912146675505,
+          "diff_full@10_vs_policyB": -0.0022952502603887526,
+          "diff_tail@10_vs_policyB": -0.005372826053505504,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.15049768852021184,
+          "diff_full@10_vs_policyA": 0.008066182686154423,
+          "diff_tail@10_vs_policyA": 0.01110009574308291,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.1722028255003346,
+          "tree_tail@10": 0.0890168411609267,
+          "policyB_full@10": 0.17306840162892,
+          "diff_full@10_vs_policyB": -0.0008655761285853965,
+          "diff_tail@10_vs_policyB": -0.002478237712364531,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.15245476293635,
+          "diff_full@10_vs_policyA": 0.019748062563984637,
+          "diff_tail@10_vs_policyA": 0.026694451484556195,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.1885207856017616,
+          "tree_tail@10": 0.10844473715627065,
+          "policyB_full@10": 0.17163092314520872,
+          "diff_full@10_vs_policyB": 0.016889862456552877,
+          "diff_tail@10_vs_policyB": 0.012806340247992577,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.17997947372070855,
+          "diff_full@10_vs_policyA": 0.008541311881053065,
+          "diff_tail@10_vs_policyA": 0.013268731037438449,
+          "set_overlap_vs_policyA": 2
+        },
+        "16": {
+          "tree_full@10": 0.21808947208299617,
+          "tree_tail@10": 0.12109812680499644,
+          "policyB_full@10": 0.19224712002288408,
+          "diff_full@10_vs_policyB": 0.02584235206011207,
+          "diff_tail@10_vs_policyB": 0.007622056899254701,
+          "set_overlap_vs_policyB": 4,
+          "policyA_full@10": 0.19144061281644148,
+          "diff_full@10_vs_policyA": 0.02664885926655468,
+          "diff_tail@10_vs_policyA": 0.021837154613997097,
+          "set_overlap_vs_policyA": 4
+        }
+      }
+    },
+    {
+      "nid": "root.like.like",
+      "depth": 2,
+      "n_users": 1010,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ]
+      ],
+      "steps": [
+        [
+          0,
+          112
+        ],
+        [
+          1,
+          926
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          87
+        ],
+        [
+          1,
+          801
+        ],
+        [
+          1,
+          280
+        ],
+        [
+          1,
+          940
+        ],
+        [
+          1,
+          490
+        ],
+        [
+          1,
+          839
+        ],
+        [
+          0,
+          154
+        ],
+        [
+          1,
+          17
+        ],
+        [
+          0,
+          153
+        ],
+        [
+          1,
+          223
+        ],
+        [
+          1,
+          985
+        ]
+      ],
+      "gains": [
+        0.017965713680523354,
+        0.010261315398302384,
+        0.009431111404759773,
+        0.007273976428278095,
+        0.006623391411380186,
+        0.005487049842080649,
+        0.004599333821714624,
+        0.0030531149374313227,
+        0.0023942516652507018,
+        0.0021440657199792157,
+        0.0024135286299251657,
+        0.0025501486912654636,
+        0.00228418261023966,
+        0.0016106891845513727
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          1,
+          926
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          87
+        ],
+        [
+          1,
+          801
+        ],
+        [
+          1,
+          280
+        ],
+        [
+          1,
+          940
+        ],
+        [
+          1,
+          490
+        ],
+        [
+          1,
+          839
+        ],
+        [
+          0,
+          154
+        ],
+        [
+          1,
+          17
+        ],
+        [
+          0,
+          153
+        ],
+        [
+          1,
+          223
+        ],
+        [
+          1,
+          985
+        ]
+      ],
+      "new_question": [
+        1,
+        985
+      ],
+      "new_question_gain": 0.0016106891845513727,
+      "prefix_unchanged": true,
+      "n_evals": 1764,
+      "n_evals_new_this_job": 36,
+      "sec_per_eval": 1.111,
+      "minutes": 0.67,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 401,
+          "frac": 0.397
+        },
+        {
+          "genre": "Action",
+          "n": 331,
+          "frac": 0.3277
+        },
+        {
+          "genre": "Adventure",
+          "n": 168,
+          "frac": 0.1663
+        },
+        {
+          "genre": "Comedy",
+          "n": 61,
+          "frac": 0.0604
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.29846708103336045,
+          "tree_tail@10": 0.12480647863139868,
+          "policyB_full@10": 0.29846708103336045,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.3038087503457213,
+          "diff_full@10_vs_policyA": -0.005341669312360841,
+          "diff_tail@10_vs_policyA": 0.02275528591885523,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.3285053260270303,
+          "tree_tail@10": 0.12139826206153286,
+          "policyB_full@10": 0.29733926690512397,
+          "diff_full@10_vs_policyB": 0.03116605912190627,
+          "diff_tail@10_vs_policyB": -0.00663822440310155,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.31343910489652216,
+          "diff_full@10_vs_policyA": 0.015066221130508118,
+          "diff_tail@10_vs_policyA": 0.013437892077910489,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.35673235510585605,
+          "tree_tail@10": 0.1545679835324582,
+          "policyB_full@10": 0.3290980854693881,
+          "diff_full@10_vs_policyB": 0.027634269636467926,
+          "diff_tail@10_vs_policyB": 0.01400224056911306,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.3118944624397938,
+          "diff_full@10_vs_policyA": 0.044837892666062244,
+          "diff_tail@10_vs_policyA": 0.045364409642276726,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.38554788419235475,
+          "tree_tail@10": 0.16149567647727264,
+          "policyB_full@10": 0.3611435191628814,
+          "diff_full@10_vs_policyB": 0.024404365029473362,
+          "diff_tail@10_vs_policyB": 0.010935989882507147,
+          "set_overlap_vs_policyB": 3,
+          "policyA_full@10": 0.34712507105552715,
+          "diff_full@10_vs_policyA": 0.0384228131368276,
+          "diff_tail@10_vs_policyA": 0.005963490215568771,
+          "set_overlap_vs_policyA": 1
+        },
+        "16": {
+          "tree_full@10": 0.4065971994527123,
+          "tree_tail@10": 0.18666092894886374,
+          "policyB_full@10": 0.3870002661416317,
+          "diff_full@10_vs_policyB": 0.01959693331108059,
+          "diff_tail@10_vs_policyB": 0.0097245221773667,
+          "set_overlap_vs_policyB": 3,
+          "policyA_full@10": 0.3862307672451723,
+          "diff_full@10_vs_policyA": 0.02036643220753995,
+          "diff_tail@10_vs_policyA": 0.0173143456643044,
+          "set_overlap_vs_policyA": 3
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.noanswer.dislike",
+      "depth": 5,
+      "n_users": 739,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ]
+      ],
+      "steps": [
+        [
+          1,
+          251
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          74
+        ],
+        [
+          0,
+          77
+        ],
+        [
+          1,
+          124
+        ],
+        [
+          0,
+          454
+        ],
+        [
+          0,
+          733
+        ],
+        [
+          1,
+          769
+        ],
+        [
+          1,
+          98
+        ],
+        [
+          1,
+          343
+        ],
+        [
+          1,
+          249
+        ]
+      ],
+      "gains": [
+        0.011429920522106424,
+        0.00787587667868278,
+        0.007785275439263384,
+        0.0067574817404514875,
+        0.004411383378620709,
+        0.0035157012504573593,
+        0.003098306488926894,
+        0.004917925238757254,
+        0.0038471756312005723,
+        0.0025592587639683972,
+        0.0021921530611433426
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ],
+        [
+          1,
+          251
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          74
+        ],
+        [
+          0,
+          77
+        ],
+        [
+          1,
+          124
+        ],
+        [
+          0,
+          454
+        ],
+        [
+          0,
+          733
+        ],
+        [
+          1,
+          769
+        ],
+        [
+          1,
+          98
+        ],
+        [
+          1,
+          343
+        ],
+        [
+          1,
+          249
+        ]
+      ],
+      "new_question": [
+        1,
+        249
+      ],
+      "new_question_gain": 0.0021921530611433426,
+      "prefix_unchanged": true,
+      "n_evals": 1238,
+      "n_evals_new_this_job": 29,
+      "sec_per_eval": 0.849,
+      "minutes": 0.41,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 523,
+          "frac": 0.7077
+        },
+        {
+          "genre": "Comedy",
+          "n": 153,
+          "frac": 0.207
+        },
+        {
+          "genre": "Action",
+          "n": 24,
+          "frac": 0.0325
+        },
+        {
+          "genre": "Thriller",
+          "n": 19,
+          "frac": 0.0257
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.18910991301492122,
+          "tree_tail@10": 0.03780060393665953,
+          "policyB_full@10": 0.18910991301492122,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.18843040612473128,
+          "diff_full@10_vs_policyA": 0.0006795068901898916,
+          "diff_tail@10_vs_policyA": -0.0008546093942875695,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.19566361123635317,
+          "tree_tail@10": 0.046756088960200906,
+          "policyB_full@10": 0.19529792462321963,
+          "diff_full@10_vs_policyB": 0.0003656866131335341,
+          "diff_tail@10_vs_policyB": 0.0034024838464604226,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.19407621028630584,
+          "diff_full@10_vs_policyA": 0.0015874009500473735,
+          "diff_tail@10_vs_policyA": 0.0006760210610061588,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.19645727889224893,
+          "tree_tail@10": 0.04872056610673265,
+          "policyB_full@10": 0.1986729534916775,
+          "diff_full@10_vs_policyB": -0.002215674599428588,
+          "diff_tail@10_vs_policyB": -0.007728012480477463,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.20496565540203993,
+          "diff_full@10_vs_policyA": -0.008508376509791037,
+          "diff_tail@10_vs_policyA": -0.012158091654160092,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.22938500524858496,
+          "tree_tail@10": 0.07692675587632113,
+          "policyB_full@10": 0.22753052715901584,
+          "diff_full@10_vs_policyB": 0.0018544780895690819,
+          "diff_tail@10_vs_policyB": -0.011220112765281298,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.22098561788808463,
+          "diff_full@10_vs_policyA": 0.008399387360500296,
+          "diff_tail@10_vs_policyA": -0.0081302673887963,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.260684390802111,
+          "tree_tail@10": 0.10823155518836344,
+          "policyB_full@10": 0.24750987453993054,
+          "diff_full@10_vs_policyB": 0.013174516262180403,
+          "diff_tail@10_vs_policyB": -0.0002274400684151917,
+          "set_overlap_vs_policyB": 3,
+          "policyA_full@10": 0.24413703750166524,
+          "diff_full@10_vs_policyA": 0.016547353300445704,
+          "diff_tail@10_vs_policyA": 0.012760667311393466,
+          "set_overlap_vs_policyA": 1
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.like",
+      "depth": 2,
+      "n_users": 723,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ]
+      ],
+      "steps": [
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          502
+        ],
+        [
+          1,
+          689
+        ],
+        [
+          1,
+          228
+        ],
+        [
+          1,
+          864
+        ],
+        [
+          0,
+          174
+        ],
+        [
+          1,
+          477
+        ],
+        [
+          1,
+          343
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          1,
+          14
+        ],
+        [
+          1,
+          672
+        ],
+        [
+          1,
+          652
+        ],
+        [
+          1,
+          809
+        ]
+      ],
+      "gains": [
+        0.011554615632813625,
+        0.009565692680090832,
+        0.006404217033671056,
+        0.0045049847019413836,
+        0.004759713365888707,
+        0.0030567175914433253,
+        0.003068507183069391,
+        0.003361054217109083,
+        0.0020282354330450336,
+        0.0053656120817958675,
+        0.0032895598659618552,
+        0.002321336881710767,
+        0.0016399189902728817,
+        0.0010287537439552796
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          502
+        ],
+        [
+          1,
+          689
+        ],
+        [
+          1,
+          228
+        ],
+        [
+          1,
+          864
+        ],
+        [
+          0,
+          174
+        ],
+        [
+          1,
+          477
+        ],
+        [
+          1,
+          343
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          1,
+          14
+        ],
+        [
+          1,
+          672
+        ],
+        [
+          1,
+          652
+        ],
+        [
+          1,
+          809
+        ]
+      ],
+      "new_question": [
+        1,
+        809
+      ],
+      "new_question_gain": 0.0010287537439552796,
+      "prefix_unchanged": true,
+      "n_evals": 1398,
+      "n_evals_new_this_job": 75,
+      "sec_per_eval": 0.739,
+      "minutes": 0.93,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 616,
+          "frac": 0.852
+        },
+        {
+          "genre": "Thriller",
+          "n": 28,
+          "frac": 0.0387
+        },
+        {
+          "genre": "Comedy",
+          "n": 24,
+          "frac": 0.0332
+        },
+        {
+          "genre": "Action",
+          "n": 20,
+          "frac": 0.0277
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.20098863656917748,
+          "tree_tail@10": 0.011941882392649442,
+          "policyB_full@10": 0.20098863656917748,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.1998685930683015,
+          "diff_full@10_vs_policyA": 0.001120043500875978,
+          "diff_tail@10_vs_policyA": 0.0003927556375255773,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.2567964610343342,
+          "tree_tail@10": 0.04396264250230972,
+          "policyB_full@10": 0.2191708746908257,
+          "diff_full@10_vs_policyB": 0.0376255863435085,
+          "diff_tail@10_vs_policyB": 0.013896257861132586,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.2420905300298113,
+          "diff_full@10_vs_policyA": 0.014705931004522915,
+          "diff_tail@10_vs_policyA": 0.013164275442575877,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.27791676934723863,
+          "tree_tail@10": 0.07373990630691318,
+          "policyB_full@10": 0.25000930453595205,
+          "diff_full@10_vs_policyB": 0.027907464811286566,
+          "diff_tail@10_vs_policyB": 0.0035259016161321025,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.2570553033737145,
+          "diff_full@10_vs_policyA": 0.02086146597352411,
+          "diff_tail@10_vs_policyA": 0.026785302205155383,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.2966424020401831,
+          "tree_tail@10": 0.08513596199663058,
+          "policyB_full@10": 0.26481014927372976,
+          "diff_full@10_vs_policyB": 0.03183225276645341,
+          "diff_tail@10_vs_policyB": 0.005201687046963928,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.26976438505312034,
+          "diff_full@10_vs_policyA": 0.026878016987062773,
+          "diff_tail@10_vs_policyA": 0.005489983620503242,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.31874538043710327,
+          "tree_tail@10": 0.1006263494061475,
+          "policyB_full@10": 0.2814182480755332,
+          "diff_full@10_vs_policyB": 0.037327132361570106,
+          "diff_tail@10_vs_policyB": 0.0007293890721026227,
+          "set_overlap_vs_policyB": 4,
+          "policyA_full@10": 0.2894916258443343,
+          "diff_full@10_vs_policyA": 0.029253754592769004,
+          "diff_tail@10_vs_policyA": 0.011873837304821064,
+          "set_overlap_vs_policyA": 2
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.like",
+      "depth": 4,
+      "n_users": 702,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ]
+      ],
+      "steps": [
+        [
+          0,
+          614
+        ],
+        [
+          1,
+          708
+        ],
+        [
+          1,
+          461
+        ],
+        [
+          0,
+          26
+        ],
+        [
+          1,
+          455
+        ],
+        [
+          1,
+          173
+        ],
+        [
+          0,
+          153
+        ],
+        [
+          1,
+          622
+        ],
+        [
+          0,
+          643
+        ],
+        [
+          0,
+          164
+        ],
+        [
+          1,
+          994
+        ],
+        [
+          0,
+          77
+        ]
+      ],
+      "gains": [
+        0.01362610519292301,
+        0.008990910024042065,
+        0.007304869004900627,
+        0.005181819436576751,
+        0.0048380190044094995,
+        0.00503831347673267,
+        0.004911503064791822,
+        0.003725077418009315,
+        0.00397984123343198,
+        0.0028361483459454218,
+        0.001840425578037208,
+        0.0013813304996412312
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          614
+        ],
+        [
+          1,
+          708
+        ],
+        [
+          1,
+          461
+        ],
+        [
+          0,
+          26
+        ],
+        [
+          1,
+          455
+        ],
+        [
+          1,
+          173
+        ],
+        [
+          0,
+          153
+        ],
+        [
+          1,
+          622
+        ],
+        [
+          0,
+          643
+        ],
+        [
+          0,
+          164
+        ],
+        [
+          1,
+          994
+        ],
+        [
+          0,
+          77
+        ]
+      ],
+      "new_question": [
+        0,
+        77
+      ],
+      "new_question_gain": 0.0013813304996412312,
+      "prefix_unchanged": true,
+      "n_evals": 1491,
+      "n_evals_new_this_job": 29,
+      "sec_per_eval": 0.814,
+      "minutes": 0.39,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 484,
+          "frac": 0.6895
+        },
+        {
+          "genre": "Comedy",
+          "n": 123,
+          "frac": 0.1752
+        },
+        {
+          "genre": "Action",
+          "n": 64,
+          "frac": 0.0912
+        },
+        {
+          "genre": "Adventure",
+          "n": 23,
+          "frac": 0.0328
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.3471246703370289,
+          "tree_tail@10": 0.06701508061626274,
+          "policyB_full@10": 0.3471246703370289,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.3297379986749095,
+          "diff_full@10_vs_policyA": 0.01738667166211937,
+          "diff_tail@10_vs_policyA": 0.0124681745078023,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.35860172249798833,
+          "tree_tail@10": 0.08203466980094258,
+          "policyB_full@10": 0.3503378140893643,
+          "diff_full@10_vs_policyB": 0.00826390840862404,
+          "diff_tail@10_vs_policyB": 0.002701213469910516,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.34253076331723814,
+          "diff_full@10_vs_policyA": 0.016070959180750213,
+          "diff_tail@10_vs_policyA": 0.018315852523738903,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.39593207762654115,
+          "tree_tail@10": 0.10219766014592167,
+          "policyB_full@10": 0.40443983774674,
+          "diff_full@10_vs_policyB": -0.00850776012019888,
+          "diff_tail@10_vs_policyB": -0.007667475937048218,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.3673437939838788,
+          "diff_full@10_vs_policyA": 0.02858828364266236,
+          "diff_tail@10_vs_policyA": 0.013584546009115232,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.4310357812849836,
+          "tree_tail@10": 0.1399739166867411,
+          "policyB_full@10": 0.42526677447032873,
+          "diff_full@10_vs_policyB": 0.0057690068146547405,
+          "diff_tail@10_vs_policyB": 0.0036493938068706757,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.3863781119318922,
+          "diff_full@10_vs_policyA": 0.0446576693530913,
+          "diff_tail@10_vs_policyA": 0.017856215932664676,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.45958643990598275,
+          "tree_tail@10": 0.1737856674310011,
+          "policyB_full@10": 0.43423191736631717,
+          "diff_full@10_vs_policyB": 0.025354522539665574,
+          "diff_tail@10_vs_policyB": 0.015655015677828156,
+          "set_overlap_vs_policyB": 5,
+          "policyA_full@10": 0.4183023125967623,
+          "diff_full@10_vs_policyA": 0.041284127309220514,
+          "diff_tail@10_vs_policyA": 0.04904731379505473,
+          "set_overlap_vs_policyA": 2
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.dislike.like",
+      "depth": 3,
+      "n_users": 660,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ]
+      ],
+      "steps": [
+        [
+          0,
+          951
+        ],
+        [
+          1,
+          12
+        ],
+        [
+          1,
+          354
+        ],
+        [
+          0,
+          1488
+        ],
+        [
+          1,
+          854
+        ],
+        [
+          1,
+          377
+        ],
+        [
+          1,
+          696
+        ],
+        [
+          0,
+          461
+        ],
+        [
+          0,
+          545
+        ],
+        [
+          0,
+          88
+        ],
+        [
+          0,
+          1489
+        ],
+        [
+          0,
+          541
+        ],
+        [
+          0,
+          1294
+        ]
+      ],
+      "gains": [
+        0.021588885665574487,
+        0.011728521092886135,
+        0.008619824960754474,
+        0.004857177446133398,
+        0.005139248850990374,
+        0.004134825779232798,
+        0.003377929933145396,
+        0.0031829958137223335,
+        0.0035939178657473647,
+        0.003444192505913657,
+        0.0021228569118538765,
+        0.0014575450353850328,
+        0.0012401167351334674
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          951
+        ],
+        [
+          1,
+          12
+        ],
+        [
+          1,
+          354
+        ],
+        [
+          0,
+          1488
+        ],
+        [
+          1,
+          854
+        ],
+        [
+          1,
+          377
+        ],
+        [
+          1,
+          696
+        ],
+        [
+          0,
+          461
+        ],
+        [
+          0,
+          545
+        ],
+        [
+          0,
+          88
+        ],
+        [
+          0,
+          1489
+        ],
+        [
+          0,
+          541
+        ],
+        [
+          0,
+          1294
+        ]
+      ],
+      "new_question": [
+        0,
+        1294
+      ],
+      "new_question_gain": 0.0012401167351334674,
+      "prefix_unchanged": true,
+      "n_evals": 2067,
+      "n_evals_new_this_job": 36,
+      "sec_per_eval": 0.709,
+      "minutes": 0.43,
+      "genre_face_validity": [
+        {
+          "genre": "Action",
+          "n": 206,
+          "frac": 0.3121
+        },
+        {
+          "genre": "Drama",
+          "n": 202,
+          "frac": 0.3061
+        },
+        {
+          "genre": "Comedy",
+          "n": 103,
+          "frac": 0.1561
+        },
+        {
+          "genre": "Sci-Fi",
+          "n": 56,
+          "frac": 0.0848
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.17484971107785716,
+          "tree_tail@10": 0.033995817889006526,
+          "policyB_full@10": 0.17484971107785716,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.1784395444298984,
+          "diff_full@10_vs_policyA": -0.0035898333520412553,
+          "diff_tail@10_vs_policyA": -0.0024414961536170926,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.18641732673046377,
+          "tree_tail@10": 0.03691075988782863,
+          "policyB_full@10": 0.17126173142513246,
+          "diff_full@10_vs_policyB": 0.015155595305331327,
+          "diff_tail@10_vs_policyB": -0.005986950021200393,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.19005377190292988,
+          "diff_full@10_vs_policyA": -0.003636445172466102,
+          "diff_tail@10_vs_policyA": -0.001589831990301209,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.28155029721531344,
+          "tree_tail@10": 0.11235020931168123,
+          "policyB_full@10": 0.2333368576632363,
+          "diff_full@10_vs_policyB": 0.04821343955207713,
+          "diff_tail@10_vs_policyB": 0.03766964406274293,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.23175153388067532,
+          "diff_full@10_vs_policyA": 0.04979876333463814,
+          "diff_tail@10_vs_policyA": 0.04173324693162724,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.3118950695660778,
+          "tree_tail@10": 0.12635153268149182,
+          "policyB_full@10": 0.2656565270237737,
+          "diff_full@10_vs_policyB": 0.04623854254230415,
+          "diff_tail@10_vs_policyB": 0.0344942738760562,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.2666897521872182,
+          "diff_full@10_vs_policyA": 0.0452053173788596,
+          "diff_tail@10_vs_policyA": 0.02858538809275734,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.33444945014621175,
+          "tree_tail@10": 0.13549506162317865,
+          "policyB_full@10": 0.30567537931073474,
+          "diff_full@10_vs_policyB": 0.02877407083547699,
+          "diff_tail@10_vs_policyB": 0.0034843017580802552,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.3009544039269603,
+          "diff_full@10_vs_policyA": 0.033495046219251416,
+          "diff_tail@10_vs_policyA": 0.018271378837222973,
+          "set_overlap_vs_policyA": 0
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.dislike.noanswer",
+      "depth": 3,
+      "n_users": 556,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ]
+      ],
+      "steps": [
+        [
+          0,
+          499
+        ],
+        [
+          0,
+          15
+        ],
+        [
+          0,
+          463
+        ],
+        [
+          1,
+          107
+        ],
+        [
+          1,
+          594
+        ],
+        [
+          1,
+          189
+        ],
+        [
+          1,
+          333
+        ],
+        [
+          0,
+          781
+        ],
+        [
+          1,
+          181
+        ],
+        [
+          0,
+          1793
+        ],
+        [
+          1,
+          713
+        ],
+        [
+          1,
+          857
+        ],
+        [
+          0,
+          679
+        ]
+      ],
+      "gains": [
+        0.016205626516389363,
+        0.00744326593766062,
+        0.008718571934522232,
+        0.005268480221680305,
+        0.0036729648959859112,
+        0.005208656701690378,
+        0.0027673033625685017,
+        0.003040476783294277,
+        0.0022209858928300963,
+        0.0023974081873388287,
+        0.0015251338147199422,
+        0.0016544627475163498,
+        0.0015848169475442264
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          499
+        ],
+        [
+          0,
+          15
+        ],
+        [
+          0,
+          463
+        ],
+        [
+          1,
+          107
+        ],
+        [
+          1,
+          594
+        ],
+        [
+          1,
+          189
+        ],
+        [
+          1,
+          333
+        ],
+        [
+          0,
+          781
+        ],
+        [
+          1,
+          181
+        ],
+        [
+          0,
+          1793
+        ],
+        [
+          1,
+          713
+        ],
+        [
+          1,
+          857
+        ],
+        [
+          0,
+          679
+        ]
+      ],
+      "new_question": [
+        0,
+        679
+      ],
+      "new_question_gain": 0.0015848169475442264,
+      "prefix_unchanged": true,
+      "n_evals": 1565,
+      "n_evals_new_this_job": 31,
+      "sec_per_eval": 0.562,
+      "minutes": 0.29,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 365,
+          "frac": 0.6565
+        },
+        {
+          "genre": "Comedy",
+          "n": 91,
+          "frac": 0.1637
+        },
+        {
+          "genre": "Action",
+          "n": 37,
+          "frac": 0.0665
+        },
+        {
+          "genre": "Thriller",
+          "n": 27,
+          "frac": 0.0486
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.08602608796217748,
+          "tree_tail@10": 0.026270430983268485,
+          "policyB_full@10": 0.08602608796217748,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.08603691446077524,
+          "diff_full@10_vs_policyA": -1.0826498597774729e-05,
+          "diff_tail@10_vs_policyA": -0.003714932257492592,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.08764192877639884,
+          "tree_tail@10": 0.02302638001483255,
+          "policyB_full@10": 0.09068265859513401,
+          "diff_full@10_vs_policyB": -0.0030407298187351797,
+          "diff_tail@10_vs_policyB": -0.0059577983285875585,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.0911604192450481,
+          "diff_full@10_vs_policyA": -0.0035184904686492687,
+          "diff_tail@10_vs_policyA": -0.009414461154199225,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.10344976373510004,
+          "tree_tail@10": 0.02817386726008848,
+          "policyB_full@10": 0.09484985577385131,
+          "diff_full@10_vs_policyB": 0.008599907961248739,
+          "diff_tail@10_vs_policyB": -9.582304905212573e-05,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.09607459059802467,
+          "diff_full@10_vs_policyA": 0.007375173137075368,
+          "diff_tail@10_vs_policyA": -0.0056562755100621025,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.1285530467249491,
+          "tree_tail@10": 0.06050294848660155,
+          "policyB_full@10": 0.09813754170832349,
+          "diff_full@10_vs_policyB": 0.030415505016625596,
+          "diff_tail@10_vs_policyB": 0.024064222593087325,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.10896284045888273,
+          "diff_full@10_vs_policyA": 0.01959020626606636,
+          "diff_tail@10_vs_policyA": 0.013608043583595113,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.1489522911624517,
+          "tree_tail@10": 0.0777362048911959,
+          "policyB_full@10": 0.11210476620279475,
+          "diff_full@10_vs_policyB": 0.036847524959656965,
+          "diff_tail@10_vs_policyB": 0.025147296070514823,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.11562272035694594,
+          "diff_full@10_vs_policyA": 0.03332957080550577,
+          "diff_tail@10_vs_policyA": 0.023917762659003722,
+          "set_overlap_vs_policyA": 0
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.noanswer",
+      "depth": 2,
+      "n_users": 529,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ]
+      ],
+      "steps": [
+        [
+          0,
+          15
+        ],
+        [
+          0,
+          463
+        ],
+        [
+          0,
+          438
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          107
+        ],
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          252
+        ],
+        [
+          1,
+          976
+        ],
+        [
+          1,
+          162
+        ],
+        [
+          1,
+          336
+        ],
+        [
+          0,
+          501
+        ],
+        [
+          1,
+          691
+        ],
+        [
+          1,
+          830
+        ],
+        [
+          1,
+          851
+        ]
+      ],
+      "gains": [
+        0.03386459966675363,
+        0.025769976806703426,
+        0.01594586570418681,
+        0.00905482662246257,
+        0.00871886548051723,
+        0.007827260611993042,
+        0.005732864061593429,
+        0.004128010910069674,
+        0.003076069879738047,
+        0.0026554485139909934,
+        0.0022833351185218287,
+        0.0017994373782836137,
+        0.002051671799886773,
+        0.001139408208429754
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          0,
+          15
+        ],
+        [
+          0,
+          463
+        ],
+        [
+          0,
+          438
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          107
+        ],
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          252
+        ],
+        [
+          1,
+          976
+        ],
+        [
+          1,
+          162
+        ],
+        [
+          1,
+          336
+        ],
+        [
+          0,
+          501
+        ],
+        [
+          1,
+          691
+        ],
+        [
+          1,
+          830
+        ],
+        [
+          1,
+          851
+        ]
+      ],
+      "new_question": [
+        1,
+        851
+      ],
+      "new_question_gain": 0.001139408208429754,
+      "prefix_unchanged": true,
+      "n_evals": 1246,
+      "n_evals_new_this_job": 46,
+      "sec_per_eval": 0.477,
+      "minutes": 0.37,
+      "genre_face_validity": [
+        {
+          "genre": "Comedy",
+          "n": 142,
+          "frac": 0.2684
+        },
+        {
+          "genre": "Action",
+          "n": 139,
+          "frac": 0.2628
+        },
+        {
+          "genre": "Drama",
+          "n": 126,
+          "frac": 0.2382
+        },
+        {
+          "genre": "Adventure",
+          "n": 52,
+          "frac": 0.0983
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.04890719991808588,
+          "tree_tail@10": 0.03643832072612733,
+          "policyB_full@10": 0.04890719991808588,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.05722117332419423,
+          "diff_full@10_vs_policyA": -0.008313973406108342,
+          "diff_tail@10_vs_policyA": -0.003564706996284776,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.053761258015251535,
+          "tree_tail@10": 0.04052689324065461,
+          "policyB_full@10": 0.053252672528300994,
+          "diff_full@10_vs_policyB": 0.0005085854869505357,
+          "diff_tail@10_vs_policyB": 0.017505847840909305,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.062135402719901305,
+          "diff_full@10_vs_policyA": -0.00837414470464977,
+          "diff_tail@10_vs_policyA": -0.004815165106994728,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.11339583448870859,
+          "tree_tail@10": 0.0861200159667476,
+          "policyB_full@10": 0.058420054382925635,
+          "diff_full@10_vs_policyB": 0.05497578010578297,
+          "diff_tail@10_vs_policyB": 0.05738864750059021,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.07034925772484069,
+          "diff_full@10_vs_policyA": 0.043046576763867916,
+          "diff_tail@10_vs_policyA": 0.047164366865555994,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.15494265290786824,
+          "tree_tail@10": 0.10856016624645927,
+          "policyB_full@10": 0.07081892406724942,
+          "diff_full@10_vs_policyB": 0.08412372884061882,
+          "diff_tail@10_vs_policyB": 0.07237527230025846,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.08052205086967418,
+          "diff_full@10_vs_policyA": 0.07442060203819409,
+          "diff_tail@10_vs_policyA": 0.05700748140098388,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.17780889877838235,
+          "tree_tail@10": 0.12154090459199869,
+          "policyB_full@10": 0.11322565152120387,
+          "diff_full@10_vs_policyB": 0.06458324725717847,
+          "diff_tail@10_vs_policyB": 0.028696616835094967,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.10527908567212471,
+          "diff_full@10_vs_policyA": 0.07252981310625763,
+          "diff_tail@10_vs_policyA": 0.046584942687498514,
+          "set_overlap_vs_policyA": 0
+        }
+      }
+    },
+    {
+      "nid": "root.noanswer.dislike",
+      "depth": 2,
+      "n_users": 438,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ]
+      ],
+      "steps": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          15
+        ],
+        [
+          1,
+          251
+        ],
+        [
+          1,
+          178
+        ],
+        [
+          0,
+          450
+        ],
+        [
+          1,
+          125
+        ],
+        [
+          0,
+          116
+        ],
+        [
+          0,
+          162
+        ],
+        [
+          1,
+          127
+        ],
+        [
+          1,
+          694
+        ],
+        [
+          1,
+          456
+        ],
+        [
+          0,
+          1123
+        ],
+        [
+          0,
+          550
+        ],
+        [
+          1,
+          381
+        ]
+      ],
+      "gains": [
+        0.042514161784951376,
+        0.013952529574706829,
+        0.008189170066427442,
+        0.007611158608910429,
+        0.0033846075255611896,
+        0.004150885191857967,
+        0.0034031788153370823,
+        0.00392925893242152,
+        0.003471859179958292,
+        0.0008403128896158907,
+        -0.00023790829022701798,
+        0.00012930095606061842,
+        -0.0004232497640651034,
+        -0.0005241744304294027
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          15
+        ],
+        [
+          1,
+          251
+        ],
+        [
+          1,
+          178
+        ],
+        [
+          0,
+          450
+        ],
+        [
+          1,
+          125
+        ],
+        [
+          0,
+          116
+        ],
+        [
+          0,
+          162
+        ],
+        [
+          1,
+          127
+        ],
+        [
+          1,
+          694
+        ],
+        [
+          1,
+          456
+        ],
+        [
+          0,
+          1123
+        ],
+        [
+          0,
+          550
+        ],
+        [
+          1,
+          381
+        ]
+      ],
+      "new_question": [
+        1,
+        381
+      ],
+      "new_question_gain": -0.0005241744304294027,
+      "prefix_unchanged": true,
+      "n_evals": 2153,
+      "n_evals_new_this_job": 3,
+      "sec_per_eval": 0.444,
+      "minutes": 0.02,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 287,
+          "frac": 0.6553
+        },
+        {
+          "genre": "Comedy",
+          "n": 49,
+          "frac": 0.1119
+        },
+        {
+          "genre": "Thriller",
+          "n": 46,
+          "frac": 0.105
+        },
+        {
+          "genre": "Action",
+          "n": 31,
+          "frac": 0.0708
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.19676924855890643,
+          "tree_tail@10": 0.06297001386540532,
+          "policyB_full@10": 0.19676924855890643,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.22225584706712478,
+          "diff_full@10_vs_policyA": -0.025486598508218352,
+          "diff_tail@10_vs_policyA": -0.010092959829373848,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.3201321087800992,
+          "tree_tail@10": 0.1538680832419575,
+          "policyB_full@10": 0.2941383223047838,
+          "diff_full@10_vs_policyB": 0.025993786475315365,
+          "diff_tail@10_vs_policyB": -0.0020374552717254187,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.2328306481084383,
+          "diff_full@10_vs_policyA": 0.08730146067166092,
+          "diff_tail@10_vs_policyA": 0.05392730260539905,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.3765988001397574,
+          "tree_tail@10": 0.2163626924371118,
+          "policyB_full@10": 0.3291504202016939,
+          "diff_full@10_vs_policyB": 0.04744837993806342,
+          "diff_tail@10_vs_policyB": 0.02888439698304597,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.33542442211403156,
+          "diff_full@10_vs_policyA": 0.04117437802572577,
+          "diff_tail@10_vs_policyA": 0.012343024748260366,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.3999346215325144,
+          "tree_tail@10": 0.22760871394413837,
+          "policyB_full@10": 0.382989403541148,
+          "diff_full@10_vs_policyB": 0.01694521799136635,
+          "diff_tail@10_vs_policyB": -0.006599687404661752,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.34108611115207266,
+          "diff_full@10_vs_policyA": 0.05884851038044165,
+          "diff_tail@10_vs_policyA": 0.017364574815926143,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.4105231998211863,
+          "tree_tail@10": 0.24733903019947168,
+          "policyB_full@10": 0.37619222312383666,
+          "diff_full@10_vs_policyB": 0.03433097669734965,
+          "diff_tail@10_vs_policyB": 0.005941046927397709,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.3614296617426463,
+          "diff_full@10_vs_policyA": 0.04909353807854006,
+          "diff_tail@10_vs_policyA": 0.02144104009864639,
+          "set_overlap_vs_policyA": 0
+        }
+      }
+    },
+    {
+      "nid": "root.noanswer.like",
+      "depth": 2,
+      "n_users": 357,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ]
+      ],
+      "steps": [
+        [
+          1,
+          354
+        ],
+        [
+          0,
+          504
+        ],
+        [
+          1,
+          339
+        ],
+        [
+          1,
+          203
+        ],
+        [
+          0,
+          14
+        ],
+        [
+          1,
+          556
+        ],
+        [
+          0,
+          130
+        ],
+        [
+          1,
+          150
+        ],
+        [
+          0,
+          113
+        ],
+        [
+          1,
+          773
+        ],
+        [
+          1,
+          117
+        ],
+        [
+          0,
+          122
+        ],
+        [
+          0,
+          844
+        ],
+        [
+          0,
+          875
+        ]
+      ],
+      "gains": [
+        0.023513297503629238,
+        0.01255362086800188,
+        0.008546020644540131,
+        0.007128895289956805,
+        0.00705806714275975,
+        0.003937383192553601,
+        0.0023840236503123724,
+        0.0021848828822592092,
+        0.0022283495905129347,
+        0.0017248359285300108,
+        0.001845275511939637,
+        0.0010417653549929518,
+        0.0020328606322872478,
+        0.0015063272003533745
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          514
+        ],
+        [
+          1,
+          354
+        ],
+        [
+          0,
+          504
+        ],
+        [
+          1,
+          339
+        ],
+        [
+          1,
+          203
+        ],
+        [
+          0,
+          14
+        ],
+        [
+          1,
+          556
+        ],
+        [
+          0,
+          130
+        ],
+        [
+          1,
+          150
+        ],
+        [
+          0,
+          113
+        ],
+        [
+          1,
+          773
+        ],
+        [
+          1,
+          117
+        ],
+        [
+          0,
+          122
+        ],
+        [
+          0,
+          844
+        ],
+        [
+          0,
+          875
+        ]
+      ],
+      "new_question": [
+        0,
+        875
+      ],
+      "new_question_gain": 0.0015063272003533745,
+      "prefix_unchanged": true,
+      "n_evals": 1847,
+      "n_evals_new_this_job": 5,
+      "sec_per_eval": 0.454,
+      "minutes": 0.04,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 157,
+          "frac": 0.4398
+        },
+        {
+          "genre": "Thriller",
+          "n": 74,
+          "frac": 0.2073
+        },
+        {
+          "genre": "Action",
+          "n": 54,
+          "frac": 0.1513
+        },
+        {
+          "genre": "Comedy",
+          "n": 43,
+          "frac": 0.1204
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.18340612603826986,
+          "tree_tail@10": 0.06755388200752059,
+          "policyB_full@10": 0.18340612603826986,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.19551114412807497,
+          "diff_full@10_vs_policyA": -0.012105018089805138,
+          "diff_tail@10_vs_policyA": 0.0026772344293130813,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.37434040547035907,
+          "tree_tail@10": 0.2697025775620797,
+          "policyB_full@10": 0.31266350289212624,
+          "diff_full@10_vs_policyB": 0.0616769025782329,
+          "diff_tail@10_vs_policyB": 0.06934725600642695,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.20937951278687467,
+          "diff_full@10_vs_policyA": 0.16496089268348443,
+          "diff_tail@10_vs_policyA": 0.18171809457408347,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.4104073238419902,
+          "tree_tail@10": 0.29677422710919105,
+          "policyB_full@10": 0.34342386940819125,
+          "diff_full@10_vs_policyB": 0.06698345443379891,
+          "diff_tail@10_vs_policyB": 0.060779536363979085,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.34456530938542385,
+          "diff_full@10_vs_policyA": 0.06584201445656634,
+          "diff_tail@10_vs_policyA": 0.05380226056502763,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.4370776901118005,
+          "tree_tail@10": 0.3072143001674105,
+          "policyB_full@10": 0.37618350981925874,
+          "diff_full@10_vs_policyB": 0.06089418029254175,
+          "diff_tail@10_vs_policyB": 0.05251464212939385,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.3441772784285287,
+          "diff_full@10_vs_policyA": 0.09290041168327172,
+          "diff_tail@10_vs_policyA": 0.0771545201385944,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.4520260108629882,
+          "tree_tail@10": 0.3221780594814122,
+          "policyB_full@10": 0.380364475681198,
+          "diff_full@10_vs_policyB": 0.07166153518179014,
+          "diff_tail@10_vs_policyB": 0.06809478590843965,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.37839415265432164,
+          "diff_full@10_vs_policyA": 0.07363185820866651,
+          "diff_tail@10_vs_policyA": 0.061650384752291294,
+          "set_overlap_vs_policyA": 1
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.dislike",
+      "depth": 4,
+      "n_users": 355,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ]
+      ],
+      "steps": [
+        [
+          1,
+          784
+        ],
+        [
+          1,
+          202
+        ],
+        [
+          1,
+          511
+        ],
+        [
+          0,
+          77
+        ],
+        [
+          0,
+          219
+        ],
+        [
+          1,
+          680
+        ],
+        [
+          1,
+          203
+        ],
+        [
+          0,
+          392
+        ],
+        [
+          1,
+          458
+        ],
+        [
+          0,
+          348
+        ],
+        [
+          1,
+          464
+        ],
+        [
+          0,
+          331
+        ]
+      ],
+      "gains": [
+        0.01650184417469419,
+        0.01046806515295784,
+        0.010553299363610102,
+        0.007319904942495736,
+        0.005871216815527103,
+        0.006533997633995814,
+        0.00497323589143811,
+        0.006069718319359485,
+        0.005643661938406597,
+        0.0019663283379658947,
+        0.001596640987417297,
+        0.001370519474650389
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          784
+        ],
+        [
+          1,
+          202
+        ],
+        [
+          1,
+          511
+        ],
+        [
+          0,
+          77
+        ],
+        [
+          0,
+          219
+        ],
+        [
+          1,
+          680
+        ],
+        [
+          1,
+          203
+        ],
+        [
+          0,
+          392
+        ],
+        [
+          1,
+          458
+        ],
+        [
+          0,
+          348
+        ],
+        [
+          1,
+          464
+        ],
+        [
+          0,
+          331
+        ]
+      ],
+      "new_question": [
+        0,
+        331
+      ],
+      "new_question_gain": 0.001370519474650389,
+      "prefix_unchanged": true,
+      "n_evals": 1538,
+      "n_evals_new_this_job": 47,
+      "sec_per_eval": 0.397,
+      "minutes": 0.31,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 264,
+          "frac": 0.7437
+        },
+        {
+          "genre": "Comedy",
+          "n": 52,
+          "frac": 0.1465
+        },
+        {
+          "genre": "Action",
+          "n": 21,
+          "frac": 0.0592
+        },
+        {
+          "genre": "Thriller",
+          "n": 8,
+          "frac": 0.0225
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.2516849850658101,
+          "tree_tail@10": 0.059399123868422,
+          "policyB_full@10": 0.2516849850658101,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.23560513734988822,
+          "diff_full@10_vs_policyA": 0.016079847715921945,
+          "diff_tail@10_vs_policyA": 0.02182905549507783,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.2633616328385123,
+          "tree_tail@10": 0.06816635366284776,
+          "policyB_full@10": 0.25747648621328667,
+          "diff_full@10_vs_policyB": 0.005885146625225629,
+          "diff_tail@10_vs_policyB": 0.005453123723074295,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.24564361871691548,
+          "diff_full@10_vs_policyA": 0.01771801412159685,
+          "diff_tail@10_vs_policyA": 0.01882500265951384,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.280312134434441,
+          "tree_tail@10": 0.08325848518743453,
+          "policyB_full@10": 0.27554558590935513,
+          "diff_full@10_vs_policyB": 0.004766548525085835,
+          "diff_tail@10_vs_policyB": 0.0011486342024071244,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.25396003002650136,
+          "diff_full@10_vs_policyA": 0.02635210440793961,
+          "diff_tail@10_vs_policyA": 0.020472472163420567,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.32515524806819884,
+          "tree_tail@10": 0.12014388376772388,
+          "policyB_full@10": 0.31875977823412827,
+          "diff_full@10_vs_policyB": 0.006395469834070542,
+          "diff_tail@10_vs_policyB": 0.006245672600712866,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.29606009788361953,
+          "diff_full@10_vs_policyA": 0.029095150184579307,
+          "diff_tail@10_vs_policyA": 0.023345179610893167,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.35918056746695953,
+          "tree_tail@10": 0.14901445844583727,
+          "policyB_full@10": 0.3338752365494567,
+          "diff_full@10_vs_policyB": 0.02530533091750278,
+          "diff_tail@10_vs_policyB": 0.015330895685237192,
+          "set_overlap_vs_policyB": 3,
+          "policyA_full@10": 0.3183132591558753,
+          "diff_full@10_vs_policyA": 0.04086730831108424,
+          "diff_tail@10_vs_policyA": 0.03832539267084853,
+          "set_overlap_vs_policyA": 2
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.noanswer.like",
+      "depth": 5,
+      "n_users": 345,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ]
+      ],
+      "steps": [
+        [
+          1,
+          455
+        ],
+        [
+          0,
+          22
+        ],
+        [
+          0,
+          454
+        ],
+        [
+          0,
+          1476
+        ],
+        [
+          0,
+          464
+        ],
+        [
+          0,
+          460
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          1,
+          754
+        ],
+        [
+          0,
+          447
+        ],
+        [
+          0,
+          92
+        ],
+        [
+          0,
+          554
+        ]
+      ],
+      "gains": [
+        0.020971389518982864,
+        0.017314088827170948,
+        0.012623404462439314,
+        0.015085435554373361,
+        0.01378191935500106,
+        0.009726036217893086,
+        0.006973126637041083,
+        0.005907193647542552,
+        0.005304956492570345,
+        0.004677374430121284,
+        0.003655201308377376
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ],
+        [
+          1,
+          455
+        ],
+        [
+          0,
+          22
+        ],
+        [
+          0,
+          454
+        ],
+        [
+          0,
+          1476
+        ],
+        [
+          0,
+          464
+        ],
+        [
+          0,
+          460
+        ],
+        [
+          0,
+          8
+        ],
+        [
+          1,
+          754
+        ],
+        [
+          0,
+          447
+        ],
+        [
+          0,
+          92
+        ],
+        [
+          0,
+          554
+        ]
+      ],
+      "new_question": [
+        0,
+        554
+      ],
+      "new_question_gain": 0.003655201308377376,
+      "prefix_unchanged": true,
+      "n_evals": 1303,
+      "n_evals_new_this_job": 85,
+      "sec_per_eval": 0.342,
+      "minutes": 0.49,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 182,
+          "frac": 0.5275
+        },
+        {
+          "genre": "Action",
+          "n": 57,
+          "frac": 0.1652
+        },
+        {
+          "genre": "Comedy",
+          "n": 51,
+          "frac": 0.1478
+        },
+        {
+          "genre": "Thriller",
+          "n": 42,
+          "frac": 0.1217
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.19359534093241956,
+          "tree_tail@10": 0.048916977831087595,
+          "policyB_full@10": 0.19359534093241956,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.19823149388629088,
+          "diff_full@10_vs_policyA": -0.0046361529538713545,
+          "diff_tail@10_vs_policyA": -0.03445921776376173,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.20289467697636918,
+          "tree_tail@10": 0.06012957803250913,
+          "policyB_full@10": 0.23533504830355506,
+          "diff_full@10_vs_policyB": -0.03244037132718595,
+          "diff_tail@10_vs_policyB": -0.03390989468607714,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.20820085679874106,
+          "diff_full@10_vs_policyA": -0.005306179822371934,
+          "diff_tail@10_vs_policyA": -0.03958092210229158,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.2016436925354237,
+          "tree_tail@10": 0.07162484308935153,
+          "policyB_full@10": 0.2455239810749495,
+          "diff_full@10_vs_policyB": -0.0438802885395258,
+          "diff_tail@10_vs_policyB": -0.03680212637298161,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.26163842413954264,
+          "diff_full@10_vs_policyA": -0.0599947316041189,
+          "diff_tail@10_vs_policyA": -0.060625313374345034,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.30557847415105555,
+          "tree_tail@10": 0.14857650874087105,
+          "policyB_full@10": 0.2859804855936059,
+          "diff_full@10_vs_policyB": 0.019597988557449625,
+          "diff_tail@10_vs_policyB": 0.0023132105584227143,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.2896101057209826,
+          "diff_full@10_vs_policyA": 0.015968368430072925,
+          "diff_tail@10_vs_policyA": 0.009174587243720589,
+          "set_overlap_vs_policyA": 1
+        },
+        "16": {
+          "tree_full@10": 0.3706897177939757,
+          "tree_tail@10": 0.1874832309869714,
+          "policyB_full@10": 0.3246155722098804,
+          "diff_full@10_vs_policyB": 0.046074145584095325,
+          "diff_tail@10_vs_policyB": 0.012740010139176111,
+          "set_overlap_vs_policyB": 4,
+          "policyA_full@10": 0.32049586674672725,
+          "diff_full@10_vs_policyA": 0.050193851047248474,
+          "diff_tail@10_vs_policyA": 0.019256480158042537,
+          "set_overlap_vs_policyA": 4
+        }
+      }
+    },
+    {
+      "nid": "root.like.dislike",
+      "depth": 2,
+      "n_users": 340,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ]
+      ],
+      "steps": [
+        [
+          1,
+          911
+        ],
+        [
+          1,
+          612
+        ],
+        [
+          1,
+          824
+        ],
+        [
+          1,
+          336
+        ],
+        [
+          1,
+          305
+        ],
+        [
+          1,
+          464
+        ],
+        [
+          0,
+          228
+        ],
+        [
+          1,
+          559
+        ],
+        [
+          0,
+          174
+        ],
+        [
+          0,
+          2195
+        ],
+        [
+          1,
+          799
+        ],
+        [
+          0,
+          20
+        ],
+        [
+          0,
+          346
+        ],
+        [
+          0,
+          87
+        ]
+      ],
+      "gains": [
+        0.013520075900453232,
+        0.00999164694143434,
+        0.005753523135287514,
+        0.004748853819914273,
+        0.004426977447753611,
+        0.005557210379732058,
+        0.004859674380899404,
+        0.0035148137724767547,
+        0.003877540851170702,
+        0.0025347172627266934,
+        0.0028185820723989896,
+        0.004553607204353161,
+        0.0027009724176461636,
+        0.0026641832259644005
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          0,
+          83
+        ],
+        [
+          1,
+          911
+        ],
+        [
+          1,
+          612
+        ],
+        [
+          1,
+          824
+        ],
+        [
+          1,
+          336
+        ],
+        [
+          1,
+          305
+        ],
+        [
+          1,
+          464
+        ],
+        [
+          0,
+          228
+        ],
+        [
+          1,
+          559
+        ],
+        [
+          0,
+          174
+        ],
+        [
+          0,
+          2195
+        ],
+        [
+          1,
+          799
+        ],
+        [
+          0,
+          20
+        ],
+        [
+          0,
+          346
+        ],
+        [
+          0,
+          87
+        ]
+      ],
+      "new_question": [
+        0,
+        87
+      ],
+      "new_question_gain": 0.0026641832259644005,
+      "prefix_unchanged": true,
+      "n_evals": 1495,
+      "n_evals_new_this_job": 4,
+      "sec_per_eval": 0.371,
+      "minutes": 0.03,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 155,
+          "frac": 0.4559
+        },
+        {
+          "genre": "Action",
+          "n": 94,
+          "frac": 0.2765
+        },
+        {
+          "genre": "Comedy",
+          "n": 46,
+          "frac": 0.1353
+        },
+        {
+          "genre": "Adventure",
+          "n": 22,
+          "frac": 0.0647
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.20277770203928155,
+          "tree_tail@10": 0.07864826347616527,
+          "policyB_full@10": 0.20277770203928155,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.1886075734289661,
+          "diff_full@10_vs_policyA": 0.014170128610315453,
+          "diff_tail@10_vs_policyA": 0.02539762729590847,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.21270888033291224,
+          "tree_tail@10": 0.08363926128321783,
+          "policyB_full@10": 0.20696488152960513,
+          "diff_full@10_vs_policyB": 0.005743998803307115,
+          "diff_tail@10_vs_policyB": 8.400187579389242e-05,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.1919245412116423,
+          "diff_full@10_vs_policyA": 0.02078433912126997,
+          "diff_tail@10_vs_policyA": 0.02427350365663839,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.23622060317479981,
+          "tree_tail@10": 0.0998047379046531,
+          "policyB_full@10": 0.22369190371396477,
+          "diff_full@10_vs_policyB": 0.012528699460835032,
+          "diff_tail@10_vs_policyB": 0.0008032015596596862,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.20663782388994997,
+          "diff_full@10_vs_policyA": 0.029582779284849838,
+          "diff_tail@10_vs_policyA": 0.03467890198301113,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.25670716795748727,
+          "tree_tail@10": 0.12191748842244907,
+          "policyB_full@10": 0.23331288121616342,
+          "diff_full@10_vs_policyB": 0.02339428674132392,
+          "diff_tail@10_vs_policyB": 0.014663090713307486,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.22872212960515872,
+          "diff_full@10_vs_policyA": 0.027985038352328583,
+          "diff_tail@10_vs_policyA": 0.019566109838674062,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.28423125914512354,
+          "tree_tail@10": 0.1399324607784326,
+          "policyB_full@10": 0.2666085143781995,
+          "diff_full@10_vs_policyB": 0.017622744766924086,
+          "diff_tail@10_vs_policyB": 0.009744506549805408,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.26677991280428914,
+          "diff_full@10_vs_policyA": 0.017451346340834444,
+          "diff_tail@10_vs_policyA": 0.01221553109353028,
+          "set_overlap_vs_policyA": 1
+        }
+      }
+    },
+    {
+      "nid": "root.dislike.dislike.dislike.noanswer.noanswer",
+      "depth": 5,
+      "n_users": 205,
+      "path": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ]
+      ],
+      "steps": [
+        [
+          1,
+          306
+        ],
+        [
+          1,
+          753
+        ],
+        [
+          1,
+          251
+        ],
+        [
+          0,
+          583
+        ],
+        [
+          1,
+          22
+        ],
+        [
+          1,
+          951
+        ],
+        [
+          1,
+          280
+        ],
+        [
+          1,
+          699
+        ],
+        [
+          0,
+          538
+        ],
+        [
+          1,
+          11
+        ],
+        [
+          1,
+          238
+        ]
+      ],
+      "gains": [
+        0.014360265513278722,
+        0.011699186951066046,
+        0.011571375244379262,
+        0.006966703364020332,
+        0.004929797641759881,
+        0.006901709349069557,
+        0.005676338090294636,
+        0.004835840963719695,
+        0.003264416738213205,
+        0.0037002935653597246,
+        0.00305903195946422
+      ],
+      "own_sequence": [
+        [
+          1,
+          114
+        ],
+        [
+          1,
+          283
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          19
+        ],
+        [
+          1,
+          334
+        ],
+        [
+          1,
+          306
+        ],
+        [
+          1,
+          753
+        ],
+        [
+          1,
+          251
+        ],
+        [
+          0,
+          583
+        ],
+        [
+          1,
+          22
+        ],
+        [
+          1,
+          951
+        ],
+        [
+          1,
+          280
+        ],
+        [
+          1,
+          699
+        ],
+        [
+          0,
+          538
+        ],
+        [
+          1,
+          11
+        ],
+        [
+          1,
+          238
+        ]
+      ],
+      "new_question": [
+        1,
+        238
+      ],
+      "new_question_gain": 0.00305903195946422,
+      "prefix_unchanged": true,
+      "n_evals": 1427,
+      "n_evals_new_this_job": 95,
+      "sec_per_eval": 0.239,
+      "minutes": 0.38,
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 127,
+          "frac": 0.6195
+        },
+        {
+          "genre": "Comedy",
+          "n": 51,
+          "frac": 0.2488
+        },
+        {
+          "genre": "Action",
+          "n": 9,
+          "frac": 0.0439
+        },
+        {
+          "genre": "Children",
+          "n": 4,
+          "frac": 0.0195
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.09901448866360558,
+          "tree_tail@10": 0.02100508055297749,
+          "policyB_full@10": 0.09901448866360558,
+          "diff_full@10_vs_policyB": 0.0,
+          "diff_tail@10_vs_policyB": 0.0,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.09724089820718598,
+          "diff_full@10_vs_policyA": 0.001773590456419589,
+          "diff_tail@10_vs_policyA": -0.0028478502188653385,
+          "set_overlap_vs_policyA": 0
+        },
+        "2": {
+          "tree_full@10": 0.10482450562044869,
+          "tree_tail@10": 0.02511400720819723,
+          "policyB_full@10": 0.10601001334278866,
+          "diff_full@10_vs_policyB": -0.001185507722339971,
+          "diff_tail@10_vs_policyB": 0.003593517253203941,
+          "set_overlap_vs_policyB": 1,
+          "policyA_full@10": 0.10374823275823358,
+          "diff_full@10_vs_policyA": 0.0010762728622151134,
+          "diff_tail@10_vs_policyA": 0.001561308690698955,
+          "set_overlap_vs_policyA": 0
+        },
+        "4": {
+          "tree_full@10": 0.10365427189930942,
+          "tree_tail@10": 0.021771152948573694,
+          "policyB_full@10": 0.10777792532889183,
+          "diff_full@10_vs_policyB": -0.004123653429582394,
+          "diff_tail@10_vs_policyB": -0.006167558623603075,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.1085265876081695,
+          "diff_full@10_vs_policyA": -0.004872315708860054,
+          "diff_tail@10_vs_policyA": -0.0050377371398745005,
+          "set_overlap_vs_policyA": 0
+        },
+        "8": {
+          "tree_full@10": 0.1419901419565531,
+          "tree_tail@10": 0.033200488320379584,
+          "policyB_full@10": 0.11557102083313386,
+          "diff_full@10_vs_policyB": 0.026419121123419213,
+          "diff_tail@10_vs_policyB": 0.003934616169556563,
+          "set_overlap_vs_policyB": 2,
+          "policyA_full@10": 0.1242846046019361,
+          "diff_full@10_vs_policyA": 0.017705537354616975,
+          "diff_tail@10_vs_policyA": -0.0069809903266315814,
+          "set_overlap_vs_policyA": 0
+        },
+        "16": {
+          "tree_full@10": 0.18132427362845435,
+          "tree_tail@10": 0.050256876779476704,
+          "policyB_full@10": 0.13867565662842005,
+          "diff_full@10_vs_policyB": 0.04264861700003429,
+          "diff_tail@10_vs_policyB": 0.0032516822918859534,
+          "set_overlap_vs_policyB": 3,
+          "policyA_full@10": 0.13816570196117497,
+          "diff_full@10_vs_policyA": 0.04315857166727934,
+          "diff_tail@10_vs_policyA": 0.0016045776229152932,
+          "set_overlap_vs_policyA": 1
+        }
+      }
+    }
+  ],
+  "cohort_weighted": {
+    "1": {
+      "diff_full@10_vs_policyB": 0.0,
+      "diff_tail@10_vs_policyB": 0.0,
+      "n_users": 10000,
+      "diff_full@10_vs_policyA": 0.0009279234800487757,
+      "diff_tail@10_vs_policyA": 0.004178025759756565
+    },
+    "2": {
+      "diff_full@10_vs_policyB": 0.006372192408889532,
+      "diff_tail@10_vs_policyB": -0.0017517587402835488,
+      "n_users": 10000,
+      "diff_full@10_vs_policyA": 0.012363067828118801,
+      "diff_tail@10_vs_policyA": 0.009576022624969482
+    },
+    "4": {
+      "diff_full@10_vs_policyB": 0.01436002179980278,
+      "diff_tail@10_vs_policyB": 0.008242135867476463,
+      "n_users": 10000,
+      "diff_full@10_vs_policyA": 0.018874147906899452,
+      "diff_tail@10_vs_policyA": 0.016527993604540825
+    },
+    "8": {
+      "diff_full@10_vs_policyB": 0.021589495241642,
+      "diff_tail@10_vs_policyB": 0.011953270062804222,
+      "n_users": 10000,
+      "diff_full@10_vs_policyA": 0.0277992133051157,
+      "diff_tail@10_vs_policyA": 0.015141434036195278
+    },
+    "16": {
+      "diff_full@10_vs_policyB": 0.027939556166529655,
+      "diff_tail@10_vs_policyB": 0.010548197664320469,
+      "n_users": 10000,
+      "diff_full@10_vs_policyA": 0.030913760885596275,
+      "diff_tail@10_vs_policyA": 0.02160714566707611
+    }
+  },
+  "size_vs_gain": {
+    "spearman_rho": -0.47857142857142854,
+    "p_value": 0.07113080825563314,
+    "weighted_gain_leaves_ge_700": 0.02019615679806394,
+    "weighted_gain_leaves_lt_700": 0.04065428182017366,
+    "n_users_ge_700": 6215,
+    "n_users_lt_700": 3785,
+    "unweighted_leaf_mean": 0.03330970208801328,
+    "size_weighted_mean": 0.02793955711893247,
+    "interpretation": "A NEGATIVE rho is the overfitting signature the genre experiment was built to detect: small leaves gaining most means the per-leaf orders are fitting noise on the SELECTION cohort. These are in-sample numbers -- the leaves' orders were chosen on the very users being scored. Only the TEST cohort settles it."
+  },
+  "per_user_npz": "ndcgtree16_per_user.npz",
+  "in_sample_warning": "SELECTION-COHORT NUMBERS. The leaves' orders were chosen on the same 10,000 validation users they are scored on. The TEST cohort has not been built, loaded or touched by this job.",
+  "seconds": 7061.0
+}
