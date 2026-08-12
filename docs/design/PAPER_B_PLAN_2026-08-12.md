@@ -19,13 +19,24 @@ Published adaptive selectors lose to a strong fixed order **not because cold clo
 differentiate users, but because none of them optimises the quantity anyone reports** (audit: 1 of
 21 rules does, and it is a static order — `BASELINE_OBJECTIVE_AUDIT.md`). Swap only the split
 criterion in the field's own tree machinery to measured NDCG@10 and adaptivity wins on held-out
-users at every budget on both axes (all ten CIs exclude zero). The tree is the **existence proof**;
-the **parametric policy is the method** — same exact objective, no partition, scales with depth.
+users **from K=4 onward on both axes**. The tree is the **existence proof**; the **parametric policy
+is the method** — same exact objective, no partition, scales with depth.
+
+**UPDATED 2026-08-12 17:45 — A2 landed; the numbers below are the clean-comparator ones**
+(`docs/results/CONDITIONED_ARMS_ON_TEST.md`, `experiments/battery/ndcgtree16test_policyB.json`).
+"All ten CIs exclude zero" is **RETRACTED**: K=1 is now exactly 0.0 by construction (the contract
+gate), seven of the eight K≥2 intervals exclude zero in the tree's favour, and **tail at K=2
+excludes zero AGAINST the tree** (−0.00262 [−0.00481,−0.00051]).
 
 Size qualifiers that travel with every statement of the claim:
-- Conditioning gain (+0.0137 full, → ~+0.011 after the clean comparator) ≈ the gain from changing
-  the question BANK with no conditioning (+0.0121); both ~14% of the interview's own lift.
-  "Adaptivity pays", never "adaptivity is large".
+- Conditioning gain on test at K=16 is **+0.01035 full / +0.00705 tail** against the rebuilt policy-B
+  comparator (was +0.01371/+0.02092 against the policy-A-selected one — a quarter of the full and
+  **two thirds of the tail** advantage was comparator weakness). That is **~10% of the interview's own
+  lift**, and it is now **smaller** than the gain from changing the question BANK with no conditioning
+  (+0.01544, itself still on a policy-A items order until A3). "Adaptivity pays", never "adaptivity is
+  large".
+- "Tail does not shrink" is **RETRACTED** too: val→test is 2.70× on full and 1.50× on tail. The
+  asymmetry survives in direction only.
 - 4/15 leaves negative on test (32.8% of cohort); ~14% of users answer nothing and sit at 0.087.
 
 Historical frame (verified, `rating_elicitation_family_deep.md` §2.4–2.5): Golbandi WSDM'11 beat his
@@ -65,10 +76,14 @@ The contamination: the banked greedy orders were SELECTED under candidate-mask p
 scored under policy B (`banked-global-greedy-is-a-policy-A-artifact`). Measured size: the tree's
 K=1 lead of +0.00246, where conditioning is impossible.
 
-- **A1 (1.17, RUNNING).** Rebuild static COMBINED order under policy B on validation
-  (`greedy_static_policyB_combined`, resumed from the tree root's CELF heap; pick 8/16 at 15:59).
-- **A2.** Re-measure the tree, val AND test, against A1. **Contract gate: K=1 difference must be
-  exactly 0.0** (root splitter = first greedy pick by construction). Non-zero ⇒ harness bug, stop.
+- **A1 (1.17, DONE 17:25).** Static COMBINED order rebuilt under policy B on validation
+  (`greedy_static_policyB_combined.json`, 16 picks, 2,167 evals, resumed from the tree root's CELF
+  heap). Shares 4/16 questions and **0/16 positions** with the order it replaces — the contamination
+  was never an offset, it moved the argmax at every position.
+- **A2 (DONE 17:43).** Tree re-measured on val AND test against A1 (`ndcgtree16test_policyB.json`).
+  **Contract gate PASSED: K=1 difference exactly 0.0 on all 20,000 users, both axes.** Reuse gate
+  (bit-identical per-user vectors + routed row ids) and banked-headline assert (every policy-A number
+  reproduced to 0.0e+00) both passed. New K=16 test: +0.01035 full / +0.00705 tail.
 - **A3.** Rebuild ITEMS-ONLY order under policy B (~2h); re-measure the genre arm against it
   (stage-2 re-run only; groups and orders unchanged).
 - **A4.** Rebuild CONCEPTS order under policy B (~3.5h) — completes the fixedorder family; Act 4's
