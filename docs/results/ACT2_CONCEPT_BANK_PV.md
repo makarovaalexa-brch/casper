@@ -7,7 +7,15 @@ Design sheet: `docs/design/DS_ACT2_CONCEPT_BANK_PV.md`. Parent result:
 bootstrap and the shuffle are **the same functions** the parent table used — one script, two tables,
 so the two are commensurable by construction rather than by argument.
 
-**Contract of every NDCG number below.** Consumer = certified tower `t2i26c_ep31.pt`
+**Two rulers, and which columns sit on which.** The **NDCG** columns are on the **policy-B / fixed
+arm-N candidate pool** — every rated fold-in-side item masked, 141.2 items/user, fixed per user before
+the interview starts and identical for every arm, channel and budget. The **criterion** columns —
+`U(q|z)`, `V(z)`, PV and the quartile cuts derived from them — are on a **different ruler: no candidate
+mask at all, of either policy**, i.e. the discounted top-10 mass over the **entire 18,359-item
+catalogue** (`scripts/reddit/dispersion_leg1.py`). By design, and load-bearing: it makes the PV strata
+pool-invariant, which is why they needed no rebuild after the 2026-08-12 policy-A provenance audit.
+
+**Contract of the NDCG numbers below.** Consumer = certified tower `t2i26c_ep31.pt`
 (arch i26) with concept channel `concept_cv3_ep08.pt`; **NO-FLOOR**; policy-B / fixed
 arm-N candidate pool; **all 10,000 canonical TEST users** (9,281
 scored on tail — users whose held-out set is all head have no tail target and are dropped by the

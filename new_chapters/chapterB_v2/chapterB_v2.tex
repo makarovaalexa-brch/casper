@@ -729,8 +729,19 @@ literature, including ours.
 Every comparison above confounds two things. The only arm optimising the reported metric is also the
 only arm that is static, so ``conditioning on answers'' and ``choice of objective'' vary together and
 the null cannot be attributed to either. This subsection removes the confound in the only way that is
-clean: hold the objective, the optimiser, the bank, the contract and the val/test discipline fixed,
-and vary \emph{only} what the search is conditioned on.
+clean: hold the objective, the optimiser, the bank, the scoring contract and the val/test discipline
+fixed, and vary \emph{only} what the search is conditioned on.
+
+One asymmetry survives that construction and must be stated, because it runs the wrong way. Both
+sides are \emph{scored} through the same protocol pool --- the global order is re-scored in-run under
+it, not read back from its own build --- so the ruler is genuinely shared. But the group orders were
+\emph{selected} under the protocol pool, while the global comparator was selected under the narrower
+mask of Section~\ref{sec:act1}. The \emph{selection} contract is therefore not symmetric, and the
+handicap falls on the comparator: unlike the lower-bound caveat carried by
+Table~\ref{tab:battery}, this one flatters the conditioned arm. The gain below is an upper bound for
+that reason as well as for the free-genre-answer reason stated next. \REDO{re-run both stages of the
+genre arm against the rebuilt protocol-pool global order and re-report the headline; until that
+lands, every number in this subsection is provisional}
 
 \paragraph{Construction.} Users are partitioned by favourite genre, computed from each user's own
 \emph{fold-in} ratings alone --- the most frequent genre among their liked fold-in items, with

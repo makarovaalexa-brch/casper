@@ -1,5 +1,36 @@
 # RESULT — Best-static greedy question sequences: items vs concepts vs combined
 
+## ⛔ SUPERSEDED, 2026-08-12 — read this box before anything below it
+
+**This file is demoted twice over, and one of its headline claims is now known to invert.** Where it
+says *"**Items win FULL at long budgets** (.2098 vs .1808 concepts @q16)"* (§The curves, finding 3) and
+*"on full-catalogue accuracy, **item information density beats answerability**"* (§Supports/Complicates),
+read: **that was measured on a retired tower AND on the retired policy-A candidate mask, and neither
+sentence may be carried forward.**
+
+1. **Old tower.** `t2i25_EP4_SNAP.pt` + fold `cd_s1_l10_best.pt`, superseded by the certified pair
+   (`t2i26c_ep31.pt` + `concept_cv3_ep08.pt`). Replacement run: `GREEDY_BEST_STATIC_I26C.md`.
+2. **Policy A.** `experiments/battery/greedy_static.json` records **no mask or contract field at all**
+   — its policy is established from its mtime (2026-07-28 05:38) and from the code of that date, not
+   from the artifact (`POLICY_A_PROVENANCE_AUDIT.md` §B). The protocol pool has been policy B since
+   2026-08-05: every rated fold-in-side item, likes and dislikes, fixed before the interview.
+3. **Why the claim inverts, not merely shifts.** Policy A masked only the items the interview had just
+   revealed, which is a free lift the item channel can collect and the concept channel structurally
+   cannot. Removing it moves the item-vs-concept verdict on the FULL axis at short budgets from
+   separated-negative to separated-positive for concepts on three of four banks — measured, with paired
+   CIs, in `CONCEPT_VS_ITEM_BANK_SWEEP.md` ("What the re-cut changed").
+
+**What still stands from this file:** the answerability counts (**3.63 of 16** items answered vs
+**11.04 of 16** concepts) are a property of the banks and the users, not of the candidate mask, and are
+unaffected by either demotion. So is the qualitative coarse-to-fine ordering of the combined arm. The
+numbers themselves are an exact record of what was run — every cell reproduces `greedy_static.json`
+bit-for-bit — and are kept for that reason, not deleted.
+
+*Verified against the artifact and the citing files on 2026-08-12. Cited by
+`docs/design/FABLE_BRIEF_SELECTION_CRITERION.md`, `docs/design/FABLE_BRIEF_PAPERA_STANDOUT.md`,
+`docs/STATE.md`, `src/instrument/greedy_polish.py` and `src/baselines/strategy_portability.py`; NOT
+cited by any chapter.*
+
 > Ran 2026-07-27/28, 568.6 min (PID 2652). `src/instrument/strategy_channel_suite.py --greedy
 > --n_items 500 --n_concepts 500 --eval_test --sclite_ckpt cd_s1_l10_best.pt`.
 > Output: `experiments/battery/greedy_static.json` + `.png`. Fold = the FIXED Jul-27 deployment fold

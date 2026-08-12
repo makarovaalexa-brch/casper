@@ -20,6 +20,9 @@ Every asked question burns the budget:
   training concept tokens were refusals, so dropping them would make an unanswered question free;
 * only **answered** items leave the candidate list (asked-but-unseen was never revealed, so it
   neither burns a target nor leaves the ranking; asserted `ans ∩ targets = ∅`).
+  ⛔ **That last rule is POLICY A and was retired on 2026-08-05.** The protocol pool is now policy B —
+  every rated fold-in-side item, likes and dislikes, fixed before the interview and independent of what
+  was asked. It is stated here as the rule this run actually used, not as the current protocol.
 
 **User split.** The greedy search ran on the **10,000 canonical VALIDATION users and nothing else**;
 the test cohort was not constructed until all three sequences were frozen, and is read once per
@@ -35,6 +38,15 @@ Banks: 500 items ranked by popularity, 500 concepts ranked by train answer rate 
 combined 1,000. 3,173 evaluations at 13.54 s each; 1,169 exact memo hits (shared seeding pass).
 
 ## Result (TEST cohort, 10,000 users; full/tail NDCG@10)
+
+> ⛔ **EVERY NUMBER IN THIS TABLE IS ON POLICY A — never place it beside a policy-B number.**
+> Its signature is the intercept `0.1314 / 0.0234` (policy B: `0.15855 / 0.02819`) and the val gate
+> `0.12987` (policy B: `0.15687`). The policy-B column already exists and needs no re-run:
+> `docs/results/MASK_POLICY_B_MIGRATION.md` lines 108–127 — intercept `.1586/.0282`, items-only q16
+> `.2449/.0967`, concepts-only q16 `.2473/.1154`, combined q16 `.2556/.1098`. Separately, the three
+> ORDERS below were *selected* under policy A and are being rebuilt (`PAPER_B_TODO` 1.17); the combined
+> arm's rebuild has landed as `experiments/battery/greedy_static_policyB_combined.json` and shares
+> **0 of 16 positions** with the order in this table.
 
 Empty-interview intercept on test: **0.1314 / 0.0234**.
 
@@ -68,6 +80,12 @@ First five greedy gains, combined arm: +0.0166, +0.0100, +0.0074, +0.0075, +0.00
 4. **This is Paper B's strongest-static comparator.** Any adaptive policy is measured against the
    combined arm, which is prefix-optimal (Paper A) and optimised on the same consumer it is scored
    on — i.e. the hardest honest bar, not a heuristic strawman.
+   ⚠ **Superseded as the comparator, 2026-08-12.** This combined arm was optimised under policy A and
+   is therefore *not* the hardest bar on today's protocol — it is a handicapped one, which is why arms
+   differenced against it are lower bounds. `greedy_static_policyB_combined.json` states in its own
+   `supersedes` field that it replaces this arm as the static comparator, and it wins on the shared
+   ruler: q16 `0.25561/0.12366` for the rebuilt order vs `0.25264/0.11261` for this order re-scored
+   under policy B, with `positions_identical_to_policyA_order = 0`.
 
 ## Limits / follow-ups
 

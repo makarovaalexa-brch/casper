@@ -461,6 +461,9 @@ def build_greedy_env(snapshot, split, conc_ckpt, label, need_entropy=False):
          "V": V, "foldable": foldable, "rows": rows, "lvl": sh["lvl_lookup"], "C": C, "item_H": item_H,
          "cneg": float(prereg.get("C_NEG", 2.0)), "cache": {}, "n_evals": 0, "t_evals": 0.0,
          "pool": pool_b, "pool_policy": "B", "contract_tag": f"genv:{label}:{split}",
+         # the STACK, so a contract signature can key on it instead of on `label`, which is a human's
+         # logging string (PAPER_B_TODO 1.19).
+         "tower": os.path.basename(snapshot), "conc_ckpt": os.path.basename(conc_ckpt),
          # DERIVED identity of the mask, not a label (2026-08-12 audit). Every resume signature and
          # every output blob downstream signs THIS, so an artifact can always state its own ruler and
          # a sidecar written under a different pool can never be resumed into.
@@ -779,16 +782,28 @@ def genv_answered(E, seq, rows):
 def celf_heap_sig(E, rows, pool, objective, prefix):
     """The contract a persisted CELF heap must match before it may be resumed (HARD RULE 11b).
 
-    Everything the heap's contents depend on: the scoring environment (tower+concept+cohort, carried
-    by `contract_tag`), the objective, the fixed prefix, the exact candidate pool IN ORDER (the seed
-    order decides tie-breaks) and the exact user set. `L` is deliberately NOT in it -- extending a
-    banked order by one more pick is the whole point.
+    Everything the heap's contents depend on: the scoring environment, the objective, the fixed
+    prefix, the exact candidate pool IN ORDER (the seed order decides tie-breaks) and the exact user
+    set. `L` is deliberately NOT in it -- extending a banked order by one more pick is the whole point.
+
+    v2 (2026-08-12, PAPER_B_TODO 1.19). `contract_tag` is a DISPLAY LABEL, `genv:{label}:{split}`,
+    chosen by a human for logging -- so it is invariant under a change of candidate-mask policy and was
+    never a guard, while simultaneously forcing any job that wants to resume a banked heap to rebuild
+    its environment under a literal log string. It is replaced by the things it was standing in for and
+    never actually carried: `tower`, `conc_ckpt`, and `mask_pool` -- the derived fingerprint of the mask
+    the heap's evaluations actually went through. Bumping `v` makes every v1 heap refuse.
+
+    Applied 2026-08-12 only after the in-flight policy-B rebuild finished, because it invalidates every
+    heap already on disk; the items-only and concepts-only rebuilds are cold searches over different
+    pools, so they could not have resumed those heaps anyway and lose nothing.
     """
     import hashlib
 
     def _sha(o):
         return hashlib.sha1(json.dumps(o, separators=(",", ":")).encode()).hexdigest()
-    return {"v": 1, "contract_tag": E["contract_tag"], "split": E["split"], "objective": objective,
+    return {"v": 2, "split": E["split"], "objective": objective,
+            "tower": E["tower"], "conc_ckpt": E["conc_ckpt"],
+            "mask_pool": pool_contract(E["pool"], rows, policy=E["pool_policy"]),
             "prefix": [[int(a), int(b)] for a, b in prefix],
             "n_pool": len(pool), "pool_sha1": _sha([[int(a), int(b)] for a, b in pool]),
             "n_rows": len(rows), "rows_sha1": _sha(sorted(int(r) for r in rows))}

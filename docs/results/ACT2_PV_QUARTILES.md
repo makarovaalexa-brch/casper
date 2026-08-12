@@ -4,7 +4,18 @@ Run 2026-08-10 20:35:36 by `scripts/act2_pv_quartiles.py` (sha256 `5624474e730fb
 Design sheet: `docs/design/DS_ACT2_DISPERSION_STRATIFICATION.md` sections 1 and 2.
 Criterion machinery imported verbatim from `scripts/reddit/dispersion_leg1.py`.
 
-**Contract of every number below.** Consumer = certified tower `t2i26c_ep31.pt` (arch i26)
+**Two rulers, and which columns sit on which.** The **NDCG** columns are on the **policy-B / fixed
+arm-N candidate pool** — every rated fold-in-side item masked, 141.2 items/user, fixed per user before
+the interview starts and identical for every arm, channel and budget. The **criterion** columns —
+`U(q|z)`, `V(z)`, PV, the modal-`q*` shares and the state counts — are on a **different ruler: no
+candidate mask at all, of either policy.** `V(z)` is the discounted top-10 mass of the tower's own
+predictive over the **entire 18,359-item catalogue**, normalised by a logsumexp over that same
+catalogue (`scripts/reddit/dispersion_leg1.py`). That is by design, and it is load-bearing: it makes
+PV, the quartile cuts and the state counts **pool-invariant**, which is why they survived the 2026-08-12
+policy-A provenance audit with no rebuild. It is not the metric's pool, and the two must not be read as
+one contract.
+
+**Contract of the NDCG numbers below.** Consumer = certified tower `t2i26c_ep31.pt` (arch i26)
 with concept channel `concept_cv3_ep08.pt`; **NO-FLOOR**; policy-B / fixed arm-N candidate
 pool; **all 10,000 canonical TEST users** (9,281 scored on tail — users
 whose held-out set is all head have no tail target and are dropped by the metric, identically for

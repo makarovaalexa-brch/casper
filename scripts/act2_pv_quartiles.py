@@ -879,7 +879,18 @@ Run {o['generated']} by `{o['script']}` (sha256 `{o['script_sha256']}`).
 Design sheet: `docs/design/DS_ACT2_DISPERSION_STRATIFICATION.md` sections 1 and 2.
 Criterion machinery imported verbatim from `scripts/reddit/dispersion_leg1.py`.
 
-**Contract of every number below.** Consumer = certified tower `{o['contract']['tower']}` (arch i26)
+**Two rulers, and which columns sit on which.** The **NDCG** columns are on the **policy-B / fixed
+arm-N candidate pool** — every rated fold-in-side item masked, 141.2 items/user, fixed per user before
+the interview starts and identical for every arm, channel and budget. The **criterion** columns —
+`U(q|z)`, `V(z)`, PV, the modal-`q*` shares and the state counts — are on a **different ruler: no
+candidate mask at all, of either policy.** `V(z)` is the discounted top-10 mass of the tower's own
+predictive over the **entire 18,359-item catalogue**, normalised by a logsumexp over that same
+catalogue (`scripts/reddit/dispersion_leg1.py`). That is by design, and it is load-bearing: it makes
+PV, the quartile cuts and the state counts **pool-invariant**, which is why they survived the 2026-08-12
+policy-A provenance audit with no rebuild. It is not the metric's pool, and the two must not be read as
+one contract.
+
+**Contract of the NDCG numbers below.** Consumer = certified tower `{o['contract']['tower']}` (arch i26)
 with concept channel `{o['contract']['concept_net']}`; **NO-FLOOR**; policy-B / fixed arm-N candidate
 pool; **all {o['n_users_full']:,} canonical TEST users** ({o['n_users_tail']:,} scored on tail — users
 whose held-out set is all head have no tail target and are dropped by the metric, identically for
@@ -1152,7 +1163,15 @@ Design sheet: `docs/design/DS_ACT2_CONCEPT_BANK_PV.md`. Parent result:
 bootstrap and the shuffle are **the same functions** the parent table used — one script, two tables,
 so the two are commensurable by construction rather than by argument.
 
-**Contract of every NDCG number below.** Consumer = certified tower `{o['contract']['tower']}`
+**Two rulers, and which columns sit on which.** The **NDCG** columns are on the **policy-B / fixed
+arm-N candidate pool** — every rated fold-in-side item masked, 141.2 items/user, fixed per user before
+the interview starts and identical for every arm, channel and budget. The **criterion** columns —
+`U(q|z)`, `V(z)`, PV and the quartile cuts derived from them — are on a **different ruler: no candidate
+mask at all, of either policy**, i.e. the discounted top-10 mass over the **entire 18,359-item
+catalogue** (`scripts/reddit/dispersion_leg1.py`). By design, and load-bearing: it makes the PV strata
+pool-invariant, which is why they needed no rebuild after the 2026-08-12 policy-A provenance audit.
+
+**Contract of the NDCG numbers below.** Consumer = certified tower `{o['contract']['tower']}`
 (arch i26) with concept channel `{o['contract']['concept_net']}`; **NO-FLOOR**; policy-B / fixed
 arm-N candidate pool; **all {o['n_users_full']:,} canonical TEST users** ({o['n_users_tail']:,}
 scored on tail — users whose held-out set is all head have no tail target and are dropped by the

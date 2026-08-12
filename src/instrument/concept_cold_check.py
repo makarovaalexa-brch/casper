@@ -20,7 +20,9 @@ identically for the concept arm and the item arm at every budget. The previous r
 ANSWERED asked items and applied no fold-in mask at all, which handed the item arm a free lift the
 concept arm could not receive by construction (a concept question masks nothing). Everything this file
 and `bank_sweep.py` printed before that date is on the old pool and moves -- see
-docs/results/CONCEPT_VS_ITEM_BANK_SWEEP_POLICYB.md.
+docs/results/CONCEPT_VS_ITEM_BANK_SWEEP.md, which was re-cut onto the policy-B artifacts on
+2026-08-12. (It previously pointed at a `..._POLICYB.md` that was never written; the re-cut went into
+the original file instead, so there is one document per result and not two.)
 
   python src/instrument/concept_cold_check.py --tag cv3 --snapshot models/i26c_ep31/t2i26c_ep31.pt
 """
