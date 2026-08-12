@@ -1,0 +1,101 @@
+[19:22:42] ############################################################################################################
+[19:22:42] # COMPARATOR SWAP (A3): the global order is now greedy_static_policyB_items, rebuilt under POLICY B (16 picks, 2 positions identical to the policy-A order it replaces). NOTHING ELSE CHANGES -- the group orders, the grouping rule, the budgets, the arms, the threshold and the bootstrap are read from stage 1 exactly as before and are NOT re-searched.
+[19:22:42] ############################################################################################################
+[19:22:42] ############################################################################################################
+[19:22:42] # STAGE 2 -- ONE-SHOT TEST EVALUATION. The plan was pre-specified and committed.
+[19:22:42] # GENEROUS ASSUMPTION: The favourite-genre answer is treated as FREE SIDE INFORMATION: it costs NO turn and is NOT folded into the recommender, so the comparison is ITEM-FOR-ITEM at equal K. A deployed system would have to ask for it and would pay a turn. This is GENEROUS TO THE CONDITIONED ARM by construction -- every gain here is an UPPER BOUND.
+[19:22:42] # Carrying 18 validation-built 15-item orders onto the TEST cohort. Budgets [1, 2, 4, 8, 15]; PRIMARY ENDPOINT K=15 (pre-data change, cost only).
+[19:22:42] ############################################################################################################
+[19:22:42] === building groupgreedy_genre15_TEST_policyB(test) env (split=test) ===
+[19:22:44] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[19:22:59] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[19:22:59] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:23:00] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[19:23:00] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[19:23:00] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[19:23:00] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:23:00] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[19:23:03] [ctx] all-bands reconstruction: 1411761 tokens; 7622 users with >=3 dislikes
+[19:23:11] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[19:23:16] [g5] 1031 concepts with >= 30 members
+[19:23:24] [ledger] SIGNED valuation arrays built (prereg cache found)
+[19:23:27] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[19:23:28] [policy-B] pool nnz=1411761 = 141.2 items/user (binary fold-in 62.6/user); target leak 0
+[19:23:28] [groupgreedy_genre15_TEST_policyB(test)] pool contract (DERIVED): policy=B nnz=1411761 per_user=141.1761 fp=cc002b4eb984ed9880346c98fc0a2970
+[19:23:28] [groupgreedy_genre15_TEST_policyB(test)] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.507; tower latent d=200
+[19:23:28] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[19:23:28] [cohort] 10000 canonical TEST users (rows with a non-empty target)
+[19:23:29] [leak/test] 0/10000 users have any held-out target inside the grouping lookup -- the favourite-genre answer is derived from FOLD-IN ratings only
+[19:23:29] [genre] source data\movielens\movies.csv (62423 rows) x data\ml-25m\proc\unique_sid.txt (18359 catalogue items): 18235/18359 (99.32%) catalogue items carry >=1 genre; 124 carry none. Genre vocabulary (19): ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+[19:23:29] [partition] 'none' = 0 users with NO liked fold-in item + 0 with liked items but no genre on any of them
+[19:23:29] [partition] TEST-side genre distribution beside VALIDATION:
+[19:23:29] [partition]   group            test n    val n   test %    val %   note
+[19:23:29] [partition]   Drama              5493     5481   54.93%   54.81%   
+[19:23:29] [partition]   Action             1545     1582   15.45%   15.82%   
+[19:23:29] [partition]   Comedy             1445     1475   14.45%   14.75%   
+[19:23:29] [partition]   Adventure           565      534    5.65%    5.34%   
+[19:23:29] [partition]   Thriller            499      451    4.99%    4.51%   
+[19:23:29] [partition]   Sci-Fi              142      161    1.42%    1.61%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Romance              90       88    0.90%    0.88%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Crime                80       79    0.80%    0.79%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Horror               56       51    0.56%    0.51%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Animation            25       44    0.25%    0.44%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Children             32       29    0.32%    0.29%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Fantasy              15       11    0.15%    0.11%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Documentary           3        3    0.03%    0.03%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Musical               4        3    0.04%    0.03%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Mystery               2        3    0.02%    0.03%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Western               0        2    0.00%    0.02%   EMPTY ON TEST (reported, not merged); val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   War                   1        2    0.01%    0.02%   val n < 200: global order under FALLBACK-200
+[19:23:29] [partition]   Film-Noir             3        1    0.03%    0.01%   val n < 200: global order under FALLBACK-200
+[19:23:29] [arms] ALL-GROUPS: every test user gets their own group's validation order (17 groups with an order).
+[19:23:29] [arms] FALLBACK-200: 453/10000 test users (4.53%) fall in a group with fewer than 200 VALIDATION users and are asked the GLOBAL order instead. Threshold fixed in advance; never tuned.
+[19:23:37] [global] K=1   full 0.17598  tail 0.04341 (8.27s/eval)
+[19:23:46] [global] K=2   full 0.18838  tail 0.05626 (8.39s/eval)
+[19:23:55] [global] K=4   full 0.20376  tail 0.06767 (8.64s/eval)
+[19:24:05] [global] K=8   full 0.22352  tail 0.08598 (8.93s/eval)
+[19:24:15] [global] K=15  full 0.24295  tail 0.10041 (9.27s/eval)
+[19:24:26] [global] K=16  full 0.24470  tail 0.10171  (EXTRA budget: comparator only, not a genre-arm endpoint)
+[19:24:54] [Drama] test n=5493 (val n=5481) @K=15 own 0.26556 vs global 0.26406 = +0.00150 [-0.00187, +0.00486] | val was 0.006974411512537593 | shrinkage -0.005477237403373945 | overlap 7/15
+[19:25:03] [Action] test n=1545 (val n=1582) @K=15 own 0.27653 vs global 0.25942 = +0.01711 [+0.00884, +0.02530] | val was 0.025943759297285113 | shrinkage -0.008834121191001996 | overlap 3/15
+[19:25:10] [Comedy] test n=1445 (val n=1475) @K=15 own 0.18396 vs global 0.16888 = +0.01508 [+0.00763, +0.02232] | val was 0.022703971393806047 | shrinkage -0.007627843125150344 | overlap 3/15
+[19:25:14] [Adventure] test n=565 (val n=534) @K=15 own 0.28490 vs global 0.25278 = +0.03212 [+0.01784, +0.04645] | val was 0.055650334702252884 | shrinkage -0.023532900109599263 | overlap 4/15
+[19:25:16] [Thriller] test n=499 (val n=451) @K=15 own 0.28253 vs global 0.25919 = +0.02334 [+0.00800, +0.03885] | val was 0.035237112634038864 | shrinkage -0.011897048403657857 | overlap 2/15
+[19:25:17] [Sci-Fi] test n=142 (val n=161 SMALL) @K=15 own 0.26344 vs global 0.17390 = +0.08955 [+0.05687, +0.12209] | val was 0.1049836045712395 | shrinkage -0.015438589574090875 | overlap 3/15
+[19:25:18] [Romance] test n=90 (val n=88 SMALL) @K=15 own 0.11539 vs global 0.09044 = +0.02496 [-0.00625, +0.05783] | val was 0.06413809042465991 | shrinkage -0.03918062741852131 | overlap 2/15
+[19:25:19] [Crime] test n=80 (val n=79 SMALL) @K=15 own 0.21429 vs global 0.24513 = -0.03085 [-0.07382, +0.00997] | val was 0.08939764154958559 | shrinkage -0.12024268112233978 | overlap 1/15
+[19:25:19] [Horror] test n=56 (val n=51 SMALL) @K=15 own 0.06412 vs global 0.06454 = -0.00042 [-0.02752, +0.02698] | val was 0.0651725713201402 | shrinkage -0.06559534681762395 | overlap 1/15
+[19:25:20] [Children] test n=32 (val n=29 SMALL) @K=15 own 0.16976 vs global 0.11511 = +0.05465 [+0.00584, +0.10621] | val was 0.12155284485479256 | shrinkage -0.06689850752208973 | overlap 2/15
+[19:25:20] [Animation] test n=25 (val n=44 SMALL) @K=15 own 0.11793 vs global 0.05829 = +0.05963 [+0.00229, +0.11989] | val was 0.13970726250846643 | shrinkage -0.08007381751182793 | overlap 1/15
+[19:25:20] [Fantasy] test n=15 (val n=11 SMALL) @K=15 own 0.01906 vs global 0.04752 = -0.02846 [-0.07423, +0.01903] | val was 0.1273427828791921 | shrinkage -0.15580494171356415 | overlap 2/15
+[19:25:20] [Musical] test n=4 (val n=3 SMALL) @K=15 own 0.00000 vs global 0.00000 = +0.00000 [+0.00000, +0.00000] | val was 0.024454640699786687 | shrinkage -0.024454640699786687 | overlap 1/15
+[19:25:20] [Film-Noir] test n=3 (val n=1 SMALL) @K=15 own 0.00000 vs global 0.00000 = +0.00000 [+0.00000, +0.00000] | val was 0.2513238704813261 | shrinkage -0.2513238704813261 | overlap 1/15
+[19:25:21] [Documentary] test n=3 (val n=3 SMALL) @K=15 own 0.00000 vs global 0.02538 = -0.02538 [-0.07614, +0.00000] | val was 0.12790917142987102 | shrinkage -0.1532902850023322 | overlap 2/15
+[19:25:21] [Mystery] test n=2 (val n=3 SMALL) @K=15 own 0.00000 vs global 0.00000 = +0.00000 [+0.00000, +0.00000] | val was 0.3030763679104412 | shrinkage -0.3030763679104412 | overlap 1/15
+[19:25:21] [War] test n=1 (val n=2 SMALL) @K=15 own 0.08514 vs global 0.00000 = +0.08514 [+0.08514, +0.08514] | val was 0.3114579805936753 | shrinkage -0.22631486295205427 | overlap 1/15
+[19:25:37] ============================================================================================================
+[19:25:37] PRIMARY ENDPOINT (pre-specified): cohort-weighted group minus global, FULL NDCG@10, K=15, all 10000 TEST users, paired percentile bootstrap 10000 resamples seed 98765
+[19:25:37]   ALL-GROUPS   +0.01015  95% CI [+0.00733, +0.01296]  excludes zero: True
+[19:25:37]   FALLBACK-200 +0.00862  95% CI [+0.00595, +0.01131]  excludes zero: True
+[19:25:37] ------------------------------------------------------------------------------------------------------------
+[19:25:37] group           val n  test n   val gain  test gain  shrinkageoverlap@K15
+[19:25:37] Drama            5481    5493    0.00697    0.00150   -0.00548          7
+[19:25:37] Action           1582    1545    0.02594    0.01711   -0.00883          3
+[19:25:37] Comedy           1475    1445    0.02270    0.01508   -0.00763          3
+[19:25:37] Adventure         534     565    0.05565    0.03212   -0.02353          4
+[19:25:37] Thriller          451     499    0.03524    0.02334   -0.01190          2
+[19:25:37] Sci-Fi            161     142    0.10498    0.08955   -0.01544          3
+[19:25:37] Romance            88      90    0.06414    0.02496   -0.03918          2
+[19:25:37] Crime              79      80    0.08940   -0.03085   -0.12024          1
+[19:25:37] Horror             51      56    0.06517   -0.00042   -0.06560          1
+[19:25:37] Animation          44      25    0.13971    0.05963   -0.08007          1
+[19:25:37] Children           29      32    0.12155    0.05465   -0.06690          2
+[19:25:37] Fantasy            11      15    0.12734   -0.02846   -0.15580          2
+[19:25:37] Musical             3       4    0.02445    0.00000   -0.02445          1
+[19:25:37] Documentary         3       3    0.12791   -0.02538   -0.15329          2
+[19:25:37] Mystery             3       2    0.30308    0.00000   -0.30308          1
+[19:25:37] War                 2       1    0.31146    0.08514   -0.22631          1
+[19:25:37] Film-Noir           1       3    0.25132    0.00000   -0.25132          1
+[19:25:37] ============================================================================================================
+[19:25:37] [done] wrote groupgreedy_genre15_TEST_policyB.json + groupgreedy_genre15_TEST_policyB_per_user.npz in 2.9m
+[cmd] exit code 0 

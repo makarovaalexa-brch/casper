@@ -150,9 +150,15 @@ def main():
                 seen += len(lr)
             assert seen == len(rows), f"banked leaf slices cover {seen} of {len(rows)} test users"
             mine = banked[f"combined|{K}|{axis}"]
-            same = bool(np.array_equal(mine, ref))
+            # `equal_nan=True` is load-bearing, not cosmetic: 719 of the 10,000 test users have no
+            # tail target and carry NaN, and plain `array_equal` calls NaN != NaN, so a bit-identical
+            # pair fails the gate. Checked against the genre re-run's K=1 vectors, where the full
+            # axis (no NaN) compared equal and the tail axis did not, at max abs diff 0.0.
+            same = bool(np.array_equal(mine, ref, equal_nan=True))
             ok_all &= same
             gate["checked"].append({"K": K, "axis": axis, "bit_identical": same,
+                                    "nan_masks_agree": bool(np.array_equal(np.isnan(mine),
+                                                                           np.isnan(ref))),
                                     "max_abs_diff": float(np.nanmax(np.abs(
                                         mine.astype(np.float64) - ref.astype(np.float64))))})
     gate["all_bit_identical"] = bool(ok_all)
