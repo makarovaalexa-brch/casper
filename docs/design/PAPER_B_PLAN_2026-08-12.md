@@ -126,8 +126,20 @@ K=1 lead of +0.00246, where conditioning is impossible.
 - **A8.** Clean confirmatory tree evaluation logged in the exploratory/confirmatory ledger — the
   one test shot so far had a mid-run 16th-step extension and a comparator swap (exploratory).
   The TREE ITSELF is not regrown (author ruling: "we are NOT changing this tree").
-- **A9.** Swap Act 1's greedy row for rebuilt numbers; assert banked numbers wherever a new arm
-  nests in an old one (free contract check).
+- **A9 (MEASURED 2026-08-12 22:37; tex merge outstanding).** `docs/results/BATTERY_TABLE_POLICYB_ROWS.md`
+  carries drop-in replacements for **both** `tab:battery` and `tab:greedy` (the latter's `emergent
+  order` string changes to `c c i c c i i c c c c i i i c c`, 10 of 16 concepts), the per-pick gains,
+  and every stale prose line. Banked-number assert passed to 5 dp on all three arms; two new admission
+  gates (cross-family per-user identity at 0.0e+00, cross-run entropy0 at 0.0e+00) license pairing the
+  instrument-side static rows against the arm-N selector rows for the first time.
+  **The "thirty comparisons separate" sentence HOLDS against all three rebuilt comparators (30/30
+  each).** ★ **But Golbandi's tail-at-eight win over the strongest static (+.0068 [+.0039,+.0098])
+  is RETRACTED — it was comparator weakness; against the rebuilt items order it is −0.00159
+  [−0.00489,+0.00167], ns. No published adaptive selector now beats the strong static order on either
+  axis at any budget.** Also: items answered@16 4.20 → 3.11 (channel ratio ~4×, not 3×); the
+  `tab:battery` caption's "lower bounds" flag, the `\REDO` on the greedy re-run and the `\PLAN`
+  clause are all discharged; TODO 4.6's "concept 114 is absent from the combined order" is now false
+  (it is the first pick, by the A2 gate).
 - **A10 (1.18/1.18b, DONE 2026-08-12).** The min-leaf/answerability interaction, quantified:
   `docs/results/TREE_DEPTH_AND_MINLEAF.md` — all 15 stops are floor stops with a positive gain in
   hand (0 for want of a split), 8 forced by node size and 7 by shape, the floor is a window
