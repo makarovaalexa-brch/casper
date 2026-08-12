@@ -182,7 +182,95 @@ def main():
                                                  f"{turn} user {u}: legacy {want} != {int(act[j])}")
                     n_reg += 1
     print(f"  refactor   {n_reg} actions identical to the pre-extraction masking          PASS")
-    print(f"TOTAL {total} (user, turn) cells checked -- G-F PASSES on the posterior family")
+    total += check_mixed_branches()
+    total += check_igcn_global()
+    print(f"TOTAL {total} checks -- G-F PASSES on every family testable without the model stacks")
+
+
+def check_mixed_branches():
+    """The conversational-bandit family's `_mixed_vec` against `_pick_mixed`, BRANCH BY BRANCH.
+
+    Tested on a bare object rather than a constructed selector, because the branch structure -- which
+    half is scoreable on which turn type, how the pool and the two asked-masks apply, and which half
+    wins -- is pure logic over two supplied vectors and does not need the key-term features, the
+    posterior or the tower. That makes it runnable with the box held, and it is exactly the part a
+    wrong turn-type gate would break: a mixed vector that scored the item half on a scheduled
+    key-term turn would let the C1 correlation rank questions the arm could not have asked.
+    """
+    import conversational_bandit_selectors as CB
+    n_items, C = 300, 40
+    rng = np.random.default_rng(5)
+    sel = object.__new__(CB._ConvBanditBase)
+    n_ok = 0
+    for trial in range(400):
+        sel.n_items, sel.C = n_items, C
+        sel.pool = (np.sort(rng.choice(n_items, 150, replace=False))
+                    if rng.random() < 0.5 else None)
+        kt_s = rng.normal(size=C)
+        item_s = rng.normal(size=n_items)
+        n_ask_i = int(rng.integers(0, 8))
+        n_ask_k = int(rng.integers(0, 6))
+        asked = (rng.choice(n_items, n_ask_i, replace=False).tolist()
+                 + (n_items + rng.choice(C, n_ask_k, replace=False)).tolist())
+        for force in (True, False, None):
+            want = CB._ConvBanditBase._pick_mixed(sel, lambda: item_s, kt_s, 0, asked, force)
+            v = CB._ConvBanditBase._mixed_vec(sel, lambda: item_s, kt_s, asked, force)
+            got = int(np.argmax(v))
+            if force is None and got != want:
+                # the declared width-rule tie case -- assert it really IS a tie and not a bug
+                assert np.isclose(v[got], v[want]), (
+                    f"conv-bandit mixed vector disagrees with _pick_mixed and it is NOT a tie: "
+                    f"got {got} ({v[got]}), want {want} ({v[want]})")
+                continue
+            assert got == want, (f"conv-bandit mixed vector: force={force} argmax {got} != "
+                                 f"_pick_mixed {want}")
+            for a in asked:                       # both asked-masks must really mask
+                assert not np.isfinite(v[a]) or v[a] <= -1e17, f"asked action {a} still scoreable"
+            n_ok += 1
+    print(f"  convbandit {n_ok} (state, turn-type) branch cells vs _pick_mixed         PASS")
+    return n_ok
+
+
+def check_igcn_global():
+    """IGCN's GLOBAL phase: the emitted rank vector must reproduce `_next_global` item for item.
+
+    This is the check that matters for that row, because the obvious implementation -- argmax of
+    `self.ig_global` with an asked-mask -- is WRONG: the gain has a large hard-zero tail and the arm
+    actually walks a lexsorted `(-ig, -count)` order. A synthetic order with a deliberate tie block
+    reproduces that failure mode exactly."""
+    import igcn_selector as IG
+    n_items = 400
+    rng = np.random.default_rng(9)
+    sel = object.__new__(IG.IGCNSelector)
+    sel.n_items = n_items
+    sel.order = rng.permutation(n_items).astype(np.int64)
+    sel.switch_i = 5
+    sel.recompute_every = 1
+    n_ok = 0
+    for trial in range(200):
+        n_ask = int(rng.integers(0, 12))
+        asked_u = rng.choice(n_items, n_ask, replace=False).astype(np.int64).tolist()
+        # keep the user in the GLOBAL phase: fewer answers than switch_i
+        answered_u = [(int(i), 8) for i in asked_u[:min(len(asked_u), sel.switch_i - 1)]]
+        users = np.asarray([0], np.int64)
+        V = IG.IGCNSelector.score_vector(sel, 0, users, {0: asked_u}, {0: answered_u})
+        want = IG.IGCNSelector._next_global(sel, asked_u)
+        got = int(np.argmax(V[0]))
+        assert got == want, f"igcn global: rank-vector argmax {got} != _next_global {want}"
+        for a in asked_u:
+            assert not np.isfinite(V[0][a]), f"igcn: asked item {a} still scoreable"
+        n_ok += 1
+    # and the personalised phase must be declared UNSCOREABLE, not approximated
+    asked_u = list(range(8))
+    answered_u = [(i, 8) for i in range(8)]
+    V = IG.IGCNSelector.score_vector(sel, 0, np.asarray([0], np.int64),
+                                     {0: asked_u}, {0: answered_u})
+    assert np.all(np.isnan(V[0])), "igcn: the personalised phase must be NaN (unscoreable), not a guess"
+    cov = IG.IGCNSelector.score_vector_coverage(sel)
+    assert cov["personalised_user_turns"] == 1 and cov["global_user_turns"] == n_ok
+    print(f"  igcn       {n_ok} global-phase states reproduce _next_global; personalised "
+          f"UNSCOREABLE and counted   PASS")
+    return n_ok
 
 
 if __name__ == "__main__":

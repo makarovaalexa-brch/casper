@@ -326,7 +326,7 @@ at all**:
 | `Selector.score_vector` hook (`None` by default) | `src/baselines/adaptive_harness.py` | **built** |
 | `_mask_vec` / `_ucb_vec` pure extractions + `_acq_vec` on the four posterior arms | `bandit_selectors.py` | **built**, and the extraction is proven selection-preserving |
 | EDDI (both), the conversational-bandit family, DPE, DPE-concept, IGCN | their own files | **built** |
-| **G-F on synthetic inputs** — 1,920 (user, turn) cells on the posterior family, plus 1,440 legacy-masking regression actions | `src/baselines/score_vector_gate.py` | **PASSES** |
+| **G-F on synthetic inputs** — **3,320 checks**: 1,920 (user, turn) cells on the posterior family, 1,440 legacy-masking regression actions, 1,200 conversational-bandit `_mixed_vec`-vs-`_pick_mixed` branch cells across all three turn-type gates, and 200 IGCN global-phase states reproducing `_next_global` item for item (plus the personalised phase asserted UNSCOREABLE and counted) | `src/baselines/score_vector_gate.py` | **PASSES** |
 | statistics, 3 controls, identity | `scripts/act2_surrogate_stats.py` | **built, 8/8 selftest** |
 | `--surrogates`, `--analyze`, synthetic end-to-end | `scripts/act2_surrogate_phase23.py` | **built, selftest passes** |
 | phase 1 `pool.npy` persistence (so 2/3 need no env) | `act2_surrogate_rank_corr.py` | **built** |
