@@ -34,8 +34,8 @@ import hashlib
 import numpy as np
 from scipy import sparse
 
-__all__ = ["policy_b_pool", "assert_fixed_mask", "assert_fixed_user_mask", "reset_contract",
-           "contract_state"]
+__all__ = ["policy_b_pool", "pool_contract", "resume_ok", "assert_fixed_mask",
+           "assert_fixed_user_mask", "reset_contract", "contract_state"]
 
 _REG = {}
 
@@ -70,6 +70,62 @@ def policy_b_pool(rated, foldin=None, targets=None, log=None):
         extra = "" if foldin is None else f" (binary fold-in {foldin.nnz / n:.1f}/user)"
         log(f"[policy-B] pool nnz={P.nnz} = {P.nnz / n:.1f} items/user{extra}; target leak 0")
     return P
+
+
+# ===================================================== the DERIVED identity of a candidate pool
+def pool_contract(pool, rows=None, policy=None):
+    """The identity of a candidate-exclusion mask, DERIVED FROM THE MASK ITSELF.
+
+    Motivated by the 2026-08-12 policy-A provenance audit: `greedy_static_i26c.partial.json` carries a
+    resume signature with no pool field at all, so a policy-B re-run writing to that path would have
+    matched it and silently resumed the policy-A picks. A hand-typed label would not have helped --
+    the same audit found the CELF heap signature keyed on a DISPLAY LABEL
+    (`contract_tag = "genv:ndcgtree(val):validation"`), which is invariant under a policy change and
+    therefore not a guard at all (PAPER_B_TODO 1.19). So the discriminating field here is a hash of
+    the mask's own sparsity structure: policy A (liked fold-in only, ~62.6 items/user) and policy B
+    (every rated fold-in-side item, 141.2 items/user, nnz 1,411,761) cannot collide.
+
+    `policy` is carried alongside for human readers ONLY. It is a label; `fp`/`nnz`/`per_user` are the
+    evidence, and two runs whose masks differ can never agree on them however they are labelled.
+
+    `rows` restricts the fingerprint to the cohort slice actually scored, so a sub-cohort arm (a
+    group-greedy group, a tree leaf) signs the pool IT used.
+    """
+    P = pool.tocsr()
+    if rows is not None:
+        idx = np.asarray(sorted(int(r) for r in rows), dtype=np.int64)
+        P = P[idx]
+    n = max(P.shape[0], 1)
+    return {"v": 1, "policy": policy, "n_rows": int(P.shape[0]), "n_items": int(P.shape[1]),
+            "nnz": int(P.nnz), "per_user": round(float(P.nnz) / n, 4), "fp": _fp_csr(P)}
+
+
+def resume_ok(banked_sig, sig, log, what="sidecar"):
+    """May a banked resume signature be trusted? Strict, and REFUSES A MISSING FIELD.
+
+    The failure this exists to prevent: a signature written before a field was added does not carry
+    that field, so any comparison that tolerates absence lets the OLD contract through -- which is
+    exactly how a policy-A partial could have been resumed into a policy-B run. An absent field is
+    therefore a refusal with a named reason, never a pass, and the reason is printed so the refusal
+    is legible in the log rather than a silent cold restart.
+    """
+    if not banked_sig:
+        return False
+    missing = [k for k in sig if k not in banked_sig]
+    differ = [k for k in sig if k in banked_sig and banked_sig[k] != sig[k]]
+    extra = [k for k in banked_sig if k not in sig]
+    if not (missing or differ or extra):
+        return True
+    if missing:
+        log(f"[resume] {what} REFUSED: it predates the field(s) {missing} and therefore cannot state "
+            f"its own contract. An unstated contract is not a matching one -- seeding cold.")
+    if differ:
+        log(f"[resume] {what} REFUSED: field(s) {differ} differ -- " + "; ".join(
+            f"{k}: banked={banked_sig[k]!r} now={sig[k]!r}" for k in differ))
+    if extra:
+        log(f"[resume] {what} REFUSED: it carries unknown field(s) {extra} (written by a different "
+            f"version of this script) -- seeding cold.")
+    return False
 
 
 # ============================================================================= the invariants

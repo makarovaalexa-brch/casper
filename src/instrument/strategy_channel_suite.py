@@ -52,6 +52,7 @@ sys.path.insert(0, _HERE)
 
 from train_tower_t2 import log, I25Encoder
 import run_battery_phaseA as PA
+from mask_contract import pool_contract, resume_ok      # re-exported for the group/tree drivers
 from run_battery_phaseA import (build_real_ctx, build_smoke_ctx, ndcg10_from_scores, bootstrap_ci,
                                 OUTDIR, SEED)
 from tradeoff_ledger import build_shared, Rung
@@ -459,7 +460,13 @@ def build_greedy_env(snapshot, split, conc_ckpt, label, need_entropy=False):
     E = {"name": label, "split": split, "ctx": ctx, "sh": sh, "net": net, "cblob": cblob,
          "V": V, "foldable": foldable, "rows": rows, "lvl": sh["lvl_lookup"], "C": C, "item_H": item_H,
          "cneg": float(prereg.get("C_NEG", 2.0)), "cache": {}, "n_evals": 0, "t_evals": 0.0,
-         "pool": pool_b, "pool_policy": "B", "contract_tag": f"genv:{label}:{split}"}
+         "pool": pool_b, "pool_policy": "B", "contract_tag": f"genv:{label}:{split}",
+         # DERIVED identity of the mask, not a label (2026-08-12 audit). Every resume signature and
+         # every output blob downstream signs THIS, so an artifact can always state its own ruler and
+         # a sidecar written under a different pool can never be resumed into.
+         "pool_contract": pool_contract(pool_b, rows, policy="B")}
+    log(f"[{label}] pool contract (DERIVED): policy=B nnz={E['pool_contract']['nnz']} "
+        f"per_user={E['pool_contract']['per_user']} fp={E['pool_contract']['fp']}")
     set_active_rows(E, rows)
     ans_rate_c = float(foldable[np.asarray(rows)].mean())
     log(f"[{label}] {len(rows)} cohort users; {C} concepts; concept answer rate over the whole bank "
@@ -1102,11 +1109,14 @@ def greedy_main(args):
            "objective": args.objective, "item_bank": args.item_bank, "conc_bank": args.conc_bank,
            "n_items": len(item_pool), "n_concepts": len(conc_pool), "L": max(BUDGETS),
            "n_build_users": len(build_rows), "build_head": int(build_rows[0]),
-           "build_tail": int(build_rows[-1])}
+           "build_tail": int(build_rows[-1]),
+           # THE FIELD THE 2026-08-12 AUDIT FOUND MISSING. Without it this signature was invariant
+           # under a change of candidate-mask POLICY, so a policy-B re-run writing to an existing
+           # policy-A path (`greedy_static_i26c.partial.json`) would have matched it and resumed the
+           # policy-A picks in silence. Derived from the mask, never typed.
+           "pool_contract": pool_contract(Eb["pool"], build_rows, policy=Eb["pool_policy"])}
     part = json.load(open(PARTIAL)) if os.path.exists(PARTIAL) else {}
-    if part.get("sig") != sig:
-        if part:
-            log(f"[greedy] sidecar {os.path.basename(PARTIAL)} has a DIFFERENT contract -- ignoring it")
+    if not resume_ok(part.get("sig"), sig, log, os.path.basename(PARTIAL)):
         part = {"sig": sig, "arms": {}}
     log(f"[greedy] SELECTION on {len(build_rows)} VALIDATION users; the test cohort is not built yet.")
     seqs = {}
@@ -1182,6 +1192,11 @@ def greedy_main(args):
                         "asked; the target matrix is never modified. An asked item is NEVER removed "
                         "from the candidate list because it was asked."),
            "pool_policy": "B (arm_n.build_pool equivalent)",
+           # the DERIVED stamp: nnz/per-user/fingerprint of the mask actually used, on the build and
+           # the reporting cohorts. An artifact that cannot state its own ruler is one migration away
+           # from needing another provenance audit (2026-08-12).
+           "pool_contract_build": pool_contract(Eb["pool"], build_rows, policy=Eb["pool_policy"]),
+           "pool_contract_eval": pool_contract(Ee["pool"], eval_rows, policy=Ee["pool_policy"]),
            "gate_m0_policyA_bridge": {"full": a_full, "tail": a_tail},
            "selection_users": f"{len(build_rows)} canonical VALIDATION users",
            "reporting_users": f"{len(eval_rows)} {eval_split} users",

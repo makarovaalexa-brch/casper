@@ -222,7 +222,8 @@ def main():
         "tower": os.path.basename(args.snapshot), "concept_ckpt": os.path.basename(args.concept_ckpt),
         "objective": args.objective, "item_bank": "pop", "conc_bank": "answerable",
         "n_items_pool": len(item_pool), "n_concepts_pool": len(conc_pool), "n_pool": len(pool),
-        "mask_policy": "B", "n_cohort": len(rows_all), "L": total_L,
+        "mask_policy": "B", "pool_contract": E["pool_contract"],
+        "n_cohort": len(rows_all), "L": total_L,
         "sequence": [[int(a), int(b)] for a, b in sseq], "gains": [float(g) for g in sgains],
         "n_evals": int(snev), "n_evals_new_this_job": int(snev - banked_nev),
         "seed_pass_reused_from": "ndcgtree_heaps/node_root.json (copied, not shared)",
@@ -412,6 +413,8 @@ def main():
            "tower": os.path.basename(args.snapshot),
            "concept_ckpt": os.path.basename(args.concept_ckpt),
            "objective": args.objective, "mask_policy": "B",
+           # DERIVED stamp (2026-08-12 audit): "mask_policy" is a label, this is the mask itself.
+           "pool_contract": E["pool_contract"],
            "n_cohort": len(rows_all), "total_L": total_L, "budgets": list(BUDGETS),
            "depth_reached": tree["depth_reached"], "n_nodes": tree["n_nodes"],
            "n_leaves": len(leaves),

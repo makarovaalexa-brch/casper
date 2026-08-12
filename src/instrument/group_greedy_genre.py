@@ -57,7 +57,7 @@ import numpy as np
 
 from strategy_channel_suite import (log, build_greedy_env, set_active_rows, greedy_certified,
                                     genv_mean, genv_eval, genv_answered, contract_selftest,
-                                    _ranked_pool, CERT_TOWER, CERT_CONC)
+                                    _ranked_pool, CERT_TOWER, CERT_CONC, pool_contract, resume_ok)
 from i26_encoder import LIKE_MIN_LEVEL
 
 LABEL = "groupgreedy_genre16"
@@ -317,11 +317,12 @@ def main():
     sig = {"tower": os.path.basename(args.snapshot), "conc": os.path.basename(args.concept_ckpt),
            "objective": args.objective, "item_bank": "pop", "n_items": len(pool_all),
            "branch": "favourite_genre_from_liked_foldin", "L_items": L, "charged_for_genre": 0,
-           "split": "validation", "n_cohort": len(rows), "sizes": sizes, "sanity": bool(args.sanity)}
+           "split": "validation", "n_cohort": len(rows), "sizes": sizes, "sanity": bool(args.sanity),
+           # 2026-08-12 audit: a signature with no pool field is invariant under a change of
+           # candidate-mask policy, i.e. not a guard. Derived from the mask itself, never typed.
+           "pool_contract": pool_contract(E["pool"], rows, policy=E["pool_policy"])}
     part = json.load(open(PARTIAL)) if os.path.exists(PARTIAL) else {}
-    if part.get("sig") != sig:
-        if part:
-            log(f"[resume] sidecar {os.path.basename(PARTIAL)} carries a DIFFERENT contract -- ignored")
+    if not resume_ok(part.get("sig"), sig, log, os.path.basename(PARTIAL)):
         part = {"sig": sig, "groups": {}}
 
     def flush():
@@ -348,7 +349,11 @@ def main():
                   ("n_cohort", sig["n_cohort"], bsig.get("n_cohort")),
                   ("L_items", L, bsig.get("L_items", bsig.get("L_items_after_genre"))),
                   ("sanity", sig["sanity"], bsig.get("sanity")),
-                  ("group_sizes", sig["sizes"], bsig.get("sizes"))]
+                  ("group_sizes", sig["sizes"], bsig.get("sizes")),
+                  # a banked sidecar that predates this field cannot state its candidate-mask policy;
+                  # `bsig.get` returns None, which mismatches and REFUSES. That is the intent -- an
+                  # unstated contract is not a matching one (2026-08-12 audit).
+                  ("pool_contract", sig["pool_contract"], bsig.get("pool_contract"))]
         bad = [(f, a, b) for f, a, b in checks if a != b]
         contract_check = {"source": os.path.basename(bp),
                           "fields": [{"field": f, "this_run": a, "banked": b, "match": a == b}
@@ -535,6 +540,11 @@ def main():
            "gain_vs_group_size": tbl, "cohort_weighted": weighted,
            "per_user_npz": os.path.basename(NPZ),
            "groups": part["groups"], "sig": sig,
+           # the artifact states its own ruler (2026-08-12 audit): this run's mask, derived.
+           "pool_policy": E["pool_policy"], "pool_contract": sig["pool_contract"],
+           "comparator_pool_policy_unknown": ("the GLOBAL comparator sequence above was read from "
+                                              f"{os.path.basename(GLOBAL_JSON)}; its own selection "
+                                              "policy is whatever that file records, NOT this run's"),
            "seconds": round(time.time() - t00, 1),
            "baseline_sec_per_eval_10k": gblob.get("sec_per_eval_build")}
     json.dump(out, open(OUT, "w"), indent=2, default=float)

@@ -114,7 +114,8 @@ import numpy as np
 
 from strategy_channel_suite import (log, build_greedy_env, set_active_rows, greedy_certified,
                                     genv_mean, genv_eval, genv_answered, contract_selftest,
-                                    _ranked_pool, CERT_TOWER, CERT_CONC, CONCSTATS, N_TRAIN_USERS)
+                                    _ranked_pool, CERT_TOWER, CERT_CONC, CONCSTATS, N_TRAIN_USERS,
+                                    pool_contract, resume_ok)
 from i26_encoder import LIKE_MIN_LEVEL
 from group_greedy_genre import load_item_genres, favourite_genre
 
@@ -505,11 +506,12 @@ def main():
            "branch_rule": (f"item: absent->noanswer, level>={LIKE_MIN_LEVEL}->like, else dislike | "
                            f"concept: not foldable->noanswer, signed value>0->like, else dislike"),
            "stopping": "min_leaf only (no depth cap)", "total_L": total_L, "min_leaf": min_leaf,
-           "split": "validation", "n_cohort": len(rows_all), "sanity": bool(args.sanity)}
+           "split": "validation", "n_cohort": len(rows_all), "sanity": bool(args.sanity),
+           # 2026-08-12 audit: derived from the mask, so a re-run under a different candidate-pool
+           # policy cannot resume this tree's nodes. A missing field is a refusal, not a pass.
+           "pool_contract": pool_contract(E["pool"], rows_all, policy=E["pool_policy"])}
     part = json.load(open(PARTIAL)) if os.path.exists(PARTIAL) else {}
-    if part.get("sig") != sig:
-        if part:
-            log(f"[resume] sidecar {os.path.basename(PARTIAL)} carries a DIFFERENT contract -- ignored")
+    if not resume_ok(part.get("sig"), sig, log, os.path.basename(PARTIAL)):
         part = {"sig": sig, "nodes": {}}
     part.setdefault("nodes", {})
 
@@ -842,6 +844,10 @@ def main():
            "cohort_weighted": weighted,
            "per_user_npz": os.path.basename(NPZ),
            "sig": sig, "seconds": round(time.time() - t00, 1),
+           # the artifact states its own ruler (2026-08-12 audit). The COMPARATOR's selection policy
+           # is a property of GLOBAL_JSON, not of this run, and is deliberately not claimed here.
+           "pool_policy": E["pool_policy"], "pool_contract": sig["pool_contract"],
+           "comparator_source": os.path.basename(GLOBAL_JSON),
            "baseline_sec_per_eval_10k": gblob.get("sec_per_eval_build")}
     with open(OUT + ".tmp", "w") as fh:
         json.dump(out, fh, indent=2, default=float)

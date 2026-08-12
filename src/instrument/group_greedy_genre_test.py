@@ -297,6 +297,11 @@ def main():
                "FALLBACK-200 (threshold 200 VALIDATION users, the same one stage 1 flags with). "
                "One look; no variant re-runs; no post-hoc tuning of threshold, rule, pool or budget."),
            "generous_assumption": GENEROUS,
+           # DERIVED stamp of the mask this stage scored through (2026-08-12 audit). NOTE this is the
+           # SCORING ruler only: the group orders and the global comparator were SELECTED elsewhere,
+           # and stage 1's own `pool_contract` (plus the global greedy file's) are what say under
+           # which policy each side was chosen. Same ruler != same selection contract.
+           "pool_contract_test": E["pool_contract"],
            "stage1_source": os.path.basename(STAGE1_JSON),
            "tower": os.path.basename(args.snapshot),
            "concept_ckpt": os.path.basename(args.concept_ckpt),

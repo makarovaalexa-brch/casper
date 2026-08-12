@@ -392,7 +392,10 @@ def main():
            "depth_reached": tree["depth_reached"],
            "tower": os.path.basename(args.snapshot),
            "concept_ckpt": os.path.basename(args.concept_ckpt),
-           "objective": "full", "mask_policy": "B", "total_L": TOTAL_L, "budgets": list(BUDGETS),
+           "objective": "full", "mask_policy": "B",
+           # DERIVED stamp (2026-08-12 audit): the mask itself, not its label.
+           "pool_contract_test": Et["pool_contract"],
+           "total_L": TOTAL_L, "budgets": list(BUDGETS),
            "n_val": 10000, "n_test": len(rows_test),
            "comparator_policyB": {"label": stb["label"], "file": os.path.basename(STATICB_JSON),
                                   "sequence": [[a, b] for a, b in seq_B],

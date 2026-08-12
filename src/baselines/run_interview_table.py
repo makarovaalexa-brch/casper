@@ -385,6 +385,11 @@ def main():
                       f"({(time.time() - ts) / 60:.1f}m)")
                 json.dump({"lit_rank": ST.LIT_RANK, "cites": ST.CITES, "budgets": budgets,
                            "arch": a.arch, "snapshot": os.path.basename(a.snapshot),
+                           # the ruler this table scored through, DERIVED from the mask handed to
+                           # M.evaluate as mask_X (2026-08-12 audit: an artifact must be able to
+                           # state its own pool without a git archaeology exercise).
+                           "pool_policy": "B (arm-N protocol pool)",
+                           "pool_contract": D.get("pool_contract"),
                            "results": results}, open(outp, "w"), indent=2)
     logln(f"[interview] done -> {outp}")
 

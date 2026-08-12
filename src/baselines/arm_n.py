@@ -43,6 +43,12 @@ from run_ml25m_liang import compute_head_mask
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
+# THE SAME fingerprint function the instrument harness signs its pools with, imported rather than
+# re-implemented: a stamp that two harnesses compute differently cannot be compared across them, and
+# comparing them is the whole point (2026-08-12 policy-A provenance audit).
+sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
+from mask_contract import pool_contract                            # noqa: E402
+
 PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
 CACHE = os.path.join(_ROOT, ".cache", "baselines", "graded_ml25m.npz")
 
@@ -129,8 +135,13 @@ def load_arm_n(log=_log):
     log(f"[arm_n] ruler: {n_items} items, {te_tr.shape[0]} test users, head={int(head_mask.sum())}; "
         f"pool excludes {pool.nnz / te_tr.shape[0]:.1f} items/user vs "
         f"{te_tr.nnz / te_tr.shape[0]:.1f} in arm A; target leak 0")
+    # DERIVED identity of the pool, carried with the data so every downstream artifact can stamp the
+    # ruler it actually scored through instead of asserting a label (2026-08-12 audit:
+    # `adaptive_table_i26c_ep31.json` records no pool field at all and had to be verified from git).
+    pc = pool_contract(pool, policy="B (arm_n.build_pool)")
+    log(f"[arm_n] pool contract (DERIVED): nnz={pc['nnz']} per_user={pc['per_user']} fp={pc['fp']}")
     return {"n_items": n_items, "train": train, "g_train": g_train, "te_tr": te_tr, "te_te": te_te,
-            "g_te_tr": g_te_tr, "pool": pool, "head_mask": head_mask}
+            "g_te_tr": g_te_tr, "pool": pool, "head_mask": head_mask, "pool_contract": pc}
 
 
 if __name__ == "__main__":

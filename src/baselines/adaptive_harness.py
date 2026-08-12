@@ -797,6 +797,10 @@ def _smoke_slice(D, n_smoke, log=logln):
     Ds = dict(D)
     for key in ("te_tr", "te_te", "g_te_tr", "pool"):
         Ds[key] = D[key][:n_smoke]
+    if D.get("pool_contract") is not None:                    # re-derive; never carry the full one
+        from arm_n import pool_contract
+        Ds["pool_contract"] = dict(pool_contract(Ds["pool"], policy=D["pool_contract"]["policy"]),
+                                   SMOKE_TRUNCATED=True)
     return Ds
 
 
@@ -1107,6 +1111,13 @@ def main():
             "snapshot": os.path.basename(a.snapshot), "no_floor": bool(a.no_floor),
             "n_test_users": n, "ucb_alpha": a.ucb_alpha, "ts_seed": a.ts_seed,
             "eddi_cand_topm": a.eddi_topm, "conv_max_states": max_states,
+            # 2026-08-12 audit: `adaptive_table_i26c_ep31.json`'s meta records NOTHING about masking,
+            # so its policy had to be established from git history instead of from the artifact. This
+            # is the DERIVED pool the run actually scored through (score_arm -> mask_X=D["pool"]).
+            # NOTE it is provenance, not a resume gate: it is deliberately NOT in `_contract`, because
+            # this harness has scored through arm_n.build_pool since 2026-07-30 and adding a field to
+            # `_contract` would refuse every banked table on disk for no correctness gain.
+            "pool_contract": D.get("pool_contract"),
             "golbandi": {"depth": a.golbandi_depth, "xi": a.golbandi_xi,
                          "min_child": a.golbandi_min_child, "leaf_lam": a.golbandi_lam,
                          "tree_cache": a.golbandi_tree_cache},

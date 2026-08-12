@@ -46,7 +46,7 @@ import numpy as np
 
 from strategy_channel_suite import (log, build_greedy_env, set_active_rows, greedy_certified,
                                     genv_mean, genv_answered, contract_selftest, _ranked_pool,
-                                    CERT_TOWER, CERT_CONC, BUDGETS)
+                                    CERT_TOWER, CERT_CONC, BUDGETS, pool_contract, resume_ok)
 from i26_encoder import LIKE_MIN_LEVEL
 
 LABEL = "groupgreedy_d1"
@@ -172,11 +172,11 @@ def main():
     sig = {"tower": os.path.basename(args.snapshot), "conc": os.path.basename(args.concept_ckpt),
            "objective": args.objective, "item_bank": "pop", "n_items": len(pool_all),
            "q1": [int(q1[0]), int(q1[1])], "L_after_q1": L, "split": "validation",
-           "n_cohort": len(rows), "sizes": sizes, "sanity": bool(args.sanity)}
+           "n_cohort": len(rows), "sizes": sizes, "sanity": bool(args.sanity),
+           # 2026-08-12 audit: derived from the mask; a missing field refuses rather than passes.
+           "pool_contract": pool_contract(E["pool"], rows, policy=E["pool_policy"])}
     part = json.load(open(PARTIAL)) if os.path.exists(PARTIAL) else {}
-    if part.get("sig") != sig:
-        if part:
-            log(f"[resume] sidecar {os.path.basename(PARTIAL)} carries a DIFFERENT contract -- ignored")
+    if not resume_ok(part.get("sig"), sig, log, os.path.basename(PARTIAL)):
         part = {"sig": sig, "groups": {}}
 
     def flush():
@@ -259,6 +259,9 @@ def main():
            "answer_rule": f"lvl_lookup absent -> noanswer; level >= {LIKE_MIN_LEVEL} -> like; else dislike",
            "n_cohort": len(rows), "group_sizes": sizes, "budgets": list(BUDGETS),
            "groups": part["groups"], "sig": sig,
+           # this run's ruler, derived (2026-08-12 audit). q1 above comes from GLOBAL_JSON and carries
+           # ITS policy, not this one -- read `q1_source`'s own pool_contract before pairing them.
+           "pool_policy": E["pool_policy"], "pool_contract": sig["pool_contract"],
            "seconds": round(time.time() - t00, 1),
            "baseline_sec_per_eval_10k": gblob.get("sec_per_eval_build")}
     json.dump(out, open(OUT, "w"), indent=2, default=float)

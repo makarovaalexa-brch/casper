@@ -415,7 +415,11 @@ def main():
            "depth_reached": tree["depth_reached"], "n_nodes": tree["n_nodes"], "n_leaves": len(leaves),
            "tower": os.path.basename(args.snapshot),
            "concept_ckpt": os.path.basename(args.concept_ckpt),
-           "objective": args.objective, "mask_policy": "B", "total_L": TOTAL_L,
+           "objective": args.objective, "mask_policy": "B",
+           # DERIVED stamp (2026-08-12 audit): "mask_policy" above is a label; these are read off the
+           # masks this run actually scored through, so the artifact can state its own ruler.
+           "pool_contract_val": Ev["pool_contract"], "pool_contract_test": Et["pool_contract"],
+           "total_L": TOTAL_L,
            "budgets": list(BUDGETS), "n_val": len(rows_val), "n_test": len(rows_test),
            "comparator_label": COMPARATOR_LABEL, "comparator_note": COMPARATOR_NOTE,
            "comparator_sequence": [[int(a), int(b)] for a, b in cmp_seq],
