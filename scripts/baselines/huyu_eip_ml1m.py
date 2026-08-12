@@ -273,64 +273,90 @@ def user_grad_hess(data, U, V, z):
     return G, H
 
 
+def _backtrack(data, z, dz, base, tries=14):
+    """Largest eta in {1, 1/2, 1/4, ...} that does not increase the loss."""
+    eta = 1.0
+    for _ in range(tries):
+        if mean_loss(data, z + eta * dz) <= base:
+            return eta
+        eta *= 0.5
+    return 0.0
+
+
 def fit_delta_groups(data, V, z, group_of_user, n_groups, lam_u, sweeps,
                      delta=None, frozen=None):
-    """Coordinate descent for one Delta-u per group (a whole tree LEVEL at a time).
+    """Coordinate descent for one Delta-u per group (a whole tree LEVEL at once).
 
-    The loss is re-linearised once per SWEEP (a diagonal Gauss-Newton/IRLS step) and
-    every coordinate of every group is then updated from that linearisation; for the
-    square loss this is exactly coordinate descent.  Examples of users outside any
-    live group are routed to a garbage bin group whose step is forced to zero, which
-    avoids materialising a boolean mask over the ~8M examples on every pass.
+    The loss is linearised once per SWEEP; every coordinate of every group takes a
+    Newton step on the diagonal curvature, and the resulting joint step is then
+    damped by a backtracking line search.  An undamped Newton step is not globally
+    convergent and diverged here (train loss 0.43 -> 7.59), so the line search is
+    what makes the fit monotone.  Examples of users outside any live group are
+    routed to a garbage-bin group whose step is forced to zero, which avoids
+    materialising a boolean mask over the ~8M examples on every pass.
     """
     if delta is None:
         delta = np.zeros((n_groups, data.d), np.float64)
     ge = group_of_user[data.eu].astype(np.int64)
     ge[ge < 0] = n_groups
     nb = n_groups + 1
-    step = np.zeros((nb, data.d))
     for _ in range(sweeps):
+        c1, c2 = data.coefs(z)
+        base = mean_loss(data, z)
+        step = np.zeros((nb, data.d))
+        dz = np.zeros_like(z)
         for k in range(data.d):
-            c1, c2 = data.coefs(z, bound=True)
             wk = data.w(V, k)
             g = np.bincount(ge, weights=c1 * wk, minlength=nb)[:n_groups]
             h = np.bincount(ge, weights=c2 * wk * wk, minlength=nb)[:n_groups]
-            g += 2.0 * lam_u * delta[:, k]
-            h += 2.0 * lam_u
+            g = g + 2.0 * lam_u * delta[:, k]
+            h = h + 2.0 * lam_u
             sk = -g / np.maximum(h, 1e-9)
             if frozen is not None:
                 sk[frozen] = 0.0
-            delta[:, k] += sk
             step[:n_groups, k] = sk
-            z += (step[ge, k] * wk).astype(np.float32)
+            dz += (step[ge, k] * wk).astype(np.float32)
+        eta = _backtrack(data, z, dz, base)
+        if eta == 0.0:
+            break
+        delta += eta * step[:n_groups]
+        z += (eta * dz).astype(np.float32)
     return delta, z
 
 
 def update_V(data, U, V, z, lam_v, sweeps):
-    """Regularised coordinate descent on V (their Eq. 5), one dimension at a time."""
+    """Regularised coordinate descent on V (their Eq. 5), damped the same way."""
     for _ in range(sweeps):
+        c1, c2 = data.coefs(z)
+        base = mean_loss(data, z)
+        step = np.zeros_like(V)
+        dz = np.zeros_like(z)
         for k in range(data.d):
-            c1, c2 = data.coefs(z, bound=True)
             uk = U[data.eu, k]
             if data.kind == "pairwise":
-                gp = np.bincount(data.ep, weights=c1 * uk, minlength=data.n_items)
-                gn = np.bincount(data.en, weights=-c1 * uk, minlength=data.n_items)
-                hp = np.bincount(data.ep, weights=c2 * uk * uk, minlength=data.n_items)
-                hn = np.bincount(data.en, weights=c2 * uk * uk, minlength=data.n_items)
-                g, h = gp + gn, hp + hn
+                g = (np.bincount(data.ep, weights=c1 * uk, minlength=data.n_items)
+                     - np.bincount(data.en, weights=c1 * uk, minlength=data.n_items))
+                h = (np.bincount(data.ep, weights=c2 * uk * uk, minlength=data.n_items)
+                     + np.bincount(data.en, weights=c2 * uk * uk,
+                                   minlength=data.n_items))
             else:
                 sg = data.ey if data.kind == "logistic" else 1.0
                 g = np.bincount(data.ei, weights=c1 * uk * sg, minlength=data.n_items)
                 h = np.bincount(data.ei, weights=c2 * uk * uk, minlength=data.n_items)
             g = g + 2.0 * lam_v * V[:, k]
             h = h + 2.0 * lam_v
-            step = -g / np.maximum(h, 1e-9)
-            V[:, k] += step
+            sk = -g / np.maximum(h, 1e-9)
+            step[:, k] = sk
             if data.kind == "pairwise":
-                z += (uk * (step[data.ep] - step[data.en])).astype(np.float32)
+                dz += (uk * (sk[data.ep] - sk[data.en])).astype(np.float32)
             else:
                 sg = data.ey if data.kind == "logistic" else 1.0
-                z += (uk * step[data.ei] * sg).astype(np.float32)
+                dz += (uk * sk[data.ei] * sg).astype(np.float32)
+        eta = _backtrack(data, z, dz, base)
+        if eta == 0.0:
+            break
+        V += eta * step
+        z += (eta * dz).astype(np.float32)
     return V, z
 
 
