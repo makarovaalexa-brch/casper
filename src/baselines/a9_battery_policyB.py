@@ -30,7 +30,18 @@ THE TWO ADMISSION GATES, because this crosses two harness families for the first
   Plus the free contract check the author asked for: the three rebuilt orders' K=16 test numbers
   must reproduce the banked headline figures 0.25900/0.12370, 0.24470/0.10171, 0.24467/0.11607.
 
+EXTENDED 2026-08-13 for TODO 1.3(b), the contract-scale three-outcome EDDI run. The two new rows
+(`eddi_ig3` / `eddi_ig3_zero`) are differenced against exactly the same three rebuilt static orders
+by exactly this machinery -- extended rather than forked, so no second copy of the pairing, the
+gates or the bootstrap can drift from this one. The new source npz carries TWO extra gates of its
+own: it re-ran `entropy0-static` (G2, the cross-run admission test every other source pays) AND it
+re-ran `eddi_ig`, the two-outcome row already in `tab:battery`, which must reproduce the banked
+act1 vectors per user at 0.0e+00 -- a free contract check on the whole chain, and it makes the
+two-outcome vs three-outcome comparison IN-RUN rather than cross-run. Both are asserted below.
+The source is skipped, by name, if its npz is absent, so this script still runs standalone.
+
   python src/baselines/a9_battery_policyB.py --boot 10000 --seed 98765
+  python src/baselines/a9_battery_policyB.py --label a9_battery_policyB_eddi3   # + the EDDI rows
 """
 import os
 import sys
@@ -75,7 +86,13 @@ SOURCES = {
     "dre": os.path.join(IV, "adaptive_table_dre_port_v1_per_user.npz"),
     "baldaopt": os.path.join(IV, "adaptive_table_bald_aopt_v1_per_user.npz"),
     "igcn": os.path.join(IV, "adaptive_table_igcn_port01_per_user.npz"),
+    # TODO 1.3(b), 2026-08-13: the contract-scale three-outcome EDDI run. Carries its own
+    # `entropy0-static` (G2) AND its own `eddi_ig` (the banked two-outcome row, re-derived in-run).
+    "eddi3": os.path.join(IV, "adaptive_table_eddi3_policyB_per_user.npz"),
 }
+# Sources whose npz may legitimately be absent (the script predates them); skipped BY NAME, never
+# silently. Everything else is required, exactly as before.
+OPTIONAL_SOURCES = ("eddi3",)
 
 # (display name, source, key-consumer, key-spec, type, admission)
 ARMS = [
@@ -97,6 +114,12 @@ ARMS = [
     ("BALD",                 "baldaopt",   "ours", "bald",              "value-free", "in-family"),
     ("A-optimal",            "baldaopt",   "ours", "aopt",              "value-free", "in-family"),
     ("clairvoyant oracle",   "dpe",        "ours", "dpe_oracle",          "ceiling",  "chain"),
+    # TODO 1.3(b). `latent-only info-gain (re-run)` is the SAME arm as the row above, recomputed in
+    # the eddi3 process; it is here so its intervals are read off the same machinery, and its
+    # per-user identity with the banked row is asserted as a gate before any of this is reported.
+    ("latent-only info-gain (re-run)", "eddi3", "ours", "eddi_ig",        "adaptive", "in-family"),
+    ("EDDI three-outcome (zero)",      "eddi3", "ours", "eddi_ig3_zero",  "adaptive", "in-family"),
+    ("EDDI three-outcome (signed)",    "eddi3", "ours", "eddi_ig3",       "adaptive", "in-family"),
 ]
 
 # the literature-anchored static heuristics, carried so the "gap that matters" sentences can be
@@ -147,10 +170,24 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--boot", type=int, default=10000)
     ap.add_argument("--seed", type=int, default=98765)
+    ap.add_argument("--label", default=LABEL,
+                    help="output label. A run that ADDS rows must use a fresh one -- it must never "
+                         "overwrite the banked table another document already cites (HARD RULE 11e).")
     a = ap.parse_args()
     t00 = time.time()
+    global LOGP, OUTP
+    LOGP = os.path.join(IV, f"{a.label}.log")
+    OUTP = os.path.join(IV, f"{a.label}.json")
 
-    res = {"meta": {"label": LABEL, "analysis": "A9: tab:battery greedy rows on the rebuilt "
+    # Sources present on disk. An optional one that is absent is NAMED and skipped; a required one
+    # that is absent still raises, as before.
+    have_src = {tag: os.path.exists(p) for tag, p in SOURCES.items()}
+    for tag, ok in have_src.items():
+        if not ok:
+            assert tag in OPTIONAL_SOURCES, f"required source npz missing: {SOURCES[tag]}"
+            logln(f"[source] SKIPPED (absent): {tag} -> {os.path.basename(SOURCES[tag])}")
+
+    res = {"meta": {"label": a.label, "analysis": "A9: tab:battery greedy rows on the rebuilt "
                                                 "policy-B orders, with paired CIs",
                     "boot": a.boot, "seed": a.seed,
                     "form": "paired percentile bootstrap over the per-user difference vector",
@@ -229,7 +266,10 @@ def main():
                                   ("baldaopt", SOURCES["baldaopt"], "ours", "fixedorder:entropy0"),
                                   ("igcn", SOURCES["igcn"], "ours", "entropy0-static"),
                                   ("convrescore", SOURCES["convrescore"], "rescore",
-                                   "entropy0-top16")):
+                                   "entropy0-top16"),
+                                  ("eddi3", SOURCES["eddi3"], "ours", "entropy0-static")):
+        if not have_src.get(tag, True):
+            continue
         z = np.load(path, allow_pickle=False)
         worst = 0.0
         ks = BUDGETS if tag != "gtport" else (1, 2, 4, 8)
@@ -244,6 +284,31 @@ def main():
               f"{'PASS' if worst <= 0.0 else 'REFUSED'}")
     res["gates"]["G2_cross_run_entropy0"] = g2
     assert all(v["pass"] for v in g2.values()), "G2 FAILED -- cross-run rows not admissible"
+
+    # ------------------------------------------------------- G3 BANKED-ARM GATE (TODO 1.3(b))
+    # The eddi3 run re-derived `eddi_ig`, the two-outcome row ALREADY IN `tab:battery`. If the
+    # re-run does not reproduce the banked per-user vectors exactly, the three-outcome numbers
+    # produced beside it are not on the same ruler and nothing here may be differenced.
+    # This is the "assert the banked number" contract check
+    # (memory: banked-global-greedy-is-a-policy-A-artifact).
+    if have_src.get("eddi3"):
+        z3 = np.load(SOURCES["eddi3"], allow_pickle=False)
+        g3, worst = {}, 0.0
+        for k in BUDGETS:
+            for ax in AXES:
+                v = get(z3, "ours", "eddi_ig", k, ax)
+                assert v is not None, f"eddi3 run has no eddi_ig|{k}|{ax} -- the gate cannot run"
+                d = float(np.max(np.abs(v - ref[f"ours|eddi_ig|{k}|{ax}"])))
+                g3[f"k{k}|{ax}"] = {"max_abs_per_user_diff": d,
+                                    "mean_rerun": float(v.mean()),
+                                    "mean_banked": float(ref[f"ours|eddi_ig|{k}|{ax}"].mean())}
+                worst = max(worst, d)
+        g3["worst"] = worst
+        g3["pass"] = bool(worst <= 0.0)
+        logln(f"[gate G3] eddi3 re-run of the BANKED two-outcome eddi_ig vs act1: max per-user "
+              f"|d| = {worst:.3e} {'PASS' if worst <= 0.0 else 'REFUSED'}")
+        res["gates"]["G3_banked_eddi_ig"] = g3
+        assert g3["pass"], "G3 FAILED: the re-run does not reproduce the banked two-outcome row"
 
     # ------------------------------------------------------------------ bootstrap equivalence
     probe = S[("combined", 16, "full")] - get(np.load(SOURCES["act1"]), "ours", "glm_ucb", 16,
@@ -270,9 +335,12 @@ def main():
     flush()
 
     # ------------------------------------------------------------------ the comparisons
-    zc = {tag: np.load(p, allow_pickle=False) for tag, p in SOURCES.items()}
+    zc = {tag: np.load(p, allow_pickle=False) for tag, p in SOURCES.items() if have_src[tag]}
     for name, src, cons, spec, kind, adm in ARMS + [(n, s, c, sp, k, "in-family")
                                                     for n, s, c, sp, k in HEURISTICS]:
+        if src not in zc:
+            logln(f"[arm] {name:<32} SKIPPED -- source '{src}' is absent")
+            continue
         z = zc[src]
         pts = {}
         for K in BUDGETS:
@@ -293,8 +361,27 @@ def main():
         flush()
 
     # ------------------------------------------------------------------ the narrative claims
+    # TODO 1.3(b): the head-to-head the mechanism claim actually rests on. Both variants are
+    # differenced against the two-outcome row FROM THE SAME PROCESS (G3 proves that row is the
+    # banked one), so this is an in-run paired comparison, not a cross-run one.
+    if have_src.get("eddi3"):
+        for spec, nm in (("eddi_ig3", "signed"), ("eddi_ig3_zero", "zero")):
+            for K in BUDGETS:
+                for ax in AXES:
+                    v3 = get(zc["eddi3"], "ours", spec, K, ax)
+                    v2 = get(zc["eddi3"], "ours", "eddi_ig", K, ax)
+                    if v3 is None or v2 is None:
+                        continue
+                    paired(v3, v2, a.boot, a.seed,
+                           f"three-outcome ({nm})|K{K}|{ax}|minus|two-outcome",
+                           res["vs_static"], "in-run (same process)")
+        flush()
+
     adaptive_named = ["GLM-UCB", "Thompson", "latent-only info-gain"]
-    all_adaptive = [n for n, _, _, _, k, _ in ARMS if k == "adaptive"]
+    # the "(re-run)" row is the SAME arm as "latent-only info-gain" -- counting it would double-count
+    # one selector in a claim that quantifies over selectors.
+    all_adaptive = [n for n, _, _, _, k, _ in ARMS
+                    if k == "adaptive" and not n.endswith("(re-run)")]
     for claim, arms_in in (("thirty_comparisons_three_named_adaptive", adaptive_named),
                            ("every_adaptive_selector_in_the_table", all_adaptive)):
         for comparator in STATICS:
