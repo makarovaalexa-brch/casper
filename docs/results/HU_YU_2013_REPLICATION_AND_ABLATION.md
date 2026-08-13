@@ -340,37 +340,53 @@ unaffected by anything unresolved here.**
 |---|---|
 | Leak check | answer ∩ eval pairs **0**; train ∩ eval pairs **0**; train ∩ test users **0**; test users appearing in train ratings **0** |
 | Canonical snap, reported first | most-popular .5129 / .4468; random .1011 against an **analytic .1040** — the metric implementation is verified independently of any model |
-| **Shuffle control (random-question tree)** | **RETURNED and PASSED — see §A.6.** EIP's margin does not survive replacing its criterion with a coin flip *in full*, but it does survive in part: MAP(r≥4) .5141 for random questions against EIP's .5277 at depth 3. |
+| **Shuffle control (random-question tree)** | **RETURNED. Passes at depth 3 (+0.0136 over a coin flip) and COLLAPSES by depth 5 (+0.0029) — see §A.6.** |
 | Symmetric-answers contrast | run for FixQ at all four depths — see §A.3; it reverses the depth trend monotonically |
 
 ### A.6 The shuffle control, and what it decomposes
 
-Same budget, same min-leaf, same fitting procedure, same ruler as EIP; only the split criterion is
-replaced by a uniform random draw. At depth 3, MAP(r≥4):
+Same budget, same min-leaf, same fitting procedure, same alternations, same ruler and the same paired
+candidate lists as EIP; only the split criterion is replaced by a uniform draw over the candidates
+that satisfy min-leaf. MAP(r≥4):
 
-| arm | MAP(r≥4) | vs FixQ |
+| arm | depth 3 | depth 5 |
 |---|---|---|
-| EIP (Hu & Yu's criterion) | **.5277** | +0.0367 |
-| **random-question tree** | **.5141** | +0.0231 |
-| most-popular, no interview | .5129 | — |
-| FixQ (top-k popular as the interview) | .4910 | — |
+| EIP (Hu & Yu's criterion) | **.5277** | **.5223** |
+| **RandQ (shuffle control)** | **.5141** | **.5194** |
+| most-popular, no interview | .5129 | .5129 |
+| FixQ (top-k popular as the interview) | .4910 | .4880 |
+| **EIP − RandQ** | **+0.0136** | **+0.0029** |
 
-**The control passes: EIP beats a coin flip by +0.0136**, so its split criterion is doing something
-real. But the same table decomposes EIP's advantage over FixQ in a way the paper does not:
+**Two findings, and the second is the more important one.**
 
-- **+0.0231 of the +0.0367 — roughly 63% — is having a TREE at all**, i.e. routing users into groups
-  and fitting a per-group factor. A random-question tree captures it.
-- **+0.0136 — roughly 37% — is WHICH questions the criterion picks.**
+**(1) At depth 3 the control does what a control should.** EIP beats a coin-flip criterion by +0.0136,
+so the Eq. (12) diagonal-Hessian gain is carrying real signal and the EIP cells are not uncontrolled.
+But the same column decomposes EIP's advantage over FixQ in a way the paper does not: of the +0.0367
+EIP beats FixQ by, **+0.0231 — roughly two thirds — survives replacing the split criterion with a coin
+flip.** Most of what EIP beats FixQ by is *having a conditional tree at all* — per-node re-fitted Δu,
+and questions people have actually seen — not the criterion the paper's contribution rests on.
 
-That is worth stating carefully in the chapter, because it cuts both ways. It is a genuine caveat on
-their headline ("EIP outperforms FixQ ... by 2% averagely" is majority structure, minority criterion),
-and it is a caveat we must apply to ourselves too — which is exactly why Part B's `random_ml` control
-exists and why Part B compares against a static order built by maximising the *same* objective rather
-than against popularity.
+**(2) By depth 5 the criterion's advantage is essentially gone: +0.0029.** RandQ *rises* with depth
+(.5141 → .5194) while EIP *falls* (.5277 → .5223), and they converge. **On ML-1M, under the protocol
+as literally stated, a random-question interview tree matches EIP once you ask five questions.** That
+is a finding about their method and it is recorded as one, not as a footnote.
 
-Note also that the random-question tree is essentially level with most-popular (.5141 vs .5129) while
-FixQ sits *below* it (.4910). Caveat: measured at depth 3 only, on the asymmetric ruler that matches
-the EIP cells.
+**The caveat that must travel with (2), and it is a real one.** This is measured in exactly the regime
+where most test users can answer nothing (§A.3: 0.78 answered questions at k=3). So it is a statement
+about the criterion *as evaluated under the literal protocol*, not proof that the criterion is
+worthless. The cell that separates those two readings — EIP and RandQ under `--sym-answers` at depths
+3 and 5 — is commissioned and running. Until it returns, the honest form is: *their criterion does not
+beat a random-question tree past three questions under the protocol as stated, and we do not yet know
+whether that survives fixing the answerability asymmetry.*
+
+Note also that the random-question tree is level with most-popular (.5141 vs .5129) while FixQ sits
+*below* it (.4910).
+
+**This cuts both ways, and it applies to us.** It is why Part B carries its own `random_ml` control,
+and why Part B compares against a static order built by maximising the *same* objective rather than
+against popularity. Part B's controls answer the corresponding question for our tree: `random_ml`
+reaches depth 7 with 27 leaves and 286 distinct questions — structurally richer than our tree — and
+our criterion still wins, while both published criteria lose to the static order outright.
 
 **Still running at the time of writing**, persisting one JSON per cell to
 `experiments/baselines/huyu2013/cells/`: EIP-logistic depths 8 and 10, the random-question shuffle
