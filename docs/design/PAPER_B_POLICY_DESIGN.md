@@ -1032,6 +1032,84 @@ a claim the evidence does not license.
 
 ---
 
+# PART G — THE STAGED TRAINING PLAN (Fable, 2026-08-13) — the curriculum, settled
+
+> **AUTHOR SAID (verbatim):** *"i am very confused about rl phase of policy. plz review our
+> conversation with opus about it and propose a clean training plan so: 1. we do not lose gains from
+> distillation 2. we are able to extend adaptivity deeper than 5 questions 3. we might be able to
+> discover non-myopic strategy 4. the model is learning to generalise by embedding -- my hunch is we
+> must generate heaps of training examples, and i am a bit confused about training curriculum"*
+
+**The resolution of the confusion:** RL is not an alternative to distillation; it is the last stage on
+top of it. **The curriculum is over DATA SOURCES, from dense-and-cheap to sparse-and-expensive** —
+imitation labels (unlimited, teach copying) → deeper greedy labels (cheap, teach reach) → measured-gain
+labels at diverse states (expensive, teach the value model) → reward rollouts (most expensive, weakest
+signal per example, the only source that can teach strategy). Not over interview length.
+
+**★ THE ONE GATE THAT SPANS ALL STAGES (HARD RULE 8):** after every stage, re-run the fixed check —
+the policy's own interviews on the 10,000 validation users, full+tail NDCG@10, canonical m=0 snap
+first — and **no stage may score below the previous stage's number**. This is requirement 1 made
+mechanical.
+
+## G.A Stage A — ANCHOR (done / running)
+
+E1 = the tree's exact replica (+0.02794 val, 1e-9). The two heads (Part F) training now: outcomes from
+free labels, values from the 21,943 banked gains (survivor-bias handled per the scope message). Stage
+A's val number is the floor for everything after.
+
+## G.B Stage B — REACH: deeper than 5, supervised, NO RL (requirement 2)
+
+Depth is NOT the property that needs RL (F.3). Harvest greedy labels one level below all 15 floor
+stops (**3.3 h measured**); fine-tune the policy on them **MIXED with the original tree labels** —
+replay is the anti-forgetting mechanism; grow the deeper tree on the same labels as the control. If
+the policy ≈ the deeper tree, write "re-parameterisation" and claim nothing. **4–7 h total.**
+
+## G.C Stage C — COVERAGE: the author's "heaps of examples" hunch, aimed correctly (requirement 4)
+
+The hunch is right with one refinement: the outcome head already has 2.25M free examples; **the scarce
+commodity is measured gains at DIVERSE STATES.** The tree's data (1,000 candidates × 202 on-path
+states) is the wrong SHAPE for a value regressor — it wants **few candidates × thousands of states**.
+Generate off-path states by ε-perturbing the policy's own interviews (the author's explore/exploit
+instinct, placed where it belongs: generating training states, never selecting questions); measure a
+small pre-registered candidate set at each; retrain the value head. This is what makes
+embedding-generalisation real; the held-out-question test and 10/25/50/100% curves (F.5) slot in here.
+**15–50 h. ⚠ The per-state candidate subset is a SAMPLING decision — HARD RULE 1 sign-off required
+from the author before any run.** (Selection at inference still scores all 19,390 — only the value
+head's TRAINING set is sparse by design.)
+
+## G.D Stage D — STRATEGY: one bounded RL attempt (requirement 3), doubly guarded
+
+**Trigger (pre-registered, unchanged from F.3):** opens ONLY if Stage B's deeper-greedy control
+saturates while floor-stop gain demonstrably remains. Everything measured says the remaining prize
+looks like depth, not strategy (polish +0.002@q16/−0.029@q2; all 15 stops floor stops) — Stage D
+exists to answer the question, not because I expect it to fire.
+
+1. **★ PREFIX LOCK:** turns 1–5 frozen to the distilled policy; RL adjusts turns 6–16 only.
+   Requirement 1 becomes STRUCTURAL (the anchor's behaviour cannot be lost where it earns its gain)
+   and the credit horizon shrinks 16 → 11.
+2. **★ DENSE MEASURED REWARD:** per-turn reward = the CHANGE in measured full NDCG@10 caused by that
+   turn. The per-turn rewards telescope to the final NDCG — same objective, no surrogate, credit
+   spread so the gradient can see which question helped. ~16× reward cost per rollout, paid for by
+   needing far fewer steps.
+3. Variance: RLOO leave-one-out baseline. **One attempt, ~19–25 h.** Failure is reported under HARD
+   RULE 6, never silently retried.
+
+## G.E Requirements → owners
+
+| requirement | owner |
+|---|---|
+| 1. never lose distillation gains | the spanning regression gate + replay (B) + prefix lock (D) |
+| 2. deeper than 5 | Stage B, supervised, with its own control |
+| 3. non-myopic strategy | Stage D only, gated on B's control saturating with gain left |
+| 4. generalise by embedding | shared frozen descriptors (in place) + Stage C's state diversity — the missing ingredient is DIVERSITY, not capacity |
+
+**Chapter caveat, binding:** strategy has NO measured evidence of headroom here; the policy is never
+described as strategic unless Stage D separates (F.3 stands).
+
+**Immediate sequence:** two-head run finishes → Stage B batch → author's Stage C sampling sign-off.
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
