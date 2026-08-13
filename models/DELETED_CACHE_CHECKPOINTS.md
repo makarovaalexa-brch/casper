@@ -25,6 +25,31 @@ chapter still cites die if this file is lost?*
 - `recvae_ml25m.pt` is on the **retired arena ruler**, whose figures (0.5078/0.5230) the project rule
   says never to cite.
 
+## ⚠ Correction, 2026-08-13 — one deleted "duplicate" was load-bearing
+
+`.cache/baselines/recvae_ml25m_liang.pt` was removed as an MD5-verified duplicate of
+`models/baselines_ml25m_liang/recvae_ml25m_liang.pt`. It is **not** a dead copy: `RECVAE_CKPT` in
+`src/instrument/train_tower_t2.py` hard-codes that `.cache` path, and every build of the certified
+tower environment loads it. With the file gone, `policy_traj.py --mode gen` died with `SystemExit`
+and exit code 1 — and, because `SystemExit` prints only its message, **with no traceback**, which is
+how it read as a benign warning twice before being diagnosed.
+
+Restored 2026-08-13 as a **hard link** to the `models/` copy (zero additional bytes on disk), MD5
+re-verified equal on both paths (`903E25E6E7050965B7CC5E8912F93D1D`).
+
+**The lesson for the next disk sweep:** byte-identity to a surviving copy is not sufficient grounds
+for deletion. The test is whether any code path *names that path*. Grep for the filename before
+deleting a cached checkpoint.
+
+## ⚠ CORRECTION (2026-08-13, same day): one "duplicate" was a LIVE DEPENDENCY
+
+`.cache/baselines/recvae_ml25m_liang.pt` was deleted as an MD5-verified duplicate of the rescued copy
+in `models/baselines_ml25m_liang/`. **That path is load-bearing:** `train_tower_t2.load_recvae_teacher`
+hard-exits when it is missing, which killed the policy harvest twice with exit 1 and no traceback.
+**Restored as a hardlink** to the rescued copy (zero additional disk), MD5 re-verified equal on both
+paths. Lesson: *byte-identity proves a file is redundant as DATA, not that its PATH is unreferenced* —
+grep for the path before deleting a "duplicate", not just hash the content.
+
 ## What was deliberately NOT deleted
 
 - `models/baselines_ml25m_liang/*.pt` — the five rescued checkpoints that back live `tab:battery`
