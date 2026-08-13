@@ -229,6 +229,92 @@ def label_block(D, u, P, ni):
     return y
 
 
+def user_block(D, phi_t, u, P, ni, lab_users=None):
+    r"""★ ALL 16 POSITIONS OF A SET OF USERS, IN ONE READ. The batch unit is the USER, not the
+    (user, position) pair.
+
+    WHY THIS EXISTS, measured rather than assumed. The first version batched (user, position) pairs
+    drawn uniformly, which meant 1,024 RANDOM row reads per step from the 1.8 GB state memmap. On this
+    box that working set stops being resident partway through an epoch and the run does not merely
+    slow down, it DEGRADES: per-100-step wall time went 5.3, 5.2, 5.1, 5.3, 9.5, 14.1, 15.6, 15.0
+    minutes, projected epoch time climbed monotonically 103.6 -> 147.9 min and was still rising, at
+    ~49,000 page faults per second. That is HARD RULE 11c's failure mode.
+
+    Batching by user fixes the access pattern rather than the constant: `Z[u]` is a contiguous
+    (n_users, 16, d) read, every page fetched is fully used, and the (n_users, 19,390) outcome block
+    is built ONCE for all 16 positions instead of 16 times. Coverage is identical -- every
+    (user, position) pair appears exactly once per epoch, asserted in `selftest`.
+    """
+    nu = len(u)
+    T = TOTAL_L - 1
+    Z = np.ascontiguousarray(D["Z"][u]).astype(np.float32)            # (nu, 16, d) ONE read
+    lab = D["label_idx"][u]; out = D["outcome"][u]
+    hq = np.zeros((nu, TOTAL_L, T), np.int64)
+    ho = np.zeros((nu, TOTAL_L, T), np.int64)
+    hm = np.zeros((nu, TOTAL_L, T), np.float32)
+    for j in range(T):
+        hq[:, j + 1:, j] = lab[:, j][:, None]                          # slot j is filled iff j < t
+        ho[:, j + 1:, j] = out[:, j][:, None]
+        hm[:, j + 1:, j] = 1.0
+    pos = np.tile(np.stack([np.arange(TOTAL_L), TOTAL_L - np.arange(TOTAL_L)], 1)
+                  .astype(np.float32), (nu, 1, 1))
+    y = label_block(D, u if lab_users is None else lab_users, P, ni)   # (nu, P) int8, built ONCE
+    # the already-asked cells, as an index list rather than a (nu*16, P) mask: 120 per user, so
+    # 7,680 for a 64-user chunk against a 20 MB boolean array (HARD RULE 11c again, smaller scale)
+    ur, tr_, qr = np.nonzero(hm)
+    rr = ur * TOTAL_L + tr_
+    cc = hq[ur, tr_, qr]
+    # DE-DUPLICATE. The tree asks 16 distinct questions per user, so in real data there are none;
+    # but the count is the loss denominator, and a denominator that can silently double-count is
+    # exactly the class of bug that makes two arms incomparable. Deduped, it cannot.
+    flat = np.unique(rr.astype(np.int64) * P + cc.astype(np.int64))
+    asked_rc = (flat // P, flat % P)
+    return {"z": torch.from_numpy(Z.reshape(nu * TOTAL_L, -1)),
+            "hp": torch.from_numpy(phi_t[hq.reshape(nu * TOTAL_L, T)]),
+            "ho": torch.from_numpy(ho.reshape(nu * TOTAL_L, T)),
+            "hm": torch.from_numpy(hm.reshape(nu * TOTAL_L, T)),
+            "pos": torch.from_numpy(pos.reshape(nu * TOTAL_L, 2)),
+            "y": torch.from_numpy(y), "asked_rc": asked_rc, "nu": nu, "P": P}
+
+
+def block_ce(s, blk, want_acc=False):
+    """Cross-entropy over (3, nu*16, P) logits against the (nu, P) outcome block.
+
+    The targets are NOT repeated to (nu*16, P): the label is a function of (user, question) and not
+    of the position, so `picked` is formed by three broadcast masks instead of a 159 MB int64 gather.
+    Already-asked cells are zeroed out of the loss and out of the denominator.
+    """
+    nu, P, T = blk["nu"], blk["P"], TOTAL_L
+    yrep = blk["y"].repeat_interleave(T, 0).long()                     # (nu*T, P)
+    l = torch.logsumexp(s, 0) - s.gather(0, yrep[None]).squeeze(0)     # (nu*T, P)
+    n = nu * T * P - len(blk["asked_rc"][0])
+    # subtract the already-asked cells rather than masking them: indexing is autograd-safe and
+    # costs ~7,680 reads against a 20 MB boolean array.
+    tot = l.sum() - l[blk["asked_rc"]].sum()
+    if not want_acc:
+        return tot / n, n
+    with torch.no_grad():
+        hit = (argmax3(s) == yrep)
+        acc = float(hit.sum() - hit[blk["asked_rc"]].sum()) / n
+    return tot / n, acc
+
+
+def argmax3(s):
+    r"""argmax over the THREE-element outcome axis of a (3, B, P) tensor.
+
+    ★ Written out because `torch.argmax(s, 0)` is pathological here: on (3, 1024, 19390) it takes
+    **5.5 seconds**, against 0.08 s for `gather` and 0.8 s for `logsumexp` on the same tensor. It was
+    the single largest cost in the training step and it is a DIAGNOSTIC -- the accuracy readout, not
+    the loss. Three comparisons over (B, P) do the same job in ~0.1 s.
+
+    This is the same class of error as the batch-assembly one: the original bench measured the loss
+    and the backward pass but not the accuracy line sitting next to them.
+    """
+    best01 = torch.where(s[0] >= s[1], 0, 1)
+    v01 = torch.maximum(s[0], s[1])
+    return torch.where(v01 >= s[2], best01, 2)
+
+
 def state_batch(D, phi_t, u, t):
     """z + the EXPLICIT ternary history + position, exactly the E1 state encoder's contract."""
     B = len(u)
@@ -337,7 +423,7 @@ class Acc:
         yy = yt.ravel()[kf]
         M = int(yy.numel())
         self.n[t] += M
-        pred = probs.argmax(0).ravel()[kf]
+        pred = argmax3(probs).ravel()[kf]
         self.correct[t] += float((pred == yy).sum())
         py = probs.reshape(N_OUTCOMES, -1)[yy, torch.nonzero(kf, as_tuple=True)[0]]
         self.ce[t] += float(-torch.log(py.clamp_min(1e-12)).sum())
@@ -408,16 +494,19 @@ def evaluate(model, D, users, phi_t, P, ni, pop=None, glob=None, batch=384, full
         nb = 0
         for st in range(0, len(users), batch):
             u = users[st:st + batch]
-            yt = torch.from_numpy(label_block(D, u, P, ni)).long()
+            blk = user_block(D, phi_t, u, P, ni)            # ONE contiguous read, all 16 positions
+            nu = len(u)
+            yt = blk["y"].long()
+            keep = torch.ones(nu * TOTAL_L, P, dtype=torch.bool)
+            keep[blk["asked_rc"]] = False
+            keep = keep.view(nu, TOTAL_L, P)
+            s = model(blk["z"], blk["hp"], blk["ho"], blk["hm"], blk["pos"], kv=kv)
+            pr = torch.softmax(s.view(N_OUTCOMES, nu, TOTAL_L, P), 0)
             for t in range(TOTAL_L):
-                tt = np.full(len(u), t, np.int64)
-                z, hp, ho, hm, ps, hq, hmask = state_batch(D, phi_t, u, tt)
-                keep = asked_mask(hq, hmask, len(u), P)
-                pr = torch.softmax(model(z, hp, ho, hm, ps, kv=kv), 0)
-                accs["head"].add(t, pr, yt, keep)
+                accs["head"].add(t, pr[:, :, t], yt, keep[:, t])
                 if pop_t is not None and full:
-                    accs["pop"].add(t, pop_t[:, None, :].expand(-1, len(u), -1), yt, keep)
-                    accs["global"].add(t, glob_t[:, None, None].expand(-1, len(u), P), yt, keep)
+                    accs["pop"].add(t, pop_t[:, None, :].expand(-1, nu, -1), yt, keep[:, t])
+                    accs["global"].add(t, glob_t[:, None, None].expand(-1, nu, P), yt, keep[:, t])
             nb += 1
             if nb % log_every == 0:
                 log(f"  [eval] {st + len(u):,}/{len(users):,} users "
@@ -508,7 +597,8 @@ def train(args):
             "control's ceiling is exactly the popularity baseline. It must not beat it.")
 
     n_ex = len(fit) * TOTAL_L
-    steps = int(np.ceil(n_ex / args.batch))
+    ub = max(int(args.batch) // TOTAL_L, 1)                 # users per step; 16 positions each
+    steps = int(np.ceil(len(fit) / ub))
     hist = []
     best = {"ce": 1e9}
     tag = f"{args.arm}_{args.state}{'_nopos' if args.no_pos else ''}" \
@@ -520,23 +610,20 @@ def train(args):
     # lives after the loop -- so this path exists to recover it if the run has to be stopped early.
     for ep in ([] if args.eval_only else range(1, args.epochs + 1)):
         model.train()
-        pe = rng.permutation(n_ex)
+        pe = rng.permutation(len(fit))                      # shuffle USERS; all 16 positions travel
         tot = 0.0; seen = 0; hit = 0
         te = time.time()
         for si in range(steps):
-            e = pe[si * args.batch:(si + 1) * args.batch]
-            if not len(e):
+            u = fit[np.sort(pe[si * ub:(si + 1) * ub])]     # sorted -> the memmap read is monotone
+            if not len(u):
                 continue
-            u = fit[e // TOTAL_L]; t = (e % TOTAL_L).astype(np.int64)
-            z, hp, ho, hm, ps, hq, hmask = state_batch(D, phi_t, u, t)
-            yt = torch.from_numpy(label_block(D, lab_user[u], P, ni)).long()
-            keep = asked_mask(hq, hmask, len(u), P)
-            s = model(z, hp, ho, hm, ps, phi=phi_g)
-            loss = masked_ce(s, yt, keep)
+            blk = user_block(D, phi_t, u, P, ni,
+                             lab_users=None if args.arm == "main" else lab_user[u])
+            s = model(blk["z"], blk["hp"], blk["ho"], blk["hm"], blk["pos"], phi=phi_g)
+            loss, acc = block_ce(s, blk, want_acc=True)
             opt.zero_grad(); loss.backward(); opt.step()
-            tot += float(loss) * len(e); seen += len(e)
-            with torch.no_grad():
-                hit += float((((s.argmax(0) == yt) & keep).sum() / keep.sum())) * len(e)
+            ne = len(u) * TOTAL_L
+            tot += float(loss) * ne; seen += ne; hit += acc * ne
             if (si + 1) % args.log_every == 0:
                 el = (time.time() - te) / 60
                 log(f"[ep{ep} {si + 1}/{steps}] loss {tot / seen:.5f} acc {hit / seen:.5f} "
@@ -666,8 +753,39 @@ def selftest():
         exact = (rk[lb].sum() - lb.sum() * (lb.sum() + 1) / 2) / (lb.sum() * (~lb).sum())
         assert abs(exact - r["auc_ovr"][OUT_NAMES[o]]) < 2e-3, \
             f"binned AUC {r['auc_ovr'][OUT_NAMES[o]]:.5f} != exact rank AUC {exact:.5f}"
+    # ---- the user-block batching: coverage, and agreement with the per-example path -------------
+    d_z, d_phi = 12, 9
+    D2 = dict(D)
+    D2["Z"] = rng.standard_normal((n, TOTAL_L, d_z)).astype(np.float32)
+    D2["label_idx"] = rng.integers(0, P, (n, TOTAL_L)).astype(np.int64)
+    D2["outcome"] = rng.integers(0, N_OUTCOMES, (n, TOTAL_L)).astype(np.int8)
+    phi = rng.standard_normal((P, d_phi)).astype(np.float32)
+    uu = np.arange(6)
+    blk = user_block(D2, phi, uu, P, ni)
+    # (1) COVERAGE: every (user, position) pair exactly once, in the documented order
+    assert blk["z"].shape == (len(uu) * TOTAL_L, d_z)
+    for a, r in enumerate(uu):
+        for t in range(TOTAL_L):
+            i = a * TOTAL_L + t
+            assert np.allclose(blk["z"][i].numpy(), D2["Z"][r, t]), "user_block row order is wrong"
+            assert float(blk["hm"][i].sum()) == t, "history length != position"
+            assert np.array_equal(blk["ho"][i, :t].numpy(), D2["outcome"][r, :t]), "history outcomes"
+    # (2) the asked-cell index list is deduped and never exceeds the asked-question count
+    assert len(blk["asked_rc"][0]) <= len(uu) * (TOTAL_L * (TOTAL_L - 1) // 2)
+    assert len(set(zip(*[a.tolist() for a in blk["asked_rc"]]))) == len(blk["asked_rc"][0])
+    # (3) block_ce agrees with the per-example masked_ce on identical inputs
+    s = torch.randn(N_OUTCOMES, len(uu) * TOTAL_L, P)
+    keep = torch.ones(len(uu) * TOTAL_L, P, dtype=torch.bool)
+    keep[blk["asked_rc"]] = False
+    yrep = blk["y"].repeat_interleave(TOTAL_L, 0).long()
+    got, _acc = block_ce(s, blk, want_acc=True)
+    want = masked_ce(s, yrep, keep.float())
+    assert abs(float(got) - float(want)) < 1e-5, \
+        f"block_ce {float(got):.7f} != masked_ce {float(want):.7f} on identical inputs"
     log("[selftest] PASS: sparse->dense labels, exact per-question priors, masked cross-entropy "
-        "against the library form, and binned AUC against the exact rank AUC")
+        "against the library form, binned AUC against the exact rank AUC, and the user-block "
+        "batching (coverage of every (user, position) pair, the asked-cell index list, and "
+        "block_ce == masked_ce)")
     return True
 
 
@@ -719,7 +837,8 @@ def main():
     ap.add_argument("--no_pos", action="store_true")
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--batch", type=int, default=1024)
-    ap.add_argument("--eval_batch", type=int, default=384)
+    ap.add_argument("--eval_batch", type=int, default=32,
+                    help="USERS per evaluation block (all 16 positions travel together)")
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--d_k", type=int, default=64)
     ap.add_argument("--d_h", type=int, default=256)
