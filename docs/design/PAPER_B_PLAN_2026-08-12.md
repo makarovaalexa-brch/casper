@@ -348,6 +348,12 @@ and do not schedule them ahead of workstream E.
 
 ## 6. Workstream E — the policy that beats the tree (1.16, author priority)
 
+> **★★★ THE DESIGN SHEET AND THE FULL OPTION MAP LIVE IN `docs/design/PAPER_B_POLICY_DESIGN.md`**
+> (2026-08-13, author: *"do not train yet, just document all ideas"*). It supersedes this section as
+> the working document: exact Ns, measured costs, the MDE, the gates, the abandon conditions, and every
+> rejected option with its reason. This section stays as the plan-level summary. Code committed and
+> **unrun**: `src/instrument/policy_labels.py` (label extraction) + `src/instrument/policy_net.py`.
+
 Why the June attempts sat below entropy (all three root causes MEASURED then, all fixed now):
 
 | root cause (proven Jun 2026) | fix now |
