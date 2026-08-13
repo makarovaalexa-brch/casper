@@ -784,6 +784,13 @@ def train(args):
     for t in range(TOTAL_L):
         m = (best["asked"][:, t] != Dva["label_idx"][:, t]) & (dev == TOTAL_L)
         dev[m] = t
+    # ...and the LAST position at which it still differs, which is the other half of "did phase 3
+    # actually extend anything": E1 had frac_never_deviates = 1.0000, so both numbers were degenerate.
+    diff_pos = (best["asked"] != Dva["label_idx"])
+    last = np.full(len(rows), -1, np.int64)
+    for t in range(TOTAL_L):
+        last[diff_pos[:, t]] = t
+    per_pos_dev = [float(diff_pos[:, t].mean()) for t in range(TOTAL_L)]
     gates = {
         "G-E1e_canonical_snap": {"val_m0_full": f0, "expected": VAL_M0_FULL, "pass": True},
         "G-E1a_fidelity": {"top1": best["ag"]["top1"], "bar": 0.50,
@@ -803,7 +810,15 @@ def train(args):
         "covariate_shift": {
             "mean_first_deviation_position": float(dev.mean()),
             "frac_never_deviates": float((dev == TOTAL_L).mean()),
-            "deviation_position_histogram": [int((dev == t).sum()) for t in range(TOTAL_L + 1)]},
+            "deviation_position_histogram": [int((dev == t).sum()) for t in range(TOTAL_L + 1)],
+            "last_deviation_position_histogram": [int((last == t).sum()) for t in range(TOTAL_L)],
+            "mean_last_deviation_position_among_deviators":
+                float(last[last >= 0].mean()) if (last >= 0).any() else None,
+            "frac_users_differing_at_each_position": per_pos_dev,
+            "n_positions_differing_mean": float(diff_pos.sum(1).mean()),
+            "reference": ("E1 measured frac_never_deviates = 1.0000 -- a perfect imitator never leaves "
+                          "the teacher's trajectory. If phase 3 does not move this number it has not "
+                          "extended anything, and that is what the artifact must say.")},
         "channel_mix": {"policy_concept_share": channel_mix(best["asked"], pool),
                         "tree_concept_share": channel_mix(Dva["label_idx"], pool)},
     }
