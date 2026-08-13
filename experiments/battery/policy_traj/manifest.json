@@ -1,0 +1,5399 @@
+{
+ "sig": {
+  "v": 1,
+  "split": "train",
+  "n_train": 140768,
+  "total_L": 16,
+  "d": 200,
+  "tower": "t2i26c_ep31.pt",
+  "conc_ckpt": "concept_cv3_ep08.pt",
+  "mask_policy": "B",
+  "pool_sha1": "ed67fe28789be5214304370c25987cadb1127e25",
+  "n_pool": 1000,
+  "tree": "ndcgtree.json+ndcgtree16.json",
+  "tree_nodes": 22,
+  "val_pool_contract": {
+   "v": 1,
+   "policy": "B",
+   "n_rows": 10000,
+   "n_items": 18359,
+   "nnz": 1356475,
+   "per_user": 135.6475,
+   "fp": "c282962b49a2d67ef47ff07544519f20"
+  },
+  "answer_half": "liang 80/20 seed 98765 (train_split.py)",
+  "chunk": 10000
+ },
+ "done": {
+  "0_10000": {
+   "n_users": 10000,
+   "minutes": 0.99,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1861,
+    "root.noanswer.dislike": 469,
+    "root.noanswer.like": 354,
+    "root.dislike.noanswer": 547,
+    "root.dislike.dislike.noanswer": 556,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 190,
+    "root.dislike.dislike.dislike.noanswer.dislike": 693,
+    "root.dislike.dislike.dislike.noanswer.like": 301,
+    "root.dislike.dislike.dislike.dislike": 351,
+    "root.dislike.dislike.dislike.like": 807,
+    "root.dislike.dislike.like": 633,
+    "root.dislike.like": 750,
+    "root.like.noanswer": 1187,
+    "root.like.dislike": 309,
+    "root.like.like": 992
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.57913125,
+    "interview_answer_rate_by_position": [
+     0.7316,
+     0.6405,
+     0.6554,
+     0.6196,
+     0.6638,
+     0.7083,
+     0.6678,
+     0.6868,
+     0.5139,
+     0.6571,
+     0.4596,
+     0.3801,
+     0.5034,
+     0.3643,
+     0.4643,
+     0.5496
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.2661,
+    "outcome_mix": {
+     "like": 0.1902625,
+     "dislike": 0.38886875,
+     "noanswer": 0.42086875
+    },
+    "pool_item_answer_rate": 0.11690519999999999,
+    "pool_concept_answer_rate": 0.7964552,
+    "channel_mix_of_labels": 0.5485
+   },
+   "partitions": {
+    "root": {
+     "like": 2488,
+     "dislike": 4828,
+     "noanswer": 2684
+    },
+    "root.noanswer": {
+     "like": 354,
+     "dislike": 469,
+     "noanswer": 1861
+    },
+    "root.dislike": {
+     "like": 750,
+     "dislike": 3531,
+     "noanswer": 547
+    },
+    "root.dislike.dislike": {
+     "like": 633,
+     "dislike": 2342,
+     "noanswer": 556
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 807,
+     "dislike": 351,
+     "noanswer": 1184
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 301,
+     "dislike": 693,
+     "noanswer": 190
+    },
+    "root.like": {
+     "like": 992,
+     "dislike": 309,
+     "noanswer": 1187
+    }
+   }
+  },
+  "10000_20000": {
+   "n_users": 10000,
+   "minutes": 1.14,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1788,
+    "root.noanswer.dislike": 417,
+    "root.noanswer.like": 331,
+    "root.dislike.noanswer": 531,
+    "root.dislike.dislike.noanswer": 576,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 214,
+    "root.dislike.dislike.dislike.noanswer.dislike": 745,
+    "root.dislike.dislike.dislike.noanswer.like": 357,
+    "root.dislike.dislike.dislike.dislike": 369,
+    "root.dislike.dislike.dislike.like": 725,
+    "root.dislike.dislike.like": 634,
+    "root.dislike.like": 729,
+    "root.like.noanswer": 1218,
+    "root.like.dislike": 345,
+    "root.like.like": 1021
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.58146875,
+    "interview_answer_rate_by_position": [
+     0.7464,
+     0.6463,
+     0.664,
+     0.6097,
+     0.6599,
+     0.7107,
+     0.6687,
+     0.6827,
+     0.5142,
+     0.657,
+     0.4581,
+     0.3818,
+     0.5152,
+     0.3691,
+     0.4693,
+     0.5504
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.3035,
+    "outcome_mix": {
+     "like": 0.1926375,
+     "dislike": 0.38883125,
+     "noanswer": 0.41853125
+    },
+    "pool_item_answer_rate": 0.1168802,
+    "pool_concept_answer_rate": 0.8009,
+    "channel_mix_of_labels": 0.54769375
+   },
+   "partitions": {
+    "root": {
+     "like": 2584,
+     "dislike": 4880,
+     "noanswer": 2536
+    },
+    "root.noanswer": {
+     "like": 331,
+     "dislike": 417,
+     "noanswer": 1788
+    },
+    "root.dislike": {
+     "like": 729,
+     "dislike": 3620,
+     "noanswer": 531
+    },
+    "root.dislike.dislike": {
+     "like": 634,
+     "dislike": 2410,
+     "noanswer": 576
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 725,
+     "dislike": 369,
+     "noanswer": 1316
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 357,
+     "dislike": 745,
+     "noanswer": 214
+    },
+    "root.like": {
+     "like": 1021,
+     "dislike": 345,
+     "noanswer": 1218
+    }
+   }
+  },
+  "20000_30000": {
+   "n_users": 10000,
+   "minutes": 1.03,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1762,
+    "root.noanswer.dislike": 458,
+    "root.noanswer.like": 373,
+    "root.dislike.noanswer": 482,
+    "root.dislike.dislike.noanswer": 541,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 202,
+    "root.dislike.dislike.dislike.noanswer.dislike": 712,
+    "root.dislike.dislike.dislike.noanswer.like": 336,
+    "root.dislike.dislike.dislike.dislike": 346,
+    "root.dislike.dislike.dislike.like": 767,
+    "root.dislike.dislike.like": 603,
+    "root.dislike.like": 794,
+    "root.like.noanswer": 1267,
+    "root.like.dislike": 344,
+    "root.like.like": 1013
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.5801,
+    "interview_answer_rate_by_position": [
+     0.7407,
+     0.6489,
+     0.6757,
+     0.6096,
+     0.6626,
+     0.7093,
+     0.656,
+     0.6852,
+     0.513,
+     0.6486,
+     0.4562,
+     0.373,
+     0.514,
+     0.3681,
+     0.4634,
+     0.5573
+    ],
+    "users_answering_nothing": 0.0001,
+    "mean_answered_of_16": 9.2816,
+    "outcome_mix": {
+     "like": 0.19273125,
+     "dislike": 0.38736875,
+     "noanswer": 0.4199
+    },
+    "pool_item_answer_rate": 0.1160484,
+    "pool_concept_answer_rate": 0.799305,
+    "channel_mix_of_labels": 0.54674375
+   },
+   "partitions": {
+    "root": {
+     "like": 2624,
+     "dislike": 4783,
+     "noanswer": 2593
+    },
+    "root.noanswer": {
+     "like": 373,
+     "dislike": 458,
+     "noanswer": 1762
+    },
+    "root.dislike": {
+     "like": 794,
+     "dislike": 3507,
+     "noanswer": 482
+    },
+    "root.dislike.dislike": {
+     "like": 603,
+     "dislike": 2363,
+     "noanswer": 541
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 767,
+     "dislike": 346,
+     "noanswer": 1250
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 336,
+     "dislike": 712,
+     "noanswer": 202
+    },
+    "root.like": {
+     "like": 1013,
+     "dislike": 344,
+     "noanswer": 1267
+    }
+   }
+  },
+  "30000_40000": {
+   "n_users": 10000,
+   "minutes": 1.04,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1721,
+    "root.noanswer.dislike": 425,
+    "root.noanswer.like": 367,
+    "root.dislike.noanswer": 562,
+    "root.dislike.dislike.noanswer": 571,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 219,
+    "root.dislike.dislike.dislike.noanswer.dislike": 745,
+    "root.dislike.dislike.dislike.noanswer.like": 327,
+    "root.dislike.dislike.dislike.dislike": 355,
+    "root.dislike.dislike.dislike.like": 720,
+    "root.dislike.dislike.like": 682,
+    "root.dislike.like": 779,
+    "root.like.noanswer": 1241,
+    "root.like.dislike": 294,
+    "root.like.like": 992
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.57906875,
+    "interview_answer_rate_by_position": [
+     0.7487,
+     0.6476,
+     0.6716,
+     0.5945,
+     0.6566,
+     0.7033,
+     0.655,
+     0.6812,
+     0.5197,
+     0.6628,
+     0.4508,
+     0.3732,
+     0.5119,
+     0.3749,
+     0.4684,
+     0.5449
+    ],
+    "users_answering_nothing": 0.0001,
+    "mean_answered_of_16": 9.2651,
+    "outcome_mix": {
+     "like": 0.19235625,
+     "dislike": 0.3867125,
+     "noanswer": 0.42093125
+    },
+    "pool_item_answer_rate": 0.11577559999999999,
+    "pool_concept_answer_rate": 0.7964446,
+    "channel_mix_of_labels": 0.54889375
+   },
+   "partitions": {
+    "root": {
+     "like": 2527,
+     "dislike": 4960,
+     "noanswer": 2513
+    },
+    "root.noanswer": {
+     "like": 367,
+     "dislike": 425,
+     "noanswer": 1721
+    },
+    "root.dislike": {
+     "like": 779,
+     "dislike": 3619,
+     "noanswer": 562
+    },
+    "root.dislike.dislike": {
+     "like": 682,
+     "dislike": 2366,
+     "noanswer": 571
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 720,
+     "dislike": 355,
+     "noanswer": 1291
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 327,
+     "dislike": 745,
+     "noanswer": 219
+    },
+    "root.like": {
+     "like": 992,
+     "dislike": 294,
+     "noanswer": 1241
+    }
+   }
+  },
+  "40000_50000": {
+   "n_users": 10000,
+   "minutes": 1.16,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1784,
+    "root.noanswer.dislike": 428,
+    "root.noanswer.like": 369,
+    "root.dislike.noanswer": 518,
+    "root.dislike.dislike.noanswer": 559,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 193,
+    "root.dislike.dislike.dislike.noanswer.dislike": 738,
+    "root.dislike.dislike.dislike.noanswer.like": 324,
+    "root.dislike.dislike.dislike.dislike": 359,
+    "root.dislike.dislike.dislike.like": 817,
+    "root.dislike.dislike.like": 617,
+    "root.dislike.like": 801,
+    "root.like.noanswer": 1168,
+    "root.like.dislike": 330,
+    "root.like.like": 995
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.5829875,
+    "interview_answer_rate_by_position": [
+     0.7419,
+     0.653,
+     0.6639,
+     0.6117,
+     0.6598,
+     0.7198,
+     0.6683,
+     0.6785,
+     0.5209,
+     0.6615,
+     0.4591,
+     0.3914,
+     0.5135,
+     0.3659,
+     0.4697,
+     0.5489
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.3278,
+    "outcome_mix": {
+     "like": 0.19165,
+     "dislike": 0.3913375,
+     "noanswer": 0.4170125
+    },
+    "pool_item_answer_rate": 0.1174776,
+    "pool_concept_answer_rate": 0.798808,
+    "channel_mix_of_labels": 0.55050625
+   },
+   "partitions": {
+    "root": {
+     "like": 2493,
+     "dislike": 4926,
+     "noanswer": 2581
+    },
+    "root.noanswer": {
+     "like": 369,
+     "dislike": 428,
+     "noanswer": 1784
+    },
+    "root.dislike": {
+     "like": 801,
+     "dislike": 3607,
+     "noanswer": 518
+    },
+    "root.dislike.dislike": {
+     "like": 617,
+     "dislike": 2431,
+     "noanswer": 559
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 817,
+     "dislike": 359,
+     "noanswer": 1255
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 324,
+     "dislike": 738,
+     "noanswer": 193
+    },
+    "root.like": {
+     "like": 995,
+     "dislike": 330,
+     "noanswer": 1168
+    }
+   }
+  },
+  "50000_60000": {
+   "n_users": 10000,
+   "minutes": 1.26,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1755,
+    "root.noanswer.dislike": 429,
+    "root.noanswer.like": 318,
+    "root.dislike.noanswer": 549,
+    "root.dislike.dislike.noanswer": 556,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 209,
+    "root.dislike.dislike.dislike.noanswer.dislike": 728,
+    "root.dislike.dislike.dislike.noanswer.like": 340,
+    "root.dislike.dislike.dislike.dislike": 340,
+    "root.dislike.dislike.dislike.like": 825,
+    "root.dislike.dislike.like": 603,
+    "root.dislike.like": 745,
+    "root.like.noanswer": 1250,
+    "root.like.dislike": 331,
+    "root.like.like": 1022
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.5822375,
+    "interview_answer_rate_by_position": [
+     0.7498,
+     0.6446,
+     0.6686,
+     0.6087,
+     0.6586,
+     0.7043,
+     0.6606,
+     0.6836,
+     0.5228,
+     0.6572,
+     0.4613,
+     0.3874,
+     0.5084,
+     0.3691,
+     0.4714,
+     0.5594
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.3158,
+    "outcome_mix": {
+     "like": 0.1918375,
+     "dislike": 0.3904,
+     "noanswer": 0.4177625
+    },
+    "pool_item_answer_rate": 0.11761060000000001,
+    "pool_concept_answer_rate": 0.7985714,
+    "channel_mix_of_labels": 0.5475875
+   },
+   "partitions": {
+    "root": {
+     "like": 2603,
+     "dislike": 4895,
+     "noanswer": 2502
+    },
+    "root.noanswer": {
+     "like": 318,
+     "dislike": 429,
+     "noanswer": 1755
+    },
+    "root.dislike": {
+     "like": 745,
+     "dislike": 3601,
+     "noanswer": 549
+    },
+    "root.dislike.dislike": {
+     "like": 603,
+     "dislike": 2442,
+     "noanswer": 556
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 825,
+     "dislike": 340,
+     "noanswer": 1277
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 340,
+     "dislike": 728,
+     "noanswer": 209
+    },
+    "root.like": {
+     "like": 1022,
+     "dislike": 331,
+     "noanswer": 1250
+    }
+   }
+  },
+  "60000_70000": {
+   "n_users": 10000,
+   "minutes": 1.35,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1775,
+    "root.noanswer.dislike": 453,
+    "root.noanswer.like": 344,
+    "root.dislike.noanswer": 503,
+    "root.dislike.dislike.noanswer": 587,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 212,
+    "root.dislike.dislike.dislike.noanswer.dislike": 719,
+    "root.dislike.dislike.dislike.noanswer.like": 358,
+    "root.dislike.dislike.dislike.dislike": 378,
+    "root.dislike.dislike.dislike.like": 759,
+    "root.dislike.dislike.like": 650,
+    "root.dislike.like": 717,
+    "root.like.noanswer": 1219,
+    "root.like.dislike": 318,
+    "root.like.like": 1008
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.58095625,
+    "interview_answer_rate_by_position": [
+     0.7428,
+     0.6503,
+     0.6649,
+     0.606,
+     0.66,
+     0.7092,
+     0.6665,
+     0.6937,
+     0.5155,
+     0.6507,
+     0.4572,
+     0.3766,
+     0.516,
+     0.3666,
+     0.4624,
+     0.5569
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.2953,
+    "outcome_mix": {
+     "like": 0.19054375,
+     "dislike": 0.3904125,
+     "noanswer": 0.41904375
+    },
+    "pool_item_answer_rate": 0.1173178,
+    "pool_concept_answer_rate": 0.8013048,
+    "channel_mix_of_labels": 0.546725
+   },
+   "partitions": {
+    "root": {
+     "like": 2545,
+     "dislike": 4883,
+     "noanswer": 2572
+    },
+    "root.noanswer": {
+     "like": 344,
+     "dislike": 453,
+     "noanswer": 1775
+    },
+    "root.dislike": {
+     "like": 717,
+     "dislike": 3663,
+     "noanswer": 503
+    },
+    "root.dislike.dislike": {
+     "like": 650,
+     "dislike": 2426,
+     "noanswer": 587
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 759,
+     "dislike": 378,
+     "noanswer": 1289
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 358,
+     "dislike": 719,
+     "noanswer": 212
+    },
+    "root.like": {
+     "like": 1008,
+     "dislike": 318,
+     "noanswer": 1219
+    }
+   }
+  },
+  "70000_80000": {
+   "n_users": 10000,
+   "minutes": 1.27,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1735,
+    "root.noanswer.dislike": 422,
+    "root.noanswer.like": 376,
+    "root.dislike.noanswer": 507,
+    "root.dislike.dislike.noanswer": 592,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 217,
+    "root.dislike.dislike.dislike.noanswer.dislike": 739,
+    "root.dislike.dislike.dislike.noanswer.like": 332,
+    "root.dislike.dislike.dislike.dislike": 346,
+    "root.dislike.dislike.dislike.like": 830,
+    "root.dislike.dislike.like": 605,
+    "root.dislike.like": 787,
+    "root.like.noanswer": 1197,
+    "root.like.dislike": 302,
+    "root.like.like": 1013
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.58238125,
+    "interview_answer_rate_by_position": [
+     0.7467,
+     0.6561,
+     0.6694,
+     0.6089,
+     0.6536,
+     0.7065,
+     0.667,
+     0.6751,
+     0.5211,
+     0.6632,
+     0.4542,
+     0.3893,
+     0.5123,
+     0.3706,
+     0.4747,
+     0.5494
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.3181,
+    "outcome_mix": {
+     "like": 0.19141875,
+     "dislike": 0.3909625,
+     "noanswer": 0.41761875
+    },
+    "pool_item_answer_rate": 0.11738639999999999,
+    "pool_concept_answer_rate": 0.8010256,
+    "channel_mix_of_labels": 0.55014375
+   },
+   "partitions": {
+    "root": {
+     "like": 2512,
+     "dislike": 4955,
+     "noanswer": 2533
+    },
+    "root.noanswer": {
+     "like": 376,
+     "dislike": 422,
+     "noanswer": 1735
+    },
+    "root.dislike": {
+     "like": 787,
+     "dislike": 3661,
+     "noanswer": 507
+    },
+    "root.dislike.dislike": {
+     "like": 605,
+     "dislike": 2464,
+     "noanswer": 592
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 830,
+     "dislike": 346,
+     "noanswer": 1288
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 332,
+     "dislike": 739,
+     "noanswer": 217
+    },
+    "root.like": {
+     "like": 1013,
+     "dislike": 302,
+     "noanswer": 1197
+    }
+   }
+  },
+  "80000_90000": {
+   "n_users": 10000,
+   "minutes": 1.29,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1765,
+    "root.noanswer.dislike": 442,
+    "root.noanswer.like": 389,
+    "root.dislike.noanswer": 530,
+    "root.dislike.dislike.noanswer": 594,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 216,
+    "root.dislike.dislike.dislike.noanswer.dislike": 732,
+    "root.dislike.dislike.dislike.noanswer.like": 339,
+    "root.dislike.dislike.dislike.dislike": 345,
+    "root.dislike.dislike.dislike.like": 810,
+    "root.dislike.dislike.like": 642,
+    "root.dislike.like": 748,
+    "root.like.noanswer": 1156,
+    "root.like.dislike": 335,
+    "root.like.like": 957
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.58091875,
+    "interview_answer_rate_by_position": [
+     0.7404,
+     0.6549,
+     0.6672,
+     0.6056,
+     0.6626,
+     0.7076,
+     0.6671,
+     0.6851,
+     0.5095,
+     0.6667,
+     0.4547,
+     0.3835,
+     0.5146,
+     0.3685,
+     0.4626,
+     0.5441
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.2947,
+    "outcome_mix": {
+     "like": 0.19053125,
+     "dislike": 0.3903875,
+     "noanswer": 0.41908125
+    },
+    "pool_item_answer_rate": 0.116944,
+    "pool_concept_answer_rate": 0.799986,
+    "channel_mix_of_labels": 0.54969375
+   },
+   "partitions": {
+    "root": {
+     "like": 2448,
+     "dislike": 4956,
+     "noanswer": 2596
+    },
+    "root.noanswer": {
+     "like": 389,
+     "dislike": 442,
+     "noanswer": 1765
+    },
+    "root.dislike": {
+     "like": 748,
+     "dislike": 3678,
+     "noanswer": 530
+    },
+    "root.dislike.dislike": {
+     "like": 642,
+     "dislike": 2442,
+     "noanswer": 594
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 810,
+     "dislike": 345,
+     "noanswer": 1287
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 339,
+     "dislike": 732,
+     "noanswer": 216
+    },
+    "root.like": {
+     "like": 957,
+     "dislike": 335,
+     "noanswer": 1156
+    }
+   }
+  },
+  "90000_100000": {
+   "n_users": 10000,
+   "minutes": 1.11,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1744,
+    "root.noanswer.dislike": 431,
+    "root.noanswer.like": 368,
+    "root.dislike.noanswer": 520,
+    "root.dislike.dislike.noanswer": 556,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 194,
+    "root.dislike.dislike.dislike.noanswer.dislike": 724,
+    "root.dislike.dislike.dislike.noanswer.like": 349,
+    "root.dislike.dislike.dislike.dislike": 337,
+    "root.dislike.dislike.dislike.like": 833,
+    "root.dislike.dislike.like": 635,
+    "root.dislike.like": 743,
+    "root.like.noanswer": 1290,
+    "root.like.dislike": 321,
+    "root.like.like": 955
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.57951875,
+    "interview_answer_rate_by_position": [
+     0.7457,
+     0.6446,
+     0.6816,
+     0.603,
+     0.659,
+     0.7039,
+     0.6594,
+     0.6795,
+     0.5161,
+     0.6529,
+     0.4519,
+     0.3842,
+     0.5124,
+     0.3696,
+     0.4613,
+     0.5472
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.2723,
+    "outcome_mix": {
+     "like": 0.191525,
+     "dislike": 0.38799375,
+     "noanswer": 0.42048125
+    },
+    "pool_item_answer_rate": 0.11738639999999999,
+    "pool_concept_answer_rate": 0.8001196,
+    "channel_mix_of_labels": 0.544475
+   },
+   "partitions": {
+    "root": {
+     "like": 2566,
+     "dislike": 4891,
+     "noanswer": 2543
+    },
+    "root.noanswer": {
+     "like": 368,
+     "dislike": 431,
+     "noanswer": 1744
+    },
+    "root.dislike": {
+     "like": 743,
+     "dislike": 3628,
+     "noanswer": 520
+    },
+    "root.dislike.dislike": {
+     "like": 635,
+     "dislike": 2437,
+     "noanswer": 556
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 833,
+     "dislike": 337,
+     "noanswer": 1267
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 349,
+     "dislike": 724,
+     "noanswer": 194
+    },
+    "root.like": {
+     "like": 955,
+     "dislike": 321,
+     "noanswer": 1290
+    }
+   }
+  },
+  "100000_110000": {
+   "n_users": 10000,
+   "minutes": 1.46,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1785,
+    "root.noanswer.dislike": 441,
+    "root.noanswer.like": 387,
+    "root.dislike.noanswer": 516,
+    "root.dislike.dislike.noanswer": 591,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 224,
+    "root.dislike.dislike.dislike.noanswer.dislike": 721,
+    "root.dislike.dislike.dislike.noanswer.like": 339,
+    "root.dislike.dislike.dislike.dislike": 383,
+    "root.dislike.dislike.dislike.like": 773,
+    "root.dislike.dislike.like": 639,
+    "root.dislike.like": 772,
+    "root.like.noanswer": 1174,
+    "root.like.dislike": 319,
+    "root.like.like": 936
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.5816625,
+    "interview_answer_rate_by_position": [
+     0.7387,
+     0.6525,
+     0.6718,
+     0.6059,
+     0.6633,
+     0.7153,
+     0.6597,
+     0.686,
+     0.5148,
+     0.6608,
+     0.4584,
+     0.3819,
+     0.5166,
+     0.3686,
+     0.4662,
+     0.5461
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.3066,
+    "outcome_mix": {
+     "like": 0.1892625,
+     "dislike": 0.3924,
+     "noanswer": 0.4183375
+    },
+    "pool_item_answer_rate": 0.1172138,
+    "pool_concept_answer_rate": 0.7991046,
+    "channel_mix_of_labels": 0.54968125
+   },
+   "partitions": {
+    "root": {
+     "like": 2429,
+     "dislike": 4958,
+     "noanswer": 2613
+    },
+    "root.noanswer": {
+     "like": 387,
+     "dislike": 441,
+     "noanswer": 1785
+    },
+    "root.dislike": {
+     "like": 772,
+     "dislike": 3670,
+     "noanswer": 516
+    },
+    "root.dislike.dislike": {
+     "like": 639,
+     "dislike": 2440,
+     "noanswer": 591
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 773,
+     "dislike": 383,
+     "noanswer": 1284
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 339,
+     "dislike": 721,
+     "noanswer": 224
+    },
+    "root.like": {
+     "like": 936,
+     "dislike": 319,
+     "noanswer": 1174
+    }
+   }
+  },
+  "110000_120000": {
+   "n_users": 10000,
+   "minutes": 1.28,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1739,
+    "root.noanswer.dislike": 454,
+    "root.noanswer.like": 341,
+    "root.dislike.noanswer": 530,
+    "root.dislike.dislike.noanswer": 594,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 251,
+    "root.dislike.dislike.dislike.noanswer.dislike": 737,
+    "root.dislike.dislike.dislike.noanswer.like": 311,
+    "root.dislike.dislike.dislike.dislike": 345,
+    "root.dislike.dislike.dislike.like": 807,
+    "root.dislike.dislike.like": 599,
+    "root.dislike.like": 787,
+    "root.like.noanswer": 1221,
+    "root.like.dislike": 313,
+    "root.like.like": 971
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.58258125,
+    "interview_answer_rate_by_position": [
+     0.7466,
+     0.651,
+     0.6666,
+     0.6047,
+     0.6546,
+     0.7131,
+     0.6673,
+     0.6824,
+     0.5167,
+     0.6573,
+     0.4534,
+     0.3939,
+     0.5139,
+     0.3684,
+     0.4711,
+     0.5603
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.3213,
+    "outcome_mix": {
+     "like": 0.18911875,
+     "dislike": 0.3934625,
+     "noanswer": 0.41741875
+    },
+    "pool_item_answer_rate": 0.1167934,
+    "pool_concept_answer_rate": 0.8022932,
+    "channel_mix_of_labels": 0.5508875
+   },
+   "partitions": {
+    "root": {
+     "like": 2505,
+     "dislike": 4961,
+     "noanswer": 2534
+    },
+    "root.noanswer": {
+     "like": 341,
+     "dislike": 454,
+     "noanswer": 1739
+    },
+    "root.dislike": {
+     "like": 787,
+     "dislike": 3644,
+     "noanswer": 530
+    },
+    "root.dislike.dislike": {
+     "like": 599,
+     "dislike": 2451,
+     "noanswer": 594
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 807,
+     "dislike": 345,
+     "noanswer": 1299
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 311,
+     "dislike": 737,
+     "noanswer": 251
+    },
+    "root.like": {
+     "like": 971,
+     "dislike": 313,
+     "noanswer": 1221
+    }
+   }
+  },
+  "120000_130000": {
+   "n_users": 10000,
+   "minutes": 1.36,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1799,
+    "root.noanswer.dislike": 432,
+    "root.noanswer.like": 348,
+    "root.dislike.noanswer": 513,
+    "root.dislike.dislike.noanswer": 539,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 197,
+    "root.dislike.dislike.dislike.noanswer.dislike": 729,
+    "root.dislike.dislike.dislike.noanswer.like": 359,
+    "root.dislike.dislike.dislike.dislike": 368,
+    "root.dislike.dislike.dislike.like": 764,
+    "root.dislike.dislike.like": 592,
+    "root.dislike.like": 777,
+    "root.like.noanswer": 1255,
+    "root.like.dislike": 322,
+    "root.like.like": 1006
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.58006875,
+    "interview_answer_rate_by_position": [
+     0.7421,
+     0.6433,
+     0.6725,
+     0.6047,
+     0.6643,
+     0.7067,
+     0.6582,
+     0.6843,
+     0.5173,
+     0.6528,
+     0.4561,
+     0.3794,
+     0.5181,
+     0.3629,
+     0.465,
+     0.5534
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.2811,
+    "outcome_mix": {
+     "like": 0.1927625,
+     "dislike": 0.38730625,
+     "noanswer": 0.41993125
+    },
+    "pool_item_answer_rate": 0.1162148,
+    "pool_concept_answer_rate": 0.7980668,
+    "channel_mix_of_labels": 0.54670625
+   },
+   "partitions": {
+    "root": {
+     "like": 2583,
+     "dislike": 4838,
+     "noanswer": 2579
+    },
+    "root.noanswer": {
+     "like": 348,
+     "dislike": 432,
+     "noanswer": 1799
+    },
+    "root.dislike": {
+     "like": 777,
+     "dislike": 3548,
+     "noanswer": 513
+    },
+    "root.dislike.dislike": {
+     "like": 592,
+     "dislike": 2417,
+     "noanswer": 539
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 764,
+     "dislike": 368,
+     "noanswer": 1285
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 359,
+     "dislike": 729,
+     "noanswer": 197
+    },
+    "root.like": {
+     "like": 1006,
+     "dislike": 322,
+     "noanswer": 1255
+    }
+   }
+  },
+  "130000_140000": {
+   "n_users": 10000,
+   "minutes": 1.3,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 1747,
+    "root.noanswer.dislike": 464,
+    "root.noanswer.like": 366,
+    "root.dislike.noanswer": 521,
+    "root.dislike.dislike.noanswer": 570,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 199,
+    "root.dislike.dislike.dislike.noanswer.dislike": 725,
+    "root.dislike.dislike.dislike.noanswer.like": 326,
+    "root.dislike.dislike.dislike.dislike": 340,
+    "root.dislike.dislike.dislike.like": 785,
+    "root.dislike.dislike.like": 590,
+    "root.dislike.like": 811,
+    "root.like.noanswer": 1243,
+    "root.like.dislike": 345,
+    "root.like.like": 968
+   },
+   "stats": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.5815875,
+    "interview_answer_rate_by_position": [
+     0.7423,
+     0.6489,
+     0.6725,
+     0.6069,
+     0.6624,
+     0.7095,
+     0.6643,
+     0.6807,
+     0.5107,
+     0.6531,
+     0.453,
+     0.3835,
+     0.5172,
+     0.3794,
+     0.4652,
+     0.5558
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.3054,
+    "outcome_mix": {
+     "like": 0.193225,
+     "dislike": 0.3883625,
+     "noanswer": 0.4184125
+    },
+    "pool_item_answer_rate": 0.1155808,
+    "pool_concept_answer_rate": 0.7976612,
+    "channel_mix_of_labels": 0.54868125
+   },
+   "partitions": {
+    "root": {
+     "like": 2556,
+     "dislike": 4867,
+     "noanswer": 2577
+    },
+    "root.noanswer": {
+     "like": 366,
+     "dislike": 464,
+     "noanswer": 1747
+    },
+    "root.dislike": {
+     "like": 811,
+     "dislike": 3535,
+     "noanswer": 521
+    },
+    "root.dislike.dislike": {
+     "like": 590,
+     "dislike": 2375,
+     "noanswer": 570
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 785,
+     "dislike": 340,
+     "noanswer": 1250
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 326,
+     "dislike": 725,
+     "noanswer": 199
+    },
+    "root.like": {
+     "like": 968,
+     "dislike": 345,
+     "noanswer": 1243
+    }
+   }
+  },
+  "140000_140768": {
+   "n_users": 768,
+   "minutes": 0.08,
+   "leaf_sizes": {
+    "root.noanswer.noanswer": 116,
+    "root.noanswer.dislike": 47,
+    "root.noanswer.like": 22,
+    "root.dislike.noanswer": 48,
+    "root.dislike.dislike.noanswer": 52,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 11,
+    "root.dislike.dislike.dislike.noanswer.dislike": 68,
+    "root.dislike.dislike.dislike.noanswer.like": 30,
+    "root.dislike.dislike.dislike.dislike": 27,
+    "root.dislike.dislike.dislike.like": 55,
+    "root.dislike.dislike.like": 45,
+    "root.dislike.like": 72,
+    "root.like.noanswer": 83,
+    "root.like.dislike": 28,
+    "root.like.like": 64
+   },
+   "stats": {
+    "n_users": 768,
+    "interview_answer_rate": 0.5990397135416666,
+    "interview_answer_rate_by_position": [
+     0.7591145833333334,
+     0.6783854166666666,
+     0.6848958333333334,
+     0.6171875,
+     0.6888020833333334,
+     0.7291666666666666,
+     0.6822916666666666,
+     0.6640625,
+     0.5182291666666666,
+     0.6627604166666666,
+     0.4635416666666667,
+     0.4075520833333333,
+     0.5546875,
+     0.4309895833333333,
+     0.48828125,
+     0.5546875
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.584635416666666,
+    "outcome_mix": {
+     "like": 0.19368489583333334,
+     "dislike": 0.4053548177083333,
+     "noanswer": 0.4009602864583333
+    },
+    "pool_item_answer_rate": 0.11779947916666667,
+    "pool_concept_answer_rate": 0.8102890625,
+    "channel_mix_of_labels": 0.5585123697916666
+   },
+   "partitions": {
+    "root": {
+     "like": 175,
+     "dislike": 408,
+     "noanswer": 185
+    },
+    "root.noanswer": {
+     "like": 22,
+     "dislike": 47,
+     "noanswer": 116
+    },
+    "root.dislike": {
+     "like": 72,
+     "dislike": 288,
+     "noanswer": 48
+    },
+    "root.dislike.dislike": {
+     "like": 45,
+     "dislike": 191,
+     "noanswer": 52
+    },
+    "root.dislike.dislike.dislike": {
+     "like": 55,
+     "dislike": 27,
+     "noanswer": 109
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+     "like": 30,
+     "dislike": 68,
+     "noanswer": 11
+    },
+    "root.like": {
+     "like": 64,
+     "dislike": 28,
+     "noanswer": 83
+    }
+   }
+  }
+ },
+ "started": "2026-08-13 13:08:31",
+ "leaf_ids": [
+  "root.dislike.dislike.dislike.dislike",
+  "root.dislike.dislike.dislike.like",
+  "root.dislike.dislike.dislike.noanswer.dislike",
+  "root.dislike.dislike.dislike.noanswer.like",
+  "root.dislike.dislike.dislike.noanswer.noanswer",
+  "root.dislike.dislike.like",
+  "root.dislike.dislike.noanswer",
+  "root.dislike.like",
+  "root.dislike.noanswer",
+  "root.like.dislike",
+  "root.like.like",
+  "root.like.noanswer",
+  "root.noanswer.dislike",
+  "root.noanswer.like",
+  "root.noanswer.noanswer"
+ ],
+ "pool": [
+  [
+   0,
+   5
+  ],
+  [
+   0,
+   121
+  ],
+  [
+   0,
+   8
+  ],
+  [
+   0,
+   123
+  ],
+  [
+   0,
+   59
+  ],
+  [
+   0,
+   4
+  ],
+  [
+   0,
+   12
+  ],
+  [
+   0,
+   157
+  ],
+  [
+   0,
+   116
+  ],
+  [
+   0,
+   19
+  ],
+  [
+   0,
+   127
+  ],
+  [
+   0,
+   83
+  ],
+  [
+   0,
+   21
+  ],
+  [
+   0,
+   0
+  ],
+  [
+   0,
+   155
+  ],
+  [
+   0,
+   14
+  ],
+  [
+   0,
+   22
+  ],
+  [
+   0,
+   439
+  ],
+  [
+   0,
+   113
+  ],
+  [
+   0,
+   89
+  ],
+  [
+   0,
+   98
+  ],
+  [
+   0,
+   478
+  ],
+  [
+   0,
+   631
+  ],
+  [
+   0,
+   10
+  ],
+  [
+   0,
+   46
+  ],
+  [
+   0,
+   25
+  ],
+  [
+   0,
+   64
+  ],
+  [
+   0,
+   304
+  ],
+  [
+   0,
+   179
+  ],
+  [
+   0,
+   115
+  ],
+  [
+   0,
+   1
+  ],
+  [
+   0,
+   71
+  ],
+  [
+   0,
+   350
+  ],
+  [
+   0,
+   18
+  ],
+  [
+   0,
+   954
+  ],
+  [
+   0,
+   483
+  ],
+  [
+   0,
+   20
+  ],
+  [
+   0,
+   140
+  ],
+  [
+   0,
+   122
+  ],
+  [
+   0,
+   138
+  ],
+  [
+   0,
+   29
+  ],
+  [
+   0,
+   131
+  ],
+  [
+   0,
+   9
+  ],
+  [
+   0,
+   137
+  ],
+  [
+   0,
+   793
+  ],
+  [
+   0,
+   142
+  ],
+  [
+   0,
+   120
+  ],
+  [
+   0,
+   77
+  ],
+  [
+   0,
+   533
+  ],
+  [
+   0,
+   471
+  ],
+  [
+   0,
+   460
+  ],
+  [
+   0,
+   152
+  ],
+  [
+   0,
+   582
+  ],
+  [
+   0,
+   226
+  ],
+  [
+   0,
+   133
+  ],
+  [
+   0,
+   93
+  ],
+  [
+   0,
+   219
+  ],
+  [
+   0,
+   873
+  ],
+  [
+   0,
+   80
+  ],
+  [
+   0,
+   117
+  ],
+  [
+   0,
+   84
+  ],
+  [
+   0,
+   538
+  ],
+  [
+   0,
+   212
+  ],
+  [
+   0,
+   42
+  ],
+  [
+   0,
+   135
+  ],
+  [
+   0,
+   128
+  ],
+  [
+   0,
+   524
+  ],
+  [
+   0,
+   126
+  ],
+  [
+   0,
+   111
+  ],
+  [
+   0,
+   549
+  ],
+  [
+   0,
+   747
+  ],
+  [
+   0,
+   463
+  ],
+  [
+   0,
+   36
+  ],
+  [
+   0,
+   481
+  ],
+  [
+   0,
+   130
+  ],
+  [
+   0,
+   136
+  ],
+  [
+   0,
+   145
+  ],
+  [
+   0,
+   494
+  ],
+  [
+   0,
+   307
+  ],
+  [
+   0,
+   275
+  ],
+  [
+   0,
+   514
+  ],
+  [
+   0,
+   146
+  ],
+  [
+   0,
+   141
+  ],
+  [
+   0,
+   82
+  ],
+  [
+   0,
+   105
+  ],
+  [
+   0,
+   87
+  ],
+  [
+   0,
+   513
+  ],
+  [
+   0,
+   733
+  ],
+  [
+   0,
+   174
+  ],
+  [
+   0,
+   956
+  ],
+  [
+   0,
+   792
+  ],
+  [
+   0,
+   708
+  ],
+  [
+   0,
+   206
+  ],
+  [
+   0,
+   800
+  ],
+  [
+   0,
+   228
+  ],
+  [
+   0,
+   65
+  ],
+  [
+   0,
+   583
+  ],
+  [
+   0,
+   173
+  ],
+  [
+   0,
+   15
+  ],
+  [
+   0,
+   1116
+  ],
+  [
+   0,
+   278
+  ],
+  [
+   0,
+   856
+  ],
+  [
+   0,
+   23
+  ],
+  [
+   0,
+   267
+  ],
+  [
+   0,
+   530
+  ],
+  [
+   0,
+   551
+  ],
+  [
+   0,
+   396
+  ],
+  [
+   0,
+   67
+  ],
+  [
+   0,
+   684
+  ],
+  [
+   0,
+   324
+  ],
+  [
+   0,
+   539
+  ],
+  [
+   0,
+   1113
+  ],
+  [
+   0,
+   480
+  ],
+  [
+   0,
+   867
+  ],
+  [
+   0,
+   1288
+  ],
+  [
+   0,
+   305
+  ],
+  [
+   0,
+   610
+  ],
+  [
+   0,
+   208
+  ],
+  [
+   0,
+   72
+  ],
+  [
+   0,
+   1004
+  ],
+  [
+   0,
+   686
+  ],
+  [
+   0,
+   1127
+  ],
+  [
+   0,
+   648
+  ],
+  [
+   0,
+   506
+  ],
+  [
+   0,
+   177
+  ],
+  [
+   0,
+   523
+  ],
+  [
+   0,
+   710
+  ],
+  [
+   0,
+   7
+  ],
+  [
+   0,
+   485
+  ],
+  [
+   0,
+   586
+  ],
+  [
+   0,
+   1140
+  ],
+  [
+   0,
+   695
+  ],
+  [
+   0,
+   380
+  ],
+  [
+   0,
+   1175
+  ],
+  [
+   0,
+   38
+  ],
+  [
+   0,
+   153
+  ],
+  [
+   0,
+   81
+  ],
+  [
+   0,
+   706
+  ],
+  [
+   0,
+   458
+  ],
+  [
+   0,
+   668
+  ],
+  [
+   0,
+   134
+  ],
+  [
+   0,
+   274
+  ],
+  [
+   0,
+   723
+  ],
+  [
+   0,
+   368
+  ],
+  [
+   0,
+   486
+  ],
+  [
+   0,
+   102
+  ],
+  [
+   0,
+   251
+  ],
+  [
+   0,
+   39
+  ],
+  [
+   0,
+   482
+  ],
+  [
+   0,
+   294
+  ],
+  [
+   0,
+   665
+  ],
+  [
+   0,
+   1201
+  ],
+  [
+   0,
+   74
+  ],
+  [
+   0,
+   578
+  ],
+  [
+   0,
+   619
+  ],
+  [
+   0,
+   299
+  ],
+  [
+   0,
+   729
+  ],
+  [
+   0,
+   86
+  ],
+  [
+   0,
+   504
+  ],
+  [
+   0,
+   143
+  ],
+  [
+   0,
+   438
+  ],
+  [
+   0,
+   339
+  ],
+  [
+   0,
+   448
+  ],
+  [
+   0,
+   658
+  ],
+  [
+   0,
+   737
+  ],
+  [
+   0,
+   343
+  ],
+  [
+   0,
+   236
+  ],
+  [
+   0,
+   957
+  ],
+  [
+   0,
+   279
+  ],
+  [
+   0,
+   679
+  ],
+  [
+   0,
+   581
+  ],
+  [
+   0,
+   536
+  ],
+  [
+   0,
+   104
+  ],
+  [
+   0,
+   777
+  ],
+  [
+   0,
+   682
+  ],
+  [
+   0,
+   216
+  ],
+  [
+   0,
+   863
+  ],
+  [
+   0,
+   469
+  ],
+  [
+   0,
+   1148
+  ],
+  [
+   0,
+   1125
+  ],
+  [
+   0,
+   271
+  ],
+  [
+   0,
+   529
+  ],
+  [
+   0,
+   37
+  ],
+  [
+   0,
+   1180
+  ],
+  [
+   0,
+   932
+  ],
+  [
+   0,
+   1168
+  ],
+  [
+   0,
+   34
+  ],
+  [
+   0,
+   496
+  ],
+  [
+   0,
+   132
+  ],
+  [
+   0,
+   692
+  ],
+  [
+   0,
+   420
+  ],
+  [
+   0,
+   1128
+  ],
+  [
+   0,
+   643
+  ],
+  [
+   0,
+   497
+  ],
+  [
+   0,
+   951
+  ],
+  [
+   0,
+   283
+  ],
+  [
+   0,
+   1352
+  ],
+  [
+   0,
+   613
+  ],
+  [
+   0,
+   88
+  ],
+  [
+   0,
+   1174
+  ],
+  [
+   0,
+   857
+  ],
+  [
+   0,
+   331
+  ],
+  [
+   0,
+   54
+  ],
+  [
+   0,
+   1477
+  ],
+  [
+   0,
+   861
+  ],
+  [
+   0,
+   1273
+  ],
+  [
+   0,
+   112
+  ],
+  [
+   0,
+   17
+  ],
+  [
+   0,
+   746
+  ],
+  [
+   0,
+   150
+  ],
+  [
+   0,
+   517
+  ],
+  [
+   0,
+   406
+  ],
+  [
+   0,
+   31
+  ],
+  [
+   0,
+   978
+  ],
+  [
+   0,
+   413
+  ],
+  [
+   0,
+   699
+  ],
+  [
+   0,
+   1137
+  ],
+  [
+   0,
+   860
+  ],
+  [
+   0,
+   844
+  ],
+  [
+   0,
+   739
+  ],
+  [
+   0,
+   51
+  ],
+  [
+   0,
+   453
+  ],
+  [
+   0,
+   518
+  ],
+  [
+   0,
+   1575
+  ],
+  [
+   0,
+   366
+  ],
+  [
+   0,
+   768
+  ],
+  [
+   0,
+   222
+  ],
+  [
+   0,
+   178
+  ],
+  [
+   0,
+   451
+  ],
+  [
+   0,
+   499
+  ],
+  [
+   0,
+   154
+  ],
+  [
+   0,
+   1126
+  ],
+  [
+   0,
+   326
+  ],
+  [
+   0,
+   696
+  ],
+  [
+   0,
+   731
+  ],
+  [
+   0,
+   52
+  ],
+  [
+   0,
+   976
+  ],
+  [
+   0,
+   870
+  ],
+  [
+   0,
+   391
+  ],
+  [
+   0,
+   950
+  ],
+  [
+   0,
+   180
+  ],
+  [
+   0,
+   442
+  ],
+  [
+   0,
+   450
+  ],
+  [
+   0,
+   1192
+  ],
+  [
+   0,
+   1089
+  ],
+  [
+   0,
+   719
+  ],
+  [
+   0,
+   92
+  ],
+  [
+   0,
+   535
+  ],
+  [
+   0,
+   277
+  ],
+  [
+   0,
+   934
+  ],
+  [
+   0,
+   636
+  ],
+  [
+   0,
+   190
+  ],
+  [
+   0,
+   356
+  ],
+  [
+   0,
+   449
+  ],
+  [
+   0,
+   659
+  ],
+  [
+   0,
+   620
+  ],
+  [
+   0,
+   129
+  ],
+  [
+   0,
+   726
+  ],
+  [
+   0,
+   125
+  ],
+  [
+   0,
+   447
+  ],
+  [
+   0,
+   566
+  ],
+  [
+   0,
+   285
+  ],
+  [
+   0,
+   973
+  ],
+  [
+   0,
+   1489
+  ],
+  [
+   0,
+   465
+  ],
+  [
+   0,
+   395
+  ],
+  [
+   0,
+   348
+  ],
+  [
+   0,
+   32
+  ],
+  [
+   0,
+   580
+  ],
+  [
+   0,
+   1254
+  ],
+  [
+   0,
+   516
+  ],
+  [
+   0,
+   1093
+  ],
+  [
+   0,
+   540
+  ],
+  [
+   0,
+   421
+  ],
+  [
+   0,
+   163
+  ],
+  [
+   0,
+   981
+  ],
+  [
+   0,
+   345
+  ],
+  [
+   0,
+   1793
+  ],
+  [
+   0,
+   591
+  ],
+  [
+   0,
+   1835
+  ],
+  [
+   0,
+   211
+  ],
+  [
+   0,
+   584
+  ],
+  [
+   0,
+   284
+  ],
+  [
+   0,
+   101
+  ],
+  [
+   0,
+   244
+  ],
+  [
+   0,
+   103
+  ],
+  [
+   0,
+   318
+  ],
+  [
+   0,
+   246
+  ],
+  [
+   0,
+   1118
+  ],
+  [
+   0,
+   168
+  ],
+  [
+   0,
+   162
+  ],
+  [
+   0,
+   649
+  ],
+  [
+   0,
+   614
+  ],
+  [
+   0,
+   929
+  ],
+  [
+   0,
+   1090
+  ],
+  [
+   0,
+   607
+  ],
+  [
+   0,
+   1120
+  ],
+  [
+   0,
+   1516
+  ],
+  [
+   0,
+   2195
+  ],
+  [
+   0,
+   404
+  ],
+  [
+   0,
+   11
+  ],
+  [
+   0,
+   403
+  ],
+  [
+   0,
+   1119
+  ],
+  [
+   0,
+   1259
+  ],
+  [
+   0,
+   1320
+  ],
+  [
+   0,
+   194
+  ],
+  [
+   0,
+   412
+  ],
+  [
+   0,
+   1483
+  ],
+  [
+   0,
+   701
+  ],
+  [
+   0,
+   97
+  ],
+  [
+   0,
+   666
+  ],
+  [
+   0,
+   328
+  ],
+  [
+   0,
+   293
+  ],
+  [
+   0,
+   441
+  ],
+  [
+   0,
+   879
+  ],
+  [
+   0,
+   1232
+  ],
+  [
+   0,
+   554
+  ],
+  [
+   0,
+   355
+  ],
+  [
+   0,
+   255
+  ],
+  [
+   0,
+   402
+  ],
+  [
+   0,
+   547
+  ],
+  [
+   0,
+   939
+  ],
+  [
+   0,
+   537
+  ],
+  [
+   0,
+   923
+  ],
+  [
+   0,
+   862
+  ],
+  [
+   0,
+   108
+  ],
+  [
+   0,
+   1253
+  ],
+  [
+   0,
+   352
+  ],
+  [
+   0,
+   703
+  ],
+  [
+   0,
+   109
+  ],
+  [
+   0,
+   2552
+  ],
+  [
+   0,
+   801
+  ],
+  [
+   0,
+   336
+  ],
+  [
+   0,
+   858
+  ],
+  [
+   0,
+   851
+  ],
+  [
+   0,
+   874
+  ],
+  [
+   0,
+   1319
+  ],
+  [
+   0,
+   960
+  ],
+  [
+   0,
+   1294
+  ],
+  [
+   0,
+   963
+  ],
+  [
+   0,
+   1167
+  ],
+  [
+   0,
+   974
+  ],
+  [
+   0,
+   1258
+  ],
+  [
+   0,
+   147
+  ],
+  [
+   0,
+   906
+  ],
+  [
+   0,
+   2276
+  ],
+  [
+   0,
+   1443
+  ],
+  [
+   0,
+   834
+  ],
+  [
+   0,
+   1667
+  ],
+  [
+   0,
+   172
+  ],
+  [
+   0,
+   1368
+  ],
+  [
+   0,
+   881
+  ],
+  [
+   0,
+   683
+  ],
+  [
+   0,
+   78
+  ],
+  [
+   0,
+   488
+  ],
+  [
+   0,
+   1481
+  ],
+  [
+   0,
+   1077
+  ],
+  [
+   0,
+   490
+  ],
+  [
+   0,
+   1914
+  ],
+  [
+   0,
+   866
+  ],
+  [
+   0,
+   1164
+  ],
+  [
+   0,
+   1008
+  ],
+  [
+   0,
+   233
+  ],
+  [
+   0,
+   877
+  ],
+  [
+   0,
+   999
+  ],
+  [
+   0,
+   992
+  ],
+  [
+   0,
+   724
+  ],
+  [
+   0,
+   1272
+  ],
+  [
+   0,
+   541
+  ],
+  [
+   0,
+   431
+  ],
+  [
+   0,
+   218
+  ],
+  [
+   0,
+   552
+  ],
+  [
+   0,
+   745
+  ],
+  [
+   0,
+   983
+  ],
+  [
+   0,
+   1134
+  ],
+  [
+   0,
+   1179
+  ],
+  [
+   0,
+   781
+  ],
+  [
+   0,
+   845
+  ],
+  [
+   0,
+   1703
+  ],
+  [
+   0,
+   302
+  ],
+  [
+   0,
+   623
+  ],
+  [
+   0,
+   270
+  ],
+  [
+   0,
+   41
+  ],
+  [
+   0,
+   1508
+  ],
+  [
+   0,
+   1278
+  ],
+  [
+   0,
+   253
+  ],
+  [
+   0,
+   30
+  ],
+  [
+   0,
+   1801
+  ],
+  [
+   0,
+   273
+  ],
+  [
+   0,
+   1357
+  ],
+  [
+   0,
+   392
+  ],
+  [
+   0,
+   60
+  ],
+  [
+   0,
+   778
+  ],
+  [
+   0,
+   164
+  ],
+  [
+   0,
+   1212
+  ],
+  [
+   0,
+   875
+  ],
+  [
+   0,
+   1234
+  ],
+  [
+   0,
+   550
+  ],
+  [
+   0,
+   475
+  ],
+  [
+   0,
+   2100
+  ],
+  [
+   0,
+   655
+  ],
+  [
+   0,
+   309
+  ],
+  [
+   0,
+   907
+  ],
+  [
+   0,
+   1233
+  ],
+  [
+   0,
+   473
+  ],
+  [
+   0,
+   476
+  ],
+  [
+   0,
+   690
+  ],
+  [
+   0,
+   1150
+  ],
+  [
+   0,
+   1112
+  ],
+  [
+   0,
+   461
+  ],
+  [
+   0,
+   1678
+  ],
+  [
+   0,
+   411
+  ],
+  [
+   0,
+   1159
+  ],
+  [
+   0,
+   933
+  ],
+  [
+   0,
+   691
+  ],
+  [
+   0,
+   913
+  ],
+  [
+   0,
+   890
+  ],
+  [
+   0,
+   765
+  ],
+  [
+   0,
+   1123
+  ],
+  [
+   0,
+   1361
+  ],
+  [
+   0,
+   1585
+  ],
+  [
+   0,
+   545
+  ],
+  [
+   0,
+   786
+  ],
+  [
+   0,
+   1277
+  ],
+  [
+   0,
+   711
+  ],
+  [
+   0,
+   3032
+  ],
+  [
+   0,
+   16
+  ],
+  [
+   0,
+   387
+  ],
+  [
+   0,
+   697
+  ],
+  [
+   0,
+   869
+  ],
+  [
+   0,
+   454
+  ],
+  [
+   0,
+   1122
+  ],
+  [
+   0,
+   899
+  ],
+  [
+   0,
+   479
+  ],
+  [
+   0,
+   45
+  ],
+  [
+   0,
+   688
+  ],
+  [
+   0,
+   33
+  ],
+  [
+   0,
+   1931
+  ],
+  [
+   0,
+   2415
+  ],
+  [
+   0,
+   756
+  ],
+  [
+   0,
+   589
+  ],
+  [
+   0,
+   363
+  ],
+  [
+   0,
+   1351
+  ],
+  [
+   0,
+   220
+  ],
+  [
+   0,
+   186
+  ],
+  [
+   0,
+   144
+  ],
+  [
+   0,
+   61
+  ],
+  [
+   0,
+   505
+  ],
+  [
+   0,
+   1241
+  ],
+  [
+   0,
+   358
+  ],
+  [
+   0,
+   1488
+  ],
+  [
+   0,
+   611
+  ],
+  [
+   0,
+   762
+  ],
+  [
+   0,
+   1246
+  ],
+  [
+   0,
+   727
+  ],
+  [
+   0,
+   1742
+  ],
+  [
+   0,
+   1124
+  ],
+  [
+   0,
+   3037
+  ],
+  [
+   0,
+   1935
+  ],
+  [
+   0,
+   1145
+  ],
+  [
+   0,
+   26
+  ],
+  [
+   0,
+   1607
+  ],
+  [
+   0,
+   1363
+  ],
+  [
+   0,
+   1476
+  ],
+  [
+   0,
+   1581
+  ],
+  [
+   0,
+   2747
+  ],
+  [
+   0,
+   573
+  ],
+  [
+   0,
+   975
+  ],
+  [
+   0,
+   678
+  ],
+  [
+   0,
+   1611
+  ],
+  [
+   0,
+   654
+  ],
+  [
+   0,
+   585
+  ],
+  [
+   0,
+   732
+  ],
+  [
+   0,
+   201
+  ],
+  [
+   0,
+   124
+  ],
+  [
+   0,
+   379
+  ],
+  [
+   0,
+   2647
+  ],
+  [
+   0,
+   1170
+  ],
+  [
+   0,
+   1725
+  ],
+  [
+   0,
+   346
+  ],
+  [
+   0,
+   1266
+  ],
+  [
+   0,
+   1578
+  ],
+  [
+   0,
+   470
+  ],
+  [
+   0,
+   1353
+  ],
+  [
+   0,
+   1421
+  ],
+  [
+   0,
+   685
+  ],
+  [
+   0,
+   114
+  ],
+  [
+   0,
+   306
+  ],
+  [
+   0,
+   943
+  ],
+  [
+   0,
+   2
+  ],
+  [
+   0,
+   2375
+  ],
+  [
+   0,
+   501
+  ],
+  [
+   0,
+   464
+  ],
+  [
+   0,
+   1214
+  ],
+  [
+   0,
+   2543
+  ],
+  [
+   0,
+   28
+  ],
+  [
+   0,
+   1522
+  ],
+  [
+   0,
+   722
+  ],
+  [
+   0,
+   901
+  ],
+  [
+   0,
+   2009
+  ],
+  [
+   1,
+   673
+  ],
+  [
+   1,
+   429
+  ],
+  [
+   1,
+   594
+  ],
+  [
+   1,
+   425
+  ],
+  [
+   1,
+   406
+  ],
+  [
+   1,
+   881
+  ],
+  [
+   1,
+   413
+  ],
+  [
+   1,
+   274
+  ],
+  [
+   1,
+   166
+  ],
+  [
+   1,
+   788
+  ],
+  [
+   1,
+   430
+  ],
+  [
+   1,
+   882
+  ],
+  [
+   1,
+   173
+  ],
+  [
+   1,
+   271
+  ],
+  [
+   1,
+   704
+  ],
+  [
+   1,
+   426
+  ],
+  [
+   1,
+   292
+  ],
+  [
+   1,
+   194
+  ],
+  [
+   1,
+   507
+  ],
+  [
+   1,
+   491
+  ],
+  [
+   1,
+   433
+  ],
+  [
+   1,
+   378
+  ],
+  [
+   1,
+   407
+  ],
+  [
+   1,
+   681
+  ],
+  [
+   1,
+   330
+  ],
+  [
+   1,
+   907
+  ],
+  [
+   1,
+   508
+  ],
+  [
+   1,
+   973
+  ],
+  [
+   1,
+   994
+  ],
+  [
+   1,
+   321
+  ],
+  [
+   1,
+   293
+  ],
+  [
+   1,
+   101
+  ],
+  [
+   1,
+   676
+  ],
+  [
+   1,
+   449
+  ],
+  [
+   1,
+   250
+  ],
+  [
+   1,
+   15
+  ],
+  [
+   1,
+   674
+  ],
+  [
+   1,
+   563
+  ],
+  [
+   1,
+   691
+  ],
+  [
+   1,
+   974
+  ],
+  [
+   1,
+   993
+  ],
+  [
+   1,
+   203
+  ],
+  [
+   1,
+   95
+  ],
+  [
+   1,
+   353
+  ],
+  [
+   1,
+   329
+  ],
+  [
+   1,
+   17
+  ],
+  [
+   1,
+   18
+  ],
+  [
+   1,
+   712
+  ],
+  [
+   1,
+   228
+  ],
+  [
+   1,
+   460
+  ],
+  [
+   1,
+   187
+  ],
+  [
+   1,
+   995
+  ],
+  [
+   1,
+   25
+  ],
+  [
+   1,
+   347
+  ],
+  [
+   1,
+   767
+  ],
+  [
+   1,
+   955
+  ],
+  [
+   1,
+   553
+  ],
+  [
+   1,
+   582
+  ],
+  [
+   1,
+   915
+  ],
+  [
+   1,
+   213
+  ],
+  [
+   1,
+   754
+  ],
+  [
+   1,
+   375
+  ],
+  [
+   1,
+   987
+  ],
+  [
+   1,
+   380
+  ],
+  [
+   1,
+   1006
+  ],
+  [
+   1,
+   865
+  ],
+  [
+   1,
+   189
+  ],
+  [
+   1,
+   975
+  ],
+  [
+   1,
+   926
+  ],
+  [
+   1,
+   339
+  ],
+  [
+   1,
+   107
+  ],
+  [
+   1,
+   817
+  ],
+  [
+   1,
+   854
+  ],
+  [
+   1,
+   730
+  ],
+  [
+   1,
+   113
+  ],
+  [
+   1,
+   180
+  ],
+  [
+   1,
+   231
+  ],
+  [
+   1,
+   965
+  ],
+  [
+   1,
+   248
+  ],
+  [
+   1,
+   931
+  ],
+  [
+   1,
+   408
+  ],
+  [
+   1,
+   940
+  ],
+  [
+   1,
+   631
+  ],
+  [
+   1,
+   170
+  ],
+  [
+   1,
+   791
+  ],
+  [
+   1,
+   901
+  ],
+  [
+   1,
+   352
+  ],
+  [
+   1,
+   484
+  ],
+  [
+   1,
+   1016
+  ],
+  [
+   1,
+   773
+  ],
+  [
+   1,
+   988
+  ],
+  [
+   1,
+   117
+  ],
+  [
+   1,
+   763
+  ],
+  [
+   1,
+   108
+  ],
+  [
+   1,
+   354
+  ],
+  [
+   1,
+   150
+  ],
+  [
+   1,
+   78
+  ],
+  [
+   1,
+   306
+  ],
+  [
+   1,
+   552
+  ],
+  [
+   1,
+   377
+  ],
+  [
+   1,
+   784
+  ],
+  [
+   1,
+   442
+  ],
+  [
+   1,
+   908
+  ],
+  [
+   1,
+   16
+  ],
+  [
+   1,
+   918
+  ],
+  [
+   1,
+   891
+  ],
+  [
+   1,
+   820
+  ],
+  [
+   1,
+   562
+  ],
+  [
+   1,
+   537
+  ],
+  [
+   1,
+   332
+  ],
+  [
+   1,
+   474
+  ],
+  [
+   1,
+   622
+  ],
+  [
+   1,
+   678
+  ],
+  [
+   1,
+   144
+  ],
+  [
+   1,
+   992
+  ],
+  [
+   1,
+   686
+  ],
+  [
+   1,
+   486
+  ],
+  [
+   1,
+   483
+  ],
+  [
+   1,
+   331
+  ],
+  [
+   1,
+   342
+  ],
+  [
+   1,
+   1003
+  ],
+  [
+   1,
+   652
+  ],
+  [
+   1,
+   803
+  ],
+  [
+   1,
+   343
+  ],
+  [
+   1,
+   258
+  ],
+  [
+   1,
+   714
+  ],
+  [
+   1,
+   689
+  ],
+  [
+   1,
+   314
+  ],
+  [
+   1,
+   551
+  ],
+  [
+   1,
+   84
+  ],
+  [
+   1,
+   249
+  ],
+  [
+   1,
+   559
+  ],
+  [
+   1,
+   688
+  ],
+  [
+   1,
+   455
+  ],
+  [
+   1,
+   365
+  ],
+  [
+   1,
+   432
+  ],
+  [
+   1,
+   451
+  ],
+  [
+   1,
+   707
+  ],
+  [
+   1,
+   930
+  ],
+  [
+   1,
+   233
+  ],
+  [
+   1,
+   768
+  ],
+  [
+   1,
+   809
+  ],
+  [
+   1,
+   317
+  ],
+  [
+   1,
+   890
+  ],
+  [
+   1,
+   26
+  ],
+  [
+   1,
+   410
+  ],
+  [
+   1,
+   46
+  ],
+  [
+   1,
+   785
+  ],
+  [
+   1,
+   906
+  ],
+  [
+   1,
+   122
+  ],
+  [
+   1,
+   241
+  ],
+  [
+   1,
+   369
+  ],
+  [
+   1,
+   239
+  ],
+  [
+   1,
+   877
+  ],
+  [
+   1,
+   806
+  ],
+  [
+   1,
+   747
+  ],
+  [
+   1,
+   942
+  ],
+  [
+   1,
+   14
+  ],
+  [
+   1,
+   683
+  ],
+  [
+   1,
+   461
+  ],
+  [
+   1,
+   588
+  ],
+  [
+   1,
+   665
+  ],
+  [
+   1,
+   302
+  ],
+  [
+   1,
+   243
+  ],
+  [
+   1,
+   611
+  ],
+  [
+   1,
+   976
+  ],
+  [
+   1,
+   325
+  ],
+  [
+   1,
+   810
+  ],
+  [
+   1,
+   700
+  ],
+  [
+   1,
+   690
+  ],
+  [
+   1,
+   383
+  ],
+  [
+   1,
+   556
+  ],
+  [
+   1,
+   215
+  ],
+  [
+   1,
+   677
+  ],
+  [
+   1,
+   807
+  ],
+  [
+   1,
+   415
+  ],
+  [
+   1,
+   680
+  ],
+  [
+   1,
+   265
+  ],
+  [
+   1,
+   748
+  ],
+  [
+   1,
+   839
+  ],
+  [
+   1,
+   127
+  ],
+  [
+   1,
+   731
+  ],
+  [
+   1,
+   224
+  ],
+  [
+   1,
+   138
+  ],
+  [
+   1,
+   617
+  ],
+  [
+   1,
+   262
+  ],
+  [
+   1,
+   967
+  ],
+  [
+   1,
+   716
+  ],
+  [
+   1,
+   886
+  ],
+  [
+   1,
+   945
+  ],
+  [
+   1,
+   630
+  ],
+  [
+   1,
+   999
+  ],
+  [
+   1,
+   333
+  ],
+  [
+   1,
+   504
+  ],
+  [
+   1,
+   355
+  ],
+  [
+   1,
+   911
+  ],
+  [
+   1,
+   501
+  ],
+  [
+   1,
+   217
+  ],
+  [
+   1,
+   172
+  ],
+  [
+   1,
+   831
+  ],
+  [
+   1,
+   560
+  ],
+  [
+   1,
+   589
+  ],
+  [
+   1,
+   360
+  ],
+  [
+   1,
+   830
+  ],
+  [
+   1,
+   490
+  ],
+  [
+   1,
+   953
+  ],
+  [
+   1,
+   367
+  ],
+  [
+   1,
+   769
+  ],
+  [
+   1,
+   550
+  ],
+  [
+   1,
+   208
+  ],
+  [
+   1,
+   428
+  ],
+  [
+   1,
+   722
+  ],
+  [
+   1,
+   503
+  ],
+  [
+   1,
+   242
+  ],
+  [
+   1,
+   753
+  ],
+  [
+   1,
+   320
+  ],
+  [
+   1,
+   434
+  ],
+  [
+   1,
+   821
+  ],
+  [
+   1,
+   454
+  ],
+  [
+   1,
+   558
+  ],
+  [
+   1,
+   312
+  ],
+  [
+   1,
+   954
+  ],
+  [
+   1,
+   59
+  ],
+  [
+   1,
+   541
+  ],
+  [
+   1,
+   634
+  ],
+  [
+   1,
+   706
+  ],
+  [
+   1,
+   181
+  ],
+  [
+   1,
+   540
+  ],
+  [
+   1,
+   824
+  ],
+  [
+   1,
+   903
+  ],
+  [
+   1,
+   315
+  ],
+  [
+   1,
+   404
+  ],
+  [
+   1,
+   216
+  ],
+  [
+   1,
+   427
+  ],
+  [
+   1,
+   505
+  ],
+  [
+   1,
+   47
+  ],
+  [
+   1,
+   838
+  ],
+  [
+   1,
+   726
+  ],
+  [
+   1,
+   382
+  ],
+  [
+   1,
+   149
+  ],
+  [
+   1,
+   576
+  ],
+  [
+   1,
+   83
+  ],
+  [
+   1,
+   39
+  ],
+  [
+   1,
+   322
+  ],
+  [
+   1,
+   502
+  ],
+  [
+   1,
+   387
+  ],
+  [
+   1,
+   71
+  ],
+  [
+   1,
+   713
+  ],
+  [
+   1,
+   400
+  ],
+  [
+   1,
+   968
+  ],
+  [
+   1,
+   682
+  ],
+  [
+   1,
+   295
+  ],
+  [
+   1,
+   283
+  ],
+  [
+   1,
+   670
+  ],
+  [
+   1,
+   696
+  ],
+  [
+   1,
+   296
+  ],
+  [
+   1,
+   512
+  ],
+  [
+   1,
+   130
+  ],
+  [
+   1,
+   905
+  ],
+  [
+   1,
+   416
+  ],
+  [
+   1,
+   463
+  ],
+  [
+   1,
+   29
+  ],
+  [
+   1,
+   702
+  ],
+  [
+   1,
+   1010
+  ],
+  [
+   1,
+   695
+  ],
+  [
+   1,
+   171
+  ],
+  [
+   1,
+   572
+  ],
+  [
+   1,
+   409
+  ],
+  [
+   1,
+   436
+  ],
+  [
+   1,
+   336
+  ],
+  [
+   1,
+   103
+  ],
+  [
+   1,
+   801
+  ],
+  [
+   1,
+   136
+  ],
+  [
+   1,
+   251
+  ],
+  [
+   1,
+   419
+  ],
+  [
+   1,
+   612
+  ],
+  [
+   1,
+   799
+  ],
+  [
+   1,
+   74
+  ],
+  [
+   1,
+   44
+  ],
+  [
+   1,
+   797
+  ],
+  [
+   1,
+   261
+  ],
+  [
+   1,
+   952
+  ],
+  [
+   1,
+   646
+  ],
+  [
+   1,
+   629
+  ],
+  [
+   1,
+   950
+  ],
+  [
+   1,
+   424
+  ],
+  [
+   1,
+   247
+  ],
+  [
+   1,
+   211
+  ],
+  [
+   1,
+   62
+  ],
+  [
+   1,
+   793
+  ],
+  [
+   1,
+   855
+  ],
+  [
+   1,
+   412
+  ],
+  [
+   1,
+   464
+  ],
+  [
+   1,
+   487
+  ],
+  [
+   1,
+   192
+  ],
+  [
+   1,
+   951
+  ],
+  [
+   1,
+   465
+  ],
+  [
+   1,
+   431
+  ],
+  [
+   1,
+   98
+  ],
+  [
+   1,
+   89
+  ],
+  [
+   1,
+   857
+  ],
+  [
+   1,
+   282
+  ],
+  [
+   1,
+   129
+  ],
+  [
+   1,
+   802
+  ],
+  [
+   1,
+   118
+  ],
+  [
+   1,
+   672
+  ],
+  [
+   1,
+   600
+  ],
+  [
+   1,
+   858
+  ],
+  [
+   1,
+   269
+  ],
+  [
+   1,
+   798
+  ],
+  [
+   1,
+   106
+  ],
+  [
+   1,
+   650
+  ],
+  [
+   1,
+   240
+  ],
+  [
+   1,
+   268
+  ],
+  [
+   1,
+   996
+  ],
+  [
+   1,
+   815
+  ],
+  [
+   1,
+   255
+  ],
+  [
+   1,
+   335
+  ],
+  [
+   1,
+   667
+  ],
+  [
+   1,
+   381
+  ],
+  [
+   1,
+   73
+  ],
+  [
+   1,
+   792
+  ],
+  [
+   1,
+   733
+  ],
+  [
+   1,
+   259
+  ],
+  [
+   1,
+   495
+  ],
+  [
+   1,
+   620
+  ],
+  [
+   1,
+   379
+  ],
+  [
+   1,
+   304
+  ],
+  [
+   1,
+   114
+  ],
+  [
+   1,
+   467
+  ],
+  [
+   1,
+   195
+  ],
+  [
+   1,
+   214
+  ],
+  [
+   1,
+   305
+  ],
+  [
+   1,
+   482
+  ],
+  [
+   1,
+   56
+  ],
+  [
+   1,
+   202
+  ],
+  [
+   1,
+   786
+  ],
+  [
+   1,
+   145
+  ],
+  [
+   1,
+   125
+  ],
+  [
+   1,
+   822
+  ],
+  [
+   1,
+   725
+  ],
+  [
+   1,
+   356
+  ],
+  [
+   1,
+   443
+  ],
+  [
+   1,
+   223
+  ],
+  [
+   1,
+   568
+  ],
+  [
+   1,
+   766
+  ],
+  [
+   1,
+   272
+  ],
+  [
+   1,
+   520
+  ],
+  [
+   1,
+   833
+  ],
+  [
+   1,
+   386
+  ],
+  [
+   1,
+   900
+  ],
+  [
+   1,
+   511
+  ],
+  [
+   1,
+   593
+  ],
+  [
+   1,
+   54
+  ],
+  [
+   1,
+   860
+  ],
+  [
+   1,
+   316
+  ],
+  [
+   1,
+   55
+  ],
+  [
+   1,
+   899
+  ],
+  [
+   1,
+   164
+  ],
+  [
+   1,
+   874
+  ],
+  [
+   1,
+   687
+  ],
+  [
+   1,
+   38
+  ],
+  [
+   1,
+   912
+  ],
+  [
+   1,
+   902
+  ],
+  [
+   1,
+   764
+  ],
+  [
+   1,
+   574
+  ],
+  [
+   1,
+   414
+  ],
+  [
+   1,
+   11
+  ],
+  [
+   1,
+   252
+  ],
+  [
+   1,
+   603
+  ],
+  [
+   1,
+   8
+  ],
+  [
+   1,
+   137
+  ],
+  [
+   1,
+   42
+  ],
+  [
+   1,
+   289
+  ],
+  [
+   1,
+   723
+  ],
+  [
+   1,
+   341
+  ],
+  [
+   1,
+   245
+  ],
+  [
+   1,
+   561
+  ],
+  [
+   1,
+   919
+  ],
+  [
+   1,
+   519
+  ],
+  [
+   1,
+   120
+  ],
+  [
+   1,
+   864
+  ],
+  [
+   1,
+   36
+  ],
+  [
+   1,
+   178
+  ],
+  [
+   1,
+   311
+  ],
+  [
+   1,
+   299
+  ],
+  [
+   1,
+   642
+  ],
+  [
+   1,
+   649
+  ],
+  [
+   1,
+   808
+  ],
+  [
+   1,
+   12
+  ],
+  [
+   1,
+   308
+  ],
+  [
+   1,
+   624
+  ],
+  [
+   1,
+   303
+  ],
+  [
+   1,
+   393
+  ],
+  [
+   1,
+   737
+  ],
+  [
+   1,
+   196
+  ],
+  [
+   1,
+   638
+  ],
+  [
+   1,
+   920
+  ],
+  [
+   1,
+   623
+  ],
+  [
+   1,
+   270
+  ],
+  [
+   1,
+   119
+  ],
+  [
+   1,
+   870
+  ],
+  [
+   1,
+   456
+  ],
+  [
+   1,
+   458
+  ],
+  [
+   1,
+   439
+  ],
+  [
+   1,
+   818
+  ],
+  [
+   1,
+   985
+  ],
+  [
+   1,
+   1021
+  ],
+  [
+   1,
+   896
+  ],
+  [
+   1,
+   423
+  ],
+  [
+   1,
+   142
+  ],
+  [
+   1,
+   162
+  ],
+  [
+   1,
+   662
+  ],
+  [
+   1,
+   605
+  ],
+  [
+   1,
+   22
+  ],
+  [
+   1,
+   477
+  ],
+  [
+   1,
+   708
+  ],
+  [
+   1,
+   96
+  ],
+  [
+   1,
+   327
+  ],
+  [
+   1,
+   67
+  ],
+  [
+   1,
+   294
+  ],
+  [
+   1,
+   334
+  ],
+  [
+   1,
+   699
+  ],
+  [
+   1,
+   761
+  ],
+  [
+   1,
+   782
+  ],
+  [
+   1,
+   275
+  ],
+  [
+   1,
+   1018
+  ],
+  [
+   1,
+   19
+  ],
+  [
+   1,
+   209
+  ],
+  [
+   1,
+   957
+  ],
+  [
+   1,
+   557
+  ],
+  [
+   1,
+   939
+  ],
+  [
+   1,
+   154
+  ],
+  [
+   1,
+   913
+  ],
+  [
+   1,
+   749
+  ],
+  [
+   1,
+   518
+  ],
+  [
+   1,
+   904
+  ],
+  [
+   1,
+   599
+  ],
+  [
+   1,
+   694
+  ],
+  [
+   1,
+   394
+  ],
+  [
+   1,
+   811
+  ],
+  [
+   1,
+   41
+  ],
+  [
+   1,
+   823
+  ],
+  [
+   1,
+   697
+  ],
+  [
+   1,
+   280
+  ],
+  [
+   1,
+   720
+  ],
+  [
+   1,
+   849
+  ],
+  [
+   1,
+   1001
+  ],
+  [
+   1,
+   663
+  ],
+  [
+   1,
+   124
+  ],
+  [
+   1,
+   155
+  ],
+  [
+   1,
+   493
+  ],
+  [
+   1,
+   932
+  ],
+  [
+   1,
+   701
+  ],
+  [
+   1,
+   728
+  ],
+  [
+   1,
+   917
+  ],
+  [
+   1,
+   45
+  ],
+  [
+   1,
+   4
+  ],
+  [
+   1,
+   774
+  ],
+  [
+   1,
+   205
+  ],
+  [
+   1,
+   300
+  ],
+  [
+   1,
+   888
+  ],
+  [
+   1,
+   898
+  ],
+  [
+   1,
+   643
+  ],
+  [
+   1,
+   914
+  ],
+  [
+   1,
+   796
+  ],
+  [
+   1,
+   851
+  ],
+  [
+   1,
+   167
+  ],
+  [
+   1,
+   889
+  ],
+  [
+   1,
+   738
+  ],
+  [
+   1,
+   626
+  ],
+  [
+   1,
+   658
+  ],
+  [
+   1,
+   717
+  ],
+  [
+   1,
+   88
+  ],
+  [
+   1,
+   27
+  ],
+  [
+   1,
+   805
+  ],
+  [
+   1,
+   934
+  ],
+  [
+   1,
+   897
+  ],
+  [
+   1,
+   727
+  ],
+  [
+   1,
+   647
+  ],
+  [
+   1,
+   868
+  ],
+  [
+   1,
+   260
+  ],
+  [
+   1,
+   112
+  ],
+  [
+   1,
+   40
+  ],
+  [
+   1,
+   969
+  ],
+  [
+   1,
+   1017
+  ],
+  [
+   1,
+   459
+  ],
+  [
+   1,
+   285
+  ],
+  [
+   1,
+   555
+  ],
+  [
+   1,
+   757
+  ],
+  [
+   1,
+   238
+  ],
+  [
+   1,
+   488
+  ],
+  [
+   1,
+   319
+  ],
+  [
+   1,
+   547
+  ],
+  [
+   1,
+   366
+  ],
+  [
+   1,
+   684
+  ],
+  [
+   1,
+   253
+  ],
+  [
+   1,
+   586
+  ],
+  [
+   1,
+   328
+  ],
+  [
+   1,
+   571
+  ]
+ ]
+}

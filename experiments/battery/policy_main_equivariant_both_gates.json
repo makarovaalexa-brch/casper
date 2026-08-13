@@ -1,0 +1,216 @@
+{
+  "analysis": "policy_net_E1_gates",
+  "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md",
+  "citable": true,
+  "test_touched": false,
+  "cohorts": {
+    "fit": "140,768 TRAIN users (states + frozen-tree labels; NO NDCG)",
+    "select": "10,000 VALIDATION users (real interview NDCG)"
+  },
+  "arm": "main",
+  "arch": "equivariant",
+  "state": "both",
+  "use_pos": true,
+  "best_epoch": 2,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.17852122578836876,
+      "train_top1": 0.9675365672596045,
+      "val_top1_teacher_forced": 0.99979375,
+      "val_full": 0.2835025946483733,
+      "val_tail": 0.13424533217612572,
+      "val_gain_full_vs_static": 0.027892433512350767,
+      "n_distinct_interviews": 36,
+      "minutes": 6.77
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.00018768384556686928,
+      "train_top1": 0.9999942280916118,
+      "val_top1_teacher_forced": 1.0,
+      "val_full": 0.28354971825495506,
+      "val_tail": 0.13421311934575303,
+      "val_gain_full_vs_static": 0.027939557118932534,
+      "n_distinct_interviews": 15,
+      "minutes": 6.02
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.2984444820809233e-05,
+      "train_top1": 1.0,
+      "val_top1_teacher_forced": 1.0,
+      "val_full": 0.28354971825495506,
+      "val_tail": 0.13421311934575303,
+      "val_gain_full_vs_static": 0.027939557118932534,
+      "n_distinct_interviews": 15,
+      "minutes": 12.81
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.12996861235368706,
+      "train_top1": 0.981512577432371,
+      "val_top1_teacher_forced": 0.99925625,
+      "val_full": 0.28345885179114505,
+      "val_tail": 0.13421504799780568,
+      "val_gain_full_vs_static": 0.02784869065512252,
+      "n_distinct_interviews": 71,
+      "minutes": 13.02
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.0007105415150714177,
+      "train_top1": 0.9999356210218231,
+      "val_top1_teacher_forced": 0.99999375,
+      "val_full": 0.28354971825495506,
+      "val_tail": 0.13421311934575303,
+      "val_gain_full_vs_static": 0.027939557118932534,
+      "n_distinct_interviews": 16,
+      "minutes": 13.27
+    },
+    {
+      "epoch": 6,
+      "train_loss": 2.6550048749851586e-05,
+      "train_top1": 0.999999556007047,
+      "val_top1_teacher_forced": 1.0,
+      "val_full": 0.28354971825495506,
+      "val_tail": 0.13421311934575303,
+      "val_gain_full_vs_static": 0.027939557118932534,
+      "n_distinct_interviews": 15,
+      "minutes": 13.62
+    },
+    {
+      "epoch": 7,
+      "train_loss": 4.998597386650543e-06,
+      "train_top1": 1.0,
+      "val_top1_teacher_forced": 1.0,
+      "val_full": 0.28354971825495506,
+      "val_tail": 0.13421311934575303,
+      "val_gain_full_vs_static": 0.027939557118932534,
+      "n_distinct_interviews": 15,
+      "minutes": 13.78
+    },
+    {
+      "epoch": 8,
+      "train_loss": 1.3838058892016352e-06,
+      "train_top1": 1.0,
+      "val_top1_teacher_forced": 1.0,
+      "val_full": 0.28354971825495506,
+      "val_tail": 0.13421311934575303,
+      "val_gain_full_vs_static": 0.027939557118932534,
+      "n_distinct_interviews": 15,
+      "minutes": 11.85
+    }
+  ],
+  "gates": {
+    "G-E1e_canonical_snap": {
+      "val_m0_full": 0.15686538118354684,
+      "expected": 0.15686538,
+      "pass": true
+    },
+    "G-E1a_fidelity": {
+      "top1": 1.0,
+      "bar": 0.5,
+      "pass": true,
+      "by_position": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "G-E1b_gain_vs_static": {
+      "full": {
+        "mean": 0.02793955711893247,
+        "lo": 0.024929262440067067,
+        "hi": 0.03098967446070921,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.010548198280223806,
+        "lo": 0.007486113262661875,
+        "hi": 0.013727399707256175,
+        "n": 9217,
+        "excludes_zero": true
+      },
+      "comparator": "greedy_static_policyB_combined (validation, K=16)",
+      "tree_val_gain_full": 0.027939556166529655,
+      "tree_val_gain_tail": 0.010548197664320469
+    },
+    "G-E1c_anti_collapse": {
+      "n_distinct_interviews": 15,
+      "max_share": 0.1785,
+      "pep_divergence_policy": {
+        "n_pairs": 68571148,
+        "divergence_rate": 0.6636982656320702
+      },
+      "pep_divergence_tree": {
+        "n_pairs": 68571148,
+        "divergence_rate": 0.6636982656320702
+      },
+      "bar": "> 3 distinct interviews AND divergence >= the tree's own",
+      "pass": true
+    },
+    "covariate_shift": {
+      "mean_first_deviation_position": 16.0,
+      "frac_never_deviates": 1.0,
+      "deviation_position_histogram": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        10000
+      ]
+    },
+    "channel_mix": {
+      "policy_concept_share": 0.54570625,
+      "tree_concept_share": 0.54570625
+    }
+  },
+  "static_val": {
+    "full": 0.25561016113602253,
+    "tail": 0.12366492106552922
+  },
+  "policy_val": {
+    "full": 0.28354971825495506,
+    "tail": 0.13421311934575303
+  },
+  "tower": "t2i26c_ep31.pt",
+  "conc_ckpt": "concept_cv3_ep08.pt",
+  "mask_policy": "B",
+  "pool_contract": {
+    "v": 1,
+    "policy": "B",
+    "n_rows": 10000,
+    "n_items": 18359,
+    "nnz": 1356475,
+    "per_user": 135.6475,
+    "fp": "c282962b49a2d67ef47ff07544519f20"
+  },
+  "minutes": 92.78
+}

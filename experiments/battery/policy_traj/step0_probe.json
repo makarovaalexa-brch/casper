@@ -1,0 +1,245 @@
+{
+  "analysis": "policy_traj_step0_probe",
+  "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md",
+  "citable": true,
+  "test_touched": false,
+  "cohorts": [
+    "validation (reference)",
+    "train[0:10000]"
+  ],
+  "canonical_snap_val_m0_full": 0.15686538,
+  "G-T1_banked_partition_gate": "22/22 internal nodes exact",
+  "pool_sha1": "ed67fe28789be5214304370c25987cadb1127e25",
+  "pool_identical_train_vs_val": true,
+  "val": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.57889375,
+    "interview_answer_rate_by_position": [
+      0.742,
+      0.643,
+      0.6716,
+      0.6052,
+      0.6659,
+      0.7024,
+      0.6616,
+      0.6912,
+      0.5078,
+      0.6548,
+      0.4613,
+      0.3711,
+      0.5134,
+      0.3632,
+      0.4594,
+      0.5484
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.2623,
+    "outcome_mix": {
+      "like": 0.19361875,
+      "dislike": 0.385275,
+      "noanswer": 0.42110625
+    },
+    "pool_item_answer_rate": 0.1144596,
+    "pool_concept_answer_rate": 0.7980624,
+    "channel_mix_of_labels": 0.54570625
+  },
+  "train": {
+    "n_users": 10000,
+    "interview_answer_rate": 0.57913125,
+    "interview_answer_rate_by_position": [
+      0.7316,
+      0.6405,
+      0.6554,
+      0.6196,
+      0.6638,
+      0.7083,
+      0.6678,
+      0.6868,
+      0.5139,
+      0.6571,
+      0.4596,
+      0.3801,
+      0.5034,
+      0.3643,
+      0.4643,
+      0.5496
+    ],
+    "users_answering_nothing": 0.0,
+    "mean_answered_of_16": 9.2661,
+    "outcome_mix": {
+      "like": 0.1902625,
+      "dislike": 0.38886875,
+      "noanswer": 0.42086875
+    },
+    "pool_item_answer_rate": 0.11690519999999999,
+    "pool_concept_answer_rate": 0.7964552,
+    "channel_mix_of_labels": 0.5485
+  },
+  "answer_rate_ok": true,
+  "ar_tol": 0.05,
+  "comparison": [
+    {
+      "quantity": "interview_answer_rate",
+      "val": 0.57889375,
+      "train": 0.57913125,
+      "diff": 0.0002375000000000016,
+      "rel": 0.0004102652688857007
+    },
+    {
+      "quantity": "mean_answered_of_16",
+      "val": 9.2623,
+      "train": 9.2661,
+      "diff": 0.0038000000000000256,
+      "rel": 0.0004102652688857007
+    },
+    {
+      "quantity": "users_answering_nothing",
+      "val": 0.0,
+      "train": 0.0,
+      "diff": 0.0,
+      "rel": 0.0
+    },
+    {
+      "quantity": "pool_item_answer_rate",
+      "val": 0.1144596,
+      "train": 0.11690519999999999,
+      "diff": 0.0024455999999999922,
+      "rel": 0.021366490884119745
+    },
+    {
+      "quantity": "pool_concept_answer_rate",
+      "val": 0.7980624,
+      "train": 0.7964552,
+      "diff": -0.0016071999999999198,
+      "rel": 0.002013877611575135
+    }
+  ],
+  "val_leaf_sizes": {
+    "root.dislike.dislike.dislike.dislike": 355,
+    "root.dislike.dislike.dislike.like": 702,
+    "root.dislike.dislike.dislike.noanswer.dislike": 739,
+    "root.dislike.dislike.dislike.noanswer.like": 345,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 205,
+    "root.dislike.dislike.like": 660,
+    "root.dislike.dislike.noanswer": 556,
+    "root.dislike.like": 723,
+    "root.dislike.noanswer": 529,
+    "root.like.dislike": 340,
+    "root.like.like": 1010,
+    "root.like.noanswer": 1256,
+    "root.noanswer.dislike": 438,
+    "root.noanswer.like": 357,
+    "root.noanswer.noanswer": 1785
+  },
+  "train_leaf_sizes": {
+    "root.noanswer.noanswer": 1861,
+    "root.noanswer.dislike": 469,
+    "root.noanswer.like": 354,
+    "root.dislike.noanswer": 547,
+    "root.dislike.dislike.noanswer": 556,
+    "root.dislike.dislike.dislike.noanswer.noanswer": 190,
+    "root.dislike.dislike.dislike.noanswer.dislike": 693,
+    "root.dislike.dislike.dislike.noanswer.like": 301,
+    "root.dislike.dislike.dislike.dislike": 351,
+    "root.dislike.dislike.dislike.like": 807,
+    "root.dislike.dislike.like": 633,
+    "root.dislike.like": 750,
+    "root.like.noanswer": 1187,
+    "root.like.dislike": 309,
+    "root.like.like": 992
+  },
+  "train_partitions": {
+    "root": {
+      "like": 2488,
+      "dislike": 4828,
+      "noanswer": 2684
+    },
+    "root.noanswer": {
+      "like": 354,
+      "dislike": 469,
+      "noanswer": 1861
+    },
+    "root.dislike": {
+      "like": 750,
+      "dislike": 3531,
+      "noanswer": 547
+    },
+    "root.dislike.dislike": {
+      "like": 633,
+      "dislike": 2342,
+      "noanswer": 556
+    },
+    "root.dislike.dislike.dislike": {
+      "like": 807,
+      "dislike": 351,
+      "noanswer": 1184
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+      "like": 301,
+      "dislike": 693,
+      "noanswer": 190
+    },
+    "root.like": {
+      "like": 992,
+      "dislike": 309,
+      "noanswer": 1187
+    }
+  },
+  "train_answer_rates": {
+    "root": 0.7316,
+    "root.noanswer": 0.3066318926974665,
+    "root.dislike": 0.8867025683512841,
+    "root.dislike.dislike": 0.8425375247805155,
+    "root.dislike.dislike.dislike": 0.49444918872758326,
+    "root.dislike.dislike.dislike.noanswer": 0.839527027027027,
+    "root.like": 0.5229099678456591
+  },
+  "banked_partitions": {
+    "root": {
+      "like": 2606,
+      "dislike": 4814,
+      "noanswer": 2580
+    },
+    "root.like": {
+      "like": 1010,
+      "dislike": 340,
+      "noanswer": 1256
+    },
+    "root.dislike": {
+      "like": 723,
+      "dislike": 3562,
+      "noanswer": 529
+    },
+    "root.noanswer": {
+      "like": 357,
+      "dislike": 438,
+      "noanswer": 1785
+    },
+    "root.dislike.dislike": {
+      "like": 660,
+      "dislike": 2346,
+      "noanswer": 556
+    },
+    "root.dislike.dislike.dislike": {
+      "like": 702,
+      "dislike": 355,
+      "noanswer": 1289
+    },
+    "root.dislike.dislike.dislike.noanswer": {
+      "like": 345,
+      "dislike": 739,
+      "noanswer": 205
+    }
+  },
+  "cost": {
+    "sec_per_1k_traversal": 0.022500133514404295,
+    "sec_per_1k_z": 3.5326876640319824,
+    "sec_per_1k_total": 3.555187797546387,
+    "projected_hours_all_train": 0.1390157433013916,
+    "z_cache_bytes": 1801830400,
+    "disk_free_bytes": 3067322368
+  },
+  "tower": "t2i26c_ep31.pt",
+  "conc_ckpt": "concept_cv3_ep08.pt",
+  "mask_policy": "B"
+}

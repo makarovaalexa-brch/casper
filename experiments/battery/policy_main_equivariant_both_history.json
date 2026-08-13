@@ -1,0 +1,99 @@
+{
+ "analysis": "policy_net_E1",
+ "arm": "main",
+ "arch": "equivariant",
+ "state": "both",
+ "use_pos": true,
+ "history": [
+  {
+   "epoch": 1,
+   "train_loss": 0.17852122578836876,
+   "train_top1": 0.9675365672596045,
+   "val_top1_teacher_forced": 0.99979375,
+   "val_full": 0.2835025946483733,
+   "val_tail": 0.13424533217612572,
+   "val_gain_full_vs_static": 0.027892433512350767,
+   "n_distinct_interviews": 36,
+   "minutes": 6.77
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.00018768384556686928,
+   "train_top1": 0.9999942280916118,
+   "val_top1_teacher_forced": 1.0,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "val_gain_full_vs_static": 0.027939557118932534,
+   "n_distinct_interviews": 15,
+   "minutes": 6.02
+  },
+  {
+   "epoch": 3,
+   "train_loss": 1.2984444820809233e-05,
+   "train_top1": 1.0,
+   "val_top1_teacher_forced": 1.0,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "val_gain_full_vs_static": 0.027939557118932534,
+   "n_distinct_interviews": 15,
+   "minutes": 12.81
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.12996861235368706,
+   "train_top1": 0.981512577432371,
+   "val_top1_teacher_forced": 0.99925625,
+   "val_full": 0.28345885179114505,
+   "val_tail": 0.13421504799780568,
+   "val_gain_full_vs_static": 0.02784869065512252,
+   "n_distinct_interviews": 71,
+   "minutes": 13.02
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.0007105415150714177,
+   "train_top1": 0.9999356210218231,
+   "val_top1_teacher_forced": 0.99999375,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "val_gain_full_vs_static": 0.027939557118932534,
+   "n_distinct_interviews": 16,
+   "minutes": 13.27
+  },
+  {
+   "epoch": 6,
+   "train_loss": 2.6550048749851586e-05,
+   "train_top1": 0.999999556007047,
+   "val_top1_teacher_forced": 1.0,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "val_gain_full_vs_static": 0.027939557118932534,
+   "n_distinct_interviews": 15,
+   "minutes": 13.62
+  },
+  {
+   "epoch": 7,
+   "train_loss": 4.998597386650543e-06,
+   "train_top1": 1.0,
+   "val_top1_teacher_forced": 1.0,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "val_gain_full_vs_static": 0.027939557118932534,
+   "n_distinct_interviews": 15,
+   "minutes": 13.78
+  },
+  {
+   "epoch": 8,
+   "train_loss": 1.3838058892016352e-06,
+   "train_top1": 1.0,
+   "val_top1_teacher_forced": 1.0,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "val_gain_full_vs_static": 0.027939557118932534,
+   "n_distinct_interviews": 15,
+   "minutes": 11.85
+  }
+ ],
+ "test_touched": false,
+ "selection": "real interview NDCG on 10,000 val users"
+}
