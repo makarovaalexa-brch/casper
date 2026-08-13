@@ -263,8 +263,12 @@ class CombinedPolicy(nn.Module):
 
 
 # ============================================================================ state tensors
-def val_state_tensors(V, phi_t, p2c, rows_pos, depth):
-    """The (z, ternary history, position) tensors for a set of VALIDATION users at one tree state."""
+def val_state_tensors(V, p2c, rows_pos, depth):
+    """The (z, ternary history, position) tensors for a set of VALIDATION users at one tree state.
+
+    The history's descriptor block is NOT materialised here -- `hq` (indices) is kept and the
+    (n_users, 15, d_phi) block is gathered per use. At the root that block alone would be 123 MB and
+    there are 22 states (HARD RULE 11c: bound every per-state cache)."""
     z = torch.from_numpy(np.ascontiguousarray(V["Z"][rows_pos, depth]).astype(np.float32))
     B, T = len(rows_pos), TOTAL_L - 1
     hq = np.zeros((B, T), np.int64); ho = np.zeros((B, T), np.int64)
@@ -274,8 +278,7 @@ def val_state_tensors(V, phi_t, p2c, rows_pos, depth):
         ho[:, j] = V["outcome"][rows_pos, j]
         hm[:, j] = 1.0
     pos = np.tile(np.asarray([[depth, TOTAL_L - depth]], np.float32), (B, 1))
-    return (z, torch.from_numpy(phi_t[hq]), torch.from_numpy(ho), torch.from_numpy(hm),
-            torch.from_numpy(pos))
+    return (z, hq, torch.from_numpy(ho), torch.from_numpy(hm), torch.from_numpy(pos))
 
 
 def spearman(a, b):
@@ -294,21 +297,25 @@ def state_pack(st, V, phi_t, p2c, pool_cat, out_model):
     cand = [q for q in pool_cat["pool"] if q in st["gains"]]
     ci = np.asarray([pool_cat["index"][q] for q in cand], np.int64)
     y = torch.tensor([st["base"] + st["gains"][q] for q in cand], dtype=torch.float32)
-    z, hp, ho, hm, ps = val_state_tensors(V, phi_t, p2c, jj, st["depth"])
-    phi_c = torch.from_numpy(phi_t[ci])
+    z, hq, ho, hm, ps = val_state_tensors(V, p2c, jj, st["depth"])
+    phi_c = torch.from_numpy(np.ascontiguousarray(phi_t[ci]))
+    pk = {"nid": st["nid"], "z": z, "hq": hq, "ho": ho, "hm": hm, "ps": ps, "phi": phi_c,
+          "phi_t": phi_t, "y": y, "cand": cand, "base": st["base"], "n_users": len(jj),
+          "target_gain": np.asarray([st["gains"][q] for q in cand], np.float64)}
     with torch.no_grad():
-        P = torch.softmax(out_model(z, hp, ho, hm, ps, phi=phi_c), 0)      # (3, n_users, n_cand)
-    return {"nid": st["nid"], "z": z, "hp": hp, "ho": ho, "hm": hm, "ps": ps, "phi": phi_c,
-            "P": P, "y": y, "cand": cand, "target_gain": np.asarray(
-                [st["gains"][q] for q in cand], np.float64), "base": st["base"],
-            "n_users": len(jj)}
+        pk["P"] = torch.softmax(out_model(z, hist_phi(pk), ho, hm, ps, phi=phi_c), 0)
+    return pk
+
+
+def hist_phi(pk):
+    return torch.from_numpy(pk["phi_t"][pk["hq"]])
 
 
 def composed(model, pk, grad=False):
     """mean_u SUM_o P(o|q,u) * V(o|q,u) -- the cohort-level composed value, per candidate."""
     ctx = torch.enable_grad() if grad else torch.no_grad()
     with ctx:
-        Vv = model(pk["z"], pk["hp"], pk["ho"], pk["hm"], pk["ps"], phi=pk["phi"])
+        Vv = model(pk["z"], hist_phi(pk), pk["ho"], pk["hm"], pk["ps"], phi=pk["phi"])
         return (pk["P"] * Vv).sum(0).mean(0)
 
 
@@ -342,14 +349,18 @@ def run(args):
 
     # ---------- 1. the composition audit, before any environment is built ------------------------
     tr, comp = scan_heaps()
-    ncomplete = [r for r in comp if r["complete"] and not r["is_leaf"]]
-    nsurv = [r for r in comp if not r["complete"]]
-    log(f"[audit] {len(comp)} heap sidecars: {len(ncomplete)} COMPLETE level-0 vectors at internal "
-        f"nodes (unbiased, ternary-conditioned scalar), {len(nsurv)} survivor sets "
-        f"(CELF-popped, enriched for LOW gains, greedy-unconditioned scalar at the leaves)")
-    log(f"[audit] complete exact conditioned gains available to train on: "
+    partition_identity_check(tr)
+    # count over `ndcgtree_heaps` only -- `ndcgtree16_heaps` re-banks the SAME leaf states with the
+    # tail extended to 16, so counting both would double-count 15 states.
+    own = [r for r in comp if r["dir"] == "ndcgtree_heaps"]
+    ncomplete = [r for r in own if r["complete"]]
+    nsurv = [r for r in own if not r["complete"]]
+    log(f"[audit] {len(own)} heap sidecars at their own state: {len(ncomplete)} COMPLETE level-0 "
+        f"vectors (measured before any CELF pop -> UNBIASED), {len(nsurv)} survivor sets "
+        f"(CELF pops the highest gains first, so a survivor set is enriched for LOW gains)")
+    log(f"[audit] complete exact gains available to train on: "
         f"{sum(r['n_level0'] for r in ncomplete):,} over {len(ncomplete)} distinct states")
-    log(f"[audit] survivor-biased level-0 values, NOT used for fitting: "
+    log(f"[audit] survivor-biased level-0 values (secondary arm only): "
         f"{sum(r['n_level0'] for r in nsurv):,} over {len(nsurv)} states "
         f"(coverage {np.mean([r['n_level0'] / r['n_pool'] for r in nsurv]) * 100:.1f}% of the pool "
         f"on average, min {min(r['n_level0'] / r['n_pool'] for r in nsurv) * 100:.1f}%)")
@@ -387,6 +398,9 @@ def run(args):
 
     # ---------- 4. the frozen outcome head ---------------------------------------------------------
     blob = torch.load(args.outcome_ckpt, map_location="cpu")
+    assert not blob.get("prior_feat"), (
+        "the outcome head was trained with --prior_feat, so its descriptor is wider than this "
+        "environment's; the lift head would be reading a different input space")
     om = OutcomeModel(blob["d_z"], blob["d_phi"], state=blob["state"], use_pos=blob["use_pos"],
                       d_k=blob["d_k"], d_h=blob["d_h"])
     om.load_state_dict(blob["model"]); om.eval()
@@ -482,6 +496,7 @@ def run(args):
                      "G-L5_no_test": "split=validation only"},
            "outcome_ckpt": os.path.basename(args.outcome_ckpt),
            "partition_identity_max_abs_err": partition_identity_check(tr),
+           "n_states_complete": len(states), "n_states_survivor": len(surv),
            "scalar_note": ("the banked scalar is the plain cohort-mean full NDCG@10 gain; the "
                            "node-size-weighted ternary mean is algebraically identical to it, so "
                            "internal-node and leaf sidecars hold the SAME quantity and differ only "
