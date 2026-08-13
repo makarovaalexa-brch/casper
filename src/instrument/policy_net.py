@@ -215,9 +215,15 @@ class Policy(nn.Module):
 
 
 # ============================================================================ candidate descriptors
-def build_phi(E, pool):
+def build_phi(E, pool, norm=None):
     """The FROZEN per-candidate descriptor. Nothing here is learned, so nothing can drift off the
     certified ruler.
+
+    `norm` = the (mu, sd) standardisation to apply. It is FITTED on the training pool and then PASSED
+    IN for every later pool -- above all for the full 18,359-item + 1,031-concept catalogue of the
+    scalability demonstration (design sheet D.4). Re-fitting it per pool would silently move every
+    descriptor, so the out-of-vocab picks would be an artefact of a changed input scale rather than a
+    property of the trained policy.
 
       item i     -> decoder row W_d[i] (d), log1p(train count), 0, 0, channel one-hot (1,0)
       concept c  -> cv3 concept embedding emb.weight[c] (d), 0, answer rate, signed-value std,
@@ -248,8 +254,11 @@ def build_phi(E, pool):
             phi[j, d + 1] = c_ar[int(i)]
             phi[j, d + 2] = c_sd[int(i)]
             phi[j, d + 4] = 1.0
-    mu, sd = phi.mean(0, keepdims=True), phi.std(0, keepdims=True) + 1e-6
-    return (phi - mu) / sd
+    if norm is None:
+        mu, sd = phi.mean(0, keepdims=True), phi.std(0, keepdims=True) + 1e-6
+    else:
+        mu, sd = norm                                        # the TRAINING pool's statistics
+    return (phi - mu) / sd, (mu, sd)
 
 
 # ============================================================================ gates / diagnostics
@@ -341,49 +350,456 @@ def selftest():
     return True
 
 
-# ============================================================================ training (NOT RUN)
-def train(args):
-    """E1 imitation. Cross-entropy over the 1,000-candidate pool against the tree's exact-NDCG argmax.
+# ============================================================================ the data
+TRAJ_DIR = os.path.join(OUTDIR, "policy_traj")
+STATIC_JSON = os.path.join(OUTDIR, "greedy_static_policyB_combined.json")
+TREE16_JSON = os.path.join(OUTDIR, "ndcgtree16.json")
+# Banked headline numbers, asserted rather than trusted (`banked-global-greedy-is-a-policy-A-artifact`:
+# when a new arm nests in a banked one, assert the banked number -- a free contract check).
+STATIC_VAL_FULL = 0.25561016113602253
+STATIC_VAL_TAIL = 0.12366492106552922
+TREE_VAL_GAIN_FULL = 0.027939556166529655            # ndcgtree16.json cohort_weighted["16"]
+TREE_VAL_GAIN_TAIL = 0.010548197664320469
+VAL_M0_FULL = 0.15686538                              # G-E1e canonical snap
+TOTAL_L = 16
 
-    ⚠ AUTHOR GATE: as of 2026-08-13 the standing instruction is "do not train yet, just document all
-    ideas." This function refuses to run without `--i_have_author_goahead`, so the file can be
-    committed and reviewed without any risk of a stray run (HARD RULE 10 wants the code committed
-    BEFORE anything runs; it does not want a run).
+
+def load_traj(train=True):
+    """The trajectory bank produced by `policy_traj.py`.
+
+    TRAIN side: the 140,768 train users, 16 (state -> label) examples each, ~2.25M. VALIDATION side:
+    the same object on the 10,000 validation users -- NOT training data. It is (a) the held-out states
+    G-E1a measures top-1 agreement on and (b) the tree's own realised interviews the policy's rollout
+    is compared against.
+    """
+    man = json.load(open(os.path.join(TRAJ_DIR, "manifest.json")))
+    pool = [(int(a), int(b)) for a, b in man["pool"]]
+    if not train:
+        z = np.load(os.path.join(TRAJ_DIR, "val_traj.npz"))
+        vpool = [(int(a), int(b)) for a, b in z["pool"]]
+        assert vpool == pool, "the validation trajectory pool is not the training pool"
+        Z = np.load(os.path.join(TRAJ_DIR, "z_val.npy"), mmap_mode="r")
+        assert Z.shape[0] == len(z["uid"]) and Z.shape[1] == TOTAL_L
+        return {"uid": z["uid"], "label_idx": z["label_idx"], "outcome": z["outcome"],
+                "leaf": z["leaf"], "leaf_ids": [str(s) for s in z["leaf_ids"]], "Z": Z,
+                "pool": pool, "sig": man["sig"]}
+    n_done = sum(v["n_users"] for v in man["done"].values())
+    assert n_done == man["sig"]["n_train"], (
+        f"the trajectory bank is INCOMPLETE: {n_done:,} of {man['sig']['n_train']:,} train users. "
+        f"Refusing to train on a partial cohort (HARD RULE 1).")
+    uid, lab, out, leaf = [], [], [], []
+    for key in sorted(man["done"], key=lambda k: int(k.split("_")[0])):
+        z = np.load(os.path.join(TRAJ_DIR, f"meta_{key}.npz"))
+        uid.append(z["uid"]); lab.append(z["label_idx"]); out.append(z["outcome"]); leaf.append(z["leaf"])
+    uid = np.concatenate(uid); lab = np.concatenate(lab)
+    out = np.concatenate(out); leaf = np.concatenate(leaf)
+    assert np.array_equal(np.sort(uid), np.arange(man["sig"]["n_train"])), \
+        "the train uids are not exactly 0..140,767 -- a user is missing or duplicated"
+    o = np.argsort(uid)
+    Z = np.load(os.path.join(TRAJ_DIR, "z_train.npy"), mmap_mode="r")
+    assert Z.shape == (man["sig"]["n_train"], TOTAL_L, man["sig"]["d"])
+    return {"uid": uid[o], "label_idx": lab[o], "outcome": out[o], "leaf": leaf[o], "Z": Z,
+            "pool": pool, "sig": man["sig"], "leaf_ids": man["leaf_ids"]}
+
+
+def make_batch(D, phi_t, u, t, n_pool, labels=None):
+    """Tensors for a batch of (user, position) examples. The history is EXPLICIT and TERNARY."""
+    B = len(u)
+    Z = D["Z"]; lab = D["label_idx"]; out = D["outcome"]
+    z = torch.from_numpy(np.ascontiguousarray(Z[u, t]).astype(np.float32))
+    T = TOTAL_L - 1
+    hq = np.zeros((B, T), np.int64); ho = np.zeros((B, T), np.int64)
+    hm = np.zeros((B, T), np.float32)
+    for j in range(T):
+        m = t > j
+        if not m.any():
+            break
+        hq[m, j] = lab[u[m], j]
+        ho[m, j] = out[u[m], j]
+        hm[m, j] = 1.0
+    asked = np.zeros((B, n_pool), bool)
+    asked[np.repeat(np.arange(B), T)[hm.ravel() > 0], hq.ravel()[hm.ravel() > 0]] = True
+    y = lab[u, t].astype(np.int64) if labels is None else labels
+    # A question is never asked twice, so the already-asked are -inf. Under the SHUFFLE control the
+    # permuted target can land on an already-asked candidate; that one entry is re-opened, because a
+    # control whose loss is +inf measures nothing.
+    asked[np.arange(B), y] = False
+    pos = np.stack([t, TOTAL_L - t], 1).astype(np.float32)
+    return (z, torch.from_numpy(phi_t[hq]), torch.from_numpy(ho), torch.from_numpy(hm),
+            torch.from_numpy(pos), torch.from_numpy(asked), torch.from_numpy(y))
+
+
+# ============================================================================ the validation rollout
+def rollout(E, pol, phi_t, pool, rows, L=TOTAL_L, batch=1000, score_at=(TOTAL_L,)):
+    """THE POLICY'S OWN INTERVIEWS. It picks its own questions; it does not replay the tree's.
+
+    Every turn: the policy scores every candidate from the current state, the argmax over the not-yet-
+    asked is asked, the user's own ternary answer is taken by the SAME rule the tree branches on
+    (`branch_of_per_user`, gated against `branch_of`), and the answer is folded. The reported NDCG
+    comes off the existing scoring funnel (`genv_eval_multi`), not a second scorer -- the intermediate
+    turns pass `score=False`, which skips only the decoder matmul nobody reads.
+    """
+    from strategy_channel_suite import genv_latent, genv_eval_multi
+    from ndcg_tree import branch_of_per_user
+    n = len(rows)
+    P = len(pool)
+    asked = np.full((n, L), -1, np.int64)
+    outs = np.full((n, L), -1, np.int8)
+    asked_mask = np.zeros((n, P), bool)
+    z = genv_latent(E, [], rows).numpy()
+    curves = {}
+    phi_g = torch.from_numpy(phi_t)
+    pol.eval()
+    for t in range(L):
+        hq = np.zeros((n, TOTAL_L - 1), np.int64); ho = np.zeros((n, TOTAL_L - 1), np.int64)
+        hm = np.zeros((n, TOTAL_L - 1), np.float32)
+        for j in range(t):
+            hq[:, j] = asked[:, j]; ho[:, j] = outs[:, j]; hm[:, j] = 1.0
+        pos = np.tile(np.asarray([[t, TOTAL_L - t]], np.float32), (n, 1))
+        with torch.no_grad():
+            for st in range(0, n, batch):
+                sl = slice(st, min(st + batch, n))
+                s = pol(torch.from_numpy(z[sl]), torch.from_numpy(phi_t[hq[sl]]),
+                        torch.from_numpy(ho[sl]), torch.from_numpy(hm[sl]),
+                        torch.from_numpy(pos[sl]), phi_g, torch.from_numpy(asked_mask[sl]))
+                asked[sl, t] = s.argmax(1).numpy()
+        outs[:, t] = branch_of_per_user(E, rows, [pool[int(j)] for j in asked[:, t]])
+        asked_mask[np.arange(n), asked[:, t]] = True
+        need_score = (t + 1) in score_at
+        iseq = [[pool[int(j)][1] for j in asked[u, :t + 1] if pool[int(j)][0] == 0] for u in range(n)]
+        cseq = [[pool[int(j)][1] for j in asked[u, :t + 1] if pool[int(j)][0] == 1] for u in range(n)]
+        r = genv_eval_multi(E, rows, iseq, cseq, return_z=(t + 1 < L), score=need_score)
+        if need_score:
+            curves[t + 1] = (r[0], r[1])
+        if t + 1 < L:
+            z = r[-1].numpy()
+    assert (asked >= 0).all() and (outs >= 0).all()
+    assert all(len(set(asked[u].tolist())) == L for u in range(min(n, 2000))), \
+        "a question was asked twice inside one interview"
+    return {"asked": asked, "outs": outs, "curves": curves}
+
+
+def teacher_forced_agreement(pol, phi_t, D, n_pool, batch=2048):
+    """G-E1a. Top-1 agreement with the tree's label at the tree's OWN states, on the held-out
+    validation users -- the states are the teacher's, so this measures imitation, not rollout luck.
+    Reported overall and per position (design sheet B.9: early failure = answerability, late failure =
+    fragmentation)."""
+    n = len(D["uid"])
+    hit = np.zeros(TOTAL_L); tot = np.zeros(TOTAL_L)
+    pol.eval()
+    with torch.no_grad():
+        for t in range(TOTAL_L):
+            for st in range(0, n, batch):
+                u = np.arange(st, min(st + batch, n))
+                z, hp, ho, hm, pos, am, y = make_batch(D, phi_t, u, np.full(len(u), t), n_pool)
+                s = pol(z, hp, ho, hm, pos, torch.from_numpy(phi_t), am)
+                hit[t] += float((s.argmax(1) == y).sum()); tot[t] += len(u)
+    return {"top1": float(hit.sum() / tot.sum()),
+            "top1_by_position": [float(a / b) for a, b in zip(hit, tot)]}
+
+
+# ============================================================================ statistics
+def paired_bootstrap(diff, n_boot=10000, seed=SEED):
+    """The paired percentile bootstrap over per-user DIFFERENCES. NEVER the unpaired
+    `1.96*sqrt(2)*SE` form -- that is the signature the chapter's own tie claim died on
+    (`paired-test-kills-the-tie-claim`)."""
+    d = np.asarray(diff, np.float64)
+    d = d[~np.isnan(d)]
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(d), size=(n_boot, len(d)))
+    bs = d[idx].mean(1)
+    lo, hi = np.percentile(bs, [2.5, 97.5])
+    return {"mean": float(d.mean()), "lo": float(lo), "hi": float(hi), "n": int(len(d)),
+            "excludes_zero": bool(lo > 0 or hi < 0)}
+
+
+def pep_divergence_from_arrays(asked, outs):
+    """G-E1c second half, exactly and in O(n): over all pairs of users asked the SAME question at the
+    same position who ANSWERED IT DIFFERENTLY, the fraction that received a DIFFERENT next question.
+
+    ⚠ It detects COLLAPSE. It licenses no routing claim -- D2 measured that the tree diverges WITHOUT
+    routing (answer-congruence null, p=0.82 / p=0.61).
+    """
+    from collections import Counter
+    n, L = asked.shape
+    tot = same = 0
+    for t in range(L - 1):
+        byq = {}
+        for u in range(n):
+            byq.setdefault(int(asked[u, t]), {}).setdefault(int(outs[u, t]), Counter())[
+                int(asked[u, t + 1])] += 1
+        for _q, groups in byq.items():
+            ks = sorted(groups)
+            for i in range(len(ks)):
+                for j in range(i + 1, len(ks)):
+                    a, b = groups[ks[i]], groups[ks[j]]
+                    tot += sum(a.values()) * sum(b.values())
+                    same += sum(a[k] * b[k] for k in a if k in b)
+    return {"n_pairs": int(tot), "divergence_rate": float(1.0 - same / tot) if tot else None}
+
+
+def channel_mix(asked, pool):
+    return float(np.mean([1.0 if pool[int(j)][0] == 1 else 0.0 for j in asked.ravel()]))
+
+
+# ============================================================================ training
+def train(args):
+    """E1 imitation. Cross-entropy over the 1,000-candidate pool against the tree's exact-NDCG argmax,
+    fitted on the 140,768 TRAIN users and SELECTED on real interview NDCG over the 10,000 VALIDATION
+    users (author ruling D.6b). The 8,000/2,000 in-sample dev split of A.2.1 is superseded and gone.
+
+    ⚠ AUTHOR GATE: `--i_have_author_goahead`. The author said "start on policy" (2026-08-13), which
+    authorises E1 training on validation-SELECTED, train-FITTED data. It does NOT authorise a test
+    look, E2, or regrowing the tree.
     """
     assert args.i_have_author_goahead, (
-        "REFUSING TO TRAIN. The standing author instruction (2026-08-13) is 'do not train yet, just "
-        "document all ideas'. Pass --i_have_author_goahead only when that has changed.")
-    assert os.path.exists(args.labels), f"label npz missing: {args.labels}"
-    blob = json.load(open(args.labels.replace(".npz", ".json")))
-    assert blob["split"] == "validation" and blob["test_touched"] is False, \
-        "FIREWALL: the label set is not a validation-only artifact"
+        "REFUSING TO TRAIN. Pass --i_have_author_goahead only when the author has said go.")
+    from strategy_channel_suite import (build_greedy_env, contract_selftest, genv_eval, genv_mean,
+                                        CERT_TOWER, CERT_CONC)
+    from ndcg_tree import build_pool, leak_assert, branch_of_selftest
     torch.manual_seed(SEED); np.random.seed(SEED)
-    Z = np.load(args.labels)
-    ex, pool = Z["examples"], Z["pool"]
-    rows = Z["rows"]
-
-    # --- the dev split. See design sheet A.2.1: this is an IN-SAMPLE early-stopping signal, because
-    # --- the tree was grown on these same users and a node's label used all of the node's users.
     rng = np.random.default_rng(SEED)
-    perm = rng.permutation(len(rows))
-    dev_rows = set(int(rows[i]) for i in perm[:args.n_dev])
-    is_dev = np.asarray([int(r) in dev_rows for r in ex[:, 0]])
-    log(f"[split] {len(rows) - args.n_dev} train / {args.n_dev} dev users (seed {SEED}); "
-        f"{int((~is_dev).sum())} train / {int(is_dev.sum())} dev examples. CONTAMINATION STATED: "
-        f"the labels were computed on all 10,000 users, dev included -- see design sheet A.2.1.")
+    t00 = time.time()
 
-    if args.arm == "shuffle":                        # G-E1d, HARD RULE 5
-        lab = ex[:, 2].copy()
-        rng.shuffle(lab)
-        ex = ex.copy(); ex[:, 2] = lab
-        log("[arm] SHUFFLE CONTROL: labels permuted. This arm must NOT clear G-E1b.")
+    Dtr = load_traj(train=True)
+    Dva = load_traj(train=False)
+    pool = Dtr["pool"]; P = len(pool)
+    log(f"[data] train {len(Dtr['uid']):,} users x {TOTAL_L} = {len(Dtr['uid']) * TOTAL_L:,} examples; "
+        f"val {len(Dva['uid']):,} users; pool {P}; "
+        f"{len(np.unique(Dtr['label_idx']))} distinct label questions behind them "
+        f"(design sheet A.5: the label set's real information content is 202 states / 172 questions)")
 
-    raise SystemExit(
-        "E1's training loop needs the per-example state tensors (z_t, answer history, position), which "
-        "are produced by the scoring environment and are NOT in the label npz. That builder is the "
-        "next commit; it is deliberately not stubbed here, because a stub that silently fabricates a "
-        "state is exactly the class of defect this project has been burned by. Nothing above this "
-        "line touches the test cohort, and nothing above this line fits anything.")
+    # ---- the environment, the ruler, and the comparator ------------------------------------------
+    E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, f"policynet/{args.arm}")
+    contract_selftest(E, E["rows"])
+    leak_assert(E, E["rows"], "policynet/val")
+    rows = E["rows"]
+    assert len(rows) == 10000
+    assert list(np.asarray(Dva["uid"], np.int64)) == list(np.asarray(rows, np.int64)), \
+        "the validation trajectory rows are not the env's rows, in order"
+    f0, t0_ = genv_mean(E, [], rows)
+    assert round(f0, 8) == VAL_M0_FULL, f"G-E1e canonical snap FAILED: {f0!r}"
+    log(f"[G-E1e] m=0 intercept full={f0!r} tail={t0_!r} -- canonical, exact")
+    pool_e, item_pool, conc_pool = build_pool(E, 500, 500)
+    assert pool_e == pool, "the env's pool is not the trajectory bank's pool"
+    branch_of_selftest(E, rows[:2000], [pool[0], pool[500], (1, 114)])
+
+    static_seq = [(int(a), int(b)) for a, b in json.load(open(STATIC_JSON))["sequence"]]
+    sf, stl = genv_eval(E, static_seq, rows)
+    assert abs(float(np.nanmean(sf)) - STATIC_VAL_FULL) < 1e-12, (
+        f"BANKED-HEADLINE ASSERT FAILED: greedy_static_policyB_combined rescores to "
+        f"{float(np.nanmean(sf))!r}, banked {STATIC_VAL_FULL}")
+    log(f"[banked] greedy_static_policyB_combined K=16 on validation reproduces EXACTLY: "
+        f"full={float(np.nanmean(sf))!r} tail={float(np.nanmean(stl))!r}")
+
+    phi_t, norm = build_phi(E, pool)
+    phi_g = torch.from_numpy(phi_t)
+    log(f"[phi] {phi_t.shape[1]}-dim frozen descriptors for {P} candidates")
+
+    pol = Policy(E["ctx"].d, phi_t.shape[1], P, arch=args.arch, state=args.state,
+                 use_pos=not args.no_pos)
+    log(f"[model] arch={args.arch} state={args.state} pos={not args.no_pos} "
+        f"params={pol.n_params():,}")
+    opt = torch.optim.Adam(pol.parameters(), lr=args.lr)
+    lossf = nn.CrossEntropyLoss()
+
+    N = len(Dtr["uid"])
+    n_ex = N * TOTAL_L
+    labels_all = None
+    if args.arm == "shuffle":                                # G-E1d, HARD RULE 5
+        lab = Dtr["label_idx"].copy()
+        for t in range(TOTAL_L):                             # permute users WITHIN a position
+            lab[:, t] = lab[rng.permutation(N), t]
+        labels_all = lab
+        log("[arm] SHUFFLE CONTROL: the label at every (user, position) is another user's label at "
+            "the same position. The states are untouched. This arm must NOT clear G-E1b.")
+
+    steps = int(np.ceil(n_ex / args.batch))
+    best = {"full": -1e9}
+    hist = []
+    ckpt = os.path.join(OUTDIR, f"policy_{args.arm}_{args.arch}_{args.state}"
+                                f"{'_nopos' if args.no_pos else ''}.pt")
+    for ep in range(1, args.epochs + 1):
+        pol.train()
+        perm = rng.permutation(n_ex)
+        tot = 0.0; seen = 0; hit = 0
+        te = time.time()
+        for si in range(steps):
+            e = perm[si * args.batch:(si + 1) * args.batch]
+            if not len(e):
+                continue
+            u = (e // TOTAL_L).astype(np.int64); t = (e % TOTAL_L).astype(np.int64)
+            y = labels_all[u, t].astype(np.int64) if labels_all is not None else None
+            z, hp, ho, hm, pos, am, yy = make_batch(Dtr, phi_t, u, t, P, labels=y)
+            s = pol(z, hp, ho, hm, pos, phi_g, am)
+            loss = lossf(s, yy)
+            opt.zero_grad(); loss.backward(); opt.step()
+            tot += float(loss) * len(e); seen += len(e)
+            hit += int((s.argmax(1) == yy).sum())
+            if (si + 1) % 500 == 0:
+                log(f"[ep{ep} {si + 1}/{steps}] loss {tot / seen:.4f} top1 {hit / seen:.4f} "
+                    f"({(time.time() - te) / 60:.1f}m)")
+        tr_loss, tr_top1 = tot / seen, hit / seen
+        ag = teacher_forced_agreement(pol, phi_t, Dva, P)
+        ro = rollout(E, pol, phi_t, pool, rows)
+        vf, vt = ro["curves"][TOTAL_L]
+        rec = {"epoch": ep, "train_loss": tr_loss, "train_top1": tr_top1,
+               "val_top1_teacher_forced": ag["top1"], "val_full": float(np.nanmean(vf)),
+               "val_tail": float(np.nanmean(vt)),
+               "val_gain_full_vs_static": float(np.nanmean(vf)) - STATIC_VAL_FULL,
+               "n_distinct_interviews": len({tuple(r) for r in ro["asked"]}),
+               "minutes": round((time.time() - te) / 60, 2)}
+        hist.append(rec)
+        log(f"[ep{ep}] loss {tr_loss:.4f} | train top1 {tr_top1:.4f} | VAL top1 {ag['top1']:.4f} | "
+            f"VAL full {rec['val_full']:.5f} (static {STATIC_VAL_FULL:.5f}, "
+            f"gain {rec['val_gain_full_vs_static']:+.5f}) | tail {rec['val_tail']:.5f} | "
+            f"{rec['n_distinct_interviews']} distinct interviews | {rec['minutes']:.1f}m")
+        if rec["val_full"] > best["full"]:
+            best = {"full": rec["val_full"], "epoch": ep, "rec": rec,
+                    "vf": vf, "vt": vt, "asked": ro["asked"], "outs": ro["outs"], "ag": ag}
+            torch.save({"model": pol.state_dict(), "arch": args.arch, "state": args.state,
+                        "use_pos": not args.no_pos, "d_phi": int(phi_t.shape[1]), "n_pool": P,
+                        "epoch": ep, "val_full": rec["val_full"], "val_tail": rec["val_tail"],
+                        "norm_mu": norm[0], "norm_sd": norm[1], "arm": args.arm,
+                        "pool": [[int(a), int(b)] for a, b in pool], "seed": SEED}, ckpt)
+            log(f"[ckpt] epoch {ep} is the best so far -> {os.path.basename(ckpt)}")
+        json.dump({"analysis": "policy_net_E1", "arm": args.arm, "arch": args.arch,
+                   "state": args.state, "use_pos": not args.no_pos, "history": hist,
+                   "test_touched": False, "selection": "real interview NDCG on 10,000 val users"},
+                  open(os.path.join(OUTDIR, f"policy_{args.arm}_{args.arch}_{args.state}"
+                                            f"{'_nopos' if args.no_pos else ''}_history.json"), "w"),
+                  indent=1, default=float)
+
+    # ---- the gates -------------------------------------------------------------------------------
+    vf, vt = best["vf"], best["vt"]
+    tree_ro = {"asked": Dva["label_idx"], "outs": Dva["outcome"]}
+    dev = np.full(len(rows), TOTAL_L, np.int64)              # first position the policy deviates
+    for t in range(TOTAL_L):
+        m = (best["asked"][:, t] != Dva["label_idx"][:, t]) & (dev == TOTAL_L)
+        dev[m] = t
+    gates = {
+        "G-E1e_canonical_snap": {"val_m0_full": f0, "expected": VAL_M0_FULL, "pass": True},
+        "G-E1a_fidelity": {"top1": best["ag"]["top1"], "bar": 0.50,
+                           "pass": best["ag"]["top1"] >= 0.50,
+                           "by_position": best["ag"]["top1_by_position"]},
+        "G-E1b_gain_vs_static": {
+            "full": paired_bootstrap(vf - sf), "tail": paired_bootstrap(vt - stl),
+            "comparator": "greedy_static_policyB_combined (validation, K=16)",
+            "tree_val_gain_full": TREE_VAL_GAIN_FULL, "tree_val_gain_tail": TREE_VAL_GAIN_TAIL},
+        "G-E1c_anti_collapse": {
+            "n_distinct_interviews": len({tuple(r) for r in best["asked"]}),
+            "max_share": float(max(np.unique([hash(tuple(r)) for r in best["asked"]],
+                                             return_counts=True)[1]) / len(rows)),
+            "pep_divergence_policy": pep_divergence_from_arrays(best["asked"], best["outs"]),
+            "pep_divergence_tree": pep_divergence_from_arrays(tree_ro["asked"], tree_ro["outs"]),
+            "bar": "> 3 distinct interviews AND divergence >= the tree's own"},
+        "covariate_shift": {
+            "mean_first_deviation_position": float(dev.mean()),
+            "frac_never_deviates": float((dev == TOTAL_L).mean()),
+            "deviation_position_histogram": [int((dev == t).sum()) for t in range(TOTAL_L + 1)]},
+        "channel_mix": {"policy_concept_share": channel_mix(best["asked"], pool),
+                        "tree_concept_share": channel_mix(Dva["label_idx"], pool)},
+    }
+    gates["G-E1c_anti_collapse"]["pass"] = bool(
+        gates["G-E1c_anti_collapse"]["n_distinct_interviews"] > 3 and
+        (gates["G-E1c_anti_collapse"]["pep_divergence_policy"]["divergence_rate"] or 0) >=
+        (gates["G-E1c_anti_collapse"]["pep_divergence_tree"]["divergence_rate"] or 0))
+    out = {"analysis": "policy_net_E1_gates", "design_sheet":
+           "docs/design/PAPER_B_POLICY_DESIGN.md", "citable": True, "test_touched": False,
+           "cohorts": {"fit": "140,768 TRAIN users (states + frozen-tree labels; NO NDCG)",
+                       "select": "10,000 VALIDATION users (real interview NDCG)"},
+           "arm": args.arm, "arch": args.arch, "state": args.state, "use_pos": not args.no_pos,
+           "best_epoch": best["epoch"], "history": hist, "gates": gates,
+           "static_val": {"full": float(np.nanmean(sf)), "tail": float(np.nanmean(stl))},
+           "policy_val": {"full": float(np.nanmean(vf)), "tail": float(np.nanmean(vt))},
+           "tower": E["tower"], "conc_ckpt": E["conc_ckpt"], "mask_policy": "B",
+           "pool_contract": E["pool_contract"], "minutes": round((time.time() - t00) / 60, 2)}
+    p = os.path.join(OUTDIR, f"policy_{args.arm}_{args.arch}_{args.state}"
+                             f"{'_nopos' if args.no_pos else ''}_gates.json")
+    np.savez_compressed(p.replace(".json", "_per_user.npz"), policy_full=vf, policy_tail=vt,
+                        static_full=sf, static_tail=stl, asked=best["asked"], outs=best["outs"],
+                        rows=np.asarray(rows, np.int64))
+    with open(p + ".tmp", "w") as fh:
+        json.dump(out, fh, indent=2, default=float)
+    os.replace(p + ".tmp", p)
+    log(f"[gates] wrote {os.path.basename(p)}")
+    for k, v in gates.items():
+        log(f"  {k}: {json.dumps(v, default=float)[:300]}")
+    return out
+
+
+# ============================================================================ the scalability demo
+def scalability(args):
+    """STEP 4 (design sheet D.4). Score the FULL 18,359-item + 1,031-concept catalogue in ONE forward
+    pass at inference, with NO retraining, and report what the policy picks OUTSIDE its 1,000-candidate
+    training pool.
+
+    This is the author's stated motive made measurable, and per D.4/A.11 it stands independently of
+    whether any gain separates. The vocabulary becomes a TEST-TIME INPUT rather than a parameter:
+    every candidate is scored by the same dot product against the emitted query vector, so a question
+    the policy never saw in training is scorable the moment it has a descriptor. A 1,000-way head
+    could not do this at all.
+
+    The descriptor standardisation is the TRAINING pool's (`norm` from the checkpoint) -- re-fitting it
+    on the catalogue would move every input and the out-of-pool picks would be an artefact of scale.
+    """
+    from strategy_channel_suite import build_greedy_env, contract_selftest, CERT_TOWER, CERT_CONC
+    from ndcg_tree import build_pool, leak_assert
+    blob = torch.load(args.ckpt, map_location="cpu")
+    E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, "policynet/scale")
+    contract_selftest(E, E["rows"]); leak_assert(E, E["rows"], "policynet/scale")
+    rows = E["rows"]
+    pool = [(int(a), int(b)) for a, b in blob["pool"]]
+    trained = set(pool)
+    full_pool = ([(0, i) for i in range(E["ctx"].ni)] + [(1, c) for c in range(E["C"])])
+    log(f"[scale] training pool {len(pool)} -> inference catalogue {len(full_pool)} "
+        f"({E['ctx'].ni} items + {E['C']} concepts), no retraining")
+    norm = (blob["norm_mu"], blob["norm_sd"])
+    phi_small, _ = build_phi(E, pool, norm=norm)
+    phi_full, _ = build_phi(E, full_pool, norm=norm)
+    pol = Policy(E["ctx"].d, phi_full.shape[1], len(full_pool), arch=blob["arch"],
+                 state=blob["state"], use_pos=blob["use_pos"])
+    pol.load_state_dict(blob["model"])
+    assert blob["arch"] != "flat", (
+        "the flat 1,000-way head is the CONTROL arm and cannot score a candidate outside its pool -- "
+        "the scalability claim is not available to it, by construction")
+
+    ro_s = rollout(E, pol, phi_small, pool, rows)
+    ro_f = rollout(E, pol, phi_full, full_pool, rows)
+    picks = ro_f["asked"]
+    oop = np.asarray([[0 if full_pool[int(j)] in trained else 1 for j in r] for r in picks])
+    from collections import Counter
+    c = Counter(full_pool[int(j)] for j in picks.ravel() if full_pool[int(j)] not in trained)
+    fs, ts = ro_f["curves"][TOTAL_L]
+    ss, st = ro_s["curves"][TOTAL_L]
+    out = {"analysis": "policy_E1_scalability", "design_sheet":
+           "docs/design/PAPER_B_POLICY_DESIGN.md D.4", "citable": True, "test_touched": False,
+           "ckpt": os.path.basename(args.ckpt), "n_train_pool": len(pool),
+           "n_inference_catalogue": len(full_pool),
+           "out_of_pool_pick_rate": float(oop.mean()),
+           "out_of_pool_by_position": [float(x) for x in oop.mean(0)],
+           "users_with_any_out_of_pool_pick": float((oop.sum(1) > 0).mean()),
+           "top_out_of_pool_questions": [{"channel": "item" if q[0] == 0 else "concept",
+                                          "id": int(q[1]), "n_picks": int(n)}
+                                         for q, n in c.most_common(25)],
+           "n_distinct_out_of_pool_questions": len(c),
+           "val_full_1000_pool": float(np.nanmean(ss)), "val_tail_1000_pool": float(np.nanmean(st)),
+           "val_full_full_catalogue": float(np.nanmean(fs)),
+           "val_tail_full_catalogue": float(np.nanmean(ts)),
+           "paired_full_catalogue_minus_1000": paired_bootstrap(fs - ss),
+           "note": ("The catalogue arm is a DIFFERENT action space from the tree's, so its NDCG is not "
+                    "comparable to the tree's headline and is reported as a description of what the "
+                    "policy does when the vocabulary is opened, not as a gain against any comparator.")}
+    p = os.path.join(OUTDIR, "policy_scalability.json")
+    with open(p + ".tmp", "w") as fh:
+        json.dump(out, fh, indent=2, default=float)
+    os.replace(p + ".tmp", p)
+    log(f"[scale] out-of-pool picks {out['out_of_pool_pick_rate'] * 100:.2f}% of all questions; "
+        f"{out['n_distinct_out_of_pool_questions']} distinct never-trained questions asked; "
+        f"full catalogue val full {out['val_full_full_catalogue']:.5f} vs "
+        f"{out['val_full_1000_pool']:.5f} on the training pool")
+    log(f"[scale] wrote {p}")
+    return out
 
 
 def main():
@@ -391,21 +807,40 @@ def main():
                                              "docs/design/PAPER_B_POLICY_DESIGN.md")
     ap.add_argument("--selftest", action="store_true",
                     help="pure-tensor invariance checks on random weights. No data, no fit.")
-    ap.add_argument("--labels", default=os.path.join(OUTDIR, "policy_labels_e1.npz"))
     ap.add_argument("--arch", default="equivariant", choices=["equivariant", "pointer", "flat"])
     ap.add_argument("--state", default="both", choices=["z", "hist", "both"])
     ap.add_argument("--no_pos", action="store_true",
                     help="drop the position/remaining-budget feature. The tree is budget-unaware, so "
                          "THIS is the like-for-like variant (design sheet A.4) and both are reported.")
     ap.add_argument("--arm", default="main", choices=["main", "shuffle"])
-    ap.add_argument("--n_dev", type=int, default=2000)
-    ap.add_argument("--epochs", type=int, default=20)
+    ap.add_argument("--epochs", type=int, default=8)
+    ap.add_argument("--batch", type=int, default=512)
     ap.add_argument("--lr", type=float, default=1e-3)
+    ap.add_argument("--snapshot", default=None)
+    ap.add_argument("--concept_ckpt", default=None)
+    ap.add_argument("--full_threads", action="store_true",
+                    help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv)")
     ap.add_argument("--i_have_author_goahead", action="store_true",
-                    help="required to train. The standing instruction (2026-08-13) is DO NOT TRAIN.")
+                    help="required to train.")
+    ap.add_argument("--scale", action="store_true",
+                    help="STEP 4: score the FULL catalogue at inference from a trained checkpoint")
+    ap.add_argument("--ckpt", default=os.path.join(OUTDIR, "policy_main_equivariant_both.pt"))
     args = ap.parse_args()
     if args.selftest:
         return selftest()
+    if args.scale:
+        from strategy_channel_suite import CERT_TOWER as _T, CERT_CONC as _C
+        args.snapshot = args.snapshot or _T
+        args.concept_ckpt = args.concept_ckpt or _C
+        return scalability(args)
+    from strategy_channel_suite import CERT_TOWER, CERT_CONC
+    args.snapshot = args.snapshot or CERT_TOWER
+    args.concept_ckpt = args.concept_ckpt or CERT_CONC
+    log("#" * 110)
+    log("# WORKSTREAM E1 -- THE PARAMETRIC POLICY. FIT on the 140,768 TRAIN users' states + the")
+    log("# FROZEN tree's labels; SELECT on real interview NDCG over the 10,000 VALIDATION users.")
+    log("# FIREWALL: the 10,000 canonical TEST users are NOT built, NOT loaded, NOT touched.")
+    log("#" * 110)
     return train(args)
 
 

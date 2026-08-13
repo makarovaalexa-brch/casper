@@ -230,6 +230,41 @@ def branch_of(E, rows, q):
     return lab, float(ans.mean()), n_zero
 
 
+def branch_of_per_user(E, rows, qs):
+    """`branch_of` where EVERY USER CARRIES THEIR OWN QUESTION -- which is what a parametric policy's
+    rollout produces (workstream E1). Same rule, same order: 0 = like, 1 = dislike, 2 = did-not-answer.
+
+    It is not a second answer model. `branch_of_selftest` asserts that handing every user the SAME
+    question reproduces `branch_of` exactly, so the two cannot drift.
+    """
+    lvl = E["lvl"]
+    out = np.empty(len(rows), np.int8)
+    for j, (r, q) in enumerate(zip(rows, qs)):
+        ch, iid = int(q[0]), int(q[1])
+        if ch == 0:
+            lv = lvl[int(r)].get(iid, -1)
+            ans = lv >= 0
+            like = ans and lv >= LIKE_MIN_LEVEL
+        else:
+            ans = bool(E["foldable"][int(r), iid])
+            like = ans and float(E["V"][int(r), iid]) > 0
+        out[j] = 0 if like else (2 if not ans else 1)
+    return out
+
+
+def branch_of_selftest(E, rows, qs):
+    """The anti-drift gate for `branch_of_per_user`: for each question in `qs`, hand it to EVERY user
+    and require the per-user path to reproduce `branch_of` exactly."""
+    code = {"like": 0, "dislike": 1, "noanswer": 2}
+    for q in qs:
+        lab, _ar, _nz = branch_of(E, rows, q)
+        want = np.asarray([code[str(x)] for x in lab], np.int8)
+        got = branch_of_per_user(E, rows, [tuple(q)] * len(rows))
+        assert np.array_equal(got, want), f"branch_of_per_user disagrees with branch_of at {q}"
+    log(f"[selftest] branch_of_per_user == branch_of on {len(qs)} questions x {len(rows)} users")
+    return True
+
+
 def split_rows(E, rows, q):
     """The ternary partition itself. No user is dropped, capped or sampled (HARD RULE 1): the three
     branches partition the node exactly, and that is asserted."""
