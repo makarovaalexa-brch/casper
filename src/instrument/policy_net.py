@@ -816,6 +816,22 @@ def train(args):
                 float(last[last >= 0].mean()) if (last >= 0).any() else None,
             "frac_users_differing_at_each_position": per_pos_dev,
             "n_positions_differing_mean": float(diff_pos.sum(1).mean()),
+            # ★ THE DECIDING MEASUREMENT for the pre-registered comparator asymmetry (policy_deep.py
+            # module docstring, 2026-08-14). The deeper-tree control may differ from the tree by
+            # EXACTLY ONE question per user; the policy may differ at any position past the floor
+            # stop. If the policy also moves ~1 position the asymmetry is theoretical and the
+            # comparison is clean; if it moves many, the comparison measures the policy's extra
+            # FREEDOM as much as its extra SKILL, and the write-up must say so.
+            "n_positions_differing_histogram": [int((diff_pos.sum(1) == k).sum())
+                                                for k in range(TOTAL_L + 1)],
+            "n_positions_differing_median": float(np.median(diff_pos.sum(1))),
+            "n_positions_differing_among_deviators_mean":
+                float(diff_pos.sum(1)[diff_pos.sum(1) > 0].mean()) if diff_pos.any() else 0.0,
+            "control_differs_from_tree_by_at_most": 1,
+            "asymmetry_note": ("the deeper-tree control may differ from the frozen tree by EXACTLY "
+                               "ONE question per user, by construction. The policy is under no such "
+                               "constraint. Read the histogram above before reading any policy-minus-"
+                               "deeper-tree number."),
             "reference": ("E1 measured frac_never_deviates = 1.0000 -- a perfect imitator never leaves "
                           "the teacher's trajectory. If phase 3 does not move this number it has not "
                           "extended anything, and that is what the artifact must say.")},

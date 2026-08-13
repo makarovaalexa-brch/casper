@@ -41,6 +41,41 @@ greedy tail's WEAKEST pick (greedy is prefix-optimal). It is a real deeper tree 
 matters for the comparison -- the question at position d+1 is chosen from the child's own measured
 NDCG -- but it is NOT a fully re-greedied one, and no sentence anywhere may pretend otherwise.
 
+★ THE COMPARATOR ASYMMETRY THAT APPROXIMATION CREATES -- PRE-REGISTERED, 2026-08-14, BEFORE THE RUN
+---------------------------------------------------------------------------------------------------
+The construction above means the deeper-tree control may differ from the tree by **exactly one
+question per user**. The fine-tuned policy, trained on the SAME deep labels, is under no such
+constraint: it may change its pick at ANY position past the floor stop. **The two arms therefore do
+not have equal freedom**, and a policy win is readable two ways -- "the policy exploits these labels
+better" or "the control was structurally handicapped". This project has been burned by comparator
+handicap twice (Hu & Yu's headline was one; our own policy-A contamination was the same shape), so it
+is stated here, before the numbers exist, and it belongs in the headline paragraph of the write-up
+rather than in a footnote.
+
+**The measurement that decides which reading is right** is how many positions the policy ACTUALLY
+changes per user (`policy_net.py` reports the first- and last-deviation histograms, the per-position
+share of users differing, and the distribution of the NUMBER of differing positions). If the policy
+also moves about one question, the asymmetry is theoretical and the comparison is clean -- say so. If
+it moves many, the comparison is measuring the policy's extra freedom as much as its extra skill, and
+the write-up must say that too.
+
+**The claimable statement, if anything lands, is: "a tree can apply a deep label at one node; the
+policy can generalise it across states." Never a bare "the policy beats a deeper tree."**
+
+**What was NOT bought, named with its price:** the experiment that would settle the asymmetry is a
+FULLY RE-GROWN deeper level -- re-running the greedy tail from each of the 42 new child states, ~10
+further greedy levels x 42 states x ~995 candidates, **~33 h on this box** under the same measured
+cost model. It was not affordable in this window and it was not run.
+
+★ THE OVERFITTING EXPOSURE, MEASURED FROM BANKED ARTIFACTS BEFORE ANY SCORING (2026-08-14)
+------------------------------------------------------------------------------------------
+The 42 below-floor states partition the 10,000-user cohort exactly. Their sizes: min 9, p25 55,
+median 154, p75 311, max 1,438. **27 of the 42 states sit UNDER the 200-user floor, covering 2,571
+users (25.7% of the cohort), and 10 states hold fewer than 50 users each (303 users in total).** An
+argmax over ~995 candidates measured on 9 users is noise, and the floor existed to prevent exactly
+that. Stating this before the run is what makes a null interpretable afterwards: if the deep labels
+turn out to be noise, these numbers are the explanation, not a post-hoc excuse.
+
 FIREWALL
 --------
 The 10,000 canonical TEST users are never built, never loaded, never touched. `--split` accepts
@@ -334,6 +369,34 @@ def run_control(args):
 
     df, dt = deep_sc[TOTAL_L]
     zf, zt = shuf_sc[TOTAL_L]
+    # The pre-registered exposure numbers below were computed by hand from the banked artifacts on
+    # 2026-08-14, before any scoring. Recompute them here and REFUSE if they moved -- a number quoted
+    # in a doc and a number in the artifact must be the same number (`verify-the-artifact-not-a-proxy`).
+    sizes = np.asarray(sorted(r["n_users"] for r in gmap.values()), np.int64)
+    exposure_live = {"n_states": int(len(sizes)), "users_covered": int(sizes.sum()),
+                     "state_size_min": int(sizes.min()),
+                     "state_size_p25": int(np.percentile(sizes, 25)),
+                     "state_size_median": int(np.median(sizes)),
+                     "state_size_p75": int(np.percentile(sizes, 75)),
+                     "state_size_max": int(sizes.max()),
+                     "n_states_under_the_200_floor": int((sizes < 200).sum()),
+                     "users_under_the_200_floor": int(sizes[sizes < 200].sum()),
+                     "frac_cohort_under_the_200_floor": float(sizes[sizes < 200].sum() / sizes.sum()),
+                     "n_states_under_50_users": int((sizes < 50).sum()),
+                     "users_in_states_under_50": int(sizes[sizes < 50].sum())}
+    for k, want in (("n_states", 42), ("users_covered", 10000), ("state_size_min", 9),
+                    ("state_size_median", 154), ("state_size_max", 1438),
+                    ("n_states_under_the_200_floor", 27), ("users_under_the_200_floor", 2571),
+                    ("n_states_under_50_users", 10), ("users_in_states_under_50", 303)):
+        assert exposure_live[k] == want, (
+            f"PRE-REGISTERED EXPOSURE MOVED: {k} is {exposure_live[k]}, the value stated before the "
+            f"run was {want}. A doc and its artifact must read the same field.")
+    log(f"[exposure] pre-registered numbers reproduce exactly: "
+        f"{exposure_live['n_states_under_the_200_floor']}/42 states under the 200 floor, "
+        f"{exposure_live['users_under_the_200_floor']} users "
+        f"({exposure_live['frac_cohort_under_the_200_floor'] * 100:.1f}%), "
+        f"{exposure_live['n_states_under_50_users']} states under 50 users, smallest "
+        f"{exposure_live['state_size_min']}")
     nest = {str(K): {"full_max_abs_diff": float(np.nanmax(np.abs(deep_sc[K][0] - tree_sc[K][0])))}
             for K in SCORE_AT if K in deep_sc}
     out = {"analysis": "policy_phase3_deeper_tree_control", "design_sheet":
@@ -347,6 +410,46 @@ def run_control(args):
                             "was already in it, otherwise minus its weakest (last) pick. The tail is "
                             "NOT re-greedied below the new node -- that is ~33 h on this box and was "
                             "not paid; no sentence may describe this as a fully re-grown deeper tree."),
+           "PREREGISTERED_comparator_asymmetry": {
+               "stated": "2026-08-14, before this run produced a number",
+               "control_freedom": ("the deeper tree may differ from the frozen tree by EXACTLY ONE "
+                                   "question per user -- the swap of the parent tail's weakest pick "
+                                   "for the branch's own measured argmax"),
+               "policy_freedom": ("the fine-tuned policy, trained on the SAME deep labels, may change "
+                                  "its pick at ANY position past the floor stop"),
+               "why_it_is_stated_here": ("the arms do not have equal freedom, so a policy win reads "
+                                         "either as 'the policy exploits these labels better' or as "
+                                         "'the control was structurally handicapped'. Comparator "
+                                         "handicap has caught this project twice (Hu & Yu's headline; "
+                                         "our own policy-A contamination). It belongs in the headline "
+                                         "paragraph, never a footnote."),
+               "the_deciding_measurement": ("how many positions the policy ACTUALLY changes per user "
+                                            "(policy_net.py's deviation diagnostics). ~1 position => "
+                                            "the asymmetry is theoretical and the comparison is "
+                                            "clean. Many => the comparison measures the policy's "
+                                            "extra freedom as much as its extra skill, and the "
+                                            "write-up must say so."),
+               "the_only_claimable_statement": ("'a tree can apply a deep label at one node; the "
+                                                "policy can generalise it across states' -- NEVER a "
+                                                "bare 'the policy beats a deeper tree'."),
+               "what_was_not_bought": ("a FULLY RE-GROWN deeper level: re-greedying the tail from "
+                                       "each of the 42 new child states, ~10 further levels x 42 "
+                                       "states x ~995 candidates ~ 33 h on this box under the same "
+                                       "measured cost model. Not affordable in this window, not run. "
+                                       "It is the experiment that would settle the asymmetry.")},
+           "PREREGISTERED_overfitting_exposure": {
+               "stated": "2026-08-14, from banked artifacts, before any scoring",
+               "n_states": 42, "users_covered": 10000,
+               "state_size_min": 9, "state_size_p25": 55, "state_size_median": 154,
+               "state_size_p75": 311, "state_size_max": 1438,
+               "n_states_under_the_200_floor": 27,
+               "users_under_the_200_floor": 2571,
+               "frac_cohort_under_the_200_floor": 0.2571,
+               "n_states_under_50_users": 10, "users_in_states_under_50": 303,
+               "recomputed_live_and_asserted_equal": exposure_live,
+               "why": ("an argmax over ~995 candidates measured on 9 users is noise, and the floor "
+                       "existed to prevent exactly that. If the deep labels turn out to be noise, "
+                       "these numbers are the explanation rather than a post-hoc excuse.")},
            "n_users": len(rows), "n_states": len(gmap),
            "n_users_same_question_set_as_tree": int(n_same_set),
            "order_invariance": {"max_abs_per_user_full_diff_under_permutation": order_max,
