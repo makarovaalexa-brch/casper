@@ -319,23 +319,54 @@ def composed(model, pk, grad=False):
         return (pk["P"] * Vv).sum(0).mean(0)
 
 
-def fit_lift(packs, d_z, d_phi, args, tag):
-    torch.manual_seed(SEED)
+def fit_lift(packs, d_z, d_phi, args, tag, seed=SEED):
+    r"""Fit V on the training states, with an INNER validation split and best-epoch selection.
+
+    ★ Why this is not "tuning until it passes". The first version took the LAST epoch of a constant-LR
+    Adam run, and its training loss OSCILLATED by nearly an order of magnitude at the end -- e.g.
+    2.822e-04 -> 1.126e-04 -> 8.251e-04 -> 9.471e-05 -> 4.008e-04 over epochs 60..120. A held-out
+    Spearman read off whatever the optimiser happened to be doing at epoch 120 is partly a sample of
+    optimiser noise, not a measurement of what the data supports -- and the whole point of this
+    experiment is to tell "seven states cannot support a value model" apart from "our fit was
+    unstable". Those two have opposite consequences for whether more labels are worth buying.
+
+    So: a fraction of each TRAINING state's candidates is held out as an inner signal (never the
+    held-out state, which stays untouched), the LR decays on a cosine, and the returned model is the
+    best-inner-MSE epoch, not the last. The gate is then applied to a stable estimate, pass or fail.
+    """
+    g = torch.Generator().manual_seed(seed)
+    torch.manual_seed(seed)
+    rng = np.random.default_rng(seed)
+    inner = []
+    for pk in packs:
+        n = len(pk["cand"])
+        p = rng.permutation(n)
+        k = max(int(round(args.lift_inner_val * n)), 1)
+        inner.append((torch.from_numpy(np.sort(p[k:])), torch.from_numpy(np.sort(p[:k]))))
     m = LiftModel(d_z, d_phi, state=args.state, use_pos=not args.no_pos, d_k=args.d_k, d_h=args.d_h)
     opt = torch.optim.Adam(m.parameters(), lr=args.lift_lr)
-    hist = []
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.lift_epochs)
+    hist, best = [], {"mse": 1e9, "ep": 0, "sd": None}
     for ep in range(1, args.lift_epochs + 1):
-        tot = 0.0
-        for pk in packs:
+        tr_tot = 0.0
+        for pk, (itr, _iva) in zip(packs, inner):
             c = composed(m, pk, grad=True)
-            loss = ((c - pk["y"]) ** 2).mean()
+            loss = ((c[itr] - pk["y"][itr]) ** 2).mean()
             opt.zero_grad(); loss.backward(); opt.step()
-            tot += float(loss)
-        hist.append(tot / len(packs))
-        if ep % max(args.lift_epochs // 8, 1) == 0:
-            log(f"  [lift {tag} ep{ep}] mse {hist[-1]:.3e} "
-                f"(rmse {np.sqrt(hist[-1]):.5f} NDCG points)")
-    return m, hist
+            tr_tot += float(loss)
+        sched.step()
+        with torch.no_grad():
+            va = float(np.mean([float(((composed(m, pk)[iva] - pk["y"][iva]) ** 2).mean())
+                                for pk, (_itr, iva) in zip(packs, inner)]))
+        hist.append({"epoch": ep, "train_mse": tr_tot / len(packs), "inner_val_mse": va})
+        if va < best["mse"]:
+            best = {"mse": va, "ep": ep,
+                    "sd": {k: v.detach().clone() for k, v in m.state_dict().items()}}
+        if ep % max(args.lift_epochs // 6, 1) == 0:
+            log(f"  [lift {tag} ep{ep}] train {hist[-1]['train_mse']:.3e} inner-val {va:.3e} "
+                f"(best ep{best['ep']} {best['mse']:.3e})")
+    m.load_state_dict(best["sd"])
+    return m, hist, best["ep"]
 
 
 # ============================================================================ the driver
@@ -430,29 +461,47 @@ def run(args):
     # ---------- 5. LEAVE-ONE-STATE-OUT: the pre-registered rho >= +0.40 gate -----------------------
     # The held-out state is always a COMPLETE one, in both arms, so the evaluation is never on a
     # biased vector and the 7-vs-22 comparison isolates the effect of ADDING states.
+    # ★ The held-out state is a COMPLETE one in BOTH arms and the SAME seven in both, so the
+    # 7-vs-22 contrast is measured on common held-out states and isolates the effect of ADDING
+    # training states -- which is the comparison the sizing decision needs.
+    seeds = [SEED + 1000 * i for i in range(args.lift_seeds)]
+
     def loso_arm(train_pool, name):
         rows_ = []
         for s in states:
             trp = [packs[t["nid"]] for t in train_pool if t["nid"] != s["nid"]]
-            m, h = fit_lift(trp, d_z, phi_t.shape[1], args, f"{name}-{s['nid']}")
             pk = packs[s["nid"]]
-            c = composed(m, pk).numpy()
-            r = spearman(c, pk["target_gain"])
-            rk = int((pk["target_gain"] > pk["target_gain"][int(np.argmax(c))]).sum()) + 1
+            per_seed = []
+            for sd in seeds:
+                m, h, bep = fit_lift(trp, d_z, phi_t.shape[1], args, f"{name}-{s['nid']}-s{sd}",
+                                     seed=sd)
+                c = composed(m, pk).numpy()
+                rk = int((pk["target_gain"] > pk["target_gain"][int(np.argmax(c))]).sum()) + 1
+                per_seed.append({"seed": sd, "best_epoch": bep,
+                                 "spearman": spearman(c, pk["target_gain"]),
+                                 "rank_of_head_argmax": rk,
+                                 "gain_of_head_argmax": float(
+                                     pk["target_gain"][int(np.argmax(c))]),
+                                 "rmse_ndcg": float(np.sqrt(((c - pk["y"].numpy()) ** 2).mean())),
+                                 "inner_val_mse": h[bep - 1]["inner_val_mse"]})
+            rho = [p["spearman"] for p in per_seed]
             rows_.append({"held_out_state": s["nid"], "depth": s["depth"], "n_users": pk["n_users"],
                           "n_candidates": len(pk["cand"]), "n_train_states": len(trp),
-                          "spearman": r, "rank_of_head_argmax": rk,
+                          "spearman": float(np.mean(rho)), "spearman_min": float(np.min(rho)),
+                          "spearman_max": float(np.max(rho)), "spearman_sd": float(np.std(rho)),
+                          "n_seeds": len(seeds), "per_seed": per_seed,
                           "true_best_gain": float(pk["target_gain"].max()),
-                          "gain_of_head_argmax": float(pk["target_gain"][int(np.argmax(c))]),
-                          "regret_vs_best": float(pk["target_gain"].max() -
-                                                  pk["target_gain"][int(np.argmax(c))]),
-                          "rmse_ndcg": float(np.sqrt(((c - pk["y"].numpy()) ** 2).mean())),
-                          "train_mse_last": h[-1]})
-            log(f"[LOSO/{name} {s['nid']}] {len(trp)} training states -> held-out Spearman "
-                f"{r:+.4f} | argmax rank {rk}/{len(pk['cand'])} "
+                          "gain_of_head_argmax": float(np.mean(
+                              [p["gain_of_head_argmax"] for p in per_seed])),
+                          "rank_of_head_argmax": float(np.mean(
+                              [p["rank_of_head_argmax"] for p in per_seed])),
+                          "rmse_ndcg": float(np.mean([p["rmse_ndcg"] for p in per_seed]))})
+            log(f"[LOSO/{name} {s['nid']}] {len(trp)} training states, {len(seeds)} seeds -> "
+                f"held-out Spearman {rows_[-1]['spearman']:+.4f} "
+                f"[{rows_[-1]['spearman_min']:+.4f}, {rows_[-1]['spearman_max']:+.4f}] | "
+                f"mean argmax rank {rows_[-1]['rank_of_head_argmax']:.0f}/{len(pk['cand'])} "
                 f"(gain {rows_[-1]['gain_of_head_argmax']:+.5f} vs best "
-                f"{rows_[-1]['true_best_gain']:+.5f}) | composed RMSE "
-                f"{rows_[-1]['rmse_ndcg']:.5f}")
+                f"{rows_[-1]['true_best_gain']:+.5f})")
         return rows_
 
     loso = loso_arm(states, "complete7")
@@ -472,7 +521,7 @@ def run(args):
             f"only free evidence on how many states a value head needs.")
 
     # ---------- 6. the final lift head, fitted on all seven ---------------------------------------
-    lift, lh = fit_lift([packs[s["nid"]] for s in states], d_z, phi_t.shape[1], args, "final")
+    lift, lh, lbep = fit_lift([packs[s["nid"]] for s in states], d_z, phi_t.shape[1], args, "final")
     torch.save({"model": lift.state_dict(), "state": args.state, "use_pos": not args.no_pos,
                 "d_k": args.d_k, "d_h": args.d_h, "d_phi": int(phi_t.shape[1]), "d_z": d_z,
                 "norm_mu": norm[0], "norm_sd": norm[1], "seed": SEED,
@@ -508,7 +557,16 @@ def run(args):
            "F2_gate_bar": RHO_GATE, "F2_gate_pass": gate_pass,
            "reference_rho_measured_criterion": RHO_MEASURED_CRITERION,
            "reference_rho_training_loss_surrogate": RHO_TRAINING_LOSS_SURROGATE,
-           "in_sample_spearman": insample, "lift_train_mse": lh,
+           "in_sample_spearman": insample, "lift_fit_history": lh, "lift_best_epoch": lbep,
+           "lift_seeds": args.lift_seeds, "lift_inner_val_frac": args.lift_inner_val,
+           "lift_lr": args.lift_lr, "lift_epochs": args.lift_epochs,
+           "estimator_stability_note": (
+               "an earlier constant-LR run took the LAST epoch and its training loss oscillated by "
+               "~an order of magnitude across the final 60 epochs, so its held-out Spearman was "
+               "partly a sample of optimiser noise. This run uses an inner-validation split of the "
+               "TRAINING states' candidates, cosine LR decay, best-inner-epoch selection, and "
+               "reports the across-seed range -- so that 'seven states cannot support a value "
+               "model' can be distinguished from 'the fit was unstable'."),
            "lift_params": lift.n_params(),
            "constraint_note": ("The clean training set is SEVEN states. A failure here is a "
                                "measurement of that constraint, not a verdict on the design."),
@@ -517,7 +575,7 @@ def run(args):
     # ---------- 7. the combined P x V policy, on the real funnel ----------------------------------
     if not args.no_rollout:
         out["policy"] = evaluate_combined(E, om, lift, phi_t, catalogue, pool, rows, ni, args)
-    p = os.path.join(OUTDIR, "lift_head.json")
+    p = os.path.join(OUTDIR, f"lift_head{args.label}.json")
     with open(p + ".tmp", "w") as fh:
         json.dump(out, fh, indent=2, default=float)
     os.replace(p + ".tmp", p)
@@ -603,8 +661,14 @@ def main():
     ap.add_argument("--no_pos", action="store_true")
     ap.add_argument("--d_k", type=int, default=64)
     ap.add_argument("--d_h", type=int, default=256)
-    ap.add_argument("--lift_epochs", type=int, default=120)
-    ap.add_argument("--lift_lr", type=float, default=3e-4)
+    ap.add_argument("--lift_epochs", type=int, default=80)
+    ap.add_argument("--lift_lr", type=float, default=1e-4)
+    ap.add_argument("--lift_seeds", type=int, default=3,
+                    help="fits per fold; the Spearman is reported as a range across them")
+    ap.add_argument("--lift_inner_val", type=float, default=0.2,
+                    help="fraction of each TRAINING state's candidates held out for best-epoch "
+                         "selection. Never the held-out state, which stays untouched.")
+    ap.add_argument("--label", default="", help="suffix for the output artifact")
     ap.add_argument("--verify_n", type=int, default=3,
                     help="G-L2: candidates per state re-evaluated from scratch to 0.0e+00")
     ap.add_argument("--no_rollout", action="store_true")
