@@ -362,6 +362,77 @@ TREE_VAL_GAIN_FULL = 0.027939556166529655            # ndcgtree16.json cohort_we
 TREE_VAL_GAIN_TAIL = 0.010548197664320469
 VAL_M0_FULL = 0.15686538                              # G-E1e canonical snap
 TOTAL_L = 16
+# E1's measured validation result -- the SPANNING REGRESSION GATE of design sheet G ("no stage may
+# score below the previous stage's number"). Phase 3 fine-tuning must not fall below this.
+E1_VAL_FULL = 0.283549718
+E1_VAL_GAIN_FULL = 0.027939557
+# bank-alone on the SAME cohort and ruler (F.4: the bar is the BANK, not the tree). Its TEST value is
+# +0.01430 full / +0.02199 tail; this is its VALIDATION value, and the two are never compared directly.
+STATIC_ITEMS_VAL_FULL = 0.2428081265667196
+STATIC_ITEMS_VAL_TAIL = 0.10111517752587719
+DEEP_LABELS = os.path.join(OUTDIR, "policy_deep_labels.json")
+E1_PER_USER = os.path.join(OUTDIR, "policy_main_equivariant_both_gates_per_user.npz")
+DEEPER_PER_USER = os.path.join(OUTDIR, "policy_deeper_tree_control_per_user.npz")
+
+
+def apply_deep_labels(D, path, pool, shuffle=False, seed=SEED):
+    """PHASE 3 / design sheet G.B -- the labels one level BELOW the tree's floor stops.
+
+    For every user the frozen tree reaches a leaf at depth d, asks the leaf's own splitter at position
+    d, and the user's ternary answer to it selects one of 42 below-floor states. `policy_deep.py
+    --mode labels` holds the EXACT MEASURED-NDCG argmax at each of those states. This function
+    REPLACES the label at position d+1 with it.
+
+    ★ WHY ONLY POSITION d+1, AND WHY EVERY OTHER POSITION KEEPS THE TREE'S LABEL. The cached state
+    (`z_t` and the ternary history) is valid only where the extended trajectory and the tree's
+    trajectory coincide -- and they coincide at every position up to and including d+1, because the
+    first d+1 questions are identical. From d+2 onward the extended trajectory would carry a different
+    asked list, so its `z` is not the one on disk; training there would be training on a state that
+    never occurred. So positions != d+1 keep the tree's labels on the tree's states, and THAT is the
+    replay: ~15/16 of the 2.25M examples are the original E1 supervision, which is the anti-forgetting
+    mechanism the author's requirement 1 asks for and is not optional.
+
+    `shuffle=True` is the HARD RULE 5 control: the 42 branch questions are permuted ACROSS branches,
+    so every user still gets one extra deliberately-chosen question at exactly the same position --
+    just not the one measured for their own state.
+    """
+    dl = json.load(open(path))
+    assert dl["test_touched"] is False and dl["split"] == "validation"
+    pool_index = {(int(a), int(b)): i for i, (a, b) in enumerate(pool)}
+    gmap = {}
+    for r in dl["states"]:
+        q = (int(r["question"][0]), int(r["question"][1]))
+        assert pool_index[q] == int(r["pool_idx"]), "the deep label's pool index does not match"
+        gmap[(r["leaf"], int(r["branch_idx"]))] = int(r["pool_idx"])
+    if shuffle:
+        rng = np.random.default_rng(seed)
+        keys = sorted(gmap)
+        vals = [gmap[k] for k in keys]
+        perm = rng.permutation(len(keys))
+        gmap = {keys[i]: int(vals[perm[i]]) for i in range(len(keys))}
+    leaf_ids = [str(s) for s in D["leaf_ids"]]
+    depth = {nid: (0 if nid == "root" else nid.count(".")) for nid in leaf_ids}
+    lab = np.asarray(D["label_idx"], np.int64).copy()
+    outc = np.asarray(D["outcome"], np.int64)
+    leaf = np.asarray(D["leaf"], np.int64)
+    n_rep, pos_hist = 0, np.zeros(TOTAL_L, np.int64)
+    for li, nid in enumerate(leaf_ids):
+        d = depth[nid]
+        assert d + 1 < TOTAL_L, f"leaf {nid} is at depth {d}; there is no position {d + 1}"
+        m = leaf == li
+        for br in range(3):
+            mm = m & (outc[:, d] == br)
+            if not mm.any():
+                continue
+            g = gmap.get((nid, br))
+            assert g is not None, f"no deep label for leaf {nid} branch {br}"
+            lab[mm, d + 1] = g
+            n_rep += int(mm.sum()); pos_hist[d + 1] += int(mm.sum())
+    return lab.astype(np.int16), {"n_examples_relabelled": int(n_rep),
+                                  "frac_of_all_examples": float(n_rep) / (lab.shape[0] * TOTAL_L),
+                                  "by_position": [int(x) for x in pos_hist],
+                                  "n_deep_states": len(gmap), "shuffled": bool(shuffle),
+                                  "n_distinct_deep_questions": len(set(gmap.values()))}
 
 
 def load_traj(train=True):
@@ -600,12 +671,32 @@ def train(args):
                  use_pos=not args.no_pos)
     log(f"[model] arch={args.arch} state={args.state} pos={not args.no_pos} "
         f"params={pol.n_params():,}")
+    init_from = None
+    if args.init_ckpt:
+        # PHASE 3 fine-tune: start from the ANCHOR (design sheet G.A) rather than from scratch, so the
+        # spanning regression gate has something to regress against and the replay has something to
+        # protect. Every structural field is asserted -- a checkpoint that does not match is refused,
+        # never silently adapted.
+        b = torch.load(args.init_ckpt, map_location="cpu")
+        for k, want in (("arch", args.arch), ("state", args.state), ("use_pos", not args.no_pos),
+                        ("d_phi", int(phi_t.shape[1])), ("n_pool", P)):
+            assert b[k] == want, f"--init_ckpt {k}={b[k]!r}, this run needs {want!r}"
+        assert [(int(a), int(c)) for a, c in b["pool"]] == pool, "--init_ckpt was fitted on a "\
+                                                                 "different pool"
+        assert np.array_equal(b["norm_mu"], norm[0]) and np.array_equal(b["norm_sd"], norm[1]), \
+            "--init_ckpt's descriptor standardisation differs from this run's"
+        pol.load_state_dict(b["model"])
+        init_from = {"ckpt": os.path.basename(args.init_ckpt), "epoch": int(b["epoch"]),
+                     "val_full": float(b["val_full"]), "arm": b.get("arm")}
+        log(f"[init] fine-tuning from {init_from['ckpt']} (its epoch {init_from['epoch']}, "
+            f"val full {init_from['val_full']:.6f})")
     opt = torch.optim.Adam(pol.parameters(), lr=args.lr)
     lossf = nn.CrossEntropyLoss()
 
     N = len(Dtr["uid"])
     n_ex = N * TOTAL_L
     labels_all = None
+    deep_info = None
     if args.arm == "shuffle":                                # G-E1d, HARD RULE 5
         lab = Dtr["label_idx"].copy()
         for t in range(TOTAL_L):                             # permute users WITHIN a position
@@ -613,12 +704,29 @@ def train(args):
         labels_all = lab
         log("[arm] SHUFFLE CONTROL: the label at every (user, position) is another user's label at "
             "the same position. The states are untouched. This arm must NOT clear G-E1b.")
+    elif args.arm in ("deep", "deepshuffle"):                # PHASE 3, design sheet G.B
+        labels_all, deep_info = apply_deep_labels(Dtr, args.deep_labels, pool,
+                                                  shuffle=(args.arm == "deepshuffle"))
+        log(f"[arm] {'DEEP-SHUFFLE CONTROL' if args.arm == 'deepshuffle' else 'DEEP'}: "
+            f"{deep_info['n_examples_relabelled']:,} of {n_ex:,} examples "
+            f"({deep_info['frac_of_all_examples'] * 100:.2f}%) carry a below-floor label; the other "
+            f"{100 - deep_info['frac_of_all_examples'] * 100:.2f}% are the ORIGINAL tree labels -- "
+            f"that is the replay, and it is the anti-forgetting mechanism, not a convenience.")
+        log(f"[arm] relabelled positions: "
+            f"{[t for t, c in enumerate(deep_info['by_position']) if c]}")
 
     steps = int(np.ceil(n_ex / args.batch))
     best = {"full": -1e9}
     hist = []
-    ckpt = os.path.join(OUTDIR, f"policy_{args.arm}_{args.arch}_{args.state}"
-                                f"{'_nopos' if args.no_pos else ''}.pt")
+    # HARD RULE 11(e): a unique output stem per run. Two runs never share an output path.
+    stem = (f"policy_{args.arm}_{args.arch}_{args.state}{'_nopos' if args.no_pos else ''}"
+            f"{('_' + args.tag) if args.tag else ''}")
+    ckpt = os.path.join(OUTDIR, stem + ".pt")
+    for suffix in (".pt", "_history.json", "_gates.json"):
+        p_ = os.path.join(OUTDIR, stem + suffix)
+        assert not os.path.exists(p_) or args.overwrite, (
+            f"{os.path.basename(p_)} already exists. Pass --tag to name this run, or --overwrite if "
+            f"you really mean to replace a banked artifact (HARD RULE 11e).")
     for ep in range(1, args.epochs + 1):
         pol.train()
         perm = rng.permutation(n_ex)
@@ -665,10 +773,9 @@ def train(args):
             log(f"[ckpt] epoch {ep} is the best so far -> {os.path.basename(ckpt)}")
         json.dump({"analysis": "policy_net_E1", "arm": args.arm, "arch": args.arch,
                    "state": args.state, "use_pos": not args.no_pos, "history": hist,
+                   "init_from": init_from, "deep_labels": deep_info,
                    "test_touched": False, "selection": "real interview NDCG on 10,000 val users"},
-                  open(os.path.join(OUTDIR, f"policy_{args.arm}_{args.arch}_{args.state}"
-                                            f"{'_nopos' if args.no_pos else ''}_history.json"), "w"),
-                  indent=1, default=float)
+                  open(os.path.join(OUTDIR, stem + "_history.json"), "w"), indent=1, default=float)
 
     # ---- the gates -------------------------------------------------------------------------------
     vf, vt = best["vf"], best["vt"]
@@ -700,6 +807,37 @@ def train(args):
         "channel_mix": {"policy_concept_share": channel_mix(best["asked"], pool),
                         "tree_concept_share": channel_mix(Dva["label_idx"], pool)},
     }
+    # ---- PHASE 3 (design sheet G): the spanning regression gate and the comparisons that decide it --
+    pol_full = float(np.nanmean(vf))
+    gates["G-B-regression_spanning"] = {
+        "criterion": "no stage may score below the previous stage's validation number (HARD RULE 8)",
+        "stage_A_E1_val_full": E1_VAL_FULL, "this_stage_val_full": pol_full,
+        "delta": pol_full - E1_VAL_FULL, "pass": bool(pol_full >= E1_VAL_FULL)}
+    if os.path.exists(E1_PER_USER):
+        z1 = np.load(E1_PER_USER)
+        tree_f = np.asarray(z1["policy_full"], np.float64)      # E1 == the tree, exactly (1e-9)
+        tree_t = np.asarray(z1["policy_tail"], np.float64)
+        gates["gain_vs_tree"] = {"full": paired_bootstrap(vf - tree_f),
+                                 "tail": paired_bootstrap(vt - tree_t),
+                                 "comparator": "the frozen NDCG tree's own realised interviews "
+                                               "(E1's banked per-user vectors, validation, K=16)"}
+    if os.path.exists(DEEPER_PER_USER):
+        z2 = np.load(DEEPER_PER_USER)
+        gates["gain_vs_deeper_tree"] = {
+            "full": paired_bootstrap(vf - np.asarray(z2["deeper_full"], np.float64)),
+            "tail": paired_bootstrap(vt - np.asarray(z2["deeper_tail"], np.float64)),
+            "comparator": "the DEEPER TREE control (policy_deeper_tree_control.json)",
+            "why": ("★ THE HEADLINE. If this does not separate, the policy is a re-parameterisation "
+                    "of a deeper tree and phase 3 claims nothing.")}
+    gates["bank_alone_val"] = {
+        "full": STATIC_VAL_FULL - STATIC_ITEMS_VAL_FULL,
+        "tail": STATIC_VAL_TAIL - STATIC_ITEMS_VAL_TAIL,
+        "policy_gain_vs_static_full": pol_full - STATIC_VAL_FULL,
+        "note": ("F.4: the real bar is BANK-ALONE, not the tree. Bank-alone is +0.01430 full / "
+                 "+0.02199 tail ON TEST; the numbers here are its VALIDATION value on this cohort. A "
+                 "validation gain is never compared to a test bar directly -- the tree's own measured "
+                 "val->test shrinkage on full is 2.70x, which is where the pre-registered +0.011 "
+                 "validation no-go bar of G-E2-pre comes from.")}
     gates["G-E1c_anti_collapse"]["pass"] = bool(
         gates["G-E1c_anti_collapse"]["n_distinct_interviews"] > 3 and
         (gates["G-E1c_anti_collapse"]["pep_divergence_policy"]["divergence_rate"] or 0) >=
@@ -709,13 +847,13 @@ def train(args):
            "cohorts": {"fit": "140,768 TRAIN users (states + frozen-tree labels; NO NDCG)",
                        "select": "10,000 VALIDATION users (real interview NDCG)"},
            "arm": args.arm, "arch": args.arch, "state": args.state, "use_pos": not args.no_pos,
+           "init_from": init_from, "deep_labels": deep_info,
            "best_epoch": best["epoch"], "history": hist, "gates": gates,
            "static_val": {"full": float(np.nanmean(sf)), "tail": float(np.nanmean(stl))},
            "policy_val": {"full": float(np.nanmean(vf)), "tail": float(np.nanmean(vt))},
            "tower": E["tower"], "conc_ckpt": E["conc_ckpt"], "mask_policy": "B",
            "pool_contract": E["pool_contract"], "minutes": round((time.time() - t00) / 60, 2)}
-    p = os.path.join(OUTDIR, f"policy_{args.arm}_{args.arch}_{args.state}"
-                             f"{'_nopos' if args.no_pos else ''}_gates.json")
+    p = os.path.join(OUTDIR, stem + "_gates.json")
     np.savez_compressed(p.replace(".json", "_per_user.npz"), policy_full=vf, policy_tail=vt,
                         static_full=sf, static_tail=stl, asked=best["asked"], outs=best["outs"],
                         rows=np.asarray(rows, np.int64))
@@ -824,7 +962,21 @@ def main():
     ap.add_argument("--no_pos", action="store_true",
                     help="drop the position/remaining-budget feature. The tree is budget-unaware, so "
                          "THIS is the like-for-like variant (design sheet A.4) and both are reported.")
-    ap.add_argument("--arm", default="main", choices=["main", "shuffle"])
+    ap.add_argument("--arm", default="main", choices=["main", "shuffle", "deep", "deepshuffle"],
+                    help="deep = PHASE 3 (design sheet G.B): the labels one level BELOW the tree's "
+                         "floor stops, MIXED with the original tree labels (the replay is the "
+                         "anti-forgetting mechanism and is not optional). deepshuffle = its HARD "
+                         "RULE 5 control, the 42 branch questions permuted across branches.")
+    ap.add_argument("--deep_labels", default=DEEP_LABELS,
+                    help="policy_deep_labels.json, from `policy_deep.py --mode labels`")
+    ap.add_argument("--init_ckpt", default=None,
+                    help="fine-tune from this checkpoint instead of from scratch (phase 3 starts "
+                         "from the E1 anchor). Every structural field is asserted.")
+    ap.add_argument("--tag", default="",
+                    help="suffix for this run's output stem. HARD RULE 11e: two runs never share an "
+                         "output path.")
+    ap.add_argument("--overwrite", action="store_true",
+                    help="permit replacing an existing artifact with this stem. Off by default.")
     ap.add_argument("--epochs", type=int, default=8)
     ap.add_argument("--batch", type=int, default=512)
     ap.add_argument("--lr", type=float, default=1e-3)
