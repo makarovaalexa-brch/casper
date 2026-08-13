@@ -160,7 +160,7 @@ min**; concepts-only **134.3 min** (search cost is a property of the *bank*, not
 | …the same, reusing the 11.0% banked | 178,301 | **31.8 h** |
 | One state's full vector at the **root** (buys the NDCG-vs-DCG argmax disagreement number, A.8) | 1,000 | **2.4 h** |
 | One deeper state's full vector (n ≈ 700) | ~985 | **0.18 h** |
-| E2 labels at the 15 floor-stopped nodes, one level deeper, exact | ~14,800 | **~5–7 h** |
+| E2 labels at the 15 floor-stopped nodes, one level deeper, exact | ~14,800 | **3.3 h** (measured by `policy_labels.py --cost_only` over the 42 below-floor states; supersedes the earlier ~5–7 h estimate) |
 | Regrow the tree on an 8,000-user sub-fold (option (ii), A.2.1) | ~30,000 | **~8–10 h** |
 | E1 training itself (160k examples, ~2M-parameter scorer, CPU) | — | **~1–3 h**, and it is the *cheap* part |
 
