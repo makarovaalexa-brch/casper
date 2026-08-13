@@ -102,41 +102,58 @@ def eval_both(E, seq, rows, batch=500):
             else:
                 z = Zb
             S = (z @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
+            # NDCG FIRST, on the untouched scores -- `ndcg10_from_scores` copies internally, but the
+            # pairwise half below masks IN PLACE, so the order of these two blocks is load-bearing.
             f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
                                       contract=(E["contract_tag"], ch))
             full[st:st + len(ch)] = f; tail[st:st + len(ch)] = t
             # ---- the untruncated, undiscounted half, off the SAME masked scores.
-            # The whole batch is sorted in ONE numpy call (a per-user sort of 18,359 floats, ten
-            # thousand times, is the dominant cost otherwise). Masked candidates are given a finite
-            # sentinel below every real score rather than -inf, so one sorted row serves every
-            # target lookup; policy B guarantees a held-out target is never masked, so a target's
-            # score is always a real one and the sentinel can never be counted above it.
+            # COUNT, DO NOT SORT. The obvious implementation sorts each user's 18,359 scores and uses
+            # searchsorted; at ten thousand users that sort is the whole cost of the job (measured:
+            # ~30 s per candidate, i.e. 8 h for the pool). We only ever need, for each target, HOW
+            # MANY candidates score at least as high -- which is a single broadcast comparison over
+            # the row, |T| rows at a time, in float32. Same number, ~10x less work, and it is checked
+            # against a brute-force double loop in the offline unit check.
+            # Masked candidates get a finite sentinel below every real score rather than -inf, so they
+            # can never be counted above a target; policy B guarantees a held-out target is never
+            # masked, which is asserted per user.
             pool_nz = E["pool"][ch].nonzero()
-            Sm = S.astype(np.float64)
-            n_mask = np.zeros(Sm.shape[0], np.int64)
+            n_mask = np.zeros(S.shape[0], np.int64)
             np.add.at(n_mask, pool_nz[0], 1)
-            SENT = -1e30
+            SENT = np.float32(-1e30)
+            Sm = S                                   # already float32; masked in place, S is a copy
             Sm[pool_nz] = SENT
-            srt = np.sort(Sm, axis=1)
             te = ctx.va_te[ch]
             ni = Sm.shape[1]
-            for u in range(Sm.shape[0]):
-                tg = te[u].indices
-                npos = len(tg)
-                if npos == 0:
-                    continue
-                nc = ni - int(n_mask[u])                 # candidates the mask leaves alive
-                nneg = nc - npos
-                if nneg <= 0:
-                    continue
-                sv = Sm[u, tg]
-                assert (sv > SENT).all(), "a held-out target was inside the policy-B mask"
-                # #candidates scoring >= s, for each target; TIES COUNT AS ERRORS (conservative)
-                ge = ni - np.searchsorted(srt[u], sv, side="left")
-                # subtract the targets that are themselves >= s -- they are not negatives
-                svs = np.sort(sv)
-                ge_pos = npos - np.searchsorted(svs, sv, side="left")
-                pw[st + u] = float((ge - ge_pos).sum()) / float(npos * nneg)
+            # FLATTEN THE TARGETS AND COMPARE IN CHUNKS. Ten thousand small per-user comparisons cost
+            # more in numpy call and allocation overhead than the ~1.5e9 comparisons themselves; laid
+            # out flat, one target per row, the whole batch is a handful of large vectorised
+            # comparisons instead. Identical arithmetic -- checked against a brute-force double loop
+            # offline -- roughly an order of magnitude less Python.
+            nb = Sm.shape[0]
+            uidx = np.repeat(np.arange(nb), np.diff(te.indptr))
+            tcol = te.indices
+            if len(tcol):
+                sv_all = Sm[uidx, tcol]
+                assert (sv_all > SENT).all(), "a held-out target was inside the policy-B mask"
+                ge_all = np.empty(len(tcol), np.int64)
+                CH = 512
+                for a in range(0, len(tcol), CH):
+                    b = min(a + CH, len(tcol))
+                    ge_all[a:b] = (Sm[uidx[a:b]] >= sv_all[a:b, None]).sum(1)
+                npos_u = np.diff(te.indptr)
+                nneg_u = (ni - n_mask) - npos_u
+                # targets that are themselves >= s are not negatives; subtract them per user
+                ge_pos = np.empty(len(tcol), np.int64)
+                for u in range(nb):
+                    a, b = te.indptr[u], te.indptr[u + 1]
+                    if b > a:
+                        sv = sv_all[a:b]
+                        ge_pos[a:b] = (sv[None, :] >= sv[:, None]).sum(1)
+                bad = np.zeros(nb, np.float64)
+                np.add.at(bad, uidx, (ge_all - ge_pos).astype(np.float64))
+                ok = (npos_u > 0) & (nneg_u > 0)
+                pw[st:st + nb] = np.where(ok, bad / np.maximum(npos_u * nneg_u, 1), np.nan)
     E["n_evals"] += 1
     return full, tail, pw
 
@@ -146,7 +163,13 @@ def main():
     ap.add_argument("--snapshot", default=CERT_TOWER)
     ap.add_argument("--concept_ckpt", default=CERT_CONC)
     ap.add_argument("--label", default=LABEL)
-    ap.add_argument("--full_threads", action="store_true")
+    ap.add_argument("--full_threads", action="store_true",
+                    help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv): use all "
+                         "cores rather than its default 4. The decoder matmul here is a torch op, so "
+                         "torch.set_num_threads dominates. Declared so argparse accepts it. SAFE TO "
+                         "TRY: the banked-NDCG gate compares every recomputed gain against the tree's "
+                         "own build at <= 1e-12, so if a different thread count changed a reduction "
+                         "order the run would stop on the first candidate rather than quietly drift.")
     ap.add_argument("--limit", type=int, default=0, help="0 = all 1,000 candidates")
     args = ap.parse_args()
 
@@ -188,6 +211,18 @@ def main():
             done = {tuple(int(x) for x in k.split(",")): v for k, v in blob["cand"].items()}
             log("[resume] " + str(len(done)) + " candidates already banked")
     todo = [q for q in pool if tuple(q) not in done]
+    # INTERLEAVE THE CHANNELS. The pool is items-then-concepts, so evaluating in pool order means any
+    # interrupted run has done ALL the items and NONE of the concepts -- and a rank correlation over
+    # an items-only prefix is a different claim from one over the pool. Interleaving makes every
+    # prefix a balanced sample of both channels, so a partial result is usable and honestly
+    # describable. Evaluation ORDER cannot change any value: each candidate is scored independently
+    # against the same fixed root state.
+    _it = [q for q in todo if int(q[0]) == 0]
+    _cc = [q for q in todo if int(q[0]) == 1]
+    todo = [q for pair in zip(_it + [None] * len(_cc), _cc + [None] * len(_it))
+            for q in pair if q is not None][:len(todo)]
+    log("[order] candidates interleaved item/concept so any interrupted prefix is channel-balanced: "
+        + str(len(_it)) + " items, " + str(len(_cc)) + " concepts outstanding")
     if args.limit:
         todo = todo[:args.limit]
     log("[run] " + str(len(todo)) + " candidate(s) to evaluate at the ROOT state, 10,000 users, "
