@@ -772,6 +772,13 @@ def scalability(args):
     c = Counter(full_pool[int(j)] for j in picks.ravel() if full_pool[int(j)] not in trained)
     fs, ts = ro_f["curves"][TOTAL_L]
     ss, st = ro_s["curves"][TOTAL_L]
+    # ANSWERABILITY of what the open vocabulary makes askable. The 1,000-candidate pool is the top-500
+    # items BY POPULARITY and the top-500 concepts BY ANSWER RATE, so everything outside it is, by
+    # construction, less answerable -- and a burned turn costs the interview a question. This is the
+    # measurement that says whether an opened vocabulary is being spent on unanswerable questions.
+    ans_f = (ro_f["outs"] != OUTCOME["noanswer"])
+    ans_s = (ro_s["outs"] != OUTCOME["noanswer"])
+    oopm = oop.astype(bool)
     out = {"analysis": "policy_E1_scalability", "design_sheet":
            "docs/design/PAPER_B_POLICY_DESIGN.md D.4", "citable": True, "test_touched": False,
            "ckpt": os.path.basename(args.ckpt), "n_train_pool": len(pool),
@@ -787,6 +794,11 @@ def scalability(args):
            "val_full_full_catalogue": float(np.nanmean(fs)),
            "val_tail_full_catalogue": float(np.nanmean(ts)),
            "paired_full_catalogue_minus_1000": paired_bootstrap(fs - ss),
+           "answer_rate_1000_pool": float(ans_s.mean()),
+           "answer_rate_full_catalogue": float(ans_f.mean()),
+           "answer_rate_of_in_pool_picks": float(ans_f[~oopm].mean()),
+           "answer_rate_of_out_of_pool_picks": float(ans_f[oopm].mean()),
+           "channel_mix_full_catalogue": channel_mix(picks, full_pool),
            "note": ("The catalogue arm is a DIFFERENT action space from the tree's, so its NDCG is not "
                     "comparable to the tree's headline and is reported as a description of what the "
                     "policy does when the vocabulary is opened, not as a gain against any comparator.")}

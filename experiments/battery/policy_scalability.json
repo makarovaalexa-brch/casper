@@ -1,0 +1,169 @@
+{
+  "analysis": "policy_E1_scalability",
+  "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md D.4",
+  "citable": true,
+  "test_touched": false,
+  "ckpt": "policy_main_equivariant_both.pt",
+  "n_train_pool": 1000,
+  "n_inference_catalogue": 19390,
+  "out_of_pool_pick_rate": 0.299925,
+  "out_of_pool_by_position": [
+    0.0,
+    0.0,
+    0.0,
+    0.0778,
+    0.2636,
+    0.2726,
+    0.195,
+    0.3717,
+    0.2181,
+    0.487,
+    0.4715,
+    0.4586,
+    0.4281,
+    0.438,
+    0.5461,
+    0.5707
+  ],
+  "users_with_any_out_of_pool_pick": 0.8231,
+  "top_out_of_pool_questions": [
+    {
+      "channel": "item",
+      "id": 8243,
+      "n_picks": 2320
+    },
+    {
+      "channel": "item",
+      "id": 1984,
+      "n_picks": 2102
+    },
+    {
+      "channel": "item",
+      "id": 548,
+      "n_picks": 1737
+    },
+    {
+      "channel": "item",
+      "id": 8246,
+      "n_picks": 1651
+    },
+    {
+      "channel": "concept",
+      "id": 499,
+      "n_picks": 1431
+    },
+    {
+      "channel": "item",
+      "id": 2638,
+      "n_picks": 1410
+    },
+    {
+      "channel": "item",
+      "id": 3603,
+      "n_picks": 1339
+    },
+    {
+      "channel": "item",
+      "id": 6800,
+      "n_picks": 1120
+    },
+    {
+      "channel": "item",
+      "id": 13646,
+      "n_picks": 1085
+    },
+    {
+      "channel": "item",
+      "id": 601,
+      "n_picks": 1084
+    },
+    {
+      "channel": "item",
+      "id": 2407,
+      "n_picks": 1070
+    },
+    {
+      "channel": "item",
+      "id": 5742,
+      "n_picks": 1068
+    },
+    {
+      "channel": "item",
+      "id": 555,
+      "n_picks": 1067
+    },
+    {
+      "channel": "concept",
+      "id": 567,
+      "n_picks": 1048
+    },
+    {
+      "channel": "item",
+      "id": 8867,
+      "n_picks": 999
+    },
+    {
+      "channel": "concept",
+      "id": 160,
+      "n_picks": 987
+    },
+    {
+      "channel": "item",
+      "id": 8958,
+      "n_picks": 958
+    },
+    {
+      "channel": "concept",
+      "id": 326,
+      "n_picks": 883
+    },
+    {
+      "channel": "item",
+      "id": 7350,
+      "n_picks": 849
+    },
+    {
+      "channel": "item",
+      "id": 5167,
+      "n_picks": 839
+    },
+    {
+      "channel": "item",
+      "id": 2308,
+      "n_picks": 799
+    },
+    {
+      "channel": "item",
+      "id": 15334,
+      "n_picks": 759
+    },
+    {
+      "channel": "concept",
+      "id": 837,
+      "n_picks": 738
+    },
+    {
+      "channel": "item",
+      "id": 3906,
+      "n_picks": 656
+    },
+    {
+      "channel": "item",
+      "id": 9068,
+      "n_picks": 605
+    }
+  ],
+  "n_distinct_out_of_pool_questions": 189,
+  "val_full_1000_pool": 0.28354971825495506,
+  "val_tail_1000_pool": 0.13421311934575303,
+  "val_full_full_catalogue": 0.26320921379832823,
+  "val_tail_full_catalogue": 0.12180505138899793,
+  "paired_full_catalogue_minus_1000": {
+    "mean": -0.02034050445662675,
+    "lo": -0.02236287169390005,
+    "hi": -0.018371441835480597,
+    "n": 10000,
+    "excludes_zero": true
+  },
+  "note": "The catalogue arm is a DIFFERENT action space from the tree's, so its NDCG is not comparable to the tree's headline and is reported as a description of what the policy does when the vocabulary is opened, not as a gain against any comparator."
+}

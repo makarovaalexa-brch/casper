@@ -67,8 +67,39 @@ deterministic subset of turns (3 and 8 within our budgets), so those arms altern
 value-free key-term rule and a value-dependent item rule on a fixed schedule.
 
 **EDDI's target-aware term was dropped deliberately**, and the header records why: using held-out
-targets in selection "would leak the evaluation targets into the question selection". So its row is not
-an oversight — it is the honest version of that method under our protocol.
+targets in selection "would leak the evaluation targets into the question selection".
+
+> ### ⚠ CORRECTION, 2026-08-13 — the sentence that used to follow is RETRACTED.
+>
+> This paragraph previously concluded: *"So its row is not an oversight — it is the honest version of
+> that method under our protocol."* **That is false, and it was already false when it was written.**
+> The SNAP-1 commit `b4a4783` (2026-08-05) had established that **Eq. 9's second term samples its
+> hypothetical answers from the model and leaks nothing** — so the term was dropped for a reason that
+> does not hold, and the leakage justification in `eddi_selector.py`'s header is wrong too.
+>
+> Three things follow, none of them cosmetic, all recorded in
+> `docs/results/EDDI_IMPLEMENTATION_STATUS.md`:
+> 1. **The reduction is not defensible as "honest under our protocol".** It is a documented
+>    deviation whose stated reason has been withdrawn. What plays the target `x_phi` in cold-start
+>    ranking is a real modelling question (TODO 1.3(a)) and it needs a design sheet, not a footnote.
+> 2. **The authors argue against the first term alone** (App. C.3): it is the BALD-style gain. We
+>    ship the reduction they warn about, under their name — which is why the row is relabelled
+>    *latent-only info-gain* in `tab:battery`.
+> 3. **The native snap fails.** `eddi_latent` (ours) pooled average rank **3.402** vs **random
+>    3.236** on Ma et al.'s own Fig-3 datasets — the reduced acquisition ranks below random ordering.
+>
+> ★ **A third, independent defect that this row's "answerability-weighted" description conceals:**
+> the retained weight `p_i` is a Mult-VAE^PR **softmax across items**, i.e. a relative next-draw
+> probability, not the per-variable marginal `p(x_i | x_O)` Ma et al.'s factorised likelihood
+> (their Eq. 2) requires. The docstring records `corr(log p, log R) = 0.965` at the empty state —
+> the arm is close to a most-probable-item selector — **but that diagnostic has no reproducible
+> artifact and must be re-derived before it is quoted as a measured number.**
+>
+> **What has since been discharged, and what has not.** TODO 1.3(b) — the three-outcome response
+> model, which is the defect the *two-outcome* collapse of "not seen" and "disliked" causes — was
+> run at contract scale on 2026-08-13 → `docs/results/EDDI_THREE_OUTCOME_RESULT.md`. Row 11's
+> "target term deliberately dropped" column entry is **still true and still open**: fixing the
+> response model does not implement Eq. 9, and does not touch the weight.
 
 **The heuristic orders were never validated on a ranking metric by their own authors.**
 `interview_strategies.py:24-26`: Rashid measured rating-prediction MAE and Golbandi RMSE; we measure
