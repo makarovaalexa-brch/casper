@@ -834,6 +834,87 @@ teacher are the same loop.
 
 ---
 
+# PART E — FABLE'S VERDICT ON WHAT COMES AFTER E1 (2026-08-13) — AWAITING AUTHOR RULING
+
+> **AUTHOR ASKED (verbatim):** *"i don't see why we would continue with supervised. can you ask fable
+> if it is not bttr to start rl now? or maybe nor rl but some explore exploit?"*
+
+**VERDICT: D, with A1 as the bounded closer. NOT RL. NOT a bandit.** Ordered: (i) the cheap
+hard-partition labels **plus the deeper-tree control** as one batch (~4–7 h) to close the
+beat-the-tree line honestly under its pre-registered no-go; (ii) all remaining compute to **pricing
+answerability into the open-vocabulary head**.
+
+Deciding sentence: *the exploitable routing signal is 2.1% of cross-user reward variance and the bank
+already beats conditioning without any policy at all (+0.01430 vs +0.01035), so every hour spent
+trying to add 40% on top of the tree's gain is spent against the chapter's own evidence, while the
+author's stated motive — vocab scaling and out-of-vocab prediction — has a demonstrated mechanism
+with one measured, fixable defect.*
+
+## E.1 Why not RL
+
+**States are not the bottleneck; labels AT states are.** RL does not remove that cost, it hides it
+inside a reward whose usable signal was measured at 2.1% of cross-user variance. That is a property of
+the DATA, so RLOO fixes the *variance of the estimator*, not the *size of the signal*, and a good
+initialisation does not fix it either. Supporting measured history: BC collapsed to a fixed 17-item
+list; coverage/entropy rewards degraded the belief state; realizable gain ≈ 1/5 of oracle. ~19 h per
+attempt against a +0.011 validation bar the tree itself never had to clear. **Rejected.**
+
+## E.2 The explore/exploit question, answered on its merits
+
+**The author's instinct points at something real that the four published bandit arms did NOT test:**
+they do online *arm selection for reward*; she plausibly means *exploration as a STATE GENERATOR for
+training*. That distinction is correct and worth telling her. It does not rescue the line, for RL's
+reason: generated states still need measured labels (32 h–3,772 h ceiling). **Keep in pocket as a
+DIAGNOSTIC only:** ε-perturbed rollouts of the E1 policy on validation to see *where* it goes
+off-manifold — informs the answerability head, is not a training method, costs an afternoon.
+**Do not build a fifth bandit.**
+
+## E.3 ★ A2 (kernel-weighted labels) is KILLED — this corrects Part B and my own earlier framing
+
+"A2 genuinely is not a deeper tree" was **over-claimed**. Kernel-weighted labels are still one-step
+greedy split-search argmaxes with soft assignment; **a smoothed deeper tree is still a deeper tree**.
+The only objects categorically not a deeper tree are one trained on a different objective (RL —
+unsupportable) or one emitting out-of-vocab actions (D). **Drop A2: 20–100 h for a distinction that
+will not survive review.**
+
+## E.4 The job that replaces supervised E2
+
+An **answerability head**: train `P(answered | z, q)` on **real answer events harvested from tree
+application to the 140,768 TRAIN users** (same pipeline as E1's harvest; answer events only, no NDCG
+on train — answerability is the structural rule, so this is measured, not surrogate, and is not a
+function of the target item). Selection score = `policy logit + λ · log P(answered)`; sweep λ on the
+10,000 VAL users by real interview NDCG. Actor = the existing E1 head, frozen or lightly fine-tuned.
+No variance control needed (supervised). **Cost: hours, not tens.**
+
+Success is **not** "beat the tree". It is: the open-vocab policy stops paying **−0.02034** for leaving
+the pool — out-of-pool answer rate rises from **9.1%** toward the in-pool **55.2%**, and the
+full-NDCG deficit against the policy's own in-pool run closes on validation.
+
+## E.5 Pre-registered abandon conditions
+
+- **A1:** existing no-go stands — validation gain over the tree < **+0.011** ⇒ no test look, line
+  closed. **Control (mandatory, nearly free):** grow the tree one level with the floor lowered on the
+  same labels. If deeper-tree ≈ policy on validation, write *"the policy is a re-parameterisation of a
+  deeper tree"* and claim nothing. Fable's prior: **the no-go fires** — that is a clean, reportable
+  closure, not a waste.
+- **D:** if λ-swept pricing recovers **less than half** of the −0.02034 deficit, **or** if recovering
+  it drives out-of-pool picks to ~0% (the head merely learns to stay in-pool), abandon the pricing
+  claim and report the mechanism finding as-is. **The deeper-tree control is irrelevant to D — no tree
+  can emit an out-of-vocab question, which is the cleanest "not just a deeper tree" argument the
+  chapter has.**
+
+## E.6 Framing corrections that bind
+
+- **The 82.3% / 189-questions / 30%-out-of-pool figures are NOT a scaling win as they stand.** Until
+  answerability is priced they are a measured **defect** (9.1% answered, −0.02034). Present as
+  mechanism + measured failure + fix. Never as a result on its own.
+- **Verified by Opus after the verdict:** every E1 artifact carries `test_touched=false` and the
+  scalability numbers are `val_*` — **the −0.02034 is validation; no test look has been spent.**
+- Also measured, and useful to the fix: out-of-pool picks are **0% at the first three positions** and
+  rise to **57% by position 16** — the policy stays in-pool early and wanders late.
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
