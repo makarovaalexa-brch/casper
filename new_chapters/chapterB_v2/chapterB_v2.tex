@@ -410,7 +410,7 @@ Placed in the protocol pool alongside the selectors, the strongest static order 
 stronger than the strongest heuristic, and the null of Table~\ref{tab:act1} widens rather than
 narrows. Restricting attention to the item bank --- the fair comparison, since none of the adaptive
 selectors has access to the concept channel --- at $q{=}16$: greedy items-only $.2447/.1017$,
-entropy$_0$ $.2303/.0924$, GLM-UCB $.2161/.0833$, Thompson $.2135/.0878$, EDDI $.1917/.0749$. The
+entropy$_0$ $.2303/.0924$, GLM-UCB $.2161/.0833$, Thompson $.2135/.0878$, two-outcome info-gain $.1917/.0749$. The
 best adaptive selector trails the strongest items-only static order by $+.0281$
 $[+.0247,+.0314]$ full and $+.0178$ $[+.0145,+.0210]$ tail, twice its deficit against the
 heuristic. That sequence is now \emph{selected} under the same mask it is scored under, so the
@@ -508,7 +508,10 @@ $10{,}000$ test users, no sampling. full/tail NDCG@10. Answer-free reference (po
 $.1626/.0262$. The three greedy rows are the sequences rebuilt under this table's own candidate mask
 (Section~\ref{sec:act3}); selection contract and scoring contract now agree, so they are no longer
 lower bounds. $^\S$ marks a \emph{value-free} rule: it responds to which questions turned out to be
-answerable and never to what was answered (Section~\ref{sec:act1result}, statement (d)).}
+answerable and never to what was answered (Section~\ref{sec:act1result}, statement (d)).
+$^\ddagger$ The same reduced acquisition as the row above it, under a three-outcome response model
+(no answer / like / dislike) rather than a two-outcome one; it is no more the published criterion
+than that row is, and is carried for the mechanism comparison rather than as a replication.}
 \label{tab:coverage-note}
 \label{tab:battery}
 \footnotesize
@@ -534,6 +537,7 @@ random (catalogue) & static & .1585/.0310 & .1588/.0310 & .1589/.0318 & .1593/.0
 GLM-UCB~\cite{zhao2013interactive} & adaptive & .1606/.0400 & .1635/.0452 & .1756/.0578 & .1902/.0673 & .2161/.0833 & 5.24 \\
 Thompson~\cite{zhao2013interactive} & adaptive & .1627/.0376 & .1676/.0437 & .1748/.0551 & .1908/.0677 & .2135/.0878 & 3.39 \\
 latent-only info-gain$^\dagger$~\cite{ma2019eddi} & adaptive & .1537/.0336 & .1539/.0373 & .1618/.0432 & .1747/.0611 & .1917/.0749 & 3.84 \\
+EDDI three-outcome$^\ddagger$~\cite{ma2019eddi} & adaptive & .1607/.0363 & .1597/.0388 & .1732/.0497 & .1869/.0660 & .2041/.0834 & 2.86 \\
 \midrule
 \multicolumn{8}{l}{\emph{published methods, snap-validated and ported}}\\
 Golbandi tree (WSDM'11)~\cite{golbandi2011adaptive} & adaptive & .1557/.0351 & .1614/.0478 & .1864/.0650 & .2117/.0844 & --- & 2.75 \\
@@ -556,11 +560,13 @@ clairvoyant oracle & --- & .1893/.0680 & .2194/.0965 & .2544/.1281 & .2930/.1597
 Read down the table, with paired bootstrap intervals attached (10{,}000 resamples over the per-user
 difference; a selector compared with itself returns exactly zero). The optimised static comparator
 leads every adaptive selector at every budget, and every one of those thirty comparisons separates
---- and that holds against all three rebuilt static orders, thirty of thirty each. Widened to all
-twelve adaptive rows in the table (118 cells), the combined and concepts-only orders lead and
-separate in all $118$; the items-only order leads in $116$ and separates in $114$, and the four
-exceptions are all tail cells that fail to separate in either direction (Golbandi's tree at four and
-eight questions, IGCN at two and four).
+--- and that holds against all three rebuilt static orders, thirty of thirty each. Widened to every
+adaptive arm measured under this contract --- the table's thirteen adaptive rows plus the
+three-outcome sub-variant discussed in Section~\ref{sec:answerability}, $138$ cells in all --- the
+combined and concepts-only orders lead and separate in all $138$; the items-only order leads in
+$136$ and separates in $134$, and the four exceptions are all tail cells that fail to separate in
+either direction (Golbandi's tree at four and eight questions, IGCN at two and four). Neither
+three-outcome variant adds an exception.
 The three degenerate arms are degenerate for a diagnosable reason --- they collect roughly one tenth
 of an answer per interview --- and they are mutually indistinguishable, as they should be. The
 middle of the table is less ordered than it looks: the two bandit selectors are mostly
@@ -591,6 +597,7 @@ NDCG tree (Section~\ref{sec:act3}) & this chapter & adaptive & \cmark & \cmark &
 entropy$_0$ / HELF / pop / random & \cite{rashid2002getting,rashid2008learning} & static & \cmark & \cmark & \xmark & n/a \\
 GLM-UCB, Thompson & \cite{zhao2013interactive} & adaptive & \cmark & \cmark & \xmark & \xmark \\
 latent-only info-gain$^\dagger$ & \cite{ma2019eddi} & adaptive & \cmark & \cmark & \cmark & \xmark \\
+EDDI three-outcome$^\ddagger$ & \cite{ma2019eddi} & adaptive & \cmark & \cmark & \xmark & \xmark \\
 \midrule
 ConLinUCB-MCR / -BS / ConUCB & \cite{wang2023conlinucb,zhang2020conucb} & adaptive & \cmark & \cmark & \xmark & \xmark \\
 CLiME & \cite{liu2025clisk} & adaptive & \cmark & \cmark & \xmark & \xmark \\
@@ -668,6 +675,7 @@ static (entropy$_0$) & 1 & 1 & 1 & 1 & 1 \\
 GLM-UCB & 1 & 3 & 23 & 335 & 5{,}739 \\
 Thompson & 759 & 8{,}083 & 10{,}000 & 10{,}000 & 10{,}000 \\
 latent-only info-gain$^\dagger$ & 1 & 2 & 7 & 99 & 1{,}993 \\
+EDDI three-outcome$^\ddagger$ & 1 & 2 & 8 & 112 & 1{,}217 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -682,7 +690,8 @@ adapt to.
 \label{sec:answerability}
 
 The answered column of Table~\ref{tab:act1} carries part of the mechanism. At sixteen questions the
-static order collects $5.52$ answers; Thompson collects $3.39$ and EDDI $3.84$. Both criteria
+static order collects $5.52$ answers; Thompson collects $3.39$ and the two-outcome info-gain arm
+$3.84$ (its three-outcome variant, $2.86$). Both criteria
 prefer questions with high posterior movement or high score uncertainty, and on an implicit-feedback
 catalogue those are precisely the items almost nobody has seen, so they spend budget on questions
 the user cannot answer. This is the same asymmetry that separates the two question channels on this
@@ -701,12 +710,10 @@ rejection~\cite{gao2024selbald}. What we add is not the
 weighting but the observation that it is a reason to change \emph{channel}: prior work prices
 answerability within one fixed question space, whereas the coarse and fine channels here differ in
 answer rate by a factor of four, and the loss-optimal channel changes with placement
-(Section~\ref{sec:act4}). \REDO{the arm in the table uses a two-outcome response model, under which ``has not seen it'' and
-``dislikes it'' are the same observation, so the acquisition cannot represent --- and therefore
-cannot price --- the event that no answer arrives. The three-outcome selector is implemented
-(\texttt{eddi\_ig3}) but has been measured only on a $200$-user smoke; run it on the
-$10{,}000$-user cohort with paired intervals before this section's mechanism claim and the
-paragraph below stand}
+(Section~\ref{sec:act4}). The first of the two info-gain rows uses a two-outcome response model,
+under which ``has not seen it'' and ``dislikes it'' are the same observation, so its acquisition
+cannot represent --- and therefore cannot price --- the event that no answer arrives; the second row
+gives it that third outcome, and the paragraph below reports what changes.
 
 It is not the whole mechanism, and the same table says so: GLM-UCB collects $5.24$ answers,
 essentially the static order's rate, and still loses at every budget. Unanswerability explains the
@@ -734,20 +741,48 @@ reported validation failure is more informative than a silently omitted arm.
 A second, more interesting consequence follows. We had expected that giving the criterion a third
 possible response --- \emph{no answer arrives}, distinct from a dislike --- would let it price
 answerability on its own, since a question the user cannot answer carries no information by
-construction. The three-outcome selector is implemented, but the only measurement of it is a
-$200$-user smoke outside this chapter's contract --- no intervals, budgets to eight, one consumer,
-and its two sub-variants disagree on the tail at eight questions --- so it supports a status and not
-a result: on that smoke the three-outcome variant collects fewer answers than the two-outcome one,
-and whether it ranks better is exactly what the disagreeing variants leave open. The mechanism we
-can state is a property of the two-outcome criterion in the table: it is dominated by a per-item
-probability term whose dynamic range dwarfs the information term's, which makes it a
-most-popular-item selector wearing information-theoretic clothing, and popularity is a good proxy
-for answerability. Repairing the response model would let the
-information term actually drive selection, and an information term with no target to serve prefers
-exactly the questions that move the posterior most, which are the ones users cannot answer --- which
-is the prediction the contract-scale run above is owed to test. \textbf{Answerability is not
+construction. It does. Measured on the same contract, the three-outcome variant collects $2.86$
+answers in sixteen questions against the two-outcome arm's $3.84$ --- a quarter fewer --- and ranks
+better from them: the paired in-run difference is positive and excludes zero at every budget on full
+accuracy ($+.0070$, $+.0057$, $+.0114$, $+.0122$, $+.0124$ at one, two, four, eight and sixteen
+questions) and at four of five budgets on the tail, the two-question cell being a null
+($+.0015$, $[-.0001,+.0031]$). Pricing the event that no answer arrives is worth roughly a quarter
+of this arm's deficit against the loss-optimised items-only order on full accuracy ($-.0530$ to
+$-.0406$ at sixteen questions) and about a third of it on the tail ($-.0268$ to $-.0183$), and it
+closes neither. The likely mechanism is structural, and we state it as the code's contract rather
+than as a measurement: the two-outcome arm weights its information term by a softmax across items,
+which is a relative next-draw probability and not the per-variable marginal that a factorised
+likelihood asks for, so the weight behaves like a popularity ranking --- and popularity is a good
+proxy for answerability. The three-outcome arm replaces that weight with two proper per-item
+quantities in $[0,1]$, which lets the information term drive selection --- and an information term
+with no target to serve prefers exactly the questions that move the posterior most, which are the
+ones users cannot answer. That is what the answer count records, and it is why the repaired arm is
+still a long way behind a loss-optimised order. \textbf{Answerability is not
 something an uninformed information criterion recovers for free; it has to be either priced
 explicitly or inherited from a target-coupled objective.}
+
+\paragraph{$^\ddagger$ The same validation failure governs the three-outcome row.}
+That row repairs the response model over the \emph{same} reduced acquisition. The target term of the
+published criterion is implemented nowhere in this chapter; the native snap the reduction fails is
+unchanged by the repair (pooled average rank $3.402$ against random ordering's $3.236$ on the
+original authors' own benchmark); and the statement above about the two-outcome weight is read off
+the implementation, not measured --- the diagnostic that would quantify it has no reproducible
+artifact and is not quoted here as a number. Both rows are the partial criterion, and neither is a
+replication of the published method: what the pair measures is a response model, holding the
+acquisition fixed.
+
+The three-outcome arm admits a second sub-variant, which additionally \emph{conditions} on a dislike
+as a signed observation. We do not carry it in the table, for a reason that is not its numbers: the
+frozen encoder was trained on likes and has no learned token for a disliked observation, so
+conditioning on one is a documented approximation, whereas letting the third outcome enter through
+the answerability weight alone is what an absence-is-not-a-value model licenses. Its numbers are
+close and do not force the choice --- $.1607/.0363$, $.1607/.0383$, $.1655/.0442$, $.1852/.0649$,
+$.2041/.0815$, and $3.16$ answers --- level with the carried row at one and sixteen questions on
+full accuracy to within $.0001$, ahead of it only at two questions ($.1607$ against $.1597$), and
+behind it on full accuracy at four and eight and on the tail at every budget from two onwards. It is
+also three times as expensive to run, branching into $3{,}662$ distinct interviews at sixteen
+questions against $1{,}217$, and asking more questions for it. It introduces no exception to the
+counts reported for Table~\ref{tab:battery}.
 
 \subsection{The result that complicates the story, reported rather than buried}
 \label{sec:flip}
