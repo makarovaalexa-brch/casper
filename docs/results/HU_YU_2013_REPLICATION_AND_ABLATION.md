@@ -294,11 +294,15 @@ each additional question widens the mismatch.
 **The symmetric variant — halve the train users' ratings too, so answer availability matches at fit
 time and serve time — flips the trend.** Everything else identical:
 
-| FixQ, MAP(r≥4) | depth 3 | depth 5 | trend |
-|---|---|---|---|
-| as their protocol states it (asymmetric) | .4910 | .4880 | **falling** |
-| **symmetric answers** | **.5164** | **.5224** | **rising** |
-| *theirs (digitised)* | *.7176* | *.7239* | *rising* |
+| FixQ, MAP(r≥4) | depth 3 | depth 5 | depth 8 | depth 10 | trend |
+|---|---|---|---|---|---|
+| as their protocol states it (asymmetric) | .4910 | .4880 | .4777 | .4729 | **falling, monotonically** |
+| **symmetric answers** | **.5164** | **.5224** | **.5274** | **.5312** | **rising, monotonically** |
+| *theirs (digitised)* | *.7176* | *.7239* | *.7283* | *.7306* | *rising, monotonically* |
+
+The full sweep is now in and the reversal is clean at every depth, not just the first two: their
+protocol as stated gives a monotone decline across 3/5/8/10, and the symmetric variant gives a
+monotone rise across the same four depths, with the same shape as their figure.
 
 Two things change at once and both move toward the paper: the level rises by ~0.025, and **the
 direction reverses to match their published trend**. It also lifts FixQ just above the most-popular
@@ -311,8 +315,9 @@ condition their own evaluation imposes — a cold user who has answered only wha
 — asking more questions makes their fixed-question baseline *worse*, not better. That is worth stating
 in the chapter, and it is independent of the unexplained level gap.
 
-Caveat carried: this is measured for **FixQ at depths 3 and 5** so far. The symmetric EIP cells had not
-returned at the time of writing, so the claim is currently about the baseline arm.
+Caveat carried: this is measured for **FixQ at all four depths**. The symmetric EIP cells had not
+returned at the time of writing, so the claim is established on the baseline arm and is expected, but
+not yet shown, to carry to EIP.
 
 **One incidental finding worth keeping.** On our ruler **FixQ is worse than simply ranking by
 popularity** (.4910 vs .5129 at d=3) — asking the top-k popular items and folding the answers back in
@@ -335,8 +340,37 @@ unaffected by anything unresolved here.**
 |---|---|
 | Leak check | answer ∩ eval pairs **0**; train ∩ eval pairs **0**; train ∩ test users **0**; test users appearing in train ratings **0** |
 | Canonical snap, reported first | most-popular .5129 / .4468; random .1011 against an **analytic .1040** — the metric implementation is verified independently of any model |
-| Shuffle control (random-question tree) | implemented, **NOT YET RETURNED.** This is the one required control still outstanding. No claim in §A rests on an arm it would invalidate, but every EIP number here is uncontrolled until it lands, and the file says so. |
-| Symmetric-answers contrast | run for FixQ at depths 3 and 5 — see §A.3; it reverses the depth trend |
+| **Shuffle control (random-question tree)** | **RETURNED and PASSED — see §A.6.** EIP's margin does not survive replacing its criterion with a coin flip *in full*, but it does survive in part: MAP(r≥4) .5141 for random questions against EIP's .5277 at depth 3. |
+| Symmetric-answers contrast | run for FixQ at all four depths — see §A.3; it reverses the depth trend monotonically |
+
+### A.6 The shuffle control, and what it decomposes
+
+Same budget, same min-leaf, same fitting procedure, same ruler as EIP; only the split criterion is
+replaced by a uniform random draw. At depth 3, MAP(r≥4):
+
+| arm | MAP(r≥4) | vs FixQ |
+|---|---|---|
+| EIP (Hu & Yu's criterion) | **.5277** | +0.0367 |
+| **random-question tree** | **.5141** | +0.0231 |
+| most-popular, no interview | .5129 | — |
+| FixQ (top-k popular as the interview) | .4910 | — |
+
+**The control passes: EIP beats a coin flip by +0.0136**, so its split criterion is doing something
+real. But the same table decomposes EIP's advantage over FixQ in a way the paper does not:
+
+- **+0.0231 of the +0.0367 — roughly 63% — is having a TREE at all**, i.e. routing users into groups
+  and fitting a per-group factor. A random-question tree captures it.
+- **+0.0136 — roughly 37% — is WHICH questions the criterion picks.**
+
+That is worth stating carefully in the chapter, because it cuts both ways. It is a genuine caveat on
+their headline ("EIP outperforms FixQ ... by 2% averagely" is majority structure, minority criterion),
+and it is a caveat we must apply to ourselves too — which is exactly why Part B's `random_ml` control
+exists and why Part B compares against a static order built by maximising the *same* objective rather
+than against popularity.
+
+Note also that the random-question tree is essentially level with most-popular (.5141 vs .5129) while
+FixQ sits *below* it (.4910). Caveat: measured at depth 3 only, on the asymmetric ruler that matches
+the EIP cells.
 
 **Still running at the time of writing**, persisting one JSON per cell to
 `experiments/baselines/huyu2013/cells/`: EIP-logistic depths 8 and 10, the random-question shuffle
