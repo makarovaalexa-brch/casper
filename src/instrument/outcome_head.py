@@ -514,7 +514,11 @@ def train(args):
     tag = f"{args.arm}_{args.state}{'_nopos' if args.no_pos else ''}" \
           f"{'_prior' if args.prior_feat else ''}"
     ckpt = os.path.join(OUTDIR, f"outcome_head_{tag}.pt")
-    for ep in range(1, args.epochs + 1):
+    # --eval_only: skip fitting and score the FULL metric suite from a checkpoint already on disk.
+    # HARD RULE 11: a long run must never be able to lose more than one cell. The per-epoch
+    # checkpoint is written the moment an epoch improves, but the head-vs-popularity comparison
+    # lives after the loop -- so this path exists to recover it if the run has to be stopped early.
+    for ep in ([] if args.eval_only else range(1, args.epochs + 1)):
         model.train()
         pe = rng.permutation(n_ex)
         tot = 0.0; seen = 0; hit = 0
@@ -562,6 +566,9 @@ def train(args):
                   indent=1, default=float)
 
     # ---- the full metric suite, on the SELECTED checkpoint, head vs both baselines ----------------
+    assert os.path.exists(ckpt), f"no checkpoint at {ckpt}"
+    if args.eval_only:
+        hist = json.load(open(os.path.join(OUTDIR, f"outcome_head_{tag}_history.json")))["history"]
     blob = torch.load(ckpt, map_location="cpu")
     model.load_state_dict(blob["model"])
     log(f"[final] scoring the full metric suite on the selected checkpoint (epoch {blob['epoch']}): "
@@ -728,6 +735,9 @@ def main():
     ap.add_argument("--full_threads", action="store_true",
                     help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv)")
     ap.add_argument("--i_have_author_goahead", action="store_true")
+    ap.add_argument("--eval_only", action="store_true",
+                    help="no fitting: score the full head-vs-baselines suite from the checkpoint "
+                         "already on disk. The recovery path if a long run is stopped early.")
     args = ap.parse_args()
     if args.selftest:
         return selftest()
