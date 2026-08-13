@@ -915,6 +915,123 @@ full-NDCG deficit against the policy's own in-pool run closes on validation.
 
 ---
 
+# PART F — THE TWO-HEAD DESIGN (author's proposal, Fable-reviewed) — SUPERSEDES PART E
+
+> **AUTHOR SAID (2026-08-13):** *"maybe having 2 heads, answerability and ndcg lift would be good?"*
+> and, on why the policy is wanted at all: *"policy is nice becuase it is generalisable and scalable.
+> tree treats questions as discrete entities. policy has their embedding and know their similarity. so
+> it is supposed to be able to learn from fewer examples. polciy is supposed to be able to learn
+> strategic questioning, not greedy. and most importantly, keep adapting fter 5 levels"*
+
+## F.1 The design — ADOPTED, three-way, supersedes Part E's λ·log P
+
+Score a question by the **decomposition of the target quantity itself**:
+`Σ_o P(o | q, state) · V(o | q, state)` over the three outcomes **like / dislike / no-answer**.
+This replaces E.4's `policy logit + λ · log P(answered)`, which was a ranking heuristic with a
+validation-fitted knob. Three-way, not binary: the root's three children sit at **0.374 / 0.320 /
+0.087**, and ARM N measured a "no" worth **+0.023 at k=2** — a binary answered/not encoding throws
+away the like/dislike distinction exactly where it pays. Three-way also matches the tree's branching,
+so outcome labels exist at every state we hold gains for.
+
+**Name the resemblance in the chapter:** this is EDDI's own decomposition with the information-theoretic
+value replaced by **measured NDCG** — the thesis expressed in the architecture rather than asserted.
+
+**★ The load-bearing property is the DATA ASYMMETRY.** Outcome labels are observable for **all 19,390
+catalogue questions** on **140,768 TRAIN users** at **zero NDCG cost** (they fall out of the
+tree-application harvest; answerability is the structural rule, hence measured, not surrogate, and not
+a function of the target item). Lift labels exist only at the 202 tree states for the 1,000-pool, with
+**21,943 exact (state,candidate) gains banked (~11%)** and 32 h for the rest. Supplying the *cheap*
+signal is the direct fix for the diagnosed open-vocab failure (**9.1% vs 55.2% answered**).
+
+⚠ **DEFLATION, binding:** "no free parameter" is over-claimed (my error). The *arithmetic* is
+parameter-free; the *estimators* are not. A miscalibrated `P` multiplied by an extrapolated `V` is two
+learned errors multiplied. **Calibration of the outcome head is a hard requirement and must be
+reported (ECE).** Never promise "no knobs".
+
+## F.2 The thesis question — no violation, but one sentence and one table are owed
+
+The surrogates that lost (training loss ρ=−0.149, variance, pairwise logistic) were *different
+quantities used in place of the target*. A regressor **fit on** the measured target is an *estimator of
+the measured quantity*, not a surrogate objective. The firewall holds; what changes is certainty.
+
+**The sentence the chapter must write:** *"The policy selects on a prediction of measured NDCG gain,
+fit to measured gains; it inherits the tree's criterion but not its certainty, and every claim about
+the policy is a claim about how well that estimator transfers, which we test on held-out states."*
+
+**The table:** the lift head's Spearman against measured gain at held-out states, printed beside the
+measured criterion's **ρ=+0.784** and the training-loss surrogate's **−0.149**.
+**Pre-registered gate, fixed before looking: ρ ≥ +0.40 on held-out states.** Below it, HARD RULE 6
+applies — report a weak method, do not tune until it passes.
+
+## F.3 ★ MY ERROR, corrected: properties (2) and (3) do NOT share a root cause
+
+I told the author that "strategic questioning" and "keeps adapting past depth 5" were blocked by the
+same thing. **False, and it inflated the RL case by bundling a buyable property with an unbuyable one:**
+
+- **(3) past-depth-5 continuation is BUYABLE WITH SUPERVISION** — past-depth-5 greedy labels are
+  cheaply harvestable; that is literally the deeper-tree control.
+- **(2) strategy is the only structurally RL-shaped one.** Every label we hold or can cheaply mint is
+  one-step greedy, so a policy fit to them is greedy by construction.
+
+**And structural possibility is not headroom.** Nothing measured says myopia costs us anything: the one
+endpoint measurement (polish **+0.002@q16 / −0.029@q2**) points the other way, and the floor-stop
+pattern (all 15 stops FLOOR stops with positive gain in hand, 84% of users below one) is evidence for
+**more greedy DEPTH**, not for strategy.
+
+**Chapter consequence, binding: the policy may NEVER be described as strategic or non-myopic. It is a
+greedy policy with a learned reach. Write that.**
+
+**RL re-open condition, pre-registered:** RL becomes arguable only if the deeper-greedy control
+**saturates while floor-stop gain demonstrably remains**. Then one bounded RLOO attempt (19 h),
+exact-NDCG reward only. Not this cycle.
+
+## F.4 ★ COMPARATOR DISCIPLINE — the bar is the BANK, not the tree
+
+Everything new must clear **bank-alone: +0.01430 [+0.01124,+0.01739] full / +0.02199 tail**, not merely
+the tree's +0.01035/+0.00705. **A policy that beats the tree but not the static bank has not earned
+adaptive language.** My briefs never stated this; that omission is how "beats the tree" quietly becomes
+a claim the evidence does not license.
+
+## F.5 The first experiment — held-out QUESTIONS, specified so it cannot be trivially won
+
+- **Inputs:** interview-visible state only (answers so far, depth) + question embedding. **Never
+  profile features** — answerability is a structural rule partly computable from the profile, so a head
+  that sees profile-like inputs learns an arithmetic identity and the "generalisation" win is hollow.
+- **Data:** tree-application harvest on the 140,768 TRAIN users; three-way outcome per (user-state,
+  question). **No NDCG anywhere. TEST untouched.**
+- **Split:** hold out **20% of the 19,390 catalogue questions by question IDENTITY**, stratified by
+  channel and question popularity; plus a held-out user slice of TRAIN.
+- **Measure:** three-way one-vs-rest AUC and **calibration (ECE)** on held-out questions × held-out users.
+- **Baselines it must beat:** (a) global outcome base rates; (b) ★ **a per-question popularity
+  heuristic that ignores state entirely** — the killer. If popularity alone matches the head on
+  held-out questions, the embedding contributes nothing.
+- **★ The sample-efficiency curve that actually tests the author's claim:** train on 10 / 25 / 50 /
+  100% of questions and plot held-out-question AUC. "Learns from fewer examples via similarity"
+  predicts **early saturation**; a curve still climbing steeply at 100% is memorisation-shaped.
+- **Falsifier, pre-registered:** held-out-question AUC ≤ popularity baseline (b) ⇒ the "generalises via
+  embedding similarity" claim fails on the cheapest, most learnable property it will ever be offered,
+  and fails *a fortiori* for lift. **Report it; do not retry with a bigger head.**
+
+## F.6 Revised ordering (supersedes E's)
+
+1. **Outcome head + the held-out-question test** (F.5). Hours–1 day, zero NDCG, no test look.
+   **Required under every path, including RL.**
+2. **A1 + deeper-tree control STILL RUNS (~4–7 h)** and now has three jobs: the beat-the-tree closer
+   under its no-go; the source of past-depth-5 greedy labels that buys property (3) **without RL**; and
+   the control that **bounds how much room strategy could possibly have**. May run in parallel with 1.
+3. **Lift head from the banked 11% FIRST** (21,943 exact gains, three-way conditional value). Evaluate
+   held-out-state Spearman against F.2's ρ≥0.40 gate **before** buying the 32 h harvest.
+4. **Combined P×V policy vs the tree AND vs bank-alone on validation.** One test look at the final gate.
+5. **RL dead this cycle**, re-open condition in F.3.
+
+## F.7 Two more corrections to my own framing
+
+- **E1's top-1 = 1.0000 is not evidence OF memorisation** — perfect reproduction *was* the fit target.
+  It is the **absence of evidence for generalisation**, not proof against it. Do not overstate it either way.
+- Part E's kill of A2 (kernel labels) **stands**.
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
