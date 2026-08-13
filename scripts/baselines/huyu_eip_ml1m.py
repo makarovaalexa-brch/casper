@@ -864,7 +864,7 @@ def write_cell(tag, rec):
 
 
 def main():
-    global log_fh, INIT_SCALE
+    global log_fh, INIT_SCALE, SWEEP_D
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="main",
                     choices=["sweep", "main", "controls", "rmse", "smoke"])
@@ -874,8 +874,12 @@ def main():
     ap.add_argument("--outer", type=int, default=OUTER_ITERS)
     ap.add_argument("--arms", default="")
     ap.add_argument("--init-scale", type=float, default=INIT_SCALE)
+    ap.add_argument("--sweep-d", default="")
+    ap.add_argument("--sweep-tag", default="sweep")
     args = ap.parse_args()
     INIT_SCALE = args.init_scale
+    if args.sweep_d:
+        SWEEP_D = tuple(int(x) for x in args.sweep_d.split(','))
     os.makedirs(OUT, exist_ok=True)
     log_fh = open(os.path.join(OUT, "run_%s.log" % args.stage), "a")
     depths = [int(x) for x in args.depths.split(",")]
@@ -915,7 +919,7 @@ def main():
                 log("SWEEP d=%d lam_v=%g: val MAP=%.4f  MAP(r>=4)=%.4f  (%.0fs)"
                     % (dd, lam_v, m, m4, time.time() - t0))
                 res["best"] = best[1]
-                write_cell("sweep", res)
+                write_cell(args.sweep_tag, res)
         log("SWEEP best: " + json.dumps(best[1]))
         return
 
