@@ -70,6 +70,9 @@ MIN_LEAF = 30                # not specified by the paper
 OUTER_ITERS = 8              # tree <-> V alternations; not specified
 V_SWEEPS = 3                 # coordinate-descent sweeps over V per outer iteration
 U_SWEEPS = 3                 # coordinate-descent sweeps for Delta-u per tree level
+SYM_ANSWERS = False          # restrict TRAIN users' interview answers to their
+                             # first half too (the paper does not say; the
+                             # asymmetric reading is the literal one)
 FIXQ_LIKE_THRESHOLD = 3      # FixQ's fixed "higher than" threshold (EIP searches it)
 
 log_fh = None
@@ -141,6 +144,10 @@ class Split:
         m_ans = is_test[u] & (half == 0)
         m_eval = is_test[u] & (half == 1)
         self.tr = (u[m_train], i[m_train], r[m_train])
+        self.tr_half = half[m_train]   # so a train user's INTERVIEW answers
+                                       # can be restricted to their own first
+                                       # half, matching what a test user can
+                                       # actually answer
         self.ans = (u[m_ans], i[m_ans], r[m_ans])
         self.ev = (u[m_eval], i[m_eval], r[m_eval])
         # every (user,item) the user has touched -> excluded from negative sampling
@@ -802,7 +809,11 @@ def run_fixq(kind, k, split, d, lam_v, outer=None):
     V = init_V(M, d)
     iset = set(int(x) for x in items)
     train_ans = {}
-    for a, b, c in zip(tu, ti, tr):
+    hf = split.tr_half
+    for j, (a, b, c) in enumerate(zip(tu, ti, tr)):
+        if SYM_ANSWERS and hf[j] != 0:
+            continue          # this rating is in the train user's EVAL half, so it
+                              # is not available as an interview answer
         if int(b) in iset:
             train_ans.setdefault(int(a), {})[int(b)] = int(c)
     users = np.sort(split.train_users)
@@ -864,7 +875,7 @@ def write_cell(tag, rec):
 
 
 def main():
-    global log_fh, INIT_SCALE, SWEEP_D
+    global log_fh, INIT_SCALE, SWEEP_D, SYM_ANSWERS
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="main",
                     choices=["sweep", "main", "controls", "rmse", "smoke"])
@@ -876,8 +887,11 @@ def main():
     ap.add_argument("--init-scale", type=float, default=INIT_SCALE)
     ap.add_argument("--sweep-d", default="")
     ap.add_argument("--sweep-tag", default="sweep")
+    ap.add_argument("--sym-answers", action="store_true")
+    ap.add_argument("--tag-suffix", default="")
     args = ap.parse_args()
     INIT_SCALE = args.init_scale
+    SYM_ANSWERS = args.sym_answers
     if args.sweep_d:
         SWEEP_D = tuple(int(x) for x in args.sweep_d.split(','))
     os.makedirs(OUT, exist_ok=True)
@@ -992,7 +1006,7 @@ def main():
 
             if not arms or ("fixq_" + kind) in arms:
                 for k in depths:
-                    if have_cell("fixq_%s_d%d" % (kind, k)):
+                    if have_cell("fixq_%s%s_d%d" % (kind, args.tag_suffix, k)):
                         continue
                     t0 = time.time()
                     items, A, V, F = run_fixq(kind, k, sp, d, lam_v, outer=args.outer)
@@ -1001,7 +1015,7 @@ def main():
                     m, m4 = score(U)
                     log("fixq_%s k=%d: MAP=%.4f MAP(r>=4)=%.4f (%.0fs)"
                         % (kind, k, m, m4, time.time() - t0))
-                    write_cell("fixq_%s_d%d" % (kind, k),
+                    write_cell("fixq_%s%s_d%d" % (kind, args.tag_suffix, k),
                                dict(arm="fixq_" + kind, depth=k, MAP=m, MAP_ge4=m4,
                                     d=d, lam_v=lam_v))
             if not arms or tag in arms:
