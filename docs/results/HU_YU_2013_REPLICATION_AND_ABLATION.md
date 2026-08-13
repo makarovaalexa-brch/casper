@@ -283,14 +283,36 @@ column so the choice is visible.
 - **The direction with depth.** Their MAP rises with the number of interview questions for both cold
   arms. Ours falls: FixQ .4910 → .4729 monotonically, EIP flat-to-falling .5277 → .5223.
 
-**The leading explanation for the direction failure, measured but not yet fixed.** It is a property of
-the stated protocol, not of the code: a *test* user's answers must come from their first half only,
-while a *train* user's come from all their ratings. On the top-10 popular questions, test users can
-answer **~50% as often as train users at every rank** (0.283 vs 0.575 at rank 1). At k=3 a train user
-answers 1.58 of 3 questions and a **test user answers 0.78** — most test users answer nothing at all.
-The model is therefore fitted on feature vectors roughly twice as populated as the ones it is asked to
-serve, and each additional question widens that mismatch. The symmetric variant (halving train users'
-answers too) is a ten-minute cell that had not been run.
+**The direction failure is now EXPLAINED, and the explanation is a property of their stated protocol
+rather than of our code.** A *test* user's answers must come from their first half only, while a
+*train* user's come from all their ratings. On the top-10 popular questions test users answer **~50%
+as often as train users at every rank** (0.283 vs 0.575 at rank 1); at k=3 a train user answers 1.58
+of 3 questions and a **test user answers 0.78** — most test users answer nothing at all. The model is
+therefore fitted on feature vectors roughly twice as populated as the ones it is asked to serve, and
+each additional question widens the mismatch.
+
+**The symmetric variant — halve the train users' ratings too, so answer availability matches at fit
+time and serve time — flips the trend.** Everything else identical:
+
+| FixQ, MAP(r≥4) | depth 3 | depth 5 | trend |
+|---|---|---|---|
+| as their protocol states it (asymmetric) | .4910 | .4880 | **falling** |
+| **symmetric answers** | **.5164** | **.5224** | **rising** |
+| *theirs (digitised)* | *.7176* | *.7239* | *rising* |
+
+Two things change at once and both move toward the paper: the level rises by ~0.025, and **the
+direction reverses to match their published trend**. It also lifts FixQ just above the most-popular
+baseline (.5164 vs .5129), where the asymmetric version sat below it.
+
+**This is a finding about the paper, not merely a fix to our harness.** Their reported result that MAP
+rises with interview length is, on our reading of their protocol, contingent on training users being
+about twice as answerable as the users the method is actually deployed on. Under the deployment
+condition their own evaluation imposes — a cold user who has answered only what the interview elicited
+— asking more questions makes their fixed-question baseline *worse*, not better. That is worth stating
+in the chapter, and it is independent of the unexplained level gap.
+
+Caveat carried: this is measured for **FixQ at depths 3 and 5** so far. The symmetric EIP cells had not
+returned at the time of writing, so the claim is currently about the baseline arm.
 
 **One incidental finding worth keeping.** On our ruler **FixQ is worse than simply ranking by
 popularity** (.4910 vs .5129 at d=3) — asking the top-k popular items and folding the answers back in
@@ -313,7 +335,8 @@ unaffected by anything unresolved here.**
 |---|---|
 | Leak check | answer ∩ eval pairs **0**; train ∩ eval pairs **0**; train ∩ test users **0**; test users appearing in train ratings **0** |
 | Canonical snap, reported first | most-popular .5129 / .4468; random .1011 against an **analytic .1040** — the metric implementation is verified independently of any model |
-| Shuffle control (random-question tree) | implemented, **queued behind the remaining depths and NOT YET RETURNED.** This is the one required control still outstanding, and no claim in §A rests on an arm it would invalidate. |
+| Shuffle control (random-question tree) | implemented, **NOT YET RETURNED.** This is the one required control still outstanding. No claim in §A rests on an arm it would invalidate, but every EIP number here is uncontrolled until it lands, and the file says so. |
+| Symmetric-answers contrast | run for FixQ at depths 3 and 5 — see §A.3; it reverses the depth trend |
 
 **Still running at the time of writing**, persisting one JSON per cell to
 `experiments/baselines/huyu2013/cells/`: EIP-logistic depths 8 and 10, the random-question shuffle
