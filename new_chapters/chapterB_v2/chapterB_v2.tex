@@ -516,7 +516,8 @@ protocol candidate pool (every rated fold-in item removed), NO-FLOOR, behavioura
 $10{,}000$ test users, no sampling. full/tail NDCG@10. Answer-free reference (popularity prior):
 $.1626/.0262$. The three greedy rows are the sequences rebuilt under this table's own candidate mask
 (Section~\ref{sec:act3}); selection contract and scoring contract now agree, so they are no longer
-lower bounds.}
+lower bounds. $^\S$ marks a \emph{value-free} rule: it responds to which questions turned out to be
+answerable and never to what was answered (Section~\ref{sec:act1result}, statement (d)).}
 \label{tab:coverage-note}
 \label{tab:battery}
 \footnotesize
@@ -552,7 +553,7 @@ ConUCB (WWW'20)~\cite{zhang2020conucb} & adaptive & .1584/.0346 & .1591/.0364 & 
 DPE-Hellinger (WSDM'21)~\cite{parapar2021dpe} & adaptive & .1627/.0398 & .1680/.0480 & .1817/.0610 & .2002/.0765 & .2192/.0925 & 3.9 \\
 DPE-ILD (WSDM'21)~\cite{parapar2021dpe} & adaptive & .1627/.0398 & .1621/.0401 & .1613/.0397 & .1609/.0390 & .1603/.0375 & 0.32 \\
 BALD (2011)$^\S$~\cite{houlsby2011bald} & value-free & .1754/.0448 & .1853/.0473 & .1934/.0572 & .2057/.0683 & .2203/.0824 & 2.80 \\
-A-optimal$^\S$~\cite{anava2015budget} & value-free & .1693/.0498 & .1724/.0523 & .1702/.0549 & .1694/.0544 & .1740/.0563 & 1.81 \\
+A-optimal (WWW'15)$^\S$~\cite{anava2015budget,sepliarskaia2018spq} & value-free & .1693/.0498 & .1724/.0523 & .1702/.0549 & .1694/.0544 & .1740/.0563 & 1.81 \\
 \midrule
 \multicolumn{8}{l}{\emph{ceiling --- reads the user's own ratings at selection time; NEVER a baseline}}\\
 clairvoyant oracle & --- & .1893/.0680 & .2194/.0965 & .2544/.1281 & .2930/.1597 & \textbf{.3292/.1927} & 12.9 \\
@@ -606,7 +607,7 @@ ICF (4 policies) & \cite{zhao2013interactive} & adaptive & \xmark & \xmark & \xm
 IGCN & \cite{rashid2008learning} & adaptive & \xmark & \xmark & \xmark & \xmark \\
 DPE (topic bandit) & \cite{parapar2021dpe} & adaptive & \xmark & \xmark & \xmark & \xmark \\
 BALD / SEL-BALD & \cite{houlsby2011bald,gao2024selbald} & adaptive & \xmark & \xmark & \xmark & \xmark \\
-A-optimal design & \cite{anava2015budget,sepliarskaia2018spq} & static & \xmark & \xmark & \xmark & \xmark \\
+A-optimal design & \cite{anava2015budget,sepliarskaia2018spq} & value-free & \cmark & \cmark & \xmark & \xmark \\
 PEBOL acquisition & \cite{austin2024bayesian} & adaptive & \xmark & \xmark & \xmark & \xmark \\
 fMF & \cite{zhou2011functional} & adaptive & \xmark & \xmark & \xmark & \xmark \\
 PERE & \cite{nguyen2024pere} & adaptive & \xmark & \xmark & \xmark & \xmark \\

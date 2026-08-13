@@ -53,6 +53,15 @@ same for all 10,000 users — which is why the concept-bank run measured it cond
 interview**. It should be named alongside `bald` and `aopt` as structurally non-adaptive, not reported
 as an adaptive arm.
 
+**Row 5 (`aopt`) ports the recommender-side A-optimal rule, i.e. Anava et al. WWW'15 — and identically
+Sepliarskaia et al. RecSys'18, who derive the same rule from a flat pairwise loss.** What
+`AOptimalSelector._gain_vec` computes is the greedy Sherman–Morrison trace reduction of the **user-side
+posterior covariance** over the frozen iALS item-factor basis, `argmin_i tr(A_{t+1}(i)^-1)`, with no
+target-pool weighting. The class docstring also names Yu, Bi & Tresp (ICML'06) as the criterion's
+origin; that is a lineage credit, not what is implemented — TED weights predictive variance over a
+target pool and this trace is untargeted, so the docstring's "(transductive)" is loose. **When the arm
+is labelled by venue anywhere, the venue is WWW'15.**
+
 **The conversational trio is value-free on its key-term turns only.** Under `b(t)=5⌊log t⌋` that is a
 deterministic subset of turns (3 and 8 within our budgets), so those arms alternate between a
 value-free key-term rule and a value-dependent item rule on a fixed schedule.
