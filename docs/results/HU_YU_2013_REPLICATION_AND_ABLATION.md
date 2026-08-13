@@ -315,9 +315,11 @@ condition their own evaluation imposes — a cold user who has answered only wha
 — asking more questions makes their fixed-question baseline *worse*, not better. That is worth stating
 in the chapter, and it is independent of the unexplained level gap.
 
-Caveat carried: this is measured for **FixQ at all four depths**. The symmetric EIP cells had not
-returned at the time of writing, so the claim is established on the baseline arm and is expected, but
-not yet shown, to carry to EIP.
+**The symmetric EIP and RandQ cells have now returned at depths 3 and 5, and the reversal carries to
+both** (§A.6): EIP .52121 → .52717 and RandQ .51460 → .51851, i.e. rising with depth, against EIP
+.52770 → .52227 (falling) on the asymmetric ruler. So the direction reversal is a property of the
+answerability asymmetry across every arm measured, not of the FixQ baseline alone. Depths 8 and 10
+are measured for FixQ only.
 
 **One incidental finding worth keeping.** On our ruler **FixQ is worse than simply ranking by
 popularity** (.4910 vs .5129 at d=3) — asking the top-k popular items and folding the answers back in
@@ -340,47 +342,85 @@ unaffected by anything unresolved here.**
 |---|---|
 | Leak check | answer ∩ eval pairs **0**; train ∩ eval pairs **0**; train ∩ test users **0**; test users appearing in train ratings **0** |
 | Canonical snap, reported first | most-popular .5129 / .4468; random .1011 against an **analytic .1040** — the metric implementation is verified independently of any model |
-| **Shuffle control (random-question tree)** | **RETURNED. Passes at depth 3 (+0.0136 over a coin flip) and COLLAPSES by depth 5 (+0.0029) — see §A.6.** |
-| Symmetric-answers contrast | run for FixQ at all four depths — see §A.3; it reverses the depth trend monotonically |
+| **Shuffle control (random-question tree)** | **RETURNED ON BOTH RULERS. Asymmetric: passes at depth 3 (+0.0136) and collapses by depth 5 (+0.0029). Symmetric: +0.0066 at depth 3 and +0.0087 at depth 5 — it does NOT collapse. See §A.6.** |
+| Symmetric-answers contrast | run for FixQ at all four depths and for EIP/RandQ at depths 3 and 5 — see §A.3 and §A.6; it reverses the depth trend monotonically |
 
 ### A.6 The shuffle control, and what it decomposes
 
 Same budget, same min-leaf, same fitting procedure, same alternations, same ruler and the same paired
 candidate lists as EIP; only the split criterion is replaced by a uniform draw over the candidates
-that satisfy min-leaf. MAP(r≥4):
+that satisfy min-leaf. **The 2×2 is now complete** — both depths on both readings of the answerability
+protocol. MAP(r≥4), most-popular (no interview) = .5129 on every cell:
 
-| arm | depth 3 | depth 5 |
-|---|---|---|
-| EIP (Hu & Yu's criterion) | **.5277** | **.5223** |
-| **RandQ (shuffle control)** | **.5141** | **.5194** |
-| most-popular, no interview | .5129 | .5129 |
-| FixQ (top-k popular as the interview) | .4910 | .4880 |
-| **EIP − RandQ** | **+0.0136** | **+0.0029** |
+| arm | asym d3 | asym d5 | sym d3 | sym d5 |
+|---|---|---|---|---|
+| EIP (Hu & Yu's criterion) | **.52770** | **.52227** | **.52121** | **.52717** |
+| **RandQ (shuffle control)** | **.51405** | **.51939** | **.51460** | **.51851** |
+| FixQ (top-k popular as the interview) | .49097 | .48797 | .51636 | .52240 |
+| **EIP − RandQ** | **+0.01365** | **+0.00288** | **+0.00661** | **+0.00866** |
+| **EIP − FixQ** | +0.03673 | +0.03430 | +0.00485 | +0.00477 |
+| **RandQ − FixQ** | +0.02309 | +0.03142 | −0.00176 | −0.00389 |
 
-**Two findings, and the second is the more important one.**
+("asym" = the protocol as literally stated; "sym" = `--sym-answers`, training users' interview answers
+restricted to their first half too. Cell files `{eip_logistic,randq,fixq_logistic}[_sym]_d{3,5}.json`.)
 
-**(1) At depth 3 the control does what a control should.** EIP beats a coin-flip criterion by +0.0136,
-so the Eq. (12) diagonal-Hessian gain is carrying real signal and the EIP cells are not uncontrolled.
-But the same column decomposes EIP's advantage over FixQ in a way the paper does not: of the +0.0367
-EIP beats FixQ by, **+0.0231 — roughly two thirds — survives replacing the split criterion with a coin
-flip.** Most of what EIP beats FixQ by is *having a conditional tree at all* — per-node re-fitted Δu,
-and questions people have actually seen — not the criterion the paper's contribution rests on.
+> **PROVENANCE WARNING, and it bit during collection.** The runner's log line prints the arm tag
+> *without* the `_sym` suffix, so a symmetric run reads as `eip_logistic depth=5` in `run_main.log`
+> exactly as an asymmetric one does — lines 205 and 303 of that log are the two different rulers
+> under the identical string. **Only the cell FILENAMES distinguish them**, and the cell JSON records
+> no `symmetric` field either: `--sym-answers` (behaviour) and `--tag-suffix` (filename) are separate
+> flags that could in principle disagree. Every number in this table was read from the JSON files, and
+> the two depth-5 symmetric cells were additionally confirmed against the live process command lines
+> (`--sym-answers --tag-suffix _sym --depths 5` on both PIDs). **Never difference these cells off a log
+> line.** A `symmetric` field in `write_cell` would close this properly and should be added before the
+> next sweep.
 
-**(2) By depth 5 the criterion's advantage is essentially gone: +0.0029.** RandQ *rises* with depth
-(.5141 → .5194) while EIP *falls* (.5277 → .5223), and they converge. **On ML-1M, under the protocol
-as literally stated, a random-question interview tree matches EIP once you ask five questions.** That
-is a finding about their method and it is recorded as one, not as a footnote.
+**Three findings. The first is a correction to what this file previously said.**
 
-**The caveat that must travel with (2), and it is a real one.** This is measured in exactly the regime
-where most test users can answer nothing (§A.3: 0.78 answered questions at k=3). So it is a statement
-about the criterion *as evaluated under the literal protocol*, not proof that the criterion is
-worthless. The cell that separates those two readings — EIP and RandQ under `--sym-answers` at depths
-3 and 5 — is commissioned and running. Until it returns, the honest form is: *their criterion does not
-beat a random-question tree past three questions under the protocol as stated, and we do not yet know
-whether that survives fixing the answerability asymmetry.*
+**(1) The depth-5 collapse is an artefact of the answerability asymmetry — it does not survive fixing
+it.** This file previously reported that EIP's advantage over a coin-flip criterion collapses from
++0.0136 at three questions to +0.0029 at five, and flagged the symmetric cell as the one that would
+separate "the criterion is weak" from "the protocol starves it". **That cell has now returned and it
+came down on the second reading.** Under symmetric answers the advantage is +0.00661 at depth 3 and
+**+0.00866 at depth 5** — smaller than the asymmetric depth-3 figure, but *rising* with depth rather
+than collapsing. **The harder sentence is therefore NOT licensed and is not written.** What is:
 
-Note also that the random-question tree is level with most-popular (.5141 vs .5129) while FixQ sits
-*below* it (.4910).
+> On ML-1M, under Hu & Yu's protocol as literally stated — where a training user's interview answers
+> come from all their ratings but a test user's come from their first half only — the advantage of
+> their split criterion over a random-question interview tree of the same shape falls from +0.0136 at
+> three questions to +0.0029 at five. That collapse is a property of the answerability asymmetry, not
+> of the criterion: once training and test users are made equally answerable, the advantage is smaller
+> at three questions (+0.0066) but does not decay by five (+0.0087). Scope: ML-1M, MAP over their ten
+> sampled negatives per positive, depths 3 and 5, their protocol, 1,510 test users, single seed.
+
+**(2) But fixing the asymmetry guts their headline claim instead.** Their §3.2.1 result is
+"EIP outperforms FixQ … by 2% averagely" — +0.0205 absolute at depth 3 by our digitisation. On the
+asymmetric ruler we *over*-reproduce it (+0.0367 / +0.0343). On the symmetric ruler it shrinks to
+**+0.0048 at both depths, under a quarter of their reported gap**, because FixQ is the arm that
+benefits most from making training and test users equally answerable (.4910 → .5164 at depth 3). So
+the two readings trade off against each other, and neither flatters the paper on both axes: the
+literal protocol makes the criterion look strong against FixQ and worthless against a coin flip, and
+the symmetric protocol makes it look real against a coin flip and marginal against FixQ.
+
+**(3) The contribution decomposition REVERSES between the two readings.** On the asymmetric ruler,
+of the +0.0367 EIP beats FixQ by, **+0.0231 — roughly two thirds — survives replacing the split
+criterion with a coin flip**: most of the advantage is *having a conditional tree at all*, not the
+criterion the paper's contribution rests on. On the symmetric ruler that decomposition inverts —
+**RandQ falls BELOW FixQ** (−0.0018 at depth 3, −0.0039 at depth 5), so a tree with randomly chosen
+questions is *worse* than simply asking the top-k popular items, and **all** of EIP's (smaller) edge
+over FixQ is attributable to the criterion. Which reading you take decides whether Hu & Yu's
+contribution is "the tree" or "the criterion", and the paper does not say which reading it intends.
+
+**The limitation that travels with all three.** These are single-seed point differences on 1,510 test
+users with **no confidence interval** — the Part A harness persists only cell-level MAP, not per-user
+average precisions, so no paired bootstrap is available without a re-run. +0.0087 against a spread of
+only ~0.014 between most-popular and the best cell is not a difference we should quote as if it were
+interval-backed. Treat the *directions* (collapse under asymmetric, no collapse under symmetric,
+RandQ crossing FixQ) as the findings and the magnitudes as indicative. Part B, which is the actual
+deliverable, is paired-bootstrapped on 10,000 test users and does not depend on any of this.
+
+Note also that on the asymmetric ruler the random-question tree is level with most-popular (.5141 vs
+.5129) while FixQ sits *below* it (.4910); under symmetric answers both clear it.
 
 **This cuts both ways, and it applies to us.** It is why Part B carries its own `random_ml` control,
 and why Part B compares against a static order built by maximising the *same* objective rather than
@@ -388,9 +428,17 @@ against popularity. Part B's controls answer the corresponding question for our 
 reaches depth 7 with 27 leaves and 286 distinct questions — structurally richer than our tree — and
 our criterion still wins, while both published criteria lose to the static order outright.
 
-**Still running at the time of writing**, persisting one JSON per cell to
-`experiments/baselines/huyu2013/cells/`: EIP-logistic depths 8 and 10, the random-question shuffle
-control, the pairwise-loss arm, and the RMSE panel with fMF.
+**Part A collection is now stopped and the box is free.** Both detached jobs exited cleanly after
+writing `eip_logistic_sym_d5.json` and `randq_sym_d5.json` (2026-08-13). Banked cells in
+`experiments/baselines/huyu2013/cells/`: FixQ at depths 3/5/8/10 on both rulers; EIP and RandQ at
+depths 3 and 5 on both rulers; `canonical`, `warm_logistic`, and the two d-sweeps.
+
+**What was commissioned but never returned, and is NOT reported anywhere above:** EIP and RandQ at
+depths 8 and 10 (the asymmetric depth-8 EIP run reached iteration 1 of 8 and was superseded by the
+symmetric sweep), the Part A pairwise-loss arm, and the RMSE panel with fMF (`run_rmse.log` stops at
+its CONFIG line). None of these is needed for §A.6's verdict or for Part B; the depth-8/10 cells are
+the only ones that would extend the depth trend past 5, so **no claim about EIP beyond five questions
+is licensed on either ruler.**
 
 Code: `scripts/baselines/huyu_eip_ml1m.py`, `scripts/baselines/huyu_figure_digitise.py`.
 
@@ -791,6 +839,8 @@ records what ran, what it cost, and what it changed.
 | 00:27 | Separation-(1) root probe launched, 1,000 candidates | running |
 | 23:22 | Part B grow stage v3, third exact fix: the variance criterion now restricts the item axis to the items the block's users actually rated. Eq. (4) sums over items with `n_j > 0`, so an item nobody in the block rated contributes zero to the node's e2 and to every child's — dropping it changes no number. | running |
 | ~23:20 | Part A first cells | **RED FLAG, see below** |
+| 04:27 | Symmetric depth-3 cells (`eip_logistic_sym_d3`, `randq_sym_d3`) | EIP−RandQ **+0.00661** |
+| ~05:2x | **Symmetric depth-5 cells returned — the 2×2 is closed.** `eip_logistic_sym_d5` .52717, `randq_sym_d5` .51851 | **EIP−RandQ +0.00866 — it does NOT collapse under symmetric answers.** §A.6 finding (1) is CORRECTED: the depth-5 collapse (+0.0029) is an artefact of the answerability asymmetry, so the strong "does not beat random past three questions on either reading" sentence is withdrawn and not written. Two new findings fell out: EIP−FixQ shrinks to +0.0048 under symmetric (a quarter of their reported gap), and RandQ crosses BELOW FixQ, reversing the contribution decomposition. Both jobs then exited cleanly; box free. |
 
 ### Part A: a red flag that must be resolved before any snap is reported
 

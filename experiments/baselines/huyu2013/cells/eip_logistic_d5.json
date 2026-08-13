@@ -1,0 +1,12 @@
+{
+  "arm": "eip_logistic",
+  "depth": 5,
+  "MAP": 0.45682168436841664,
+  "MAP_ge4": 0.5222709199936735,
+  "d": 20,
+  "lam_v": 10.0,
+  "seconds": 3234.1646881103516,
+  "mean_depth_reached": 4.8668874172185435,
+  "n_test_users": 1510,
+  "n_nodes": 70
+}

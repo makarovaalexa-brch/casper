@@ -170,7 +170,15 @@ K=1 lead of +0.00246, where conditioning is impossible.
   code, the split rule, min-leaf, the answers, the recommender, the mask, the pool, both cohorts
   and the budget fixed, change only the scalar a question is scored by, and the SIGN of the
   conditioning gain flips. Part A (the snap on their own protocol) is still open and has a red
-  flag (EIP below most-popular at d=10). Everything lives in
+  flag (EIP below most-popular at d=10). **Part A's shuffle control CLOSED 2026-08-13 on both
+  readings of the answerability protocol, and it corrected an earlier entry:** EIP − RandQ is
+  +0.01365 → +0.00288 across depths 3→5 under the protocol as literally stated, but +0.00661 →
+  **+0.00866** once training and test users are made equally answerable — so **the depth-5 collapse
+  is an artefact of the asymmetry and the strong "beats no random tree past three questions on either
+  reading" sentence is withdrawn.** Cutting the other way: EIP − FixQ shrinks to +0.0048 under
+  symmetric answers (a quarter of their reported gap) and RandQ crosses below FixQ, reversing whether
+  the advantage is attributable to the tree or to the criterion. Single seed, no CIs, nothing past
+  depth 5. Everything lives in
   `docs/results/HU_YU_2013_REPLICATION_AND_ABLATION.md` (design sheet §0, pre-registered
   interpretation §0.8); the findings file is rewritten; bib key `hu2013interview` added to
   `new_chapters/references.bib` after checking all four `.bib` files for a collision (none).

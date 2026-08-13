@@ -137,6 +137,28 @@ half only, so test users answer about half as often** (1.58 vs 0.78 answered que
 each extra question widens that mismatch. Details in
 `docs/results/HU_YU_2013_REPLICATION_AND_ABLATION.md` §A.
 
+**Shuffle control, both readings of the answerability protocol (completed 2026-08-13).** A
+random-question tree of the same shape, same budget, same min-leaf, same fitting procedure — only the
+split criterion replaced by a uniform draw. EIP − RandQ on MAP(r≥4):
+
+| | depth 3 | depth 5 |
+|---|---|---|
+| asymmetric (protocol as literally stated) | +0.01365 | **+0.00288** |
+| symmetric (train users' answers halved too) | +0.00661 | **+0.00866** |
+
+**The depth-5 collapse is an artefact of the asymmetry, not a property of the criterion.** Under the
+literal protocol their criterion's advantage over a coin flip is gone by five questions; once training
+and test users are made equally answerable it is smaller at three questions but does *not* decay by
+five. So we may NOT write "their criterion does not beat a random-question tree past three questions"
+without the qualifier "under the protocol as literally stated". **But fixing the asymmetry costs them
+their headline instead:** EIP − FixQ falls from +0.0367/+0.0343 (asymmetric, larger than their own
++0.0205) to **+0.0048 at both depths** under symmetric answers, because FixQ is the arm that gains
+most from the fix — and RandQ drops *below* FixQ (−0.0018 / −0.0039), reversing which component the
+advantage is attributable to. Neither reading flatters the paper on both axes. Single seed, 1,510 test
+users, **no confidence intervals** (Part A persists cell-level MAP only) — quote the directions, not
+the magnitudes. No cells exist past depth 5 for EIP or RandQ, so no claim beyond five questions is
+licensed. Scope throughout: ML-1M, MAP over their ten sampled negatives per positive, their protocol.
+
 ## Why it nevertheless does not occupy our cell — the four separations, re-verified
 
 1. **Nothing they optimise or report is truncated or discounted.** The framework's ranking option is a

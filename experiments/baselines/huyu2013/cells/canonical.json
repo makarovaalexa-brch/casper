@@ -1,0 +1,34 @@
+{
+  "most_popular_MAP": 0.4467968676695195,
+  "random_MAP": 0.10106270584532613,
+  "most_popular_MAP_ge4": 0.5128705077617054,
+  "random_MAP_ge4": 0.10730302010450078,
+  "leak_check": {
+    "ans_eval_pair_overlap": 0,
+    "train_eval_pair_overlap": 0,
+    "train_test_user_overlap": 0,
+    "eval_users_in_train_ratings": 0,
+    "n_train_users": 4530,
+    "n_test_users": 1510,
+    "n_train_ratings": 756476,
+    "n_answer_ratings": 121495,
+    "n_eval_ratings": 122238
+  },
+  "RULER": {
+    "O_i": "eval half of each test user; MAP = their Eq.13, untruncated AP",
+    "positive_threshold_primary": 1,
+    "positive_threshold_secondary": 4,
+    "negatives_per_positive": 10,
+    "negatives_drawn_from": "items the user never rated anywhere in ML-1M",
+    "tie_break": "fixed uniform random key per candidate, seed 4242, identical across arms",
+    "seed_user_split": 12345,
+    "seed_half": 24680,
+    "seed_test_neg": 20130101,
+    "seed_train_neg": 13579,
+    "test_frac": 0.25,
+    "neg_per_pos_train": 10,
+    "lambda_u": 10.0,
+    "min_leaf": 30,
+    "analytic_random_MAP": 0.104
+  }
+}
