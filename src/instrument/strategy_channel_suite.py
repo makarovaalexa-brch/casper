@@ -420,16 +420,22 @@ def load_certified_concept_net(path, n_concepts, d, conc_init, tower_basename=No
     return net, blob
 
 
-def build_greedy_env(snapshot, split, conc_ckpt, label, need_entropy=False):
+def build_greedy_env(snapshot, split, conc_ckpt, label, need_entropy=False, cohort_slice=None):
     """One scoring environment (tower + concept channel + answers) on ONE canonical cohort.
 
     split='validation' -> the 10k VAL users (the SELECTION cohort)
     split='test'       -> the disjoint 10k TEST users (the REPORTING cohort)
+    split='train'      -> a contiguous slice of the 140,768 TRAIN users, `cohort_slice=(lo, hi)`.
+                          WORKSTREAM E1 ONLY, and NDCG IS NEVER REPORTED ON IT: the tower was trained
+                          on these users, so any NDCG measured here is memorisation. What the slice
+                          supplies is interview STATES and the frozen tree's LABELS -- both functions
+                          of the user's own answers only. See PAPER_B_POLICY_DESIGN.md D.6b.
     """
     from concept_fold import build_member_matrix
     from signed_answers import load_prereg, signed_values
-    log(f"=== building {label} env (split={split}) ===")
-    ctx = build_real_ctx(snapshot, split=split)
+    log(f"=== building {label} env (split={split}"
+        f"{'' if cohort_slice is None else f', users {cohort_slice[0]}..{cohort_slice[1]}'}) ===")
+    ctx = build_real_ctx(snapshot, split=split, cohort_slice=cohort_slice)
     sh = build_shared(ctx)                                    # sets ctx.Wd / ctx.bd / ctx.d
     assert sh.get("signed_available"), "signed prereg cache required"
     tags = sh["tags"]; C = len(tags)
@@ -457,7 +463,8 @@ def build_greedy_env(snapshot, split, conc_ckpt, label, need_entropy=False):
     # consumed inside build_shared). Two cohorts alive at once would double it for nothing. Deleted
     # rather than set to None because train_entropies branches on hasattr(ctx, "raw").
     del ctx.raw
-    E = {"name": label, "split": split, "ctx": ctx, "sh": sh, "net": net, "cblob": cblob,
+    E = {"name": label, "split": split, "cohort_slice": cohort_slice,
+         "ctx": ctx, "sh": sh, "net": net, "cblob": cblob,
          "V": V, "foldable": foldable, "rows": rows, "lvl": sh["lvl_lookup"], "C": C, "item_H": item_H,
          "cneg": float(prereg.get("C_NEG", 2.0)), "cache": {}, "n_evals": 0, "t_evals": 0.0,
          "pool": pool_b, "pool_policy": "B", "contract_tag": f"genv:{label}:{split}",
@@ -540,6 +547,33 @@ def genv_eval(E, seq, rows, batch=500):
     on the answer simulator, independent of the pool.
     """
     t0 = time.time()
+    ctx = E["ctx"]
+    ridx = np.asarray(rows, np.int64)
+    z_all = genv_latent(E, seq, rows, batch=batch, _caller="genv_eval")
+    full = np.full(len(rows), np.nan); tail = np.full(len(rows), np.nan)
+    with torch.no_grad():
+        for st in range(0, len(rows), batch):
+            ch = ridx[st:st + batch]
+            S = (z_all[st:st + len(ch)] @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
+            f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
+                                      contract=(E["contract_tag"], ch))
+            full[st:st + len(ch)] = f; tail[st:st + len(ch)] = t
+    E["n_evals"] += 1; E["t_evals"] += time.time() - t0
+    return full, tail
+
+
+def genv_latent(E, seq, rows, batch=500, _caller="genv_latent"):
+    """The per-user TOWER+CONCEPT LATENT after folding `seq` -- i.e. exactly the `z` that `genv_eval`
+    hands to the decoder, and nothing else.
+
+    This is the state the parametric policy reads (workstream E1, design sheet A.8 part 1). It was
+    extracted OUT of `genv_eval` rather than reimplemented beside it, and `genv_eval` now calls it, so
+    the policy's state and the scored interview are the same object by construction and cannot drift.
+    The extraction is regression-gated on the canonical m=0 snap (0.15686538 on validation) and on the
+    tree's banked node bases, which are exact-equality checks.
+
+    Returns a (len(rows), d) float32 tensor, rows in the given order.
+    """
     item_ids = [int(i) for ch, i in seq if ch == 0]
     conc_ids = [int(c) for ch, c in seq if ch == 1]
     # `_ans` is no longer a mask (policy B already excludes every rated item); the call is kept
@@ -548,8 +582,7 @@ def genv_eval(E, seq, rows, batch=500):
     ctx = E["ctx"]; net = E["net"]
     ridx = np.asarray(rows, np.int64)
     jj = E["posmap"][ridx]                                   # positions inside the ACTIVE cohort
-    assert (jj >= 0).all(), "genv_eval called on rows outside the env's active cohort"
-    full = np.full(len(rows), np.nan); tail = np.full(len(rows), np.nan)
+    assert (jj >= 0).all(), f"{_caller} called on rows outside the env's active cohort"
     cvals_all = crefs_all = None
     if conc_ids:
         cc = np.asarray(conc_ids, np.int64)
@@ -560,6 +593,7 @@ def genv_eval(E, seq, rows, batch=500):
         sc = np.minimum(1.0, E["cneg"] / np.maximum(s, 1e-9))
         cvals_all = np.where(vv < 0, vv * sc[:, None], vv)
         crefs_all = (~ok).astype(np.float64)                 # refusal token: "asked, cannot answer"
+    out = torch.empty(len(rows), ctx.d, dtype=torch.float32)
     with torch.no_grad():
         for st in range(0, len(rows), batch):
             ch = ridx[st:st + batch]; cj = jj[st:st + batch]
@@ -570,15 +604,12 @@ def genv_eval(E, seq, rows, batch=500):
                         crefs_all[st:st + B].tolist() if net.use_refusal else None)
             else:
                 z = Zb
-            S = (z @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
-            f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
-                                      contract=(E["contract_tag"], ch))
-            full[st:st + len(ch)] = f; tail[st:st + len(ch)] = t
-    E["n_evals"] += 1; E["t_evals"] += time.time() - t0
-    return full, tail
+            out[st:st + len(ch)] = z
+    return out
 
 
-def genv_eval_multi(E, rows, item_seqs, conc_seqs, batch=500, Zi_items=None, return_Zi=False):
+def genv_eval_multi(E, rows, item_seqs, conc_seqs, batch=500, Zi_items=None, return_Zi=False,
+                    return_z=False):
     """Per-user (full, tail) NDCG@10 where EVERY USER CARRIES ITS OWN ask sequence.
 
     `genv_eval` scores ONE sequence for a whole cohort. TODO 1.11 needs the opposite shape: 10,000
@@ -669,6 +700,11 @@ def genv_eval_multi(E, rows, item_seqs, conc_seqs, batch=500, Zi_items=None, ret
 
     # ---- score ---------------------------------------------------------------------------------
     full = np.full(n, np.nan); tail = np.full(n, np.nan)
+    # `return_z` hands back the per-user latent the decoder was given -- the parametric policy's state
+    # input (design sheet A.8) for a cohort where every user carries a DIFFERENT interview, which is
+    # what a policy rollout is. It is read off the same tensor that produced the scores; there is no
+    # second fold path.
+    z_out = torch.empty(n, ctx.d, dtype=torch.float32) if return_z else None
     with torch.no_grad():
         for st in range(0, n, batch):
             en = min(st + batch, n)
@@ -694,11 +730,18 @@ def genv_eval_multi(E, rows, item_seqs, conc_seqs, batch=500, Zi_items=None, ret
                 z = Zb
             Su = (z @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
             S = Su[binv]
+            if return_z:
+                z_out[st:en] = z[torch.from_numpy(binv)]
             f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
                                       contract=(E["contract_tag"], ch))
             full[st:en] = f; tail[st:en] = t
     E["n_evals"] += 1; E["t_evals"] += time.time() - t0
-    return (full, tail, Zi_items) if return_Zi else (full, tail)
+    out = (full, tail)
+    if return_Zi:
+        out = out + (Zi_items,)
+    if return_z:
+        out = out + (z_out,)
+    return out
 
 
 def genv_intercept_policyA(E, rows, batch=500):
