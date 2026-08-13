@@ -1,5 +1,52 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-13 — WORKSTREAM E1 (THE PARAMETRIC POLICY) IS COMPLETE ON VALIDATION. NO TEST LOOK.
+
+**Author, verbatim:** *"plz start on policy and tell me eta"* · *"i want it to scale not only by
+interview length, but also by vocab … continuous embedding emitted and snapped to closest vocab
+question is my preferred design"* · *"so we train policy on train dataset, but we do not regrow the
+tree, and we select model variant or chkp on val. is that right?"* — confirmed.
+
+Full write-up: **`docs/results/E1_POLICY_IMITATION.md`**. Design sheet
+`docs/design/PAPER_B_POLICY_DESIGN.md` (D.6b binding). Code `src/instrument/train_split.py`,
+`policy_traj.py`, `policy_net.py`.
+
+**Every E1 gate passes, and the result is that the policy is an EXACT functional replica of the tree
+on the 10,000 validation users:** top-1 agreement **1.0000 at every one of the 16 positions**; its own
+rollout (it picks its own questions) reproduces the tree's 15 realised interviews; its gain over
+`greedy_static_policyB_combined` is **+0.027939557 [+0.02493, +0.03099] full** and **+0.01055
+[+0.00749, +0.01373] tail** against the tree's banked **+0.027939556** — agreement to 1e-9. The
+shuffle control lands at **−0.01489 [−0.01803, −0.01172]** and fails every gate.
+
+**E1 therefore buys NO gain over the tree and was never designed to** (design sheet A.0). It is the
+instrument check that licenses E2.
+
+### The two things E1 measured that change what E2 must do
+
+1. **`frac_never_deviates = 1.0000`.** A perfect imitator never leaves the teacher's trajectory
+   manifold, so **E2's DAgger step is the only mechanism in the design that can produce an off-tree
+   state at all** — harvesting "the states the trained policy visits" would harvest the tree's own
+   states back. The labeller must be driven to deliberately chosen states (below the floor stops).
+2. **Open vocabulary: the head scales, the VALUE is not priced.** 19,390 candidates in one forward
+   pass with no retraining, **29.99% of picks out-of-pool, 189 distinct never-trained questions, 82.3%
+   of users get one** — the mechanism claim is demonstrated. But those picks are answered **9.1%** of
+   the time against **55.2%** in-pool, and full NDCG drops **−0.02034 [−0.02236, −0.01837]**. Weak
+   method, not a verdict on OOV (HARD RULE 6).
+
+Ablations: `z` alone recovers 99.5% of the decisions and 97% of the gain (very nearly a sufficient
+statistic, not exactly); dropping the position/budget feature changes nothing (+0.02796), which
+**closes** the A.4 asymmetry rather than merely declaring it.
+
+### Next decision points for the author
+
+- E2 (labels below the tree's floor stops + the DAgger loop) — the payoff step, and the only one that
+  can produce a gain. Pre-registered no-go stands: **do not take a test look unless E2's validation
+  gain over the tree is ≥ +0.011 full**.
+- The E1 test look is a **separate author decision** and has not been taken.
+- ⚠ **Disk:** `C:` has ~1.1 GB free; the E1 state cache is 1.80 GB. E2 will need space freed first.
+
+---
+
 ## ★★★ 2026-08-12 — NDCG-OBJECTIVE INTERVIEW TREE: TEST LOOK RUNNING; POLICY-B COMPARATOR REBUILD **PAUSED**
 
 **Author, verbatim:** *"i do want 16 or consistency"* · *"actually, i think adding 16th q and then
