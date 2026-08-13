@@ -196,6 +196,78 @@ def build_trajectories(E, rows, tr, t16, pool_index, want_z=True, tag="cohort"):
             "leaf_sizes": {k: len(v) for k, v in leaf_rows.items()}}
 
 
+# ============================================================================ outcome labels
+def outcome_labels(E, rows):
+    """THE THREE-WAY OUTCOME OF EVERY CATALOGUE QUESTION FOR EVERY USER IN `rows`.
+
+    Design sheet PART F (the two-head design). The outcome of question q for user u is DETERMINISTIC
+    given u's fold-in half under the project's structural answer rule -- `ndcg_tree.branch_of`, the
+    same rule the tree branches on -- so no model call and no sampling is involved. It is measured,
+    not surrogate, and it is not a function of the held-out target.
+
+      item i     absent from the fold-in lookup -> NOANSWER; level >= LIKE_MIN_LEVEL (7, i.e. >= 4.0
+                 stars) -> LIKE; otherwise DISLIKE.
+      concept c  not `foldable` -> NOANSWER; signed value > 0 -> LIKE; otherwise DISLIKE.
+
+    HARD RULE 1 / 11: nothing is sampled -- ALL 18,359 items and ALL 1,031 concepts for every user.
+    The item side is stored SPARSELY (a CSR of the ANSWERED items only; everything absent is
+    NOANSWER by the rule above), because the dense 140,768 x 18,359 int8 block would be 2.6 GB for a
+    matrix that is ~99.2% one constant. The concept side is genuinely dense (~80% answered) and is
+    stored dense at 1 byte per cell.
+    """
+    from ndcg_tree import LIKE_MIN_LEVEL
+    lvl = E["lvl"]
+    ridx = np.asarray(rows, np.int64)
+    ptr = np.zeros(len(ridx) + 1, np.int64)
+    ids, outs = [], []
+    for j, r in enumerate(ridx):
+        d = lvl[int(r)]
+        if d:
+            k = np.fromiter(d.keys(), np.int64, len(d))
+            v = np.fromiter(d.values(), np.int64, len(d))
+            o = np.argsort(k)
+            k, v = k[o], v[o]
+            ids.append(k.astype(np.int32))
+            outs.append(np.where(v >= LIKE_MIN_LEVEL, OUTCOME["like"], OUTCOME["dislike"]).astype(np.int8))
+            ptr[j + 1] = ptr[j] + len(k)
+        else:
+            ptr[j + 1] = ptr[j]
+    item_id = np.concatenate(ids) if ids else np.zeros(0, np.int32)
+    item_out = np.concatenate(outs) if outs else np.zeros(0, np.int8)
+    ok = E["foldable"][ridx]                                   # (n, C) bool
+    pos = E["V"][ridx] > 0
+    conc = np.where(~ok, OUTCOME["noanswer"],
+                    np.where(pos, OUTCOME["like"], OUTCOME["dislike"])).astype(np.int8)
+    return {"item_ptr": ptr, "item_id": item_id, "item_out": item_out, "conc_out": conc}
+
+
+def gate_outcome_labels(E, rows, lab, pool, n_check=24):
+    """G-O1. The harvested label table must reproduce `branch_of` -- the tree's OWN answer rule -- for
+    every user, on a set of questions drawn from BOTH channels. Exact equality, no tolerance: the
+    labels and the tree's branches are the same rule or the harvest is a lookalike."""
+    from ndcg_tree import branch_of
+    ni = E["ctx"].ni
+    qs = [pool[i] for i in np.linspace(0, len(pool) - 1, n_check).astype(int)]
+    for q in qs:
+        want = np.asarray([OUTCOME[str(x)] for x in branch_of(E, rows, q)[0]], np.int8)
+        got = lookup_outcomes(lab, np.arange(len(rows)), int(q[0]), int(q[1]), ni)
+        assert np.array_equal(got, want), f"G-O1 OUTCOME LABEL MISMATCH at question {tuple(q)}"
+    return len(qs)
+
+
+def lookup_outcomes(lab, jj, ch, iid, ni):
+    """The outcome of ONE question for the rows `jj` of a harvested label block."""
+    if ch == 1:
+        return lab["conc_out"][jj, iid].astype(np.int8)
+    out = np.full(len(jj), OUTCOME["noanswer"], np.int8)
+    for a, j in enumerate(jj):
+        lo, hi = int(lab["item_ptr"][j]), int(lab["item_ptr"][j + 1])
+        k = np.searchsorted(lab["item_id"][lo:hi], iid)
+        if k < hi - lo and int(lab["item_id"][lo + k]) == iid:
+            out[a] = lab["item_out"][lo + k]
+    return out
+
+
 # ============================================================================ answer-rate diagnostics
 def answer_stats(E, rows, traj, pool, item_pool, conc_pool):
     """The numbers that decide whether the train cohort's answer distribution matches validation's."""
@@ -375,6 +447,13 @@ def gen(args):
     if not os.path.exists(vpath):
         tv = build_trajectories(Ev, Ev["rows"], tr, t16, pool_index, want_z=True, tag="val")
         gate_partitions_against_banked(tr, tv["partitions"], tv["answer_rates"])
+        lv = outcome_labels(Ev, Ev["rows"])
+        nq = gate_outcome_labels(Ev, Ev["rows"], lv, pool)
+        log(f"[G-O1] validation outcome labels reproduce branch_of EXACTLY on {nq} questions "
+            f"x {len(Ev['rows'])} users")
+        np.savez_compressed(os.path.join(OUTDIR, "ans_val.npz.tmp.npz"), **lv)
+        os.replace(os.path.join(OUTDIR, "ans_val.npz.tmp.npz"),
+                   os.path.join(OUTDIR, "ans_val.npz"))
         zv = os.path.join(OUTDIR, "z_val.npy")
         np.save(zv + ".tmp.npy", tv["z"])
         os.replace(zv + ".tmp.npy", zv)
@@ -387,7 +466,8 @@ def gen(args):
             f"({len(Ev['rows'])} users x {TOTAL_L} positions)")
     del Ev
 
-    sig = {"v": 1, "split": "train", "n_train": N_TRAIN, "total_L": TOTAL_L, "d": d,
+    sig = {"v": 2, "outcome_labels": "three-way branch_of over the full catalogue",
+           "split": "train", "n_train": N_TRAIN, "total_L": TOTAL_L, "d": d,
            "tower": os.path.basename(args.snapshot), "conc_ckpt": os.path.basename(args.concept_ckpt),
            "mask_policy": "B", "pool_sha1": pool_sha, "n_pool": len(pool),
            "tree": "ndcgtree.json+ndcgtree16.json", "tree_nodes": len(tr["nodes"]),
@@ -440,6 +520,17 @@ def gen(args):
                             label_idx=traj["label_idx"], outcome=traj["outcome"],
                             leaf=traj["leaf"])
         os.replace(meta + ".tmp.npz", meta)
+        # PART F: the three-way outcome of EVERY catalogue question for every user in the chunk.
+        # Zero NDCG cost -- it is the structural answer rule, evaluated. Gated against `branch_of`
+        # on both channels before it is banked.
+        lab = outcome_labels(E, E["rows"])
+        nq = gate_outcome_labels(E, E["rows"], lab, pool)
+        ansp = os.path.join(OUTDIR, f"ans_{key}.npz")
+        np.savez_compressed(ansp + ".tmp.npz", uid=rows_abs.astype(np.int32), **lab)
+        os.replace(ansp + ".tmp.npz", ansp)
+        log(f"[chunk {key}] outcome labels: {len(lab['item_id']):,} answered item cells "
+            f"({len(lab['item_id']) / len(E['rows']):.1f}/user), concept block "
+            f"{lab['conc_out'].shape}; G-O1 exact on {nq} questions")
         man["done"][key] = {"n_users": hi - lo, "minutes": round((time.time() - t0) / 60, 2),
                             "leaf_sizes": traj["leaf_sizes"], "stats": stats,
                             "partitions": traj["partitions"]}
