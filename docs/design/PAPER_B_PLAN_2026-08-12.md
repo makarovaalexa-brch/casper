@@ -159,18 +159,57 @@ K=1 lead of +0.00246, where conditioning is impossible.
 
 ## 3. Workstream B — Act 1 baseline additions
 
-- **B1 (1.12, promoted MANDATORY). ABLATION DONE 2026-08-13 00:27 — the mechanism claim holds in
-  its strongest form.** On 10,000 TEST users at K=16, gain vs the policy-B static order:
-  **ours +0.01035 [+0.00749,+0.01328] / +0.00705 tail; Hu & Yu pairwise -0.03041; Golbandi
-  variance -0.03061; Hu & Yu logistic (the loss they ACTUALLY RAN) -0.08627.** Every interval
-  excludes zero; ours is the only arm above the static order; the adverse case did not occur.
-  Banked-headline assert PASS at 2.81e-07. **Unpredicted and chapter-worthy: (b) ~= (a), so
-  upgrading a rating surrogate to a ranking surrogate buys nothing measurable — the separating
-  axis is measured-vs-surrogate, not ranking-vs-rating.** Act 3 should state this: hold the tree
+- **B1 (1.12, promoted MANDATORY). ★ FINALISED 2026-08-13 — VERDICT: the pre-registered mechanism
+  branch fired on the (c)-vs-(b) leg and NOT on the (b)-vs-(a) leg. Write the outcome as
+  `(c) ≫ (b) ≈ (a)`, NEVER as `(c) > (b) > (a)`.** Full write-up, six arms, per-budget CIs, structure,
+  overlap, Part A/B reconciliation, novelty-as-conjunction and chapter-ready prose:
+  `docs/results/HU_YU_2013_REPLICATION_AND_ABLATION.md` §B.0–§B.7 and §C.3–§C.5. **Nothing is left for
+  the tex agent to compute — lift §C.5.**
+  On 10,000 TEST users at K=16, gain vs the policy-B static order:
+  **ours +0.01035 [+0.00749,+0.01328] full / +0.00705 [+0.00394,+0.01022] tail; Hu & Yu pairwise
+  −0.03041; Golbandi variance −0.03061; Hu & Yu logistic (the loss they ACTUALLY RAN) −0.08627;
+  random_ml (fair shuffle) −0.04817; random (degenerate → a random STATIC order) −0.03934.**
+  Of the 60 test cells, 4 are nested at K=1 and **all 56 remaining intervals exclude zero**; ours is
+  the only arm above the static order; the adverse case did not occur.
+  **Contract check that licenses putting these arms in one table with the published tree number:**
+  `banked_headline_assert` reproduces `ndcgtree16test_policyB.json` at **exactly 0.0 in nine of ten
+  cells**, K16_full at 2.81e-07. Re-assembly from `splitcrit_per_user.npz` reproduces all 120 cohort
+  cells at 1.17e-10 and the static comparator's per-user vector is **bit-identical across all six
+  arms**.
+  **Unpredicted and chapter-worthy: (b) ≈ (a) is now INTERVAL-BACKED** — paired, K=16, test:
+  **+0.00020 [−0.00331,+0.00371] full and −0.00092 [−0.00448,+0.00277] tail**, the only null in the
+  matrix. Upgrading a rating surrogate to a ranking surrogate buys nothing measurable; the separating
+  axis is measured-vs-surrogate, not ranking-vs-rating. Act 3 should state this: hold the tree
   code, the split rule, min-leaf, the answers, the recommender, the mask, the pool, both cohorts
   and the budget fixed, change only the scalar a question is scored by, and the SIGN of the
-  conditioning gain flips. Part A (the snap on their own protocol) is still open and has a red
-  flag (EIP below most-popular at d=10). **Part A's shuffle control CLOSED 2026-08-13 on both
+  conditioning gain flips.
+  **Three things the previously-unreported shuffle arms add, all of which must be written:**
+  (1) `random_ml` is deeper (7 vs 5), wider (27 leaves vs 15) and more varied (286 distinct questions
+  vs 159) than our tree and still loses −0.04817 ⇒ **no "deeper tree = better" argument survives**;
+  (2) `random` degenerates to depth 0 (root item answered by 4.5%, 9,552/10,000 into one branch) and
+  therefore doubles as a **random static comparator** — against which **neither published criterion
+  separates on the TAIL at K=16** (pairwise −0.00212 [−0.00540,+0.00127] ns; variance −0.00120
+  [−0.00486,+0.00245] ns), though both do on full (+0.00893 / +0.00873, separating). Report both
+  halves; never write "worse than random";
+  (3) **the logistic arm loses to BOTH shuffle controls decisively** (−0.03809 vs random_ml,
+  −0.04693 vs random, on full).
+  **Every criterion that is allowed to choose splits the root on a CONCEPT; only the two random arms
+  pick an item, and both pick an unanswerable one** — a criterion-free corroboration of Act 4.
+  **Separation (1) probe COMPLETE 05:46** (`pwheldout_root.json`, 1,000/1,000 candidates, 500 items /
+  500 concepts, banked-NDCG gate 0.0 on all 1,000). The §B.6 preliminary (140 candidates, Spearman
+  +0.637) is SUPERSEDED: **Spearman +0.784, regret +0.00459 vs +0.01608 random (29%), rank 2 of
+  1,000, top-10 recall 0.40, argmax DISAGREES (concept 704 vs our concept 114)**. Against the
+  training-loss pairwise criterion at the same node (Spearman −0.149, rank 75, regret +0.01473 = 92%
+  of random), this says **separation (2) — training loss vs measured value — does almost all the
+  work, and truncation/discounting is real but second-order.** Root state only; the `pairwise_heldout`
+  TREE arm is still unrun.
+  **Artefact defect to know about:** the tail metric excludes users with no tail targets, so tail
+  means/CIs are over **9,281 test / 9,217 val** users, but the artefact's `n_users` field reads
+  `10000` on tail cells too. Labelling defect, not numerical (recomputed tail means match at 4e-11).
+  Part A's red flag (EIP below most-popular) was at **d=3 and is RESOLVED** — it was the latent
+  dimension (d=10 → 20) plus a non-monotone fit; EIP now clears most-popular (.5277 vs .5129) and
+  FixQ does not (.4910). The absolute level gap remains **unexplained and is reported as such**.
+  **Part A's shuffle control CLOSED 2026-08-13 on both
   readings of the answerability protocol, and it corrected an earlier entry:** EIP − RandQ is
   +0.01365 → +0.00288 across depths 3→5 under the protocol as literally stated, but +0.00661 →
   **+0.00866** once training and test users are made equally answerable — so **the depth-5 collapse
@@ -195,7 +234,25 @@ K=1 lead of +0.00246, where conditioning is impossible.
   training-loss-vs-measured-value separation — is specified and QUEUED, not run: it needs a tower
   fold per candidate, so it costs what the NDCG tree cost (10.3 h). The cheap exact substitute that
   IS run: criterion-vs-MEASURED-NDCG rank correlation and regret over all 1,000 candidates at every
-  node of the real tree, read out of the banked CELF heap sidecars for free.
+  node of the real tree, read out of the banked CELF heap sidecars for free — plus the completed
+  root-state probe above.
+  **NOVELTY, as a CONJUNCTION and never as a technique (§C.4).** Three prior-art facts bound it and
+  all three must be stated by US: Hu & Yu OFFERED a rank loss in an interview-tree split (and The FacT
+  SIGIR'19 instantiated one), so "first ranking objective in an interview tree" is unavailable;
+  Golbandi WSDM'11 DID compare against a metric-optimised static (GreedyExtend, RMSE era), so "nobody
+  compared adaptivity against one" is FALSE; Bilgic & Bennett SIGIR'12 DID put DCG@10/NDCG@10 inside
+  an acquisition function, so "nobody used a truncated discounted ranking metric as a criterion" is
+  FALSE. What survives is the six-way conjunction of §C.4 (measured improvement · exact reported
+  NDCG@10 · full catalogue, nothing sampled · a question asked of a cold user · grown on one cohort
+  and reported on a disjoint one · tested against a static order maximising the same quantity), plus
+  the scoped field-level claim: *since the reported metric moved to truncated top-k ranking, no
+  adaptive selector has been tested against a static order built by maximising it.*
+  **UNRUN, listed as unrun and never omitted:** Part A depths 8/10 (EIP and RandQ), the Part A
+  pairwise arm, the fMF RMSE panel, Netflix and Yahoo! Music, the `pairwise_heldout` tree arm, the
+  `nonempty` min-leaf robustness mode, and seed variation on the two random arms.
+  **Outstanding for the tex agent (owner of `chapterB_v2.tex`):** lift §C.5.1–§C.5.3; fix the
+  Positioning paragraph that currently says nothing in the literature tests adaptivity against a
+  metric-optimised static order (§C.2's fourth separation has been corrected in place).
 - **B2 (1.10).** RBMF snap + port (static; threatens the comparator, not the adaptive claim).
 - **B3 (task 9).** EDDI full Eq. 9 re-run.
 - **B4 (task 25).** ConUCB k=8: resolve or report UNINFORMATIVE with the b(t) schedule stated.
@@ -308,5 +365,11 @@ Staged design, gates before each promotion:
 - No tail-optimised claim before A6.
 - Genre numbers remain UPPER BOUNDS — the free genre fact costs no turn — and **all 17 groups still
   shrink val→test on ONE ruler** (1.80× cohort-weighted on full), with Drama still a null.
-- Nulls are not citable (author ruling); Hu & Yu ablation outcome (b)≈(c) is reported as a
-  narrowing, not marketed.
+- Nulls are not citable (author ruling). **The pre-registered (b)≈(c) narrowing branch did NOT fire**
+  — (b) loses to (c) by +0.04076 [+0.03741,+0.04412] full, paired — so no narrowing is written. The
+  branch that DID fire unexpectedly is (b)≈(a): write **`(c) ≫ (b) ≈ (a)`**, never `(c) > (b) > (a)`.
+- Never write "the published criteria are worse than random": on full they beat the degenerate random
+  static order (+0.0089 / +0.0087, separating); only on the TAIL at K=16 are they nulls against it.
+- Never write "first ranking objective in an interview tree's split", "nobody compared adaptivity
+  against a metric-optimised static order", or "nobody used a truncated discounted ranking metric as
+  a selection criterion" — all three are FALSE (§C.4). Claim the CONJUNCTION, never the technique.
