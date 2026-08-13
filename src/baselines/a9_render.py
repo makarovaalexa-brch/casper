@@ -9,6 +9,9 @@ import json
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
 J = os.path.join(_ROOT, "experiments", "baselines", "interview", "a9_battery_policyB.json")
+if len(sys.argv) > 1:                 # a labelled re-run (e.g. the TODO 1.3(b) EDDI rows)
+    J = sys.argv[1] if os.path.isabs(sys.argv[1]) else os.path.join(
+        _ROOT, "experiments", "baselines", "interview", sys.argv[1])
 BUDGETS = (1, 2, 4, 8, 16)
 
 
