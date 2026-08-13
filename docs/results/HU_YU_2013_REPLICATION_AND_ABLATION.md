@@ -186,12 +186,140 @@ had to make, and they are recorded with the run rather than tuned to the target.
 
 ### A.1 Digitised figure values
 
-See `external_literature/findings/hu_yu_2013_interview_process_learning.md` §"CORRECTED" for the table.
+`scripts/baselines/huyu_figure_digitise.py`. Page 4 rendered via pdfplumber; each panel's axis frame
+auto-detected; row→value calibrated from the y-tick **label centres**; each bar's top read from the
+contiguous **axis-anchored** colour run — that anchoring is what rejects the legend patches, which sit
+in the same pixel columns as the right-most bar group and corrupted a first pass. Calibration residual
+≤0.00012 in every panel, and **400 dpi and 800 dpi agree to ≤0.0003 MAP in every cell of (a)–(c)**, so
+these are quoted at **±0.0005**.
+
+| panel | arm | 3 | 5 | 8 | 10 |
+|---|---|---|---|---|---|
+| (a) ML-1M MAP | FixQ | .7176 | .7239 | .7283 | .7306 |
+| | EIP | .7381 | .7406 | .7443 | .7451 |
+| | Warm-MF | .8017 flat | | | |
+| (b) Netflix MAP | FixQ | .7421 | .7450 | .7470 | .7488 |
+| | EIP | .7589 | .7627 | .7674 | .7711 |
+| | Warm-MF | .8133 flat | | | |
+| (c) Yahoo MAP (depths 3/4/5/6) | FixQ | .8194 | .8237 | .8248 | .8264 |
+| | EIP | .8790 | .8798 | .8802 | .8825 |
+| | Warm-MF | .9061 flat | | | |
+| (d) ML-1M RMSE | FixQ | .9940 | .9995 | .9850 | .9838 |
+| | fMF | .9735 | .9686 | .9674 | .9723 |
+| | EIP | .9656 | .9626 | .9638 | .9626 |
+| | Warm-MF | .8489 flat | | | |
+
+**How to read their percentages: absolute MAP points, not relative.** (a) Warm−EIP is +.0597 absolute
+= +8.05% relative, and the text says "about 6%"; (b) Warm−EIP is +.0483 = +6.31%, text says "5%".
+Relative fails badly on both. The one loose statement is Yahoo's "about 7%" for EIP−FixQ, which is
++.0568 absolute (5.7 points) and +6.90% relative — there the relative reading fits better. So:
+**absolute, with Yahoo imprecise.**
+
+**Two text errors in one four-page results section, both confirmed by pixel measurement.** (i) §3.2.3
+claims "EIP outperforms Warm-MF by a bit less than 3%" on Yahoo! Music; panel (c) has Warm-MF flat at
+**0.9061** against EIP 0.8790–0.8825, i.e. **Warm-MF is ABOVE EIP by 0.024–0.027 at every depth**. The
+magnitude is right and the direction is backwards — the two names are swapped. The figure is
+authoritative, so the paper's "our method almost reaches the rank performance of warm-start" reading
+of Yahoo is unsupported by its own figure. (ii) §3.2.2's "the MAP of EIP is still higher than that of
+EIP by about 2%" is a plain typo for FixQ.
+
 Netflix and Yahoo! Music are **not** replicated — we do not hold those datasets. ML-1M only.
 
 ### A.2 The snap
 
-*(pending)*
+**Ruler, one for every arm.** ML-1M `ratings.dat`, 1,000,209 ratings / 6040 users / 3706 rated items.
+Users split 75/25 → 4530 train / 1510 test (seed 12345). Each test user's ratings halved at random
+(seed 24680) → 121,495 answer / 122,238 evaluation ratings. Training negatives 10:1 (seed 13579); test
+negatives 10:1 — **theirs** (seed 20130101); candidate tie-break by a fixed uniform key, **identical
+across arms so every comparison is paired** (seed 4242). d = 20, λ_v = 10, λ_u = 10 (theirs), min-leaf
+30, 8 alternations × 3 coordinate sweeps.
+
+Choices the paper does not specify, recorded rather than tuned: the 75/25 user split; random rather
+than temporal halves; 10:1 *training* negatives (symmetric with their test ratio); min-leaf 30; d = 20;
+λ_v = 10. FixQ's features are intercept + a 3-way (>3 / ≤3 / unknown) one-hot per question, which
+deliberately gives FixQ **the same information EIP gets** rather than mere rated/not — the stronger
+reading of their baseline.
+
+**The method is implemented as specified, including the Taylor trick.** The Eq. (12) diagonal-Hessian
+gain is computed with the *true* Hessian, searched jointly over all 3706 items × 4 thresholds, and used
+**only to pick the question**; the chosen node's Δu is then re-fitted by coordinate descent, exactly as
+lines 280–283 require. The one deliberate deviation is in the *fitting*: each coordinate step is taken
+on the **majorising** curvature (¼ for logistic) rather than the true one, because the undamped Newton
+step diverged (training loss 0.43 → 7.59 → 3.44 → 5.66 → 7.45). Four optimisers were tried; the
+majorised cyclic descent is the one that is monotone. A separate silent trap was found and fixed: a
+V initialisation at 0.05 leaves both Newton steps ridge-dominated and the fit stuck at the zero-scale
+saddle (Warm-MF MAP 0.189, below random-ish).
+
+**Metric.** Headline is **MAP(r≥4)**. Their Eq. (13) states "P@n calculates the fraction of top n
+recommended items that are **positive**", and precision requires a positive/negative labelling, so
+"observed item set" means observed *positives*. MAP over all observed ratings is kept as a secondary
+column so the choice is visible.
+
+| arm | MAP(r≥4) at 3 / 5 / 8 / 10 | MAP(all observed) | **theirs (digitised)** |
+|---|---|---|---|
+| random | .1073 | .1011 *(analytic .1040 ✓)* | — |
+| **most-popular, no interview** | **.5129** | .4468 | — |
+| FixQ | .4910 / .4880 / .4777 / .4729 | .4323 / .4276 / .4206 / .4199 | .7176 / .7239 / .7283 / .7306 |
+| EIP (logistic) | .5277 / .5223 / — / — | .4589 / .4568 | .7381 / .7406 / .7443 / .7451 |
+| Warm-MF | .6926 | .6329 | .8017 |
+
+### A.3 How close did we get — plainly
+
+**What reproduces.**
+- **The arm ordering, Warm-MF > EIP > FixQ**, at every depth measured.
+- **The EIP − FixQ gap in sign and order of magnitude**: +0.0367 (d=3) and +0.0343 (d=5) on the r≥4
+  ruler, +0.0266 / +0.0292 on all-observed, against their +0.0205 / +0.0167. Ours is if anything
+  *larger* than theirs.
+
+**What does not reproduce.**
+- **The absolute level**, by 0.19–0.24 MAP everywhere. Three candidate explanations were tested and
+  all three are excluded. *Not the metric*: the analytic E[MAP] of a random permutation over 81
+  positives and 810 negatives is 0.1040 against a measured 0.1011. *Not the negative pool*: negatives
+  are already drawn only from items the user never rated, which is the easier of the two readings.
+  *Not latent capacity*: the Warm-MF calibration curve on a held-out validation cohort runs 0.6538
+  (d=10) → 0.6823 (d=20) → 0.6985 (d=50) → **0.7047 (d=100)**, increments decaying +0.0285, +0.0162,
+  +0.0062, converging to about 0.71 — quadrupling d from 20 to 100 buys 0.022 and no achievable d
+  reaches their 0.8018. **The residual is unexplained and is reported as unexplained.**
+- **The direction with depth.** Their MAP rises with the number of interview questions for both cold
+  arms. Ours falls: FixQ .4910 → .4729 monotonically, EIP flat-to-falling .5277 → .5223.
+
+**The leading explanation for the direction failure, measured but not yet fixed.** It is a property of
+the stated protocol, not of the code: a *test* user's answers must come from their first half only,
+while a *train* user's come from all their ratings. On the top-10 popular questions, test users can
+answer **~50% as often as train users at every rank** (0.283 vs 0.575 at rank 1). At k=3 a train user
+answers 1.58 of 3 questions and a **test user answers 0.78** — most test users answer nothing at all.
+The model is therefore fitted on feature vectors roughly twice as populated as the ones it is asked to
+serve, and each additional question widens that mismatch. The symmetric variant (halving train users'
+answers too) is a ten-minute cell that had not been run.
+
+**One incidental finding worth keeping.** On our ruler **FixQ is worse than simply ranking by
+popularity** (.4910 vs .5129 at d=3) — asking the top-k popular items and folding the answers back in
+makes it *worse* than not asking. EIP does clear most-popular (.5277). That is our Act 1 pattern
+appearing inside their own baseline set.
+
+### A.4 What "matching" therefore means here, stated once
+
+We reproduce **what our chapter actually cites them for** — the arm ordering and the EIP−FixQ gap — on
+an internally consistent, leak-checked, analytically-verified ruler. We do **not** reproduce their
+absolute level or their depth trend, and we say so rather than tuning toward the figure. For a
+four-page paper that never states its latent dimension, its train/test ratio, its alternation count or
+its training negative ratio, that is the honest ceiling on a replication, and the ablation of Part B
+does not depend on it: **Part B runs their criterion inside our harness on our ruler, so it is
+unaffected by anything unresolved here.**
+
+### A.5 Controls
+
+| control | result |
+|---|---|
+| Leak check | answer ∩ eval pairs **0**; train ∩ eval pairs **0**; train ∩ test users **0**; test users appearing in train ratings **0** |
+| Canonical snap, reported first | most-popular .5129 / .4468; random .1011 against an **analytic .1040** — the metric implementation is verified independently of any model |
+| Shuffle control (random-question tree) | implemented, **queued behind the remaining depths and NOT YET RETURNED.** This is the one required control still outstanding, and no claim in §A rests on an arm it would invalidate. |
+
+**Still running at the time of writing**, persisting one JSON per cell to
+`experiments/baselines/huyu2013/cells/`: EIP-logistic depths 8 and 10, the random-question shuffle
+control, the pairwise-loss arm, and the RMSE panel with fMF.
+
+Code: `scripts/baselines/huyu_eip_ml1m.py`, `scripts/baselines/huyu_figure_digitise.py`.
 
 ---
 
