@@ -279,6 +279,58 @@ easiest, largest-cohort decision and still walk the interview steadily downhill 
 explains the correlation exhibit's shape (§B.5): logistic has regret exactly 0.0 at the root and no
 better than random below it.
 
+### B.6 Separation (1) isolated — PRELIMINARY, and it moves the claim
+
+`pairwise_heldout_root.py` changes **only the loss**. At the root state, for each candidate, it folds
+once and computes from the *same* score matrix both full NDCG@10 (through the same
+`ndcg10_from_scores` funnel, same mask contract) and the held-out pairwise rank loss in its 0-1 (AUC)
+form over the full 18,359-item catalogue — untruncated, undiscounted, ties counted as errors. Same
+fold, same state, same candidates, same protocol; only the scalarisation differs. Its m=0 gate against
+the tree's banked root heap passes at ≤1e-12 and every recomputed NDCG gain matches the banked build
+at **0.0e+00**.
+
+**Status: RUNNING — 140 of 1,000 candidates at the time of writing, and the prefix is not yet
+channel-balanced (110 items, 30 concepts), because the first 80 were banked before the evaluation
+order was interleaved. The numbers below are therefore PRELIMINARY and must not be quoted as the
+full-pool result.** `pwheldout_partial_report.py` recomputes them from the partial at any moment and
+always reports its own coverage.
+
+| at the root, 140/1000 candidates | value |
+|---|---|
+| Spearman(measured NDCG@10 gain, measured pairwise-loss reduction) | **+0.637** |
+| Kendall | +0.468 |
+| Spearman, items only (n=110) | +0.615 |
+| Spearman, concepts only (n=30) | +0.855 |
+| top-10 recall | 0.50 |
+| regret of following the measured pairwise loss | **+0.00371** |
+| expected regret of a uniform random pick | +0.01444 |
+| rank the pairwise loss gives the NDCG argmax | **2** of 140 |
+
+**If this holds to 1,000 candidates it relocates the mechanism, and in our favour but not where we
+expected.** Put it beside the *training-loss* pairwise criterion at the same node (§B.5): that one has
+Spearman **−0.149**, ranks the metric's argmax **75th**, and carries regret +0.01473 — i.e.
+indistinguishable from guessing. The *measured* pairwise loss, on the same pairwise objective at the
+same state, has Spearman +0.637, ranks it 2nd, and carries regret +0.00371, about a quarter of random.
+
+So the two separations are not equal partners:
+
+- **Separation (2) — training loss versus the measured expected value of asking — is doing almost all
+  of the work.** Hu & Yu's Taylor-approximated training-loss reduction is nearly uninformative about
+  held-out ranking; the same loss *measured on held-out targets* is a good proxy for it.
+- **Separation (1) — truncation and positional discounting — is real but second-order.** An
+  untruncated, undiscounted pairwise loss, measured properly, gets you most of the way to NDCG@10 —
+  but not all of it: it still forgoes +0.00371 of NDCG@10 at the root, it disagrees on the argmax, and
+  its top ten overlap the metric's top ten only half the time.
+
+That is a **more precise and more defensible** claim than "ranking losses are the wrong objective",
+and it is the one the chapter should make. It also has a constructive consequence for workstream E:
+if the measured pairwise loss tracks NDCG@10 at ρ≈0.64, it is a candidate *cheap surrogate reward* for
+the parametric policy — one that can be computed without a top-k sort — provided the final selection
+is still made on the reported metric. That is a design lead we did not have before.
+
+**Do not write any of this into the chapter until the run completes.** 140 candidates, item-heavy, is
+a direction, not a number.
+
 ### B.4 Controls — all passed
 
 | control | result |
