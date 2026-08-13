@@ -709,12 +709,17 @@ def run_eip(kind, depth, split, d, lam_v, exact=False, random_q=False, seed=0,
     N, M = split.n_users, split.n_items
     rated = rated_sets_of(split.all_u, split.all_i, N)
     data = build_data(kind, tu, ti, tr, rated, N, M, d, SEED_TRAIN_NEG)
+    if SYM_ANSWERS:
+        h0 = split.tr_half == 0
+        rec = (tu[h0], ti[h0], tr[h0])
+    else:
+        rec = (tu, ti, tr)
     V = init_V(M, d)
     rng = np.random.default_rng(1000 + seed)
     tree = None
     for it in range(outer + 1):
         t0 = time.time()
-        tree, U = fit_tree(data, V, depth, (tu, ti, tr), N, LAMBDA_U,
+        tree, U = fit_tree(data, V, depth, rec, N, LAMBDA_U,
                            exact=exact, random_q=random_q, rng=rng)
         t1 = time.time()
         if it < outer:
@@ -1020,7 +1025,7 @@ def main():
                                     d=d, lam_v=lam_v))
             if not arms or tag in arms:
                 for k in depths:
-                    if have_cell("%s_d%d" % (tag, k)):
+                    if have_cell("%s%s_d%d" % (tag, args.tag_suffix, k)):
                         continue
                     t0 = time.time()
                     tree, V = run_eip(kind, k, sp, d, lam_v, outer=args.outer)
@@ -1030,7 +1035,7 @@ def main():
                     log("%s depth=%d: MAP=%.4f MAP(r>=4)=%.4f "
                         "(%.0fs, mean questions used=%.2f)"
                         % (tag, k, m, m4, time.time() - t0, dep.mean()))
-                    write_cell("%s_d%d" % (tag, k),
+                    write_cell("%s%s_d%d" % (tag, args.tag_suffix, k),
                                dict(arm=tag, depth=k, MAP=m, MAP_ge4=m4, d=d,
                                     lam_v=lam_v,
                                     seconds=time.time() - t0,
@@ -1038,7 +1043,7 @@ def main():
                                     n_test_users=len(ev.users), n_nodes=len(tree.q)))
     if args.stage == "controls":
         for k in depths:
-            if have_cell("randq_d%d" % k):
+            if have_cell("randq%s_d%d" % (args.tag_suffix, k)):
                 continue
             t0 = time.time()
             tree, V = run_eip("logistic", k, sp, d, lam_v, random_q=True,
@@ -1048,14 +1053,14 @@ def main():
             m, m4 = score(U)
             log("randq depth=%d: MAP=%.4f MAP(r>=4)=%.4f (%.0fs)"
                 % (k, m, m4, time.time() - t0))
-            write_cell("randq_d%d" % k,
+            write_cell("randq%s_d%d" % (args.tag_suffix, k),
                        dict(arm="randq", depth=k, MAP=m, MAP_ge4=m4, d=d,
                             lam_v=lam_v))
 
     if args.stage == "rmse":
         for k in depths:
             for exact, tag in ((False, "eip_square"), (True, "fmf")):
-                if have_cell("%s_d%d" % (tag, k)):
+                if have_cell("%s%s_d%d" % (tag, args.tag_suffix, k)):
                     continue
                 t0 = time.time()
                 tree, V = run_eip("square", k, sp, d, lam_v, exact=exact,
@@ -1065,7 +1070,7 @@ def main():
                 rm = ev.rmse(U)
                 log("%s depth=%d: RMSE=%.4f (%.0fs)"
                     % (tag, k, rm, time.time() - t0))
-                write_cell("%s_d%d" % (tag, k),
+                write_cell("%s%s_d%d" % (tag, args.tag_suffix, k),
                            dict(arm=tag, depth=k, RMSE=rm, d=d, lam_v=lam_v))
             items, A, V, F = run_fixq("square", k, sp, d, lam_v, outer=args.outer)
             U = fixq_predict(items, A, F, sp, ev.users, d)
