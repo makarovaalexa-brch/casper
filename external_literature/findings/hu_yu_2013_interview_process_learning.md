@@ -89,29 +89,53 @@ experimental setting here is to sample negative instances for training data and 
 separately. For test data ... we randomly sample negative items 10 times as positive items for each
 user as test data." So their split criterion is fitted against sampled negatives as well.
 
-**4. Warm-MF beats EIP on two of three datasets, and on the third the text contradicts the figure.**
+**4. Warm-MF beats EIP on ALL THREE datasets, and on the third the text contradicts the figure.**
 ML-1M: "Warm-MF works better than EIP ... about 6%" (l. 369–371). Netflix: Warm-MF "outperform EIP by
 5% approximately" (l. 381–382). Yahoo: the text claims "EIP outperforms Warm-MF by a bit less than
-3%" (l. 392–394), but **Figure 2(c) shows the Warm-MF bar clearly ABOVE the EIP bar at every depth,
-by ≈0.025 MAP** (digitised: EIP ≈ .8795/.8802/.8807/.8828, Warm-MF ≈ .9058 flat). The paper's
-"almost reaches the rank performance of warm-start" sentence is contradicted by its own figure.
-The stated percentages are, on ML-1M and Netflix, **absolute MAP-point** gaps rather than relative.
+3%" (l. 392–394), but **Figure 2(c) shows Warm-MF flat at 0.9061 against EIP 0.8790–0.8825 — ABOVE
+it by 0.024–0.027 at every depth.** The magnitude in the text is right and the direction is
+backwards: the two names are swapped. **CONFIRMED by pixel measurement** at 400 and 800 dpi
+(`scripts/baselines/huyu_figure_digitise.py`; the two resolutions agree to ≤0.0003 MAP, calibration
+residual ≤0.00012). The paper's "our method almost reaches the rank performance of warm-start"
+reading of Yahoo is unsupported by its own figure, and EIP in fact loses to warm-start everywhere.
 There is also a plain typo at l. 380: "the MAP of EIP is still higher than that of EIP by about 2%"
-(should be FixQ).
+(should be FixQ) — two text errors in one four-page results section.
+
+**Their percentages are ABSOLUTE MAP points, not relative.** ML-1M Warm−EIP is +.0597 absolute =
++8.05% relative and the text says "about 6%"; Netflix Warm−EIP is +.0483 = +6.31% and the text says
+"5%". The relative reading fails badly on both. Yahoo's "about 7%" for EIP−FixQ is the one loose
+statement (+.0568 absolute, +6.90% relative — there the relative reading fits better).
 
 **5. Depth is the budget, and their own tree stops paying at 6.** Yahoo: "when the depth reaches 6,
 the MAP begins to decrease, which means our model becomes overfitting" (l. 396–398); the RMSE panel
 degrades with depth too (l. 408–411). Their budgets are 3/5/8/10 (ML-1M, Netflix) and 3/4/5/6
 (Yahoo). Ours is 16.
 
-Digitised figure values (400 dpi render of p. 4; the paper reports no scalar table):
+Digitised figure values (the paper reports no scalar table). Axis frames auto-detected, row→value
+calibrated from the y-tick label centres, bar tops read from the contiguous axis-anchored colour run
+so legend patches cannot be mistaken for bars. **Quote at ±0.0005.**
 
 | depth | ML-1M FixQ | ML-1M EIP | ML-1M Warm | NF FixQ | NF EIP | NF Warm | YM FixQ | YM EIP | YM Warm |
 |---|---|---|---|---|---|---|---|---|---|
-| 3 | .7175 | .7383 | .8018 | .7418 | .7590 | .8133 | .8195 | .8795 | .9058 |
-| 5 (YM: 4) | .7233 | .7408 | .8018 | .7447 | .7627 | .8133 | .8237 | .8802 | .9058 |
-| 8 (YM: 5) | .7280 | .7443 | .8018 | .7470 | .7677 | .8133 | .8250 | .8807 | .9058 |
-| 10 (YM: 6) | .7303 | .7450 | .8018 | .7488 | .7715 | .8133 | .8262 | .8828 | .9058 |
+| 3 | .7176 | .7381 | .8017 | .7421 | .7589 | .8133 | .8194 | .8790 | .9061 |
+| 5 (YM: 4) | .7239 | .7406 | .8017 | .7450 | .7627 | .8133 | .8237 | .8798 | .9061 |
+| 8 (YM: 5) | .7283 | .7443 | .8017 | .7470 | .7674 | .8133 | .8248 | .8802 | .9061 |
+| 10 (YM: 6) | .7306 | .7451 | .8017 | .7488 | .7711 | .8133 | .8264 | .8825 | .9061 |
+
+RMSE panel (d), ML-1M: FixQ .9940 / .9995 / .9850 / .9838; fMF .9735 / .9686 / .9674 / .9723;
+EIP .9656 / .9626 / .9638 / .9626; Warm-MF .8489 flat.
+
+**Replication status (ML-1M only — we do not hold Netflix or Yahoo! Music).** The arm ordering
+Warm-MF > EIP > FixQ reproduces, and the EIP−FixQ gap reproduces in sign and order of magnitude
+(+0.0367 at depth 3 against their +0.0205). The absolute level does **not** — ours sits 0.19–0.24 MAP
+low — and the *direction* does not: their MAP rises with interview depth and ours falls. Metric
+implementation, negative-pool definition and latent capacity were each tested and each excluded as
+the cause (analytic random-permutation check passes; negatives already come only from never-rated
+items; the Warm-MF-vs-d curve converges near 0.71 against their 0.8017). Leading unfixed suspect,
+measured: **train users' answers come from all their ratings while test users' come from their first
+half only, so test users answer about half as often** (1.58 vs 0.78 answered questions at k=3), and
+each extra question widens that mismatch. Details in
+`docs/results/HU_YU_2013_REPLICATION_AND_ABLATION.md` §A.
 
 ## Why it nevertheless does not occupy our cell — the four separations, re-verified
 
