@@ -104,12 +104,21 @@ class OutcomeHead(nn.Module):
         self.d_k = d_k
         self.q = nn.Sequential(nn.Linear(d_state, d_h), nn.ReLU(),
                                nn.Linear(d_h, d_k * N_OUTCOMES))
-        self.k = nn.Sequential(nn.Linear(d_phi, d_h), nn.ReLU(), nn.Linear(d_h, d_k))
-        self.c = nn.Linear(d_phi, N_OUTCOMES)
+        self.trunk = nn.Sequential(nn.Linear(d_phi, d_h), nn.ReLU())
+        self.k = nn.Linear(d_h, d_k)
+        self.c = nn.Linear(d_h, N_OUTCOMES)
 
     def keys(self, phi):
-        """The candidate side, computed ONCE per optimiser step and reused across the batch."""
-        return self.k(phi), self.c(phi).T.contiguous()      # (P,d_k), (3,P)
+        """The candidate side, computed ONCE per optimiser step and reused across the batch.
+
+        `c` is the state-free per-candidate term -- the head's own per-question PRIOR. It shares the
+        trunk with `k` so it gets a hidden layer for free rather than being a bare linear read of the
+        descriptor, which matters because the popularity baseline it is measured against has a free
+        parameter per question while this term has to express the prior THROUGH the frozen
+        descriptor. That asymmetry makes the comparison conservative, and it is stated in the report
+        rather than removed."""
+        t = self.trunk(phi)
+        return self.k(t), self.c(t).T.contiguous()          # (P,d_k), (3,P)
 
     def forward(self, h, phi=None, kv=None):
         """h (B, d_state) -> logits (3, B, P).
@@ -469,6 +478,19 @@ def train(args):
         f"{B['global'][0]:.5f} / {B['global'][1]:.5f} / {B['global'][2]:.5f} "
         f"({(time.time() - tb) / 60:.1f}m)")
 
+    # ---- optional: hand the head the popularity prior itself as three extra descriptor dims ------
+    # OFF by default. With it ON the head CONTAINS the popularity baseline as a special case, so a
+    # gap is purely the state's contribution -- a clean diagnostic if the briefed comparison fails.
+    # It is a per-QUESTION statistic computed on the fit users only (never per-user), so it is not a
+    # profile feature; but it would not exist for a never-seen question, so it must be OFF for the
+    # deferred held-out-question test of F.5.
+    if args.prior_feat:
+        lp = np.log(B["pop"]).astype(np.float32)
+        phi_t = np.ascontiguousarray(np.concatenate([phi_t, lp], 1))
+        norm = (np.concatenate([norm[0], np.zeros((1, N_OUTCOMES), np.float32)], 1),
+                np.concatenate([norm[1], np.ones((1, N_OUTCOMES), np.float32)], 1))
+        log(f"[prior_feat] descriptor widened to {phi_t.shape[1]} dims with the fit-user log prior")
+
     # ---- the model -------------------------------------------------------------------------------
     model = OutcomeModel(d_z, phi_t.shape[1], state=args.state, use_pos=not args.no_pos,
                          d_k=args.d_k, d_h=args.d_h)
@@ -489,7 +511,8 @@ def train(args):
     steps = int(np.ceil(n_ex / args.batch))
     hist = []
     best = {"ce": 1e9}
-    tag = f"{args.arm}_{args.state}{'_nopos' if args.no_pos else ''}"
+    tag = f"{args.arm}_{args.state}{'_nopos' if args.no_pos else ''}" \
+          f"{'_prior' if args.prior_feat else ''}"
     ckpt = os.path.join(OUTDIR, f"outcome_head_{tag}.pt")
     for ep in range(1, args.epochs + 1):
         model.train()
@@ -530,7 +553,8 @@ def train(args):
                         "use_pos": not args.no_pos, "d_k": args.d_k, "d_h": args.d_h,
                         "d_phi": int(phi_t.shape[1]), "d_z": d_z, "epoch": ep,
                         "norm_mu": norm[0], "norm_sd": norm[1], "arm": args.arm,
-                        "heldout_ce": ev["mean_ce"], "seed": SEED}, ckpt)
+                        "heldout_ce": ev["mean_ce"], "seed": SEED,
+                        "prior_feat": bool(args.prior_feat)}, ckpt)
             log(f"[ckpt] epoch {ep} is best so far -> {os.path.basename(ckpt)}")
         json.dump({"analysis": "outcome_head_history", "arm": args.arm, "history": hist,
                    "test_touched": False},
@@ -553,6 +577,10 @@ def train(args):
            "author_instruction": "train on ALL questions and ALL train users; held-out-question "
                                  "test and sample-efficiency curve DEFERRED",
            "arm": args.arm, "state": args.state, "use_pos": not args.no_pos,
+           "prior_feat": bool(args.prior_feat), "d_phi": int(phi_t.shape[1]),
+           "comparison_note": ("the popularity baseline has a free parameter per question; the "
+                               "head must express the same prior through the frozen descriptor, so "
+                               "the comparison is conservative toward the head"),
            "n_catalogue_candidates": P, "n_items": ni, "n_concepts": C,
            "n_fit_users": len(fit), "n_heldout_users": len(heldout),
            "questions_held_out": 0, "params": model.n_params(),
@@ -690,6 +718,9 @@ def main():
     ap.add_argument("--d_h", type=int, default=256)
     ap.add_argument("--n_heldout", type=int, default=10000,
                     help="held-out TRAIN users. Questions are NOT held out this round (author).")
+    ap.add_argument("--prior_feat", action="store_true",
+                    help="append the fit-user per-question log prior to the descriptor. OFF by "
+                         "default: the briefed comparison is against the frozen descriptor alone.")
     ap.add_argument("--threads", type=int, default=0)
     ap.add_argument("--log_every", type=int, default=100)
     ap.add_argument("--snapshot", default=None)
