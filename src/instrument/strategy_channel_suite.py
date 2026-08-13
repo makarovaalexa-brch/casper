@@ -609,7 +609,7 @@ def genv_latent(E, seq, rows, batch=500, _caller="genv_latent"):
 
 
 def genv_eval_multi(E, rows, item_seqs, conc_seqs, batch=500, Zi_items=None, return_Zi=False,
-                    return_z=False):
+                    return_z=False, score=True):
     """Per-user (full, tail) NDCG@10 where EVERY USER CARRIES ITS OWN ask sequence.
 
     `genv_eval` scores ONE sequence for a whole cohort. TODO 1.11 needs the opposite shape: 10,000
@@ -704,6 +704,10 @@ def genv_eval_multi(E, rows, item_seqs, conc_seqs, batch=500, Zi_items=None, ret
     # input (design sheet A.8) for a cohort where every user carries a DIFFERENT interview, which is
     # what a policy rollout is. It is read off the same tensor that produced the scores; there is no
     # second fold path.
+    # `score=False` skips ONLY the decoder matmul and the NDCG reduction, for the 15 intermediate turns
+    # of a rollout where the policy needs its state and nobody needs a number. It cannot change any
+    # reported value: the returned full/tail stay NaN and the caller must ask for the score at the turn
+    # it reports. The fold path above is untouched.
     z_out = torch.empty(n, ctx.d, dtype=torch.float32) if return_z else None
     with torch.no_grad():
         for st in range(0, n, batch):
@@ -728,13 +732,14 @@ def genv_eval_multi(E, rows, item_seqs, conc_seqs, batch=500, Zi_items=None, ret
                 z = net(Zb, cid, cvl, crf if net.use_refusal else None)
             else:
                 z = Zb
-            Su = (z @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
-            S = Su[binv]
             if return_z:
                 z_out[st:en] = z[torch.from_numpy(binv)]
-            f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
-                                      contract=(E["contract_tag"], ch))
-            full[st:en] = f; tail[st:en] = t
+            if score:
+                Su = (z @ ctx.Wd.T + ctx.bd).numpy().astype(np.float32)
+                S = Su[binv]
+                f, t = ndcg10_from_scores(S, E["pool"][ch], ctx.va_te[ch], ctx.head_mask,
+                                          contract=(E["contract_tag"], ch))
+                full[st:en] = f; tail[st:en] = t
     E["n_evals"] += 1; E["t_evals"] += time.time() - t0
     out = (full, tail)
     if return_Zi:

@@ -366,6 +366,25 @@ def gen(args):
     pool_sha = _sha([[int(a), int(b)] for a, b in pool])
     val_pc = pool_contract(Ev["pool"], Ev["rows"], policy="B")
     d = Ev["ctx"].d
+
+    # --- the VALIDATION trajectories, with z. These are NOT training data: they are the held-out
+    # --- states G-E1a measures top-1 agreement on, and the tree's own realised interviews that the
+    # --- policy's rollout is compared against (deviation position, per-position agreement, Pep
+    # --- divergence). Produced here so the validation env is built once for both jobs.
+    vpath = os.path.join(OUTDIR, "val_traj.npz")
+    if not os.path.exists(vpath):
+        tv = build_trajectories(Ev, Ev["rows"], tr, t16, pool_index, want_z=True, tag="val")
+        gate_partitions_against_banked(tr, tv["partitions"], tv["answer_rates"])
+        zv = os.path.join(OUTDIR, "z_val.npy")
+        np.save(zv + ".tmp.npy", tv["z"])
+        os.replace(zv + ".tmp.npy", zv)
+        np.savez_compressed(vpath + ".tmp.npz", uid=np.asarray(Ev["rows"], np.int32),
+                            label_idx=tv["label_idx"], outcome=tv["outcome"], leaf=tv["leaf"],
+                            leaf_ids=np.asarray(tv["leaf_ids"]),
+                            pool=np.asarray([[int(a), int(b)] for a, b in pool], np.int32))
+        os.replace(vpath + ".tmp.npz", vpath)
+        log(f"[val] wrote {os.path.basename(vpath)} + z_val.npy "
+            f"({len(Ev['rows'])} users x {TOTAL_L} positions)")
     del Ev
 
     sig = {"v": 1, "split": "train", "n_train": N_TRAIN, "total_L": TOTAL_L, "d": d,
