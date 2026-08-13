@@ -167,7 +167,10 @@ An adaptivity null is only interesting if the static bar is genuinely strong. Ou
 prefix-optimal sequence over a bank of $500$ popularity-ranked items and $500$ answerability-ranked
 concepts, computed by lazy greedy maximisation of held-out NDCG@10 \emph{on the same recommender it
 is scored on}. Chapter A establishes that greedy is prefix-optimal here, which is what makes
-``strongest static'' a computable object rather than an aspiration. The search ran on the
+``strongest static'' a computable object rather than an aspiration. \textbf{Every order in this
+chapter --- global, group-conditioned, single-channel and combined --- maximises \emph{full}
+NDCG@10; tail NDCG@10 is reported throughout as a secondary outcome and never enters a search.}
+The search ran on the
 $10{,}000$ validation users only; the test cohort was not constructed until all sequences were
 frozen. On those validation users the empty-interview row reproduces the tower's certified cold
 number to five decimal places ($0.12987$ against a recorded $0.12987$), which is how we know the
@@ -255,18 +258,6 @@ This is worth printing rather than silently correcting for the reason
 Section~\ref{sec:positioning} gives: comparator strength is precisely the axis this chapter argues
 the literature has left unattended, and the effect is large enough to reverse a separated interval
 in our own results.
-
-We note, and decline to build on, one further observation. Stratifying by the value of
-personalising (Section~\ref{sec:act2}) places the tree's advantage over entropy$_0$ among users for
-whom that value is zero ($+.0243$ full at eight questions in the lowest stratum, $-.0003$ in the
-highest). It is tempting to read this as the tree being a better \emph{fixed} opener for the
-un-personalisable. We do not make that claim: it rests on one method, in one stratum of four,
-against the weaker of two comparators, and the tree is fitted to maximise over the whole cohort
-rather than any stratum. Subgroup heterogeneity is the more parsimonious reading. \REDO{the
-stratified cells above are differenced against the entropy$_0$ heuristic and against the
-policy-A-selected single-channel greedy orders; the aggregate tail-at-eight advantage they decompose
-has since been retracted (this section), so the decomposition must be re-differenced onto the
-rebuilt comparators before it is read as anything but subgroup heterogeneity}
 
 \paragraph{The claim, and the claim we are careful not to make.} Every published elicitation method
 we could replicate lands below a well-chosen fixed order, at every budget, on one contract. What that
@@ -546,6 +537,7 @@ latent-only info-gain$^\dagger$~\cite{ma2019eddi} & adaptive & .1537/.0336 & .15
 \midrule
 \multicolumn{8}{l}{\emph{published methods, snap-validated and ported}}\\
 Golbandi tree (WSDM'11)~\cite{golbandi2011adaptive} & adaptive & .1557/.0351 & .1614/.0478 & .1864/.0650 & .2117/.0844 & --- & 2.75 \\
+IGCN (2008)~\cite{rashid2008learning} & adaptive & .1685/.0407 & .1800/.0569 & .1944/.0701 & .2031/.0747 & .2239/.0912 & 4.19 \\
 DRE (WWW'20)~\cite{kweon2020deep} & learned static & .1658/.0396 & .1693/.0465 & .1763/.0586 & .2074/.0789 & .2185/.0898 & 4.6 \\
 CLiME (KDD'25)~\cite{liu2025clisk} & adaptive & .1606/.0400 & .1634/.0452 & .1776/.0549 & .1914/.0701 & .2218/.0897 & 4.80 \\
 ConLinUCB-BS-static~\cite{wang2023conlinucb} & static (concepts) & .1644/.0374 & .1659/.0402 & .1724/.0468 & .1829/.0598 & .1891/.0700 & 0.00 \\
@@ -584,7 +576,9 @@ greedy items-only $.2447$ against the best adaptive selector's $.2161$.
 \centering
 \caption{Battery coverage. \cmark{} = measured in the contract of Table~\ref{tab:battery};
 \xmark{} = not yet. ``Native'' = run with the recommender the method was published with; ``own
-static'' = compared against the static baseline its own paper used.}
+static'' = compared against the static baseline its own paper used. $^\P$ DPE's two published
+acquisition variants are the rows built; that paper reports no scalar numbers and no static
+comparator of its own, so ``native'' and ``own static'' are not defined for it.}
 \label{tab:coverage}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -604,14 +598,15 @@ ConLinUCB-BS-static & \cite{wang2023conlinucb} & static (concepts) & \cmark & \c
 Golbandi tree (split search) & \cite{golbandi2011adaptive} & adaptive & \cmark & \cmark & \cmark & \cmark \\
 Hu \& Yu split criteria & \cite{hu2013interview} & adaptive & \cmark & \cmark & \cmark & \xmark \\
 ICF (4 policies) & \cite{zhao2013interactive} & adaptive & \xmark & \xmark & \xmark & \xmark \\
-IGCN & \cite{rashid2008learning} & adaptive & \xmark & \xmark & \xmark & \xmark \\
-DPE (topic bandit) & \cite{parapar2021dpe} & adaptive & \xmark & \xmark & \xmark & \xmark \\
-BALD / SEL-BALD & \cite{houlsby2011bald,gao2024selbald} & adaptive & \xmark & \xmark & \xmark & \xmark \\
+IGCN & \cite{rashid2008learning} & adaptive & \cmark & \cmark & \cmark & \xmark \\
+DPE-Hellinger / DPE-ILD$^\P$ & \cite{parapar2021dpe} & adaptive & \cmark & \cmark & n/a & n/a \\
+BALD & \cite{houlsby2011bald} & value-free & \cmark & \cmark & \xmark & \xmark \\
+SEL-BALD & \cite{gao2024selbald} & adaptive & \xmark & \xmark & \xmark & \xmark \\
 A-optimal design & \cite{anava2015budget,sepliarskaia2018spq} & value-free & \cmark & \cmark & \xmark & \xmark \\
 PEBOL acquisition & \cite{austin2024bayesian} & adaptive & \xmark & \xmark & \xmark & \xmark \\
 fMF & \cite{zhou2011functional} & adaptive & \xmark & \xmark & \xmark & \xmark \\
 PERE & \cite{nguyen2024pere} & adaptive & \xmark & \xmark & \xmark & \xmark \\
-DRE & \cite{kweon2020deep} & static & \xmark & \xmark & \xmark & \xmark \\
+DRE & \cite{kweon2020deep} & learned static & \cmark & \cmark & \cmark & \xmark \\
 Greedy SLIM / QBandit & \cite{proissl2024greedyslim,christakopoulou2016towards} & static/adaptive & \xmark & \xmark & \xmark & \xmark \\
 RBMF (maxvol) / RMVA & \cite{liu2011wisdom,fonarev2016rectangular} & static & \xmark & \xmark & \xmark & \xmark \\
 GreedyExtend & \cite{golbandi2010bootstrapping} & static & \xmark & \xmark & \xmark & \xmark \\
@@ -649,10 +644,11 @@ answers under the convention it was \emph{not} trained on, which costs a concept
 $.0177$ tail --- so its concept numbers are floors, and the family should be re-run before any of
 them is quoted as an estimate}
 
-\PLAN{the remaining \xmark{} rows, ordered by leverage: the learned static bars (DRE is built and
-its native snap passed; Greedy SLIM is the only published protocol sibling), then IGCN and the
-information-theoretic arms. Also owed: paired CIs on the conversational-bandit gaps, and the two
-remaining key-term representations, which together adjudicate how a concept should be represented.}
+\PLAN{the remaining \xmark{} rows of Table~\ref{tab:coverage}, ordered by leverage: the second
+learned static bar (Greedy SLIM, the only published protocol sibling of DRE), then the remaining
+information-theoretic arms (SEL-BALD, PEBOL's acquisition), then fMF, PERE and RBMF. Also owed: the
+two remaining key-term representations, which together adjudicate how a concept should be
+represented.}
 
 \subsection{The loss is not a failure to branch}
 
@@ -705,11 +701,12 @@ rejection~\cite{gao2024selbald}. What we add is not the
 weighting but the observation that it is a reason to change \emph{channel}: prior work prices
 answerability within one fixed question space, whereas the coarse and fine channels here differ in
 answer rate by a factor of four, and the loss-optimal channel changes with placement
-(Section~\ref{sec:act4}). \REDO{our EDDI arm uses a two-outcome response model, under which
-``has not seen it'' and ``dislikes it'' are the same observation, so the acquisition cannot
-represent --- and therefore cannot price --- the event that no answer arrives. Re-run it with a
-three-outcome response model before this section's mechanism claim stands; if the answer rate
-recovers, that is the stronger result}
+(Section~\ref{sec:act4}). \REDO{the arm in the table uses a two-outcome response model, under which ``has not seen it'' and
+``dislikes it'' are the same observation, so the acquisition cannot represent --- and therefore
+cannot price --- the event that no answer arrives. The three-outcome selector is implemented
+(\texttt{eddi\_ig3}) but has been measured only on a $200$-user smoke; run it on the
+$10{,}000$-user cohort with paired intervals before this section's mechanism claim and the
+paragraph below stand}
 
 It is not the whole mechanism, and the same table says so: GLM-UCB collects $5.24$ answers,
 essentially the static order's rate, and still loses at every budget. Unanswerability explains the
@@ -737,15 +734,20 @@ reported validation failure is more informative than a silently omitted arm.
 A second, more interesting consequence follows. We had expected that giving the criterion a third
 possible response --- \emph{no answer arrives}, distinct from a dislike --- would let it price
 answerability on its own, since a question the user cannot answer carries no information by
-construction. It does not. Implemented and measured, the three-outcome variant collects
-\emph{fewer} answers than the two-outcome one while producing better rankings from them. The reason
-is instructive: the two-outcome criterion had been dominated by a per-item probability term spanning
-seven orders of magnitude, which made it a most-popular-item selector wearing information-theoretic
-clothing, and popularity is a good proxy for answerability. Repairing the response model let the
-information term actually drive selection --- and an information term with no target to serve
-prefers exactly the questions that move the posterior most, which are the ones users cannot answer.
-\textbf{Answerability is not something an uninformed information criterion recovers for free; it has
-to be either priced explicitly or inherited from a target-coupled objective.}
+construction. The three-outcome selector is implemented, but the only measurement of it is a
+$200$-user smoke outside this chapter's contract --- no intervals, budgets to eight, one consumer,
+and its two sub-variants disagree on the tail at eight questions --- so it supports a status and not
+a result: on that smoke the three-outcome variant collects fewer answers than the two-outcome one,
+and whether it ranks better is exactly what the disagreeing variants leave open. The mechanism we
+can state is a property of the two-outcome criterion in the table: it is dominated by a per-item
+probability term whose dynamic range dwarfs the information term's, which makes it a
+most-popular-item selector wearing information-theoretic clothing, and popularity is a good proxy
+for answerability. Repairing the response model would let the
+information term actually drive selection, and an information term with no target to serve prefers
+exactly the questions that move the posterior most, which are the ones users cannot answer --- which
+is the prediction the contract-scale run above is owed to test. \textbf{Answerability is not
+something an uninformed information criterion recovers for free; it has to be either priced
+explicitly or inherited from a target-coupled objective.}
 
 \subsection{The result that complicates the story, reported rather than buried}
 \label{sec:flip}
@@ -778,138 +780,45 @@ Every comparison above confounds two things. The only arm optimising the reporte
 only arm that is static, so ``conditioning on answers'' and ``choice of objective'' vary together and
 the null cannot be attributed to either. This subsection removes the confound in the only way that is
 clean: hold the objective, the optimiser, the bank, the scoring contract and the val/test discipline
-fixed, and vary \emph{only} what the search is conditioned on.
+fixed, and vary \emph{only} what the search is conditioned on. Users are partitioned by favourite
+genre, computed from each user's own \emph{fold-in} ratings alone --- the most frequent genre among
+their liked fold-in items, with targets excluded (asserted zero leaks out of $10{,}000$ users on both
+splits); all $10{,}000$ are partitioned, none dropped and none merged, and the distribution is
+dominated by one tag (Drama $5{,}481$, Action $1{,}582$, Comedy $1{,}475$, then a long tail down to
+groups of one). The identical greedy search, on the identical objective (cohort-mean held-out full
+NDCG@10) with the identical optimiser, is then run separately inside each group; each group's order
+is fifteen items and the comparator is the global fifteen-item order rebuilt under the same
+protocol pool, compared item-for-item at equal $K$. Static is nested in the construction --- if one
+order for everyone were best, each group's search could recover it, and all eighteen groups pass that
+containment check on validation. \textbf{The genre answer is treated as free side information}: it
+costs no turn and is not folded into the recommender, it only changes which fifteen items are asked,
+so every number here is an upper bound. Charging it is not a rounding error --- the sixteenth pick of
+the rebuilt static order is worth $+0.0029$ on validation, the same order as the effect itself.
 
-The selection contract is symmetric. Both sides are scored through the protocol pool, and the global
-comparator is the items-only sequence rebuilt under that same pool (Section~\ref{sec:act3}), so the
-group orders and the order they are measured against were selected under one masking policy. Every
-headline below is differenced against that rebuilt comparator; what remains an upper bound is the
-free genre answer, stated next.
-
-\paragraph{Construction.} Users are partitioned by favourite genre, computed from each user's own
-\emph{fold-in} ratings alone --- the most frequent genre among their liked fold-in items, with
-targets excluded (asserted zero leaks out of $10{,}000$ users on both splits). The identical greedy
-search, on the identical objective (cohort-mean held-out NDCG@10) with the identical optimiser, is
-then run separately inside each group. Selection runs on the $10{,}000$ canonical validation users;
-everything reported below is on the disjoint $10{,}000$ test users. Each group's order is fifteen
-items and the comparator is the global fifteen-item order, compared item-for-item at equal $K$. Static
-is nested in this construction: if one order for everyone were the best thing to do, each group's
-search could recover it, and all eighteen groups do pass that containment check on validation.
-
-\paragraph{The generous assumption, stated first because it bounds everything that follows.} The
-genre answer is treated as \textbf{free side information}. It costs no turn and it is \emph{not}
-folded into the recommender; it changes only which fifteen items are asked. A deployed system would
-have to spend a turn asking it. Every number in this subsection is therefore an upper bound.
-
-\begin{table}[t]
-\centering
-\caption{Group-conditioned greedy, per group. Gains are against the global fifteen-item order at
-$K{=}15$, item-for-item. \emph{Per-group cells are differenced against the superseded global order;
-the pooled headline in the text is on the rebuilt one, where Drama's point estimate flips sign to
-$+.00150$ $[-.00187,+.00486]$ and remains a null.} ``Overlap'' is the number of the group's fifteen
-picks that also appear in the global order. ``Congruence'' counts how many of the fifteen picks carry the group's own genre
-tag, beside the same count for the \emph{global} order on the same genre (a matched control); ``lift''
-is the difference. Test gains marked (ns) do not separate under the paired bootstrap.}
-\label{tab:groupgreedy}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lrrrrrrrrr}
-\toprule
-group & val $n$ & test $n$ & val gain & test gain & shrinkage & overlap & congr. & global & lift \\
-\midrule
-Drama     & 5{,}481 & 5{,}493 & $+.00697$ & $-.00111$ (ns) & $-.00808$ & 6 & 8 & 5 & $+3$ \\
-Action    & 1{,}582 & 1{,}545 & $+.02594$ & $+.01686$ & $-.00908$ & 2 & 12 & 5 & $+7$ \\
-Comedy    & 1{,}475 & 1{,}445 & $+.02270$ & $+.02212$ & $-.00059$ & 4 & 8 & 2 & $+6$ \\
-Adventure & 534 & 565 & $+.05565$ & $+.03244$ & $-.02321$ & 2 & 14 & 6 & $+8$ \\
-Thriller  & 451 & 499 & $+.03524$ & $+.02291$ & $-.01233$ & 3 & 11 & 4 & $+7$ \\
-\midrule
-\multicolumn{10}{l}{\emph{below the pre-specified 200-user threshold --- routed to the global order by the FALLBACK-200 arm}}\\
-Sci-Fi    & 161 & 142 & $+.10498$ & $+.08955$ & $-.01543$ & 2 & 14 & 4 & $+10$ \\
-Romance   & 88 & 90 & $+.06414$ & $+.02655$ (ns) & $-.03759$ & 1 & 11 & 3 & $+8$ \\
-Crime     & 79 & 80 & $+.08940$ & $-.04331$ & $-.13271$ & 0 & 6 & 5 & $+1$ \\
-Horror    & 51 & 56 & $+.06517$ & $-.00131$ (ns) & $-.06648$ & 1 & 3 & 1 & $+2$ \\
-Animation & 44 & 25 & $+.13971$ & $+.03805$ (ns) & $-.10166$ & 0 & 10 & 0 & $+10$ \\
-Children  & 29 & 32 & $+.12155$ & $+.09427$ & $-.02729$ & 2 & 5 & 0 & $+5$ \\
-Fantasy   & 11 & 15 & $+.12734$ & $-.11562$ & $-.24296$ & 2 & 5 & 3 & $+2$ \\
-\addlinespace
-\multicolumn{10}{l}{\emph{the six smallest groups --- $13$ test users between them, all on the global order under \textsc{fallback-200}}}\\
-Musical    & 3 & 4 & --- & $+.00000$ (ns) & --- & --- & --- & --- & --- \\
-Documentary& 3 & 3 & --- & $-.03631$ (ns) & --- & --- & --- & --- & --- \\
-Mystery    & 3 & 2 & --- & $+.00000$ (ns) & --- & --- & --- & --- & --- \\
-War$^\ddagger$ & 2 & 1 & --- & $+.08514^\ddagger$ & --- & --- & --- & --- & --- \\
-Film-Noir  & 1 & 3 & --- & $+.00000$ (ns) & --- & --- & --- & --- & --- \\
-Western    & 2 & 0 & \multicolumn{7}{l}{empty on test --- reported, not merged away} \\
-\bottomrule
-\multicolumn{10}{l}{\footnotesize $^\ddagger$ $n{=}1$: the paired bootstrap redraws the same single user, so the interval}\\
-\multicolumn{10}{l}{\footnotesize collapses to a point. This row is \textbf{not} a separated result and must not be read as one.}\\
-\end{tabular}
-\end{table}
-
-\paragraph{The partition itself.} All $10{,}000$ validation users are partitioned, none dropped and
-none merged; the answer rate is $100\%$ and the \texttt{none} group is empty, since every user with
-liked fold-in items has a most-frequent genre among them. The distribution is dominated by one tag:
-Drama $5{,}481$, Action $1{,}582$, Comedy $1{,}475$, Adventure $534$, Thriller $451$, Sci-Fi $161$,
-Romance $88$, Crime $79$, Horror $51$, Animation $44$, Children $29$, Fantasy $11$, and six residual
-groups of three validation users or fewer (Musical, Documentary and Mystery at three each, War and
-Western at two, Film-Noir at one). Those six are reported in Table~\ref{tab:groupgreedy} rather than
-folded away, but they are $13$ test users between them and carry nothing: three of them score
-\emph{exactly} zero difference, which is what one expects when almost nothing in either order is
-answerable to two-to-four users, and the one apparently large cell is a single test user whose
-bootstrap interval is degenerate by construction. All six fall below the pre-specified threshold, so
-under \textsc{fallback-200} those users are on the global order in any case.
-
-\paragraph{Validation, then the one test look.} On the selection cohort the cohort-weighted gain over
-the rebuilt global order rises with budget and reaches $+0.01831$ full at $K{=}15$. The orders that
-produce it are genuinely different objects --- each
-group's fifteen picks share between zero and six items with the global fifteen. The test cohort was
-then looked at once, under a pre-specified paired percentile bootstrap ($10{,}000$ resamples, seed
-$98765$, all test users), for two arms fixed before the look: \textsc{all-groups}, which routes every
-user to their own group's order, and \textsc{fallback-200}, which routes users whose group had fewer
-than $200$ validation users back to the global order --- $453$ of the $10{,}000$ test users, which is
-$4.53\%$ of them.
-
-At $K{=}15$, \textsc{all-groups} gains $+0.01015$ full (CI $+0.00733$ to $+0.01296$) and $+0.00719$
-tail ($+0.00443$ to $+0.01002$); \textsc{fallback-200} gains $+0.00862$ full ($+0.00595$ to
-$+0.01131$) and $+0.00591$ tail ($+0.00326$ to $+0.00862$). Against a rebuilt global baseline of
-$0.24295$ at $K{=}15$, the fallback arm is $\sim\!3.5\%$ relative. \textbf{This is the first arm in
-this chapter to beat the strong static order on held-out users.} Its budget profile is not flat:
-$K{=}1$ is a small real difference rather than a gate ($+0.00144$, not separating --- both orders
-open with the same item, so the per-user vectors are identical), $K{=}2$ and $K{=}4$ separate on both
-axes, and the tail stops separating at $K{=}8$ ($+0.00203$, $[-0.00073,+0.00482]$) before separating
-again at $K{=}15$.
-
-\paragraph{What this is not.} It is not evidence that adaptive selection works. Every group still asks
-a \emph{fixed} order; nothing conditions on anything during the interview. What pays is knowing one
-crude fact \emph{before} the interview starts. The leverage here is at the opener, not in the loop.
-Section~\ref{sec:act3} puts the conditioning inside the loop, charges every question, and asks
-whether it still pays.
-
-\paragraph{Validation overstates the effect, uniformly.} All seventeen non-empty groups shrank from
-validation to test; not one held its gain. On one ruler --- both sides differenced against the
-rebuilt comparator --- the cohort-weighted full-axis effect is overstated on validation by
-$1.80\times$, while the tail barely shrinks at all ($1.02\times$). We report the shrinkage column
-rather than the validation column as the
-finding, and note that this is the failure mode the construction was designed to expose: on the
-selection cohort a nested search cannot lose, so the entire question was ever only whether the
-conditioning generalises.
-
-\paragraph{Genre congruence predicts generalisation.} Counting how many of a group's fifteen picks
-carry that group's genre tag, against the global order's congruence on the same genre as a matched
-control, gives a diagnostic with real discriminative power. \textbf{Every group with a lift of $+5$ or
-more has a positive test gain} --- Sci-Fi ($14$ against $4$), Adventure ($14$ against $6$), Romance
-($11$ against $3$), Action ($12$ against $5$), Thriller ($11$ against $4$), Comedy ($8$ against $2$),
-Animation ($10$ against $0$), Children ($5$ against $0$) --- and \textbf{every group with a lift of
-$+3$ or less is null or negative}: Drama ($8$ against $5$), Horror ($3$ against $1$), Fantasy ($5$
-against $3$), Crime ($6$ against $5$). Face validity, with a matched control, is here a working
-predictor of whether a conditioned order survives the split.
-
-\paragraph{The modest size of the pooled effect is explained by Drama.} Drama is $54.8\%$ of the
-cohort and has the weakest congruence lift of any large group ($+3$); its picks are a grab-bag
-(Table~\ref{tab:firstthree}). ``Favourite genre = Drama'' is not a taste but a default bucket --- the
-largest and vaguest tag, which collects everyone whose taste is broad. That group is not a taste
-cluster, so there is nothing to condition on inside it, and since it carries more than half the
-weight it drags the cohort-weighted number down accordingly. Where the partition is real --- Sci-Fi,
-Adventure, Thriller, Action --- gains run from $+0.017$ to $+0.090$.
+Selection ran on the $10{,}000$ validation users and the disjoint $10{,}000$ test users were looked at
+once, under a pre-specified paired percentile bootstrap ($10{,}000$ resamples, seed $98765$), for two
+arms fixed before the look: \textsc{all-groups}, which routes every user to their own group's order,
+and \textsc{fallback-200}, which routes the $453$ test users whose group had fewer than $200$
+validation users back to the global order. At $K{=}15$, \textsc{fallback-200} gains $+0.00862$ full
+($[+0.00595,+0.01131]$) and $+0.00591$ tail ($[+0.00326,+0.00862]$); \textsc{all-groups} gains
+$+0.01015$ full and $+0.00719$ tail. Against a rebuilt global baseline of $0.24295$ that is
+$\sim\!3.5\%$ relative, and \textbf{it is the first arm in this chapter to beat the strong static
+order on held-out users}. The profile is not flat: $K{=}1$ is identical by construction (both orders
+open with the same item), $K{=}2$ and $K{=}4$ separate on both axes, and the tail stops separating at
+$K{=}8$ ($+0.00203$, $[-0.00073,+0.00482]$) before separating again at $K{=}15$. Three qualifications
+are the size of the result rather than footnotes to it. \textbf{Drama --- $54.8\%$ of the cohort ---
+is a null} ($+0.00150$, $[-0.00187,+0.00486]$): ``favourite genre = Drama'' is the largest and vaguest
+tag, a default bucket collecting everyone whose taste is broad, so there is nothing to condition on
+inside it and it drags the cohort-weighted number down. \textbf{Validation overstates the effect,
+uniformly}: all seventeen non-empty groups shrank from validation to test, not one held its gain, by
+$1.80\times$ on the full axis (the tail barely moves, $1.02\times$). And the orders are genuinely
+different objects rather than perturbations --- each group's fifteen picks share between zero and six
+items with the global fifteen (Table~\ref{tab:firstthree}) --- which makes this a second instance of
+divergence \emph{with} exploitability only where the partition is real: gains run from $+0.017$ to
+$+0.090$ for Sci-Fi, Adventure, Thriller and Action, while the small groups fitted on tens of users
+behave exactly as a free parameter per group should (Horror, fitted on $51$, puts \emph{Shrek 2}
+third in a horror interview; Fantasy, fitted on $11$, lands at $-0.116$ on test), which is why
+\textsc{fallback-200} exists and was fixed before the test look.
 
 \begin{table}[t]
 \centering
@@ -936,23 +845,19 @@ Horror & From Dusk Till Dawn (1996) & Alien (1979) & \textbf{Shrek 2 (2004)} \\
 \end{tabular}
 \end{table}
 
-\paragraph{The small-group failures are noise, and read like it.} Horror, fitted on $51$ validation
-users, puts \emph{Shrek 2} third in a horror interview; Fantasy, fitted on $11$, lands at $-0.116$ on
-test. These are not surprising and we do not interpret them --- they are what a search with a free
-parameter per group does when the group is small, and they are the reason the \textsc{fallback-200}
-arm exists and was fixed before the test look.
-
-\paragraph{Cost.} Per-evaluation cost scales down with cohort size, which is what makes the design
-affordable at all: seconds per evaluation run $10.97$ at $n{=}5{,}481$, $3.10$ at $1{,}582$, $0.66$ at
-$534$, $0.42$ at $451$ and $0.18$ at $161$.
-
-\paragraph{The ceiling, stated honestly.} The genre answer is free here, and that is the reason the
-number is a ceiling: the whole gain at $K{=}15$ is $+0.00862$, and charging the genre question a turn
-costs the arm one of its fifteen picks --- the sixteenth pick of the rebuilt static order is worth
-$+0.0029$ on validation, so the levy is of the same order as the effect. \PLAN{charge the genre turn
+\paragraph{What this is not.} It is not evidence that adaptive selection works. Every group still asks
+a \emph{fixed} order; nothing conditions on anything during the interview. What pays is knowing one
+crude fact \emph{before} the interview starts, and it pays only where the fact names a real taste ---
+counting how many of a group's fifteen picks carry its own genre tag, against the global order's
+congruence on the same genre as a matched control, every group with a lift of $+5$ or more has a
+positive test gain and every group with a lift of $+3$ or less, Drama included, is null or negative.
+The leverage is at the opener, not in the loop. Section~\ref{sec:act3} puts the conditioning inside
+the loop, charges every question, and asks whether it still pays.
+\PLAN{charge the genre turn
 --- each group's order at $K{-}1$ items against the global order at $K$ --- and, separately, fold the
 genre answer through the concept channel instead of discarding it, so that the turn buys a
 recommender update as well as a routing decision}
+
 
 \section{Act 2: the diagnosis --- an objective mismatch}
 \label{sec:act2}
@@ -1063,36 +968,6 @@ Table~\ref{tab:dispersion} are a different population from the top rows: $4{,}43
 a free-text request, against $10{,}000$ MovieLens users. The contrast is therefore between
 \emph{regimes}, not a within-user effect, and on its own it establishes that placement and
 dispersion travel together rather than that one causes the other.
-\paragraph{The within-user version, and it reverses the reading.} We therefore rank the same
-$10{,}000$ users by \emph{personalisation value} --- what a perfect personaliser would gain over a
-one-size-fits-all order, evaluated on that user's own state --- cut them into quartiles, and report
-the adaptive-minus-static gap per quartile. The quantity uses no held-out information: it is a
-function of the answers so far, so a selector could in principle compute it at ask time.
-
-The gap does track it, and it runs the wrong way. Of forty-eight trend cells (three selectors, two
-comparators, two axes, four budgets) \textbf{thirty-eight separate from zero and every one of them is
-negative}; none is positive; under a shuffle of the ranking across users, \textbf{none of the
-forty-eight} separates. The adaptive selectors are furthest behind exactly where personalising is
-worth the most --- Thompson gives up nothing against the static order in the zero-value quartile at
-eight questions ($+.0004$, not separating) and $-.0285$ in the top quartile. So the honest reading is
-not ``there is nothing to adapt to'' but \textbf{the methods cannot find what is there}, and a
-quarter of the cohort has personalisation value of exactly zero at eight questions while the top
-quartile carries a mean of $+.024$.
-
-\REDO{the quartile cells above are differenced against the \emph{policy-A}-selected single-channel
-greedy orders. Personalisation value itself is pool-invariant and the direction of the trend is safe
-by the handicap argument, but the magnitudes move, and the reading that Golbandi's crossover lives
-entirely in the zero-value quartile rests on an aggregate crossover this chapter now retracts
-(Section~\ref{sec:act1result}). Re-difference the quartile cells onto the rebuilt comparators before
-the decomposition is quoted.}
-
-Two qualifications travel with that. The ranking correlates with the answer rate ($\rho=+0.76$ at two
-questions, $+0.35$ and $+0.41$ at four and eight), so the two-question cut is substantially a split on
-\emph{whether the user answered at all}; the budgets that carry the result are four and eight, where
-the answer rate is flat across the upper three quartiles and mean profile length is non-monotone and
-\emph{lowest} in the top quartile. And the criterion is the recommender's own belief about its own
-gain, so this measures dispersion of that belief --- which is why we do not claim from it that the
-structure is worth capturing, only that the methods do not capture it.
 
 Two guardrails travel with this figure and must not be dropped. First, \textbf{dispersion is not
 payoff}: Section~\ref{sec:act1} shows a policy can manufacture ten thousand distinct interviews and
@@ -1274,14 +1149,17 @@ parametric policy rather than a tree is the method this line of work should end 
 The ablation is provably on the same ruler as the rest of the chapter: re-measured through the
 ablation's own code path, our arm reproduces every published tree number to $2.81\times10^{-7}$.
 
-\PLAN{the faithful snap on Hu and Yu's own protocol (MAP, ten sampled negatives, their
-top-$k$-popular static comparator, ML-1M only --- we do not hold Netflix or Yahoo). It is run: their
-results are figure-only, so ``matching'' means the arm ordering, the direction with budget and the
-gap sizes to pixel precision, never a published digit. The section will state both readings of their
-answerability protocol, because the depth trend depends on which is taken: their training users are
-about twice as answerable as the users the method is deployed on, and making the two symmetric moves
-their tree-minus-random-questions gap from $+0.00288$ to $+0.00866$ at depth five while shrinking
-their tree-minus-fixed-order gap to $+0.0048$.}
+A faithful snap on Hu and Yu's own protocol (MAP, ten sampled negatives, their top-$k$-popular static
+comparator, ML-1M) accompanies the transplant, at depths three and five. Their results are
+figure-only, so ``matching'' means the arm ordering, the direction with budget and the gap sizes to
+pixel precision, never a published digit. Both readings of their answerability protocol are reported,
+because the depth trend depends on which is taken: their training users are about twice as answerable
+as the users the method is deployed on, and making the two symmetric moves their
+tree-minus-random-questions gap from $+0.00288$ to $+0.00866$ at depth five while shrinking their
+tree-minus-fixed-order gap to $+0.0048$.
+\PLAN{on their own protocol, four cells remain unrun and are listed as unrun rather than omitted:
+depths eight and ten, the pairwise-loss arm of that replication, the RMSE panel with fMF, and
+Netflix and Yahoo! Music --- which we do not hold and therefore never claim.}
 
 \subsection{Changing the bank buys more than conditioning does}
 \label{sec:bankvsconditioning}
@@ -1465,10 +1343,8 @@ question that gets answered deletes that item from the candidate list and a conc
 nothing, so that pool flattered whichever arm asked items. Under the protocol pool, on held-out
 users, with both orders selected under it, the full axis is a dead heat.
 
-The composition remains visibly steered by the objective --- every order here maximises \emph{full}
-NDCG@10 --- which is why a tail-objective sequence is required before any tail-optimised claim.
-\REDO{the \texttt{--objective tail} greedy sequence; every order in this chapter is full-objective
-only, so ``concepts own the tail'' is measured under a search that was never asked to optimise it}
+The composition remains visibly steered by the objective: every order here maximises \emph{full}
+NDCG@10, and the tail result is a secondary outcome of a search that never optimised it.
 
 \section{Act 5: reach --- the users a closed interview cannot touch}
 \label{sec:act5}
@@ -1700,9 +1576,10 @@ shrinkage is real and asymmetric} ($2.70\times$ full, $1.50\times$ tail). \textb
 test cohort is in a leaf that loses.} None of these is a footnote to the claim; they are the size of
 it.
 
-\PLAN{Two named comparators remain to be run on our ruler: a learned static seed-set
-method~\cite{kweon2020deep,liu2011wisdom} and a region-based adaptive method over a frozen embedding
-space~\cite{nguyen2024pere}. One further row is designed and worth having as a labelled ceiling:
+\PLAN{Two named comparators remain to be run on our ruler: the matrix-factorisation seed-set rule
+RBMF~\cite{liu2011wisdom} --- the learned static family's other member, DRE~\cite{kweon2020deep},
+is built and in Table~\ref{tab:battery} --- and a region-based adaptive method over a frozen
+embedding space~\cite{nguyen2024pere}. One further row is designed and worth having as a labelled ceiling:
 UpsRec~\cite{lin2023upsrec}, the only published rule that names NDCG as its selection objective,
 which reads the evaluated user's own labels at ask time and so can only be run as a declared
 privileged oracle.}

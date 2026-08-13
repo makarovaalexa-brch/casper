@@ -74,9 +74,14 @@ PDF through institutional access before it goes to print.*
 
 - **Act 1 — the puzzle.** Published adaptive selectors vs a static order built by maximising the
   reported metric: all lose, every budget, held-out. Genre split closes the act as the first crack.
-- **Act 2 — the diagnosis: objective mismatch.** (a) the objective audit; (b) PV-quartile trend —
-  deficit widens where personalising pays most; (c) the direct test, TODO 1.11 rank correlation.
-  Placement/dispersion material MOVES OUT (to Act 5, as a reach diagnostic).
+- **Act 2 — the diagnosis: objective mismatch.** (a) the objective audit; (b) the criterion-regret
+  exhibit (22 nodes × ~1,000 candidates of exact measured NDCG gains) plus the split-criterion
+  ablation. **(c) PV-QUARTILE TREND: ✘ CUT FROM PAPER B (author, 2026-08-13)** — it carried a
+  comparator debt (cells differenced against policy-A-selected orders) and Act 2's argument does not
+  need it. **`docs/results/ACT2_PV_QUARTILES.md` and `ACT2_CONCEPT_BANK_PV.md` STAY ON FILE** — the
+  measurements are not retracted, they are simply not in this paper; the Act-1 stratified paragraph
+  that cross-referenced them is removed too. (d) TODO 1.11 rank correlation — to be run for Paper B,
+  but NOT NOW (see §4). Placement/dispersion material MOVES OUT (to Act 5, as a reach diagnostic).
 - **Act 3 — the demonstration.** The NDCG tree: design, val→test shrinkage (**2.70× full / 1.50×
   tail** against the clean comparator — the "tail does not shrink" 1.03× figure was a comparator
   artifact and is RETRACTED; the asymmetry survives in direction only), partition generalises,
@@ -131,11 +136,24 @@ K=1 lead of +0.00246, where conditioning is impossible.
   often — search cost is a property of the BANK, not of the budget.*
 - **A5.** Budget consistency: 16 everywhere (genre arm gets its 16th pick from the persisted heaps,
   now cheap after the `heap_path` fix; the rebuilt items order already carries its 16th pick, i135).
-- **A6 (REDO in tex).** Tail-objective greedy sequence — required before any tail-optimised claim.
+- **A6. ✂ CUT FROM PAPER B (author, 2026-08-13).** Tail-objective greedy sequence. The chapter now
+  states plainly, where the greedy orders are introduced, that every order maximises **full** NDCG@10
+  and that tail is a **secondary outcome** — which is what we did. No claim in the chapter is
+  conditioned on a tail-objective search, so the run is not owed. Do not re-add the `\REDO`.
 - **A7 (1.19).** CELF signature debt.
-- **A8.** Clean confirmatory tree evaluation logged in the exploratory/confirmatory ledger — the
-  one test shot so far had a mid-run 16th-step extension and a comparator swap (exploratory).
-  The TREE ITSELF is not regrown (author ruling: "we are NOT changing this tree").
+- **A8. ✂ CUT FROM PAPER B — author ruling 2026-08-13: no confirmatory re-run is owed, and the
+  reason it is sound is recorded here rather than in the chapter.** The tree was grown on the
+  **validation** cohort and was never modified after any test look ("we are NOT changing this tree").
+  Two things changed between the test looks and **neither was a selection decision taken on the test
+  cohort**: (i) the sixteenth question, added for **budget consistency** with every other arm in the
+  chapter (16 everywhere, A5), not because a K=15 test result disappointed; (ii) the comparator
+  rebuild (A2/A3/A4), which fixed a **provenance bug** — the static orders had been *selected* under
+  the retired policy-A mask — found by the `ndcgtree` sanity gate and the policy-A provenance audit,
+  i.e. discovered from an artifact field, independently of any test outcome, and applied uniformly to
+  every arm in the chapter including ones it hurt (it cut the tree's own tail gain from +0.02092 to
+  +0.00705 and retracted a separated interval in our favour). A fix that costs the proponent arm two
+  thirds of its headline is not test-set selection. Nothing about the tree's structure, criterion,
+  pool, depth or stopping rule was chosen with knowledge of a test number.
 - **A9 (MEASURED 2026-08-12 22:37; tex merge outstanding).** `docs/results/BATTERY_TABLE_POLICYB_ROWS.md`
   carries drop-in replacements for **both** `tab:battery` and `tab:greedy` (the latter's `emergent
   order` string changes to `c c i c c i i c c c c i i i c c`, 10 of 16 concepts), the per-pick gains,
@@ -253,10 +271,19 @@ K=1 lead of +0.00246, where conditioning is impossible.
   **Outstanding for the tex agent (owner of `chapterB_v2.tex`):** lift §C.5.1–§C.5.3; fix the
   Positioning paragraph that currently says nothing in the literature tests adaptivity against a
   metric-optimised static order (§C.2's fourth separation has been corrected in place).
-- **B2 (1.10).** RBMF snap + port (static; threatens the comparator, not the adaptive claim).
-- **B3 (task 9).** EDDI full Eq. 9 re-run.
-- **B4 (task 25).** ConUCB k=8: resolve or report UNINFORMATIVE with the b(t) schedule stated.
-- **B5 (task 10).** CLiME width-rule run — make the degeneration citable.
+**★ AUTHOR RULING 2026-08-13 — B2/B3/B4/B5 are NEEDED, BUT NOT NOW.** All four are owed for Paper B
+and none blocks the current draft; they are Act-1 completeness, not claim support. Do not drop them
+and do not schedule them ahead of workstream E.
+
+- **B2 (1.10). NEEDED, NOT NOW.** RBMF snap + port (static; threatens the comparator, not the
+  adaptive claim).
+- **B3 (task 9). NEEDED, NOT NOW.** EDDI full Eq. 9 re-run. ★ Separately and *cheaply*: the
+  three-outcome selector `eddi_ig3` is implemented but has only ever run on a 200-user smoke
+  (`SMOKE_NOT_CITABLE`), so the chapter now carries a `\REDO` saying exactly that; the contract-scale
+  run is 2–6 CPU-hours with no new code (TODO 1.3(b)) and is the cheapest debt on this list.
+- **B4 (task 25). NEEDED, NOT NOW.** ConUCB k=8: resolve or report UNINFORMATIVE with the b(t)
+  schedule stated.
+- **B5 (task 10). NEEDED, NOT NOW.** CLiME width-rule run — make the degeneration citable.
 - **B6 (1.21, SURVEY DONE 2026-08-12).** Deep-RL CRS family (CRM/EAR/SCPR/UNICORN/ConTS + the 2022–26
   successor layer) and the LLM elicitation line as AUDIT ROWS + positioning text. Evidence:
   `external_literature/findings/modern_crs_positioning.md`; chapter-ready prose and the borrow list for
@@ -293,8 +320,19 @@ K=1 lead of +0.00246, where conditioning is impossible.
 
 ## 4. Workstream C — Act 2 exhibits
 
-- **C1 (1.11, cheap, run FIRST).** Surrogate-vs-NDCG rank correlation per method per state. Turns
-  "1 of 21" from description into measurement; gates 1.15.
+- **C1 (1.11). ★ TO BE RUN FOR PAPER B, BUT NOT NOW — author, 2026-08-13.** Surrogate-vs-NDCG rank
+  correlation per method per state; turns "1 of 21" from description into measurement and gates 1.15.
+  Code is BUILT and GATED (`scripts/act2_surrogate_rank_corr.py`, phases 2/3 complete, self-tests
+  pass); cost ~12 h; the author's sign-off on the 1,000-candidate pool is recorded in TODO 1.11.
+  **Interim cover:** the Hu & Yu criterion-regret exhibit (§B1) measures the same claim at the 22
+  nodes the tree actually visits, so the chapter is not blocked on C1.
+- **C3 (NEW, author 2026-08-13). Unnormalised cohort DCG@10 as the selection criterion.** Bilgic &
+  Bennett (SIGIR'12) find DCG-loss beats NDCG-loss **for selection**, because per-query normalisation
+  drags selection toward low-IDCG queries. Our criterion is per-USER-normalised, so the same pathology
+  may apply to us. Single-factor ablation: same greedy/tree machinery, swap the scored scalar from
+  cohort-mean NDCG@10 to cohort-mean **unnormalised** DCG@10, report the resulting order and its
+  NDCG@10. **~4–6 h.** Most relevant when the parametric policy's reward is designed (workstream E) —
+  a reward that is the wrong normalisation is a defect baked into training, not a reporting choice.
 - **C2 (writing).** Rewrite Act 2 around objective mismatch; move placement/dispersion to Act 5.
 
 ## 5. Workstream D — Act 4 reframe
@@ -354,15 +392,17 @@ Staged design, gates before each promotion:
 1. **DONE:** A1 → A2 (K=1 gate) → A3 → genre re-measure → A4 → channel table + bank decomposition.
    **Next:** A9 (swap Act 1's greedy row for the rebuilt numbers). In parallel: C1 (cheap),
    D2 (done), B1(i) snap.
-2. **Then:** A5, B1(ii) ablation, B2, A6, A10.
+2. **Then:** A5, B1(ii) ablation, B2, A10. (**A6 and A8 are CUT — author, 2026-08-13.**)
 3. **Then:** E1 → E2 (→ E3 if needed), with F and writing (C2, D1, F1) interleaved.
-4. Confirmatory pass A8 + ledger before any abstract number is final.
+4. ~~Confirmatory pass A8 + ledger before any abstract number is final.~~ **CUT 2026-08-13** — see A8
+   above for the ruling and why it is sound. The ledger stays; no re-run is owed.
 
 ## 9. Not claimed / guarded
 
 - Never "adaptivity is large" — size qualifiers of §0 travel everywhere.
 - No routing/curriculum claim unless D2 separates from its control.
-- No tail-optimised claim before A6.
+- Tail is a **secondary outcome** everywhere: every order in the chapter maximises full NDCG@10
+  and no search optimises tail. State it once; do not claim a tail-*optimised* result.
 - Genre numbers remain UPPER BOUNDS — the free genre fact costs no turn — and **all 17 groups still
   shrink val→test on ONE ruler** (1.80× cohort-weighted on full), with Drama still a null.
 - Nulls are not citable (author ruling). **The pre-registered (b)≈(c) narrowing branch did NOT fire**
