@@ -1,0 +1,172 @@
+{
+  "analysis": "policy_net_E1_gates",
+  "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md",
+  "citable": true,
+  "test_touched": false,
+  "cohorts": {
+    "fit": "140,768 TRAIN users (states + frozen-tree labels; NO NDCG)",
+    "select": "10,000 VALIDATION users (real interview NDCG)"
+  },
+  "arm": "main",
+  "arch": "equivariant",
+  "state": "z",
+  "use_pos": true,
+  "best_epoch": 4,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.2873931693285365,
+      "train_top1": 0.9325152911172994,
+      "val_top1_teacher_forced": 0.8696375,
+      "val_full": 0.2766565900862943,
+      "val_tail": 0.13146330864640582,
+      "val_gain_full_vs_static": 0.021046428950271756,
+      "n_distinct_interviews": 2680,
+      "minutes": 4.74
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.023017138504503862,
+      "train_top1": 0.9941570527392589,
+      "val_top1_teacher_forced": 0.9964875,
+      "val_full": 0.28246808644362187,
+      "val_tail": 0.13337115074876404,
+      "val_gain_full_vs_static": 0.02685792530759934,
+      "n_distinct_interviews": 192,
+      "minutes": 5.05
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.03832879692650984,
+      "train_top1": 0.9922421111332121,
+      "val_top1_teacher_forced": 0.99693125,
+      "val_full": 0.2825497169866205,
+      "val_tail": 0.13408818227959945,
+      "val_gain_full_vs_static": 0.026939555850597985,
+      "n_distinct_interviews": 143,
+      "minutes": 5.1
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.013457932585857132,
+      "train_top1": 0.9967291039156626,
+      "val_top1_teacher_forced": 0.995125,
+      "val_full": 0.2828421862631176,
+      "val_tail": 0.13385393132501944,
+      "val_gain_full_vs_static": 0.02723202512709505,
+      "n_distinct_interviews": 228,
+      "minutes": 5.85
+    }
+  ],
+  "gates": {
+    "G-E1e_canonical_snap": {
+      "val_m0_full": 0.15686538118354684,
+      "expected": 0.15686538,
+      "pass": true
+    },
+    "G-E1a_fidelity": {
+      "top1": 0.995125,
+      "bar": 0.5,
+      "pass": true,
+      "by_position": [
+        1.0,
+        1.0,
+        0.9995,
+        0.9876,
+        0.9967,
+        0.9943,
+        0.9945,
+        0.9961,
+        0.9862,
+        0.9962,
+        0.9911,
+        0.999,
+        0.9954,
+        0.9954,
+        0.9963,
+        0.9937
+      ]
+    },
+    "G-E1b_gain_vs_static": {
+      "full": {
+        "mean": 0.02723202512709504,
+        "lo": 0.02424180631762067,
+        "hi": 0.030307207778476335,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.010189010259490214,
+        "lo": 0.007128407113650696,
+        "hi": 0.013386498128780514,
+        "n": 9217,
+        "excludes_zero": true
+      },
+      "comparator": "greedy_static_policyB_combined (validation, K=16)",
+      "tree_val_gain_full": 0.027939556166529655,
+      "tree_val_gain_tail": 0.010548197664320469
+    },
+    "G-E1c_anti_collapse": {
+      "n_distinct_interviews": 228,
+      "max_share": 0.1668,
+      "pep_divergence_policy": {
+        "n_pairs": 68192440,
+        "divergence_rate": 0.6731180758453577
+      },
+      "pep_divergence_tree": {
+        "n_pairs": 68571148,
+        "divergence_rate": 0.6636982656320702
+      },
+      "bar": "> 3 distinct interviews AND divergence >= the tree's own",
+      "pass": true
+    },
+    "covariate_shift": {
+      "mean_first_deviation_position": 15.4757,
+      "frac_never_deviates": 0.9381,
+      "deviation_position_histogram": [
+        0,
+        0,
+        5,
+        123,
+        29,
+        56,
+        50,
+        33,
+        122,
+        30,
+        63,
+        2,
+        24,
+        21,
+        19,
+        42,
+        9381
+      ]
+    },
+    "channel_mix": {
+      "policy_concept_share": 0.54566875,
+      "tree_concept_share": 0.54570625
+    }
+  },
+  "static_val": {
+    "full": 0.25561016113602253,
+    "tail": 0.12366492106552922
+  },
+  "policy_val": {
+    "full": 0.2828421862631176,
+    "tail": 0.13385393132501944
+  },
+  "tower": "t2i26c_ep31.pt",
+  "conc_ckpt": "concept_cv3_ep08.pt",
+  "mask_policy": "B",
+  "pool_contract": {
+    "v": 1,
+    "policy": "B",
+    "n_rows": 10000,
+    "n_items": 18359,
+    "nnz": 1356475,
+    "per_user": 135.6475,
+    "fp": "c282962b49a2d67ef47ff07544519f20"
+  },
+  "minutes": 22.02
+}

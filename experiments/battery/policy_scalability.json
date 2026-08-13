@@ -165,5 +165,10 @@
     "n": 10000,
     "excludes_zero": true
   },
+  "answer_rate_1000_pool": 0.57889375,
+  "answer_rate_full_catalogue": 0.41394375,
+  "answer_rate_of_in_pool_picks": 0.5523336785344427,
+  "answer_rate_of_out_of_pool_picks": 0.09091856297407686,
+  "channel_mix_full_catalogue": 0.37931875,
   "note": "The catalogue arm is a DIFFERENT action space from the tree's, so its NDCG is not comparable to the tree's headline and is reported as a description of what the policy does when the vocabulary is opened, not as a gain against any comparator."
 }

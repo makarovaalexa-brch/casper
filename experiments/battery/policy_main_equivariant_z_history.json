@@ -1,0 +1,55 @@
+{
+ "analysis": "policy_net_E1",
+ "arm": "main",
+ "arch": "equivariant",
+ "state": "z",
+ "use_pos": true,
+ "history": [
+  {
+   "epoch": 1,
+   "train_loss": 0.2873931693285365,
+   "train_top1": 0.9325152911172994,
+   "val_top1_teacher_forced": 0.8696375,
+   "val_full": 0.2766565900862943,
+   "val_tail": 0.13146330864640582,
+   "val_gain_full_vs_static": 0.021046428950271756,
+   "n_distinct_interviews": 2680,
+   "minutes": 4.74
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.023017138504503862,
+   "train_top1": 0.9941570527392589,
+   "val_top1_teacher_forced": 0.9964875,
+   "val_full": 0.28246808644362187,
+   "val_tail": 0.13337115074876404,
+   "val_gain_full_vs_static": 0.02685792530759934,
+   "n_distinct_interviews": 192,
+   "minutes": 5.05
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.03832879692650984,
+   "train_top1": 0.9922421111332121,
+   "val_top1_teacher_forced": 0.99693125,
+   "val_full": 0.2825497169866205,
+   "val_tail": 0.13408818227959945,
+   "val_gain_full_vs_static": 0.026939555850597985,
+   "n_distinct_interviews": 143,
+   "minutes": 5.1
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.013457932585857132,
+   "train_top1": 0.9967291039156626,
+   "val_top1_teacher_forced": 0.995125,
+   "val_full": 0.2828421862631176,
+   "val_tail": 0.13385393132501944,
+   "val_gain_full_vs_static": 0.02723202512709505,
+   "n_distinct_interviews": 228,
+   "minutes": 5.85
+  }
+ ],
+ "test_touched": false,
+ "selection": "real interview NDCG on 10,000 val users"
+}

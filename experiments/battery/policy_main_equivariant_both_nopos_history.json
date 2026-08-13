@@ -1,0 +1,44 @@
+{
+ "analysis": "policy_net_E1",
+ "arm": "main",
+ "arch": "equivariant",
+ "state": "both",
+ "use_pos": false,
+ "history": [
+  {
+   "epoch": 1,
+   "train_loss": 0.21288901587678793,
+   "train_top1": 0.9638714054330529,
+   "val_top1_teacher_forced": 0.9998,
+   "val_full": 0.283569773543972,
+   "val_tail": 0.13422816486677458,
+   "val_gain_full_vs_static": 0.027959612407949475,
+   "n_distinct_interviews": 38,
+   "minutes": 6.19
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.06644790711558408,
+   "train_top1": 0.9901100569731757,
+   "val_top1_teacher_forced": 0.99999375,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "val_gain_full_vs_static": 0.027939557118932534,
+   "n_distinct_interviews": 16,
+   "minutes": 6.31
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.054054443797038526,
+   "train_top1": 0.9922554309218005,
+   "val_top1_teacher_forced": 0.99999375,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "val_gain_full_vs_static": 0.027939557118932534,
+   "n_distinct_interviews": 16,
+   "minutes": 6.36
+  }
+ ],
+ "test_touched": false,
+ "selection": "real interview NDCG on 10,000 val users"
+}

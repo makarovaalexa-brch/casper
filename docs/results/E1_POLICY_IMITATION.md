@@ -1,8 +1,14 @@
 # E1 — THE PARAMETRIC POLICY: imitating the frozen NDCG tree
 
-**Status: IN PROGRESS.** Steps 0 and 1 are done and reported below with their gates. Steps 2–4
-(training, the promotion gates, the scalability demonstration) follow in this same document as they
-land. Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` — Part D is Fable's architecture review and
+**Status: E1 COMPLETE (validation only; no test look taken). 2026-08-13.**
+
+**One-line verdict: every E1 gate passes, and the policy is an *exact* functional replica of the tree
+on the validation cohort — top-1 1.0000 at every position, the same 15 realised interviews, the same
+gain to 1e-9, zero deviations. E1 buys no gain (it was never meant to); what it buys is the licence for
+E2, one measured design consequence for E2's DAgger step, and a demonstrated — and honestly
+priced — open-vocabulary head.**
+
+Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` — Part D is Fable's architecture review and
 **D.6b is the author's binding cohort ruling**; where Part D contradicts Parts A–C, D wins.
 
 > **AUTHOR SAID (2026-08-13):** *"plz start on policy and tell me eta"*
@@ -239,3 +245,183 @@ to learn a lookup from an explicitly-provided path to one of 15 tails — and 2.
 label questions is far more than enough. The genuine open question — whether the tower latent `z_t`
 *alone* carries the branch path, i.e. whether it is a sufficient statistic for question selection — is
 the `--state z` ablation, reported below.
+
+### 2.5 G-E1d — the shuffle control (HARD RULE 5)
+
+Same states, same architecture, same optimiser, same budget; **only the target moves**: the label at
+each (user, position) is another user's label *at the same position*, so the state→label association is
+destroyed while the position's label marginal is preserved. (A global shuffle would also destroy the
+marginal, which would hand the control an implausible label distribution and make it easy to beat —
+this is the harder, fairer control, and it still fails.)
+
+| | main | shuffle |
+|---|---|---|
+| train loss | 0.0002 | 2.2268 |
+| val top-1 (teacher-forced) | **1.0000** | **0.2356** |
+| val full @ K=16 | 0.28355 | 0.24072 |
+| **gain vs static, paired CI** | **+0.02794 [+0.02493, +0.03099]** | **−0.01489 [−0.01803, −0.01172]** |
+| Pep divergence | 0.66370 (= the tree's) | 0.22992 (tree: 0.66370) |
+| channel mix, concept share | 0.5457 (= the tree's) | 0.3901 |
+
+**✅ G-E1d PASSES: the shuffled arm does not clear G-E1b — it lands significantly BELOW the static
+order.** Two details worth keeping. Its position-0 agreement is 1.0000 by construction (every user's
+first question is concept 114, so permuting within position 0 changes nothing), and its position-1
+agreement is 0.4814 — exactly the share of users in `root.dislike`, i.e. it learned the label marginal
+and nothing else. That is what "learned nothing about the state" looks like when the marginal is
+preserved.
+
+### 2.6 The state-encoding ablation — is the tower latent a sufficient statistic?
+
+Design sheet A.8 owes this: `z` only vs history only vs both. The interesting cell is **`z` only** —
+does the recommender's own belief carry what question to ask next, or does the explicit ternary history
+carry something `z` structurally discards?
+
+| | `both` (z + explicit ternary history) | **`z` only** |
+|---|---|---|
+| val top-1 (teacher-forced) | 1.0000 | **0.9951** |
+| val full @ K=16 | 0.28355 | 0.28284 |
+| gain vs static | +0.02794 [+0.02493, +0.03099] | **+0.02723 [+0.02424, +0.03031]** |
+| tail gain | +0.01055 | +0.01019 |
+| distinct realised interviews | 15 | 228 |
+| users who ever deviate from the tree | **0.00%** | **6.19%** |
+| channel mix, concept share | 0.54571 | 0.54567 |
+
+**Reading: the tower latent is very nearly, but not exactly, a sufficient statistic for question
+selection.** Dropping the explicit answer history costs **0.49 percentage points of top-1** and about
+**3.6% of the conditioning gain** (+0.02723 against +0.02794) — a real but small residual, and both
+arms' CIs overlap heavily, so the ablation does **not** separate on NDCG. The honest sentence is *"`z`
+alone recovers 99.5% of the tree's decisions and 97% of its gain"*, not *"the history is unnecessary"*
+and not *"the history is load-bearing"*.
+
+### 2.7 The like-for-like variant — no position / budget feature (A.4)
+
+Design sheet A.4 flags an asymmetry to declare rather than smooth over: the tree is budget-unaware, and
+giving the policy `t` and `16 − t` is a real extra input. Both variants were therefore run.
+
+| | with position/budget | **without (like-for-like)** |
+|---|---|---|
+| val top-1 | 1.0000 | 0.9998 |
+| gain vs static, full | +0.02794 [+0.02493, +0.03099] | **+0.02796 [+0.02495, +0.03101]** |
+| gain vs static, tail | +0.01055 | +0.01056 |
+| distinct interviews / divergence | 15 / 0.66370 | 38 / 0.66400 |
+
+**The extra input buys nothing measurable** (+0.02796 vs +0.02794, CIs essentially coincident), which
+is unsurprising once stated: the explicit history already contains `n_asked`, so the position is
+recoverable. **The like-for-like number is the one to quote, and it is the same number.** The
+asymmetry named in A.4 is therefore closed, not merely declared.
+
+There is one genuinely useful by-product: **the `z`-only arm is the only arm that leaves the tree's
+trajectory manifold at all** (6.19% of users, first deviating anywhere from position 2 onward). If E2
+wants off-tree states cheaply before its DAgger loop exists, a deliberately imperfect imitator is a
+source of them.
+
+---
+
+## Step 4 — the scalability demonstration, and what it actually showed
+
+Trained on 1,000 candidates; at inference the **full 18,359-item + 1,031-concept catalogue (19,390
+candidates)** is scored in one forward pass, **with no retraining**, using the *training* pool's
+descriptor standardisation. This is the author's stated motive made measurable, and per D.4/A.11 the
+mechanism claim stands independently of whether any gain separates. A 1,000-way head could not run
+this experiment at all.
+
+### 4.1 The mechanism works
+
+| | |
+|---|---|
+| candidates scored at inference | **19,390** (trained on 1,000) |
+| questions picked from OUTSIDE the training pool | **29.99%** of all 160,000 asked questions |
+| distinct never-trained questions actually asked | **189** |
+| users who receive at least one out-of-pool question | **82.31%** |
+| out-of-pool rate by position | 0.00 at k=1–3, then 0.08 / 0.26 / 0.27 / 0.20 / 0.37 / 0.22 / 0.49 / 0.47 / 0.46 / 0.43 / 0.44 / 0.55 / **0.57 at k=16** |
+
+The policy really does score and select candidates it never saw a gradient for, and it does so more as
+the interview deepens (the early questions, where the tree's signal is strongest, stay in-pool).
+
+### 4.2 And it costs NDCG — here is exactly why
+
+| | 1,000-candidate pool | full catalogue |
+|---|---|---|
+| val full NDCG@10 @ K=16 | 0.28355 | **0.26321** |
+| val tail NDCG@10 @ K=16 | 0.13421 | 0.12181 |
+| paired difference (catalogue − pool) | — | **−0.02034 [−0.02236, −0.01837]**, excludes zero |
+| interview answer rate | 0.5789 | **0.4139** |
+| answer rate of the IN-pool picks | — | 0.5523 |
+| **answer rate of the OUT-of-pool picks** | — | **0.0909** |
+| concept share of picks | 0.5457 | 0.3793 |
+
+**The mechanism is not mysterious and it is this chapter's own thesis pointed at itself.** The
+1,000-candidate pool is the top-500 items *by popularity* and the top-500 concepts *by answer rate*, so
+everything outside it is, by construction, less answerable. The out-of-pool picks are answered
+**9.1%** of the time against **55.2%** for in-pool picks — the qualitative look confirms it: the most
+frequently chosen never-trained questions are items at popularity ranks 752 … 12,852 (*It's Such a
+Beautiful Day* (2011), rank 6,971, 2,320 picks; *Everything Will Be OK* (2006), rank 8,332; *Masquerade*
+(2012), rank 12,852) and concepts with answer rates 0.27–0.52. A burned turn costs the interview a
+question, so an interview that spends 30% of its budget on questions nobody can answer scores less.
+
+**The honest statement, and it is two sentences, not one:**
+
+> The dot-product head generalises **mechanically** to an unseen vocabulary exactly as designed — 19,390
+> candidates in one forward pass, 189 never-trained questions actually selected, no retraining. But the
+> value it assigns to a never-trained candidate is **not** calibrated: E1's supervision is a one-hot
+> over a pool of pre-filtered *answerable* candidates, so nothing in the training signal ever taught the
+> policy that an unseen question is usually unanswerable, and opening the vocabulary costs
+> **−0.0203 [−0.0224, −0.0184]** of full NDCG@10.
+
+That is a **weak-method** result in the HARD RULE 6 sense, and the fix is legible rather than
+speculative: the descriptor already carries popularity and answer rate, so what is missing is a
+training signal that *prices* them — E2's per-state measured labels over a wider candidate set, or
+simply extending the label pool. It is not evidence that open-vocabulary selection cannot work, and it
+must not be written as if it were.
+
+---
+
+## What E1 settles, and what it licenses
+
+**Settled, on 10,000 held-out validation users, every number paired-bootstrapped, every control run:**
+
+1. **The observable interview state carries the tree's policy completely.** Top-1 agreement 1.0000 at
+   every position; the policy's own rollout reproduces the tree's 15 interviews and its validation gain
+   to 1e-9. The June 2026 failure mode (clone at 14%, collapse to one fixed 17-item list) does not
+   recur, and the June calibration bar (49% was the teacher that worked) is cleared by a factor of two.
+2. **A single set of 526,542 parameters replaces a 22-node recursive partition with no loss.** That is
+   the amortisation claim, and it is now measured rather than argued.
+3. **The tower latent alone recovers 99.5% of the decisions and 97% of the gain.** Not a sufficient
+   statistic, but close, and the two arms do not separate on NDCG.
+4. **The head is vocabulary-agnostic in the way the author asked for** — 19,390 candidates in one
+   forward pass, 189 never-trained questions selected — **and the value it puts on an unseen candidate
+   is not yet calibrated**, costing −0.0203 full NDCG when the vocabulary is opened.
+5. **The shuffle control fails every gate**, so none of the above is an instrument artefact.
+
+**What it does NOT show, stated so nobody later reads it that way:** E1 produces **no gain over the
+tree**, and was never designed to (design sheet A.0: "E1 is not a contribution on its own"). It is the
+instrument check that licenses E2. The +0.02794 in these tables is the *tree's* number re-earned by a
+different mechanism.
+
+**The one design consequence, and it is the most useful thing E1 produced:**
+
+> **A perfect imitator never leaves the teacher's trajectory manifold.** `frac_never_deviates = 1.0000`
+> on all 10,000 validation users. So E1 cannot exhibit the Ross & Bagnell covariate shift that D.6b
+> named as the known gap — and, more importantly, **running the trained policy to harvest the states it
+> visits would harvest the tree's own states back**. E2's DAgger step is therefore not a robustness
+> patch bolted onto the label generator: it is the only mechanism in the design that can produce an
+> off-tree state at all, and the labeller must be driven to states chosen deliberately (below the
+> floor stops, per `TREE_DEPTH_AND_MINLEAF.md`) rather than states the policy happens to wander into.
+> A deliberately imperfect imitator — the `z`-only arm, 6.19% deviation — is the cheapest available
+> source of genuinely off-tree states if one is wanted before E2's labeller exists.
+
+**Not taken, and not to be taken without a separate decision: the test look.** E1 reports validation
+only. Nothing here has touched the 10,000 test users.
+
+## Artifacts
+
+| what | where |
+|---|---|
+| trajectory bank (2.25M examples, contract-signed manifest) | `experiments/battery/policy_traj/` |
+| Step-0 probe | `experiments/battery/policy_traj/step0_probe.json` |
+| main arm gates + per-user vectors | `experiments/battery/policy_main_equivariant_both_gates.json` (+ `_per_user.npz`) |
+| shuffle control | `experiments/battery/policy_shuffle_equivariant_both_gates.json` |
+| `z`-only ablation | `experiments/battery/policy_main_equivariant_z_gates.json` |
+| no-position ablation | `experiments/battery/policy_main_equivariant_both_nopos_gates.json` |
+| scalability | `experiments/battery/policy_scalability.json` |
+| code | `src/instrument/train_split.py`, `policy_traj.py`, `policy_net.py`; `genv_latent` in `strategy_channel_suite.py`; `branch_of_per_user` in `ndcg_tree.py` |
