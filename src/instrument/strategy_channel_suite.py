@@ -32,7 +32,15 @@ Usage:
 import os
 import sys
 _FULL = "--full_threads" in sys.argv
+# `--threads N` overrides both. This box is a 4-PHYSICAL-core i7-7820HQ reporting 8 logical, so
+# `--full_threads` (= os.cpu_count() = 8) oversubscribes it whenever anything else is alive; the
+# measured remedy on 2026-08-13 was 6. The number is a property of THIS box on THIS night, not of
+# any method.
 _NT = str(os.cpu_count()) if _FULL else "4"
+if "--threads" in sys.argv:
+    _i = sys.argv.index("--threads")
+    if _i + 1 < len(sys.argv) and sys.argv[_i + 1].isdigit():
+        _NT = sys.argv[_i + 1]
 os.environ["OMP_NUM_THREADS"] = _NT
 os.environ.setdefault("OPENBLAS_NUM_THREADS", _NT)
 os.environ.setdefault("MKL_NUM_THREADS", _NT)

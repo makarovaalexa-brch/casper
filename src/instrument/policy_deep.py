@@ -408,6 +408,8 @@ def main():
     ap.add_argument("--concept_ckpt", default=None)
     ap.add_argument("--full_threads", action="store_true",
                     help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv)")
+    ap.add_argument("--threads", type=int, default=None,
+                    help="thread count, consumed by strategy_channel_suite AT IMPORT")
     args = ap.parse_args()
     assert args.split == "validation", "FIREWALL: this file never touches the test cohort"
     if args.mode == "labels":

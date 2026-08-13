@@ -470,6 +470,9 @@ def main():
     ap.add_argument("--full_threads", action="store_true",
                     help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv). The BLAS "
                          "env vars must ALSO be exported by the launcher BEFORE python starts.")
+    ap.add_argument("--threads", type=int, default=None,
+                    help="thread count, consumed by strategy_channel_suite AT IMPORT. Overrides "
+                         "--full_threads. 4 physical cores on this box: 6 is the measured setting.")
     args = ap.parse_args()
 
     assert args.split == "validation", "FIREWALL: this file never touches the test cohort"

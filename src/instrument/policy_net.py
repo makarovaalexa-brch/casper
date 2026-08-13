@@ -984,6 +984,8 @@ def main():
     ap.add_argument("--concept_ckpt", default=None)
     ap.add_argument("--full_threads", action="store_true",
                     help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv)")
+    ap.add_argument("--threads", type=int, default=None,
+                    help="thread count, consumed by strategy_channel_suite AT IMPORT")
     ap.add_argument("--i_have_author_goahead", action="store_true",
                     help="required to train.")
     ap.add_argument("--scale", action="store_true",
