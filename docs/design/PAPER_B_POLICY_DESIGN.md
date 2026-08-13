@@ -805,6 +805,22 @@ zero gradient use, that is expected, not a defect.
   remain a fallback only, behind a ~5 h two-cohort argmax-agreement calibration check, if E2
   provably plateaus on label count.
 
+**Example generation (confirmed with the author 2026-08-13):** applying the tree to a train user
+yields one deterministic 16-question trajectory (≤5 branch questions, then the leaf's greedy tail),
+and **every prefix is a training example** — 16 (state → next-question) pairs per user, one at every
+interview length 0…15, the empty state included. Over 140,768 train users: **~2.25M examples**
+(vs 160k from val), uniform over lengths, answers from the user's own ratings via the standard
+answerability rule.
+
+**The known gap, named:** every one of those states lies ON the tree's own trajectories (one
+deterministic path per user). The first time the trained policy deviates mid-interview it lands in a
+state that was never labelled, where errors compound — Ross & Bagnell covariate shift; June's BC
+collapse is the local precedent. Containment: (a) E1 tolerates it by design (a high-fidelity
+imitator rarely deviates); (b) **E2's kernel labeller IS the DAgger step** — run the trained policy
+on train users, collect the states *it* visits (off-tree included), label them with the
+kernel-weighted estimate measured on val. The covariate-shift fix and the licence to exceed the
+teacher are the same loop.
+
 ## D.7 Decisions requested from the author
 
 1. **Head:** adopt the query-vector (dot-product) head as E1's primary, deep-pairwise + pointer as
