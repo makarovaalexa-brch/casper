@@ -211,17 +211,43 @@ The design sheet projected **3.3 h** for the 42-state sweep, from the measured f
 `s/eval = 0.0858 + 0.8157·(n/1000)` (R² = 0.985 over all 22 real tree nodes). `--cost_only` reproduced
 it exactly: **42 states, 41,834 evaluations, 3.3 h**.
 
-**Measured reality: 0.70–0.74 s/eval on a 223-user state against 0.27 predicted — a stable 2.6×.**
+**REFIT over the first 5 completed states, spanning n = 124 … 1,438 users:**
 
-The fit was calibrated on the tree's nodes, which are mostly **large**; phase 3's states have a median
-of **154 users**, so almost all of their cost is the per-evaluation *fixed overhead* — exactly the term
-a large-node fit constrains worst. **The realistic figure is 8–9 h, not 3.3 h.** Threads were left at
-6: CPU sits at ~73%, so threads are not the binding constraint, and tuning a setting mid-run to improve
-a quoted cost is not a measurement.
+| state | n users | candidates | wall | s/eval |
+|---|---|---|---|---|
+| `root.noanswer.noanswer.dislike@3` | 124 | 997 | 3.6 m | 0.2166 |
+| `root.noanswer.noanswer.like@3` | 223 | 997 | 8.1 m | 0.4875 |
+| `root.like.noanswer.dislike@3` | 567 | 997 | 16.2 m | 0.9749 |
+| `root.like.noanswer.like@3` | 652 | 997 | 18.9 m | 1.1374 |
+| `root.noanswer.noanswer.noanswer@3` | 1,438 | 997 | 38.7 m | 2.3290 |
 
-> **Rule:** a cost model fitted on large cohorts underestimates a sweep over many small ones, because
-> the intercept is the term it constrains worst. Costs are properties of this box on this night, never
-> of the method.
+> **refit:  `s/eval = 0.0857 + 1.5703 · (n/1000)`,  R² = 0.9971**
+> **banked: `s/eval = 0.0858 + 0.8157 · (n/1000)`**  (fitted on the tree's 22 nodes)
+
+**Intercept ratio 1.00×. Slope ratio 1.93×.** Projected total **5.4 h** against the banked model's
+3.3 h.
+
+### ★ The earlier diagnosis in this section was WRONG, and the correction is the interesting part
+
+I first wrote that a large-node fit understates a small-node sweep *because the intercept is the term
+it constrains worst*. That is false, and the refit falsifies it cleanly: **the intercept reproduces to
+three significant figures (0.0857 vs 0.0858)**. It is the **per-user slope** that is nearly double.
+
+The two terms are different physics. The intercept is fixed per-evaluation Python and setup work,
+which does not parallelise — and it reproduces exactly. The slope is the per-user work (decoder matmul
+over 18,359 items, the NDCG reduction), which is the BLAS-parallel part — and it is the part that
+moved. The banked runs used `--full_threads` (8 logical); this sweep runs at 6. That is consistent in
+*direction*, but 8/6 = 1.33 does not account for 1.93, so **thread count is at most part of it and the
+mechanism is not fully established.** Reported as measured, not explained away.
+
+Threads were left at **6** as briefed. Switching to 8 could in principle recover up to ~1.1 h of the
+remaining time, since the slope term is ~82% of the total — but a hyperthreaded gain on 4 physical
+cores is usually well under its 1.33 ceiling, and changing a setting mid-run would make the quoted
+cost incomparable to the number above.
+
+> **Rule (corrected):** when a cost model transfers badly, refit it and look at **which term** moved.
+> A matching intercept with a doubled slope is a different diagnosis, and a different fix, from the one
+> I first wrote down. Costs are properties of this box on this night, never of the method.
 
 ---
 
