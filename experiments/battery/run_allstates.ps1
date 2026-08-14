@@ -40,11 +40,11 @@ if (Heavy) { "=== REFUSING: busy again at launch ===" | Out-File -Append $log; e
 
 "=== (a) STARTING conditional-value arm $(Get-Date -Format 'HH:mm:ss') ===" | Out-File -Append $log
 & $py src/instrument/lift_head.py --meanvec --no_ceiling --label _cond `
-    --threads 8 --full_threads --i_have_author_goahead *> $B\conditional.log
+    --threads 6 --full_threads --i_have_author_goahead *> $B\conditional.log
 "=== (a) exit=$LASTEXITCODE at $(Get-Date -Format 'HH:mm:ss') ===" | Out-File -Append $log
 
 if (-not (WaitIdle)) { "=== GAVE UP before (b) ===" | Out-File -Append $log; exit 1 }
 "=== (b) STARTING 245-state refit $(Get-Date -Format 'HH:mm:ss') ===" | Out-File -Append $log
 & $py src/instrument/lift_head.py --allstates --lift_seeds 3 --lift_epochs 60 --lift_lr 1e-4 `
-    --threads 8 --full_threads --i_have_author_goahead *> $B\allstates.log
+    --threads 6 --full_threads --i_have_author_goahead *> $B\allstates.log
 "=== (b) exit=$LASTEXITCODE at $(Get-Date -Format 'HH:mm:ss') ===" | Out-File -Append $log

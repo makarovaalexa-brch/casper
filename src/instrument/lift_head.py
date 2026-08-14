@@ -1495,13 +1495,55 @@ def run_allstates(args):
             f"[{loso[-1]['spearman_min']:+.4f}, {loso[-1]['spearman_max']:+.4f}] | "
             f"mean argmax rank {loso[-1]['rank_of_argmax']:.0f}/{len(pk['cand'])}")
     rho_mean = float(np.mean([r["spearman"] for r in loso]))
+
+    # ---- ★ COHORT-SIZE STRATIFICATION (phase 3's overfitting signature) -----------------------
+    # Phase 3 measured Spearman(n_users, gain) = -0.724 on the deep labels: SMALLER cohorts report
+    # LARGER gains, monotonically, which is the signature of NOISE rather than value. 27 of its 42
+    # states sit under the 200-user min-leaf floor. A value model fitted on small noisy states will
+    # look better than one fitted on the reliable large ones -- the same trap in a new coat -- so the
+    # training material is characterised by cohort size here, and any run that includes below-floor
+    # states must report the above-floor subset separately.
+    MIN_LEAF = int(tr.get("min_leaf", 200))
+    ns = np.asarray([m["n_users"] for m in meta.values()], np.float64)
+    gm = np.asarray([float(np.mean(np.abs(packs[nm]["target_gain"]))) for nm in meta], np.float64)
+    rho_size_gain = spearman(ns, gm)
+    above = [nm for nm in meta if meta[nm]["n_users"] >= MIN_LEAF]
     log("=" * 100)
+    log(f"[stratify] training states by cohort size: {len(above)}/{len(meta)} at or above the "
+        f"{MIN_LEAF}-user min-leaf floor; {len(meta) - len(above)} below it")
+    log(f"[stratify] Spearman(n_users, mean |gain|) over the TRAINING states = {rho_size_gain:+.4f} "
+        f"(phase 3 measured {-0.724:+.3f} on the deep labels -- strongly negative means smaller "
+        f"cohorts report larger gains, i.e. noise, not value)")
     log(f"[STATE DIVERSITY] {len(packs)} training states -> mean held-out Spearman {rho_mean:+.4f}")
     log(f"[STATE DIVERSITY]   7 clean states  : +0.0623   (the gate run)")
     log(f"[STATE DIVERSITY]  22 states        : +0.0819")
     log(f"[STATE DIVERSITY] {len(packs):3d} states        : {rho_mean:+.4f}")
     log(f"[STATE DIVERSITY] parameter-free mean of 6 vectors: +0.4163 -- the bar to beat, and the "
         f"gate is {RHO_GATE:+.2f}")
+
+    # ---- the same LOSO, trained ONLY on states at or above the min-leaf floor ------------------
+    loso_above = []
+    if not args.no_stratify and len(above) >= 8:
+        for nid, evname in eval_names.items():
+            pk = packs[evname]
+            trp = [packs[nm] for nm in above if nm != evname]
+            per_seed = []
+            for sd in seeds:
+                m, h, bep = fit_lift(trp, d_z, phi_t.shape[1], args,
+                                     f"abovefloor{len(trp)}-{nid}-s{sd}", seed=sd)
+                c = composed(m, pk, offset=args.v_offset).numpy()
+                per_seed.append({"seed": sd, "spearman": spearman(c, pk["target_gain"])})
+            rho = [x["spearman"] for x in per_seed]
+            loso_above.append({"held_out_state": nid, "n_train_states": len(trp),
+                               "spearman": float(np.mean(rho)),
+                               "spearman_min": float(np.min(rho)),
+                               "spearman_max": float(np.max(rho))})
+            log(f"[LOSO/above-floor {nid}] {len(trp)} training states -> "
+                f"{loso_above[-1]['spearman']:+.4f} "
+                f"[{loso_above[-1]['spearman_min']:+.4f}, {loso_above[-1]['spearman_max']:+.4f}]")
+        log(f"[stratify] above-floor-only mean held-out Spearman "
+            f"{np.mean([r['spearman'] for r in loso_above]):+.4f} vs pooled {rho_mean:+.4f} "
+            f"-- if pooled > above-floor, the extra states are helping via NOISE, not value")
 
     out = {"analysis": "lift_head_all_banked_states", "design_sheet":
            "docs/design/PAPER_B_POLICY_DESIGN.md PART F", "citable": True, "test_touched": False,
@@ -1514,6 +1556,19 @@ def run_allstates(args):
            "reference_parameter_free_mean": 0.4163,
            "F2_gate_bar": RHO_GATE, "F2_gate_pass": bool(rho_mean >= RHO_GATE),
            "state_meta": meta, "lift_seeds": args.lift_seeds, "lift_epochs": args.lift_epochs,
+           "min_leaf": MIN_LEAF,
+           "n_train_states_above_floor": len(above),
+           "n_train_states_below_floor": len(meta) - len(above),
+           "spearman_n_users_vs_mean_abs_gain": rho_size_gain,
+           "loso_above_floor_only": loso_above,
+           "loso_above_floor_mean_spearman": (float(np.mean([r["spearman"] for r in loso_above]))
+                                              if loso_above else None),
+           "stratification_note": (
+               "phase 3 measured Spearman(n_users, gain) = -0.724 on the deep labels: smaller cohorts "
+               "report larger gains, monotonically, which is the signature of noise rather than value, "
+               "and 27 of its 42 states sit under the 200-user floor. A model fitted on small noisy "
+               "states will look better than one fitted on reliable large ones, so the above-floor "
+               "subset is refitted and reported separately rather than pooled."),
            "bias_note": ("every level>0 entry is a CELF SURVIVOR -- the high-gain candidates were "
                          "popped first, so these states are enriched for LOW gains. That is "
                          "truncation on the dependent variable. Evaluation is therefore only ever "
@@ -1537,6 +1592,8 @@ def main():
     ap.add_argument("--ceiling_seeds", type=int, default=3,
                     help="noise draws per accuracy level; a single draw is a point estimate of a "
                          "noisy thing and this decision must not rest on one")
+    ap.add_argument("--no_stratify", action="store_true",
+                    help="skip the above-min-leaf-floor-only refit")
     ap.add_argument("--allstates", action="store_true",
                     help="refit the value head on EVERY banked state; evaluate LOSO on "
                          "the 7 COMPLETE states only")
@@ -1568,7 +1625,9 @@ def main():
     ap.add_argument("--no_rollout", action="store_true")
     ap.add_argument("--no_survivor_arm", action="store_true",
                     help="skip the 22-state secondary arm (complete + survivor-biased)")
-    ap.add_argument("--threads", type=int, default=0)
+    ap.add_argument("--threads", type=int, default=6,
+                    help="STANDING SETTING: 6 on this box. 8 compute threads on 4 physical "
+                         "cores is the oversubscription that cost ~2.5x on 2026-08-12.")
     ap.add_argument("--snapshot", default=None)
     ap.add_argument("--concept_ckpt", default=None)
     ap.add_argument("--full_threads", action="store_true")
