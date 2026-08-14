@@ -415,7 +415,16 @@ def apply_deep_labels(D, path, pool, shuffle=False, seed=SEED):
     lab = np.asarray(D["label_idx"], np.int64).copy()
     outc = np.asarray(D["outcome"], np.int64)
     leaf = np.asarray(D["leaf"], np.int64)
+    # A (leaf, branch) can legitimately have NO measured state: on validation the branch was empty
+    # (the splitter's answer rate is 1.000, so the did-not-answer child has no users) and the sweep
+    # therefore never scored it. TRAIN is a different population and does put users there. Those users
+    # have no measured question for their state, so they FALL THROUGH to the parent's tail -- they
+    # keep the tree's label. The assert is not loosened; the empty branch is made representable, and
+    # the fall-through is counted and reported rather than being silent.
+    declared_missing = {(r["leaf"], int(r["branch_idx"]))
+                        for r in dl.get("branches_without_a_measured_state", [])}
     n_rep, pos_hist = 0, np.zeros(TOTAL_L, np.int64)
+    n_fallthrough, fallthrough_detail = 0, []
     for li, nid in enumerate(leaf_ids):
         d = depth[nid]
         assert d + 1 < TOTAL_L, f"leaf {nid} is at depth {d}; there is no position {d + 1}"
@@ -425,10 +434,19 @@ def apply_deep_labels(D, path, pool, shuffle=False, seed=SEED):
             if not mm.any():
                 continue
             g = gmap.get((nid, br))
-            assert g is not None, f"no deep label for leaf {nid} branch {br}"
+            if g is None:
+                assert (nid, br) in declared_missing, (
+                    f"no deep label for leaf {nid} branch {br}, and the label artifact does NOT "
+                    f"declare that branch as unmeasured. A missing label that nobody declared is a "
+                    f"bug, not a fall-through.")
+                n_fallthrough += int(mm.sum())
+                fallthrough_detail.append({"leaf": nid, "branch": br, "n_train_users": int(mm.sum())})
+                continue                                     # keep the tree's label at d+1
             lab[mm, d + 1] = g
             n_rep += int(mm.sum()); pos_hist[d + 1] += int(mm.sum())
     return lab.astype(np.int16), {"n_examples_relabelled": int(n_rep),
+                                  "n_examples_fallthrough_unmeasured_branch": int(n_fallthrough),
+                                  "fallthrough_detail": fallthrough_detail,
                                   "frac_of_all_examples": float(n_rep) / (lab.shape[0] * TOTAL_L),
                                   "by_position": [int(x) for x in pos_hist],
                                   "n_deep_states": len(gmap), "shuffled": bool(shuffle),

@@ -230,6 +230,24 @@ def build_labels(args):
     assert len(by_leaf) == len(leaves), (f"G-D1: {len(by_leaf)} of {len(leaves)} stopped nodes have "
                                          f"below-floor states")
     n_neg = sum(1 for r in recs if r["gain_ndcg_full"] <= 0)
+    # ---- branches that have NO measured state, named explicitly rather than left implicit --------
+    # `enumerate_states` skips a branch with no users (`if not kids[br]: continue`), so a floor-stopped
+    # node whose splitter every one of its users could answer has an EMPTY did-not-answer branch and
+    # yields only 2 states, not 3. On VALIDATION those branches are empty by construction, so the
+    # deeper-tree control never meets them -- but the TRAIN cohort is a different population and does
+    # put users there, which is what broke the fine-tune. Those users have NO measured question for
+    # their state, so they must FALL THROUGH to the parent's tail (keep the tree's label). That is the
+    # honest behaviour: we did not measure a question there, so we do not invent one.
+    missing = []
+    for nid, lf in leaves.items():
+        for br, n in tr["nodes"][nid]["child_sizes"].items():
+            if not n:
+                missing.append({"leaf": nid, "branch": br, "branch_idx": BRANCHES.index(br),
+                                "depth": depth_of(nid), "n_validation_users": int(n),
+                                "reason": ("no validation user takes this branch -- the splitter's "
+                                           "answer rate is 1.000, so the did-not-answer child is "
+                                           "empty. Train users CAN land here and must fall through "
+                                           "to the parent's tail.")})
     blob = {"analysis": "policy_deep_labels", "design_sheet":
             "docs/design/PAPER_B_POLICY_DESIGN.md G.B", "citable": True,
             "split": "validation", "test_touched": False,
@@ -243,6 +261,11 @@ def build_labels(args):
                       "G-D2_users_covered": n_cov,
                       "G-D3_states_with_nonpositive_gain": n_neg,
                       "G-D4_no_test": "split=validation; the test cohort is never named here"},
+            "branches_without_a_measured_state": missing,
+            "n_branches_without_a_measured_state": len(missing),
+            "fallthrough_rule": ("a (leaf, branch) with no measured state keeps the TREE's label at "
+                                 "position depth+1 -- the user falls through to the parent's greedy "
+                                 "tail. Never invent a label for a state nobody measured."),
             "n_states": len(recs), "n_below_floor": sum(1 for r in recs if r["floor_broken"]),
             "n_distinct_questions": len({tuple(r["question"]) for r in recs}),
             "n_argmax_already_in_leaf_tail": sum(1 for r in recs
@@ -408,16 +431,34 @@ def run_control(args):
     perm_static = list(np.asarray(static_seq, object)[rng.permutation(len(static_seq))])
     zA = genv_latent(E, static_seq, rows).numpy()
     zB = genv_latent(E, [tuple(q) for q in perm_static], rows).numpy()
-    dz = float(np.max(np.abs(zA - zB)))
+    dzu = np.max(np.abs(zA - zB), axis=1)                    # per USER, over the 200 latent dims
+    dz = float(dzu.max())
+    n_dz = int((dzu > 1e-6).sum())
     sf2, _st2 = genv_eval(E, [tuple(q) for q in perm_static], rows)
     dB = np.abs(sf2 - sf)
     perm_seqs = [list(np.asarray(s)[rng.permutation(TOTAL_L)]) for s in tree_seqs]
     pf, pt = score_sequences(E, rows, pool, perm_seqs, at=(TOTAL_L,), tag="tree/permuted")[TOTAL_L]
     dC = np.abs(pf - tf)
+    # ⚠ THE FIRST VERSION OF THIS VERDICT WAS OVER-READ AND IS WITHDRAWN. It printed "the fold is
+    # GENUINELY order-sensitive" off `max |dz| = 0.7499` -- a MAX, from a metric whose own reading note
+    # says "report the count and the mean, never the max alone". One user at 0.75 establishes nothing.
+    # The decisive counter-evidence is in this same artifact: the 5,130 users whose deeper-tree
+    # question SET is identical to the tree's came out at 6.1e-06 full NDCG. A genuinely order-
+    # sensitive fold could not produce that. So the verdict now needs a large SHARE of users to move,
+    # not one, and it says "not established" rather than guessing.
+    frac_dz = n_dz / len(rows)
     order = {
-        "A_latent_max_abs_diff": dz,
-        "A_verdict": ("the fold is order-invariant to float precision" if dz < 1e-4 else
-                      "the fold is GENUINELY order-sensitive"),
+        "A_latent": {"max_abs_diff": dz, "mean_abs_diff": float(dzu.mean()),
+                     "median_abs_diff": float(np.median(dzu)),
+                     "n_users_differing_gt_1e-6": n_dz, "frac_users_differing": frac_dz},
+        "A_verdict": ("order-invariant to float precision" if n_dz == 0 else
+                      ("GENUINELY order-sensitive" if frac_dz > 0.10 else
+                       "NOT ESTABLISHED -- a small minority of users move; report the count and the "
+                       "mean, never the max alone")),
+        "A_withdrawn_claim": ("an earlier run printed 'the fold is GENUINELY order-sensitive' from "
+                              "max |dz| = 0.7499 alone. That verdict is WITHDRAWN: it violated this "
+                              "object's own reading rule, and the same artifact's same-set null "
+                              "(5,130 users at 6.1e-06) is direct evidence against it."),
         "B_single_sequence_path": {"max": float(np.nanmax(dB)), "mean_signed":
                                    float(np.nanmean(sf2 - sf)),
                                    "n_users_differing": int((dB > 1e-12).sum())},
@@ -428,7 +469,9 @@ def run_control(args):
                     "float summation order -- a property of the metric's discreteness, not of the "
                     "recommender. Report the count and the mean, never the max alone.")}
     order_max = float(np.nanmax(dC))
-    log(f"[order] (A) latent max |diff| under permutation = {dz:.3e} -> {order['A_verdict']}")
+    log(f"[order] (A) latent under permutation: {n_dz}/{len(rows)} users move "
+        f"({frac_dz * 100:.2f}%), max {dz:.3e}, mean {float(dzu.mean()):.3e} -> "
+        f"{order['A_verdict']}")
     log(f"[order] (B) single-sequence path: {order['B_single_sequence_path']['n_users_differing']} "
         f"of {len(rows)} users move, max {order['B_single_sequence_path']['max']:.3e}, "
         f"mean {order['B_single_sequence_path']['mean_signed']:+.3e}")

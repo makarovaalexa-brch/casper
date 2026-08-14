@@ -22,9 +22,13 @@ function Say($m) { "$(Get-Date -Format HH:mm:ss) $m" | Out-File -Append $L }
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $attic = "$B\phase3_attic_prerestart"
 New-Item -ItemType Directory -Force -Path $attic | Out-Null
-foreach ($n in @("phase3_sweep","phase3_labels","phase3_control","phase3_deep","phase3_deepshuffle")) {
+foreach ($n in @("phase3","phase3_sweep","phase3_labels","phase3_control","phase3_deep","phase3_deepshuffle")) {
     if (Test-Path "$B\$n.log") { Move-Item "$B\$n.log" "$attic\$n.PRIOR_$stamp.log" -Force }
 }
+# phase3.log is rotated too. It used to be APPEND-ONLY across attempts, so a stale "=== ABORT ==="
+# from a previous run sat in it forever -- and a watcher keyed on that string terminated on its first
+# pass and never saw the REAL failure that came later. That is how the 17:25 abort went unreported for
+# two hours. Same defect as the step logs, in the file that reports on them.
 "=== CHAIN START $stamp -- any earlier step logs are in phase3_attic_prerestart/ ===" |
     Out-File -Append $L
 
