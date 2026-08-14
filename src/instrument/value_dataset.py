@@ -836,6 +836,81 @@ def scrape_sample(ds, led):
     return n_add
 
 
+# ============================================== the fit cost, profiled 2026-08-14, and what it is
+r"""WHERE THE 2.5 h PER FIT ACTUALLY GOES -- measured on the real shapes, not guessed.
+
+The first union refit ran at 1.86 min/epoch and projected to 174 days. The natural suspicion was
+that the FROZEN outcome head `P(o|s,q)` was being re-run every epoch. **It is not** -- `P` is
+computed once inside `build_state_pack_live` under `no_grad` and stored on the pack. That hypothesis
+is dead, and the real answer is less convenient:
+
+  425 packs, 876,520 user-rows, 75.8M (user x candidate) cells per forward.
+
+★ **The cost scales with USERS, not with candidates.** Measured per training step: the root pack
+(10,000 users x 1,000 candidates) takes 0.888 s, and the same 10,000 users with only 50 candidates
+still takes 0.654 s -- cutting candidates 20-fold saves 26%. So "1.5 ms per training example" was
+the wrong denominator: this model does not consume 72,717 triples per epoch, it evaluates three
+outcomes over 876,520 user-rows and 75.8M user-candidate cells, i.e. ~227M values forward and again
+backward. 95.5 s for that on six CPU threads with autograd is ordinary, not pathological.
+
+★ THE ONE REAL WASTE, and it is exactly recoverable. `StateEncoder.forward` (mode='both') builds
+
+    tok = hist_phi (x) onehot(hist_out)   -> (B, T, 3*d_phi)     352 MB at the root, EVERY forward
+
+from `hist_phi`, `hist_out` and `hist_mask` -- all three CONSTANT for a pack, since only the weights
+move during a fit. `pooled`, `cnt` and `n_asked` are therefore constants recomputed 80 times per fit.
+Hoisting them is arithmetic-identical (verified: max |cached - original| = **0.000e+00**) and buys:
+
+    one epoch   95.5 s -> 41.2 s   (2.3x)        one fit (80 epochs)  2.12 h -> 0.92 h
+    pack memory 1.70 GB -> 3.51 GB              (`hq`/`ho`/`hm` are dropped; the cache REPLACES them)
+
+⚠ **2.3x is a real saving and it is not a rescue.** Even at 0.92 h/fit, leave-one-out over 187
+evaluation states is 1,683 fits = **64 days**. LOSO is O(n_eval) fits and 187 held-out states is
+simply the wrong protocol at this size -- K-fold is the standard choice at this n and gives MORE
+training data per fit, not less:
+
+    5-fold  x 3 seeds x 3 arms =  45 fits ~ 41 h
+    10-fold x 3 seeds x 3 arms =  90 fits ~ 82 h
+
+The remaining lever after that is the per-user term (876,520 user-rows). Capping the users used in a
+TRAINING forward would cut it several-fold -- but that is a HARD RULE 1 sampling decision on the
+users, it must be put to the author as its own question with the design in hand, and it is NOT taken
+here.
+"""
+
+
+def precompute_hist(pk):
+    r"""Hoist the constant history block out of the per-epoch forward. Bit-identical by construction:
+    the same arithmetic, evaluated once instead of 80 times. `hq`/`ho`/`hm` are dropped because the
+    cache replaces them -- keeping both would add memory instead of moving it."""
+    import torch
+    import torch.nn.functional as F
+    from lift_head import hist_phi
+    hp = hist_phi(pk)
+    oh = F.one_hot(pk["ho"], 3).to(hp.dtype)
+    tok = (hp.unsqueeze(-1) * oh.unsqueeze(-2)).reshape(hp.shape[0], hp.shape[1], -1)
+    m = pk["hm"].unsqueeze(-1)
+    pk["pooled"] = (tok * m).sum(1) / m.sum(1).clamp(min=1.0)
+    pk["cnt"] = (oh * pk["hm"].unsqueeze(-1)).sum(1)
+    pk["nask"] = pk["hm"].sum(1, keepdim=True)
+    for k in ("hq", "ho", "hm"):
+        pk.pop(k, None)
+    return pk
+
+
+def composed_fast(model, pk, grad=False, offset=True):
+    """`lift_head.composed` with the constant history block read from the cache."""
+    import torch
+    ctx = torch.enable_grad() if grad else torch.no_grad()
+    with ctx:
+        parts = [pk["z"], torch.relu(model.enc.hist(pk["pooled"])), pk["cnt"], pk["nask"], pk["ps"]]
+        h = model.enc.mlp(torch.cat(parts, -1))
+        v = model.head(h, phi=pk["phi"])
+        if offset:
+            v = v + pk["base"]
+        return (pk["P"] * v).sum(0).mean(0)
+
+
 # ================================================================ STEP 4 -- refit on the UNION
 def run_train(args):
     r"""Refit the value head on the UNION of every admitted source, with the four comparisons that
