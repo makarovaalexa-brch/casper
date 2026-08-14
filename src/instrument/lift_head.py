@@ -311,12 +311,91 @@ def hist_phi(pk):
     return torch.from_numpy(pk["phi_t"][pk["hq"]])
 
 
-def composed(model, pk, grad=False):
+def value(model, pk, offset=True):
+    r"""V(o | q, u) for every user and candidate of a state, as a (3, n_users, n_cand) tensor.
+
+    ★ `offset=True` is the structural reparameterisation, and it is a reduction in what SEVEN states
+    have to teach rather than a tuning knob. The head emits `delta_o(q, s)` and
+
+        V(o | q, s) = base(s) + delta_o(q, s)
+
+    so the composed value is `base(s) + SUM_o P(o) * delta_o` and the quantity being FIT is the GAIN
+    (order 1e-2) instead of the level (0.05..0.40). The level is a known constant per state -- it is
+    the heap's own `base`, gated to exact equality by G-L1 -- so making the head relearn it from seven
+    examples was spending the entire label budget on something already on disk.
+
+    It also puts the environment's own near-analytic constraint at the origin: a question that is NOT
+    answered folds an UNSEEN/refusal token, so the state barely moves and `V(no-answer|q,s)` should sit
+    close to `base(s)`, i.e. `delta_noanswer ~ 0`, near-flat across q. Under `offset=True` that is the
+    zero-initialised default; under free-form prediction it is something the head must discover.
+    """
+    d = model(pk["z"], hist_phi(pk), pk["ho"], pk["hm"], pk["ps"], phi=pk["phi"])
+    return d + pk["base"] if offset else d
+
+
+def composed(model, pk, grad=False, offset=True):
     """mean_u SUM_o P(o|q,u) * V(o|q,u) -- the cohort-level composed value, per candidate."""
     ctx = torch.enable_grad() if grad else torch.no_grad()
     with ctx:
-        Vv = model(pk["z"], hist_phi(pk), pk["ho"], pk["hm"], pk["ps"], phi=pk["phi"])
-        return (pk["P"] * Vv).sum(0).mean(0)
+        return (pk["P"] * value(model, pk, offset)).sum(0).mean(0)
+
+
+def diagnose_value_head(model, packs, states, offset=True, topk=10):
+    r"""★ THE STRUCTURAL CORRECTNESS TEST, run before any Spearman is believed.
+
+    The environment gives a near-analytic constraint the head must satisfy for its output to mean
+    anything: an unanswered question folds an UNSEEN/refusal token, so the state hardly moves and
+    `V(no-answer | q, s)` should sit close to `base(s)` and be near-FLAT across q. That is a property
+    of the environment, not of the fit.
+
+    It matters arithmetically, not just aesthetically: **P(no-answer) is 0.966 over the catalogue**, so
+    in `SUM_o P(o) V(o)` the no-answer branch dominates the product by construction. If V(no-answer) is
+    over-estimated -- or merely VARIES across q when it should be flat -- the score is maximised by
+    questions that will NOT be answered. That is the exact signature measured in the first run: answer
+    rate 0.1241 in-pool, 0.0092 open-vocab, concept share 0.0000, 100% out-of-pool picks.
+
+    Reports, per state: the mean and spread of each outcome branch against `base(s)`, and a
+    decomposition of the top-k combined-score picks into their P and V factors, so it is visible
+    whether the argmax is driven by the probability term or the value term.
+    """
+    out = []
+    for st in states:
+        pk = packs[st["nid"]]
+        with torch.no_grad():
+            V = value(model, pk, offset)                     # (3, n_users, n_cand)
+            Pm = pk["P"].mean(1)                             # (3, n_cand) cohort-mean probability
+            Vm = V.mean(1)                                   # (3, n_cand) cohort-mean value
+            comp = (pk["P"] * V).sum(0).mean(0).numpy()
+        rec = {"state": st["nid"], "base": float(pk["base"]),
+               "banked_child_full": st.get("child_full"),
+               "branches": {}}
+        for o, nm in enumerate(OUT_NAMES):
+            v = Vm[o].numpy()
+            rec["branches"][nm] = {
+                "mean": float(v.mean()), "sd_across_q": float(v.std()),
+                "min": float(v.min()), "max": float(v.max()),
+                "mean_minus_base": float(v.mean() - pk["base"]),
+                "mean_P": float(Pm[o].mean())}
+        # is the argmax driven by P or by V?
+        order = np.argsort(-comp)[:topk]
+        rec["top_picks"] = [{"q": list(pk["cand"][int(j)]),
+                             "composed": float(comp[int(j)]),
+                             "true_gain": float(pk["target_gain"][int(j)]),
+                             "P": [float(Pm[o, int(j)]) for o in range(N_OUTCOMES)],
+                             "V": [float(Vm[o, int(j)]) for o in range(N_OUTCOMES)]}
+                            for j in order]
+        # correlation of the composed score with each factor, to name the driver
+        rec["corr_composed_with"] = {
+            f"P_{OUT_NAMES[o]}": spearman(comp, Pm[o].numpy()) for o in range(N_OUTCOMES)}
+        rec["corr_composed_with"].update({
+            f"V_{OUT_NAMES[o]}": spearman(comp, Vm[o].numpy()) for o in range(N_OUTCOMES)})
+        out.append(rec)
+        na = rec["branches"]["noanswer"]
+        log(f"[Vdiag {st['nid']}] base {pk['base']:.5f} | no-answer branch mean "
+            f"{na['mean']:.5f} (base{na['mean_minus_base']:+.5f}) sd across q {na['sd_across_q']:.5f} "
+            f"| like {rec['branches']['like']['mean']:.5f} dislike "
+            f"{rec['branches']['dislike']['mean']:.5f} | mean P(no-answer) {na['mean_P']:.4f}")
+    return out
 
 
 def fit_lift(packs, d_z, d_phi, args, tag, seed=SEED):
@@ -350,13 +429,14 @@ def fit_lift(packs, d_z, d_phi, args, tag, seed=SEED):
     for ep in range(1, args.lift_epochs + 1):
         tr_tot = 0.0
         for pk, (itr, _iva) in zip(packs, inner):
-            c = composed(m, pk, grad=True)
+            c = composed(m, pk, grad=True, offset=args.v_offset)
             loss = ((c[itr] - pk["y"][itr]) ** 2).mean()
             opt.zero_grad(); loss.backward(); opt.step()
             tr_tot += float(loss)
         sched.step()
         with torch.no_grad():
-            va = float(np.mean([float(((composed(m, pk)[iva] - pk["y"][iva]) ** 2).mean())
+            va = float(np.mean([float(((composed(m, pk, offset=args.v_offset)[iva]
+                                          - pk["y"][iva]) ** 2).mean())
                                 for pk, (_itr, iva) in zip(packs, inner)]))
         hist.append({"epoch": ep, "train_mse": tr_tot / len(packs), "inner_val_mse": va})
         if va < best["mse"]:
@@ -475,7 +555,7 @@ def run(args):
             for sd in seeds:
                 m, h, bep = fit_lift(trp, d_z, phi_t.shape[1], args, f"{name}-{s['nid']}-s{sd}",
                                      seed=sd)
-                c = composed(m, pk).numpy()
+                c = composed(m, pk, offset=args.v_offset).numpy()
                 rk = int((pk["target_gain"] > pk["target_gain"][int(np.argmax(c))]).sum()) + 1
                 per_seed.append({"seed": sd, "best_epoch": bep,
                                  "spearman": spearman(c, pk["target_gain"]),
@@ -528,7 +608,8 @@ def run(args):
                 "trained_on": [s["nid"] for s in states]},
                os.path.join(OUTDIR, "lift_head.pt"))
     insample = [{"state": s["nid"],
-                 "spearman": spearman(composed(lift, packs[s["nid"]]).numpy(),
+                 "spearman": spearman(composed(lift, packs[s["nid"]],
+                                               offset=args.v_offset).numpy(),
                                       packs[s["nid"]]["target_gain"])} for s in states]
 
     out = {"analysis": "lift_head_and_combined_policy", "design_sheet":
@@ -558,6 +639,9 @@ def run(args):
            "reference_rho_measured_criterion": RHO_MEASURED_CRITERION,
            "reference_rho_training_loss_surrogate": RHO_TRAINING_LOSS_SURROGATE,
            "in_sample_spearman": insample, "lift_fit_history": lh, "lift_best_epoch": lbep,
+           "v_offset": bool(args.v_offset),
+           "value_head_diagnostics": diagnose_value_head(
+               lift, packs, states, offset=args.v_offset),
            "lift_seeds": args.lift_seeds, "lift_inner_val_frac": args.lift_inner_val,
            "lift_lr": args.lift_lr, "lift_epochs": args.lift_epochs,
            "estimator_stability_note": (
@@ -669,6 +753,11 @@ def main():
                     help="fraction of each TRAINING state's candidates held out for best-epoch "
                          "selection. Never the held-out state, which stays untouched.")
     ap.add_argument("--label", default="", help="suffix for the output artifact")
+    ap.add_argument("--no_v_offset", action="store_true",
+                    help="predict V free-form instead of as base(s) + delta. The offset form is "
+                         "the default: the level is a known per-state constant (the heap base, "
+                         "gated exact by G-L1), so fitting it from seven examples spends the "
+                         "label budget on something already on disk.")
     ap.add_argument("--verify_n", type=int, default=3,
                     help="G-L2: candidates per state re-evaluated from scratch to 0.0e+00")
     ap.add_argument("--no_rollout", action="store_true")
@@ -680,6 +769,7 @@ def main():
     ap.add_argument("--full_threads", action="store_true")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     args = ap.parse_args()
+    args.v_offset = not args.no_v_offset
     if args.audit:
         tr, comp = scan_heaps()
         for r in comp:
