@@ -522,6 +522,31 @@ learned lift head was supposed to be and which lost to a static average. **The t
 the state-conditioned estimator we could learn was bad, and the static estimator we can build well is
 structurally incapable.** That closes the line cleanly, cheaply, and on its own terms.
 
+### 4.1 ★ THE SCOPE OF THIS RESULT — what it licenses, and what it does not
+
+**Stated precisely, because an earlier version of this section over-reached and the over-reach was
+caught.** The sweep degraded **one fixed value vector, reused at every state.** Every row of the table
+above — **including ρ = 1.00** — is therefore a **state-MARGINAL** value.
+
+> **Licensed:** *a state-marginal value fails at any accuracy.* That is a strong result and it is the
+> chapter's third claim.
+>
+> **NOT licensed:** *a state-conditioned value fails.* **The sweep never tested that object.**
+> `V(q)`, identical at every state, cannot express *"I have already asked something like this"*.
+> `V(q | state)` can. Three reasons the conditioned question is live rather than closed:
+> 1. **No working conditioned value has ever been put in a policy here.** The learned head reached only
+>    ρ = +0.06, and under HARD RULE 6 that is a **weak method, not a proof**.
+> 2. **The conditioned ceiling is bounded BELOW by the tree** — itself a state-conditioned value policy,
+>    which E1 reproduced at **+0.02794**. So a conditioned value demonstrably *can* drive a policy above
+>    bank-alone; we simply have not built one.
+> 3. The failure mode diagnosed below — redundancy between successive picks — is **precisely** what
+>    conditioning on the asked-set exists to fix.
+
+**The experiment that settles it is cheap and is queued** (§4.2): rerun the composed policy with
+`V(state)` taken from the **nearest banked state** — a crude 245-way conditional lookup — in place of
+the flat mean. If it beats the flat-mean arm's 0.22650, conditioning in `V` moves the policy and the
+question is open by measurement. If it does not, the stronger sentence is earned and can be written.
+
 ### The two limitations that outlive this result
 
 1. **★ The estimator that wins cannot do the thing the author wants.** The mean vector is a **lookup
@@ -586,6 +611,13 @@ Independently recounted, because the first count was wrong in the way this proje
 | all banked, de-duplicated, citable banks only | **245** | 23,983 |
 | candidates per state | | min 1, **p25 8, median 27**, p75 63, max 1,000 |
 
+★ **Composition, not count — and the count alone would mislead.** This is **not** 245 states of material
+comparable to the 7. It is **7 dense, complete, unbiased states plus 238 sparse, downward-biased ones**:
+the median new state carries **27 candidates**, the lower quartile **8**, and those few are the CELF
+**low-gain survivors**, because the high-gain candidates were popped first. Writing "35× the states"
+without "median 27 candidates, biased low" would be the same count-without-composition error this
+project has already banked a memory note about.
+
 Two hygiene results enforced in code rather than assumed:
 
 - **`ndcgtree_SANITY_heaps` and `_PREFLIGHT_heaps` are excluded** — the SANITY tree is explicitly not
@@ -601,12 +633,11 @@ Two hygiene results enforced in code rather than assumed:
 **7 complete states only** so the evaluation is never on a biased vector and the contrast isolates state
 diversity. It is not run here because phase 3 holds the box.
 
-⚠ **Read whatever it returns against Result 4, which has already fired.** Even a *perfect* value
-estimator (ρ = 1.00) leaves the policy 0.029 short of the static order and 0.041 short of bank-alone. So
-the 7-vs-245 contrast is a real measurement about **label starvation and estimator quality** — worth
-having, and the third point on a curve phase 3 extends — but it **cannot** revive the policy, because
-Result 4 established that policy score is insensitive to value accuracy over ρ ∈ [0.5, 1.0]. Those are
-separate questions and the second one is already closed.
+⚠ **Read whatever it returns against Result 4 — but read Result 4 for exactly what it says.** Even a
+*perfect* value estimator (ρ = 1.00) leaves the policy 0.029 short of the static order and 0.041 short
+of bank-alone, so the 7-vs-245 contrast is a measurement about **label starvation and estimator
+quality** and not a route back to a competitive policy on its own. **What it is not is a closed
+question — see §4.1.**
 
 ---
 
@@ -630,11 +661,13 @@ separate questions and the second one is already closed.
 6. **★ The winning value estimator is state-independent** — the chapter's "bank beats conditioning"
    finding reappearing inside the value estimator.
 7. **Even with that working value half, the P×V policy loses to bank-alone** (−0.02911 vs +0.01280).
-8. **★ Value-estimator accuracy is not the binding constraint.** Over 19 runs spanning ρ = 0.50 to
-   1.00 the policy gain moves within 0.0075 — less than the seed spread — with correlation **−0.18**
-   between accuracy and score, and the best point still 0.0345 below bank-alone. A **state-marginal**
-   value cannot express redundancy between questions, which is the one thing the greedy comparator
-   does by re-folding after every pick. **The line closes on its own terms.**
+8. **★ For a STATE-MARGINAL value, estimator accuracy is not the binding constraint.** Over 19 runs
+   spanning ρ = 0.50 to 1.00 the policy gain moves within 0.0075 — less than the seed spread — with
+   correlation **−0.18** between accuracy and score, and the best point still 0.0345 below bank-alone.
+   A state-marginal value cannot express redundancy between questions, which is the one thing the
+   greedy comparator does by re-folding after every pick. **This closes the marginal-value line. It
+   does NOT close the state-conditioned one — that object has never been tested in a policy here, and
+   it is bounded below by the tree's own +0.02794 (§4.1).**
 
 **What it does NOT settle:**
 

@@ -551,6 +551,85 @@ class MeanVectorPolicy(nn.Module):
         return s
 
 
+class NearestStatePolicy(nn.Module):
+    r"""★ FABLE'S EXPERIMENT (a): a crude STATE-CONDITIONED value, by lookup rather than by learning.
+
+    The ceiling sweep degraded ONE FIXED VECTOR reused at every state, so every row of it -- including
+    rho = 1.00 -- is a state-MARGINAL value. `V(q)` identical everywhere cannot express *"I have
+    already asked something like this"*; `V(q | state)` can. This is the cheapest object that can:
+
+        V(q | state_u) = gain(q) measured at the BANKED STATE NEAREST to what user u has been asked,
+                         falling back to the flat mean vector for questions that state does not cover.
+
+    No learning, no parameters -- a 245-way conditional lookup keyed on the asked-set. If it beats the
+    flat-mean arm, conditioning in V moves the policy and the question is open BY MEASUREMENT. If it
+    does not, the stronger sentence is earned.
+
+    Nearest = maximum asked-set agreement, `2*|A and B| - |A| - |B|` (i.e. minus the symmetric
+    difference), which prefers a banked state whose asked list is both large in overlap and not
+    cluttered with questions this user was never asked. Ties break toward the state with more banked
+    candidates, since a denser vector conditions more of the score.
+    """
+
+    def __init__(self, outcome, gain_flat, abar, state_asked, state_gain, state_cov, state_dense):
+        super().__init__()
+        self.outcome = outcome
+        self.register_buffer("flat", torch.from_numpy(np.asarray(gain_flat, np.float32)))
+        self.register_buffer("abar", torch.from_numpy(
+            np.maximum(np.asarray(abar, np.float32), 1e-3)))
+        self.register_buffer("s_asked", torch.from_numpy(np.asarray(state_asked, np.float32)))
+        self.register_buffer("s_nask", torch.from_numpy(
+            np.asarray(state_asked, np.float32).sum(1)))
+        self.register_buffer("s_gain", torch.from_numpy(np.asarray(state_gain, np.float32)))
+        self.register_buffer("s_cov", torch.from_numpy(np.asarray(state_cov, np.float32)))
+        self.register_buffer("s_dense", torch.from_numpy(np.asarray(state_dense, np.float32)))
+        self.hits = []
+
+    def forward(self, z, hp, ho, hm, pos, phi, asked_mask=None):
+        B = z.shape[0]
+        if asked_mask is None:
+            V = self.flat[None, :].expand(B, -1)
+        else:
+            a = asked_mask.float()                                  # (B,P) what THIS user was asked
+            ov = a @ self.s_asked.T                                 # (B,S) overlap counts
+            sim = 2.0 * ov - a.sum(1, keepdim=True) - self.s_nask[None, :]
+            sim = sim + 1e-4 * self.s_dense[None, :]                # tie-break toward denser vectors
+            j = sim.argmax(1)                                       # (B,) nearest banked state
+            self.hits.append(j.numpy().copy())
+            g = self.s_gain[j]                                      # (B,P) conditioned where covered
+            c = self.s_cov[j]                                       # (B,P) 1 where that state has a value
+            V = c * g + (1.0 - c) * self.flat[None, :]
+        p = torch.softmax(self.outcome(z, hp, ho, hm, pos, phi=phi), 0)
+        s = (p[0] + p[1]) * (V / self.abar[None, :])
+        if asked_mask is not None:
+            s = s.masked_fill(asked_mask, float("-inf"))
+        return s
+
+
+def build_state_lookup(allst, pool_t, gain_flat):
+    """Dense (S, P) tables for the nearest-state lookup, over the pool ordering."""
+    idx = {q: i for i, q in enumerate(pool_t)}
+    keys = sorted(allst, key=lambda k: -len(allst[k]["gains"]))
+    S, P = len(keys), len(pool_t)
+    asked = np.zeros((S, P), np.float32)
+    gain = np.tile(np.asarray(gain_flat, np.float32)[None, :], (S, 1))
+    cov = np.zeros((S, P), np.float32)
+    for si, k in enumerate(keys):
+        st = allst[k]
+        for q in st["asked"]:
+            if tuple(q) in idx:
+                asked[si, idx[tuple(q)]] = 1.0
+        for q, v in st["gains"].items():
+            if q in idx:
+                gain[si, idx[q]] = v
+                cov[si, idx[q]] = 1.0
+    dense = cov.sum(1)
+    log(f"[lookup] {S} banked states as a conditional table; coverage per state: "
+        f"min {int(dense.min())} median {int(np.median(dense))} max {int(dense.max())} "
+        f"of {P} pool candidates")
+    return asked, gain, cov, dense, keys
+
+
 # ============================ THE CEILING EXPERIMENT: policy score vs value-estimator accuracy
 def noisy_value_table(t, rho_target, seed, tol=0.004, iters=40):
     r"""A value vector with the SAME marginal distribution of values as `t` but a controlled Spearman
@@ -1143,6 +1222,45 @@ def run_meanvec(args):
             f"concept share {arms[nm]['channel_mix_concept_share']:.4f} | "
             f"{arms[nm]['n_distinct_interviews']} distinct interviews")
 
+    # ---------- ★ EXPERIMENT (a): the crude STATE-CONDITIONED value ----------------------------
+    # The ceiling sweep below degrades ONE FIXED vector reused at every state, so all of it -- rho=1.00
+    # included -- is a state-MARGINAL value. This arm is the cheapest object that is not: the gain
+    # vector of the BANKED STATE NEAREST to what the user has actually been asked, falling back to the
+    # flat mean where that state has no value. No learning, no parameters, a 245-way lookup.
+    cond = {}
+    if not args.no_conditional:
+        allst = enumerate_all_banked_states()
+        s_asked, s_gain, s_cov, s_dense, s_keys = build_state_lookup(allst, pool_t, gain)
+        pol = NearestStatePolicy(om, gain, abar, s_asked, s_gain, s_cov, s_dense)
+        t0 = time.time()
+        ro = rollout(E, pol, phi_pool, pool_t, rows)
+        f, t = ro["curves"][16]
+        ans = (ro["outs"] != OUTCOME["noanswer"])
+        hits = np.concatenate(pol.hits) if pol.hits else np.zeros(0, np.int64)
+        uniq, cts = np.unique(hits, return_counts=True)
+        cond = {"full": float(np.nanmean(f)), "tail": float(np.nanmean(t)),
+                "gain_vs_static_combined_full": paired_bootstrap(f - sf),
+                "gain_vs_static_combined_tail": paired_bootstrap(t - stl),
+                "vs_flat_mean_full": paired_bootstrap(f - peruser["meanvec_PxV"][0]),
+                "answer_rate": float(ans.mean()),
+                "channel_mix_concept_share": channel_mix(ro["asked"], pool_t),
+                "n_distinct_interviews": len({tuple(r) for r in ro["asked"]}),
+                "n_banked_states": len(s_keys),
+                "n_distinct_states_used": int(len(uniq)),
+                "top_states_used": [{"state": str(s_keys[int(u)][1][:2]), "n": int(c)}
+                                    for u, c in sorted(zip(uniq, cts), key=lambda x: -x[1])[:8]],
+                "mean_conditioned_fraction": float(s_cov[hits].mean()) if len(hits) else 0.0,
+                "minutes": round((time.time() - t0) / 60, 2)}
+        g = cond["gain_vs_static_combined_full"]
+        v = cond["vs_flat_mean_full"]
+        log(f"[conditional] full {cond['full']:.5f} | gain vs combined static {g['mean']:+.5f} "
+            f"[{g['lo']:+.5f},{g['hi']:+.5f}] | vs the FLAT-MEAN arm {v['mean']:+.5f} "
+            f"[{v['lo']:+.5f},{v['hi']:+.5f}] excludes zero = {v['excludes_zero']}")
+        log(f"[conditional] {cond['n_distinct_states_used']} of {cond['n_banked_states']} banked "
+            f"states were ever selected; {cond['mean_conditioned_fraction'] * 100:.1f}% of the value "
+            f"vector was conditioned (the rest fell back to the flat mean); answer rate "
+            f"{cond['answer_rate']:.4f}; {cond['n_distinct_interviews']} distinct interviews")
+
     # ---------- ★ THE CEILING EXPERIMENT ------------------------------------------------------
     # Policy score as a function of VALUE-ESTIMATOR ACCURACY. The gate (rho >= +0.40) was set by
     # asking whether an estimator sits nearer the measured criterion (+0.784) than the training-loss
@@ -1208,6 +1326,12 @@ def run_meanvec(args):
                peruser["meanvec_PxV"][0] - peruser["meanvec_static"][0]),
            "outcome_head_contribution_tail": paired_bootstrap(
                peruser["meanvec_PxV"][1] - peruser["meanvec_static"][1]),
+           "conditional_nearest_state": cond,
+           "conditional_note": ("Fable's experiment (a). The ceiling sweep degrades one fixed vector "
+                                "reused at every state, so all of it -- rho=1.00 included -- is a "
+                                "state-MARGINAL value. This arm conditions V on the asked-set by "
+                                "looking up the nearest banked state. It is the object the sweep "
+                                "never tested."),
            "ceiling": ceiling,
            "ceiling_note": ("policy score as a function of value-estimator accuracy. rho is measured "
                             "against the mean-of-7 static value table, so rho=1.0 is the best a STATIC "
@@ -1222,7 +1346,7 @@ def run_meanvec(args):
                                "argument for a parametric value head reappearing as a limitation of "
                                "the estimator that beats it."),
            "minutes": round((time.time() - t00) / 60, 2)}
-    p = os.path.join(OUTDIR, "meanvec_value.json")
+    p = os.path.join(OUTDIR, f"meanvec_value{args.label}.json")
     with open(p + ".tmp", "w") as fh:
         json.dump(out, fh, indent=2, default=float)
     os.replace(p + ".tmp", p)
@@ -1405,6 +1529,8 @@ def run_allstates(args):
 
 def main():
     ap = argparse.ArgumentParser(description="Part F lift head + combined P x V policy")
+    ap.add_argument("--no_conditional", action="store_true",
+                    help="skip experiment (a), the nearest-banked-state conditional value lookup")
     ap.add_argument("--no_ceiling", action="store_true",
                     help="skip the value-estimator-accuracy sweep")
     ap.add_argument("--rho_levels", default="0.5,0.6,0.7,0.8,0.9,0.95")
