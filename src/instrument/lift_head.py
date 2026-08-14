@@ -930,7 +930,7 @@ def run_meanvec(args):
     log(f"[F.4 BAR] bank-alone full {bank_full['mean']:+.5f} "
         f"[{bank_full['lo']:+.5f},{bank_full['hi']:+.5f}]")
 
-    arms = {}
+    arms, peruser = {}, {}
     for nm, use_out in (("meanvec_PxV", True), ("meanvec_static", False)):
         pol = MeanVectorPolicy(om, gain, abar, use_outcome=use_out)
         t0 = time.time()
@@ -945,6 +945,7 @@ def run_meanvec(args):
                     "answer_rate": float(ans.mean()),
                     "uses_outcome_head": use_out,
                     "minutes": round((time.time() - t0) / 60, 2)}
+        peruser[nm] = (f, t)
         g = arms[nm]["gain_vs_static_combined_full"]
         log(f"[{nm}] full {arms[nm]['full']:.5f} | gain vs combined static {g['mean']:+.5f} "
             f"[{g['lo']:+.5f},{g['hi']:+.5f}] | answer rate {arms[nm]['answer_rate']:.4f} | "
@@ -963,6 +964,13 @@ def run_meanvec(args):
            "static_combined": {"full": float(np.nanmean(sf)), "tail": float(np.nanmean(stl))},
            "bank_alone_gain_full": bank_full, "bank_alone_gain_tail": bank_tail,
            "tree_val_gain_full": TREE_VAL_GAIN_FULL, "arms": arms,
+           # ★ the one comparison that isolates what the OUTCOME head contributes inside a policy:
+           # both arms carry the identical value table, so the only difference is whether the
+           # per-user answer probability reweights it.
+           "outcome_head_contribution_full": paired_bootstrap(
+               peruser["meanvec_PxV"][0] - peruser["meanvec_static"][0]),
+           "outcome_head_contribution_tail": paired_bootstrap(
+               peruser["meanvec_PxV"][1] - peruser["meanvec_static"][1]),
            "open_vocab_note": ("the mean-vector estimator is a LOOKUP TABLE over the 1,000-candidate "
                                "pool and has no value for a question outside it, so the open-vocabulary "
                                "arm is structurally unavailable to it. That is the scalability "
@@ -973,6 +981,15 @@ def run_meanvec(args):
     with open(p + ".tmp", "w") as fh:
         json.dump(out, fh, indent=2, default=float)
     os.replace(p + ".tmp", p)
+    np.savez_compressed(p.replace(".json", "_per_user.npz"),
+                        pxv_full=peruser["meanvec_PxV"][0], pxv_tail=peruser["meanvec_PxV"][1],
+                        static_full=peruser["meanvec_static"][0],
+                        static_tail=peruser["meanvec_static"][1],
+                        combined_static_full=sf, combined_static_tail=stl,
+                        rows=np.asarray(rows, np.int64))
+    c = out["outcome_head_contribution_full"]
+    log(f"[outcome-head contribution] P x V minus the SAME value table without the outcome head: "
+        f"{c['mean']:+.5f} [{c['lo']:+.5f},{c['hi']:+.5f}] full, excludes zero = {c['excludes_zero']}")
     log(f"[out] {p} ({out['minutes']:.1f}m)")
     return out
 
