@@ -1,7 +1,14 @@
 # PART F — THE TWO HEADS: outcome `P(o | state, q)` and lift `V(o | state, q)`
 
-**Status: RUNNING (2026-08-13). Numbers below are filled in as each stage lands; every table states
-its own cohort. Validation and TRAIN only — no test look, no NDCG on a train user.**
+**Status: COMPLETE (2026-08-13/14). One head passes, one fails. Validation and TRAIN only — no test
+look, no NDCG on a train user, `test_touched=false` on every artifact.**
+
+**One-line verdict: the outcome head works and the entire margin is the interview — AUC 0.98243
+against the per-question popularity prior 0.96944, rising 0.9687 → 0.9856 across the 16 positions
+while the prior stays flat, with the shuffle control landing exactly on the prior. The lift head
+fails its pre-registered rho >= +0.40 gate at +0.062, and the combined P x V policy loses to
+bank-alone; the cause is localised to the no-answer value branch, which should be flat across
+questions and instead varies about three times more than the signal being predicted.**
 
 Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` — **Part F is governing**.
 
@@ -263,77 +270,177 @@ read as covering the teacher too.
 | **G-L4** argmax consistency | complete vector's argmax **is** the tree's pick, **7/7**. *Not asserted on survivor sets* — a survivor set cannot support that check, so claiming it would be a fake gate |
 | **G-L5** no test | validation only |
 
-### 2.3 ⚠ The gate result, and why it is NOT yet reportable as a finding
+### 2.3 The gate result — FAIL, on a stabilised estimate
 
 Pre-registered gate (F.2), fixed before looking: held-out-state Spearman **≥ +0.40**.
 
-| held-out state | depth | users | candidates | Spearman | argmax rank |
-|---|---|---|---|---|---|
-| root | 0 | 10,000 | 1,000 | **+0.033** | 978/1000 |
-| root.like | 1 | 2,606 | 999 | **+0.405** | 320/999 |
-| root.dislike | 1 | 4,814 | 999 | **−0.104** | 88/999 |
-| root.noanswer | 1 | 2,580 | 999 | **+0.124** | 756/999 |
-| root.dislike.dislike | 2 | 3,562 | 998 | **+0.168** | 252/998 |
-| root.dislike.dislike.dislike | 3 | 2,346 | 997 | **+0.312** | 724/997 |
-| root.dislike.dislike.dislike.noanswer | 4 | 1,289 | 996 | **+0.183** | 156/996 |
-| **mean** | | | | **+0.1603** | |
+**Read the second table, not the first.** The first LOSO run took the last epoch of a constant-LR fit
+whose training loss oscillated by nearly an order of magnitude across its final 60 epochs, and whose
+**in-sample** Spearman at the root was **−0.015** — a model that cannot fit points it was trained on has
+measured nothing. That run is retained only to show what it cost to believe it.
 
-Against the measured criterion's **+0.784** and the training-loss surrogate's **−0.149** on the same
-axis, the fitted estimator lands at **+0.160 — a FAIL.**
+The rerun fixes the estimator rather than the answer: an inner-validation split of the **training**
+states' candidates (never the held-out state), cosine LR decay, best-inner-epoch selection instead of
+last, LR 3e-4 → 1e-4, **3 seeds per fold reported as a range**, and V predicted as `base(s) + δ` (§2.4).
 
-**The sizing datum, and it points the wrong way for "just buy more labels".** Both arms hold out the
-**same seven complete states**, so the contrast isolates the effect of *adding* training states:
-adding the 15 survivor states moves the mean **+0.1603 → +0.0745**. More labels *of the biased kind*
-made it worse.
+| held-out state | first run (unstable) | **stable, 3 seeds** | seed range | mean argmax rank |
+|---|---|---|---|---|
+| root | +0.033 | **+0.112** | [−0.106, +0.230] | 583/1000 |
+| root.like | +0.405 | **+0.035** | [−0.045, +0.077] | 907/999 |
+| root.dislike | −0.104 | **+0.028** | [−0.019, +0.118] | 650/999 |
+| root.noanswer | +0.124 | **+0.039** | [−0.017, +0.069] | 593/999 |
+| root.dislike.dislike | +0.168 | **+0.072** | [+0.062, +0.087] | 436/998 |
+| root.dislike.dislike.dislike | +0.312 | **+0.101** | [+0.070, +0.122] | 56/997 |
+| root.dislike.dislike.dislike.noanswer | +0.183 | **+0.050** | [−0.033, +0.110] | 481/996 |
+| **mean** | +0.160 | **+0.0623** | | |
 
-> ### ★ STOP — this is a broken fit, not yet a measurement
->
-> The **in-sample** Spearman of the final model, fitted on all seven states and evaluated on those same
-> seven: **−0.015 / +0.093 / +0.017 / +0.232 / +0.360 / +0.272 / +0.106.**
->
-> **A model that cannot fit 7 × 997 points it was trained on has measured nothing about what the data
-> supports.** The training loss confirms it — it oscillated by nearly an order of magnitude across the
-> final 60 epochs (2.822e-04 → 1.126e-04 → 8.251e-04 → 9.471e-05 → 4.008e-04) under a constant learning
-> rate with no early stop, and the reported number was read off whatever the optimiser happened to be
-> doing at the last epoch.
->
-> **The distinction is the whole point of the experiment.** *"Seven states cannot support a
-> state-conditioned value model"* is a finding that makes buying more labels necessary. *"Our fit was
-> unstable"* is a bug that would make that purchase a justification of our own sloppiness. HARD RULE 6
-> cuts both ways, and the run above cannot tell them apart.
->
-> The trainer is fixed and the rerun is pending: inner-validation split of the **training** states'
-> candidates (never the held-out state), cosine LR decay, best-inner-epoch selection instead of last,
-> LR 3e-4 → 1e-4, and **3 seeds per fold with the Spearman reported as a range**. Whatever that says,
-> pass or fail, is the number that stands. **Nothing in §2.3 or §3 should be cited until it lands.**
+**✗ FAIL: +0.062 against the +0.40 bar** — beside the measured criterion's **+0.784** and the
+training-loss surrogate's **−0.149** on the same axis. **Five of the seven seed-ranges straddle zero.**
 
----
+**The first run's headline fold was noise.** `root.like` read +0.405 unstable and **+0.035** stable;
+`root.dislike` read −0.104 and **+0.028**. A single point estimate was never distinguishable from any
+other, which is precisely why the range is now reported.
 
-## RESULT 3 — the combined P×V policy on validation (PROVISIONAL, see §2.3)
+**The sizing datum, on common held-out states** (both arms hold out the same seven complete states, so
+the contrast isolates the effect of *adding* training states): 7 → 22 states moves the mean
+**+0.0623 → +0.0819**. Tripling the state count — with biased states, but the same scalar — buys about
+**+0.020 of Spearman**. To reach the +0.40 gate on that slope you would need far more than the 32 h
+sweep buys. *(The first, unstable run reported this delta going the other way, −0.086. That reversal is
+itself a demonstration that the unstable estimate could not support any conclusion.)*
 
-Comparators in Part F.4's order. The bar is **bank-alone**, not the tree: *a policy that beats the tree
+### 2.4 ★ WHY it fails — the no-answer branch, diagnosed rather than guessed
+
+The environment supplies a near-analytic constraint the head must satisfy for its output to mean
+anything: **an unanswered question folds an UNSEEN/refusal token, so the state barely moves** and
+`V(no-answer | q, s)` should sit close to `base(s)` and be **near-flat across q**. That is a property of
+the environment, not of the fit — a free correctness test. It matters arithmetically because
+**P(no-answer) is 0.966 over the catalogue** (0.45–0.66 within the 1,000-pool), so in `Σ_o P(o)·V(o)`
+that branch dominates the product by construction.
+
+| state | base | V(no-answer) mean | vs base | **sd across q** | V(like) | V(dislike) | mean P(no-answer) |
+|---|---|---|---|---|---|---|---|
+| root | 0.15687 | 0.12865 | −0.02821 | **0.05814** | 0.16871 | 0.16759 | 0.561 |
+| root.like | 0.21971 | 0.19210 | −0.02760 | **0.05992** | 0.23475 | 0.21782 | 0.525 |
+| root.dislike | 0.18577 | 0.15742 | −0.02835 | **0.05866** | 0.20204 | 0.19170 | 0.513 |
+| root.noanswer | 0.11888 | 0.10614 | −0.01274 | **0.05320** | 0.14053 | 0.13251 | 0.658 |
+| root.dislike.dislike | 0.21142 | 0.18535 | −0.02607 | **0.05829** | 0.22112 | 0.20942 | 0.494 |
+| root.dislike.dislike.dislike | 0.24924 | 0.22424 | −0.02500 | **0.06009** | 0.25049 | 0.23937 | 0.452 |
+| root.ddd.noanswer | 0.18309 | 0.16022 | −0.02286 | **0.05985** | 0.17866 | 0.17390 | 0.491 |
+
+**The ordering is right and the magnitudes are wrong.** like > dislike > no-answer at every state, as
+the tree's own children require. But:
+
+1. **V(no-answer) is biased low by ~0.023–0.028** where it should be ≈ 0 away from base; and
+2. **it varies across questions with sd ≈ 0.058 — roughly three times the entire range of the quantity
+   being predicted** (the true gains span about ±0.02). A branch that should be flat is the noisiest
+   thing in the model.
+
+And it is what the score is actually reading. Decomposing the composed score at the root against each
+factor: `corr(composed, V_no-answer) = **+0.379**`, against **+0.018** for `V_like` and **+0.069** for
+`V_dislike`, with `corr(composed, P_no-answer) = −0.161`. **The argmax is driven by the value assigned
+to silence.**
+
+**The structural fix this implied was made and it worked, partially.** Predicting `V = base(s) + δ`
+instead of free-form removes a known per-state constant (the heap's own `base`, gated exact by G-L1)
+from the learning problem, so the seven states teach the *gain* rather than the *level*. Its effect on
+the policy is large and in exactly the predicted direction (§3). It did **not** rescue the gate.
+
+**In-sample, the fit is still weak** — ρ = +0.167 / +0.065 / +0.152 / +0.086 / +0.114 / +0.149 / +0.197
+on the seven states it was trained on. Better than the broken run's −0.015, so this is no longer a
+pathology; but a model that fits its own training data at ρ ≈ 0.13 has not learned the function.
+**The honest conclusion is therefore narrower than "seven states are not enough" and firmer than "our
+fit was unstable":** with a stabilised trainer and the level removed from the target, the head still
+cannot fit 7 × 997 exact gains in-sample, so the limiting factor is the **learning problem** — the
+question descriptor plus the interview state, as currently represented, does not resolve measured NDCG
+gain — and adding states moves it by +0.020 per tripling. HARD RULE 6: **this is a weak method, reported
+as one. It is not evidence that a value head cannot work, and it must not be written as if it were.**
+
+## RESULT 3 — the combined P x V policy on validation: it loses to the bank, and we can say why
+
+Comparators in Part F.4's order. **The bar is bank-alone, not the tree:** *a policy that beats the tree
 but not the static bank has not earned adaptive language.*
 
 | arm (validation, K=16, full NDCG@10) | full | gain vs combined static, paired CI |
 |---|---|---|
 | `greedy_static_policyB_combined` (banked, reproduced **exactly**) | 0.25561016113602253 | — |
 | `greedy_static_policyB_items` | 0.24280812656671960 | — |
-| **★ bank-alone bar** (combined − items) | | **+0.01280 [+0.00972, +0.01580]** |
+| **★ bank-alone bar** (combined - items) | | **+0.01280 [+0.00972, +0.01580]** |
 | the tree (banked validation gain) | | +0.02794 |
-| **combined P×V, 1,000-candidate pool** | 0.18640 | **−0.06921 [−0.07286, −0.06560]** |
-| **combined P×V, full 19,390 catalogue** | 0.15517 | **−0.10044 [−0.10419, −0.09667]** |
+| combined P x V, 1,000-pool — *free-form V* | 0.18640 | −0.06921 [−0.07286, −0.06560] |
+| **combined P x V, 1,000-pool — `V = base + delta`** | **0.19721** | **−0.05840 [−0.06180, −0.05495]** |
+| **combined P x V, full 19,390 catalogue** | 0.15517 → **0.15704** | **−0.09857 [−0.10234, −0.09478]** |
 
-**It loses to everything, and the mechanism is legible.** Answer rate collapses to **0.1241** in-pool and
-**0.0092** open-vocab, against the tree's 0.5789. Concept share collapses to **0.0150**, then to
-**0.0000**. Open-vocab picks are **100% out-of-pool at every one of the 16 positions**. The open-vocab
-deficit is **−0.0312**, *worse* than E1's −0.02034 — so on this evidence the two-head score does not
-close the open-vocabulary gap, it widens it.
+**It does not beat bank-alone, does not beat the tree, and does not beat the static order.** That is
+the finding, and it is unambiguous.
 
-**Read this as downstream of §2.3, not as a verdict on the P×V design.** A value head that cannot fit
-its own training states will extrapolate arbitrarily off them, and a score of the form `Σ P·V` inherits
-that directly — which is exactly what "100% out-of-pool, answer rate 0.009" looks like. Part F.1's own
-deflation said it in advance: *a miscalibrated `P` multiplied by an extrapolated `V` is two learned
-errors multiplied.* Here `P` is fine (Result 1) and `V` is not.
+**But the mechanism is now named, and the named fix moved it.** The structural reparameterisation of
+2.4 changed the policy's *behaviour* exactly as the no-answer diagnosis predicted it would:
+
+| | free-form V | **V = base + delta** | the tree, for scale |
+|---|---|---|---|
+| **interview answer rate** | 0.1241 | **0.5050** | 0.5789 |
+| concept share of picks | 0.0150 | **0.7026** | 0.5457 |
+| distinct realised interviews | 2,548 | **7,428** | 15 |
+| gain vs combined static | −0.06921 | **−0.05840** | +0.02794 |
+
+**Removing a known constant from the value target took the answer rate from 0.124 to 0.505 — most of
+the way to the tree's 0.579 — without touching the outcome head.** The policy had been choosing
+questions nobody would answer *because the value head told it silence was valuable*, and pricing the
+level out of the target largely stopped that. The residual −0.058 is what remains once the policy is no
+longer sabotaging its own answer rate: an estimator that ranks candidates at rho ~ 0.06 on held-out
+states simply picks worse questions than a greedy order chosen on the exact measured metric.
+
+**Open vocabulary: the deficit widens rather than closes, and this is the sharpest negative of the
+night.** Part E.4's success criterion was that opening the vocabulary should stop costing −0.02034.
+
+| | E1 policy head | **combined P x V** |
+|---|---|---|
+| open-vocab deficit (catalogue − pool, full NDCG@10) | −0.02034 | **−0.04016** |
+| out-of-pool pick rate | 30.0% (0% at k=1–3, 57% at k=16) | **100% at every position** |
+| answer rate of the open-vocab run | 0.4139 | **0.0060** |
+| concept share, open vocab | 0.3793 | **0.0000** |
+
+**The two-head score does not price answerability into the open vocabulary — it makes the failure
+total.** Every pick leaves the pool at every position, only 0.6% of them are answered, and the concept
+channel disappears entirely. The 1,000-candidate pool is the top-500 items *by popularity* and top-500
+concepts *by answer rate*, so everything outside it is by construction less answerable; a value head
+whose no-answer branch varies with sd 0.058 across questions has nothing to stop it walking straight
+out. **Part F.1's own deflation predicted this shape: a miscalibrated `P` times an extrapolated `V` is
+two learned errors multiplied.** Here `P` is good (Result 1, ECE 0.0015) and `V` is not, and the product
+inherits `V`.
+
+---
+
+## What this settles, and what it licenses
+
+**Settled, on held-out data, with controls:**
+
+1. **The outcome head works and the interview is why.** AUC macro 0.98243 vs the per-question
+   popularity prior's 0.96944 over 3.1 billion scored cells; the per-position curve rises
+   0.9687 → 0.9856 while the prior is flat; the head is *behind* at position 0 where there is no state
+   to read. **F.5's pre-registered falsifier — "held-out AUC <= the popularity baseline" — did not fire.**
+2. **The shuffle control converges exactly onto the popularity prior** (0.96884 vs 0.96944) with a flat
+   per-position curve, so (1) is not an instrument artefact.
+3. **The no-profile guard holds structurally** (position-0 states bit-identical, max |diff| = 0.0).
+4. **The lift head fails its pre-registered gate**: +0.0623 against +0.40, five of seven seed-ranges
+   straddling zero, in-sample rho ~ 0.13. **Weak method, reported as one.**
+5. **The combined policy loses to bank-alone, the tree and the static order**, and the open-vocab
+   deficit *doubles* to −0.04016.
+
+**What it does NOT settle, stated so nobody reads it that way:**
+
+- **Not** "seven states cannot support a value model". The stabilised head cannot fit its own seven
+  training states either, so the binding constraint is the learning problem, not only the state count.
+  The sizing slope measured here — **+0.020 of Spearman per tripling of states** — is the number the
+  "buy the 32 h sweep" decision should use, and on that slope the sweep does not reach +0.40.
+- **Not** that the P x V decomposition is wrong. Its `P` factor is measured, calibrated and works.
+- **Nothing about test.** No test user was built, loaded or touched at any point.
+
+**The one design consequence worth carrying forward:** the outcome head is cheap, accurate and
+calibrated, and it is the half of Part F that the evidence supports. The value half is where the
+chapter's remaining risk sits, and the diagnostic that localises it — *does `V(no-answer | q, s)` sit at
+`base(s)` and stay flat across `q`?* — should be run **before** any future value model is believed,
+because it is free and it caught this one.
 
 ---
 
