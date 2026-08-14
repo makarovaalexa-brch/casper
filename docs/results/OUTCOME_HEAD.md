@@ -538,6 +538,79 @@ structurally incapable.** That closes the line cleanly, cheaply, and on its own 
 ---
 
 
+## RESULT 5 — ★ A DESIGN LESSON, and it is the author's
+
+> **AUTHOR ASKED (2026-08-14):** *why do we sweep all ~1,000 candidates at a state?*
+
+**Because a full sweep is what finds an ARGMAX — and that is not what a regressor needs.**
+
+The tree needs the argmax: its whole claim is that the split is chosen on the *exact measured* metric
+over the full declared pool, and a shortlist would forfeit that (design sheet B.4). Phase 3 needs it
+for the same reason. **But a value model is a regressor, and a regressor wants scattered
+`(state, question, gain)` triples, not complete vectors at a handful of states.**
+
+The same evaluation budget buys either shape:
+
+| the same CPU buys… | states | candidates per state | triples |
+|---|---|---|---|
+| complete vectors (what we banked) | **42** | 1,000 | 42,000 |
+| scattered triples | **~840** | 50 | 42,000 |
+
+**~20× the state diversity for the same cost.** For a value model whose diagnosed weakness is state
+starvation, the second is obviously the better buy — and we have never bought it, because every sweep
+so far was run to find an argmax and the triples were a by-product.
+
+**This is a genuinely new design axis and it belongs to the author.** It also reframes what is on disk:
+the 245 banked states are *incidental* by-products of argmax searches, which is exactly why 201 of them
+carry a median of 27 candidates each and those 27 are the CELF low-gain survivors. A purpose-built
+scatter would be unbiased and 20× wider.
+
+⚠ **The constraint that travels with it: any future candidate subsampling is a HARD RULE 1 decision and
+needs the author's explicit sign-off**, put as its own question with the design in hand — not folded
+into a larger plan. It does **not** apply to phase 3 or to any argmax search, which genuinely need the
+full sweep.
+
+### What is actually on disk — counted properly
+
+Independently recounted, because the first count was wrong in the way this project keeps being wrong:
+
+> **A STATE is (cohort, asked-question-set) — NOT (sidecar, level).** `ndcgtree16_heaps` re-banks the
+> same leaf states with the tail extended to 16, so the same prefix, the same picks and the same cohort
+> appear in two banks. Keyed by (sidecar, level) the material looks like **585 states / ~53.3k triples**;
+> keyed properly it is **245 distinct states / 23,983 triples**. The 53.9k figure is the raw entry count
+> before de-duplication.
+
+| | states | triples |
+|---|---|---|
+| used for the gate test (complete, unbiased) | **7** | 6,988 |
+| all banked, de-duplicated, citable banks only | **245** | 23,983 |
+| candidates per state | | min 1, **p25 8, median 27**, p75 63, max 1,000 |
+
+Two hygiene results enforced in code rather than assumed:
+
+- **`ndcgtree_SANITY_heaps` and `_PREFLIGHT_heaps` are excluded** — the SANITY tree is explicitly not
+  the citable tree, and `policy_traj.load_tree` already refuses it.
+- **`ndcgtree16test_heaps` is validation material despite its name** — identical `rows_sha1`, base and
+  prefix to the validation bank; "test" names the *driver job*, not the cohort. It is admitted on the
+  **contract**, never on the filename, and the check handles both sidecar signature versions (v1
+  carries `contract_tag`, v2 carries `mask_pool`).
+- Where two sidecars measured the **same** state their gains are **merged and asserted equal** — a free
+  cross-run byte-identity check between independently launched jobs. It passes.
+
+**The refit on all 245 states is built and queued** (`lift_head.py --allstates`), evaluated LOSO on the
+**7 complete states only** so the evaluation is never on a biased vector and the contrast isolates state
+diversity. It is not run here because phase 3 holds the box.
+
+⚠ **Read whatever it returns against Result 4, which has already fired.** Even a *perfect* value
+estimator (ρ = 1.00) leaves the policy 0.029 short of the static order and 0.041 short of bank-alone. So
+the 7-vs-245 contrast is a real measurement about **label starvation and estimator quality** — worth
+having, and the third point on a curve phase 3 extends — but it **cannot** revive the policy, because
+Result 4 established that policy score is insensitive to value accuracy over ρ ∈ [0.5, 1.0]. Those are
+separate questions and the second one is already closed.
+
+---
+
+
 ## What this settles, and what it licenses
 
 **Settled, on held-out data, with controls:**
@@ -630,6 +703,12 @@ form, the binned AUC against the exact rank AUC, and the user-block batching (co
 5. **A selector that scores questions independently is owed a redundancy mechanism** (re-folding,
    or a value conditioned on what has already been asked). Result 4 says that, not estimator
    quality, is what separates this design from the greedy comparator.
+6. **The 245-state refit** (`lift_head.py --allstates`), queued behind phase 3 — the 7-vs-245
+   state-diversity contrast, evaluated only on the 7 clean states. It answers a label-starvation
+   question, not a policy question; Result 4 already closed the policy question.
+7. **★ Buy scattered triples, not complete vectors, for any future value model** (§5). Same CPU,
+   ~20× the state diversity. Requires the author's explicit HARD RULE 1 sign-off, asked as its
+   own question.
 
 ---
 
