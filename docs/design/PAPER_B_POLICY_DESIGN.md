@@ -1077,6 +1077,43 @@ embedding-generalisation real; the held-out-question test and 10/25/50/100% curv
 from the author before any run.** (Selection at inference still scores all 19,390 — only the value
 head's TRAINING set is sparse by design.)
 
+### ★ G.C-AMENDMENT (2026-08-14, after phase 2) — Stage C MAY BE POINTLESS. Test the noise ceiling FIRST.
+
+Phase 2 finished and **two of its results attack Stage C's premise directly**:
+
+1. **The sizing slope is far too shallow.** On common held-out states, going from 7 → 22 states moved
+   the value head's Spearman **+0.0623 → +0.0819 — about +0.020 per TRIPLING**. On that slope the
+   32 h sweep does not reach the ρ ≥ +0.40 gate, and nothing affordable does.
+2. **★ The binding constraint is NOT the state count.** The stabilised head — with the no-answer
+   level removed from its target — still fits **its own seven TRAINING states at only ρ ≈ 0.13**. A
+   model that cannot fit what it was trained on is not short of states.
+
+**So "buy more states" no longer follows from the evidence, and Stage C must not be purchased on the
+old rationale.** Before any 15–50 h spend, run the cheap test that distinguishes the two live
+explanations:
+
+| explanation | consequence |
+|---|---|
+| **(i) the features are wrong** — question descriptor + interview state genuinely do not resolve measured NDCG gain | a different representation might work; Stage C still pointless, since more states of an unlearnable function teach nothing |
+| **(ii) ★ THE TARGET IS NOISE** — measured gain at a state has a reliability ceiling near ρ≈0.13, so the head is already fitting it as well as it can be fitted | **the entire measure-gains-and-learn-from-them line is measurement-limited.** Stage C is dead, Stage D's dense reward inherits the same noise, and the chapter says so |
+
+**THE TEST — split-half reliability of the target, ~2.3 h, one state.** At the root, split the 10,000
+users into two halves, measure all ~997 candidates' gains on each half independently, and correlate
+the two gain vectors. That correlation is the **ceiling any model could reach**. If it is ~0.15, then
+ρ≈0.13 is near-perfect fitting of a noisy target and no amount of data or capacity helps. If it is
+~0.9, the target is clean and the failure is ours.
+
+**This test is a PRECONDITION on Stage C's sign-off request.** Asking the author to authorise 15–50 h
+of sampling without it would be asking her to buy a cure for an undiagnosed illness.
+
+**Also binding, and free (phase 2 earned it):** ★ **any future value model must pass the no-answer
+flatness check before its Spearman is believed.** `V(no-answer|q,s)` should equal `base(s)` and be
+flat across q; measured it was biased low by 0.023–0.028 and varied with **sd ≈ 0.058, ~3× the entire
+range of the quantity**, and `corr(composed score, V_no-answer) = +0.379` against **+0.018** for
+`V_like` — the argmax was being driven by the value assigned to silence. Predicting `V = base(s) + δ`
+fixed the mechanism (answer rate 0.1241 → 0.5050, concept share 0.0150 → 0.7026, distinct interviews
+2,548 → 7,428) without rescuing the gate.
+
 ## G.D Stage D — STRATEGY: one bounded RL attempt (requirement 3), doubly guarded
 
 **Trigger (pre-registered, unchanged from F.3):** opens ONLY if Stage B's deeper-greedy control
