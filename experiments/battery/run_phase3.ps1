@@ -13,6 +13,21 @@ $L  = "$B\phase3.log"
 $NT = 6
 
 function Say($m) { "$(Get-Date -Format HH:mm:ss) $m" | Out-File -Append $L }
+
+# A dead error at the tail of a log gets read as a live one -- the `verify-the-artifact-not-a-proxy`
+# failure. On 2026-08-14 two aborted chains left tracebacks at the end of phase3_deep.log and
+# phase3_deepshuffle.log that a later reader would naturally tail and misdiagnose. So every start
+# ARCHIVES the previous attempt's step logs and stamps a visible boundary, rather than leaving a
+# reader to cross-reference timestamps against a process table.
+$stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$attic = "$B\phase3_attic_prerestart"
+New-Item -ItemType Directory -Force -Path $attic | Out-Null
+foreach ($n in @("phase3_sweep","phase3_labels","phase3_control","phase3_deep","phase3_deepshuffle")) {
+    if (Test-Path "$B\$n.log") { Move-Item "$B\$n.log" "$attic\$n.PRIOR_$stamp.log" -Force }
+}
+"=== CHAIN START $stamp -- any earlier step logs are in phase3_attic_prerestart/ ===" |
+    Out-File -Append $L
+
 # A failed step ABORTS the chain. On 2026-08-14 a G-L0 refusal in step 1 cascaded through steps 2-5,
 # each failing on the artifact the previous one never produced, and buried the real error five logs
 # deep. A step that cannot have succeeded must not be followed by one that depends on it.
