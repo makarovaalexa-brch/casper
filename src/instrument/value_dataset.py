@@ -649,8 +649,11 @@ def run_sample(args):
             b_full = float(np.nanmean(f0[ix]))
             g = {f"{q[0]}_{q[1]}": float(np.nanmean(F[ci][ix])) - b_full
                  for ci, q in enumerate(cands)}
+            # ★ the cohort itself is recorded, so an arbitrary answer-path state is trainable later
+            # without re-deriving the path (and without re-evaluating anything)
             st_out.append({"path": gkey, "n_users": int(len(ix)), "base": b_full,
-                           "base_tail": float(np.nanmean(t0v[ix])), "gains": g})
+                           "base_tail": float(np.nanmean(t0v[ix])), "gains": g,
+                           "rows": [int(rows[int(u)]) for u in ix]})
         rec = {"sig": sig, "prefix_index": pi, "k": k,
                "prefix": [list(q) for q in prefix], "candidates": [list(q) for q in cands],
                "n_paths_populated": len(groups), "n_paths_kept": len(kept),
@@ -696,15 +699,220 @@ def scrape_sample(ds, led):
     return n_add
 
 
+# ================================================================ STEP 4 -- refit on the UNION
+def run_train(args):
+    r"""Refit the value head on the UNION of every admitted source, with the four comparisons that
+    are mandatory rather than optional:
+
+      1. ★ the PARAMETER-FREE MEAN-VECTOR baseline (+0.4163). HARD RULE 2. It beat the learned head
+         by a factor of seven last time, and any head that does not beat it is broken, not new.
+      2. ★ the ZEROED-STATE control. A head that sees `z_t` can trivially IGNORE it and emit the mean
+         vector, so scoring BELOW a state-blind baseline is an optimisation failure, not a
+         representational one. That free tell was on screen for hours last time and nobody read it.
+      3. the pre-registered rho >= +0.40 gate, LOSO on the UNBIASED states only, per-state, 3 seeds
+         with the spread -- never a mean alone.
+      4. the ABLATION BY SOURCE -- unbiased-only vs unbiased + tagged-biased -- so we learn whether
+         the biased mass helps or hurts rather than assuming either.
+
+    Plus the no-answer flatness check: `V(no-answer|q,s)` must sit at `base(s)` and stay flat across
+    q, because an unanswered question folds an UNSEEN/refusal token. Last time it varied with sd
+    0.058 -- about three times the range of the quantity being predicted -- and drove the argmax.
+    """
+    import time
+    import numpy as np
+    import torch
+    sys.argv = [sys.argv[0]] + (["--threads", str(args.threads)] if args.threads else [])
+    from strategy_channel_suite import build_greedy_env, contract_selftest, set_active_rows, genv_mean
+    from ndcg_tree import build_pool, leak_assert, split_rows
+    from policy_net import build_phi
+    from outcome_head import OutcomeModel, OUT_NAMES
+    import lift_head as LH
+
+    t00 = time.time()
+    torch.manual_seed(args.seed); np.random.seed(args.seed)
+    if args.threads:
+        torch.set_num_threads(int(args.threads))
+    states, gains, tags = load_jsonl()
+    log(f"[train] union: {len(states)} states, {sum(len(g) for g in gains.values()):,} measurements")
+
+    E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, "valuetrain")
+    contract_selftest(E, E["rows"]); leak_assert(E, E["rows"], "valuetrain")
+    rows_all = [int(r) for r in E["rows"]]
+    f0, _t0 = genv_mean(E, [], rows_all)
+    assert round(f0, 8) == round(VAL_ROOT_M0_FULL, 8), f"canonical snap FAILED: {f0!r}"
+    log(f"[snap] validation m=0 intercept full={f0!r} -- canonical, exact")
+    pool, _ip, _cp = build_pool(E, 500, 500)
+    ni, C = E["ctx"].ni, E["C"]
+    catalogue = [(0, i) for i in range(ni)] + [(1, c) for c in range(C)]
+    phi_t, _norm = build_phi(E, catalogue)
+    pool_cat = {"pool": [tuple(q) for q in pool],
+                "index": {(0, i): i for i in range(ni)} | {(1, c): ni + c for c in range(C)}}
+    blob = torch.load(args.outcome_ckpt, map_location="cpu")
+    om = OutcomeModel(blob["d_z"], blob["d_phi"], state=blob["state"], use_pos=blob["use_pos"],
+                      d_k=blob["d_k"], d_h=blob["d_h"])
+    om.load_state_dict(blob["model"]); om.eval()
+    for p_ in om.parameters():
+        p_.requires_grad_(False)
+
+    tr = json.load(open(os.path.join(OUTDIR, "ndcgtree.json")))
+    rows_of = {"root": rows_all}
+
+    def rows_for_node(nid):
+        if nid in rows_of:
+            return rows_of[nid]
+        parent, _br = nid.rsplit(".", 1)
+        prows = rows_for_node(parent)
+        kids, _ar, _z = split_rows(E, prows, tuple(int(x) for x in tr["nodes"][parent]["splitter"]))
+        for k, v in kids.items():
+            rows_of[f"{parent}.{k}"] = v
+        return rows_of[nid]
+
+    # the random-sample cohorts are recorded by the sampler, so an arbitrary answer path is
+    # recoverable without re-deriving it
+    sample_rows = {}
+    for p in sorted(glob.glob(os.path.join(SAMPLE_DIR, "prefix_*.json"))):
+        d = json.load(open(p))
+        for st in d["states"]:
+            if "rows" in st:
+                sample_rows[f"valsample:p{d['prefix_index']}:{st['path']}"] = st["rows"]
+
+    def rows_for_state(sid):
+        st = states[sid]
+        ck = st["cohort_sha1"]
+        if ck in sample_rows:
+            return [int(r) for r in sample_rows[ck]]
+        nid = st.get("nid")
+        node = (nid or "").split("@")[0].split("/")[0]
+        if node and node in tr["nodes"]:
+            rws = rows_for_node(node)
+            return rws if len(rws) == st["n_rows"] else None
+        return rows_all if st["n_rows"] == len(rows_all) else None
+
+    packs, skipped = {}, 0
+    tpk = time.time()
+    for i, sid in enumerate(sorted(states, key=lambda s: -len(gains[s]))):
+        rws = rows_for_state(sid)
+        if rws is None:
+            skipped += 1
+            continue
+        st = {"asked": [tuple(q) for q in states[sid]["asked_set"]], "base": states[sid]["base"],
+              "gains": gains[sid], "node": states[sid].get("nid")}
+        pk = LH.build_state_pack_live(E, st, phi_t, pool_cat, om, ni, rws)
+        if pk is None:
+            skipped += 1
+            continue
+        pk["sid"] = sid
+        packs[sid] = pk
+        if (i + 1) % 40 == 0:
+            log(f"[train] packed {i + 1}/{len(states)} ({(time.time() - tpk) / 60:.1f}m)")
+    set_active_rows(E, rows_all)
+    log(f"[train] {len(packs)} states packed, {skipped} skipped for want of a recoverable cohort; "
+        f"{sum(len(p['cand']) for p in packs.values()):,} training triples")
+
+    # ---- evaluation set: the UNBIASED states only -----------------------------------------------
+    unbiased = [s for s in packs if states[s]["complete"]
+                or all(t in ("exhaustive_sweep", "random_sample") for t in tags[s].values())]
+    ev = [s for s in unbiased if len(gains[s]) >= 20]
+    log(f"[train] {len(unbiased)} unbiased states; {len(ev)} carry >= 20 candidates and are the "
+        f"LOSO evaluation set")
+
+    def zero_state(pk):
+        z = dict(pk)
+        z["z"] = torch.zeros_like(pk["z"]); z["hq"] = np.zeros_like(pk["hq"])
+        z["ho"] = torch.zeros_like(pk["ho"]); z["hm"] = torch.zeros_like(pk["hm"])
+        z["ps"] = torch.zeros_like(pk["ps"])
+        return z
+
+    def loso(train_sids, label, blind=False):
+        rows = []
+        for s in ev:
+            pk = packs[s]
+            trp = [(zero_state(packs[t]) if blind else packs[t]) for t in train_sids if t != s]
+            if not trp:
+                continue
+            per_seed = []
+            for sd in [args.seed + 1000 * j for j in range(args.lift_seeds)]:
+                m, _h, bep = LH.fit_lift(trp, E["ctx"].d, phi_t.shape[1], args,
+                                         f"{label}-{s[:16]}-s{sd}", seed=sd)
+                c = LH.composed(m, zero_state(pk) if blind else pk, offset=args.v_offset).numpy()
+                y = packs[s]["target_gain"]
+                per_seed.append({"seed": sd, "best_epoch": bep, "spearman": LH.spearman(c, y),
+                                 "rank_of_argmax": int((y > y[int(np.argmax(c))]).sum()) + 1})
+            rho = [x["spearman"] for x in per_seed]
+            rows.append({"held_out_state": s, "nid": states[s].get("nid"),
+                         "n_candidates": len(pk["cand"]), "n_train_states": len(trp),
+                         "spearman": float(np.mean(rho)), "spearman_min": float(np.min(rho)),
+                         "spearman_max": float(np.max(rho)), "per_seed": per_seed,
+                         "rank_of_argmax": float(np.mean([x["rank_of_argmax"] for x in per_seed]))})
+            log(f"[LOSO/{label} {states[s].get('nid')}] {len(trp)} train states -> "
+                f"{rows[-1]['spearman']:+.4f} [{rows[-1]['spearman_min']:+.4f}, "
+                f"{rows[-1]['spearman_max']:+.4f}] | argmax rank "
+                f"{rows[-1]['rank_of_argmax']:.0f}/{len(pk['cand'])}")
+        m = float(np.mean([r["spearman"] for r in rows])) if rows else float("nan")
+        log(f"[ARM {label}] mean held-out Spearman {m:+.4f} over {len(rows)} states "
+            f"({'PASSES' if m >= 0.40 else 'FAILS'} the +{0.40:.2f} gate)")
+        return {"arm": label, "mean_spearman": m, "per_state": rows}
+
+    arms = [loso(list(packs), "union(all sources)"),
+            loso(unbiased, "unbiased_only"),
+            loso(list(packs), "ZEROED-STATE control", blind=True)]
+    mv = [meanvec_arm(ev, list(gains), gains, "meanvec/union"),
+          meanvec_arm(ev, unbiased, gains, "meanvec/unbiased_only")]
+
+    # ---- the no-answer flatness check, free and it localised the last failure -------------------
+    m, _h, _b = LH.fit_lift([packs[s] for s in packs], E["ctx"].d, phi_t.shape[1], args,
+                            "flatcheck", seed=args.seed)
+    flat = []
+    for s in ev[:8]:
+        pk = packs[s]
+        with torch.no_grad():
+            V = LH.value(m, pk, args.v_offset).mean(1)
+        rec = {"state": states[s].get("nid"), "base": float(pk["base"])}
+        for o, nm in enumerate(OUT_NAMES):
+            v = V[o].numpy()
+            rec[nm] = {"mean": float(v.mean()), "sd_across_q": float(v.std()),
+                       "mean_minus_base": float(v.mean() - pk["base"])}
+        flat.append(rec)
+        log(f"[flatness {rec['state']}] no-answer mean {rec['noanswer']['mean']:.5f} "
+            f"(base{rec['noanswer']['mean_minus_base']:+.5f}) sd across q "
+            f"{rec['noanswer']['sd_across_q']:.5f}")
+
+    out = {"analysis": "value_head_refit_on_the_union", "test_touched": False,
+           "split": "validation", "gate": 0.40,
+           "n_states": len(packs), "n_states_unbiased": len(unbiased), "n_eval_states": len(ev),
+           "n_triples": int(sum(len(p["cand"]) for p in packs.values())),
+           "references": {"learned_head_7_states": 0.0623, "learned_head_22_states": 0.0819,
+                          "parameter_free_mean_vector": 0.4163},
+           "arms": arms, "meanvec": mv, "no_answer_flatness": flat,
+           "lift_seeds": args.lift_seeds, "lift_epochs": args.lift_epochs,
+           "minutes": round((time.time() - t00) / 60, 2)}
+    p = os.path.join(OUTDIR, "value_head_union.json")
+    json.dump(out, open(p, "w"), indent=1, default=float)
+    log(f"[out] {p} ({out['minutes']:.1f}m)")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", default="scrape", choices=["scrape", "meanvec", "sample"])
+    ap.add_argument("--mode", default="scrape", choices=["scrape", "meanvec", "sample", "train"])
     ap.add_argument("--n_prefix", type=int, default=19)
     ap.add_argument("--seed", type=int, default=98765)
     ap.add_argument("--threads", type=int, default=None)
     ap.add_argument("--snapshot", default=None)
     ap.add_argument("--concept_ckpt", default=None)
+    # --- the fit, same defaults as lift_head so the arms stay comparable ---
+    ap.add_argument("--outcome_ckpt", default=os.path.join(OUTDIR, "outcome_head_main_both.pt"))
+    ap.add_argument("--state", default="both", choices=["z", "hist", "both"])
+    ap.add_argument("--no_pos", action="store_true")
+    ap.add_argument("--d_k", type=int, default=64)
+    ap.add_argument("--d_h", type=int, default=256)
+    ap.add_argument("--lift_epochs", type=int, default=80)
+    ap.add_argument("--lift_lr", type=float, default=1e-4)
+    ap.add_argument("--lift_seeds", type=int, default=3)
+    ap.add_argument("--lift_inner_val", type=float, default=0.2)
+    ap.add_argument("--no_v_offset", action="store_true")
     args = ap.parse_args()
+    args.v_offset = not args.no_v_offset
     if args.mode == "meanvec":
         run_meanvec()
         return
@@ -713,6 +921,12 @@ def main():
         args.snapshot = args.snapshot or CERT_TOWER
         args.concept_ckpt = args.concept_ckpt or CERT_CONC
         run_sample(args)
+        return
+    if args.mode == "train":
+        from strategy_channel_suite import CERT_TOWER, CERT_CONC
+        args.snapshot = args.snapshot or CERT_TOWER
+        args.concept_ckpt = args.concept_ckpt or CERT_CONC
+        run_train(args)
         return
     ds, led = Dataset(), Ledger()
     nf = scrape_heaps(ds, led)
