@@ -182,7 +182,11 @@ class Dataset:
         if st["nid"] is None:
             st["nid"] = nid
 
-    def add(self, sid, q, gain, base, tag, src, level, complete):
+    def add(self, sid, q, gain, base, tag, src, level, complete, in_pool=True):
+        # `in_pool` defaults True because EVERY banked measurement, in every source, is for a
+        # question inside the 1,000-candidate pool -- that is the coverage hole the catalogue-wide
+        # draws exist to fill, and the flag is what lets any result be recomputed in-pool-only and
+        # compared like-for-like with the banked material.
         q = (int(q[0]), int(q[1]))
         k = (sid, q)
         rec = self.meas.get(k)
@@ -190,6 +194,7 @@ class Dataset:
         if rec is None:
             self.meas[k] = {"state_id": sid, "question": list(q), "channel": chan(q),
                             "gain": float(gain), "base": float(base), "absolute_value": val,
+                            "in_pool": bool(in_pool),
                             "selection_tag": tag, "source_file": src, "level": int(level),
                             "state_complete": bool(complete)}
             return 1
@@ -390,16 +395,45 @@ def phase3_rows():
 
 
 # ============================================================================ composition + write
+def yield_curve():
+    r"""★ USABLE ANSWER PATHS PER PREFIX AS A FUNCTION OF DEPTH -- measured, never assumed.
+
+    Depth costs nothing to reach (folding a longer prefix is free) but it fragments the cohort: a
+    k-question prefix scatters 10,000 users over up to 3^k answer paths, and only paths clearing the
+    200-user floor give a stable conditional mean. This curve is the honest ceiling on how deep a
+    conditional value model can be trained on this cohort. If it hits zero at some depth, that IS
+    the finding -- the floor is not lowered to manufacture states."""
+    rows = {}
+    for p in sorted(glob.glob(os.path.join(SAMPLE_DIR, "prefix_*.json"))):
+        d = json.load(open(p))
+        r = rows.setdefault(int(d["k"]), {"prefixes": 0, "paths_populated": 0, "paths_kept": 0,
+                                          "paths_dropped": 0, "users_dropped": 0})
+        r["prefixes"] += 1
+        r["paths_populated"] += int(d["n_paths_populated"])
+        r["paths_kept"] += int(d["n_paths_kept"])
+        r["paths_dropped"] += int(d["n_paths_dropped"])
+        r["users_dropped"] += int(d["n_users_dropped"])
+    for k in sorted(rows):
+        r = rows[k]
+        r["kept_per_prefix"] = r["paths_kept"] / r["prefixes"]
+        log(f"[yield k={k:2d}] {r['kept_per_prefix']:.1f} usable states per prefix "
+            f"({r['paths_kept']} kept / {r['paths_populated']} populated; "
+            f"{r['users_dropped']} user-slots below the {MIN_PATH_USERS}-user floor)")
+    return {str(k): rows[k] for k in sorted(rows)}
+
+
 def compose(ds):
     per_contract = defaultdict(lambda: {"measurements": 0, "states": set()})
     per_tag = defaultdict(lambda: {"measurements": 0, "states": set()})
     per_depth = defaultdict(lambda: {"measurements": 0, "states": set()})
     per_pool = defaultdict(lambda: {"measurements": 0, "states": set()})
     per_channel = defaultdict(int)
+    per_vocab = defaultdict(lambda: {"measurements": 0, "states": set()})
     for m in ds.meas.values():
         st = ds.states[m["state_id"]]
         for tbl, key in ((per_contract, st["contract"]), (per_tag, m["selection_tag"]),
-                         (per_depth, st["depth"]), (per_pool, st["pool"]["n_pool"])):
+                         (per_depth, st["depth"]), (per_pool, st["pool"]["n_pool"]),
+                         (per_vocab, "in_pool" if m.get("in_pool", True) else "catalogue_wide")):
             tbl[key]["measurements"] += 1
             tbl[key]["states"].add(m["state_id"])
         per_channel[m["channel"]] += 1
@@ -415,7 +449,8 @@ def compose(ds):
     q = lambda p: sz[min(len(sz) - 1, int(p * len(sz)))]
     return {"per_contract": fin(per_contract), "per_selection_tag": fin(per_tag),
             "per_depth": fin(per_depth), "per_pool": fin(per_pool),
-            "per_channel": dict(per_channel),
+            "per_vocabulary": fin(per_vocab), "per_channel": dict(per_channel),
+            "yield_curve": yield_curve(),
             "candidates_per_state": {"min": sz[0], "p25": q(.25), "median": q(.5),
                                      "p75": q(.75), "max": sz[-1]},
             "n_states": len(ds.states), "n_measurements": len(ds.meas)}
@@ -429,6 +464,7 @@ def write(ds, led, comp, extra=None):
             # `nid` travels with the row because it is the ONLY way the trainer can recover an
             # arbitrary state's COHORT (tree descent from the root); without it every tree state is
             # silently unusable and the union collapses to whatever happens to be the full cohort.
+            row.setdefault("in_pool", True)
             row.update({"asked_set": st["asked_set"], "depth": st["depth"],
                         "cohort_sha1": st["cohort_sha1"], "n_rows": st["n_rows"],
                         "contract": st["contract"], "pool": st["pool"], "nid": st.get("nid")})
@@ -546,14 +582,17 @@ mass of weak candidates (the CELF survivors) plus one excellent pick, with the M
 where a ranking decision is made -- absent. Random draws have no middle-hole by construction.
 
 Per prefix:
-  1. draw k ~ Uniform{3,4,5,6}, then k DISTINCT questions uniformly without replacement from the
-     policy-B combined pool (500 popularity items + 500 answerable concepts, the tree's own pool,
-     same ids in the same order);
+  1. take k from the DEPTH SCHEDULE below, then k DISTINCT questions uniformly without replacement
+     from the policy-B combined pool (500 popularity items + 500 answerable concepts, the tree's own
+     pool, same ids in the same order). The PREFIX stays in-pool deliberately -- it defines the
+     STATE, and keeping states drawn from the same question set as every banked state is what makes
+     the new material comparable with the old;
   2. ask that prefix to ALL 10,000 validation users and keep the PER-USER NDCG vector (no sampling
      of users anywhere);
   3. record each user's ternary ANSWER PATH through the prefix (like/dislike/no-answer per question);
-  4. draw N_CAND = 50 candidates uniformly without replacement from the pool minus the prefix, and
-     evaluate each over all 10,000 users, again keeping the per-user vector;
+  4. draw N_CAND = 50 CANDIDATES -- N_CAND_POOL from the 1,000-question pool and N_CAND_CAT from the
+     FULL 19,390-question catalogue -- uniformly without replacement, and evaluate each over all
+     10,000 users, again keeping the per-user vector;
   5. for the marginal state (all 10,000) and for every answer path with at least MIN_PATH_USERS
      users, the conditional gain is mean(f_q[path]) - mean(f_0[path]) -- the same construction the
      tree uses to score a split, so it is on the same ruler.
@@ -561,11 +600,40 @@ Per prefix:
   ★ Step 5 is why one sweep buys many states: grouping by answer path turns 51 evaluations into one
   measured gain vector per POPULATED PATH, at zero extra evaluation.
 
-WHAT IS SAMPLED, AND WHAT IS NOT. Users: never -- all 10,000, every time. Candidates: yes, 50 of
-~995 per prefix, uniformly at random; that is the authorised reduction and it is the whole point,
-since a regressor wants scattered triples and only an argmax search needs the full sweep
-(OUTCOME_HEAD.md RESULT 5). Prefixes: 19 by default, ~7 min each on the measured 8.24 s/eval at
-n=10,000, so ~2.2 h.
+★★ TWO WIDENINGS (2026-08-14), both strict broadenings of the authorised design -- more states and
+more question variety for the same money, nothing removed:
+
+  ★ DEPTH. The first design drew k in {3..6}, and phase 3's 42 states sit at depths 3-6 too. The
+    interview is SIXTEEN questions long, so depths 7-15 -- more than half of it -- would have had no
+    unbiased measurement at all, leaving the value head to extrapolate over exactly the region where
+    the policy spends most of its turns. k now runs 1..15 on a STRATIFIED schedule (every depth
+    represented at least once, the remainder allocated to the deeper half, which the banked material
+    and phase 3 do not cover). Folding a longer prefix is free: the cost is 50 candidates x 10,000
+    users whatever k is.
+
+    ⚠ THE REAL CONSTRAINT AT DEPTH IS PATH FRAGMENTATION, NOT COST. A deeper prefix scatters users
+    across more answer paths, so fewer paths clear the 200-user floor. The YIELD CURVE -- usable
+    paths per prefix as a function of k -- is therefore MEASURED AND REPORTED, not assumed. If depth
+    12 yields nothing above the floor that is itself the finding: it is the honest ceiling on how
+    deep any conditional value model can be trained on this cohort. The floor is NOT lowered to
+    manufacture states.
+
+  ★ VOCABULARY. Every gain ever measured here, in every source, is for a question inside the
+    1,000-candidate pool -- by construction the top 500 by popularity union the top 500 by answer
+    rate. No model has ever seen a measured value for a TYPICAL catalogue question, so the value
+    head has no examples of what a BAD question is worth. That is precisely the deficit behind the
+    open-vocabulary failure (out-of-pool picks answered 9.1% vs 55.2% in-pool, NDCG -0.02034).
+    30 of the 50 candidates are now drawn from the full catalogue. Most will be near-unanswerable
+    and score near zero -- THAT IS THE POINT; they are the negative examples that have never
+    existed. 20 stay in-pool so the pool region remains densely covered and every result can be
+    recomputed restricted to in-pool candidates and compared like-for-like with the banked material.
+    Every measurement carries `in_pool`.
+
+WHAT IS SAMPLED, AND WHAT IS NOT. Users: never -- all 10,000, every time. Candidates: yes, 50 per
+prefix, uniformly at random within each declared stratum; that is the authorised reduction and it is
+the whole point, since a regressor wants scattered triples and only an argmax search needs the full
+sweep (OUTCOME_HEAD.md RESULT 5). Prefixes: 19 by default, ~7 min each on the measured 8.24 s/eval
+at n=10,000, so ~2.2 h.
 
 THE TRUNCATION THAT MUST BE DECLARED. A path with few users gives an unstable mean, so paths below
 MIN_PATH_USERS = 200 are DROPPED -- the tree's own `min_leaf`, chosen because it already governs
@@ -576,10 +644,23 @@ PERSISTENCE (HARD RULE 11). Each prefix writes its own contract-signed sidecar t
 finishes, plus the raw per-user float32 vectors, so a crash can lose at most one prefix and any
 later change to MIN_PATH_USERS is free -- no re-evaluation.
 """
-N_CAND = 50
+N_CAND_POOL = 20                  # kept in-pool: comparability with every banked measurement
+N_CAND_CAT = 30                   # drawn catalogue-wide: the negative examples nothing has ever had
+N_CAND = N_CAND_POOL + N_CAND_CAT
 MIN_PATH_USERS = 200
-PREFIX_K = (3, 4, 5, 6)
 SAMPLE_DIR = os.path.join(OUTDIR, "value_sample_partial")
+
+
+def depth_schedule(n_prefix):
+    r"""Which prefix length each sweep uses. STRATIFIED, not drawn at random.
+
+    A random draw over 1..15 with 19 prefixes leaves holes, and the yield curve (usable paths vs k)
+    is a thing we are trying to MEASURE -- a curve with missing x-values measures less than it
+    costs. So: every depth 1..15 exactly once, and the remaining prefixes allocated to the deep end
+    (8..15 in order), which is the half the banked material and phase 3 do not reach at all."""
+    base = list(range(1, 16))
+    extra = [8 + (i % 8) for i in range(max(n_prefix - len(base), 0))]
+    return (base + extra)[:n_prefix]
 
 
 def run_sample(args):
@@ -607,12 +688,21 @@ def run_sample(args):
     pool, _ip, _cp = build_pool(E, 500, 500)
     pool = [(int(a), int(b)) for a, b in pool]
     assert len(pool) == 1000
+    pool_set = set(pool)
+    # ★ THE FULL QUESTION SPACE, which nothing in this project has ever measured a gain outside of.
+    ni, C = E["ctx"].ni, E["C"]
+    catalogue = [(0, i) for i in range(ni)] + [(1, c) for c in range(C)]
+    log(f"[sample] question space: {len(catalogue):,} catalogue ({ni:,} items + {C:,} concepts); "
+        f"the pool is {len(pool)} of them, and every gain ever banked lies inside it")
+    sched = depth_schedule(args.n_prefix)
+    log(f"[sample] depth schedule (stratified, k=1..15 then the deep half): {sched}")
 
     sig = {"v": 1, "split": "validation", "objective": "full", "mask_pool": pc,
            "tower": os.path.basename(args.snapshot),
            "conc_ckpt": os.path.basename(args.concept_ckpt),
-           "n_pool": len(pool), "n_cand": N_CAND, "min_path_users": MIN_PATH_USERS,
-           "prefix_k": list(PREFIX_K), "seed": args.seed}
+           "n_pool": len(pool), "n_catalogue": len(catalogue), "n_cand": N_CAND,
+           "n_cand_pool": N_CAND_POOL, "n_cand_catalogue": N_CAND_CAT,
+           "min_path_users": MIN_PATH_USERS, "depth_schedule": sched, "seed": args.seed}
     sp = os.path.join(SAMPLE_DIR, "_sig.json")
     if os.path.exists(sp):
         old = json.load(open(sp))
@@ -626,12 +716,22 @@ def run_sample(args):
     n_eval = 0
     for pi in range(args.n_prefix):
         outp = os.path.join(SAMPLE_DIR, f"prefix_{pi:03d}.json")
-        k = int(PREFIX_K[rng.integers(len(PREFIX_K))])
+        k = int(sched[pi])
         pidx = rng.choice(len(pool), size=k, replace=False)
         prefix = [pool[int(j)] for j in pidx]
-        rest = [q for q in pool if q not in set(prefix)]
-        cidx = rng.choice(len(rest), size=N_CAND, replace=False)
-        cands = [rest[int(j)] for j in cidx]
+        used = set(prefix)
+        # --- 20 in-pool, so the pool region stays dense and comparable with everything banked ----
+        rest = [q for q in pool if q not in used]
+        cands = [rest[int(j)] for j in rng.choice(len(rest), size=N_CAND_POOL, replace=False)]
+        used |= set(cands)
+        # --- 30 catalogue-wide: the typical questions, and the negative examples nothing has ------
+        drawn = []
+        while len(drawn) < N_CAND_CAT:
+            q = catalogue[int(rng.integers(len(catalogue)))]
+            if q not in used:
+                drawn.append(q); used.add(q)
+        cands = cands + drawn
+        in_pool = [q in pool_set for q in cands]
         if os.path.exists(outp):
             log(f"[sample {pi}] already banked, skipping")
             continue
@@ -650,9 +750,10 @@ def run_sample(args):
         kept = {g: np.asarray(ix, np.int64) for g, ix in groups.items()
                 if len(ix) >= MIN_PATH_USERS}
         dropped = {g: len(ix) for g, ix in groups.items() if len(ix) < MIN_PATH_USERS}
-        log(f"[sample {pi}] k={k} prefix={prefix} | {len(groups)} populated answer paths, "
-            f"{len(kept)} kept (>= {MIN_PATH_USERS} users), {len(dropped)} DROPPED carrying "
-            f"{sum(dropped.values())} of 10,000 users")
+        log(f"[YIELD k={k}] {len(groups)} populated answer paths, {len(kept)} KEPT "
+            f"(>= {MIN_PATH_USERS} users), {len(dropped)} dropped carrying "
+            f"{sum(dropped.values())} of 10,000 users -- the floor is NOT lowered; a low yield at "
+            f"depth is the finding, not a problem to engineer around")
         # --- the candidates, per-user vectors kept -----------------------------------------------
         F = np.zeros((N_CAND, len(rows)), np.float32)
         T = np.zeros((N_CAND, len(rows)), np.float32)
@@ -679,10 +780,19 @@ def run_sample(args):
             st_out.append({"path": gkey, "n_users": int(len(ix)), "base": b_full,
                            "base_tail": float(np.nanmean(t0v[ix])), "gains": g,
                            "rows": [int(rows[int(u)]) for u in ix]})
+        # the vocabulary contrast, measured on the spot: what IS a typical catalogue question worth?
+        gm = st_out[0]["gains"]
+        gp = [gm[f"{q[0]}_{q[1]}"] for q, ip in zip(cands, in_pool) if ip]
+        gc = [gm[f"{q[0]}_{q[1]}"] for q, ip in zip(cands, in_pool) if not ip]
+        log(f"[VOCAB k={k}] marginal gain, in-pool mean {np.mean(gp):+.5f} (max {np.max(gp):+.5f}) "
+            f"vs catalogue-wide mean {np.mean(gc):+.5f} (max {np.max(gc):+.5f})")
         rec = {"sig": sig, "prefix_index": pi, "k": k,
                "prefix": [list(q) for q in prefix], "candidates": [list(q) for q in cands],
+               "candidate_in_pool": [bool(x) for x in in_pool],
                "n_paths_populated": len(groups), "n_paths_kept": len(kept),
                "n_paths_dropped": len(dropped), "n_users_dropped": int(sum(dropped.values())),
+               "marginal_gain_in_pool_mean": float(np.mean(gp)),
+               "marginal_gain_catalogue_mean": float(np.mean(gc)),
                "states": st_out, "seconds": time.time() - t0,
                "per_user_npy": f"prefix_{pi:03d}_peruser.npy", "test_touched": False}
         atomic_write(outp, rec)
@@ -707,6 +817,8 @@ def scrape_sample(ds, led):
             continue
         pool = {"n_pool": int(sig["n_pool"]), "pool_sha1": None}
         prefix = [(int(a), int(b)) for a, b in d["prefix"]]
+        ip = {f"{q[0]}_{q[1]}": bool(f) for q, f in
+              zip(d["candidates"], d.get("candidate_in_pool", [True] * len(d["candidates"])))}
         n = 0
         for st in d["states"]:
             # a state here is (prefix, answer path); its cohort is that path's users
@@ -717,8 +829,8 @@ def scrape_sample(ds, led):
             for qs, g in st["gains"].items():
                 a, bq = qs.split("_")
                 n += ds.add(sid, (int(a), int(bq)), float(g), st["base"], "random_sample",
-                            fn, len(prefix), False)
-        led.admit(fn, f"{len(d['states'])} random-prefix states "
+                            fn, len(prefix), False, in_pool=ip.get(qs, True))
+        led.admit(fn, f"k={d['k']}, {len(d['states'])} random-prefix states "
                       f"({d['n_paths_dropped']} paths below {MIN_PATH_USERS} users dropped)", n)
         n_add += n
     return n_add

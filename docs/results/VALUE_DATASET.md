@@ -128,11 +128,24 @@ this is the sense in which it is "parameter-free but not assumption-free".
 | 9 unbiased | all 246 states | +0.4229 | 115 |
 
 **Nothing about the ablation by source is reported as settled until phase 3 and the random sampling
-are in.** The one thing the table does say now is that the state-blind bar is **not** a fixed
-+0.4163: on the two deep states phase 3 has finished so far it drops to +0.3975 and fails its own
-gate. Deep, small-cohort states are harder for a state-blind average than the tree's shallow ones —
-which is the direction that would make a *conditional* value easier to justify, and it is exactly
-why it must not be claimed on two states.
+are in.**
+
+### ★ What the table does already say: the +0.4163 bar was a property of seven shallow states
+
+As phase 3's deep states arrive, the **state-blind baseline falls and now fails its own gate**:
+
+| unbiased evaluation states | mean-vector ρ (unbiased-only) |
+|---|---|
+| 7 (the tree's complete internal nodes) | **+0.4163** — passes |
+| 9 (+2 phase-3 deep states) | +0.3975 — fails |
+| **16 (+9 phase-3 deep states)** | **+0.3771** — fails |
+
+Deep, small-cohort states are harder for a state-blind average than the tree's shallow ones, and one
+of the sixteen is already **negative (−0.165)**. This is monotone over three snapshots, so it is
+unlikely to be noise — but it is nine states of forty-two, and the honest reading is that **the
+comparator is moving**, not that anything is proven. It is the direction that would make a
+*conditional* value easier to justify, which is exactly why it must not be claimed early. The final
+number goes in when all 42 states land.
 
 ★ **Carry the method point regardless: correlation and argmax rank move independently.** In the
 banked-only run ρ moved +0.016 while the argmax rank moved 161 → 37. A value estimate is consumed by
@@ -147,8 +160,9 @@ would have overstated one that then failed to replicate.
 the structure-only cost model says 3.25 h, measured throughput is ~2.5× the model, so ~8 h). Its
 output is exhaustive and therefore unbiased at every candidate, it records its own cohort `rows`, and
 its per-user `.f32` vectors turn each measured state into its answer-conditioned children at no extra
-evaluation. **2 of 42 states are complete and already ingested** — 1,994 measurements — taking the
-union to **247 states / 25,977 measurements**. Nothing about the run is disturbed.
+evaluation. **9 of 42 states are complete and already ingested**, taking the union to
+**254 states / 32,956 measurements**. Nothing about the run is disturbed. On a refitted cost model it
+finishes ~18:10, with the queued chain complete ~19:30.
 
 ★ **Read the per-state sidecars, not the roll-up.** `policy_labels_deep_partial.json` still lists a
 finished state as `done: false` until the whole sweep ends, while the same state is complete on disk
@@ -165,13 +179,16 @@ every time. Candidates are.
 
 Per prefix:
 
-1. draw `k ~ Uniform{3,4,5,6}`, then `k` distinct questions **uniformly without replacement** from
-   the policy-B combined pool (500 popularity items + 500 answerable concepts — the tree's own pool,
-   same ids in the same order);
+1. take `k` from the **stratified depth schedule** below, then `k` distinct questions **uniformly
+   without replacement** from the policy-B combined pool (500 popularity items + 500 answerable
+   concepts — the tree's own pool, same ids in the same order). The **prefix stays in-pool
+   deliberately**: it defines the *state*, and drawing states from the same question set as every
+   banked state is what keeps the new material comparable with the old;
 2. ask that prefix to all 10,000 users; **keep the per-user NDCG vector**;
 3. record each user's ternary answer path (like / dislike / no-answer, per prefix question);
-4. draw **50 candidates** uniformly without replacement from the pool minus the prefix; evaluate each
-   over all 10,000 users, again keeping the per-user vector;
+4. draw **50 candidates** — **20 from the 1,000-question pool** and **30 from the full
+   19,390-question catalogue** — uniformly without replacement; evaluate each over all 10,000 users,
+   again keeping the per-user vector;
 5. for the marginal state and for **every answer path with ≥ 200 users**, the conditional gain is
    `mean(f_q[path]) − mean(f_0[path])` — the same construction the tree uses to score a split, so it
    is on the same ruler.
@@ -183,6 +200,52 @@ populated path **at zero extra evaluation**.
 chosen because it already governs every banked state rather than invented for this job. The number of
 paths dropped and the users they carry are recorded per prefix in the artifact. Because the per-user
 vectors are banked, changing that threshold later costs nothing and requires no re-evaluation.
+
+### ★★ Two widenings (2026-08-14) — recorded here alongside the original design
+
+Both are **strict broadenings**: more states and more question variety for the same money, nothing
+removed and nothing sampled that was not already being sampled. Neither needs a fresh HARD RULE 1
+sign-off; both are recorded because a design that changes silently is a design nobody can audit.
+
+**★ Widening 1 — DEPTH. `k ~ U{3..6}` → a stratified schedule over `k = 1…15`.**
+
+The original draw put every unbiased measurement at depth ≤ 6, and phase 3's 42 states sit at depths
+3–6 as well (they are one level below floor stops that live at depths 2–5). **The interview is
+sixteen questions long, so depths 7–15 — more than half of it — would have had no unbiased
+measurement at all**, covered only by the thin, bimodal heap survivors. The value head would then be
+extrapolating over exactly the region where the policy spends most of its turns. Folding a longer
+prefix is free: the cost is 50 candidates × 10,000 users whatever `k` is.
+
+The schedule is **stratified rather than random** — `k = 1…15` once each, then the remaining four
+prefixes at the deep end (8, 9, 10, 11). A random draw over 15 values with 19 prefixes leaves holes,
+and the yield curve below is a thing we are trying to *measure*; a curve with missing x-values
+measures less than it costs.
+
+⚠ **The real constraint at depth is path fragmentation, not cost.** A `k`-question prefix scatters
+10,000 users over up to `3^k` answer paths, and only paths clearing the 200-user floor give a stable
+conditional mean. So **usable paths per prefix as a function of `k` is measured and reported**, not
+assumed — it is the honest ceiling on how deep any conditional value model can be trained on this
+cohort. **If depth 12 yields nothing above the floor, that is the finding.** The floor is *not*
+lowered to manufacture states.
+
+**★ Widening 2 — VOCABULARY. 30 of the 50 candidates now come from the full catalogue.**
+
+Every gain ever measured in this project, in every source, is for a question inside the
+1,000-candidate pool — by construction the top 500 by popularity ∪ top 500 by answer rate. **No model
+here has ever seen a measured value for a typical catalogue question**, so the value head has no
+examples of what a *bad* question is worth. That is precisely the deficit behind the open-vocabulary
+failure (out-of-pool picks answered 9.1% vs 55.2% in-pool, NDCG −0.02034).
+
+Most catalogue draws will be near-unanswerable and score near zero — **that is the point**: they are
+the negative examples that have never existed. The split is **declared, not silent**: 20 in-pool so
+the pool region stays densely covered, 30 catalogue-wide. Every measurement carries **`in_pool`**, so
+every result can be recomputed restricted to in-pool candidates and compared like-for-like with the
+banked material. The sampler also prints the contrast per prefix (mean and max marginal gain, in-pool
+vs catalogue-wide), because it is free and it is the first direct measurement of what the pool
+selection is actually buying.
+
+Current vocabulary composition of the union: **32,956 in-pool, 0 catalogue-wide** — the hole, stated
+as a number.
 
 **Cost, from the project's own measured fit** `sec_per_eval(n) = 0.0858 + 0.8157·(n/1000)`, i.e.
 **8.24 s at n = 10,000**: 51 evaluations per prefix ≈ **7 min**; 19 prefixes ≈ **2.2 h**. The job
@@ -205,7 +268,9 @@ float32 per-user vectors the moment it finishes, and a resume across a changed c
    representational one. That free tell was on screen for hours and nobody read it.
 3. the pre-registered **ρ ≥ +0.40 gate**, LOSO on the **unbiased states only**, per-state numbers,
    3 seeds with the spread.
-4. the **ablation by source** — unbiased-only vs unbiased + tagged-biased.
+4. the **ablation by source** — unbiased-only vs unbiased + tagged-biased — and, now that the
+   vocabulary hole is being filled, the same arms recomputed **restricted to in-pool candidates**, so
+   the new material is compared like-for-like with everything banked.
 5. the **no-answer flatness check**: `V(no-answer|q,s)` must sit at `base(s)` and be flat across `q`.
    Last time it varied with sd 0.058, about three times the range of the quantity, and drove the
    argmax.
@@ -235,6 +300,11 @@ measured, not guessed: the idle `http.server` pythons sit at 2–10 MB and the l
 - **Correlation and argmax rank move independently — report both, always.** 238 downward-biased
   states moved ρ by +0.016 and the argmax rank from 161 to 37; two more states then undid the second
   effect entirely.
+- **Ask what the dataset does NOT cover before paying for it, not after.** The authorised design
+  would have left depths 7–15 — over half the interview — with no unbiased measurement, and would
+  have measured a gain for a typical catalogue question exactly as often as everything before it
+  did: never. Both holes closed for the same money, because the cost is per *evaluation* and neither
+  a longer prefix nor a different candidate changes that.
 - **A parameter-free baseline is not an assumption-free one.** The mean-vector estimator averages
   over whichever states happen to hold a value for `q`, and that support ranges from a handful to
   hundreds. Two dense states outweighed 238 sparse ones. Any "which source helps" claim has to wait
