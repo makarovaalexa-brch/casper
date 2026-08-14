@@ -12,7 +12,10 @@ $py  = "C:\Program Files\Python312\python.exe"
 $B   = "experiments\battery"
 $log = "$B\allstates_chain.log"
 function Heavy {
-    Get-CimInstance Win32_Process | Where-Object {
+    # Name filter FIRST. Matching on command-line text alone also matches any powershell/bash process
+    # that merely MENTIONS these scripts - including the diagnostic calls used to inspect this queue -
+    # which resets the idle counter and can deadlock the wait. Only real python jobs count.
+    Get-CimInstance Win32_Process -Filter "Name like 'python%'" | Where-Object {
         $_.CommandLine -like "*policy_labels.py*" -or
         $_.CommandLine -like "*outcome_head.py*"  -or
         $_.CommandLine -like "*lift_head.py*" }
