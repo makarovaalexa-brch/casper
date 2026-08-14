@@ -47,9 +47,20 @@ HARD RULE 1 -- NOTHING IS SAMPLED. Every state uses every one of its users and e
 declared pool. `--verify_n` chooses only which candidates get RE-VERIFIED against a fresh evaluation;
 it never chooses which get used.
 
-HARD RULE 11 -- a contract-signed `*_partial.json` is rewritten after EVERY candidate, so a kill costs
-at most one evaluation. Resume refuses across a changed contract via `mask_contract.resume_ok`, which
-treats a MISSING field as a refusal rather than a pass. Cached per-user vectors are float32.
+HARD RULE 11 -- a contract-signed partial is rewritten after EVERY candidate, so a kill costs at most
+one evaluation. Resume refuses across a changed contract via `mask_contract.resume_ok`, which treats a
+MISSING field as a refusal rather than a pass. Cached per-user vectors are float32.
+
+  ⚠ 2026-08-14: the partial is now ONE FILE PER STATE (`*_partial/<sid>.json`), not one growing file
+  for all of them. The single-file form was rewritten in full after every candidate, so by the last of
+  42 states it serialised and renamed ~42,000 gain vectors (~2 MB) about 1.4 times a second -- a
+  growing runtime tax and a permanently-hot file for the AV scanner, which is what killed the 12:20
+  run at candidate 600/997 with `PermissionError: [WinError 5]`. `atomic_write` additionally retries
+  the rename. The cadence, the contract check and the durability guarantee are all unchanged; a legacy
+  single-file partial is MIGRATED rather than discarded, because paid-for evaluations are never thrown
+  away. Related rule, learned the same day: PERSIST THE FULL SWEEP VECTOR AT STEP 0, BEFORE THE FIRST
+  POP -- CELF's pops overwrite their own step-0 record, which is why only 7 banked states carry a
+  complete level-0 vector.
 """
 import os
 import sys
@@ -88,6 +99,29 @@ def sec_per_eval(n_users):
 
 def _sha(o):
     return hashlib.sha1(json.dumps(o, separators=(",", ":")).encode()).hexdigest()
+
+
+def atomic_write(path, obj, tries=12):
+    """Write-then-rename, with a retry on the transient Windows lock.
+
+    Measured 2026-08-14: a sweep died at candidate 600/997 with `PermissionError: [WinError 5]` out of
+    `os.replace(tmp -> partial)`. On Windows a rename fails if ANY process holds the target open for
+    even an instant, and a file rewritten ~1.4x/second is a standing target for the AV scanner and the
+    search indexer. Losing a multi-hour run to a lock that clears in 50 ms is not durability, it is a
+    crash dressed as a safety property -- so the replace retries with a short backoff and only then
+    gives up. The flush cadence itself is unchanged: HARD RULE 11(a) still means after EVERY candidate.
+    """
+    tmp = path + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump(obj, fh, default=float)
+    for k in range(tries):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            if k == tries - 1:
+                raise
+            time.sleep(0.05 * (k + 1))
 
 
 # ============================================================================ the IDCG weights
@@ -356,22 +390,53 @@ def run_banked(E, tr, t16, pool, args, out_path, rng):
 def run_sweep(E, tr, t16, pool, args, out_path, rng):
     """Full 1,000-candidate exact gain VECTORS at a declared state set, under BOTH normalisations."""
     states, _rows_of = enumerate_states(E, tr, t16, args.states)
-    partial_path = out_path.replace(".json", "_partial.json")
     sig = {"v": 1, "split": E["split"], "objective": "full_and_tail_ndcg_and_dcg",
            "tower": E["tower"], "conc_ckpt": E["conc_ckpt"],
            "mask_pool": pool_contract(E["pool"], E["rows"], policy=E["pool_policy"]),
            "n_pool": len(pool), "pool_sha1": _sha([[int(a), int(b)] for a, b in pool]),
            "states": args.states,
            "state_sha1": _sha(sorted(s["sid"] for s in states))}
-    part = json.load(open(partial_path)) if os.path.exists(partial_path) else {}
-    if not resume_ok(part.get("sig"), sig, log, os.path.basename(partial_path)):
-        part = {"sig": sig, "states": {}}
-    part.setdefault("states", {})
 
-    def flush():
-        with open(partial_path + ".tmp", "w") as fh:
-            json.dump(part, fh, default=float)
-        os.replace(partial_path + ".tmp", partial_path)
+    # ---- ONE PARTIAL FILE PER STATE, not one growing file for all of them -----------------------
+    # The single `*_partial.json` was rewritten in full after every candidate. That is correct for
+    # durability and wrong for everything else: by the last of 42 states the object being serialised
+    # and renamed ~1.4 times a second holds ~42,000 gain vectors (~2 MB), so the run pays a growing
+    # serialise-and-rename tax and presents a permanently-hot file to the AV scanner -- which is what
+    # killed the 12:20 run at candidate 600/997 (WinError 5). Per-state files keep each write at ~1,000
+    # entries and constant in the number of states already done. The cadence is unchanged: still after
+    # EVERY candidate, still contract-signed, still refusing to resume across a changed contract.
+    partial_dir = out_path.replace(".json", "_partial")
+    os.makedirs(partial_dir, exist_ok=True)
+    sig_path = os.path.join(partial_dir, "_sig.json")
+    old = json.load(open(sig_path)).get("sig") if os.path.exists(sig_path) else None
+    part = {"sig": sig, "states": {}}
+    if resume_ok(old, sig, log, os.path.basename(partial_dir) + "/"):
+        for fn in sorted(os.listdir(partial_dir)):
+            if fn == "_sig.json" or not fn.endswith(".json"):
+                continue
+            r = json.load(open(os.path.join(partial_dir, fn)))
+            part["states"][r["sid"]] = r
+        log(f"[resume] {len(part['states'])} states recovered from {os.path.basename(partial_dir)}/")
+    else:
+        for fn in os.listdir(partial_dir):
+            os.remove(os.path.join(partial_dir, fn))
+    # Migrate the pre-2026-08-14 single-file partial rather than discard measured evaluations.
+    legacy = out_path.replace(".json", "_partial.json")
+    if os.path.exists(legacy) and not part["states"]:
+        lg = json.load(open(legacy))
+        if resume_ok(lg.get("sig"), sig, log, os.path.basename(legacy)):
+            part["states"] = lg.get("states", {})
+            log(f"[resume] migrated {len(part['states'])} states "
+                f"({sum(len(r.get('vals', {})) for r in part['states'].values()):,} measured gains) "
+                f"from the legacy single-file partial -- paid-for evaluations are never discarded")
+    atomic_write(sig_path, {"sig": sig, "note": "contract signature for the per-state partials"})
+
+    def flush(sid=None):
+        """Persist ONE state (the one in flight). Called after every candidate."""
+        if sid is None:
+            return
+        atomic_write(os.path.join(partial_dir, sid.replace("@", "_at_") + ".json"),
+                     part["states"][sid])
 
     t00 = time.time()
     for si, st in enumerate(states):
@@ -399,7 +464,7 @@ def run_sweep(E, tr, t16, pool, args, out_path, rng):
             f, t = genv_eval(E, prefix + [tuple(q)], st["rows"])
             m = dual_means(f, t, w_f, w_t)
             rec["vals"][key] = [m[i] - base[i] for i in range(4)]   # gains: nF, nT, dF, dT
-            flush()                                          # HARD RULE 11(a): after EVERY candidate
+            flush(sid)                                       # HARD RULE 11(a): after EVERY candidate
             if (ci + 1) % 25 == 0:
                 el = time.time() - t0
                 log(f"[sweep {sid}] {ci + 1}/{len(cand)} ({el / 60:.1f}m, {el / (ci + 1):.2f}s/eval; "
@@ -414,7 +479,7 @@ def run_sweep(E, tr, t16, pool, args, out_path, rng):
         rec["spearman_ndcg_vs_dcg"] = float(np.corrcoef(
             np.argsort(np.argsort(-g[:, 0])), np.argsort(np.argsort(-g[:, 2])))[0, 1])
         rec["done"] = True
-        flush()
+        flush(sid)
         log(f"[sweep {sid}] DONE {len(cand)} candidates in {(time.time() - t0) / 60:.1f}m | "
             f"NDCG argmax {a_nf} vs DCG argmax {a_df} -> "
             f"{'AGREE' if rec['argmax_agrees'] else 'DISAGREE'} "

@@ -13,6 +13,12 @@ $L  = "$B\phase3.log"
 $NT = 6
 
 function Say($m) { "$(Get-Date -Format HH:mm:ss) $m" | Out-File -Append $L }
+# A failed step ABORTS the chain. On 2026-08-14 a G-L0 refusal in step 1 cascaded through steps 2-5,
+# each failing on the artifact the previous one never produced, and buried the real error five logs
+# deep. A step that cannot have succeeded must not be followed by one that depends on it.
+function Need($code, $what) {
+    if ($code -ne 0) { Say "=== ABORT: $what exited $code. Later steps depend on it and are NOT run. ==="; exit 1 }
+}
 
 if ($WaitPid -gt 0) {
     Say "=== waiting for the Part F chain (pid $WaitPid) ==="
@@ -33,31 +39,31 @@ if (-not (Test-Path "$B\policy_labels_deep.json")) {
     Say "--- step 1: policy_labels.py --mode sweep --states deep (projection: 42 states, 41,834 evals, 3.3 h)"
     & $py src/instrument/policy_labels.py --mode sweep --states deep --label deep `
         --threads $NT *> $B\phase3_sweep.log
-    Say "--- step 1 exit=$LASTEXITCODE"
+    Say "--- step 1 exit=$LASTEXITCODE"; Need $LASTEXITCODE "the deep sweep"
 } else { Say "--- step 1 SKIPPED: policy_labels_deep.json already on disk" }
 
 # --- STEP 2: (leaf, branch) -> question. Zero scoring cost, all gates. ----------------------------
 Say "--- step 2: policy_deep.py --mode labels"
 & $py src/instrument/policy_deep.py --mode labels *> $B\phase3_labels.log
-Say "--- step 2 exit=$LASTEXITCODE"
+Say "--- step 2 exit=$LASTEXITCODE"; Need $LASTEXITCODE "the deep labels"
 
 # --- STEP 3: ★ THE DEEPER-TREE CONTROL. Mandatory. -----------------------------------------------
 Say "--- step 3: policy_deep.py --mode control (the deeper tree, its shuffle control, order-invariance)"
 & $py src/instrument/policy_deep.py --mode control --threads $NT *> $B\phase3_control.log
-Say "--- step 3 exit=$LASTEXITCODE"
+Say "--- step 3 exit=$LASTEXITCODE"; Need $LASTEXITCODE "the deeper-tree control"
 
 # --- STEP 4: fine-tune the policy on the deep labels MIXED with the tree labels. ------------------
 Say "--- step 4: policy_net.py --arm deep (fine-tune from the E1 anchor, replay on)"
 & $py src/instrument/policy_net.py --arm deep --tag phase3 `
     --init_ckpt $B\policy_main_equivariant_both.pt --epochs 3 --lr 2e-4 `
     --threads $NT --i_have_author_goahead *> $B\phase3_deep.log
-Say "--- step 4 exit=$LASTEXITCODE"
+Say "--- step 4 exit=$LASTEXITCODE"; Need $LASTEXITCODE "the fine-tune"
 
 # --- STEP 5: the HARD RULE 5 control -- the same 42 questions, permuted across branches. ----------
 Say "--- step 5: policy_net.py --arm deepshuffle (the shuffle control)"
 & $py src/instrument/policy_net.py --arm deepshuffle --tag phase3 `
     --init_ckpt $B\policy_main_equivariant_both.pt --epochs 3 --lr 2e-4 `
     --threads $NT --i_have_author_goahead *> $B\phase3_deepshuffle.log
-Say "--- step 5 exit=$LASTEXITCODE"
+Say "--- step 5 exit=$LASTEXITCODE"; Need $LASTEXITCODE "the shuffle control"
 
 Say "=== PHASE 3 CHAIN COMPLETE ==="
