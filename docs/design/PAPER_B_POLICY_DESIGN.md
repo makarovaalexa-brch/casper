@@ -1077,7 +1077,57 @@ embedding-generalisation real; the held-out-question test and 10/25/50/100% curv
 from the author before any run.** (Selection at inference still scores all 19,390 — only the value
 head's TRAINING set is sparse by design.)
 
-### ★★★ G.C-AMENDMENT-2 (2026-08-14, 03:0x) — THE AMENDMENT BELOW IS LARGELY WITHDRAWN. A PARAMETER-FREE BASELINE PASSES THE GATE.
+### ★★★ G.C-AMENDMENT-3 (2026-08-14) — **THE TWO-HEAD LINE IS CLOSED. STAGE C IS DEAD.** Accuracy was never the constraint.
+
+**The ceiling experiment** (degrade the true value table to a target ρ, rank-preservingly — perturbed in
+normal-score space and mapped back onto `sorted(t)`, so the value multiset is exactly preserved and a
+simulated estimator cannot cheat by shrinking toward a constant — then run the combined P×V policy;
+19 rollouts, 3 seeds per level, 10,000 validation users):
+
+| ρ vs true value table | 0.50 | 0.60 | 0.70 | 0.80 | 0.90 | 0.95 | **1.00** |
+|---|---|---|---|---|---|---|---|
+| policy gain vs combined static | −0.02512 | −0.02495 | −0.02698 | −0.02398 | −0.02587 | −0.02608 | **−0.02911** |
+
+**Total spread 0.0075 — smaller than the seed spread within a single level. corr(accuracy, score) =
+−0.18. EVEN ρ = 1.00 LOSES, by the largest margin of the sweep**, and the best point is still 0.0345
+below bank-alone. The pre-registered "even ρ=0.95 loses ⇒ dead on its own terms" condition fires.
+
+**★ WHY, and this is the part that transfers to any future design.** The mean gain vector is a
+**MARGINAL** value — what a question is worth *on its own*. **Taking the top-k by a marginal value
+cannot express REDUNDANCY between questions.** Greedy does the one thing this design structurally
+cannot: pick, **re-fold, re-score**, pick again, valuing the second question *given* the first. It is
+visible in the data rather than inferred: **answer rate falls monotonically 0.6188 → 0.5650 as
+accuracy rises** — a more accurate marginal value concentrates the policy on a narrower, more
+redundant set, and the noise levels were helping only by scattering the picks.
+
+So `Σ_o P(o)·V(o)` with a **state-marginal** `V` is not competitive at any estimator quality; to
+compete, `V` must be conditioned on what has already been asked — which is exactly the object that
+lost to a static average. **The two failures compose and the line closes.**
+
+**Consequences, binding:**
+- **Stage C (buying states) is DEAD** — there is no accuracy target to buy toward.
+- **No learning curve is worth running**; the mean-vector-plus-residual model is **WITHDRAWN**.
+- The 2.3 h noise-ceiling test is **moot**.
+- **Stage B (phase 3) is UNAFFECTED** — it uses labels, not predicted values.
+- **Stage D (RL) is arguably STRENGTHENED**: a whole-interview reward handles sequence redundancy
+  natively, which is precisely what this design could not. The diagnosis now points at *sequential
+  conditioning* as the missing ingredient — which the tree gets by re-folding and RL would get from
+  the reward.
+- ★ The **arithmetic add-on** (appending the recommender's state-gradient to the emitted vector, and
+  the candidates' encoder rows to the question table) is **NOT killed by this result** and is now the
+  most interesting survivor: because the gradient is recomputed at each state, a question that
+  duplicates one already asked scores lower *by construction*. It is a state-conditioned quantity that
+  is **computed rather than learned**, so it addresses the actual failure rather than the one we
+  mis-diagnosed. Untested.
+
+**Two limitations carried forward as first-class:** the winning estimator is a **lookup table over the
+1,000-pool** and is structurally incapable of open vocabulary; and **every gain we hold is for a pool
+question** (top-500-popular ∪ top-500-answerable), so no model here has ever seen what a *typical*
+catalogue question is worth — plausibly a bigger problem for open vocabulary than the state count.
+
+---
+
+### G.C-AMENDMENT-2 (2026-08-14, 03:0x) — a parameter-free baseline passes the gate (STILL VALID; its "fix the estimator" recommendation is superseded by AMENDMENT-3)
 
 **HARD RULE 2 was not applied to the lift head: it was never compared against the simplest baseline.
 It should have been, and the baseline wins.**
