@@ -426,9 +426,12 @@ def write(ds, led, comp, extra=None):
         for (sid, q), m in sorted(ds.meas.items()):
             st = ds.states[sid]
             row = dict(m)
+            # `nid` travels with the row because it is the ONLY way the trainer can recover an
+            # arbitrary state's COHORT (tree descent from the root); without it every tree state is
+            # silently unusable and the union collapses to whatever happens to be the full cohort.
             row.update({"asked_set": st["asked_set"], "depth": st["depth"],
                         "cohort_sha1": st["cohort_sha1"], "n_rows": st["n_rows"],
-                        "contract": st["contract"], "pool": st["pool"]})
+                        "contract": st["contract"], "pool": st["pool"], "nid": st.get("nid")})
             assert abs(row["absolute_value"] - row["base"] - row["gain"]) < 1e-15
             f.write(json.dumps(row) + "\n")
     man = {"analysis": "unified_value_head_dataset", "test_touched": False, "split": "validation",
@@ -471,8 +474,9 @@ def load_jsonl():
         r = json.loads(line)
         sid = r["state_id"]
         if sid not in states:
-            states[sid] = {k: r[k] for k in ("state_id", "asked_set", "depth", "base",
-                                             "cohort_sha1", "n_rows", "contract", "pool")}
+            states[sid] = {k: r.get(k) for k in ("state_id", "asked_set", "depth", "base",
+                                                 "cohort_sha1", "n_rows", "contract", "pool",
+                                                 "nid")}
         gains[sid][(r["question"][0], r["question"][1])] = r["gain"]
         tags[sid][(r["question"][0], r["question"][1])] = r["selection_tag"]
     for sid in states:
@@ -874,11 +878,18 @@ def run_train(args):
             f"({'PASSES' if m >= 0.40 else 'FAILS'} the +{0.40:.2f} gate)")
         return {"arm": label, "mean_spearman": m, "per_state": rows}
 
-    arms = [loso(list(packs), "union(all sources)"),
-            loso(unbiased, "unbiased_only"),
-            loso(list(packs), "ZEROED-STATE control", blind=True)]
+    # HARD RULE 11(a): the cheap arms first, and every arm on disk the moment it finishes -- a fit
+    # over hundreds of packs is hours, and a crash must never cost more than one arm.
+    part = os.path.join(OUTDIR, "value_head_union_partial.json")
     mv = [meanvec_arm(ev, list(gains), gains, "meanvec/union"),
           meanvec_arm(ev, unbiased, gains, "meanvec/unbiased_only")]
+    arms = []
+    for tr_sids, lab, blind in ((list(packs), "union(all sources)", False),
+                                (unbiased, "unbiased_only", False),
+                                (list(packs), "ZEROED-STATE control", True)):
+        arms.append(loso(tr_sids, lab, blind=blind))
+        json.dump({"meanvec": mv, "arms": arms}, open(part, "w"), indent=1, default=float)
+        log(f"[persist] {len(arms)} arms banked -> {part}")
 
     # ---- the no-answer flatness check, free and it localised the last failure -------------------
     m, _h, _b = LH.fit_lift([packs[s] for s in packs], E["ctx"].d, phi_t.shape[1], args,
