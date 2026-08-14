@@ -1077,7 +1077,83 @@ embedding-generalisation real; the held-out-question test and 10/25/50/100% curv
 from the author before any run.** (Selection at inference still scores all 19,390 — only the value
 head's TRAINING set is sparse by design.)
 
-### ★★★ G.C-AMENDMENT-3 (2026-08-14) — **THE TWO-HEAD LINE IS CLOSED. STAGE C IS DEAD.** Accuracy was never the constraint.
+### ★★★ G.C-AMENDMENT-4 (2026-08-14, Fable ruling) — **AMENDMENT-3 OVER-RECORDS. THE LINE IS NOT CLOSED.**
+
+**The author objected — *"why has it no way of knowing... it has user embedding, right?"* — and she is right.**
+The ceiling experiment perturbs **one fixed vector reused at every state**, so every row of that table,
+including ρ=1.00, is a **MARGINAL** value.
+
+| licensed by the experiment | NOT licensed |
+|---|---|
+| **"a state-MARGINAL value fails at any accuracy"** — strong, clean, and mechanistically interesting | "the two-head design fails" |
+| "accuracy does not help, and ρ=1.00 is numerically worst" | ★ "more accurate is worse" — cross-level spread is BELOW within-level seed spread; do not let this sentence into the chapter |
+
+**Two independent reasons the stronger claim fails.** (1) The state-conditioned value was never shown
+impossible — the learned head at ρ=+0.06 is a **weak method** (HARD RULE 6), not a proof. (2) ★ **The
+state-conditioned ceiling is already known to be POSITIVE: the tree IS a state-conditioned value
+policy** (it conditions on answers; its leaf tails are measured-gain greedy sequences), **and E1
+reproduced it on this exact architecture at +0.02794 to 1e-9.** `⟨ẑ(z_t), e_q⟩` demonstrably carries
+conditioning. The syllogism "marginal V fails; conditional V lost to a static average; therefore
+closed" uses a **failed training run** as its second premise.
+
+**Corrected statement: marginal value fails at any accuracy; the learned conditional value was never
+obtained (7-state label supply); the conditional ceiling is bounded below by the tree.**
+
+### ★ THE DIAGNOSIS — label starvation, with a tell nobody read
+
+**+0.06 < +0.42 is impossible for a healthy learner.** A network that sees `z_t` can trivially
+**ignore** `z_t` and emit the mean vector — so landing far *below* the state-blind baseline means it
+failed to learn even the **state-common** component. That is an optimisation/target failure (tiny
+NDCG-gain magnitudes, noise-dominated regression, six training examples under LOSO), **not** a
+representational one. **This should have stopped the run at hour one, alongside the HARD RULE 2 miss.**
+Bank it as a standing check: *any learner that scores below the trivial baseline available to it by
+construction is broken, and no further interpretation of its output is admissible.*
+
+### THE FIX — labels, not architecture
+
+Generate measured gain vectors at **many** states (sampled interview prefixes) — which is exactly what
+phase 3's deeper greedy labelling produces — then **skip the P×V factorisation and distil the
+measured-gain greedy directly into `ẑ`, as E1 distilled the tree.** E1 is the existence proof that
+distillation onto this architecture works; "imitate the tree" → "imitate greedy at sampled states" is
+the natural method claim. Training is cheap; the cost is label generation, already running.
+
+**On the state-gradient add-on (my Part G proposal) — I presented it with its redundancy story leading
+and its surrogate nature trailing; the honest order is reversed.** It is a **first-order SURROGATE**,
+and this project's most repeated finding is that surrogates for measured gain lose to measured gain.
+**Do not ship it as the score.** Its correct role is a candidate *feature*, gated on experiment (b)
+below, not presumed.
+
+### THE THREE CHEAP SETTLING EXPERIMENTS (validation only, hours, no test look)
+
+- **(a) Settles the ruling by measurement.** Rerun the composed policy with `V(state)` = the banked
+  gain vector of the **nearest banked state** (a crude 7-way conditional table) instead of the flat
+  mean. If it beats 0.22650, conditioning in V moves the policy and the line is open by measurement
+  rather than argument. Same harness as the ceiling run, 19 rollouts × 3 seeds.
+- **(b) Gates the gradient add-on.** At each of the 7 banked states compute `⟨∇, enc_q⟩` and Spearman
+  it against the banked measured gains; check it down-ranks already-asked questions. Pure computation,
+  no training. **If per-state ρ does not beat +0.42, drop the add-on.**
+- **(c) Separates optimiser failure from label failure**, before phase-3 labels are spent: train the
+  identical head with the **state input zeroed**. If it reaches ~+0.42 the architecture and optimiser
+  are fine and the failure is purely label supply; if it also sits near zero, the loss/target scaling
+  is broken and must be fixed before any more labels are bought.
+
+### WHAT THE CHAPTER CLAIMS (coherent without any new positive result)
+
+1. **E1** — a single emitted vector exactly carries a sequential, redundancy-aware policy (existence proof).
+2. **The outcome head** — answerability is learnable, state-conditioned, calibrated, worth **+0.00392
+   [+0.00105,+0.00676]** inside a policy, and turns 1 realised interview into 9,421.
+3. ★ **The ceiling experiment, correctly stated: *the worth of a question is not a property of the
+   question*.** Even a perfect per-question value table loses — value is intrinsically conditional.
+
+**Effort:** let phase 3 finish, run (a)–(c), then one distillation-of-greedy attempt. **STOP** tuning
+the two-head value regression on the 7-vector supply — every further hour there is compute theatre.
+
+⚠ **And do not let the fallback framing oversell conditioning:** bank-alone (+0.01280) is nearly half
+the tree's gain (+0.02794).
+
+---
+
+### G.C-AMENDMENT-3 (2026-08-14) — SUPERSEDED IN ITS CONCLUSION by AMENDMENT-4 above. Its ceiling numbers stand; its "line closes" verdict does not.
 
 **The ceiling experiment** (degrade the true value table to a target ρ, rank-preservingly — perturbed in
 normal-score space and mapped back onto `sorted(t)`, so the value multiset is exactly preserved and a
