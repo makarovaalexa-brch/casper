@@ -1,0 +1,288 @@
+{
+ "analysis": "unified_value_head_dataset",
+ "test_touched": false,
+ "split": "validation",
+ "authorisation": "AUTHOR 2026-08-14 (verbatim): 'can you collect the dataset: all states you can scrape for all greedy variants, trees static, whatnot, plus random sampling of everything else and redo the training?' -- HARD RULE 1 sign-off for the scrape and for the random-candidate sampling design recorded in docs/results/VALUE_DATASET.md",
+ "contract": {
+  "policy": "B",
+  "fp": "c282962b49a2d67ef47ff07544519f20",
+  "nnz": 1356475,
+  "per_user": 135.6475
+ },
+ "jsonl": "value_dataset.jsonl",
+ "composition": {
+  "per_contract": {
+   "policyB(v1, base-verified)": {
+    "measurements": 22242,
+    "states": 214
+   },
+   "policyB(v2, fp-stated)": {
+    "measurements": 1741,
+    "states": 31
+   }
+  },
+  "per_selection_tag": {
+   "exhaustive_sweep": {
+    "measurements": 6669,
+    "states": 7
+   },
+   "heap_survivor": {
+    "measurements": 17067,
+    "states": 223
+   },
+   "pick": {
+    "measurements": 247,
+    "states": 245
+   }
+  },
+  "per_depth": {
+   "0": {
+    "measurements": 1000,
+    "states": 1
+   },
+   "1": {
+    "measurements": 3004,
+    "states": 5
+   },
+   "10": {
+    "measurements": 895,
+    "states": 18
+   },
+   "11": {
+    "measurements": 677,
+    "states": 18
+   },
+   "12": {
+    "measurements": 689,
+    "states": 18
+   },
+   "13": {
+    "measurements": 666,
+    "states": 18
+   },
+   "14": {
+    "measurements": 643,
+    "states": 18
+   },
+   "15": {
+    "measurements": 781,
+    "states": 18
+   },
+   "2": {
+    "measurements": 5527,
+    "states": 11
+   },
+   "3": {
+    "measurements": 1810,
+    "states": 14
+   },
+   "4": {
+    "measurements": 2570,
+    "states": 16
+   },
+   "5": {
+    "measurements": 2839,
+    "states": 18
+   },
+   "6": {
+    "measurements": 634,
+    "states": 18
+   },
+   "7": {
+    "measurements": 654,
+    "states": 18
+   },
+   "8": {
+    "measurements": 799,
+    "states": 18
+   },
+   "9": {
+    "measurements": 795,
+    "states": 18
+   }
+  },
+  "per_pool": {
+   "1000": {
+    "measurements": 709,
+    "states": 13
+   },
+   "500": {
+    "measurements": 1741,
+    "states": 31
+   },
+   "995": {
+    "measurements": 3194,
+    "states": 33
+   },
+   "996": {
+    "measurements": 3064,
+    "states": 25
+   },
+   "997": {
+    "measurements": 3058,
+    "states": 27
+   },
+   "998": {
+    "measurements": 9220,
+    "states": 113
+   },
+   "999": {
+    "measurements": 2997,
+    "states": 3
+   }
+  },
+  "per_channel": {
+   "concept": 12268,
+   "item": 11715
+  },
+  "candidates_per_state": {
+   "min": 1,
+   "p25": 8,
+   "median": 27,
+   "p75": 63,
+   "max": 1000
+  },
+  "n_states": 245,
+  "n_measurements": 23983
+ },
+ "selection_tags": {
+  "pick": "a winner -- the candidate CELF popped at this state",
+  "heap_survivor": "measured at this state and never popped: the weak mass, biased LOW",
+  "exhaustive_sweep": "every candidate at this state was measured; unbiased",
+  "random_sample": "a uniform draw from the pool; unbiased by construction"
+ },
+ "ledger": [
+  {
+   "source": "greedy_static_policyB_concepts_heaps",
+   "verdict": "ADMIT",
+   "why": "1 sidecars, contract and objective stated and matching",
+   "n_measurements": 500
+  },
+  {
+   "source": "greedy_static_policyB_items_heaps",
+   "verdict": "ADMIT",
+   "why": "1 sidecars, contract and objective stated and matching",
+   "n_measurements": 500
+  },
+  {
+   "source": "ndcgtree16_heaps",
+   "verdict": "ADMIT",
+   "why": "16 sidecars, contract and objective stated and matching",
+   "n_measurements": 15718
+  },
+  {
+   "source": "ndcgtree16test_heaps",
+   "verdict": "ADMIT",
+   "why": "15 sidecars, contract and objective stated and matching",
+   "n_measurements": 0
+  },
+  {
+   "source": "ndcgtree_PREFLIGHT_heaps",
+   "verdict": "REFUSE",
+   "why": "not the citable tree (SANITY/PREFLIGHT); `policy_traj.load_tree` refuses it, so its states are not citable material",
+   "n_measurements": 0
+  },
+  {
+   "source": "ndcgtree_SANITY_heaps",
+   "verdict": "REFUSE",
+   "why": "not the citable tree (SANITY/PREFLIGHT); `policy_traj.load_tree` refuses it, so its states are not citable material",
+   "n_measurements": 0
+  },
+  {
+   "source": "ndcgtree_heaps",
+   "verdict": "ADMIT",
+   "why": "22 sidecars, contract and objective stated and matching",
+   "n_measurements": 7265
+  },
+  {
+   "source": "greedy_static_policyB_combined.json",
+   "verdict": "ADMIT",
+   "why": "16 picks, policy-B validation, measured NDCG@10",
+   "n_measurements": 0
+  },
+  {
+   "source": "greedy_static_policyB_items.json",
+   "verdict": "ADMIT",
+   "why": "16 picks, policy-B validation, measured NDCG@10",
+   "n_measurements": 0
+  },
+  {
+   "source": "greedy_static_policyB_concepts.json",
+   "verdict": "ADMIT",
+   "why": "16 picks, policy-B validation, measured NDCG@10",
+   "n_measurements": 0
+  },
+  {
+   "source": "greedy_static_i26c.json",
+   "verdict": "REFUSE",
+   "why": "the artifact states no `pool_contract`/`mask_policy` -- its ruler cannot be established, and a policy-A gain is not comparable to a policy-B one",
+   "n_measurements": 0
+  },
+  {
+   "source": "greedy_polish.json",
+   "verdict": "REFUSE",
+   "why": "the artifact states no `pool_contract`/`mask_policy` -- its ruler cannot be established, and a policy-A gain is not comparable to a policy-B one",
+   "n_measurements": 0
+  },
+  {
+   "source": "groupgreedy_d1.json",
+   "verdict": "REFUSE",
+   "why": "the artifact states no `pool_contract`/`mask_policy` -- its ruler cannot be established, and a policy-A gain is not comparable to a policy-B one",
+   "n_measurements": 0
+  },
+  {
+   "source": "groupgreedy_genre15.json",
+   "verdict": "REFUSE",
+   "why": "the artifact states no `pool_contract`/`mask_policy` -- its ruler cannot be established, and a policy-A gain is not comparable to a policy-B one",
+   "n_measurements": 0
+  },
+  {
+   "source": "groupgreedy_genre15_VAL_policyB.json",
+   "verdict": "REFUSE",
+   "why": "no per-question measured gains under a stated policy-B contract",
+   "n_measurements": 0
+  },
+  {
+   "source": "splitcrit_tree_logistic.json",
+   "verdict": "REFUSE",
+   "why": "OBJECTIVE: split-criterion ablation arm 'logistic' -- its `splitter_score` is a SURROGATE scalar, not measured NDCG@10",
+   "n_measurements": 0
+  },
+  {
+   "source": "splitcrit_tree_pairwise.json",
+   "verdict": "REFUSE",
+   "why": "OBJECTIVE: split-criterion ablation arm 'pairwise' -- its `splitter_score` is a SURROGATE scalar, not measured NDCG@10",
+   "n_measurements": 0
+  },
+  {
+   "source": "splitcrit_tree_random.json",
+   "verdict": "REFUSE",
+   "why": "OBJECTIVE: split-criterion ablation arm 'random' -- its `splitter_score` is a SURROGATE scalar, not measured NDCG@10",
+   "n_measurements": 0
+  },
+  {
+   "source": "splitcrit_tree_random_ml.json",
+   "verdict": "REFUSE",
+   "why": "OBJECTIVE: split-criterion ablation arm 'random_ml' -- its `splitter_score` is a SURROGATE scalar, not measured NDCG@10",
+   "n_measurements": 0
+  },
+  {
+   "source": "splitcrit_tree_variance.json",
+   "verdict": "REFUSE",
+   "why": "OBJECTIVE: split-criterion ablation arm 'variance' -- its `splitter_score` is a SURROGATE scalar, not measured NDCG@10",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_labels_deep_partial.json",
+   "verdict": "REFUSE",
+   "why": "no completed state yet (run still in flight)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_labels_deep_partial.json",
+   "verdict": "REFUSE",
+   "why": "no completed state yet (run still in flight)",
+   "n_measurements": 0
+  }
+ ]
+}
