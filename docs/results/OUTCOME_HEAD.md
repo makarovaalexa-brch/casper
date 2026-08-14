@@ -542,10 +542,52 @@ above — **including ρ = 1.00** — is therefore a **state-MARGINAL** value.
 > 3. The failure mode diagnosed below — redundancy between successive picks — is **precisely** what
 >    conditioning on the asked-set exists to fix.
 
-**The experiment that settles it is cheap and is queued** (§4.2): rerun the composed policy with
-`V(state)` taken from the **nearest banked state** — a crude 245-way conditional lookup — in place of
-the flat mean. If it beats the flat-mean arm's 0.22650, conditioning in `V` moves the policy and the
-question is open by measurement. If it does not, the stronger sentence is earned and can be written.
+### 4.2 ★★★ THE ANSWER: conditioning in `V` DOES move the policy
+
+The experiment: rerun the composed policy with `V(state)` taken from the **nearest banked state** — a
+crude 245-way conditional lookup keyed on the asked-set, falling back to the flat mean where that state
+holds no value — in place of the flat vector. No learning, no parameters.
+
+| arm | full | gain vs combined static | answer rate | concept share | distinct interviews |
+|---|---|---|---|---|---|
+| value table alone, no outcome head | 0.22258 | −0.03303 | 0.5623 | 0.5625 | **1** |
+| flat mean + outcome head | 0.22650 | −0.02911 | 0.5650 | 0.3931 | 9,421 |
+| **★ nearest-state conditional + outcome head** | **0.23583** | **−0.01978 [−0.02274, −0.01684]** | **0.6448** | 0.5484 | 9,660 |
+| bank-alone bar | | +0.01280 | | | |
+| the tree | | +0.02794 | 0.5789 | 0.5457 | 15 |
+
+> **★ Paired against the flat-mean arm: +0.00933 [+0.00659, +0.01216], excludes zero.**
+
+**So the stronger sentence is NOT earned, and the opposite is now measured.** Conditioning the value on
+the asked-set is worth **+0.0093** — more than twice what the outcome head itself contributes
+(+0.00392) — and it closes about **a third** of the remaining gap to bank-alone (from 0.0419 to
+0.0326). It also moves the policy's *behaviour* toward the tree's on both diagnostics the earlier arms
+got wrong: answer rate **0.5650 → 0.6448** (tree 0.5789) and concept share **0.3931 → 0.5484** (tree
+0.5457).
+
+**The null this could have been, ruled out by the instrumentation:** a flat result would have been
+ambiguous between *"conditioning does not help"* and *"the lookup never actually conditioned anything"*.
+It conditioned **78.4%** of the value vector on average, and **37 distinct banked states** were selected
+across the interview, most often the shallow ones (`{1,114}`, `{1,114 · 1,283}`, `{1,36 · 1,114}`). The
+conditioning was real.
+
+> ### ⚠ What this number is NOT — and it is a ceiling probe, not a method
+>
+> **The banked gains were measured ON these same 10,000 validation users**, so this lookup is an
+> **oracle**: it reads the answer at states where the answer has already been paid for. It is the right
+> instrument for the question asked — *does conditioning in `V` move the policy at all?* — and it is
+> **not** a deployable +0.00933. A real conditioned estimator would have to predict those gains, and the
+> one we trained reached ρ = +0.06. Quote this as evidence that the conditioned line is **live**, never
+> as a score the design achieves.
+
+**Where that leaves the claim, precisely:**
+
+- **a state-marginal value fails at any accuracy** — established (§4), unaffected;
+- **a state-conditioned value moves the policy** — now established, +0.0093 paired, CI excluding zero;
+- **whether a *learnable* conditioned value can reach bank-alone** — **open.** Even this oracle lookup is
+  still 0.0326 short, so conditioning alone does not obviously close the gap; but it is the first
+  intervention in this workstream that moved the policy in the right direction by more than the outcome
+  head did.
 
 ### The two limitations that outlive this result
 
@@ -661,7 +703,12 @@ question — see §4.1.**
 6. **★ The winning value estimator is state-independent** — the chapter's "bank beats conditioning"
    finding reappearing inside the value estimator.
 7. **Even with that working value half, the P×V policy loses to bank-alone** (−0.02911 vs +0.01280).
-8. **★ For a STATE-MARGINAL value, estimator accuracy is not the binding constraint.** Over 19 runs
+8. **★ Conditioning the value on the asked-set is worth +0.00933 [+0.00659, +0.01216] paired** — more
+   than twice the outcome head's own contribution, closing a third of the gap to bank-alone, and moving
+   answer rate 0.5650 → 0.6448 and concept share 0.3931 → 0.5484 toward the tree's. **It is an ORACLE
+   lookup** (the gains were measured on these same users), so it is a ceiling probe showing the
+   conditioned line is live, not a deployable score.
+9. **★ For a STATE-MARGINAL value, estimator accuracy is not the binding constraint.** Over 19 runs
    spanning ρ = 0.50 to 1.00 the policy gain moves within 0.0075 — less than the seed spread — with
    correlation **−0.18** between accuracy and score, and the best point still 0.0345 below bank-alone.
    A state-marginal value cannot express redundancy between questions, which is the one thing the
