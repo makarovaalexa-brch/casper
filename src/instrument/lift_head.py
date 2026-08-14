@@ -551,6 +551,65 @@ class MeanVectorPolicy(nn.Module):
         return s
 
 
+# ============================ THE CEILING EXPERIMENT: policy score vs value-estimator accuracy
+def noisy_value_table(t, rho_target, seed, tol=0.004, iters=40):
+    r"""A value vector with the SAME marginal distribution of values as `t` but a controlled Spearman
+    correlation to it.
+
+    Rank-preserving by construction: the perturbation is applied in normal-score space and the result
+    is mapped back onto `sorted(t)`, so the estimator being simulated is wrong about the ORDER of
+    questions by exactly the target amount while remaining a plausible value vector -- it cannot cheat
+    by shrinking toward a constant, which would flatten the policy for reasons that have nothing to do
+    with accuracy.
+
+    The Gaussian latent correlation is solved by bisection against the realised Spearman rather than
+    assumed from the (slightly wrong) `rho = (6/pi) arcsin(rho_latent/2)` identity.
+    """
+    rng = np.random.default_rng(seed)
+    n = len(t)
+    order = np.argsort(np.argsort(t))
+    z = (order + 0.5) / n
+    z = np.sqrt(2.0) * _erfinv(2.0 * z - 1.0)                   # normal scores of t's ranks
+    e = rng.standard_normal(n)
+    srt = np.sort(t)
+    lo, hi = 0.0, 1.0
+    best = None
+    for _ in range(iters):
+        a = 0.5 * (lo + hi)
+        zz = a * z + np.sqrt(max(1.0 - a * a, 0.0)) * e
+        v = srt[np.argsort(np.argsort(zz))]
+        r = spearman(v, t)
+        best = (v, r, a)
+        if abs(r - rho_target) <= tol:
+            break
+        if r < rho_target:
+            lo = a
+        else:
+            hi = a
+    return best[0].astype(np.float32), float(best[1])
+
+
+def _erfinv(x):
+    """Winitzki's approximation, refined by two Newton steps -- avoids a scipy dependency."""
+    a = 0.147
+    ln = np.log(np.clip(1.0 - x * x, 1e-300, None))
+    t1 = 2.0 / (np.pi * a) + ln / 2.0
+    y = np.sign(x) * np.sqrt(np.maximum(np.sqrt(t1 * t1 - ln / a) - t1, 0.0))
+    for _ in range(2):
+        err = _erf(y) - x
+        y = y - err / (2.0 / np.sqrt(np.pi) * np.exp(-y * y))
+    return y
+
+
+def _erf(x):
+    """Abramowitz & Stegun 7.1.26."""
+    sgn = np.sign(x); x = np.abs(x)
+    t = 1.0 / (1.0 + 0.3275911 * x)
+    y = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t
+               + 0.254829592) * t * np.exp(-x * x)
+    return sgn * y
+
+
 # ============================================================================ the driver
 def run(args):
     assert args.i_have_author_goahead, "REFUSING to run without the author's go-ahead."
@@ -952,6 +1011,52 @@ def run_meanvec(args):
             f"concept share {arms[nm]['channel_mix_concept_share']:.4f} | "
             f"{arms[nm]['n_distinct_interviews']} distinct interviews")
 
+    # ---------- ★ THE CEILING EXPERIMENT ------------------------------------------------------
+    # Policy score as a function of VALUE-ESTIMATOR ACCURACY. The gate (rho >= +0.40) was set by
+    # asking whether an estimator sits nearer the measured criterion (+0.784) than the training-loss
+    # surrogate (-0.149). The mean vector PASSES it at +0.4163 and the policy built on it still loses
+    # at -0.02911, so that bar was too low and we cannot currently state a finish line. This states it:
+    # degrade the value vector to a controlled Spearman and watch the policy, several seeds per level.
+    ceiling = []
+    if not args.no_ceiling:
+        levels = [float(x) for x in args.rho_levels.split(",")]
+        for rho_t in levels:
+            for sd in range(args.ceiling_seeds):
+                v, rho_real = noisy_value_table(gain, rho_t, seed=SEED + 977 * sd)
+                pol = MeanVectorPolicy(om, v, abar, use_outcome=True)
+                t0 = time.time()
+                ro = rollout(E, pol, phi_pool, pool_t, rows)
+                f, t = ro["curves"][16]
+                ans = (ro["outs"] != OUTCOME["noanswer"])
+                g = paired_bootstrap(f - sf)
+                ceiling.append({"rho_target": rho_t, "rho_realised": rho_real, "seed": sd,
+                                "full": float(np.nanmean(f)), "tail": float(np.nanmean(t)),
+                                "gain_vs_static_combined_full": g,
+                                "answer_rate": float(ans.mean()),
+                                "n_distinct_interviews": len({tuple(r) for r in ro["asked"]}),
+                                "minutes": round((time.time() - t0) / 60, 2)})
+                log(f"[ceiling rho={rho_real:.3f} seed{sd}] full {ceiling[-1]['full']:.5f} | "
+                    f"gain vs combined static {g['mean']:+.5f} [{g['lo']:+.5f},{g['hi']:+.5f}] | "
+                    f"answer rate {ceiling[-1]['answer_rate']:.4f}")
+        # the rho = 1.0 anchor is the meanvec_PxV arm already measured above
+        ceiling.append({"rho_target": 1.0, "rho_realised": 1.0, "seed": 0,
+                        "full": arms["meanvec_PxV"]["full"],
+                        "tail": arms["meanvec_PxV"]["tail"],
+                        "gain_vs_static_combined_full":
+                            arms["meanvec_PxV"]["gain_vs_static_combined_full"],
+                        "answer_rate": arms["meanvec_PxV"]["answer_rate"],
+                        "n_distinct_interviews": arms["meanvec_PxV"]["n_distinct_interviews"],
+                        "minutes": arms["meanvec_PxV"]["minutes"]})
+        log("=" * 100)
+        log("[CEILING] policy gain vs combined static, by value-estimator accuracy "
+            f"(bar: bank-alone {bank_full['mean']:+.5f}, tree {TREE_VAL_GAIN_FULL:+.5f})")
+        for rt in sorted({c["rho_target"] for c in ceiling}):
+            gs = [c["gain_vs_static_combined_full"]["mean"] for c in ceiling
+                  if c["rho_target"] == rt]
+            log(f"  rho={rt:.2f}  gain {np.mean(gs):+.5f}  [{min(gs):+.5f}, {max(gs):+.5f}] "
+                f"over {len(gs)} seed(s)"
+                + ("   <-- BEATS BANK-ALONE" if np.mean(gs) > bank_full["mean"] else ""))
+
     out = {"analysis": "meanvec_value_baseline", "design_sheet":
            "docs/design/PAPER_B_POLICY_DESIGN.md G.C-AMENDMENT-2", "citable": True,
            "test_touched": False, "split": "validation",
@@ -971,6 +1076,14 @@ def run_meanvec(args):
                peruser["meanvec_PxV"][0] - peruser["meanvec_static"][0]),
            "outcome_head_contribution_tail": paired_bootstrap(
                peruser["meanvec_PxV"][1] - peruser["meanvec_static"][1]),
+           "ceiling": ceiling,
+           "ceiling_note": ("policy score as a function of value-estimator accuracy. rho is measured "
+                            "against the mean-of-7 static value table, so rho=1.0 is the best a STATIC "
+                            "per-question value estimator can be -- not the true per-state optimum. If "
+                            "the curve is still below the bank-alone bar at rho=1.0, no static value "
+                            "estimator can make this design competitive and only a state-conditioned "
+                            "one could -- which is the object that lost to the static table."),
+           "bar_bank_alone": bank_full["mean"], "bar_tree": TREE_VAL_GAIN_FULL,
            "open_vocab_note": ("the mean-vector estimator is a LOOKUP TABLE over the 1,000-candidate "
                                "pool and has no value for a question outside it, so the open-vocabulary "
                                "arm is structurally unavailable to it. That is the scalability "
@@ -996,6 +1109,12 @@ def run_meanvec(args):
 
 def main():
     ap = argparse.ArgumentParser(description="Part F lift head + combined P x V policy")
+    ap.add_argument("--no_ceiling", action="store_true",
+                    help="skip the value-estimator-accuracy sweep")
+    ap.add_argument("--rho_levels", default="0.5,0.6,0.7,0.8,0.9,0.95")
+    ap.add_argument("--ceiling_seeds", type=int, default=3,
+                    help="noise draws per accuracy level; a single draw is a point estimate of a "
+                         "noisy thing and this decision must not rest on one")
     ap.add_argument("--meanvec", action="store_true",
                     help="G.C-AMENDMENT-2: the parameter-free mean-vector value "
                          "baseline, its LOSO gate, and the P x V policy re-run with it")
