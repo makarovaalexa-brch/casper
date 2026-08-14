@@ -9,7 +9,9 @@ positions while the prior stays flat, with the shuffle control landing exactly o
 it buys a further +0.00392 [+0.00105, +0.00676] inside a policy. The learned lift head fails its
 ρ ≥ +0.40 gate at +0.062 — and is beaten by a parameter-free mean of six gain vectors at +0.4163,
 which passes. With that working value half the combined P×V policy improves to −0.02911 and
-STILL loses to bank-alone (+0.01280).**
+STILL loses to bank-alone (+0.01280) — and degrading the value estimator from ρ=1.00 down to
+ρ=0.50 changes the policy by less than the seed noise, so value-estimator accuracy is NOT the
+binding constraint and no learning curve is worth running.**
 
 Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` — **Part F is governing**.
 
@@ -246,8 +248,10 @@ All 22 CELF heap sidecars, audited at each node's own state before anything was 
 | **complete vectors** (the 7 internal split nodes) | **7** | **6,988** | 996–1000 of ~997 available | **none** — measured before any CELF pop |
 | survivor sets (the 15 leaves) | 15 | 8,737 | 16.0%–84% (mean 58.4%) | **biased LOW** — CELF pops the highest gains first |
 
-**The clean training set is SEVEN STATES.** That, not the 32 h sweep, is the binding constraint on a
-state-conditioned value model, and it is the number the "do we buy more labels" decision should turn on.
+**The clean training set is SEVEN STATES.** ⚠ *When this was written I took that to be the binding
+constraint on a state-conditioned value model. It is not — §2.5 shows six states suffice for a
+parameter-free average to clear the gate, and §4 shows estimator accuracy does not drive the policy
+at all. The state count is a fact about the label bank, not the reason anything failed.*
 
 ★ **A correction carried in full, because it was asserted before it was checked.** These two families
 were briefed — and initially reported by me — as holding *different scalars*: the internal nodes' gains
@@ -455,6 +459,85 @@ learned head, where they were **−0.04016** with 100% out-of-pool picks and a 0
 
 ---
 
+## RESULT 4 — ★★★ THE CEILING EXPERIMENT: value-estimator accuracy is NOT the binding constraint
+
+The ρ ≥ +0.40 gate was set by asking whether an estimator sits nearer the measured criterion (+0.784)
+than the training-loss surrogate (−0.149). The parameter-free mean **passes** it at +0.4163 and the
+policy built on it **still loses** at −0.02911. **So the gate was too low, and we could state a slope
+but not a finish line.** This experiment states the finish line, and it costs nothing new.
+
+**Method.** Degrade the truth and watch the policy. The value vector is perturbed in normal-score space
+and mapped back onto `sorted(t)`, so the simulated estimator has **exactly the same multiset of values**
+and is wrong only about the ORDER, by a controlled amount — it cannot cheat by shrinking toward a
+constant, which would flatten the policy for reasons unrelated to accuracy. The latent correlation is
+solved by bisection against the realised Spearman (targets hit within 0.004). **Three noise draws per
+level**, the combined P×V policy run on all 10,000 validation users at each.
+
+| value-estimator accuracy (ρ vs the value table) | policy gain vs combined static | seed range | answer rate |
+|---|---|---|---|
+| ρ = 0.50 | **−0.02512** | [−0.02740, −0.02172] | 0.6188 |
+| ρ = 0.60 | **−0.02495** | [−0.02785, −0.02186] | 0.6141 |
+| ρ = 0.70 | **−0.02698** | [−0.02924, −0.02516] | 0.6067 |
+| ρ = 0.80 | **−0.02398** | [−0.02627, −0.02235] | 0.5956 |
+| ρ = 0.90 | **−0.02587** | [−0.02785, −0.02263] | 0.5842 |
+| ρ = 0.95 | **−0.02608** | [−0.02864, −0.02221] | 0.5779 |
+| **ρ = 1.00** (the undegraded table) | **−0.02911** | — | 0.5650 |
+| **★ bank-alone bar** | **+0.01280** | | |
+| the tree | +0.02794 | | |
+
+### The curve is FLAT, and the answer is outcome (a)
+
+**Across 19 runs spanning ρ = 0.50 to 1.00 the policy gain moves between −0.02924 and −0.02172 — a
+total spread of 0.0075, smaller than the seed-to-seed spread within a single accuracy level.** The
+correlation between accuracy and policy score is **−0.18**: if anything, *slightly negative*. The best
+point of the entire sweep is still **0.0345 below the bank-alone bar**.
+
+**Doubling the value estimator's rank correlation from 0.5 to 1.0 buys nothing.** So:
+
+- the pre-registered reading *"even ρ=0.95 loses ⇒ the design is dead on its own terms"* — **fires**,
+  and more strongly than anticipated, because even **ρ = 1.00** loses by the same margin;
+- **no learning curve is worth running.** There is no accuracy target to aim at, because accuracy is
+  not what is missing. That decision is now made on evidence rather than on a slope;
+- a mean-vector-plus-learned-residual would be **building a better estimator of a quantity that does
+  not drive the outcome.** Do not build it.
+
+### ★ Why it is flat — and this is the real finding
+
+The mean gain vector is a **marginal** value: what each question is worth *on its own* at a state.
+The policy takes the top-16 by that score. **A one-shot marginal value cannot express redundancy
+between questions**, so it will happily ask sixteen near-duplicates of the same highly-valued question.
+The greedy static comparator does the one thing this design structurally cannot: it picks a question,
+**folds it, re-scores everything, and picks again**, so the second pick is valued *given* the first.
+
+That is why accuracy does not help. Making the marginal values more accurate makes the policy more
+confident about a ranking whose top-16 is redundant. **It is visible in the answer-rate column above:
+answer rate falls monotonically from 0.6188 at ρ=0.50 to 0.5650 at ρ=1.00** — the more accurate the
+estimator, the more the policy concentrates on the same narrow set of questions, and the noise levels
+are *helping* only by scattering the picks.
+
+**The consequence for the chapter, stated plainly:** `Σ_o P(o|q,s)·V(o|q,s)` with a **state-marginal**
+`V` is not a competitive selector at any estimator quality. To compete it would need `V` conditioned on
+*what has already been asked* — which is a state-conditioned value model, i.e. exactly the object the
+learned lift head was supposed to be and which lost to a static average. **The two failures compose:
+the state-conditioned estimator we could learn was bad, and the static estimator we can build well is
+structurally incapable.** That closes the line cleanly, cheaply, and on its own terms.
+
+### The two limitations that outlive this result
+
+1. **★ The estimator that wins cannot do the thing the author wants.** The mean vector is a **lookup
+   table over the 1,000-candidate pool**; it has no value at all for a question outside it, so it is
+   *structurally incapable of open vocabulary*. The parametric head existed precisely to fix that, and
+   it is the one that lost.
+2. **★ Every measured gain we hold is for a POOL question**, and that pool is top-500-popular ∪
+   top-500-answerable. **No model in this report has ever seen what a *typical* catalogue question is
+   worth.** For open vocabulary that sampling bias is plausibly a larger problem than the state count —
+   and it is consistent with what the learned head did when the vocabulary was opened (100% out-of-pool
+   picks, 0.6% answer rate). Any future open-vocab value model needs gains measured on a *representative*
+   sample of the catalogue, not on the answerable head of it.
+
+---
+
+
 ## What this settles, and what it licenses
 
 **Settled, on held-out data, with controls:**
@@ -474,12 +557,18 @@ learned head, where they were **−0.04016** with 100% out-of-pool picks and a 0
 6. **★ The winning value estimator is state-independent** — the chapter's "bank beats conditioning"
    finding reappearing inside the value estimator.
 7. **Even with that working value half, the P×V policy loses to bank-alone** (−0.02911 vs +0.01280).
+8. **★ Value-estimator accuracy is not the binding constraint.** Over 19 runs spanning ρ = 0.50 to
+   1.00 the policy gain moves within 0.0075 — less than the seed spread — with correlation **−0.18**
+   between accuracy and score, and the best point still 0.0345 below bank-alone. A **state-marginal**
+   value cannot express redundancy between questions, which is the one thing the greedy comparator
+   does by re-folding after every pick. **The line closes on its own terms.**
 
 **What it does NOT settle:**
 
-- **Not** that a value head cannot be learned. It says *ours* was worse than an average, which is a
-  statement about our model, not about the problem. The obvious next estimator is the mean vector plus a
-  *learned residual*, which has a baseline it must beat by construction.
+- **Not** that a value head cannot be learned. It says *ours* was worse than an average — a statement
+  about our model, not about the problem. **But Result 4 removes the reason to build a better one:**
+  a mean-vector-plus-learned-residual would be a better estimator of a quantity that does not drive
+  the outcome. Do not build it.
 - **Nothing about test.** No test user was built, loaded or touched at any point.
 
 **Two things to carry forward, both cheap and both caught something here:**
@@ -506,7 +595,7 @@ learned head, where they were **−0.04016** with 100% out-of-pool picks and a 0
 | outcome head — shuffle control | `experiments/battery/outcome_head_shuffle_both.json` (+ `.pt`) |
 | lift head + combined policy — **stable, citable** | `experiments/battery/lift_head_stable.json` |
 | lift head — first run, unstable, retained for the comparison only | `experiments/battery/lift_head.json` |
-| **parameter-free mean value: LOSO gate + the P×V rerun** | `experiments/battery/meanvec_value.json` (+ `_per_user.npz`), `meanvec.log` |
+| **parameter-free mean value: LOSO gate, the P×V rerun, and the ceiling sweep** | `experiments/battery/meanvec_value.json` (+ `_per_user.npz`), `meanvec.log` |
 | logs | `experiments/battery/outcome_main.log`, `outcome_main_evalonly.log`, `outcome_shuffle.log`, `lift_head_stable.log`, `policy_traj/gen.out` |
 | code | `src/instrument/outcome_head.py`, `src/instrument/lift_head.py`; harvest extension in `src/instrument/policy_traj.py` (`outcome_labels`, `gate_outcome_labels`) |
 | run chain | `experiments/battery/run_partF.sh`, `experiments/battery/run_partF2.ps1` |
@@ -535,6 +624,12 @@ form, the binned AUC against the exact rank AUC, and the user-block batching (co
    that is itself informative.
 3. **The next value model, whatever it is, must pass the no-answer flatness test in §2.4 before its
    Spearman is believed.** It is free and it caught this one.
+4. **Any open-vocabulary value model needs gains measured on a REPRESENTATIVE sample of the
+   catalogue.** Every gain we hold is for a pool question, and the pool is top-500-popular ∪
+   top-500-answerable — no model here has ever seen what a typical catalogue question is worth.
+5. **A selector that scores questions independently is owed a redundancy mechanism** (re-folding,
+   or a value conditioned on what has already been asked). Result 4 says that, not estimator
+   quality, is what separates this design from the greedy comparator.
 
 ---
 
