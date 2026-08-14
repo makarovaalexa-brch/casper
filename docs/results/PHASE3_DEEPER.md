@@ -171,6 +171,34 @@ measured gains recovered on restart).
 > **Rule:** a durability mechanism whose cost grows with progress will eventually destroy the run it
 > protects. Bound the write, not just the interval.
 
+### 4. ★ The per-user vector was computed 997 times per state and thrown away 997 times per state
+
+`genv_eval` returns a **per-user** (full, tail) NDCG vector; `dual_means` reduced it to four cohort
+scalars and the sweep discarded the vector. That vector is not incidental — **it is the training target
+the Part F value head needs, and it is the quantity this workstream had spent two days saying it did
+not have.** Group a candidate's per-user gains by that user's ternary answer to that candidate and you
+have the cohort-mean gain conditional on each outcome, `V(o | state, q)`, **measured rather than
+modelled**.
+
+It also answers, structurally, why we have so few states: **a state is a distinct answer path**, and
+users sharing a path share a state — which is why a static order yields 16 and the tree 22. Per-user
+gains let any measured state be split by the next answer, so **42 measured states become 42 × 3 = 126
+conditional child states at zero extra evaluations.**
+
+Cost is **~80 MB for the whole sweep, not per state**, because the 42 states *partition* the cohort:
+997 × 10,000 × 4 bytes × 2 readings. Written **append-only** to `<sid>.f32` — one ~n-float32 record per
+candidate — because the obvious implementation (rewrite an npz per candidate) is defect 3 again at
+2 MB a time. The JSON sidecar is the authority on record count and a kill between the binary append
+and the JSON flush self-heals by truncating back; `rows` maps float position to canonical uid.
+
+Caught at 2 of 42 states, so the contract bump (`"peruser": "v1"`) that correctly refused the two
+vector-less states cost ~10 minutes and bought uniform coverage of all 42.
+
+> **★ THE RULE, and it is the general form of defect 2 as well: PERSIST THE FINEST-GRAINED QUANTITY
+> THE COMPUTATION NATURALLY PRODUCES, NOT THE SUMMARY YOU HAPPEN TO WANT TODAY.** This workstream lost
+> per-candidate level-0 vectors to CELF churn *and* per-user vectors to mean-reduction, for the same
+> reason, in the same week.
+
 **Also fixed:** the chain cascaded — a step-1 refusal was followed by steps 2–5 each failing on the
 artifact the previous step never produced, burying the real error five logs deep and starting a
 fine-tune that could not have worked. A failed step now aborts the chain.
