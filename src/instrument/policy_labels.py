@@ -528,12 +528,42 @@ def main():
     pool, item_pool, conc_pool = build_pool(E, args.n_items, args.n_concepts)
     assert len(pool) == tr["n_pool"], f"pool is {len(pool)}, the tree used {tr['n_pool']}"
     # ---- G-L0: the DERIVED identity of the mask, not a label -------------------------------------
+    # `ndcgtree.json` PREDATES the `pool_contract` field and does not carry one (measured 2026-08-14,
+    # on the first real run of this file). Its own rule -- a missing field is a refusal, never a pass
+    # -- is kept: the gate is NOT relaxed, it is routed to the artifact that DID record the contract.
+    # `policy_traj/manifest.json` banks `val_pool_contract` and `pool_sha1`, and it was produced by
+    # applying THIS frozen tree to the cohort and reproducing all 7 banked ternary partitions
+    # exactly, so it is a strictly stronger witness than the fingerprint string would have been.
+    # Everything the tree artifact DOES record about the pool is asserted alongside it.
     banked_pc = tr.get("pool_contract")
-    assert banked_pc, "the tree artifact carries no pool_contract -- an unstated contract is not a " \
-                      "matching one (mask_contract.resume_ok's rule)"
+    src = "ndcgtree.json"
+    if not banked_pc:
+        manp = os.path.join(OUTDIR, "policy_traj", "manifest.json")
+        assert os.path.exists(manp), (
+            "the tree artifact carries no pool_contract and there is no trajectory manifest to take "
+            "one from -- an unstated contract is not a matching one (mask_contract.resume_ok's rule)")
+        man = json.load(open(manp))
+        banked_pc = man["sig"].get("val_pool_contract")
+        assert banked_pc, "the trajectory manifest carries no val_pool_contract either -- REFUSING"
+        assert man["sig"]["tree"].startswith(os.path.basename(TREE_JSON)), \
+            f"the trajectory manifest was built from {man['sig']['tree']}, not this tree"
+        assert man["sig"]["n_pool"] == tr["n_pool"] and man["sig"]["mask_policy"] == "B"
+        assert man["sig"]["tower"] == tr["tower"] and man["sig"]["conc_ckpt"] == tr["concept_ckpt"]
+        assert [(int(a), int(b)) for a, b in man["pool"]] == pool, \
+            "G-L0 POOL MISMATCH: this env's pool is not the trajectory bank's pool, candidate for "\
+            "candidate"
+        assert _sha([[int(a), int(b)] for a, b in pool]) == man["sig"]["pool_sha1"], \
+            "G-L0 POOL SHA1 MISMATCH against the trajectory manifest"
+        src = "policy_traj/manifest.json (ndcgtree.json predates the field)"
     assert E["pool_contract"] == banked_pc, (
-        f"G-L0 POOL CONTRACT MISMATCH: this env {E['pool_contract']} vs the tree's {banked_pc}")
-    log(f"[G-L0] pool contract identical to the tree build: {json.dumps(banked_pc)}")
+        f"G-L0 POOL CONTRACT MISMATCH: this env {E['pool_contract']} vs the banked {banked_pc}")
+    # ...and the pool identity the tree artifact CAN witness, always.
+    for k, want in (("n_items", args.n_items), ("n_concepts", args.n_concepts),
+                    ("n_pool", len(pool)), ("item_bank", "pop"), ("conc_bank", "answerable"),
+                    ("split", "validation"), ("n_cohort", 10000)):
+        assert tr["sig"][k] == want, f"G-L0 tree sig {k}={tr['sig'][k]!r}, this run needs {want!r}"
+    log(f"[G-L0] pool contract identical to the banked build, from {src}: "
+        f"{json.dumps(banked_pc)}")
     log(f"[pool] {len(item_pool)} items + {len(conc_pool)} concepts = {len(pool)} candidates, the "
         f"tree's own pool, same ids in the same order. NO truncation.")
 

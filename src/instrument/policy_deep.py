@@ -145,6 +145,48 @@ def build_labels(args):
     leaves = {l["nid"]: l for l in t16["leaf_table"]}
     tails = {nid: [(int(a), int(b)) for a, b in lf["own_sequence"]] for nid, lf in leaves.items()}
 
+    # ★ PERSIST THE COMPLETE LEVEL-0 VECTOR AT EVERY STATE (2026-08-14).
+    # The defect this guards against is real but lives in the CELF path, not here: CELF pops the
+    # candidate it selects and re-pushes others stamped at a higher level, so a run that made a
+    # SEQUENCE of picks overwrites its own step-0 record -- measured at 274 / 259 / 10 of ~1,000
+    # retained for the three static greedy runs, and 546-and-below for the leaf sidecars. Only the 7
+    # internal tree nodes, which made exactly ONE pick, still carry a complete vector. The evaluations
+    # were paid for and the record did not survive.
+    # `policy_labels.py --mode sweep` has NO CELF loop -- it is exhaustive over the declared pool and
+    # flushes after EVERY candidate (HARD RULE 11a) -- so all 42 complete vectors are already durable
+    # in `policy_labels_deep.json` and its `_partial` sidecar. What was missing is that they were not
+    # in the form the value head reads. These sidecars fix that at zero extra evaluations and take the
+    # supply of COMPLETE, unbiased level-0 vectors from 7 states to 49.
+    heapdir = os.path.join(OUTDIR, "policy_deep_heaps")
+    os.makedirs(heapdir, exist_ok=True)
+
+    def write_sidecar(nid, r, argmax_key, gain):
+        """The schema `lift_head.level0()` reads: every candidate at level 0, the picked one supplied
+        from `seq[0]`/`gains[0]` because CELF would have popped it. Ours was never popped, so the two
+        sources agree by construction -- and the full four-reading vector is kept alongside so the
+        DCG normalisation is not thrown away either."""
+        heap = [[-float(v[0]), [int(k.split("_")[0]), int(k.split("_")[1])], 0]
+                for k, v in r["vals"].items() if k != argmax_key]
+        q = [int(x) for x in argmax_key.split("_")]
+        blob = {"analysis": "policy_deep_level0_complete_vector", "citable": True,
+                "split": "validation", "test_touched": False,
+                "nid": nid, "pos": int(r["pos"]), "n_users": int(r["n_users"]),
+                "prefix": r["prefix"], "base": float(r["base"][0]),
+                "base_layout": ["ndcg_full", "ndcg_tail", "dcg_full", "dcg_tail"],
+                "base_all": [float(x) for x in r["base"]],
+                "seq": [q], "gains": [float(gain)], "heap": heap,
+                "n_level0": len(r["vals"]), "complete": True,
+                "provenance": ("exhaustive sweep over the declared 1,000-candidate pool minus the "
+                               "prefix -- NOT a CELF survivor set. Every candidate here was measured "
+                               "at THIS state before anything was popped, because nothing is ever "
+                               "popped in --mode sweep."),
+                "gain_layout": ["ndcg_full", "ndcg_tail", "dcg_full", "dcg_tail"],
+                "vals": r["vals"]}
+        p = os.path.join(heapdir, f"node_{nid}.json")
+        with open(p + ".tmp", "w") as fh:
+            json.dump(blob, fh, default=float)
+        os.replace(p + ".tmp", p)
+
     recs, n_cov = [], 0
     for sid, r in sw["states"].items():
         assert r.get("done"), f"G-D1: state {sid} is not complete in the sweep"
@@ -173,6 +215,7 @@ def build_labels(args):
                      "argmax_already_in_leaf_tail": bool(q in tail_after),
                      "n_candidates": len(ks), "base_ndcg_full": float(r["base"][0])})
         n_cov += int(r["n_users"])
+        write_sidecar(nid, r, ks[a_nf], gain)
 
     # ---- gates ----------------------------------------------------------------------------------
     by_leaf = {}
@@ -207,7 +250,24 @@ def build_labels(args):
             "min_state_n_users": min(r["n_users"] for r in recs),
             "max_state_n_users": max(r["n_users"] for r in recs),
             "concept_share_of_labels": float(np.mean([r["question"][0] == 1 for r in recs])),
-            "pool_sha1": man["sig"].get("pool_sha1"), "states": recs}
+            "pool_sha1": man["sig"].get("pool_sha1"),
+            "complete_level0_vectors": {
+                "dir": "experiments/battery/policy_deep_heaps",
+                "n_states": len(recs),
+                "n_exact_gains": int(sum(r["n_candidates"] for r in recs)),
+                "schema": "lift_head.level0()-compatible (base / seq / gains / heap at level 0)",
+                "why_it_exists": (
+                    "CELF pops the candidate it selects and re-pushes the rest stamped at a higher "
+                    "level, so any run that made a SEQUENCE of picks overwrote its own step-0 record "
+                    "-- 274 / 259 / 10 of ~1,000 retained for the three static greedy runs, 546 and "
+                    "below for the leaf sidecars, and only the 7 single-pick internal nodes complete. "
+                    "Those evaluations were paid for and the record did not survive. `--mode sweep` "
+                    "has no CELF loop and flushes after every candidate, so nothing was at risk here; "
+                    "what was missing was the consumable form. THE RULE, so it does not recur: "
+                    "PERSIST THE FULL SWEEP VECTOR AT STEP 0, BEFORE THE FIRST POP."),
+                "effect": ("complete, unbiased level-0 vectors available to the value head go from 7 "
+                           "states to 49, at zero extra evaluations")},
+            "states": recs}
     with open(DEEP_LABELS + ".tmp", "w") as fh:
         json.dump(blob, fh, indent=2, default=float)
     os.replace(DEEP_LABELS + ".tmp", DEEP_LABELS)
@@ -217,6 +277,10 @@ def build_labels(args):
         f"{blob['n_argmax_already_in_leaf_tail']} argmaxes were already in the leaf's own tail; "
         f"{n_neg} states have a non-positive gain")
     log(f"[labels] wrote {os.path.basename(DEEP_LABELS)}")
+    log(f"[level0] wrote {len(recs)} COMPLETE level-0 gain vectors "
+        f"({blob['complete_level0_vectors']['n_exact_gains']:,} exact gains) to "
+        f"policy_deep_heaps/ -- the value head's complete-vector supply goes 7 -> "
+        f"{7 + len(recs)} states at zero extra evaluations")
     return blob
 
 
