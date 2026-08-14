@@ -388,18 +388,58 @@ def run_control(args):
         log(f"[regression] tree K=16 per-user vector == E1's banked vector, max |diff| "
             f"{float(np.nanmax(d16)):.2e}")
 
-    # ---- ORDER-INVARIANCE: what a K=16 comparison can and cannot see ------------------------------
+    # ---- ORDER-INVARIANCE, diagnosed in THREE layers -------------------------------------------
+    # The first version of this probe reported "ORDER-SENSITIVE, max 5.000e-01 per user" and that is
+    # a surprising number, so it is treated as a harness bug until proven otherwise
+    # (`surprise-means-debug-the-harness`). The i26 encoder folds items by SUMMATION (`ph.sum(1)`)
+    # over a multi-hot native path, and the concept channel caps negatives over the revealed SET, so
+    # the fold is order-invariant BY CONSTRUCTION. A per-user NDCG that moves by 0.5 must therefore
+    # come from somewhere else, and the three layers separate the candidates:
+    #   (A) the LATENT. If the fold is order-invariant this is exactly 0. Anything ~1e-7 is float
+    #       summation order, not a model property.
+    #   (B) per-user NDCG down the SINGLE-sequence path (`genv_eval`, no dedup).
+    #   (C) per-user NDCG down the PER-USER path (`genv_eval_multi`, which dedups on the ordered key,
+    #       so a permutation changes the dedup GROUPING and hence the float summation order).
+    # A discrete metric turns a 1e-7 score wobble into a 0.5 NDCG jump whenever a user has a ranking
+    # TIE at the top-10 boundary, so the honest reading needs the COUNT of affected users and the MEAN
+    # shift, not the max.
+    from strategy_channel_suite import genv_latent
     rng = np.random.default_rng(SEED)
+    perm_static = list(np.asarray(static_seq, object)[rng.permutation(len(static_seq))])
+    zA = genv_latent(E, static_seq, rows).numpy()
+    zB = genv_latent(E, [tuple(q) for q in perm_static], rows).numpy()
+    dz = float(np.max(np.abs(zA - zB)))
+    sf2, _st2 = genv_eval(E, [tuple(q) for q in perm_static], rows)
+    dB = np.abs(sf2 - sf)
     perm_seqs = [list(np.asarray(s)[rng.permutation(TOTAL_L)]) for s in tree_seqs]
     pf, pt = score_sequences(E, rows, pool, perm_seqs, at=(TOTAL_L,), tag="tree/permuted")[TOTAL_L]
-    order_max = float(np.nanmax(np.abs(pf - tf)))
-    log(f"[order] permuting every user's 16 questions moves full NDCG by at most "
-        f"{order_max:.3e} per user -- the fold is "
-        f"{'ORDER-INVARIANT' if order_max < 1e-9 else 'ORDER-SENSITIVE'} at K=16")
+    dC = np.abs(pf - tf)
+    order = {
+        "A_latent_max_abs_diff": dz,
+        "A_verdict": ("the fold is order-invariant to float precision" if dz < 1e-4 else
+                      "the fold is GENUINELY order-sensitive"),
+        "B_single_sequence_path": {"max": float(np.nanmax(dB)), "mean_signed":
+                                   float(np.nanmean(sf2 - sf)),
+                                   "n_users_differing": int((dB > 1e-12).sum())},
+        "C_per_user_path": {"max": float(np.nanmax(dC)), "mean_signed": float(np.nanmean(pf - tf)),
+                            "n_users_differing": int((dC > 1e-12).sum())},
+        "reading": ("if A is ~0 and B/C move only a small number of users by discrete jumps, the fold "
+                    "is order-invariant and what moves is TIE-BREAKING at the top-10 boundary under "
+                    "float summation order -- a property of the metric's discreteness, not of the "
+                    "recommender. Report the count and the mean, never the max alone.")}
+    order_max = float(np.nanmax(dC))
+    log(f"[order] (A) latent max |diff| under permutation = {dz:.3e} -> {order['A_verdict']}")
+    log(f"[order] (B) single-sequence path: {order['B_single_sequence_path']['n_users_differing']} "
+        f"of {len(rows)} users move, max {order['B_single_sequence_path']['max']:.3e}, "
+        f"mean {order['B_single_sequence_path']['mean_signed']:+.3e}")
+    log(f"[order] (C) per-user path: {order['C_per_user_path']['n_users_differing']} of {len(rows)} "
+        f"users move, max {order['C_per_user_path']['max']:.3e}, "
+        f"mean {order['C_per_user_path']['mean_signed']:+.3e}")
 
     # ---- the deeper tree --------------------------------------------------------------------------
     gmap = {(r["leaf"], r["branch_idx"]): r for r in dl["states"]}
     depth = {nid: depth_of(nid) for nid in leaf_ids}
+    same_set = np.zeros(len(rows), bool)
     deep_seqs, n_same_set, gidx_per_user = [], 0, np.full(len(rows), -1, np.int64)
     for u in range(len(rows)):
         nid = leaf_ids[int(leaf[u])]
@@ -410,25 +450,58 @@ def run_control(args):
         g = int(r["pool_idx"])
         gidx_per_user[u] = g
         s = extend_sequence(tree_seqs[u], d, g)
-        n_same_set += int(set(s) == set(tree_seqs[u]))
+        same_set[u] = (set(s) == set(tree_seqs[u]))
+        n_same_set += int(same_set[u])
         deep_seqs.append(s)
     log(f"[deeper] built; {n_same_set} of {len(rows)} users ({n_same_set / len(rows) * 100:.1f}%) get "
         f"the SAME QUESTION SET as the tree (their branch argmax was already in the leaf's tail)")
     deep_sc = score_sequences(E, rows, pool, deep_seqs, tag="deeper")
 
     # ---- the SHUFFLE control (HARD RULE 5): the 42 branch questions permuted across branches -------
+    # A donor state's argmax can already sit in the RECIPIENT leaf's branch path (its head), and then
+    # "insert it at d+1" is undefined -- the first run died on exactly that. Dropping those users back
+    # to the tree's own interview would be the wrong repair: it makes the shuffled arm resemble the
+    # tree, which flatters the real arm, and a control biased toward my own headline is worse than no
+    # control. Instead the donor supplies its NEXT-BEST measured candidate that the recipient has not
+    # already asked -- still "a high-gain question measured at the WRONG state", which is the thing
+    # being controlled for. Deterministic, per (leaf, branch), and it uses the complete level-0 vectors
+    # this sweep now persists.
+    ranked, heads = {}, {}
+    for r in dl["states"]:
+        p = os.path.join(OUTDIR, "policy_deep_heaps", f"node_{r['leaf']}.{r['branch']}.json")
+        b = json.load(open(p))
+        k = (r["leaf"], r["branch_idx"])
+        ranked[k] = [(int(kk.split("_")[0]), int(kk.split("_")[1]))
+                     for kk, _v in sorted(b["vals"].items(), key=lambda kv: -kv[1][0])]
+        heads[k] = {(int(a), int(b_)) for a, b_ in b["prefix"]}   # path + the leaf's own splitter
+        assert len(heads[k]) == r["depth"] + 1, \
+            f"{k}: head has {len(heads[k])} questions, expected depth+1 = {r['depth'] + 1}"
+    pool_index = {q: i for i, q in enumerate(pool)}
     rs = np.random.default_rng(SEED)
     keys = sorted(gmap)
-    vals = [gmap[k]["pool_idx"] for k in keys]
     perm = rs.permutation(len(keys))
-    smap = {keys[i]: int(vals[perm[i]]) for i in range(len(keys))}
-    n_fixed = sum(1 for i in range(len(keys)) if vals[perm[i]] == vals[i])
+    n_fixed = int(sum(1 for i in range(len(keys)) if perm[i] == i))
+    smap, n_fallback = {}, 0
+    for i, k in enumerate(keys):
+        donor = keys[int(perm[i])]
+        head = heads[k]
+        pick = None
+        for q in ranked[donor]:
+            if q not in head:
+                pick = q
+                break
+        assert pick is not None, f"no donor candidate outside {k}'s head"
+        if pick != tuple(gmap[donor]["question"]):
+            n_fallback += 1
+        smap[k] = int(pool_index[pick])
     shuf_seqs = []
     for u in range(len(rows)):
         nid = leaf_ids[int(leaf[u])]
         d = depth[nid]
         shuf_seqs.append(extend_sequence(tree_seqs[u], d, smap[(nid, int(outc[u, d]))]))
-    log(f"[shuffle] the 42 branch questions permuted across branches ({n_fixed} fixed points)")
+    log(f"[shuffle] the 42 branch questions permuted across branches ({n_fixed} fixed points, "
+        f"{n_fallback} donors fell back to their next-best candidate because their argmax was "
+        f"already in the recipient's branch path)")
     shuf_sc = score_sequences(E, rows, pool, shuf_seqs, at=(TOTAL_L,), tag="deeper/shuffled")
 
     df, dt = deep_sc[TOTAL_L]
@@ -516,14 +589,20 @@ def run_control(args):
                        "these numbers are the explanation rather than a post-hoc excuse.")},
            "n_users": len(rows), "n_states": len(gmap),
            "n_users_same_question_set_as_tree": int(n_same_set),
-           "order_invariance": {"max_abs_per_user_full_diff_under_permutation": order_max,
-                                "order_invariant_at_K16": bool(order_max < 1e-9),
-                                "why_it_matters": (
-                                    "if the fold is order-invariant then at a fixed budget of 16 the "
-                                    "deeper tree differs from the tree by exactly ONE question per "
-                                    "user -- the swap of the tail's weakest pick for the branch's own "
-                                    "argmax. That is the whole size of what a K=16 comparison can "
-                                    "measure here, and it must be stated before the number is read.")},
+           "order_invariance": order,
+           "SAME_SET_DECOMPOSITION": {
+               "n_same_set": int(n_same_set), "n_different_set": int((~same_set).sum()),
+               "why": ("a branch whose measured argmax was ALREADY in the parent leaf's greedy tail "
+                       "gives that user the identical QUESTION SET, differing only in ORDER. If the "
+                       "fold is order-invariant those users are an exact null BY CONSTRUCTION, and "
+                       "the deeper tree's whole measurable effect lives in the other group. Splitting "
+                       "the paired difference this way separates 'one more conditioned question' from "
+                       "'a reordering artefact', and it is the cleanest natural experiment this "
+                       "design offers."),
+               "same_set_deeper_minus_tree_full": paired_bootstrap((df - tf)[same_set]),
+               "different_set_deeper_minus_tree_full": paired_bootstrap((df - tf)[~same_set]),
+               "same_set_deeper_minus_tree_tail": paired_bootstrap((dt - tt)[same_set]),
+               "different_set_deeper_minus_tree_tail": paired_bootstrap((dt - tt)[~same_set])},
            "static_val": {"full": float(np.nanmean(sf)), "tail": float(np.nanmean(stl))},
            "bank_alone_val": {"combined_minus_items_full": STATIC_VAL_FULL - STATIC_ITEMS_VAL_FULL,
                               "combined_minus_items_tail": STATIC_VAL_TAIL - STATIC_ITEMS_VAL_TAIL,
