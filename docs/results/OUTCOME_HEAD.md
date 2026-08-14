@@ -185,6 +185,46 @@ and the per-position curve is monotone. A second epoch was not needed to answer 
 **That one epoch sufficed is itself informative**: the signal is not scarce. What a second epoch is
 still owed for is the F.5 held-out-**question** test, where generalisation, not fit, is the question.
 
+### The shuffle control (HARD RULE 5) — and it lands exactly where theory says it must
+
+Same states, same architecture, same optimiser, **same budget (one epoch, 2,044 identical steps)**;
+only the target moves. The outcome labels of user *u* are taken from a **different user**, so the
+state→label association is destroyed while **every per-question marginal is preserved**. That makes the
+popularity prior the control's exact theoretical ceiling — and it is a *harder, fairer* control than a
+global shuffle, which would also wreck the marginal and hand the control an implausible label
+distribution to beat.
+
+| | accuracy | CE | **AUC macro** | ECE macro |
+|---|---|---|---|---|
+| **main head** | 0.98199 | **0.05476** | **0.98243** | 0.00147 |
+| **shuffle control** | 0.97743 | 0.07021 | **0.96884** | 0.00192 |
+| per-question popularity prior | 0.97756 | 0.06974 | 0.96944 | 0.00029 |
+| global base rate | 0.96607 | 0.16672 | 0.50000 | 0.00010 |
+
+**✅ The control passes, and it passes in the most informative way available.** It does not merely fail
+to beat the head — **it converges to the popularity prior almost exactly** (AUC 0.96884 vs 0.96944,
+CE 0.07021 vs 0.06974, both a hair *below*). A head that can no longer associate a state with an
+outcome falls back precisely onto the per-question marginal it can still see, which is what "learned
+nothing about the state" looks like when the marginal is preserved.
+
+**And its per-position curve is FLAT**: 0.9687 → 0.9688 across all sixteen positions, against the main
+arm's 0.9687 → 0.9856. The main arm's rise is therefore not an artefact of position, of interview
+length, or of anything that survives label permutation. **It is the state.**
+
+| position | 0 | 4 | 8 | 15 |
+|---|---|---|---|---|
+| main head, AUC macro | 0.9687 | 0.9816 | 0.9844 | **0.9856** |
+| **shuffle control** | 0.9687 | 0.9688 | 0.9689 | **0.9688** |
+| popularity prior | 0.9696 | 0.9695 | 0.9694 | 0.9694 |
+
+⚠ **A wall-clock asymmetry to declare, since it looks like one and is not.** The main arm took 129.3
+minutes and the shuffle 48.0 for the *identical* work — one epoch, 2,044 steps, same batch, same
+model. The difference is the box, not the arms: the main arm ran while the machine was oversubscribed
+and the shuffle ran on a quiet one. **The arms are budget-matched in gradient steps and examples, which
+is the matching that matters; they are not matched in wall time and nothing is inferred from it.**
+This is also the cleanest available measurement of the throughput term in the cost section above:
+**118 vs 43 minutes per epoch for the same computation, a 2.7× swing from load alone.**
+
 ---
 
 ## RESULT 2 — THE LIFT HEAD: what the banked gains actually contain, and one number that decides it
