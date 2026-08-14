@@ -35,6 +35,15 @@ to the set this head trains on. A level-0 entry at a node's own state was measur
 so an internal node whose sidecar carries 995-999 of the 1,000-candidate pool has a COMPLETE, unbiased
 exact vector. Measured over the 37 sidecars on disk:
 
+★ THE LEVEL-0 EXTRACTION TRAP, because it silently deletes the best candidate at every state:
+filtering heap entries on `upd == 0` alone does **NOT** give the complete level-0 vector. CELF POPS the
+candidate it selects, so the selected one is no longer in the heap and must be added back from
+`seq[0]` / `gains[0]`. Miss it and every training target is missing the single HIGHEST-gain candidate
+at every state, and the root argmax comes out as [1,994] instead of [1,114]. `level0()` adds it back,
+and **G-L4 is the gate that catches the mistake**: the complete vector's argmax must equal the tree's
+recorded splitter, which fails immediately if the pick was dropped. Verified here: 1000/1000 at the
+root, argmax [1,114] at gain 0.02049056, byte-matching `ndcgtree.json`.
+
   * the **7 internal split nodes** carry 996-1000 level-0 values each -- COMPLETE and unbiased;
   * the **15 leaf** sidecars carry 160-841 of ~997 each -- partial, and biased LOW.
 
@@ -449,6 +458,99 @@ def fit_lift(packs, d_z, d_phi, args, tag, seed=SEED):
     return m, hist, best["ep"]
 
 
+# ================================================= HARD RULE 2: the simplest possible estimator
+def mean_vector_loso(states, packs, label="complete7"):
+    r"""★ THE BASELINE THAT SHOULD HAVE BEEN RUN FIRST (HARD RULE 2, and it was missed).
+
+    Predict a held-out state's whole gain vector with the **plain mean of the other states' gain
+    vectors**. No features, no parameters, no learning, and -- the part that matters -- **no state
+    information at all**: it does not know which state it is predicting for.
+
+    If this clears the gate that the learned head fails, then "the descriptor and the interview state
+    cannot resolve measured NDCG gain" is false, and so is "seven states are not enough". It is free,
+    it takes milliseconds, and it should have preceded every fit in this file.
+    """
+    rows = []
+    for s in states:
+        pk = packs[s["nid"]]
+        others = [packs[t["nid"]] for t in states if t["nid"] != s["nid"]]
+        pred, keep = [], []
+        for j, q in enumerate(pk["cand"]):
+            vals = [float(o["target_gain"][o["cand"].index(q)]) for o in others if q in o["cand"]]
+            if vals:
+                pred.append(float(np.mean(vals))); keep.append(j)
+        y = pk["target_gain"][np.asarray(keep, np.int64)]
+        pred = np.asarray(pred)
+        rk = int((y > y[int(np.argmax(pred))]).sum()) + 1
+        rows.append({"held_out_state": s["nid"], "depth": s["depth"],
+                     "n_candidates_scored": len(keep), "n_train_states": len(others),
+                     "spearman": spearman(pred, y), "rank_of_argmax": rk,
+                     "true_best_gain": float(y.max()),
+                     "gain_of_argmax": float(y[int(np.argmax(pred))])})
+        log(f"[MEANVEC/{label} {s['nid']}] {len(others)} states averaged -> held-out Spearman "
+            f"{rows[-1]['spearman']:+.4f} | argmax rank {rk}/{len(keep)} "
+            f"(gain {rows[-1]['gain_of_argmax']:+.5f} vs best {rows[-1]['true_best_gain']:+.5f})")
+    return rows
+
+
+def mean_gain_table(states, packs, pool):
+    """The static per-question value table: the mean measured gain of each pool candidate over the
+    states that hold a value for it. Derived from the VALIDATION cohort, exactly like the greedy
+    static order it is compared against."""
+    acc = {}
+    for s in states:
+        pk = packs[s["nid"]]
+        for j, q in enumerate(pk["cand"]):
+            acc.setdefault(q, []).append(float(pk["target_gain"][j]))
+    g = np.zeros(len(pool), np.float32)
+    n = np.zeros(len(pool), np.int64)
+    for i, q in enumerate(pool):
+        if q in acc:
+            g[i] = float(np.mean(acc[q])); n[i] = len(acc[q])
+    return g, n
+
+
+class MeanVectorPolicy(nn.Module):
+    r"""The two-head policy with the LEARNED value half replaced by the parameter-free mean vector,
+    and the working outcome head left untouched.
+
+    Same `V = base(s) + delta` form. The decomposition is pinned by the environment rather than fitted:
+    `delta_noanswer = 0` (an unanswered question folds an UNSEEN/refusal token, so the state barely
+    moves) and the remaining value is carried equally by the two ANSWERED branches, so
+
+        gain_cohort(q) = abar(q) * delta(q)   =>   delta(q) = gain_cohort(q) / abar(q)
+
+    and the per-user score is
+
+        score(q | s, u) = base(s) + gain(q) * P(answered | q, s, u) / abar(q)
+
+    i.e. the static measured value of a question, reweighted by how much MORE likely this user is to
+    answer it than the cohort average. That is the two-head design doing the job it was proposed for --
+    pricing answerability per user -- with an estimator of the value half that is not broken.
+
+    `--value meanvec_static` drops the outcome head entirely and asks the argmax of `gain(q)`, which is
+    a STATIC order. The gap between the two arms is exactly what the outcome head contributes.
+    """
+
+    def __init__(self, outcome, gain, abar, use_outcome=True):
+        super().__init__()
+        self.outcome = outcome
+        self.register_buffer("gain", torch.from_numpy(np.asarray(gain, np.float32)))
+        self.register_buffer("delta", torch.from_numpy(
+            (np.asarray(gain, np.float32) / np.maximum(np.asarray(abar, np.float32), 1e-3))))
+        self.use_outcome = use_outcome
+
+    def forward(self, z, hp, ho, hm, pos, phi, asked_mask=None):
+        if self.use_outcome:
+            p = torch.softmax(self.outcome(z, hp, ho, hm, pos, phi=phi), 0)
+            s = (p[0] + p[1]) * self.delta[None, :]
+        else:
+            s = self.gain[None, :].expand(z.shape[0], -1).clone()
+        if asked_mask is not None:
+            s = s.masked_fill(asked_mask, float("-inf"))
+        return s
+
+
 # ============================================================================ the driver
 def run(args):
     assert args.i_have_author_goahead, "REFUSING to run without the author's go-ahead."
@@ -736,8 +838,150 @@ def evaluate_combined(E, om, lift, phi_t, catalogue, pool, rows, ni, args):
     return res
 
 
+def run_meanvec(args):
+    """G.C-AMENDMENT-2. The parameter-free value baseline, its LOSO gate, and the combined P x V
+    policy re-run with it in place of the learned lift head. No new measurement is bought: the gains
+    are the ones already banked and gated."""
+    torch.manual_seed(SEED); np.random.seed(SEED)
+    rng = np.random.default_rng(SEED)
+    if args.threads:
+        torch.set_num_threads(int(args.threads))
+    t00 = time.time()
+
+    tr, comp = scan_heaps()
+    partition_identity_check(tr)
+    from strategy_channel_suite import (build_greedy_env, contract_selftest, genv_mean,
+                                        CERT_TOWER, CERT_CONC)
+    from ndcg_tree import build_pool, leak_assert, branch_of_selftest
+    E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, "meanvec/val")
+    contract_selftest(E, E["rows"]); leak_assert(E, E["rows"], "meanvec/val")
+    rows = E["rows"]
+    f0, tl0 = genv_mean(E, [], rows)
+    assert round(f0, 8) == VAL_M0_FULL, f"canonical snap FAILED: {f0!r}"
+    log(f"[snap] validation m=0 intercept full={f0!r} tail={tl0!r} -- canonical, exact")
+    pool, _ip, _cp = build_pool(E, 500, 500)
+    branch_of_selftest(E, rows[:2000], [pool[0], pool[500], (1, 114)])
+    ni, C = E["ctx"].ni, E["C"]
+    catalogue = [(0, i) for i in range(ni)] + [(1, c) for c in range(C)]
+    phi_t, norm = build_phi(E, catalogue)
+    pool_cat = {"pool": [tuple(q) for q in pool],
+                "index": {(0, i): i for i in range(ni)} | {(1, c): ni + c for c in range(C)}}
+
+    t16 = json.load(open(TREE16_JSON))
+    all_states, nver = banked_states(E, tr, t16, [tuple(q) for q in pool], args.verify_n, rng)
+    states = [s for s in all_states if s["complete"]]
+    assert len(states) == 7
+
+    # ★ the extraction check the amendment asks for, stated as a number rather than a claim
+    rootst = [s for s in states if s["nid"] == "root"][0]
+    ra = max(rootst["gains"].items(), key=lambda kv: kv[1])
+    log(f"[level0] root complete vector: {len(rootst['gains'])} candidates, argmax {list(ra[0])} at "
+        f"gain {ra[1]:.8f} -- ndcgtree.json records splitter "
+        f"{tr['nodes']['root']['splitter']} gain {tr['nodes']['root']['splitter_gain']:.8f}")
+    assert list(ra[0]) == [int(x) for x in tr["nodes"]["root"]["splitter"]]
+    assert abs(ra[1] - float(tr["nodes"]["root"]["splitter_gain"])) < 1e-12
+
+    blob = torch.load(args.outcome_ckpt, map_location="cpu")
+    assert not blob.get("prior_feat")
+    om = OutcomeModel(blob["d_z"], blob["d_phi"], state=blob["state"], use_pos=blob["use_pos"],
+                      d_k=blob["d_k"], d_h=blob["d_h"])
+    om.load_state_dict(blob["model"]); om.eval()
+    for q in om.parameters():
+        q.requires_grad_(False)
+    vt = np.load(os.path.join(TRAJ_DIR, "val_traj.npz"))
+    Vv = {"uid": vt["uid"], "label_idx": vt["label_idx"], "outcome": vt["outcome"],
+          "Z": np.load(os.path.join(TRAJ_DIR, "z_val.npy"), mmap_mode="r")}
+    p2c = pool_to_catalogue([tuple(q) for q in pool], ni)
+    packs = {s["nid"]: state_pack(s, Vv, phi_t, p2c, pool_cat, om) for s in states}
+
+    # ---------- the baseline HARD RULE 2 asked for --------------------------------------------
+    mv = mean_vector_loso(states, packs)
+    rho = float(np.mean([r["spearman"] for r in mv]))
+    log("=" * 100)
+    log(f"[F.2 GATE / parameter-free mean] mean held-out-state Spearman {rho:+.4f} vs the bar "
+        f"{RHO_GATE:+.2f} -> {'PASS' if rho >= RHO_GATE else 'FAIL'}; the LEARNED head scored "
+        f"+0.0623 on the same folds. Reference: measured criterion {RHO_MEASURED_CRITERION:+.3f}, "
+        f"training-loss surrogate {RHO_TRAINING_LOSS_SURROGATE:+.3f}")
+
+    # ---------- the policy, with the mean vector as the value half -----------------------------
+    pool_t = [tuple(q) for q in pool]
+    gain, ncnt = mean_gain_table(states, packs, pool_t)
+    rootpk = packs["root"]
+    abar = np.zeros(len(pool_t), np.float32)
+    with torch.no_grad():
+        pa = (rootpk["P"][0] + rootpk["P"][1]).mean(0).numpy()      # cohort P(answered) per candidate
+    idx = {q: i for i, q in enumerate(pool_t)}
+    for j, q in enumerate(rootpk["cand"]):
+        abar[idx[q]] = pa[j]
+    log(f"[meanvec] static value table over {int((ncnt > 0).sum())}/{len(pool_t)} pool candidates; "
+        f"cohort answer probability spans {abar[abar > 0].min():.3f}..{abar.max():.3f}")
+
+    from policy_net import rollout
+    from strategy_channel_suite import genv_eval
+    cat_idx = {q: i for i, q in enumerate(catalogue)}
+    phi_pool = np.ascontiguousarray(phi_t[[cat_idx[q] for q in pool_t]])
+    sc = json.load(open(STATIC_COMBINED))
+    sf, stl = genv_eval(E, [(int(a), int(b)) for a, b in sc["sequence"]], rows)
+    assert abs(float(np.nanmean(sf)) - STATIC_VAL_FULL) < 1e-12, "BANKED-HEADLINE ASSERT FAILED"
+    log(f"[banked] greedy_static_policyB_combined reproduces EXACTLY: full={float(np.nanmean(sf))!r}")
+    si = json.load(open(STATIC_ITEMS))
+    if_, itl = genv_eval(E, [(int(a), int(b)) for a, b in si["sequence"]], rows)
+    bank_full = paired_bootstrap(sf - if_); bank_tail = paired_bootstrap(stl - itl)
+    log(f"[F.4 BAR] bank-alone full {bank_full['mean']:+.5f} "
+        f"[{bank_full['lo']:+.5f},{bank_full['hi']:+.5f}]")
+
+    arms = {}
+    for nm, use_out in (("meanvec_PxV", True), ("meanvec_static", False)):
+        pol = MeanVectorPolicy(om, gain, abar, use_outcome=use_out)
+        t0 = time.time()
+        ro = rollout(E, pol, phi_pool, pool_t, rows)
+        f, t = ro["curves"][16]
+        ans = (ro["outs"] != OUTCOME["noanswer"])
+        arms[nm] = {"full": float(np.nanmean(f)), "tail": float(np.nanmean(t)),
+                    "gain_vs_static_combined_full": paired_bootstrap(f - sf),
+                    "gain_vs_static_combined_tail": paired_bootstrap(t - stl),
+                    "n_distinct_interviews": len({tuple(r) for r in ro["asked"]}),
+                    "channel_mix_concept_share": channel_mix(ro["asked"], pool_t),
+                    "answer_rate": float(ans.mean()),
+                    "uses_outcome_head": use_out,
+                    "minutes": round((time.time() - t0) / 60, 2)}
+        g = arms[nm]["gain_vs_static_combined_full"]
+        log(f"[{nm}] full {arms[nm]['full']:.5f} | gain vs combined static {g['mean']:+.5f} "
+            f"[{g['lo']:+.5f},{g['hi']:+.5f}] | answer rate {arms[nm]['answer_rate']:.4f} | "
+            f"concept share {arms[nm]['channel_mix_concept_share']:.4f} | "
+            f"{arms[nm]['n_distinct_interviews']} distinct interviews")
+
+    out = {"analysis": "meanvec_value_baseline", "design_sheet":
+           "docs/design/PAPER_B_POLICY_DESIGN.md G.C-AMENDMENT-2", "citable": True,
+           "test_touched": False, "split": "validation",
+           "level0_root_argmax": list(ra[0]), "level0_root_gain": ra[1],
+           "level0_root_n": len(rootst["gains"]),
+           "meanvec_loso": mv, "meanvec_mean_spearman": rho,
+           "learned_head_mean_spearman": 0.0623, "F2_gate_bar": RHO_GATE,
+           "F2_gate_pass_meanvec": bool(rho >= RHO_GATE),
+           "n_pool_candidates_with_value": int((ncnt > 0).sum()),
+           "static_combined": {"full": float(np.nanmean(sf)), "tail": float(np.nanmean(stl))},
+           "bank_alone_gain_full": bank_full, "bank_alone_gain_tail": bank_tail,
+           "tree_val_gain_full": TREE_VAL_GAIN_FULL, "arms": arms,
+           "open_vocab_note": ("the mean-vector estimator is a LOOKUP TABLE over the 1,000-candidate "
+                               "pool and has no value for a question outside it, so the open-vocabulary "
+                               "arm is structurally unavailable to it. That is the scalability "
+                               "argument for a parametric value head reappearing as a limitation of "
+                               "the estimator that beats it."),
+           "minutes": round((time.time() - t00) / 60, 2)}
+    p = os.path.join(OUTDIR, "meanvec_value.json")
+    with open(p + ".tmp", "w") as fh:
+        json.dump(out, fh, indent=2, default=float)
+    os.replace(p + ".tmp", p)
+    log(f"[out] {p} ({out['minutes']:.1f}m)")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description="Part F lift head + combined P x V policy")
+    ap.add_argument("--meanvec", action="store_true",
+                    help="G.C-AMENDMENT-2: the parameter-free mean-vector value "
+                         "baseline, its LOSO gate, and the P x V policy re-run with it")
     ap.add_argument("--audit", action="store_true",
                     help="print the banked-heap composition and exit. No environment, no fit.")
     ap.add_argument("--outcome_ckpt", default=os.path.join(OUTDIR, "outcome_head_main_both.pt"))
@@ -770,6 +1014,12 @@ def main():
     ap.add_argument("--i_have_author_goahead", action="store_true")
     args = ap.parse_args()
     args.v_offset = not args.no_v_offset
+    if args.meanvec:
+        from strategy_channel_suite import CERT_TOWER as _T, CERT_CONC as _C
+        args.snapshot = args.snapshot or _T
+        args.concept_ckpt = args.concept_ckpt or _C
+        assert args.i_have_author_goahead, 'REFUSING to run without the go-ahead.'
+        return run_meanvec(args)
     if args.audit:
         tr, comp = scan_heaps()
         for r in comp:
