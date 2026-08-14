@@ -77,7 +77,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from policy_net import StateEncoder, build_phi, paired_bootstrap, channel_mix
+from policy_net import (StateEncoder, EquivariantScorer, build_phi, paired_bootstrap,
+                        channel_mix)
 from outcome_head import (OutcomeHead, OutcomeModel, N_OUTCOMES, OUTCOME, OUT_NAMES, SEED, log,
                           TOTAL_L, VAL_M0_FULL, pool_to_catalogue)
 
@@ -731,7 +732,13 @@ def enumerate_all_banked_states():
         for fn in sorted(os.listdir(d)):
             if not fn.endswith(".json"):
                 continue
-            b = json.load(open(os.path.join(d, fn)))
+            try:
+                b = json.load(open(os.path.join(d, fn)))
+            except (json.JSONDecodeError, OSError):
+                # a sidecar being written by a LIVE job (phase 3 banks new heaps continuously).
+                # Skipping a half-written file is correct; silently training on one would not be.
+                log(f"[allstates] SKIP {base_d}/{fn}: unreadable/partial (a live job is writing it)")
+                continue
             if "heap" not in b or "sig" not in b:
                 continue
             sig = b["sig"]
@@ -819,6 +826,120 @@ def build_state_pack_live(E, st, phi_t, pool_cat, om, ni, rows):
     with torch.no_grad():
         pk["P"] = torch.softmax(om(z, hist_phi(pk), pk["ho"], pk["hm"], pk["ps"], phi=phi_c), 0)
     return pk
+
+
+# ==================== EXPERIMENT A: predict the measured gain DIRECTLY, no factorisation
+class DirectGainHead(nn.Module):
+    r"""★ THE AUTHOR'S DESIGN: one head predicting the measured gain, with the outcome head as an
+    INPUT rather than a multiplier.
+
+    > **AUTHOR SAID (2026-08-14):** *"i think try simpler approach, predicting gain directly."*
+
+    Her argument is the load-bearing one: **the measured gain of asking q already accounts for people
+    not answering.** If 90% stay silent the measured gain is small by construction. So
+    `SUM_o P(o)*V(o)` re-derives something the target already contains, and pays for it by multiplying
+    two learned estimates -- which is exactly where this broke: `V(no-answer)` varied across questions
+    with sd 0.058 (about 3x the range of the quantity being predicted) and drove the argmax at
+    corr +0.379.
+
+    Here `P(o | q, state)` enters as a FEATURE with a state-dependent coefficient:
+
+        g(q | s) = <u(h), v(phi_q)> + b(phi_q) + SUM_o [w_o + u2_o(h)] * P(o | q, s)
+
+    so the catalogue-wide answerability coverage -- the outcome head's whole justification -- is kept,
+    while the error compounding is dropped. `w` and `u2` are ZERO-INITIALISED, so at initialisation the
+    head is exactly its warm start and the probability feature can only earn its way in.
+
+    ★ WARM START. `lift_head.py` took `--outcome_ckpt` but had no `--init_ckpt`: the value head was
+    trained FROM SCRATCH, so a network that already reproduces the tree exactly (E1, top-1 1.0000 at
+    all 16 positions) contributed nothing to it. Verified shape-compatible: E1's `enc.*` and
+    `head.{q,k,b}` load into this module exactly at d_k=128, d_h=256, d_phi=205, d_z=200. With the two
+    new terms at zero, **a warm-started head starts as E1's function precisely**.
+    """
+
+    def __init__(self, d_z, d_phi, state="both", use_pos=True, d_k=128, d_h=256):
+        super().__init__()
+        self.enc = StateEncoder(d_z, d_phi, d_h=d_h, mode=state, use_pos=use_pos)
+        self.head = EquivariantScorer(self.enc.d_out, d_phi, d_k, d_h)
+        self.pw = nn.Linear(self.enc.d_out, N_OUTCOMES)
+        self.w = nn.Parameter(torch.zeros(N_OUTCOMES))
+        nn.init.zeros_(self.pw.weight); nn.init.zeros_(self.pw.bias)
+        self.base_scale = nn.Parameter(torch.ones(1))
+
+    def forward(self, z, hp, ho, hm, pos, phi, P=None, base=None, asked_mask=None):
+        h = self.enc(z, hp, ho, hm, pos)
+        s = self.head(h, phi)
+        if P is not None:
+            s = s + torch.einsum("bo,obp->bp", self.pw(h) + self.w[None, :], P)
+        if base is not None:
+            s = s + self.base_scale * base
+        if asked_mask is not None:
+            s = s.masked_fill(asked_mask, float("-inf"))
+        return s
+
+    def warm_start(self, e1_path):
+        """Load E1's encoder and scorer. Returns the number of tensors actually transferred, so a
+        'warm start' that silently transferred nothing cannot be reported as one."""
+        blob = torch.load(e1_path, map_location="cpu")
+        sd, own = blob["model"], self.state_dict()
+        moved = {k: v for k, v in sd.items() if k in own and own[k].shape == v.shape}
+        assert len(moved) >= 12, (
+            f"warm start transferred only {len(moved)} tensors from {os.path.basename(e1_path)} -- "
+            f"shapes do not line up, so this would be a cold start wearing a warm label")
+        own.update(moved)
+        self.load_state_dict(own)
+        return len(moved), len(sd)
+
+    def n_params(self):
+        return sum(p.numel() for p in self.parameters())
+
+
+def direct_pred(model, pk, use_P=True, base=None, zero_state=False):
+    """Cohort-mean predicted gain per candidate at one banked state."""
+    z = torch.zeros_like(pk["z"]) if zero_state else pk["z"]
+    hm = torch.zeros_like(pk["hm"]) if zero_state else pk["hm"]
+    ho = torch.zeros_like(pk["ho"]) if zero_state else pk["ho"]
+    hp = torch.zeros_like(hist_phi(pk)) if zero_state else hist_phi(pk)
+    ps = torch.zeros_like(pk["ps"]) if zero_state else pk["ps"]
+    return model(z, hp, ho, hm, ps, pk["phi"], P=(pk["P"] if use_P else None), base=base).mean(0)
+
+
+def fit_direct(packs, d_z, d_phi, args, tag, seed=SEED, warm=None, use_P=True):
+    """Same trainer discipline as the value head: inner-validation split of the TRAINING states'
+    candidates, cosine decay, best-inner-epoch selection -- so the number is a measurement and not a
+    sample of optimiser noise."""
+    torch.manual_seed(seed)
+    rng = np.random.default_rng(seed)
+    m = DirectGainHead(d_z, d_phi, state=args.state, use_pos=not args.no_pos,
+                       d_k=args.dg_d_k, d_h=args.d_h)
+    n_moved = 0
+    if warm:
+        n_moved, n_tot = m.warm_start(warm)
+    inner = []
+    for pk in packs:
+        n = len(pk["cand"]); q = rng.permutation(n)
+        k = max(int(round(args.lift_inner_val * n)), 1)
+        inner.append((torch.from_numpy(np.sort(q[k:])), torch.from_numpy(np.sort(q[:k]))))
+    opt = torch.optim.Adam(m.parameters(), lr=args.lift_lr)
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.lift_epochs)
+    best = {"mse": 1e9, "ep": 0, "sd": None}
+    for ep in range(1, args.lift_epochs + 1):
+        for pk, (itr, _iv) in zip(packs, inner):
+            c = direct_pred(m, pk, use_P=use_P)
+            y = torch.from_numpy(pk["target_gain"].astype(np.float32))
+            loss = ((c[itr] - y[itr]) ** 2).mean()
+            opt.zero_grad(); loss.backward(); opt.step()
+        sched.step()
+        with torch.no_grad():
+            va = float(np.mean([
+                float(((direct_pred(m, pk, use_P=use_P)[iv]
+                        - torch.from_numpy(pk["target_gain"].astype(np.float32))[iv]) ** 2).mean())
+                for pk, (_it, iv) in zip(packs, inner)]))
+        if va < best["mse"]:
+            best = {"mse": va, "ep": ep,
+                    "sd": {k: v.detach().clone() for k, v in m.state_dict().items()}}
+    m.load_state_dict(best["sd"])
+    return m, best["ep"], n_moved
 
 
 # ============================================================================ the driver
@@ -1582,6 +1703,250 @@ def run_allstates(args):
     return out
 
 
+def _value_preamble(args, label):
+    """Environment, ruler, pool, descriptors, frozen outcome head, the flat value table and the two
+    static comparators -- everything both new experiments need, built once."""
+    from strategy_channel_suite import (build_greedy_env, contract_selftest, genv_mean, genv_eval,
+                                        CERT_TOWER, CERT_CONC)
+    from ndcg_tree import build_pool, leak_assert, branch_of_selftest
+    rng = np.random.default_rng(SEED)
+    tr, _c = scan_heaps()
+    E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, label)
+    contract_selftest(E, E["rows"]); leak_assert(E, E["rows"], label)
+    rows = E["rows"]
+    f0, _t = genv_mean(E, [], rows)
+    assert round(f0, 8) == VAL_M0_FULL, f"canonical snap FAILED: {f0!r}"
+    log(f"[snap] validation m=0 intercept full={f0!r} -- canonical, exact")
+    pool, _i, _cc = build_pool(E, 500, 500)
+    branch_of_selftest(E, rows[:2000], [pool[0], pool[500], (1, 114)])
+    ni, C = E["ctx"].ni, E["C"]
+    catalogue = [(0, i) for i in range(ni)] + [(1, c) for c in range(C)]
+    phi_t, norm = build_phi(E, catalogue)
+    pool_t = [tuple(q) for q in pool]
+    pool_cat = {"pool": pool_t,
+                "index": {(0, i): i for i in range(ni)} | {(1, c): ni + c for c in range(C)}}
+    cat_idx = {q: i for i, q in enumerate(catalogue)}
+    phi_pool = np.ascontiguousarray(phi_t[[cat_idx[q] for q in pool_t]])
+    blob = torch.load(args.outcome_ckpt, map_location="cpu")
+    assert not blob.get("prior_feat")
+    om = OutcomeModel(blob["d_z"], blob["d_phi"], state=blob["state"], use_pos=blob["use_pos"],
+                      d_k=blob["d_k"], d_h=blob["d_h"])
+    om.load_state_dict(blob["model"]); om.eval()
+    for q_ in om.parameters():
+        q_.requires_grad_(False)
+    t16 = json.load(open(TREE16_JSON))
+    gated, _nv = banked_states(E, tr, t16, pool_t, 0, rng)
+    complete = [g for g in gated if g["complete"]]
+    vt = np.load(os.path.join(TRAJ_DIR, "val_traj.npz"))
+    Vv = {"uid": vt["uid"], "label_idx": vt["label_idx"], "outcome": vt["outcome"],
+          "Z": np.load(os.path.join(TRAJ_DIR, "z_val.npy"), mmap_mode="r")}
+    p2c = pool_to_catalogue(pool_t, ni)
+    packs = {g["nid"]: state_pack(g, Vv, phi_t, p2c, pool_cat, om) for g in complete}
+    gain, ncnt = mean_gain_table(complete, packs, pool_t)
+    rootpk = packs["root"]
+    abar = np.zeros(len(pool_t), np.float32)
+    with torch.no_grad():
+        pa = (rootpk["P"][0] + rootpk["P"][1]).mean(0).numpy()
+    idx = {q: i for i, q in enumerate(pool_t)}
+    for j, q in enumerate(rootpk["cand"]):
+        abar[idx[q]] = pa[j]
+    sc = json.load(open(STATIC_COMBINED))
+    sf, stl = genv_eval(E, [(int(a), int(b)) for a, b in sc["sequence"]], rows)
+    assert abs(float(np.nanmean(sf)) - STATIC_VAL_FULL) < 1e-12, "BANKED-HEADLINE ASSERT FAILED"
+    si = json.load(open(STATIC_ITEMS))
+    if_, itl = genv_eval(E, [(int(a), int(b)) for a, b in si["sequence"]], rows)
+    bank = paired_bootstrap(sf - if_)
+    log(f"[banked] combined static reproduces EXACTLY full={float(np.nanmean(sf))!r} | "
+        f"[F.4 BAR] bank-alone {bank['mean']:+.5f} [{bank['lo']:+.5f},{bank['hi']:+.5f}]")
+    return dict(E=E, rows=rows, tr=tr, pool_t=pool_t, pool_cat=pool_cat, phi_t=phi_t,
+                phi_pool=phi_pool, om=om, complete=complete, packs=packs, gain=gain, abar=abar,
+                sf=sf, stl=stl, bank=bank, ni=ni, d_z=E["ctx"].d, d_phi=phi_t.shape[1], Vv=Vv,
+                p2c=p2c)
+
+
+def run_statecurve(args):
+    r"""★ EXPERIMENT B: the state-count curve -- policy score vs NUMBER OF MEASURED STATES.
+
+    > **AUTHOR ASKED (2026-08-14):** *"is the problem lack of data still? ... if the model observed
+    > all possibilities, it would feasibly learn to predict value better?"*
+
+    This answers it in the only currency that matters and costs no new measurement, because the
+    nearest-state conditional lookup is PARAMETER-FREE: subsample the banked states, re-run the same
+    policy, and read the curve. No model, no training, so nothing here can be confounded by a trainer.
+
+    Draws are STRATIFIED BY COHORT SIZE, so a level is not accidentally all small noisy states --
+    phase 3 measured Spearman(n_users, gain) = -0.724, i.e. smaller cohorts report larger gains, which
+    is the signature of noise rather than value.
+    """
+    if args.threads:
+        torch.set_num_threads(int(args.threads))
+    t00 = time.time()
+    P = _value_preamble(args, "statecurve/val")
+    from policy_net import rollout
+    allst = enumerate_all_banked_states()
+    keys = list(allst)
+    sizes = np.asarray([allst[k]["n_rows"] for k in keys], np.float64)
+    order = np.argsort(-sizes)
+    strata = np.array_split(order, 4)                       # quartiles by cohort size
+    levels = [int(x) for x in args.curve_levels.split(",")] + [len(keys)]
+    rows_out = []
+    rng = np.random.default_rng(SEED)
+    for L in levels:
+        L = min(L, len(keys))
+        n_draw = 1 if L == len(keys) else args.curve_draws
+        for d in range(n_draw):
+            if L == len(keys):
+                sel = list(range(len(keys)))
+            else:                                            # stratified draw
+                per = max(L // len(strata), 1)
+                sel = []
+                for st in strata:
+                    take = min(per, len(st))
+                    sel += list(rng.choice(st, size=take, replace=False))
+                extra = [i for i in range(len(keys)) if i not in set(sel)]
+                sel += list(rng.choice(extra, size=max(L - len(sel), 0), replace=False))
+                sel = sel[:L]
+            sub = {keys[i]: allst[keys[i]] for i in sel}
+            s_ask, s_gain, s_cov, s_dense, s_keys = build_state_lookup(sub, P["pool_t"], P["gain"])
+            pol = NearestStatePolicy(P["om"], P["gain"], P["abar"], s_ask, s_gain, s_cov, s_dense)
+            t0 = time.time()
+            ro = rollout(P["E"], pol, P["phi_pool"], P["pool_t"], P["rows"])
+            f, t = ro["curves"][16]
+            hits = np.concatenate(pol.hits) if pol.hits else np.zeros(0, np.int64)
+            g = paired_bootstrap(f - P["sf"])
+            ans = (ro["outs"] != OUTCOME["noanswer"])
+            rows_out.append({"n_states": L, "draw": d, "full": float(np.nanmean(f)),
+                             "tail": float(np.nanmean(t)), "gain_vs_static_combined_full": g,
+                             "answer_rate": float(ans.mean()),
+                             "mean_cohort_size": float(np.mean([allst[keys[i]]["n_rows"]
+                                                                for i in sel])),
+                             "conditioned_fraction": float(s_cov[hits].mean()) if len(hits) else 0.0,
+                             "n_states_used": int(len(np.unique(hits))),
+                             "minutes": round((time.time() - t0) / 60, 2)})
+            log(f"[curve L={L:3d} draw{d}] full {rows_out[-1]['full']:.5f} | gain {g['mean']:+.5f} "
+                f"[{g['lo']:+.5f},{g['hi']:+.5f}] | conditioned "
+                f"{rows_out[-1]['conditioned_fraction'] * 100:.1f}% | "
+                f"{rows_out[-1]['n_states_used']} states used | answer "
+                f"{rows_out[-1]['answer_rate']:.4f}")
+    log("=" * 100)
+    log(f"[STATE-COUNT CURVE] policy gain vs combined static, by number of measured states "
+        f"(bank-alone bar {P['bank']['mean']:+.5f})")
+    for L in sorted({r["n_states"] for r in rows_out}):
+        gs = [r["gain_vs_static_combined_full"]["mean"] for r in rows_out if r["n_states"] == L]
+        cf = [r["conditioned_fraction"] for r in rows_out if r["n_states"] == L]
+        log(f"  {L:4d} states  gain {np.mean(gs):+.5f}  [{min(gs):+.5f}, {max(gs):+.5f}]  "
+            f"conditioned {np.mean(cf) * 100:5.1f}%  ({len(gs)} draw(s))")
+    out = {"analysis": "state_count_curve", "citable": True, "test_touched": False,
+           "split": "validation", "n_states_available": len(keys),
+           "levels": levels, "draws_per_level": args.curve_draws,
+           "bar_bank_alone": P["bank"]["mean"], "bar_tree": TREE_VAL_GAIN_FULL,
+           "flat_mean_arm_full": 0.22650, "conditional_full_254": 0.23583,
+           "curve": rows_out,
+           "note": ("the nearest-state conditional lookup is PARAMETER-FREE, so this curve is policy "
+                    "score against number of MEASURED STATES with no model and no training in the "
+                    "loop. It reads REAL measured values at those states, so it is close to a best "
+                    "case for a value-driven policy on the data we hold. Draws are stratified by "
+                    "cohort size because phase 3 measured Spearman(n_users, gain) = -0.724."),
+           "minutes": round((time.time() - t00) / 60, 2)}
+    pth = os.path.join(OUTDIR, "state_count_curve.json")
+    with open(pth + ".tmp", "w") as fh:
+        json.dump(out, fh, indent=2, default=float)
+    os.replace(pth + ".tmp", pth)
+    log(f"[out] {pth} ({out['minutes']:.1f}m)")
+    return out
+
+
+def run_directgain(args):
+    r"""★ EXPERIMENT A: one head predicting the measured gain directly, warm-started from E1."""
+    if args.threads:
+        torch.set_num_threads(int(args.threads))
+    t00 = time.time()
+    Pre = _value_preamble(args, "directgain/val")
+    packs, complete = Pre["packs"], Pre["complete"]
+    d_z, d_phi = Pre["d_z"], Pre["d_phi"]
+    seeds = [SEED + 1000 * i for i in range(args.lift_seeds)]
+    e1 = args.e1_ckpt if os.path.exists(args.e1_ckpt) else None
+    if e1 is None:
+        log(f"[warn] E1 checkpoint not found at {args.e1_ckpt}; warm-start arms are skipped")
+    MIN_LEAF = int(Pre["tr"].get("min_leaf", 200))
+
+    arms = {"cold": dict(warm=None, use_P=True),
+            "cold_noP": dict(warm=None, use_P=False)}
+    if e1:
+        arms["warm"] = dict(warm=e1, use_P=True)
+        arms["warm_noP"] = dict(warm=e1, use_P=False)
+
+    results = {}
+    for arm, cfg in arms.items():
+        loso, moved = [], 0
+        for g in complete:
+            pk = packs[g["nid"]]
+            trp = [packs[o["nid"]] for o in complete if o["nid"] != g["nid"]]
+            per_seed = []
+            for sd in seeds:
+                m, bep, moved = fit_direct(trp, d_z, d_phi, args, f"{arm}-{g['nid']}", seed=sd,
+                                           warm=cfg["warm"], use_P=cfg["use_P"])
+                c = direct_pred(m, pk, use_P=cfg["use_P"]).detach().numpy()
+                cz = direct_pred(m, pk, use_P=cfg["use_P"], zero_state=True).detach().numpy()
+                rk = int((pk["target_gain"] > pk["target_gain"][int(np.argmax(c))]).sum()) + 1
+                per_seed.append({"seed": sd, "best_epoch": bep,
+                                 "spearman": spearman(c, pk["target_gain"]),
+                                 "spearman_zeroed_state": spearman(cz, pk["target_gain"]),
+                                 "rank_of_argmax": rk})
+            rho = [x["spearman"] for x in per_seed]
+            loso.append({"held_out_state": g["nid"], "n_users": pk["n_users"],
+                         "n_candidates": len(pk["cand"]),
+                         "above_floor": bool(pk["n_users"] >= MIN_LEAF),
+                         "spearman": float(np.mean(rho)), "spearman_min": float(np.min(rho)),
+                         "spearman_max": float(np.max(rho)),
+                         "spearman_zeroed_state": float(np.mean(
+                             [x["spearman_zeroed_state"] for x in per_seed])),
+                         "rank_of_argmax": float(np.mean([x["rank_of_argmax"] for x in per_seed])),
+                         "per_seed": per_seed})
+            log(f"[DIRECT/{arm} {g['nid']}] rho {loso[-1]['spearman']:+.4f} "
+                f"[{loso[-1]['spearman_min']:+.4f},{loso[-1]['spearman_max']:+.4f}] | "
+                f"zeroed-state control {loso[-1]['spearman_zeroed_state']:+.4f} | "
+                f"argmax rank {loso[-1]['rank_of_argmax']:.0f}/{len(pk['cand'])}")
+        mean_rho = float(np.mean([r["spearman"] for r in loso]))
+        above = [r for r in loso if r["above_floor"]]
+        results[arm] = {"loso": loso, "mean_spearman": mean_rho,
+                        "mean_spearman_zeroed_state": float(np.mean(
+                            [r["spearman_zeroed_state"] for r in loso])),
+                        "mean_spearman_above_floor": (float(np.mean([r["spearman"] for r in above]))
+                                                      if above else None),
+                        "n_above_floor": len(above),
+                        "warm_tensors_transferred": moved,
+                        "gate_pass": bool(mean_rho >= RHO_GATE)}
+        log(f"[DIRECT/{arm}] MEAN rho {mean_rho:+.4f} (zeroed-state "
+            f"{results[arm]['mean_spearman_zeroed_state']:+.4f}, above-floor "
+            f"{results[arm]['mean_spearman_above_floor']}) vs gate {RHO_GATE:+.2f} and the "
+            f"parameter-free mean +0.4163 | warm tensors {moved}")
+
+    best = max(results, key=lambda k: results[k]["mean_spearman"])
+    log("=" * 100)
+    log(f"[DIRECT] best arm '{best}' at {results[best]['mean_spearman']:+.4f}; "
+        f"parameter-free mean-vector +0.4163; gate {RHO_GATE:+.2f}; the FACTORISED head scored "
+        f"+0.0623 on the same folds")
+
+    out = {"analysis": "direct_gain_head", "citable": True, "test_touched": False,
+           "split": "validation", "author_rationale":
+           ("the measured gain already accounts for people not answering, so SUM_o P(o)*V(o) "
+            "re-derives what the target contains and pays for it by multiplying two learned "
+            "estimates. Here P enters as an INPUT FEATURE with a state-dependent coefficient, "
+            "zero-initialised so it can only earn its way in."),
+           "arms": results, "best_arm": best,
+           "reference_factorised_head": 0.0623, "reference_parameter_free_mean": 0.4163,
+           "F2_gate_bar": RHO_GATE, "e1_ckpt": os.path.basename(args.e1_ckpt) if e1 else None,
+           "min_leaf": MIN_LEAF,
+           "minutes": round((time.time() - t00) / 60, 2)}
+    pth = os.path.join(OUTDIR, "direct_gain.json")
+    with open(pth + ".tmp", "w") as fh:
+        json.dump(out, fh, indent=2, default=float)
+    os.replace(pth + ".tmp", pth)
+    log(f"[out] {pth} ({out['minutes']:.1f}m)")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description="Part F lift head + combined P x V policy")
     ap.add_argument("--no_conditional", action="store_true",
@@ -1592,6 +1957,16 @@ def main():
     ap.add_argument("--ceiling_seeds", type=int, default=3,
                     help="noise draws per accuracy level; a single draw is a point estimate of a "
                          "noisy thing and this decision must not rest on one")
+    ap.add_argument("--statecurve", action="store_true",
+                    help="EXPERIMENT B: policy score vs number of measured states")
+    ap.add_argument("--directgain", action="store_true",
+                    help="EXPERIMENT A: one head predicting the measured gain directly")
+    ap.add_argument("--curve_levels", default="7,20,50,100")
+    ap.add_argument("--curve_draws", type=int, default=3)
+    ap.add_argument("--dg_d_k", type=int, default=128,
+                    help="128 matches E1 exactly, which is what makes the warm start real")
+    ap.add_argument("--e1_ckpt",
+                    default=os.path.join(OUTDIR, "policy_main_equivariant_both.pt"))
     ap.add_argument("--no_stratify", action="store_true",
                     help="skip the above-min-leaf-floor-only refit")
     ap.add_argument("--allstates", action="store_true",
@@ -1634,6 +2009,12 @@ def main():
     ap.add_argument("--i_have_author_goahead", action="store_true")
     args = ap.parse_args()
     args.v_offset = not args.no_v_offset
+    if args.statecurve or args.directgain:
+        from strategy_channel_suite import CERT_TOWER as _T3, CERT_CONC as _C3
+        args.snapshot = args.snapshot or _T3
+        args.concept_ckpt = args.concept_ckpt or _C3
+        assert args.i_have_author_goahead, 'REFUSING to run without the go-ahead.'
+        return run_statecurve(args) if args.statecurve else run_directgain(args)
     if args.allstates:
         from strategy_channel_suite import CERT_TOWER as _T2, CERT_CONC as _C2
         args.snapshot = args.snapshot or _T2
