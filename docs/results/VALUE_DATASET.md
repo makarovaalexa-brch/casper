@@ -380,11 +380,75 @@ and we would have said so rather than quoting it with a caveat.
 
 ---
 
+## ★ THE FIT COST, PROFILED — and the awkward answer
+
+The first union refit ran at 1.86 min/epoch and projected to **174 days**; it was killed. The natural
+suspicion was that the frozen outcome head `P(o|s,q)` was being re-run every epoch. **It is not** —
+`P` is computed once in `build_state_pack_live` under `no_grad` and stored on the pack. That
+hypothesis is dead, and the real answer is less convenient than a bug.
+
+**Where the time goes**, measured on the real 425 pack shapes with no environment built, so compute is
+isolated:
+
+| | |
+|---|---|
+| packs | 425 |
+| user-rows summed over packs | **876,520** |
+| (user × candidate) cells per forward | **75.8 M** |
+| one epoch, as written | **95.5 s** (real run: 112 s — the profile is faithful) |
+
+★ **The cost scales with USERS, not candidates.** The root pack (10,000 users × 1,000 candidates)
+takes 0.888 s per training step; the *same 10,000 users with only 50 candidates* still takes 0.654 s.
+Cutting candidates twentyfold saves 26%.
+
+**So "1.5 ms per example" used the wrong denominator.** This model does not consume 72,717 triples
+per epoch. It evaluates three outcomes over 876,520 user-rows and 75.8 M user-candidate cells —
+**~227 M values forward and again backward**. At 95.5 s on six CPU threads with autograd that is
+~2.4 M values/s, which is ordinary rather than pathological.
+
+### The one real waste, and it is exactly recoverable
+
+`StateEncoder.forward` builds `tok = hist_phi ⊗ onehot(hist_out)`, a **(B, T, 3·d_phi)** tensor —
+**352 MB at the root** — on *every* forward, from three inputs that are **constant** during a fit
+(only the weights move). So `pooled`, `cnt` and `n_asked` are constants recomputed 80 times per fit.
+
+Hoisting them is arithmetic-identical — verified, **max |cached − original| = 0.000e+00** — and buys:
+
+| | as written | hoisted |
+|---|---|---|
+| one epoch | 95.5 s | **41.2 s** (2.3×) |
+| one fit (80 epochs) | 2.12 h | **0.92 h** |
+| pack memory | 1.70 GB | 3.51 GB (`hq`/`ho`/`hm` dropped — the cache *moves* memory, not adds) |
+
+### ⚠ 2.3× is a real saving and it is not a rescue
+
+| protocol | fits | as written | hoisted |
+|---|---|---|---|
+| **LOSO, 187 eval states** × 3 seeds × 3 arms | 1,683 | 149 d | **64 d** |
+| **5-fold** × 3 seeds × 3 arms | 45 | 4.0 d | **41 h** |
+| 10-fold × 3 seeds × 3 arms | 90 | 8.0 d | 82 h |
+
+**Leave-one-out is the wrong protocol at this size** — it costs one full fit per held-out state, and
+187 held-out states is where that stops being affordable. K-fold is the standard choice at this `n`
+and gives *more* training data per fit, not less; nothing else about the protocol changes.
+
+**The remaining lever is the per-user term** (876,520 user-rows). Capping the users in a *training*
+forward would cut it several-fold. **That is a HARD RULE 1 sampling decision on users** — it goes to
+the author as its own question with the design in hand, and it has not been taken here.
+
+**Nothing is launched.** The numbers go in front of the author first.
+
+---
+
 ## Execution state
 
-`value_chain.py` is armed (detached, pid 14652). It waits for a **sustained idle box** — five
-consecutive quiet polls — then runs sample → scrape → meanvec → train, each stage skipped if its
-artifact exists, aborting rather than building on a failed stage.
+Stages 1–3 (sample → scrape → meanvec) **completed**. Stage 4 (train) was launched, ran one fit of a
+projected 1,683, and **was killed** once the 174-day projection was established: the premise
+"finish the training" was not reachable, so continuing was waste with no partial result to salvage.
+The box is free.
+
+**Nothing is queued.** The refit does not relaunch until the author has chosen a fold count against
+the measured costs above.
 
 ★ Idle is detected by process **name and resident set**, never by command-line text. The threshold is
 measured, not guessed: the idle `http.server` pythons sit at 2–10 MB and the live phase-3 sweep at
@@ -405,6 +469,14 @@ measured, not guessed: the idle `http.server` pythons sit at 2–10 MB and the l
   same-spine states. On 187 unbiased states the same estimator scores +0.2956 and fails the gate it
   was celebrated for passing. Quote a comparator with its sample size or not at all, and say out
   loud when a bar has become weaker so nobody reads a later pass as more impressive than it is.
+- **★ Cost-model the PROTOCOL, not just the run.** Leave-one-out costs one full fit per held-out
+  state. It was fine at 7 states (21 fits) and became 174 days at 187, and the evaluation set grew by
+  a design change that never re-derived the cost. When an experiment's `n` changes by 25×, re-derive
+  what the protocol costs before launching, not after.
+- **Profile before optimising, and be willing to lose the comfortable hypothesis.** "The frozen head
+  is being recomputed" would have been a satisfying bug; it was false. The cost scaled with *users*,
+  not candidates, which named the real culprit in one measurement — and the recoverable waste was
+  2.3×, not the 100× a bug would have given.
 - **A `nan` in a reported aggregate is not automatically a `nan` in the objective.** A mean over an
   empty index slice is `0/0`; its backward pass produces exactly zero gradient, not NaN. Check which
   it is by measuring the gradient, not by reading the loss line — but check, because the two
