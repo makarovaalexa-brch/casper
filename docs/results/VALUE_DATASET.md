@@ -335,6 +335,15 @@ random catalogue draws rarely reaches the *mean* of 20 pool draws. That is the n
 the value head has never had, and it is a clean, direct statement of what the popularity ∪
 answer-rate pool selection contributes — measured here for the first time rather than assumed.
 
+★★ **This bears directly on the open-vocabulary claim, and it reframes it.** The recorded failure
+was that an open-vocabulary policy picked out-of-pool questions that were answered 9.1% of the time
+against 55.2% in-pool, costing −0.02034 NDCG, and that was read as a deficiency of *our model*. The
+measurement above says the catalogue outside the pool is **genuinely mostly worthless to ask** — its
+mean marginal gain is at or below zero at every one of 19 prefixes. So a policy that picks out-of-pool
+questions is largely being punished by the catalogue, not only by its own weakness. The honest split:
+choosing badly *within* the answerable region is a model failure; the thin returns *outside* it are a
+property of the domain. Both belong in the chapter, and only the first is ours to fix.
+
 ---
 
 ## ★★★ THE `nan` TRAINING LOSS — diagnosed, and it is benign
