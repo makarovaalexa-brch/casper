@@ -4,11 +4,12 @@
 look, no NDCG on a train user, `test_touched=false` on every artifact.**
 
 **One-line verdict: the outcome head works and the entire margin is the interview — AUC 0.98243
-against the per-question popularity prior 0.96944, rising 0.9687 → 0.9856 across the 16 positions
-while the prior stays flat, with the shuffle control landing exactly on the prior. The lift head
-fails its pre-registered rho >= +0.40 gate at +0.062, and the combined P x V policy loses to
-bank-alone; the cause is localised to the no-answer value branch, which should be flat across
-questions and instead varies about three times more than the signal being predicted.**
+against the per-question popularity prior's 0.96944, rising 0.9687 → 0.9856 across the 16
+positions while the prior stays flat, with the shuffle control landing exactly on the prior, and
+it buys a further +0.00392 [+0.00105, +0.00676] inside a policy. The learned lift head fails its
+ρ ≥ +0.40 gate at +0.062 — and is beaten by a parameter-free mean of six gain vectors at +0.4163,
+which passes. With that working value half the combined P×V policy improves to −0.02911 and
+STILL loses to bank-alone (+0.01280).**
 
 Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` — **Part F is governing**.
 
@@ -346,16 +347,59 @@ from the learning problem, so the seven states teach the *gain* rather than the 
 the policy is large and in exactly the predicted direction (§3). It did **not** rescue the gate.
 
 **In-sample, the fit is still weak** — ρ = +0.167 / +0.065 / +0.152 / +0.086 / +0.114 / +0.149 / +0.197
-on the seven states it was trained on. Better than the broken run's −0.015, so this is no longer a
-pathology; but a model that fits its own training data at ρ ≈ 0.13 has not learned the function.
-**The honest conclusion is therefore narrower than "seven states are not enough" and firmer than "our
-fit was unstable":** with a stabilised trainer and the level removed from the target, the head still
-cannot fit 7 × 997 exact gains in-sample, so the limiting factor is the **learning problem** — the
-question descriptor plus the interview state, as currently represented, does not resolve measured NDCG
-gain — and adding states moves it by +0.020 per tripling. HARD RULE 6: **this is a weak method, reported
-as one. It is not evidence that a value head cannot work, and it must not be written as if it were.**
+on the seven states it was trained on. A model that fits its own training data at ρ ≈ 0.13 has not
+learned the function. HARD RULE 6: **this is a weak method, reported as one.**
 
-## RESULT 3 — the combined P x V policy on validation: it loses to the bank, and we can say why
+> ### ★ RETRACTED — and the retraction is the finding
+>
+> An earlier version of this section concluded that *"the limiting factor is the learning problem — the
+> question descriptor plus the interview state, as currently represented, does not resolve measured
+> NDCG gain"*, and that seven states were too few. **Both statements are withdrawn. They were never
+> tested, because HARD RULE 2 was not applied: the lift head was never compared against the simplest
+> possible estimator.** See §2.5 — a parameter-free average clears the gate the learned head fails.
+
+### 2.5 ★★★ THE BASELINE THAT SHOULD HAVE RUN FIRST: a parameter-free mean beats the learned head
+
+Predict a held-out state's entire gain vector with **the plain mean of the other six states' gain
+vectors.** No features, no parameters, no learning, and — the part that matters — **no state
+information at all**: it does not know which state it is predicting for.
+
+| held-out state | learned lift head (stable, 3 seeds) | **parameter-free mean of the other six** | its argmax rank |
+|---|---|---|---|
+| root | +0.112 | **+0.4642** | 27/999 |
+| root.like | +0.035 | **+0.3939** | 692/999 |
+| root.dislike | +0.028 | **+0.6521** | 67/999 |
+| root.noanswer | +0.039 | **+0.2380** | 128/999 |
+| root.dislike.dislike | +0.072 | **+0.3445** | 152/998 |
+| root.dislike.dislike.dislike | +0.101 | **+0.2880** | 48/997 |
+| root.dislike.dislike.dislike.noanswer | +0.050 | **+0.5332** | 14/996 |
+| **mean** | **+0.0623 — FAIL** | **+0.4163 — ✅ PASSES ρ ≥ +0.40** | |
+
+**The learned, state-conditioned, 527k-parameter head is beaten by an average of six vectors, by a
+factor of nearly seven.** What this overturns:
+
+- *"the descriptor and the interview state cannot resolve measured NDCG gain"* — **false.** A trivial
+  average resolves it to +0.416, comfortably inside the gate and on the same axis as the measured
+  criterion's +0.784.
+- *"seven states are not enough"* — **false. Six** suffice for a parameter-free mean to clear the bar.
+- The correct statement is the narrow one: **our learned estimator was weak.** The label material was
+  always sufficient; the model built on it was not.
+
+★ **And the estimator that wins is STATE-INDEPENDENT.** It ignores the interview entirely and still
+beats the state-conditioned model. That is this chapter's own headline reappearing one level down —
+**the bank beats conditioning (+0.01430 > +0.01035)** — and now *the mean value of a question beats a
+model of how that value depends on the state.* What you ask about matters more than how you decide
+what to ask, and it holds for the value estimator as well as for the policy.
+
+**Extraction check, because the trap is real and silent.** Filtering heap entries on `upd == 0` alone
+does **not** give the complete level-0 vector: CELF *pops* the candidate it selects, so the pick must be
+added back from `seq[0]`/`gains[0]`. Miss it and every training target loses the single highest-gain
+candidate at every state, and the root argmax comes out as `[1,994]`. **Our loader adds it back, and
+G-L4 is the gate that catches the mistake if it is not** — verified as a number: root vector
+**1000/1000**, argmax **[1,114]** at gain **0.02049056**, byte-matching `ndcgtree.json`'s recorded root
+splitter and gain.
+
+## RESULT 3 — the combined P×V policy: it still loses to the bank, with the value half FIXED
 
 Comparators in Part F.4's order. **The bar is bank-alone, not the tree:** *a policy that beats the tree
 but not the static bank has not earned adaptive language.*
@@ -364,50 +408,50 @@ but not the static bank has not earned adaptive language.*
 |---|---|---|
 | `greedy_static_policyB_combined` (banked, reproduced **exactly**) | 0.25561016113602253 | — |
 | `greedy_static_policyB_items` | 0.24280812656671960 | — |
-| **★ bank-alone bar** (combined - items) | | **+0.01280 [+0.00972, +0.01580]** |
+| **★ bank-alone bar** (combined − items) | | **+0.01280 [+0.00972, +0.01580]** |
 | the tree (banked validation gain) | | +0.02794 |
-| combined P x V, 1,000-pool — *free-form V* | 0.18640 | −0.06921 [−0.07286, −0.06560] |
-| **combined P x V, 1,000-pool — `V = base + delta`** | **0.19721** | **−0.05840 [−0.06180, −0.05495]** |
-| **combined P x V, full 19,390 catalogue** | 0.15517 → **0.15704** | **−0.09857 [−0.10234, −0.09478]** |
+| P×V, learned lift head, free-form V | 0.18640 | −0.06921 [−0.07286, −0.06560] |
+| P×V, learned lift head, `V = base + δ` | 0.19721 | −0.05840 [−0.06180, −0.05495] |
+| **P×V, parameter-free mean value** | **0.22650** | **−0.02911 [−0.03231, −0.02596]** |
+| value table alone, **no outcome head** (a static order) | 0.22258 | −0.03303 [−0.03602, −0.03006] |
 
-**It does not beat bank-alone, does not beat the tree, and does not beat the static order.** That is
-the finding, and it is unambiguous.
+**Fixing the value half halves the loss — and the policy still loses to the bank.** −0.05840 →
+**−0.02911**, against a bank-alone bar of **+0.01280**. So the earlier reading of −0.058 as evidence
+about the *estimator* was right, and it was not the whole story: **even with a value estimator that
+clears the gate, the two-head policy does not beat a static order chosen on the bank.** That conclusion
+is now attributable to the design rather than to a broken fit, which is the first time in this report it
+can be.
 
-**But the mechanism is now named, and the named fix moved it.** The structural reparameterisation of
-2.4 changed the policy's *behaviour* exactly as the no-answer diagnosis predicted it would:
+### ★ What the outcome head contributes inside a policy — measured, paired, and positive
 
-| | free-form V | **V = base + delta** | the tree, for scale |
-|---|---|---|---|
-| **interview answer rate** | 0.1241 | **0.5050** | 0.5789 |
-| concept share of picks | 0.0150 | **0.7026** | 0.5457 |
-| distinct realised interviews | 2,548 | **7,428** | 15 |
-| gain vs combined static | −0.06921 | **−0.05840** | +0.02794 |
+Both arms carry the **identical** value table. The only difference is whether the per-user answer
+probability reweights it. So the paired difference isolates the outcome head's contribution:
 
-**Removing a known constant from the value target took the answer rate from 0.124 to 0.505 — most of
-the way to the tree's 0.579 — without touching the outcome head.** The policy had been choosing
-questions nobody would answer *because the value head told it silence was valuable*, and pricing the
-level out of the target largely stopped that. The residual −0.058 is what remains once the policy is no
-longer sabotaging its own answer rate: an estimator that ranks candidates at rho ~ 0.06 on held-out
-states simply picks worse questions than a greedy order chosen on the exact measured metric.
-
-**Open vocabulary: the deficit widens rather than closes, and this is the sharpest negative of the
-night.** Part E.4's success criterion was that opening the vocabulary should stop costing −0.02034.
-
-| | E1 policy head | **combined P x V** |
+| | value table + outcome head | value table alone |
 |---|---|---|
-| open-vocab deficit (catalogue − pool, full NDCG@10) | −0.02034 | **−0.04016** |
-| out-of-pool pick rate | 30.0% (0% at k=1–3, 57% at k=16) | **100% at every position** |
-| answer rate of the open-vocab run | 0.4139 | **0.0060** |
-| concept share, open vocab | 0.3793 | **0.0000** |
+| full NDCG@10 | **0.22650** | 0.22258 |
+| **paired difference** | **+0.00392 [+0.00105, +0.00676], excludes zero** | |
+| interview answer rate | 0.5650 | 0.5623 |
+| concept share of picks | 0.3931 | 0.5625 |
+| **distinct realised interviews** | **9,421** | **1** |
 
-**The two-head score does not price answerability into the open vocabulary — it makes the failure
-total.** Every pick leaves the pool at every position, only 0.6% of them are answered, and the concept
-channel disappears entirely. The 1,000-candidate pool is the top-500 items *by popularity* and top-500
-concepts *by answer rate*, so everything outside it is by construction less answerable; a value head
-whose no-answer branch varies with sd 0.058 across questions has nothing to stop it walking straight
-out. **Part F.1's own deflation predicted this shape: a miscalibrated `P` times an extrapolated `V` is
-two learned errors multiplied.** Here `P` is good (Result 1, ECE 0.0015) and `V` is not, and the product
-inherits `V`.
+**This is the cleanest positive result for the two-head design in the report.** The value table alone
+is a *static order* — literally one interview for all 10,000 users, the `conlinucb_bs_static` failure
+mode by construction. Adding the outcome head makes it genuinely adaptive (9,421 distinct interviews)
+and buys **+0.00392 full NDCG@10 with a paired CI excluding zero.** Small, real, and the first
+demonstration that `P(outcome | state, question)` pays *inside a policy* rather than only on AUC.
+
+For scale, and stated so the number is not oversold: **+0.00392 is under a third of the bank-alone bar
+(+0.01280) and about a seventh of the tree's +0.02794.** It is a real contribution to a policy that
+still loses.
+
+### Open vocabulary — structurally unavailable to the estimator that works
+
+The mean-vector value is a **lookup table over the 1,000-candidate pool**. It has no value at all for a
+question outside it, so the open-vocabulary arm **cannot be run** with it. That is not a null result, it
+is a scope statement — and it is the argument *for* a parametric value head reappearing as a limitation
+of the estimator that beats it. The open-vocab numbers in this report therefore stand only for the
+learned head, where they were **−0.04016** with 100% out-of-pool picks and a 0.6% answer rate.
 
 ---
 
@@ -418,31 +462,40 @@ inherits `V`.
 1. **The outcome head works and the interview is why.** AUC macro 0.98243 vs the per-question
    popularity prior's 0.96944 over 3.1 billion scored cells; the per-position curve rises
    0.9687 → 0.9856 while the prior is flat; the head is *behind* at position 0 where there is no state
-   to read. **F.5's pre-registered falsifier — "held-out AUC <= the popularity baseline" — did not fire.**
+   to read. **F.5's pre-registered falsifier did not fire.**
 2. **The shuffle control converges exactly onto the popularity prior** (0.96884 vs 0.96944) with a flat
    per-position curve, so (1) is not an instrument artefact.
 3. **The no-profile guard holds structurally** (position-0 states bit-identical, max |diff| = 0.0).
-4. **The lift head fails its pre-registered gate**: +0.0623 against +0.40, five of seven seed-ranges
-   straddling zero, in-sample rho ~ 0.13. **Weak method, reported as one.**
-5. **The combined policy loses to bank-alone, the tree and the static order**, and the open-vocab
-   deficit *doubles* to −0.04016.
+4. **The outcome head also pays inside a policy: +0.00392 [+0.00105, +0.00676]** over the identical
+   value table without it, turning a single static order into 9,421 distinct interviews.
+5. **★ The learned lift head is a weak estimator, and we know that because a parameter-free mean of six
+   gain vectors beats it +0.4163 vs +0.0623 and clears the gate it fails.** The label material was
+   sufficient all along.
+6. **★ The winning value estimator is state-independent** — the chapter's "bank beats conditioning"
+   finding reappearing inside the value estimator.
+7. **Even with that working value half, the P×V policy loses to bank-alone** (−0.02911 vs +0.01280).
 
-**What it does NOT settle, stated so nobody reads it that way:**
+**What it does NOT settle:**
 
-- **Not** "seven states cannot support a value model". The stabilised head cannot fit its own seven
-  training states either, so the binding constraint is the learning problem, not only the state count.
-  The sizing slope measured here — **+0.020 of Spearman per tripling of states** — is the number the
-  "buy the 32 h sweep" decision should use, and on that slope the sweep does not reach +0.40.
-- **Not** that the P x V decomposition is wrong. Its `P` factor is measured, calibrated and works.
+- **Not** that a value head cannot be learned. It says *ours* was worse than an average, which is a
+  statement about our model, not about the problem. The obvious next estimator is the mean vector plus a
+  *learned residual*, which has a baseline it must beat by construction.
 - **Nothing about test.** No test user was built, loaded or touched at any point.
 
-**The one design consequence worth carrying forward:** the outcome head is cheap, accurate and
-calibrated, and it is the half of Part F that the evidence supports. The value half is where the
-chapter's remaining risk sits, and the diagnostic that localises it — *does `V(no-answer | q, s)` sit at
-`base(s)` and stay flat across `q`?* — should be run **before** any future value model is believed,
-because it is free and it caught this one.
+**Two things to carry forward, both cheap and both caught something here:**
+
+> **(i) HARD RULE 2 applies to estimators, not just to arms.** The lift head ran for hours against no
+> baseline simpler than itself, and the conclusions drawn from it — "the state cannot resolve the gain",
+> "seven states are not enough" — were both false and both retracted. A parameter-free average takes
+> milliseconds and would have preceded every fit.
+>
+> **(ii) The no-answer flatness check.** `V(no-answer | q, s)` must sit at `base(s)` and stay flat across
+> `q`, because an unanswered question folds an UNSEEN/refusal token. It is free, it is a property of the
+> environment rather than of the fit, and it localised this failure to the exact branch that
+> `P(no-answer) ≈ 0.966` makes dominant.
 
 ---
+
 
 ## Artifacts
 
@@ -453,6 +506,7 @@ because it is free and it caught this one.
 | outcome head — shuffle control | `experiments/battery/outcome_head_shuffle_both.json` (+ `.pt`) |
 | lift head + combined policy — **stable, citable** | `experiments/battery/lift_head_stable.json` |
 | lift head — first run, unstable, retained for the comparison only | `experiments/battery/lift_head.json` |
+| **parameter-free mean value: LOSO gate + the P×V rerun** | `experiments/battery/meanvec_value.json` (+ `_per_user.npz`), `meanvec.log` |
 | logs | `experiments/battery/outcome_main.log`, `outcome_main_evalonly.log`, `outcome_shuffle.log`, `lift_head_stable.log`, `policy_traj/gen.out` |
 | code | `src/instrument/outcome_head.py`, `src/instrument/lift_head.py`; harvest extension in `src/instrument/policy_traj.py` (`outcome_labels`, `gate_outcome_labels`) |
 | run chain | `experiments/battery/run_partF.sh`, `experiments/battery/run_partF2.ps1` |
@@ -464,6 +518,7 @@ python src/instrument/policy_traj.py --mode gen --full_threads
 python src/instrument/outcome_head.py --arm main    --epochs 1 --batch 1024 --d_k 64 --threads 8 --full_threads --i_have_author_goahead
 python src/instrument/outcome_head.py --arm shuffle --epochs 1 --batch 1024 --d_k 64 --threads 8 --full_threads --i_have_author_goahead
 python src/instrument/lift_head.py --label _stable --lift_seeds 3 --lift_epochs 60 --lift_lr 1e-4 --threads 8 --full_threads --i_have_author_goahead
+python src/instrument/lift_head.py --meanvec --threads 8 --full_threads --i_have_author_goahead
 ```
 
 `--selftest` on either head runs pure-tensor checks with no data and no fit: the sparse-to-dense label
