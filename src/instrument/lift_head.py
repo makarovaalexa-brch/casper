@@ -610,6 +610,138 @@ def _erf(x):
     return sgn * y
 
 
+# ================== ALL BANKED STATES: the level>0 material the gate test deliberately excluded
+SANITY_MARKERS = ("SANITY", "PREFLIGHT")
+
+
+def enumerate_all_banked_states():
+    r"""Every state with banked gains, across every heap sidecar on disk, de-duplicated properly.
+
+    ★ A STATE IS (cohort, asked-question-set) -- NOT (sidecar, level). Keying on the latter
+    double-counts, because `ndcgtree16_heaps` re-banks the same leaf states with the tail extended to
+    16: the same prefix, the same early picks, the same cohort. Independently counted here, the
+    difference is large: **585 (sidecar, level) pairs and ~53.9k raw heap entries collapse to 253
+    distinct states and 24,013 measured (state, question, gain) triples.**
+
+    Where two sidecars measured the SAME state, their gains are MERGED and any question they share is
+    asserted EQUAL -- a free cross-run byte-identity check that costs nothing and would catch a
+    contract drift between two independently-launched jobs.
+
+    FIREWALL / hygiene, both enforced rather than assumed:
+      * every sidecar must carry `sig["split"] == "validation"` and a `:validation` contract tag.
+        (`ndcgtree16test_heaps` is validation material despite its name -- same `rows_sha1`, same base,
+        same prefix as the validation bank; the "test" refers to the driver job, not the cohort. It is
+        admitted on the contract, not on the filename.)
+      * `ndcgtree_SANITY_heaps` / `_PREFLIGHT_heaps` are EXCLUDED: the SANITY tree is explicitly not
+        the citable tree (`policy_traj.load_tree` refuses it), so its states are not citable material.
+
+    ⚠ THE BIAS, stated once and carried: level-0 vectors at a node's own state are complete and
+    unbiased, but every level>0 entry is a CELF SURVIVOR -- the high-gain candidates were popped
+    first, so a level-k set is enriched for LOW gains. That is truncation on the dependent variable.
+    It is the reason these states were excluded from the GATE test, and it is why the evaluation here
+    is still only ever on the 7 COMPLETE states.
+    """
+    import glob
+    out = {}
+    n_files = n_raw = 0
+    for d in sorted(glob.glob(os.path.join(OUTDIR, "*_heaps"))):
+        base_d = os.path.basename(d)
+        if any(m in base_d for m in SANITY_MARKERS):
+            log(f"[allstates] EXCLUDING {base_d} (not the citable tree)")
+            continue
+        for fn in sorted(os.listdir(d)):
+            if not fn.endswith(".json"):
+                continue
+            b = json.load(open(os.path.join(d, fn)))
+            if "heap" not in b or "sig" not in b:
+                continue
+            sig = b["sig"]
+            # FIREWALL. Two sidecar signature versions exist: v1 carries `contract_tag`, v2 carries
+            # `mask_pool`. Both carry `split`. Require `split == validation`, and where a contract tag
+            # exists require it to name validation too -- admitted on the CONTRACT, never the filename.
+            assert sig.get("split") == "validation",                 f"FIREWALL: {base_d}/{fn} is not validation material (split={sig.get('split')!r})"
+            ct = sig.get("contract_tag")
+            assert ct is None or ":validation" in str(ct),                 f"FIREWALL: {base_d}/{fn} contract tag {ct!r} does not name validation"
+            mp = sig.get("mask_pool")
+            assert mp is None or mp.get("policy") == "B",                 f"{base_d}/{fn} is not a policy-B mask ({mp})"
+            n_files += 1
+            prefix = [tuple(int(x) for x in q) for q in sig.get("prefix", [])]
+            seq = [tuple(int(x) for x in q) for q in b["seq"]]
+            rows_key = f"{sig.get('rows_sha1')}:{sig.get('n_rows')}"
+            lev = {}
+            for a, q, u in b["heap"]:
+                lev.setdefault(int(u), {})[(int(q[0]), int(q[1]))] = -float(a)
+            cur = float(b["base"])
+            for k in range(len(seq)):
+                g = dict(lev.get(k, {}))
+                g[seq[k]] = float(b["gains"][k])                 # the popped pick, added back
+                n_raw += len(g)
+                key = (rows_key, tuple(sorted(prefix + seq[:k])))
+                rec = out.get(key)
+                if rec is None:
+                    out[key] = {"asked": prefix + seq[:k], "base": cur, "gains": g,
+                                "n_rows": int(sig["n_rows"]), "rows_sha1": sig.get("rows_sha1"),
+                                "src": [f"{base_d}/{fn}@{k}"], "node": fn[5:-5] if
+                                fn.startswith("node_") else None, "level": k}
+                else:
+                    # the same state measured twice: bases must agree, shared gains must agree
+                    assert abs(rec["base"] - cur) < 1e-12, (
+                        f"CROSS-RUN BASE MISMATCH at {key[1][:2]}...: {rec['base']!r} vs {cur!r} "
+                        f"({rec['src'][0]} vs {base_d}/{fn}@{k})")
+                    for q, v in g.items():
+                        if q in rec["gains"]:
+                            assert abs(rec["gains"][q] - v) < 1e-12, (
+                                f"CROSS-RUN GAIN MISMATCH at {q}: {rec['gains'][q]!r} vs {v!r}")
+                        else:
+                            rec["gains"][q] = v
+                    rec["src"].append(f"{base_d}/{fn}@{k}")
+                cur += float(b["gains"][k])
+    n_tri = sum(len(v["gains"]) for v in out.values())
+    log(f"[allstates] {n_files} sidecars -> {len(out)} DISTINCT states "
+        f"(cohort + asked-set), {n_tri:,} measured (state, question, gain) triples")
+    log(f"[allstates] raw heap entries before de-duplication: {n_raw:,} -- the gap is the "
+        f"(sidecar, level) double count the docstring warns about")
+    sz = sorted(len(v["gains"]) for v in out.values())
+    log(f"[allstates] candidates per state: min {sz[0]} p25 {sz[len(sz)//4]} "
+        f"median {sz[len(sz)//2]} p75 {sz[3*len(sz)//4]} max {sz[-1]} -- most states carry very few, "
+        f"and those few are the CELF survivors, i.e. the LOW-gain tail")
+    return out
+
+
+def build_state_pack_live(E, st, phi_t, pool_cat, om, ni, rows):
+    """A training pack for an arbitrary banked state: fold its asked list live, take each user's own
+    ternary outcomes for those questions, and score the frozen outcome head over the candidates that
+    state holds gains for."""
+    from strategy_channel_suite import set_active_rows, genv_latent
+    from ndcg_tree import branch_of_per_user
+    cand = [q for q in st["gains"] if q in pool_cat["index"]]
+    if not cand:
+        return None
+    ci = np.asarray([pool_cat["index"][q] for q in cand], np.int64)
+    asked = [tuple(q) for q in st["asked"]]
+    set_active_rows(E, rows)
+    z = genv_latent(E, asked, rows)
+    n, T = len(rows), TOTAL_L - 1
+    hq = np.zeros((n, T), np.int64); ho = np.zeros((n, T), np.int64)
+    hm = np.zeros((n, T), np.float32)
+    for j, q in enumerate(asked[:T]):
+        hq[:, j] = pool_cat["index"][tuple(q)]
+        ho[:, j] = branch_of_per_user(E, rows, [tuple(q)] * n)
+        hm[:, j] = 1.0
+    t = min(len(asked), TOTAL_L)
+    pos = np.tile(np.asarray([[t, TOTAL_L - t]], np.float32), (n, 1))
+    phi_c = torch.from_numpy(np.ascontiguousarray(phi_t[ci]))
+    pk = {"nid": st.get("node") or f"state@{t}", "z": z, "hq": hq,
+          "ho": torch.from_numpy(ho), "hm": torch.from_numpy(hm),
+          "ps": torch.from_numpy(pos), "phi": phi_c, "phi_t": phi_t,
+          "y": torch.tensor([st["base"] + st["gains"][q] for q in cand], dtype=torch.float32),
+          "cand": cand, "base": float(st["base"]), "n_users": n,
+          "target_gain": np.asarray([st["gains"][q] for q in cand], np.float64)}
+    with torch.no_grad():
+        pk["P"] = torch.softmax(om(z, hist_phi(pk), pk["ho"], pk["hm"], pk["ps"], phi=phi_c), 0)
+    return pk
+
+
 # ============================================================================ the driver
 def run(args):
     assert args.i_have_author_goahead, "REFUSING to run without the author's go-ahead."
@@ -1107,6 +1239,170 @@ def run_meanvec(args):
     return out
 
 
+def run_allstates(args):
+    r"""★ THE STATE-DIVERSITY EXPERIMENT (author's question: we used 7 states, there are far more).
+
+    Refit the value head on EVERY banked state and evaluate LOSO on the **7 COMPLETE states only**, so
+    the evaluation is never on a survivor-biased vector and the contrast isolates the effect of state
+    diversity. Same rho >= +0.40 bar, same parameter-free +0.4163 reference, per-state as before.
+
+    Excluding the level>0 material was right for a clean GATE test and wrong for TRAINING; the
+    question is empirical. If the bias makes it worse, that is a clean finding about the bias; if it
+    helps, label starvation is confirmed.
+    """
+    torch.manual_seed(SEED); np.random.seed(SEED)
+    rng = np.random.default_rng(SEED)
+    if args.threads:
+        torch.set_num_threads(int(args.threads))
+    t00 = time.time()
+
+    allst = enumerate_all_banked_states()
+    tr, _comp = scan_heaps()
+    partition_identity_check(tr)
+
+    from strategy_channel_suite import (build_greedy_env, contract_selftest, genv_mean,
+                                        set_active_rows, CERT_TOWER, CERT_CONC)
+    from ndcg_tree import build_pool, leak_assert, branch_of_selftest
+    E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, "allstates/val")
+    contract_selftest(E, E["rows"]); leak_assert(E, E["rows"], "allstates/val")
+    rows_all = E["rows"]
+    f0, tl0 = genv_mean(E, [], rows_all)
+    assert round(f0, 8) == VAL_M0_FULL, f"canonical snap FAILED: {f0!r}"
+    log(f"[snap] validation m=0 intercept full={f0!r} -- canonical, exact")
+    pool, _ip, _cp = build_pool(E, 500, 500)
+    branch_of_selftest(E, rows_all[:2000], [pool[0], pool[500], (1, 114)])
+    ni, C = E["ctx"].ni, E["C"]
+    catalogue = [(0, i) for i in range(ni)] + [(1, c) for c in range(C)]
+    phi_t, norm = build_phi(E, catalogue)
+    pool_cat = {"pool": [tuple(q) for q in pool],
+                "index": {(0, i): i for i in range(ni)} | {(1, c): ni + c for c in range(C)}}
+    d_z = E["ctx"].d
+
+    t16 = json.load(open(TREE16_JSON))
+    gated, nver = banked_states(E, tr, t16, [tuple(q) for q in pool], args.verify_n, rng)
+    complete = [g for g in gated if g["complete"]]
+    assert len(complete) == 7
+    complete_keys = {(f"{None}", tuple(sorted(g["prefix"]))) for g in complete}
+
+    blob = torch.load(args.outcome_ckpt, map_location="cpu")
+    assert not blob.get("prior_feat")
+    om = OutcomeModel(blob["d_z"], blob["d_phi"], state=blob["state"], use_pos=blob["use_pos"],
+                      d_k=blob["d_k"], d_h=blob["d_h"])
+    om.load_state_dict(blob["model"]); om.eval()
+    for q_ in om.parameters():
+        q_.requires_grad_(False)
+
+    # ---- rows for every banked state: tree nodes by descent, everything else the full cohort ----
+    from ndcg_tree import split_rows
+    rows_of = {"root": [int(r) for r in rows_all]}
+
+    def rows_for(nid):
+        if nid in rows_of:
+            return rows_of[nid]
+        parent, _br = nid.rsplit(".", 1)
+        prows = rows_for(parent)
+        kids, _ar, _z = split_rows(E, prows, tuple(int(x) for x in tr["nodes"][parent]["splitter"]))
+        for k, v in kids.items():
+            rows_of[f"{parent}.{k}"] = v
+        return rows_of[nid]
+
+    packs, meta = {}, {}
+    t0 = time.time()
+    for i, (key, st) in enumerate(sorted(allst.items(), key=lambda kv: -len(kv[1]["gains"]))):
+        node = st.get("node")
+        if node and node in tr["nodes"]:
+            rws = rows_for(node)
+            if len(rws) != st["n_rows"]:
+                log(f"[allstates] SKIP {node}@{st['level']}: cohort {len(rws)} != banked "
+                    f"{st['n_rows']}")
+                continue
+        elif st["n_rows"] == len(rows_all):
+            rws = rows_all
+        else:
+            log(f"[allstates] SKIP a state with {st['n_rows']} rows and no recoverable cohort")
+            continue
+        pk = build_state_pack_live(E, st, phi_t, pool_cat, om, ni, rws)
+        if pk is None:
+            continue
+        name = f"{node or 'static'}@{st['level']}#{i}"
+        packs[name] = pk
+        meta[name] = {"n_users": len(rws), "n_cand": len(pk["cand"]), "level": st["level"],
+                      "node": node, "src": st["src"][:2]}
+        if (i + 1) % 40 == 0:
+            log(f"[allstates] packed {i + 1}/{len(allst)} states ({(time.time() - t0) / 60:.1f}m)")
+    set_active_rows(E, rows_all)
+    log(f"[allstates] {len(packs)} training states packed in {(time.time() - t0) / 60:.1f}m; "
+        f"{sum(m['n_cand'] for m in meta.values()):,} training triples")
+
+    # ---- map the 7 evaluation states onto their packs -------------------------------------------
+    eval_names = {}
+    for g in complete:
+        want = tuple(sorted([tuple(q) for q in g["prefix"]]))
+        hits = [nm for nm, pk in packs.items()
+                if meta[nm]["node"] == g["nid"] and meta[nm]["level"] == 0]
+        assert hits, f"no pack found for the complete state {g['nid']}"
+        eval_names[g["nid"]] = hits[0]
+    log(f"[allstates] evaluation states (COMPLETE only): "
+        + ", ".join(f"{k}->{v}" for k, v in eval_names.items()))
+
+    # ---- LOSO over the 7 complete states, training on everything else --------------------------
+    seeds = [SEED + 1000 * i for i in range(args.lift_seeds)]
+    loso = []
+    for nid, evname in eval_names.items():
+        pk = packs[evname]
+        trp = [p_ for nm, p_ in packs.items() if nm != evname]
+        per_seed = []
+        for sd in seeds:
+            m, h, bep = fit_lift(trp, d_z, phi_t.shape[1], args, f"all{len(trp)}-{nid}-s{sd}",
+                                 seed=sd)
+            c = composed(m, pk, offset=args.v_offset).numpy()
+            rk = int((pk["target_gain"] > pk["target_gain"][int(np.argmax(c))]).sum()) + 1
+            per_seed.append({"seed": sd, "best_epoch": bep,
+                             "spearman": spearman(c, pk["target_gain"]),
+                             "rank_of_argmax": rk})
+        rho = [x["spearman"] for x in per_seed]
+        loso.append({"held_out_state": nid, "n_train_states": len(trp),
+                     "n_candidates": len(pk["cand"]),
+                     "spearman": float(np.mean(rho)), "spearman_min": float(np.min(rho)),
+                     "spearman_max": float(np.max(rho)), "per_seed": per_seed,
+                     "rank_of_argmax": float(np.mean([x["rank_of_argmax"] for x in per_seed]))})
+        log(f"[LOSO/all-states {nid}] {len(trp)} training states, {len(seeds)} seeds -> "
+            f"held-out Spearman {loso[-1]['spearman']:+.4f} "
+            f"[{loso[-1]['spearman_min']:+.4f}, {loso[-1]['spearman_max']:+.4f}] | "
+            f"mean argmax rank {loso[-1]['rank_of_argmax']:.0f}/{len(pk['cand'])}")
+    rho_mean = float(np.mean([r["spearman"] for r in loso]))
+    log("=" * 100)
+    log(f"[STATE DIVERSITY] {len(packs)} training states -> mean held-out Spearman {rho_mean:+.4f}")
+    log(f"[STATE DIVERSITY]   7 clean states  : +0.0623   (the gate run)")
+    log(f"[STATE DIVERSITY]  22 states        : +0.0819")
+    log(f"[STATE DIVERSITY] {len(packs):3d} states        : {rho_mean:+.4f}")
+    log(f"[STATE DIVERSITY] parameter-free mean of 6 vectors: +0.4163 -- the bar to beat, and the "
+        f"gate is {RHO_GATE:+.2f}")
+
+    out = {"analysis": "lift_head_all_banked_states", "design_sheet":
+           "docs/design/PAPER_B_POLICY_DESIGN.md PART F", "citable": True, "test_touched": False,
+           "split": "validation",
+           "n_states_total": len(allst), "n_states_trained": len(packs),
+           "n_training_triples": int(sum(m["n_cand"] for m in meta.values())),
+           "excluded_banks": [m for m in SANITY_MARKERS],
+           "loso": loso, "loso_mean_spearman": rho_mean,
+           "reference_7_states": 0.0623, "reference_22_states": 0.0819,
+           "reference_parameter_free_mean": 0.4163,
+           "F2_gate_bar": RHO_GATE, "F2_gate_pass": bool(rho_mean >= RHO_GATE),
+           "state_meta": meta, "lift_seeds": args.lift_seeds, "lift_epochs": args.lift_epochs,
+           "bias_note": ("every level>0 entry is a CELF SURVIVOR -- the high-gain candidates were "
+                         "popped first, so these states are enriched for LOW gains. That is "
+                         "truncation on the dependent variable. Evaluation is therefore only ever "
+                         "on the 7 COMPLETE, unbiased states."),
+           "minutes": round((time.time() - t00) / 60, 2)}
+    pth = os.path.join(OUTDIR, "lift_head_allstates.json")
+    with open(pth + ".tmp", "w") as fh:
+        json.dump(out, fh, indent=2, default=float)
+    os.replace(pth + ".tmp", pth)
+    log(f"[out] {pth} ({out['minutes']:.1f}m)")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description="Part F lift head + combined P x V policy")
     ap.add_argument("--no_ceiling", action="store_true",
@@ -1115,6 +1411,9 @@ def main():
     ap.add_argument("--ceiling_seeds", type=int, default=3,
                     help="noise draws per accuracy level; a single draw is a point estimate of a "
                          "noisy thing and this decision must not rest on one")
+    ap.add_argument("--allstates", action="store_true",
+                    help="refit the value head on EVERY banked state; evaluate LOSO on "
+                         "the 7 COMPLETE states only")
     ap.add_argument("--meanvec", action="store_true",
                     help="G.C-AMENDMENT-2: the parameter-free mean-vector value "
                          "baseline, its LOSO gate, and the P x V policy re-run with it")
@@ -1150,6 +1449,12 @@ def main():
     ap.add_argument("--i_have_author_goahead", action="store_true")
     args = ap.parse_args()
     args.v_offset = not args.no_v_offset
+    if args.allstates:
+        from strategy_channel_suite import CERT_TOWER as _T2, CERT_CONC as _C2
+        args.snapshot = args.snapshot or _T2
+        args.concept_ckpt = args.concept_ckpt or _C2
+        assert args.i_have_author_goahead, 'REFUSING to run without the go-ahead.'
+        return run_allstates(args)
     if args.meanvec:
         from strategy_channel_suite import CERT_TOWER as _T, CERT_CONC as _C
         args.snapshot = args.snapshot or _T
