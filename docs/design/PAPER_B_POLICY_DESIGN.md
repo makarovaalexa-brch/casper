@@ -1077,7 +1077,56 @@ embedding-generalisation real; the held-out-question test and 10/25/50/100% curv
 from the author before any run.** (Selection at inference still scores all 19,390 — only the value
 head's TRAINING set is sparse by design.)
 
-### ★ G.C-AMENDMENT (2026-08-14, after phase 2) — Stage C MAY BE POINTLESS. Test the noise ceiling FIRST.
+### ★★★ G.C-AMENDMENT-2 (2026-08-14, 03:0x) — THE AMENDMENT BELOW IS LARGELY WITHDRAWN. A PARAMETER-FREE BASELINE PASSES THE GATE.
+
+**HARD RULE 2 was not applied to the lift head: it was never compared against the simplest baseline.
+It should have been, and the baseline wins.**
+
+Predict a held-out state's gain vector with **the plain mean of the other six states' gain vectors** —
+no features, no parameters, no learning, no state information at all:
+
+| estimator | LOSO Spearman over 7 complete states |
+|---|---|
+| **parameter-free mean of the other six** | **+0.4136** ✅ clears the ρ ≥ +0.40 gate |
+| the learned lift head (stable, 3 seeds) | +0.0623 ❌ |
+| *(reference)* measured criterion | +0.784 |
+| *(reference)* training-loss surrogate | −0.149 |
+
+Per state: root +0.461, root.like +0.389, root.dislike +0.649, root.noanswer +0.237, root.dd +0.341,
+root.ddd +0.286, root.dddn +0.533.
+
+**Extraction verified before use** (`verify-the-artifact-not-a-proxy`): the reconstructed root vector's
+argmax is `[1,114]` with gain `0.02049056`, byte-matching `ndcgtree.json`'s recorded root splitter and
+gain. NB the heap's `upd==0` entries alone are NOT complete — CELF pops the selected candidate, so the
+level-0 pick must be added back from `seq[0]`/`gains[0]`. A first pass that skipped this put the root
+argmax at `[1,994]` and was wrong.
+
+**What this overturns:**
+- ✗ "The target is noise / measurement-limited." **False.** A trivial average predicts held-out states
+  at +0.41; there is ample learnable structure.
+- ✗ "Seven states are not enough." **Not supported.** Six states suffice for a parameter-free average
+  to clear the bar.
+- ✗ "The learning problem is unlearnable from question descriptor + interview state." **Not supported.**
+  What is established is only that **our learned head is far worse than doing nothing**, which under
+  HARD RULE 6 is a weak method and nothing more.
+- The **2.3 h split-half noise-ceiling test is DEMOTED** from precondition to optional — the target
+  demonstrably carries structure, so the ceiling is not near ρ≈0.13.
+
+**★ And note what the winning baseline IS: a STATE-INDEPENDENT ranking of questions.** It ignores the
+interview entirely and still beats the state-conditioned learned model. That is the same shape as the
+chapter's own headline — *what you ask about matters more than how you decide what to ask* (bank
++0.01430 > conditioning +0.01035) — arriving independently in the value estimator.
+
+**Actions, in order:**
+1. **Re-run the combined P×V policy with the mean-vector value in place of the learned head.** Free
+   (no new measurement), and it is the honest test of whether the two-head *design* works when its
+   value half is not broken. Phase 2's −0.05840 is a verdict on our estimator, not on the design.
+2. Only then decide whether a learned lift head is worth fixing at all.
+3. Stage C's sign-off request must be re-derived from these numbers, not from the withdrawn ones below.
+
+---
+
+### G.C-AMENDMENT-1 (superseded in its conclusions by AMENDMENT-2 above; kept for the record)
 
 Phase 2 finished and **two of its results attack Stage C's premise directly**:
 
