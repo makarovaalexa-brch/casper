@@ -8,7 +8,8 @@ against the per-question popularity prior's 0.96944, rising 0.9687 → 0.9856 ac
 positions while the prior stays flat, with the shuffle control landing exactly on the prior, and
 it buys a further +0.00392 [+0.00105, +0.00676] inside a policy. The learned lift head fails its
 ρ ≥ +0.40 gate at +0.062 — and is beaten by a parameter-free mean of six gain vectors at +0.4163,
-which passes. With that working value half the combined P×V policy improves to −0.02911 and
+which passes *on the seven tree states this run had* (⚠ **on 187 unbiased states that same baseline
+scores +0.2956 and FAILS the gate — see the correction in §2.5; +0.4163 is a seven-state number**). With that working value half the combined P×V policy improves to −0.02911 and
 STILL loses to bank-alone (+0.01280) — and degrading the value estimator from ρ=1.00 down to
 ρ=0.50 changes the policy by less than the seed noise, so value-estimator accuracy is NOT the
 binding constraint and no learning curve is worth running.**
@@ -395,6 +396,37 @@ beats the state-conditioned model. That is this chapter's own headline reappeari
 model of how that value depends on the state.* What you ask about matters more than how you decide
 what to ask, and it holds for the value estimator as well as for the policy.
 
+> ### ★★★ CORRECTION (2026-08-14) — **+0.4163 IS A SEVEN-STATE NUMBER, AND IT DOES NOT SURVIVE**
+>
+> Every number in §2.5 stands *as measured on the 7 complete tree states*. On a **187-state** unbiased
+> evaluation set — the same estimator, the same code, the same gate — the parameter-free mean-vector
+> baseline scores **+0.2956 (unbiased-only) / +0.2770 (union)** and **FAILS the ρ ≥ +0.40 gate it was
+> celebrated for passing.** The decay is monotone as unbiased states arrive:
+>
+> | unbiased evaluation states | mean-vector ρ |
+> |---|---|
+> | 7 (this section) | **+0.4163** — passes |
+> | 9 | +0.3975 |
+> | 16 | +0.3771 |
+> | **187** (`value_dataset.jsonl`, 2026-08-14) | **+0.2956** — fails |
+>
+> **So "a parameter-free average beats the learned head" was substantially a seven-state artefact.**
+> The seven states are the tree's own internal nodes: shallow (depths 0–4), large-cohort, and all on
+> one root-to-leaf spine, so a single average describes them well. Add deep states, small cohorts and
+> off-spine prefixes and the state-blind estimator degrades exactly as a state-blind estimator should.
+>
+> **Two consequences, and the second is the one that must not be lost:**
+> 1. The *relative* claim in this section is unchanged — +0.2956 still beats the learned head's
+>    +0.0623, and the sentence "our learned estimator was weak" still stands.
+> 2. ★ **The bar is now much weaker, and any future learned head must be reported against +0.2956,
+>    not +0.4163.** A head that scores +0.35 would clear the new bar while failing the old one and
+>    while still failing the gate. Nobody may read a future pass as more impressive than it is.
+>
+> Read §4.1 and G.C-AMENDMENT-4 alongside this: the marginal-value line is closed on its own
+> evidence, and this correction does not reopen it. What it changes is only which comparator a
+> state-conditioned attempt is measured against.
+> *→ `docs/results/VALUE_DATASET.md` for the dataset and the composition behind the 187 states.*
+
 **Extraction check, because the trap is real and silent.** Filtering heap entries on `upd == 0` alone
 does **not** give the complete level-0 vector: CELF *pops* the candidate it selects, so the pick must be
 added back from `seq[0]`/`gains[0]`. Miss it and every training target loses the single highest-gain
@@ -699,9 +731,15 @@ question — see §4.1.**
    value table without it, turning a single static order into 9,421 distinct interviews.
 5. **★ The learned lift head is a weak estimator, and we know that because a parameter-free mean of six
    gain vectors beats it +0.4163 vs +0.0623 and clears the gate it fails.** The label material was
-   sufficient all along.
+   sufficient all along. ⚠ **CORRECTED 2026-08-14 (§2.5):** the *comparison* survives, the *number*
+   does not — on 187 unbiased states the same baseline scores **+0.2956 and fails the gate**. Quote
+   the baseline with its sample size or not at all.
 6. **★ The winning value estimator is state-independent** — the chapter's "bank beats conditioning"
-   finding reappearing inside the value estimator.
+   finding reappearing inside the value estimator. ⚠ **Narrowed 2026-08-14:** it wins *on the seven
+   shallow, same-spine tree states*. Across 187 unbiased states — deep, small-cohort, off-spine — the
+   state-blind estimator degrades to +0.2956, which is what a state-blind estimator should do. This
+   does not reopen the marginal-value line (§4.1), but the sentence may no longer be written without
+   its cohort.
 7. **Even with that working value half, the P×V policy loses to bank-alone** (−0.02911 vs +0.01280).
 8. **★ Conditioning the value on the asked-set is worth +0.00933 [+0.00659, +0.01216] paired** — more
    than twice the outcome head's own contribution, closing a third of the gap to bank-alone, and moving

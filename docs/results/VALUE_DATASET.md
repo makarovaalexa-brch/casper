@@ -130,22 +130,33 @@ this is the sense in which it is "parameter-free but not assumption-free".
 **Nothing about the ablation by source is reported as settled until phase 3 and the random sampling
 are in.**
 
-### ★ What the table does already say: the +0.4163 bar was a property of seven shallow states
+### ★★★ SETTLED: the +0.4163 bar was substantially a seven-state artefact
 
-As phase 3's deep states arrive, the **state-blind baseline falls and now fails its own gate**:
+The trend we watched forming has completed. On the full **187-state** unbiased evaluation set the
+parameter-free mean-vector baseline **fails the gate it was celebrated for passing**:
 
 | unbiased evaluation states | mean-vector ρ (unbiased-only) |
 |---|---|
 | 7 (the tree's complete internal nodes) | **+0.4163** — passes |
-| 9 (+2 phase-3 deep states) | +0.3975 — fails |
-| **16 (+9 phase-3 deep states)** | **+0.3771** — fails |
+| 9 (+2 phase-3 deep states) | +0.3975 |
+| 16 (+9 phase-3 deep states) | +0.3771 |
+| **187 (all sources)** | **+0.2956** unbiased-only / **+0.2770** union — **FAILS** |
 
-Deep, small-cohort states are harder for a state-blind average than the tree's shallow ones, and one
-of the sixteen is already **negative (−0.165)**. This is monotone over three snapshots, so it is
-unlikely to be noise — but it is nine states of forty-two, and the honest reading is that **the
-comparator is moving**, not that anything is proven. It is the direction that would make a
-*conditional* value easier to justify, which is exactly why it must not be claimed early. The final
-number goes in when all 42 states land.
+**Why, and it is not a defect in the baseline.** The original seven are the tree's own internal
+nodes: shallow (depths 0–4), large-cohort, and all on a single root-to-leaf spine. One average
+describes seven such states well. Add deep prefixes, small cohorts and off-spine states and a
+state-blind estimator degrades — which is exactly what a state-blind estimator *should* do. The
++0.4163 number was measuring the homogeneity of the tree's spine as much as anything about value.
+
+★ **Two consequences, and the second matters more than the first.**
+
+1. The relative claim in `OUTCOME_HEAD.md` §2.5 is unchanged: +0.2956 still beats the learned head's
+   +0.0623, and "our learned estimator was weak" still stands.
+2. ★ **The bar is now much weaker, and this must be said before any future head is reported.** A
+   learned head scoring +0.35 would clear the new comparator while failing the old one *and* while
+   failing the ρ ≥ +0.40 gate. Any future pass must be quoted against **+0.2956 with its sample
+   size**, never against +0.4163. Both documents are corrected in place rather than rewritten, so
+   the earlier number stays visible with the cohort that produced it.
 
 ★ **Carry the method point regardless: correlation and argmax rank move independently.** In the
 banked-only run ρ moved +0.016 while the argmax rank moved 161 → 37. A value estimate is consumed by
@@ -280,6 +291,86 @@ No tuning until it passes, and no marketing a null.
 
 ---
 
+## THE DATASET AS BUILT — 425 states, 72,717 triples
+
+The sampling ran to completion. This is the real size, and it is far larger than the 254 quoted
+mid-run:
+
+| source | states | triples | selection |
+|---|---|---|---|
+| banked scrape (55 heap sidecars) | 245 | 23,983 | `pick` + `heap_survivor`, bimodal |
+| phase 3 exhaustive sweeps (all 42 done) | 42 | 41,834 | `exhaustive_sweep`, unbiased |
+| random prefix sampling (19 prefixes) | 138 | 6,900 | `random_sample`, unbiased |
+| **total** | **425** | **72,717** | **187 unbiased evaluation states** |
+
+Vocabulary: **68,802 in-pool / 3,915 catalogue-wide.** The catalogue-wide block is small in count and
+is the entire negative-example supply — before this run it was zero.
+
+### ★ The depth yield curve, measured
+
+Usable states per prefix (answer paths clearing the 200-user floor), by prefix length:
+
+| k | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| paths populated | 3 | 9 | 22 | 72 | 89 | 254 | 287 | 539/766 | 837/914 | 1925/1311 | 1117/1958 | 2347 | 2627 | 2661 | 2546 |
+| **states kept** | 2 | 7 | 6 | 13 | 9 | 12 | 10 | 8/4 | 6/6 | 5/3 | 11/3 | 5 | 3 | 3 | 3 |
+
+**It does not collapse.** Fragmentation is severe — at k=15, 2,543 of 2,546 populated paths fall
+below the floor, carrying 8,673 of 10,000 users — but **three states still clear it at every depth
+to 15**, because the dominant all-no-answer path keeps a large mass of users together. So the honest
+ceiling on training a conditional value model is **not** a depth cutoff: it is a *width* cutoff. Deep
+states exist, there are just very few of them and they are the same few branches every time. The
+floor was never lowered.
+
+### ★ The vocabulary contrast — the first measurement of what the pool is buying
+
+Marginal gain at the prefix state, in-pool vs catalogue-wide draws, every prefix:
+
+- in-pool mean ranges **+0.00101 … +0.00470**, max **+0.01853**;
+- catalogue-wide mean ranges **−0.00104 … +0.00119** — near zero and **usually negative** — max
+  **+0.00430**.
+
+A typical catalogue question is worth **nothing, or slightly less than nothing**, and the best of 30
+random catalogue draws rarely reaches the *mean* of 20 pool draws. That is the negative-example mass
+the value head has never had, and it is a clean, direct statement of what the popularity ∪
+answer-rate pool selection contributes — measured here for the first time rather than assumed.
+
+---
+
+## ★★★ THE `nan` TRAINING LOSS — diagnosed, and it is benign
+
+Every logged epoch of the refit prints `train nan` while inner-validation is finite and falling
+monotonically. Established from the code and a direct autograd check, **without touching the run**:
+
+**Verdict: hypothesis (3) — only the reported aggregate is NaN. Nothing is dropped, nothing is
+masked, no NaN gradient ever reaches the optimiser, and nothing sanitises anything.**
+
+**The mechanism.** `fit_lift` splits each state's candidates into an inner-train / inner-val pair with
+`k = max(round(0.2·n), 1)`. For `n == 1` the inner-val takes the only candidate and **the training
+slice is empty**, so `((c[∅] − y[∅])**2).mean()` is a mean over zero elements — `0/0 = nan`. The
+epoch's reported loss is `tr_tot / len(packs)` with `tr_tot` a running sum, so **one NaN term poisons
+the whole epoch's headline number** while leaving everything else intact. **16 of the 425 states have
+exactly one candidate**; every other `n` gives a non-empty split (`n = 2` already yields a training
+slice of 1).
+
+**Measured, not reasoned.** Backward through that empty reduction produces gradients that are
+**exactly zero, not NaN** (`isnan: False, absmax: 0.0`), parameters stay finite through `opt.step()`,
+and a normal pack immediately afterwards trains normally. That is why inner-validation — which always
+has ≥ 1 element, so is never an empty reduction — is finite and falls monotonically. `grep` confirms
+there is no `clip_grad`, no `nan_to_num`, no `isnan` mask anywhere in `lift_head.py` or
+`value_dataset.py`: nothing is being silently absorbed.
+
+**The one honest caveat, stated rather than buried.** Those 16 one-candidate states contribute a zero
+gradient, so they are *not* being learned from — the effective training set is the **409 states with
+≥ 2 candidates**. That is not a silent subset bug: a state with one candidate carries no ordering to
+learn and cannot be split into train and inner-val at all. But it should be said, and the fix for
+future runs is to exclude `n == 1` states explicitly rather than let them arrive as a NaN.
+
+**So the finished number is interpretable.** Had it been (1) or (2) the run would not be reportable
+and we would have said so rather than quoting it with a caveat.
+
+---
+
 ## Execution state
 
 `value_chain.py` is armed (detached, pid 14652). It waits for a **sustained idle box** — five
@@ -300,6 +391,15 @@ measured, not guessed: the idle `http.server` pythons sit at 2–10 MB and the l
 - **Correlation and argmax rank move independently — report both, always.** 238 downward-biased
   states moved ρ by +0.016 and the argmax rank from 161 to 37; two more states then undid the second
   effect entirely.
+- **★ A baseline's number is a property of its evaluation set.** "+0.4163, a parameter-free average
+  beats the learned head" was substantially a seven-state artefact — seven shallow, large-cohort,
+  same-spine states. On 187 unbiased states the same estimator scores +0.2956 and fails the gate it
+  was celebrated for passing. Quote a comparator with its sample size or not at all, and say out
+  loud when a bar has become weaker so nobody reads a later pass as more impressive than it is.
+- **A `nan` in a reported aggregate is not automatically a `nan` in the objective.** A mean over an
+  empty index slice is `0/0`; its backward pass produces exactly zero gradient, not NaN. Check which
+  it is by measuring the gradient, not by reading the loss line — but check, because the two
+  possibilities differ on whether the run is reportable at all.
 - **Ask what the dataset does NOT cover before paying for it, not after.** The authorised design
   would have left depths 7–15 — over half the interview — with no unbiased measurement, and would
   have measured a gain for a typical catalogue question exactly as often as everything before it

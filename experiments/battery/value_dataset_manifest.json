@@ -17,14 +17,14 @@
     "states": 214
    },
    "policyB(v2, fp-stated)": {
-    "measurements": 10714,
-    "states": 40
+    "measurements": 50475,
+    "states": 211
    }
   },
   "per_selection_tag": {
    "exhaustive_sweep": {
-    "measurements": 15642,
-    "states": 16
+    "measurements": 48503,
+    "states": 49
    },
    "heap_survivor": {
     "measurements": 17067,
@@ -33,6 +33,10 @@
    "pick": {
     "measurements": 247,
     "states": 245
+   },
+   "random_sample": {
+    "measurements": 6900,
+    "states": 138
    }
   },
   "per_depth": {
@@ -41,70 +45,70 @@
     "states": 1
    },
    "1": {
-    "measurements": 3004,
-    "states": 5
+    "measurements": 3154,
+    "states": 8
    },
    "10": {
-    "measurements": 895,
-    "states": 18
+    "measurements": 1395,
+    "states": 28
    },
    "11": {
-    "measurements": 677,
-    "states": 18
+    "measurements": 1477,
+    "states": 34
    },
    "12": {
-    "measurements": 689,
-    "states": 18
+    "measurements": 989,
+    "states": 24
    },
    "13": {
-    "measurements": 666,
-    "states": 18
+    "measurements": 866,
+    "states": 22
    },
    "14": {
-    "measurements": 643,
-    "states": 18
+    "measurements": 843,
+    "states": 22
    },
    "15": {
-    "measurements": 781,
-    "states": 18
+    "measurements": 981,
+    "states": 22
    },
    "2": {
-    "measurements": 5527,
-    "states": 11
+    "measurements": 5927,
+    "states": 19
    },
    "3": {
-    "measurements": 10783,
-    "states": 23
+    "measurements": 25091,
+    "states": 44
    },
    "4": {
-    "measurements": 2570,
-    "states": 16
+    "measurements": 9246,
+    "states": 36
    },
    "5": {
-    "measurements": 2839,
-    "states": 18
+    "measurements": 8314,
+    "states": 33
    },
    "6": {
-    "measurements": 634,
-    "states": 18
+    "measurements": 9236,
+    "states": 39
    },
    "7": {
-    "measurements": 654,
-    "states": 18
+    "measurements": 1204,
+    "states": 29
    },
    "8": {
-    "measurements": 799,
-    "states": 18
+    "measurements": 1499,
+    "states": 32
    },
    "9": {
-    "measurements": 795,
-    "states": 18
+    "measurements": 1495,
+    "states": 32
    }
   },
   "per_pool": {
    "1000": {
-    "measurements": 9682,
-    "states": 22
+    "measurements": 49443,
+    "states": 193
    },
    "500": {
     "measurements": 1741,
@@ -132,25 +136,150 @@
    }
   },
   "per_vocabulary": {
+   "catalogue_wide": {
+    "measurements": 3915,
+    "states": 138
+   },
    "in_pool": {
-    "measurements": 32956,
-    "states": 254
+    "measurements": 68802,
+    "states": 425
    }
   },
   "per_channel": {
-   "concept": 16756,
-   "item": 16200
+   "concept": 34794,
+   "item": 37923
   },
-  "yield_curve": {},
+  "yield_curve": {
+   "1": {
+    "prefixes": 1,
+    "paths_populated": 3,
+    "paths_kept": 2,
+    "paths_dropped": 1,
+    "users_dropped": 187,
+    "kept_per_prefix": 2.0
+   },
+   "2": {
+    "prefixes": 1,
+    "paths_populated": 9,
+    "paths_kept": 7,
+    "paths_dropped": 2,
+    "users_dropped": 241,
+    "kept_per_prefix": 7.0
+   },
+   "3": {
+    "prefixes": 1,
+    "paths_populated": 22,
+    "paths_kept": 6,
+    "paths_dropped": 16,
+    "users_dropped": 635,
+    "kept_per_prefix": 6.0
+   },
+   "4": {
+    "prefixes": 1,
+    "paths_populated": 72,
+    "paths_kept": 13,
+    "paths_dropped": 59,
+    "users_dropped": 1636,
+    "kept_per_prefix": 13.0
+   },
+   "5": {
+    "prefixes": 1,
+    "paths_populated": 89,
+    "paths_kept": 9,
+    "paths_dropped": 80,
+    "users_dropped": 1885,
+    "kept_per_prefix": 9.0
+   },
+   "6": {
+    "prefixes": 1,
+    "paths_populated": 254,
+    "paths_kept": 12,
+    "paths_dropped": 242,
+    "users_dropped": 4631,
+    "kept_per_prefix": 12.0
+   },
+   "7": {
+    "prefixes": 1,
+    "paths_populated": 287,
+    "paths_kept": 10,
+    "paths_dropped": 277,
+    "users_dropped": 4196,
+    "kept_per_prefix": 10.0
+   },
+   "8": {
+    "prefixes": 2,
+    "paths_populated": 1305,
+    "paths_kept": 12,
+    "paths_dropped": 1293,
+    "users_dropped": 12561,
+    "kept_per_prefix": 6.0
+   },
+   "9": {
+    "prefixes": 2,
+    "paths_populated": 1751,
+    "paths_kept": 12,
+    "paths_dropped": 1739,
+    "users_dropped": 12822,
+    "kept_per_prefix": 6.0
+   },
+   "10": {
+    "prefixes": 2,
+    "paths_populated": 3236,
+    "paths_kept": 8,
+    "paths_dropped": 3228,
+    "users_dropped": 16596,
+    "kept_per_prefix": 4.0
+   },
+   "11": {
+    "prefixes": 2,
+    "paths_populated": 3075,
+    "paths_kept": 14,
+    "paths_dropped": 3061,
+    "users_dropped": 14034,
+    "kept_per_prefix": 7.0
+   },
+   "12": {
+    "prefixes": 1,
+    "paths_populated": 2347,
+    "paths_kept": 5,
+    "paths_dropped": 2342,
+    "users_dropped": 7469,
+    "kept_per_prefix": 5.0
+   },
+   "13": {
+    "prefixes": 1,
+    "paths_populated": 2627,
+    "paths_kept": 3,
+    "paths_dropped": 2624,
+    "users_dropped": 8943,
+    "kept_per_prefix": 3.0
+   },
+   "14": {
+    "prefixes": 1,
+    "paths_populated": 2661,
+    "paths_kept": 3,
+    "paths_dropped": 2658,
+    "users_dropped": 8971,
+    "kept_per_prefix": 3.0
+   },
+   "15": {
+    "prefixes": 1,
+    "paths_populated": 2546,
+    "paths_kept": 3,
+    "paths_dropped": 2543,
+    "users_dropped": 8673,
+    "kept_per_prefix": 3.0
+   }
+  },
   "candidates_per_state": {
    "min": 1,
-   "p25": 8,
-   "median": 29,
-   "p75": 73,
+   "p25": 19,
+   "median": 50,
+   "p75": 61,
    "max": 1000
   },
-  "n_states": 254,
-  "n_measurements": 32956
+  "n_states": 425,
+  "n_measurements": 72717
  },
  "selection_tags": {
   "pick": "a winner -- the candidate CELF popped at this state",
@@ -200,6 +329,264 @@
    "verdict": "ADMIT",
    "why": "22 sidecars, contract and objective stated and matching",
    "n_measurements": 7265
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.dislike.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.dislike.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.like.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.like.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.like.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.noanswer.dislike.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.noanswer.dislike.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.noanswer.dislike.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.noanswer.like.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.noanswer.like.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.noanswer.like.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.noanswer.noanswer.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.dislike.noanswer.noanswer.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.like.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.like.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.like.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.noanswer.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.noanswer.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.dislike.noanswer.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.like.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.like.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.like.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.noanswer.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.noanswer.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.dislike.noanswer.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.dislike.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.dislike.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.dislike.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.like.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.like.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.like.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.noanswer.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.noanswer.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.like.noanswer.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.noanswer.dislike.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.noanswer.dislike.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.noanswer.dislike.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.noanswer.like.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.noanswer.like.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.noanswer.noanswer.dislike.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.noanswer.noanswer.like.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps/node_root.noanswer.noanswer.noanswer.json",
+   "verdict": "REFUSE",
+   "why": "not a heap sidecar (no `heap`/`sig`)",
+   "n_measurements": 0
+  },
+  {
+   "source": "policy_deep_heaps",
+   "verdict": "ADMIT",
+   "why": "42 sidecars, contract and objective stated and matching",
+   "n_measurements": 0
   },
   {
    "source": "greedy_static_policyB_combined.json",
@@ -282,8 +669,122 @@
   {
    "source": "policy_labels_deep_partial",
    "verdict": "ADMIT",
-   "why": "9 COMPLETE exhaustive states (unbiased at every candidate); 1 still in flight",
-   "n_measurements": 8973
+   "why": "42 COMPLETE exhaustive states (unbiased at every candidate); 0 still in flight",
+   "n_measurements": 41834
+  },
+  {
+   "source": "prefix_000.json",
+   "verdict": "ADMIT",
+   "why": "k=1, 3 random-prefix states (1 paths below 200 users dropped)",
+   "n_measurements": 150
+  },
+  {
+   "source": "prefix_001.json",
+   "verdict": "ADMIT",
+   "why": "k=2, 8 random-prefix states (2 paths below 200 users dropped)",
+   "n_measurements": 400
+  },
+  {
+   "source": "prefix_002.json",
+   "verdict": "ADMIT",
+   "why": "k=3, 7 random-prefix states (16 paths below 200 users dropped)",
+   "n_measurements": 350
+  },
+  {
+   "source": "prefix_003.json",
+   "verdict": "ADMIT",
+   "why": "k=4, 14 random-prefix states (59 paths below 200 users dropped)",
+   "n_measurements": 700
+  },
+  {
+   "source": "prefix_004.json",
+   "verdict": "ADMIT",
+   "why": "k=5, 10 random-prefix states (80 paths below 200 users dropped)",
+   "n_measurements": 500
+  },
+  {
+   "source": "prefix_005.json",
+   "verdict": "ADMIT",
+   "why": "k=6, 13 random-prefix states (242 paths below 200 users dropped)",
+   "n_measurements": 650
+  },
+  {
+   "source": "prefix_006.json",
+   "verdict": "ADMIT",
+   "why": "k=7, 11 random-prefix states (277 paths below 200 users dropped)",
+   "n_measurements": 550
+  },
+  {
+   "source": "prefix_007.json",
+   "verdict": "ADMIT",
+   "why": "k=8, 9 random-prefix states (531 paths below 200 users dropped)",
+   "n_measurements": 450
+  },
+  {
+   "source": "prefix_008.json",
+   "verdict": "ADMIT",
+   "why": "k=9, 7 random-prefix states (831 paths below 200 users dropped)",
+   "n_measurements": 350
+  },
+  {
+   "source": "prefix_009.json",
+   "verdict": "ADMIT",
+   "why": "k=10, 6 random-prefix states (1920 paths below 200 users dropped)",
+   "n_measurements": 300
+  },
+  {
+   "source": "prefix_010.json",
+   "verdict": "ADMIT",
+   "why": "k=11, 12 random-prefix states (1106 paths below 200 users dropped)",
+   "n_measurements": 600
+  },
+  {
+   "source": "prefix_011.json",
+   "verdict": "ADMIT",
+   "why": "k=12, 6 random-prefix states (2342 paths below 200 users dropped)",
+   "n_measurements": 300
+  },
+  {
+   "source": "prefix_012.json",
+   "verdict": "ADMIT",
+   "why": "k=13, 4 random-prefix states (2624 paths below 200 users dropped)",
+   "n_measurements": 200
+  },
+  {
+   "source": "prefix_013.json",
+   "verdict": "ADMIT",
+   "why": "k=14, 4 random-prefix states (2658 paths below 200 users dropped)",
+   "n_measurements": 200
+  },
+  {
+   "source": "prefix_014.json",
+   "verdict": "ADMIT",
+   "why": "k=15, 4 random-prefix states (2543 paths below 200 users dropped)",
+   "n_measurements": 200
+  },
+  {
+   "source": "prefix_015.json",
+   "verdict": "ADMIT",
+   "why": "k=8, 5 random-prefix states (762 paths below 200 users dropped)",
+   "n_measurements": 250
+  },
+  {
+   "source": "prefix_016.json",
+   "verdict": "ADMIT",
+   "why": "k=9, 7 random-prefix states (908 paths below 200 users dropped)",
+   "n_measurements": 350
+  },
+  {
+   "source": "prefix_017.json",
+   "verdict": "ADMIT",
+   "why": "k=10, 4 random-prefix states (1308 paths below 200 users dropped)",
+   "n_measurements": 200
+  },
+  {
+   "source": "prefix_018.json",
+   "verdict": "ADMIT",
+   "why": "k=11, 4 random-prefix states (1955 paths below 200 users dropped)",
+   "n_measurements": 200
   }
  ]
 }
