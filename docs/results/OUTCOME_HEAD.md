@@ -444,6 +444,45 @@ because it is free and it caught this one.
 
 ---
 
+## Artifacts
+
+| what | where |
+|---|---|
+| trajectory + outcome-label bank (2.25M states, full catalogue outcomes, contract-signed manifest) | `experiments/battery/policy_traj/` (`meta_*.npz`, `ans_*.npz`, `z_train.npy`, `manifest.json`) |
+| outcome head — main arm, gates and full metric suite | `experiments/battery/outcome_head_main_both.json` (+ `.pt`, `_history.json`, `_pop.npz`) |
+| outcome head — shuffle control | `experiments/battery/outcome_head_shuffle_both.json` (+ `.pt`) |
+| lift head + combined policy — **stable, citable** | `experiments/battery/lift_head_stable.json` |
+| lift head — first run, unstable, retained for the comparison only | `experiments/battery/lift_head.json` |
+| logs | `experiments/battery/outcome_main.log`, `outcome_main_evalonly.log`, `outcome_shuffle.log`, `lift_head_stable.log`, `policy_traj/gen.out` |
+| code | `src/instrument/outcome_head.py`, `src/instrument/lift_head.py`; harvest extension in `src/instrument/policy_traj.py` (`outcome_labels`, `gate_outcome_labels`) |
+| run chain | `experiments/battery/run_partF.sh`, `experiments/battery/run_partF2.ps1` |
+
+**Reproduce:**
+
+```
+python src/instrument/policy_traj.py --mode gen --full_threads
+python src/instrument/outcome_head.py --arm main    --epochs 1 --batch 1024 --d_k 64 --threads 8 --full_threads --i_have_author_goahead
+python src/instrument/outcome_head.py --arm shuffle --epochs 1 --batch 1024 --d_k 64 --threads 8 --full_threads --i_have_author_goahead
+python src/instrument/lift_head.py --label _stable --lift_seeds 3 --lift_epochs 60 --lift_lr 1e-4 --threads 8 --full_threads --i_have_author_goahead
+```
+
+`--selftest` on either head runs pure-tensor checks with no data and no fit: the sparse-to-dense label
+reconstruction, the exact per-question priors, the hand-written masked cross-entropy against the library
+form, the binned AUC against the exact rank AUC, and the user-block batching (coverage of every
+(user, position) pair exactly once, the de-duplicated asked-cell index list, and `block_ce == masked_ce`).
+
+## What is still owed
+
+1. **F.5's held-out-QUESTION test and the 10/25/50/100% sample-efficiency curve** — deferred by the
+   author's instruction this round. The outcome head is the arm to run them on; `--prior_feat` must stay
+   **off** there, since a per-question prior does not exist for a never-seen question.
+2. **A second outcome-head epoch**, if the held-out-question test needs it. One epoch sufficed here and
+   that is itself informative.
+3. **The next value model, whatever it is, must pass the no-answer flatness test in §2.4 before its
+   Spearman is believed.** It is free and it caught this one.
+
+---
+
 ## Appendix — a blocker worth recording
 
 The harvest died twice with **exit 1 and no traceback**. Cause: `train_tower_t2.load_recvae_teacher`
