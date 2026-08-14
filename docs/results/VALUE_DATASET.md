@@ -96,38 +96,65 @@ of depths 5–15.
 
 ---
 
-## The result that is already in hand: the biased mass **helps**, and mostly on the argmax
+## The snap that validates the scrape — and one number that did NOT hold up
 
 The parameter-free mean-vector baseline (predict a held-out state's whole gain vector with the plain
-mean of the other states' vectors — no parameters, and **no state information at all**) recomputed
+mean of the other states' vectors — no parameters, and **no state information at all**), recomputed
 from the scraped table alone, LOSO on the 7 complete states:
 
-| training source | mean held-out ρ | mean argmax rank | median argmax rank |
+**+0.4163, and all seven per-state numbers, reproduce exactly** (+0.4642, +0.3939, +0.6521, +0.2380,
++0.3445, +0.2880, +0.5332) from a completely separate code path. That is the snap that says the
+scrape and `lift_head`'s loader agree, and it cost nothing.
+
+### ⚠ The source ablation is NOT yet stable, and the instability was measured, not suspected
+
+Run on the 245 banked states alone, adding the 238 downward-biased states looked like a clean win —
+ρ +0.4163 → +0.4327, and the mean rank of the predicted best question 161 → **37**. Then **two**
+phase-3 exhaustive states landed (2 of 247), and on the same 7-state evaluation the same arm moved to
+ρ +0.4157 and rank **143** — the effect essentially vanished.
+
+**The mechanism is understood, and it is a property of the baseline rather than a bug.** The
+mean-vector predictor averages over whichever training states happen to hold a value for `q`, and
+that support is wildly uneven: a survivor state carries a median of 27 candidates, while a phase-3
+state carries 997. Two dense states therefore change the mean for *nearly every question*, while 238
+sparse ones each touch a few. A mean over unequal, non-random support is not a stable estimator, and
+this is the sense in which it is "parameter-free but not assumption-free".
+
+| eval set | training source | mean ρ | mean argmax rank |
 |---|---|---|---|
-| **unbiased only** (the other 6 complete states) | **+0.4163** | 161 | 67 |
-| unbiased + all 238 tagged-biased states | **+0.4327** | **37** | **14** |
-| unbiased + heap survivors only | +0.4321 | 37 | 14 |
-| biased states only | +0.3239 — **fails the gate** | 131 | 50 |
+| 7 complete | the other 6 complete | +0.4163 | 161 |
+| 7 complete | all 246 states | +0.4157 | 143 |
+| 9 unbiased (incl. 2 phase-3) | the other 8 unbiased | +0.3975 — **fails** | 115 |
+| 9 unbiased | all 246 states | +0.4229 | 115 |
 
-**+0.4163 and all seven per-state numbers reproduce exactly** (+0.4642, +0.3939, +0.6521, +0.2380,
-+0.3445, +0.2880, +0.5332) from a completely separate code path — that is the snap that validates
-the scrape, and it cost nothing.
+**Nothing about the ablation by source is reported as settled until phase 3 and the random sampling
+are in.** The one thing the table does say now is that the state-blind bar is **not** a fixed
++0.4163: on the two deep states phase 3 has finished so far it drops to +0.3975 and fails its own
+gate. Deep, small-cohort states are harder for a state-blind average than the tree's shallow ones —
+which is the direction that would make a *conditional* value easier to justify, and it is exactly
+why it must not be claimed on two states.
 
-★ **The finding is in the second column, not the first.** Adding 238 downward-biased states moves the
-correlation by only +0.016 but improves the mean rank of the predicted best question **from 161 to
-37**, and the median from 67 to 14 — on three of the seven states the argmax goes to rank 4, 6 and 1.
-Correlation is nearly blind to what a policy actually does with the estimate. The biased mass is
-worth having, and it cannot stand alone (+0.3239 fails the gate on its own).
+★ **Carry the method point regardless: correlation and argmax rank move independently.** In the
+banked-only run ρ moved +0.016 while the argmax rank moved 161 → 37. A value estimate is consumed by
+an argmax, so reporting ρ alone would have hidden the whole effect — and reporting the argmax alone
+would have overstated one that then failed to replicate.
 
 ---
 
-## STEP 2 — phase 3, pending
+## STEP 2 — phase 3, ingesting live
 
-`policy_labels.py --mode sweep --states deep` is live (started 12:44, 42 states × ~997 candidates,
-structure-only cost model says 3.25 h, measured throughput is running ~2.5× the model, so ~8 h). Its
-output is exhaustive and therefore unbiased at every candidate, and its per-user `.f32` vectors turn
-each measured state into its answer-conditioned children at no extra evaluation. The scraper already
-reads its partial file and will ingest each state as it completes; nothing about the run is disturbed.
+`policy_labels.py --mode sweep --states deep` is running (started 12:44; 42 states × ~997 candidates;
+the structure-only cost model says 3.25 h, measured throughput is ~2.5× the model, so ~8 h). Its
+output is exhaustive and therefore unbiased at every candidate, it records its own cohort `rows`, and
+its per-user `.f32` vectors turn each measured state into its answer-conditioned children at no extra
+evaluation. **2 of 42 states are complete and already ingested** — 1,994 measurements — taking the
+union to **247 states / 25,977 measurements**. Nothing about the run is disturbed.
+
+★ **Read the per-state sidecars, not the roll-up.** `policy_labels_deep_partial.json` still lists a
+finished state as `done: false` until the whole sweep ends, while the same state is complete on disk
+under its own name in `policy_labels_deep_partial/`. Ingesting whichever file is more convenient is
+the "verify the artifact, not a proxy" failure, and it would silently have cost every state until the
+run ended.
 
 ---
 
@@ -205,6 +232,11 @@ measured, not guessed: the idle `http.server` pythons sit at 2–10 MB and the l
 - **Admit a source on its recorded contract, its recorded cohort, and its recorded OBJECTIVE — three
   separate tests, and the third is the one nobody was checking.** The split-criterion ablation's
   heaps look exactly like the tree's and hold a surrogate scalar.
-- **Correlation is nearly blind to what a policy does with a value estimate.** 238 downward-biased
-  states moved ρ by +0.016 and the argmax rank from 161 to 37. Report both, always.
+- **Correlation and argmax rank move independently — report both, always.** 238 downward-biased
+  states moved ρ by +0.016 and the argmax rank from 161 to 37; two more states then undid the second
+  effect entirely.
+- **A parameter-free baseline is not an assumption-free one.** The mean-vector estimator averages
+  over whichever states happen to hold a value for `q`, and that support ranges from a handful to
+  hundreds. Two dense states outweighed 238 sparse ones. Any "which source helps" claim has to wait
+  for a training set whose support is not wildly uneven.
 - **A "heavy job" threshold must be measured on the box.** 1 GB called a live 919 MB sweep idle.

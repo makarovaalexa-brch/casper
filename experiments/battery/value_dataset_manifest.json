@@ -17,14 +17,14 @@
     "states": 214
    },
    "policyB(v2, fp-stated)": {
-    "measurements": 1741,
-    "states": 31
+    "measurements": 3735,
+    "states": 33
    }
   },
   "per_selection_tag": {
    "exhaustive_sweep": {
-    "measurements": 6669,
-    "states": 7
+    "measurements": 8663,
+    "states": 9
    },
    "heap_survivor": {
     "measurements": 17067,
@@ -73,8 +73,8 @@
     "states": 11
    },
    "3": {
-    "measurements": 1810,
-    "states": 14
+    "measurements": 3804,
+    "states": 16
    },
    "4": {
     "measurements": 2570,
@@ -103,8 +103,8 @@
   },
   "per_pool": {
    "1000": {
-    "measurements": 709,
-    "states": 13
+    "measurements": 2703,
+    "states": 15
    },
    "500": {
     "measurements": 1741,
@@ -132,18 +132,18 @@
    }
   },
   "per_channel": {
-   "concept": 12268,
-   "item": 11715
+   "concept": 13266,
+   "item": 12711
   },
   "candidates_per_state": {
    "min": 1,
    "p25": 8,
-   "median": 27,
-   "p75": 63,
+   "median": 28,
+   "p75": 64,
    "max": 1000
   },
-  "n_states": 245,
-  "n_measurements": 23983
+  "n_states": 247,
+  "n_measurements": 25977
  },
  "selection_tags": {
   "pick": "a winner -- the candidate CELF popped at this state",
@@ -273,16 +273,10 @@
    "n_measurements": 0
   },
   {
-   "source": "policy_labels_deep_partial.json",
-   "verdict": "REFUSE",
-   "why": "no completed state yet (run still in flight)",
-   "n_measurements": 0
-  },
-  {
-   "source": "policy_labels_deep_partial.json",
-   "verdict": "REFUSE",
-   "why": "no completed state yet (run still in flight)",
-   "n_measurements": 0
+   "source": "policy_labels_deep_partial",
+   "verdict": "ADMIT",
+   "why": "2 COMPLETE exhaustive states (unbiased at every candidate); 1 still in flight",
+   "n_measurements": 1994
   }
  ]
 }

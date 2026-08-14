@@ -321,51 +321,72 @@ def scrape_greedy_json(ds, led):
 
 
 def scrape_phase3(ds, led):
-    """Phase 3's exhaustive sweeps -- the only source that is unbiased BY CONSTRUCTION at every
-    candidate. Ingested from whatever is complete on disk; a state still in flight is skipped."""
+    r"""Phase 3's exhaustive sweeps -- the only source that is unbiased BY CONSTRUCTION at every
+    candidate, and the one that carries its own cohort (`rows`) so an off-tree state is trainable.
+
+    Read from the PER-STATE sidecars in `policy_labels_*_partial/`, not from the rolled-up
+    `..._partial.json`: the rolled-up file records a state as `done: false` until the whole sweep
+    ends, so a completed state is already on disk under its own name while the summary still denies
+    it. Ingesting whichever file happens to be more convenient is exactly the "verify the artifact,
+    not a proxy" failure. Each state's scalar is `vals[q][0]` against `base[0]` -- full NDCG@10, the
+    same quantity every banked heap holds."""
     n_add = 0
-    for pj in sorted(glob.glob(os.path.join(OUTDIR, "policy_labels_*_partial.json"))) + \
-            sorted(glob.glob(os.path.join(OUTDIR, "policy_labels_*.json"))):
-        fn = os.path.basename(pj)
-        if fn.endswith("_partial.json.tmp"):
+    for d_ in sorted(glob.glob(os.path.join(OUTDIR, "policy_labels_*_partial"))):
+        if not os.path.isdir(d_):
             continue
-        try:
-            d = json.load(open(pj))
-        except Exception as e:
-            led.refuse(fn, f"unreadable ({e})")
+        base_d = os.path.basename(d_)
+        sp = os.path.join(d_, "_sig.json")
+        if not os.path.exists(sp):
+            led.refuse(base_d, "no `_sig.json` -- the directory cannot state its own contract")
             continue
-        sig = d.get("sig", {})
-        contract = contract_of(sig, fn, led)
+        sig = json.load(open(sp))["sig"]
+        contract = contract_of(sig, base_d, led)
         if contract is None:
             continue
-        if objective_of(sig, fn, led) is None:
+        if objective_of(sig, base_d, led) is None:
             continue
         pool = {"n_pool": int(sig.get("n_pool", 1000)), "pool_sha1": sig.get("pool_sha1")}
-        n = ndone = 0
-        for sid_, st in d.get("states", {}).items():
+        n = ndone = nflight = 0
+        for fp in sorted(glob.glob(os.path.join(d_, "*.json"))):
+            if os.path.basename(fp) == "_sig.json":
+                continue
+            st = json.load(open(fp))
             if not st.get("done"):
+                nflight += 1
                 continue
             ndone += 1
             asked = [(int(x[0]), int(x[1])) for x in st["prefix"]]
-            base = float(st["base"]) if "base" in st else None
-            if base is None:
-                led.refuse(f"{fn}:{sid_}", "no `base` recorded -- a gain without its base is not "
-                                           "re-derivable")
-                continue
-            sid = state_key(st.get("rows_sha1", "phase3:" + sid_), int(st["n_users"]), asked)
-            ds.add_state(sid, asked, base, st.get("rows_sha1", "phase3:" + sid_),
-                         int(st["n_users"]), pool, contract, f"{fn}:{sid_}")
+            b = st["base"]
+            base = float(b[0] if isinstance(b, list) else b)
+            cohort = f"phase3:{st['sid']}"
+            sid = state_key(cohort, int(st["n_users"]), asked)
+            ds.add_state(sid, asked, base, cohort, int(st["n_users"]), pool, contract,
+                         f"{base_d}/{os.path.basename(fp)}", nid=st.get("nid"))
             for qs, v in st["vals"].items():
                 a, bq = qs.split("_")
                 g = v[0] if isinstance(v, list) else v
                 n += ds.add(sid, (int(a), int(bq)), float(g), base, "exhaustive_sweep",
-                            f"{fn}:{sid_}", len(asked), True)
+                            f"{base_d}/{os.path.basename(fp)}", len(asked), True)
         if ndone:
-            led.admit(fn, f"{ndone} COMPLETE exhaustive states (unbiased at every candidate)", n)
+            led.admit(base_d, f"{ndone} COMPLETE exhaustive states (unbiased at every candidate); "
+                              f"{nflight} still in flight", n)
         else:
-            led.refuse(fn, "no completed state yet (run still in flight)")
+            led.refuse(base_d, f"no completed state yet ({nflight} in flight)")
         n_add += n
     return n_add
+
+
+def phase3_rows():
+    """State cohort -> row ids, straight from phase 3's own sidecars."""
+    out = {}
+    for d_ in sorted(glob.glob(os.path.join(OUTDIR, "policy_labels_*_partial"))):
+        for fp in sorted(glob.glob(os.path.join(d_, "*.json"))):
+            if os.path.basename(fp) == "_sig.json":
+                continue
+            st = json.load(open(fp))
+            if st.get("done") and "rows" in st:
+                out[f"phase3:{st['sid']}"] = st["rows"]
+    return out
 
 
 # ============================================================================ composition + write
@@ -769,7 +790,7 @@ def run_train(args):
 
     # the random-sample cohorts are recorded by the sampler, so an arbitrary answer path is
     # recoverable without re-deriving it
-    sample_rows = {}
+    sample_rows = phase3_rows()
     for p in sorted(glob.glob(os.path.join(SAMPLE_DIR, "prefix_*.json"))):
         d = json.load(open(p))
         for st in d["states"]:
