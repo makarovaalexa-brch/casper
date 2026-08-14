@@ -61,6 +61,14 @@ MISSING field as a refusal rather than a pass. Cached per-user vectors are float
   away. Related rule, learned the same day: PERSIST THE FULL SWEEP VECTOR AT STEP 0, BEFORE THE FIRST
   POP -- CELF's pops overwrite their own step-0 record, which is why only 7 banked states carry a
   complete level-0 vector.
+
+  ★ AND THE GENERAL FORM OF BOTH, also 2026-08-14: PERSIST THE FINEST-GRAINED QUANTITY THE COMPUTATION
+  NATURALLY PRODUCES, NOT THE SUMMARY YOU HAPPEN TO WANT TODAY. `genv_eval` returns a PER-USER NDCG
+  vector; this sweep reduced it to four cohort scalars and threw the vector away, 997 times per state.
+  Grouped by each user's ternary answer to that candidate it is `V(o | state, q)` -- the Part F lift
+  head's target, measured rather than modelled -- and it turns 42 measured states into 126 conditional
+  child states at zero extra evaluations. It is now written append-only to `<sid>.f32` beside each
+  state's JSON, ~80 MB for the whole sweep. Two losses of the same shape in one workstream.
 """
 import os
 import sys
@@ -395,6 +403,7 @@ def run_sweep(E, tr, t16, pool, args, out_path, rng):
            "mask_pool": pool_contract(E["pool"], E["rows"], policy=E["pool_policy"]),
            "n_pool": len(pool), "pool_sha1": _sha([[int(a), int(b)] for a, b in pool]),
            "states": args.states,
+           "peruser": "v1",                                   # see PER-USER VECTORS below
            "state_sha1": _sha(sorted(s["sid"] for s in states))}
 
     # ---- ONE PARTIAL FILE PER STATE, not one growing file for all of them -----------------------
@@ -438,6 +447,9 @@ def run_sweep(E, tr, t16, pool, args, out_path, rng):
         atomic_write(os.path.join(partial_dir, sid.replace("@", "_at_") + ".json"),
                      part["states"][sid])
 
+    def peruser_path(sid):
+        return os.path.join(partial_dir, sid.replace("@", "_at_") + ".f32")
+
     t00 = time.time()
     for si, st in enumerate(states):
         sid = st["sid"]
@@ -456,19 +468,78 @@ def run_sweep(E, tr, t16, pool, args, out_path, rng):
         base = dual_means(bf, bt, w_f, w_t)
         rec["base"] = list(base)
         rec["idcg_full_mean"] = float(np.nanmean(w_f))
-        t0 = time.time()
-        for ci, q in enumerate(cand):
-            key = f"{int(q[0])}_{int(q[1])}"
-            if key in rec["vals"]:
-                continue
-            f, t = genv_eval(E, prefix + [tuple(q)], st["rows"])
-            m = dual_means(f, t, w_f, w_t)
-            rec["vals"][key] = [m[i] - base[i] for i in range(4)]   # gains: nF, nT, dF, dT
-            flush(sid)                                       # HARD RULE 11(a): after EVERY candidate
-            if (ci + 1) % 25 == 0:
-                el = time.time() - t0
-                log(f"[sweep {sid}] {ci + 1}/{len(cand)} ({el / 60:.1f}m, {el / (ci + 1):.2f}s/eval; "
-                    f"model predicted {sec_per_eval(len(st['rows'])):.2f})")
+
+        # ---- ★ PER-USER VECTORS: persist the finest-grained quantity, not the summary ------------
+        # `genv_eval` returns a per-user (full, tail) NDCG vector and `dual_means` reduces it to four
+        # cohort scalars. The vector was then DISCARDED -- 997 times per state, 42 states. It is not
+        # incidental: grouping a candidate's per-user gains by that user's ternary answer to that
+        # candidate gives the cohort-mean gain CONDITIONAL on each outcome, i.e. `V(o | state, q)` --
+        # exactly the three-way conditional value the Part F lift head needs, measured rather than
+        # modelled. It also multiplies the state count: a state is a distinct ANSWER PATH, so
+        # splitting each measured state by the next answer turns 42 measured states into 42 x 3 = 126
+        # conditional child states at ZERO extra evaluations.
+        # Cost: the 42 states PARTITION the 10,000-user cohort, so the whole sweep is
+        # 997 candidates x 10,000 users x 4 bytes x 2 readings ~ 80 MB. Disk has ~4.9 GB.
+        # Written APPEND-ONLY (one ~n-float32 record per candidate) so the write stays O(n) and never
+        # rewrites what is already down -- the mistake that killed the 12:20 run in the JSON path.
+        pu_path = peruser_path(sid)
+        n_u = len(st["rows"])
+        recsz = 2 * n_u * 4                                  # full then tail, float32
+        order = rec.setdefault("peruser_order", [])
+        if not os.path.exists(pu_path):
+            assert not order, f"{sid}: the sidecar lists {len(order)} per-user records but the .f32 " \
+                              f"file is gone -- REFUSING to append to a hole"
+            open(pu_path, "wb").close()
+        want = len(order) * recsz
+        got = os.path.getsize(pu_path)
+        if got != want:
+            # A kill between the binary append and the JSON flush leaves one extra record. The JSON
+            # is the authority (it is what `vals` is keyed on), so truncate the binary back to it.
+            assert got > want, f"{sid}: .f32 holds {got} bytes, the sidecar claims {want} -- short"
+            with open(pu_path, "r+b") as fh:
+                fh.truncate(want)
+            log(f"[sweep {sid}] .f32 truncated {got} -> {want} bytes to match the sidecar")
+        rec["peruser_file"] = os.path.basename(pu_path)
+        rec["peruser_layout"] = ["full", "tail"]
+        rec["peruser_dtype"] = "float32"
+        rec["peruser_note"] = ("append-only; record i is candidate peruser_order[i], laid out as "
+                               "n_users float32 FULL NDCG@10 then n_users float32 TAIL. Record 0 is "
+                               "'__base__', the state's own per-user vector before any candidate. "
+                               "Per-user GAIN = record i minus record 0. `rows` maps position to uid.")
+        rec["rows"] = [int(r) for r in st["rows"]]           # position -> canonical validation uid
+        pu = open(pu_path, "ab")
+        try:
+            if not order:
+                pu.write(np.asarray(bf, np.float32).tobytes())
+                pu.write(np.asarray(bt, np.float32).tobytes())
+                pu.flush()
+                order.append("__base__")
+                flush(sid)
+            t0 = time.time()
+            for ci, q in enumerate(cand):
+                key = f"{int(q[0])}_{int(q[1])}"
+                if key in rec["vals"]:
+                    continue
+                f, t = genv_eval(E, prefix + [tuple(q)], st["rows"])
+                m = dual_means(f, t, w_f, w_t)
+                pu.write(np.asarray(f, np.float32).tobytes())
+                pu.write(np.asarray(t, np.float32).tobytes())
+                pu.flush()
+                order.append(key)
+                rec["vals"][key] = [m[i] - base[i] for i in range(4)]   # gains: nF, nT, dF, dT
+                flush(sid)                                   # HARD RULE 11(a): after EVERY candidate
+                if (ci + 1) % 25 == 0:
+                    el = time.time() - t0
+                    log(f"[sweep {sid}] {ci + 1}/{len(cand)} ({el / 60:.1f}m, "
+                        f"{el / (ci + 1):.2f}s/eval; model predicted "
+                        f"{sec_per_eval(len(st['rows'])):.2f})")
+        finally:
+            pu.close()
+        # --- the per-user record is complete and self-describing ---------------------------------
+        assert os.path.getsize(pu_path) == len(order) * recsz, \
+            f"{sid}: .f32 is {os.path.getsize(pu_path)} bytes, expected {len(order) * recsz}"
+        assert len(order) == len(rec["vals"]) + 1, \
+            f"{sid}: {len(order)} per-user records for {len(rec['vals'])} candidates + 1 base"
         # --- the two argmaxes, and how often they disagree ---------------------------------------
         ks = list(rec["vals"])
         g = np.asarray([rec["vals"][k] for k in ks], np.float64)
@@ -493,6 +564,26 @@ def run_sweep(E, tr, t16, pool, args, out_path, rng):
             "citable": True, "split": "validation", "test_touched": False,
             "states_selector": args.states, "n_states": len(done),
             "gain_vector_layout": ["ndcg_full", "ndcg_tail", "dcg_full", "dcg_tail"],
+            "per_user_vectors": {
+                "dir": os.path.basename(partial_dir), "file_per_state": "<sid>.f32",
+                "dtype": "float32", "layout": "record i = peruser_order[i]: n_users FULL then "
+                                              "n_users TAIL; record 0 is '__base__'",
+                "row_map": "each state's sidecar carries `rows`, position -> canonical validation uid",
+                "why": (
+                    "`genv_eval` produces a per-user NDCG vector and the sweep used to reduce it to "
+                    "four cohort scalars and DISCARD the vector -- 997 times per state, 42 states. "
+                    "Grouping a candidate's per-user gains by that user's ternary answer to that "
+                    "candidate gives the cohort-mean gain CONDITIONAL on each outcome, V(o|state,q), "
+                    "which is the Part F lift head's target, MEASURED rather than modelled. It also "
+                    "multiplies the state count: a state is a distinct ANSWER PATH, so splitting each "
+                    "measured state by the next answer turns 42 measured states into 126 conditional "
+                    "child states at ZERO extra evaluations."),
+                "cost": ("the 42 states PARTITION the 10,000-user cohort, so the whole sweep is "
+                         "~997 x 10,000 x 4 bytes x 2 readings ~ 80 MB"),
+                "THE_RULE": ("PERSIST THE FINEST-GRAINED QUANTITY THE COMPUTATION NATURALLY PRODUCES, "
+                             "NOT THE SUMMARY YOU HAPPEN TO WANT TODAY. This workstream has now lost "
+                             "per-candidate level-0 vectors to CELF churn AND per-user vectors to "
+                             "mean-reduction, for the same reason.")},
             "normalisation_note": (
                 "DCG_u@10 = NDCG_u@10 * IDCG_u@10 for binary relevance, and IDCG_u depends only on "
                 "the user's target count -- so both readings come off the SAME per-user vectors at "
