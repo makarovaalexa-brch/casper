@@ -716,6 +716,83 @@ question — see §4.1.**
 ---
 
 
+## RESULT 6 — the direct-gain head SCORED AS A POLICY: it loses, and it destroys its own warm start
+
+> **AUTHOR SAID (2026-08-15):** *"ok, so run warm one without answerability."*
+
+The LOSO gate scores the ordering of all ~1,000 candidates; **a policy uses only the argmax.**
+`warm_noP` fails the +0.40 gate at ρ = +0.173 while picking the **single best available question at 3
+of 7 states** (argmax ranks 1, 29, 205, 1, 1, 596, 680). Those facts are consistent, and together they
+mean the gate was not measuring the quantity the chapter reports. So it was measured directly:
+K=16 on all 10,000 validation users, three seeds, paired percentile bootstrap.
+
+| arm (validation, K=16) | full | tail | vs combined static | vs E1 / tree |
+|---|---|---|---|---|
+| `greedy_static_policyB_combined` | 0.25561 | 0.12366 | — | |
+| **E1 / the tree** | **0.28355** | 0.13421 | +0.02794 | — |
+| nearest-state conditional (oracle lookup) | 0.23583 | 0.10775 | −0.01978 | |
+| flat-mean two-head | 0.22650 | — | −0.02911 | |
+| **direct-gain `warm_noP`, seed 98765** | **0.22002** | 0.10475 | **−0.03559 [−0.03918, −0.03197]** | **−0.06353 [−0.06697, −0.06011]** |
+| direct-gain `warm_noP`, seed 99765 | 0.21941 | 0.10410 | −0.03620 [−0.03983, −0.03256] | −0.06414 [−0.06759, −0.06078] |
+| direct-gain `warm_noP`, seed 100765 | 0.21922 | 0.10302 | −0.03639 [−0.04003, −0.03274] | −0.06433 [−0.06783, −0.06089] |
+| ★ bank-alone bar | | | **+0.01280** | |
+
+**It is the worst policy of the value-model family** — below the flat-mean and nearest-state arms,
+0.036 below the fixed list, and **0.064 below E1**, every interval excluding zero, all three seeds
+within 0.0008 of each other.
+
+### ★ The finding is what happened to the warm start
+
+The head **begins as E1 exactly** (16/16 tensors, max |diff| = 0.00e+00 at initialisation — verified,
+not asserted). After 60 epochs of fitting measured gains on 7 states:
+
+| | value |
+|---|---|
+| **frac_never_deviates from the tree** | **0.0000** |
+| mean first deviation position | 1.62 of 16 |
+| **mean positions differing from the tree** | **14.20 of 16** |
+| answer rate | **0.3746** (tree 0.5789) |
+| concept share | 0.3002 (tree 0.5457) |
+| distinct realised interviews | 2,246 |
+
+**Training moved it off E1 for every single user, at 14.2 of 16 positions, and downward by −0.0635.**
+It started at parity with the tree by construction and regression-fitting a value on 7 states walked it
+away. **This fails the HARD RULE 8 regression check outright**: a later step may not silently degrade
+what an earlier one proved, and this one degrades it loudly.
+
+**Why the good argmax ranks did not transfer.** Ranks of 1 at `root`, `root.noanswer` and
+`root.dislike.dislike` are the states where the tree's own splitter *is* the measured argmax (G-L4,
+7/7) — so a head still near its E1 initialisation reproduces them by inheritance. But a policy visits
+**thousands** of states, not seven, and at every state off that set the fitted head is on its own. The
+answer-rate collapse to 0.375 is what that looks like.
+
+### Open vocabulary — the deficit widens again
+
+| | E1 | direct-gain `warm_noP` |
+|---|---|---|
+| full NDCG@10 | — | **0.19321** |
+| out-of-pool pick rate | 30.0% | **73.7%** |
+| answer rate | 0.4139 | **0.1373** |
+| answer rate of out-of-pool picks | 0.0909 | **0.0556** |
+| deficit vs its own in-pool run | −0.02034 | **−0.02620** |
+
+### ⚠ The caveat, stated with the result
+
+**The head was fitted on the same validation cohort the policy is scored on.** This is not a held-out
+number in the way E1's test look is; it is a **ceiling probe** — whether a value model that picks well
+*can* drive a good policy. It answers no. Since it loses, the in-sample advantage only makes the result
+stronger: a fit that had every advantage still ended 0.064 below the policy it started from.
+
+**What it argues for next, and it is the shape already suggested:** `distilled score as the base,
+learned gain as a correction`, so the arm **cannot fall below what already works**. `DirectGainHead`
+already carries the `base_scale` term for exactly this; it was not the arm the author asked for here.
+The measured lesson is narrow and useful: **on this label budget, replacing a distilled policy with a
+value regressor is a large regression, so the value model must be added to the policy rather than
+substituted for it.**
+
+---
+
+
 ## What this settles, and what it licenses
 
 **Settled, on held-out data, with controls:**
