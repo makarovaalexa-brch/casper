@@ -1,0 +1,1571 @@
+{
+  "analysis": "policy_guard_H4",
+  "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+  "citable": true,
+  "test_touched": false,
+  "split": "validation",
+  "n_users": 10000,
+  "contract": {
+    "tower": "t2i26c_ep31.pt",
+    "conc_ckpt": "concept_cv3_ep08.pt",
+    "pool_contract": {
+      "v": 1,
+      "policy": "B",
+      "n_rows": 10000,
+      "n_items": 18359,
+      "nnz": 1356475,
+      "per_user": 135.6475,
+      "fp": "c282962b49a2d67ef47ff07544519f20"
+    },
+    "policy_ckpt": "policy_main_equivariant_both.pt",
+    "head_ckpt": "outcome_head_main_both.pt",
+    "seed": 98765,
+    "L": 16,
+    "n_catalogue": 19390
+  },
+  "banked": {
+    "E1_pool_full": 0.28354971825495506,
+    "E1_open_full": 0.26320921379832823,
+    "E1_open_deficit_full": -0.02034050445662683,
+    "E1_open_oop_rate": 0.299925,
+    "E1_open_answer_rate": 0.41394375
+  },
+  "dumb_guard": "state-free per-question empirical answer rate, budget-matched by the number of candidates the learned guard leaves alive",
+  "arms": {
+    "pool": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "pool",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18390.0,
+      "mean_candidates_alive_per_state": 1000.0,
+      "minutes": 0.78,
+      "full": 0.28354971825495506,
+      "tail": 0.13421311934575303,
+      "out_of_pool_pick_rate": 0.0,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "users_with_any_out_of_pool_pick": 0.0,
+      "n_distinct_out_of_pool_questions": 0,
+      "answer_rate": 0.57889375,
+      "answer_rate_of_in_pool_picks": 0.57889375,
+      "answer_rate_of_out_of_pool_picks": null,
+      "concept_share": 0.54570625,
+      "n_distinct_interviews": 15,
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.02034050445662675,
+          "lo": 0.018371441835480597,
+          "hi": 0.02236287169390005,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.012408067956755095,
+          "lo": 0.010316474714090222,
+          "hi": 0.01446437734198349,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "open_unguarded": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "open_unguarded",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 0.0,
+      "mean_candidates_alive_per_state": 19390.0,
+      "minutes": 1.21,
+      "full": 0.26320921379832823,
+      "tail": 0.12180505138899793,
+      "out_of_pool_pick_rate": 0.299925,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0778,
+        0.2636,
+        0.2726,
+        0.195,
+        0.3717,
+        0.2181,
+        0.487,
+        0.4715,
+        0.4586,
+        0.4281,
+        0.438,
+        0.5461,
+        0.5707
+      ],
+      "users_with_any_out_of_pool_pick": 0.8231,
+      "n_distinct_out_of_pool_questions": 189,
+      "answer_rate": 0.41394375,
+      "answer_rate_of_in_pool_picks": 0.5523336785344427,
+      "answer_rate_of_out_of_pool_picks": 0.09091856297407686,
+      "concept_share": 0.37931875,
+      "n_distinct_interviews": 1168,
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.02034050445662675,
+          "lo": -0.02236287169390005,
+          "hi": -0.018371441835480597,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.012408067956755095,
+          "lo": -0.014464377341983492,
+          "hi": -0.010316474714090222,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "guard_tau0.999": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "guard_tau0.999",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 12872.6567625,
+      "mean_candidates_alive_per_state": 6517.343237499999,
+      "minutes": 2.94,
+      "full": 0.2701067713611495,
+      "tail": 0.12661818907484004,
+      "out_of_pool_pick_rate": 0.18780625,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0329,
+        0.0958,
+        0.1572,
+        0.0637,
+        0.0844,
+        0.0944,
+        0.2747,
+        0.2399,
+        0.361,
+        0.3259,
+        0.3462,
+        0.3978,
+        0.531
+      ],
+      "users_with_any_out_of_pool_pick": 0.8124,
+      "n_distinct_out_of_pool_questions": 273,
+      "answer_rate": 0.48334375,
+      "answer_rate_of_in_pool_picks": 0.5607421258782156,
+      "answer_rate_of_out_of_pool_picks": 0.14862391427335353,
+      "concept_share": 0.46355625,
+      "n_distinct_interviews": 1541,
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.0068975575628212734,
+          "lo": 0.00538306941613274,
+          "hi": 0.008448085055935273,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.004813137685842108,
+          "lo": 0.00317552166360339,
+          "hi": 0.006457396771381592,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.013442946893805475,
+          "lo": -0.01505602822201421,
+          "hi": -0.011869847982564512,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.007594930270912988,
+          "lo": -0.009352188761813466,
+          "hi": -0.005838664350888535,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "guard_tau0.99": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "guard_tau0.99",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 16687.88566875,
+      "mean_candidates_alive_per_state": 2702.114331249999,
+      "minutes": 2.91,
+      "full": 0.27375426765738364,
+      "tail": 0.12824597155517148,
+      "out_of_pool_pick_rate": 0.14208125,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0147,
+        0.0136,
+        0.0887,
+        0.0462,
+        0.0614,
+        0.0775,
+        0.1887,
+        0.1678,
+        0.2725,
+        0.269,
+        0.2411,
+        0.3809,
+        0.4512
+      ],
+      "users_with_any_out_of_pool_pick": 0.7583,
+      "n_distinct_out_of_pool_questions": 283,
+      "answer_rate": 0.52926875,
+      "answer_rate_of_in_pool_picks": 0.58022685714702,
+      "answer_rate_of_out_of_pool_picks": 0.2215721638147187,
+      "concept_share": 0.5130125,
+      "n_distinct_interviews": 1730,
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.010545053859055391,
+          "lo": 0.008755675470224869,
+          "hi": 0.012346824665442548,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.006440920166173538,
+          "lo": 0.004540027112473161,
+          "hi": 0.008336251209049352,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.009795450597571358,
+          "lo": -0.011230984833245073,
+          "hi": -0.00840484334995918,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.00596714779058156,
+          "lo": -0.007495586951136579,
+          "hi": -0.004361856828101359,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "guard_tau0.98": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "guard_tau0.98",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 17394.05145,
+      "mean_candidates_alive_per_state": 1995.948550000001,
+      "minutes": 2.9,
+      "full": 0.27480385692351295,
+      "tail": 0.12907282749921425,
+      "out_of_pool_pick_rate": 0.12978125,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0045,
+        0.0048,
+        0.0798,
+        0.0418,
+        0.0493,
+        0.0597,
+        0.1598,
+        0.1504,
+        0.2442,
+        0.2642,
+        0.2247,
+        0.3746,
+        0.4187
+      ],
+      "users_with_any_out_of_pool_pick": 0.7532,
+      "n_distinct_out_of_pool_questions": 279,
+      "answer_rate": 0.5470625,
+      "answer_rate_of_in_pool_picks": 0.590311344130427,
+      "answer_rate_of_out_of_pool_picks": 0.25706718035155307,
+      "concept_share": 0.53219375,
+      "n_distinct_interviews": 2087,
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.0115946431251847,
+          "lo": 0.009756042783939758,
+          "hi": 0.013449890721867778,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.007267776110216331,
+          "lo": 0.005273669732156343,
+          "hi": 0.00924201048394768,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.00874586133144205,
+          "lo": -0.010129080935977992,
+          "hi": -0.007387175823110656,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.005140291846538764,
+          "lo": -0.006724242629940869,
+          "hi": -0.003541279066725454,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "guard_tau0.95": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "guard_tau0.95",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18058.7590125,
+      "mean_candidates_alive_per_state": 1331.2409875000012,
+      "minutes": 2.92,
+      "full": 0.27290707517402285,
+      "tail": 0.12832014850035597,
+      "out_of_pool_pick_rate": 0.1135125,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0005,
+        0.0772,
+        0.0416,
+        0.0265,
+        0.0448,
+        0.1333,
+        0.1706,
+        0.1984,
+        0.2299,
+        0.2315,
+        0.3444,
+        0.3175
+      ],
+      "users_with_any_out_of_pool_pick": 0.7333,
+      "n_distinct_out_of_pool_questions": 252,
+      "answer_rate": 0.57950625,
+      "answer_rate_of_in_pool_picks": 0.6109716719073873,
+      "answer_rate_of_out_of_pool_picks": 0.3337738134566678,
+      "concept_share": 0.57603125,
+      "n_distinct_interviews": 3490,
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.009697861375694516,
+          "lo": 0.0075703724009121365,
+          "hi": 0.01178607551818649,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.0065150971113580375,
+          "lo": 0.0042835457221318,
+          "hi": 0.008732089354330678,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.010642643080932233,
+          "lo": -0.012294800155382316,
+          "hi": -0.009010586013643941,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.005892970845397058,
+          "lo": -0.007651318371790724,
+          "hi": -0.004150748979338557,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "guard_tau0.9": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "guard_tau0.9",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18403.25546875,
+      "mean_candidates_alive_per_state": 986.7445312499985,
+      "minutes": 2.92,
+      "full": 0.27034466543611996,
+      "tail": 0.1287977108830848,
+      "out_of_pool_pick_rate": 0.09739375,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0051,
+        0.0096,
+        0.0796,
+        0.0401,
+        0.0116,
+        0.0431,
+        0.1247,
+        0.1678,
+        0.1525,
+        0.1954,
+        0.2207,
+        0.2731,
+        0.235
+      ],
+      "users_with_any_out_of_pool_pick": 0.6841,
+      "n_distinct_out_of_pool_questions": 224,
+      "answer_rate": 0.62864375,
+      "answer_rate_of_in_pool_picks": 0.6497434512557386,
+      "answer_rate_of_out_of_pool_picks": 0.4331001732657383,
+      "concept_share": 0.63149375,
+      "n_distinct_interviews": 4963,
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.00713545163779166,
+          "lo": 0.004888482605437905,
+          "hi": 0.009445419685749952,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.006992659494086861,
+          "lo": 0.004591402811477164,
+          "hi": 0.00939527946241512,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.013205052818835088,
+          "lo": -0.015131379211073763,
+          "hi": -0.011322384006018186,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.005415408462668236,
+          "lo": -0.007403081521854207,
+          "hi": -0.0034663121743793083,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "guard_tau0.8": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "guard_tau0.8",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18646.34286875,
+      "mean_candidates_alive_per_state": 743.6571312499982,
+      "minutes": 2.92,
+      "full": 0.26340960371350836,
+      "tail": 0.12472284856555772,
+      "out_of_pool_pick_rate": 0.08501875,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0127,
+        0.0049,
+        0.085,
+        0.0611,
+        0.0205,
+        0.0502,
+        0.1255,
+        0.1279,
+        0.1431,
+        0.1612,
+        0.2159,
+        0.1897,
+        0.1626
+      ],
+      "users_with_any_out_of_pool_pick": 0.6109,
+      "n_distinct_out_of_pool_questions": 162,
+      "answer_rate": 0.7085375,
+      "answer_rate_of_in_pool_picks": 0.7210461963018368,
+      "answer_rate_of_out_of_pool_picks": 0.5739175181945159,
+      "concept_share": 0.7326125,
+      "n_distinct_interviews": 6661,
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.00020038991518002156,
+          "lo": -0.002334957972921209,
+          "hi": 0.002729904530601014,
+          "n": 10000,
+          "excludes_zero": false
+        },
+        "tail": {
+          "mean": 0.002917797176559784,
+          "lo": 0.00021514519284891932,
+          "hi": 0.0055473057203686395,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.020140114541446725,
+          "lo": -0.022525005576289323,
+          "hi": -0.01787853347211922,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.009490270780195313,
+          "lo": -0.011922713904716255,
+          "hi": -0.007147666150982625,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "guard_tau0.5": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "guard_tau0.5",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18890.8519875,
+      "mean_candidates_alive_per_state": 499.14801250000164,
+      "minutes": 2.8,
+      "full": 0.23653550430326745,
+      "tail": 0.10971059741991449,
+      "out_of_pool_pick_rate": 0.0761625,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0156,
+        0.016,
+        0.1259,
+        0.1097,
+        0.0771,
+        0.1055,
+        0.0895,
+        0.0849,
+        0.1124,
+        0.1382,
+        0.1517,
+        0.1151,
+        0.077
+      ],
+      "users_with_any_out_of_pool_pick": 0.4805,
+      "n_distinct_out_of_pool_questions": 80,
+      "answer_rate": 0.833625,
+      "answer_rate_of_in_pool_picks": 0.8380802900943077,
+      "answer_rate_of_out_of_pool_picks": 0.7795831281798785,
+      "concept_share": 0.91491875,
+      "n_distinct_interviews": 7863,
+      "vs_open_unguarded": {
+        "full": {
+          "mean": -0.02667370949506082,
+          "lo": -0.029755997073743688,
+          "hi": -0.023685654696989293,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.012094453969083452,
+          "lo": -0.015432247281332996,
+          "hi": -0.008745624292607418,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.04701421395168757,
+          "lo": -0.05018297533085537,
+          "hi": -0.04402442676862816,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.02450252192583855,
+          "lo": -0.02783033288056516,
+          "hi": -0.02125880253896381,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "dumb_m6517": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "dumb_m6517",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 12873.0,
+      "mean_candidates_alive_per_state": 6517.0,
+      "minutes": 1.76,
+      "full": 0.2704245260576205,
+      "tail": 0.12677716532812852,
+      "out_of_pool_pick_rate": 0.19744375,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0778,
+        0.0651,
+        0.1445,
+        0.0843,
+        0.0849,
+        0.0923,
+        0.2638,
+        0.2445,
+        0.401,
+        0.3735,
+        0.4945,
+        0.293,
+        0.5399
+      ],
+      "users_with_any_out_of_pool_pick": 0.8215,
+      "n_distinct_out_of_pool_questions": 167,
+      "answer_rate": 0.47396875,
+      "answer_rate_of_in_pool_picks": 0.5582708377138674,
+      "answer_rate_of_out_of_pool_picks": 0.13130321927131144,
+      "concept_share": 0.4423,
+      "n_distinct_interviews": 589,
+      "matched_to": "guard_tau0.999",
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.007215312259292236,
+          "lo": 0.005749724235773695,
+          "hi": 0.00872298671657819,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.004972113939130565,
+          "lo": 0.0033923671535119777,
+          "hi": 0.006531453269491918,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.013125192197334514,
+          "lo": -0.014781158784241825,
+          "hi": -0.011516989930242255,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.007435954017624532,
+          "lo": -0.009148862575566734,
+          "hi": -0.005675820965863592,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "dumb_m2702": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "dumb_m2702",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 16688.0,
+      "mean_candidates_alive_per_state": 2702.0,
+      "minutes": 1.7,
+      "full": 0.277803108947553,
+      "tail": 0.13116584388664487,
+      "out_of_pool_pick_rate": 0.10299375,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0718,
+        0.0356,
+        0.0023,
+        0.0099,
+        0.0832,
+        0.1571,
+        0.2047,
+        0.231,
+        0.1292,
+        0.2665,
+        0.4566
+      ],
+      "users_with_any_out_of_pool_pick": 0.7016,
+      "n_distinct_out_of_pool_questions": 76,
+      "answer_rate": 0.5405125,
+      "answer_rate_of_in_pool_picks": 0.5760829425658963,
+      "answer_rate_of_out_of_pool_picks": 0.23071788336670915,
+      "concept_share": 0.5159875,
+      "n_distinct_interviews": 350,
+      "matched_to": "guard_tau0.99",
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.01459389514922475,
+          "lo": 0.012764625768605573,
+          "hi": 0.016452675468691454,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.009360792497646936,
+          "lo": 0.007401659946476717,
+          "hi": 0.011294096910656515,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.005746609307401998,
+          "lo": -0.006890300950801015,
+          "hi": -0.004608923063814998,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.003047275459108161,
+          "lo": -0.004322848901767606,
+          "hi": -0.0017759213578923106,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "dumb_m1996": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "dumb_m1996",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 17394.0,
+      "mean_candidates_alive_per_state": 1996.0,
+      "minutes": 1.7,
+      "full": 0.2790908752929718,
+      "tail": 0.1315639770426917,
+      "out_of_pool_pick_rate": 0.08301875,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0718,
+        0.0356,
+        0.0023,
+        0.0078,
+        0.0811,
+        0.0604,
+        0.2011,
+        0.1025,
+        0.0911,
+        0.2803,
+        0.3943
+      ],
+      "users_with_any_out_of_pool_pick": 0.6982,
+      "n_distinct_out_of_pool_questions": 54,
+      "answer_rate": 0.54828125,
+      "answer_rate_of_in_pool_picks": 0.5687343661607039,
+      "answer_rate_of_out_of_pool_picks": 0.3223669351803057,
+      "concept_share": 0.52475,
+      "n_distinct_interviews": 275,
+      "matched_to": "guard_tau0.98",
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.01588166149464348,
+          "lo": 0.01400933489517865,
+          "hi": 0.01776435275402121,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.009758925653693771,
+          "lo": 0.007804238356234872,
+          "hi": 0.011724184610796924,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.004458842961983268,
+          "lo": -0.005496792837057917,
+          "hi": -0.003431831498089393,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.002649142303061327,
+          "lo": -0.0037934239029614077,
+          "hi": -0.0014913442444664876,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "dumb_m1331": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "dumb_m1331",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18059.0,
+      "mean_candidates_alive_per_state": 1331.0,
+      "minutes": 1.69,
+      "full": 0.27754284466472184,
+      "tail": 0.12949918228752855,
+      "out_of_pool_pick_rate": 0.07216875,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0718,
+        0.0362,
+        0.0023,
+        0.0079,
+        0.1253,
+        0.0457,
+        0.1915,
+        0.1606,
+        0.056,
+        0.1578,
+        0.2996
+      ],
+      "users_with_any_out_of_pool_pick": 0.4973,
+      "n_distinct_out_of_pool_questions": 45,
+      "answer_rate": 0.57135625,
+      "answer_rate_of_in_pool_picks": 0.5792675122766128,
+      "answer_rate_of_out_of_pool_picks": 0.46964579544470425,
+      "concept_share": 0.562525,
+      "n_distinct_interviews": 349,
+      "matched_to": "guard_tau0.95",
+      "vs_open_unguarded": {
+        "full": {
+          "mean": 0.014333630866393542,
+          "lo": 0.012375044962773498,
+          "hi": 0.01637296198916388,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": 0.007694130898530612,
+          "lo": 0.005650536417408824,
+          "hi": 0.009760275020887537,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.006006873590233206,
+          "lo": -0.007124574517372687,
+          "hi": -0.004883331424297142,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.004713937058224484,
+          "lo": -0.005931298875786352,
+          "hi": -0.0034888353444222937,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "dumb_m987": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "dumb_m987",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18403.0,
+      "mean_candidates_alive_per_state": 987.0,
+      "minutes": 1.62,
+      "full": 0.25923696829704695,
+      "tail": 0.12103825718497753,
+      "out_of_pool_pick_rate": 0.13035,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.1647,
+        0.0434,
+        0.0402,
+        0.039,
+        0.0348,
+        0.0977,
+        0.0909,
+        0.1815,
+        0.1964,
+        0.2608,
+        0.2976,
+        0.4693,
+        0.1693
+      ],
+      "users_with_any_out_of_pool_pick": 0.8491,
+      "n_distinct_out_of_pool_questions": 61,
+      "answer_rate": 0.64531875,
+      "answer_rate_of_in_pool_picks": 0.6840108089461278,
+      "answer_rate_of_out_of_pool_picks": 0.38717874952052167,
+      "concept_share": 0.73004375,
+      "n_distinct_interviews": 1344,
+      "matched_to": "guard_tau0.9",
+      "vs_open_unguarded": {
+        "full": {
+          "mean": -0.0039722455012813325,
+          "lo": -0.006425995784329291,
+          "hi": -0.0015728721272944936,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.000766794204020413,
+          "lo": -0.0032780771255778206,
+          "hi": 0.0017696027842459953,
+          "n": 9217,
+          "excludes_zero": false
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.02431274995790808,
+          "lo": -0.02654107485154085,
+          "hi": -0.022092377574211335,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.013174862160775512,
+          "lo": -0.01542327871045015,
+          "hi": -0.010923517415164346,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "dumb_m744": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "dumb_m744",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18646.0,
+      "mean_candidates_alive_per_state": 744.0,
+      "minutes": 1.63,
+      "full": 0.25090631780714157,
+      "tail": 0.11310808445333526,
+      "out_of_pool_pick_rate": 0.150875,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0097,
+        0.0188,
+        0.0433,
+        0.2873,
+        0.2631,
+        0.1767,
+        0.212,
+        0.2259,
+        0.2206,
+        0.2598,
+        0.2279,
+        0.282,
+        0.1869
+      ],
+      "users_with_any_out_of_pool_pick": 0.8778,
+      "n_distinct_out_of_pool_questions": 45,
+      "answer_rate": 0.65556875,
+      "answer_rate_of_in_pool_picks": 0.6981304283821581,
+      "answer_rate_of_out_of_pool_picks": 0.4160314830157415,
+      "concept_share": 0.78355,
+      "n_distinct_interviews": 2473,
+      "matched_to": "guard_tau0.8",
+      "vs_open_unguarded": {
+        "full": {
+          "mean": -0.0123028959911867,
+          "lo": -0.015073316832622958,
+          "hi": -0.009498910998125552,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.008696966935662664,
+          "lo": -0.011664717482521562,
+          "hi": -0.005710366081737976,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.03264340044781344,
+          "lo": -0.03539644230945934,
+          "hi": -0.0299349680093703,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.021105034892417763,
+          "lo": -0.024037135442246036,
+          "hi": -0.0182015941730557,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    },
+    "dumb_m499": {
+      "analysis": "policy_guard_cell",
+      "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.4",
+      "test_touched": false,
+      "split": "validation",
+      "cell": "dumb_m499",
+      "contract": {
+        "tower": "t2i26c_ep31.pt",
+        "conc_ckpt": "concept_cv3_ep08.pt",
+        "pool_contract": {
+          "v": 1,
+          "policy": "B",
+          "n_rows": 10000,
+          "n_items": 18359,
+          "nnz": 1356475,
+          "per_user": 135.6475,
+          "fp": "c282962b49a2d67ef47ff07544519f20"
+        },
+        "policy_ckpt": "policy_main_equivariant_both.pt",
+        "head_ckpt": "outcome_head_main_both.pt",
+        "seed": 98765,
+        "L": 16,
+        "n_catalogue": 19390
+      },
+      "n_guard_releases": 0,
+      "mean_candidates_masked_per_state": 18891.0,
+      "mean_candidates_alive_per_state": 499.0,
+      "minutes": 1.57,
+      "full": 0.2275484899084112,
+      "tail": 0.10599116687098185,
+      "out_of_pool_pick_rate": 6.25e-06,
+      "out_of_pool_by_position": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0001,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "users_with_any_out_of_pool_pick": 0.0001,
+      "n_distinct_out_of_pool_questions": 1,
+      "answer_rate": 0.7773875,
+      "answer_rate_of_in_pool_picks": 0.7773923587022419,
+      "answer_rate_of_out_of_pool_picks": 0.0,
+      "concept_share": 1.0,
+      "n_distinct_interviews": 3314,
+      "matched_to": "guard_tau0.5",
+      "vs_open_unguarded": {
+        "full": {
+          "mean": -0.03566072388991711,
+          "lo": -0.03874667577083836,
+          "hi": -0.03262729060371735,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.01581388451801609,
+          "lo": -0.01917943044073745,
+          "hi": -0.012468404041341374,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      },
+      "vs_pool_ceiling": {
+        "full": {
+          "mean": -0.05600122834654386,
+          "lo": -0.059140325141670794,
+          "hi": -0.0529271191786283,
+          "n": 10000,
+          "excludes_zero": true
+        },
+        "tail": {
+          "mean": -0.028221952474771186,
+          "lo": -0.03153408861307641,
+          "hi": -0.024871245415289733,
+          "n": 9217,
+          "excludes_zero": true
+        }
+      }
+    }
+  },
+  "minutes": 2.0,
+  "learned_minus_dumb_at_matched_budget": {
+    "guard_tau0.999_vs_dumb_m6517": {
+      "candidates_alive": 6517.0,
+      "learned_full": 0.2701067713611495,
+      "dumb_full": 0.2704245260576205,
+      "full": {
+        "mean": -0.0003177546964709616,
+        "lo": -0.0014100999826742859,
+        "hi": 0.0008068280327557864,
+        "n": 10000,
+        "excludes_zero": false
+      },
+      "tail": {
+        "mean": -0.0001589762532884568,
+        "lo": -0.0013197569457223132,
+        "hi": 0.000994105359548388,
+        "n": 9217,
+        "excludes_zero": false
+      }
+    },
+    "guard_tau0.99_vs_dumb_m2702": {
+      "candidates_alive": 2702.0,
+      "learned_full": 0.27375426765738364,
+      "dumb_full": 0.277803108947553,
+      "full": {
+        "mean": -0.004048841290169358,
+        "lo": -0.005197108728894617,
+        "hi": -0.002894396488017837,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": -0.002919872331473398,
+        "lo": -0.004195415491769755,
+        "hi": -0.0016619300370147047,
+        "n": 9217,
+        "excludes_zero": true
+      }
+    },
+    "guard_tau0.98_vs_dumb_m1996": {
+      "candidates_alive": 1996.0,
+      "learned_full": 0.27480385692351295,
+      "dumb_full": 0.2790908752929718,
+      "full": {
+        "mean": -0.004287018369458781,
+        "lo": -0.005445014020498412,
+        "hi": -0.003115940120499892,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": -0.0024911495434774373,
+        "lo": -0.003799644074496437,
+        "hi": -0.0012211785191903052,
+        "n": 9217,
+        "excludes_zero": true
+      }
+    },
+    "guard_tau0.95_vs_dumb_m1331": {
+      "candidates_alive": 1331.0,
+      "learned_full": 0.27290707517402285,
+      "dumb_full": 0.27754284466472184,
+      "full": {
+        "mean": -0.004635769490699028,
+        "lo": -0.006234506779503052,
+        "hi": -0.0030697409320730516,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": -0.0011790337871725749,
+        "lo": -0.002882419506753056,
+        "hi": 0.0005550413192315359,
+        "n": 9217,
+        "excludes_zero": false
+      }
+    },
+    "guard_tau0.9_vs_dumb_m987": {
+      "candidates_alive": 987.0,
+      "learned_full": 0.27034466543611996,
+      "dumb_full": 0.25923696829704695,
+      "full": {
+        "mean": 0.01110769713907299,
+        "lo": 0.00889730841204425,
+        "hi": 0.013334918657562195,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.007759453698107273,
+        "lo": 0.005415235980675581,
+        "hi": 0.010166671248891162,
+        "n": 9217,
+        "excludes_zero": true
+      }
+    },
+    "guard_tau0.8_vs_dumb_m744": {
+      "candidates_alive": 744.0,
+      "learned_full": 0.26340960371350836,
+      "dumb_full": 0.25090631780714157,
+      "full": {
+        "mean": 0.012503285906366722,
+        "lo": 0.0099820112208519,
+        "hi": 0.015056586294740082,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.011614764112222448,
+        "lo": 0.008824223645454543,
+        "hi": 0.01434655062901338,
+        "n": 9217,
+        "excludes_zero": true
+      }
+    },
+    "guard_tau0.5_vs_dumb_m499": {
+      "candidates_alive": 499.0,
+      "learned_full": 0.23653550430326745,
+      "dumb_full": 0.2275484899084112,
+      "full": {
+        "mean": 0.008987014394856286,
+        "lo": 0.006890537928855176,
+        "hi": 0.01114263367451231,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.003719430548932634,
+        "lo": 0.0013600934267090658,
+        "hi": 0.00610565829887608,
+        "n": 9217,
+        "excludes_zero": true
+      }
+    }
+  }
+}

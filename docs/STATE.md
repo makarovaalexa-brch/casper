@@ -1,5 +1,78 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-15 — THE CAPABILITIES PROGRAMME (Part H) IS COMPLETE ON VALIDATION. NO TEST LOOK.
+
+**AUTHOR SAID (verbatim):** *"plz run the experiments."* And, earlier, on why: *"policy is supposed
+to eb scalable, generalisable (it knows similarity between concepts and items, tree doesn't), could
+support new vocab, can support new states, most improtantly i guess. so i am ok not to beat tree on
+these 5 levels or whatnot, but i wanna show how this architecture in general is better."*
+
+Three experiments, one per claimed property, each with a pre-registered falsifier. Design sheet
+`docs/design/PAPER_B_POLICY_DESIGN.md` **Part H**. Write-ups: **`docs/results/RESUMPTION.md`**,
+**`docs/results/HELDOUT_QUESTIONS.md`**, **`docs/results/VOCAB_GUARD.md`**. Code
+`src/instrument/{policy_resume,outcome_q,policy_guard}.py`. System under test: distilled policy (E1,
+frozen) + reaction head (frozen). **The value model stays deleted.**
+
+| | claim | falsifier | verdict |
+|---|---|---|---|
+| **R** resumption | "supports new states" | policy adapts and still loses to the tree | **did not fire — because the policy never adapted.** Capability STRUCTURAL, not behavioural |
+| **Q** held-out questions | "it knows similarity" | held-out AUC ≤ the popularity backoff | **did not fire.** 0.98167 vs 0.96285, and it also beats the *rigged* per-question prior 0.96915 |
+| **G** open-vocab guard | "knows what NOT to ask" | recovery needs out-of-pool → ~0% | **did not fire** (57% recovered at 13% out-of-pool) — **but the DUMB guard beats the learned one, 78% vs 57%** |
+
+### R — the policy does not condition on evidence it did not choose
+Seed each validation user with k volunteered items (popularity-weighted from their fold-in half,
+seed 98765), then 16 questions. At k=2/4/8 the policy's interview is **identical to its unseeded one
+for 98.99 / 97.52 / 94.89% of users**; policy − tree is **+0.00002 / −0.00031 / −0.00026**, every CI
+including zero. **Redundancy parity is the mechanism made visible:** re-asks of a volunteered item,
+per item question asked, are 5.4% for the policy against 5.5% for the tree and 5.2% for the static
+order — the arm that CAN see the volunteered set avoids it at the rate of arms that cannot. Among the
+1–5% of users where it does deviate it is **worse** (−0.01232 at k=4, n=248). Volunteered evidence
+does pay, but through the **fold**: seeded tree − unseeded E1 = **+0.0206 full / +0.0353 tail at k=8
+with identical questions**. The interview still adds +0.0734 / +0.0529 / +0.0307 over the seed alone.
+**Writing rule: "supports new states" is an architectural property, never a demonstrated behaviour.**
+
+### Q — the reaction head generalises to questions it has never seen
+20% of the 19,390 questions held out by identity, stratified by channel × popularity decile; the fair
+comparator is the **(channel, decile) backoff prior**, because a held-out question has no per-question
+row. Held-out-question AUC macro **0.98167** vs backoff **0.96285** and vs the rigged per-question
+prior **0.96915**, over 620,606,659 scored cells on held-out questions × held-out users. **The curve
+saturates early:** 10% of the training questions (1,551) buys **69.6%** of the margin, 25% buys 92.8%.
+Seen/unseen gap **0.0011**. The margin decomposes: position-0 gap **+0.0047** and the shuffle
+control's residual **+0.0040** independently price the DESCRIPTOR's own contribution at ~¼, and the
+interview supplies the other ¾ (position curve 0.9676 → 0.9851; shuffle flat 0.9672 → 0.9665).
+⚠ Composition caveat: the held-out set is tail-dominated (median question answerable by ~1 fit user
+in 1,000), so the claim is **"who can answer an unseen question and what they say when they can"**.
+
+### G — the guard works, and a table of answer rates works better
+Opening to 19,390 costs **−0.02034**. Learned guard (hard mask on predicted P(no-answer), swept, whole
+curve reported): best **τ=0.98 recovers 57.0%**, +0.01159 [+0.00976, +0.01345], keeping 12.98% of
+picks out of pool answered at 25.7% (unguarded: 9.1%). **Budget-matched dumb guard** (state-free
+per-question empirical answer rate, same number of candidates alive) recovers **78.1%**; head-to-head
+**learned − dumb = −0.00429 [−0.00545, −0.00312]**, and the learned guard loses at 3 of the 4 budgets
+where guarding pays. It wins only at tight budgets (+0.0111 / +0.0125 / +0.0090 at 987 / 744 / 499
+alive), where a fixed list collapses. Pushed to τ=0.50 the policy answers 83.8% of questions and
+scores 0.047 below the ceiling — **answerability is a constraint, not the objective**. And the 499
+most-answerable candidates in the catalogue score **0.056 below the 1,000-candidate pool**, so "the
+pool was already right" is too strong: the pool is right for reasons a guard cannot see.
+
+### The sentence the chapter now has to carry
+**The bank beats conditioning, three times over:** +0.01430 > +0.01035 (static bank vs the tree on
+test), the mean value vector beat the learned lift head, and now the marginal answer rate beats the
+state-conditioned reaction head as a guard. Q is the one place conditioning demonstrably wins —
+and it wins on PREDICTION, not on question selection.
+
+### Not run, and awaiting the author's decision
+**The evidence-seeded fine-tune** (the 138 random-prefix states from 2026-08-14, measured labels,
+zero new cost) — R's designated fix. It is a new training arm rather than part of the authorised
+three, so it goes to the author as its own decision.
+
+### Cost note (three misses in one day, recorded)
+R estimated 3–5 h, ran in **12 min**. Q estimated 4–6 h, ran in **2.6 h**. G estimated 2–3 h, ran in
+**36 min**. The scoring funnel does a full 10,000-user cohort in ~15 s; estimates built from
+candidate-sweep intuitions do not transfer to one-evaluation-per-cell experiments.
+
+---
+
 ## ★★★ 2026-08-13 — WORKSTREAM E1 (THE PARAMETRIC POLICY) IS COMPLETE ON VALIDATION. NO TEST LOOK.
 
 **Author, verbatim:** *"plz start on policy and tell me eta"* · *"i want it to scale not only by
