@@ -42,6 +42,13 @@ Two further readings that are not softeners:
    to it by **−0.02376 [−0.02661, −0.02087]**. Similarity did not substitute for supervision at all;
    removing the labels removed the behaviour.
 
+⚠ **And one confound must be stated here as well as in P1b:** P1b's never-taught cells all sit at
+states E1 was never trained on either, so **P1b cannot separate an unseen question from an unseen
+state**. Its on-manifold control (E1 ranks the measured-best question 1st at 7 of 7 trained states)
+is what keeps the pair readable. P1, by contrast, holds the *state distribution* fixed — the states
+are the tree's own — so the two experiments fail in different ways for different reasons and neither
+alone isolates the vocabulary axis.
+
 **What this experiment therefore is:** a measurement of how much of the policy's competence lives in
 the identity of the questions it was supervised on. The answer is: essentially all of it. **What it
 is not:** a clean test of the architecture's ability to rank an unseen question, because the policy
