@@ -1444,6 +1444,109 @@ the bank result (+0.01430 > +0.01035) travels with every adaptive sentence.**
 
 ---
 
+# PART I — THE GENERALISATION PAIR: P1 (questions) and P2 (states) — DESIGNED, NOT RUN
+
+> **AUTHOR SAID (2026-08-15, verbatim):** *"i want to show generalisability working here and my
+> recommender support ood questions etc. i need a policy capable of understanding that and emitting a
+> questions. how can we achieve this?"* — and, on this part: **"go, but do not run, just design."**
+> **NOTHING IN PART I MAY RUN WITHOUT AN EXPLICIT AUTHOR GO.**
+
+## I.0 A reversal, recorded
+
+Part H's verdict §2 ("the evidence-seeded fine-tune — DO NOT RUN") is **REVERSED**, and the reasoning
+error was mine. "138 states cannot teach what 72,717 triples could not" conflated **value** learning
+(the dense surface that resisted everything) with **action** learning (E1 absorbed the whole tree from
+**202 labels**; G.D's own text says action learning needs one bit per state). And the phase-3
+precedent cut differently than I claimed: that fine-tune *disturbed states the policy already handled*
+(deviating at 14.2/16 positions on-manifold); P2 trains states where the policy has **no behaviour to
+disturb** — R showed it is inert there (1–5% deviation). Opus registered the objection; it was right.
+
+**Expectation-setting, binding on any write-up:** even full success moves the SCORE very little — the
+mechanical room is small (redundancy upside ~5% of asks; conditioning's edge shrinks as free evidence
+grows, +0.0167→+0.0116 across three points, no interval — a trend, not a finding). **The prize is the
+capability demonstration, behavioural, on the author's three axes** — not a number that beats anything.
+
+## I.1 — P1: GENERALISATION ACROSS QUESTIONS ("emits questions it was never taught")
+
+**Claim under test.** The distilled policy reaches a question through embedding similarity, not label
+memory. The tree cannot do this even in principle — a question it was not built with does not exist
+for it. This is Q's logic applied to the ACTION policy, never yet run.
+
+**Design.** The tree's labels use **172 distinct questions** (76 items, 96 concepts; 45.4/54.6
+user-weighted). Hold out **~20% of them (~34 questions) by identity**, stratified by channel ×
+label-mass (how many (user,position) examples carry that question as label — stratify on it so the
+held-out set is not accidentally all rare labels). **Retrain E1 from scratch** on the remaining ~138
+label questions, with the held-out questions **still present in the candidate table** (they must be
+*emittable*, never *supervised*). Everything else identical to E1: same trajectories, same replay,
+same cohorts, same gates, canonical snap first.
+
+**Measurements, in order of evidential weight:**
+1. **Emission rate at the right states:** at (user, position) pairs whose held-out label was question
+   X — does the retrained policy emit X anyway? Report top-1 and top-5 (X in the top 5 of 1,000).
+2. **Neighbour credit, declared not smuggled:** if not X, is the emitted question among X's k=5
+   nearest neighbours in the frozen descriptor space (neighbour list computed and committed BEFORE
+   training)? Report separately from top-1; never sum them into one headline.
+3. **The policy score consequence:** K=16 validation rollout of the retrained policy vs E1. Expected
+   near-parity; a large drop means the 34 held-out questions were load-bearing and similarity did not
+   substitute — itself a finding.
+4. **Control:** the same retrain with the held-out questions ALSO REMOVED from the candidate table,
+   then restored at inference — distinguishes "learned to reach them" from "never needed them".
+
+**Pre-registered falsifier:** held-out emission top-5 rate ≤ the base rate a label-shuffled policy
+achieves ⇒ the policy reaches questions by memory, not similarity — the OOD-emission claim fails and
+is reported failed. **Baselines:** shuffled-label policy (floor), and a popularity-ranked emitter
+(the dumb comparator — if popularity alone "finds" X as often, similarity added nothing).
+
+**Cost (this box, from measured anchors):** one E1 retrain ≈ 25–93 min + rollout ~15 s/cohort + the
+emission audit (banked trajectories, no new NDCG). **≈ 2–3 h.** No new labels. No test look.
+
+## I.2 — P2: GENERALISATION ACROSS STATES (the evidence-seeded fine-tune, properly designed)
+
+**Claim under test.** Trained on states where evidence is already on the table, the policy stops being
+inert there (R: 95–99% unchanged) without becoming arbitrary (R2: deviations cost −0.012).
+
+**Training set.** A MIXTURE, and the mixture is the design: the original E1 tree-state labels as
+**replay** (the proven anti-forgetting mechanism) + the **138 evidence-seeded states** from the
+2026-08-14 random-prefix sampling, each with its measured-argmax label, upweighted so seeded states
+are ~1/8 of each batch (declared constant, not tuned post-hoc).
+
+⚠ **Teacher honesty, carried on every number:** the seeded-state labels are **argmax over the 50
+sampled candidates** (20 pool + 30 catalogue), NOT over the full 1,000-pool. An imperfect teacher is
+acceptable for a capability test and must be named. **Optional upgrade, priced:** full-pool sweeps at
+the 138 states ≈ 12–23 h on the phase-3 cost model (s/eval = 0.0857 + 1.57·n/1000, states are
+200–800 users). Run the cheap version first; upgrade only if direction is right but magnitude is shy.
+
+**Evaluation — all on FRESHLY DRAWN seeded states (new seed for the volunteered draw, disjoint from
+both the 138 training states and R/R2's evaluation draw), through R2's existing harness:**
+
+| gate | bar |
+|---|---|
+| **spanning gate (G, HARD RULE 8)** | K=16 unseeded validation rollout must not fall below **E1's 0.28355** — the replay's job; if it fails, the arm is rejected regardless of anything else |
+| **★ the deviation-cost flip** | on fresh seeded states, fine-tuned policy − its own frozen order: R2 measured **−0.01246/−0.01234/−0.00860**; the bar is **≥ 0** (CI excluding a loss), with positive as the win |
+| vs the tree on seeded states | report, paired CI — the capability sentence needs "not worse", not "beats" |
+| redundancy | report with an interval this time; expectation is "no detectable avoidance" persists (base rate ~1.4–5.5% is too small to carry a claim either way — H's correction) |
+| controls | shuffle the seeded-state labels (HARD RULE 5); anti-collapse diagnostics as in E1 |
+
+**Pre-registered falsifier:** if, trained ON evidence-seeded states, deviations on fresh seeded states
+still cost (CI excludes zero from below), then **this action space does not reward state-conditioning
+beyond the tree's** even when taught — the strongest honest closure available, and it is reported as
+the finding, not buried.
+
+**Cost:** fine-tune ≈ 1–2 h (E1-scale, replay-dominated batches) + R2-harness evaluation ≈ 15 min +
+controls ≈ 1 h. **≈ 3–6 h total.** No test look.
+
+## I.3 The sentence the pair is for
+
+If P1 and P2 both pass: *"the policy conducts sensible interviews from states it was never trained
+on, and emits questions it was never taught"* — with Q (the reaction head's unseen-question result)
+as the third leg. Generalisability demonstrated **behaviourally** on all three of the author's axes
+(new states, new questions, new users), with the tree structurally unable to enter any of the three
+games. If either fails, its falsifier sentence goes in instead — both are honest chapter text.
+
+**Order if run: P1 first** (cheaper, no new machinery, and its negative would lower the prior on P2).
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
