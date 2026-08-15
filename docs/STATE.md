@@ -31,6 +31,22 @@ does pay, but through the **fold**: seeded tree − unseeded E1 = **+0.0206 full
 with identical questions**. The interview still adds +0.0734 / +0.0529 / +0.0307 over the seed alone.
 **Writing rule: "supports new states" is an architectural property, never a demonstrated behaviour.**
 
+### R2 (2026-08-15, author: "ok, go ahead") — the BELIEF-ONLY policy adapts, badly, and the falsifier FIRES
+Hypothesis: volunteered evidence moves `z_t` but leaves the ternary asked-history EMPTY — a pairing
+that never occurs in E1's training — so the both-inputs model falls back to its empty-interview
+behaviour. The `z`-only ablation cannot make that distinction by construction, so it should adapt.
+**It does, hugely: 87.66 / 94.59 / 98.60% of users change at k=2/4/8, 9.3 / 11.4 / 12.9 of 16
+questions, scaling with the amount of evidence.** So the asked-history feature IS what freezes the
+both-inputs policy. **But the deviations COST** — z-only minus its OWN frozen question order (same
+fold, same evidence, only the questions differ) is **−0.01246 / −0.01234 / −0.00860**, every interval
+excluding zero, and it loses to the tree at every k. **R's pre-registered falsifier fires for this
+arm and is reported dead.** ★ And the redundancy diagnostic kills the "it is conditioning" reading:
+re-asks per item question asked are **1.442 / 2.857 / 5.429%** against the tree's **1.417 / 2.900 /
+5.459%** — no arm separates from any other. It changes 9–13 of 16 questions and re-asks volunteered
+films at exactly the tree's rate. **Sensitive to the volunteered evidence, not informed by it.**
+Neither policy has a behavioural "supports new states" capability; the fine-tune case is now exact,
+and the fine-tune was NOT run.
+
 ### Q — the reaction head generalises to questions it has never seen
 20% of the 19,390 questions held out by identity, stratified by channel × popularity decile; the fair
 comparator is the **(channel, decile) backoff prior**, because a held-out question has no per-question
