@@ -756,7 +756,7 @@ def evaluate(args):
         os.replace(p + ".tmp", p)
         for name in pols:
             c = comp[f"{name}_minus_its_own_frozen_order"]["full"]
-            log(f"[k={k}] ★ {name} - its own frozen order: {c['mean']:+.5f} "
+            log(f"[k={k}] *** {name} - its own frozen order: {c['mean']:+.5f} "
                 f"[{c['lo']:+.5f}, {c['hi']:+.5f}] (R2 belief-only: "
                 f"{comp[f'{name}_minus_its_own_frozen_order']['R2_belief_only_reference']}); "
                 f"adapts on {(1 - adapt[name]['frac_never_deviates_from_its_own_unseeded_rollout']) * 100:.2f}% "
