@@ -216,6 +216,12 @@ def main():
     ap.add_argument("--d_k", type=int, default=64)
     ap.add_argument("--d_h", type=int, default=256)
     ap.add_argument("--n_heldout_users", type=int, default=10000)
+    ap.add_argument("--strip_pop", action="store_true",
+                    help="ABLATION: zero the two answerability-correlated descriptor columns "
+                         "(item log1p(count), concept answer rate) and refit the standardisation. "
+                         "Everything else identical. Tests how much of Q's margin is the head "
+                         "reading a feature we gave it rather than similarity.")
+    ap.add_argument("--tag", default="", help="output stem suffix; two runs never share a path")
     ap.add_argument("--shuffle_at", type=float, default=1.00,
                     help="run the HARD RULE 5 shuffle control at this training fraction")
     ap.add_argument("--threads", type=int, default=0)
@@ -258,6 +264,29 @@ def main():
     catalogue = [(0, i) for i in range(ni)] + [(1, c) for c in range(C)]
     P = len(catalogue)
     phi_full, norm = build_phi(E, catalogue)
+    strip_info = None
+    if args.strip_pop:
+        # ★ THE ANSWERABILITY-FEATURE ABLATION (author's objection, 2026-08-15). `build_phi` hands a
+        # concept its train ANSWER RATE and an item its log1p(train count) as literal input columns,
+        # and under the structural answerability rule popularity is most of what decides whether an
+        # item can be answered at all. The "fair" backoff comparator only ever received popularity
+        # DECILES, so the head has strictly more of the same information and part of its margin could
+        # be reading a feature we handed it rather than similarity. This zeroes exactly those two raw
+        # columns and REFITS the standardisation on the zeroed descriptor, changing nothing else.
+        d = int(E["ctx"].Wd.shape[1])
+        raw = phi_full * norm[1] + norm[0]
+        raw[:, d] = 0.0                                  # log1p(train count) -- items
+        raw[:, d + 1] = 0.0                              # train answer rate -- concepts
+        mu, sd = raw.mean(0, keepdims=True), raw.std(0, keepdims=True) + 1e-6
+        phi_full = ((raw - mu) / sd).astype(np.float32)
+        norm = (mu, sd)
+        strip_info = {"zeroed_columns": [d, d + 1],
+                      "what": "log1p(train rating count) for items; train answer rate for concepts",
+                      "kept": "the decoder row / cv3 embedding, the concept signed-value std, and "
+                              "the channel one-hot",
+                      "norm": "refitted on the zeroed descriptor"}
+        log(f"[strip_pop] zeroed descriptor columns {d} and {d + 1} "
+            f"(item log-popularity, concept answer rate) and refitted the standardisation")
     d_z = E["ctx"].d
     cnt = np.asarray(E["ctx"].cnt, np.float64)
     zc = np.load(CONCSTATS)
@@ -355,7 +384,7 @@ def main():
     for frac, arm in arms:
         qidx = subsets[frac]
         qmap = np.full(P, -1, np.int64); qmap[qidx] = np.arange(len(qidx))
-        stem = f"q{int(round(frac * 100)):03d}_{arm}"
+        stem = f"q{int(round(frac * 100)):03d}_{arm}" + (f"_{args.tag}" if args.tag else "")
         cellp = os.path.join(QDIR, stem + ".json")
         if os.path.exists(cellp):
             b = json.load(open(cellp))
@@ -440,10 +469,11 @@ def main():
             f"beats_backoff={blob['beats_backoff']} ({blob['minutes']:.1f}m)")
         out = {"analysis": "outcome_q_H3", "citable": True, "test_touched": False,
                "split_composition": comp, "runs": runs,
+               "strip_pop": strip_info,
                "falsifier": ("held-out-question AUC <= the popularity backoff => the similarity "
                              "claim FAILS and is reported failed"),
                "minutes": round((time.time() - t00) / 60, 2)}
-        p = os.path.join(QDIR, "heldout_questions.json")
+        p = os.path.join(QDIR, "heldout_questions" + (f"_{args.tag}" if args.tag else "") + ".json")
         with open(p + ".tmp", "w") as fh:
             json.dump(out, fh, indent=2, default=float)
         os.replace(p + ".tmp", p)
