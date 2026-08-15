@@ -234,6 +234,100 @@
           "concept_share": 0.5457875,
           "n_distinct_interviews": 40,
           "minutes": 1.66
+        },
+        "policyz": {
+          "analysis": "policy_resume_cell",
+          "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.2",
+          "test_touched": false,
+          "split": "validation",
+          "k": 2,
+          "arm": "policyz",
+          "contract": {
+            "tower": "t2i26c_ep31.pt",
+            "conc_ckpt": "concept_cv3_ep08.pt",
+            "pool_contract": {
+              "v": 1,
+              "policy": "B",
+              "n_rows": 10000,
+              "n_items": 18359,
+              "nnz": 1356475,
+              "per_user": 135.6475,
+              "fp": "c282962b49a2d67ef47ff07544519f20"
+            },
+            "ckpt": "policy_main_equivariant_both.pt",
+            "seed": 98765,
+            "L": 16,
+            "draw": "popularity-weighted, without replacement, from rated fold-in items"
+          },
+          "draw": {
+            "k_requested": 2,
+            "n_users": 10000,
+            "seed_size_mean": 2.0,
+            "seed_size_histogram": {
+              "2": 10000
+            },
+            "n_users_short_of_k": 0,
+            "frac_volunteered_items_liked": 0.6319,
+            "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+            "rng": "numpy.default_rng(98765), users in canonical row order"
+          },
+          "full": 0.2736027455623576,
+          "tail": 0.13735280461015265,
+          "n_questions_asked": 16,
+          "redundant_reasks_mean": 0.1013,
+          "redundant_reasks_total": 1013,
+          "frac_users_with_a_redundant_reask": 0.0968,
+          "answer_rate": 0.57641875,
+          "concept_share": 0.5608125,
+          "n_distinct_interviews": 4899,
+          "minutes": 1.43
+        },
+        "policyz_frozen": {
+          "analysis": "policy_resume_cell",
+          "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.2",
+          "test_touched": false,
+          "split": "validation",
+          "k": 2,
+          "arm": "policyz_frozen",
+          "contract": {
+            "tower": "t2i26c_ep31.pt",
+            "conc_ckpt": "concept_cv3_ep08.pt",
+            "pool_contract": {
+              "v": 1,
+              "policy": "B",
+              "n_rows": 10000,
+              "n_items": 18359,
+              "nnz": 1356475,
+              "per_user": 135.6475,
+              "fp": "c282962b49a2d67ef47ff07544519f20"
+            },
+            "ckpt": "policy_main_equivariant_both.pt",
+            "seed": 98765,
+            "L": 16,
+            "draw": "popularity-weighted, without replacement, from rated fold-in items"
+          },
+          "draw": {
+            "k_requested": 2,
+            "n_users": 10000,
+            "seed_size_mean": 2.0,
+            "seed_size_histogram": {
+              "2": 10000
+            },
+            "n_users_short_of_k": 0,
+            "frac_volunteered_items_liked": 0.6319,
+            "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+            "rng": "numpy.default_rng(98765), users in canonical row order"
+          },
+          "full": 0.28606638868292905,
+          "tail": 0.14419414761468907,
+          "n_questions_asked": 16,
+          "redundant_reasks_mean": 0.1036,
+          "redundant_reasks_total": 1036,
+          "frac_users_with_a_redundant_reask": 0.1004,
+          "answer_rate": 0.57799375,
+          "concept_share": 0.54566875,
+          "n_distinct_interviews": 228,
+          "minutes": 0.22
         }
       },
       "adaptation": {
@@ -276,7 +370,103 @@
           0,
           0
         ],
+        "n_deviators": 101,
         "note": "E1's unseeded rollout IS the tree's realised interview (agreement 1.0000). So this is simultaneously 'does the policy adapt to the seeding' and 'does it leave the teacher's manifold'."
+      },
+      "adaptation_zonly": {
+        "frac_never_deviates_from_its_own_unseeded_rollout": 0.1234,
+        "mean_positions_differing": 9.3009,
+        "frac_users_differing_at_each_position": [
+          0.0195,
+          0.4318,
+          0.5953,
+          0.7267,
+          0.6682,
+          0.6628,
+          0.6439,
+          0.671,
+          0.6641,
+          0.6397,
+          0.6283,
+          0.6248,
+          0.5979,
+          0.584,
+          0.574,
+          0.5689
+        ],
+        "n_positions_differing_histogram": [
+          1234,
+          218,
+          684,
+          339,
+          454,
+          193,
+          250,
+          217,
+          242,
+          347,
+          310,
+          324,
+          535,
+          997,
+          1441,
+          2112,
+          103
+        ],
+        "n_deviators": 8766,
+        "note": "the z-only policy's own unseeded rollout, which is NOT the tree's -- it already deviates from the tree on 6.19% of users with no seeding at all. `policyz_frozen` replays exactly this order at the seeded state, so policyz - policyz_frozen isolates the deviation and nothing else."
+      },
+      "do_the_deviations_pay": {
+        "policyz_vs_its_own_frozen_order": {
+          "n_deviators": 8766,
+          "mean_among_deviators": -0.014218164636745847,
+          "mean_among_non_deviators": 0.0,
+          "paired_among_deviators": {
+            "mean": -0.014218164636745847,
+            "lo": -0.016745372368707406,
+            "hi": -0.01164515359217062,
+            "n": 8766,
+            "excludes_zero": true
+          }
+        },
+        "policy_vs_tree": {
+          "n_deviators": 101,
+          "mean_among_deviators": 0.002408213190013713,
+          "paired_among_deviators": {
+            "mean": 0.002408213190013713,
+            "lo": -0.018997606196495646,
+            "hi": 0.023116438395094262,
+            "n": 101,
+            "excludes_zero": false
+          }
+        }
+      },
+      "redundancy_per_item_question": {
+        "static": {
+          "mean_item_questions_of_16": 6.0,
+          "mean_reasks_per_user": 0.0809,
+          "reasks_per_item_question": 0.013483333333333333
+        },
+        "tree": {
+          "mean_item_questions_of_16": 7.2687,
+          "mean_reasks_per_user": 0.103,
+          "reasks_per_item_question": 0.014170346829556866
+        },
+        "policy": {
+          "mean_item_questions_of_16": 7.2674,
+          "mean_reasks_per_user": 0.102,
+          "reasks_per_item_question": 0.014035280843217656
+        },
+        "policyz": {
+          "mean_item_questions_of_16": 7.027,
+          "mean_reasks_per_user": 0.1013,
+          "reasks_per_item_question": 0.014415824676248754
+        },
+        "policyz_frozen": {
+          "mean_item_questions_of_16": 7.2693,
+          "mean_reasks_per_user": 0.1036,
+          "reasks_per_item_question": 0.014251716121222125
+        }
       },
       "comparisons": {
         "policy_minus_tree": {
@@ -406,11 +596,112 @@
             "n": 9217,
             "excludes_zero": true
           }
+        },
+        "policyz_minus_its_frozen_order": {
+          "full": {
+            "mean": -0.012463643120571412,
+            "lo": -0.014709471080332366,
+            "hi": -0.010148345253066798,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.006841343004536426,
+            "lo": -0.009165805334817,
+            "hi": -0.004478777304518234,
+            "n": 9217,
+            "excludes_zero": true
+          },
+          "why": "the ONLY difference is which questions were asked; same fold, same evidence"
+        },
+        "policyz_minus_tree": {
+          "full": {
+            "mean": -0.012546383985211023,
+            "lo": -0.014809497499157526,
+            "hi": -0.010254352338553712,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.006796834144111845,
+            "lo": -0.009116394836232437,
+            "hi": -0.004442684058441833,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_minus_policy": {
+          "full": {
+            "mean": -0.012570706938430163,
+            "lo": -0.01483449717299547,
+            "hi": -0.010264420448490344,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.00685790281787891,
+            "lo": -0.00918806854977232,
+            "hi": -0.004519200606820616,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_minus_static": {
+          "full": {
+            "mean": 0.004089991993563882,
+            "lo": 0.0013030938383119793,
+            "hi": 0.006921729310409577,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": 0.00040367204524540935,
+            "lo": -0.0024254821041757788,
+            "hi": 0.0032176238299938724,
+            "n": 9217,
+            "excludes_zero": false
+          }
+        },
+        "policyz_minus_none": {
+          "full": {
+            "mean": 0.06086261341203779,
+            "lo": 0.057614567196384116,
+            "hi": 0.06413588900712547,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": 0.049605897280989956,
+            "lo": 0.04625820558143122,
+            "hi": 0.05301567312159403,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_seeded_minus_zonly_unseeded": {
+          "full": {
+            "mean": -0.009239440700759967,
+            "lo": -0.012183311431909165,
+            "hi": -0.006365543215647735,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": 0.0034988732851332044,
+            "lo": 0.000571260853410177,
+            "hi": 0.0065001001247732,
+            "n": 9217,
+            "excludes_zero": true
+          }
         }
       },
       "pep_divergence_policy": {
         "n_pairs": 68272286,
         "divergence_rate": 0.6672074522303237
+      },
+      "pep_divergence_policyz": {
+        "n_pairs": 50189671,
+        "divergence_rate": 0.7451151652299135
       }
     },
     "4": {
@@ -614,6 +905,100 @@
           "concept_share": 0.54584375,
           "n_distinct_interviews": 75,
           "minutes": 1.76
+        },
+        "policyz": {
+          "analysis": "policy_resume_cell",
+          "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.2",
+          "test_touched": false,
+          "split": "validation",
+          "k": 4,
+          "arm": "policyz",
+          "contract": {
+            "tower": "t2i26c_ep31.pt",
+            "conc_ckpt": "concept_cv3_ep08.pt",
+            "pool_contract": {
+              "v": 1,
+              "policy": "B",
+              "n_rows": 10000,
+              "n_items": 18359,
+              "nnz": 1356475,
+              "per_user": 135.6475,
+              "fp": "c282962b49a2d67ef47ff07544519f20"
+            },
+            "ckpt": "policy_main_equivariant_both.pt",
+            "seed": 98765,
+            "L": 16,
+            "draw": "popularity-weighted, without replacement, from rated fold-in items"
+          },
+          "draw": {
+            "k_requested": 4,
+            "n_users": 10000,
+            "seed_size_mean": 4.0,
+            "seed_size_histogram": {
+              "4": 10000
+            },
+            "n_users_short_of_k": 0,
+            "frac_volunteered_items_liked": 0.628875,
+            "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+            "rng": "numpy.default_rng(98765), users in canonical row order"
+          },
+          "full": 0.27975868624050015,
+          "tail": 0.14713795685373476,
+          "n_questions_asked": 16,
+          "redundant_reasks_mean": 0.1957,
+          "redundant_reasks_total": 1957,
+          "frac_users_with_a_redundant_reask": 0.1772,
+          "answer_rate": 0.57969375,
+          "concept_share": 0.571825,
+          "n_distinct_interviews": 6900,
+          "minutes": 1.59
+        },
+        "policyz_frozen": {
+          "analysis": "policy_resume_cell",
+          "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.2",
+          "test_touched": false,
+          "split": "validation",
+          "k": 4,
+          "arm": "policyz_frozen",
+          "contract": {
+            "tower": "t2i26c_ep31.pt",
+            "conc_ckpt": "concept_cv3_ep08.pt",
+            "pool_contract": {
+              "v": 1,
+              "policy": "B",
+              "n_rows": 10000,
+              "n_items": 18359,
+              "nnz": 1356475,
+              "per_user": 135.6475,
+              "fp": "c282962b49a2d67ef47ff07544519f20"
+            },
+            "ckpt": "policy_main_equivariant_both.pt",
+            "seed": 98765,
+            "L": 16,
+            "draw": "popularity-weighted, without replacement, from rated fold-in items"
+          },
+          "draw": {
+            "k_requested": 4,
+            "n_users": 10000,
+            "seed_size_mean": 4.0,
+            "seed_size_histogram": {
+              "4": 10000
+            },
+            "n_users_short_of_k": 0,
+            "frac_volunteered_items_liked": 0.628875,
+            "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+            "rng": "numpy.default_rng(98765), users in canonical row order"
+          },
+          "full": 0.2920967110612401,
+          "tail": 0.153284275042952,
+          "n_questions_asked": 16,
+          "redundant_reasks_mean": 0.2094,
+          "redundant_reasks_total": 2094,
+          "frac_users_with_a_redundant_reask": 0.1892,
+          "answer_rate": 0.57799375,
+          "concept_share": 0.54566875,
+          "n_distinct_interviews": 228,
+          "minutes": 0.22
         }
       },
       "adaptation": {
@@ -656,7 +1041,103 @@
           0,
           0
         ],
+        "n_deviators": 248,
         "note": "E1's unseeded rollout IS the tree's realised interview (agreement 1.0000). So this is simultaneously 'does the policy adapt to the seeding' and 'does it leave the teacher's manifold'."
+      },
+      "adaptation_zonly": {
+        "frac_never_deviates_from_its_own_unseeded_rollout": 0.0541,
+        "mean_positions_differing": 11.3839,
+        "frac_users_differing_at_each_position": [
+          0.0987,
+          0.5965,
+          0.7392,
+          0.839,
+          0.8042,
+          0.8061,
+          0.7934,
+          0.7974,
+          0.8078,
+          0.7797,
+          0.7626,
+          0.7503,
+          0.7258,
+          0.7062,
+          0.694,
+          0.683
+        ],
+        "n_positions_differing_histogram": [
+          541,
+          65,
+          342,
+          217,
+          209,
+          161,
+          228,
+          212,
+          270,
+          454,
+          365,
+          414,
+          502,
+          926,
+          1592,
+          2886,
+          616
+        ],
+        "n_deviators": 9459,
+        "note": "the z-only policy's own unseeded rollout, which is NOT the tree's -- it already deviates from the tree on 6.19% of users with no seeding at all. `policyz_frozen` replays exactly this order at the seeded state, so policyz - policyz_frozen isolates the deviation and nothing else."
+      },
+      "do_the_deviations_pay": {
+        "policyz_vs_its_own_frozen_order": {
+          "n_deviators": 9459,
+          "mean_among_deviators": -0.013043688361073953,
+          "mean_among_non_deviators": 0.0,
+          "paired_among_deviators": {
+            "mean": -0.013043688361073953,
+            "lo": -0.015590631126762807,
+            "hi": -0.01047453108189544,
+            "n": 9459,
+            "excludes_zero": true
+          }
+        },
+        "policy_vs_tree": {
+          "n_deviators": 248,
+          "mean_among_deviators": -0.01232366537133224,
+          "paired_among_deviators": {
+            "mean": -0.01232366537133224,
+            "lo": -0.026696094210914907,
+            "hi": 0.001784057472607353,
+            "n": 248,
+            "excludes_zero": false
+          }
+        }
+      },
+      "redundancy_per_item_question": {
+        "static": {
+          "mean_item_questions_of_16": 6.0,
+          "mean_reasks_per_user": 0.1675,
+          "reasks_per_item_question": 0.02791666666666667
+        },
+        "tree": {
+          "mean_item_questions_of_16": 7.2687,
+          "mean_reasks_per_user": 0.2108,
+          "reasks_per_item_question": 0.029001059336607644
+        },
+        "policy": {
+          "mean_item_questions_of_16": 7.2665,
+          "mean_reasks_per_user": 0.2089,
+          "reasks_per_item_question": 0.028748365788206155
+        },
+        "policyz": {
+          "mean_item_questions_of_16": 6.8508,
+          "mean_reasks_per_user": 0.1957,
+          "reasks_per_item_question": 0.028566006889706317
+        },
+        "policyz_frozen": {
+          "mean_item_questions_of_16": 7.2693,
+          "mean_reasks_per_user": 0.2094,
+          "reasks_per_item_question": 0.028806074862779085
+        }
       },
       "comparisons": {
         "policy_minus_tree": {
@@ -786,11 +1267,112 @@
             "n": 9217,
             "excludes_zero": true
           }
+        },
+        "policyz_minus_its_frozen_order": {
+          "full": {
+            "mean": -0.012338024820739854,
+            "lo": -0.014666192759908249,
+            "hi": -0.009961909213537477,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.006146318189217245,
+            "lo": -0.008559062673301398,
+            "hi": -0.0037173892134686917,
+            "n": 9217,
+            "excludes_zero": true
+          },
+          "why": "the ONLY difference is which questions were asked; same fold, same evidence"
+        },
+        "policyz_minus_tree": {
+          "full": {
+            "mean": -0.012536366426189882,
+            "lo": -0.014886153314551124,
+            "hi": -0.010163833175101776,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.006091270463027033,
+            "lo": -0.0084904510436003,
+            "hi": -0.003681258787475518,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_minus_policy": {
+          "full": {
+            "mean": -0.012230739524980843,
+            "lo": -0.014589127427764996,
+            "hi": -0.009855242072207821,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.005907323661408761,
+            "lo": -0.008315179906853213,
+            "hi": -0.003499666878434073,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_minus_static": {
+          "full": {
+            "mean": 0.00045923836942472925,
+            "lo": -0.0023100652283403883,
+            "hi": 0.0032591400567042682,
+            "n": 10000,
+            "excludes_zero": false
+          },
+          "tail": {
+            "mean": -0.0006783055092345599,
+            "lo": -0.0034074698878966366,
+            "hi": 0.002096148931512765,
+            "n": 9217,
+            "excludes_zero": false
+          }
+        },
+        "policyz_minus_none": {
+          "full": {
+            "mean": 0.04039487765698288,
+            "lo": 0.037461927266610226,
+            "hi": 0.04341393280644254,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": 0.037474045753176324,
+            "lo": 0.034415343657805124,
+            "hi": 0.04055292215717387,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_seeded_minus_zonly_unseeded": {
+          "full": {
+            "mean": -0.0030835000226173926,
+            "lo": -0.006250530015862394,
+            "hi": 0.000150346120290591,
+            "n": 10000,
+            "excludes_zero": false
+          },
+          "tail": {
+            "mean": 0.013284025528715313,
+            "lo": 0.009969671152998082,
+            "hi": 0.016639988727208253,
+            "n": 9217,
+            "excludes_zero": true
+          }
         }
       },
       "pep_divergence_policy": {
         "n_pairs": 67934947,
         "divergence_rate": 0.6716657775562849
+      },
+      "pep_divergence_policyz": {
+        "n_pairs": 41144288,
+        "divergence_rate": 0.7767054323555191
       }
     },
     "8": {
@@ -994,6 +1576,100 @@
           "concept_share": 0.5474875,
           "n_distinct_interviews": 177,
           "minutes": 1.94
+        },
+        "policyz": {
+          "analysis": "policy_resume_cell",
+          "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.2",
+          "test_touched": false,
+          "split": "validation",
+          "k": 8,
+          "arm": "policyz",
+          "contract": {
+            "tower": "t2i26c_ep31.pt",
+            "conc_ckpt": "concept_cv3_ep08.pt",
+            "pool_contract": {
+              "v": 1,
+              "policy": "B",
+              "n_rows": 10000,
+              "n_items": 18359,
+              "nnz": 1356475,
+              "per_user": 135.6475,
+              "fp": "c282962b49a2d67ef47ff07544519f20"
+            },
+            "ckpt": "policy_main_equivariant_both.pt",
+            "seed": 98765,
+            "L": 16,
+            "draw": "popularity-weighted, without replacement, from rated fold-in items"
+          },
+          "draw": {
+            "k_requested": 8,
+            "n_users": 10000,
+            "seed_size_mean": 8.0,
+            "seed_size_histogram": {
+              "8": 10000
+            },
+            "n_users_short_of_k": 0,
+            "frac_volunteered_items_liked": 0.6230125,
+            "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+            "rng": "numpy.default_rng(98765), users in canonical row order"
+          },
+          "full": 0.2953632416900431,
+          "tail": 0.16557499326508185,
+          "n_questions_asked": 16,
+          "redundant_reasks_mean": 0.3581,
+          "redundant_reasks_total": 3581,
+          "frac_users_with_a_redundant_reask": 0.2889,
+          "answer_rate": 0.5909125,
+          "concept_share": 0.5877125,
+          "n_distinct_interviews": 8288,
+          "minutes": 1.77
+        },
+        "policyz_frozen": {
+          "analysis": "policy_resume_cell",
+          "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.2",
+          "test_touched": false,
+          "split": "validation",
+          "k": 8,
+          "arm": "policyz_frozen",
+          "contract": {
+            "tower": "t2i26c_ep31.pt",
+            "conc_ckpt": "concept_cv3_ep08.pt",
+            "pool_contract": {
+              "v": 1,
+              "policy": "B",
+              "n_rows": 10000,
+              "n_items": 18359,
+              "nnz": 1356475,
+              "per_user": 135.6475,
+              "fp": "c282962b49a2d67ef47ff07544519f20"
+            },
+            "ckpt": "policy_main_equivariant_both.pt",
+            "seed": 98765,
+            "L": 16,
+            "draw": "popularity-weighted, without replacement, from rated fold-in items"
+          },
+          "draw": {
+            "k_requested": 8,
+            "n_users": 10000,
+            "seed_size_mean": 8.0,
+            "seed_size_histogram": {
+              "8": 10000
+            },
+            "n_users_short_of_k": 0,
+            "frac_volunteered_items_liked": 0.6230125,
+            "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+            "rng": "numpy.default_rng(98765), users in canonical row order"
+          },
+          "full": 0.30396590404644,
+          "tail": 0.16953238513788332,
+          "n_questions_asked": 16,
+          "redundant_reasks_mean": 0.3955,
+          "redundant_reasks_total": 3955,
+          "frac_users_with_a_redundant_reask": 0.3194,
+          "answer_rate": 0.57799375,
+          "concept_share": 0.54566875,
+          "n_distinct_interviews": 228,
+          "minutes": 0.23
         }
       },
       "adaptation": {
@@ -1036,7 +1712,103 @@
           0,
           0
         ],
+        "n_deviators": 511,
         "note": "E1's unseeded rollout IS the tree's realised interview (agreement 1.0000). So this is simultaneously 'does the policy adapt to the seeding' and 'does it leave the teacher's manifold'."
+      },
+      "adaptation_zonly": {
+        "frac_never_deviates_from_its_own_unseeded_rollout": 0.014,
+        "mean_positions_differing": 12.911,
+        "frac_users_differing_at_each_position": [
+          0.2118,
+          0.7824,
+          0.8653,
+          0.9138,
+          0.8952,
+          0.891,
+          0.8831,
+          0.8794,
+          0.8836,
+          0.8613,
+          0.8406,
+          0.8266,
+          0.8166,
+          0.7967,
+          0.7844,
+          0.7792
+        ],
+        "n_positions_differing_histogram": [
+          140,
+          16,
+          129,
+          142,
+          121,
+          117,
+          141,
+          180,
+          206,
+          392,
+          329,
+          402,
+          438,
+          726,
+          1500,
+          3683,
+          1338
+        ],
+        "n_deviators": 9860,
+        "note": "the z-only policy's own unseeded rollout, which is NOT the tree's -- it already deviates from the tree on 6.19% of users with no seeding at all. `policyz_frozen` replays exactly this order at the seeded state, so policyz - policyz_frozen isolates the deviation and nothing else."
+      },
+      "do_the_deviations_pay": {
+        "policyz_vs_its_own_frozen_order": {
+          "n_deviators": 9860,
+          "mean_among_deviators": -0.008724809692086187,
+          "mean_among_non_deviators": 0.0,
+          "paired_among_deviators": {
+            "mean": -0.008724809692086187,
+            "lo": -0.011079653168375126,
+            "hi": -0.006373187094226711,
+            "n": 9860,
+            "excludes_zero": true
+          }
+        },
+        "policy_vs_tree": {
+          "n_deviators": 511,
+          "mean_among_deviators": -0.00500246534863457,
+          "paired_among_deviators": {
+            "mean": -0.00500246534863457,
+            "lo": -0.014096814351129626,
+            "hi": 0.0040993997602132804,
+            "n": 511,
+            "excludes_zero": false
+          }
+        }
+      },
+      "redundancy_per_item_question": {
+        "static": {
+          "mean_item_questions_of_16": 6.0,
+          "mean_reasks_per_user": 0.3117,
+          "reasks_per_item_question": 0.051949999999999996
+        },
+        "tree": {
+          "mean_item_questions_of_16": 7.2687,
+          "mean_reasks_per_user": 0.3968,
+          "reasks_per_item_question": 0.05459022933949675
+        },
+        "policy": {
+          "mean_item_questions_of_16": 7.2402,
+          "mean_reasks_per_user": 0.3877,
+          "reasks_per_item_question": 0.053548244523631945
+        },
+        "policyz": {
+          "mean_item_questions_of_16": 6.5966,
+          "mean_reasks_per_user": 0.3581,
+          "reasks_per_item_question": 0.05428554103629142
+        },
+        "policyz_frozen": {
+          "mean_item_questions_of_16": 7.2693,
+          "mean_reasks_per_user": 0.3955,
+          "reasks_per_item_question": 0.05440688924655744
+        }
       },
       "comparisons": {
         "policy_minus_tree": {
@@ -1166,13 +1938,114 @@
             "n": 9217,
             "excludes_zero": true
           }
+        },
+        "policyz_minus_its_frozen_order": {
+          "full": {
+            "mean": -0.008602662356396982,
+            "lo": -0.010937729059665946,
+            "hi": -0.006325929726348804,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.003957391872801508,
+            "lo": -0.006245218235408169,
+            "hi": -0.0016201961471748133,
+            "n": 9217,
+            "excludes_zero": true
+          },
+          "why": "the ONLY difference is which questions were asked; same fold, same evidence"
+        },
+        "policyz_minus_tree": {
+          "full": {
+            "mean": -0.008733242741486355,
+            "lo": -0.01108612063226215,
+            "hi": -0.0064374466139827755,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.003933203714948439,
+            "lo": -0.006197594981825213,
+            "hi": -0.0016319700681313872,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_minus_policy": {
+          "full": {
+            "mean": -0.00847761676217113,
+            "lo": -0.0108227027648209,
+            "hi": -0.006178040711568124,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.0039562000801635295,
+            "lo": -0.006272393740369492,
+            "hi": -0.00159427328753026,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_minus_static": {
+          "full": {
+            "mean": 0.003114435150512548,
+            "lo": 0.0005297784163745935,
+            "hi": 0.00570645193529131,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": -0.0014841813222428032,
+            "lo": -0.003940524980916299,
+            "hi": 0.0009745320144634207,
+            "n": 9217,
+            "excludes_zero": false
+          }
+        },
+        "policyz_minus_none": {
+          "full": {
+            "mean": 0.021971727990170133,
+            "lo": 0.019089266283786644,
+            "hi": 0.0248195098808414,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": 0.022614978002130942,
+            "lo": 0.0198185786295029,
+            "hi": 0.02540014842808112,
+            "n": 9217,
+            "excludes_zero": true
+          }
+        },
+        "policyz_seeded_minus_zonly_unseeded": {
+          "full": {
+            "mean": 0.012521055426925425,
+            "lo": 0.009007580763397392,
+            "hi": 0.016018488333822117,
+            "n": 10000,
+            "excludes_zero": true
+          },
+          "tail": {
+            "mean": 0.0317210619400624,
+            "lo": 0.02800191534564067,
+            "hi": 0.035474416055626165,
+            "n": 9217,
+            "excludes_zero": true
+          }
         }
       },
       "pep_divergence_policy": {
         "n_pairs": 67252800,
         "divergence_rate": 0.6801810184854757
+      },
+      "pep_divergence_policyz": {
+        "n_pairs": 31964642,
+        "divergence_rate": 0.7961870181433598
       }
     }
   },
-  "minutes": 1.93
+  "minutes": 6.14
 }

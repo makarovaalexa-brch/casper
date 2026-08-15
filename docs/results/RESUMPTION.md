@@ -207,6 +207,110 @@ reporting first, and this document is that report.
 
 ---
 
+## ★★★ ADDENDUM, 2026-08-15 — THE BELIEF-ONLY (z-ONLY) ARM: it adapts, and the falsifier FIRES
+
+> **AUTHOR SAID: "ok, go ahead."**
+
+### The hypothesis, stated before the run
+
+R showed the both-inputs policy runs its *unseeded* interview for 95–99% of users. The proposed
+mechanism: the state has two parts, and **volunteered evidence moves the tower latent `z_t` while
+leaving the explicit ternary asked-history EMPTY — a pairing that never occurs anywhere in E1's
+training**, because the only way `z_t` ever moved there was that a question was asked and answered.
+On an unfamiliar pairing the model falls back to its empty-interview behaviour, which is the tree's
+opening.
+
+**The `z`-only policy cannot make that distinction by construction:** volunteered items and answered
+items fold into `z_t` identically, so it has no way to tell *"three films you offered"* from *"three
+films I asked about"*. If the mechanism is right, it should adapt. It is a fair arm, not a straw man
+— top-1 **0.9951**, gain **+0.02723** (97% of E1's +0.02794), and it already deviates from the tree
+on **6.19%** of users with no seeding at all, where the both-inputs model deviates on 0%.
+
+Same protocol, same k ∈ {2,4,8}, same popularity-weighted draw, seed 98765, same gates, same paired
+bootstrap. **Every cell R published was asserted against R's banked value** — resumed or recomputed —
+and all 12 reproduce exactly. One new comparator was needed: **`policyz_frozen`**, which replays the
+z-only policy's **own unseeded question order** at the seeded state, so it differs from `policyz` in
+the questions asked and in nothing else. (For the both-inputs policy that arm *is* the tree arm,
+which is why R did not need it.)
+
+### 1. It adapts — the prediction is confirmed, and not marginally
+
+| k | both-inputs: users changed / positions | **z-only: users changed / positions** |
+|---|---|---|
+| 2 | 1.01% / 0.13 of 16 | **87.66% / 9.30 of 16** |
+| 4 | 2.48% / 0.30 | **94.59% / 11.38** |
+| 8 | 5.11% / 0.60 | **98.60% / 12.91** |
+
+Distinct realised interviews go from 228 (its own unseeded rollout) to **4,899 / 6,900 / 8,288**, and
+the amount of change **scales with the amount of volunteered evidence**. The belief-only policy is
+unambiguously responding to evidence it did not choose. **The state-features half of the mechanism is
+real: the asked-history feature is what pins the both-inputs policy to its opening.**
+
+### 2. The deviations do not pay — they cost, at every k
+
+`policyz` − `policyz_frozen` isolates the deviation exactly: same user, same fold, same volunteered
+evidence, **only the questions differ**.
+
+| k | z-only − its own frozen order | among the deviators only | z-only − tree |
+|---|---|---|---|
+| 2 | **−0.01246 [−0.01471, −0.01015]** | −0.01422 [−0.01675, −0.01165] (n=8,766) | −0.01255 [−0.01481, −0.01025] |
+| 4 | **−0.01234 [−0.01467, −0.00996]** | −0.01304 [−0.01559, −0.01047] (n=9,459) | −0.01254 [−0.01489, −0.01016] |
+| 8 | **−0.00860 [−0.01094, −0.00633]** | −0.00872 [−0.01108, −0.00637] (n=9,860) | −0.00873 [−0.01109, −0.00644] |
+
+Every interval excludes zero. Scores: at k=8 the z-only policy reaches **0.29536** against the tree's
+**0.30410** and its own frozen order's **0.30397**.
+
+> ### ★ THE FALSIFIER FIRES — for the belief-only policy
+>
+> R's pre-registered falsifier: *"if the policy adapts and still loses to the tree on seeded states —
+> the setting built to disadvantage the tree — the 'supports new states' claim is dead and is
+> reported dead."* In R it did not fire because the policy never adapted. **Here it fires.** The
+> z-only policy adapts on 88–99% of users and loses to the tree at every k with intervals excluding
+> zero. **For this arm the claim is dead and is reported dead.**
+
+### 3. ★ The redundancy count says the change is not *about* the evidence
+
+This was pre-registered as the sharpest single diagnostic: *a policy that reads the volunteered set
+has no reason to ask about a film whose answer it already holds, so its re-ask rate should fall below
+the tree's.* Re-asks of a volunteered item, **per item question asked**:
+
+| k | static | tree | both-inputs policy | z-only frozen order | **z-only** |
+|---|---|---|---|---|---|
+| 2 | 1.348% | 1.417% | 1.404% | 1.425% | **1.442%** |
+| 4 | 2.792% | 2.900% | 2.875% | 2.881% | **2.857%** |
+| 8 | 5.195% | 5.459% | 5.355% | 5.441% | **5.429%** |
+
+**It changes 9 to 13 of its 16 questions and re-asks volunteered films at exactly the tree's rate** —
+higher than the tree's at k=2. Not one of the five arms separates from any other on this diagnostic.
+
+> **So the honest sentence is: the belief-only policy is SENSITIVE to volunteered evidence but not
+> INFORMED by it.** Its interview moves, and the amount it moves scales with how much was
+> volunteered, but the movement does not carry the one property that would show the content was
+> used — and it costs 0.9 to 1.2 points of NDCG.
+
+### What this settles, and what it corrects
+
+1. **The mechanism's first half is confirmed and is worth keeping.** The explicit asked-history is
+   what freezes the both-inputs policy on seeded states: remove it and the policy responds. That is a
+   real, cheap, measured finding about *why* R came out null.
+2. **The mechanism's second half is refuted.** *"The asked-history feature was the thing breaking
+   it"* implies that removing it fixes the behaviour. It does not. It converts a policy that ignores
+   the evidence into one that churns on it — **undirected churn, not conditioning**, on the one
+   diagnostic that can tell them apart.
+3. **Neither policy has a behavioural "supports new states" capability.** The both-inputs model does
+   not respond; the belief-only model responds badly. **The capability remains architectural in both
+   arms, and the falsifier has now fired on one of them.**
+4. **This is the exact case the 138-state fine-tune exists for** — the capability is real and the
+   behaviour is untrained — and the fine-tune was **not run**, per instruction.
+
+**One thing that is NOT a defect of the z-only arm:** it is still above the static order at k=2
+(+0.00409 [+0.00130, +0.00692]) and k=8 (+0.00311 [+0.00053, +0.00571]), and a null at k=4. It has
+not collapsed; it has traded a good fixed order for a worse adaptive one. Its answer rate is
+unmoved (0.576 / 0.580 / 0.591 against the tree's 0.579) and its concept share drifts up
+(0.5608 / 0.5718 / 0.5877 against 0.5457), so the churn is not a channel collapse either.
+
+**Cost:** 6.1 minutes for all three k (four of six cells per k resume from R's banked artifacts).
+
 ## Cost — a property of this box, not of the method
 
 | | measured |
