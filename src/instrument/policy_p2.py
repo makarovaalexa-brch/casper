@@ -538,6 +538,18 @@ def finetune(args):
             f"seeded top1 asked {sd['asked']:.4f} volunteered {sd['volunteered']:.4f} | "
             f"tree agreement {ag['top1']:.4f} | {rec['n_distinct_interviews']} interviews | "
             f"{rec['minutes']:.1f}m")
+        # ALWAYS bank the last epoch under its own name. This does NOT change the declared selection
+        # rule -- `p2_<arm>.pt` is still written only when the spanning gate is cleared. It exists so
+        # that an arm the gate REJECTS can still be evaluated as a declared diagnostic rather than
+        # disappearing: "trained on seeded states, deviations still cost" is the pre-registered
+        # falsifier and it must remain measurable whether or not the arm is admissible.
+        torch.save({"model": pol.state_dict(), "arch": blob["arch"], "state": blob["state"],
+                    "use_pos": blob["use_pos"], "d_phi": int(phi_t.shape[1]), "n_pool": P,
+                    "epoch": ep, "val_full": rec["val_full_unseeded"],
+                    "val_tail": rec["val_tail_unseeded"], "norm_mu": norm[0], "norm_sd": norm[1],
+                    "arm": f"p2_{args.arm}_lastepoch",
+                    "pool": [[int(a), int(b)] for a, b in pool], "seed": SEED},
+                   os.path.join(P2_DIR, stem + "_last.pt"))
         if rec["spanning_gate_pass"]:
             # DECLARED SELECTION RULE: the LAST epoch that clears the spanning gate.
             torch.save({"model": pol.state_dict(), "arch": blob["arch"], "state": blob["state"],
