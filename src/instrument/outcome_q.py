@@ -307,6 +307,37 @@ def main():
         backoff_tbl[j] = c / c.sum()
     sidx = {int(s): j for j, s in enumerate(np.unique(st))}
     backoff = np.asarray([backoff_tbl[sidx[int(st[q])]] for q in held_q], np.float64)
+
+    # ---- ★ PRINT THE COMPOSITION BEFORE SPENDING AN HOUR ON IT ----------------------------------
+    # A held-out set that is 95% never-answerable would make the AUC comparison meaningless in a way
+    # the headline number hides. So: channel split, popularity-decile histogram, and how many of the
+    # held-out questions ANY fit user can answer at all.
+    ans_cnt = counts[:, OUTCOME["like"]] + counts[:, OUTCOME["dislike"]]
+    comp.update({
+        "heldout_n_items": int((held_q < ni).sum()),
+        "heldout_n_concepts": int((held_q >= ni).sum()),
+        "heldout_decile_histogram_items": [int(((st[held_q] == b) & (held_q < ni)).sum())
+                                           for b in range(10)],
+        "heldout_decile_histogram_concepts": [int((st[held_q] == 10 + b).sum()) for b in range(10)],
+        "heldout_questions_answered_by_at_least_one_fit_user":
+            int((ans_cnt[held_q] > 0).sum()),
+        "heldout_questions_never_answered_by_anyone": int((ans_cnt[held_q] == 0).sum()),
+        "train_questions_answered_by_at_least_one_fit_user": int((ans_cnt[train_q] > 0).sum()),
+        "heldout_mean_answer_rate": float((ans_cnt[held_q] / max(len(fit_u), 1)).mean()),
+        "train_mean_answer_rate": float((ans_cnt[train_q] / max(len(fit_u), 1)).mean()),
+        "heldout_answer_rate_quantiles": [float(x) for x in np.percentile(
+            ans_cnt[held_q] / max(len(fit_u), 1), [0, 25, 50, 75, 90, 99, 100])],
+    })
+    log("[composition] " + json.dumps({k: comp[k] for k in (
+        "n_catalogue", "n_train_questions", "n_heldout_questions", "heldout_n_items",
+        "heldout_n_concepts", "heldout_questions_answered_by_at_least_one_fit_user",
+        "heldout_questions_never_answered_by_anyone", "heldout_mean_answer_rate",
+        "train_mean_answer_rate", "heldout_answer_rate_quantiles")}, default=float))
+    log(f"[composition] held-out item deciles "
+        f"{comp['heldout_decile_histogram_items']} | concept deciles "
+        f"{comp['heldout_decile_histogram_concepts']}")
+    assert comp["heldout_questions_answered_by_at_least_one_fit_user"] > 0, \
+        "no held-out question is answerable by anyone -- the comparison would be vacuous"
     # the RIGGED prior: the per-question row of a question the comparator should not have. Reported
     # only so the gap is legible; it is NOT the comparator.
     rigged = (counts[held_q] + 1.0) / (counts[held_q].sum(1, keepdims=True) + N_OUTCOMES)
