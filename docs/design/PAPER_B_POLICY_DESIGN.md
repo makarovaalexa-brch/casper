@@ -1322,6 +1322,128 @@ described as strategic unless Stage D separates (F.3 stands).
 
 ---
 
+# PART H — THE CAPABILITIES PROGRAMME (Fable, 2026-08-15) — the redirect after the value line closed
+
+> **AUTHOR SAID (verbatim):** *"policy is supposed to eb scalable, generalisable (it knows similarity
+> between concepts and items, tree doesn't), could support new vocab, can support new states, most
+> improtantly i guess. so i am ok not to beat tree on these 5 levels or whatnot, but i wanna show how
+> this architecture in general is better."* And, after the component split was explained: *"can we get
+> rid of value at all?"* → yes; and *"write up the experiment design plz."*
+
+## H.0 The strategic reframe, in two sentences
+
+We had been trying to prove the architecture better by **beating the tree at the tree's own game**
+(empty start, the tree's own pool, the cohort it was grown for) — a game in which the tree is
+near-optimal by construction and the best any learner can do is copy it, which E1 did to 1e-9. The
+author's list — similarity, new vocab, new states — is a list of **games the tree cannot enter**, and
+that is where superiority is demonstrable without beating 0.28355.
+
+## H.1 The system under test — and the VALUE MODEL IS DELETED
+
+**System = the DISTILLED POLICY (E1, frozen, 0.28355) + the REACTION HEAD (outcome head, frozen,
+AUC 0.98243).** No value model anywhere.
+
+The value line is CLOSED as a measured negative, five arms deep: flat table −0.02911 · learned
+two-head −0.05840 · **perfect measured values** (ceiling, ρ=1.00) −0.02911 · nearest-state lookup
+−0.01978 · warm-started direct regression −0.03559, all against the combined static, all losing to
+E1's +0.02794. Mechanisms recorded: argmax-over-noisy-estimates selects the over-estimates
+(answer rate 0.58→0.37); the value surface is rough across states (inter-state rank corr ~+0.29,
+range −0.17…+0.83) so it cannot be interpolated from any affordable label set; and action learning
+needs one bit per state where value learning needs the whole surface. **Chapter sentence:** *at
+feasible label budgets, learning the action beats learning the value — and even perfect per-question
+values lose.* The `base + δ correction` sixth attempt is **CANCELLED** (revivable only by explicit
+author request); the author's instinct that answerability multiplies in nothing is confirmed
+(+0.1726 vs +0.1727) and `P(o)` survives only as an input/guard, never a factor.
+
+Standing constraints on every experiment below: 10,000 validation users for all development, **no
+test look without an explicit author decision**, certified pair frozen, policy-B mask, paired
+percentile bootstrap (10k resamples, seed 98765), canonical m=0 snap before anything is trusted,
+one heavy job on the box, code committed before running, `test_touched=false` stamped everywhere.
+
+## H.2 Experiment R — RESUMPTION: "supports new states" (★ the headline; run FIRST)
+
+**Claim under test:** the policy can condition its questioning on evidence it did not choose; the
+tree structurally cannot (its routing consumes answers to ITS OWN questions only — volunteered
+evidence enters the recommender's fold but can never move which question the tree asks next).
+
+**Design.** For each validation user, sample **k volunteered items** from their fold-in half
+(k ∈ {2, 4, 8}; popularity-weighted draw so the volunteered set is realistic, seed 98765; the draw is
+declared, not silent). Fold them as ordinary evidence. Then each arm conducts a **16-question**
+interview from that seeded state:
+
+| arm | how it uses the evidence |
+|---|---|
+| tree | cannot — starts at its root, asks its fixed branch sequence regardless (it may literally re-ask what was volunteered) |
+| static combined order | cannot — same 16 questions always |
+| **distilled policy** | reads the seeded `z_t` — MAY adapt off-manifold; whether it does is itself a result |
+| ask-nothing-more | the k volunteered items alone (isolates what the interview adds on top) |
+
+All arms score identically: full+tail NDCG@10 at K=16, same recommender, same mask. **Report also the
+redundancy count** — how often each arm asks a question whose answer the volunteered evidence already
+determines — because that is the mechanism made visible, not just the score.
+
+**The honest fork, declared up front:** E1 never deviates on-manifold, so it may not adapt to seeded
+states either. **Both outcomes are results.** If it adapts and wins: distillation generalises off the
+teacher's manifold — the architecture claim, demonstrated. If it does not adapt: that measures what
+one-hot distillation fails to buy, and the fix is a **fine-tune on evidence-seeded states, for which
+the training data already exists** — the 138 random-prefix states sampled on 2026-08-14 are exactly
+evidence-seeded states, with measured labels, at zero new cost. Gate for the fine-tune: the spanning
+regression gate (never below E1 at k=0 seeded evidence) plus the shuffle control.
+
+**Cost:** rollout + scoring per arm per k, ~3 arms × 3 k ≈ 9 cells ≈ 3–5 h total on this box.
+**Falsifier:** if the policy adapts and still cannot beat the TREE on seeded states — the setting
+built to disadvantage the tree — the "supports new states" claim is dead and is reported dead.
+
+## H.3 Experiment Q — HELD-OUT QUESTIONS: "it knows similarity" (the deferred F.5, now due)
+
+**Claim under test:** the reaction head predicts a person's reaction to a question it has NEVER seen
+in training, from the question's embedding alone. A tree cannot represent such a question at all.
+
+Design exactly as F.5 specified (it was deferred by the author on 2026-08-13, "train on all and see
+if it even works" — it works, so the deferral expires): hold out **20% of the 19,390 questions by
+identity**, stratified by channel and popularity; retrain the reaction head on the remaining 80%;
+evaluate three-way AUC/ECE on held-out questions × held-out users. **Baselines:** global base rates,
+and the per-question popularity prior — which for a held-out question has NO per-question row, so the
+prior must back off to channel/popularity-bucket means; that backoff IS the fair comparator, state it.
+**The curve that answers the author's real question:** train on 10/25/50/100% of questions, plot
+held-out-question AUC. Early saturation = "learns from fewer examples via similarity" demonstrated;
+still-climbing = memorisation-shaped, reported as such. **Falsifier (pre-registered, unchanged from
+F.5):** held-out-question AUC ≤ the popularity backoff ⇒ the similarity claim fails on the easiest
+property it will ever be offered, and is reported failed. **Cost:** ~2 retrains + suite ≈ 4–6 h.
+
+## H.4 Experiment G — THE GUARD: "new vocab means knowing what NOT to ask"
+
+**Reframe, forced by measurement:** catalogue-wide questions are worth ≈ nothing (−0.00104…+0.00119
+per draw vs +0.00101…+0.00470 in-pool; best-of-30 catalogue rarely reaches mean-of-20 pool). So the
+honest open-vocab claim is not "it finds treasure outside the pool" — the treasure mostly is not
+there — but **"it can score any question and correctly declines the junk."**
+
+**Design.** Open the vocabulary to all 19,390. Score = the distilled policy's logit, with the
+reaction head as a **hard guard**: candidates whose predicted P(no-answer) exceeds a threshold are
+masked. Sweep the threshold on validation (declared sweep, not a tuned knob smuggled in — report the
+whole curve, pick nothing post-hoc). Compare against: E1 open-vocab unguarded (−0.02034, 9.1%
+answered out-of-pool), E1 pool-restricted (the ceiling), and guard-by-popularity (the dumb guard — if
+popularity alone recovers the same deficit, the learned head adds nothing; say so). **Success:** the
+guarded open-vocab policy recovers most of the −0.02034 while retaining a nonzero out-of-pool rate
+whose picks get answered at a rate near in-pool. **Falsifier:** if recovery requires driving
+out-of-pool picks to ~0%, the claim collapses to "the pool was already right" — report that; it is
+the F.5-era pre-registered failure mode and it is informative about the catalogue, not just the model.
+**Cost:** rollouts only, ~2–3 h.
+
+## H.5 What the chapter then says
+
+Tree = existence proof that the measured criterion pays. Distilled policy = the same criterion in a
+form that generalises. Capabilities section = one experiment per claimed property (R: new states ·
+Q: similarity · G: vocabulary), each with its falsifier fired-or-not. Value model = the measured
+negative, five arms, with mechanisms — *learning the action beats learning the value, and even
+perfect values lose* — which rhymes with the chapter's thesis (measured beats modelled) rather than
+apologising for it. **Never claim routing; never claim strategy; never claim "adaptivity is large";
+the bank result (+0.01430 > +0.01035) travels with every adaptive sentence.**
+
+**Order: R → Q → G.** R first because it is the headline and its fine-tune data already exists.
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
