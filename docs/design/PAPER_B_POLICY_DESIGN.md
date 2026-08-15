@@ -1506,9 +1506,31 @@ emission audit (banked trajectories, no new NDCG). **≈ 2–3 h.** No new label
 inert there (R: 95–99% unchanged) without becoming arbitrary (R2: deviations cost −0.012).
 
 **Training set.** A MIXTURE, and the mixture is the design: the original E1 tree-state labels as
-**replay** (the proven anti-forgetting mechanism) + the **138 evidence-seeded states** from the
-2026-08-14 random-prefix sampling, each with its measured-argmax label, upweighted so seeded states
-are ~1/8 of each batch (declared constant, not tuned post-hoc).
+**replay** (the proven anti-forgetting mechanism) + the evidence-seeded states, each with its
+measured-argmax label, upweighted so seeded states are ~1/8 of each batch (declared constant, not
+tuned post-hoc).
+
+> ### ★ CORRECTION, 2026-08-15 (author's catch) — "138" WAS AN UNDERCOUNT; THE NUMBER IS **209**
+>
+> This section originally said *"the 138 evidence-seeded states from the 2026-08-14 random-prefix
+> sampling"*. The 425-state / 72,717-triple bank was built for the **value** model and has only ever
+> been used for value regression — but **every one of its states also carries a measured ACTION label,
+> and none of them had ever trained anything.** Counted by source rather than assumed:
+>
+> | source | states | on E1's manifold? | action-label teacher |
+> |---|---|---|---|
+> | `ndcgtree16_heaps` + `ndcgtree_heaps` | 216 | **yes** (the tree's own greedy tails) | — this is the replay, excluded |
+> | `policy_labels_deep_partial` | 42 | no (below the floor stops) | **exact** (~996 of 1,000 measured) |
+> | random-prefix sweeps | 138 | no | **weak** (argmax of ~22 in-pool of 50 sampled) |
+> | `greedy_static_policyB_{items,concepts}_heaps` | 31 | no (static-order states) | **exact** (the banked `pick` is greedy's own choice) |
+> | | **209 off-manifold** | | |
+>
+> **210 states were used** (138 + 42 + 30): one of the 31 static-order states is the EMPTY state,
+> which E1 already handles with the tree's root, and relabelling it would disturb behaviour the policy
+> already has — the phase-3 failure mode I.0 warns about — so it was dropped and the drop is counted.
+> Together they carry **125 distinct label questions, 77 of which the tree never asks**, so the
+> fine-tune genuinely widened the supervised action vocabulary rather than re-running the tree's own
+> labels at new states. Result: `docs/results/P2_EVIDENCE_SEEDED.md`.
 
 ⚠ **Teacher honesty, carried on every number:** the seeded-state labels are **argmax over the 50
 sampled candidates** (20 pool + 30 catalogue), NOT over the full 1,000-pool. An imperfect teacher is
