@@ -1,0 +1,1730 @@
+{
+ "analysis": "policy_p1_audit",
+ "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md I.1",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "n_held_out_questions": 36,
+ "composition": {
+  "n_questions_total": 172,
+  "n_held_out": 36,
+  "held_out_items": 16,
+  "held_out_concepts": 20,
+  "kept_items": 60,
+  "kept_concepts": 76,
+  "train_examples_total": 2252288,
+  "train_examples_carrying_a_held_out_label": 538620,
+  "train_examples_dropped_frac": 0.23914348431461696,
+  "val_examples_total": 160000,
+  "val_examples_carrying_a_held_out_label": 38336,
+  "val_held_out_examples_by_position": [
+   10000,
+   2580,
+   0,
+   1189,
+   795,
+   2694,
+   2311,
+   2510,
+   0,
+   2314,
+   911,
+   2441,
+   3869,
+   1283,
+   2482,
+   2957
+  ],
+  "held_out_label_mass_train_quantiles": [
+   2948,
+   5053,
+   9405,
+   14287,
+   140768
+  ],
+  "kept_label_mass_train_quantiles": [
+   2948,
+   5053,
+   8769,
+   15509,
+   75891
+  ],
+  "per_held_out_question": [
+   {
+    "pool_idx": 828,
+    "channel": "concept",
+    "id": 114,
+    "train_label_mass": 140768,
+    "val_label_mass": 10000
+   },
+   {
+    "pool_idx": 80,
+    "channel": "item",
+    "id": 514,
+    "train_label_mass": 36141,
+    "val_label_mass": 2580
+   },
+   {
+    "pool_idx": 2,
+    "channel": "item",
+    "id": 8,
+    "train_label_mass": 29604,
+    "val_label_mass": 2130
+   },
+   {
+    "pool_idx": 3,
+    "channel": "item",
+    "id": 123,
+    "train_label_mass": 24876,
+    "val_label_mass": 1785
+   },
+   {
+    "pool_idx": 241,
+    "channel": "item",
+    "id": 442,
+    "train_label_mass": 24876,
+    "val_label_mass": 1785
+   },
+   {
+    "pool_idx": 786,
+    "channel": "concept",
+    "id": 247,
+    "train_label_mass": 24876,
+    "val_label_mass": 1785
+   },
+   {
+    "pool_idx": 773,
+    "channel": "concept",
+    "id": 251,
+    "train_label_mass": 19415,
+    "val_label_mass": 1382
+   },
+   {
+    "pool_idx": 944,
+    "channel": "concept",
+    "id": 280,
+    "train_label_mass": 16861,
+    "val_label_mass": 1215
+   },
+   {
+    "pool_idx": 71,
+    "channel": "item",
+    "id": 463,
+    "train_label_mass": 15411,
+    "val_label_mass": 1085
+   },
+   {
+    "pool_idx": 771,
+    "channel": "concept",
+    "id": 801,
+    "train_label_mass": 13913,
+    "val_label_mass": 1010
+   },
+   {
+    "pool_idx": 769,
+    "channel": "concept",
+    "id": 336,
+    "train_label_mass": 11933,
+    "val_label_mass": 869
+   },
+   {
+    "pool_idx": 611,
+    "channel": "concept",
+    "id": 622,
+    "train_label_mass": 11077,
+    "val_label_mass": 702
+   },
+   {
+    "pool_idx": 916,
+    "channel": "concept",
+    "id": 708,
+    "train_label_mass": 11077,
+    "val_label_mass": 702
+   },
+   {
+    "pool_idx": 805,
+    "channel": "concept",
+    "id": 672,
+    "train_label_mass": 10812,
+    "val_label_mass": 723
+   },
+   {
+    "pool_idx": 40,
+    "channel": "item",
+    "id": 29,
+    "train_label_mass": 10255,
+    "val_label_mass": 739
+   },
+   {
+    "pool_idx": 152,
+    "channel": "item",
+    "id": 74,
+    "train_label_mass": 10255,
+    "val_label_mass": 739
+   },
+   {
+    "pool_idx": 707,
+    "channel": "concept",
+    "id": 769,
+    "train_label_mass": 10255,
+    "val_label_mass": 739
+   },
+   {
+    "pool_idx": 541,
+    "channel": "concept",
+    "id": 203,
+    "train_label_mass": 10042,
+    "val_label_mass": 712
+   },
+   {
+    "pool_idx": 194,
+    "channel": "item",
+    "id": 951,
+    "train_label_mass": 8769,
+    "val_label_mass": 660
+   },
+   {
+    "pool_idx": 198,
+    "channel": "item",
+    "id": 88,
+    "train_label_mass": 8769,
+    "val_label_mass": 660
+   },
+   {
+    "pool_idx": 421,
+    "channel": "item",
+    "id": 545,
+    "train_label_mass": 8769,
+    "val_label_mass": 660
+   },
+   {
+    "pool_idx": 376,
+    "channel": "item",
+    "id": 781,
+    "train_label_mass": 8034,
+    "val_label_mass": 556
+   },
+   {
+    "pool_idx": 502,
+    "channel": "concept",
+    "id": 594,
+    "train_label_mass": 8034,
+    "val_label_mass": 556
+   },
+   {
+    "pool_idx": 665,
+    "channel": "concept",
+    "id": 976,
+    "train_label_mass": 7377,
+    "val_label_mass": 529
+   },
+   {
+    "pool_idx": 966,
+    "channel": "concept",
+    "id": 851,
+    "train_label_mass": 7377,
+    "val_label_mass": 529
+   },
+   {
+    "pool_idx": 819,
+    "channel": "concept",
+    "id": 381,
+    "train_label_mass": 6212,
+    "val_label_mass": 438
+   },
+   {
+    "pool_idx": 15,
+    "channel": "item",
+    "id": 14,
+    "train_label_mass": 5053,
+    "val_label_mass": 357
+   },
+   {
+    "pool_idx": 218,
+    "channel": "item",
+    "id": 844,
+    "train_label_mass": 5053,
+    "val_label_mass": 357
+   },
+   {
+    "pool_idx": 569,
+    "channel": "concept",
+    "id": 339,
+    "train_label_mass": 5053,
+    "val_label_mass": 357
+   },
+   {
+    "pool_idx": 266,
+    "channel": "item",
+    "id": 348,
+    "train_label_mass": 4989,
+    "val_label_mass": 355
+   },
+   {
+    "pool_idx": 560,
+    "channel": "concept",
+    "id": 754,
+    "train_label_mass": 4728,
+    "val_label_mass": 345
+   },
+   {
+    "pool_idx": 479,
+    "channel": "item",
+    "id": 346,
+    "train_label_mass": 4556,
+    "val_label_mass": 340
+   },
+   {
+    "pool_idx": 776,
+    "channel": "concept",
+    "id": 799,
+    "train_label_mass": 4556,
+    "val_label_mass": 340
+   },
+   {
+    "pool_idx": 61,
+    "channel": "item",
+    "id": 538,
+    "train_label_mass": 2948,
+    "val_label_mass": 205
+   },
+   {
+    "pool_idx": 714,
+    "channel": "concept",
+    "id": 753,
+    "train_label_mass": 2948,
+    "val_label_mass": 205
+   },
+   {
+    "pool_idx": 990,
+    "channel": "concept",
+    "id": 238,
+    "train_label_mass": 2948,
+    "val_label_mass": 205
+   }
+  ]
+ },
+ "arms": {
+  "E1_reference": {
+   "ckpt": "policy_main_equivariant_both.pt",
+   "epoch": 2,
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "n_states": 38336,
+   "top1_emission": 1.0,
+   "top5_emission": 1.0,
+   "neighbour_credit_top1_in_NN5": 0.0,
+   "neighbour_credit_or_top1": 1.0,
+   "median_rank_of_the_held_out_question": 0.0,
+   "mean_rank_of_the_held_out_question": 0.0,
+   "frac_emitting_ANY_held_out_question_top1": 1.0,
+   "per_question": {
+    "2": {
+     "channel": "item",
+     "id": 8,
+     "n_states": 2130,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "3": {
+     "channel": "item",
+     "id": 123,
+     "n_states": 1785,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "15": {
+     "channel": "item",
+     "id": 14,
+     "n_states": 357,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "40": {
+     "channel": "item",
+     "id": 29,
+     "n_states": 739,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "61": {
+     "channel": "item",
+     "id": 538,
+     "n_states": 205,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "71": {
+     "channel": "item",
+     "id": 463,
+     "n_states": 1085,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "80": {
+     "channel": "item",
+     "id": 514,
+     "n_states": 2580,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "152": {
+     "channel": "item",
+     "id": 74,
+     "n_states": 739,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "194": {
+     "channel": "item",
+     "id": 951,
+     "n_states": 660,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "198": {
+     "channel": "item",
+     "id": 88,
+     "n_states": 660,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "218": {
+     "channel": "item",
+     "id": 844,
+     "n_states": 357,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "241": {
+     "channel": "item",
+     "id": 442,
+     "n_states": 1785,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "266": {
+     "channel": "item",
+     "id": 348,
+     "n_states": 355,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "376": {
+     "channel": "item",
+     "id": 781,
+     "n_states": 556,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "421": {
+     "channel": "item",
+     "id": 545,
+     "n_states": 660,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "479": {
+     "channel": "item",
+     "id": 346,
+     "n_states": 340,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "502": {
+     "channel": "concept",
+     "id": 594,
+     "n_states": 556,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "541": {
+     "channel": "concept",
+     "id": 203,
+     "n_states": 712,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "560": {
+     "channel": "concept",
+     "id": 754,
+     "n_states": 345,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "569": {
+     "channel": "concept",
+     "id": 339,
+     "n_states": 357,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "611": {
+     "channel": "concept",
+     "id": 622,
+     "n_states": 702,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "665": {
+     "channel": "concept",
+     "id": 976,
+     "n_states": 529,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "707": {
+     "channel": "concept",
+     "id": 769,
+     "n_states": 739,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "714": {
+     "channel": "concept",
+     "id": 753,
+     "n_states": 205,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "769": {
+     "channel": "concept",
+     "id": 336,
+     "n_states": 869,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "771": {
+     "channel": "concept",
+     "id": 801,
+     "n_states": 1010,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "773": {
+     "channel": "concept",
+     "id": 251,
+     "n_states": 1382,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "776": {
+     "channel": "concept",
+     "id": 799,
+     "n_states": 340,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "786": {
+     "channel": "concept",
+     "id": 247,
+     "n_states": 1785,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "805": {
+     "channel": "concept",
+     "id": 672,
+     "n_states": 723,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "819": {
+     "channel": "concept",
+     "id": 381,
+     "n_states": 438,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "828": {
+     "channel": "concept",
+     "id": 114,
+     "n_states": 10000,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "916": {
+     "channel": "concept",
+     "id": 708,
+     "n_states": 702,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "944": {
+     "channel": "concept",
+     "id": 280,
+     "n_states": 1215,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "966": {
+     "channel": "concept",
+     "id": 851,
+     "n_states": 529,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    },
+    "990": {
+     "channel": "concept",
+     "id": 238,
+     "n_states": 205,
+     "top1": 1.0,
+     "top5": 1.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 0.0
+    }
+   }
+  },
+  "p1_main": {
+   "ckpt": "policy_main_equivariant_both_p1.pt",
+   "epoch": 2,
+   "val_full": 0.23184611584447443,
+   "val_tail": 0.10327758952712938,
+   "n_states": 38336,
+   "top1_emission": 0.0,
+   "top5_emission": 0.0,
+   "neighbour_credit_top1_in_NN5": 0.0,
+   "neighbour_credit_or_top1": 0.0,
+   "median_rank_of_the_held_out_question": 465.0,
+   "mean_rank_of_the_held_out_question": 387.4862270450751,
+   "frac_emitting_ANY_held_out_question_top1": 0.0,
+   "per_question": {
+    "2": {
+     "channel": "item",
+     "id": 8,
+     "n_states": 2130,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 118.0
+    },
+    "3": {
+     "channel": "item",
+     "id": 123,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 9.0
+    },
+    "15": {
+     "channel": "item",
+     "id": 14,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 367.0
+    },
+    "40": {
+     "channel": "item",
+     "id": 29,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 27.0
+    },
+    "61": {
+     "channel": "item",
+     "id": 538,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 355.0
+    },
+    "71": {
+     "channel": "item",
+     "id": 463,
+     "n_states": 1085,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 44.0
+    },
+    "80": {
+     "channel": "item",
+     "id": 514,
+     "n_states": 2580,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 136.0
+    },
+    "152": {
+     "channel": "item",
+     "id": 74,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 736.0
+    },
+    "194": {
+     "channel": "item",
+     "id": 951,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 435.0
+    },
+    "198": {
+     "channel": "item",
+     "id": 88,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 710.0
+    },
+    "218": {
+     "channel": "item",
+     "id": 844,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 724.0
+    },
+    "241": {
+     "channel": "item",
+     "id": 442,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 460.0
+    },
+    "266": {
+     "channel": "item",
+     "id": 348,
+     "n_states": 355,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 299.0
+    },
+    "376": {
+     "channel": "item",
+     "id": 781,
+     "n_states": 556,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 721.0
+    },
+    "421": {
+     "channel": "item",
+     "id": 545,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 327.0
+    },
+    "479": {
+     "channel": "item",
+     "id": 346,
+     "n_states": 340,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 231.5
+    },
+    "502": {
+     "channel": "concept",
+     "id": 594,
+     "n_states": 556,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 528.0
+    },
+    "541": {
+     "channel": "concept",
+     "id": 203,
+     "n_states": 712,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 140.0
+    },
+    "560": {
+     "channel": "concept",
+     "id": 754,
+     "n_states": 345,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 392.0
+    },
+    "569": {
+     "channel": "concept",
+     "id": 339,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 76.0
+    },
+    "611": {
+     "channel": "concept",
+     "id": 622,
+     "n_states": 702,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 790.0
+    },
+    "665": {
+     "channel": "concept",
+     "id": 976,
+     "n_states": 529,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 654.0
+    },
+    "707": {
+     "channel": "concept",
+     "id": 769,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 768.0
+    },
+    "714": {
+     "channel": "concept",
+     "id": 753,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 665.0
+    },
+    "769": {
+     "channel": "concept",
+     "id": 336,
+     "n_states": 869,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 506.0
+    },
+    "771": {
+     "channel": "concept",
+     "id": 801,
+     "n_states": 1010,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 65.0
+    },
+    "773": {
+     "channel": "concept",
+     "id": 251,
+     "n_states": 1382,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 90.0
+    },
+    "776": {
+     "channel": "concept",
+     "id": 799,
+     "n_states": 340,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 633.0
+    },
+    "786": {
+     "channel": "concept",
+     "id": 247,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 318.0
+    },
+    "805": {
+     "channel": "concept",
+     "id": 672,
+     "n_states": 723,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 760.0
+    },
+    "819": {
+     "channel": "concept",
+     "id": 381,
+     "n_states": 438,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 481.0
+    },
+    "828": {
+     "channel": "concept",
+     "id": 114,
+     "n_states": 10000,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 478.0
+    },
+    "916": {
+     "channel": "concept",
+     "id": 708,
+     "n_states": 702,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 969.0
+    },
+    "944": {
+     "channel": "concept",
+     "id": 280,
+     "n_states": 1215,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 317.0
+    },
+    "966": {
+     "channel": "concept",
+     "id": 851,
+     "n_states": 529,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 536.0
+    },
+    "990": {
+     "channel": "concept",
+     "id": 238,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 130.0
+    }
+   }
+  },
+  "p1_control": {
+   "ckpt": "policy_main_equivariant_both_p1ctrl.pt",
+   "epoch": 6,
+   "val_full": 0.22954587110051397,
+   "val_tail": 0.10123941953347021,
+   "n_states": 38336,
+   "top1_emission": 0.0,
+   "top5_emission": 2.6085141903171954e-05,
+   "neighbour_credit_top1_in_NN5": 0.0,
+   "neighbour_credit_or_top1": 0.0,
+   "median_rank_of_the_held_out_question": 553.0,
+   "mean_rank_of_the_held_out_question": 463.9089106844741,
+   "frac_emitting_ANY_held_out_question_top1": 0.006364774624373956,
+   "per_question": {
+    "2": {
+     "channel": "item",
+     "id": 8,
+     "n_states": 2130,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 63.0
+    },
+    "3": {
+     "channel": "item",
+     "id": 123,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 34.0
+    },
+    "15": {
+     "channel": "item",
+     "id": 14,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 477.0
+    },
+    "40": {
+     "channel": "item",
+     "id": 29,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 224.0
+    },
+    "61": {
+     "channel": "item",
+     "id": 538,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 560.0
+    },
+    "71": {
+     "channel": "item",
+     "id": 463,
+     "n_states": 1085,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 613.0
+    },
+    "80": {
+     "channel": "item",
+     "id": 514,
+     "n_states": 2580,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 62.0
+    },
+    "152": {
+     "channel": "item",
+     "id": 74,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 299.0
+    },
+    "194": {
+     "channel": "item",
+     "id": 951,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 349.0
+    },
+    "198": {
+     "channel": "item",
+     "id": 88,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 979.0
+    },
+    "218": {
+     "channel": "item",
+     "id": 844,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 823.0
+    },
+    "241": {
+     "channel": "item",
+     "id": 442,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 790.0
+    },
+    "266": {
+     "channel": "item",
+     "id": 348,
+     "n_states": 355,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 614.0
+    },
+    "376": {
+     "channel": "item",
+     "id": 781,
+     "n_states": 556,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 730.0
+    },
+    "421": {
+     "channel": "item",
+     "id": 545,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 54.0
+    },
+    "479": {
+     "channel": "item",
+     "id": 346,
+     "n_states": 340,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 388.0
+    },
+    "502": {
+     "channel": "concept",
+     "id": 594,
+     "n_states": 556,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 112.0
+    },
+    "541": {
+     "channel": "concept",
+     "id": 203,
+     "n_states": 712,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 929.0
+    },
+    "560": {
+     "channel": "concept",
+     "id": 754,
+     "n_states": 345,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 811.0
+    },
+    "569": {
+     "channel": "concept",
+     "id": 339,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 156.0
+    },
+    "611": {
+     "channel": "concept",
+     "id": 622,
+     "n_states": 702,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 88.0
+    },
+    "665": {
+     "channel": "concept",
+     "id": 976,
+     "n_states": 529,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 366.0
+    },
+    "707": {
+     "channel": "concept",
+     "id": 769,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 648.0
+    },
+    "714": {
+     "channel": "concept",
+     "id": 753,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 929.0
+    },
+    "769": {
+     "channel": "concept",
+     "id": 336,
+     "n_states": 869,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 751.0
+    },
+    "771": {
+     "channel": "concept",
+     "id": 801,
+     "n_states": 1010,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 70.0
+    },
+    "773": {
+     "channel": "concept",
+     "id": 251,
+     "n_states": 1382,
+     "top1": 0.0,
+     "top5": 0.000723589001447178,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 8.0
+    },
+    "776": {
+     "channel": "concept",
+     "id": 799,
+     "n_states": 340,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 859.5
+    },
+    "786": {
+     "channel": "concept",
+     "id": 247,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 550.0
+    },
+    "805": {
+     "channel": "concept",
+     "id": 672,
+     "n_states": 723,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 323.0
+    },
+    "819": {
+     "channel": "concept",
+     "id": 381,
+     "n_states": 438,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 966.0
+    },
+    "828": {
+     "channel": "concept",
+     "id": 114,
+     "n_states": 10000,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 713.0
+    },
+    "916": {
+     "channel": "concept",
+     "id": 708,
+     "n_states": 702,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 171.0
+    },
+    "944": {
+     "channel": "concept",
+     "id": 280,
+     "n_states": 1215,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 417.0
+    },
+    "966": {
+     "channel": "concept",
+     "id": 851,
+     "n_states": 529,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 378.0
+    },
+    "990": {
+     "channel": "concept",
+     "id": 238,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 426.0
+    }
+   }
+  },
+  "p1_shuffle": {
+   "ckpt": "policy_shuffle_equivariant_both_p1shuf.pt",
+   "epoch": 4,
+   "val_full": 0.23886500000067737,
+   "val_tail": 0.10515920500346804,
+   "n_states": 38336,
+   "top1_emission": 0.0,
+   "top5_emission": 0.0,
+   "neighbour_credit_top1_in_NN5": 0.0,
+   "neighbour_credit_or_top1": 0.0,
+   "median_rank_of_the_held_out_question": 338.0,
+   "mean_rank_of_the_held_out_question": 391.8883816777963,
+   "frac_emitting_ANY_held_out_question_top1": 0.0,
+   "per_question": {
+    "2": {
+     "channel": "item",
+     "id": 8,
+     "n_states": 2130,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 875.0
+    },
+    "3": {
+     "channel": "item",
+     "id": 123,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 338.0
+    },
+    "15": {
+     "channel": "item",
+     "id": 14,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 365.0
+    },
+    "40": {
+     "channel": "item",
+     "id": 29,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 535.0
+    },
+    "61": {
+     "channel": "item",
+     "id": 538,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 918.0
+    },
+    "71": {
+     "channel": "item",
+     "id": 463,
+     "n_states": 1085,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 327.0
+    },
+    "80": {
+     "channel": "item",
+     "id": 514,
+     "n_states": 2580,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 407.0
+    },
+    "152": {
+     "channel": "item",
+     "id": 74,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 908.0
+    },
+    "194": {
+     "channel": "item",
+     "id": 951,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 701.0
+    },
+    "198": {
+     "channel": "item",
+     "id": 88,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 524.0
+    },
+    "218": {
+     "channel": "item",
+     "id": 844,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 914.0
+    },
+    "241": {
+     "channel": "item",
+     "id": 442,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 489.0
+    },
+    "266": {
+     "channel": "item",
+     "id": 348,
+     "n_states": 355,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 388.0
+    },
+    "376": {
+     "channel": "item",
+     "id": 781,
+     "n_states": 556,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 665.0
+    },
+    "421": {
+     "channel": "item",
+     "id": 545,
+     "n_states": 660,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 678.0
+    },
+    "479": {
+     "channel": "item",
+     "id": 346,
+     "n_states": 340,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 726.0
+    },
+    "502": {
+     "channel": "concept",
+     "id": 594,
+     "n_states": 556,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 407.0
+    },
+    "541": {
+     "channel": "concept",
+     "id": 203,
+     "n_states": 712,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 65.5
+    },
+    "560": {
+     "channel": "concept",
+     "id": 754,
+     "n_states": 345,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 339.0
+    },
+    "569": {
+     "channel": "concept",
+     "id": 339,
+     "n_states": 357,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 57.0
+    },
+    "611": {
+     "channel": "concept",
+     "id": 622,
+     "n_states": 702,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 242.0
+    },
+    "665": {
+     "channel": "concept",
+     "id": 976,
+     "n_states": 529,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 369.0
+    },
+    "707": {
+     "channel": "concept",
+     "id": 769,
+     "n_states": 739,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 514.0
+    },
+    "714": {
+     "channel": "concept",
+     "id": 753,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 512.0
+    },
+    "769": {
+     "channel": "concept",
+     "id": 336,
+     "n_states": 869,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 85.0
+    },
+    "771": {
+     "channel": "concept",
+     "id": 801,
+     "n_states": 1010,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 506.0
+    },
+    "773": {
+     "channel": "concept",
+     "id": 251,
+     "n_states": 1382,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 31.0
+    },
+    "776": {
+     "channel": "concept",
+     "id": 799,
+     "n_states": 340,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 172.0
+    },
+    "786": {
+     "channel": "concept",
+     "id": 247,
+     "n_states": 1785,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 238.0
+    },
+    "805": {
+     "channel": "concept",
+     "id": 672,
+     "n_states": 723,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 507.0
+    },
+    "819": {
+     "channel": "concept",
+     "id": 381,
+     "n_states": 438,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 436.0
+    },
+    "828": {
+     "channel": "concept",
+     "id": 114,
+     "n_states": 10000,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 237.0
+    },
+    "916": {
+     "channel": "concept",
+     "id": 708,
+     "n_states": 702,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 696.0
+    },
+    "944": {
+     "channel": "concept",
+     "id": 280,
+     "n_states": 1215,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 227.0
+    },
+    "966": {
+     "channel": "concept",
+     "id": 851,
+     "n_states": 529,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 56.0
+    },
+    "990": {
+     "channel": "concept",
+     "id": 238,
+     "n_states": 205,
+     "top1": 0.0,
+     "top5": 0.0,
+     "neighbour_credit": 0.0,
+     "median_rank_of_the_held_out_question": 497.0
+    }
+   }
+  },
+  "popularity_emitter": {
+   "what": "train users who can answer: ctx.cnt[i] for an item, answer_rate[c]*140768 for a concept",
+   "n_states": 38336,
+   "top1_emission": 0.0,
+   "top5_emission": 0.014503338898163605,
+   "neighbour_credit_top1_in_NN5": 0.0
+  }
+ },
+ "forced_opening_diagnostic": {
+  "forced_first_question_pool_idx": 828,
+  "forced_is_held_out": true,
+  "channel": "concept",
+  "id": 114,
+  "why": "the held-out draw took the tree's ROOT, so position 0 carries no supervision for any user. Imposing it separates 'the root was load-bearing' from 'similarity failed everywhere'. A POST-HOC mechanism diagnostic, not a pre-registered arm.",
+  "arms": {
+   "p1_main": {
+    "val_full_with_the_root_imposed": 0.2661579667633923,
+    "val_tail_with_the_root_imposed": 0.12373860554687989,
+    "val_full_free": 0.23184611584447443,
+    "recovered_of_the_gap_to_E1": 0.6636259271782861,
+    "vs_E1_paired": {
+     "mean": -0.017391751491562708,
+     "lo": -0.01957839563333636,
+     "hi": -0.015239675515452848,
+     "n": 10000,
+     "excludes_zero": true
+    },
+    "vs_static_paired": {
+     "mean": 0.010547805627369764,
+     "lo": 0.007597601257739005,
+     "hi": 0.013541224424682847,
+     "n": 10000,
+     "excludes_zero": true
+    },
+    "n_distinct_interviews": 2354,
+    "agreement_with_the_tree_after_the_forced_opening": 0.37266666666666665
+   },
+   "p1_control": {
+    "val_full_with_the_root_imposed": 0.2598703625955175,
+    "val_tail_with_the_root_imposed": 0.12114593451887391,
+    "val_full_free": 0.22954587110051397,
+    "recovered_of_the_gap_to_E1": 0.5615246549277237,
+    "vs_E1_paired": {
+     "mean": -0.02367935565943751,
+     "lo": -0.026024065180079083,
+     "hi": -0.021334703163600664,
+     "n": 10000,
+     "excludes_zero": true
+    },
+    "vs_static_paired": {
+     "mean": 0.004260201459494961,
+     "lo": 0.0012606426032841817,
+     "hi": 0.007245234873717465,
+     "n": 10000,
+     "excludes_zero": true
+    },
+    "n_distinct_interviews": 2142,
+    "agreement_with_the_tree_after_the_forced_opening": 0.37637333333333334
+   }
+  }
+ },
+ "minutes": 3.02
+}
