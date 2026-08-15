@@ -23,7 +23,16 @@ THE STATES USED, AND WHY (composition printed before any number is trusted)
              30 catalogue) were measured, so a "rank of the measured argmax" here is the rank of the
              best-of-20-in-pool, not of the best of 1,000. Reported separately, never pooled with A.
 
-Both groups are OFF the tree's trajectory manifold, so E1 was never trained on these STATES either.
+  GROUP C -- ★ THE ON-MANIFOLD CONTROL, without which the other two are misreadable. The 7 internal
+             nodes of the frozen tree, each with the **exact gain of all 1,000 candidates** banked.
+             E1 reproduces the tree exactly here and the measured argmax IS the tree's splitter, so
+             E1 must rank it **1st**. It is simultaneously the cell where the policy is expected to
+             succeed and the instrument check on the whole file.
+
+Groups A and B are OFF the tree's trajectory manifold, so E1 was never trained on those STATES
+either. **That means a taught/never-taught contrast within A or B confounds two novelties — unseen
+QUESTION and unseen STATE — and P1b cannot separate them.** Group C is what makes the comparison
+readable: it is the only cell where the state is familiar.
 
 ARMS AND CONTROLS (both mandatory)
 ----------------------------------
@@ -69,6 +78,63 @@ def spearman(a, b):
     ra -= ra.mean(); rb -= rb.mean()
     d = float(np.sqrt((ra ** 2).sum() * (rb ** 2).sum()))
     return float((ra * rb).sum() / d) if d > 0 else None
+
+
+TREE_HEAPS = os.path.join(OUTDIR, "ndcgtree_heaps")
+_OUTCODE = {"like": 0, "dislike": 1, "noanswer": 2}
+
+
+def load_onmanifold(pool_index, Dva):
+    """★ GROUP C — THE ON-MANIFOLD CONTROL, and P1b is not interpretable without it.
+
+    Every state in groups A and B is one E1 was NEVER TRAINED ON, so a taught/never-taught split
+    across them confounds two different kinds of novelty: an unseen QUESTION and an unseen STATE.
+    Group C removes the second: the **7 internal nodes of the frozen tree**, where E1 reproduces the
+    tree exactly and the measured argmax IS the tree's own splitter. E1 must rank it **1st**. If it
+    does not, the ranking harness disagrees with the policy's own argmax and every number in this
+    file is unverified — so this doubles as the instrument check.
+
+    Their level-0 sweeps survived intact (`policy_deep_labels.json:complete_level0_vectors`: CELF
+    overwrote the step-0 record wherever a node made a SEQUENCE of picks; the 7 single-pick internal
+    nodes are the ones that did not), so each carries the **exact gain of all 1,000 candidates**:
+    999 in the residual heap at level 0 plus the picked one.
+
+    The cohort is not banked, but it is exactly reconstructible: node `root.a.b` is the users whose
+    ternary answers at positions 0 and 1 were `a` and `b`. It is rebuilt from the validation
+    trajectory bank and **asserted against the banked `n_rows`** — a free contract check.
+    """
+    C = []
+    outc = np.asarray(Dva["outcome"], np.int64)
+    uids = np.asarray(Dva["uid"], np.int64)
+    for fp in sorted(glob.glob(os.path.join(TREE_HEAPS, "node_*.json"))):
+        b = json.load(open(fp))
+        if len(b.get("seq", [])) != 1:
+            continue
+        nid = os.path.basename(fp)[len("node_"):-len(".json")]
+        parts = nid.split(".")
+        assert parts[0] == "root"
+        m = np.ones(len(uids), bool)
+        for j, name in enumerate(parts[1:]):
+            m &= outc[:, j] == _OUTCODE[name]
+        rows = [int(u) for u in uids[m]]
+        assert len(rows) == int(b["sig"]["n_rows"]), (
+            f"{nid}: reconstructed cohort {len(rows)} users, banked {b['sig']['n_rows']}")
+        prefix = [(int(a), int(x)) for a, x in b["sig"]["prefix"]]
+        assert len(prefix) == len(parts) - 1
+        pick = (int(b["seq"][0][0]), int(b["seq"][0][1]))
+        g = {pool_index[pick]: float(b["gains"][0])}
+        for negg, q, lvl in b["heap"]:
+            assert int(lvl) == 0, f"{nid}: a heap entry is not at level 0 -- not an exact gain"
+            pi = pool_index.get((int(q[0]), int(q[1])))
+            if pi is not None:
+                g[pi] = -float(negg)
+        assert len(g) == int(b["sig"]["n_pool"]), f"{nid}: {len(g)} gains, expected the whole pool"
+        assert max(g.items(), key=lambda kv: kv[1])[0] == pool_index[pick], (
+            f"{nid}: the banked pick is not the argmax of the banked gain vector")
+        C.append({"sid": nid, "prefix": prefix, "rows": rows, "gains": g,
+                  "group": "C_on_manifold", "n_measured_in_pool": len(g),
+                  "source": os.path.basename(fp), "tree_splitter": pool_index[pick]})
+    return C
 
 
 def load_states(pool_index):
@@ -173,12 +239,14 @@ def main():
         log(f"[arm] {name}: {os.path.basename(path)} epoch {b['epoch']} val_full {b['val_full']:.6f}")
 
     A, B = load_states(pool_index)
+    C = load_onmanifold(pool_index, Dva)
     log(f"[states] group A (full-pool phase-3 sweeps) {len(A)}; "
-        f"group B (50-candidate random prefixes) {len(B)}")
+        f"group B (50-candidate random prefixes) {len(B)}; "
+        f"group C (ON-MANIFOLD tree internal nodes, full 1,000-candidate exact gains) {len(C)}")
 
     # ---- ★ COMPOSITION, PRINTED BEFORE ANY TIME IS SPENT -----------------------------------------
     comp = {}
-    for gname, G in (("A_full_pool", A), ("B_sampled_50", B)):
+    for gname, G in (("A_full_pool", A), ("B_sampled_50", B), ("C_on_manifold", C)):
         am = [max(s["gains"].items(), key=lambda kv: kv[1])[0] for s in G]
         nt = [q for q in am if q not in taught]
         comp[gname] = {
@@ -205,7 +273,7 @@ def main():
 
     # ---- the per-state scoring --------------------------------------------------------------------
     per_state = []
-    for gname, G in (("A_full_pool", A), ("B_sampled_50", B)):
+    for gname, G in (("A_full_pool", A), ("B_sampled_50", B), ("C_on_manifold", C)):
         for si, s in enumerate(G):
             rws = s["rows"]
             n = len(rws)
@@ -276,7 +344,7 @@ def main():
     # ---- the tables -------------------------------------------------------------------------------
     arms = ["e1", "shuffle", "popularity"] if "e1" in pols else list(pols) + ["popularity"]
     summary = {}
-    for gname in ("A_full_pool", "B_sampled_50"):
+    for gname in ("A_full_pool", "B_sampled_50", "C_on_manifold"):
         for taught_flag, lab in ((False, "never_taught"), (True, "taught")):
             rs = [r for r in per_state
                   if r["group"] == gname and r["measured_argmax_is_taught"] == taught_flag]
