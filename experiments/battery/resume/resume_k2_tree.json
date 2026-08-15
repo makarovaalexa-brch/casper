@@ -1,0 +1,47 @@
+{
+  "analysis": "policy_resume_cell",
+  "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md H.2",
+  "test_touched": false,
+  "split": "validation",
+  "k": 2,
+  "arm": "tree",
+  "contract": {
+    "tower": "t2i26c_ep31.pt",
+    "conc_ckpt": "concept_cv3_ep08.pt",
+    "pool_contract": {
+      "v": 1,
+      "policy": "B",
+      "n_rows": 10000,
+      "n_items": 18359,
+      "nnz": 1356475,
+      "per_user": 135.6475,
+      "fp": "c282962b49a2d67ef47ff07544519f20"
+    },
+    "ckpt": "policy_main_equivariant_both.pt",
+    "seed": 98765,
+    "L": 16,
+    "draw": "popularity-weighted, without replacement, from rated fold-in items"
+  },
+  "draw": {
+    "k_requested": 2,
+    "n_users": 10000,
+    "seed_size_mean": 2.0,
+    "seed_size_histogram": {
+      "2": 10000
+    },
+    "n_users_short_of_k": 0,
+    "frac_volunteered_items_liked": 0.6319,
+    "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+    "rng": "numpy.default_rng(98765), users in canonical row order"
+  },
+  "full": 0.28614912954756866,
+  "tail": 0.14414963875426448,
+  "n_questions_asked": 16,
+  "redundant_reasks_mean": 0.103,
+  "redundant_reasks_total": 1030,
+  "frac_users_with_a_redundant_reask": 0.0999,
+  "answer_rate": 0.57889375,
+  "concept_share": 0.54570625,
+  "n_distinct_interviews": 15,
+  "minutes": 0.22
+}
