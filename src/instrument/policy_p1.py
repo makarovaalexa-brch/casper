@@ -216,6 +216,55 @@ def build_split(args):
     return out
 
 
+# ============================================================================ forced-opening rollout
+def rollout_forced(E, pol, phi_t, pool, rows, forced, L=TOTAL_L, batch=1000):
+    """`policy_net.rollout`, except the first `len(forced)` questions are IMPOSED.
+
+    ★ A MECHANISM DIAGNOSTIC, declared as one -- it is not a pre-registered arm. The held-out draw
+    took the tree's ROOT, so position 0 carries no supervision for any user and every later state is
+    reached through an opening the policy was never taught. Imposing the root and letting the policy
+    run from position 1 separates "the root was load-bearing" from "similarity failed everywhere".
+    """
+    from strategy_channel_suite import genv_latent, genv_eval_multi
+    from ndcg_tree import branch_of_per_user
+    n, P = len(rows), len(pool)
+    asked = np.full((n, L), -1, np.int64)
+    outs = np.full((n, L), -1, np.int8)
+    asked_mask = np.zeros((n, P), bool)
+    z = genv_latent(E, [], rows).numpy()
+    phi_g = torch.from_numpy(phi_t)
+    curves = {}
+    pol.eval()
+    for t in range(L):
+        if t < len(forced):
+            asked[:, t] = int(forced[t])
+        else:
+            hq = np.zeros((n, TOTAL_L - 1), np.int64); ho = np.zeros((n, TOTAL_L - 1), np.int64)
+            hm = np.zeros((n, TOTAL_L - 1), np.float32)
+            for j in range(t):
+                hq[:, j] = asked[:, j]; ho[:, j] = outs[:, j]; hm[:, j] = 1.0
+            pos = np.tile(np.asarray([[t, TOTAL_L - t]], np.float32), (n, 1))
+            with torch.no_grad():
+                for st in range(0, n, batch):
+                    sl = slice(st, min(st + batch, n))
+                    s = pol(torch.from_numpy(z[sl]), torch.from_numpy(phi_t[hq[sl]]),
+                            torch.from_numpy(ho[sl]), torch.from_numpy(hm[sl]),
+                            torch.from_numpy(pos[sl]), phi_g, torch.from_numpy(asked_mask[sl]))
+                    asked[sl, t] = s.argmax(1).numpy()
+        outs[:, t] = branch_of_per_user(E, rows, [pool[int(j)] for j in asked[:, t]])
+        asked_mask[np.arange(n), asked[:, t]] = True
+        need = (t + 1 == L)
+        iseq = [[pool[int(j)][1] for j in asked[u, :t + 1] if pool[int(j)][0] == 0] for u in range(n)]
+        cseq = [[pool[int(j)][1] for j in asked[u, :t + 1] if pool[int(j)][0] == 1] for u in range(n)]
+        r = genv_eval_multi(E, rows, iseq, cseq, return_z=(t + 1 < L), score=need)
+        if need:
+            curves[L] = (r[0], r[1])
+        if t + 1 < L:
+            z = r[-1].numpy()
+    assert (asked >= 0).all()
+    return {"asked": asked, "outs": outs, "curves": curves}
+
+
 # ============================================================================ the emission audit
 def audit(args):
     """Emission at the held-out states, for every arm, plus the two comparators."""
@@ -334,10 +383,53 @@ def audit(args):
     log(f"[popularity_emitter] top1 {res['popularity_emitter']['top1_emission']:.4f} "
         f"top5 {res['popularity_emitter']['top5_emission']:.4f}")
 
+    # ---- the mechanism diagnostic: impose the held-out opening ------------------------------------
+    forced_diag = None
+    if args.forced_arms:
+        from strategy_channel_suite import genv_eval
+        static_seq = [(int(a), int(b)) for a, b in json.load(open(STATIC_JSON))["sequence"]]
+        sfv, stv = genv_eval(E, static_seq, rows)
+        assert abs(float(np.nanmean(sfv)) - STATIC_VAL_FULL) < 1e-12, "BANKED-HEADLINE ASSERT FAILED"
+        root = int(lab_va[0, 0])
+        assert (lab_va[:, 0] == root).all(), "the tree's opening is not one question for every user"
+        forced_diag = {"forced_first_question_pool_idx": root,
+                       "forced_is_held_out": bool(root in hset),
+                       "channel": "item" if pool[root][0] == 0 else "concept",
+                       "id": int(pool[root][1]),
+                       "why": "the held-out draw took the tree's ROOT, so position 0 carries no "
+                              "supervision for any user. Imposing it separates 'the root was "
+                              "load-bearing' from 'similarity failed everywhere'. A POST-HOC "
+                              "mechanism diagnostic, not a pre-registered arm.",
+                       "arms": {}}
+        for name in args.forced_arms.split(","):
+            if name not in arms:
+                continue
+            ro = rollout_forced(E, arms[name]["pol"], phi_t, pool, rows, [root])
+            f, t = ro["curves"][TOTAL_L]
+            forced_diag["arms"][name] = {
+                "val_full_with_the_root_imposed": float(np.nanmean(f)),
+                "val_tail_with_the_root_imposed": float(np.nanmean(t)),
+                "val_full_free": arms[name]["val_full"],
+                "recovered_of_the_gap_to_E1": float(
+                    (float(np.nanmean(f)) - arms[name]["val_full"]) /
+                    (PN.E1_VAL_FULL - arms[name]["val_full"]))
+                if arms[name]["val_full"] < PN.E1_VAL_FULL else None,
+                "vs_E1_paired": paired_bootstrap(f - np.asarray(
+                    np.load(PN.E1_PER_USER)["policy_full"], np.float64)),
+                "vs_static_paired": paired_bootstrap(f - sfv),
+                "n_distinct_interviews": len({tuple(r) for r in ro["asked"]}),
+                "agreement_with_the_tree_after_the_forced_opening": float(
+                    (ro["asked"][:, 1:] == lab_va[:, 1:]).mean())}
+            log(f"[forced {name}] val full {float(np.nanmean(f)):.5f} (free "
+                f"{arms[name]['val_full']:.5f}, E1 {PN.E1_VAL_FULL:.5f}); agreement with the tree "
+                f"after the forced opening "
+                f"{forced_diag['arms'][name]['agreement_with_the_tree_after_the_forced_opening']:.4f}")
+
     out = {"analysis": "policy_p1_audit", "design_sheet":
            "docs/design/PAPER_B_POLICY_DESIGN.md I.1", "citable": True, "test_touched": False,
            "split": "validation", "n_held_out_questions": int(len(heldout)),
            "composition": sp["composition"], "arms": res,
+           "forced_opening_diagnostic": forced_diag,
            "minutes": round((time.time() - t00) / 60, 2)}
     p = os.path.join(P1_DIR, "p1_audit.json")
     with open(p + ".tmp", "w") as fh:
@@ -351,6 +443,9 @@ def main():
     ap = argparse.ArgumentParser(description="P1 (Part I.1): generalisation across questions")
     ap.add_argument("--mode", required=True, choices=["split", "audit"])
     ap.add_argument("--ckpts", default="", help="name=path,name=path -- the arms to audit")
+    ap.add_argument("--forced_arms", default="",
+                    help="comma-separated arm names to also run with the tree's opening IMPOSED "
+                         "(a post-hoc mechanism diagnostic, declared as one)")
     ap.add_argument("--snapshot", default=None)
     ap.add_argument("--concept_ckpt", default=None)
     ap.add_argument("--threads", type=int, default=None, help="consumed by strategy_channel_suite")
