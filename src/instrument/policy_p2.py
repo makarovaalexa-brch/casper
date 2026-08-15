@@ -14,15 +14,17 @@ question: if the policy is TAUGHT on evidence-seeded states, does the deviation 
 THE TRAINING MIXTURE (design sheet I.2, declared constant, NOT tuned post hoc)
 -----------------------------------------------------------------------------
 Each batch is 7/8 REPLAY -- the original E1 tree-state labels, the proven anti-forgetting mechanism
--- and 1/8 SEEDED, from the 138 evidence-seeded states of the 2026-08-14 random-prefix sampling
-(`value_sample_partial/prefix_*.json`).
+-- and 1/8 SEEDED, from **209 off-manifold states**, not the 138 Part I.2 named. See
+`load_offmanifold_extra` for the census by source and why the count was corrected upward.
 
-⚠⚠ TEACHER HONESTY, CARRIED ON EVERY NUMBER. The seeded-state label is the measured-NDCG argmax over
-the **50 candidates that sweep happened to sample** (20 in-pool + 30 catalogue-wide), and because the
-policy's action space is the 1,000-candidate pool the label used here is the argmax over the **20
-in-pool** candidates of 1,000. It is not the argmax of the pool. That is an imperfect teacher, it is
-acceptable for a capability test, and it is named on every number this file produces. The full-pool
-upgrade is priced in I.2 at 12-23 h and was not run.
+⚠⚠ TEACHER HONESTY, CARRIED ON EVERY NUMBER, AND IT IS NOT UNIFORM ACROSS SOURCES.
+  * the 138 random-prefix states: the label is the measured-NDCG argmax over the **~22 IN-POOL
+    candidates of the 50 that sweep sampled** (20 pool + 30 catalogue). NOT the argmax of the
+    1,000-pool. This is the weakest teacher in the mixture and it carries the most states.
+  * the 42 below-floor states: **exact** -- ~996 of the 1,000 pool candidates were measured.
+  * the 30 static-order states: **exact** -- the banked `pick` is greedy's own chosen question.
+An imperfect teacher is acceptable for a capability test and must be named. The full-pool upgrade
+for the 138 is priced in I.2 at 12-23 h and was not run.
 
 ⚠ AND THE LABELS ARE MEASURED ON THE COHORT THEY ARE EVALUATED ON. The sweep measured NDCG on the
 10,000 validation users, so this fine-tune fits labels derived from validation NDCG and is then
