@@ -939,7 +939,7 @@ def fit_direct(packs, d_z, d_phi, args, tag, seed=SEED, warm=None, use_P=True):
             best = {"mse": va, "ep": ep,
                     "sd": {k: v.detach().clone() for k, v in m.state_dict().items()}}
     m.load_state_dict(best["sd"])
-    return m, best["ep"], n_moved
+    return m, best["ep"], n_moved, best["mse"]
 
 
 # ============================================================================ the driver
@@ -1759,6 +1759,7 @@ def _value_preamble(args, label):
     log(f"[banked] combined static reproduces EXACTLY full={float(np.nanmean(sf))!r} | "
         f"[F.4 BAR] bank-alone {bank['mean']:+.5f} [{bank['lo']:+.5f},{bank['hi']:+.5f}]")
     return dict(E=E, rows=rows, tr=tr, pool_t=pool_t, pool_cat=pool_cat, phi_t=phi_t,
+                catalogue=catalogue,
                 phi_pool=phi_pool, om=om, complete=complete, packs=packs, gain=gain, abar=abar,
                 sf=sf, stl=stl, bank=bank, ni=ni, d_z=E["ctx"].d, d_phi=phi_t.shape[1], Vv=Vv,
                 p2c=p2c)
@@ -1884,8 +1885,9 @@ def run_directgain(args):
             trp = [packs[o["nid"]] for o in complete if o["nid"] != g["nid"]]
             per_seed = []
             for sd in seeds:
-                m, bep, moved = fit_direct(trp, d_z, d_phi, args, f"{arm}-{g['nid']}", seed=sd,
-                                           warm=cfg["warm"], use_P=cfg["use_P"])
+                m, bep, moved, _mse = fit_direct(trp, d_z, d_phi, args,
+                                                 f"{arm}-{g['nid']}", seed=sd,
+                                                 warm=cfg["warm"], use_P=cfg["use_P"])
                 c = direct_pred(m, pk, use_P=cfg["use_P"]).detach().numpy()
                 cz = direct_pred(m, pk, use_P=cfg["use_P"], zero_state=True).detach().numpy()
                 rk = int((pk["target_gain"] > pk["target_gain"][int(np.argmax(c))]).sum()) + 1
@@ -1947,6 +1949,168 @@ def run_directgain(args):
     return out
 
 
+class DirectPolicy(nn.Module):
+    """The direct-gain head as a POLICY: score every candidate, ask the argmax. `use_P=False` is the
+    author's *"warm one without answerability"* -- the outcome head is not consulted at all."""
+
+    def __init__(self, head, om=None, use_P=False):
+        super().__init__()
+        self.head, self.om, self.use_P = head, om, use_P
+
+    def forward(self, z, hp, ho, hm, pos, phi, asked_mask=None):
+        P = torch.softmax(self.om(z, hp, ho, hm, pos, phi=phi), 0) if self.use_P else None
+        return self.head(z, hp, ho, hm, pos, phi, P=P, asked_mask=asked_mask)
+
+
+def run_dgpolicy(args):
+    r"""★ SCORE THE DIRECT-GAIN HEAD AS AN ACTUAL POLICY.
+
+    > **AUTHOR SAID (2026-08-15):** *"ok, so run warm one without answerability."*
+
+    The LOSO gate asks whether the head orders all ~1,000 candidates correctly. **A policy never uses
+    that ordering -- it uses the ARGMAX.** `warm_noP` fails the +0.40 gate at rho = +0.173 while
+    picking the single best available question at 3 of 7 states (argmax ranks 1, 29, 205, 1, 1, 596,
+    680). Those facts are consistent, and together they mean the gate is not measuring the quantity the
+    chapter reports. So this measures the quantity the chapter reports.
+
+    ⚠ **CAVEAT, stated with the result whatever it is:** the head is fitted on the same validation
+    cohort the policy is scored on. This is **not** a held-out number in the way E1's test look is. It
+    measures whether a value model that picks well *can* drive a good policy -- a ceiling probe on the
+    design -- and it is not a deployable figure. If it wins, the next step is a clean split, not a
+    victory lap. TEST IS NOT TOUCHED.
+    """
+    if args.threads:
+        torch.set_num_threads(int(args.threads))
+    t00 = time.time()
+    Pre = _value_preamble(args, "dgpolicy/val")
+    from policy_net import rollout
+    packs, complete = Pre["packs"], Pre["complete"]
+    pool_t, rows = Pre["pool_t"], Pre["rows"]
+    e1 = args.e1_ckpt
+    assert os.path.exists(e1), f"E1 checkpoint required for the warm start: {e1}"
+    trp = [packs[g["nid"]] for g in complete]
+    log(f"[fit] warm_noP on ALL {len(trp)} complete states, {args.lift_seeds} seeds "
+        f"(no held-out state: this is the deployed head, not the gate)")
+
+    seeds = [SEED + 1000 * i for i in range(args.lift_seeds)]
+    fits = []
+    for sd in seeds:
+        m, bep, moved, mse = fit_direct(trp, Pre["d_z"], Pre["d_phi"], args, f"deploy-s{sd}",
+                                        seed=sd, warm=e1, use_P=False)
+        fits.append({"seed": sd, "model": m, "best_epoch": bep, "inner_val_mse": mse,
+                     "warm_tensors": moved})
+        log(f"  [fit s{sd}] best epoch {bep}, inner-val MSE {mse:.3e}, warm tensors {moved}/16")
+
+    # ---- comparators already on disk -----------------------------------------------------------
+    sf, stl = Pre["sf"], Pre["stl"]
+    e1z = np.load(os.path.join(OUTDIR, "policy_main_equivariant_both_gates_per_user.npz"))
+    assert np.array_equal(e1z["rows"], np.asarray(rows, np.int64)), "E1 per-user rows do not align"
+    e1f, e1t = e1z["policy_full"], e1z["policy_tail"]
+    assert abs(float(np.nanmean(e1f)) - 0.28355) < 1e-4
+    tree_asked = e1z["asked"]
+    log(f"[comparators] combined static {float(np.nanmean(sf)):.5f} | E1/tree "
+        f"{float(np.nanmean(e1f)):.5f} | bank-alone bar {Pre['bank']['mean']:+.5f}")
+
+    arms = []
+    for fit in fits:
+        pol = DirectPolicy(fit["model"], use_P=False)
+        t0 = time.time()
+        ro = rollout(Pre["E"], pol, Pre["phi_pool"], pool_t, rows)
+        f, t = ro["curves"][16]
+        ans = (ro["outs"] != OUTCOME["noanswer"])
+        dev = np.full(len(rows), TOTAL_L, np.int64)
+        for k in range(TOTAL_L):
+            mmask = (ro["asked"][:, k] != tree_asked[:, k]) & (dev == TOTAL_L)
+            dev[mmask] = k
+        ndiff = (ro["asked"] != tree_asked).sum(1)
+        arms.append({
+            "seed": fit["seed"], "best_epoch": fit["best_epoch"],
+            "inner_val_mse": fit["inner_val_mse"],
+            "full": float(np.nanmean(f)), "tail": float(np.nanmean(t)),
+            "gain_vs_static_combined_full": paired_bootstrap(f - sf),
+            "gain_vs_static_combined_tail": paired_bootstrap(t - stl),
+            "vs_E1_full": paired_bootstrap(f - e1f), "vs_E1_tail": paired_bootstrap(t - e1t),
+            "answer_rate": float(ans.mean()),
+            "channel_mix_concept_share": channel_mix(ro["asked"], pool_t),
+            "n_distinct_interviews": len({tuple(r) for r in ro["asked"]}),
+            "frac_never_deviates": float((dev == TOTAL_L).mean()),
+            "mean_first_deviation_position": float(dev.mean()),
+            "mean_positions_differing_from_tree": float(ndiff.mean()),
+            "minutes": round((time.time() - t0) / 60, 2)})
+        a = arms[-1]
+        g, v = a["gain_vs_static_combined_full"], a["vs_E1_full"]
+        log(f"[policy s{a['seed']}] full {a['full']:.5f} tail {a['tail']:.5f} | vs combined static "
+            f"{g['mean']:+.5f} [{g['lo']:+.5f},{g['hi']:+.5f}] | vs E1 {v['mean']:+.5f} "
+            f"[{v['lo']:+.5f},{v['hi']:+.5f}] excl0={v['excludes_zero']}")
+        log(f"           answer {a['answer_rate']:.4f} (tree .5789) | concept "
+            f"{a['channel_mix_concept_share']:.4f} (tree .5457) | {a['n_distinct_interviews']} "
+            f"distinct | never-deviates {a['frac_never_deviates']:.4f} | positions differing "
+            f"{a['mean_positions_differing_from_tree']:.2f}")
+
+    # ---- the open-vocabulary run, on the seed selected by inner-val MSE (never by NDCG) ---------
+    sel = int(np.argmin([f["inner_val_mse"] for f in fits]))
+    log(f"[select] seed {fits[sel]['seed']} by inner-validation MSE (NOT by NDCG)")
+    pol = DirectPolicy(fits[sel]["model"], use_P=False)
+    cat = Pre["catalogue"]
+    ro_c = rollout(Pre["E"], pol, Pre["phi_t"], cat, rows)
+    fc, tc = ro_c["curves"][16]
+    trained = set(pool_t)
+    oop = np.asarray([[0 if cat[int(j)] in trained else 1 for j in r] for r in ro_c["asked"]])
+    ansc = (ro_c["outs"] != OUTCOME["noanswer"])
+    inpool_full = np.asarray([a["full"] for a in arms])[sel]
+    openvocab = {
+        "seed": fits[sel]["seed"], "n_candidates": len(cat),
+        "full": float(np.nanmean(fc)), "tail": float(np.nanmean(tc)),
+        "out_of_pool_pick_rate": float(oop.mean()),
+        "out_of_pool_by_position": [float(x) for x in oop.mean(0)],
+        "users_with_any_out_of_pool_pick": float((oop.sum(1) > 0).mean()),
+        "answer_rate": float(ansc.mean()),
+        "answer_rate_out_of_pool_picks": float(ansc[oop.astype(bool)].mean()) if oop.any() else None,
+        "answer_rate_in_pool_picks": float(ansc[~oop.astype(bool)].mean()) if (oop == 0).any() else None,
+        "channel_mix_concept_share": channel_mix(ro_c["asked"], cat),
+        "n_distinct_interviews": len({tuple(r) for r in ro_c["asked"]}),
+        "deficit_vs_own_in_pool_full": float(np.nanmean(fc)) - float(inpool_full),
+        "E1_deficit_for_reference": -0.02034}
+    log(f"[open-vocab] full {openvocab['full']:.5f} | out-of-pool {openvocab['out_of_pool_pick_rate'] * 100:.1f}% "
+        f"| answer rate {openvocab['answer_rate']:.4f} (out-of-pool picks "
+        f"{openvocab['answer_rate_out_of_pool_picks']}) | deficit vs its own in-pool run "
+        f"{openvocab['deficit_vs_own_in_pool_full']:+.5f} (E1 was -0.02034)")
+
+    best_full = max(a["full"] for a in arms)
+    out = {"analysis": "direct_gain_head_as_policy", "citable": True, "test_touched": False,
+           "split": "validation", "arm": "warm_noP",
+           "author_instruction": "run warm one without answerability",
+           "caveat": ("the head is fitted on the same validation cohort the policy is scored on, so "
+                      "this is NOT a held-out number in the way E1's test look is. It is a CEILING "
+                      "PROBE on the design -- whether a value model that picks well can drive a good "
+                      "policy -- and not a deployable figure. If it wins, the next step is a clean "
+                      "split, not a victory lap."),
+           "gate_vs_argmax_note": ("the LOSO gate scores the ordering of all ~1,000 candidates; a "
+                                   "policy uses only the argmax. warm_noP fails the +0.40 gate at "
+                                   "rho=+0.173 while picking the single best question at 3 of 7 "
+                                   "states (argmax ranks 1, 29, 205, 1, 1, 596, 680)."),
+           "comparators": {"combined_static_full": float(np.nanmean(sf)),
+                           "combined_static_tail": float(np.nanmean(stl)),
+                           "bank_alone_gain_full": Pre["bank"], "tree_E1_full": float(np.nanmean(e1f)),
+                           "tree_E1_tail": float(np.nanmean(e1t)),
+                           "flat_mean_two_head_full": 0.22650,
+                           "nearest_state_conditional_full": 0.23583},
+           "arms": arms, "selected_seed_index": sel, "open_vocab": openvocab,
+           "best_full": best_full,
+           "beats_E1": bool(best_full > float(np.nanmean(e1f))),
+           "beats_bank_alone": bool(max(a["gain_vs_static_combined_full"]["mean"] for a in arms)
+                                    > Pre["bank"]["mean"]),
+           "minutes": round((time.time() - t00) / 60, 2)}
+    pth = os.path.join(OUTDIR, "direct_gain_policy.json")
+    with open(pth + ".tmp", "w") as fh:
+        json.dump(out, fh, indent=2, default=float)
+    os.replace(pth + ".tmp", pth)
+    np.savez_compressed(pth.replace(".json", "_per_user.npz"),
+                        rows=np.asarray(rows, np.int64), static_full=sf, e1_full=e1f)
+    log(f"[out] {pth} ({out['minutes']:.1f}m)")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description="Part F lift head + combined P x V policy")
     ap.add_argument("--no_conditional", action="store_true",
@@ -1957,6 +2121,8 @@ def main():
     ap.add_argument("--ceiling_seeds", type=int, default=3,
                     help="noise draws per accuracy level; a single draw is a point estimate of a "
                          "noisy thing and this decision must not rest on one")
+    ap.add_argument("--dgpolicy", action="store_true",
+                    help="score the warm_noP direct-gain head as an ACTUAL POLICY")
     ap.add_argument("--statecurve", action="store_true",
                     help="EXPERIMENT B: policy score vs number of measured states")
     ap.add_argument("--directgain", action="store_true",
@@ -2009,6 +2175,12 @@ def main():
     ap.add_argument("--i_have_author_goahead", action="store_true")
     args = ap.parse_args()
     args.v_offset = not args.no_v_offset
+    if args.dgpolicy:
+        from strategy_channel_suite import CERT_TOWER as _T4, CERT_CONC as _C4
+        args.snapshot = args.snapshot or _T4
+        args.concept_ckpt = args.concept_ckpt or _C4
+        assert args.i_have_author_goahead, 'REFUSING to run without the go-ahead.'
+        return run_dgpolicy(args)
     if args.statecurve or args.directgain:
         from strategy_channel_suite import CERT_TOWER as _T3, CERT_CONC as _C3
         args.snapshot = args.snapshot or _T3
