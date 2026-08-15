@@ -542,7 +542,7 @@ def main():
         dv = deviator_effect["policyz_vs_its_own_frozen_order"]
         rz = redundancy_per_item_question["policyz"]["reasks_per_item_question"]
         rt = redundancy_per_item_question["tree"]["reasks_per_item_question"]
-        log(f"[k={k}] ★ Z-ONLY adapts on "
+        log(f"[k={k}] Z-ONLY adapts on "
             f"{(1 - adapt_z['frac_never_deviates_from_its_own_unseeded_rollout']) * 100:.2f}% of "
             f"users, mean {adapt_z['mean_positions_differing']:.3f} positions | deviations pay "
             f"{dv['mean_among_deviators']:+.5f} over its own frozen order (n={dv['n_deviators']}) | "
