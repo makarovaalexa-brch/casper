@@ -10,7 +10,56 @@ deferral expired. Code: `src/instrument/outcome_q.py` (committed before the run,
 
 ---
 
-## THE VERDICT, FIRST
+## ★★ THE VERDICT, FIRST — AND IT IS THE **DECOMPOSITION**, NOT THE AGGREGATE AUC
+
+**Read the aggregate number second.** The honest headline is *where* the head's advantage comes from,
+because part of it is trivial by construction and must be conceded before the rest can be claimed.
+
+⚠ **What the descriptor contains, conceded up front (author's objection, 2026-08-15).** `build_phi`
+hands **a concept its train answer rate** and **an item its `log1p(train rating count)`** as literal
+input columns — and under this project's structural answerability rule, popularity is most of what
+decides whether an item can be answered at all. The "fair" backoff comparator, meanwhile, receives
+popularity only as a **decile**. So the head holds strictly more of the same information, and any
+claim of the form "it knows similarity" has to survive that.
+
+**It does. The two answerability columns are worth 8% of the margin, and none of the part that
+matters.** The ablation (identical split, identical everything, those two raw columns zeroed and the
+standardisation refitted):
+
+| arm | held-out-question AUC macro | margin over the fair backoff (0.96285) | share of the margin kept |
+|---|---|---|---|
+| **head, full descriptor** | 0.98167 | **+0.01882** | 100% |
+| **head, popularity + answer-rate columns ZEROED** | **0.98008** | **+0.01723** | **91.6%** |
+| *rigged per-question prior (has seen the question)* | *0.96915* | *+0.00630* | — |
+
+**And the decomposition by position is the claim, because a descriptor-reading effect cannot produce
+a rising curve.** The backoff is flat at 0.9629 by construction; the shuffle control is flat at
+0.967; the head climbs as the interview gives it answers:
+
+| position (answers heard) | 0 | 1 | 2 | 3 | 4 | 15 | **accrued across the interview** |
+|---|---|---|---|---|---|---|---|
+| head, full descriptor | 0.9676 | 0.9744 | 0.9769 | 0.9791 | 0.9807 | **0.9851** | **+0.0175** |
+| **head, columns stripped** | 0.9662 | 0.9730 | 0.9754 | 0.9775 | 0.9792 | **0.9834** | **+0.0172** |
+| shuffle control | 0.9672 | 0.9672 | 0.9671 | 0.9670 | 0.9669 | 0.9665 | **−0.0007 (flat)** |
+| backoff prior | 0.9629 | 0.9629 | 0.9629 | 0.9629 | 0.9629 | 0.9628 | flat |
+
+> **The claim, stated in the form the evidence supports:**
+> - **at position 0** the head beats the stratum backoff by **+0.0047** with the full descriptor and
+>   **+0.0033** with popularity and answer rate removed. This is the static descriptor read, it is
+>   the smaller part, and roughly a third of it *was* the two conceded columns.
+> - **across the interview** the head gains a further **+0.0175**, and **+0.0172 of that survives the
+>   ablation — 98% of it.** The interview-accrued portion is essentially untouched by removing the
+>   answerability features, and no state-free predictor can have it at all.
+>
+> **So the defensible sentence is about the interview-accrued portion**: *given a question it has
+> never seen, the head's prediction improves as it hears the person's answers to other questions, and
+> that improvement is not the descriptor's popularity features and does not survive label
+> permutation.* The aggregate 0.98167 should never be quoted without the position-0 baseline beside
+> it.
+
+---
+
+## The aggregate result, and the falsifier
 
 **The pre-registered falsifier did NOT fire.** It was: *held-out-question AUC ≤ the popularity
 backoff ⇒ the similarity claim fails and is reported failed.*
@@ -204,7 +253,12 @@ discrimination.
 
 1. **The reaction head predicts reactions to questions it has never seen, better than any state-free
    predictor available — including one that has seen them.** 0.98167 vs 0.96285 (fair) and 0.96915
-   (rigged), over 620 million held-out cells.
+   (rigged), over 620 million held-out cells — **and 0.98008 with the descriptor's popularity and
+   answer-rate columns removed, so 91.6% of the margin is not those features.**
+1b. **The claim is about the interview-accrued portion.** +0.0033 of the margin is a static
+   descriptor read once the conceded columns are gone; **+0.0172 accrues across the interview and is
+   untouched by the ablation.** A model reading a popularity feature cannot produce a rising
+   per-position curve, and the shuffle control's curve is flat.
 2. **It is sample-efficient in questions, not memorising them.** 10% of the questions buys 70% of the
    margin; the seen/unseen gap at 100% is 0.0011.
 3. **The margin decomposes**: ~¼ descriptor similarity (position 0, and independently the shuffle
@@ -243,6 +297,7 @@ arm, as in Part F — the loss had flattened and the held-out numbers are unambi
 |---|---|
 | per-arm results (full metric suite, both baselines, per-position curves) | `experiments/battery/heldout_q/q{010,025,050,100}_main.json`, `q100_shuffle.json` |
 | the combined artifact + split composition | `experiments/battery/heldout_q/heldout_questions.json` |
+| **the answerability-feature ablation** (`--strip_pop`) | `experiments/battery/heldout_q/heldout_questions_strippop.json`, `q100_main_strippop.json`, log `experiments/battery/q_strippop.log` |
 | checkpoints (each carries its own train/held-out question id arrays) | `experiments/battery/heldout_q/q*.pt` |
 | log | `experiments/battery/q_main.log` |
 | code | `src/instrument/outcome_q.py` |
