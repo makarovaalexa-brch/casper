@@ -1,5 +1,96 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-16 — THE GENERALISATION PAIR (Part I) IS COMPLETE ON VALIDATION. BOTH FALSIFIERS FIRED. NO TEST LOOK.
+
+**AUTHOR SAID (verbatim, 2026-08-15):** *"please run."* Her goal, verbatim: *"i want to show
+generalisability working here and my recommender support ood questions etc. i need a policy capable
+of understanding that and emitting a questions."*
+
+Write-ups: **`docs/results/P1_HELDOUT_ACTIONS.md`**, **`docs/results/P1B_NEVER_TAUGHT.md`**,
+**`docs/results/P2_EVIDENCE_SEEDED.md`**. Code `src/instrument/{policy_p1,policy_p1b,policy_p2}.py`
+plus `--heldout_json` in `policy_net.py`. Design sheet Part I, with **I.2's state count corrected
+upward from 138 to 209**.
+
+| | claim | falsifier | verdict |
+|---|---|---|---|
+| **P1** held-out label questions | "emits questions it was never taught" | held-out top-5 emission ≤ the label-shuffled floor | **FIRED.** top-1 and top-5 both **0.0000**; shuffled floor ranks the question BETTER (median 465 vs 338); popularity beats both (top-5 1.45%) |
+| **P1b** never-taught questions, undamaged policy | "it ranks by similarity" | never-taught ranking ≤ popularity | **FIRED.** null in the full-pool group, significantly WORSE in the sampled group (+68 ranks [+9, +126]; ρ −0.061 [−0.109, −0.014]) |
+| **P2** evidence-seeded fine-tune | "taught to condition, deviations stop costing" | deviations still cost, CI excluding zero from below | **FIRED at every k: −0.02825 / −0.02054 / −0.01434**, all excluding zero — worse than R2's untrained −0.01246 / −0.01234 / −0.00860 |
+
+### P1 — the supervised label vocabulary is load-bearing; similarity does not substitute
+36 of 172 label questions held out by identity (channel × label-mass quartile, seed 98765; the draw
+took **the tree's ROOT**), E1 retrained from scratch with them still emittable. Val full
+**0.28355 → 0.23185**, now LOSING to the static order (−0.02376 [−0.02661, −0.02087]) and −0.05170
+vs the tree. Teacher-forced top-1 falls to **0.7604 = exactly the share of states whose label was not
+held out** — ~100% right where supervised, ~0% where not, nothing in between. Emission at the 38,336
+held-out states: **0.0000 top-1, 0.0000 top-5, 0.0000 neighbour credit.** Control (also removed from
+the training candidate table) is a null against main (+0.00230 [−0.00090, +0.00552]) — nothing was
+learned-then-unused. Forcing the root back recovers **66%** of the gap (0.26616) and the policy beats
+static again, but still agrees with the tree at only 37% of later positions.
+
+### P1b — the non-crippling version, with the ON-MANIFOLD control that makes it readable
+The held-out set already existed: the tree uses only **172 of the 1,000 pool questions**, so 828 were
+never a training target. Scored the **unmodified E1** at 42 full-pool below-floor states, 138
+random-prefix states, and **7 tree-internal nodes** (exact 1,000-candidate gains).
+
+> **E1 ranks the measured-best question 1st at 7 of 7 states it was TRAINED on, and 208th–374th of
+> 1,000 at states it was not.** On taught questions it beats popularity by 253 ranks [−376, −130] and
+> hits top-1 0.24; on never-taught ones it is indistinguishable from its own label-shuffled control.
+
+The 7/7 also **verifies the harness** (its ranking agrees with the policy's own argmax). ⚠ The
+never-taught cells sit at unseen STATES too, so P1b **confounds unseen question with unseen state**
+and cannot separate them; no banked artifact can.
+
+### P2 — taught to condition on volunteered evidence, it moves, and every move costs
+Corrected census: **209 off-manifold states** carrying measured ACTION labels had never trained
+anything (42 below-floor + 138 random-prefix + 31 static-order; 216 more are the tree's own states =
+the replay). **210 used**, 500,000 examples, **125 label questions of which 77 the tree never asks**.
+Fine-tuned from E1 at lr 2e-4, 7/8 replay + 1/8 seeded, each seeded state presented in BOTH encodings
+(as-asked and as-volunteered — R2 showed the second is the one the evaluation presents).
+
+Every process gate passed: **spanning gate 0.28354971825495506 = E1 to every digit**, seeded top-1
+0 → 0.663 (as-asked) / 0.358 (as-volunteered), and inertness gone — **89.9 / 90.8 / 93.6% of users
+now get a changed interview** against R's 1.0 / 2.5 / 5.1%. Evaluated on a **fresh draw (seed 424242,
+disjoint from R/R2's 98765)** through R2's own harness.
+
+**And it loses at every k.** vs its own frozen order: −0.02825 / −0.02054 / −0.01434, all excluding
+zero; vs the tree the same; it now also loses to the static order. Among deviators only: −0.03141 /
+−0.02261 / −0.01533. The shuffled-label control costs MORE (−0.03394 / −0.02301 / −0.01797), so the
+measured labels do carry signal — just not enough to reach zero.
+
+**★ The one thing that flipped, and it is real:** redundancy. R and R2 found no detectable avoidance;
+the fine-tuned policy re-asks a volunteered film at **roughly half the tree's rate** (0.794% vs
+1.439%, 1.532% vs 2.873%, 3.523% vs 5.408% per item question), every paired interval excluding zero.
+**It paid for it in answerability:** concept share 0.5457 → 0.29–0.38 and interview answer rate
+**0.579 → 0.379**. It asks more films, gets answers to fewer, and burns turns.
+
+⚠ **Teacher honesty, on every P2 number:** the 138 random-prefix states — most of the training mass —
+carry an argmax over ~22 in-pool candidates of 1,000, not the pool argmax (the 42 below-floor and 30
+static-order labels are exact). The full-pool upgrade (12–23 h) is **not indicated**: I.2's rule was
+to upgrade only if the direction was right and the magnitude shy, and the direction is wrong.
+
+### Q — the descriptor objection, settled by ablation (2026-08-16)
+The author noted `build_phi` hands concepts their **train answer rate** and items their
+**log1p(train count)**, while Q's fair comparator got popularity only as a decile — so part of the
+margin was the head reading a feature we gave it. Zeroing those two columns and refitting the
+standardisation: **0.98008 vs 0.98167, i.e. 91.6% of the margin survives**, and the
+**interview-accrued portion is untouched (+0.0172 of +0.0175)**. What shrinks is the position-0
+static read, +0.0047 → +0.0033. `HELDOUT_QUESTIONS.md` now **leads with the decomposition** and
+claims only the interview-accrued part.
+
+### What the chapter can now say about generalisation
+**The reaction head generalises to unseen questions; the action policy does not.** Predicting how a
+person will react to a question nobody has asked them is learnable from the descriptor plus the
+interview (Q). Deciding that an unseen question is the right one to ask is not — the policy's ranking
+is first-rate exactly where it was supervised and no better than popularity outside it (P1, P1b), and
+teaching it to condition on volunteered evidence makes it move without making it right (P2).
+**Never write "the policy emits questions it was never taught" or "the policy adapts to evidence it
+did not choose and benefits".** Both are measured negatives with pre-registered falsifiers fired.
+
+**No test look was taken anywhere in Part I. `test_touched=false` on every artifact.**
+
+---
+
 ## ★★★ 2026-08-15 — THE CAPABILITIES PROGRAMME (Part H) IS COMPLETE ON VALIDATION. NO TEST LOOK.
 
 **AUTHOR SAID (verbatim):** *"plz run the experiments."* And, earlier, on why: *"policy is supposed
