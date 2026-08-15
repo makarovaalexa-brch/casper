@@ -1,0 +1,1103 @@
+{
+ "analysis": "policy_p2_eval",
+ "design_sheet": "docs/design/PAPER_B_POLICY_DESIGN.md I.2",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "n_users": 10000,
+ "draw_seed": 424242,
+ "teacher_honesty": "the seeded-state labels this policy was fine-tuned on are the measured-NDCG argmax over the 20 IN-POOL candidates of the 50 that sweep sampled, NOT over the 1,000-pool",
+ "unseeded": {
+  "p2ft": {
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "epoch": 4,
+   "spanning_gate_pass": true,
+   "deviates_from_tree_frac": 0.0003,
+   "n_distinct_interviews": 16
+  },
+  "p2shuf": {
+   "val_full": 0.28354971825495506,
+   "val_tail": 0.13421311934575303,
+   "epoch": 4,
+   "spanning_gate_pass": true,
+   "deviates_from_tree_frac": 0.0001,
+   "n_distinct_interviews": 16
+  }
+ },
+ "E1_reference": {
+  "val_full": 0.283549718,
+  "static_full": 0.25561016113602253
+ },
+ "by_k": {
+  "2": {
+   "draw": {
+    "k_requested": 2,
+    "n_users": 10000,
+    "seed_size_mean": 2.0,
+    "seed_size_histogram": {
+     "2": 10000
+    },
+    "n_users_short_of_k": 0,
+    "frac_volunteered_items_liked": 0.62855,
+    "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+    "rng": "numpy.default_rng(424242), users in canonical row order",
+    "seed": 424242,
+    "disjoint_from": "R/R2's draw at seed 98765"
+   },
+   "scores": {
+    "none": {
+     "full": 0.21162131549051047,
+     "tail": 0.08469789306489894
+    },
+    "static": {
+     "full": 0.26875641477018447,
+     "tail": 0.1373082396223832
+    },
+    "tree": {
+     "full": 0.2860973719301477,
+     "tail": 0.14439625664453984
+    },
+    "p2ft_frozen": {
+     "full": 0.2860973719301477,
+     "tail": 0.14439625664453984
+    },
+    "p2ft": {
+     "full": 0.257851196669256,
+     "tail": 0.1233237088179453
+    },
+    "p2shuf_frozen": {
+     "full": 0.2860973719301477,
+     "tail": 0.14439625664453984
+    },
+    "p2shuf": {
+     "full": 0.25215291028569337,
+     "tail": 0.12242418509538112
+    }
+   },
+   "comparisons": {
+    "p2ft_minus_its_own_frozen_order": {
+     "full": {
+      "mean": -0.028246175260891716,
+      "lo": -0.031125923173082413,
+      "hi": -0.02529231658478496,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.021072547826594536,
+      "lo": -0.024100561372257467,
+      "hi": -0.01810805508267465,
+      "n": 9217,
+      "excludes_zero": true
+     },
+     "why": "\u2605 THE DEVIATION-COST FLIP. Same user, same fold, same volunteered evidence; ONLY the questions differ. R2 measured -0.01246/-0.01234/-0.00860.",
+     "R2_belief_only_reference": -0.01246
+    },
+    "p2ft_minus_tree": {
+     "full": {
+      "mean": -0.028246175260891716,
+      "lo": -0.031125923173082413,
+      "hi": -0.02529231658478496,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.021072547826594536,
+      "lo": -0.024100561372257467,
+      "hi": -0.01810805508267465,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2ft_minus_static": {
+     "full": {
+      "mean": -0.01090521810092844,
+      "lo": -0.013869817554393796,
+      "hi": -0.007949610597416994,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.013984530804437866,
+      "lo": -0.017093093699693647,
+      "hi": -0.010858742234718608,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2ft_minus_none": {
+     "full": {
+      "mean": 0.04622988117874553,
+      "lo": 0.043181740491984616,
+      "hi": 0.04922898443228556,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.03862581575304636,
+      "lo": 0.0355932081201403,
+      "hi": 0.04167803451561357,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_its_own_frozen_order": {
+     "full": {
+      "mean": -0.03394446164445436,
+      "lo": -0.036902664285335895,
+      "hi": -0.031050072437438844,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.021972071549158714,
+      "lo": -0.024992781017822513,
+      "hi": -0.018890419971510558,
+      "n": 9217,
+      "excludes_zero": true
+     },
+     "why": "\u2605 THE DEVIATION-COST FLIP. Same user, same fold, same volunteered evidence; ONLY the questions differ. R2 measured -0.01246/-0.01234/-0.00860.",
+     "R2_belief_only_reference": -0.01246
+    },
+    "p2shuf_minus_tree": {
+     "full": {
+      "mean": -0.03394446164445436,
+      "lo": -0.036902664285335895,
+      "hi": -0.031050072437438844,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.021972071549158714,
+      "lo": -0.024992781017822513,
+      "hi": -0.018890419971510558,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_static": {
+     "full": {
+      "mean": -0.01660350448449108,
+      "lo": -0.019547251637540165,
+      "hi": -0.013674412325209653,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.01488405452700204,
+      "lo": -0.017871553820524244,
+      "hi": -0.011834033484459968,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_none": {
+     "full": {
+      "mean": 0.040531594795182896,
+      "lo": 0.037446036522032634,
+      "hi": 0.04366814737265674,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.03772629203048219,
+      "lo": 0.03454572232701255,
+      "hi": 0.04089171455858492,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "tree_minus_static": {
+     "full": {
+      "mean": 0.017340957159963276,
+      "lo": 0.014531512094136625,
+      "hi": 0.020131066714739132,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.007088017022156669,
+      "lo": 0.004311806140721537,
+      "hi": 0.010007992751455873,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "tree_minus_none": {
+     "full": {
+      "mean": 0.07447605643963726,
+      "lo": 0.07114938485174312,
+      "hi": 0.07791875491031042,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.0596983635796409,
+      "lo": 0.0562928810600567,
+      "hi": 0.06311353407285529,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    }
+   },
+   "adaptation": {
+    "p2ft": {
+     "frac_never_deviates_from_its_own_unseeded_rollout": 0.1008,
+     "mean_positions_differing": 14.2445,
+     "n_deviators": 8992,
+     "frac_users_differing_at_each_position": [
+      0.8986,
+      0.8933,
+      0.8957,
+      0.8935,
+      0.8926,
+      0.8878,
+      0.8915,
+      0.8897,
+      0.8895,
+      0.8931,
+      0.8866,
+      0.8899,
+      0.8896,
+      0.8854,
+      0.8853,
+      0.8824
+     ],
+     "among_deviators_vs_own_frozen_order": {
+      "mean": -0.031412561455618014,
+      "lo": -0.0346374155341577,
+      "hi": -0.028211637466362197,
+      "n": 8992,
+      "excludes_zero": true
+     },
+     "n_distinct_interviews": 4031,
+     "pep_divergence": {
+      "n_pairs": 19763958,
+      "divergence_rate": 0.4821689562384215
+     },
+     "concept_share": 0.29433125,
+     "answer_rate": 0.379225
+    },
+    "p2shuf": {
+     "frac_never_deviates_from_its_own_unseeded_rollout": 0.0347,
+     "mean_positions_differing": 15.1213,
+     "n_deviators": 9653,
+     "frac_users_differing_at_each_position": [
+      0.9652,
+      0.8721,
+      0.9635,
+      0.9422,
+      0.9584,
+      0.9566,
+      0.953,
+      0.9551,
+      0.9511,
+      0.9543,
+      0.9497,
+      0.9471,
+      0.9402,
+      0.9418,
+      0.9354,
+      0.9356
+     ],
+     "among_deviators_vs_own_frozen_order": {
+      "mean": -0.035164675898119085,
+      "lo": -0.03823280752752947,
+      "hi": -0.03213914732365655,
+      "n": 9653,
+      "excludes_zero": true
+     },
+     "n_distinct_interviews": 6928,
+     "pep_divergence": {
+      "n_pairs": 10577875,
+      "divergence_rate": 0.7625335901587039
+     },
+     "concept_share": 0.55354375,
+     "answer_rate": 0.54940625
+    }
+   },
+   "redundancy_per_item_question": {
+    "static": {
+     "mean_item_questions_of_16": 6.0,
+     "mean_reasks_per_user": 0.0822,
+     "reasks_per_item_question": 0.013699999999999999,
+     "vs_tree_paired": {
+      "mean": -0.0224,
+      "lo": -0.0295,
+      "hi": -0.0153,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    },
+    "tree": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.1046,
+     "reasks_per_item_question": 0.014390468722054838,
+     "vs_tree_paired": null
+    },
+    "p2ft_frozen": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.1046,
+     "reasks_per_item_question": 0.014390468722054838,
+     "vs_tree_paired": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 10000,
+      "excludes_zero": false
+     }
+    },
+    "p2ft": {
+     "mean_item_questions_of_16": 11.2907,
+     "mean_reasks_per_user": 0.0896,
+     "reasks_per_item_question": 0.007935734719725083,
+     "vs_tree_paired": {
+      "mean": -0.015,
+      "lo": -0.0228,
+      "hi": -0.0074,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_frozen": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.1046,
+     "reasks_per_item_question": 0.014390468722054838,
+     "vs_tree_paired": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 10000,
+      "excludes_zero": false
+     }
+    },
+    "p2shuf": {
+     "mean_item_questions_of_16": 7.1433,
+     "mean_reasks_per_user": 0.0626,
+     "reasks_per_item_question": 0.008763456665686727,
+     "vs_tree_paired": {
+      "mean": -0.042,
+      "lo": -0.04860249999999999,
+      "hi": -0.0353,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    }
+   }
+  },
+  "4": {
+   "draw": {
+    "k_requested": 4,
+    "n_users": 10000,
+    "seed_size_mean": 4.0,
+    "seed_size_histogram": {
+     "4": 10000
+    },
+    "n_users_short_of_k": 0,
+    "frac_volunteered_items_liked": 0.63265,
+    "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+    "rng": "numpy.default_rng(424242), users in canonical row order",
+    "seed": 424242,
+    "disjoint_from": "R/R2's draw at seed 98765"
+   },
+   "scores": {
+    "none": {
+     "full": 0.2424200457728873,
+     "tail": 0.11177473459761168
+    },
+    "static": {
+     "full": 0.2786603519301424,
+     "tail": 0.14907660481446483
+    },
+    "tree": {
+     "full": 0.29233463139235694,
+     "tail": 0.15334144284389642
+    },
+    "p2ft_frozen": {
+     "full": 0.29233463139235694,
+     "tail": 0.15334144284389642
+    },
+    "p2ft": {
+     "full": 0.2717962816797282,
+     "tail": 0.13868039540502158
+    },
+    "p2shuf_frozen": {
+     "full": 0.29233463139235694,
+     "tail": 0.15334144284389642
+    },
+    "p2shuf": {
+     "full": 0.2693276511624665,
+     "tail": 0.13877542216474548
+    }
+   },
+   "comparisons": {
+    "p2ft_minus_its_own_frozen_order": {
+     "full": {
+      "mean": -0.020538349712628707,
+      "lo": -0.023373588947918415,
+      "hi": -0.017713059322087332,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.014661047438874837,
+      "lo": -0.01752980773796493,
+      "hi": -0.01178557116994698,
+      "n": 9217,
+      "excludes_zero": true
+     },
+     "why": "\u2605 THE DEVIATION-COST FLIP. Same user, same fold, same volunteered evidence; ONLY the questions differ. R2 measured -0.01246/-0.01234/-0.00860.",
+     "R2_belief_only_reference": -0.01234
+    },
+    "p2ft_minus_tree": {
+     "full": {
+      "mean": -0.020538349712628707,
+      "lo": -0.023373588947918415,
+      "hi": -0.017713059322087332,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.014661047438874837,
+      "lo": -0.01752980773796493,
+      "hi": -0.01178557116994698,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2ft_minus_static": {
+     "full": {
+      "mean": -0.006864070250414116,
+      "lo": -0.009791477775157069,
+      "hi": -0.0040121757932121095,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.010396209409443219,
+      "lo": -0.013177199914684513,
+      "hi": -0.007553071647429068,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2ft_minus_none": {
+     "full": {
+      "mean": 0.029376235906840912,
+      "lo": 0.02661241142525055,
+      "hi": 0.032193755786405674,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.026905660807409897,
+      "lo": 0.024139682974732634,
+      "hi": 0.029745350875628702,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_its_own_frozen_order": {
+     "full": {
+      "mean": -0.023006980229890405,
+      "lo": -0.0258259877373719,
+      "hi": -0.020249060161478157,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.01456602067915095,
+      "lo": -0.017474393912376353,
+      "hi": -0.011684588886173944,
+      "n": 9217,
+      "excludes_zero": true
+     },
+     "why": "\u2605 THE DEVIATION-COST FLIP. Same user, same fold, same volunteered evidence; ONLY the questions differ. R2 measured -0.01246/-0.01234/-0.00860.",
+     "R2_belief_only_reference": -0.01234
+    },
+    "p2shuf_minus_tree": {
+     "full": {
+      "mean": -0.023006980229890405,
+      "lo": -0.0258259877373719,
+      "hi": -0.020249060161478157,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.01456602067915095,
+      "lo": -0.017474393912376353,
+      "hi": -0.011684588886173944,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_static": {
+     "full": {
+      "mean": -0.00933270076767581,
+      "lo": -0.012180792236783825,
+      "hi": -0.006608723276446803,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.010301182649719326,
+      "lo": -0.01304030265643384,
+      "hi": -0.007545359008711572,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_none": {
+     "full": {
+      "mean": 0.026907605389579214,
+      "lo": 0.023960474271915923,
+      "hi": 0.029787243124270044,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.027000687567133787,
+      "lo": 0.02403297888073397,
+      "hi": 0.029918874616774577,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "tree_minus_static": {
+     "full": {
+      "mean": 0.01367427946221459,
+      "lo": 0.011037330985933243,
+      "hi": 0.01628787979321569,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.004264838029431623,
+      "lo": 0.0015930074926535003,
+      "hi": 0.007018611767525305,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "tree_minus_none": {
+     "full": {
+      "mean": 0.049914585619469626,
+      "lo": 0.046851638198237754,
+      "hi": 0.053149744428461626,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.041566708246284736,
+      "lo": 0.03831163038757166,
+      "hi": 0.04474758760582313,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    }
+   },
+   "adaptation": {
+    "p2ft": {
+     "frac_never_deviates_from_its_own_unseeded_rollout": 0.0916,
+     "mean_positions_differing": 14.3068,
+     "n_deviators": 9084,
+     "frac_users_differing_at_each_position": [
+      0.9069,
+      0.8874,
+      0.9036,
+      0.9016,
+      0.8969,
+      0.8938,
+      0.8991,
+      0.8953,
+      0.8936,
+      0.897,
+      0.8891,
+      0.8918,
+      0.8919,
+      0.8877,
+      0.8856,
+      0.8855
+     ],
+     "among_deviators_vs_own_frozen_order": {
+      "mean": -0.022609367803422178,
+      "lo": -0.025786008927104545,
+      "hi": -0.019436760768452643,
+      "n": 9084,
+      "excludes_zero": true
+     },
+     "n_distinct_interviews": 5772,
+     "pep_divergence": {
+      "n_pairs": 13177830,
+      "divergence_rate": 0.5128884649445318
+     },
+     "concept_share": 0.33054375,
+     "answer_rate": 0.40383125
+    },
+    "p2shuf": {
+     "frac_never_deviates_from_its_own_unseeded_rollout": 0.0221,
+     "mean_positions_differing": 15.2811,
+     "n_deviators": 9779,
+     "frac_users_differing_at_each_position": [
+      0.9775,
+      0.9441,
+      0.9721,
+      0.9533,
+      0.9608,
+      0.9617,
+      0.9587,
+      0.9631,
+      0.9598,
+      0.9596,
+      0.9535,
+      0.9534,
+      0.9423,
+      0.945,
+      0.9355,
+      0.9407
+     ],
+     "among_deviators_vs_own_frozen_order": {
+      "mean": -0.023526925278546273,
+      "lo": -0.026482015558782185,
+      "hi": -0.020646185067881788,
+      "n": 9779,
+      "excludes_zero": true
+     },
+     "n_distinct_interviews": 8265,
+     "pep_divergence": {
+      "n_pairs": 8076054,
+      "divergence_rate": 0.7893380851589155
+     },
+     "concept_share": 0.50308125,
+     "answer_rate": 0.53485
+    }
+   },
+   "redundancy_per_item_question": {
+    "static": {
+     "mean_item_questions_of_16": 6.0,
+     "mean_reasks_per_user": 0.1595,
+     "reasks_per_item_question": 0.026583333333333334,
+     "vs_tree_paired": {
+      "mean": -0.0493,
+      "lo": -0.0595,
+      "hi": -0.03909750000000004,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    },
+    "tree": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.2088,
+     "reasks_per_item_question": 0.028725906970985184,
+     "vs_tree_paired": null
+    },
+    "p2ft_frozen": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.2088,
+     "reasks_per_item_question": 0.028725906970985184,
+     "vs_tree_paired": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 10000,
+      "excludes_zero": false
+     }
+    },
+    "p2ft": {
+     "mean_item_questions_of_16": 10.7113,
+     "mean_reasks_per_user": 0.1641,
+     "reasks_per_item_question": 0.015320269248363877,
+     "vs_tree_paired": {
+      "mean": -0.0447,
+      "lo": -0.0552,
+      "hi": -0.03439750000000004,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_frozen": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.2088,
+     "reasks_per_item_question": 0.028725906970985184,
+     "vs_tree_paired": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 10000,
+      "excludes_zero": false
+     }
+    },
+    "p2shuf": {
+     "mean_item_questions_of_16": 7.9507,
+     "mean_reasks_per_user": 0.1661,
+     "reasks_per_item_question": 0.02089124228055391,
+     "vs_tree_paired": {
+      "mean": -0.0427,
+      "lo": -0.0531,
+      "hi": -0.0324,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    }
+   }
+  },
+  "8": {
+   "draw": {
+    "k_requested": 8,
+    "n_users": 10000,
+    "seed_size_mean": 8.0,
+    "seed_size_histogram": {
+     "8": 10000
+    },
+    "n_users_short_of_k": 0,
+    "frac_volunteered_items_liked": 0.624425,
+    "draw": "popularity-weighted (p ~ ctx.cnt), without replacement, from the user's rated FOLD-IN items (E['lvl'][r], targets excluded by construction)",
+    "rng": "numpy.default_rng(424242), users in canonical row order",
+    "seed": 424242,
+    "disjoint_from": "R/R2's draw at seed 98765"
+   },
+   "scores": {
+    "none": {
+     "full": 0.2725204991686245,
+     "tail": 0.13856511160133614
+    },
+    "static": {
+     "full": 0.2915475486451558,
+     "tail": 0.1621572051273545
+    },
+    "tree": {
+     "full": 0.30292749529383783,
+     "tail": 0.16705349076473341
+    },
+    "p2ft_frozen": {
+     "full": 0.3029283338224903,
+     "tail": 0.16705349076473341
+    },
+    "p2ft": {
+     "full": 0.28858352453579156,
+     "tail": 0.15496137056381643
+    },
+    "p2shuf_frozen": {
+     "full": 0.30292749529383783,
+     "tail": 0.16705349076473341
+    },
+    "p2shuf": {
+     "full": 0.28495512129034206,
+     "tail": 0.15541238423458906
+    }
+   },
+   "comparisons": {
+    "p2ft_minus_its_own_frozen_order": {
+     "full": {
+      "mean": -0.014344809286698753,
+      "lo": -0.017015174753617832,
+      "hi": -0.011739445473601303,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.012092120200917015,
+      "lo": -0.014720825619220454,
+      "hi": -0.009410562668974604,
+      "n": 9217,
+      "excludes_zero": true
+     },
+     "why": "\u2605 THE DEVIATION-COST FLIP. Same user, same fold, same volunteered evidence; ONLY the questions differ. R2 measured -0.01246/-0.01234/-0.00860.",
+     "R2_belief_only_reference": -0.0086
+    },
+    "p2ft_minus_tree": {
+     "full": {
+      "mean": -0.014343970758046288,
+      "lo": -0.017014336224965364,
+      "hi": -0.011738585981732528,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.012092120200917015,
+      "lo": -0.014720825619220454,
+      "hi": -0.009410562668974604,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2ft_minus_static": {
+     "full": {
+      "mean": -0.0029640241093642286,
+      "lo": -0.005786218205519535,
+      "hi": -0.0001743481790729018,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.00719583456353807,
+      "lo": -0.00982874370971195,
+      "hi": -0.004558040674211321,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2ft_minus_none": {
+     "full": {
+      "mean": 0.016063025367167073,
+      "lo": 0.013296780855084149,
+      "hi": 0.01882578442837551,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.016396258962480263,
+      "lo": 0.013779052360571677,
+      "hi": 0.019023004123566778,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_its_own_frozen_order": {
+     "full": {
+      "mean": -0.017972374003495828,
+      "lo": -0.020530339882904904,
+      "hi": -0.015367309436913727,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.011641106530144356,
+      "lo": -0.014250233752448965,
+      "hi": -0.008994931865703394,
+      "n": 9217,
+      "excludes_zero": true
+     },
+     "why": "\u2605 THE DEVIATION-COST FLIP. Same user, same fold, same volunteered evidence; ONLY the questions differ. R2 measured -0.01246/-0.01234/-0.00860.",
+     "R2_belief_only_reference": -0.0086
+    },
+    "p2shuf_minus_tree": {
+     "full": {
+      "mean": -0.017972374003495828,
+      "lo": -0.020530339882904904,
+      "hi": -0.015367309436913727,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.011641106530144356,
+      "lo": -0.014250233752448965,
+      "hi": -0.008994931865703394,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_static": {
+     "full": {
+      "mean": -0.006592427354813767,
+      "lo": -0.009103765031814173,
+      "hi": -0.003976455604917121,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": -0.006744820892765412,
+      "lo": -0.009236485639234227,
+      "hi": -0.004237625107072779,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_minus_none": {
+     "full": {
+      "mean": 0.01243462212171754,
+      "lo": 0.00957883366090072,
+      "hi": 0.015274215476015839,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.016847272633252922,
+      "lo": 0.014158495472055605,
+      "hi": 0.019608260201362814,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "tree_minus_static": {
+     "full": {
+      "mean": 0.01137994664868206,
+      "lo": 0.008915199904404689,
+      "hi": 0.013865807363412825,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.004896285637378945,
+      "lo": 0.002435578794400014,
+      "hi": 0.007391138954194499,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    },
+    "tree_minus_none": {
+     "full": {
+      "mean": 0.03040699612521337,
+      "lo": 0.02751341061662504,
+      "hi": 0.03334689922593498,
+      "n": 10000,
+      "excludes_zero": true
+     },
+     "tail": {
+      "mean": 0.028488379163397276,
+      "lo": 0.02563519257811502,
+      "hi": 0.031390881969966075,
+      "n": 9217,
+      "excludes_zero": true
+     }
+    }
+   },
+   "adaptation": {
+    "p2ft": {
+     "frac_never_deviates_from_its_own_unseeded_rollout": 0.0642,
+     "mean_positions_differing": 14.6631,
+     "n_deviators": 9358,
+     "frac_users_differing_at_each_position": [
+      0.932,
+      0.9033,
+      0.9272,
+      0.9249,
+      0.9256,
+      0.9187,
+      0.9264,
+      0.9193,
+      0.9186,
+      0.9221,
+      0.9106,
+      0.9151,
+      0.9117,
+      0.9049,
+      0.9041,
+      0.8986
+     ],
+     "among_deviators_vs_own_frozen_order": {
+      "mean": -0.015328926358942887,
+      "lo": -0.018163638351803374,
+      "hi": -0.012546761235014787,
+      "n": 9358,
+      "excludes_zero": true
+     },
+     "n_distinct_interviews": 7291,
+     "pep_divergence": {
+      "n_pairs": 8777057,
+      "divergence_rate": 0.6357806494819391
+     },
+     "concept_share": 0.3763625,
+     "answer_rate": 0.437475
+    },
+    "p2shuf": {
+     "frac_never_deviates_from_its_own_unseeded_rollout": 0.0181,
+     "mean_positions_differing": 15.2896,
+     "n_deviators": 9819,
+     "frac_users_differing_at_each_position": [
+      0.9803,
+      0.9337,
+      0.9623,
+      0.9545,
+      0.9677,
+      0.965,
+      0.9593,
+      0.9623,
+      0.9599,
+      0.9635,
+      0.9557,
+      0.9535,
+      0.9458,
+      0.9465,
+      0.9378,
+      0.9418
+     ],
+     "among_deviators_vs_own_frozen_order": {
+      "mean": -0.018303670438431435,
+      "lo": -0.020995270143630788,
+      "hi": -0.015685019173085322,
+      "n": 9819,
+      "excludes_zero": true
+     },
+     "n_distinct_interviews": 8850,
+     "pep_divergence": {
+      "n_pairs": 7312494,
+      "divergence_rate": 0.803060624733504
+     },
+     "concept_share": 0.50335,
+     "answer_rate": 0.53615625
+    }
+   },
+   "redundancy_per_item_question": {
+    "static": {
+     "mean_item_questions_of_16": 6.0,
+     "mean_reasks_per_user": 0.3059,
+     "reasks_per_item_question": 0.05098333333333333,
+     "vs_tree_paired": {
+      "mean": -0.0872,
+      "lo": -0.1014,
+      "hi": -0.073,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    },
+    "tree": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.3931,
+     "reasks_per_item_question": 0.05408119746309519,
+     "vs_tree_paired": null
+    },
+    "p2ft_frozen": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.3931,
+     "reasks_per_item_question": 0.05408119746309519,
+     "vs_tree_paired": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 10000,
+      "excludes_zero": false
+     }
+    },
+    "p2ft": {
+     "mean_item_questions_of_16": 9.9782,
+     "mean_reasks_per_user": 0.3515,
+     "reasks_per_item_question": 0.035226794411817766,
+     "vs_tree_paired": {
+      "mean": -0.0416,
+      "lo": -0.0562,
+      "hi": -0.027597500000000035,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    },
+    "p2shuf_frozen": {
+     "mean_item_questions_of_16": 7.2687,
+     "mean_reasks_per_user": 0.3931,
+     "reasks_per_item_question": 0.05408119746309519,
+     "vs_tree_paired": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 10000,
+      "excludes_zero": false
+     }
+    },
+    "p2shuf": {
+     "mean_item_questions_of_16": 7.9464,
+     "mean_reasks_per_user": 0.3208,
+     "reasks_per_item_question": 0.040370482230947344,
+     "vs_tree_paired": {
+      "mean": -0.0723,
+      "lo": -0.0873,
+      "hi": -0.0578,
+      "n": 10000,
+      "excludes_zero": true
+     }
+    }
+   }
+  }
+ },
+ "minutes": 17.34
+}
