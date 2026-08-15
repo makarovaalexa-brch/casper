@@ -491,8 +491,15 @@ def load_traj(train=True):
             "pool": pool, "sig": man["sig"], "leaf_ids": man["leaf_ids"]}
 
 
-def make_batch(D, phi_t, u, t, n_pool, labels=None):
-    """Tensors for a batch of (user, position) examples. The history is EXPLICIT and TERNARY."""
+def make_batch(D, phi_t, u, t, n_pool, labels=None, mask_cols=None):
+    """Tensors for a batch of (user, position) examples. The history is EXPLICIT and TERNARY.
+
+    `mask_cols` (P1 CONTROL ARM, design sheet I.1 measurement 4) removes those candidates from the
+    softmax at TRAINING time only -- the held-out questions are not merely unsupervised, they are not
+    in the candidate table at all. They are restored at inference (`rollout` and
+    `teacher_forced_agreement` never pass `mask_cols`), which is what separates "learned to reach
+    them" from "never needed them".
+    """
     B = len(u)
     Z = D["Z"]; lab = D["label_idx"]; out = D["outcome"]
     z = torch.from_numpy(np.ascontiguousarray(Z[u, t]).astype(np.float32))
@@ -513,6 +520,11 @@ def make_batch(D, phi_t, u, t, n_pool, labels=None):
     # permuted target can land on an already-asked candidate; that one entry is re-opened, because a
     # control whose loss is +inf measures nothing.
     asked[np.arange(B), y] = False
+    if mask_cols is not None:
+        asked[:, mask_cols] = True
+        assert not asked[np.arange(B), y].any(), (
+            "a masked-out candidate is the target of a training example -- the P1 control must never "
+            "supervise a held-out question")
     pos = np.stack([t, TOTAL_L - t], 1).astype(np.float32)
     return (z, torch.from_numpy(phi_t[hq]), torch.from_numpy(ho), torch.from_numpy(hm),
             torch.from_numpy(pos), torch.from_numpy(asked), torch.from_numpy(y))
@@ -733,7 +745,41 @@ def train(args):
         log(f"[arm] relabelled positions: "
             f"{[t for t, c in enumerate(deep_info['by_position']) if c]}")
 
-    steps = int(np.ceil(n_ex / args.batch))
+    # ---- P1 (design sheet I.1): hold questions out BY IDENTITY -----------------------------------
+    # Every (user, position) example whose LABEL is a held-out question is DROPPED from training. The
+    # held-out questions stay in the candidate table, so they remain *emittable* and are never
+    # *supervised* -- that distinction is the whole experiment. `--heldout_mask_train` is the CONTROL
+    # (I.1 measurement 4): they are additionally removed from the training candidate table and
+    # restored only at inference.
+    heldout_idx, p1_info = None, None
+    train_examples = np.arange(n_ex)
+    if args.heldout_json:
+        hb = json.load(open(args.heldout_json))
+        assert hb["test_touched"] is False
+        assert [(int(a), int(b)) for a, b in hb["pool"]] == pool, \
+            "--heldout_json was built on a different pool"
+        heldout_idx = np.asarray(sorted(int(x) for x in hb["heldout_pool_idx"]), np.int64)
+        eff = labels_all if labels_all is not None else Dtr["label_idx"]
+        keep = ~np.isin(np.asarray(eff, np.int64), heldout_idx)
+        train_examples = np.flatnonzero(keep.ravel())
+        p1_info = {"heldout_json": os.path.basename(args.heldout_json),
+                   "n_heldout_questions": int(len(heldout_idx)),
+                   "n_examples_total": int(n_ex),
+                   "n_examples_kept": int(len(train_examples)),
+                   "n_examples_dropped": int(n_ex - len(train_examples)),
+                   "frac_dropped": float(1.0 - len(train_examples) / n_ex),
+                   "heldout_masked_from_training_candidate_table": bool(args.heldout_mask_train),
+                   "labels_shuffled_before_the_drop": bool(args.arm == "shuffle")}
+        assert not np.isin(np.asarray(eff, np.int64).ravel()[train_examples], heldout_idx).any(), \
+            "a held-out question survived as a training target"
+        log(f"[P1] {p1_info['n_examples_dropped']:,} of {n_ex:,} examples "
+            f"({p1_info['frac_dropped'] * 100:.2f}%) carry one of the {len(heldout_idx)} held-out "
+            f"labels and are DROPPED. The held-out questions remain "
+            f"{'MASKED OUT of the training candidate table (CONTROL ARM)' if args.heldout_mask_train else 'IN the candidate table -- emittable, never supervised'}.")
+    mask_cols = heldout_idx if (heldout_idx is not None and args.heldout_mask_train) else None
+
+    n_ex_eff = len(train_examples)
+    steps = int(np.ceil(n_ex_eff / args.batch))
     best = {"full": -1e9}
     hist = []
     # HARD RULE 11(e): a unique output stem per run. Two runs never share an output path.
@@ -747,7 +793,7 @@ def train(args):
             f"you really mean to replace a banked artifact (HARD RULE 11e).")
     for ep in range(1, args.epochs + 1):
         pol.train()
-        perm = rng.permutation(n_ex)
+        perm = train_examples[rng.permutation(n_ex_eff)]
         tot = 0.0; seen = 0; hit = 0
         te = time.time()
         for si in range(steps):
@@ -756,7 +802,8 @@ def train(args):
                 continue
             u = (e // TOTAL_L).astype(np.int64); t = (e % TOTAL_L).astype(np.int64)
             y = labels_all[u, t].astype(np.int64) if labels_all is not None else None
-            z, hp, ho, hm, pos, am, yy = make_batch(Dtr, phi_t, u, t, P, labels=y)
+            z, hp, ho, hm, pos, am, yy = make_batch(Dtr, phi_t, u, t, P, labels=y,
+                                                    mask_cols=mask_cols)
             s = pol(z, hp, ho, hm, pos, phi_g, am)
             loss = lossf(s, yy)
             opt.zero_grad(); loss.backward(); opt.step()
@@ -791,7 +838,7 @@ def train(args):
             log(f"[ckpt] epoch {ep} is the best so far -> {os.path.basename(ckpt)}")
         json.dump({"analysis": "policy_net_E1", "arm": args.arm, "arch": args.arch,
                    "state": args.state, "use_pos": not args.no_pos, "history": hist,
-                   "init_from": init_from, "deep_labels": deep_info,
+                   "init_from": init_from, "deep_labels": deep_info, "p1_heldout": p1_info,
                    "test_touched": False, "selection": "real interview NDCG on 10,000 val users"},
                   open(os.path.join(OUTDIR, stem + "_history.json"), "w"), indent=1, default=float)
 
@@ -896,7 +943,7 @@ def train(args):
            "cohorts": {"fit": "140,768 TRAIN users (states + frozen-tree labels; NO NDCG)",
                        "select": "10,000 VALIDATION users (real interview NDCG)"},
            "arm": args.arm, "arch": args.arch, "state": args.state, "use_pos": not args.no_pos,
-           "init_from": init_from, "deep_labels": deep_info,
+           "init_from": init_from, "deep_labels": deep_info, "p1_heldout": p1_info,
            "best_epoch": best["epoch"], "history": hist, "gates": gates,
            "static_val": {"full": float(np.nanmean(sf)), "tail": float(np.nanmean(stl))},
            "policy_val": {"full": float(np.nanmean(vf)), "tail": float(np.nanmean(vt))},
@@ -1021,6 +1068,13 @@ def main():
     ap.add_argument("--init_ckpt", default=None,
                     help="fine-tune from this checkpoint instead of from scratch (phase 3 starts "
                          "from the E1 anchor). Every structural field is asserted.")
+    ap.add_argument("--heldout_json", default=None,
+                    help="P1 (design sheet I.1): p1_split.json. Every example whose LABEL is one of "
+                         "its held-out questions is dropped from training. The questions stay in the "
+                         "candidate table -- emittable, never supervised.")
+    ap.add_argument("--heldout_mask_train", action="store_true",
+                    help="P1 CONTROL (I.1 measurement 4): also remove the held-out questions from "
+                         "the TRAINING candidate table; they are restored at inference.")
     ap.add_argument("--tag", default="",
                     help="suffix for this run's output stem. HARD RULE 11e: two runs never share an "
                          "output path.")
