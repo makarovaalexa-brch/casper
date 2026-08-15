@@ -367,6 +367,21 @@ def main():
                 "full": paired_bootstrap(np.asarray(pu["full"], np.float64) - e1_pool_full),
                 "tail": paired_bootstrap(np.asarray(pu["tail"], np.float64) - e1_pool_tail)}
         out["arms"][name] = r
+    # ★ THE COMPARISON THE PRE-REGISTRATION TURNS ON: learned guard vs the budget-matched dumb one,
+    # paired, at every threshold. It belongs in the artifact, not only in the write-up.
+    out["learned_minus_dumb_at_matched_budget"] = {}
+    for name, (b, pu) in cells.items():
+        if not name.startswith("dumb_") or "matched_to" not in b:
+            continue
+        src = b["matched_to"]
+        lp = cells[src][1]
+        out["learned_minus_dumb_at_matched_budget"][f"{src}_vs_{name}"] = {
+            "candidates_alive": b["mean_candidates_alive_per_state"],
+            "learned_full": cells[src][0]["full"], "dumb_full": b["full"],
+            "full": paired_bootstrap(np.asarray(lp["full"], np.float64) -
+                                     np.asarray(pu["full"], np.float64)),
+            "tail": paired_bootstrap(np.asarray(lp["tail"], np.float64) -
+                                     np.asarray(pu["tail"], np.float64))}
     out["minutes"] = round((time.time() - t00) / 60, 2)
     p = os.path.join(GDIR, "vocab_guard.json")
     with open(p + ".tmp", "w") as fh:
