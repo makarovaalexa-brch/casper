@@ -101,6 +101,75 @@ SEEDED_FRAC = 1.0 / 8.0            # declared constant (I.2), not tuned post hoc
 MAX_K = 15
 
 
+# ============================================================================ the other off-manifold states
+DEEP_DIR = os.path.join(OUTDIR, "policy_labels_deep_partial")
+JSONL = os.path.join(OUTDIR, "value_dataset.jsonl")
+
+
+def load_offmanifold_extra():
+    """★ THE STATE COUNT, CORRECTED UPWARD (author's catch, 2026-08-15). Part I.2 said "138
+    evidence-seeded states" and that undercounted: the 425-state / 72,717-triple bank was built for
+    the VALUE model and every one of its states also carries a measured ACTION label that has never
+    trained anything. Counted rather than assumed, by source:
+
+      216  the tree's own greedy-tail states (`ndcgtree16_heaps`, `ndcgtree_heaps`) -- ON E1's
+           trajectory manifold. E1 already trains on these; they are the replay, not new material,
+           and they are EXCLUDED from the seeded set.
+       42  `policy_labels_deep_partial` -- phase 3's below-floor sweeps. FULL-POOL: ~996 of the 1,000
+           candidates measured at each state, so the label is the EXACT pool argmax. Rows banked.
+      138  the random-prefix sweeps. Label = argmax over the ~22 IN-POOL candidates of the 50 sampled.
+       31  `greedy_static_policyB_{items,concepts}_heaps` -- STATIC-ORDER states, cohort = all 10,000
+           users. The banked `pick` triple IS greedy's chosen next question, i.e. the exact argmax, so
+           the label is exact even though only the heap survivors were banked. ONE of the 31 is the
+           EMPTY state, which E1 already handles with the tree's root; relabelling it would disturb
+           behaviour the policy already has (the phase-3 failure mode Part I.0 warns about), so it is
+           dropped and the drop is counted.
+
+    Returns the two banked-row sources this function owns (deep + static); the random prefixes are
+    read by the caller from their own sidecars.
+    """
+    out = []
+    for fp in sorted(glob.glob(os.path.join(DEEP_DIR, "*.json"))):
+        if os.path.basename(fp) == "_sig.json":
+            continue
+        d = json.load(open(fp))
+        if not d.get("done"):
+            continue
+        out.append({"kind": "deep_full_pool", "sid": d["sid"],
+                    "prefix": [(int(a), int(b)) for a, b in d["prefix"]],
+                    "rows": [int(r) for r in d["rows"]],
+                    "gains": {(int(q.split("_")[0]), int(q.split("_")[1])): float(v[0])
+                              for q, v in d["vals"].items()},
+                    "label_q": None, "teacher": "exact argmax over ~996 of 1,000 pool candidates"})
+    st, meta = {}, {}
+    for line in open(JSONL):
+        d = json.loads(line)
+        if not d["source_file"].split("/")[0].startswith("greedy_static"):
+            continue
+        sid = d["state_id"]
+        meta[sid] = {"asked": [(int(a), int(b)) for a, b in d["asked_set"]],
+                     "depth": int(d["depth"]), "n_rows": int(d["n_rows"])}
+        st.setdefault(sid, {})[(int(d["question"][0]), int(d["question"][1]))] = (
+            float(d["gain"]), bool(d["in_pool"]), d["selection_tag"])
+    n_empty = 0
+    for sid, g in st.items():
+        if meta[sid]["depth"] == 0:
+            n_empty += 1
+            continue                       # E1 already handles the empty state; do not disturb it
+        picks = [q for q, (_gg, _ip, t) in g.items() if t == "pick"]
+        if not picks:
+            continue
+        out.append({"kind": "static_order", "sid": sid, "prefix": meta[sid]["asked"],
+                    "rows": None,          # cohort = all 10,000 users, filled in by the caller
+                    "gains": {q: v[0] for q, v in g.items() if v[1]},
+                    "label_q": picks[0],
+                    "teacher": "greedy's own chosen next question -- the exact pool argmax"})
+    log(f"[extra] {sum(1 for r in out if r['kind'] == 'deep_full_pool')} full-pool below-floor "
+        f"states + {sum(1 for r in out if r['kind'] == 'static_order')} static-order states "
+        f"({n_empty} empty-state static entries dropped: E1 already handles that state)")
+    return out
+
+
 # ============================================================================ build the seeded set
 def build_seeded(args):
     """Turn the 19 random-prefix sweeps into (state, label) training examples, and PRINT THE
@@ -113,6 +182,7 @@ def build_seeded(args):
 
     files = sorted(glob.glob(os.path.join(SAMPLE_DIR, "prefix_*.json")))
     assert files, f"no random-prefix sweeps in {SAMPLE_DIR}"
+    extra = load_offmanifold_extra()
     Dva = load_traj(train=False)
     pool = Dva["pool"]
     pool_index = {(int(a), int(b)): i for i, (a, b) in enumerate(pool)}
@@ -209,6 +279,39 @@ def build_seeded(args):
             f"({int(src_u.sum()):,} of 10,000 users on a measured answer path, the rest carry the "
             f"prefix's marginal label)")
 
+    # ---- the other off-manifold states: full-pool below-floor + static-order --------------------
+    for r in extra:
+        rws = r["rows"] if r["rows"] is not None else [int(x) for x in rows]
+        n = len(rws)
+        prefix = r["prefix"]
+        k = len(prefix)
+        assert 0 < k <= MAX_K, f"{r['sid']}: prefix length {k}"
+        if r["label_q"] is not None:
+            lq = r["label_q"]
+        else:
+            inp = {q: g for q, g in r["gains"].items() if q in pool_index}
+            assert inp, f"{r['sid']}: no in-pool candidate measured"
+            lq = max(inp.items(), key=lambda kv: kv[1])[0]
+        assert lq in pool_index, f"{r['sid']}: label {lq} is not in the 1,000-pool"
+        assert lq not in set(prefix), f"{r['sid']}: the label is already in the prefix"
+        outs = np.stack([np.asarray(branch_of_per_user(E, rws, [q] * n), np.int64)
+                         for q in prefix], 1)
+        z = genv_latent(E, prefix, rws).numpy()
+        hq = np.zeros((n, MAX_K), np.int64); ho = np.zeros((n, MAX_K), np.int64)
+        for j, q in enumerate(prefix):
+            hq[:, j] = pool_index[q]; ho[:, j] = outs[:, j]
+        Zs.append(z.astype(np.float32)); HQ.append(hq.astype(np.int16))
+        HO.append(ho.astype(np.int8)); KK.append(np.full(n, k, np.int8))
+        LAB.append(np.full(n, pool_index[lq], np.int16))
+        PFX.append(np.full(n, -1 if r["kind"] == "static_order" else -2, np.int16))
+        SRC.append(np.full(n, 2 if r["kind"] == "static_order" else 3, np.int8))
+        SID.append(np.full(n, next_sid, np.int32))
+        state_meta.append({"state_id": next_sid, "kind": r["kind"], "sid": r["sid"],
+                           "prefix_len": k, "n_users": n,
+                           "label_pool_idx": int(pool_index[lq]), "teacher": r["teacher"]})
+        next_sid += 1; n_states_used += 1
+    log(f"[extra] {len(extra)} extra off-manifold states folded")
+
     Z = np.concatenate(Zs); HQ = np.concatenate(HQ); HO = np.concatenate(HO)
     KK = np.concatenate(KK); LAB = np.concatenate(LAB).astype(np.int64)
     PFX = np.concatenate(PFX); SRC = np.concatenate(SRC); SID = np.concatenate(SID)
@@ -224,6 +327,12 @@ def build_seeded(args):
         "n_examples": int(len(LAB)),
         "n_examples_from_a_measured_answer_path": int((SRC == 1).sum()),
         "n_examples_from_a_prefix_marginal_state": int((SRC == 0).sum()),
+        "n_examples_from_a_static_order_state": int((SRC == 2).sum()),
+        "n_examples_from_a_full_pool_below_floor_state": int((SRC == 3).sum()),
+        "n_states_by_kind": {"random_prefix_marginal": 19,
+                             "random_prefix_answer_path": int(next_sid - len(extra) - 19),
+                             "static_order": sum(1 for r in extra if r["kind"] == "static_order"),
+                             "deep_full_pool": sum(1 for r in extra if r["kind"] == "deep_full_pool")},
         "n_distinct_label_questions": int(len(qs)),
         "label_items": int((ch == 0).sum()), "label_concepts": int((ch == 1).sum()),
         "label_concept_share_example_weighted":
