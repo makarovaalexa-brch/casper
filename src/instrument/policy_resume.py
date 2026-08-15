@@ -62,7 +62,33 @@ from policy_net import (OUTDIR, SEED, TOTAL_L, STATIC_JSON, STATIC_VAL_FULL, STA
 
 RESUME_DIR = os.path.join(OUTDIR, "resume")
 KS = (2, 4, 8)
-ARMS = ("none", "static", "tree", "policy")
+ARMS = ("none", "static", "tree", "policy", "policyz", "policyz_frozen")
+Z_PER_USER = os.path.join(OUTDIR, "policy_main_equivariant_z_gates_per_user.npz")
+Z_VAL_FULL = 0.2828421862631176              # banked z-only ablation, unseeded, K=16
+Z_VAL_TAIL = 0.13385393132501944
+
+# ---------------------------------------------------------------------------------------------
+# ★ THE Z-ONLY ARM AND THE HYPOTHESIS IT TESTS (added 2026-08-15, after R's null)
+#
+# R measured that the both-inputs policy runs its UNSEEDED interview for 95-99% of users. The
+# proposed mechanism: the state has two parts, and volunteered evidence moves the tower latent
+# `z_t` while leaving the explicit ternary asked-history EMPTY -- a pairing that NEVER OCCURS
+# anywhere in E1's training, because the only way `z_t` ever moved there was that a question was
+# asked and answered. On an unfamiliar pairing the model falls back to its empty-interview
+# behaviour, which is the tree's opening.
+#
+# The `z`-only policy CANNOT make that distinction by construction: volunteered items and answered
+# items fold into `z_t` identically, so it has no way to tell "three films you offered" from "three
+# films I asked about". If the mechanism is right, it should adapt. It is a fair arm and not a straw
+# man -- top-1 0.9951, gain +0.02723 (97% of E1's +0.02794), and it already deviates from the tree
+# on 6.19% of users ON-manifold where the both-inputs model deviates on 0%.
+#
+# `policyz_frozen` is the arm that makes "do the deviations pay" answerable EXACTLY. It replays the
+# z-only policy's OWN unseeded question order at the seeded state, so it differs from `policyz` in
+# the questions and in nothing else -- same fold, same evidence, same user. For the both-inputs
+# policy this arm would BE the tree arm (its unseeded rollout is the tree's), which is why R did not
+# need it and this run does.
+# ---------------------------------------------------------------------------------------------
 
 
 # =============================================================================== the volunteered draw
@@ -213,6 +239,9 @@ def main():
     ap = argparse.ArgumentParser(description="Experiment R (Part H.2): resumption from seeded states")
     ap.add_argument("--ks", default="2,4,8")
     ap.add_argument("--ckpt", default=os.path.join(OUTDIR, "policy_main_equivariant_both.pt"))
+    ap.add_argument("--ckpt_z", default=os.path.join(OUTDIR, "policy_main_equivariant_z.pt"),
+                    help="the BELIEF-ONLY ablation. It cannot distinguish volunteered evidence "
+                         "from answered evidence, which is the hypothesis under test.")
     ap.add_argument("--threads", type=int, default=None, help="consumed by strategy_channel_suite")
     ap.add_argument("--full_threads", action="store_true")
     ap.add_argument("--i_have_author_goahead", action="store_true")
@@ -277,6 +306,35 @@ def main():
     log(f"[policy] {os.path.basename(args.ckpt)} epoch {blob['epoch']} val_full {blob['val_full']:.6f}"
         f" -- FROZEN, no gradient step is taken anywhere in this file")
 
+    blobz = torch.load(args.ckpt_z, map_location="cpu")
+    assert [(int(a), int(b)) for a, b in blobz["pool"]] == pool, "the z ckpt is on another pool"
+    assert np.array_equal(blobz["norm_mu"], norm[0]) and np.array_equal(blobz["norm_sd"], norm[1]), \
+        "the z ckpt's descriptor standardisation differs from this env's"
+    assert blobz["state"] == "z", f"--ckpt_z is state={blobz['state']!r}, expected 'z'"
+    pol_z = Policy(E["ctx"].d, phi_t.shape[1], len(pool), arch=blobz["arch"], state=blobz["state"],
+                   use_pos=blobz["use_pos"])
+    pol_z.load_state_dict(blobz["model"])
+    zz = np.load(Z_PER_USER)
+    z_full = np.asarray(zz["policy_full"], np.float64)
+    z_tail = np.asarray(zz["policy_tail"], np.float64)
+    z_asked = np.asarray(zz["asked"], np.int64)
+    assert abs(float(np.nanmean(z_full)) - Z_VAL_FULL) < 1e-9, "the banked z-only vector moved"
+    log(f"[policyz] {os.path.basename(args.ckpt_z)} epoch {blobz['epoch']} val_full "
+        f"{float(np.nanmean(z_full)):.8f} -- FROZEN. It deviates from the tree on "
+        f"{float((z_asked != np.asarray(Dva['label_idx'], np.int64)).any(1).mean()) * 100:.2f}% "
+        f"of users UNSEEDED.")
+
+    # ★ R's banked values, snapshotted BEFORE this run writes anything, so every reused cell is
+    # asserted against the number R published -- a free contract check on the whole chain.
+    banked_R = {}
+    _rp = os.path.join(RESUME_DIR, "policy_resume.json")
+    if os.path.exists(_rp):
+        _b = json.load(open(_rp))
+        for _k, _v in _b.get("by_k", {}).items():
+            for _a, _c in _v.get("arms", {}).items():
+                banked_R[(_k, _a)] = (_c["full"], _c["tail"])
+        log(f"[banked-R] snapshotted {len(banked_R)} banked (k, arm) cells from R for assertion")
+
     sig = {"tower": E["tower"], "conc_ckpt": E["conc_ckpt"], "pool_contract": E["pool_contract"],
            "ckpt": os.path.basename(args.ckpt), "seed": SEED, "L": TOTAL_L,
            "draw": "popularity-weighted, without replacement, from rated fold-in items"}
@@ -306,8 +364,9 @@ def main():
                 asked = np.full((len(rows), 0), -1, np.int64)
                 outs = np.full((len(rows), 0), -1, np.int8)
                 redun = np.zeros(len(rows), np.int64)
-            elif arm in ("tree", "static"):
-                asked = tree_asked if arm == "tree" else static_asked
+            elif arm in ("tree", "static", "policyz_frozen"):
+                asked = {"tree": tree_asked, "static": static_asked,
+                         "policyz_frozen": z_asked}[arm]
                 iseq, cseq, redun = build_seqs(asked, pool, vol)
                 f, t = genv_eval_multi(E, rows, iseq, cseq)
                 if arm == "tree":
@@ -323,7 +382,8 @@ def main():
                     outs = np.stack([branch_of_per_user(E, rows, [pool[int(j)] for j in asked[:, tt]])
                                      for tt in range(TOTAL_L)], 1).astype(np.int64)
             else:
-                ro = rollout_seeded(E, pol, phi_t, pool, rows, vol)
+                ro = rollout_seeded(E, pol if arm == "policy" else pol_z,
+                                    phi_t, pool, rows, vol)
                 asked, outs = ro["asked"], ro["outs"].astype(np.int64)
                 f, t = ro["curves"][TOTAL_L]
                 _i, _c, redun = build_seqs(asked, pool, vol)
@@ -348,21 +408,73 @@ def main():
             log(f"  [k={k} {arm}] full={blob_c['full']:.5f} tail={blob_c['tail']:.5f} "
                 f"redundant={blob_c['redundant_reasks_mean']:.4f} ({blob_c['minutes']:.1f}m)")
 
+        # ★ every cell R published is asserted against R's banked value -- a free contract check on
+        # the whole chain, whether the cell was resumed from disk or recomputed here.
+        for arm in ARMS:
+            want = banked_R.get((str(k), arm))
+            if want is None:
+                continue
+            got = (cells[arm][0]["full"], cells[arm][0]["tail"])
+            assert abs(got[0] - want[0]) < 1e-12 and abs(got[1] - want[1]) < 1e-12, (
+                f"BANKED-R ASSERT FAILED at k={k} {arm}: this run has {got!r}, R published {want!r}")
+        if banked_R:
+            log(f"[banked-R] every R cell at k={k} reproduces its published value exactly")
+
         # ---- the comparisons ---------------------------------------------------------------------
         gf = {a: np.asarray(cells[a][1]["full"], np.float64) for a in ARMS}
         gt = {a: np.asarray(cells[a][1]["tail"], np.float64) for a in ARMS}
-        pa = np.asarray(cells["policy"][1]["asked"], np.int64)
-        diff = (pa != e1_asked)
-        adapt = {
-            "frac_never_deviates_from_its_own_unseeded_rollout": float((~diff.any(1)).mean()),
-            "mean_positions_differing": float(diff.sum(1).mean()),
-            "frac_users_differing_at_each_position": [float(diff[:, tt].mean())
-                                                      for tt in range(TOTAL_L)],
-            "n_positions_differing_histogram": [int((diff.sum(1) == m).sum())
-                                                for m in range(TOTAL_L + 1)],
-            "note": ("E1's unseeded rollout IS the tree's realised interview (agreement 1.0000). So "
-                     "this is simultaneously 'does the policy adapt to the seeding' and 'does it "
-                     "leave the teacher's manifold'.")}
+
+        def _adapt(arm, base_asked, note):
+            """Does this arm's SEEDED interview differ from its OWN UNSEEDED one?"""
+            d = (np.asarray(cells[arm][1]["asked"], np.int64) != base_asked)
+            return {"frac_never_deviates_from_its_own_unseeded_rollout": float((~d.any(1)).mean()),
+                    "mean_positions_differing": float(d.sum(1).mean()),
+                    "frac_users_differing_at_each_position": [float(d[:, tt].mean())
+                                                              for tt in range(TOTAL_L)],
+                    "n_positions_differing_histogram": [int((d.sum(1) == m).sum())
+                                                        for m in range(TOTAL_L + 1)],
+                    "n_deviators": int(d.any(1).sum()), "note": note}
+
+        adapt = _adapt("policy", e1_asked,
+                       "E1's unseeded rollout IS the tree's realised interview (agreement 1.0000). "
+                       "So this is simultaneously 'does the policy adapt to the seeding' and 'does "
+                       "it leave the teacher's manifold'.")
+        adapt_z = _adapt("policyz", z_asked,
+                         "the z-only policy's own unseeded rollout, which is NOT the tree's -- it "
+                         "already deviates from the tree on 6.19% of users with no seeding at all. "
+                         "`policyz_frozen` replays exactly this order at the seeded state, so "
+                         "policyz - policyz_frozen isolates the deviation and nothing else.")
+        # ★ do the deviations PAY? Measured on the users who actually deviate, against the arm that
+        # differs ONLY in the questions asked.
+        devz = (np.asarray(cells["policyz"][1]["asked"], np.int64) != z_asked).any(1)
+        devp = (np.asarray(cells["policy"][1]["asked"], np.int64) != e1_asked).any(1)
+        dz = gf["policyz"] - gf["policyz_frozen"]
+        dp = gf["policy"] - gf["tree"]
+        deviator_effect = {
+            "policyz_vs_its_own_frozen_order": {
+                "n_deviators": int(devz.sum()),
+                "mean_among_deviators": float(np.nanmean(dz[devz])) if devz.any() else None,
+                "mean_among_non_deviators": float(np.nanmean(dz[~devz])) if (~devz).any() else None,
+                "paired_among_deviators": paired_bootstrap(dz[devz]) if devz.any() else None},
+            "policy_vs_tree": {
+                "n_deviators": int(devp.sum()),
+                "mean_among_deviators": float(np.nanmean(dp[devp])) if devp.any() else None,
+                "paired_among_deviators": paired_bootstrap(dp[devp]) if devp.any() else None}}
+        # ★ THE SHARPEST DIAGNOSTIC (H.2 + the 2026-08-15 brief): re-asks of a volunteered item PER
+        # ITEM QUESTION ASKED. A policy that genuinely reads the volunteered set has no reason to
+        # ask about a film whose answer it already holds, so its rate should fall BELOW the tree's.
+        # If the interview changes while this rate does not, it is changing for reasons unrelated
+        # to the evidence -- and that must be said.
+        redundancy_per_item_question = {}
+        for a in ARMS:
+            ak = np.asarray(cells[a][1]["asked"], np.int64)
+            if ak.shape[1] == 0:
+                continue
+            n_item_q = float(np.mean([sum(1 for j in r if pool[int(j)][0] == 0) for r in ak]))
+            rd = float(np.asarray(cells[a][1]["redundant"], np.float64).mean())
+            redundancy_per_item_question[a] = {
+                "mean_item_questions_of_16": n_item_q, "mean_reasks_per_user": rd,
+                "reasks_per_item_question": rd / n_item_q if n_item_q else None}
         comp = {
             "policy_minus_tree": {"full": paired_bootstrap(gf["policy"] - gf["tree"]),
                                   "tail": paired_bootstrap(gt["policy"] - gt["tree"])},
@@ -379,11 +491,34 @@ def main():
             "policy_seeded_minus_E1_unseeded": {"full": paired_bootstrap(gf["policy"] - e1_full),
                                                 "tail": paired_bootstrap(gt["policy"] - e1_tail)},
             "tree_seeded_minus_E1_unseeded": {"full": paired_bootstrap(gf["tree"] - e1_full),
-                                              "tail": paired_bootstrap(gt["tree"] - e1_tail)}}
+                                              "tail": paired_bootstrap(gt["tree"] - e1_tail)},
+            # ---- the z-only (belief-only) arm ----------------------------------------------------
+            "policyz_minus_its_frozen_order": {
+                "full": paired_bootstrap(gf["policyz"] - gf["policyz_frozen"]),
+                "tail": paired_bootstrap(gt["policyz"] - gt["policyz_frozen"]),
+                "why": "the ONLY difference is which questions were asked; same fold, same evidence"},
+            "policyz_minus_tree": {"full": paired_bootstrap(gf["policyz"] - gf["tree"]),
+                                   "tail": paired_bootstrap(gt["policyz"] - gt["tree"])},
+            "policyz_minus_policy": {"full": paired_bootstrap(gf["policyz"] - gf["policy"]),
+                                     "tail": paired_bootstrap(gt["policyz"] - gt["policy"])},
+            "policyz_minus_static": {"full": paired_bootstrap(gf["policyz"] - gf["static"]),
+                                     "tail": paired_bootstrap(gt["policyz"] - gt["static"])},
+            "policyz_minus_none": {"full": paired_bootstrap(gf["policyz"] - gf["none"]),
+                                   "tail": paired_bootstrap(gt["policyz"] - gt["none"])},
+            "policyz_seeded_minus_zonly_unseeded": {
+                "full": paired_bootstrap(gf["policyz"] - z_full),
+                "tail": paired_bootstrap(gt["policyz"] - z_tail)}}
         results[str(k)] = {"draw": draw_info, "arms": {a: cells[a][0] for a in ARMS},
-                           "adaptation": adapt, "comparisons": comp,
+                           "adaptation": adapt, "adaptation_zonly": adapt_z,
+                           "do_the_deviations_pay": deviator_effect,
+                           "redundancy_per_item_question": redundancy_per_item_question,
+                           "comparisons": comp,
                            "pep_divergence_policy": pep_divergence_from_arrays(
-                               pa, np.asarray(cells["policy"][1]["outs"], np.int64))}
+                               np.asarray(cells["policy"][1]["asked"], np.int64),
+                               np.asarray(cells["policy"][1]["outs"], np.int64)),
+                           "pep_divergence_policyz": pep_divergence_from_arrays(
+                               np.asarray(cells["policyz"][1]["asked"], np.int64),
+                               np.asarray(cells["policyz"][1]["outs"], np.int64))}
         p = os.path.join(RESUME_DIR, "policy_resume.json")
         out = {"analysis": "policy_resume_H2", "design_sheet":
                "docs/design/PAPER_B_POLICY_DESIGN.md H.2", "citable": True, "test_touched": False,
@@ -404,6 +539,14 @@ def main():
             f"{comp['policy_minus_tree']['full']['hi']:+.5f}] | "
             f"policy adapts on {(1 - adapt['frac_never_deviates_from_its_own_unseeded_rollout']) * 100:.2f}% "
             f"of users, mean {adapt['mean_positions_differing']:.3f} positions changed")
+        dv = deviator_effect["policyz_vs_its_own_frozen_order"]
+        rz = redundancy_per_item_question["policyz"]["reasks_per_item_question"]
+        rt = redundancy_per_item_question["tree"]["reasks_per_item_question"]
+        log(f"[k={k}] ★ Z-ONLY adapts on "
+            f"{(1 - adapt_z['frac_never_deviates_from_its_own_unseeded_rollout']) * 100:.2f}% of "
+            f"users, mean {adapt_z['mean_positions_differing']:.3f} positions | deviations pay "
+            f"{dv['mean_among_deviators']:+.5f} over its own frozen order (n={dv['n_deviators']}) | "
+            f"redundancy/item-question z-only {rz * 100:.2f}% vs tree {rt * 100:.2f}%")
     log(f"[done] {round((time.time() - t00) / 60, 2)} minutes")
     return out
 
