@@ -1770,6 +1770,77 @@ work is writing (Fable verdict 2026-08-15, §5), plus the reserved Q test look a
 
 ---
 
+# PART L — THE FOREST: as-if-asked encoding (L1) and multi-teacher distillation (L2) — SPEC ONLY, NOT RUN
+
+> **AUTHOR SAID (2026-08-17, verbatim):** *"can you spec that test and put it in todo? and have another
+> think how to cover question choice at novel states? ... maybe we can devise multiple types of
+> groupig? cold intervirew tree that we have + volunteered genre tree + maybe something else ... we
+> need multiple examples for a state and the next question to denoise, it that it?"*
+
+**Her closing sentence is the design principle: DENOISING IS COHORT MEASUREMENT.** A conditioning
+grouping is admissible iff (a) its signature is **observable at ask-time** (else the label is
+clairvoyant — K.6), and (b) its groups are **large enough to measure honestly** (≥~500 users; the
+−0.724 exposure says <200 is noise). Every failure this week violated (a) (per-user labels) or (b)
+(below-floor states, V's small groups). Every success satisfied both.
+
+## L.1 — R3: the as-if-asked encoding test (no training, ~minutes)
+
+**Claim:** volunteered STATED facts should enter the policy through the ASKED-HISTORY, not only the
+belief. A stated fact is an answered question nobody asked. R fed evidence into `z` only, history
+empty ⇒ the policy saw "nothing asked" and was correctly inert. Encoding it as history moves the novel
+state ONTO the trained manifold instead of asking the model to generalise off it.
+
+**Design.** Re-run R's harness with a third encoding arm. For each validation user, the volunteered
+evidence is written as history tokens `φ_q ⊗ outcome` (like/dislike from their rating) AND folded into
+`z` AND masked from re-asking. Three cells:
+1. **root-matching:** volunteered fact = the tree's root concept (the stated-genre case). **Prediction,
+   falsifiable: the policy branches exactly as the tree's post-root arm — E1 fidelity guarantees it if
+   the encoding is right.** If it does not, the encoding is wrong, not the theory.
+2. **pool-matching, non-tree:** volunteered facts are pool questions that are not tree splitters.
+   Unknown behaviour — this is the genuinely new cell.
+3. **arbitrary items** (R's original draw) as history tokens. Measures nearest-manifold behaviour.
+
+**Report per cell:** K=16 full/tail vs the tree-from-root on the same seeded users (paired CI);
+redundancy (must be **exactly 0 by construction** — assert it, it validates the mask wiring);
+distinct interviews; where first divergence occurs. **Falsifier:** if cell 1 does not reproduce the
+tree's branch behaviour, the as-if-asked claim dies and is reported dead.
+
+## L.2 — FOREST DISTILLATION: multiple cohort-level teachers, one policy
+
+**Teachers, ranked by evidence:**
+| teacher | status | prior |
+|---|---|---|
+| T0: the cold tree | banked (E1's) | +0.028 val / +0.010 test |
+| **T1: stated-genre orders** | **17 per-group orders ALREADY BANKED** (`groupgreedy_genre15`, sequences re-scored under policy B, test-grade +0.010) | +0.018 val |
+| T2: evidence-count bands (none / 1–2 / 3–8) | needs ~3 greedy orders, cohorts ≥1,000 by construction | R's shifting interview value |
+| T3: taste-popularity band (mainstream/mixed/obscure by fold-in tail mass) | needs ~3 orders | the thesis's own head/tail axis |
+| ✗ inferred-genre-of-items | — | V: null in every big group. DEAD |
+| ✗ per-movie | — | n=1, the clairvoyant trap. DEAD |
+
+**Training set:** for each teacher, seed states matching its signature (genre stated ⇒ genre-concept
+answered in history per L.1; count-band ⇒ k volunteered items as history; cold ⇒ E1's trajectories),
+label = **that teacher's next question at that state**. All labels are cohort-measured functions of
+observable state — learnable AND denoised, by construction. Mix across teachers + tree replay;
+`pu_policy`'s trainer shape reusable (hard labels this time — each teacher's pick, not per-user soft
+targets).
+
+**Gates:** spanning (cold-state behaviour ≥ E1, exact); **per-teacher fidelity** (at states matching
+teacher T's signature, top-1 vs T's own order — the multi-teacher analogue of G-E1a); behavioural
+(on fresh seeded states, policy vs the matching teacher's own order: null or better); shuffle control
+(teacher assignments permuted across signatures). **Falsifier:** if fidelity to T1 costs fidelity to
+T0 (interference — the P2 lesson), the single-policy claim fails at 2 teachers and scaling the forest
+is dead.
+
+**Cost:** L2a (T0+T1 only, all material banked): state-gen + training ≈ **3–5 h**. T2/T3 orders:
+~1–2 h per group × ~6 groups, only if L2a passes. **Order: L1 → L2a → (decision) → T2/T3.**
+
+**What the forest honestly buys:** coverage of the *evidence-type* axis (stated facts, evidence
+amount, taste band) at cohort reliability — not coverage of all conversational states. The residual
+(fine-grained novel states) stays bounded small by V/K/nearest-state. The chapter claim if it works:
+*one policy, many measured teachers, exact where any teacher is defined, graceful default elsewhere.*
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
