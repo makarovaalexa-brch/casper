@@ -1731,6 +1731,45 @@ behavioural gate after a passing pilot is reported as the finding, not retried s
 
 ---
 
+# PART K.6 — THE CLOSING VERDICT (Fable, 2026-08-17): why distillation works and per-user labels cannot
+
+> **AUTHOR ASKED:** *"why policy can distill a tree but cannot learn on this dataset? surely if we show
+> it enough combinations of state and optimal question, it could?"*
+
+**The tree's label is computed FROM the state; the per-user label is computed FROM THE ANSWER KEY.**
+The tree decides its question from the asked-and-answered history alone — its label is a true function
+of the policy's input, and a function that exists can be learned (E1: exactly). The per-user optimal
+question is found by scoring against the user's **held-out targets** — information not in the state and
+mostly not derivable from it. Two users indistinguishable to any policy have different best questions
+because their hidden tastes differ: **the mapping is not a function of the input, and no quantity of
+data supplies a function that is not there.**
+
+**What "enough combinations" converges to:** the best state-conditioned answer — the question best *on
+average* for users at that state. **That object is the greedy criterion; at coarse states it IS the
+tree.** The per-user route, taken to its limit, converges back to the thing distillation already gives
+exactly. Measured: per-user oracle **+0.229**; best cohort-wide question **+0.0115**; the trained cold
+arm **+0.0153** (null vs the static pick). **~95% of the per-user prize is carried by information the
+interview has not yet revealed — which is not a modelling failure but the reason interviews exist.**
+
+**This is the June clairvoyant lesson in a new costume** ([[clairvoyant-imitation-breakthrough]],
+[[night-adaptive-edge-investigation]]: cloning the oracle gave top-1 14% and lost to greedy, because
+the oracle's edge is privileged). The per-user argmax label is a privileged teacher. I designed Part K
+without recognising it; the lesson was in our own notes.
+
+**What remains learnable** — conditioning finer than the tree's 22 nodes — has now been measured
+independently four ways (nearest-state lookup +0.009 in-sample; V's cohort nulls; K's realised-gain
+null; R2's costly deviations) and is real, small, and mostly captured already.
+
+**The chapter's closing sentence:** *the policy learns everything the state can teach — and the state
+can teach almost nothing about which question is best, because that knowledge is precisely what the
+interview exists to acquire. Distillation is not the fallback; it is the optimum given the information
+available.*
+
+**PART K IS CLOSED. The policy workstream's experimental record is closed with it.** The remaining
+work is writing (Fable verdict 2026-08-15, §5), plus the reserved Q test look at draft time.
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
