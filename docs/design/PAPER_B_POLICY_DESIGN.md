@@ -1652,6 +1652,85 @@ author's.
 
 ---
 
+# PART K — PER-USER GAIN DISTILLATION (Fable, 2026-08-16) — the design the author asked for
+
+> **AUTHOR SAID (verbatim):** *"what I want is basically the same model as we have now (distilled
+> policy that emits actions embedding), but I want it to generalise to more states, ideally lots lots
+> more sttaes, so a user can come with an unseen combination of things we know aout them and emitted
+> question makes sense. so i guess model needs to sample a lot of combos and know which question would
+> give th very best ndcg uplift for that user in that circumstance."* Budget: *"a day or 2 of training
+> is still fine."* Then: **"ok, nice, plz generate the design doc and the code to implement this."**
+
+## K.0 The unlock — label USERS, not COHORTS
+
+Every prior attempt inherited the tree's frame: a label = the cohort argmax at one shared state, price
+~2.4 h per state (1,000 candidates × 10,000 users). **`genv_eval_multi` batches heterogeneous per-user
+sequences in one pass** — so give each user their OWN state and sweep the 1,000 candidates once across
+all of them: **the same compute as ONE cohort sweep (~3.5 h at n=8,000) yields ~8,000 distinct states**,
+each with a full per-user measured gain vector. That is the author's sentence — *the best NDCG uplift
+for that user in that circumstance* — as a dataset, and it is what makes DAgger-style iteration
+affordable (Part J.2's "the expert is a measurement" objection priced away by batching).
+
+## K.1 The central bet, and how it is handled
+
+**A single user's gain vector is maximally noisy** (the −0.724 small-cohort lesson at n=1). Handling:
+- ★ **NEVER a per-user argmax as a hard label** — argmax-of-noise is the value-head death. Train with
+  **soft LISTWISE targets over all 1,000 candidates** (per-user measured gains, temperature-scaled
+  softmax target; the exact form is the pilot's one free hyperparameter, declared not tuned-post-hoc).
+  Labels are noisy but **unbiased**; SGD over thousands of users in similar states is the smoother.
+- This also ends the 202-distinct-label poverty: every candidate at every state carries a graded target.
+- Useful structure in the noise: unanswerable candidates have measured gain ≈ 0 **by construction**
+  (a refusal/UNSEEN fold moves nothing), so **answerability is taught automatically**.
+- ★ **The PILOT decides whether the bet is live before real money is spent** (K.4).
+
+## K.2 Firewall — one forced change
+
+Per-user labels are computed from **validation users' target halves**, so training on them burns those
+users for selection. **Split the 10,000 validation users 8,000 (FIT) / 2,000 (HOLDOUT) by user, seed
+98765, fixed once.** All labels, training and model selection on the 8,000; **every behavioural claim
+proven on the 2,000**, whose states and labels are never touched. Train users remain unusable (tower
+memorisation, settled in D.6b). The one unspent TEST look stays reserved for Q. `--split test` refused
+by the parser; `test_touched=false` everywhere.
+
+## K.3 Design
+
+| element | spec |
+|---|---|
+| **states** | sampled per FIT user from the deployment mixture: tree trajectories (replay share), volunteered-evidence seeds k∈{1..8}, partial random interviews, and (round 2+) the policy's own rollout states — the affordable DAgger step. Mixture weights declared in the artifact per round. |
+| **labels** | full 1,000-candidate per-user measured gain vectors, one pass per round (~3.5 h at n=8,000), heterogeneous batching, per-user vectors persisted float32 append-only (the finest-grained rule) |
+| **model** | UNCHANGED: the E1 emitted-vector architecture, warm-started from `policy_main_equivariant_both.pt` |
+| **loss** | listwise CE against the soft target; tree-label replay mixed in as the anti-forgetting mechanism |
+| **rounds** | pilot → 2–4 labelling rounds; round 2+ states include the current policy's own visited states |
+| **budget** | pilot ~0.5 h · rounds ~3.5 h each · training 1–3 h each ⇒ comfortably inside 1–2 days |
+
+## K.4 ★ THE PILOT — run first, decides everything (~30–40 min)
+
+1,000 FIT users, each at one sampled state, full 1,000-candidate per-user labels (~27 min), one
+training run (~minutes at this scale). **Gates:**
+- **sanity:** canonical m=0 snap exact; banked-headline assert on the static order; leak 0/users;
+  composition printed BEFORE training (state-type mix, prefix-length histogram, per-user nnz of the
+  gain vector).
+- **signal:** the trained pilot must beat the **shuffled-target control** on held-out FIT states, and
+  must not fall below the warm-start's own numbers on-manifold (a pilot that only preserves its
+  initialisation has learned nothing — report which).
+- **If the pilot shows no trainable signal, the design is DEAD at pilot price** and is recorded dead.
+
+## K.5 Gates for the full run (pre-registered)
+
+| gate | bar |
+|---|---|
+| spanning (HARD RULE 8) | unseeded K=16 rollout on the 2,000 HOLDOUT users must not fall below E1 on the same users |
+| ★ behavioural win | on fresh seeded states from HOLDOUT users: policy − its own frozen order **≥ 0, CI excluding a loss** (R2 measured −0.01246/−0.01234/−0.00860) |
+| vs tree | report, paired CI; "not worse" is the sentence, "beats" is not expected (bank-beats-conditioning stands) |
+| controls | shuffled-target arm; anti-collapse diagnostics; redundancy reported with an interval |
+| honesty | myopia declared (one-step labels ⇒ greedy with reach, never strategic); Q's test look untouched |
+
+**Expectation, binding on the write-up:** score lands ≈ E1; the prize is behavioural — *the emitted
+question makes sense at combinations never seen* — proven on held-out users. Failure of the
+behavioural gate after a passing pilot is reported as the finding, not retried silently.
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
