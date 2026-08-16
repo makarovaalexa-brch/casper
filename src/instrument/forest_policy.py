@@ -163,11 +163,13 @@ def build_states(E, rows, pool, teachers, orders, gmap, groups, args):
             HM.append(hm.copy()); LAB.append(np.full(n, qidx[seq[j]], np.int64))
             URW.append(grows.copy()); TCH.append(np.full(n, ti, np.int8))
             DEP.append(np.full(n, j, np.int8))
-            oo = branch_of_per_user(E, grows, [seq[j]] * n)
-            hq[:, j + 1] = qidx[seq[j]]; ho[:, j + 1] = oo; hm[:, j + 1] = 1.0
-            for u in range(n):
-                iseq[u].append(int(seq[j][1]))
             if j + 1 < len(seq):
+                # the token written by the LAST question is never read -- the interview is over --
+                # so it is never written, which also keeps the 15-slot history in bounds.
+                oo = branch_of_per_user(E, grows, [seq[j]] * n)
+                hq[:, j + 1] = qidx[seq[j]]; ho[:, j + 1] = oo; hm[:, j + 1] = 1.0
+                for u in range(n):
+                    iseq[u].append(int(seq[j][1]))
                 z = genv_eval_multi(E, grows, iseq, cseq, score=False,
                                     return_z=True)[-1].numpy()
             log(f"    [states {g}] depth {j + 1}/{len(seq)} done")
