@@ -260,6 +260,36 @@ def partition(E, rows, vol, gen):
     return labels, n_no_liked, n_ungenred
 
 
+def tie_census(E, rows, vol, gen):
+    """How often is the volunteered-genre label decided by the ALPHABETICAL TIE-BREAK rather than by
+    a strict modal genre? With k=4 items (~2.5 of them liked) ties are common, so this is the
+    honest measure of how much of V's partition is signal and how much is the tie rule. Reported,
+    never silently assumed away. Diagnostic only -- it changes no label and no score."""
+    lvl = E["lvl"]
+    n_tied = n_lab = 0
+    n_liked_hist = {}
+    tie_width = {}
+    for r, v in zip(rows, vol):
+        d = lvl[int(r)]
+        liked = [int(i) for i in v if int(d.get(int(i), -1)) >= LIKE_MIN_LEVEL]
+        n_liked_hist[len(liked)] = n_liked_hist.get(len(liked), 0) + 1
+        cnt = {}
+        for s in liked:
+            for g in gen.get(s, ()):
+                cnt[g] = cnt.get(g, 0) + 1
+        if not cnt:
+            continue
+        n_lab += 1
+        best = max(cnt.values())
+        w = sum(1 for c in cnt.values() if c == best)
+        tie_width[w] = tie_width.get(w, 0) + 1
+        n_tied += int(w > 1)
+    return {"n_users_with_a_label": n_lab, "n_decided_by_alphabetical_tiebreak": n_tied,
+            "frac_decided_by_tiebreak": (n_tied / n_lab) if n_lab else None,
+            "n_genres_tied_for_the_mode_histogram": {str(k): v for k, v in sorted(tie_width.items())},
+            "n_liked_volunteered_items_histogram": {str(k): v for k, v in sorted(n_liked_hist.items())}}
+
+
 # ============================================================================ the run
 def main():
     ap = argparse.ArgumentParser(description="Experiment V: volunteered-evidence cohorts")
@@ -395,7 +425,15 @@ def main():
         f"HARD RULE 1: none merged, none dropped; the all_groups arm runs every one of them.")
     log("=" * 110)
     if args.census_only:
+        tc = tie_census(E, rows, vol, gen)
+        log(f"[census] {tc['n_decided_by_alphabetical_tiebreak']}/{tc['n_users_with_a_label']} "
+            f"({100.0 * tc['frac_decided_by_tiebreak']:.2f}%) of labelled users had their genre "
+            f"decided by the ALPHABETICAL TIE-BREAK, not by a strict modal genre")
+        log(f"[census] genres tied for the mode: {tc['n_genres_tied_for_the_mode_histogram']}")
+        log(f"[census] liked volunteered items per user: "
+            f"{tc['n_liked_volunteered_items_histogram']}")
         cen = {"analysis": "volunteered_cohort_census", "cohorts": args.cohorts, "citable": False,
+               "tie_census": tc,
                "split": "validation", "test_touched": False, "k_vol": args.k_vol,
                "n_cohort": len(rows), "sizes": sizes, "genre_arm_sizes": genre_sizes,
                "n_users_no_liked_volunteered": n_no_liked,
