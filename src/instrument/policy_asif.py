@@ -209,7 +209,11 @@ def rollout(E, pol, phi_all, phi_cand, pool, rows, seeds, seed_idx, seed_out, en
             asked_qs[u].append(pool[j])
             asked_mask[u, j] = True
             slot = int(base[u] + t)
-            hq[u, slot] = j; ho[u, slot] = int(oo[u]); hm[u, slot] = 1.0
+            if slot < T:
+                # the 16th token is never read: it is written by the last ask, after which the
+                # interview is over. The history has 15 slots because 15 is the most that can ever
+                # condition a question.
+                hq[u, slot] = j; ho[u, slot] = int(oo[u]); hm[u, slot] = 1.0
         iseq, cseq = fold_seqs(seeds, asked_qs)
         need = (t + 1 == max_turns)
         r = genv_eval_multi(E, rows, iseq, cseq, return_z=(not need), score=need)
