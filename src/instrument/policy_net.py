@@ -73,8 +73,35 @@ N_OUTCOMES = 3                                   # like / dislike / did-not-answ
 OUTCOME = {"like": 0, "dislike": 1, "noanswer": 2}
 
 
+# ★ ENCODING SAFETY AT THE SOURCE (2026-08-17). THREE runs this week died -- after their work was
+# done -- because a log message contained a character the console's cp1252 codepage cannot encode
+# ("★", the star this project uses to mark the important lines). `print` raises
+# UnicodeEncodeError, Python exits non-zero, and a chain runner reads that as a failed step and
+# aborts everything downstream. A log line must NEVER be able to kill a run: it is the least
+# important byte in the process and it was taking out multi-hour jobs.
+#
+# Two layers, because either alone can be defeated:
+#   (1) force UTF-8 on stdout/stderr at import, so the characters simply encode. `reconfigure` exists
+#       on 3.7+ and is a no-op if the stream is already UTF-8. Guarded because a stream can be a pipe
+#       wrapper without it.
+#   (2) `errors="replace"` on the reconfigure AND a belt-and-braces retry in `log` itself, so that a
+#       stream this module could not reconfigure (a caller's redirect, a captured buffer) degrades to
+#       "?" instead of raising.
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError, OSError):
+        pass
+
+
 def log(*a):
-    print(time.strftime("[%H:%M:%S]"), *a, flush=True)
+    msg = " ".join(str(x) for x in a)
+    try:
+        print(time.strftime("[%H:%M:%S]"), msg, flush=True)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, "encoding", None) or "ascii"
+        print(time.strftime("[%H:%M:%S]"),
+              msg.encode(enc, "replace").decode(enc, "replace"), flush=True)
 
 
 # ============================================================================ the network

@@ -324,7 +324,19 @@ def fit(args):
     # ---- the model ---------------------------------------------------------------------------------
     d_z = int(S["z"].shape[1])
     pol = Policy(d_z, phi_t.shape[1], P, arch="equivariant", state="both", use_pos=True)
-    e1 = warm_start(pol, args.init_ckpt, pool, norm)
+    if args.cold:
+        # ★ THE PEAKEDNESS ARM. E1 is a distilled ARGMAX policy: it was trained to put nearly all
+        # mass on one candidate, and a listwise CE against a graded target punishes confident-and-
+        # wrong far harder than it punishes flat. Warm-starting therefore hands the optimiser a
+        # maximally-peaked initialisation to dig out of, and the one-hot replay term keeps pushing it
+        # back. This arm removes BOTH forcings, so "it cannot beat a flat prediction" can be read as
+        # a property of the DESIGN rather than of its initialisation. It is a diagnostic, declared as
+        # one; it is not the pilot's configuration.
+        e1 = {"epoch": -1, "val_full": float("nan")}
+        log("[model] COLD START (diagnostic): no warm start. Nothing is forcing this model to be "
+            "peaked, so a flat prediction is freely reachable for it.")
+    else:
+        e1 = warm_start(pol, args.init_ckpt, pool, norm)
     log(f"[model] UNCHANGED E1 architecture, params {pol.n_params():,}")
 
     # ---- the replay ---------------------------------------------------------------------------------
@@ -365,6 +377,44 @@ def fit(args):
         return {"soft_ce": tot / n, "top1_vs_measured_argmax": hit1 / n,
                 "top5_vs_measured_argmax": hit5 / n}
 
+    # ★ THE TARGET DIAGNOSTIC THAT WOULD HAVE CAUGHT tau=0.01 IMMEDIATELY (added 2026-08-16).
+    # A target at ~ln(n_avail) nats carries NO information (uniform); a target at ~0 nats is one-hot
+    # and throws away the graded signal the sweep paid 35 minutes for. Neither is trainable, and the
+    # only way to know which end you are at is to MEASURE the target before reading any loss. The
+    # uniform-prediction CE is printed beside it so "beats flat" is readable at a glance: a model
+    # whose dev CE exceeds it is worse than emitting a constant, i.e. below the free baseline.
+    tent, teff, uce, nav = [], [], [], []
+    with torch.no_grad():
+        for st_ in range(0, len(dev_ix), 1024):
+            ix = dev_ix[st_:st_ + 1024]
+            _z, _hp, _ho, _hm, _pos, am_, tgt_, _ar = pu_batch(S, phi_t, ix, P, tau=args.tau)
+            # 1e-30, NOT 1e-300: the target is float32, whose smallest normal is ~1e-38, so a
+            # 1e-300 clamp underflows to 0 and 0*log(0) is NaN. Measured 2026-08-16.
+            h = -(tgt_ * torch.log(tgt_.clamp_min(1e-30))).sum(-1)
+            tent.append(h); teff.append(torch.exp(h))
+            uce.append(listwise_ce(torch.zeros(len(ix), P).masked_fill(am_, float("-inf")), tgt_)
+                       * len(ix))
+            nav.append(float((~am_).sum(1).float().mean()) * len(ix))
+    tent = torch.cat(tent); teff = torch.cat(teff)
+    tdiag = {"tau": args.tau,
+             "target_entropy_nats_mean": float(tent.mean()),
+             "target_entropy_nats_median": float(tent.median()),
+             "target_eff_support_median": float(teff.median()),
+             "target_eff_support_p10": float(torch.quantile(teff, 0.10)),
+             "target_eff_support_p90": float(torch.quantile(teff, 0.90)),
+             "frac_effectively_one_hot_eff_lt_2": float((teff < 2).float().mean()),
+             "frac_effectively_uniform_eff_gt_half_pool": float((teff > P / 2).float().mean()),
+             "uniform_prediction_ce": float(sum(uce) / len(dev_ix)),
+             "n_available_candidates_mean": float(sum(nav) / len(dev_ix)),
+             "max_entropy_ln_n_avail": float(np.log(sum(nav) / len(dev_ix)))}
+    log(f"[target@tau={args.tau}] entropy {tdiag['target_entropy_nats_mean']:.4f} nats "
+        f"(max possible {tdiag['max_entropy_ln_n_avail']:.4f}) | effective support median "
+        f"{tdiag['target_eff_support_median']:.1f} [p10 {tdiag['target_eff_support_p10']:.1f}, "
+        f"p90 {tdiag['target_eff_support_p90']:.1f}] of {P} | one-hot-ish "
+        f"{tdiag['frac_effectively_one_hot_eff_lt_2'] * 100:.1f}% | uniform-ish "
+        f"{tdiag['frac_effectively_uniform_eff_gt_half_pool'] * 100:.1f}% | UNIFORM-PREDICTION CE "
+        f"{tdiag['uniform_prediction_ce']:.4f} <- the free baseline every epoch must beat")
+
     d0 = dev_eval()
     dz0 = dev_eval(zero=True)
     log(f"[dev@init] warm-start soft-CE {d0['soft_ce']:.5f} | top1 vs measured argmax "
@@ -384,11 +434,17 @@ def fit(args):
                 continue
             z, hp, ho, hm, pos, am, tgt, _ar = pu_batch(S, phi_t, ix, P, tau=args.tau)
             l_pu = listwise_ce(pol(z, hp, ho, hm, pos, phi_g, am), tgt)
-            e = rng.integers(0, n_rep_ex, size=n_rep_b)
-            ru = (e // TOTAL_L).astype(np.int64); rt = (e % TOTAL_L).astype(np.int64)
-            rz, rhp, rho, rhm, rpos, ram, ry = make_batch(Dtr, phi_t, ru, rt, P)
-            l_rep = hard_ce(pol(rz, rhp, rho, rhm, rpos, phi_g, ram), ry)
-            loss = (len(ix) * l_pu + n_rep_b * l_rep) / (len(ix) + n_rep_b)
+            if n_rep_b > 0:
+                e = rng.integers(0, n_rep_ex, size=n_rep_b)
+                ru = (e // TOTAL_L).astype(np.int64); rt = (e % TOTAL_L).astype(np.int64)
+                rz, rhp, rho, rhm, rpos, ram, ry = make_batch(Dtr, phi_t, ru, rt, P)
+                l_rep = hard_ce(pol(rz, rhp, rho, rhm, rpos, phi_g, ram), ry)
+                loss = (len(ix) * l_pu + n_rep_b * l_rep) / (len(ix) + n_rep_b)
+            else:
+                # REPLAY-FREE (pu_frac = 1.0): the anti-forgetting term is gone, so the spanning gate
+                # is expected to fail and this arm is a DIAGNOSTIC, never a candidate policy.
+                l_rep = torch.zeros(())
+                loss = l_pu
             opt.zero_grad(); loss.backward(); opt.step()
             sl_pu += float(l_pu); sl_rep += float(l_rep)
         d = dev_eval()
@@ -427,10 +483,15 @@ def fit(args):
                "n_fit_train_users": int(len(tr_ix)), "n_fit_dev_users": int(len(dev_ix)),
                "selection_rule": ("the epoch with the lowest soft-target CE on the FIT-dev users, "
                                   "declared before the run. Selection never sees HOLDOUT."),
-               "warm_start": {"ckpt": os.path.basename(args.init_ckpt),
+               "cold_start": bool(args.cold), "replay_free": bool(n_rep_b == 0),
+               "warm_start": {"ckpt": (None if args.cold else os.path.basename(args.init_ckpt)),
                               "epoch": int(e1["epoch"]), "val_full": float(e1["val_full"]),
                               "tensors": "16/16, byte-identical after the load"},
                "at_init": {"dev": d0, "dev_zeroed_state": dz0},
+               "target_diagnostic": tdiag,
+               "beats_flat_prediction": bool(best["soft_ce"] < tdiag["uniform_prediction_ce"]),
+               "best_dev_soft_ce": best["soft_ce"],
+               "uniform_prediction_ce": tdiag["uniform_prediction_ce"],
                "history": hist, "best_epoch": best["epoch"],
                "label_is_never_an_argmax": ("the measured per-user argmax is computed only as a "
                                             "read-out for the agreement diagnostics; the training "
@@ -443,6 +504,13 @@ def fit(args):
     if best["soft_ce"] >= d0["soft_ce"]:
         log("[NOTE] no epoch improved on the WARM START's own dev CE. A pilot that only preserves "
             "its initialisation has learned nothing, and that is the reported outcome (K.4).")
+    if best["soft_ce"] >= tdiag["uniform_prediction_ce"]:
+        log(f"[NOTE] ★ BELOW THE FREE BASELINE: best dev CE {best['soft_ce']:.4f} >= the "
+            f"uniform-prediction CE {tdiag['uniform_prediction_ce']:.4f}. A learner that cannot "
+            f"beat emitting a constant is broken or starved, not a measurement of the design.")
+    else:
+        log(f"[NOTE] beats the flat prediction: {best['soft_ce']:.4f} < "
+            f"{tdiag['uniform_prediction_ce']:.4f} (margin {tdiag['uniform_prediction_ce'] - best['soft_ce']:.4f} nats)")
     return out
 
 
@@ -499,8 +567,14 @@ def evaluate(args):
     tree_asked = np.asarray(Dva["label_idx"], np.int64)[hix]
     tree_outs = np.asarray(Dva["outcome"], np.int64)[hix]
     assert np.array_equal(e1_asked, tree_asked), "E1's banked rollout is not the tree's (it was, 1e-9)"
-    log(f"[E1] on these {len(rows):,} HOLDOUT users: full {e1_full.mean():.8f} tail "
-        f"{e1_tail.mean():.8f} -- the spanning bar")
+    # ★ NaN-SAFE. Measured 2026-08-16: 178 of the 2,000 HOLDOUT users have NO tail target, so their
+    # tail NDCG is NaN by construction. `.mean()` propagated that into the artifact's e1_tail field
+    # as a bare NaN while the paired bootstrap (which strips NaN) reported a valid interval beside
+    # it -- a summary statistic and the table it summarises reading different fields, which is the
+    # `verify-the-artifact-not-a-proxy` defect. Every reduction over a per-user vector is nan-aware.
+    log(f"[E1] on these {len(rows):,} HOLDOUT users: full {np.nanmean(e1_full):.8f} tail "
+        f"{np.nanmean(e1_tail):.8f} ({int(np.isnan(e1_tail).sum())} users have no tail target and "
+        f"are NaN, excluded from every mean and from the paired bootstrap) -- the spanning bar")
 
     # ---- the trained policy -----------------------------------------------------------------------
     phi_t, norm = build_phi(E, pool)
@@ -522,11 +596,13 @@ def evaluate(args):
     gates["G-K-spanning"] = {
         "criterion": "the unseeded K=16 HOLDOUT rollout must not fall below E1 on the SAME users",
         "policy_full": float(np.nanmean(pf)), "policy_tail": float(np.nanmean(pt)),
-        "e1_full": float(e1_full.mean()), "e1_tail": float(e1_tail.mean()),
-        "delta_full": float(np.nanmean(pf) - e1_full.mean()),
+        "e1_full": float(np.nanmean(e1_full)), "e1_tail": float(np.nanmean(e1_tail)),
+        "n_users_no_tail_target": int(np.isnan(e1_tail).sum()),
+        "delta_full": float(np.nanmean(pf) - np.nanmean(e1_full)),
+        "delta_tail": float(np.nanmean(pt) - np.nanmean(e1_tail)),
         "paired_full": paired_bootstrap(pf - e1_full), "paired_tail": paired_bootstrap(pt - e1_tail),
-        "pass": bool(float(np.nanmean(pf)) >= float(e1_full.mean()))}
-    log(f"[G-K-spanning] policy {float(np.nanmean(pf)):.8f} vs E1 {e1_full.mean():.8f} -> "
+        "pass": bool(float(np.nanmean(pf)) >= float(np.nanmean(e1_full)))}
+    log(f"[G-K-spanning] policy {float(np.nanmean(pf)):.8f} vs E1 {np.nanmean(e1_full):.8f} -> "
         f"{'PASS' if gates['G-K-spanning']['pass'] else 'FAIL'}")
 
     # ---- GATE 2: ★ THE BEHAVIOURAL WIN, on FRESH seeded states from HOLDOUT users ------------------
@@ -743,6 +819,10 @@ def main():
                     help="suffix for this run's output stem. HARD RULE 11e: two runs never share an "
                          "output path.")
     ap.add_argument("--overwrite", action="store_true")
+    ap.add_argument("--cold", action="store_true",
+                    help="DIAGNOSTIC: skip the E1 warm start. With --pu_frac 1.0 (replay-free) this "
+                         "is the peakedness arm -- nothing forces the model to be confident, so a "
+                         "flat prediction is freely reachable. Never a candidate policy.")
     ap.add_argument("--init_ckpt", default=E1_CKPT,
                     help="the E1 anchor. 16/16 tensors, byte-identity checked after the load.")
     ap.add_argument("--ckpt", default=None, help="--mode evaluate: the checkpoint to gate")
