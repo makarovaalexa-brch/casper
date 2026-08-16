@@ -1569,6 +1569,89 @@ games. If either fails, its falsifier sentence goes in instead — both are hone
 
 ---
 
+# ★ PART J — EXPERIMENT V IS DEAD, AND THE DAgger QUESTION ANSWERED (2026-08-16)
+
+> **AUTHOR SAID:** *"plz kill running jobs, discard the latest experiments chkp, make a note against
+> the design that it is dead"* … *"we already have most of it via a tree. what exactly do we build
+> this on / for?"*
+
+## J.1 V is DEAD — killed mid-placebo, checkpoints discarded
+
+Killed at ~17:00 during the placebo arm. Heavy intermediates (heaps, partials, per-user vectors)
+**discarded**; the small result JSONs and logs are kept because the per-group table is a real finding.
+**No number from V's headline (+0.00549 all_groups) may be quoted — its placebo never completed, and
+an in-sample cohort gain is ≥ 0 by construction.**
+
+**Design faults, all identified by the author, all conceded:**
+- **500 candidates, not 1,000** — inherited from the genre arm for comparability, not because 500 is
+  the right action space. So V never searched the true best question.
+- **Cohorts by INFERRED genre** of 4 volunteered films is a crude proxy, and with ~2.5 liked films per
+  user genre counts tie constantly, **broken alphabetically** — the tie-break census was queued and
+  never ran.
+- **k = 4 volunteered films is arbitrary** (R's middle value).
+- **It measured a CEILING with per-group static lists — a diagnostic, never a step toward a method.**
+
+**What survives, and it is worth keeping:** the per-group shape at K=15 on 10,000 validation users.
+**Every group with n ≥ 200 is an interval-backed null except `none`.** Action (2,758) +0.0002,
+Drama (2,228) −0.0005, Comedy (1,323) +0.0028, Adventure (1,180) −0.0006, Crime (1,027) +0.0069,
+Thriller (391) +0.0092 — none separating. All apparent gain sits at n ≤ 146 (Sci-Fi +0.038, Horror
+n=41 +0.113, **Film-Noir n=7 +0.258**) — the textbook overfitting signature. Contrast the genre arm on
+the same cohort: Action (n=1,582) **+0.0222** and Comedy (n=1,475) **+0.0229**, both separating.
+⚠ And the killer scale fact: **greedy's own step-wise suboptimality (~5e-4, visible as Drama and
+Adventure going slightly negative at K=15 only) is the SAME SIZE as the conditioning signal in V's
+big groups.** The effect is at the noise floor of the instrument measuring it.
+
+**Licensed conclusion:** *what a user volunteers carries far less routing information than their
+answer to a question we chose.* That is a mechanical explanation for R and R2 and it closes the
+resumption line. It is NOT licensed to quote V's headline gain.
+
+## J.2 ★★ DAgger: the right technique, and it CANNOT help here — the reason matters
+
+The author independently reconstructed **DAgger** (Ross & Bagnell 2011): train, run the learner,
+collect **the states the learner visits**, label them with the expert, retrain **with the old data
+retained** (her "sampled step 1" = the replay). Her worry about "unlikely states with rubbish
+questions" is exactly why DAgger samples the *learner's* distribution rather than at random. Correct
+on every point.
+
+**But DAgger closes the gap between LEARNER and EXPERT, and here that gap is already ZERO.** E1
+reproduces the tree to **1e-9** with `frac_never_deviates = 1.0000`. There is no distribution shift to
+repair on-manifold, and no new states to collect, because a perfect imitator never leaves the
+teacher's trajectories (the same fact that killed the E2 DAgger plan in Part A).
+
+**★ THE BINDING CONSTRAINT IS THE EXPERT, NOT THE IMITATION.** To beat the tree you need a better
+teacher, not a better student. And every attempt to improve the teacher has been measured:
+
+| better teacher | result |
+|---|---|
+| deeper greedy (floor removed) | phase 3: **null** vs the tree, and the fine-tune on those labels **failed the spanning gate** |
+| per-state / kernel greedy | infeasible at scale (~3,772 h at k=8) |
+| a value model, so any state can be scored | **five arms, all lose**, even with perfect values |
+| conditioning on volunteered evidence | **V: every big group a null** |
+
+**And a second, independent reason DAgger cannot deliver what the author wants:** our expert is a
+**MEASUREMENT, not a function** — one label costs a cohort fold plus ~500–1,000 catalogue-wide scorings,
+i.e. 15 min to 2.4 h. Standard DAgger assumes a cheaply queryable expert. Every shortcut we took to
+dodge that cost (best-of-50 candidates, sub-200-user cohorts, borrowed states) produced labels too
+weak to teach from — which is most of this week in one sentence.
+
+## J.3 What is actually left
+
+**Every greedy-derived expert is MYOPIC.** Its labels can only ever teach "the best single next
+question", so no amount of DAgger, data or replay produces non-myopic behaviour. The only two ways to
+get a non-myopic policy are (a) an explicit lookahead expert — combinatorial and unpriced — or
+(b) **reward-driven learning (RL)**, which needs no expert at all.
+
+That is why RL keeps reappearing: **it is the only remaining lever, because it is the only one that
+does not require an expert we cannot afford.** Its own prior remains poor (Part G.D: 2.1% routing
+signal; endpoint polish +0.002@q16 / −0.029@q2 says the non-myopic prize is small), so the honest
+position is *"the only untried lever is also the one our own evidence says is least likely to pay"* —
+and that sentence, with the table above, is a defensible chapter closing.
+
+**No new experiment is proposed here.** Part I's P1/P2 are spent, V is dead, and the next move is the
+author's.
+
+---
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
