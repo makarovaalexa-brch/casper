@@ -2181,3 +2181,31 @@ rule applied to CELLS, not to the table.
 **Sequencing note:** the benchmark is built in M1b (scenario assignment) and scored in M6; it
 replaces M6's bare trajectory count as the chapter's closing exhibit. The single TEST look is spent
 HERE: forest policy vs cold-tree+fold on the MIX, pre-registered.
+
+### M.3 — rulings from the 2026-08-17 late discussion (author Qs 1–5)
+
+- **M5a is OPTIONAL, not load-bearing.** The spine consumes no request text (Reddit contributes the
+  opener DISTRIBUTION only). M5a is the deployability exhibit — real words → recommendations — built
+  only after the fork lands, cuttable without damage. Cutting it ⇒ zero linking in the chapter.
+- **K.6 GOES IN, as the granularity justification, not a confession:** global tree = too coarse
+  (author's objection) · per-user = unlearnable (labels are functions of held-out targets; oracle
+  +0.19366 vs cohort-best +0.009664) · the forest = the finest scale measurement supports. An
+  identification argument — "nulls not citable" does not bite.
+- **THE CONTRIBUTION STATEMENT (thesis-key):** *we establish the conditions under which an interview
+  policy should condition on volunteered information — (i) signature observable at ask time (K.6),
+  (ii) cohort ≥ measurement floor (−0.724 regime), (iii) specialist beats the incumbent at its own
+  states (L2a) — show the field's alternatives each violate one, and deliver a single policy covering
+  the resulting mix.* The design law is the science; distillation is the delivery mechanism. The
+  dream-vs-realistic opener comparison adds the price of natural openers vs optimal ones.
+- **Reviewer-risk register for the mix table** (each pre-empted in the design, to be pre-registered):
+  1. mix weights fixed from the census BEFORE any arm runs + uniform-mix sensitivity row;
+  2. hard baseline = tree+FOLD (the evidence-informed incumbent);
+  3. robustness arm: cold tree allowed to ASK the opener as a charged root question (genre study
+     says a charged turn eats short-budget gains — likely strengthens us);
+  4. simulator circularity is the field's lead objection — the behavioural-answer firewall is
+     foregrounded in the section, not footnoted;
+  5. single dataset (ML-25M) stated plainly.
+- **Risk split, stated for the author:** conditional on the M2 screen, the mix win is near-arithmetic
+  and robust; the open bet is the screen itself (Fable ~25–30%; somewhat higher under the coverage
+  bar with two opener families). The bet is front-loaded into ~1 day of compute — that is the design
+  working as intended.
