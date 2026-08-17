@@ -1939,12 +1939,17 @@ bit-for-bit when every user carries the same prefix.
 > states — on the same action space and the same budget.**
 
 T1 was searched over 500 ITEMS ONLY; the tree spends most of its budget on CONCEPTS, so the comparison
-was never like-for-like. **T1' (`src/instrument/group_greedy_signature.py`) rebuilds the stated-genre
-teacher over the tree's own 1,000-candidate combined pool, FIT users only, and is the decision
-experiment for T2/T3:** if a genre-conditioned order over the full action space beats the tree inside
-its group, the failure was the action space and the bands are worth their search time; if it does not,
-conditioning on a volunteered category does not pay against a cold interview that may ask about
-concepts, and the forest stops at one teacher.
+was never like-for-like. **T1' RAN AND ANSWERED IT: the forest stops at one teacher.** The stated-genre teacher rebuilt over
+the tree's own combined pool (FIT users only, ~4.7 h) does spend turns on concepts — 5 to 9 of 15,
+where the item-only teacher had none by construction — and on the HOLDOUT users of each group it
+**still loses to the tree in 0 of 4 groups won, 3 lost, 1 null**: −0.01650 [−0.02476, −0.00836]
+(Drama), −0.04789 [−0.06821, −0.02820] (Action), −0.03734 [−0.05634, −0.01803] (Comedy), −0.02806
+[−0.05522, +0.00068] (Adventure), against item-only −0.02648 / −0.03290 / −0.03075 / −0.00587. The
+comparison is generous to the item-only orders (they were searched on all 10,000 validation users, so
+these HOLDOUT users were inside their cohort) and clean for the rebuilt ones — and the clean one still
+loses. **The action space was not the explanation.** Conditioning on a volunteered category does not
+pay against a cold interview that may ask about concepts. `docs/results/L2_FOREST.md` carries the
+table; T2 is NOT started on the back of this.
 
 
 ## Cross-references

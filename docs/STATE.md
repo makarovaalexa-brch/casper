@@ -33,7 +33,18 @@ teacher earns its place only if it beats the teacher already covering those stat
 action space and the same budget.** T1's orders were searched over 500 ITEMS ONLY; the tree spends
 most of its budget on CONCEPTS.
 
-**RUNNING (the decision experiment for the forest):** `group_greedy_signature.py` rebuilds the
+**★ THE DECISION EXPERIMENT IS RUN AND THE FOREST STOPS AT ONE TEACHER.** T1'
+(`group_greedy_signature.py`, ~4.7 h) rebuilt the stated-genre teacher over the tree's own combined
+pool, FIT users only. It does use concepts (5–9 of 15) where the item-only teacher had none — and on
+HOLDOUT it **still loses to the tree in every group: 0 won, 3 lost, 1 null** (−0.01650 / −0.04789 /
+−0.03734 / −0.02806 vs item-only −0.02648 / −0.03290 / −0.03075 / −0.00587). The item-only column is
+the optimistic one — those orders were searched on all 10,000 validation users — and the clean column
+still loses. **The action space was not the explanation; a second admissible teacher was built twice
+and neither was worth following.** T2's harness (`group_greedy_bands.py`, per-user-prefix CELF) is
+committed and UNRUN; whether to spend its search time is the author's call. ⚠ T3 as specified is NOT
+admissible: a cold user's fold-in tail mass is not observable at ask time.
+
+**Superseded note (kept for the record):** `group_greedy_signature.py` rebuilds the
 stated-genre teacher over the tree's own 1,000-candidate combined pool, FIT users only, CELF with a
 persisted heap. Beats the tree inside the group ⇒ T1 failed for its action space and the T2/T3
 bands are worth their search time; does not ⇒ the forest stops at one teacher. Either way it is
