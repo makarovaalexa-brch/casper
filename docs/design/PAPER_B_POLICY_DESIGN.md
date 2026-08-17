@@ -2005,3 +2005,99 @@ out; L2 tested lists only.**
 memory `clairvoyant-imitation-breakthrough`, `night-adaptive-edge-investigation`,
 `policy-ladder-ndcg-reward`, `banked-global-greedy-is-a-policy-A-artifact`,
 `surprise-means-debug-the-harness`.
+
+---
+
+## Part M — THE PLAN FOR THE REST OF THE CHAPTER: the COVERAGE programme (2026-08-17, author + Fable review + author's corrections)
+
+**This Part supersedes Fable's 2026-08-17 vision where they conflict.** The author's corrections that
+bind it:
+- The chapter's spine is the **elicitation audit** (field's methods on a real NDCG ruler, all losing;
+  measured-vs-surrogate 56/56 sign flip; the tree beating everything) — NOT "the value of volunteered
+  information". Volunteered info is the closing act, not the spine.
+- **"The interview is evidence-invariant" is BANNED as a headline.** It is a negative inferred from
+  arms never trained to adapt (R's broken encoding, R2 an ablation, P2 on 210 states with mostly
+  approximate labels) — HARD RULE 6 forbids marketing it as a finding. Claim 2 is UNTESTED, not
+  anti-supported: nothing was ever trained to change its order with the opener. The forest is that
+  training.
+- E1 holding the tree is an instrument check, never a contribution.
+- Hu & Yu stays IN the chapter; it is not split out as a standalone paper.
+- **The bar is COVERAGE, not dominance** (author): show one tree does not cover all bases and the
+  policy can cover several — ideally recognising overlap. ONE cluster where a dedicated teacher beats
+  the incumbent at its own states is a positive result. Fable's uniform-dominance abandon rule is
+  replaced accordingly.
+
+**What survives from Fable's review, verbatim binding:**
+- Bar for any "beats the tree" cell: **≥ +0.004 full NDCG@10, paired 10k bootstrap, CI excluding
+  zero, validation** (~40% of the tree's +0.01035).
+- **~8 clusters, never 20** — 500/cluster sits at the floor of the −0.724 noise regime.
+- The skip-redundancy channel is arithmetically dead (5.4% redundancy ⇒ ~0.8 saved turns ×
+  +0.00167 ≈ +0.0013 < MDE/3) — print the multiplication in the chapter.
+- K.6 enters the chapter as a **scoping theorem** (the per-user label is not a function of the state;
+  the oracle gap is why interviews exist), 2–3 sentences in any paper's method section. Audited
+  figures ONLY: oracle +0.19366, cohort-best +0.009664. The K.6 originals are wrong.
+- The single unspent TEST look is spent at the END, on ONE pre-registered comparison.
+
+### The stages
+
+**M0 — bank claim 3, the cheap half (NO linking).** Fold k volunteered items drawn from ML fold-in,
+ask nothing, vs the m=0 snap 0.15687. Falsifier: ≤ snap at any k ∈ {2,4,8}. Hours. The real-text
+(SBERT, Reddit-linked) version is M5b and is a SEPARATE claim — the cheap one does not wait for it.
+
+**M1 — cluster ML users by TASTE, then NAME each cluster.** Cluster folded-evidence `z` (TRAIN users,
+k≈8 volunteered draw), ~8 clusters. Then, per cluster, test which observable descriptor best
+separates it: genre, anchor film, mood/tag (genome), era, or a mixture. The best-separating
+descriptor becomes the cluster's OPENER — an open question, not a ternary split — and the
+admissibility signature ("drama" may be useless where "dark" is useful; that is now an empirical
+output, not an assumption). Gates: descriptor observable at ask time; cohort ≥ ~1,200 val users;
+a cluster with no separating descriptor is reported and dropped (it cannot be routed to).
+Cost: ≤ a day, mostly CPU-light.
+
+**M2 — THE SCREEN.** Per named cluster, measured-greedy sweep over the full question vocabulary at
+that cluster's evidence states vs the tree's root at the same states, paired, identical fold both
+arms. Controls: shuffled cluster assignment (must show nothing); zero-evidence snap (sweep must
+recover the tree's root). **Read-out under the coverage bar: each cluster clearing +0.004 is a base
+the tree does not cover; ZERO clusters clearing ends the beat-the-tree line for good** (action space,
+encoding, and conditioning signal all separately falsified) — the chapter then claims audit + tree +
+mechanism record, and NOTHING is marketed in its place. ~1 day; bench one cluster first.
+
+**M3 — adaptive teachers for the clusters that cleared.** Grow a ternary TREE (not a static order)
+per clearing cluster on TRAIN via tree application, select on val. **Each teacher is individually
+gated by the L2 law: it must beat the incumbent at its own states (+0.004, CI excluding zero) or it
+is replaced by the cold tree — fallback pre-registered here, not post-hoc.** Cost ~2–3 days if
+several clusters clear; bench first.
+
+**M4 — the forest distilled into ONE policy.** L2a machinery, warm-start E1. Gates: every surviving
+teacher's fidelity ≥ 0.999 at its own states; cold-tree fidelity unchanged (zero interference, the
+L2a result at N=2 re-proven at N=final); shuffle control. **The policy's contribution is stated as:
+N teachers, one model, zero interference — where N separate trees are N separate models that cannot
+share or recognise overlap.** Overlap probe: users matching two signatures — report which teacher the
+policy follows and at what cost vs both.
+
+**M5 — Reddit, two independent halves.**
+(a) **Opener census** (no linking): type the demo-half openers (exemplar/genre/mood/era/constraint +
+frequencies); report whether the M1 cluster descriptors correspond to opener types people actually
+lead with — that is the "supported by data, not a lucky guess" sentence. If exemplar films dominate,
+that is direct support for the fold-is-the-mechanism story.
+(b) **Real-text consumption demo** (linking + SBERT phrase→genome-concept→fold): out-of-vocab request
+text into recommendations beating popularity. Feasibility gate per `DS_REDDIT_LINKING.md` first.
+Either half failing is omitted, never written as a limitation (author ruling).
+
+**M6 — claim 2 counted + the TEST look.** Trajectory divergence by opener over the final policy:
+fraction of interviews that differ by cluster, depth of first divergence, semantic read as garnish.
+Then the single TEST look on ONE comparison, chosen by what survived: forest-policy vs cold tree at
+evidence states if M3/M4 landed; else the strongest banked validation claim is stated as
+validation-only.
+
+### Decision points
+- **After M2 (~2 days in): the fork.** ≥1 cluster clears → M3–M6 (the jazzy chapter). Zero clear →
+  skip M3/M4, keep M5+M6 census/demo, chapter = audit + tree + mechanisms.
+- **~1 Sep: venue call.** M3/M4 landed with the TEST look → **ECIR 2027 (2 Oct)**; RecSys 2027
+  fallback. Not landed → TORS with the audit+mechanism paper; ECIR is not attempted with a spine of
+  negatives.
+
+### Standing constraints (unchanged)
+Validation only until M6; certified pair; policy-B mask; canonical snap 0.15686538; paired percentile
+bootstrap 10k seed 98765; design sheet before every run; commit before launch; persist per cell;
+bench one cell before any multi-day estimate; no LLM calls without author approval; never the Reddit
+API; never votes as labels; nulls not citable; no truncation without sign-off.
