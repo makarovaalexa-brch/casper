@@ -186,3 +186,23 @@ genre-conditioned order over the full action space beats the tree inside its gro
 about the action space and T2/T3 are worth their search time; if it does not, conditioning on a
 volunteered category genuinely does not pay against a cold interview that may ask about concepts, and
 the forest stops at one teacher. **PENDING.**
+
+Run record so far: launched 01:34, Drama first (4,417 FIT users, prefix = concept 292, 999
+candidates, L=15, objective full), **4.45 s per evaluation** ⇒ ~75 minutes for the seed pass per big
+group and roughly 3 hours for all four. Every pick is written to `t1prime_<genre>_partial.json` as it
+lands and the CELF heap to `t1prime_<genre>_heap.json` under a contract signature, so an interrupted
+search resumes for the price of the picks it has not made. Reference points already measured on the
+Drama FIT cohort: the stated genre alone scores **0.19368 full / 0.04547 tail**.
+
+**How to finish it:** when `t1prime_<genre>.json` exists for the teachers, re-bank the states with
+`forest_policy.py --mode states --order_source t1prime --overwrite`, refit (`--mode fit --arm main
+--tag t1p --epochs 6`) and re-evaluate (`--mode evaluate --arm main --tag t1p`). The evaluation
+already reports forest, the teacher's own order, the tree and E1 side by side on HOLDOUT, which is
+exactly the comparison that decides whether T2 is worth its search time.
+
+⚠ **A caution recorded before anyone pays for T3's orders:** a cold user's fold-in tail mass is **not
+observable at ask time**, so "taste-popularity band" as written in L.2 is the Part K.6 error in a new
+costume. It is admissible only as a band estimated from evidence the user actually volunteered — i.e.
+inside T2. **T2 (evidence-count band) is the sound one**, and its harness
+(`src/instrument/group_greedy_bands.py`, per-user-prefix CELF) is committed but **not run**: its gate
+is that it reproduces `greedy_certified` exactly on shared-prefix input.
