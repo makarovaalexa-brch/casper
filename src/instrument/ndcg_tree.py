@@ -748,6 +748,7 @@ def main():
                                 # measured tail, so its cost fields are zero by construction.
                                 "n_evals": 0, "sec_per_eval": 0.0, "minutes": 0.0,
                                 "splitter": None, "channel": None, "min_child": None,
+                                "genre_face_validity": genre_face_validity(E, kids[k], gen),
                                 "done": True}
                         nodes[cnid] = crec
                         assert len(inherit_own) == total_L, (
