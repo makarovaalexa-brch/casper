@@ -52,9 +52,28 @@ The genre orders were **searched on all 10,000 validation users**, so HOLDOUT is
 policy, not from the teacher. Every comparison here is policy-vs-that-same-teacher, so both sides
 carry the teacher's selection equally; no comparison treats a group order as held-out-clean.
 
-## Composition
+## Composition (printed before any time was spent on it)
 
-**PENDING** — teachers, cohort sizes, FIT/HOLDOUT split, state counts.
+The genre partition **reproduces all 18 banked group sizes exactly** — a free chain check on the
+teacher cohort. Four groups clear the 500-user floor and become teachers, covering **90.72%** of the
+validation cohort. Each stated genre has a literal genome-tag concept, so it can be asked as a
+question and encoded as an answered one.
+
+| teacher | concept | n (all) | FIT users | HOLDOUT users | FIT states |
+|---|---|---|---|---|---|
+| Drama | 292 | 5,481 | 4,417 | 1,064 | 66,255 |
+| Action | 15 | 1,582 | 1,255 | 327 | 18,825 |
+| Comedy | 203 | 1,475 | 1,171 | 304 | 17,565 |
+| Adventure | 25 | 534 | 421 | 113 | 6,315 |
+| **total** | | **9,072** | **7,264** | **1,808** | **108,960** |
+
+Not taught: Thriller (451 users) and 12 smaller groups — below the floor, so they keep the tree's
+behaviour by default. Firewall: 8,000 FIT / 2,000 HOLDOUT by user, seed 98765 (fit sha1 `a0fd82f2a8b5`,
+holdout sha1 `3300ad7182e7`), recomputed here rather than read from a file.
+
+Incidental, and worth a line in the chapter: **the tree's root question is the concept
+"better than expected"** — not a genre. The cold interview opens on a reaction, and the stated-genre
+teacher opens on a category; the two teachers really do partition the state space differently.
 
 ## Gates (pre-registered, L.2)
 
