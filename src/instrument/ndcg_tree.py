@@ -742,7 +742,13 @@ def main():
                                 "path": [[int(a), int(b)] for a, b in rec["path"]],
                                 "branch_from": k, "inherited_from": nid, "split": False,
                                 "stop_reason": f"below min_leaf {min_leaf}; inherits parent tail",
-                                "steps": [list(x) for x in rec["tail"]], "done": True}
+                                "steps": [list(x) for x in rec["tail"]],
+                                "gains": list(rec["tail_gains"]),
+                                # this child ran NO search of its own -- it reuses the parent's
+                                # measured tail, so its cost fields are zero by construction.
+                                "n_evals": 0, "sec_per_eval": 0.0, "minutes": 0.0,
+                                "splitter": None, "channel": None, "min_child": None,
+                                "done": True}
                         nodes[cnid] = crec
                         assert len(inherit_own) == total_L, (
                             f"inherited order for {cnid} has {len(inherit_own)} questions")
