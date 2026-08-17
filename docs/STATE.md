@@ -1,5 +1,45 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-17 — PART L IS RUN: L1 (as-if-asked encoding) and L2a (the two-teacher forest). VALIDATION ONLY, NO TEST LOOK.
+
+**AUTHOR SAID (verbatim, 2026-08-17):** *"plz run l1 and l2."*
+
+Write-ups: **`docs/results/L1_ASIF_ASKED.md`**, **`docs/results/L2_FOREST.md`**. Code
+`src/instrument/{policy_asif,forest_policy,group_greedy_signature}.py`. Design sheet Part L.
+
+| | claim | falsifier | verdict |
+|---|---|---|---|
+| **L1** as-if-asked encoding | a volunteered fact is an answered question and must enter as one | cell 1 does not reproduce the tree's post-root branch | **DID NOT FIRE.** 100.00% of 10,000 users branch exactly as the tree's post-root arm; per-user score identical to banked E1; redundancy 0 asserted |
+| **L2a** two-teacher forest | one policy holds many cohort teachers | fidelity to T1 costs fidelity to T0 | **DID NOT FIRE.** T0 1.000000 → 0.999969 (**1 state of 32,000**) while T1 went 0.000369 → 0.999963; spanning per-user IDENTICAL on 2,000/2,000 |
+
+### L1 — the encoding was the bug, and it is exact where a teacher has an opinion
+History token (`phi_q` ⊗ ternary outcome) + fold into `z` + **mask from re-asking**. R did the fold
+alone, so the policy read "nothing asked" and was inert; under the new encoding it is exact. The
+saved turn is worth **+0.00167 full [+0.00096, +0.00238]** against the budget-matched tree.
+**★ But encoding is necessary, not sufficient:** where no teacher covers the volunteered fact the
+policy improvises and loses — **−0.04663** (two random answerable concepts), **−0.02231 / −0.01643 /
+−0.01070** (R's item draw at k = 2 / 4 / 8). R's inertness was worth +0.047 there. Chain checks: R's
+banked cells reproduce to 1e−12 at every k; cell 1's tree arm reproduces banked E1 per user.
+
+### L2a — one policy, two teachers, no interference; and the second teacher is not worth following
+T0 = the cold tree, T1 = the four stated-genre orders clearing the 500-user floor (Drama 5,481,
+Action 1,582, Comedy 1,475, Adventure 534 — 90.7% of the cohort). Warm-started from E1, 6.7 minutes,
+FIT 8,000 / HOLDOUT 2,000. All five pre-registered gates pass, including the shuffle control
+(permuted teacher assignments: T1 fidelity **0.000000** against the true orders, worse in every
+group). **★ The result that matters: at genre-seeded states the ordering is tree > forest (= T1
+exactly) > E1 improvising** — forest − tree = **−0.02648 / −0.03290 / −0.03075** (Drama / Action /
+Comedy, all excluding zero) and −0.00587 (Adventure, null). **Admissibility is not sufficiency: a
+teacher earns its place only if it beats the teacher already covering those states, on the same
+action space and the same budget.** T1's orders were searched over 500 ITEMS ONLY; the tree spends
+most of its budget on CONCEPTS.
+
+**RUNNING (the decision experiment for the forest):** `group_greedy_signature.py` rebuilds the
+stated-genre teacher over the tree's own 1,000-candidate combined pool, FIT users only, CELF with a
+persisted heap. Beats the tree inside the group ⇒ T1 failed for its action space and the T2/T3
+bands are worth their search time; does not ⇒ the forest stops at one teacher. Either way it is
+reported.
+
+
 ## ★★★ 2026-08-16 — THE GENERALISATION PAIR (Part I) IS COMPLETE ON VALIDATION. BOTH FALSIFIERS FIRED. NO TEST LOOK.
 
 **AUTHOR SAID (verbatim, 2026-08-15):** *"please run."* Her goal, verbatim: *"i want to show
