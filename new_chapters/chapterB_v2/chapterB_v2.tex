@@ -1498,6 +1498,61 @@ by corpus prevalence.
 number; a hand-labelled sample of requests against their extracted slots is required before these
 shares are load-bearing.}
 
+\subsection{What a user's state actually encodes: the release-era axis}
+\label{sec:era}
+
+If an interview is to start from where a user already stands, the states of users who stand in
+similar places must be similar for reasons that a user could \emph{say}. That turns out not to be
+free.
+
+Folding each of the $140{,}768$ training users' liked history through the frozen tower gives a
+state per user, and partitioning that space yields large, stable groups. Their content, however, is
+not taste. Decoding each group's centroid through the recommender and reading off the films it
+favours \emph{relative to the average user} --- the relative step matters, since absolute scores
+return the globally popular list for every group --- gives clusters defined by a window of years:
+one of $1995$--$96$ social dramas, one of $2009$--$14$ young-adult adaptations, one of $2013$--$15$
+prestige releases. The partition is chronological, not thematic.
+
+The cause is a property of the data rather than of the model. A user joins MovieLens at some point
+and rates what is current, so their history encodes \emph{when they were active} at least as
+strongly as what they enjoy. Two people with identical taste who arrived a decade apart occupy
+different regions of the state space.
+
+The effect is directly measurable. Every catalogue item carries a release year, so each principal
+direction of the state space can be decoded to per-item scores and correlated against it. The
+second direction reaches $\rho = +0.709$ (Spearman, $14.1\%$ of variance); the first reaches
+$+0.362$ ($29.1\%$) and the third $-0.352$ ($6.2\%$). Close to half the variance is era-loaded.
+Underneath, the fourth direction correlates at $+0.036$ --- genuine preference structure, carried by
+a component roughly a third the size of the chronological one.
+
+Because the year of every item is known, the offending direction can be constructed rather than
+guessed. Writing $y$ for the standardised release year across items and $W^{d}$ for the decoder,
+$d_{\text{era}} = (W^{d})^{\top} y$ is the state direction whose decoded scores align maximally with
+year; measured on its own, it correlates at $\rho = +0.875$, confirming the construction. Projecting
+this single direction out of every user state removes almost all of the effect --- the leading
+directions fall to $+0.061$, $+0.169$ and $-0.113$ --- while costing $2.5\%$ of state norm
+($10.87 \rightarrow 10.60$). It is a thin direction with outsized influence, and a targeted
+projection is preferable to discarding whole components, which would throw away the preference
+signal the first direction carries alongside its chronological loading.
+
+What is left behind is nameable. The same partitioning applied to the corrected states produces
+groups whose most distinctive films and whose most distinctive attribute agree: a superhero group
+(\emph{Iron Man 3}, \emph{Avengers: Age of Ultron}, \emph{Captain America}) whose sharpest attribute
+in the request vocabulary is \texttt{marvel}; an art-house group (\emph{Holy Motors}, \emph{The White
+Ribbon}, \emph{A Field in England}) named \texttt{art house}; a dialogue-led group (\emph{Birdman},
+\emph{Whiplash}, \emph{The Grand Budapest Hotel}) named \texttt{dialogue driven}; and further groups
+named \texttt{gore}, \texttt{inspiring} and \texttt{teenagers}. In four of the six, the attribute that
+separates the group best \emph{within the vocabulary real requesters use} is the same attribute that
+separates it best within the full $992$-attribute vocabulary --- the plain word costs nothing.
+
+Two caveats travel with this. A single projection is not a complete correction: several groups
+survive the selection criterion while still being defined by a late-1990s window, and they are
+reported rather than used. And the correction is measured on the training population only; no
+held-out ranking claim rests on it here.
+
+\PLAN{the screen --- whether, at these groups' entry states, any question improves on the tree's own
+first question by more than the pre-registered margin.}
+
 \section{Limitations}
 \label{sec:limits}
 
