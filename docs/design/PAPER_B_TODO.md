@@ -169,3 +169,10 @@ we have and is answered ~3× as often as an item order. See 4.4.
 3. **2.3 / 2.4** — the answerability decomposition; cheap and it closes the chapter's own loop.
 4. **4.2** — face validity. (**4.1 tail-objective greedy is CUT.**)
 5. **Act 3** — the intervention, once the mechanism is settled.
+
+## 2026-08-17 — Part M writing todos (no compute; see PAPER_B_POLICY_DESIGN.md M.4)
+- [ ] **W1 (URGENT)** simulator-circularity + contamination section for `chapterB_v2.tex` — currently ONE mention in 1,647 lines; the field's lead objection is unanswered while our firewall (behavioural answers, Jul-25 ruling) is unsold.
+- [ ] **W2** qualitative trajectory panel: rendered example interviews (static / tree post-like vs post-dislike / per-cluster teachers), distinct-trajectory counts, coarse-to-fine only where coherent.
+- [ ] **W3** Reddit data + linker methodology section — CLAIMED contribution (gold 500, rules tier 0.971/48.6%, pipeline 0.960 vs He 0.572, 4,431-thread ruler, slots ×4,431, ~7% label-error floor).
+- [ ] **W4** K.6 scoping-theorem paragraph (audited: +0.19366 / +0.009664 only).
+- [ ] **W5** skip-redundancy multiplication printed (≈ +0.0013 < MDE/3).
