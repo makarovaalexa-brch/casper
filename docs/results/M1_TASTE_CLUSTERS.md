@@ -96,6 +96,47 @@ whole PCs would have discarded the real taste PC0 carries alongside its era load
 7. **Clusters must be fitted on TRAIN.** On 10,000 validation users a 1,200 floor caps k at ~8 and
    forces blobs. Clustering is a fitting step (D.6b): fit on 140,768, measure on validation.
 
+
+## ★★★ Step 4 — where real requests actually land (independent validation)
+
+`src/instrument/m1_reddit_clusters.py` · `experiments/battery/m1/m1_reddit_clusters.json`.
+The 3,078 folded Reddit arrival states are projected onto the **same** era axis as the train states
+(so both sit in one geometry) and compared on **direction** — a request folds ~2.9 named films
+(state norm 6.15) against a train profile's ~62 (norm 10.60).
+
+**The six coherent clusters hold 28.0% of train users and absorb 75.7% of real requests.**
+
+| cluster | anchor | train share | request share | ratio |
+|---|---|---|---|---|
+| c10 | `inspiring` | 6.92% | **20.18%** | 2.91× |
+| c5 | `dialogue driven` | 5.31% | **16.83%** | 3.17× |
+| c4 | `gore` | 4.14% | **15.95%** | 3.85× |
+| c3 | `marvel` | 4.89% | **11.50%** | 2.35× |
+| c6 | `teenagers` | 3.51% | 6.11% | 1.74× |
+| c7 | `art house` | 3.25% | 5.10% | 1.57× |
+
+**And the clusters flagged as era artifacts are exactly the ones nobody requests:** c8 `1930s`
+0.68% · c15 `teens` 0.88% · c13 `70mm` 1.14% · c14 `spoof` 1.33%; the largest train cluster c0
+(21,477 users, 15.26%) draws **1.49%** of requests (0.10×).
+
+**★ This is independent confirmation.** Coherence was judged on the MovieLens side — anchor agreeing
+with distinctive films — and nothing in the clustering saw Reddit. That the same six clusters carry
+three quarters of real traffic, and the chronological artifacts carry almost none, is a check the
+procedure could have failed and did not.
+
+**Arrival structure agrees with taste structure well above chance, and imperfectly: ARI = +0.269.**
+Five of eight arrival clusters map cleanly onto a taste cluster with matching semantics —
+r1 → `gore` (64%: Pumpkinhead, The Beyond, Halloween 6, Leatherface) · r6 → `dialogue driven`
+(67%: A Field in England, Climax, The House That Jack Built) · r2 → `inspiring` (56%: Midnight in
+Paris, The Theory of Everything, La La Land) · r4 → `marvel` (54%: Captain America, Doctor Strange,
+Iron Man 2) · r0 → c11 (43%). The three diffuse ones (r3 28%, r5 35%, r7 27%) all show 1995–96
+films, so **residual era is visible on the request side too**.
+
+**Reading:** an opener places a user roughly, not exactly. The gap between +0.269 and perfect
+agreement is the space an adaptive interview exists to close — now a measured quantity rather than
+an assumption. For deployment the practical figure is the one that matters: **six teachers reach
+75.7% of real traffic**, against the 28.0% that the MovieLens-side coverage alone would suggest.
+
 ## Provenance and gates
 
 Certified pair `t2i26c_ep31` + `concept_cv3_ep08`; canonical m=0 snap `0.15686538118354684` asserted
