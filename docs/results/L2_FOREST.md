@@ -1,6 +1,6 @@
 # L2a — THE TWO-TEACHER FOREST
 
-> **STATUS: COMPLETE (2026-08-17) — main arm and shuffle control. Follow-up T1' is running; its section says so.**
+> **STATUS: COMPLETE (2026-08-17) — main arm, shuffle control, and the T1' decision experiment. The forest stops at one teacher.**
 > Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` Part L.2; Part K.6 is why per-user labels are
 > gone for good. Harness `src/instrument/forest_policy.py`. **Validation only; `test_touched=false`.**
 
@@ -177,28 +177,55 @@ Adventure←Action; seed 98771), everything else identical. Same 6 epochs, same 
    the cold tree by 0.026–0.033 on three of four groups, and the most likely reason is that they were
    searched over items only.
 
-## Next — T1' (running)
+## T1' — THE DECISION EXPERIMENT: the rebuilt teacher still loses. **THE FOREST STOPS AT ONE TEACHER.**
 
-`src/instrument/group_greedy_signature.py`: the stated-genre teacher **rebuilt over the tree's own
-1,000-candidate pool** (500 items + 500 concepts), same objective, same budget, FIT users only, so the
-comparison against the tree is like-for-like. **This is the decision experiment for the forest**: if a
-genre-conditioned order over the full action space beats the tree inside its group, conclusion 3 was
-about the action space and T2/T3 are worth their search time; if it does not, conditioning on a
-volunteered category genuinely does not pay against a cold interview that may ask about concepts, and
-the forest stops at one teacher. **PENDING.**
+The stated-genre teacher was rebuilt over the tree's own 1,000-candidate combined pool (500 items +
+500 concepts), same objective, same 16-question budget, **FIT users only**
+(`src/instrument/group_greedy_signature.py`, ~4.7 h). The action-space hypothesis is confirmed at the
+construction level — every rebuilt order now spends turns on concepts, where the item-only teacher
+could not by construction (Adventure's first pick is concept 343 at +0.05707, a gain unreachable in
+the old action space). It does not survive contact with held-out users.
 
-Run record so far: launched 01:34, Drama first (4,417 FIT users, prefix = concept 292, 999
-candidates, L=15, objective full), **4.45 s per evaluation** ⇒ ~75 minutes for the seed pass per big
-group and roughly 3 hours for all four. Every pick is written to `t1prime_<genre>_partial.json` as it
-lands and the CELF heap to `t1prime_<genre>_heap.json` under a contract signature, so an interrupted
-search resumes for the price of the picks it has not made. Reference points already measured on the
-Drama FIT cohort: the stated genre alone scores **0.19368 full / 0.04547 tail**.
+**Scored on the HOLDOUT users of each group, which the search never saw** (`t1prime_holdout.json`;
+paired bootstrap, 10,000 resamples, seed 98765; every arm holds 16 evidence questions = the stated
+genre + 15):
 
-**How to finish it:** when `t1prime_<genre>.json` exists for the teachers, re-bank the states with
-`forest_policy.py --mode states --order_source t1prime --overwrite`, refit (`--mode fit --arm main
---tag t1p --epochs 6`) and re-evaluate (`--mode evaluate --arm main --tag t1p`). The evaluation
-already reports forest, the teacher's own order, the tree and E1 side by side on HOLDOUT, which is
-exactly the comparison that decides whether T2 is worth its search time.
+| group (HOLDOUT) | n | rebuilt (items+concepts) | item-only T1 | tree, same budget | **rebuilt − tree** | item-only − tree |
+|---|---|---|---|---|---|---|
+| Drama | 1,064 | 0.27080 | 0.26082 | **0.28730** | **−0.01650** [−0.02476, −0.00836] | −0.02648 [−0.03561, −0.01750] |
+| Action | 327 | 0.29469 | 0.30968 | **0.34258** | **−0.04789** [−0.06821, −0.02820] | −0.03290 [−0.05316, −0.01319] |
+| Comedy | 304 | 0.19552 | 0.20211 | **0.23286** | **−0.03734** [−0.05634, −0.01803] | −0.03075 [−0.04968, −0.01112] |
+| Adventure | 113 | 0.26899 | 0.29117 | 0.29705 | −0.02806 [−0.05522, +0.00068] | −0.00587 [−0.03450, +0.02377] |
+
+**0 of 4 groups beat the tree; 3 lose with the interval excluding zero; 1 is a null.** Concepts in the
+rebuilt orders: 9/15 (Drama), 6/15 (Action), 5/15 (Comedy), 5/15 (Adventure).
+
+Two things must be said with these numbers, both of which cut *against* the rebuilt teacher's case:
+
+- **The in-sample FIT scores are not the verdict and are not quoted as one.** Drama's rebuilt order
+  scores 0.27866 on its own selection cohort and 0.27080 on held-out users of the same group; a
+  group's own order beats a global one by construction where it was fitted.
+- **The comparison is generous to the item-only teacher, not to the rebuilt one.** The banked
+  item-only orders were searched on *all 10,000* validation users, so the HOLDOUT users here were
+  inside their selection cohort; the rebuilt orders saw FIT only. The item-only column is therefore
+  optimistic and the rebuilt column is clean — and the clean one still loses. Where the rebuilt order
+  does worse than the item-only one (Action, Comedy, Adventure), a smaller honest search cohort is the
+  likely cause: 1,255 / 1,171 / **421** FIT users, and Adventure's is below the design law's own
+  500-user floor.
+
+### The verdict on the third admissibility condition
+
+> **A teacher earns its place only if it beats the teacher already covering those states, on the same
+> action space and the same budget.** Given that action space and that budget, the stated-genre
+> teacher **does not**. The action space was not the explanation; conditioning on a volunteered
+> category genuinely does not pay against a cold interview that is already allowed to ask about
+> concepts.
+
+**The forest stops at one teacher.** What survives is the architectural result — one policy holds
+many cohort teachers exactly, with no interference — and the negative that gives it its shape: a
+second admissible teacher was built twice, once over items and once over the full action space, and
+neither was worth following. T2 (evidence-count bands) is **not** started on the back of this; its
+harness is committed and unrun, and whether to spend its search time is the author's call.
 
 ⚠ **A caution recorded before anyone pays for T3's orders:** a cold user's fold-in tail mass is **not
 observable at ask time**, so "taste-popularity band" as written in L.2 is the Part K.6 error in a new
