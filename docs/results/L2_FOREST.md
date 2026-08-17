@@ -1,14 +1,61 @@
 # L2a — THE TWO-TEACHER FOREST
 
-> **STATUS: NOT RUN YET (2026-08-17). Gated on L1's cell 1. Every section below is PENDING.**
+> **STATUS: main arm COMPLETE (2026-08-17). Shuffle control RUNNING — its section is marked PENDING.**
 > Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` Part L.2; Part K.6 is why per-user labels are
 > gone for good. Harness `src/instrument/forest_policy.py`. **Validation only; `test_touched=false`.**
 
-## ★ THE FALSIFIER'S VERDICT — INTERFERENCE
+## ★ THE FALSIFIER'S VERDICT — **INTERFERENCE DOES NOT FIRE**
 
-**PENDING.** If fidelity to T1 (stated genre) costs fidelity to T0 (the cold tree), the single-policy
-claim fails at two teachers and scaling the forest is dead. Both fidelities are reported together at
-every checkpoint, always.
+On the 2,000 HOLDOUT users, after learning T1 from nothing:
+
+| | before (E1) | after (forest) |
+|---|---|---|
+| **T0 fidelity** — top-1 vs the tree's own next question, at the tree's own states | 1.000000 | **0.999969** |
+| **T1 fidelity** — top-1 vs the matching group order, at genre states | 0.000369 | **0.999963** |
+
+**One tree state out of 32,000 changed.** The policy went from knowing nothing about the stated-genre
+teacher (0.04%) to reproducing it essentially perfectly, and paid a single state for it. Per-teacher
+on HOLDOUT: Drama 1.0000, Action 0.9998, Comedy 1.0000, Adventure 1.0000 (E1: 0.0000 / 0.0010 /
+0.0000 / 0.0029).
+
+**The single-policy claim survives two teachers.** One parametric policy holds a 22-node decision tree
+and four measured group orders simultaneously, exactly, with no visible trade-off between them.
+
+## ★ AND THE RESULT THAT MATTERS MORE — the second teacher is not worth following
+
+The forest reproduces T1 perfectly. T1 is **worse than the tree at T1's own states**:
+
+| group (HOLDOUT) | n | forest = T1 order | the tree, same budget | E1 improvising | forest − tree | forest − E1 |
+|---|---|---|---|---|---|---|
+| Drama | 1,064 | 0.26082 | **0.28730** | 0.24854 | **−0.02648** [−0.03561, −0.01750] | +0.01228 [+0.00277, +0.02171] |
+| Action | 327 | 0.30968 | **0.34258** | 0.27768 | **−0.03290** [−0.05316, −0.01319] | +0.03200 [+0.01314, +0.05078] |
+| Comedy | 304 | 0.20211 | **0.23286** | 0.19796 | **−0.03075** [−0.04968, −0.01112] | +0.00415 [−0.01516, +0.02346] |
+| Adventure | 113 | 0.29117 | 0.29705 | 0.24172 | −0.00587 [−0.03450, +0.02377] | +0.04945 [+0.01290, +0.08800] |
+
+Every arm holds 16 evidence questions: the stated genre plus 15 more. `forest − T1 order` is **exactly
+0.00000** with a zero-width interval in all four groups — the policy *is* its teacher there.
+
+So the ordering at a genre-seeded state is **tree > forest (= stated-genre teacher) > E1 improvising**.
+Three separated conclusions:
+
+1. **Adding a teacher beats improvising.** Where a teacher exists, following it is better than letting
+   the policy extrapolate — +0.012 to +0.049, three of four intervals excluding zero. That is L1's
+   cell-2 lesson repaid.
+2. **But this teacher is worse than the one we already had.** The stated-genre orders were searched
+   over **items only** (the genre answer was free in that experiment, so each group searched 15 items),
+   while the tree spends most of its budget on concepts. Conditioning on a stated genre does not buy
+   back what an item-only action space gives away.
+3. **Therefore admissibility is not sufficiency.** The design law's two conditions — observable
+   signature, honest cohort size — are what make a teacher *learnable*. They say nothing about whether
+   it is *good*. A third condition is now measured, not assumed: **a teacher earns its place only if it
+   beats the teacher already covering those states, on the same action space and the same budget.**
+
+## Spanning gate — EXACT
+
+Cold-state K=16 rollout on the 2,000 HOLDOUT users: forest **0.29280463882263225**, E1
+**0.29280463882263225**. Paired difference **0.0 with a zero-width interval**, and **100.00% of users
+are per-user identical to E1**. Learning four new teachers moved nothing at all about the cold
+interview. 16 distinct interviews (E1's 15 leaves plus the one changed state).
 
 ## The design law being obeyed
 
@@ -77,9 +124,34 @@ teacher opens on a category; the two teachers really do partition the state spac
 
 ## Gates (pre-registered, L.2)
 
-- **spanning** — cold-state behaviour ≥ E1, exact: **PENDING**
-- **per-teacher fidelity** — top-1 against each teacher's own order at its own signature: **PENDING**
-- **behavioural** — on fresh seeded HOLDOUT states, policy vs the matching teacher's own order, null
-  or better: **PENDING**
-- **shuffle control** — teacher assignments permuted across signatures: **PENDING**
-- ★ **interference** — T0 and T1 fidelity together: **PENDING**
+| gate | bar | result |
+|---|---|---|
+| spanning | cold-state behaviour ≥ E1, exact | **PASS** — per-user identical, 2,000/2,000 |
+| per-teacher fidelity | top-1 vs each teacher's own order at its signature | **PASS** — 0.9998–1.0000 |
+| behavioural | policy vs the matching teacher's own order, null or better | **PASS** — exactly 0.0, all four groups |
+| ★ interference | T1 fidelity must not cost T0 fidelity | **PASS** — 1 state of 32,000 |
+| shuffle control | teacher assignments permuted across signatures | **PENDING** — running |
+
+## Training record
+
+Warm-started from E1 (16/16 tensors byte-identical after the load), batch 256 = 128 stated-genre
+states + 128 tree replay (`t1_frac` 0.5, declared), lr 1e−4, 6 epochs of 768 steps, **6.7 minutes**.
+Selection on T0 fidelity + T1 fidelity over a FIT-dev slice of 800 users; best epoch 3. Both
+fidelities, every epoch, on FIT-dev:
+
+| epoch | T0 fidelity | T1 fidelity |
+|---|---|---|
+| 0 (E1) | 1.0000 | 0.0002 |
+| 1 | 0.9998 | 0.9910 |
+| 2 | 1.0000 | 0.9997 |
+| 3 | 1.0000 | 1.0000 |
+| 4–6 | 1.0000 | 1.0000 |
+
+T1 is learned to saturation inside one epoch and T0 never moves. The 108,960 training states carry
+only 60 distinct (signature, depth) label pairs, so this is a small thing to learn — which is the
+point: **cohort teachers are cheap to add, and the cost of adding one is the question.**
+
+## Shuffle control
+
+**PENDING** — teacher assignments permuted across signatures (each genre gets another genre's measured
+order, seed 98771), same everything else.
