@@ -121,8 +121,13 @@ def main() -> None:
         for c in np.flatnonzero(endorse[int(r)]):
             conc_staters.setdefault(int(c), []).append(u)
 
-    facts = ([(0, i, np.asarray(us)) for i, us in item_staters.items() if len(us) >= MIN_STATERS]
-             + [(1, c, np.asarray(us)) for c, us in conc_staters.items() if len(us) >= MIN_STATERS])
+    # AUTHOR RULING 2026-08-17: *"i think fact should be an attribute. it must be not only something
+    # they all share, but something that pushes them away from other clusters, that is pretty
+    # crucial"*. So candidates are CONCEPTS only (a film cannot be a cluster's shared entry), and the
+    # selection criterion below is DISTINCTIVENESS, not a coverage/purity balance.
+    facts = [(1, c, np.asarray(us)) for c, us in conc_staters.items() if len(us) >= MIN_STATERS]
+    if os.environ.get("M1_INCLUDE_ITEMS") == "1":
+        facts += [(0, i, np.asarray(us)) for i, us in item_staters.items() if len(us) >= MIN_STATERS]
     log(f"[facts] {len(facts)} candidate facts with >= {MIN_STATERS} staters "
         f"({sum(1 for f in facts if f[0]==0)} items, {sum(1 for f in facts if f[0]==1)} concepts)")
 
@@ -149,13 +154,24 @@ def main() -> None:
                 pur_fit = float(np.mean(lab[fit_us] == c))
                 ho_us = us[~fit_mask[us]]
                 pur_ho = float(np.mean(lab[ho_us] == c)) if len(ho_us) >= 10 else float("nan")
-                rowsc.append((ch, fid, cov, pur_fit, pur_ho, int(len(us))))
+                # DISTINCTIVENESS: how far this fact pushes its staters AWAY from every other
+                # cluster. margin = (share of staters in c) - (largest share in any other cluster),
+                # on the HELD-OUT half. A fact everyone states everywhere has margin ~0 however
+                # high its coverage.
+                if len(ho_us) >= 10:
+                    sh = np.bincount(lab[ho_us], minlength=k) / len(ho_us)
+                    other = np.max(np.delete(sh, c))
+                    margin = float(sh[c] - other)
+                else:
+                    margin = float("nan")
+                rowsc.append((ch, fid, cov, pur_fit, pur_ho, int(len(us)), margin))
             prior = float(sizes[c]) / n
-            # BEST SINGLE ANCHOR: chosen on the FIT half by F1(coverage, purity), reported on HELD-OUT
-            scored = [(2 * r[2] * r[3] / max(r[2] + r[3], 1e-9), r) for r in rowsc]
-            scored.sort(key=lambda x: -x[0])
-            best = scored[0][1] if scored else None
-            # BEST COVERAGE at high purity, and best purity at usable coverage -- the two extremes
+            # BEST SINGLE ANCHOR: the most DISTINCTIVE attribute that still reaches a usable share of
+            # the cluster. Selected on the FIT half's purity ordering, reported on HELD-OUT.
+            MIN_COV = 0.25
+            elig = [r for r in rowsc if r[2] >= MIN_COV and r[6] == r[6]]
+            best = max(elig, key=lambda r: r[6], default=None)          # max margin
+            # the two extremes of the front, both still attribute-only
             hi_pur = max((r for r in rowsc if r[2] >= 0.20), key=lambda r: r[3], default=None)
             hi_cov = max((r for r in rowsc if r[3] >= 2 * prior), key=lambda r: r[2], default=None)
             # A SET: greedily add anchors (purity >= 2x prior) until COVERAGE_TARGET of the cluster
@@ -192,11 +208,12 @@ def main() -> None:
             def fmt(r):
                 if r is None:
                     return None
-                ch, fid, cov, pf, ph, ns = r
+                ch, fid, cov, pf, ph, ns, mg = r
                 return {"channel": "concept" if ch else "item", "id": int(fid),
                         "name": (cname if ch else iname).get(int(fid), str(fid)),
                         "coverage": round(cov, 4), "purity_fit": round(pf, 4),
-                        "purity_heldout": None if ph != ph else round(ph, 4), "staters": ns}
+                        "purity_heldout": None if ph != ph else round(ph, 4),
+                        "margin_heldout": None if mg != mg else round(mg, 4), "staters": ns}
 
             clusters.append({"cluster": c, "size": int(sizes[c]), "prior": round(prior, 4),
                              "best_anchor_F1": fmt(best), "highest_purity": fmt(hi_pur),
@@ -208,7 +225,8 @@ def main() -> None:
             if b:
                 log(f"  [k={k} c={c} n={sizes[c]}] best anchor {b['channel']} {b['name'][:44]!r} "
                     f"cov {b['coverage']:.2f} pur_fit {b['purity_fit']:.2f} "
-                    f"pur_ho {b['purity_heldout']} (prior {prior:.2f}) | set {spread['n_anchors']} "
+                    f"pur_ho {b['purity_heldout']} margin {b['margin_heldout']} "
+                    f"(prior {prior:.2f}) | set {spread['n_anchors']} "
                     f"anchors cov {clusters[-1]['set_coverage']:.2f}")
         out[str(k)] = clusters
 
