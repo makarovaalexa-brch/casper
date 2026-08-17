@@ -187,8 +187,9 @@ def main() -> None:
     out = []
     for i in range(k_eff_final):
         mem = np.flatnonzero(lab == i); memset = set(mem.tolist())
-        a_all = anchor_table(facts, lab, k_eff_final, i, memset, len(mem))
-        a_red = anchor_table(facts, lab, k_eff_final, i, memset, len(mem), vocab=reddit_vocab)
+        a_all = anchor_table(facts, lab, k_eff_final, i, memset, len(mem), fit_mask)
+        a_red = anchor_table(facts, lab, k_eff_final, i, memset, len(mem), fit_mask,
+                             vocab=reddit_vocab)
         drift = None
         if a_all and a_red:
             zi = fold_items_frozen(ctx_enc := E["ctx"].enc,
