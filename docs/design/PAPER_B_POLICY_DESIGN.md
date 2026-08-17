@@ -2101,3 +2101,54 @@ Validation only until M6; certified pair; policy-B mask; canonical snap 0.156865
 bootstrap 10k seed 98765; design sheet before every run; commit before launch; persist per cell;
 bench one cell before any multi-day estimate; no LLM calls without author approval; never the Reddit
 API; never votes as labels; nulls not citable; no truncation without sign-off.
+
+### M.1 — REPLAN (author corrections, 2026-08-17 late)
+
+**Supersedes the stage list above where they conflict.**
+
+**M0 is DELETED.** Fold-pays-without-questions is Chapter A's territory and already proven; re-proving
+it here was padding. What the author actually wants demonstrated is that **volunteered info from
+REDDIT is used** — real request text, including OOD attributes projected into rec space — and that
+belongs INSIDE the Reddit section (new M5a) as its intro, not as a standalone stage.
+
+**Data sufficiency, MEASURED (question 5): we hold enough and process nothing further.**
+- 4,431 threads fully adjudicated (batches 0000–0099 of 681), each ≥5 in-catalogue GT films WITH
+  request text; ruler built (`data/reddit_he/ruler/ruler_v1.csv.gz`; GT median 10, mean 14.9).
+- **Typed slots ALREADY EXTRACTED for all 4,431** (`data/reddit_he/slots/full_out_*.jsonl`):
+  anchors_pos/neg, genres_pos/neg, era, tone, constraints, context.
+- The thread shuffle (seed 98765, threads never split) makes any batch prefix an unbiased random
+  subsample ⇒ the remaining 581 batches stay unprocessed. **No new adjudication, no new LLM calls.**
+
+**TWO OPENER FAMILIES (author's design, question 3):**
+- **DREAM openers (M1)** — cluster ML users by taste, name each cluster by its best-separating
+  observable descriptor. The upper bound: what openers *should* be if users could be asked anything.
+- **REALISTIC openers (M1b, NEW)** — mine the opener distribution from the 4,431 Reddit slot records
+  (which genres/tones/eras/anchor-types people actually lead with, at what frequencies), map each
+  opener type onto the ML attributes we already hold, and form cohorts of ML users matching each.
+  **Headline comparison: how much taste-separation (and downstream screen gain) do realistic openers
+  lose vs dream ones?** Cost: the census is a groupby over existing slot files (~hours); cohort
+  construction ~a day.
+- **M2 screens BOTH families** under the same +0.004 bar. A realistic opener that clears is worth
+  more to the story than a dream one (deployable as asked); a dream-only clearance quantifies what
+  is lost by asking natural questions.
+
+**M4 clarified (question 2): yes** — the forest is the COLD tree (no opener, the incumbent, kept
+exactly) **plus** the opener-routed teachers from M3, all distilled into ONE policy. A user who gives
+no opener gets the cold tree verbatim; an opener routes to its teacher. The L2a zero-interference
+result is re-proven at final N.
+
+**REDDIT'S ROLE, now in one place (question 4) — section M5, three parts, linking scoped exactly:**
+- **M5a (intro demo): a real request becomes recommendations.** Request text → slots (held) →
+  anchors linked to catalogue via the **rules tier** (no LLM; 0.971 precision, 48.6% coverage —
+  losses printed) → OOD phrases (tone "dark", constraints) via SBERT phrase→genome-concept →
+  **fold** → score on the thread's own reply-set GT on the EXISTING 4,431-thread ruler, vs
+  MostPop gate + shuffle control. **Linking needed: request-side anchors only, rules tier only.**
+- **M5b (realistic-opener mining): NO LINKING AT ALL** — slot distributions feed M1b directly.
+- **M5c (optional, only if M3 lands): openers on Reddit frequencies.** Weight the M6 trajectory
+  count by the realistic opener distribution, so "the interview visibly adapts" is stated under the
+  empirical opener mix, not uniform. No new data.
+- The transplant variant (`DS_REDDIT_LINKING.md` 2026-08-17) is PARKED unless M5a's demo needs
+  reinforcing; its feasibility gate is not spent now.
+
+**Stage order becomes: M1 ∥ M1b → M2 (both families) → fork → M3 → M4 → M5a → M6.**
+M5b precedes M1b by definition (it is its input); M5a can run any time after its linking pass.
