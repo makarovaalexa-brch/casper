@@ -1,5 +1,42 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-17 (night, later) — M1b IS RUN AND BANKED; M1 Stage A DONE; Stage A2 RUNNING
+
+**AUTHOR SAID:** *"plz proceed according to plan"* · *"ok, proceed"*.
+
+- **M1b opener census — DONE.** `docs/results/M1B_OPENER_CENSUS.md`, artifacts
+  `experiments/battery/m1b_census.json` + `m1b_mapping.json`, code `src/instrument/m1b_census.py`,
+  `m1b_map.py`. **63.0% of real requests name a film** (a film is EVIDENCE, not a question);
+  **93.6% carry >=2 slots** (bundles, not single facts); bundle cells 35.9% films+signature / 27.1%
+  films only / 19.9% signature only / 17.0% neither. Mapping onto our attributes: genre **95.1%**,
+  era 70.2%, tone 66.1%; unmapped residual named (`coming of age`, `Christmas`, `wholesome`,
+  `uplifting`, `cozy`). **★ Requested vs watched are NEAR-INVERTED: Horror is 27.5% of genre
+  mentions but the favourite genre of 51 of 10,000 validation users (Drama 5,481)** — a scope
+  condition on any ratings-only elicitation result. **Now written into the chapter** as
+  `ef{sec:opener_census}` (compiles clean, commit `47453a3`), with a `\PLAN` flag: the slot
+  labels are model-produced and carry NO gold-set accuracy number, unlike the linking's 0.960.
+- **M1 Stage A — DONE.** `experiments/battery/m1/{z_requests,z_full}.npz`, `m1_stage_a.json`.
+  **100.0% of the 7,572 OP-named films are inside our 18,359-item vocabulary** (asserted).
+  **3,078 of 4,431 requests foldable (69.5%)**: items-only 1,983 · concepts-only 439 · both 656.
+  ⚠ First run had a defect — the concept-name lookup returned 0 surface forms, so requests folded
+  from FILMS ONLY and the 439 concepts-only requests were mis-classed unfoldable. Fixed (names come
+  from `E["sh"]["tags"]`, same construction as `forest_policy.py`) and re-run; an assert now fails
+  loudly if the index is empty. Declared choices: anchors at the top liked level (7/8/9 are
+  gamma-equivalent under the certified sign init, so the choice cannot move the fold); stated
+  concepts asserted at the cohort's own max positive value (1.0000), refusal flag 0.
+- **★ AUTHOR CORRECTION, binding:** `z_full` **defines the taste partition and is NEVER an interview
+  state** — a satiated profile has nothing left to ask. The IDEAL family therefore starts from **one
+  perfect volunteered fact** that places the user in their cluster (Stage A2), making both families
+  cold + a little evidence. It is an **ORACLE ceiling** and must never be presented as deployable.
+- **Stage A2 — RUNNING** (`src/instrument/m1_ideal.py`, log `experiments/battery/m1_ideal.out`).
+  Ideal fact by **identification, not distance** (a 1-fact fold and a 60-item fold differ more in
+  norm than in taste); min 50 staters per fact; k sweep {4,6,8,10,12}. Watch **purity vs prior**.
+
+**Next:** Stage B (cluster request states), the alignment cross-tab (opener-state vs full-taste
+state), then Stage C twin matching and the M2 screen.
+
+---
+
 ## ★★★ 2026-08-17 (night) — THE PLAN IS SETTLED: Part M "COVERAGE PROGRAMME" of `docs/design/PAPER_B_POLICY_DESIGN.md` (M + M.1–M.4). NOTHING IS RUNNING; AUTHOR SAID "do not run yet".
 
 **Read Part M + amendments M.1–M.4 before doing anything — they ARE the plan for the rest of the
