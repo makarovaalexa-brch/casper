@@ -25,7 +25,26 @@ fixed trajectory.**
 - Genre values map to MovieLens genres at 95.1%; tone → genome tag 66.1%; era → decade 70.2%.
 - Bundle composition: 35.9% films+signature · 27.1% films only · 19.9% signature only · 17.0% neither.
 
-## Stage A — fold the requests into states
+## ★ THREE OBJECTS, ONE SPACE (correction, 2026-08-17 — author: *"you start from reddit clusters, not ideal ml clusters?"*)
+
+An earlier draft of this sheet clustered Reddit states only, which silently dropped the DREAM family
+and the dream-vs-realistic comparison that is the point of having two. All three objects are built,
+in the same latent space:
+
+1. **IDEAL clusters** — ML users clustered by their **full fold-in state** `z_full`. The best
+   partition of taste: what you would route on if you could see everything. **Upper bound.**
+2. **REALISTIC clusters** — the 2,639 folded Reddit **request** states `z_r`. Where real users
+   actually arrive, having said one sentence. **Deployable.**
+3. **THE ALIGNMENT** between them — how well an opener-state places a person relative to where their
+   full taste sits. This IS the dream-vs-realistic loss, measured rather than asserted.
+
+Teachers are grown on BOTH clusterings, and the gap between their M2 screen gains prices what natural
+openers cost against statistically optimal ones. Scope condition to state plainly: full-taste
+clustering partitions people by *who they are* and is **not observable at ask time**, so an ideal
+cluster is a ceiling, not a deployable route, unless the alignment cross-tab shows something
+observable reaches it.
+
+## Stage A — fold BOTH populations into states
 
 Both populations are folded through the **same operator from the same starting point** (cold, no
 profile), which is what makes them comparable: an ML user in the cold-start interview also starts cold
