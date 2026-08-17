@@ -1917,6 +1917,21 @@ at genre-seeded states the ordering is **tree > forest (= T1 exactly) > E1 impro
 forest − tree = −0.02648 / −0.03290 / −0.03075 (Drama / Action / Comedy, all excluding zero) and a
 null on Adventure.
 
+### ★ A CAUTION ON T3, BEFORE ANYONE PAYS FOR ITS ORDERS (2026-08-17)
+
+L.2 lists **T3 = taste-popularity band (mainstream / mixed / obscure by fold-in tail mass)**. Check it
+against condition (a) before spending: **a cold user's tail mass is NOT observable at ask time.** It is
+computed from the fold-in profile the system does not yet have — the same shape of error as the
+per-user label of Part K.6, in a new costume. T3 is admissible **only** as a band estimated from
+evidence the user has actually volunteered, i.e. inside T2's regime, and its cohorts must then be
+counted per evidence level, not over the whole cohort. **T2 (evidence-count band: none / 1–2 / 3–8) is
+the sound one** — how much someone has told you is observable by construction.
+
+A second practical note for T2: its states carry PER-USER prefixes (each user volunteered different
+items), which `greedy_certified` cannot search — its `prefix` is one shared head. A per-user-prefix
+CELF loop over `genv_eval_multi` is needed, and its gate is that it reproduces `greedy_certified`
+bit-for-bit when every user carries the same prefix.
+
 **★ THE AMENDMENT THIS FORCES ON L.2's DESIGN LAW.** Observability and cohort size make a teacher
 **learnable**. They say nothing about whether it is **good**. A third condition, now measured:
 
