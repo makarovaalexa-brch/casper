@@ -1,0 +1,29 @@
+{
+ "analysis": "m1_stage_a_states",
+ "design_sheet": "docs/design/DS_M1_STATE_MATCHING.md",
+ "split": "validation",
+ "test_touched": false,
+ "tower": "C:\\dev\\phd\\casper\\models\\i26c_ep31\\t2i26c_ep31.pt",
+ "concept_ckpt": "C:\\dev\\phd\\casper\\models\\i26c_ep31\\concept_cv3_ep08.pt",
+ "canonical_snap_full": 0.15686538118354684,
+ "declared_choices": {
+  "anchor_level": 9,
+  "unseen_level": 10,
+  "concepts_asserted_positive": true,
+  "note": "no per-user V row exists for a Reddit poster; stated preferences are encoded as maximally confident. Declared, not measured."
+ },
+ "reddit": {
+  "threads_total": 4431,
+  "foldable": 3078,
+  "unfoldable": 1353,
+  "items_only": 1983,
+  "concepts_only": 439,
+  "both": 656,
+  "concept_surface_forms_indexed": 1052
+ },
+ "ideal": {
+  "users": 10000,
+  "liked_mean": 61.9066,
+  "liked_median": 32.0
+ }
+}

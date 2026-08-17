@@ -33,6 +33,16 @@ in the same latent space:
 
 1. **IDEAL clusters** — ML users clustered by their **full fold-in state** `z_full`. The best
    partition of taste: what you would route on if you could see everything. **Upper bound.**
+
+   ★ **CORRECTION (author, 2026-08-17): `z_full` DEFINES THE PARTITION, IT IS NEVER AN INTERVIEW
+   STATE.** A fully folded profile is *satiated* — the user sits near the full-profile ceiling
+   (~0.486), nothing is left to ask, and a teacher grown at that state measures nothing. The author's
+   framing: *"the ideal group has satiated stated at the point when full profile is folded — nothing
+   to ask. but full profile shows their tastes."* So the ideal family's interview starts from **one
+   perfect volunteered fact that places the user in their cluster** (Stage A2), which makes it
+   comparable to the realistic family: both are cold + a little evidence (dream = 1 optimal fact,
+   realistic = the actual bundle, ~2.9 films). **The gap between them is the price of natural
+   openers.**
 2. **REALISTIC clusters** — the 2,639 folded Reddit **request** states `z_r`. Where real users
    actually arrive, having said one sentence. **Deployable.**
 3. **THE ALIGNMENT** between them — how well an opener-state places a person relative to where their

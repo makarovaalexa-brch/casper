@@ -1423,6 +1423,81 @@ Table~\ref{tab:dispersion}, and their volunteered slots form the answer pool for
 replay in which the interview must recover what the user would have said. \PLAN{the withheld-slot
 replay, both the pool-restricted refusal-free variant and the refusal-counting variant}
 
+\subsection{What people actually volunteer}
+\label{sec:opener_census}
+
+The corpus supports a question no ML-25M measurement can answer: \emph{what does a real user say
+first?} We parse all $4{,}431$ threads into typed slots and report the distribution. Nothing here is
+scored; it is a census, and it constrains what an opener can be.
+
+\begin{table}[t]
+\centering
+\caption{What $4{,}431$ real free-text requests contain. \emph{Marginal} counts a slot appearing at
+all; \emph{opener} counts it being the highest-priority slot present, under the priority order
+\texttt{anchor} $>$ \texttt{genre} $>$ \texttt{tone} $>$ \texttt{era} $>$ \texttt{constraint}
+declared before the count. The priority ordering is a modelling choice; the marginal is not.}
+\label{tab:opener_census}
+\footnotesize
+\begin{tabular}{lcc cc}
+\toprule
+slot & \multicolumn{2}{c}{marginal} & \multicolumn{2}{c}{as opener} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & threads & share & threads & share \\
+\midrule
+positive anchor (names a film) & $2{,}793$ & $63.0\%$ & $2{,}793$ & $63.0\%$ \\
+genre                          & $1{,}763$ & $39.8\%$ & $651$     & $14.7\%$ \\
+constraint                     & $1{,}360$ & $30.7\%$ & $230$     & $5.2\%$ \\
+tone                           & $946$     & $21.4\%$ & $146$     & $3.3\%$ \\
+negative anchor                & $730$     & $16.5\%$ & ---       & --- \\
+era                            & $433$     & $9.8\%$  & $86$      & $1.9\%$ \\
+negative genre                 & $184$     & $4.2\%$  & ---       & --- \\
+\midrule
+\multicolumn{5}{l}{no slot of the five present: $525$ threads ($11.9\%$)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three findings bear directly on the design of an opener.
+
+\textbf{Requests are bundles, not single facts.} $93.6\%$ of threads carry at least two slots
+(median four). Taking the four routable slot types together, $35.9\%$ of threads give both anchor
+films \emph{and} a genre, tone or era; $27.1\%$ give films alone; $19.9\%$ give a signature with no
+film; $17.0\%$ give neither. A design that assumes the user states one thing is modelling a minority
+of the traffic, and the $17.0\%$ who state nothing routable are the population for whom a cold
+interview remains the only instrument.
+
+\textbf{What people volunteer first is a film, and a film is evidence rather than a question.} The
+single most common opener is a title, in $63.0\%$ of threads. A named film is folded directly by the
+recommender; it is not a question the system chose to ask. This is the ecological counterpart of the
+result in Section~\ref{sec:act3}: volunteered items pay through the fold. It also bounds what
+routing can be keyed on --- $5{,}868$ distinct titles appear across $2{,}793$ threads, far too
+granular to define a cohort, so anchors enter as evidence and only genre, tone and era can carry a
+route.
+
+\textbf{Most of what is said is expressible in our vocabulary, and the residual is informative.}
+Every one of the $7{,}572$ OP-named films ($100.0\%$) lies inside the $18{,}359$-item training
+vocabulary, so a request is representable in the action space without approximation. Mapping the
+free-text values onto attributes we hold succeeds for $95.1\%$ of genre mentions, $70.2\%$ of eras
+and $66.1\%$ of tones. Folding films and mapped concepts together, $3{,}078$ of $4{,}431$ requests
+($69.5\%$) can be placed as a state. The unmapped residual is a measured price of the attribute
+vocabulary rather than a nuisance: it is concentrated in \emph{coming of age}, \emph{Christmas},
+\emph{supernatural} and \emph{dystopian} on the genre side, and on the tone side in precisely the
+affect words with no genome tag --- \emph{wholesome}, \emph{uplifting}, \emph{cozy} --- alongside
+relative eras (\emph{recent}, \emph{newer}) that denote no fixed decade.
+
+\textbf{What is requested and what is watched are close to inverted.} Horror is $27.5\%$ of mapped
+genre mentions, the largest single category, followed by Thriller at $15.8\%$. In the ML-25M
+validation cohort, partitioned by the same fold-in genre rule used in
+Section~\ref{sec:groupgreedy}, Horror is the favourite genre of $51$ of $10{,}000$ users and Drama of
+$5{,}481$. The population that asks and the population we can score are not the same population.
+This is a scope condition on any elicitation result measured on ratings data alone, and it is the
+reason a benchmark weighted by observed request frequencies is not interchangeable with one weighted
+by corpus prevalence.
+
+\PLAN{the slot extraction is model-produced and, unlike the linking, carries no gold-set accuracy
+number; a hand-labelled sample of requests against their extracted slots is required before these
+shares are load-bearing.}
+
 \section{Limitations}
 \label{sec:limits}
 
