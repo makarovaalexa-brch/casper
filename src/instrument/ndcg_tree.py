@@ -562,7 +562,7 @@ def main():
            "criterion": "node_size_weighted_mean_full_ndcg10_of_the_ternary_partition",
            "branch_rule": (f"item: absent->noanswer, level>={LIKE_MIN_LEVEL}->like, else dislike | "
                            f"concept: not foldable->noanswer, signed value>0->like, else dislike"),
-           "stopping": "min_leaf only (no depth cap)", "total_L": total_L, "min_leaf": min_leaf,
+           "stopping": "min_leaf v2: split iff >=2 non-empty children and >=1 child >= min_leaf; children below the floor inherit the parent tail (no depth cap)", "total_L": total_L, "min_leaf": min_leaf,
            "split": "validation", "n_cohort": len(rows_all), "sanity": bool(args.sanity),
            "cohort_concept": int(args.cohort_concept),
            "seed_prefix": [[int(a), int(b)] for a, b in seed_prefix],
@@ -655,35 +655,61 @@ def main():
                                     f"not equal the node mean {float(f_node.mean())} (err {err:.3e}) "
                                     f"-- the criterion is not what it says it is")
 
+                # ---- STOPPING RULE v2 (2026-08-17, author: "why can't you split nodes that
+                # have > 200?"). v1 took min() over ALL THREE children, so ONE small branch vetoed
+                # the whole split -- and for the M3 teachers it vetoed splits whose two real children
+                # held 334 and 396 users, in one case because the did-not-answer branch was EMPTY.
+                # Nothing about generalisation is at stake in a branch with nobody in it.
+                #
+                # The 200 floor's actual evidence (genre split, 2026-08-11) is about FITTING AN ORDER
+                # on a small cohort, not about splitting. So: split when the partition is real and at
+                # least one child can carry its own fitted continuation; children BELOW the floor
+                # become leaves that INHERIT this node's tail, fitted on this node's full cohort.
+                # Nothing is ever fitted below the floor.
+                nonempty = [k for k in BRANCHES if sizes[k] > 0]
+                big = [k for k in BRANCHES if sizes[k] >= min_leaf]
                 small = min(sizes.values())
+                smallest_nonempty = min([sizes[k] for k in nonempty], default=0)
                 budget_left_to_split = remaining >= 2
-                will_split = budget_left_to_split and (small >= min_leaf) and not force_leaf
+                will_split = (budget_left_to_split and len(nonempty) >= 2 and len(big) >= 1
+                              and not force_leaf)
                 rec["min_child"] = int(small)
+                rec["min_nonempty_child"] = int(smallest_nonempty)
+                rec["children_above_floor"] = list(big)
+                rec["children_inheriting"] = [k for k in nonempty if k not in big]
                 rec["split"] = bool(will_split)
                 rec["stop_reason"] = (None if will_split else
                                       ("growth_wall_limit" if force_leaf else
                                        "budget_exhausted (1 question left, nothing to split into)"
                                        if not budget_left_to_split else
-                                       f"min_leaf: smallest child {small} < {min_leaf}"))
+                                       f"degenerate partition: {len(nonempty)} non-empty child(ren)"
+                                       if len(nonempty) < 2 else
+                                       f"no child reaches min_leaf {min_leaf} "
+                                       f"(largest {max(sizes.values())})"))
                 log(f"[node {nid}] splitter = {rec['channel']} {q[1]} (gain {gains1[0]:+.5f}, answer "
                     f"rate {ar:.3f}); ternary like={sizes['like']} dislike={sizes['dislike']} "
                     f"noanswer={sizes['noanswer']}; decomposition err {err:.2e}; "
                     + ("SPLIT" if will_split else f"STOP ({rec['stop_reason']})"))
 
+                # The node's own full-length tail is computed WHETHER OR NOT it splits: a
+                # splitting node hands it to any child below the floor (rule v2). It resumes the same
+                # CELF heap the split search seeded, so the extra picks are cheap.
+                seqL, gainsL, nevL = greedy_certified(E, rows, pool_n, remaining, args.objective,
+                                                      f"{nid}/tail", prefix=prefix,
+                                                      on_pick=on_pick, heap_path=heap_path)
+                assert len(seqL) == remaining, \
+                    f"node {nid}: tail greedy returned {len(seqL)} of {remaining} picks"
+                assert tuple(seqL[0]) == q, \
+                    f"node {nid}: the resumed tail order does not start with the split pick"
+                rec["tail"] = [[int(a), int(b)] for a, b in seqL]
+                rec["tail_gains"] = [float(g) for g in gainsL]
+                rec["n_evals"] = int(nevL)
                 if will_split:
                     rec["steps"] = [[q[0], q[1]]]
                     rec["gains"] = [float(gains1[0])]
                 else:
-                    seqL, gainsL, nevL = greedy_certified(E, rows, pool_n, remaining, args.objective,
-                                                          f"{nid}/leaf", prefix=prefix,
-                                                          on_pick=on_pick, heap_path=heap_path)
-                    assert len(seqL) == remaining, \
-                        f"node {nid}: leaf greedy returned {len(seqL)} of {remaining} picks"
-                    assert tuple(seqL[0]) == q, \
-                        f"node {nid}: the resumed leaf order does not start with the split pick"
-                    rec["steps"] = [[int(a), int(b)] for a, b in seqL]
-                    rec["gains"] = [float(g) for g in gainsL]
-                    rec["n_evals"] = int(nevL)
+                    rec["steps"] = list(rec["tail"])
+                    rec["gains"] = list(rec["tail_gains"])
                 rec["sec_per_eval"] = round(E["t_evals"] / max(E["n_evals"], 1), 3)
                 rec["minutes"] = round((time.time() - t0) / 60, 2)
                 rec["genre_face_validity"] = genre_face_validity(E, rows, gen)
@@ -699,9 +725,30 @@ def main():
             if rec["split"]:
                 kids, _ar, _z = split_rows(E, rows, tuple(rec["splitter"]))
                 cpath = [[int(a), int(b)] for a, b in rec["path"]] + [list(rec["splitter"])]
+                inherit_own = [(int(a), int(b)) for a, b in rec["path"]] + \
+                              [(int(a), int(b)) for a, b in rec["tail"]]
                 for k in BRANCHES:
-                    nxt.append({"nid": f"{nid}.{k}", "depth": depth + 1, "path": cpath,
-                                "rows": kids[k], "branch_from": k})
+                    if not kids[k]:
+                        continue                       # an empty branch is not a node
+                    if len(kids[k]) >= min_leaf:
+                        nxt.append({"nid": f"{nid}.{k}", "depth": depth + 1, "path": cpath,
+                                    "rows": kids[k], "branch_from": k})
+                    else:
+                        # BELOW THE FLOOR: this child asks what its parent would have asked -- the
+                        # parent's tail, fitted on the parent's full cohort. It is a leaf, it
+                        # conditions no further, and NOTHING is fitted on its own users.
+                        cnid = f"{nid}.{k}"
+                        crec = {"nid": cnid, "depth": depth + 1, "n_users": len(kids[k]),
+                                "path": [[int(a), int(b)] for a, b in rec["path"]],
+                                "branch_from": k, "inherited_from": nid, "split": False,
+                                "stop_reason": f"below min_leaf {min_leaf}; inherits parent tail",
+                                "steps": [list(x) for x in rec["tail"]], "done": True}
+                        nodes[cnid] = crec
+                        assert len(inherit_own) == total_L, (
+                            f"inherited order for {cnid} has {len(inherit_own)} questions")
+                        leaves.append({"nid": cnid, "depth": depth + 1, "path": crec["path"],
+                                       "rows": kids[k], "branch_from": k,
+                                       "own": inherit_own, "rec": crec})
             else:
                 own = [(int(a), int(b)) for a, b in rec["path"]] + \
                       [(int(a), int(b)) for a, b in rec["steps"]]
