@@ -2152,3 +2152,32 @@ result is re-proven at final N.
 
 **Stage order becomes: M1 ∥ M1b → M2 (both families) → fork → M3 → M4 → M5a → M6.**
 M5b precedes M1b by definition (it is its input); M5a can run any time after its linking pass.
+
+### M.2 — THE FINAL TABLE: the Reddit-weighted mixed-opener benchmark (2026-08-17, author's question "can we win on the mix?")
+
+**The trap, named:** per-scenario evaluation shows only distillation fidelity — the policy ties its
+teacher in every column. A multi-teacher policy can only WIN on a **mixed population**, where every
+single system must commit to one behaviour and the mix demands several. The win on the mix is
+guaranteed BY CONSTRUCTION once each teacher clears the M2 screen — say so in the chapter; the
+science is the screen, the mix table is the demonstration that it assembles into ONE deployable
+model (N teachers otherwise = N models, no overlap handling).
+
+**The benchmark:** ML-25M canonical test users, each assigned a scenario drawn from the REALISTIC
+opener distribution (the 4,431-thread slot census — x% cold, y% genre-led, z% anchor+tone, …),
+evidence constructed from the user's own fold-in to match the scenario, ground truth their own
+held-out ratings. **Reddit supplies the MIX; ML supplies the TRUTH.** No linking beyond M5a's demo.
+
+**Arms, all on the same population:** best static + fold · **cold tree + fold (THE hard baseline —
+the evidence-informed incumbent, not the bare tree)** · each specialist teacher applied globally
+(expected to win its segment, lose elsewhere — L2a's −0.03 at foreign states) · the forest policy.
+Read-out: per-scenario columns + the MIX column; policy must match best-per-segment and win the mix.
+The branching figure (claim 2) is trajectory divergence by opener, counted on this population.
+
+**The one cell that is more than routing:** OVERLAP states — users matching two signatures, no
+teacher covering the pair. Pre-registered single cell: policy vs both parent teachers at those
+states. Could fail; reported either way it lands inside a winning table, per the author's omission
+rule applied to CELLS, not to the table.
+
+**Sequencing note:** the benchmark is built in M1b (scenario assignment) and scored in M6; it
+replaces M6's bare trajectory count as the chapter's closing exhibit. The single TEST look is spent
+HERE: forest policy vs cold-tree+fold on the MIX, pre-registered.
