@@ -1,6 +1,24 @@
 # STATE — where the project is now
 
-## ★★★ 2026-08-17 (evening) — THE LIVE TASK IS THE TEACHER FOREST, ON MINED AXES. NOTHING IS RUNNING.
+## ★★★ 2026-08-17 (night) — THE PLAN IS SETTLED: Part M "COVERAGE PROGRAMME" of `docs/design/PAPER_B_POLICY_DESIGN.md` (M + M.1–M.4). NOTHING IS RUNNING; AUTHOR SAID "do not run yet".
+
+**Read Part M + amendments M.1–M.4 before doing anything — they ARE the plan for the rest of the
+chapter.** In one line: spine = the elicitation audit (banked); closing act = two opener families
+(DREAM = taste-clustered ML users, REALISTIC = Reddit-slot-mined, mapped to ML attributes — never
+SBERT cohorts) → the M2 SCREEN vs the tree at +0.004 (the front-loaded bet, ~1 day; softened by the
+banked genre-vs-static test number +0.00817 but the tree may absorb the opener's signal — that IS
+the screen's question) → teachers for clearing clusters → ONE policy (cold tree kept verbatim + opener-routed teachers) → the Reddit-weighted MIXED-OPENER BENCHMARK (data-driven weights fixed from
+the census BEFORE any arm runs; hard baseline = tree+FOLD; TEST look spent here) → qual trajectory
+panel. Contribution statement + reviewer-risk register in M.3. Reddit: 4,431 adjudicated threads
+with slots ALREADY EXTRACTED suffice — no further processing, no new LLM calls; the data pipeline is
+a CLAIMED CONTRIBUTION (M.4 §5). M5a (real-text demo) is optional, cuttable, and the only linking
+anywhere. Writing todos W1–W5 are schedulable now with zero compute — W1 (simulator-circularity
+section) is urgent: `chapterB_v2.tex` has ONE circularity mention in 1,647 lines and the field's
+lead objection is unanswered in our own chapter.
+
+---
+
+## ★★★ 2026-08-17 (evening) — superseded by Part M above; kept for the axis reasoning. NOTHING IS RUNNING.
 
 **AUTHOR SAID (verbatim):** *"i think building teacher forest is the first step here."* · *"genre is a
 heuristic, i do not like that … we don't know if genre is a good / reasonable opener at all. maybe
