@@ -557,22 +557,28 @@ def mode_evaluate(args):
     fT1, fT1p = fidelity_T1(pol, phi_t, S, P, hix)
     eT0 = fidelity_T0(e1pol, phi_t, Dva, P, hpos)
     eT1, eT1p = fidelity_T1(e1pol, phi_t, S, P, hix)
+    # ★ the falsifier is reported as COUNTS, not only as a rate. A rate difference of 1e-5 is one
+    # state out of tens of thousands, and calling that "interference" would be a reporting artefact
+    # of float comparison rather than a finding. The verdict quotes the count so a reader can judge.
+    n_T0 = len(hpos) * TOTAL_L
+    n_lost = int(round((eT0 - fT0) * n_T0))
     out["interference"] = {
         "T0_fidelity_forest": fT0, "T0_fidelity_E1": eT0, "T0_cost": fT0 - eT0,
+        "T0_states_evaluated": n_T0, "T0_states_lost_vs_E1": n_lost,
         "T1_fidelity_forest": fT1, "T1_fidelity_E1": eT1, "T1_gain": fT1 - eT1,
+        "T1_states_evaluated": int(len(hix)),
         "T1_per_teacher_forest": {teachers[k]: v for k, v in fT1p.items()},
         "T1_per_teacher_E1": {teachers[k]: v for k, v in eT1p.items()},
-        "verdict": ("INTERFERENCE: fidelity to T1 cost fidelity to T0" if fT0 < eT0 - 1e-12
-                    else "no interference: T0 fidelity held while T1 fidelity moved")}
-    log(f"[★ falsifier] T0 fidelity {fT0:.4f} (E1 {eT0:.4f}, cost {fT0 - eT0:+.4f}) | "
-        f"T1 fidelity {fT1:.4f} (E1 {eT1:.4f}, gain {fT1 - eT1:+.4f}) -- {out['interference']['verdict']}")
+        "verdict": (f"T0 fidelity {fT0:.6f} vs E1 {eT0:.6f}: {n_lost} of {n_T0:,} tree states "
+                    f"changed. T1 fidelity {fT1:.6f} vs E1 {eT1:.6f}.")}
+    log(f"[★ falsifier] {out['interference']['verdict']}")
 
     # ---- SPANNING: the cold-state rollout on HOLDOUT, against banked E1 on the same users --------
     ro = unseeded_rollout(E, pol, phi_t, pool, hrows)
     sf, st = ro["curves"][TOTAL_L]
     out["spanning"] = {
         "forest_full": float(np.nanmean(sf)), "forest_tail": float(np.nanmean(st)),
-        "E1_full": float(e1_full[hpos].mean()), "E1_tail": float(e1_tail[hpos].mean()),
+        "E1_full": float(np.nanmean(e1_full[hpos])), "E1_tail": float(np.nanmean(e1_tail[hpos])),
         "diff_full": paired_bootstrap(np.asarray(sf, np.float64) - e1_full[hpos]),
         "diff_tail": paired_bootstrap(np.asarray(st, np.float64) - e1_tail[hpos]),
         "frac_users_identical_to_E1": float(np.mean(np.abs(np.asarray(sf, np.float64)
