@@ -108,34 +108,54 @@ def main() -> None:
     rng = np.random.default_rng(SEED)
     fit = np.zeros(n, bool); fit[rng.permutation(n)[: n // 2]] = True
 
-    def anchor(lab, k, c, memset, n_mem, vocab_ids=None):
-        best = None
-        for cid, us in facts:
-            if vocab_ids is not None and cid not in vocab_ids:
-                continue
-            ho = us[~fit[us]]
-            if len(ho) < 50:
-                continue
-            cov = float(sum(1 for u in us if u in memset)) / max(n_mem, 1)
-            if cov < MIN_COV:
-                continue
-            sh = np.bincount(lab[ho], minlength=k) / len(ho)
-            m = float(sh[c] - np.max(np.delete(sh, c)))
-            if best is None or m > best["margin"]:
-                best = {"concept": int(cid), "coverage": round(cov, 4),
-                        "purity_heldout": round(float(sh[c]), 4), "margin": round(m, 4),
-                        "staters": int(len(us))}
-        return best
+    fact_ids = np.asarray([c for c, _ in facts], np.int64)
+    fact_us = [us for _, us in facts]
+    fact_ho = [us[~fit[us]] for _, us in facts]
+    n_fact = len(facts)
+
+    def anchor_scan(lab, k):
+        """All (concept, cluster) coverages and held-out margins in one pass.
+
+        The per-concept Python membership test this replaces cost ~555M operations PER MERGE ROUND
+        at k=40 over 992 concepts (~14k staters each) -- hours across the merge sequence. Two
+        bincounts per concept give the identical quantities in about a second.
+        """
+        sizes = np.bincount(lab, minlength=k).astype(np.float64)
+        cnt = np.zeros((n_fact, k), np.float64)
+        cnt_ho = np.zeros((n_fact, k), np.float64)
+        for j in range(n_fact):
+            cnt[j] = np.bincount(lab[fact_us[j]], minlength=k)
+            cnt_ho[j] = np.bincount(lab[fact_ho[j]], minlength=k)
+        cov = cnt / np.maximum(sizes, 1)[None, :]
+        tot_ho = cnt_ho.sum(1, keepdims=True)
+        sh = np.divide(cnt_ho, np.maximum(tot_ho, 1e-9))
+        # margin = own share minus the largest share in ANY OTHER cluster
+        part = np.partition(sh, -2, axis=1)
+        top1, top2 = part[:, -1], part[:, -2]
+        other_max = np.where(sh == top1[:, None], top2[:, None], top1[:, None])
+        margin = sh - other_max
+        ok = (tot_ho[:, 0] >= 50)
+        return cov, sh, margin, ok
+
+    def best_anchor(cov, sh, margin, ok, c, vocab_mask=None):
+        elig = ok & (cov[:, c] >= MIN_COV)
+        if vocab_mask is not None:
+            elig = elig & vocab_mask
+        if not elig.any():
+            return None
+        idx = np.flatnonzero(elig)
+        j = idx[int(np.argmax(margin[idx, c]))]
+        return {"concept": int(fact_ids[j]), "coverage": round(float(cov[j, c]), 4),
+                "purity_heldout": round(float(sh[j, c]), 4),
+                "margin": round(float(margin[j, c]), 4), "staters": int(len(fact_us[j]))}
 
     lab, _C0 = kmeans(Z, a.start_k)
     history = []
     while True:
         k = int(lab.max()) + 1
         sizes = np.bincount(lab, minlength=k)
-        anch = []
-        for i in range(k):
-            mem = np.flatnonzero(lab == i)
-            anch.append(anchor(lab, k, i, set(mem.tolist()), len(mem)))
+        cov, sh, margin, ok = anchor_scan(lab, k)
+        anch = [best_anchor(cov, sh, margin, ok, i) for i in range(k)]
         weak = [i for i in range(k)
                 if sizes[i] < a.min_size or anch[i] is None or anch[i]["margin"] < MIN_MARGIN]
         log(f"[merge] k={k} min_size={sizes.min()} weak={len(weak)}")
@@ -171,11 +191,14 @@ def main() -> None:
     iname = {i: mt.get(m, str(m)) for i, m in enumerate(sids)}
     Wd = np.asarray(E["ctx"].Wd); bd = np.asarray(E["ctx"].bd)
 
+    cov, sh, margin, ok = anchor_scan(lab, k)
+    red_mask = np.asarray([int(c) in red_ids for c in fact_ids], bool)
+    log(f"[vocab] {int(red_mask.sum())} of {n_fact} candidate concepts are in the Reddit vocabulary")
     out = []
     for i in range(k):
-        mem = np.flatnonzero(lab == i); memset = set(mem.tolist())
-        a_all = anchor(lab, k, i, memset, len(mem))
-        a_red = anchor(lab, k, i, memset, len(mem), vocab_ids=red_ids)
+        mem = np.flatnonzero(lab == i)
+        a_all = best_anchor(cov, sh, margin, ok, i)
+        a_red = best_anchor(cov, sh, margin, ok, i, vocab_mask=red_mask)
         cen = Z[mem].mean(0)
         sc = cen @ Wd.T + bd
         top = np.argsort(-sc)[:8]
