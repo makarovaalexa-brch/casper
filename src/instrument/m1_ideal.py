@@ -59,8 +59,10 @@ def kmeans(X, k, seed=SEED, iters=100):
     # k-means++ seeding
     cent = [Xn[rng.integers(len(Xn))]]
     for _ in range(k - 1):
-        d = np.min(((Xn[:, None, :] - np.asarray(cent)[None]) ** 2).sum(-1), axis=1) \
-            if len(cent) < 8 else np.min(2 - 2 * (Xn @ np.asarray(cent).T), axis=1)
+        # rows are L2-normalised, so squared distance == 2 - 2*cos EXACTLY. Always use the cosine
+        # form: the pairwise-difference form materialises an (n, |cent|, d) tensor -- 1.6 GB at
+        # n=140,768 -- and this box has an OOM history (HARD RULE 11c).
+        d = np.min(2.0 - 2.0 * (Xn @ np.asarray(cent).T), axis=1)
         d = np.maximum(d, 0)
         p = d / max(d.sum(), 1e-12)
         cent.append(Xn[rng.choice(len(Xn), p=p)])
