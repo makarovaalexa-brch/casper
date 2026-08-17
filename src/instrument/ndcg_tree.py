@@ -450,6 +450,15 @@ def main():
                          "so the depth can be extended later deterministically. Whether it fired is "
                          "recorded in the output as `growth_wall_limited`.")
     ap.add_argument("--label", default=LABEL)
+    ap.add_argument("--cohort_concept", type=int, default=-1,
+                    help="M3: grow a FOREST TEACHER instead of the cold tree. Restricts the cohort "
+                         "to validation users who behaviourally endorse this concept (the anchor "
+                         "they would STATE -- the deployable routing signature), and seeds the root "
+                         "with that concept as VOLUNTEERED evidence: it is folded into every "
+                         "evaluation and excluded from the candidate pool, but costs no turn, so "
+                         "the teacher still asks `total_L` questions exactly as the cold tree does. "
+                         "Implemented through the existing `prefix` path at depth 0 -- no new "
+                         "evaluation route. Design sheet docs/design/DS_M3_FOREST_TREES.md.")
     ap.add_argument("--full_threads", action="store_true",
                     help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv): use all "
                          "cores rather than its default 4. Declared here only so argparse accepts "
@@ -505,6 +514,19 @@ def main():
 
     E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, f"{args.label}(val)")
     rows_all = E["rows"]
+    seed_prefix = []
+    if args.cohort_concept >= 0:
+        cid = int(args.cohort_concept)
+        assert 0 <= cid < E["C"], f"--cohort_concept {cid} outside the 0..{E['C']-1} bank"
+        _V, _F = np.asarray(E["V"]), np.asarray(E["foldable"])
+        _end = (_F > 0) & (_V > 0)
+        rows_all = [int(r) for r in rows_all if bool(_end[int(r), cid])]
+        seed_prefix = [(1, cid)]
+        log(f"[M3] FOREST TEACHER for concept {cid}: cohort restricted to the {len(rows_all)} "
+            f"validation users who ENDORSE it. It is folded as volunteered evidence at the root, "
+            f"masked from the pool, and costs NO turn -- the teacher asks {total_L} questions, the "
+            f"same budget as the cold tree.")
+        assert len(rows_all) >= 200, f"anchor cohort is only {len(rows_all)} users"
     contract_selftest(E, rows_all)
     log(f"[cohort] {len(rows_all)} canonical VALIDATION users (rows with a non-empty target). "
         f"TEST IS NOT BUILT AND NOT TOUCHED.")
@@ -542,6 +564,8 @@ def main():
                            f"concept: not foldable->noanswer, signed value>0->like, else dislike"),
            "stopping": "min_leaf only (no depth cap)", "total_L": total_L, "min_leaf": min_leaf,
            "split": "validation", "n_cohort": len(rows_all), "sanity": bool(args.sanity),
+           "cohort_concept": int(args.cohort_concept),
+           "seed_prefix": [[int(a), int(b)] for a, b in seed_prefix],
            # 2026-08-12 audit: derived from the mask, so a re-run under a different candidate-pool
            # policy cannot resume this tree's nodes. A missing field is a refusal, not a pass.
            "pool_contract": pool_contract(E["pool"], rows_all, policy=E["pool_policy"])}
@@ -558,8 +582,9 @@ def main():
     banked_vec = {}
     nodes, leaves = {}, []
     wall_limited = False
-    frontier = [{"nid": "root", "depth": 0, "path": [], "rows": [int(r) for r in rows_all],
-                 "branch_from": None}]
+    frontier = [{"nid": "root", "depth": 0,
+                 "path": [[int(a), int(b)] for a, b in seed_prefix],
+                 "rows": [int(r) for r in rows_all], "branch_from": None}]
 
     # ======================================================== growth, LEVEL-SYNCHRONOUS
     while frontier:
