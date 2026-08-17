@@ -39,6 +39,7 @@ GENRE_ALIAS = {
     "true crime": "Crime", "crime drama": "Crime",
     "war movie": "War", "westerns": "Western", "noir": "Film-Noir", "film noir": "Film-Noir",
     "musicals": "Musical", "mysteries": "Mystery", "fantasies": "Fantasy",
+    "comedies": "Comedy", "dramas": "Drama", "horror thriller": "Horror",
     "scary": "Horror", "slasher": "Horror", "slashers": "Horror", "horrors": "Horror",
     "comedic": "Comedy", "funny": "Comedy",
 }
@@ -74,8 +75,9 @@ def map_genre(v: str):
         return GENRE_ALIAS[n]
     if key in GENRE_ALIAS:
         return GENRE_ALIAS[key]
-    # slash / plus compounds: take the first mappable component
-    for part in re.split(r"[/+&]| and ", n):
+    # compounds: take the first mappable component. Whitespace is included as a separator because
+    # norm() has already removed the slash in forms like "horror/thriller"; declared before running.
+    for part in re.split(r"[/+&,]| and |\s+", n):
         p = part.strip()
         if not p:
             continue
