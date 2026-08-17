@@ -1550,8 +1550,84 @@ survive the selection criterion while still being defined by a late-1990s window
 reported rather than used. And the correction is measured on the training population only; no
 held-out ranking claim rests on it here.
 
+\subsection{Groups a user could name, and where real requests land}
+\label{sec:clusters}
+
+Correcting for era leaves a partition worth routing on. Fitting on the $140{,}768$ training users
+and sweeping the number of groups, each group is then described in two independent ways: by the
+\emph{attribute} that most separates it --- the share of an attribute's endorsers falling inside the
+group, minus the largest share falling in any other, estimated on a held-out half --- and by the
+\emph{films} it favours relative to the average user. The two descriptions are produced from the
+same states but by different routes, so their agreement is a check rather than a restatement.
+
+\begin{table}[t]
+\centering
+\caption{Six groups at $k{=}20$ whose attribute and films agree, fitted on train. \emph{Plain word}
+restricts the attribute vocabulary to the $341$ words that appear in real requests
+(Section~\ref{sec:opener_census}); ``same'' means the unrestricted and restricted choices coincide.
+\emph{Requests} is the share of the $3{,}078$ foldable real requests whose own state lands nearest
+this group. The final column is that share divided by the group's share of training users.}
+\label{tab:clusters}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llll rr r}
+\toprule
+attribute & plain word & most distinctive films & $n$ & train & requests & ratio \\
+\midrule
+\texttt{inspiring} & same & Dark Knight Rises, Interstellar, Django & $9{,}743$ & $6.9\%$ & $\mathbf{20.2\%}$ & $2.9\times$ \\
+\texttt{dialogue driven} & same & Birdman, Whiplash, Grand Budapest Hotel & $7{,}475$ & $5.3\%$ & $\mathbf{16.8\%}$ & $3.2\times$ \\
+\texttt{gore} & same & Dredd, Watchmen, The Hateful Eight & $5{,}825$ & $4.1\%$ & $\mathbf{16.0\%}$ & $3.9\times$ \\
+\texttt{arms dealer} & \texttt{marvel} & Iron Man 3, Avengers: Age of Ultron & $6{,}882$ & $4.9\%$ & $11.5\%$ & $2.4\times$ \\
+\texttt{teenagers} & \texttt{school} & Aquamarine, Princess Diaries 2, Frozen & $4{,}945$ & $3.5\%$ & $6.1\%$ & $1.7\times$ \\
+\texttt{art house} & same & Holy Motors, The White Ribbon, Holy Motors & $4{,}576$ & $3.3\%$ & $5.1\%$ & $1.6\times$ \\
+\midrule
+\multicolumn{4}{l}{\emph{six groups, combined}} & $28.0\%$ & $\mathbf{75.7\%}$ & $2.7\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:clusters} reports the six groups whose two descriptions agree. In four of the six the
+separating attribute is already a word real requesters use, so restricting the vocabulary costs
+nothing; in the other two the plain substitute is close (\texttt{marvel} for \texttt{arms dealer},
+\texttt{school} for \texttt{teenagers}) and loses little margin.
+
+The final columns are the part that could have gone wrong and did not. Group membership was
+determined entirely from MovieLens histories; nothing in the procedure saw a request. Yet folding
+each real request's own volunteered bundle and asking which group its state falls nearest,
+\textbf{these six groups receive $75.7\%$ of real requests while containing $28.0\%$ of users} --- a
+concentration of $2.7\times$, rising to $3.9\times$ for the \texttt{gore} group. The groups we
+identified as coherent are the groups real people arrive in.
+
+The converse holds equally. Four further groups clear the selection criterion but fail the agreement
+check, their distinctive films spanning $1997$--$2000$ with attributes to match (\texttt{1930s},
+\texttt{70mm}): residual chronology the single projection did not remove. \textbf{They receive
+between $0.7\%$ and $1.3\%$ of requests each}, and the largest training group of all --- $21{,}477$
+users, $15.3\%$ of the population --- receives $1.5\%$. Chronological groups are exactly the ones
+nobody asks from.
+
+Partitioning the request states themselves rather than assigning them gives an adjusted Rand index of
+$+0.269$ against that assignment: agreement well above chance and far from complete. Five of eight
+request groups map onto a single taste group with matching content --- horror titles onto
+\texttt{gore}, superhero titles onto \texttt{marvel}, art-horror onto \texttt{dialogue driven} ---
+while three are diffuse, and all three of those are again defined by late-$1990$s films. An opener
+places a user approximately, not exactly, and the gap between $+0.269$ and agreement is the room an
+adaptive interview has to work in.
+
+Two groups deserve their failure recorded. One is describable but not separable: its films
+(\emph{Cinderella}, \emph{27 Dresses}, \emph{Sisterhood of the Traveling Pants 2}) are plainly teen
+romance and its best attributes (\texttt{fairy tale}, \texttt{whimsical}, \texttt{teen}) clear the
+purity requirement, but every one carries a \emph{negative} margin because the \texttt{teenagers}
+group already owns those words --- one taste region split in two, and correctly merged. The other
+cannot be described at all: its best attributes (\texttt{goofy}, \texttt{silly}) fall below the
+purity requirement with margins from $-0.077$ to $-0.115$, and its films are unrelated obscurities.
+It is a group of people who rate unpopular things, which is a behaviour rather than a preference,
+and no question a user could answer would route anyone to it.
+
 \PLAN{the screen --- whether, at these groups' entry states, any question improves on the tree's own
-first question by more than the pre-registered margin.}
+first question by more than the pre-registered margin. Note the power constraint: a group holds
+$3$--$7\%$ of the $10{,}000$ validation users, so a paired interval at group scale is roughly four
+times wider than at cohort scale, and the screen is reported as a selection step validated on a
+held-out half rather than as a significance claim at $+0.004$.}
 
 \section{Limitations}
 \label{sec:limits}
