@@ -6,9 +6,9 @@ Set-Location $root
 $stages = @(
   @{name = "composition"; args = @("--mode", "composition") },
   @{name = "states";      args = @("--mode", "states") },
-  @{name = "fit_main";    args = @("--mode", "fit", "--arm", "main") },
+  @{name = "fit_main";    args = @("--mode", "fit", "--arm", "main", "--epochs", "6") },
   @{name = "eval_main";   args = @("--mode", "evaluate", "--arm", "main") },
-  @{name = "fit_shuffle"; args = @("--mode", "fit", "--arm", "shuffle") },
+  @{name = "fit_shuffle"; args = @("--mode", "fit", "--arm", "shuffle", "--epochs", "6") },
   @{name = "eval_shuffle"; args = @("--mode", "evaluate", "--arm", "shuffle") }
 )
 foreach ($s in $stages) {

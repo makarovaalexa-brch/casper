@@ -31,6 +31,23 @@ poorer action space, and at genre-seeded states the tree may well **score better
 does not make the forest wrong (its claim is *exact where a teacher is defined*), but the score table
 must show policy, T1's own order and the tree side by side at those states — and it does.
 
+T1's own measured strength, per group, at K=15 items against the policy-B items order on validation
+(`groupgreedy_genre15_VAL_policyB.json`) — only the groups at or above the 500-user cohort floor can
+be teachers:
+
+| group | n (validation) | full vs static items | tail vs static items | teacher? |
+|---|---|---|---|---|
+| Drama | 5,481 | +0.00538 | **−0.00280** | yes |
+| Action | 1,582 | +0.02216 | +0.01515 | yes |
+| Comedy | 1,475 | +0.02292 | +0.01399 | yes |
+| Adventure | 534 | +0.03934 | +0.02484 | yes |
+| Thriller | 451 | +0.03635 | +0.01530 | **no — below the floor** |
+| Sci-Fi and 12 smaller | ≤161 each | large but unmeasurable | — | no — the noise regime |
+
+Drama is 55% of the cohort and is the weakest teacher of the four, negative on the tail. That is a
+known property of this teacher (memory: *genre-conditioned greedy shrinks to a null on the big
+group*), not something L2a discovers.
+
 The genre orders were **searched on all 10,000 validation users**, so HOLDOUT is held out from the
 policy, not from the teacher. Every comparison here is policy-vs-that-same-teacher, so both sides
 carry the teacher's selection equally; no comparison treats a group order as held-out-clean.
