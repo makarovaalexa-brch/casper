@@ -124,13 +124,33 @@ def genre_to_concept(E, genres):
 
 
 # ============================================================ the banked group orders
-def load_group_orders():
+def load_group_orders(source="banked"):
+    """The per-genre teacher orders, as lists of (channel, id) questions.
+
+      banked    `groupgreedy_genre15.json` -- 15 ITEMS per group, searched over the 500-item pool on
+                all 10,000 validation users (2026-08-11).
+      t1prime   `forest/t1prime_<genre>.json` -- 15 questions per group over the tree's own COMBINED
+                pool (items AND concepts), searched on FIT users only. Built because L2a measured the
+                banked orders losing to the tree at their own states, and the action space is the
+                suspect. A genre with no t1' file yet is not offered as a teacher under this source.
+    """
     b = json.load(open(GENRE_JSON))
     assert b["test_touched"] is False and b["split"] == "validation"
     assert b["tower"] == "t2i26c_ep31.pt" and b["concept_ckpt"] == "concept_cv3_ep08.pt", \
         "the banked genre orders are not on the certified pair"
-    orders = {g: [int(i) for i in v["order"]] for g, v in b["groups"].items()}
     sizes = {g: int(v["n_users"]) for g, v in b["groups"].items()}
+    if source == "banked":
+        return {g: [(0, int(i)) for i in v["order"]] for g, v in b["groups"].items()}, sizes, b
+    assert source == "t1prime", f"unknown order source {source!r}"
+    orders = {}
+    for g in sizes:
+        p = os.path.join(FOREST_DIR, f"t1prime_{g.replace('-', '')}.json")
+        if not os.path.exists(p):
+            continue
+        t = json.load(open(p))
+        assert t["test_touched"] is False and t["genre"] == g and t["cohort"].startswith("FIT")
+        orders[g] = [(int(a), int(c)) for a, c in t["order"]]
+    assert orders, "no t1' order files exist yet -- run group_greedy_signature.py first"
     return orders, sizes, b
 
 
@@ -156,7 +176,7 @@ def build_states(E, rows, pool, teachers, orders, gmap, groups, args):
     for ti, g in enumerate(teachers):
         grows = np.asarray(sorted(groups[g]), np.int64)
         cq = (1, int(gmap[g]))
-        seq = [(0, int(i)) for i in orders[g]]
+        seq = [(int(a), int(c)) for a, c in orders[g]]
         assert all(q in qidx for q in seq), f"{g}'s order contains an item outside the pool"
         n = len(grows)
         gout = branch_of_per_user(E, grows, [cq] * n)
@@ -285,7 +305,7 @@ def firewall(rows):
 def teacher_setup(E, rows, pool, args):
     """The teachers, their signatures and their cohorts -- PRINTED BEFORE ANY TIME IS SPENT."""
     from group_greedy_genre import load_item_genres, partition_by_genre
-    orders, banked_sizes, gblob = load_group_orders()
+    orders, banked_sizes, gblob = load_group_orders(args.order_source)
     gen, vocab = load_item_genres(E["ctx"].ni)
     groups, n_no_liked, n_ungenred = partition_by_genre(E, rows, gen)
     sizes = {g: len(v) for g, v in groups.items()}
@@ -351,6 +371,7 @@ def mode_states(args):
     blob = {"analysis": "forest_states", "design_sheet":
             "docs/design/PAPER_B_POLICY_DESIGN.md L.2", "test_touched": False,
             "split": "validation", "teachers": teachers, "composition": info,
+            "order_source": args.order_source,
             "per_teacher": per_teacher, "n_states": int(len(S["label"])),
             "genre_token_outcome": GENRE_TOKEN_OUTCOME,
             "pool_contract": E["pool_contract"], "tower": E["tower"], "conc_ckpt": E["conc_ckpt"],
@@ -591,7 +612,7 @@ def mode_evaluate(args):
 
     # ---- BEHAVIOURAL: genre-seeded HOLDOUT states, policy vs its own teacher ---------------------
     from group_greedy_genre import load_item_genres, partition_by_genre
-    orders, _bs, _gb = load_group_orders()
+    orders, _bs, _gb = load_group_orders(sblob.get("order_source", "banked"))
     gen, _v = load_item_genres(E["ctx"].ni)
     groups, _a, _b2 = partition_by_genre(E, rows, gen)
     gmap = {g: int(sblob["per_teacher"][g]["concept_id"]) for g in teachers}
@@ -611,7 +632,7 @@ def mode_evaluate(args):
         f_f, t_f = r_f["curves"][TOTAL_L]
         r_e = asif_rollout(E, e1pol, phi_t, phi_t, pool, grows, seeds, seed_idx, seed_out, "asif")
         f_e, t_e = r_e["curves"][TOTAL_L]
-        t1_seq = [[(0, int(i)) for i in orders[g]] for _ in grows]
+        t1_seq = [[(int(a), int(c)) for a, c in orders[g]] for _ in grows]
         f_t1, t_t1 = genv_eval_multi(E, grows, *fold_seqs(seeds, t1_seq))
         tr_asked = np.asarray(Dva["label_idx"], np.int64)
         pos_of = {int(r): j for j, r in enumerate(np.asarray(Dva["uid"], np.int64))}
@@ -619,7 +640,7 @@ def mode_evaluate(args):
         f_tr, t_tr = genv_eval_multi(E, grows, *fold_seqs(seeds, tr_seq))
         follows = float(np.mean([np.array_equal(
             np.asarray(r_f["asked"][u], np.int64),
-            np.asarray([qidx[(0, int(i))] for i in orders[g]], np.int64))
+            np.asarray([qidx[(int(a), int(c))] for a, c in orders[g]], np.int64))
             for u in range(len(grows))]))
         beh[g] = {
             "n_holdout_users": len(grows),
@@ -659,6 +680,8 @@ def main():
     ap.add_argument("--arm", default="main", choices=("main", "shuffle"))
     ap.add_argument("--tag", default="")
     ap.add_argument("--min_group", type=int, default=MIN_GROUP)
+    ap.add_argument("--order_source", default="banked", choices=("banked", "t1prime"),
+                    help="which stated-genre orders are the T1 teacher (see load_group_orders)")
     ap.add_argument("--min_eval_group", type=int, default=50)
     ap.add_argument("--t1_frac", type=float, default=0.5)
     ap.add_argument("--batch", type=int, default=256)
