@@ -1,0 +1,413 @@
+{
+ "analysis": "m1b_opener_value_mapping",
+ "design_sheet": "docs/design/DS_M1_OPENER_FAMILIES.md",
+ "source_census": "experiments/battery/m1b_census.json",
+ "ml_genres": [
+  "Action",
+  "Adventure",
+  "Animation",
+  "Children",
+  "Comedy",
+  "Crime",
+  "Documentary",
+  "Drama",
+  "Fantasy",
+  "Film-Noir",
+  "Horror",
+  "IMAX",
+  "Musical",
+  "Mystery",
+  "Romance",
+  "Sci-Fi",
+  "Thriller",
+  "War",
+  "Western"
+ ],
+ "n_genome_tags": 1122,
+ "slots": {
+  "genres_pos": {
+   "signature_space": "genre",
+   "occurrences_considered": 972,
+   "note": "computed over the census top-50 value list for this slot, not the full tail",
+   "mapped_occurrences": 924,
+   "unmapped_occurrences": 48,
+   "mapped_share": 0.9506,
+   "mapped_targets": [
+    [
+     "Horror",
+     254
+    ],
+    [
+     "Thriller",
+     146
+    ],
+    [
+     "Comedy",
+     121
+    ],
+    [
+     "Sci-Fi",
+     82
+    ],
+    [
+     "Action",
+     73
+    ],
+    [
+     "Romance",
+     67
+    ],
+    [
+     "Drama",
+     56
+    ],
+    [
+     "Documentary",
+     40
+    ],
+    [
+     "Mystery",
+     23
+    ],
+    [
+     "Fantasy",
+     20
+    ],
+    [
+     "Crime",
+     18
+    ],
+    [
+     "Adventure",
+     16
+    ],
+    [
+     "War",
+     8
+    ]
+   ],
+   "unmapped_values": [
+    [
+     "coming of age",
+     14
+    ],
+    [
+     "Christmas movies",
+     9
+    ],
+    [
+     "supernatural",
+     8
+    ],
+    [
+     "dystopian",
+     6
+    ],
+    [
+     "suspense",
+     6
+    ],
+    [
+     "feel good movies",
+     5
+    ]
+   ]
+  },
+  "tone": {
+   "signature_space": "tone",
+   "occurrences_considered": 171,
+   "note": "computed over the census top-50 value list for this slot, not the full tail",
+   "mapped_occurrences": 113,
+   "unmapped_occurrences": 58,
+   "mapped_share": 0.6608,
+   "mapped_targets": [
+    [
+     "feel-good",
+     30
+    ],
+    [
+     "fun",
+     14
+    ],
+    [
+     "sad",
+     7
+    ],
+    [
+     "scary",
+     7
+    ],
+    [
+     "emotional",
+     6
+    ],
+    [
+     "dark",
+     6
+    ],
+    [
+     "disturbing",
+     6
+    ],
+    [
+     "light",
+     5
+    ],
+    [
+     "creepy",
+     3
+    ],
+    [
+     "weird",
+     3
+    ],
+    [
+     "funny",
+     3
+    ],
+    [
+     "nostalgic",
+     3
+    ],
+    [
+     "atmospheric",
+     3
+    ],
+    [
+     "hilarious",
+     3
+    ],
+    [
+     "tense",
+     2
+    ],
+    [
+     "thought-provoking",
+     2
+    ],
+    [
+     "fast paced",
+     2
+    ],
+    [
+     "slow",
+     2
+    ],
+    [
+     "suspenseful",
+     2
+    ],
+    [
+     "depressing",
+     2
+    ],
+    [
+     "bizarre",
+     2
+    ]
+   ],
+   "unmapped_values": [
+    [
+     "wholesome",
+     8
+    ],
+    [
+     "uplifting",
+     6
+    ],
+    [
+     "cozy",
+     4
+    ],
+    [
+     "thrilling",
+     3
+    ],
+    [
+     "Wholesome",
+     3
+    ],
+    [
+     "lighthearted",
+     3
+    ],
+    [
+     "comfy",
+     3
+    ],
+    [
+     "Lighthearted",
+     3
+    ],
+    [
+     "calm",
+     3
+    ],
+    [
+     "funniest",
+     2
+    ],
+    [
+     "a similar vibe",
+     2
+    ],
+    [
+     "Mind Bending",
+     2
+    ],
+    [
+     "Mysterious",
+     2
+    ],
+    [
+     "Mind boggling",
+     2
+    ],
+    [
+     "chill",
+     2
+    ],
+    [
+     "mind blowing",
+     2
+    ],
+    [
+     "on the edge of your seat",
+     2
+    ],
+    [
+     "a sense of wonder",
+     2
+    ],
+    [
+     "comforting",
+     2
+    ],
+    [
+     "offbeat",
+     2
+    ]
+   ]
+  },
+  "era": {
+   "signature_space": "era",
+   "occurrences_considered": 104,
+   "note": "computed over the census top-50 value list for this slot, not the full tail",
+   "mapped_occurrences": 73,
+   "unmapped_occurrences": 31,
+   "mapped_share": 0.7019,
+   "mapped_targets": [
+    [
+     "1980s",
+     28
+    ],
+    [
+     "1990s",
+     17
+    ],
+    [
+     "2000s",
+     14
+    ],
+    [
+     "1970s",
+     8
+    ],
+    [
+     "1950s",
+     3
+    ],
+    [
+     "1960s",
+     2
+    ],
+    [
+     "1940s",
+     1
+    ]
+   ],
+   "unmapped_values": [
+    [
+     "newer",
+     4
+    ],
+    [
+     "from the last decade",
+     3
+    ],
+    [
+     "Old",
+     2
+    ],
+    [
+     "recent",
+     2
+    ],
+    [
+     "old",
+     2
+    ],
+    [
+     "Modern",
+     2
+    ],
+    [
+     "modern",
+     2
+    ],
+    [
+     "old movies",
+     2
+    ],
+    [
+     "90ies",
+     1
+    ],
+    [
+     "from the past 20 years or so",
+     1
+    ],
+    [
+     "either the fifties, sixties, seventies or the eighties",
+     1
+    ],
+    [
+     "from the past couple of years",
+     1
+    ],
+    [
+     "21st century",
+     1
+    ],
+    [
+     "Old or new",
+     1
+    ],
+    [
+     "17th-18th century",
+     1
+    ],
+    [
+     "within the past 5 years",
+     1
+    ],
+    [
+     "The older, the better",
+     1
+    ],
+    [
+     "within the last decade",
+     1
+    ],
+    [
+     "old-ish films",
+     1
+    ],
+    [
+     "a bit older",
+     1
+    ]
+   ]
+  }
+ }
+}

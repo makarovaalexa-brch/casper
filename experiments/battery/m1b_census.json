@@ -1,0 +1,3067 @@
+{
+ "analysis": "m1b_realistic_opener_census",
+ "design_sheet": "docs/design/DS_M1_OPENER_FAMILIES.md",
+ "source": "data/reddit_he/slots/full_out_*.jsonl",
+ "n_files": 40,
+ "n_rows": 4431,
+ "n_distinct_thread_ids": 4431,
+ "n_is_request": 4166,
+ "priority_order_declared": [
+  "anchors_pos",
+  "genres_pos",
+  "tone",
+  "era",
+  "constraints"
+ ],
+ "n_slots_per_thread_hist": {
+  "0": 56,
+  "1": 228,
+  "2": 499,
+  "3": 675,
+  "4": 659,
+  "5": 561,
+  "6": 457,
+  "7": 326,
+  "8": 228,
+  "9": 175,
+  "10": 128,
+  "11": 108,
+  "12": 70,
+  "13": 31,
+  "14": 32,
+  "15": 31,
+  "16": 30,
+  "17": 22,
+  "18": 19,
+  "19": 7,
+  "20": 11,
+  "21": 7,
+  "22": 10,
+  "23": 3,
+  "24": 3,
+  "25": 3,
+  "26": 5,
+  "27": 4,
+  "28": 2,
+  "29": 4,
+  "30": 1,
+  "31": 3,
+  "32": 1,
+  "33": 2,
+  "34": 2,
+  "35": 2,
+  "36": 1,
+  "37": 4,
+  "38": 1,
+  "40": 1,
+  "41": 1,
+  "45": 4,
+  "51": 1,
+  "58": 1,
+  "59": 1,
+  "60": 1,
+  "61": 1,
+  "62": 1,
+  "65": 2,
+  "67": 1,
+  "70": 3,
+  "75": 1,
+  "241": 1
+ },
+ "threads_with_no_priority_slot": 525,
+ "marginal_slot_presence": {
+  "anchors_pos": {
+   "threads": 2793,
+   "share": 0.63033
+  },
+  "anchors_neg": {
+   "threads": 730,
+   "share": 0.16475
+  },
+  "genres_pos": {
+   "threads": 1763,
+   "share": 0.39788
+  },
+  "genres_neg": {
+   "threads": 184,
+   "share": 0.04153
+  },
+  "tone": {
+   "threads": 946,
+   "share": 0.2135
+  },
+  "era": {
+   "threads": 433,
+   "share": 0.09772
+  },
+  "constraints": {
+   "threads": 1360,
+   "share": 0.30693
+  },
+  "context": {
+   "threads": 612,
+   "share": 0.13812
+  },
+  "other": {
+   "threads": 3518,
+   "share": 0.79395
+  }
+ },
+ "opener_type_distribution": {
+  "anchors_pos": {
+   "threads": 2793,
+   "share": 0.63033
+  },
+  "genres_pos": {
+   "threads": 651,
+   "share": 0.14692
+  },
+  "tone": {
+   "threads": 146,
+   "share": 0.03295
+  },
+  "era": {
+   "threads": 86,
+   "share": 0.01941
+  },
+  "constraints": {
+   "threads": 230,
+   "share": 0.05191
+  }
+ },
+ "opener_values_top50": {
+  "anchors_pos": [
+   [
+    "Interstellar",
+    51
+   ],
+   [
+    "Parasite",
+    43
+   ],
+   [
+    "Shutter Island",
+    35
+   ],
+   [
+    "Her",
+    33
+   ],
+   [
+    "Fight Club",
+    32
+   ],
+   [
+    "Midsommar",
+    30
+   ],
+   [
+    "Inception",
+    29
+   ],
+   [
+    "Arrival",
+    24
+   ],
+   [
+    "Se7en",
+    24
+   ],
+   [
+    "Knives Out",
+    24
+   ],
+   [
+    "Prisoners",
+    23
+   ],
+   [
+    "Taxi Driver",
+    23
+   ],
+   [
+    "Gone Girl",
+    23
+   ],
+   [
+    "Hereditary",
+    22
+   ],
+   [
+    "Lost in Translation",
+    22
+   ],
+   [
+    "The Thing",
+    22
+   ],
+   [
+    "Nightcrawler",
+    21
+   ],
+   [
+    "Ex Machina",
+    21
+   ],
+   [
+    "Superbad",
+    21
+   ],
+   [
+    "Pulp Fiction",
+    21
+   ],
+   [
+    "Zodiac",
+    20
+   ],
+   [
+    "John Wick",
+    19
+   ],
+   [
+    "Coherence",
+    19
+   ],
+   [
+    "Whiplash",
+    18
+   ],
+   [
+    "The Martian",
+    18
+   ],
+   [
+    "American Psycho",
+    18
+   ],
+   [
+    "1917",
+    18
+   ],
+   [
+    "The Shining",
+    16
+   ],
+   [
+    "Drive",
+    16
+   ],
+   [
+    "Blade Runner 2049",
+    16
+   ],
+   [
+    "About Time",
+    16
+   ],
+   [
+    "Forrest Gump",
+    16
+   ],
+   [
+    "Uncut Gems",
+    16
+   ],
+   [
+    "Goodfellas",
+    16
+   ],
+   [
+    "Black Swan",
+    15
+   ],
+   [
+    "Train to Busan",
+    15
+   ],
+   [
+    "Joker",
+    15
+   ],
+   [
+    "Baby Driver",
+    15
+   ],
+   [
+    "Memento",
+    15
+   ],
+   [
+    "Good Will Hunting",
+    15
+   ],
+   [
+    "Get Out",
+    15
+   ],
+   [
+    "Silence of the Lambs",
+    14
+   ],
+   [
+    "Spirited Away",
+    14
+   ],
+   [
+    "The Lighthouse",
+    14
+   ],
+   [
+    "Blade Runner",
+    14
+   ],
+   [
+    "Donnie Darko",
+    13
+   ],
+   [
+    "Sicario",
+    13
+   ],
+   [
+    "Eternal Sunshine of the Spotless Mind",
+    13
+   ],
+   [
+    "American Beauty",
+    12
+   ],
+   [
+    "Annihilation",
+    12
+   ]
+  ],
+  "genres_pos": [
+   [
+    "horror",
+    51
+   ],
+   [
+    "comedy",
+    38
+   ],
+   [
+    "horror movies",
+    32
+   ],
+   [
+    "thriller",
+    20
+   ],
+   [
+    "action",
+    17
+   ],
+   [
+    "thrillers",
+    16
+   ],
+   [
+    "drama",
+    14
+   ],
+   [
+    "sci-fi",
+    12
+   ],
+   [
+    "romance",
+    12
+   ],
+   [
+    "Horror",
+    11
+   ],
+   [
+    "comedies",
+    11
+   ],
+   [
+    "documentaries",
+    10
+   ],
+   [
+    "mystery",
+    9
+   ],
+   [
+    "horror movie",
+    8
+   ],
+   [
+    "fantasy",
+    8
+   ],
+   [
+    "horror/thriller",
+    8
+   ],
+   [
+    "action movies",
+    8
+   ],
+   [
+    "documentary",
+    7
+   ],
+   [
+    "Action",
+    6
+   ],
+   [
+    "Horror movies",
+    6
+   ],
+   [
+    "Documentaries",
+    6
+   ],
+   [
+    "psychological thriller",
+    6
+   ],
+   [
+    "dramas",
+    6
+   ],
+   [
+    "war movies",
+    5
+   ],
+   [
+    "Comedy",
+    5
+   ],
+   [
+    "noir",
+    5
+   ],
+   [
+    "romantic",
+    5
+   ],
+   [
+    "Sci-fi",
+    5
+   ],
+   [
+    "sci fi",
+    5
+   ],
+   [
+    "Thriller",
+    5
+   ],
+   [
+    "horror films",
+    4
+   ],
+   [
+    "coming of age",
+    4
+   ],
+   [
+    "adventure",
+    4
+   ],
+   [
+    "Christmas movies",
+    4
+   ],
+   [
+    "psychological thrillers",
+    4
+   ],
+   [
+    "suspense",
+    4
+   ],
+   [
+    "romantic movies",
+    4
+   ],
+   [
+    "comedy movies",
+    3
+   ],
+   [
+    "Psychological thrillers",
+    3
+   ],
+   [
+    "mysteries",
+    3
+   ],
+   [
+    "Murder Mystery",
+    3
+   ],
+   [
+    "rom coms",
+    3
+   ],
+   [
+    "Mysteries",
+    3
+   ],
+   [
+    "western",
+    3
+   ],
+   [
+    "romantic movie",
+    3
+   ],
+   [
+    "romcoms",
+    3
+   ],
+   [
+    "scifi",
+    3
+   ],
+   [
+    "Romance movies",
+    3
+   ],
+   [
+    "Adventure",
+    3
+   ],
+   [
+    "dystopian",
+    3
+   ]
+  ],
+  "tone": [
+   [
+    "uplifting",
+    4
+   ],
+   [
+    "feel good",
+    3
+   ],
+   [
+    "Sad",
+    3
+   ],
+   [
+    "sad",
+    2
+   ],
+   [
+    "funniest",
+    2
+   ],
+   [
+    "feel-good",
+    2
+   ],
+   [
+    "Feel good",
+    2
+   ],
+   [
+    "emotional",
+    2
+   ],
+   [
+    "calm",
+    2
+   ],
+   [
+    "childlike wonder",
+    1
+   ],
+   [
+    "gonna punch me in the face",
+    1
+   ],
+   [
+    "Gritty realistic",
+    1
+   ],
+   [
+    "that weird shit",
+    1
+   ],
+   [
+    "somewhat solemn",
+    1
+   ],
+   [
+    "cool visuals",
+    1
+   ],
+   [
+    "a feeling of Autumn/Halloween",
+    1
+   ],
+   [
+    "an Halloween/Autumn vibe",
+    1
+   ],
+   [
+    "start with a sad tone and end with even sadder tone",
+    1
+   ],
+   [
+    "loneliness and doubt are pressing in all around you but you don't want to feel better you want to wallow in misery",
+    1
+   ],
+   [
+    "tense",
+    1
+   ],
+   [
+    "Inspiring",
+    1
+   ],
+   [
+    "Adventurous",
+    1
+   ],
+   [
+    "Hilarious",
+    1
+   ],
+   [
+    "Heart warming",
+    1
+   ],
+   [
+    "It should be fun from the beginning",
+    1
+   ],
+   [
+    "Mysterious",
+    1
+   ],
+   [
+    "weird",
+    1
+   ],
+   [
+    "upbeat",
+    1
+   ],
+   [
+    "quiet",
+    1
+   ],
+   [
+    "meaningful will make me feel glad to be alive",
+    1
+   ],
+   [
+    "existential and with abstract themes",
+    1
+   ],
+   [
+    "beautiful and touched you in some way",
+    1
+   ],
+   [
+    "very intense/compelling/engaging/captivating",
+    1
+   ],
+   [
+    "very heavy, deep, emotional, and so philosophically charged",
+    1
+   ],
+   [
+    "ugly cry",
+    1
+   ],
+   [
+    "Dark, depressing, brooding, cold, psychological, not normal, void, grotesque, eerie",
+    1
+   ],
+   [
+    "relaxing, cheerful",
+    1
+   ],
+   [
+    "so bad they're actually good",
+    1
+   ],
+   [
+    "a good laugh",
+    1
+   ],
+   [
+    "Fast Paced",
+    1
+   ],
+   [
+    "mind blowing",
+    1
+   ],
+   [
+    "just phenomenal",
+    1
+   ],
+   [
+    "uplifting/happy/emotional/inspections",
+    1
+   ],
+   [
+    "Mind fuck",
+    1
+   ],
+   [
+    "feels like a fever dream",
+    1
+   ],
+   [
+    "The weirder and more obscure the better",
+    1
+   ],
+   [
+    "comforting",
+    1
+   ],
+   [
+    "Uplifting",
+    1
+   ],
+   [
+    "the most heartbreaking sad and depressing movies ever",
+    1
+   ],
+   [
+    "Surreal and fever dream like",
+    1
+   ]
+  ],
+  "era": [
+   [
+    "80s",
+    2
+   ],
+   [
+    "set in the 40s",
+    1
+   ],
+   [
+    "from the past couple of years",
+    1
+   ],
+   [
+    "from the 1950s to the 1960s",
+    1
+   ],
+   [
+    "Old or new",
+    1
+   ],
+   [
+    "1970-2000",
+    1
+   ],
+   [
+    "from 2019 so far",
+    1
+   ],
+   [
+    "released in the past 5 years",
+    1
+   ],
+   [
+    "1997-1998",
+    1
+   ],
+   [
+    "from the past 10 years",
+    1
+   ],
+   [
+    "18th century",
+    1
+   ],
+   [
+    "before 1980ish",
+    1
+   ],
+   [
+    "1990-2010",
+    1
+   ],
+   [
+    "came out in 2015",
+    1
+   ],
+   [
+    "1990s",
+    1
+   ],
+   [
+    "1975-1995",
+    1
+   ],
+   [
+    "80s/90s",
+    1
+   ],
+   [
+    "80's",
+    1
+   ],
+   [
+    "80’s",
+    1
+   ],
+   [
+    "80s or 90s",
+    1
+   ],
+   [
+    "set in or filmed in the 1960s (preferably early 60s)",
+    1
+   ],
+   [
+    "in a medieval setting",
+    1
+   ],
+   [
+    "made in the last 20 years",
+    1
+   ],
+   [
+    "before 1950s old",
+    1
+   ],
+   [
+    "Old or modern, I don't mind",
+    1
+   ],
+   [
+    "the past 5 years",
+    1
+   ],
+   [
+    "1970 onward",
+    1
+   ],
+   [
+    "frond the 60s-80s",
+    1
+   ],
+   [
+    "2010-2020",
+    1
+   ],
+   [
+    "from the '70s",
+    1
+   ],
+   [
+    "from the past 30-40 years",
+    1
+   ],
+   [
+    "from the twentieth century",
+    1
+   ],
+   [
+    "after the year 2005",
+    1
+   ],
+   [
+    "from the last few years",
+    1
+   ],
+   [
+    "Late 60's, 70's",
+    1
+   ],
+   [
+    "post 1990",
+    1
+   ],
+   [
+    "the 70s",
+    1
+   ],
+   [
+    "old movies",
+    1
+   ],
+   [
+    "1910 to 1959",
+    1
+   ],
+   [
+    "Preferably older",
+    1
+   ],
+   [
+    "Preferably pre-20th century",
+    1
+   ],
+   [
+    "from the 90s",
+    1
+   ],
+   [
+    "before the mid 20th century",
+    1
+   ],
+   [
+    "made after the fall of the Soviet Union",
+    1
+   ],
+   [
+    "this century",
+    1
+   ],
+   [
+    "50s-70s",
+    1
+   ],
+   [
+    "old/vintage",
+    1
+   ],
+   [
+    "set in the late 70s and the 80s",
+    1
+   ],
+   [
+    "the Nineties",
+    1
+   ],
+   [
+    "from the last 20 years",
+    1
+   ]
+  ],
+  "constraints": [
+   [
+    "on Netflix",
+    3
+   ],
+   [
+    "Any genre is welcome",
+    3
+   ],
+   [
+    "Netflix",
+    2
+   ],
+   [
+    "Italian movies",
+    2
+   ],
+   [
+    "Can be any genre",
+    2
+   ],
+   [
+    "Black and white or in color is fine",
+    2
+   ],
+   [
+    "no spoilers",
+    1
+   ],
+   [
+    "films that aren't on this list",
+    1
+   ],
+   [
+    "Of any genre",
+    1
+   ],
+   [
+    "easily available on DVD or Blu-ray if possible",
+    1
+   ],
+   [
+    "fairly sensitive and naive when it comes to more mature content",
+    1
+   ],
+   [
+    "I'm okay with most genres",
+    1
+   ],
+   [
+    "the characters are actually intelligent",
+    1
+   ],
+   [
+    "long movies that are worth sitting through",
+    1
+   ],
+   [
+    "short movies",
+    1
+   ],
+   [
+    "many characters",
+    1
+   ],
+   [
+    "doesn’t get recommended all the time on this sub",
+    1
+   ],
+   [
+    "preferably non-Disney",
+    1
+   ],
+   [
+    "Availability on Netflix would be a plus but not a deal breaker!",
+    1
+   ],
+   [
+    "Preferably English speaking films",
+    1
+   ],
+   [
+    "<7 rating IMDB",
+    1
+   ],
+   [
+    "under 2 hours is appreciated",
+    1
+   ],
+   [
+    "even 'mild' rated R movies are allowed",
+    1
+   ],
+   [
+    "accidentally found on netflix",
+    1
+   ],
+   [
+    "it can be any type of genre",
+    1
+   ],
+   [
+    "can be streamed in the U.S.",
+    1
+   ],
+   [
+    "We don't want anything too obsence or graphic",
+    1
+   ],
+   [
+    "no nudity or super gorey violence",
+    1
+   ],
+   [
+    "easy to access on Netflix or amazon",
+    1
+   ],
+   [
+    "set during Halloween",
+    1
+   ],
+   [
+    "don’t really focus of serial killers or gruesome murders",
+    1
+   ],
+   [
+    "Any genres welcome",
+    1
+   ],
+   [
+    "without seeing the trailer first",
+    1
+   ],
+   [
+    "filmed in Chicago",
+    1
+   ],
+   [
+    "set in these countries",
+    1
+   ],
+   [
+    "Preferably produced by these countries",
+    1
+   ],
+   [
+    "aren't necessarily christmas movies",
+    1
+   ],
+   [
+    "stories are related to Thanksgiving day",
+    1
+   ],
+   [
+    "known to be Historically correct or at least almost Historically True",
+    1
+   ],
+   [
+    "based on true events",
+    1
+   ],
+   [
+    "have a link to Canada either through the story line, location or characters",
+    1
+   ],
+   [
+    "doesnt contain nudity or violence aka family friendly",
+    1
+   ],
+   [
+    "non American movies",
+    1
+   ],
+   [
+    "doesn’t have to be on Netflix",
+    1
+   ],
+   [
+    "I don't want movies about wine",
+    1
+   ],
+   [
+    "Preferably European, although American and Asian are also more than welcome",
+    1
+   ],
+   [
+    "Barring Nolan's movies or very well known movies",
+    1
+   ],
+   [
+    "Can be of any genre",
+    1
+   ],
+   [
+    "4:3 aspect ratio",
+    1
+   ],
+   [
+    "done in a realistic and not over-the-top manner",
+    1
+   ]
+  ]
+ },
+ "any_values_top50": {
+  "anchors_pos": [
+   [
+    "Interstellar",
+    51
+   ],
+   [
+    "Parasite",
+    43
+   ],
+   [
+    "Shutter Island",
+    35
+   ],
+   [
+    "Her",
+    33
+   ],
+   [
+    "Fight Club",
+    32
+   ],
+   [
+    "Midsommar",
+    30
+   ],
+   [
+    "Inception",
+    29
+   ],
+   [
+    "Arrival",
+    24
+   ],
+   [
+    "Se7en",
+    24
+   ],
+   [
+    "Knives Out",
+    24
+   ],
+   [
+    "Prisoners",
+    23
+   ],
+   [
+    "Taxi Driver",
+    23
+   ],
+   [
+    "Gone Girl",
+    23
+   ],
+   [
+    "Hereditary",
+    22
+   ],
+   [
+    "Lost in Translation",
+    22
+   ],
+   [
+    "The Thing",
+    22
+   ],
+   [
+    "Nightcrawler",
+    21
+   ],
+   [
+    "Ex Machina",
+    21
+   ],
+   [
+    "Superbad",
+    21
+   ],
+   [
+    "Pulp Fiction",
+    21
+   ],
+   [
+    "Zodiac",
+    20
+   ],
+   [
+    "John Wick",
+    19
+   ],
+   [
+    "Coherence",
+    19
+   ],
+   [
+    "Whiplash",
+    18
+   ],
+   [
+    "The Martian",
+    18
+   ],
+   [
+    "American Psycho",
+    18
+   ],
+   [
+    "1917",
+    18
+   ],
+   [
+    "The Shining",
+    16
+   ],
+   [
+    "Drive",
+    16
+   ],
+   [
+    "Blade Runner 2049",
+    16
+   ],
+   [
+    "About Time",
+    16
+   ],
+   [
+    "Forrest Gump",
+    16
+   ],
+   [
+    "Uncut Gems",
+    16
+   ],
+   [
+    "Goodfellas",
+    16
+   ],
+   [
+    "Black Swan",
+    15
+   ],
+   [
+    "Train to Busan",
+    15
+   ],
+   [
+    "Joker",
+    15
+   ],
+   [
+    "Baby Driver",
+    15
+   ],
+   [
+    "Memento",
+    15
+   ],
+   [
+    "Good Will Hunting",
+    15
+   ],
+   [
+    "Get Out",
+    15
+   ],
+   [
+    "Silence of the Lambs",
+    14
+   ],
+   [
+    "Spirited Away",
+    14
+   ],
+   [
+    "The Lighthouse",
+    14
+   ],
+   [
+    "Blade Runner",
+    14
+   ],
+   [
+    "Donnie Darko",
+    13
+   ],
+   [
+    "Sicario",
+    13
+   ],
+   [
+    "Eternal Sunshine of the Spotless Mind",
+    13
+   ],
+   [
+    "American Beauty",
+    12
+   ],
+   [
+    "Annihilation",
+    12
+   ]
+  ],
+  "anchors_neg": [
+   [
+    "Donnie Darko",
+    11
+   ],
+   [
+    "John Wick",
+    11
+   ],
+   [
+    "Inception",
+    10
+   ],
+   [
+    "Alien",
+    10
+   ],
+   [
+    "Predator",
+    10
+   ],
+   [
+    "Hereditary",
+    10
+   ],
+   [
+    "Shutter Island",
+    9
+   ],
+   [
+    "Nightcrawler",
+    9
+   ],
+   [
+    "Knives Out",
+    8
+   ],
+   [
+    "Train to Busan",
+    7
+   ],
+   [
+    "Zodiac",
+    7
+   ],
+   [
+    "Drive",
+    7
+   ],
+   [
+    "Midsommar",
+    6
+   ],
+   [
+    "Independence Day",
+    6
+   ],
+   [
+    "Interstellar",
+    6
+   ],
+   [
+    "Ex Machina",
+    6
+   ],
+   [
+    "Star Wars",
+    6
+   ],
+   [
+    "Gone Girl",
+    6
+   ],
+   [
+    "Spotlight",
+    6
+   ],
+   [
+    "District 9",
+    6
+   ],
+   [
+    "oldboy",
+    5
+   ],
+   [
+    "Seven Samurai",
+    5
+   ],
+   [
+    "Halloween",
+    5
+   ],
+   [
+    "Goodfellas",
+    5
+   ],
+   [
+    "Heat",
+    5
+   ],
+   [
+    "The Thing",
+    5
+   ],
+   [
+    "Matrix",
+    5
+   ],
+   [
+    "Blade Runner",
+    5
+   ],
+   [
+    "Prisoners",
+    5
+   ],
+   [
+    "A Serbian Film",
+    5
+   ],
+   [
+    "Moon",
+    5
+   ],
+   [
+    "The Mist",
+    5
+   ],
+   [
+    "The Shining",
+    4
+   ],
+   [
+    "The Conjuring",
+    4
+   ],
+   [
+    "Se7en",
+    4
+   ],
+   [
+    "Get Out",
+    4
+   ],
+   [
+    "interstellar",
+    4
+   ],
+   [
+    "Parasite",
+    4
+   ],
+   [
+    "Saw",
+    4
+   ],
+   [
+    "Arrival",
+    4
+   ],
+   [
+    "Life",
+    4
+   ],
+   [
+    "Die Hard",
+    4
+   ],
+   [
+    "Home Alone",
+    4
+   ],
+   [
+    "World War Z",
+    4
+   ],
+   [
+    "Dunkirk",
+    4
+   ],
+   [
+    "Avatar",
+    4
+   ],
+   [
+    "The Invitation",
+    4
+   ],
+   [
+    "Cabin in the Woods",
+    4
+   ],
+   [
+    "mad max",
+    4
+   ],
+   [
+    "Clue",
+    4
+   ]
+  ],
+  "genres_pos": [
+   [
+    "horror",
+    123
+   ],
+   [
+    "comedy",
+    72
+   ],
+   [
+    "horror movies",
+    64
+   ],
+   [
+    "thriller",
+    56
+   ],
+   [
+    "thrillers",
+    43
+   ],
+   [
+    "action",
+    41
+   ],
+   [
+    "sci-fi",
+    37
+   ],
+   [
+    "romance",
+    33
+   ],
+   [
+    "drama",
+    33
+   ],
+   [
+    "Horror",
+    27
+   ],
+   [
+    "comedies",
+    23
+   ],
+   [
+    "mystery",
+    23
+   ],
+   [
+    "fantasy",
+    20
+   ],
+   [
+    "action movies",
+    19
+   ],
+   [
+    "documentaries",
+    17
+   ],
+   [
+    "adventure",
+    16
+   ],
+   [
+    "sci fi",
+    15
+   ],
+   [
+    "horror movie",
+    14
+   ],
+   [
+    "psychological thrillers",
+    14
+   ],
+   [
+    "Sci-Fi",
+    14
+   ],
+   [
+    "coming of age",
+    14
+   ],
+   [
+    "Action",
+    13
+   ],
+   [
+    "psychological thriller",
+    13
+   ],
+   [
+    "Thriller",
+    13
+   ],
+   [
+    "dramas",
+    13
+   ],
+   [
+    "horror/thriller",
+    12
+   ],
+   [
+    "Documentaries",
+    12
+   ],
+   [
+    "documentary",
+    11
+   ],
+   [
+    "Comedy",
+    11
+   ],
+   [
+    "Crime",
+    11
+   ],
+   [
+    "Drama",
+    10
+   ],
+   [
+    "Sci-fi",
+    9
+   ],
+   [
+    "Christmas movies",
+    9
+   ],
+   [
+    "romantic movies",
+    8
+   ],
+   [
+    "Horror movies",
+    8
+   ],
+   [
+    "comedy movies",
+    8
+   ],
+   [
+    "war movies",
+    8
+   ],
+   [
+    "romantic",
+    8
+   ],
+   [
+    "supernatural",
+    8
+   ],
+   [
+    "crime",
+    7
+   ],
+   [
+    "dark comedy",
+    7
+   ],
+   [
+    "Thrillers",
+    7
+   ],
+   [
+    "scifi",
+    7
+   ],
+   [
+    "Horror Movies",
+    6
+   ],
+   [
+    "dystopian",
+    6
+   ],
+   [
+    "romcom",
+    6
+   ],
+   [
+    "suspense",
+    6
+   ],
+   [
+    "romantic movie",
+    6
+   ],
+   [
+    "romantic comedies",
+    6
+   ],
+   [
+    "feel good movies",
+    5
+   ]
+  ],
+  "genres_neg": [
+   [
+    "horror",
+    29
+   ],
+   [
+    "romance",
+    10
+   ],
+   [
+    "comedy",
+    9
+   ],
+   [
+    "comedies",
+    8
+   ],
+   [
+    "horror movies",
+    7
+   ],
+   [
+    "sci-fi",
+    6
+   ],
+   [
+    "horrors",
+    4
+   ],
+   [
+    "thrillers",
+    4
+   ],
+   [
+    "war",
+    4
+   ],
+   [
+    "musicals",
+    4
+   ],
+   [
+    "fantasy",
+    3
+   ],
+   [
+    "documentaries",
+    3
+   ],
+   [
+    "action",
+    3
+   ],
+   [
+    "war movies",
+    3
+   ],
+   [
+    "drama",
+    2
+   ],
+   [
+    "biopics",
+    2
+   ],
+   [
+    "torture porn",
+    2
+   ],
+   [
+    "horror films",
+    2
+   ],
+   [
+    "slasher",
+    2
+   ],
+   [
+    "Sci-Fi",
+    2
+   ],
+   [
+    "thriller",
+    2
+   ],
+   [
+    "romance movies",
+    2
+   ],
+   [
+    "rom coms",
+    2
+   ],
+   [
+    "anime",
+    2
+   ],
+   [
+    "animated",
+    2
+   ],
+   [
+    "horror/horrorish",
+    1
+   ],
+   [
+    "SciFI",
+    1
+   ],
+   [
+    "wire fu movies",
+    1
+   ],
+   [
+    "horror film",
+    1
+   ],
+   [
+    "Documentaries",
+    1
+   ],
+   [
+    "crime/spy thrillers",
+    1
+   ],
+   [
+    "Martial Arts",
+    1
+   ],
+   [
+    "heist movies",
+    1
+   ],
+   [
+    "hard sci-fi is not my thing",
+    1
+   ],
+   [
+    "not horror movies",
+    1
+   ],
+   [
+    "kids movies",
+    1
+   ],
+   [
+    "supernatural or slasher horror",
+    1
+   ],
+   [
+    "action or fantasy",
+    1
+   ],
+   [
+    "stupid teen movies",
+    1
+   ],
+   [
+    "horror types",
+    1
+   ],
+   [
+    "superheros",
+    1
+   ],
+   [
+    "farting comedies",
+    1
+   ],
+   [
+    "romantic aww",
+    1
+   ],
+   [
+    "the kitschy B movies of the 50s and 60s",
+    1
+   ],
+   [
+    "gore porn",
+    1
+   ],
+   [
+    "generic slasher flicks",
+    1
+   ],
+   [
+    "sports",
+    1
+   ],
+   [
+    "sci-fi/fantasy",
+    1
+   ],
+   [
+    "fantacy",
+    1
+   ],
+   [
+    "zombie movies",
+    1
+   ]
+  ],
+  "tone": [
+   [
+    "feel good",
+    13
+   ],
+   [
+    "fun",
+    12
+   ],
+   [
+    "Feel good",
+    9
+   ],
+   [
+    "wholesome",
+    8
+   ],
+   [
+    "emotional",
+    6
+   ],
+   [
+    "uplifting",
+    6
+   ],
+   [
+    "light hearted",
+    5
+   ],
+   [
+    "Dark",
+    4
+   ],
+   [
+    "disturbing",
+    4
+   ],
+   [
+    "feel-good",
+    4
+   ],
+   [
+    "Sad",
+    4
+   ],
+   [
+    "Feel-good",
+    4
+   ],
+   [
+    "cozy",
+    4
+   ],
+   [
+    "sad",
+    3
+   ],
+   [
+    "creepy",
+    3
+   ],
+   [
+    "thrilling",
+    3
+   ],
+   [
+    "Wholesome",
+    3
+   ],
+   [
+    "lighthearted",
+    3
+   ],
+   [
+    "weird",
+    3
+   ],
+   [
+    "funny",
+    3
+   ],
+   [
+    "nostalgic",
+    3
+   ],
+   [
+    "comfy",
+    3
+   ],
+   [
+    "really scary",
+    3
+   ],
+   [
+    "Lighthearted",
+    3
+   ],
+   [
+    "atmospheric",
+    3
+   ],
+   [
+    "hilarious",
+    3
+   ],
+   [
+    "calm",
+    3
+   ],
+   [
+    "funniest",
+    2
+   ],
+   [
+    "a similar vibe",
+    2
+   ],
+   [
+    "Mind Bending",
+    2
+   ],
+   [
+    "dark vibes",
+    2
+   ],
+   [
+    "tense",
+    2
+   ],
+   [
+    "thought provoking",
+    2
+   ],
+   [
+    "Mysterious",
+    2
+   ],
+   [
+    "Mind boggling",
+    2
+   ],
+   [
+    "chill",
+    2
+   ],
+   [
+    "fast paced",
+    2
+   ],
+   [
+    "slow burn",
+    2
+   ],
+   [
+    "mind blowing",
+    2
+   ],
+   [
+    "scary",
+    2
+   ],
+   [
+    "on the edge of your seat",
+    2
+   ],
+   [
+    "a sense of wonder",
+    2
+   ],
+   [
+    "comforting",
+    2
+   ],
+   [
+    "Disturbing",
+    2
+   ],
+   [
+    "suspenseful",
+    2
+   ],
+   [
+    "genuinely scary",
+    2
+   ],
+   [
+    "depressing movies",
+    2
+   ],
+   [
+    "offbeat",
+    2
+   ],
+   [
+    "bizarre",
+    2
+   ],
+   [
+    "Fun",
+    2
+   ]
+  ],
+  "era": [
+   [
+    "80s",
+    10
+   ],
+   [
+    "90s",
+    9
+   ],
+   [
+    "80s/90s",
+    6
+   ],
+   [
+    "newer",
+    4
+   ],
+   [
+    "80's",
+    4
+   ],
+   [
+    "80s or 90s",
+    3
+   ],
+   [
+    "70s",
+    3
+   ],
+   [
+    "90's",
+    3
+   ],
+   [
+    "late 90s/early 2000s",
+    3
+   ],
+   [
+    "from the last decade",
+    3
+   ],
+   [
+    "2000s",
+    3
+   ],
+   [
+    "from the 80s",
+    2
+   ],
+   [
+    "70's",
+    2
+   ],
+   [
+    "after 2000",
+    2
+   ],
+   [
+    "80’s",
+    2
+   ],
+   [
+    "Old",
+    2
+   ],
+   [
+    "1990s",
+    2
+   ],
+   [
+    "recent",
+    2
+   ],
+   [
+    "old",
+    2
+   ],
+   [
+    "Modern",
+    2
+   ],
+   [
+    "modern",
+    2
+   ],
+   [
+    "50s/60s",
+    2
+   ],
+   [
+    "post 1990",
+    2
+   ],
+   [
+    "old movies",
+    2
+   ],
+   [
+    "after 2005",
+    2
+   ],
+   [
+    "set in the 40s",
+    1
+   ],
+   [
+    "1970-present preferably nothing before",
+    1
+   ],
+   [
+    "90ies",
+    1
+   ],
+   [
+    "from 2000s-Present",
+    1
+   ],
+   [
+    "from the past 20 years or so",
+    1
+   ],
+   [
+    "I don't really enjoy movies earlier than the 90s",
+    1
+   ],
+   [
+    "either the fifties, sixties, seventies or the eighties",
+    1
+   ],
+   [
+    "from the past couple of years",
+    1
+   ],
+   [
+    "from the 1950s to the 1960s",
+    1
+   ],
+   [
+    "21st century",
+    1
+   ],
+   [
+    "Old or new",
+    1
+   ],
+   [
+    "17th-18th century",
+    1
+   ],
+   [
+    "late 70s/80s/early 90s",
+    1
+   ],
+   [
+    "within the past 5 years",
+    1
+   ],
+   [
+    "classic 80s",
+    1
+   ],
+   [
+    "60's and 70's",
+    1
+   ],
+   [
+    "The older, the better",
+    1
+   ],
+   [
+    "within the last decade",
+    1
+   ],
+   [
+    "old-ish films",
+    1
+   ],
+   [
+    "1970-2000",
+    1
+   ],
+   [
+    "Preferably released before 2000",
+    1
+   ],
+   [
+    "2000 era",
+    1
+   ],
+   [
+    "60s",
+    1
+   ],
+   [
+    "newer-ish (2000-now)",
+    1
+   ],
+   [
+    "a bit older",
+    1
+   ]
+  ],
+  "constraints": [
+   [
+    "on Netflix",
+    23
+   ],
+   [
+    "any genre",
+    5
+   ],
+   [
+    "Netflix",
+    4
+   ],
+   [
+    "Any genre",
+    4
+   ],
+   [
+    "Any genre is welcome",
+    4
+   ],
+   [
+    "Preferably on Netflix",
+    3
+   ],
+   [
+    "PG-13",
+    3
+   ],
+   [
+    "Any language is fine",
+    3
+   ],
+   [
+    "Any genre is fine",
+    3
+   ],
+   [
+    "no jump scares",
+    2
+   ],
+   [
+    "on netflix",
+    2
+   ],
+   [
+    "based on true events",
+    2
+   ],
+   [
+    "underrated",
+    2
+   ],
+   [
+    "Lesser known",
+    2
+   ],
+   [
+    "with happy endings",
+    2
+   ],
+   [
+    "foreign language films",
+    2
+   ],
+   [
+    "foreign movies",
+    2
+   ],
+   [
+    "3 movies",
+    2
+   ],
+   [
+    "black and white",
+    2
+   ],
+   [
+    "Any language",
+    2
+   ],
+   [
+    "Italian movies",
+    2
+   ],
+   [
+    "genre does not matter",
+    2
+   ],
+   [
+    "foreign films",
+    2
+   ],
+   [
+    "live action",
+    2
+   ],
+   [
+    "All genres welcome",
+    2
+   ],
+   [
+    "family friendly",
+    2
+   ],
+   [
+    "Any genre will do",
+    2
+   ],
+   [
+    "No spoilers",
+    2
+   ],
+   [
+    "lesser known",
+    2
+   ],
+   [
+    "All genres are welcome",
+    2
+   ],
+   [
+    "in any language",
+    2
+   ],
+   [
+    "Any genre or year",
+    2
+   ],
+   [
+    "french movies",
+    2
+   ],
+   [
+    "Can be from any country",
+    2
+   ],
+   [
+    "Can be black and white or in color",
+    2
+   ],
+   [
+    "Can be any genre",
+    2
+   ],
+   [
+    "Black and white or in color is fine",
+    2
+   ],
+   [
+    "without jumpscares",
+    2
+   ],
+   [
+    "My sister is 4 and my brother is 8",
+    1
+   ],
+   [
+    "it doesnt need to be a period drama",
+    1
+   ],
+   [
+    "no spoilers",
+    1
+   ],
+   [
+    "Any movie which is 7.5+/10 in your opinion",
+    1
+   ],
+   [
+    "aren't outright horror",
+    1
+   ],
+   [
+    "films that aren't on this list",
+    1
+   ],
+   [
+    "isn't anime",
+    1
+   ],
+   [
+    "ends happily",
+    1
+   ],
+   [
+    "I don’t really care about the genre",
+    1
+   ],
+   [
+    "Preferably produced by Netflix but doesn't have to be",
+    1
+   ],
+   [
+    "old and new",
+    1
+   ],
+   [
+    "I’m fine with unreleased ones too",
+    1
+   ]
+  ],
+  "context": [
+   [
+    "to watch tonight",
+    4
+   ],
+   [
+    "My wife and I",
+    4
+   ],
+   [
+    "My partner and I",
+    3
+   ],
+   [
+    "for date night",
+    2
+   ],
+   [
+    "while stoned",
+    2
+   ],
+   [
+    "while high",
+    2
+   ],
+   [
+    "while we're in quarantine",
+    2
+   ],
+   [
+    "with my wife",
+    2
+   ],
+   [
+    "to watch with my mom",
+    2
+   ],
+   [
+    "want a good movie to watch tonight",
+    2
+   ],
+   [
+    "My husband and I",
+    2
+   ],
+   [
+    "to watch with friends",
+    2
+   ],
+   [
+    "to watch with my girlfriend",
+    2
+   ],
+   [
+    "to watch with the family",
+    1
+   ],
+   [
+    "My girlfriend and I",
+    1
+   ],
+   [
+    "to Watch on Halloween",
+    1
+   ],
+   [
+    "Halloween movie marathon",
+    1
+   ],
+   [
+    "we all watch them together",
+    1
+   ],
+   [
+    "I like to listen to movie soundtracks whilst I write",
+    1
+   ],
+   [
+    "I teach a high school English class",
+    1
+   ],
+   [
+    "On rainy days like today",
+    1
+   ],
+   [
+    "I am in college and tasked with writing an essay",
+    1
+   ],
+   [
+    "Watch With my 13 year old sister",
+    1
+   ],
+   [
+    "After a nice toke",
+    1
+   ],
+   [
+    "my 666th movie seen",
+    1
+   ],
+   [
+    "tonight after work",
+    1
+   ],
+   [
+    "to be played at a wedding",
+    1
+   ],
+   [
+    "making our own drama-free movie club",
+    1
+   ],
+   [
+    "to watch stoned",
+    1
+   ],
+   [
+    "a good movie for us to watch together",
+    1
+   ],
+   [
+    "We will probably be high all the time and watch a shit ton of movies",
+    1
+   ],
+   [
+    "best to watch in the morning",
+    1
+   ],
+   [
+    "when I’m feeling down",
+    1
+   ],
+   [
+    "I teach a life-span developmental psychology class",
+    1
+   ],
+   [
+    "while I put on an album",
+    1
+   ],
+   [
+    "watch with my friends",
+    1
+   ],
+   [
+    "I got a young nephew who loves horror movies",
+    1
+   ],
+   [
+    "watch with my religious mom",
+    1
+   ],
+   [
+    "for a 3+ hour journey",
+    1
+   ],
+   [
+    "I've got some free time today",
+    1
+   ],
+   [
+    "my high school's first ever movie club",
+    1
+   ],
+   [
+    "while bored at home",
+    1
+   ],
+   [
+    "My friends and I love to watch them together",
+    1
+   ],
+   [
+    "I am hanging out with a friend later",
+    1
+   ],
+   [
+    "White couple",
+    1
+   ],
+   [
+    "I run a film club with some friends",
+    1
+   ],
+   [
+    "Girlfriend said we can watch 1 scary movie tonight for Friday the 13",
+    1
+   ],
+   [
+    "a movie night for new uni students",
+    1
+   ],
+   [
+    "My roommate and I are planning a movie night",
+    1
+   ],
+   [
+    "For Someone In Highschool To Watch",
+    1
+   ]
+  ],
+  "other": [
+   [
+    "hidden gems",
+    5
+   ],
+   [
+    "underrated",
+    4
+   ],
+   [
+    "Must watch movies",
+    3
+   ],
+   [
+    "Underrated",
+    3
+   ],
+   [
+    "good plot",
+    3
+   ],
+   [
+    "Quentin Tarantino",
+    3
+   ],
+   [
+    "Any genre",
+    3
+   ],
+   [
+    "any genre",
+    2
+   ],
+   [
+    "Female detective movies",
+    2
+   ],
+   [
+    "a really good soundtrack",
+    2
+   ],
+   [
+    "Can be any genre",
+    2
+   ],
+   [
+    "Any genre will do",
+    2
+   ],
+   [
+    "Must-see movies",
+    2
+   ],
+   [
+    "Any genre is fine",
+    2
+   ],
+   [
+    "amazing soundtracks",
+    2
+   ],
+   [
+    "Akira Kurosawa",
+    2
+   ],
+   [
+    "good cinematography",
+    2
+   ],
+   [
+    "mind-blowing twists",
+    2
+   ],
+   [
+    "Denis Villeneuve",
+    2
+   ],
+   [
+    "Martin Scorsese",
+    2
+   ],
+   [
+    "David Fincher",
+    2
+   ],
+   [
+    "a main character that gets stranded on an isolated lone environment and have to use their wits to try to survive",
+    2
+   ],
+   [
+    "Disney movies",
+    2
+   ],
+   [
+    "David Lynch",
+    2
+   ],
+   [
+    "mind bending movies",
+    2
+   ],
+   [
+    "Ive recently become a huge fan of Saorise Ronan",
+    1
+   ],
+   [
+    "start off as a particular genre but ends as something entirely different in a way that is surprising/unexpected",
+    1
+   ],
+   [
+    "game to movie adaptations",
+    1
+   ],
+   [
+    "Anything besides these genres is also good",
+    1
+   ],
+   [
+    "scenes where a spouse dies on front of/when with their partner for inspiration for an actor",
+    1
+   ],
+   [
+    "I'm a pretty big fan of the macabre",
+    1
+   ],
+   [
+    "about personal connection",
+    1
+   ],
+   [
+    "I just want to see more of their relationship",
+    1
+   ],
+   [
+    "Halloween Movies",
+    1
+   ],
+   [
+    "movies about mental conditions such as depression, schizophrenia, autism, Alzheimer, addictions",
+    1
+   ],
+   [
+    "especially like schizophrenia or autism",
+    1
+   ],
+   [
+    "personality disorders as well",
+    1
+   ],
+   [
+    "WW2 films from a German perspective that deal with the war and society",
+    1
+   ],
+   [
+    "Pile on the gore though",
+    1
+   ],
+   [
+    "gory as hell",
+    1
+   ],
+   [
+    "infinitely re-watchable, guilty pleasures",
+    1
+   ],
+   [
+    "there's not much by way of plot and the entire film is essentially two people just having a really interesting converstion",
+    1
+   ],
+   [
+    "European arthouse cinema",
+    1
+   ],
+   [
+    "gay male inclusion",
+    1
+   ],
+   [
+    "South or East Asian movies or series",
+    1
+   ],
+   [
+    "Chinese, Indian, Korean (et al) productions",
+    1
+   ],
+   [
+    "It's got your guns, fighting, and not too fancy cheesy dialogue",
+    1
+   ],
+   [
+    "Christmas or winter holiday movie",
+    1
+   ],
+   [
+    "represent the old times",
+    1
+   ],
+   [
+    "movie score/soundtrack best captures a sense of childlike wonder",
+    1
+   ]
+  ]
+ },
+ "distinct_values_per_slot": {
+  "anchors_pos": 5868,
+  "anchors_neg": 2550,
+  "genres_pos": 1170,
+  "genres_neg": 148,
+  "tone": 1237,
+  "era": 379,
+  "constraints": 1858,
+  "context": 594,
+  "other": 6353
+ },
+ "cooccurrence": {
+  "anchors_neg": {
+   "genres_pos": 371,
+   "constraints": 298,
+   "context": 117,
+   "anchors_pos": 423,
+   "tone": 134,
+   "other": 580,
+   "genres_neg": 55,
+   "era": 81
+  },
+  "anchors_pos": {
+   "anchors_neg": 423,
+   "genres_pos": 1112,
+   "tone": 691,
+   "constraints": 788,
+   "other": 2224,
+   "genres_neg": 114,
+   "context": 283,
+   "era": 253
+  },
+  "constraints": {
+   "anchors_neg": 298,
+   "genres_pos": 624,
+   "context": 276,
+   "anchors_pos": 788,
+   "tone": 310,
+   "other": 1014,
+   "genres_neg": 78,
+   "era": 150
+  },
+  "context": {
+   "anchors_neg": 117,
+   "genres_pos": 277,
+   "constraints": 276,
+   "anchors_pos": 283,
+   "genres_neg": 36,
+   "tone": 152,
+   "other": 447,
+   "era": 55
+  },
+  "era": {
+   "anchors_pos": 253,
+   "constraints": 150,
+   "other": 332,
+   "genres_pos": 217,
+   "context": 55,
+   "tone": 101,
+   "anchors_neg": 81,
+   "genres_neg": 32
+  },
+  "genres_neg": {
+   "anchors_pos": 114,
+   "tone": 51,
+   "constraints": 78,
+   "context": 36,
+   "other": 147,
+   "genres_pos": 103,
+   "anchors_neg": 55,
+   "era": 32
+  },
+  "genres_pos": {
+   "anchors_neg": 371,
+   "constraints": 624,
+   "context": 277,
+   "anchors_pos": 1112,
+   "tone": 395,
+   "other": 1261,
+   "genres_neg": 103,
+   "era": 217
+  },
+  "other": {
+   "anchors_pos": 2224,
+   "anchors_neg": 580,
+   "genres_pos": 1261,
+   "tone": 629,
+   "constraints": 1014,
+   "genres_neg": 147,
+   "context": 447,
+   "era": 332
+  },
+  "tone": {
+   "anchors_pos": 691,
+   "anchors_neg": 134,
+   "genres_pos": 395,
+   "constraints": 310,
+   "other": 629,
+   "genres_neg": 51,
+   "context": 152,
+   "era": 101
+  }
+ }
+}
