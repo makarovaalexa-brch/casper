@@ -1,0 +1,794 @@
+{
+ "analysis": "m1_stage_a2prime_cluster_anchors",
+ "split": "validation",
+ "test_touched": false,
+ "min_staters": 50,
+ "coverage_target": 0.8,
+ "canonical_snap_full": 0.15686538118354684,
+ "by_k": {
+  "4": [
+   {
+    "cluster": 0,
+    "size": 1920,
+    "prior": 0.192,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 558,
+     "name": "lone hero",
+     "coverage": 0.5786,
+     "purity_fit": 0.3776,
+     "purity_heldout": 0.3887,
+     "margin_heldout": 0.1653,
+     "staters": 2900
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 558,
+     "name": "lone hero",
+     "coverage": 0.5786,
+     "purity_fit": 0.3776,
+     "purity_heldout": 0.3887,
+     "margin_heldout": 0.1653,
+     "staters": 2900
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 547,
+     "name": "lawyer",
+     "coverage": 0.1359,
+     "purity_fit": 0.4142,
+     "purity_heldout": 0.429,
+     "margin_heldout": 0.1613,
+     "staters": 619
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 547,
+      "name": "lawyer",
+      "coverage": 0.1359,
+      "purity_fit": 0.4142,
+      "purity_heldout": 0.429,
+      "margin_heldout": 0.1613,
+      "staters": 619
+     }
+    ],
+    "set_coverage": 0.1359,
+    "set_state_spread": {
+     "n_anchors": 1,
+     "mean_pairwise": 0.0,
+     "max_pairwise": 0.0,
+     "anchor_norm_mean": 5.5982866287231445
+    }
+   },
+   {
+    "cluster": 1,
+    "size": 2929,
+    "prior": 0.2929,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 996,
+     "name": "visuals",
+     "coverage": 0.6224,
+     "purity_fit": 0.8057,
+     "purity_heldout": 0.8231,
+     "margin_heldout": 0.6709,
+     "staters": 2239
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 1002,
+     "name": "watch the credits",
+     "coverage": 0.2598,
+     "purity_fit": 0.8575,
+     "purity_heldout": 0.833,
+     "margin_heldout": 0.6705,
+     "staters": 900
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 704,
+     "name": "pg-13",
+     "coverage": 0.7863,
+     "purity_fit": 0.5895,
+     "purity_heldout": 0.5841,
+     "margin_heldout": 0.3113,
+     "staters": 3925
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 704,
+      "name": "pg-13",
+      "coverage": 0.7863,
+      "purity_fit": 0.5895,
+      "purity_heldout": 0.5841,
+      "margin_heldout": 0.3113,
+      "staters": 3925
+     },
+     {
+      "channel": "concept",
+      "id": 712,
+      "name": "plot",
+      "coverage": 0.7159,
+      "purity_fit": 0.7333,
+      "purity_heldout": 0.7219,
+      "margin_heldout": 0.5125,
+      "staters": 2882
+     }
+    ],
+    "set_coverage": 0.8491,
+    "set_state_spread": {
+     "n_anchors": 2,
+     "mean_pairwise": 2.3802647590637207,
+     "max_pairwise": 2.3802647590637207,
+     "anchor_norm_mean": 6.180856704711914
+    }
+   },
+   {
+    "cluster": 2,
+    "size": 1991,
+    "prior": 0.1991,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 11,
+     "name": "70mm",
+     "coverage": 0.2707,
+     "purity_fit": 0.4314,
+     "purity_heldout": 0.4653,
+     "margin_heldout": 0.1929,
+     "staters": 1203
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 8,
+     "name": "1980s",
+     "coverage": 0.2783,
+     "purity_fit": 0.4617,
+     "purity_heldout": 0.4884,
+     "margin_heldout": 0.1374,
+     "staters": 1165
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 12,
+     "name": "80s",
+     "coverage": 0.342,
+     "purity_fit": 0.4224,
+     "purity_heldout": 0.4577,
+     "margin_heldout": 0.0995,
+     "staters": 1545
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 12,
+      "name": "80s",
+      "coverage": 0.342,
+      "purity_fit": 0.4224,
+      "purity_heldout": 0.4577,
+      "margin_heldout": 0.0995,
+      "staters": 1545
+     },
+     {
+      "channel": "concept",
+      "id": 8,
+      "name": "1980s",
+      "coverage": 0.2783,
+      "purity_fit": 0.4617,
+      "purity_heldout": 0.4884,
+      "margin_heldout": 0.1374,
+      "staters": 1165
+     },
+     {
+      "channel": "concept",
+      "id": 11,
+      "name": "70mm",
+      "coverage": 0.2707,
+      "purity_fit": 0.4314,
+      "purity_heldout": 0.4653,
+      "margin_heldout": 0.1929,
+      "staters": 1203
+     },
+     {
+      "channel": "concept",
+      "id": 27,
+      "name": "afi 100",
+      "coverage": 0.1934,
+      "purity_fit": 0.4593,
+      "purity_heldout": 0.4584,
+      "margin_heldout": 0.1562,
+      "staters": 839
+     },
+     {
+      "channel": "concept",
+      "id": 124,
+      "name": "black and white",
+      "coverage": 0.1818,
+      "purity_fit": 0.4061,
+      "purity_heldout": 0.39,
+      "margin_heldout": -0.0311,
+      "staters": 908
+     },
+     {
+      "channel": "concept",
+      "id": 569,
+      "name": "mad scientist",
+      "coverage": 0.1743,
+      "purity_fit": 0.4,
+      "purity_heldout": 0.3833,
+      "margin_heldout": 0.031,
+      "staters": 885
+     },
+     {
+      "channel": "concept",
+      "id": 97,
+      "name": "based on a play",
+      "coverage": 0.1642,
+      "purity_fit": 0.4853,
+      "purity_heldout": 0.5127,
+      "margin_heldout": 0.193,
+      "staters": 656
+     },
+     {
+      "channel": "concept",
+      "id": 24,
+      "name": "adultery",
+      "coverage": 0.1547,
+      "purity_fit": 0.4629,
+      "purity_heldout": 0.4345,
+      "margin_heldout": 0.0923,
+      "staters": 686
+     }
+    ],
+    "set_coverage": 0.6695,
+    "set_state_spread": {
+     "n_anchors": 8,
+     "mean_pairwise": 3.1567139625549316,
+     "max_pairwise": 4.84961462020874,
+     "anchor_norm_mean": 5.086121559143066
+    }
+   },
+   {
+    "cluster": 3,
+    "size": 3160,
+    "prior": 0.316,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 461,
+     "name": "hilarious",
+     "coverage": 0.2699,
+     "purity_fit": 0.4214,
+     "purity_heldout": 0.4379,
+     "margin_heldout": 0.2092,
+     "staters": 1984
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 249,
+     "name": "cult film",
+     "coverage": 0.2161,
+     "purity_fit": 0.4401,
+     "purity_heldout": 0.4074,
+     "margin_heldout": 0.0778,
+     "staters": 1612
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 863,
+     "name": "spanish",
+     "coverage": 0.0241,
+     "purity_fit": 0.6429,
+     "purity_heldout": 0.5741,
+     "margin_heldout": 0.2407,
+     "staters": 124
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 863,
+      "name": "spanish",
+      "coverage": 0.0241,
+      "purity_fit": 0.6429,
+      "purity_heldout": 0.5741,
+      "margin_heldout": 0.2407,
+      "staters": 124
+     }
+    ],
+    "set_coverage": 0.0241,
+    "set_state_spread": {
+     "n_anchors": 1,
+     "mean_pairwise": 0.0,
+     "max_pairwise": 0.0,
+     "anchor_norm_mean": 5.183748245239258
+    }
+   }
+  ],
+  "6": [
+   {
+    "cluster": 0,
+    "size": 1917,
+    "prior": 0.1917,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 558,
+     "name": "lone hero",
+     "coverage": 0.579,
+     "purity_fit": 0.3769,
+     "purity_heldout": 0.3887,
+     "margin_heldout": 0.2199,
+     "staters": 2900
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 558,
+     "name": "lone hero",
+     "coverage": 0.579,
+     "purity_fit": 0.3769,
+     "purity_heldout": 0.3887,
+     "margin_heldout": 0.2199,
+     "staters": 2900
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 547,
+     "name": "lawyer",
+     "coverage": 0.1356,
+     "purity_fit": 0.411,
+     "purity_heldout": 0.429,
+     "margin_heldout": 0.171,
+     "staters": 619
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 547,
+      "name": "lawyer",
+      "coverage": 0.1356,
+      "purity_fit": 0.411,
+      "purity_heldout": 0.429,
+      "margin_heldout": 0.171,
+      "staters": 619
+     }
+    ],
+    "set_coverage": 0.1356,
+    "set_state_spread": {
+     "n_anchors": 1,
+     "mean_pairwise": 0.0,
+     "max_pairwise": 0.0,
+     "anchor_norm_mean": 5.5982866287231445
+    }
+   },
+   {
+    "cluster": 1,
+    "size": 2212,
+    "prior": 0.2212,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 996,
+     "name": "visuals",
+     "coverage": 0.7165,
+     "purity_fit": 0.7038,
+     "purity_heldout": 0.7122,
+     "margin_heldout": 0.5756,
+     "staters": 2239
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 10,
+     "name": "3d",
+     "coverage": 0.2233,
+     "purity_fit": 0.8306,
+     "purity_heldout": 0.8385,
+     "margin_heldout": 0.7113,
+     "staters": 592
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 704,
+     "name": "pg-13",
+     "coverage": 0.9046,
+     "purity_fit": 0.5179,
+     "purity_heldout": 0.5018,
+     "margin_heldout": 0.3047,
+     "staters": 3925
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 704,
+      "name": "pg-13",
+      "coverage": 0.9046,
+      "purity_fit": 0.5179,
+      "purity_heldout": 0.5018,
+      "margin_heldout": 0.3047,
+      "staters": 3925
+     }
+    ],
+    "set_coverage": 0.9046,
+    "set_state_spread": {
+     "n_anchors": 1,
+     "mean_pairwise": 0.0,
+     "max_pairwise": 0.0,
+     "anchor_norm_mean": 6.267691612243652
+    }
+   },
+   {
+    "cluster": 2,
+    "size": 1834,
+    "prior": 0.1834,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 11,
+     "name": "70mm",
+     "coverage": 0.2764,
+     "purity_fit": 0.4101,
+     "purity_heldout": 0.4332,
+     "margin_heldout": 0.2589,
+     "staters": 1203
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 27,
+     "name": "afi 100",
+     "coverage": 0.2017,
+     "purity_fit": 0.448,
+     "purity_heldout": 0.4332,
+     "margin_heldout": 0.1738,
+     "staters": 839
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 12,
+     "name": "80s",
+     "coverage": 0.3408,
+     "purity_fit": 0.3914,
+     "purity_heldout": 0.4167,
+     "margin_heldout": 0.1841,
+     "staters": 1545
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 12,
+      "name": "80s",
+      "coverage": 0.3408,
+      "purity_fit": 0.3914,
+      "purity_heldout": 0.4167,
+      "margin_heldout": 0.1841,
+      "staters": 1545
+     },
+     {
+      "channel": "concept",
+      "id": 29,
+      "name": "afi 100 (movie quotes)",
+      "coverage": 0.2895,
+      "purity_fit": 0.3775,
+      "purity_heldout": 0.3826,
+      "margin_heldout": 0.1522,
+      "staters": 1397
+     },
+     {
+      "channel": "concept",
+      "id": 11,
+      "name": "70mm",
+      "coverage": 0.2764,
+      "purity_fit": 0.4101,
+      "purity_heldout": 0.4332,
+      "margin_heldout": 0.2589,
+      "staters": 1203
+     },
+     {
+      "channel": "concept",
+      "id": 27,
+      "name": "afi 100",
+      "coverage": 0.2017,
+      "purity_fit": 0.448,
+      "purity_heldout": 0.4332,
+      "margin_heldout": 0.1738,
+      "staters": 839
+     },
+     {
+      "channel": "concept",
+      "id": 124,
+      "name": "black and white",
+      "coverage": 0.1941,
+      "purity_fit": 0.4041,
+      "purity_heldout": 0.378,
+      "margin_heldout": -0.0167,
+      "staters": 908
+     },
+     {
+      "channel": "concept",
+      "id": 155,
+      "name": "camp",
+      "coverage": 0.1728,
+      "purity_fit": 0.4566,
+      "purity_heldout": 0.4477,
+      "margin_heldout": 0.2442,
+      "staters": 701
+     },
+     {
+      "channel": "concept",
+      "id": 569,
+      "name": "mad scientist",
+      "coverage": 0.1712,
+      "purity_fit": 0.3677,
+      "purity_heldout": 0.3405,
+      "margin_heldout": 0.0905,
+      "staters": 885
+     },
+     {
+      "channel": "concept",
+      "id": 97,
+      "name": "based on a play",
+      "coverage": 0.1679,
+      "purity_fit": 0.4676,
+      "purity_heldout": 0.4715,
+      "margin_heldout": 0.2722,
+      "staters": 656
+     }
+    ],
+    "set_coverage": 0.6985,
+    "set_state_spread": {
+     "n_anchors": 8,
+     "mean_pairwise": 3.0291709899902344,
+     "max_pairwise": 4.371809959411621,
+     "anchor_norm_mean": 5.113310813903809
+    }
+   },
+   {
+    "cluster": 3,
+    "size": 1395,
+    "prior": 0.1395,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 888,
+     "name": "stupid as hell",
+     "coverage": 0.2731,
+     "purity_fit": 0.2007,
+     "purity_heldout": 0.2372,
+     "margin_heldout": 0.0058,
+     "staters": 1742
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 877,
+     "name": "stereotypes",
+     "coverage": 0.347,
+     "purity_fit": 0.2394,
+     "purity_heldout": 0.237,
+     "margin_heldout": -0.0777,
+     "staters": 2032
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 229,
+     "name": "corny",
+     "coverage": 0.038,
+     "purity_fit": 0.2887,
+     "purity_heldout": 0.2907,
+     "margin_heldout": -0.1977,
+     "staters": 183
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 229,
+      "name": "corny",
+      "coverage": 0.038,
+      "purity_fit": 0.2887,
+      "purity_heldout": 0.2907,
+      "margin_heldout": -0.1977,
+      "staters": 183
+     }
+    ],
+    "set_coverage": 0.038,
+    "set_state_spread": {
+     "n_anchors": 1,
+     "mean_pairwise": 0.0,
+     "max_pairwise": 0.0,
+     "anchor_norm_mean": 5.143762588500977
+    }
+   },
+   {
+    "cluster": 4,
+    "size": 1174,
+    "prior": 0.1174,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 68,
+     "name": "art house",
+     "coverage": 0.2845,
+     "purity_fit": 0.5443,
+     "purity_heldout": 0.5978,
+     "margin_heldout": 0.4649,
+     "staters": 587
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 587,
+     "name": "meditative",
+     "coverage": 0.2692,
+     "purity_fit": 0.5652,
+     "purity_heldout": 0.5857,
+     "margin_heldout": 0.4183,
+     "staters": 550
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 854,
+     "name": "social commentary",
+     "coverage": 0.6099,
+     "purity_fit": 0.3471,
+     "purity_heldout": 0.3593,
+     "margin_heldout": -0.0455,
+     "staters": 2028
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 854,
+      "name": "social commentary",
+      "coverage": 0.6099,
+      "purity_fit": 0.3471,
+      "purity_heldout": 0.3593,
+      "margin_heldout": -0.0455,
+      "staters": 2028
+     },
+     {
+      "channel": "concept",
+      "id": 243,
+      "name": "criterion",
+      "coverage": 0.5928,
+      "purity_fit": 0.4383,
+      "purity_heldout": 0.4553,
+      "margin_heldout": 0.1322,
+      "staters": 1559
+     },
+     {
+      "channel": "concept",
+      "id": 317,
+      "name": "enigmatic",
+      "coverage": 0.592,
+      "purity_fit": 0.4524,
+      "purity_heldout": 0.4665,
+      "margin_heldout": 0.2373,
+      "staters": 1513
+     },
+     {
+      "channel": "concept",
+      "id": 631,
+      "name": "narrated",
+      "coverage": 0.5911,
+      "purity_fit": 0.3864,
+      "purity_heldout": 0.3864,
+      "margin_heldout": 0.0847,
+      "staters": 1796
+     },
+     {
+      "channel": "concept",
+      "id": 882,
+      "name": "storytelling",
+      "coverage": 0.5733,
+      "purity_fit": 0.2624,
+      "purity_heldout": 0.2658,
+      "margin_heldout": -0.2228,
+      "staters": 2548
+     },
+     {
+      "channel": "concept",
+      "id": 1006,
+      "name": "weird",
+      "coverage": 0.5511,
+      "purity_fit": 0.3557,
+      "purity_heldout": 0.3845,
+      "margin_heldout": 0.069,
+      "staters": 1751
+     }
+    ],
+    "set_coverage": 0.8092,
+    "set_state_spread": {
+     "n_anchors": 6,
+     "mean_pairwise": 2.1162023544311523,
+     "max_pairwise": 3.519951820373535,
+     "anchor_norm_mean": 5.3927483558654785
+    }
+   },
+   {
+    "cluster": 5,
+    "size": 1468,
+    "prior": 0.1468,
+    "best_anchor_F1": {
+     "channel": "concept",
+     "id": 461,
+     "name": "hilarious",
+     "coverage": 0.3202,
+     "purity_fit": 0.23,
+     "purity_heldout": 0.2434,
+     "margin_heldout": 0.0411,
+     "staters": 1984
+    },
+    "highest_purity": {
+     "channel": "concept",
+     "id": 301,
+     "name": "dumb but funny",
+     "coverage": 0.2398,
+     "purity_fit": 0.2443,
+     "purity_heldout": 0.2574,
+     "margin_heldout": 0.0375,
+     "staters": 1401
+    },
+    "highest_coverage": {
+     "channel": "concept",
+     "id": 872,
+     "name": "sports",
+     "coverage": 0.1008,
+     "purity_fit": 0.3038,
+     "purity_heldout": 0.2868,
+     "margin_heldout": 0.0189,
+     "staters": 502
+    },
+    "set": [
+     {
+      "channel": "concept",
+      "id": 872,
+      "name": "sports",
+      "coverage": 0.1008,
+      "purity_fit": 0.3038,
+      "purity_heldout": 0.2868,
+      "margin_heldout": 0.0189,
+      "staters": 502
+     },
+     {
+      "channel": "concept",
+      "id": 783,
+      "name": "rock and roll",
+      "coverage": 0.0899,
+      "purity_fit": 0.3149,
+      "purity_heldout": 0.3866,
+      "margin_heldout": 0.0722,
+      "staters": 375
+     },
+     {
+      "channel": "concept",
+      "id": 257,
+      "name": "dancing",
+      "coverage": 0.0695,
+      "purity_fit": 0.3013,
+      "purity_heldout": 0.3354,
+      "margin_heldout": 0.0244,
+      "staters": 320
+     },
+     {
+      "channel": "concept",
+      "id": 437,
+      "name": "gross-out",
+      "coverage": 0.0688,
+      "purity_fit": 0.3533,
+      "purity_heldout": 0.3019,
+      "margin_heldout": 0.0314,
+      "staters": 309
+     },
+     {
+      "channel": "concept",
+      "id": 668,
+      "name": "oil",
+      "coverage": 0.0511,
+      "purity_fit": 0.3543,
+      "purity_heldout": 0.2344,
+      "margin_heldout": -0.0156,
+      "staters": 255
+     }
+    ],
+    "set_coverage": 0.2684,
+    "set_state_spread": {
+     "n_anchors": 5,
+     "mean_pairwise": 3.797092914581299,
+     "max_pairwise": 4.889302730560303,
+     "anchor_norm_mean": 5.145419120788574
+    }
+   }
+  ]
+ }
+}

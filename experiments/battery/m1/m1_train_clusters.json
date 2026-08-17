@@ -1,0 +1,441 @@
+{
+ "analysis": "m1_a5_train_taste_clusters",
+ "fitted_on": "train (140,768)",
+ "ndcg_on_train": "never computed -- D.6b",
+ "test_touched": false,
+ "start_k": 40,
+ "final_k": 4,
+ "min_size": 1200,
+ "gate": {
+  "lift_min": 2.0,
+  "margin_prior_mult": 0.5,
+  "note": "scale-aware; an absolute margin is not comparable across k"
+ },
+ "min_coverage": 0.25,
+ "min_staters": 200,
+ "reddit_vocab_tags": 346,
+ "merge_history": [
+  {
+   "k_before": 40,
+   "merged": 30,
+   "into": 20,
+   "n": 761,
+   "margin": -0.0673
+  },
+  {
+   "k_before": 39,
+   "merged": 19,
+   "into": 30,
+   "n": 1558,
+   "margin": -0.0551
+  },
+  {
+   "k_before": 38,
+   "merged": 26,
+   "into": 29,
+   "n": 1044,
+   "margin": -0.0492
+  },
+  {
+   "k_before": 37,
+   "merged": 26,
+   "into": 30,
+   "n": 2650,
+   "margin": -0.0302
+  },
+  {
+   "k_before": 36,
+   "merged": 26,
+   "into": 10,
+   "n": 1781,
+   "margin": -0.0351
+  },
+  {
+   "k_before": 35,
+   "merged": 17,
+   "into": 11,
+   "n": 2574,
+   "margin": -0.0332
+  },
+  {
+   "k_before": 34,
+   "merged": 20,
+   "into": 14,
+   "n": 1192,
+   "margin": -0.0317
+  },
+  {
+   "k_before": 33,
+   "merged": 20,
+   "into": 26,
+   "n": 1614,
+   "margin": -0.0302
+  },
+  {
+   "k_before": 32,
+   "merged": 20,
+   "into": 27,
+   "n": 3663,
+   "margin": -0.0291
+  },
+  {
+   "k_before": 31,
+   "merged": 13,
+   "into": 6,
+   "n": 2953,
+   "margin": -0.0267
+  },
+  {
+   "k_before": 30,
+   "merged": 16,
+   "into": 2,
+   "n": 3096,
+   "margin": -0.0347
+  },
+  {
+   "k_before": 29,
+   "merged": 20,
+   "into": 11,
+   "n": 5189,
+   "margin": -0.0302
+  },
+  {
+   "k_before": 28,
+   "merged": 8,
+   "into": 24,
+   "n": 3207,
+   "margin": -0.0278
+  },
+  {
+   "k_before": 27,
+   "merged": 13,
+   "into": 20,
+   "n": 2578,
+   "margin": -0.0423
+  },
+  {
+   "k_before": 26,
+   "merged": 4,
+   "into": 23,
+   "n": 2399,
+   "margin": -0.05
+  },
+  {
+   "k_before": 25,
+   "merged": 13,
+   "into": 8,
+   "n": 2996,
+   "margin": -0.0537
+  },
+  {
+   "k_before": 24,
+   "merged": 15,
+   "into": 2,
+   "n": 3207,
+   "margin": -0.0426
+  },
+  {
+   "k_before": 23,
+   "merged": 11,
+   "into": 20,
+   "n": 4126,
+   "margin": -0.027
+  },
+  {
+   "k_before": 22,
+   "merged": 20,
+   "into": 2,
+   "n": 3980,
+   "margin": -0.0242
+  },
+  {
+   "k_before": 21,
+   "merged": 6,
+   "into": 17,
+   "n": 5110,
+   "margin": -0.0344
+  },
+  {
+   "k_before": 20,
+   "merged": 19,
+   "into": 17,
+   "n": 3628,
+   "margin": -0.0338
+  },
+  {
+   "k_before": 19,
+   "merged": 13,
+   "into": 18,
+   "n": 2595,
+   "margin": -0.013
+  },
+  {
+   "k_before": 18,
+   "merged": 3,
+   "into": 2,
+   "n": 3633,
+   "margin": -0.033
+  },
+  {
+   "k_before": 17,
+   "merged": 9,
+   "into": 15,
+   "n": 3885,
+   "margin": -0.0257
+  },
+  {
+   "k_before": 16,
+   "merged": 5,
+   "into": 8,
+   "n": 4485,
+   "margin": -0.0319
+  },
+  {
+   "k_before": 15,
+   "merged": 10,
+   "into": 14,
+   "n": 9435,
+   "margin": -0.0091
+  },
+  {
+   "k_before": 14,
+   "merged": 5,
+   "into": 13,
+   "n": 7667,
+   "margin": -0.0339
+  },
+  {
+   "k_before": 13,
+   "merged": 7,
+   "into": 3,
+   "n": 2458,
+   "margin": -0.0294
+  },
+  {
+   "k_before": 12,
+   "merged": 5,
+   "into": 10,
+   "n": 10651,
+   "margin": -0.0247
+  },
+  {
+   "k_before": 11,
+   "merged": 2,
+   "into": 9,
+   "n": 17536,
+   "margin": -0.0119
+  },
+  {
+   "k_before": 10,
+   "merged": 0,
+   "into": 7,
+   "n": 10552,
+   "margin": -0.0266
+  },
+  {
+   "k_before": 9,
+   "merged": 2,
+   "into": 0,
+   "n": 7432,
+   "margin": -0.0247
+  },
+  {
+   "k_before": 8,
+   "merged": 4,
+   "into": 3,
+   "n": 5013,
+   "margin": -0.0263
+  },
+  {
+   "k_before": 7,
+   "merged": 2,
+   "into": 3,
+   "n": 10482,
+   "margin": 0.0076
+  },
+  {
+   "k_before": 6,
+   "merged": 3,
+   "into": 5,
+   "n": 27202,
+   "margin": 0.1412
+  },
+  {
+   "k_before": 5,
+   "merged": 3,
+   "into": 1,
+   "n": 42278,
+   "margin": 0.1079
+  }
+ ],
+ "clusters": [
+  {
+   "cluster": 0,
+   "size": 13351,
+   "prior": 0.0948,
+   "top_films_distinctive": [
+    "Proposal, The (2009)",
+    "Now You See Me (2013)",
+    "Harry Potter and the Half-Blood Prince (2009)",
+    "Giver, The (2014)",
+    "How to Train Your Dragon 2 (2014)",
+    "Other Woman, The (2014)",
+    "Harry Potter and the Deathly Hallows: Part 1 (2010)",
+    "Frozen (2013)"
+   ],
+   "top_films_raw": [
+    "Inception (2010)",
+    "Matrix, The (1999)",
+    "Forrest Gump (1994)",
+    "Up (2009)",
+    "Shawshank Redemption, The (1994)"
+   ],
+   "anchor_full": {
+    "concept": 137,
+    "coverage": 0.4269,
+    "purity_heldout": 0.3523,
+    "margin": 0.1227,
+    "staters": 16172,
+    "name": "book was better"
+   },
+   "anchor_reddit": {
+    "concept": 138,
+    "coverage": 0.4459,
+    "purity_heldout": 0.289,
+    "margin": 0.0271,
+    "staters": 20561,
+    "name": "books"
+   },
+   "drift": {
+    "margin_lost": 0.0956,
+    "same_concept": false
+   }
+  },
+  {
+   "cluster": 1,
+   "size": 48602,
+   "prior": 0.3453,
+   "top_films_distinctive": [
+    "Outfoxed: Rupert Murdoch's War on Journalism (2004)",
+    "Ziggy Stardust and the Spiders from Mars (1973)",
+    "Slaughterhouse-Five (1972)",
+    "Manufacturing Consent: Noam Chomsky and the Media (1992)",
+    "U.S. vs. John Lennon, The (2006)",
+    "Control Room (2004)",
+    "Fog of War: Eleven Lessons from the Life of Robert S. McNamara, The (2003)",
+    "Hard Word, The (2002)"
+   ],
+   "top_films_raw": [
+    "Shawshank Redemption, The (1994)",
+    "Matrix, The (1999)",
+    "Fight Club (1999)",
+    "Pulp Fiction (1994)",
+    "American Beauty (1999)"
+   ],
+   "anchor_full": {
+    "concept": 460,
+    "coverage": 0.2646,
+    "purity_heldout": 0.4323,
+    "margin": 0.15,
+    "staters": 29880,
+    "name": "highly quotable"
+   },
+   "anchor_reddit": {
+    "concept": 425,
+    "coverage": 0.3354,
+    "purity_heldout": 0.3802,
+    "margin": 0.0811,
+    "staters": 42987,
+    "name": "great"
+   },
+   "drift": {
+    "margin_lost": 0.0689,
+    "same_concept": false
+   }
+  },
+  {
+   "cluster": 2,
+   "size": 23094,
+   "prior": 0.1641,
+   "top_films_distinctive": [
+    "Wolf of Wall Street, The (2013)",
+    "Ex Machina (2015)",
+    "Interstellar (2014)",
+    "Big Short, The (2015)",
+    "The Revenant (2015)",
+    "Gone Girl (2014)",
+    "The Martian (2015)",
+    "Mad Max: Fury Road (2015)"
+   ],
+   "top_films_raw": [
+    "Inception (2010)",
+    "Matrix, The (1999)",
+    "Fight Club (1999)",
+    "Shawshank Redemption, The (1994)",
+    "Dark Knight, The (2008)"
+   ],
+   "anchor_full": {
+    "concept": 855,
+    "coverage": 0.4068,
+    "purity_heldout": 0.531,
+    "margin": 0.2656,
+    "staters": 17570,
+    "name": "solitude"
+   },
+   "anchor_reddit": {
+    "concept": 714,
+    "coverage": 0.6302,
+    "purity_heldout": 0.532,
+    "margin": 0.215,
+    "staters": 27267,
+    "name": "plot twist"
+   },
+   "drift": {
+    "margin_lost": 0.0506,
+    "same_concept": false
+   }
+  },
+  {
+   "cluster": 3,
+   "size": 55721,
+   "prior": 0.3958,
+   "top_films_distinctive": [
+    "Cry, the Beloved Country (1995)",
+    "Once Upon a Time... When We Were Colored (1995)",
+    "Jefferson in Paris (1995)",
+    "Beyond Rangoon (1995)",
+    "Family Thing, A (1996)",
+    "How to Make an American Quilt (1995)",
+    "Mute Witness (1994)",
+    "Live Nude Girls (1995)"
+   ],
+   "top_films_raw": [
+    "Silence of the Lambs, The (1991)",
+    "Toy Story (1995)",
+    "Shawshank Redemption, The (1994)",
+    "Braveheart (1995)",
+    "Forrest Gump (1994)"
+   ],
+   "anchor_full": {
+    "concept": 178,
+    "coverage": 0.2999,
+    "purity_heldout": 0.5508,
+    "margin": 0.3152,
+    "staters": 30217,
+    "name": "chick flick"
+   },
+   "anchor_reddit": {
+    "concept": 634,
+    "coverage": 0.436,
+    "purity_heldout": 0.5186,
+    "margin": 0.2981,
+    "staters": 46762,
+    "name": "natural disaster"
+   },
+   "drift": {
+    "margin_lost": 0.0171,
+    "same_concept": false
+   }
+  }
+ ]
+}

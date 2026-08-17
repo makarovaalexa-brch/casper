@@ -1,0 +1,189 @@
+{
+ "analysis": "m1_a3_forest_starting_points",
+ "split": "validation",
+ "test_touched": false,
+ "start_k": 12,
+ "final_k": 4,
+ "min_size": 1200,
+ "min_margin": 0.1,
+ "min_coverage": 0.25,
+ "min_staters": 50,
+ "reddit_vocab_size": 34,
+ "merge_history": [
+  {
+   "k_before": 12,
+   "merged": 7,
+   "into": 0,
+   "n": 608,
+   "margin": -0.0651
+  },
+  {
+   "k_before": 11,
+   "merged": 5,
+   "into": 7,
+   "n": 856,
+   "margin": 0.0141
+  },
+  {
+   "k_before": 10,
+   "merged": 5,
+   "into": 3,
+   "n": 1026,
+   "margin": -0.0105
+  },
+  {
+   "k_before": 9,
+   "merged": 2,
+   "into": 6,
+   "n": 548,
+   "margin": 0.0171
+  },
+  {
+   "k_before": 8,
+   "merged": 7,
+   "into": 5,
+   "n": 662,
+   "margin": -0.0032
+  },
+  {
+   "k_before": 7,
+   "merged": 4,
+   "into": 2,
+   "n": 1566,
+   "margin": 0.0274
+  },
+  {
+   "k_before": 6,
+   "merged": 3,
+   "into": 1,
+   "n": 670,
+   "margin": 0.1952
+  },
+  {
+   "k_before": 5,
+   "merged": 4,
+   "into": 1,
+   "n": 1079,
+   "margin": 0.3668
+  }
+ ],
+ "canonical_snap_full": 0.15686538118354684,
+ "clusters": [
+  {
+   "cluster": 0,
+   "size": 1886,
+   "prior": 0.1886,
+   "anchor_full_vocab": {
+    "concept": 334,
+    "coverage": 0.4152,
+    "purity_heldout": 0.3766,
+    "margin": 0.1355,
+    "staters": 2096,
+    "name": "explosions"
+   },
+   "anchor_reddit_vocab": {
+    "concept": 784,
+    "coverage": 0.2656,
+    "purity_heldout": 0.2463,
+    "margin": -0.1138,
+    "staters": 2001,
+    "name": "romance"
+   },
+   "drift": {
+    "margin_lost": 0.2493,
+    "purity_lost": 0.1303,
+    "state_distance": 4.6056,
+    "anchor_norm": 6.2161,
+    "stater_jaccard": 0.1578,
+    "same_concept": false
+   }
+  },
+  {
+   "cluster": 1,
+   "size": 2957,
+   "prior": 0.2957,
+   "anchor_full_vocab": {
+    "concept": 855,
+    "coverage": 0.3443,
+    "purity_heldout": 0.8061,
+    "margin": 0.6891,
+    "staters": 1261,
+    "name": "solitude"
+   },
+   "anchor_reddit_vocab": {
+    "concept": 930,
+    "coverage": 0.4992,
+    "purity_heldout": 0.7709,
+    "margin": 0.5931,
+    "staters": 1911,
+    "name": "thought-provoking"
+   },
+   "drift": {
+    "margin_lost": 0.096,
+    "purity_lost": 0.0352,
+    "state_distance": 2.0,
+    "anchor_norm": 5.605,
+    "stater_jaccard": 0.4679,
+    "same_concept": false
+   }
+  },
+  {
+   "cluster": 2,
+   "size": 3189,
+   "prior": 0.3189,
+   "anchor_full_vocab": {
+    "concept": 461,
+    "coverage": 0.286,
+    "purity_heldout": 0.4751,
+    "margin": 0.259,
+    "staters": 1984,
+    "name": "hilarious"
+   },
+   "anchor_reddit_vocab": {
+    "concept": 461,
+    "coverage": 0.286,
+    "purity_heldout": 0.4751,
+    "margin": 0.259,
+    "staters": 1984,
+    "name": "hilarious"
+   },
+   "drift": {
+    "margin_lost": 0.0,
+    "purity_lost": 0.0,
+    "state_distance": 0.0,
+    "anchor_norm": 5.773,
+    "stater_jaccard": 1.0,
+    "same_concept": true
+   }
+  },
+  {
+   "cluster": 3,
+   "size": 1968,
+   "prior": 0.1968,
+   "anchor_full_vocab": {
+    "concept": 11,
+    "coverage": 0.2734,
+    "purity_heldout": 0.4602,
+    "margin": 0.1709,
+    "staters": 1203,
+    "name": "70mm"
+   },
+   "anchor_reddit_vocab": {
+    "concept": 553,
+    "coverage": 0.2561,
+    "purity_heldout": 0.2792,
+    "margin": -0.0938,
+    "staters": 1880,
+    "name": "light"
+   },
+   "drift": {
+    "margin_lost": 0.2647,
+    "purity_lost": 0.181,
+    "state_distance": 3.4426,
+    "anchor_norm": 5.1828,
+    "stater_jaccard": 0.2723,
+    "same_concept": false
+   }
+  }
+ ]
+}

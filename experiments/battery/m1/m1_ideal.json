@@ -1,0 +1,105 @@
+{
+ "analysis": "m1_stage_a2_ideal_openers",
+ "split": "validation",
+ "test_touched": false,
+ "min_staters": 50,
+ "arm_type": "ORACLE ceiling -- the fact is chosen knowing the user's cluster",
+ "canonical_snap_full": 0.15686538118354684,
+ "by_k": {
+  "4": {
+   "cluster_sizes": [
+    1920,
+    2929,
+    1991,
+    3160
+   ],
+   "users_with_fact": 10000,
+   "mean_purity": 0.756071324576237,
+   "mean_prior": 0.26215121999999996,
+   "mean_lift": 0.4939201045762371,
+   "concept_share": 0.0302,
+   "distinct_items": 1069,
+   "distinct_concepts": 75
+  },
+  "6": {
+   "cluster_sizes": [
+    1917,
+    2212,
+    1834,
+    1395,
+    1174,
+    1468
+   ],
+   "users_with_fact": 10000,
+   "mean_purity": 0.6288810426762813,
+   "mean_prior": 0.17410714,
+   "mean_lift": 0.4547739026762814,
+   "concept_share": 0.0657,
+   "distinct_items": 1104,
+   "distinct_concepts": 116
+  },
+  "8": {
+   "cluster_sizes": [
+    1857,
+    1296,
+    1054,
+    1348,
+    904,
+    1175,
+    1424,
+    942
+   ],
+   "users_with_fact": 10000,
+   "mean_purity": 0.537879355135973,
+   "mean_prior": 0.13169066000000001,
+   "mean_lift": 0.40618869513597294,
+   "concept_share": 0.0678,
+   "distinct_items": 1149,
+   "distinct_concepts": 129
+  },
+  "10": {
+   "cluster_sizes": [
+    1274,
+    1121,
+    992,
+    649,
+    1103,
+    1084,
+    1368,
+    642,
+    809,
+    958
+   ],
+   "users_with_fact": 10000,
+   "mean_purity": 0.4937525675520703,
+   "mean_prior": 0.10532480000000001,
+   "mean_lift": 0.38842776755207026,
+   "concept_share": 0.0745,
+   "distinct_items": 1171,
+   "distinct_concepts": 143
+  },
+  "12": {
+   "cluster_sizes": [
+    1278,
+    1208,
+    548,
+    597,
+    670,
+    856,
+    1026,
+    608,
+    710,
+    758,
+    1079,
+    662
+   ],
+   "users_with_fact": 10000,
+   "mean_purity": 0.4571911766716682,
+   "mean_prior": 0.09034386,
+   "mean_lift": 0.36684731667166826,
+   "concept_share": 0.0693,
+   "distinct_items": 1230,
+   "distinct_concepts": 148
+  }
+ }
+}

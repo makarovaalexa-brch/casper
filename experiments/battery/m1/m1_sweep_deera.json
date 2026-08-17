@@ -1,0 +1,335 @@
+{
+ "analysis": "m1_sweep",
+ "prefix": "deera_",
+ "fitted_on": "train (140,768)",
+ "ndcg_on_train": "never computed -- D.6b",
+ "test_touched": false,
+ "gate": {
+  "lift_min": 2.0,
+  "margin_prior_mult": 0.5,
+  "min_cov": 0.25,
+  "min_staters": 200
+ },
+ "rows": [
+  {
+   "k": 6,
+   "n_pass": 3,
+   "users_covered": 72151,
+   "share_covered": 0.5126,
+   "min_size": 19722,
+   "median_size": 23210
+  },
+  {
+   "k": 8,
+   "n_pass": 5,
+   "users_covered": 80952,
+   "share_covered": 0.5751,
+   "min_size": 9984,
+   "median_size": 16465
+  },
+  {
+   "k": 12,
+   "n_pass": 7,
+   "users_covered": 97280,
+   "share_covered": 0.6911,
+   "min_size": 5197,
+   "median_size": 10620
+  },
+  {
+   "k": 16,
+   "n_pass": 9,
+   "users_covered": 94350,
+   "share_covered": 0.6703,
+   "min_size": 4636,
+   "median_size": 7462
+  },
+  {
+   "k": 20,
+   "n_pass": 10,
+   "users_covered": 73272,
+   "share_covered": 0.5205,
+   "min_size": 4325,
+   "median_size": 5781
+  },
+  {
+   "k": 30,
+   "n_pass": 12,
+   "users_covered": 71389,
+   "share_covered": 0.5071,
+   "min_size": 1697,
+   "median_size": 4213
+  },
+  {
+   "k": 40,
+   "n_pass": 15,
+   "users_covered": 66746,
+   "share_covered": 0.4742,
+   "min_size": 1081,
+   "median_size": 2965
+  }
+ ],
+ "detail": {
+  "20": [
+   {
+    "cluster": 3,
+    "size": 6882,
+    "prior": 0.0489,
+    "anchor": {
+     "concept": 65,
+     "name": "arms dealer",
+     "coverage": 0.2528,
+     "purity": 0.3396,
+     "margin": 0.1561
+    },
+    "anchor_reddit": {
+     "concept": 581,
+     "name": "marvel",
+     "coverage": 0.4538,
+     "purity": 0.2907,
+     "margin": 0.0998
+    },
+    "films": [
+     "Iron Man 3 (2013)",
+     "Avengers: Age of Ultron (2015)",
+     "Captain America: The First Avenger (2011)",
+     "Captain America: The Winter Soldier (2014)",
+     "Iron Man 2 (2010)"
+    ]
+   },
+   {
+    "cluster": 4,
+    "size": 5825,
+    "prior": 0.0414,
+    "anchor": {
+     "concept": 417,
+     "name": "gore",
+     "coverage": 0.3612,
+     "purity": 0.2026,
+     "margin": 0.0723
+    },
+    "anchor_reddit": {
+     "concept": 417,
+     "name": "gore",
+     "coverage": 0.3612,
+     "purity": 0.2026,
+     "margin": 0.0723
+    },
+    "films": [
+     "Dredd (2012)",
+     "World's End, The (2013)",
+     "Watchmen (2009)",
+     "The Hateful Eight (2015)",
+     "True Grit (2010)"
+    ]
+   },
+   {
+    "cluster": 5,
+    "size": 7475,
+    "prior": 0.0531,
+    "anchor": {
+     "concept": 275,
+     "name": "dialogue driven",
+     "coverage": 0.3421,
+     "purity": 0.2383,
+     "margin": 0.1199
+    },
+    "anchor_reddit": {
+     "concept": 275,
+     "name": "dialogue driven",
+     "coverage": 0.3421,
+     "purity": 0.2383,
+     "margin": 0.1199
+    },
+    "films": [
+     "Birdman: Or (The Unexpected Virtue of Ignorance) (2014)",
+     "Whiplash (2014)",
+     "Grand Budapest Hotel, The (2014)",
+     "Dallas Buyers Club (2013)",
+     "Nightcrawler (2014)"
+    ]
+   },
+   {
+    "cluster": 6,
+    "size": 4945,
+    "prior": 0.0351,
+    "anchor": {
+     "concept": 922,
+     "name": "teenagers",
+     "coverage": 0.4099,
+     "purity": 0.1784,
+     "margin": 0.067
+    },
+    "anchor_reddit": {
+     "concept": 805,
+     "name": "school",
+     "coverage": 0.4047,
+     "purity": 0.1666,
+     "margin": 0.0542
+    },
+    "films": [
+     "Aquamarine (2006)",
+     "Princess Diaries 2: Royal Engagement, The (2004)",
+     "Monte Carlo (2011)",
+     "Burlesque (2010)",
+     "Frozen (2013)"
+    ]
+   },
+   {
+    "cluster": 7,
+    "size": 4576,
+    "prior": 0.0325,
+    "anchor": {
+     "concept": 68,
+     "name": "art house",
+     "coverage": 0.618,
+     "purity": 0.3406,
+     "margin": 0.21
+    },
+    "anchor_reddit": {
+     "concept": 68,
+     "name": "art house",
+     "coverage": 0.618,
+     "purity": 0.3406,
+     "margin": 0.21
+    },
+    "films": [
+     "Northerners, The (De noorderlingen) (1992)",
+     "Pervert's Guide to Cinema, The (2006)",
+     "Field in England, A (2013)",
+     "White Ribbon, The (Das wei\u00dfe Band) (2009)",
+     "Holy Motors (2012)"
+    ]
+   },
+   {
+    "cluster": 8,
+    "size": 8523,
+    "prior": 0.0605,
+    "anchor": {
+     "concept": 4,
+     "name": "1930s",
+     "coverage": 0.2756,
+     "purity": 0.2881,
+     "margin": 0.1983
+    },
+    "anchor_reddit": {
+     "concept": 124,
+     "name": "black and white",
+     "coverage": 0.4254,
+     "purity": 0.2911,
+     "margin": 0.1469
+    },
+    "films": [
+     "Sugar Town (1999)",
+     "Dear Jesse (1997)",
+     "Limbo (1999)",
+     "Dreamlife of Angels, The (Vie r\u00eav\u00e9e des anges, La) (1998)",
+     "Wonderland (1997)"
+    ]
+   },
+   {
+    "cluster": 10,
+    "size": 9743,
+    "prior": 0.0692,
+    "anchor": {
+     "concept": 503,
+     "name": "inspiring",
+     "coverage": 0.7436,
+     "purity": 0.2966,
+     "margin": 0.1677
+    },
+    "anchor_reddit": {
+     "concept": 503,
+     "name": "inspiring",
+     "coverage": 0.7436,
+     "purity": 0.2966,
+     "margin": 0.1677
+    },
+    "films": [
+     "Dark Knight Rises, The (2012)",
+     "Interstellar (2014)",
+     "Wolf of Wall Street, The (2013)",
+     "Django Unchained (2012)",
+     "The Imitation Game (2014)"
+    ]
+   },
+   {
+    "cluster": 13,
+    "size": 9016,
+    "prior": 0.064,
+    "anchor": {
+     "concept": 11,
+     "name": "70mm",
+     "coverage": 0.3767,
+     "purity": 0.1982,
+     "margin": 0.078
+    },
+    "anchor_reddit": {
+     "concept": 12,
+     "name": "80s",
+     "coverage": 0.4835,
+     "purity": 0.204,
+     "margin": 0.045
+    },
+    "films": [
+     "Firestorm (1998)",
+     "One Tough Cop (1998)",
+     "Corruptor, The (1999)",
+     "Mod Squad, The (1999)",
+     "Wing Commander (1999)"
+    ]
+   },
+   {
+    "cluster": 14,
+    "size": 6884,
+    "prior": 0.0489,
+    "anchor": {
+     "concept": 871,
+     "name": "spoof",
+     "coverage": 0.2622,
+     "purity": 0.1323,
+     "margin": 0.0351
+    },
+    "anchor_reddit": {
+     "concept": 871,
+     "name": "spoof",
+     "coverage": 0.2622,
+     "purity": 0.1323,
+     "margin": 0.0351
+    },
+    "films": [
+     "Hard Word, The (2002)",
+     "Blood of Heroes, The (Salute of the Jugger, The) (1989)",
+     "Adventures of Ford Fairlane, The (1990)",
+     "Tarzan, the Ape Man (1981)",
+     "Returner (Ritaanaa) (2002)"
+    ]
+   },
+   {
+    "cluster": 15,
+    "size": 9403,
+    "prior": 0.0668,
+    "anchor": {
+     "concept": 923,
+     "name": "teens",
+     "coverage": 0.2798,
+     "purity": 0.1533,
+     "margin": 0.0474
+    },
+    "anchor_reddit": {
+     "concept": 416,
+     "name": "goofy",
+     "coverage": 0.431,
+     "purity": 0.1157,
+     "margin": 0.0047
+    },
+    "films": [
+     "20 Dates (1998)",
+     "What's Cooking? (2000)",
+     "Dog Park (1998)",
+     "Tic Code, The (1998)",
+     "Whipped (2000)"
+    ]
+   }
+  ]
+ }
+}
