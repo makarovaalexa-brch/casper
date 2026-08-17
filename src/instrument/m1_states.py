@@ -83,19 +83,25 @@ def load_slots():
     return out
 
 
-def concept_name_index(ctx):
-    """Map a genome tag string -> concept id in the certified bank, if that concept exists."""
-    names = None
-    for attr in ("concept_names", "cnames", "keyterms", "concept_labels"):
-        if hasattr(ctx, attr):
-            names = getattr(ctx, attr)
-            break
-    if names is None:
-        return {}
+def concept_name_index(E):
+    """genome tag string -> concept id in the certified bank.
+
+    The concept vocabulary IS the genome tag vocabulary: `E["sh"]["tags"]` holds tagIds in the order
+    the concept channel is indexed. Same construction `forest_policy.py` uses -- read from there
+    rather than re-derived, so the two files cannot drift.
+    """
+    name = {}
+    with open(TAGS, newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            name[int(r["tagId"])] = r["tag"].strip().lower()
+    tags = list(E["sh"]["tags"])
+    assert len(tags) == int(E["C"]), (
+        f"concept vocabulary is {len(tags)} tags but the env indexes {E['C']} concepts")
     idx = {}
-    for cid, nm in enumerate(names):
-        s = str(nm).strip().lower()
+    for cid, t in enumerate(tags):
+        s = name.get(int(t)) if not isinstance(t, str) else t
         if s:
+            s = str(s).lower()
             idx.setdefault(s, cid)
             idx.setdefault(s.replace("-", " "), cid)
     return idx
@@ -161,7 +167,8 @@ def main() -> None:
     # ------------------------------------------------------------------- REALISTIC: request states
     reqs = load_requests()
     slots = load_slots()
-    cidx = concept_name_index(ctx)
+    cidx = concept_name_index(E)
+    assert len(cidx) > 0, "concept-name index is EMPTY -- the tag vocabulary did not load"
     log(f"[reddit] {len(reqs)} ruler threads; slot records for {len(slots)}; "
         f"concept-name index carries {len(cidx)} surface forms")
 
@@ -207,6 +214,33 @@ def main() -> None:
              np.full(len(inner), LIKE_LEVEL, np.int64)) for _, inner, _ in foldable]
     Z_req_items = fold_items_frozen(ctx.enc, seqs, batch=500)
     log(f"[reddit] item-fold done: {tuple(Z_req_items.shape)}")
+
+    # ---- concept fold for the STATED genre/tone -------------------------------------------------
+    # A stated preference is a maximally confident answer. There is no per-user V row for a Reddit
+    # poster, so the asserted value is the cohort's own maximum observed positive concept value --
+    # taken from the data rather than invented as 1.0. Refusal flags are 0: the poster volunteered it,
+    # so by construction they could answer it.
+    Vpos = np.asarray(E["V"])[np.asarray(E["V"]) > 0]
+    ASSERT_VAL = float(np.max(Vpos)) if Vpos.size else 1.0
+    log(f"[decl] concept values observed in cohort: max positive {ASSERT_VAL:.4f}; "
+        f"stated preferences asserted at that value, refusal flag 0")
+
+    net = E["net"]
+    cids_list, cvals_list, crefs_list = [], [], []
+    for _, _, cs in foldable:
+        ids, vals = net.canonical_order(list(cs), [ASSERT_VAL] * len(cs))
+        cids_list.append([int(c) for c in ids])
+        cvals_list.append([float(v) for v in vals])
+        crefs_list.append([0.0] * len(ids))
+    with torch.no_grad():
+        Z_req = net(Z_req_items, cids_list, cvals_list,
+                    crefs_list if getattr(net, "use_refusal", False) else None)
+    n_with_conc = sum(1 for c in cids_list if c)
+    drift = float(torch.norm(Z_req - Z_req_items, dim=1).numpy()[
+        [i for i, c in enumerate(cids_list) if c]].mean()) if n_with_conc else 0.0
+    log(f"[reddit] concept fold applied to {n_with_conc} requests; mean latent shift {drift:.4f}")
+    assert n_with_conc == 0 or drift > 0, "concept fold changed nothing -- the fold is not wired"
+    Z_req_items = Z_req
 
     np.savez_compressed(
         os.path.join(OUT_DIR, "z_requests.npz"),
