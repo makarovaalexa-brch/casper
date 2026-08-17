@@ -1951,6 +1951,50 @@ loses. **The action space was not the explanation.** Conditioning on a volunteer
 pay against a cold interview that may ask about concepts. `docs/results/L2_FOREST.md` carries the
 table; T2 is NOT started on the back of this.
 
+# PART L.4 — WHY THE GENRE TEACHER LOST: a FIXED LIST vs an ADAPTIVE TREE (2026-08-18)
+
+> **AUTHOR ASKED:** *"how can it be if we literally select best questions for them, and they turn out
+> to be not the best?"*
+
+**The comparison was between two different KINDS of object, and that resolves the paradox.**
+
+- **T1/T1' is a FIXED ORDER** — the same 15 questions, in the same sequence, for every member of the
+  group, whatever they answer along the way. **Zero branch points.**
+- **The tree is ADAPTIVE** — it branches on every answer. **Fifteen decision points**, each
+  conditioned on everything heard so far.
+
+So L2's cells did not measure *category-conditioning vs none*. They measured **one-off conditioning at
+the start followed by a script, versus no category conditioning but fifteen rounds of adaptation** —
+and within-interview adaptation wins by −0.017 to −0.048.
+
+**★ The confirming evidence is in the genre arm's own construction:** its published **+0.018 val /
++0.010 test was measured against the GLOBAL STATIC ORDER** (`global_comparator` / `global_sequence` in
+`groupgreedy_genre15_TEST_policyB.json`), **not against the tree**. Against a fixed list, per-category
+lists genuinely help. Against an adaptive tree, they lose. **Both results are correct and answer
+different questions** — the chapter must name the comparator on every such figure, or the two read as
+contradictory.
+
+**Licensed:** *knowing someone's stated category up front is worth less than being able to react to
+their next fifteen answers; a per-cohort fixed order buys the first by giving up the second.*
+**NOT licensed:** "the tree is optimal", or "category conditioning does not pay" without the qualifier
+**"as a fixed list"**.
+
+## The fair fight, and its price
+
+**Grow a TREE per stated category, not a list** — then the arm has both the conditioning and the
+within-interview adaptation, and the comparison is like-for-like. **Nothing measured so far rules this
+out; L2 tested lists only.**
+
+- **Cost ~10 h per tree** (the cold tree's measured build) ⇒ ~40 h for four categories. Drama, Action
+  and Comedy hold 1,000+ FIT users each; **Adventure's 421 is already below the design law's own 500
+  floor** and would not qualify.
+- **Prior, honestly poor:** the cold tree's root split already separates people usefully, so a category
+  tree may rediscover much of the same structure; and all 17 genre groups shrank validation→test, so
+  part of T1's loss is transfer rather than structure.
+- **Verdict: designed, NOT recommended at 40 h against that prior — but it is the only remaining way to
+  test the author's intuition fairly, and until it runs, "category conditioning does not pay" stands
+  for FIXED LISTS ONLY.**
+
 
 ## Cross-references
 
