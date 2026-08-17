@@ -46,7 +46,14 @@ MOVIES = os.path.join(_ROOT, "data", "movielens", "movies.csv")
 SEED = 98765
 MIN_STATERS = 200          # train-side: 200 of 140,768 is far more permissive than val's 50 of 10,000
 MIN_COV = 0.25
-MIN_MARGIN = 0.10
+# SCALE-AWARE GATE. An absolute margin threshold is NOT comparable across k: a concept's staters
+# spread over more clusters as k grows, so every share -- and every margin -- falls mechanically.
+# Applying one number across all k systematically penalises fine granularity and drives the merge
+# toward coarse blobs, which is an artifact rather than a finding. The gate is therefore expressed
+# in PRIOR units: an anchor must reach LIFT_MIN times the cluster's own prior share, and its margin
+# must be at least MARGIN_PRIOR_MULT priors wide. Both are dimensionless in k.
+LIFT_MIN = 2.0
+MARGIN_PRIOR_MULT = 0.5
 
 
 def log(m: str) -> None:
@@ -156,8 +163,14 @@ def main() -> None:
         sizes = np.bincount(lab, minlength=k)
         cov, sh, margin, ok = anchor_scan(lab, k)
         anch = [best_anchor(cov, sh, margin, ok, i) for i in range(k)]
-        weak = [i for i in range(k)
-                if sizes[i] < a.min_size or anch[i] is None or anch[i]["margin"] < MIN_MARGIN]
+        priors = sizes / sizes.sum()
+        def _ok(i):
+            if sizes[i] < a.min_size or anch[i] is None:
+                return False
+            p = float(priors[i])
+            return (anch[i]["purity_heldout"] >= LIFT_MIN * p
+                    and anch[i]["margin"] >= MARGIN_PRIOR_MULT * p)
+        weak = [i for i in range(k) if not _ok(i)]
         log(f"[merge] k={k} min_size={sizes.min()} weak={len(weak)}")
         if not weak or k <= 4:
             break
@@ -190,6 +203,7 @@ def main() -> None:
         mt = {int(r["movieId"]): r["title"] for r in csv.DictReader(fh)}
     iname = {i: mt.get(m, str(m)) for i, m in enumerate(sids)}
     Wd = np.asarray(E["ctx"].Wd); bd = np.asarray(E["ctx"].bd)
+    sc_global = Z.mean(0) @ Wd.T + bd            # the average user's scores == the popularity axis
 
     cov, sh, margin, ok = anchor_scan(lab, k)
     red_mask = np.asarray([int(c) in red_ids for c in fact_ids], bool)
@@ -201,9 +215,14 @@ def main() -> None:
         a_red = best_anchor(cov, sh, margin, ok, i, vocab_mask=red_mask)
         cen = Z[mem].mean(0)
         sc = cen @ Wd.T + bd
-        top = np.argsort(-sc)[:8]
+        # DISTINCTIVE films, not popular ones: raw top-N returns the globally popular list for every
+        # cluster (Shawshank appeared in 4 of 6 on the first pass). Subtract the global centroid's
+        # own scores so what is reported is what this cluster likes MORE THAN AVERAGE.
+        top = np.argsort(-(sc - sc_global))[:8]
+        top_raw = np.argsort(-sc)[:5]
         rec = {"cluster": i, "size": int(sizes[i]), "prior": round(float(sizes[i]) / n, 4),
-               "top_films": [iname.get(int(j), str(j)) for j in top],
+               "top_films_distinctive": [iname.get(int(j), str(j)) for j in top],
+               "top_films_raw": [iname.get(int(j), str(j)) for j in top_raw],
                "anchor_full": (dict(a_all, name=cname[a_all["concept"]])
                                if a_all and a_all["margin"] > 0 else None),
                "anchor_reddit": (dict(a_red, name=cname[a_red["concept"]])
@@ -217,12 +236,15 @@ def main() -> None:
         log(f"  [c{i} n={sizes[i]}] full={af['name']!r} m={af['margin']} " if af else
             f"  [c{i} n={sizes[i]}] full=NO ANCHOR ")
         log(f"        reddit={ar['name']!r} m={ar['margin']}" if ar else "        reddit=NO ANCHOR")
-        log(f"        films: {', '.join(rec['top_films'][:5])}")
+        log(f"        distinctive: {', '.join(rec['top_films_distinctive'][:5])}")
+        log(f"        (popular  : {', '.join(rec['top_films_raw'][:3])})")
 
     res = {"analysis": "m1_a5_train_taste_clusters", "fitted_on": "train (140,768)",
            "ndcg_on_train": "never computed -- D.6b", "test_touched": False,
            "start_k": a.start_k, "final_k": k, "min_size": a.min_size,
-           "min_margin": MIN_MARGIN, "min_coverage": MIN_COV, "min_staters": MIN_STATERS,
+           "gate": {"lift_min": LIFT_MIN, "margin_prior_mult": MARGIN_PRIOR_MULT,
+                    "note": "scale-aware; an absolute margin is not comparable across k"},
+           "min_coverage": MIN_COV, "min_staters": MIN_STATERS,
            "reddit_vocab_tags": len(red_ids), "merge_history": history, "clusters": out}
     with open(os.path.join(M1, "m1_train_clusters.json"), "w", encoding="utf-8") as fh:
         json.dump(res, fh, indent=1, ensure_ascii=False)
