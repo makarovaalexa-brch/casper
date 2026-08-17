@@ -1,6 +1,6 @@
 # L1 — THE AS-IF-ASKED ENCODING TEST
 
-> **STATUS: RUNNING (2026-08-17). Every number below is marked PENDING until its cell lands.**
+> **STATUS: COMPLETE (2026-08-17), all five cells, all chain checks held.**
 > Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` Part L.1. Harness `src/instrument/policy_asif.py`
 > (commit `c79b6b8`). Artifacts `experiments/battery/asif/`. **Validation only; `test_touched=false`.**
 
@@ -102,10 +102,57 @@ covers is a state where the policy should be defaulting to a teacher's behaviour
 
 ## Cell 3 — arbitrary items (R's own draw, k ∈ {2, 4, 8})
 
-**PENDING**
+R's own popularity-weighted draw from each user's rated fold-in items, seed 98765, re-encoded as
+history tokens. Most of these items are **outside the 500-item question pool** (1,068 of 1,567
+distinct items at k=2; 2,143 of 2,643 at k=8), so their descriptors are built with the training
+pool's frozen standardisation — the same out-of-vocabulary path the scalability demonstration uses.
+About 63% of volunteered items are likes.
+
+| k | arm | full@10 | tail@10 | re-asks | distinct interviews | follows the tree |
+|---|---|---|---|---|---|---|
+| 2 | `none` | 0.21274 | 0.08775 | 0 | 1 | — |
+| 2 | `tree_budget` | 0.28356 | 0.14212 | 0.101 | 15 | — |
+| 2 | `zonly_enc` | 0.28375 | 0.14204 | 0.100 | 31 | 98.99% |
+| 2 | **`asif`** | **0.26125** | **0.12943** | **0** | 6,849 | 0.33% |
+| 4 | `tree_budget` | 0.28753 | 0.14936 | 0.179 | 15 | — |
+| 4 | `zonly_enc` | 0.28721 | 0.14908 | 0.177 | 49 | 97.52% |
+| 4 | **`asif`** | **0.27111** | **0.13967** | **0** | 8,306 | 0.00% |
+| 8 | `tree_budget` | 0.29473 | 0.16200 | 0.207 | 15 | — |
+| 8 | `zonly_enc` | 0.29462 | 0.16195 | 0.203 | 49 | 95.27% |
+| 8 | **`asif`** | **0.28402** | **0.15494** | **0** | 7,523 | 0.00% |
+
+`asif − tree_budget`, full: **k=2 −0.02231 [−0.02493, −0.01972]**, **k=4 −0.01643 [−0.01907,
+−0.01394]**, **k=8 −0.01070 [−0.01322, −0.00827]**; tail in the same direction at every k.
+
+The same shape as cell 2, with one clear trend: **the more the user has volunteered, the smaller the
+cost of reading it**. The seeded state gets more informative as k grows, so the policy's improvisation
+gets less damaging — but at no k does it beat simply running the tree.
+
+## What L1 settles, and what it hands to L2a
+
+1. **The encoding was the bug, and it is fixed.** A volunteered fact entered as an answered question
+   is read exactly as an answered question: cell 1 reproduces the teacher's continuation perfectly and
+   costs the user nothing. R's inertness was a wiring property, not a property of distillation.
+2. **The saved turn is worth about +0.0017 full**, measured, when the volunteered fact is one the
+   interview would have asked anyway. That is the honest size of "don't ask what you were told".
+3. **Encoding is necessary but not sufficient.** Where no teacher has an opinion about the
+   volunteered fact, reading it makes things *worse* — the policy improvises and loses. The fix is not
+   more encoding; it is **more teachers**, which is exactly L2a.
 
 ## Chain checks (free, and they either hold exactly or the run stops)
 
-- **PENDING** cell 1's `tree_full16` must reproduce banked E1 *per user*, exactly.
-- **PENDING** cell 3's `tree_full16` and `none` must reproduce R's banked cells at each k, exactly.
-- **PENDING** `asif` redundancy must be exactly 0 in every cell — it validates the mask wiring.
+- **HELD** — cell 1's `tree_full16` reproduces banked E1 per user, exactly (max absolute per-user
+  difference 0.0 across 10,000 users).
+- **HELD** — cell 3's `tree_full16` and `none` reproduce R's banked cells at every k, to 1e−12:
+  tree 0.28614912954756866 / 0.29229505266669010 / 0.30409648443152940, none 0.21274013215031980 /
+  0.23936380858351730 / 0.27339151369987290.
+- **HELD** — `asif` redundancy is exactly 0 in all five cells; the assertion is in the harness, so a
+  broken mask stops the run rather than producing a number.
+- **HELD** — canonical m=0 snap 0.15686538118354684 exact; the policy-B static order reproduces
+  0.25561016113602253 exactly.
+
+## Run record
+
+`experiments/battery/asif/` — one JSON plus a per-user `.npz` per (cell, arm), 25 cells, plus the
+roll-up `policy_asif.json`. 14.0 minutes total on 6 threads. Frozen E1 checkpoint; no gradient step is
+taken anywhere in `policy_asif.py`.
