@@ -85,10 +85,12 @@ SHUFFLE_SEED = 98771       # declared; the teacher-assignment permutation for th
 
 
 # ============================================================ the stated-genre concept, by name
-def genre_to_concept(ctx, genres):
+def genre_to_concept(E, genres):
     """MovieLens genre -> the genome-tag concept id that names it.
 
-    The concept vocabulary IS the genome tag vocabulary (`ctx.tags` holds tagIds), so a stated genre
+    The concept vocabulary IS the genome tag vocabulary (`E["sh"]["tags"]` holds tagIds, in the same
+    order the concept channel is indexed -- the env builds its member matrix from it), so a stated
+    genre
     has a literal concept: "action" the tag is the question "do you like action films?". The match is
     on the tag STRING, lower-cased, with the two punctuation variants MovieLens uses spelled out. A
     genre with no tag, or whose tag is outside the question pool, cannot be a teacher signature and
@@ -100,11 +102,17 @@ def genre_to_concept(ctx, genres):
     with open(path, newline="", encoding="utf-8") as f:
         for r in csv.DictReader(f):
             name[int(r["tagId"])] = r["tag"].strip().lower()
+    tags = list(E["sh"]["tags"])
+    assert len(tags) == int(E["C"]), (
+        f"the concept vocabulary is {len(tags)} tags but the env indexes {E['C']} concepts")
     by_name = {}
-    for cid, t in enumerate(list(ctx.tags)):
+    for cid, t in enumerate(tags):
         s = name.get(int(t)) if str(t).isdigit() or isinstance(t, (int, np.integer)) else str(t)
         if s is not None:
             by_name.setdefault(str(s).lower(), cid)
+    by_cid = {cid: (name.get(int(t)) if not isinstance(t, str) else t)
+              for cid, t in enumerate(tags)}
+    log(f"[tags] the tree's root concept 114 is the tag {by_cid.get(114)!r}")
     out, missing = {}, []
     for g in genres:
         for cand in (g.lower(), g.lower().replace("-", " "), g.lower().replace("-", "")):
@@ -286,7 +294,7 @@ def teacher_setup(E, rows, pool, args):
             f"the genre partition does not reproduce the banked cohort: {g} is {sizes.get(g, 0)} "
             f"here and {n} in groupgreedy_genre15.json")
     log(f"[chain] the genre partition reproduces all {len(banked_sizes)} banked group sizes exactly")
-    gmap, missing, n_named = genre_to_concept(E["ctx"], sorted(sizes))
+    gmap, missing, n_named = genre_to_concept(E, sorted(sizes))
     inpool = {g: c for g, c in gmap.items() if (1, c) in set(pool)}
     teachers = [g for g in sorted(sizes, key=lambda x: -sizes[x])
                 if sizes[g] >= args.min_group and g in inpool and g in orders]
