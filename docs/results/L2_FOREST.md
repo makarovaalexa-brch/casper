@@ -1,6 +1,6 @@
 # L2a — THE TWO-TEACHER FOREST
 
-> **STATUS: main arm COMPLETE (2026-08-17). Shuffle control RUNNING — its section is marked PENDING.**
+> **STATUS: COMPLETE (2026-08-17) — main arm and shuffle control. Follow-up T1' is running; its section says so.**
 > Design sheet: `docs/design/PAPER_B_POLICY_DESIGN.md` Part L.2; Part K.6 is why per-user labels are
 > gone for good. Harness `src/instrument/forest_policy.py`. **Validation only; `test_touched=false`.**
 
@@ -151,7 +151,38 @@ T1 is learned to saturation inside one epoch and T0 never moves. The 108,960 tra
 only 60 distinct (signature, depth) label pairs, so this is a small thing to learn — which is the
 point: **cohort teachers are cheap to add, and the cost of adding one is the question.**
 
-## Shuffle control
+## Shuffle control — PASSES
 
-**PENDING** — teacher assignments permuted across signatures (each genre gets another genre's measured
-order, seed 98771), same everything else.
+Teacher assignments permuted across signatures (Drama←Comedy, Action←Adventure, Comedy←Drama,
+Adventure←Action; seed 98771), everything else identical. Same 6 epochs, same selection rule.
+
+- **T1 fidelity against the true orders: 0.000000** (main arm: 0.999963). The shuffled arm learns the
+  orders it was given and none of the ones it was not — the conditioning is what the main arm learned,
+  not the item sequences in general.
+- **T0 fidelity: 0.999969**, the same single state. Learning *some* second teacher costs the tree
+  nothing whichever teacher it is; the cost measured for the main arm is not a cost of T1 in
+  particular.
+- Spanning: +0.000005 full [+0.000000, +0.000015] — cold behaviour intact under the control too.
+- Behavioural at genre states, full@10: Drama **0.23702** (main 0.26082), Action **0.29542** (main
+  0.30968), Comedy **0.19583** (main 0.20211), Adventure **0.24211** (main 0.29117). The control is
+  worse in every group, and reproduces the correct order for **0.00%** of users everywhere.
+
+## What L2a settles
+
+1. **One policy, many cohort teachers, no interference** — the architectural claim holds at two
+   teachers, exactly, and the shuffle control shows the fit is conditioning rather than memorised
+   sequences.
+2. **Adding a teacher beats improvising** at states the teacher covers.
+3. **A teacher must beat the incumbent, not merely be admissible** — the stated-genre orders lose to
+   the cold tree by 0.026–0.033 on three of four groups, and the most likely reason is that they were
+   searched over items only.
+
+## Next — T1' (running)
+
+`src/instrument/group_greedy_signature.py`: the stated-genre teacher **rebuilt over the tree's own
+1,000-candidate pool** (500 items + 500 concepts), same objective, same budget, FIT users only, so the
+comparison against the tree is like-for-like. **This is the decision experiment for the forest**: if a
+genre-conditioned order over the full action space beats the tree inside its group, conclusion 3 was
+about the action space and T2/T3 are worth their search time; if it does not, conditioning on a
+volunteered category genuinely does not pay against a cold interview that may ask about concepts, and
+the forest stops at one teacher. **PENDING.**
