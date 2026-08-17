@@ -109,6 +109,51 @@ downstream of it. Two legs + a bridge:
 - Sequencing: smoke trio (MostPop gate, copy-OP, tower request-fold) → leg 1 figure → ML-25M
   matched-dispersion probe → oracle extraction pass → leg 2 both variants.
 
+## ★★★ TRANSPLANT VARIANT — request evidence onto ML-25M profiles (author, 2026-08-17)
+
+**Author's framing, verbatim:** *"match up volunteered info to existing ml profiles and then predict
+their held-out movies, not reddit movies."* This is a **replacement for the Bridge** above, and it is
+strictly cleaner than legs 1–2. Record it as the preferred Reddit cell for Paper B.
+
+**The design.** A real request names films (and, via the mapping ladder, attributes). Link those on
+the REQUEST side only. Then find ML-25M users whose fold-in contains those films, run the interview
+on **those** users, and score against **their** held-out targets under the canonical ruler.
+
+- The Reddit request supplies the **evidence pattern** — what a real person actually volunteers.
+- The ML user supplies the **ground truth** — real ratings, canonical split, existing metric.
+
+**Why this is better than the reply-set ruler:**
+- No reply-side linking (half the linking cost, and the expensive half).
+- No crowd-relevance ground truth, **no votes anywhere** (standing rule).
+- Full behavioural answers are available, so adaptive-vs-static is measurable with the existing
+  answer model — the reply-set ruler explicitly could not do this ("Not an adaptivity simulator").
+- It scores on the ruler every other number in the thesis is on, so the result is comparable.
+
+**The two arms.** Same matched users, evidence folded vs not: does the interview still pay once a
+real request has been given, and **does the question sequence visibly change** (dispersion of the
+first argmax across requests, as in leg 1, but now with a payoff attached).
+
+### ⚠ FEASIBILITY GATE — run this BEFORE anything else, it is offline and nearly free
+
+**The risk is the matching step and it is not obviously survivable.** A request names ~2–4 films,
+often an unusual combination. The question is whether ML-25M contains enough users who rated them.
+
+**Gate:** for each linked request, count ML users with ≥k of the named films in their fold-in.
+Report the distribution over requests of that cohort size, for k ∈ {1, 2, 3}.
+- **PASS** if a workable share of requests yield cohorts of ≥~500 (the admissibility floor from
+  Part L — below it we are in the −0.724 noise regime and no cohort measurement is trustworthy).
+- **FAIL** if cohorts are routinely tiny, i.e. real requests name combinations no ML user holds.
+  A FAIL is itself informative (it says real volunteered evidence is out of distribution for our
+  corpus) but it kills this cell — and per the author's ruling below, a killed cell is **omitted**,
+  not written up as a limitation.
+
+Needs only request-side links, so it can run on the rules-tier linker output with no LLM approval
+and no reply adjudication. **Nothing else in this variant should be built until the gate reports.**
+
+**Author ruling 2026-08-17, binding on this whole sheet:** *"this chapter does not need a
+limitation. either we show it working or we omit it."* Do not carry a Reddit negative into the
+chapter as a scope condition.
+
 ## ★ TEXT→REC-SPACE MAPPING LADDER (author-approved 2026-08-04)
 Request-named FILMS need no mapping (linked items → item-evidence fold; the floor arm). For the
 rest of the request text, three rungs, funded only by measured headroom on the new ruler:
