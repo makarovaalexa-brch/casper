@@ -1898,6 +1898,40 @@ amount, taste band) at cohort reliability — not coverage of all conversational
 
 ---
 
+## L.3 — RESULT (2026-08-17, run under "plz run l1 and l2")
+
+**L1 — `docs/results/L1_ASIF_ASKED.md`.** Cell 1's prediction fired exactly: with the volunteered fact
+encoded as an answered question, the policy branches as the tree's post-root arm for **100.00%** of
+10,000 users (R's encoding: 0.00%), scores identically to banked E1 **per user**, and re-asks the
+volunteered question **zero** times. The turn this saves is worth **+0.00167 full [+0.00096,
++0.00238]**. ★ But cells 2 and 3 measured the other half: where no teacher has an opinion about the
+volunteered fact, reading it makes the policy improvise and LOSE — **−0.04663** (random answerable
+concepts), **−0.02231 / −0.01643 / −0.01070** (R's item draw at k = 2 / 4 / 8). **The encoding is
+necessary and not sufficient; the fix is more teachers, which is what L.2 is.**
+
+**L2a — `docs/results/L2_FOREST.md`.** The interference falsifier **did not fire**: T0 fidelity
+1.000000 → 0.999969 (**one tree state of 32,000**) while T1 went 0.000369 → 0.999963; spanning is
+per-user IDENTICAL to E1 on 2,000/2,000 HOLDOUT users; the shuffle control scores 0.000000 against the
+true orders. All five pre-registered gates pass. ★ **And the second teacher is not worth following:**
+at genre-seeded states the ordering is **tree > forest (= T1 exactly) > E1 improvising**, with
+forest − tree = −0.02648 / −0.03290 / −0.03075 (Drama / Action / Comedy, all excluding zero) and a
+null on Adventure.
+
+**★ THE AMENDMENT THIS FORCES ON L.2's DESIGN LAW.** Observability and cohort size make a teacher
+**learnable**. They say nothing about whether it is **good**. A third condition, now measured:
+
+> **A teacher earns its place in the forest only if it beats the teacher already covering those
+> states — on the same action space and the same budget.**
+
+T1 was searched over 500 ITEMS ONLY; the tree spends most of its budget on CONCEPTS, so the comparison
+was never like-for-like. **T1' (`src/instrument/group_greedy_signature.py`) rebuilds the stated-genre
+teacher over the tree's own 1,000-candidate combined pool, FIT users only, and is the decision
+experiment for T2/T3:** if a genre-conditioned order over the full action space beats the tree inside
+its group, the failure was the action space and the bands are worth their search time; if it does not,
+conditioning on a volunteered category does not pay against a cold interview that may ask about
+concepts, and the forest stops at one teacher.
+
+
 ## Cross-references
 
 `PAPER_B_PLAN_2026-08-12.md` §6 (workstream E) · `PAPER_B_TODO.md` 1.13/1.14/1.15/1.16/1.22 ·
