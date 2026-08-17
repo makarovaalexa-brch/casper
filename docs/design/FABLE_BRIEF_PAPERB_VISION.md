@@ -67,9 +67,11 @@ their own states**. Distilling them would teach the policy to be worse where it 
 author objects that genre is a **heuristic**: we have never shown genre is a good opener at all —
 maybe it is mood, or decade, or something else.
 
-## The two candidate replacements (Opus's proposals — please rule)
+## The two candidate replacements (please rule)
 
-**(A) Latent clustering of folded evidence.** Fold whatever the user volunteered into the tower to
+**(A) Latent clustering of folded evidence** — the statistical form of the author's own suggestion
+(*"maybe cluster user profiles after folding in their rating? there must be some statistical ways to
+cover multiple bases"*). Fold whatever the user volunteered into the tower to
 get `z`, cluster that space, and grow **one tree per cluster** (adaptive, not a static order). The
 signature — "which cluster does your folded evidence land in" — is computed from evidence
 **at ask time**, so it satisfies the admissibility law, and it is fully statistical: no semantic
@@ -103,5 +105,13 @@ buys learnability, not value.
    crux. L1 showed the tree's own machinery already handles a volunteered fact it would have asked
    about (exactly, 100.00%). So the gain must come from facts the tree does **not** ask about. Is
    that a real gap or a measure-zero one?
-5. **Constraints that bind:** no LLM API calls without author approval; never the Reddit API; never
+5. **VENUE AND PUBLISHABILITY (author's explicit ask).** Which venues does this work have a real
+   chance at, and what would have to be true of the results for it to be a *good* publication rather
+   than a thin one? Be concrete about the gap between what we hold now and what each venue needs.
+   Prior discussion had TORS or a RecSys/ECIR reproducibility track in view, and an ECIR 2027
+   deadline of 2 Oct 2026 was noted in an earlier (now superseded) plan — treat those as starting
+   points to confirm or overturn, not as settled. Paper A is closed at 41pp and not yet submitted;
+   this is Paper B of a thesis, so **separate the thesis-chapter bar from the conference-paper bar**
+   and say what each requires.
+6. **Constraints that bind:** no LLM API calls without author approval; never the Reddit API; never
    votes as graded labels; the single unspent TEST look is reserved for Q; nulls are not citable.
