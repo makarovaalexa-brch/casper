@@ -1731,7 +1731,64 @@ behavioural gate after a passing pilot is reported as the finding, not retried s
 
 ---
 
+# ★★★ PART K.7 — NUMBER AUDIT (2026-08-18): K.6's ARGUMENT STANDS, ITS NUMBERS DO NOT
+
+A provenance audit against the artifacts (chapter-draft agent, commit `f78ee2a`) found **all three of
+K.6's headline numbers wrong or unbanked**, plus two mis-stated mechanisms in the value-line summary
+and **one arm that does not exist**. The conclusions survive; the figures must be replaced everywhere
+they appear, including in anything already relayed to the author.
+
+| K.6 claimed | truth |
+|---|---|
+| oracle **+0.229** | that is the mean over only the 845 users with a positive gain. **All-user value is +0.19366.** |
+| best cohort-wide question **+0.0115** | matches no computable variant; **the banked field is +0.009664** |
+| trained cold arm **+0.0153** | ★ **DOES NOT EXIST ANYWHERE IN `experiments/`.** Use the real per-k cells: k=2 **+0.00422** (null), k=4 **+0.00074** (null), k=8 **+0.00771** (separates) — and the same arm **fails the spanning gate at −0.06798** |
+
+**The ~95% conclusion survives on either pairing (5.0%), so K.6's argument is unaffected** — the
+per-user prize is overwhelmingly carried by information the interview has not revealed. Only the
+figures change.
+
+## ★ Two mechanisms I asserted that the artifacts do NOT support — retracted
+
+1. **"Argmax over noisy estimates selects the over-estimates (answer rate 0.58→0.37)."** **False.**
+   0.58→0.37 is the *warm regressor walking off its E1 start* (14.20 of 16 positions changed), not a
+   winner's curse. And the ceiling sweep's answer rate **falls as accuracy RISES** (0.6188→0.5650),
+   which is the opposite of the maximisation-bias story, and its rank-preserving construction rules
+   that story out. **I relayed this mechanism to the author at length; it is withdrawn.**
+2. **"The value surface is rough across states, inter-state correlation ~+0.29."** Mis-sourced: that
+   figure is a **state-blind predictor's LOSO Spearman**, not a correlation between states, and it is
+   **log-only** (`value_train.out:35`, the run was killed before its JSON). The JSON-backed value is
+   **+0.2564 over 49 states**. Re-derive or drop the roughness claim; do not quote +0.29.
+
+## ★★ THE CEILING ARM DOES NOT EXIST — Fable's Friday suspicion confirmed
+
+The "flat table −0.02911" and "**perfect measured values** −0.02911" identity was flagged on
+2026-08-15 as *a surprising number is a harness bug until proven otherwise*. It is a bug:
+**`ceiling[18]` is field-for-field identical to `arms.meanvec_PxV` — the same run recorded twice.**
+ρ=1.00 therefore means perfect fidelity **to the flat mean table**, not to true per-user gains.
+⇒ **"even perfect values lose" is NOT established and must be struck from the value-line summary.**
+The value line remains a four-arm negative, not five.
+
+## Other audit findings, all binding on the write-up
+
+- **`docs/results/PHASE3_DEEPER.md` contains no results** — its RESULTS section is still a PENDING
+  checklist. Every phase-3 number quoted this week came from the dated artifacts and **does** verify;
+  the doc needs filling from them.
+- **Q has NO confidence intervals anywhere**, over 620M highly non-independent cells, and
+  57.0% / 78.1% / 69.6% / 91.6% are unstored derived ratios. **Write as a live limitation.**
+- The bank tail contrast is **n = 9,281**, not 10,000 (validation tail is 9,217).
+- **CI audit CLEAN:** no `1.96*sqrt(2)*SE` signature anywhere; `paired_bootstrap` reproduces
+  bit-identically at seed 98765 / 10,000 resamples.
+- **In the current tex and unsourceable: `0.374 / 0.320 / 0.087`** in the Reach paragraph — it carries
+  the "+0.25 for answering at all vs +0.048 for question choice" headline and **no artifact holds
+  those baselines. Highest-priority fix before submission.**
+- Q's evaluation users are held out from the head but **not from the tower** that produces their state
+  latent — defensible only because no NDCG is measured there, and it must be stated, not left implicit.
+
+---
+
 # PART K.6 — THE CLOSING VERDICT (Fable, 2026-08-17): why distillation works and per-user labels cannot
+### ⚠ NUMBERS SUPERSEDED BY K.7 ABOVE — the argument below stands, its figures do not
 
 > **AUTHOR ASKED:** *"why policy can distill a tree but cannot learn on this dataset? surely if we show
 > it enough combinations of state and optimal question, it could?"*
