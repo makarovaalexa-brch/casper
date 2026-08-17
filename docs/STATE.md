@@ -1,5 +1,59 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-17 (evening) — THE LIVE TASK IS THE TEACHER FOREST, ON MINED AXES. NOTHING IS RUNNING.
+
+**AUTHOR SAID (verbatim):** *"i think building teacher forest is the first step here."* · *"genre is a
+heuristic, i do not like that … we don't know if genre is a good / reasonable opener at all. maybe
+it's mood? or decade? perhaps we should mine for an opener … or maybe cluster user profiles after
+folding in their rating? there must be some statistical ways to cover multiple bases."* · **binding on
+the chapter:** *"this chapter does not need a limitation. either we show it working or we omit it."*
+
+Memory note: `forest-axes-must-be-mined-not-guessed`. Fable brief written and **UNSENT**:
+`docs/design/FABLE_BRIEF_PAPERB_VISION.md` (session subagent cap was exhausted; cap now raised to 400
+via `CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`). **Send it first thing.**
+
+### Two proposals were withdrawn this evening — do not resurrect either
+
+- **The 17-genre forest is DEAD.** Those teachers are **static orders after the genre is stated, not
+  trees**, and L2a measured them losing to the cold tree at their own states (−0.026/−0.033/−0.031;
+  rebuild over the tree's own pool lost on holdout, 0 of 4 groups won). Distilling them teaches the
+  policy to be worse where it is used. Separately, **genre was never shown to be a good opener.**
+- **Scaling L1 to k=2/4/8 is NOT decisive** (author caught this). Facts drawn from the tree's own 22
+  nodes are a rigged manifold; facts from anywhere else already have a banked answer and it is
+  negative (−0.047 random concepts; −0.022/−0.016/−0.011 on R's items). Either rigged or known.
+
+### The three claims the chapter must deliver, and where each stands
+
+| | claim | status |
+|---|---|---|
+| 1 | policy beats static AND the cold tree **when volunteered info exists** | **true but tiny** — L1's saved turn +0.00167 [+0.00096, +0.00238]. **The crux; the forest exists to enlarge it** |
+| 2 | question order genuinely changes with the opener (count trajectories) | R2 changes 9–13 of 16 questions **but it costs** — changing ≠ conditioning |
+| 3 | the recommender consumes volunteered info and beats popularity | **BANKED** — R's fold is +0.0206 full / +0.0353 tail at k=8 with questions held identical. Needs writing up as a result, plus the author's upgrade: consume **out-of-vocabulary request text** via the existing SBERT → genome-concept → concept-fold path |
+
+### How teacher axes get found (Fable to rule)
+
+- **(A) Cluster the folded evidence** → one **TREE** per cluster (adaptive, not a static order).
+  Signature computed at ask time ⇒ admissible; no heuristic; k controls cohort size (10,000/20 ≈ 500).
+- **(B) Mine the opener distribution from Reddit** — secondary, per the author: it shows what people
+  volunteer in one context, not what differentiates users.
+- **Each teacher is gated by the L2 condition: it must BEAT THE INCUMBENT at its own states.**
+
+### Reddit splits in two, and only one half needs linking
+
+1. **Opener-type census** (exemplar / genre / mood / era / constraint + frequencies) — needs text
+   classified, **zero items linked**. Feeds the forest axes; equivalent evidence is then constructed
+   from ML attributes we already hold.
+2. **Real-text consumption demo** (claim 3's upgrade) — needs the mapping; **feasibility gate first**,
+   recorded in `docs/design/DS_REDDIT_LINKING.md` (transplant variant: request evidence → matched
+   ML-25M profiles → their held-out targets; gate = cohort size ≥ ~500 per request).
+
+Paper C's emission arc is specced but unrun: `docs/design/PAPER_C_EMISSION_DESIGN.md` — two blockers
+(the one-hot target forbids in-between emission; the snap makes novelty invisible to any reward), two
+fixes in order (blend targets, then an answerer accepting arbitrary directions), and a free geometry
+check on E1's existing checkpoint that decides whether the arc has a foundation.
+
+---
+
 ## ★★★ 2026-08-17 — PART L IS RUN: L1 (as-if-asked encoding) and L2a (the two-teacher forest). VALIDATION ONLY, NO TEST LOOK.
 
 **AUTHOR SAID (verbatim, 2026-08-17):** *"plz run l1 and l2."*
