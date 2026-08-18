@@ -459,6 +459,12 @@ def main():
                          "the teacher still asks `total_L` questions exactly as the cold tree does. "
                          "Implemented through the existing `prefix` path at depth 0 -- no new "
                          "evaluation route. Design sheet docs/design/DS_M3_FOREST_TREES.md.")
+    ap.add_argument("--cohort_rows", default="",
+                    help="M3: grow a teacher on an ARBITRARY cohort -- a .json list of validation "
+                         "row ids. Used for cohorts that have no stated signature (the residual "
+                         "group, or a taste cluster with no nameable attribute). Such a teacher is "
+                         "ORACLE-ROUTED when the cohort is defined from information not observable "
+                         "at ask time, and must be reported as a ceiling, never as deployable.")
     ap.add_argument("--full_threads", action="store_true",
                     help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv): use all "
                          "cores rather than its default 4. Declared here only so argparse accepts "
@@ -527,6 +533,14 @@ def main():
             f"masked from the pool, and costs NO turn -- the teacher asks {total_L} questions, the "
             f"same budget as the cold tree.")
         assert len(rows_all) >= 200, f"anchor cohort is only {len(rows_all)} users"
+    if args.cohort_rows:
+        assert args.cohort_concept < 0, "--cohort_rows and --cohort_concept are exclusive"
+        want = set(int(x) for x in json.load(open(args.cohort_rows)))
+        rows_all = [int(r) for r in rows_all if int(r) in want]
+        log(f"[M3] EXPLICIT COHORT from {os.path.basename(args.cohort_rows)}: "
+            f"{len(rows_all)} of {len(want)} requested rows are in the validation cohort. "
+            f"No seed is folded; this teacher starts cold on a selected population.")
+        assert len(rows_all) >= 200, f"explicit cohort is only {len(rows_all)} users"
     contract_selftest(E, rows_all)
     log(f"[cohort] {len(rows_all)} canonical VALIDATION users (rows with a non-empty target). "
         f"TEST IS NOT BUILT AND NOT TOUCHED.")
@@ -565,6 +579,7 @@ def main():
            "stopping": "min_leaf v2: split iff >=2 non-empty children and >=1 child >= min_leaf; children below the floor inherit the parent tail (no depth cap)", "total_L": total_L, "min_leaf": min_leaf,
            "split": "validation", "n_cohort": len(rows_all), "sanity": bool(args.sanity),
            "cohort_concept": int(args.cohort_concept),
+           "cohort_rows": os.path.basename(args.cohort_rows) or None,
            "seed_prefix": [[int(a), int(b)] for a, b in seed_prefix],
            # 2026-08-12 audit: derived from the mask, so a re-run under a different candidate-pool
            # policy cannot resume this tree's nodes. A missing field is a refusal, not a pass.
