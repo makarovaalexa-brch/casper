@@ -107,6 +107,33 @@ Seeds, not conclusions:
   can show that fluency is not faithfulness" is a real capability paper with a real methodological
   contribution — and it survives even if the directions turn out not to help NDCG.
 
+## ★ CIRCULARITY RULING (author, 2026-08-18): accept it, but only as a STATE GENERATOR
+
+*"can we accept circularity, if clearly stated, if we are not trying to show ndcg improvement, but
+want to discover hypothetical point in rec space to ask about? to have smth to verbalise?"* — **Yes,
+with one line held firm.**
+
+**Harmless use.** The simulated answerer's job is to put the policy at a plausible interview state so
+it can emit a point. Nothing downstream is measured through it, so bias in it does not bias a result.
+Declared plainly, this is a simulator used to EXPLORE a space, not to SCORE one.
+
+**Fatal use, and it stays closed.** Validating the emitted point by simulating an answer TO THAT
+POINT and showing the belief improves. That is the model answering its own question and grading
+itself. No claim may route through it.
+
+**⇒ Validation must be a property of the POINT, never an outcome of answering it.** Four that avoid
+the answerer entirely:
+1. **Genuinely off-catalogue** — distance to the nearest bank question, and the margin over the 2nd
+   and 3rd. Pure geometry, and it is the check `PAPER_C_EMISSION_DESIGN.md` already specifies.
+2. **Discriminative over real users** — do actual fold-in profiles project differently onto it?
+   Computed from real ratings, once; a fact about the direction, not an answer on anyone's behalf.
+3. **Renders to coherent text** — ELM's consistency-metric idea, reused.
+4. **A scrambled control fails 1–3** — this is what stops fluency from doing the work.
+
+**The consequence to state in the paper, up front:** we can show such a question EXISTS, is DISTINCT
+from anything in the bank, and is MEANINGFUL — we cannot show it would HELP. That trade is what buys
+the freedom to use a circular state generator at all.
+
 ## Constraints that bind
 
 No LLM API calls without explicit author approval · never the Reddit API · the 173/300 study users
