@@ -176,3 +176,21 @@ we have and is answered ~3× as often as an item order. See 4.4.
 - [ ] **W3** Reddit data + linker methodology section — CLAIMED contribution (gold 500, rules tier 0.971/48.6%, pipeline 0.960 vs He 0.572, 4,431-thread ruler, slots ×4,431, ~7% label-error floor).
 - [ ] **W4** K.6 scoping-theorem paragraph (audited: +0.19366 / +0.009664 only).
 - [ ] **W5** skip-redundancy multiplication printed (≈ +0.0013 < MDE/3).
+
+## 2026-08-18 — PARKED (author: "put it on hold for now, add to todo. let's do 6 honest clusters 1st")
+- [ ] **Residual teacher** — validation users who state NONE of the six anchors. Routable by
+      elimination, so DEPLOYABLE and directly comparable: the cold tree was fitted on everyone,
+      including the users routed away from it, while this would be fitted on exactly the people it
+      serves. Code ready: `src/instrument/m3_extra_cohorts.py` + `ndcg_tree.py --cohort_rows`.
+      Cost ~45 min once the box is free.
+- [ ] **c19 as a cluster** — the taste cluster with no nameable attribute (best `goofy` 0.038 /
+      `silly` 0.031 against a 0.061 purity requirement; margins −0.077…−0.115; films are unrelated
+      obscurities; Reddit arrival cluster r7 lands 27% there). Cohort by nearest de-era'd taste
+      centroid. ⚠ **ORACLE-ROUTED** — membership comes from the FULL PROFILE, not observable at ask
+      time, so its teacher is a CEILING: it answers "does this region have different optimal
+      questions?", never "can we route to it?". Check the validation cohort size FIRST; if only a
+      couple of hundred users land there, the interval is too wide to say anything.
+- [ ] **Film-neighbourhood routing** (the richer family behind c19): route by the neighbourhood of
+      the film the user volunteered rather than by a stated attribute — closer to real behaviour,
+      since 63% of requests open with a title. Needs the twin-matching machinery from
+      `DS_M1_STATE_MATCHING.md`, which is specced but unbuilt.
