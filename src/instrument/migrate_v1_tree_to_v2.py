@@ -1,33 +1,31 @@
-"""Seed coldtree_v2 from the banked v1 tree instead of rebuilding it.
+"""Seed coldtree_v2 from the banked v1 tree, using the LIVE contract.
 
-v2's rule is STRICTLY more permissive than v1's: any node v1 split, v2 splits too, with the SAME
-splitter (the splitter search does not depend on the stopping rule). So the depth-5 v1 tree is a
-valid PREFIX of the v2 tree, and every one of its 15 leaves can be re-decided from its already
-recorded `child_sizes` WITHOUT a single new evaluation.
+The v1 partial predates the `pool_contract` field, so the grower correctly refuses it: an unstated
+contract is not a matching one. The contracts are nevertheless verified EQUAL behaviourally -- the
+from-scratch v2 run of 2026-08-18 reproduced v1's first four nodes exactly (root concept 114 ->
+2606/4814/2580; root.like item 83 -> 1010/340/1256; root.dislike concept 283 -> 723/3562/529;
+root.noanswer item 514 -> 357/438/1785) under the live contract. That is the evidence for adopting
+the live `pool_contract` here rather than inventing one.
+
+Heaps are NOT migrated: they carry the same pre-contract signature and are refused. That costs
+nothing, because every node still needing a search is a NEW child with no banked heap anyway.
 """
-import io, json, os, shutil
+import io, json, os
 
 B = r"C:\dev\phd\casper\experiments\battery"
-SRC = os.path.join(B, "ndcgtree_partial.json")
-DST = os.path.join(B, "coldtree_v2_partial.json")
-SRC_HEAPS = os.path.join(B, "ndcgtree_heaps")
-DST_HEAPS = os.path.join(B, "coldtree_v2_heaps")
+v1 = json.load(io.open(os.path.join(B, "ndcgtree_partial.json"), encoding="utf-8"))
+live_sig = json.load(io.open(r"C:\Users\Tech\AppData\Local\Temp\live_sig.json", encoding="utf-8"))
+nodes = v1["nodes"]
+total_L, min_leaf = int(live_sig["total_L"]), int(live_sig["min_leaf"])
+assert total_L == int(v1["sig"]["total_L"]), "total_L differs between v1 and the live run"
+assert min_leaf == int(v1["sig"]["min_leaf"]), "min_leaf differs"
+for k in ("tower", "conc", "objective", "n_pool", "criterion", "branch_rule", "split", "n_cohort"):
+    assert v1["sig"].get(k) == live_sig.get(k), f"sig field {k!r} differs: {v1['sig'].get(k)!r} vs {live_sig.get(k)!r}"
+print("v1 and live sigs agree on every field v1 states")
 
-d = json.load(io.open(SRC, encoding="utf-8"))
-sig, nodes = d["sig"], d["nodes"]
-total_L, min_leaf = int(sig["total_L"]), int(sig["min_leaf"])
-print(f"v1: {len(nodes)} nodes, total_L={total_L}, min_leaf={min_leaf}")
-
-sig = dict(sig)
-sig["stopping"] = ("min_leaf v2: split iff >=2 non-empty children and >=1 child >= min_leaf; "
-                   "children below the floor inherit the parent tail (no depth cap)")
-sig["cohort_concept"] = -1
-sig["seed_prefix"] = []
-
-flipped, kept, already = [], [], 0
+flipped = kept = already = 0
 for nid, rec in nodes.items():
-    depth = int(rec["depth"])
-    remaining = total_L - depth
+    depth = int(rec["depth"]); remaining = total_L - depth
     rec["remaining_budget"] = remaining
     sizes = rec.get("child_sizes") or {}
     nonempty = [k for k, v in sizes.items() if v > 0]
@@ -35,40 +33,21 @@ for nid, rec in nodes.items():
     rec["children_above_floor"] = big
     rec["children_inheriting"] = [k for k in nonempty if k not in big]
     rec["min_nonempty_child"] = min([sizes[k] for k in nonempty], default=0)
-
     if rec.get("split"):
         already += 1
-        rec.setdefault("tail", rec.get("steps"))          # v1 split nodes stored only the splitter
+        rec.setdefault("tail", rec.get("steps"))
         continue
-
-    will_split = remaining >= 2 and len(nonempty) >= 2 and len(big) >= 1
-    if will_split:
-        # v1's leaf `steps` IS the full greedy tail from this node -- exactly what an inheriting
-        # child needs, and it was fitted on this node's own (above-floor) cohort.
+    if remaining >= 2 and len(nonempty) >= 2 and len(big) >= 1:
         rec["tail"] = list(rec["steps"])
         rec["tail_gains"] = list(rec.get("gains", []))
         rec["split"] = True
         rec["stop_reason"] = None
-        flipped.append((nid, depth, sizes))
+        flipped += 1
     else:
         rec["tail"] = list(rec["steps"])
-        rec["stop_reason"] = (f"degenerate partition: {len(nonempty)} non-empty child(ren)"
-                              if len(nonempty) < 2 else
-                              f"no child reaches min_leaf {min_leaf} (largest {max(sizes.values())})")
-        kept.append((nid, depth, sizes))
+        kept += 1
 
-json.dump({"sig": sig, "nodes": nodes}, io.open(DST, "w", encoding="utf-8"), indent=2)
-
-if os.path.isdir(SRC_HEAPS):
-    if os.path.isdir(DST_HEAPS):
-        shutil.rmtree(DST_HEAPS)
-    shutil.copytree(SRC_HEAPS, DST_HEAPS)
-    print(f"copied {len(os.listdir(DST_HEAPS))} CELF heaps -> coldtree_v2_heaps")
-
-print(f"\nalready split under v1 : {already}")
-print(f"leaves NOW SPLITTING   : {len(flipped)}")
-for nid, dep, sz in flipped:
-    print(f"   d{dep} {nid:<48} {sz}")
-print(f"leaves STAYING leaves  : {len(kept)}")
-for nid, dep, sz in kept:
-    print(f"   d{dep} {nid:<48} {sz}")
+json.dump({"sig": live_sig, "nodes": nodes},
+          io.open(os.path.join(B, "coldtree_v2_partial.json"), "w", encoding="utf-8"), indent=2)
+print(f"seeded coldtree_v2_partial.json: {len(nodes)} nodes "
+      f"({already} already split, {flipped} leaves now split, {kept} stay leaves)")
