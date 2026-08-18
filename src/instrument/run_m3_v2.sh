@@ -17,7 +17,7 @@ echo "=================================================================="
 echo "[m3v2] $(date '+%H:%M:%S') regrowing the COLD TREE under rule v2 (the incumbent)"
 echo "=================================================================="
 "$PY" src/instrument/ndcg_tree.py --label coldtree_v2 --total_L 16 --full_threads
-echo "[m3v2] $(date '+%H:%M:%S') cold tree exited with status $?"
+st=$?; echo "[m3v2] $(date '+%H:%M:%S') cold tree exited with status $st"
 
 for spec in "arthouse:68" "dialogue:275" "marvel:581" "gore:417" "teenagers:922" "inspiring:503"; do
   name="${spec%%:*}"; cid="${spec##*:}"
@@ -29,6 +29,6 @@ for spec in "arthouse:68" "dialogue:275" "marvel:581" "gore:417" "teenagers:922"
       --cohort_concept "${cid}" \
       --total_L 16 \
       --full_threads
-  echo "[m3v2] $(date '+%H:%M:%S') teacher '${name}' exited with status $?"
+  st=$?; echo "[m3v2] $(date '+%H:%M:%S') teacher '${name}' exited with status $st"
 done
 echo "[m3v2] ALL DONE $(date '+%H:%M:%S')"

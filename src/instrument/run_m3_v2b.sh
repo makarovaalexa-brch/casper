@@ -13,7 +13,7 @@ echo "=================================================================="
 echo "[v2b] $(date '+%H:%M:%S') EXTENDING the cold tree under rule v2 (resumes 22 banked nodes)"
 echo "=================================================================="
 "$PY" src/instrument/ndcg_tree.py --label coldtree_v2 --total_L 15 --full_threads
-echo "[v2b] $(date '+%H:%M:%S') cold tree exited with status $?"
+st=$?; echo "[v2b] $(date +%H:%M:%S) cold tree exited with status $st"
 
 for spec in "arthouse:68" "dialogue:275" "marvel:581" "gore:417" "teenagers:922" "inspiring:503"; do
   name="${spec%%:*}"; cid="${spec##*:}"
@@ -22,6 +22,6 @@ for spec in "arthouse:68" "dialogue:275" "marvel:581" "gore:417" "teenagers:922"
   echo "=================================================================="
   "$PY" src/instrument/ndcg_tree.py --label "m3v2_${name}" --cohort_concept "${cid}" \
         --total_L 15 --full_threads
-  echo "[v2b] $(date '+%H:%M:%S') teacher '${name}' exited with status $?"
+  st=$?; echo "[v2b] $(date '+%H:%M:%S') teacher '${name}' exited with status $st"
 done
 echo "[v2b] ALL DONE $(date '+%H:%M:%S')"

@@ -493,6 +493,7 @@ def main():
         assert os.path.isabs(p) and os.path.exists(p), f"{nm} missing or not absolute: {p}"
 
     total_L, min_leaf = args.total_L, args.min_leaf
+    n_seed = 0   # set once seed_prefix is known; a seeded teacher's anchor is FREE
     if args.sanity:
         total_L = 3
         log("#" * 110)
@@ -541,6 +542,7 @@ def main():
             f"{len(rows_all)} of {len(want)} requested rows are in the validation cohort. "
             f"No seed is folded; this teacher starts cold on a selected population.")
         assert len(rows_all) >= 200, f"explicit cohort is only {len(rows_all)} users"
+    n_seed = len(seed_prefix)   # questions asked = len(own) - n_seed
     contract_selftest(E, rows_all)
     log(f"[cohort] {len(rows_all)} canonical VALIDATION users (rows with a non-empty target). "
         f"TEST IS NOT BUILT AND NOT TOUCHED.")
@@ -785,15 +787,18 @@ def main():
                                 "genre_face_validity": genre_face_validity(E, kids[k], gen),
                                 "done": True}
                         nodes[cnid] = crec
-                        assert len(inherit_own) == total_L, (
-                            f"inherited order for {cnid} has {len(inherit_own)} questions")
+                        assert len(inherit_own) == total_L + n_seed, (
+                            f"inherited order for {cnid} has {len(inherit_own)} "
+                            f"entries, expected {total_L} + {n_seed} free seed")
                         leaves.append({"nid": cnid, "depth": depth + 1, "path": crec["path"],
                                        "rows": kids[k], "branch_from": k,
                                        "own": inherit_own, "rec": crec})
             else:
                 own = [(int(a), int(b)) for a, b in rec["path"]] + \
                       [(int(a), int(b)) for a, b in rec["steps"]]
-                assert len(own) == total_L, f"leaf {nid} has {len(own)} questions, expected {total_L}"
+                assert len(own) == total_L + n_seed, (
+                    f"leaf {nid} has {len(own)} entries, expected {total_L} asked "
+                    f"+ {n_seed} free seed")
                 nd["own"] = own; nd["rec"] = rec
                 leaves.append(nd)
         d_done = frontier[0]["depth"]
@@ -823,8 +828,10 @@ def main():
         set_active_rows(E, rows); E["memo"] = {}
         curve = {}
         for K in budgets:
-            a = own[:K]
-            assert len(a) == K, f"UNEQUAL BUDGET: tree arm has {len(a)} questions at K={K}"
+            a = own[:n_seed + K]        # the free seed is folded but not charged
+            assert len(a) == n_seed + K, (
+                f"UNEQUAL BUDGET: tree arm has {len(a)} entries at K={K} "
+                f"(expected {K} asked + {n_seed} free seed)")
             of, ot = genv_eval(E, a, rows)
             ia, ca = genv_answered(E, a, rows)
             banked_vec[f"{nid}|{K}|own_full"] = of.astype(np.float32)

@@ -21,6 +21,6 @@ for spec in "arthouse:68" "dialogue:275" "marvel:581" "gore:417" "teenagers:922"
       --cohort_concept "${cid}" \
       --total_L 16 \
       --full_threads
-  echo "[m3] $(date '+%H:%M:%S') teacher '${name}' exited with status $?"
+  st=$?; echo "[m3] $(date '+%H:%M:%S') teacher '${name}' exited with status $st"
 done
 echo "[m3] ALL TEACHERS DONE $(date '+%H:%M:%S')"
