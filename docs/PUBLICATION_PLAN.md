@@ -63,8 +63,36 @@ the three. We under-sell it.
 | **D** | `paper4_casper` | "Just Ask": open-vocabulary free-recall | 4 (open questions) | ~889 L, 3 figs |
 | **E** | `paper5_casper` | Latent policy → deployable LLM-rendered dialogue | 3/6 (verbalise) | skeleton (~317 L) |
 
-## Priorities
-1. **A + C** for ECIR 2027 (the anchor pair).
+## ★ ROSTER RESET (author, 2026-08-18) — supersedes the A+C anchor pair below
+
+*"a+c pair is really outdated, i am hoping for b for ecir, a for tors, i already have one
+publication, paper C does not NEED to be publication worthy, but would be nice if it is strong
+enough that it could, so that timeframe is irrelevant"*
+
+| paper | status now | venue |
+|---|---|---|
+| **A** — instrument / testbed | closed, 41pp, not yet submitted | **TORS** (rolling, no deadline, no travel) |
+| **B** — elicitation policy | the substantial workstream; forest + Reddit arc in flight | **ECIR 2027** (~2 Oct 2026) |
+| **C** — continuous + LLM | **REDEFINED**: absorbs old E. A CAPABILITY paper — fun techniques, no benchmark to beat, ideally truly original. PEBOL-shaped. **No deadline pressure**; publishable is a bonus, not a requirement | opportunistic |
+| **D** — open-vocabulary free-recall | **ABSORBED INTO B** (the Reddit arc + the opener census cover its substance; its numbers were pre-Jul-22 and demoted anyway) | — |
+| **E** — LLM-rendered dialogue | **MERGED INTO C** | — |
+
+**What survives from D and should be carried into C** (reviewed 2026-08-18):
+- ★ the **question-framing lever** — plain "favourite" recalls POPULAR films and is weak on tail
+  (0.133), while "underrated / hidden-gem favourite" reaches 0.193 at K=2. The WORDING of an open
+  question controls whether recall lands head or tail. Novel, cheap to re-establish, and a much
+  better fit for C's LLM framing than for D. (Magnitudes demoted — pre-Jul-22 ruler.)
+- `new_chapters/paper4_casper/ASKABLE_QUESTIONS.md` — a ready taxonomy of open vs closed question
+  types with their embedding targets. Reusable as C's action-space section.
+- Citations B does not carry: KBRD, KGSF, Sanner 2023, Montazeralghaem 2025, Nguyen 2024,
+  Wolpertinger, Gumbel-softmax.
+
+**Explicitly dropped from D** (author): favourite-genre vs favourite-movie comparisons (a pure
+answerer artefact) and open-vs-closed NDCG lift (mostly measures our own simulator assumptions, and
+the ecological half is covered by B's Reddit arc).
+
+## Priorities (superseded — kept for history)
+1. ~~**A + C** for ECIR 2027 (the anchor pair).~~
 2. Bibliography completeness before any submission — ~8 load-bearing works still missing from
    `new_chapters/references.bib` (see `external_literature/README.md`).
 3. Clear every relevant item in `docs/HARSH_REVIEW_POINTS.md` for a paper before it ships — especially
