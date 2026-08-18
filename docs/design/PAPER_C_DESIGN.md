@@ -74,6 +74,29 @@ publish the corpse as a capability result (HARD RULE 6: a failed C1 is a weak me
    fail harder). One sentence, but it must be there.
 3. **"No baselines to beat" ≠ safe.** The likely C0 outcome is the negative prediction.
 
+### ★ AMENDMENT (author, 2026-08-18): the human-study bar was OVERSTATED by me
+
+The framing above implied Paper C would need the C3 human round-trip. **It does not, and the field's
+norm is far cheaper than I implied.** Author: *"as if many people do human studies. i bet no one like
+elm etc did them either."* Checked:
+
+- **ELM: 100 human raters. EAGLE: 124 post-hoc raters. ctELM: an expert discrimination test** ("fools
+  the experts 44%"). So the neighbours DO use humans — but only to **rate generated text after the
+  fact**. A short Prolific task; standard, cheap.
+- **Our C3 design (`STUDY_C3_HUMAN_ROUNDTRIP.md`) is a different animal**: import a real film history,
+  hide half, run a full interview, score recommendations against the hidden half. Rare because it is
+  expensive. Conflating the two made the bar look far higher than it is.
+
+**Paper C needs neither.** Its claim is faithfulness — does the text reproduce the vector's effect —
+measured through the frozen CF model, not through people. And there is a principled reason to skip
+even the cheap panel: Hewitt's **"machine-only synonyms"** (verbalisations humans judge WRONG that
+nonetheless reproduce the behaviour). If that holds, a plausibility panel actively misleads — which
+is precisely the audit this paper proposes, and awkward for ELM's 100 raters.
+
+**Net effect on the ruling below: unchanged, but for a better reason.** The 300 stay reserved for A/B
+not because C is unworthy, but because C genuinely does not need humans to make its claim, and the
+one human instrument the field uses is one we have an argument against.
+
 ### The 300 quarantined study users: SAVE THEM. Not "mostly" — save.
 
 Irreplaceable, the only non-circular human answer source, and the serious papers (A, B) have a
