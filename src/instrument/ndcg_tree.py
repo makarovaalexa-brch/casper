@@ -740,8 +740,9 @@ def main():
                     assert len(rec["tail"]) == rec["remaining_budget"], (
                         f"node {nid} has inheriting children but its tail is "
                         f"{len(rec['tail'])} picks, not {rec['remaining_budget']}")
-                inherit_own = [(int(a), int(b)) for a, b in rec["path"]] + \
-                              [(int(a), int(b)) for a, b in rec["tail"]]
+                # lazy: a node whose children are all above the floor skipped its tail, and a node
+                # RESUMED from the v1 build has none either. Only materialise if someone inherits.
+                inherit_own = None
                 for k in BRANCHES:
                     if not kids[k]:
                         continue                       # an empty branch is not a node
@@ -753,6 +754,9 @@ def main():
                         # parent's tail, fitted on the parent's full cohort. It is a leaf, it
                         # conditions no further, and NOTHING is fitted on its own users.
                         cnid = f"{nid}.{k}"
+                        if inherit_own is None:
+                            inherit_own = ([(int(a), int(b)) for a, b in rec["path"]] +
+                                           [(int(a), int(b)) for a, b in rec["tail"]])
                         crec = {"nid": cnid, "depth": depth + 1, "n_users": len(kids[k]),
                                 "path": [[int(a), int(b)] for a, b in rec["path"]],
                                 "branch_from": k, "inherited_from": nid, "split": False,
