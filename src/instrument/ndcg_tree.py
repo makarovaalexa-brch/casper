@@ -893,11 +893,24 @@ def main():
         f"{nest['headline_first_gain_banked_policyA']:.12f} (policy A -- NOT comparable, see below); "
         f"cohort diff at K=1 = {nest['K1_cohort_diff_full']:+.2e}")
     log("[nesting] " + RULER_NOTE)
-    if same_q:
-        assert abs(nest["K1_cohort_diff_full"]) < 1e-12, \
-            "the root splitter equals the comparator's first question but the K=1 difference is not 0"
-        log("[nesting] K=1 TIE EXACT: the tree is nested in the comparator at the first question, so "
-            "every K>=2 difference is attributable to conditioning alone.")
+    if same_q and n_seed == 0:
+        assert abs(nest["K1_cohort_diff_full"]) < 1e-12, (
+            "the root splitter equals the comparator first question but the K=1 diff is not 0")
+        log("[nesting] K=1 TIE EXACT: the tree is nested in the comparator at the first question, "
+            "so every K>=2 difference is attributable to conditioning alone.")
+    elif same_q:
+        # A SEEDED TEACHER IS NOT NESTED IN THE COMPARATOR, BY DESIGN. Its K=1 arm is
+        # [anchor, q1] against the comparator's [q1]: the anchor is folded free, so the teacher
+        # carries strictly more evidence and the difference SHOULD be non-zero. The nesting
+        # guarantee is an UNSEEDED-tree property. What this difference measures is the ANCHOR'S
+        # OWN CONTRIBUTION, not conditioning -- which is why the teacher-vs-cold-tree comparison
+        # (M5) folds the anchor into BOTH arms.
+        nest["nesting_assert_skipped_seeded"] = True
+        nest["K1_diff_is_anchor_contribution"] = nest["K1_cohort_diff_full"]
+        log("[nesting] SEEDED TEACHER: the nesting guarantee does NOT apply. K=1 difference "
+            + format(nest["K1_cohort_diff_full"], "+.5f")
+            + " is the FREE ANCHOR contribution, not conditioning. Comparisons against the cold "
+            + "tree must fold the anchor into BOTH arms.")
     else:
         log("!" * 110)
         log(f"[nesting] THE TREE'S FIRST QUESTION DIFFERS FROM THE COMPARATOR'S. That is not a "
