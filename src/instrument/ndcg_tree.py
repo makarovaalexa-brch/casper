@@ -694,10 +694,21 @@ def main():
                 # The node's own full-length tail is computed WHETHER OR NOT it splits: a
                 # splitting node hands it to any child below the floor (rule v2). It resumes the same
                 # CELF heap the split search seeded, so the extra picks are cheap.
-                seqL, gainsL, nevL = greedy_certified(E, rows, pool_n, remaining, args.objective,
-                                                      f"{nid}/tail", prefix=prefix,
-                                                      on_pick=on_pick, heap_path=heap_path)
-                assert len(seqL) == remaining, \
+                # A tail is needed only when SOMEONE will inherit it: either this node is a leaf,
+                # or it splits and at least one non-empty child sits below the floor. A node whose
+                # children are ALL above the floor hands its tail to nobody -- computing it anyway
+                # cost the real root ~2 h of pure waste (children 2606/4814/2580) before this was
+                # caught. It resumes the same CELF heap the split search seeded.
+                needs_tail = (not will_split) or bool(rec["children_inheriting"])
+                if not needs_tail:
+                    log(f"[node {nid}] tail SKIPPED -- every non-empty child is above min_leaf "
+                        f"{min_leaf}, so no child inherits it")
+                    seqL, gainsL, nevL = [q], [float(gains1[0])], int(E["n_evals"])
+                else:
+                    seqL, gainsL, nevL = greedy_certified(E, rows, pool_n, remaining, args.objective,
+                                                          f"{nid}/tail", prefix=prefix,
+                                                          on_pick=on_pick, heap_path=heap_path)
+                assert (not needs_tail) or len(seqL) == remaining, \
                     f"node {nid}: tail greedy returned {len(seqL)} of {remaining} picks"
                 assert tuple(seqL[0]) == q, \
                     f"node {nid}: the resumed tail order does not start with the split pick"
@@ -725,6 +736,10 @@ def main():
             if rec["split"]:
                 kids, _ar, _z = split_rows(E, rows, tuple(rec["splitter"]))
                 cpath = [[int(a), int(b)] for a, b in rec["path"]] + [list(rec["splitter"])]
+                if rec["children_inheriting"]:
+                    assert len(rec["tail"]) == rec["remaining_budget"], (
+                        f"node {nid} has inheriting children but its tail is "
+                        f"{len(rec['tail'])} picks, not {rec['remaining_budget']}")
                 inherit_own = [(int(a), int(b)) for a, b in rec["path"]] + \
                               [(int(a), int(b)) for a, b in rec["tail"]]
                 for k in BRANCHES:
