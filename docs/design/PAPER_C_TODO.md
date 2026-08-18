@@ -134,6 +134,28 @@ the answerer entirely:
 from anything in the bank, and is MEANINGFUL — we cannot show it would HELP. That trade is what buys
 the freedom to use a circular state generator at all.
 
+## What ELM actually is (checked 2026-08-18, author asked)
+
+**ELM = Embedding Language Models**, Tennenholtz et al., Google Research, arXiv:2310.04475.
+
+- **Mechanism:** a two-layer MLP adapter maps embeddings from a FROZEN domain model (MovieLens CF
+  item/user embeddings) into an LLM token-embedding space; the LLM then describes that vector.
+- **Domain: recommendation. Task: NOT elicitation.** One-way embedding to text. No user is asked
+  anything, no dialogue, no belief state, and nothing SELECTS which vector to decode - every vector
+  is precomputed or analyst-supplied.
+- **Why it binds us:** it decodes SYNTHESISED points, not only real ones - interpolates two movie
+  embeddings at alpha 0.5, interpolates random pairs of USER embeddings, extrapolates along concept
+  directions ("make this movie funnier") - and introduces CONSISTENCY METRICS precisely because such
+  points have no ground truth. That is the manoeuvre Paper C needs, already published.
+- **Verified negative (our own check):** ELM has NO text-to-embedding path. Its attribute directions
+  are per-attribute CAVs pre-trained by the Gopfert et al. WWW 2022 procedure, so it CONSUMES a
+  closed vocabulary of directions; it does not generate them from arbitrary text.
+- **What stays open for us:** the interactive loop, a learned policy CHOOSING which point to decode
+  from an interview state, and validating that the chosen point is worth asking about.
+
+Related, same group: Montazeralghaem 2025 (arXiv:2510.12015) HARD-CODES coarse-to-fine question
+ordering - route that citation to Paper B, where the tree makes the same ordering emerge.
+
 ## Constraints that bind
 
 No LLM API calls without explicit author approval · never the Reddit API · the 173/300 study users
