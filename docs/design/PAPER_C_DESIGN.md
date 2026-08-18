@@ -1,5 +1,109 @@
 # Paper C — the design (2026-08-18)
 
+## ★★★ FABLE VERDICT (2026-08-18) — BINDING. Read before touching anything below.
+
+**"Build it, build it around variant (b), and hold the claim at exactly what the answer-free design
+can carry."** Full text of the ruling is in this section; the staged design below stands except where
+this contradicts it.
+
+### The claim is TRIMMED. Delete "worth asking about".
+
+The drafted marquee sentence describes a paper that asks somebody something and folds the answer
+back. **This one does neither** — the circularity ruling forbids simulated answerers and the 300
+study users are ruled OUT (below). Fable: *"trim the claim to match the build and this is a good bonus
+paper; keep the claim as drafted and it's your next retraction."*
+
+**The claim now reads:** *the policy emits off-catalogue directions that carry real structure, a
+trained renderer can say them in English, and the text — unlike text from a correspondence-scrambled
+latent — reproduces the direction's causal effect.*
+
+**Worth is INHERITED, not measured.** C1's regression target is a gain-weighted blend of top-m
+**measured** candidates, so the emitted point's value is bounded by a convex combination of measured
+question values. Say exactly that, and claim no off-catalogue EXCESS value.
+
+### RENDERER: variant (b), the trained adapter. Variant (a) becomes a BASELINE ARM.
+
+- **(a) propose-and-encode is disqualified as the claim-bearing renderer** — not for engineering
+  reasons but because **it breaks the control**: the LLM never sees the vector, so scrambling `ẑ`
+  only changes which bank phrases are retrieved, testing RETRIEVAL rather than RENDERING. Per Heap,
+  only a control destroying the vector→meaning correspondence separates anything, which requires the
+  vector to condition generation directly. It is also Baum–Lang fix #1 (snap to a neighbour) wearing
+  the costume of fix #2 (verbalise) — it launders the snap rather than removing it, and it is
+  encoder-only, i.e. EAGLE-shaped, shrinking our daylight exactly where we need it.
+- **(a) IS kept as a measured baseline:** showing the anchored pipeline recovers bank questions
+  (near-zero off-catalogue residual) while (b) produces text the bank does not contain **is itself
+  evidence for the in-between claim**. Its fatal flaw becomes a table row.
+- **(b) is the only variant under which "the vector conditions what is said" is literally true** —
+  the sentence the paper rests on. ELM owning the mechanism is FINE and actually better: our
+  contribution is the evaluation its field has never run, and using the standard mechanism makes
+  "we audited it properly" cleaner than inventing a bespoke one.
+- **(c)** = (b) plus encoder re-ranking of its own samples; the residual-distance number is worth
+  having, but it reintroduces the select/validate edge and lives or dies by the discipline below.
+
+### The two-adapter split is NECESSARY BUT NOT SUFFICIENT
+
+*"Two copies of one ruler is one ruler."* Same architecture, same text encoder, same training
+distribution ⇒ the same systematic mapping errors, so a candidate gaming `W_A` scores well under
+`W_B` for the same wrong reason. Three additions, the third decisive:
+1. **Different encoder FAMILY** for the validator (different pretraining corpus), not just a
+   different data half.
+2. **Report the two rulers' correlation** on held-out real pairs — show independence, do not assert it.
+3. **★ Selection and validation must optimise DIFFERENT QUANTITIES.** Select on geometric closeness
+   to `ẑ` under `W_A`; validate on **plug-in causal-gap closure through the frozen CF model** under
+   `W_B`. Cosine-to-a-point and %-of-downstream-effect are different objectives.
+Plus the instrument checks: nearest-bank text must close LESS of the gap than the selected text, and
+scrambled text ~none. **If scrambled text closes the gap through `W_B`, the validator is broken.**
+
+### C0–C2 alone: THESIS CHAPTER ONLY, not a paper
+
+Without the renderer it is Info-Synth's cell plus better controls — a section, not a contribution.
+Its real value is as a **free kill-gate**: C0's falsifiable prediction (one-hot-trained `ẑ` sits ON
+the nearest question) is probably what we will see, which is exactly why C1 exists. **If C1 cannot
+pull `ẑ` off the grid, the paper dies for the price of a geometry check** — the correct price. Do not
+publish the corpse as a capability result (HARD RULE 6: a failed C1 is a weak method, not a theorem).
+
+### THREE FRAMING ERRORS TO FIX
+
+1. **C2 as specified may be theatre.** In a CF space with dominant principal components, *almost
+   every* direction projects real users differently — discriminativeness is nearly free geometry.
+   **The null must be norm- and spectrum-MATCHED directions, not Gaussian noise**, and the
+   load-bearing control everywhere is **correspondence-scrambling** (scramble which embedding pairs
+   with which phrase BEFORE adapter training). **Pre-register the null before running it.**
+2. **C must state it claims CAPABILITY, NOT VALUE** — otherwise the thesis argues with itself, since
+   Paper B established that *the action space was not the constraint* (a richer bank made selectors
+   fail harder). One sentence, but it must be there.
+3. **"No baselines to beat" ≠ safe.** The likely C0 outcome is the negative prediction.
+
+### The 300 quarantined study users: SAVE THEM. Not "mostly" — save.
+
+Irreplaceable, the only non-circular human answer source, and the serious papers (A, B) have a
+standing claim on them; the bonus paper does not. The whole C design was engineered to be answer-free
+— spending the one resource it was built to avoid needing would be bad portfolio allocation. **If**
+C4 ever completes clean and a headline is judged worth it, the single highest-leverage spend is a
+small capped slice on Baum–Lang **answerability** (can real people answer the rendered questions at
+all), never on quality grading.
+
+### What is actually interesting — sell the AUDIT
+
+*"'A question nobody has a word for yet' is catchy and will get the paper read; as a contribution on
+its own it is a solution in search of a problem — recsys will ask 'does asking it help?' and you have
+forbidden yourself the answer."* **The durable contribution is the measurement**: twelve
+embedding-verbalisation systems, zero scrambled controls, in a field where (per Heap) the naive null
+actively misleads. **Sell the audit, decorate with the sexy sentence — not the reverse.**
+
+### The daylight is the CONJUNCTION, never the legs
+
+(i) the decoded point is **selected by an interview policy at a state** — ELM has nothing choosing
+which vector to decode; (ii) the **scrambled-correspondence control** — absent in all twelve;
+(iii) **plug-in causal faithfulness** — absent in ELM and EAGLE, whose only evidence is 124 post-hoc
+raters. Per the Aug-12 lesson: **claim the conjunction, never the individual legs.**
+
+### Two futures in which this becomes a bad idea
+
+The claim keeps the word "worth", or it starts consuming the 300 users. **Guard those two doors.**
+
+---
+
 Supersedes the "two fixes" sketch in `PAPER_C_EMISSION_DESIGN.md`, which stands as the blocker
 analysis. Brief and settled facts: `PAPER_C_TODO.md`. Evidence base:
 `external_literature/findings/{continuous_elicitation,llm_verbalisation}_2026-08.md`.
