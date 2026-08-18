@@ -110,8 +110,13 @@ analysis. Brief and settled facts: `PAPER_C_TODO.md`. Evidence base:
 
 ## The claim, in one sentence
 
-**We can find a point in recommender space worth asking about that no catalogue question occupies,
-say it in English, and show that what we said is not noise.**
+~~We can find a point in recommender space *worth asking about*…~~ **RETRACTED before use** — Fable,
+2026-08-18: the word "worth" describes a paper that asks somebody something, and this one does not.
+
+**The claim is:** *the policy emits off-catalogue directions that carry real structure, a trained
+renderer can say them in English, and the text — unlike text from a correspondence-scrambled latent —
+reproduces the direction's causal effect.* Worth is INHERITED from C1's construction (a blend of
+MEASURED candidates bounds it), never measured, and no off-catalogue EXCESS value is claimed.
 
 Not: that it improves NDCG. The circularity ruling (author, 2026-08-18) buys the freedom to use a
 simulated answerer as a STATE GENERATOR by giving up any performance claim that would route through
