@@ -13,7 +13,8 @@
   `uplifting`, `cozy`). **★ Requested vs watched are NEAR-INVERTED: Horror is 27.5% of genre
   mentions but the favourite genre of 51 of 10,000 validation users (Drama 5,481)** — a scope
   condition on any ratings-only elicitation result. **Now written into the chapter** as
-  `ef{sec:opener_census}` (compiles clean, commit `47453a3`), with a `\PLAN` flag: the slot
+  `
+ef{sec:opener_census}` (compiles clean, commit `47453a3`), with a `\PLAN` flag: the slot
   labels are model-produced and carry NO gold-set accuracy number, unlike the linking's 0.960.
 - **M1 Stage A — DONE.** `experiments/battery/m1/{z_requests,z_full}.npz`, `m1_stage_a.json`.
   **100.0% of the 7,572 OP-named films are inside our 18,359-item vocabulary** (asserted).
@@ -34,6 +35,49 @@
 
 **Next:** Stage B (cluster request states), the alignment cross-tab (opener-state vs full-taste
 state), then Stage C twin matching and the M2 screen.
+
+---
+
+## ★★★ 2026-08-19 01:25 — THE FOREST IS BUILT. M3 COMPLETE. NOTHING IS RUNNING.
+
+Full write-up: **`docs/results/M3_FOREST_TREES.md`**. Seven trees banked, all status 0:
+`coldtree_v2.json` + `m3v2_{arthouse,dialogue,marvel,gore,teenagers,inspiring}.json`.
+
+**★ The cold tree's depth-5 stop measured the STOPPING RULE, not the data.** v1 took `min()` over
+all three children, so one small — sometimes EMPTY — branch vetoed a whole split. Rule v2 splits iff
+≥2 children are non-empty and ≥1 reaches min_leaf; children below the floor inherit the parent's tail
+(fitted on the parent's full cohort), so nothing is ever fitted below the floor. **v1 22 nodes / 15
+leaves / depth 5 → v2 164 nodes / 109 leaves / depth 11**, and the v1 tree is a strict PREFIX
+(verified: a from-scratch run reproduced its first four nodes exactly).
+
+**★ Deeper PAYS** (validation, cohort-weighted, vs combined static): K=1 and K=2 bit-identical, then
+K=4 +0.02004 · K=8 **+0.03575** · K=15 **+0.03993** against v1's +0.03144 — **+0.0085, 27% relative.**
+The standing "write neither 'conditioning stops paying' NOR 'deeper would pay'" is lifted, affirmative.
+⚠ IN-SAMPLE: v1 was +0.0314 val → +0.01035 test (3× shrinkage) and v2 has ~92 users/leaf vs v1's ~667.
+
+**★ All six teachers BRANCH** (under v1 all were depth 0 — the flat-order structure the author
+rejected): arthouse d2 · dialogue d2 · marvel d1 · gore d3 · teenagers d3 · inspiring d4 (21 nodes).
+
+**★ DEPTH DOES NOT PREDICT PAYOFF — ANCHOR SPECIFICITY DOES.** `inspiring` is deepest (21 nodes) and
+weakest (+0.018 full / +0.004 tail at K=15) on the broadest cohort; `marvel` at depth 1 is strongest
+(+0.044/+0.040). An earlier "depth predicts persistence" reading is WITHDRAWN.
+⚠ Teacher numbers are vs the static order WITH NO ANCHOR, so much of each gain is the free anchor
+itself (arthouse's priced at **+0.056** at K=1). M5 is the real test: anchor folded into BOTH arms.
+
+**Question paths** (`m3_show_paths.py`): only `arthouse → black and white` and
+`teenagers → fantasy world` are genuinely sensible; the rest are DISCRIMINATIVE cuts (an earlier
+"visibly coherent" read was over-read and is corrected in the results doc). The fair comparison
+favours us anyway: the banked genre orders ask Romance-lovers about *Speed* and never branch.
+
+**Four defects fixed, all caught by the sanity gate:** seeded-teacher budget accounting; inheritance
+length; the K=1 nesting assert (an unseeded-tree property — a teacher's K=1 diff is the ANCHOR's
+contribution); and **the driver reported status 0 for every run** (`$?` after `$(date)`), so three
+earlier teacher runs crashed and were logged as successes. Driver is now fail-fast.
+
+**NEXT:** M4 (distil the seven trees into one policy) · the volunteered-information section + figure
+for Paper B · the M2 screen's outstanding cold-state control · **M5 = the single TEST look,
+pre-registered in `DS_M3_FOREST_TREES.md`, UNSPENT and the author's call.**
+Paper C: design settled and Fable-ruled (`PAPER_C_DESIGN.md`), nothing running.
 
 ---
 
