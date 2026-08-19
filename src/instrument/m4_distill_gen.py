@@ -54,47 +54,6 @@ def load_tree(path):
     return d, nodes
 
 
-def route(E, rows, nodes, total_L):
-    """Per-user ASKED question sequence, branching on each user's own answer."""
-    from ndcg_tree import branch_of
-    seq = {int(r): [] for r in rows}
-
-    def rec(nid, rs):
-        if not rs:
-            return
-        nd = nodes.get(nid)
-        assert nd is not None, f"node {nid} missing"
-        if not nd.get("split"):
-            steps = [(int(a), int(b)) for a, b in nd["steps"]]
-            for r in rs:
-                seq[int(r)].extend(steps)
-            return
-        q = (int(nd["splitter"][0]), int(nd["splitter"][1]))
-        for r in rs:
-            seq[int(r)].append(q)
-        lab, _ar, _nz = branch_of(E, rs, q)
-        kids = {"like": [], "dislike": [], "noanswer": []}
-        for r, l in zip(rs, lab):
-            kids[str(l)].append(int(r))
-        for br in ("like", "dislike", "noanswer"):
-            if not kids[br]:
-                continue
-            child = f"{nid}.{br}"
-            if child in nodes:
-                rec(child, kids[br])
-            else:
-                tail = [(int(a), int(b)) for a, b in nd.get("tail", nd["steps"])]
-                for r in kids[br]:
-                    seq[int(r)].extend(tail[1:])
-    rec("root", [int(r) for r in rows])
-    out = []
-    for r in rows:
-        s = seq[int(r)]
-        assert len(s) >= total_L, f"user {r}: {len(s)} questions, need {total_L}"
-        out.append(s[:total_L])
-    return out
-
-
 def main() -> None:
     ap = argparse.ArgumentParser(description="M4b stage 1 -- forest trajectories on train users")
     ap.add_argument("--chunk", type=int, default=20000)
@@ -109,6 +68,10 @@ def main() -> None:
     from strategy_channel_suite import (build_greedy_env, genv_eval_multi,
                                         CERT_TOWER, CERT_CONC)
     from ndcg_tree import build_pool
+    from tree_route import route
+
+    static = [(int(x), int(y)) for x, y in
+              json.load(open(os.path.join(B, "greedy_static_policyB_combined.json")))["sequence"]]
 
     want = [t.strip() for t in a.trees.split(",") if t.strip()]
     trees = {}
@@ -143,7 +106,11 @@ def main() -> None:
                                     rows=rows.astype(np.int32), label_idx=np.zeros((0, TOTAL_L), np.int16),
                                     z=np.zeros((0, TOTAL_L, E["ctx"].d), np.float32), anchor=-1 if cid is None else cid)
                 continue
-            seqs = route(E, rows, nodes, TOTAL_L)
+            mask = [] if cid is None else [(1, cid)]
+            seqs, diag = route(E, rows, nodes, TOTAL_L, static=static, mask=mask)
+            if diag["n_fallback"]:
+                log(f"  [{t}] ⚠ {diag['n_fallback']}/{len(rows)} users routed OUTSIDE the fitted "
+                    f"support -> continuation rule fired: {diag['sites']}")
             lab = np.full((len(rows), TOTAL_L), -1, np.int16)
             for u, s in enumerate(seqs):
                 for p, q in enumerate(s):
@@ -162,7 +129,8 @@ def main() -> None:
                 z[:, p, :] = np.asarray(zz, np.float32)
             np.savez_compressed(os.path.join(OUT, f"{t}_{lo}_{hi}.npz"),
                                 rows=rows.astype(np.int32), label_idx=lab, z=z,
-                                anchor=-1 if cid is None else cid)
+                                anchor=-1 if cid is None else cid,
+                                n_fallback=diag["n_fallback"])
             log(f"  [{t}] slice {lo}:{hi}: {len(rows)} users x {TOTAL_L} positions banked")
         log(f"[slice {lo}:{hi}] done in {(time.time() - t0) / 60:.1f}m")
         del E
