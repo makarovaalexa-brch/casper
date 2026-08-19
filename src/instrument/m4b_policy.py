@@ -284,10 +284,19 @@ def main():
 
     phi_cand = torch.from_numpy(phi_ext[:n_pool])
 
-    def fidelity(idx, cap=40000):
+    # The dev subsample is drawn ONCE, from its own generator, so every epoch is scored on the SAME
+    # states. Drawing it from the shared `rng` inside fidelity() made each epoch's number come off a
+    # different subsample, which is fine for a 0.004 gap and sloppy for a 0.0005 one.
+    _dev_rng = np.random.default_rng(SEED + 1)
+
+    def fidelity(idx, cap=40000, _cache={}):
         """Teacher-forced top-1 agreement, PER TREE -- the interference falsifier."""
         pol.eval()
-        sub = idx if len(idx) <= cap else idx[rng.choice(len(idx), cap, replace=False)]
+        key = (id(idx), len(idx))
+        if key not in _cache:
+            _cache[key] = (idx if len(idx) <= cap
+                           else idx[_dev_rng.choice(len(idx), cap, replace=False)])
+        sub = _cache[key]
         hit = {t: [0, 0] for t in TREES}
         with torch.no_grad():
             for s in range(0, len(sub), 2048):
