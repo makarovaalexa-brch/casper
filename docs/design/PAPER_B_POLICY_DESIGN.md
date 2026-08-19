@@ -2266,3 +2266,46 @@ pass the "does the chapter read better with it in or out" test.
 - **W3** — Reddit data + linker methodology section, claiming the contribution.
 - **W4** — K.6 scoping-theorem paragraph (audited numbers only: +0.19366 / +0.009664).
 - **W5** — the skip-redundancy multiplication printed (5.4% × 16 × +0.00167 ≈ +0.0013 < MDE/3).
+
+---
+
+## Writing / experiment TODOs added 2026-08-20 (Fable verdict + author direction)
+
+**W6 — ELEVATE THE ABLATION FROM ANALYSIS TO PRESCRIPTION.** `sec:criterion` already contains the
+finding ("Rank-awareness is not the fix. Measuring is.") but states it as an observation inside Act 3.
+The author's own summary is the prescription: **"NDCG and NDCG only should be optimised if you want
+the best ranking."** Fable's verdict makes the ablation the load-bearing result and the paper's hero,
+so this belongs in the **abstract and the introduction**, phrased as guidance to anyone building an
+elicitation criterion, not merely as a fact about our tree. Supporting numbers already measured:
++0.01035 vs −0.03041 / −0.03061 / −0.08627, 56/56 intervals excluding zero, and the mechanism (the
+measured value of *asking* rather than a training loss over the fit) which is already written.
+
+**W7 — RUN GreedyExtend (`golbandi2010bootstrapping`), the missing EXTERNAL STATIC anchor.**
+⚠ Note what is and is not already done: Golbandi's *interview tree* IS implemented
+(`src/baselines/golbandi_tree_selector.py`) and loses at every budget 1–16. **GreedyExtend — their
+published static seed set, greedily minimising RMSE — is only CITED, never run.** It is the one
+baseline that would answer "your strong static comparator is self-built", which is currently
+answered only by self-citation. Hours of work, highest effort-to-value ratio on the list.
+⚠ Do not assume the outcome: the chapter's own positioning paragraph concedes that Golbandi's tree
+beat GreedyExtend *decisively* in their paper. The claim to target is **"our metric-optimised static
+is stronger than the published static of that era"** — i.e. the comparator is not a straw man.
+HARD RULE 2 applies: run the named prior, do not reason about it.
+
+**W8 — FRAMING CHANGE (Fable, adopted).** Tell the paper as *"the objective is the bug"*, not
+*"adaptive elicitation fails, here is a fix"*. The fix is a +0.01 effect that loses to a bank swap, so
+making it the hero invites judgement by the weakest link. Spine: frontier fails on an honest ruler →
+the ablation proves the objective is why → the corrected objective reveals cold conditioning is small
+and bank choice dominates → the information that pays arrives **volunteered**, and answerability
+orders the channels → fitting the interviewer at realistic volunteered states is where measured-objective
+conditioning finally earns its keep. This turns "conditioning is small" from a buried confession into
+the hinge of the argument.
+
+**W9 — DEMOTE DISTILLATION to infrastructure.** E1's top-1 1.0000 is a replication that buys zero
+gain by our own record, and M4b's seven-tree result is engineering fidelity. Present both as the
+machinery that makes the generalisation claim possible, never as a contribution in their own right.
+
+**W10 — TEST-LOOK BUDGET.** One look, one run, covering the forest, the group mix, the unseen-film
+generalisation cell and the do-no-harm cell. **Retreat lines decided before the run:** if `vs cold`
+shrinks to zero the claim retreats to `vs anchor`; if routing is accurate but the NDCG delta is ~0
+that is M4b redux (behaviour without value) and is reported as such. Pre-register the **value**
+criterion, not the routing criterion.
