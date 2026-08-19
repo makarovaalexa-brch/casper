@@ -2310,17 +2310,23 @@ shrinks to zero the claim retreats to `vs anchor`; if routing is accurate but th
 that is M4b redux (behaviour without value) and is reported as such. Pre-register the **value**
 criterion, not the routing criterion.
 
-**W11 — SELL THE GOLBANDI RESCUE. Presentation, NOT a new run.** Fable proposed transplanting our
-measured-NDCG scalar into Golbandi's tree as the highest-value missing experiment. ⚠ **It is already
-done and has been all along**: our tree IS Golbandi's machinery (their ternary like/dislike/unknown
-split), so `tab:splitcrit` already contains their structure with THEIR criterion (rating variance,
-−0.03061) against their structure with OURS (+0.01035). The intro states this; the brief I gave Fable
-did not, which is why it was missed.
+**W11 — STATE THE ABLATION'S HELD-FIXED DESIGN MORE PLAINLY. (Revised; the earlier version of this
+item was wrong.)**
 
-★ **The signal is the miss, not the gap.** A careful reader holding all the numbers still raised
-"of course your criterion wins inside the tree you designed around it". If that reader can miss that
-the host architecture is the field's own, a reviewer will. **The paper is under-selling its strongest
-defence against the circularity objection.** Fix in the ABSTRACT and the ablation caption: say plainly
-that we *repair a published method by changing one scalar*, and make the Golbandi row visibly the same
-architecture as ours rather than a neighbouring baseline. This is what turns "the objective is the bug"
-from a fact about our tree into a prescription about the field.
+Fable proposed transplanting our measured-NDCG scalar into Golbandi's tree as the highest-value
+missing experiment. I first recorded that as "already done, because our tree IS their machinery, so we
+have rescued a published method". ⚠ **The author rejected that and is right.** A greedy ternary tree is
+a generic object; the min-leaf, stopping rule, pool, candidate mask and answer contract are ours, not
+Golbandi's. **"We repair a published method by changing one scalar" is an OVERCLAIM and must not be
+written.** Attribution of the structure is a positioning move, not evidence.
+
+★ **What actually answers the circularity objection is the held-fixed design, and it needs no
+attribution.** The tree is constant across all four criteria — same code, branching, min-leaf,
+stopping rule, pool, mask, answers, recommender, cohorts, budget. A constant cannot explain a
++0.01035 / −0.03061 gap, because it is equally the structure of the arms that lose. That is a
+complete answer to "you designed the tree around your criterion".
+
+**The actionable residue is small and is about emphasis, not attribution:** Fable held every number
+and still reached for circularity, which suggests the one-variable-changed design is not landing on a
+first pass. Say it earlier and flatter — in the abstract and the table caption — as *"only the scalar
+changes"*, not as a claim about whose tree it is.
