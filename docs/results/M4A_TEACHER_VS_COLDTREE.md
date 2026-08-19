@@ -55,11 +55,19 @@ than the incumbent cold tree — and the advantage is not the anchor, because th
 arms. The M2 screen's front-loaded finding extends: the advantage is not confined to the first
 question, and for `dialogue`, `teenagers` and `marvel` it survives the full 15-question budget.
 
-**Does NOT:** establish generalisation. ⚠ **Both arms are IN-SAMPLE** — the cold tree and every
-teacher were grown on these same 10,000 validation users. The comparison is fair because both are
-equally advantaged, but the levels are optimistic and the effect will shrink out of sample (v1's cold
-tree went +0.0314 val → +0.01035 test, a 3× shrinkage). **This measures whether the extra
-conditioning helps at all, before spending the test look.**
+**Does NOT:** establish generalisation. ⚠⚠ **AND THE COMPARISON IS BIASED TOWARDS THE TEACHER**
+(author, 2026-08-19). An earlier version of this file claimed both arms were "equally in-sample, so
+the comparison is fair". **That was wrong.** The teacher was fitted on *precisely* the cohort it is
+scored on; the cold tree was fitted on all 10,000 and merely happens to cover that cohort. The
+specialised arm has an advantage the incumbent does not. **These numbers are an UPPER BOUND on what
+conditioning is worth, not an estimate of it.**
+
+Two things keep them informative anyway. **The bias is not decisive** — the genre orders of
+2026-08-11 were also fitted per cohort on their own users and still LOST to the tree at those states
+(−0.026/−0.033/−0.031), so specialisation does not by itself manufacture a win. And **the direction
+of the shrinkage is known**: v1's cold tree went +0.0314 val → +0.01035 test, a 3× loss. Expect these
+effects to shrink materially rather than reverse. The M5 test look is what converts this from an
+upper bound into a measurement; **every number here is provisional until then.**
 
 ## ★ Anchor specificity beats tree depth, confirmed a second way
 

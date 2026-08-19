@@ -1690,10 +1690,21 @@ those groups the conditioned interview is finding popular relevant items faster 
 marginally less well. \texttt{teenagers} is the counterexample, with its largest gain on the tail
 ($+.0234$).
 
-\paragraph{Scope.} Both arms of Table~\ref{tab:volunteered} are fitted on the users they are measured
-on, so the levels are optimistic; the comparison is nevertheless fair, because both arms are equally
-advantaged and differ only in whether the interview was allowed to condition on the volunteered fact.
-\PLAN{the held-out confirmation, on the reserved test cohort, of the mix-weighted comparison.}
+\paragraph{Scope, and a bias that runs in our favour.} Table~\ref{tab:volunteered} is measured on the
+users both arms were fitted on, and the two arms are \emph{not} equally advantaged. Each group's
+interview was fitted on precisely the cohort it is scored on; the cold interview was fitted on the
+full ten thousand and merely happens to cover that cohort. The specialised arm therefore enjoys an
+advantage the incumbent does not, and the comparison is biased towards it. These numbers are an
+\emph{upper bound} on what conditioning is worth, not an estimate of it.
+
+Two things keep the table informative despite that. The bias is not decisive: in an earlier
+experiment, orders fitted per genre on their own cohorts nonetheless \emph{lost} to the unconditioned
+tree at those same states, so being specialised does not by itself produce a win. And the direction
+of the remaining uncertainty is known --- a tree fitted on the cohort it is scored on lost roughly two
+thirds of its measured advantage when carried to held-out users
+(Section~\ref{sec:act3}), so the honest expectation is that these effects shrink materially rather
+than reverse. \PLAN{the held-out confirmation on the reserved test cohort, which is what converts
+this table from an upper bound into a measurement; every number here is provisional until then.}
 
 \PLAN{the screen --- whether, at these groups' entry states, any question improves on the tree's own
 first question by more than the pre-registered margin. Note the power constraint: a group holds
