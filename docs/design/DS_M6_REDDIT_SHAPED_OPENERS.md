@@ -114,10 +114,16 @@ below is **not interpretable** and must be reported as such, not as evidence eit
 M4c's adjacency probe is the wrong instrument: it asked whether a *different concept* routes to a
 group, when the question is whether *unseen opener material* does. So:
 
-> Each group's diagnostic pool (films and coarse attributes above the centroid-lift bar) is split
-> **50/50 by a seeded hash of the item/concept id**, fixed before any fit. TRAIN openers are drawn
-> only from half A. TEST openers are drawn only from **half B** — material the policy has never seen
-> in that group's openers.
+> Each group's diagnostic **film** pool is split **50/50 by a seeded hash of the item id**, fixed
+> before any fit. TRAIN openers draw films only from half A; TEST openers only from **half B** —
+> films the policy has never seen in that group's openers.
+>
+> ⚠ **The split is films-only, deliberately.** The coarse attribute vocabulary is ~12 words per group
+> (6 genres + 6 tones). Splitting it would leave ~3 of each and routinely empty a channel, at which
+> point the generator's "never leave a channel empty" fallback would silently restore the held-out
+> material — a hold-out that leaks is worse than none. So **the generalisation claim is about unseen
+> FILMS**, the attribute channel is shared between halves, and that must be stated wherever the
+> result is quoted.
 
 **The measurement.** On validation users wearing half-B openers: does the policy ask that group's
 questions? Reported as (i) agreement with the group's opener-fitted tree at the root and over the

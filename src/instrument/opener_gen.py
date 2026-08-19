@@ -57,6 +57,28 @@ TONE_WORDS = ["feel-good", "fun", "sad", "scary", "emotional", "dark", "disturbi
               "quirky", "gritty", "heartwarming", "funny", "tense", "bleak"]
 
 
+def pool_half(ids, half, seed=98765):
+    """The PRE-REGISTERED 50/50 split of a group's diagnostic pool (DS_M6, M6d).
+
+    Declared before any fit: TRAIN openers are drawn only from half "A", the generalisation test
+    only from half "B", so the test uses FILMS the policy has never seen in that group's openers.
+    Applied to the film pool only -- see the note in `make_openers`.
+    The assignment is a pure function of the id and the seed -- deterministic, order-independent, and
+    identical on both sides -- so it cannot drift between generation and evaluation.
+    """
+    if half is None:
+        return set(int(i) for i in ids)
+    assert half in ("A", "B"), f"half must be A, B or None -- got {half!r}"
+    want = 0 if half == "A" else 1
+    import hashlib
+    keep = set()
+    for i in ids:
+        h = hashlib.sha256(f"{seed}:{int(i)}".encode()).digest()[0] & 1
+        if h == want:
+            keep.add(int(i))
+    return keep
+
+
 def coarse_ids(cname):
     """Genome ids for the coarse vocabulary real requests actually use."""
     nm = {v.lower(): k for k, v in cname.items()}
@@ -78,13 +100,21 @@ def centroid_lift(E, cohort_rows, z_full, z_rows, top_frac=0.05):
 
 
 def make_openers(E, cohort_rows, tab, cname, like_min_level, seed, beta=1.5,
-                 films_per=(0.53, 0.31, 0.16)):
+                 films_per=(0.53, 0.31, 0.16), half=None):
     """Per-user opener as a list of (channel, id), matched to the measured Reddit targets."""
     rng = np.random.default_rng(seed)
     genres, tones = coarse_ids(cname)
     lc, li = tab["lift_conc"], tab["lift_item"]
     gq = sorted([c for c in genres if lc[c] > 0], key=lambda c: -lc[c])[:6]
     tq = sorted([c for c in tones if lc[c] > 0], key=lambda c: -lc[c])[:6]
+    if half is not None:
+        # M6d hold-out. ⚠ FILMS ONLY, deliberately. The coarse vocabulary is ~12 words per group
+        # (6 genres + 6 tones); splitting it 50/50 leaves ~3 of each and would routinely empty a
+        # channel, at which point a "never leave it empty" fallback would silently restore the very
+        # material meant to be held out. So the generalisation claim is about UNSEEN FILMS, and the
+        # attribute channel is shared between halves and must be described that way.
+        tab = dict(tab)
+        tab["pool"] = pool_half(tab["pool"], half)
     lvl = E["lvl"]
     V, F = np.asarray(E["V"]), np.asarray(E["foldable"])
     endorse = (F > 0) & (V > 0)
@@ -102,6 +132,7 @@ def make_openers(E, cohort_rows, tab, cname, like_min_level, seed, beta=1.5,
     fk /= fk.sum()
 
     openers, meta = [], {"n_film": 0, "n_genre": 0, "n_tone": 0, "n": 0, "unserved": 0,
+                         "half": half,
                          "genres": [cname.get(c, str(c)) for c in gq],
                          "tones": [cname.get(c, str(c)) for c in tq],
                          "pool_size": len(tab["pool"])}
