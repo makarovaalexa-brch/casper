@@ -15,10 +15,16 @@ Budgets K in {1,2,4,8,15} count ASKED questions.
 
 Paired percentile bootstrap over per-user differences, 10,000 resamples, seed 98765.
 
-⚠ IN-SAMPLE FOR BOTH TREES: the cold tree and every teacher were grown on these same validation
-users. This measures whether the teacher's extra conditioning helps AT ALL before spending the test
-look; it does not establish generalisation. Both arms are equally in-sample, so the COMPARISON is
-fair even though the levels are optimistic.
+IN-SAMPLE, AND NOT SYMMETRICALLY SO (author, 2026-08-19): each teacher was fitted on precisely the
+cohort it is scored on, while the cold tree was fitted on all 10,000 and merely covers it. The
+specialised arm has an advantage the incumbent does not, so a positive teacher-minus-cold is an UPPER
+BOUND on what conditioning is worth, not an estimate of it. Held-out confirmation is the M5 test look.
+
+RE-RUN 2026-08-19 after a ROUTING DEFECT: the previous run reconstructed each user's interview by
+accumulating splitters during the descent and then appending the leaf's `steps`. For a below-floor
+child that re-supplies the parent's splitter, so 18.5-45.3% of users were asked one question twice
+and received 14 distinct questions on a budget of 15. Routing now uses the tree's own
+`path + steps` (`tree_route`), verified to give 15.00 distinct questions for every tree.
 """
 from __future__ import annotations
 
@@ -72,46 +78,6 @@ def load_tree(path):
     return d, nodes
 
 
-def route(E, rows, nodes, seed_prefix, total_L):
-    """Per-user question sequence produced by descending `nodes` from the root, branching on each
-    user's OWN answer. Returns a list of per-user ASKED question lists (the free seed excluded)."""
-    from ndcg_tree import branch_of
-    seq = {int(r): [] for r in rows}
-    def rec(nid, rs):
-        if not rs:
-            return
-        rec_ = nodes.get(nid)
-        assert rec_ is not None, f"node {nid} missing"
-        steps = [(int(a), int(b)) for a, b in rec_["steps"]]
-        if not rec_.get("split"):
-            for r in rs:
-                seq[int(r)].extend(steps)
-            return
-        q = (int(rec_["splitter"][0]), int(rec_["splitter"][1]))
-        for r in rs:
-            seq[int(r)].append(q)
-        lab, _ar, _nz = branch_of(E, rs, q)
-        kids = {"like": [], "dislike": [], "noanswer": []}
-        for r, l in zip(rs, lab):
-            kids[str(l)].append(int(r))
-        for br in ("like", "dislike", "noanswer"):
-            if kids[br]:
-                child = f"{nid}.{br}"
-                if child in nodes:
-                    rec(child, kids[br])
-                else:                       # below-floor child: inherits this node's tail
-                    tail = [(int(a), int(b)) for a, b in rec_.get("tail", rec_["steps"])]
-                    for r in kids[br]:
-                        seq[int(r)].extend(tail[1:])   # the splitter is already appended
-    rec("root", [int(r) for r in rows])
-    out = []
-    for r in rows:
-        s = seq[int(r)]
-        assert len(s) >= total_L, f"user {r} got {len(s)} questions, need {total_L}"
-        out.append(s[:total_L])
-    return out
-
-
 def main() -> None:
     ap = argparse.ArgumentParser(description="M4a -- cold tree vs dedicated teacher at opener states")
     ap.add_argument("--total_L", type=int, default=15)
@@ -125,6 +91,7 @@ def main() -> None:
     from strategy_channel_suite import (build_greedy_env, contract_selftest, genv_mean,
                                         genv_eval_multi, CERT_TOWER, CERT_CONC)
     from ndcg_tree import leak_assert
+    from tree_route import route
 
     log("#" * 100)
     log("# M4a -- COLD TREE vs DEDICATED TEACHER at opener states. VALIDATION ONLY.")
@@ -156,11 +123,13 @@ def main() -> None:
         log(f"[{name}] cohort {len(cohort)} · teacher depth {t_d.get('depth_reached')}, "
             f"{t_d.get('n_nodes')} nodes")
 
-        seq_cold = route(E, cohort, cold_nodes, [(1, cid)], a.total_L)
-        seq_teach = route(E, cohort, t_nodes, [(1, cid)], a.total_L)
+        seq_cold, dg_c = route(E, cohort, cold_nodes, a.total_L, static=static, mask=[(1, cid)])
+        seq_teach, dg_t = route(E, cohort, t_nodes, a.total_L, static=static, mask=[(1, cid)])
 
         row = {"anchor": name, "concept": cid, "cohort": int(len(cohort)),
-               "teacher_depth": t_d.get("depth_reached"), "budgets": {}}
+               "teacher_depth": t_d.get("depth_reached"),
+               "fallback_cold": dg_c["n_fallback"], "fallback_teacher": dg_t["n_fallback"],
+               "budgets": {}}
         for K in BUDGETS:
             def ev(seqs):
                 iseq, cseq = [], []
