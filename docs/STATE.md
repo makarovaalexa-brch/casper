@@ -1,5 +1,44 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-19 (evening) — FIT THE TREE WHERE YOU MEAN TO SERVE. It works.
+
+**AUTHOR SAID:** *"try building the tree teacher on just one cluster for now, and then compare its
+performance with old tree teacher and cold tree and static"* · *"continue with all, going to bed"*.
+
+### The result (M6l, `docs/results/M6L_OPENER_FITTED_TEACHER.md`)
+A tree fitted on **varied, group-linked opener states** beats the banked anchor teacher at **all five
+budgets** (+0.013..+0.027, every CI excluding zero), static at four (up to +0.033), and the cold tree
+at K=15 (**+0.01386★**). At those same states the ANCHOR teacher ran −0.008..−0.014 against cold
+(M6a/M6c) — so the diagnosis *"teachers are anchor teachers"* was right and the remedy works.
+Controlled A/B: same 786 users, same pool/budget/min_leaf, **only the fitting state differs**.
+⚠ One group, depth 1, in-sample; cluster-vs-anchor is the clean cell.
+
+### ⚠ A TERMINOLOGY ERROR, caught by the author and corrected everywhere
+"Cluster" was used all session for what is an **ENDORSEMENT COHORT**. **No tree has ever been fitted
+on a k-means cluster label** — verified three ways (`--cohort_concept`, `ndcg_tree.py:530`,
+`n_cohort`=786/587 matching endorsement counts and no cluster size). The k=20 cluster labels were
+**never banked** (M1 merged start_k=40→final_k=4 under a min_size 1200 gate); re-derived and banked
+now as `m6/m6p_clusters_k20.npz`. ⚠ **One era projection does not remove era structure: 13 of 20
+clusters span under three years.** Endorsement cohorts dodge this because they are semantic.
+
+### Opener synthesis, and it is in the chapter
+`sec:opener_synthesis` + `tab:opener_match`. Targets MEASURED on the corpus (film .630 / genre .398 /
+tone .214 / coherence +0.224 / popularity 93.3), material chosen by **centroid lift** — which is
+validated against Reddit: real named films land at percentile **76–91** of their own group's ranking
+vs ~50 random. Three non-matches declared (popularity floor, era tags, unsayable affect words).
+
+### RUNNING OVERNIGHT (launched 21:04)
+`run_m6_all.sh`: opener-fitted trees for arthouse → gore → marvel → dialogue → inspiring, each
+followed by its four-arm comparison. ~13 h. Cheapest cohorts first so a late failure still leaves the
+most groups done; every exit status captured accurately.
+
+### NEXT, PRE-REGISTERED before the data exists (`DS_M6`, M6c/M6d/M6e)
+State-only distillation over all groups (no token exists — the opener differs per user), with an
+interpretability gate; **generalisation tested on a seeded 50/50 split of each group's diagnostic
+pool** so test openers use material never seen in training; then the group mix with a **do-no-harm
+cell** on cold users. All three readings declared in advance. **The single TEST look stays unspent.**
+
+
 ## ★★★ 2026-08-19 — M4a RE-RUN, M4b DONE: ONE POLICY HOLDS THE WHOLE FOREST
 
 **AUTHOR SAID:** *"ok, distill and compare all the trees and the model on val data"* · *"please set
