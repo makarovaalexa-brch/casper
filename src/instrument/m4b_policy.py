@@ -203,6 +203,13 @@ def main():
     log("#" * 100)
 
     banks = {t: consolidate(t) for t in TREES}
+    # HARD RULE 1: refuse a partial cohort. The cold tree is applied to EVERY train user, so its bank
+    # must be exactly 0..140,767 -- anything less means a slice is missing and the split below would
+    # silently train on a truncated population.
+    cu = banks["cold"]["uid"]
+    assert np.array_equal(np.sort(cu), np.arange(N_TRAIN)), (
+        f"the cold bank holds {len(cu):,} of {N_TRAIN:,} train users -- REFUSING to train on a "
+        f"partial cohort (HARD RULE 1)")
     for t in TREES:
         d = banks[t]
         log(f"[bank] {t:<11} {len(d['uid']):>7,} users - {int(d['valid'].sum()):>9,} valid "
