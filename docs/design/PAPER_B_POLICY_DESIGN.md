@@ -2309,3 +2309,18 @@ generalisation cell and the do-no-harm cell. **Retreat lines decided before the 
 shrinks to zero the claim retreats to `vs anchor`; if routing is accurate but the NDCG delta is ~0
 that is M4b redux (behaviour without value) and is reported as such. Pre-register the **value**
 criterion, not the routing criterion.
+
+**W11 — SELL THE GOLBANDI RESCUE. Presentation, NOT a new run.** Fable proposed transplanting our
+measured-NDCG scalar into Golbandi's tree as the highest-value missing experiment. ⚠ **It is already
+done and has been all along**: our tree IS Golbandi's machinery (their ternary like/dislike/unknown
+split), so `tab:splitcrit` already contains their structure with THEIR criterion (rating variance,
+−0.03061) against their structure with OURS (+0.01035). The intro states this; the brief I gave Fable
+did not, which is why it was missed.
+
+★ **The signal is the miss, not the gap.** A careful reader holding all the numbers still raised
+"of course your criterion wins inside the tree you designed around it". If that reader can miss that
+the host architecture is the field's own, a reviewer will. **The paper is under-selling its strongest
+defence against the circularity objection.** Fix in the ABSTRACT and the ablation caption: say plainly
+that we *repair a published method by changing one scalar*, and make the Golbandi row visibly the same
+architecture as ours rather than a neighbouring baseline. This is what turns "the objective is the bug"
+from a fact about our tree into a prescription about the field.
