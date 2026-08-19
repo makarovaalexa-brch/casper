@@ -85,7 +85,7 @@ def main():
     from ndcg_tree import build_pool, leak_assert, LIKE_MIN_LEVEL
     from policy_net import Policy, build_phi
     from tree_route import route
-    from m4b_eval import load_tree, policy_rollout
+    from m4b_eval import load_tree
     from m3_show_paths import build_names
     from opener_gen import centroid_lift, make_openers
     cname, _iname = build_names()
@@ -199,10 +199,8 @@ def main():
                 continue
             ops = {int(r): openers[int(r)] for r in rows_g}
             umask = {int(r): list(ops[int(r)]) for r in rows_g}
-            s_pol = policy_rollout(E, pol, phi_ext, pool, rows_g, None, 0, -1,
-                                   L=TOTAL_L, announce=False,
-                                   base_extra=None) if False else None
-            # the opener is per-user, so it is folded through the mask/route path, not base_extra
+            # the opener is PER USER, so `m4b_eval.policy_rollout` (one shared seed)
+            # does not apply -- the rollout below folds each user's own opener.
             s_pol = rollout_with_openers(E, pol, phi_ext, pool, rows_g, ops, TOTAL_L)
             s_tree, _d1 = route(E, rows_g, trees[g], TOTAL_L, static=static, mask=umask)
             s_cold, _d2 = route(E, rows_g, cold_nodes, TOTAL_L, static=static, mask=umask)
