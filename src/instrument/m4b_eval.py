@@ -139,6 +139,7 @@ def policy_rollout(E, pol, phi_ext, pool, rows, cid, a_phi_idx, a_pool_idx, L=TO
 def main():
     ap = argparse.ArgumentParser(description="M4b stage 3 -- arm C against the trees, on validation")
     ap.add_argument("--ckpt", default=os.path.join(OUT, "m4b_policy.pt"))
+    ap.add_argument("--total_L", type=int, default=TOTAL_L)
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
@@ -200,14 +201,23 @@ def main():
         s_pol = policy_rollout(E, pol, phi_ext, pool, cohort, cid,
                                ck["a_phi"][name], ck["a_pool"][name])
 
-        # held-out fidelity: does the policy pick the teacher's question at the teacher's own
-        # validation states? these users were never trained on.
-        agree = float(np.mean([1.0 if tuple(p[0]) == tuple(t[0]) else 0.0
+        # Held-out fidelity: does the policy pick the teacher's question at the teacher's own
+        # validation states? These users were never trained on. Reported PER POSITION, because root
+        # agreement of 1.0000 with a K=15 shortfall can only mean the trajectories separate later,
+        # and where they separate is the diagnosis. `never_deviates` is E1's statistic: the fraction
+        # of users whose whole interview is the teacher's, which is what bounds the achievable gap.
+        by_pos = [float(np.mean([1.0 if tuple(p[k]) == tuple(t[k]) else 0.0
+                                 for p, t in zip(s_pol, s_teach)])) for k in range(a.total_L)]
+        never = float(np.mean([1.0 if [tuple(x) for x in p] == [tuple(x) for x in t] else 0.0
                                for p, t in zip(s_pol, s_teach)]))
+        agree = by_pos[0]
+        log(f"   [{name}] agreement by position " + " ".join(f"{v:.3f}" for v in by_pos))
+        log(f"   [{name}] whole interview identical to the teacher for {never:.4f} of users")
 
         row = {"anchor": name, "concept": cid, "cohort": int(len(cohort)),
                "fallback_cold": d_cold["n_fallback"], "fallback_teacher": d_teach["n_fallback"],
-               "policy_matches_teacher_at_root": agree, "budgets": {}}
+               "policy_matches_teacher_at_root": agree, "agreement_by_position": by_pos,
+               "frac_never_deviates": never, "budgets": {}}
         for K in BUDGETS:
             def ev(seqs):
                 iseq, cseq = [], []
