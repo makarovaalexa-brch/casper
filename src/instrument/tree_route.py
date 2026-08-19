@@ -16,7 +16,12 @@ in both cases SKIPPING questions already asked on the path. This is a strict EXT
 cohort a tree was fitted on, these branches are empty by construction, so every banked validation
 number is bit-identical under this rule. It only ever fires off the fitting cohort.
 
-`n_fallback` is returned so the escape rate can be REPORTED rather than silently absorbed.
+`n_fallback` is returned so the escape rate can be REPORTED rather than silently absorbed, and
+`fb_from[user] = position` marks where the fallback took over. A DISTILLATION target must mask
+positions >= fb_from: their label is this module's continuation rule, not the teacher's decision, and
+training on them would fit the fallback instead of the tree. EVALUATION does NOT mask -- a scored
+interview must be complete for every user, and dropping the users a tree cannot route would select
+the cohort on an outcome.
 
 ⚠ The fitted path is reproduced VERBATIM, duplicates included: a question can legitimately recur
 along a path once a below-floor child inherits its parent's tail, and the banked M4a validation
@@ -42,7 +47,10 @@ def route(E, rows, nodes: Dict[str, dict], total_L: int,
     banned = {tuple(q) for q in mask}
     stat = [tuple(q) for q in (static or []) if tuple(q) not in banned]
     seq: Dict[int, List[Q]] = {int(r): [] for r in rows}
-    diag = {"n_fallback": 0, "sites": {}}
+    # fb_from[r] = the position at which the FITTED tree ran out for user r and the fallback took
+    # over. Positions >= fb_from carry MY continuation rule as their label, not the teacher's, and
+    # must be masked out of any distillation target.
+    diag = {"n_fallback": 0, "sites": {}, "fb_from": {}}
 
     def steps_of(nd, key):
         v = nd.get(key)
@@ -63,6 +71,7 @@ def route(E, rows, nodes: Dict[str, dict], total_L: int,
         diag["sites"][site] = diag["sites"].get(site, 0) + len(rs)
         for r in rs:
             cur = seq[int(r)]
+            diag["fb_from"].setdefault(int(r), len(cur))
             have = {tuple(q) for q in cur}
             for s in sources:
                 for q in s:

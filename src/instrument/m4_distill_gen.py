@@ -104,13 +104,23 @@ def main() -> None:
                 log(f"  [{t}] slice has only {len(rows)} endorsers -- writing empty")
                 np.savez_compressed(os.path.join(OUT, f"{t}_{lo}_{hi}.npz"),
                                     rows=rows.astype(np.int32), label_idx=np.zeros((0, TOTAL_L), np.int16),
-                                    z=np.zeros((0, TOTAL_L, E["ctx"].d), np.float32), anchor=-1 if cid is None else cid)
+                                    z=np.zeros((0, TOTAL_L, E["ctx"].d), np.float32),
+                                    valid=np.zeros((0, TOTAL_L), bool), anchor=-1 if cid is None else cid,
+                                    n_fallback=0, n_masked_positions=0)
                 continue
             mask = [] if cid is None else [(1, cid)]
             seqs, diag = route(E, rows, nodes, TOTAL_L, static=static, mask=mask)
             if diag["n_fallback"]:
-                log(f"  [{t}] ⚠ {diag['n_fallback']}/{len(rows)} users routed OUTSIDE the fitted "
-                    f"support -> continuation rule fired: {diag['sites']}")
+                log(f"  [{t}] WARN {diag['n_fallback']}/{len(rows)} users "
+                    f"({100.0 * diag['n_fallback'] / len(rows):.2f}%) routed OUTSIDE the fitted "
+                    f"support -- continuation rule fired: {diag['sites']}")
+            # valid[u, p] False where the label is the FALLBACK's, not the teacher's -- those
+            # positions are masked out of the distillation loss (author, 2026-08-19).
+            valid = np.ones((len(rows), TOTAL_L), bool)
+            for u, r in enumerate(rows):
+                fb = diag["fb_from"].get(int(r))
+                if fb is not None:
+                    valid[u, fb:] = False
             lab = np.full((len(rows), TOTAL_L), -1, np.int16)
             for u, s in enumerate(seqs):
                 for p, q in enumerate(s):
@@ -129,9 +139,11 @@ def main() -> None:
                 z[:, p, :] = np.asarray(zz, np.float32)
             np.savez_compressed(os.path.join(OUT, f"{t}_{lo}_{hi}.npz"),
                                 rows=rows.astype(np.int32), label_idx=lab, z=z,
-                                anchor=-1 if cid is None else cid,
-                                n_fallback=diag["n_fallback"])
-            log(f"  [{t}] slice {lo}:{hi}: {len(rows)} users x {TOTAL_L} positions banked")
+                                anchor=-1 if cid is None else cid, valid=valid,
+                                n_fallback=diag["n_fallback"],
+                                n_masked_positions=int((~valid).sum()))
+            log(f"  [{t}] slice {lo}:{hi}: {len(rows)} users x {TOTAL_L} positions banked "
+                f"({int((~valid).sum())} positions masked as fallback)")
         log(f"[slice {lo}:{hi}] done in {(time.time() - t0) / 60:.1f}m")
         del E
     log("[done] all slices banked under " + OUT)
