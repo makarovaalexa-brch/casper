@@ -67,7 +67,7 @@ def main() -> None:
 
     from strategy_channel_suite import (build_greedy_env, genv_eval_multi,
                                         CERT_TOWER, CERT_CONC)
-    from ndcg_tree import build_pool
+    from ndcg_tree import build_pool, branch_of_per_user, branch_of_selftest
     from tree_route import route
 
     static = [(int(x), int(y)) for x, y in
@@ -97,6 +97,7 @@ def main() -> None:
         endorse = (F > 0) & (V > 0)
         rows_loc = np.arange(E["ctx"].n, dtype=np.int64)
 
+        gated = False
         for t in todo:
             nodes, cid = trees[t]
             rows = rows_loc if cid is None else rows_loc[endorse[rows_loc, cid]]
@@ -104,6 +105,7 @@ def main() -> None:
                 log(f"  [{t}] slice has only {len(rows)} endorsers -- writing empty")
                 np.savez_compressed(os.path.join(OUT, f"{t}_{lo}_{hi}.npz"),
                                     rows=rows.astype(np.int32), label_idx=np.zeros((0, TOTAL_L), np.int16),
+                                    outcome=np.zeros((0, TOTAL_L), np.int8),
                                     z=np.zeros((0, TOTAL_L, E["ctx"].d), np.float32),
                                     valid=np.zeros((0, TOTAL_L), bool), anchor=-1 if cid is None else cid,
                                     n_fallback=0, n_masked_positions=0)
@@ -126,6 +128,16 @@ def main() -> None:
                 for p, q in enumerate(s):
                     assert tuple(q) in pidx, f"{t}: question {q} outside the pool"
                     lab[u, p] = pidx[tuple(q)]
+            # THE TERNARY OUTCOME of each asked question, per user. The history encoding the policy
+            # consumes is (question token, outcome) pairs and the design forbids collapsing
+            # did-not-answer into two -- without this the trajectory bank cannot be trained on.
+            # `branch_of_per_user` is E1's rollout rule; `branch_of_selftest` is its anti-drift gate.
+            outc = np.zeros((len(rows), TOTAL_L), np.int8)
+            for p in range(TOTAL_L):
+                outc[:, p] = branch_of_per_user(E, rows, [s[p] for s in seqs])
+            if not gated:
+                seen = sorted({tuple(x) for s in seqs for x in s})[:25]
+                branch_of_selftest(E, rows[:2000], seen); gated = True
             z = np.zeros((len(rows), TOTAL_L, E["ctx"].d), np.float32)
             for p in range(TOTAL_L):
                 iseq, cseq = [], []
@@ -138,7 +150,7 @@ def main() -> None:
                 _f, _t2, zz = genv_eval_multi(E, rows, iseq, cseq, score=False, return_z=True)
                 z[:, p, :] = np.asarray(zz, np.float32)
             np.savez_compressed(os.path.join(OUT, f"{t}_{lo}_{hi}.npz"),
-                                rows=rows.astype(np.int32), label_idx=lab, z=z,
+                                rows=rows.astype(np.int32), label_idx=lab, outcome=outc, z=z,
                                 anchor=-1 if cid is None else cid, valid=valid,
                                 n_fallback=diag["n_fallback"],
                                 n_masked_positions=int((~valid).sum()))
