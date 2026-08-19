@@ -1,0 +1,793 @@
+{
+ "analysis": "m6p_recluster",
+ "split": "validation",
+ "test_touched": false,
+ "k": 20,
+ "min_size": 400,
+ "era_axis_rho": 0.8751830537059957,
+ "merged": false,
+ "sizes": {
+  "0": 594,
+  "1": 418,
+  "2": 344,
+  "3": 459,
+  "4": 547,
+  "5": 302,
+  "6": 424,
+  "7": 615,
+  "8": 419,
+  "9": 383,
+  "10": 363,
+  "11": 568,
+  "12": 509,
+  "13": 514,
+  "14": 450,
+  "15": 396,
+  "16": 940,
+  "17": 762,
+  "18": 658,
+  "19": 335
+ },
+ "clusters": [
+  {
+   "cluster": 0,
+   "n": 594,
+   "films": [
+    "Milk Money (1994)",
+    "Disclosure (1994)",
+    "Drop Zone (1994)",
+    "Exit to Eden (1994)",
+    "Under Siege 2: Dark Territory (1995)",
+    "Trial by Jury (1994)"
+   ],
+   "attrs": [
+    "san francisco",
+    "courtroom",
+    "18th century",
+    "lawyer",
+    "dog",
+    "oscar (best music - original song)",
+    "christmas",
+    "erotic",
+    "lawyers",
+    "basketball"
+   ],
+   "mean_year_of_top_films": 1994.25,
+   "era_gap_years": -0.4241064120053579,
+   "era_sd_years": 0.5951190357119042,
+   "anchor_rates": {
+    "arthouse": 0.0016835016835016834,
+    "dialogue": 0.006734006734006734,
+    "marvel": 0.0,
+    "gore": 0.0016835016835016834,
+    "teenagers": 0.0016835016835016834,
+    "inspiring": 0.04882154882154882
+   },
+   "best_anchor": "inspiring",
+   "best_anchor_rate": 0.04882154882154882,
+   "below_min_size": false
+  },
+  {
+   "cluster": 1,
+   "n": 418,
+   "films": [
+    "Midnight in Paris (2011)",
+    "Help, The (2011)",
+    "Julie & Julia (2009)",
+    "It's Complicated (2009)",
+    "King's Speech, The (2010)",
+    "The Hundred-Foot Journey (2014)"
+   ],
+   "attrs": [
+    "bittersweet",
+    "based on a book",
+    "adapted from:book",
+    "fashion",
+    "feel good movie",
+    "feel-good",
+    "unlikely friendships",
+    "sad",
+    "writing",
+    "oscar (best picture)"
+   ],
+   "mean_year_of_top_films": 2006.4166666666667,
+   "era_gap_years": 11.742560254661385,
+   "era_sd_years": 15.283206106340675,
+   "anchor_rates": {
+    "arthouse": 0.03588516746411483,
+    "dialogue": 0.07894736842105263,
+    "marvel": 0.045454545454545456,
+    "gore": 0.023923444976076555,
+    "teenagers": 0.17703349282296652,
+    "inspiring": 0.43301435406698563
+   },
+   "best_anchor": "inspiring",
+   "best_anchor_rate": 0.43301435406698563,
+   "below_min_size": false
+  },
+  {
+   "cluster": 2,
+   "n": 344,
+   "films": [
+    "Disclosure (1994)",
+    "Cliffhanger (1993)",
+    "Net, The (1995)",
+    "Outbreak (1995)",
+    "While You Were Sleeping (1995)",
+    "Clear and Present Danger (1994)"
+   ],
+   "attrs": [
+    "oscar (best music - original song)",
+    "christmas",
+    "courtroom",
+    "san francisco",
+    "puppets",
+    "lawyer",
+    "lawyers",
+    "18th century",
+    "slapstick",
+    "explosions"
+   ],
+   "mean_year_of_top_films": 1994.3333333333333,
+   "era_gap_years": -0.3407730786721004,
+   "era_sd_years": 0.74535599249993,
+   "anchor_rates": {
+    "arthouse": 0.0,
+    "dialogue": 0.0,
+    "marvel": 0.0,
+    "gore": 0.0,
+    "teenagers": 0.0,
+    "inspiring": 0.09593023255813954
+   },
+   "best_anchor": "inspiring",
+   "best_anchor_rate": 0.09593023255813954,
+   "below_min_size": true
+  },
+  {
+   "cluster": 3,
+   "n": 459,
+   "films": [
+    "Northerners, The (De noorderlingen) (1992)",
+    "White Ribbon, The (Das wei\u00dfe Band) (2009)",
+    "Seventh Continent, The (Der siebente Kontinent) (1989)",
+    "4 Months, 3 Weeks and 2 Days (4 luni, 3 saptam\u00e2ni si 2 zile) (2007)",
+    "Swedish Love Story, A (K\u00e4rlekshistoria, En) (1970)",
+    "Lessons of Darkness (Lektionen in Finsternis) (1992)"
+   ],
+   "attrs": [
+    "enigmatic",
+    "very interesting",
+    "existentialism",
+    "artsy",
+    "weird",
+    "obsession",
+    "boring!",
+    "isolation",
+    "reflective",
+    "loneliness"
+   ],
+   "mean_year_of_top_films": 1992.4166666666667,
+   "era_gap_years": -2.2574397453386155,
+   "era_sd_years": 15.755730879764215,
+   "anchor_rates": {
+    "arthouse": 0.5076252723311547,
+    "dialogue": 0.2113289760348584,
+    "marvel": 0.006535947712418301,
+    "gore": 0.08278867102396514,
+    "teenagers": 0.034858387799564274,
+    "inspiring": 0.05228758169934641
+   },
+   "best_anchor": "arthouse",
+   "best_anchor_rate": 0.5076252723311547,
+   "below_min_size": false
+  },
+  {
+   "cluster": 4,
+   "n": 547,
+   "films": [
+    "My Architect: A Son's Journey (2003)",
+    "Control Room (2004)",
+    "Safety of Objects, The (2001)",
+    "Raising Victor Vargas (2002)",
+    "Stevie (2002)",
+    "Weather Underground, The (2002)"
+   ],
+   "attrs": [
+    "writers",
+    "independent film",
+    "writing",
+    "immigrants",
+    "quirky",
+    "very interesting",
+    "cheating",
+    "suburbia",
+    "controversial",
+    "working class"
+   ],
+   "mean_year_of_top_films": 2001.5833333333333,
+   "era_gap_years": 6.9092269213279,
+   "era_sd_years": 2.9849157814287195,
+   "anchor_rates": {
+    "arthouse": 0.13345521023765997,
+    "dialogue": 0.07312614259597806,
+    "marvel": 0.0018281535648994515,
+    "gore": 0.021937842778793418,
+    "teenagers": 0.06764168190127971,
+    "inspiring": 0.06398537477148081
+   },
+   "best_anchor": "arthouse",
+   "best_anchor_rate": 0.13345521023765997,
+   "below_min_size": false
+  },
+  {
+   "cluster": 5,
+   "n": 302,
+   "films": [
+    "Of Love and Shadows (1994)",
+    "Trigger Effect, The (1996)",
+    "Story of Xinghua, The (Xinghua san yue tian) (1994)",
+    "Family Thing, A (1996)",
+    "Once Upon a Time... When We Were Colored (1995)",
+    "Georgia (1995)"
+   ],
+   "attrs": [
+    "erotic",
+    "afi 100",
+    "author:neil gaiman",
+    "ireland",
+    "aids",
+    "perfect",
+    "meditative",
+    "courtroom",
+    "biting",
+    "classical music"
+   ],
+   "mean_year_of_top_films": 1994.8333333333333,
+   "era_gap_years": 0.15922692132789962,
+   "era_sd_years": 1.4043582955293932,
+   "anchor_rates": {
+    "arthouse": 0.03642384105960265,
+    "dialogue": 0.016556291390728478,
+    "marvel": 0.0,
+    "gore": 0.016556291390728478,
+    "teenagers": 0.013245033112582781,
+    "inspiring": 0.033112582781456956
+   },
+   "best_anchor": "arthouse",
+   "best_anchor_rate": 0.03642384105960265,
+   "below_min_size": true
+  },
+  {
+   "cluster": 6,
+   "n": 424,
+   "films": [
+    "Afterglow (1997)",
+    "Love and Death on Long Island (1997)",
+    "God Said 'Ha!' (1998)",
+    "Men with Guns (1997)",
+    "Dear Jesse (1997)",
+    "Sugar Town (1999)"
+   ],
+   "attrs": [
+    "sexuality",
+    "irish",
+    "erotic",
+    "ireland",
+    "working class",
+    "homosexuality",
+    "australian",
+    "queer",
+    "voyeurism",
+    "notable nudity"
+   ],
+   "mean_year_of_top_films": 1997.5,
+   "era_gap_years": 2.825893587994642,
+   "era_sd_years": 0.7637626158259734,
+   "anchor_rates": {
+    "arthouse": 0.06367924528301887,
+    "dialogue": 0.09905660377358491,
+    "marvel": 0.0,
+    "gore": 0.0047169811320754715,
+    "teenagers": 0.0660377358490566,
+    "inspiring": 0.07311320754716981
+   },
+   "best_anchor": "dialogue",
+   "best_anchor_rate": 0.09905660377358491,
+   "below_min_size": false
+  },
+  {
+   "cluster": 7,
+   "n": 615,
+   "films": [
+    "U.S. vs. John Lennon, The (2006)",
+    "JCVD (2008)",
+    "Gonzo: The Life and Work of Dr. Hunter S. Thompson (2008)",
+    "Trinity and Beyond (1995)",
+    "Proposition, The (2005)",
+    "Grindhouse (2007)"
+   ],
+   "attrs": [
+    "best of 2005",
+    "multiple storylines",
+    "brainwashing",
+    "drug abuse",
+    "iraq",
+    "brutality",
+    "crazy",
+    "robbery",
+    "life philosophy",
+    "alternate endings"
+   ],
+   "mean_year_of_top_films": 2005.6666666666667,
+   "era_gap_years": 10.992560254661385,
+   "era_sd_years": 3.4237730973623557,
+   "anchor_rates": {
+    "arthouse": 0.055284552845528454,
+    "dialogue": 0.13821138211382114,
+    "marvel": 0.07154471544715447,
+    "gore": 0.17886178861788618,
+    "teenagers": 0.05365853658536585,
+    "inspiring": 0.13170731707317074
+   },
+   "best_anchor": "gore",
+   "best_anchor_rate": 0.17886178861788618,
+   "below_min_size": false
+  },
+  {
+   "cluster": 8,
+   "n": 419,
+   "films": [
+    "Sugar Town (1999)",
+    "Santitos (1999)",
+    "Wonderland (1997)",
+    "Dear Jesse (1997)",
+    "My Son the Fanatic (1997)",
+    "Judy Berlin (1999)"
+   ],
+   "attrs": [
+    "working class",
+    "sexuality",
+    "voyeurism",
+    "notable nudity",
+    "independent film",
+    "australian",
+    "australia",
+    "cheating",
+    "queer",
+    "writers"
+   ],
+   "mean_year_of_top_films": 1998.4166666666667,
+   "era_gap_years": 3.7425602546613845,
+   "era_sd_years": 0.9537935951882998,
+   "anchor_rates": {
+    "arthouse": 0.10501193317422435,
+    "dialogue": 0.0954653937947494,
+    "marvel": 0.002386634844868735,
+    "gore": 0.00954653937947494,
+    "teenagers": 0.05250596658711217,
+    "inspiring": 0.08353221957040573
+   },
+   "best_anchor": "arthouse",
+   "best_anchor_rate": 0.10501193317422435,
+   "below_min_size": false
+  },
+  {
+   "cluster": 9,
+   "n": 383,
+   "films": [
+    "City Hall (1996)",
+    "Two if by Sea (1996)",
+    "Up Close and Personal (1996)",
+    "Sudden Death (1995)",
+    "Eye for an Eye (1996)",
+    "Children of the Corn IV: The Gathering (1996)"
+   ],
+   "attrs": [
+    "dog",
+    "slapstick",
+    "basketball",
+    "explosions",
+    "christmas",
+    "golf",
+    "funny as hell",
+    "new jersey",
+    "puppets",
+    "san francisco"
+   ],
+   "mean_year_of_top_films": 1995.8333333333333,
+   "era_gap_years": 1.1592269213278996,
+   "era_sd_years": 0.3726779962499649,
+   "anchor_rates": {
+    "arthouse": 0.005221932114882507,
+    "dialogue": 0.0,
+    "marvel": 0.0,
+    "gore": 0.0,
+    "teenagers": 0.0,
+    "inspiring": 0.010443864229765013
+   },
+   "best_anchor": "inspiring",
+   "best_anchor_rate": 0.010443864229765013,
+   "below_min_size": true
+  },
+  {
+   "cluster": 10,
+   "n": 363,
+   "films": [
+    "'Salem's Lot (2004)",
+    "100 Feet (2008)",
+    "Amelia (2009)",
+    "\"Great Performances\" Cats (1998)",
+    "Courageous (2011)",
+    "61* (2001)"
+   ],
+   "attrs": [
+    "iraq",
+    "handycam",
+    "life philosophy",
+    "made for tv",
+    "unlikeable characters",
+    "corruption",
+    "justice",
+    "beer",
+    "police corruption",
+    "marijuana"
+   ],
+   "mean_year_of_top_films": 2002.8333333333333,
+   "era_gap_years": 8.1592269213279,
+   "era_sd_years": 8.173466556826153,
+   "anchor_rates": {
+    "arthouse": 0.0027548209366391185,
+    "dialogue": 0.06336088154269973,
+    "marvel": 0.008264462809917356,
+    "gore": 0.01928374655647383,
+    "teenagers": 0.01928374655647383,
+    "inspiring": 0.22589531680440772
+   },
+   "best_anchor": "inspiring",
+   "best_anchor_rate": 0.22589531680440772,
+   "below_min_size": true
+  },
+  {
+   "cluster": 11,
+   "n": 568,
+   "films": [
+    "Let's Get Harry (1986)",
+    "Wing Commander (1999)",
+    "Chill Factor (1999)",
+    "Firestorm (1998)",
+    "Mod Squad, The (1999)",
+    "One Tough Cop (1998)"
+   ],
+   "attrs": [
+    "puppets",
+    "san francisco",
+    "bad",
+    "explosions",
+    "silly fun",
+    "camp",
+    "christmas",
+    "radio",
+    "lone hero",
+    "moon"
+   ],
+   "mean_year_of_top_films": 1995.5833333333333,
+   "era_gap_years": 0.9092269213278996,
+   "era_sd_years": 5.55965126804031,
+   "anchor_rates": {
+    "arthouse": 0.0017605633802816902,
+    "dialogue": 0.0017605633802816902,
+    "marvel": 0.0,
+    "gore": 0.03169014084507042,
+    "teenagers": 0.0897887323943662,
+    "inspiring": 0.05457746478873239
+   },
+   "best_anchor": "teenagers",
+   "best_anchor_rate": 0.0897887323943662,
+   "below_min_size": false
+  },
+  {
+   "cluster": 12,
+   "n": 509,
+   "films": [
+    "Harry Potter and the Half-Blood Prince (2009)",
+    "Harry Potter and the Deathly Hallows: Part 1 (2010)",
+    "Harry Potter and the Order of the Phoenix (2007)",
+    "Percy Jackson: Sea of Monsters (2013)",
+    "Frozen (2013)",
+    "Night at the Museum: Battle of the Smithsonian (2009)"
+   ],
+   "attrs": [
+    "treasure hunt",
+    "lions",
+    "island",
+    "product placement",
+    "corny",
+    "ocean",
+    "treasure",
+    "pixar",
+    "dragon",
+    "pirates"
+   ],
+   "mean_year_of_top_films": 2010.75,
+   "era_gap_years": 16.075893587994642,
+   "era_sd_years": 2.802528620133373,
+   "anchor_rates": {
+    "arthouse": 0.003929273084479371,
+    "dialogue": 0.0019646365422396855,
+    "marvel": 0.33398821218074654,
+    "gore": 0.06286836935166994,
+    "teenagers": 0.3300589390962672,
+    "inspiring": 0.2475442043222004
+   },
+   "best_anchor": "marvel",
+   "best_anchor_rate": 0.33398821218074654,
+   "below_min_size": false
+  },
+  {
+   "cluster": 13,
+   "n": 514,
+   "films": [
+    "Whipped (2000)",
+    "Domestic Disturbance (2001)",
+    "Here on Earth (2000)",
+    "In Crowd, The (2000)",
+    "Left Behind: The Movie (2000)",
+    "Say It Isn't So (2001)"
+   ],
+   "attrs": [
+    "guilty pleasure",
+    "san francisco",
+    "notable nudity",
+    "puppets",
+    "las vegas",
+    "new jersey",
+    "bad",
+    "high school",
+    "camp",
+    "radio"
+   ],
+   "mean_year_of_top_films": 1999.6666666666667,
+   "era_gap_years": 4.9925602546613845,
+   "era_sd_years": 2.656229575084871,
+   "anchor_rates": {
+    "arthouse": 0.011673151750972763,
+    "dialogue": 0.017509727626459144,
+    "marvel": 0.0038910505836575876,
+    "gore": 0.017509727626459144,
+    "teenagers": 0.122568093385214,
+    "inspiring": 0.07003891050583658
+   },
+   "best_anchor": "teenagers",
+   "best_anchor_rate": 0.122568093385214,
+   "below_min_size": false
+  },
+  {
+   "cluster": 14,
+   "n": 450,
+   "films": [
+    "War of the Worlds (2005)",
+    "TMNT (Teenage Mutant Ninja Turtles) (2007)",
+    "Fantastic Four: Rise of the Silver Surfer (2007)",
+    "Transformers: Revenge of the Fallen (2009)",
+    "Street Fighter: The Legend of Chun-Li (2009)",
+    "D-War (Dragon Wars) (2007)"
+   ],
+   "attrs": [
+    "treasure hunt",
+    "corny",
+    "remake",
+    "arms dealer",
+    "werewolves",
+    "egypt",
+    "video games",
+    "motorcycle",
+    "las vegas",
+    "based on a video game"
+   ],
+   "mean_year_of_top_films": 2007.8333333333333,
+   "era_gap_years": 13.1592269213279,
+   "era_sd_years": 1.2133516482134197,
+   "anchor_rates": {
+    "arthouse": 0.0,
+    "dialogue": 0.024444444444444446,
+    "marvel": 0.2111111111111111,
+    "gore": 0.12666666666666668,
+    "teenagers": 0.06888888888888889,
+    "inspiring": 0.19777777777777777
+   },
+   "best_anchor": "marvel",
+   "best_anchor_rate": 0.2111111111111111,
+   "below_min_size": false
+  },
+  {
+   "cluster": 15,
+   "n": 396,
+   "films": [
+    "Cinderella (1997)",
+    "Sisterhood of the Traveling Pants 2, The (2008)",
+    "Dirty Dancing: Havana Nights (2004)",
+    "Because I Said So (2007)",
+    "Sisterhood of the Traveling Pants, The (2005)",
+    "Yours, Mine and Ours (1968)"
+   ],
+   "attrs": [
+    "fashion",
+    "single father",
+    "shopping",
+    "wedding",
+    "divorce",
+    "dancing",
+    "good romantic comedies",
+    "romantic comedy",
+    "mother daughter relationship",
+    "chick flick"
+   ],
+   "mean_year_of_top_films": 2002.3333333333333,
+   "era_gap_years": 7.6592269213279,
+   "era_sd_years": 10.757426375403284,
+   "anchor_rates": {
+    "arthouse": 0.017676767676767676,
+    "dialogue": 0.010101010101010102,
+    "marvel": 0.047979797979797977,
+    "gore": 0.030303030303030304,
+    "teenagers": 0.26262626262626265,
+    "inspiring": 0.13131313131313133
+   },
+   "best_anchor": "teenagers",
+   "best_anchor_rate": 0.26262626262626265,
+   "below_min_size": true
+  },
+  {
+   "cluster": 16,
+   "n": 940,
+   "films": [
+    "Dark Knight Rises, The (2012)",
+    "Wolf of Wall Street, The (2013)",
+    "Sherlock Holmes (2009)",
+    "Guardians of the Galaxy (2014)",
+    "Edge of Tomorrow (2014)",
+    "Interstellar (2014)"
+   ],
+   "attrs": [
+    "entertaining",
+    "product placement",
+    "plot",
+    "trilogy",
+    "memory loss",
+    "fighting",
+    "long",
+    "enormously long battle scene",
+    "spy",
+    "fast paced"
+   ],
+   "mean_year_of_top_films": 2013.25,
+   "era_gap_years": 18.575893587994642,
+   "era_sd_years": 2.277608394786075,
+   "anchor_rates": {
+    "arthouse": 0.00851063829787234,
+    "dialogue": 0.11382978723404255,
+    "marvel": 0.28829787234042553,
+    "gore": 0.225531914893617,
+    "teenagers": 0.08297872340425531,
+    "inspiring": 0.5606382978723404
+   },
+   "best_anchor": "inspiring",
+   "best_anchor_rate": 0.5606382978723404,
+   "below_min_size": false
+  },
+  {
+   "cluster": 17,
+   "n": 762,
+   "films": [
+    "Birdman: Or (The Unexpected Virtue of Ignorance) (2014)",
+    "Whiplash (2014)",
+    "Grand Budapest Hotel, The (2014)",
+    "Nightcrawler (2014)",
+    "Mad Max: Fury Road (2015)",
+    "Ex Machina (2015)"
+   ],
+   "attrs": [
+    "amazing cinematography",
+    "philosophy",
+    "good acting",
+    "very good",
+    "exceptional acting",
+    "life philosophy",
+    "movielens top pick",
+    "oscar (best supporting actor)",
+    "thought-provoking",
+    "plot twist"
+   ],
+   "mean_year_of_top_films": 2013.25,
+   "era_gap_years": 18.575893587994642,
+   "era_sd_years": 2.0866640042581523,
+   "anchor_rates": {
+    "arthouse": 0.13648293963254593,
+    "dialogue": 0.27165354330708663,
+    "marvel": 0.1089238845144357,
+    "gore": 0.24278215223097113,
+    "teenagers": 0.03543307086614173,
+    "inspiring": 0.4343832020997375
+   },
+   "best_anchor": "inspiring",
+   "best_anchor_rate": 0.4343832020997375,
+   "below_min_size": false
+  },
+  {
+   "cluster": 18,
+   "n": 658,
+   "films": [
+    "Hard Word, The (2002)",
+    "Blue Collar Comedy Tour: The Movie (2003)",
+    "League of Ordinary Gentlemen, A (2004)",
+    "Welcome to Mooseport (2004)",
+    "Tarzan, the Ape Man (1981)",
+    "Memphis Belle (1990)"
+   ],
+   "attrs": [
+    "guilty pleasure",
+    "amy smart",
+    "las vegas",
+    "bad",
+    "interracial romance",
+    "silly fun",
+    "racing",
+    "aviation",
+    "archaeology",
+    "san francisco"
+   ],
+   "mean_year_of_top_films": 1998.5,
+   "era_gap_years": 3.825893587994642,
+   "era_sd_years": 8.036375634160796,
+   "anchor_rates": {
+    "arthouse": 0.001519756838905775,
+    "dialogue": 0.022796352583586626,
+    "marvel": 0.034954407294832825,
+    "gore": 0.05015197568389058,
+    "teenagers": 0.06382978723404255,
+    "inspiring": 0.1094224924012158
+   },
+   "best_anchor": "inspiring",
+   "best_anchor_rate": 0.1094224924012158,
+   "below_min_size": false
+  },
+  {
+   "cluster": 19,
+   "n": 335,
+   "films": [
+    "Widows' Peak (1994)",
+    "Carrington (1995)",
+    "Mrs. Parker and the Vicious Circle (1994)",
+    "Month by the Lake, A (1995)",
+    "Tom & Viv (1994)",
+    "My Family (1995)"
+   ],
+   "attrs": [
+    "erotic",
+    "ireland",
+    "aids",
+    "18th century",
+    "sexuality",
+    "working class",
+    "classical music",
+    "meditative",
+    "biting",
+    "wistful"
+   ],
+   "mean_year_of_top_films": 1994.3333333333333,
+   "era_gap_years": -0.3407730786721004,
+   "era_sd_years": 0.4714045207910317,
+   "anchor_rates": {
+    "arthouse": 0.050746268656716415,
+    "dialogue": 0.01791044776119403,
+    "marvel": 0.0,
+    "gore": 0.0,
+    "teenagers": 0.0,
+    "inspiring": 0.03880597014925373
+   },
+   "best_anchor": "arthouse",
+   "best_anchor_rate": 0.050746268656716415,
+   "below_min_size": true
+  }
+ ]
+}
