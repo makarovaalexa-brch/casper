@@ -141,13 +141,13 @@ def main():
                 log(f"   [{name}/{shape}] only {len(keep)} users can wear this opener -- skipping")
                 continue
             keep = np.asarray(keep, np.int64)
-            # the opener's own questions must never be ASKED as well as folded
-            masks = [[(0, i) for i in oi] + [(1, c) for c in oc]
-                     for oi, oc in zip(op_items, op_concs)]
-            flat_mask = sorted({q for m in masks for q in m})
-
-            seq_cold, _dc = route(E, keep, cold_nodes, TOTAL_L, static=static, mask=flat_mask)
-            seq_teach, _dt = route(E, keep, t_nodes, TOTAL_L, static=static, mask=flat_mask)
+            # The opener's own questions must never be ASKED as well as folded -- PER USER.
+            # Flattening these into one set was a real bug: it masked every user's evidence out of
+            # every other user's interview and truncated them all (caught by the router's assert).
+            umask = {int(r): [(0, i) for i in oi] + [(1, c) for c in oc]
+                     for r, oi, oc in zip(keep, op_items, op_concs)}
+            seq_cold, _dc = route(E, keep, cold_nodes, TOTAL_L, static=static, mask=umask)
+            seq_teach, _dt = route(E, keep, t_nodes, TOTAL_L, static=static, mask=umask)
 
             row = {"anchor": name, "shape": shape, "n": int(len(keep)), "budgets": {}}
             for K in BUDGETS:

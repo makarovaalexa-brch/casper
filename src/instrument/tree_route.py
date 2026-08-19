@@ -44,43 +44,61 @@ def _qs(v) -> List[Q]:
 
 
 def route(E, rows, nodes: Dict[str, dict], total_L: int,
-          static: Sequence[Q] | None = None, mask: Sequence[Q] = ()) -> Tuple[List[List[Q]], dict]:
+          static: Sequence[Q] | None = None, mask=()) -> Tuple[List[List[Q]], dict]:
     """Return (per-user ASKED question lists of length total_L, diagnostics).
 
-    `mask` are questions that must never be ASKED -- above all a seeded anchor, which is folded
-    evidence and sits in `path` as the free seed.
+    `mask` are questions that must never be ASKED -- folded evidence, which the user has already
+    volunteered. Either a single iterable applied to every user (a seeded anchor, which sits in
+    `path` as the free seed), or a dict {row: iterable} when each user volunteered something
+    different. ⚠ A PER-USER opener must NOT be passed as one flattened set: that masks every user's
+    evidence out of every other user's interview and silently truncates them all.
+
+    Masking removes a question from what is ASKED; it does not change BRANCHING. If the tree splits
+    on something the user already volunteered, the answer is known, so the split is still valid and
+    free -- it simply is not re-asked.
     """
     from ndcg_tree import branch_of
 
-    banned = {tuple(q) for q in mask}
-    stat = [q for q in _qs(static) if q not in banned]
+    per_user = isinstance(mask, dict)
+    if per_user:
+        banned_of = {int(r): {tuple(q) for q in v} for r, v in mask.items()}
+        default_banned = set()
+    else:
+        default_banned = {tuple(q) for q in mask}
+        banned_of = {}
+
+    def ban(r):
+        return banned_of.get(int(r), default_banned) if per_user else default_banned
+    stat_all = _qs(static)
     seq: Dict[int, List[Q]] = {}
     diag = {"n_fallback": 0, "sites": {}, "fb_from": {}}
 
-    def own_of(nd) -> List[Q]:
-        """The tree's own interview for a user at this leaf, minus the free seed."""
-        return [q for q in (_qs(nd.get("path")) + _qs(nd.get("steps"))) if q not in banned]
+    def own_of(nd, r) -> List[Q]:
+        """The tree's own interview for this user at this leaf, minus what they already volunteered."""
+        bn = ban(r)
+        return [q for q in (_qs(nd.get("path")) + _qs(nd.get("steps"))) if q not in bn]
 
     def top_up(rs: List[int], chain: List[dict], site: str) -> None:
-        sources: List[List[Q]] = []
+        raw: List[List[Q]] = []
         for nd in reversed(chain):
             for key in ("tail", "steps"):
-                s = [q for q in _qs(nd.get(key)) if q not in banned]
+                s = _qs(nd.get(key))
                 if len(s) > 1:
-                    sources.append(s)
-        if stat:
-            sources.append(list(stat))
+                    raw.append(s)
+        if stat_all:
+            raw.append(list(stat_all))
         diag["n_fallback"] += len(rs)
         diag["sites"][site] = diag["sites"].get(site, 0) + len(rs)
         for r in rs:
             cur = seq[r]
             diag["fb_from"].setdefault(r, len(cur))
             have = set(cur)
-            for s in sources:
+            bn = ban(r)
+            for s in raw:
                 for q in s:
                     if len(cur) >= total_L:
                         break
-                    if q not in have:
+                    if q not in have and q not in bn:
                         cur.append(q)
                         have.add(q)
                 if len(cur) >= total_L:
@@ -93,10 +111,9 @@ def route(E, rows, nodes: Dict[str, dict], total_L: int,
         assert nd is not None, f"node {nid} missing"
         chain = chain + [nd]
         if not nd.get("split"):
-            own = own_of(nd)                      # THE TREE'S OWN SEQUENCE -- not reconstructed
             short = []
             for r in rs:
-                seq[r] = list(own)
+                seq[r] = own_of(nd, r)            # THE TREE'S OWN SEQUENCE -- not reconstructed
                 if len(seq[r]) < total_L:
                     short.append(r)
             if short:
@@ -116,11 +133,11 @@ def route(E, rows, nodes: Dict[str, dict], total_L: int,
                 # a branch this tree's cohort never populated: it has no child and no fitted tail.
                 # the parent's own continuation is `path + tail`, exactly as the builder would have
                 # recorded for a below-floor child.
-                own = [q for q in (_qs(nd.get("path")) + _qs(nd.get("tail") or nd.get("steps")))
-                       if q not in banned]
+                raw_own = _qs(nd.get("path")) + _qs(nd.get("tail") or nd.get("steps"))
                 short = []
                 for r in kids[br]:
-                    seq[r] = list(own)
+                    bn = ban(r)
+                    seq[r] = [q for q in raw_own if q not in bn]
                     if len(seq[r]) < total_L:
                         short.append(r)
                 if short:
