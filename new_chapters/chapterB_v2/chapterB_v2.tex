@@ -1623,6 +1623,78 @@ purity requirement with margins from $-0.077$ to $-0.115$, and its films are unr
 It is a group of people who rate unpopular things, which is a behaviour rather than a preference,
 and no question a user could answer would route anyone to it.
 
+\subsection{What volunteered information is worth}
+\label{sec:volunteered}
+
+Everything so far establishes that people volunteer, that what they volunteer places them, and that
+the places are nameable. This section asks the operational question: \emph{what is it worth?} Three
+measurements, on three different objects, answer it --- and they do not agree in the way one might
+expect.
+
+\paragraph{It pays through the recommender, not the interview.}
+Seeding a cold user with $k$ items drawn from their own history, then running the \emph{identical}
+sixteen questions, is worth $+0.0206$ full and $+0.0353$ tail NDCG@10 at $k{=}8$
+(Section~\ref{sec:act3}). The questions do not change; the ranking does. A single stated attribute is
+worth more still: at the entry state of the \texttt{art house} group, folding the attribute and
+asking nothing is worth $+0.056$ over the same cohort's cold start --- larger, on its own, than the
+entire fifteen-question conditioning gain the tree earns over a static order.
+
+\paragraph{It pays a second time through the questions --- but only where the fact is specific.}
+The first channel is the recommender consuming evidence. The second is the interview \emph{changing
+because} of it, and isolating that requires folding the volunteered attribute into \emph{both} arms
+so that the evidence itself cancels. Table~\ref{tab:volunteered} does exactly that: it compares each
+group's dedicated interview against the cold interview, at matched budgets, with the attribute folded
+on both sides.
+
+\begin{table}[t]
+\centering
+\caption{The second channel: a group's dedicated interview minus the cold interview, at matched
+budgets, with the volunteered attribute folded into \emph{both} arms so its own contribution cancels.
+Full NDCG@10; $\star$ marks a paired bootstrap interval excluding zero ($10{,}000$ resamples).
+Validation users; both arms are fitted on this cohort, so levels are optimistic and the comparison,
+not the level, is the measurement.}
+\label{tab:volunteered}
+\footnotesize
+\begin{tabular}{lr rrrrr r}
+\toprule
+volunteered & $n$ & $K{=}1$ & $K{=}2$ & $K{=}4$ & $K{=}8$ & $K{=}15$ & tail@15 \\
+\midrule
+\texttt{dialogue driven} & 730 & $+.0044$ & $+.0134^\star$ & $+.0170^\star$ & $+.0137^\star$ & $\mathbf{+.0163^\star}$ & $-.0086$ \\
+\texttt{teenagers} & 786 & $+.0123^\star$ & $+.0167^\star$ & $+.0084$ & $+.0154^\star$ & $\mathbf{+.0143^\star}$ & $+.0234$ \\
+\texttt{marvel} & 734 & $+.0219^\star$ & $+.0125^\star$ & $+.0133^\star$ & $+.0077$ & $\mathbf{+.0106^\star}$ & $+.0055$ \\
+\texttt{art house} & 587 & $+.0043$ & $+.0052$ & $+.0111^\star$ & $+.0098^\star$ & $+.0058$ & $+.0107$ \\
+\texttt{gore} & 747 & $+.0028$ & $+.0040$ & $+.0095^\star$ & $+.0114^\star$ & $+.0056$ & $-.0141$ \\
+\texttt{inspiring} & $1{,}822$ & $+.0087^\star$ & $+.0012$ & $-.0004$ & $+.0003$ & $+.0051$ & $+.0014$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Seventeen of the thirty cells separate from zero and \textbf{every one of them is positive}; none
+separates negative, and $29$ of $30$ point estimates are positive. So the second channel is real: a
+volunteered attribute changes which questions are worth asking, and the change is worth up to
+$+0.016$ --- roughly forty per cent again on top of the $+0.0399$ that conditioning earns over a
+static order.
+
+\paragraph{What predicts the second channel is specificity, not sophistication.}
+The pattern across Table~\ref{tab:volunteered} is not the one we expected. \texttt{inspiring} has the
+largest cohort and by far the most elaborate interview --- four levels of branching, twenty-one
+nodes --- and it separates only at $K{=}1$, adding nothing measurable thereafter. \texttt{marvel},
+whose interview branches once, separates at four budgets of five. The property that predicts payoff
+is how narrowly the volunteered fact locates a person, not how much structure the system builds on
+top of it. A broad attribute buys a better opening question and little else.
+
+\paragraph{Two groups win at the head and lose at the tail.}
+\texttt{dialogue driven} ($-.0086$) and \texttt{gore} ($-.0141$) improve full NDCG while losing
+slightly on tail, and this must be said plainly rather than reported as a full-NDCG headline: for
+those groups the conditioned interview is finding popular relevant items faster and long-tail items
+marginally less well. \texttt{teenagers} is the counterexample, with its largest gain on the tail
+($+.0234$).
+
+\paragraph{Scope.} Both arms of Table~\ref{tab:volunteered} are fitted on the users they are measured
+on, so the levels are optimistic; the comparison is nevertheless fair, because both arms are equally
+advantaged and differ only in whether the interview was allowed to condition on the volunteered fact.
+\PLAN{the held-out confirmation, on the reserved test cohort, of the mix-weighted comparison.}
+
 \PLAN{the screen --- whether, at these groups' entry states, any question improves on the tree's own
 first question by more than the pre-registered margin. Note the power constraint: a group holds
 $3$--$7\%$ of the $10{,}000$ validation users, so a paired interval at group scale is roughly four
