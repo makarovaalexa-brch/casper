@@ -50,6 +50,11 @@ def log(m: str) -> None:
 
 
 def paired_boot(d, n=10000, seed=SEED):
+    # tail NDCG is NaN for users with no tail target; drop those PAIRS (never impute)
+    d = np.asarray(d, np.float64)
+    d = d[np.isfinite(d)]
+    if len(d) == 0:
+        return float("nan"), float("nan"), float("nan")
     rng = np.random.default_rng(seed)
     idx = rng.integers(0, len(d), size=(n, len(d)))
     bs = d[idx].mean(1)
@@ -163,7 +168,8 @@ def main() -> None:
                     ask = s[:K]
                     it = [q[1] for q in ask if q[0] == 0]
                     cc = [cid] + [q[1] for q in ask if q[0] == 1]   # anchor folded in EVERY arm
-                    iseq.append(it); cseq.append(list(dict.fromkeys(cc)))
+                    iseq.append(list(dict.fromkeys(it)))     # a question can recur across a path
+                    cseq.append(list(dict.fromkeys(cc)))
                 full, tail = genv_eval_multi(E, cohort, iseq, cseq)
                 return np.asarray(full, np.float64), np.asarray(tail, np.float64)
 
@@ -173,14 +179,14 @@ def main() -> None:
             mf, lof, hif = paired_boot(tf - cf)
             mt, lot, hit = paired_boot(tt - ct)
             row["budgets"][str(K)] = {
-                "cold_full": float(cf.mean()), "teacher_full": float(tf.mean()),
-                "static_full": float(sf.mean()),
-                "cold_tail": float(ct.mean()), "teacher_tail": float(tt.mean()),
+                "cold_full": float(np.nanmean(cf)), "teacher_full": float(np.nanmean(tf)),
+                "static_full": float(np.nanmean(sf)),
+                "cold_tail": float(np.nanmean(ct)), "teacher_tail": float(np.nanmean(tt)),
                 "teacher_minus_cold_full": mf, "ci_full": [lof, hif],
                 "teacher_minus_cold_tail": mt, "ci_tail": [lot, hit]}
             star = "*" if lof > 0 else (" " if hif > 0 else "-")
-            log(f"   [{name}] K={K:<3} cold {cf.mean():.5f} teacher {tf.mean():.5f} "
-                f"static {sf.mean():.5f} | teacher-cold {mf:+.5f} [{lof:+.5f},{hif:+.5f}] {star}"
+            log(f"   [{name}] K={K:<3} cold {np.nanmean(cf):.5f} teacher {np.nanmean(tf):.5f} "
+                f"static {np.nanmean(sf):.5f} | teacher-cold {mf:+.5f} [{lof:+.5f},{hif:+.5f}] {star}"
                 f" | tail {mt:+.5f}")
         results.append(row)
         json.dump({"analysis": "m4a_cold_vs_teacher", "split": "validation",
