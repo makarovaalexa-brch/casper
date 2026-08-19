@@ -78,7 +78,7 @@ def load_tree(path):
 
 
 def policy_rollout(E, pol, phi_ext, pool, rows, cid, a_phi_idx, a_pool_idx, L=TOTAL_L,
-                   base_extra=None):
+                   base_extra=None, announce=True):
     """The policy's OWN interview, with the anchor folded and carried as an answered question.
 
     Mirrors `policy_net.rollout` (same scorer, same answer rule, same scoring funnel) with three
@@ -106,7 +106,7 @@ def policy_rollout(E, pol, phi_ext, pool, rows, cid, a_phi_idx, a_pool_idx, L=TO
         ho = np.zeros((n, TOTAL_L), np.int64)
         hm = np.zeros((n, TOTAL_L), np.float32)
         s0 = 0
-        if seeded:
+        if seeded and announce:
             hq[:, 0] = a_phi_idx
             ho[:, 0] = 0
             hm[:, 0] = 1.0
@@ -201,7 +201,8 @@ def main():
         s_cold, d_cold = route(E, cohort, cold_nodes, TOTAL_L, static=static, mask=[(1, cid)])
         s_teach, d_teach = route(E, cohort, t_nodes, TOTAL_L, static=static, mask=[(1, cid)])
         s_pol = policy_rollout(E, pol, phi_ext, pool, cohort, cid,
-                               ck["a_phi"][name], ck["a_pool"][name])
+                               ck["a_phi"][name], ck["a_pool"][name],
+                               announce=(ck.get("anchor_encoding", "token") != "none"))
 
         # Held-out fidelity: does the policy pick the teacher's question at the teacher's own
         # validation states? These users were never trained on. Reported PER POSITION, because root

@@ -150,7 +150,8 @@ def build_index(banks, lo, hi):
     return np.concatenate(out)
 
 
-def make_batch(banks, phi_ext, idx, a_phi, a_pool, n_pool, d_z):
+def make_batch(banks, phi_ext, idx, a_phi, a_pool, n_pool, d_z, announce=True, rng=None,
+               drop_p=0.0):
     """Tensors for one batch of (tree, row, position) examples.
 
     History layout, width TOTAL_L: slot 0 is the SEEDED ANCHOR as an answered question (outcome
@@ -173,10 +174,16 @@ def make_batch(banks, phi_ext, idx, a_phi, a_pool, n_pool, d_z):
         z[j] = dd["z"][r, p]
         s = 0
         if dd["anchor"] >= 0:
-            hq[j, 0] = a_phi[t]
-            ho[j, 0] = 0
-            hm[j, 0] = 1.0
-            s = 1
+            # ANNOUNCE the volunteered fact as an answered question, or not. M4d showed the announced
+            # token is a perfectly reliable six-valued cue, so the policy learned it and never read
+            # the latent -- withhold the token and routing must come from the state instead. The
+            # VOCABULARY MASK is kept either way: the fact is known, so re-asking it is never right.
+            say = announce and (drop_p <= 0.0 or rng is None or rng.random() >= drop_p)
+            if say:
+                hq[j, 0] = a_phi[t]
+                ho[j, 0] = 0
+                hm[j, 0] = 1.0
+                s = 1
             if a_pool[t] >= 0:
                 asked[j, a_pool[t]] = True
         for k in range(p):
@@ -201,6 +208,11 @@ def main():
     ap.add_argument("--dev_lo", type=int, default=120000, help="train users >= this are the DEV set")
     ap.add_argument("--arch", default="equivariant", choices=["equivariant", "pointer", "flat"])
     ap.add_argument("--state", default="both", choices=["z", "hist", "both"])
+    ap.add_argument("--anchor_encoding", default="token", choices=["token", "none", "dropout"],
+                    help="token = announce the fact (M4b default); none = STATE ONLY, the fact "
+                         "reaches the policy through the latent alone; dropout = announce it with "
+                         "probability 1-drop_p")
+    ap.add_argument("--drop_p", type=float, default=0.5)
     ap.add_argument("--shuffle_control", action="store_true", help="permute labels; must NOT fit")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--tag", default="m4b")
@@ -280,7 +292,11 @@ def main():
     d_z = int(banks["cold"]["d"])
     pol = Policy(d_z, d_phi, n_pool, arch=a.arch, state=a.state, use_pos=True)
     opt = torch.optim.AdamW(pol.parameters(), lr=a.lr, weight_decay=1e-4)
-    log(f"[policy] arch={a.arch} state={a.state} params={pol.n_params():,}")
+    log(f"[policy] arch={a.arch} state={a.state} params={pol.n_params():,} "
+        f"anchor_encoding={a.anchor_encoding}"
+        + (f" drop_p={a.drop_p}" if a.anchor_encoding == "dropout" else ""))
+    ann = a.anchor_encoding != "none"
+    dp = a.drop_p if a.anchor_encoding == "dropout" else 0.0
 
     phi_cand = torch.from_numpy(phi_ext[:n_pool])
 
@@ -302,7 +318,7 @@ def main():
             for s in range(0, len(sub), 2048):
                 bb = sub[s:s + 2048]
                 z, hp, ho, hm, ps, am, y = make_batch(banks, phi_ext, bb, a_phi, a_pool,
-                                                     n_pool, d_z)
+                                                     n_pool, d_z, announce=ann)
                 pr = pol(z, hp, ho, hm, ps, phi_cand, am).argmax(1)
                 ok = (pr == y).numpy()
                 for ti in np.unique(bb[:, 0]):
@@ -318,7 +334,8 @@ def main():
         t0, run, seen = time.time(), 0.0, 0
         for s in range(0, len(perm), a.batch):
             bb = tr_idx[perm[s:s + a.batch]]
-            z, hp, ho, hm, ps, am, y = make_batch(banks, phi_ext, bb, a_phi, a_pool, n_pool, d_z)
+            z, hp, ho, hm, ps, am, y = make_batch(banks, phi_ext, bb, a_phi, a_pool, n_pool, d_z,
+                                                  announce=ann, rng=rng, drop_p=dp)
             loss = nn.functional.cross_entropy(pol(z, hp, ho, hm, ps, phi_cand, am), y)
             opt.zero_grad()
             loss.backward()
@@ -335,6 +352,7 @@ def main():
             " ".join(f"{t}={f[t]:.4f}" for t in TREES) + f" - mean {mean:.4f}")
         json.dump({"analysis": "m4b_forest_policy", "split": "train_states", "test_touched": False,
                    "shuffle_control": bool(a.shuffle_control), "arch": a.arch, "state": a.state,
+                   "anchor_encoding": a.anchor_encoding, "drop_p": a.drop_p,
                    "dev_lo": a.dev_lo, "n_train_ex": int(len(tr_idx)), "n_dev_ex": int(len(dv_idx)),
                    "pool": [[int(x), int(y)] for x, y in pool], "history": hist},
                   open(os.path.join(OUT, f"{a.tag}_policy.json"), "w"), indent=1)
@@ -345,7 +363,8 @@ def main():
                         "pool": [[int(x), int(y)] for x, y in pool],
                         "ext": [[int(x), int(y)] for x, y in ext],
                         "norm": [norm[0].tolist(), norm[1].tolist()],
-                        "a_phi": a_phi, "a_pool": a_pool},
+                        "a_phi": a_phi, "a_pool": a_pool,
+                        "anchor_encoding": a.anchor_encoding, "drop_p": a.drop_p},
                        os.path.join(OUT, f"{a.tag}_policy.pt"))
             log(f"  [ckpt] epoch {ep} kept (mean dev top-1 {mean:.4f})")
     log("[done]")
