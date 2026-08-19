@@ -125,6 +125,40 @@ Four defects, all caught by the sanity gate before they reached a real run:
 permissive means the v1 tree is a valid prefix, and the migration (re-deciding 15 leaves from their
 recorded `child_sizes`) cost minutes where the rebuild cost ~6 h.
 
+## ★ A fifth defect, found on 2026-08-19: the trees have branches their cohort never populated
+
+Applying the forest to TRAIN users crashed immediately: `AssertionError: user 14616: 1 questions,
+need 15` on the `dialogue` teacher.
+
+**The cause is a property of the trees, not of the harness.** `dialogue` splits its root on the
+concept `pg-13`, whose answer rate on the validation cohort was **1.00** — every one of its 730 users
+answered. The `noanswer` branch therefore held zero users, no child node was created, and the
+`needs_tail` guard correctly declined to fit a tail there. On train, users **do** fail to answer it,
+route into that branch, and the tree has nothing to give them. Four of the seven trees have such
+sites: `dialogue` (root), the cold tree (two), `gore` and `inspiring` (one each, both with long
+inherited tails that happen to cover the budget).
+
+⚠ **This would have crashed the single TEST look.** M5 routes held-out users through exactly these
+trees; the escape is a certainty on 10,000 fresh users, and the failure would have surfaced *while
+spending the one look we have*.
+
+**The continuation rule, now stated once in `src/instrument/tree_route.py` and shared by validation,
+train and test.** A user routed outside the fitted support receives, for the remainder of the budget:
+the nearest **ancestor's fitted tail**, and if that still falls short, the **global static order** —
+the unconditioned incumbent, i.e. what a user gets when there is no evidence to condition on —
+skipping questions already asked. De-duplication happens **only** inside this fallback; the fitted
+path is reproduced verbatim, duplicates included, because the banked M4a numbers were measured with
+them present.
+
+**Verified a strict extension:** on all seven validation cohorts the new router returns **bit-identical
+sequences** to the old one, with **zero** fallbacks fired — these branches are empty by construction
+on the cohort a tree was fitted on. Every banked validation number stands unchanged. The rule can
+only ever fire off the fitting cohort, which is precisely where it is needed.
+
+The escape rate on held-out users is itself a reportable quantity (`n_fallback` is returned by the
+router and banked in every trajectory npz) — it measures how often a fitted interview meets a user it
+has no branch for.
+
 ## What M5 receives
 
 Seven trees on one ruler: the cold tree (the incumbent, depth 11) and six opener-conditioned teachers.

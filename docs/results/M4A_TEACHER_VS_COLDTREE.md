@@ -90,6 +90,11 @@ chapter usually wants, and it must be stated rather than reported as a full-NDCG
 
 ## Defects fixed in this run
 
+0. **Routing outside the fitted support** (found later, 2026-08-19, when the trees were applied to
+   train users) — a branch that was empty in the fitting cohort has no child and no fitted tail, and
+   a held-out user routed there got nothing. Fixed by one shared continuation rule in
+   `src/instrument/tree_route.py`; **verified bit-identical on all seven validation cohorts with zero
+   fallbacks**, so the numbers in this file are unaffected. See `M3_FOREST_TREES.md`.
 1. **Duplicate questions in a routed path** — a question can recur along a root-to-leaf path once a
    below-floor child inherits its parent's tail; item sequences are now de-duplicated as concept
    sequences already were.
