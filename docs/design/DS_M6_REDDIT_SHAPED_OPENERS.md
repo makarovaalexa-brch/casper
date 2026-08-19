@@ -88,3 +88,55 @@ now route to their cluster, because the space between anchors is populated.
 *realistic, previously unseen* volunteered opener to the right cluster's interview. It would not
 claim the clusters themselves are discovered at ask time — cluster identity still comes from the
 teacher assignment during training.
+
+---
+
+## M6c/M6d — PRE-REGISTERED 2026-08-19, before any of the data exists
+
+Written now so the split cannot be chosen after seeing results. Author's goal, verbatim:
+*"continue with all"* — fit every group, distil state-only, check on a group mix, and check whether
+it generalises.
+
+### M6c — distillation (state-only, forced)
+
+Trajectories on the 140,768 TRAIN users, each wearing their own group-linked opener from the same
+seeded generator, labelled by that group's **opener-fitted** tree; cold users keep the cold tree.
+Distilled with `--anchor_encoding none`: there is **no token to announce** here, because the opener
+is a different film or attribute per user, so routing must come from the folded latent. M4e already
+established state-only reproduces teachers at identical fidelity (|P−T| ≤ 0.00042).
+
+**Gate, same as M4b:** per-tree top-1 on a held-out TRAIN slice, and |policy − tree| at K=15 on
+validation. Materially below the M4b figures (0.9993 pooled, ≤0.00045) and the generalisation test
+below is **not interpretable** and must be reported as such, not as evidence either way.
+
+### M6d — does it generalise? THE SPLIT IS DECLARED HERE
+
+M4c's adjacency probe is the wrong instrument: it asked whether a *different concept* routes to a
+group, when the question is whether *unseen opener material* does. So:
+
+> Each group's diagnostic pool (films and coarse attributes above the centroid-lift bar) is split
+> **50/50 by a seeded hash of the item/concept id**, fixed before any fit. TRAIN openers are drawn
+> only from half A. TEST openers are drawn only from **half B** — material the policy has never seen
+> in that group's openers.
+
+**The measurement.** On validation users wearing half-B openers: does the policy ask that group's
+questions? Reported as (i) agreement with the group's opener-fitted tree at the root and over the
+whole interview, and (ii) NDCG against the cold tree at K ∈ {1,4,15}.
+
+**Declared readings, all three reportable:**
+- **routes and wins** — the policy has learned the *region*, not the vocabulary. The claim the
+  chapter has been reaching for since M4c.
+- **routes but does not win** — it recognises the group and its questions do not suit these users;
+  the grouping is real, its interview is not transferable.
+- **does not route** — the policy is again keyed to specific material rather than to taste, and the
+  coverage explanation from M4e is wrong as well. Report dead; do not retry with a third encoding.
+
+### M6e — the group mix
+
+All 10,000 validation users: those in a group wear a half-B opener, the rest are cold. One policy for
+everyone. Arms: the policy, the cold tree, static. **The do-no-harm cell is load-bearing** — if the
+policy degrades the cold majority, a mix win is arithmetic rather than a result, so cold-user NDCG is
+reported separately and must not fall.
+
+⚠ Everything above is validation. **The single TEST look stays unspent**, and none of these results
+license taking it.
