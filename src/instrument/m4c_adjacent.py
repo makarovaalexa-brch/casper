@@ -200,8 +200,11 @@ def main():
         #        so the policy sees an ordinary cold state. Separating these says whether any damage
         #        comes from the NOVEL TOKEN in a slot only six values ever occupied during training,
         #        or from the fold itself.
+        # arm 1 runs the policy in ITS OWN operating mode: a token-trained policy announces the
+        # fact, a state-only policy does not (announcing to it would be an input it never saw).
         seq_pol = policy_rollout(E, pol, phi_ext, pool, cohort, c,
-                                 eidx[(1, c)], pidx.get((1, c), -1))
+                                 eidx[(1, c)], pidx.get((1, c), -1),
+                                 announce=(ck.get("anchor_encoding", "token") != "none"))
         seq_fold = policy_rollout_foldonly(E, pol, phi_ext, pool, cohort, c)
         row = {"kind": p["kind"], "anchor": p["anchor"], "concept": c, "name": nm,
                "foldonly": {},
