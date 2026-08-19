@@ -158,6 +158,47 @@ Before any adaptive number was produced we verified that all six static arms dri
 sequential loop reproduce the batch implementation \emph{exactly} --- list equality of asked items,
 answered items and half-star levels, over $30$ (arm, budget) cells on all $10{,}000$ users.
 
+\subsection{What the answer model can and cannot launder}
+\label{sec:circularity}
+
+The standing objection to any conversational-recommendation result is that the thing answering the
+questions is a version of the thing being evaluated, so the interview is graded by its own
+assumptions. It is the right objection to raise and we would raise it first, so we state exactly
+where this study is exposed to it and where it is not.
+
+\emph{Answer values are not modelled at all.} Every answer is read from the user's own recorded
+behaviour --- a half-star level for an item, the signed implicit-watch statistic for a concept. No
+simulator is fitted, no language model is called, and no answer is generated anywhere in the
+measurement path. This is a stronger separation than the surrounding literature usually has, and it
+is the reason the asymmetry Act 4 turns on survives at all: in a protocol where the simulator answers
+from the target item's attribute set, every question is answerable by construction and the cost of an
+unanswerable question is identically zero (Section~\ref{sec:positioning}).
+
+\emph{Answerability is inferred, and it is load-bearing.} Whether a user \emph{could} have answered
+is not recorded anywhere, so we infer it --- having rated the item, for an item question; a
+structural coverage rule, for a concept. This is a modelling assumption, it is the one in this
+chapter we would most like to remove, and because two of the mechanisms below depend on it we return
+to it in Section~\ref{sec:limits} rather than leave it to a footnote.
+
+\emph{The selector and the consumer share a frozen encoder, and we do not remove that.} The
+representation used to choose a question is the representation used to score the recommendation.
+What that shared representation cannot do is manufacture the effects this chapter reports, and the
+reason is structural rather than rhetorical: every claim here is a \emph{difference} between two
+arms that share the encoder equally. The comparator is not a weaker family --- it is the same greedy
+search over the same bank, scored by the same recommender, differing only in whether the question
+may condition on the answers so far. A representation that flatters the interview flatters both
+arms and cancels in the difference. Three checks make that concrete rather than assumed. A tree grown
+on a shuffled routing signal does not merely fail to help, it \emph{loses} --- $-0.04817$ full under
+the min-leaf-respecting shuffle and $-0.03934$ unrestricted --- so the structure is doing work that
+no shared representation supplies for free. Changing only the scalar inside the split, one line with
+everything else held, flips the sign of the conditioning gain (Section~\ref{sec:criterion}). And the
+effect survives rebuilding the comparator until it is strictly harder, which cost us a separated
+interval we had already printed in our own favour.
+
+What none of this buys is a claim about live users. A behavioural answer is a real answer the user
+once gave, not the answer they would give in a conversation, and the gap between those two is not
+measured here by anyone, us included.
+
 \section{Act 1: the frontier under standard practice}
 \label{sec:act1}
 
@@ -1089,6 +1130,7 @@ optimises, and the sign of the conditioning gain flips. \textbf{The field's null
 not about adaptivity.}
 
 \subsection{The same tree, with six different criteria in its split}
+\label{sec:criterion}
 \label{sec:huyu}
 
 The mechanism claim above is a claim about one variable, so we vary that one variable. The same tree
