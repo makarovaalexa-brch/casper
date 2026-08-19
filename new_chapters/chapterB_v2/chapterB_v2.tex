@@ -1593,6 +1593,7 @@ reported rather than used. And the correction is measured on the training popula
 held-out ranking claim rests on it here.
 
 \subsection{Groups a user could name, and where real requests land}
+\label{sec:groups_named}
 \label{sec:clusters}
 
 Correcting for era leaves a partition worth routing on. Fitting on the $140{,}768$ training users
@@ -1664,6 +1665,72 @@ cannot be described at all: its best attributes (\texttt{goofy}, \texttt{silly})
 purity requirement with margins from $-0.077$ to $-0.115$, and its films are unrelated obscurities.
 It is a group of people who rate unpopular things, which is a behaviour rather than a preference,
 and no question a user could answer would route anyone to it.
+
+\subsection{Putting a real request in front of a user we can score}
+\label{sec:opener_synthesis}
+
+The corpus tells us what people volunteer; it cannot tell us what an interview should then ask,
+because a request thread has no held-out ratings. Only our MovieLens users have those. So to study
+interviews at realistic opening states we need MovieLens users \emph{wearing} openers that look like
+real requests --- and the honest way to do that is not to transplant a request onto a user it does
+not belong to, but to \textbf{measure the corpus and generate to its measurements}.
+
+\paragraph{What is matched, and against what.} Every target below is measured, on the $4{,}431$-thread
+slot census and on the $3{,}078$ requests our fold can represent. Nothing is chosen by hand.
+
+\begin{table}[t]
+\centering
+\caption{The synthesis is matched to measured properties of real requests, not to intuition. Targets
+come from the census (channel presence) and from the folded requests (cardinality, coherence,
+popularity). \emph{Coherence} is the mean pairwise cosine between films named in the same request;
+its null is two films drawn independently from one MovieLens user's likes. \emph{Popularity} is the
+median percentile of a named film in the catalogue, $100$ being the most popular.}
+\label{tab:opener_match}
+\footnotesize
+\begin{tabular}{llrr}
+\toprule
+dimension & source & real & synthesised \\
+\midrule
+names a film & census \texttt{anchors\_pos} & $0.630$ & $0.580$ \\
+names a genre & census \texttt{genres\_pos} & $0.398$ & $0.363$ \\
+names a tone & census \texttt{tone} & $0.214$ & $0.314$ \\
+films per request & folded requests & $1/2/3{+}$ empirical & matched by construction \\
+coherence of co-named films & folded requests & $+0.224$ & $+0.289$ \\
+\quad (null: independent draw) & & $+0.172$ & --- \\
+popularity of named films & folded requests & $93.3$ & $96.4$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{How the material is chosen.} A synthesised opener must be two things at once: true of the
+user, and characteristic of the group. Both are required --- an opener drawn from whatever a person
+happens to like is not a taste statement, and one drawn from the group without regard to the person
+is not their evidence. So candidates are ranked by \textbf{centroid lift}: how much a group's mean
+profile elevates an item or an attribute above the population mean. The user then volunteers only
+material that clears that bar \emph{and} appears in their own fold-in half --- a film they rated
+highly, an attribute they endorse.
+
+Centroid lift matters rather than the simpler frequency ratio. The two agree broadly in rank
+(Spearman $+0.56$ to $+0.93$) but overlap only $24$--$65\%$ in the top hundred, which is exactly where
+openers are drawn from, and the frequency ratio's head is dominated by items that are \emph{rare}
+rather than characteristic: it nominates \emph{Justice League} and \emph{Dracula Untold} for the
+superhero group. Centroid lift returns \emph{Iron Man 3}, \emph{Captain America: The Winter Soldier}
+and \emph{Avengers: Age of Ultron} --- independently reproducing the distinctive-film lists of
+Section~\ref{sec:groups_named}, which is the check.
+
+\paragraph{What is deliberately not matched, and why.} Three gaps are measured rather than papered
+over. \emph{Popularity} stops at the $96$th percentile against a target of $93.3$: MovieLens users
+liked more famous films than request authors name, and closing the gap would mean abandoning the rule
+that an opener is something the user actually liked. \emph{Era} openers are largely unavailable ---
+\texttt{1980s}, \texttt{1990s} and \texttt{2000s} have no attribute in our vocabulary at the
+membership threshold, and they are three of the four commonest era values in the corpus. And the
+affect words with no attribute at all --- \texttt{wholesome}, \texttt{uplifting}, \texttt{cozy} ---
+remain unsayable, as does any negative constraint (``nothing scary'') or situational framing
+(``something for a first date''). The synthesis is therefore a \emph{lower bound} on how much a real
+opener conveys.
+
+\PLAN{the interview fitted at these states, against the interview fitted at a single stated attribute
+and against the unconditioned tree.}
 
 \subsection{What volunteered information is worth}
 \label{sec:volunteered}
