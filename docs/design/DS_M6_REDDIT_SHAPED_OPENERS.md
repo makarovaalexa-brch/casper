@@ -1,4 +1,13 @@
-# DS-M6 — Reddit-shaped opener states, and whether a cluster's teacher survives them
+# DS-M6 — Reddit-shaped opener states, and whether a group's teacher survives them
+
+> ⚠ **TERMINOLOGY, corrected 2026-08-19 (author).** Throughout this sheet and the M6a/M6c runs,
+> "cluster" was used loosely for what is actually an **ENDORSEMENT COHORT** — the users who
+> behaviourally endorse one concept. That is not a k-means taste cluster. The six endorsement cohorts
+> **overlap by 27.8%** and are not a partition. Every tree in the project uses endorsement cohorts
+> (`--cohort_concept`; `n_cohort` = 786 / 587 match the endorsement counts exactly); **no tree has
+> ever been fitted on a cluster label.** The k-means labels were used only in M1, to choose which six
+> concepts to name as anchors, and were never banked — `m6p_recluster.py` re-derives and banks them.
+> Read every "cluster" below as "endorsement cohort" unless it says otherwise.
 
 **Status:** design sheet, written before any run (project rule). Author's proposal, 2026-08-19:
 *"train it on a good selection of states within the clusters, based on reddit-shaped volunteered data

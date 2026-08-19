@@ -1,4 +1,16 @@
-r"""M6k -- fit a CLUSTER teacher: one tree grown on varied, cluster-linked opener states.
+r"""M6k -- one tree grown on varied, group-linked opener states.
+
+⚠ NAMING, corrected 2026-08-19 after the author caught the conflation. This file fits on an
+ENDORSEMENT COHORT -- `rows[endorse[rows, cid]]`, the users who behaviourally endorse one concept --
+NOT on a k-means taste cluster. Those are different objects: a cluster is a partition of taste space,
+an endorsement cohort is an overlapping semantic set (the six overlap by 27.8%). Every tree in this
+project so far -- the six M3 teachers, the cold tree, and this one -- uses endorsement cohorts;
+`run_m3_teachers.sh` passes `--cohort_concept`, and the artifacts record `n_cohort` = 786 / 587,
+exactly the endorsement counts. No tree has ever been built on a cluster label.
+
+The k-means labels were used ONCE, in M1, to choose WHICH six concepts to use as anchor words. They
+were never banked, which is why they could not be re-checked; `m6p_recluster.py` re-derives and banks
+them. Fitting on a true cluster is a one-line cohort change from here and has not yet been done.
 
 Author, 2026-08-19: *"try building the tree teacher on just one cluster for now, and then compare its
 performance with old tree teacher and cold tree and static."*
