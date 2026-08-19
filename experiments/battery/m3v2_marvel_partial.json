@@ -1,0 +1,1007 @@
+{
+  "sig": {
+    "tower": "t2i26c_ep31.pt",
+    "conc": "concept_cv3_ep08.pt",
+    "objective": "full",
+    "item_bank": "pop",
+    "conc_bank": "answerable",
+    "n_items": 500,
+    "n_concepts": 500,
+    "n_pool": 1000,
+    "criterion": "node_size_weighted_mean_full_ndcg10_of_the_ternary_partition",
+    "branch_rule": "item: absent->noanswer, level>=7->like, else dislike | concept: not foldable->noanswer, signed value>0->like, else dislike",
+    "stopping": "min_leaf v2: split iff >=2 non-empty children and >=1 child >= min_leaf; children below the floor inherit the parent tail (no depth cap)",
+    "total_L": 15,
+    "min_leaf": 200,
+    "split": "validation",
+    "n_cohort": 734,
+    "sanity": false,
+    "cohort_concept": 581,
+    "cohort_rows": null,
+    "seed_prefix": [
+      [
+        1,
+        581
+      ]
+    ],
+    "pool_contract": {
+      "v": 1,
+      "policy": "B",
+      "n_rows": 734,
+      "n_items": 18359,
+      "nnz": 165080,
+      "per_user": 224.9046,
+      "fp": "af7f33b3a3c93102d780e2cba01db884"
+    }
+  },
+  "nodes": {
+    "root": {
+      "nid": "root",
+      "depth": 0,
+      "n_users": 734,
+      "path": [
+        [
+          1,
+          581
+        ]
+      ],
+      "branch_from": null,
+      "remaining_budget": 15,
+      "done": true,
+      "steps": [
+        [
+          0,
+          86
+        ]
+      ],
+      "gains": [
+        0.020140118194692636
+      ],
+      "n_evals": 1725,
+      "sec_per_eval": 0.669,
+      "minutes": 19.32,
+      "splitter": [
+        0,
+        86
+      ],
+      "channel": "item",
+      "splitter_gain": 0.020140118194692636,
+      "child_sizes": {
+        "like": 213,
+        "dislike": 191,
+        "noanswer": 330
+      },
+      "answer_rate": 0.5504,
+      "n_zero_value_answers": 0,
+      "child_full@10": {
+        "like": 0.40659753742378285,
+        "dislike": 0.3329570289032988,
+        "noanswer": 0.30717110313960866
+      },
+      "partition_weighted_full@10": 0.3427336948608538,
+      "node_full@10_after_splitter": 0.34273369486085375,
+      "partition_decomposition_max_abs_err": 5.551115123125783e-17,
+      "min_child": 191,
+      "min_nonempty_child": 191,
+      "children_above_floor": [
+        "like",
+        "noanswer"
+      ],
+      "children_inheriting": [
+        "dislike"
+      ],
+      "split": true,
+      "stop_reason": null,
+      "tail": [
+        [
+          0,
+          86
+        ],
+        [
+          1,
+          164
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          89
+        ],
+        [
+          0,
+          104
+        ],
+        [
+          1,
+          47
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          1,
+          652
+        ],
+        [
+          0,
+          219
+        ],
+        [
+          0,
+          999
+        ],
+        [
+          0,
+          929
+        ],
+        [
+          0,
+          1481
+        ],
+        [
+          0,
+          343
+        ],
+        [
+          0,
+          431
+        ]
+      ],
+      "tail_gains": [
+        0.020140118194692636,
+        0.015304984645482744,
+        0.012048199847575547,
+        0.008060780348138785,
+        0.009054878542208211,
+        0.006648889704352012,
+        0.007062319520027449,
+        0.007859640271304369,
+        0.00513358641667111,
+        0.0032159723747059443,
+        0.004728289210146064,
+        0.004853200210426956,
+        0.003116463649601664,
+        0.00288490495716498,
+        0.0024307227085971217
+      ],
+      "genre_face_validity": [
+        {
+          "genre": "Action",
+          "n": 296,
+          "frac": 0.4033
+        },
+        {
+          "genre": "Drama",
+          "n": 248,
+          "frac": 0.3379
+        },
+        {
+          "genre": "Adventure",
+          "n": 93,
+          "frac": 0.1267
+        },
+        {
+          "genre": "Comedy",
+          "n": 64,
+          "frac": 0.0872
+        }
+      ]
+    },
+    "root.like": {
+      "nid": "root.like",
+      "depth": 1,
+      "n_users": 213,
+      "path": [
+        [
+          1,
+          581
+        ],
+        [
+          0,
+          86
+        ]
+      ],
+      "branch_from": "like",
+      "remaining_budget": 14,
+      "done": true,
+      "steps": [
+        [
+          1,
+          455
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          142
+        ],
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          42
+        ],
+        [
+          1,
+          839
+        ],
+        [
+          1,
+          56
+        ],
+        [
+          1,
+          687
+        ],
+        [
+          1,
+          951
+        ],
+        [
+          0,
+          147
+        ],
+        [
+          1,
+          294
+        ],
+        [
+          0,
+          220
+        ],
+        [
+          0,
+          104
+        ],
+        [
+          0,
+          403
+        ]
+      ],
+      "gains": [
+        0.01490408889734085,
+        0.01198811733940891,
+        0.011448183635630216,
+        0.00886388095045798,
+        0.005937678234390786,
+        0.0047000754875321515,
+        0.0046952335968591385,
+        0.003681443572941201,
+        0.004507030748425622,
+        0.006329515063994984,
+        0.003539188605165944,
+        0.0032056953682246814,
+        0.004265057288976193,
+        0.005295210192871269
+      ],
+      "n_evals": 1307,
+      "sec_per_eval": 0.227,
+      "minutes": 5.0,
+      "splitter": [
+        1,
+        455
+      ],
+      "channel": "concept",
+      "splitter_gain": 0.01490408889734085,
+      "child_sizes": {
+        "like": 31,
+        "dislike": 182,
+        "noanswer": 0
+      },
+      "answer_rate": 1.0,
+      "n_zero_value_answers": 121,
+      "child_full@10": {
+        "like": 0.36649055128908875,
+        "dislike": 0.43087164459581095,
+        "noanswer": null
+      },
+      "partition_weighted_full@10": 0.42150162632112365,
+      "node_full@10_after_splitter": 0.4215016263211237,
+      "partition_decomposition_max_abs_err": 5.551115123125783e-17,
+      "min_child": 0,
+      "min_nonempty_child": 31,
+      "children_above_floor": [],
+      "children_inheriting": [
+        "like",
+        "dislike"
+      ],
+      "split": false,
+      "stop_reason": "no child reaches min_leaf 200 (largest 182)",
+      "tail": [
+        [
+          1,
+          455
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          142
+        ],
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          42
+        ],
+        [
+          1,
+          839
+        ],
+        [
+          1,
+          56
+        ],
+        [
+          1,
+          687
+        ],
+        [
+          1,
+          951
+        ],
+        [
+          0,
+          147
+        ],
+        [
+          1,
+          294
+        ],
+        [
+          0,
+          220
+        ],
+        [
+          0,
+          104
+        ],
+        [
+          0,
+          403
+        ]
+      ],
+      "tail_gains": [
+        0.01490408889734085,
+        0.01198811733940891,
+        0.011448183635630216,
+        0.00886388095045798,
+        0.005937678234390786,
+        0.0047000754875321515,
+        0.0046952335968591385,
+        0.003681443572941201,
+        0.004507030748425622,
+        0.006329515063994984,
+        0.003539188605165944,
+        0.0032056953682246814,
+        0.004265057288976193,
+        0.005295210192871269
+      ],
+      "genre_face_validity": [
+        {
+          "genre": "Action",
+          "n": 101,
+          "frac": 0.4742
+        },
+        {
+          "genre": "Drama",
+          "n": 58,
+          "frac": 0.2723
+        },
+        {
+          "genre": "Adventure",
+          "n": 29,
+          "frac": 0.1362
+        },
+        {
+          "genre": "Comedy",
+          "n": 18,
+          "frac": 0.0845
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.40659753742378285,
+          "tree_tail@10": 0.2271889817900172,
+          "tree_items_answered": 1.0,
+          "tree_concepts_answered": 1.0,
+          "tree_n_items": 1,
+          "tree_n_concepts": 1,
+          "combined_full@10": 0.34679018436748105,
+          "combined_tail@10": 0.163370930179483,
+          "diff_full@10_vs_combined": 0.05980735305630183,
+          "diff_tail@10_vs_combined": 0.0638180516105342,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.34679018436748105,
+          "concepts-only_tail@10": 0.163370930179483,
+          "diff_full@10_vs_concepts-only": 0.05980735305630183,
+          "diff_tail@10_vs_concepts-only": 0.0638180516105342,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.28004888208424855,
+          "items-only_tail@10": 0.10784347466624697,
+          "diff_full@10_vs_items-only": 0.12654865533953427,
+          "diff_tail@10_vs_items-only": 0.11934550712377023,
+          "set_overlap_vs_items-only": 0
+        },
+        "2": {
+          "tree_full@10": 0.4215016263211237,
+          "tree_tail@10": 0.23422357238542776,
+          "tree_items_answered": 1.0,
+          "tree_concepts_answered": 2.0,
+          "tree_n_items": 1,
+          "tree_n_concepts": 2,
+          "combined_full@10": 0.3562284737228658,
+          "combined_tail@10": 0.16733981345478757,
+          "diff_full@10_vs_combined": 0.06527315259825794,
+          "diff_tail@10_vs_combined": 0.06688375893064025,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.3562284737228658,
+          "concepts-only_tail@10": 0.16733981345478757,
+          "diff_full@10_vs_concepts-only": 0.06527315259825794,
+          "diff_tail@10_vs_concepts-only": 0.06688375893064025,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.28964788693853233,
+          "items-only_tail@10": 0.11019049221920148,
+          "diff_full@10_vs_items-only": 0.13185373938259137,
+          "diff_tail@10_vs_items-only": 0.12403308016622633,
+          "set_overlap_vs_items-only": 0
+        },
+        "4": {
+          "tree_full@10": 0.4449379272961628,
+          "tree_tail@10": 0.25375337964187766,
+          "tree_items_answered": 1.939,
+          "tree_concepts_answered": 2.0,
+          "tree_n_items": 3,
+          "tree_n_concepts": 2,
+          "combined_full@10": 0.34939845369321904,
+          "combined_tail@10": 0.1694950927266006,
+          "diff_full@10_vs_combined": 0.09553947360294382,
+          "diff_tail@10_vs_combined": 0.08425828691527702,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.35797172956258727,
+          "concepts-only_tail@10": 0.17502303866387273,
+          "diff_full@10_vs_concepts-only": 0.08696619773357563,
+          "diff_tail@10_vs_concepts-only": 0.07873034097800487,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.3247357512150974,
+          "items-only_tail@10": 0.1319911795554641,
+          "diff_full@10_vs_items-only": 0.1202021760810654,
+          "diff_tail@10_vs_items-only": 0.12176220008641353,
+          "set_overlap_vs_items-only": 0
+        },
+        "8": {
+          "tree_full@10": 0.4691347955654029,
+          "tree_tail@10": 0.2715944196586526,
+          "tree_items_answered": 1.939,
+          "tree_concepts_answered": 5.953,
+          "tree_n_items": 3,
+          "tree_n_concepts": 6,
+          "combined_full@10": 0.41709927218172926,
+          "combined_tail@10": 0.22903911639223976,
+          "diff_full@10_vs_combined": 0.05203552338367361,
+          "diff_tail@10_vs_combined": 0.04255530326641288,
+          "set_overlap_vs_combined": 1,
+          "concepts-only_full@10": 0.389098873168974,
+          "concepts-only_tail@10": 0.21239199095368755,
+          "diff_full@10_vs_concepts-only": 0.08003592239642886,
+          "diff_tail@10_vs_concepts-only": 0.0592024287049651,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.3456944785957467,
+          "items-only_tail@10": 0.14131722145709863,
+          "diff_full@10_vs_items-only": 0.1234403169696561,
+          "diff_tail@10_vs_items-only": 0.13027719820155398,
+          "set_overlap_vs_items-only": 0
+        },
+        "15": {
+          "tree_full@10": 0.4999579364060028,
+          "tree_tail@10": 0.299647492227509,
+          "tree_items_answered": 3.131,
+          "tree_concepts_answered": 8.85,
+          "tree_n_items": 7,
+          "tree_n_concepts": 9,
+          "combined_full@10": 0.4375399439041437,
+          "combined_tail@10": 0.24720952910282945,
+          "diff_full@10_vs_combined": 0.06241799250185913,
+          "diff_tail@10_vs_combined": 0.052437963124679646,
+          "set_overlap_vs_combined": 1,
+          "concepts-only_full@10": 0.40998402484137453,
+          "concepts-only_tail@10": 0.2409619274947209,
+          "diff_full@10_vs_concepts-only": 0.08997391156462828,
+          "diff_tail@10_vs_concepts-only": 0.058685564732788194,
+          "set_overlap_vs_concepts-only": 1,
+          "items-only_full@10": 0.3978253374433566,
+          "items-only_tail@10": 0.20242638235560598,
+          "diff_full@10_vs_items-only": 0.1021325989626462,
+          "diff_tail@10_vs_items-only": 0.09722110987190315,
+          "set_overlap_vs_items-only": 0
+        }
+      },
+      "own_sequence": [
+        [
+          1,
+          581
+        ],
+        [
+          0,
+          86
+        ],
+        [
+          1,
+          455
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          142
+        ],
+        [
+          1,
+          312
+        ],
+        [
+          1,
+          42
+        ],
+        [
+          1,
+          839
+        ],
+        [
+          1,
+          56
+        ],
+        [
+          1,
+          687
+        ],
+        [
+          1,
+          951
+        ],
+        [
+          0,
+          147
+        ],
+        [
+          1,
+          294
+        ],
+        [
+          0,
+          220
+        ],
+        [
+          0,
+          104
+        ],
+        [
+          0,
+          403
+        ]
+      ]
+    },
+    "root.noanswer": {
+      "nid": "root.noanswer",
+      "depth": 1,
+      "n_users": 330,
+      "path": [
+        [
+          1,
+          581
+        ],
+        [
+          0,
+          86
+        ]
+      ],
+      "branch_from": "noanswer",
+      "remaining_budget": 14,
+      "done": true,
+      "steps": [
+        [
+          1,
+          36
+        ],
+        [
+          1,
+          926
+        ],
+        [
+          1,
+          914
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          1667
+        ],
+        [
+          1,
+          822
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          1113
+        ],
+        [
+          1,
+          818
+        ],
+        [
+          0,
+          1935
+        ],
+        [
+          1,
+          122
+        ],
+        [
+          1,
+          137
+        ],
+        [
+          0,
+          584
+        ],
+        [
+          0,
+          899
+        ]
+      ],
+      "gains": [
+        0.01776598790542877,
+        0.015403864612078655,
+        0.007926063153795904,
+        0.007091692113609771,
+        0.005233974881219683,
+        0.005946381104773746,
+        0.006752995060878841,
+        0.003283746384054931,
+        0.003190898918067675,
+        0.00375673991544484,
+        0.002869542421591542,
+        0.0030160521194391166,
+        0.0030790959101108517,
+        0.002193888255202503
+      ],
+      "n_evals": 1530,
+      "sec_per_eval": 0.296,
+      "minutes": 7.63,
+      "splitter": [
+        1,
+        36
+      ],
+      "channel": "concept",
+      "splitter_gain": 0.01776598790542877,
+      "child_sizes": {
+        "like": 135,
+        "dislike": 191,
+        "noanswer": 4
+      },
+      "answer_rate": 0.9879,
+      "n_zero_value_answers": 173,
+      "child_full@10": {
+        "like": 0.37805187610552804,
+        "dislike": 0.2914611694205048,
+        "noanswer": 0.1307883528249118
+      },
+      "partition_weighted_full@10": 0.32493709104503743,
+      "node_full@10_after_splitter": 0.32493709104503743,
+      "partition_decomposition_max_abs_err": 0.0,
+      "min_child": 4,
+      "min_nonempty_child": 4,
+      "children_above_floor": [],
+      "children_inheriting": [
+        "like",
+        "dislike",
+        "noanswer"
+      ],
+      "split": false,
+      "stop_reason": "no child reaches min_leaf 200 (largest 191)",
+      "tail": [
+        [
+          1,
+          36
+        ],
+        [
+          1,
+          926
+        ],
+        [
+          1,
+          914
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          1667
+        ],
+        [
+          1,
+          822
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          1113
+        ],
+        [
+          1,
+          818
+        ],
+        [
+          0,
+          1935
+        ],
+        [
+          1,
+          122
+        ],
+        [
+          1,
+          137
+        ],
+        [
+          0,
+          584
+        ],
+        [
+          0,
+          899
+        ]
+      ],
+      "tail_gains": [
+        0.01776598790542877,
+        0.015403864612078655,
+        0.007926063153795904,
+        0.007091692113609771,
+        0.005233974881219683,
+        0.005946381104773746,
+        0.006752995060878841,
+        0.003283746384054931,
+        0.003190898918067675,
+        0.00375673991544484,
+        0.002869542421591542,
+        0.0030160521194391166,
+        0.0030790959101108517,
+        0.002193888255202503
+      ],
+      "genre_face_validity": [
+        {
+          "genre": "Action",
+          "n": 129,
+          "frac": 0.3909
+        },
+        {
+          "genre": "Drama",
+          "n": 106,
+          "frac": 0.3212
+        },
+        {
+          "genre": "Adventure",
+          "n": 48,
+          "frac": 0.1455
+        },
+        {
+          "genre": "Comedy",
+          "n": 28,
+          "frac": 0.0848
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.30717110313960866,
+          "tree_tail@10": 0.17648968683024044,
+          "tree_items_answered": 0.0,
+          "tree_concepts_answered": 1.0,
+          "tree_n_items": 1,
+          "tree_n_concepts": 1,
+          "combined_full@10": 0.28360531320096294,
+          "combined_tail@10": 0.13260097421118588,
+          "diff_full@10_vs_combined": 0.023565789938645665,
+          "diff_tail@10_vs_combined": 0.04388871261905454,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.28360531320096294,
+          "concepts-only_tail@10": 0.13260097421118588,
+          "diff_full@10_vs_concepts-only": 0.023565789938645665,
+          "diff_tail@10_vs_concepts-only": 0.04388871261905454,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.23492933614911948,
+          "items-only_tail@10": 0.08615920952971491,
+          "diff_full@10_vs_items-only": 0.07224176699048912,
+          "diff_tail@10_vs_items-only": 0.09033047730052551,
+          "set_overlap_vs_items-only": 0
+        },
+        "2": {
+          "tree_full@10": 0.32493709104503743,
+          "tree_tail@10": 0.18510689430358465,
+          "tree_items_answered": 0.0,
+          "tree_concepts_answered": 1.988,
+          "tree_n_items": 1,
+          "tree_n_concepts": 2,
+          "combined_full@10": 0.2916127308703492,
+          "combined_tail@10": 0.13640457739584239,
+          "diff_full@10_vs_combined": 0.03332436017468818,
+          "diff_tail@10_vs_combined": 0.04870231690774223,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.2916127308703492,
+          "concepts-only_tail@10": 0.13640457739584239,
+          "diff_full@10_vs_concepts-only": 0.03332436017468818,
+          "diff_tail@10_vs_concepts-only": 0.04870231690774223,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.23840535740614227,
+          "items-only_tail@10": 0.08628872887529782,
+          "diff_full@10_vs_items-only": 0.08653173363889514,
+          "diff_tail@10_vs_items-only": 0.09881816542828688,
+          "set_overlap_vs_items-only": 0
+        },
+        "4": {
+          "tree_full@10": 0.348267018810912,
+          "tree_tail@10": 0.19995994085931387,
+          "tree_items_answered": 0.0,
+          "tree_concepts_answered": 3.9,
+          "tree_n_items": 1,
+          "tree_n_concepts": 4,
+          "combined_full@10": 0.2899417666956821,
+          "combined_tail@10": 0.12629220477859537,
+          "diff_full@10_vs_combined": 0.058325252115229945,
+          "diff_tail@10_vs_combined": 0.07366773608071849,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.29563878159151874,
+          "concepts-only_tail@10": 0.14203208873039017,
+          "diff_full@10_vs_concepts-only": 0.05262823721939324,
+          "diff_tail@10_vs_concepts-only": 0.057927852128923714,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.2596231431230757,
+          "items-only_tail@10": 0.10787356711082162,
+          "diff_full@10_vs_items-only": 0.08864387568783624,
+          "diff_tail@10_vs_items-only": 0.09208637374849227,
+          "set_overlap_vs_items-only": 0
+        },
+        "8": {
+          "tree_full@10": 0.37329206197139403,
+          "tree_tail@10": 0.21919956602807558,
+          "tree_items_answered": 0.767,
+          "tree_concepts_answered": 4.897,
+          "tree_n_items": 4,
+          "tree_n_concepts": 5,
+          "combined_full@10": 0.32800206211291194,
+          "combined_tail@10": 0.17306564965128957,
+          "diff_full@10_vs_combined": 0.045289999858482144,
+          "diff_tail@10_vs_combined": 0.04613391637678601,
+          "set_overlap_vs_combined": 1,
+          "concepts-only_full@10": 0.32293798054514805,
+          "concepts-only_tail@10": 0.17276834146096964,
+          "diff_full@10_vs_concepts-only": 0.05035408142624605,
+          "diff_tail@10_vs_concepts-only": 0.04643122456710594,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.2886698636033549,
+          "items-only_tail@10": 0.11170839867771228,
+          "diff_full@10_vs_items-only": 0.08462219836803915,
+          "diff_tail@10_vs_items-only": 0.1074911673503633,
+          "set_overlap_vs_items-only": 0
+        },
+        "15": {
+          "tree_full@10": 0.3946820258953055,
+          "tree_tail@10": 0.2199507472565154,
+          "tree_items_answered": 1.276,
+          "tree_concepts_answered": 7.824,
+          "tree_n_items": 8,
+          "tree_n_concepts": 8,
+          "combined_full@10": 0.35741319775708585,
+          "combined_tail@10": 0.17403159532662243,
+          "diff_full@10_vs_combined": 0.037268828138219565,
+          "diff_tail@10_vs_combined": 0.045919151929892967,
+          "set_overlap_vs_combined": 1,
+          "concepts-only_full@10": 0.3359797297048534,
+          "concepts-only_tail@10": 0.18838095559229187,
+          "diff_full@10_vs_concepts-only": 0.058702296190451995,
+          "diff_tail@10_vs_concepts-only": 0.03156979166422355,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.3223456385676831,
+          "items-only_tail@10": 0.14529985476381047,
+          "diff_full@10_vs_items-only": 0.07233638732762232,
+          "diff_tail@10_vs_items-only": 0.07465089249270493,
+          "set_overlap_vs_items-only": 0
+        }
+      },
+      "own_sequence": [
+        [
+          1,
+          581
+        ],
+        [
+          0,
+          86
+        ],
+        [
+          1,
+          36
+        ],
+        [
+          1,
+          926
+        ],
+        [
+          1,
+          914
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          0,
+          1667
+        ],
+        [
+          1,
+          822
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          1113
+        ],
+        [
+          1,
+          818
+        ],
+        [
+          0,
+          1935
+        ],
+        [
+          1,
+          122
+        ],
+        [
+          1,
+          137
+        ],
+        [
+          0,
+          584
+        ],
+        [
+          0,
+          899
+        ]
+      ]
+    }
+  }
+}

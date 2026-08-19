@@ -1,0 +1,1239 @@
+{
+  "sig": {
+    "tower": "t2i26c_ep31.pt",
+    "conc": "concept_cv3_ep08.pt",
+    "objective": "full",
+    "item_bank": "pop",
+    "conc_bank": "answerable",
+    "n_items": 500,
+    "n_concepts": 500,
+    "n_pool": 1000,
+    "criterion": "node_size_weighted_mean_full_ndcg10_of_the_ternary_partition",
+    "branch_rule": "item: absent->noanswer, level>=7->like, else dislike | concept: not foldable->noanswer, signed value>0->like, else dislike",
+    "stopping": "min_leaf v2: split iff >=2 non-empty children and >=1 child >= min_leaf; children below the floor inherit the parent tail (no depth cap)",
+    "total_L": 15,
+    "min_leaf": 200,
+    "split": "validation",
+    "n_cohort": 730,
+    "sanity": false,
+    "cohort_concept": 275,
+    "cohort_rows": null,
+    "seed_prefix": [
+      [
+        1,
+        275
+      ]
+    ],
+    "pool_contract": {
+      "v": 1,
+      "policy": "B",
+      "n_rows": 730,
+      "n_items": 18359,
+      "nnz": 57047,
+      "per_user": 78.1466,
+      "fp": "676f0d0933b455a6a0f3c73d7d1aac19"
+    }
+  },
+  "nodes": {
+    "root": {
+      "nid": "root",
+      "depth": 0,
+      "n_users": 730,
+      "path": [
+        [
+          1,
+          275
+        ]
+      ],
+      "branch_from": null,
+      "remaining_budget": 15,
+      "done": true,
+      "steps": [
+        [
+          1,
+          704
+        ]
+      ],
+      "gains": [
+        0.019480796290655994
+      ],
+      "n_evals": 1001,
+      "sec_per_eval": 1.067,
+      "minutes": 17.85,
+      "splitter": [
+        1,
+        704
+      ],
+      "channel": "concept",
+      "splitter_gain": 0.019480796290655994,
+      "child_sizes": {
+        "like": 334,
+        "dislike": 396,
+        "noanswer": 0
+      },
+      "answer_rate": 1.0,
+      "n_zero_value_answers": 175,
+      "child_full@10": {
+        "like": 0.2621752262949966,
+        "dislike": 0.1920976137701756,
+        "noanswer": null
+      },
+      "partition_weighted_full@10": 0.22416052141851836,
+      "node_full@10_after_splitter": 0.22416052141851833,
+      "partition_decomposition_max_abs_err": 2.7755575615628914e-17,
+      "min_child": 0,
+      "min_nonempty_child": 334,
+      "children_above_floor": [
+        "like",
+        "dislike"
+      ],
+      "children_inheriting": [],
+      "split": true,
+      "stop_reason": null,
+      "tail": [
+        [
+          1,
+          704
+        ]
+      ],
+      "tail_gains": [
+        0.019480796290655994
+      ],
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 589,
+          "frac": 0.8068
+        },
+        {
+          "genre": "Comedy",
+          "n": 50,
+          "frac": 0.0685
+        },
+        {
+          "genre": "Action",
+          "n": 47,
+          "frac": 0.0644
+        },
+        {
+          "genre": "Thriller",
+          "n": 21,
+          "frac": 0.0288
+        }
+      ]
+    },
+    "root.like": {
+      "nid": "root.like",
+      "depth": 1,
+      "n_users": 334,
+      "path": [
+        [
+          1,
+          275
+        ],
+        [
+          1,
+          704
+        ]
+      ],
+      "branch_from": "like",
+      "remaining_budget": 14,
+      "done": true,
+      "steps": [
+        [
+          0,
+          404
+        ]
+      ],
+      "gains": [
+        0.013763274664365721
+      ],
+      "n_evals": 1454,
+      "sec_per_eval": 0.286,
+      "minutes": 6.99,
+      "splitter": [
+        0,
+        404
+      ],
+      "channel": "item",
+      "splitter_gain": 0.013763274664365721,
+      "child_sizes": {
+        "like": 62,
+        "dislike": 17,
+        "noanswer": 255
+      },
+      "answer_rate": 0.2365,
+      "n_zero_value_answers": 0,
+      "child_full@10": {
+        "like": 0.3622748861595799,
+        "dislike": 0.23729319505378138,
+        "noanswer": 0.25752326299066186
+      },
+      "partition_weighted_full@10": 0.2759385009593623,
+      "node_full@10_after_splitter": 0.27593850095936234,
+      "partition_decomposition_max_abs_err": 5.551115123125783e-17,
+      "min_child": 17,
+      "min_nonempty_child": 17,
+      "children_above_floor": [
+        "noanswer"
+      ],
+      "children_inheriting": [
+        "like",
+        "dislike"
+      ],
+      "split": true,
+      "stop_reason": null,
+      "tail": [
+        [
+          0,
+          404
+        ],
+        [
+          1,
+          247
+        ],
+        [
+          1,
+          652
+        ],
+        [
+          0,
+          403
+        ],
+        [
+          1,
+          913
+        ],
+        [
+          1,
+          386
+        ],
+        [
+          0,
+          901
+        ],
+        [
+          1,
+          896
+        ],
+        [
+          0,
+          140
+        ],
+        [
+          0,
+          391
+        ],
+        [
+          1,
+          540
+        ],
+        [
+          1,
+          211
+        ],
+        [
+          0,
+          274
+        ],
+        [
+          0,
+          180
+        ]
+      ],
+      "tail_gains": [
+        0.013763274664365721,
+        0.009041827540093084,
+        0.0036854038549111734,
+        0.0028476185118864183,
+        0.0037793601476756034,
+        0.003251735134918443,
+        0.0028772432467088493,
+        0.0038218226032064595,
+        0.0055072620637623415,
+        0.0050369858071411255,
+        0.0023493589474702925,
+        0.0014524654484208144,
+        0.00156066332616428,
+        0.0013483728797738515
+      ],
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 258,
+          "frac": 0.7725
+        },
+        {
+          "genre": "Action",
+          "n": 41,
+          "frac": 0.1228
+        },
+        {
+          "genre": "Thriller",
+          "n": 13,
+          "frac": 0.0389
+        },
+        {
+          "genre": "Comedy",
+          "n": 11,
+          "frac": 0.0329
+        }
+      ]
+    },
+    "root.dislike": {
+      "nid": "root.dislike",
+      "depth": 1,
+      "n_users": 396,
+      "path": [
+        [
+          1,
+          275
+        ],
+        [
+          1,
+          704
+        ]
+      ],
+      "branch_from": "dislike",
+      "remaining_budget": 14,
+      "done": true,
+      "steps": [
+        [
+          1,
+          29
+        ]
+      ],
+      "gains": [
+        0.00864883566197222
+      ],
+      "n_evals": 1400,
+      "sec_per_eval": 0.333,
+      "minutes": 7.83,
+      "splitter": [
+        1,
+        29
+      ],
+      "channel": "concept",
+      "splitter_gain": 0.00864883566197222,
+      "child_sizes": {
+        "like": 135,
+        "dislike": 230,
+        "noanswer": 31
+      },
+      "answer_rate": 0.9217,
+      "n_zero_value_answers": 173,
+      "child_full@10": {
+        "like": 0.23457194245249313,
+        "dislike": 0.19896996316548982,
+        "noanswer": 0.06662226503165435
+      },
+      "partition_weighted_full@10": 0.20074644943214776,
+      "node_full@10_after_splitter": 0.2007464494321478,
+      "partition_decomposition_max_abs_err": 5.551115123125783e-17,
+      "min_child": 31,
+      "min_nonempty_child": 31,
+      "children_above_floor": [
+        "dislike"
+      ],
+      "children_inheriting": [
+        "like",
+        "noanswer"
+      ],
+      "split": true,
+      "stop_reason": null,
+      "tail": [
+        [
+          1,
+          29
+        ],
+        [
+          1,
+          603
+        ],
+        [
+          1,
+          870
+        ],
+        [
+          1,
+          233
+        ],
+        [
+          0,
+          793
+        ],
+        [
+          1,
+          423
+        ],
+        [
+          1,
+          951
+        ],
+        [
+          1,
+          797
+        ],
+        [
+          1,
+          717
+        ],
+        [
+          1,
+          918
+        ],
+        [
+          1,
+          785
+        ],
+        [
+          1,
+          272
+        ],
+        [
+          0,
+          216
+        ],
+        [
+          1,
+          408
+        ]
+      ],
+      "tail_gains": [
+        0.00864883566197222,
+        0.007517620707930717,
+        0.005436863591822938,
+        0.004077986064820099,
+        0.0038967277912226317,
+        0.0037734580619565583,
+        0.0026198043276011995,
+        0.002259590369511094,
+        0.001678759973139432,
+        0.002246619322365556,
+        0.0016281560935252348,
+        0.0011239354917790545,
+        0.0015752270735818197,
+        0.000878489810864469
+      ],
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 331,
+          "frac": 0.8359
+        },
+        {
+          "genre": "Comedy",
+          "n": 39,
+          "frac": 0.0985
+        },
+        {
+          "genre": "Thriller",
+          "n": 8,
+          "frac": 0.0202
+        },
+        {
+          "genre": "Action",
+          "n": 6,
+          "frac": 0.0152
+        }
+      ]
+    },
+    "root.like.noanswer": {
+      "nid": "root.like.noanswer",
+      "depth": 2,
+      "n_users": 255,
+      "path": [
+        [
+          1,
+          275
+        ],
+        [
+          1,
+          704
+        ],
+        [
+          0,
+          404
+        ]
+      ],
+      "branch_from": "noanswer",
+      "remaining_budget": 13,
+      "done": true,
+      "steps": [
+        [
+          1,
+          460
+        ],
+        [
+          1,
+          630
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          406
+        ],
+        [
+          1,
+          785
+        ],
+        [
+          1,
+          501
+        ],
+        [
+          0,
+          186
+        ],
+        [
+          1,
+          1010
+        ],
+        [
+          1,
+          117
+        ],
+        [
+          0,
+          706
+        ],
+        [
+          1,
+          55
+        ],
+        [
+          1,
+          815
+        ],
+        [
+          1,
+          181
+        ]
+      ],
+      "gains": [
+        0.012953120692833886,
+        0.0036661368329047317,
+        0.0026175606486383285,
+        0.0029088897847231454,
+        0.0021250752483694124,
+        0.002191272843726444,
+        0.0018542442517450741,
+        0.001653243751252309,
+        0.001532055415849276,
+        0.006110602395078268,
+        0.0014543471148790177,
+        0.0015549920844872278,
+        0.0011202942362539825
+      ],
+      "n_evals": 1290,
+      "sec_per_eval": 0.255,
+      "minutes": 5.54,
+      "splitter": [
+        1,
+        460
+      ],
+      "channel": "concept",
+      "splitter_gain": 0.012953120692833886,
+      "child_sizes": {
+        "like": 162,
+        "dislike": 93,
+        "noanswer": 0
+      },
+      "answer_rate": 1.0,
+      "n_zero_value_answers": 76,
+      "child_full@10": {
+        "like": 0.29793560700390137,
+        "dislike": 0.22264418822214385,
+        "noanswer": null
+      },
+      "partition_weighted_full@10": 0.2704763836834957,
+      "node_full@10_after_splitter": 0.27047638368349575,
+      "partition_decomposition_max_abs_err": 5.551115123125783e-17,
+      "min_child": 0,
+      "min_nonempty_child": 93,
+      "children_above_floor": [],
+      "children_inheriting": [
+        "like",
+        "dislike"
+      ],
+      "split": false,
+      "stop_reason": "no child reaches min_leaf 200 (largest 162)",
+      "tail": [
+        [
+          1,
+          460
+        ],
+        [
+          1,
+          630
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          406
+        ],
+        [
+          1,
+          785
+        ],
+        [
+          1,
+          501
+        ],
+        [
+          0,
+          186
+        ],
+        [
+          1,
+          1010
+        ],
+        [
+          1,
+          117
+        ],
+        [
+          0,
+          706
+        ],
+        [
+          1,
+          55
+        ],
+        [
+          1,
+          815
+        ],
+        [
+          1,
+          181
+        ]
+      ],
+      "tail_gains": [
+        0.012953120692833886,
+        0.0036661368329047317,
+        0.0026175606486383285,
+        0.0029088897847231454,
+        0.0021250752483694124,
+        0.002191272843726444,
+        0.0018542442517450741,
+        0.001653243751252309,
+        0.001532055415849276,
+        0.006110602395078268,
+        0.0014543471148790177,
+        0.0015549920844872278,
+        0.0011202942362539825
+      ],
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 185,
+          "frac": 0.7255
+        },
+        {
+          "genre": "Action",
+          "n": 38,
+          "frac": 0.149
+        },
+        {
+          "genre": "Thriller",
+          "n": 12,
+          "frac": 0.0471
+        },
+        {
+          "genre": "Comedy",
+          "n": 10,
+          "frac": 0.0392
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.25495167288759585,
+          "tree_tail@10": 0.09030552374708328,
+          "tree_items_answered": 0.0,
+          "tree_concepts_answered": 2.0,
+          "tree_n_items": 0,
+          "tree_n_concepts": 2,
+          "combined_full@10": 0.2324404733664122,
+          "combined_tail@10": 0.03573194876768042,
+          "diff_full@10_vs_combined": 0.02251119952118366,
+          "diff_tail@10_vs_combined": 0.05457357497940288,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.2324404733664122,
+          "concepts-only_tail@10": 0.03573194876768042,
+          "diff_full@10_vs_concepts-only": 0.02251119952118366,
+          "diff_tail@10_vs_concepts-only": 0.05457357497940288,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.23663332462592077,
+          "items-only_tail@10": 0.029902508783717113,
+          "diff_full@10_vs_items-only": 0.01831834826167509,
+          "diff_tail@10_vs_items-only": 0.060403014963366176,
+          "set_overlap_vs_items-only": 0
+        },
+        "2": {
+          "tree_full@10": 0.25752326299066186,
+          "tree_tail@10": 0.08992224665259314,
+          "tree_items_answered": 0.0,
+          "tree_concepts_answered": 2.0,
+          "tree_n_items": 1,
+          "tree_n_concepts": 2,
+          "combined_full@10": 0.25950628216881655,
+          "combined_tail@10": 0.04058606557168084,
+          "diff_full@10_vs_combined": -0.0019830191781546164,
+          "diff_tail@10_vs_combined": 0.04933618108091232,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.25950628216881655,
+          "concepts-only_tail@10": 0.04058606557168084,
+          "diff_full@10_vs_concepts-only": -0.0019830191781546164,
+          "diff_tail@10_vs_concepts-only": 0.04933618108091232,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.2306263260626125,
+          "items-only_tail@10": 0.03735716267702599,
+          "diff_full@10_vs_items-only": 0.026896936928049422,
+          "diff_tail@10_vs_items-only": 0.05256508397556717,
+          "set_overlap_vs_items-only": 0
+        },
+        "4": {
+          "tree_full@10": 0.2741425205164005,
+          "tree_tail@10": 0.0879775836007904,
+          "tree_items_answered": 0.0,
+          "tree_concepts_answered": 3.984,
+          "tree_n_items": 1,
+          "tree_n_concepts": 4,
+          "combined_full@10": 0.26367322178091795,
+          "combined_tail@10": 0.050208845752260874,
+          "diff_full@10_vs_combined": 0.010469298735482475,
+          "diff_tail@10_vs_combined": 0.03776873784852954,
+          "set_overlap_vs_combined": 1,
+          "concepts-only_full@10": 0.26547554776521987,
+          "concepts-only_tail@10": 0.052845333373738194,
+          "diff_full@10_vs_concepts-only": 0.00866697275118056,
+          "diff_tail@10_vs_concepts-only": 0.035132250227052214,
+          "set_overlap_vs_concepts-only": 1,
+          "items-only_full@10": 0.2369372380935036,
+          "items-only_tail@10": 0.043099943642672375,
+          "diff_full@10_vs_items-only": 0.037205282422896814,
+          "diff_tail@10_vs_items-only": 0.04487763995811805,
+          "set_overlap_vs_items-only": 0
+        },
+        "8": {
+          "tree_full@10": 0.2839853190418578,
+          "tree_tail@10": 0.09496281466879798,
+          "tree_items_answered": 0.353,
+          "tree_concepts_answered": 5.937,
+          "tree_n_items": 3,
+          "tree_n_concepts": 6,
+          "combined_full@10": 0.27222512861416914,
+          "combined_tail@10": 0.1003180977571731,
+          "diff_full@10_vs_combined": 0.011760190427688643,
+          "diff_tail@10_vs_combined": -0.005355283088375138,
+          "set_overlap_vs_combined": 1,
+          "concepts-only_full@10": 0.2820796461334752,
+          "concepts-only_tail@10": 0.09669718088226664,
+          "diff_full@10_vs_concepts-only": 0.0019056729083826724,
+          "diff_tail@10_vs_concepts-only": -0.0017343662134686715,
+          "set_overlap_vs_concepts-only": 1,
+          "items-only_full@10": 0.2662644955479831,
+          "items-only_tail@10": 0.04321255633099362,
+          "diff_full@10_vs_items-only": 0.01772082349387476,
+          "diff_tail@10_vs_items-only": 0.05175025833780434,
+          "set_overlap_vs_items-only": 0
+        },
+        "15": {
+          "tree_full@10": 0.29926509829140296,
+          "tree_tail@10": 0.08917722168090426,
+          "tree_items_answered": 0.486,
+          "tree_concepts_answered": 10.306,
+          "tree_n_items": 5,
+          "tree_n_concepts": 11,
+          "combined_full@10": 0.2891194633501268,
+          "combined_tail@10": 0.08889446516325558,
+          "diff_full@10_vs_combined": 0.01014563494127619,
+          "diff_tail@10_vs_combined": 0.000282756517648678,
+          "set_overlap_vs_combined": 1,
+          "concepts-only_full@10": 0.27828298179244376,
+          "concepts-only_tail@10": 0.10282957086799153,
+          "diff_full@10_vs_concepts-only": 0.020982116498959206,
+          "diff_tail@10_vs_concepts-only": -0.01365234918708727,
+          "set_overlap_vs_concepts-only": 1,
+          "items-only_full@10": 0.27894721288374796,
+          "items-only_tail@10": 0.07398054766772622,
+          "diff_full@10_vs_items-only": 0.02031788540765496,
+          "diff_tail@10_vs_items-only": 0.015196674013178037,
+          "set_overlap_vs_items-only": 0
+        }
+      },
+      "own_sequence": [
+        [
+          1,
+          275
+        ],
+        [
+          1,
+          704
+        ],
+        [
+          0,
+          404
+        ],
+        [
+          1,
+          460
+        ],
+        [
+          1,
+          630
+        ],
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          406
+        ],
+        [
+          1,
+          785
+        ],
+        [
+          1,
+          501
+        ],
+        [
+          0,
+          186
+        ],
+        [
+          1,
+          1010
+        ],
+        [
+          1,
+          117
+        ],
+        [
+          0,
+          706
+        ],
+        [
+          1,
+          55
+        ],
+        [
+          1,
+          815
+        ],
+        [
+          1,
+          181
+        ]
+      ]
+    },
+    "root.dislike.dislike": {
+      "nid": "root.dislike.dislike",
+      "depth": 2,
+      "n_users": 230,
+      "path": [
+        [
+          1,
+          275
+        ],
+        [
+          1,
+          704
+        ],
+        [
+          1,
+          29
+        ]
+      ],
+      "branch_from": "dislike",
+      "remaining_budget": 13,
+      "done": true,
+      "steps": [
+        [
+          1,
+          130
+        ],
+        [
+          0,
+          631
+        ],
+        [
+          0,
+          14
+        ],
+        [
+          1,
+          248
+        ],
+        [
+          0,
+          304
+        ],
+        [
+          1,
+          754
+        ],
+        [
+          1,
+          753
+        ],
+        [
+          1,
+          820
+        ],
+        [
+          0,
+          343
+        ],
+        [
+          0,
+          219
+        ],
+        [
+          1,
+          442
+        ],
+        [
+          1,
+          717
+        ],
+        [
+          1,
+          695
+        ]
+      ],
+      "gains": [
+        0.010283619096947999,
+        0.008204653511309418,
+        0.004443269554017193,
+        0.0056265689849119005,
+        0.0052632208058114305,
+        0.0031245254242300013,
+        0.00280154858183318,
+        0.002721841670309255,
+        0.003518730704251599,
+        0.0019876670580970812,
+        0.002378107617159786,
+        0.0014402881239957699,
+        0.002173356792398662
+      ],
+      "n_evals": 1310,
+      "sec_per_eval": 0.24,
+      "minutes": 5.29,
+      "splitter": [
+        1,
+        130
+      ],
+      "channel": "concept",
+      "splitter_gain": 0.010283619096947999,
+      "child_sizes": {
+        "like": 103,
+        "dislike": 118,
+        "noanswer": 9
+      },
+      "answer_rate": 0.9609,
+      "n_zero_value_answers": 104,
+      "child_full@10": {
+        "like": 0.26543953911490376,
+        "dislike": 0.17256740783077784,
+        "noanswer": 0.04723302972153635
+      },
+      "partition_weighted_full@10": 0.20925358226243784,
+      "node_full@10_after_splitter": 0.20925358226243782,
+      "partition_decomposition_max_abs_err": 2.7755575615628914e-17,
+      "min_child": 9,
+      "min_nonempty_child": 9,
+      "children_above_floor": [],
+      "children_inheriting": [
+        "like",
+        "dislike",
+        "noanswer"
+      ],
+      "split": false,
+      "stop_reason": "no child reaches min_leaf 200 (largest 118)",
+      "tail": [
+        [
+          1,
+          130
+        ],
+        [
+          0,
+          631
+        ],
+        [
+          0,
+          14
+        ],
+        [
+          1,
+          248
+        ],
+        [
+          0,
+          304
+        ],
+        [
+          1,
+          754
+        ],
+        [
+          1,
+          753
+        ],
+        [
+          1,
+          820
+        ],
+        [
+          0,
+          343
+        ],
+        [
+          0,
+          219
+        ],
+        [
+          1,
+          442
+        ],
+        [
+          1,
+          717
+        ],
+        [
+          1,
+          695
+        ]
+      ],
+      "tail_gains": [
+        0.010283619096947999,
+        0.008204653511309418,
+        0.004443269554017193,
+        0.0056265689849119005,
+        0.0052632208058114305,
+        0.0031245254242300013,
+        0.00280154858183318,
+        0.002721841670309255,
+        0.003518730704251599,
+        0.0019876670580970812,
+        0.002378107617159786,
+        0.0014402881239957699,
+        0.002173356792398662
+      ],
+      "genre_face_validity": [
+        {
+          "genre": "Drama",
+          "n": 188,
+          "frac": 0.8174
+        },
+        {
+          "genre": "Comedy",
+          "n": 29,
+          "frac": 0.1261
+        },
+        {
+          "genre": "Crime",
+          "n": 5,
+          "frac": 0.0217
+        },
+        {
+          "genre": "Thriller",
+          "n": 3,
+          "frac": 0.013
+        }
+      ],
+      "curve_matched": {
+        "1": {
+          "tree_full@10": 0.19291015430035222,
+          "tree_tail@10": 0.0472194472579408,
+          "tree_items_answered": 0.0,
+          "tree_concepts_answered": 2.0,
+          "tree_n_items": 0,
+          "tree_n_concepts": 2,
+          "combined_full@10": 0.15198629087772952,
+          "combined_tail@10": 0.01679007635144737,
+          "diff_full@10_vs_combined": 0.040923863422622664,
+          "diff_tail@10_vs_combined": 0.03042937090649343,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.15198629087772952,
+          "concepts-only_tail@10": 0.01679007635144737,
+          "diff_full@10_vs_concepts-only": 0.040923863422622664,
+          "diff_tail@10_vs_concepts-only": 0.03042937090649343,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.15948837197175186,
+          "items-only_tail@10": 0.016450691248265623,
+          "diff_full@10_vs_items-only": 0.033421782328600345,
+          "diff_tail@10_vs_items-only": 0.03076875600967517,
+          "set_overlap_vs_items-only": 0
+        },
+        "2": {
+          "tree_full@10": 0.19896996316548982,
+          "tree_tail@10": 0.05177604855469742,
+          "tree_items_answered": 0.0,
+          "tree_concepts_answered": 3.0,
+          "tree_n_items": 0,
+          "tree_n_concepts": 3,
+          "combined_full@10": 0.1883509151237196,
+          "combined_tail@10": 0.03017049347563766,
+          "diff_full@10_vs_combined": 0.010619048041770246,
+          "diff_tail@10_vs_combined": 0.021605555079059754,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.1883509151237196,
+          "concepts-only_tail@10": 0.03017049347563766,
+          "diff_full@10_vs_concepts-only": 0.010619048041770246,
+          "diff_tail@10_vs_concepts-only": 0.021605555079059754,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.16588769507901668,
+          "items-only_tail@10": 0.019042198795025982,
+          "diff_full@10_vs_items-only": 0.03308226808647315,
+          "diff_tail@10_vs_items-only": 0.03273384975967143,
+          "set_overlap_vs_items-only": 0
+        },
+        "4": {
+          "tree_full@10": 0.21745823577374723,
+          "tree_tail@10": 0.06880345393986505,
+          "tree_items_answered": 0.157,
+          "tree_concepts_answered": 3.961,
+          "tree_n_items": 1,
+          "tree_n_concepts": 4,
+          "combined_full@10": 0.20519200404484808,
+          "combined_tail@10": 0.04489993339955855,
+          "diff_full@10_vs_combined": 0.01226623172889911,
+          "diff_tail@10_vs_combined": 0.023903520540306495,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.19323270304579515,
+          "concepts-only_tail@10": 0.037183781435321556,
+          "diff_full@10_vs_concepts-only": 0.02422553272795206,
+          "diff_tail@10_vs_concepts-only": 0.031619672504543485,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.1687807036656768,
+          "items-only_tail@10": 0.020769814252526594,
+          "diff_full@10_vs_items-only": 0.04867753210807045,
+          "diff_tail@10_vs_items-only": 0.04803363968733845,
+          "set_overlap_vs_items-only": 0
+        },
+        "8": {
+          "tree_full@10": 0.23591582054271776,
+          "tree_tail@10": 0.0710102879149642,
+          "tree_items_answered": 0.643,
+          "tree_concepts_answered": 5.961,
+          "tree_n_items": 3,
+          "tree_n_concepts": 6,
+          "combined_full@10": 0.19988945952097933,
+          "combined_tail@10": 0.06205679485648237,
+          "diff_full@10_vs_combined": 0.03602636102173846,
+          "diff_tail@10_vs_combined": 0.008953493058481848,
+          "set_overlap_vs_combined": 0,
+          "concepts-only_full@10": 0.19558891330447808,
+          "concepts-only_tail@10": 0.05586555267535739,
+          "diff_full@10_vs_concepts-only": 0.0403269072382397,
+          "diff_tail@10_vs_concepts-only": 0.015144735239606834,
+          "set_overlap_vs_concepts-only": 0,
+          "items-only_full@10": 0.17757394944249072,
+          "items-only_tail@10": 0.022318656651599465,
+          "diff_full@10_vs_items-only": 0.058341871100227025,
+          "diff_tail@10_vs_items-only": 0.04869163126336476,
+          "set_overlap_vs_items-only": 0
+        },
+        "15": {
+          "tree_full@10": 0.2529373610907631,
+          "tree_tail@10": 0.08107168552290092,
+          "tree_items_answered": 1.2,
+          "tree_concepts_answered": 10.613,
+          "tree_n_items": 5,
+          "tree_n_concepts": 11,
+          "combined_full@10": 0.21680871469801652,
+          "combined_tail@10": 0.07313892876943427,
+          "diff_full@10_vs_combined": 0.036128646392746634,
+          "diff_tail@10_vs_combined": 0.007932756753466639,
+          "set_overlap_vs_combined": 2,
+          "concepts-only_full@10": 0.20892992655662704,
+          "concepts-only_tail@10": 0.07717022386822227,
+          "diff_full@10_vs_concepts-only": 0.044007434534136115,
+          "diff_tail@10_vs_concepts-only": 0.0039014616546786487,
+          "set_overlap_vs_concepts-only": 1,
+          "items-only_full@10": 0.22039813020569357,
+          "items-only_tail@10": 0.06414900293887693,
+          "diff_full@10_vs_items-only": 0.03253923088506955,
+          "diff_tail@10_vs_items-only": 0.016922682584023976,
+          "set_overlap_vs_items-only": 3
+        }
+      },
+      "own_sequence": [
+        [
+          1,
+          275
+        ],
+        [
+          1,
+          704
+        ],
+        [
+          1,
+          29
+        ],
+        [
+          1,
+          130
+        ],
+        [
+          0,
+          631
+        ],
+        [
+          0,
+          14
+        ],
+        [
+          1,
+          248
+        ],
+        [
+          0,
+          304
+        ],
+        [
+          1,
+          754
+        ],
+        [
+          1,
+          753
+        ],
+        [
+          1,
+          820
+        ],
+        [
+          0,
+          343
+        ],
+        [
+          0,
+          219
+        ],
+        [
+          1,
+          442
+        ],
+        [
+          1,
+          717
+        ],
+        [
+          1,
+          695
+        ]
+      ]
+    }
+  }
+}
