@@ -216,6 +216,14 @@ def main():
     ap.add_argument("--shuffle_control", action="store_true", help="permute labels; must NOT fit")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--tag", default="m4b")
+    ap.add_argument("--traj_dir", default=TRAJ,
+                    help="M4 banks by default; point at m6/traj for the opener-fitted forest")
+    ap.add_argument("--trees", default=",".join(TREES),
+                    help="comma-separated bank names; 'cold' must be among them")
+    ap.add_argument("--cold_is_all_train", action="store_true", default=None,
+                    help="M4: the cold bank IS every train user and that is asserted. M6: cold means "
+                         "'endorses no anchor', so the bank is a subset -- pass --no_cold_all")
+    ap.add_argument("--no_cold_all", dest="cold_is_all_train", action="store_false")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
@@ -232,14 +240,30 @@ def main():
     log("# M4b STAGE 2 -- ONE POLICY OVER THE SEVEN-TREE FOREST. TRAIN STATES ONLY.")
     log("#" * 100)
 
+    global TRAJ, TREES
+    TRAJ = a.traj_dir
+    TREES = [t.strip() for t in a.trees.split(",") if t.strip()]
+    assert "cold" in TREES, "the cold bank must be present -- it is the do-nothing arm"
+    log(f"[banks] reading {TRAJ} · trees {TREES}")
     banks = {t: consolidate(t) for t in TREES}
     # HARD RULE 1: refuse a partial cohort. The cold tree is applied to EVERY train user, so its bank
     # must be exactly 0..140,767 -- anything less means a slice is missing and the split below would
     # silently train on a truncated population.
     cu = banks["cold"]["uid"]
-    assert np.array_equal(np.sort(cu), np.arange(N_TRAIN)), (
-        f"the cold bank holds {len(cu):,} of {N_TRAIN:,} train users -- REFUSING to train on a "
-        f"partial cohort (HARD RULE 1)")
+    if a.cold_is_all_train is not False:
+        assert np.array_equal(np.sort(cu), np.arange(N_TRAIN)), (
+            f"the cold bank holds {len(cu):,} of {N_TRAIN:,} train users -- REFUSING to train on a "
+            f"partial cohort (HARD RULE 1). If cold legitimately means 'endorses no anchor' "
+            f"(the M6 opener-fitted forest), pass --no_cold_all.")
+    else:
+        cover = len(set(cu.tolist()) | {int(u) for t in TREES if t != "cold"
+                                        for u in banks[t]["uid"].tolist()})
+        log(f"[cohort] cold bank {len(cu):,} users (a SUBSET by design: endorses no anchor); "
+            f"union of all banks covers {cover:,} of {N_TRAIN:,} train users "
+            f"({cover / N_TRAIN:.1%})")
+        assert cover > 0.95 * N_TRAIN, (
+            f"the banks together cover only {cover:,} of {N_TRAIN:,} train users -- a slice is "
+            f"missing (HARD RULE 1)")
     for t in TREES:
         d = banks[t]
         log(f"[bank] {t:<11} {len(d['uid']):>7,} users - {int(d['valid'].sum()):>9,} valid "
