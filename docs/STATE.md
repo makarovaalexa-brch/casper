@@ -1,5 +1,60 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-19 — M4a RE-RUN, M4b DONE: ONE POLICY HOLDS THE WHOLE FOREST
+
+**AUTHOR SAID:** *"ok, distill and compare all the trees and the model on val data"* · *"please set
+the policy to train on train users and then do the write up in parallel"* · *"can you just exclude
+those from training?"* · *"can you explain how the question is repeated? how repeated question could
+be possibly optimal?"*
+
+### The headline: the forest collapses to ONE deployable object
+`docs/results/M4B_FOREST_POLICY.md`. At K=15 on validation, |policy − teacher| ≤ **0.00045** in every
+cohort (3 positive, 3 negative). Root agreement **1.0000** in all six; **96.9–99.9% of users get an
+interview identical to their teacher's end to end**; teacher-forced validation fidelity ≥ 0.9977
+pooled for all seven trees. **The interference falsifier did NOT fire** — cold held at 0.9991 while
+the six teachers run 0.9987–1.0000. One 526,542-parameter policy, no hand-written router.
+⚠ It claims EQUIVALENCE at one seventh of the artifacts, never superiority (E1: a distilled policy
+reproduces its teacher at best).
+
+### ⚠ A ROUTING DEFECT invalidated the first M4a and the first policy
+`memory/routing-rebuilt-what-the-artifact-already-stored.md`. The router rebuilt each interview by
+accumulating splitters during the descent instead of reading the tree's stored `own = path + steps`.
+A below-floor child's `path` EXCLUDES the parent splitter because its `steps` STARTS with it ⇒ the
+splitter was supplied twice ⇒ **14 distinct questions on a budget of 15 for 18.5–45.3% of users**
+(87 of the cold tree's 164 nodes are such children). **The trees were never at fault:** zero leaves
+in any of the seven contain a duplicate in their own `path + steps`.
+- **M4a re-run:** 16/30 cells separate (was 17), **30/30 point estimates positive** (was 29),
+  `marvel` K=15 loses significance. **No conclusion reverses**; old numbers must not be quoted.
+  Superseded artifact kept as `m4a_compare_BUGGY_ROUTER.json`.
+- **Caught by the policy itself** — it cannot ask a question twice, and `frac_never_deviates` matched
+  **1 − repeat-rate to within 0.002 in all six cohorts**. Two wrong explanations were proposed and
+  killed by measurement first.
+- ★ The scoring path deduped before folding, so the repeat degraded to a wasted turn and had been
+  **written into the results doc as expected behaviour**. Routing now asserts `len(set(seq))==15`.
+
+### Also fixed: a fitted tree escapes its own support on held-out users
+`memory/fitted-tree-escapes-its-own-support.md`. `dialogue` splits its root on `pg-13` (answer rate
+1.00 on its cohort), so the `noanswer` branch has no child and no fitted tail; train users land there
+and get nothing. **This would have crashed the single TEST look.** One continuation rule now lives in
+`src/instrument/tree_route.py` (ancestor tail → global static), shared by validation, train and test.
+Escape rate on train: 0.13–0.43% for `dialogue`, zero elsewhere; those positions are masked out of
+the distillation loss (author's call) but never out of evaluation.
+
+### Chapter B writing done this session
+- `\subsection{What volunteered information is worth}` with the 17/30 grid, **and a Scope paragraph
+  stating the comparison is BIASED TOWARDS THE TEACHER** (author: teachers are fitted on the cohort
+  they are scored on; the cold tree is fitted on all 10,000). Numbers are an upper bound pending M5.
+- **W1 done:** `\subsection{What the answer model can and cannot launder}` (`sec:circularity`) in
+  Setup — the panel's lead objection was answered in three separate places and never named as a
+  defence. Backed by the chapter's OWN shuffle controls (−0.04817 / −0.03934).
+
+### Next
+**M5, the single TEST look**, pre-registered in `DS_M3_FOREST_TREES.md`, still unspent. Arm C is now a
+legitimate third arm for it. ⚠ The M4a per-budget grid in the chapter still quotes the BUGGY-router
+numbers and must be refreshed from `M4A_TEACHER_VS_COLDTREE.md` before the chapter is next compiled
+for review.
+
+
 ## ★★★ 2026-08-17 (night, later) — M1b IS RUN AND BANKED; M1 Stage A DONE; Stage A2 RUNNING
 
 **AUTHOR SAID:** *"plz proceed according to plan"* · *"ok, proceed"*.
