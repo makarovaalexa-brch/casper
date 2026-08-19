@@ -77,7 +77,8 @@ def load_tree(path):
     return d, nodes
 
 
-def policy_rollout(E, pol, phi_ext, pool, rows, cid, a_phi_idx, a_pool_idx, L=TOTAL_L):
+def policy_rollout(E, pol, phi_ext, pool, rows, cid, a_phi_idx, a_pool_idx, L=TOTAL_L,
+                   base_extra=None):
     """The policy's OWN interview, with the anchor folded and carried as an answered question.
 
     Mirrors `policy_net.rollout` (same scorer, same answer rule, same scoring funnel) with three
@@ -94,7 +95,8 @@ def policy_rollout(E, pol, phi_ext, pool, rows, cid, a_phi_idx, a_pool_idx, L=TO
     amask = np.zeros((n, P), bool)
     if seeded and a_pool_idx >= 0:
         amask[:, a_pool_idx] = True
-    base_c = [cid] if seeded else []
+    # `base_extra` folds evidence WITHOUT announcing it in the anchor slot (M4c arm 2)
+    base_c = ([cid] if seeded else []) + list(base_extra or [])
     z = np.asarray(genv_eval_multi(E, rows, [[] for _ in range(n)], [list(base_c) for _ in range(n)],
                                    score=False, return_z=True)[-1], np.float32)
     phi_cand = torch.from_numpy(phi_ext[:P])

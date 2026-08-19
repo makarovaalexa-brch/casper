@@ -77,11 +77,20 @@ def paired_boot(d, n=10000, seed=SEED):
     return float(d.mean()), float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))
 
 
+def policy_rollout_foldonly(E, pol, phi_ext, pool, rows, cid):
+    """The policy's interview when the volunteered fact is FOLDED but NOT announced: the anchor slot
+    stays empty, so the state is an ordinary cold state whose latent happens to carry the evidence."""
+    from m4b_eval import policy_rollout
+    return policy_rollout(E, pol, phi_ext, pool, rows, None, 0, -1, L=TOTAL_L, base_extra=[cid])
+
+
 def main():
     ap = argparse.ArgumentParser(description="M4c -- adjacency generalisation of the forest policy")
     ap.add_argument("--ckpt", default=os.path.join(OUT, "m4b_policy.pt"))
     ap.add_argument("--n_adjacent", type=int, default=2, help="neighbours per anchor")
     ap.add_argument("--min_cohort", type=int, default=150)
+    ap.add_argument("--min_base", type=float, default=0.10,
+                    help="floor on a concept's train endorse-rate, so cohorts survive the filter")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
@@ -107,7 +116,6 @@ def main():
     Vt, Ft = np.asarray(Et["V"]), np.asarray(Et["foldable"])
     end_t = ((Ft > 0) & (Vt > 0)).astype(np.float32)          # (n_train_slice, C)
     base = end_t.mean(0)                                      # P(endorse c)
-    names = Et["sh"]["tags"] if "sh" in Et and "tags" in Et.get("sh", {}) else None
     lift = {}
     for an, cid in ANCHORS.items():
         m = end_t[:, cid] > 0
@@ -123,7 +131,7 @@ def main():
         got = 0
         for c in order:
             c = int(c)
-            if c in anchor_ids or base[c] < 0.02 or base[c] > 0.60:
+            if c in anchor_ids or base[c] < a.min_base or base[c] > 0.60:
                 continue
             picks.append({"kind": "adjacent", "anchor": an, "concept": c,
                           "lift": float(L[i, c]), "base": float(base[c])})
@@ -132,7 +140,7 @@ def main():
                 break
     ar_adj = np.mean([p["base"] for p in picks])
     far_pool = [int(c) for c in np.argsort(maxlift)
-                if int(c) not in anchor_ids and 0.02 <= base[int(c)] <= 0.60]
+                if int(c) not in anchor_ids and a.min_base <= base[int(c)] <= 0.60]
     far_pool.sort(key=lambda c: abs(base[c] - ar_adj))        # match on answer rate
     for c in far_pool[:len(picks)]:
         picks.append({"kind": "far", "anchor": None, "concept": int(c),
@@ -153,11 +161,8 @@ def main():
     pidx = {tuple(q): i for i, q in enumerate(pool)}
     n_pool = len(pool)
 
-    tags = None
-    try:
-        tags = E["sh"]["tags"]
-    except Exception:
-        pass
+    from m3_show_paths import build_names
+    cname, _iname = build_names()
 
     # phi over pool + every volunteered concept we need, under the TRAINING standardisation
     ext = [tuple(q) for q in ck["ext"]]
@@ -186,13 +191,20 @@ def main():
     for p in picks:
         c = p["concept"]
         cohort = rows_all[endorse[rows_all, c] & ~any_anchor[rows_all]]
-        nm = (tags[c] if tags is not None and c < len(tags) else str(c))
+        nm = cname.get(c, f"concept{c}")
         if len(cohort) < a.min_cohort:
             log(f"[skip] {p['kind']:<8} '{nm}' (concept {c}): cohort {len(cohort)} < {a.min_cohort}")
             continue
+        # ARM 1  fold + ANCHOR SLOT: the fact is presented exactly as a taught anchor is.
+        # ARM 2  fold ONLY: the same evidence enters the latent, but the anchor slot stays empty,
+        #        so the policy sees an ordinary cold state. Separating these says whether any damage
+        #        comes from the NOVEL TOKEN in a slot only six values ever occupied during training,
+        #        or from the fold itself.
         seq_pol = policy_rollout(E, pol, phi_ext, pool, cohort, c,
                                  eidx[(1, c)], pidx.get((1, c), -1))
+        seq_fold = policy_rollout_foldonly(E, pol, phi_ext, pool, cohort, c)
         row = {"kind": p["kind"], "anchor": p["anchor"], "concept": c, "name": nm,
+               "foldonly": {},
                "lift": p["lift"], "cohort": int(len(cohort)), "resembles": {}, "budgets": {}}
         # which tree does the policy's interview resemble?
         for t in TREES:
@@ -212,19 +224,27 @@ def main():
             return np.asarray(full, np.float64), np.asarray(tail, np.float64)
         for K in BUDGETS:
             pf, pt = ev(seq_pol, K)
+            ff, ft = ev(seq_fold, K)
             cf, ct = ev(row["resembles"]["cold"]["seq"], K)
+            mf, lof, hif = paired_boot(ff - cf)
+            row["foldonly"][str(K)] = {"full": float(np.nanmean(ff)),
+                                       "foldonly_minus_cold_full": mf, "ci": [lof, hif]}
             m, lo, hi = paired_boot(pf - cf)
             row["budgets"][str(K)] = {"policy_full": float(np.nanmean(pf)),
                                       "cold_full": float(np.nanmean(cf)),
                                       "policy_minus_cold_full": m, "ci": [lo, hi],
                                       "policy_minus_cold_tail": paired_boot(pt - ct)[0]}
+        row["foldonly_root_matches_cold"] = float(np.mean(
+            [tuple(x[0]) == tuple(y[0]) for x, y in zip(seq_fold, row["resembles"]["cold"]["seq"])]))
         best = max(TREES, key=lambda t: row["resembles"][t]["root"])
         log(f"[{p['kind']:<8}] '{nm}' n={len(cohort):<5} lift={p['lift']:.2f} | "
             f"root-resembles {best} ({row['resembles'][best]['root']:.3f}), "
             f"cold {row['resembles']['cold']['root']:.3f}"
             + (f", teacher-{p['anchor']} {row['resembles'][p['anchor']]['root']:.3f}"
                if p["anchor"] else "")
-            + f" | K=15 policy-cold {row['budgets']['15']['policy_minus_cold_full']:+.5f}")
+            + f" | K=15 anchor-slot {row['budgets']['15']['policy_minus_cold_full']:+.5f}"
+            + f" fold-only {row['foldonly']['15']['foldonly_minus_cold_full']:+.5f}"
+            + f" (fold-only root==cold {row['foldonly_root_matches_cold']:.3f})")
         for t in TREES:
             row["resembles"][t].pop("seq", None)
         results.append(row)
@@ -239,9 +259,12 @@ def main():
         own = [r["resembles"][r["anchor"]]["root"] for r in sub if r["anchor"]]
         cold = [r["resembles"]["cold"]["root"] for r in sub]
         gain = [r["budgets"]["15"]["policy_minus_cold_full"] for r in sub]
+        fgain = [r["foldonly"]["15"]["foldonly_minus_cold_full"] for r in sub]
+        froot = [r["foldonly_root_matches_cold"] for r in sub]
         log(f"[{kind}] n={len(sub)} cohorts | mean root-agreement with the COLD tree "
             f"{np.mean(cold):.3f}" + (f", with its OWN anchor's teacher {np.mean(own):.3f}" if own else "")
-            + f" | mean K=15 policy-cold {np.mean(gain):+.5f}")
+            + f" | mean K=15 anchor-slot {np.mean(gain):+.5f}"
+            + f", fold-only {np.mean(fgain):+.5f} (root==cold {np.mean(froot):.3f})")
     log("[done]")
 
 
