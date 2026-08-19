@@ -69,18 +69,33 @@ def log(m):
     print(f"[{time.strftime('%H:%M:%S')}] {m}", flush=True)
 
 
+def free_ram_gb():
+    """Free physical RAM, so the footprint below is checked rather than hoped for."""
+    import ctypes
+
+    class MS(ctypes.Structure):
+        _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                    ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                    ("ullTotalPageFile", ctypes.c_ulonglong),
+                    ("ullAvailPageFile", ctypes.c_ulonglong),
+                    ("ullTotalVirtual", ctypes.c_ulonglong),
+                    ("ullAvailVirtual", ctypes.c_ulonglong),
+                    ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+    m = MS()
+    m.dwLength = ctypes.sizeof(MS)
+    ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(m))
+    return m.ullAvailPhys / 1e9
+
+
 def consolidate(tree):
-    """Concatenate a tree's per-slice npz into ONE on-disk float32 memmap for z, plus a small meta
-    npz. Done once and reused: the seven z tensors together are ~2.6 GB and must never all be
-    resident (HARD RULE 11c -- bound every cache, prefer float32)."""
-    zp = os.path.join(TRAJ, f"z_{tree}.f32")
-    mp = os.path.join(TRAJ, f"meta_{tree}.npz")
-    if os.path.exists(zp) and os.path.exists(mp):
-        m = np.load(mp)
-        n, d = len(m["uid"]), int(m["d"])
-        return {"lab": m["label_idx"], "out": m["outcome"], "valid": m["valid"], "uid": m["uid"],
-                "anchor": int(m["anchor"]), "d": d,
-                "z": np.memmap(zp, np.float32, "r", shape=(n, TOTAL_L, d))}
+    """Concatenate a tree's per-slice npz into ONE in-RAM float32 array for z.
+
+    WARNING: this was a disk-backed memmap until 2026-08-19, when it failed with `No space left on device`:
+    the box had 0.52 GB free and the seven z tensors are 2.59 GB. Disk is the scarce resource here
+    and RAM is not (15.8 GB, 5.0 free), so the bank is held in RAM instead and NOTHING is written.
+    The footprint is asserted against free RAM rather than assumed (HARD RULE 11c/d), and no other
+    heavy job may run beside this one.
+    """
     pref = tree + "_"
     parts = sorted((f for f in os.listdir(TRAJ) if f.startswith(pref) and f.endswith(".npz")),
                    key=lambda f: int(f[len(pref):].split("_")[0]))
@@ -104,20 +119,23 @@ def consolidate(tree):
     val = np.concatenate(val)
     uid = np.concatenate(uid)
     assert len(np.unique(uid)) == len(uid), f"{tree}: a train user appears twice in the bank"
-    mm = np.memmap(zp, np.float32, "w+", shape=(n, TOTAL_L, d))
+    need = n * TOTAL_L * d * 4 / 1e9
+    have = free_ram_gb()
+    assert have > need * 1.4, (
+        f"{tree}: needs {need:.2f} GB resident but only {have:.2f} GB free -- REFUSING to start a "
+        f"run that will die part-way (HARD RULE 11d)")
+    zz = np.empty((n, TOTAL_L, d), np.float32)
     at = 0
     for f in parts:
         z = np.load(os.path.join(TRAJ, f))
         k = len(z["rows"])
         if k:
-            mm[at:at + k] = z["z"]
+            zz[at:at + k] = z["z"]
             at += k
     assert at == n
-    mm.flush()
-    del mm
-    np.savez_compressed(mp, label_idx=lab, outcome=out, valid=val, uid=uid, anchor=anchor, d=d)
-    log(f"  [{tree}] consolidated {n:,} users x {TOTAL_L} positions (anchor {anchor})")
-    return consolidate(tree)
+    log(f"  [{tree}] loaded {n:,} users x {TOTAL_L} positions, {need:.2f} GB resident "
+        f"({have:.2f} GB free before) - anchor {anchor}")
+    return {"lab": lab, "out": out, "valid": val, "uid": uid, "anchor": anchor, "d": d, "z": zz}
 
 
 def build_index(banks, lo, hi):
