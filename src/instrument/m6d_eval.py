@@ -73,6 +73,8 @@ def main():
     ap.add_argument("--mode", default="generalise", choices=["generalise", "mix"])
     ap.add_argument("--ckpt", default=os.path.join(M6, "m6_policy.pt"))
     ap.add_argument("--half", default="B", choices=["A", "B"])
+    ap.add_argument("--tree_suffix", default="")
+    ap.add_argument("--groups", default="", help="restrict to these groups")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
@@ -125,8 +127,11 @@ def main():
     zpos = {int(r): k for k, r in enumerate(ZR)}
 
     groups, tabs, trees = [], {}, {}
+    want = {x.strip() for x in a.groups.split(",") if x.strip()} or set(ANCHORS)
     for g in ANCHORS:
-        p = os.path.join(M6, f"m6k_{g}.json")
+        if g not in want:
+            continue
+        p = os.path.join(M6, f"m6k_{g}{a.tree_suffix}.json")
         if not os.path.exists(p):
             log(f"[skip] {g}: no opener-fitted tree")
             continue

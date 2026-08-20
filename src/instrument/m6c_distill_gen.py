@@ -62,12 +62,19 @@ def main():
     ap.add_argument("--chunk", type=int, default=20000)
     ap.add_argument("--half", default="A", choices=["A", "B"])
     ap.add_argument("--groups", default="")
+    ap.add_argument("--tree_suffix", default="",
+                    help="use m6k_<group><suffix>.json instead of m6k_<group>.json")
+    ap.add_argument("--out_dir", default="",
+                    help="bank directory; defaults to m6/traj")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
     torch.set_num_threads(a.threads)
     np.random.seed(SEED)
+    global OUT
+    if a.out_dir:
+        OUT = a.out_dir if os.path.isabs(a.out_dir) else os.path.join(M6, a.out_dir)
     os.makedirs(OUT, exist_ok=True)
 
     from strategy_channel_suite import (build_greedy_env, genv_eval_multi, CERT_TOWER, CERT_CONC)
@@ -82,7 +89,7 @@ def main():
     want = [g.strip() for g in a.groups.split(",") if g.strip()] or list(ANCHORS)
     trees, valcoh = {}, {}
     for g in want:
-        p = os.path.join(M6, f"m6k_{g}.json")
+        p = os.path.join(M6, f"m6k_{g}{a.tree_suffix}.json")
         if not os.path.exists(p):
             log(f"[skip] {g}: no opener-fitted tree yet")
             continue
