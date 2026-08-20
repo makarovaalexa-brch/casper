@@ -73,6 +73,14 @@ def main():
     ap.add_argument("--depth", type=int, default=1)
     ap.add_argument("--min_leaf", type=int, default=200)
     ap.add_argument("--top_frac", type=float, default=0.05)
+    ap.add_argument("--split", default="validation", choices=["validation", "train"],
+                    help="fit on TRAIN to get a larger cohort; the held-out evaluation then uses "
+                         "OTHER train users, and cold/static stay validation-fitted so every arm is "
+                         "out of sample on the evaluation half")
+    ap.add_argument("--slice_hi", type=int, default=34000,
+                    help="train users 0..slice_hi are the fitting pool (--split train only)")
+    ap.add_argument("--n_users", type=int, default=0,
+                    help="cap the fitting cohort at this many users (0 = all in the pool)")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
@@ -91,17 +99,31 @@ def main():
     log(f"# M6k -- CLUSTER TEACHER for '{a.cluster}', fitted on varied cluster-linked openers")
     log("#" * 100)
     cname, iname = build_names()
-    E = build_greedy_env(CERT_TOWER, "validation", CERT_CONC, f"m6k_{a.cluster}")
-    leak_assert(E, E["rows"], f"m6k/{a.cluster}")
-    rows_all = np.asarray(E["rows"], np.int64)
+    if a.split == "train":
+        E = build_greedy_env(CERT_TOWER, "train", CERT_CONC, f"m6k_{a.cluster}_tr",
+                             cohort_slice=(0, a.slice_hi))
+        rows_all = np.arange(E["ctx"].n, dtype=np.int64)
+        log(f"[split] fitting on TRAIN users 0..{a.slice_hi} -- the criterion is measured on users "
+            f"the tower memorised, so LEVELS here are inflated; the fitted STRUCTURE is what is "
+            f"carried, and it is scored on held-out users elsewhere")
+    else:
+        E = build_greedy_env(CERT_TOWER, "validation", CERT_CONC, f"m6k_{a.cluster}")
+        leak_assert(E, E["rows"], f"m6k/{a.cluster}")
+        rows_all = np.asarray(E["rows"], np.int64)
     f0, _ = genv_mean(E, [], rows_all)
-    assert round(f0, 8) == round(VAL_M0_FULL, 8), f"CANONICAL SNAP FAILED: {f0!r}"
-    log(f"[gate] canonical m=0 snap full={f0!r} -- exact")
+    if a.split == "validation":
+        assert round(f0, 8) == round(VAL_M0_FULL, 8), f"CANONICAL SNAP FAILED: {f0!r}"
+        log(f"[gate] canonical m=0 snap full={f0!r} -- exact")
+    else:
+        log(f"[gate] train-pool m=0 snap full={f0!r} (no canonical value exists for a train slice)")
 
     cid = ANCHORS[a.cluster]
     V, F = np.asarray(E["V"]), np.asarray(E["foldable"])
     endorse = (F > 0) & (V > 0)
     cohort = rows_all[endorse[rows_all, cid]]
+    if a.n_users and len(cohort) > a.n_users:
+        cohort = cohort[:a.n_users]
+        log(f"[cohort] capped at {a.n_users} users")
     zf = np.load(os.path.join(B, "m1", "z_full.npz"))
     tab = centroid_lift(E, cohort, zf["z"].astype(np.float64), zf["rows"], top_frac=a.top_frac)
     openers, meta = make_openers(E, cohort, tab, cname, LIKE_MIN_LEVEL, seed=SEED,
@@ -154,7 +176,8 @@ def main():
                           "gains": [float(g) for g in gL]}
             log(f"[{nid}] LEAF: {len(seqL)} picks for {len(rows)} users "
                 f"({(time.time() - t0) / 60:.1f}m, {nev} evals)")
-            json.dump({"analysis": "m6k_cluster_tree", "split": "validation", "test_touched": False,
+            json.dump({"analysis": "m6k_cluster_tree", "split": a.split, "test_touched": False,
+               "fit_rows": [int(r) for r in cohort], "slice_hi": a.slice_hi,
                        "cluster": a.cluster, "sig": sig, "nodes": nodes,
                        "openers": {str(int(r)): [[int(x), int(y)] for x, y in op]
                                    for r, op in zip(cohort, openers)}},
@@ -191,7 +214,8 @@ def main():
         if not nd.get("split"):
             assert len(nd["path"]) + len(nd["steps"]) == TOTAL_L, \
                 f"{nid}: path+steps = {len(nd['path']) + len(nd['steps'])}, expected {TOTAL_L}"
-    json.dump({"analysis": "m6k_cluster_tree", "split": "validation", "test_touched": False,
+    json.dump({"analysis": "m6k_cluster_tree", "split": a.split, "test_touched": False,
+               "fit_rows": [int(r) for r in cohort], "slice_hi": a.slice_hi,
                "cluster": a.cluster, "sig": sig, "n_nodes": len(nodes),
                "minutes": (time.time() - t0) / 60, "opener_meta":
                    {k: v for k, v in meta.items() if k != "shape"}, "nodes": nodes,
