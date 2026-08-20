@@ -99,6 +99,10 @@ def main():
     log(f"# M6k -- CLUSTER TEACHER for '{a.cluster}', fitted on varied cluster-linked openers")
     log("#" * 100)
     cname, iname = build_names()
+    # ⚠ 2026-08-20: a --split train run overwrote the validation-fitted arthouse tree AND its heap
+    # sidecars, because both used the bare cluster name. Every artifact is now tagged by the fitting
+    # condition, so the two can never collide.
+    tag = a.cluster if a.split == "validation" else f"{a.cluster}_{a.split}{a.n_users or a.slice_hi}"
     if a.split == "train":
         E = build_greedy_env(CERT_TOWER, "train", CERT_CONC, f"m6k_{a.cluster}_tr",
                              cohort_slice=(0, a.slice_hi))
@@ -145,7 +149,7 @@ def main():
     def fit(nid, rows, path, budget):
         """Fit one node: a splitter if it may split, then the fitted order for each branch."""
         sd = [seeds[int(r)] + [tuple(q) for q in path] for r in rows]
-        hp = os.path.join(OUT, f"heap_{a.cluster}_{nid}.json")
+        hp = os.path.join(OUT, f"heap_{tag}_{nid}.json")
         depth = len(path)
         may_split = depth < a.depth
         if may_split:
@@ -181,7 +185,7 @@ def main():
                        "cluster": a.cluster, "sig": sig, "nodes": nodes,
                        "openers": {str(int(r)): [[int(x), int(y)] for x, y in op]
                                    for r, op in zip(cohort, openers)}},
-                      open(os.path.join(OUT, f"m6k_{a.cluster}.json"), "w"))
+                      open(os.path.join(OUT, f"m6k_{tag}.json"), "w"))
             return
         # a splitting node: record the splitter, then a fitted TAIL for inheritance, then recurse
         t0 = time.time()
@@ -221,7 +225,7 @@ def main():
                    {k: v for k, v in meta.items() if k != "shape"}, "nodes": nodes,
                "openers": {str(int(r)): [[int(x), int(y)] for x, y in op]
                            for r, op in zip(cohort, openers)}},
-              open(os.path.join(OUT, f"m6k_{a.cluster}.json"), "w"), indent=1)
+              open(os.path.join(OUT, f"m6k_{tag}.json"), "w"), indent=1)
     log(f"[done] {len(nodes)} nodes in {(time.time() - t0) / 60:.1f} min")
 
 
