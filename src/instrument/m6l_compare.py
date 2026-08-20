@@ -107,7 +107,7 @@ def main():
     umask = {int(r): list(openers[int(r)]) for r in cohort}
     seqs = {}
     for name, nodes in (("cluster", nodes_cl), ("anchor", anch_nodes), ("cold", cold_nodes)):
-        s, dg = route(E, cohort, nodes, TOTAL_L, static=static, mask=umask)
+        s, dg = route(E, cohort, nodes, TOTAL_L, static=static, mask=umask, on_conflict="burn")
         seqs[name] = s
         if dg["n_fallback"]:
             log(f"[{name}] {dg['n_fallback']} users hit the continuation rule: {dg['sites']}")

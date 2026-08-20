@@ -145,7 +145,7 @@ def main():
             if len(rows) < 50:
                 continue
             umask = {int(r): list(op) for r, op in zip(rows, openers)}
-            seqs, diag = route(E, rows, nodes, TOTAL_L, static=static, mask=umask)
+            seqs, diag = route(E, rows, nodes, TOTAL_L, static=static, mask=umask, on_conflict="burn")
             if diag["n_fallback"]:
                 log(f"  [{g}] WARN {diag['n_fallback']}/{len(rows)} outside the fitted support "
                     f"-- continuation rule fired: {diag['sites']}")

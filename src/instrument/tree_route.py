@@ -44,7 +44,8 @@ def _qs(v) -> List[Q]:
 
 
 def route(E, rows, nodes: Dict[str, dict], total_L: int,
-          static: Sequence[Q] | None = None, mask=()) -> Tuple[List[List[Q]], dict]:
+          static: Sequence[Q] | None = None, mask=(), on_conflict: str = "drop"
+          ) -> Tuple[List[List[Q]], dict]:
     """Return (per-user ASKED question lists of length total_L, diagnostics).
 
     `mask` are questions that must never be ASKED -- folded evidence, which the user has already
@@ -59,6 +60,21 @@ def route(E, rows, nodes: Dict[str, dict], total_L: int,
     """
     from ndcg_tree import branch_of
 
+    # ⚠ HOW A QUESTION THE USER ALREADY VOLUNTEERED IS HANDLED (author, 2026-08-20).
+    #   "drop"  -- remove it from the order and BACKFILL from the ancestor tail, then the static
+    #              order. Keeps the asked count at total_L. Required for a SEEDED anchor, which sits
+    #              in `path` as a free seed and must not be counted against the budget.
+    #   "burn"  -- leave it in place. It folds once, contributes nothing new, and THE TURN IS BURNED.
+    #
+    # "burn" is the semantics the tree was FITTED under (`group_greedy_bands.mean_score`: "a question
+    # already volunteered is folded once for that user -- the turn is burned and no new evidence
+    # arrives, which is the honest semantics"). Scoring under "drop" while fitting under "burn" makes
+    # evaluation strictly more generous than fitting, and the backfill imports material from the
+    # STATIC ORDER -- one of the comparators -- into the tree's own arm. Use "burn" wherever the mask
+    # carries a volunteered opener.
+    assert on_conflict in ("drop", "burn"), on_conflict
+    if on_conflict == "burn":
+        mask = ()
     per_user = isinstance(mask, dict)
     if per_user:
         banned_of = {int(r): {tuple(q) for q in v} for r, v in mask.items()}

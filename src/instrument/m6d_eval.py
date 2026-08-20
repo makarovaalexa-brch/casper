@@ -202,8 +202,10 @@ def main():
             # the opener is PER USER, so `m4b_eval.policy_rollout` (one shared seed)
             # does not apply -- the rollout below folds each user's own opener.
             s_pol = rollout_with_openers(E, pol, phi_ext, pool, rows_g, ops, TOTAL_L)
-            s_tree, _d1 = route(E, rows_g, trees[g], TOTAL_L, static=static, mask=umask)
-            s_cold, _d2 = route(E, rows_g, cold_nodes, TOTAL_L, static=static, mask=umask)
+            s_tree, _d1 = route(E, rows_g, trees[g], TOTAL_L, static=static, mask=umask,
+                                on_conflict="burn")
+            s_cold, _d2 = route(E, rows_g, cold_nodes, TOTAL_L, static=static, mask=umask,
+                                on_conflict="burn")
             agree_root = float(np.mean([tuple(p[0]) == tuple(t[0])
                                         for p, t in zip(s_pol, s_tree)]))
             agree_all = float(np.mean([[tuple(q) for q in p] == [tuple(q) for q in t]
@@ -232,7 +234,8 @@ def main():
         ops = {int(r): openers.get(int(r), []) for r in allrows}
         umask = {int(r): list(ops[int(r)]) for r in allrows}
         s_pol = rollout_with_openers(E, pol, phi_ext, pool, allrows, ops, TOTAL_L)
-        s_cold, _d = route(E, allrows, cold_nodes, TOTAL_L, static=static, mask=umask)
+        s_cold, _d = route(E, allrows, cold_nodes, TOTAL_L, static=static, mask=umask,
+                           on_conflict="burn")
         s_stat = [[q for q in static if q not in set(ops[int(r)])][:TOTAL_L] for r in allrows]
         sc = score(allrows, ops, {"policy": s_pol, "cold": s_cold, "static": s_stat}, "mix")
         iswarm = np.isin(allrows, warm)
