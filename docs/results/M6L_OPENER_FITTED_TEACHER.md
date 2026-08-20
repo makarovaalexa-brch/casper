@@ -76,12 +76,39 @@ min_leaf, **only the fitting state differs**. K=15, ★ = 95% paired bootstrap i
 
 | group | n | opener-fitted | anchor | cold | static | vs cold | vs anchor | vs static |
 |---|---|---|---|---|---|---|---|---|
-| arthouse | 587 | .30757 | .27555 | .28779 | .25808 | **+0.01978★** | **+0.03202★** | **+0.04949★** |
-| marvel | 734 | .44193 | .41501 | .42312 | .39876 | **+0.01881★** | **+0.02692★** | **+0.04318★** |
-| dialogue | 730 | .28527 | .26519 | .26835 | .24431 | **+0.01692★** | **+0.02008★** | **+0.04097★** |
-| teenagers | 786 | .30010 | .28708 | .28624 | .26701 | **+0.01386★** | **+0.01301★** | **+0.03308★** |
-| gore | 747 | .37246 | .35459 | .36472 | .33600 | +0.00774 | **+0.01788★** | **+0.03646★** |
-| inspiring | 1,822 | .27182 | .26596 | .26913 | .24928 | +0.00269 | +0.00586 | **+0.02254★** |
+| arthouse | 587 | .30757 | .27582 | .28831 | .25808 | **+0.01926★** | **+0.03175★** | **+0.04949★** |
+| marvel | 734 | .44216 | .41435 | .42341 | .39876 | **+0.01875★** | **+0.02780★** | **+0.04340★** |
+| dialogue | 730 | .28603 | .26521 | .26861 | .24431 | **+0.01742★** | **+0.02082★** | **+0.04172★** |
+| teenagers | 786 | .30060 | .28709 | .28654 | .26701 | **+0.01405★** | **+0.01351★** | **+0.03358★** |
+| gore | 747 | .37245 | .35466 | .36470 | .33600 | +0.00775 | **+0.01780★** | **+0.03645★** |
+| inspiring | 1,822 | .27196 | .26601 | .26924 | .24928 | +0.00272 | +0.00595 | **+0.02268★** |
+
+*(Scored under `on_conflict="burn"` — see below. The earlier `drop`-semantics run differed only in
+the fourth decimal and is kept as `m6l_*_DROP.json`.)*
+
+### ⚠ Evaluation now matches fitting (author, 2026-08-20)
+
+A question the user already volunteered was being **masked out of the tree's order and backfilled**
+from the ancestor tail or the **global static order** — while the tree had been FITTED under
+`mean_score`'s semantics, where such a question is folded once and **the turn is burned**. Evaluation
+was therefore strictly more generous than fitting, and imported material from a comparator into the
+tree's own arm. It affected 2–4% of users. Corrected to `burn` at every M6 call site; `drop` remains
+the default so the banked M4a/M4b anchor numbers are untouched. **The correction moved nothing
+beyond the fourth decimal**, which is worth recording: the objection was right in principle and
+immaterial in magnitude.
+
+### ★ What the margin actually decomposes into
+
+| group | cold − static (adaptivity alone) | tree − cold (group-specificity alone) |
+|---|---|---|
+| arthouse | +0.0302 | +0.0193 |
+| teenagers | +0.0195 | +0.0141 |
+
+The large `vs static` column contains **two** effects — being adaptive at all, plus being
+group-specific. `vs cold` isolates only the second, against a strong adaptive baseline (depth 11,
+164 nodes, fitted on all 10,000). Group-specificity is worth roughly as much as adaptivity itself,
+and both are the same order as the chapter's headline **test** number (+0.01035). A small `vs cold`
+margin is therefore not a weak result — it is the correct comparison being hard.
 
 **vs static 6/6 · vs anchor 5/6 · vs cold 4/6. All 18 point estimates positive; none negative.**
 
