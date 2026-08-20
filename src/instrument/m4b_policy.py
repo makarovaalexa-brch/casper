@@ -201,6 +201,7 @@ def make_batch(banks, phi_ext, idx, a_phi, a_pool, n_pool, d_z, announce=True, r
 
 
 def main():
+    global TRAJ, TREES          # must precede every read of these names in this scope
     ap = argparse.ArgumentParser(description="M4b stage 2 -- one policy over the forest")
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--batch", type=int, default=512)
@@ -216,9 +217,9 @@ def main():
     ap.add_argument("--shuffle_control", action="store_true", help="permute labels; must NOT fit")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--tag", default="m4b")
-    ap.add_argument("--traj_dir", default=TRAJ,
+    ap.add_argument("--traj_dir", default=None,
                     help="M4 banks by default; point at m6/traj for the opener-fitted forest")
-    ap.add_argument("--trees", default=",".join(TREES),
+    ap.add_argument("--trees", default=None,
                     help="comma-separated bank names; 'cold' must be among them")
     ap.add_argument("--cold_is_all_train", action="store_true", default=None,
                     help="M4: the cold bank IS every train user and that is asserted. M6: cold means "
@@ -240,9 +241,10 @@ def main():
     log("# M4b STAGE 2 -- ONE POLICY OVER THE SEVEN-TREE FOREST. TRAIN STATES ONLY.")
     log("#" * 100)
 
-    global TRAJ, TREES
-    TRAJ = a.traj_dir
-    TREES = [t.strip() for t in a.trees.split(",") if t.strip()]
+    if a.traj_dir:
+        TRAJ = a.traj_dir
+    if a.trees:
+        TREES = [t.strip() for t in a.trees.split(",") if t.strip()]
     assert "cold" in TREES, "the cold bank must be present -- it is the do-nothing arm"
     log(f"[banks] reading {TRAJ} · trees {TREES}")
     banks = {t: consolidate(t) for t in TREES}
