@@ -1,0 +1,120 @@
+{
+ "analysis": "m6e_reddit_targets",
+ "test_touched": false,
+ "n_requests": 3078,
+ "films_per_request": {
+  "0": 439,
+  "1": 1115,
+  "2": 659,
+  "3": 311,
+  "4": 152,
+  "5": 122,
+  "6": 63,
+  "7": 51
+ },
+ "attrs_per_request": {
+  "0": 1983,
+  "1": 858,
+  "2": 160,
+  "3": 50,
+  "4": 19,
+  "5": 4
+ },
+ "channel_mix": {
+  "film_only": 0.6442495126705653,
+  "conc_only": 0.14262508122157244,
+  "both": 0.21312540610786224,
+  "neither": 0.0
+ },
+ "top_attributes": [
+  [
+   "horror",
+   263
+  ],
+  [
+   "comedy",
+   101
+  ],
+  [
+   "action",
+   89
+  ],
+  [
+   "thriller",
+   75
+  ],
+  [
+   "sci-fi",
+   64
+  ],
+  [
+   "drama",
+   48
+  ],
+  [
+   "romance",
+   46
+  ],
+  [
+   "feel-good",
+   39
+  ],
+  [
+   "mystery",
+   33
+  ],
+  [
+   "fantasy",
+   31
+  ],
+  [
+   "adventure",
+   28
+  ],
+  [
+   "romantic",
+   27
+  ],
+  [
+   "sci fi",
+   24
+  ],
+  [
+   "coming of age",
+   23
+  ],
+  [
+   "crime",
+   23
+  ],
+  [
+   "war",
+   19
+  ],
+  [
+   "scary",
+   16
+  ],
+  [
+   "fun",
+   15
+  ],
+  [
+   "documentary",
+   13
+  ],
+  [
+   "christmas",
+   13
+  ]
+ ],
+ "coherence": {
+  "real_mean_cos": 0.22427794341621113,
+  "null_mean_cos": 0.17184197303439278
+ },
+ "popularity": {
+  "named_median_pct": 93.27850100768016,
+  "named_top_decile": 0.5899366085578447,
+  "null_median_pct": 98.58380086061332
+ }
+}

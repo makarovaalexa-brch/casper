@@ -98,8 +98,12 @@ def main():
         if isinstance(nodes, list):
             nodes = {r["nid"]: r for r in nodes}
         trees[g] = nodes
-        # the fit artifact's opener keys ARE that group's validation cohort -- so the group centroid
-        # can be recovered without ever building a validation environment here.
+        # ⚠ Only valid when the tree was fitted on VALIDATION: then the opener keys ARE that group's
+        # validation cohort. For a TRAIN-fitted tree they are train indices and must never be used as
+        # a centroid source (that bug made the centroid the mean of ~600 arbitrary users).
+        assert d.get("split", "validation") == "validation", (
+            f"{g}: tree was fitted on {d.get('split')!r}; its opener keys are not validation rows, "
+            f"so the group centroid must be supplied from a validation environment instead")
         valcoh[g] = np.asarray(sorted(int(k) for k in d["openers"]), np.int64)
         log(f"[tree] {g}: {len(nodes)} nodes, validation cohort {len(valcoh[g])}")
     assert trees, "no opener-fitted trees found -- nothing to generate"

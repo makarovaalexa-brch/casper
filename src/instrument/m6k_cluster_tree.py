@@ -129,7 +129,20 @@ def main():
         cohort = cohort[:a.n_users]
         log(f"[cohort] capped at {a.n_users} users")
     zf = np.load(os.path.join(B, "m1", "z_full.npz"))
-    tab = centroid_lift(E, cohort, zf["z"].astype(np.float64), zf["rows"], top_frac=a.top_frac)
+    # ⚠ THE GROUP CENTROID IS ALWAYS COMPUTED ON VALIDATION ROWS -- it is a property of the group,
+    # not of the fitting split, and `z_full` holds validation users. Passing the train cohort here
+    # silently averaged the ~600 train indices that happened to collide with a validation id.
+    if a.split == "train":
+        Ev = build_greedy_env(CERT_TOWER, "validation", CERT_CONC, "m6k_cent")
+        vr = np.asarray(Ev["rows"], np.int64)
+        Vv, Fv = np.asarray(Ev["V"]), np.asarray(Ev["foldable"])
+        cent_rows = vr[((Fv > 0) & (Vv > 0))[vr, cid]]
+        del Ev
+        log(f"[centroid] computed on {len(cent_rows)} VALIDATION {a.cluster} users "
+            f"(the group centroid is split-independent)")
+    else:
+        cent_rows = cohort
+    tab = centroid_lift(E, cent_rows, zf["z"].astype(np.float64), zf["rows"], top_frac=a.top_frac)
     openers, meta = make_openers(E, cohort, tab, cname, LIKE_MIN_LEVEL, seed=SEED,
                                  group_key=a.cluster)
     n = len(cohort)

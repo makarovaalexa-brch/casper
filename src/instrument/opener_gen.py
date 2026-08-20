@@ -85,13 +85,29 @@ def coarse_ids(cname):
     return ([nm[w] for w in GENRE_WORDS if w in nm], [nm[w] for w in TONE_WORDS if w in nm])
 
 
-def centroid_lift(E, cohort_rows, z_full, z_rows, top_frac=0.05):
-    """Per-item and per-concept centroid lift for one cluster, plus the qualifying film pool."""
+def centroid_lift(E, cohort_rows, z_full, z_rows, top_frac=0.05, min_matched=100):
+    """Per-item and per-concept centroid lift for one cluster, plus the qualifying film pool.
+
+    ⚠ `cohort_rows` MUST index the same population as `z_rows`. `z_full` holds the 10,000 VALIDATION
+    users, so cohort_rows must be VALIDATION row ids -- the group centroid is a group-level object and
+    is always computed there, whichever split a tree is being fitted on.
+
+    On 2026-08-20 a `--split train` fit passed TRAIN indices (0..33,265) against validation rows
+    (0..9,999). Only 597 of 2,000 collided, and the function silently averaged those -- the centroid
+    became the mean of ~600 arbitrary users, so the "diagnostic" pool was not diagnostic of anything.
+    The failure was silent because a partial index match is indistinguishable from a small cohort.
+    `min_matched` now makes it loud.
+    """
     Wd = E["ctx"].Wd.detach().numpy().astype(np.float64)
     emb = np.asarray(E["net"].emb.weight.detach().numpy(), np.float64)
     pos = {int(r): k for k, r in enumerate(z_rows)}
     idx = [pos[int(r)] for r in cohort_rows if int(r) in pos]
     assert idx, "no cluster user has a banked full-profile latent"
+    matched = len(idx) / max(len(cohort_rows), 1)
+    assert len(idx) >= min_matched and matched > 0.9, (
+        f"centroid_lift matched only {len(idx)} of {len(cohort_rows)} cohort rows "
+        f"({matched:.1%}) against the banked latent table. These are almost certainly indices from "
+        f"a DIFFERENT population -- the group centroid must be computed on VALIDATION rows.")
     cmean, gmean = z_full[idx].mean(0), z_full.mean(0)
     li = Wd @ cmean - Wd @ gmean
     lc = emb @ cmean - emb @ gmean
