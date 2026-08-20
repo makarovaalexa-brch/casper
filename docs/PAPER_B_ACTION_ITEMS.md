@@ -5,6 +5,26 @@ within each block. **The single TEST look remains unspent and nothing below spen
 
 ---
 
+## ⚠ STATUS 2026-08-20 22:00 — what is running and what was retracted
+
+**RUNNING (~40 h):** all six groups refitting on 2,000 TRAIN users, `min_leaf` 200, **no depth cap**
+(author's ruling — match the cold tree's rule). One at a time. `run_m6_all_train2k.sh`.
+
+**RETRACTED:** the +0.02162 held-out figure for a 2,000-user `arthouse` tree. The number is valid;
+the claim attached to it was not — the fit used a corrupted group centroid (train indices against a
+validation-keyed table, 597/2,000 matched silently). See
+`memory/cross-population-index-match-is-silent.md`. Guards added; artifacts quarantined.
+
+**STILL TRUE and unaffected** (validation-fitted trees, correct centroids throughout):
+M6l in-sample (vs static 6/6, vs anchor 5/6, vs cold 4/6) and M6m held-out on train users
+(vs cold 3/6, vs anchor 4/6, pooled +0.00278) — **the stop rule tripped on that evidence**, and the
+running refit is the attempt to clear it with more data and depth.
+
+**OPEN CHECK, cheap, do when the box is free:** is concept-side centroid lift genuinely
+group-specific? The corrupted and correct centroids produced the same six genres and six tones.
+
+---
+
 ## A. TREES — the payoff act. Highest priority: these decide what the paper claims.
 
 | # | item | cost | why |
