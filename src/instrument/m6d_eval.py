@@ -163,7 +163,7 @@ def main():
         if len(rows_g) == 0:
             continue
         ops, meta = make_openers(E, rows_g, tabs[g], cname, LIKE_MIN_LEVEL,
-                                 seed=SEED + 7, half=a.half)
+                                 seed=SEED, half=a.half, group_key=g)
         for r, op in zip(rows_g, ops):
             openers[int(r)] = op
         log(f"  [{g}] {len(rows_g)} users · pool(half {a.half}) {meta['pool_size']} · "

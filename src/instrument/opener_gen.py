@@ -99,10 +99,33 @@ def centroid_lift(E, cohort_rows, z_full, z_rows, top_frac=0.05):
     return {"lift_item": li, "lift_conc": lc, "pool": set(int(i) for i in pool)}
 
 
+def _user_rng(seed, group_key, uid):
+    """A generator seeded by the USER, not by the run.
+
+    ★ Why this exists (author, 2026-08-20). The previous version walked the cohort with ONE global
+    RNG, so a user's opener depended on how many draws the users before them consumed, and changing
+    the seed moved EVERY user to a different state. The trees were fitted at one draw and later
+    scored at another, which manufactured an apparent shrinkage (+0.0134 -> +0.0076) that was an
+    artefact of the generator, not a property of the trees.
+
+    Seeded per user, an opener becomes a fixed attribute of that person -- like their ratings —
+    so fit and score agree for the same user by construction. This is how the single-anchor opener
+    behaved (concept X folded, deterministic), which is why that line never showed this problem.
+    Population-level shape and material still follow the measured census distribution.
+    """
+    import hashlib
+    h = hashlib.sha256(f"{seed}:{group_key}:{int(uid)}".encode()).digest()[:8]
+    return np.random.default_rng(int.from_bytes(h, "little"))
+
+
 def make_openers(E, cohort_rows, tab, cname, like_min_level, seed, beta=1.5,
-                 films_per=(0.53, 0.31, 0.16), half=None):
-    """Per-user opener as a list of (channel, id), matched to the measured Reddit targets."""
-    rng = np.random.default_rng(seed)
+                 films_per=(0.53, 0.31, 0.16), half=None, group_key=""):
+    """Per-user opener as a list of (channel, id), matched to the measured Reddit targets.
+
+    Deterministic in (seed, group_key, user id): the same user always receives the same opener,
+    independent of cohort ordering, batch composition or which slice they were generated in.
+    """
+    rng = np.random.default_rng(seed)          # pool/band setup only -- never the per-user draw
     genres, tones = coarse_ids(cname)
     lc, li = tab["lift_conc"], tab["lift_item"]
     gq = sorted([c for c in genres if lc[c] > 0], key=lambda c: -lc[c])[:6]
@@ -138,6 +161,7 @@ def make_openers(E, cohort_rows, tab, cname, like_min_level, seed, beta=1.5,
                          "pool_size": len(tab["pool"])}
     for r in cohort_rows:
         r = int(r)
+        rng = _user_rng(seed, group_key, r)     # ← the draw depends on the USER, not the run
         meta["n"] += 1
         op, got_g = [], False
         myg = [c for c in gq if endorse[r, c]]

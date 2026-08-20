@@ -104,7 +104,8 @@ def main():
     cohort = rows_all[endorse[rows_all, cid]]
     zf = np.load(os.path.join(B, "m1", "z_full.npz"))
     tab = centroid_lift(E, cohort, zf["z"].astype(np.float64), zf["rows"], top_frac=a.top_frac)
-    openers, meta = make_openers(E, cohort, tab, cname, LIKE_MIN_LEVEL, seed=SEED)
+    openers, meta = make_openers(E, cohort, tab, cname, LIKE_MIN_LEVEL, seed=SEED,
+                                 group_key=a.cluster)
     n = len(cohort)
     log(f"[cohort] {n} users · film {meta['n_film'] / n:.3f} genre {meta['n_genre'] / n:.3f} "
         f"tone {meta['n_tone'] / n:.3f} · unserved {meta['unserved']} · pool {meta['pool_size']}")

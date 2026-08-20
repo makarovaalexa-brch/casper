@@ -134,8 +134,10 @@ def main():
                 if len(rows) < 50:
                     continue
                 tab = centroid_lift(E, valcoh[g], ZF, ZR)
+                # seed does NOT depend on the slice: a train user must wear the same opener
+                # whichever batch they are generated in.
                 openers, meta = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL,
-                                             seed=SEED + lo, half=a.half)
+                                             seed=SEED, half=a.half, group_key=g)
                 nodes = trees[g]
                 log(f"  [{g}] slice {lo}:{hi}: {len(rows)} users · film "
                     f"{meta['n_film'] / max(meta['n'], 1):.3f} genre "
