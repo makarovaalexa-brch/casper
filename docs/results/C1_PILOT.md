@@ -181,6 +181,106 @@ why "cos₁ ≈ 0.93" cannot be read as "nearly on a question".
 2. Replay/regularisation, and a rerun of the collateral measurement as a gate rather than a report.
 3. Criterion 2 needs a version that a permuted target fails.
 
+---
+
+## Blend coherence (author question, 2026-08-21)
+
+**The question.** Stage 1's loss is `1 − cos`, which is norm-invariant, so it cannot see whether the
+top-m ingredients of a target point the same way or cancel. If they cancel, `Σ w_j e_{q_j}` is a
+short, near-arbitrary vector and "the network fitted the target" means much less. Read-only numpy
+over the banked arrays; the rebuilt targets are **bit-identical** to the pilot's (`max|diff| = 0` at
+m = 3, 5, 10), so this is the same object Stage 0 and Stage 1 measured. Same checkpoint, same bank,
+validation only.
+
+**Headline: cancellation ratio** `‖Σ w_j e_j‖ / Σ w_j ‖e_j‖` — 1 = perfectly aligned ingredients,
+0 = perfect cancellation. Reported in the **bias-free space `k(φ_q)`** (the semantic one); the
+homogeneous `[k, b]` numbers differ by ≤ 0.003 everywhere and are given for m = 5 as a check. Floor =
+m candidates drawn uniformly from the state's own available pool, **the same weights applied**, 200
+draws per state, averaged.
+
+| m | view | cancellation ratio, median [IQR] (min/max) | random floor | mean pairwise cos, median [IQR] | min pairwise, median | floor pairwise |
+|---|---|---|---|---|---|---|
+| 5 | **raw** | **0.9820** [0.9787, 0.9852] (0.9693 / 0.9980) | **0.9809** | 0.9552 [0.9464, 0.9638] | 0.9254 | 0.9525 |
+| 5 | **mean-removed** | **0.7453** [0.6718, 0.7918] (0.5245 / 0.9740) | **0.5932** | 0.4555 [0.2974, 0.5222] | 0.1317 | 0.1911 |
+| 3 | raw | 0.9843 [0.9802, 0.9881] | 0.9841 | 0.9537 | 0.9388 | 0.9525 |
+| 3 | mean-removed | 0.7989 [0.7450, 0.8413] | 0.6774 | 0.4550 | 0.2593 | 0.1874 |
+| 10 | raw | 0.9798 [0.9765, 0.9822] | 0.9784 | 0.9551 | 0.9119 | 0.9524 |
+| 10 | mean-removed | 0.6676 [0.6069, 0.7562] | 0.5185 | 0.3779 | −0.0888 | 0.1880 |
+| 5 (homogeneous `[k,b]`) | raw / mean-removed | 0.9821 / 0.7430 | 0.9806 / 0.5954 | 0.9553 / 0.4534 | 0.9252 / 0.1223 | 0.9518 / 0.1944 |
+
+**The anisotropy baseline, and why the raw column is nearly uninformative.** Over the whole
+19,390-entry bank the mean pairwise cosine is **0.9638** (homogeneous) / **0.9646** (bias-free), and
+the bank mean vector has norm **0.982×** the mean entry norm. Subtract that mean direction and the
+bank-wide mean pairwise cosine falls to **0.0018** — i.e. essentially *all* of the raw cosine is one
+shared component. So a raw ratio of 0.982 against a random floor of 0.981 says nothing about the
+gains; only the mean-removed column does. This is the same common-mode fact C0 recorded, showing up
+in a third place (after "an arbitrary point is at cos 0.93 to some bank entry").
+
+**Do the blends beat the floor once the common component is gone? Yes, at nearly every state.**
+Mean-removed cancellation ratio exceeds the state's own random floor at **39/42** states, and
+mean-removed pairwise coherence at **37/42** (raw: 24/42, i.e. coin-flip, as expected). Secondary 7:
+median mean-removed ratio 0.8356, slightly *more* coherent than the registered 42.
+
+**Ingredient channel mix.** Concepts in the top-5, over the 42 states: 0→8, 1→6, 2→3, 3→5, 4→7,
+5→13. The **mixed** blends are the incoherent ones, and it is mixing, not concept count:
+
+| group | n | mean-removed ratio (median) | mean-removed pairwise (median) |
+|---|---|---|---|
+| single-channel (0 or 5 concepts) | 21 | **0.7797** | **0.4926** |
+| mixed (1–4 concepts) | 21 | **0.7154** | **0.3961** |
+| Mann–Whitney p | | 0.0147 | 0.0206 |
+
+Concept count on its own is not monotone (Spearman with the ratio +0.13, p = 0.41); the all-concept
+blends (n = 13) are the *most* coherent group of all. **14 of 42 states contain at least one
+ingredient pair with negative mean-removed cosine** (min over states −0.539), and those are
+concentrated in the low-ratio tail — the five worst are `root.dislike.dislike.dislike.like.like@5`
+(0.524), `root.dislike.noanswer.like@3` (0.539), `root.dislike.dislike.dislike.like.noanswer@5`
+(0.554), `root.noanswer.noanswer.like@3` (0.602), `root.dislike.dislike.dislike.like.dislike@5`
+(0.602). In the raw space no pair is negative at any state.
+
+**Correlation with the pilot's own numbers (m = 5, raw ratio, 42 states).**
+
+| against | Pearson | Spearman | p (Spearman) |
+|---|---|---|---|
+| Stage 0 target-cos₁ | +0.154 | +0.086 | 0.588 |
+| Stage 0 target margin | — | +0.045 | — |
+| Stage 1 fit, head_only/seed1 | **−0.509** | **−0.347** | **0.024** |
+| Stage 1 fit, head_only/seed2 | −0.511 | −0.349 | 0.023 |
+| Stage 1 fit, full/seed1 | −0.241 | −0.166 | 0.293 |
+| Stage 1 fit, full/seed2 | −0.192 | −0.108 | 0.497 |
+
+Coherence does **not** predict how off-grid a target is (target-cos₁ is flat in it). The one
+significant relationship runs the *wrong* way for a "coherence helps" story: in the head-only arm the
+network fitted the **less** coherent targets slightly **better** (−0.51 Pearson). With the
+mean-removed ratio the same correlation shrinks to −0.21 (p = 0.18), and the whole fit range is
+0.9725–0.9970, so this is a small effect on a compressed axis — but it is one more reading in the
+same direction as the shuffle control: **fit quality here is a property of the head's capacity, not
+of the target's structure.**
+
+### Verdict — refinements, not cancellations
+
+The blends are **coherent refinements, not near-cancelling averages, and the pilot's fit numbers are
+not inflated by a collapsing target**. No state cancels: the raw cancellation ratio never drops below
+0.969 and no ingredient pair is even weakly opposed in the space the policy actually scores in. But
+that raw reading is mostly the bank's own enormous common component — every pair of bank entries sits
+at cosine 0.96 — so the honest measurement removes the bank mean direction first. There the blends
+retain about **three quarters of their length** (median 0.745 at m = 5) against a random-5-tuple floor
+of 0.593, with the top-5 ingredients sitting at mean pairwise cosine 0.46 against a floor of 0.19,
+beating that floor at 39 of 42 states. So the top-m measured candidates at a state genuinely do point
+in a similar semantic direction — they are variations on one theme, and the blend is an interior
+point of that theme, shrunk by roughly a quarter through real but modest disagreement. The
+disagreement is not uniform: mixed item+concept blends are measurably less coherent than
+single-channel ones (0.715 vs 0.780, p = 0.015), and a third of the states carry at least one
+genuinely opposed pair, all in the low-coherence tail. Nothing here rescues the pilot's central
+caveat — coherence is uncorrelated with target-cos₁ and, if anything, *anti*-correlated with fit
+quality, so the target's geometry is still not what the network was tracking — but it removes one
+specific way the pilot could have been vacuous. The blend target is a real point with a real
+direction.
+
+**Numbers behind this section**: recomputed read-only from `experiments/paperC/c1_pilot_per_state.npz`
+plus the bank rebuilt from the C0-sha'd checkpoint (`bank_vectors` imported, not reimplemented);
+target reproduction asserted bit-identical before any statistic was taken. No test data touched.
+
 ## Artifacts
 
 | what | where |
