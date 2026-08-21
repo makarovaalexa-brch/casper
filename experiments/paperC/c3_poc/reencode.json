@@ -1,0 +1,1787 @@
+{
+ "_comment": "PER-PACKET geometry ONLY. This stage is blinded: it never read KEY.json, questions_for_judge.json or judgments.json, and nothing here says which packets are real and which are controls. The join with ground truth happens downstream (docs/design/DS_C3_POC.md).",
+ "analysis": "paperC_C3_poc_stage4_reencode",
+ "design_sheet": "docs/design/DS_C3_POC.md",
+ "produced_by": "src/instrument/c3_poc_reencode.py",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "recipe": {
+  "source": "scripts/reddit/smoke_trio.py arms 4/4b (SBERT recipe of record)",
+  "sbert_model": "all-MiniLM-L6-v2",
+  "sbert_pooling": "sentence-max (mode='sent', non-lossy)",
+  "sbert_topn": 4,
+  "sbert_mincos": 0.3,
+  "tag_names": "genome-tags.csv `tag`, stripped, NOT lower-cased (smoke_trio's form)",
+  "column_order": "env sh['tags'] (sorted tagId, relevance>=0.5, >=30 catalog members)",
+  "bridge": "selected concepts -> their bank embeddings k(phi) at bank row ni+c -> uniform mean (primary) and selection-cosine-weighted mean (secondary)",
+  "cosine": "MEAN-REMOVED (the bank mean k is subtracted from both sides)",
+  "space": "bias-free k(phi), dim 128",
+  "anchor_reference": "the identical bridge applied to the packet's own top-8 anchor phrases as the text -- a RETRIEVAL ceiling, not a render score",
+  "input_field": "renders.json['renders'][*]['question'] only"
+ },
+ "asserts": {
+  "tag_column_aligned_to_sh_tags_and_packet_channel": true,
+  "n_concepts": 1031,
+  "banked_anchors_reproduced_for_all_packets": true,
+  "max_abs_anchor_cosine_diff": 0.0
+ },
+ "bank": {
+  "n_entries": 19390,
+  "n_items": 18359,
+  "n_concepts": 1031
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "git": {
+  "rev": "5097801ac741e844d8b1e9627c6f97d9fe65def1",
+  "branch": "recommender-improvement"
+ },
+ "n_packets": 30,
+ "non_encodable_ids": [],
+ "n_non_encodable": 0,
+ "rows": [
+  {
+   "id": 1,
+   "question": "Do you like fast-moving movies with a strong story and impressive visuals, especially ones that build a larger world across sequels?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 237,
+     "tag": "crappy sequel",
+     "sbert_cos": 0.4558
+    },
+    {
+     "cid": 822,
+     "tag": "sequels",
+     "sbert_cos": 0.4491
+    },
+    {
+     "cid": 427,
+     "tag": "great cinematography",
+     "sbert_cos": 0.4316
+    },
+    {
+     "cid": 46,
+     "tag": "amazing cinematography",
+     "sbert_cos": 0.4214
+    }
+   ],
+   "cos_uniform": 0.7426,
+   "cos_weighted": 0.7404,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 347,
+      "tag": "fast paced",
+      "sbert_cos": 0.9562
+     },
+     {
+      "cid": 114,
+      "tag": "better than expected",
+      "sbert_cos": 0.9429
+     },
+     {
+      "cid": 951,
+      "tag": "trilogy",
+      "sbert_cos": 0.9211
+     },
+     {
+      "cid": 630,
+      "tag": "mythology",
+      "sbert_cos": 0.9205
+     }
+    ],
+    "cos_uniform": 0.9405,
+    "cos_weighted": 0.9408
+   },
+   "top_sbert_cos_over_all_tags": 0.4558
+  },
+  {
+   "id": 2,
+   "question": "Do you enjoy quirky, character-driven comedies or dramas about everyday relationships and working life?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.5058
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5004
+    },
+    {
+     "cid": 203,
+     "tag": "comedy",
+     "sbert_cos": 0.4657
+    },
+    {
+     "cid": 826,
+     "tag": "sex comedy",
+     "sbert_cos": 0.4568
+    }
+   ],
+   "cos_uniform": 0.4027,
+   "cos_weighted": 0.4052,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 648,
+      "tag": "noir thriller",
+      "sbert_cos": 0.5293
+     },
+     {
+      "cid": 357,
+      "tag": "film noir",
+      "sbert_cos": 0.5292
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 50,
+      "tag": "amy smart",
+      "sbert_cos": 0.5059
+     }
+    ],
+    "cos_uniform": 0.4437,
+    "cos_weighted": 0.4383
+   },
+   "top_sbert_cos_over_all_tags": 0.5058
+  },
+  {
+   "id": 3,
+   "question": "Are you drawn to offbeat films that mix comedy with a touch of drama, in unusual settings?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 667,
+     "tag": "off-beat comedy",
+     "sbert_cos": 0.5735
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.54
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.5238
+    },
+    {
+     "cid": 146,
+     "tag": "british comedy",
+     "sbert_cos": 0.5224
+    }
+   ],
+   "cos_uniform": 0.2739,
+   "cos_weighted": 0.271,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 146,
+      "tag": "british comedy",
+      "sbert_cos": 0.5634
+     },
+     {
+      "cid": 581,
+      "tag": "marvel",
+      "sbert_cos": 0.555
+     },
+     {
+      "cid": 875,
+      "tag": "stand-up comedy",
+      "sbert_cos": 0.5529
+     },
+     {
+      "cid": 125,
+      "tag": "black comedy",
+      "sbert_cos": 0.5369
+     }
+    ],
+    "cos_uniform": -0.1013,
+    "cos_weighted": -0.0999
+   },
+   "top_sbert_cos_over_all_tags": 0.5735
+  },
+  {
+   "id": 4,
+   "question": "Do you enjoy big action-adventure movies with car chases, gunfights, and high-stakes thrills?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 25,
+     "tag": "adventure",
+     "sbert_cos": 0.4515
+    },
+    {
+     "cid": 378,
+     "tag": "fun movie",
+     "sbert_cos": 0.4424
+    },
+    {
+     "cid": 379,
+     "tag": "funniest movies",
+     "sbert_cos": 0.3902
+    },
+    {
+     "cid": 112,
+     "tag": "best war films",
+     "sbert_cos": 0.3878
+    }
+   ],
+   "cos_uniform": 0.7177,
+   "cos_weighted": 0.7387,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 173,
+      "tag": "chase",
+      "sbert_cos": 0.9561
+     },
+     {
+      "cid": 25,
+      "tag": "adventure",
+      "sbert_cos": 0.9136
+     },
+     {
+      "cid": 408,
+      "tag": "good action",
+      "sbert_cos": 0.8854
+     },
+     {
+      "cid": 15,
+      "tag": "action",
+      "sbert_cos": 0.8592
+     }
+    ],
+    "cos_uniform": 0.85,
+    "cos_weighted": 0.8507
+   },
+   "top_sbert_cos_over_all_tags": 0.4515
+  },
+  {
+   "id": 5,
+   "question": "Do you like tense action thrillers about a lone hero facing danger, weapons, or encounters with the unknown?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 931,
+     "tag": "thriller",
+     "sbert_cos": 0.6374
+    },
+    {
+     "cid": 648,
+     "tag": "noir thriller",
+     "sbert_cos": 0.5337
+    },
+    {
+     "cid": 908,
+     "tag": "suspenseful",
+     "sbert_cos": 0.473
+    },
+    {
+     "cid": 907,
+     "tag": "suspense",
+     "sbert_cos": 0.4643
+    }
+   ],
+   "cos_uniform": 0.4684,
+   "cos_weighted": 0.4785,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 558,
+      "tag": "lone hero",
+      "sbert_cos": 0.9685
+     },
+     {
+      "cid": 334,
+      "tag": "explosions",
+      "sbert_cos": 0.9394
+     },
+     {
+      "cid": 360,
+      "tag": "first contact",
+      "sbert_cos": 0.9385
+     },
+     {
+      "cid": 1003,
+      "tag": "weapons",
+      "sbert_cos": 0.92
+     }
+    ],
+    "cos_uniform": 0.8967,
+    "cos_weighted": 0.8967
+   },
+   "top_sbert_cos_over_all_tags": 0.6374
+  },
+  {
+   "id": 6,
+   "question": "Do you like entertaining, fast-paced films with a compelling story and visuals, especially ones tied to a bigger saga?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 620,
+     "tag": "multiple storylines",
+     "sbert_cos": 0.45
+    },
+    {
+     "cid": 427,
+     "tag": "great cinematography",
+     "sbert_cos": 0.4275
+    },
+    {
+     "cid": 46,
+     "tag": "amazing cinematography",
+     "sbert_cos": 0.4241
+    },
+    {
+     "cid": 187,
+     "tag": "cinematography",
+     "sbert_cos": 0.4108
+    }
+   ],
+   "cos_uniform": 0.5272,
+   "cos_weighted": 0.526,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 347,
+      "tag": "fast paced",
+      "sbert_cos": 0.9562
+     },
+     {
+      "cid": 114,
+      "tag": "better than expected",
+      "sbert_cos": 0.9429
+     },
+     {
+      "cid": 951,
+      "tag": "trilogy",
+      "sbert_cos": 0.9211
+     },
+     {
+      "cid": 630,
+      "tag": "mythology",
+      "sbert_cos": 0.9205
+     }
+    ],
+    "cos_uniform": 0.9405,
+    "cos_weighted": 0.9408
+   },
+   "top_sbert_cos_over_all_tags": 0.45
+  },
+  {
+   "id": 7,
+   "question": "Do you enjoy romantic dramas about relationships and major life changes, like starting college or going through divorce?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 784,
+     "tag": "romance",
+     "sbert_cos": 0.4913
+    },
+    {
+     "cid": 785,
+     "tag": "romantic",
+     "sbert_cos": 0.465
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.4573
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.4462
+    }
+   ],
+   "cos_uniform": 0.4978,
+   "cos_weighted": 0.4947,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 200,
+      "tag": "college",
+      "sbert_cos": 0.9322
+     },
+     {
+      "cid": 284,
+      "tag": "divorce",
+      "sbert_cos": 0.8802
+     },
+     {
+      "cid": 805,
+      "tag": "school",
+      "sbert_cos": 0.7316
+     },
+     {
+      "cid": 578,
+      "tag": "marriage",
+      "sbert_cos": 0.6987
+     }
+    ],
+    "cos_uniform": 0.773,
+    "cos_weighted": 0.7754
+   },
+   "top_sbert_cos_over_all_tags": 0.4913
+  },
+  {
+   "id": 8,
+   "question": "Do you like quirky, character-driven films that blend comedy with real, everyday drama?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 379,
+     "tag": "funniest movies",
+     "sbert_cos": 0.531
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.5255
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5137
+    },
+    {
+     "cid": 146,
+     "tag": "british comedy",
+     "sbert_cos": 0.5077
+    }
+   ],
+   "cos_uniform": 0.3853,
+   "cos_weighted": 0.3864,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 648,
+      "tag": "noir thriller",
+      "sbert_cos": 0.5293
+     },
+     {
+      "cid": 357,
+      "tag": "film noir",
+      "sbert_cos": 0.5292
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 50,
+      "tag": "amy smart",
+      "sbert_cos": 0.5059
+     }
+    ],
+    "cos_uniform": 0.4437,
+    "cos_weighted": 0.4383
+   },
+   "top_sbert_cos_over_all_tags": 0.531
+  },
+  {
+   "id": 9,
+   "question": "Are you into science-fiction movies set in space, involving aliens, cloning, or space exploration?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 807,
+     "tag": "sci-fi",
+     "sbert_cos": 0.5726
+    },
+    {
+     "cid": 809,
+     "tag": "science fiction",
+     "sbert_cos": 0.5504
+    },
+    {
+     "cid": 806,
+     "tag": "sci fi",
+     "sbert_cos": 0.5359
+    },
+    {
+     "cid": 37,
+     "tag": "alien invasion",
+     "sbert_cos": 0.5209
+    }
+   ],
+   "cos_uniform": 0.9237,
+   "cos_weighted": 0.9237,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 858,
+      "tag": "space opera",
+      "sbert_cos": 0.9711
+     },
+     {
+      "cid": 810,
+      "tag": "scifi",
+      "sbert_cos": 0.9687
+     },
+     {
+      "cid": 807,
+      "tag": "sci-fi",
+      "sbert_cos": 0.9682
+     },
+     {
+      "cid": 632,
+      "tag": "nasa",
+      "sbert_cos": 0.9661
+     }
+    ],
+    "cos_uniform": 0.9646,
+    "cos_weighted": 0.9646
+   },
+   "top_sbert_cos_over_all_tags": 0.5726
+  },
+  {
+   "id": 10,
+   "question": "Do you enjoy sci-fi movies about space travel, aliens, or scientific themes like cloning?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 807,
+     "tag": "sci-fi",
+     "sbert_cos": 0.552
+    },
+    {
+     "cid": 806,
+     "tag": "sci fi",
+     "sbert_cos": 0.5131
+    },
+    {
+     "cid": 506,
+     "tag": "intelligent sci-fi",
+     "sbert_cos": 0.4767
+    },
+    {
+     "cid": 809,
+     "tag": "science fiction",
+     "sbert_cos": 0.4731
+    }
+   ],
+   "cos_uniform": 0.8514,
+   "cos_weighted": 0.857,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 858,
+      "tag": "space opera",
+      "sbert_cos": 0.9711
+     },
+     {
+      "cid": 810,
+      "tag": "scifi",
+      "sbert_cos": 0.9687
+     },
+     {
+      "cid": 807,
+      "tag": "sci-fi",
+      "sbert_cos": 0.9682
+     },
+     {
+      "cid": 632,
+      "tag": "nasa",
+      "sbert_cos": 0.9661
+     }
+    ],
+    "cos_uniform": 0.9646,
+    "cos_weighted": 0.9646
+   },
+   "top_sbert_cos_over_all_tags": 0.552
+  },
+  {
+   "id": 11,
+   "question": "Do you enjoy beloved, critically acclaimed movies from the early '90s, spanning animated classics to gripping thrillers?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 679,
+     "tag": "oscar (best animated feature)",
+     "sbert_cos": 0.4793
+    },
+    {
+     "cid": 112,
+     "tag": "best war films",
+     "sbert_cos": 0.4707
+    },
+    {
+     "cid": 931,
+     "tag": "thriller",
+     "sbert_cos": 0.4667
+    },
+    {
+     "cid": 680,
+     "tag": "oscar (best cinematography)",
+     "sbert_cos": 0.4306
+    }
+   ],
+   "cos_uniform": 0.6168,
+   "cos_weighted": 0.6122,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 53,
+      "tag": "animal movie",
+      "sbert_cos": 0.5744
+     },
+     {
+      "cid": 276,
+      "tag": "dinosaurs",
+      "sbert_cos": 0.557
+     },
+     {
+      "cid": 263,
+      "tag": "dc comics",
+      "sbert_cos": 0.5557
+     },
+     {
+      "cid": 898,
+      "tag": "superhero",
+      "sbert_cos": 0.5373
+     }
+    ],
+    "cos_uniform": 0.073,
+    "cos_weighted": 0.0739
+   },
+   "top_sbert_cos_over_all_tags": 0.4793
+  },
+  {
+   "id": 12,
+   "question": "Do you like dark, stylish films with narration that feel bleak, disturbing, or explore themes of insanity?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 260,
+     "tag": "dark fantasy",
+     "sbert_cos": 0.4505
+    },
+    {
+     "cid": 259,
+     "tag": "dark comedy",
+     "sbert_cos": 0.4378
+    },
+    {
+     "cid": 648,
+     "tag": "noir thriller",
+     "sbert_cos": 0.4363
+    },
+    {
+     "cid": 357,
+     "tag": "film noir",
+     "sbert_cos": 0.4147
+    }
+   ],
+   "cos_uniform": 0.4872,
+   "cos_weighted": 0.4917,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 992,
+      "tag": "visceral",
+      "sbert_cos": 0.9731
+     },
+     {
+      "cid": 890,
+      "tag": "stylish",
+      "sbert_cos": 0.9445
+     },
+     {
+      "cid": 262,
+      "tag": "dark humor",
+      "sbert_cos": 0.9353
+     },
+     {
+      "cid": 127,
+      "tag": "bleak",
+      "sbert_cos": 0.9319
+     }
+    ],
+    "cos_uniform": 0.9344,
+    "cos_weighted": 0.934
+   },
+   "top_sbert_cos_over_all_tags": 0.4505
+  },
+  {
+   "id": 13,
+   "question": "Are you drawn to obscure foreign or arthouse films with gritty, unconventional stories?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 495,
+     "tag": "independent film",
+     "sbert_cos": 0.4417
+    },
+    {
+     "cid": 357,
+     "tag": "film noir",
+     "sbert_cos": 0.4395
+    },
+    {
+     "cid": 379,
+     "tag": "funniest movies",
+     "sbert_cos": 0.4282
+    },
+    {
+     "cid": 616,
+     "tag": "movie business",
+     "sbert_cos": 0.4177
+    }
+   ],
+   "cos_uniform": -0.195,
+   "cos_weighted": -0.1968,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 313,
+      "tag": "egypt",
+      "sbert_cos": 0.5815
+     },
+     {
+      "cid": 923,
+      "tag": "teens",
+      "sbert_cos": 0.5698
+     },
+     {
+      "cid": 922,
+      "tag": "teenagers",
+      "sbert_cos": 0.5404
+     },
+     {
+      "cid": 920,
+      "tag": "teen movie",
+      "sbert_cos": 0.5187
+     }
+    ],
+    "cos_uniform": -0.2915,
+    "cos_weighted": -0.287
+   },
+   "top_sbert_cos_over_all_tags": 0.4417
+  },
+  {
+   "id": 14,
+   "question": "Do you enjoy visually beautiful, poetic foreign films with an artistic or melancholic tone?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 684,
+     "tag": "oscar (best foreign language film)",
+     "sbert_cos": 0.4649
+    },
+    {
+     "cid": 994,
+     "tag": "visually appealing",
+     "sbert_cos": 0.4432
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.4398
+    },
+    {
+     "cid": 71,
+     "tag": "artistic",
+     "sbert_cos": 0.438
+    }
+   ],
+   "cos_uniform": 0.8294,
+   "cos_weighted": 0.8332,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 588,
+      "tag": "melancholic",
+      "sbert_cos": 0.9778
+     },
+     {
+      "cid": 910,
+      "tag": "swedish",
+      "sbert_cos": 0.9594
+     },
+     {
+      "cid": 635,
+      "tag": "nature",
+      "sbert_cos": 0.9518
+     },
+     {
+      "cid": 366,
+      "tag": "foreign",
+      "sbert_cos": 0.9512
+     }
+    ],
+    "cos_uniform": 0.9388,
+    "cos_weighted": 0.939
+   },
+   "top_sbert_cos_over_all_tags": 0.4649
+  },
+  {
+   "id": 15,
+   "question": "Do you enjoy gentle comedies or dramas about small-town life, relationships, and everyday satire?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.5678
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5268
+    },
+    {
+     "cid": 826,
+     "tag": "sex comedy",
+     "sbert_cos": 0.4746
+    },
+    {
+     "cid": 203,
+     "tag": "comedy",
+     "sbert_cos": 0.4717
+    }
+   ],
+   "cos_uniform": 0.4425,
+   "cos_weighted": 0.4494,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 610,
+      "tag": "moon",
+      "sbert_cos": 0.642
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 8,
+      "tag": "1980s",
+      "sbert_cos": 0.5088
+     },
+     {
+      "cid": 50,
+      "tag": "amy smart",
+      "sbert_cos": 0.5059
+     }
+    ],
+    "cos_uniform": 0.3297,
+    "cos_weighted": 0.3161
+   },
+   "top_sbert_cos_over_all_tags": 0.5678
+  },
+  {
+   "id": 16,
+   "question": "Do you like offbeat, character-driven films that mix romance, comedy, and drama?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.6003
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5507
+    },
+    {
+     "cid": 667,
+     "tag": "off-beat comedy",
+     "sbert_cos": 0.4916
+    },
+    {
+     "cid": 826,
+     "tag": "sex comedy",
+     "sbert_cos": 0.4496
+    }
+   ],
+   "cos_uniform": 0.4749,
+   "cos_weighted": 0.4725,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 8,
+      "tag": "1980s",
+      "sbert_cos": 0.5389
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 777,
+      "tag": "road movie",
+      "sbert_cos": 0.5106
+     },
+     {
+      "cid": 50,
+      "tag": "amy smart",
+      "sbert_cos": 0.5059
+     }
+    ],
+    "cos_uniform": 0.3842,
+    "cos_weighted": 0.3768
+   },
+   "top_sbert_cos_over_all_tags": 0.6003
+  },
+  {
+   "id": 17,
+   "question": "Are you drawn to quirky independent films that blend dark comedy with heartfelt drama?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 259,
+     "tag": "dark comedy",
+     "sbert_cos": 0.6121
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5738
+    },
+    {
+     "cid": 495,
+     "tag": "independent film",
+     "sbert_cos": 0.5635
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.5386
+    }
+   ],
+   "cos_uniform": 0.3148,
+   "cos_weighted": 0.3055,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 648,
+      "tag": "noir thriller",
+      "sbert_cos": 0.5293
+     },
+     {
+      "cid": 357,
+      "tag": "film noir",
+      "sbert_cos": 0.5292
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 8,
+      "tag": "1980s",
+      "sbert_cos": 0.5088
+     }
+    ],
+    "cos_uniform": 0.1373,
+    "cos_weighted": 0.1387
+   },
+   "top_sbert_cos_over_all_tags": 0.6121
+  },
+  {
+   "id": 18,
+   "question": "Do you enjoy artistic, visually striking foreign films with a poetic or melancholic feel?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 684,
+     "tag": "oscar (best foreign language film)",
+     "sbert_cos": 0.4851
+    },
+    {
+     "cid": 71,
+     "tag": "artistic",
+     "sbert_cos": 0.4132
+    },
+    {
+     "cid": 352,
+     "tag": "feel good movie",
+     "sbert_cos": 0.4094
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.4055
+    }
+   ],
+   "cos_uniform": 0.6022,
+   "cos_weighted": 0.6414,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 588,
+      "tag": "melancholic",
+      "sbert_cos": 0.9778
+     },
+     {
+      "cid": 910,
+      "tag": "swedish",
+      "sbert_cos": 0.9594
+     },
+     {
+      "cid": 635,
+      "tag": "nature",
+      "sbert_cos": 0.9518
+     },
+     {
+      "cid": 366,
+      "tag": "foreign",
+      "sbert_cos": 0.9512
+     }
+    ],
+    "cos_uniform": 0.9388,
+    "cos_weighted": 0.939
+   },
+   "top_sbert_cos_over_all_tags": 0.4851
+  },
+  {
+   "id": 19,
+   "question": "Do you enjoy classic action-adventure movies, plus gritty crime thrillers involving heists, prison, or the mob?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 25,
+     "tag": "adventure",
+     "sbert_cos": 0.4843
+    },
+    {
+     "cid": 931,
+     "tag": "thriller",
+     "sbert_cos": 0.4443
+    },
+    {
+     "cid": 378,
+     "tag": "fun movie",
+     "sbert_cos": 0.4423
+    },
+    {
+     "cid": 379,
+     "tag": "funniest movies",
+     "sbert_cos": 0.3958
+    }
+   ],
+   "cos_uniform": 0.6757,
+   "cos_weighted": 0.6762,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 861,
+      "tag": "spaghetti western",
+      "sbert_cos": 0.9744
+     },
+     {
+      "cid": 603,
+      "tag": "mob",
+      "sbert_cos": 0.9495
+     },
+     {
+      "cid": 737,
+      "tag": "prison",
+      "sbert_cos": 0.8873
+     },
+     {
+      "cid": 8,
+      "tag": "1980s",
+      "sbert_cos": 0.6762
+     }
+    ],
+    "cos_uniform": 0.8194,
+    "cos_weighted": 0.8254
+   },
+   "top_sbert_cos_over_all_tags": 0.4843
+  },
+  {
+   "id": 20,
+   "question": "Are you interested in socially conscious independent films that tackle real-world issues?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 495,
+     "tag": "independent film",
+     "sbert_cos": 0.5894
+    },
+    {
+     "cid": 616,
+     "tag": "movie business",
+     "sbert_cos": 0.4578
+    },
+    {
+     "cid": 357,
+     "tag": "film noir",
+     "sbert_cos": 0.3999
+    },
+    {
+     "cid": 178,
+     "tag": "chick flick",
+     "sbert_cos": 0.3972
+    }
+   ],
+   "cos_uniform": -0.02,
+   "cos_weighted": -0.0202,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 614,
+      "tag": "mother-son relationship",
+      "sbert_cos": 0.498
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.474
+     },
+     {
+      "cid": 697,
+      "tag": "parenthood",
+      "sbert_cos": 0.4576
+     },
+     {
+      "cid": 54,
+      "tag": "animals",
+      "sbert_cos": 0.4565
+     }
+    ],
+    "cos_uniform": 0.1518,
+    "cos_weighted": 0.1525
+   },
+   "top_sbert_cos_over_all_tags": 0.5894
+  },
+  {
+   "id": 21,
+   "question": "Do you love epic fantasy or sci-fi sagas with sweeping quests, big battles, and mythic scope?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 620,
+     "tag": "multiple storylines",
+     "sbert_cos": 0.4167
+    },
+    {
+     "cid": 605,
+     "tag": "modern fantasy",
+     "sbert_cos": 0.4133
+    },
+    {
+     "cid": 260,
+     "tag": "dark fantasy",
+     "sbert_cos": 0.4066
+    },
+    {
+     "cid": 630,
+     "tag": "mythology",
+     "sbert_cos": 0.4047
+    }
+   ],
+   "cos_uniform": 0.4629,
+   "cos_weighted": 0.4621,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 34,
+      "tag": "alaska",
+      "sbert_cos": 0.9457
+     },
+     {
+      "cid": 453,
+      "tag": "hawaii",
+      "sbert_cos": 0.6822
+     },
+     {
+      "cid": 929,
+      "tag": "texas",
+      "sbert_cos": 0.6688
+     },
+     {
+      "cid": 789,
+      "tag": "russia",
+      "sbert_cos": 0.6655
+     }
+    ],
+    "cos_uniform": 0.3357,
+    "cos_weighted": 0.4254
+   },
+   "top_sbert_cos_over_all_tags": 0.4167
+  },
+  {
+   "id": 22,
+   "question": "Do you enjoy action-packed thrillers featuring a lone hero, weapons, or encounters with the unknown?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 931,
+     "tag": "thriller",
+     "sbert_cos": 0.6242
+    },
+    {
+     "cid": 648,
+     "tag": "noir thriller",
+     "sbert_cos": 0.4978
+    },
+    {
+     "cid": 907,
+     "tag": "suspense",
+     "sbert_cos": 0.4306
+    },
+    {
+     "cid": 908,
+     "tag": "suspenseful",
+     "sbert_cos": 0.4277
+    }
+   ],
+   "cos_uniform": 0.4684,
+   "cos_weighted": 0.4814,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 558,
+      "tag": "lone hero",
+      "sbert_cos": 0.9685
+     },
+     {
+      "cid": 334,
+      "tag": "explosions",
+      "sbert_cos": 0.9394
+     },
+     {
+      "cid": 360,
+      "tag": "first contact",
+      "sbert_cos": 0.9385
+     },
+     {
+      "cid": 1003,
+      "tag": "weapons",
+      "sbert_cos": 0.92
+     }
+    ],
+    "cos_uniform": 0.8967,
+    "cos_weighted": 0.8967
+   },
+   "top_sbert_cos_over_all_tags": 0.6242
+  },
+  {
+   "id": 23,
+   "question": "Do you like light dramas or comedies about relationships and everyday small-town life?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.6388
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5934
+    },
+    {
+     "cid": 826,
+     "tag": "sex comedy",
+     "sbert_cos": 0.5156
+    },
+    {
+     "cid": 341,
+     "tag": "family drama",
+     "sbert_cos": 0.5047
+    }
+   ],
+   "cos_uniform": 0.5148,
+   "cos_weighted": 0.5141,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 610,
+      "tag": "moon",
+      "sbert_cos": 0.642
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 8,
+      "tag": "1980s",
+      "sbert_cos": 0.5088
+     },
+     {
+      "cid": 50,
+      "tag": "amy smart",
+      "sbert_cos": 0.5059
+     }
+    ],
+    "cos_uniform": 0.3297,
+    "cos_weighted": 0.3161
+   },
+   "top_sbert_cos_over_all_tags": 0.6388
+  },
+  {
+   "id": 24,
+   "question": "Do you enjoy character-driven comedy-dramas centered on relationships and family life?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 341,
+     "tag": "family drama",
+     "sbert_cos": 0.571
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5034
+    },
+    {
+     "cid": 826,
+     "tag": "sex comedy",
+     "sbert_cos": 0.477
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.4708
+    }
+   ],
+   "cos_uniform": 0.5263,
+   "cos_weighted": 0.5225,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 610,
+      "tag": "moon",
+      "sbert_cos": 0.642
+     },
+     {
+      "cid": 581,
+      "tag": "marvel",
+      "sbert_cos": 0.555
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 50,
+      "tag": "amy smart",
+      "sbert_cos": 0.5059
+     }
+    ],
+    "cos_uniform": 0.4058,
+    "cos_weighted": 0.3856
+   },
+   "top_sbert_cos_over_all_tags": 0.571
+  },
+  {
+   "id": 25,
+   "question": "Are you drawn to quirky indie films that mix dark comedy with heartfelt drama?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 259,
+     "tag": "dark comedy",
+     "sbert_cos": 0.6135
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5631
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.5436
+    },
+    {
+     "cid": 146,
+     "tag": "british comedy",
+     "sbert_cos": 0.5108
+    }
+   ],
+   "cos_uniform": 0.2529,
+   "cos_weighted": 0.2496,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 648,
+      "tag": "noir thriller",
+      "sbert_cos": 0.5293
+     },
+     {
+      "cid": 357,
+      "tag": "film noir",
+      "sbert_cos": 0.5292
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 8,
+      "tag": "1980s",
+      "sbert_cos": 0.5088
+     }
+    ],
+    "cos_uniform": 0.1373,
+    "cos_weighted": 0.1387
+   },
+   "top_sbert_cos_over_all_tags": 0.6135
+  },
+  {
+   "id": 26,
+   "question": "Do you like offbeat films about relationships that blend comedy and drama?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.6083
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.6031
+    },
+    {
+     "cid": 667,
+     "tag": "off-beat comedy",
+     "sbert_cos": 0.5412
+    },
+    {
+     "cid": 379,
+     "tag": "funniest movies",
+     "sbert_cos": 0.5348
+    }
+   ],
+   "cos_uniform": 0.4298,
+   "cos_weighted": 0.4384,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 610,
+      "tag": "moon",
+      "sbert_cos": 0.642
+     },
+     {
+      "cid": 581,
+      "tag": "marvel",
+      "sbert_cos": 0.555
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 50,
+      "tag": "amy smart",
+      "sbert_cos": 0.5059
+     }
+    ],
+    "cos_uniform": 0.4058,
+    "cos_weighted": 0.3856
+   },
+   "top_sbert_cos_over_all_tags": 0.6083
+  },
+  {
+   "id": 27,
+   "question": "Do you enjoy quirky, character-focused films that blend romance, comedy, and drama?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.5794
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.5433
+    },
+    {
+     "cid": 379,
+     "tag": "funniest movies",
+     "sbert_cos": 0.4883
+    },
+    {
+     "cid": 378,
+     "tag": "fun movie",
+     "sbert_cos": 0.4813
+    }
+   ],
+   "cos_uniform": 0.3331,
+   "cos_weighted": 0.3503,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 8,
+      "tag": "1980s",
+      "sbert_cos": 0.5389
+     },
+     {
+      "cid": 400,
+      "tag": "girlie movie",
+      "sbert_cos": 0.5111
+     },
+     {
+      "cid": 777,
+      "tag": "road movie",
+      "sbert_cos": 0.5106
+     },
+     {
+      "cid": 50,
+      "tag": "amy smart",
+      "sbert_cos": 0.5059
+     }
+    ],
+    "cos_uniform": 0.3842,
+    "cos_weighted": 0.3768
+   },
+   "top_sbert_cos_over_all_tags": 0.5794
+  },
+  {
+   "id": 28,
+   "question": "Do you love epic fantasy or sci-fi sagas with grand quests, battles, and mythic scope?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 260,
+     "tag": "dark fantasy",
+     "sbert_cos": 0.418
+    },
+    {
+     "cid": 605,
+     "tag": "modern fantasy",
+     "sbert_cos": 0.4145
+    },
+    {
+     "cid": 620,
+     "tag": "multiple storylines",
+     "sbert_cos": 0.4136
+    },
+    {
+     "cid": 630,
+     "tag": "mythology",
+     "sbert_cos": 0.4066
+    }
+   ],
+   "cos_uniform": 0.4629,
+   "cos_weighted": 0.463,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 34,
+      "tag": "alaska",
+      "sbert_cos": 0.9457
+     },
+     {
+      "cid": 453,
+      "tag": "hawaii",
+      "sbert_cos": 0.6822
+     },
+     {
+      "cid": 929,
+      "tag": "texas",
+      "sbert_cos": 0.6688
+     },
+     {
+      "cid": 789,
+      "tag": "russia",
+      "sbert_cos": 0.6655
+     }
+    ],
+    "cos_uniform": 0.3357,
+    "cos_weighted": 0.4254
+   },
+   "top_sbert_cos_over_all_tags": 0.418
+  },
+  {
+   "id": 29,
+   "question": "Do you enjoy heartfelt romantic dramas that follow a woman's personal journey and relationships?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 785,
+     "tag": "romantic",
+     "sbert_cos": 0.4706
+    },
+    {
+     "cid": 784,
+     "tag": "romance",
+     "sbert_cos": 0.4646
+    },
+    {
+     "cid": 786,
+     "tag": "romantic comedy",
+     "sbert_cos": 0.4506
+    },
+    {
+     "cid": 411,
+     "tag": "good romantic comedies",
+     "sbert_cos": 0.4431
+    }
+   ],
+   "cos_uniform": 0.4845,
+   "cos_weighted": 0.4828,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 610,
+      "tag": "moon",
+      "sbert_cos": 0.642
+     },
+     {
+      "cid": 920,
+      "tag": "teen movie",
+      "sbert_cos": 0.4916
+     },
+     {
+      "cid": 632,
+      "tag": "nasa",
+      "sbert_cos": 0.4771
+     },
+     {
+      "cid": 550,
+      "tag": "life",
+      "sbert_cos": 0.4589
+     }
+    ],
+    "cos_uniform": 0.1089,
+    "cos_weighted": 0.1172
+   },
+   "top_sbert_cos_over_all_tags": 0.4706
+  },
+  {
+   "id": 30,
+   "question": "Are you interested in tense, lesser-known thriller films from around the world?",
+   "n_concepts_selected": 4,
+   "encodable": true,
+   "concepts": [
+    {
+     "cid": 931,
+     "tag": "thriller",
+     "sbert_cos": 0.6242
+    },
+    {
+     "cid": 648,
+     "tag": "noir thriller",
+     "sbert_cos": 0.5525
+    },
+    {
+     "cid": 277,
+     "tag": "directorial debut",
+     "sbert_cos": 0.4728
+    },
+    {
+     "cid": 357,
+     "tag": "film noir",
+     "sbert_cos": 0.4712
+    }
+   ],
+   "cos_uniform": 0.1712,
+   "cos_weighted": 0.2088,
+   "anchor_reference": {
+    "n_concepts_selected": 4,
+    "concepts": [
+     {
+      "cid": 623,
+      "tag": "murder mystery",
+      "sbert_cos": 0.6909
+     },
+     {
+      "cid": 622,
+      "tag": "murder",
+      "sbert_cos": 0.6493
+     },
+     {
+      "cid": 626,
+      "tag": "musical",
+      "sbert_cos": 0.5853
+     },
+     {
+      "cid": 823,
+      "tag": "serial killer",
+      "sbert_cos": 0.5769
+     }
+    ],
+    "cos_uniform": 0.1285,
+    "cos_weighted": 0.1252
+   },
+   "top_sbert_cos_over_all_tags": 0.6242
+  }
+ ]
+}
