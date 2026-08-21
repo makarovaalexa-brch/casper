@@ -866,7 +866,7 @@ def celf_heap_sig(E, rows, pool, objective, prefix):
 
 
 def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), on_pick=None,
-                     heap_path=None):
+                     heap_path=None, sweep_path=None):
     """Lazy-greedy (CELF) best STATIC sequence of length L from pool=[(chan,id),...], maximising the
     cohort-mean NDCG@10 of `objective` ('full' or 'tail'). Returns (seq, gains, n_evals).
 
@@ -907,6 +907,44 @@ def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), 
             json.dump(blob, fh)
         os.replace(heap_path + ".tmp", heap_path)
 
+    def _save_sweep(heap, base, nev):
+        """PERSIST THE FULL PER-CANDIDATE SWEEP BEFORE THE FIRST POP (2026-08-21).
+
+        The heap sidecar is NOT a gain table. `C1_GAIN_TABLE_AUDIT.md` proved why: when a candidate
+        is first popped its key is still its node-state gain, and `heappop` returns the maximum, so
+        re-evaluation overwrites *exactly the top of the ranking*. At a node whose tail re-evaluated
+        D distinct candidates, rank 1 survives (it is the recorded splitter gain), **ranks 2..D+1 are
+        irrecoverable** (median D = 192), and only ranks D+2.. remain exact. That left a top-m blend
+        with m >= 2 buildable at just 42 of `coldtree_v2`'s 164 nodes.
+
+        Right here, immediately after the seed pass and before any pop, EVERY entry is still at
+        level 0 -- an exact gain at this node's own state for every candidate in the pool. Writing it
+        now costs one ~16 KB array per node and no evaluations at all; recovering it later costs a
+        repair campaign. Same lesson as `seven-states-count-not-composition`: persist the sweep at
+        step 0, before the first pop.
+
+        The file is written ONCE and never rewritten, so unlike the heap sidecar it cannot decay.
+        """
+        if not sweep_path:
+            return
+        cand = np.asarray([[int(q[0]), int(q[1])] for _a, q, _u in heap], np.int32)
+        gain = np.asarray([-float(a) for a, _q, _u in heap], np.float64)
+        assert len(cand) == len(pool), (
+            f"{tag}: sweep holds {len(cand)} of {len(pool)} candidates -- the seed pass did not "
+            f"evaluate the whole pool, so this is not a complete gain table")
+        assert all(int(u) == 0 for _a, _q, u in heap), (
+            f"{tag}: a heap entry is not at level 0 -- _save_sweep ran AFTER a pop and the top of "
+            f"the ranking is already destroyed")
+        os.makedirs(os.path.dirname(sweep_path) or ".", exist_ok=True)
+        np.savez_compressed(sweep_path + ".tmp.npz", cand=cand, gain=gain,
+                            base=np.float64(base), n_evals=np.int64(nev),
+                            prefix=np.asarray([[int(a), int(b)] for a, b in pre], np.int32),
+                            objective=np.str_(objective), tag=np.str_(tag),
+                            sig=np.str_(json.dumps(sig, sort_keys=True, default=str)))
+        os.replace(sweep_path + ".tmp.npz", sweep_path)
+        log(f"[greedy {tag}] SWEEP banked: {len(cand)} exact node-state gains "
+            f"(best {gain.max():+.5f}) -> {os.path.basename(sweep_path)}")
+
     banked = None
     if heap_path and os.path.exists(heap_path):
         try:
@@ -929,6 +967,10 @@ def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), 
         log(f"[greedy {tag}] RESUMED from {os.path.basename(heap_path)}: {len(seq)} pick(s) banked, "
             f"{len(heap)} heap entries, {nev} evals already paid -> extending to L={L} "
             f"(a cold restart would re-pay the {len(pool)}-candidate seed pass)")
+        if sweep_path and not os.path.exists(sweep_path):
+            log(f"[greedy {tag}] WARNING: resumed from a heap with {len(seq)} pick(s) and no banked "
+                f"sweep -- the top of this node's ranking is already destroyed and CANNOT be "
+                f"recovered here. This node will have no gain table.")
         if len(seq) >= L:
             log(f"[greedy {tag}] banked order already has {len(seq)} >= L={L} picks -- returning its "
                 f"first {L} (greedy prefixes are exact: pick k does not depend on L)")
@@ -943,6 +985,7 @@ def greedy_certified(E, rows, pool, L, objective, tag, log_every=25, prefix=(), 
                 el = time.time() - t0
                 log(f"[greedy {tag}] seed {nev}/{len(pool)} ({el / 60:.1f}m, {el / nev:.2f}s/eval)")
         seq = []; gains = []; cur = base
+        _save_sweep(heap, base, nev)          # BEFORE the first pop -- every entry still level 0
         _save(heap, seq, gains, base, cur, nev)
     while len(seq) < L and heap:
         neg, q, upd = heapq.heappop(heap)

@@ -163,12 +163,13 @@ def main():
         """Fit one node: a splitter if it may split, then the fitted order for each branch."""
         sd = [seeds[int(r)] + [tuple(q) for q in path] for r in rows]
         hp = os.path.join(OUT, f"heap_{tag}_{nid}.json")
+        sw = os.path.join(OUT, "sweeps", f"sweep_{tag}_{nid}.npz")   # C1 gain table, see ndcg_tree
         depth = len(path)
         may_split = depth < a.depth
         if may_split:
             t0 = time.time()
             seq1, g1, nev = celf_per_user_prefix(E, rows, sd, pool, 1, "full",
-                                                 f"{nid}/split", heap_path=hp, sig=sig)
+                                                 f"{nid}/split", heap_path=hp, sig=sig, sweep_path=sw)
             q = (int(seq1[0][0]), int(seq1[0][1]))
             lab, ar, _z = branch_of(E, rows, q)
             kids = {k: [int(r) for r, l in zip(rows, lab) if str(l) == k] for k in BRANCHES}
@@ -191,7 +192,7 @@ def main():
             # `ndcg_tree.py:642`. Halves the cost of every node. If `may_split` was False the file
             # does not exist and this seeds cold, as before.
             seqL, gL, nev = celf_per_user_prefix(E, rows, sdl, pool, budget, "full",
-                                                 f"{nid}/tail", heap_path=hp, sig=sig)
+                                                 f"{nid}/tail", heap_path=hp, sig=sig, sweep_path=sw)
             nodes[nid] = {"nid": nid, "split": False, "n_users": len(rows),
                           "path": [[int(x), int(y)] for x, y in path],
                           "steps": [[int(x), int(y)] for x, y in seqL],
@@ -208,7 +209,7 @@ def main():
         # a splitting node: record the splitter, then a fitted TAIL for inheritance, then recurse
         t0 = time.time()
         seqT, gT, _n = celf_per_user_prefix(E, rows, sd, pool, budget, "full",
-                                            f"{nid}/tailfull", heap_path=hp, sig=sig)
+                                            f"{nid}/tailfull", heap_path=hp, sig=sig, sweep_path=sw)
         # the equivalence the reuse rests on, asserted rather than assumed
         assert tuple(seqT[0]) == q, (
             f"{nid}: resumed tail opened with {tuple(seqT[0])}, splitter was {q} -- heap reuse is "

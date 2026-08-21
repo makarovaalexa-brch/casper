@@ -478,15 +478,43 @@ def main():
                     help="end-to-end pipeline check: budget 3, a 6-question pool that CONTAINS the "
                          "comparator's own head. Also verifies the CELF-heap resume bit-for-bit "
                          "against the pre-change code path. Writes *_SANITY.json, NEVER citable.")
+    ap.add_argument("--split", default="validation", choices=["validation", "train"],
+                    help="WHICH POPULATION TO FIT ON. 'train' exists so this incumbent and the "
+                         "opener-fitted group trees can be fitted on the SAME population and both "
+                         "applied to validation. Otherwise each tree plays at home on its own "
+                         "fitting split and the contrast is uninterpretable -- measured 2026-08-21, "
+                         "the same tree scored +0.01762 on train and -0.00573 on validation, and "
+                         "the two arms' home advantages (+0.01645 and +0.00690) account for the "
+                         "whole gap. NDCG is still never REPORTED on train: it supplies the fitting "
+                         "criterion only, and the report is on validation.")
+    ap.add_argument("--slice_lo", type=int, default=0)
+    ap.add_argument("--slice_hi", type=int, default=34000)
+    ap.add_argument("--n_users", type=int, default=0,
+                    help="cap the fitting cohort (0 = every user in the slice). 10000 mirrors the "
+                         "validation-fitted incumbent's N exactly.")
     args = ap.parse_args()
 
     t00 = time.time()
     sfx = "_SANITY" if args.sanity else ("_PREFLIGHT" if args.preflight else "")
+    # A tree fitted on a different population is a DIFFERENT ARTIFACT and must never share a path
+    # with the validation-fitted incumbent -- on 2026-08-20 a --split train run silently overwrote a
+    # validation-fitted tree and its heap sidecars, and the original was unrecoverable.
+    if args.split != "validation":
+        sfx += f"_{args.split}{args.n_users or (args.slice_hi - args.slice_lo)}"
     OUT = os.path.join(OUTDIR, f"{args.label}{sfx}.json")
     PARTIAL = os.path.join(OUTDIR, f"{args.label}{sfx}_partial.json")
     NPZ = os.path.join(OUTDIR, f"{args.label}{sfx}_per_user.npz")
     HEAPDIR = os.path.join(OUTDIR, f"{args.label}{sfx}_heaps")
+    # C1 GAIN TABLES (2026-08-21). One immutable .npz per SEARCHED node, holding the exact gain of
+    # every pool candidate at that node's own state, written before the first pop. The heap sidecars
+    # cannot serve this: `C1_GAIN_TABLE_AUDIT.md` proves the first pop destroys ranks 2..D+1, which
+    # is exactly what a top-m blend target needs, and left only 42 of coldtree_v2's 164 nodes usable.
+    # Cost here is ~16 KB/node and ZERO extra evaluations; recovering it after the fact is a repair
+    # campaign. Below-floor children that never run a search still have no table -- that is inherent,
+    # not a regression: nothing was ever measured at their state.
+    SWEEPDIR = os.path.join(OUTDIR, f"{args.label}{sfx}_sweeps")
     os.makedirs(OUTDIR, exist_ok=True); os.makedirs(HEAPDIR, exist_ok=True)
+    os.makedirs(SWEEPDIR, exist_ok=True)
 
     for nm, p in (("snapshot", args.snapshot), ("concept_ckpt", args.concept_ckpt),
                   ("global greedy json", GLOBAL_JSON), ("concept stats", CONCSTATS)):
@@ -519,8 +547,26 @@ def main():
     assert os.path.basename(args.concept_ckpt) == gblob["concept_ckpt"], \
         f"concept ckpt mismatch vs the global build ({gblob['concept_ckpt']})"
 
-    E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, f"{args.label}(val)")
+    assert args.split != "test", "the TEST look is reserved -- this file never builds it"
+    if args.split == "validation":
+        E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, f"{args.label}(val)")
+    else:
+        E = build_greedy_env(args.snapshot, "train", args.concept_ckpt, f"{args.label}(train)",
+                             cohort_slice=(args.slice_lo, args.slice_hi))
+        log("!" * 108)
+        log(f"! FITTING ON TRAIN USERS {args.slice_lo}..{args.slice_hi}. The tower was TRAINED on "
+            f"them, so every criterion value in this run is measured on a MEMORISED ruler.")
+        log("! Acceptable here and ONLY here: this is a FITTING objective, not a reported number. "
+            "The tree is applied to VALIDATION, where nothing was memorised and where the")
+        log("! opener-fitted group trees are applied too -- which is the entire point of fitting it "
+            "here. NDCG from this run is NEVER quoted.")
+        log("! See memory `train-user-contrast-does-not-cancel-inflation`.")
+        log("!" * 108)
     rows_all = E["rows"]
+    if args.n_users and len(rows_all) > args.n_users:
+        rows_all = list(rows_all)[:args.n_users]
+        log(f"[cohort] capped to the first {len(rows_all):,} users of the slice "
+            f"(mirrors the validation-fitted incumbent's N)")
     seed_prefix = []
     if args.cohort_concept >= 0:
         cid = int(args.cohort_concept)
@@ -579,7 +625,7 @@ def main():
            "branch_rule": (f"item: absent->noanswer, level>={LIKE_MIN_LEVEL}->like, else dislike | "
                            f"concept: not foldable->noanswer, signed value>0->like, else dislike"),
            "stopping": "min_leaf v2: split iff >=2 non-empty children and >=1 child >= min_leaf; children below the floor inherit the parent tail (no depth cap)", "total_L": total_L, "min_leaf": min_leaf,
-           "split": "validation", "n_cohort": len(rows_all), "sanity": bool(args.sanity),
+           "split": args.split, "n_cohort": len(rows_all), "sanity": bool(args.sanity),
            "cohort_concept": int(args.cohort_concept),
            "cohort_rows": os.path.basename(args.cohort_rows) or None,
            "seed_prefix": [[int(a), int(b)] for a, b in seed_prefix],
@@ -613,6 +659,7 @@ def main():
             remaining = total_L - depth
             assert remaining >= 1, f"node {nid} at depth {depth} has no budget left"
             heap_path = os.path.join(HEAPDIR, f"node_{nid}.json")
+            sweep_path = os.path.join(SWEEPDIR, f"node_{nid}.npz")
             prefix = [(int(a), int(b)) for a, b in nd["path"]]
             pool_n = [q for q in pool if q not in set(prefix)]
             set_active_rows(E, rows)
@@ -644,7 +691,7 @@ def main():
                 # below RESUMES that heap instead of paying a second 1,000-candidate seed pass.
                 seq1, gains1, _nev = greedy_certified(E, rows, pool_n, 1, args.objective,
                                                       f"{nid}/split", prefix=prefix, on_pick=on_pick,
-                                                      heap_path=heap_path)
+                                                      heap_path=heap_path, sweep_path=sweep_path)
                 assert len(seq1) == 1, f"node {nid}: split search returned {len(seq1)} picks"
                 q = (int(seq1[0][0]), int(seq1[0][1]))
                 kids, ar, n_zero = split_rows(E, rows, q)
@@ -724,7 +771,8 @@ def main():
                 else:
                     seqL, gainsL, nevL = greedy_certified(E, rows, pool_n, remaining, args.objective,
                                                           f"{nid}/tail", prefix=prefix,
-                                                          on_pick=on_pick, heap_path=heap_path)
+                                                          on_pick=on_pick, heap_path=heap_path,
+                                                          sweep_path=sweep_path)
                 assert (not needs_tail) or len(seqL) == remaining, \
                     f"node {nid}: tail greedy returned {len(seqL)} of {remaining} picks"
                 assert tuple(seqL[0]) == q, \
@@ -961,7 +1009,7 @@ def main():
     out = {"analysis": "ndcg_objective_interview_tree",
            "stage": "1_build_on_validation",
            "label": args.label, "SANITY": bool(args.sanity), "citable": not args.sanity,
-           "split": "validation", "test_touched": False,
+           "split": args.split, "test_touched": False,
            "charged": CHARGED, "min_leaf_justification": MIN_LEAF_JUSTIFICATION,
            "no_guarantee": NO_GUARANTEE, "concept_answer_convention": NEG_CAP_NOTE,
            "ruler_note": RULER_NOTE,

@@ -73,7 +73,7 @@ def mean_score(E, rows, seeds, seq, objective="full"):
 
 
 def celf_per_user_prefix(E, rows, seeds, pool, L, objective, tag, on_pick=None, heap_path=None,
-                         sig=None, log_every=25):
+                         sig=None, log_every=25, sweep_path=None):
     """Lazy-greedy over a candidate pool where each user carries their own already-known evidence.
 
     Structurally identical to `strategy_channel_suite.greedy_certified`: seed every candidate's gain
@@ -93,6 +93,32 @@ def celf_per_user_prefix(E, rows, seeds, pool, L, objective, tag, on_pick=None, 
         with open(heap_path + ".tmp", "w") as fh:
             json.dump(blob, fh)
         os.replace(heap_path + ".tmp", heap_path)
+
+    def save_sweep(heap, base, nev):
+        """The complete per-candidate gain table, banked BEFORE the first pop.
+
+        See `greedy_certified._save_sweep` and `docs/design/C1_GAIN_TABLE_AUDIT.md`: the first pop
+        overwrites exactly the top of the node-state ranking, so a heap sidecar read afterwards is
+        missing ranks 2..D+1 and no top-m blend with m >= 2 can be built from it. At this moment
+        every entry is still level 0. Written once, never rewritten.
+        """
+        if not sweep_path:
+            return
+        cand = np.asarray([[int(q[0]), int(q[1])] for _a, q, _u in heap], np.int32)
+        gain = np.asarray([-float(a) for a, _q, _u in heap], np.float64)
+        assert len(cand) == len(pool), (
+            f"{tag}: sweep holds {len(cand)} of {len(pool)} candidates -- not a complete table")
+        assert all(int(u) == 0 for _a, _q, u in heap), (
+            f"{tag}: a heap entry is not at level 0 -- save_sweep ran AFTER a pop")
+        os.makedirs(os.path.dirname(sweep_path) or ".", exist_ok=True)
+        np.savez_compressed(sweep_path + ".tmp.npz", cand=cand, gain=gain,
+                            base=np.float64(base), n_evals=np.int64(nev),
+                            objective=np.str_(objective), tag=np.str_(tag),
+                            per_user_prefix=np.bool_(True),
+                            sig=np.str_(json.dumps(sig, sort_keys=True, default=str)))
+        os.replace(sweep_path + ".tmp.npz", sweep_path)
+        log(f"[bands {tag}] SWEEP banked: {len(cand)} exact node-state gains "
+            f"(best {gain.max():+.5f}) -> {os.path.basename(sweep_path)}")
 
     banked = None
     if heap_path and os.path.exists(heap_path):
@@ -125,6 +151,7 @@ def celf_per_user_prefix(E, rows, seeds, pool, L, objective, tag, on_pick=None, 
                 el = time.time() - t0
                 log(f"[bands {tag}] seed {nev}/{len(pool)} ({el / 60:.1f}m, {el / nev:.2f}s/eval)")
         seq = []; gains = []; cur = base
+        save_sweep(heap, base, nev)           # BEFORE the first pop -- every entry still level 0
         save(heap, seq, gains, base, cur, nev)
     while len(seq) < L and heap:
         neg, q, upd = heapq.heappop(heap)
