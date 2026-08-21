@@ -106,7 +106,7 @@ def main():
             valcoh[g] = np.asarray(sorted(int(k) for k in d["openers"]), np.int64)
         else:
             need_val.add(g)
-        log(f"[tree] {g}: {len(nodes)} nodes, validation cohort {len(valcoh[g])}")
+        log(f"[tree] {g}: {len(nodes)} nodes, split={d.get('split', 'validation')}")
     assert trees, "no opener-fitted trees found -- nothing to generate"
     if need_val:
         Ev = build_greedy_env(CERT_TOWER, "validation", CERT_CONC, "m6c_cent")

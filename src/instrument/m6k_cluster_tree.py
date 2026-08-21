@@ -185,8 +185,13 @@ def main():
         if not will:
             sdl = [seeds[int(r)] + [tuple(x) for x in path] for r in rows]
             t0 = time.time()
+            # The split search WAS the CELF seed pass over this exact (rows, sd, pool) state, so
+            # resume its heap rather than re-seeding: the first pick a fresh greedy would make IS
+            # the splitter, by construction. Same reuse the cold-tree fitter documents at
+            # `ndcg_tree.py:642`. Halves the cost of every node. If `may_split` was False the file
+            # does not exist and this seeds cold, as before.
             seqL, gL, nev = celf_per_user_prefix(E, rows, sdl, pool, budget, "full",
-                                                 f"{nid}/tail", heap_path=hp + ".tail", sig=sig)
+                                                 f"{nid}/tail", heap_path=hp, sig=sig)
             nodes[nid] = {"nid": nid, "split": False, "n_users": len(rows),
                           "path": [[int(x), int(y)] for x, y in path],
                           "steps": [[int(x), int(y)] for x, y in seqL],
@@ -203,7 +208,11 @@ def main():
         # a splitting node: record the splitter, then a fitted TAIL for inheritance, then recurse
         t0 = time.time()
         seqT, gT, _n = celf_per_user_prefix(E, rows, sd, pool, budget, "full",
-                                            f"{nid}/tailfull", heap_path=hp + ".tail", sig=sig)
+                                            f"{nid}/tailfull", heap_path=hp, sig=sig)
+        # the equivalence the reuse rests on, asserted rather than assumed
+        assert tuple(seqT[0]) == q, (
+            f"{nid}: resumed tail opened with {tuple(seqT[0])}, splitter was {q} -- heap reuse is "
+            f"NOT equivalent here; revert to a separate .tail heap before trusting this tree")
         nodes[nid] = {"nid": nid, "split": True, "n_users": len(rows),
                       "splitter": [q[0], q[1]], "child_sizes": sizes, "answer_rate": float(ar),
                       "path": [[int(x), int(y)] for x, y in path],
