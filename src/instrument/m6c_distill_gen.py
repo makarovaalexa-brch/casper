@@ -87,7 +87,7 @@ def main():
 
     # ---- which groups have an opener-fitted tree? --------------------------------------------
     want = [g.strip() for g in a.groups.split(",") if g.strip()] or list(ANCHORS)
-    trees, valcoh = {}, {}
+    trees, valcoh, need_val = {}, {}, set()
     for g in want:
         p = os.path.join(M6, f"m6k_{g}{a.tree_suffix}.json")
         if not os.path.exists(p):
@@ -98,15 +98,25 @@ def main():
         if isinstance(nodes, list):
             nodes = {r["nid"]: r for r in nodes}
         trees[g] = nodes
-        # ⚠ Only valid when the tree was fitted on VALIDATION: then the opener keys ARE that group's
-        # validation cohort. For a TRAIN-fitted tree they are train indices and must never be used as
-        # a centroid source (that bug made the centroid the mean of ~600 arbitrary users).
-        assert d.get("split", "validation") == "validation", (
-            f"{g}: tree was fitted on {d.get('split')!r}; its opener keys are not validation rows, "
-            f"so the group centroid must be supplied from a validation environment instead")
-        valcoh[g] = np.asarray(sorted(int(k) for k in d["openers"]), np.int64)
+        # The group centroid is a property of the GROUP and is always computed on VALIDATION rows.
+        # For a validation-fitted tree the artifact's opener keys ARE that cohort. For a TRAIN-fitted
+        # tree they are train indices, which must never be used here -- that mismatch made the
+        # centroid the mean of ~600 arbitrary users. Recover the cohort from validation instead.
+        if d.get("split", "validation") == "validation":
+            valcoh[g] = np.asarray(sorted(int(k) for k in d["openers"]), np.int64)
+        else:
+            need_val.add(g)
         log(f"[tree] {g}: {len(nodes)} nodes, validation cohort {len(valcoh[g])}")
     assert trees, "no opener-fitted trees found -- nothing to generate"
+    if need_val:
+        Ev = build_greedy_env(CERT_TOWER, "validation", CERT_CONC, "m6c_cent")
+        vr = np.asarray(Ev["rows"], np.int64)
+        Vv, Fv = np.asarray(Ev["V"]), np.asarray(Ev["foldable"])
+        end_v = (Fv > 0) & (Vv > 0)
+        for g in need_val:
+            valcoh[g] = vr[end_v[vr, ANCHORS[g]]]
+            log(f"[centroid] {g}: {len(valcoh[g])} VALIDATION users (tree was train-fitted)")
+        del Ev
     _cd, cold_nodes = load_tree(os.path.join(B, "coldtree_v2.json"))
 
     zf = np.load(os.path.join(B, "m1", "z_full.npz"))
