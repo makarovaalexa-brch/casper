@@ -590,9 +590,10 @@ def main():
         assert len(rows_all) >= 200, f"explicit cohort is only {len(rows_all)} users"
     n_seed = len(seed_prefix)   # questions asked = len(own) - n_seed
     contract_selftest(E, rows_all)
-    log(f"[cohort] {len(rows_all)} canonical VALIDATION users (rows with a non-empty target). "
+    log(f"[cohort] {len(rows_all)} canonical {args.split.upper()} users (rows with a non-empty "
+        f"target). "
         f"TEST IS NOT BUILT AND NOT TOUCHED.")
-    leak_assert(E, rows_all, "validation")
+    leak_assert(E, rows_all, args.split)
     gen, _gvocab = load_item_genres(E["ctx"].ni)
 
     pool_all, item_pool, conc_pool = build_pool(E, args.n_items, args.n_concepts)
