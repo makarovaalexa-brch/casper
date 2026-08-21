@@ -1,0 +1,52 @@
+[13:30:48] ####################################################################################################
+[13:30:48] # PAPER C / C0 -- geometry of E1's emitted vector. VALIDATION ONLY; no training; the 10,000 TEST users are not built, not loaded, not touched.
+[13:30:48] ####################################################################################################
+[13:30:48] [ckpt] policy_main_equivariant_both.pt epoch=2 val_full=0.28354971825495506 arm=main
+[13:30:48] === building paperC/c0 env (split=validation) ===
+[13:31:06] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[13:32:54] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[13:32:58] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[13:32:59] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[13:32:59] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[13:32:59] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[13:32:59] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[13:32:59] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[13:33:19] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[13:33:41] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[13:33:49] [g5] 1031 concepts with >= 30 members
+[13:34:07] [ledger] SIGNED valuation arrays built (prereg cache found)
+[13:34:14] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[13:34:16] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[13:34:16] [paperC/c0] pool contract (DERIVED): policy=B nnz=1356475 per_user=135.6475 fp=c282962b49a2d67ef47ff07544519f20
+[13:34:16] [paperC/c0] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[13:34:16] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[13:34:17] [leak/paperC/c0] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[13:34:39] [gate2a] m=0 intercept full=0.15686538118354684 tail=0.02747733123666661 -- exact
+[13:34:39] [selftest] branch_of_per_user == branch_of on 3 questions x 2000 users
+[13:34:39] [bank] 19,390 x 129 emitted-space descriptors (d_k=128 + 1 bias coordinate)
+[13:34:39] ####################################################################################################
+[13:34:39] # ARM pool
+[13:36:43] [gate2b] realised interviews byte-identical to the banked E1 rollout; val full 0.28354971825495506 == banked
+[13:36:46] [gate1] snap reproduces the pick at all 160,000 states (agreement 1.0000)
+[13:36:47]   [pool] 1,000/160,000 states (0.0m)
+[13:37:17]   [pool] 41,000/160,000 states (0.5m)
+[13:37:47]   [pool] 81,000/160,000 states (1.0m)
+[13:38:18]   [pool] 121,000/160,000 states (1.5m)
+[13:38:46]   [pool/rand] 1,000/160,000 states (0.0m)
+[13:39:13]   [pool/rand] 41,000/160,000 states (0.4m)
+[13:39:39]   [pool/rand] 81,000/160,000 states (0.9m)
+[13:40:05]   [pool/rand] 121,000/160,000 states (1.3m)
+[13:40:32] [pool] median cos1 -0.18201 | median m 0.40985 | cell between_candidates | random floor median cos1 0.06418 m 0.26678
+[13:40:32] ####################################################################################################
+[13:40:32] # ARM catalogue
+[13:44:34] [gate1] snap reproduces the pick at all 160,000 states (agreement 1.0000)
+[13:44:35]   [catalogue] 1,000/160,000 states (0.0m)
+[13:45:01]   [catalogue] 41,000/160,000 states (0.4m)
+[13:45:27]   [catalogue] 81,000/160,000 states (0.9m)
+[13:45:56]   [catalogue] 121,000/160,000 states (1.4m)
+[13:46:26]   [catalogue/rand] 1,000/160,000 states (0.0m)
+[13:46:56]   [catalogue/rand] 41,000/160,000 states (0.5m)
+[13:47:25]   [catalogue/rand] 81,000/160,000 states (1.0m)
+[13:47:53]   [catalogue/rand] 121,000/160,000 states (1.5m)
+[13:48:24] [catalogue] median cos1 -0.18063 | median m 0.40693 | cell between_candidates | random floor median cos1 0.06407 m 0.26671
+[13:48:24] [done] wrote C:\dev\phd\casper\experiments\paperC\c0_geometry.json and c0_geometry_per_state.npz in 17.6 min
