@@ -1,0 +1,132 @@
+[17:12:42] ####################################################################################################
+[17:12:42] # PAPER C / C1 PILOT -- blend targets at the 42 exact-gain states. VALIDATION ONLY; the 10,000 TEST users are not built, not loaded, not touched.
+[17:12:42] ####################################################################################################
+[17:12:42] [ckpt] policy_main_equivariant_both.pt epoch=2 val_full=0.28354971825495506 sha256 matches c0_geometry.json
+[17:12:42] === building paperC/c1 env (split=validation) ===
+[17:12:44] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[17:12:59] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[17:13:00] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[17:13:00] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[17:13:00] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[17:13:00] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[17:13:00] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[17:13:00] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[17:13:04] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[17:13:13] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[17:13:17] [g5] 1031 concepts with >= 30 members
+[17:13:27] [ledger] SIGNED valuation arrays built (prereg cache found)
+[17:13:30] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[17:13:30] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[17:13:30] [paperC/c1] pool contract (DERIVED): policy=B nnz=1356475 per_user=135.6475 fp=c282962b49a2d67ef47ff07544519f20
+[17:13:30] [paperC/c1] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[17:13:30] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[17:13:31] [leak/paperC/c1] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[17:13:38] [gate] canonical m=0 snap full=0.15686538118354684 -- exact
+[17:13:38] [selftest] branch_of_per_user == branch_of on 3 questions x 2000 users
+[17:13:39] [bank] 19,390 x 129 (d_k=128 + bias coordinate); b(phi) over the bank: median -1.509 [-4.347, 1.950]
+[17:13:39] [states] registered 42 = 35 coldtree_v2-mapped deep sweeps + 7 single-pick heaps; descriptive secondary 7
+[17:13:39] [precompute] building per-user state features for all states
+[17:13:42]   [precompute] 5/49 states, 1,057 user-rows (0.0m)
+[17:13:43]   [precompute] 10/49 states, 2,132 user-rows (0.1m)
+[17:13:46]   [precompute] 15/49 states, 2,826 user-rows (0.1m)
+[17:13:46]   [precompute] 20/49 states, 4,080 user-rows (0.1m)
+[17:13:49]   [precompute] 25/49 states, 4,929 user-rows (0.2m)
+[17:13:52]   [precompute] 30/49 states, 6,526 user-rows (0.2m)
+[17:13:54]   [precompute] 35/49 states, 9,000 user-rows (0.2m)
+[17:13:58]   [precompute] 40/49 states, 31,011 user-rows (0.3m)
+[17:14:01]   [precompute] 45/49 states, 36,523 user-rows (0.4m)
+[17:14:02]   [precompute] 49/49 states, 37,197 user-rows (0.4m)
+[17:14:02] [selftest] precomputed encoder path == pol.enc + head.q, max |diff| 0
+[17:14:02] ####################################################################################################
+[17:14:02] # STAGE 0 -- are the blend targets themselves off the grid?
+[17:14:02]   [target_m5] 200/784 states (0.0m)
+[17:14:02]   [rand_m5] 200/784 states (0.0m)
+[17:14:03] [stage0 m=5] registered 42: median target-cos1 0.93135 | median margin 0.21496 | median w1 0.2284 | median analytic ceiling 0.99641 | random floor cos1 0.07338
+[17:14:03]   [target_m3] 200/784 states (0.0m)
+[17:14:03]   [rand_m3] 200/784 states (0.0m)
+[17:14:03] [stage0 m=3] registered 42: median target-cos1 0.92429 | median margin 0.24052 | median w1 0.3564 | median analytic ceiling 0.99638 | random floor cos1 0.07335
+[17:14:03]   [target_m10] 200/784 states (0.0m)
+[17:14:03]   [rand_m10] 200/784 states (0.0m)
+[17:14:03] [stage0 m=10] registered 42: median target-cos1 0.93160 | median margin 0.26308 | median w1 0.1285 | median analytic ceiling 0.99613 | random floor cos1 0.07336
+[17:14:03] [stage0 GATE] PROCEED -- the targets are genuinely off the grid
+[17:14:03] ####################################################################################################
+[17:14:03] # STAGE 1 -- fine-tune from the banked E1 checkpoint
+[17:14:03]   [tgt] 200/784 states (0.0m)
+[17:14:04] [stage1] banked E1 BEFORE fine-tuning: median cos(z_hat, target) -0.28934
+[17:14:04] ------------------------------------------------------------------------------------------
+[17:14:04] [run] head_only/seed1
+[17:14:06]   [head_only/seed1] epoch 1/40 weighted loss 0.854506 (0.0m)
+[17:14:08]   [head_only/seed1] epoch 10/40 weighted loss 0.013880 (0.0m)
+[17:14:10]   [head_only/seed1] epoch 20/40 weighted loss 0.012104 (0.1m)
+[17:14:13]   [head_only/seed1] epoch 30/40 weighted loss 0.011411 (0.1m)
+[17:14:15]   [head_only/seed1] epoch 40/40 weighted loss 0.010930 (0.2m)
+[17:14:16]   [head_only/seed1] 200/672 states (0.0m)
+[17:14:16] [head_only/seed1] median cos(z_hat,target) 0.98930 | |dcos1| 0.01095 | same nearest 0.7857 | emitted median cos1 0.93060 | collateral snap agreement 0.0000
+[17:14:16] ------------------------------------------------------------------------------------------
+[17:14:16] [run] head_only/seed2
+[17:14:17]   [head_only/seed2] epoch 1/40 weighted loss 0.856115 (0.0m)
+[17:14:19]   [head_only/seed2] epoch 10/40 weighted loss 0.013875 (0.0m)
+[17:14:21]   [head_only/seed2] epoch 20/40 weighted loss 0.012113 (0.1m)
+[17:14:23]   [head_only/seed2] epoch 30/40 weighted loss 0.011428 (0.1m)
+[17:14:26]   [head_only/seed2] epoch 40/40 weighted loss 0.010941 (0.2m)
+[17:14:26]   [head_only/seed2] 200/672 states (0.0m)
+[17:14:26] [head_only/seed2] median cos(z_hat,target) 0.98932 | |dcos1| 0.01096 | same nearest 0.7857 | emitted median cos1 0.93042 | collateral snap agreement 0.0000
+[17:14:26] ------------------------------------------------------------------------------------------
+[17:14:26] [run] head_only/seed3
+[17:14:27]   [head_only/seed3] epoch 1/40 weighted loss 0.871273 (0.0m)
+[17:14:29]   [head_only/seed3] epoch 10/40 weighted loss 0.013883 (0.0m)
+[17:14:32]   [head_only/seed3] epoch 20/40 weighted loss 0.012137 (0.1m)
+[17:14:34]   [head_only/seed3] epoch 30/40 weighted loss 0.011436 (0.1m)
+[17:14:37]   [head_only/seed3] epoch 40/40 weighted loss 0.010958 (0.2m)
+[17:14:37]   [head_only/seed3] 200/672 states (0.0m)
+[17:14:37] [head_only/seed3] median cos(z_hat,target) 0.98930 | |dcos1| 0.01130 | same nearest 0.7857 | emitted median cos1 0.93076 | collateral snap agreement 0.0000
+[17:14:37] ------------------------------------------------------------------------------------------
+[17:14:37] [run] full/seed1
+[17:14:38]   [full/seed1] epoch 1/40 weighted loss 0.703303 (0.0m)
+[17:14:46]   [full/seed1] epoch 10/40 weighted loss 0.013584 (0.1m)
+[17:14:54]   [full/seed1] epoch 20/40 weighted loss 0.010467 (0.3m)
+[17:15:02]   [full/seed1] epoch 30/40 weighted loss 0.008262 (0.4m)
+[17:15:11]   [full/seed1] epoch 40/40 weighted loss 0.006934 (0.6m)
+[17:15:11]   [full/seed1] 200/672 states (0.0m)
+[17:15:11] [full/seed1] median cos(z_hat,target) 0.99352 | |dcos1| 0.00854 | same nearest 0.8095 | emitted median cos1 0.92478 | collateral snap agreement 0.0000
+[17:15:11] ------------------------------------------------------------------------------------------
+[17:15:11] [run] full/seed2
+[17:15:12]   [full/seed2] epoch 1/40 weighted loss 0.705588 (0.0m)
+[17:15:19]   [full/seed2] epoch 10/40 weighted loss 0.013564 (0.1m)
+[17:15:27]   [full/seed2] epoch 20/40 weighted loss 0.010446 (0.3m)
+[17:15:36]   [full/seed2] epoch 30/40 weighted loss 0.008292 (0.4m)
+[17:15:44]   [full/seed2] epoch 40/40 weighted loss 0.006786 (0.5m)
+[17:15:44]   [full/seed2] 200/672 states (0.0m)
+[17:15:45] [full/seed2] median cos(z_hat,target) 0.99357 | |dcos1| 0.00703 | same nearest 0.8095 | emitted median cos1 0.92440 | collateral snap agreement 0.0000
+[17:15:45] ------------------------------------------------------------------------------------------
+[17:15:45] [run] full/seed3
+[17:15:46]   [full/seed3] epoch 1/40 weighted loss 0.722974 (0.0m)
+[17:15:53]   [full/seed3] epoch 10/40 weighted loss 0.013584 (0.1m)
+[17:16:01]   [full/seed3] epoch 20/40 weighted loss 0.010444 (0.3m)
+[17:16:10]   [full/seed3] epoch 30/40 weighted loss 0.008229 (0.4m)
+[17:16:18]   [full/seed3] epoch 40/40 weighted loss 0.006873 (0.6m)
+[17:16:18]   [full/seed3] 200/672 states (0.0m)
+[17:16:19] [full/seed3] median cos(z_hat,target) 0.99353 | |dcos1| 0.00717 | same nearest 0.8095 | emitted median cos1 0.92346 | collateral snap agreement 0.0000
+[17:16:19] ------------------------------------------------------------------------------------------
+[17:16:19] [run] head_only/seed1/SHUFFLED
+[17:16:19]   [head_only/seed1] epoch 1/40 weighted loss 0.912320 (0.0m)
+[17:16:21]   [head_only/seed1] epoch 10/40 weighted loss 0.018239 (0.0m)
+[17:16:24]   [head_only/seed1] epoch 20/40 weighted loss 0.015370 (0.1m)
+[17:16:26]   [head_only/seed1] epoch 30/40 weighted loss 0.014301 (0.1m)
+[17:16:29]   [head_only/seed1] epoch 40/40 weighted loss 0.013525 (0.2m)
+[17:16:29]   [head_only/seed1/SHUFFLED] 200/672 states (0.0m)
+[17:16:29] [head_only/seed1/SHUFFLED] median cos(z_hat,target) 0.98809 | |dcos1| 0.01509 | same nearest 0.7857 | emitted median cos1 0.93566
+[17:16:29] ------------------------------------------------------------------------------------------
+[17:16:29] [run] full/seed1/SHUFFLED
+[17:16:30]   [full/seed1] epoch 1/40 weighted loss 0.750683 (0.0m)
+[17:16:38]   [full/seed1] epoch 10/40 weighted loss 0.017527 (0.1m)
+[17:16:46]   [full/seed1] epoch 20/40 weighted loss 0.016679 (0.3m)
+[17:16:55]   [full/seed1] epoch 30/40 weighted loss 0.013833 (0.4m)
+[17:17:03]   [full/seed1] epoch 40/40 weighted loss 0.009379 (0.6m)
+[17:17:04]   [full/seed1/SHUFFLED] 200/672 states (0.0m)
+[17:17:04] [full/seed1/SHUFFLED] median cos(z_hat,target) 0.99104 | |dcos1| 0.01307 | same nearest 0.7857 | emitted median cos1 0.93017
+[17:17:04] ==========================================================================================
+[17:17:04] [REGISTERED READING / head_only] c1 cos 0.98908 PASS | c2 |dcos1| 0.01107 same-nearest 0.7857 FAIL | c3 seed cos 0.99999 PASS | shuffle true>shuffled True
+[17:17:04] ==========================================================================================
+[17:17:04] [REGISTERED READING / full] c1 cos 0.99320 PASS | c2 |dcos1| 0.00758 same-nearest 0.8095 PASS | c3 seed cos 0.99977 PASS | shuffle true>shuffled True
+[17:17:04] [done] wrote C:\dev\phd\casper\experiments\paperC\c1_pilot.json in 4.4 minutes
