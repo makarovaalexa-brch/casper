@@ -471,6 +471,13 @@ def main():
                          "it. The BLAS env vars must ALSO be exported by the launcher BEFORE python "
                          "starts -- numpy is imported before the suite's os.environ lines run, so "
                          "setting them in-process is the no-op recorded on 2026-08-05.")
+    ap.add_argument("--threads", type=int, default=0,
+                    help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv before "
+                         "numpy loads). Declared here only so argparse accepts it -- like "
+                         "--full_threads. WITHOUT it the suite defaults to 4 threads on a box with "
+                         "8 logical cores, and an exported OMP_NUM_THREADS does NOT help: the suite "
+                         "overwrites that variable outright. 6 is this box's measured optimum "
+                         "(2026-08-13); 8 oversubscribes its 4 physical cores.")
     ap.add_argument("--preflight", action="store_true",
                     help="build the env, measure s/eval by channel, tabulate the ternary partition "
                          "of every candidate at the root, and STOP. No tree is grown. Not citable.")
