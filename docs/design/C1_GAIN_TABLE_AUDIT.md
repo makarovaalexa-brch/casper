@@ -301,3 +301,49 @@ path, it does not include the parent splitter**), `steps`, `gains`, `splitter`, 
    **persist the finest-grained quantity the computation naturally produces.** A one-line
    `_save(heap, …)` immediately after the seed pass, *never* overwritten, would have made this whole
    question free.
+
+---
+
+# ✅ RESOLVED AT THE SOURCE — 2026-08-21 (commit `8b3024f`)
+
+**The repair campaign is cancelled, because the destruction no longer happens.**
+
+Both growers now persist the complete per-candidate gain table at every node they search, written
+**immediately after the CELF seed pass and before the first pop** — the one moment at which every
+heap entry is still at `level == 0`:
+
+| grower | function | used by | sweep path |
+|---|---|---|---|
+| `strategy_channel_suite.py` | `greedy_certified(..., sweep_path=)` | `ndcg_tree` (cold tree) | `<label>_sweeps/node_<nid>.npz` |
+| `group_greedy_bands.py` | `celf_per_user_prefix(..., sweep_path=)` | `m6k_cluster_tree` (group trees) | `m6/sweeps/sweep_<tag>_<nid>.npz` |
+
+Each `.npz` holds `cand` (n×2 int32), `gain` (n float64, exact at the node's own state), `base`,
+`n_evals`, `objective`, `prefix` and the contract `sig`. It is written **once and never rewritten**,
+so unlike the heap sidecar it cannot decay as the tail greedy proceeds.
+
+Two asserts make silent corruption impossible: the table must cover the **whole pool**, and **every
+entry must be at level 0** at write time (i.e. `save_sweep` cannot have run after a pop). A resume
+that finds a heap with picks already taken and no banked sweep now logs a loud warning that the
+node's ranking is unrecoverable, instead of quietly producing nothing.
+
+**Cost: ~16 KB per node and ZERO extra evaluations** — the numbers were already computed and were
+simply being thrown away. A 164-node tree costs ~2.6 MB.
+
+**Verified** by `ndcg_tree --sanity` on both splits:
+- `[heapcheck] PASS` — identical sequence and **bit-identical gains** vs the pre-change path; the
+  resume-and-extend and different-contract paths are unchanged.
+- **sweep-max == `splitter_gain` at 7 of 7 searched nodes, 0 mismatch, 0 nodes missing a sweep.**
+
+**What this does NOT fix.** Below-floor children that never run a search still have no table — the
+audit's 67-node class. That is inherent, not a regression: nothing was ever measured at their state,
+and manufacturing one costs a full seed pass per node. Any C1 blend must either restrict itself to
+searched nodes or pay for those explicitly.
+
+**Status of the two blockers this audit raised:**
+1. *Gain tables* — solved prospectively. Every tree grown from now on ships full C1 targets. The
+   frozen `coldtree_v2` still has only 42 usable nodes; it is not repaired and does not need to be,
+   because it is being **regrown on TRAIN** (`coldtree_v2_train10000`, launched 2026-08-21) so that
+   it and the opener-fitted group trees share a fitting population — see memory
+   `train-user-contrast-does-not-cancel-inflation`. **That regrow carries the sweeps.**
+2. *E1 was not trained on `coldtree_v2`* — **still open and still the bigger issue.** Choose the
+   teacher before costing C1; a new `policy_traj` bank is needed either way.
