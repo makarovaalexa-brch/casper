@@ -225,6 +225,11 @@ def main():
                     help="M4: the cold bank IS every train user and that is asserted. M6: cold means "
                          "'endorses no anchor', so the bank is a subset -- pass --no_cold_all")
     ap.add_argument("--no_cold_all", dest="cold_is_all_train", action="store_false")
+    ap.add_argument("--expect_cover", type=float, default=0.95,
+                    help="minimum fraction of train users the banks must jointly cover. Lower it "
+                         "ONLY for a deliberate subset-of-groups run, where the users endorsing an "
+                         "unbanked anchor are excluded BY DESIGN. Never a way to paper over a "
+                         "missing slice: the excluded groups are named in the log.")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
@@ -263,9 +268,20 @@ def main():
         log(f"[cohort] cold bank {len(cu):,} users (a SUBSET by design: endorses no anchor); "
             f"union of all banks covers {cover:,} of {N_TRAIN:,} train users "
             f"({cover / N_TRAIN:.1%})")
-        assert cover > 0.95 * N_TRAIN, (
-            f"the banks together cover only {cover:,} of {N_TRAIN:,} train users -- a slice is "
-            f"missing (HARD RULE 1)")
+        ALL_GROUPS = ["arthouse", "dialogue", "marvel", "gore", "teenagers", "inspiring"]
+        missing = [g for g in ALL_GROUPS if g not in TREES]
+        if missing:
+            # The cold arm is `endorses NO anchor` over ALL SIX groups, so users who endorse an
+            # unbanked anchor appear in no bank at all. That is a deliberate exclusion in a
+            # subset-of-groups run -- but it must be NAMED, never inferred from a coverage number.
+            log(f"[cohort] WARNING: {len(missing)} group(s) NOT banked: {missing}. Their endorsing "
+                f"users are in NO bank and are excluded from training BY DESIGN "
+                f"({N_TRAIN - cover:,} users, {(N_TRAIN - cover) / N_TRAIN:.1%}).")
+        assert cover > a.expect_cover * N_TRAIN, (
+            f"the banks together cover only {cover:,} of {N_TRAIN:,} train users "
+            f"({cover / N_TRAIN:.1%}), below the required {a.expect_cover:.1%} -- a slice is "
+            f"missing (HARD RULE 1). If this is a deliberate subset-of-groups run, pass "
+            f"--expect_cover explicitly; unbanked groups are {missing or 'none'}.")
     for t in TREES:
         d = banks[t]
         log(f"[bank] {t:<11} {len(d['uid']):>7,} users - {int(d['valid'].sum()):>9,} valid "
