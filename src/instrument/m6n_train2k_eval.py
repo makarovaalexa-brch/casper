@@ -77,7 +77,8 @@ def main():
     np.random.seed(SEED)
 
     from strategy_channel_suite import (build_greedy_env, genv_eval_multi, CERT_TOWER, CERT_CONC)
-    from ndcg_tree import build_pool, LIKE_MIN_LEVEL
+    from ndcg_tree import (build_pool, LIKE_MIN_LEVEL, branch_of_per_user,
+                           branch_of_selftest)
     from tree_route import route
     from m4b_eval import load_tree
     from m3_show_paths import build_names
@@ -146,6 +147,35 @@ def main():
                                                    [q[1] for q in ask if q[0] == 1])))
                 full, _t = genv_eval_multi(E, rows, iseq, cseq)
                 sc[arm][K] = np.asarray(full, np.float64)
+        # ---- per-user diagnostics, banked so the spine breakdown never needs a second fit -----
+        # The tree buys its gain from users who ANSWER a discriminative film; users riding a chain
+        # of no-answers pay the turn cost and receive what is effectively the static order. Bank the
+        # per-user answered count so that split can be MEASURED rather than asserted.
+        for arm in seqs:
+            assert all(len(x) == TOTAL_L for x in seqs[arm]), f"{arm}: ragged sequences"
+        branch_of_selftest(E, rows, [tuple(seqs["tree"][0][0])])
+        codes = {arm: np.stack([branch_of_per_user(E, rows, [tuple(x[t]) for x in seqs[arm]])
+                                for t in range(TOTAL_L)], 1)
+                 for arm in ("tree", "cold")}
+        n_ans = (codes["tree"] != 2).sum(1).astype(np.int16)
+        np.savez_compressed(
+            os.path.join(M6, f"m6n_{a.cluster}_{label}_peruser.npz"),
+            rows=np.asarray(rows, np.int64), n_answered_tree=n_ans,
+            codes_tree=codes["tree"], codes_cold=codes["cold"],
+            n_opener=np.asarray([len(o) for o in ops], np.int16),
+            **{f"{arm}_K{K}": sc[arm][K] for arm in sc for K in BUDGETS})
+        log(f"[{label}] answered-of-{TOTAL_L} (tree): mean {n_ans.mean():.2f} "
+            f"median {np.median(n_ans):.0f} | <=2 answers: {100.0 * (n_ans <= 2).mean():.1f}% "
+            f"of users | 0 answers: {100.0 * (n_ans == 0).mean():.1f}%")
+        # does the gain concentrate on the answering minority?
+        d15 = sc["tree"][15] - sc["cold"][15]
+        for lo_, hi_, nm in ((0, 2, "spine (<=2 answered)"), (3, 5, "middle (3-5)"),
+                             (6, TOTAL_L, "answerers (>=6)")):
+            m_ = (n_ans >= lo_) & (n_ans <= hi_)
+            if m_.sum():
+                log(f"[{label}]   {nm:<22} n={int(m_.sum()):<5} "
+                    f"tree-cold {float(np.nanmean(d15[m_])):+.5f}")
+
         rec = {"n": int(len(rows)), "budgets": {}}
         for K in BUDGETS:
             row = {arm: float(np.nanmean(sc[arm][K])) for arm in sc}
