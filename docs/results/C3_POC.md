@@ -39,7 +39,11 @@ within real/scrambled twin pairs it picked the real one and rejected its twin in
    argument in `PAPER_C_DESIGN.md`**: variant (a) is a baseline row, and the correspondence control
    only becomes constructible in variant (b), where the vector conditions generation and the
    scramble happens in adapter training.
-3. **Even real-vs-random barely separates, and the gap belongs to retrieval.** Random points
+3. **[Amended 2026-08-24, hostile-review pass] The PoC had ZERO functioning controls, not one.**
+   The scrambled arm cannot separate (point 2), and the "random" arm is drawn from the real
+   points' own rank-9 span (n=10 covariance), so it is a random direction INSIDE the reals'
+   subspace — disclosed below, but the original conclusion still read the comparison as
+   informative. It is not. What follows stands only as description, not as a control reading: Random points
    re-encode at +0.371 mean (and +0.486 *median* — the mean gap is two tail packets, ids 13/20)
    because their anchors are their true nearest neighbours and the spectrum-matched draw lives in
    the real points' own 9-dim subspace. The rendered question tracks its anchor-reference tightly
