@@ -70,7 +70,17 @@ Four changes, all pre-registered before training:
    printed beside every number (identity passes visible), and the item-channel weakness is
    reported as an instrument limit, not a model failure. Every Stage-2 statistic carries a CI
    (cluster/paired bootstrap as appropriate) — the stack currently has none and that stops here.
-6. **Adapter-only training is DECLARED SCOPE, not an oversight** (ELM full read, 2026-08-24: ELM
+6. **[Fable ruling, 2026-08-24, pre-training] Criterion 3's floor is RELATIVE TO THE MEASURED
+   CEILING'S HEADROOM OVER CHANCE.** The measured item identification ceiling is 0.6624 — below the
+   registered absolute 0.70, so a perfect verbalisation would have failed criterion 3 as written.
+   Registered replacement: **identification rate ≥ chance + 60% of the ceiling's headroom over
+   chance** (items: 0.50 + 0.6×(0.6624−0.50) = **0.598**), with the bootstrap CI excluding 0.50.
+   The absolute 0.70 is retired for the same reason the absolute +0.10 was. Also accepted as the
+   deviation of record: adapter input 130-d (128 + channel one-hot) — required for the
+   channel-matched prior to be constructible; both prior variants reported. The gate channel is
+   ITEM (ceiling +0.0892, CI excluding the 0.05 near-zero floor), so criterion 1 = A ≥ +0.0357
+   tower cosine with the A−A′ CI excluding zero.
+7. **Adapter-only training is DECLARED SCOPE, not an oversight** (ELM full read, 2026-08-24: ELM
    needed two-stage adapter→full fine-tuning to converge and never shows adapter-only as a final
    model — but its targets are paragraphs; ours are ~5-token titles/tags). If Stage 2 fails on
    criterion 1 (the fit itself), the pre-registered escalation is LoRA on the LM's top layers as

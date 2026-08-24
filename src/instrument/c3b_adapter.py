@@ -119,7 +119,12 @@ MAX_NEW_TOKENS = 16          # Stage 2 greedy budget
 N_BOOT = 10000               # registered bootstrap resamples
 CEILING_FRAC = 0.40          # AMENDMENT clause 5: A must reach >=40% of the true-phrase ceiling
 ITEM_CEILING_FLOOR = 0.05    # below this the ITEM ceiling is "near zero" and the gate falls back
-ID_FLOOR = 0.70              # criterion 3's threshold
+ID_FLOOR = 0.70              # RETIRED (Fable ruling 2026-08-24, DS amendment 6): the measured item
+                             # identification ceiling is 0.6624, below this absolute floor, so a
+                             # perfect verbalisation would fail. The live rule is RELATIVE:
+                             # threshold = 0.50 + ID_HEADROOM_FRAC * (ceiling_ident - 0.50),
+                             # pass additionally requires the bootstrap CI to exclude chance (0.50).
+ID_HEADROOM_FRAC = 0.60      # fraction of the ceiling's headroom over chance A must reach
 # The absolute +0.10 floor of the original sheet is RETIRED by AMENDMENT clause 5.
 
 
@@ -1111,10 +1116,18 @@ def cmd_stage2(args):
             oth = rowcos(U["true"][idx], T_tow[idx][p])
             hit = (cos_t["true"][idx] > oth).astype(np.float64)
             c3 = boot_mean(hit)
-            c3["threshold"] = ID_FLOOR
+            ceil_id = (ceil_per[nm].get("identification") or {}).get("mean")
+            rel_floor = (None if ceil_id is None
+                         else 0.50 + ID_HEADROOM_FRAC * max(ceil_id - 0.50, 0.0))
+            c3["threshold_rule"] = ("chance + 60% of the ceiling's headroom over chance "
+                                    "(Fable ruling 2026-08-24, DS amendment 6; absolute "
+                                    f"{ID_FLOOR} RETIRED)")
+            c3["threshold"] = rel_floor
             c3["mean_cos_to_random_other"] = float(np.nanmean(oth))
-            c3["ceiling_identification"] = (ceil_per[nm].get("identification") or {}).get("mean")
-            c3["pass"] = bool(c3["mean"] is not None and c3["mean"] >= ID_FLOOR)
+            c3["ceiling_identification"] = ceil_id
+            c3["pass"] = bool(c3["mean"] is not None and rel_floor is not None
+                              and c3["mean"] >= rel_floor
+                              and c3["ci_lo"] is not None and c3["ci_lo"] > 0.50)
             ident_partner[nm] = (idx, p, oth)
         else:
             c3 = {"n": int(len(idx)), "pass": False, "mean": None}
@@ -1244,7 +1257,8 @@ def cmd_stage2(args):
             f"{'PASS (overlaps zero)' if c2['pass'] else 'FAIL (separates)'}")
         if c3.get("mean") is not None:
             log(f"   C3 own-closer {c3['mean']:.4f} CI [{c3['ci_lo']:.4f}, {c3['ci_hi']:.4f}] "
-                f"floor {ID_FLOOR} -> {'PASS' if c3['pass'] else 'FAIL'}")
+                f"floor {c3['threshold']} (rel., ceiling {c3['ceiling_identification']}) -> "
+                f"{'PASS' if c3['pass'] else 'FAIL'}")
     d = disclosure["correlation_true_item_score_vs_genome_membership_count"]
     if d.get("spearman"):
         log(f"[disclosure] item score vs genome-membership count: spearman "
