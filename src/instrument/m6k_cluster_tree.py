@@ -83,8 +83,11 @@ def main():
                     help="cap the fitting cohort at this many users (0 = all in the pool)")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
+    ap.add_argument("--allow_battery", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
+    from run_guard import require_mains
+    require_mains(f"{a.cluster} group-tree fit", log=log, allow_battery=a.allow_battery)
     torch.set_num_threads(a.threads)
     np.random.seed(SEED)
     os.makedirs(OUT, exist_ok=True)

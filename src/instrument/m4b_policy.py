@@ -231,8 +231,11 @@ def main():
                          "unbanked anchor are excluded BY DESIGN. Never a way to paper over a "
                          "missing slice: the excluded groups are named in the log.")
     ap.add_argument("--i_have_author_goahead", action="store_true")
+    ap.add_argument("--allow_battery", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
+    from run_guard import require_mains
+    require_mains("policy distillation", log=log, allow_battery=a.allow_battery)
     torch.set_num_threads(a.threads)
     torch.manual_seed(SEED)
     np.random.seed(SEED)
