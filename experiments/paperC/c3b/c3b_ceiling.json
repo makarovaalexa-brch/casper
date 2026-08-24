@@ -1,0 +1,131 @@
+{
+ "analysis": "paperC_C3B_instrument_ceiling",
+ "design_sheet": "docs/design/DS_C3B_ADAPTER.md AMENDMENT clause 5",
+ "produced_by": "src/instrument/c3b_adapter.py ceiling",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "what": "the held-out question's OWN true surface phrase pushed through the amended tower-space bridge and scored against its own tower representation -- the ceiling a perfect verbalisation could earn, per channel",
+ "primary_space": "text -> SBERT -> concepts -> ConceptFoldNet(cv3) -> tower latent displacement from the cold fold z0, popularity-stripped; target = Wd[q] centred+stripped (item) / build_concept_dirs d_c (concept)",
+ "n_heldout": 3880,
+ "per_channel": {
+  "item": {
+   "n": 3670,
+   "n_encodable": 3640,
+   "encodable_rate": 0.9918256130790191,
+   "mean_concepts_selected": 3.8841961852861036,
+   "tower_cos": {
+    "mean": 0.08919716576308714,
+    "ci_lo": 0.08433685153815713,
+    "ci_hi": 0.09399426187318737,
+    "n": 3640,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "kphi_cos_SECONDARY_emitters_own_head_space": {
+    "mean": 0.08047671581973,
+    "ci_lo": 0.07275622898335012,
+    "ci_hi": 0.08811220368432221,
+    "n": 3640,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "identification": {
+    "mean": 0.6623626373626373,
+    "ci_lo": 0.6467032967032967,
+    "ci_hi": 0.6777472527472528,
+    "n": 3640,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "mean_cos_to_random_other": 0.00012932296562999192
+   }
+  },
+  "concept": {
+   "n": 210,
+   "n_encodable": 210,
+   "encodable_rate": 1.0,
+   "mean_concepts_selected": 4.0,
+   "tower_cos": {
+    "mean": 0.500577382425243,
+    "ci_lo": 0.4768516510168786,
+    "ci_hi": 0.5235221206964843,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "kphi_cos_SECONDARY_emitters_own_head_space": {
+    "mean": 0.7802663247674103,
+    "ci_lo": 0.7565152923513577,
+    "ci_hi": 0.8027328931670673,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "identification": {
+    "mean": 0.9523809523809523,
+    "ci_lo": 0.919047619047619,
+    "ci_hi": 0.9809523809523809,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "mean_cos_to_random_other": 0.01592726305068327
+   }
+  },
+  "all": {
+   "n": 3880,
+   "n_encodable": 3850,
+   "encodable_rate": 0.9922680412371134,
+   "mean_concepts_selected": 3.890463917525773,
+   "tower_cos": {
+    "mean": 0.111636086671932,
+    "ci_lo": 0.10590217343256875,
+    "ci_hi": 0.11731019979180492,
+    "n": 3850,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "kphi_cos_SECONDARY_emitters_own_head_space": {
+    "mean": 0.11864705812596708,
+    "ci_lo": 0.10947996449221578,
+    "ci_hi": 0.12771693439271234,
+    "n": 3850,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "identification": null
+  }
+ },
+ "criterion1_fraction_of_ceiling_required": 0.4,
+ "required_A_tower_cos": {
+  "item": 0.03567886630523486,
+  "concept": 0.2002309529700972
+ },
+ "item_ceiling_floor_for_gating": 0.05,
+ "gate_channel": "item",
+ "gate_rule": "the ITEM channel is the gate unless its ceiling is near zero (< 0.05), in which case the gate falls back to the CONCEPT channel with exact-phrase recovery printed beside every number and the item-channel weakness reported as an INSTRUMENT LIMIT, not a model failure",
+ "controls": {
+  "concept_dirs_reproduced_from_item_targets_worst_1_minus_abscos": 4.0171411588296735e-06
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "split_hashes": {
+  "train_q": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "heldout_q": "3184618cf517afed10eff43ccd51a459675c884df627047bfd4a7eb7af476152",
+  "inner_fit": "e312f134a27ebd935209c3a0f2ca5476ffa0ce1d719dac33b8a1f5f5b0669aca",
+  "inner_val": "3a26d40f5bbf0c7ce3a3c72b2f9b24bf3801b2280389fb6ae959c231954bc598",
+  "scramble_train_targets": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "strata": "d34810b89d9dc70b1ca2615431f16df1cf7d74de770e939008e77f96af9bcdbf",
+  "X": "17b36d3601756950381d24c8881fbf960f8e412bd6145b722448cb4dea0d074a"
+ },
+ "git": {
+  "rev": "bf8e3b4ce3d8e6789594d16fa7240038386e872c",
+  "branch": "recommender-improvement"
+ },
+ "bootstrap": {
+  "n_resamples": 10000,
+  "seed": 98765
+ },
+ "minutes": 2.25
+}

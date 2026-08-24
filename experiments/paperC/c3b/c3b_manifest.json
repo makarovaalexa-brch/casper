@@ -1,0 +1,272 @@
+{
+ "analysis": "paperC_C3B_adapter_prepare",
+ "design_sheet": "docs/design/DS_C3B_ADAPTER.md",
+ "produced_by": "src/instrument/c3b_adapter.py prepare",
+ "citable": true,
+ "test_touched": false,
+ "split": {
+  "construction": "outcome_q.stratify + outcome_q.split_questions, IMPORTED -- 20% of the 19,390 questions held out BY IDENTITY, stratified by channel x popularity decile (20 strata), seed 98765; popularity = train rating count for an item, train answer rate for a concept",
+  "frac_heldout": 0.2,
+  "frac_inner_val_of_train": 0.1,
+  "inner_val": "same stratified construction over the TRAIN portion, seed 98765+11",
+  "hashes": {
+   "train_q": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+   "heldout_q": "3184618cf517afed10eff43ccd51a459675c884df627047bfd4a7eb7af476152",
+   "inner_fit": "e312f134a27ebd935209c3a0f2ca5476ffa0ce1d719dac33b8a1f5f5b0669aca",
+   "inner_val": "3a26d40f5bbf0c7ce3a3c72b2f9b24bf3801b2280389fb6ae959c231954bc598",
+   "scramble_train_targets": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+   "strata": "d34810b89d9dc70b1ca2615431f16df1cf7d74de770e939008e77f96af9bcdbf",
+   "X": "17b36d3601756950381d24c8881fbf960f8e412bd6145b722448cb4dea0d074a"
+  }
+ },
+ "seed": 98765,
+ "space": {
+  "definition": "bias-free k(phi_q) via c0_geometry.bank_vectors (IMPORTED)",
+  "d_k": 128,
+  "d_adapter_input": 130,
+  "adapter_input": "[ MEAN-REMOVED k(phi_q) / one global scalar , CHANNEL ONE-HOT (2) ]",
+  "channel_one_hot": "DEVIATION OF RECORD, required by AMENDMENT clause 3: the channel-matched prior-only control ('zeroed prefix + channel one-hot') is only constructible if the channel reaches the adapter separately from the latent. MLP depth/width and the 8 soft prefix tokens are unchanged; the input width moves 128 -> 130.",
+  "bank_mean_norm": 22.762990477950726,
+  "global_scale_mean_centred_norm": 4.4800496542006085
+ },
+ "phrases": {
+  "source": "c3_poc_extract.surface_forms / .phrase (IMPORTED)",
+  "items": "ML-25M title",
+  "concepts": "genome tag name, lower-cased",
+  "surface_form_coverage": {
+   "n_items_without_a_title": 0,
+   "n_concepts_without_a_tag_name": 0,
+   "item_bank_indices_without_a_title": [],
+   "concept_ids_without_a_tag_name": []
+  }
+ },
+ "scramble": {
+  "what": "the twin's correspondence control: a fixed derangement of phrases over vectors across the TRAIN portion (so no held-out phrase can enter training), seed 98765+23, no fixed points",
+  "channel_preserving": true,
+  "declared": "AMENDMENT clause 3: the permutation is CHANNEL-PRESERVING -- an item vector always receives an item phrase and a concept vector a concept phrase -- so criterion 2 tests correspondence, not channel membership. Asserted at build time.",
+  "n_scrambled": 15510
+ },
+ "composition": {
+  "n_pairs": 19390,
+  "n_items": 18359,
+  "n_concepts": 1031,
+  "n_train_questions": 15510,
+  "n_heldout_questions": 3880,
+  "n_inner_fit": 13960,
+  "n_inner_val": 1550,
+  "heldout_item_share": 0.9458762886597938,
+  "train_item_share": 0.9470664087685364,
+  "heldout_n_items": 3670,
+  "heldout_n_concepts": 210,
+  "n_strata": 20,
+  "n_unnamed_phrases": 0,
+  "unnamed_bank_indices": [],
+  "phrase_chars": {
+   "min": 2,
+   "median": 22.0,
+   "mean": 25.45079938112429,
+   "max": 191
+  },
+  "n_duplicate_phrases": 8,
+  "balance_by_stratum": [
+   {
+    "stratum": 0,
+    "channel": "item",
+    "decile": 0,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 1,
+    "channel": "item",
+    "decile": 1,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 2,
+    "channel": "item",
+    "decile": 2,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 3,
+    "channel": "item",
+    "decile": 3,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 4,
+    "channel": "item",
+    "decile": 4,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 5,
+    "channel": "item",
+    "decile": 5,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 6,
+    "channel": "item",
+    "decile": 6,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 7,
+    "channel": "item",
+    "decile": 7,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 8,
+    "channel": "item",
+    "decile": 8,
+    "n_total": 1836,
+    "n_train": 1469,
+    "n_heldout": 367,
+    "heldout_share": 0.1999
+   },
+   {
+    "stratum": 9,
+    "channel": "item",
+    "decile": 9,
+    "n_total": 1835,
+    "n_train": 1468,
+    "n_heldout": 367,
+    "heldout_share": 0.2
+   },
+   {
+    "stratum": 10,
+    "channel": "concept",
+    "decile": 0,
+    "n_total": 104,
+    "n_train": 83,
+    "n_heldout": 21,
+    "heldout_share": 0.2019
+   },
+   {
+    "stratum": 11,
+    "channel": "concept",
+    "decile": 1,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   },
+   {
+    "stratum": 12,
+    "channel": "concept",
+    "decile": 2,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   },
+   {
+    "stratum": 13,
+    "channel": "concept",
+    "decile": 3,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   },
+   {
+    "stratum": 14,
+    "channel": "concept",
+    "decile": 4,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   },
+   {
+    "stratum": 15,
+    "channel": "concept",
+    "decile": 5,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   },
+   {
+    "stratum": 16,
+    "channel": "concept",
+    "decile": 6,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   },
+   {
+    "stratum": 17,
+    "channel": "concept",
+    "decile": 7,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   },
+   {
+    "stratum": 18,
+    "channel": "concept",
+    "decile": 8,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   },
+   {
+    "stratum": 19,
+    "channel": "concept",
+    "decile": 9,
+    "n_total": 103,
+    "n_train": 82,
+    "n_heldout": 21,
+    "heldout_share": 0.2039
+   }
+  ]
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "canonical_snap": {
+  "val_m0_full": 0.15686538118354684,
+  "val_m0_tail": 0.02747733123666661
+ },
+ "git": {
+  "rev": "bf8e3b4ce3d8e6789594d16fa7240038386e872c",
+  "branch": "recommender-improvement",
+  "status_short": "M docs/design/PAPER_C_DESIGN.md\n M experiments/baselines/interview/adaptive_table_eddi3_policyB.json\n M experiments/baselines/interview/adaptive_table_eddi3_policyB_per_user.npz\n M experiments/battery/m4/m4a_compare.json\n M experiments/battery/m6/m6generalise_B.json\n M experiments/battery/ndcgtree_SANITY.json\n M experiments/battery/policy_traj/manifest.json\n D experiments/battery/policy_traj/step0_probe.json\n M external_literature/INDEX.md\n M external_literature/findings/continuous_elicitation_2026-08.md\n M external_literature/findings/llm_verbalisation_2026-08.md\n M new_chapters/chapterB_v2/chapterB_v2.pdf\n M new_chapters/references.bib\n M src/instrument/c0_geometry.py\n?? experiments/baselines/huyu2013/page4_400.png\n?? experiments/baselines/huyu2013/page4_800.png\n?? experiments/baselines/interview/a9_battery_policyB_eddi3.json\n?? experiments/baselines/interview/act2pvc_analyze.err\n?? experiments/baselines/interview/act2pvc_analyze.out\n?? experiments/baselines/interview/act2pvc_harness.err\n?? experiments/baselines/interview/act2pvc_harness.out\n?? experiments/baselines/interview/adaptive_table_act2pvc.json\n?? experiments/baselines/interview/adaptive_table_act2pvc_interviews/\n?? experiments/baselines/interview/adaptive_table_act2pvc_per_user.npz\n?? experiments/baselines/interview/adaptive_table_eddi3_policyB_interviews/\n?? experiments/baselines/interview/eddi3_policyB.err\n?? experiments/baselines/interview/eddi3_policyB.out\n?? experiments/baselines/interview/eddi3_policyB_resume.err\n?? experiments/baselines/interview/eddi3_policyB_resume.out\n?? experiments/battery/asif/\n?? experiments/battery/asif_all.err\n?? experiments/battery/asif_root.err\n?? experiments/battery/coldtree_train10k.out\n?? experiments/battery/coldtree_train10k_4t.out\n?? experiments/battery/coldtree_train10k_6t.out\n?? experiments/battery/coldtree_v2_heaps/\n?? experiments/battery/coldtree_v2_partial.json\n?? experiments/battery/coldtree_v2_per_user.npz\n?? experiments/battery/coldtree_v2_train10000_heaps/\n?? experiments/battery/coldtree_v2_train10000_partial.json\n?? experiments/battery/coldtree_v2_train10000_sweeps/\n?? experiments/battery/direct_gain.json\n?? experiments/battery/direct_gain_policy.json\n?? experiments/battery/direct_gain_policy_per_user.npz\n?? experiments/battery/forest/\n?? experiments/battery/forest_chain.err\n?? experiments/battery/forest_chain2.err\n?? experiments/battery/forest_composition.err\n?? experiments/battery/forest_eval_main.err\n?? experiments/battery/forest_eval_shuffle.err\n?? experiments/battery/forest_fit_main.err\n?? experiments/battery/forest_fit_shuffle.err\n?? experiments/battery/forest_states.err\n?? experiments/battery/heldout_q/q100_main_strippop.json\n?? experiments/battery/heldout_q/q100_main_strippop.pt\n?? experiments/battery/lift_head.json\n?? experiments/battery/lift_head.pt\n?? experiments/battery/lift_head_stable.err\n?? experiments/battery/lift_head_stable.json\n?? experiments/battery/m1/ideal_k10.npz\n?? experiments/battery/m1/ideal_k12.npz\n?? experiments/battery/m1/ideal_k4.npz\n?? experiments/battery/m1/ideal_k6.npz\n?? experiments/battery/m1/ideal_k8.npz\n?? experiments/battery/m1/m1_forest_labels.npz\n?? experiments/battery/m1/m1_reddit_assign.npz\n?? experiments/battery/m1/m1_train_labels.npz\n?? experiments/battery/m1/train/\n?? experiments/battery/m1/z_full.npz\n?? experiments/battery/m1/z_requests.npz\n?? experiments/battery/m1_a3.out\n?? experiments/battery/m1_a4.out\n?? experiments/battery/m1_a5.out\n?? experiments/battery/m1_anchor.out\n?? experiments/battery/m1_deera.out\n?? experiments/battery/m1_era.out\n?? experiments/battery/m1_ideal.out\n?? experiments/battery/m1_name_probe.out\n?? experiments/battery/m1_r4.out\n?? experiments/battery/m1_stage_a.out\n?? experiments/battery/m1_sweep.out\n?? experiments/battery/m2/m2_screen_partial.json\n?? experiments/battery/m2_screen.out\n?? experiments/battery/m3_forest.out\n?? experiments/battery/m3_sanity.out\n?? experiments/battery/m3_sanity_SANITY.json\n?? experiments/battery/m3_sanity_SANITY_heaps/\n?? experiments/battery/m3_sanity_SANITY_partial.json\n?? experiments/battery/m3_sanity_SANITY_per_user.npz\n?? experiments/battery/m3smoke.out\n?? experiments/battery/m3smoke_arthouse_SANITY.json\n?? experiments/battery/m3smoke_arthouse_SANITY_heaps/\n?? experiments/battery/m3smoke_arthouse_SANITY_partial.json\n?? experiments/battery/m3smoke_arthouse_SANITY_per_user.npz\n?? experiments/battery/m3smoke_arthouse_per_user.npz\n?? experiments/battery/m3teach.out\n?? experiments/battery/m3v2.out\n?? experiments/battery/m3v2_arthouse_heaps/\n?? experiments/battery/m3v2_arthouse_per_user.npz\n?? experiments/battery/m3v2_dialogue_heaps/\n?? experiments/battery/m3v2_dialogue_per_user.npz\n?? experiments/battery/m3v2_gore_heaps/\n?? experiments/battery/m3v2_gore_per_user.npz\n?? experiments/battery/m3v2_inspiring_heaps/\n?? experiments/battery/m3v2_inspiring_per_user.npz\n?? experiments/battery/m3v2_marvel_heaps/\n?? experiments/battery/m3v2_marvel_per_user.npz\n?? experiments/battery/m3v2_teenagers_heaps/\n?? experiments/battery/m3v2_teenagers_per_user.npz\n?? experiments/battery/m3v2b.out\n?? experiments/battery/m4/m4a_compare_BUGGY_ROUTER.json\n?? experiments/battery/m4/m4b_armc.json\n?? experiments/battery/m4/m4b_armc_BUGGY_ROUTER.json\n?? experiments/battery/m4/m4b_armc_TOKEN.json\n?? experiments/battery/m4/m4b_fidelity_by_pos.json\n?? experiments/battery/m4/m4b_policy.json\n?? experiments/battery/m4/m4b_policy.pt\n?? experiments/battery/m4/m4b_policy_BUGGY_ROUTER.pt\n?? experiments/battery/m4/m4b_policy_TOKEN.pt\n?? experiments/battery/m4/m4b_stateonly_policy.json\n?? experiments/battery/m4/m4b_stateonly_policy.pt\n?? experiments/battery/m4/m4b_val_fidelity.json\n?? experiments/battery/m4/m4c_adjacent.json\n?? experiments/battery/m4/m4d_state_vs_token.json\n?? experiments/battery/m4/m6_policy.json\n?? experiments/battery/m4/m6_policy.pt\n?? experiments/battery/m4/m6a2k_policy.json\n?? experiments/battery/m4/m6a2k_policy.pt\n?? experiments/battery/m4/traj/\n?? experiments/battery/m4a.out\n?? experiments/battery/m4a_fixed.out\n?? experiments/battery/m4a_regress.out\n?? experiments/battery/m4b_dupes.out\n?? experiments/battery/m4b_eval.out\n?? experiments/battery/m4b_eval2.out\n?? experiments/battery/m4b_eval3.out\n?? experiments/battery/m4b_fidpos.out\n?? experiments/battery/m4b_gen.out\n?? experiments/battery/m4b_gen2.out\n?? experiments/battery/m4b_pipeline.out\n?? experiments/battery/m4b_routefix.out\n?? experiments/battery/m4b_state_eval.out\n?? experiments/battery/m4b_state_pipeline.out\n?? experiments/battery/m4b_state_train.out\n?? experiments/battery/m4b_train.out\n?? experiments/battery/m4b_train2.out\n?? experiments/battery/m4b_valfid.out\n?? experiments/battery/m4b_valfid2.out\n?? experiments/battery/m4c.out\n?? experiments/battery/m4c2.out\n?? experiments/battery/m4c_state.out\n?? experiments/battery/m4d.out\n?? experiments/battery/m4e_geom.out\n?? experiments/battery/m4e_probe.out\n?? experiments/battery/m5_mix.out\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.noanswer.json.tail\n?? experiments/battery/m6/m6k_arthouse_train2000.json\n?? experiments/battery/m6/m6n_arthouse_held_out_peruser.npz\n?? experiments/battery/m6/m6n_arthouse_in_sample_peruser.npz\n?? experiments/battery/m6/m6n_arthouse_train2k.json\n?? experiments/battery/m6/m6p_arthouse_full_pool_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_half_A_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_half_B_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_openerhalf.json\n?? experiments/battery/m6/m6q_cost_bench.json\n?? experiments/battery/m6/traj2k/\n?? experiments/battery/m6_all.out\n?? experiments/battery/m6_all2k.out\n?? experiments/battery/m6_chain.out\n?? experiments/battery/m6_stage3.out\n?? experiments/battery/m6_train.out\n?? experiments/battery/m6a.out\n?? experiments/battery/m6a2.out\n?? experiments/battery/m6a2k_train.out\n?? experiments/battery/m6a_chain.out\n?? experiments/battery/m6b_probe.out\n?? experiments/battery/m6c.out\n?? experiments/battery/m6c_gen.out\n?? experiments/battery/m6c_gen2k.out\n?? experiments/battery/m6d_arthouse2k.out\n?? experiments/battery/m6d_coverage.out\n?? experiments/battery/m6d_generalise.out\n?? experiments/battery/m6d_halfA.out\n?? experiments/battery/m6e.out\n?? experiments/battery/m6e_mix.out\n?? experiments/battery/m6f_examples.out\n?? experiments/battery/m6g_loose.out\n?? experiments/battery/m6h_coarse.out\n?? experiments/battery/m6i_final.out\n?? experiments/battery/m6j_centroid.out\n?? experiments/battery/m6k_arthouse.out\n?? experiments/battery/m6k_arthouse_tr2k_v2.out\n?? experiments/battery/m6k_arthouse_train2k.out\n?? experiments/battery/m6k_dialogue.out\n?? experiments/battery/m6k_gore.out\n?? experiments/battery/m6k_gore_tr2k.out\n?? experiments/battery/m6k_inspiring.out\n?? experiments/battery/m6k_marvel.out\n?? experiments/battery/m6k_marvel_tr2k.out\n?? experiments/battery/m6k_teenagers.out\n?? experiments/battery/m6l_arthouse.out\n?? experiments/battery/m6l_arthouse_burn.out\n?? experiments/battery/m6l_burn.out\n?? experiments/battery/m6l_dialogue.out\n?? experiments/battery/m6l_dialogue_burn.out\n?? experiments/battery/m6l_gore.out\n?? experiments/battery/m6l_gore_burn.out\n?? experiments/battery/m6l_inspiring.out\n?? experiments/battery/m6l_inspiring_burn.out\n?? experiments/battery/m6l_marvel.out\n?? experiments/battery/m6l_marvel_burn.out\n?? experiments/battery/m6l_teenagers.out\n?? experiments/battery/m6l_teenagers_burn.out\n?? experiments/battery/m6m_heldout.out\n?? experiments/battery/m6m_redditlift.out\n?? experiments/battery/m6n_arthouse.out\n?? experiments/battery/m6n_arthouse_v2.out\n?? experiments/battery/m6n_k6.out\n?? experiments/battery/m6o_k4.out\n?? experiments/battery/m6p_arthouse.out\n?? experiments/battery/m6p_k20.out\n?? experiments/battery/m6q_bench.out\n?? experiments/battery/meanvec_value.json\n?? experiments/battery/meanvec_value_cond.json\n?? experiments/battery/meanvec_value_cond_per_user.npz\n?? experiments/battery/meanvec_value_per_user.npz\n?? experiments/battery/ndcgtree16test_partial.json\n?? experiments/battery/ndcgtree16test_policyB.err\n?? experiments/battery/ndcgtree_SANITY_heaps/\n?? experiments/battery/ndcgtree_SANITY_partial.json\n?? experiments/battery/ndcgtree_SANITY_per_user.npz\n?? experiments/battery/ndcgtree_SANITY_sweeps/\n?? experiments/battery/ndcgtree_SANITY_train3000.json\n?? experiments/battery/ndcgtree_SANITY_train3000_heaps/\n?? experiments/battery/ndcgtree_SANITY_train3000_partial.json\n?? experiments/battery/ndcgtree_SANITY_train3000_per_user.npz\n?? experiments/battery/ndcgtree_SANITY_train3000_sweeps/\n?? experiments/battery/ndcgtree_sanity_sweep.out\n?? experiments/battery/ndcgtree_sanity_train.out\n?? experiments/battery/outcome_head_main_both.json\n?? experiments/battery/outcome_head_main_both.pt\n?? experiments/battery/outcome_head_main_both_history.json\n?? experiments/battery/outcome_head_main_both_pop.npz\n?? experiments/battery/outcome_head_shuffle_both.json\n?? experiments/battery/outcome_head_shuffle_both.pt\n?? experiments/battery/outcome_head_shuffle_both_history.json\n?? experiments/battery/outcome_head_shuffle_both_pop.npz\n?? experiments/battery/outcome_main.err\n?? experiments/battery/p2_seeded/p2_eval_k2_per_user.npz\n?? experiments/battery/p2_seeded/p2_eval_k4_per_user.npz\n?? experiments/battery/p2_seeded/p2_eval_k8_per_user.npz\n?? experiments/battery/p2_seeded/p2_main.pt\n?? experiments/battery/p2_seeded/p2_main_history.json\n?? experiments/battery/p2_seeded/p2_seeded_states.npz\n?? experiments/battery/p2_seeded/p2_shuffle.pt\n?? experiments/battery/p2_seeded/p2_shuffle_history.json\n?? experiments/battery/p2_seeded/p2_shuffle_last.pt\n?? experiments/battery/p2_seeded/run_p2.ps1\n?? experiments/battery/pipeline_arthouse.out\n?? experiments/battery/pipeline_distill.out\n?? experiments/battery/pipeline_m6r.out\n?? experiments/battery/policy_deep_equivariant_both_phase3.pt\n?? experiments/battery/policy_deep_equivariant_both_phase3_gates.json\n?? experiments/battery/policy_deep_equivariant_both_phase3_gates_per_user.npz\n?? experiments/battery/policy_deep_equivariant_both_phase3_history.json\n?? experiments/battery/policy_deep_heaps/\n?? experiments/battery/policy_deep_labels.json\n?? experiments/battery/policy_deeper_tree_control.json\n?? experiments/battery/policy_deeper_tree_control_per_user.npz\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3.pt\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_gates.json\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_gates_per_user.npz\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_history.json\n?? experiments/battery/policy_labels_deep.json\n?? experiments/battery/policy_labels_deep_partial.json\n?? experiments/battery/policy_labels_deep_partial/\n?? experiments/battery/policy_main_equivariant_both_p1.pt\n?? experiments/battery/policy_main_equivariant_both_p1_gates.json\n?? experiments/battery/policy_main_equivariant_both_p1_gates_per_user.npz\n?? experiments/battery/policy_main_equivariant_both_p1_history.json\n?? experiments/battery/policy_main_equivariant_both_p1ctrl.pt\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_gates.json\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_gates_per_user.npz\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_history.json\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf.pt\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_gates.json\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_gates_per_user.npz\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_history.json\n?? experiments/battery/policy_traj/ans_0_10000.npz\n?? experiments/battery/policy_traj/ans_100000_110000.npz\n?? experiments/battery/policy_traj/ans_10000_20000.npz\n?? experiments/battery/policy_traj/ans_110000_120000.npz\n?? experiments/battery/policy_traj/ans_120000_130000.npz\n?? experiments/battery/policy_traj/ans_130000_140000.npz\n?? experiments/battery/policy_traj/ans_140000_140768.npz\n?? experiments/battery/policy_traj/ans_20000_30000.npz\n?? experiments/battery/policy_traj/ans_30000_40000.npz\n?? experiments/battery/policy_traj/ans_40000_50000.npz\n?? experiments/battery/policy_traj/ans_50000_60000.npz\n?? experiments/battery/policy_traj/ans_60000_70000.npz\n?? experiments/battery/policy_traj/ans_70000_80000.npz\n?? experiments/battery/policy_traj/ans_80000_90000.npz\n?? experiments/battery/policy_traj/ans_90000_100000.npz\n?? experiments/battery/policy_traj/ans_val.npz\n?? experiments/battery/policy_traj/gen.err\n?? experiments/battery/policy_traj/gen.out\n?? experiments/battery/policy_traj/meta_0_10000.npz\n?? experiments/battery/policy_traj/meta_100000_110000.npz\n?? experiments/battery/policy_traj/meta_10000_20000.npz\n?? experiments/battery/policy_traj/meta_110000_120000.npz\n?? experiments/battery/policy_traj/meta_120000_130000.npz\n?? experiments/battery/policy_traj/meta_130000_140000.npz\n?? experiments/battery/policy_traj/meta_140000_140768.npz\n?? experiments/battery/policy_traj/meta_20000_30000.npz\n?? experiments/battery/policy_traj/meta_30000_40000.npz\n?? experiments/battery/policy_traj/meta_40000_50000.npz\n?? experiments/battery/policy_traj/meta_50000_60000.npz\n?? experiments/battery/policy_traj/meta_60000_70000.npz\n?? experiments/battery/policy_traj/meta_70000_80000.npz\n?? experiments/battery/policy_traj/meta_80000_90000.npz\n?? experiments/battery/policy_traj/meta_90000_100000.npz\n?? experiments/battery/policy_traj/val_traj.npz\n?? experiments/battery/policy_traj/z_train.npy\n?? experiments/battery/policy_traj/z_val.npy\n?? experiments/battery/pu_labels/\n?? experiments/battery/pwheldout_root.json\n?? experiments/battery/pwheldout_root_PARTIAL_REPORT.json\n?? experiments/battery/pwheldout_root_partial.json\n?? experiments/battery/splitcrit.json\n?? experiments/battery/splitcrit_SMOKE_tree_logistic.json\n?? experiments/battery/splitcrit_SMOKE_tree_logistic.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_pairwise.json\n?? experiments/battery/splitcrit_SMOKE_tree_pairwise.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_random_ml.json\n?? experiments/battery/splitcrit_SMOKE_tree_random_ml.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_variance.json\n?? experiments/battery/splitcrit_SMOKE_tree_variance.json.partial\n?? experiments/battery/splitcrit_per_user.npz\n?? experiments/battery/splitcrit_tree_logistic.json\n?? experiments/battery/splitcrit_tree_logistic.json.partial\n?? experiments/battery/splitcrit_tree_pairwise.json\n?? experiments/battery/splitcrit_tree_pairwise.json.partial\n?? experiments/battery/splitcrit_tree_random.json\n?? experiments/battery/splitcrit_tree_random.json.partial\n?? experiments/battery/splitcrit_tree_random_ml.json\n?? experiments/battery/splitcrit_tree_random_ml.json.partial\n?? experiments/battery/splitcrit_tree_variance.json\n?? experiments/battery/splitcrit_tree_variance.json.partial\n?? experiments/battery/state_count_curve.json\n?? experiments/battery/t1prime.err\n?? experiments/battery/t1prime_holdout.err\n?? experiments/battery/value_chain.err\n?? experiments/battery/value_chain.out\n?? experiments/battery/value_meanvec.err\n?? experiments/battery/value_meanvec.out\n?? experiments/battery/value_sample.err\n?? experiments/battery/value_sample.out\n?? experiments/battery/value_scrape.err\n?? experiments/battery/value_scrape.out\n?? experiments/battery/value_train.err\n?? experiments/battery/value_train.out\n?? experiments/battery/volcohorts/genre_val_policyB_paired_cis.json\n?? experiments/battery/volcohorts/heaps/\n?? experiments/battery/volcohorts/run_v.ps1\n?? experiments/battery/volcohorts/volcohorts_k4_volunteered.json\n?? experiments/battery/volcohorts/volcohorts_report_K15.json\n?? experiments/paperC/c0.err\n?? experiments/paperC/c1.err\n?? experiments/paperC/c3b/\n?? external_literature/findings/hewitt_plugin_evaluation_2026-08.md\n?? external_literature/findings/im1_im2_plausibility_2026-08.md\n?? external_literature/findings/infosynth_baseline_2026-08.md\n?? external_literature/findings/redo_numbers_decap_heap_2026-08.md\n?? new_chapters/chapterC_v2/\n?? run_m6_arthouse_distill.py\n?? run_m6r_when_ready.py\n?? src/instrument/c3b_adapter.py"
+ },
+ "outputs": {
+  "pairs": "experiments\\paperC\\c3b\\c3b_pairs.npz",
+  "phrases": "experiments\\paperC\\c3b\\c3b_phrases.json"
+ },
+ "minutes": 1.46
+}
