@@ -19,13 +19,19 @@ WHAT THIS DOES
      sees those phrases, so this row bounds what RETRIEVAL alone can achieve and contextualises the
      rendered question's number.
 
-BLINDING. This file never opens KEY.json, questions_for_judge.json or judgments.json. It emits
+BLINDING. This file never opens `_quarantine/KEY.json`, questions_for_judge.json or judgments.json.
+It emits
 PER-PACKET geometry only; the join with ground truth happens elsewhere.
 
 CONTROLS BUILT IN (asserts, not assumptions)
   * checkpoint sha256 == the C0/C1-measured checkpoint (`c1_pilot.C0_CKPT_SHA`);
-  * the SBERT tag-name column order == the env's `E["sh"]["tags"]` order == the packets' concept
-    channel (`c3_poc_extract.surface_forms`), element by element;
+  * ★ the concept column is RE-DERIVED from `genome-scores.csv` + `unique_sid.txt` inside this file,
+    with the documented filter (relevance >= 0.5, catalog-restricted, >= 30 members, sorted tagId),
+    and asserted equal to `E["sh"]["tags"]`. The pre-2026-08-24 assert compared two mappings of the
+    SAME `sh["tags"]` list and was therefore a tautology: it could only ever have caught a
+    lower-casing bug, and would have passed on the wrong vocabulary;
+  * the SBERT tag-name column order == the packets' concept channel
+    (`c3_poc_extract.surface_forms`), element by element;
   * the rebuilt bank reproduces every packet's banked top-8 anchors and cosines exactly as
     `packets.json` recorded them -- i.e. this stage is measuring in the same space Stage 1 wrote.
 
@@ -55,12 +61,17 @@ import numpy as np
 import torch
 
 from policy_net import Policy, build_phi, log
-from c0_geometry import PAPERC, E1_CKPT, N_BANK, sha256, git, bank_vectors
+from c0_geometry import PAPERC, E1_CKPT, N_BANK, sha256, git_block, bank_vectors
 import c1_pilot as C1
 from c3_poc_extract import surface_forms, unit
 
 OUT_DIR = os.path.join(PAPERC, "c3_poc")
 TAGS_CSV = os.path.join(_ROOT, "data", "movielens", "genome-tags.csv")
+GENOME_CSV = os.path.join(_ROOT, "data", "movielens", "genome-scores.csv")
+USID = os.path.join(_ROOT, "data", "ml-25m", "proc", "unique_sid.txt")
+# The concept-bank filter of record (`run_battery_phaseA.load_genome`, `tradeoff_ledger.build_shared`)
+GENOME_MIN_RELEVANCE = 0.5
+GENOME_MIN_MEMBERS = 30
 
 # ---- the SBERT recipe OF RECORD -- smoke_trio.py arms 4/4b, constants copied verbatim -----------
 SBERT_MODEL = "all-MiniLM-L6-v2"
@@ -91,6 +102,41 @@ def tag_name_column(E):
     for t in list(E["sh"]["tags"]):
         out.append(t.strip() if isinstance(t, str) else name[int(t)])
     return out
+
+
+def rederive_concept_tagids(chunk=2_000_000):
+    """★ THE NON-CIRCULAR ALIGNMENT CHECK (repair 2026-08-24).
+
+    The original assert compared `surface_forms(E)`'s concept names against `tag_name_column(E)`.
+    Both are `E["sh"]["tags"]` mapped through `genome-tags.csv`, so the comparison was
+    `f(x) == g(x)` for the same x -- it could only fail on a case bug, and would pass unchanged if
+    the env's concept vocabulary were the wrong vocabulary entirely.
+
+    This rebuilds the concept column from the RAW genome, inside this file, with the documented
+    filter of record -- `relevance >= 0.5`, restricted to the canonical catalog (`unique_sid.txt`),
+    tags with at least 30 surviving members, ordered by `sorted(tagId)` -- and the caller asserts
+    equality with `E["sh"]["tags"]`. Read in chunks: `genome-scores.csv` is ~435 MB and each
+    (movieId, tagId) appears exactly once, so a running per-tag COUNT is lossless (HARD RULE 1 --
+    nothing is sampled, the whole file is streamed).
+    """
+    import pandas as pd
+    with open(USID) as fh:
+        catalog = np.asarray(sorted(int(x) for x in fh.read().split()), np.int64)
+    counts = {}
+    n_rows = 0
+    for ch in pd.read_csv(GENOME_CSV, usecols=["movieId", "tagId", "relevance"],
+                          dtype={"movieId": np.int32, "tagId": np.int16,
+                                 "relevance": np.float32},
+                          chunksize=chunk):
+        n_rows += len(ch)
+        ch = ch[ch["relevance"] >= GENOME_MIN_RELEVANCE]
+        ch = ch[np.isin(ch["movieId"].values, catalog)]
+        for t, c in ch["tagId"].value_counts().items():
+            counts[int(t)] = counts.get(int(t), 0) + int(c)
+    tags = sorted(t for t, c in counts.items() if c >= GENOME_MIN_MEMBERS)
+    return tags, {"genome_rows_streamed": int(n_rows), "n_catalog_items": int(len(catalog)),
+                  "min_relevance": GENOME_MIN_RELEVANCE, "min_members": GENOME_MIN_MEMBERS,
+                  "n_tags_above_relevance": len(counts), "n_tags_kept": len(tags)}
 
 
 def sbert_sims(texts, tag_names, sb):
@@ -155,10 +201,13 @@ def run(args):
     from strategy_channel_suite import build_greedy_env
     from ndcg_tree import build_pool
 
-    packets = load_json("packets.json")["packets"]
-    renders = load_json("renders.json")
+    GB = git_block(allow_dirty=args.allow_dirty, threads=args.threads)      # HARD RULE 10, first
+    log(f"[hardrule10] src/instrument clean={GB['src_instrument_clean']} rev={GB['rev'][:8]} "
+        f"threads={GB['threads']}")
+    packets = load_json(f"packets{args.tag}.json")["packets"]
+    renders = load_json(f"renders{args.render_tag}.json")
     rend = {int(r["id"]): r["question"] for r in renders["renders"]}
-    vec_npz = np.load(os.path.join(OUT_DIR, "c3_poc_vectors.npz"))
+    vec_npz = np.load(os.path.join(OUT_DIR, f"c3_poc_vectors{args.tag}.npz"))
     assert len(packets) == 30 and len(rend) == 30 and len(vec_npz.files) == 30
     assert {p["id"] for p in packets} == set(rend), "renders.json ids != packets.json ids"
 
@@ -189,15 +238,23 @@ def run(args):
     names, ni, _missing = surface_forms(E)
     assert ni == ni_env
 
-    # ---- ALIGNMENT ASSERT: SBERT column order == sh["tags"] order == packets' concept channel -----
+    # ---- ALIGNMENT ASSERT: the concept column, re-derived from the RAW genome ---------------------
     tag_names = tag_name_column(E)
     assert len(tag_names) == C, f"tag-name column has {len(tag_names)} entries, env indexes {C}"
+    env_tagids = [int(t) for t in E["sh"]["tags"]]
+    rederived, gmeta = rederive_concept_tagids()
+    assert rederived == env_tagids, (
+        f"the concept column re-derived from genome-scores.csv ({len(rederived)} tags, "
+        f"relevance>={GENOME_MIN_RELEVANCE}, >={GENOME_MIN_MEMBERS} catalog members) is not the "
+        f"env's sh['tags'] ({len(env_tagids)} tags). First disagreement at position "
+        f"{next((i for i, (a, b) in enumerate(zip(rederived, env_tagids)) if a != b), 'length')}")
+    log(f"[align] concept column re-derived from the raw genome ({gmeta['genome_rows_streamed']:,} "
+        f"rows streamed, {gmeta['n_tags_kept']} tags kept) == sh['tags'] at all {C} positions")
+    # ... and the packets' own channel names still agree with the column SBERT will score
     chan = [names[ni + c] for c in range(C)]
     bad = [c for c in range(C) if chan[c] is None or chan[c] != tag_names[c].lower()]
     assert not bad, ("SBERT tag-name column does not match the packets' concept channel at "
                      f"{len(bad)} positions, e.g. {[(c, chan[c], tag_names[c]) for c in bad[:5]]}")
-    log(f"[align] tag-name column matches sh['tags'] / the packets' concept channel at all {C} "
-        "positions (case-insensitive; SBERT scores the un-lower-cased smoke_trio form)")
 
     # ---- CONTROL: the rebuilt bank reproduces the banked anchors ---------------------------------
     worst = 0.0
@@ -277,19 +334,25 @@ def run(args):
             "input_field": "renders.json['renders'][*]['question'] only"},
         "asserts": {
             "tag_column_aligned_to_sh_tags_and_packet_channel": True,
+            "concept_column_rederived_from_raw_genome": True,
+            "concept_column_rederivation": gmeta,
             "n_concepts": C,
             "banked_anchors_reproduced_for_all_packets": True,
             "max_abs_anchor_cosine_diff": float(worst)},
         "bank": {"n_entries": N_BANK, "n_items": ni, "n_concepts": C},
         "checkpoint": {"path": os.path.relpath(args.ckpt, _ROOT), "sha256": sha},
-        "git": {"rev": git("rev-parse", "HEAD"),
-                "branch": git("rev-parse", "--abbrev-ref", "HEAD")},
+        "git": GB,
+        "inputs": {"packets": f"packets{args.tag}.json",
+                   "renders": f"renders{args.render_tag}.json",
+                   "vectors": f"c3_poc_vectors{args.tag}.npz"},
         "n_packets": len(rows),
         "non_encodable_ids": non_encodable,
         "n_non_encodable": len(non_encodable),
         "rows": rows}
-    with open(os.path.join(OUT_DIR, "reencode.json"), "w", encoding="utf-8") as fh:
+    p_out = os.path.join(OUT_DIR, f"reencode{args.tag}.json")
+    with open(p_out + ".tmp", "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1)
+    os.replace(p_out + ".tmp", p_out)
 
     def fmt(x):
         return "   n/a " if x is None else f"{x:+.4f}"
@@ -301,7 +364,7 @@ def run(args):
             f"{fmt(r['anchor_reference']['cos_weighted'])}")
     if non_encodable:
         log(f"[non-encodable] {len(non_encodable)} packet(s) selected zero concepts: {non_encodable}")
-    log(f"[done] wrote {os.path.join(OUT_DIR, 'reencode.json')}")
+    log(f"[done] wrote {p_out}")
     return out
 
 
@@ -311,6 +374,13 @@ def main():
     ap.add_argument("--snapshot", default=None)
     ap.add_argument("--concept_ckpt", default=None)
     ap.add_argument("--threads", type=int, default=3)
+    ap.add_argument("--allow_dirty", action="store_true",
+                    help="EMERGENCY ONLY: run with an uncommitted src/instrument (HARD RULE 10)")
+    ap.add_argument("--tag", default="",
+                    help="read packets<tag>.json / c3_poc_vectors<tag>.npz and write "
+                         "reencode<tag>.json; empty is the banked v1 set")
+    ap.add_argument("--render_tag", default="",
+                    help="renders<render_tag>.json (the rendered questions to re-encode)")
     args = ap.parse_args()
     from strategy_channel_suite import CERT_TOWER, CERT_CONC
     args.snapshot = args.snapshot or CERT_TOWER

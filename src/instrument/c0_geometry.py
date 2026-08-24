@@ -85,8 +85,12 @@ E1_GATES = os.path.join(OUTDIR, "policy_main_equivariant_both_gates.json")
 E1_PER_USER = os.path.join(OUTDIR, "policy_main_equivariant_both_gates_per_user.npz")
 # Banked E1 numbers, ASSERTED rather than trusted (design sheet gate 2).
 VAL_M0_FULL = 0.15686538118354684
+VAL_M0_TAIL = 0.02747733123666661     # the tail intercept, gated EXACTLY like the full one
 E1_VAL_FULL = 0.28354971825495506
 E1_VAL_TAIL = 0.13421311934575303
+# The E1 per-user artifact gate 2b compares the regenerated rollout against. Pinned so that
+# "byte-identical to the banked interviews" names a specific FILE, not whatever sits at that path.
+E1_PER_USER_SHA = "d8ed0f8ec6854308261cc916002cb418c4880420530bf3eff397089e7d9b8310"
 N_BANK = 19390
 
 
@@ -107,6 +111,68 @@ def git(*args):
                               text=True, timeout=60).stdout.strip()
     except Exception as e:                                             # pragma: no cover
         return f"<git failed: {e}>"
+
+
+# ============================================================================ HARD RULE 10 guard
+def src_status():
+    """`git status --short` restricted to `src/` -- recorded verbatim in every output JSON."""
+    return git("status", "--short", "--", "src")
+
+
+def dirty_instrument_files(status=None):
+    """The lines of `src_status()` that touch a `src/instrument/*.py` file, renames included."""
+    st = src_status() if status is None else status
+    return [ln for ln in st.splitlines()
+            if ln.strip() and ".py" in ln and "src/instrument/" in ln.replace("\\", "/")]
+
+
+def git_block(allow_dirty=False, threads=None, extra=None):
+    """The provenance block every Paper C output JSON carries, and the HARD RULE 10 refusal.
+
+    A checkpoint (or a banked number) is only as good as the COMMITTED code that produced it, so a
+    run whose `src/instrument` is dirty cannot be reproduced from the recorded rev. `--allow_dirty`
+    exists for emergencies and is recorded in the JSON so a reader can see the guard was bypassed.
+    """
+    st = src_status()
+    dirty = dirty_instrument_files(st)
+    b = {"rev": git("rev-parse", "HEAD"), "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
+         "status_short_src": st, "src_instrument_dirty": dirty,
+         "src_instrument_clean": not dirty, "allow_dirty_flag": bool(allow_dirty)}
+    if threads is not None:
+        b["threads"] = int(threads)
+        b["thread_env"] = {k: os.environ.get(k) for k in
+                           ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")}
+        b["torch_num_threads"] = int(torch.get_num_threads())
+    if extra:
+        b.update(extra)
+    if dirty and not allow_dirty:
+        raise SystemExit(
+            "REFUSING TO RUN (HARD RULE 10): src/instrument has uncommitted changes --\n  "
+            + "\n  ".join(dirty)
+            + "\nCommit the code before the run, or pass --allow_dirty for an emergency "
+              "(the JSON will record that the guard was bypassed).")
+    return b
+
+
+def savez_atomic(path, **arrays):
+    """`np.savez_compressed` via a .tmp + `os.replace`, so a killed run cannot leave a half-written
+    npz sitting at the path a later stage will happily load."""
+    tmp = path + ".tmp.npz"
+    np.savez_compressed(tmp, **arrays)
+    os.replace(tmp, path)
+    return path
+
+
+def index_map_assert(Ebank, pool2full, Epool):
+    """The 1,000-candidate pool's rows must BE the corresponding full-bank rows.
+
+    `pool2full` is the only thing that ties a pool index to a bank index, and every geometry number
+    in Paper C is read through it. A silent off-by-one there would be invisible in every downstream
+    statistic, so it is asserted rather than trusted (memory: a partial index match is
+    indistinguishable from a small cohort)."""
+    d = float(np.abs(Ebank[pool2full] - Epool).max())
+    assert d == 0.0, f"pool2full does not map the pool onto the bank (max|diff| {d:g})"
+    return d
 
 
 # ============================================================================ the emitted vector
@@ -218,6 +284,43 @@ def bilinear_cos(Zhat_k, Kbank, snap):
             ).astype(np.float32)
 
 
+def wilson(k, n, z=1.959963984540054):
+    """Wilson score interval for a binomial proportion (95% by default).
+
+    Used wherever a rate is read off a small denominator (42 states, 30 packets, 10 twin pairs),
+    because a bare k/n there invites a reader to treat 0.81 and 0.79 as different numbers."""
+    k, n = int(k), int(n)
+    if n <= 0:
+        return {"k": k, "n": n, "p": None, "lo": None, "hi": None}
+    p = k / n
+    d = 1.0 + z * z / n
+    c = (p + z * z / (2 * n)) / d
+    h = z * float(np.sqrt(p * (1 - p) / n + z * z / (4 * n * n))) / d
+    return {"k": k, "n": n, "p": p, "lo": max(0.0, c - h), "hi": min(1.0, c + h),
+            "ci": "Wilson 95%"}
+
+
+def sign_test(a, b, tol=0.0):
+    """Two-sided exact sign test on the PAIRED differences a - b (ties dropped, as the test does).
+
+    The paired form is the point: memory `paired-test-kills-the-tie-claim` records a claim lost to
+    an unpaired interval on paired data."""
+    a = np.asarray(a, np.float64); b = np.asarray(b, np.float64)
+    assert a.shape == b.shape, "the sign test needs PAIRED samples"
+    d = a - b
+    pos = int((d > tol).sum()); neg = int((d < -tol).sum()); tie = int(len(d) - pos - neg)
+    n = pos + neg
+    if n == 0:
+        return {"n_pairs": int(len(d)), "n_a_greater": pos, "n_b_greater": neg, "n_tied": tie,
+                "p_two_sided": None, "median_diff": float(np.median(d))}
+    from math import comb
+    k = min(pos, neg)
+    p = min(1.0, 2.0 * sum(comb(n, i) for i in range(k + 1)) / (2.0 ** n))
+    return {"n_pairs": int(len(d)), "n_a_greater": pos, "n_b_greater": neg, "n_tied": tie,
+            "n_untied": n, "p_two_sided": float(p), "median_diff": float(np.median(d)),
+            "mean_diff": float(d.mean())}
+
+
 def dist(x):
     x = np.asarray(x, np.float64)
     x = x[np.isfinite(x)]
@@ -249,6 +352,11 @@ def run(args):
     t00 = time.time()
     os.makedirs(PAPERC, exist_ok=True)
     torch.manual_seed(98765); np.random.seed(98765)
+    # HARD RULE 10 first, before a minute of environment building is spent.
+    GB = git_block(allow_dirty=args.allow_dirty, threads=args.threads,
+                   extra={"status_short": git("status", "--short")})
+    log(f"[hardrule10] src/instrument clean={GB['src_instrument_clean']} rev={GB['rev'][:8]} "
+        f"threads={GB['threads']}")
 
     blob = torch.load(args.ckpt, map_location="cpu")
     assert blob["arch"] == "equivariant", "C0 reads the equivariant head's emitted vector"
@@ -261,9 +369,12 @@ def run(args):
     assert len(rows) == 10000, f"the validation cohort is {len(rows)} users, expected 10,000"
 
     # ---- GATE 2a: the canonical snap, before any geometry number is read ------------------------
+    # BOTH intercepts are gated. The project rule is "always report full AND tail"; a tail that is
+    # merely PRINTED while only the full one is asserted lets a tail-side regression through.
     f0, t0_ = genv_mean(E, [], rows)
     assert f0 == VAL_M0_FULL, f"CANONICAL SNAP FAILED: m=0 full {f0!r}, banked {VAL_M0_FULL!r}"
-    log(f"[gate2a] m=0 intercept full={f0!r} tail={t0_!r} -- exact")
+    assert t0_ == VAL_M0_TAIL, f"CANONICAL SNAP FAILED: m=0 tail {t0_!r}, banked {VAL_M0_TAIL!r}"
+    log(f"[gate2a] m=0 intercept full={f0!r} tail={t0_!r} -- both exact")
 
     pool = [(int(a), int(b)) for a, b in blob["pool"]]
     pool_e, _, _ = build_pool(E, 500, 500)
@@ -273,6 +384,7 @@ def run(args):
     assert len(full_pool) == N_BANK, f"the bank is {len(full_pool)}, expected {N_BANK}"
     pool2full = np.asarray([(i if ch == 0 else E["ctx"].ni + i) for ch, i in pool], np.int64)
     in_pool_full = np.zeros(N_BANK, bool); in_pool_full[pool2full] = True
+    _pool_map_err = None                      # asserted below, once both banks exist
     chan_full = np.asarray([ch for ch, _ in full_pool], np.int8)
 
     norm = (blob["norm_mu"], blob["norm_sd"])
@@ -285,7 +397,14 @@ def run(args):
     Epool, Kpool = bank_vectors(pol, phi_small)
     log(f"[bank] {Ebank.shape[0]:,} x {Ebank.shape[1]} emitted-space descriptors "
         f"(d_k={Kbank.shape[1]} + 1 bias coordinate)")
+    _pool_map_err = index_map_assert(Ebank, pool2full, Epool)
+    log(f"[gate] pool2full maps the 1,000-candidate pool onto the bank exactly "
+        f"(max|Ebank[pool2full] - Epool| = {_pool_map_err:g})")
 
+    per_user_sha = sha256(E1_PER_USER)
+    assert per_user_sha == E1_PER_USER_SHA, (
+        f"the E1 per-user artifact at {E1_PER_USER} is not the pinned one "
+        f"(sha {per_user_sha}, pinned {E1_PER_USER_SHA})")
     banked = np.load(E1_PER_USER)
     banked_asked = np.asarray(banked["asked"], np.int64)
     assert np.array_equal(np.asarray(banked["rows"], np.int64), np.asarray(rows, np.int64))
@@ -296,9 +415,12 @@ def run(args):
            "cohort": "10,000 VALIDATION users x 16 positions = 160,000 states",
            "checkpoint": {"path": os.path.relpath(args.ckpt, _ROOT), "sha256": sha256(args.ckpt),
                           "epoch": int(blob["epoch"]), "val_full": float(blob["val_full"]),
-                          "arm": blob.get("arm")},
-           "git": {"rev": git("rev-parse", "HEAD"), "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
-                   "status_short": git("status", "--short")},
+                          "arm": blob.get("arm"),
+                          "e1_per_user_npz": os.path.relpath(E1_PER_USER, _ROOT),
+                          "e1_per_user_npz_sha256": per_user_sha,
+                          "e1_per_user_npz_sha256_pinned": E1_PER_USER_SHA},
+           "git": GB,
+           "asserts": {"pool2full_index_map_max_abs_err": _pool_map_err},
            "emitted_vector": {
                "definition": "z_hat = [u(h_state), 1]; e_q = [k(phi_q), b(phi_q)]; "
                              "<z_hat, e_q> = the head's score EXACTLY (homogeneous coordinates, "
@@ -351,8 +473,11 @@ def run(args):
                 "GATE 2 FAILED: the regenerated rollout's realised interviews are NOT the banked E1 "
                 "interviews. Stop -- this is a harness bug, not a geometry result.")
             assert A["gate_val_full_matches_banked"]["abs_diff"] < 1e-9
+            # the TAIL is gated exactly as the full number is (see gate 2a)
+            assert A["gate_val_tail_matches_banked"]["abs_diff"] < 1e-9, (
+                f"GATE 2 FAILED on the TAIL: got {A['val_tail']!r}, banked {E1_VAL_TAIL!r}")
             log("[gate2b] realised interviews byte-identical to the banked E1 rollout; "
-                f"val full {A['val_full']!r} == banked")
+                f"val full {A['val_full']!r} and tail {A['val_tail']!r} == banked")
             asked_full = pool2full[asked]
             snap_ref = asked_full
             Eref, aref = Epool, asked
@@ -441,7 +566,7 @@ def run(args):
             per_state[f"{arm}_{k}"] = G[k]
         for k in ("cos1", "m", "n_band_abs", "n_band_range"):
             per_state[f"{arm}_rand_{k}"] = GR[k]
-        np.savez_compressed(os.path.join(PAPERC, "c0_geometry_per_state.npz"), **per_state)
+        savez_atomic(os.path.join(PAPERC, "c0_geometry_per_state.npz"), **per_state)
         log(f"[{arm}] median cos1 {mc1:.5f} | median m {mm:.5f} | cell "
             f"{A['registered_reading_rule']['cell']} | random floor median cos1 "
             f"{A['random_floor']['cos1']['median']:.5f} m {A['random_floor']['m']['median']:.5f}")
@@ -460,6 +585,9 @@ def main():
     ap.add_argument("--snapshot", default=None)
     ap.add_argument("--concept_ckpt", default=None)
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--allow_dirty", action="store_true",
+                    help="EMERGENCY ONLY: run with an uncommitted src/instrument (HARD RULE 10). "
+                         "The bypass is recorded in the output JSON.")
     args = ap.parse_args()
     args.arms = [a for a in args.arms.split(",") if a]
     assert all(a in ("pool", "catalogue") for a in args.arms)

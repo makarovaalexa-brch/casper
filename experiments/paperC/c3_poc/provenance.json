@@ -1,0 +1,34 @@
+{
+ "_comment": "Provenance sidecar for the C3 PoC's two NON-CODE stages (rendering and judging). Written by hand on 2026-08-24 during the hostile-review repair pass, because the numbers in docs/results/C3_POC.md depend on two agents whose identity, prompts and blinding regime were recorded nowhere machine-readable. Everything here is a statement of record about how the stage was run, not a measurement.",
+ "analysis": "paperC_C3_poc_provenance",
+ "design_sheet": "docs/design/DS_C3_POC.md",
+ "date_recorded": "2026-08-24",
+ "stages_covered": ["stage2_render", "stage3_judge"],
+ "renderer": {
+  "model_class": "claude-sonnet subagents, session 2026-08-21/22",
+  "identity_note": "a fresh in-session subagent, not an external API call: DS_C3_POC.md bounds the PoC as 'Claude-in-session as the LLM (renderer + blinded judge subagents), NO external LLM API'. No exact model build id was recorded at run time and none is reconstructible now.",
+  "n_items": 30,
+  "input_seen": "experiments/paperC/c3_poc/packets.json only (top-8 mean-removed anchor phrases, the asked-so-far path in plain words, the instruction). It did NOT see the source vectors, the key, or any statement of which packets were real.",
+  "output": "experiments/paperC/c3_poc/renders.json (question, self-rated renderability 1-5, theme)",
+  "instruction_of_record": "src/instrument/c3_poc_extract.INSTRUCTION -- the instruction string is COMMITTED CODE and travels inside every packet, so it is reproducible verbatim.",
+  "prompt_note": "The surrounding subagent brief (task framing, output format) lives only in the 2026-08-21/22 session transcript and is NOT in the repository. Only the packet-borne instruction is reproducible from the repo."
+ },
+ "judge": {
+  "model_class": "claude-sonnet subagents, session 2026-08-21/22",
+  "identity_note": "a DIFFERENT fresh in-session subagent from the renderer; same caveat about the build id.",
+  "n_items": 30,
+  "input_seen": "experiments/paperC/c3_poc/questions_for_judge.json only -- id + rendered question text. No packets, no anchors, no interview context, no key.",
+  "output": "experiments/paperC/c3_poc/judgments.json (guess real|control, confidence 1-5, answerability 1-5, free-text reason)",
+  "prompt_note": "The judging brief lives only in the session transcript. The task it states is the sheet's registered question 2: classify each question as coming from a real policy direction or a scrambled control, from text alone."
+ },
+ "blinding": {
+  "as_run_2026_08_21": "PROCEDURAL / instruction-level only: separate fresh subagents, each pointed at one input file, plus an in-file quarantine notice in packets.json. KEY.json sat in the same directory as packets.json; nothing but the instruction stopped an agent reading it.",
+  "since_2026_08_24": "ALSO path-level: c3_poc_extract.py writes the key to experiments/paperC/c3_poc/_quarantine/KEY.json, and the existing KEY.json was git-mv'd there. The renderer/judge input files and the labels no longer share a directory, so pointing an agent at the packet directory no longer exposes the labels.",
+  "limitation": "The 2026-08-21/22 run's blinding cannot be verified after the fact -- it rests on the separation of agents and on the instruction. It is asserted here, not demonstrated. The re-encode stage's blinding IS demonstrable: c3_poc_reencode.py contains no read of the key or the judgments."
+ },
+ "what_this_does_not_certify": [
+  "No exact model version, sampling temperature, or system prompt is recorded for either agent.",
+  "Neither stage is re-runnable to the same output; renders.json and judgments.json are the only record of what those agents produced.",
+  "Consequently no C3 PoC number is a reproducible measurement in the sense the numpy stages are, and nothing here upgrades the PoC's status: DS_C3_POC.md already forbids it entering the chapter as a result."
+ ]
+}

@@ -12,8 +12,10 @@ WHAT IT PRODUCES  (`experiments/paperC/c3_poc/`)
   packets.json          30 packets, format-identical, id-keyed. Each carries the top-8 nearest bank
                         phrases with MEAN-REMOVED cosines, the asked-so-far interview path in plain
                         words, and nothing that names its own type.
-  KEY.json              the ground truth (type, source state, pairing). QUARANTINED: the renderer
-                        and the judge subagents must never read it.
+  _quarantine/KEY.json  the ground truth (type, source state, pairing). QUARANTINED: the renderer
+                        and the judge subagents must never read it. Since 2026-08-24 the blinding
+                        is path-level as well as instruction-level -- the labels are not a sibling
+                        of the file the renderer is pointed at.
   c3_poc_vectors.npz    every packet's SOURCE VECTOR in the bias-free space `k(phi)`, keyed by
                         packet id -- banked NOW so the later re-encode stage has its reference.
 
@@ -57,10 +59,12 @@ import numpy as np
 import torch
 
 from policy_net import Policy, build_phi, load_traj, log
-from c0_geometry import PAPERC, E1_CKPT, N_BANK, sha256, git, bank_vectors
+from c0_geometry import (PAPERC, E1_CKPT, N_BANK, sha256, git_block, savez_atomic,
+                         index_map_assert, bank_vectors)
 import c1_pilot as C1
 
 OUT_DIR = os.path.join(PAPERC, "c3_poc")
+QUARANTINE = os.path.join(OUT_DIR, "_quarantine")     # KEY.json lives here: path-level blinding
 TAGS_CSV = os.path.join(_ROOT, "data", "movielens", "genome-tags.csv")
 MOVIES_CSV = os.path.join(_ROOT, "data", "movielens", "movies.csv")
 USID = os.path.join(_ROOT, "data", "ml-25m", "proc", "unique_sid.txt")
@@ -71,6 +75,20 @@ N_STATES = 10            # the sheet's "~10 states"; 10 real + 10 scrambled + 10
 M = 5                    # the pilot's PRIMARY blend width
 TOPK = 8                 # the sheet's "top-8 nearest bank phrases"
 EMISSION_RUN = "zbar_full_seed1"   # the sheet's "full-policy arm, seed 1"
+
+# ---- C1 provenance, PINNED (repair 2026-08-24) --------------------------------------------------
+# The emissions were previously checked for SHAPE only, which cannot tell the pilot's seed-1
+# full-policy emissions from any other 42x129 array that happens to sit under that key. These pin
+# the run that produced them: the C1 commit and the two criterion medians C1_PILOT.md reports.
+C1_JSON = os.path.join(PAPERC, "c1_pilot.json")
+C1_GIT_REV = "a7ffc52c031bbf2007a08d4876de41591319b309"
+# A regenerated `c1_pilot.json` carries a new rev. Adding it here is a DELIBERATE act: it is the
+# point at which someone confirms the regenerated artifact still reproduces the pinned criterion
+# numbers below. Do not widen this tuple to make an assert go away.
+C1_ACCEPTED_REVS = (C1_GIT_REV,)
+C1_FULL_SEED1_MEDIAN_COS = 0.9935154616832733
+C1_FULL_SEED1_MEAN_COS = 0.9931273886135646
+C1_FULL_SEED1_SAME_NEAREST = 0.8095238095238095
 
 INSTRUCTION = (
     "Below is a direction in a recommender's question space, described only by the bank phrases "
@@ -134,10 +152,19 @@ def surface_forms(E):
 
 
 def phrase(names, ni, bank_idx):
+    """The bank entry's surface phrase: a film TITLE below `ni`, a genome TAG at or above it.
+
+    `names` already carries the right string for either channel (`surface_forms` builds it per
+    channel), so the phrase is the same expression in both cases -- the channel distinction lives in
+    `question_text`, which is where it changes anything. This used to read
+    `return n if bank_idx >= ni else n`, a conditional with identical branches that looked like a
+    channel split and was not; it is written out here so a reader is not left hunting for the
+    difference (repair 2026-08-24, behaviour unchanged).
+    """
     n = names[bank_idx]
     if n is None:
         return f"<unnamed bank entry {bank_idx}>"
-    return n if bank_idx >= ni else n
+    return n
 
 
 def question_text(names, ni, bank_idx):
@@ -196,6 +223,9 @@ def run(args):
     from strategy_channel_suite import build_greedy_env, CERT_TOWER, CERT_CONC
     from ndcg_tree import build_pool
     os.makedirs(OUT_DIR, exist_ok=True)
+    GB = git_block(allow_dirty=args.allow_dirty, threads=args.threads)      # HARD RULE 10, first
+    log(f"[hardrule10] src/instrument clean={GB['src_instrument_clean']} rev={GB['rev'][:8]} "
+        f"threads={GB['threads']}")
     rng = np.random.default_rng(SEED)
 
     blob = torch.load(args.ckpt, map_location="cpu")
@@ -221,7 +251,8 @@ def run(args):
     pol0.load_state_dict(blob["model"]); pol0.eval()
     Ebank, Kbank = bank_vectors(pol0, phi_full)
     Epool, Kpool = bank_vectors(pol0, phi_t)
-    log(f"[bank] Ebank {Ebank.shape} Kbank {Kbank.shape}")
+    map_err = index_map_assert(Ebank, pool2full, Epool)
+    log(f"[bank] Ebank {Ebank.shape} Kbank {Kbank.shape}; pool2full exact (max|diff| {map_err:g})")
 
     Dva = load_traj(train=False)
     reg, extra = C1.load_the_42(pool_index, Dva)
@@ -240,7 +271,39 @@ def run(args):
     Zb = npz[EMISSION_RUN]
     assert Zb.shape[0] == 42 and float(np.abs(Zb[:, -1] - 1.0).max()) < 1e-5, \
         "the banked emission's homogeneous coordinate is not pinned to 1"
-    log(f"[gate] bias-free identities asserted; emission run {EMISSION_RUN} {Zb.shape}")
+    # ---- GATE: the EMISSIONS' provenance, not merely their shape ---------------------------------
+    # A 42x129 array under the key `zbar_full_seed1` is not by itself the pilot's seed-1 full-policy
+    # emission. Pin it to the C1 run that produced it: the commit C1_PILOT.md records, and the two
+    # criterion numbers that run reported -- both re-derived here from the npz's OWN per-state
+    # cosines, so the json and the npz have to agree with each other as well as with the constants.
+    with open(C1_JSON) as _fh:
+        c1j = json.load(_fh)
+    c1r = c1j["stage1"]["runs"]["full/seed1"]
+    med_json = float(c1r["criterion1_cos_target"]["median"])
+    med_npz = float(np.median(np.asarray(npz["cos_full_seed1"], np.float64)))
+    prov = {"c1_json": os.path.relpath(C1_JSON, _ROOT),
+            "c1_git_rev": c1j["git"]["rev"], "c1_git_rev_pinned": C1_GIT_REV,
+            "c1_checkpoint_sha256": c1j["checkpoint"]["sha256"],
+            "full_seed1_median_cos_json": med_json,
+            "full_seed1_median_cos_from_npz": med_npz,
+            "full_seed1_median_cos_pinned": C1_FULL_SEED1_MEDIAN_COS,
+            "full_seed1_mean_cos_json": float(c1r["criterion1_cos_target"]["mean"]),
+            "full_seed1_same_nearest_json": float(c1r["criterion2_same_nearest_bank_question"])}
+    assert c1j["git"]["rev"] in C1_ACCEPTED_REVS, (
+        f"c1_pilot.json was produced at {c1j['git']['rev']}, which is not one of the accepted C1 "
+        f"commits {C1_ACCEPTED_REVS} -- add it deliberately after checking the criterion numbers")
+    assert c1j["checkpoint"]["sha256"] == C1.C0_CKPT_SHA, "c1_pilot.json is on another checkpoint"
+    assert abs(med_json - C1_FULL_SEED1_MEDIAN_COS) < 1e-12, (
+        f"c1_pilot.json's full/seed1 median cos is {med_json!r}, pinned "
+        f"{C1_FULL_SEED1_MEDIAN_COS!r}")
+    assert abs(med_npz - med_json) < 1e-6, (
+        f"the npz's own full/seed1 cosines median {med_npz!r} disagrees with the json {med_json!r} "
+        "-- the emission array and the reported run are not the same object")
+    assert abs(float(c1r["criterion1_cos_target"]["mean"]) - C1_FULL_SEED1_MEAN_COS) < 1e-12
+    assert abs(float(c1r["criterion2_same_nearest_bank_question"])
+               - C1_FULL_SEED1_SAME_NEAREST) < 1e-12
+    log(f"[gate] bias-free identities asserted; emission run {EMISSION_RUN} {Zb.shape} traced to "
+        f"C1 rev {C1_GIT_REV[:8]} (median cos {med_json:.7f}, npz agrees to {abs(med_npz-med_json):.2g})")
 
     # ---- the prefix pool indices (c1_pilot writes them during precompute; we only need the ids) --
     for s in states:
@@ -307,18 +370,38 @@ def run(args):
     # ---- control (ii): spectrum-matched random vectors -------------------------------------------
     # Match the real points' covariance SPECTRUM (eigenbasis + eigenvalues of their empirical
     # covariance about their own mean, so with n=10 the draw lives in the same <=9-dim subspace and
-    # carries the same shared component), then rescale each draw to its partner's norm.
+    # carries the same shared component), then rescale each draw to its partner's length.
+    #
+    # ★ THE RESCALE HAPPENS IN THE MEAN-REMOVED SPACE (repair 2026-08-24). Every cosine this stage
+    # reports -- the packet anchors, and the whole re-encode comparison downstream -- is taken after
+    # the BANK MEAN `mu` is subtracted. The bank mean is enormous relative to the spread (||mu|| is
+    # ~0.98x the mean entry norm; the bank's raw mean pairwise cosine is 0.96 against 0.0018
+    # centred), so scaling a draw to match ||v|| in the RAW space says almost nothing about its
+    # length in the space it is measured in, and can leave the control systematically shorter or
+    # longer than the real point it is standing in for -- exactly the axis the comparison reads.
+    # The fix: draw, subtract mu, match ||v - mu|| to the partner's, add mu back. `--legacy_rescale`
+    # reproduces the original raw-space behaviour, and exists only to prove that the committed code
+    # is the code that produced the banked v1 packets.
     Pm = P.mean(0)
     Xc = P - Pm
     U_, S_, Vt_ = np.linalg.svd(Xc, full_matrices=False)
     lam = (S_ ** 2) / max(len(P) - 1, 1)
     G = rng.standard_normal((N_STATES, len(lam)))
     R = Pm + (G * np.sqrt(lam)) @ Vt_
-    R *= (np.linalg.norm(P, axis=1) / np.linalg.norm(R, axis=1))[:, None]
+    if args.legacy_rescale:
+        R *= (np.linalg.norm(P, axis=1) / np.linalg.norm(R, axis=1))[:, None]
+    else:
+        Rc = R - mu
+        Pc_ = P - mu
+        Rc *= (np.linalg.norm(Pc_, axis=1) / np.linalg.norm(Rc, axis=1))[:, None]
+        R = Rc + mu
     spec = {"n_real_points": int(N_STATES), "rank": int((lam > 1e-12).sum()),
+            "rescale_space": "raw (LEGACY)" if args.legacy_rescale else "mean-removed",
             "eigenvalues": [float(x) for x in lam],
             "real_norms": [float(x) for x in np.linalg.norm(P, axis=1)],
-            "random_norms": [float(x) for x in np.linalg.norm(R, axis=1)]}
+            "random_norms": [float(x) for x in np.linalg.norm(R, axis=1)],
+            "real_norms_mean_removed": [float(x) for x in np.linalg.norm(P - mu, axis=1)],
+            "random_norms_mean_removed": [float(x) for x in np.linalg.norm(R - mu, axis=1)]}
 
     # ---- assemble the 30 items, then permute the ids ----------------------------------------------
     items = []
@@ -363,7 +446,7 @@ def run(args):
     meta_block = {
         "_comment": ("QUARANTINE NOTICE. These packets are the blinded input to the C3 PoC "
                      "renderer and judge (docs/design/DS_C3_POC.md). The ground-truth labels live "
-                     "in KEY.json in this same directory and MUST NOT be read by any agent that "
+                     "in c3_poc/_quarantine/KEY.json and MUST NOT be read by any agent that "
                      "renders or judges these packets -- doing so voids the blinding and the run. "
                      "Nothing in this file says which packets are real and which are controls."),
         "analysis": "paperC_C3_poc_stage1_extraction",
@@ -375,17 +458,24 @@ def run(args):
                   "cosines below are MEAN-REMOVED (the bank mean direction is subtracted from both "
                   "sides before the cosine)" % Kbank.shape[1]),
         "bank": {"n_entries": N_BANK, "n_items": ni, "n_concepts": N_BANK - ni},
-        "git": {"rev": git("rev-parse", "HEAD"),
-                "branch": git("rev-parse", "--abbrev-ref", "HEAD")},
+        "git": GB,
+        "asserts": {"pool2full_index_map_max_abs_err": map_err,
+                    "c1_emission_provenance": prov},
         "checkpoint": {"path": os.path.relpath(args.ckpt, _ROOT), "sha256": sha},
+        "random_control_rescale_space": spec["rescale_space"],
         "seed": SEED}
-    with open(os.path.join(OUT_DIR, "packets.json"), "w", encoding="utf-8") as fh:
+    p_packets = os.path.join(OUT_DIR, f"packets{args.tag}.json")
+    with open(p_packets, "w", encoding="utf-8") as fh:
         json.dump({"metadata": meta_block, "packets": packets}, fh, indent=1)
 
-    with open(os.path.join(OUT_DIR, "KEY.json"), "w", encoding="utf-8") as fh:
-        json.dump({"_comment": ("GROUND TRUTH -- QUARANTINED. Never shown to the renderer or the "
-                                "judge subagents (docs/design/DS_C3_POC.md, 'Blinding = separation "
-                                "of agents + label file quarantine')."),
+    os.makedirs(QUARANTINE, exist_ok=True)
+    p_key = os.path.join(QUARANTINE, f"KEY{args.tag}.json")
+    with open(p_key, "w", encoding="utf-8") as fh:
+        json.dump({"_comment": ("GROUND TRUTH -- QUARANTINED, and since 2026-08-24 quarantined at "
+                                "the PATH level too: this file lives in c3_poc/_quarantine/, not "
+                                "beside packets.json. Never shown to the renderer or the judge "
+                                "subagents (docs/design/DS_C3_POC.md, 'Blinding = separation of "
+                                "agents + label file quarantine')."),
                    "analysis": "paperC_C3_poc_stage1_key",
                    "seed": SEED, "n_packets": len(key),
                    "counts": {t: sum(1 for k in key if k["type"] == t)
@@ -397,9 +487,12 @@ def run(args):
                    "states_whose_sid_path_did_not_match_the_prefix": n_path_bad,
                    "packets": key}, fh, indent=1, default=float)
 
-    np.savez_compressed(os.path.join(OUT_DIR, "c3_poc_vectors.npz"), **vecs)
-    log(f"[done] wrote {OUT_DIR}: packets.json ({len(packets)}), KEY.json, c3_poc_vectors.npz "
-        f"({len(vecs)} vectors, dim {Kbank.shape[1]})")
+    p_vec = os.path.join(OUT_DIR, f"c3_poc_vectors{args.tag}.npz")
+    savez_atomic(p_vec, **vecs)
+    log(f"[done] wrote {os.path.basename(p_packets)} ({len(packets)}), "
+        f"_quarantine/{os.path.basename(p_key)}, {os.path.basename(p_vec)} "
+        f"({len(vecs)} vectors, dim {Kbank.shape[1]}); random control rescaled in "
+        f"{spec['rescale_space']} space")
     if n_path_bad:
         log(f"[WARN] {len(n_path_bad)} state(s) whose sid path length != prefix length: {n_path_bad}")
     return {"packets": packets, "key": key}
@@ -411,6 +504,14 @@ def main():
     ap.add_argument("--snapshot", default=None)
     ap.add_argument("--concept_ckpt", default=None)
     ap.add_argument("--threads", type=int, default=3)
+    ap.add_argument("--allow_dirty", action="store_true",
+                    help="EMERGENCY ONLY: run with an uncommitted src/instrument (HARD RULE 10)")
+    ap.add_argument("--legacy_rescale", action="store_true",
+                    help="reproduce the pre-2026-08-24 RAW-space rescale of the random control. "
+                         "Only use to prove byte-identity with the banked v1 packets.")
+    ap.add_argument("--tag", default="",
+                    help="suffix for the output filenames (packets<tag>.json, KEY<tag>.json, "
+                         "c3_poc_vectors<tag>.npz); empty writes the banked v1 paths")
     args = ap.parse_args()
     from strategy_channel_suite import CERT_TOWER, CERT_CONC
     args.snapshot = args.snapshot or CERT_TOWER

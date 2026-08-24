@@ -60,17 +60,48 @@ os.environ.setdefault("OPENBLAS_NUM_THREADS", _NT)
 import json
 import time
 import copy
+import hashlib
 import argparse
 import numpy as np
 import torch
 
 from policy_net import Policy, build_phi, load_traj, make_batch, log, TOTAL_L, OUTDIR
-from c0_geometry import (PAPERC, E1_CKPT, VAL_M0_FULL, N_BANK, sha256, git, bank_vectors, augment,
-                         geometry, bilinear_cos, dist)
+from c0_geometry import (PAPERC, E1_CKPT, VAL_M0_FULL, VAL_M0_TAIL, N_BANK, sha256, git, git_block,
+                         savez_atomic, index_map_assert, bank_vectors, augment, geometry,
+                         bilinear_cos, dist, wilson, sign_test)
 
 C0_JSON = os.path.join(PAPERC, "c0_geometry.json")
 C0_CKPT_SHA = "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
 COLDTREE = os.path.join(OUTDIR, "coldtree_v2.json")
+
+
+def cohort_hash(rows):
+    """sha256 of the state's cohort, as a canonical sorted list of user rows.
+
+    A cohort is identified in the JSON by its SIZE only, and a size collides freely; memory
+    `cross-population-index-match-is-silent` is the record of what that costs. This pins the
+    membership so a later stage can assert it is looking at the same users, not merely as many.
+    """
+    r = sorted(int(x) for x in rows)
+    h = hashlib.sha256(",".join(str(x) for x in r).encode()).hexdigest()
+    return {"n": len(r), "sha256_sorted_rows": h, "min": r[0], "max": r[-1]}
+
+
+def load_c0_floor(path=C0_JSON, ckpt_sha=C0_CKPT_SHA):
+    """The C0 random floor, imported ONLY from a c0_geometry.json measured on the SAME checkpoint.
+
+    C1 quotes C0's floor in every Stage 0 table. Reading it out of whatever json happens to sit at
+    the path would let a floor measured on a different checkpoint travel silently into a C1 table,
+    so the checkpoint sha is asserted at import time."""
+    with open(path) as fh:
+        c0 = json.load(fh)
+    got = c0["checkpoint"]["sha256"]
+    assert got == ckpt_sha, (
+        f"{os.path.basename(path)} was measured on checkpoint {got}, not the C1 checkpoint "
+        f"{ckpt_sha} -- refusing to import its random floor")
+    return {"random_floor": c0["arms"]["pool"]["random_floor"],
+            "source": os.path.relpath(path, _ROOT),
+            "c0_checkpoint_sha256": got, "c0_git_rev": c0["git"].get("rev")}
 
 
 # ============================================================================ the 42 states
@@ -263,6 +294,34 @@ def emit_all(pol, F, batch=4096):
 
 
 # ============================================================================ the fine-tune
+def reinit_head_q(pol, init_seed):
+    """Fresh random init of `head.q` -- the emission head this pilot actually fits.
+
+    WHY (hostile review, 2026-08-24). Criterion 3 as first run varied ONLY the minibatch order:
+    every seed started from the same banked `head.q` weights, so a pairwise cosine of 0.9999 was
+    close to arithmetically guaranteed and the criterion tested almost nothing. Re-initialising
+    `head.q` per seed makes it a real question -- do INDEPENDENT fits of the same 42 targets agree
+    on the emitted point? The encoder is NOT re-initialised in either arm: it is a pretrained state
+    encoder, and randomising it would change the object under test from "fine-tune the head" to
+    "train a policy from scratch on 42 examples".
+
+    The values are PyTorch's own `nn.Linear` default (uniform +-1/sqrt(fan_in) for both weight and
+    bias), drawn from an explicit generator so the init is a function of `init_seed` alone.
+    """
+    g = torch.Generator().manual_seed(int(init_seed))
+    n = 0
+    with torch.no_grad():
+        for sub in pol.head.q.modules():
+            if isinstance(sub, torch.nn.Linear):
+                bound = 1.0 / float(sub.weight.shape[1]) ** 0.5
+                sub.weight.copy_((torch.rand(sub.weight.shape, generator=g) * 2 - 1) * bound)
+                if sub.bias is not None:
+                    sub.bias.copy_((torch.rand(sub.bias.shape, generator=g) * 2 - 1) * bound)
+                n += 1
+    assert n > 0, "head.q contains no Linear layer to re-initialise"
+    return n
+
+
 def finetune(pol, F, Tt, w_row, arm, seed, epochs, batch, lr):
     """Loss `1 - cos(z_hat, target)` at the states, each state weighted equally regardless of cohort
     size. `head.k` / `head.b` receive no gradient from this loss by construction (the target is a
@@ -364,6 +423,9 @@ def run(args):
     t00 = time.time()
     os.makedirs(PAPERC, exist_ok=True)
     torch.manual_seed(98765); np.random.seed(98765)
+    GB = git_block(allow_dirty=args.allow_dirty, threads=args.threads)     # HARD RULE 10, first
+    log(f"[hardrule10] src/instrument clean={GB['src_instrument_clean']} rev={GB['rev'][:8]} "
+        f"threads={GB['threads']}")
 
     blob = torch.load(args.ckpt, map_location="cpu")
     assert blob["arch"] == "equivariant" and blob["state"] == "both"
@@ -378,7 +440,8 @@ def run(args):
     assert len(rows) == 10000
     f0, t0_ = genv_mean(E, [], rows)
     assert f0 == VAL_M0_FULL, f"CANONICAL SNAP FAILED: {f0!r}"
-    log(f"[gate] canonical m=0 snap full={f0!r} -- exact")
+    assert t0_ == VAL_M0_TAIL, f"CANONICAL SNAP FAILED (tail): {t0_!r}"
+    log(f"[gate] canonical m=0 snap full={f0!r} tail={t0_!r} -- both exact")
 
     pool = [(int(a), int(b)) for a, b in blob["pool"]]
     pool_e, _, _ = build_pool(E, 500, 500)
@@ -398,6 +461,8 @@ def run(args):
     pol0.load_state_dict(blob["model"]); pol0.eval()
     Ebank, Kbank = bank_vectors(pol0, phi_full)
     Epool, Kpool = bank_vectors(pol0, phi_t)
+    _pool_map_err = index_map_assert(Ebank, pool2full, Epool)
+    log(f"[gate] pool2full maps the pool onto the bank exactly (max|diff| {_pool_map_err:g})")
     log(f"[bank] {Ebank.shape[0]:,} x {Ebank.shape[1]} (d_k={Kbank.shape[1]} + bias coordinate); "
         f"b(phi) over the bank: median {np.median(Ebank[:, -1]):.3f} "
         f"[{Ebank[:, -1].min():.3f}, {Ebank[:, -1].max():.3f}]")
@@ -406,6 +471,9 @@ def run(args):
     assert Dva["pool"] == pool
     reg, extra = load_the_42(pool_index, Dva)
     states = reg + extra
+    _c0 = load_c0_floor()
+    log(f"[c0] random floor imported from {_c0['source']} (checkpoint sha asserted, "
+        f"c0 rev {str(_c0['c0_git_rev'])[:8]})")
     log(f"[states] registered 42 = {sum(s['group'] == 'deep_sweep' for s in reg)} coldtree_v2-mapped "
         f"deep sweeps + {sum(s['group'] == 'single_pick_heap' for s in reg)} single-pick heaps; "
         f"descriptive secondary {len(extra)}")
@@ -414,16 +482,20 @@ def run(args):
            "citable": True, "test_touched": False, "split": "validation",
            "checkpoint": {"path": os.path.relpath(args.ckpt, _ROOT), "sha256": sha,
                           "epoch": int(blob["epoch"]), "val_full": float(blob["val_full"])},
-           "git": {"rev": git("rev-parse", "HEAD"),
-                   "branch": git("rev-parse", "--abbrev-ref", "HEAD")},
-           "c0_random_floor": json.load(open(C0_JSON))["arms"]["pool"]["random_floor"],
+           "git": GB,
+           "asserts": {"pool2full_index_map_max_abs_err": _pool_map_err},
+           "c0_floor_import": _c0,
+           "c0_random_floor": _c0["random_floor"],
            "states": {"n_registered": len(reg), "n_secondary_unmapped": len(extra),
                       "cohort_users_registered": int(sum(len(s["rows"]) for s in reg)),
                       "composition": [{"sid": s["sid"], "group": s["group"],
                                        "n_users": len(s["rows"]), "prefix_len": len(s["prefix"]),
-                                       "n_candidates": s["n_measured_in_pool"]} for s in states]},
+                                       "n_candidates": s["n_measured_in_pool"],
+                                       "registered": bool(s.get("registered", False)),
+                                       "cohort": cohort_hash(s["rows"])} for s in states]},
            "stage0": {}, "stage1": {}}
-    p_json = os.path.join(PAPERC, "c1_pilot.json")
+    p_json = os.path.join(PAPERC, f"c1_pilot{args.out_tag}.json")
+    p_npz = os.path.join(PAPERC, f"c1_pilot{args.out_tag}_per_state.npz")
     npz = {}
 
     def flush():
@@ -431,7 +503,7 @@ def run(args):
         with open(p_json + ".tmp", "w") as fh:
             json.dump(out, fh, indent=1, default=float)
         os.replace(p_json + ".tmp", p_json)
-        np.savez_compressed(os.path.join(PAPERC, "c1_pilot_per_state.npz"), **npz)
+        savez_atomic(p_npz, **npz)
 
     # ---- precompute the states' features (needed by Stage 0 only for the prefix indices) ---------
     log("[precompute] building per-user state features for all states")
@@ -563,6 +635,9 @@ def run(args):
         res[key] = r
         npz[f"zbar_{key.replace('/', '_')}"] = ev["z_hat_bar"]
         npz[f"cos_{key.replace('/', '_')}"] = ev["cos_target_user_mean"]
+        # per-state criterion-2b indicator, so the rate can carry an interval and the states that
+        # miss can be named instead of only counted
+        npz[f"samenearest_{key.replace('/', '_')}"] = (Ggot["snap"] == tgt_snap)
         out["stage1"]["runs"] = res
         flush()
         log(f"[{key}] median cos(z_hat,target) {r['criterion1_cos_target']['median']:.5f} "
@@ -614,6 +689,119 @@ def run(args):
             f" | shuffle true>shuffled {reading[arm]['shuffle_control']['true_fits_better']}")
     out["stage1"]["registered_reading"] = reading
     flush()
+
+    # ============================================================= REPAIR STATISTICS (2026-08-24)
+    # Banked SEPARATELY from `stage1`, which is left exactly as it was first run and read.
+    rep = {"_comment": ("Added by the 2026-08-24 hostile-review repair pass. Nothing in `stage1` "
+                        "is modified; these are intervals and paired tests the original run "
+                        "reported as bare rates."),
+           "criterion2b_wilson": {}, "true_vs_shuffle_paired": {}}
+    for arm in ("head_only", "full"):
+        for s in args.seeds:
+            k = f"{arm}/seed{s}"
+            ind = np.asarray(npz[f"samenearest_{k.replace('/', '_')}"], bool)
+            rep["criterion2b_wilson"][k] = dict(
+                wilson(int(ind.sum()), int(len(ind))),
+                states_missing=[reg[i]["sid"] for i in np.flatnonzero(~ind)])
+        sk = f"{arm}/seed{args.seeds[0]}/SHUFFLED"
+        ind = np.asarray(npz[f"samenearest_{sk.replace('/', '_')}"], bool)
+        rep["criterion2b_wilson"][sk] = dict(
+            wilson(int(ind.sum()), int(len(ind))),
+            states_missing=[reg[i]["sid"] for i in np.flatnonzero(~ind)])
+        # paired, per state: its own target vs the target the derangement handed it
+        t = np.asarray(npz[f"cos_{arm}_seed{args.seeds[0]}"], np.float64)
+        sh = np.asarray(npz[f"cos_{sk.replace('/', '_')}"], np.float64)
+        rep["true_vs_shuffle_paired"][arm] = {
+            "seed": args.seeds[0], "n_states": int(len(t)),
+            "n_states_true_better": int((t > sh).sum()),
+            "n_states_shuffled_better": int((sh > t).sum()),
+            "sign_test": sign_test(t, sh),
+            "per_state_diff": dist(t - sh),
+            "note": ("paired within state: cos(emission, OWN target) for the true run against "
+                     "cos(emission, DERANGED target) for the shuffled run, same 42 states")}
+        st = rep["true_vs_shuffle_paired"][arm]
+        log(f"[repair/{arm}] criterion2b (seed{args.seeds[0]}) "
+            f"{rep['criterion2b_wilson'][f'{arm}/seed{args.seeds[0]}']['k']}/42 "
+            f"Wilson [{rep['criterion2b_wilson'][f'{arm}/seed{args.seeds[0]}']['lo']:.4f}, "
+            f"{rep['criterion2b_wilson'][f'{arm}/seed{args.seeds[0]}']['hi']:.4f}] | "
+            f"true>shuffled at {st['n_states_true_better']}/42 states, sign-test p "
+            f"{st['sign_test']['p_two_sided']:.3g}")
+    out["stage1_repair_stats"] = rep
+    flush()
+
+    # ============================================================= STAGE 1 v2 -- criterion 3, real
+    # Criterion 3 re-run with a DIFFERENT `head.q` INIT per seed as well as a different data order
+    # (see `reinit_head_q`). Banked as its own block; `stage1` is untouched.
+    if args.init_seeds:
+        log("#" * 100)
+        log("# STAGE 1 v2 -- criterion 3 with independent head.q inits (not just data orders)")
+        v2 = {"_comment": ("Criterion 3 as registered varied only the minibatch order from one "
+                           "shared init, so its 0.9999 was near-guaranteed. Here each seed "
+                           "re-initialises head.q (PyTorch's own nn.Linear default, drawn from "
+                           "that seed's generator) AND uses that seed's data order. The encoder is "
+                           "not re-initialised in either arm."),
+              "init_seeds": list(args.init_seeds), "runs": {}, "reading": {}}
+        for arm in ("head_only", "full"):
+            for isd in args.init_seeds:
+                key = f"{arm}/init{isd}"
+                log("-" * 90)
+                log(f"[v2 run] {key}")
+                pol = copy.deepcopy(pol0)
+                n_lin = reinit_head_q(pol, isd)
+                hist = finetune(pol, F_reg, Tt_reg, w_row_reg, arm, isd, args.epochs, args.batch,
+                                args.lr)
+                ev = per_state_eval(pol, F_reg, reg, Tt_reg, TKt_reg)
+                Ggot = {k: np.asarray(v) for k, v in state_geometry(
+                    ev["z_hat_bar"], reg, Ebank, pool2full, chunk=args.chunk, label=key).items()}
+                Ggot["cos1_bilinear"] = bilinear_cos(ev["u_bar"], Kbank, Ggot["snap"])
+                same = (Ggot["snap"] == G0["snap"][:len(reg)])
+                v2["runs"][key] = {
+                    "arm": arm, "init_seed": isd, "n_linear_reinit": n_lin,
+                    "final_weighted_loss": float(hist[-1]),
+                    "loss_history": [float(x) for x in hist],
+                    "criterion1_cos_target": dist(ev["cos_target_user_mean"]),
+                    "criterion2_abs_cos1_diff_vs_target":
+                        dist(np.abs(Ggot["cos1"] - G0["cos1"][:len(reg)])),
+                    "criterion2_same_nearest_bank_question": float(same.mean()),
+                    "criterion2b_wilson": wilson(int(same.sum()), int(len(same))),
+                    "within_state_cos_to_mean": dist(ev["within_state_cos_to_mean"]),
+                    "emitted_geometry": geom_summary(Ggot)}
+                npz[f"zbar_{key.replace('/', '_')}"] = ev["z_hat_bar"]
+                npz[f"cos_{key.replace('/', '_')}"] = ev["cos_target_user_mean"]
+                out["stage1_v2"] = v2
+                flush()
+                log(f"[{key}] median cos(z_hat,target) "
+                    f"{v2['runs'][key]['criterion1_cos_target']['median']:.5f} | same nearest "
+                    f"{v2['runs'][key]['criterion2_same_nearest_bank_question']:.4f}")
+            Zs = [npz[f"zbar_{arm}_init{s}"] for s in args.init_seeds]
+            pw = []
+            for a in range(len(Zs)):
+                for b in range(a + 1, len(Zs)):
+                    na = Zs[a] / (np.linalg.norm(Zs[a], axis=1, keepdims=True) + 1e-30)
+                    nb = Zs[b] / (np.linalg.norm(Zs[b], axis=1, keepdims=True) + 1e-30)
+                    pw.append((na * nb).sum(1))
+            pw = np.concatenate(pw)
+            # the same pairing, but between an init-varied run and the ORIGINAL shared-init runs
+            v2["reading"][arm] = {
+                "criterion3_pairwise_init_cos": dist(pw),
+                "criterion3_pass": bool(np.median(pw) >= 0.95),
+                "criterion3_original_shared_init_median":
+                    reading[arm]["criterion3_pairwise_seed_cos"]["median"],
+                "criterion1_init_avg_mean_cos": float(np.mean(
+                    [v2["runs"][f"{arm}/init{s}"]["criterion1_cos_target"]["mean"]
+                     for s in args.init_seeds])),
+                "criterion2_same_nearest_init_avg": float(np.mean(
+                    [v2["runs"][f"{arm}/init{s}"]["criterion2_same_nearest_bank_question"]
+                     for s in args.init_seeds]))}
+            log("=" * 90)
+            log(f"[v2 READING / {arm}] criterion 3 with real inits: median pairwise cos "
+                f"{np.median(pw):.5f} "
+                f"({'PASS' if v2['reading'][arm]['criterion3_pass'] else 'FAIL'}) vs "
+                f"{reading[arm]['criterion3_pairwise_seed_cos']['median']:.5f} shared-init")
+            out["stage1_v2"] = v2
+            flush()
+
+    flush()
     log(f"[done] wrote {p_json} in {out['minutes']:.1f} minutes")
     return out
 
@@ -626,14 +814,24 @@ def main():
     ap.add_argument("--batch", type=int, default=4096)
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--seeds", default="1,2,3")
+    ap.add_argument("--init_seeds", default="11,12,13",
+                    help="Stage 1 v2: seeds that re-initialise head.q AND set the data order, so "
+                         "criterion 3 varies the init and not only the minibatch permutation. "
+                         "Empty string disables the v2 block.")
+    ap.add_argument("--out_tag", default="",
+                    help="suffix for the output files (c1_pilot<tag>.json / "
+                         "c1_pilot<tag>_per_state.npz); empty writes the banked paths")
     ap.add_argument("--n_collateral", type=int, default=1000)
     ap.add_argument("--chunk", type=int, default=200)
     ap.add_argument("--stage0_only", action="store_true")
     ap.add_argument("--snapshot", default=None)
     ap.add_argument("--concept_ckpt", default=None)
     ap.add_argument("--threads", type=int, default=3)
+    ap.add_argument("--allow_dirty", action="store_true",
+                    help="EMERGENCY ONLY: run with an uncommitted src/instrument (HARD RULE 10)")
     args = ap.parse_args()
     args.seeds = [int(s) for s in args.seeds.split(",") if s]
+    args.init_seeds = [int(s) for s in args.init_seeds.split(",") if s.strip()]
     from strategy_channel_suite import CERT_TOWER, CERT_CONC
     args.snapshot = args.snapshot or CERT_TOWER
     args.concept_ckpt = args.concept_ckpt or CERT_CONC
