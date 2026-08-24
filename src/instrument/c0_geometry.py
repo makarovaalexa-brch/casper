@@ -163,15 +163,39 @@ def savez_atomic(path, **arrays):
     return path
 
 
-def index_map_assert(Ebank, pool2full, Epool):
+def index_map_assert(Ebank, pool2full, Epool, tol=1e-4):
     """The 1,000-candidate pool's rows must BE the corresponding full-bank rows.
 
     `pool2full` is the only thing that ties a pool index to a bank index, and every geometry number
     in Paper C is read through it. A silent off-by-one there would be invisible in every downstream
-    statistic, so it is asserted rather than trusted (memory: a partial index match is
-    indistinguishable from a small cohort)."""
-    d = float(np.abs(Ebank[pool2full] - Epool).max())
-    assert d == 0.0, f"pool2full does not map the pool onto the bank (max|diff| {d:g})"
+    statistic, so it is asserted rather than trusted (memory
+    `cross-population-index-match-is-silent`: a partial index match is indistinguishable from a
+    small cohort).
+
+    ★ WHY THIS IS NOT `max|diff| == 0`. `bank_vectors` evaluates the SAME `head.k` / `head.b` on a
+    19,390-row batch and on a 1,000-row batch, and float32 BLAS does not promise bit-identical
+    results across batch shapes -- measured here at 4.8e-07 on descriptors of order 1. Demanding
+    exact equality would test the linear-algebra backend, not the index map. So the check is done
+    in two parts, and the FIRST is the one that carries the meaning:
+
+      1. CORRESPONDENCE (exact, integer): for every pool row, the NEAREST bank row is exactly
+         `pool2full[j]`. An off-by-one, a channel swap or a stale pool fails this outright.
+      2. AGREEMENT: the residual is at float32 rounding scale (`tol`), not at signal scale.
+    """
+    A = np.asarray(Ebank, np.float64)
+    B = np.asarray(Epool, np.float64)
+    d = float(np.abs(A[pool2full] - B).max())
+    # squared distance from every pool row to every bank row, without materialising the difference
+    D = (A * A).sum(1)[None, :] - 2.0 * (B @ A.T) + (B * B).sum(1)[:, None]
+    nearest = np.argmin(D, axis=1)
+    bad = np.flatnonzero(nearest != np.asarray(pool2full, np.int64))
+    assert not len(bad), (
+        f"pool2full does not map the pool onto the bank: {len(bad)} of {len(B)} pool rows have a "
+        f"nearer bank row than the one they claim, e.g. "
+        f"{[(int(j), int(pool2full[j]), int(nearest[j])) for j in bad[:5]]}")
+    assert d < tol, (
+        f"pool2full's rows correspond, but the values disagree by {d:g} -- far above float32 "
+        f"rounding ({tol:g}). The two banks were not built from the same parameters.")
     return d
 
 
