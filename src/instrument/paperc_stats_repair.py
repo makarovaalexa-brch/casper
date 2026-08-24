@@ -284,21 +284,29 @@ def c0_mean_removed(env, Z, cos1_banked):
     snap = np.asarray(Z["pool_snap"], np.int64)
     A = Ebank.astype(np.float64)
     mu = A.mean(0)
-    zh = Zhat.astype(np.float64)
-    e = A[snap]
-    raw = ((zh * e).sum(1) / (np.linalg.norm(zh, axis=1) * np.linalg.norm(e, axis=1) + 1e-30))
-    d = float(np.abs(raw - np.asarray(cos1_banked, np.float64)).max())
-    assert d < 1e-5, (f"the regenerated emissions do not reproduce the banked cos1 (max|diff| {d:g})")
-    log(f"[c0/mean-removed] regenerated raw cos1 reproduces the banked column (max|diff| {d:g})")
-    zc = zh - mu
-    ec = e - mu
-    mr = ((zc * ec).sum(1) / (np.linalg.norm(zc, axis=1) * np.linalg.norm(ec, axis=1) + 1e-30))
-    # the same statistic for the random floor, so the new number has its own control
+    # the norm-matched random direction, for the floor of this same statistic
     rng = np.random.default_rng(SEED)
     R = rng.standard_normal(U.shape).astype(np.float32)
     R *= (np.linalg.norm(U, axis=1) / np.linalg.norm(R, axis=1))[:, None]
-    Rz = augment(R).astype(np.float64) - mu
-    mrr = ((Rz * ec).sum(1) / (np.linalg.norm(Rz, axis=1) * np.linalg.norm(ec, axis=1) + 1e-30))
+    Rhat = augment(R)
+    N = Zhat.shape[0]
+    raw = np.empty(N); mr = np.empty(N); mrr = np.empty(N)
+
+    def cosr(X, Y):
+        return (X * Y).sum(1) / (np.linalg.norm(X, axis=1) * np.linalg.norm(Y, axis=1) + 1e-30)
+
+    for st in range(0, N, 20000):                 # chunked: the box is shared, bound the peak
+        sl = slice(st, min(st + 20000, N))
+        e = A[snap[sl]]
+        zh = Zhat[sl].astype(np.float64)
+        raw[sl] = cosr(zh, e)
+        ec = e - mu
+        mr[sl] = cosr(zh - mu, ec)
+        mrr[sl] = cosr(Rhat[sl].astype(np.float64) - mu, ec)
+        del e, zh, ec
+    d = float(np.abs(raw - np.asarray(cos1_banked, np.float64)).max())
+    assert d < 1e-5, (f"the regenerated emissions do not reproduce the banked cos1 (max|diff| {d:g})")
+    log(f"[c0/mean-removed] regenerated raw cos1 reproduces the banked column (max|diff| {d:g})")
     log(f"[c0/mean-removed] ★ median mean-removed cos1 {np.median(mr):.5f} "
         f"(raw {np.median(raw):.5f}); norm-matched random direction against the SAME snapped "
         f"entry: {np.median(mrr):.5f}")
