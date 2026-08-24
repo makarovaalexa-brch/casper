@@ -25,11 +25,13 @@ within real/scrambled twin pairs it picked the real one and rejected its twin in
 
 ## Conclusions (Fable)
 
-1. **Registered prediction 2 CONFIRMED: fluency discriminates nothing.** The judge performed at or
-   below chance everywhere, and its stated heuristic (sharper wording = real) pointed the wrong
-   way — real packets were judged "real" *least* often (0.20). Rendered text alone carries no
-   signal about whether the underlying direction was genuine. This is the audit's premise
-   demonstrated on our own instrument.
+1. **[Amended 2026-08-24] Registered prediction 2 NOT CONTRADICTED — but the run was unpowered to
+   confirm it.** Judge 11/30 = 0.367, Wilson 95% CI [0.219, 0.545]: the data cannot exclude ~54%
+   accuracy, so "fluency discriminates nothing" is consistent with this run, not established by it
+   (HARD RULE 6). What remains suggestive: real packets were judged "real" *least* often (0.20 vs
+   0.60 scrambled / 0.50 random — all three intervals overlap), i.e. no evidence the judge's
+   textual heuristics track validity, and some that they anti-track. A powered version needs ~120
+   packets (±0.09).
 2. **The scrambled control CANNOT separate under variant (a) — structurally, and now measurably.**
    Real and scrambled re-encode identically (+0.528 vs +0.514; anchor rows identical *by
    construction*). Code review before unblinding identified why: the packets scramble
@@ -48,10 +50,12 @@ within real/scrambled twin pairs it picked the real one and rejected its twin in
    because their anchors are their true nearest neighbours and the spectrum-matched draw lives in
    the real points' own 9-dim subspace. The rendered question tracks its anchor-reference tightly
    (ahead of it in 14/30); the render step neither adds nor destroys much.
-4. **The one live signal is the renderer's own difficulty score.** Both renderability-1 packets are
-   RANDOM points, and random averages 2.60 vs 3.20 — the blind renderer felt the incoherence the
-   blind judge could not see in the finished text. A Baum–Lang answerability probe ("can this even
-   be asked?") is worth a row in the real C3; grading the finished text is not.
+4. **[Demoted 2026-08-24 to a WATCH-ITEM, same standard as conclusion 5.]** The renderer's
+   difficulty score *may* carry signal — both renderability-1 packets are random, and random
+   averages 2.60 vs 3.20 — but that is an n=2 observation (P≈0.11 under exchangeability) on a
+   self-rated ordinal from the agent that wrote the text, and it is the comparison most exposed to
+   the (now-known-broken) random arm. The Baum–Lang answerability probe stays in next-steps on its
+   own merits, not as a finding of this run.
 5. **Blend targets re-encoded better than emissions** (means 0.640 vs 0.415; every emission packet
    self-scored renderability 2) — but kind is confounded with state in this draw (alternation), so
    this is a watch-item, not a finding.
@@ -70,3 +74,27 @@ The C3/C4 harness now exists end to end (blinding protocol, re-encode bridge wit
 alignment, anchor-reference bound), and the baseline row's structural weakness is measured rather
 than asserted. The next build is variant (b) — the trained adapter — whose entire justification
 this PoC just demonstrated empirically.
+
+## REPAIRED READING (2026-08-24) — Fable, from `experiments/paperC/c3_poc/join.json` + `byte_identity_check.json` (commit 019c060)
+
+1. **The headline table now has a committed producer** (`c3_poc_join.py` → `join.json`) and
+   intervals. The paired real−scrambled re-encode difference is **median +0.0087, real greater at
+   5/10, sign test p = 0.727** — the honest form of "the scrambled arm cannot separate". On the
+   median, random (+0.486) is not below real (+0.472); the mean gap was carried by the two
+   artifact packets below. Bolding of the mean column is retracted.
+2. **The random arm's geometry was a code bug, now fixed at source.** The spectrum-matched draw was
+   rescaled in raw space but measured mean-removed: the control ran at 1.84× (up to 9.71×) the
+   length of the point it stood in for *in the space every cosine is read in*, while matching the
+   raw norm exactly — which is why nothing flagged it. Packets ids 13/20 (the "tail packets" of the
+   original conclusion 3) are artifacts of this. `packets_v2.json` carries the corrected draw
+   (rescale in the mean-removed space) but has NOT been rendered or judged; every number in this
+   doc describes the v1 pipeline. Any rerun starts from v2 with scrambled partners from a disjoint
+   point set.
+3. **Provenance:** the run-rev vs land-rev gap found by the harness review is closed — the
+   committed extract/re-encode scripts reproduce the banked packets and re-encode rows exactly
+   (payload-identity, `byte_identity_check.json`); renderer/judge provenance is banked in
+   `provenance.json`; `KEY.json` moved to `_quarantine/`.
+4. **Net standing of the PoC after all amendments:** a pipeline demonstration with zero functioning
+   controls and an unpowered judge — its two durable products are the harness itself and the
+   structural finding that variant (a)'s correspondence control cannot be constructed. Both feed
+   C3B; no comparison row from this run may be quoted as evidence.
