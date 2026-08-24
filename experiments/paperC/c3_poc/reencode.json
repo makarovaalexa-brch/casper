@@ -22,6 +22,15 @@
  },
  "asserts": {
   "tag_column_aligned_to_sh_tags_and_packet_channel": true,
+  "concept_column_rederived_from_raw_genome": true,
+  "concept_column_rederivation": {
+   "genome_rows_streamed": 15584448,
+   "n_catalog_items": 18359,
+   "min_relevance": 0.5,
+   "min_members": 30,
+   "n_tags_above_relevance": 1127,
+   "n_tags_kept": 1031
+  },
   "n_concepts": 1031,
   "banked_anchors_reproduced_for_all_packets": true,
   "max_abs_anchor_cosine_diff": 0.0
@@ -36,8 +45,24 @@
   "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
  },
  "git": {
-  "rev": "5097801ac741e844d8b1e9627c6f97d9fe65def1",
-  "branch": "recommender-improvement"
+  "rev": "dfabe3f2af50f0b729e944a4bcc10c32217b6de3",
+  "branch": "recommender-improvement",
+  "status_short_src": "",
+  "src_instrument_dirty": [],
+  "src_instrument_clean": true,
+  "allow_dirty_flag": false,
+  "threads": 4,
+  "thread_env": {
+   "OMP_NUM_THREADS": "4",
+   "MKL_NUM_THREADS": "4",
+   "OPENBLAS_NUM_THREADS": "4"
+  },
+  "torch_num_threads": 4
+ },
+ "inputs": {
+  "packets": "packets.json",
+  "renders": "renders.json",
+  "vectors": "c3_poc_vectors.npz"
  },
  "n_packets": 30,
  "non_encodable_ids": [],

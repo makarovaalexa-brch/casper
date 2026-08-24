@@ -1,0 +1,2182 @@
+{
+ "metadata": {
+  "_comment": "QUARANTINE NOTICE. These packets are the blinded input to the C3 PoC renderer and judge (docs/design/DS_C3_POC.md). The ground-truth labels live in c3_poc/_quarantine/KEY.json and MUST NOT be read by any agent that renders or judges these packets -- doing so voids the blinding and the run. Nothing in this file says which packets are real and which are controls.",
+  "analysis": "paperC_C3_poc_stage1_extraction",
+  "design_sheet": "docs/design/DS_C3_POC.md",
+  "produced_by": "src/instrument/c3_poc_extract.py",
+  "citable": true,
+  "test_touched": false,
+  "split": "validation",
+  "n_packets": 30,
+  "space": "bias-free k(phi) -- the first 128 coordinates of C0's homogeneous e_q; cosines below are MEAN-REMOVED (the bank mean direction is subtracted from both sides before the cosine)",
+  "bank": {
+   "n_entries": 19390,
+   "n_items": 18359,
+   "n_concepts": 1031
+  },
+  "git": {
+   "rev": "dfabe3f2af50f0b729e944a4bcc10c32217b6de3",
+   "branch": "recommender-improvement",
+   "status_short_src": "",
+   "src_instrument_dirty": [],
+   "src_instrument_clean": true,
+   "allow_dirty_flag": false,
+   "threads": 4,
+   "thread_env": {
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4",
+    "OPENBLAS_NUM_THREADS": "4"
+   },
+   "torch_num_threads": 4
+  },
+  "asserts": {
+   "pool2full_index_map_max_abs_err": 4.76837158203125e-07,
+   "c1_emission_provenance": {
+    "c1_json": "experiments\\paperC\\c1_pilot.json",
+    "c1_git_rev": "a7ffc52c031bbf2007a08d4876de41591319b309",
+    "c1_git_rev_pinned": "a7ffc52c031bbf2007a08d4876de41591319b309",
+    "c1_checkpoint_sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058",
+    "full_seed1_median_cos_json": 0.9935154616832733,
+    "full_seed1_median_cos_from_npz": 0.9935154616832733,
+    "full_seed1_median_cos_pinned": 0.9935154616832733,
+    "full_seed1_mean_cos_json": 0.9931273886135646,
+    "full_seed1_same_nearest_json": 0.8095238095238095
+   }
+  },
+  "checkpoint": {
+   "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+   "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+  },
+  "random_control_rescale_space": "mean-removed",
+  "seed": 20260821
+ },
+ "packets": [
+  {
+   "id": 1,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "plot",
+     "kind": "concept",
+     "cosine": 0.9231
+    },
+    {
+     "rank": 2,
+     "phrase": "fast paced",
+     "kind": "concept",
+     "cosine": 0.888
+    },
+    {
+     "rank": 3,
+     "phrase": "visuals",
+     "kind": "concept",
+     "cosine": 0.8315
+    },
+    {
+     "rank": 4,
+     "phrase": "better than expected",
+     "kind": "concept",
+     "cosine": 0.7853
+    },
+    {
+     "rank": 5,
+     "phrase": "story",
+     "kind": "concept",
+     "cosine": 0.7844
+    },
+    {
+     "rank": 6,
+     "phrase": "entertaining",
+     "kind": "concept",
+     "cosine": 0.7843
+    },
+    {
+     "rank": 7,
+     "phrase": "mythology",
+     "kind": "concept",
+     "cosine": 0.7739
+    },
+    {
+     "rank": 8,
+     "phrase": "trilogy",
+     "kind": "concept",
+     "cosine": 0.7725
+    }
+   ],
+   "asked_so_far": [],
+   "n_asked": 0,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 2,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Corpse Bride (2005)",
+     "kind": "film",
+     "cosine": 0.6831
+    },
+    {
+     "rank": 2,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6831
+    },
+    {
+     "rank": 3,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6826
+    },
+    {
+     "rank": 4,
+     "phrase": "In Good Company (2004)",
+     "kind": "film",
+     "cosine": 0.6807
+    },
+    {
+     "rank": 5,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6673
+    },
+    {
+     "rank": 6,
+     "phrase": "Solas (1999)",
+     "kind": "film",
+     "cosine": 0.6653
+    },
+    {
+     "rank": 7,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6652
+    },
+    {
+     "rank": 8,
+     "phrase": "Everything's Gonna Be Great (1998)",
+     "kind": "film",
+     "cosine": 0.6635
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "n_asked": 5,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 3,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Corpse Bride (2005)",
+     "kind": "film",
+     "cosine": 0.6773
+    },
+    {
+     "rank": 2,
+     "phrase": "Big One, The (1997)",
+     "kind": "film",
+     "cosine": 0.6711
+    },
+    {
+     "rank": 3,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6701
+    },
+    {
+     "rank": 4,
+     "phrase": "Kolya (Kolja) (1996)",
+     "kind": "film",
+     "cosine": 0.6616
+    },
+    {
+     "rank": 5,
+     "phrase": "Comedian (2002)",
+     "kind": "film",
+     "cosine": 0.652
+    },
+    {
+     "rank": 6,
+     "phrase": "Hulk (2003)",
+     "kind": "film",
+     "cosine": 0.6513
+    },
+    {
+     "rank": 7,
+     "phrase": "Everything's Gonna Be Great (1998)",
+     "kind": "film",
+     "cosine": 0.6507
+    },
+    {
+     "rank": 8,
+     "phrase": "My Son the Fanatic (1997)",
+     "kind": "film",
+     "cosine": 0.6463
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "n_asked": 5,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 4,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.7018
+    },
+    {
+     "rank": 2,
+     "phrase": "Player, The (1992)",
+     "kind": "film",
+     "cosine": 0.6943
+    },
+    {
+     "rank": 3,
+     "phrase": "Walk on the Moon, A (1999)",
+     "kind": "film",
+     "cosine": 0.6867
+    },
+    {
+     "rank": 4,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6848
+    },
+    {
+     "rank": 5,
+     "phrase": "In Good Company (2004)",
+     "kind": "film",
+     "cosine": 0.6839
+    },
+    {
+     "rank": 6,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6751
+    },
+    {
+     "rank": 7,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6707
+    },
+    {
+     "rank": 8,
+     "phrase": "Message in a Bottle (1999)",
+     "kind": "film",
+     "cosine": 0.6653
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 2,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 5,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "explosions",
+     "kind": "concept",
+     "cosine": 0.8601
+    },
+    {
+     "rank": 2,
+     "phrase": "Stargate (1994)",
+     "kind": "film",
+     "cosine": 0.8483
+    },
+    {
+     "rank": 3,
+     "phrase": "lone hero",
+     "kind": "concept",
+     "cosine": 0.8466
+    },
+    {
+     "rank": 4,
+     "phrase": "Clear and Present Danger (1994)",
+     "kind": "film",
+     "cosine": 0.8384
+    },
+    {
+     "rank": 5,
+     "phrase": "first contact",
+     "kind": "concept",
+     "cosine": 0.8298
+    },
+    {
+     "rank": 6,
+     "phrase": "weapons",
+     "kind": "concept",
+     "cosine": 0.8165
+    },
+    {
+     "rank": 7,
+     "phrase": "good action",
+     "kind": "concept",
+     "cosine": 0.8112
+    },
+    {
+     "rank": 8,
+     "phrase": "Outbreak (1995)",
+     "kind": "film",
+     "cosine": 0.8085
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 6,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "plot",
+     "kind": "concept",
+     "cosine": 0.9231
+    },
+    {
+     "rank": 2,
+     "phrase": "fast paced",
+     "kind": "concept",
+     "cosine": 0.888
+    },
+    {
+     "rank": 3,
+     "phrase": "visuals",
+     "kind": "concept",
+     "cosine": 0.8315
+    },
+    {
+     "rank": 4,
+     "phrase": "better than expected",
+     "kind": "concept",
+     "cosine": 0.7853
+    },
+    {
+     "rank": 5,
+     "phrase": "story",
+     "kind": "concept",
+     "cosine": 0.7844
+    },
+    {
+     "rank": 6,
+     "phrase": "entertaining",
+     "kind": "concept",
+     "cosine": 0.7843
+    },
+    {
+     "rank": 7,
+     "phrase": "mythology",
+     "kind": "concept",
+     "cosine": 0.7739
+    },
+    {
+     "rank": 8,
+     "phrase": "trilogy",
+     "kind": "concept",
+     "cosine": 0.7725
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "n_asked": 4,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 7,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Playing by Heart (1998)",
+     "kind": "film",
+     "cosine": 0.7079
+    },
+    {
+     "rank": 2,
+     "phrase": "college",
+     "kind": "concept",
+     "cosine": 0.7075
+    },
+    {
+     "rank": 3,
+     "phrase": "Message in a Bottle (1999)",
+     "kind": "film",
+     "cosine": 0.6985
+    },
+    {
+     "rank": 4,
+     "phrase": "football",
+     "kind": "concept",
+     "cosine": 0.692
+    },
+    {
+     "rank": 5,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6896
+    },
+    {
+     "rank": 6,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6851
+    },
+    {
+     "rank": 7,
+     "phrase": "divorce",
+     "kind": "concept",
+     "cosine": 0.6828
+    },
+    {
+     "rank": 8,
+     "phrase": "Superman Returns (2006)",
+     "kind": "film",
+     "cosine": 0.6826
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 8,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Corpse Bride (2005)",
+     "kind": "film",
+     "cosine": 0.6831
+    },
+    {
+     "rank": 2,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6831
+    },
+    {
+     "rank": 3,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6826
+    },
+    {
+     "rank": 4,
+     "phrase": "In Good Company (2004)",
+     "kind": "film",
+     "cosine": 0.6807
+    },
+    {
+     "rank": 5,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6673
+    },
+    {
+     "rank": 6,
+     "phrase": "Solas (1999)",
+     "kind": "film",
+     "cosine": 0.6653
+    },
+    {
+     "rank": 7,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6652
+    },
+    {
+     "rank": 8,
+     "phrase": "Everything's Gonna Be Great (1998)",
+     "kind": "film",
+     "cosine": 0.6635
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 5,
+     "question": "Do you like romance films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 5,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 9,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "alien",
+     "kind": "concept",
+     "cosine": 0.9526
+    },
+    {
+     "rank": 2,
+     "phrase": "aliens",
+     "kind": "concept",
+     "cosine": 0.9491
+    },
+    {
+     "rank": 3,
+     "phrase": "space",
+     "kind": "concept",
+     "cosine": 0.9235
+    },
+    {
+     "rank": 4,
+     "phrase": "scifi",
+     "kind": "concept",
+     "cosine": 0.9199
+    },
+    {
+     "rank": 5,
+     "phrase": "cloning",
+     "kind": "concept",
+     "cosine": 0.9187
+    },
+    {
+     "rank": 6,
+     "phrase": "space opera",
+     "kind": "concept",
+     "cosine": 0.9173
+    },
+    {
+     "rank": 7,
+     "phrase": "sci-fi",
+     "kind": "concept",
+     "cosine": 0.8985
+    },
+    {
+     "rank": 8,
+     "phrase": "nasa",
+     "kind": "concept",
+     "cosine": 0.8839
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 2,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 10,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "alien",
+     "kind": "concept",
+     "cosine": 0.9526
+    },
+    {
+     "rank": 2,
+     "phrase": "aliens",
+     "kind": "concept",
+     "cosine": 0.9491
+    },
+    {
+     "rank": 3,
+     "phrase": "space",
+     "kind": "concept",
+     "cosine": 0.9235
+    },
+    {
+     "rank": 4,
+     "phrase": "scifi",
+     "kind": "concept",
+     "cosine": 0.9199
+    },
+    {
+     "rank": 5,
+     "phrase": "cloning",
+     "kind": "concept",
+     "cosine": 0.9187
+    },
+    {
+     "rank": 6,
+     "phrase": "space opera",
+     "kind": "concept",
+     "cosine": 0.9173
+    },
+    {
+     "rank": 7,
+     "phrase": "sci-fi",
+     "kind": "concept",
+     "cosine": 0.8985
+    },
+    {
+     "rank": 8,
+     "phrase": "nasa",
+     "kind": "concept",
+     "cosine": 0.8839
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 11,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.688
+    },
+    {
+     "rank": 2,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6861
+    },
+    {
+     "rank": 3,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6851
+    },
+    {
+     "rank": 4,
+     "phrase": "Player, The (1992)",
+     "kind": "film",
+     "cosine": 0.6808
+    },
+    {
+     "rank": 5,
+     "phrase": "Corpse Bride (2005)",
+     "kind": "film",
+     "cosine": 0.6742
+    },
+    {
+     "rank": 6,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6717
+    },
+    {
+     "rank": 7,
+     "phrase": "Crying Game, The (1992)",
+     "kind": "film",
+     "cosine": 0.6702
+    },
+    {
+     "rank": 8,
+     "phrase": "In Good Company (2004)",
+     "kind": "film",
+     "cosine": 0.6692
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "n_asked": 4,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 12,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Corpse Bride (2005)",
+     "kind": "film",
+     "cosine": 0.6936
+    },
+    {
+     "rank": 2,
+     "phrase": "Candy (2006)",
+     "kind": "film",
+     "cosine": 0.6557
+    },
+    {
+     "rank": 3,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6549
+    },
+    {
+     "rank": 4,
+     "phrase": "Player, The (1992)",
+     "kind": "film",
+     "cosine": 0.6545
+    },
+    {
+     "rank": 5,
+     "phrase": "Crying Game, The (1992)",
+     "kind": "film",
+     "cosine": 0.6535
+    },
+    {
+     "rank": 6,
+     "phrase": "In Good Company (2004)",
+     "kind": "film",
+     "cosine": 0.6498
+    },
+    {
+     "rank": 7,
+     "phrase": "Twin Falls Idaho (1999)",
+     "kind": "film",
+     "cosine": 0.6465
+    },
+    {
+     "rank": 8,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6432
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 13,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Ah, L'Amour (1995)",
+     "kind": "film",
+     "cosine": 0.8003
+    },
+    {
+     "rank": 2,
+     "phrase": "The Sinners of Hell (1960)",
+     "kind": "film",
+     "cosine": 0.7988
+    },
+    {
+     "rank": 3,
+     "phrase": "Marketa Lazarov\u00e1 (1967)",
+     "kind": "film",
+     "cosine": 0.7631
+    },
+    {
+     "rank": 4,
+     "phrase": "Gate of Flesh (Nikutai no mon) (1964)",
+     "kind": "film",
+     "cosine": 0.7619
+    },
+    {
+     "rank": 5,
+     "phrase": "Two Kilers (Kiler\u00f3w 2-\u00f3ch) (1999)",
+     "kind": "film",
+     "cosine": 0.7534
+    },
+    {
+     "rank": 6,
+     "phrase": "Young Ones (2014)",
+     "kind": "film",
+     "cosine": 0.7403
+    },
+    {
+     "rank": 7,
+     "phrase": "Wings of Hope (Julianes Sturz in den Dschungel) (2000)",
+     "kind": "film",
+     "cosine": 0.7379
+    },
+    {
+     "rank": 8,
+     "phrase": "Professional Gun, A (Mercenary, The) (Mercenario, Il) (1968)",
+     "kind": "film",
+     "cosine": 0.7368
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 5,
+     "question": "Do you like romance films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 5,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 14,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "colourful",
+     "kind": "concept",
+     "cosine": 0.9279
+    },
+    {
+     "rank": 2,
+     "phrase": "art",
+     "kind": "concept",
+     "cosine": 0.8901
+    },
+    {
+     "rank": 3,
+     "phrase": "melancholic",
+     "kind": "concept",
+     "cosine": 0.8739
+    },
+    {
+     "rank": 4,
+     "phrase": "beautiful",
+     "kind": "concept",
+     "cosine": 0.8719
+    },
+    {
+     "rank": 5,
+     "phrase": "poetry",
+     "kind": "concept",
+     "cosine": 0.86
+    },
+    {
+     "rank": 6,
+     "phrase": "swedish",
+     "kind": "concept",
+     "cosine": 0.836
+    },
+    {
+     "rank": 7,
+     "phrase": "nature",
+     "kind": "concept",
+     "cosine": 0.8229
+    },
+    {
+     "rank": 8,
+     "phrase": "foreign",
+     "kind": "concept",
+     "cosine": 0.8228
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 2,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 15,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Player, The (1992)",
+     "kind": "film",
+     "cosine": 0.7095
+    },
+    {
+     "rank": 2,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6942
+    },
+    {
+     "rank": 3,
+     "phrase": "Walk on the Moon, A (1999)",
+     "kind": "film",
+     "cosine": 0.683
+    },
+    {
+     "rank": 4,
+     "phrase": "Englishman Who Went Up a Hill But Came Down a Mountain, The (1995)",
+     "kind": "film",
+     "cosine": 0.6812
+    },
+    {
+     "rank": 5,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6736
+    },
+    {
+     "rank": 6,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6733
+    },
+    {
+     "rank": 7,
+     "phrase": "First Knight (1995)",
+     "kind": "film",
+     "cosine": 0.6685
+    },
+    {
+     "rank": 8,
+     "phrase": "In Good Company (2004)",
+     "kind": "film",
+     "cosine": 0.6678
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 6,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 16,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.7296
+    },
+    {
+     "rank": 2,
+     "phrase": "Kolya (Kolja) (1996)",
+     "kind": "film",
+     "cosine": 0.7001
+    },
+    {
+     "rank": 3,
+     "phrase": "Back to the Future Part III (1990)",
+     "kind": "film",
+     "cosine": 0.6976
+    },
+    {
+     "rank": 4,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6765
+    },
+    {
+     "rank": 5,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6706
+    },
+    {
+     "rank": 6,
+     "phrase": "Moonstruck (1987)",
+     "kind": "film",
+     "cosine": 0.6673
+    },
+    {
+     "rank": 7,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6659
+    },
+    {
+     "rank": 8,
+     "phrase": "21 Grams (2003)",
+     "kind": "film",
+     "cosine": 0.6642
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 6,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 17,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Corpse Bride (2005)",
+     "kind": "film",
+     "cosine": 0.6888
+    },
+    {
+     "rank": 2,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6617
+    },
+    {
+     "rank": 3,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6587
+    },
+    {
+     "rank": 4,
+     "phrase": "Big One, The (1997)",
+     "kind": "film",
+     "cosine": 0.6574
+    },
+    {
+     "rank": 5,
+     "phrase": "Crying Game, The (1992)",
+     "kind": "film",
+     "cosine": 0.6572
+    },
+    {
+     "rank": 6,
+     "phrase": "Player, The (1992)",
+     "kind": "film",
+     "cosine": 0.655
+    },
+    {
+     "rank": 7,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6515
+    },
+    {
+     "rank": 8,
+     "phrase": "Kolya (Kolja) (1996)",
+     "kind": "film",
+     "cosine": 0.647
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "n_asked": 5,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 18,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "colourful",
+     "kind": "concept",
+     "cosine": 0.9279
+    },
+    {
+     "rank": 2,
+     "phrase": "art",
+     "kind": "concept",
+     "cosine": 0.8901
+    },
+    {
+     "rank": 3,
+     "phrase": "melancholic",
+     "kind": "concept",
+     "cosine": 0.8739
+    },
+    {
+     "rank": 4,
+     "phrase": "beautiful",
+     "kind": "concept",
+     "cosine": 0.8719
+    },
+    {
+     "rank": 5,
+     "phrase": "poetry",
+     "kind": "concept",
+     "cosine": 0.86
+    },
+    {
+     "rank": 6,
+     "phrase": "swedish",
+     "kind": "concept",
+     "cosine": 0.836
+    },
+    {
+     "rank": 7,
+     "phrase": "nature",
+     "kind": "concept",
+     "cosine": 0.8229
+    },
+    {
+     "rank": 8,
+     "phrase": "foreign",
+     "kind": "concept",
+     "cosine": 0.8228
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 5,
+     "question": "Do you like romance films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 5,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 19,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6928
+    },
+    {
+     "rank": 2,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6796
+    },
+    {
+     "rank": 3,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6785
+    },
+    {
+     "rank": 4,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6736
+    },
+    {
+     "rank": 5,
+     "phrase": "Kolya (Kolja) (1996)",
+     "kind": "film",
+     "cosine": 0.6712
+    },
+    {
+     "rank": 6,
+     "phrase": "Corpse Bride (2005)",
+     "kind": "film",
+     "cosine": 0.6699
+    },
+    {
+     "rank": 7,
+     "phrase": "Player, The (1992)",
+     "kind": "film",
+     "cosine": 0.6649
+    },
+    {
+     "rank": 8,
+     "phrase": "Crying Game, The (1992)",
+     "kind": "film",
+     "cosine": 0.6631
+    }
+   ],
+   "asked_so_far": [],
+   "n_asked": 0,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 20,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "After Porn Ends 2 (2017)",
+     "kind": "film",
+     "cosine": 0.6918
+    },
+    {
+     "rank": 2,
+     "phrase": "The 3 Penny Opera (1931)",
+     "kind": "film",
+     "cosine": 0.6871
+    },
+    {
+     "rank": 3,
+     "phrase": "\u00c0 propos de Nice (1930)",
+     "kind": "film",
+     "cosine": 0.6721
+    },
+    {
+     "rank": 4,
+     "phrase": "Land Without Bread (Hurdes, tierra sin pan, Las) (1933)",
+     "kind": "film",
+     "cosine": 0.6623
+    },
+    {
+     "rank": 5,
+     "phrase": "Cemetery of Splendour (2015)",
+     "kind": "film",
+     "cosine": 0.657
+    },
+    {
+     "rank": 6,
+     "phrase": "Magic Mike (2012)",
+     "kind": "film",
+     "cosine": 0.647
+    },
+    {
+     "rank": 7,
+     "phrase": "Duo (Pas de deux) (1968)",
+     "kind": "film",
+     "cosine": 0.6385
+    },
+    {
+     "rank": 8,
+     "phrase": "Entr'acte (1924)",
+     "kind": "film",
+     "cosine": 0.6303
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 6,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 21,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Lord of the Rings: The Fellowship of the Ring, The (2001)",
+     "kind": "film",
+     "cosine": 0.9072
+    },
+    {
+     "rank": 2,
+     "phrase": "Lord of the Rings: The Two Towers, The (2002)",
+     "kind": "film",
+     "cosine": 0.8622
+    },
+    {
+     "rank": 3,
+     "phrase": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+     "kind": "film",
+     "cosine": 0.8575
+    },
+    {
+     "rank": 4,
+     "phrase": "Lord of the Rings: The Return of the King, The (2003)",
+     "kind": "film",
+     "cosine": 0.8527
+    },
+    {
+     "rank": 5,
+     "phrase": "Star Wars: Episode VI - Return of the Jedi (1983)",
+     "kind": "film",
+     "cosine": 0.8434
+    },
+    {
+     "rank": 6,
+     "phrase": "Star Wars: Episode IV - A New Hope (1977)",
+     "kind": "film",
+     "cosine": 0.7735
+    },
+    {
+     "rank": 7,
+     "phrase": "Matrix, The (1999)",
+     "kind": "film",
+     "cosine": 0.7621
+    },
+    {
+     "rank": 8,
+     "phrase": "alaska",
+     "kind": "concept",
+     "cosine": 0.7369
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 22,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "explosions",
+     "kind": "concept",
+     "cosine": 0.8601
+    },
+    {
+     "rank": 2,
+     "phrase": "Stargate (1994)",
+     "kind": "film",
+     "cosine": 0.8483
+    },
+    {
+     "rank": 3,
+     "phrase": "lone hero",
+     "kind": "concept",
+     "cosine": 0.8466
+    },
+    {
+     "rank": 4,
+     "phrase": "Clear and Present Danger (1994)",
+     "kind": "film",
+     "cosine": 0.8384
+    },
+    {
+     "rank": 5,
+     "phrase": "first contact",
+     "kind": "concept",
+     "cosine": 0.8298
+    },
+    {
+     "rank": 6,
+     "phrase": "weapons",
+     "kind": "concept",
+     "cosine": 0.8165
+    },
+    {
+     "rank": 7,
+     "phrase": "good action",
+     "kind": "concept",
+     "cosine": 0.8112
+    },
+    {
+     "rank": 8,
+     "phrase": "Outbreak (1995)",
+     "kind": "film",
+     "cosine": 0.8085
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "n_asked": 4,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 23,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Player, The (1992)",
+     "kind": "film",
+     "cosine": 0.7095
+    },
+    {
+     "rank": 2,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6942
+    },
+    {
+     "rank": 3,
+     "phrase": "Walk on the Moon, A (1999)",
+     "kind": "film",
+     "cosine": 0.683
+    },
+    {
+     "rank": 4,
+     "phrase": "Englishman Who Went Up a Hill But Came Down a Mountain, The (1995)",
+     "kind": "film",
+     "cosine": 0.6812
+    },
+    {
+     "rank": 5,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6736
+    },
+    {
+     "rank": 6,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6733
+    },
+    {
+     "rank": 7,
+     "phrase": "First Knight (1995)",
+     "kind": "film",
+     "cosine": 0.6685
+    },
+    {
+     "rank": 8,
+     "phrase": "In Good Company (2004)",
+     "kind": "film",
+     "cosine": 0.6678
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 24,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.7011
+    },
+    {
+     "rank": 2,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6804
+    },
+    {
+     "rank": 3,
+     "phrase": "Kolya (Kolja) (1996)",
+     "kind": "film",
+     "cosine": 0.6783
+    },
+    {
+     "rank": 4,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6735
+    },
+    {
+     "rank": 5,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6704
+    },
+    {
+     "rank": 6,
+     "phrase": "Walk on the Moon, A (1999)",
+     "kind": "film",
+     "cosine": 0.6618
+    },
+    {
+     "rank": 7,
+     "phrase": "She's the One (1996)",
+     "kind": "film",
+     "cosine": 0.6576
+    },
+    {
+     "rank": 8,
+     "phrase": "Hulk (2003)",
+     "kind": "film",
+     "cosine": 0.6564
+    }
+   ],
+   "asked_so_far": [],
+   "n_asked": 0,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 25,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Corpse Bride (2005)",
+     "kind": "film",
+     "cosine": 0.6888
+    },
+    {
+     "rank": 2,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.6617
+    },
+    {
+     "rank": 3,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6587
+    },
+    {
+     "rank": 4,
+     "phrase": "Big One, The (1997)",
+     "kind": "film",
+     "cosine": 0.6574
+    },
+    {
+     "rank": 5,
+     "phrase": "Crying Game, The (1992)",
+     "kind": "film",
+     "cosine": 0.6572
+    },
+    {
+     "rank": 6,
+     "phrase": "Player, The (1992)",
+     "kind": "film",
+     "cosine": 0.655
+    },
+    {
+     "rank": 7,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6515
+    },
+    {
+     "rank": 8,
+     "phrase": "Kolya (Kolja) (1996)",
+     "kind": "film",
+     "cosine": 0.647
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 26,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.7011
+    },
+    {
+     "rank": 2,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6804
+    },
+    {
+     "rank": 3,
+     "phrase": "Kolya (Kolja) (1996)",
+     "kind": "film",
+     "cosine": 0.6783
+    },
+    {
+     "rank": 4,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6735
+    },
+    {
+     "rank": 5,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6704
+    },
+    {
+     "rank": 6,
+     "phrase": "Walk on the Moon, A (1999)",
+     "kind": "film",
+     "cosine": 0.6618
+    },
+    {
+     "rank": 7,
+     "phrase": "She's the One (1996)",
+     "kind": "film",
+     "cosine": 0.6576
+    },
+    {
+     "rank": 8,
+     "phrase": "Hulk (2003)",
+     "kind": "film",
+     "cosine": 0.6564
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 3,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 27,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Chasing Amy (1997)",
+     "kind": "film",
+     "cosine": 0.7296
+    },
+    {
+     "rank": 2,
+     "phrase": "Kolya (Kolja) (1996)",
+     "kind": "film",
+     "cosine": 0.7001
+    },
+    {
+     "rank": 3,
+     "phrase": "Back to the Future Part III (1990)",
+     "kind": "film",
+     "cosine": 0.6976
+    },
+    {
+     "rank": 4,
+     "phrase": "Brassed Off (1996)",
+     "kind": "film",
+     "cosine": 0.6765
+    },
+    {
+     "rank": 5,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.6706
+    },
+    {
+     "rank": 6,
+     "phrase": "Moonstruck (1987)",
+     "kind": "film",
+     "cosine": 0.6673
+    },
+    {
+     "rank": 7,
+     "phrase": "Breakfast of Champions (1999)",
+     "kind": "film",
+     "cosine": 0.6659
+    },
+    {
+     "rank": 8,
+     "phrase": "21 Grams (2003)",
+     "kind": "film",
+     "cosine": 0.6642
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 3,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 28,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Lord of the Rings: The Fellowship of the Ring, The (2001)",
+     "kind": "film",
+     "cosine": 0.9072
+    },
+    {
+     "rank": 2,
+     "phrase": "Lord of the Rings: The Two Towers, The (2002)",
+     "kind": "film",
+     "cosine": 0.8622
+    },
+    {
+     "rank": 3,
+     "phrase": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+     "kind": "film",
+     "cosine": 0.8575
+    },
+    {
+     "rank": 4,
+     "phrase": "Lord of the Rings: The Return of the King, The (2003)",
+     "kind": "film",
+     "cosine": 0.8527
+    },
+    {
+     "rank": 5,
+     "phrase": "Star Wars: Episode VI - Return of the Jedi (1983)",
+     "kind": "film",
+     "cosine": 0.8434
+    },
+    {
+     "rank": 6,
+     "phrase": "Star Wars: Episode IV - A New Hope (1977)",
+     "kind": "film",
+     "cosine": 0.7735
+    },
+    {
+     "rank": 7,
+     "phrase": "Matrix, The (1999)",
+     "kind": "film",
+     "cosine": 0.7621
+    },
+    {
+     "rank": 8,
+     "phrase": "alaska",
+     "kind": "concept",
+     "cosine": 0.7369
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 29,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Message in a Bottle (1999)",
+     "kind": "film",
+     "cosine": 0.7261
+    },
+    {
+     "rank": 2,
+     "phrase": "Invisible Woman, The (2013)",
+     "kind": "film",
+     "cosine": 0.7018
+    },
+    {
+     "rank": 3,
+     "phrase": "In Good Company (2004)",
+     "kind": "film",
+     "cosine": 0.7017
+    },
+    {
+     "rank": 4,
+     "phrase": "Ideal Husband, An (1999)",
+     "kind": "film",
+     "cosine": 0.7016
+    },
+    {
+     "rank": 5,
+     "phrase": "Walk on the Moon, A (1999)",
+     "kind": "film",
+     "cosine": 0.6977
+    },
+    {
+     "rank": 6,
+     "phrase": "D\u00e9j\u00e0 Vu (1997)",
+     "kind": "film",
+     "cosine": 0.6954
+    },
+    {
+     "rank": 7,
+     "phrase": "Price Above Rubies, A (1998)",
+     "kind": "film",
+     "cosine": 0.6944
+    },
+    {
+     "rank": 8,
+     "phrase": "My Life So Far (1999)",
+     "kind": "film",
+     "cosine": 0.6806
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 3,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  },
+  {
+   "id": 30,
+   "anchors": [
+    {
+     "rank": 1,
+     "phrase": "Young Ones (2014)",
+     "kind": "film",
+     "cosine": 0.7539
+    },
+    {
+     "rank": 2,
+     "phrase": "Grand Piano (2013)",
+     "kind": "film",
+     "cosine": 0.7264
+    },
+    {
+     "rank": 3,
+     "phrase": "The Car (1977)",
+     "kind": "film",
+     "cosine": 0.7227
+    },
+    {
+     "rank": 4,
+     "phrase": "Salvation, The (2014)",
+     "kind": "film",
+     "cosine": 0.7101
+    },
+    {
+     "rank": 5,
+     "phrase": "Dark Star: HR Giger\u2019s World (2014)",
+     "kind": "film",
+     "cosine": 0.7065
+    },
+    {
+     "rank": 6,
+     "phrase": "Italianamerican (1974)",
+     "kind": "film",
+     "cosine": 0.7007
+    },
+    {
+     "rank": 7,
+     "phrase": "Female Prisoner #701: Scorpion (Joshuu 701-g\u00f4: Sasori) (1972)",
+     "kind": "film",
+     "cosine": 0.6988
+    },
+    {
+     "rank": 8,
+     "phrase": "Klip (Clip) (2012)",
+     "kind": "film",
+     "cosine": 0.6952
+    }
+   ],
+   "asked_so_far": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    }
+   ],
+   "n_asked": 1,
+   "instruction": "Below is a direction in a recommender's question space, described only by the bank phrases nearest to it, together with what the interview has already asked this user and how they answered. Write ONE natural, askable interview question that captures the direction. Do not reuse any anchor phrase verbatim, do not list the anchors, and do not repeat a question that has already been asked. If the anchors do not cohere into anything a person could sensibly answer, say so explicitly instead of inventing a question."
+  }
+ ]
+}

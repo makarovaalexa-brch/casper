@@ -1,0 +1,87 @@
+{
+ "_comment": "HARD RULE 10 verification for the 2026-08-24 Paper C repair pass: proof that the committed code is the code that produced the banked v1 artifacts, and the measured effect of the one deliberate behaviour change. Produced by an inline check over the artifacts named below; every field is recomputed from files in this directory.",
+ "analysis": "paperC_C3_poc_byte_identity_check",
+ "date": "2026-08-24",
+ "note_on_exact_bytes": "A whole-file byte comparison is impossible by construction: every output JSON records the git rev it was produced at, and the repair pass added an `asserts` block and a thread record. The check is therefore: the PAYLOAD (the packets array / the reencode rows / every npz array) must be identical, and the differing keys must be exactly the provenance keys this pass added.",
+ "c3_poc_extract_legacy_rerun": {
+  "command": "python src/instrument/c3_poc_extract.py --legacy_rescale --tag _legacycheck",
+  "packets_payload_identical": true,
+  "packets_payload_sha256_banked": "037665355c12b42b7d9cb6ee9fa53a44ac25719d8f96d6ab74800fbbf47c227d",
+  "packets_payload_sha256_rerun": "037665355c12b42b7d9cb6ee9fa53a44ac25719d8f96d6ab74800fbbf47c227d",
+  "vectors_all_30_arrays_exactly_equal": true,
+  "vectors_max_abs_diff": 0.0,
+  "key_payload_identical": true,
+  "packets_metadata_keys_differing": [
+   "_comment",
+   "asserts",
+   "git",
+   "random_control_rescale_space"
+  ],
+  "key_top_level_keys_differing": [
+   "_comment",
+   "spectrum_match"
+  ],
+  "verdict": "PASS -- the committed code reproduces the banked v1 packets and source vectors exactly.",
+  "ran_at_git_rev": "dfabe3f2af50f0b729e944a4bcc10c32217b6de3"
+ },
+ "c3_poc_reencode_rerun": {
+  "command": "python src/instrument/c3_poc_reencode.py (v1 inputs)",
+  "rows_payload_identical": true,
+  "rows_payload_sha256_banked": "7d1c7750b39aec5e6e5c4ed67dbe15edfa1915a35ff2865e30e6aa1fa318a3a7",
+  "rows_payload_sha256_rerun": "7d1c7750b39aec5e6e5c4ed67dbe15edfa1915a35ff2865e30e6aa1fa318a3a7",
+  "non_encodable_identical": true,
+  "top_level_keys_differing": [
+   "asserts",
+   "git",
+   "inputs"
+  ],
+  "new_non_circular_alignment_check": {
+   "genome_rows_streamed": 15584448,
+   "n_catalog_items": 18359,
+   "min_relevance": 0.5,
+   "min_members": 30,
+   "n_tags_above_relevance": 1127,
+   "n_tags_kept": 1031
+  },
+  "verdict": "PASS -- all 30 re-encode rows identical; the only differing keys are the git block, the recorded inputs, and the new re-derivation record.",
+  "ran_at_git_rev": "dfabe3f2af50f0b729e944a4bcc10c32217b6de3"
+ },
+ "spectrum_rescale_fix_effect": {
+  "_comment": "The one deliberate behaviour change. v1 matched the random control's RAW norm to its partner's; every cosine in this stage is read MEAN-REMOVED, so the control's length in the measured space was uncontrolled.",
+  "packets_changed_v1_to_v2": [
+   3,
+   4,
+   7,
+   11,
+   12,
+   13,
+   19,
+   20,
+   29,
+   30
+  ],
+  "n_packets_changed": 10,
+  "types_of_changed_packets": [
+   "random"
+  ],
+  "legacy_random_over_real_mean_removed_norm_ratio": {
+   "mean": 1.8404715455138976,
+   "min": 0.638215209887391,
+   "max": 9.70590610005417
+  },
+  "fixed_random_over_real_mean_removed_norm_ratio": {
+   "mean": 1.0,
+   "min": 0.9999999999999998,
+   "max": 1.0000000000000002
+  },
+  "note": "v1 also matched the RAW norm exactly (ratio 1.0 for all ten), which is why the bug was invisible in the key."
+ },
+ "downstream_status": {
+  "renders_and_judgments_are_v1_only": true,
+  "note": "packets_v2.json and c3_poc_vectors_v2.npz are banked but NOT rendered or judged: the render/judge stages consumed v1 and were not re-run in this pass. join.json therefore reports the v1 pipeline, whose random arm carries the uncorrected control."
+ },
+ "c3_poc_extract_v2_run_git_rev": "dfabe3f2af50f0b729e944a4bcc10c32217b6de3",
+ "banked_v1_git_revs": {
+  "packets": "5cb949309b1df2760ca82582513d21df8c1c9ba5"
+ }
+}

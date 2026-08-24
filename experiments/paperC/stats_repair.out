@@ -1,0 +1,83 @@
+[18:56:09] ####################################################################################################
+[18:56:09] # PAPER C -- REPAIR STATISTICS. Read-only over banked artifacts (plus one regenerated rollout, gated against the banked one). VALIDATION ONLY; nothing trained; the 10,000 TEST users are not built, not loaded, not touched.
+[18:56:09] ####################################################################################################
+[18:56:10] [hardrule10] src/instrument clean=True rev=b6d7d656
+[18:56:10] === building paperC/repair env (split=validation) ===
+[18:56:18] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[18:57:03] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[18:57:05] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[18:57:05] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[18:57:05] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[18:57:05] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[18:57:05] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[18:57:06] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[18:57:15] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[18:57:38] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[18:57:50] [g5] 1031 concepts with >= 30 members
+[18:58:17] [ledger] SIGNED valuation arrays built (prereg cache found)
+[18:58:24] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[18:58:25] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[18:58:25] [paperC/repair] pool contract (DERIVED): policy=B nnz=1356475 per_user=135.6475 fp=c282962b49a2d67ef47ff07544519f20
+[18:58:25] [paperC/repair] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[18:58:25] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[18:58:27] [leak/paperC/repair] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[18:58:41] [gate] canonical m=0 snap full=0.15686538118354684 tail=0.02747733123666661 -- both exact
+[18:58:42] [gate] pool2full maps the pool onto the bank (max|diff| 4.76837e-07)
+[18:58:44] [c0] 31874 distinct asked-history states over 160,000 user-rows (by position: [1, 3, 9, 26, 68, 172, 399, 802, 1309, 1942, 2622, 3407, 4280, 4999, 5682, 6153])
+[18:58:44] [c0] between-state share of variance -- cos1 overall 0.9995, m overall 0.9861; cos1 by position 0.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00
+[18:58:44] [c0] max cos1 0.12028 (position 8); above 0 at 0.04761 of rows
+[18:58:49] [c0] cos1 median: user-row -0.18201 vs state-weighted -0.26012; m: 0.40985 vs 0.28627
+[18:58:49]   [bootstrap/cos1] 1/10000 (0.0m)
+[18:59:01]   [bootstrap/cos1] 2500/10000 (0.2m)
+[18:59:13]   [bootstrap/cos1] 5000/10000 (0.4m)
+[18:59:25]   [bootstrap/cos1] 7500/10000 (0.6m)
+[18:59:37]   [bootstrap/cos1] 10000/10000 (0.8m)
+[18:59:37] [c0] cluster bootstrap median cos1: -0.18201 95% CI [-0.18396, -0.18063]
+[18:59:37]   [bootstrap/m] 1/10000 (0.0m)
+[18:59:49]   [bootstrap/m] 2500/10000 (0.2m)
+[19:00:02]   [bootstrap/m] 5000/10000 (0.4m)
+[19:00:14]   [bootstrap/m] 7500/10000 (0.6m)
+[19:00:26]   [bootstrap/m] 10000/10000 (0.8m)
+[19:00:26] [c0] cluster bootstrap median m: 0.40985 95% CI [0.40782, 0.41168]
+[19:00:26] [c0] ★ the RANDOM FLOOR lands in cell 'between_candidates' (median cos1 0.06418, median m 0.26678, band 0.3264); the emission's cell is 'between_candidates'
+[19:00:26] [c0/mean-removed] regenerating the pool-arm emissions through rollout (C0's own hook)
+[19:02:59] [c0/mean-removed] regenerated raw cos1 reproduces the banked column (max|diff| 1.42669e-07)
+[19:02:59] [c0/mean-removed] ★ median mean-removed cos1 0.48756 (raw -0.18201); norm-matched random direction against the SAME snapped entry: 0.16984
+[19:03:00] [c1] 35 of the registered 42 states carry a per-user gain sidecar (the 7 single-pick heap states do not)
+[19:03:00] [c1] root.dislike.dislike.dislike.dislike.dislike@5 n=  313 | boot top-5 overlap 1.93/5 (all 5 survive 0.005) | boot target cos 0.9938 | split-half cos 0.9714 (mean-removed 0.1632, overlap 0/5)
+[19:03:00] [c1] root.dislike.dislike.dislike.dislike.like@5    n=   42 | boot top-5 overlap 1.91/5 (all 5 survive 0.000) | boot target cos 0.9942 | split-half cos 0.9895 (mean-removed 0.6374, overlap 0/5)
+[19:03:00] [c1] root.dislike.dislike.dislike.like.dislike@5    n=  174 | boot top-5 overlap 1.30/5 (all 5 survive 0.000) | boot target cos 0.9931 | split-half cos 0.9917 (mean-removed 0.6608, overlap 1/5)
+[19:03:01] [c1] root.dislike.dislike.dislike.like.like@5       n=  125 | boot top-5 overlap 1.20/5 (all 5 survive 0.000) | boot target cos 0.9906 | split-half cos 0.9798 (mean-removed 0.1859, overlap 0/5)
+[19:03:01] [c1] root.dislike.dislike.dislike.like.noanswer@5   n=  403 | boot top-5 overlap 1.54/5 (all 5 survive 0.000) | boot target cos 0.9905 | split-half cos 0.9870 (mean-removed 0.5090, overlap 0/5)
+[19:03:01] [c1] root.dislike.dislike.dislike.noanswer.dislike. n=  581 | boot top-5 overlap 1.87/5 (all 5 survive 0.000) | boot target cos 0.9938 | split-half cos 0.9870 (mean-removed 0.5964, overlap 0/5)
+[19:03:02] [c1] root.dislike.dislike.dislike.noanswer.dislike. n=  140 | boot top-5 overlap 2.38/5 (all 5 survive 0.030) | boot target cos 0.9943 | split-half cos 0.9936 (mean-removed 0.7911, overlap 1/5)
+[19:03:02] [c1] root.dislike.dislike.dislike.noanswer.dislike. n=   18 | boot top-5 overlap 1.26/5 (all 5 survive 0.005) | boot target cos 0.9850 | split-half cos 0.9844 (mean-removed 0.6133, overlap 0/5)
+[19:03:02] [c1] root.dislike.dislike.dislike.noanswer.like.dis n=  306 | boot top-5 overlap 2.38/5 (all 5 survive 0.005) | boot target cos 0.9945 | split-half cos 0.9908 (mean-removed 0.8363, overlap 1/5)
+[19:03:02] [c1] root.dislike.dislike.dislike.noanswer.like.lik n=   30 | boot top-5 overlap 1.42/5 (all 5 survive 0.000) | boot target cos 0.9928 | split-half cos 0.9905 (mean-removed 0.8016, overlap 0/5)
+[19:03:02] [c1] root.dislike.dislike.dislike.noanswer.like.noa n=    9 | boot top-5 overlap 3.17/5 (all 5 survive 0.125) | boot target cos 0.9982 | split-half cos 0.9948 (mean-removed 0.9030, overlap 2/5)
+[19:03:03] [c1] root.dislike.dislike.like.dislike@4            n=  118 | boot top-5 overlap 2.24/5 (all 5 survive 0.000) | boot target cos 0.9951 | split-half cos 0.9889 (mean-removed 0.7618, overlap 0/5)
+[19:03:03] [c1] root.dislike.dislike.like.like@4               n=  169 | boot top-5 overlap 1.69/5 (all 5 survive 0.000) | boot target cos 0.9908 | split-half cos 0.9661 (mean-removed 0.4195, overlap 0/5)
+[19:03:03] [c1] root.dislike.dislike.like.noanswer@4           n=  373 | boot top-5 overlap 1.72/5 (all 5 survive 0.005) | boot target cos 0.9893 | split-half cos 0.9920 (mean-removed 0.6606, overlap 0/5)
+[19:03:04] [c1] root.dislike.dislike.noanswer.dislike@4        n=   25 | boot top-5 overlap 2.58/5 (all 5 survive 0.015) | boot target cos 0.9955 | split-half cos 0.9882 (mean-removed 0.6799, overlap 0/5)
+[19:03:04] [c1] root.dislike.dislike.noanswer.like@4           n=   29 | boot top-5 overlap 0.88/5 (all 5 survive 0.000) | boot target cos 0.9891 | split-half cos 0.9553 (mean-removed 0.0904, overlap 0/5)
+[19:03:04] [c1] root.dislike.dislike.noanswer.noanswer@4       n=  502 | boot top-5 overlap 1.11/5 (all 5 survive 0.000) | boot target cos 0.9878 | split-half cos 0.9560 (mean-removed 0.1875, overlap 0/5)
+[19:03:04] [c1] root.dislike.like.dislike@3                    n=  519 | boot top-5 overlap 1.74/5 (all 5 survive 0.000) | boot target cos 0.9921 | split-half cos 0.9830 (mean-removed 0.5468, overlap 0/5)
+[19:03:05] [c1] root.dislike.like.like@3                       n=  151 | boot top-5 overlap 1.57/5 (all 5 survive 0.000) | boot target cos 0.9944 | split-half cos 0.9840 (mean-removed 0.6830, overlap 0/5)
+[19:03:05] [c1] root.dislike.like.noanswer@3                   n=   53 | boot top-5 overlap 1.69/5 (all 5 survive 0.000) | boot target cos 0.9938 | split-half cos 0.9881 (mean-removed 0.6555, overlap 0/5)
+[19:03:05] [c1] root.dislike.noanswer.dislike@3                n=   45 | boot top-5 overlap 3.50/5 (all 5 survive 0.100) | boot target cos 0.9975 | split-half cos 0.9899 (mean-removed 0.7816, overlap 2/5)
+[19:03:05] [c1] root.dislike.noanswer.like@3                   n=   90 | boot top-5 overlap 2.33/5 (all 5 survive 0.000) | boot target cos 0.9960 | split-half cos 0.9836 (mean-removed 0.4003, overlap 0/5)
+[19:03:06] [c1] root.dislike.noanswer.noanswer@3               n=  394 | boot top-5 overlap 2.75/5 (all 5 survive 0.055) | boot target cos 0.9954 | split-half cos 0.9911 (mean-removed 0.7614, overlap 2/5)
+[19:03:06] [c1] root.like.dislike.dislike@3                    n=  257 | boot top-5 overlap 1.82/5 (all 5 survive 0.005) | boot target cos 0.9927 | split-half cos 0.9828 (mean-removed 0.5576, overlap 1/5)
+[19:03:06] [c1] root.like.dislike.like@3                       n=   63 | boot top-5 overlap 2.74/5 (all 5 survive 0.005) | boot target cos 0.9956 | split-half cos 0.9857 (mean-removed 0.6104, overlap 1/5)
+[19:03:06] [c1] root.like.dislike.noanswer@3                   n=   20 | boot top-5 overlap 2.00/5 (all 5 survive 0.040) | boot target cos 0.9912 | split-half cos 0.9728 (mean-removed 0.3800, overlap 0/5)
+[19:03:07] [c1] root.like.like.dislike@3                       n=  109 | boot top-5 overlap 2.13/5 (all 5 survive 0.005) | boot target cos 0.9944 | split-half cos 0.9809 (mean-removed 0.5405, overlap 0/5)
+[19:03:07] [c1] root.like.like.like@3                          n=  239 | boot top-5 overlap 2.26/5 (all 5 survive 0.000) | boot target cos 0.9933 | split-half cos 0.9788 (mean-removed 0.7253, overlap 0/5)
+[19:03:07] [c1] root.like.like.noanswer@3                      n=  662 | boot top-5 overlap 1.77/5 (all 5 survive 0.000) | boot target cos 0.9929 | split-half cos 0.9855 (mean-removed 0.7221, overlap 0/5)
+[19:03:08] [c1] root.like.noanswer.dislike@3                   n=  567 | boot top-5 overlap 1.63/5 (all 5 survive 0.000) | boot target cos 0.9944 | split-half cos 0.9727 (mean-removed 0.5426, overlap 0/5)
+[19:03:08] [c1] root.like.noanswer.like@3                      n=  652 | boot top-5 overlap 3.71/5 (all 5 survive 0.145) | boot target cos 0.9991 | split-half cos 0.9981 (mean-removed 0.9741, overlap 3/5)
+[19:03:08] [c1] root.like.noanswer.noanswer@3                  n=   37 | boot top-5 overlap 0.81/5 (all 5 survive 0.000) | boot target cos 0.9904 | split-half cos 0.9900 (mean-removed 0.7692, overlap 0/5)
+[19:03:08] [c1] root.noanswer.noanswer.dislike@3               n=  124 | boot top-5 overlap 3.20/5 (all 5 survive 0.055) | boot target cos 0.9965 | split-half cos 0.9952 (mean-removed 0.9023, overlap 2/5)
+[19:03:09] [c1] root.noanswer.noanswer.like@3                  n=  223 | boot top-5 overlap 2.13/5 (all 5 survive 0.005) | boot target cos 0.9907 | split-half cos 0.9441 (mean-removed 0.0935, overlap 0/5)
+[19:03:09] [c1] root.noanswer.noanswer.noanswer@3              n= 1438 | boot top-5 overlap 3.03/5 (all 5 survive 0.025) | boot target cos 0.9975 | split-half cos 0.9937 (mean-removed 0.8747, overlap 2/5)
+[19:03:09] [c1] SUMMARY over 35 states: split-half target cos median 0.9870 [0.9441, 0.9981]; mean-removed median 0.6555; bootstrap top-5 overlap mean 1.905/5
+[19:03:09] [done] wrote C:\dev\phd\casper\experiments\paperC\stats_repair.json in 7.0 min
