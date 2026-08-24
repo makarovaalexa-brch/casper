@@ -1,4 +1,4 @@
-r"""Pre-flight guard for long runs on this box.
+r"""Power-state stamp for long runs on this box.
 
 WHY THIS EXISTS. Twice a multi-hour fit has been destroyed by the laptop running out of battery,
 not by anything in the code:
@@ -11,13 +11,15 @@ between them they cost over two days of wall-clock on jobs whose whole cost is w
 sleep policy is already `never`; the failure mode is simply that the machine was unplugged, and
 nothing in the launch path noticed or said so.
 
-`require_mains()` is a few milliseconds at startup. It refuses to begin a long run on battery unless
-the caller explicitly opts in, and it prints the charge level either way so the log records the
-power state the run started under.
+`require_mains()` costs a few milliseconds at startup and STAMPS THE POWER STATE into the run's own
+log. That stamp is what identified the 53.5 h freeze as a dead battery rather than a bug in the
+fitter, which is the whole value here.
 
-DELIBERATELY NOT FAIL-CLOSED ON A FAILED PROBE. A desktop, a VM, a CI box or a machine whose WMI
-provider is unavailable has no battery to report; blocking work because a probe failed would be a
-worse bug than the one this prevents. Unknown power state => proceed, and say so.
+IT DOES NOT BLOCK -- author's ruling, 2026-08-25. It briefly refused to start on battery, and on
+2026-08-24 that refusal killed an overnight distillation outright. That is a worse outcome than the
+thing it was guarding against: a frozen run resumes cleanly from its partial and its CELF heaps and
+loses only wall-clock, whereas a run that never starts loses the whole night. Never convert a slow
+run into no run.
 """
 from __future__ import annotations
 
@@ -56,25 +58,29 @@ def power_state():
     return (st == 2), pct, f"Win32_BatteryStatus={st} charge={pct}% (PowerOnline unavailable)"
 
 
-def require_mains(context, log=print, allow_battery=False, min_percent=95):
-    """Refuse to start a long run on battery. Returns the (on_mains, percent) it observed."""
+def require_mains(context, log=print, allow_battery=True, min_percent=95):
+    """Record the power state. NEVER blocks -- author's ruling, 2026-08-25.
+
+    This started life as a refusal and that was wrong: on 2026-08-24 it blocked an overnight
+    distillation outright and cost a night, which is a worse outcome than the freeze it was guarding
+    against. The freezes were survivable (partials and CELF heaps resume cleanly); a run that never
+    starts is not. A guard that turns a slow run into no run is not a guard.
+
+    What is kept is the DIAGNOSTIC, which cost nothing and was the genuinely useful half: stamping
+    the power state into the run's own log is what identified the 53.5 h freeze as a dead battery
+    rather than a bug in the fitter. `allow_battery` and `min_percent` are retained so existing call
+    sites keep working; neither can cause a refusal.
+    """
     on_mains, pct, detail = power_state()
     if on_mains is None:
-        log(f"[power] {context}: power state UNKNOWN ({detail}) -- proceeding, unguarded")
-        return None, pct
-    if on_mains:
+        log(f"[power] {context}: power state UNKNOWN ({detail})")
+    elif on_mains:
         log(f"[power] {context}: ON MAINS ({detail})")
-        return True, pct
-    msg = (f"REFUSING TO START {context} ON BATTERY ({detail}). This box has lost 4.1 h and 53.5 h "
-           f"of fitting to critical-battery sleep (2026-08-21, 2026-08-22). Plug it in, or pass "
-           f"--allow_battery if you genuinely intend a run that may be suspended mid-node.")
-    if not allow_battery:
-        raise SystemExit(f"[power] {msg}")
-    log(f"[power] {context}: ON BATTERY ({detail}) -- --allow_battery given, proceeding anyway")
-    if 0 <= pct < min_percent:
-        log(f"[power] WARNING: charge is {pct}%, below {min_percent}% -- a multi-hour run will not "
-            f"survive this. Work is resumable (partials + CELF heaps), but wall-clock is not.")
-    return False, pct
+    else:
+        log(f"[power] {context}: ON BATTERY ({detail}) -- proceeding. Note: critical-battery sleep "
+            f"froze runs for 4.1 h and 53.5 h (2026-08-21/22). Work resumes cleanly; wall-clock "
+            f"does not.")
+    return on_mains, pct
 
 
 if __name__ == "__main__":

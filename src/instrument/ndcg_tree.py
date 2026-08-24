@@ -499,12 +499,9 @@ def main():
     ap.add_argument("--n_users", type=int, default=0,
                     help="cap the fitting cohort (0 = every user in the slice). 10000 mirrors the "
                          "validation-fitted incumbent's N exactly.")
-    ap.add_argument("--allow_battery", action="store_true",
-                    help="start even if the box is on battery. Default is to REFUSE: this fit has "
-                         "twice been suspended mid-node by critical-battery sleep (4.1 h and 53.5 h).")
     args = ap.parse_args()
     from run_guard import require_mains
-    require_mains(f"{args.label} tree fit", log=log, allow_battery=args.allow_battery)
+    require_mains(f"{args.label} tree fit", log=log)
 
     t00 = time.time()
     sfx = "_SANITY" if args.sanity else ("_PREFLIGHT" if args.preflight else "")
