@@ -1,5 +1,44 @@
 # Paper C — the design (2026-08-18)
 
+## ★★ AMENDMENTS OF 2026-08-24 (Fable, after the deep-read + hostile-review + repair pass) — BINDING over the corresponding sections below
+
+1. **The "worth is inherited / bounded by a convex combination" sentence is RETRACTED** (both
+   review lenses: it is a bound on vectors asserted as a bound on value, with no affineness
+   support; and the ingredient gains are winner's-curse maxima — bootstrap top-5 overlap 1.9/5).
+   Replacement, the only claimable form: *"every gradient comes from a candidate whose value we
+   measured; we make no claim about the value of the blend point itself, and the ingredient set at
+   a given state is an unstable draw from a near-flat measured profile (its direction is only
+   moderately stable)."* C1-proper must build targets on the retrained tree's larger cohorts and
+   report selection stability before the word "measured" is used of a target.
+2. **C2's IM1/IM2 import is DEAD as specified** (full read + the Hvilshøj/Schut critique line: the
+   metrics are class-relative ratios over a paired counterfactual; C2 has no classes and no x₀,
+   and IM2's ‖x‖₁ denominator would reward C1's arm for shrinking the vector). Replacement: a
+   **reconstruction-plausibility score** — one AE fitted on real fold-in latents,
+   ‖ẑ − AE(ẑ)‖² against the spectrum-matched null and the correspondence-scrambled control —
+   citing Van Looveren & Klaise for the idea and Hvilshøj et al. for why the published form is not
+   used. Never call it IM1.
+3. **C4's formula as written here was WRONG** (Hewitt full read, verified against their raw
+   tables): their denominator is the *training data's* score, not the latent's — the latent is an
+   arm, not the normaliser. Our instantiation: the external ruler is the **measured best real
+   question at the state** (so latent, text, and all controls sit on one ruler none of them
+   defines); the latent-in-denominator form is retired. Additional C4 requirements from the read:
+   an **adapter-ceiling row** (a real question's own text through the bridge vs its measured
+   effect — the C3B `ceiling` subcommand is this row's prototype); the "machine-only synonyms"
+   analogue needs a second independently-fitted text→CF map or the claim weakens to plausibility
+   only; and the C4 scalar is fixed in advance. Also: the retrieval-prompting ARM and the
+   nearest-bank CONTROL currently coincide — they must be constructed distinctly or merged into
+   one row labelled as both.
+4. **Every C-series statistic carries a CI, with the declared aggregation unit** — the repair pass
+   found the stack had none; DS_C3B clause 5 generalises to all future sheets. Registered reading
+   rules must be applied to their null control at design time (the C0 lesson: a cell the null
+   occupies decides nothing).
+5. Verified-source updates binding on the prose: ELM has an output-side random baseline (narrow
+   every "no random baseline" sentence to "no input-side embedding null"); DeCap's 25.6 is a
+   decoder-free retrieval baseline, not a ladder rung; Heap's strong null is itself Gaussian —
+   the axis is correspondence-vs-weights, not Gaussian-vs-not; Info-Synth replicates ANSWER-FREE
+   only (its response model is its acquisition objective — a simulated-answer arm would be
+   unfalsifiable).
+
 ## ★★★ FABLE VERDICT (2026-08-18) — BINDING. Read before touching anything below.
 
 **"Build it, build it around variant (b), and hold the claim at exactly what the answer-free design
@@ -256,6 +295,56 @@ group as ELM, and it was absent from our INDEX until 2026-08-18.
 
 ## Verification debts (do not cite until cleared)
 
-GenMQD · Vendrov's actual query object · LineCoSpar's 6 params / 6 subjects / 30 trials · ADO's
-precision claims · LOL-BO's "20×" · Baum & Lang's exact bibliographic details · Tang et al. Nature
-Neuroscience 2023 (paywalled; try bioRxiv 2022.09.29.509744).
+**STATUS 2026-08-21 — ALL EIGHT WORKED. 5 cleared, 2 cleared-with-correction, 1 partial; none
+refuted.** Evidence per item → `external_literature/findings/continuous_elicitation_2026-08.md`
+§"VERIFICATION PASS — 2026-08-21"; bib entries with provenance notes are now in
+`new_chapters/references.bib`; INDEX rows under "Verification pass 2026-08-21".
+
+- **GenMQD** — ⚠ **PARTIAL.** *Mechanism CLEARED:* generates a **textual description of the wanted
+  instance instead of the instance**, CLIP-style alignment, text used to gather real data; **plus a
+  large-scale user study where human oracles PREFER the text queries over generated image queries**,
+  and +2.43% accuracy at 500 labels. *Bibliography NOT cleared:* OpenReview `CZvbXXgjrn`, an **ICLR
+  2025 submission**, no published version and **no author list** obtainable (bot-check on every
+  endpoint). **Cite as an OpenReview preprint or not at all; never attribute authors.**
+- **Vendrov's actual query object** — ✅ **CLEARED, and our fallback reading was WRONG.** Not soft
+  item-selection weights: it optimises **continuous d-dimensional hypothetical item vectors**
+  ("allowing attributes to vary continuously without requiring they correspond to available items")
+  and then **projects them back to the nearest actual items** via a *deep retrieval* step; it also has
+  **partial comparison queries** over attribute subsets, explicitly to cut cognitive burden.
+  ⇒ **synthesis-then-snap inside recsys, at AAAI 2020, by a likely reviewer.** Two consequences for
+  this document: "everyone snaps" becomes a **four-field** claim including our own, and **"optimise
+  the query continuously" is pre-empted in recommendation** — our claim must be stated against the
+  three things Vendrov does not do (collaborative rather than attribute latent; rendered as language;
+  left unsnapped).
+- **LineCoSpar's 6 params / 6 subjects / 30 trials** — ✅ **CLEARED EXACTLY** from the paper's own
+  text (IROS 2020, arXiv:2003.06495): 6 named gait parameters, 6 able-bodied subjects on the Atalante
+  exoskeleton, 30 learning trials **+ 6 validation trials**, "at most 29 pairwise preferences and 30
+  pieces of coactive feedback". Quotable.
+- **ADO's precision claims** — ⚠ **CLEARED WITH CORRECTION, and MIS-ATTRIBUTED.** The numbers are
+  **Ahn et al., *Scientific Reports* 10:12091 (2020)**, not ADOpy: ≥0.95 test–retest reliability
+  **within 10–20 trials**, ~10% more variance, **3–5× more precise**, **3–8× more efficient** than
+  staircase, in three real populations. **"Fewer than 20 trials" was wrong — write "10–20 trials"**,
+  and note it attaches to *reliability*, not to the precision figure. Cite ADOpy only for the method.
+- **LOL-BO's "20×"** — ✅ **CLEARED, and it is narrower than it reads:** verbatim "as much as 20 times
+  improvement over state-of-the-art latent space Bayesian optimization methods across six real-world
+  benchmarks". A best-case **optimisation / sample-efficiency** result; **it says nothing about decode
+  validity**. Quote only in that exact form, and keep the citable content as the *mechanism* (latent
+  trust region + retraining toward the promising region).
+- **Baum & Lang's exact bibliographic details** — ⚠ **CLEARED WITH CORRECTION.** *Baum, E. B. and
+  Lang, K. (1992), "Query learning can work poorly when a human oracle is used", IJCNN, volume 8.*
+  **There is NO page range** — the `pages={8}` in circulating BibTeX is a mis-parse of "volume 8"; do
+  not emit a `pages` field. **The venue city is Beijing, not Baltimore** (our note said Baltimore).
+  The finding — synthesised digit queries were **fusions (a 3/5 hybrid) no human can label**, yielding
+  **noisy labels** — is corroborated across four independent bibliographies, but the 1992 proceedings
+  text was never obtained: **cite the claim, never a number.**
+- **Tang et al. Nature Neuroscience 2023** — ✅ **CLEARED.** *Nat. Neurosci.* **26(5):858–866**, doi
+  10.1038/s41593-023-01304-9 (preprint bioRxiv 2022.09.29.509744, itself 403-walled; abstract and
+  null-model description recovered elsewhere). fMRI decoder reconstructing continuous language for
+  perceived speech, imagined speech and silent video; **subject cooperation required to train and to
+  apply it**. **★ The load-bearing part is the evaluation:** decoded sequences are scored against a
+  null distribution of information-free null sequences **plus an alternative null that permutes the
+  voxel responses (×10), preserving response statistics while destroying the response→stimulus
+  correspondence**, compared by a one-sided nonparametric test. **⇒ NARROW the novelty claim for our
+  scrambled control**: scrambled-correspondence controls exist (here, and in Heap et al.); what is
+  unclaimed is one for a **rendered elicitation QUESTION**, validated without a paired reference.
+  Import the **null construction**, not the metric — they have a reference transcript and we do not.
