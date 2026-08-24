@@ -955,3 +955,505 @@
             paper (APM 1996, 20(3):213--229, doi 10.1177/014662169602000303); the volume, issue,
             pages and year recorded here were always those of the a-stratification paper.}
 }
+
+@inproceedings{tennenholtz2024eagle,
+    author = {Tennenholtz, Guy and Chow, Yinlam and Hsu, Chih-Wei and Shani, Lior and Liang, Ethan and Boutilier, Craig},
+    title = {Embedding-Aligned Language Models},
+    booktitle = {Advances in Neural Information Processing Systems 37 (NeurIPS 2024)},
+    year = {2024},
+    address = {Vancouver, Canada},
+    note = {EAGLE. All fields verified 2026-08-21 against the NeurIPS 2024 virtual poster page
+            (poster 94829), the NeurIPS proceedings PDF listing and arXiv:2406.00024v2 (arXiv
+            comment: ``Accepted Neurips 2024''); OpenReview id WSu1PPi2UP. Author name RESOLVED
+            2026-08-21 from the PDFs themselves: the author block of BOTH the arXiv v2 PDF and the
+            NeurIPS camera-ready proceedings PDF reads ``Ethan Liang'', so that is used here; only
+            the NeurIPS metadata/listing page says ``Yi Liang''. Also note the capitalisation
+            ``Chih-Wei''. Tables 2-4, the 124-rater protocol and the MDP/action-space spec were
+            re-verified against the PDF on 2026-08-21. Read in full 2026-08-21 ->
+            external\_literature/findings/llm\_verbalisation\_2026-08.md section 9. Nearest published
+            relative of Paper C: an RL agent selects text-edit prompts for a frozen environment LLM
+            so the rewritten movie description scores highly under a MovieLens-25M behavioural
+            embedding utility. Crucially it has NO DECODER (``EAGLE does not use a decoder, but
+            rather only requires an encoder E\_D''), no user in the loop and no question, so it does
+            not occupy any leg of Paper C's conjunction --- but it does pre-empt any unqualified
+            claim that no policy optimises in a recommender's latent space with a language output.}
+}
+
+% ---------------------------------------------------------------------------
+% Verification pass 2026-08-21 — Paper C answerability / query-synthesis lineage.
+% Every entry below was checked against a primary or publisher source on that
+% date; the note records WHAT was seen and at what level. Provenance detail →
+% external_literature/findings/continuous_elicitation_2026-08.md, section
+% "VERIFICATION PASS — 2026-08-21".
+% ---------------------------------------------------------------------------
+
+@inproceedings{baum1992query,
+  title={Query learning can work poorly when a human oracle is used},
+  author={Baum, Eric B. and Lang, Kenneth},
+  booktitle={International Joint Conference on Neural Networks (IJCNN)},
+  volume={8},
+  year={1992},
+  note={VERIFIED 2026-08-21 as far as it can be. The canonical citation carries NO page
+        range: the form reproduced in every bibliography checked is ``In International
+        Joint Conference on Neural Networks, volume 8'', author order Baum then Lang. The
+        ``pages=\{8\}'' seen in some BibTeX copies is a parsing artifact of ``volume 8'' --
+        do NOT emit it. Conference location is BEIJING, China (Nov 1992), not Baltimore;
+        the earlier project note said Baltimore and was wrong. Finding confirmed
+        consistently second-hand: synthesised membership queries on handwritten digits were
+        fusions of two similar digits (a 3/5 hybrid) that a human oracle cannot label. The
+        1992 proceedings text was NOT obtained -- cite the CLAIM, never a number.}
+}
+
+@article{zhu2017gaal,
+  title={Generative Adversarial Active Learning},
+  author={Zhu, Jia-Jie and Bento, Jos{\'e}},
+  journal={arXiv preprint arXiv:1702.07956},
+  year={2017},
+  note={VERIFIED 2026-08-21 against the arXiv abstract page and the paper's own HTML.
+        v1 25 Feb 2017, v5 15 Nov 2017; no venue located. The algorithm box reads ``Label
+        \{G(z\_1), G(z\_2), ...\} by human oracles''. The Baum--Lang failure IS reproduced, in
+        the paper's own words: ``In the CIFAR-10 dataset, our human labeler noticed higher
+        chances of bad generated samples, e.g., instances fail to represent either of the
+        categories'' and ``our human labelers failed to confidently identify most of the
+        generated cat and dog images'' -- which is why the experiments were restricted to
+        easy binary pairs (automobile vs horse, digit 5 vs 7). Stronger than the [S] record
+        it replaces.}
+}
+
+@inproceedings{tucker2020linecospar,
+  title={Human Preference-Based Learning for High-dimensional Optimization of Exoskeleton Walking Gaits},
+  author={Tucker, Maegan and Cheng, Myra and Novoseller, Ellen and Cheng, Richard and Yue, Yisong and Burdick, Joel W. and Ames, Aaron D.},
+  booktitle={IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  year={2020},
+  doi={10.1109/IROS45743.2020.9341416},
+  note={VERIFIED 2026-08-21 against the paper's own text (arXiv:2003.06495). The 6/6/30
+        figures are CORRECT and now sourced: 6 gait parameters (step length, step duration,
+        step width, maximum step height, pelvis roll, pelvis pitch), 6 able-bodied human
+        subjects on the Atalante lower-body exoskeleton, 30 learning trials per subject
+        (+6 validation trials), yielding ``at most 29 pairwise preferences and 30 pieces of
+        coactive feedback''. Companion: CoSpar, Tucker, Novoseller et al., ICRA 2020,
+        arXiv:1909.12316.}
+}
+
+@article{ahn2020ado,
+  title={Rapid, precise, and reliable measurement of delay discounting using a Bayesian learning algorithm},
+  author={Ahn, Woo-Young and Gu, Hairong and Shen, Yitong and Haines, Nathaniel and Hahn, Hunter A. and Teater, Julie E. and Myung, Jay I. and Pitt, Mark A.},
+  journal={Scientific Reports},
+  volume={10},
+  pages={12091},
+  year={2020},
+  doi={10.1038/s41598-020-68587-x},
+  note={VERIFIED 2026-08-21 from the abstract. THIS, not ADOpy, is the source of the ADO
+        precision claims the project had mis-attributed. Verbatim: in three populations
+        (college students, patients with a substance use disorder, MTurk workers) ``ADO led
+        to 0.95 or higher test-retest reliability of the discounting rate within 10-20
+        trials (under 1-2 min of testing), captured approximately 10\% more variance in
+        test-retest reliability, was 3-5 times more precise, and was 3-8 times more
+        efficient than the staircase method''. Real human participants. Correction: it is
+        ``10--20 trials'', NOT ``fewer than 20 trials''.}
+}
+
+@article{yang2021adopy,
+  title={ADOpy: A Python Package for Adaptive Design Optimization},
+  author={Yang, Jaeyeong and Pitt, Mark A. and Ahn, Woo-Young and Myung, Jay I.},
+  journal={Behavior Research Methods},
+  volume={53},
+  pages={874--897},
+  year={2021},
+  doi={10.3758/s13428-020-01386-4},
+  note={VERIFIED 2026-08-21 (metadata + abstract). Software/tutorial paper only:
+        psychometric-function estimation, delay discounting, risky choice. It does NOT
+        carry the precision numbers -- those are ahn2020ado. ADO's design space is a GRID
+        over continuous design variables, not an unrestricted continuum.}
+}
+
+@article{maus2022lolbo,
+  title={Local Latent Space Bayesian Optimization over Structured Inputs},
+  author={Maus, Natalie T. and Jones, Haydn T. and Moore, Juston S. and Kusner, Matt J. and Bradshaw, John and Gardner, Jacob R.},
+  journal={Advances in Neural Information Processing Systems (NeurIPS)},
+  year={2022},
+  note={VERIFIED 2026-08-21 against the arXiv abstract (2201.11872). Verbatim: ``LOL-BO
+        achieves as much as 20 times improvement over state-of-the-art latent space
+        Bayesian optimization methods across six real-world benchmarks''. The 20x is an
+        optimisation-performance/sample-efficiency improvement over prior LSBO methods, it
+        is a best case (``as much as''), and it says NOTHING about decoding validity.}
+}
+
+@article{tang2023semantic,
+  title={Semantic reconstruction of continuous language from non-invasive brain recordings},
+  author={Tang, Jerry and LeBel, Amanda and Jain, Shailee and Huth, Alexander G.},
+  journal={Nature Neuroscience},
+  volume={26},
+  number={5},
+  pages={858--866},
+  year={2023},
+  doi={10.1038/s41593-023-01304-9},
+  note={VERIFIED 2026-08-21 (abstract via Semantic Scholar; preprint bioRxiv
+        2022.09.29.509744). fMRI decoder producing intelligible word sequences for perceived
+        speech, imagined speech and silent video; subject cooperation required both to train
+        and to apply it. Load-bearing for Paper C is the EVALUATION protocol, not the
+        neuroscience: decoded sequences are scored against a NULL DISTRIBUTION built from
+        null sequences carrying no brain information, plus an alternative null that PERMUTES
+        the voxel responses (repeated 10x) so response statistics are preserved but the
+        response-to-stimulus CORRESPONDENCE is destroyed; compared by a one-sided
+        nonparametric test. The scrambled-correspondence control, in a top journal.}
+}
+
+@misc{genmqd2024,
+  title={Semantic-aligned Query Synthesis for Active Learning},
+  author={{Anonymous (ICLR 2025 submission)}},
+  year={2024},
+  howpublished={OpenReview CZvbXXgjrn, \url{https://openreview.net/forum?id=CZvbXXgjrn}},
+  note={PARTIALLY VERIFIED 2026-08-21. MECHANISM CONFIRMED from the OpenReview abstract
+        (recovered via search indexing; the forum page itself serves a bot-check):
+        GenMQD = Generative Membership Query Descriptor -- ``generate textual descriptions
+        of the desired data, instead of the data samples themselves'', with a pre-trained
+        multi-modal alignment model (e.g. CLIP) turning synthesised features into natural
+        language used to gather matching real data; explicitly motivated by the risk of
+        generating unrecognizable instances. NEW: it reports a large-scale USER STUDY in
+        which human oracles PREFER the text queries over generated IMAGE queries, and
+        +2.43\% average accuracy at 500 gathered/labelled examples. STILL UNRESOLVED:
+        author list and whether it was accepted anywhere. Cite as an OpenReview preprint.}
+}
+
+% ---------------------------------------------------------------------------
+% Added 2026-08-18 batch — Paper C interpretability-verbalisation lineage,
+% BACKFILLED to references.bib on 2026-08-21 (previously only in INDEX.md's
+% ``LLM VERBALISATION OF LATENT VECTORS'' addendum). Title/author/venue for
+% every entry below were re-verified against the live arXiv abs page on
+% 2026-08-21; specific numeric claims in the notes were NOT re-extracted from
+% the primary PDF in this pass (PDF text extraction failed) and are carried
+% forward from `external_literature/findings/llm_verbalisation_2026-08.md`
+% and `findings/continuous_elicitation_2026-08.md` -- flagged accordingly.
+% ---------------------------------------------------------------------------
+
+@article{heap2026autointerp,
+  title={Automated Interpretability Metrics Do Not Distinguish Trained and Random Transformers},
+  author={Heap, Thomas and Lawson, Tim and Farnik, Lucy and Aitchison, Laurence},
+  journal={arXiv preprint arXiv:2501.17727},
+  year={2025},
+  note={VERIFIED 2026-08-21 against the live arXiv abs page: title, full author list and
+        submission (2025, cs.LG; no venue stated) all confirmed. (!) DISCREPANCY: the bib
+        key inherited from `external\_literature/INDEX.md` reads ``heap2026'' but the
+        verified arXiv id 2501.17727 places the paper in 2025, not 2026 -- kept as-is for
+        cross-file consistency with INDEX.md's existing prose citation; do not read the key
+        as asserting a 2026 year. Abstract confirms the headline claim verbatim: SAEs
+        trained on RANDOMLY INITIALISED Pythia produce ``auto-interpretability scores and
+        reconstruction metrics that are similar to those from trained models'' across model
+        sizes and randomisation schemes.
+        NUMBERS SETTLED 2026-08-21 -- the UNVERIFIED flag this note previously carried is
+        CLEARED. Every AUROC the project quotes was read off the primary PDF; the per-number
+        evidence is in
+        `external\_literature/findings/redo\_numbers\_decap\_heap\_2026-08.md' section 2. Do
+        not re-assert the figures from this note: cite that file, and cite FIGURE 1, because
+        the values live in the LEGEND of Figure 1 and THE PAPER CONTAINS NO AUROC TABLE (the
+        project's earlier phrase ``results tables'' was wrong). The scale must be named with
+        them: Pythia-6.9b, `fuzzing' scoring, 100 latents per SAE.
+        ONE WORDING CORRECTION THAT MATTERS: the near-chance control is ITSELF Gaussian --
+        token embeddings are replaced at inference by fresh i.i.d. standard Gaussian noise at
+        every occurrence, so what is destroyed is the CONSISTENCY OF THE TOKEN-TO-VECTOR MAP,
+        not the distribution's shape. The weak nulls are the re-randomisations of the WEIGHTS,
+        which the authors designed to PRESERVE parameter norms. Write ``randomising the
+        weights, even norm-matched, is a demonstrably weak null'', never ``a Gaussian null is
+        weak''.}
+}
+
+@article{hewitt2025neologism,
+  title={Neologism Learning for Controllability and Self-Verbalization},
+  author={Hewitt, John and Tafjord, Oyvind and Geirhos, Robert and Kim, Been},
+  journal={arXiv preprint arXiv:2510.08506},
+  year={2025},
+  note={VERIFIED 2026-08-21 against the live arXiv abs page: title, full author list
+        (Hewitt, Tafjord, Geirhos, Kim), submission year 2025 (cs.CL) and no stated venue
+        all confirmed. Abstract confirms both load-bearing mechanisms verbatim: (1) **plug-in
+        evaluation** -- ``we insert the verbalization into the context of a model and
+        measure whether it controls the target concept''; (2) **machine-only synonyms** --
+        self-verbalisations that ``seem unrelated to humans but cause similar behavior in
+        machines''.
+        FULL 25-PAGE PDF READ 2026-08-21; the UNVERIFIED flag this note previously carried is
+        CLEARED, but with TWO CORRECTIONS to what the project had banked. Evidence and page
+        references:
+        `external\_literature/findings/hewitt\_plugin\_evaluation\_2026-08.md'. (1) THE
+        DENOMINATOR IS THE TRAINING DATA, NOT THE LATENT. Their table caption reads
+        ``Concept score increase percent: (x - base model score) / (training data score -
+        base model score)'', and this reproduces their raw tables exactly. The project's
+        formula (x - base)/(latent - base) is WRONG and is not a typo: it pins the latent at
+        100 percent by construction and rewards a degenerate emitter. Their own section 5.1
+        prose states the project's version and CONTRADICTS the caption; the captions and raw
+        tables are authoritative. (2) The -6 to 86 percent span is the SYNONYM table only;
+        the full reported spread across both verbalization forms is -6 to 127 percent, signed
+        and unbounded. Also settled: the paper runs NO scrambled, random-word,
+        random-embedding, nearest-neighbour, prior-only or human control, and reports no
+        confidence intervals, seeds or significance tests anywhere -- so any control we add is
+        an ADDITION to their protocol, never something done ``following'' them. Venue status
+        unchanged: preprint, prepared as an ICLR 2026 submission (Appendix A.1 cites the ICLR
+        code of conduct), acceptance not stated anywhere.}
+}
+
+@inproceedings{li2023decap,
+  title={DeCap: Decoding CLIP Latents for Zero-Shot Captioning via Text-Only Training},
+  author={Li, Wei and Zhu, Linchao and Wen, Longyin and Yang, Yi},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2023},
+  note={VERIFIED 2026-08-21 against the live arXiv abs page (arXiv:2303.03032): title,
+        full author list and venue (``Accepted by ICLR 2023'') all confirmed. Abstract
+        confirms the mechanism the project cites it for: a text-only-trained, visual-aware
+        language decoder that closes the CLIP modality gap by a training-free projection of
+        the visual embedding into the CLIP TEXT embedding space, used as the decoder's
+        prefix.
+        LADDER SETTLED 2026-08-21 -- the UNVERIFIED flag this note previously carried is
+        CLEARED. The three DeCap rungs (8.1 visual decoding, 27.1 hard nearest-neighbour
+        decoding, 42.1 projection-based softmax blend) were read verbatim from TABLE 1, the
+        CIDEr column of the MSCOCO Karpathy-test block, all rows pre-trained CLIP+CC3M-text;
+        per-number evidence in
+        `external\_literature/findings/redo\_numbers\_decap\_heap\_2026-08.md' section 1.
+        Cite that file rather than re-asserting the numbers here.
+        ONE CORRECTION: 25.6 IS NOT A RUNG OF THE LADDER. It is the CLIPRe row -- a
+        DECODER-FREE retrieval baseline (``a simple retrieval-based approach that does not
+        require a decoder''), so the four-way ordering 42.1 > 27.1 > 25.6 > 8.1 is
+        numerically correct but 25.6 must be labelled the no-decoder retrieval floor, never a
+        DeCap decoding strategy. Two further guards: do not confuse 42.1 with the SS1M row
+        (50.6) -- the comparison is only controlled inside the CC3M-text block -- and note
+        that their off-manifold-ness is the CLIP MODALITY GAP, whereas ours is a synthesised
+        collaborative-filtering latent.}
+}
+
+@article{nadagouda2026infosynth,
+  title={Active Query Synthesis for Preference Learning},
+  author={Nadagouda, Namrata and Ahad, Nauman and Tucker, Maegan and Davenport, Mark A.},
+  journal={arXiv preprint arXiv:2605.26072},
+  year={2026},
+  note={VERIFIED 2026-08-21 against the live arXiv abs page: full author list and
+        submission year 2026 confirmed, no venue stated. (!) DISCREPANCY: the paper's actual
+        title is ``Active Query Synthesis for Preference Learning'' -- it has NO
+        ``Info-Synth:'' prefix; ``Info-Synth'' is the name of the method introduced inside
+        the paper (their own words: ``we propose an active query synthesis framework,
+        Info-Synth, that generates optimal queries by maximizing a mutual information-based
+        objective within a continuous space''), not part of the title. `INDEX.md` had
+        rendered it as a title prefix in two places (`infosynth2026` and
+        `nadagouda2026infosynth` rows) -- corrected here; INDEX.md left as-is per
+        minimal-edit instruction. Abstract also confirms the ``confidence aware response
+        model'' that makes query noise depend on how ambiguous/close the compared items are
+        -- the project's ``geometry-dependent response model'' gloss. Two extension
+        strategies for finite pools, Pair M-dist and Pair Opt-dist, are named explicitly.
+        FULL 27-PAGE PDF READ 2026-08-24; the UNVERIFIED absence-claim flag this note
+        previously carried is CLEARED, but the claim had to be NARROWED. Evidence:
+        `external\_literature/findings/infosynth\_baseline\_2026-08.md'. The paper contains no
+        discussion of circularity and no treatment of whether a synthesised query DENOTES
+        anything -- but it does model response reliability, so the naive absence claim would
+        not survive a hostile reviewer. Defensible form: their confidence is a closed-form
+        function of query GEOMETRY alone, and in their one semantic space (OPT-350M summary
+        embeddings) the synthesised query is NEVER POSED -- Pair Opt-dist snaps it back onto
+        real dataset summaries before any response is collected; the continuous setting runs
+        only on uniform random synthetic vectors and on robot controller gains. NO HUMAN
+        ANSWERS ANY QUERY IN THE PAPER (simulated oracle, plus replayed 2020 labels from
+        Stiennon et al.).
+        VENUE: the page-1 footer reads ``Preprint.'' and nothing else -- no venue, no
+        submission note, no acknowledgements, no code release anywhere in 27 pages. Cite as an
+        arXiv preprint ONLY; never write ``NeurIPS 2026'' or ``under review''.
+        REPLICATION VERDICT: run it ANSWER-FREE only. Their response model IS the acquisition
+        criterion's own objective, so simulating the answer makes the arm unable to fail.}
+}
+
+% ---------------------------------------------------------------------------
+% Added 2026-08-21 batch -- Chapter C v2 todo-flag fills. Title/author/year/
+% venue for every entry below were verified against the live arXiv abs page
+% on 2026-08-21 via WebFetch. No numeric claims were extracted in this pass;
+% none of these entries carry quoted figures.
+% ---------------------------------------------------------------------------
+
+@inproceedings{tennenholtz2023elm,
+  title={Demystifying Embedding Spaces using Large Language Models},
+  author={Tennenholtz, Guy and Chow, Yinlam and Hsu, Chih-Wei and Jeong, Jihwan and Shani, Lior and Tulepbergenov, Azamat and Ramachandran, Deepak and Mladenov, Martin and Boutilier, Craig},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2024},
+  note={PDF-VERIFIED 2026-08-21 (full 34-page arXiv v2 read; see
+        `external\_literature/findings/llm\_verbalisation\_2026-08.md' section 10, and the
+        `tennenholtz2023elm' row of `external\_literature/INDEX.md').
+        VENUE CONFIRMED TWICE: the arXiv abs page states ``Accepted to ICLR 2024'' and every
+        page of the PDF is headed ``Published as a conference paper at ICLR 2024''.
+        AUTHOR LIST CORRECTED 2026-08-21 and re-confirmed against the PDF author block: NINE
+        authors, and there is NO Liang -- the list previously banked in INDEX.md for this
+        paper was EAGLE's (`tennenholtz2024eagle'). Jeong, Tulepbergenov, Ramachandran and
+        Mladenov are ELM-only. Correspondence: guytenn@gmail.com. Initially submitted
+        2023-10-06, revised 2024-03-13 (cs.CL, cross-listed cs.AI/cs.LG).
+        THREE CLAIMS SETTLED BY THE FULL READ, all recorded in the findings file: (1) the two
+        consistency metrics are SELF-GRADED -- semantic consistency re-embeds the output with
+        the SAME dual-encoder that produced the input vector (footnote 6), and behavioural
+        consistency ranks with the same dual-encoder (footnote 7), while the Figure-5
+        extrapolation experiment scores against the collaborative-filtering model's OWN
+        predicted ratings; only the Table-2 user-profile behavioural consistency against real
+        MovieLens ratings crosses rulers. Appendix H proposes an RLAIF procedure whose reward
+        IS the consistency score (proposed, not run). (2) The project's earlier line ``no
+        random baseline of any kind'' is FALSE and is narrowed to ``no input-side EMBEDDING
+        null'': Figure 5 carries a random-ranking floor and a ground-truth ceiling, and
+        PaLM 2-L / GPT-4 serve as text-only baselines. (3) The adapter injects the domain
+        vector as ONE token embedding (footnote 4 names longer sequences as future work), and
+        the LLM is frozen in stage 1 only -- stage 2 fine-tunes the whole model and is
+        reported essential for convergence. All four reported metric ranges (SC 0.77-0.96,
+        BC 0.46-0.96 Spearman, and both Amazon ranges) were confirmed cell-by-cell.}
+}
+
+@article{wang2023generec,
+  title={Generative Recommendation: Towards Next-generation Recommender Paradigm},
+  author={Wang, Wenjie and Lin, Xinyu and Feng, Fuli and He, Xiangnan and Chua, Tat-Seng},
+  journal={arXiv preprint arXiv:2304.03516},
+  year={2023},
+  note={VERIFIED 2026-08-21 against the live arXiv abs page: title and full author list
+        confirmed (cs.IR). No ``Journal reference:'' field or stated venue/conference
+        acceptance appears on the abs page -- cited as an arXiv preprint only; venue
+        unverified. Submitted 2023-04-07, revised 2024-02-25.}
+}
+
+@article{zhang2025zsinvert,
+  title={Universal Zero-shot Embedding Inversion},
+  author={Zhang, Collin and Morris, John X. and Shmatikov, Vitaly},
+  journal={arXiv preprint arXiv:2504.00147},
+  year={2025},
+  note={VERIFIED 2026-08-21 against the live arXiv abs page: title and full author list
+        confirmed (cs.CL, cross-listed cs.CR). No stated venue/conference acceptance appears
+        on the abs page -- cited as an arXiv preprint only; venue unverified. Submitted
+        2025-03-31.}
+}
+
+@article{ondov2026ctelm,
+  title={ctELM: Decoding and Manipulating Embeddings of Clinical Trials with Embedding Language Models},
+  author={Ondov, Brian and Chang, Chia-Hsuan and Zhou, Yujia and Giuffr{\`e}, Mauro and Xu, Hua},
+  journal={arXiv preprint arXiv:2601.18796},
+  year={2026},
+  note={VERIFIED 2026-08-21 against the live arXiv abs page: arXiv id 2601.18796 exists and
+        is valid (submitted 2026-01-26, cs.CL, cross-listed cs.AI/cs.LG); title and full
+        author list confirmed. No stated venue/conference acceptance appears on the abs
+        page -- cited as an arXiv preprint only; venue unverified.}
+}
+
+@article{li2025verbalization,
+  title={Do Activation Verbalization Methods Convey Privileged Information?},
+  author={Li, Millicent and Ceballos Arroyo, Alberto Mario and Rogers, Giordano and Saphra, Naomi and Wallace, Byron C.},
+  journal={arXiv preprint arXiv:2509.13316},
+  year={2025},
+  note={VERIFIED 2026-08-21 against the live arXiv abs page: title and full author list
+        confirmed (cs.CL, cross-listed cs.LG). The abs page states the venue as ICML 2026,
+        so that venue is confirmed and not an inference. Submitted 2025-09-16.}
+}
+
+@inproceedings{vanlooveren2019prototypes,
+  title={Interpretable Counterfactual Explanations Guided by Prototypes},
+  author={Van Looveren, Arnaud and Klaise, Janis},
+  booktitle={Machine Learning and Knowledge Discovery in Databases. Research Track
+             (ECML PKDD 2021), Part II},
+  series={Lecture Notes in Computer Science},
+  volume={12976},
+  pages={650--665},
+  publisher={Springer},
+  year={2021},
+  doi={10.1007/978-3-030-86520-7_40},
+  note={VENUE RESOLVED 2026-08-24 via DBLP (record `conf/pkdd/LooverenK21'): ECML/PKDD (2)
+        2021, pages 650-665, DOI 10.1007/978-3-030-86520-7\_40, Springer LNCS volume 12976.
+        This SUPERSEDES the 2026-08-21 note on this entry, which left the venue out because
+        the arXiv abs page carries no journal-ref: the last arXiv version is v2 (2020-02-18),
+        i.e. it PREDATES the 2021 publication and was never updated, and the PDF is set in
+        the ICML template with no conference banner -- a submission-history fingerprint, not
+        a venue claim. Both authors: Seldon Technologies Ltd, London. Reference
+        implementation: the `CounterfactualProto' method in Seldon's `alibi' library.
+        FULL 17-PAGE PDF READ 2026-08-24; see
+        `external\_literature/findings/im1\_im2\_plausibility\_2026-08.md'. TRANSFER VERDICT
+        FOR PAPER C: NO -- import the autoencoder IDEA (their L\_AE reconstruction term), not
+        the metric. IM1 and IM2 are RATIOS BETWEEN CLASS-CONDITIONAL AUTOENCODERS evaluated
+        on a paired instance x\_cf = x0 + delta in a CLASSIFIER'S INPUT SPACE; Paper C's C2
+        has no classifier, no class partition, no x0, and its object is a point in a
+        collaborative-filtering latent, so all four preconditions fail. Any score we report
+        must be called a reconstruction-plausibility score, NEVER IM1 or IM2.
+        CITATION HYGIENE: the equation numbers 13 and 14 are the arXiv v2 numbering; the
+        Springer version may renumber, so cite Springer WITHOUT equation numbers or
+        arXiv:1907.02584v2 WITH them, never a mixture.
+        CALIBRATION, so nobody over-reads a number: on MNIST even their BEST mean IM1 is 1.10
+        (above 1), the discriminating range across both datasets is roughly 0.88 to 2.07, and
+        IM2 is reported throughout as IM2 times 10. See `hvilshoj2021cfeval' and
+        `schut2021uncertainty' for the documented failure modes.}
+}
+
+% ---------------------------------------------------------------------------
+% Added 2026-08-24 batch -- reconciliation of the five deep reads of
+% 2026-08-21/24 (findings/hewitt_plugin_evaluation_2026-08.md,
+% findings/im1_im2_plausibility_2026-08.md, findings/infosynth_baseline_2026-08.md,
+% findings/redo_numbers_decap_heap_2026-08.md, findings/llm_verbalisation_2026-08.md
+% sections 9 and 10). Title/author/venue/pages for every entry below were
+% verified at the source named in each note on 2026-08-24.
+% ---------------------------------------------------------------------------
+
+@article{hvilshoj2021cfeval,
+  title={On Quantitative Evaluations of Counterfactuals},
+  author={Hvilsh{\o}j, Frederik and Iosifidis, Alexandros and Assent, Ira},
+  journal={arXiv preprint arXiv:2111.00177},
+  year={2021},
+  note={VERIFIED 2026-08-24 against the live arXiv abs page: title and full author list
+        confirmed, submitted 2021-10-30, cs.LG. There is NO ``Journal reference'' field and
+        NO ``Comments'' field on the abs page -- cite as an arXiv preprint only; venue
+        unverified because none is stated. Code: github.com/fhvilshoj/EvaluatingCounterfactuals.
+        WHY IT IS IN THIS BIB: it is the citation that justifies NOT using Van Looveren and
+        Klaise's IM1/IM2 in their published form (see `vanlooveren2019prototypes'). Analysis
+        and verbatim quotes:
+        `external\_literature/findings/im1\_im2\_plausibility\_2026-08.md' section 5. Their
+        documented failures: IM1 rewards tiny changes and is skewed by class-reconstruction
+        difficulty; IM2 decreases monotonically as the instance shrinks toward its minimal
+        value, so an almost-black image outscores a legible digit; on higher-complexity data
+        both metrics ``get close to statistically insignificant'' across methods; and no
+        pre-trained autoencoders exist, so absolute values are not comparable across
+        publications. They partially rehabilitate IM1 as a METHOD-LEVEL AGGREGATE, which is a
+        direct mismatch with a per-point plausibility use. Their proposed replacements (Label
+        Variation Score, Oracle score) are image-classifier-shaped and inherit the class
+        partition, so they do NOT rescue the transfer either.}
+}
+
+@inproceedings{schut2021uncertainty,
+  title={Generating Interpretable Counterfactual Explanations By Implicit Minimisation of
+         Epistemic and Aleatoric Uncertainties},
+  author={Schut, Lisa and Key, Oscar and Mc Grath, Rory and Costabello, Luca and
+          Sacaleanu, Bogdan and Corcoran, Medb and Gal, Yarin},
+  booktitle={Proceedings of the 24th International Conference on Artificial Intelligence and
+             Statistics (AISTATS)},
+  series={Proceedings of Machine Learning Research},
+  volume={130},
+  pages={1756--1764},
+  year={2021},
+  note={VERIFIED 2026-08-24 against the PMLR proceedings page (proceedings.mlr.press/v130/
+        schut21a.html): title, full author list, volume 130, pages 1756-1764 and the AISTATS
+        2021 proceedings name all confirmed there. Preprint: arXiv:2103.08951.
+        NAME DISCREPANCY, recorded rather than silently resolved: PMLR prints the third
+        author as ``Rory Mc Grath'' (with a space) and DBLP as ``Rory McGrath''; PMLR is the
+        version of record and is followed here. PMLR also prints the sixth author in
+        lowercase (``medb corcoran''); capitalised here as Medb Corcoran.
+        WHY IT IS IN THIS BIB: it is the source of the ``IM2 fails to identify out-of-sample
+        images'' result that `hvilshoj2021cfeval' cites, i.e. the second documented reason
+        Paper C's C2 must not lead with an IM2 analogue. Its own proposal -- minimise the
+        classifier's predictive uncertainty instead of fitting an auxiliary autoencoder -- is
+        a genuinely different plausibility route and the nearest thing to a successor for
+        ``is this a point the model can be confident about''; it needs a predictive model with
+        calibrated uncertainty over the latent, which CASPER does not currently have. STATUS:
+        the paper itself has NOT been read in this project; it is known through Hvilsh{\o}j
+        et al.'s report of it. See
+        `external\_literature/findings/im1\_im2\_plausibility\_2026-08.md' section 5.}
+}
+
+@inproceedings{biyik2019asking,
+  title={Asking Easy Questions: A User-Friendly Approach to Active Reward Learning},
+  author={B{\i}y{\i}k, Erdem and Palan, Malayandi and Landolfi, Nicholas C. and
+          Losey, Dylan P. and Sadigh, Dorsa},
+  booktitle={Proceedings of the 3rd Conference on Robot Learning (CoRL)},
+  year={2019},
+  note={VERIFIED 2026-08-24 against the live arXiv abs page (arXiv:1910.04365, submitted
+        2019-10-10, cs.RO cross-listed cs.AI/cs.LG): title, full author list and venue all
+        confirmed -- the abs page states ``Proceedings of the 3rd Conference on Robot
+        Learning (CoRL), October 2019''. Code: github.com/Stanford-ILIAD/easy-active-learning.
+        WHY IT IS IN THIS BIB (added during the 2026-08-24 reconciliation): it is the
+        principled answerability-aware acquisition criterion -- the information gain
+        I(w;q|Q) = H(q|Q) - E\_w H(q|w,Q), whose subtracted term is the HUMAN's answer
+        entropy, so hard-to-answer questions are penalised without a heuristic weight -- and
+        `nadagouda2026infosynth' positions itself against this paper BY NAME (their section
+        2.1 argues their confidence-aware response model ``not only doesn't increase the
+        cognitive load for responding''). It is therefore load-bearing for Paper C's related
+        work, not only Paper B's. Port the CRITERION, never the numbers: the experiments are
+        robotics (Driver, Tosser, Fetch) with user studies of n=15 and n=12. See the
+        `biyik2019asking' row of `external\_literature/INDEX.md'.}
+}
