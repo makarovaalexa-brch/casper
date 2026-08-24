@@ -1,0 +1,850 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{definition}{Definition}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{pifont}
+
+% --- notation macros (carried from Chapters A/B v2 for consistency) ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbf{Q}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\yy}{\mathbf{y}}
+\newcommand{\Amat}{\mathbf{A}}
+\newcommand{\W}{\mathbf{W}}
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\bSigma}{\boldsymbol{\Sigma}}
+\newcommand{\zz}{\mathbf{z}}
+\newcommand{\zhat}{\hat{\zz}}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+% \REDO{...}: a number that is REAL but was measured on a superseded checkpoint/protocol and must be
+% re-run before submission. \PLAN{...}: an experiment that is designed and specified but NOT YET RUN --
+% no number exists. \todo{...}: a drafting debt (missing citation key, unapproved wording, open
+% decision). All three render visibly so none can survive to camera-ready unnoticed.
+\newcommand{\REDO}[1]{\textcolor{red}{[REDO: #1]}}
+\newcommand{\PLAN}[1]{\textcolor{blue}{[PLANNED, NOT YET RUN: #1]}}
+\newcommand{\todo}[1]{\textcolor{magenta}{[TODO: #1]}}
+
+\title{\textbf{A Question the Catalogue Does Not Contain:\\Emitting, Rendering and Auditing
+Off-Catalogue Elicitation Directions}\\[4pt]\large Thesis Chapter C (v2) --- working draft}
+\author{}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent \todo{abstract --- write last, after C4 reports. It must carry the trimmed claim verbatim
+(capability, not value), the three controls, and the sentence that we do not and cannot show the
+emitted question would help.}
+\end{abstract}
+
+\todo{author to approve title}
+
+% =====================================================================
+\section{Introduction}
+\label{sec:intro}
+
+\todo{stub.} Two paragraphs of setting, then the claim sentence of
+\S\ref{sec:positioning}, then the one sentence the design of record requires in the introduction
+rather than the related work: \emph{what does this add over EAGLE?} The artifact that fills this
+section is the finished C0--C4 arc; nothing is written here until C0 has decided whether the arc
+exists at all.
+
+% =====================================================================
+\section{Positioning}
+\label{sec:positioning}
+
+\subsection{The claim, and the thing it is not}
+
+The claim of this chapter is that \textbf{the policy emits off-catalogue directions that carry real
+structure, a trained renderer can say them in English, and the text --- unlike text from a
+correspondence-scrambled latent --- reproduces the direction's causal effect.}
+
+That is a claim about \textbf{capability, not value}, and the distinction is not modesty. Chapter B
+established, on this same instrument, that the action space was not the constraint: enlarging the
+question bank made the selectors that consume it perform \emph{worse}, not better. A chapter that
+went on to argue that a still richer action space --- one unbounded by any bank --- is what the
+interview was missing would be arguing with the thesis it belongs to. So we do not argue it. We show
+that a direction outside the bank can be emitted, said, and audited; we do not show, and given our
+answer model cannot show, that asking it would improve a recommendation.
+
+Two consequences follow, and we state them before any result rather than in a limitations paragraph.
+First, \textbf{we make no claim about the value of the emitted point at all}. An earlier draft of
+this chapter argued that the emission target's construction --- a gain-weighted blend of measured
+candidates --- \emph{bounds} the emitted point's value by a convex combination of measured question
+values. That argument is withdrawn: it is a statement about vectors asserted as a statement about
+value, and it has no affineness to stand on. What survives is the construction itself, and it is
+worth stating precisely because it is weaker than it sounds. Every gradient in \S\ref{sec:c1} comes
+from a candidate whose value we measured; we claim nothing about the value of the blend point; and
+the ingredient set at a given state is an unstable draw from a near-flat measured gain profile, whose
+\emph{direction} is only moderately stable. \S\ref{sec:c1} reports that instability rather than
+assuming it away. Second, the simulated answerer that puts the
+policy at an interview state is used as a \textbf{state generator only}. Nothing downstream is scored
+through it: every validation in \S\ref{sec:c2}--\S\ref{sec:c4} is a property of the point or of the
+text, never an outcome of simulating an answer to the question and observing that the belief
+improved. That would be the model answering its own question and grading itself.
+
+Finally, one piece of territory is already claimed and we narrow to fit it. Generating objects
+outside the corpus is not an unoccupied idea in recommendation: GeneRec proposes an explicit AI
+creator for items the catalogue does not contain~\cite{wang2023generec}, and EAGLE's reward carries
+an explicit distance-from-nearest-neighbours novelty term~\cite{tennenholtz2024eagle}. Our object is
+off-catalogue in the \textbf{question channel}, where the thing emitted must be answered rather than
+consumed. We claim the channel, never the trick.
+
+\subsection{Answerability: a thirty-four-year-old failure, and the two standard fixes}
+
+Synthesising a query rather than selecting one is not new, and its canonical result is negative. Baum
+and Lang showed in 1992 that a learner which synthesises the maximally informative input and asks a
+human to label it can work poorly for a reason no amount of better optimisation
+fixes~\cite{baum1992query}: the informative point is a fusion of two classes --- a hybrid digit ---
+and a person cannot label it, so the query returns noise rather than information. We cite the claim
+and quote no number from it; the 1992 proceedings text was not obtainable.
+
+The modern reproduction is the citable evidence. Zhu and Bento's generative adversarial active
+learning synthesises instances with a GAN and has \emph{human oracles} label
+them~\cite{zhu2017gaal}; their own text records that labellers ``failed to confidently identify most
+of the generated cat and dog images'', and --- the part that matters --- the authors narrowed their
+experiments to easy binary pairs because of it. A fluent generative renderer did not buy
+answerability. That is the burden this chapter takes on, and it is why the load-bearing evidence here
+is a control rather than a demonstration of fluency.
+
+The field's two standard responses to Baum and Lang are exactly the two options in front of us:
+\textbf{snap the synthesised point to a real neighbour}, or \textbf{verbalise it}. The first is the
+majority answer and it recurs independently in at least four literatures --- local membership queries
+in learning theory, nearest-neighbour query synthesis in active learning, real-attribute profiles in
+polyhedral conjoint analysis, and, inside recommendation itself, the projection step of Vendrov et
+al.~\cite{vendrov2020gradient} \todo{bib keys for the local-membership-query and NN-query-synthesis
+citations are not yet in references.bib; either add them or drop this list to Vendrov alone}. Removing
+the snap is therefore the risk we are taking, not a shortcut we are declining, and four fields
+concluded it is not safe in general. The second response --- verbalise --- has one published instance
+close to ours: GenMQD generates a textual description of the wanted instance instead of the instance
+itself, and reports a user study in which human oracles prefer the text queries to generated image
+queries~\cite{genmqd2024}. It is vision active learning, where the human acts by fetching matching
+real data rather than by answering a question about themselves, so it does not occupy our cell --- but
+it does mean ``render the synthesised query as text'' is not an idea we may claim.
+
+\subsection{Where synthesised queries do reach people, and why not here}
+
+The unqualified sentence ``nobody puts a synthesised continuous query to a user'' is false, and it is
+false in a way that sharpens rather than weakens the claim. Wherever the design can be
+\emph{physically executed}, this is routine. LineCoSpar maintains a posterior over a utility function
+on a continuous six-dimensional gait-parameter space, proposes a gait that comes from no pool, has an
+exoskeleton walk it, and collects a preference from a real subject --- six able-bodied subjects, thirty
+learning trials each, at most twenty-nine pairwise preferences and thirty pieces of coactive feedback
+per subject~\cite{tucker2020linecospar}. Adaptive design optimisation does the same in psychophysics
+with real participants across three populations~\cite{ahn2020ado}. In both, answerability is free
+because the world renders the design: the question \emph{is} the stimulus.
+
+Recommendation has no such renderer. A point in a collaborative-filtering latent cannot be walked,
+displayed or tasted, which is precisely why the field snapped to a catalogue. The proposal of this
+chapter is that \textbf{language is the missing renderer}, and the reason the proposal needs an audit
+rather than a demonstration is that language, unlike an exoskeleton, will render anything --- including
+a vector with no meaning at all.
+
+\subsection{The neighbours, and what each one lacks}
+
+\paragraph{ELM --- the rendering mechanism, without anything choosing what to render.} An adapter maps
+vectors from a frozen recommendation model into a language model's token-embedding space, and the
+language model describes the vector; the vectors described include synthesised ones ---
+interpolations between two films, interpolations between two users, extrapolations along concept
+directions --- and consistency metrics are introduced precisely because such points have no ground
+truth~\cite{tennenholtz2023elm}. We take this mechanism rather than invent one, and we say so: an LLM verbalising a
+synthesised latent point is \textbf{not} a contribution of this chapter. What ELM has no notion of is
+\emph{selection}. Every vector it decodes is precomputed or analyst-supplied; there is no interview,
+no state, no policy choosing which point to decode, and no user whose answer comes back. The adapter
+injects the domain vector as a \emph{single} token embedding; longer sequences are named in its own
+footnote as future work. Its validation is round-trip re-embedding cosine, a downstream ranking
+correlation, and a hundred human raters. It does report an output-side random baseline --- a
+random-ranking floor and a ground-truth ceiling on the same axis --- so the narrow and correct
+statement is that there is \textbf{no input-side embedding null}: no condition in which the vector
+fed to the renderer is scrambled or random. Two further details of that validation are worth stating
+because they are the reason we do not reuse it. Semantic consistency re-embeds the generated text
+with the very dual-encoder that produced the input vector, so the metric is closed over the system's
+own components; and in the extrapolation experiment closest to our use case, behavioural consistency
+is scored against the collaborative-filtering model's own \emph{predicted} ratings. In that
+experiment behavioural consistency \emph{increases} the further the user embedding is pushed along a
+concept direction, which the authors attribute to the profile becoming more predictable for the model
+that scores it --- a published, first-party instance of a faithfulness score moving the wrong way
+off-manifold. ELM also states that it does not evaluate arbitrary points at all: only interpolations
+of existing entities and shifts from them.
+
+\paragraph{EAGLE --- the published propose-and-encode loop, and our motivation in its authors' own
+words.} EAGLE trains an RL agent to steer a frozen language model toward high-utility regions of a
+MovieLens-25M behavioural embedding~\cite{tennenholtz2024eagle}. It is the nearest published relative
+of a policy that optimises in a recommender's latent space and whose output is language, and it
+kills any unqualified version of that sentence: the surviving qualifiers are \emph{decode},
+\emph{interview}, and \emph{question}. Three facts separate it from this chapter, all taken from its
+own text. \textbf{It has no decoder} --- it requires only an encoder, edits text and encodes the
+result, so no latent point is ever mapped to language; the architecture is propose-and-encode, and
+our variant-(a) arm in \S\ref{sec:c3} is that architecture minus the RL, not a strawman we built.
+\textbf{There is no user and no question} --- the user embedding is fixed historical
+collaborative-filtering output, nothing is asked, no answer is observed, and nothing is folded back
+into the embedding space. \textbf{Its automatic evaluation is its own reward function}, computed by
+the encoder that defines the objective the agent was trained to maximise; its only evidence not
+routed through the reward is a panel of $124$ post-hoc raters who never see the latent. It does
+report a uniform reference policy over its action set, so we never write that it reports no random
+baseline --- what it does not report is a scrambled-latent or mismatched-user condition.
+
+Its authors also state our motivation better than we could. They identify the off-manifold problem
+explicitly --- a latent point deemed optimal may not map to any valid entity --- and achieve
+realisability by construction, by never leaving text; and they name the price, that coverage is
+inherently limited by the action space and that no remedy they consider would guarantee coverage of
+the embedding space. The nearest published relative looked at decoding an off-manifold optimal point
+and routed around it. That is the gap this chapter walks into, with its eyes open.
+
+\paragraph{Vendrov et al.\ --- synthesis-then-snap, inside recommendation, at AAAI 2020.} The query
+optimisation relaxes the item set by allowing attributes to vary continuously without requiring that
+they correspond to available items, and then projects the resulting hypothetical items back to the
+nearest real ones~\cite{vendrov2020gradient}. This is genuine query synthesis followed by a snap, in
+our own field, six years ago, and it forecloses ``optimise the query continuously'' as a
+contribution. Our claim is therefore stated against the three things it does not do: the space is a
+\textbf{collaborative} latent rather than an attribute space, the hypothetical is \textbf{rendered as
+language}, and it is left \textbf{unsnapped}. Their partial comparison queries --- specifying only a
+subset of attributes, explicitly to reduce the user's cognitive burden --- are also prior art for
+asking about part of a direction, and we check against them before presenting any sparse rendering as
+new.
+
+\paragraph{Info-Synth --- our design, minus the three things this chapter is about.} Info-Synth
+maximises a mutual-information objective over a continuous query space to synthesise a pairwise
+query, uses the synthesised query directly in the unconstrained setting, and snaps to dataset items
+only where the domain requires it~\cite{nadagouda2026infosynth}. It is the closest live neighbour and
+the natural foil for the whole chapter, and the absence we point at has to be stated narrowly,
+because response quality is its headline contribution rather than its blind spot. Info-Synth models
+the reliability of a comparison as a closed-form function of the query's \emph{geometry} --- the
+distances from the user point to the two synthesised points, through a heteroscedastic probit with a
+single noise scale --- and never as a function of whether the synthesised query denotes anything a
+respondent could be shown; nothing in that model refers to the content of either point. The
+experimental version of the same observation is sharper and is checkable line by line: in the one
+semantically embedded space they study, text summaries encoded with a language model, the synthesised
+query is never posed --- it is snapped back onto real summaries before any response is obtained. The
+continuous setting, in which the synthesised pair is used directly, is exercised only on uniform
+random synthetic vectors and on robot controller gains, both of which are instantiable by simulation.
+No human answers any query in the paper: the synthetic and robotics studies use an automated oracle,
+and the text experiments replay preference labels collected years earlier over pairs that already
+existed. So the question of how a synthesised point in a semantic space would be presented to a
+respondent does not arise in their experiments. Info-Synth treats answer \emph{noise}; Baum and Lang's
+problem is answer \emph{impossibility}, and this line does not name it. That gap is the reason our
+answerability section opens in 1992 rather than in 2026. We therefore replicate Info-Synth on our
+latent \textbf{answer-free only} --- synthesise the pair, measure where it lands and what the snap
+costs --- and report no payoff for it: its response model \emph{is} its acquisition objective, so an
+arm in which we simulated the answers could not fail and would be a self-consistency check dressed as
+an experiment.
+
+\paragraph{DeCap --- why the soft snap is justified with a number rather than an assertion.} The
+tempting justification for snapping is that no decoder exists for an off-manifold point. That
+justification is no longer safe: zero-shot embedding inverters are strong, and one of them reaches
+round-trip cosine above $90$ while its F1 against the true text is only above
+$50$~\cite{zhang2025zsinvert}. The honest
+justification is measured, and it is DeCap's~\cite{li2023decap}. All four numbers below are CIDEr on
+the MSCOCO Karpathy test split, zero-shot, with the decoder trained on CC3M text only, read off one
+table so the comparison is controlled. Feeding a genuinely off-manifold vector to that text-trained
+decoder --- in their case the raw CLIP \emph{image} embedding, off-manifold through the modality gap
+rather than through synthesis --- collapses CIDEr to $8.1$; a hard nearest-neighbour snap to the
+support memory recovers $27.1$, slightly above decoder-free CLIP retrieval, which uses no decoder at
+all and returns the highest-similarity caption verbatim for $25.6$; and a softmax-weighted \emph{blend}
+over that same memory reaches $42.1$. The ordering --- soft blend $\gg$ hard snap $>$ decoder-free
+retrieval $\gg$ raw off-manifold vector --- is the argument for our blended emission target, published
+in captioning, with numbers, and it reproduces on their other two benchmarks. The $25.6$ is a
+retrieval floor, not a fourth decoding strategy, and we do not present it as a rung of the ladder.
+
+\subsection{The validation gap, stated narrowly enough to survive}
+
+The methodological contribution of this chapter is the measurement, not the sentence about questions
+nobody has a word for. It rests on one observation: \textbf{we are aware of no embedding-verbalisation
+system that reports what its renderer produces from a correspondence-scrambled latent.} We checked
+eleven such systems and found the same toolkit throughout: round-trip re-embedding cosine, a
+downstream task, and human ratings. The sentence is deliberately restricted to systems that have a
+renderer at all --- EAGLE has none, and it is counted in the tally under a different leg, the absence
+of a causal faithfulness test, rather than under this one. We do not write that nobody uses a random
+control, and we do not write that nobody validates verbalisation faithfulness; both are false.
+
+They are false because interpretability has run this control, and the result is why we run it.
+Heap et al.\ trained sparse autoencoders on randomly initialised transformers and found automated
+interpretability scores \emph{equal to or higher} than for the trained model: on Pythia-6.9b, under
+`fuzzing' scoring, the trained model reaches AUROC $0.79$ and both re-randomised variants reach
+$0.87$, with the weights at initialisation higher still at $0.88$ (their Figure~1; the paper reports
+no AUROC table). The only null that separated sat at chance, $0.50$, and it is the one in which
+``the input token embeddings are replaced at inference time by sampling i.i.d.\ standard Gaussian
+noise for each token, such that a given token does not have a consistent embedding
+vector''~\cite{heap2026autointerp}. Read that construction carefully, because it fixes what the
+lesson is. Their strong null is \emph{itself} Gaussian; what it destroys is the consistency of the
+token-to-vector map. Their weak nulls resample the model's \emph{weights} while deliberately
+preserving each trained matrix's norm. So the separating axis is not Gaussian-versus-not, it is
+\textbf{what is randomised}: \textbf{scramble the correspondence, not the weights}, and note that a
+norm-matched weight randomisation scored \emph{higher} than the trained model. Their scale dependence
+is now quotable rather than asserted --- at Pythia-70m the same re-randomisations sit at $0.50$ and
+$0.49$ against a trained $0.63$, and the gap closes as the model grows --- which is why the control
+has to be run at our operating scale rather than imported as a result. One structural note earns the
+citation twice: their scored object is a natural-language \emph{explanation} of a latent, judged by
+whether a downstream reader can use it to recover the latent's behaviour, so this is a random control
+run on a verbalisation and not merely on a representation.
+
+The same construction exists a second time, in a field with stricter conventions than ours. Tang et
+al.'s fMRI language decoder is scored against a null distribution of information-free sequences, and
+against an alternative null built by permuting the voxel responses so that response statistics are
+preserved while the response-to-stimulus correspondence is destroyed~\cite{tang2023semantic}. So the
+design is not ours to claim. What we claim is its \textbf{application}: a scrambled-correspondence
+control for a \emph{rendered elicitation question}, where the validated object is a question a user
+would have to answer and where --- unlike a decoded transcript --- \textbf{no paired reference text
+exists}. We import the null construction, not the metric, and we say why the metric does not travel.
+
+The metric we do import is causal. Hewitt et al.\ score a verbalisation by \emph{plugging it in}:
+substitute the text back where the latent was and measure how much of the latent's effect it
+reproduces, normalised by the gap between a base condition and the score of the \emph{data that
+defined the concept} --- not by the latent's own score, so that the latent is an arm on the ruler
+rather than the ruler itself, and can fall short of it or overshoot
+it~\cite{hewitt2025neologism}. Our instantiation pushes the rendered question through the
+frozen text-to-CF adapter of Chapter A --- a map fitted independently of the emitter and of the
+renderer, which is what stops the round trip being a self-round-trip --- and reports gap closure
+against three controls: the scrambled correspondence, a prior-only rendering with the latent
+withheld~\cite{li2025verbalization}, and the nearest bank question.
+
+That choice is also our answer to the reviewer request we expect. The field's human instrument is a
+plausibility panel --- a hundred raters for ELM, a hundred and twenty-four for EAGLE, an expert
+discrimination test for ctELM in which synthetic abstracts fool clinicians $44\%$ of the time (two
+clinicians, fifty pairs)~\cite{ondov2026ctelm}. A good confabulator maximises
+that number, because the rater never sees the source vector. And Hewitt et al.\ report the opposite
+failure directly: \emph{machine-only synonyms}, verbalisations that look wrong or unrelated to people
+and nonetheless reliably reproduce the behaviour~\cite{hewitt2025neologism}. Human plausibility is
+therefore orthogonal to faithfulness in both directions, and we do not use it as our evidence. It may
+appear as a secondary readability check and nothing more.
+
+\subsection{What is unoccupied, stated as a conjunction}
+
+No leg of the following is claimed on its own, and we claim none of them on their own. What is
+unoccupied is the conjunction of three things: \textbf{(i)} the decoded point is chosen by an
+interview policy at an interview state --- ELM has nothing selecting which vector to decode, EAGLE has
+no interview; \textbf{(ii)} the renderer is audited against a \textbf{correspondence-scrambled}
+latent, which none of the eleven systems we checked reports; and \textbf{(iii)} faithfulness is
+scored \textbf{causally}, by plug-in substitution through an independently fitted map, where ELM's
+and EAGLE's evidence is round-trip cosine and post-hoc raters. Each leg alone has prior art or a
+near-miss. The three together are the contribution, and the sentence about a question nobody has a
+word for is decoration on it, not a substitute for it.
+
+% =====================================================================
+\section{Setup}
+\label{sec:setup}
+
+\paragraph{The instrument, the policy, and the contract --- in the form the rest of the chapter uses
+them.} Nothing in this chapter is trained except where a section says so, and nothing in the
+instrument is refitted at all: the recommender checkpoint, the fold-in operator and the question bank
+are the certified artifacts of Chapters~A and~B, held frozen. The bank contains $19{,}390$ questions
+in two channels --- $18{,}359$ items and $1{,}031$ concepts --- and the ruler is full and tail NDCG@10
+on the canonical split's $10{,}000$ validation users. The policy is \textbf{E1}, Chapter~B's distilled
+parametric policy: a network that reads the interview state, emits a continuous query vector, and asks
+whichever bank question scores highest against it, trained by cross-entropy toward the tree's one-hot
+pick and certified as reproducing that pick at top-1 agreement $1.0000$ at every position.
+\todo{cross-reference to Chapter B's E1 section once that section is written; it is currently
+referenced by name only.} The circularity contract is one sentence and it binds every number below:
+\textbf{the simulated answerer is used to put the policy at interview states and for nothing else} ---
+no quantity in this chapter is obtained by simulating an answer to a question and observing that the
+belief improved.
+
+\paragraph{Statistical conventions.} Three rules apply to every number in this chapter and are stated
+once here rather than repeated. \textbf{Every statistic carries an interval.} Where a quantity is a
+median or a proportion we report a cluster bootstrap or a Wilson interval alongside it, and a point
+estimate without one is a description, not a result. \textbf{Every statistic declares its aggregation
+unit.} Interview states are nested inside users and inside one another, so a proportion computed over
+user-rows and the same proportion computed over distinct states are different quantities; we name the
+unit each figure uses and report the other weighting as a robustness row whenever a threshold depends
+on it. \textbf{Every registered reading rule is applied to its own null control at design time.} A
+rule that places a norm-matched random direction in the same cell as the emission has no power to
+characterise the emission, and we say so in the section where it happens rather than discovering it
+in review.
+
+\todo{stub, remainder: the certified recommender checkpoint and its G0 numbers; the two channels'
+construction and answerability rule; the split and the fixed ruler stated once; the banked per-state
+measured gains from \texttt{policy\_labels.py} that C1 consumes.}
+
+% =====================================================================
+\section{C0: does the emitted point sit anywhere but on a bank question?}
+\label{sec:c0}
+
+E1 emits a continuous query vector at every interview state and then asks the bank question that
+scores highest against it; this section captures that vector, $\zhat$, \emph{before} the snap, at all
+$160{,}000$ states on which E1 was scored ($10{,}000$ validation users $\times$ $16$ positions), and
+measures where it sits relative to the $19{,}390$ questions it is scored against. Nothing is trained
+and nothing is sampled: the states are regenerated through the policy's own rollout path, the vector
+is taken by a forward hook on the head, and every state is scored against every bank entry.
+
+The unit those $160{,}000$ rows are counted in is load-bearing and we declare it before the first
+number. The rows are $10{,}000$ users $\times$ $16$ \emph{nested} positions, and they resolve to
+$31{,}874$ distinct asked-history states --- one at the root, three at the second position, and so on
+to $6{,}153$ at the last --- inside $6{,}836$ distinct realised interviews. \textbf{$99.95\%$ of the
+variance in $\cos_1$ is between states} rather than between users, at no less than $99.9\%$ at every
+position, so the emitted vector is essentially a function of the discrete answer history and not of
+the individual user. Every distribution below is therefore reported user-row-weighted, with the
+state-weighted value given as a robustness row wherever it changes the reading, and intervals come
+from a cluster bootstrap with the user as the cluster.
+
+One detail of the head is load-bearing enough to state rather than absorb. The score is
+\begin{equation*}
+s(q \mid \text{state}) \;=\; \langle u(h_{\text{state}}),\, k(\varphi_q)\rangle \;+\; b(\varphi_q),
+\end{equation*}
+with a \textbf{per-candidate bias}, so a bare bilinear inner product is not the rule the policy
+maximises and a geometry measured in that bare space would describe a scoring function E1 does not
+use. We therefore measure in homogeneous coordinates, $\zhat = [\,u(h),\,1\,]$ and $e_q =
+[\,k(\varphi_q),\,b(\varphi_q)\,]$, so that $\langle \zhat, e_q\rangle = s(q\mid\text{state})$
+exactly; this is an identity, not an approximation, and it is asserted against the head's own forward
+at run time (maximum absolute discrepancy $3.05\times10^{-4}$ on scores of magnitude $\approx 80$).
+The emitted vector is therefore $129$-dimensional. The bias-free bilinear variant is measured
+alongside and changes nothing that follows (median cosine $-0.179$ against $-0.182$).
+
+\subsection{Gates}
+
+All four gates were read before any geometry number was.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}p{0.28\textwidth}p{0.30\textwidth}p{0.34\textwidth}@{}}
+\toprule
+\textbf{Gate} & \textbf{Criterion} & \textbf{Result} \\
+\midrule
+Snap identity & the argmax of $\langle\zhat,e_q\rangle$ reproduces E1's own pick at every state &
+\textbf{0 mismatches of $160{,}000$}; top-1 agreement $1.0000$ \\
+Banked rollout & the regenerated interviews must equal the banked E1 artifacts &
+\textbf{byte-identical} on all $10{,}000\times16$; val full $0.28355$ and tail $0.13421$ reproduce
+the banked values exactly \\
+Canonical intercept & the zero-question intercept must be the canonical value &
+full $0.15686538$, tail $0.02747733$ --- exact \\
+Scale control & a random direction scored through the identical code path & run; reported alongside
+every statistic below \\
+\bottomrule
+\end{tabular}
+\caption{C0 gates. A failure in any row would have meant a broken measurement rather than a result.}
+\label{tab:c0gates}
+\end{table}
+
+\subsection{The registered prediction, and what fired}
+
+The design sheet was pre-registered before the run and registered the \emph{negative} prediction ---
+that trained on one-hot targets, $\zhat$ sits on its top-scoring bank question and carries no
+off-catalogue content --- together with the reading rule that decides it: \textbf{``on the grid''}
+requires median $\cos_1 \ge 0.98$ \emph{and} median $m \ge 0.90$; \textbf{``between candidates''}
+fires if median $m \le 0.60$ \emph{or} at least $25\%$ of states have three or more candidates within
+$5\%$ of $s_1$. The result lands in \texttt{between\_candidates} on the first trigger. The second does
+not fire on this arm ($20.8\%$); it fires at $26.4\%$ on the secondary arm, which repeats the
+measurement on the states E1 visits when it chooses from the whole bank rather than from its
+$1{,}000$-candidate training pool, and which agrees on every statistic (median $\cos_1$ $-0.181$,
+median $m$ $0.407$).
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Statistic} & \textbf{Emitted $\zhat$} & \textbf{IQR} & \textbf{Random direction} \\
+\midrule
+$\cos_1$, cosine to the snapped question & $\mathbf{-0.18201}$ & $[-0.32830,\,-0.06928]$ &
+$+0.06418$ \\
+margin ratio $m = (s_1-s_2)/(s_1-s_{10})$ & $\mathbf{0.40985}$ & $[0.21470,\,0.57909]$ & $0.26678$ \\
+entropy of $\mathrm{softmax}(s)$ over the top-$50$ & $0.00549$ & $[0.00004,\,0.41493]$ & $0.90049$ \\
+states with $\ge 3$ candidates within $5\%$ of $s_1$ & $20.8\%$ & --- & $32.6\%$ \\
+states with $\cos_1 > 0.98$ & $\mathbf{0}$ of $160{,}000$ & --- & $0$ \\
+states with $\cos_1 > 0$ & $4.76\%$ & --- & --- \\
+maximum $\cos_1$ over all states & $\mathbf{0.1203}$ & --- & $0.398$ \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{robustness: the same two medians weighted by distinct state rather than
+by user-row}} \\
+$\cos_1$, state-weighted & $-0.260$ & --- & --- \\
+margin ratio $m$, state-weighted & $0.286$ & --- & --- \\
+\bottomrule
+\end{tabular}
+\caption{Medians over all $160{,}000$ validation rows unless a row says otherwise. The random column
+is a Gaussian direction rescaled to that state's own $\lVert u(h)\rVert$, given the same bias
+coordinate and pushed through the identical scoring code. Cluster-bootstrap $95\%$ intervals, cluster
+= user: median $\cos_1$ $[-0.18396,\,-0.18063]$, median $m$ $[0.40782,\,0.41168]$. The state-weighted
+rows are the reason the unit is declared: weighted by distinct state the margin ratio sits at $0.286$,
+almost exactly on the random floor of $0.267$.}
+\label{tab:c0main}
+\end{table}
+
+One part of this survives every qualification below and we state it first, because it is the only
+claim here that needs no reading rule at all: \textbf{the maximum $\cos_1$ over all $160{,}000$ rows
+is $0.1203$, so no emission sits on its snapped question anywhere, and the registered on-grid
+prediction is falsified unconditionally.}
+
+The rest of the registered reading has less power than it appears to, and the honest way to report
+that is to say so here rather than in a limitations paragraph. \textbf{Applying the registered rule
+to the norm-matched random direction lands the random direction in \texttt{between\_candidates} too.}
+The confirmation cell was a conjunction of two strict thresholds and the falsification cell a
+disjunction of two lax ones, so a vector carrying no information about this bank satisfies it. The
+cell is therefore a property of the rule, not a characterisation of the policy, and we draw no
+effect-size conclusion from it: ``the prediction is falsified, and not narrowly'' --- the sentence
+this section originally carried --- is retracted, and only the maximum-statistic claim above stands
+on the registered reading. Where the geometry moves is still measurable, and it moves with depth and
+with channel rather than randomly.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}lrccc@{}}
+\toprule
+\textbf{Subset} & \textbf{states} & \textbf{median $\cos_1$} & \textbf{median $m$} &
+\textbf{$\ge 3$ in band} \\
+\midrule
+position $t=0$ (the root question) & $10{,}000$ & $-0.0693$ & $0.5861$ & $0.000$ \\
+position $t=15$ & $10{,}000$ & $-0.2653$ & $\mathbf{0.2009}$ & $\mathbf{0.610}$ \\
+\midrule
+snap is an item & $100{,}367$ & $-0.1779$ & $0.3466$ & $0.263$ \\
+snap is a concept & $59{,}633$ & $-0.1840$ & $0.5398$ & $0.117$ \\
+\midrule
+full-bank snap inside the training pool & $107{,}288$ & $-0.1867$ & $0.4997$ & $0.090$ \\
+full-bank snap outside it & $52{,}712$ & $-0.1657$ & $\mathbf{0.1816}$ & $\mathbf{0.450}$ \\
+\bottomrule
+\end{tabular}
+\caption{Where the vector sits, by depth and by what it snaps to. The margin falls monotonically in
+the aggregate from $0.586$ at the root to $0.201$ at the last position, and the mean number of
+candidates inside the $5\%$ band rises from $1.0$ to $5.9$; the cosine barely moves between the
+in-pool and out-of-pool splits, so the \emph{direction} is equally far from the grid either way and
+what changes is how tightly one entry wins.}
+\label{tab:c0splits}
+\end{table}
+
+\subsection{The mechanism}
+
+The negative cosine is not a harness fault, and the explanation also disposes of the apparent
+contradiction between the two registered statistics --- a softmax with one obvious winner over a
+direction that points nowhere near it. \textbf{The whole score vector sits far below zero}: the
+median top score is $-82.7$, and $95.2\%$ of states have a negative top score, while the decision
+itself is made by a comparatively small variation on top of that --- median $s_1 - s_2 = 7.81$
+logits, median $s_1 - s_{10} = 17.50$, against $\lvert s_1\rvert \approx 83$. Cross-entropy
+constrains only score \emph{differences}, so nothing in E1's training penalises a large common-mode
+component shared across candidates, and the head placed one there. In the raw space the scale control
+looks damning: a random direction, which by construction knows nothing about this bank, is
+\emph{closer} in cosine to whatever it happens to snap to ($+0.064$) than the policy is to the
+question it deliberately selects ($-0.182$).
+
+That comparison is an artifact of the common mode, and the diagnostic that removes it changes the
+interpretation rather than the numbers. Subtracting the bank's mean direction --- which is enormous:
+the mean pairwise cosine over the whole $19{,}390$-entry bank is $0.964$, and it falls to $0.0018$
+once that one shared component is removed --- the emission's cosine to the entry it selects has median
+$\mathbf{+0.488}$, IQR $[0.369,\,0.587]$, positive at $98.9\%$ of rows, against $\mathbf{+0.170}$ for
+a norm-matched random direction scored against the same entries. So the corrected mechanism statement
+is a sum, not a dismissal: \textbf{the trained emission is a large shared common-mode component,
+which raw cosine sees, plus a genuine bank-aligned informative direction, which raw cosine hides. It
+is a scoring functional over the bank rather than a semantic point in question space \emph{in the raw
+space}; mean-removed, it is directionally meaningful, while still far from lying \emph{on} its
+question ($0.49 \ll 1$) and still surrounded by near-ties.}
+
+\subsection{What this licenses}
+
+What is established is that $\zhat$ never sits on its snapped question --- the maximum cosine over
+every row is $0.1203$ --- and, as a description rather than a rule-backed verdict, that the runners-up
+are spread widely enough that the top gap is under half the top-ten range, most of all late in the
+interview and in the out-of-pool region. That second statement is user-row-weighted; weighted by
+distinct state the margin sits at $0.286$ against a random floor of $0.267$, which is the version a
+sceptical reader should hold. What is \emph{not} established is that $\zhat$ carries useful
+off-catalogue content. A vector can be far from every bank entry, and between several of them, for
+the mundane reason that nothing in the loss ever had a reason to put it anywhere in particular: the
+one-hot target constrains a comparison, and C0 measured the emission rather than the training signal.
+Nor does a low margin ratio mean the interview is uncertain in any decision-relevant sense --- the
+softmax is degenerate at the median state, and E1's realised interviews remain exactly the tree's.
+
+That is also the sense in which this section hands over to the next. \textbf{C1's blend target is
+therefore not merely a way to teach in-between emission; it is the step that would give $\zhat$ a
+target in the question space, and a renderer fed E1's raw emission would be verbalising a vector
+whose raw-space orientation is dominated by an offset.} The mean-removed diagnostic is what stops
+that sentence being stronger: there is a real bank-aligned direction underneath the offset, so the
+counterfactual is about what a renderer would be handed, not a proof that the emission is empty. The
+distributions above, together with the random-direction floor, are the pre-C1 reference against which
+\S\ref{sec:c1}'s ``the emissions moved off the grid'' is measured; they are not themselves evidence
+for it.
+
+% =====================================================================
+\section{C1: teaching the policy to land between questions --- a pilot}
+\label{sec:c1}
+
+The design replaces E1's one-hot distillation target with a gain-weighted blend of the top-$m$
+candidates whose value was measured at that interview state, so the target is off-catalogue by
+construction while every gradient still comes from a question we actually measured. What follows is a
+\textbf{pilot}, not that design executed: it runs on the $42$ interview states for which a full exact
+gain table over the roughly one thousand in-pool candidates exists, fine-tunes to those $42$ targets,
+and asks one question --- can this architecture place a point off the grid and hold it there. It is
+validation-only, no test look was taken, and the fine-tuned object is not a policy.
+
+\paragraph{The $42$ states are a structurally selected population, and the selection is not ignorable.}
+An exact gain table exists at a state precisely when the tree-grower left no truncated tail there,
+plus the targeted below-floor sweeps we paid for, so \emph{missingness is deterministic in the process
+under study}. The consequences are visible in the population: $27$ of the $42$ states sit under the
+root's \texttt{dislike} branch, roughly a $2{:}1$ over-representation, and the cohorts nest --- $36{,}197$
+user-rows drawn from $10{,}000$ users, with five states each an ancestor of twenty or more of the
+others. Not truncating a population is not the same thing as it being representative of one, and we
+do not describe these states as ``the entire population rather than a sample'' anywhere the phrase
+would do the work of representativeness.
+
+\subsection{Stage 0: are the targets off the grid at all?}
+
+The pre-registered stop rule was to abandon the pilot if the blend targets collapsed back onto the
+top candidate --- median cosine to the nearest bank question above $0.99$. It did not fire. At $m=5$
+the targets sit at median $\cos_1$ $0.9313$ (IQR $[0.9168,\,0.9494]$) with median margin ratio
+$0.2150$, and \textbf{every one of the $42$ states has three or more bank entries inside the
+$5\%$-of-$\lvert s_1\rvert$ band}, against $20.8\%$ of states for E1's own emissions. The blends do
+not collapse onto the top candidate because the measured gain profile at these states is close to
+flat over the leading few candidates: median top weight $w_1$ is $0.228$ at $m=5$, which is also why
+$m=3$, $5$ and $10$ produce nearly identical geometry.
+
+Two qualifications travel with those numbers. First, a target's nearest bank entry is never one of
+its own ingredients --- the argmax over the full bank equals the top-gain candidate at $0.0000$ of
+states, at every $m$. Second, $\cos_1 \approx 0.93$ is high, and it is high for the anisotropy reason
+\S\ref{sec:c0} already established: an arbitrary point in this space is at cosine $0.93$ to
+\emph{something}. ``Off the grid'' here means crowded and low-margin, not far from everything.
+
+\subsection{Stage 1: the fine-tunes, and what the registered criteria could and could not decide}
+
+The loss is $1 - \cos(\zhat, \text{target})$ at the $42$ states, each weighted equally regardless of
+cohort size; the bank cannot move under it by construction, since the target is a constant built from
+the bank. Two arms --- head-only and full, the latter also training the encoder --- three seeds each,
+plus a shuffled control in which the $42$ targets are deranged across the $42$ states. The analytic
+ceiling was computed before the optimiser ran: median $0.9964$, minimum $0.9920$, at or above $0.90$
+at all $42$ states, so the registered bar was known to be reachable.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{@{}p{0.30\textwidth}p{0.20\textwidth}p{0.21\textwidth}p{0.21\textwidth}@{}}
+\toprule
+\textbf{Criterion} & \textbf{Bar} & \textbf{Head-only} & \textbf{Full} \\
+\midrule
+1 --- fits its target & mean $\cos \ge 0.90$ & $0.98908$ \textbf{pass} & $0.99320$ \textbf{pass} \\
+2a --- off-grid signature & median $\lvert\cos_1(\zhat)-\cos_1(\text{target})\rvert \le 0.05$ &
+$0.01107$ \textbf{pass} & $0.00758$ \textbf{pass} \\
+2b --- same nearest bank question & $\ge 0.80$ of states & $0.7857$ ($33/42$), Wilson
+$[0.641,\,0.883]$ --- \textbf{indeterminate} & $0.8095$ ($34/42$), Wilson $[0.667,\,0.900]$ ---
+\textbf{indeterminate} \\
+3 --- seed stability, independent inits and data orders & pairwise $\cos \ge 0.95$ & $0.99969$
+(min $0.99810$) \textbf{pass} & $0.99936$ (min $0.99692$) \textbf{pass} \\
+\midrule
+paired sign test, true vs deranged targets & --- & $26/42$, $p = 0.164$ & $\mathbf{30/42}$,
+$\mathbf{p = 0.0079}$ \\
+\bottomrule
+\end{tabular}
+\caption{The registered criteria, read as the intervals allow rather than as pass/fail. Criterion 3
+is the version re-run with genuinely independent initialisations; the original three-seeds-one-init
+check could not have failed and is superseded. The bottom row is the statistic that carries the
+section.}
+\label{tab:c1criteria}
+\end{table}
+
+Criterion 2b is \textbf{indeterminate in both arms}: $42$ states cannot resolve $0.79$ from $0.81$,
+both Wilson intervals straddle the $0.80$ bar, the two arms differ by a single discordant state, and
+--- decisively --- \textbf{the shuffled control scores the same $33/42$}. A criterion a permuted target
+passes has no separating power over the quantity it was written to test. It did do the job it was
+originally written for, ruling out a snap back onto the top candidate; it is not evidence that the
+measured gains were learned.
+
+The one statistic that does separate is paired: the full arm fits its \emph{true} targets better than
+deranged ones at $30$ of $42$ states, sign test $p = 0.0079$; the head-only arm does not
+($26/42$, $p = 0.164$). That is the section's carrying result, and it is narrow. The shuffled arms
+still reach $\cos \approx 0.99$, which is the pilot's own warning showing up in its control:
+\textbf{fitting $42$ constants with $526$k parameters is easy, and the within-state agreement of
+$0.99999$ between a cohort's users is the same fact stated as a virtue.}
+
+\subsection{What the blend target is made of, and how stable it is}
+
+The word ``measured'' in ``a blend of measured candidates'' has to be qualified, and the qualification
+is ours rather than a reviewer's. Under a per-user bootstrap over the $35$ deep-sweep states, the
+top-five ingredient set has \textbf{mean overlap $1.905$ of $5$} with itself; all five ingredients
+survive a majority of resamples at \textbf{zero of the $35$ states}; and two disjoint halves of a
+state's own cohort pick top-five sets whose \textbf{median overlap is zero}. These are winner's-curse
+maxima over a roughly thousand-candidate argmax on a near-flat profile. The blend's \emph{direction}
+is more stable than its ingredients but not stable: split-half cosine of the $m=5$ target is $0.987$
+raw --- inflated by the common mode again --- and $0.656$ mean-removed, with IQR $[0.090,\,0.974]$.
+The sentence the chapter may use is therefore ``a blend whose ingredients are unstable draws from a
+near-flat measured gain profile, and whose direction is moderately stable'', and C1 proper needs
+targets built on larger cohorts before ``measured'' does any more work than that.
+
+\paragraph{Do the ingredients at least point the same way? Exploratory, and yes.} Because the loss is
+norm-invariant, a target assembled from mutually cancelling ingredients would be a short, near-arbitrary
+vector and the fit would mean little. It is not. In the raw space nothing cancels anywhere --- the
+cancellation ratio never falls below $0.969$ --- but that column is nearly uninformative, since the
+bank's mean pairwise cosine is $0.964$ and its random floor is $0.981$. Mean-removed, the blends
+retain about three quarters of their length (median $0.745$ at $m=5$) against a matched random floor
+of $0.593$, beating that floor at $39$ of $42$ states, with ingredient pairwise cosine $0.46$ against
+a floor of $0.19$ at $37$ of $42$. Mixed item-and-concept blends are nominally less coherent than
+single-channel ones ($0.715$ against $0.780$, uncorrected $p = 0.015$), and $14$ of $42$ states carry
+at least one genuinely opposed ingredient pair, concentrated in the low-coherence tail. \textbf{This
+whole subsection is exploratory} --- at least twelve uncorrected tests over nested states --- and no
+result in it is corrected for multiplicity or licensed as a finding. It removes one specific way the
+pilot could have been vacuous and nothing more; coherence is uncorrelated with how off-grid a target
+is, and in the head-only arm it runs mildly the \emph{wrong} way against fit quality, which is one
+more reading pointing where the shuffle control points.
+
+\subsection{The collateral damage, reported and not gated}
+
+Away from its $42$ states the fine-tuned object stops being a policy. At a thousand ordinary
+validation states, scored against the same candidate pool as its parent, its snap agreement with the
+banked E1 is \textbf{$0.0000$ in all six runs}, and it emits \textbf{six distinct questions in the
+head-only arm and four in the full arm} where E1 emits $163$. The pilot deliberately did not gate on
+this, because its question was capability rather than deployment, but the number fixes the size of
+what a real C1 has to solve: a replay or regularisation term is not a refinement, it is the whole
+distance between this result and a policy.
+
+\subsection{What the pilot licenses}
+
+Exactly one sentence: \textbf{the architecture can be trained to emit stable, well-defined
+off-catalogue points at states with measured blend targets, and those points carry the same off-grid
+signature as the targets} (emitted $\cos_1$ $0.93$ against the targets' $0.93$, margin $0.31$ against
+$0.22$, three or more near-ties at $100\%$ of states). The registered kill-gate of the chapter's
+design did not fire: C1 is not dead on the question of whether a point can be placed. The
+qualification is equally exact. \textbf{The pilot did not show that the blend target is what the
+policy learned}; it showed that a $42$-target regression onto arbitrary points in this space is easy
+for this head. No NDCG number, no generalisation to unseen states, no ``novel question'', and no
+claim that the measured gain profile was encoded.
+
+% =====================================================================
+\section{C2: is the point meaningful?}
+\label{sec:c2}
+
+\todo{stub.} Three properties of the direction, none of which requires anyone to answer it:
+off-catalogue distance and margin as in C0; \emph{discriminativeness over real users}, measured by
+projecting real fold-in profiles onto the direction and reporting the spread, which is a fact about
+the direction rather than an answer on anyone's behalf; and on-manifold plausibility as a
+\textbf{reconstruction score} --- one autoencoder fitted on real fold-in latents, scoring
+$\lVert \hat{z} - \mathrm{AE}(\hat{z})\rVert^2$ against the same two nulls. We take the idea from Van
+Looveren and Klaise's manifold-proxy reconstruction term~\cite{vanlooveren2019prototypes} and we do
+\emph{not} import IM1/IM2 themselves: both are ratios between two class-conditional autoencoders
+evaluated on a paired counterfactual, and C2 has no classes and no paired original, while IM2's
+normalisation is monotone in the magnitude of the instance and would reward our emitter for shrinking
+its vector --- a documented pathology rather than our own objection~\cite{hvilshoj2021cfeval}. The
+score is never called IM1. The null is pre-registered before it is run and is \textbf{norm- and
+spectrum-matched, and correspondence-scrambled} --- not Gaussian noise, because in a latent with
+dominant principal components almost any direction separates users and discriminativeness would be
+nearly free geometry; the same caution applies to reconstruction error, so the pass threshold is
+fixed before the autoencoder is fitted, and the registered rule is checked against the null at design
+time. Artifact: a three-property table with the scrambled arm alongside every cell.
+
+% =====================================================================
+\section{C3: saying it in English}
+\label{sec:c3}
+
+\subsection{The variant-(a) proof of concept, and why it reports no comparison}
+
+Before the claim-bearing renderer was built we ran the retrieval-anchored variant end to end, on
+thirty blinded packets: ten real points --- five blend targets and five fine-tuned emissions --- with
+ten correspondence-scrambled and ten spectrum-matched random partners. Every packet was rendered as a
+question by a blinded model, judged for answerability and for whether it came from a real point by a
+second blinded model that saw only question text, and re-encoded through a text-to-concept bridge with
+its tag alignment asserted at all $1{,}031$ positions. All thirty rendered; all thirty re-encoded.
+
+The pipeline works. \textbf{No comparison from it may be quoted, because the run had zero functioning
+controls and an unpowered judge}, and both of those are findings about the design rather than
+outcomes of it.
+
+The scrambled arm \textbf{cannot be constructed} under this variant, which we now know structurally
+and can also show. The packets scramble which point is paired with which context, but the retrieval
+anchors travel with the point, so the chain from point to anchors to text stays intact for a scrambled
+packet: there is no way to break the point-to-text correspondence in a pipeline whose language model
+never sees the point. The measurement agrees --- the paired real-minus-scrambled re-encode difference
+is median $+0.0087$, real greater at $5$ of $10$ pairs, sign test $p = 0.727$. This is the empirical
+version of the disqualification argument that made the trained adapter the claim-bearing renderer in
+the first place, and it is the cheapest form that argument could have taken.
+
+The random arm was \textbf{a bug, not a control}. Its spectrum-matched draw was rescaled in the raw
+space while every cosine in the analysis is read mean-removed, so the control ran at $1.84\times$ ---
+up to $9.71\times$ --- the length of the point it stood in for, in the space it was compared in, while
+matching the raw norm exactly, which is why nothing flagged it. The two packets that carried the
+original mean-level gap are artifacts of exactly this. The draw is fixed at source and the corrected
+packets are banked, but they have not been rendered or judged, so every number in this subsection
+describes the uncorrected pipeline and none of them is a comparison.
+
+The judge was \textbf{unpowered}. It was correct on $11$ of $30$ packets ($0.367$, Wilson $95\%$
+$[0.219,\,0.545]$) against an all-control baseline of $0.667$, so the registered prediction that
+fluency discriminates nothing is \textbf{not contradicted} and is certainly not confirmed: the
+interval does not exclude $54\%$ accuracy. What is suggestive and no more is that real packets were
+judged ``real'' \emph{least} often ($0.20$ against $0.60$ scrambled and $0.50$ random, all three
+intervals overlapping) --- no evidence that a reader's textual heuristics track validity, and a little
+that they anti-track it. A powered version needs roughly $120$ packets.
+
+What the proof of concept buys the chapter is therefore a \textbf{harness and a design finding}: a
+blinding protocol, a re-encode bridge with asserted alignment, an anchor-reference bound, and the
+measured demonstration that variant (a)'s correspondence control cannot be built. Both feed the build
+below, and neither is a result about rendering.
+
+\subsection{The claim-bearing renderer}
+
+\todo{stub. Blocked on explicit author approval for LLM API calls.} The claim-bearing renderer is the
+trained adapter that maps $\zhat$ into the language model's token-embedding space, because it is the
+only variant under which ``the vector conditions what is said'' is literally true, and therefore the
+only one in which scrambling the vector tests \emph{rendering} rather than \emph{retrieval}. Two
+comparison arms: an EAGLE-style encoder-only propose-and-encode arm~\cite{tennenholtz2024eagle}, whose
+expected near-zero off-catalogue residual is itself evidence for the in-between claim, and a
+training-free retrieval-prompt arm over the nearest bank phrases. Artifact: rendered question text for
+every emitted point, per arm, with the scrambled and prior-only conditions rendered identically.
+
+% =====================================================================
+\section{C4: the plug-in faithfulness audit}
+\label{sec:c4}
+
+\todo{stub.} Push the rendered text back through the frozen text-to-CF adapter and report the
+fraction of the direction's causal gap that the text closes, as a per-point distribution rather than
+a mean.
+
+\paragraph{The normaliser is external, and the latent is an arm rather than the ruler.} Hewitt et
+al.'s denominator is the score of the \emph{training data} that defined the concept, not the latent's
+own score~\cite{hewitt2025neologism}; their latent is scored on the same ruler as the text and can
+fall short of it or overshoot it, and that spread is half of what makes their table informative. An
+earlier version of this section normalised by the latent's own effect, which pins the latent at
+$100\%$ by construction, cannot detect a weak emitter, and inflates every text score when the
+emission barely moves the belief. We restore the third object: the ruler is the \textbf{measured best
+real question at that state}, which we already bank, so the latent, the rendered text and all three
+controls sit on one external ruler that none of them defines, and the reportable sentence is ``the
+text recovers $X\%$ of what a real measured question recovers''. The scalar is fixed in advance.
+
+\paragraph{An adapter-ceiling row, before any headline.} Our substitution crosses two frozen maps
+that theirs does not --- text to sentence embedding, sentence embedding to collaborative-filtering
+belief --- and each caps gap closure below $100\%$ for reasons unrelated to verbalisation quality, so
+a low number would be unattributable. The first row of the table is therefore a real bank question's
+\emph{own} text pushed through the same bridge and scored against that question's measured effect.
+That is the achievable maximum for any text on this path; every other figure is reported against it.
+
+\paragraph{Controls, and their separation from the arms.} Three controls on the same axis:
+correspondence-scrambled, prior-only, and nearest bank question. Two instrument checks decide whether
+the ruler is trustworthy before any headline is read off it: the nearest bank text must close
+\emph{less} of the gap than the selected text, and the scrambled text must close approximately none
+--- if scrambled text closes the gap, the validator is broken, not the claim confirmed. One row needs
+constructing carefully rather than assuming: the retrieval-prompting \emph{arm} of \S\ref{sec:c3} and
+the nearest-bank \emph{control} currently coincide, and they must either be built as distinct objects
+or reported as a single row explicitly labelled as both. Selection and validation optimise different
+quantities and use encoders from different families, and we report the two rulers' correlation on
+held-out real pairs rather than asserting their independence. Claiming a machine-only synonym of our
+own would require the text to reproduce the effect through a \emph{second, independently fitted}
+text-to-CF map, exactly paralleling their transfer to a different model family; without that second
+map the deflationary reading --- that our single fitted adapter has a quirk --- is hard to refuse, and
+we cite their finding only for what it is needed for, which is the reason not to grade rendered
+questions by human plausibility. Artifact: the gap-closure distribution table, the adapter-ceiling
+row, and the two-ruler correlation.
+
+% =====================================================================
+\section{Limitations}
+\label{sec:limitations}
+
+\todo{stub.} In order: we cannot show the emitted question would help, and why that trade was taken;
+no claim is made about the value of the emitted point, and the blend's ingredients are an unstable
+draw from a near-flat measured profile; the C1 evidence is a pilot on a structurally selected,
+nested, dislike-heavy population of $42$ states whose fine-tuned object is not a deployable policy;
+the C3 proof of concept has zero functioning controls and an unpowered judge; the answerer is a state
+generator and the chapter's numbers do not route through it; the scrambled-correspondence design is
+imported from two other fields and only its application here is ours; the renderer is ELM's
+mechanism; and the answerability question Baum and Lang actually posed --- can a real person answer
+this at all --- is left open, with the note that the one worthwhile human spend would be on
+answerability rather than on quality grading.
+
+% =====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+\todo{stub.} One paragraph, and it ends on the audit rather than on the slogan.
+
+% ---------------------------------------------------------------------
+\bibliographystyle{plain}
+\bibliography{../references}
+
+\end{document}
