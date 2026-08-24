@@ -85,7 +85,12 @@ C1_GIT_REV = "a7ffc52c031bbf2007a08d4876de41591319b309"
 # A regenerated `c1_pilot.json` carries a new rev. Adding it here is a DELIBERATE act: it is the
 # point at which someone confirms the regenerated artifact still reproduces the pinned criterion
 # numbers below. Do not widen this tuple to make an assert go away.
-C1_ACCEPTED_REVS = (C1_GIT_REV,)
+#   dfabe3f -- the 2026-08-24 repair regeneration. Admitted after checking that its `stage0` and
+#   `stage1` blocks reproduce the a7ffc52 run: all criteria, losses, geometry and every banked npz
+#   array bit-identical, the only movement being ~1e-8 float32 reduction noise in the
+#   `within_state_cos_to_mean` diagnostic. `zbar_full_seed1`, the array THIS file consumes, is
+#   bit-identical.
+C1_ACCEPTED_REVS = (C1_GIT_REV, "dfabe3f2af50f0b729e944a4bcc10c32217b6de3")
 C1_FULL_SEED1_MEDIAN_COS = 0.9935154616832733
 C1_FULL_SEED1_MEAN_COS = 0.9931273886135646
 C1_FULL_SEED1_SAME_NEAREST = 0.8095238095238095
