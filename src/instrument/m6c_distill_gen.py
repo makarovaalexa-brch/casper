@@ -67,6 +67,8 @@ def main():
     ap.add_argument("--out_dir", default="",
                     help="bank directory; defaults to m6/traj")
     ap.add_argument("--threads", type=int, default=6)
+    ap.add_argument("--cold_tree", default="coldtree_v2.json",
+                    help="the COLD teacher. Pass coldtree_v2_train10000.json to keep BOTH teachers train-fitted; mixing a validation-fitted cold arm with train-fitted group arms puts one teacher at home and the other away, which is the confound m6r exists to remove (home advantage measured at +0.02881).")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
@@ -117,7 +119,8 @@ def main():
             valcoh[g] = vr[end_v[vr, ANCHORS[g]]]
             log(f"[centroid] {g}: {len(valcoh[g])} VALIDATION users (tree was train-fitted)")
         del Ev
-    _cd, cold_nodes = load_tree(os.path.join(B, "coldtree_v2.json"))
+    _cd, cold_nodes = load_tree(os.path.join(B, a.cold_tree))
+    log(f"[cold] teacher = {a.cold_tree} ({len(cold_nodes)} nodes)")
 
     zf = np.load(os.path.join(B, "m1", "z_full.npz"))
     ZF, ZR = zf["z"].astype(np.float64), zf["rows"]

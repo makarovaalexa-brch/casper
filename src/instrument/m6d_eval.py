@@ -76,6 +76,8 @@ def main():
     ap.add_argument("--tree_suffix", default="")
     ap.add_argument("--groups", default="", help="restrict to these groups")
     ap.add_argument("--threads", type=int, default=6)
+    ap.add_argument("--cold_tree", default="coldtree_v2.json",
+                    help="the COLD teacher. Pass coldtree_v2_train10000.json to keep BOTH teachers train-fitted; mixing a validation-fitted cold arm with train-fitted group arms puts one teacher at home and the other away, which is the confound m6r exists to remove (home advantage measured at +0.02881).")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
@@ -119,7 +121,8 @@ def main():
 
     static = [(int(x), int(y)) for x, y in
               json.load(open(os.path.join(B, "greedy_static_policyB_combined.json")))["sequence"]]
-    _cd, cold_nodes = load_tree(os.path.join(B, "coldtree_v2.json"))
+    _cd, cold_nodes = load_tree(os.path.join(B, a.cold_tree))
+    log(f"[cold] teacher = {a.cold_tree} ({len(cold_nodes)} nodes)")
     V, F = np.asarray(E["V"]), np.asarray(E["foldable"])
     endorse = (F > 0) & (V > 0)
     zf = np.load(os.path.join(B, "m1", "z_full.npz"))
