@@ -9,13 +9,17 @@ pilot/PoC the same date). Data provenance: `docs/design/C1_GAIN_TABLE_AUDIT.md`.
 sha is asserted against `c0_geometry.json` at run time, so this is the same object C0 measured.
 Wall clock **4.4 minutes** (42 states, 8 fine-tunes, all geometry).
 
-**One-line verdict: Stage 0 does NOT stop the pilot — the blends are genuinely off the grid (median
-target-cos₁ 0.931, median margin ratio 0.215) — and Stage 1 fits them. The full-policy arm passes all
-three registered criteria (SUCCESS); the head-only arm passes two of three, missing criterion 2's
-80% same-nearest-question bar by a single state (33/42 = 0.7857). But the two controls are what the
-reading turns on: a policy trained on PERMUTED targets scores 0.7857 on the same criterion and 0.988
-on criterion 1, and the fine-tuned policy's behaviour at ordinary states collapses completely
-(4–6 distinct questions over 1,000 states against the banked E1's 163; snap agreement 0.0000).**
+**One-line verdict (REWRITTEN 2026-08-24 after the hostile-review + repair pass — the original
+"SUCCESS (all three)" cell is retracted as unsupported): Stage 0 does NOT stop the pilot — the
+blends are genuinely off the grid (median target-cos₁ 0.931, margin 0.215) — and Stage 1 fits them
+robustly (criterion 1 passes; criterion 3 now re-run with INDEPENDENT inits and data orders,
+pairwise cos ≥ 0.9969, a real pass replacing the original tautological one). Criterion 2b is
+INDETERMINATE in both arms: 33/42 and 34/42 with Wilson 95% CIs [0.641, 0.883] / [0.667, 0.900],
+both straddling the 0.80 bar, and the shuffled control scores the same 33/42 — the criterion as
+registered cannot separate anything. The one paired statistic that does separate: the full arm fits
+its TRUE targets better than deranged ones at 30/42 states (sign test p = 0.0079); head-only does
+not (26/42, p = 0.164). The fine-tuned policy's behaviour at ordinary states collapses completely
+(4–6 distinct questions vs E1's 163; snap agreement 0.0000).**
 
 So the sentence the sheet licenses on success — *"the architecture can be trained to emit stable
 off-catalogue points at states with measured blend targets"* — is earned, and nothing beyond it is.
@@ -112,13 +116,18 @@ so "the state's emitted point" is a well-defined object and not an artefact of a
 |---|---|---|---|
 | 1 — fits its target | mean cos ≥ 0.90 | **0.98908 PASS** | **0.99320 PASS** |
 | 2a — off-grid signature | median \|cos₁(ẑ) − cos₁(target)\| ≤ 0.05 | **0.01107 PASS** | **0.00758 PASS** |
-| 2b — same nearest bank question | ≥ 0.80 of states | **0.7857 (33/42) FAIL** | **0.8095 (34/42) PASS** |
-| 3 — seed stability | pairwise cos ≥ 0.95 | **0.99999 PASS** | **0.99977 PASS** |
-| **registered cell** | all three | **criterion 2 misses with 1 passing** | **SUCCESS (all three)** |
+| 2b — same nearest bank question | ≥ 0.80 of states | 0.7857 (33/42), Wilson [0.641, 0.883] — **INDETERMINATE** | 0.8095 (34/42), Wilson [0.667, 0.900] — **INDETERMINATE** |
+| 3 — seed stability | pairwise cos ≥ 0.95 | **0.99999** (shared-init; superseded) | **0.99977** (shared-init; superseded) |
+| 3 — REAL inits (repair pass, `stage1_v2`) | pairwise cos ≥ 0.95 | **0.99969 PASS** (min 0.99810) | **0.99936 PASS** (min 0.99692) |
+| **registered cell (as rewritten 2026-08-24)** | | criteria 1+3 pass; 2b indeterminate; shuffle-paired n.s. (26/42, p=0.164) | criteria 1+3 pass; 2b indeterminate; **shuffle-paired separates (30/42, p=0.0079)** |
 
-Criterion 3 is passed with room to spare but is a weak test **as implemented**: all three seeds start
-from the same banked checkpoint and the only stochasticity is minibatch ordering, so 0.9999 is close
-to what one should expect. It rules out optimisation instability, not much else.
+**[2026-08-24]** The original table's "FAIL by a single state" / "PASS" split and the "SUCCESS (all
+three)" cell are retracted: 42 states cannot resolve 0.79 from 0.81, the two arms differ by one
+discordant state, and the shuffled control also scores 33/42 on 2b — the criterion as registered
+has no separating power. Criterion 3's original pass was a tautology (three seeds, one init); the
+repair pass re-ran it with independent inits and data orders and it passes properly. The claim the
+pilot earns is unchanged in substance but its support is now the paired sign test (full arm only),
+not the criterion table.
 
 ### Controls
 
@@ -289,3 +298,30 @@ target reproduction asserted bit-identical before any statistic was taken. No te
 | per-state targets (m=3/5/10), their cos₁ / margin / snap / analytic ceiling, per-state emitted vectors and per-state fit cosines for every run | `experiments/paperC/c1_pilot_per_state.npz` |
 | run log | `experiments/paperC/c1.out` |
 | code | `src/instrument/c1_pilot.py` (commit `a7ffc52`) |
+
+## REPAIRED READING (2026-08-24) — Fable, from `experiments/paperC/stats_repair.json` + `c1_pilot.json:stage1_v2` (commit 019c060)
+
+1. **The 42 states are a structurally selected, nested, dislike-heavy population, not 42 trials.**
+   Coverage is deterministic in the grower's tail behaviour (a full table exists iff CELF grew no
+   tail, plus the 35 targeted below-floor sweeps); 27 of 42 sit under `root.dislike` (~2:1
+   over-representation); cohorts nest (36,197 user-rows from 10,000 users; 5 states are ancestors
+   of 20+ others). The earlier "entire exact-coverage population, not a sample (HARD RULE 1)"
+   sentence conflated non-truncation with representativeness and is retracted in that use.
+2. **The blend's INGREDIENTS are majority resampling noise; its DIRECTION is only moderately
+   stable.** Per-user bootstrap over the 35 deep-sweep states: top-5 selection overlap mean
+   **1.905 of 5**; all five survive a majority of resamples at **0 of 35** states; two disjoint
+   cohort halves pick top-5 sets with **median overlap 0**. Split-half cosine of the m=5 target
+   direction: **0.987 raw** (common-mode inflated) but **0.656 mean-removed** with IQR
+   [0.090, 0.974]. ⇒ "a gain-weighted blend of MEASURED candidates" must be written as "a blend
+   whose ingredients are unstable draws from a near-flat measured gain profile, whose direction is
+   moderately stable"; C1-proper needs targets built on larger cohorts (the retrained tree) before
+   the word "measured" carries weight, and the winner's-curse note joins the value-bound retraction
+   already made in `PAPER_C_DESIGN.md`'s repair queue.
+3. **Coherence-section corrections** (mislabels found in the repair pass): the raw PAIRWISE
+   beat-floor count is 25/42 (24/42 is the raw RATIO count); the "+0.13, p=0.41" Spearman is the
+   MEAN-REMOVED ratio (raw gives +0.24, p=0.12); the section is exploratory, ≥12 uncorrected tests
+   on nested states — "measurably" is retracted for "nominally (uncorrected)". Its outputs now live
+   in `experiments/paperC/c1_blend_coherence.json` with a committed producer.
+4. **The 0.99999 within-state agreement is also the statement that Stage 1 fitted 42 constants
+   with 526k parameters** — which is why the shuffled targets fit nearly as well. Stated here so a
+   reviewer does not get to assemble it first.

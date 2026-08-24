@@ -7,11 +7,19 @@ Design sheet: `docs/design/DS_C0_GEOMETRY.md` (pre-registered 2026-08-21, bindin
 `experiments/battery/policy_main_equivariant_both.pt`, epoch 2, sha256
 `9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058`. Wall clock **17.6 minutes**.
 
-**One-line verdict: the registered prediction is FALSIFIED, and not narrowly — the emitted vector does
-not sit on its nearest bank question by any of the three registered statistics. Median cosine to the
-snapped question is −0.182 (it is above 0.98 at *zero* of the 160,000 states, and above zero at only
-4.8% of them), and the median margin ratio is 0.410, inside the pre-registered "between candidates"
-band (m ≤ 0.60). The result lands in the registered cell `between_candidates`.**
+**One-line verdict (REWRITTEN 2026-08-24 after the hostile-review + repair pass; the original
+overclaimed — see the Repaired reading below): the registered on-grid prediction is falsified —
+max cos₁ over every state is 0.1203, so no emission sits on its question — but the registered
+reading rule has no power to characterise the emission beyond that: a norm-matched random direction
+lands in the same registered cell, so the cell describes the rule, not the policy. The informative
+statement needs the mean-removed diagnostic added in the repair pass: the emission is a large
+common-mode offset PLUS a genuine bank-aligned direction (mean-removed cos₁ to the snapped entry:
+median +0.488 vs +0.170 for a random direction against the same entry).**
+
+> Superseded original ("FALSIFIED, and not narrowly… −0.182… 0.410… `between_candidates`"): the
+> point estimates stand but the framing implied an effect size the rule cannot license, quoted
+> "160,000 states" without the clustering statement, and the raw-space "random is closer to its
+> snap than the policy to its selection" comparison was a common-mode artifact.
 
 The one metric that does *not* say "between": the softmax over the top-50 is essentially degenerate
 (median entropy 0.0055 nats), because the absolute gap to the runner-up is large — median s₁ − s₂ =
@@ -208,3 +216,40 @@ in the out-of-pool region"**, not "E1 already emits novel questions".
 | per-state `cos₁`, `m`, entropy, band counts, `s₁ s₂ s₃ s₁₀`, position, user row, snap id, snap channel, in/out-of-pool, plus the random-floor per-state vectors — both arms | `experiments/paperC/c0_geometry_per_state.npz` |
 | run log | `experiments/paperC/c0.out` |
 | code | `src/instrument/c0_geometry.py` (commit `e5fa5dc`) |
+
+## REPAIRED READING (2026-08-24) — Fable, from `experiments/paperC/stats_repair.json` (commit 019c060)
+
+The hostile-review pass (statistics + harness lenses) forced five corrections; the repair pass
+banked the numbers. Everything below supersedes the corresponding original sentences.
+
+1. **The sample unit.** The 160,000 rows are 10,000 users × 16 nested positions over **31,874
+   distinct asked-history states** (per position: 1, 3, 9, … 6,153) and 6,836 distinct
+   (asked, answers) interviews; **99.95% of the cos₁ variance is between-state** (≥99.9% at every
+   position). The emitted vector is essentially a function of the discrete answer history, not of
+   the user. All original tail fractions are user-row-weighted; the declared unit is now stated and
+   the state-weighted column is the robustness row: median cos₁ **−0.260** (vs −0.182), median m
+   **0.286** (vs 0.410 — state-weighted, the margin sits almost on the random floor of 0.267).
+   Cluster-bootstrap 95% CIs (cluster = user): median cos₁ [−0.18396, −0.18063], median m
+   [0.40782, 0.41168].
+2. **The rule has no power beyond the falsification.** Applying the registered reading rule to the
+   norm-matched random floor lands it in `between_candidates` too. The cell is a property of the
+   rule; only the max-statistic claim survives unconditionally (max cos₁ = 0.1203 ⇒ nothing sits on
+   the grid).
+3. **★ The mean-removed diagnostic (never run in the original) changes the interpretation.**
+   Mean-removed cos₁ to the snapped entry: **median +0.488** (IQR [0.369, 0.587], positive at 98.9%
+   of rows) vs **+0.170** for a norm-matched random direction scored against the same entries. The
+   raw-space "a random vector is closer to its snap than the policy to its selection" was a
+   common-mode artifact. Corrected mechanism statement: **the trained emission = a large shared
+   common-mode component (which raw cosine sees) + a genuine bank-aligned informative direction
+   (which raw cosine hides)**. "A scoring functional, not a semantic point" therefore holds only in
+   the raw space; mean-removed, the emission is directionally meaningful though far from ON its
+   question (0.49 ≪ 1) and still among many near-ties.
+4. **What this changes downstream:** C1's baseline and the chapter's C0 section must quote the
+   mean-removed pair (+0.488 vs +0.170) alongside the raw pair, and the bolded "not a semantic
+   point in question space" sentence must carry the raw-space qualifier. The renderer counterfactual
+   ("would be verbalising a common-mode offset") weakens to "would be verbalising a vector whose
+   raw-space orientation is dominated by an offset".
+5. Provenance repairs (harness lens): tail gates now asserted, E1 per-user npz sha pinned, index
+   map asserted in all consumers, thread count recorded. ⚠ The edited asserts inside
+   `c0_geometry.run()` itself have not executed since the edit (the 17.6-min rerun was not
+   repeated); they are exercised by `paperc_stats_repair.py`. First re-run of C0 must confirm them.
