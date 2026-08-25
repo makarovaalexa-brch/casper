@@ -68,7 +68,7 @@ from ndcg_tree import build_pool, leak_assert, read_global, RULER_NOTE
 
 OUTDIR = os.path.join(_ROOT, "experiments", "battery")
 TREE_HEAPS = os.path.join(OUTDIR, "ndcgtree_heaps")
-ROOT_HEAP = os.path.join(TREE_HEAPS, "node_root.json")      # overridden by --tree_heaps
+ROOT_HEAP = os.path.join(TREE_HEAPS, "node_root.json")      # VALIDATION only -- see transplant_seed
 GLOBAL_JSON = os.path.join(OUTDIR, "greedy_static_i26c.json")
 
 TOTAL_L = 16
