@@ -47,7 +47,8 @@ of the two, so beating it is the conservative comparison). Do not belabour it.
 
 ### 1.3 ★ Act 5 pays off at the wrong states — this is the real defect
 
-`tab:volunteered` measures **anchor-state** teachers (`m3v2_*`, one attribute folded). But Act 5 now
+`tab:volunteered` measures the OLD teachers (`m3v2_*`), each fitted at ONE state with its group
+concept folded and nothing else. But Act 5 now
 argues that real requests are Reddit-shaped openers (films 63%, genre 40%, tone 21%), and the banked
 result is that anchor teachers **do not survive the move**: `+0.00897` at the anchor →
 `−0.0020 / +0.0008 / −0.0014 / −0.0024` at one film / two films / a concept / a bundle.
@@ -102,19 +103,37 @@ and then the payoff, which is the deployable claim:
 
 **The mix arithmetic, corrected.** `[mix] 587 in a group (5.9%)` in the banked logs is a
 SINGLE-GROUP run (`[groups] ['arthouse']`) and must not be read as the population split. With all six
-groups the training banks give **cold 85,289 / 140,768 = 60.6%**, so **39.4% of users endorse at
-least one anchor**; validation agrees (5,406 memberships over 10,000 users at 1.37 groups per grouped
+groups the training banks give **cold 85,289 / 140,768 = 60.6%**, so **39.4% of users behaviourally
+endorse at least one of the six group-defining concepts**; validation agrees (5,406 memberships over 10,000 users at 1.37 groups per grouped
 user ⇒ ~3,941 ⇒ ~39.4%). So the expected mix gain is ≈ `0.394 × 0.011` ≈ **+0.0043**, not the
 +0.0007 a 6% share would imply.
 
 Three things to keep straight when writing it:
 1. **Membership is behavioural, not assigned** — `foldable(u,g) > 0 AND V(u,g) > 0`, i.e. the user can
    answer that concept and their signed value from real ratings is positive.
-2. **The 39/61 split is a property of choosing SIX anchors**, not of people. More anchors, fewer cold
-   users. One honest clause: our six-concept vocabulary reaches 39% of the population.
+2. **The 39/61 split is a property of choosing SIX concepts**, not of people. A larger vocabulary
+   reaches more users. One honest clause: our six-concept vocabulary reaches 39% of the population.
 3. **Grouped users average 1.37 groups each**; the mix assigns multi-group users by nearest centroid,
    which is our tie-break. And a user who volunteers something outside the six is counted cold here —
    that understates reachable users, it does not overstate them.
+
+
+### 2.1 TERMINOLOGY — "anchor" is retired
+
+The word does two jobs in the code and only one is still live:
+
+* **Anchor as a teacher STATE — DEAD.** Fitting a tree with one attribute folded and nothing else is
+  the `m3v2` / `ndcg_tree --cohort_concept` path. It is what `m6k` exists to replace
+  (`m6k_cluster_tree.py:18`), because those teachers do not survive the move to realistic openers.
+* **The group-defining CONCEPT — live.** `ANCHORS[g]` is now only a lookup for the concept id that
+  selects the cohort: `cohort = rows_all[endorse[rows_all, cid]]`. The correct name for the result is
+  an **endorsement cohort** — users who behaviourally endorse one concept. Cf.
+  `cluster-vs-endorsement-cohort-and-the-era-hole`.
+
+**In writing and in conversation, say "group-defining concept" and "endorsement cohort". Never
+"anchor".** It is a legacy variable name, not a design element. (`m6c_distill_gen.py:209` still
+stores `anchor=` in each bank; under `--anchor_encoding none` the policy never reads it — the field
+is inert and must not appear in any description of how the policy routes.)
 
 ---
 
