@@ -68,7 +68,7 @@ from ndcg_tree import build_pool, leak_assert, read_global, RULER_NOTE
 
 OUTDIR = os.path.join(_ROOT, "experiments", "battery")
 TREE_HEAPS = os.path.join(OUTDIR, "ndcgtree_heaps")
-ROOT_HEAP = os.path.join(TREE_HEAPS, "node_root.json")
+ROOT_HEAP = os.path.join(TREE_HEAPS, "node_root.json")      # overridden by --tree_heaps
 GLOBAL_JSON = os.path.join(OUTDIR, "greedy_static_i26c.json")
 
 TOTAL_L = 16
@@ -176,6 +176,13 @@ def main():
     ap.add_argument("--total_L", type=int, default=TOTAL_L)
     ap.add_argument("--label", default=None)
     ap.add_argument("--verify_n", type=int, default=8)
+    ap.add_argument("--split", default="validation", choices=["validation", "train"],
+                    help="fitting population. 'train' keeps this comparator on the same footing as "
+                         "the train-fitted trees it is compared against; validation then holds no "
+                         "arm's fitting data. NDCG is never REPORTED on train.")
+    ap.add_argument("--slice_lo", type=int, default=0)
+    ap.add_argument("--slice_hi", type=int, default=34000)
+    ap.add_argument("--n_users", type=int, default=0, help="cap the fitting cohort (0 = all)")
     ap.add_argument("--no_seed_reuse", action="store_true")
     ap.add_argument("--full_threads", action="store_true",
                     help="consumed by strategy_channel_suite AT IMPORT (it reads sys.argv)")
@@ -199,11 +206,22 @@ def main():
     log("# TEST IS NOT BUILT, NOT LOADED, NOT TOUCHED.")
     log("#" * 110)
 
-    E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, f"{label}(val)")
+    assert args.split != "test", "the TEST look is reserved -- this file never builds it"
+    if args.split == "validation":
+        E = build_greedy_env(args.snapshot, "validation", args.concept_ckpt, f"{label}(val)")
+    else:
+        E = build_greedy_env(args.snapshot, "train", args.concept_ckpt, f"{label}(train)",
+                             cohort_slice=(args.slice_lo, args.slice_hi))
+        log(f"[cohort] FITTING ON TRAIN USERS {args.slice_lo}..{args.slice_hi} -- a fitting "
+            f"objective only; this order is REPORTED on validation.")
     rows = E["rows"]
+    if args.n_users and len(rows) > args.n_users:
+        rows = list(rows)[:args.n_users]
+        log(f"[cohort] capped to the first {len(rows):,} users")
     contract_selftest(E, rows)
-    leak_assert(E, rows, "validation")
-    assert len(rows) == 10000, f"cohort is {len(rows)} users, expected the canonical 10,000"
+    leak_assert(E, rows, args.split)
+    want_n = 10000 if not args.n_users else args.n_users
+    assert len(rows) == want_n, f"cohort is {len(rows)} users, expected {want_n}"
 
     combined_pool, item_pool, conc_pool = build_pool(E, args.n_items, args.n_concepts)
     sub_pool = item_pool if chan == 0 else conc_pool
@@ -269,7 +287,7 @@ def main():
             "label": label, "citable": True, "arm": arm, "channel": args.channel,
             "supersedes": SUPERSEDES.format(arm=arm, n=len(sub_pool)),
             "ruler_note": RULER_NOTE,
-            "split": "validation", "test_touched": False,
+            "split": args.split, "n_cohort": len(rows), "test_touched": False,
             "tower": os.path.basename(args.snapshot),
             "concept_ckpt": os.path.basename(args.concept_ckpt),
             "objective": args.objective, "item_bank": "pop", "conc_bank": "answerable",
