@@ -1,0 +1,4274 @@
+{
+ "analysis": "paperC_C4_pilot",
+ "design_sheet": "docs/design/DS_C4_PILOT.md (PRE-REGISTERED 2026-08-25, BINDING)",
+ "produced_by": "src/instrument/c4_pilot.py",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "answer_free": "no answer is simulated to any rendered question, no NDCG is computed, and no claim about the value of asking may be built from this file",
+ "n_states": 42,
+ "n_generations": 508,
+ "point_kinds": [
+  "target",
+  "emission",
+  "random"
+ ],
+ "channel_hots": [
+  "item_hot",
+  "concept_hot"
+ ],
+ "reference": {
+  "definition": "R_s = sum_j w_j * tower(q_j) over the state's banked m=5 ingredients; tower(.) = TowerBridge.target_tower (item -> Ew centred+popularity-stripped decoder row, concept -> d_c)",
+  "same_R_for_target_emission_and_random": true,
+  "disclosure": {
+   "n_item_ingredients": 90,
+   "n_concept_ingredients": 120,
+   "mean_effective_weight_item": 0.34087346831469223,
+   "mean_effective_weight_concept": 0.19922960643250848,
+   "mean_item_tower_norm": 1.6426281409170391,
+   "mean_concept_tower_norm": 1.0000000005491243,
+   "note": "Ew rows carry their own magnitude, d_c rows are unit -- so in a mixed blend the nominal weight is not the effective one. Reported, not corrected: R_s is defined by the sheet in exactly these two objects."
+  }
+ },
+ "measure": "rendered text -> SBERT -> concepts -> ConceptFoldNet(cv3) fold displacement from the cold fold z0, popularity-stripped -> cos with R_s",
+ "reading1_faithfulness_A_minus_Aprime": {
+  "target/item_hot": {
+   "mean": -0.02369791555802377,
+   "ci_lo": -0.13101807443066085,
+   "ci_hi": 0.08862170245478107,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": false,
+   "n_pairs": 42,
+   "n_dropped_non_encodable": 0,
+   "directional_pass": false
+  },
+  "target/concept_hot": {
+   "mean": 0.04979606943985117,
+   "ci_lo": -0.0499191670391698,
+   "ci_hi": 0.14569034333529027,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": false,
+   "n_pairs": 42,
+   "n_dropped_non_encodable": 0,
+   "directional_pass": false
+  },
+  "emission/item_hot": {
+   "mean": 0.11538570473140218,
+   "ci_lo": 0.026301695216145185,
+   "ci_hi": 0.21231416079555393,
+   "n": 27,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_pairs": 27,
+   "n_dropped_non_encodable": 15,
+   "directional_pass": true
+  },
+  "emission/concept_hot": {
+   "mean": 0.2219290437723652,
+   "ci_lo": 0.12156923829461581,
+   "ci_hi": 0.3217487951053153,
+   "n": 37,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_pairs": 37,
+   "n_dropped_non_encodable": 5,
+   "directional_pass": true
+  },
+  "random/item_hot": {
+   "mean": 0.07602070687492286,
+   "ci_lo": -0.016484600450852382,
+   "ci_hi": 0.17348221639923336,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": false,
+   "n_pairs": 42,
+   "n_dropped_non_encodable": 0,
+   "directional_pass": false
+  },
+  "random/concept_hot": {
+   "mean": -0.11648348035256734,
+   "ci_lo": -0.20521489137327767,
+   "ci_hi": -0.03252209434678395,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_pairs": 42,
+   "n_dropped_non_encodable": 0,
+   "directional_pass": false
+  }
+ },
+ "reading2_point_specificity_real_minus_random": {
+  "target/item_hot": {
+   "mean": 0.020850823495518506,
+   "ci_lo": -0.08022310807646922,
+   "ci_hi": 0.1212881703093036,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": false,
+   "n_pairs": 42,
+   "n_dropped_non_encodable": 0,
+   "directional_pass": false
+  },
+  "target/concept_hot": {
+   "mean": 0.28592931718291464,
+   "ci_lo": 0.17820302865234033,
+   "ci_hi": 0.39776890737574394,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_pairs": 42,
+   "n_dropped_non_encodable": 0,
+   "directional_pass": true
+  },
+  "emission/item_hot": {
+   "mean": 0.19082152078789477,
+   "ci_lo": 0.10719134855718151,
+   "ci_hi": 0.27504953292144524,
+   "n": 40,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_pairs": 40,
+   "n_dropped_non_encodable": 2,
+   "directional_pass": true
+  },
+  "emission/concept_hot": {
+   "mean": 0.2845498512179696,
+   "ci_lo": 0.19534201460558814,
+   "ci_hi": 0.3756333263136851,
+   "n": 41,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_pairs": 41,
+   "n_dropped_non_encodable": 1,
+   "directional_pass": true
+  }
+ },
+ "reading3_catalogue_comparator_REPORT_ONLY": {
+  "level_gold_phrase_vs_R": {
+   "mean": -0.1584760850251607,
+   "ci_lo": -0.22437899977492765,
+   "ci_hi": -0.0889612591930886,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_non_encodable": 0
+  },
+  "A_minus_catalogue": {
+   "target/item_hot": {
+    "mean": 0.24000628515397662,
+    "ci_lo": 0.13044797373261438,
+    "ci_hi": 0.3488623359808277,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 42,
+    "n_dropped_non_encodable": 0,
+    "directional_pass": true
+   },
+   "target/concept_hot": {
+    "mean": 0.36237674782370904,
+    "ci_lo": 0.2429930626423437,
+    "ci_hi": 0.4778935763983592,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 42,
+    "n_dropped_non_encodable": 0,
+    "directional_pass": true
+   },
+   "emission/item_hot": {
+    "mean": 0.4140649903605693,
+    "ci_lo": 0.3174633148281325,
+    "ci_hi": 0.5073834045000518,
+    "n": 40,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 40,
+    "n_dropped_non_encodable": 2,
+    "directional_pass": true
+   },
+   "emission/concept_hot": {
+    "mean": 0.36703149097678595,
+    "ci_lo": 0.2681408031545028,
+    "ci_hi": 0.46534740216262505,
+    "n": 41,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 41,
+    "n_dropped_non_encodable": 1,
+    "directional_pass": true
+   }
+  },
+  "bar": "NONE -- report-only (DS_C4_PILOT.md reading 3)",
+  "nearest_bank_cos1_in_kphi_mean": 0.9316612709136236
+ },
+ "reading4_prior_floor": {
+  "A/item_hot": {
+   "mean": 0.2453714593206152,
+   "ci_lo": 0.1907737003087876,
+   "ci_hi": 0.29996819723441,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_non_encodable": 0
+  },
+  "A/concept_hot": {
+   "mean": -0.012495334981765553,
+   "ci_lo": -0.07423410091369825,
+   "ci_hi": 0.05327482594471744,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": false,
+   "n_non_encodable": 0
+  },
+  "Aprime/item_hot": {
+   "mean": 0.24887118590131146,
+   "ci_lo": 0.18322721701748645,
+   "ci_hi": 0.31347483167005535,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_non_encodable": 0
+  },
+  "Aprime/concept_hot": {
+   "mean": 0.17606204112890117,
+   "ci_lo": 0.11159396384722421,
+   "ci_hi": 0.24225738921528436,
+   "n": 42,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "n_non_encodable": 0
+  }
+ },
+ "levels_cos_to_R_by_cell": {
+  "target/item_hot": {
+   "A": {
+    "mean": 0.08153020012881587,
+    "ci_lo": -0.0023453474174140753,
+    "ci_hi": 0.16731092862811278,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "n_non_encodable": 0
+   },
+   "Aprime": {
+    "mean": 0.10522811568683965,
+    "ci_lo": 0.03377538768324805,
+    "ci_hi": 0.17585082380694925,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_non_encodable": 0
+   }
+  },
+  "target/concept_hot": {
+   "A": {
+    "mean": 0.2039006627985483,
+    "ci_lo": 0.11701495776613303,
+    "ci_hi": 0.29073048972135507,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_non_encodable": 0
+   },
+   "Aprime": {
+    "mean": 0.15410459335869714,
+    "ci_lo": 0.07690278936618791,
+    "ci_hi": 0.2328016035333127,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_non_encodable": 0
+   }
+  },
+  "emission/item_hot": {
+   "A": {
+    "mean": 0.2542045126061477,
+    "ci_lo": 0.19972256504104272,
+    "ci_hi": 0.30869100030471897,
+    "n": 40,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_non_encodable": 2
+   },
+   "Aprime": {
+    "mean": 0.15721733878463848,
+    "ci_lo": 0.08660385123066547,
+    "ci_hi": 0.22591748906862455,
+    "n": 29,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_non_encodable": 13
+   }
+  },
+  "emission/concept_hot": {
+   "A": {
+    "mean": 0.20629878552813113,
+    "ci_lo": 0.14249641942020524,
+    "ci_hi": 0.2692565735215166,
+    "n": 41,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_non_encodable": 1
+   },
+   "Aprime": {
+    "mean": -0.015429928883089639,
+    "ci_lo": -0.0939020391100272,
+    "ci_hi": 0.06903473248828378,
+    "n": 38,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "n_non_encodable": 4
+   }
+  },
+  "random/item_hot": {
+   "A": {
+    "mean": 0.060679376633297366,
+    "ci_lo": 0.0002627742247312995,
+    "ci_hi": 0.12250067390412413,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_non_encodable": 0
+   },
+   "Aprime": {
+    "mean": -0.015341330241625508,
+    "ci_lo": -0.09570556213890166,
+    "ci_hi": 0.0633447598329519,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "n_non_encodable": 0
+   }
+  },
+  "random/concept_hot": {
+   "A": {
+    "mean": -0.08202865438436632,
+    "ci_lo": -0.14320210337715142,
+    "ci_hi": -0.023082119535181928,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_non_encodable": 0
+   },
+   "Aprime": {
+    "mean": 0.03445482596820101,
+    "ci_lo": -0.02116542143071805,
+    "ci_hi": 0.08966354603235549,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "n_non_encodable": 0
+   }
+  }
+ },
+ "diagnostics_not_registered": {
+  "Aprime_real_minus_random": {
+   "target/item_hot": {
+    "mean": 0.12056944592846516,
+    "ci_lo": 0.008838547321116202,
+    "ci_hi": 0.23234768518132212,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 42,
+    "n_dropped_non_encodable": 0,
+    "directional_pass": true
+   },
+   "target/concept_hot": {
+    "mean": 0.11964976739049613,
+    "ci_lo": 0.03884811930709522,
+    "ci_hi": 0.2014138435894428,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 42,
+    "n_dropped_non_encodable": 0,
+    "directional_pass": true
+   },
+   "emission/item_hot": {
+    "mean": 0.1902498274545683,
+    "ci_lo": 0.08177914810404734,
+    "ci_hi": 0.30210610336862626,
+    "n": 29,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 29,
+    "n_dropped_non_encodable": 13,
+    "directional_pass": true
+   },
+   "emission/concept_hot": {
+    "mean": -0.03267562862909667,
+    "ci_lo": -0.14026081184432856,
+    "ci_hi": 0.07541474735745236,
+    "n": 38,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "n_pairs": 38,
+    "n_dropped_non_encodable": 4,
+    "directional_pass": false
+   }
+  },
+  "A_minus_prior": {
+   "target/item_hot": {
+    "mean": -0.16384125919179932,
+    "ci_lo": -0.25304589142908895,
+    "ci_hi": -0.07152477131806281,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 42,
+    "n_dropped_non_encodable": 0,
+    "directional_pass": false
+   },
+   "target/concept_hot": {
+    "mean": 0.21639599778031382,
+    "ci_lo": 0.12453825800779099,
+    "ci_hi": 0.31322067851843693,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 42,
+    "n_dropped_non_encodable": 0,
+    "directional_pass": true
+   },
+   "emission/item_hot": {
+    "mean": 7.560879767605083e-05,
+    "ci_lo": -0.0632943285194932,
+    "ci_hi": 0.06039115685020518,
+    "n": 40,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "n_pairs": 40,
+    "n_dropped_non_encodable": 2,
+    "directional_pass": false
+   },
+   "emission/concept_hot": {
+    "mean": 0.21463951667966857,
+    "ci_lo": 0.13736745941251816,
+    "ci_hi": 0.28952155598452367,
+    "n": 41,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 41,
+    "n_dropped_non_encodable": 1,
+    "directional_pass": true
+   },
+   "random/item_hot": {
+    "mean": -0.18469208268731785,
+    "ci_lo": -0.2488787021854478,
+    "ci_hi": -0.12187790318052827,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 42,
+    "n_dropped_non_encodable": 0,
+    "directional_pass": false
+   },
+   "random/concept_hot": {
+    "mean": -0.06953331940260077,
+    "ci_lo": -0.13879996449275636,
+    "ci_hi": -0.0059161777184310056,
+    "n": 42,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 42,
+    "n_dropped_non_encodable": 0,
+    "directional_pass": false
+   }
+  },
+  "target_minus_emission_under_A": {
+   "item_hot": {
+    "mean": -0.15985280118940687,
+    "ci_lo": -0.24975547639860893,
+    "ci_hi": -0.06946461720296403,
+    "n": 40,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "n_pairs": 40,
+    "n_dropped_non_encodable": 2,
+    "directional_pass": false
+   },
+   "concept_hot": {
+    "mean": -0.0004085287900470279,
+    "ci_lo": -0.11011484891432752,
+    "ci_hi": 0.11162065777736123,
+    "n": 41,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "n_pairs": 41,
+    "n_dropped_non_encodable": 1,
+    "directional_pass": false
+   }
+  },
+  "n_distinct_texts": {
+   "target/item_hot/A": 40,
+   "target/item_hot/Aprime": 7,
+   "target/concept_hot/A": 23,
+   "target/concept_hot/Aprime": 8,
+   "emission/item_hot/A": 8,
+   "emission/item_hot/Aprime": 11,
+   "emission/concept_hot/A": 9,
+   "emission/concept_hot/Aprime": 10,
+   "random/item_hot/A": 20,
+   "random/item_hot/Aprime": 9,
+   "random/concept_hot/A": 14,
+   "random/concept_hot/Aprime": 6
+  },
+  "mean_concepts_selected": {
+   "target/item_hot/A": 4.0,
+   "target/item_hot/Aprime": 4.0,
+   "target/concept_hot/A": 4.0,
+   "target/concept_hot/Aprime": 4.0,
+   "emission/item_hot/A": 3.8095238095238093,
+   "emission/item_hot/Aprime": 2.4761904761904763,
+   "emission/concept_hot/A": 3.9047619047619047,
+   "emission/concept_hot/Aprime": 1.9047619047619047,
+   "random/item_hot/A": 4.0,
+   "random/item_hot/Aprime": 4.0,
+   "random/concept_hot/A": 3.857142857142857,
+   "random/concept_hot/Aprime": 4.0
+  }
+ },
+ "prior_only_texts": {
+  "A": {
+   "item_hot": "The Last Man in the World (2007)",
+   "concept_hot": "bribery"
+  },
+  "Aprime": {
+   "item_hot": "The Last of Us (2013)",
+   "concept_hot": "science"
+  }
+ },
+ "demo_table": [
+  {
+   "i": 0,
+   "sid": "root.dislike.dislike.dislike.dislike.dislike@5",
+   "group": "deep_sweep",
+   "n_users": 313,
+   "depth": 5,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 5,
+     "question": "Do you like romance films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": 0.12876343582309796
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Birds of the Sea (Birds of the Sea) (1962)",
+     "cos_to_R": 0.048137611731386754
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": -0.3047733921683746
+    },
+    "target/concept_hot/A": {
+     "text": "art",
+     "cos_to_R": 0.7288070928439491
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.022796162342965134
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.07831702924047224
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.33271324381713824
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.07831702924047224
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.29642786060228177
+    },
+    "random/item_hot/A": {
+     "text": "The Last Man on Earth (2005)",
+     "cos_to_R": 0.13898617524218132
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.0958766728917303
+    },
+    "random/concept_hot/A": {
+     "text": "crime",
+     "cos_to_R": 0.048156132495413416
+    },
+    "random/concept_hot/Aprime": {
+     "text": "gothic",
+     "cos_to_R": -0.04484193398927586
+    }
+   }
+  },
+  {
+   "i": 1,
+   "sid": "root.dislike.dislike.dislike.dislike.like@5",
+   "group": "deep_sweep",
+   "n_users": 42,
+   "depth": 5,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 5,
+     "question": "Do you like romance films?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": 0.04604414342439352
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Memento (1980)",
+     "cos_to_R": -0.005083366799684802
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.18508684171728595
+    },
+    "target/concept_hot/A": {
+     "text": "family drama",
+     "cos_to_R": 0.15700475477251094
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.1412213395773436
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.180370543776822
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": 0.16884816493833907
+    },
+    "emission/concept_hot/A": {
+     "text": "H. A mob as a mob as a mob as a mob as a mob",
+     "cos_to_R": -0.007971588420711837
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": 0.16884816493833907
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.17261462139473965
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": 0.14302391547585336
+    },
+    "random/concept_hot/A": {
+     "text": "crisis",
+     "cos_to_R": 0.15203400877847983
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.1412213395773436
+    }
+   }
+  },
+  {
+   "i": 2,
+   "sid": "root.dislike.dislike.dislike.like.dislike@5",
+   "group": "deep_sweep",
+   "n_users": 174,
+   "depth": 5,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.22030502094373122
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last of Us (1988)",
+     "cos_to_R": 0.21702917191684412
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.265506453404896
+    },
+    "target/concept_hot/A": {
+     "text": "fantasy",
+     "cos_to_R": 0.27881987919726914
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.012563786161072163
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.29217380745111493
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.20023492017523323
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.29217380745111493
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.11257829748405926
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.05602060982992566
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.044311530745213254
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.16927047294094502
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.012563786161072163
+    }
+   }
+  },
+  {
+   "i": 3,
+   "sid": "root.dislike.dislike.dislike.like.like@5",
+   "group": "deep_sweep",
+   "n_users": 125,
+   "depth": 5,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.14781191757455436
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last of Us (2006)",
+     "cos_to_R": 0.142488547243559
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.10148447323057684
+    },
+    "target/concept_hot/A": {
+     "text": "love",
+     "cos_to_R": 0.05359356974939138
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.09294790244150919
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.2804775889092365
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.40957445801574366
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.2804775889092365
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.21406237007876427
+    },
+    "random/item_hot/A": {
+     "text": "The Last of Us (1997)",
+     "cos_to_R": 0.05267110427571456
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.07901770722385099
+    },
+    "random/concept_hot/A": {
+     "text": "crime",
+     "cos_to_R": 0.13871949762474825
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.09294790244150919
+    }
+   }
+  },
+  {
+   "i": 4,
+   "sid": "root.dislike.dislike.dislike.like.noanswer@5",
+   "group": "deep_sweep",
+   "n_users": 403,
+   "depth": 5,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.04453190365463259
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Crazy Ex-Girlfriend (1987)",
+     "cos_to_R": 0.006453145227928528
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.15226532502836043
+    },
+    "target/concept_hot/A": {
+     "text": "movies",
+     "cos_to_R": 0.268654151906978
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.1038043723041403
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.04632079642340102
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.11851956877849044
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.04632079642340102
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.14130887822095428
+    },
+    "random/item_hot/A": {
+     "text": "The Great Gatsby (1954)",
+     "cos_to_R": 0.20390151831831596
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": -0.03216414617982533
+    },
+    "random/concept_hot/A": {
+     "text": "fargo",
+     "cos_to_R": -0.16780308393813884
+    },
+    "random/concept_hot/Aprime": {
+     "text": "science",
+     "cos_to_R": 0.0471918168678233
+    }
+   }
+  },
+  {
+   "i": 5,
+   "sid": "root.dislike.dislike.dislike.noanswer.dislike.dislike@6",
+   "group": "deep_sweep",
+   "n_users": 581,
+   "depth": 6,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like cute films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.030555816169368005
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Theatrical (1962)",
+     "cos_to_R": 0.19815381950714112
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": 0.24652029244729992
+    },
+    "target/concept_hot/A": {
+     "text": "movies",
+     "cos_to_R": 0.13055579324171965
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.07719088692353163
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.22277398746802746
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.29245714839788367
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.22277398746802746
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.397284939344963
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.05957067243455646
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": 0.1346811029477821
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.08160259878634347
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.07719088692353163
+    }
+   }
+  },
+  {
+   "i": 6,
+   "sid": "root.dislike.dislike.dislike.noanswer.dislike.like@6",
+   "group": "deep_sweep",
+   "n_users": 140,
+   "depth": 6,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like cute films?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.11052941128190674
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Toy Story: The Movie (2003)",
+     "cos_to_R": 0.6980743894010288
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.1895806990949228
+    },
+    "target/concept_hot/A": {
+     "text": "animals",
+     "cos_to_R": 0.6210755930313987
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.5362757007874426
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.05500645995951255
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": -0.12094315763975381
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.05500645995951255
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": 0.12632884126126354
+    },
+    "random/item_hot/A": {
+     "text": "Honeymoon (1997)",
+     "cos_to_R": 0.18005003477465636
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": 0.30027118453628915
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.22953034736391711
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.015233069930943687
+    }
+   }
+  },
+  {
+   "i": 7,
+   "sid": "root.dislike.dislike.dislike.noanswer.dislike.noanswer@6",
+   "group": "deep_sweep",
+   "n_users": 18,
+   "depth": 6,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like cute films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.46702766839872356
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Star Wars: The Force Awakens (2013)",
+     "cos_to_R": 0.30027363227961396
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": 0.18919696584900658
+    },
+    "target/concept_hot/A": {
+     "text": "fantasy",
+     "cos_to_R": 0.5017258568435542
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fairy",
+     "cos_to_R": 0.17147730958717788
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.4220745650189844
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.4220745650189844
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.17005148546440138
+    },
+    "random/item_hot/A": {
+     "text": "Bitter Girl (1997)",
+     "cos_to_R": -0.2822483815838759
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.15601776980780752
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.4969799095162245
+    },
+    "random/concept_hot/Aprime": {
+     "text": "goth",
+     "cos_to_R": 0.14418437399332892
+    }
+   }
+  },
+  {
+   "i": 8,
+   "sid": "root.dislike.dislike.dislike.noanswer.like.dislike@6",
+   "group": "deep_sweep",
+   "n_users": 306,
+   "depth": 6,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.10541315732781047
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Shadows of the Wind (1994)",
+     "cos_to_R": -0.18944859613298726
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (1953)",
+     "cos_to_R": -0.1489707340362361
+    },
+    "target/concept_hot/A": {
+     "text": "hijacked",
+     "cos_to_R": 0.01838687865936665
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.004827160103412239
+    },
+    "emission/item_hot/A": {
+     "text": "H.",
+     "cos_to_R": 0.003966343402473959
+    },
+    "emission/item_hot/Aprime": {
+     "text": ".",
+     "cos_to_R": 0.219841741475359
+    },
+    "emission/concept_hot/A": {
+     "text": "H.",
+     "cos_to_R": 0.003966343402473959
+    },
+    "emission/concept_hot/Aprime": {
+     "text": ".",
+     "cos_to_R": 0.219841741475359
+    },
+    "random/item_hot/A": {
+     "text": "Honeymoon (1997)",
+     "cos_to_R": 0.048952764663985585
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": 0.029607350766287403
+    },
+    "random/concept_hot/A": {
+     "text": "gothic",
+     "cos_to_R": -0.09759403486470544
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.004827160103412239
+    }
+   }
+  },
+  {
+   "i": 9,
+   "sid": "root.dislike.dislike.dislike.noanswer.like.like@6",
+   "group": "deep_sweep",
+   "n_users": 30,
+   "depth": 6,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.34948094755012316
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Theatrical Man (1990)",
+     "cos_to_R": -0.2289648860103806
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": 0.14387771695963444
+    },
+    "target/concept_hot/A": {
+     "text": "theatrical",
+     "cos_to_R": -0.11717122018750335
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.0384399467868412
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.4124337560339027
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.23258521360820944
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.4124337560339027
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.23258521360820944
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1995)",
+     "cos_to_R": -0.22829677941998622
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": 0.16931178392980026
+    },
+    "random/concept_hot/A": {
+     "text": "crisis",
+     "cos_to_R": -0.1416257072016937
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.0384399467868412
+    }
+   }
+  },
+  {
+   "i": 10,
+   "sid": "root.dislike.dislike.dislike.noanswer.like.noanswer@6",
+   "group": "deep_sweep",
+   "n_users": 9,
+   "depth": 6,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.06707754344047728
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Great Gatsby (1996)",
+     "cos_to_R": -0.15963116272161246
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": -0.23583770628483136
+    },
+    "target/concept_hot/A": {
+     "text": "indictment",
+     "cos_to_R": 0.007035070553432648
+    },
+    "target/concept_hot/Aprime": {
+     "text": "science",
+     "cos_to_R": -0.19372011340673664
+    },
+    "emission/item_hot/A": {
+     "text": "Hind as the mother as the mother as the mother as the mother as the",
+     "cos_to_R": 0.006293009459894647
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "H.",
+     "cos_to_R": -0.16746804840357823
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the best of the best of the best of the best of the best of the",
+     "cos_to_R": -0.07877414884773554
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.2611144171143709
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2016)",
+     "cos_to_R": -0.017879966495651607
+    },
+    "random/concept_hot/A": {
+     "text": "gothic",
+     "cos_to_R": -0.2176143167493532
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.08335259079220354
+    }
+   }
+  },
+  {
+   "i": 11,
+   "sid": "root.dislike.dislike.like.dislike@4",
+   "group": "deep_sweep",
+   "n_users": 118,
+   "depth": 4,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Total Recall (1990), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.20620689020360525
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Theatrical (1987)",
+     "cos_to_R": -0.012847182991548857
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.334776663388524
+    },
+    "target/concept_hot/A": {
+     "text": "religion",
+     "cos_to_R": 0.063219970921395
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.4238594581870988
+    },
+    "emission/item_hot/A": {
+     "text": "H. A sasas as a sas a sas a sas",
+     "cos_to_R": 0.10812202096145056
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.29807487932831106
+    },
+    "emission/concept_hot/A": {
+     "text": "H.",
+     "cos_to_R": 0.10812202096145056
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.11757843776154937
+    },
+    "random/item_hot/A": {
+     "text": "The Last Man (2015)",
+     "cos_to_R": 0.36680393423225693
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.016180400823617706
+    },
+    "random/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.014515733711782748
+    },
+    "random/concept_hot/Aprime": {
+     "text": "science",
+     "cos_to_R": 0.31245106592924443
+    }
+   }
+  },
+  {
+   "i": 12,
+   "sid": "root.dislike.dislike.like.like@4",
+   "group": "deep_sweep",
+   "n_users": 169,
+   "depth": 4,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Total Recall (1990), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 7807,
+    "channel": "item",
+    "gold_phrase": "Breakfast of Champions (1999)",
+    "cos_to_R": 0.23877944206651033
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Night of the Living Dead (1987)",
+     "cos_to_R": 0.25063913813088035
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": 0.43365680210488694
+    },
+    "target/concept_hot/A": {
+     "text": "movies",
+     "cos_to_R": -0.1966031059466805
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.378137721051937
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.13493402214806846
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.13493402214806846
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.14869819842545304
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": 0.28315489010438677
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": -0.3881803275841348
+    },
+    "random/concept_hot/A": {
+     "text": "state-of-the-art",
+     "cos_to_R": -0.21384377344921426
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.378137721051937
+    }
+   }
+  },
+  {
+   "i": 13,
+   "sid": "root.dislike.dislike.like.noanswer@4",
+   "group": "deep_sweep",
+   "n_users": 373,
+   "depth": 4,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Total Recall (1990), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.2591336083102546
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Doom City (1953)",
+     "cos_to_R": -0.16635521137232337
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": -0.008674418364940444
+    },
+    "target/concept_hot/A": {
+     "text": "franchise",
+     "cos_to_R": 0.19520591465732484
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.057357004832597015
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.05815673327286513
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.05815673327286513
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.13074237456586335
+    },
+    "random/item_hot/A": {
+     "text": "The Last of Us (2004)",
+     "cos_to_R": 0.0138304749490657
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": 0.2788560189807083
+    },
+    "random/concept_hot/A": {
+     "text": "family",
+     "cos_to_R": -0.30286426303408226
+    },
+    "random/concept_hot/Aprime": {
+     "text": "narrative",
+     "cos_to_R": -0.241520312094
+    }
+   }
+  },
+  {
+   "i": 14,
+   "sid": "root.dislike.dislike.noanswer.dislike@4",
+   "group": "deep_sweep",
+   "n_users": 25,
+   "depth": 4,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Mr. Holland's Opus (1995), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.1462705680656765
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Theatrical (1960)",
+     "cos_to_R": -0.11047618118838713
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.0467258894041243
+    },
+    "target/concept_hot/A": {
+     "text": "religion",
+     "cos_to_R": -0.14737943045306667
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.15895045746221462
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.09365428468448402
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.19486649281161073
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.09365428468448402
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.19486649281161073
+    },
+    "random/item_hot/A": {
+     "text": "The Last of Us (2005)",
+     "cos_to_R": 0.09919318981036
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": 0.009930757090772848
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.211869431002927
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.006580315959212425
+    }
+   }
+  },
+  {
+   "i": 15,
+   "sid": "root.dislike.dislike.noanswer.like@4",
+   "group": "deep_sweep",
+   "n_users": 29,
+   "depth": 4,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Mr. Holland's Opus (1995), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.24257307540312759
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Night of the Living Dead (1987)",
+     "cos_to_R": 0.10236006034957211
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.0978258192038419
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.11567653392386919
+    },
+    "target/concept_hot/Aprime": {
+     "text": "science",
+     "cos_to_R": 0.14068115641482373
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.29432499829939196
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.3080665441230913
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.29432499829939196
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.32655539187068916
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.06030498831648019
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": -0.010296001305170449
+    },
+    "random/concept_hot/A": {
+     "text": "crisis",
+     "cos_to_R": -0.1615734478489791
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.11567653392386919
+    }
+   }
+  },
+  {
+   "i": 16,
+   "sid": "root.dislike.dislike.noanswer.noanswer@4",
+   "group": "deep_sweep",
+   "n_users": 502,
+   "depth": 4,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Mr. Holland's Opus (1995), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.4942751696258155
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Night of the Living Dead (2011)",
+     "cos_to_R": 0.04939651747149606
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.3863967710753167
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.10619954953559642
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fairy tale",
+     "cos_to_R": -0.20374706283257185
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.26269332702442466
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.26269332702442466
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.4039385174949162
+    },
+    "random/item_hot/A": {
+     "text": "The Last Man on Earth (1995)",
+     "cos_to_R": 0.41991601492030867
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": -0.1292475528388797
+    },
+    "random/concept_hot/A": {
+     "text": "crime",
+     "cos_to_R": 0.19778723887574218
+    },
+    "random/concept_hot/Aprime": {
+     "text": "science",
+     "cos_to_R": 0.4022186935472391
+    }
+   }
+  },
+  {
+   "i": 17,
+   "sid": "root.dislike.like.dislike@3",
+   "group": "deep_sweep",
+   "n_users": 519,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like effects films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": 0.09809680312622343
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": -0.0013711000428781972
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": 0.11265367102123032
+    },
+    "target/concept_hot/A": {
+     "text": "good",
+     "cos_to_R": 0.49223037011630083
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.1194349953014458
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.4428483236574809
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the film and the film and the film and the film and the film and the",
+     "cos_to_R": 0.1443059363552917
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.4428483236574809
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.3062048334730328
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.15070605110745994
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": 0.11265367102123032
+    },
+    "random/concept_hot/A": {
+     "text": "state-of-the-art",
+     "cos_to_R": 0.15368631152467538
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.09199773574206843
+    }
+   }
+  },
+  {
+   "i": 18,
+   "sid": "root.dislike.like.like@3",
+   "group": "deep_sweep",
+   "n_users": 151,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like effects films?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.3412295880560352
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last Knight (2014)",
+     "cos_to_R": -0.22936740518644533
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.31947845149135845
+    },
+    "target/concept_hot/A": {
+     "text": "good",
+     "cos_to_R": 0.6326057526793915
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.37213722166105306
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.6052399509623159
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "Hind the boy as a black as a black as a black as a black",
+     "cos_to_R": -0.14340326068447018
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the-spy-spy-spy-spy-spy",
+     "cos_to_R": 0.339525419274954
+    },
+    "random/item_hot/A": {
+     "text": "The Last Man in the Hall (1997)",
+     "cos_to_R": 0.38046906865835733
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.14677553914817196
+    },
+    "random/concept_hot/A": {
+     "text": "crime",
+     "cos_to_R": 0.26282646852593133
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.12017002456148149
+    }
+   }
+  },
+  {
+   "i": 19,
+   "sid": "root.dislike.like.noanswer@3",
+   "group": "deep_sweep",
+   "n_users": 53,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like effects films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.45672439102369916
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.5204589214398779
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.3165599345916572
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.12518095972167104
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.20823114702874085
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.5831463204407207
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the film and the film and the film and the film and the film and the",
+     "cos_to_R": -0.24834221949455068
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.5831463204407207
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.08850994930231777
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": 0.07374264855911544
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.21840388249786089
+    },
+    "random/concept_hot/A": {
+     "text": "state-of-the-art",
+     "cos_to_R": 0.2528018132687093
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.12518095972167104
+    }
+   }
+  },
+  {
+   "i": 20,
+   "sid": "root.dislike.noanswer.dislike@3",
+   "group": "deep_sweep",
+   "n_users": 45,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Rock, The (1996), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.19562181321798183
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Theatrical (1995)",
+     "cos_to_R": -0.24082832255235223
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": -0.09256177680743352
+    },
+    "target/concept_hot/A": {
+     "text": "religion",
+     "cos_to_R": -0.13849674687136296
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.04076392347818871
+    },
+    "emission/item_hot/A": {
+     "text": "Has as the \"the \"the \"the \" \" \" \" \" \"",
+     "cos_to_R": null
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the best of the best of the best of the best of the best of the",
+     "cos_to_R": 0.2189063543168661
+    },
+    "emission/concept_hot/A": {
+     "text": "Hind as a black as a black as a black as a black as a",
+     "cos_to_R": -0.18925438569368516
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.24133852297766242
+    },
+    "random/item_hot/A": {
+     "text": "The Last Man (Hans) (2008)",
+     "cos_to_R": 0.1868989344079248
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.12234546838835603
+    },
+    "random/concept_hot/A": {
+     "text": "sad",
+     "cos_to_R": 0.004570757170575718
+    },
+    "random/concept_hot/Aprime": {
+     "text": "gothic",
+     "cos_to_R": -0.14328298948718013
+    }
+   }
+  },
+  {
+   "i": 21,
+   "sid": "root.dislike.noanswer.like@3",
+   "group": "deep_sweep",
+   "n_users": 90,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Rock, The (1996), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.4661816748278701
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Crazy Ex-Girlfriend (2011)",
+     "cos_to_R": -0.059242553864134635
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.6285852875774188
+    },
+    "target/concept_hot/A": {
+     "text": "scandal",
+     "cos_to_R": -0.1483736437599247
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.3032241924651428
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.26651204606350676
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.004241526057364652
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.26651204606350676
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": 0.28764063792700545
+    },
+    "random/item_hot/A": {
+     "text": "The Last Man (2005)",
+     "cos_to_R": 0.5065003643382233
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.23336763687542372
+    },
+    "random/concept_hot/A": {
+     "text": "crime",
+     "cos_to_R": 0.00598002293376788
+    },
+    "random/concept_hot/Aprime": {
+     "text": "goth",
+     "cos_to_R": 0.29122302818523665
+    }
+   }
+  },
+  {
+   "i": 22,
+   "sid": "root.dislike.noanswer.noanswer@3",
+   "group": "deep_sweep",
+   "n_users": 394,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Rock, The (1996), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.0659546476619025
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Great Gatsby (1995)",
+     "cos_to_R": -0.10897172870701378
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": -0.0776641735329375
+    },
+    "target/concept_hot/A": {
+     "text": "civil rights",
+     "cos_to_R": 0.12232731127757866
+    },
+    "target/concept_hot/Aprime": {
+     "text": "narrative",
+     "cos_to_R": -0.1528454475537263
+    },
+    "emission/item_hot/A": {
+     "text": "Has as the \"the \"the \"the \" \" \" \" \" \"",
+     "cos_to_R": null
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the best of the best of the best of the best of the best of the",
+     "cos_to_R": -0.047032355655857276
+    },
+    "emission/concept_hot/A": {
+     "text": "Has as the \"the \"the \"the \" \" \" \" \" \"",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the best of the best of the best of the best of the best of the",
+     "cos_to_R": -0.047032355655857276
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.17368478853955116
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": -0.0776641735329375
+    },
+    "random/concept_hot/A": {
+     "text": "gothic",
+     "cos_to_R": -0.2369097908600093
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.09938972226344464
+    }
+   }
+  },
+  {
+   "i": 23,
+   "sid": "root.like.dislike.dislike@3",
+   "group": "deep_sweep",
+   "n_users": 257,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like sweet films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.19881920262948904
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Dark Knight Rises (2015)",
+     "cos_to_R": 0.05190815317370845
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.08614313020167737
+    },
+    "target/concept_hot/A": {
+     "text": "religion",
+     "cos_to_R": 0.358440461248352
+    },
+    "target/concept_hot/Aprime": {
+     "text": "science fiction",
+     "cos_to_R": 0.1379579243158675
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.5432146483781496
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.525276657247327
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.5432146483781496
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the '",
+     "cos_to_R": 0.4900532697503303
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.1551070595270408
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": -0.23199568980856555
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": 0.13344578202457374
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.06548623285682043
+    }
+   }
+  },
+  {
+   "i": 24,
+   "sid": "root.like.dislike.like@3",
+   "group": "deep_sweep",
+   "n_users": 63,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like sweet films?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.14469580670303048
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Billion Dollar Movie (2000)",
+     "cos_to_R": -0.03524642197707553
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.4001875496649477
+    },
+    "target/concept_hot/A": {
+     "text": "religion",
+     "cos_to_R": -0.004246957100167924
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.5757587898959651
+    },
+    "emission/item_hot/A": {
+     "text": "Hind as the child as a child as a child as a child as a",
+     "cos_to_R": 0.21699111030608914
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.13079952847178733
+    },
+    "emission/concept_hot/A": {
+     "text": "Hind as a child as a child as a child as a child as a",
+     "cos_to_R": 0.21699111030608914
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.13079952847178733
+    },
+    "random/item_hot/A": {
+     "text": "Bitter Girl (2005)",
+     "cos_to_R": 0.11937608467253176
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1944)",
+     "cos_to_R": -0.10514835788255474
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.06094693292389809
+    },
+    "random/concept_hot/Aprime": {
+     "text": "gothic",
+     "cos_to_R": 0.013638012070811131
+    }
+   }
+  },
+  {
+   "i": 25,
+   "sid": "root.like.dislike.noanswer@3",
+   "group": "deep_sweep",
+   "n_users": 20,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like sweet films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 2514,
+    "channel": "item",
+    "gold_phrase": "Big One, The (1997)",
+    "cos_to_R": 0.011225456858600182
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last Man (2013)",
+     "cos_to_R": 0.6045237597252863
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": -0.020541462874821143
+    },
+    "target/concept_hot/A": {
+     "text": "unusual",
+     "cos_to_R": 0.4109933415444041
+    },
+    "target/concept_hot/Aprime": {
+     "text": "narrative",
+     "cos_to_R": 0.6188972341889514
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.4729211543217158
+    },
+    "emission/item_hot/Aprime": {
+     "text": "s\n\nBod",
+     "cos_to_R": 0.06243400334069892
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.4729211543217158
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.596094052310083
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (2005)",
+     "cos_to_R": -0.13467244267827952
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.17383015852740719
+    },
+    "random/concept_hot/A": {
+     "text": "cousin",
+     "cos_to_R": -0.21663374898783766
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.029438596826333912
+    }
+   }
+  },
+  {
+   "i": 26,
+   "sid": "root.like.like.dislike@3",
+   "group": "deep_sweep",
+   "n_users": 109,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Harry Potter and the Goblet of Fire (2005), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 2514,
+    "channel": "item",
+    "gold_phrase": "Big One, The (1997)",
+    "cos_to_R": 0.07674200274526598
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last Man (2013)",
+     "cos_to_R": 0.537818644063872
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": -0.12284442049997917
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.16946470075911482
+    },
+    "target/concept_hot/Aprime": {
+     "text": "narrative",
+     "cos_to_R": 0.45429224433411836
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.2872092399714135
+    },
+    "emission/item_hot/Aprime": {
+     "text": "s\n\nBod\n\n\nBod\n\n\nBod",
+     "cos_to_R": 0.12913840629660064
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.2872092399714135
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the-spy-spy-spy-spy-spy",
+     "cos_to_R": 0.03012085573727631
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.013325370098101827
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2016)",
+     "cos_to_R": -0.1841712630028489
+    },
+    "random/concept_hot/A": {
+     "text": "gothic",
+     "cos_to_R": 0.20188136449556646
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.16946470075911482
+    }
+   }
+  },
+  {
+   "i": 27,
+   "sid": "root.like.like.like@3",
+   "group": "deep_sweep",
+   "n_users": 239,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Harry Potter and the Goblet of Fire (2005), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.3408208248254384
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Star Wars (1977)",
+     "cos_to_R": 0.0876659470995703
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.324464809907538
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.2189207323945862
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.2189207323945862
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.39990555365961034
+    },
+    "emission/item_hot/Aprime": {
+     "text": ".",
+     "cos_to_R": 0.437642960046023
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.39990555365961034
+    },
+    "emission/concept_hot/Aprime": {
+     "text": ".",
+     "cos_to_R": 0.437642960046023
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1998)",
+     "cos_to_R": 0.09394220493274971
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.324464809907538
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.2992789608021582
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.2189207323945862
+    }
+   }
+  },
+  {
+   "i": 28,
+   "sid": "root.like.like.noanswer@3",
+   "group": "deep_sweep",
+   "n_users": 662,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Harry Potter and the Goblet of Fire (2005), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.5549515959270018
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Deadpool (2013)",
+     "cos_to_R": 0.15081798717520006
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": 0.4233911020191702
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.29790656051650843
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.323330931897087
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.47757349123842263
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.26791807731812217
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.47757349123842263
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.05224250382759427
+    },
+    "random/item_hot/A": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": 0.4233911020191702
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": 0.14322721582827544
+    },
+    "random/concept_hot/A": {
+     "text": "theatre",
+     "cos_to_R": -0.4045128460727028
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.29790656051650843
+    }
+   }
+  },
+  {
+   "i": 29,
+   "sid": "root.like.noanswer.dislike@3",
+   "group": "deep_sweep",
+   "n_users": 567,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Do you like fun films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 2514,
+    "channel": "item",
+    "gold_phrase": "Big One, The (1997)",
+    "cos_to_R": 0.08014387134743538
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last Man (Komak) (2013)",
+     "cos_to_R": 0.38692841542100476
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.018329587701956723
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.39581807068129077
+    },
+    "target/concept_hot/Aprime": {
+     "text": "narrative",
+     "cos_to_R": 0.3729136180039776
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.3063374605899809
+    },
+    "emission/item_hot/Aprime": {
+     "text": "s\n\nBod\n\n\nBod\n\n\nBod",
+     "cos_to_R": 0.22025391175273787
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.3063374605899809
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the-spy-spy-spy-spy-spy",
+     "cos_to_R": 0.1257003085526817
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": 0.17674765530578776
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": -0.6470727850435609
+    },
+    "random/concept_hot/A": {
+     "text": "schools",
+     "cos_to_R": -0.4207604963840081
+    },
+    "random/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": -0.15101465846109524
+    }
+   }
+  },
+  {
+   "i": 30,
+   "sid": "root.like.noanswer.like@3",
+   "group": "deep_sweep",
+   "n_users": 652,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Do you like fun films?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 2514,
+    "channel": "item",
+    "gold_phrase": "Big One, The (1997)",
+    "cos_to_R": -0.08502620465458054
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Buffy the Vampire Slayer, The (2004)",
+     "cos_to_R": 0.1374143428560704
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.13775308676416934
+    },
+    "target/concept_hot/A": {
+     "text": "adventure",
+     "cos_to_R": 0.27903514566622756
+    },
+    "target/concept_hot/Aprime": {
+     "text": "gothic",
+     "cos_to_R": 0.009791724069096383
+    },
+    "emission/item_hot/A": {
+     "text": "a as a child as a child as a child as a child as a child",
+     "cos_to_R": 0.20486227128167306
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the world of the world of the world of the world of the world of the",
+     "cos_to_R": 0.1501522841619226
+    },
+    "emission/concept_hot/A": {
+     "text": "a a horror horror film from the horror film from the horror film from the horror",
+     "cos_to_R": -0.20506723890937806
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "thespy",
+     "cos_to_R": 0.10957836321688205
+    },
+    "random/item_hot/A": {
+     "text": "Honeymoon (1997)",
+     "cos_to_R": 0.052880637148441066
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2016)",
+     "cos_to_R": 0.07050682343199642
+    },
+    "random/concept_hot/A": {
+     "text": "cousin",
+     "cos_to_R": -0.10580140079577816
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.08491072479456335
+    }
+   }
+  },
+  {
+   "i": 31,
+   "sid": "root.like.noanswer.noanswer@3",
+   "group": "deep_sweep",
+   "n_users": 37,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Do you like fun films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 7807,
+    "channel": "item",
+    "gold_phrase": "Breakfast of Champions (1999)",
+    "cos_to_R": 0.24607572104293182
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Deadpool (2007)",
+     "cos_to_R": -0.19144711694700756
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": 0.31353017405795847
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.0026856460232017616
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.11138182180662316
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.46983222318158147
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the ' ' ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": 0.4298197223488662
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.46983222318158147
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.09690926799578581
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.16038164670348223
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": -0.4539309516533986
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.05040113267999016
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.0026856460232017616
+    }
+   }
+  },
+  {
+   "i": 32,
+   "sid": "root.noanswer.noanswer.dislike@3",
+   "group": "deep_sweep",
+   "n_users": 124,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen True Lies (1994), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Apollo 13 (1995), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.3647922159632023
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last of Us (1986)",
+     "cos_to_R": 0.3597707376510487
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": -0.10662896326666113
+    },
+    "target/concept_hot/A": {
+     "text": "action",
+     "cos_to_R": 0.6481610461223252
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.3747240448177309
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.2945221057608132
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.2945221057608132
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": 0.038104102616897076
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": 0.06454681476904166
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": 0.3105316581153303
+    },
+    "random/concept_hot/A": {
+     "text": "crisis",
+     "cos_to_R": -0.02683923922329129
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.18104000179249308
+    }
+   }
+  },
+  {
+   "i": 33,
+   "sid": "root.noanswer.noanswer.like@3",
+   "group": "deep_sweep",
+   "n_users": 223,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen True Lies (1994), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Apollo 13 (1995), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": 0.21036494979100362
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Crazy (1990)",
+     "cos_to_R": -0.4041590702548949
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.21468826336775185
+    },
+    "target/concept_hot/A": {
+     "text": "mystery",
+     "cos_to_R": -0.4341289025072638
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.5257221840955081
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.10105653974923484
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": 0.124608246310712
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.10105653974923484
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": 0.124608246310712
+    },
+    "random/item_hot/A": {
+     "text": "The Last of Us (1997)",
+     "cos_to_R": 0.1913382031488662
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": 0.30104444064827535
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.012337544914161051
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.5257221840955081
+    }
+   }
+  },
+  {
+   "i": 34,
+   "sid": "root.noanswer.noanswer.noanswer@3",
+   "group": "deep_sweep",
+   "n_users": 1438,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen True Lies (1994), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Apollo 13 (1995), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18937,
+    "channel": "concept",
+    "gold_phrase": "marriage",
+    "cos_to_R": -0.3035052700675472
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Cue of the Devil (Cue de la cue de la cue",
+     "cos_to_R": 0.20672212259916634
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": -0.307212216816625
+    },
+    "target/concept_hot/A": {
+     "text": "noir",
+     "cos_to_R": 0.7577451993601826
+    },
+    "target/concept_hot/Aprime": {
+     "text": "science",
+     "cos_to_R": -0.14283775566123746
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": -0.003722535728811573
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": -0.003722535728811573
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "random/item_hot/A": {
+     "text": "The Hobbit: An Unexpected Journey (2010)",
+     "cos_to_R": -0.12564201753536725
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1953)",
+     "cos_to_R": 0.40286925679471297
+    },
+    "random/concept_hot/A": {
+     "text": "bibble",
+     "cos_to_R": 0.21989568802157694
+    },
+    "random/concept_hot/Aprime": {
+     "text": "narrative",
+     "cos_to_R": 0.18222529227557716
+    }
+   }
+  },
+  {
+   "i": 35,
+   "sid": "root.dislike.dislike.dislike",
+   "group": "single_pick_heap",
+   "n_users": 2346,
+   "depth": 3,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.198212327928694
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Rambo (1986)",
+     "cos_to_R": 0.25800463422553094
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.39362161448389255
+    },
+    "target/concept_hot/A": {
+     "text": "hollywood",
+     "cos_to_R": -0.09826285452712583
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.026459967369225252
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.43316563765260285
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the best of the 's",
+     "cos_to_R": 0.05387158753982209
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.43316563765260285
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the best of the 's",
+     "cos_to_R": 0.05387158753982209
+    },
+    "random/item_hot/A": {
+     "text": "Honeymoon (1997)",
+     "cos_to_R": -0.06419684684747222
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.021355598684168052
+    },
+    "random/concept_hot/A": {
+     "text": "crime",
+     "cos_to_R": 0.12182114200544102
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.026459967369225252
+    }
+   }
+  },
+  {
+   "i": 36,
+   "sid": "root.dislike.dislike.dislike.noanswer",
+   "group": "single_pick_heap",
+   "n_users": 1289,
+   "depth": 4,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.3313531150312359
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Forever (1994)",
+     "cos_to_R": -0.027487952770688943
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": -0.20869016015445255
+    },
+    "target/concept_hot/A": {
+     "text": "military",
+     "cos_to_R": 0.31849552901685646
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.045525761161025004
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.034735066808289965
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.034735066808289965
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's 's 's 's 's 's 's '",
+     "cos_to_R": -0.2787268572376595
+    },
+    "random/item_hot/A": {
+     "text": "Honeymoon (1997)",
+     "cos_to_R": -0.13880150646135936
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1962)",
+     "cos_to_R": -0.05297894772710139
+    },
+    "random/concept_hot/A": {
+     "text": "gothic",
+     "cos_to_R": -0.07432798723219257
+    },
+    "random/concept_hot/Aprime": {
+     "text": "goth",
+     "cos_to_R": 0.0821267731162446
+    }
+   }
+  },
+  {
+   "i": 37,
+   "sid": "root.dislike.dislike",
+   "group": "single_pick_heap",
+   "n_users": 3562,
+   "depth": 2,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.4862723061342602
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Star Trek: The Next Generation (1982)",
+     "cos_to_R": 0.6305715682977687
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+     "cos_to_R": 0.19986393834870894
+    },
+    "target/concept_hot/A": {
+     "text": "science",
+     "cos_to_R": 0.7504979423704689
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.2922658253548245
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.091417376423313
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.091417376423313
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (2005)",
+     "cos_to_R": 0.34355332641554154
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.5971127793298011
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.6031179808952158
+    },
+    "random/concept_hot/Aprime": {
+     "text": "gothic",
+     "cos_to_R": 0.3455840583733156
+    }
+   }
+  },
+  {
+   "i": 38,
+   "sid": "root.dislike",
+   "group": "single_pick_heap",
+   "n_users": 4814,
+   "depth": 1,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 2514,
+    "channel": "item",
+    "gold_phrase": "Big One, The (1997)",
+    "cos_to_R": 0.3127004813241953
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Dirty, The (1987)",
+     "cos_to_R": -0.02586891608337016
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": -0.026572660369644834
+    },
+    "target/concept_hot/A": {
+     "text": "horror",
+     "cos_to_R": 0.513710349898386
+    },
+    "target/concept_hot/Aprime": {
+     "text": "science",
+     "cos_to_R": 0.08357710383322721
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.14869912065119195
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.14869912065119195
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "random/item_hot/A": {
+     "text": "The Last of Us (1997)",
+     "cos_to_R": -0.03171895947552302
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.6092533533138687
+    },
+    "random/concept_hot/A": {
+     "text": "homeless",
+     "cos_to_R": -0.013661509757541532
+    },
+    "random/concept_hot/Aprime": {
+     "text": "goth",
+     "cos_to_R": 0.23613746909896272
+    }
+   }
+  },
+  {
+   "i": 39,
+   "sid": "root",
+   "group": "single_pick_heap",
+   "n_users": 10000,
+   "depth": 0,
+   "interview_path": [],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.4084896260373717
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "The Last Knight (2013)",
+     "cos_to_R": -0.3185247214619024
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (2015)",
+     "cos_to_R": 0.44396575618979967
+    },
+    "target/concept_hot/A": {
+     "text": "religion",
+     "cos_to_R": 0.3212034699141492
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.655008326253382
+    },
+    "emission/item_hot/A": {
+     "text": "Hind as a ghost, the ghost, the ghost, the ghost, the",
+     "cos_to_R": 0.22932521673889417
+    },
+    "emission/item_hot/Aprime": {
+     "text": "The Adventures of the Family",
+     "cos_to_R": 0.15537239335076636
+    },
+    "emission/concept_hot/A": {
+     "text": "Hind as a ghost, the ghost, the ghost, the ghost, the",
+     "cos_to_R": 0.22932521673889417
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the-spy-spy-spy-spy-spy",
+     "cos_to_R": 0.4661764095397941
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": 0.2133813204102846
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Man Who Loved You (2015)",
+     "cos_to_R": -0.19422373872228743
+    },
+    "random/concept_hot/A": {
+     "text": "crisis",
+     "cos_to_R": -0.09462966603964074
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": -0.08677040054293836
+    }
+   }
+  },
+  {
+   "i": 40,
+   "sid": "root.like",
+   "group": "single_pick_heap",
+   "n_users": 2606,
+   "depth": 1,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 2514,
+    "channel": "item",
+    "gold_phrase": "Big One, The (1997)",
+    "cos_to_R": 0.018376732780994318
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Star Wars: The Force Awakens (2001)",
+     "cos_to_R": 0.38590136895179494
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Last of Us (1953)",
+     "cos_to_R": -0.1316212674270603
+    },
+    "target/concept_hot/A": {
+     "text": "religion",
+     "cos_to_R": -0.006556194007477958
+    },
+    "target/concept_hot/Aprime": {
+     "text": "fantasy",
+     "cos_to_R": 0.6003449367863009
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.5497865676317224
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.5497865676317224
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "random/item_hot/A": {
+     "text": "The Great Gatsby (1996)",
+     "cos_to_R": 0.2601083742265695
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Last of Us (2013)",
+     "cos_to_R": 0.4690177032528681
+    },
+    "random/concept_hot/A": {
+     "text": "indigenous",
+     "cos_to_R": -0.18062993840087344
+    },
+    "random/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.027819280568320007
+    }
+   }
+  },
+  {
+   "i": 41,
+   "sid": "root.noanswer",
+   "group": "single_pick_heap",
+   "n_users": 2580,
+   "depth": 1,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "catalogue_nearest_bank_question": {
+    "bank_idx": 18643,
+    "channel": "concept",
+    "gold_phrase": "divorce",
+    "cos_to_R": -0.2894653027482538
+   },
+   "renders": {
+    "target/item_hot/A": {
+     "text": "Criminal Minds (1995)",
+     "cos_to_R": -0.39192233346439576
+    },
+    "target/item_hot/Aprime": {
+     "text": "The Man Who Loved You (1962)",
+     "cos_to_R": -0.12114931669601625
+    },
+    "target/concept_hot/A": {
+     "text": "movies",
+     "cos_to_R": -0.2063363062491498
+    },
+    "target/concept_hot/Aprime": {
+     "text": "horror",
+     "cos_to_R": 0.025861174872395865
+    },
+    "emission/item_hot/A": {
+     "text": "",
+     "cos_to_R": 0.0605083409714681
+    },
+    "emission/item_hot/Aprime": {
+     "text": "the the the the the the the the the the the the the the the the",
+     "cos_to_R": null
+    },
+    "emission/concept_hot/A": {
+     "text": "",
+     "cos_to_R": 0.0605083409714681
+    },
+    "emission/concept_hot/Aprime": {
+     "text": "the 's ' ' ' ' ' ' ' ' ' ' ' ' '",
+     "cos_to_R": -0.2548548894752556
+    },
+    "random/item_hot/A": {
+     "text": "Halloween (1997)",
+     "cos_to_R": -0.07739586263777515
+    },
+    "random/item_hot/Aprime": {
+     "text": "The Great Gatsby (1939)",
+     "cos_to_R": -0.24444765827811146
+    },
+    "random/concept_hot/A": {
+     "text": "gothic",
+     "cos_to_R": -0.06036488293454686
+    },
+    "random/concept_hot/Aprime": {
+     "text": "goth",
+     "cos_to_R": 0.05332730474772254
+    }
+   }
+  }
+ ],
+ "adapters": {
+  "A": {
+   "epoch": 4,
+   "val_ce": 2.9912166210839874,
+   "train_ce": 2.9302192141755974
+  },
+  "Aprime": {
+   "epoch": 3,
+   "val_ce": 3.269862022314532,
+   "train_ce": 3.276216424039861
+  }
+ },
+ "random_control": {
+  "n_real_points_defining_the_spectrum": 84,
+  "rank": 83,
+  "rescale_space": "mean-removed (the 2026-08-24 repaired construction)",
+  "eigenvalues_top20": [
+   8781.081398885917,
+   184.7143571359749,
+   96.9939321544599,
+   66.43557968380149,
+   56.05968256920827,
+   33.62181202247373,
+   17.18413540728023,
+   14.713821842333855,
+   10.246689967913364,
+   6.2217195873455635,
+   4.003748578177293,
+   1.61011871803889,
+   1.199975675814364,
+   0.9204200979515157,
+   0.613069440082009,
+   0.41809216386519243,
+   0.29465076345974905,
+   0.1669885826134427,
+   0.14037797930445337,
+   0.11295305531053985
+  ],
+  "n_draws": 42,
+  "seed": 20260825,
+  "random_norms_mean_removed": [
+   4.697975857442175,
+   4.48001131244066,
+   4.046023942873757,
+   3.109555000050679,
+   3.53505916654009,
+   4.264950502286686,
+   4.178983374845994,
+   4.569730466138501,
+   5.711900949930945,
+   4.487342828909998,
+   5.900882876408475,
+   4.361203728034475,
+   4.227343232072468,
+   4.690928104136219,
+   4.444859265201937,
+   4.365336593611463,
+   4.312069394249222,
+   4.181951591483585,
+   4.271768308432678,
+   4.512768791249671,
+   4.777274204977534,
+   3.324866751310648,
+   5.627077754803696,
+   4.5065743126237665,
+   3.9633363214501722,
+   5.428661613839508,
+   5.367428190107325,
+   5.976614601897646,
+   4.629523130213462,
+   5.296663591190667,
+   6.167540926913174,
+   4.09091518218189,
+   5.411554283557443,
+   3.886104474767576,
+   5.16642222316211,
+   4.360612384705359,
+   5.745593470572316,
+   5.075557403975661,
+   4.855371219076301,
+   4.301953721805858,
+   5.592073791258893,
+   7.42016170986869
+  ],
+  "reference_norms_mean_removed": [
+   4.697975857442175,
+   4.48001131244066,
+   4.046023942873757,
+   3.1095550000506793,
+   3.5350591665400906,
+   4.264950502286685,
+   4.178983374845995,
+   4.569730466138501,
+   5.711900949930946,
+   4.487342828909998,
+   5.900882876408475,
+   4.361203728034475,
+   4.227343232072468,
+   4.690928104136219,
+   4.444859265201937,
+   4.365336593611464,
+   4.312069394249222,
+   4.1819515914835845,
+   4.271768308432678,
+   4.512768791249671,
+   4.777274204977534,
+   3.3248667513106476,
+   5.627077754803696,
+   4.5065743126237665,
+   3.9633363214501722,
+   5.428661613839508,
+   5.367428190107326,
+   5.976614601897647,
+   4.629523130213461,
+   5.296663591190667,
+   6.167540926913174,
+   4.09091518218189,
+   5.411554283557444,
+   3.8861044747675764,
+   5.166422223162109,
+   4.360612384705358,
+   5.745593470572316,
+   5.075557403975661,
+   4.855371219076301,
+   4.301953721805858,
+   5.592073791258893,
+   7.42016170986869
+  ],
+  "emission_norms_mean_removed": [
+   171.21795913048192,
+   144.3911636294748,
+   152.17478606140548,
+   179.39320214912033,
+   165.2761196775609,
+   176.27301022321674,
+   175.40767055326546,
+   156.0466362894806,
+   160.35860567642712,
+   161.52690248175776,
+   144.9023723738684,
+   164.30200620233487,
+   153.90926838383396,
+   157.50384251579402,
+   159.17754127977162,
+   195.27460587892514,
+   164.11937974240675,
+   136.03524330517791,
+   129.30067995839335,
+   135.78046941742755,
+   174.67369783664682,
+   186.58103956548257,
+   162.85131900463037,
+   208.04083879345862,
+   182.85451471195097,
+   220.71949352044817,
+   292.32172806122543,
+   229.0382606042135,
+   190.72830789917498,
+   222.50816984202712,
+   192.98143689038415,
+   180.15408870134715,
+   134.8052481368463,
+   159.92117027693737,
+   180.55510126662298,
+   171.4867242562003,
+   126.14020277129451,
+   200.5534837306636,
+   277.890545467282,
+   101.61878405699757,
+   294.94149225441777,
+   240.34705264601558
+  ],
+  "target_vs_emission_mean_removed_norm_ratio": 38.32501654605511,
+  "cos_target_emission_mean_removed_mean": -0.07826710501740321
+ },
+ "bootstrap": {
+  "n_resamples": 10000,
+  "seed": 98765,
+  "kind": "paired percentile over the 42 states, within cell, never pooled"
+ },
+ "reencode_recipe": {
+  "source": "c3_poc_reencode via c3b_adapter.TowerBridge (IMPORTED)",
+  "sbert_model": "all-MiniLM-L6-v2",
+  "pooling": "sent",
+  "topn": 4,
+  "mincos": 0.3,
+  "max_new_tokens": 16
+ },
+ "asserts": {
+  "pool2full_index_map_max_abs_err": 4.76837158203125e-07,
+  "bank_mean_vs_manifest_max_abs_err": 0.0,
+  "target_rebuild_max_abs_diff": 0.0,
+  "biasfree_identity_max_abs_diff": 0.0,
+  "concept_dirs_reproduced_worst_1_minus_abscos": 4.0171411588296735e-06,
+  "c1_emission_provenance": {
+   "c1_json": "experiments\\paperC\\c1_pilot.json",
+   "c1_git_rev": "dfabe3f2af50f0b729e944a4bcc10c32217b6de3",
+   "c1_git_rev_pinned": "a7ffc52c031bbf2007a08d4876de41591319b309",
+   "c1_checkpoint_sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058",
+   "full_seed1_median_cos_json": 0.9935154616832733,
+   "full_seed1_median_cos_pinned": 0.9935154616832733,
+   "full_seed1_mean_cos_json": 0.9931273886135646,
+   "full_seed1_same_nearest_json": 0.8095238095238095,
+   "full_seed1_median_cos_from_npz": 0.9935154616832733
+  },
+  "states_whose_sid_path_did_not_match_the_prefix": []
+ },
+ "canonical_snap": {
+  "val_m0_full": 0.15686538118354684,
+  "val_m0_tail": 0.02747733123666661
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "c3b_split_hashes": {
+  "train_q": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "heldout_q": "3184618cf517afed10eff43ccd51a459675c884df627047bfd4a7eb7af476152",
+  "inner_fit": "e312f134a27ebd935209c3a0f2ca5476ffa0ce1d719dac33b8a1f5f5b0669aca",
+  "inner_val": "3a26d40f5bbf0c7ce3a3c72b2f9b24bf3801b2280389fb6ae959c231954bc598",
+  "scramble_train_targets": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "strata": "d34810b89d9dc70b1ca2615431f16df1cf7d74de770e939008e77f96af9bcdbf",
+  "X": "17b36d3601756950381d24c8881fbf960f8e412bd6145b722448cb4dea0d074a"
+ },
+ "what_may_not_be_claimed": "no NDCG, no 'asking it would help', no answer simulated, no human-plausibility grading, no pooling across the declared cells, no post-hoc primary; n = 42 nested, structurally-selected states (the C1 caveats travel)",
+ "git": {
+  "rev": "05e322565afe350acfd8209fd81faa76926e626e",
+  "branch": "recommender-improvement",
+  "status_short_src": "",
+  "src_instrument_dirty": [],
+  "src_instrument_clean": true,
+  "allow_dirty_flag": false,
+  "threads": 4,
+  "thread_env": {
+   "OMP_NUM_THREADS": "4",
+   "MKL_NUM_THREADS": "4",
+   "OPENBLAS_NUM_THREADS": "4"
+  },
+  "torch_num_threads": 4,
+  "status_short": "M experiments/baselines/interview/adaptive_table_eddi3_policyB.json\n M experiments/baselines/interview/adaptive_table_eddi3_policyB_per_user.npz\n M experiments/battery/m4/m4a_compare.json\n M experiments/battery/m6/m6generalise_B.json\n M experiments/battery/ndcgtree_SANITY.json\n M experiments/battery/policy_traj/manifest.json\n D experiments/battery/policy_traj/step0_probe.json\n M external_literature/findings/continuous_elicitation_2026-08.md\n M external_literature/findings/llm_verbalisation_2026-08.md\n M new_chapters/chapterB_v2/chapterB_v2.pdf\n?? experiments/baselines/huyu2013/page4_400.png\n?? experiments/baselines/huyu2013/page4_800.png\n?? experiments/baselines/interview/a9_battery_policyB_eddi3.json\n?? experiments/baselines/interview/act2pvc_analyze.err\n?? experiments/baselines/interview/act2pvc_analyze.out\n?? experiments/baselines/interview/act2pvc_harness.err\n?? experiments/baselines/interview/act2pvc_harness.out\n?? experiments/baselines/interview/adaptive_table_act2pvc.json\n?? experiments/baselines/interview/adaptive_table_act2pvc_interviews/\n?? experiments/baselines/interview/adaptive_table_act2pvc_per_user.npz\n?? experiments/baselines/interview/adaptive_table_eddi3_policyB_interviews/\n?? experiments/baselines/interview/eddi3_policyB.err\n?? experiments/baselines/interview/eddi3_policyB.out\n?? experiments/baselines/interview/eddi3_policyB_resume.err\n?? experiments/baselines/interview/eddi3_policyB_resume.out\n?? experiments/battery/asif/\n?? experiments/battery/asif_all.err\n?? experiments/battery/asif_root.err\n?? experiments/battery/coldtree_train10k.out\n?? experiments/battery/coldtree_train10k_4t.out\n?? experiments/battery/coldtree_train10k_6t.out\n?? experiments/battery/coldtree_v2_heaps/\n?? experiments/battery/coldtree_v2_partial.json\n?? experiments/battery/coldtree_v2_per_user.npz\n?? experiments/battery/coldtree_v2_train10000.json\n?? experiments/battery/coldtree_v2_train10000_heaps/\n?? experiments/battery/coldtree_v2_train10000_partial.json\n?? experiments/battery/coldtree_v2_train10000_per_user.npz\n?? experiments/battery/coldtree_v2_train10000_sweeps/\n?? experiments/battery/direct_gain.json\n?? experiments/battery/direct_gain_policy.json\n?? experiments/battery/direct_gain_policy_per_user.npz\n?? experiments/battery/forest/\n?? experiments/battery/forest_chain.err\n?? experiments/battery/forest_chain2.err\n?? experiments/battery/forest_composition.err\n?? experiments/battery/forest_eval_main.err\n?? experiments/battery/forest_eval_shuffle.err\n?? experiments/battery/forest_fit_main.err\n?? experiments/battery/forest_fit_shuffle.err\n?? experiments/battery/forest_states.err\n?? experiments/battery/heldout_q/q100_main_strippop.json\n?? experiments/battery/heldout_q/q100_main_strippop.pt\n?? experiments/battery/lift_head.json\n?? experiments/battery/lift_head.pt\n?? experiments/battery/lift_head_stable.err\n?? experiments/battery/lift_head_stable.json\n?? experiments/battery/m1/ideal_k10.npz\n?? experiments/battery/m1/ideal_k12.npz\n?? experiments/battery/m1/ideal_k4.npz\n?? experiments/battery/m1/ideal_k6.npz\n?? experiments/battery/m1/ideal_k8.npz\n?? experiments/battery/m1/m1_forest_labels.npz\n?? experiments/battery/m1/m1_reddit_assign.npz\n?? experiments/battery/m1/m1_train_labels.npz\n?? experiments/battery/m1/train/\n?? experiments/battery/m1/z_full.npz\n?? experiments/battery/m1/z_requests.npz\n?? experiments/battery/m1_a3.out\n?? experiments/battery/m1_a4.out\n?? experiments/battery/m1_a5.out\n?? experiments/battery/m1_anchor.out\n?? experiments/battery/m1_deera.out\n?? experiments/battery/m1_era.out\n?? experiments/battery/m1_ideal.out\n?? experiments/battery/m1_name_probe.out\n?? experiments/battery/m1_r4.out\n?? experiments/battery/m1_stage_a.out\n?? experiments/battery/m1_sweep.out\n?? experiments/battery/m2/m2_screen_partial.json\n?? experiments/battery/m2_screen.out\n?? experiments/battery/m3_forest.out\n?? experiments/battery/m3_sanity.out\n?? experiments/battery/m3_sanity_SANITY.json\n?? experiments/battery/m3_sanity_SANITY_heaps/\n?? experiments/battery/m3_sanity_SANITY_partial.json\n?? experiments/battery/m3_sanity_SANITY_per_user.npz\n?? experiments/battery/m3smoke.out\n?? experiments/battery/m3smoke_arthouse_SANITY.json\n?? experiments/battery/m3smoke_arthouse_SANITY_heaps/\n?? experiments/battery/m3smoke_arthouse_SANITY_partial.json\n?? experiments/battery/m3smoke_arthouse_SANITY_per_user.npz\n?? experiments/battery/m3smoke_arthouse_per_user.npz\n?? experiments/battery/m3teach.out\n?? experiments/battery/m3v2.out\n?? experiments/battery/m3v2_arthouse_heaps/\n?? experiments/battery/m3v2_arthouse_per_user.npz\n?? experiments/battery/m3v2_dialogue_heaps/\n?? experiments/battery/m3v2_dialogue_per_user.npz\n?? experiments/battery/m3v2_gore_heaps/\n?? experiments/battery/m3v2_gore_per_user.npz\n?? experiments/battery/m3v2_inspiring_heaps/\n?? experiments/battery/m3v2_inspiring_per_user.npz\n?? experiments/battery/m3v2_marvel_heaps/\n?? experiments/battery/m3v2_marvel_per_user.npz\n?? experiments/battery/m3v2_teenagers_heaps/\n?? experiments/battery/m3v2_teenagers_per_user.npz\n?? experiments/battery/m3v2b.out\n?? experiments/battery/m4/m4a_compare_BUGGY_ROUTER.json\n?? experiments/battery/m4/m4b_armc.json\n?? experiments/battery/m4/m4b_armc_BUGGY_ROUTER.json\n?? experiments/battery/m4/m4b_armc_TOKEN.json\n?? experiments/battery/m4/m4b_fidelity_by_pos.json\n?? experiments/battery/m4/m4b_policy.json\n?? experiments/battery/m4/m4b_policy.pt\n?? experiments/battery/m4/m4b_policy_BUGGY_ROUTER.pt\n?? experiments/battery/m4/m4b_policy_TOKEN.pt\n?? experiments/battery/m4/m4b_stateonly_policy.json\n?? experiments/battery/m4/m4b_stateonly_policy.pt\n?? experiments/battery/m4/m4b_val_fidelity.json\n?? experiments/battery/m4/m4c_adjacent.json\n?? experiments/battery/m4/m4d_state_vs_token.json\n?? experiments/battery/m4/m6_policy.json\n?? experiments/battery/m4/m6_policy.pt\n?? experiments/battery/m4/m6a2k_policy.json\n?? experiments/battery/m4/m6a2k_policy.pt\n?? experiments/battery/m4/m6fair_policy.json\n?? experiments/battery/m4/m6fair_policy.pt\n?? experiments/battery/m4/traj/\n?? experiments/battery/m4a.out\n?? experiments/battery/m4a_fixed.out\n?? experiments/battery/m4a_regress.out\n?? experiments/battery/m4b_dupes.out\n?? experiments/battery/m4b_eval.out\n?? experiments/battery/m4b_eval2.out\n?? experiments/battery/m4b_eval3.out\n?? experiments/battery/m4b_fidpos.out\n?? experiments/battery/m4b_gen.out\n?? experiments/battery/m4b_gen2.out\n?? experiments/battery/m4b_pipeline.out\n?? experiments/battery/m4b_routefix.out\n?? experiments/battery/m4b_state_eval.out\n?? experiments/battery/m4b_state_pipeline.out\n?? experiments/battery/m4b_state_train.out\n?? experiments/battery/m4b_train.out\n?? experiments/battery/m4b_train2.out\n?? experiments/battery/m4b_valfid.out\n?? experiments/battery/m4b_valfid2.out\n?? experiments/battery/m4c.out\n?? experiments/battery/m4c2.out\n?? experiments/battery/m4c_state.out\n?? experiments/battery/m4d.out\n?? experiments/battery/m4e_geom.out\n?? experiments/battery/m4e_probe.out\n?? experiments/battery/m5_mix.out\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.noanswer.json.tail\n?? experiments/battery/m6/m6k_arthouse_train2000.json\n?? experiments/battery/m6/m6n_arthouse_held_out_peruser.npz\n?? experiments/battery/m6/m6n_arthouse_in_sample_peruser.npz\n?? experiments/battery/m6/m6n_arthouse_train2k.json\n?? experiments/battery/m6/m6p_arthouse_full_pool_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_half_A_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_half_B_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_openerhalf.json\n?? experiments/battery/m6/m6q_cost_bench.json\n?? experiments/battery/m6/m6r_fair_compare.json\n?? experiments/battery/m6/traj2k/\n?? experiments/battery/m6/traj_fair/\n?? experiments/battery/m6_all.out\n?? experiments/battery/m6_all2k.out\n?? experiments/battery/m6_chain.out\n?? experiments/battery/m6_stage3.out\n?? experiments/battery/m6_train.out\n?? experiments/battery/m6a.out\n?? experiments/battery/m6a2.out\n?? experiments/battery/m6a2k_train.out\n?? experiments/battery/m6a_chain.out\n?? experiments/battery/m6b_probe.out\n?? experiments/battery/m6c.out\n?? experiments/battery/m6c_gen.out\n?? experiments/battery/m6c_gen2k.out\n?? experiments/battery/m6c_gen_fair.out\n?? experiments/battery/m6d_arthouse2k.out\n?? experiments/battery/m6d_coverage.out\n?? experiments/battery/m6d_fair.out\n?? experiments/battery/m6d_generalise.out\n?? experiments/battery/m6d_halfA.out\n?? experiments/battery/m6e.out\n?? experiments/battery/m6e_mix.out\n?? experiments/battery/m6f_examples.out\n?? experiments/battery/m6fair_train.out\n?? experiments/battery/m6g_loose.out\n?? experiments/battery/m6h_coarse.out\n?? experiments/battery/m6i_final.out\n?? experiments/battery/m6j_centroid.out\n?? experiments/battery/m6k_arthouse.out\n?? experiments/battery/m6k_arthouse_tr2k_v2.out\n?? experiments/battery/m6k_arthouse_train2k.out\n?? experiments/battery/m6k_dialogue.out\n?? experiments/battery/m6k_gore.out\n?? experiments/battery/m6k_gore_tr2k.out\n?? experiments/battery/m6k_inspiring.out\n?? experiments/battery/m6k_marvel.out\n?? experiments/battery/m6k_marvel_tr2k.out\n?? experiments/battery/m6k_teenagers.out\n?? experiments/battery/m6l_arthouse.out\n?? experiments/battery/m6l_arthouse_burn.out\n?? experiments/battery/m6l_burn.out\n?? experiments/battery/m6l_dialogue.out\n?? experiments/battery/m6l_dialogue_burn.out\n?? experiments/battery/m6l_gore.out\n?? experiments/battery/m6l_gore_burn.out\n?? experiments/battery/m6l_inspiring.out\n?? experiments/battery/m6l_inspiring_burn.out\n?? experiments/battery/m6l_marvel.out\n?? experiments/battery/m6l_marvel_burn.out\n?? experiments/battery/m6l_teenagers.out\n?? experiments/battery/m6l_teenagers_burn.out\n?? experiments/battery/m6m_heldout.out\n?? experiments/battery/m6m_redditlift.out\n?? experiments/battery/m6n_arthouse.out\n?? experiments/battery/m6n_arthouse_v2.out\n?? experiments/battery/m6n_k6.out\n?? experiments/battery/m6o_k4.out\n?? experiments/battery/m6p_arthouse.out\n?? experiments/battery/m6p_k20.out\n?? experiments/battery/m6q_bench.out\n?? experiments/battery/m6r_fair.out\n?? experiments/battery/meanvec_value.json\n?? experiments/battery/meanvec_value_cond.json\n?? experiments/battery/meanvec_value_cond_per_user.npz\n?? experiments/battery/meanvec_value_per_user.npz\n?? experiments/battery/ndcgtree16test_partial.json\n?? experiments/battery/ndcgtree16test_policyB.err\n?? experiments/battery/ndcgtree_SANITY_heaps/\n?? experiments/battery/ndcgtree_SANITY_partial.json\n?? experiments/battery/ndcgtree_SANITY_per_user.npz\n?? experiments/battery/ndcgtree_SANITY_sweeps/\n?? experiments/battery/ndcgtree_SANITY_train3000.json\n?? experiments/battery/ndcgtree_SANITY_train3000_heaps/\n?? experiments/battery/ndcgtree_SANITY_train3000_partial.json\n?? experiments/battery/ndcgtree_SANITY_train3000_per_user.npz\n?? experiments/battery/ndcgtree_SANITY_train3000_sweeps/\n?? experiments/battery/ndcgtree_sanity_sweep.out\n?? experiments/battery/ndcgtree_sanity_train.out\n?? experiments/battery/outcome_head_main_both.json\n?? experiments/battery/outcome_head_main_both.pt\n?? experiments/battery/outcome_head_main_both_history.json\n?? experiments/battery/outcome_head_main_both_pop.npz\n?? experiments/battery/outcome_head_shuffle_both.json\n?? experiments/battery/outcome_head_shuffle_both.pt\n?? experiments/battery/outcome_head_shuffle_both_history.json\n?? experiments/battery/outcome_head_shuffle_both_pop.npz\n?? experiments/battery/outcome_main.err\n?? experiments/battery/p2_seeded/p2_eval_k2_per_user.npz\n?? experiments/battery/p2_seeded/p2_eval_k4_per_user.npz\n?? experiments/battery/p2_seeded/p2_eval_k8_per_user.npz\n?? experiments/battery/p2_seeded/p2_main.pt\n?? experiments/battery/p2_seeded/p2_main_history.json\n?? experiments/battery/p2_seeded/p2_seeded_states.npz\n?? experiments/battery/p2_seeded/p2_shuffle.pt\n?? experiments/battery/p2_seeded/p2_shuffle_history.json\n?? experiments/battery/p2_seeded/p2_shuffle_last.pt\n?? experiments/battery/p2_seeded/run_p2.ps1\n?? experiments/battery/pipeline_arthouse.out\n?? experiments/battery/pipeline_distill.out\n?? experiments/battery/pipeline_distill_fair.out\n?? experiments/battery/pipeline_distill_fair2.out\n?? experiments/battery/pipeline_m6r.out\n?? experiments/battery/policy_deep_equivariant_both_phase3.pt\n?? experiments/battery/policy_deep_equivariant_both_phase3_gates.json\n?? experiments/battery/policy_deep_equivariant_both_phase3_gates_per_user.npz\n?? experiments/battery/policy_deep_equivariant_both_phase3_history.json\n?? experiments/battery/policy_deep_heaps/\n?? experiments/battery/policy_deep_labels.json\n?? experiments/battery/policy_deeper_tree_control.json\n?? experiments/battery/policy_deeper_tree_control_per_user.npz\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3.pt\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_gates.json\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_gates_per_user.npz\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_history.json\n?? experiments/battery/policy_labels_deep.json\n?? experiments/battery/policy_labels_deep_partial.json\n?? experiments/battery/policy_labels_deep_partial/\n?? experiments/battery/policy_main_equivariant_both_p1.pt\n?? experiments/battery/policy_main_equivariant_both_p1_gates.json\n?? experiments/battery/policy_main_equivariant_both_p1_gates_per_user.npz\n?? experiments/battery/policy_main_equivariant_both_p1_history.json\n?? experiments/battery/policy_main_equivariant_both_p1ctrl.pt\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_gates.json\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_gates_per_user.npz\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_history.json\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf.pt\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_gates.json\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_gates_per_user.npz\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_history.json\n?? experiments/battery/policy_traj/ans_0_10000.npz\n?? experiments/battery/policy_traj/ans_100000_110000.npz\n?? experiments/battery/policy_traj/ans_10000_20000.npz\n?? experiments/battery/policy_traj/ans_110000_120000.npz\n?? experiments/battery/policy_traj/ans_120000_130000.npz\n?? experiments/battery/policy_traj/ans_130000_140000.npz\n?? experiments/battery/policy_traj/ans_140000_140768.npz\n?? experiments/battery/policy_traj/ans_20000_30000.npz\n?? experiments/battery/policy_traj/ans_30000_40000.npz\n?? experiments/battery/policy_traj/ans_40000_50000.npz\n?? experiments/battery/policy_traj/ans_50000_60000.npz\n?? experiments/battery/policy_traj/ans_60000_70000.npz\n?? experiments/battery/policy_traj/ans_70000_80000.npz\n?? experiments/battery/policy_traj/ans_80000_90000.npz\n?? experiments/battery/policy_traj/ans_90000_100000.npz\n?? experiments/battery/policy_traj/ans_val.npz\n?? experiments/battery/policy_traj/gen.err\n?? experiments/battery/policy_traj/gen.out\n?? experiments/battery/policy_traj/meta_0_10000.npz\n?? experiments/battery/policy_traj/meta_100000_110000.npz\n?? experiments/battery/policy_traj/meta_10000_20000.npz\n?? experiments/battery/policy_traj/meta_110000_120000.npz\n?? experiments/battery/policy_traj/meta_120000_130000.npz\n?? experiments/battery/policy_traj/meta_130000_140000.npz\n?? experiments/battery/policy_traj/meta_140000_140768.npz\n?? experiments/battery/policy_traj/meta_20000_30000.npz\n?? experiments/battery/policy_traj/meta_30000_40000.npz\n?? experiments/battery/policy_traj/meta_40000_50000.npz\n?? experiments/battery/policy_traj/meta_50000_60000.npz\n?? experiments/battery/policy_traj/meta_60000_70000.npz\n?? experiments/battery/policy_traj/meta_70000_80000.npz\n?? experiments/battery/policy_traj/meta_80000_90000.npz\n?? experiments/battery/policy_traj/meta_90000_100000.npz\n?? experiments/battery/policy_traj/val_traj.npz\n?? experiments/battery/policy_traj/z_train.npy\n?? experiments/battery/policy_traj/z_val.npy\n?? experiments/battery/pu_labels/\n?? experiments/battery/pwheldout_root.json\n?? experiments/battery/pwheldout_root_PARTIAL_REPORT.json\n?? experiments/battery/pwheldout_root_partial.json\n?? experiments/battery/splitcrit.json\n?? experiments/battery/splitcrit_SMOKE_tree_logistic.json\n?? experiments/battery/splitcrit_SMOKE_tree_logistic.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_pairwise.json\n?? experiments/battery/splitcrit_SMOKE_tree_pairwise.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_random_ml.json\n?? experiments/battery/splitcrit_SMOKE_tree_random_ml.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_variance.json\n?? experiments/battery/splitcrit_SMOKE_tree_variance.json.partial\n?? experiments/battery/splitcrit_per_user.npz\n?? experiments/battery/splitcrit_tree_logistic.json\n?? experiments/battery/splitcrit_tree_logistic.json.partial\n?? experiments/battery/splitcrit_tree_pairwise.json\n?? experiments/battery/splitcrit_tree_pairwise.json.partial\n?? experiments/battery/splitcrit_tree_random.json\n?? experiments/battery/splitcrit_tree_random.json.partial\n?? experiments/battery/splitcrit_tree_random_ml.json\n?? experiments/battery/splitcrit_tree_random_ml.json.partial\n?? experiments/battery/splitcrit_tree_variance.json\n?? experiments/battery/splitcrit_tree_variance.json.partial\n?? experiments/battery/state_count_curve.json\n?? experiments/battery/t1prime.err\n?? experiments/battery/t1prime_holdout.err\n?? experiments/battery/value_chain.err\n?? experiments/battery/value_chain.out\n?? experiments/battery/value_meanvec.err\n?? experiments/battery/value_meanvec.out\n?? experiments/battery/value_sample.err\n?? experiments/battery/value_sample.out\n?? experiments/battery/value_scrape.err\n?? experiments/battery/value_scrape.out\n?? experiments/battery/value_train.err\n?? experiments/battery/value_train.out\n?? experiments/battery/volcohorts/genre_val_policyB_paired_cis.json\n?? experiments/battery/volcohorts/heaps/\n?? experiments/battery/volcohorts/run_v.ps1\n?? experiments/battery/volcohorts/volcohorts_k4_volunteered.json\n?? experiments/battery/volcohorts/volcohorts_report_K15.json\n?? experiments/paperC/c0.err\n?? experiments/paperC/c1.err\n?? experiments/paperC/c3b/c3b_ceiling_per_question.npz\n?? experiments/paperC/c3b/c3b_pairs.npz\n?? experiments/paperC/c3b/c3b_phrases.json\n?? experiments/paperC/c3b/c3b_scrambled.jsonl\n?? experiments/paperC/c3b/c3b_scrambled_best.pt\n?? experiments/paperC/c3b/c3b_stage2_per_question.npz\n?? experiments/paperC/c3b/c3b_true.jsonl\n?? experiments/paperC/c3b/c3b_true_best.pt\n?? experiments/paperC/c3b/stage2_run.err\n?? experiments/paperC/c4_run.err\n?? external_literature/findings/hewitt_plugin_evaluation_2026-08.md\n?? external_literature/findings/im1_im2_plausibility_2026-08.md\n?? external_literature/findings/infosynth_baseline_2026-08.md\n?? external_literature/findings/redo_numbers_decap_heap_2026-08.md\n?? new_chapters/chapterC_v2/chapterC_v2.pdf\n?? run_distill_fair.py\n?? run_distill_fair2.py\n?? run_m6_arthouse_distill.py\n?? run_m6r_when_ready.py"
+ },
+ "seed_random_points": 20260825,
+ "minutes": 9.88
+}
