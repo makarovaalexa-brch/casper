@@ -100,6 +100,22 @@ and then the payoff, which is the deployable claim:
 > alone, extrapolates to films held out of its training openers, and therefore wins on a MIX of cold
 > users and opener users drawn from every cluster — a single universal interview strategy, no router.
 
+**The mix arithmetic, corrected.** `[mix] 587 in a group (5.9%)` in the banked logs is a
+SINGLE-GROUP run (`[groups] ['arthouse']`) and must not be read as the population split. With all six
+groups the training banks give **cold 85,289 / 140,768 = 60.6%**, so **39.4% of users endorse at
+least one anchor**; validation agrees (5,406 memberships over 10,000 users at 1.37 groups per grouped
+user ⇒ ~3,941 ⇒ ~39.4%). So the expected mix gain is ≈ `0.394 × 0.011` ≈ **+0.0043**, not the
++0.0007 a 6% share would imply.
+
+Three things to keep straight when writing it:
+1. **Membership is behavioural, not assigned** — `foldable(u,g) > 0 AND V(u,g) > 0`, i.e. the user can
+   answer that concept and their signed value from real ratings is positive.
+2. **The 39/61 split is a property of choosing SIX anchors**, not of people. More anchors, fewer cold
+   users. One honest clause: our six-concept vocabulary reaches 39% of the population.
+3. **Grouped users average 1.37 groups each**; the mix assigns multi-group users by nearest centroid,
+   which is our tie-break. And a user who volunteers something outside the six is counted cold here —
+   that understates reachable users, it does not overstate them.
+
 ---
 
 ## 3. SAMPLE SIZES AND RUNS
