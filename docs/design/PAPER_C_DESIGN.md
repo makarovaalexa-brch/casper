@@ -1,5 +1,24 @@
 # Paper C — the design (2026-08-18)
 
+## ★★★ AUTHOR RULING 2026-08-25 — declared circularity is ADMITTED for a RELATIVE measurement
+
+**AUTHOR SAID (verbatim):** *"re ndcg — i think we have to be circular and state it, and other
+papers have been too, but ideally be circular in consistent way to others and just try and measure
+how translating back adds noise to the semantics of question, something like that."*
+
+This amends the 2026-08-18 circularity stance as follows, and no further:
+- A simulated geometric answer model MAY be used, **declared as circular in the paper's own
+  voice**, and chosen to be **consistent with the field's practice** (Info-Synth's
+  geometry-dependent response model; PEBOL's simulated users; our own June-era cans rule) — cite
+  the precedents next to the declaration.
+- The claim it may carry is **RELATIVE, never absolute**: the measured object is the
+  **translation cost** — the NDCG (or belief-quality) difference between consuming the DIRECTION
+  directly and consuming the RENDERED-then-re-encoded text, both arms under the SAME simulator, so
+  the circular component is common to both and the difference is the verbalisation noise. Absolute
+  rows are printed but labelled "under a declared-circular answer model" and never headlined.
+- The fatal use stays closed in its original form: no ABSOLUTE "asking the synthesised question
+  improves NDCG" claim routes through the simulator.
+
 ## ★★ AMENDMENTS OF 2026-08-24 (Fable, after the deep-read + hostile-review + repair pass) — BINDING over the corresponding sections below
 
 1. **The "worth is inherited / bounded by a convex combination" sentence is RETRACTED** (both

@@ -75,3 +75,26 @@ policy-point → English → fold works for blend targets on the concept channel
 point-specific (reading 2's CI) and carries the direction where the nearest catalogue text does
 not. Never: NDCG, "asking it would help", any emission-cell number, any item-channel comparison,
 human plausibility of the renders.
+
+## Triangulation (author question, 2026-08-25) — Fable, from `experiments/paperC/c4_triangulate.json` (302af23/70b1754)
+
+**Do the concept renders correspond to the point's own nearest bank entries? YES where the adapter
+emits a distinctive word; NO where it repeats its favourites — and the split is diagnostic.**
+
+- 18/42 states get a UNIQUE render: **median rank 91 of 1,031** in the tower ranking against the
+  state's own reference, with genuine bullseyes — `action` rank **1**, `art` **4**, `indictment`
+  **5** (a courtroom blend: Primal Fear / A Time to Kill), `animals` **7** (the Pixar branch),
+  `military` **21**, `adventure` **28** (the Harry Potter blend), `science` **31**, `noir` **54**.
+- 24/42 states get one of the adapter's three stock words (`horror`×9, `religion`×7, `movies`×4):
+  median rank **362** — no better than the random-tag floor (340).
+- Strict top-10 neighbourhood membership is 4/42 vs 0/42 random (Wilson intervals overlap) — the
+  membership test is a harsher bar than fold-alignment and does not separate at this n.
+
+**Reading: a GENERATION-DIVERSITY limit, not a geometry failure** — the same family as the
+retracted emission cells (the adapter under-covers its output space; A′ collapses far worse, 7
+distinct texts). Where decoding escapes the mode, the word lands among exactly the neighbours it
+should. C3-final levers: sampling in place of greedy, a diversity term, or one model class up —
+none needed for the mechanism claim, all needed before any per-state render is quoted as "the"
+question. Caveats: the tower top ranks are award/production-tag dominated in action regions
+(a `d_c` property, not the render's); the k(φ) ranking is the anisotropic space and stays a
+secondary witness.
