@@ -1,0 +1,8187 @@
+{
+ "analysis": "paperC_C4_pilot_triangulation",
+ "question": "do the C4 pilot's concept-channel renders of the m=5 blend targets correspond to the point's OWN nearest concept-bank entries, in the emitter's head space (mean-removed k(phi)) and in the independent tower space (cos to R_s)?",
+ "produced_by": "src/instrument/c4_triangulate.py",
+ "reads": {
+  "renders": "experiments\\paperC\\c4_pilot_per_state.npz",
+  "cell": "target/concept_hot/A",
+  "note": "the renders are READ from the pilot's npz, never regenerated; the EMISSION cells are retracted (docs/results/C4_PILOT.md) and unread"
+ },
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "answer_free": "descriptive triangulation only: no NDCG, no answer simulated to any rendered text, no claim about the value of asking",
+ "n_states": 42,
+ "n_concepts": 1031,
+ "topk": 10,
+ "own_concept_rule": "exact genome-tag match on the normalised render if the render IS a tag, else the render's TOP SBERT concept (the first of the fold path's own top-4 at mincos 0.30)",
+ "n_normalised_tag_name_collisions": 7,
+ "own_concept_resolution": {
+  "exact_tag": 32,
+  "top_sbert": 10,
+  "non_encodable": 0
+ },
+ "render_scores": {
+  "n_scored": 42,
+  "hit_top10_kphi": {
+   "k": 2,
+   "n": 42,
+   "p": 0.047619047619047616,
+   "lo": 0.013157248639206365,
+   "hi": 0.1579013531547973
+  },
+  "hit_top10_tower": {
+   "k": 4,
+   "n": 42,
+   "p": 0.09523809523809523,
+   "lo": 0.0376616388283121,
+   "hi": 0.2206539522505333
+  },
+  "hit_top10_either": {
+   "k": 4,
+   "n": 42,
+   "p": 0.09523809523809523,
+   "lo": 0.0376616388283121,
+   "hi": 0.2206539522505333
+  },
+  "rank_in_tower_ranking": {
+   "n": 42,
+   "median": 313.0,
+   "q1": 78.25,
+   "q3": 496.25,
+   "iqr": 418.0,
+   "min": 1.0,
+   "max": 963.0,
+   "mean": 319.5952380952381
+  },
+  "rank_in_kphi_ranking": {
+   "n": 42,
+   "median": 319.5,
+   "q1": 144.25,
+   "q3": 485.25,
+   "iqr": 341.0,
+   "min": 2.0,
+   "max": 1013.0,
+   "mean": 357.0238095238095
+  }
+ },
+ "random_tag_floor": {
+  "n_scored": 42,
+  "hit_top10_kphi": {
+   "k": 0,
+   "n": 42,
+   "p": 0.0,
+   "lo": 0.0,
+   "hi": 0.08380161250916197
+  },
+  "hit_top10_tower": {
+   "k": 0,
+   "n": 42,
+   "p": 0.0,
+   "lo": 0.0,
+   "hi": 0.08380161250916197
+  },
+  "hit_top10_either": {
+   "k": 0,
+   "n": 42,
+   "p": 0.0,
+   "lo": 0.0,
+   "hi": 0.08380161250916197
+  },
+  "rank_in_tower_ranking": {
+   "n": 42,
+   "median": 340.0,
+   "q1": 210.0,
+   "q3": 582.0,
+   "iqr": 372.0,
+   "min": 37.0,
+   "max": 1021.0,
+   "mean": 418.57142857142856
+  },
+  "rank_in_kphi_ranking": {
+   "n": 42,
+   "median": 557.0,
+   "q1": 258.0,
+   "q3": 768.25,
+   "iqr": 510.25,
+   "min": 34.0,
+   "max": 1010.0,
+   "mean": 529.1666666666666
+  }
+ },
+ "floor_seed": 20260825,
+ "spaces": {
+  "kphi": "top-10 CONCEPT bank entries nearest the blend target in MEAN-REMOVED k(phi); mu READ from the C3B pairs file",
+  "tower": "top-10 concepts by cos(d_c, R_s), R_s rebuilt by c4_pilot.reference_directions (IMPORTED) and asserted == the banked R"
+ },
+ "reference_disclosure": {
+  "n_item_ingredients": 90,
+  "n_concept_ingredients": 120,
+  "mean_effective_weight_item": 0.34087346831469223,
+  "mean_effective_weight_concept": 0.19922960643250848,
+  "mean_item_tower_norm": 1.6426281409170391,
+  "mean_concept_tower_norm": 1.0000000005491243,
+  "note": "Ew rows carry their own magnitude, d_c rows are unit -- so in a mixed blend the nominal weight is not the effective one. Reported, not corrected: R_s is defined by the sheet in exactly these two objects."
+ },
+ "table": [
+  {
+   "i": 0,
+   "sid": "root.dislike.dislike.dislike.dislike.dislike@5",
+   "group": "deep_sweep",
+   "depth": 5,
+   "n_users": 313,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 5,
+     "question": "Do you like romance films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "art",
+   "render_cos_to_R_banked": 0.7288070928439491,
+   "render_own_concept": "art",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 4,
+   "render_own_concept_rank_kphi": 2,
+   "render_own_concept_cos_tower": 0.8826333534838542,
+   "render_sbert_top4": [
+    {
+     "concept": "art",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "artistic",
+     "sbert_cos": 0.8646246194839478
+    },
+    {
+     "concept": "artist",
+     "sbert_cos": 0.728183925151825
+    },
+    {
+     "concept": "artsy",
+     "sbert_cos": 0.6550474166870117
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "artistic",
+     "cos_to_R": 0.897957004734155
+    },
+    {
+     "rank": 2,
+     "concept": "melancholy",
+     "cos_to_R": 0.8870398886507159
+    },
+    {
+     "rank": 3,
+     "concept": "colourful",
+     "cos_to_R": 0.8831597583088228
+    },
+    {
+     "rank": 4,
+     "concept": "art",
+     "cos_to_R": 0.8826333534838542
+    },
+    {
+     "rank": 5,
+     "concept": "lyrical",
+     "cos_to_R": 0.8756203013871781
+    },
+    {
+     "rank": 6,
+     "concept": "criterion",
+     "cos_to_R": 0.861111042249942
+    },
+    {
+     "rank": 7,
+     "concept": "reflective",
+     "cos_to_R": 0.8587695459082443
+    },
+    {
+     "rank": 8,
+     "concept": "melancholic",
+     "cos_to_R": 0.8556435898661469
+    },
+    {
+     "rank": 9,
+     "concept": "breathtaking",
+     "cos_to_R": 0.8539523851630919
+    },
+    {
+     "rank": 10,
+     "concept": "enigmatic",
+     "cos_to_R": 0.8514980051282026
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "colourful",
+     "cos_meanremoved": 0.9278984610906144
+    },
+    {
+     "rank": 2,
+     "concept": "art",
+     "cos_meanremoved": 0.8901280959020237
+    },
+    {
+     "rank": 3,
+     "concept": "melancholic",
+     "cos_meanremoved": 0.8738765497704187
+    },
+    {
+     "rank": 4,
+     "concept": "beautiful",
+     "cos_meanremoved": 0.8719128590443407
+    },
+    {
+     "rank": 5,
+     "concept": "poetry",
+     "cos_meanremoved": 0.8600468234889438
+    },
+    {
+     "rank": 6,
+     "concept": "swedish",
+     "cos_meanremoved": 0.835958999444349
+    },
+    {
+     "rank": 7,
+     "concept": "nature",
+     "cos_meanremoved": 0.8228816600880606
+    },
+    {
+     "rank": 8,
+     "concept": "foreign",
+     "cos_meanremoved": 0.8227871561271327
+    },
+    {
+     "rank": 9,
+     "concept": "poverty",
+     "cos_meanremoved": 0.8201984709342721
+    },
+    {
+     "rank": 10,
+     "concept": "oscar (best foreign language film)",
+     "cos_meanremoved": 0.8051361091388011
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18561,
+     "channel": "concept",
+     "name": "colourful",
+     "weight": 0.21633745346649277
+    },
+    {
+     "bank_idx": 18483,
+     "channel": "concept",
+     "name": "black and white",
+     "weight": 0.204258994954405
+    },
+    {
+     "bank_idx": 19369,
+     "channel": "concept",
+     "name": "whimsical",
+     "weight": 0.20343182815423402
+    },
+    {
+     "bank_idx": 18426,
+     "channel": "concept",
+     "name": "art",
+     "weight": 0.1913452794492948
+    },
+    {
+     "bank_idx": 18947,
+     "channel": "concept",
+     "name": "melancholic",
+     "weight": 0.18462644397557337
+    }
+   ],
+   "random_floor_tag": "whimsical",
+   "random_floor_rank_tower": 37,
+   "random_floor_rank_kphi": 86
+  },
+  {
+   "i": 1,
+   "sid": "root.dislike.dislike.dislike.dislike.like@5",
+   "group": "deep_sweep",
+   "depth": 5,
+   "n_users": 42,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 5,
+     "question": "Do you like romance films?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "family drama",
+   "render_cos_to_R_banked": 0.15700475477251094,
+   "render_own_concept": "family drama",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 502,
+   "render_own_concept_rank_kphi": 525,
+   "render_own_concept_cos_tower": -0.03132248321998147,
+   "render_sbert_top4": [
+    {
+     "concept": "family drama",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "drama",
+     "sbert_cos": 0.7427660226821899
+    },
+    {
+     "concept": "costume drama",
+     "sbert_cos": 0.6616533994674683
+    },
+    {
+     "concept": "courtroom drama",
+     "sbert_cos": 0.6559043526649475
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "good romantic comedies",
+     "cos_to_R": 0.38472619323553686
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.38187529167381185
+    },
+    {
+     "rank": 3,
+     "concept": "girlie movie",
+     "cos_to_R": 0.3765295581477433
+    },
+    {
+     "rank": 4,
+     "concept": "sappy",
+     "cos_to_R": 0.37055337629023744
+    },
+    {
+     "rank": 5,
+     "concept": "happy ending",
+     "cos_to_R": 0.3693908894015126
+    },
+    {
+     "rank": 6,
+     "concept": "romantic comedy",
+     "cos_to_R": 0.36438897275974436
+    },
+    {
+     "rank": 7,
+     "concept": "love story",
+     "cos_to_R": 0.36062304738246487
+    },
+    {
+     "rank": 8,
+     "concept": "romantic",
+     "cos_to_R": 0.3518675271818418
+    },
+    {
+     "rank": 9,
+     "concept": "wedding",
+     "cos_to_R": 0.34391904823546676
+    },
+    {
+     "rank": 10,
+     "concept": "chick flick",
+     "cos_to_R": 0.34331182556250855
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "very funny",
+     "cos_meanremoved": 0.549651506469011
+    },
+    {
+     "rank": 2,
+     "concept": "sentimental",
+     "cos_meanremoved": 0.5254753409218409
+    },
+    {
+     "rank": 3,
+     "concept": "heartwarming",
+     "cos_meanremoved": 0.5225419468969914
+    },
+    {
+     "rank": 4,
+     "concept": "western",
+     "cos_meanremoved": 0.5195165345446897
+    },
+    {
+     "rank": 5,
+     "concept": "nostalgic",
+     "cos_meanremoved": 0.5142263740305206
+    },
+    {
+     "rank": 6,
+     "concept": "funny",
+     "cos_meanremoved": 0.5105913253266321
+    },
+    {
+     "rank": 7,
+     "concept": "hilarious",
+     "cos_meanremoved": 0.5018274380298765
+    },
+    {
+     "rank": 8,
+     "concept": "irish accent",
+     "cos_meanremoved": 0.4922326156857764
+    },
+    {
+     "rank": 9,
+     "concept": "spaghetti western",
+     "cos_meanremoved": 0.4895877177632303
+    },
+    {
+     "rank": 10,
+     "concept": "mexico",
+     "cos_meanremoved": 0.4846868220163519
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 614,
+     "channel": "item",
+     "name": "Top Gun (1986)",
+     "weight": 0.2534839609386726
+    },
+    {
+     "bank_idx": 781,
+     "channel": "item",
+     "name": "Chocolat (2000)",
+     "weight": 0.2295190437190524
+    },
+    {
+     "bank_idx": 77,
+     "channel": "item",
+     "name": "Shrek (2001)",
+     "weight": 0.18712654169003895
+    },
+    {
+     "bank_idx": 1175,
+     "channel": "item",
+     "name": "When Harry Met Sally... (1989)",
+     "weight": 0.16778786227593018
+    },
+    {
+     "bank_idx": 879,
+     "channel": "item",
+     "name": "Meet the Parents (2000)",
+     "weight": 0.1620825913763059
+    }
+   ],
+   "random_floor_tag": "ridiculous",
+   "random_floor_rank_tower": 362,
+   "random_floor_rank_kphi": 749
+  },
+  {
+   "i": 2,
+   "sid": "root.dislike.dislike.dislike.like.dislike@5",
+   "group": "deep_sweep",
+   "depth": 5,
+   "n_users": 174,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "fantasy",
+   "render_cos_to_R_banked": 0.27881987919726914,
+   "render_own_concept": "fantasy",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 74,
+   "render_own_concept_rank_kphi": 722,
+   "render_own_concept_cos_tower": 0.22909124858597724,
+   "render_sbert_top4": [
+    {
+     "concept": "fantasy",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "high fantasy",
+     "sbert_cos": 0.8141536712646484
+    },
+    {
+     "concept": "fantasy world",
+     "sbert_cos": 0.7824238538742065
+    },
+    {
+     "concept": "modern fantasy",
+     "sbert_cos": 0.7079759240150452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.5433850148271901
+    },
+    {
+     "rank": 2,
+     "concept": "original plot",
+     "cos_to_R": 0.47778365387092125
+    },
+    {
+     "rank": 3,
+     "concept": "time",
+     "cos_to_R": 0.4693756638260722
+    },
+    {
+     "rank": 4,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.4634886490502946
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.46173725907900565
+    },
+    {
+     "rank": 6,
+     "concept": "spielberg",
+     "cos_to_R": 0.4462637879602174
+    },
+    {
+     "rank": 7,
+     "concept": "awesome",
+     "cos_to_R": 0.42392709872837897
+    },
+    {
+     "rank": 8,
+     "concept": "time travel",
+     "cos_to_R": 0.39799313274455944
+    },
+    {
+     "rank": 9,
+     "concept": "alternate universe",
+     "cos_to_R": 0.39339525498115924
+    },
+    {
+     "rank": 10,
+     "concept": "trilogy",
+     "cos_to_R": 0.36859216197350575
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "great soundtrack",
+     "cos_meanremoved": 0.5269514293342824
+    },
+    {
+     "rank": 2,
+     "concept": "funniest movies",
+     "cos_meanremoved": 0.5044975719931942
+    },
+    {
+     "rank": 3,
+     "concept": "good dialogue",
+     "cos_meanremoved": 0.4939731947308297
+    },
+    {
+     "rank": 4,
+     "concept": "brothers",
+     "cos_meanremoved": 0.4868308521784943
+    },
+    {
+     "rank": 5,
+     "concept": "1980s",
+     "cos_meanremoved": 0.48178981759142786
+    },
+    {
+     "rank": 6,
+     "concept": "ennio morricone",
+     "cos_meanremoved": 0.4786752867408079
+    },
+    {
+     "rank": 7,
+     "concept": "detective",
+     "cos_meanremoved": 0.4739334869253315
+    },
+    {
+     "rank": 8,
+     "concept": "slackers",
+     "cos_meanremoved": 0.47362677765148953
+    },
+    {
+     "rank": 9,
+     "concept": "awesome soundtrack",
+     "cos_meanremoved": 0.46939585020787583
+    },
+    {
+     "rank": 10,
+     "concept": "visual",
+     "cos_meanremoved": 0.4674709995441089
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 1483,
+     "channel": "item",
+     "name": "Back to the Future Part III (1990)",
+     "weight": 0.23394480548189492
+    },
+    {
+     "bank_idx": 25,
+     "channel": "item",
+     "name": "Back to the Future (1985)",
+     "weight": 0.21057861407187276
+    },
+    {
+     "bank_idx": 26,
+     "channel": "item",
+     "name": "Highlander (1986)",
+     "weight": 0.1899465986264234
+    },
+    {
+     "bank_idx": 153,
+     "channel": "item",
+     "name": "Lock, Stock & Two Smoking Barrels (1998)",
+     "weight": 0.18428906333619396
+    },
+    {
+     "bank_idx": 18915,
+     "channel": "concept",
+     "name": "literature",
+     "weight": 0.18124091848361495
+    }
+   ],
+   "random_floor_tag": "england",
+   "random_floor_rank_tower": 334,
+   "random_floor_rank_kphi": 1010
+  },
+  {
+   "i": 3,
+   "sid": "root.dislike.dislike.dislike.like.like@5",
+   "group": "deep_sweep",
+   "depth": 5,
+   "n_users": 125,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "love",
+   "render_cos_to_R_banked": 0.05359356974939138,
+   "render_own_concept": "love",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 418,
+   "render_own_concept_rank_kphi": 784,
+   "render_own_concept_cos_tower": 0.14375962079154764,
+   "render_sbert_top4": [
+    {
+     "concept": "love",
+     "sbert_cos": 0.9999999403953552
+    },
+    {
+     "concept": "love story",
+     "sbert_cos": 0.6298964023590088
+    },
+    {
+     "concept": "romance",
+     "sbert_cos": 0.5823114514350891
+    },
+    {
+     "concept": "affectionate",
+     "sbert_cos": 0.5603691935539246
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "storytelling",
+     "cos_to_R": 0.6722742343994937
+    },
+    {
+     "rank": 2,
+     "concept": "clever",
+     "cos_to_R": 0.6343208142492607
+    },
+    {
+     "rank": 3,
+     "concept": "colourful",
+     "cos_to_R": 0.6329458783805717
+    },
+    {
+     "rank": 4,
+     "concept": "great soundtrack",
+     "cos_to_R": 0.6251066565770148
+    },
+    {
+     "rank": 5,
+     "concept": "nonlinear",
+     "cos_to_R": 0.6118550748606544
+    },
+    {
+     "rank": 6,
+     "concept": "visually appealing",
+     "cos_to_R": 0.6079695168818391
+    },
+    {
+     "rank": 7,
+     "concept": "unique",
+     "cos_to_R": 0.6071571746051481
+    },
+    {
+     "rank": 8,
+     "concept": "imdb top 250",
+     "cos_to_R": 0.6046244356973014
+    },
+    {
+     "rank": 9,
+     "concept": "suprisingly clever",
+     "cos_to_R": 0.6011500785435231
+    },
+    {
+     "rank": 10,
+     "concept": "amazing cinematography",
+     "cos_to_R": 0.5934357891172917
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "masterpiece",
+     "cos_meanremoved": 0.7453438338526858
+    },
+    {
+     "rank": 2,
+     "concept": "great",
+     "cos_meanremoved": 0.7441786220881952
+    },
+    {
+     "rank": 3,
+     "concept": "great movie",
+     "cos_meanremoved": 0.7006535137841513
+    },
+    {
+     "rank": 4,
+     "concept": "good music",
+     "cos_meanremoved": 0.6999935315542062
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best directing)",
+     "cos_meanremoved": 0.695672498826812
+    },
+    {
+     "rank": 6,
+     "concept": "oscar (best writing - screenplay written directly for the screen)",
+     "cos_meanremoved": 0.6935392515140949
+    },
+    {
+     "rank": 7,
+     "concept": "narrated",
+     "cos_meanremoved": 0.6902760680713651
+    },
+    {
+     "rank": 8,
+     "concept": "excellent",
+     "cos_meanremoved": 0.6897639971632824
+    },
+    {
+     "rank": 9,
+     "concept": "imdb top 250",
+     "cos_meanremoved": 0.6869428830015988
+    },
+    {
+     "rank": 10,
+     "concept": "great acting",
+     "cos_meanremoved": 0.685090351881679
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19270,
+     "channel": "concept",
+     "name": "sweet",
+     "weight": 0.2286192446593287
+    },
+    {
+     "bank_idx": 19346,
+     "channel": "concept",
+     "name": "violence",
+     "weight": 0.20877047148822162
+    },
+    {
+     "bank_idx": 439,
+     "channel": "item",
+     "name": "Seven (a.k.a. Se7en) (1995)",
+     "weight": 0.1931847785967265
+    },
+    {
+     "bank_idx": 19369,
+     "channel": "concept",
+     "name": "whimsical",
+     "weight": 0.18990867063593514
+    },
+    {
+     "bank_idx": 18602,
+     "channel": "concept",
+     "name": "criterion",
+     "weight": 0.17951683461978804
+    }
+   ],
+   "random_floor_tag": "iraq war",
+   "random_floor_rank_tower": 797,
+   "random_floor_rank_kphi": 254
+  },
+  {
+   "i": 4,
+   "sid": "root.dislike.dislike.dislike.like.noanswer@5",
+   "group": "deep_sweep",
+   "depth": 5,
+   "n_users": 403,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 5,
+     "question": "Have you seen Top Gun (1986), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "movies",
+   "render_cos_to_R_banked": 0.268654151906978,
+   "render_own_concept": "movie business",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 94,
+   "render_own_concept_rank_kphi": 189,
+   "render_own_concept_cos_tower": 0.2857349576093574,
+   "render_sbert_top4": [
+    {
+     "concept": "movie business",
+     "sbert_cos": 0.6944682598114014
+    },
+    {
+     "concept": "fun movie",
+     "sbert_cos": 0.6779841184616089
+    },
+    {
+     "concept": "hollywood",
+     "sbert_cos": 0.6416468620300293
+    },
+    {
+     "concept": "funniest movies",
+     "sbert_cos": 0.6390641927719116
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "quotable",
+     "cos_to_R": 0.5854369685615542
+    },
+    {
+     "rank": 2,
+     "concept": "afi 100 (laughs)",
+     "cos_to_R": 0.5773682408118533
+    },
+    {
+     "rank": 3,
+     "concept": "highly quotable",
+     "cos_to_R": 0.5717461859949288
+    },
+    {
+     "rank": 4,
+     "concept": "silent",
+     "cos_to_R": 0.5542583622799349
+    },
+    {
+     "rank": 5,
+     "concept": "train",
+     "cos_to_R": 0.5343242102444827
+    },
+    {
+     "rank": 6,
+     "concept": "biting",
+     "cos_to_R": 0.533077609434049
+    },
+    {
+     "rank": 7,
+     "concept": "black and white",
+     "cos_to_R": 0.5265990900376865
+    },
+    {
+     "rank": 8,
+     "concept": "classic",
+     "cos_to_R": 0.5256091665131751
+    },
+    {
+     "rank": 9,
+     "concept": "afi 100 (movie quotes)",
+     "cos_to_R": 0.5174704912273853
+    },
+    {
+     "rank": 10,
+     "concept": "irreverent",
+     "cos_to_R": 0.5084544981468833
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "noir",
+     "cos_meanremoved": 0.7588309908560593
+    },
+    {
+     "rank": 2,
+     "concept": "western",
+     "cos_meanremoved": 0.6885175141510176
+    },
+    {
+     "rank": 3,
+     "concept": "ennio morricone",
+     "cos_meanremoved": 0.6843381156602264
+    },
+    {
+     "rank": 4,
+     "concept": "perfect",
+     "cos_meanremoved": 0.683434126450912
+    },
+    {
+     "rank": 5,
+     "concept": "black and white",
+     "cos_meanremoved": 0.6778020716407825
+    },
+    {
+     "rank": 6,
+     "concept": "noir thriller",
+     "cos_meanremoved": 0.6755716023934312
+    },
+    {
+     "rank": 7,
+     "concept": "private detective",
+     "cos_meanremoved": 0.6737008029887361
+    },
+    {
+     "rank": 8,
+     "concept": "film noir",
+     "cos_meanremoved": 0.6645861053073937
+    },
+    {
+     "rank": 9,
+     "concept": "prohibition",
+     "cos_meanremoved": 0.6550723128317474
+    },
+    {
+     "rank": 10,
+     "concept": "moody",
+     "cos_meanremoved": 0.6456993116992872
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18483,
+     "channel": "concept",
+     "name": "black and white",
+     "weight": 0.2178133680326173
+    },
+    {
+     "bank_idx": 19067,
+     "channel": "concept",
+     "name": "photography",
+     "weight": 0.20133644542593723
+    },
+    {
+     "bank_idx": 513,
+     "channel": "item",
+     "name": "Speed (1994)",
+     "weight": 0.1997159470710782
+    },
+    {
+     "bank_idx": 18775,
+     "channel": "concept",
+     "name": "goofy",
+     "weight": 0.19684853722304144
+    },
+    {
+     "bank_idx": 18820,
+     "channel": "concept",
+     "name": "hilarious",
+     "weight": 0.18428570224732582
+    }
+   ],
+   "random_floor_tag": "loneliness",
+   "random_floor_rank_tower": 350,
+   "random_floor_rank_kphi": 658
+  },
+  {
+   "i": 5,
+   "sid": "root.dislike.dislike.dislike.noanswer.dislike.dislike@6",
+   "group": "deep_sweep",
+   "depth": 6,
+   "n_users": 581,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like cute films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "movies",
+   "render_cos_to_R_banked": 0.13055579324171965,
+   "render_own_concept": "movie business",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 284,
+   "render_own_concept_rank_kphi": 124,
+   "render_own_concept_cos_tower": 0.14941318520200642,
+   "render_sbert_top4": [
+    {
+     "concept": "movie business",
+     "sbert_cos": 0.6944682598114014
+    },
+    {
+     "concept": "fun movie",
+     "sbert_cos": 0.6779841184616089
+    },
+    {
+     "concept": "hollywood",
+     "sbert_cos": 0.6416468620300293
+    },
+    {
+     "concept": "funniest movies",
+     "sbert_cos": 0.6390641927719116
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "afi 100 (movie quotes)",
+     "cos_to_R": 0.77819925217377
+    },
+    {
+     "rank": 2,
+     "concept": "afi 100",
+     "cos_to_R": 0.7399496323641681
+    },
+    {
+     "rank": 3,
+     "concept": "classic",
+     "cos_to_R": 0.6820792816048706
+    },
+    {
+     "rank": 4,
+     "concept": "perfect",
+     "cos_to_R": 0.6766195604569272
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best cinematography)",
+     "cos_to_R": 0.648804130959539
+    },
+    {
+     "rank": 6,
+     "concept": "oscar (best writing - screenplay written directly for the screen)",
+     "cos_to_R": 0.6206217670563128
+    },
+    {
+     "rank": 7,
+     "concept": "oscar (best picture)",
+     "cos_to_R": 0.6008996084324423
+    },
+    {
+     "rank": 8,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.585686171324707
+    },
+    {
+     "rank": 9,
+     "concept": "great movie",
+     "cos_to_R": 0.5703024193078685
+    },
+    {
+     "rank": 10,
+     "concept": "afi 100 (laughs)",
+     "cos_to_R": 0.5695570268275911
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "afi 100",
+     "cos_meanremoved": 0.879345417873537
+    },
+    {
+     "rank": 2,
+     "concept": "perfect",
+     "cos_meanremoved": 0.8738408477747716
+    },
+    {
+     "rank": 3,
+     "concept": "spaghetti western",
+     "cos_meanremoved": 0.8324224679626393
+    },
+    {
+     "rank": 4,
+     "concept": "western",
+     "cos_meanremoved": 0.8162285578447437
+    },
+    {
+     "rank": 5,
+     "concept": "noir",
+     "cos_meanremoved": 0.7912638930394423
+    },
+    {
+     "rank": 6,
+     "concept": "black and white",
+     "cos_meanremoved": 0.7864331293323369
+    },
+    {
+     "rank": 7,
+     "concept": "ennio morricone",
+     "cos_meanremoved": 0.7753923815769751
+    },
+    {
+     "rank": 8,
+     "concept": "cynical",
+     "cos_meanremoved": 0.7526726689243829
+    },
+    {
+     "rank": 9,
+     "concept": "prohibition",
+     "cos_meanremoved": 0.7450262279070416
+    },
+    {
+     "rank": 10,
+     "concept": "anti-war",
+     "cos_meanremoved": 0.7379795892557799
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18483,
+     "channel": "concept",
+     "name": "black and white",
+     "weight": 0.21000538753803438
+    },
+    {
+     "bank_idx": 29,
+     "channel": "item",
+     "name": "Indiana Jones and the Last Crusade (1989)",
+     "weight": 0.2010342671822069
+    },
+    {
+     "bank_idx": 18386,
+     "channel": "concept",
+     "name": "afi 100",
+     "weight": 0.20082221906319475
+    },
+    {
+     "bank_idx": 858,
+     "channel": "item",
+     "name": "Tombstone (1993)",
+     "weight": 0.19915842384387616
+    },
+    {
+     "bank_idx": 19060,
+     "channel": "concept",
+     "name": "perfect",
+     "weight": 0.1889797023726878
+    }
+   ],
+   "random_floor_tag": "gunfight",
+   "random_floor_rank_tower": 93,
+   "random_floor_rank_kphi": 110
+  },
+  {
+   "i": 6,
+   "sid": "root.dislike.dislike.dislike.noanswer.dislike.like@6",
+   "group": "deep_sweep",
+   "depth": 6,
+   "n_users": 140,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like cute films?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "animals",
+   "render_cos_to_R_banked": 0.6210755930313987,
+   "render_own_concept": "animals",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 7,
+   "render_own_concept_rank_kphi": 19,
+   "render_own_concept_cos_tower": 0.8198584484789275,
+   "render_sbert_top4": [
+    {
+     "concept": "animals",
+     "sbert_cos": 0.9999998807907104
+    },
+    {
+     "concept": "dogs",
+     "sbert_cos": 0.8109827041625977
+    },
+    {
+     "concept": "talking animals",
+     "sbert_cos": 0.7653037905693054
+    },
+    {
+     "concept": "horses",
+     "sbert_cos": 0.7024630904197693
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "disney animated feature",
+     "cos_to_R": 0.8596541861855553
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best music - original song)",
+     "cos_to_R": 0.8527465663666561
+    },
+    {
+     "rank": 3,
+     "concept": "cartoon",
+     "cos_to_R": 0.8474520978502968
+    },
+    {
+     "rank": 4,
+     "concept": "disney",
+     "cos_to_R": 0.8402066253948989
+    },
+    {
+     "rank": 5,
+     "concept": "animated",
+     "cos_to_R": 0.8254893401047798
+    },
+    {
+     "rank": 6,
+     "concept": "talking animals",
+     "cos_to_R": 0.8249116564431438
+    },
+    {
+     "rank": 7,
+     "concept": "animals",
+     "cos_to_R": 0.8198584484789275
+    },
+    {
+     "rank": 8,
+     "concept": "animation",
+     "cos_to_R": 0.8189911893885891
+    },
+    {
+     "rank": 9,
+     "concept": "animal movie",
+     "cos_to_R": 0.7897959622754864
+    },
+    {
+     "rank": 10,
+     "concept": "kids and family",
+     "cos_to_R": 0.7792752414930131
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "animated",
+     "cos_meanremoved": 0.8727905060016881
+    },
+    {
+     "rank": 2,
+     "concept": "aardman studios",
+     "cos_meanremoved": 0.8430016838074738
+    },
+    {
+     "rank": 3,
+     "concept": "cartoon",
+     "cos_meanremoved": 0.8376428537997332
+    },
+    {
+     "rank": 4,
+     "concept": "animal movie",
+     "cos_meanremoved": 0.8257292657043316
+    },
+    {
+     "rank": 5,
+     "concept": "disney animated feature",
+     "cos_meanremoved": 0.8250221438538543
+    },
+    {
+     "rank": 6,
+     "concept": "animation",
+     "cos_meanremoved": 0.8192120202876534
+    },
+    {
+     "rank": 7,
+     "concept": "kids and family",
+     "cos_meanremoved": 0.773812425832479
+    },
+    {
+     "rank": 8,
+     "concept": "fairy tale",
+     "cos_meanremoved": 0.7630358122387484
+    },
+    {
+     "rank": 9,
+     "concept": "disney",
+     "cos_meanremoved": 0.7618553331637715
+    },
+    {
+     "rank": 10,
+     "concept": "fairy tales",
+     "cos_meanremoved": 0.7575626647374097
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18415,
+     "channel": "concept",
+     "name": "animation",
+     "weight": 0.23966933888748296
+    },
+    {
+     "bank_idx": 1667,
+     "channel": "item",
+     "name": "Little Mermaid, The (1989)",
+     "weight": 0.20174309450154246
+    },
+    {
+     "bank_idx": 18736,
+     "channel": "concept",
+     "name": "fun",
+     "weight": 0.19093217025277762
+    },
+    {
+     "bank_idx": 18414,
+     "channel": "concept",
+     "name": "animated",
+     "weight": 0.18427448973588453
+    },
+    {
+     "bank_idx": 607,
+     "channel": "item",
+     "name": "Mary Poppins (1964)",
+     "weight": 0.1833809066223124
+    }
+   ],
+   "random_floor_tag": "segregation",
+   "random_floor_rank_tower": 607,
+   "random_floor_rank_kphi": 909
+  },
+  {
+   "i": 7,
+   "sid": "root.dislike.dislike.dislike.noanswer.dislike.noanswer@6",
+   "group": "deep_sweep",
+   "depth": 6,
+   "n_users": 18,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like cute films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "fantasy",
+   "render_cos_to_R_banked": 0.5017258568435542,
+   "render_own_concept": "fantasy",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 114,
+   "render_own_concept_rank_kphi": 83,
+   "render_own_concept_cos_tower": 0.49448791870862596,
+   "render_sbert_top4": [
+    {
+     "concept": "fantasy",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "high fantasy",
+     "sbert_cos": 0.8141536712646484
+    },
+    {
+     "concept": "fantasy world",
+     "sbert_cos": 0.7824238538742065
+    },
+    {
+     "concept": "modern fantasy",
+     "sbert_cos": 0.7079759240150452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "dynamic cgi action",
+     "cos_to_R": 0.8504348353687956
+    },
+    {
+     "rank": 2,
+     "concept": "fighting",
+     "cos_to_R": 0.8264143785076286
+    },
+    {
+     "rank": 3,
+     "concept": "exciting",
+     "cos_to_R": 0.8071888144699209
+    },
+    {
+     "rank": 4,
+     "concept": "fight scenes",
+     "cos_to_R": 0.7935681651604602
+    },
+    {
+     "rank": 5,
+     "concept": "big budget",
+     "cos_to_R": 0.7852466080123138
+    },
+    {
+     "rank": 6,
+     "concept": "action",
+     "cos_to_R": 0.7849070444061003
+    },
+    {
+     "rank": 7,
+     "concept": "action packed",
+     "cos_to_R": 0.7767574388575033
+    },
+    {
+     "rank": 8,
+     "concept": "enormously long battle scene",
+     "cos_to_R": 0.7638944803878347
+    },
+    {
+     "rank": 9,
+     "concept": "trilogy",
+     "cos_to_R": 0.7582776216252521
+    },
+    {
+     "rank": 10,
+     "concept": "script",
+     "cos_to_R": 0.7523600239273132
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "script",
+     "cos_meanremoved": 0.8569803057478858
+    },
+    {
+     "rank": 2,
+     "concept": "fighting",
+     "cos_meanremoved": 0.8522035241402066
+    },
+    {
+     "rank": 3,
+     "concept": "trilogy",
+     "cos_meanremoved": 0.8308857299152864
+    },
+    {
+     "rank": 4,
+     "concept": "fast paced",
+     "cos_meanremoved": 0.813687495097413
+    },
+    {
+     "rank": 5,
+     "concept": "sword fight",
+     "cos_meanremoved": 0.7824771560210602
+    },
+    {
+     "rank": 6,
+     "concept": "good versus evil",
+     "cos_meanremoved": 0.7784933082387403
+    },
+    {
+     "rank": 7,
+     "concept": "epic",
+     "cos_meanremoved": 0.7726739858206976
+    },
+    {
+     "rank": 8,
+     "concept": "cgi",
+     "cos_meanremoved": 0.7717563249604684
+    },
+    {
+     "rank": 9,
+     "concept": "awesome",
+     "cos_meanremoved": 0.7624736044084869
+    },
+    {
+     "rank": 10,
+     "concept": "realistic action",
+     "cos_meanremoved": 0.75948237246796
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18714,
+     "channel": "concept",
+     "name": "fighting",
+     "weight": 0.2799401043086549
+    },
+    {
+     "bank_idx": 18684,
+     "channel": "concept",
+     "name": "epic",
+     "weight": 0.1850636597625328
+    },
+    {
+     "bank_idx": 463,
+     "channel": "item",
+     "name": "Independence Day (a.k.a. ID4) (1996)",
+     "weight": 0.18253817219012308
+    },
+    {
+     "bank_idx": 19310,
+     "channel": "concept",
+     "name": "trilogy",
+     "weight": 0.17681600404211822
+    },
+    {
+     "bank_idx": 19174,
+     "channel": "concept",
+     "name": "script",
+     "weight": 0.17564205969657112
+    }
+   ],
+   "random_floor_tag": "historical",
+   "random_floor_rank_tower": 250,
+   "random_floor_rank_kphi": 566
+  },
+  {
+   "i": 8,
+   "sid": "root.dislike.dislike.dislike.noanswer.like.dislike@6",
+   "group": "deep_sweep",
+   "depth": 6,
+   "n_users": 306,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "hijacked",
+   "render_cos_to_R_banked": 0.01838687865936665,
+   "render_own_concept": "conspiracy",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 128,
+   "render_own_concept_rank_kphi": 309,
+   "render_own_concept_cos_tower": 0.12627784850149942,
+   "render_sbert_top4": [
+    {
+     "concept": "conspiracy",
+     "sbert_cos": 0.4113863706588745
+    },
+    {
+     "concept": "hacking",
+     "sbert_cos": 0.40615323185920715
+    },
+    {
+     "concept": "virus",
+     "sbert_cos": 0.3848939538002014
+    },
+    {
+     "concept": "spy",
+     "sbert_cos": 0.37828534841537476
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.5357908169702819
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.4568218473305845
+    },
+    {
+     "rank": 3,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.41374227662541574
+    },
+    {
+     "rank": 4,
+     "concept": "spielberg",
+     "cos_to_R": 0.40032754922346303
+    },
+    {
+     "rank": 5,
+     "concept": "exciting",
+     "cos_to_R": 0.3742547709059044
+    },
+    {
+     "rank": 6,
+     "concept": "awesome",
+     "cos_to_R": 0.3558204729149118
+    },
+    {
+     "rank": 7,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.33296182405241753
+    },
+    {
+     "rank": 8,
+     "concept": "script",
+     "cos_to_R": 0.31485532449482473
+    },
+    {
+     "rank": 9,
+     "concept": "prequel",
+     "cos_to_R": 0.2936723732562743
+    },
+    {
+     "rank": 10,
+     "concept": "trilogy",
+     "cos_to_R": 0.2706703010142221
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "police investigation",
+     "cos_meanremoved": 0.6632261569032567
+    },
+    {
+     "rank": 2,
+     "concept": "detective",
+     "cos_meanremoved": 0.6592672096683423
+    },
+    {
+     "rank": 3,
+     "concept": "investigation",
+     "cos_meanremoved": 0.6397084609027471
+    },
+    {
+     "rank": 4,
+     "concept": "oscar (best sound)",
+     "cos_meanremoved": 0.6342601970135137
+    },
+    {
+     "rank": 5,
+     "concept": "neo-noir",
+     "cos_meanremoved": 0.6142964578037772
+    },
+    {
+     "rank": 6,
+     "concept": "prison",
+     "cos_meanremoved": 0.5989877306450782
+    },
+    {
+     "rank": 7,
+     "concept": "mob",
+     "cos_meanremoved": 0.5950765902400992
+    },
+    {
+     "rank": 8,
+     "concept": "prison escape",
+     "cos_meanremoved": 0.5947161427460053
+    },
+    {
+     "rank": 9,
+     "concept": "spielberg",
+     "cos_meanremoved": 0.5931930253996764
+    },
+    {
+     "rank": 10,
+     "concept": "gangster",
+     "cos_meanremoved": 0.5877514123328255
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 454,
+     "channel": "item",
+     "name": "Client, The (1994)",
+     "weight": 0.2541690694389875
+    },
+    {
+     "bank_idx": 22,
+     "channel": "item",
+     "name": "Star Wars: Episode VI - Return of the Jedi (1983)",
+     "weight": 0.22165858080405032
+    },
+    {
+     "bank_idx": 4,
+     "channel": "item",
+     "name": "Star Wars: Episode IV - A New Hope (1977)",
+     "weight": 0.19431002342129497
+    },
+    {
+     "bank_idx": 581,
+     "channel": "item",
+     "name": "Ghost (1990)",
+     "weight": 0.16620596189615283
+    },
+    {
+     "bank_idx": 458,
+     "channel": "item",
+     "name": "Mrs. Doubtfire (1993)",
+     "weight": 0.16365636443951437
+    }
+   ],
+   "random_floor_tag": "excellent script",
+   "random_floor_rank_tower": 241,
+   "random_floor_rank_kphi": 159
+  },
+  {
+   "i": 9,
+   "sid": "root.dislike.dislike.dislike.noanswer.like.like@6",
+   "group": "deep_sweep",
+   "depth": 6,
+   "n_users": 30,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "theatrical",
+   "render_cos_to_R_banked": -0.11717122018750335,
+   "render_own_concept": "broadway",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 871,
+   "render_own_concept_rank_kphi": 1013,
+   "render_own_concept_cos_tower": -0.12046340319572546,
+   "render_sbert_top4": [
+    {
+     "concept": "broadway",
+     "sbert_cos": 0.622761607170105
+    },
+    {
+     "concept": "musical",
+     "sbert_cos": 0.6187342405319214
+    },
+    {
+     "concept": "dramatic",
+     "sbert_cos": 0.5998645424842834
+    },
+    {
+     "concept": "courtroom drama",
+     "sbert_cos": 0.5865730047225952
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.6363753597327708
+    },
+    {
+     "rank": 2,
+     "concept": "exciting",
+     "cos_to_R": 0.621954938422214
+    },
+    {
+     "rank": 3,
+     "concept": "awesome",
+     "cos_to_R": 0.5663682330967355
+    },
+    {
+     "rank": 4,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.5532853357532622
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.5399095855636317
+    },
+    {
+     "rank": 6,
+     "concept": "original plot",
+     "cos_to_R": 0.5095722721062744
+    },
+    {
+     "rank": 7,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.4731352974864554
+    },
+    {
+     "rank": 8,
+     "concept": "trilogy",
+     "cos_to_R": 0.47311717106412077
+    },
+    {
+     "rank": 9,
+     "concept": "spielberg",
+     "cos_to_R": 0.4688981758065437
+    },
+    {
+     "rank": 10,
+     "concept": "cool",
+     "cos_to_R": 0.46722794992124883
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "mob",
+     "cos_meanremoved": 0.6590525601761236
+    },
+    {
+     "rank": 2,
+     "concept": "brothers",
+     "cos_meanremoved": 0.6587860142087353
+    },
+    {
+     "rank": 3,
+     "concept": "mafia",
+     "cos_meanremoved": 0.6445201942765615
+    },
+    {
+     "rank": 4,
+     "concept": "prison escape",
+     "cos_meanremoved": 0.630045684731205
+    },
+    {
+     "rank": 5,
+     "concept": "bank robbery",
+     "cos_meanremoved": 0.6236411029685522
+    },
+    {
+     "rank": 6,
+     "concept": "police",
+     "cos_meanremoved": 0.6160547772931475
+    },
+    {
+     "rank": 7,
+     "concept": "prison",
+     "cos_meanremoved": 0.5995666189191996
+    },
+    {
+     "rank": 8,
+     "concept": "los angeles",
+     "cos_meanremoved": 0.5927174502359722
+    },
+    {
+     "rank": 9,
+     "concept": "gangster",
+     "cos_meanremoved": 0.5909614244704624
+    },
+    {
+     "rank": 10,
+     "concept": "oscar (best sound)",
+     "cos_meanremoved": 0.5896411382957155
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 7,
+     "channel": "item",
+     "name": "Clear and Present Danger (1994)",
+     "weight": 0.28389108474373487
+    },
+    {
+     "bank_idx": 8,
+     "channel": "item",
+     "name": "Forrest Gump (1994)",
+     "weight": 0.20650254234829596
+    },
+    {
+     "bank_idx": 29,
+     "channel": "item",
+     "name": "Indiana Jones and the Last Crusade (1989)",
+     "weight": 0.18178348764892924
+    },
+    {
+     "bank_idx": 251,
+     "channel": "item",
+     "name": "Sin City (2005)",
+     "weight": 0.16425455151799032
+    },
+    {
+     "bank_idx": 220,
+     "channel": "item",
+     "name": "Matrix Revolutions, The (2003)",
+     "weight": 0.16356833374104965
+    }
+   ],
+   "random_floor_tag": "alien invasion",
+   "random_floor_rank_tower": 297,
+   "random_floor_rank_kphi": 479
+  },
+  {
+   "i": 10,
+   "sid": "root.dislike.dislike.dislike.noanswer.like.noanswer@6",
+   "group": "deep_sweep",
+   "depth": 6,
+   "n_users": 9,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 5,
+     "question": "Do you like explosions films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 6,
+     "question": "Do you like heartwarming films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "indictment",
+   "render_cos_to_R_banked": 0.007035070553432648,
+   "render_own_concept": "court",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 5,
+   "render_own_concept_rank_kphi": 52,
+   "render_own_concept_cos_tower": 0.31771676992315145,
+   "render_sbert_top4": [
+    {
+     "concept": "court",
+     "sbert_cos": 0.5294933319091797
+    },
+    {
+     "concept": "investigation",
+     "sbert_cos": 0.5067022442817688
+    },
+    {
+     "concept": "gangster",
+     "sbert_cos": 0.49658989906311035
+    },
+    {
+     "concept": "murder",
+     "sbert_cos": 0.4964231252670288
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "courtroom drama",
+     "cos_to_R": 0.4554032683081071
+    },
+    {
+     "rank": 2,
+     "concept": "courtroom",
+     "cos_to_R": 0.3861743979661495
+    },
+    {
+     "rank": 3,
+     "concept": "lawyers",
+     "cos_to_R": 0.36827647873352964
+    },
+    {
+     "rank": 4,
+     "concept": "lawyer",
+     "cos_to_R": 0.35457811389999166
+    },
+    {
+     "rank": 5,
+     "concept": "court",
+     "cos_to_R": 0.31771676992315145
+    },
+    {
+     "rank": 6,
+     "concept": "death penalty",
+     "cos_to_R": 0.3025207742342312
+    },
+    {
+     "rank": 7,
+     "concept": "hostage",
+     "cos_to_R": 0.285172778999154
+    },
+    {
+     "rank": 8,
+     "concept": "good",
+     "cos_to_R": 0.24906440479377764
+    },
+    {
+     "rank": 9,
+     "concept": "good story",
+     "cos_to_R": 0.24833865598855515
+    },
+    {
+     "rank": 10,
+     "concept": "surprise ending",
+     "cos_to_R": 0.2464313817793617
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "courtroom drama",
+     "cos_meanremoved": 0.565222983916945
+    },
+    {
+     "rank": 2,
+     "concept": "irish accent",
+     "cos_meanremoved": 0.5499454539769786
+    },
+    {
+     "rank": 3,
+     "concept": "brothers",
+     "cos_meanremoved": 0.536070405784457
+    },
+    {
+     "rank": 4,
+     "concept": "detective",
+     "cos_meanremoved": 0.5187029060224654
+    },
+    {
+     "rank": 5,
+     "concept": "mafia",
+     "cos_meanremoved": 0.5120329374242728
+    },
+    {
+     "rank": 6,
+     "concept": "police",
+     "cos_meanremoved": 0.5047835317528117
+    },
+    {
+     "rank": 7,
+     "concept": "new orleans",
+     "cos_meanremoved": 0.5047248598727261
+    },
+    {
+     "rank": 8,
+     "concept": "psychiatrist",
+     "cos_meanremoved": 0.5044155439030745
+    },
+    {
+     "rank": 9,
+     "concept": "lawyers",
+     "cos_meanremoved": 0.4933247707283187
+    },
+    {
+     "rank": 10,
+     "concept": "radio",
+     "cos_meanremoved": 0.4905934627807093
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 461,
+     "channel": "item",
+     "name": "Primal Fear (1996)",
+     "weight": 0.272997348775871
+    },
+    {
+     "bank_idx": 442,
+     "channel": "item",
+     "name": "Birdcage, The (1996)",
+     "weight": 0.22371716468136313
+    },
+    {
+     "bank_idx": 589,
+     "channel": "item",
+     "name": "Time to Kill, A (1996)",
+     "weight": 0.2032196577014965
+    },
+    {
+     "bank_idx": 15,
+     "channel": "item",
+     "name": "Rock, The (1996)",
+     "weight": 0.15743309094884125
+    },
+    {
+     "bank_idx": 975,
+     "channel": "item",
+     "name": "Truth About Cats & Dogs, The (1996)",
+     "weight": 0.142632737892428
+    }
+   ],
+   "random_floor_tag": "ghosts/afterlife",
+   "random_floor_rank_tower": 95,
+   "random_floor_rank_kphi": 270
+  },
+  {
+   "i": 11,
+   "sid": "root.dislike.dislike.like.dislike@4",
+   "group": "deep_sweep",
+   "depth": 4,
+   "n_users": 118,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Total Recall (1990), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "religion",
+   "render_cos_to_R_banked": 0.063219970921395,
+   "render_own_concept": "religion",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 620,
+   "render_own_concept_rank_kphi": 456,
+   "render_own_concept_cos_tower": 0.0055701293879290206,
+   "render_sbert_top4": [
+    {
+     "concept": "religion",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "christianity",
+     "sbert_cos": 0.8201256990432739
+    },
+    {
+     "concept": "islam",
+     "sbert_cos": 0.7191898822784424
+    },
+    {
+     "concept": "catholicism",
+     "sbert_cos": 0.7100471258163452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "awesome",
+     "cos_to_R": 0.6084094739276116
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.6026826590384022
+    },
+    {
+     "rank": 3,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.5701190369678704
+    },
+    {
+     "rank": 4,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.5476272743289347
+    },
+    {
+     "rank": 5,
+     "concept": "original plot",
+     "cos_to_R": 0.5192848943704026
+    },
+    {
+     "rank": 6,
+     "concept": "spielberg",
+     "cos_to_R": 0.4625884952666208
+    },
+    {
+     "rank": 7,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.4459564233987754
+    },
+    {
+     "rank": 8,
+     "concept": "exciting",
+     "cos_to_R": 0.43413486176025967
+    },
+    {
+     "rank": 9,
+     "concept": "trilogy",
+     "cos_to_R": 0.42412676150739503
+    },
+    {
+     "rank": 10,
+     "concept": "genius",
+     "cos_to_R": 0.42187489413941803
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "original plot",
+     "cos_meanremoved": 0.7066606175835053
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best sound)",
+     "cos_meanremoved": 0.6934204316128533
+    },
+    {
+     "rank": 3,
+     "concept": "excellent",
+     "cos_meanremoved": 0.6894981126825104
+    },
+    {
+     "rank": 4,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_meanremoved": 0.6678403940709173
+    },
+    {
+     "rank": 5,
+     "concept": "spielberg",
+     "cos_meanremoved": 0.6624967508738909
+    },
+    {
+     "rank": 6,
+     "concept": "fascism",
+     "cos_meanremoved": 0.6600829668170533
+    },
+    {
+     "rank": 7,
+     "concept": "great",
+     "cos_meanremoved": 0.6530565506056139
+    },
+    {
+     "rank": 8,
+     "concept": "masterpiece",
+     "cos_meanremoved": 0.651072898141229
+    },
+    {
+     "rank": 9,
+     "concept": "amazing photography",
+     "cos_meanremoved": 0.6501612147293689
+    },
+    {
+     "rank": 10,
+     "concept": "imdb top 250",
+     "cos_meanremoved": 0.6490812958706729
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19,
+     "channel": "item",
+     "name": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+     "weight": 0.22048137219945438
+    },
+    {
+     "bank_idx": 145,
+     "channel": "item",
+     "name": "Fifth Element, The (1997)",
+     "weight": 0.20377039189833457
+    },
+    {
+     "bank_idx": 36,
+     "channel": "item",
+     "name": "Men in Black (a.k.a. MIB) (1997)",
+     "weight": 0.20193388663395218
+    },
+    {
+     "bank_idx": 18813,
+     "channel": "concept",
+     "name": "heartbreaking",
+     "weight": 0.19055359357897783
+    },
+    {
+     "bank_idx": 25,
+     "channel": "item",
+     "name": "Back to the Future (1985)",
+     "weight": 0.18326075568928102
+    }
+   ],
+   "random_floor_tag": "biblical",
+   "random_floor_rank_tower": 503,
+   "random_floor_rank_kphi": 221
+  },
+  {
+   "i": 12,
+   "sid": "root.dislike.dislike.like.like@4",
+   "group": "deep_sweep",
+   "depth": 4,
+   "n_users": 169,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Total Recall (1990), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "movies",
+   "render_cos_to_R_banked": -0.1966031059466805,
+   "render_own_concept": "movie business",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 519,
+   "render_own_concept_rank_kphi": 424,
+   "render_own_concept_cos_tower": 0.04968938223840455,
+   "render_sbert_top4": [
+    {
+     "concept": "movie business",
+     "sbert_cos": 0.694468080997467
+    },
+    {
+     "concept": "fun movie",
+     "sbert_cos": 0.677984356880188
+    },
+    {
+     "concept": "hollywood",
+     "sbert_cos": 0.6416468620300293
+    },
+    {
+     "concept": "funniest movies",
+     "sbert_cos": 0.6390642523765564
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "weapons",
+     "cos_to_R": 0.7361977745597373
+    },
+    {
+     "rank": 2,
+     "concept": "pulp",
+     "cos_to_R": 0.72645448795402
+    },
+    {
+     "rank": 3,
+     "concept": "lone hero",
+     "cos_to_R": 0.7219070015286291
+    },
+    {
+     "rank": 4,
+     "concept": "cool",
+     "cos_to_R": 0.7103540702990916
+    },
+    {
+     "rank": 5,
+     "concept": "motorcycle",
+     "cos_to_R": 0.7082033509816451
+    },
+    {
+     "rank": 6,
+     "concept": "violence",
+     "cos_to_R": 0.6879715056972269
+    },
+    {
+     "rank": 7,
+     "concept": "revenge",
+     "cos_to_R": 0.6817338799167603
+    },
+    {
+     "rank": 8,
+     "concept": "vengeance",
+     "cos_to_R": 0.6719597836869458
+    },
+    {
+     "rank": 9,
+     "concept": "action packed",
+     "cos_to_R": 0.6627249434654922
+    },
+    {
+     "rank": 10,
+     "concept": "vigilante",
+     "cos_to_R": 0.658187847014319
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "classic",
+     "cos_meanremoved": 0.7917853699264765
+    },
+    {
+     "rank": 2,
+     "concept": "gunfight",
+     "cos_meanremoved": 0.7802937190045143
+    },
+    {
+     "rank": 3,
+     "concept": "desert",
+     "cos_meanremoved": 0.7802584135803913
+    },
+    {
+     "rank": 4,
+     "concept": "80s",
+     "cos_meanremoved": 0.7743525854599181
+    },
+    {
+     "rank": 5,
+     "concept": "samurai",
+     "cos_meanremoved": 0.750834395219445
+    },
+    {
+     "rank": 6,
+     "concept": "spaghetti western",
+     "cos_meanremoved": 0.7468027296101025
+    },
+    {
+     "rank": 7,
+     "concept": "quotable",
+     "cos_meanremoved": 0.746180126654054
+    },
+    {
+     "rank": 8,
+     "concept": "highly quotable",
+     "cos_meanremoved": 0.7392717601870041
+    },
+    {
+     "rank": 9,
+     "concept": "snakes",
+     "cos_meanremoved": 0.735151781074054
+    },
+    {
+     "rank": 10,
+     "concept": "70mm",
+     "cos_meanremoved": 0.7304364996092038
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 547,
+     "channel": "item",
+     "name": "Face/Off (1997)",
+     "weight": 0.21938810976260137
+    },
+    {
+     "bank_idx": 18607,
+     "channel": "concept",
+     "name": "cult classic",
+     "weight": 0.21394923989643563
+    },
+    {
+     "bank_idx": 18917,
+     "channel": "concept",
+     "name": "lone hero",
+     "weight": 0.1898336112236415
+    },
+    {
+     "bank_idx": 18608,
+     "channel": "concept",
+     "name": "cult film",
+     "weight": 0.18895684960798415
+    },
+    {
+     "bank_idx": 18375,
+     "channel": "concept",
+     "name": "action packed",
+     "weight": 0.18787218950933737
+    }
+   ],
+   "random_floor_tag": "girlie movie",
+   "random_floor_rank_tower": 950,
+   "random_floor_rank_kphi": 921
+  },
+  {
+   "i": 13,
+   "sid": "root.dislike.dislike.like.noanswer@4",
+   "group": "deep_sweep",
+   "depth": 4,
+   "n_users": 373,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Total Recall (1990), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "franchise",
+   "render_cos_to_R_banked": 0.19520591465732484,
+   "render_own_concept": "franchise",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 37,
+   "render_own_concept_rank_kphi": 69,
+   "render_own_concept_cos_tower": 0.43898089829663695,
+   "render_sbert_top4": [
+    {
+     "concept": "franchise",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "business",
+     "sbert_cos": 0.4665610194206238
+    },
+    {
+     "concept": "mafia",
+     "sbert_cos": 0.4535525441169739
+    },
+    {
+     "concept": "pirates",
+     "sbert_cos": 0.4529993534088135
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.6487525811310073
+    },
+    {
+     "rank": 2,
+     "concept": "fun movie",
+     "cos_to_R": 0.6176759176964408
+    },
+    {
+     "rank": 3,
+     "concept": "70mm",
+     "cos_to_R": 0.6044387505795292
+    },
+    {
+     "rank": 4,
+     "concept": "cheesy",
+     "cos_to_R": 0.5728849191904448
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.5673581048047999
+    },
+    {
+     "rank": 6,
+     "concept": "80s",
+     "cos_to_R": 0.5560497844764638
+    },
+    {
+     "rank": 7,
+     "concept": "snakes",
+     "cos_to_R": 0.5514953712991074
+    },
+    {
+     "rank": 8,
+     "concept": "1980s",
+     "cos_to_R": 0.5443039430840106
+    },
+    {
+     "rank": 9,
+     "concept": "chase",
+     "cos_to_R": 0.5412203878971522
+    },
+    {
+     "rank": 10,
+     "concept": "adventure",
+     "cos_to_R": 0.5409635233831875
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "70mm",
+     "cos_meanremoved": 0.9056069183678347
+    },
+    {
+     "rank": 2,
+     "concept": "80s",
+     "cos_meanremoved": 0.8460267082654892
+    },
+    {
+     "rank": 3,
+     "concept": "quotable",
+     "cos_meanremoved": 0.8355889934134773
+    },
+    {
+     "rank": 4,
+     "concept": "submarine",
+     "cos_meanremoved": 0.8216989757805354
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best sound)",
+     "cos_meanremoved": 0.8182812326439942
+    },
+    {
+     "rank": 6,
+     "concept": "classic",
+     "cos_meanremoved": 0.81212554437901
+    },
+    {
+     "rank": 7,
+     "concept": "desert",
+     "cos_meanremoved": 0.806925742531407
+    },
+    {
+     "rank": 8,
+     "concept": "saturn award (best special effects)",
+     "cos_meanremoved": 0.8058232348714401
+    },
+    {
+     "rank": 9,
+     "concept": "nostalgic",
+     "cos_meanremoved": 0.8049085111444727
+    },
+    {
+     "rank": 10,
+     "concept": "spielberg",
+     "cos_meanremoved": 0.7935817091014891
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19011,
+     "channel": "concept",
+     "name": "nostalgic",
+     "weight": 0.22804535818620042
+    },
+    {
+     "bank_idx": 501,
+     "channel": "item",
+     "name": "Broken Arrow (1996)",
+     "weight": 0.22431886682860588
+    },
+    {
+     "bank_idx": 18371,
+     "channel": "concept",
+     "name": "80s",
+     "weight": 0.1977622089707613
+    },
+    {
+     "bank_idx": 18370,
+     "channel": "concept",
+     "name": "70mm",
+     "weight": 0.1777280194542503
+    },
+    {
+     "bank_idx": 19160,
+     "channel": "concept",
+     "name": "saturn award (best special effects)",
+     "weight": 0.1721455465601821
+    }
+   ],
+   "random_floor_tag": "san francisco",
+   "random_floor_rank_tower": 123,
+   "random_floor_rank_kphi": 902
+  },
+  {
+   "i": 14,
+   "sid": "root.dislike.dislike.noanswer.dislike@4",
+   "group": "deep_sweep",
+   "depth": 4,
+   "n_users": 25,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Mr. Holland's Opus (1995), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "religion",
+   "render_cos_to_R_banked": -0.14737943045306667,
+   "render_own_concept": "religion",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 479,
+   "render_own_concept_rank_kphi": 455,
+   "render_own_concept_cos_tower": 0.025627532184745994,
+   "render_sbert_top4": [
+    {
+     "concept": "religion",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "christianity",
+     "sbert_cos": 0.8201256990432739
+    },
+    {
+     "concept": "islam",
+     "sbert_cos": 0.7191898822784424
+    },
+    {
+     "concept": "catholicism",
+     "sbert_cos": 0.7100471258163452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.3826642623832227
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.3787007016365338
+    },
+    {
+     "rank": 3,
+     "concept": "exciting",
+     "cos_to_R": 0.36690062197750073
+    },
+    {
+     "rank": 4,
+     "concept": "awesome",
+     "cos_to_R": 0.35242466742088824
+    },
+    {
+     "rank": 5,
+     "concept": "original plot",
+     "cos_to_R": 0.3524073211399103
+    },
+    {
+     "rank": 6,
+     "concept": "genius",
+     "cos_to_R": 0.34938789739055853
+    },
+    {
+     "rank": 7,
+     "concept": "excellent",
+     "cos_to_R": 0.34535539735430215
+    },
+    {
+     "rank": 8,
+     "concept": "good story",
+     "cos_to_R": 0.33868753861085266
+    },
+    {
+     "rank": 9,
+     "concept": "toys",
+     "cos_to_R": 0.3320549497663642
+    },
+    {
+     "rank": 10,
+     "concept": "good",
+     "cos_to_R": 0.3229506156213293
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "highly quotable",
+     "cos_meanremoved": 0.6764497985204504
+    },
+    {
+     "rank": 2,
+     "concept": "good",
+     "cos_meanremoved": 0.6760675146667459
+    },
+    {
+     "rank": 3,
+     "concept": "excellent",
+     "cos_meanremoved": 0.6685424476369426
+    },
+    {
+     "rank": 4,
+     "concept": "suspenseful",
+     "cos_meanremoved": 0.6667107041636862
+    },
+    {
+     "rank": 5,
+     "concept": "based on book",
+     "cos_meanremoved": 0.6548185295512184
+    },
+    {
+     "rank": 6,
+     "concept": "mental hospital",
+     "cos_meanremoved": 0.6514512121664991
+    },
+    {
+     "rank": 7,
+     "concept": "classic",
+     "cos_meanremoved": 0.646590010731029
+    },
+    {
+     "rank": 8,
+     "concept": "masterpiece",
+     "cos_meanremoved": 0.6426015106776671
+    },
+    {
+     "rank": 9,
+     "concept": "quotable",
+     "cos_meanremoved": 0.6396062387009473
+    },
+    {
+     "rank": 10,
+     "concept": "great",
+     "cos_meanremoved": 0.6379974783556994
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 523,
+     "channel": "item",
+     "name": "Mission: Impossible (1996)",
+     "weight": 0.22499764351168278
+    },
+    {
+     "bank_idx": 18460,
+     "channel": "concept",
+     "name": "based on book",
+     "weight": 0.20430192741333567
+    },
+    {
+     "bank_idx": 610,
+     "channel": "item",
+     "name": "Willy Wonka & the Chocolate Factory (1971)",
+     "weight": 0.1927939642015978
+    },
+    {
+     "bank_idx": 113,
+     "channel": "item",
+     "name": "Toy Story (1995)",
+     "weight": 0.1917817918624938
+    },
+    {
+     "bank_idx": 461,
+     "channel": "item",
+     "name": "Primal Fear (1996)",
+     "weight": 0.18612467301088992
+    }
+   ],
+   "random_floor_tag": "road trip",
+   "random_floor_rank_tower": 1004,
+   "random_floor_rank_kphi": 760
+  },
+  {
+   "i": 15,
+   "sid": "root.dislike.dislike.noanswer.like@4",
+   "group": "deep_sweep",
+   "depth": 4,
+   "n_users": 29,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Mr. Holland's Opus (1995), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.11567653392386919,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 535,
+   "render_own_concept_rank_kphi": 398,
+   "render_own_concept_cos_tower": 0.06038757118143441,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0000001192092896
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463914752006531
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.5951149534593861
+    },
+    {
+     "rank": 2,
+     "concept": "awesome",
+     "cos_to_R": 0.5488745644410672
+    },
+    {
+     "rank": 3,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.5344555559474592
+    },
+    {
+     "rank": 4,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.5102908087949961
+    },
+    {
+     "rank": 5,
+     "concept": "amazing cinematography",
+     "cos_to_R": 0.4810455644490538
+    },
+    {
+     "rank": 6,
+     "concept": "original plot",
+     "cos_to_R": 0.4548805206104626
+    },
+    {
+     "rank": 7,
+     "concept": "masterpiece",
+     "cos_to_R": 0.44649579755712154
+    },
+    {
+     "rank": 8,
+     "concept": "visual",
+     "cos_to_R": 0.42768410615930913
+    },
+    {
+     "rank": 9,
+     "concept": "breathtaking",
+     "cos_to_R": 0.4190681834921032
+    },
+    {
+     "rank": 10,
+     "concept": "great cinematography",
+     "cos_to_R": 0.4140198937547568
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "gangster",
+     "cos_meanremoved": 0.8144584955591597
+    },
+    {
+     "rank": 2,
+     "concept": "gangsters",
+     "cos_meanremoved": 0.8089675731127044
+    },
+    {
+     "rank": 3,
+     "concept": "crime",
+     "cos_meanremoved": 0.8064451863994064
+    },
+    {
+     "rank": 4,
+     "concept": "mob",
+     "cos_meanremoved": 0.8014149834974101
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best writing - screenplay written directly for the screen)",
+     "cos_meanremoved": 0.7945517249253179
+    },
+    {
+     "rank": 6,
+     "concept": "crime gone awry",
+     "cos_meanremoved": 0.7906873347785461
+    },
+    {
+     "rank": 7,
+     "concept": "masterpiece",
+     "cos_meanremoved": 0.7832430472162072
+    },
+    {
+     "rank": 8,
+     "concept": "great dialogue",
+     "cos_meanremoved": 0.7831331859415283
+    },
+    {
+     "rank": 9,
+     "concept": "suprisingly clever",
+     "cos_meanremoved": 0.7778347599398922
+    },
+    {
+     "rank": 10,
+     "concept": "moral ambiguity",
+     "cos_meanremoved": 0.777647522411703
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 513,
+     "channel": "item",
+     "name": "Speed (1994)",
+     "weight": 0.23828287703693377
+    },
+    {
+     "bank_idx": 0,
+     "channel": "item",
+     "name": "Braveheart (1995)",
+     "weight": 0.19496160393771944
+    },
+    {
+     "bank_idx": 22,
+     "channel": "item",
+     "name": "Star Wars: Episode VI - Return of the Jedi (1983)",
+     "weight": 0.1941185404654042
+    },
+    {
+     "bank_idx": 19262,
+     "channel": "concept",
+     "name": "surreal",
+     "weight": 0.18913190136772448
+    },
+    {
+     "bank_idx": 18948,
+     "channel": "concept",
+     "name": "melancholy",
+     "weight": 0.1835050771922181
+    }
+   ],
+   "random_floor_tag": "too short",
+   "random_floor_rank_tower": 440,
+   "random_floor_rank_kphi": 667
+  },
+  {
+   "i": 16,
+   "sid": "root.dislike.dislike.noanswer.noanswer@4",
+   "group": "deep_sweep",
+   "depth": 4,
+   "n_users": 502,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Mr. Holland's Opus (1995), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.10619954953559642,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 389,
+   "render_own_concept_rank_kphi": 751,
+   "render_own_concept_cos_tower": 0.2012527287519003,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0000001192092896
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463914752006531
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "survival",
+     "cos_to_R": 0.6457772055739877
+    },
+    {
+     "rank": 2,
+     "concept": "weapons",
+     "cos_to_R": 0.6233334167305202
+    },
+    {
+     "rank": 3,
+     "concept": "exciting",
+     "cos_to_R": 0.6149520813382598
+    },
+    {
+     "rank": 4,
+     "concept": "fast paced",
+     "cos_to_R": 0.6044282258460643
+    },
+    {
+     "rank": 5,
+     "concept": "plot",
+     "cos_to_R": 0.5971596559920808
+    },
+    {
+     "rank": 6,
+     "concept": "vengeance",
+     "cos_to_R": 0.5942648746839669
+    },
+    {
+     "rank": 7,
+     "concept": "sacrifice",
+     "cos_to_R": 0.5838448372866087
+    },
+    {
+     "rank": 8,
+     "concept": "revenge",
+     "cos_to_R": 0.5775423098842678
+    },
+    {
+     "rank": 9,
+     "concept": "action packed",
+     "cos_to_R": 0.5761357061523925
+    },
+    {
+     "rank": 10,
+     "concept": "action",
+     "cos_to_R": 0.5749311472083001
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "thriller",
+     "cos_meanremoved": 0.7983394342348786
+    },
+    {
+     "rank": 2,
+     "concept": "sacrifice",
+     "cos_meanremoved": 0.7463147432607456
+    },
+    {
+     "rank": 3,
+     "concept": "survival",
+     "cos_meanremoved": 0.7282938195608942
+    },
+    {
+     "rank": 4,
+     "concept": "intense",
+     "cos_meanremoved": 0.7054398792532591
+    },
+    {
+     "rank": 5,
+     "concept": "dark hero",
+     "cos_meanremoved": 0.7025972114834991
+    },
+    {
+     "rank": 6,
+     "concept": "car chase",
+     "cos_meanremoved": 0.6974583536334672
+    },
+    {
+     "rank": 7,
+     "concept": "dynamic cgi action",
+     "cos_meanremoved": 0.6961191949789325
+    },
+    {
+     "rank": 8,
+     "concept": "vengeance",
+     "cos_meanremoved": 0.690935291243489
+    },
+    {
+     "rank": 9,
+     "concept": "based on a comic",
+     "cos_meanremoved": 0.6849541671916923
+    },
+    {
+     "rank": 10,
+     "concept": "action packed",
+     "cos_meanremoved": 0.6828474830832575
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 15,
+     "channel": "item",
+     "name": "Rock, The (1996)",
+     "weight": 0.2184325274842605
+    },
+    {
+     "bank_idx": 18917,
+     "channel": "concept",
+     "name": "lone hero",
+     "weight": 0.2039043452758412
+    },
+    {
+     "bank_idx": 19265,
+     "channel": "concept",
+     "name": "survival",
+     "weight": 0.19663836715110217
+    },
+    {
+     "bank_idx": 18376,
+     "channel": "concept",
+     "name": "adaptation",
+     "weight": 0.19402121949236728
+    },
+    {
+     "bank_idx": 19335,
+     "channel": "concept",
+     "name": "very interesting",
+     "weight": 0.18700354059642885
+    }
+   ],
+   "random_floor_tag": "world war i",
+   "random_floor_rank_tower": 274,
+   "random_floor_rank_kphi": 771
+  },
+  {
+   "i": 17,
+   "sid": "root.dislike.like.dislike@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 519,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like effects films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "good",
+   "render_cos_to_R_banked": 0.49223037011630083,
+   "render_own_concept": "good",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 145,
+   "render_own_concept_rank_kphi": 157,
+   "render_own_concept_cos_tower": 0.4164161299930683,
+   "render_sbert_top4": [
+    {
+     "concept": "good",
+     "sbert_cos": 1.0000001192092896
+    },
+    {
+     "concept": "excellent",
+     "sbert_cos": 0.7517585754394531
+    },
+    {
+     "concept": "great",
+     "sbert_cos": 0.7270901203155518
+    },
+    {
+     "concept": "very good",
+     "sbert_cos": 0.7070590257644653
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "earnest",
+     "cos_to_R": 0.8510231133068528
+    },
+    {
+     "rank": 2,
+     "concept": "oscar winner",
+     "cos_to_R": 0.8295094664779765
+    },
+    {
+     "rank": 3,
+     "concept": "oscar (best actor)",
+     "cos_to_R": 0.8263571045225819
+    },
+    {
+     "rank": 4,
+     "concept": "oscar (best picture)",
+     "cos_to_R": 0.804435267759117
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best supporting actor)",
+     "cos_to_R": 0.7961956335082099
+    },
+    {
+     "rank": 6,
+     "concept": "dramatic",
+     "cos_to_R": 0.7912425956415579
+    },
+    {
+     "rank": 7,
+     "concept": "oscar (best directing)",
+     "cos_to_R": 0.7856945609998354
+    },
+    {
+     "rank": 8,
+     "concept": "exceptional acting",
+     "cos_to_R": 0.7604358954818052
+    },
+    {
+     "rank": 9,
+     "concept": "oscar",
+     "cos_to_R": 0.7584772616382391
+    },
+    {
+     "rank": 10,
+     "concept": "idealism",
+     "cos_to_R": 0.7388606557956336
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "oscar (best actor)",
+     "cos_meanremoved": 0.876930966290697
+    },
+    {
+     "rank": 2,
+     "concept": "courage",
+     "cos_meanremoved": 0.872036645793673
+    },
+    {
+     "rank": 3,
+     "concept": "earnest",
+     "cos_meanremoved": 0.8339300056467825
+    },
+    {
+     "rank": 4,
+     "concept": "oscar (best cinematography)",
+     "cos_meanremoved": 0.8262055092280288
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best picture)",
+     "cos_meanremoved": 0.8007974621930973
+    },
+    {
+     "rank": 6,
+     "concept": "oscar (best supporting actor)",
+     "cos_meanremoved": 0.7996616255282268
+    },
+    {
+     "rank": 7,
+     "concept": "morality",
+     "cos_meanremoved": 0.7981359894206708
+    },
+    {
+     "rank": 8,
+     "concept": "oscar (best directing)",
+     "cos_meanremoved": 0.7936614001386982
+    },
+    {
+     "rank": 9,
+     "concept": "war",
+     "cos_meanremoved": 0.7870077287124418
+    },
+    {
+     "rank": 10,
+     "concept": "forceful",
+     "cos_meanremoved": 0.7841423590577025
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18861,
+     "channel": "concept",
+     "name": "inspirational",
+     "weight": 0.21699595834515414
+    },
+    {
+     "bank_idx": 19048,
+     "channel": "concept",
+     "name": "oscar (best supporting actress)",
+     "weight": 0.19766414121199352
+    },
+    {
+     "bank_idx": 18592,
+     "channel": "concept",
+     "name": "courage",
+     "weight": 0.19696510609811435
+    },
+    {
+     "bank_idx": 792,
+     "channel": "item",
+     "name": "Donnie Darko (2001)",
+     "weight": 0.19482026401614913
+    },
+    {
+     "bank_idx": 18388,
+     "channel": "concept",
+     "name": "afi 100 (movie quotes)",
+     "weight": 0.19355453032858885
+    }
+   ],
+   "random_floor_tag": "tear jerker",
+   "random_floor_rank_tower": 219,
+   "random_floor_rank_kphi": 707
+  },
+  {
+   "i": 18,
+   "sid": "root.dislike.like.like@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 151,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like effects films?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "good",
+   "render_cos_to_R_banked": 0.6326057526793915,
+   "render_own_concept": "good",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 36,
+   "render_own_concept_rank_kphi": 134,
+   "render_own_concept_cos_tower": 0.5944856642276495,
+   "render_sbert_top4": [
+    {
+     "concept": "good",
+     "sbert_cos": 1.0000001192092896
+    },
+    {
+     "concept": "excellent",
+     "sbert_cos": 0.7517585754394531
+    },
+    {
+     "concept": "great",
+     "sbert_cos": 0.7270901203155518
+    },
+    {
+     "concept": "very good",
+     "sbert_cos": 0.7070590257644653
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "great movie",
+     "cos_to_R": 0.8747653686798657
+    },
+    {
+     "rank": 2,
+     "concept": "very good",
+     "cos_to_R": 0.8569559437770286
+    },
+    {
+     "rank": 3,
+     "concept": "great",
+     "cos_to_R": 0.8443450854456306
+    },
+    {
+     "rank": 4,
+     "concept": "original plot",
+     "cos_to_R": 0.8379637501782897
+    },
+    {
+     "rank": 5,
+     "concept": "story",
+     "cos_to_R": 0.8210279141379018
+    },
+    {
+     "rank": 6,
+     "concept": "oscar winner",
+     "cos_to_R": 0.7665989338560439
+    },
+    {
+     "rank": 7,
+     "concept": "excellent",
+     "cos_to_R": 0.7599572244082257
+    },
+    {
+     "rank": 8,
+     "concept": "excellent script",
+     "cos_to_R": 0.7486131529754478
+    },
+    {
+     "rank": 9,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.7291322172014388
+    },
+    {
+     "rank": 10,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.7092708963825524
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "very good",
+     "cos_meanremoved": 0.8912594680861948
+    },
+    {
+     "rank": 2,
+     "concept": "story",
+     "cos_meanremoved": 0.8302463842717334
+    },
+    {
+     "rank": 3,
+     "concept": "great movie",
+     "cos_meanremoved": 0.8301877208867788
+    },
+    {
+     "rank": 4,
+     "concept": "scenic",
+     "cos_meanremoved": 0.8289193880580127
+    },
+    {
+     "rank": 5,
+     "concept": "excellent script",
+     "cos_meanremoved": 0.8132411648248109
+    },
+    {
+     "rank": 6,
+     "concept": "redemption",
+     "cos_meanremoved": 0.8074567537415139
+    },
+    {
+     "rank": 7,
+     "concept": "awesome soundtrack",
+     "cos_meanremoved": 0.8049246615907364
+    },
+    {
+     "rank": 8,
+     "concept": "great soundtrack",
+     "cos_meanremoved": 0.8046771619894625
+    },
+    {
+     "rank": 9,
+     "concept": "original plot",
+     "cos_meanremoved": 0.8022847915207337
+    },
+    {
+     "rank": 10,
+     "concept": "entertaining",
+     "cos_meanremoved": 0.8003726425217874
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19334,
+     "channel": "concept",
+     "name": "very good",
+     "weight": 0.22296738139534014
+    },
+    {
+     "bank_idx": 18862,
+     "channel": "concept",
+     "name": "inspiring",
+     "weight": 0.20853249244029554
+    },
+    {
+     "bank_idx": 18633,
+     "channel": "concept",
+     "name": "dialogue",
+     "weight": 0.1933881493846993
+    },
+    {
+     "bank_idx": 18789,
+     "channel": "concept",
+     "name": "great movie",
+     "weight": 0.19083572782114197
+    },
+    {
+     "bank_idx": 18774,
+     "channel": "concept",
+     "name": "good versus evil",
+     "weight": 0.18427624895852301
+    }
+   ],
+   "random_floor_tag": "philosophy",
+   "random_floor_rank_tower": 193,
+   "random_floor_rank_kphi": 34
+  },
+  {
+   "i": 19,
+   "sid": "root.dislike.like.noanswer@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 53,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like effects films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.12518095972167104,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 383,
+   "render_own_concept_rank_kphi": 495,
+   "render_own_concept_cos_tower": 0.2138171166757203,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463911771774292
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "great ending",
+     "cos_to_R": 0.8670977218281495
+    },
+    {
+     "rank": 2,
+     "concept": "intense",
+     "cos_to_R": 0.8651063891211526
+    },
+    {
+     "rank": 3,
+     "concept": "good acting",
+     "cos_to_R": 0.8460696500611251
+    },
+    {
+     "rank": 4,
+     "concept": "original plot",
+     "cos_to_R": 0.7825989180062042
+    },
+    {
+     "rank": 5,
+     "concept": "survival",
+     "cos_to_R": 0.768205813627268
+    },
+    {
+     "rank": 6,
+     "concept": "excellent script",
+     "cos_to_R": 0.7341663469267008
+    },
+    {
+     "rank": 7,
+     "concept": "interesting",
+     "cos_to_R": 0.7284357349962608
+    },
+    {
+     "rank": 8,
+     "concept": "justice",
+     "cos_to_R": 0.7150969321698504
+    },
+    {
+     "rank": 9,
+     "concept": "powerful ending",
+     "cos_to_R": 0.711910283590762
+    },
+    {
+     "rank": 10,
+     "concept": "plot twist",
+     "cos_to_R": 0.6962508441434618
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "intense",
+     "cos_meanremoved": 0.8737565697763919
+    },
+    {
+     "rank": 2,
+     "concept": "justice",
+     "cos_meanremoved": 0.8710563109116372
+    },
+    {
+     "rank": 3,
+     "concept": "violence",
+     "cos_meanremoved": 0.838568444236804
+    },
+    {
+     "rank": 4,
+     "concept": "good acting",
+     "cos_meanremoved": 0.8365523096872276
+    },
+    {
+     "rank": 5,
+     "concept": "suspense",
+     "cos_meanremoved": 0.8106063846020202
+    },
+    {
+     "rank": 6,
+     "concept": "vengeance",
+     "cos_meanremoved": 0.8037256733686869
+    },
+    {
+     "rank": 7,
+     "concept": "visceral",
+     "cos_meanremoved": 0.8029466948117845
+    },
+    {
+     "rank": 8,
+     "concept": "tense",
+     "cos_meanremoved": 0.7939469816591764
+    },
+    {
+     "rank": 9,
+     "concept": "thriller",
+     "cos_meanremoved": 0.7873854644430267
+    },
+    {
+     "rank": 10,
+     "concept": "realistic",
+     "cos_meanremoved": 0.7864193203702248
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19265,
+     "channel": "concept",
+     "name": "survival",
+     "weight": 0.24668295898951317
+    },
+    {
+     "bank_idx": 19266,
+     "channel": "concept",
+     "name": "suspense",
+     "weight": 0.19594844251685622
+    },
+    {
+     "bank_idx": 19035,
+     "channel": "concept",
+     "name": "oscar",
+     "weight": 0.1904367481113758
+    },
+    {
+     "bank_idx": 18791,
+     "channel": "concept",
+     "name": "great soundtrack",
+     "weight": 0.1841622835599343
+    },
+    {
+     "bank_idx": 18726,
+     "channel": "concept",
+     "name": "foul language",
+     "weight": 0.18276956682232048
+    }
+   ],
+   "random_floor_tag": "cartoon",
+   "random_floor_rank_tower": 829,
+   "random_floor_rank_kphi": 588
+  },
+  {
+   "i": 20,
+   "sid": "root.dislike.noanswer.dislike@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 45,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Rock, The (1996), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "religion",
+   "render_cos_to_R_banked": -0.13849674687136296,
+   "render_own_concept": "religion",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 342,
+   "render_own_concept_rank_kphi": 429,
+   "render_own_concept_cos_tower": 0.05913743217305949,
+   "render_sbert_top4": [
+    {
+     "concept": "religion",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "christianity",
+     "sbert_cos": 0.8201256990432739
+    },
+    {
+     "concept": "islam",
+     "sbert_cos": 0.7191898822784424
+    },
+    {
+     "concept": "catholicism",
+     "sbert_cos": 0.7100471258163452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.46922258711118103
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.4657723774993682
+    },
+    {
+     "rank": 3,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.46114988687604586
+    },
+    {
+     "rank": 4,
+     "concept": "awesome",
+     "cos_to_R": 0.4219432433287664
+    },
+    {
+     "rank": 5,
+     "concept": "genius",
+     "cos_to_R": 0.37899047234875133
+    },
+    {
+     "rank": 6,
+     "concept": "exciting",
+     "cos_to_R": 0.3633886672855121
+    },
+    {
+     "rank": 7,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.3606219190724399
+    },
+    {
+     "rank": 8,
+     "concept": "scifi cult",
+     "cos_to_R": 0.35694585594667605
+    },
+    {
+     "rank": 9,
+     "concept": "spielberg",
+     "cos_to_R": 0.3563830143528097
+    },
+    {
+     "rank": 10,
+     "concept": "script",
+     "cos_to_R": 0.3542704293741089
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "prison escape",
+     "cos_meanremoved": 0.6876650828385624
+    },
+    {
+     "rank": 2,
+     "concept": "excellent",
+     "cos_meanremoved": 0.6530169698196823
+    },
+    {
+     "rank": 3,
+     "concept": "los angeles",
+     "cos_meanremoved": 0.6480775748675606
+    },
+    {
+     "rank": 4,
+     "concept": "prison",
+     "cos_meanremoved": 0.6459758193449043
+    },
+    {
+     "rank": 5,
+     "concept": "afi 100 (movie quotes)",
+     "cos_meanremoved": 0.6354700332107678
+    },
+    {
+     "rank": 6,
+     "concept": "oscar (best sound)",
+     "cos_meanremoved": 0.6332174872703148
+    },
+    {
+     "rank": 7,
+     "concept": "quotable",
+     "cos_meanremoved": 0.6280509402420159
+    },
+    {
+     "rank": 8,
+     "concept": "mob",
+     "cos_meanremoved": 0.6169280339495982
+    },
+    {
+     "rank": 9,
+     "concept": "highly quotable",
+     "cos_meanremoved": 0.6151354686691578
+    },
+    {
+     "rank": 10,
+     "concept": "police",
+     "cos_meanremoved": 0.6114074927939267
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 4,
+     "channel": "item",
+     "name": "Star Wars: Episode IV - A New Hope (1977)",
+     "weight": 0.22892776230580095
+    },
+    {
+     "bank_idx": 113,
+     "channel": "item",
+     "name": "Toy Story (1995)",
+     "weight": 0.20482214072057794
+    },
+    {
+     "bank_idx": 31,
+     "channel": "item",
+     "name": "Star Trek: First Contact (1996)",
+     "weight": 0.20161440216327003
+    },
+    {
+     "bank_idx": 438,
+     "channel": "item",
+     "name": "Dead Man Walking (1995)",
+     "weight": 0.1946856798981703
+    },
+    {
+     "bank_idx": 464,
+     "channel": "item",
+     "name": "Phenomenon (1996)",
+     "weight": 0.16995001491218084
+    }
+   ],
+   "random_floor_tag": "heroin",
+   "random_floor_rank_tower": 941,
+   "random_floor_rank_kphi": 206
+  },
+  {
+   "i": 21,
+   "sid": "root.dislike.noanswer.like@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 90,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Rock, The (1996), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "scandal",
+   "render_cos_to_R_banked": -0.1483736437599247,
+   "render_own_concept": "corruption",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 459,
+   "render_own_concept_rank_kphi": 547,
+   "render_own_concept_cos_tower": 0.07771390315820331,
+   "render_sbert_top4": [
+    {
+     "concept": "corruption",
+     "sbert_cos": 0.6405847072601318
+    },
+    {
+     "concept": "political corruption",
+     "sbert_cos": 0.6080158948898315
+    },
+    {
+     "concept": "police corruption",
+     "sbert_cos": 0.5178678035736084
+    },
+    {
+     "concept": "politics",
+     "sbert_cos": 0.48943305015563965
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "ridiculous",
+     "cos_to_R": 0.7518203986470886
+    },
+    {
+     "rank": 2,
+     "concept": "silly",
+     "cos_to_R": 0.7375372090995196
+    },
+    {
+     "rank": 3,
+     "concept": "dumb",
+     "cos_to_R": 0.720102338439307
+    },
+    {
+     "rank": 4,
+     "concept": "buddy movie",
+     "cos_to_R": 0.7152736812528622
+    },
+    {
+     "rank": 5,
+     "concept": "silly fun",
+     "cos_to_R": 0.7109660206276818
+    },
+    {
+     "rank": 6,
+     "concept": "franchise",
+     "cos_to_R": 0.6989891866868283
+    },
+    {
+     "rank": 7,
+     "concept": "good action",
+     "cos_to_R": 0.6810500312647049
+    },
+    {
+     "rank": 8,
+     "concept": "action packed",
+     "cos_to_R": 0.678910301971026
+    },
+    {
+     "rank": 9,
+     "concept": "product placement",
+     "cos_to_R": 0.6766045752534431
+    },
+    {
+     "rank": 10,
+     "concept": "action",
+     "cos_to_R": 0.6760815404933027
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "silly fun",
+     "cos_meanremoved": 0.8357994420176449
+    },
+    {
+     "rank": 2,
+     "concept": "disaster",
+     "cos_meanremoved": 0.7887356796771694
+    },
+    {
+     "rank": 3,
+     "concept": "car chase",
+     "cos_meanremoved": 0.7832334862107179
+    },
+    {
+     "rank": 4,
+     "concept": "lone hero",
+     "cos_meanremoved": 0.7763836245745133
+    },
+    {
+     "rank": 5,
+     "concept": "arnold",
+     "cos_meanremoved": 0.7739750103118603
+    },
+    {
+     "rank": 6,
+     "concept": "underwater",
+     "cos_meanremoved": 0.7520316637079949
+    },
+    {
+     "rank": 7,
+     "concept": "explosions",
+     "cos_meanremoved": 0.7297673001750155
+    },
+    {
+     "rank": 8,
+     "concept": "archaeology",
+     "cos_meanremoved": 0.7153077658503202
+    },
+    {
+     "rank": 9,
+     "concept": "sequel",
+     "cos_meanremoved": 0.7079833145620906
+    },
+    {
+     "rank": 10,
+     "concept": "chase",
+     "cos_meanremoved": 0.7064276138420051
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19198,
+     "channel": "concept",
+     "name": "silly fun",
+     "weight": 0.2419623156131557
+    },
+    {
+     "bank_idx": 19197,
+     "channel": "concept",
+     "name": "silly",
+     "weight": 0.215318968118709
+    },
+    {
+     "bank_idx": 18833,
+     "channel": "concept",
+     "name": "honest",
+     "weight": 0.18700468453521157
+    },
+    {
+     "bank_idx": 18693,
+     "channel": "concept",
+     "name": "explosions",
+     "weight": 0.17797781289469367
+    },
+    {
+     "bank_idx": 18572,
+     "channel": "concept",
+     "name": "complex",
+     "weight": 0.17773621883823007
+    }
+   ],
+   "random_floor_tag": "vigilantism",
+   "random_floor_rank_tower": 100,
+   "random_floor_rank_kphi": 400
+  },
+  {
+   "i": 22,
+   "sid": "root.dislike.noanswer.noanswer@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 394,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Rock, The (1996), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "civil rights",
+   "render_cos_to_R_banked": 0.12232731127757866,
+   "render_own_concept": "civil war",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 613,
+   "render_own_concept_rank_kphi": 729,
+   "render_own_concept_cos_tower": -0.0661930172541874,
+   "render_sbert_top4": [
+    {
+     "concept": "civil war",
+     "sbert_cos": 0.6906989216804504
+    },
+    {
+     "concept": "american civil war",
+     "sbert_cos": 0.6062581539154053
+    },
+    {
+     "concept": "racism",
+     "sbert_cos": 0.5514458417892456
+    },
+    {
+     "concept": "slavery",
+     "sbert_cos": 0.5339657068252563
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "sappy",
+     "cos_to_R": 0.39617870898336127
+    },
+    {
+     "rank": 2,
+     "concept": "natural disaster",
+     "cos_to_R": 0.3541423020891644
+    },
+    {
+     "rank": 3,
+     "concept": "tear jerker",
+     "cos_to_R": 0.3429251045658098
+    },
+    {
+     "rank": 4,
+     "concept": "disaster",
+     "cos_to_R": 0.32936681625865594
+    },
+    {
+     "rank": 5,
+     "concept": "dinosaurs",
+     "cos_to_R": 0.31250227547527537
+    },
+    {
+     "rank": 6,
+     "concept": "catastrophe",
+     "cos_to_R": 0.3121283632908607
+    },
+    {
+     "rank": 7,
+     "concept": "happy ending",
+     "cos_to_R": 0.3084579541858836
+    },
+    {
+     "rank": 8,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.30640130356722756
+    },
+    {
+     "rank": 9,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.28822345176106035
+    },
+    {
+     "rank": 10,
+     "concept": "good story",
+     "cos_to_R": 0.2827280734338258
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "courtroom drama",
+     "cos_meanremoved": 0.5149083889565577
+    },
+    {
+     "rank": 2,
+     "concept": "boxing",
+     "cos_meanremoved": 0.5054527385893093
+    },
+    {
+     "rank": 3,
+     "concept": "basketball",
+     "cos_meanremoved": 0.50387423385053
+    },
+    {
+     "rank": 4,
+     "concept": "animation",
+     "cos_meanremoved": 0.4996408560894442
+    },
+    {
+     "rank": 5,
+     "concept": "new orleans",
+     "cos_meanremoved": 0.492283424547268
+    },
+    {
+     "rank": 6,
+     "concept": "cuba",
+     "cos_meanremoved": 0.48723051570684484
+    },
+    {
+     "rank": 7,
+     "concept": "brothers",
+     "cos_meanremoved": 0.4749881495915146
+    },
+    {
+     "rank": 8,
+     "concept": "computer animation",
+     "cos_meanremoved": 0.4716907187931721
+    },
+    {
+     "rank": 9,
+     "concept": "radio",
+     "cos_meanremoved": 0.47055295173843664
+    },
+    {
+     "rank": 10,
+     "concept": "author:neil gaiman",
+     "cos_meanremoved": 0.468545337037764
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 463,
+     "channel": "item",
+     "name": "Independence Day (a.k.a. ID4) (1996)",
+     "weight": 0.2727669124075707
+    },
+    {
+     "bank_idx": 499,
+     "channel": "item",
+     "name": "Mr. Holland's Opus (1995)",
+     "weight": 0.20822295564352147
+    },
+    {
+     "bank_idx": 975,
+     "channel": "item",
+     "name": "Truth About Cats & Dogs, The (1996)",
+     "weight": 0.17727565920945015
+    },
+    {
+     "bank_idx": 464,
+     "channel": "item",
+     "name": "Phenomenon (1996)",
+     "weight": 0.17710444129410163
+    },
+    {
+     "bank_idx": 976,
+     "channel": "item",
+     "name": "Twister (1996)",
+     "weight": 0.16463003144535598
+    }
+   ],
+   "random_floor_tag": "broadway",
+   "random_floor_rank_tower": 423,
+   "random_floor_rank_kphi": 991
+  },
+  {
+   "i": 23,
+   "sid": "root.like.dislike.dislike@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 257,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like sweet films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "religion",
+   "render_cos_to_R_banked": 0.358440461248352,
+   "render_own_concept": "religion",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 231,
+   "render_own_concept_rank_kphi": 243,
+   "render_own_concept_cos_tower": 0.28627941843090443,
+   "render_sbert_top4": [
+    {
+     "concept": "religion",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "christianity",
+     "sbert_cos": 0.8201256990432739
+    },
+    {
+     "concept": "islam",
+     "sbert_cos": 0.7191898822784424
+    },
+    {
+     "concept": "catholicism",
+     "sbert_cos": 0.7100471258163452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.7216885720113794
+    },
+    {
+     "rank": 2,
+     "concept": "good acting",
+     "cos_to_R": 0.6941690624136406
+    },
+    {
+     "rank": 3,
+     "concept": "very good",
+     "cos_to_R": 0.6734869434665984
+    },
+    {
+     "rank": 4,
+     "concept": "excellent script",
+     "cos_to_R": 0.6717202086869556
+    },
+    {
+     "rank": 5,
+     "concept": "excellent",
+     "cos_to_R": 0.6593450631331921
+    },
+    {
+     "rank": 6,
+     "concept": "based on a true story",
+     "cos_to_R": 0.6592442592288755
+    },
+    {
+     "rank": 7,
+     "concept": "realistic",
+     "cos_to_R": 0.6572142625103724
+    },
+    {
+     "rank": 8,
+     "concept": "exceptional acting",
+     "cos_to_R": 0.6550856792189796
+    },
+    {
+     "rank": 9,
+     "concept": "powerful ending",
+     "cos_to_R": 0.6547313428272157
+    },
+    {
+     "rank": 10,
+     "concept": "justice",
+     "cos_to_R": 0.6542338887041977
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "oscar (best actor)",
+     "cos_meanremoved": 0.8884679595923549
+    },
+    {
+     "rank": 2,
+     "concept": "true story",
+     "cos_meanremoved": 0.8524669873897543
+    },
+    {
+     "rank": 3,
+     "concept": "biographical",
+     "cos_meanremoved": 0.8377213341429005
+    },
+    {
+     "rank": 4,
+     "concept": "compassionate",
+     "cos_meanremoved": 0.8278285823918154
+    },
+    {
+     "rank": 5,
+     "concept": "best war films",
+     "cos_meanremoved": 0.8077155392835319
+    },
+    {
+     "rank": 6,
+     "concept": "courage",
+     "cos_meanremoved": 0.8072272550041227
+    },
+    {
+     "rank": 7,
+     "concept": "based on true story",
+     "cos_meanremoved": 0.8015130866367084
+    },
+    {
+     "rank": 8,
+     "concept": "morality",
+     "cos_meanremoved": 0.7934564459732824
+    },
+    {
+     "rank": 9,
+     "concept": "complex characters",
+     "cos_meanremoved": 0.7881412316906309
+    },
+    {
+     "rank": 10,
+     "concept": "oscar (best writing - screenplay written directly for the screen)",
+     "cos_meanremoved": 0.7781698022603981
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18457,
+     "channel": "concept",
+     "name": "based on a true story",
+     "weight": 0.2269541334695093
+    },
+    {
+     "bank_idx": 4,
+     "channel": "item",
+     "name": "Star Wars: Episode IV - A New Hope (1977)",
+     "weight": 0.20773746296974757
+    },
+    {
+     "bank_idx": 18971,
+     "channel": "concept",
+     "name": "morality",
+     "weight": 0.19439346410919986
+    },
+    {
+     "bank_idx": 18462,
+     "channel": "concept",
+     "name": "based on true story",
+     "weight": 0.18809360391486402
+    },
+    {
+     "bank_idx": 228,
+     "channel": "item",
+     "name": "Kill Bill: Vol. 2 (2004)",
+     "weight": 0.18282133553667929
+    }
+   ],
+   "random_floor_tag": "british",
+   "random_floor_rank_tower": 307,
+   "random_floor_rank_kphi": 563
+  },
+  {
+   "i": 24,
+   "sid": "root.like.dislike.like@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 63,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like sweet films?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "religion",
+   "render_cos_to_R_banked": -0.004246957100167924,
+   "render_own_concept": "religion",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 479,
+   "render_own_concept_rank_kphi": 164,
+   "render_own_concept_cos_tower": 0.03791158149561755,
+   "render_sbert_top4": [
+    {
+     "concept": "religion",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "christianity",
+     "sbert_cos": 0.8201256990432739
+    },
+    {
+     "concept": "islam",
+     "sbert_cos": 0.7191898822784424
+    },
+    {
+     "concept": "catholicism",
+     "sbert_cos": 0.7100471258163452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "pg",
+     "cos_to_R": 0.5991859371894059
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best animated feature)",
+     "cos_to_R": 0.584645972583835
+    },
+    {
+     "rank": 3,
+     "concept": "pixar animation",
+     "cos_to_R": 0.5360301868129518
+    },
+    {
+     "rank": 4,
+     "concept": "toys",
+     "cos_to_R": 0.5206213706022299
+    },
+    {
+     "rank": 5,
+     "concept": "pixar",
+     "cos_to_R": 0.5091299610507112
+    },
+    {
+     "rank": 6,
+     "concept": "computer animation",
+     "cos_to_R": 0.4704682258923374
+    },
+    {
+     "rank": 7,
+     "concept": "good versus evil",
+     "cos_to_R": 0.42364779286119175
+    },
+    {
+     "rank": 8,
+     "concept": "talking animals",
+     "cos_to_R": 0.4102679695486906
+    },
+    {
+     "rank": 9,
+     "concept": "animated",
+     "cos_to_R": 0.4094131171928277
+    },
+    {
+     "rank": 10,
+     "concept": "cartoon",
+     "cos_to_R": 0.40923647586697354
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_meanremoved": 0.5827692163431721
+    },
+    {
+     "rank": 2,
+     "concept": "olympics",
+     "cos_meanremoved": 0.5660943281423754
+    },
+    {
+     "rank": 3,
+     "concept": "james bond",
+     "cos_meanremoved": 0.5381095245577284
+    },
+    {
+     "rank": 4,
+     "concept": "runaway",
+     "cos_meanremoved": 0.5286004168987054
+    },
+    {
+     "rank": 5,
+     "concept": "antarctica",
+     "cos_meanremoved": 0.5204596776169169
+    },
+    {
+     "rank": 6,
+     "concept": "classic",
+     "cos_meanremoved": 0.5201146097046961
+    },
+    {
+     "rank": 7,
+     "concept": "saturn award (best special effects)",
+     "cos_meanremoved": 0.5198888658660233
+    },
+    {
+     "rank": 8,
+     "concept": "hong kong",
+     "cos_meanremoved": 0.5122294074438649
+    },
+    {
+     "rank": 9,
+     "concept": "alaska",
+     "cos_meanremoved": 0.5114985007034853
+    },
+    {
+     "rank": 10,
+     "concept": "war",
+     "cos_meanremoved": 0.5099889829948019
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 212,
+     "channel": "item",
+     "name": "Finding Nemo (2003)",
+     "weight": 0.25506769290851544
+    },
+    {
+     "bank_idx": 81,
+     "channel": "item",
+     "name": "Harry Potter and the Sorcerer's Stone (a.k.a. Harry Potter and the Philosopher's Stone) (2001)",
+     "weight": 0.2146336120526524
+    },
+    {
+     "bank_idx": 80,
+     "channel": "item",
+     "name": "Monsters, Inc. (2001)",
+     "weight": 0.18344488380993357
+    },
+    {
+     "bank_idx": 283,
+     "channel": "item",
+     "name": "Ratatouille (2007)",
+     "weight": 0.17578882453392264
+    },
+    {
+     "bank_idx": 102,
+     "channel": "item",
+     "name": "Harry Potter and the Prisoner of Azkaban (2004)",
+     "weight": 0.17106498669497594
+    }
+   ],
+   "random_floor_tag": "japanese",
+   "random_floor_rank_tower": 256,
+   "random_floor_rank_kphi": 520
+  },
+  {
+   "i": 25,
+   "sid": "root.like.dislike.noanswer@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 20,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like sweet films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "unusual",
+   "render_cos_to_R_banked": 0.4109933415444041,
+   "render_own_concept": "bizarre",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 662,
+   "render_own_concept_rank_kphi": 638,
+   "render_own_concept_cos_tower": 0.011864227766215107,
+   "render_sbert_top4": [
+    {
+     "concept": "bizarre",
+     "sbert_cos": 0.6710851192474365
+    },
+    {
+     "concept": "special",
+     "sbert_cos": 0.6286525726318359
+    },
+    {
+     "concept": "mystery",
+     "sbert_cos": 0.6155486702919006
+    },
+    {
+     "concept": "strange",
+     "sbert_cos": 0.569307804107666
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "good acting",
+     "cos_to_R": 0.9059105595538912
+    },
+    {
+     "rank": 2,
+     "concept": "intense",
+     "cos_to_R": 0.9041540089323721
+    },
+    {
+     "rank": 3,
+     "concept": "great acting",
+     "cos_to_R": 0.8931521882319928
+    },
+    {
+     "rank": 4,
+     "concept": "powerful ending",
+     "cos_to_R": 0.8827751299312987
+    },
+    {
+     "rank": 5,
+     "concept": "excellent script",
+     "cos_to_R": 0.8783438836791512
+    },
+    {
+     "rank": 6,
+     "concept": "interesting",
+     "cos_to_R": 0.8737942111300285
+    },
+    {
+     "rank": 7,
+     "concept": "realistic",
+     "cos_to_R": 0.870067526163701
+    },
+    {
+     "rank": 8,
+     "concept": "justice",
+     "cos_to_R": 0.8567511791051451
+    },
+    {
+     "rank": 9,
+     "concept": "redemption",
+     "cos_to_R": 0.8447270988030346
+    },
+    {
+     "rank": 10,
+     "concept": "storytelling",
+     "cos_to_R": 0.8236766065578656
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "interesting",
+     "cos_meanremoved": 0.9213056729172009
+    },
+    {
+     "rank": 2,
+     "concept": "good acting",
+     "cos_meanremoved": 0.9097915176370843
+    },
+    {
+     "rank": 3,
+     "concept": "amazing cinematography",
+     "cos_meanremoved": 0.9094106891270742
+    },
+    {
+     "rank": 4,
+     "concept": "realistic",
+     "cos_meanremoved": 0.9060071161575988
+    },
+    {
+     "rank": 5,
+     "concept": "plot twist",
+     "cos_meanremoved": 0.8989307504774942
+    },
+    {
+     "rank": 6,
+     "concept": "justice",
+     "cos_meanremoved": 0.8950237230646447
+    },
+    {
+     "rank": 7,
+     "concept": "twists & turns",
+     "cos_meanremoved": 0.8911449995589622
+    },
+    {
+     "rank": 8,
+     "concept": "redemption",
+     "cos_meanremoved": 0.8901678043678797
+    },
+    {
+     "rank": 9,
+     "concept": "thought-provoking",
+     "cos_meanremoved": 0.8803505707364953
+    },
+    {
+     "rank": 10,
+     "concept": "movielens top pick",
+     "cos_meanremoved": 0.8771403575002646
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19073,
+     "channel": "concept",
+     "name": "plot twist",
+     "weight": 0.23199926373197893
+    },
+    {
+     "bank_idx": 18896,
+     "channel": "concept",
+     "name": "justice",
+     "weight": 0.21963874755055096
+    },
+    {
+     "bank_idx": 18772,
+     "channel": "concept",
+     "name": "good soundtrack",
+     "weight": 0.20016377838524854
+    },
+    {
+     "bank_idx": 19122,
+     "channel": "concept",
+     "name": "realistic",
+     "weight": 0.1808910019211436
+    },
+    {
+     "bank_idx": 18976,
+     "channel": "concept",
+     "name": "movielens top pick",
+     "weight": 0.16730720841107796
+    }
+   ],
+   "random_floor_tag": "indie",
+   "random_floor_rank_tower": 207,
+   "random_floor_rank_kphi": 321
+  },
+  {
+   "i": 26,
+   "sid": "root.like.like.dislike@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 109,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Harry Potter and the Goblet of Fire (2005), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.16946470075911482,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 607,
+   "render_own_concept_rank_kphi": 305,
+   "render_own_concept_cos_tower": 0.05623098944795325,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0000001192092896
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463914752006531
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "complicated",
+     "cos_to_R": 0.9491620946508905
+    },
+    {
+     "rank": 2,
+     "concept": "twists & turns",
+     "cos_to_R": 0.8931899245748532
+    },
+    {
+     "rank": 3,
+     "concept": "psychology",
+     "cos_to_R": 0.8877800436460792
+    },
+    {
+     "rank": 4,
+     "concept": "complex",
+     "cos_to_R": 0.8837728968033927
+    },
+    {
+     "rank": 5,
+     "concept": "complicated plot",
+     "cos_to_R": 0.8540829480264509
+    },
+    {
+     "rank": 6,
+     "concept": "psychological",
+     "cos_to_R": 0.8425821511740753
+    },
+    {
+     "rank": 7,
+     "concept": "identity",
+     "cos_to_R": 0.8311580977105151
+    },
+    {
+     "rank": 8,
+     "concept": "tense",
+     "cos_to_R": 0.8236733659113069
+    },
+    {
+     "rank": 9,
+     "concept": "interesting",
+     "cos_to_R": 0.8102556287686827
+    },
+    {
+     "rank": 10,
+     "concept": "intense",
+     "cos_to_R": 0.803342052595144
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "complicated",
+     "cos_meanremoved": 0.967298149505048
+    },
+    {
+     "rank": 2,
+     "concept": "psychology",
+     "cos_meanremoved": 0.9418720198010782
+    },
+    {
+     "rank": 3,
+     "concept": "twists & turns",
+     "cos_meanremoved": 0.9364363622918229
+    },
+    {
+     "rank": 4,
+     "concept": "psychological",
+     "cos_meanremoved": 0.9271686794018403
+    },
+    {
+     "rank": 5,
+     "concept": "cinematography",
+     "cos_meanremoved": 0.9106607947631356
+    },
+    {
+     "rank": 6,
+     "concept": "cerebral",
+     "cos_meanremoved": 0.9088917744497058
+    },
+    {
+     "rank": 7,
+     "concept": "stylish",
+     "cos_meanremoved": 0.9033314440123354
+    },
+    {
+     "rank": 8,
+     "concept": "greed",
+     "cos_meanremoved": 0.8913013470832851
+    },
+    {
+     "rank": 9,
+     "concept": "complex",
+     "cos_meanremoved": 0.8878002316705518
+    },
+    {
+     "rank": 10,
+     "concept": "gritty",
+     "cos_meanremoved": 0.8757758173613452
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19107,
+     "channel": "concept",
+     "name": "psychology",
+     "weight": 0.2304216721241918
+    },
+    {
+     "bank_idx": 19314,
+     "channel": "concept",
+     "name": "twists & turns",
+     "weight": 0.21094321687387058
+    },
+    {
+     "bank_idx": 18574,
+     "channel": "concept",
+     "name": "complicated",
+     "weight": 0.20889456662467115
+    },
+    {
+     "bank_idx": 18590,
+     "channel": "concept",
+     "name": "corruption",
+     "weight": 0.17535510172312935
+    },
+    {
+     "bank_idx": 18692,
+     "channel": "concept",
+     "name": "existentialism",
+     "weight": 0.1743854426541371
+    }
+   ],
+   "random_floor_tag": "motorcycle",
+   "random_floor_rank_tower": 860,
+   "random_floor_rank_kphi": 667
+  },
+  {
+   "i": 27,
+   "sid": "root.like.like.like@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 239,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Harry Potter and the Goblet of Fire (2005), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.2189207323945862,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 224,
+   "render_own_concept_rank_kphi": 279,
+   "render_own_concept_cos_tower": 0.17974215710972294,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463911771774292
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.7101342540585407
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.6860251320938922
+    },
+    {
+     "rank": 3,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.6307107511129575
+    },
+    {
+     "rank": 4,
+     "concept": "awesome",
+     "cos_to_R": 0.5826821819342998
+    },
+    {
+     "rank": 5,
+     "concept": "spielberg",
+     "cos_to_R": 0.5438017846282759
+    },
+    {
+     "rank": 6,
+     "concept": "quotable",
+     "cos_to_R": 0.49378908202646654
+    },
+    {
+     "rank": 7,
+     "concept": "original plot",
+     "cos_to_R": 0.4929369934603913
+    },
+    {
+     "rank": 8,
+     "concept": "series",
+     "cos_to_R": 0.47505948247451835
+    },
+    {
+     "rank": 9,
+     "concept": "scifi cult",
+     "cos_to_R": 0.46379991206957427
+    },
+    {
+     "rank": 10,
+     "concept": "trilogy",
+     "cos_to_R": 0.4418414268884064
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "oscar (best sound)",
+     "cos_meanremoved": 0.8274925896779931
+    },
+    {
+     "rank": 2,
+     "concept": "prison",
+     "cos_meanremoved": 0.7505125559478046
+    },
+    {
+     "rank": 3,
+     "concept": "spaghetti western",
+     "cos_meanremoved": 0.7199076370305232
+    },
+    {
+     "rank": 4,
+     "concept": "spielberg",
+     "cos_meanremoved": 0.7157459774098273
+    },
+    {
+     "rank": 5,
+     "concept": "cult",
+     "cos_meanremoved": 0.7150067997421377
+    },
+    {
+     "rank": 6,
+     "concept": "highly quotable",
+     "cos_meanremoved": 0.7089385173669359
+    },
+    {
+     "rank": 7,
+     "concept": "quotable",
+     "cos_meanremoved": 0.700158925435907
+    },
+    {
+     "rank": 8,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_meanremoved": 0.6989080408655243
+    },
+    {
+     "rank": 9,
+     "concept": "mob",
+     "cos_meanremoved": 0.6980662037338143
+    },
+    {
+     "rank": 10,
+     "concept": "oscar (best writing - screenplay written directly for the screen)",
+     "cos_meanremoved": 0.6951992391115663
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 22,
+     "channel": "item",
+     "name": "Star Wars: Episode VI - Return of the Jedi (1983)",
+     "weight": 0.26440751671998264
+    },
+    {
+     "bank_idx": 18607,
+     "channel": "concept",
+     "name": "cult classic",
+     "weight": 0.19497459411437068
+    },
+    {
+     "bank_idx": 19,
+     "channel": "item",
+     "name": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+     "weight": 0.18425930475365507
+    },
+    {
+     "bank_idx": 29,
+     "channel": "item",
+     "name": "Indiana Jones and the Last Crusade (1989)",
+     "weight": 0.18137876213140325
+    },
+    {
+     "bank_idx": 733,
+     "channel": "item",
+     "name": "Ghostbusters (a.k.a. Ghost Busters) (1984)",
+     "weight": 0.1749798222805884
+    }
+   ],
+   "random_floor_tag": "holiday",
+   "random_floor_rank_tower": 508,
+   "random_floor_rank_kphi": 887
+  },
+  {
+   "i": 28,
+   "sid": "root.like.like.noanswer@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 662,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "liked it"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Harry Potter and the Goblet of Fire (2005), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.29790656051650843,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 91,
+   "render_own_concept_rank_kphi": 310,
+   "render_own_concept_cos_tower": 0.4143936006401304,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463911771774292
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "violence",
+     "cos_to_R": 0.6552450255757553
+    },
+    {
+     "rank": 2,
+     "concept": "gratuitous violence",
+     "cos_to_R": 0.635514354126419
+    },
+    {
+     "rank": 3,
+     "concept": "cool",
+     "cos_to_R": 0.6352016665611501
+    },
+    {
+     "rank": 4,
+     "concept": "revenge",
+     "cos_to_R": 0.6242428012102881
+    },
+    {
+     "rank": 5,
+     "concept": "vengeance",
+     "cos_to_R": 0.622773152464994
+    },
+    {
+     "rank": 6,
+     "concept": "weapons",
+     "cos_to_R": 0.6120162151505386
+    },
+    {
+     "rank": 7,
+     "concept": "bloody",
+     "cos_to_R": 0.6082027745101646
+    },
+    {
+     "rank": 8,
+     "concept": "fast paced",
+     "cos_to_R": 0.6042159324731686
+    },
+    {
+     "rank": 9,
+     "concept": "vigilantism",
+     "cos_to_R": 0.6018116530414008
+    },
+    {
+     "rank": 10,
+     "concept": "graphic novel",
+     "cos_to_R": 0.6002077934613568
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "suspense",
+     "cos_meanremoved": 0.8870021602621111
+    },
+    {
+     "rank": 2,
+     "concept": "hunting",
+     "cos_meanremoved": 0.8670422940184613
+    },
+    {
+     "rank": 3,
+     "concept": "visceral",
+     "cos_meanremoved": 0.8526846316234838
+    },
+    {
+     "rank": 4,
+     "concept": "tense",
+     "cos_meanremoved": 0.8434454129351319
+    },
+    {
+     "rank": 5,
+     "concept": "intense",
+     "cos_meanremoved": 0.8396051015926238
+    },
+    {
+     "rank": 6,
+     "concept": "forceful",
+     "cos_meanremoved": 0.8256301624063074
+    },
+    {
+     "rank": 7,
+     "concept": "violence",
+     "cos_meanremoved": 0.8234772473778665
+    },
+    {
+     "rank": 8,
+     "concept": "moral ambiguity",
+     "cos_meanremoved": 0.8191600598729242
+    },
+    {
+     "rank": 9,
+     "concept": "suspenseful",
+     "cos_meanremoved": 0.8173308679659311
+    },
+    {
+     "rank": 10,
+     "concept": "gangs",
+     "cos_meanremoved": 0.8060904882191716
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18671,
+     "channel": "concept",
+     "name": "effects",
+     "weight": 0.20496572446990557
+    },
+    {
+     "bank_idx": 19346,
+     "channel": "concept",
+     "name": "violence",
+     "weight": 0.20432031636418005
+    },
+    {
+     "bank_idx": 212,
+     "channel": "item",
+     "name": "Finding Nemo (2003)",
+     "weight": 0.1975941055927143
+    },
+    {
+     "bank_idx": 18783,
+     "channel": "concept",
+     "name": "gratuitous violence",
+     "weight": 0.19674413725984655
+    },
+    {
+     "bank_idx": 87,
+     "channel": "item",
+     "name": "Bourne Identity, The (2002)",
+     "weight": 0.19637571631335354
+    }
+   ],
+   "random_floor_tag": "very interesting",
+   "random_floor_rank_tower": 674,
+   "random_floor_rank_kphi": 565
+  },
+  {
+   "i": 29,
+   "sid": "root.like.noanswer.dislike@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 567,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Do you like fun films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.39581807068129077,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 224,
+   "render_own_concept_rank_kphi": 274,
+   "render_own_concept_cos_tower": 0.3865329558545807,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463911771774292
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "brutal",
+     "cos_to_R": 0.8921432925565445
+    },
+    {
+     "rank": 2,
+     "concept": "violent",
+     "cos_to_R": 0.8706387825937709
+    },
+    {
+     "rank": 3,
+     "concept": "intense",
+     "cos_to_R": 0.8563399282764543
+    },
+    {
+     "rank": 4,
+     "concept": "great ending",
+     "cos_to_R": 0.8476867325586132
+    },
+    {
+     "rank": 5,
+     "concept": "brutality",
+     "cos_to_R": 0.8469917319616438
+    },
+    {
+     "rank": 6,
+     "concept": "twists & turns",
+     "cos_to_R": 0.8404352196466713
+    },
+    {
+     "rank": 7,
+     "concept": "psychological",
+     "cos_to_R": 0.8396000768134961
+    },
+    {
+     "rank": 8,
+     "concept": "psychology",
+     "cos_to_R": 0.8387502995231104
+    },
+    {
+     "rank": 9,
+     "concept": "gratuitous violence",
+     "cos_to_R": 0.8297765177042342
+    },
+    {
+     "rank": 10,
+     "concept": "visceral",
+     "cos_to_R": 0.8293480699318435
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "gratuitous violence",
+     "cos_meanremoved": 0.9146295175280643
+    },
+    {
+     "rank": 2,
+     "concept": "psychology",
+     "cos_meanremoved": 0.9134171209103783
+    },
+    {
+     "rank": 3,
+     "concept": "visceral",
+     "cos_meanremoved": 0.9095165574385028
+    },
+    {
+     "rank": 4,
+     "concept": "gritty",
+     "cos_meanremoved": 0.9041875594204759
+    },
+    {
+     "rank": 5,
+     "concept": "dark",
+     "cos_meanremoved": 0.9031830387987219
+    },
+    {
+     "rank": 6,
+     "concept": "brutality",
+     "cos_meanremoved": 0.9031695757754441
+    },
+    {
+     "rank": 7,
+     "concept": "violent",
+     "cos_meanremoved": 0.9000746078280257
+    },
+    {
+     "rank": 8,
+     "concept": "harsh",
+     "cos_meanremoved": 0.8895586277114742
+    },
+    {
+     "rank": 9,
+     "concept": "stylish",
+     "cos_meanremoved": 0.8882945172340124
+    },
+    {
+     "rank": 10,
+     "concept": "intelligent",
+     "cos_meanremoved": 0.8849544716222748
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19314,
+     "channel": "concept",
+     "name": "twists & turns",
+     "weight": 0.21166016394599968
+    },
+    {
+     "bank_idx": 18509,
+     "channel": "concept",
+     "name": "brutality",
+     "weight": 0.2109868526173958
+    },
+    {
+     "bank_idx": 18448,
+     "channel": "concept",
+     "name": "bad ending",
+     "weight": 0.1936974456444545
+    },
+    {
+     "bank_idx": 19326,
+     "channel": "concept",
+     "name": "unusual plot structure",
+     "weight": 0.19201098568463912
+    },
+    {
+     "bank_idx": 18508,
+     "channel": "concept",
+     "name": "brutal",
+     "weight": 0.19164455210751088
+    }
+   ],
+   "random_floor_tag": "noir",
+   "random_floor_rank_tower": 190,
+   "random_floor_rank_kphi": 388
+  },
+  {
+   "i": 30,
+   "sid": "root.like.noanswer.like@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 652,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Do you like fun films?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "adventure",
+   "render_cos_to_R_banked": 0.27903514566622756,
+   "render_own_concept": "adventure",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 28,
+   "render_own_concept_rank_kphi": 405,
+   "render_own_concept_cos_tower": 0.2930614125963655,
+   "render_sbert_top4": [
+    {
+     "concept": "adventure",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "wilderness",
+     "sbert_cos": 0.615721583366394
+    },
+    {
+     "concept": "thriller",
+     "sbert_cos": 0.5326707363128662
+    },
+    {
+     "concept": "storytelling",
+     "sbert_cos": 0.5124027729034424
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "boarding school",
+     "cos_to_R": 0.5198218998911801
+    },
+    {
+     "rank": 2,
+     "concept": "wizards",
+     "cos_to_R": 0.5030863596900675
+    },
+    {
+     "rank": 3,
+     "concept": "trilogy",
+     "cos_to_R": 0.4669489165215204
+    },
+    {
+     "rank": 4,
+     "concept": "witches",
+     "cos_to_R": 0.45839752064163936
+    },
+    {
+     "rank": 5,
+     "concept": "good versus evil",
+     "cos_to_R": 0.40876282492830174
+    },
+    {
+     "rank": 6,
+     "concept": "high fantasy",
+     "cos_to_R": 0.4073850987742418
+    },
+    {
+     "rank": 7,
+     "concept": "witch",
+     "cos_to_R": 0.3988070011477316
+    },
+    {
+     "rank": 8,
+     "concept": "magic",
+     "cos_to_R": 0.3953970936833914
+    },
+    {
+     "rank": 9,
+     "concept": "ghosts/afterlife",
+     "cos_to_R": 0.38981987516495475
+    },
+    {
+     "rank": 10,
+     "concept": "maze",
+     "cos_to_R": 0.38665605839157335
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "boarding school",
+     "cos_meanremoved": 0.633061165453999
+    },
+    {
+     "rank": 2,
+     "concept": "teenagers",
+     "cos_meanremoved": 0.5376284128282219
+    },
+    {
+     "rank": 3,
+     "concept": "halloween",
+     "cos_meanremoved": 0.5133018331634654
+    },
+    {
+     "rank": 4,
+     "concept": "antarctica",
+     "cos_meanremoved": 0.49840007170011646
+    },
+    {
+     "rank": 5,
+     "concept": "lame",
+     "cos_meanremoved": 0.46783047704035785
+    },
+    {
+     "rank": 6,
+     "concept": "slasher",
+     "cos_meanremoved": 0.46003074988618764
+    },
+    {
+     "rank": 7,
+     "concept": "trilogy",
+     "cos_meanremoved": 0.4516747738571974
+    },
+    {
+     "rank": 8,
+     "concept": "crappy sequel",
+     "cos_meanremoved": 0.44607774817434614
+    },
+    {
+     "rank": 9,
+     "concept": "fun",
+     "cos_meanremoved": 0.445213244362767
+    },
+    {
+     "rank": 10,
+     "concept": "teen",
+     "cos_meanremoved": 0.44241242484135923
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 112,
+     "channel": "item",
+     "name": "Harry Potter and the Goblet of Fire (2005)",
+     "weight": 0.2519049461667818
+    },
+    {
+     "bank_idx": 293,
+     "channel": "item",
+     "name": "Harry Potter and the Order of the Phoenix (2007)",
+     "weight": 0.23102769830347794
+    },
+    {
+     "bank_idx": 102,
+     "channel": "item",
+     "name": "Harry Potter and the Prisoner of Azkaban (2004)",
+     "weight": 0.19391196170395072
+    },
+    {
+     "bank_idx": 1118,
+     "channel": "item",
+     "name": "Harry Potter and the Deathly Hallows: Part 1 (2010)",
+     "weight": 0.17232467631443488
+    },
+    {
+     "bank_idx": 2195,
+     "channel": "item",
+     "name": "Harry Potter and the Half-Blood Prince (2009)",
+     "weight": 0.15083071751135468
+    }
+   ],
+   "random_floor_tag": "sequels",
+   "random_floor_rank_tower": 160,
+   "random_floor_rank_kphi": 52
+  },
+  {
+   "i": 31,
+   "sid": "root.like.noanswer.noanswer@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 37,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen Lord of the Rings: The Fellowship of the Ring, The (2001), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Do you like fun films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.0026856460232017616,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 590,
+   "render_own_concept_rank_kphi": 329,
+   "render_own_concept_cos_tower": 0.043033687535436266,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0000001192092896
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463914752006531
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "good dialogue",
+     "cos_to_R": 0.6217485703233446
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.5388354963557367
+    },
+    {
+     "rank": 3,
+     "concept": "gratuitous violence",
+     "cos_to_R": 0.5357369583320515
+    },
+    {
+     "rank": 4,
+     "concept": "intelligent",
+     "cos_to_R": 0.5247857465596745
+    },
+    {
+     "rank": 5,
+     "concept": "original plot",
+     "cos_to_R": 0.5231182819334621
+    },
+    {
+     "rank": 6,
+     "concept": "complicated",
+     "cos_to_R": 0.5068606817908474
+    },
+    {
+     "rank": 7,
+     "concept": "complicated plot",
+     "cos_to_R": 0.49661746542161084
+    },
+    {
+     "rank": 8,
+     "concept": "nonlinear",
+     "cos_to_R": 0.4838267210692902
+    },
+    {
+     "rank": 9,
+     "concept": "intense",
+     "cos_to_R": 0.4810479427423502
+    },
+    {
+     "rank": 10,
+     "concept": "awesome",
+     "cos_to_R": 0.4768488015936348
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "gratuitous violence",
+     "cos_meanremoved": 0.8061278878473732
+    },
+    {
+     "rank": 2,
+     "concept": "guns",
+     "cos_meanremoved": 0.7528655509484489
+    },
+    {
+     "rank": 3,
+     "concept": "good dialogue",
+     "cos_meanremoved": 0.7420841439906041
+    },
+    {
+     "rank": 4,
+     "concept": "blood",
+     "cos_meanremoved": 0.7375649471565593
+    },
+    {
+     "rank": 5,
+     "concept": "bloody",
+     "cos_meanremoved": 0.7256929349054699
+    },
+    {
+     "rank": 6,
+     "concept": "awesome",
+     "cos_meanremoved": 0.7254379861270844
+    },
+    {
+     "rank": 7,
+     "concept": "brutal",
+     "cos_meanremoved": 0.7240430866847978
+    },
+    {
+     "rank": 8,
+     "concept": "violent",
+     "cos_meanremoved": 0.7238182548026512
+    },
+    {
+     "rank": 9,
+     "concept": "great dialogue",
+     "cos_meanremoved": 0.7234530452551664
+    },
+    {
+     "rank": 10,
+     "concept": "torture",
+     "cos_meanremoved": 0.7175900183257116
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 275,
+     "channel": "item",
+     "name": "Departed, The (2006)",
+     "weight": 0.22860512513014838
+    },
+    {
+     "bank_idx": 18979,
+     "channel": "concept",
+     "name": "multiple storylines",
+     "weight": 0.22069960812772824
+    },
+    {
+     "bank_idx": 87,
+     "channel": "item",
+     "name": "Bourne Identity, The (2002)",
+     "weight": 0.20766516731514517
+    },
+    {
+     "bank_idx": 18663,
+     "channel": "concept",
+     "name": "dystopia",
+     "weight": 0.17764803626355877
+    },
+    {
+     "bank_idx": 497,
+     "channel": "item",
+     "name": "Casino (1995)",
+     "weight": 0.16538206316341947
+    }
+   ],
+   "random_floor_tag": "dark comedy",
+   "random_floor_rank_tower": 146,
+   "random_floor_rank_kphi": 353
+  },
+  {
+   "i": 32,
+   "sid": "root.noanswer.noanswer.dislike@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 124,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen True Lies (1994), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Apollo 13 (1995), and did you like it?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "action",
+   "render_cos_to_R_banked": 0.6481610461223252,
+   "render_own_concept": "action",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 1,
+   "render_own_concept_rank_kphi": 2,
+   "render_own_concept_cos_tower": 0.9131425467747575,
+   "render_sbert_top4": [
+    {
+     "concept": "action",
+     "sbert_cos": 1.0000001192092896
+    },
+    {
+     "concept": "realistic action",
+     "sbert_cos": 0.7358430027961731
+    },
+    {
+     "concept": "good action",
+     "sbert_cos": 0.7245033979415894
+    },
+    {
+     "concept": "action packed",
+     "sbert_cos": 0.6855679750442505
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "action",
+     "cos_to_R": 0.9131425467747575
+    },
+    {
+     "rank": 2,
+     "concept": "good action",
+     "cos_to_R": 0.912153413178213
+    },
+    {
+     "rank": 3,
+     "concept": "action packed",
+     "cos_to_R": 0.8760006013473081
+    },
+    {
+     "rank": 4,
+     "concept": "big budget",
+     "cos_to_R": 0.8433393741638633
+    },
+    {
+     "rank": 5,
+     "concept": "explosions",
+     "cos_to_R": 0.8369582348062259
+    },
+    {
+     "rank": 6,
+     "concept": "fight scenes",
+     "cos_to_R": 0.8208222714289004
+    },
+    {
+     "rank": 7,
+     "concept": "entertaining",
+     "cos_to_R": 0.8149604831719157
+    },
+    {
+     "rank": 8,
+     "concept": "chase",
+     "cos_to_R": 0.8083689864456927
+    },
+    {
+     "rank": 9,
+     "concept": "car chase",
+     "cos_to_R": 0.8017999469018721
+    },
+    {
+     "rank": 10,
+     "concept": "lone hero",
+     "cos_to_R": 0.7957743641936077
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "good action",
+     "cos_meanremoved": 0.9719969069258249
+    },
+    {
+     "rank": 2,
+     "concept": "action",
+     "cos_meanremoved": 0.9587549274110693
+    },
+    {
+     "rank": 3,
+     "concept": "special effects",
+     "cos_meanremoved": 0.9306277662816564
+    },
+    {
+     "rank": 4,
+     "concept": "catastrophe",
+     "cos_meanremoved": 0.9259598627227243
+    },
+    {
+     "rank": 5,
+     "concept": "action packed",
+     "cos_meanremoved": 0.9207488214900844
+    },
+    {
+     "rank": 6,
+     "concept": "adventure",
+     "cos_meanremoved": 0.9127627142552709
+    },
+    {
+     "rank": 7,
+     "concept": "dynamic cgi action",
+     "cos_meanremoved": 0.9117241404768783
+    },
+    {
+     "rank": 8,
+     "concept": "big budget",
+     "cos_meanremoved": 0.9101129649562297
+    },
+    {
+     "rank": 9,
+     "concept": "chase",
+     "cos_meanremoved": 0.8991918254892582
+    },
+    {
+     "rank": 10,
+     "concept": "exciting",
+     "cos_meanremoved": 0.880891294123107
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18532,
+     "channel": "concept",
+     "name": "chase",
+     "weight": 0.23100162170246086
+    },
+    {
+     "bank_idx": 18767,
+     "channel": "concept",
+     "name": "good action",
+     "weight": 0.22065064540405435
+    },
+    {
+     "bank_idx": 18374,
+     "channel": "concept",
+     "name": "action",
+     "weight": 0.2008870049693379
+    },
+    {
+     "bank_idx": 18630,
+     "channel": "concept",
+     "name": "destiny",
+     "weight": 0.18059346466961826
+    },
+    {
+     "bank_idx": 18525,
+     "channel": "concept",
+     "name": "catastrophe",
+     "weight": 0.1668672632545287
+    }
+   ],
+   "random_floor_tag": "adapted from:comic",
+   "random_floor_rank_tower": 52,
+   "random_floor_rank_kphi": 366
+  },
+  {
+   "i": 33,
+   "sid": "root.noanswer.noanswer.like@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 223,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen True Lies (1994), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Apollo 13 (1995), and did you like it?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "mystery",
+   "render_cos_to_R_banked": -0.4341289025072638,
+   "render_own_concept": "mystery",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 639,
+   "render_own_concept_rank_kphi": 423,
+   "render_own_concept_cos_tower": -0.09637113922916643,
+   "render_sbert_top4": [
+    {
+     "concept": "mystery",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "murder mystery",
+     "sbert_cos": 0.6152410507202148
+    },
+    {
+     "concept": "detective",
+     "sbert_cos": 0.5725272297859192
+    },
+    {
+     "concept": "bizarre",
+     "sbert_cos": 0.5680053234100342
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "romance",
+     "cos_to_R": 0.7931741050622281
+    },
+    {
+     "rank": 2,
+     "concept": "romantic",
+     "cos_to_R": 0.7642056009319668
+    },
+    {
+     "rank": 3,
+     "concept": "romantic comedy",
+     "cos_to_R": 0.7439361039961363
+    },
+    {
+     "rank": 4,
+     "concept": "love story",
+     "cos_to_R": 0.7365238883714573
+    },
+    {
+     "rank": 5,
+     "concept": "happy ending",
+     "cos_to_R": 0.7071206292881542
+    },
+    {
+     "rank": 6,
+     "concept": "good romantic comedies",
+     "cos_to_R": 0.7068365058515439
+    },
+    {
+     "rank": 7,
+     "concept": "sweet",
+     "cos_to_R": 0.6847009954372888
+    },
+    {
+     "rank": 8,
+     "concept": "chick flick",
+     "cos_to_R": 0.6716582756110624
+    },
+    {
+     "rank": 9,
+     "concept": "girlie movie",
+     "cos_to_R": 0.6670818147761104
+    },
+    {
+     "rank": 10,
+     "concept": "feel good movie",
+     "cos_to_R": 0.6426689400303865
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "romance",
+     "cos_meanremoved": 0.6570515793948108
+    },
+    {
+     "rank": 2,
+     "concept": "romantic",
+     "cos_meanremoved": 0.6545683757104543
+    },
+    {
+     "rank": 3,
+     "concept": "good action",
+     "cos_meanremoved": 0.6424610060702595
+    },
+    {
+     "rank": 4,
+     "concept": "adventure",
+     "cos_meanremoved": 0.6357772092073598
+    },
+    {
+     "rank": 5,
+     "concept": "action",
+     "cos_meanremoved": 0.6347456452254507
+    },
+    {
+     "rank": 6,
+     "concept": "chase",
+     "cos_meanremoved": 0.6276041764645737
+    },
+    {
+     "rank": 7,
+     "concept": "catastrophe",
+     "cos_meanremoved": 0.6263289098727853
+    },
+    {
+     "rank": 8,
+     "concept": "secret service",
+     "cos_meanremoved": 0.611778124374058
+    },
+    {
+     "rank": 9,
+     "concept": "lone hero",
+     "cos_meanremoved": 0.6082826948964637
+    },
+    {
+     "rank": 10,
+     "concept": "cute",
+     "cos_meanremoved": 0.6060068082338939
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18801,
+     "channel": "concept",
+     "name": "gunfight",
+     "weight": 0.2175160174418133
+    },
+    {
+     "bank_idx": 19270,
+     "channel": "concept",
+     "name": "sweet",
+     "weight": 0.20223900679769535
+    },
+    {
+     "bank_idx": 18767,
+     "channel": "concept",
+     "name": "good action",
+     "weight": 0.20041187345693487
+    },
+    {
+     "bank_idx": 19144,
+     "channel": "concept",
+     "name": "romantic",
+     "weight": 0.19307450551345323
+    },
+    {
+     "bank_idx": 18921,
+     "channel": "concept",
+     "name": "love",
+     "weight": 0.18675859679010326
+    }
+   ],
+   "random_floor_tag": "orphans",
+   "random_floor_rank_tower": 501,
+   "random_floor_rank_kphi": 551
+  },
+  {
+   "i": 34,
+   "sid": "root.noanswer.noanswer.noanswer@3",
+   "group": "deep_sweep",
+   "depth": 3,
+   "n_users": 1438,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 2,
+     "question": "Have you seen True Lies (1994), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    },
+    {
+     "step": 3,
+     "question": "Have you seen Apollo 13 (1995), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "noir",
+   "render_cos_to_R_banked": 0.7577451993601826,
+   "render_own_concept": "noir",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 54,
+   "render_own_concept_rank_kphi": 31,
+   "render_own_concept_cos_tower": 0.7242018895008997,
+   "render_sbert_top4": [
+    {
+     "concept": "noir",
+     "sbert_cos": 1.0000001192092896
+    },
+    {
+     "concept": "neo-noir",
+     "sbert_cos": 0.8724579811096191
+    },
+    {
+     "concept": "film noir",
+     "sbert_cos": 0.8215582370758057
+    },
+    {
+     "concept": "noir thriller",
+     "sbert_cos": 0.7675877213478088
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "downbeat",
+     "cos_to_R": 0.9771692131854061
+    },
+    {
+     "rank": 2,
+     "concept": "criterion",
+     "cos_to_R": 0.9692076491562595
+    },
+    {
+     "rank": 3,
+     "concept": "talky",
+     "cos_to_R": 0.9619621766286304
+    },
+    {
+     "rank": 4,
+     "concept": "melancholy",
+     "cos_to_R": 0.9395111114187589
+    },
+    {
+     "rank": 5,
+     "concept": "golden palm",
+     "cos_to_R": 0.9365055903907686
+    },
+    {
+     "rank": 6,
+     "concept": "cynical",
+     "cos_to_R": 0.936079299202584
+    },
+    {
+     "rank": 7,
+     "concept": "enigmatic",
+     "cos_to_R": 0.9177336670322029
+    },
+    {
+     "rank": 8,
+     "concept": "bleak",
+     "cos_to_R": 0.905885698343286
+    },
+    {
+     "rank": 9,
+     "concept": "black and white",
+     "cos_to_R": 0.9057541001173128
+    },
+    {
+     "rank": 10,
+     "concept": "biting",
+     "cos_to_R": 0.9029957803317079
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "downbeat",
+     "cos_meanremoved": 0.9732093904370537
+    },
+    {
+     "rank": 2,
+     "concept": "melancholy",
+     "cos_meanremoved": 0.9300254633597691
+    },
+    {
+     "rank": 3,
+     "concept": "cynical",
+     "cos_meanremoved": 0.9053965974006851
+    },
+    {
+     "rank": 4,
+     "concept": "black and white",
+     "cos_meanremoved": 0.8761038223002428
+    },
+    {
+     "rank": 5,
+     "concept": "golden palm",
+     "cos_meanremoved": 0.8725765808731677
+    },
+    {
+     "rank": 6,
+     "concept": "criterion",
+     "cos_meanremoved": 0.8561965417746829
+    },
+    {
+     "rank": 7,
+     "concept": "obsession",
+     "cos_meanremoved": 0.8282406132299646
+    },
+    {
+     "rank": 8,
+     "concept": "bleak",
+     "cos_meanremoved": 0.8128953645342876
+    },
+    {
+     "rank": 9,
+     "concept": "paranoid",
+     "cos_meanremoved": 0.8099442753311946
+    },
+    {
+     "rank": 10,
+     "concept": "photography",
+     "cos_meanremoved": 0.8015582741841791
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18602,
+     "channel": "concept",
+     "name": "criterion",
+     "weight": 0.2612329150387648
+    },
+    {
+     "bank_idx": 18648,
+     "channel": "concept",
+     "name": "downbeat",
+     "weight": 0.2142079077147978
+    },
+    {
+     "bank_idx": 18483,
+     "channel": "concept",
+     "name": "black and white",
+     "weight": 0.17984529413104608
+    },
+    {
+     "bank_idx": 18948,
+     "channel": "concept",
+     "name": "melancholy",
+     "weight": 0.17261656949214493
+    },
+    {
+     "bank_idx": 18614,
+     "channel": "concept",
+     "name": "cynical",
+     "weight": 0.1720973136232464
+    }
+   ],
+   "random_floor_tag": "glbt",
+   "random_floor_rank_tower": 546,
+   "random_floor_rank_kphi": 497
+  },
+  {
+   "i": 35,
+   "sid": "root.dislike.dislike.dislike",
+   "group": "single_pick_heap",
+   "depth": 3,
+   "n_users": 2346,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "hollywood",
+   "render_cos_to_R_banked": -0.09826285452712583,
+   "render_own_concept": "hollywood",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 963,
+   "render_own_concept_rank_kphi": 933,
+   "render_own_concept_cos_tower": -0.21269582631183992,
+   "render_sbert_top4": [
+    {
+     "concept": "hollywood",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "los angeles",
+     "sbert_cos": 0.667496383190155
+    },
+    {
+     "concept": "movie business",
+     "sbert_cos": 0.6364104747772217
+    },
+    {
+     "concept": "bollywood",
+     "sbert_cos": 0.5873500108718872
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.7760798159408973
+    },
+    {
+     "rank": 2,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.6564342309311927
+    },
+    {
+     "rank": 3,
+     "concept": "exciting",
+     "cos_to_R": 0.6004054030140467
+    },
+    {
+     "rank": 4,
+     "concept": "awesome",
+     "cos_to_R": 0.5888142703538051
+    },
+    {
+     "rank": 5,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.5815970903661529
+    },
+    {
+     "rank": 6,
+     "concept": "spielberg",
+     "cos_to_R": 0.551780422618048
+    },
+    {
+     "rank": 7,
+     "concept": "script",
+     "cos_to_R": 0.5068602596605224
+    },
+    {
+     "rank": 8,
+     "concept": "oscar (best editing)",
+     "cos_to_R": 0.5000437102785156
+    },
+    {
+     "rank": 9,
+     "concept": "trilogy",
+     "cos_to_R": 0.48506477075101345
+    },
+    {
+     "rank": 10,
+     "concept": "epic",
+     "cos_to_R": 0.4786080029712275
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "oscar (best sound)",
+     "cos_meanremoved": 0.7234346940241548
+    },
+    {
+     "rank": 2,
+     "concept": "prison escape",
+     "cos_meanremoved": 0.7030144829761781
+    },
+    {
+     "rank": 3,
+     "concept": "assassination",
+     "cos_meanremoved": 0.7027926573409515
+    },
+    {
+     "rank": 4,
+     "concept": "detective",
+     "cos_meanremoved": 0.6826626157655273
+    },
+    {
+     "rank": 5,
+     "concept": "spielberg",
+     "cos_meanremoved": 0.6784008044108112
+    },
+    {
+     "rank": 6,
+     "concept": "spaghetti western",
+     "cos_meanremoved": 0.66817510473175
+    },
+    {
+     "rank": 7,
+     "concept": "horses",
+     "cos_meanremoved": 0.6680984625906287
+    },
+    {
+     "rank": 8,
+     "concept": "noir",
+     "cos_meanremoved": 0.6634227477676479
+    },
+    {
+     "rank": 9,
+     "concept": "prison",
+     "cos_meanremoved": 0.6437638032079799
+    },
+    {
+     "rank": 10,
+     "concept": "neo-noir",
+     "cos_meanremoved": 0.6420700286083709
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 19,
+     "channel": "item",
+     "name": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+     "weight": 0.21982440231421332
+    },
+    {
+     "bank_idx": 18693,
+     "channel": "concept",
+     "name": "explosions",
+     "weight": 0.2119227416579534
+    },
+    {
+     "bank_idx": 29,
+     "channel": "item",
+     "name": "Indiana Jones and the Last Crusade (1989)",
+     "weight": 0.20603086294873554
+    },
+    {
+     "bank_idx": 19276,
+     "channel": "concept",
+     "name": "tear jerker",
+     "weight": 0.18111313218117234
+    },
+    {
+     "bank_idx": 18483,
+     "channel": "concept",
+     "name": "black and white",
+     "weight": 0.18110886089792538
+    }
+   ],
+   "random_floor_tag": "sad but good",
+   "random_floor_rank_tower": 346,
+   "random_floor_rank_kphi": 229
+  },
+  {
+   "i": 36,
+   "sid": "root.dislike.dislike.dislike.noanswer",
+   "group": "single_pick_heap",
+   "depth": 4,
+   "n_users": 1289,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 3,
+     "question": "Do you like alien films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 4,
+     "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "military",
+   "render_cos_to_R_banked": 0.31849552901685646,
+   "render_own_concept": "military",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 21,
+   "render_own_concept_rank_kphi": 65,
+   "render_own_concept_cos_tower": 0.46965912428325257,
+   "render_sbert_top4": [
+    {
+     "concept": "military",
+     "sbert_cos": 1.0000004768371582
+    },
+    {
+     "concept": "war",
+     "sbert_cos": 0.6522417068481445
+    },
+    {
+     "concept": "iraq",
+     "sbert_cos": 0.6299532651901245
+    },
+    {
+     "concept": "iraq war",
+     "sbert_cos": 0.622294545173645
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "explosions",
+     "cos_to_R": 0.6654171346685795
+    },
+    {
+     "rank": 2,
+     "concept": "lone hero",
+     "cos_to_R": 0.6274183402861393
+    },
+    {
+     "rank": 3,
+     "concept": "good action",
+     "cos_to_R": 0.6222642511357971
+    },
+    {
+     "rank": 4,
+     "concept": "action",
+     "cos_to_R": 0.5952592487371037
+    },
+    {
+     "rank": 5,
+     "concept": "action packed",
+     "cos_to_R": 0.5911138492460823
+    },
+    {
+     "rank": 6,
+     "concept": "tom clancy",
+     "cos_to_R": 0.5817978241422955
+    },
+    {
+     "rank": 7,
+     "concept": "exciting",
+     "cos_to_R": 0.5798290002080602
+    },
+    {
+     "rank": 8,
+     "concept": "weapons",
+     "cos_to_R": 0.5577637092328913
+    },
+    {
+     "rank": 9,
+     "concept": "big budget",
+     "cos_to_R": 0.5528219545209581
+    },
+    {
+     "rank": 10,
+     "concept": "car chase",
+     "cos_to_R": 0.5375152522387983
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "explosions",
+     "cos_meanremoved": 0.8601065212661845
+    },
+    {
+     "rank": 2,
+     "concept": "lone hero",
+     "cos_meanremoved": 0.8465970026809975
+    },
+    {
+     "rank": 3,
+     "concept": "first contact",
+     "cos_meanremoved": 0.8298114093401064
+    },
+    {
+     "rank": 4,
+     "concept": "weapons",
+     "cos_meanremoved": 0.8164832479721219
+    },
+    {
+     "rank": 5,
+     "concept": "good action",
+     "cos_meanremoved": 0.8112285107895817
+    },
+    {
+     "rank": 6,
+     "concept": "car chase",
+     "cos_meanremoved": 0.8038895341801197
+    },
+    {
+     "rank": 7,
+     "concept": "end of the world",
+     "cos_meanremoved": 0.7934522639058307
+    },
+    {
+     "rank": 8,
+     "concept": "special effects",
+     "cos_meanremoved": 0.7932857668875594
+    },
+    {
+     "rank": 9,
+     "concept": "secret service",
+     "cos_meanremoved": 0.782688027703371
+    },
+    {
+     "rank": 10,
+     "concept": "action",
+     "cos_meanremoved": 0.7800834084026804
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18693,
+     "channel": "concept",
+     "name": "explosions",
+     "weight": 0.22653534365351938
+    },
+    {
+     "bank_idx": 504,
+     "channel": "item",
+     "name": "Crimson Tide (1995)",
+     "weight": 0.2047220839387164
+    },
+    {
+     "bank_idx": 450,
+     "channel": "item",
+     "name": "Outbreak (1995)",
+     "weight": 0.19313608981313837
+    },
+    {
+     "bank_idx": 18917,
+     "channel": "concept",
+     "name": "lone hero",
+     "weight": 0.18947981575453438
+    },
+    {
+     "bank_idx": 1125,
+     "channel": "item",
+     "name": "Stargate (1994)",
+     "weight": 0.18612666684009144
+    }
+   ],
+   "random_floor_tag": "melancholic",
+   "random_floor_rank_tower": 1021,
+   "random_floor_rank_kphi": 841
+  },
+  {
+   "i": 37,
+   "sid": "root.dislike.dislike",
+   "group": "single_pick_heap",
+   "depth": 2,
+   "n_users": 3562,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    },
+    {
+     "step": 2,
+     "question": "Do you like disturbing films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "science",
+   "render_cos_to_R_banked": 0.7504979423704689,
+   "render_own_concept": "science",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 31,
+   "render_own_concept_rank_kphi": 140,
+   "render_own_concept_cos_tower": 0.7985551515677746,
+   "render_sbert_top4": [
+    {
+     "concept": "science",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "bad science",
+     "sbert_cos": 0.7219073176383972
+    },
+    {
+     "concept": "sci fi",
+     "sbert_cos": 0.6539773344993591
+    },
+    {
+     "concept": "scifi",
+     "sbert_cos": 0.6502154469490051
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "alien",
+     "cos_to_R": 0.9752181956491438
+    },
+    {
+     "rank": 2,
+     "concept": "aliens",
+     "cos_to_R": 0.9656011741233473
+    },
+    {
+     "rank": 3,
+     "concept": "sci fi",
+     "cos_to_R": 0.956471887314752
+    },
+    {
+     "rank": 4,
+     "concept": "space",
+     "cos_to_R": 0.9563735044117598
+    },
+    {
+     "rank": 5,
+     "concept": "sci-fi",
+     "cos_to_R": 0.9531409700247538
+    },
+    {
+     "rank": 6,
+     "concept": "scifi",
+     "cos_to_R": 0.949017124908639
+    },
+    {
+     "rank": 7,
+     "concept": "science fiction",
+     "cos_to_R": 0.9407214059675219
+    },
+    {
+     "rank": 8,
+     "concept": "alien invasion",
+     "cos_to_R": 0.9316666891293479
+    },
+    {
+     "rank": 9,
+     "concept": "first contact",
+     "cos_to_R": 0.9306346609065219
+    },
+    {
+     "rank": 10,
+     "concept": "mars",
+     "cos_to_R": 0.9263857427552181
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "alien",
+     "cos_meanremoved": 0.9526029522509053
+    },
+    {
+     "rank": 2,
+     "concept": "aliens",
+     "cos_meanremoved": 0.949115641403655
+    },
+    {
+     "rank": 3,
+     "concept": "space",
+     "cos_meanremoved": 0.9234552945294648
+    },
+    {
+     "rank": 4,
+     "concept": "scifi",
+     "cos_meanremoved": 0.9198606655601281
+    },
+    {
+     "rank": 5,
+     "concept": "cloning",
+     "cos_meanremoved": 0.9187358128923628
+    },
+    {
+     "rank": 6,
+     "concept": "space opera",
+     "cos_meanremoved": 0.9172856141782315
+    },
+    {
+     "rank": 7,
+     "concept": "sci-fi",
+     "cos_meanremoved": 0.8985480873659628
+    },
+    {
+     "rank": 8,
+     "concept": "nasa",
+     "cos_meanremoved": 0.8838646789510052
+    },
+    {
+     "rank": 9,
+     "concept": "scifi cult",
+     "cos_meanremoved": 0.8805469409680251
+    },
+    {
+     "rank": 10,
+     "concept": "nuclear war",
+     "cos_meanremoved": 0.8777436769216981
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18395,
+     "channel": "concept",
+     "name": "alien",
+     "weight": 0.2149311857866385
+    },
+    {
+     "bank_idx": 19216,
+     "channel": "concept",
+     "name": "space",
+     "weight": 0.2045117812606259
+    },
+    {
+     "bank_idx": 19166,
+     "channel": "concept",
+     "name": "sci-fi",
+     "weight": 0.19531428908348022
+    },
+    {
+     "bank_idx": 18371,
+     "channel": "concept",
+     "name": "80s",
+     "weight": 0.1930536659698638
+    },
+    {
+     "bank_idx": 18397,
+     "channel": "concept",
+     "name": "aliens",
+     "weight": 0.19218907789939155
+    }
+   ],
+   "random_floor_tag": "saturday night live",
+   "random_floor_rank_tower": 353,
+   "random_floor_rank_kphi": 251
+  },
+  {
+   "i": 38,
+   "sid": "root.dislike",
+   "group": "single_pick_heap",
+   "depth": 1,
+   "n_users": 4814,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "disliked it"
+    }
+   ],
+   "render": "horror",
+   "render_cos_to_R_banked": 0.513710349898386,
+   "render_own_concept": "horror",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 207,
+   "render_own_concept_rank_kphi": 186,
+   "render_own_concept_cos_tower": 0.4155436412444449,
+   "render_sbert_top4": [
+    {
+     "concept": "horror",
+     "sbert_cos": 1.0
+    },
+    {
+     "concept": "scary",
+     "sbert_cos": 0.7463911771774292
+    },
+    {
+     "concept": "creepy",
+     "sbert_cos": 0.6560521125793457
+    },
+    {
+     "concept": "frightening",
+     "sbert_cos": 0.6343073844909668
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "dark humor",
+     "cos_to_R": 0.9246148478955638
+    },
+    {
+     "rank": 2,
+     "concept": "dark",
+     "cos_to_R": 0.9110227398693767
+    },
+    {
+     "rank": 3,
+     "concept": "insanity",
+     "cos_to_R": 0.854614580314595
+    },
+    {
+     "rank": 4,
+     "concept": "visceral",
+     "cos_to_R": 0.8540334161586938
+    },
+    {
+     "rank": 5,
+     "concept": "stylish",
+     "cos_to_R": 0.8374114433054984
+    },
+    {
+     "rank": 6,
+     "concept": "weird",
+     "cos_to_R": 0.8107290240888192
+    },
+    {
+     "rank": 7,
+     "concept": "disturbing",
+     "cos_to_R": 0.8031606192689711
+    },
+    {
+     "rank": 8,
+     "concept": "violent",
+     "cos_to_R": 0.8025026439202255
+    },
+    {
+     "rank": 9,
+     "concept": "crime gone awry",
+     "cos_to_R": 0.7986082339071947
+    },
+    {
+     "rank": 10,
+     "concept": "atmospheric",
+     "cos_to_R": 0.7895848172244075
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "dark humor",
+     "cos_meanremoved": 0.9497429883615851
+    },
+    {
+     "rank": 2,
+     "concept": "insanity",
+     "cos_meanremoved": 0.9331246532223364
+    },
+    {
+     "rank": 3,
+     "concept": "disturbing",
+     "cos_meanremoved": 0.930225332124433
+    },
+    {
+     "rank": 4,
+     "concept": "crime gone awry",
+     "cos_meanremoved": 0.9093226130900386
+    },
+    {
+     "rank": 5,
+     "concept": "grim",
+     "cos_meanremoved": 0.9024655454009933
+    },
+    {
+     "rank": 6,
+     "concept": "nudity (topless - brief)",
+     "cos_meanremoved": 0.875901581413122
+    },
+    {
+     "rank": 7,
+     "concept": "dark",
+     "cos_meanremoved": 0.8732954008297219
+    },
+    {
+     "rank": 8,
+     "concept": "sexualized violence",
+     "cos_meanremoved": 0.8690031847193496
+    },
+    {
+     "rank": 9,
+     "concept": "visceral",
+     "cos_meanremoved": 0.8669522927657913
+    },
+    {
+     "rank": 10,
+     "concept": "oscar (best writing - screenplay written directly for the screen)",
+     "cos_meanremoved": 0.8510850763446142
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18642,
+     "channel": "concept",
+     "name": "disturbing",
+     "weight": 0.22173629383852544
+    },
+    {
+     "bank_idx": 18601,
+     "channel": "concept",
+     "name": "crime gone awry",
+     "weight": 0.2057851527089627
+    },
+    {
+     "bank_idx": 18737,
+     "channel": "concept",
+     "name": "fun movie",
+     "weight": 0.19572776160963942
+    },
+    {
+     "bank_idx": 18621,
+     "channel": "concept",
+     "name": "dark humor",
+     "weight": 0.19314064190904504
+    },
+    {
+     "bank_idx": 18617,
+     "channel": "concept",
+     "name": "dark",
+     "weight": 0.18361014993382738
+    }
+   ],
+   "random_floor_tag": "graphic novel",
+   "random_floor_rank_tower": 254,
+   "random_floor_rank_kphi": 828
+  },
+  {
+   "i": 39,
+   "sid": "root",
+   "group": "single_pick_heap",
+   "depth": 0,
+   "n_users": 10000,
+   "interview_path": [],
+   "render": "religion",
+   "render_cos_to_R_banked": 0.3212034699141492,
+   "render_own_concept": "religion",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 429,
+   "render_own_concept_rank_kphi": 659,
+   "render_own_concept_cos_tower": 0.13777177261396917,
+   "render_sbert_top4": [
+    {
+     "concept": "religion",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "christianity",
+     "sbert_cos": 0.8201256990432739
+    },
+    {
+     "concept": "islam",
+     "sbert_cos": 0.7191898822784424
+    },
+    {
+     "concept": "catholicism",
+     "sbert_cos": 0.7100471258163452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "visuals",
+     "cos_to_R": 0.9052268280063588
+    },
+    {
+     "rank": 2,
+     "concept": "cgi",
+     "cos_to_R": 0.8888639672852907
+    },
+    {
+     "rank": 3,
+     "concept": "mythology",
+     "cos_to_R": 0.8602817729732655
+    },
+    {
+     "rank": 4,
+     "concept": "superheroes",
+     "cos_to_R": 0.8160937874027481
+    },
+    {
+     "rank": 5,
+     "concept": "dynamic cgi action",
+     "cos_to_R": 0.8099818463422908
+    },
+    {
+     "rank": 6,
+     "concept": "visually stunning",
+     "cos_to_R": 0.7974045963963263
+    },
+    {
+     "rank": 7,
+     "concept": "steampunk",
+     "cos_to_R": 0.7905486174689536
+    },
+    {
+     "rank": 8,
+     "concept": "super hero",
+     "cos_to_R": 0.7831374315072055
+    },
+    {
+     "rank": 9,
+     "concept": "giant robots",
+     "cos_to_R": 0.7717890937794226
+    },
+    {
+     "rank": 10,
+     "concept": "based on a comic",
+     "cos_to_R": 0.766086874087001
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "plot",
+     "cos_meanremoved": 0.9230711327488804
+    },
+    {
+     "rank": 2,
+     "concept": "fast paced",
+     "cos_meanremoved": 0.8879756187595501
+    },
+    {
+     "rank": 3,
+     "concept": "visuals",
+     "cos_meanremoved": 0.8315401593486281
+    },
+    {
+     "rank": 4,
+     "concept": "better than expected",
+     "cos_meanremoved": 0.7853142013156441
+    },
+    {
+     "rank": 5,
+     "concept": "story",
+     "cos_meanremoved": 0.784396028587504
+    },
+    {
+     "rank": 6,
+     "concept": "entertaining",
+     "cos_meanremoved": 0.7842667380414519
+    },
+    {
+     "rank": 7,
+     "concept": "mythology",
+     "cos_meanremoved": 0.773908068741383
+    },
+    {
+     "rank": 8,
+     "concept": "trilogy",
+     "cos_meanremoved": 0.7725134907950814
+    },
+    {
+     "rank": 9,
+     "concept": "dialogue",
+     "cos_meanremoved": 0.7647246667684571
+    },
+    {
+     "rank": 10,
+     "concept": "good versus evil",
+     "cos_meanremoved": 0.7622050947106719
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 18473,
+     "channel": "concept",
+     "name": "better than expected",
+     "weight": 0.20907785184183378
+    },
+    {
+     "bank_idx": 19353,
+     "channel": "concept",
+     "name": "visually appealing",
+     "weight": 0.20012552479817233
+    },
+    {
+     "bank_idx": 18633,
+     "channel": "concept",
+     "name": "dialogue",
+     "weight": 0.19996544185115575
+    },
+    {
+     "bank_idx": 18989,
+     "channel": "concept",
+     "name": "mythology",
+     "weight": 0.19960967252069883
+    },
+    {
+     "bank_idx": 18530,
+     "channel": "concept",
+     "name": "cgi",
+     "weight": 0.1912215089881393
+    }
+   ],
+   "random_floor_tag": "complicated plot",
+   "random_floor_rank_tower": 252,
+   "random_floor_rank_kphi": 51
+  },
+  {
+   "i": 40,
+   "sid": "root.like",
+   "group": "single_pick_heap",
+   "depth": 1,
+   "n_users": 2606,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "liked it"
+    }
+   ],
+   "render": "religion",
+   "render_cos_to_R_banked": -0.006556194007477958,
+   "render_own_concept": "religion",
+   "render_own_concept_how": "exact_tag",
+   "render_own_concept_rank_tower": 405,
+   "render_own_concept_rank_kphi": 333,
+   "render_own_concept_cos_tower": 0.10040114405679088,
+   "render_sbert_top4": [
+    {
+     "concept": "religion",
+     "sbert_cos": 1.000000238418579
+    },
+    {
+     "concept": "christianity",
+     "sbert_cos": 0.8201256990432739
+    },
+    {
+     "concept": "islam",
+     "sbert_cos": 0.7191898822784424
+    },
+    {
+     "concept": "catholicism",
+     "sbert_cos": 0.7100471258163452
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_to_R": 0.6234894016581665
+    },
+    {
+     "rank": 2,
+     "concept": "awesome",
+     "cos_to_R": 0.619098687812647
+    },
+    {
+     "rank": 3,
+     "concept": "trilogy",
+     "cos_to_R": 0.6128878554063554
+    },
+    {
+     "rank": 4,
+     "concept": "good versus evil",
+     "cos_to_R": 0.6100168920659127
+    },
+    {
+     "rank": 5,
+     "concept": "wizards",
+     "cos_to_R": 0.5809736234697453
+    },
+    {
+     "rank": 6,
+     "concept": "saturn award (best special effects)",
+     "cos_to_R": 0.5787165343478005
+    },
+    {
+     "rank": 7,
+     "concept": "high fantasy",
+     "cos_to_R": 0.5589442086302144
+    },
+    {
+     "rank": 8,
+     "concept": "modern fantasy",
+     "cos_to_R": 0.5395601426708966
+    },
+    {
+     "rank": 9,
+     "concept": "mythology",
+     "cos_to_R": 0.5363367599562375
+    },
+    {
+     "rank": 10,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.5157790938912945
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "alaska",
+     "cos_meanremoved": 0.736946468890458
+    },
+    {
+     "rank": 2,
+     "concept": "saturn award (best special effects)",
+     "cos_meanremoved": 0.6986524120626005
+    },
+    {
+     "rank": 3,
+     "concept": "original plot",
+     "cos_meanremoved": 0.6873316480934001
+    },
+    {
+     "rank": 4,
+     "concept": "oscar (best effects - visual effects)",
+     "cos_meanremoved": 0.673683620867509
+    },
+    {
+     "rank": 5,
+     "concept": "oscar (best sound)",
+     "cos_meanremoved": 0.6543354881837616
+    },
+    {
+     "rank": 6,
+     "concept": "awesome",
+     "cos_meanremoved": 0.6321771837516634
+    },
+    {
+     "rank": 7,
+     "concept": "powerful ending",
+     "cos_meanremoved": 0.6250693000487363
+    },
+    {
+     "rank": 8,
+     "concept": "oil",
+     "cos_meanremoved": 0.6225281161478601
+    },
+    {
+     "rank": 9,
+     "concept": "fun",
+     "cos_meanremoved": 0.6222680975581877
+    },
+    {
+     "rank": 10,
+     "concept": "childhood",
+     "cos_meanremoved": 0.6171070342238524
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 83,
+     "channel": "item",
+     "name": "Lord of the Rings: The Fellowship of the Ring, The (2001)",
+     "weight": 0.2281293123660139
+    },
+    {
+     "bank_idx": 89,
+     "channel": "item",
+     "name": "Lord of the Rings: The Two Towers, The (2002)",
+     "weight": 0.22383350841316324
+    },
+    {
+     "bank_idx": 112,
+     "channel": "item",
+     "name": "Harry Potter and the Goblet of Fire (2005)",
+     "weight": 0.20309790388832502
+    },
+    {
+     "bank_idx": 19,
+     "channel": "item",
+     "name": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+     "weight": 0.17408760726598618
+    },
+    {
+     "bank_idx": 19160,
+     "channel": "concept",
+     "name": "saturn award (best special effects)",
+     "weight": 0.17085166806651167
+    }
+   ],
+   "random_floor_tag": "incest",
+   "random_floor_rank_tower": 891,
+   "random_floor_rank_kphi": 967
+  },
+  {
+   "i": 41,
+   "sid": "root.noanswer",
+   "group": "single_pick_heap",
+   "depth": 1,
+   "n_users": 2580,
+   "interview_path": [
+    {
+     "step": 1,
+     "question": "Do you like better than expected films?",
+     "answer": "hasn't seen it / gave no answer"
+    }
+   ],
+   "render": "movies",
+   "render_cos_to_R_banked": -0.2063363062491498,
+   "render_own_concept": "movie business",
+   "render_own_concept_how": "top_sbert",
+   "render_own_concept_rank_tower": 479,
+   "render_own_concept_rank_kphi": 410,
+   "render_own_concept_cos_tower": 0.02423624891996541,
+   "render_sbert_top4": [
+    {
+     "concept": "movie business",
+     "sbert_cos": 0.6944682598114014
+    },
+    {
+     "concept": "fun movie",
+     "sbert_cos": 0.6779841184616089
+    },
+    {
+     "concept": "hollywood",
+     "sbert_cos": 0.6416468620300293
+    },
+    {
+     "concept": "funniest movies",
+     "sbert_cos": 0.6390641927719116
+    }
+   ],
+   "top10_tower": [
+    {
+     "rank": 1,
+     "concept": "good action",
+     "cos_to_R": 0.5191342314832492
+    },
+    {
+     "rank": 2,
+     "concept": "lone hero",
+     "cos_to_R": 0.5181114710379656
+    },
+    {
+     "rank": 3,
+     "concept": "exciting",
+     "cos_to_R": 0.5169779583148086
+    },
+    {
+     "rank": 4,
+     "concept": "oscar (best sound)",
+     "cos_to_R": 0.516509850972301
+    },
+    {
+     "rank": 5,
+     "concept": "explosions",
+     "cos_to_R": 0.5137254884212131
+    },
+    {
+     "rank": 6,
+     "concept": "arnold",
+     "cos_to_R": 0.49202462300760597
+    },
+    {
+     "rank": 7,
+     "concept": "chase",
+     "cos_to_R": 0.4695383029584459
+    },
+    {
+     "rank": 8,
+     "concept": "action packed",
+     "cos_to_R": 0.4678247038087819
+    },
+    {
+     "rank": 9,
+     "concept": "car chase",
+     "cos_to_R": 0.45903277547711646
+    },
+    {
+     "rank": 10,
+     "concept": "action",
+     "cos_to_R": 0.4440631809058764
+    }
+   ],
+   "top10_kphi": [
+    {
+     "rank": 1,
+     "concept": "good action",
+     "cos_meanremoved": 0.7627710945264072
+    },
+    {
+     "rank": 2,
+     "concept": "chase",
+     "cos_meanremoved": 0.7462331072581141
+    },
+    {
+     "rank": 3,
+     "concept": "police",
+     "cos_meanremoved": 0.743398151382163
+    },
+    {
+     "rank": 4,
+     "concept": "action",
+     "cos_meanremoved": 0.7426270798138457
+    },
+    {
+     "rank": 5,
+     "concept": "gunfight",
+     "cos_meanremoved": 0.7395513514216757
+    },
+    {
+     "rank": 6,
+     "concept": "special effects",
+     "cos_meanremoved": 0.7315850702109767
+    },
+    {
+     "rank": 7,
+     "concept": "secret service",
+     "cos_meanremoved": 0.7228958803116503
+    },
+    {
+     "rank": 8,
+     "concept": "catastrophe",
+     "cos_meanremoved": 0.7031289430744148
+    },
+    {
+     "rank": 9,
+     "concept": "car chase",
+     "cos_meanremoved": 0.7022753612680421
+    },
+    {
+     "rank": 10,
+     "concept": "adventure",
+     "cos_meanremoved": 0.7001028630872709
+    }
+   ],
+   "blend_ingredients": [
+    {
+     "bank_idx": 514,
+     "channel": "item",
+     "name": "True Lies (1994)",
+     "weight": 0.20785244996887314
+    },
+    {
+     "bank_idx": 18532,
+     "channel": "concept",
+     "name": "chase",
+     "weight": 0.20672929124988992
+    },
+    {
+     "bank_idx": 583,
+     "channel": "item",
+     "name": "Batman (1989)",
+     "weight": 0.20528459099721363
+    },
+    {
+     "bank_idx": 7,
+     "channel": "item",
+     "name": "Clear and Present Danger (1994)",
+     "weight": 0.19476491415886357
+    },
+    {
+     "bank_idx": 506,
+     "channel": "item",
+     "name": "Die Hard: With a Vengeance (1995)",
+     "weight": 0.1853687536251599
+    }
+   ],
+   "random_floor_tag": "firefly",
+   "random_floor_rank_tower": 594,
+   "random_floor_rank_kphi": 910
+  }
+ ],
+ "asserts": {
+  "pool2full_index_map_max_abs_err": 4.76837158203125e-07,
+  "target_rebuild_max_abs_diff": 0.0,
+  "point_target_vs_banked_max_abs_diff": 0.0,
+  "R_vs_banked_max_abs_diff": 0.0,
+  "concept_dirs_reproduced_worst_1_minus_abscos": 4.0171411588296735e-06,
+  "states_whose_sid_path_did_not_match_the_prefix": []
+ },
+ "canonical_snap": {
+  "val_m0_full": 0.15686538118354684,
+  "val_m0_tail": 0.02747733123666661
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "sbert": {
+  "model": "all-MiniLM-L6-v2",
+  "pooling": "sent",
+  "topn": 4,
+  "mincos": 0.3
+ },
+ "what_may_not_be_claimed": "no NDCG, no 'asking it would help', no human-plausibility grading; n = 42 nested, structurally-selected states (the C1 caveats travel); the k(phi) neighbourhood is an anisotropic space with a documented common mode",
+ "git": {
+  "rev": "302af2340f648c4f90b32b392515977473b45f28",
+  "branch": "recommender-improvement",
+  "status_short_src": "",
+  "src_instrument_dirty": [],
+  "src_instrument_clean": true,
+  "allow_dirty_flag": false,
+  "threads": 4,
+  "thread_env": {
+   "OMP_NUM_THREADS": "4",
+   "MKL_NUM_THREADS": "4",
+   "OPENBLAS_NUM_THREADS": "4"
+  },
+  "torch_num_threads": 4
+ },
+ "minutes": 1.26
+}

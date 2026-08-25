@@ -1,0 +1,83 @@
+[19:16:19] ##############################################################################################################
+[19:16:19] # PAPER C / C4 PILOT TRIANGULATION -- do the rendered words sit among the point's own nearest concepts? Descriptive; no NDCG, no answer simulated, no test user touched.
+[19:16:19] ##############################################################################################################
+[19:16:19] [hardrule10] src/instrument clean=True rev=302af234 threads=4 torch_threads=4
+[19:16:19] === building paperC/c3b_bridge env (split=validation) ===
+[19:16:22] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[19:16:38] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[19:16:39] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[19:16:39] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[19:16:39] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[19:16:39] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[19:16:39] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[19:16:39] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[19:16:42] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[19:16:52] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[19:16:57] [g5] 1031 concepts with >= 30 members
+[19:17:09] [ledger] SIGNED valuation arrays built (prereg cache found)
+[19:17:13] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[19:17:13] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[19:17:13] [paperC/c3b_bridge] pool contract (DERIVED): policy=B nnz=1356475 per_user=135.6475 fp=c282962b49a2d67ef47ff07544519f20
+[19:17:13] [paperC/c3b_bridge] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[19:17:14] [tower] item targets Ew (18359, 200); concept directions reproduced from them (worst 1-|cos| 4.01714e-06)
+[19:17:14] [tower] cold base z0 (empty-item tower fold) norm 4.5256, d=200
+[19:17:24] [sbert] all-MiniLM-L6-v2 loaded (HF_HUB_OFFLINE=1)
+[19:17:31] [snap] validation m=0 intercept full=0.15686538118354684 tail=0.02747733123666661 -- canonical
+[19:17:32] [space] k(phi) mean-removed; concept block (1031, 128); pool2full exact (max|diff| 4.76837e-07)
+[19:17:32] [reference] R_s (42, 200) rebuilt bit-identically to the pilot's banked R
+[19:17:34] [sbert] mode=sent: 42 sentences over 42 texts
+[19:17:34] [tags] 7 genome tag name(s) collide after normalisation -- the lowest concept id wins the exact-match rule (declared, counted in the JSON)
+[19:17:34] [render] 23 distinct texts; own concept resolved for 42/42 (exact tag 32, top SBERT 10, non-encodable 0)
+[19:17:34] ==============================================================================================================
+[19:17:34] TRIANGULATION -- render's own concept vs the point's top-10 neighbourhood (n=42)
+[19:17:34]   hit_top10_kphi     render  2/42 = 0.0476 [0.0132, 0.1579]   |   random tag  0/42 = 0.0000 [0.0000, 0.0838]
+[19:17:34]   hit_top10_tower    render  4/42 = 0.0952 [0.0377, 0.2207]   |   random tag  0/42 = 0.0000 [0.0000, 0.0838]
+[19:17:34]   hit_top10_either   render  4/42 = 0.0952 [0.0377, 0.2207]   |   random tag  0/42 = 0.0000 [0.0000, 0.0838]
+[19:17:34]   rank_in_tower_ranking  render median 313.0 IQR [78.2, 496.2]   |   random median 340.0 IQR [210.0, 582.0]  (of 1031)
+[19:17:34]   rank_in_kphi_ranking   render median 319.5 IQR [144.2, 485.2]   |   random median 557.0 IQR [258.0, 768.2]  (of 1031)
+[19:17:34] ==============================================================================================================
+[19:17:34] sid                                | render             | top-5 tower neighbours
+[19:17:34] root.dislike.dislike.dislike.dislike.dislike@5 | art                | artistic, melancholy, colourful, art, lyrical
+[19:17:34] root.dislike.dislike.dislike.dislike.like@5 | family drama       | good romantic comedies, oscar (best sound), girlie movie, sappy, happy ending
+[19:17:34] root.dislike.dislike.dislike.like.dislike@5 | fantasy            | oscar (best effects - visual effects), original plot, time, saturn award (best special effects), oscar (best sound)
+[19:17:34] root.dislike.dislike.dislike.like.like@5 | love               | storytelling, clever, colourful, great soundtrack, nonlinear
+[19:17:34] root.dislike.dislike.dislike.like.noanswer@5 | movies             | quotable, afi 100 (laughs), highly quotable, silent, train
+[19:17:34] root.dislike.dislike.dislike.noanswer.dislike.dislike@6 | movies             | afi 100 (movie quotes), afi 100, classic, perfect, oscar (best cinematography)
+[19:17:34] root.dislike.dislike.dislike.noanswer.dislike.like@6 | animals            | disney animated feature, oscar (best music - original song), cartoon, disney, animated
+[19:17:34] root.dislike.dislike.dislike.noanswer.dislike.noanswer@6 | fantasy            | dynamic cgi action, fighting, exciting, fight scenes, big budget
+[19:17:34] root.dislike.dislike.dislike.noanswer.like.dislike@6 | hijacked           | oscar (best sound), oscar (best effects - visual effects), saturn award (best special effects), spielberg, exciting
+[19:17:34] root.dislike.dislike.dislike.noanswer.like.like@6 | theatrical         | oscar (best sound), exciting, awesome, oscar (best editing), oscar (best effects - visual effects)
+[19:17:34] root.dislike.dislike.dislike.noanswer.like.noanswer@6 | indictment         | courtroom drama, courtroom, lawyers, lawyer, court
+[19:17:34] root.dislike.dislike.like.dislike@4 | religion           | awesome, oscar (best effects - visual effects), oscar (best sound), saturn award (best special effects), original plot
+[19:17:34] root.dislike.dislike.like.like@4   | movies             | weapons, pulp, lone hero, cool, motorcycle
+[19:17:34] root.dislike.dislike.like.noanswer@4 | franchise          | saturn award (best special effects), fun movie, 70mm, cheesy, oscar (best sound)
+[19:17:34] root.dislike.dislike.noanswer.dislike@4 | religion           | oscar (best effects - visual effects), oscar (best sound), exciting, awesome, original plot
+[19:17:34] root.dislike.dislike.noanswer.like@4 | horror             | oscar (best sound), awesome, oscar (best effects - visual effects), oscar (best editing), amazing cinematography
+[19:17:34] root.dislike.dislike.noanswer.noanswer@4 | horror             | survival, weapons, exciting, fast paced, plot
+[19:17:34] root.dislike.like.dislike@3        | good               | earnest, oscar winner, oscar (best actor), oscar (best picture), oscar (best supporting actor)
+[19:17:34] root.dislike.like.like@3           | good               | great movie, very good, great, original plot, story
+[19:17:34] root.dislike.like.noanswer@3       | horror             | great ending, intense, good acting, original plot, survival
+[19:17:34] root.dislike.noanswer.dislike@3    | religion           | oscar (best sound), oscar (best effects - visual effects), saturn award (best special effects), awesome, genius
+[19:17:34] root.dislike.noanswer.like@3       | scandal            | ridiculous, silly, dumb, buddy movie, silly fun
+[19:17:34] root.dislike.noanswer.noanswer@3   | civil rights       | sappy, natural disaster, tear jerker, disaster, dinosaurs
+[19:17:34] root.like.dislike.dislike@3        | religion           | oscar (best editing), good acting, very good, excellent script, excellent
+[19:17:34] root.like.dislike.like@3           | religion           | pg, oscar (best animated feature), pixar animation, toys, pixar
+[19:17:34] root.like.dislike.noanswer@3       | unusual            | good acting, intense, great acting, powerful ending, excellent script
+[19:17:34] root.like.like.dislike@3           | horror             | complicated, twists & turns, psychology, complex, complicated plot
+[19:17:34] root.like.like.like@3              | horror             | oscar (best sound), oscar (best effects - visual effects), saturn award (best special effects), awesome, spielberg
+[19:17:34] root.like.like.noanswer@3          | horror             | violence, gratuitous violence, cool, revenge, vengeance
+[19:17:34] root.like.noanswer.dislike@3       | horror             | brutal, violent, intense, great ending, brutality
+[19:17:34] root.like.noanswer.like@3          | adventure          | boarding school, wizards, trilogy, witches, good versus evil
+[19:17:34] root.like.noanswer.noanswer@3      | horror             | good dialogue, oscar (best editing), gratuitous violence, intelligent, original plot
+[19:17:34] root.noanswer.noanswer.dislike@3   | action             | action, good action, action packed, big budget, explosions
+[19:17:34] root.noanswer.noanswer.like@3      | mystery            | romance, romantic, romantic comedy, love story, happy ending
+[19:17:34] root.noanswer.noanswer.noanswer@3  | noir               | downbeat, criterion, talky, melancholy, golden palm
+[19:17:34] root.dislike.dislike.dislike       | hollywood          | oscar (best sound), oscar (best effects - visual effects), exciting, awesome, saturn award (best special effects)
+[19:17:34] root.dislike.dislike.dislike.noanswer | military           | explosions, lone hero, good action, action, action packed
+[19:17:34] root.dislike.dislike               | science            | alien, aliens, sci fi, space, sci-fi
+[19:17:34] root.dislike                       | horror             | dark humor, dark, insanity, visceral, stylish
+[19:17:34] root                               | religion           | visuals, cgi, mythology, superheroes, dynamic cgi action
+[19:17:34] root.like                          | religion           | oscar (best effects - visual effects), awesome, trilogy, good versus evil, wizards
+[19:17:34] root.noanswer                      | movies             | good action, lone hero, exciting, oscar (best sound), explosions
+[19:17:34] ==============================================================================================================
+[19:17:34] [done] C:\dev\phd\casper\experiments\paperC\c4_triangulate.json (1.3m)
