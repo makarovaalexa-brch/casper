@@ -1,0 +1,852 @@
+{
+ "analysis": "paperC_C3B_stage2",
+ "design_sheet": "docs/design/DS_C3B_ADAPTER.md (+ AMENDMENT 2026-08-24, BINDING)",
+ "produced_by": "src/instrument/c3b_adapter.py stage2",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "primary_space": "text -> SBERT -> concepts -> ConceptFoldNet(cv3) -> tower latent displacement from the cold fold z0, popularity-stripped; target = Wd[q] centred+stripped (item) / build_concept_dirs d_c (concept)",
+ "secondary_space": "k(phi) -- IN THE EMITTER'S OWN HEAD SPACE; may not carry the claim",
+ "gate_channel": "item",
+ "gate_channel_source": "c3b_ceiling.json, measured BEFORE training",
+ "n_heldout": 3880,
+ "n_items": 3670,
+ "n_concepts": 210,
+ "n_paired_true_vs_scrambled": 3879,
+ "n_paired_all_three": 3879,
+ "n_non_encodable": {
+  "true": 1,
+  "scrambled": 0,
+  "prior": 0,
+  "prior_strict_zero_prefix": 0
+ },
+ "mean_concepts_selected": {
+  "true": 3.988659793814433,
+  "scrambled": 4.0,
+  "prior": 4.0,
+  "prior_strict_zero_prefix": 4.0
+ },
+ "adapters": {
+  "true": {
+   "epoch": 4,
+   "val_ce": 2.9912166210839874,
+   "train_ce": 2.9302192141755974
+  },
+  "scrambled": {
+   "epoch": 3,
+   "val_ce": 3.269862022314532,
+   "train_ce": 3.276216424039861
+  }
+ },
+ "criteria_by_channel": {
+  "item": {
+   "1_true_minus_scrambled": {
+    "mean": 0.11143011035306187,
+    "ci_lo": 0.10543653866889342,
+    "ci_hi": 0.11734156022561876,
+    "n": 3669,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "A_mean_tower_cos": 0.0952809043627276,
+    "A_ci": [
+     0.09029087767666802,
+     0.10031745567559322
+    ],
+    "ceiling": 0.08919716576308714,
+    "required_fraction_of_ceiling": 0.4,
+    "required_A_tower_cos": 0.03567886630523486,
+    "fraction_of_ceiling_reached": 1.0682055146886529,
+    "pass": true
+   },
+   "2_scrambled_vs_prior_only": {
+    "mean": -0.013306715167844943,
+    "ci_lo": -0.018502672832413778,
+    "ci_hi": -0.008113219255590684,
+    "n": 3669,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "pass": false,
+    "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)"
+   },
+   "3_identification": {
+    "mean": 0.6778413736713,
+    "ci_lo": 0.6631234668847097,
+    "ci_hi": 0.6931043881166531,
+    "n": 3669,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+    "threshold": 0.5974175824175824,
+    "mean_cos_to_random_other": -0.0034282589757068252,
+    "ceiling_identification": 0.6623626373626373,
+    "pass": true
+   },
+   "exact_phrase_recovery_true": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "n": 3670,
+   "n_paired": 3669
+  },
+  "concept": {
+   "1_true_minus_scrambled": {
+    "mean": 0.2551190656352261,
+    "ci_lo": 0.208350898979666,
+    "ci_hi": 0.30045875116296655,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "A_mean_tower_cos": 0.3533106828736727,
+    "A_ci": [
+     0.32109172373363515,
+     0.3849711204812395
+    ],
+    "ceiling": 0.500577382425243,
+    "required_fraction_of_ceiling": 0.4,
+    "required_A_tower_cos": 0.2002309529700972,
+    "fraction_of_ceiling_reached": 0.7058063254115094,
+    "pass": true
+   },
+   "2_scrambled_vs_prior_only": {
+    "mean": 0.08211455213737232,
+    "ci_lo": 0.022065571669352663,
+    "ci_hi": 0.1413395661787514,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "pass": false,
+    "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)"
+   },
+   "3_identification": {
+    "mean": 0.8476190476190476,
+    "ci_lo": 0.8,
+    "ci_hi": 0.8952380952380953,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+    "threshold": 0.7714285714285714,
+    "mean_cos_to_random_other": 0.015205173010910894,
+    "ceiling_identification": 0.9523809523809523,
+    "pass": true
+   },
+   "exact_phrase_recovery_true": {
+    "mean": 0.01904761904761905,
+    "ci_lo": 0.004761904761904762,
+    "ci_hi": 0.0380952380952381,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "n": 210,
+   "n_paired": 210
+  }
+ },
+ "gate_criteria": {
+  "1_true_minus_scrambled": {
+   "mean": 0.11143011035306187,
+   "ci_lo": 0.10543653866889342,
+   "ci_hi": 0.11734156022561876,
+   "n": 3669,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "A_mean_tower_cos": 0.0952809043627276,
+   "A_ci": [
+    0.09029087767666802,
+    0.10031745567559322
+   ],
+   "ceiling": 0.08919716576308714,
+   "required_fraction_of_ceiling": 0.4,
+   "required_A_tower_cos": 0.03567886630523486,
+   "fraction_of_ceiling_reached": 1.0682055146886529,
+   "pass": true
+  },
+  "2_scrambled_vs_prior_only": {
+   "mean": -0.013306715167844943,
+   "ci_lo": -0.018502672832413778,
+   "ci_hi": -0.008113219255590684,
+   "n": 3669,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "pass": false,
+   "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)"
+  },
+  "3_identification": {
+   "mean": 0.6778413736713,
+   "ci_lo": 0.6631234668847097,
+   "ci_hi": 0.6931043881166531,
+   "n": 3669,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+   "threshold": 0.5974175824175824,
+   "mean_cos_to_random_other": -0.0034282589757068252,
+   "ceiling_identification": 0.6623626373626373,
+   "pass": true
+  },
+  "exact_phrase_recovery_true": {
+   "mean": 0.0,
+   "ci_lo": 0.0,
+   "ci_hi": 0.0,
+   "n": 3670,
+   "n_boot": 10000,
+   "excludes_zero": false
+  },
+  "n": 3670,
+  "n_paired": 3669
+ },
+ "verdict": "FAILURE",
+ "reading_rule": "criterion 1 missing on the gate channel => the vector does not condition the text at this scale (HARD RULE 6 weak-method report). Criterion 3 missing with 1 passing => channel-level conditioning ONLY; no faithfulness language. If the gate fell back to the concept channel, the item-channel weakness is an INSTRUMENT limit, not a model failure, and the exact-phrase-recovery rate must be quoted beside every number.",
+ "ceiling": {
+  "item": {
+   "mean": 0.08919716576308714,
+   "ci_lo": 0.08433685153815713,
+   "ci_hi": 0.09399426187318737,
+   "n": 3640,
+   "n_boot": 10000,
+   "excludes_zero": true
+  },
+  "concept": {
+   "mean": 0.500577382425243,
+   "ci_lo": 0.4768516510168786,
+   "ci_hi": 0.5235221206964843,
+   "n": 210,
+   "n_boot": 10000,
+   "excludes_zero": true
+  },
+  "identification": {
+   "item": {
+    "mean": 0.6623626373626373,
+    "ci_lo": 0.6467032967032967,
+    "ci_hi": 0.6777472527472528,
+    "n": 3640,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "mean_cos_to_random_other": 0.00012932296562999192
+   },
+   "concept": {
+    "mean": 0.9523809523809523,
+    "ci_lo": 0.919047619047619,
+    "ci_hi": 0.9809523809523809,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "mean_cos_to_random_other": 0.01592726305068327
+   }
+  }
+ },
+ "levels_tower_by_channel": {
+  "true": {
+   "item": {
+    "mean": 0.0952809043627276,
+    "ci_lo": 0.09029087767666802,
+    "ci_hi": 0.10031745567559322,
+    "n": 3669,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.3533106828736727,
+    "ci_lo": 0.32109172373363515,
+    "ci_hi": 0.3849711204812395,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "scrambled": {
+   "item": {
+    "mean": -0.016078462630643556,
+    "ci_lo": -0.020548608145773407,
+    "ci_hi": -0.011572037909250198,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.09819161723844655,
+    "ci_lo": 0.06320722498235977,
+    "ci_hi": 0.13315085059199588,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "prior": {
+   "item": {
+    "mean": -0.002832571780197207,
+    "ci_lo": -0.007042099918650537,
+    "ci_hi": 0.001419877220369144,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "concept": {
+    "mean": 0.01607706510107423,
+    "ci_lo": -0.023163807444448153,
+    "ci_hi": 0.05453276218210099,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   }
+  },
+  "prior_strict_zero_prefix": {
+   "item": {
+    "mean": -0.0029805072743245187,
+    "ci_lo": -0.007159923464316338,
+    "ci_hi": 0.0012820473813940454,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "concept": {
+    "mean": 0.0977605708755276,
+    "ci_lo": 0.07632055324960894,
+    "ci_hi": 0.11926348965311842,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  }
+ },
+ "levels_kphi_SECONDARY_emitters_own_head_space": {
+  "true": {
+   "item": {
+    "mean": 0.09308746760641577,
+    "ci_lo": 0.08503750007324208,
+    "ci_hi": 0.10099459487521832,
+    "n": 3669,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.5293275407578034,
+    "ci_lo": 0.4870952371942079,
+    "ci_hi": 0.5699613849449373,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "scrambled": {
+   "item": {
+    "mean": -0.03805837013610745,
+    "ci_lo": -0.045318019496403586,
+    "ci_hi": -0.0305802079116734,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.22830582287529036,
+    "ci_lo": 0.18662061391168772,
+    "ci_hi": 0.2695145072418707,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "prior": {
+   "item": {
+    "mean": -0.01221338268375502,
+    "ci_lo": -0.020542563668540684,
+    "ci_hi": -0.0038182222022657025,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.144985556553834,
+    "ci_lo": 0.106068959308785,
+    "ci_hi": 0.18429210558784404,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "prior_strict_zero_prefix": {
+   "item": {
+    "mean": -0.0061684943866418705,
+    "ci_lo": -0.015119480535447781,
+    "ci_hi": 0.002867712664966991,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "concept": {
+    "mean": 0.19542639433876918,
+    "ci_lo": 0.15298715758270484,
+    "ci_hi": 0.2386004888531314,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  }
+ },
+ "phrase_recovery": {
+  "true": {
+   "exact": {
+    "mean": 0.0010309278350515464,
+    "ci_lo": 0.0002577319587628866,
+    "ci_hi": 0.002061855670103093,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1": {
+    "mean": 0.10735304191443167,
+    "ci_lo": 0.10270258421023795,
+    "ci_hi": 0.11214254651772244,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_concepts": {
+    "mean": 0.01904761904761905,
+    "ci_lo": 0.004761904761904762,
+    "ci_hi": 0.0380952380952381,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_items": {
+    "mean": 0.11077106338637462,
+    "ci_lo": 0.1059519485471938,
+    "ci_hi": 0.1154862800895088,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_concepts": {
+    "mean": 0.047619047619047616,
+    "ci_lo": 0.0246031746031746,
+    "ci_hi": 0.07380952380952381,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "n_distinct_texts": 2280
+  },
+  "scrambled": {
+   "exact": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1": {
+    "mean": 0.06896397046390583,
+    "ci_lo": 0.06562680634834461,
+    "ci_hi": 0.07241569459506639,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_items": {
+    "mean": 0.07272848466847082,
+    "ci_lo": 0.069204447036703,
+    "ci_hi": 0.07628044294980399,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_concepts": {
+    "mean": 0.0031746031746031746,
+    "ci_lo": 0.0,
+    "ci_hi": 0.009523809523809525,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "n_distinct_texts": 61
+  },
+  "prior": {
+   "exact": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1": {
+    "mean": 0.06598969089857872,
+    "ci_lo": 0.06284098290852094,
+    "ci_hi": 0.06915626999434539,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_items": {
+    "mean": 0.06976566776198513,
+    "ci_lo": 0.06647421911793128,
+    "ci_hi": 0.07313942314294844,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "n_distinct_texts": 2
+  },
+  "prior_strict_zero_prefix": {
+   "exact": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "n_distinct_texts": 1
+  }
+ },
+ "disclosure_membership_leak": {
+  "what": "concept directions are built from member items' decoder rows, so a held-out item leaks weakly into the tags its title matches; this is the size of that association. REPORTED, NOT GATED.",
+  "correlation_true_item_score_vs_genome_membership_count": {
+   "n": 3669,
+   "pearson": {
+    "r": 0.1167660213235192,
+    "ci_lo": 0.0851351538350558,
+    "ci_hi": 0.14787274774942644
+   },
+   "spearman": {
+    "r": 0.1071310862470778,
+    "ci_lo": 0.08167519842702979,
+    "ci_hi": 0.14559289746323184
+   }
+  },
+  "correlation_ceiling_item_score_vs_genome_membership_count": {
+   "n": 3640,
+   "pearson": {
+    "r": 0.06886098131100998,
+    "ci_lo": 0.035983262469690094,
+    "ci_hi": 0.10151912902883689
+   },
+   "spearman": {
+    "r": 0.06293765238057061,
+    "ci_lo": 0.03487884305939215,
+    "ci_hi": 0.09922327305947104
+   }
+  },
+  "membership_count": {
+   "mean": 33.05014990460616,
+   "median": 28.0,
+   "zero_membership_items": 902
+  }
+ },
+ "prior_only_texts": {
+  "item": "The Last Man in the World (2007)",
+  "concept": "bribery",
+  "strict_zero_prefix": ""
+ },
+ "examples": [
+  {
+   "bank_idx": 5,
+   "channel": "item",
+   "gold": "Shawshank Redemption, The (1994)",
+   "true": "The Good Wife (1995)",
+   "scrambled": "The Man Who Loved You (1962)",
+   "tower_cos_true": 0.23558693425423513,
+   "tower_cos_scrambled": -0.042139676162024194
+  },
+  {
+   "bank_idx": 1032,
+   "channel": "item",
+   "gold": "Rocky Balboa (2006)",
+   "true": "Rocky (2005)",
+   "scrambled": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+   "tower_cos_true": 0.09991325322349631,
+   "tower_cos_scrambled": 0.06686572196630083
+  },
+  {
+   "bank_idx": 2049,
+   "channel": "item",
+   "gold": "Zelig (1983)",
+   "true": "Theatrical Man (1962)",
+   "scrambled": "The Last of Us (2013)",
+   "tower_cos_true": 0.15339778240190863,
+   "tower_cos_scrambled": -0.08436651341117352
+  },
+  {
+   "bank_idx": 2987,
+   "channel": "item",
+   "gold": "Cruise, The (1998)",
+   "true": "The Best of the Best of the Best of the Best of the Best of the",
+   "scrambled": "The Last of Us (2013)",
+   "tower_cos_true": -0.029491087755491047,
+   "tower_cos_scrambled": -0.16146135548428714
+  },
+  {
+   "bank_idx": 3864,
+   "channel": "item",
+   "gold": "Princess Diaries 2: Royal Engagement, The (2004)",
+   "true": "The Princess and the Frog (2006)",
+   "scrambled": "The Man Who Loved You (1962)",
+   "tower_cos_true": 0.38277414031804396,
+   "tower_cos_scrambled": 0.3373729656831621
+  },
+  {
+   "bank_idx": 4774,
+   "channel": "item",
+   "gold": "Neznaika na lune (1997)",
+   "true": "The Last of the Dead (1955)",
+   "scrambled": "The Last of Us (2013)",
+   "tower_cos_true": -0.012810977476685418,
+   "tower_cos_scrambled": 0.1299371569881802
+  },
+  {
+   "bank_idx": 5739,
+   "channel": "item",
+   "gold": "Monsters vs. Aliens (2009)",
+   "true": "Halloween (2008)",
+   "scrambled": "The Last of Us (2013)",
+   "tower_cos_true": 0.09153800879594177,
+   "tower_cos_scrambled": 0.2558123242094807
+  },
+  {
+   "bank_idx": 6744,
+   "channel": "item",
+   "gold": "Saint Laurent (2014)",
+   "true": "The Last Day (L'Aquila) (2013)",
+   "scrambled": "The Last of Us (1962)",
+   "tower_cos_true": 0.18021742613986833,
+   "tower_cos_scrambled": -0.054539941803575034
+  },
+  {
+   "bank_idx": 7767,
+   "channel": "item",
+   "gold": "Silence, The (Tystnaden) (1963)",
+   "true": "Crown of the Devil (Crown of the Devil) (1962)",
+   "scrambled": "The Last of Us (2015)",
+   "tower_cos_true": 0.07416977027362823,
+   "tower_cos_scrambled": -0.13562645652400607
+  },
+  {
+   "bank_idx": 8754,
+   "channel": "item",
+   "gold": "G.I. Joe: Retaliation (2013)",
+   "true": "Mortal Kombat (2013)",
+   "scrambled": "The Man Who Killed the Man (2015)",
+   "tower_cos_true": 0.09523217973220274,
+   "tower_cos_scrambled": 0.08085577296847926
+  },
+  {
+   "bank_idx": 9758,
+   "channel": "item",
+   "gold": "Pathfinder (2007)",
+   "true": "Wolverine (2007)",
+   "scrambled": "The Man Who Loved You (2015)",
+   "tower_cos_true": 0.15694898924515732,
+   "tower_cos_scrambled": -0.08842969429065188
+  },
+  {
+   "bank_idx": 10764,
+   "channel": "item",
+   "gold": "Gleaming the Cube (1989)",
+   "true": "Crazy (1989)",
+   "scrambled": "The Last of Us (2013)",
+   "tower_cos_true": 0.13128445537670738,
+   "tower_cos_scrambled": -0.07947810136702643
+  },
+  {
+   "bank_idx": 11673,
+   "channel": "item",
+   "gold": "Cigarette Burns (2005)",
+   "true": "The Devil (2016)",
+   "scrambled": "The Man Who Loved You (1962)",
+   "tower_cos_true": 0.3457077137101028,
+   "tower_cos_scrambled": -0.3247487433967401
+  },
+  {
+   "bank_idx": 12611,
+   "channel": "item",
+   "gold": "Boogeyman (2005)",
+   "true": "Halloween (2007)",
+   "scrambled": "The Last of Us (2015)",
+   "tower_cos_true": 0.30810961463346,
+   "tower_cos_scrambled": 0.05408282047556417
+  },
+  {
+   "bank_idx": 13520,
+   "channel": "item",
+   "gold": "Jeanne and the Perfect Guy (Jeanne et le gar\u00e7on formidable) (1998)",
+   "true": "The Girl Who Was (La vie de la vie de la vie",
+   "scrambled": "The Last of Us (2013)",
+   "tower_cos_true": 0.13401916028068764,
+   "tower_cos_scrambled": -0.25185749320555245
+  },
+  {
+   "bank_idx": 14485,
+   "channel": "item",
+   "gold": "Slipstream (2007)",
+   "true": "The Last Man in the World (2015)",
+   "scrambled": "The Last of Us (2013)",
+   "tower_cos_true": 0.012516186850757428,
+   "tower_cos_scrambled": -0.10136410911447165
+  },
+  {
+   "bank_idx": 15469,
+   "channel": "item",
+   "gold": "Steak (2007)",
+   "true": "The Last Man in the World (Kommez) (2009)",
+   "scrambled": "The Last of Us (2013)",
+   "tower_cos_true": 0.14694052103653962,
+   "tower_cos_scrambled": 0.06541390276386069
+  },
+  {
+   "bank_idx": 16451,
+   "channel": "item",
+   "gold": "Evil That Men Do, The (1984)",
+   "true": "The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed",
+   "scrambled": "The Man Who Loved You (1962)",
+   "tower_cos_true": 0.115977756927066,
+   "tower_cos_scrambled": -0.1455479000332056
+  },
+  {
+   "bank_idx": 17421,
+   "channel": "item",
+   "gold": "Greyfriars Bobby (a.k.a. Greyfriars Bobby: The True Story of a Dog) (1961)",
+   "true": "The Devil's Tale (1962)",
+   "scrambled": "The Last of Us (2015)",
+   "tower_cos_true": -0.021777785944706203,
+   "tower_cos_scrambled": -0.05973828267518591
+  },
+  {
+   "bank_idx": 18422,
+   "channel": "concept",
+   "gold": "archaeology",
+   "true": "gothic",
+   "scrambled": "fascism",
+   "tower_cos_true": 0.23392319029725625,
+   "tower_cos_scrambled": -0.26540399398148246
+  }
+ ],
+ "bootstrap": {
+  "n_resamples": 10000,
+  "seed": 98765,
+  "kind": "paired percentile over held-out questions, within channel"
+ },
+ "reencode_recipe": {
+  "source": "c3_poc_reencode (IMPORTED)",
+  "sbert_model": "all-MiniLM-L6-v2",
+  "pooling": "sent",
+  "topn": 4,
+  "mincos": 0.3,
+  "fold": "certified ConceptFoldNet cv3 on the cold tower fold z0, v=+1",
+  "whitening": "popularity axis u1 stripped from both sides"
+ },
+ "controls": {
+  "concept_dirs_reproduced_from_item_targets_worst_1_minus_abscos": 2.8602175370373573e-06
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "split_hashes": {
+  "train_q": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "heldout_q": "3184618cf517afed10eff43ccd51a459675c884df627047bfd4a7eb7af476152",
+  "inner_fit": "e312f134a27ebd935209c3a0f2ca5476ffa0ce1d719dac33b8a1f5f5b0669aca",
+  "inner_val": "3a26d40f5bbf0c7ce3a3c72b2f9b24bf3801b2280389fb6ae959c231954bc598",
+  "scramble_train_targets": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "strata": "d34810b89d9dc70b1ca2615431f16df1cf7d74de770e939008e77f96af9bcdbf",
+  "X": "17b36d3601756950381d24c8881fbf960f8e412bd6145b722448cb4dea0d074a"
+ },
+ "git": {
+  "rev": "0149f4cad5c84d624a8356aaffcc9d8d4690905d",
+  "branch": "recommender-improvement"
+ },
+ "minutes": 36.94
+}

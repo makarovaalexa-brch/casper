@@ -1,0 +1,12 @@
+{
+ "analysis": "paperC_C3B_earlyread",
+ "epoch": 2,
+ "true_train_ce": 3.0570447409999404,
+ "scrambled_train_ce": 3.302065870769044,
+ "delta_train_ce_scrambled_minus_true": 0.2450211297691034,
+ "true_val_ce": 3.025787699697074,
+ "scrambled_val_ce": 3.282901788419333,
+ "delta_val_ce_scrambled_minus_true": 0.25711408872225894,
+ "separated": true,
+ "registered_flag": "DS_C3B_ADAPTER.md secondary: if A and A' train-CE curves have NOT separated by epoch 2, FLAG IMMEDIATELY"
+}
