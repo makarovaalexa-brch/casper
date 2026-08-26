@@ -82,6 +82,16 @@ def celf_per_user_prefix(E, rows, seeds, pool, L, objective, tag, on_pick=None, 
     (one shared prefix), and with equal prefixes the two agree exactly -- that is `--mode selftest`.
     """
     t0 = time.time()
+    # The guard `greedy_certified` has always carried and this function did not. A candidate already
+    # present in a user's state must not also be in the pool: re-picking it scores ~0 and wins at an
+    # exhausted node, and the user is asked the same question twice. Checked on the SHARED prefix
+    # only -- per-user volunteered evidence legitimately differs between users and is masked at
+    # routing time, not here.
+    _shared = set.intersection(*[set(x) for x in seeds]) if seeds else set()
+    _clash = _shared & {tuple(q) for q in pool}
+    assert not _clash, (
+        f"{tag}: {len(_clash)} candidate(s) are already in EVERY user's state yet still in the pool "
+        f"-- they would be asked twice. Exclude them before searching. e.g. {sorted(_clash)[:3]}")
 
     def save(heap, seq, gains, base, cur, nev):
         if not heap_path:

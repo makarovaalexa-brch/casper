@@ -164,13 +164,22 @@ def main():
     def fit(nid, rows, path, budget):
         """Fit one node: a splitter if it may split, then the fitted order for each branch."""
         sd = [seeds[int(r)] + [tuple(q) for q in path] for r in rows]
+        # EXCLUDE THIS NODE'S OWN PATH FROM THE POOL (2026-08-26). Without this a search can
+        # re-pick a question already folded into the state: it scores ~0 gain, which WINS at a deep
+        # node where nothing else is positive, and the user is then asked the same thing twice.
+        # `ndcg_tree` has always done this (`pool_n`, line 674) and `greedy_certified` asserts it;
+        # `celf_per_user_prefix` had neither, so m6k was the one fitter that could produce it.
+        # Cost: `inspiring` had 3 such nodes over 307 users.
+        _banned = {(int(a), int(b)) for a, b in path}
+        pool_n = [q for q in pool if (int(q[0]), int(q[1])) not in _banned]
+        assert len(pool_n) == len(pool) - len(_banned & {(int(q[0]), int(q[1])) for q in pool}),             f"{nid}: pool exclusion dropped the wrong number of candidates"
         hp = os.path.join(OUT, f"heap_{tag}_{nid}.json")
         sw = os.path.join(OUT, "sweeps", f"sweep_{tag}_{nid}.npz")   # C1 gain table, see ndcg_tree
         depth = len(path)
         may_split = depth < a.depth
         if may_split:
             t0 = time.time()
-            seq1, g1, nev = celf_per_user_prefix(E, rows, sd, pool, 1, "full",
+            seq1, g1, nev = celf_per_user_prefix(E, rows, sd, pool_n, 1, "full",
                                                  f"{nid}/split", heap_path=hp, sig=sig, sweep_path=sw)
             q = (int(seq1[0][0]), int(seq1[0][1]))
             lab, ar, _z = branch_of(E, rows, q)
@@ -193,7 +202,7 @@ def main():
             # the splitter, by construction. Same reuse the cold-tree fitter documents at
             # `ndcg_tree.py:642`. Halves the cost of every node. If `may_split` was False the file
             # does not exist and this seeds cold, as before.
-            seqL, gL, nev = celf_per_user_prefix(E, rows, sdl, pool, budget, "full",
+            seqL, gL, nev = celf_per_user_prefix(E, rows, sdl, pool_n, budget, "full",
                                                  f"{nid}/tail", heap_path=hp, sig=sig, sweep_path=sw)
             nodes[nid] = {"nid": nid, "split": False, "n_users": len(rows),
                           "path": [[int(x), int(y)] for x, y in path],
@@ -210,7 +219,7 @@ def main():
             return
         # a splitting node: record the splitter, then a fitted TAIL for inheritance, then recurse
         t0 = time.time()
-        seqT, gT, _n = celf_per_user_prefix(E, rows, sd, pool, budget, "full",
+        seqT, gT, _n = celf_per_user_prefix(E, rows, sd, pool_n, budget, "full",
                                             f"{nid}/tailfull", heap_path=hp, sig=sig, sweep_path=sw)
         # the equivalence the reuse rests on, asserted rather than assumed
         assert tuple(seqT[0]) == q, (
