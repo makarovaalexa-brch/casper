@@ -47,6 +47,7 @@ _R = os.path.abspath(os.path.join(_H, "..", ".."))
 sys.path.insert(0, _H)
 
 import argparse
+import hashlib
 import json
 import time
 
@@ -157,8 +158,22 @@ def main():
 
     pool, _i, _c = build_pool(E, 500, 500)
     seeds = {int(r): [tuple(q) for q in op] for r, op in zip(cohort, openers)}
-    sig = {"cluster": a.cluster, "seed": SEED, "top_frac": a.top_frac, "n": int(n),
-           "pool": len(pool), "total_L": TOTAL_L}
+    # ⚠ THE SIGNATURE MUST IDENTIFY THE CANDIDATE SET, NOT ITS SIZE (2026-08-26). It used to carry
+    # `"pool": len(pool)` and was computed ONCE for the whole tree, so shrinking the pool per node
+    # left the signature unchanged: banked heaps validated, resumed, and faithfully reproduced the
+    # very tree the pool fix was meant to correct -- 22 nodes "refitted" in 0.0 minutes. A length is
+    # a PROXY for a candidate set. It is now per-node and hashes the actual candidates and path.
+    sig_base = {"cluster": a.cluster, "seed": SEED, "top_frac": a.top_frac, "n": int(n),
+                "total_L": TOTAL_L, "v": 2}
+
+    def _sha(o):
+        return hashlib.sha1(json.dumps(o, sort_keys=True).encode()).hexdigest()[:16]
+
+    def node_sig(path, pool_n):
+        return dict(sig_base,
+                    path=[[int(x), int(y)] for x, y in path],
+                    n_pool=len(pool_n),
+                    pool_sha1=_sha([[int(q[0]), int(q[1])] for q in pool_n]))
     nodes = {}
 
     def fit(nid, rows, path, budget):
@@ -173,6 +188,7 @@ def main():
         _banned = {(int(a), int(b)) for a, b in path}
         pool_n = [q for q in pool if (int(q[0]), int(q[1])) not in _banned]
         assert len(pool_n) == len(pool) - len(_banned & {(int(q[0]), int(q[1])) for q in pool}),             f"{nid}: pool exclusion dropped the wrong number of candidates"
+        sig = node_sig(path, pool_n)
         hp = os.path.join(OUT, f"heap_{tag}_{nid}.json")
         sw = os.path.join(OUT, "sweeps", f"sweep_{tag}_{nid}.npz")   # C1 gain table, see ndcg_tree
         depth = len(path)
