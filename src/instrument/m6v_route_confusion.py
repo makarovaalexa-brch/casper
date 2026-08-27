@@ -66,7 +66,7 @@ def main():
     from m3_show_paths import build_names
     from opener_gen import centroid_lift, make_openers
     from m6d_eval import rollout_with_openers
-    from m4b_policy import Policy, build_phi
+    from policy_net import Policy, build_phi
     from run_guard import require_mains
     cname, _iname = build_names()
     require_mains("m6v route confusion", log=log)
