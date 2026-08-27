@@ -138,12 +138,45 @@ def consolidate(tree):
     return {"lab": lab, "out": out, "valid": val, "uid": uid, "anchor": anchor, "d": d, "z": zz}
 
 
-def build_index(banks, lo, hi):
-    """Flat (tree, row, position) index over VALID positions whose user lies in [lo, hi)."""
+def build_index(banks, lo, hi, balance=False, seed=SEED):
+    """Flat (tree, row, position) index over VALID positions whose user lies in [lo, hi).
+
+    `balance` caps every COHORT bank to the smallest cohort's user count, so no teacher dominates
+    the training signal. Measured need (2026-08-27, `m6v_route_confusion`): `inspiring` held 32.4%
+    of grouped training users and became a default attractor -- `dialogue`, `gore` and `marvel` each
+    leaked 0.315 / 0.324 / 0.311 of their users to it, matching its training share almost exactly,
+    which cut the forest policy's capture of its teachers' advantage to 30%.
+
+    COLD IS NEVER CAPPED. It is not a cohort competing for the same states -- it is the arm for users
+    who endorse nothing, it carries the do-no-harm property (-0.00008), and it is already the
+    best-reproduced teacher (0.9995). Capping it would trade a property that works for one that does
+    not.
+
+    Users are dropped whole (never individual positions) and chosen by a seeded permutation, so the
+    subsample is deterministic and a user contributes all of their positions or none.
+    """
+    rng = np.random.default_rng(seed)
+    keep = {}
+    if balance:
+        sizes = {t: int(((banks[t]["uid"] >= lo) & (banks[t]["uid"] < hi)).sum())
+                 for t in TREES if t != "cold"}
+        cap = min(sizes.values()) if sizes else 0
+        log(f"[balance] cohort banks capped to {cap:,} users each (smallest cohort); "
+            f"cold is NOT capped. before: {sizes}")
+        for t, k in sizes.items():
+            d = banks[t]
+            sel = np.flatnonzero((d["uid"] >= lo) & (d["uid"] < hi))
+            if len(sel) > cap:
+                sel = sel[rng.permutation(len(sel))[:cap]]
+            keep[t] = set(sel.tolist())
     out = []
     for ti, t in enumerate(TREES):
         d = banks[t]
         sel = (d["uid"] >= lo) & (d["uid"] < hi)
+        if t in keep:
+            m = np.zeros(len(d["uid"]), bool)
+            m[list(keep[t])] = True
+            sel = sel & m
         rr, pp = np.nonzero(d["valid"] & sel[:, None])
         out.append(np.stack([np.full(len(rr), ti, np.int32), rr.astype(np.int32),
                              pp.astype(np.int32)], 1))
@@ -230,6 +263,9 @@ def main():
                          "ONLY for a deliberate subset-of-groups run, where the users endorsing an "
                          "unbanked anchor are excluded BY DESIGN. Never a way to paper over a "
                          "missing slice: the excluded groups are named in the log.")
+    ap.add_argument("--balance_banks", action="store_true",
+                    help="cap every COHORT bank to the smallest cohort's user count so no teacher "
+                         "dominates. Cold is never capped.")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
@@ -322,7 +358,10 @@ def main():
         f"{t}={'in' if a_pool[t] >= 0 else 'OUT'}" for t in TREES if banks[t]["anchor"] >= 0))
     del E
 
-    tr_idx = build_index(banks, 0, a.dev_lo)
+    # Balance the TRAINING distribution only. Dev stays on the true distribution so fidelity is
+    # measured against reality, not against the reweighting -- and m4b reports dev top-1 per tree
+    # anyway, so a balanced dev would change nothing except make the mean flatter and less honest.
+    tr_idx = build_index(banks, 0, a.dev_lo, balance=a.balance_banks)
     dv_idx = build_index(banks, a.dev_lo, N_TRAIN)
     log(f"[split] {len(tr_idx):,} training examples (users < {a.dev_lo:,}) - "
         f"{len(dv_idx):,} dev examples (users >= {a.dev_lo:,}). VALIDATION IS NOT TOUCHED.")
