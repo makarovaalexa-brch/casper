@@ -270,7 +270,7 @@ def main():
                 f"{nid}: path+steps = {len(nd['path']) + len(nd['steps'])}, expected {TOTAL_L}"
     json.dump({"analysis": "m6k_cluster_tree", "split": a.split, "test_touched": False,
                "fit_rows": [int(r) for r in cohort], "slice_hi": a.slice_hi,
-               "cluster": a.cluster, "sig": sig, "n_nodes": len(nodes),
+               "cluster": a.cluster, "sig": sig_base, "n_nodes": len(nodes),
                "minutes": (time.time() - t0) / 60, "opener_meta":
                    {k: v for k, v in meta.items() if k != "shape"}, "nodes": nodes,
                "openers": {str(int(r)): [[int(x), int(y)] for x, y in op]
