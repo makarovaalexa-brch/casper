@@ -52,6 +52,10 @@ def log(m):
 
 def main():
     ap = argparse.ArgumentParser(description="M6x -- can the cohort be read off the opener state?")
+    ap.add_argument("--labels", default="",
+                    help="npz with val_rows/val_labels (m7a/m6y). Probes THAT partition instead of "
+                         "the endorsement cohorts. Openers are generated per group either way, so "
+                         "the two are measured under identical conditions.")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
@@ -76,10 +80,20 @@ def main():
     ZF, ZR = zf["z"].astype(np.float64), zf["rows"]
 
     # ---- the opener state for every (user, cohort) pair ------------------------------------------
+    if a.labels:
+        _L = np.load(a.labels)
+        _vr, _vl = _L["val_rows"], _L["val_labels"]
+        _by = {int(c): _vr[_vl == c] for c in sorted(set(_vl.tolist()))}
+        GROUPS = {f"c{c}": v for c, v in _by.items() if len(v) >= 100}
+        log(f"[partition] {os.path.basename(a.labels)}: {len(GROUPS)} groups with >=100 val users")
+    else:
+        GROUPS = {g: vrows[end[vrows, CONCEPTS[g]]] for g in sorted(CONCEPTS)}
+        log("[partition] endorsement cohorts (overlapping)")
+
     Z, lab, uid = [], [], []
     per_user = {}
-    for g in sorted(CONCEPTS):
-        rows = vrows[end[vrows, CONCEPTS[g]]]
+    for g in sorted(GROUPS):
+        rows = np.asarray(GROUPS[g], np.int64)
         tab = centroid_lift(E, rows, ZF, ZR)
         ops, _m = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL, seed=SEED, group_key=g)
         iseq = [[i for c, i in o if c == 0] for o in ops]
@@ -91,7 +105,7 @@ def main():
             per_user.setdefault(int(r), {})[g] = zz
         log(f"[state] {g:<11} {len(rows):>5} users")
     Z = np.concatenate(Z); uid = np.concatenate(uid)
-    names = sorted(CONCEPTS)
+    names = sorted(GROUPS)
     y = np.asarray([names.index(x) for x in lab], np.int64)   # np defaults to int32 on Windows
     log(f"[state] {len(Z)} (user, cohort) states, dim {Z.shape[1]}")
 
