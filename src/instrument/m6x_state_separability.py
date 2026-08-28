@@ -56,6 +56,10 @@ def main():
                     help="npz with val_rows/val_labels (m7a/m6y). Probes THAT partition instead of "
                          "the endorsement cohorts. Openers are generated per group either way, so "
                          "the two are measured under identical conditions.")
+    ap.add_argument("--disjoint", default="",
+                    help="m7b_disjoint.npz: DISJOINT groups (each user in one) and DISJOINT opener "
+                         "material (each film/concept owned by one group). This is the fix under "
+                         "test -- overlapping material is why the probe capped at 0.371.")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
@@ -80,13 +84,21 @@ def main():
     ZF, ZR = zf["z"].astype(np.float64), zf["rows"]
 
     # ---- the opener state for every (user, cohort) pair ------------------------------------------
-    if a.labels:
+    DJ = None
+    if a.disjoint:
+        _D = np.load(a.disjoint)
+        _names = ["arthouse", "dialogue", "marvel", "gore", "teenagers", "inspiring"]
+        DJ = (_D["own_item"], _D["own_concept"], _names)
+        _vr, _vg, _vh = _D["val_rows"], _D["val_group"], _D["val_has"]
+        GROUPS = {_names[i]: _vr[(_vg == i) & _vh] for i in range(len(_names))}
+        log(f"[partition] DISJOINT: {sum(len(v) for v in GROUPS.values())} users, each in one group")
+    elif a.labels:
         _L = np.load(a.labels)
         _vr, _vl = _L["val_rows"], _L["val_labels"]
         _by = {int(c): _vr[_vl == c] for c in sorted(set(_vl.tolist()))}
         GROUPS = {f"c{c}": v for c, v in _by.items() if len(v) >= 100}
         log(f"[partition] {os.path.basename(a.labels)}: {len(GROUPS)} groups with >=100 val users")
-    else:
+    elif not a.disjoint:
         GROUPS = {g: vrows[end[vrows, CONCEPTS[g]]] for g in sorted(CONCEPTS)}
         log("[partition] endorsement cohorts (overlapping)")
 
@@ -95,7 +107,9 @@ def main():
     for g in sorted(GROUPS):
         rows = np.asarray(GROUPS[g], np.int64)
         tab = centroid_lift(E, rows, ZF, ZR)
-        ops, _m = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL, seed=SEED, group_key=g)
+        dj = None if DJ is None else (DJ[0], DJ[1], DJ[2].index(g))
+        ops, _m = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL, seed=SEED, group_key=g,
+                               disjoint=dj)
         iseq = [[i for c, i in o if c == 0] for o in ops]
         cseq = [[i for c, i in o if c == 1] for o in ops]
         z = np.asarray(genv_eval_multi(E, rows, iseq, cseq, score=False, return_z=True)[-1],
