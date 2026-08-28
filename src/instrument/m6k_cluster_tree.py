@@ -215,7 +215,11 @@ def main():
         f"tone {meta['n_tone'] / n:.3f} · unserved {meta['unserved']}"
         + (" · GROUP-FREE (own history, no pool)" if a.global_openers
            else f" · pool {meta['pool_size']}"))
-    log(f"[vocab] genres {meta['genres']} · tones {meta['tones']}")
+    if not a.global_openers:
+        log(f"[vocab] genres {meta['genres']} · tones {meta['tones']}")
+    else:
+        log("[vocab] group-free: each user offers their OWN endorsed genres and tones, "
+            "not a group's top-6")
     for j in range(4):
         log("   e.g. " + " + ".join((iname.get(i, str(i)) if c == 0 else cname.get(i, str(i)))
                                     for c, i in openers[j]))
