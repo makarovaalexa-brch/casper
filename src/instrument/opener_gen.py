@@ -213,3 +213,91 @@ def make_openers(E, cohort_rows, tab, cname, like_min_level, seed, beta=1.5,
                 meta["unserved"] += 1
         openers.append(op)
     return openers, meta
+
+
+def make_openers_free(E, rows, cname, like_min_level, seed, beta=1.5,
+                      films_per=(0.53, 0.31, 0.16), half=None):
+    r"""GROUP-FREE openers: drawn from the user's OWN liked items, with no group pool.
+
+    `make_openers` filters a user's films to their group's diagnostic pool and offers only that
+    group's top-6 genres/tones. That makes an opener depend on a group -- so clustering opener
+    STATES needs openers that need groups, which is circular, and it is also the mechanism behind a
+    reviewer objection: cohorts and openers are derived from the same rating profile, so some of the
+    teacher gain could be the generator leaking profile information rather than the interview using
+    volunteered information.
+
+    Here a user volunteers from their own history and nothing else:
+      * films  -- any liked item, sampled at the corpus's popularity profile
+      * genre  -- any genre they endorse
+      * tone   -- any tone they endorse
+    The corpus targets are unchanged (film 0.6303 / genre 0.3979 / tone 0.2135, popularity p93.3),
+    so the SHAPE of what people volunteer is still Reddit-matched; only the group filter is gone.
+    This is the more faithful object: a real person names films they liked, not films from a
+    diagnostic list we computed.
+
+    Determinism is now in (seed, user) alone -- there is no group_key, which is the point: the same
+    user receives the same opener no matter which partition is later fitted over these states.
+
+    `half` still applies to FILMS ONLY, as in `make_openers`: the coarse vocabulary is too small to
+    split without emptying a channel, so the generalisation claim is about unseen FILMS.
+    """
+    rng = np.random.default_rng(seed)
+    genres, tones = coarse_ids(cname)
+    lvl = E["lvl"]
+    V, F = np.asarray(E["V"]), np.asarray(E["foldable"])
+    endorse = (F > 0) & (V > 0)
+    cnt = np.asarray(E["ctx"].cnt, np.float64)
+    o = np.argsort(-cnt)
+    pop = np.empty(len(cnt), np.int64)
+    pop[o] = np.arange(len(cnt))
+    pop = pop / len(cnt)
+    Wd = E["ctx"].Wd.detach().numpy().astype(np.float32)
+    Wn = Wd / np.maximum(np.linalg.norm(Wd, axis=1, keepdims=True), 1e-9)
+    tp = np.concatenate([rng.uniform(0, .10, 590), rng.uniform(.10, .25, 235),
+                         rng.uniform(.25, .60, 140), rng.uniform(.60, 1., 35)])
+    fk = np.asarray(films_per, np.float64)
+    fk /= fk.sum()
+    keep = None if half is None else pool_half(range(len(cnt)), half)
+
+    openers, meta = [], {"n_film": 0, "n_genre": 0, "n_tone": 0, "n": 0, "unserved": 0,
+                         "half": half, "group_free": True}
+    for r in rows:
+        r = int(r)
+        rng_u = _user_rng(seed, "", r)          # no group_key: the opener is the user's alone
+        meta["n"] += 1
+        op, got_g = [], False
+        myg = [c for c in genres if endorse[r, c]]
+        myt = [c for c in tones if endorse[r, c]]
+        if rng_u.random() < TARGETS["genre"] and myg:
+            op.append((1, int(rng_u.choice(myg)))); meta["n_genre"] += 1; got_g = True
+        if rng_u.random() < TARGETS["tone"] and myt:
+            op.append((1, int(rng_u.choice(myt)))); meta["n_tone"] += 1
+        mine = [i for i, v in lvl[r].items() if v >= like_min_level]
+        if keep is not None:
+            mine = [i for i in mine if int(i) in keep]
+        want = rng_u.random() < TARGETS["film"]
+        if not op and not want:
+            if myt:
+                op.append((1, int(rng_u.choice(myt)))); meta["n_tone"] += 1
+            elif myg and not got_g:
+                op.append((1, int(rng_u.choice(myg)))); meta["n_genre"] += 1
+            else:
+                want = True
+        if want and mine:
+            pv = np.asarray([pop[i] for i in mine])
+            s = int(mine[int(np.argmin(np.abs(pv - rng_u.choice(tp))))])
+            op.append((0, s)); meta["n_film"] += 1
+            k = int(rng_u.choice([1, 2, 3], p=fk))
+            if k > 1 and len(mine) > 1:
+                rest = [i for i in mine if i != s]
+                w = np.exp(beta * (Wn[rest] @ Wn[s]))
+                w /= w.sum()
+                for x in rng_u.choice(rest, min(k - 1, len(rest)), replace=False, p=w):
+                    op.append((0, int(x)))
+        if not op:
+            if mine:
+                op = [(0, int(rng_u.choice(mine)))]; meta["n_film"] += 1
+            else:
+                meta["unserved"] += 1
+        openers.append(op)
+    return openers, meta
