@@ -83,6 +83,10 @@ def main():
     ap.add_argument("--n_users", type=int, default=0,
                     help="cap the fitting cohort at this many users (0 = all in the pool)")
     ap.add_argument("--threads", type=int, default=6)
+    ap.add_argument("--cluster_labels", default="",
+                    help="npz from m6y_cluster_train: fit on a TASTE CLUSTER (a latent-space "
+                         "partition) instead of an endorsement cohort. With this, --cluster is the "
+                         "integer cluster id.")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
@@ -105,7 +109,10 @@ def main():
     # ⚠ 2026-08-20: a --split train run overwrote the validation-fitted arthouse tree AND its heap
     # sidecars, because both used the bare cluster name. Every artifact is now tagged by the fitting
     # condition, so the two can never collide.
-    tag = a.cluster if a.split == "validation" else f"{a.cluster}_{a.split}{a.n_users or a.slice_hi}"
+    # A cluster tree and an endorsement-cohort tree are DIFFERENT OBJECTS and must never share a
+    # path -- `--cluster 16` means concept-cohort "16" in one mode and taste-cluster 16 in the other.
+    _pre = f"clu{a.cluster}" if a.cluster_labels else a.cluster
+    tag = _pre if a.split == "validation" else f"{_pre}_{a.split}{a.n_users or a.slice_hi}"
     if a.split == "train":
         E = build_greedy_env(CERT_TOWER, "train", CERT_CONC, f"m6k_{a.cluster}_tr",
                              cohort_slice=(0, a.slice_hi))
@@ -124,10 +131,38 @@ def main():
     else:
         log(f"[gate] train-pool m=0 snap full={f0!r} (no canonical value exists for a train slice)")
 
-    cid = ANCHORS[a.cluster]
-    V, F = np.asarray(E["V"]), np.asarray(E["foldable"])
-    endorse = (F > 0) & (V > 0)
-    cohort = rows_all[endorse[rows_all, cid]]
+    if a.cluster_labels:
+        # ---- TASTE-CLUSTER MODE ------------------------------------------------------------------
+        # A cluster is a latent-space partition (era axis projected out, k-means on train), not an
+        # overlapping semantic set. Membership therefore comes from banked labels, not from an
+        # endorsement test, and every user belongs to exactly one.
+        cl = np.load(a.cluster_labels)
+        cnum = int(a.cluster)
+        tr_rows, tr_lab = cl["train_rows"], cl["train_labels"]
+        va_rows, va_lab = cl["val_rows"], cl["val_labels"]
+        assert a.split == "train", "cluster teachers are fitted on train"
+        want = set(tr_rows[tr_lab == cnum].tolist())
+        # m6k builds its train env as cohort_slice=(0, slice_hi), so a row's LOCAL index is already
+        # its global train id -- the same convention m6y banked its labels under. Asserted, not
+        # assumed, because an index is only meaningful with its population.
+        cohort = np.asarray([r for r in rows_all if int(r) in want], np.int64)
+        in_slice = int(((tr_rows >= 0) & (tr_rows < a.slice_hi) & (tr_lab == cnum)).sum())
+        matched = len(cohort) / max(in_slice, 1)
+        assert matched > 0.8, (
+            f"cluster {cnum}: matched only {len(cohort)} of {in_slice} banked members in slice "
+            f"0..{a.slice_hi} ({matched:.1%}). A PARTIAL index match is indistinguishable from a "
+            f"small cohort -- check the label file's population against this env's.")
+        log(f"[cluster] index match {len(cohort)}/{in_slice} = {matched:.1%}")
+        cent_rows_cluster = va_rows[va_lab == cnum]
+        log(f"[cluster] c{cnum}: {len(cohort)} train users in this slice, "
+            f"{len(cent_rows_cluster)} validation users")
+        assert len(cohort) >= 200, f"cluster {cnum} has only {len(cohort)} users in this slice"
+    else:
+        cid = ANCHORS[a.cluster]
+        V, F = np.asarray(E["V"]), np.asarray(E["foldable"])
+        endorse = (F > 0) & (V > 0)
+        cohort = rows_all[endorse[rows_all, cid]]
+        cent_rows_cluster = None
     if a.n_users and len(cohort) > a.n_users:
         cohort = cohort[:a.n_users]
         log(f"[cohort] capped at {a.n_users} users")
@@ -135,7 +170,11 @@ def main():
     # ⚠ THE GROUP CENTROID IS ALWAYS COMPUTED ON VALIDATION ROWS -- it is a property of the group,
     # not of the fitting split, and `z_full` holds validation users. Passing the train cohort here
     # silently averaged the ~600 train indices that happened to collide with a validation id.
-    if a.split == "train":
+    if cent_rows_cluster is not None:
+        cent_rows = np.asarray(cent_rows_cluster, np.int64)
+        log(f"[centroid] computed on {len(cent_rows)} VALIDATION users of cluster {a.cluster} "
+            f"(assigned to the train-fitted centroid, never re-clustered on validation)")
+    elif a.split == "train":
         Ev = build_greedy_env(CERT_TOWER, "validation", CERT_CONC, "m6k_cent")
         vr = np.asarray(Ev["rows"], np.int64)
         Vv, Fv = np.asarray(Ev["V"]), np.asarray(Ev["foldable"])
@@ -146,8 +185,9 @@ def main():
     else:
         cent_rows = cohort
     tab = centroid_lift(E, cent_rows, zf["z"].astype(np.float64), zf["rows"], top_frac=a.top_frac)
+    gkey = f"cluster{a.cluster}" if a.cluster_labels else a.cluster
     openers, meta = make_openers(E, cohort, tab, cname, LIKE_MIN_LEVEL, seed=SEED,
-                                 group_key=a.cluster)
+                                 group_key=gkey)
     n = len(cohort)
     log(f"[cohort] {n} users · film {meta['n_film'] / n:.3f} genre {meta['n_genre'] / n:.3f} "
         f"tone {meta['n_tone'] / n:.3f} · unserved {meta['unserved']} · pool {meta['pool_size']}")
