@@ -46,7 +46,7 @@ TOTAL_L = 15
 CONCEPTS = {"arthouse": 68, "dialogue": 275, "marvel": 581,
             "gore": 417, "teenagers": 922, "inspiring": 503}
 BUDGETS = [1, 4, 15]
-FAIR = ["static_train", "cold_train", "opener"]
+FAIR = ["static_train", "cold_train", "opener", "policy"]
 REF = ["static_val", "cold_val"]
 
 
@@ -76,6 +76,9 @@ def boot_users(diff, uids, n=10000, seed=SEED):
 def main():
     ap = argparse.ArgumentParser(description="M6t -- does static < cold < opener hold on validation?")
     ap.add_argument("--cohorts", default="", help="default: every cohort with a train2000 tree")
+    ap.add_argument("--ckpt", default="",
+                    help="if given, add the DISTILLED POLICY as a fourth fair arm, rolled out on "
+                         "the SAME openers as every other arm so all four are on one ruler")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
@@ -92,6 +95,10 @@ def main():
     from run_guard import require_mains
     cname, _iname = build_names()
     require_mains("m6t order check", log=log)
+    pol = phi_ext = None
+    if a.ckpt:
+        from m6d_eval import rollout_with_openers
+        from policy_net import Policy, build_phi
 
     want = [g.strip() for g in a.cohorts.split(",") if g.strip()] or list(CONCEPTS)
     trees = {}
@@ -125,6 +132,18 @@ def main():
     zf = np.load(os.path.join(B, "m1", "z_full.npz"))
     ZF, ZR = zf["z"].astype(np.float64), zf["rows"]
 
+    if a.ckpt:
+        ck = torch.load(a.ckpt, map_location="cpu", weights_only=False)
+        log(f"[policy] {os.path.basename(a.ckpt)} epoch {ck['epoch']} arch={ck['arch']} "
+            f"encoding={ck.get('anchor_encoding')}")
+        assert ck.get("anchor_encoding") == "none", "state-only policies only"
+        assert [list(q) for q in pool] == ck["pool"], "not the pool the policy was trained on"
+        _nm = (np.asarray(ck["norm"][0], np.float32), np.asarray(ck["norm"][1], np.float32))
+        phi_ext, _ = build_phi(E, [tuple(q) for q in ck["ext"]], norm=_nm)
+        pol = Policy(ck["d_z"], ck["d_phi"], len(pool), arch=ck["arch"], state=ck["state"],
+                     use_pos=True)
+        pol.load_state_dict(ck["sd"]); pol.eval()
+
     out = {"analysis": "m6t_order_check", "ruler": "validation_clean", "test_touched": False,
            "fair_arms": FAIR, "reference_arms": REF, "cohorts": {}}
     pooled = {arm: {K: [] for K in BUDGETS} for arm in FAIR + REF}
@@ -143,6 +162,8 @@ def main():
                 log(f"[{g}] {arm}: {dg['n_fallback']}/{len(rows)} continuation-rule fires")
         seqs["static_train"] = [st_tr[:TOTAL_L]] * len(rows)
         seqs["static_val"] = [st_va[:TOTAL_L]] * len(rows)
+        if pol is not None:
+            seqs["policy"] = rollout_with_openers(E, pol, phi_ext, pool, rows, umask, TOTAL_L)
 
         sc = {}
         for arm in seqs:
@@ -163,8 +184,12 @@ def main():
         rec = {"n": int(len(rows)), "film_rate": meta["n_film"] / max(meta["n"], 1), "budgets": {}}
         for K in BUDGETS:
             row = {arm: float(np.nanmean(sc[arm][K])) for arm in sc}
-            for hi, lo in (("opener", "cold_train"), ("cold_train", "static_train"),
-                           ("opener", "static_train")):
+            pairs = [("opener", "cold_train"), ("cold_train", "static_train"),
+                     ("opener", "static_train")]
+            if pol is not None:
+                pairs += [("policy", "opener"), ("policy", "cold_train"),
+                          ("policy", "static_train")]
+            for hi, lo in pairs:
                 m, l, h = boot_users(sc[hi][K] - sc[lo][K], rows)
                 row[f"{hi}_minus_{lo}"] = m
                 row[f"ci_{hi}_minus_{lo}"] = [l, h]
@@ -174,8 +199,7 @@ def main():
         ordered = c["static_train"] < c["cold_train"] < c["opener"]
         log(f"[{g:<10}] n={rec['n']:<5} K=15 | static {c['static_train']:.5f} < cold "
             f"{c['cold_train']:.5f} < opener {c['opener']:.5f} ? {'YES' if ordered else 'NO'}")
-        for hi, lo in (("opener", "cold_train"), ("cold_train", "static_train"),
-                       ("opener", "static_train")):
+        for hi, lo in pairs:
             l, h = c[f"ci_{hi}_minus_{lo}"]
             s = "*" if l > 0 else ("-" if h < 0 else " ")
             log(f"             {hi} - {lo:<13} {c[f'{hi}_minus_{lo}']:+.5f} [{l:+.5f},{h:+.5f}]{s}")
@@ -185,12 +209,17 @@ def main():
 
     # ---- pooled over (user, cohort) rows, bootstrapped over USERS -------------------------------
     uid = np.concatenate(pooled_uid)
-    P = {arm: {K: np.concatenate(pooled[arm][K]) for K in BUDGETS} for arm in pooled}
+    # only arms that were actually scored -- `policy` is absent when --ckpt is not given
+    P = {arm: {K: np.concatenate(pooled[arm][K]) for K in BUDGETS}
+         for arm in pooled if pooled[arm][BUDGETS[0]]}
     prec = {"n_rows": int(len(uid)), "n_users": int(len(np.unique(uid))), "budgets": {}}
     for K in BUDGETS:
         row = {arm: float(np.nanmean(P[arm][K])) for arm in P}
-        for hi, lo in (("opener", "cold_train"), ("cold_train", "static_train"),
-                       ("opener", "static_train")):
+        ppairs = [("opener", "cold_train"), ("cold_train", "static_train"),
+                  ("opener", "static_train")]
+        if pol is not None:
+            ppairs += [("policy", "opener"), ("policy", "cold_train"), ("policy", "static_train")]
+        for hi, lo in ppairs:
             m, l, h = boot_users(P[hi][K] - P[lo][K], uid)
             row[f"{hi}_minus_{lo}"] = m
             row[f"ci_{hi}_minus_{lo}"] = [l, h]
@@ -203,8 +232,7 @@ def main():
     log(f"[POOLED] K=15 | static {c['static_train']:.5f} < cold {c['cold_train']:.5f} < opener "
         f"{c['opener']:.5f} ? "
         f"{'YES' if c['static_train'] < c['cold_train'] < c['opener'] else 'NO'}")
-    for hi, lo in (("opener", "cold_train"), ("cold_train", "static_train"),
-                   ("opener", "static_train")):
+    for hi, lo in ppairs:
         l, h = c[f"ci_{hi}_minus_{lo}"]
         s = "*" if l > 0 else ("-" if h < 0 else " ")
         log(f"         {hi} - {lo:<13} {c[f'{hi}_minus_{lo}']:+.5f} [{l:+.5f},{h:+.5f}]{s}")
