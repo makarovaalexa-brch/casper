@@ -83,6 +83,10 @@ def main():
     ap.add_argument("--n_users", type=int, default=0,
                     help="cap the fitting cohort at this many users (0 = all in the pool)")
     ap.add_argument("--threads", type=int, default=6)
+    ap.add_argument("--disjoint", default="",
+                    help="m7b_disjoint.npz. Fit on the DISJOINT group: users assigned to their "
+                         "single strongest endorsement, openers drawn only from material this group "
+                         "owns outright. Probe separability rises 0.371 -> 0.959 on marvel.")
     ap.add_argument("--global_openers", action="store_true",
                     help="M7 k=1: fit ONE tree over ALL users at GROUP-FREE opener states. No "
                          "cohort, no cluster, no group pool. This is the control that separates "
@@ -116,8 +120,9 @@ def main():
     # condition, so the two can never collide.
     # A cluster tree and an endorsement-cohort tree are DIFFERENT OBJECTS and must never share a
     # path -- `--cluster 16` means concept-cohort "16" in one mode and taste-cluster 16 in the other.
-    _pre = "GLOBALopen" if a.global_openers else (f"clu{a.cluster}" if a.cluster_labels
-                                                   else a.cluster)
+    _pre = ("GLOBALopen" if a.global_openers else
+            f"dj{a.cluster}" if a.disjoint else
+            f"clu{a.cluster}" if a.cluster_labels else a.cluster)
     tag = _pre if a.split == "validation" else f"{_pre}_{a.split}{a.n_users or a.slice_hi}"
     if a.split == "train":
         E = build_greedy_env(CERT_TOWER, "train", CERT_CONC, f"m6k_{a.cluster}_tr",
@@ -137,10 +142,28 @@ def main():
     else:
         log(f"[gate] train-pool m=0 snap full={f0!r} (no canonical value exists for a train slice)")
 
-    if a.global_openers:
+    if a.disjoint:
+        # ---- M7b: disjoint group, disjoint opener material ---------------------------------------
+        _D = np.load(a.disjoint)
+        NAMES = ["arthouse", "dialogue", "marvel", "gore", "teenagers", "inspiring"]
+        gi = NAMES.index(a.cluster)
+        cid = ANCHORS[a.cluster]
+        Vm, Fm = np.asarray(E["V"]), np.asarray(E["foldable"])
+        endorse = (Fm > 0) & (Vm > 0)
+        _cids = np.array([ANCHORS[g] for g in NAMES])
+        _Vs = Vm[:, _cids].astype(np.float64).copy()
+        _Es = endorse[:, _cids]
+        _Vs[~_Es] = -np.inf
+        _best = _Vs.argmax(1)
+        cohort = rows_all[(_best[rows_all] == gi) & _Es[rows_all].any(1)]
+        cent_rows_cluster = None
+        DJ = (_D["own_item"], _D["own_concept"], gi)
+        log(f"[disjoint] {a.cluster}: {len(cohort)} train users assigned here EXCLUSIVELY "
+            f"(of {int(endorse[rows_all, cid].sum())} who endorse it at all)")
+    elif a.global_openers:
         # ---- M7 k=1: everyone, group-free -------------------------------------------------------
         cohort = rows_all
-        cent_rows_cluster = None
+        cent_rows_cluster = None; DJ = None
         log(f"[global] ONE tree over all {len(cohort)} users at group-free opener states")
     elif a.cluster_labels:
         # ---- TASTE-CLUSTER MODE ------------------------------------------------------------------
@@ -156,7 +179,7 @@ def main():
         # m6k builds its train env as cohort_slice=(0, slice_hi), so a row's LOCAL index is already
         # its global train id -- the same convention m6y banked its labels under. Asserted, not
         # assumed, because an index is only meaningful with its population.
-        cohort = np.asarray([r for r in rows_all if int(r) in want], np.int64)
+        cohort = np.asarray([r for r in rows_all if int(r) in want], np.int64); DJ = None
         in_slice = int(((tr_rows >= 0) & (tr_rows < a.slice_hi) & (tr_lab == cnum)).sum())
         matched = len(cohort) / max(in_slice, 1)
         assert matched > 0.8, (
@@ -173,7 +196,7 @@ def main():
         V, F = np.asarray(E["V"]), np.asarray(E["foldable"])
         endorse = (F > 0) & (V > 0)
         cohort = rows_all[endorse[rows_all, cid]]
-        cent_rows_cluster = None
+        cent_rows_cluster = None; DJ = None
     if a.n_users and len(cohort) > a.n_users:
         cohort = cohort[:a.n_users]
         log(f"[cohort] capped at {a.n_users} users")
@@ -209,7 +232,7 @@ def main():
     else:
         gkey = f"cluster{a.cluster}" if a.cluster_labels else a.cluster
         openers, meta = make_openers(E, cohort, tab, cname, LIKE_MIN_LEVEL, seed=SEED,
-                                     group_key=gkey)
+                                     group_key=gkey, disjoint=DJ)
     n = len(cohort)
     log(f"[cohort] {n} users · film {meta['n_film'] / n:.3f} genre {meta['n_genre'] / n:.3f} "
         f"tone {meta['n_tone'] / n:.3f} · unserved {meta['unserved']}"
