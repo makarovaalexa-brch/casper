@@ -212,7 +212,9 @@ def main():
                                      group_key=gkey)
     n = len(cohort)
     log(f"[cohort] {n} users · film {meta['n_film'] / n:.3f} genre {meta['n_genre'] / n:.3f} "
-        f"tone {meta['n_tone'] / n:.3f} · unserved {meta['unserved']} · pool {meta['pool_size']}")
+        f"tone {meta['n_tone'] / n:.3f} · unserved {meta['unserved']}"
+        + (" · GROUP-FREE (own history, no pool)" if a.global_openers
+           else f" · pool {meta['pool_size']}"))
     log(f"[vocab] genres {meta['genres']} · tones {meta['tones']}")
     for j in range(4):
         log("   e.g. " + " + ".join((iname.get(i, str(i)) if c == 0 else cname.get(i, str(i)))
