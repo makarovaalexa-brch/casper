@@ -92,7 +92,7 @@ def main():
         log(f"[state] {g:<11} {len(rows):>5} users")
     Z = np.concatenate(Z); uid = np.concatenate(uid)
     names = sorted(CONCEPTS)
-    y = np.asarray([names.index(x) for x in lab])
+    y = np.asarray([names.index(x) for x in lab], np.int64)   # np defaults to int32 on Windows
     log(f"[state] {len(Z)} (user, cohort) states, dim {Z.shape[1]}")
 
     # ---- 1. linear probe, fitted and scored on DISJOINT users -------------------------------------
@@ -103,7 +103,7 @@ def main():
     mu, sd = Z[tr].mean(0), Z[tr].std(0) + 1e-8
     Zs = (Z - mu) / sd
     Xtr = torch.tensor(Zs[tr], dtype=torch.float32)
-    ytr = torch.tensor(y[tr])
+    ytr = torch.tensor(y[tr], dtype=torch.long)
     W = torch.nn.Linear(Z.shape[1], len(names))
     opt = torch.optim.Adam(W.parameters(), lr=0.01, weight_decay=1e-4)
     for _ in range(400):
