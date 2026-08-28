@@ -83,6 +83,11 @@ def main():
     ap.add_argument("--n_users", type=int, default=0,
                     help="cap the fitting cohort at this many users (0 = all in the pool)")
     ap.add_argument("--threads", type=int, default=6)
+    ap.add_argument("--global_openers", action="store_true",
+                    help="M7 k=1: fit ONE tree over ALL users at GROUP-FREE opener states. No "
+                         "cohort, no cluster, no group pool. This is the control that separates "
+                         "'fitting at opener states' from 'fitting per group' -- the two effects "
+                         "the +0.00760 cohort result currently conflates.")
     ap.add_argument("--cluster_labels", default="",
                     help="npz from m6y_cluster_train: fit on a TASTE CLUSTER (a latent-space "
                          "partition) instead of an endorsement cohort. With this, --cluster is the "
@@ -100,7 +105,7 @@ def main():
     from ndcg_tree import build_pool, branch_of, leak_assert, LIKE_MIN_LEVEL
     from group_greedy_bands import celf_per_user_prefix, mean_score
     from m3_show_paths import build_names
-    from opener_gen import centroid_lift, make_openers
+    from opener_gen import centroid_lift, make_openers, make_openers_free
 
     log("#" * 100)
     log(f"# M6k -- CLUSTER TEACHER for '{a.cluster}', fitted on varied cluster-linked openers")
@@ -111,7 +116,8 @@ def main():
     # condition, so the two can never collide.
     # A cluster tree and an endorsement-cohort tree are DIFFERENT OBJECTS and must never share a
     # path -- `--cluster 16` means concept-cohort "16" in one mode and taste-cluster 16 in the other.
-    _pre = f"clu{a.cluster}" if a.cluster_labels else a.cluster
+    _pre = "GLOBALopen" if a.global_openers else (f"clu{a.cluster}" if a.cluster_labels
+                                                   else a.cluster)
     tag = _pre if a.split == "validation" else f"{_pre}_{a.split}{a.n_users or a.slice_hi}"
     if a.split == "train":
         E = build_greedy_env(CERT_TOWER, "train", CERT_CONC, f"m6k_{a.cluster}_tr",
@@ -131,7 +137,12 @@ def main():
     else:
         log(f"[gate] train-pool m=0 snap full={f0!r} (no canonical value exists for a train slice)")
 
-    if a.cluster_labels:
+    if a.global_openers:
+        # ---- M7 k=1: everyone, group-free -------------------------------------------------------
+        cohort = rows_all
+        cent_rows_cluster = None
+        log(f"[global] ONE tree over all {len(cohort)} users at group-free opener states")
+    elif a.cluster_labels:
         # ---- TASTE-CLUSTER MODE ------------------------------------------------------------------
         # A cluster is a latent-space partition (era axis projected out, k-means on train), not an
         # overlapping semantic set. Membership therefore comes from banked labels, not from an
@@ -170,7 +181,13 @@ def main():
     # ⚠ THE GROUP CENTROID IS ALWAYS COMPUTED ON VALIDATION ROWS -- it is a property of the group,
     # not of the fitting split, and `z_full` holds validation users. Passing the train cohort here
     # silently averaged the ~600 train indices that happened to collide with a validation id.
-    if cent_rows_cluster is not None:
+    if a.global_openers:
+        # No group => no group centroid. make_openers_free needs no diagnostic pool, which is the
+        # whole point: the opener is the user's own history, so nothing has to be computed from a
+        # cohort first. (`cid` does not exist on this path.)
+        tab = None
+        log("[centroid] SKIPPED -- group-free openers need no diagnostic pool")
+    elif cent_rows_cluster is not None:
         cent_rows = np.asarray(cent_rows_cluster, np.int64)
         log(f"[centroid] computed on {len(cent_rows)} VALIDATION users of cluster {a.cluster} "
             f"(assigned to the train-fitted centroid, never re-clustered on validation)")
@@ -184,10 +201,15 @@ def main():
             f"(the group centroid is split-independent)")
     else:
         cent_rows = cohort
-    tab = centroid_lift(E, cent_rows, zf["z"].astype(np.float64), zf["rows"], top_frac=a.top_frac)
-    gkey = f"cluster{a.cluster}" if a.cluster_labels else a.cluster
-    openers, meta = make_openers(E, cohort, tab, cname, LIKE_MIN_LEVEL, seed=SEED,
-                                 group_key=gkey)
+    if not a.global_openers:
+        tab = centroid_lift(E, cent_rows, zf["z"].astype(np.float64), zf["rows"],
+                            top_frac=a.top_frac)
+    if a.global_openers:
+        openers, meta = make_openers_free(E, cohort, cname, LIKE_MIN_LEVEL, seed=SEED)
+    else:
+        gkey = f"cluster{a.cluster}" if a.cluster_labels else a.cluster
+        openers, meta = make_openers(E, cohort, tab, cname, LIKE_MIN_LEVEL, seed=SEED,
+                                     group_key=gkey)
     n = len(cohort)
     log(f"[cohort] {n} users · film {meta['n_film'] / n:.3f} genre {meta['n_genre'] / n:.3f} "
         f"tone {meta['n_tone'] / n:.3f} · unserved {meta['unserved']} · pool {meta['pool_size']}")
