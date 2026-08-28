@@ -135,7 +135,7 @@ def _user_rng(seed, group_key, uid):
 
 
 def make_openers(E, cohort_rows, tab, cname, like_min_level, seed, beta=1.5,
-                 films_per=(0.53, 0.31, 0.16), half=None, group_key=""):
+                 films_per=(0.53, 0.31, 0.16), half=None, group_key="", disjoint=None):
     """Per-user opener as a list of (channel, id), matched to the measured Reddit targets.
 
     Deterministic in (seed, group_key, user id): the same user always receives the same opener,
@@ -146,6 +146,15 @@ def make_openers(E, cohort_rows, tab, cname, like_min_level, seed, beta=1.5,
     lc, li = tab["lift_conc"], tab["lift_item"]
     gq = sorted([c for c in genres if lc[c] > 0], key=lambda c: -lc[c])[:6]
     tq = sorted([c for c in tones if lc[c] > 0], key=lambda c: -lc[c])[:6]
+    if disjoint is not None:
+        # M7b: keep only material this group WINS outright. Six groups advertising the same twelve
+        # words is why the router could not tell them apart -- marvel and inspiring shared 10 of 12,
+        # and 31% of films sat in more than one pool. `disjoint` = (own_item, own_concept, gi).
+        own_i, own_c, gi = disjoint
+        gq = [c for c in gq if own_c[c] == gi]
+        tq = [c for c in tq if own_c[c] == gi]
+        tab = dict(tab)
+        tab["pool"] = {int(f) for f in tab["pool"] if own_i[int(f)] == gi}
     if half is not None:
         # M6d hold-out. ⚠ FILMS ONLY, deliberately. The coarse vocabulary is ~12 words per group
         # (6 genres + 6 tones); splitting it 50/50 leaves ~3 of each and would routinely empty a
