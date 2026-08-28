@@ -86,7 +86,10 @@ def main():
     torch.set_num_threads(a.threads)
 
     from strategy_channel_suite import (build_greedy_env, genv_eval_multi, CERT_TOWER, CERT_CONC)
+    from concept_fold import fold_items_frozen
+    from i26_encoder import UNSEEN_LEVEL
     from run_guard import require_mains
+    LIKED_MIN = 7                      # same "liked" band m1_states used to build z_full
     require_mains(f"m6y clustering k={a.k}", log=log)
 
     # ---- the era axis, rebuilt from the decoder and release years ---------------------------------
@@ -121,10 +124,23 @@ def main():
         hi = min(lo + a.chunk, a.slice_hi)
         E = build_greedy_env(CERT_TOWER, "train", CERT_CONC, f"m6y_{lo}", cohort_slice=(lo, hi))
         rows = np.asarray(E["rows"], np.int64)
-        z = np.asarray(genv_eval_multi(E, rows, [[] for _ in rows], [[] for _ in rows],
-                                       score=False, return_z=True)[-1], np.float64)
+        # ⚠ FOLD THE USER'S OWN LIKED HISTORY -- the same construction m1_states used for `z_full`
+        # (m1_states.py:255-268). The first attempt folded NOTHING and got the cold prior, which is
+        # near-identical for every user: cosine k-means then put 33,984 of 34,000 into one cluster.
+        # A latent with no evidence in it does not describe a person.
+        lvl = E["lvl"]
+        seqs = []
+        for r in rows:
+            d = lvl[int(r)]
+            lk = [(int(i), int(L)) for i, L in d.items() if LIKED_MIN <= int(L) < UNSEEN_LEVEL]
+            ids = np.asarray([i for i, _ in lk], np.int64) if lk else np.zeros(0, np.int64)
+            lv = np.asarray([L for _, L in lk], np.int64) if lk else np.zeros(0, np.int64)
+            seqs.append((ids, lv))
+        z = np.asarray(fold_items_frozen(E["ctx"].enc, seqs, batch=500).numpy(), np.float64)
+        nl = np.asarray([len(x) for x, _ in seqs])
         Zt.append(z); trows.append(rows + lo)          # GLOBAL train ids, not slice-local
-        log(f"[train] slice {lo}:{hi} -> {len(rows)} cold-state latents")
+        log(f"[train] slice {lo}:{hi} -> {len(rows)} states, liked-items/user "
+            f"mean {nl.mean():.1f} median {np.median(nl):.0f}")
         del E
     Zt = np.concatenate(Zt); trows = np.concatenate(trows)
 
@@ -134,6 +150,12 @@ def main():
     log(f"[remove] train state norm {np.linalg.norm(Zt, axis=1).mean():.3f} -> "
         f"{np.linalg.norm(Ztd, axis=1).mean():.3f} over {len(Ztd)} users")
     lab_t, C = kmeans(Ztd, a.k, seed=SEED)
+    _sz = np.bincount(lab_t, minlength=a.k)
+    assert _sz.max() < 0.5 * len(lab_t), (
+        f"k-means COLLAPSED: cluster {int(_sz.argmax())} holds {int(_sz.max())} of {len(lab_t)} "
+        f"users. Sizes {_sz.tolist()}. A partition where one cluster holds most of the population "
+        f"is not a partition -- check that the states carry per-user evidence.")
+    assert (_sz > 0).sum() >= a.k - 1, f"{int((_sz == 0).sum())} clusters are EMPTY: {_sz.tolist()}"
     Cn = C / (np.linalg.norm(C, axis=1, keepdims=True) + 1e-12)
     Zvn = Zvd / (np.linalg.norm(Zvd, axis=1, keepdims=True) + 1e-12)
     lab_v = (Zvn @ Cn.T).argmax(1).astype(np.int32)    # validation ASSIGNED, never re-fitted
