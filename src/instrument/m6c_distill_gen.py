@@ -69,6 +69,10 @@ def main():
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--cold_tree", default="coldtree_v2.json",
                     help="the COLD teacher. Pass coldtree_v2_train10000.json to keep BOTH teachers train-fitted; mixing a validation-fitted cold arm with train-fitted group arms puts one teacher at home and the other away, which is the confound m6r exists to remove (home advantage measured at +0.02881).")
+    ap.add_argument("--disjoint", default="",
+                    help="m7b_disjoint.npz: each TRAIN user assigned to one group (computed in-env "
+                         "with the same argmax rule m7b used), openers from that group's exclusive "
+                         "material, teachers read from m6k_dj<group>.")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
@@ -91,7 +95,8 @@ def main():
     want = [g.strip() for g in a.groups.split(",") if g.strip()] or list(ANCHORS)
     trees, valcoh, need_val = {}, {}, set()
     for g in want:
-        p = os.path.join(M6, f"m6k_{g}{a.tree_suffix}.json")
+        p = os.path.join(M6, (f"m6k_dj{g}{a.tree_suffix}.json" if a.disjoint
+                              else f"m6k_{g}{a.tree_suffix}.json"))
         if not os.path.exists(p):
             log(f"[skip] {g}: no opener-fitted tree yet")
             continue
@@ -119,6 +124,11 @@ def main():
             valcoh[g] = vr[end_v[vr, ANCHORS[g]]]
             log(f"[centroid] {g}: {len(valcoh[g])} VALIDATION users (tree was train-fitted)")
         del Ev
+    DJN = ["arthouse", "dialogue", "marvel", "gore", "teenagers", "inspiring"]
+    DJI = DJC = None
+    if a.disjoint:
+        _D = np.load(a.disjoint); DJI, DJC = _D["own_item"], _D["own_concept"]
+        log(f"[disjoint] {os.path.basename(a.disjoint)}: exclusive users and exclusive material")
     _cd, cold_nodes = load_tree(os.path.join(B, a.cold_tree))
     log(f"[cold] teacher = {a.cold_tree} ({len(cold_nodes)} nodes)")
 
@@ -154,13 +164,24 @@ def main():
                 nodes, openers = cold_nodes, [[] for _ in rows]
             else:
                 cid = ANCHORS[g]
-                rows = rows_loc[endorse[rows_loc, cid]]
+                if a.disjoint:
+                    # one group per user: the same strongest-endorsement rule m7b applied on
+                    # validation, recomputed here so train and validation partition identically
+                    _cids = np.array([ANCHORS[x] for x in DJN])
+                    _Vs = V[:, _cids].astype(np.float64).copy()
+                    _Es = endorse[:, _cids]
+                    _Vs[~_Es] = -np.inf
+                    _b = _Vs.argmax(1)
+                    rows = rows_loc[(_b[rows_loc] == DJN.index(g)) & _Es[rows_loc].any(1)]
+                else:
+                    rows = rows_loc[endorse[rows_loc, cid]]
                 if len(rows) < 50:
                     continue
                 tab = centroid_lift(E, valcoh[g], ZF, ZR)
                 # seed does NOT depend on the slice: a train user must wear the same opener
                 # whichever batch they are generated in.
-                openers, meta = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL,
+                _dj = None if not a.disjoint else (DJI, DJC, DJN.index(g))
+                openers, meta = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL, disjoint=_dj,
                                              seed=SEED, half=a.half, group_key=g)
                 nodes = trees[g]
                 log(f"  [{g}] slice {lo}:{hi}: {len(rows)} users · film "

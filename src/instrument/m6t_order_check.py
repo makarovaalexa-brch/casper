@@ -79,6 +79,11 @@ def main():
     ap.add_argument("--ckpt", default="",
                     help="if given, add the DISTILLED POLICY as a fourth fair arm, rolled out on "
                          "the SAME openers as every other arm so all four are on one ruler")
+    ap.add_argument("--disjoint", default="",
+                    help="m7b_disjoint.npz. Use the DISJOINT partition: each validation user in one "
+                         "group, openers drawn only from material that group owns, teachers read "
+                         "from m6k_dj<group>_train2000.json. Without this the openers would be the "
+                         "old overlapping ones and the arms would not match the teachers.")
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
@@ -100,10 +105,20 @@ def main():
         from m6d_eval import rollout_with_openers
         from policy_net import Policy, build_phi
 
+    DJ, DJROWS = None, None
+    if a.disjoint:
+        _D = np.load(a.disjoint)
+        _n = ["arthouse", "dialogue", "marvel", "gore", "teenagers", "inspiring"]
+        DJ = (_D["own_item"], _D["own_concept"], _n)
+        _vr, _vg, _vh = _D["val_rows"], _D["val_group"], _D["val_has"]
+        DJROWS = {_n[i]: _vr[(_vg == i) & _vh] for i in range(len(_n))}
+        log(f"[partition] DISJOINT: {sum(len(v) for v in DJROWS.values())} users, one group each")
+
     want = [g.strip() for g in a.cohorts.split(",") if g.strip()] or list(CONCEPTS)
     trees = {}
     for g in want:
-        p = os.path.join(M6, f"m6k_{g}_train2000.json")
+        p = os.path.join(M6, f"m6k_dj{g}_train2000.json" if a.disjoint
+                         else f"m6k_{g}_train2000.json")
         if not os.path.exists(p):
             log(f"[skip] {g}: no train2000 tree yet")
             continue
@@ -151,9 +166,12 @@ def main():
 
     for g in sorted(trees):
         cid = CONCEPTS[g]
-        rows = vrows[((F > 0) & (V > 0))[vrows, cid]]
+        rows = (np.asarray(DJROWS[g], np.int64) if DJROWS is not None
+                else vrows[((F > 0) & (V > 0))[vrows, cid]])
         tab = centroid_lift(E, rows, ZF, ZR)
-        ops, meta = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL, seed=SEED, group_key=g)
+        dj = None if DJ is None else (DJ[0], DJ[1], DJ[2].index(g))
+        ops, meta = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL, seed=SEED, group_key=g,
+                                 disjoint=dj)
         umask = {int(r): list(o) for r, o in zip(rows, ops)}
         seqs = {}
         for arm, nd in (("opener", trees[g]), ("cold_train", cold_train), ("cold_val", cold_val)):

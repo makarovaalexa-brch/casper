@@ -78,6 +78,9 @@ def main():
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--cold_tree", default="coldtree_v2.json",
                     help="the COLD teacher. Pass coldtree_v2_train10000.json to keep BOTH teachers train-fitted; mixing a validation-fitted cold arm with train-fitted group arms puts one teacher at home and the other away, which is the confound m6r exists to remove (home advantage measured at +0.02881).")
+    ap.add_argument("--disjoint", default="",
+                    help="m7b_disjoint.npz: disjoint validation groups and exclusive opener "
+                         "material; teachers read from m6k_dj<group>.")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
@@ -121,6 +124,10 @@ def main():
 
     static = [(int(x), int(y)) for x, y in
               json.load(open(os.path.join(B, "greedy_static_policyB_combined.json")))["sequence"]]
+    _DJN = ["arthouse", "dialogue", "marvel", "gore", "teenagers", "inspiring"]
+    _DJI = _DJC = None
+    if a.disjoint:
+        _Dd = np.load(a.disjoint); _DJI, _DJC = _Dd["own_item"], _Dd["own_concept"]
     _cd, cold_nodes = load_tree(os.path.join(B, a.cold_tree))
     log(f"[cold] teacher = {a.cold_tree} ({len(cold_nodes)} nodes)")
     V, F = np.asarray(E["V"]), np.asarray(E["foldable"])
@@ -134,7 +141,8 @@ def main():
     for g in ANCHORS:
         if g not in want:
             continue
-        p = os.path.join(M6, f"m6k_{g}{a.tree_suffix}.json")
+        p = os.path.join(M6, (f"m6k_dj{g}{a.tree_suffix}.json" if a.disjoint
+                              else f"m6k_{g}{a.tree_suffix}.json"))
         if not os.path.exists(p):
             log(f"[skip] {g}: no opener-fitted tree")
             continue
@@ -151,15 +159,25 @@ def main():
     cent = {g: ZF[[zpos[int(r)] for r in rows_all[endorse[rows_all, ANCHORS[g]]]
                    if int(r) in zpos]].mean(0) for g in groups}
     assign = {}
-    for r in rows_all:
-        mine = [g for g in groups if endorse[int(r), ANCHORS[g]]]
-        if not mine:
-            continue
-        if len(mine) == 1:
-            assign[int(r)] = mine[0]
-        else:
-            z = ZF[zpos[int(r)]]
-            assign[int(r)] = min(mine, key=lambda g: float(np.linalg.norm(z - cent[g])))
+    if a.disjoint:
+        # Use the BANKED assignment, not nearest-centroid. The teachers were fitted on exactly
+        # these groups; re-deriving membership by a different rule here would score each tree on a
+        # population it was not fitted for, which is the confound this whole redesign removed.
+        _vr, _vg, _vh = _Dd["val_rows"], _Dd["val_group"], _Dd["val_has"]
+        for r, gi, ok in zip(_vr, _vg, _vh):
+            if ok and _DJN[int(gi)] in groups:
+                assign[int(r)] = _DJN[int(gi)]
+        log(f"[assign] banked disjoint assignment: {len(assign)} warm users, one group each")
+    else:
+        for r in rows_all:
+            mine = [g for g in groups if endorse[int(r), ANCHORS[g]]]
+            if not mine:
+                continue
+            if len(mine) == 1:
+                assign[int(r)] = mine[0]
+            else:
+                z = ZF[zpos[int(r)]]
+                assign[int(r)] = min(mine, key=lambda g: float(np.linalg.norm(z - cent[g])))
     warm = np.asarray(sorted(assign), np.int64)
     cold = np.asarray([int(r) for r in rows_all if int(r) not in assign], np.int64)
     log(f"[mix] {len(warm)} in a group ({len(warm) / len(rows_all):.1%}), {len(cold)} cold")
@@ -170,7 +188,8 @@ def main():
         rows_g = np.asarray([r for r in warm if assign[int(r)] == g], np.int64)
         if len(rows_g) == 0:
             continue
-        ops, meta = make_openers(E, rows_g, tabs[g], cname, LIKE_MIN_LEVEL,
+        _dj = None if not a.disjoint else (_DJI, _DJC, _DJN.index(g))
+        ops, meta = make_openers(E, rows_g, tabs[g], cname, LIKE_MIN_LEVEL, disjoint=_dj,
                                  seed=SEED, half=a.half, group_key=g)
         for r, op in zip(rows_g, ops):
             openers[int(r)] = op
