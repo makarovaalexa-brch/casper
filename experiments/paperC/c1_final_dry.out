@@ -1,0 +1,57 @@
+[01:03:42] ####################################################################################################
+[01:03:42] # PAPER C / C1-FINAL -- blend targets at the 72 searched node states of coldtree_v2_train10000, with replay, a scale term and held-out STATES. TRAIN-SIDE ONLY; the 10,000 canonical TEST users are not built, not loaded, not touched.
+[01:03:42] ####################################################################################################
+[01:03:42] [hardrule10] src/instrument clean=False rev=9f069671 threads=4
+[01:03:42] [warm] m7dj_policy.pt epoch=5 ext=1004 anchor_encoding=none sha256 fe0d880b8c57...
+[01:03:42] === building paperC/c1final env (split=train, users 0..10000) ===
+[01:03:45] [train-split] cache hit (train_foldin_split_98765.npz): 2,114,192 target-half rows over 140,768 train users
+[01:03:47] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[01:04:01] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[01:04:02] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[01:04:02] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[01:04:02] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[01:04:02] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[01:04:02] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[01:04:02] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[01:04:06] [ctx] all-bands reconstruction: 1389288 tokens; 7562 users with >=3 dislikes
+[01:04:07] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[01:04:12] [g5] 1031 concepts with >= 30 members
+[01:04:21] [ledger] SIGNED valuation arrays built (prereg cache found)
+[01:04:24] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[01:04:24] [policy-B] pool nnz=1389288 = 138.9 items/user (binary fold-in 61.5/user); target leak 0
+[01:04:24] [paperC/c1final] pool contract (DERIVED): policy=B nnz=1389288 per_user=138.9288 fp=d00089f4b4ec132fd9d296a2cd543537
+[01:04:24] [paperC/c1final] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.504; tower latent d=200
+[01:04:24] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[01:04:32] [gate] canonical TRAIN m=0 snap full=0.15830706760250668 tail=0.026610752564918336 -- full asserted exact
+[01:04:32] [selftest] branch_of_per_user == branch_of on 3 questions x 2000 users
+[01:04:32] [bank] 19,390 x 129 descriptors; pool2full exact (max|diff| 1.90735e-06); bank mean direction ||mu|| 46.0632
+[01:04:32] [tree] coldtree_v2_train10000: 144 nodes, depth 11, L=15, min_leaf 200, fitted on 10,000 TRAIN users
+[01:04:32] [sweeps] 72/72 full exact tables; argmax==splitter at 72/72, max |max(gain) - splitter_gain| = 0
+[01:04:43] [bank] 85,289 cold users x 15 positions (1.02 GB resident, 5.89 GB free before); 346 distinct label questions
+[01:04:43] [contract] the re-derived descent reproduces ALL 1,279,335 banked labels; 15 users (0.01759%) sit in an unfitted branch and stay one-hot
+[01:04:43] [states] 509,822 of 1,279,335 bank cells (39.9%) are one of the 72 searched node states; bank occupancy min 356 median 3,393 max 85,289
+[01:04:43]   [target] 200/1,152 states (0.0m)
+[01:04:44]   [rand] 200/1,152 states (0.0m)
+[01:04:44] [stage0] median target-cos1 0.89424 | median margin 0.51278 | median w1 0.2254 | premise gate fires False
+[01:04:47] [contract] warm start's teacher-forced top-1 on 40,000 held-out COLD dev states (120,000+): 0.99762 (m7dj banked cold dev top-1 0.99755)
+[01:04:47] [gate3] warm start emits 245 distinct questions over the 1,000 ordinary non-blend states
+[01:05:19] [warm] emission at the 72 states: median cos to target -0.17611, median mean-removed norm ratio 3.4798
+[01:05:19] ####################################################################################################
+[01:05:19] # CELL primary_root_like_subtree: 15 states held out, 57 trained
+[01:05:19]   [data] 1,239,971 training examples (470,458 blend / 769,513 replay); 39,364 held-out-state examples EXCLUDED from the loss
+[01:06:07]   [reading1] held-out cos own -0.22461 | vs random other -0.26779 (diff +0.08432 [+0.04738, +0.12680] excl0=True) | vs warm start -0.22461 (diff +0.00000 [+0.00000, +0.00000] excl0=False)
+[01:06:07]   [reading2] trained-state fit: median cos -0.16833, 0.000 of states >= 0.90
+[01:06:07]   [GATE 3 no-collapse] distinct 245/245 (ratio 1.000, bar 0.75) PASS | snap agreement 1.0000 (bar 0.90) PASS => PASS
+[01:06:07]   [GATE 4 renderability] median mean-removed norm ratio 3.4798 (band [0.5, 2.0]) *** FAIL *** | trained 3.5520 held-out 3.2665 | warm start 3.4798
+[01:06:07]   [primary_root_like_subtree] 200/1,152 states (0.0m)
+[01:06:07]   [reading5] emitted median cos1 -0.04087 (target 0.89424, random floor 0.12080) | margin 0.42694 | mean-removed cos1 0.36217 (target 0.01262)
+[01:06:07] ####################################################################################################
+[01:06:07] # CELL secondary_depth_ge_5: 30 states held out, 42 trained
+[01:06:08]   [data] 1,163,383 training examples (393,870 blend / 769,513 replay); 115,952 held-out-state examples EXCLUDED from the loss
+[01:07:31]   [reading1] held-out cos own -0.12699 | vs random other -0.23714 (diff +0.10441 [+0.08950, +0.11953] excl0=True) | vs warm start -0.12699 (diff +0.00000 [+0.00000, +0.00000] excl0=False)
+[01:07:31]   [reading2] trained-state fit: median cos -0.18635, 0.000 of states >= 0.90
+[01:07:32]   [GATE 3 no-collapse] distinct 245/245 (ratio 1.000, bar 0.75) PASS | snap agreement 1.0000 (bar 0.90) PASS => PASS
+[01:07:32]   [GATE 4 renderability] median mean-removed norm ratio 3.4798 (band [0.5, 2.0]) *** FAIL *** | trained 3.3724 held-out 3.5780 | warm start 3.4798
+[01:07:32]   [secondary_depth_ge_5] 200/1,152 states (0.0m)
+[01:07:32]   [reading5] emitted median cos1 -0.04087 (target 0.89424, random floor 0.12080) | margin 0.42694 | mean-removed cos1 0.36217 (target 0.01262)
+[01:07:32] [done] wrote C:\dev\phd\casper\experiments\paperC\c1_final_dry.json in 3.8 minutes
