@@ -1,0 +1,3851 @@
+{
+ "analysis": "paperC_C3B_V2_questions_stage2",
+ "design_sheet": "docs/design/DS_C3B_V2_QUESTIONS.md (PRE-REGISTERED 2026-08-30, BINDING)",
+ "produced_by": "src/instrument/c3b_adapter.py stage2",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "targets": "questions",
+ "templates": {
+  "item_templates": [
+   "Have you seen {}?",
+   "Did you enjoy {}?",
+   "What did you think of {}?"
+  ],
+  "concept_templates": [
+   "Do you enjoy {} films?",
+   "Are you in the mood for something {}?",
+   "How do you feel about {} movies?",
+   "Do you like it when a film is {}?"
+  ],
+  "eval_template_epoch": 0,
+  "boilerplate_stop_words": [
+   "a",
+   "about",
+   "are",
+   "did",
+   "do",
+   "enjoy",
+   "feel",
+   "film",
+   "films",
+   "for",
+   "have",
+   "how",
+   "in",
+   "is",
+   "it",
+   "like",
+   "mood",
+   "movies",
+   "of",
+   "seen",
+   "something",
+   "the",
+   "think",
+   "what",
+   "when",
+   "you"
+  ],
+  "max_new_tokens": 32
+ },
+ "primary_space": "text -> SBERT -> concepts -> ConceptFoldNet(cv3) -> tower latent displacement from the cold fold z0, popularity-stripped; target = Wd[q] centred+stripped (item) / build_concept_dirs d_c (concept)",
+ "secondary_space": "k(phi) -- IN THE EMITTER'S OWN HEAD SPACE; may not carry the claim",
+ "gate_channel": "item",
+ "gate_channel_source": "c3b_ceiling.json, measured BEFORE training",
+ "decodings": [
+  "bestof8_lm",
+  "greedy"
+ ],
+ "primary_decoding": "bestof8_lm",
+ "decoding_rule": "DS_C3B_V2 reading 5 / C4C_DECODING.md ruling 1: best-of-8 by LENGTH-NORMALISED LM sequence log-likelihood is the decoding of record and is PRIMARY; greedy is reported beside it. The pick rule never consults the tower cosine -- `c4c_decoding.generate_arm` is reused verbatim and takes no evaluation argument.",
+ "gen_batch": 64,
+ "reproducibility_note": "the sampled arms are reproducible only at fixed batching: torch.multinomial consumes the generator per batch row (declared, as in C4C)",
+ "n_heldout": 3880,
+ "n_items": 3670,
+ "n_concepts": 210,
+ "adapters": {
+  "true": {
+   "epoch": 5,
+   "val_ce": 2.262003812242108,
+   "train_ce": 2.212768852329247,
+   "targets": "questions"
+  },
+  "scrambled": {
+   "epoch": 5,
+   "val_ce": 2.4634326629702867,
+   "train_ce": 2.4492333876913874,
+   "targets": "questions"
+  }
+ },
+ "by_decoding": {
+  "bestof8_lm": {
+   "decoding": "bestof8_lm",
+   "decoding_spec": {
+    "kind": "bestofk",
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "k": 8,
+    "note": "SECONDARY: k=8 samples, argmax LENGTH-NORMALISED LM sequence log-likelihood. The picker never sees the tower, the cosine, R_s or any evaluation quantity."
+   },
+   "criteria_by_channel": {
+    "item": {
+     "1_true_minus_scrambled": {
+      "mean": 0.051691213609619514,
+      "ci_lo": 0.04594784028295573,
+      "ci_hi": 0.05749873712941541,
+      "n": 3601,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "A_mean_tower_cos": 0.04868602382985431,
+      "A_ci": [
+       0.043911854036689665,
+       0.05346820372952016
+      ],
+      "ceiling": 0.0682803269043702,
+      "ceiling_source": "TEMPLATED gold, re-measured for this run",
+      "required_fraction_of_ceiling": 0.4,
+      "required_A_tower_cos": 0.027312130761748085,
+      "fraction_of_ceiling_reached": 0.7130314987806278,
+      "pass": true
+     },
+     "2_scrambled_vs_prior_only_SECONDARY": {
+      "mean": -0.004854472820035983,
+      "ci_lo": -0.009915646922176991,
+      "ci_hi": 0.00013164068247932824,
+      "n": 3601,
+      "n_boot": 10000,
+      "excludes_zero": false,
+      "pass": true,
+      "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+      "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+     },
+     "3_identification": {
+      "mean": 0.6098568281938326,
+      "ci_lo": 0.5941629955947136,
+      "ci_hi": 0.6258259911894273,
+      "n": 3632,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+      "threshold": 0.5789649415692821,
+      "mean_cos_to_random_other": -0.004328788254973032,
+      "ceiling_identification": 0.6316082359488036,
+      "pass": true
+     },
+     "4_question_form_rate_true": {
+      "rate": {
+       "mean": 0.9471389645776567,
+       "ci_lo": 0.9397820163487739,
+       "ci_hi": 0.9542234332425068,
+       "n": 3670,
+       "n_boot": 10000,
+       "excludes_zero": true
+      },
+      "target": 0.9,
+      "pass": true
+     },
+     "5_content_preservation_true": {
+      "token_f1_content": {
+       "mean": 0.055442825326620815,
+       "ci_lo": 0.05133218585367367,
+       "ci_hi": 0.0596048150505796,
+       "n": 3670,
+       "n_boot": 10000,
+       "excludes_zero": true
+      },
+      "exact_content_match": {
+       "mean": 0.00027247956403269756,
+       "ci_lo": 0.0,
+       "ci_hi": 0.0008174386920980927,
+       "n": 3670,
+       "n_boot": 10000,
+       "excludes_zero": false
+      }
+     },
+     "n": 3670,
+     "n_paired": 3601
+    },
+    "concept": {
+     "1_true_minus_scrambled": {
+      "mean": 0.28625332711691975,
+      "ci_lo": 0.2401423861946683,
+      "ci_hi": 0.3330697443705201,
+      "n": 209,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "A_mean_tower_cos": 0.2794563415727135,
+      "A_ci": [
+       0.24312409965322476,
+       0.31500926481411384
+      ],
+      "ceiling": 0.4157896057671841,
+      "ceiling_source": "TEMPLATED gold, re-measured for this run",
+      "required_fraction_of_ceiling": 0.4,
+      "required_A_tower_cos": 0.16631584230687366,
+      "fraction_of_ceiling_reached": 0.6721099750848302,
+      "pass": true
+     },
+     "2_scrambled_vs_prior_only_SECONDARY": {
+      "mean": -0.03649389903154607,
+      "ci_lo": -0.08148170766191867,
+      "ci_hi": 0.008702473718814309,
+      "n": 209,
+      "n_boot": 10000,
+      "excludes_zero": false,
+      "pass": true,
+      "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+      "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+     },
+     "3_identification": {
+      "mean": 0.780952380952381,
+      "ci_lo": 0.7238095238095238,
+      "ci_hi": 0.8380952380952381,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+      "threshold": 0.7342857142857142,
+      "mean_cos_to_random_other": 0.008080274425645637,
+      "ceiling_identification": 0.8904761904761904,
+      "pass": true
+     },
+     "4_question_form_rate_true": {
+      "rate": {
+       "mean": 0.9428571428571428,
+       "ci_lo": 0.9095238095238095,
+       "ci_hi": 0.9714285714285714,
+       "n": 210,
+       "n_boot": 10000,
+       "excludes_zero": true
+      },
+      "target": 0.9,
+      "pass": true
+     },
+     "5_content_preservation_true": {
+      "token_f1_content": {
+       "mean": 0.02936507936507936,
+       "ci_lo": 0.011091269841269858,
+       "ci_hi": 0.051587301587301584,
+       "n": 210,
+       "n_boot": 10000,
+       "excludes_zero": true
+      },
+      "exact_content_match": {
+       "mean": 0.014285714285714285,
+       "ci_lo": 0.0,
+       "ci_hi": 0.03333333333333333,
+       "n": 210,
+       "n_boot": 10000,
+       "excludes_zero": false
+      }
+     },
+     "n": 210,
+     "n_paired": 209
+    }
+   },
+   "gate_criteria": {
+    "1_true_minus_scrambled": {
+     "mean": 0.051691213609619514,
+     "ci_lo": 0.04594784028295573,
+     "ci_hi": 0.05749873712941541,
+     "n": 3601,
+     "n_boot": 10000,
+     "excludes_zero": true,
+     "A_mean_tower_cos": 0.04868602382985431,
+     "A_ci": [
+      0.043911854036689665,
+      0.05346820372952016
+     ],
+     "ceiling": 0.0682803269043702,
+     "ceiling_source": "TEMPLATED gold, re-measured for this run",
+     "required_fraction_of_ceiling": 0.4,
+     "required_A_tower_cos": 0.027312130761748085,
+     "fraction_of_ceiling_reached": 0.7130314987806278,
+     "pass": true
+    },
+    "2_scrambled_vs_prior_only_SECONDARY": {
+     "mean": -0.004854472820035983,
+     "ci_lo": -0.009915646922176991,
+     "ci_hi": 0.00013164068247932824,
+     "n": 3601,
+     "n_boot": 10000,
+     "excludes_zero": false,
+     "pass": true,
+     "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+     "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+    },
+    "3_identification": {
+     "mean": 0.6098568281938326,
+     "ci_lo": 0.5941629955947136,
+     "ci_hi": 0.6258259911894273,
+     "n": 3632,
+     "n_boot": 10000,
+     "excludes_zero": true,
+     "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+     "threshold": 0.5789649415692821,
+     "mean_cos_to_random_other": -0.004328788254973032,
+     "ceiling_identification": 0.6316082359488036,
+     "pass": true
+    },
+    "4_question_form_rate_true": {
+     "rate": {
+      "mean": 0.9471389645776567,
+      "ci_lo": 0.9397820163487739,
+      "ci_hi": 0.9542234332425068,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "target": 0.9,
+     "pass": true
+    },
+    "5_content_preservation_true": {
+     "token_f1_content": {
+      "mean": 0.055442825326620815,
+      "ci_lo": 0.05133218585367367,
+      "ci_hi": 0.0596048150505796,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_match": {
+      "mean": 0.00027247956403269756,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0008174386920980927,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     }
+    },
+    "n": 3670,
+    "n_paired": 3601
+   },
+   "readings_pass_on_gate_channel": {
+    "1_conditioning": true,
+    "2_identification": true,
+    "3_question_form": true
+   },
+   "verdict": "SUCCESS",
+   "question_form_rate_by_arm": {
+    "true": {
+     "all": {
+      "mean": 0.9469072164948453,
+      "ci_lo": 0.9399484536082474,
+      "ci_hi": 0.9538659793814434,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "item": {
+      "mean": 0.9471389645776567,
+      "ci_lo": 0.9397820163487739,
+      "ci_hi": 0.9542234332425068,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.9428571428571428,
+      "ci_lo": 0.9095238095238095,
+      "ci_hi": 0.9714285714285714,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "components": {
+      "ends_with_question_mark": 0.9505154639175257,
+      "at_least_4_tokens": 0.9930412371134021,
+      "has_non_boilerplate_content_word": 0.9847938144329897
+     },
+     "target": 0.9,
+     "pass_all": true,
+     "pass_item": true,
+     "pass_concept": true
+    },
+    "scrambled": {
+     "all": {
+      "mean": 0.9533505154639176,
+      "ci_lo": 0.9466494845360824,
+      "ci_hi": 0.9597938144329897,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "item": {
+      "mean": 0.9534059945504088,
+      "ci_lo": 0.9463215258855586,
+      "ci_hi": 0.9602179836512261,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.9523809523809523,
+      "ci_lo": 0.9238095238095239,
+      "ci_hi": 0.9761904761904762,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "components": {
+      "ends_with_question_mark": 0.9554123711340207,
+      "at_least_4_tokens": 0.9881443298969073,
+      "has_non_boilerplate_content_word": 0.9824742268041237
+     },
+     "target": 0.9,
+     "pass_all": true,
+     "pass_item": true,
+     "pass_concept": true
+    },
+    "prior": {
+     "all": {
+      "mean": 0.9458762886597938,
+      "ci_lo": 0.938659793814433,
+      "ci_hi": 0.9530927835051546,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "item": {
+      "mean": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "components": {
+      "ends_with_question_mark": 1.0,
+      "at_least_4_tokens": 1.0,
+      "has_non_boilerplate_content_word": 0.9458762886597938
+     },
+     "target": 0.9,
+     "pass_all": true,
+     "pass_item": true,
+     "pass_concept": false
+    },
+    "prior_strict_zero_prefix": {
+     "all": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "item": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "components": {
+      "ends_with_question_mark": 0.0,
+      "at_least_4_tokens": 0.0,
+      "has_non_boilerplate_content_word": 0.0
+     },
+     "target": 0.9,
+     "pass_all": false,
+     "pass_item": false,
+     "pass_concept": false
+    }
+   },
+   "content_preservation_by_arm": {
+    "true": {
+     "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+     "exact_content_symmetric_stopset": {
+      "mean": 0.0010309278350515464,
+      "ci_lo": 0.0002577319587628866,
+      "ci_hi": 0.002061855670103093,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_symmetric_stopset": {
+      "mean": 0.05849028138172675,
+      "ci_lo": 0.0541667971459432,
+      "ci_hi": 0.0628174436767768,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_symmetric_items": {
+      "mean": 0.00027247956403269756,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0008174386920980927,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_concepts": {
+      "mean": 0.014285714285714285,
+      "ci_lo": 0.0,
+      "ci_hi": 0.03333333333333333,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_items": {
+      "mean": 0.06015684607477743,
+      "ci_lo": 0.055746827818529805,
+      "ci_hi": 0.0645986339122696,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_symmetric_concepts": {
+      "mean": 0.02936507936507936,
+      "ci_lo": 0.011091269841269858,
+      "ci_hi": 0.051587301587301584,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content": {
+      "mean": 0.0010309278350515464,
+      "ci_lo": 0.0002577319587628866,
+      "ci_hi": 0.002061855670103093,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_items": {
+      "mean": 0.00027247956403269756,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0008174386920980927,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_concepts": {
+      "mean": 0.014285714285714285,
+      "ci_lo": 0.0,
+      "ci_hi": 0.03333333333333333,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content": {
+      "mean": 0.054031400931795114,
+      "ci_lo": 0.050017938271510506,
+      "ci_hi": 0.058100964796860034,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_items": {
+      "mean": 0.055442825326620815,
+      "ci_lo": 0.05133218585367367,
+      "ci_hi": 0.0596048150505796,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_concepts": {
+      "mean": 0.02936507936507936,
+      "ci_lo": 0.011091269841269858,
+      "ci_hi": 0.051587301587301584,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_wholestring": {
+      "mean": 0.33821447378925207,
+      "ci_lo": 0.33215836803102944,
+      "ci_hi": 0.3444672927012494,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "n_distinct_texts": 3780
+    },
+    "scrambled": {
+     "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+     "exact_content_symmetric_stopset": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_stopset": {
+      "mean": 0.008939409169093826,
+      "ci_lo": 0.007243990025960158,
+      "ci_hi": 0.010661676489318242,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_items": {
+      "mean": 0.009450928494845788,
+      "ci_lo": 0.007679011668372945,
+      "ci_hi": 0.011346711081744742,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content": {
+      "mean": 0.008376477926125241,
+      "ci_lo": 0.006793965448926789,
+      "ci_hi": 0.010020814722896926,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_items": {
+      "mean": 0.008855785927347667,
+      "ci_lo": 0.007171883242082583,
+      "ci_hi": 0.010658307831404059,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_wholestring": {
+      "mean": 0.32387291663207785,
+      "ci_lo": 0.31789765950265597,
+      "ci_hi": 0.3299859159925758,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "n_distinct_texts": 3732
+    },
+    "prior": {
+     "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+     "exact_content_symmetric_stopset": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_stopset": {
+      "mean": 0.008142710163631935,
+      "ci_lo": 0.0065257095403585715,
+      "ci_hi": 0.00975410674116329,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_items": {
+      "mean": 0.008608641807872453,
+      "ci_lo": 0.006960427935584211,
+      "ci_hi": 0.010335463553827877,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content": {
+      "mean": 0.007651822637340176,
+      "ci_lo": 0.006136269024454847,
+      "ci_hi": 0.009168418843638674,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_items": {
+      "mean": 0.008089665349558552,
+      "ci_lo": 0.006528642630974315,
+      "ci_hi": 0.009721990886233638,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_wholestring": {
+      "mean": 0.33874671823205926,
+      "ci_lo": 0.3326350905406838,
+      "ci_hi": 0.34508168964930575,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "n_distinct_texts": 2
+    },
+    "prior_strict_zero_prefix": {
+     "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+     "exact_content_symmetric_stopset": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_stopset": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "n_distinct_texts": 1
+    }
+   },
+   "levels_tower_by_channel": {
+    "true": {
+     "item": {
+      "mean": 0.04868602382985431,
+      "ci_lo": 0.043911854036689665,
+      "ci_hi": 0.05346820372952016,
+      "n": 3632,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.2794563415727135,
+      "ci_lo": 0.24312409965322476,
+      "ci_hi": 0.31500926481411384,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    },
+    "scrambled": {
+     "item": {
+      "mean": -0.0033703688051992227,
+      "ci_lo": -0.007762682406508065,
+      "ci_hi": 0.0011119258000941293,
+      "n": 3639,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": -0.004991440477594528,
+      "ci_lo": -0.03893330886511171,
+      "ci_hi": 0.028789637495026603,
+      "n": 209,
+      "n_boot": 10000,
+      "excludes_zero": false
+     }
+    },
+    "prior": {
+     "item": {
+      "mean": 0.0018811541203651839,
+      "ci_lo": -0.0024223067373932558,
+      "ci_hi": 0.006250796789143626,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": 0.030030556398247605,
+      "ci_lo": -0.009536137770612772,
+      "ci_hi": 0.06872596732635046,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     }
+    },
+    "prior_strict_zero_prefix": {
+     "item": {
+      "mean": -0.0029771710777549347,
+      "ci_lo": -0.007157511783629737,
+      "ci_hi": 0.0012856539782198902,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": 0.09784767832327361,
+      "ci_lo": 0.07639645839196223,
+      "ci_hi": 0.11935146739221406,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    }
+   },
+   "levels_kphi_SECONDARY_emitters_own_head_space": {
+    "true": {
+     "item": {
+      "mean": 0.03456739555651844,
+      "ci_lo": 0.02677205326492244,
+      "ci_hi": 0.04224725855386445,
+      "n": 3632,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.4309360730950961,
+      "ci_lo": 0.39100904797419417,
+      "ci_hi": 0.47071765980914193,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    },
+    "scrambled": {
+     "item": {
+      "mean": -0.019399581024071633,
+      "ci_lo": -0.026982938614083334,
+      "ci_hi": -0.011744937900134374,
+      "n": 3639,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.13675925309873457,
+      "ci_lo": 0.09770015984660727,
+      "ci_hi": 0.17577991166587165,
+      "n": 209,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    },
+    "prior": {
+     "item": {
+      "mean": -0.013674417166314444,
+      "ci_lo": -0.022205870140418783,
+      "ci_hi": -0.005122970813581587,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.15621375315939617,
+      "ci_lo": 0.11067881704507057,
+      "ci_hi": 0.20160696227773303,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    },
+    "prior_strict_zero_prefix": {
+     "item": {
+      "mean": -0.0061684943866418705,
+      "ci_lo": -0.015119480535447781,
+      "ci_hi": 0.002867712664966991,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": 0.19542639433876918,
+      "ci_lo": 0.15298715758270484,
+      "ci_hi": 0.2386004888531314,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    }
+   },
+   "n_paired_true_vs_scrambled": 3810,
+   "n_paired_all_three": 3810,
+   "n_non_encodable": {
+    "true": 38,
+    "scrambled": 32,
+    "prior": 0,
+    "prior_strict_zero_prefix": 0
+   },
+   "mean_concepts_selected": {
+    "true": 3.8471649484536083,
+    "scrambled": 3.8474226804123712,
+    "prior": 4.0,
+    "prior_strict_zero_prefix": 4.0
+   },
+   "prior_only_texts": {
+    "item": "What did you think of Mad Men (1997)?",
+    "concept": "Are you in the mood for something film?",
+    "strict_zero_prefix": ""
+   }
+  },
+  "greedy": {
+   "decoding": "greedy",
+   "decoding_spec": {
+    "kind": "greedy",
+    "note": "c3b_adapter.greedy, IMPORTED -- the banked baseline"
+   },
+   "criteria_by_channel": {
+    "item": {
+     "1_true_minus_scrambled": {
+      "mean": 0.05855003726829547,
+      "ci_lo": 0.05321494918658654,
+      "ci_hi": 0.06383228725162757,
+      "n": 3667,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "A_mean_tower_cos": 0.0717667173572258,
+      "A_ci": [
+       0.06708011155028501,
+       0.07646447302067706
+      ],
+      "ceiling": 0.0682803269043702,
+      "ceiling_source": "TEMPLATED gold, re-measured for this run",
+      "required_fraction_of_ceiling": 0.4,
+      "required_A_tower_cos": 0.027312130761748085,
+      "fraction_of_ceiling_reached": 1.0510599554940392,
+      "pass": true
+     },
+     "2_scrambled_vs_prior_only_SECONDARY": {
+      "mean": 0.012638554591910588,
+      "ci_lo": 0.00852471236044154,
+      "ci_hi": 0.016868556235283053,
+      "n": 3667,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "pass": false,
+      "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+      "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+     },
+     "3_identification": {
+      "mean": 0.6392146168530134,
+      "ci_lo": 0.6236705754022361,
+      "ci_hi": 0.6550313607853832,
+      "n": 3667,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+      "threshold": 0.5789649415692821,
+      "mean_cos_to_random_other": 0.002215315764953505,
+      "ceiling_identification": 0.6316082359488036,
+      "pass": true
+     },
+     "4_question_form_rate_true": {
+      "rate": {
+       "mean": 0.9474114441416893,
+       "ci_lo": 0.9400544959128065,
+       "ci_hi": 0.9544959128065396,
+       "n": 3670,
+       "n_boot": 10000,
+       "excludes_zero": true
+      },
+      "target": 0.9,
+      "pass": true
+     },
+     "5_content_preservation_true": {
+      "token_f1_content": {
+       "mean": 0.06889852951695404,
+       "ci_lo": 0.0646616243324516,
+       "ci_hi": 0.07326687374084612,
+       "n": 3670,
+       "n_boot": 10000,
+       "excludes_zero": true
+      },
+      "exact_content_match": {
+       "mean": 0.0,
+       "ci_lo": 0.0,
+       "ci_hi": 0.0,
+       "n": 3670,
+       "n_boot": 10000,
+       "excludes_zero": false
+      }
+     },
+     "n": 3670,
+     "n_paired": 3667
+    },
+    "concept": {
+     "1_true_minus_scrambled": {
+      "mean": 0.24375157389184116,
+      "ci_lo": 0.18551588114516696,
+      "ci_hi": 0.3025262269797993,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "A_mean_tower_cos": 0.27222460314349534,
+      "A_ci": [
+       0.23621533310453638,
+       0.3086808831198732
+      ],
+      "ceiling": 0.4157896057671841,
+      "ceiling_source": "TEMPLATED gold, re-measured for this run",
+      "required_fraction_of_ceiling": 0.4,
+      "required_A_tower_cos": 0.16631584230687366,
+      "fraction_of_ceiling_reached": 0.6547171919827258,
+      "pass": true
+     },
+     "2_scrambled_vs_prior_only_SECONDARY": {
+      "mean": -0.0015575271465934398,
+      "ci_lo": -0.02942964853916633,
+      "ci_hi": 0.027054393177203553,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false,
+      "pass": true,
+      "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+      "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+     },
+     "3_identification": {
+      "mean": 0.780952380952381,
+      "ci_lo": 0.7238095238095238,
+      "ci_hi": 0.8380952380952381,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true,
+      "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+      "threshold": 0.7342857142857142,
+      "mean_cos_to_random_other": 0.007684588499556,
+      "ceiling_identification": 0.8904761904761904,
+      "pass": true
+     },
+     "4_question_form_rate_true": {
+      "rate": {
+       "mean": 0.9523809523809523,
+       "ci_lo": 0.9238095238095239,
+       "ci_hi": 0.9761904761904762,
+       "n": 210,
+       "n_boot": 10000,
+       "excludes_zero": true
+      },
+      "target": 0.9,
+      "pass": true
+     },
+     "5_content_preservation_true": {
+      "token_f1_content": {
+       "mean": 0.02619047619047619,
+       "ci_lo": 0.008730158730158729,
+       "ci_hi": 0.047619047619047616,
+       "n": 210,
+       "n_boot": 10000,
+       "excludes_zero": true
+      },
+      "exact_content_match": {
+       "mean": 0.014285714285714285,
+       "ci_lo": 0.0,
+       "ci_hi": 0.03333333333333333,
+       "n": 210,
+       "n_boot": 10000,
+       "excludes_zero": false
+      }
+     },
+     "n": 210,
+     "n_paired": 210
+    }
+   },
+   "gate_criteria": {
+    "1_true_minus_scrambled": {
+     "mean": 0.05855003726829547,
+     "ci_lo": 0.05321494918658654,
+     "ci_hi": 0.06383228725162757,
+     "n": 3667,
+     "n_boot": 10000,
+     "excludes_zero": true,
+     "A_mean_tower_cos": 0.0717667173572258,
+     "A_ci": [
+      0.06708011155028501,
+      0.07646447302067706
+     ],
+     "ceiling": 0.0682803269043702,
+     "ceiling_source": "TEMPLATED gold, re-measured for this run",
+     "required_fraction_of_ceiling": 0.4,
+     "required_A_tower_cos": 0.027312130761748085,
+     "fraction_of_ceiling_reached": 1.0510599554940392,
+     "pass": true
+    },
+    "2_scrambled_vs_prior_only_SECONDARY": {
+     "mean": 0.012638554591910588,
+     "ci_lo": 0.00852471236044154,
+     "ci_hi": 0.016868556235283053,
+     "n": 3667,
+     "n_boot": 10000,
+     "excludes_zero": true,
+     "pass": false,
+     "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+     "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+    },
+    "3_identification": {
+     "mean": 0.6392146168530134,
+     "ci_lo": 0.6236705754022361,
+     "ci_hi": 0.6550313607853832,
+     "n": 3667,
+     "n_boot": 10000,
+     "excludes_zero": true,
+     "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+     "threshold": 0.5789649415692821,
+     "mean_cos_to_random_other": 0.002215315764953505,
+     "ceiling_identification": 0.6316082359488036,
+     "pass": true
+    },
+    "4_question_form_rate_true": {
+     "rate": {
+      "mean": 0.9474114441416893,
+      "ci_lo": 0.9400544959128065,
+      "ci_hi": 0.9544959128065396,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "target": 0.9,
+     "pass": true
+    },
+    "5_content_preservation_true": {
+     "token_f1_content": {
+      "mean": 0.06889852951695404,
+      "ci_lo": 0.0646616243324516,
+      "ci_hi": 0.07326687374084612,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_match": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     }
+    },
+    "n": 3670,
+    "n_paired": 3667
+   },
+   "readings_pass_on_gate_channel": {
+    "1_conditioning": true,
+    "2_identification": true,
+    "3_question_form": true
+   },
+   "verdict": "SUCCESS",
+   "question_form_rate_by_arm": {
+    "true": {
+     "all": {
+      "mean": 0.947680412371134,
+      "ci_lo": 0.9404639175257732,
+      "ci_hi": 0.954639175257732,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "item": {
+      "mean": 0.9474114441416893,
+      "ci_lo": 0.9400544959128065,
+      "ci_hi": 0.9544959128065396,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.9523809523809523,
+      "ci_lo": 0.9238095238095239,
+      "ci_hi": 0.9761904761904762,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "components": {
+      "ends_with_question_mark": 0.9502577319587628,
+      "at_least_4_tokens": 1.0,
+      "has_non_boilerplate_content_word": 0.9974226804123711
+     },
+     "target": 0.9,
+     "pass_all": true,
+     "pass_item": true,
+     "pass_concept": true
+    },
+    "scrambled": {
+     "all": {
+      "mean": 0.8528350515463917,
+      "ci_lo": 0.8417525773195876,
+      "ci_hi": 0.8639175257731959,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "item": {
+      "mean": 0.8656675749318801,
+      "ci_lo": 0.8544959128065395,
+      "ci_hi": 0.876566757493188,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.6285714285714286,
+      "ci_lo": 0.5619047619047619,
+      "ci_hi": 0.6952380952380952,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "components": {
+      "ends_with_question_mark": 0.8703608247422681,
+      "at_least_4_tokens": 1.0,
+      "has_non_boilerplate_content_word": 0.9798969072164948
+     },
+     "target": 0.9,
+     "pass_all": false,
+     "pass_item": false,
+     "pass_concept": false
+    },
+    "prior": {
+     "all": {
+      "mean": 0.9458762886597938,
+      "ci_lo": 0.938659793814433,
+      "ci_hi": 0.9530927835051546,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "item": {
+      "mean": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "components": {
+      "ends_with_question_mark": 1.0,
+      "at_least_4_tokens": 1.0,
+      "has_non_boilerplate_content_word": 0.9458762886597938
+     },
+     "target": 0.9,
+     "pass_all": true,
+     "pass_item": true,
+     "pass_concept": false
+    },
+    "prior_strict_zero_prefix": {
+     "all": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "item": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "components": {
+      "ends_with_question_mark": 0.0,
+      "at_least_4_tokens": 0.0,
+      "has_non_boilerplate_content_word": 0.0
+     },
+     "target": 0.9,
+     "pass_all": false,
+     "pass_item": false,
+     "pass_concept": false
+    }
+   },
+   "content_preservation_by_arm": {
+    "true": {
+     "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+     "exact_content_symmetric_stopset": {
+      "mean": 0.0007731958762886598,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0018041237113402063,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_stopset": {
+      "mean": 0.0713931211272742,
+      "ci_lo": 0.06691862076668548,
+      "ci_hi": 0.07583140942754525,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_concepts": {
+      "mean": 0.014285714285714285,
+      "ci_lo": 0.0,
+      "ci_hi": 0.03333333333333333,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_items": {
+      "mean": 0.07397964849422994,
+      "ci_lo": 0.06945730797314384,
+      "ci_hi": 0.0786203003269478,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_symmetric_concepts": {
+      "mean": 0.02619047619047619,
+      "ci_lo": 0.008730158730158729,
+      "ci_hi": 0.047619047619047616,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content": {
+      "mean": 0.0007731958762886598,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0018041237113402063,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_concepts": {
+      "mean": 0.014285714285714285,
+      "ci_lo": 0.0,
+      "ci_hi": 0.03333333333333333,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content": {
+      "mean": 0.06658701116680961,
+      "ci_lo": 0.06237378002737867,
+      "ci_hi": 0.07082230666721831,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_items": {
+      "mean": 0.06889852951695404,
+      "ci_lo": 0.0646616243324516,
+      "ci_hi": 0.07326687374084612,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_concepts": {
+      "mean": 0.02619047619047619,
+      "ci_lo": 0.008730158730158729,
+      "ci_hi": 0.047619047619047616,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_wholestring": {
+      "mean": 0.3322424331209096,
+      "ci_lo": 0.3263283230501682,
+      "ci_hi": 0.3382078868679231,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "n_distinct_texts": 2182
+    },
+    "scrambled": {
+     "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+     "exact_content_symmetric_stopset": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_stopset": {
+      "mean": 0.0028837064281651914,
+      "ci_lo": 0.001981404814281747,
+      "ci_hi": 0.003861583809232005,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_items": {
+      "mean": 0.0030487141529375863,
+      "ci_lo": 0.002098290111215861,
+      "ci_hi": 0.004105900840505745,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content": {
+      "mean": 0.002658688086381987,
+      "ci_lo": 0.00182377780454789,
+      "ci_hi": 0.003557693156931593,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_items": {
+      "mean": 0.002810820102224008,
+      "ci_lo": 0.0019353127993723025,
+      "ci_hi": 0.003771792867468567,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_wholestring": {
+      "mean": 0.3016156782001674,
+      "ci_lo": 0.29598347447336043,
+      "ci_hi": 0.30738668941850156,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "n_distinct_texts": 126
+    },
+    "prior": {
+     "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+     "exact_content_symmetric_stopset": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_stopset": {
+      "mean": 0.010143171547810723,
+      "ci_lo": 0.008282790913267717,
+      "ci_hi": 0.012157790913267718,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "exact_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_items": {
+      "mean": 0.010723571009674552,
+      "ci_lo": 0.008685755774652233,
+      "ci_hi": 0.012836377103066475,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content": {
+      "mean": 0.009544123545412207,
+      "ci_lo": 0.0077840349441509245,
+      "ci_hi": 0.011451143680202959,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_items": {
+      "mean": 0.010090245056185112,
+      "ci_lo": 0.008154171290411072,
+      "ci_hi": 0.012106880120333799,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "token_f1_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_wholestring": {
+      "mean": 0.3726930907976252,
+      "ci_lo": 0.36642892811042865,
+      "ci_hi": 0.3790898512398315,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "n_distinct_texts": 2
+    },
+    "prior_strict_zero_prefix": {
+     "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+     "exact_content_symmetric_stopset": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_stopset": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_symmetric_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_content_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_items": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "exact_wholestring_concepts": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "token_f1_wholestring": {
+      "mean": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "n": 3880,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "n_distinct_texts": 1
+    }
+   },
+   "levels_tower_by_channel": {
+    "true": {
+     "item": {
+      "mean": 0.0717667173572258,
+      "ci_lo": 0.06708011155028501,
+      "ci_hi": 0.07646447302067706,
+      "n": 3667,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.27222460314349534,
+      "ci_lo": 0.23621533310453638,
+      "ci_hi": 0.3086808831198732,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    },
+    "scrambled": {
+     "item": {
+      "mean": 0.013204094027643304,
+      "ci_lo": 0.008779127134252244,
+      "ci_hi": 0.01765018466902362,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.028473029251654174,
+      "ci_lo": -0.013544520737450997,
+      "ci_hi": 0.07067286142966228,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     }
+    },
+    "prior": {
+     "item": {
+      "mean": 0.0006042464867866064,
+      "ci_lo": -0.00377834041301649,
+      "ci_hi": 0.005107056665500057,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": 0.030030556398247605,
+      "ci_lo": -0.009536137770612772,
+      "ci_hi": 0.06872596732635046,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": false
+     }
+    },
+    "prior_strict_zero_prefix": {
+     "item": {
+      "mean": -0.0029771710777549347,
+      "ci_lo": -0.007157511783629737,
+      "ci_hi": 0.0012856539782198902,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": 0.09784767832327361,
+      "ci_lo": 0.07639645839196223,
+      "ci_hi": 0.11935146739221406,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    }
+   },
+   "levels_kphi_SECONDARY_emitters_own_head_space": {
+    "true": {
+     "item": {
+      "mean": 0.05681722426000407,
+      "ci_lo": 0.04863922422045191,
+      "ci_hi": 0.06473133477891325,
+      "n": 3667,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.4336580754174838,
+      "ci_lo": 0.3938814422038307,
+      "ci_hi": 0.47410032078022823,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    },
+    "scrambled": {
+     "item": {
+      "mean": 0.01063703778318459,
+      "ci_lo": 0.0025293459876385887,
+      "ci_hi": 0.018850187117984665,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.1886817848656608,
+      "ci_lo": 0.14415845044909759,
+      "ci_hi": 0.23402362135147964,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    },
+    "prior": {
+     "item": {
+      "mean": -0.0096438456142975,
+      "ci_lo": -0.018481683228534062,
+      "ci_hi": -0.0006527094347005582,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": true
+     },
+     "concept": {
+      "mean": 0.15621375315939617,
+      "ci_lo": 0.11067881704507057,
+      "ci_hi": 0.20160696227773303,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    },
+    "prior_strict_zero_prefix": {
+     "item": {
+      "mean": -0.0061684943866418705,
+      "ci_lo": -0.015119480535447781,
+      "ci_hi": 0.002867712664966991,
+      "n": 3670,
+      "n_boot": 10000,
+      "excludes_zero": false
+     },
+     "concept": {
+      "mean": 0.19542639433876918,
+      "ci_lo": 0.15298715758270484,
+      "ci_hi": 0.2386004888531314,
+      "n": 210,
+      "n_boot": 10000,
+      "excludes_zero": true
+     }
+    }
+   },
+   "n_paired_true_vs_scrambled": 3877,
+   "n_paired_all_three": 3877,
+   "n_non_encodable": {
+    "true": 3,
+    "scrambled": 0,
+    "prior": 0,
+    "prior_strict_zero_prefix": 0
+   },
+   "mean_concepts_selected": {
+    "true": 3.9541237113402063,
+    "scrambled": 3.999742268041237,
+    "prior": 4.0,
+    "prior_strict_zero_prefix": 4.0
+   },
+   "prior_only_texts": {
+    "item": "What did you think of The Great (1999)?",
+    "concept": "Are you in the mood for something film?",
+    "strict_zero_prefix": ""
+   }
+  }
+ },
+ "criteria_by_channel": {
+  "item": {
+   "1_true_minus_scrambled": {
+    "mean": 0.051691213609619514,
+    "ci_lo": 0.04594784028295573,
+    "ci_hi": 0.05749873712941541,
+    "n": 3601,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "A_mean_tower_cos": 0.04868602382985431,
+    "A_ci": [
+     0.043911854036689665,
+     0.05346820372952016
+    ],
+    "ceiling": 0.0682803269043702,
+    "ceiling_source": "TEMPLATED gold, re-measured for this run",
+    "required_fraction_of_ceiling": 0.4,
+    "required_A_tower_cos": 0.027312130761748085,
+    "fraction_of_ceiling_reached": 0.7130314987806278,
+    "pass": true
+   },
+   "2_scrambled_vs_prior_only_SECONDARY": {
+    "mean": -0.004854472820035983,
+    "ci_lo": -0.009915646922176991,
+    "ci_hi": 0.00013164068247932824,
+    "n": 3601,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "pass": true,
+    "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+    "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+   },
+   "3_identification": {
+    "mean": 0.6098568281938326,
+    "ci_lo": 0.5941629955947136,
+    "ci_hi": 0.6258259911894273,
+    "n": 3632,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+    "threshold": 0.5789649415692821,
+    "mean_cos_to_random_other": -0.004328788254973032,
+    "ceiling_identification": 0.6316082359488036,
+    "pass": true
+   },
+   "4_question_form_rate_true": {
+    "rate": {
+     "mean": 0.9471389645776567,
+     "ci_lo": 0.9397820163487739,
+     "ci_hi": 0.9542234332425068,
+     "n": 3670,
+     "n_boot": 10000,
+     "excludes_zero": true
+    },
+    "target": 0.9,
+    "pass": true
+   },
+   "5_content_preservation_true": {
+    "token_f1_content": {
+     "mean": 0.055442825326620815,
+     "ci_lo": 0.05133218585367367,
+     "ci_hi": 0.0596048150505796,
+     "n": 3670,
+     "n_boot": 10000,
+     "excludes_zero": true
+    },
+    "exact_content_match": {
+     "mean": 0.00027247956403269756,
+     "ci_lo": 0.0,
+     "ci_hi": 0.0008174386920980927,
+     "n": 3670,
+     "n_boot": 10000,
+     "excludes_zero": false
+    }
+   },
+   "n": 3670,
+   "n_paired": 3601
+  },
+  "concept": {
+   "1_true_minus_scrambled": {
+    "mean": 0.28625332711691975,
+    "ci_lo": 0.2401423861946683,
+    "ci_hi": 0.3330697443705201,
+    "n": 209,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "A_mean_tower_cos": 0.2794563415727135,
+    "A_ci": [
+     0.24312409965322476,
+     0.31500926481411384
+    ],
+    "ceiling": 0.4157896057671841,
+    "ceiling_source": "TEMPLATED gold, re-measured for this run",
+    "required_fraction_of_ceiling": 0.4,
+    "required_A_tower_cos": 0.16631584230687366,
+    "fraction_of_ceiling_reached": 0.6721099750848302,
+    "pass": true
+   },
+   "2_scrambled_vs_prior_only_SECONDARY": {
+    "mean": -0.03649389903154607,
+    "ci_lo": -0.08148170766191867,
+    "ci_hi": 0.008702473718814309,
+    "n": 209,
+    "n_boot": 10000,
+    "excludes_zero": false,
+    "pass": true,
+    "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+    "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+   },
+   "3_identification": {
+    "mean": 0.780952380952381,
+    "ci_lo": 0.7238095238095238,
+    "ci_hi": 0.8380952380952381,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+    "threshold": 0.7342857142857142,
+    "mean_cos_to_random_other": 0.008080274425645637,
+    "ceiling_identification": 0.8904761904761904,
+    "pass": true
+   },
+   "4_question_form_rate_true": {
+    "rate": {
+     "mean": 0.9428571428571428,
+     "ci_lo": 0.9095238095238095,
+     "ci_hi": 0.9714285714285714,
+     "n": 210,
+     "n_boot": 10000,
+     "excludes_zero": true
+    },
+    "target": 0.9,
+    "pass": true
+   },
+   "5_content_preservation_true": {
+    "token_f1_content": {
+     "mean": 0.02936507936507936,
+     "ci_lo": 0.011091269841269858,
+     "ci_hi": 0.051587301587301584,
+     "n": 210,
+     "n_boot": 10000,
+     "excludes_zero": true
+    },
+    "exact_content_match": {
+     "mean": 0.014285714285714285,
+     "ci_lo": 0.0,
+     "ci_hi": 0.03333333333333333,
+     "n": 210,
+     "n_boot": 10000,
+     "excludes_zero": false
+    }
+   },
+   "n": 210,
+   "n_paired": 209
+  }
+ },
+ "gate_criteria": {
+  "1_true_minus_scrambled": {
+   "mean": 0.051691213609619514,
+   "ci_lo": 0.04594784028295573,
+   "ci_hi": 0.05749873712941541,
+   "n": 3601,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "A_mean_tower_cos": 0.04868602382985431,
+   "A_ci": [
+    0.043911854036689665,
+    0.05346820372952016
+   ],
+   "ceiling": 0.0682803269043702,
+   "ceiling_source": "TEMPLATED gold, re-measured for this run",
+   "required_fraction_of_ceiling": 0.4,
+   "required_A_tower_cos": 0.027312130761748085,
+   "fraction_of_ceiling_reached": 0.7130314987806278,
+   "pass": true
+  },
+  "2_scrambled_vs_prior_only_SECONDARY": {
+   "mean": -0.004854472820035983,
+   "ci_lo": -0.009915646922176991,
+   "ci_hi": 0.00013164068247932824,
+   "n": 3601,
+   "n_boot": 10000,
+   "excludes_zero": false,
+   "pass": true,
+   "comparator": "prior-only = zeroed latent + channel one-hot (channel-matched)",
+   "note": "C3B reading 1: this equivalence control was registered without a direction and fired DOWNWARD. Reported here, not part of the DS_C3B_V2 readings."
+  },
+  "3_identification": {
+   "mean": 0.6098568281938326,
+   "ci_lo": 0.5941629955947136,
+   "ci_hi": 0.6258259911894273,
+   "n": 3632,
+   "n_boot": 10000,
+   "excludes_zero": true,
+   "threshold_rule": "chance + 60% of the ceiling's headroom over chance (Fable ruling 2026-08-24, DS amendment 6; absolute 0.7 RETIRED)",
+   "threshold": 0.5789649415692821,
+   "mean_cos_to_random_other": -0.004328788254973032,
+   "ceiling_identification": 0.6316082359488036,
+   "pass": true
+  },
+  "4_question_form_rate_true": {
+   "rate": {
+    "mean": 0.9471389645776567,
+    "ci_lo": 0.9397820163487739,
+    "ci_hi": 0.9542234332425068,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "target": 0.9,
+   "pass": true
+  },
+  "5_content_preservation_true": {
+   "token_f1_content": {
+    "mean": 0.055442825326620815,
+    "ci_lo": 0.05133218585367367,
+    "ci_hi": 0.0596048150505796,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_content_match": {
+    "mean": 0.00027247956403269756,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0008174386920980927,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   }
+  },
+  "n": 3670,
+  "n_paired": 3601
+ },
+ "verdict": "SUCCESS",
+ "readings_pass_on_gate_channel": {
+  "1_conditioning": true,
+  "2_identification": true,
+  "3_question_form": true
+ },
+ "reading_rule": "reading 1 (A - A' > 0, CI excluding zero, A >= 40% of the TEMPLATED ceiling) missing on the gate channel => the vector does not condition the text once the target is a question. Reading 3 below 0.90 => the reformatting failed regardless of readings 1-2. Reading 4's exact match is expected to stay at/near zero (C3B machine-only synonyms) and is reported as such, not as failure.",
+ "ceiling": {
+  "item": {
+   "mean": 0.0682803269043702,
+   "ci_lo": 0.06333010159002095,
+   "ci_hi": 0.07327274340494963,
+   "n": 3594,
+   "n_boot": 10000,
+   "excludes_zero": true
+  },
+  "concept": {
+   "mean": 0.4157896057671841,
+   "ci_lo": 0.3891957319710422,
+   "ci_hi": 0.44190634654533434,
+   "n": 210,
+   "n_boot": 10000,
+   "excludes_zero": true
+  },
+  "identification": {
+   "item": {
+    "mean": 0.6316082359488036,
+    "ci_lo": 0.6157484696716751,
+    "ci_hi": 0.6474680022259321,
+    "n": 3594,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "mean_cos_to_random_other": -0.0012143134923920593
+   },
+   "concept": {
+    "mean": 0.8904761904761904,
+    "ci_lo": 0.8476190476190476,
+    "ci_hi": 0.9333333333333333,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "mean_cos_to_random_other": 0.02664864343169238
+   }
+  },
+  "bare_phrase_side_by_side": {
+   "item": {
+    "mean": 0.08919716576308714,
+    "ci_lo": 0.08433685153815713,
+    "ci_hi": 0.09399426187318737,
+    "n": 3640,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.500577382425243,
+    "ci_lo": 0.4768516510168786,
+    "ci_hi": 0.5235221206964843,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "all": {
+    "mean": 0.111636086671932,
+    "ci_lo": 0.10590217343256875,
+    "ci_hi": 0.11731019979180492,
+    "n": 3850,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  }
+ },
+ "levels_tower_by_channel": {
+  "true": {
+   "item": {
+    "mean": 0.04868602382985431,
+    "ci_lo": 0.043911854036689665,
+    "ci_hi": 0.05346820372952016,
+    "n": 3632,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.2794563415727135,
+    "ci_lo": 0.24312409965322476,
+    "ci_hi": 0.31500926481411384,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "scrambled": {
+   "item": {
+    "mean": -0.0033703688051992227,
+    "ci_lo": -0.007762682406508065,
+    "ci_hi": 0.0011119258000941293,
+    "n": 3639,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "concept": {
+    "mean": -0.004991440477594528,
+    "ci_lo": -0.03893330886511171,
+    "ci_hi": 0.028789637495026603,
+    "n": 209,
+    "n_boot": 10000,
+    "excludes_zero": false
+   }
+  },
+  "prior": {
+   "item": {
+    "mean": 0.0018811541203651839,
+    "ci_lo": -0.0024223067373932558,
+    "ci_hi": 0.006250796789143626,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "concept": {
+    "mean": 0.030030556398247605,
+    "ci_lo": -0.009536137770612772,
+    "ci_hi": 0.06872596732635046,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   }
+  },
+  "prior_strict_zero_prefix": {
+   "item": {
+    "mean": -0.0029771710777549347,
+    "ci_lo": -0.007157511783629737,
+    "ci_hi": 0.0012856539782198902,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "concept": {
+    "mean": 0.09784767832327361,
+    "ci_lo": 0.07639645839196223,
+    "ci_hi": 0.11935146739221406,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  }
+ },
+ "levels_kphi_SECONDARY_emitters_own_head_space": {
+  "true": {
+   "item": {
+    "mean": 0.03456739555651844,
+    "ci_lo": 0.02677205326492244,
+    "ci_hi": 0.04224725855386445,
+    "n": 3632,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.4309360730950961,
+    "ci_lo": 0.39100904797419417,
+    "ci_hi": 0.47071765980914193,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "scrambled": {
+   "item": {
+    "mean": -0.019399581024071633,
+    "ci_lo": -0.026982938614083334,
+    "ci_hi": -0.011744937900134374,
+    "n": 3639,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.13675925309873457,
+    "ci_lo": 0.09770015984660727,
+    "ci_hi": 0.17577991166587165,
+    "n": 209,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "prior": {
+   "item": {
+    "mean": -0.013674417166314444,
+    "ci_lo": -0.022205870140418783,
+    "ci_hi": -0.005122970813581587,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "concept": {
+    "mean": 0.15621375315939617,
+    "ci_lo": 0.11067881704507057,
+    "ci_hi": 0.20160696227773303,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  },
+  "prior_strict_zero_prefix": {
+   "item": {
+    "mean": -0.0061684943866418705,
+    "ci_lo": -0.015119480535447781,
+    "ci_hi": 0.002867712664966991,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "concept": {
+    "mean": 0.19542639433876918,
+    "ci_lo": 0.15298715758270484,
+    "ci_hi": 0.2386004888531314,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   }
+  }
+ },
+ "phrase_recovery": {
+  "true": {
+   "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+   "exact_content_symmetric_stopset": {
+    "mean": 0.0010309278350515464,
+    "ci_lo": 0.0002577319587628866,
+    "ci_hi": 0.002061855670103093,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_symmetric_stopset": {
+    "mean": 0.05849028138172675,
+    "ci_lo": 0.0541667971459432,
+    "ci_hi": 0.0628174436767768,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_content_symmetric_items": {
+    "mean": 0.00027247956403269756,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0008174386920980927,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_symmetric_concepts": {
+    "mean": 0.014285714285714285,
+    "ci_lo": 0.0,
+    "ci_hi": 0.03333333333333333,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_symmetric_items": {
+    "mean": 0.06015684607477743,
+    "ci_lo": 0.055746827818529805,
+    "ci_hi": 0.0645986339122696,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_symmetric_concepts": {
+    "mean": 0.02936507936507936,
+    "ci_lo": 0.011091269841269858,
+    "ci_hi": 0.051587301587301584,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_content": {
+    "mean": 0.0010309278350515464,
+    "ci_lo": 0.0002577319587628866,
+    "ci_hi": 0.002061855670103093,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_content_items": {
+    "mean": 0.00027247956403269756,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0008174386920980927,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_concepts": {
+    "mean": 0.014285714285714285,
+    "ci_lo": 0.0,
+    "ci_hi": 0.03333333333333333,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content": {
+    "mean": 0.054031400931795114,
+    "ci_lo": 0.050017938271510506,
+    "ci_hi": 0.058100964796860034,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_items": {
+    "mean": 0.055442825326620815,
+    "ci_lo": 0.05133218585367367,
+    "ci_hi": 0.0596048150505796,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_concepts": {
+    "mean": 0.02936507936507936,
+    "ci_lo": 0.011091269841269858,
+    "ci_hi": 0.051587301587301584,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_wholestring": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_wholestring": {
+    "mean": 0.33821447378925207,
+    "ci_lo": 0.33215836803102944,
+    "ci_hi": 0.3444672927012494,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "n_distinct_texts": 3780
+  },
+  "scrambled": {
+   "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+   "exact_content_symmetric_stopset": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_symmetric_stopset": {
+    "mean": 0.008939409169093826,
+    "ci_lo": 0.007243990025960158,
+    "ci_hi": 0.010661676489318242,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_content_symmetric_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_symmetric_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_symmetric_items": {
+    "mean": 0.009450928494845788,
+    "ci_lo": 0.007679011668372945,
+    "ci_hi": 0.011346711081744742,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_symmetric_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content": {
+    "mean": 0.008376477926125241,
+    "ci_lo": 0.006793965448926789,
+    "ci_hi": 0.010020814722896926,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_items": {
+    "mean": 0.008855785927347667,
+    "ci_lo": 0.007171883242082583,
+    "ci_hi": 0.010658307831404059,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_wholestring": {
+    "mean": 0.32387291663207785,
+    "ci_lo": 0.31789765950265597,
+    "ci_hi": 0.3299859159925758,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "n_distinct_texts": 3732
+  },
+  "prior": {
+   "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+   "exact_content_symmetric_stopset": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_symmetric_stopset": {
+    "mean": 0.008142710163631935,
+    "ci_lo": 0.0065257095403585715,
+    "ci_hi": 0.00975410674116329,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "exact_content_symmetric_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_symmetric_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_symmetric_items": {
+    "mean": 0.008608641807872453,
+    "ci_lo": 0.006960427935584211,
+    "ci_hi": 0.010335463553827877,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_symmetric_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content": {
+    "mean": 0.007651822637340176,
+    "ci_lo": 0.006136269024454847,
+    "ci_hi": 0.009168418843638674,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_items": {
+    "mean": 0.008089665349558552,
+    "ci_lo": 0.006528642630974315,
+    "ci_hi": 0.009721990886233638,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "token_f1_content_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_wholestring": {
+    "mean": 0.33874671823205926,
+    "ci_lo": 0.3326350905406838,
+    "ci_hi": 0.34508168964930575,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "n_distinct_texts": 2
+  },
+  "prior_strict_zero_prefix": {
+   "_what": "READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the BARE gold phrase, template boilerplate stripped from the generation; the whole-string figures against the TEMPLATED gold sit beside them",
+   "exact_content_symmetric_stopset": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_symmetric_stopset": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_symmetric_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_symmetric_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_symmetric_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_symmetric_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_content_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_content_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring_items": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3670,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "exact_wholestring_concepts": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "token_f1_wholestring": {
+    "mean": 0.0,
+    "ci_lo": 0.0,
+    "ci_hi": 0.0,
+    "n": 3880,
+    "n_boot": 10000,
+    "excludes_zero": false
+   },
+   "n_distinct_texts": 1
+  }
+ },
+ "disclosure_membership_leak": {
+  "what": "concept directions are built from member items' decoder rows, so a held-out item leaks weakly into the tags its title matches; this is the size of that association. REPORTED, NOT GATED.",
+  "decoding": "bestof8_lm",
+  "correlation_true_item_score_vs_genome_membership_count": {
+   "n": 3632,
+   "pearson": {
+    "r": 0.14444031685406117,
+    "ci_lo": 0.1107802809444913,
+    "ci_hi": 0.177508957212377
+   },
+   "spearman": {
+    "r": 0.10928523588615685,
+    "ci_lo": 0.08265676081590127,
+    "ci_hi": 0.14611376400810464
+   }
+  },
+  "correlation_ceiling_item_score_vs_genome_membership_count": {
+   "n": 3594,
+   "pearson": {
+    "r": 0.11276361225165366,
+    "ci_lo": 0.07774749781141237,
+    "ci_hi": 0.1480057440774081
+   },
+   "spearman": {
+    "r": 0.07668687475270922,
+    "ci_lo": 0.04916226956580398,
+    "ci_hi": 0.11505246494284525
+   }
+  },
+  "membership_count": {
+   "mean": 33.09361233480176,
+   "median": 28.0,
+   "zero_membership_items": 893
+  }
+ },
+ "prior_only_texts": {
+  "bestof8_lm": {
+   "item": "What did you think of Mad Men (1997)?",
+   "concept": "Are you in the mood for something film?",
+   "strict_zero_prefix": ""
+  },
+  "greedy": {
+   "item": "What did you think of The Great (1999)?",
+   "concept": "Are you in the mood for something film?",
+   "strict_zero_prefix": ""
+  }
+ },
+ "examples": [
+  {
+   "bank_idx": 5,
+   "channel": "item",
+   "gold_phrase": "Shawshank Redemption, The (1994)",
+   "gold_templated": "What did you think of Shawshank Redemption, The (1994)?",
+   "true__bestof8_lm": "Have you seen Pulp Fiction (1995)?",
+   "scrambled__bestof8_lm": "What did you think of Hellraiser, The (2013)?",
+   "tower_cos_true__bestof8_lm": 0.26717670207301253,
+   "tower_cos_scrambled__bestof8_lm": 0.21927718594279955,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Have you seen The Lion King (1995)?",
+   "scrambled__greedy": "What did you think of The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": 0.152823532966355,
+   "tower_cos_scrambled__greedy": 0.3510242164440455,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 1360,
+   "channel": "item",
+   "gold_phrase": "Big Hit, The (1998)",
+   "gold_templated": "Have you seen Big Hit, The (1998)?",
+   "true__bestof8_lm": "What did you think of St. Louis Blues (1999)?",
+   "scrambled__bestof8_lm": "What did you think of Chickens (1997)?",
+   "tower_cos_true__bestof8_lm": -0.19252408259048098,
+   "tower_cos_scrambled__bestof8_lm": -0.12697212075380826,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Have you seen The Great (1998)?",
+   "scrambled__greedy": "What did you think of The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": -0.2091834916513933,
+   "tower_cos_scrambled__greedy": -0.18275828712064832,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 2720,
+   "channel": "item",
+   "gold_phrase": "Newsies (1992)",
+   "gold_templated": "What did you think of Newsies (1992)?",
+   "true__bestof8_lm": "What did you think of Chess (1998)?",
+   "scrambled__bestof8_lm": "What did you think of Assassination, The (2012)?",
+   "tower_cos_true__bestof8_lm": -0.1604334100885985,
+   "tower_cos_scrambled__bestof8_lm": -0.23581526628916238,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Have you seen The Great White (1998)?",
+   "scrambled__greedy": "Did you enjoy The Great Game (2015)?",
+   "tower_cos_true__greedy": -0.19199797324812531,
+   "tower_cos_scrambled__greedy": -0.054723043374702726,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 3897,
+   "channel": "item",
+   "gold_phrase": "Time Traveler's Wife, The (2009)",
+   "gold_templated": "Did you enjoy Time Traveler's Wife, The (2009)?",
+   "true__bestof8_lm": "Did you enjoy My Little Pony: Friendship is Magic, The (2009)?",
+   "scrambled__bestof8_lm": "Have you seen Ferris Bueller's Day Off (2003)?",
+   "tower_cos_true__bestof8_lm": 0.18085441682595083,
+   "tower_cos_scrambled__bestof8_lm": 0.08532050997517544,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Have you seen The Secret of the Year (2009)?",
+   "scrambled__greedy": "Did you enjoy The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": 0.02645938506651691,
+   "tower_cos_scrambled__greedy": 0.1506030096527923,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 5170,
+   "channel": "item",
+   "gold_phrase": "Baby Geniuses (1999)",
+   "gold_templated": "Have you seen Baby Geniuses (1999)?",
+   "true__bestof8_lm": "What did you think of Frasbee (1998)?",
+   "scrambled__bestof8_lm": "Did you enjoy Supergirl (2015)?",
+   "tower_cos_true__bestof8_lm": 0.05164733636933564,
+   "tower_cos_scrambled__bestof8_lm": 0.18686966284320727,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "What did you think of The Thing (1999)?",
+   "scrambled__greedy": "What did you think of The Great Game (1962)?",
+   "tower_cos_true__greedy": 0.004436866712810277,
+   "tower_cos_scrambled__greedy": -0.0639400791609417,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 6501,
+   "channel": "item",
+   "gold_phrase": "Flowers of Shanghai (1998)",
+   "gold_templated": "What did you think of Flowers of Shanghai (1998)?",
+   "true__bestof8_lm": "Did you enjoy Cher",
+   "scrambled__bestof8_lm": "What did you think of Mr. Robot (1996)?",
+   "tower_cos_true__bestof8_lm": -0.2887735355381875,
+   "tower_cos_scrambled__bestof8_lm": 0.048308992375186106,
+   "question_form_true__bestof8_lm": false,
+   "true__greedy": "Did you enjoy The Great War (1962)?",
+   "scrambled__greedy": "Did you enjoy The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": 0.12909204721311235,
+   "tower_cos_scrambled__greedy": 0.11416085198266746,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 7878,
+   "channel": "item",
+   "gold_phrase": "8 \u00bd Women (a.k.a. 8 1/2 Women) (a.k.a. Eight and a Half Women) (1999)",
+   "gold_templated": "Have you seen 8 \u00bd Women (a.k.a. 8 1/2 Women) (a.k.a. Eight and a Half Women) (1999)?",
+   "true__bestof8_lm": "Have you seen Claudio, The (1999)?",
+   "scrambled__bestof8_lm": "Have you seen Hide and Seek (2007)?",
+   "tower_cos_true__bestof8_lm": 0.0687631703850265,
+   "tower_cos_scrambled__bestof8_lm": -0.1786444532173828,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "What did you think of The Great Gatsby (1999)?",
+   "scrambled__greedy": "Did you enjoy The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": 0.004263460846653933,
+   "tower_cos_scrambled__greedy": -0.12760681336532292,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 9200,
+   "channel": "item",
+   "gold_phrase": "The Boss Baby (2017)",
+   "gold_templated": "What did you think of The Boss Baby (2017)?",
+   "true__bestof8_lm": "Did you enjoy Til, Til, Til, Til, Til, Til, Til, Til, Til, Til, Til, Til, Til, Til, Til",
+   "scrambled__bestof8_lm": "Did you enjoy Baba (2017)?",
+   "tower_cos_true__bestof8_lm": 0.08825043861969524,
+   "tower_cos_scrambled__bestof8_lm": 0.3316819799834404,
+   "question_form_true__bestof8_lm": false,
+   "true__greedy": "What did you think of The Adventures of the Little Mermaid (2016)?",
+   "scrambled__greedy": "What did you think of The Great Gatsby (2015)?",
+   "tower_cos_true__greedy": 0.2257234522859084,
+   "tower_cos_scrambled__greedy": 0.18173162746776708,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 10580,
+   "channel": "item",
+   "gold_phrase": "Ghost Story (1981)",
+   "gold_templated": "Did you enjoy Ghost Story (1981)?",
+   "true__bestof8_lm": "Have you seen Battlestar Galactica (1980)?",
+   "scrambled__bestof8_lm": "Have you seen Catwoman (2001)?",
+   "tower_cos_true__bestof8_lm": 0.21229609545727532,
+   "tower_cos_scrambled__bestof8_lm": 0.040370178154333615,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "What did you think of The Devil (1979)?",
+   "scrambled__greedy": "What did you think of The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": 0.3599287066802393,
+   "tower_cos_scrambled__greedy": -0.03599382894650483,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 11822,
+   "channel": "item",
+   "gold_phrase": "Desperate Hours, The (1955)",
+   "gold_templated": "What did you think of Desperate Hours, The (1955)?",
+   "true__bestof8_lm": "What did you think of Bunted, The (1941)?",
+   "scrambled__bestof8_lm": "What did you think of Phantoms (2015)?",
+   "tower_cos_true__bestof8_lm": 0.2860881737098572,
+   "tower_cos_scrambled__bestof8_lm": -0.17021810226809783,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Have you seen The Story of the Little Girl (1953)?",
+   "scrambled__greedy": "What did you think of The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": 0.06704555882967433,
+   "tower_cos_scrambled__greedy": -0.04372936943004708,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 13048,
+   "channel": "item",
+   "gold_phrase": "2016: Obama's America (2012)",
+   "gold_templated": "What did you think of 2016: Obama's America (2012)?",
+   "true__bestof8_lm": "Have you seen Adventures in Paradise (2009)?",
+   "scrambled__bestof8_lm": "What did you think of Argo (1987)?",
+   "tower_cos_true__bestof8_lm": 0.045633898137840294,
+   "tower_cos_scrambled__bestof8_lm": -0.08849989523877123,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Have you seen The Great War (2009)?",
+   "scrambled__greedy": "Have you seen The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": -0.03391074878474106,
+   "tower_cos_scrambled__greedy": -0.09434960442927579,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 14354,
+   "channel": "item",
+   "gold_phrase": "Molly (1999)",
+   "gold_templated": "Did you enjoy Molly (1999)?",
+   "true__bestof8_lm": "What did you think of",
+   "scrambled__bestof8_lm": "What did you think of Daughter, The (1991)?",
+   "tower_cos_true__bestof8_lm": -0.1690338089860969,
+   "tower_cos_scrambled__bestof8_lm": 0.14365168519311255,
+   "question_form_true__bestof8_lm": false,
+   "true__greedy": "What did you think of The Great (1995)?",
+   "scrambled__greedy": "Did you enjoy The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": -0.22142241023650833,
+   "tower_cos_scrambled__greedy": -0.05096295525151828,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 15658,
+   "channel": "item",
+   "gold_phrase": "Trapped in Paradise (1994)",
+   "gold_templated": "Have you seen Trapped in Paradise (1994)?",
+   "true__bestof8_lm": "What did you think of Homecoming (1984)?",
+   "scrambled__bestof8_lm": "Have you seen Ecstasy (2008)?",
+   "tower_cos_true__bestof8_lm": 0.046495898790617725,
+   "tower_cos_scrambled__bestof8_lm": -0.03549736596659464,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "What did you think of The Great (1989)?",
+   "scrambled__greedy": "What did you think of The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": -0.06645446500387675,
+   "tower_cos_scrambled__greedy": -3.8438444761236114e-05,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 16992,
+   "channel": "item",
+   "gold_phrase": "Rubin and Ed (1991)",
+   "gold_templated": "Have you seen Rubin and Ed (1991)?",
+   "true__bestof8_lm": "What did you think of Jane the Virgin (1990)?",
+   "scrambled__bestof8_lm": "What did you think of Poison, The (2007)?",
+   "tower_cos_true__bestof8_lm": -0.10276831974537075,
+   "tower_cos_scrambled__bestof8_lm": -0.021962340556825517,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "What did you think of The Great (1989)?",
+   "scrambled__greedy": "Have you seen The Great Gatsby (1962)?",
+   "tower_cos_true__greedy": 0.034680369543881547,
+   "tower_cos_scrambled__greedy": -0.04553291737441571,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18342,
+   "channel": "item",
+   "gold_phrase": "Don't Knock Twice (2017)",
+   "gold_templated": "Did you enjoy Don't Knock Twice (2017)?",
+   "true__bestof8_lm": "What did you think of Battle Cry (1995)?",
+   "scrambled__bestof8_lm": "Did you enjoy Justin Bieber (2015)?",
+   "tower_cos_true__bestof8_lm": 0.0564263463308374,
+   "tower_cos_scrambled__bestof8_lm": null,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "What did you think of The Last Man (2015)?",
+   "scrambled__greedy": "Did you enjoy The Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed the Man Who Killed the",
+   "tower_cos_true__greedy": 0.09429725661477413,
+   "tower_cos_scrambled__greedy": 0.058463396303220234,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18378,
+   "channel": "concept",
+   "gold_phrase": "adapted from:comic",
+   "gold_templated": "Do you like it when a film is adapted from:comic?",
+   "true__bestof8_lm": "Do you enjoy action movies?",
+   "scrambled__bestof8_lm": "Are you in the mood for something crime?",
+   "tower_cos_true__bestof8_lm": 0.5166461352161202,
+   "tower_cos_scrambled__bestof8_lm": -0.24561709643611784,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "How do you feel about movies movies?",
+   "scrambled__greedy": "Do you like it when a film is a crime film?",
+   "tower_cos_true__greedy": -0.23242223748230212,
+   "tower_cos_scrambled__greedy": -0.5374258826511159,
+   "question_form_true__greedy": false
+  },
+  {
+   "bank_idx": 18418,
+   "channel": "concept",
+   "gold_phrase": "anti-hero",
+   "gold_templated": "How do you feel about anti-hero movies?",
+   "true__bestof8_lm": "Do you like it when a film is suspenseful?",
+   "scrambled__bestof8_lm": "Are you in the mood for something sci fi?",
+   "tower_cos_true__bestof8_lm": 0.36735089717074054,
+   "tower_cos_scrambled__bestof8_lm": 0.2849019140038302,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Do you enjoy suspense films?",
+   "scrambled__greedy": "Do you like it when a film is a film about the character of a character?",
+   "tower_cos_true__greedy": 0.4146316307229446,
+   "tower_cos_scrambled__greedy": 0.006435201178074471,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18483,
+   "channel": "concept",
+   "gold_phrase": "black and white",
+   "gold_templated": "Do you like it when a film is black and white?",
+   "true__bestof8_lm": "Do you like it when a film is opera?",
+   "scrambled__bestof8_lm": "Are you in the mood for something sci-fi?",
+   "tower_cos_true__bestof8_lm": 0.6809017752772402,
+   "tower_cos_scrambled__bestof8_lm": -0.028705094085247466,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Do you like it when a film is silent?",
+   "scrambled__greedy": "Do you like it when a film is a crime film?",
+   "tower_cos_true__greedy": 0.7254162965935953,
+   "tower_cos_scrambled__greedy": 0.6097478813975965,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18534,
+   "channel": "concept",
+   "gold_phrase": "cheerleading",
+   "gold_templated": "Do you like it when a film is cheerleading?",
+   "true__bestof8_lm": "How do you feel about comedy films?",
+   "scrambled__bestof8_lm": "Are you in the mood for something funny?",
+   "tower_cos_true__bestof8_lm": 0.5401107951877909,
+   "tower_cos_scrambled__bestof8_lm": 0.47222390988357554,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Are you in the mood for something college movies?",
+   "scrambled__greedy": "Do you enjoy action films?",
+   "tower_cos_true__greedy": 0.4047236037177851,
+   "tower_cos_scrambled__greedy": 0.03972419072449454,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18609,
+   "channel": "concept",
+   "gold_phrase": "culture clash",
+   "gold_templated": "How do you feel about culture clash movies?",
+   "true__bestof8_lm": "Are you in the mood for something musical?",
+   "scrambled__bestof8_lm": "Do you like it when a film is tombstone?",
+   "tower_cos_true__bestof8_lm": 0.37860126314598147,
+   "tower_cos_scrambled__bestof8_lm": 0.477219904104089,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Are you in the mood for something musical?",
+   "scrambled__greedy": "Do you like it when a film is a film about a film about a film about a film about a film about a film about a film about a film about",
+   "tower_cos_true__greedy": 0.37860126314598147,
+   "tower_cos_scrambled__greedy": 0.4463047442150779,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18696,
+   "channel": "concept",
+   "gold_phrase": "fairy tales",
+   "gold_templated": "Are you in the mood for something fairy tales?",
+   "true__bestof8_lm": "Are you in the mood for something romantic?",
+   "scrambled__bestof8_lm": "Do you like it or hate it?",
+   "tower_cos_true__bestof8_lm": 0.1265740498564887,
+   "tower_cos_scrambled__bestof8_lm": -0.14450059558588488,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Are you in the mood for something magical?",
+   "scrambled__greedy": "Do you like it when a film is a movie?",
+   "tower_cos_true__greedy": 0.576865365523788,
+   "tower_cos_scrambled__greedy": -0.19159428038017406,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18771,
+   "channel": "concept",
+   "gold_phrase": "good sequel",
+   "gold_templated": "Are you in the mood for something good sequel?",
+   "true__bestof8_lm": "How do you feel about monster movies?",
+   "scrambled__bestof8_lm": "Are you in the mood for something humor?",
+   "tower_cos_true__bestof8_lm": 0.6585082491921578,
+   "tower_cos_scrambled__bestof8_lm": 0.2331715283536217,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "How do you feel about evil movies?",
+   "scrambled__greedy": "Do you like it when a film is a crime film?",
+   "tower_cos_true__greedy": 0.4146402837041238,
+   "tower_cos_scrambled__greedy": -0.486848295020326,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18851,
+   "channel": "concept",
+   "gold_phrase": "immigrants",
+   "gold_templated": "Do you enjoy immigrants films?",
+   "true__bestof8_lm": "Are you in the mood for something a film?",
+   "scrambled__bestof8_lm": "Do you like it when a film is television?",
+   "tower_cos_true__bestof8_lm": 0.43990595354145134,
+   "tower_cos_scrambled__bestof8_lm": 0.32864444206499616,
+   "question_form_true__bestof8_lm": false,
+   "true__greedy": "Do you enjoy comedy films?",
+   "scrambled__greedy": "Do you like it when a film is a film?",
+   "tower_cos_true__greedy": -0.19948246880500758,
+   "tower_cos_scrambled__greedy": 0.43158448426065904,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18942,
+   "channel": "concept",
+   "gold_phrase": "math",
+   "gold_templated": "Do you enjoy math films?",
+   "true__bestof8_lm": "Are you in the mood for something religion?",
+   "scrambled__bestof8_lm": "Do you like it when a film is trusty?",
+   "tower_cos_true__bestof8_lm": 0.20878327362905813,
+   "tower_cos_scrambled__bestof8_lm": 0.10842018003805366,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Are you in the mood for something science?",
+   "scrambled__greedy": "Do you enjoy action films?",
+   "tower_cos_true__greedy": 0.22562212964335082,
+   "tower_cos_scrambled__greedy": 0.46968591450082864,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 18994,
+   "channel": "concept",
+   "gold_phrase": "nature",
+   "gold_templated": "Do you enjoy nature films?",
+   "true__bestof8_lm": "Are you in the mood for something writing?",
+   "scrambled__bestof8_lm": "Are you in the mood for something mystery films?",
+   "tower_cos_true__bestof8_lm": 0.19157156659617047,
+   "tower_cos_scrambled__bestof8_lm": -0.06568708891478198,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Do you enjoy poetry films?",
+   "scrambled__greedy": "Do you like it when a film is a film about the character of a character (or a character) in a film?",
+   "tower_cos_true__greedy": 0.09972513394157281,
+   "tower_cos_scrambled__greedy": 0.33012677992024075,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 19083,
+   "channel": "concept",
+   "gold_phrase": "political corruption",
+   "gold_templated": "Do you like it when a film is political corruption?",
+   "true__bestof8_lm": "Are you in the mood for something jazz?",
+   "scrambled__bestof8_lm": "Do you like it when a film is fantasy?",
+   "tower_cos_true__bestof8_lm": -0.0908651924541788,
+   "tower_cos_scrambled__bestof8_lm": -0.394680988823334,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Are you in the mood for something japan?",
+   "scrambled__greedy": "Do you like it when a film is a crime film?",
+   "tower_cos_true__greedy": -0.18370420557404488,
+   "tower_cos_scrambled__greedy": 0.2856167142140262,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 19164,
+   "channel": "concept",
+   "gold_phrase": "school",
+   "gold_templated": "How do you feel about school movies?",
+   "true__bestof8_lm": "How do you feel about summertime movies?",
+   "scrambled__bestof8_lm": "How do you feel about cult films?",
+   "tower_cos_true__bestof8_lm": 0.3378340000798488,
+   "tower_cos_scrambled__bestof8_lm": -0.15267477154888343,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Do you enjoy family films?",
+   "scrambled__greedy": "Do you enjoy sci fi films?",
+   "tower_cos_true__greedy": 0.39787180221327206,
+   "tower_cos_scrambled__greedy": -0.2079024797311213,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 19246,
+   "channel": "concept",
+   "gold_phrase": "stupid",
+   "gold_templated": "How do you feel about stupid movies?",
+   "true__bestof8_lm": "How do you feel about movie sequels?",
+   "scrambled__bestof8_lm": "Do you like it when a film is weird?",
+   "tower_cos_true__bestof8_lm": 0.46017533145860295,
+   "tower_cos_scrambled__bestof8_lm": -0.1415539997132388,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "How do you feel about movies movies?",
+   "scrambled__greedy": "Do you like it when a film is a crime film?",
+   "tower_cos_true__greedy": 0.29157864069397593,
+   "tower_cos_scrambled__greedy": -0.3020236998500738,
+   "question_form_true__greedy": false
+  },
+  {
+   "bank_idx": 19311,
+   "channel": "concept",
+   "gold_phrase": "true story",
+   "gold_templated": "How do you feel about true story movies?",
+   "true__bestof8_lm": "Are you in the mood for something historical?",
+   "scrambled__bestof8_lm": "Are you in the mood for something comedy?",
+   "tower_cos_true__bestof8_lm": 0.39283354334148624,
+   "tower_cos_scrambled__bestof8_lm": -0.035316246096845694,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Are you in the mood for something documentary?",
+   "scrambled__greedy": "Do you like it when a film is a film?",
+   "tower_cos_true__greedy": 0.26060878948683974,
+   "tower_cos_scrambled__greedy": 0.033202807054342365,
+   "question_form_true__greedy": true
+  },
+  {
+   "bank_idx": 19387,
+   "channel": "concept",
+   "gold_phrase": "wwii",
+   "gold_templated": "Are you in the mood for something wwii?",
+   "true__bestof8_lm": "Are you in the mood for something war movies?",
+   "scrambled__bestof8_lm": "Do you like it when a film is car accident?",
+   "tower_cos_true__bestof8_lm": 0.6428003092374067,
+   "tower_cos_scrambled__bestof8_lm": 0.12306191822244598,
+   "question_form_true__bestof8_lm": true,
+   "true__greedy": "Are you in the mood for something war movies?",
+   "scrambled__greedy": "Do you like it when a film is a film about a film about a film about a film about a film about a film about a film about a film about",
+   "tower_cos_true__greedy": 0.6428003092374067,
+   "tower_cos_scrambled__greedy": 0.21533191090953646,
+   "question_form_true__greedy": true
+  }
+ ],
+ "bootstrap": {
+  "n_resamples": 10000,
+  "seed": 98765,
+  "kind": "paired percentile over held-out questions, within channel"
+ },
+ "reencode_recipe": {
+  "source": "c3_poc_reencode (IMPORTED)",
+  "sbert_model": "all-MiniLM-L6-v2",
+  "pooling": "sent",
+  "topn": 4,
+  "mincos": 0.3,
+  "fold": "certified ConceptFoldNet cv3 on the cold tower fold z0, v=+1",
+  "whitening": "popularity axis u1 stripped from both sides"
+ },
+ "controls": {
+  "concept_dirs_reproduced_from_item_targets_worst_1_minus_abscos": 4.0171411588296735e-06,
+  "greedy_kv_cache_equivalence": {
+   "what": "greedy cache-equivalence control: identical soft prefixes decoded with and without the KV cache must produce byte-identical text",
+   "n_rows": 8,
+   "max_new_tokens": 32,
+   "n_disagreements": 0,
+   "identical": true,
+   "seconds_uncached": 2.464,
+   "seconds_cached": 0.655,
+   "speedup": 3.761,
+   "disagreements": [],
+   "examples": [
+    {
+     "row": 0,
+     "text": "Have you seen The Lion King (1995)?"
+    },
+    {
+     "row": 1,
+     "text": "Have you seen The Simpsons (1994)?"
+    },
+    {
+     "row": 2,
+     "text": "Have you seen The Adventures of the Three Stooges (1995)?"
+    }
+   ]
+  }
+ },
+ "incremental_persistence": {
+  "rule": "HARD RULE 11: each (decoding, arm) generation set and each SBERT selection set is banked to its own contract-signed sidecar the moment it completes (atomic .tmp + os.replace) and resumed on an exact contract match; a changed contract is refused, never mixed in.",
+  "dir": "experiments\\paperC\\c3b_v2\\gen",
+  "code_version": "c3bv2-gen-2",
+  "contract_fields": [
+   "adapter_epoch",
+   "adapter_sha256",
+   "checkpoint_sha256",
+   "code_version",
+   "gen_batch",
+   "lm",
+   "max_new_tokens",
+   "n_prefix",
+   "seed",
+   "split_hashes",
+   "targets",
+   "templates",
+   "decoding",
+   "decoding_spec",
+   "arm",
+   "n_rows",
+   "input_sha256"
+  ]
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "split_hashes": {
+  "train_q": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "heldout_q": "3184618cf517afed10eff43ccd51a459675c884df627047bfd4a7eb7af476152",
+  "inner_fit": "e312f134a27ebd935209c3a0f2ca5476ffa0ce1d719dac33b8a1f5f5b0669aca",
+  "inner_val": "3a26d40f5bbf0c7ce3a3c72b2f9b24bf3801b2280389fb6ae959c231954bc598",
+  "scramble_train_targets": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "strata": "d34810b89d9dc70b1ca2615431f16df1cf7d74de770e939008e77f96af9bcdbf",
+  "X": "17b36d3601756950381d24c8881fbf960f8e412bd6145b722448cb4dea0d074a"
+ },
+ "git": {
+  "rev": "68b3d21647f3df6544aff6be40286038fe7b0c76",
+  "branch": "recommender-improvement"
+ },
+ "minutes": 251.83
+}

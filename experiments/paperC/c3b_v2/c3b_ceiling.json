@@ -1,0 +1,172 @@
+{
+ "analysis": "paperC_C3B_V2_instrument_ceiling_TEMPLATED_GOLD",
+ "targets": "questions",
+ "templates": {
+  "item_templates": [
+   "Have you seen {}?",
+   "Did you enjoy {}?",
+   "What did you think of {}?"
+  ],
+  "concept_templates": [
+   "Do you enjoy {} films?",
+   "Are you in the mood for something {}?",
+   "How do you feel about {} movies?",
+   "Do you like it when a film is {}?"
+  ],
+  "eval_template_epoch": 0
+ },
+ "bare_phrase_tower_cos_side_by_side": {
+  "item": {
+   "mean": 0.08919716576308714,
+   "ci_lo": 0.08433685153815713,
+   "ci_hi": 0.09399426187318737,
+   "n": 3640,
+   "n_boot": 10000,
+   "excludes_zero": true
+  },
+  "concept": {
+   "mean": 0.500577382425243,
+   "ci_lo": 0.4768516510168786,
+   "ci_hi": 0.5235221206964843,
+   "n": 210,
+   "n_boot": 10000,
+   "excludes_zero": true
+  },
+  "all": {
+   "mean": 0.111636086671932,
+   "ci_lo": 0.10590217343256875,
+   "ci_hi": 0.11731019979180492,
+   "n": 3850,
+   "n_boot": 10000,
+   "excludes_zero": true
+  }
+ },
+ "design_sheet": "docs/design/DS_C3B_V2_QUESTIONS.md reading 1 (ceiling re-measured against the TEMPLATED gold)",
+ "produced_by": "src/instrument/c3b_adapter.py ceiling",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "what": "the held-out question's OWN true surface phrase pushed through the amended tower-space bridge and scored against its own tower representation -- the ceiling a perfect verbalisation could earn, per channel",
+ "primary_space": "text -> SBERT -> concepts -> ConceptFoldNet(cv3) -> tower latent displacement from the cold fold z0, popularity-stripped; target = Wd[q] centred+stripped (item) / build_concept_dirs d_c (concept)",
+ "n_heldout": 3880,
+ "per_channel": {
+  "item": {
+   "n": 3670,
+   "n_encodable": 3594,
+   "encodable_rate": 0.979291553133515,
+   "mean_concepts_selected": 3.748773841961853,
+   "tower_cos": {
+    "mean": 0.0682803269043702,
+    "ci_lo": 0.06333010159002095,
+    "ci_hi": 0.07327274340494963,
+    "n": 3594,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "kphi_cos_SECONDARY_emitters_own_head_space": {
+    "mean": 0.052716912461451666,
+    "ci_lo": 0.04483342405603023,
+    "ci_hi": 0.06056973989754097,
+    "n": 3594,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "identification": {
+    "mean": 0.6316082359488036,
+    "ci_lo": 0.6157484696716751,
+    "ci_hi": 0.6474680022259321,
+    "n": 3594,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "mean_cos_to_random_other": -0.0012143134923920593
+   }
+  },
+  "concept": {
+   "n": 210,
+   "n_encodable": 210,
+   "encodable_rate": 1.0,
+   "mean_concepts_selected": 3.9952380952380953,
+   "tower_cos": {
+    "mean": 0.4157896057671841,
+    "ci_lo": 0.3891957319710422,
+    "ci_hi": 0.44190634654533434,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "kphi_cos_SECONDARY_emitters_own_head_space": {
+    "mean": 0.7002468281409181,
+    "ci_lo": 0.6706669042381046,
+    "ci_hi": 0.7286032050146701,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "identification": {
+    "mean": 0.8904761904761904,
+    "ci_lo": 0.8476190476190476,
+    "ci_hi": 0.9333333333333333,
+    "n": 210,
+    "n_boot": 10000,
+    "excludes_zero": true,
+    "mean_cos_to_random_other": 0.02664864343169238
+   }
+  },
+  "all": {
+   "n": 3880,
+   "n_encodable": 3804,
+   "encodable_rate": 0.9804123711340206,
+   "mean_concepts_selected": 3.7621134020618556,
+   "tower_cos": {
+    "mean": 0.08746459308764858,
+    "ci_lo": 0.08211955186473642,
+    "ci_hi": 0.0930753421901358,
+    "n": 3804,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "kphi_cos_SECONDARY_emitters_own_head_space": {
+    "mean": 0.08846383209675346,
+    "ci_lo": 0.07948051539095136,
+    "ci_hi": 0.09745000634455923,
+    "n": 3804,
+    "n_boot": 10000,
+    "excludes_zero": true
+   },
+   "identification": null
+  }
+ },
+ "criterion1_fraction_of_ceiling_required": 0.4,
+ "required_A_tower_cos": {
+  "item": 0.027312130761748085,
+  "concept": 0.16631584230687366
+ },
+ "item_ceiling_floor_for_gating": 0.05,
+ "gate_channel": "item",
+ "gate_rule": "the ITEM channel is the gate unless its ceiling is near zero (< 0.05), in which case the gate falls back to the CONCEPT channel with exact-phrase recovery printed beside every number and the item-channel weakness reported as an INSTRUMENT LIMIT, not a model failure",
+ "controls": {
+  "concept_dirs_reproduced_from_item_targets_worst_1_minus_abscos": 4.0171411588296735e-06
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "split_hashes": {
+  "train_q": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "heldout_q": "3184618cf517afed10eff43ccd51a459675c884df627047bfd4a7eb7af476152",
+  "inner_fit": "e312f134a27ebd935209c3a0f2ca5476ffa0ce1d719dac33b8a1f5f5b0669aca",
+  "inner_val": "3a26d40f5bbf0c7ce3a3c72b2f9b24bf3801b2280389fb6ae959c231954bc598",
+  "scramble_train_targets": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "strata": "d34810b89d9dc70b1ca2615431f16df1cf7d74de770e939008e77f96af9bcdbf",
+  "X": "17b36d3601756950381d24c8881fbf960f8e412bd6145b722448cb4dea0d074a"
+ },
+ "git": {
+  "rev": "5ffb0a456ef32d880dc505c5e987dfd5d184f211",
+  "branch": "recommender-improvement"
+ },
+ "bootstrap": {
+  "n_resamples": 10000,
+  "seed": 98765
+ },
+ "minutes": 1.92
+}
