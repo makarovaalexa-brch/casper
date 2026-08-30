@@ -43,9 +43,23 @@ Off-Catalogue Elicitation Directions}\\[4pt]\large Thesis Chapter C (v2) --- wor
 \maketitle
 
 \begin{abstract}
-\noindent \todo{abstract --- write last, after C4 reports. It must carry the trimmed claim verbatim
-(capability, not value), the three controls, and the sentence that we do not and cannot show the
-emitted question would help.}
+\noindent A cold-start interview can only ask what is in its question catalogue; this chapter takes
+seriously the case where the direction the data says to ask about is not in it. A policy trained on
+gain-weighted blends of the candidate questions whose value was \emph{measured} at each interview
+state emits directions that lie on no catalogue entry, while still running the tree's ordinary
+interview (fit cosine $0.970$; $245$ of $245$ distinct questions preserved) --- at the states where
+the question landscape was measured, and not beyond them. A small adapter into a frozen language
+model says such a direction in English, and the vector genuinely conditions the text: against a
+correspondence-scrambled twin trained identically, $+0.111$ $[+0.105,\,+0.117]$ through an
+independently fitted bridge, at $107\%$ of the true phrase's own ceiling. Where the decoder is
+distinctive the rendered word lands at median rank $91$ of $1{,}031$ among the direction's own
+nearest concepts --- while the \emph{nearest catalogue question's} own text is anti-aligned with that
+direction ($-0.158$) where the invented word carries it ($+0.204$). Translating a direction into
+English and reading it back costs $+0.018$ NDCG@10 under an answer model whose circularity we
+declare and from which we read only the difference between arms, and most of that cost is the
+decoder repeating itself rather than language. The claim is capability, not value: what is
+unoccupied is the conjunction --- a \emph{collaborative} latent, rendered as \emph{language}, left
+\emph{unsnapped}.
 \end{abstract}
 
 \todo{author to approve title}
@@ -54,11 +68,90 @@ emitted question would help.}
 \section{Introduction}
 \label{sec:intro}
 
-\todo{stub.} Two paragraphs of setting, then the claim sentence of
-\S\ref{sec:positioning}, then the one sentence the design of record requires in the introduction
-rather than the related work: \emph{what does this add over EAGLE?} The artifact that fills this
-section is the finished C0--C4 arc; nothing is written here until C0 has decided whether the arc
-exists at all.
+A cold-start recommender that interviews its user has to ask something, and everything it can ask is
+on a list. In this thesis the list has $19{,}390$ entries --- $18{,}359$ films and $1{,}031$
+concepts --- and Chapters~A and~B are largely about choosing well from it: which entry splits this
+cohort, which one a person can actually answer, which order pays. The list is the action space, and
+an action space is a comfortable thing to have. Everything is enumerable, everything is
+answerable-by-construction, and the hard part reduces to an argmax.
+
+This chapter is about the moment that comfort breaks. Three questions into an interview --- no answer
+to \emph{do you like better-than-expected films?}, no answer on \emph{True Lies}, a dislike for
+\emph{Apollo 13} --- the policy's own machinery computes a direction it would like to probe, and then
+does the only thing it can do: it snaps that direction to the closest thing on the list and asks that
+instead. How much is lost in the snap is an empirical question, and it turns out to be
+measurable. At the interview states we study, the nearest catalogue entry is close in the policy's
+own head space (cosine $0.93$) --- and yet \textbf{that entry's own text points the wrong way}. Pushed
+through a bridge fitted independently of everything else in this chapter, the nearest catalogue
+question's gold phrase is anti-aligned with the direction the policy emitted, at $-0.158$
+$[-0.224,\,-0.089]$, while a word invented on the spot by a small language model reading that same
+direction carries it at $+0.204$ $[+0.117,\,+0.291]$ (two caveats travel with that gap and are
+stated beside it in \S\ref{sec:c4}). The direction is expressible in English. The catalogue simply
+does not contain the sentence that expresses it.
+
+That single contrast is what this chapter is for, and the rest is the work of earning the right to
+show it. Four steps. First (\S\ref{sec:c0}), we look at what the deployed policy actually emits
+before its snap, and find a vector that never once in $160{,}000$ interview states lies on the
+question it selects (maximum cosine $0.1203$) --- though for a duller reason than it sounds, which we
+report rather than exploit. Second (\S\ref{sec:c1}), we retrain the policy on targets that are
+gain-weighted blends of the candidates whose value was measured at each state, so that off-catalogue
+emission is taught rather than hoped for; one object then does both jobs, running the tree's ordinary
+interview with $245$ of $245$ distinct questions intact while fitting its blend targets at cosine
+$0.970$. Third (\S\ref{sec:c3}), we train a two-layer adapter to say a direction in English through a
+frozen \texttt{distilgpt2}, and test the only thing that matters about it --- whether the text depends
+on the vector --- against a twin trained identically on scrambled vector--text pairs
+($+0.111$ $[+0.105,\,+0.117]$, with the true arm at $107\%$ of what the ground-truth phrase itself
+earns through the same instrument, and source identification at $0.678$). Fourth
+(\S\ref{sec:c4}), we close the loop: the rendered word lands at median rank $91$ of $1{,}031$ in the
+direction's own neighbourhood where the decoder says something distinctive --- \texttt{action} at rank
+$1$, \texttt{indictment} at $5$ for a courtroom blend, \texttt{animals} at $7$ for the Pixar branch
+--- and we measure what the round trip through language costs.
+
+\todo{PLACEHOLDER --- the one deliberate gap in this chapter's framing. The adapter above emits a bare
+phrase. The registered question-shaped rendering run (C3B-v2) retrains it on question-form targets;
+when it reports, its result and the deployment-trajectory transcript of Figure~\ref{fig:transcript}
+--- a whole cold-start interview every question of which is synthesised --- belong here, as the last
+step of the arc. No number exists yet and none is implied.}
+
+\paragraph{What is claimed, as a conjunction.} Every leg of this has prior art or a near-miss, and we
+claim no leg on its own. Generating objects the catalogue does not contain is GeneRec's
+territory~\cite{wang2023generec}; verbalising a synthesised latent point is ELM's
+mechanism~\cite{tennenholtz2023elm} and we borrow it rather than invent one; synthesising a query
+continuously and then snapping it to real items was done inside recommendation six years
+ago~\cite{vendrov2020gradient}. What is unoccupied is the conjunction of three things: the decoded
+point is \textbf{chosen by an interview policy at an interview state}, the renderer is audited
+against a \textbf{correspondence-scrambled} latent rather than by round-trip cosine or a plausibility
+panel, and faithfulness is scored \textbf{causally}, by substituting the text where the latent was
+and pushing it through an independently fitted map. The nearest published relative sharpens this
+rather than blunting it. EAGLE steers a frozen language model toward high-utility regions of a
+MovieLens-25M behavioural embedding~\cite{tennenholtz2024eagle}, and it has no decoder at all: it
+edits text and encodes the result, so no latent point is ever mapped to language, there is no user
+and no question, and its authors name the price themselves --- coverage is limited by the action
+space, and they see no remedy that would guarantee coverage of the embedding space. They looked at
+decoding an off-manifold point and routed around it. We decode, and then we audit what comes out.
+
+\paragraph{Two things we say here rather than in a limitations paragraph.} The claim is about
+\textbf{capability, not value}. We show that a direction outside the bank can be emitted, said, and
+audited; we do not show --- and with the answer model available to us cannot show --- that asking it
+would improve anyone's recommendations, and no version of that sentence appears in this chapter.
+Chapter~B is the reason this is a considered position rather than a hedge: there, enlarging the
+question bank made the selectors that consume it perform \emph{worse}. And the scope of the emission
+result is narrow by measurement, not by modesty: \S\ref{sec:c1} withholds a subtree and finds that
+the policy fits the states it was shown and lands on the wrong side of zero at the states it was
+not, with the one statistic that appeared to show otherwise matched by the \emph{untrained} network.
+So the sentence this chapter is licensed to write is ``the policy emits where the question landscape
+was measured'', and it is written that way everywhere. Separately, the one measurement here that
+needs somebody to answer a question --- what the round trip through English costs --- runs on a
+simulated geometric answerer, which is circular; we declare that in our own voice, put both arms
+under the same simulator, and read only the difference between them. Every other reading in this
+chapter is a property of a vector or of a string, never the model grading its own answer.
+
+\paragraph{Structure.} \S\ref{sec:positioning} states the claim, the thirty-four-year-old
+answerability problem it inherits, and what each neighbouring system does and does not do.
+\S\ref{sec:setup} fixes the instrument and the statistical conventions. \S\ref{sec:c0}--\S\ref{sec:c4}
+are the empirical arc. \S\ref{sec:limitations} collects what remains open --- including the one
+human study we argue \emph{for}, on answerability rather than on quality --- and \S\ref{sec:conclusion}
+closes.
 
 % =====================================================================
 \section{Positioning}
