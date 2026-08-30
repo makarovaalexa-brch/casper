@@ -752,7 +752,19 @@ def run(args):
         # READING 1 -- generalisation (the headline)
         cellrec["reading1_generalisation"] = reading1(ev, ev0, Tt, held,
                                                       np.random.default_rng(SEED))
+        # ★ THE 1a ARM HAS A NON-ZERO NULL, and it must be reported next to the reading. The WARM
+        # START's own emission is already closer to a held-out state's own target than to another
+        # held-out state's, because neighbouring states in one tree have correlated targets. So
+        # "own > other" alone is not evidence of anything this run added; the quantity that is, is
+        # how far the fine-tune moves that margin. The same statistic on the untrained warm start,
+        # same seeded pairing, is banked here so a reader cannot be handed only the flattering half.
+        cellrec["reading1_warm_start_reference"] = reading1(ev0, ev0, Tt, held,
+                                                            np.random.default_rng(SEED))
         r1 = cellrec["reading1_generalisation"]
+        r1w = cellrec["reading1_warm_start_reference"]
+        log(f"  [reading1 NULL] the WARM START's own own-minus-other margin at the same held-out "
+            f"states, same pairing: {r1w['a_own_minus_other']['mean']:+.5f} "
+            f"[{r1w['a_own_minus_other']['lo']:+.5f}, {r1w['a_own_minus_other']['hi']:+.5f}]")
         log(f"  [reading1] held-out cos own {r1['cos_own_target']['median']:.5f} | vs random other "
             f"{r1['cos_random_other_held_out_state_target']['median']:.5f} "
             f"(diff {r1['a_own_minus_other']['mean']:+.5f} "
