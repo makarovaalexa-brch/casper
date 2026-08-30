@@ -87,6 +87,15 @@ C1-pilot fine-tuned E1 itself.)
 **Not a blocker for the run in flight** — it changes only which vector the figure feeds the
 renderer, not whether the renderer works.
 
+## ⚠ COHERENCE TO-DO when v2 lands (Fable, 2026-08-30)
+
+The abstract and intro drafted today quote the **bare-phrase** adapter's numbers (+0.111, 107% of
+ceiling, identification 0.678) while the paper's renderer will be the **question-shaped** v2 one,
+whose ceiling is different by construction (item 0.06828 vs 0.08920). On completion, either
+(a) requote v2's figures throughout, or (b) state explicitly that the mechanism result is
+established on the bare-phrase adapter and v2 is the deployment form — but do NOT leave two
+adapters' numbers reading as one system's.
+
 ## What may NOT be claimed
 
 That the questions are good because they read well (fluency is not evidence — C3B's machine-only
