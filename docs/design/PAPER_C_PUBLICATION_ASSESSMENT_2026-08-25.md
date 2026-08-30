@@ -1,4 +1,24 @@
 # Paper C — what is proved, what is outstanding, the cheap path to a publishable paper
+
+## ★★★ AUTHOR STEER 2026-08-30 — BINDING, overrides §C item 1 ("sell the audit")
+
+**AUTHOR SAID (verbatim):** *"i just wanted sexy llm piece to top off my phd thesis, this one is
+no load bearing. and it is a bit more risque, wanna do interesting stuff and less so lengthy field
+audits."*
+
+Consequences, replacing the §C-1 reframe:
+- **The spine is the DEMO, not the audit.** Lead with: a policy emits a direction the catalogue
+  does not contain, an adapter says it in English, and the word lands in the direction's own
+  semantic neighbourhood. The 12-system scrambled-control audit shrinks to ONE related-work
+  paragraph + one control we actually ran; it is no longer the contribution.
+- **Target length/venue shifts DOWN**: a 4–6 page late-breaking/short/workshop piece + the thesis
+  capstone chapter, not a full audit paper. Publication remains a bonus (`PAPER_C_TODO.md`).
+- **Priority order changes**: (1) decoding diversity — it is what makes the demo table good;
+  (2) the deployment-trajectory transcript figure (a whole cold-start interview whose every
+  question is synthesised) — the capstone artifact; (3) write short. The bank-question arm, the
+  second seed, and the emission re-render become optional colour, not requirements.
+- What does NOT change: no absolute-value claim (the circularity ruling), no human study, the
+  three-gap novelty wording, and every number keeps the strength its evidence licenses.
 **Fable, 2026-08-25, at the author's request. Companion to `PAPER_C_DESIGN.md` (which stays the
 design of record); this is the publication-strategy read of the banked evidence.**
 

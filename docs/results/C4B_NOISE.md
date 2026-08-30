@@ -72,3 +72,15 @@ The author's question — "how much noise does translating back add?" — has a 
 decomposition that names the mechanism (decoding diversity), five states where English beats the
 direction, and an honest reversed control that sharpens C-final's design. Together with C4-pilot's
 answer-free faithfulness and the triangulation, the C3/C4 sections can now be written end to end.
+
+## AMENDMENT 2026-08-30 — the mechanism clause is qualified by C4C
+
+`docs/results/C4C_DECODING.md` tested this doc's own reading by changing decoding only. The number
+holds and is removable: sampling/best-of-k cut the cost 2–3.5× with non-overlapping CIs. **But the
+mechanism claimed above is wrong in its second clause.** Sampled renders are LESS faithful
+(cos to R_s +0.204 → +0.103, CI excluding zero) and land FURTHER from the point's neighbours, yet
+cost less — because greedy's stock words fold to **below the no-fold baseline** (T 0.15641 vs base
+0.16571) while vaguer words merely damage less. **The translation cost is therefore substantially a
+measure of HARM from confidently committing to the wrong concept, not purely of meaning lost in
+translation.** "The noise is decoding diversity, not verbalisation" stands only as: *the loss is
+removable by decoding* — what sampling removes is harm, not confusion.
