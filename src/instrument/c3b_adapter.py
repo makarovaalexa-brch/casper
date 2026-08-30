@@ -274,6 +274,72 @@ def jsonl(path, row):
         fh.flush()
 
 
+# ------------------------------------------------------------------ HARD RULE 11: contract sidecars
+SIDECAR_CODE_VERSION = "c3bv2-gen-2"   # bump on ANY change to the decoder or the sidecar payload;
+                                       # "-2" = the KV-cached decoder (2026-08-30)
+
+
+def gen_dir():
+    return os.path.join(OUT_DIR, "gen")
+
+
+def sidecar_path(name):
+    return os.path.join(gen_dir(), name)
+
+
+def atomic_json(path, obj):
+    """Write-then-rename: a killed run can leave a `.tmp`, never a half-written sidecar."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path + ".tmp", "w", encoding="utf-8") as fh:
+        json.dump(obj, fh, default=float)
+    os.replace(path + ".tmp", path)
+
+
+def arr_sha(a):
+    return hashlib.sha256(np.ascontiguousarray(a).tobytes()).hexdigest()
+
+
+def txt_sha(texts):
+    return hashlib.sha256("\n".join(texts).encode("utf-8", "replace")).hexdigest()
+
+
+def load_sidecar(path, contract):
+    """HARD RULE 11(b): resume ONLY across an identical contract, and REFUSE across a changed one.
+
+    Silently regenerating on a contract mismatch would be safe but slow; silently *loading* across
+    one would mix two runs' outputs into one result, which is the failure this rule exists to stop.
+    So a mismatch is a hard stop naming the fields that differ.
+    """
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        blob = json.load(fh)
+    old = blob.get("contract", {})
+    if old == contract:
+        return blob
+    diff = sorted(k for k in set(old) | set(contract) if old.get(k) != contract.get(k))
+    raise SystemExit(
+        f"REFUSING TO RESUME (HARD RULE 11): {path} was written under a DIFFERENT contract.\n"
+        f"  fields that differ: {diff}\n"
+        f"  delete or move the file to regenerate it, or re-run with --ignore_sidecars.")
+
+
+def progress_cb(tag, t0, every_s=120.0):
+    """A life sign at least every `every_s` seconds of generation, with a rate and an ETA."""
+    st = {"last": 0.0}
+
+    def cb(done, total):
+        now = time.time()
+        if done >= total or now - st["last"] >= every_s:
+            st["last"] = now
+            el = max(now - t0, 1e-9)
+            rate = done / el
+            log(f"  [gen/{tag}] {done:,}/{total:,} ({100.0 * done / max(total, 1):.1f}%) "
+                f"{el / 60:.1f}m elapsed, {rate * 60:.1f} rows/min, "
+                f"ETA {(total - done) / max(rate, 1e-9) / 60:.1f}m")
+    return cb
+
+
 def read_jsonl(path):
     if not os.path.exists(path):
         return []
@@ -827,16 +893,32 @@ def load_adapter(path, d_in):
 
 
 @torch.no_grad()
-def greedy(lm, tok, prefix, max_new=MAX_NEW_TOKENS):
-    """Greedy continuation from a soft prefix. No cache (short sequences); deterministic."""
+def greedy(lm, tok, prefix, max_new=MAX_NEW_TOKENS, use_cache=True):
+    """Greedy continuation from a soft prefix. Deterministic.
+
+    `use_cache=True` (default) carries the KV cache forward, so a step costs O(1) in the prefix
+    length instead of re-running the whole prefix. The uncached loop was QUADRATIC in the token
+    budget, and best-of-8 paid that eight times per point; at the 32-token questions budget it made
+    stage 2 a multi-day job. Nothing about the decision rule, the EOS rule, the emitted text or the
+    per-step RNG draw order changes -- the cached path feeds the SAME `nxt` for every row at every
+    step, including finished rows, exactly as the uncached one did.
+
+    The equivalence is CHECKED, not asserted: `cache_equivalence()` (a stage-2 preflight and its own
+    `cachecheck` subcommand) requires byte-identical greedy text from both paths before the run
+    proceeds.
+    """
     B, P, _ = prefix.shape
     emb = prefix
     am = torch.ones(B, P, dtype=torch.long)
     done = torch.zeros(B, dtype=torch.bool)
     outs = [[] for _ in range(B)]
     emb_tab = lm.get_input_embeddings()
+    past = None
     for _ in range(max_new):
-        logits = lm(inputs_embeds=emb, attention_mask=am).logits[:, -1, :]
+        o = lm(inputs_embeds=emb, attention_mask=am, past_key_values=past,
+               use_cache=bool(use_cache))
+        logits = o.logits[:, -1, :]
+        past = o.past_key_values if use_cache else None
         nxt = logits.argmax(-1)
         for i in range(B):
             if not done[i]:
@@ -846,9 +928,40 @@ def greedy(lm, tok, prefix, max_new=MAX_NEW_TOKENS):
                     outs[i].append(int(nxt[i]))
         if bool(done.all()):
             break
-        emb = torch.cat([emb, emb_tab(nxt)[:, None, :]], 1)
+        step = emb_tab(nxt)[:, None, :]
+        emb = step if use_cache else torch.cat([emb, step], 1)
         am = torch.cat([am, torch.ones(B, 1, dtype=torch.long)], 1)
     return [tok.decode(o).strip() for o in outs]
+
+
+@torch.no_grad()
+def cache_equivalence(lm, tok, adapter, Xin, n, max_new, tag="preflight"):
+    """HARD RULE 5 control on the KV cache: greedy is deterministic, so the cached and uncached
+    decoders must agree BYTE FOR BYTE on a fixed batch. Returns the comparison and the measured
+    speedup; the caller refuses to run on any disagreement."""
+    xb = torch.from_numpy(np.ascontiguousarray(Xin[:int(n)]))
+    with torch.no_grad():
+        pre = adapter(xb)
+    t0 = time.time()
+    slow = greedy(lm, tok, pre, max_new=max_new, use_cache=False)
+    t_slow = time.time() - t0
+    t0 = time.time()
+    fast = greedy(lm, tok, pre, max_new=max_new, use_cache=True)
+    t_fast = time.time() - t0
+    bad = [i for i in range(len(slow)) if slow[i] != fast[i]]
+    out = {"what": ("greedy cache-equivalence control: identical soft prefixes decoded with and "
+                    "without the KV cache must produce byte-identical text"),
+           "n_rows": int(n), "max_new_tokens": int(max_new),
+           "n_disagreements": len(bad), "identical": not bad,
+           "seconds_uncached": round(t_slow, 3), "seconds_cached": round(t_fast, 3),
+           "speedup": round(t_slow / max(t_fast, 1e-9), 3),
+           "disagreements": [{"row": int(i), "uncached": slow[i], "cached": fast[i]}
+                             for i in bad[:10]],
+           "examples": [{"row": int(i), "text": fast[i]} for i in range(min(3, len(fast)))]}
+    log(f"[cachecheck/{tag}] {n} rows x {max_new} tokens: identical={out['identical']} "
+        f"({len(bad)} disagreements); uncached {t_slow:.1f}s vs cached {t_fast:.1f}s "
+        f"=> {out['speedup']:.2f}x")
+    return out
 
 
 def norm_txt(s):
@@ -1233,8 +1346,10 @@ def cmd_stage2(args):
     torch.set_num_threads(int(args.threads))
     torch.manual_seed(SEED); np.random.seed(SEED)
 
-    A, bA = load_adapter(os.path.join(OUT_DIR, "c3b_true_best.pt"), X.shape[1])
-    S, bS = load_adapter(os.path.join(OUT_DIR, "c3b_scrambled_best.pt"), X.shape[1])
+    true_pt = os.path.join(OUT_DIR, "c3b_true_best.pt")
+    scr_pt = os.path.join(OUT_DIR, "c3b_scrambled_best.pt")
+    A, bA = load_adapter(true_pt, X.shape[1])
+    S, bS = load_adapter(scr_pt, X.shape[1])
     for b, nm in ((bA, "true"), (bS, "scrambled")):
         assert b["split_hashes"] == man["split"]["hashes"], \
             f"the {nm} adapter was trained under a DIFFERENT split than the manifest's"
@@ -1254,9 +1369,56 @@ def cmd_stage2(args):
     primary_dec = decodings[0]
     dec_spec = {"bestof8_lm": C4C.DEC_SPEC["bestofk_lm"], "greedy": C4C.DEC_SPEC["greedy"]}
 
-    def gen(adapter, Xin, dec):
+    # ---- HARD RULE 11: every (decoding, arm) generation set is its own contract-signed sidecar ----
+    # It is written the moment it completes (atomic .tmp + os.replace) and re-loaded on a restart,
+    # so an interruption -- this box has gone to battery-sleep twice in ten days -- costs at most the
+    # one unit in flight. A sidecar written under a different contract is REFUSED, never mixed in.
+    os.makedirs(gen_dir(), exist_ok=True)
+    base_contract = {
+        "code_version": SIDECAR_CODE_VERSION,
+        "targets": TARGETS,
+        "split_hashes": man["split"]["hashes"],
+        "adapter_sha256": {"true": sha256(true_pt), "scrambled": sha256(scr_pt)},
+        "adapter_epoch": {"true": bA.get("epoch"), "scrambled": bS.get("epoch")},
+        "checkpoint_sha256": man["checkpoint"]["sha256"],
+        "lm": LM_NAME, "n_prefix": N_PREFIX,
+        "max_new_tokens": int(MNT), "gen_batch": int(args.gen_batch), "seed": int(SEED),
+        "templates": {"item": list(ITEM_TEMPLATES), "concept": list(CONCEPT_TEMPLATES)}}
+
+    # PREFLIGHT CONTROL (HARD RULE 5): the KV cache must not change the decoder. Greedy is
+    # deterministic, so cached and uncached must be byte-identical -- if they are not, stop.
+    cache_chk = None
+    if int(args.cache_check_n) > 0:
+        cache_chk = cache_equivalence(lm, tok, A, X[held], int(args.cache_check_n), MNT,
+                                      tag="stage2")
+        atomic_json(sidecar_path("cache_equivalence.json"),
+                    {"contract": dict(base_contract, check="greedy_cache_equivalence"),
+                     **cache_chk})
+        if not cache_chk["identical"]:
+            raise SystemExit(
+                "REFUSING TO RUN: the KV-cached greedy decoder disagrees with the uncached one on "
+                f"{cache_chk['n_disagreements']} of {cache_chk['n_rows']} fixed rows. Greedy is "
+                "deterministic, so this is a DIFFERENT decoder, not noise. See "
+                f"{sidecar_path('cache_equivalence.json')}.")
+
+    def gen(adapter, Xin, dec, arm):
+        con = dict(base_contract, decoding=dec, decoding_spec=dec_spec[dec], arm=arm,
+                   n_rows=int(len(Xin)), input_sha256=arr_sha(Xin))
+        path = sidecar_path(f"gen_{dec}_{arm}.json")
+        blob = None if args.ignore_sidecars else load_sidecar(path, con)
+        if blob is not None:
+            log(f"  [resume/{dec}/{arm}] {len(blob['texts']):,} texts loaded from "
+                f"{os.path.basename(path)} (contract matches; nothing regenerated)")
+            return list(blob["texts"])
         name = "greedy" if dec == "greedy" else "bestofk_lm"
-        t, _diag = C4C.generate_arm(lm, tok, adapter, Xin, name, args.gen_batch, max_new=MNT)
+        t0 = time.time()
+        t, _diag = C4C.generate_arm(lm, tok, adapter, Xin, name, args.gen_batch, max_new=MNT,
+                                    on_batch=progress_cb(f"{dec}/{arm}", t0))
+        mins = (time.time() - t0) / 60.0
+        atomic_json(path, {"contract": con, "texts": t, "minutes": round(mins, 3),
+                           "written_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+        log(f"  [gen/{dec}/{arm}] DONE {len(t):,} texts in {mins:.1f}m -> "
+            f"{os.path.basename(path)}")
         return t
 
     Xh = X[held]
@@ -1264,14 +1426,12 @@ def cmd_stage2(args):
     texts_by_dec, prior_texts = {}, {}
     for dec in decodings:
         t0d = time.time()
-        tt = {"true": gen(A, Xh, dec)}
-        log(f"  [gen/{dec}] true done ({(time.time() - t0d) / 60:.1f}m)")
-        tt["scrambled"] = gen(S, Xh, dec)
-        log(f"  [gen/{dec}] scrambled done ({(time.time() - t0d) / 60:.1f}m)")
+        tt = {"true": gen(A, Xh, dec, "true")}
+        tt["scrambled"] = gen(S, Xh, dec, "scrambled")
         # AMENDMENT clause 3: the registered comparator is CHANNEL-MATCHED -- a zeroed LATENT block
         # plus the channel one-hot, so criterion 2 tests correspondence and not channel membership.
         # The strict all-zero soft prefix of the original sheet is kept as a secondary reading.
-        pri_ch = gen(A, Xpri, dec)
+        pri_ch = gen(A, Xpri, dec, "prior")
         with torch.no_grad():
             strict_zero = greedy(lm, tok, torch.zeros(1, N_PREFIX, int(bA["d_lm"])), max_new=MNT)[0]
         tt["prior"] = [pri_ch[int(c)] for c in chan[held]]
@@ -1284,6 +1444,15 @@ def cmd_stage2(args):
             f"({(time.time() - t0d) / 60:.1f}m)")
 
     # ---- the bridges ------------------------------------------------------------------------------
+    # The RNG is re-seeded HERE so the measurement stage starts from a fixed state whatever the
+    # generation stage did or did not consume. Found by the resume test: a resumed run (which skips
+    # generation, and so consumes no RNG) reproduced every text and every concept selection exactly
+    # but moved the tower cosines in the 5th decimal, because the bridge is built downstream of
+    # whatever RNG state generation left behind. Re-seeding makes the analysis a function of the
+    # texts alone -- identical whether the generations were just produced or loaded from a sidecar --
+    # and changes nothing about WHAT is measured. VERIFIED: resumed output == freshly generated
+    # output, byte for byte.
+    torch.manual_seed(SEED); np.random.seed(SEED)
     br = TowerBridge(args)
     assert br.ckpt_sha == man["checkpoint"]["sha256"]
     ni = br.ni
@@ -1299,11 +1468,37 @@ def cmd_stage2(args):
     ceil_per = ceil["per_channel"]
     gate = ceil["gate_channel"]
 
+    # ---- HARD RULE 11 again: the SBERT encode is the other expensive stage, and it is separable ----
+    # `select` is a pure function of (texts, the frozen SBERT recipe), so it gets its own sidecar on
+    # the same terms: contract-signed by the sha of the exact texts it encoded plus the re-encode
+    # recipe, atomic write, resume on an exact match, refusal on a changed one.
+    def encode_cached(texts, dec, a):
+        con = {"code_version": SIDECAR_CODE_VERSION, "stage": "sbert_select",
+               "decoding": dec, "arm": a, "n_rows": int(len(texts)),
+               "texts_sha256": txt_sha(texts),
+               "sbert_model": br.RE.SBERT_MODEL, "sbert_mode": br.RE.SBERT_MODE,
+               "topn": br.RE.SBERT_TOPN, "mincos": br.RE.SBERT_MINCOS}
+        path = sidecar_path(f"enc_{dec}_{a}.json")
+        blob = None if args.ignore_sidecars else load_sidecar(path, con)
+        if blob is not None:
+            log(f"  [resume/encode/{dec}/{a}] {len(blob['sel']):,} selections loaded from "
+                f"{os.path.basename(path)}")
+            return [[(int(c), float(v)) for c, v in s] for s in blob["sel"]]
+        t0 = time.time()
+        s = br.select(texts)
+        atomic_json(path, {"contract": con,
+                           "sel": [[[int(c), float(v)] for c, v in row] for row in s],
+                           "minutes": round((time.time() - t0) / 60.0, 3),
+                           "written_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+        log(f"  [encode/{dec}/{a}] DONE {len(s):,} texts in {(time.time() - t0) / 60:.1f}m -> "
+            f"{os.path.basename(path)}")
+        return s
+
     # ---- one full analysis per decoding -----------------------------------------------------------
     def analyse(texts, dec):
         sel, U, Vk, cos_t, cos_k, nsel = {}, {}, {}, {}, {}, {}
         for a in arms:
-            sel[a] = br.select(texts[a])
+            sel[a] = encode_cached(texts[a], dec, a)
             U[a] = br.tower_vectors(sel[a])
             Vk[a] = br.kphi_vectors(sel[a])
             cos_t[a] = rowcos(U[a], T_tow)
@@ -1572,7 +1767,17 @@ def cmd_stage2(args):
                             "fold": "certified ConceptFoldNet cv3 on the cold tower fold z0, v=+1",
                             "whitening": "popularity axis u1 stripped from both sides"},
         "controls": {"concept_dirs_reproduced_from_item_targets_worst_1_minus_abscos":
-                     br.dc_reproduction_worst},
+                     br.dc_reproduction_worst,
+                     "greedy_kv_cache_equivalence": cache_chk},
+        "incremental_persistence": {
+            "rule": ("HARD RULE 11: each (decoding, arm) generation set and each SBERT selection "
+                     "set is banked to its own contract-signed sidecar the moment it completes "
+                     "(atomic .tmp + os.replace) and resumed on an exact contract match; a changed "
+                     "contract is refused, never mixed in."),
+            "dir": os.path.relpath(gen_dir(), _ROOT),
+            "code_version": SIDECAR_CODE_VERSION,
+            "contract_fields": sorted(base_contract) + ["decoding", "decoding_spec", "arm",
+                                                        "n_rows", "input_sha256"]},
         "checkpoint": {"path": os.path.relpath(args.ckpt, _ROOT), "sha256": br.ckpt_sha},
         "split_hashes": man["split"]["hashes"],
         "git": {"rev": git("rev-parse", "HEAD"),
@@ -1640,6 +1845,35 @@ def cmd_stage2(args):
     return out
 
 
+def cmd_cachecheck(args):
+    """Stand-alone version of stage2's preflight: is the KV-cached decoder the SAME decoder?
+
+    Greedy decoding is deterministic, so 'byte-identical' is the only acceptable answer -- a single
+    disagreement means the speedup came at the price of a different decoder and the run must stop.
+    """
+    z = np.load(PAIRS_NPZ)
+    X, held = z["X"], z["held_q"]
+    ensure_lm()
+    tok, lm = load_lm()
+    torch.set_num_threads(int(args.threads))
+    torch.manual_seed(SEED); np.random.seed(SEED)
+    A, bA = load_adapter(os.path.join(OUT_DIR, f"c3b_{args.arm}_best.pt"), X.shape[1])
+    out = cache_equivalence(lm, tok, A, X[held], int(args.n), max_new_tokens(), tag=args.arm)
+    out.update({"arm": args.arm, "adapter_epoch": bA.get("epoch"), "targets": TARGETS,
+                "threads": int(args.threads), "lm": LM_NAME,
+                "git": {"rev": git("rev-parse", "HEAD")}})
+    os.makedirs(gen_dir(), exist_ok=True)
+    atomic_json(sidecar_path("cache_equivalence_standalone.json"), out)
+    for e in out["examples"]:
+        log(f"   row {e['row']}: {e['text']!r}")
+    if not out["identical"]:
+        for d in out["disagreements"]:
+            log(f"   MISMATCH row {d['row']}: uncached={d['uncached']!r} cached={d['cached']!r}")
+        raise SystemExit("the KV-cached greedy decoder is NOT the uncached one -- STOP")
+    log(f"[cachecheck] PASS: byte-identical on {out['n_rows']} rows; speedup {out['speedup']:.2f}x")
+    return out
+
+
 # ============================================================================ cli
 def main():
     ap = argparse.ArgumentParser(description="Paper C / C3B -- docs/design/DS_C3B_ADAPTER.md")
@@ -1682,6 +1916,15 @@ def main():
     p.add_argument("--threads", type=int, default=4)
     p = sub.add_parser("stage2"); common(p); ceiling_flags(p)
     p.add_argument("--gen_batch", type=int, default=64)
+    p.add_argument("--ignore_sidecars", action="store_true",
+                   help="HARD RULE 11 escape hatch: regenerate every (decoding, arm) set and "
+                        "overwrite its sidecar instead of resuming from it.")
+    p.add_argument("--cache_check_n", type=int, default=8,
+                   help="preflight control: rows on which the KV-cached greedy decoder must be "
+                        "byte-identical to the uncached one before stage2 runs (0 disables).")
+    p = sub.add_parser("cachecheck"); common(p)
+    p.add_argument("--n", type=int, default=32)
+    p.add_argument("--arm", default="true", choices=["true", "scrambled"])
 
     args = ap.parse_args()
     set_targets(getattr(args, "targets", "phrases"))
@@ -1694,7 +1937,8 @@ def main():
         "TEST users are not built, not loaded, not touched. No LLM API.")
     log("#" * 100)
     return {"prepare": cmd_prepare, "ceiling": cmd_ceiling, "train": cmd_train,
-            "earlyread": cmd_earlyread, "stage2": cmd_stage2}[args.cmd](args)
+            "earlyread": cmd_earlyread, "stage2": cmd_stage2,
+            "cachecheck": cmd_cachecheck}[args.cmd](args)
 
 
 if __name__ == "__main__":

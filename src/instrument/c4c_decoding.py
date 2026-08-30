@@ -170,7 +170,7 @@ def import_scoped_git_block(args):
 
 # ============================================================================ decoding
 @torch.no_grad()
-def sample_seqs(lm, tok, prefix, temperature, top_p, max_new, gen):
+def sample_seqs(lm, tok, prefix, temperature, top_p, max_new, gen, use_cache=True):
     """One sampled continuation per prefix row: temperature + nucleus top-p, batched.
 
     Returns (texts, sum_logprob, n_tokens) where the log-probability is the FROZEN LM's own
@@ -181,6 +181,18 @@ def sample_seqs(lm, tok, prefix, temperature, top_p, max_new, gen):
     The generation loop is `c3b_adapter.greedy`'s, with `argmax` replaced by the sampler and the
     per-token log-probability accumulated; the EOS token is scored and counted (a sequence that ends
     immediately is length 1, not length 0, so its normalised score is finite and comparable).
+
+    `use_cache=True` carries the KV cache forward (see `c3b_adapter.greedy`). The RNG draw order is
+    unchanged in structure: exactly one `torch.multinomial(sp, 1, generator=gen)` over all B rows
+    per step, in the same step order, from the same generator.
+
+    ⚠ DECLARED, 2026-08-30: cached and uncached GREEDY are byte-identical by construction and that
+    is CHECKED before every stage-2 run (`c3b_adapter.cache_equivalence`). For the SAMPLED arms the
+    equality is not a theorem -- attention over a KV cache reassociates the same sums, so the logits
+    move by ~1e-5 and a near-tie inside the nucleus could in principle resolve the other way. A
+    24-row probe at T=1.0/top-p 0.9/32 tokens returned identical text with max |delta log p| =
+    4.8e-5. So a sampled arm regenerated after this change is reproducible from ITS OWN sidecar, and
+    reproducible in distribution, but is not promised bit-identical to a pre-cache run.
     """
     B, P, _ = prefix.shape
     emb = prefix
@@ -190,8 +202,12 @@ def sample_seqs(lm, tok, prefix, temperature, top_p, max_new, gen):
     lp = torch.zeros(B, dtype=torch.float64)
     nt = torch.zeros(B, dtype=torch.float64)
     emb_tab = lm.get_input_embeddings()
+    past = None
     for _ in range(max_new):
-        logits = lm(inputs_embeds=emb, attention_mask=am).logits[:, -1, :].double()
+        o = lm(inputs_embeds=emb, attention_mask=am, past_key_values=past,
+               use_cache=bool(use_cache))
+        past = o.past_key_values if use_cache else None
+        logits = o.logits[:, -1, :].double()
         logp_true = torch.log_softmax(logits, -1)                    # the LM's OWN likelihood
         z = logits / float(temperature)
         p = torch.softmax(z, -1)
@@ -217,13 +233,15 @@ def sample_seqs(lm, tok, prefix, temperature, top_p, max_new, gen):
                     outs[i].append(int(nxt[i]))
         if bool(done.all()):
             break
-        emb = torch.cat([emb, emb_tab(nxt)[:, None, :]], 1)
+        step = emb_tab(nxt)[:, None, :]
+        emb = step if use_cache else torch.cat([emb, step], 1)
         am = torch.cat([am, torch.ones(B, 1, dtype=torch.long)], 1)
     return ([tok.decode(o).strip() for o in outs], lp.numpy().astype(np.float64),
             nt.numpy().astype(np.float64))
 
 
-def generate_arm(lm, tok, adapter, Xin, name, gen_batch, max_new=C3B.MAX_NEW_TOKENS):
+def generate_arm(lm, tok, adapter, Xin, name, gen_batch, max_new=C3B.MAX_NEW_TOKENS,
+                 on_batch=None):
     """Every text of one decoding arm. Seeds are reset HERE, so an arm's output does not depend on
     which arms ran before it. NOTHING in this function can see an evaluation quantity: it takes the
     adapter input, the frozen LM and the arm's decoding parameters, and returns text."""
@@ -264,6 +282,8 @@ def generate_arm(lm, tok, adapter, Xin, name, gen_batch, max_new=C3B.MAX_NEW_TOK
                              "norm_logprob": sc[j],
                              "candidates": [t for t, _a, _b in cand[i]],
                              "candidate_norm_logprob": sc})
+        if on_batch is not None:
+            on_batch(len(texts), n)          # progress only; cannot influence any generated text
     assert len(texts) == n
     return texts, diag
 
