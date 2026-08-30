@@ -44,6 +44,21 @@ so a gate scored there compares two images of one map. Five consequences, all pr
      weakness is reported as an INSTRUMENT limit, not a model failure. Every Stage-2 statistic
      carries a bootstrap CI.
 
+★ 2026-08-30 -- `--targets questions` (DS_C3B_V2_QUESTIONS.md, PRE-REGISTERED, BINDING)
+--------------------------------------------------------------------------------------
+The adapter emitted a BARE PHRASE (`science fiction`, `Rocky (2005)`); an interview asks QUESTIONS.
+`--targets questions` retrains the SAME adapter on question-shaped targets built from the same bank
+entries -- so the vector still conditions the whole utterance, rather than a phrasing layer being
+bolted on after the fact (the disqualified variant (a), in which the LM never sees the vector).
+Templates are fixed in code, listed verbatim in the manifest, identical across both arms, and ONE is
+sampled per example PER EPOCH (seeded by the epoch alone), so data size and steps/epoch are
+unchanged. Everything else is held fixed from C3B. Outputs go to `experiments/paperC/c3b_v2/`.
+The registered readings are 1 conditioning (A - A' and A >= 40% of the ceiling), 2 identification,
+3 QUESTION-FORM RATE (new; ends in '?', >= 4 tokens, a non-boilerplate content word; target 0.90),
+4 CONTENT preservation (content-word token-F1 and exact-CONTENT-match, not whole-string), 5 decoding
+= best-of-8 by LM likelihood PRIMARY with greedy beside it. ⚠ The ceiling is RE-MEASURED against the
+TEMPLATED gold, never reused from C3B: the instrument's input distribution has changed.
+
 SUBCOMMANDS
 -----------
   prepare    build the 19,390 (k(phi_q), phrase) pairs, the split, the channel-preserving
@@ -110,12 +125,56 @@ PAIRS_NPZ = os.path.join(OUT_DIR, "c3b_pairs.npz")
 PHRASES_JSON = os.path.join(OUT_DIR, "c3b_phrases.json")
 MANIFEST = os.path.join(OUT_DIR, "c3b_manifest.json")
 
+# ==================================================================== C3B_V2: QUESTION TARGETS
+# `docs/design/DS_C3B_V2_QUESTIONS.md` (PRE-REGISTERED 2026-08-30, BINDING). `--targets questions`
+# retrains the SAME adapter on question-shaped targets built from the same bank entries, so the
+# vector still conditions the whole utterance. Everything else is held fixed from C3B: the same
+# 19,390 pairs, the same identity-held-out 20% split (seed 98765, channel x popularity decile), the
+# same 2-layer MLP -> 8 soft prefix tokens into a FROZEN distilgpt2, lr 1e-3 / batch 32, and the same
+# channel-preserving scrambled twin. Outputs go to a SEPARATE directory so no C3B artifact is
+# overwritten.
+TARGETS = "phrases"                                        # set by --targets; "phrases" == C3B
+V2_DIR = os.path.join(PAPERC, "c3b_v2")
+
+# ★ THE TEMPLATE FAMILIES. Fixed in code, listed verbatim in the manifest, IDENTICAL across both
+# arms. One template is sampled PER EXAMPLE PER EPOCH (seeded by the epoch alone, so the draw is a
+# function of (epoch, bank index) and is bit-identical for the true and the scrambled arm), so the
+# model learns "question form + this content" rather than one memorised string, and neither the data
+# size nor the steps/epoch change. Some genome tags are adjectival and some nominal, so no single
+# template is clean for all -- that is why there is a family, and the awkward cases are a declared
+# property of the vocabulary, not a bug (design sheet).
+ITEM_TEMPLATES = (
+    "Have you seen {}?",
+    "Did you enjoy {}?",
+    "What did you think of {}?",
+)
+CONCEPT_TEMPLATES = (
+    "Do you enjoy {} films?",
+    "Are you in the mood for something {}?",
+    "How do you feel about {} movies?",
+    "Do you like it when a film is {}?",
+)
+TEMPLATE_EPOCH_SEED_STRIDE = 100003        # seed of epoch e = SEED + STRIDE * e
+QFORM_TARGET = 0.90                        # DS_C3B_V2 reading 3: the pre-stated target
+QFORM_MIN_TOKENS = 4                       # "... >= 4 tokens ..."
+N_EXAMPLES = 30                            # banked example generations (held-out, both channels)
+EVAL_TEMPLATE_EPOCH = 0                    # the FIXED ruler: gold/eval and the inner-val CE always
+                                           # use the epoch-0 draw, so val CE is comparable across
+                                           # epochs (HARD RULE 8/9) and the ceiling is deterministic.
+
 LM_NAME = "distilgpt2"
 N_PREFIX = 8                 # soft prefix tokens (design sheet)
 D_HID = 512                  # the MLP's single hidden width
 FRAC_HELDOUT = 0.20          # experiment Q's fraction, by question identity
 FRAC_INNER_VAL = 0.10        # of the TRAIN portion, for best-epoch selection
-MAX_NEW_TOKENS = 16          # Stage 2 greedy budget
+MAX_NEW_TOKENS = 16          # Stage 2 greedy budget (bare phrases)
+MAX_NEW_TOKENS_QUESTIONS = 32
+# DEVIATION OF RECORD (c3b_v2): the generation budget moves 16 -> 32 tokens under `--targets
+# questions`. A template adds ~5-7 tokens in front of a phrase whose 95th percentile is already
+# double-digit (max 191 chars), so a 16-token cap would truncate long titles BEFORE the closing '?'
+# and would make reading 3 (question-form rate) a measurement of the cap rather than of the model.
+# Training never truncated (HARD RULE 1); only the decode budget moves, identically for both arms
+# and for every decoding.
 N_BOOT = 10000               # registered bootstrap resamples
 CEILING_FRAC = 0.40          # AMENDMENT clause 5: A must reach >=40% of the true-phrase ceiling
 ITEM_CEILING_FLOOR = 0.05    # below this the ITEM ceiling is "near zero" and the gate falls back
@@ -126,6 +185,75 @@ ID_FLOOR = 0.70              # RETIRED (Fable ruling 2026-08-24, DS amendment 6)
                              # pass additionally requires the bootstrap CI to exclude chance (0.50).
 ID_HEADROOM_FRAC = 0.60      # fraction of the ceiling's headroom over chance A must reach
 # The absolute +0.10 floor of the original sheet is RETIRED by AMENDMENT clause 5.
+
+
+# ==================================================================== the targets mode + templates
+def set_targets(mode):
+    """Point every output path at the run's own directory. `phrases` == C3B, unchanged."""
+    global TARGETS, OUT_DIR, PAIRS_NPZ, PHRASES_JSON, MANIFEST
+    assert mode in ("phrases", "questions")
+    TARGETS = mode
+    if mode == "questions":
+        OUT_DIR = V2_DIR
+        PAIRS_NPZ = os.path.join(OUT_DIR, "c3b_pairs.npz")
+        PHRASES_JSON = os.path.join(OUT_DIR, "c3b_phrases.json")
+        MANIFEST = os.path.join(OUT_DIR, "c3b_manifest.json")
+    return OUT_DIR
+
+
+def max_new_tokens():
+    return MAX_NEW_TOKENS_QUESTIONS if TARGETS == "questions" else MAX_NEW_TOKENS
+
+
+def template_table(epoch, chan):
+    """The per-epoch template draw: one index per BANK ENTRY, a pure function of (epoch, index).
+
+    Drawn over the whole bank in one seeded call, so the value at a given bank index depends on the
+    epoch only -- never on which subset is iterated, in which order, or by which arm. The scrambled
+    twin renders its (permuted) target phrase with the template this table gives THAT PHRASE'S bank
+    index, so both arms see the same templates from the same seed.
+    """
+    rng = np.random.default_rng(SEED + TEMPLATE_EPOCH_SEED_STRIDE * int(epoch))
+    u = rng.random(len(chan))
+    n = np.where(np.asarray(chan) == 0, len(ITEM_TEMPLATES), len(CONCEPT_TEMPLATES))
+    return np.minimum((u * n).astype(np.int64), n - 1)
+
+
+def render_target(phrase, ch, t):
+    fam = ITEM_TEMPLATES if int(ch) == 0 else CONCEPT_TEMPLATES
+    return fam[int(t) % len(fam)].format(phrase)
+
+
+def target_texts(phrases, chan, epoch):
+    """The text every bank entry is asked to produce at this epoch (bare phrase, or its question)."""
+    if TARGETS != "questions":
+        return list(phrases)
+    tab = template_table(epoch, chan)
+    return [render_target(phrases[i], chan[i], tab[i]) for i in range(len(phrases))]
+
+
+def boilerplate_words():
+    """Every word that appears in a template outside the placeholder -- reading 3/4's stop set."""
+    ws = set()
+    for t in ITEM_TEMPLATES + CONCEPT_TEMPLATES:
+        for w in norm_txt(t.replace("{}", " ")).split():
+            ws.add(w)
+    return ws
+
+
+def content_words(text, boiler):
+    return [w for w in norm_txt(text).split() if w not in boiler]
+
+
+def is_question_form(text, boiler, min_tokens=4):
+    """Reading 3, EXACTLY as the sheet specifies it: ends in '?', >= 4 tokens, and contains a
+    content word that is not template boilerplate."""
+    s = (text or "").strip()
+    if not s.endswith("?"):
+        return False
+    if len(norm_txt(s).split()) < min_tokens:
+        return False
+    return bool(content_words(s, boiler))
 
 
 # ============================================================================ small utilities
@@ -330,8 +458,32 @@ def cmd_prepare(args):
         "balance_by_stratum": bal}
 
     man = {
-        "analysis": "paperC_C3B_adapter_prepare",
-        "design_sheet": "docs/design/DS_C3B_ADAPTER.md",
+        "analysis": ("paperC_C3B_V2_questions_prepare" if TARGETS == "questions"
+                     else "paperC_C3B_adapter_prepare"),
+        "targets": TARGETS,
+        "templates": (None if TARGETS != "questions" else {
+            "what": ("the target text is the bank entry's phrase rendered into a QUESTION by one of "
+                     "these fixed template families; ONE template is sampled PER EXAMPLE PER EPOCH "
+                     "(seeded by the epoch alone), so data size and steps/epoch are unchanged and "
+                     "the draw is bit-identical for the true and the scrambled arm"),
+            "item_templates": list(ITEM_TEMPLATES),
+            "concept_templates": list(CONCEPT_TEMPLATES),
+            "sampling": (f"template index at epoch e = floor(u * n_family) with u drawn once over "
+                         f"the whole bank from numpy default_rng({SEED} + "
+                         f"{TEMPLATE_EPOCH_SEED_STRIDE}*e); the scrambled twin uses the table entry "
+                         f"of the PHRASE it is asked to produce"),
+            "eval_template_epoch": EVAL_TEMPLATE_EPOCH,
+            "eval_note": ("the ceiling, the inner-val CE and every Stage-2 gold use the epoch-"
+                          f"{EVAL_TEMPLATE_EPOCH} draw -- a FIXED ruler, so val CE is comparable "
+                          "across epochs and the ceiling is deterministic"),
+            "max_new_tokens": MAX_NEW_TOKENS_QUESTIONS,
+            "max_new_tokens_deviation": ("DEVIATION OF RECORD: the decode budget moves 16 -> 32 "
+                                         "tokens, because a template prepends ~5-7 tokens to a "
+                                         "phrase of up to 191 characters and a 16-token cap would "
+                                         "truncate the closing '?' -- turning reading 3 into a "
+                                         "measurement of the cap. Training truncates nothing.")}),
+        "design_sheet": ("docs/design/DS_C3B_V2_QUESTIONS.md" if TARGETS == "questions"
+                         else "docs/design/DS_C3B_ADAPTER.md"),
         "produced_by": "src/instrument/c3b_adapter.py prepare",
         "citable": True, "test_touched": False, "split": "validation",
         "seed": SEED,
@@ -392,9 +544,17 @@ def cmd_prepare(args):
         log(f"{b['stratum']:>7} | {b['channel']:>7} | {b['decile']:>3} | {b['n_total']:>6} | "
             f"{b['n_train']:>6} | {b['n_heldout']:>7} | {b['heldout_share']:.4f}")
     rr = np.random.default_rng(SEED)
-    for i in rr.choice(held_q, size=5, replace=False):
+    spot = rr.choice(held_q, size=5, replace=False)
+    for i in spot:
         log(f"[spot-check] bank {int(i):>6} ({'item' if i < ni else 'concept'}, stratum "
             f"{int(st[i])}) -> {phrases[int(i)]!r}")
+    if TARGETS == "questions":
+        log("[templates] item: " + " | ".join(ITEM_TEMPLATES))
+        log("[templates] concept: " + " | ".join(CONCEPT_TEMPLATES))
+        for ep in (0, 1, 2):
+            tt = target_texts(phrases, chan, ep)
+            for i in spot[:3]:
+                log(f"[template ep{ep}] bank {int(i):>6} -> {tt[int(i)]!r}")
     log(f"[done] wrote {MANIFEST} ({man['minutes']:.1f}m)")
     return man
 
@@ -525,16 +685,33 @@ def cmd_train(args):
     adapter = Adapter(X.shape[1], d_lm)
     n_par = sum(p.numel() for p in adapter.parameters())
     opt = torch.optim.AdamW(adapter.parameters(), lr=args.lr)
-    ids_all = encode_phrases(tok, phrases)
+
+    chan = z["chan"]
+
+    def ids_for_epoch(ep):
+        """The token ids of every bank entry's target text at this epoch. Under `--targets
+        questions` the template is redrawn each epoch (same draw for both arms); under `phrases`
+        this is the constant C3B encoding."""
+        return encode_phrases(tok, target_texts(phrases, chan, ep))
+    ids_eval = ids_for_epoch(EVAL_TEMPLATE_EPOCH)          # the FIXED ruler for the inner-val CE
+    ids_all = ids_eval if TARGETS != "questions" else None
     log(f"[build] adapter {X.shape[1]} -> {D_HID} -> {N_PREFIX}x{d_lm} ({n_par:,} params); LM "
-        f"{LM_NAME} FROZEN; fit {len(inner_fit):,} / inner-val {len(inner_val):,}; arm {args.arm}")
+        f"{LM_NAME} FROZEN; fit {len(inner_fit):,} / inner-val {len(inner_val):,}; arm {args.arm}; "
+        f"targets {TARGETS}")
+    if TARGETS == "questions":
+        log(f"[targets] question templates: {len(ITEM_TEMPLATES)} item / "
+            f"{len(CONCEPT_TEMPLATES)} concept families, one sampled per example per epoch "
+            f"(seed {SEED}+{TEMPLATE_EPOCH_SEED_STRIDE}*epoch); inner-val CE always on the "
+            f"epoch-{EVAL_TEMPLATE_EPOCH} draw")
+        for i in (int(inner_fit[0]), int(inner_fit[1]), int(inner_val[0])):
+            log(f"[targets] bank {i} ep0 -> {target_texts(phrases, chan, 0)[i]!r}")
 
     if args.smoke_steps:
         rr = np.random.default_rng(SEED)
         pe = inner_fit[rr.permutation(len(inner_fit))]
         t0 = time.time()
-        ce, ntok, steps = ce_on(lm, adapter, X, ids_all, pe, targets(pe), args.batch, train=True,
-                                opt=opt, max_steps=args.smoke_steps)
+        ce, ntok, steps = ce_on(lm, adapter, X, ids_for_epoch(1), pe, targets(pe), args.batch,
+                                train=True, opt=opt, max_steps=args.smoke_steps)
         el = time.time() - t0
         per_ep = int(np.ceil(len(inner_fit) / args.batch))
         log(f"[SMOKE] {steps} optimiser steps in {el:.1f}s = {el / steps:.3f}s/step; train CE "
@@ -546,6 +723,8 @@ def cmd_train(args):
     stem = f"c3b_{args.arm}"
     logp = os.path.join(OUT_DIR, stem + ".jsonl")
     jsonl(logp, {"event": "start", "arm": args.arm, "lr": args.lr, "batch": args.batch,
+                 "targets": TARGETS, "item_templates": list(ITEM_TEMPLATES),
+                 "concept_templates": list(CONCEPT_TEMPLATES),
                  "epochs": args.epochs, "n_params": n_par, "d_lm": d_lm,
                  "n_fit": int(len(inner_fit)), "n_val": int(len(inner_val)),
                  "seed": SEED, "manifest_git": man["git"]["rev"],
@@ -558,10 +737,11 @@ def cmd_train(args):
         adapter.train()
         pe = inner_fit[rr.permutation(len(inner_fit))]
         te = time.time()
-        tr_ce, _n, steps = ce_on(lm, adapter, X, ids_all, pe, targets(pe), args.batch, train=True,
+        ids_ep = ids_all if ids_all is not None else ids_for_epoch(ep)
+        tr_ce, _n, steps = ce_on(lm, adapter, X, ids_ep, pe, targets(pe), args.batch, train=True,
                                  opt=opt, log_every=args.log_every, tag=f"{stem} ep{ep}")
         adapter.eval()
-        va_ce, _nv, _s = ce_on(lm, adapter, X, ids_all, inner_val, tgt_val, args.batch)
+        va_ce, _nv, _s = ce_on(lm, adapter, X, ids_eval, inner_val, tgt_val, args.batch)
         sched.step(va_ce)
         row = {"event": "epoch", "arm": args.arm, "epoch": ep, "train_ce": tr_ce, "val_ce": va_ce,
                "lr": float(opt.param_groups[0]["lr"]), "steps": steps,
@@ -570,7 +750,7 @@ def cmd_train(args):
         torch.save({"adapter": adapter.state_dict(), "arm": args.arm, "epoch": ep,
                     "train_ce": tr_ce, "val_ce": va_ce, "d_in": int(X.shape[1]), "d_lm": d_lm,
                     "n_prefix": N_PREFIX, "d_hid": D_HID, "lm": LM_NAME, "seed": SEED,
-                    "split_hashes": man["split"]["hashes"]},
+                    "targets": TARGETS, "split_hashes": man["split"]["hashes"]},
                    os.path.join(OUT_DIR, f"{stem}_ep{ep:02d}.pt"))
         log(f"[{stem} ep{ep}] train CE {tr_ce:.5f} | val CE {va_ce:.5f} | lr "
             f"{row['lr']:.2e} ({row['minutes']:.1f}m)")
@@ -899,7 +1079,16 @@ def cmd_ceiling(args):
         phrases = json.load(fh)["phrases"]
     br = TowerBridge(args)
     ni = br.ni
-    gold = [phrases[int(i)] for i in held]
+    # ★ DS_C3B_V2 reading 1: under `--targets questions` the ceiling is RE-MEASURED against the
+    # TEMPLATED gold (the question containing the phrase), never reused from C3B -- the instrument's
+    # input distribution has changed, so the same phrase inside boilerplate need not encode the same
+    # way. The epoch-0 template draw is the fixed ruler.
+    gold_all = target_texts(phrases, z["chan"], EVAL_TEMPLATE_EPOCH)
+    gold = [gold_all[int(i)] for i in held]
+    bare = [phrases[int(i)] for i in held]
+    if TARGETS == "questions":
+        log(f"[ceiling] gold is the TEMPLATED question (epoch-{EVAL_TEMPLATE_EPOCH} draw); e.g. "
+            + " | ".join(repr(gold[j]) for j in (0, len(gold) // 2, len(gold) - 1)))
     is_item = held < ni
 
     sel = br.select(gold)
@@ -938,8 +1127,33 @@ def cmd_ceiling(args):
     cp_ceil = per["concept"]["tower_cos"]["mean"]
     gate_channel = "item" if (it_ceil is not None and it_ceil >= args.item_ceiling_floor) else "concept"
 
-    out = {"analysis": "paperC_C3B_instrument_ceiling",
-           "design_sheet": "docs/design/DS_C3B_ADAPTER.md AMENDMENT clause 5",
+    # side-by-side: the BARE phrase through the same bridge (C3B's own ceiling object), so the
+    # effect of the reformatting on the instrument is visible rather than inferred.
+    bare_per = None
+    if TARGETS == "questions":
+        sel_b = br.select(bare)
+        Ub = br.tower_vectors(sel_b)
+        cos_b = rowcos(Ub, T)
+        encb = np.asarray([len(s) for s in sel_b], np.int64) > 0
+        bare_per = {nm: boot_mean(cos_b[m & encb])
+                    for nm, m in (("item", is_item), ("concept", ~is_item),
+                                  ("all", np.ones_like(is_item)))}
+        for nm in ("item", "concept"):
+            log(f"[CEILING/{nm:>7}] BARE-PHRASE comparison (C3B's object): "
+                f"{bare_per[nm]['mean']:+.5f} CI [{bare_per[nm]['ci_lo']:+.5f}, "
+                f"{bare_per[nm]['ci_hi']:+.5f}]")
+
+    out = {"analysis": ("paperC_C3B_V2_instrument_ceiling_TEMPLATED_GOLD" if TARGETS == "questions"
+                        else "paperC_C3B_instrument_ceiling"),
+           "targets": TARGETS,
+           "templates": (None if TARGETS != "questions" else
+                         {"item_templates": list(ITEM_TEMPLATES),
+                          "concept_templates": list(CONCEPT_TEMPLATES),
+                          "eval_template_epoch": EVAL_TEMPLATE_EPOCH}),
+           "bare_phrase_tower_cos_side_by_side": bare_per,
+           "design_sheet": ("docs/design/DS_C3B_V2_QUESTIONS.md reading 1 (ceiling re-measured "
+                            "against the TEMPLATED gold)" if TARGETS == "questions"
+                            else "docs/design/DS_C3B_ADAPTER.md AMENDMENT clause 5"),
            "produced_by": "src/instrument/c3b_adapter.py ceiling",
            "citable": True, "test_touched": False, "split": "validation",
            "what": ("the held-out question's OWN true surface phrase pushed through the amended "
@@ -1024,135 +1238,245 @@ def cmd_stage2(args):
     for b, nm in ((bA, "true"), (bS, "scrambled")):
         assert b["split_hashes"] == man["split"]["hashes"], \
             f"the {nm} adapter was trained under a DIFFERENT split than the manifest's"
+        assert b.get("targets", "phrases") == TARGETS, \
+            f"the {nm} adapter was trained on {b.get('targets')} targets, not {TARGETS}"
     log(f"[adapters] true ep{bA['epoch']} val CE {bA['val_ce']:.5f} | scrambled ep{bS['epoch']} "
         f"val CE {bS['val_ce']:.5f}")
 
-    # ---- generation ------------------------------------------------------------------------------
-    texts = {"true": [], "scrambled": []}
-    for st in range(0, len(held), args.gen_batch):
-        xb = torch.from_numpy(X[held[st:st + args.gen_batch]])
+    # ---- generation: BEST-OF-8 BY LM LIKELIHOOD is the decoding of record ------------------------
+    # `docs/results/C4C_DECODING.md` ruling 1. DS_C3B_V2 reading 5: best-of-8 is PRIMARY, greedy is
+    # reported beside it, and the pick rule may never consult the tower cosine -- which is enforced
+    # structurally by REUSING `c4c_decoding.generate_arm`, whose picker takes no evaluation argument
+    # and runs before any bridge object exists.
+    import c4c_decoding as C4C          # lazy: c4c imports THIS module, so never at module level
+    MNT = max_new_tokens()
+    decodings = ("bestof8_lm", "greedy") if TARGETS == "questions" else ("greedy",)
+    primary_dec = decodings[0]
+    dec_spec = {"bestof8_lm": C4C.DEC_SPEC["bestofk_lm"], "greedy": C4C.DEC_SPEC["greedy"]}
+
+    def gen(adapter, Xin, dec):
+        name = "greedy" if dec == "greedy" else "bestofk_lm"
+        t, _diag = C4C.generate_arm(lm, tok, adapter, Xin, name, args.gen_batch, max_new=MNT)
+        return t
+
+    Xh = X[held]
+    Xpri = zero_latent_input(X.shape[1], [0, 1])
+    texts_by_dec, prior_texts = {}, {}
+    for dec in decodings:
+        t0d = time.time()
+        tt = {"true": gen(A, Xh, dec)}
+        log(f"  [gen/{dec}] true done ({(time.time() - t0d) / 60:.1f}m)")
+        tt["scrambled"] = gen(S, Xh, dec)
+        log(f"  [gen/{dec}] scrambled done ({(time.time() - t0d) / 60:.1f}m)")
+        # AMENDMENT clause 3: the registered comparator is CHANNEL-MATCHED -- a zeroed LATENT block
+        # plus the channel one-hot, so criterion 2 tests correspondence and not channel membership.
+        # The strict all-zero soft prefix of the original sheet is kept as a secondary reading.
+        pri_ch = gen(A, Xpri, dec)
         with torch.no_grad():
-            texts["true"] += greedy(lm, tok, A(xb))
-            texts["scrambled"] += greedy(lm, tok, S(xb))
-        if (st // args.gen_batch) % 10 == 0:
-            log(f"  [gen] {min(st + args.gen_batch, len(held)):,}/{len(held):,} "
-                f"({(time.time() - t00) / 60:.1f}m)")
+            strict_zero = greedy(lm, tok, torch.zeros(1, N_PREFIX, int(bA["d_lm"])), max_new=MNT)[0]
+        tt["prior"] = [pri_ch[int(c)] for c in chan[held]]
+        tt["prior_strict_zero_prefix"] = [strict_zero] * len(held)
+        texts_by_dec[dec] = tt
+        prior_texts[dec] = {"item": pri_ch[0], "concept": pri_ch[1],
+                            "strict_zero_prefix": strict_zero}
+        log(f"[gen/{dec}] prior-only (zeroed latent + channel one-hot): item={pri_ch[0]!r} "
+            f"concept={pri_ch[1]!r}; strict all-zero prefix={strict_zero!r} "
+            f"({(time.time() - t0d) / 60:.1f}m)")
 
-    # ---- the PRIOR-ONLY controls -----------------------------------------------------------------
-    # AMENDMENT clause 3: the registered comparator is CHANNEL-MATCHED -- a zeroed LATENT block plus
-    # the channel one-hot, so criterion 2 tests correspondence and not channel membership. The strict
-    # all-zero soft prefix of the original sheet is kept as a secondary reading.
-    with torch.no_grad():
-        pri_ch = greedy(lm, tok, A(torch.from_numpy(zero_latent_input(X.shape[1], [0, 1]))))
-        strict_zero = greedy(lm, tok, torch.zeros(1, N_PREFIX, int(bA["d_lm"])))[0]
-    texts["prior"] = [pri_ch[int(c)] for c in chan[held]]
-    texts["prior_strict_zero_prefix"] = [strict_zero] * len(held)
-    log(f"[gen] prior-only (zeroed latent + channel one-hot): item={pri_ch[0]!r} "
-        f"concept={pri_ch[1]!r}; strict all-zero prefix={strict_zero!r}")
-
-    # ---- the bridges -----------------------------------------------------------------------------
+    # ---- the bridges ------------------------------------------------------------------------------
     br = TowerBridge(args)
     assert br.ckpt_sha == man["checkpoint"]["sha256"]
     ni = br.ni
     is_item = held < ni
-    gold = [phrases[int(i)] for i in held]
+    bare_gold = [phrases[int(i)] for i in held]                 # reading 4 compares against THIS
+    gold_all = target_texts(phrases, chan, EVAL_TEMPLATE_EPOCH)
+    gold = [gold_all[int(i)] for i in held]                     # the templated gold (whole string)
     T_tow = br.target_tower(held)
     T_kphi = br.target_kphi(held)
-
+    boiler = sorted(boilerplate_words())
     arms = ("true", "scrambled", "prior", "prior_strict_zero_prefix")
-    sel, U, Vk, cos_t, cos_k, nsel = {}, {}, {}, {}, {}, {}
-    for a in arms:
-        sel[a] = br.select(texts[a])
-        U[a] = br.tower_vectors(sel[a])
-        Vk[a] = br.kphi_vectors(sel[a])
-        cos_t[a] = rowcos(U[a], T_tow)
-        cos_k[a] = rowcos(Vk[a], T_kphi)
-        nsel[a] = np.asarray([len(s) for s in sel[a]], np.int64)
-        log(f"[encode/{a}] encodable {int((nsel[a] > 0).sum()):,}/{len(held):,}; distinct texts "
-            f"{len(set(texts[a])):,}")
-
-    enc = {a: np.isfinite(cos_t[a]) for a in arms}
-    both = enc["true"] & enc["scrambled"]
-    all3 = both & enc["prior"]
-
-    # ---- phrase recovery (printed BESIDE every concept-channel number, AMENDMENT clause 2) --------
-    rec = {}
-    for a in arms:
-        ex = np.asarray([norm_txt(t) == norm_txt(g) for t, g in zip(texts[a], gold)], np.float64)
-        f1 = np.asarray([tok_f1(t, g) for t, g in zip(texts[a], gold)], np.float64)
-        rec[a] = {"exact": boot_mean(ex), "token_f1": boot_mean(f1),
-                  "exact_items": boot_mean(ex[is_item]),
-                  "exact_concepts": boot_mean(ex[~is_item]),
-                  "token_f1_items": boot_mean(f1[is_item]),
-                  "token_f1_concepts": boot_mean(f1[~is_item]),
-                  "n_distinct_texts": int(len(set(texts[a])))}
-
-    # ---- the three criteria, PER CHANNEL, in the PRIMARY (tower) space ----------------------------
-    ceil_per = ceil["per_channel"]
     chans = {"item": is_item, "concept": ~is_item}
-    crit, ident_partner = {}, {}
-    for nm, m in chans.items():
-        c_ceiling = ceil_per[nm]["tower_cos"]["mean"]
-        need = None if c_ceiling is None else args.ceiling_frac * c_ceiling
-        m1 = m & both
-        c1 = boot_mean(cos_t["true"][m1] - cos_t["scrambled"][m1])
-        a_lvl = boot_mean(cos_t["true"][m & enc["true"]])
-        c1["A_mean_tower_cos"] = a_lvl["mean"]
-        c1["A_ci"] = [a_lvl["ci_lo"], a_lvl["ci_hi"]]
-        c1["ceiling"] = c_ceiling
-        c1["required_fraction_of_ceiling"] = args.ceiling_frac
-        c1["required_A_tower_cos"] = need
-        c1["fraction_of_ceiling_reached"] = (None if not c_ceiling else
-                                             (a_lvl["mean"] or 0.0) / c_ceiling)
-        c1["pass"] = bool(c1["ci_lo"] is not None and c1["ci_lo"] > 0 and need is not None
-                          and a_lvl["mean"] is not None and a_lvl["mean"] >= need)
-        m2 = m & all3
-        c2 = boot_mean(cos_t["scrambled"][m2] - cos_t["prior"][m2])
-        c2["pass"] = bool(not c2["excludes_zero"])
-        c2["comparator"] = "prior-only = zeroed latent + channel one-hot (channel-matched)"
-        idx = np.nonzero(m & enc["true"])[0]
-        if len(idx) >= 3:
-            p = derange(len(idx), SEED)                 # WITHIN the channel: never a channel test
-            oth = rowcos(U["true"][idx], T_tow[idx][p])
-            hit = (cos_t["true"][idx] > oth).astype(np.float64)
-            c3 = boot_mean(hit)
-            ceil_id = (ceil_per[nm].get("identification") or {}).get("mean")
-            rel_floor = (None if ceil_id is None
-                         else 0.50 + ID_HEADROOM_FRAC * max(ceil_id - 0.50, 0.0))
-            c3["threshold_rule"] = ("chance + 60% of the ceiling's headroom over chance "
-                                    "(Fable ruling 2026-08-24, DS amendment 6; absolute "
-                                    f"{ID_FLOOR} RETIRED)")
-            c3["threshold"] = rel_floor
-            c3["mean_cos_to_random_other"] = float(np.nanmean(oth))
-            c3["ceiling_identification"] = ceil_id
-            c3["pass"] = bool(c3["mean"] is not None and rel_floor is not None
-                              and c3["mean"] >= rel_floor
-                              and c3["ci_lo"] is not None and c3["ci_lo"] > 0.50)
-            ident_partner[nm] = (idx, p, oth)
-        else:
-            c3 = {"n": int(len(idx)), "pass": False, "mean": None}
-        crit[nm] = {"1_true_minus_scrambled": c1, "2_scrambled_vs_prior_only": c2,
-                    "3_identification": c3,
-                    "exact_phrase_recovery_true": rec["true"]["exact_items" if nm == "item"
-                                                             else "exact_concepts"],
-                    "n": int(m.sum()), "n_paired": int(m1.sum())}
-
+    ceil_per = ceil["per_channel"]
     gate = ceil["gate_channel"]
-    g = crit[gate]
-    verdict = ("SUCCESS" if all(g[k]["pass"] for k in
-                                ("1_true_minus_scrambled", "2_scrambled_vs_prior_only",
-                                 "3_identification"))
-               else ("channel_level_only" if (g["1_true_minus_scrambled"]["pass"]
-                                              and not g["3_identification"]["pass"]) else "FAILURE"))
+
+    # ---- one full analysis per decoding -----------------------------------------------------------
+    def analyse(texts, dec):
+        sel, U, Vk, cos_t, cos_k, nsel = {}, {}, {}, {}, {}, {}
+        for a in arms:
+            sel[a] = br.select(texts[a])
+            U[a] = br.tower_vectors(sel[a])
+            Vk[a] = br.kphi_vectors(sel[a])
+            cos_t[a] = rowcos(U[a], T_tow)
+            cos_k[a] = rowcos(Vk[a], T_kphi)
+            nsel[a] = np.asarray([len(s) for s in sel[a]], np.int64)
+            log(f"[encode/{dec}/{a}] encodable {int((nsel[a] > 0).sum()):,}/{len(held):,}; "
+                f"distinct texts {len(set(texts[a])):,}")
+        enc = {a: np.isfinite(cos_t[a]) for a in arms}
+        both = enc["true"] & enc["scrambled"]
+        all3 = both & enc["prior"]
+
+        # -- READING 4: content preservation. Token-F1 between the generated question's NON-TEMPLATE
+        # content and the gold PHRASE, plus the exact-CONTENT-match rate. This is NOT whole-string
+        # match; the whole-string figures against the templated gold are printed beside it.
+        rec = {}
+        for a in arms:
+            cw = [" ".join(content_words(t, boiler)) for t in texts[a]]
+            ex_c = np.asarray([norm_txt(c) == norm_txt(g) and bool(norm_txt(g))
+                               for c, g in zip(cw, bare_gold)], np.float64)
+            f1_c = np.asarray([tok_f1(c, g) for c, g in zip(cw, bare_gold)], np.float64)
+            ex_w = np.asarray([norm_txt(t) == norm_txt(g) for t, g in zip(texts[a], gold)],
+                              np.float64)
+            f1_w = np.asarray([tok_f1(t, g) for t, g in zip(texts[a], gold)], np.float64)
+            # the stop set is the template vocabulary, so a title that legitimately CONTAINS a
+            # template word ("The Matrix", "A Beautiful Mind") loses it on the generated side but
+            # not on the gold side. The sheet's statistic is the asymmetric one (generation content
+            # vs the gold PHRASE) and it is PRIMARY; the symmetric variant, which strips the same
+            # stop set from both sides, is reported beside it so the size of that artefact is
+            # visible rather than argued about.
+            gw = [" ".join(content_words(g, boiler)) for g in bare_gold]
+            ex_s = np.asarray([norm_txt(c) == norm_txt(g) and bool(norm_txt(g))
+                               for c, g in zip(cw, gw)], np.float64)
+            f1_s = np.asarray([tok_f1(c, g) for c, g in zip(cw, gw)], np.float64)
+            rec[a] = {
+                "_what": ("READING 4: content-word token-F1 and EXACT-CONTENT-MATCH against the "
+                          "BARE gold phrase, template boilerplate stripped from the generation; "
+                          "the whole-string figures against the TEMPLATED gold sit beside them"),
+                "exact_content_symmetric_stopset": boot_mean(ex_s),
+                "token_f1_content_symmetric_stopset": boot_mean(f1_s),
+                "exact_content_symmetric_items": boot_mean(ex_s[is_item]),
+                "exact_content_symmetric_concepts": boot_mean(ex_s[~is_item]),
+                "token_f1_content_symmetric_items": boot_mean(f1_s[is_item]),
+                "token_f1_content_symmetric_concepts": boot_mean(f1_s[~is_item]),
+                "exact_content": boot_mean(ex_c),
+                "exact_content_items": boot_mean(ex_c[is_item]),
+                "exact_content_concepts": boot_mean(ex_c[~is_item]),
+                "token_f1_content": boot_mean(f1_c),
+                "token_f1_content_items": boot_mean(f1_c[is_item]),
+                "token_f1_content_concepts": boot_mean(f1_c[~is_item]),
+                "exact_wholestring": boot_mean(ex_w),
+                "exact_wholestring_items": boot_mean(ex_w[is_item]),
+                "exact_wholestring_concepts": boot_mean(ex_w[~is_item]),
+                "token_f1_wholestring": boot_mean(f1_w),
+                "n_distinct_texts": int(len(set(texts[a])))}
+
+        # -- READING 3 (NEW, the point of this run): the QUESTION-FORM RATE.
+        # "ends in '?', >= 4 tokens, contains a content word that is not template boilerplate."
+        qf = {}
+        for a in arms:
+            q = np.asarray([is_question_form(t, boiler) for t in texts[a]], np.float64)
+            qf[a] = {"all": boot_mean(q), "item": boot_mean(q[is_item]),
+                     "concept": boot_mean(q[~is_item]),
+                     "components": {
+                         "ends_with_question_mark":
+                             float(np.mean([t.strip().endswith("?") for t in texts[a]])),
+                         "at_least_4_tokens":
+                             float(np.mean([len(norm_txt(t).split()) >= QFORM_MIN_TOKENS
+                                            for t in texts[a]])),
+                         "has_non_boilerplate_content_word":
+                             float(np.mean([bool(content_words(t, boiler)) for t in texts[a]]))},
+                     "target": QFORM_TARGET,
+                     "pass_all": bool(float(q.mean()) >= QFORM_TARGET),
+                     "pass_item": bool(float(q[is_item].mean()) >= QFORM_TARGET),
+                     "pass_concept": bool(float(q[~is_item].mean()) >= QFORM_TARGET)}
+
+        # -- READINGS 1 and 2, per channel, in the PRIMARY (tower) space ---------------------------
+        crit, ident_partner = {}, {}
+        for nm, m in chans.items():
+            c_ceiling = ceil_per[nm]["tower_cos"]["mean"]
+            need = None if c_ceiling is None else args.ceiling_frac * c_ceiling
+            m1 = m & both
+            c1 = boot_mean(cos_t["true"][m1] - cos_t["scrambled"][m1])
+            a_lvl = boot_mean(cos_t["true"][m & enc["true"]])
+            c1["A_mean_tower_cos"] = a_lvl["mean"]
+            c1["A_ci"] = [a_lvl["ci_lo"], a_lvl["ci_hi"]]
+            c1["ceiling"] = c_ceiling
+            c1["ceiling_source"] = "TEMPLATED gold, re-measured for this run" \
+                if TARGETS == "questions" else "true phrase"
+            c1["required_fraction_of_ceiling"] = args.ceiling_frac
+            c1["required_A_tower_cos"] = need
+            c1["fraction_of_ceiling_reached"] = (None if not c_ceiling else
+                                                 (a_lvl["mean"] or 0.0) / c_ceiling)
+            c1["pass"] = bool(c1["ci_lo"] is not None and c1["ci_lo"] > 0 and need is not None
+                              and a_lvl["mean"] is not None and a_lvl["mean"] >= need)
+            m2 = m & all3
+            c2 = boot_mean(cos_t["scrambled"][m2] - cos_t["prior"][m2])
+            c2["pass"] = bool(not c2["excludes_zero"])
+            c2["comparator"] = "prior-only = zeroed latent + channel one-hot (channel-matched)"
+            c2["note"] = ("C3B reading 1: this equivalence control was registered without a "
+                          "direction and fired DOWNWARD. Reported here, not part of the "
+                          "DS_C3B_V2 readings.")
+            idx = np.nonzero(m & enc["true"])[0]
+            if len(idx) >= 3:
+                p = derange(len(idx), SEED)             # WITHIN the channel: never a channel test
+                oth = rowcos(U["true"][idx], T_tow[idx][p])
+                hit = (cos_t["true"][idx] > oth).astype(np.float64)
+                c3 = boot_mean(hit)
+                ceil_id = (ceil_per[nm].get("identification") or {}).get("mean")
+                rel_floor = (None if ceil_id is None
+                             else 0.50 + ID_HEADROOM_FRAC * max(ceil_id - 0.50, 0.0))
+                c3["threshold_rule"] = ("chance + 60% of the ceiling's headroom over chance "
+                                        "(Fable ruling 2026-08-24, DS amendment 6; absolute "
+                                        f"{ID_FLOOR} RETIRED)")
+                c3["threshold"] = rel_floor
+                c3["mean_cos_to_random_other"] = float(np.nanmean(oth))
+                c3["ceiling_identification"] = ceil_id
+                c3["pass"] = bool(c3["mean"] is not None and rel_floor is not None
+                                  and c3["mean"] >= rel_floor
+                                  and c3["ci_lo"] is not None and c3["ci_lo"] > 0.50)
+                ident_partner[nm] = (idx, p, oth)
+            else:
+                c3 = {"n": int(len(idx)), "pass": False, "mean": None}
+            crit[nm] = {"1_true_minus_scrambled": c1,
+                        "2_scrambled_vs_prior_only_SECONDARY": c2,
+                        "3_identification": c3,
+                        "4_question_form_rate_true": {"rate": qf["true"][nm],
+                                                      "target": QFORM_TARGET,
+                                                      "pass": qf["true"][f"pass_{nm}"]},
+                        "5_content_preservation_true": {
+                            "token_f1_content": rec["true"][f"token_f1_content_{nm}s"],
+                            "exact_content_match": rec["true"][f"exact_content_{nm}s"]},
+                        "n": int(m.sum()), "n_paired": int(m1.sum())}
+
+        g = crit[gate]
+        readings_pass = {"1_conditioning": g["1_true_minus_scrambled"]["pass"],
+                         "2_identification": g["3_identification"]["pass"],
+                         "3_question_form": g["4_question_form_rate_true"]["pass"]}
+        verdict = ("SUCCESS" if all(readings_pass.values())
+                   else ("channel_level_only"
+                         if (readings_pass["1_conditioning"] and not readings_pass["2_identification"]
+                             and readings_pass["3_question_form"]) else "FAILURE"))
+
+        def per_arm_channel(v):
+            return {a: {nm: boot_mean(v[a][m & enc[a]]) for nm, m in chans.items()} for a in arms}
+
+        res = {"decoding": dec, "decoding_spec": dec_spec[dec],
+               "criteria_by_channel": crit, "gate_criteria": crit[gate],
+               "readings_pass_on_gate_channel": readings_pass, "verdict": verdict,
+               "question_form_rate_by_arm": qf,
+               "content_preservation_by_arm": rec,
+               "levels_tower_by_channel": per_arm_channel(cos_t),
+               "levels_kphi_SECONDARY_emitters_own_head_space": per_arm_channel(cos_k),
+               "n_paired_true_vs_scrambled": int(both.sum()),
+               "n_paired_all_three": int(all3.sum()),
+               "n_non_encodable": {a: int((~enc[a]).sum()) for a in arms},
+               "mean_concepts_selected": {a: float(nsel[a].mean()) for a in arms},
+               "prior_only_texts": prior_texts[dec]}
+        return res, cos_t, cos_k, nsel, enc, ident_partner
+
+    results, COS_T, COS_K, NSEL, ENC, IDP = {}, {}, {}, {}, {}, {}
+    for dec in decodings:
+        results[dec], COS_T[dec], COS_K[dec], NSEL[dec], ENC[dec], IDP[dec] = \
+            analyse(texts_by_dec[dec], dec)
 
     # ---- disclosure (AMENDMENT clause 4): score vs genome-membership count, ITEMS -----------------
-    it = np.nonzero(is_item & enc["true"])[0]
+    it = np.nonzero(is_item & ENC[primary_dec]["true"])[0]
     mc = br.member_count[held[it]]
     disclosure = {"what": ("concept directions are built from member items' decoder rows, so a "
                            "held-out item leaks weakly into the tags its title matches; this is the "
                            "size of that association. REPORTED, NOT GATED."),
+                  "decoding": primary_dec,
                   "correlation_true_item_score_vs_genome_membership_count":
-                      boot_corr(cos_t["true"][it], mc),
+                      boot_corr(COS_T[primary_dec]["true"][it], mc),
                   "correlation_ceiling_item_score_vs_genome_membership_count": None,
                   "membership_count": {"mean": float(mc.mean()) if len(mc) else None,
                                        "median": float(np.median(mc)) if len(mc) else None,
@@ -1163,50 +1487,83 @@ def cmd_stage2(args):
         disclosure["correlation_ceiling_item_score_vs_genome_membership_count"] = \
             boot_corr(cz["tower_cos"][ci_], br.member_count[held[ci_]])
 
-    def per_arm_channel(v):
-        return {a: {nm: boot_mean(v[a][m & enc[a]]) for nm, m in chans.items()} for a in arms}
+    # ---- 30 banked example generations, both channels, both decodings side by side ---------------
+    ex_rows = []
+    for nm, m in (("item", is_item), ("concept", ~is_item)):
+        cand = np.nonzero(m)[0]
+        take = cand[np.linspace(0, len(cand) - 1, N_EXAMPLES // 2).astype(np.int64)]
+        for j in take:
+            j = int(j)
+            row = {"bank_idx": int(held[j]), "channel": nm, "gold_phrase": bare_gold[j],
+                   "gold_templated": gold[j]}
+            for dec in decodings:
+                row[f"true__{dec}"] = texts_by_dec[dec]["true"][j]
+                row[f"scrambled__{dec}"] = texts_by_dec[dec]["scrambled"][j]
+                ct = COS_T[dec]["true"][j]
+                row[f"tower_cos_true__{dec}"] = None if not np.isfinite(ct) else float(ct)
+                cs = COS_T[dec]["scrambled"][j]
+                row[f"tower_cos_scrambled__{dec}"] = None if not np.isfinite(cs) else float(cs)
+                row[f"question_form_true__{dec}"] = bool(
+                    is_question_form(texts_by_dec[dec]["true"][j], boiler))
+            ex_rows.append(row)
 
+    prim = results[primary_dec]
     out = {
-        "analysis": "paperC_C3B_stage2",
-        "design_sheet": "docs/design/DS_C3B_ADAPTER.md (+ AMENDMENT 2026-08-24, BINDING)",
+        "analysis": ("paperC_C3B_V2_questions_stage2" if TARGETS == "questions"
+                     else "paperC_C3B_stage2"),
+        "design_sheet": ("docs/design/DS_C3B_V2_QUESTIONS.md (PRE-REGISTERED 2026-08-30, BINDING)"
+                         if TARGETS == "questions"
+                         else "docs/design/DS_C3B_ADAPTER.md (+ AMENDMENT 2026-08-24, BINDING)"),
         "produced_by": "src/instrument/c3b_adapter.py stage2",
         "citable": True, "test_touched": False, "split": "validation",
+        "targets": TARGETS,
+        "templates": {"item_templates": list(ITEM_TEMPLATES),
+                      "concept_templates": list(CONCEPT_TEMPLATES),
+                      "eval_template_epoch": EVAL_TEMPLATE_EPOCH,
+                      "boilerplate_stop_words": boiler,
+                      "max_new_tokens": MNT} if TARGETS == "questions" else None,
         "primary_space": ceil["primary_space"],
         "secondary_space": "k(phi) -- IN THE EMITTER'S OWN HEAD SPACE; may not carry the claim",
         "gate_channel": gate,
         "gate_channel_source": "c3b_ceiling.json, measured BEFORE training",
+        "decodings": list(decodings),
+        "primary_decoding": primary_dec,
+        "decoding_rule": ("DS_C3B_V2 reading 5 / C4C_DECODING.md ruling 1: best-of-8 by LENGTH-"
+                          "NORMALISED LM sequence log-likelihood is the decoding of record and is "
+                          "PRIMARY; greedy is reported beside it. The pick rule never consults the "
+                          "tower cosine -- `c4c_decoding.generate_arm` is reused verbatim and takes "
+                          "no evaluation argument."),
+        "gen_batch": int(args.gen_batch),
+        "reproducibility_note": ("the sampled arms are reproducible only at fixed batching: "
+                                 "torch.multinomial consumes the generator per batch row "
+                                 "(declared, as in C4C)"),
         "n_heldout": int(len(held)), "n_items": int(is_item.sum()),
         "n_concepts": int((~is_item).sum()),
-        "n_paired_true_vs_scrambled": int(both.sum()), "n_paired_all_three": int(all3.sum()),
-        "n_non_encodable": {a: int((~enc[a]).sum()) for a in arms},
-        "mean_concepts_selected": {a: float(nsel[a].mean()) for a in arms},
-        "adapters": {"true": {k: bA[k] for k in ("epoch", "val_ce", "train_ce")},
-                     "scrambled": {k: bS[k] for k in ("epoch", "val_ce", "train_ce")}},
-        "criteria_by_channel": crit,
-        "gate_criteria": crit[gate],
-        "verdict": verdict,
-        "reading_rule": ("criterion 1 missing on the gate channel => the vector does not condition "
-                         "the text at this scale (HARD RULE 6 weak-method report). Criterion 3 "
-                         "missing with 1 passing => channel-level conditioning ONLY; no "
-                         "faithfulness language. If the gate fell back to the concept channel, the "
-                         "item-channel weakness is an INSTRUMENT limit, not a model failure, and "
-                         "the exact-phrase-recovery rate must be quoted beside every number."),
-        "ceiling": {"item": ceil_per["item"]["tower_cos"], "concept": ceil_per["concept"]["tower_cos"],
-                    "identification": {k: ceil_per[k].get("identification") for k in chans}},
-        "levels_tower_by_channel": per_arm_channel(cos_t),
-        "levels_kphi_SECONDARY_emitters_own_head_space": per_arm_channel(cos_k),
-        "phrase_recovery": rec,
+        "adapters": {"true": {k: bA.get(k) for k in ("epoch", "val_ce", "train_ce", "targets")},
+                     "scrambled": {k: bS.get(k) for k in ("epoch", "val_ce", "train_ce",
+                                                          "targets")}},
+        "by_decoding": results,
+        "criteria_by_channel": prim["criteria_by_channel"],
+        "gate_criteria": prim["gate_criteria"],
+        "verdict": prim["verdict"],
+        "readings_pass_on_gate_channel": prim["readings_pass_on_gate_channel"],
+        "reading_rule": ("reading 1 (A - A' > 0, CI excluding zero, A >= 40% of the TEMPLATED "
+                         "ceiling) missing on the gate channel => the vector does not condition the "
+                         "text once the target is a question. Reading 3 below 0.90 => the "
+                         "reformatting failed regardless of readings 1-2. Reading 4's exact match "
+                         "is expected to stay at/near zero (C3B machine-only synonyms) and is "
+                         "reported as such, not as failure."),
+        "ceiling": {"item": ceil_per["item"]["tower_cos"],
+                    "concept": ceil_per["concept"]["tower_cos"],
+                    "identification": {k: ceil_per[k].get("identification") for k in chans},
+                    "bare_phrase_side_by_side": ceil.get("bare_phrase_tower_cos_side_by_side")},
+        "levels_tower_by_channel": prim["levels_tower_by_channel"],
+        "levels_kphi_SECONDARY_emitters_own_head_space":
+            prim["levels_kphi_SECONDARY_emitters_own_head_space"],
+        "phrase_recovery": prim["content_preservation_by_arm"],
         "disclosure_membership_leak": disclosure,
-        "prior_only_texts": {"item": pri_ch[0], "concept": pri_ch[1],
-                             "strict_zero_prefix": strict_zero},
-        "examples": [{"bank_idx": int(held[j]), "channel": "item" if is_item[j] else "concept",
-                      "gold": gold[j], "true": texts["true"][j],
-                      "scrambled": texts["scrambled"][j],
-                      "tower_cos_true": None if not np.isfinite(cos_t["true"][j])
-                      else float(cos_t["true"][j]),
-                      "tower_cos_scrambled": None if not np.isfinite(cos_t["scrambled"][j])
-                      else float(cos_t["scrambled"][j])}
-                     for j in range(0, len(held), max(len(held) // 20, 1))],
+        "prior_only_texts": prior_texts,
+        "examples": ex_rows,
         "bootstrap": {"n_resamples": N_BOOT, "seed": SEED,
                       "kind": "paired percentile over held-out questions, within channel"},
         "reencode_recipe": {"source": "c3_poc_reencode (IMPORTED)", "sbert_model": br.RE.SBERT_MODEL,
@@ -1227,44 +1584,58 @@ def cmd_stage2(args):
     os.replace(p + ".tmp", p)
 
     npz = {"heldout_bank_idx": held, "is_item": is_item,
-           "genome_membership_count": np.where(is_item, br.member_count[np.clip(held, 0, ni - 1)], -1),
-           "gold_phrase": np.asarray(gold, object)}
-    for a in arms:
-        npz[f"tower_cos_{a}"] = cos_t[a]
-        npz[f"kphi_cos_{a}"] = cos_k[a]
-        npz[f"n_concepts_{a}"] = nsel[a]
-        npz[f"text_{a}"] = np.asarray(texts[a], object)
-    for nm, (idx, p_, oth) in ident_partner.items():
-        npz[f"ident_idx_{nm}"] = idx
-        npz[f"ident_partner_{nm}"] = idx[p_]
-        npz[f"ident_cos_other_{nm}"] = oth
+           "genome_membership_count": np.where(is_item, br.member_count[np.clip(held, 0, ni - 1)],
+                                               -1),
+           "gold_phrase": np.asarray(bare_gold, object),
+           "gold_templated": np.asarray(gold, object)}
+    for dec in decodings:
+        for a in arms:
+            npz[f"tower_cos_{dec}_{a}"] = COS_T[dec][a]
+            npz[f"kphi_cos_{dec}_{a}"] = COS_K[dec][a]
+            npz[f"n_concepts_{dec}_{a}"] = NSEL[dec][a]
+            npz[f"text_{dec}_{a}"] = np.asarray(texts_by_dec[dec][a], object)
+        for nm, (idx, p_, oth) in IDP[dec].items():
+            npz[f"ident_idx_{dec}_{nm}"] = idx
+            npz[f"ident_partner_{dec}_{nm}"] = idx[p_]
+            npz[f"ident_cos_other_{dec}_{nm}"] = oth
     np.savez_compressed(os.path.join(OUT_DIR, "c3b_stage2_per_question.npz"),
                         allow_pickle=True, **npz)
 
     log("=" * 100)
-    for nm in ("item", "concept"):
-        c = crit[nm]
-        c1, c2, c3 = (c["1_true_minus_scrambled"], c["2_scrambled_vs_prior_only"],
-                      c["3_identification"])
-        star = " <== GATE" if nm == gate else ""
-        log(f"[{nm.upper()}]{star} n={c['n']:,} exact-phrase recovery (A) "
-            f"{c['exact_phrase_recovery_true']['mean']:.4f}")
-        log(f"   C1 A-A' {c1['mean']:+.5f} CI [{c1['ci_lo']:+.5f}, {c1['ci_hi']:+.5f}] | A "
-            f"{c1['A_mean_tower_cos']:+.5f} vs required {c1['required_A_tower_cos']} "
-            f"({args.ceiling_frac:.0%} of ceiling {c1['ceiling']}) -> "
-            f"{'PASS' if c1['pass'] else 'FAIL'}")
-        log(f"   C2 A'-prior {c2['mean']:+.5f} CI [{c2['ci_lo']:+.5f}, {c2['ci_hi']:+.5f}] -> "
-            f"{'PASS (overlaps zero)' if c2['pass'] else 'FAIL (separates)'}")
-        if c3.get("mean") is not None:
-            log(f"   C3 own-closer {c3['mean']:.4f} CI [{c3['ci_lo']:.4f}, {c3['ci_hi']:.4f}] "
-                f"floor {c3['threshold']} (rel., ceiling {c3['ceiling_identification']}) -> "
-                f"{'PASS' if c3['pass'] else 'FAIL'}")
+    for dec in decodings:
+        r = results[dec]
+        log(f"---------- DECODING {dec.upper()}"
+            + ("  <== PRIMARY" if dec == primary_dec else "  (reported beside)"))
+        for nm in ("item", "concept"):
+            c = r["criteria_by_channel"][nm]
+            c1, c2, c3 = (c["1_true_minus_scrambled"], c["2_scrambled_vs_prior_only_SECONDARY"],
+                          c["3_identification"])
+            q, cp = c["4_question_form_rate_true"], c["5_content_preservation_true"]
+            star = " <== GATE" if nm == gate else ""
+            log(f"[{nm.upper()}]{star} n={c['n']:,}")
+            log(f"   R1 A-A' {c1['mean']:+.5f} CI [{c1['ci_lo']:+.5f}, {c1['ci_hi']:+.5f}] | A "
+                f"{c1['A_mean_tower_cos']:+.5f} vs required {c1['required_A_tower_cos']} "
+                f"({args.ceiling_frac:.0%} of TEMPLATED ceiling {c1['ceiling']}) -> "
+                f"{'PASS' if c1['pass'] else 'FAIL'}")
+            if c3.get("mean") is not None:
+                log(f"   R2 identification {c3['mean']:.4f} CI [{c3['ci_lo']:.4f}, "
+                    f"{c3['ci_hi']:.4f}] floor {c3['threshold']} (ceiling "
+                    f"{c3['ceiling_identification']}) -> {'PASS' if c3['pass'] else 'FAIL'}")
+            log(f"   R3 question-form {q['rate']['mean']:.4f} CI [{q['rate']['ci_lo']:.4f}, "
+                f"{q['rate']['ci_hi']:.4f}] target {QFORM_TARGET} -> "
+                f"{'PASS' if q['pass'] else 'FAIL'}")
+            log(f"   R4 content token-F1 {cp['token_f1_content']['mean']:.4f} | exact-content "
+                f"{cp['exact_content_match']['mean']:.4f}")
+            log(f"   (C2 secondary) A'-prior {c2['mean']:+.5f} CI [{c2['ci_lo']:+.5f}, "
+                f"{c2['ci_hi']:+.5f}]")
+        log(f"   [{dec}] VERDICT {r['verdict']}  readings {r['readings_pass_on_gate_channel']}")
     d = disclosure["correlation_true_item_score_vs_genome_membership_count"]
     if d.get("spearman"):
         log(f"[disclosure] item score vs genome-membership count: spearman "
             f"{d['spearman']['r']:+.4f} CI [{d['spearman']['ci_lo']:+.4f}, "
             f"{d['spearman']['ci_hi']:+.4f}] (reported, not gated)")
-    log(f"[VERDICT] {verdict} on the {gate.upper()} channel  ({out['minutes']:.1f}m) -> {p}")
+    log(f"[VERDICT] {prim['verdict']} on the {gate.upper()} channel under {primary_dec} "
+        f"({out['minutes']:.1f}m) -> {p}")
     log("=" * 100)
     return out
 
@@ -1274,7 +1645,14 @@ def main():
     ap = argparse.ArgumentParser(description="Paper C / C3B -- docs/design/DS_C3B_ADAPTER.md")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
+    def tgt(p):
+        p.add_argument("--targets", choices=["phrases", "questions"], default="phrases",
+                       help="phrases = C3B, unchanged. questions = DS_C3B_V2: the same bank entry "
+                            "rendered into a QUESTION by a fixed template family, one sampled per "
+                            "example PER EPOCH; outputs go to experiments/paperC/c3b_v2/.")
+
     def common(p):
+        tgt(p)
         p.add_argument("--ckpt", default=E1_CKPT)
         p.add_argument("--snapshot", default=None)
         p.add_argument("--concept_ckpt", default=None)
@@ -1290,7 +1668,7 @@ def main():
 
     p = sub.add_parser("prepare"); common(p)
     p = sub.add_parser("ceiling"); common(p); ceiling_flags(p)
-    p = sub.add_parser("train")
+    p = sub.add_parser("train"); tgt(p)
     p.add_argument("--arm", required=True, choices=["true", "scrambled"])
     p.add_argument("--epochs", type=int, default=10)
     p.add_argument("--batch", type=int, default=32)
@@ -1299,19 +1677,20 @@ def main():
     p.add_argument("--smoke_steps", type=int, default=0,
                    help="TIMING PROBE: run N optimiser steps, print s/step and exit. Saves nothing.")
     p.add_argument("--threads", type=int, default=4)
-    p = sub.add_parser("earlyread")
+    p = sub.add_parser("earlyread"); tgt(p)
     p.add_argument("--epoch", type=int, default=2)
     p.add_argument("--threads", type=int, default=4)
     p = sub.add_parser("stage2"); common(p); ceiling_flags(p)
     p.add_argument("--gen_batch", type=int, default=64)
 
     args = ap.parse_args()
+    set_targets(getattr(args, "targets", "phrases"))
     if args.cmd in ("prepare", "ceiling", "stage2"):
         from strategy_channel_suite import CERT_TOWER, CERT_CONC
         args.snapshot = args.snapshot or CERT_TOWER
         args.concept_ckpt = args.concept_ckpt or CERT_CONC
     log("#" * 100)
-    log(f"# PAPER C / C3B ADAPTER -- {args.cmd}. VALIDATION-side objects only; the 10,000 canonical "
+    log(f"# PAPER C / C3B ADAPTER -- {args.cmd} (targets={TARGETS}, out={OUT_DIR}). VALIDATION-side objects only; the 10,000 canonical "
         "TEST users are not built, not loaded, not touched. No LLM API.")
     log("#" * 100)
     return {"prepare": cmd_prepare, "ceiling": cmd_ceiling, "train": cmd_train,
