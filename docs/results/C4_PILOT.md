@@ -85,8 +85,11 @@ emits a distinctive word; NO where it repeats its favourites — and the split i
   state's own reference, with genuine bullseyes — `action` rank **1**, `art` **4**, `indictment`
   **5** (a courtroom blend: Primal Fear / A Time to Kill), `animals` **7** (the Pixar branch),
   `military` **21**, `adventure` **28** (the Harry Potter blend), `science` **31**, `noir` **54**.
-- 24/42 states get one of the adapter's three stock words (`horror`×9, `religion`×7, `movies`×4):
-  median rank **362** — no better than the random-tag floor (340).
+- **20**/42 states get one of the adapter's three stock words (`horror`×9, `religion`×7,
+  `movies`×4); **24**/42 have a *repeated* render (those 20 plus `fantasy`×2 and `good`×2), and it
+  is the repeated group whose median rank is **362.5** — no better than the random-tag floor (340).
+  **[Corrected 2026-08-30: the original line attached the repeated-render count and median to the
+  stock-word label. Pooled over all 42 the median is 313.0.]**
 - Strict top-10 neighbourhood membership is 4/42 vs 0/42 random (Wilson intervals overlap) — the
   membership test is a harsher bar than fold-alignment and does not separate at this n.
 

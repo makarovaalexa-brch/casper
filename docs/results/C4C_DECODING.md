@@ -57,7 +57,7 @@ neighbour (unique median rank 91); under sampling, the diverse words are mostly 
    and hiding it would be a choice. Best-of-k repairs greedy's collapses — `religion`→**`scifi`**
    (rank 620→61), `religion`→**`animals`** (479→54), `hollywood`→**`ocean`** (963→133),
    `science`→**`science fiction`** (31→**7**) — while greedy keeps hits best-of-k loses
-   (`art` rank 4 → `sela` 873; `indictment` rank 5 → `standard-of-liv` 972).
+   (`art` rank 4 → `sela` 873; `indictment` rank 5 → `standard-of-life` 972).
    Unchanged across both and the best single row in the set: `root.noanswer.noanswer.dislike` →
    **`action`, rank 1 of 1,031**.
 3. **No retraining is needed for the renderer.** Step 2 (richer adapter supervision) is DEMOTED to

@@ -34,7 +34,14 @@ simulator, shared machinery across arms.)
 | render class | n | mean L−T (full) | median |
 |---|---|---|---|
 | unique render (triangulation's rank-91 group) | 18 | **+0.00633** | +0.00777 |
-| stock-word render (`horror`/`religion`/`movies`) | 24 | **+0.02628** | +0.01902 |
+| **repeated** render (any word used more than once) | 24 | **+0.02628** | +0.01902 |
+| **stock-word** render (`horror`×9 / `religion`×7 / `movies`×4) | **20** | **+0.02871** | — |
+
+**[Corrected 2026-08-30]** The original table paired the *stock-word* label with the
+*repeated-render* count and mean — two different groups in the artifact
+(`repeated_render` n=24 also contains `fantasy`×2 and `good`×2). Both rows are now shown with their
+own numbers. No conclusion changes (both classes pay ~4× the unique group), but the label and the
+field must read the same thing — the project's own `verify-the-artifact-not-a-proxy` rule.
 
 The worst three states are all `root.like.*` branches rendered as `horror` (up to +0.118); the
 best include `theatrical` −0.079 [−0.119, −0.040] and `love` −0.035 — English *beating* the
