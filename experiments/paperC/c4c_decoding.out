@@ -1,0 +1,180 @@
+[00:49:58] ##############################################################################################################
+[00:49:58] # PAPER C / C4C -- DECODING ONLY. No adapter is retrained; the bridge, R_s, the declared-circular answer model and genv_eval are IMPORTED verbatim. VALIDATION ONLY; the 10,000 TEST users are not built, not loaded, not touched. No LLM API.
+[00:49:58] ##############################################################################################################
+[00:49:58] [hardrule10] imported src/instrument modules 22; dirty AND imported 0; dirty but NOT imported 4; rev 38f012bc threads=4 torch_threads=4
+[00:49:58] [selftest] chunked bootstrap == c3b_adapter.boot_mean exactly (mean -0.105734)
+[00:49:58] === building paperC/c3b_bridge env (split=validation) ===
+[00:50:01] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[00:50:15] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[00:50:16] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[00:50:16] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[00:50:16] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[00:50:16] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[00:50:16] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[00:50:16] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[00:50:20] [ctx] all-bands reconstruction: 1356475 tokens; 7563 users with >=3 dislikes
+[00:50:28] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[00:50:33] [g5] 1031 concepts with >= 30 members
+[00:50:42] [ledger] SIGNED valuation arrays built (prereg cache found)
+[00:50:45] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[00:50:45] [policy-B] pool nnz=1356475 = 135.6 items/user (binary fold-in 61.9/user); target leak 0
+[00:50:45] [paperC/c3b_bridge] pool contract (DERIVED): policy=B nnz=1356475 per_user=135.6475 fp=c282962b49a2d67ef47ff07544519f20
+[00:50:45] [paperC/c3b_bridge] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.502; tower latent d=200
+[00:50:46] [tower] item targets Ew (18359, 200); concept directions reproduced from them (worst 1-|cos| 4.01714e-06)
+[00:50:46] [tower] cold base z0 (empty-item tower fold) norm 4.5256, d=200
+[00:50:53] [sbert] all-MiniLM-L6-v2 loaded (HF_HUB_OFFLINE=1)
+[00:51:01] [gate] validation m=0 intercept full=0.15686538118354684 tail=0.02747733123666661 -- both canonical
+[00:51:01] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[00:51:01] [leak/paperC/c4c] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[00:51:02] [space] mean-removal ||mu||=22.7630, global scale 4.4800; pool2full exact (max|diff| 4.76837e-07)
+[00:51:02] [reference] R_s (42, 200) rebuilt bit-identically to the pilot's banked R
+[00:51:02] [lm] distilgpt2 present in the local HF cache; HF_HUB_OFFLINE=1
+[00:51:02] [adapter] A ep4 val CE 2.99122; split hashes match
+[00:51:05] [gen] greedy       23/42 distinct (0.0m)
+[00:51:08] [gen] sample_T0.7  38/42 distinct (0.1m)
+[00:51:14] [gen] sample_T1.0  41/42 distinct (0.1m)
+[00:52:29] [gen] bestofk_lm   37/42 distinct (1.2m)
+[00:52:29] [gate] the greedy arm reproduces all 42 banked C4 renders bit-identically
+[00:52:29] [diversity] greedy: 20 states carry one of the banked stock words ('horror', 'religion', 'movies'); 18 states have a unique render (C4_PILOT.md banked 24 / 18)
+[00:52:31] [sbert] mode=sent: 42 sentences over 42 texts
+[00:52:33] [sbert] mode=sent: 42 sentences over 42 texts
+[00:52:35] [sbert] mode=sent: 42 sentences over 42 texts
+[00:52:36] [sbert] mode=sent: 42 sentences over 42 texts
+[00:52:38] [sbert] mode=sent: 42 sentences over 42 texts
+[00:52:40] [sbert] mode=sent: 42 sentences over 42 texts
+[00:52:40] [encode] 4 arms + A' + prior measured; greedy cos reproduces the bank (max|diff| 0)
+[00:52:40] [triangulation gate] greedy unique n=18 median rank 91.0 (C4_PILOT banked 18 / 91); repeated median 362.5 (banked 362); random floor 340.0 (banked 340)
+[00:52:40] [arms] |concepts| per state: L 4.00, P 4.00, Tprime 4.00, T_greedy 4.00, T_sample_T0.7 3.95, T_sample_T1.0 4.00, T_bestofk_lm 4.00 | states asking NOTHING (non-encodable render): greedy 0, sample_T0.7 0, sample_T1.0 0, bestofk_lm 0
+[00:55:15] [answers] declared-circular sign rule installed over 10,000 user-rows (48.23% positive); replaces a behavioural table at answer rate 0.5018
+[00:55:15] ##############################################################################################################
+[00:55:15] # scoring 42 states x (7 arms + the m=0 base) through genv_eval
+[00:55:20]   [ 1/42] root.dislike.dislike.dislike.dislike.dislike@5 n=  313 greedy:-0.00930 sample_T0.7:-0.00176 sample_T1.0:-0.01345 bestofk_lm:+0.00861 (5.4m)
+[00:55:21]   [ 2/42] root.dislike.dislike.dislike.dislike.like@5 n=   42 greedy:+0.01125 sample_T0.7:+0.05035 sample_T1.0:+0.05035 bestofk_lm:+0.05035 (5.4m)
+[00:55:23]   [ 3/42] root.dislike.dislike.dislike.like.dislike@5 n=  174 greedy:+0.01958 sample_T0.7:+0.02779 sample_T1.0:+0.02779 bestofk_lm:+0.02570 (5.4m)
+[00:55:25]   [ 4/42] root.dislike.dislike.dislike.like.like@5 n=  125 greedy:-0.03500 sample_T0.7:-0.02121 sample_T1.0:-0.02121 bestofk_lm:-0.03870 (5.4m)
+[00:55:29]   [ 5/42] root.dislike.dislike.dislike.like.noanswer@5 n=  403 greedy:+0.00592 sample_T0.7:+0.02226 sample_T1.0:+0.00022 bestofk_lm:+0.00592 (5.5m)
+[00:55:35]   [ 6/42] root.dislike.dislike.dislike.noanswer.dislike.dislike@6 n=  581 greedy:-0.00461 sample_T0.7:+0.01267 sample_T1.0:+0.00121 bestofk_lm:-0.00084 (5.6m)
+[00:55:37]   [ 7/42] root.dislike.dislike.dislike.noanswer.dislike.like@6 n=  140 greedy:+0.00886 sample_T0.7:+0.03979 sample_T1.0:+0.03540 bestofk_lm:+0.00886 (5.6m)
+[00:55:37]   [ 8/42] root.dislike.dislike.dislike.noanswer.dislike.noanswer@6 n=   18 greedy:+0.03088 sample_T0.7:+0.03652 sample_T1.0:+0.04372 bestofk_lm:+0.05513 (5.7m)
+[00:55:40]   [ 9/42] root.dislike.dislike.dislike.noanswer.like.dislike@6 n=  306 greedy:-0.02106 sample_T0.7:-0.04785 sample_T1.0:-0.02770 bestofk_lm:+0.03504 (5.7m)
+[00:55:41]   [10/42] root.dislike.dislike.dislike.noanswer.like.like@6 n=   30 greedy:-0.07920 sample_T0.7:-0.02491 sample_T1.0:-0.03813 bestofk_lm:-0.00903 (5.7m)
+[00:55:41]   [11/42] root.dislike.dislike.dislike.noanswer.like.noanswer@6 n=    9 greedy:+0.03352 sample_T0.7:+0.02116 sample_T1.0:-0.03443 bestofk_lm:+0.00085 (5.7m)
+[00:55:43]   [12/42] root.dislike.dislike.like.dislike@4 n=  118 greedy:+0.00633 sample_T0.7:+0.01495 sample_T1.0:+0.01495 bestofk_lm:-0.02825 (5.7m)
+[00:55:45]   [13/42] root.dislike.dislike.like.like@4 n=  169 greedy:+0.04041 sample_T0.7:+0.05788 sample_T1.0:+0.05788 bestofk_lm:+0.00673 (5.8m)
+[00:55:48]   [14/42] root.dislike.dislike.like.noanswer@4 n=  373 greedy:+0.03479 sample_T0.7:+0.04137 sample_T1.0:+0.04043 bestofk_lm:+0.07723 (5.8m)
+[00:55:48]   [15/42] root.dislike.dislike.noanswer.dislike@4 n=   25 greedy:-0.00785 sample_T0.7:-0.02810 sample_T1.0:-0.02810 bestofk_lm:+0.01960 (5.8m)
+[00:55:49]   [16/42] root.dislike.dislike.noanswer.like@4 n=   29 greedy:+0.00015 sample_T0.7:+0.00015 sample_T1.0:+0.00015 bestofk_lm:+0.00175 (5.8m)
+[00:55:53]   [17/42] root.dislike.dislike.noanswer.noanswer@4 n=  502 greedy:+0.01846 sample_T0.7:+0.00982 sample_T1.0:+0.00982 bestofk_lm:+0.01846 (5.9m)
+[00:55:58]   [18/42] root.dislike.like.dislike@3      n=  519 greedy:-0.02359 sample_T0.7:-0.04585 sample_T1.0:-0.01435 bestofk_lm:-0.01060 (6.0m)
+[00:55:59]   [19/42] root.dislike.like.like@3         n=  151 greedy:+0.02955 sample_T0.7:+0.02955 sample_T1.0:+0.02955 bestofk_lm:+0.03071 (6.0m)
+[00:56:00]   [20/42] root.dislike.like.noanswer@3     n=   53 greedy:-0.00503 sample_T0.7:-0.01117 sample_T1.0:+0.04232 bestofk_lm:+0.02028 (6.0m)
+[00:56:01]   [21/42] root.dislike.noanswer.dislike@3  n=   45 greedy:+0.00535 sample_T0.7:+0.00535 sample_T1.0:+0.00136 bestofk_lm:-0.01003 (6.0m)
+[00:56:02]   [22/42] root.dislike.noanswer.like@3     n=   90 greedy:+0.05233 sample_T0.7:+0.01489 sample_T1.0:+0.01489 bestofk_lm:+0.01226 (6.1m)
+[00:56:05]   [23/42] root.dislike.noanswer.noanswer@3 n=  394 greedy:+0.02446 sample_T0.7:+0.01672 sample_T1.0:+0.01599 bestofk_lm:+0.03544 (6.1m)
+[00:56:07]   [24/42] root.like.dislike.dislike@3      n=  257 greedy:-0.00026 sample_T0.7:-0.00784 sample_T1.0:-0.00784 bestofk_lm:-0.00784 (6.1m)
+[00:56:08]   [25/42] root.like.dislike.like@3         n=   63 greedy:+0.04563 sample_T0.7:+0.03866 sample_T1.0:+0.04081 bestofk_lm:+0.03391 (6.2m)
+[00:56:08]   [26/42] root.like.dislike.noanswer@3     n=   20 greedy:+0.00680 sample_T0.7:-0.01068 sample_T1.0:-0.02248 bestofk_lm:-0.02802 (6.2m)
+[00:56:10]   [27/42] root.like.like.dislike@3         n=  109 greedy:+0.07509 sample_T0.7:+0.07135 sample_T1.0:+0.07135 bestofk_lm:-0.06803 (6.2m)
+[00:56:12]   [28/42] root.like.like.like@3            n=  239 greedy:+0.11814 sample_T0.7:-0.01980 sample_T1.0:+0.00031 bestofk_lm:+0.11814 (6.2m)
+[00:56:17]   [29/42] root.like.like.noanswer@3        n=  662 greedy:+0.09270 sample_T0.7:-0.02736 sample_T1.0:-0.01684 bestofk_lm:-0.00141 (6.3m)
+[00:56:22]   [30/42] root.like.noanswer.dislike@3     n=  567 greedy:+0.05991 sample_T0.7:+0.02653 sample_T1.0:+0.02653 bestofk_lm:-0.00549 (6.4m)
+[00:56:27]   [31/42] root.like.noanswer.like@3        n=  652 greedy:-0.00065 sample_T0.7:+0.01226 sample_T1.0:+0.01226 bestofk_lm:-0.00575 (6.5m)
+[00:56:28]   [32/42] root.like.noanswer.noanswer@3    n=   37 greedy:+0.04259 sample_T0.7:-0.01034 sample_T1.0:-0.00612 bestofk_lm:+0.02263 (6.5m)
+[00:56:29]   [33/42] root.noanswer.noanswer.dislike@3 n=  124 greedy:+0.00282 sample_T0.7:+0.05249 sample_T1.0:+0.05249 bestofk_lm:+0.00282 (6.5m)
+[00:56:31]   [34/42] root.noanswer.noanswer.like@3    n=  223 greedy:+0.03725 sample_T0.7:+0.03725 sample_T1.0:+0.03141 bestofk_lm:+0.03725 (6.5m)
+[00:56:43]   [35/42] root.noanswer.noanswer.noanswer@3 n= 1438 greedy:+0.00814 sample_T0.7:+0.02570 sample_T1.0:+0.00438 bestofk_lm:+0.00814 (6.8m)
+[00:57:05]   [36/42] root.dislike.dislike.dislike     n= 2346 greedy:+0.00740 sample_T0.7:+0.00283 sample_T1.0:+0.00283 bestofk_lm:-0.01608 (7.1m)
+[00:57:17]   [37/42] root.dislike.dislike.dislike.noanswer n= 1289 greedy:+0.02443 sample_T0.7:+0.00797 sample_T1.0:+0.00797 bestofk_lm:+0.03518 (7.3m)
+[00:57:53]   [38/42] root.dislike.dislike             n= 3562 greedy:+0.00713 sample_T0.7:+0.00720 sample_T1.0:+0.00924 bestofk_lm:+0.01108 (7.9m)
+[00:58:32]   [39/42] root.dislike                     n= 4814 greedy:+0.00978 sample_T0.7:-0.00859 sample_T1.0:-0.00859 bestofk_lm:+0.00978 (8.6m)
+[00:59:55]   [40/42] root                             n=10000 greedy:+0.02208 sample_T0.7:-0.00495 sample_T1.0:+0.00897 bestofk_lm:-0.00235 (9.9m)
+[01:00:15]   [41/42] root.like                        n= 2606 greedy:+0.03579 sample_T0.7:+0.01947 sample_T1.0:+0.01947 bestofk_lm:+0.03579 (10.3m)
+[01:00:39]   [42/42] root.noanswer                    n= 2580 greedy:+0.01359 sample_T0.7:+0.03706 sample_T1.0:+0.01833 bestofk_lm:+0.02019 (10.7m)
+[01:00:39] ==============================================================================================================
+[01:00:39] READING 1 -- DIVERSITY (distinct texts / 42)
+[01:00:39]   greedy       23/42 = 0.548   unique-render states 18   max freq  9   empty 0   top: 'horror'x9, 'religion'x7, 'movies'x4, 'fantasy'x2
+[01:00:39]   sample_T0.7  38/42 = 0.905   unique-render states 34   max freq  2   empty 0   top: 'genius'x2, 'rusty'x2, 'religion'x2, 'fantasy'x2
+[01:00:39]   sample_T1.0  41/42 = 0.976   unique-render states 40   max freq  2   empty 0   top: 'genius'x2, 'cosmic'x1, 'noir'x1, 'poetry'x1
+[01:00:39]   bestofk_lm   37/42 = 0.881   unique-render states 33   max freq  3   empty 0   top: 'horror'x3, 'noir'x2, 'animals'x2, 'religion'x2
+[01:00:39] READING 2 -- TRIANGULATION: rank of the render's own concept in the 1031-concept ranking by cos to R_s (median [IQR]); random-tag floor median 340
+[01:00:39]   greedy       all              n=42  median  313.0  IQR [78.2, 496.2]  top-10 hit 4/42
+[01:00:39]   greedy       unique_render    n=18  median   91.0  IQR [22.8, 585.2]  top-10 hit 4/18
+[01:00:39]   greedy       repeated_render  n=24  median  362.5  IQR [191.5, 479.0]  top-10 hit 0/24
+[01:00:39]   sample_T0.7  all              n=42  median  441.5  IQR [135.8, 635.8]  top-10 hit 1/42
+[01:00:39]   sample_T0.7  unique_render    n=34  median  459.5  IQR [238.2, 681.0]  top-10 hit 1/34
+[01:00:39]   sample_T0.7  repeated_render  n= 8  median  110.5  IQR [85.0, 367.8]  top-10 hit 0/8
+[01:00:39]   sample_T1.0  all              n=42  median  464.0  IQR [191.2, 688.5]  top-10 hit 1/42
+[01:00:39]   sample_T1.0  unique_render    n=40  median  496.5  IQR [211.5, 693.0]  top-10 hit 1/40
+[01:00:39]   sample_T1.0  repeated_render  n= 2  median   86.5  IQR [77.8, 95.2]  top-10 hit 0/2
+[01:00:39]   bestofk_lm   all              n=42  median  395.0  IQR [75.2, 671.5]  top-10 hit 3/42
+[01:00:39]   bestofk_lm   unique_render    n=33  median  434.0  IQR [94.0, 687.0]  top-10 hit 2/33
+[01:00:39]   bestofk_lm   repeated_render  n= 9  median  224.0  IQR [54.0, 405.0]  top-10 hit 1/9
+[01:00:39] READING 3 -- FAITHFULNESS cos(u_text, R_s), and the paired difference vs greedy
+[01:00:39]   greedy       A +0.20390 CI [+0.11701, +0.29073] (n=42, non-encodable 0)   A - A(greedy) +0.00000 CI [+0.00000, +0.00000] n=42
+[01:00:39]   sample_T0.7  A +0.10336 CI [+0.02288, +0.18825] (n=42, non-encodable 0)   A - A(greedy) -0.10054 CI [-0.19705, -0.00363] n=42
+[01:00:39]   sample_T1.0  A +0.09416 CI [+0.01456, +0.17432] (n=42, non-encodable 0)   A - A(greedy) -0.10974 CI [-0.21991, -0.00213] n=42
+[01:00:39]   bestofk_lm   A +0.18464 CI [+0.09168, +0.27982] (n=42, non-encodable 0)   A - A(greedy) -0.01926 CI [-0.09667, +0.05816] n=42
+[01:00:39] READING 4 -- TRANSLATION COST L - T per decoding arm (banked greedy: +0.01802 full / +0.00672 tail)
+[01:00:39]   greedy       full  +0.018025 CI [+0.016675, +0.019398] n_rows=36,197  states CI>0 21/42 CI<0 5/42  | unique +0.00633 (n=18) repeated +0.02628 (n=24)
+[01:00:39]   greedy       tail  +0.006721 CI [+0.005412, +0.008051] n_rows=33,745  states CI>0 17/42 CI<0 4/42  | unique +0.00683 (n=18) repeated +0.01930 (n=24)
+[01:00:39]   sample_T0.7  full  +0.005198 CI [+0.003971, +0.006382] n_rows=36,197  states CI>0 20/42 CI<0 7/42  | unique +0.01629 (n=34) repeated -0.01052 (n=8)
+[01:00:39]   sample_T0.7  tail  +0.003087 CI [+0.001919, +0.004281] n_rows=33,745  states CI>0 18/42 CI<0 7/42  | unique +0.00733 (n=34) repeated +0.00136 (n=8)
+[01:00:39]   sample_T1.0  full  +0.007462 CI [+0.006137, +0.008766] n_rows=36,197  states CI>0 19/42 CI<0 7/42  | unique +0.01205 (n=40) repeated -0.01452 (n=2)
+[01:00:39]   sample_T1.0  tail  +0.004837 CI [+0.003655, +0.006045] n_rows=33,745  states CI>0 16/42 CI<0 7/42  | unique +0.00656 (n=40) repeated -0.00611 (n=2)
+[01:00:39]   bestofk_lm   full  +0.008844 CI [+0.007465, +0.010246] n_rows=36,197  states CI>0 17/42 CI<0 6/42  | unique +0.00579 (n=33) repeated +0.03603 (n=9)
+[01:00:39]   bestofk_lm   tail  +0.001582 CI [+0.000184, +0.002957] n_rows=33,745  states CI>0 12/42 CI<0 7/42  | unique +0.00202 (n=33) repeated +0.02098 (n=9)
+[01:00:39] READING 5 -- ABSOLUTE LEVELS, UNDER A DECLARED-CIRCULAR ANSWER MODEL (printed, never headlined)
+[01:00:39]   base           full 0.16571 [0.16368, 0.16778] | tail 0.03041 [0.02954, 0.03131]
+[01:00:39]   L              full 0.17443 [0.17240, 0.17652] | tail 0.05019 [0.04897, 0.05147]
+[01:00:39]   P              full 0.13309 [0.13127, 0.13495] | tail 0.03222 [0.03125, 0.03321]
+[01:00:39]   Tprime         full 0.17008 [0.16805, 0.17214] | tail 0.04601 [0.04482, 0.04721]
+[01:00:39]   T_greedy       full 0.15641 [0.15449, 0.15835] | tail 0.04347 [0.04232, 0.04460]
+[01:00:39]   T_sample_T0.7  full 0.16924 [0.16726, 0.17132] | tail 0.04710 [0.04587, 0.04828]
+[01:00:39]   T_sample_T1.0  full 0.16697 [0.16497, 0.16906] | tail 0.04535 [0.04414, 0.04651]
+[01:00:39]   T_bestofk_lm   full 0.16559 [0.16362, 0.16762] | tail 0.04861 [0.04739, 0.04984]
+[01:00:39] ==============================================================================================================
+[01:00:39] sid                            | greedy               | sample_T0.7          | sample_T1.0          | bestofk_lm          
+[01:00:39] root.dislike.dislike.dislike.dislike.dislike@5 | 'art'                | 'bookmarker'         | 'cosmic'             | 'sela'              
+[01:00:39] root.dislike.dislike.dislike.dislike.like@5 | 'family drama'       | 'noir'               | 'noir'               | 'noir'              
+[01:00:39] root.dislike.dislike.dislike.like.dislike@5 | 'fantasy'            | 'poetry'             | 'poetry'             | 'book'              
+[01:00:39] root.dislike.dislike.dislike.like.like@5 | 'love'               | 'genius'             | 'genius'             | 'homeless'          
+[01:00:39] root.dislike.dislike.dislike.like.noanswer@5 | 'movies'             | 'jazz'               | 'quiet'              | 'movies'            
+[01:00:39] root.dislike.dislike.dislike.noanswer.dislike.dislike@6 | 'movies'             | 'ambiguous'          | 'ambuso'             | 'independents'      
+[01:00:39] root.dislike.dislike.dislike.noanswer.dislike.like@6 | 'animals'            | 'drama'              | 'dubabies'           | 'animals'           
+[01:00:39] root.dislike.dislike.dislike.noanswer.dislike.noanswer@6 | 'fantasy'            | 'widescreen'         | 'whew'               | 'religion'          
+[01:00:39] root.dislike.dislike.dislike.noanswer.like.dislike@6 | 'hijacked'           | 'dog'                | 'dog fighting'       | 'welfare'           
+[01:00:39] root.dislike.dislike.dislike.noanswer.like.like@6 | 'theatrical'         | 'rusty'              | 'holy war'           | 'historical'        
+[01:00:39] root.dislike.dislike.dislike.noanswer.like.noanswer@6 | 'indictment'         | 'prisoner'           | 'rich and proud'     | 'standard-of-life'  
+[01:00:39] root.dislike.dislike.like.dislike@4 | 'religion'           | 'culture'            | 'culture'            | 'scifi'             
+[01:00:39] root.dislike.dislike.like.like@4 | 'movies'             | 'hollow'             | 'hollow'             | 'gremlins'          
+[01:00:39] root.dislike.dislike.like.noanswer@4 | 'franchise'          | 'movies'             | 'anomalous'          | 'indoctrination'    
+[01:00:39] root.dislike.dislike.noanswer.dislike@4 | 'religion'           | 'parental'           | 'parental'           | 'animals'           
+[01:00:39] root.dislike.dislike.noanswer.like@4 | 'horror'             | 'horror'             | 'horror'             | 'world'             
+[01:00:39] root.dislike.dislike.noanswer.noanswer@4 | 'horror'             | 'exploit'            | 'exploit'            | 'horror'            
+[01:00:39] root.dislike.like.dislike@3    | 'good'               | 'good comedy'        | 'gladiator'          | 'decent'            
+[01:00:39] root.dislike.like.like@3       | 'good'               | 'good'               | 'good'               | 'relatable'         
+[01:00:39] root.dislike.like.noanswer@3   | 'horror'             | 'religion'           | 'outdoor'            | 'credits'           
+[01:00:39] root.dislike.noanswer.dislike@3 | 'religion'           | 'religion'           | 'internet'           | 'decentralization'  
+[01:00:39] root.dislike.noanswer.like@3   | 'scandal'            | 'creative'           | 'creative'           | 'drama'             
+[01:00:39] root.dislike.noanswer.noanswer@3 | 'civil rights'       | 'independence'       | 'voting'             | 'history'           
+[01:00:39] root.like.dislike.dislike@3    | 'religion'           | 'genius'             | 'genius'             | 'genius'            
+[01:00:39] root.like.dislike.like@3       | 'religion'           | 'socialism'          | 'socialization'      | 'mystery film'      
+[01:00:39] root.like.dislike.noanswer@3   | 'unusual'            | 'lack of story'      | 'cutting scenes'     | 'loud'              
+[01:00:39] root.like.like.dislike@3       | 'horror'             | 'action'             | 'action'             | 'plot'              
+[01:00:39] root.like.like.like@3          | 'horror'             | 'cinema'             | 'hnostline'          | 'horror'            
+[01:00:39] root.like.like.noanswer@3      | 'horror'             | 'fantasy'            | 'related'            | 'overlooked'        
+[01:00:39] root.like.noanswer.dislike@3   | 'horror'             | 'mild'               | 'mild'               | 'theory'            
+[01:00:39] root.like.noanswer.like@3      | 'adventure'          | 'boys'               | 'boys'               | 'adventures'        
+[01:00:39] root.like.noanswer.noanswer@3  | 'horror'             | 'titanic'            | 'tossing agents (1978)' | 'gothic'            
+[01:00:39] root.noanswer.noanswer.dislike@3 | 'action'             | 'interactive'        | 'interactive'        | 'action'            
+[01:00:39] root.noanswer.noanswer.like@3  | 'mystery'            | 'mystery'            | 'beat on the road'   | 'mystery'           
+[01:00:39] root.noanswer.noanswer.noanswer@3 | 'noir'               | 'honest'             | 'persona'            | 'noir'              
+[01:00:39] root.dislike.dislike.dislike   | 'hollywood'          | 'blues'              | 'blues'              | 'ocean'             
+[01:00:39] root.dislike.dislike.dislike.noanswer | 'military'           | 'rusty'              | 'rusty'              | 'slavery'           
+[01:00:39] root.dislike.dislike           | 'science'            | 'drones'             | 'dino'               | 'science fiction'   
+[01:00:39] root.dislike                   | 'horror'             | 'comedy'             | 'comedy'             | 'horror'            
+[01:00:39] root                           | 'religion'           | 'fantasy'            | 'prequel'            | 'turns out to be'   
+[01:00:39] root.like                      | 'religion'           | 'historical'         | 'historical'         | 'religion'          
+[01:00:39] root.noanswer                  | 'movies'             | 'hockey'             | 'school prep'        | 'copyright'         
+[01:00:39] ==============================================================================================================
+[01:00:39] [done] C:\dev\phd\casper\experiments\paperC\c4c_decoding.json + c4c_decoding_per_state.npz  (10.7m)
