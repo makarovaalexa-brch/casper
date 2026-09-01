@@ -841,18 +841,30 @@ def run(args):
             f"{h['spectrum']['v1_split_half_abs_cos']['median']:.5f}")
 
     p = out["readings"]["profile"]["all_72_states"]
+
+    def contrast(b):
+        """A contrast is only 'won' if it EXCLUDES ZERO **and points the right way**. Reporting
+        `excludes_zero` under a key named `beats_x` asserts a direction the sign may contradict --
+        which is exactly how a losing contrast gets read as a win."""
+        return {"median_diff": b["median_diff"], "ci": [b["lo"], b["hi"]],
+                "excludes_zero": b["excludes_zero"],
+                "v1_WINS": bool(b["excludes_zero"] and b["median_diff"] > 0),
+                "v1_LOSES": bool(b["excludes_zero"] and b["median_diff"] < 0),
+                "n_states_v1_higher": b["n_states_positive"], "n": b["n"]}
+
     out["VERDICT"] = {
         "headline_abs_cos_v1_target_profile_arm": p["HEADLINE_abs_cos_v1_target"]["median"],
-        "beats_random_direction": p["paired_v1_minus_random"]["excludes_zero"],
-        "beats_cohort_mean_direction": p["paired_v1_minus_cohort_mean"]["excludes_zero"],
-        "beats_state_blind_leave_one_out": p["paired_v1_minus_leave_one_out"]["excludes_zero"],
-        "selector_v1_beats_popularity": p["selector"]["paired_v1_minus_popularity_spearman"][
-            "excludes_zero"],
-        "selector_quadXanswerrate_beats_popularity": p["selector"][
-            "paired_quadXans_minus_popularity_spearman"]["excludes_zero"],
+        "vs_random_direction": contrast(p["paired_v1_minus_random"]),
+        "vs_cohort_mean_direction": contrast(p["paired_v1_minus_cohort_mean"]),
+        "vs_state_blind_leave_one_out": contrast(p["paired_v1_minus_leave_one_out"]),
+        "selector_v1_vs_popularity": contrast(
+            p["selector"]["paired_v1_minus_popularity_spearman"]),
+        "selector_quadXanswerrate_vs_popularity": contrast(
+            p["selector"]["paired_quadXans_minus_popularity_spearman"]),
         "variance_ratio_along_target_median": p["variance_along_the_target"]["target"]["median"],
-        "target_lies_in_an_above_isotropic_variance_direction": p["variance_along_the_target"][
-            "paired_target_minus_one"]["excludes_zero"],
+        "target_lies_in_an_above_isotropic_variance_direction": bool(
+            p["variance_along_the_target"]["paired_target_minus_one"]["excludes_zero"] and
+            p["variance_along_the_target"]["paired_target_minus_one"]["median_diff"] > 0),
         "note": "the conclusion is the author's; this block only states which contrasts fired"}
     flush()
     log(f"[done] wrote {OUT_JSON} in {out['minutes']:.1f} minutes")
