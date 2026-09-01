@@ -1,0 +1,2871 @@
+{
+ "analysis": "paperC_C4D_transcript",
+ "produced_by": "src/instrument/c4d_transcript.py",
+ "spec": "docs/results/C4D_TRANSCRIPT_SPEC.md",
+ "citable": true,
+ "test_touched": false,
+ "split": "validation",
+ "what_this_is": "ONE cold-start interview walked down Paper B's cold tree, in which every question at a C1-final EMITTING state is the policy's own off-catalogue direction rendered into English, shown beside the catalogue question the tree would have asked at that state",
+ "figure_rule": "a state outside C1-final's 57 trained states gets NO synthesised question: the row prints the tree's own question and is marked '[no emission -- outside the fitted set]'",
+ "n_turns": 6,
+ "n_turns_emitting": 6,
+ "walk": {
+  "path_mode": "majority",
+  "stop_reason": "--max_turns 6 reached",
+  "cohort_n_users": 10000,
+  "cohort_is_whole_validation_split": true,
+  "branching": "ndcg_tree.branch_of -- the tree's OWN behavioural three-way rule, decided BEFORE the circular answer model is installed",
+  "route_gate": {
+   "n_users_on_the_walked_path": 1108,
+   "match_rate": 1.0,
+   "n_questions_compared": 6,
+   "route_n_fallback": 0
+  }
+ },
+ "emission_source": {
+  "file": "experiments\\paperC\\c1_final_per_state.npz",
+  "key": "zbar_primary_root_like_subtree",
+  "sha256": "6d82839a6214bc28addb131aa42120998677bac3cc9f90ce31e4baa536476b68",
+  "cell": "primary_root_like_subtree",
+  "c1_final_git_rev": "a52c96408c9d55f37cbb7c811ca1eeeba662b2b4",
+  "n_trained_states": 57,
+  "trained_sids": [
+   "root",
+   "root.dislike",
+   "root.dislike.dislike",
+   "root.dislike.dislike.dislike",
+   "root.dislike.dislike.dislike.dislike",
+   "root.dislike.dislike.dislike.dislike.dislike",
+   "root.dislike.dislike.dislike.dislike.dislike.dislike",
+   "root.dislike.dislike.dislike.like",
+   "root.dislike.dislike.dislike.like.like",
+   "root.dislike.dislike.dislike.like.noanswer",
+   "root.dislike.dislike.dislike.noanswer",
+   "root.dislike.dislike.dislike.noanswer.noanswer",
+   "root.dislike.dislike.dislike.noanswer.noanswer.noanswer",
+   "root.dislike.dislike.dislike.noanswer.noanswer.noanswer.dislike",
+   "root.dislike.dislike.dislike.noanswer.noanswer.noanswer.dislike.dislike",
+   "root.dislike.dislike.dislike.noanswer.noanswer.noanswer.dislike.dislike.dislike",
+   "root.dislike.dislike.dislike.noanswer.noanswer.noanswer.dislike.dislike.dislike.noanswer",
+   "root.dislike.dislike.dislike.noanswer.noanswer.noanswer.dislike.dislike.dislike.noanswer.dislike",
+   "root.dislike.dislike.like",
+   "root.dislike.dislike.like.like",
+   "root.dislike.dislike.like.like.dislike",
+   "root.dislike.dislike.like.like.dislike.noanswer",
+   "root.dislike.dislike.like.noanswer",
+   "root.dislike.dislike.noanswer",
+   "root.dislike.dislike.noanswer.noanswer",
+   "root.dislike.dislike.noanswer.noanswer.noanswer",
+   "root.dislike.dislike.noanswer.noanswer.noanswer.dislike",
+   "root.dislike.dislike.noanswer.noanswer.noanswer.dislike.dislike",
+   "root.dislike.like",
+   "root.dislike.like.dislike",
+   "root.dislike.like.dislike.like",
+   "root.dislike.like.like",
+   "root.dislike.like.like.dislike",
+   "root.dislike.like.like.dislike.like",
+   "root.dislike.like.like.like",
+   "root.dislike.noanswer",
+   "root.dislike.noanswer.noanswer",
+   "root.noanswer",
+   "root.noanswer.dislike",
+   "root.noanswer.dislike.like",
+   "root.noanswer.dislike.like.dislike",
+   "root.noanswer.like",
+   "root.noanswer.noanswer",
+   "root.noanswer.noanswer.dislike",
+   "root.noanswer.noanswer.noanswer",
+   "root.noanswer.noanswer.noanswer.dislike",
+   "root.noanswer.noanswer.noanswer.dislike.dislike",
+   "root.noanswer.noanswer.noanswer.like",
+   "root.noanswer.noanswer.noanswer.like.dislike",
+   "root.noanswer.noanswer.noanswer.noanswer",
+   "root.noanswer.noanswer.noanswer.noanswer.noanswer",
+   "root.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer",
+   "root.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer",
+   "root.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.dislike",
+   "root.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.dislike.noanswer",
+   "root.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.dislike.noanswer.noanswer",
+   "root.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.noanswer.dislike.noanswer.noanswer.noanswer"
+  ],
+  "held_out_sids": [
+   "root.like",
+   "root.like.dislike",
+   "root.like.like",
+   "root.like.like.like",
+   "root.like.like.noanswer",
+   "root.like.like.noanswer.dislike",
+   "root.like.like.noanswer.like",
+   "root.like.noanswer",
+   "root.like.noanswer.dislike",
+   "root.like.noanswer.dislike.noanswer",
+   "root.like.noanswer.dislike.noanswer.dislike",
+   "root.like.noanswer.dislike.noanswer.dislike.noanswer",
+   "root.like.noanswer.dislike.noanswer.dislike.noanswer.noanswer",
+   "root.like.noanswer.dislike.noanswer.dislike.noanswer.noanswer.noanswer",
+   "root.like.noanswer.noanswer"
+  ],
+  "per_state_vector": "the COHORT MEAN of z_hat at that state. C1-final measures within-state per-user agreement at 0.99991, so the emitted point at a state is one object, not an average over disagreeing users. C1-final banks no policy checkpoint, so re-emitting is not possible and this is the only available object.",
+  "median_cos_to_own_target_trained": 0.9695753455162048
+ },
+ "space": {
+  "chosen": "target",
+  "all_built": [
+   "direct",
+   "lstsq",
+   "target"
+  ],
+  "why_this_is_a_flag": "C1-final's policy is Paper B's m7dj warm start, so its emissions live in m7dj's k(phi) space; the C3B adapter was trained on E1's k(phi) space. Both are 128-d over the SAME frozen phi, but they are two learned read-outs and nothing guarantees a shared basis. See `probe`.",
+  "constructions": {
+   "direct": {
+    "construction": "the emission's own k(phi) vector, standardised by m7dj's OWN bank mean and global scale (so its LENGTH is in the adapter's units even though its BASIS is m7dj's)",
+    "mu_norm": 45.269782687837186,
+    "scale": 18.711727935688273,
+    "renders": "the POLICY'S EMISSION",
+    "adapter_input_abs_mean": 0.0631941631436348,
+    "adapter_input_mean_removed_norm_median": 0.8682596683502197,
+    "n_distinct_bestofk": 4,
+    "n_empty_generations_declared_non_encodable": 0
+   },
+   "lstsq": {
+    "construction": "the emission's SCORE PROFILE over the 19,390-entry bank (z_hat . e_q, the quantity the policy's own argmax reads) re-expressed in the adapter's space by ridge-stabilised least squares, standardised, then rescaled to the emission's own relative mean-removed norm",
+    "r2_per_state": [
+     0.6709492379458148,
+     0.6860327794634256,
+     0.6752899656695004,
+     0.6684482581119278,
+     0.671644383041386,
+     0.6646643139037766
+    ],
+    "r2_median": 0.6712968104936003,
+    "r2_note": "a low R^2 is a REASON NOT TO USE THIS ROW, not a number to quote",
+    "renders": "the POLICY'S EMISSION, re-expressed",
+    "adapter_input_abs_mean": 0.06509273499250412,
+    "adapter_input_mean_removed_norm_median": 0.8682595491409302,
+    "n_distinct_bestofk": 6,
+    "n_empty_generations_declared_non_encodable": 0
+   },
+   "target": {
+    "construction": "the state's m=5 measured-gain blend rebuilt out of the ADAPTER'S OWN bank rows -- no cross-space bridge exists in this row",
+    "renders": "the state's BLEND TARGET, not the policy's emission (labelled in every row)",
+    "adapter_input_abs_mean": 0.07304326444864273,
+    "adapter_input_mean_removed_norm_median": 1.0380480289459229,
+    "n_distinct_bestofk": 6,
+    "n_empty_generations_declared_non_encodable": 0
+   }
+  },
+  "probe": {
+   "direct": {
+    "n_states": 6,
+    "snap_agreement_with_the_emission_in_its_own_space": 0.0,
+    "snap_agreement_with_c1_final_banked_emit_snap": 0.0,
+    "fed_point_nearest_bank_phrase": [
+     "Hidden (2015)",
+     "Slow West (2015)",
+     "Safe Haven (2013)",
+     "For Greater Glory: The True Story of Cristiada (2012)",
+     "Disorderly Orderly, The (1964)",
+     "Call, The (2013)"
+    ],
+    "emission_nearest_bank_phrase_in_m7dj_space": [
+     "cgi",
+     "insanity",
+     "Star Wars: Episode IV - A New Hope (1977)",
+     "Star Wars: Episode VI - Return of the Jedi (1983)",
+     "Hunt for Red October, The (1990)",
+     "cute"
+    ],
+    "note": "agreement near zero means the two policies' k(phi) read-outs do NOT share a basis, so a `direct` render is a render of a DIFFERENT direction; that is a finding to report, not a number to work around. The banked `emit_snap` arm uses c1_final's RAW homogeneous argmax with the state's prefix excluded, so it can differ from the mean-removed arm by construction and is the secondary of the two."
+   },
+   "lstsq": {
+    "n_states": 6,
+    "snap_agreement_with_the_emission_in_its_own_space": 0.0,
+    "snap_agreement_with_c1_final_banked_emit_snap": 0.0,
+    "fed_point_nearest_bank_phrase": [
+     "Brother Minister: The Assassination of Malcolm X (1994)",
+     "The Wife (2017)",
+     "Brother Minister: The Assassination of Malcolm X (1994)",
+     "Brother Minister: The Assassination of Malcolm X (1994)",
+     "Brother Minister: The Assassination of Malcolm X (1994)",
+     "Brother Minister: The Assassination of Malcolm X (1994)"
+    ],
+    "emission_nearest_bank_phrase_in_m7dj_space": [
+     "cgi",
+     "insanity",
+     "Star Wars: Episode IV - A New Hope (1977)",
+     "Star Wars: Episode VI - Return of the Jedi (1983)",
+     "Hunt for Red October, The (1990)",
+     "cute"
+    ],
+    "note": "agreement near zero means the two policies' k(phi) read-outs do NOT share a basis, so a `direct` render is a render of a DIFFERENT direction; that is a finding to report, not a number to work around. The banked `emit_snap` arm uses c1_final's RAW homogeneous argmax with the state's prefix excluded, so it can differ from the mean-removed arm by construction and is the secondary of the two."
+   },
+   "target": {
+    "n_states": 6,
+    "snap_agreement_with_the_emission_in_its_own_space": 0.0,
+    "snap_agreement_with_c1_final_banked_emit_snap": 0.0,
+    "fed_point_nearest_bank_phrase": [
+     "visuals",
+     "dark humor",
+     "space opera",
+     "Indiana Jones and the Last Crusade (1989)",
+     "Clear and Present Danger (1994)",
+     "Indiana Jones and the Last Crusade (1989)"
+    ],
+    "emission_nearest_bank_phrase_in_m7dj_space": [
+     "cgi",
+     "insanity",
+     "Star Wars: Episode IV - A New Hope (1977)",
+     "Star Wars: Episode VI - Return of the Jedi (1983)",
+     "Hunt for Red October, The (1990)",
+     "cute"
+    ],
+    "note": "agreement near zero means the two policies' k(phi) read-outs do NOT share a basis, so a `direct` render is a render of a DIFFERENT direction; that is a finding to report, not a number to work around. The banked `emit_snap` arm uses c1_final's RAW homogeneous argmax with the state's prefix excluded, so it can differ from the mean-removed arm by construction and is the secondary of the two."
+   }
+  },
+  "m7dj_rebuild_gate": {
+   "blend_targets_max_abs_diff_vs_c1_final": 0.0,
+   "sweep_argmax_equals_splitter_max_abs_gain_err": 0.0
+  }
+ },
+ "renderer": {
+  "adapter": "v2",
+  "targets_mode": "questions",
+  "path": "experiments\\paperC\\c3b_v2\\c3b_true_best.pt",
+  "epoch": 5,
+  "val_ce": 2.262003812242108,
+  "max_new_tokens": 32,
+  "channel_hot": "concept_hot",
+  "decoding_primary": "bestofk_lm",
+  "decoding_spec": {
+   "bestofk_lm": {
+    "kind": "bestofk",
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "k": 8,
+    "note": "SECONDARY: k=8 samples, argmax LENGTH-NORMALISED LM sequence log-likelihood. The picker never sees the tower, the cosine, R_s or any evaluation quantity."
+   },
+   "greedy": {
+    "kind": "greedy",
+    "note": "c3b_adapter.greedy, IMPORTED -- the banked baseline"
+   }
+  },
+  "decoding_of_record": "C4C_DECODING.md ruling 1: best-of-8 by LENGTH-NORMALISED LM likelihood, a pick rule blind to every evaluation quantity. Ruling 2: greedy is shown beside it, because the variance is real.",
+  "gen_batch": 64,
+  "sbert": {
+   "model": "all-MiniLM-L6-v2",
+   "pooling": "sent",
+   "topn": 4,
+   "mincos": 0.3
+  }
+ },
+ "answer_model": {
+  "rule": "answer(r, c) = sign(u*_r . d_c), +-1, refusal never simulated",
+  "u_star": "fold_items_frozen(ctx.enc, ctx.allb[r]) -- the env's own full fold-in profile latent, identical in construction to answer_contrast.u_star",
+  "n_user_concept_cells": 10310000,
+  "n_exact_zero_projections_broken_to_plus1": 0,
+  "frac_positive": 0.4822734238603298,
+  "abs_projection": {
+   "n": 10310000,
+   "mean": 1.2300535011264655,
+   "std": 1.0021668156501016,
+   "min": 1.199125782558319e-07,
+   "p1": 0.01844077828884972,
+   "p5": 0.09185741978444051,
+   "p10": 0.18411442204880332,
+   "q1": 0.46797023508765445,
+   "median": 0.9988847490983319,
+   "q3": 1.7371318035029515,
+   "p90": 2.568899091370754,
+   "p95": 3.165990922151748,
+   "p99": 4.522285978652159,
+   "max": 16.418964239772563,
+   "iqr": 1.269161568415297
+  },
+  "declared_circular": true,
+  "n_rows_answerable": 10000,
+  "behavioural_answer_rate_replaced": 0.5018067895247332,
+  "geometric_answer_rate": 1.0,
+  "negative_cap_c_neg": 2.0,
+  "note": "the certified fold's cap_negatives over the REVEALED set still applies, so a user answering k of the 4 concepts negatively folds them at -min(1, c_neg/k) rather than -1. It is the env's own certified operator and it is applied identically in all four arms.",
+  "label": "under a declared-circular answer model"
+ },
+ "declared_choices": {
+  "branch_behavioural_fold_circular": "BRANCHING uses the tree's behavioural answers (so the walk is the tree's real walk); FOLDING and SCORING use the declared-circular model, because a synthesised off-catalogue question has no behavioural answer table entry and refusal is never simulated. Both columns get the identical treatment, so the choice cannot move the comparison; it is declared here, in the spec and in the caption.",
+  "cumulative_fold": "the belief updates turn by turn: turn t folds everything asked up to t, concepts ascending by id within a turn (c4b_noise's ask order). Each turn is scored on the cohort standing at THAT node, against that same cohort's own m=0 base.",
+  "top5_display": "the top-5 lists are the cohort MEAN of the decoder score, unmasked -- a DISPLAY object. Every NDCG number comes from genv_eval under the certified contract and none comes from the display path.",
+  "cohort": "the whole 10,000-user validation cohort unless --n_users names a leading slice, which is then declared here and in the figure caption"
+ },
+ "reference": {
+  "definition": "R_s = sum_j w_j * tower(q_j) over the state's banked m=5 ingredients (c4_pilot.reference_directions, IMPORTED)",
+  "disclosure": {
+   "n_item_ingredients": 132,
+   "n_concept_ingredients": 228,
+   "mean_effective_weight_item": 0.3390813711022478,
+   "mean_effective_weight_concept": 0.1985782445705844,
+   "mean_item_tower_norm": 1.6426281409170391,
+   "mean_concept_tower_norm": 1.0000000005491243,
+   "note": "Ew rows carry their own magnitude, d_c rows are unit -- so in a mixed blend the nominal weight is not the effective one. Reported, not corrected: R_s is defined by the sheet in exactly these two objects."
+  }
+ },
+ "canonical_snap": {
+  "val_m0_full": 0.15686538118354684,
+  "val_m0_tail": 0.02747733123666661
+ },
+ "checkpoint": {
+  "path": "experiments\\battery\\policy_main_equivariant_both.pt",
+  "sha256": "9c4c61e7387d29c61f4cee62600627eff6178d2dbe3fb4ea6b5a19f7e6003058"
+ },
+ "warm_start_m7dj_sha256": "fe0d880b8c57d2951d94753845b6b6907bac3dd4101eb072e7bd6671ea9fb889",
+ "c3b_split_hashes": {
+  "train_q": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "heldout_q": "3184618cf517afed10eff43ccd51a459675c884df627047bfd4a7eb7af476152",
+  "inner_fit": "e312f134a27ebd935209c3a0f2ca5476ffa0ce1d719dac33b8a1f5f5b0669aca",
+  "inner_val": "3a26d40f5bbf0c7ce3a3c72b2f9b24bf3801b2280389fb6ae959c231954bc598",
+  "scramble_train_targets": "fc625861fa84de89bf15ae6847da346a2e25a2ee1df09d054fd2edfc789798f1",
+  "strata": "d34810b89d9dc70b1ca2615431f16df1cf7d74de770e939008e77f96af9bcdbf",
+  "X": "17b36d3601756950381d24c8881fbf960f8e412bd6145b722448cb4dea0d074a"
+ },
+ "asserts": {
+  "pool2full_index_map_max_abs_err": 4.76837158203125e-07,
+  "bank_mean_vs_manifest_max_abs_err": 0.0,
+  "adapter_pairs_space_identical_to_c3b": {
+   "mu_max_abs_diff": 0.0,
+   "scale_abs_diff": 0.0,
+   "K_max_abs_diff": 0.0
+  },
+  "blend_target_rebuild_max_abs_diff": 0.0,
+  "concept_dirs_reproduced_worst_1_minus_abscos": 4.0171411588296735e-06
+ },
+ "what_may_not_be_claimed": "NO VALUE CLAIM: every NDCG row runs under a declared-circular answer model and carries at most a RELATIVE reading (AUTHOR RULING 2026-08-25) - nothing at states outside C1-final's 57 - nothing about the item channel - not that the questions are good because they read well - not that a human would answer them",
+ "git": {
+  "rev": "cf493725d1d944afeaa5cb6731677384c84ff31a",
+  "branch": "recommender-improvement",
+  "status_short_src": "M src/instrument/m6d_eval.py\n M src/instrument/m6v_route_confusion.py\n?? src/instrument/c5_profile_policy.py\n?? src/instrument/m7c_group_atlas.py\n?? src/instrument/m7d_route_atlas.py",
+  "src_instrument_dirty": [
+   "M src/instrument/m6d_eval.py",
+   " M src/instrument/m6v_route_confusion.py",
+   "?? src/instrument/c5_profile_policy.py",
+   "?? src/instrument/m7c_group_atlas.py",
+   "?? src/instrument/m7d_route_atlas.py"
+  ],
+  "src_instrument_clean": false,
+  "allow_dirty_flag": true,
+  "threads": 4,
+  "thread_env": {
+   "OMP_NUM_THREADS": "4",
+   "MKL_NUM_THREADS": "4",
+   "OPENBLAS_NUM_THREADS": "4"
+  },
+  "torch_num_threads": 4,
+  "status_short": "M docs/OVERNIGHT_2026-08-17.md\n M docs/PAPER_B_ACTION_ITEMS.md\n M docs/STATE.md\n M docs/design/M7_STATE_CONDITIONED_DESIGN.md\n M docs/design/PAPER_B_FINAL_AUDIT_2026-08-25.md\n M docs/design/PAPER_B_POLICY_DESIGN.md\n M experiments/baselines/interview/adaptive_table_eddi3_policyB.json\n M experiments/baselines/interview/adaptive_table_eddi3_policyB_per_user.npz\n M experiments/battery/m4/m4a_compare.json\n D experiments/battery/m6/m6generalise_B.json\n M experiments/battery/m6/m6mix_B.json\n M experiments/battery/ndcgtree_SANITY.json\n M experiments/battery/policy_traj/manifest.json\n D experiments/battery/policy_traj/step0_probe.json\n M external_literature/INDEX.md\n M external_literature/findings/continuous_elicitation_2026-08.md\n M external_literature/findings/llm_verbalisation_2026-08.md\n M new_chapters/chapterB_v2/chapterB_v2.pdf\n M new_chapters/chapterB_v2/chapterB_v2.tex\n M new_chapters/references.bib\n M src/instrument/m6d_eval.py\n M src/instrument/m6v_route_confusion.py\n?? docs/design/.bak_m7\n?? docs/design/GROUPING_DESIGN.md\n?? docs/design/PAPER_B_MASTER_TODO.md\n?? docs/design/PAPER_B_TEST_DESIGN_SHEET.md\n?? docs/figures/\n?? experiments/baselines/huyu2013/page4_400.png\n?? experiments/baselines/huyu2013/page4_800.png\n?? experiments/baselines/interview/a9_battery_policyB_eddi3.json\n?? experiments/baselines/interview/act2pvc_analyze.err\n?? experiments/baselines/interview/act2pvc_analyze.out\n?? experiments/baselines/interview/act2pvc_harness.err\n?? experiments/baselines/interview/act2pvc_harness.out\n?? experiments/baselines/interview/adaptive_table_act2pvc.json\n?? experiments/baselines/interview/adaptive_table_act2pvc_interviews/\n?? experiments/baselines/interview/adaptive_table_act2pvc_per_user.npz\n?? experiments/baselines/interview/adaptive_table_eddi3_policyB_interviews/\n?? experiments/baselines/interview/eddi3_policyB.err\n?? experiments/baselines/interview/eddi3_policyB.out\n?? experiments/baselines/interview/eddi3_policyB_resume.err\n?? experiments/baselines/interview/eddi3_policyB_resume.out\n?? experiments/battery/a3_items_train.out\n?? experiments/battery/asif/\n?? experiments/battery/asif_all.err\n?? experiments/battery/asif_root.err\n?? experiments/battery/chain_balanced.out\n?? experiments/battery/chain_disjoint.out\n?? experiments/battery/chain_forest.out\n?? experiments/battery/chain_full.out\n?? experiments/battery/chain_overnight.out\n?? experiments/battery/chain_overnight2.out\n?? experiments/battery/chain_refit.out\n?? experiments/battery/coldtree_train10k.out\n?? experiments/battery/coldtree_train10k_4t.out\n?? experiments/battery/coldtree_train10k_6t.out\n?? experiments/battery/coldtree_v2_heaps/\n?? experiments/battery/coldtree_v2_partial.json\n?? experiments/battery/coldtree_v2_per_user.npz\n?? experiments/battery/coldtree_v2_train10000.json\n?? experiments/battery/coldtree_v2_train10000_heaps/\n?? experiments/battery/coldtree_v2_train10000_partial.json\n?? experiments/battery/coldtree_v2_train10000_per_user.npz\n?? experiments/battery/coldtree_v2_train10000_sweeps/\n?? experiments/battery/direct_gain.json\n?? experiments/battery/direct_gain_policy.json\n?? experiments/battery/direct_gain_policy_per_user.npz\n?? experiments/battery/forest/\n?? experiments/battery/forest_chain.err\n?? experiments/battery/forest_chain2.err\n?? experiments/battery/forest_composition.err\n?? experiments/battery/forest_eval_main.err\n?? experiments/battery/forest_eval_shuffle.err\n?? experiments/battery/forest_fit_main.err\n?? experiments/battery/forest_fit_shuffle.err\n?? experiments/battery/forest_states.err\n?? experiments/battery/greedy_static_policyB_combined_train10000.json\n?? experiments/battery/greedy_static_policyB_combined_train10000_heaps/\n?? experiments/battery/greedy_static_policyB_items_train10000.json\n?? experiments/battery/greedy_static_policyB_items_train10000_heaps/\n?? experiments/battery/greedy_static_policyB_items_train10000_partial.json\n?? experiments/battery/heldout_q/q100_main_strippop.json\n?? experiments/battery/heldout_q/q100_main_strippop.pt\n?? experiments/battery/lift_head.json\n?? experiments/battery/lift_head.pt\n?? experiments/battery/lift_head_stable.err\n?? experiments/battery/lift_head_stable.json\n?? experiments/battery/m1/ideal_k10.npz\n?? experiments/battery/m1/ideal_k12.npz\n?? experiments/battery/m1/ideal_k4.npz\n?? experiments/battery/m1/ideal_k6.npz\n?? experiments/battery/m1/ideal_k8.npz\n?? experiments/battery/m1/m1_forest_labels.npz\n?? experiments/battery/m1/m1_reddit_assign.npz\n?? experiments/battery/m1/m1_train_labels.npz\n?? experiments/battery/m1/train/\n?? experiments/battery/m1/z_full.npz\n?? experiments/battery/m1/z_requests.npz\n?? experiments/battery/m1_a3.out\n?? experiments/battery/m1_a4.out\n?? experiments/battery/m1_a5.out\n?? experiments/battery/m1_anchor.out\n?? experiments/battery/m1_deera.out\n?? experiments/battery/m1_era.out\n?? experiments/battery/m1_ideal.out\n?? experiments/battery/m1_name_probe.out\n?? experiments/battery/m1_r4.out\n?? experiments/battery/m1_stage_a.out\n?? experiments/battery/m1_sweep.out\n?? experiments/battery/m2/m2_screen_partial.json\n?? experiments/battery/m2_screen.out\n?? experiments/battery/m3_forest.out\n?? experiments/battery/m3_sanity.out\n?? experiments/battery/m3_sanity_SANITY.json\n?? experiments/battery/m3_sanity_SANITY_heaps/\n?? experiments/battery/m3_sanity_SANITY_partial.json\n?? experiments/battery/m3_sanity_SANITY_per_user.npz\n?? experiments/battery/m3smoke.out\n?? experiments/battery/m3smoke_arthouse_SANITY.json\n?? experiments/battery/m3smoke_arthouse_SANITY_heaps/\n?? experiments/battery/m3smoke_arthouse_SANITY_partial.json\n?? experiments/battery/m3smoke_arthouse_SANITY_per_user.npz\n?? experiments/battery/m3smoke_arthouse_per_user.npz\n?? experiments/battery/m3teach.out\n?? experiments/battery/m3v2.out\n?? experiments/battery/m3v2_arthouse_heaps/\n?? experiments/battery/m3v2_arthouse_per_user.npz\n?? experiments/battery/m3v2_dialogue_heaps/\n?? experiments/battery/m3v2_dialogue_per_user.npz\n?? experiments/battery/m3v2_gore_heaps/\n?? experiments/battery/m3v2_gore_per_user.npz\n?? experiments/battery/m3v2_inspiring_heaps/\n?? experiments/battery/m3v2_inspiring_per_user.npz\n?? experiments/battery/m3v2_marvel_heaps/\n?? experiments/battery/m3v2_marvel_per_user.npz\n?? experiments/battery/m3v2_teenagers_heaps/\n?? experiments/battery/m3v2_teenagers_per_user.npz\n?? experiments/battery/m3v2b.out\n?? experiments/battery/m4/m4a_compare_BUGGY_ROUTER.json\n?? experiments/battery/m4/m4b_armc.json\n?? experiments/battery/m4/m4b_armc_BUGGY_ROUTER.json\n?? experiments/battery/m4/m4b_armc_TOKEN.json\n?? experiments/battery/m4/m4b_fidelity_by_pos.json\n?? experiments/battery/m4/m4b_policy.json\n?? experiments/battery/m4/m4b_policy.pt\n?? experiments/battery/m4/m4b_policy_BUGGY_ROUTER.pt\n?? experiments/battery/m4/m4b_policy_TOKEN.pt\n?? experiments/battery/m4/m4b_stateonly_policy.json\n?? experiments/battery/m4/m4b_stateonly_policy.pt\n?? experiments/battery/m4/m4b_val_fidelity.json\n?? experiments/battery/m4/m4c_adjacent.json\n?? experiments/battery/m4/m4d_state_vs_token.json\n?? experiments/battery/m4/m6_policy.json\n?? experiments/battery/m4/m6_policy.pt\n?? experiments/battery/m4/m6a2k_policy.json\n?? experiments/battery/m4/m6a2k_policy.pt\n?? experiments/battery/m4/m6bal_policy.json\n?? experiments/battery/m4/m6bal_policy.pt\n?? experiments/battery/m4/m6fair_policy.json\n?? experiments/battery/m4/m6fair_policy.pt\n?? experiments/battery/m4/m6forest_policy.json\n?? experiments/battery/m4/m6forest_policy.pt\n?? experiments/battery/m4/m7dj_policy.json\n?? experiments/battery/m4/m7dj_policy.pt\n?? experiments/battery/m4/traj/\n?? experiments/battery/m4a.out\n?? experiments/battery/m4a_fixed.out\n?? experiments/battery/m4a_regress.out\n?? experiments/battery/m4b_dupes.out\n?? experiments/battery/m4b_eval.out\n?? experiments/battery/m4b_eval2.out\n?? experiments/battery/m4b_eval3.out\n?? experiments/battery/m4b_fidpos.out\n?? experiments/battery/m4b_gen.out\n?? experiments/battery/m4b_gen2.out\n?? experiments/battery/m4b_pipeline.out\n?? experiments/battery/m4b_routefix.out\n?? experiments/battery/m4b_state_eval.out\n?? experiments/battery/m4b_state_pipeline.out\n?? experiments/battery/m4b_state_train.out\n?? experiments/battery/m4b_train.out\n?? experiments/battery/m4b_train2.out\n?? experiments/battery/m4b_valfid.out\n?? experiments/battery/m4b_valfid2.out\n?? experiments/battery/m4c.out\n?? experiments/battery/m4c2.out\n?? experiments/battery/m4c_state.out\n?? experiments/battery/m4d.out\n?? experiments/battery/m4e_geom.out\n?? experiments/battery/m4e_probe.out\n?? experiments/battery/m5_mix.out\n?? experiments/battery/m6/heap_GLOBALopen_train2000_root.json\n?? experiments/battery/m6/heap_GLOBALopen_train2000_root.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_clu16_train2000_root.json\n?? experiments/battery/m6/heap_clu16_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_clu16_train2000_root.like.json\n?? experiments/battery/m6/heap_clu16_train2000_root.like.like.json\n?? experiments/battery/m6/heap_clu6_train2000_root.dislike.json\n?? experiments/battery/m6/heap_clu6_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_clu6_train2000_root.json\n?? experiments/battery/m6/heap_clu6_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_clu6_train2000_root.like.dislike.noanswer.json\n?? experiments/battery/m6/heap_clu6_train2000_root.like.json\n?? experiments/battery/m6/heap_clu6_train2000_root.like.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.noanswer.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.noanswer.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.noanswer.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.like.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_dialogue_train400_root.dislike.json\n?? experiments/battery/m6/heap_dialogue_train400_root.json\n?? experiments/battery/m6/heap_dialogue_train400_root.like.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.like.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.like.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.noanswer.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.dislike.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.dislike.like.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.like.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djgore_train2000_root.json\n?? experiments/battery/m6/heap_djgore_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_djgore_train2000_root.like.json\n?? experiments/battery/m6/heap_djgore_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.like.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.dislike.noanswer.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.dislike.noanswer.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.dislike.noanswer.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.dislike.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.dislike.like.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.like.like.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.like.like.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.like.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.like.noanswer.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.noanswer.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.noanswer.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.like.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.dislike.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.dislike.noanswer.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.like.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.like.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.like.dislike.dislike.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.like.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.like.dislike.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_gore_train2000_root.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.like.dislike.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.like.dislike.noanswer.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.like.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.dislike.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.dislike.noanswer.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.like.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.like.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.like.like.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.like.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.like.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.noanswer.noanswer.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.like.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.noanswer.like.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.like.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.like.like.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.dislike.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.like.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.like.json\n?? experiments/battery/m6/m6generalise_B_test.json\n?? experiments/battery/m6/m6k_arthouse_train2000.json\n?? experiments/battery/m6/m6k_clu16_train2000.json\n?? experiments/battery/m6/m6k_clu6_train2000.json\n?? experiments/battery/m6/m6k_dialogue_train2000.json\n?? experiments/battery/m6/m6k_dialogue_train400.json\n?? experiments/battery/m6/m6k_djarthouse_train2000.json\n?? experiments/battery/m6/m6k_djdialogue_train2000.json\n?? experiments/battery/m6/m6k_djgore_train2000.json\n?? experiments/battery/m6/m6k_djinspiring_train2000.json\n?? experiments/battery/m6/m6k_djmarvel_train2000.json\n?? experiments/battery/m6/m6k_djteenagers_train2000.json\n?? experiments/battery/m6/m6k_gore_train2000.json\n?? experiments/battery/m6/m6k_inspiring_train2000.json\n?? experiments/battery/m6/m6k_inspiring_train2000_DUPBUG.json\n?? experiments/battery/m6/m6k_marvel_train2000.json\n?? experiments/battery/m6/m6k_teenagers_train2000.json\n?? experiments/battery/m6/m6mix_B_test.json\n?? experiments/battery/m6/m6n_arthouse_held_out_peruser.npz\n?? experiments/battery/m6/m6n_arthouse_in_sample_peruser.npz\n?? experiments/battery/m6/m6n_arthouse_train2k.json\n?? experiments/battery/m6/m6p_arthouse_full_pool_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_half_A_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_half_B_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_openerhalf.json\n?? experiments/battery/m6/m6q_cost_bench.json\n?? experiments/battery/m6/m6r_fair_compare.json\n?? experiments/battery/m6/m6t_order_check.json\n?? experiments/battery/m6/m6u_coldstate_check.json\n?? experiments/battery/m6/m6v_route_confusion.json\n?? experiments/battery/m6/m6w_marvel_diag.json\n?? experiments/battery/m6/m6x_separability.json\n?? experiments/battery/m6/m6y_clusters_train_k20.json\n?? experiments/battery/m6/m6y_clusters_train_k20.npz\n?? experiments/battery/m6/m6z_request_share.json\n?? experiments/battery/m6/m7_tabs_val.npz\n?? experiments/battery/m6/m7a_concept_clusters_k12.json\n?? experiments/battery/m6/m7a_concept_clusters_k12.npz\n?? experiments/battery/m6/m7b_disjoint.json\n?? experiments/battery/m6/m7b_disjoint.npz\n?? experiments/battery/m6/m7c_group_atlas.json\n?? experiments/battery/m6/m7d_route_atlas.json\n?? experiments/battery/m6/sweeps/\n?? experiments/battery/m6/traj2k/\n?? experiments/battery/m6/traj_dj/\n?? experiments/battery/m6/traj_fair/\n?? experiments/battery/m6/traj_forest/\n?? experiments/battery/m6_all.out\n?? experiments/battery/m6_all2k.out\n?? experiments/battery/m6_chain.out\n?? experiments/battery/m6_stage3.out\n?? experiments/battery/m6_train.out\n?? experiments/battery/m6a.out\n?? experiments/battery/m6a2.out\n?? experiments/battery/m6a2k_train.out\n?? experiments/battery/m6a_chain.out\n?? experiments/battery/m6b_probe.out\n?? experiments/battery/m6bal_train.out\n?? experiments/battery/m6c.out\n?? experiments/battery/m6c_gen.out\n?? experiments/battery/m6c_gen2k.out\n?? experiments/battery/m6c_gen_dj.out\n?? experiments/battery/m6c_gen_fair.out\n?? experiments/battery/m6c_gen_forest.out\n?? experiments/battery/m6d_arthouse2k.out\n?? experiments/battery/m6d_coverage.out\n?? experiments/battery/m6d_fair.out\n?? experiments/battery/m6d_gen_TEST.out\n?? experiments/battery/m6d_gen_bal.out\n?? experiments/battery/m6d_gen_dj.out\n?? experiments/battery/m6d_gen_forest.out\n?? experiments/battery/m6d_gen_scram.out\n?? experiments/battery/m6d_generalise.out\n?? experiments/battery/m6d_halfA.out\n?? experiments/battery/m6d_mix_bal.out\n?? experiments/battery/m6d_mix_dj.out\n?? experiments/battery/m6d_mix_forest.out\n?? experiments/battery/m6e.out\n?? experiments/battery/m6e_mix.out\n?? experiments/battery/m6f_examples.out\n?? experiments/battery/m6fair_train.out\n?? experiments/battery/m6forest_train.out\n?? experiments/battery/m6g_loose.out\n?? experiments/battery/m6h_coarse.out\n?? experiments/battery/m6i_final.out\n?? experiments/battery/m6j_centroid.out\n?? experiments/battery/m6k_SMOKE_dialogue.out\n?? experiments/battery/m6k_arthouse.out\n?? experiments/battery/m6k_arthouse_tr2k_v2.out\n?? experiments/battery/m6k_arthouse_train2k.out\n?? experiments/battery/m6k_clu16.out\n?? experiments/battery/m6k_clu6.out\n?? experiments/battery/m6k_dialogue.out\n?? experiments/battery/m6k_dialogue_tr2k.out\n?? experiments/battery/m6k_djarthouse.out\n?? experiments/battery/m6k_djdialogue.out\n?? experiments/battery/m6k_djgore.out\n?? experiments/battery/m6k_djinspiring.out\n?? experiments/battery/m6k_djmarvel.out\n?? experiments/battery/m6k_djteenagers.out\n?? experiments/battery/m6k_gore.out\n?? experiments/battery/m6k_gore_tr2k.out\n?? experiments/battery/m6k_inspiring.out\n?? experiments/battery/m6k_inspiring_tr2k.out\n?? experiments/battery/m6k_inspiring_tr2k_v2.out\n?? experiments/battery/m6k_inspiring_tr2k_v3.out\n?? experiments/battery/m6k_inspiring_tr2k_v4.out\n?? experiments/battery/m6k_marvel.out\n?? experiments/battery/m6k_marvel_tr2k.out\n?? experiments/battery/m6k_teenagers.out\n?? experiments/battery/m6k_teenagers_tr2k.out\n?? experiments/battery/m6l_arthouse.out\n?? experiments/battery/m6l_arthouse_burn.out\n?? experiments/battery/m6l_burn.out\n?? experiments/battery/m6l_dialogue.out\n?? experiments/battery/m6l_dialogue_burn.out\n?? experiments/battery/m6l_gore.out\n?? experiments/battery/m6l_gore_burn.out\n?? experiments/battery/m6l_inspiring.out\n?? experiments/battery/m6l_inspiring_burn.out\n?? experiments/battery/m6l_marvel.out\n?? experiments/battery/m6l_marvel_burn.out\n?? experiments/battery/m6l_teenagers.out\n?? experiments/battery/m6l_teenagers_burn.out\n?? experiments/battery/m6m_heldout.out\n?? experiments/battery/m6m_redditlift.out\n?? experiments/battery/m6n_arthouse.out\n?? experiments/battery/m6n_arthouse_v2.out\n?? experiments/battery/m6n_k6.out\n?? experiments/battery/m6o_k4.out\n?? experiments/battery/m6p_arthouse.out\n?? experiments/battery/m6p_k20.out\n?? experiments/battery/m6q_bench.out\n?? experiments/battery/m6r_fair.out\n?? experiments/battery/m6s_static_train.out\n?? experiments/battery/m6t_disjoint.out\n?? experiments/battery/m6t_order.out\n?? experiments/battery/m6t_order4arm.out\n?? experiments/battery/m6t_order6.out\n?? experiments/battery/m6u_cold.out\n?? experiments/battery/m6v_conf.out\n?? experiments/battery/m6v_conf_bal.out\n?? experiments/battery/m6v_dj.out\n?? experiments/battery/m6v_dj2.out\n?? experiments/battery/m6w_marvel.out\n?? experiments/battery/m6x_disj.out\n?? experiments/battery/m6x_m6y.out\n?? experiments/battery/m6x_sep.out\n?? experiments/battery/m6x_sep2.out\n?? experiments/battery/m6x_vibe.out\n?? experiments/battery/m6y_clusters.out\n?? experiments/battery/m6y_clusters2.out\n?? experiments/battery/m7_global.out\n?? experiments/battery/m7a_k12.out\n?? experiments/battery/m7b.out\n?? experiments/battery/m7c_atlas.out\n?? experiments/battery/m7dj_train.out\n?? experiments/battery/meanvec_value.json\n?? experiments/battery/meanvec_value_cond.json\n?? experiments/battery/meanvec_value_cond_per_user.npz\n?? experiments/battery/meanvec_value_per_user.npz\n?? experiments/battery/ndcgtree16test_partial.json\n?? experiments/battery/ndcgtree16test_policyB.err\n?? experiments/battery/ndcgtree_SANITY_heaps/\n?? experiments/battery/ndcgtree_SANITY_partial.json\n?? experiments/battery/ndcgtree_SANITY_per_user.npz\n?? experiments/battery/ndcgtree_SANITY_sweeps/\n?? experiments/battery/ndcgtree_SANITY_train3000.json\n?? experiments/battery/ndcgtree_SANITY_train3000_heaps/\n?? experiments/battery/ndcgtree_SANITY_train3000_partial.json\n?? experiments/battery/ndcgtree_SANITY_train3000_per_user.npz\n?? experiments/battery/ndcgtree_SANITY_train3000_sweeps/\n?? experiments/battery/ndcgtree_sanity_sweep.out\n?? experiments/battery/ndcgtree_sanity_train.out\n?? experiments/battery/outcome_head_main_both.json\n?? experiments/battery/outcome_head_main_both.pt\n?? experiments/battery/outcome_head_main_both_history.json\n?? experiments/battery/outcome_head_main_both_pop.npz\n?? experiments/battery/outcome_head_shuffle_both.json\n?? experiments/battery/outcome_head_shuffle_both.pt\n?? experiments/battery/outcome_head_shuffle_both_history.json\n?? experiments/battery/outcome_head_shuffle_both_pop.npz\n?? experiments/battery/outcome_main.err\n?? experiments/battery/p2_seeded/p2_eval_k2_per_user.npz\n?? experiments/battery/p2_seeded/p2_eval_k4_per_user.npz\n?? experiments/battery/p2_seeded/p2_eval_k8_per_user.npz\n?? experiments/battery/p2_seeded/p2_main.pt\n?? experiments/battery/p2_seeded/p2_main_history.json\n?? experiments/battery/p2_seeded/p2_seeded_states.npz\n?? experiments/battery/p2_seeded/p2_shuffle.pt\n?? experiments/battery/p2_seeded/p2_shuffle_history.json\n?? experiments/battery/p2_seeded/p2_shuffle_last.pt\n?? experiments/battery/p2_seeded/run_p2.ps1\n?? experiments/battery/pipeline_arthouse.out\n?? experiments/battery/pipeline_distill.out\n?? experiments/battery/pipeline_distill_fair.out\n?? experiments/battery/pipeline_distill_fair2.out\n?? experiments/battery/pipeline_m6r.out\n?? experiments/battery/policy_deep_equivariant_both_phase3.pt\n?? experiments/battery/policy_deep_equivariant_both_phase3_gates.json\n?? experiments/battery/policy_deep_equivariant_both_phase3_gates_per_user.npz\n?? experiments/battery/policy_deep_equivariant_both_phase3_history.json\n?? experiments/battery/policy_deep_heaps/\n?? experiments/battery/policy_deep_labels.json\n?? experiments/battery/policy_deeper_tree_control.json\n?? experiments/battery/policy_deeper_tree_control_per_user.npz\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3.pt\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_gates.json\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_gates_per_user.npz\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_history.json\n?? experiments/battery/policy_labels_deep.json\n?? experiments/battery/policy_labels_deep_partial.json\n?? experiments/battery/policy_labels_deep_partial/\n?? experiments/battery/policy_main_equivariant_both_p1.pt\n?? experiments/battery/policy_main_equivariant_both_p1_gates.json\n?? experiments/battery/policy_main_equivariant_both_p1_gates_per_user.npz\n?? experiments/battery/policy_main_equivariant_both_p1_history.json\n?? experiments/battery/policy_main_equivariant_both_p1ctrl.pt\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_gates.json\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_gates_per_user.npz\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_history.json\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf.pt\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_gates.json\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_gates_per_user.npz\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_history.json\n?? experiments/battery/policy_traj/ans_0_10000.npz\n?? experiments/battery/policy_traj/ans_100000_110000.npz\n?? experiments/battery/policy_traj/ans_10000_20000.npz\n?? experiments/battery/policy_traj/ans_110000_120000.npz\n?? experiments/battery/policy_traj/ans_120000_130000.npz\n?? experiments/battery/policy_traj/ans_130000_140000.npz\n?? experiments/battery/policy_traj/ans_140000_140768.npz\n?? experiments/battery/policy_traj/ans_20000_30000.npz\n?? experiments/battery/policy_traj/ans_30000_40000.npz\n?? experiments/battery/policy_traj/ans_40000_50000.npz\n?? experiments/battery/policy_traj/ans_50000_60000.npz\n?? experiments/battery/policy_traj/ans_60000_70000.npz\n?? experiments/battery/policy_traj/ans_70000_80000.npz\n?? experiments/battery/policy_traj/ans_80000_90000.npz\n?? experiments/battery/policy_traj/ans_90000_100000.npz\n?? experiments/battery/policy_traj/ans_val.npz\n?? experiments/battery/policy_traj/gen.err\n?? experiments/battery/policy_traj/gen.out\n?? experiments/battery/policy_traj/meta_0_10000.npz\n?? experiments/battery/policy_traj/meta_100000_110000.npz\n?? experiments/battery/policy_traj/meta_10000_20000.npz\n?? experiments/battery/policy_traj/meta_110000_120000.npz\n?? experiments/battery/policy_traj/meta_120000_130000.npz\n?? experiments/battery/policy_traj/meta_130000_140000.npz\n?? experiments/battery/policy_traj/meta_140000_140768.npz\n?? experiments/battery/policy_traj/meta_20000_30000.npz\n?? experiments/battery/policy_traj/meta_30000_40000.npz\n?? experiments/battery/policy_traj/meta_40000_50000.npz\n?? experiments/battery/policy_traj/meta_50000_60000.npz\n?? experiments/battery/policy_traj/meta_60000_70000.npz\n?? experiments/battery/policy_traj/meta_70000_80000.npz\n?? experiments/battery/policy_traj/meta_80000_90000.npz\n?? experiments/battery/policy_traj/meta_90000_100000.npz\n?? experiments/battery/policy_traj/val_traj.npz\n?? experiments/battery/policy_traj/z_train.npy\n?? experiments/battery/policy_traj/z_val.npy\n?? experiments/battery/pu_labels/\n?? experiments/battery/pwheldout_root.json\n?? experiments/battery/pwheldout_root_PARTIAL_REPORT.json\n?? experiments/battery/pwheldout_root_partial.json\n?? experiments/battery/splitcrit.json\n?? experiments/battery/splitcrit_SMOKE_tree_logistic.json\n?? experiments/battery/splitcrit_SMOKE_tree_logistic.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_pairwise.json\n?? experiments/battery/splitcrit_SMOKE_tree_pairwise.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_random_ml.json\n?? experiments/battery/splitcrit_SMOKE_tree_random_ml.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_variance.json\n?? experiments/battery/splitcrit_SMOKE_tree_variance.json.partial\n?? experiments/battery/splitcrit_per_user.npz\n?? experiments/battery/splitcrit_tree_logistic.json\n?? experiments/battery/splitcrit_tree_logistic.json.partial\n?? experiments/battery/splitcrit_tree_pairwise.json\n?? experiments/battery/splitcrit_tree_pairwise.json.partial\n?? experiments/battery/splitcrit_tree_random.json\n?? experiments/battery/splitcrit_tree_random.json.partial\n?? experiments/battery/splitcrit_tree_random_ml.json\n?? experiments/battery/splitcrit_tree_random_ml.json.partial\n?? experiments/battery/splitcrit_tree_variance.json\n?? experiments/battery/splitcrit_tree_variance.json.partial\n?? experiments/battery/state_count_curve.json\n?? experiments/battery/t1prime.err\n?? experiments/battery/t1prime_holdout.err\n?? experiments/battery/value_chain.err\n?? experiments/battery/value_chain.out\n?? experiments/battery/value_meanvec.err\n?? experiments/battery/value_meanvec.out\n?? experiments/battery/value_sample.err\n?? experiments/battery/value_sample.out\n?? experiments/battery/value_scrape.err\n?? experiments/battery/value_scrape.out\n?? experiments/battery/value_train.err\n?? experiments/battery/value_train.out\n?? experiments/battery/volcohorts/genre_val_policyB_paired_cis.json\n?? experiments/battery/volcohorts/heaps/\n?? experiments/battery/volcohorts/run_v.ps1\n?? experiments/battery/volcohorts/volcohorts_k4_volunteered.json\n?? experiments/battery/volcohorts/volcohorts_report_K15.json\n?? experiments/paperC/c0.err\n?? experiments/paperC/c1.err\n?? experiments/paperC/c3b/c3b_ceiling_per_question.npz\n?? experiments/paperC/c3b/c3b_pairs.npz\n?? experiments/paperC/c3b/c3b_phrases.json\n?? experiments/paperC/c3b/c3b_scrambled.jsonl\n?? experiments/paperC/c3b/c3b_scrambled_best.pt\n?? experiments/paperC/c3b/c3b_stage2_per_question.npz\n?? experiments/paperC/c3b/c3b_true.jsonl\n?? experiments/paperC/c3b/c3b_true_best.pt\n?? experiments/paperC/c3b/stage2_run.err\n?? experiments/paperC/c3b_v2/c3b_ceiling_per_question.npz\n?? experiments/paperC/c3b_v2/c3b_manifest.json\n?? experiments/paperC/c3b_v2/c3b_pairs.npz\n?? experiments/paperC/c3b_v2/c3b_phrases.json\n?? experiments/paperC/c3b_v2/c3b_scrambled.jsonl\n?? experiments/paperC/c3b_v2/c3b_scrambled_best.pt\n?? experiments/paperC/c3b_v2/c3b_stage2_per_question.npz\n?? experiments/paperC/c3b_v2/c3b_true.jsonl\n?? experiments/paperC/c3b_v2/c3b_true_best.pt\n?? experiments/paperC/c3b_v2/gen/\n?? experiments/paperC/c3b_v2/stage2_run.err\n?? experiments/paperC/c4_triangulate.err\n?? experiments/paperC/c4b_noise.err\n?? experiments/paperC/c4c_decoding.err\n?? experiments/paperC/c4d/\n?? experiments/paperC/c4d_majority.err\n?? experiments/paperC/c4d_target.err\n?? experiments/paperC/c5_diag.err\n?? experiments/paperC/c5_diagnostics.json\n?? experiments/paperC/c5_diagnostics_pairs.npz\n?? external_literature/findings/hewitt_plugin_evaluation_2026-08.md\n?? external_literature/findings/im1_im2_plausibility_2026-08.md\n?? external_literature/findings/infosynth_baseline_2026-08.md\n?? external_literature/findings/redo_numbers_decap_heap_2026-08.md\n?? external_literature/findings/user_segmentation_for_elicitation_2026-08.md\n?? new_chapters/chapterB_v2/m7d_route_atlas.pdf\n?? new_chapters/chapterC_v2/chapterC_v2.pdf\n?? run_balanced.py\n?? run_disjoint_forest.py\n?? run_distill_fair.py\n?? run_distill_fair2.py\n?? run_forest_final.py\n?? run_m6_arthouse_distill.py\n?? run_m6r_when_ready.py\n?? run_overnight.py\n?? run_refit_all.py\n?? src/instrument/c5_profile_policy.py\n?? src/instrument/m7c_group_atlas.py\n?? src/instrument/m7d_route_atlas.py",
+  "guard": "HARD RULE 10, IMPORT-SCOPED: the run refuses if any src/instrument file it IMPORTS is dirty. The repo-wide dirty list is recorded in full above.",
+  "n_modules_imported_from_src_instrument": 25,
+  "dirty_src_instrument_files_imported_by_this_run": [],
+  "dirty_src_instrument_files_not_imported": [
+   "M src/instrument/m6d_eval.py",
+   " M src/instrument/m6v_route_confusion.py",
+   "?? src/instrument/c5_profile_policy.py",
+   "?? src/instrument/m7c_group_atlas.py",
+   "?? src/instrument/m7d_route_atlas.py"
+  ],
+  "src_instrument_clean_for_this_run": true
+ },
+ "generation_diagnostics": {
+  "direct/bestofk_lm": [
+   {
+    "n_candidates": 8,
+    "picked": 5,
+    "logprob": -4.64371733980559,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.5159685933117323,
+    "candidates": [
+     "Do you enjoy reading films?",
+     "Are you in the mood for something oil movies?",
+     "Are you in the mood for something local?",
+     "Do you enjoy living action movies?",
+     "How do you feel about prehistory movies?",
+     "How do you feel about film films?",
+     "How do you feel about lifestyle movies?",
+     "Are you in the mood for something hobbits?"
+    ],
+    "candidate_norm_logprob": [
+     -0.9462313230446059,
+     -1.0354038484738963,
+     -0.9010088597007263,
+     -1.874591554952875,
+     -0.9899464826185935,
+     -0.5159685933117323,
+     -1.0593575937719657,
+     -1.1158577389248547
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 3,
+    "logprob": -4.760161147110274,
+    "n_tokens": 11.0,
+    "norm_logprob": -0.4327419224645704,
+    "candidates": [
+     "How do you feel about glamor films?",
+     "How do you feel about foreign films?",
+     "Do you enjoy tentpoles movies?",
+     "Are you in the mood for something dark comedy?",
+     "Do you enjoy murder movies?",
+     "Are you in the mood for something noir?",
+     "Do you enjoy suspense films?",
+     "Are you in the mood for something gangbusters?"
+    ],
+    "candidate_norm_logprob": [
+     -1.25058012456866,
+     -1.1824301636104682,
+     -1.4465248784523401,
+     -0.4327419224645704,
+     -0.6766835838481098,
+     -0.7520399050609495,
+     -0.9359029672235079,
+     -0.7068992766589974
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 5,
+    "logprob": -4.140045186573806,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.4600050207304229,
+    "candidates": [
+     "Do you enjoy physical property films?",
+     "Do you enjoy childhood films?",
+     "Are you in the mood for something history?",
+     "Are you in the mood for something materialistic?",
+     "How do you feel about little little little little little little little little little little little little little little little little little little little little little little little little little little little",
+     "How do you feel about animals movies?",
+     "Are you in the mood for something catharsis?",
+     "Are you in the mood for something omos?"
+    ],
+    "candidate_norm_logprob": [
+     -2.0265012168181307,
+     -1.1909065235631844,
+     -0.6339669794502745,
+     -1.0475663523646477,
+     -0.5772230066992853,
+     -0.4600050207304229,
+     -0.8194673158657255,
+     -1.1916615980814018
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 6,
+    "logprob": -5.182490424578483,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.5758322693976092,
+    "candidates": [
+     "Are you in the mood for something documentary films?",
+     "How do you feel about queres film sequels?",
+     "Do you enjoy maths films?",
+     "Are you in the mood for something kiva?",
+     "How do you feel about people camping movies?",
+     "How do you feel about animals movies?",
+     "How do you feel about film films?",
+     "Are you in the mood for something psychological comedies?"
+    ],
+    "candidate_norm_logprob": [
+     -0.885924897576043,
+     -2.2049472971846344,
+     -1.4529858693529094,
+     -1.5001747653235944,
+     -1.3655772263070394,
+     -0.5911420525806295,
+     -0.5758322693976092,
+     -1.1299394728097827
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 7,
+    "logprob": -5.475422487658055,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.6083802764064505,
+    "candidates": [
+     "How do you feel about story films?",
+     "Are you in the mood for something acoustic horror movies?",
+     "How do you feel about catastrophe movies?",
+     "How do you feel about rebellion movies?",
+     "Do you enjoy worlds movies?",
+     "Are you in the mood for something mortality?",
+     "How do you feel about positivity movies?",
+     "How do you feel about religion movies?"
+    ],
+    "candidate_norm_logprob": [
+     -0.7457821832335051,
+     -1.4681841817256658,
+     -0.9534890984257854,
+     -1.051565826246891,
+     -1.8927480730631963,
+     -0.9883554058845394,
+     -1.1238818358869587,
+     -0.6083802764064505
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 7,
+    "logprob": -5.606130994888689,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.622903443876521,
+    "candidates": [
+     "Do you enjoy penning films?",
+     "Do you enjoy emotion movies?",
+     "Are you in the mood for something nostalgia?",
+     "Are you in the mood for something hope films?",
+     "Are you in the mood for something plausible vs. believable?",
+     "How do you feel about realism movies?",
+     "How do you feel about extreme documentary films?",
+     "How do you feel about religion movies?"
+    ],
+    "candidate_norm_logprob": [
+     -1.5130232681480262,
+     -1.5815062770366268,
+     -1.0093010984337893,
+     -0.811060467974098,
+     -1.675643460743289,
+     -0.8608201335596456,
+     -1.631649647662319,
+     -0.622903443876521
+    ]
+   }
+  ],
+  "direct/greedy": [
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   }
+  ],
+  "lstsq/bestofk_lm": [
+   {
+    "n_candidates": 8,
+    "picked": 3,
+    "logprob": -4.724564466806332,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.5249516074229258,
+    "candidates": [
+     "Do you enjoy history films?",
+     "How do you feel about fast-food movies?",
+     "How do you feel about one hour film?",
+     "How do you feel about war films?",
+     "Are you in the mood for something totalitarian movies?",
+     "How do you feel about fables films?",
+     "Are you in the mood for something colony movies?",
+     "Are you in the mood for something gelderman?"
+    ],
+    "candidate_norm_logprob": [
+     -0.9321273910014856,
+     -1.273194975915167,
+     -1.5338086709884917,
+     -0.5249516074229258,
+     -0.8940247287015635,
+     -1.060150227324559,
+     -1.0778720517586355,
+     -1.2628810694943577
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 3,
+    "logprob": -3.133100892664623,
+    "n_tokens": 10.0,
+    "norm_logprob": -0.3133100892664623,
+    "candidates": [
+     "Do you enjoy comedy movies?",
+     "Do you like it when a film is murder?",
+     "How do you feel about actor - comedy?",
+     "Are you in the mood for something comedy?",
+     "Do you like it when a film is writing?",
+     "How do you feel about movie sequels?",
+     "Are you in the mood for something as a movie?",
+     "Are you in the mood for something modern-day journalism?"
+    ],
+    "candidate_norm_logprob": [
+     -0.7137466470814531,
+     -0.894959138721182,
+     -1.5397251572664274,
+     -0.3133100892664623,
+     -0.9211968176437906,
+     -0.6452243878722803,
+     -0.8326801874879393,
+     -0.9939792058327115
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 4,
+    "logprob": -6.743266252219279,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.749251805802142,
+    "candidates": [
+     "Do you enjoy guerilla films?",
+     "Do you enjoy fables movies?",
+     "How do you feel about zintravers movies?",
+     "Do you enjoy capitalism films?",
+     "How do you feel about empire movies?",
+     "Are you in the mood for something G.A. film?",
+     "How do you feel about revolutions?",
+     "Do you enjoy British film?"
+    ],
+    "candidate_norm_logprob": [
+     -1.015994411298244,
+     -1.2550879010967526,
+     -1.5170508115632038,
+     -1.2829438743375037,
+     -0.749251805802142,
+     -1.093819238687488,
+     -0.7930564903658096,
+     -1.8798506617460629
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 6,
+    "logprob": -7.985459352203677,
+    "n_tokens": 11.0,
+    "norm_logprob": -0.7259508502003343,
+    "candidates": [
+     "Are you in the mood for something religious movies?",
+     "How do you feel about banjaw film movies?",
+     "Do you enjoy Algeria films?",
+     "Do you enjoy communism films?",
+     "Do you like it when a film is poem?",
+     "How do you feel about film?",
+     "Are you in the mood for something communism movies?",
+     "Are you in the mood for something overseas?"
+    ],
+    "candidate_norm_logprob": [
+     -0.8928976175464157,
+     -1.6604677166100037,
+     -1.4581613939655313,
+     -0.8847670045414259,
+     -1.1337496523338335,
+     -0.8121007448351869,
+     -0.7259508502003343,
+     -1.090605237066421
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 1,
+    "logprob": -5.267536859678444,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.5852818732976048,
+    "candidates": [
+     "Are you in the mood for something history?",
+     "How do you feel about communist movies?",
+     "Are you in the mood for something foreign influence?",
+     "How do you feel about human rights movies?",
+     "Are you in the mood for something disaster movies?",
+     "Are you in the mood for something Arabism?",
+     "How do you feel about bad action movies?",
+     "Are you in the mood for something KGB?"
+    ],
+    "candidate_norm_logprob": [
+     -0.6308978266007342,
+     -0.5852818732976048,
+     -1.1241995017272959,
+     -0.7370087786351606,
+     -0.83390145223673,
+     -1.0540154449740433,
+     -1.3969478452966644,
+     -1.1683221434051003
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 3,
+    "logprob": -8.5133050780705,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.9459227864522778,
+    "candidates": [
+     "Do you enjoy hyperbolic movies?",
+     "Do you enjoy uprising films?",
+     "Are you in the mood for something immigrant rights?",
+     "How do you feel about crime films?",
+     "Do you like it when a film is neo-1943?",
+     "Do you enjoy?",
+     "Are you in the mood for something still vigilantes movies?",
+     "Are you in the mood for something oscars movies?"
+    ],
+    "candidate_norm_logprob": [
+     -1.4753947106419387,
+     -1.335930848756981,
+     -1.176116732366525,
+     -0.9459227864522778,
+     -1.3110288920793653,
+     -1.5256867727833645,
+     -1.7260457258261157,
+     -0.9525486417529726
+    ]
+   }
+  ],
+  "lstsq/greedy": [
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   }
+  ],
+  "target/bestofk_lm": [
+   {
+    "n_candidates": 8,
+    "picked": 3,
+    "logprob": -5.507051584284366,
+    "n_tokens": 11.0,
+    "norm_logprob": -0.5006410531167605,
+    "candidates": [
+     "Are you in the mood for something fantasy?",
+     "Do you enjoy plot films?",
+     "Do you enjoy slow action films?",
+     "Are you in the mood for something action films?",
+     "How do you feel about all three movies?",
+     "How do you feel about action films?",
+     "Do you enjoy biopic films?",
+     "Do you enjoy visual effects films?"
+    ],
+    "candidate_norm_logprob": [
+     -0.5388747248833369,
+     -0.5961393984933174,
+     -0.9393413361441844,
+     -0.5006410531167605,
+     -1.0495762733147433,
+     -0.5097952768646958,
+     -1.0153364315761504,
+     -0.8779143083230523
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 4,
+    "logprob": -5.210166637723743,
+    "n_tokens": 11.0,
+    "norm_logprob": -0.47365151252034027,
+    "candidates": [
+     "How do you feel about delirium movies?",
+     "How do you feel about superhero movies?",
+     "Are you in the mood for something suspense films?",
+     "Are you in the mood for something dark?",
+     "Do you like it when a film is suspense?",
+     "Are you in the mood for something mob?",
+     "Do you enjoy violence films?",
+     "Are you in the mood for something tense?"
+    ],
+    "candidate_norm_logprob": [
+     -0.8943453807063534,
+     -1.0442495725193428,
+     -0.6074525270945643,
+     -0.5245366541384893,
+     -0.47365151252034027,
+     -0.9816268441762939,
+     -0.8025936942282687,
+     -0.7718899014610108
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 0,
+    "logprob": -3.892972197752896,
+    "n_tokens": 11.0,
+    "norm_logprob": -0.3539065634320815,
+    "candidates": [
+     "How do you feel about sci-fi movies?",
+     "How do you feel about fantasy films?",
+     "Are you in the mood for something science?",
+     "Do you enjoy futuristic films?",
+     "Are you in the mood for something astral?",
+     "Are you in the mood for something quantum wonder?",
+     "Do you enjoy in a film?",
+     "Do you enjoy animated movies?"
+    ],
+    "candidate_norm_logprob": [
+     -0.3539065634320815,
+     -0.6263551592065291,
+     -0.6364204960179622,
+     -0.8696018919382252,
+     -0.8977172595548616,
+     -1.4066725863863232,
+     -1.1746847645085552,
+     -1.1499996830394548
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 1,
+    "logprob": -6.693316198054214,
+    "n_tokens": 11.0,
+    "norm_logprob": -0.6084832907322013,
+    "candidates": [
+     "Are you in the mood for something fj?",
+     "Do you like it when a film is movie?",
+     "Do you enjoy ride films?",
+     "Are you in the mood for something photography?",
+     "Do you like it when a film is reuniting the film theme theme movie theme film theme film theme movie theme movie theme film theme movie theme movie theme film theme",
+     "Do you enjoy animation films?",
+     "How do you feel about drama films?",
+     "Do you enjoy family movies?"
+    ],
+    "candidate_norm_logprob": [
+     -1.0444307709091791,
+     -0.6084832907322013,
+     -1.5824889882178137,
+     -0.7757917676127819,
+     -1.1536000364242018,
+     -1.1532367993007469,
+     -0.7142974962244449,
+     -1.0252956930090105
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 7,
+    "logprob": -8.708410848658326,
+    "n_tokens": 12.0,
+    "norm_logprob": -0.7257009040548605,
+    "candidates": [
+     "Are you in the mood for something cop drama?",
+     "Do you enjoy historical films?",
+     "How do you feel about bond films?",
+     "Are you in the mood for something a film?",
+     "How do you feel about sports films?",
+     "Do you like it when a film is henley videogame (in which there is an atmospheric park)",
+     "Are you in the mood for something gory?",
+     "Do you like it when a film is detective drama?"
+    ],
+    "candidate_norm_logprob": [
+     -0.8125850289159477,
+     -1.2683245410527257,
+     -1.2717752083890321,
+     -0.7418437454045551,
+     -0.975549026393818,
+     -2.430668343413433,
+     -0.77345758341729,
+     -0.7257009040548605
+    ]
+   },
+   {
+    "n_candidates": 8,
+    "picked": 1,
+    "logprob": -6.181807508474462,
+    "n_tokens": 9.0,
+    "norm_logprob": -0.6868675009416069,
+    "candidates": [
+     "How do you feel about memoir movies?",
+     "How do you feel about children films?",
+     "Are you in the mood for something paradox films?",
+     "Are you in the mood for something beautiful films?",
+     "Are you in the mood for something advertising?",
+     "Do you enjoy shows?",
+     "Do you enjoy minimalist films?",
+     "Do you like it when a film is classic films?"
+    ],
+    "candidate_norm_logprob": [
+     -1.2530882765339477,
+     -0.6868675009416069,
+     -1.1233646151781576,
+     -0.8828993204185132,
+     -1.059022538747648,
+     -2.2958198421822074,
+     -1.2469326511287293,
+     -0.7822094578001444
+    ]
+   }
+  ],
+  "target/greedy": [
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   },
+   {
+    "n_candidates": 1,
+    "picked": 0
+   }
+  ]
+ },
+ "turns": [
+  {
+   "turn": 1,
+   "sid": "root",
+   "depth": 0,
+   "n_users": 10000,
+   "emits": true,
+   "catalogue": {
+    "question": "Do you like better than expected films?",
+    "phrase": "better than expected",
+    "channel": "concept",
+    "splitter": [
+     1,
+     114
+    ],
+    "splitter_gain": 0.020216505387627565,
+    "behavioural_answer_rate": 0.742,
+    "branch_counts": {
+     "like": 2606,
+     "dislike": 4814,
+     "noanswer": 2580
+    },
+    "branch_taken": "dislike"
+   },
+   "synthesised": {
+    "space": "target",
+    "space_renders": "the state's BLEND TARGET, not the policy's emission (labelled in every row)",
+    "text": "Are you in the mood for something action films?",
+    "text_greedy": "Do you enjoy action films?",
+    "text_all_spaces": {
+     "direct": {
+      "bestofk_lm": "How do you feel about film films?",
+      "greedy": "Are you in the mood for something film?"
+     },
+     "lstsq": {
+      "bestofk_lm": "How do you feel about war films?",
+      "greedy": "How do you feel about war movies?"
+     },
+     "target": {
+      "bestofk_lm": "Are you in the mood for something action films?",
+      "greedy": "Do you enjoy action films?"
+     }
+    },
+    "read_back_concepts_all_spaces": {
+     "direct": [
+      "feel good movie",
+      "movie business",
+      "great cinematography",
+      "independent film"
+     ],
+     "lstsq": [
+      "best war films",
+      "war movie",
+      "wartime",
+      "war"
+     ],
+     "target": [
+      "feel good movie",
+      "action packed",
+      "fun movie",
+      "action"
+     ]
+    },
+    "decoding": "bestofk_lm",
+    "emitted_direction_nearest_bank_anchors": [
+     {
+      "rank": 1,
+      "phrase": "cgi",
+      "kind": "concept",
+      "cosine": 0.9127
+     },
+     {
+      "rank": 2,
+      "phrase": "visuals",
+      "kind": "concept",
+      "cosine": 0.8815
+     },
+     {
+      "rank": 3,
+      "phrase": "plot",
+      "kind": "concept",
+      "cosine": 0.8459
+     },
+     {
+      "rank": 4,
+      "phrase": "mythology",
+      "kind": "concept",
+      "cosine": 0.8364
+     },
+     {
+      "rank": 5,
+      "phrase": "better than expected",
+      "kind": "concept",
+      "cosine": 0.8205
+     }
+    ],
+    "emitted_cos_to_own_blend_target": 0.9953955411911011,
+    "read_back_concepts": [
+     "action",
+     "action packed",
+     "feel good movie",
+     "fun movie"
+    ],
+    "read_back_cos_to_R_s": 0.37587083955994666,
+    "L_arm_top4_by_cos_to_R_s": [
+     "cgi",
+     "visuals",
+     "mythology",
+     "dynamic cgi action"
+    ],
+    "overlap_with_L_arm": 0,
+    "cohort_answer_under_a_declared-circular_answer_model": {
+     "action": 0.6171,
+     "action packed": 0.6339,
+     "feel good movie": 0.4783,
+     "fun movie": 0.5669
+    },
+    "n_concepts_folded": 4
+   },
+   "no_emission_marker": null,
+   "levels_under_a_declared-circular_answer_model": {
+    "base_m0": {
+     "full": 0.15686538118354684,
+     "tail": 0.02747733123666661
+    },
+    "synthesised": {
+     "full": 0.16796752853571098,
+     "tail": 0.048216567241953355,
+     "minus_base_full": 0.011102147352164138,
+     "minus_base_tail": 0.020739236005286744,
+     "n_questions_folded": 4
+    },
+    "tree": {
+     "full": 0.16335676559911264,
+     "tail": 0.0444423893497965,
+     "minus_base_full": 0.006491384415565793,
+     "minus_base_tail": 0.016965058113129892,
+     "n_questions_folded": 1
+    }
+   },
+   "top5_recommendations_display_only": {
+    "base_m0": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.279482364654541
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.843307971954346
+     },
+     {
+      "rank": 3,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.8355536460876465
+     },
+     {
+      "rank": 4,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 4.740057468414307
+     },
+     {
+      "rank": 5,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.735153675079346
+     }
+    ],
+    "synthesised": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.43823453245163
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 5.000838359260559
+     },
+     {
+      "rank": 3,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.819886892461777
+     },
+     {
+      "rank": 4,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.785136941790581
+     },
+     {
+      "rank": 5,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 4.76514444026947
+     },
+     {
+      "riser_rank": 1,
+      "item": 18106,
+      "title": "Never Back Down 2: The Beatdown (2011)",
+      "mean_score_gain": 1.0937087236404417
+     },
+     {
+      "riser_rank": 2,
+      "item": 15067,
+      "title": "Overdrive (2017)",
+      "mean_score_gain": 1.0240681308984758
+     },
+     {
+      "riser_rank": 3,
+      "item": 2547,
+      "title": "Can You Keep a Secret? (2019)",
+      "mean_score_gain": 1.0226843804836272
+     },
+     {
+      "riser_rank": 4,
+      "item": 16291,
+      "title": "Padmaavat (2018)",
+      "mean_score_gain": 1.0112139303684233
+     },
+     {
+      "riser_rank": 5,
+      "item": 5322,
+      "title": "Mechanic: Resurrection (2016)",
+      "mean_score_gain": 0.9844790147960185
+     }
+    ],
+    "tree": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.185836437702179
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.7872845273017886
+     },
+     {
+      "rank": 3,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.6814452180862425
+     },
+     {
+      "rank": 4,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.596835763931274
+     },
+     {
+      "rank": 5,
+      "item": 4,
+      "title": "Star Wars: Episode IV - A New Hope (1977)",
+      "mean_score": 4.580037489414215
+     },
+     {
+      "riser_rank": 1,
+      "item": 10345,
+      "title": "Flintstones in Viva Rock Vegas, The (2000)",
+      "mean_score_gain": 0.9304739056825637
+     },
+     {
+      "riser_rank": 2,
+      "item": 14837,
+      "title": "Farmer's Wife, The (1928)",
+      "mean_score_gain": 0.8922275509834288
+     },
+     {
+      "riser_rank": 3,
+      "item": 10875,
+      "title": "Written on the Wind (1956)",
+      "mean_score_gain": 0.8763265730142593
+     },
+     {
+      "riser_rank": 4,
+      "item": 12583,
+      "title": "Minnie and Moskowitz (1971)",
+      "mean_score_gain": 0.8622627067565918
+     },
+     {
+      "riser_rank": 5,
+      "item": 7195,
+      "title": "Wild Child, The (Enfant sauvage, L') (1970)",
+      "mean_score_gain": 0.8425421164035796
+     }
+    ]
+   },
+   "cumulative_folded": {
+    "synthesised_concepts": [
+     "action",
+     "action packed",
+     "feel good movie",
+     "fun movie"
+    ],
+    "tree_questions": [
+     "better than expected"
+    ]
+   }
+  },
+  {
+   "turn": 2,
+   "sid": "root.dislike",
+   "depth": 1,
+   "n_users": 4814,
+   "emits": true,
+   "catalogue": {
+    "question": "Do you like dark humor films?",
+    "phrase": "dark humor",
+    "channel": "concept",
+    "splitter": [
+     1,
+     262
+    ],
+    "splitter_gain": 0.013579947628265143,
+    "behavioural_answer_rate": 0.9457831325301205,
+    "branch_counts": {
+     "like": 738,
+     "dislike": 3815,
+     "noanswer": 261
+    },
+    "branch_taken": "dislike"
+   },
+   "synthesised": {
+    "space": "target",
+    "space_renders": "the state's BLEND TARGET, not the policy's emission (labelled in every row)",
+    "text": "Do you like it when a film is suspense?",
+    "text_greedy": "Are you in the mood for something dark?",
+    "text_all_spaces": {
+     "direct": {
+      "bestofk_lm": "Are you in the mood for something dark comedy?",
+      "greedy": "Are you in the mood for something dark comedy?"
+     },
+     "lstsq": {
+      "bestofk_lm": "Are you in the mood for something comedy?",
+      "greedy": "Are you in the mood for something comedy?"
+     },
+     "target": {
+      "bestofk_lm": "Do you like it when a film is suspense?",
+      "greedy": "Are you in the mood for something dark?"
+     }
+    },
+    "read_back_concepts_all_spaces": {
+     "direct": [
+      "dark comedy",
+      "sex comedy",
+      "black comedy",
+      "dark humor"
+     ],
+     "lstsq": [
+      "sex comedy",
+      "comedy",
+      "british comedy",
+      "romantic comedy"
+     ],
+     "target": [
+      "suspenseful",
+      "suspense",
+      "cinematography",
+      "great cinematography"
+     ]
+    },
+    "decoding": "bestofk_lm",
+    "emitted_direction_nearest_bank_anchors": [
+     {
+      "rank": 1,
+      "phrase": "insanity",
+      "kind": "concept",
+      "cosine": 0.9696
+     },
+     {
+      "rank": 2,
+      "phrase": "dark humor",
+      "kind": "concept",
+      "cosine": 0.9572
+     },
+     {
+      "rank": 3,
+      "phrase": "crime gone awry",
+      "kind": "concept",
+      "cosine": 0.9549
+     },
+     {
+      "rank": 4,
+      "phrase": "narrated",
+      "kind": "concept",
+      "cosine": 0.9493
+     },
+     {
+      "rank": 5,
+      "phrase": "disturbing",
+      "kind": "concept",
+      "cosine": 0.946
+     }
+    ],
+    "emitted_cos_to_own_blend_target": 0.9851570129394531,
+    "read_back_concepts": [
+     "cinematography",
+     "great cinematography",
+     "suspense",
+     "suspenseful"
+    ],
+    "read_back_cos_to_R_s": 0.380219074241364,
+    "L_arm_top4_by_cos_to_R_s": [
+     "dark humor",
+     "dark",
+     "insanity",
+     "visceral"
+    ],
+    "overlap_with_L_arm": 0,
+    "cohort_answer_under_a_declared-circular_answer_model": {
+     "cinematography": 0.4441213128375571,
+     "great cinematography": 0.49522226838388034,
+     "suspense": 0.46073950976319067,
+     "suspenseful": 0.4680099709181554
+    },
+    "n_concepts_folded": 4
+   },
+   "no_emission_marker": null,
+   "levels_under_a_declared-circular_answer_model": {
+    "base_m0": {
+     "full": 0.18024104548072187,
+     "tail": 0.03694388005035658
+    },
+    "synthesised": {
+     "full": 0.2017767989209207,
+     "tail": 0.05977041182414776,
+     "minus_base_full": 0.02153575344019884,
+     "minus_base_tail": 0.02282653177379118,
+     "n_questions_folded": 8
+    },
+    "tree": {
+     "full": 0.1853464350917163,
+     "tail": 0.04368113278031644,
+     "minus_base_full": 0.0051053896109944374,
+     "minus_base_tail": 0.0067372527299598625,
+     "n_questions_folded": 2
+    }
+   },
+   "top5_recommendations_display_only": {
+    "base_m0": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.279482364654541
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.843307971954346
+     },
+     {
+      "rank": 3,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.8355536460876465
+     },
+     {
+      "rank": 4,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 4.740057468414307
+     },
+     {
+      "rank": 5,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.735153675079346
+     }
+    ],
+    "synthesised": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.898316315808235
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 5.384992608897261
+     },
+     {
+      "rank": 3,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 5.275445557452853
+     },
+     {
+      "rank": 4,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 5.259601541758079
+     },
+     {
+      "rank": 5,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 5.217783050414285
+     },
+     {
+      "riser_rank": 1,
+      "item": 13803,
+      "title": "Munna bhai M.B.B.S. (2003)",
+      "mean_score_gain": 0.9044652170024574
+     },
+     {
+      "riser_rank": 2,
+      "item": 9399,
+      "title": "Andhadhun (2018)",
+      "mean_score_gain": 0.8974134869529937
+     },
+     {
+      "riser_rank": 3,
+      "item": 3533,
+      "title": "Paint It Yellow (Rang De Basanti) (2006)",
+      "mean_score_gain": 0.8949420573185985
+     },
+     {
+      "riser_rank": 4,
+      "item": 9398,
+      "title": "Lagaan: Once Upon a Time in India (2001)",
+      "mean_score_gain": 0.8894386514371293
+     },
+     {
+      "riser_rank": 5,
+      "item": 9392,
+      "title": "Drishyam (2015)",
+      "mean_score_gain": 0.8856651223097096
+     }
+    ],
+    "tree": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.151497149992445
+     },
+     {
+      "rank": 2,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.558830370782172
+     },
+     {
+      "rank": 3,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.556500781756196
+     },
+     {
+      "rank": 4,
+      "item": 59,
+      "title": "Matrix, The (1999)",
+      "mean_score": 4.399594607073883
+     },
+     {
+      "rank": 5,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.399307786006872
+     },
+     {
+      "riser_rank": 1,
+      "item": 9173,
+      "title": "Grown Ups 2 (2013)",
+      "mean_score_gain": 1.304333492352054
+     },
+     {
+      "riser_rank": 2,
+      "item": 9233,
+      "title": "HE Who Gets Slapped (1924)",
+      "mean_score_gain": 1.2885327819575396
+     },
+     {
+      "riser_rank": 3,
+      "item": 10055,
+      "title": "Three on a Match (1932)",
+      "mean_score_gain": 1.2458732047415788
+     },
+     {
+      "riser_rank": 4,
+      "item": 13199,
+      "title": "Home Alone 4 (2002)",
+      "mean_score_gain": 1.21868856293956
+     },
+     {
+      "riser_rank": 5,
+      "item": 10345,
+      "title": "Flintstones in Viva Rock Vegas, The (2000)",
+      "mean_score_gain": 1.179364205787278
+     }
+    ]
+   },
+   "cumulative_folded": {
+    "synthesised_concepts": [
+     "action",
+     "action packed",
+     "feel good movie",
+     "fun movie",
+     "cinematography",
+     "great cinematography",
+     "suspense",
+     "suspenseful"
+    ],
+    "tree_questions": [
+     "better than expected",
+     "dark humor"
+    ]
+   }
+  },
+  {
+   "turn": 3,
+   "sid": "root.dislike.dislike",
+   "depth": 2,
+   "n_users": 3815,
+   "emits": true,
+   "catalogue": {
+    "question": "Do you like alien films?",
+    "phrase": "alien",
+    "channel": "concept",
+    "splitter": [
+     1,
+     36
+    ],
+    "splitter_gain": 0.014621332937689496,
+    "behavioural_answer_rate": 0.8207077326343382,
+    "branch_counts": {
+     "like": 722,
+     "dislike": 2409,
+     "noanswer": 684
+    },
+    "branch_taken": "dislike"
+   },
+   "synthesised": {
+    "space": "target",
+    "space_renders": "the state's BLEND TARGET, not the policy's emission (labelled in every row)",
+    "text": "How do you feel about sci-fi movies?",
+    "text_greedy": "Do you enjoy sci-fi films?",
+    "text_all_spaces": {
+     "direct": {
+      "bestofk_lm": "How do you feel about animals movies?",
+      "greedy": "Are you in the mood for something science fiction?"
+     },
+     "lstsq": {
+      "bestofk_lm": "How do you feel about empire movies?",
+      "greedy": "Are you in the mood for something war?"
+     },
+     "target": {
+      "bestofk_lm": "How do you feel about sci-fi movies?",
+      "greedy": "Do you enjoy sci-fi films?"
+     }
+    },
+    "read_back_concepts_all_spaces": {
+     "direct": [
+      "animal movie",
+      "animals",
+      "talking animals",
+      "feel good movie"
+     ],
+     "lstsq": [
+      "best war films",
+      "feel good movie",
+      "crappy sequel",
+      "great movie"
+     ],
+     "target": [
+      "sci-fi",
+      "intelligent sci-fi",
+      "sci fi",
+      "scifi"
+     ]
+    },
+    "decoding": "bestofk_lm",
+    "emitted_direction_nearest_bank_anchors": [
+     {
+      "rank": 1,
+      "phrase": "Star Wars: Episode IV - A New Hope (1977)",
+      "kind": "film",
+      "cosine": 0.8664
+     },
+     {
+      "rank": 2,
+      "phrase": "space opera",
+      "kind": "concept",
+      "cosine": 0.8515
+     },
+     {
+      "rank": 3,
+      "phrase": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+      "kind": "film",
+      "cosine": 0.85
+     },
+     {
+      "rank": 4,
+      "phrase": "cloning",
+      "kind": "concept",
+      "cosine": 0.847
+     },
+     {
+      "rank": 5,
+      "phrase": "alien",
+      "kind": "concept",
+      "cosine": 0.8402
+     }
+    ],
+    "emitted_cos_to_own_blend_target": 0.9912894368171692,
+    "read_back_concepts": [
+     "intelligent sci-fi",
+     "sci fi",
+     "sci-fi",
+     "scifi"
+    ],
+    "read_back_cos_to_R_s": 0.6521912026038976,
+    "L_arm_top4_by_cos_to_R_s": [
+     "space opera",
+     "saturn award (best special effects)",
+     "space",
+     "scifi cult"
+    ],
+    "overlap_with_L_arm": 0,
+    "cohort_answer_under_a_declared-circular_answer_model": {
+     "intelligent sci-fi": 0.5116644823066842,
+     "sci fi": 0.546526867627785,
+     "sci-fi": 0.5294888597640891,
+     "scifi": 0.5368283093053735
+    },
+    "n_concepts_folded": 4
+   },
+   "no_emission_marker": null,
+   "levels_under_a_declared-circular_answer_model": {
+    "base_m0": {
+     "full": 0.1869194489215649,
+     "tail": 0.04140942571387418
+    },
+    "synthesised": {
+     "full": 0.2069805528762677,
+     "tail": 0.05470484676714358,
+     "minus_base_full": 0.020061103954702814,
+     "minus_base_tail": 0.013295421053269398,
+     "n_questions_folded": 12
+    },
+    "tree": {
+     "full": 0.1902597921375065,
+     "tail": 0.05362590022831539,
+     "minus_base_full": 0.0033403432159415936,
+     "minus_base_tail": 0.01221647451444121,
+     "n_questions_folded": 3
+    }
+   },
+   "top5_recommendations_display_only": {
+    "base_m0": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.279482364654541
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.843307971954346
+     },
+     {
+      "rank": 3,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.8355536460876465
+     },
+     {
+      "rank": 4,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 4.740057468414307
+     },
+     {
+      "rank": 5,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.735153675079346
+     }
+    ],
+    "synthesised": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.738674016705034
+     },
+     {
+      "rank": 2,
+      "item": 59,
+      "title": "Matrix, The (1999)",
+      "mean_score": 5.4037508614566345
+     },
+     {
+      "rank": 3,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 5.287418892811666
+     },
+     {
+      "rank": 4,
+      "item": 4,
+      "title": "Star Wars: Episode IV - A New Hope (1977)",
+      "mean_score": 5.238406294701453
+     },
+     {
+      "rank": 5,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 5.098170662363735
+     },
+     {
+      "riser_rank": 1,
+      "item": 13636,
+      "title": "Salyut 7 (2017)",
+      "mean_score_gain": 1.1789318164397975
+     },
+     {
+      "riser_rank": 2,
+      "item": 396,
+      "title": "Interstellar (2014)",
+      "mean_score_gain": 1.1780430312550396
+     },
+     {
+      "riser_rank": 3,
+      "item": 402,
+      "title": "Edge of Tomorrow (2014)",
+      "mean_score_gain": 1.1731587092967053
+     },
+     {
+      "riser_rank": 4,
+      "item": 420,
+      "title": "The Martian (2015)",
+      "mean_score_gain": 1.1718426194447207
+     },
+     {
+      "riser_rank": 5,
+      "item": 412,
+      "title": "Ex Machina (2015)",
+      "mean_score_gain": 1.1353659793715023
+     }
+    ],
+    "tree": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 4.619242065324696
+     },
+     {
+      "rank": 2,
+      "item": 59,
+      "title": "Matrix, The (1999)",
+      "mean_score": 4.2036934068912295
+     },
+     {
+      "rank": 3,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.1605478320490485
+     },
+     {
+      "rank": 4,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.069324133061801
+     },
+     {
+      "rank": 5,
+      "item": 4,
+      "title": "Star Wars: Episode IV - A New Hope (1977)",
+      "mean_score": 4.043402437457563
+     },
+     {
+      "riser_rank": 1,
+      "item": 5268,
+      "title": "Thousand Words, A (2012)",
+      "mean_score_gain": 1.5641863839185723
+     },
+     {
+      "riser_rank": 2,
+      "item": 9233,
+      "title": "HE Who Gets Slapped (1924)",
+      "mean_score_gain": 1.5515485672931995
+     },
+     {
+      "riser_rank": 3,
+      "item": 9173,
+      "title": "Grown Ups 2 (2013)",
+      "mean_score_gain": 1.4891268725945161
+     },
+     {
+      "riser_rank": 4,
+      "item": 14364,
+      "title": "Paul Blart: Mall Cop 2 (2015)",
+      "mean_score_gain": 1.482695795855391
+     },
+     {
+      "riser_rank": 5,
+      "item": 6179,
+      "title": "Boudu Saved From Drowning (Boudu sauv\u00e9 des eaux) (1932)",
+      "mean_score_gain": 1.478241761983769
+     }
+    ]
+   },
+   "cumulative_folded": {
+    "synthesised_concepts": [
+     "action",
+     "action packed",
+     "feel good movie",
+     "fun movie",
+     "cinematography",
+     "great cinematography",
+     "suspense",
+     "suspenseful",
+     "intelligent sci-fi",
+     "sci fi",
+     "sci-fi",
+     "scifi"
+    ],
+    "tree_questions": [
+     "better than expected",
+     "dark humor",
+     "alien"
+    ]
+   }
+  },
+  {
+   "turn": 4,
+   "sid": "root.dislike.dislike.dislike",
+   "depth": 3,
+   "n_users": 2409,
+   "emits": true,
+   "catalogue": {
+    "question": "Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it?",
+    "phrase": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+    "channel": "item",
+    "splitter": [
+     0,
+     19
+    ],
+    "splitter_gain": 0.014166860384450697,
+    "behavioural_answer_rate": 0.44582814445828145,
+    "branch_counts": {
+     "like": 707,
+     "dislike": 367,
+     "noanswer": 1335
+    },
+    "branch_taken": "noanswer"
+   },
+   "synthesised": {
+    "space": "target",
+    "space_renders": "the state's BLEND TARGET, not the policy's emission (labelled in every row)",
+    "text": "Do you like it when a film is movie?",
+    "text_greedy": "Are you in the mood for something romantic?",
+    "text_all_spaces": {
+     "direct": {
+      "bestofk_lm": "How do you feel about film films?",
+      "greedy": "Are you in the mood for something children's films?"
+     },
+     "lstsq": {
+      "bestofk_lm": "Are you in the mood for something communism movies?",
+      "greedy": "Are you in the mood for something war?"
+     },
+     "target": {
+      "bestofk_lm": "Do you like it when a film is movie?",
+      "greedy": "Are you in the mood for something romantic?"
+     }
+    },
+    "read_back_concepts_all_spaces": {
+     "direct": [
+      "feel good movie",
+      "movie business",
+      "great cinematography",
+      "independent film"
+     ],
+     "lstsq": [
+      "communism",
+      "best war films",
+      "war movie",
+      "cold war"
+     ],
+     "target": [
+      "movie business",
+      "feel good movie",
+      "oscar (best cinematography)",
+      "independent film"
+     ]
+    },
+    "decoding": "bestofk_lm",
+    "emitted_direction_nearest_bank_anchors": [
+     {
+      "rank": 1,
+      "phrase": "Star Wars: Episode VI - Return of the Jedi (1983)",
+      "kind": "film",
+      "cosine": 0.7923
+     },
+     {
+      "rank": 2,
+      "phrase": "Star Wars: Episode V - The Empire Strikes Back (1980)",
+      "kind": "film",
+      "cosine": 0.785
+     },
+     {
+      "rank": 3,
+      "phrase": "Star Wars: Episode IV - A New Hope (1977)",
+      "kind": "film",
+      "cosine": 0.7784
+     },
+     {
+      "rank": 4,
+      "phrase": "girlie movie",
+      "kind": "concept",
+      "cosine": 0.7529
+     },
+     {
+      "rank": 5,
+      "phrase": "romantic",
+      "kind": "concept",
+      "cosine": 0.736
+     }
+    ],
+    "emitted_cos_to_own_blend_target": 0.9758981466293335,
+    "read_back_concepts": [
+     "feel good movie",
+     "independent film",
+     "movie business",
+     "oscar (best cinematography)"
+    ],
+    "read_back_cos_to_R_s": 0.15266948404583477,
+    "L_arm_top4_by_cos_to_R_s": [
+     "love story",
+     "romance",
+     "romantic",
+     "love"
+    ],
+    "overlap_with_L_arm": 0,
+    "cohort_answer_under_a_declared-circular_answer_model": {
+     "feel good movie": 0.40556247405562473,
+     "independent film": 0.4383561643835616,
+     "movie business": 0.5413034454130344,
+     "oscar (best cinematography)": 0.5466998754669987
+    },
+    "n_concepts_folded": 4
+   },
+   "no_emission_marker": null,
+   "levels_under_a_declared-circular_answer_model": {
+    "base_m0": {
+     "full": 0.22111140568922186,
+     "tail": 0.04500899905178642
+    },
+    "synthesised": {
+     "full": 0.23398897556556134,
+     "tail": 0.0630983287672649,
+     "minus_base_full": 0.012877569876339479,
+     "minus_base_tail": 0.018089329715478476,
+     "n_questions_folded": 15
+    },
+    "tree": {
+     "full": 0.2192558841856094,
+     "tail": 0.061307838808635814,
+     "minus_base_full": -0.0018555215036124562,
+     "minus_base_tail": 0.01629883975684939,
+     "n_questions_folded": 4
+    }
+   },
+   "top5_recommendations_display_only": {
+    "base_m0": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.279482364654541
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.843307971954346
+     },
+     {
+      "rank": 3,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.8355536460876465
+     },
+     {
+      "rank": 4,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 4.740057468414307
+     },
+     {
+      "rank": 5,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.735153675079346
+     }
+    ],
+    "synthesised": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.856163734318855
+     },
+     {
+      "rank": 2,
+      "item": 59,
+      "title": "Matrix, The (1999)",
+      "mean_score": 5.387535490302834
+     },
+     {
+      "rank": 3,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 5.305897835430242
+     },
+     {
+      "rank": 4,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 5.299763566777636
+     },
+     {
+      "rank": 5,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 5.294915379800951
+     },
+     {
+      "riser_rank": 1,
+      "item": 9055,
+      "title": "Lonely Wife, The (Charulata) (1964)",
+      "mean_score_gain": 1.1466053063169759
+     },
+     {
+      "riser_rank": 2,
+      "item": 413,
+      "title": "The Imitation Game (2014)",
+      "mean_score_gain": 1.1297596113075108
+     },
+     {
+      "riser_rank": 3,
+      "item": 4490,
+      "title": "Trou, Le (Hole, The) (Night Watch, The) (1960)",
+      "mean_score_gain": 1.1083445057068786
+     },
+     {
+      "riser_rank": 4,
+      "item": 412,
+      "title": "Ex Machina (2015)",
+      "mean_score_gain": 1.102256147494797
+     },
+     {
+      "riser_rank": 5,
+      "item": 934,
+      "title": "Intouchables (2011)",
+      "mean_score_gain": 1.094921793443823
+     }
+    ],
+    "tree": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 4.519123609355991
+     },
+     {
+      "rank": 2,
+      "item": 59,
+      "title": "Matrix, The (1999)",
+      "mean_score": 4.174049156738446
+     },
+     {
+      "rank": 3,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.081096895308156
+     },
+     {
+      "rank": 4,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.043528176383291
+     },
+     {
+      "rank": 5,
+      "item": 4,
+      "title": "Star Wars: Episode IV - A New Hope (1977)",
+      "mean_score": 4.001754595957242
+     },
+     {
+      "riser_rank": 1,
+      "item": 11448,
+      "title": "Mon oncle d'Am\u00e9rique (1980)",
+      "mean_score_gain": 1.6444746456907318
+     },
+     {
+      "riser_rank": 2,
+      "item": 9691,
+      "title": "Milky Way, The (Voie lact\u00e9e, La) (1969)",
+      "mean_score_gain": 1.6165934536357103
+     },
+     {
+      "riser_rank": 3,
+      "item": 6344,
+      "title": "I Know Where I'm Going! (1945)",
+      "mean_score_gain": 1.5990159513638345
+     },
+     {
+      "riser_rank": 4,
+      "item": 9233,
+      "title": "HE Who Gets Slapped (1924)",
+      "mean_score_gain": 1.5935943116781472
+     },
+     {
+      "riser_rank": 5,
+      "item": 6179,
+      "title": "Boudu Saved From Drowning (Boudu sauv\u00e9 des eaux) (1932)",
+      "mean_score_gain": 1.587500106254125
+     }
+    ]
+   },
+   "cumulative_folded": {
+    "synthesised_concepts": [
+     "action",
+     "action packed",
+     "feel good movie",
+     "fun movie",
+     "cinematography",
+     "great cinematography",
+     "suspense",
+     "suspenseful",
+     "intelligent sci-fi",
+     "sci fi",
+     "sci-fi",
+     "scifi",
+     "independent film",
+     "movie business",
+     "oscar (best cinematography)"
+    ],
+    "tree_questions": [
+     "better than expected",
+     "dark humor",
+     "alien",
+     "Star Wars: Episode V - The Empire Strikes Back (1980)"
+    ]
+   }
+  },
+  {
+   "turn": 5,
+   "sid": "root.dislike.dislike.dislike.noanswer",
+   "depth": 4,
+   "n_users": 1335,
+   "emits": true,
+   "catalogue": {
+    "question": "Have you seen Crimson Tide (1995), and did you like it?",
+    "phrase": "Crimson Tide (1995)",
+    "channel": "item",
+    "splitter": [
+     0,
+     504
+    ],
+    "splitter_gain": 0.014810085500467224,
+    "behavioural_answer_rate": 0.1700374531835206,
+    "branch_counts": {
+     "like": 122,
+     "dislike": 105,
+     "noanswer": 1108
+    },
+    "branch_taken": "noanswer"
+   },
+   "synthesised": {
+    "space": "target",
+    "space_renders": "the state's BLEND TARGET, not the policy's emission (labelled in every row)",
+    "text": "Do you like it when a film is detective drama?",
+    "text_greedy": "Are you in the mood for something crime movies?",
+    "text_all_spaces": {
+     "direct": {
+      "bestofk_lm": "How do you feel about religion movies?",
+      "greedy": "How do you feel about film films?"
+     },
+     "lstsq": {
+      "bestofk_lm": "How do you feel about communist movies?",
+      "greedy": "Are you in the mood for something war?"
+     },
+     "target": {
+      "bestofk_lm": "Do you like it when a film is detective drama?",
+      "greedy": "Are you in the mood for something crime movies?"
+     }
+    },
+    "read_back_concepts_all_spaces": {
+     "direct": [
+      "cult film",
+      "feel good movie",
+      "religion",
+      "atheism"
+     ],
+     "lstsq": [
+      "communism",
+      "feel good movie",
+      "best war films",
+      "great movie"
+     ],
+     "target": [
+      "detective",
+      "private detective",
+      "film noir",
+      "great cinematography"
+     ]
+    },
+    "decoding": "bestofk_lm",
+    "emitted_direction_nearest_bank_anchors": [
+     {
+      "rank": 1,
+      "phrase": "Hunt for Red October, The (1990)",
+      "kind": "film",
+      "cosine": 0.7978
+     },
+     {
+      "rank": 2,
+      "phrase": "Crimson Tide (1995)",
+      "kind": "film",
+      "cosine": 0.7285
+     },
+     {
+      "rank": 3,
+      "phrase": "us history",
+      "kind": "concept",
+      "cosine": 0.7262
+     },
+     {
+      "rank": 4,
+      "phrase": "Clear and Present Danger (1994)",
+      "kind": "film",
+      "cosine": 0.7253
+     },
+     {
+      "rank": 5,
+      "phrase": "historical",
+      "kind": "concept",
+      "cosine": 0.6896
+     }
+    ],
+    "emitted_cos_to_own_blend_target": 0.9720160961151123,
+    "read_back_concepts": [
+     "detective",
+     "film noir",
+     "great cinematography",
+     "private detective"
+    ],
+    "read_back_cos_to_R_s": -0.11479730509411347,
+    "L_arm_top4_by_cos_to_R_s": [
+     "tom clancy",
+     "secret service",
+     "explosions",
+     "lone hero"
+    ],
+    "overlap_with_L_arm": 0,
+    "cohort_answer_under_a_declared-circular_answer_model": {
+     "detective": 0.3445692883895131,
+     "film noir": 0.3955056179775281,
+     "great cinematography": 0.3955056179775281,
+     "private detective": 0.3707865168539326
+    },
+    "n_concepts_folded": 4
+   },
+   "no_emission_marker": null,
+   "levels_under_a_declared-circular_answer_model": {
+    "base_m0": {
+     "full": 0.16048124650261253,
+     "tail": 0.042208008029451405
+    },
+    "synthesised": {
+     "full": 0.16764703310245627,
+     "tail": 0.04970487932567933,
+     "minus_base_full": 0.0071657865998437376,
+     "minus_base_tail": 0.007496871296227926,
+     "n_questions_folded": 18
+    },
+    "tree": {
+     "full": 0.17108474227690063,
+     "tail": 0.05955646044317708,
+     "minus_base_full": 0.010603495774288096,
+     "minus_base_tail": 0.017348452413725672,
+     "n_questions_folded": 5
+    }
+   },
+   "top5_recommendations_display_only": {
+    "base_m0": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.279482364654541
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.843307971954346
+     },
+     {
+      "rank": 3,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.8355536460876465
+     },
+     {
+      "rank": 4,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 4.740057468414307
+     },
+     {
+      "rank": 5,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.735153675079346
+     }
+    ],
+    "synthesised": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.550511121214106
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 5.047512443771077
+     },
+     {
+      "rank": 3,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 5.0413532080275285
+     },
+     {
+      "rank": 4,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 5.040966465946441
+     },
+     {
+      "rank": 5,
+      "item": 59,
+      "title": "Matrix, The (1999)",
+      "mean_score": 4.9745195281639525
+     },
+     {
+      "riser_rank": 1,
+      "item": 8221,
+      "title": "Enigma of Kaspar Hauser, The (a.k.a. Mystery of Kaspar Hauser, The) (Jeder f\u00fcr sich und Gott Gegen Alle) (1974)",
+      "mean_score_gain": 1.2737268782454483
+     },
+     {
+      "riser_rank": 2,
+      "item": 6035,
+      "title": "Out of the Past (1947)",
+      "mean_score_gain": 1.2736651020159435
+     },
+     {
+      "riser_rank": 3,
+      "item": 6489,
+      "title": "My Night At Maud's (Ma Nuit Chez Maud) (1969)",
+      "mean_score_gain": 1.2633220618751164
+     },
+     {
+      "riser_rank": 4,
+      "item": 4490,
+      "title": "Trou, Le (Hole, The) (Night Watch, The) (1960)",
+      "mean_score_gain": 1.2359292609651995
+     },
+     {
+      "riser_rank": 5,
+      "item": 9055,
+      "title": "Lonely Wife, The (Charulata) (1964)",
+      "mean_score_gain": 1.2312081534317816
+     }
+    ],
+    "tree": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 4.530651546685437
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.0735749073242875
+     },
+     {
+      "rank": 3,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.068135405658336
+     },
+     {
+      "rank": 4,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 3.9406686082761384
+     },
+     {
+      "rank": 5,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 3.8621188217334534
+     },
+     {
+      "riser_rank": 1,
+      "item": 5268,
+      "title": "Thousand Words, A (2012)",
+      "mean_score_gain": 1.7379911192347492
+     },
+     {
+      "riser_rank": 2,
+      "item": 12875,
+      "title": "Rocking Horse Winner, The (1950)",
+      "mean_score_gain": 1.7118670452846572
+     },
+     {
+      "riser_rank": 3,
+      "item": 13074,
+      "title": "Rain (1932)",
+      "mean_score_gain": 1.695005917281247
+     },
+     {
+      "riser_rank": 4,
+      "item": 6179,
+      "title": "Boudu Saved From Drowning (Boudu sauv\u00e9 des eaux) (1932)",
+      "mean_score_gain": 1.693396836005793
+     },
+     {
+      "riser_rank": 5,
+      "item": 9480,
+      "title": "Reluctant Debutante, The (1958)",
+      "mean_score_gain": 1.6894203348106211
+     }
+    ]
+   },
+   "cumulative_folded": {
+    "synthesised_concepts": [
+     "action",
+     "action packed",
+     "feel good movie",
+     "fun movie",
+     "cinematography",
+     "great cinematography",
+     "suspense",
+     "suspenseful",
+     "intelligent sci-fi",
+     "sci fi",
+     "sci-fi",
+     "scifi",
+     "independent film",
+     "movie business",
+     "oscar (best cinematography)",
+     "detective",
+     "film noir",
+     "private detective"
+    ],
+    "tree_questions": [
+     "better than expected",
+     "dark humor",
+     "alien",
+     "Star Wars: Episode V - The Empire Strikes Back (1980)",
+     "Crimson Tide (1995)"
+    ]
+   }
+  },
+  {
+   "turn": 6,
+   "sid": "root.dislike.dislike.dislike.noanswer.noanswer",
+   "depth": 5,
+   "n_users": 1108,
+   "emits": true,
+   "catalogue": {
+    "question": "Have you seen Star Wars: Episode VI - Return of the Jedi (1983), and did you like it?",
+    "phrase": "Star Wars: Episode VI - Return of the Jedi (1983)",
+    "channel": "item",
+    "splitter": [
+     0,
+     22
+    ],
+    "splitter_gain": 0.010588018485390843,
+    "behavioural_answer_rate": 0.2536101083032491,
+    "branch_counts": {
+     "like": 166,
+     "dislike": 115,
+     "noanswer": 827
+    },
+    "branch_taken": "noanswer"
+   },
+   "synthesised": {
+    "space": "target",
+    "space_renders": "the state's BLEND TARGET, not the policy's emission (labelled in every row)",
+    "text": "How do you feel about children films?",
+    "text_greedy": "Are you in the mood for something film?",
+    "text_all_spaces": {
+     "direct": {
+      "bestofk_lm": "How do you feel about religion movies?",
+      "greedy": "Are you in the mood for something film?"
+     },
+     "lstsq": {
+      "bestofk_lm": "How do you feel about crime films?",
+      "greedy": "Are you in the mood for something war?"
+     },
+     "target": {
+      "bestofk_lm": "How do you feel about children films?",
+      "greedy": "Are you in the mood for something film?"
+     }
+    },
+    "read_back_concepts_all_spaces": {
+     "direct": [
+      "cult film",
+      "feel good movie",
+      "religion",
+      "atheism"
+     ],
+     "lstsq": [
+      "crime",
+      "feel good movie",
+      "great cinematography",
+      "crime gone awry"
+     ],
+     "target": [
+      "children",
+      "kids",
+      "childhood",
+      "feel good movie"
+     ]
+    },
+    "decoding": "bestofk_lm",
+    "emitted_direction_nearest_bank_anchors": [
+     {
+      "rank": 1,
+      "phrase": "cute",
+      "kind": "concept",
+      "cosine": 0.8029
+     },
+     {
+      "rank": 2,
+      "phrase": "kids and family",
+      "kind": "concept",
+      "cosine": 0.7527
+     },
+     {
+      "rank": 3,
+      "phrase": "cute!",
+      "kind": "concept",
+      "cosine": 0.7393
+     },
+     {
+      "rank": 4,
+      "phrase": "romantic",
+      "kind": "concept",
+      "cosine": 0.719
+     },
+     {
+      "rank": 5,
+      "phrase": "Sabrina (1954)",
+      "kind": "film",
+      "cosine": 0.7141
+     }
+    ],
+    "emitted_cos_to_own_blend_target": 0.9736897945404053,
+    "read_back_concepts": [
+     "childhood",
+     "children",
+     "feel good movie",
+     "kids"
+    ],
+    "read_back_cos_to_R_s": 0.5590023093865093,
+    "L_arm_top4_by_cos_to_R_s": [
+     "sweet",
+     "nostalgic",
+     "light",
+     "cute"
+    ],
+    "overlap_with_L_arm": 0,
+    "cohort_answer_under_a_declared-circular_answer_model": {
+     "childhood": 0.4566787003610108,
+     "children": 0.4693140794223827,
+     "feel good movie": 0.44855595667870035,
+     "kids": 0.5054151624548736
+    },
+    "n_concepts_folded": 4
+   },
+   "no_emission_marker": null,
+   "levels_under_a_declared-circular_answer_model": {
+    "base_m0": {
+     "full": 0.13637426451041465,
+     "tail": 0.03489027449973689
+    },
+    "synthesised": {
+     "full": 0.15305927600380076,
+     "tail": 0.05063913395378822,
+     "minus_base_full": 0.01668501149338611,
+     "minus_base_tail": 0.015748859454051328,
+     "n_questions_folded": 21
+    },
+    "tree": {
+     "full": 0.13962249545960662,
+     "tail": 0.040772390934519384,
+     "minus_base_full": 0.003248230949191966,
+     "minus_base_tail": 0.0058821164347824945,
+     "n_questions_folded": 6
+    }
+   },
+   "top5_recommendations_display_only": {
+    "base_m0": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.279482364654541
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 4.843307971954346
+     },
+     {
+      "rank": 3,
+      "item": 121,
+      "title": "Pulp Fiction (1994)",
+      "mean_score": 4.8355536460876465
+     },
+     {
+      "rank": 4,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 4.740057468414307
+     },
+     {
+      "rank": 5,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.735153675079346
+     }
+    ],
+    "synthesised": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 5.444373295625625
+     },
+     {
+      "rank": 2,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 5.009298158466601
+     },
+     {
+      "rank": 3,
+      "item": 4,
+      "title": "Star Wars: Episode IV - A New Hope (1977)",
+      "mean_score": 4.882569480673931
+     },
+     {
+      "rank": 4,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 4.869060609960384
+     },
+     {
+      "rank": 5,
+      "item": 59,
+      "title": "Matrix, The (1999)",
+      "mean_score": 4.8513056797241045
+     },
+     {
+      "riser_rank": 1,
+      "item": 9055,
+      "title": "Lonely Wife, The (Charulata) (1964)",
+      "mean_score_gain": 1.329211931958095
+     },
+     {
+      "riser_rank": 2,
+      "item": 6489,
+      "title": "My Night At Maud's (Ma Nuit Chez Maud) (1969)",
+      "mean_score_gain": 1.2157783059988319
+     },
+     {
+      "riser_rank": 3,
+      "item": 15268,
+      "title": "Iron Sky the Coming Race (2016)",
+      "mean_score_gain": 1.1959997419846187
+     },
+     {
+      "riser_rank": 4,
+      "item": 6585,
+      "title": "Moment of Innocence, A (Nun va Goldoon) (1996)",
+      "mean_score_gain": 1.1950286588083534
+     },
+     {
+      "riser_rank": 5,
+      "item": 4490,
+      "title": "Trou, Le (Hole, The) (Night Watch, The) (1960)",
+      "mean_score_gain": 1.1856355960447247
+     }
+    ],
+    "tree": [
+     {
+      "rank": 1,
+      "item": 5,
+      "title": "Shawshank Redemption, The (1994)",
+      "mean_score": 4.315465392188475
+     },
+     {
+      "rank": 2,
+      "item": 12,
+      "title": "Schindler's List (1993)",
+      "mean_score": 3.8999665099791243
+     },
+     {
+      "rank": 3,
+      "item": 8,
+      "title": "Forrest Gump (1994)",
+      "mean_score": 3.871167321497783
+     },
+     {
+      "rank": 4,
+      "item": 59,
+      "title": "Matrix, The (1999)",
+      "mean_score": 3.796907007479065
+     },
+     {
+      "rank": 5,
+      "item": 123,
+      "title": "Silence of the Lambs, The (1991)",
+      "mean_score": 3.733598851555091
+     },
+     {
+      "riser_rank": 1,
+      "item": 7948,
+      "title": "Step Up All In (2014)",
+      "mean_score_gain": 1.8253720614669124
+     },
+     {
+      "riser_rank": 2,
+      "item": 5268,
+      "title": "Thousand Words, A (2012)",
+      "mean_score_gain": 1.8161076727434187
+     },
+     {
+      "riser_rank": 3,
+      "item": 18144,
+      "title": "Love Is Colder Than Death (Liebe ist k\u00e4lter als der Tod) (1969)",
+      "mean_score_gain": 1.8019217338803015
+     },
+     {
+      "riser_rank": 4,
+      "item": 11904,
+      "title": "Jack and Jill (2011)",
+      "mean_score_gain": 1.7901664537643267
+     },
+     {
+      "riser_rank": 5,
+      "item": 9691,
+      "title": "Milky Way, The (Voie lact\u00e9e, La) (1969)",
+      "mean_score_gain": 1.7875597713656375
+     }
+    ]
+   },
+   "cumulative_folded": {
+    "synthesised_concepts": [
+     "action",
+     "action packed",
+     "feel good movie",
+     "fun movie",
+     "cinematography",
+     "great cinematography",
+     "suspense",
+     "suspenseful",
+     "intelligent sci-fi",
+     "sci fi",
+     "sci-fi",
+     "scifi",
+     "independent film",
+     "movie business",
+     "oscar (best cinematography)",
+     "detective",
+     "film noir",
+     "private detective",
+     "childhood",
+     "children",
+     "kids"
+    ],
+    "tree_questions": [
+     "better than expected",
+     "dark humor",
+     "alien",
+     "Star Wars: Episode V - The Empire Strikes Back (1980)",
+     "Crimson Tide (1995)",
+     "Star Wars: Episode VI - Return of the Jedi (1983)"
+    ]
+   }
+  }
+ ],
+ "minutes": 5.93
+}

@@ -1,0 +1,20 @@
+% C4D -- the synthesised-interview transcript. Self-contained fragment: needs only
+% booktabs. Produced by src/instrument/c4d_transcript.py -- DO NOT EDIT BY HAND.
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{@{}rlp{0.30\linewidth}p{0.26\linewidth}rr@{}}
+\toprule
+\# & state & synthesised question (the policy's own direction, rendered) & the catalogue question the tree would ask & full@10 & tail@10 \\
+\midrule
+1 & \texttt{root} & \emph{Are you in the mood for something action films?} & Do you like better than expected films? & 0.1680 & 0.0482 \\
+2 & \texttt{root.dislike} & \emph{Do you like it when a film is suspense?} & Do you like dark humor films? & 0.2018 & 0.0598 \\
+3 & \texttt{root.dislike.dislike} & \emph{How do you feel about sci-fi movies?} & Do you like alien films? & 0.2070 & 0.0547 \\
+4 & \texttt{root.dislike.dislike.dislike} & \emph{Do you like it when a film is movie?} & Have you seen Star Wars: Episode V - The Empire Strikes Back (1980), and did you like it? & 0.2340 & 0.0631 \\
+5 & \texttt{root.dislike.dislike.dislike.noanswer} & \emph{Do you like it when a film is detective drama?} & Have you seen Crimson Tide (1995), and did you like it? & 0.1676 & 0.0497 \\
+6 & \texttt{root.dislike.dislike.dislike.noanswer.noanswer} & \emph{How do you feel about children films?} & Have you seen Star Wars: Episode VI - Return of the Jedi (1983), and did you like it? & 0.1531 & 0.0506 \\
+\bottomrule
+\end{tabular}
+\caption{One cold-start interview. At every state where the C1-final policy was trained to emit (6 of 6 turns) the question is the policy's own off-catalogue direction, rendered by the adapter under bestofk\_lm; where it was not, no question is invented and the row says so. Answers, folds and both NDCG columns are under a declared-circular answer model and carry no value claim.}
+\label{tab:c4d-transcript}
+\end{table*}
