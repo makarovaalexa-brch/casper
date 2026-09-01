@@ -859,10 +859,13 @@ def markdown(out):
          ""]
     sp = out["space"]["probe"].get(out["space"]["chosen"])
     if sp:
-        L += [f"> ⚠ SPACE PROBE: the fed point's nearest bank entry agrees with C1-final's own "
-              f"`emit_snap` for **{sp['snap_agreement_with_c1_final_emit_snap']:.3f}** of the "
-              f"rendered states. Near zero means the two policies' k(phi) read-outs do not share a "
-              f"basis and this row renders a DIFFERENT direction.", ""]
+        L += [f"> ⚠ SPACE PROBE: the fed point's nearest bank entry agrees with the emission's own "
+              f"nearest entry in m7dj's space for "
+              f"**{sp['snap_agreement_with_the_emission_in_its_own_space']:.3f}** of the rendered "
+              f"states (secondary arm, vs C1-final's banked `emit_snap`: "
+              f"**{sp['snap_agreement_with_c1_final_banked_emit_snap']:.3f}**). Near zero means the "
+              f"two policies' k(phi) read-outs do not share a basis and a `direct` row would render "
+              f"a DIFFERENT direction.", ""]
     L += ["| turn | state | n | synthesised question (policy's own direction, in English) | "
           "the catalogue question the tree would ask | folded | full@10 | tail@10 | top-5 after "
           "this turn |",
