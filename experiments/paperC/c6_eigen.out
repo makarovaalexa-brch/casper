@@ -1,0 +1,71 @@
+[22:05:13] ####################################################################################################
+[22:05:13] # PAPER C / C6 -- the closed-form eigen-emitter hypothesis, measured over the 72 searched node states of coldtree_v2_train10000. TRAIN-SIDE ONLY; nothing is trained; the 10,000 canonical TEST users are not built, not loaded, not touched.
+[22:05:13] ####################################################################################################
+[22:05:13] [hardrule10] rev 9ec8abc8; imported src/instrument modules 26; dirty AND imported 0
+[22:05:13] === building paperC/c6 env (split=train, users 0..10000) ===
+[22:05:18] [train-split] cache hit (train_foldin_split_98765.npz): 2,114,192 target-half rows over 140,768 train users
+[22:05:21] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[22:05:43] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[22:05:44] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[22:05:44] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[22:05:44] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[22:05:44] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[22:05:44] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[22:05:44] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[22:05:50] [ctx] all-bands reconstruction: 1389288 tokens; 7562 users with >=3 dislikes
+[22:05:51] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[22:06:07] [g5] 1031 concepts with >= 30 members
+[22:06:38] [ledger] SIGNED valuation arrays built (prereg cache found)
+[22:06:42] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[22:06:43] [policy-B] pool nnz=1389288 = 138.9 items/user (binary fold-in 61.5/user); target leak 0
+[22:06:43] [paperC/c6] pool contract (DERIVED): policy=B nnz=1389288 per_user=138.9288 fp=d00089f4b4ec132fd9d296a2cd543537
+[22:06:43] [paperC/c6] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.504; tower latent d=200
+[22:06:43] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[22:07:09] [gate] canonical TRAIN m=0 snap full=0.15830706760250668 tail=0.026610752564918336 -- full asserted exact
+[22:07:09] [selftest] branch_of_per_user == branch_of on 3 questions x 2000 users
+[22:07:10] [tower] item targets Ew (18359, 200); concept directions reproduced from them (worst 1-|cos| 3.96052e-06); ||u1||=1, ||mean(Wd)||=0.7064
+[22:07:13] [sweeps] 72/72 full exact tables; argmax==splitter at 72/72, max |max(gain) - splitter_gain| = 0
+[22:07:14] [gate] blend provenance -- EXACT: top-1 ingredient == the tree's splitter at 72/72, and the top-1 weight distribution reproduces c1_final.json key-for-key with zero tolerance. TOLERANCE: assembled vector max|diff| 4.76837e-07, worst 1-cos 2.22045e-16 (float32 BLAS reassociation, banked)
+[22:07:14] [target] tower-space blend targets R (72, 200); 132 item / 228 concept ingredients over 72 states
+[22:07:16] [cohorts] descended 144 nodes; every node's size and every child size match the banked tree; 0 users land in an unfitted branch
+[22:07:16] [latent] folding the full fold-in profile of every cohort user through the tower
+[22:34:47] [latent] profile latents (10000, 200); ||root mean|| 3.8658; mean ||z|| 10.1507
+[22:34:47] ####################################################################################################
+[22:34:47] # ARM profile
+[22:35:03]   [profile] 12/72 states (0.3m)
+[22:35:08]   [profile] 24/72 states (0.4m)
+[22:35:16]   [profile] 36/72 states (0.5m)
+[22:35:21]   [profile] 48/72 states (0.6m)
+[22:35:27]   [profile] 60/72 states (0.7m)
+[22:35:33]   [profile] 72/72 states (0.8m)
+[22:35:33]   [profile] lambda1 share of total variance: median 0.2089; effective rank median 35.66; v1 split-half |cos| median 0.9771
+[22:35:33] ####################################################################################################
+[22:35:33] # ARM belief
+[22:36:49]   [belief] 12/72 states (1.3m)
+[22:38:03]   [belief] 24/72 states (2.5m)
+[22:38:31]   [belief] 36/72 states (3.0m)
+[22:39:27]   [belief] 48/72 states (3.9m)
+[22:40:37]   [belief] 60/72 states (5.1m)
+[22:41:16]   [belief] 72/72 states (5.7m)
+[22:41:16]   [belief] lambda1 share of total variance: median 0.6697; effective rank median 2.40; v1 split-half |cos| median 0.9962
+[22:42:13] ====================================================================================================
+[22:42:13] [profile] HEADLINE |cos(v1, target)| median 0.16718 [0.13228, 0.21825] IQR [0.07017, 0.28261]
+[22:42:13] [profile] nulls -- random 0.03855 | cohort mean 0.16943 | LOO other targets 0.41418
+[22:42:13] [profile] span3 capture 0.12852 vs random-3 0.01093
+[22:42:13] [profile] answerability -- nearest pool entry 0.41067, top-1 measured 0.15500, GAP +0.02565
+[22:42:13] [profile] DECOMPOSITION -- |cos(v1, state-BLIND common)| 0.07781 vs |cos(v1, state-SPECIFIC residual)| 0.14441; the target's own state-specific norm fraction 0.91016
+[22:42:13] [profile] variance ratio along the TARGET 5.7290 (v1's own ceiling 41.7869, 1.0 == a random direction)
+[22:42:13] [profile] selector Spearman  v1 -0.0195 | quad +0.1688 | quad_x_answerrate +0.2506 | mu +0.0068 | pop +0.2280 | rand -0.0033
+[22:42:13] [profile] selector NDCG@5    v1 0.0997 | quad 0.1512 | quad_x_answerrate 0.1138 | mu 0.0301 | pop 0.0467 | rand 0.0895
+[22:42:13] [profile] HELD-OUT 15: |cos| 0.28241 [0.18207, 0.36008] | v1 split-half 0.95304
+[22:42:48] ====================================================================================================
+[22:42:48] [belief] HEADLINE |cos(v1, target)| median 0.17992 [0.14065, 0.20593] IQR [0.08574, 0.26953]
+[22:42:48] [belief] nulls -- random 0.03855 | cohort mean 0.15084 | LOO other targets 0.41418
+[22:42:48] [belief] span3 capture 0.12515 vs random-3 0.01093
+[22:42:48] [belief] answerability -- nearest pool entry 0.68717, top-1 measured 0.15282, GAP +0.02309
+[22:42:48] [belief] DECOMPOSITION -- |cos(v1, state-BLIND common)| 0.36894 vs |cos(v1, state-SPECIFIC residual)| 0.12867; the target's own state-specific norm fraction 0.91016
+[22:42:48] [belief] variance ratio along the TARGET 7.7042 (v1's own ceiling 133.9396, 1.0 == a random direction)
+[22:42:48] [belief] selector Spearman  v1 +0.0238 | quad +0.1049 | quad_x_answerrate +0.1872 | mu +0.0434 | pop +0.2280 | rand -0.0033
+[22:42:48] [belief] selector NDCG@5    v1 0.0558 | quad 0.0558 | quad_x_answerrate 0.0537 | mu 0.0277 | pop 0.0467 | rand 0.0895
+[22:42:48] [belief] HELD-OUT 15: |cos| 0.26838 [0.19353, 0.30958] | v1 split-half 0.99616
+[22:42:48] [done] wrote C:\dev\phd\casper\experiments\paperC\c6_eigen.json in 37.6 minutes

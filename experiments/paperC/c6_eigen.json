@@ -1,0 +1,2706 @@
+{
+ "analysis": "paperC_C6_eigen_emitter",
+ "citable": true,
+ "test_touched": false,
+ "split": "train_states",
+ "teacher": "coldtree_v2_train10000.json",
+ "hypothesis": "the measured-best probe direction at a state is approximately the principal axis of the cohort's residual covariance",
+ "git": {
+  "rev": "9ec8abc8e05d32be46e80215514aa7a9dc5e12cb",
+  "branch": "recommender-improvement",
+  "status_short_src": "M src/instrument/m6d_eval.py\n M src/instrument/m6v_route_confusion.py\n?? src/instrument/m7c_group_atlas.py\n?? src/instrument/m7d_route_atlas.py",
+  "src_instrument_dirty": [
+   "M src/instrument/m6d_eval.py",
+   " M src/instrument/m6v_route_confusion.py",
+   "?? src/instrument/m7c_group_atlas.py",
+   "?? src/instrument/m7d_route_atlas.py"
+  ],
+  "src_instrument_clean": false,
+  "allow_dirty_flag": true,
+  "threads": 2,
+  "thread_env": {
+   "OMP_NUM_THREADS": "4",
+   "MKL_NUM_THREADS": "2",
+   "OPENBLAS_NUM_THREADS": "2"
+  },
+  "torch_num_threads": 4,
+  "status_short": "M docs/OVERNIGHT_2026-08-17.md\n M docs/PAPER_B_ACTION_ITEMS.md\n M docs/STATE.md\n M docs/design/M7_STATE_CONDITIONED_DESIGN.md\n M docs/design/PAPER_B_FINAL_AUDIT_2026-08-25.md\n M experiments/baselines/interview/adaptive_table_eddi3_policyB.json\n M experiments/baselines/interview/adaptive_table_eddi3_policyB_per_user.npz\n M experiments/battery/m4/m4a_compare.json\n D experiments/battery/m6/m6generalise_B.json\n M experiments/battery/m6/m6mix_B.json\n M experiments/battery/ndcgtree_SANITY.json\n M experiments/battery/policy_traj/manifest.json\n D experiments/battery/policy_traj/step0_probe.json\n M external_literature/findings/llm_verbalisation_2026-08.md\n M new_chapters/chapterB_v2/chapterB_v2.pdf\n M new_chapters/chapterB_v2/chapterB_v2.tex\n M src/instrument/m6d_eval.py\n M src/instrument/m6v_route_confusion.py\n?? docs/design/.bak_m7\n?? docs/design/GROUPING_DESIGN.md\n?? docs/design/PAPER_B_MASTER_TODO.md\n?? docs/design/PAPER_B_TEST_DESIGN_SHEET.md\n?? docs/figures/\n?? experiments/baselines/huyu2013/page4_400.png\n?? experiments/baselines/huyu2013/page4_800.png\n?? experiments/baselines/interview/a9_battery_policyB_eddi3.json\n?? experiments/baselines/interview/act2pvc_analyze.err\n?? experiments/baselines/interview/act2pvc_analyze.out\n?? experiments/baselines/interview/act2pvc_harness.err\n?? experiments/baselines/interview/act2pvc_harness.out\n?? experiments/baselines/interview/adaptive_table_act2pvc.json\n?? experiments/baselines/interview/adaptive_table_act2pvc_interviews/\n?? experiments/baselines/interview/adaptive_table_act2pvc_per_user.npz\n?? experiments/baselines/interview/adaptive_table_eddi3_policyB_interviews/\n?? experiments/baselines/interview/eddi3_policyB.err\n?? experiments/baselines/interview/eddi3_policyB.out\n?? experiments/baselines/interview/eddi3_policyB_resume.err\n?? experiments/baselines/interview/eddi3_policyB_resume.out\n?? experiments/battery/a3_items_train.out\n?? experiments/battery/asif/\n?? experiments/battery/asif_all.err\n?? experiments/battery/asif_root.err\n?? experiments/battery/chain_balanced.out\n?? experiments/battery/chain_disjoint.out\n?? experiments/battery/chain_forest.out\n?? experiments/battery/chain_full.out\n?? experiments/battery/chain_overnight.out\n?? experiments/battery/chain_overnight2.out\n?? experiments/battery/chain_refit.out\n?? experiments/battery/coldtree_train10k.out\n?? experiments/battery/coldtree_train10k_4t.out\n?? experiments/battery/coldtree_train10k_6t.out\n?? experiments/battery/coldtree_v2_heaps/\n?? experiments/battery/coldtree_v2_partial.json\n?? experiments/battery/coldtree_v2_per_user.npz\n?? experiments/battery/coldtree_v2_train10000.json\n?? experiments/battery/coldtree_v2_train10000_heaps/\n?? experiments/battery/coldtree_v2_train10000_partial.json\n?? experiments/battery/coldtree_v2_train10000_per_user.npz\n?? experiments/battery/coldtree_v2_train10000_sweeps/\n?? experiments/battery/direct_gain.json\n?? experiments/battery/direct_gain_policy.json\n?? experiments/battery/direct_gain_policy_per_user.npz\n?? experiments/battery/forest/\n?? experiments/battery/forest_chain.err\n?? experiments/battery/forest_chain2.err\n?? experiments/battery/forest_composition.err\n?? experiments/battery/forest_eval_main.err\n?? experiments/battery/forest_eval_shuffle.err\n?? experiments/battery/forest_fit_main.err\n?? experiments/battery/forest_fit_shuffle.err\n?? experiments/battery/forest_states.err\n?? experiments/battery/greedy_static_policyB_combined_train10000.json\n?? experiments/battery/greedy_static_policyB_combined_train10000_heaps/\n?? experiments/battery/greedy_static_policyB_items_train10000.json\n?? experiments/battery/greedy_static_policyB_items_train10000_heaps/\n?? experiments/battery/greedy_static_policyB_items_train10000_partial.json\n?? experiments/battery/heldout_q/q100_main_strippop.json\n?? experiments/battery/heldout_q/q100_main_strippop.pt\n?? experiments/battery/lift_head.json\n?? experiments/battery/lift_head.pt\n?? experiments/battery/lift_head_stable.err\n?? experiments/battery/lift_head_stable.json\n?? experiments/battery/m1/ideal_k10.npz\n?? experiments/battery/m1/ideal_k12.npz\n?? experiments/battery/m1/ideal_k4.npz\n?? experiments/battery/m1/ideal_k6.npz\n?? experiments/battery/m1/ideal_k8.npz\n?? experiments/battery/m1/m1_forest_labels.npz\n?? experiments/battery/m1/m1_reddit_assign.npz\n?? experiments/battery/m1/m1_train_labels.npz\n?? experiments/battery/m1/train/\n?? experiments/battery/m1/z_full.npz\n?? experiments/battery/m1/z_requests.npz\n?? experiments/battery/m1_a3.out\n?? experiments/battery/m1_a4.out\n?? experiments/battery/m1_a5.out\n?? experiments/battery/m1_anchor.out\n?? experiments/battery/m1_deera.out\n?? experiments/battery/m1_era.out\n?? experiments/battery/m1_ideal.out\n?? experiments/battery/m1_name_probe.out\n?? experiments/battery/m1_r4.out\n?? experiments/battery/m1_stage_a.out\n?? experiments/battery/m1_sweep.out\n?? experiments/battery/m2/m2_screen_partial.json\n?? experiments/battery/m2_screen.out\n?? experiments/battery/m3_forest.out\n?? experiments/battery/m3_sanity.out\n?? experiments/battery/m3_sanity_SANITY.json\n?? experiments/battery/m3_sanity_SANITY_heaps/\n?? experiments/battery/m3_sanity_SANITY_partial.json\n?? experiments/battery/m3_sanity_SANITY_per_user.npz\n?? experiments/battery/m3smoke.out\n?? experiments/battery/m3smoke_arthouse_SANITY.json\n?? experiments/battery/m3smoke_arthouse_SANITY_heaps/\n?? experiments/battery/m3smoke_arthouse_SANITY_partial.json\n?? experiments/battery/m3smoke_arthouse_SANITY_per_user.npz\n?? experiments/battery/m3smoke_arthouse_per_user.npz\n?? experiments/battery/m3teach.out\n?? experiments/battery/m3v2.out\n?? experiments/battery/m3v2_arthouse_heaps/\n?? experiments/battery/m3v2_arthouse_per_user.npz\n?? experiments/battery/m3v2_dialogue_heaps/\n?? experiments/battery/m3v2_dialogue_per_user.npz\n?? experiments/battery/m3v2_gore_heaps/\n?? experiments/battery/m3v2_gore_per_user.npz\n?? experiments/battery/m3v2_inspiring_heaps/\n?? experiments/battery/m3v2_inspiring_per_user.npz\n?? experiments/battery/m3v2_marvel_heaps/\n?? experiments/battery/m3v2_marvel_per_user.npz\n?? experiments/battery/m3v2_teenagers_heaps/\n?? experiments/battery/m3v2_teenagers_per_user.npz\n?? experiments/battery/m3v2b.out\n?? experiments/battery/m4/m4a_compare_BUGGY_ROUTER.json\n?? experiments/battery/m4/m4b_armc.json\n?? experiments/battery/m4/m4b_armc_BUGGY_ROUTER.json\n?? experiments/battery/m4/m4b_armc_TOKEN.json\n?? experiments/battery/m4/m4b_fidelity_by_pos.json\n?? experiments/battery/m4/m4b_policy.json\n?? experiments/battery/m4/m4b_policy.pt\n?? experiments/battery/m4/m4b_policy_BUGGY_ROUTER.pt\n?? experiments/battery/m4/m4b_policy_TOKEN.pt\n?? experiments/battery/m4/m4b_stateonly_policy.json\n?? experiments/battery/m4/m4b_stateonly_policy.pt\n?? experiments/battery/m4/m4b_val_fidelity.json\n?? experiments/battery/m4/m4c_adjacent.json\n?? experiments/battery/m4/m4d_state_vs_token.json\n?? experiments/battery/m4/m6_policy.json\n?? experiments/battery/m4/m6_policy.pt\n?? experiments/battery/m4/m6a2k_policy.json\n?? experiments/battery/m4/m6a2k_policy.pt\n?? experiments/battery/m4/m6bal_policy.json\n?? experiments/battery/m4/m6bal_policy.pt\n?? experiments/battery/m4/m6fair_policy.json\n?? experiments/battery/m4/m6fair_policy.pt\n?? experiments/battery/m4/m6forest_policy.json\n?? experiments/battery/m4/m6forest_policy.pt\n?? experiments/battery/m4/m7dj_policy.json\n?? experiments/battery/m4/m7dj_policy.pt\n?? experiments/battery/m4/traj/\n?? experiments/battery/m4a.out\n?? experiments/battery/m4a_fixed.out\n?? experiments/battery/m4a_regress.out\n?? experiments/battery/m4b_dupes.out\n?? experiments/battery/m4b_eval.out\n?? experiments/battery/m4b_eval2.out\n?? experiments/battery/m4b_eval3.out\n?? experiments/battery/m4b_fidpos.out\n?? experiments/battery/m4b_gen.out\n?? experiments/battery/m4b_gen2.out\n?? experiments/battery/m4b_pipeline.out\n?? experiments/battery/m4b_routefix.out\n?? experiments/battery/m4b_state_eval.out\n?? experiments/battery/m4b_state_pipeline.out\n?? experiments/battery/m4b_state_train.out\n?? experiments/battery/m4b_train.out\n?? experiments/battery/m4b_train2.out\n?? experiments/battery/m4b_valfid.out\n?? experiments/battery/m4b_valfid2.out\n?? experiments/battery/m4c.out\n?? experiments/battery/m4c2.out\n?? experiments/battery/m4c_state.out\n?? experiments/battery/m4d.out\n?? experiments/battery/m4e_geom.out\n?? experiments/battery/m4e_probe.out\n?? experiments/battery/m5_mix.out\n?? experiments/battery/m6/heap_GLOBALopen_train2000_root.json\n?? experiments/battery/m6/heap_GLOBALopen_train2000_root.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.dislike.noanswer.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.dislike.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.like.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.like.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.noanswer.json\n?? experiments/battery/m6/heap_arthouse_train2000_root.like.noanswer.noanswer.noanswer.json.tail\n?? experiments/battery/m6/heap_clu16_train2000_root.json\n?? experiments/battery/m6/heap_clu16_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_clu16_train2000_root.like.json\n?? experiments/battery/m6/heap_clu16_train2000_root.like.like.json\n?? experiments/battery/m6/heap_clu6_train2000_root.dislike.json\n?? experiments/battery/m6/heap_clu6_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_clu6_train2000_root.json\n?? experiments/battery/m6/heap_clu6_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_clu6_train2000_root.like.dislike.noanswer.json\n?? experiments/battery/m6/heap_clu6_train2000_root.like.json\n?? experiments/battery/m6/heap_clu6_train2000_root.like.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.noanswer.dislike.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.noanswer.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.dislike.like.noanswer.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.like.like.json\n?? experiments/battery/m6/heap_dialogue_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_dialogue_train400_root.dislike.json\n?? experiments/battery/m6/heap_dialogue_train400_root.json\n?? experiments/battery/m6/heap_dialogue_train400_root.like.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.like.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.like.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.noanswer.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_djarthouse_train2000_root.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.dislike.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.dislike.like.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.dislike.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.like.json\n?? experiments/battery/m6/heap_djdialogue_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djgore_train2000_root.json\n?? experiments/battery/m6/heap_djgore_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_djgore_train2000_root.like.json\n?? experiments/battery/m6/heap_djgore_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.like.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_djgore_train2000_root.noanswer.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.dislike.noanswer.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.dislike.noanswer.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.dislike.noanswer.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.dislike.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.dislike.like.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.dislike.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.like.like.dislike.json\n?? experiments/battery/m6/heap_djinspiring_train2000_root.like.like.like.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.like.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.like.noanswer.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.noanswer.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.dislike.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.noanswer.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_djmarvel_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.like.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.like.like.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.dislike.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.dislike.noanswer.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.like.dislike.json\n?? experiments/battery/m6/heap_djteenagers_train2000_root.noanswer.like.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.like.dislike.dislike.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.like.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.like.dislike.json\n?? experiments/battery/m6/heap_gore_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_gore_train2000_root.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.like.dislike.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.like.dislike.noanswer.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.like.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_gore_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.dislike.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.dislike.noanswer.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.like.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.dislike.like.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.like.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.like.like.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.like.like.noanswer.json\n?? experiments/battery/m6/heap_inspiring_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.dislike.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.like.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.like.noanswer.noanswer.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.like.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.noanswer.dislike.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.noanswer.json\n?? experiments/battery/m6/heap_marvel_train2000_root.like.noanswer.noanswer.like.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.like.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.like.like.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.dislike.dislike.dislike.noanswer.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.dislike.dislike.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.dislike.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.dislike.like.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.json\n?? experiments/battery/m6/heap_teenagers_train2000_root.noanswer.like.json\n?? experiments/battery/m6/m6generalise_B_test.json\n?? experiments/battery/m6/m6k_arthouse_train2000.json\n?? experiments/battery/m6/m6k_clu16_train2000.json\n?? experiments/battery/m6/m6k_clu6_train2000.json\n?? experiments/battery/m6/m6k_dialogue_train2000.json\n?? experiments/battery/m6/m6k_dialogue_train400.json\n?? experiments/battery/m6/m6k_djarthouse_train2000.json\n?? experiments/battery/m6/m6k_djdialogue_train2000.json\n?? experiments/battery/m6/m6k_djgore_train2000.json\n?? experiments/battery/m6/m6k_djinspiring_train2000.json\n?? experiments/battery/m6/m6k_djmarvel_train2000.json\n?? experiments/battery/m6/m6k_djteenagers_train2000.json\n?? experiments/battery/m6/m6k_gore_train2000.json\n?? experiments/battery/m6/m6k_inspiring_train2000.json\n?? experiments/battery/m6/m6k_inspiring_train2000_DUPBUG.json\n?? experiments/battery/m6/m6k_marvel_train2000.json\n?? experiments/battery/m6/m6k_teenagers_train2000.json\n?? experiments/battery/m6/m6mix_B_test.json\n?? experiments/battery/m6/m6n_arthouse_held_out_peruser.npz\n?? experiments/battery/m6/m6n_arthouse_in_sample_peruser.npz\n?? experiments/battery/m6/m6n_arthouse_train2k.json\n?? experiments/battery/m6/m6p_arthouse_full_pool_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_half_A_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_half_B_peruser.npz\n?? experiments/battery/m6/m6p_arthouse_openerhalf.json\n?? experiments/battery/m6/m6q_cost_bench.json\n?? experiments/battery/m6/m6r_fair_compare.json\n?? experiments/battery/m6/m6t_order_check.json\n?? experiments/battery/m6/m6u_coldstate_check.json\n?? experiments/battery/m6/m6v_route_confusion.json\n?? experiments/battery/m6/m6w_marvel_diag.json\n?? experiments/battery/m6/m6x_separability.json\n?? experiments/battery/m6/m6y_clusters_train_k20.json\n?? experiments/battery/m6/m6y_clusters_train_k20.npz\n?? experiments/battery/m6/m6z_request_share.json\n?? experiments/battery/m6/m7_tabs_val.npz\n?? experiments/battery/m6/m7a_concept_clusters_k12.json\n?? experiments/battery/m6/m7a_concept_clusters_k12.npz\n?? experiments/battery/m6/m7b_disjoint.json\n?? experiments/battery/m6/m7b_disjoint.npz\n?? experiments/battery/m6/m7c_group_atlas.json\n?? experiments/battery/m6/m7d_route_atlas.json\n?? experiments/battery/m6/sweeps/\n?? experiments/battery/m6/traj2k/\n?? experiments/battery/m6/traj_dj/\n?? experiments/battery/m6/traj_fair/\n?? experiments/battery/m6/traj_forest/\n?? experiments/battery/m6_all.out\n?? experiments/battery/m6_all2k.out\n?? experiments/battery/m6_chain.out\n?? experiments/battery/m6_stage3.out\n?? experiments/battery/m6_train.out\n?? experiments/battery/m6a.out\n?? experiments/battery/m6a2.out\n?? experiments/battery/m6a2k_train.out\n?? experiments/battery/m6a_chain.out\n?? experiments/battery/m6b_probe.out\n?? experiments/battery/m6bal_train.out\n?? experiments/battery/m6c.out\n?? experiments/battery/m6c_gen.out\n?? experiments/battery/m6c_gen2k.out\n?? experiments/battery/m6c_gen_dj.out\n?? experiments/battery/m6c_gen_fair.out\n?? experiments/battery/m6c_gen_forest.out\n?? experiments/battery/m6d_arthouse2k.out\n?? experiments/battery/m6d_coverage.out\n?? experiments/battery/m6d_fair.out\n?? experiments/battery/m6d_gen_TEST.out\n?? experiments/battery/m6d_gen_bal.out\n?? experiments/battery/m6d_gen_dj.out\n?? experiments/battery/m6d_gen_forest.out\n?? experiments/battery/m6d_gen_scram.out\n?? experiments/battery/m6d_generalise.out\n?? experiments/battery/m6d_halfA.out\n?? experiments/battery/m6d_mix_bal.out\n?? experiments/battery/m6d_mix_dj.out\n?? experiments/battery/m6d_mix_forest.out\n?? experiments/battery/m6e.out\n?? experiments/battery/m6e_mix.out\n?? experiments/battery/m6f_examples.out\n?? experiments/battery/m6fair_train.out\n?? experiments/battery/m6forest_train.out\n?? experiments/battery/m6g_loose.out\n?? experiments/battery/m6h_coarse.out\n?? experiments/battery/m6i_final.out\n?? experiments/battery/m6j_centroid.out\n?? experiments/battery/m6k_SMOKE_dialogue.out\n?? experiments/battery/m6k_arthouse.out\n?? experiments/battery/m6k_arthouse_tr2k_v2.out\n?? experiments/battery/m6k_arthouse_train2k.out\n?? experiments/battery/m6k_clu16.out\n?? experiments/battery/m6k_clu6.out\n?? experiments/battery/m6k_dialogue.out\n?? experiments/battery/m6k_dialogue_tr2k.out\n?? experiments/battery/m6k_djarthouse.out\n?? experiments/battery/m6k_djdialogue.out\n?? experiments/battery/m6k_djgore.out\n?? experiments/battery/m6k_djinspiring.out\n?? experiments/battery/m6k_djmarvel.out\n?? experiments/battery/m6k_djteenagers.out\n?? experiments/battery/m6k_gore.out\n?? experiments/battery/m6k_gore_tr2k.out\n?? experiments/battery/m6k_inspiring.out\n?? experiments/battery/m6k_inspiring_tr2k.out\n?? experiments/battery/m6k_inspiring_tr2k_v2.out\n?? experiments/battery/m6k_inspiring_tr2k_v3.out\n?? experiments/battery/m6k_inspiring_tr2k_v4.out\n?? experiments/battery/m6k_marvel.out\n?? experiments/battery/m6k_marvel_tr2k.out\n?? experiments/battery/m6k_teenagers.out\n?? experiments/battery/m6k_teenagers_tr2k.out\n?? experiments/battery/m6l_arthouse.out\n?? experiments/battery/m6l_arthouse_burn.out\n?? experiments/battery/m6l_burn.out\n?? experiments/battery/m6l_dialogue.out\n?? experiments/battery/m6l_dialogue_burn.out\n?? experiments/battery/m6l_gore.out\n?? experiments/battery/m6l_gore_burn.out\n?? experiments/battery/m6l_inspiring.out\n?? experiments/battery/m6l_inspiring_burn.out\n?? experiments/battery/m6l_marvel.out\n?? experiments/battery/m6l_marvel_burn.out\n?? experiments/battery/m6l_teenagers.out\n?? experiments/battery/m6l_teenagers_burn.out\n?? experiments/battery/m6m_heldout.out\n?? experiments/battery/m6m_redditlift.out\n?? experiments/battery/m6n_arthouse.out\n?? experiments/battery/m6n_arthouse_v2.out\n?? experiments/battery/m6n_k6.out\n?? experiments/battery/m6o_k4.out\n?? experiments/battery/m6p_arthouse.out\n?? experiments/battery/m6p_k20.out\n?? experiments/battery/m6q_bench.out\n?? experiments/battery/m6r_fair.out\n?? experiments/battery/m6s_static_train.out\n?? experiments/battery/m6t_disjoint.out\n?? experiments/battery/m6t_order.out\n?? experiments/battery/m6t_order4arm.out\n?? experiments/battery/m6t_order6.out\n?? experiments/battery/m6u_cold.out\n?? experiments/battery/m6v_conf.out\n?? experiments/battery/m6v_conf_bal.out\n?? experiments/battery/m6v_dj.out\n?? experiments/battery/m6v_dj2.out\n?? experiments/battery/m6w_marvel.out\n?? experiments/battery/m6x_disj.out\n?? experiments/battery/m6x_m6y.out\n?? experiments/battery/m6x_sep.out\n?? experiments/battery/m6x_sep2.out\n?? experiments/battery/m6x_vibe.out\n?? experiments/battery/m6y_clusters.out\n?? experiments/battery/m6y_clusters2.out\n?? experiments/battery/m7_global.out\n?? experiments/battery/m7a_k12.out\n?? experiments/battery/m7b.out\n?? experiments/battery/m7c_atlas.out\n?? experiments/battery/m7dj_train.out\n?? experiments/battery/meanvec_value.json\n?? experiments/battery/meanvec_value_cond.json\n?? experiments/battery/meanvec_value_cond_per_user.npz\n?? experiments/battery/meanvec_value_per_user.npz\n?? experiments/battery/ndcgtree16test_partial.json\n?? experiments/battery/ndcgtree16test_policyB.err\n?? experiments/battery/ndcgtree_SANITY_heaps/\n?? experiments/battery/ndcgtree_SANITY_partial.json\n?? experiments/battery/ndcgtree_SANITY_per_user.npz\n?? experiments/battery/ndcgtree_SANITY_sweeps/\n?? experiments/battery/ndcgtree_SANITY_train3000.json\n?? experiments/battery/ndcgtree_SANITY_train3000_heaps/\n?? experiments/battery/ndcgtree_SANITY_train3000_partial.json\n?? experiments/battery/ndcgtree_SANITY_train3000_per_user.npz\n?? experiments/battery/ndcgtree_SANITY_train3000_sweeps/\n?? experiments/battery/ndcgtree_sanity_sweep.out\n?? experiments/battery/ndcgtree_sanity_train.out\n?? experiments/battery/outcome_head_main_both.json\n?? experiments/battery/outcome_head_main_both.pt\n?? experiments/battery/outcome_head_main_both_history.json\n?? experiments/battery/outcome_head_main_both_pop.npz\n?? experiments/battery/outcome_head_shuffle_both.json\n?? experiments/battery/outcome_head_shuffle_both.pt\n?? experiments/battery/outcome_head_shuffle_both_history.json\n?? experiments/battery/outcome_head_shuffle_both_pop.npz\n?? experiments/battery/outcome_main.err\n?? experiments/battery/p2_seeded/p2_eval_k2_per_user.npz\n?? experiments/battery/p2_seeded/p2_eval_k4_per_user.npz\n?? experiments/battery/p2_seeded/p2_eval_k8_per_user.npz\n?? experiments/battery/p2_seeded/p2_main.pt\n?? experiments/battery/p2_seeded/p2_main_history.json\n?? experiments/battery/p2_seeded/p2_seeded_states.npz\n?? experiments/battery/p2_seeded/p2_shuffle.pt\n?? experiments/battery/p2_seeded/p2_shuffle_history.json\n?? experiments/battery/p2_seeded/p2_shuffle_last.pt\n?? experiments/battery/p2_seeded/run_p2.ps1\n?? experiments/battery/pipeline_arthouse.out\n?? experiments/battery/pipeline_distill.out\n?? experiments/battery/pipeline_distill_fair.out\n?? experiments/battery/pipeline_distill_fair2.out\n?? experiments/battery/pipeline_m6r.out\n?? experiments/battery/policy_deep_equivariant_both_phase3.pt\n?? experiments/battery/policy_deep_equivariant_both_phase3_gates.json\n?? experiments/battery/policy_deep_equivariant_both_phase3_gates_per_user.npz\n?? experiments/battery/policy_deep_equivariant_both_phase3_history.json\n?? experiments/battery/policy_deep_heaps/\n?? experiments/battery/policy_deep_labels.json\n?? experiments/battery/policy_deeper_tree_control.json\n?? experiments/battery/policy_deeper_tree_control_per_user.npz\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3.pt\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_gates.json\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_gates_per_user.npz\n?? experiments/battery/policy_deepshuffle_equivariant_both_phase3_history.json\n?? experiments/battery/policy_labels_deep.json\n?? experiments/battery/policy_labels_deep_partial.json\n?? experiments/battery/policy_labels_deep_partial/\n?? experiments/battery/policy_main_equivariant_both_p1.pt\n?? experiments/battery/policy_main_equivariant_both_p1_gates.json\n?? experiments/battery/policy_main_equivariant_both_p1_gates_per_user.npz\n?? experiments/battery/policy_main_equivariant_both_p1_history.json\n?? experiments/battery/policy_main_equivariant_both_p1ctrl.pt\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_gates.json\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_gates_per_user.npz\n?? experiments/battery/policy_main_equivariant_both_p1ctrl_history.json\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf.pt\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_gates.json\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_gates_per_user.npz\n?? experiments/battery/policy_shuffle_equivariant_both_p1shuf_history.json\n?? experiments/battery/policy_traj/ans_0_10000.npz\n?? experiments/battery/policy_traj/ans_100000_110000.npz\n?? experiments/battery/policy_traj/ans_10000_20000.npz\n?? experiments/battery/policy_traj/ans_110000_120000.npz\n?? experiments/battery/policy_traj/ans_120000_130000.npz\n?? experiments/battery/policy_traj/ans_130000_140000.npz\n?? experiments/battery/policy_traj/ans_140000_140768.npz\n?? experiments/battery/policy_traj/ans_20000_30000.npz\n?? experiments/battery/policy_traj/ans_30000_40000.npz\n?? experiments/battery/policy_traj/ans_40000_50000.npz\n?? experiments/battery/policy_traj/ans_50000_60000.npz\n?? experiments/battery/policy_traj/ans_60000_70000.npz\n?? experiments/battery/policy_traj/ans_70000_80000.npz\n?? experiments/battery/policy_traj/ans_80000_90000.npz\n?? experiments/battery/policy_traj/ans_90000_100000.npz\n?? experiments/battery/policy_traj/ans_val.npz\n?? experiments/battery/policy_traj/gen.err\n?? experiments/battery/policy_traj/gen.out\n?? experiments/battery/policy_traj/meta_0_10000.npz\n?? experiments/battery/policy_traj/meta_100000_110000.npz\n?? experiments/battery/policy_traj/meta_10000_20000.npz\n?? experiments/battery/policy_traj/meta_110000_120000.npz\n?? experiments/battery/policy_traj/meta_120000_130000.npz\n?? experiments/battery/policy_traj/meta_130000_140000.npz\n?? experiments/battery/policy_traj/meta_140000_140768.npz\n?? experiments/battery/policy_traj/meta_20000_30000.npz\n?? experiments/battery/policy_traj/meta_30000_40000.npz\n?? experiments/battery/policy_traj/meta_40000_50000.npz\n?? experiments/battery/policy_traj/meta_50000_60000.npz\n?? experiments/battery/policy_traj/meta_60000_70000.npz\n?? experiments/battery/policy_traj/meta_70000_80000.npz\n?? experiments/battery/policy_traj/meta_80000_90000.npz\n?? experiments/battery/policy_traj/meta_90000_100000.npz\n?? experiments/battery/policy_traj/val_traj.npz\n?? experiments/battery/policy_traj/z_train.npy\n?? experiments/battery/policy_traj/z_val.npy\n?? experiments/battery/pu_labels/\n?? experiments/battery/pwheldout_root.json\n?? experiments/battery/pwheldout_root_PARTIAL_REPORT.json\n?? experiments/battery/pwheldout_root_partial.json\n?? experiments/battery/splitcrit.json\n?? experiments/battery/splitcrit_SMOKE_tree_logistic.json\n?? experiments/battery/splitcrit_SMOKE_tree_logistic.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_pairwise.json\n?? experiments/battery/splitcrit_SMOKE_tree_pairwise.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_random_ml.json\n?? experiments/battery/splitcrit_SMOKE_tree_random_ml.json.partial\n?? experiments/battery/splitcrit_SMOKE_tree_variance.json\n?? experiments/battery/splitcrit_SMOKE_tree_variance.json.partial\n?? experiments/battery/splitcrit_per_user.npz\n?? experiments/battery/splitcrit_tree_logistic.json\n?? experiments/battery/splitcrit_tree_logistic.json.partial\n?? experiments/battery/splitcrit_tree_pairwise.json\n?? experiments/battery/splitcrit_tree_pairwise.json.partial\n?? experiments/battery/splitcrit_tree_random.json\n?? experiments/battery/splitcrit_tree_random.json.partial\n?? experiments/battery/splitcrit_tree_random_ml.json\n?? experiments/battery/splitcrit_tree_random_ml.json.partial\n?? experiments/battery/splitcrit_tree_variance.json\n?? experiments/battery/splitcrit_tree_variance.json.partial\n?? experiments/battery/state_count_curve.json\n?? experiments/battery/t1prime.err\n?? experiments/battery/t1prime_holdout.err\n?? experiments/battery/value_chain.err\n?? experiments/battery/value_chain.out\n?? experiments/battery/value_meanvec.err\n?? experiments/battery/value_meanvec.out\n?? experiments/battery/value_sample.err\n?? experiments/battery/value_sample.out\n?? experiments/battery/value_scrape.err\n?? experiments/battery/value_scrape.out\n?? experiments/battery/value_train.err\n?? experiments/battery/value_train.out\n?? experiments/battery/volcohorts/genre_val_policyB_paired_cis.json\n?? experiments/battery/volcohorts/heaps/\n?? experiments/battery/volcohorts/run_v.ps1\n?? experiments/battery/volcohorts/volcohorts_k4_volunteered.json\n?? experiments/battery/volcohorts/volcohorts_report_K15.json\n?? experiments/paperC/c0.err\n?? experiments/paperC/c1.err\n?? experiments/paperC/c3b/c3b_ceiling_per_question.npz\n?? experiments/paperC/c3b/c3b_pairs.npz\n?? experiments/paperC/c3b/c3b_phrases.json\n?? experiments/paperC/c3b/c3b_scrambled.jsonl\n?? experiments/paperC/c3b/c3b_scrambled_best.pt\n?? experiments/paperC/c3b/c3b_stage2_per_question.npz\n?? experiments/paperC/c3b/c3b_true.jsonl\n?? experiments/paperC/c3b/c3b_true_best.pt\n?? experiments/paperC/c3b/stage2_run.err\n?? experiments/paperC/c3b_v2/c3b_ceiling_per_question.npz\n?? experiments/paperC/c3b_v2/c3b_manifest.json\n?? experiments/paperC/c3b_v2/c3b_pairs.npz\n?? experiments/paperC/c3b_v2/c3b_phrases.json\n?? experiments/paperC/c3b_v2/c3b_scrambled.jsonl\n?? experiments/paperC/c3b_v2/c3b_scrambled_best.pt\n?? experiments/paperC/c3b_v2/c3b_stage2_per_question.npz\n?? experiments/paperC/c3b_v2/c3b_true.jsonl\n?? experiments/paperC/c3b_v2/c3b_true_best.pt\n?? experiments/paperC/c3b_v2/gen/\n?? experiments/paperC/c3b_v2/stage2_run.err\n?? experiments/paperC/c4_triangulate.err\n?? experiments/paperC/c4b_noise.err\n?? experiments/paperC/c4c_decoding.err\n?? experiments/paperC/c4d_majority.err\n?? experiments/paperC/c4d_target.err\n?? experiments/paperC/c6_eigen.err\n?? experiments/paperC/c6_eigen.json\n?? experiments/paperC/c6_eigen.out\n?? experiments/paperC/c6_eigen_per_state.npz\n?? experiments/paperC/c7_knn.err\n?? experiments/paperC/c7_knn.json\n?? experiments/paperC/c7_knn.out\n?? experiments/paperC/c7_knn_per_state.npz\n?? external_literature/findings/hewitt_plugin_evaluation_2026-08.md\n?? external_literature/findings/im1_im2_plausibility_2026-08.md\n?? external_literature/findings/infosynth_baseline_2026-08.md\n?? external_literature/findings/redo_numbers_decap_heap_2026-08.md\n?? external_literature/findings/user_segmentation_for_elicitation_2026-08.md\n?? new_chapters/chapterB_v2/m7d_route_atlas.pdf\n?? new_chapters/chapterC_v2/chapterC_v2.pdf\n?? run_balanced.py\n?? run_disjoint_forest.py\n?? run_distill_fair.py\n?? run_distill_fair2.py\n?? run_forest_final.py\n?? run_m6_arthouse_distill.py\n?? run_m6r_when_ready.py\n?? run_overnight.py\n?? run_refit_all.py\n?? src/instrument/m7c_group_atlas.py\n?? src/instrument/m7d_route_atlas.py",
+  "guard": "HARD RULE 10, IMPORT-SCOPED: refuses if any src/instrument file this run IMPORTS is dirty. The repo-wide dirty list is recorded in full above.",
+  "n_modules_imported_from_src_instrument": 26,
+  "dirty_src_instrument_files_imported_by_this_run": [],
+  "src_instrument_clean_for_this_run": true
+ },
+ "seed": 98765,
+ "n_boot": 10000,
+ "framing": {
+  "the_rule_is_published": "Ji, Xue & Carin, IEEE TSP 2008 Sec. IV.A states the principal-axis rule verbatim, including the synthesise-or-snap fork; Info-Synth Prop. 1 gives the same direction. NOT this project's finding.",
+  "v1_is_a_static_control": "under linear-Gaussian the covariance update does not depend on the answer, so a pure Sigma-functional emitter cannot be adaptive: its sequence is the leading eigenvectors of the PRIOR, precomputable before the interview. This run is the STATIC CONTROL for the adaptivity claim, not a candidate method.",
+  "what_is_ours": "(i) the COMMON-vs-SPECIFIC decomposition of the measured-best direction; (ii) the ANSWERABILITY GAP -- the empirical size of Info-Synth's MI cost of snapping, which that work derives and never reports as a number. Where the gap is large the second-order surrogate is not the right quantity."
+ },
+ "conventions": {
+  "space": "200-d TOWER latent space, popularity-stripped exactly as c3b_adapter.TowerBridge: item = (Wd - mean(Wd)) - <.,u1>u1, concept = d_c, user latent = tower fold with the same u1 component removed",
+  "mean_removal": "MEAN-REMOVED ON BOTH SIDES. Question side: the bank mean mean(Wd) is removed by construction. Cohort side: the covariance is taken about the cohort's OWN mean, so v1..v3 are mean-removed objects. A raw (uncentred Wd) robustness row is banked beside the headline.",
+  "sign": "|cos| is the headline because an eigenvector's sign is arbitrary. The signed value uses the declared convention: v_j is oriented so the cohort's projection <z - zbar, v_j> has non-negative skew (positive on the side carrying the heavier tail of the cohort's spread).",
+  "cohort": "the tree's OWN fit cohort at each node -- the users among the 10,000 TRAIN users the tree was grown on who reach that node, re-derived with ndcg_tree.branch_of and asserted against every banked n_users AND every banked child_sizes. This DEPARTS from c1_final's bank-cohort resolution because the gain tables were measured on this cohort (sweep n_rows == node n_users at 72/72).",
+  "latent": "PRIMARY = `profile`, the tower fold of the user's whole fold-in profile (their full-information latent). SECONDARY = `belief`, genv_latent at the state's prefix (what the scorer holds; in a cold interview it is a function of the prefix answers only)."
+ },
+ "gates": {
+  "canonical_snap_train_m0_full": {
+   "got": 0.15830706760250668,
+   "expected": 0.15830706760250668,
+   "pass": true
+  },
+  "canonical_snap_train_m0_tail": 0.026610752564918336,
+  "sweep_argmax_equals_splitter_max_abs_gain_err": 0.0,
+  "blend_provenance": {
+   "exact_top1_ingredient_equals_tree_splitter": "72/72",
+   "exact_top1_weight_distribution_matches_c1_final_json": true,
+   "tolerance_assembled_vector_max_abs_diff": 4.76837158203125e-07,
+   "tolerance_assembled_vector_worst_1_minus_cos": 2.220446049250313e-16,
+   "note": "bit-identity on the assembled 129-d vector is NOT attainable -- bank_vectors' matmul reassociates under a different thread count / batch width, the same 4.77e-07 constant the repair campaign recorded for |Ebank[pool2full] - Epool|.max(). The exact half of the gate covers everything this run actually consumes."
+  },
+  "tower_dc_reproduction_worst_1_minus_abscos": 3.960515144285637e-06,
+  "cohort_descent": {
+   "n_nodes_checked": 144,
+   "n_users_mismatch": 0,
+   "child_size_mismatch": 0,
+   "n_users_falling_off": 0
+  }
+ },
+ "target_tower_disclosure": {
+  "n_item_ingredients": 132,
+  "n_concept_ingredients": 228,
+  "mean_effective_weight_item": 0.33908137199817623,
+  "mean_effective_weight_concept": 0.19857824303469154,
+  "mean_item_tower_norm": 1.6426281410214623,
+  "mean_concept_tower_norm": 0.9999999990887097,
+  "note": "Ew rows carry their own magnitude, d_c rows are unit -- so in a mixed blend the nominal weight is not the effective one. Reported, not corrected: R_s is defined by the sheet in exactly these two objects."
+ },
+ "target_diversity_tower_space": {
+  "unit": "the 2,556 unordered pairs of the 72 tower-space blend targets",
+  "abs_pairwise_cos": {
+   "n": 2556,
+   "mean": 0.2430846723359815,
+   "std": 0.1852187732339499,
+   "min": 5.037444023001797e-05,
+   "p1": 0.0041491754097170205,
+   "p5": 0.0168872084216194,
+   "p10": 0.03698529109048451,
+   "q1": 0.09720973624457332,
+   "median": 0.20373257495818653,
+   "q3": 0.36006260181313415,
+   "p90": 0.4965820760110179,
+   "p95": 0.6026161337840669,
+   "p99": 0.8157343882378774,
+   "max": 0.9823861111939987,
+   "iqr": 0.2628528655685608
+  },
+  "note": "the tower analogue of C5's D1. It is what makes the state-blind leave-one-out null strong, and it must be read beside the headline."
+ },
+ "states": {
+  "n": 72,
+  "fit_cohort_size": {
+   "n": 72,
+   "mean": 805.1666666666666,
+   "std": 1355.1709814222297,
+   "min": 200.0,
+   "p1": 201.42,
+   "p5": 214.55,
+   "p10": 223.2,
+   "q1": 269.0,
+   "median": 356.0,
+   "q3": 719.75,
+   "p90": 1526.5999999999995,
+   "p95": 2576.2000000000007,
+   "p99": 6327.880000000032,
+   "max": 10000.0,
+   "iqr": 450.75
+  },
+  "n_below_500_users": 43
+ },
+ "readings": {
+  "profile": {
+   "all_72_states": {
+    "n_states": 72,
+    "HEADLINE_abs_cos_v1_target": {
+     "median": 0.16717535359688535,
+     "lo": 0.13227939058403845,
+     "hi": 0.21824623170084265,
+     "q1": 0.0701670236517705,
+     "q3": 0.2826119650863713,
+     "mean": 0.20325594519083565,
+     "n": 72
+    },
+    "signed_cos_v1_target_declared_convention": {
+     "median": -0.045405165938328274,
+     "lo": -0.12750162134894813,
+     "hi": 0.0006647152283316892,
+     "q1": -0.21935251348990326,
+     "q3": 0.1218112253493409,
+     "mean": -0.041351604120636376,
+     "n": 72
+    },
+    "null_random_direction": {
+     "median": 0.03855203337652198,
+     "lo": 0.02801205527284465,
+     "hi": 0.050828903900473676,
+     "q1": 0.018100538085941816,
+     "q3": 0.07011942797457846,
+     "mean": 0.04922722092171129,
+     "n": 72
+    },
+    "null_cohort_mean_direction_minus_root_mean": {
+     "median": 0.16942622954701758,
+     "lo": 0.13425155541390876,
+     "hi": 0.23037016264903148,
+     "q1": 0.0874182144777185,
+     "q3": 0.3578966452974416,
+     "mean": 0.21700696559426597,
+     "n": 72
+    },
+    "null_cohort_mean_direction_raw": {
+     "median": 0.30228478858152863,
+     "lo": 0.2404290719431254,
+     "hi": 0.38517653798367535,
+     "q1": 0.14434009042411777,
+     "q3": 0.46044096528197886,
+     "mean": 0.3169887377667626,
+     "n": 72
+    },
+    "null_leave_one_out_mean_of_other_targets": {
+     "median": 0.4141754282622697,
+     "lo": 0.38216866968272034,
+     "hi": 0.5016898621075109,
+     "q1": 0.3230025742441157,
+     "q3": 0.552785411032565,
+     "mean": 0.42505039747077705,
+     "n": 72
+    },
+    "null_v1_vs_a_random_OTHER_states_target": {
+     "median": 0.17612445908688829,
+     "lo": 0.1443200356077018,
+     "hi": 0.19457527599485644,
+     "q1": 0.09786545501322119,
+     "q3": 0.22907993986752118,
+     "mean": 0.19656480952870906,
+     "n": 72
+    },
+    "paired_v1_minus_random": {
+     "median_diff": 0.11466304663592218,
+     "mean_diff": 0.1540287242691243,
+     "lo": 0.08469696931757502,
+     "hi": 0.15974438424069634,
+     "excludes_zero": true,
+     "n_states_positive": 56,
+     "n": 72
+    },
+    "paired_v1_minus_cohort_mean": {
+     "median_diff": -0.021740644694784463,
+     "mean_diff": -0.013751020403430372,
+     "lo": -0.058539232562375705,
+     "hi": 0.010293331308893927,
+     "excludes_zero": false,
+     "n_states_positive": 30,
+     "n": 72
+    },
+    "paired_v1_minus_leave_one_out": {
+     "median_diff": -0.20214782985579857,
+     "mean_diff": -0.2217944522799414,
+     "lo": -0.27043810433889615,
+     "hi": -0.16696100338124295,
+     "excludes_zero": true,
+     "n_states_positive": 13,
+     "n": 72
+    },
+    "paired_v1_own_minus_other_state": {
+     "median_diff": 0.010433137542520218,
+     "mean_diff": 0.006691135662126549,
+     "lo": -0.04089142441464031,
+     "hi": 0.06073817218439548,
+     "excludes_zero": false,
+     "n_states_positive": 37,
+     "n": 72
+    },
+    "COMMON_vs_SPECIFIC_decomposition": {
+     "definition": "the state's target is split into the state-BLIND direction (the leave-one-out mean of the other 71 unit targets) and the orthogonal state-SPECIFIC residual. If v1 tracks only the common half it is a static prior axis, not an adaptive probe.",
+     "abs_cos_v1_STATE_BLIND_common_direction": {
+      "median": 0.07781487719163907,
+      "lo": 0.04581618842940236,
+      "hi": 0.15504105607710178,
+      "q1": 0.02338855905950779,
+      "q3": 0.3923948718642921,
+      "mean": 0.18549217747241623,
+      "n": 72
+     },
+     "abs_cos_v1_STATE_SPECIFIC_residual": {
+      "median": 0.1444107230327606,
+      "lo": 0.09414752559636547,
+      "hi": 0.17326132440518227,
+      "q1": 0.05710677221080211,
+      "q3": 0.24871007744005338,
+      "mean": 0.1715910999002585,
+      "n": 72
+     },
+     "target_norm_fraction_that_is_state_specific": {
+      "median": 0.9101573841838886,
+      "lo": 0.865035947697219,
+      "hi": 0.9240764069267011,
+      "q1": 0.8333227105502775,
+      "q3": 0.9463980665379474,
+      "mean": 0.8871464834444098,
+      "n": 72
+     },
+     "paired_common_minus_specific": {
+      "median_diff": 0.002465804882513266,
+      "mean_diff": 0.013901077572157718,
+      "lo": -0.08677569023675989,
+      "hi": 0.05829943016661772,
+      "excludes_zero": false,
+      "n_states_positive": 37,
+      "n": 72
+     }
+    },
+    "span3_capture_fraction_of_target_norm2": {
+     "median": 0.12852221872873976,
+     "lo": 0.08435541904689306,
+     "hi": 0.18304896939834656,
+     "q1": 0.04991202296277821,
+     "q3": 0.2701259432342249,
+     "mean": 0.16982714712056807,
+     "n": 72
+    },
+    "span3_capture_random_3_directions": {
+     "median": 0.010928293376413514,
+     "lo": 0.008329689973997169,
+     "hi": 0.01380195964953405,
+     "q1": 0.006076272287671847,
+     "q3": 0.017377002096293687,
+     "mean": 0.013677537831442614,
+     "n": 72
+    },
+    "paired_span3_minus_random3": {
+     "median_diff": 0.1201771575781402,
+     "mean_diff": 0.15614960928912547,
+     "lo": 0.0712604800079336,
+     "hi": 0.16981199814124087,
+     "excludes_zero": true,
+     "n_states_positive": 67,
+     "n": 72
+    },
+    "answerability": {
+     "abs_cos_v1_nearest_ANSWERABLE_pool_entry": {
+      "median": 0.41066887675859,
+      "lo": 0.39800224677724216,
+      "hi": 0.4370434889687196,
+      "q1": 0.3811946659882904,
+      "q3": 0.6244431765694686,
+      "mean": 0.4813953661259076,
+      "n": 72
+     },
+     "abs_cos_v1_nearest_entry_in_the_FULL_19390_bank": {
+      "median": 0.5019413478340888,
+      "lo": 0.4848038455981081,
+      "hi": 0.5082879043384738,
+      "q1": 0.4640913480344906,
+      "q3": 0.6244431765694686,
+      "mean": 0.541518161299102,
+      "n": 72
+     },
+     "abs_cos_v1_top1_MEASURED_candidate": {
+      "median": 0.1549973673209538,
+      "lo": 0.12916708833811139,
+      "hi": 0.19998357008568562,
+      "q1": 0.06172442897033083,
+      "q3": 0.28108430096210096,
+      "mean": 0.1731228567297595,
+      "n": 72
+     },
+     "GAP_target_minus_top1_measured": {
+      "median": 0.02564934282559142,
+      "lo": 0.00016679333714996608,
+      "hi": 0.041972118678296366,
+      "q1": -0.03107730503662791,
+      "q3": 0.1132409974441268,
+      "mean": 0.03013308846107612,
+      "n": 72
+     },
+     "reference_abs_cos_TARGET_top1_measured": {
+      "median": 0.7296695912177282,
+      "lo": 0.6838082761105414,
+      "hi": 0.7659297939268672,
+      "q1": 0.615763207840512,
+      "q3": 0.8213198876554852,
+      "mean": 0.7138476683197024,
+      "n": 72
+     },
+     "reference_abs_cos_TARGET_nearest_pool_entry": {
+      "median": 0.8190256038792114,
+      "lo": 0.7798277711864956,
+      "hi": 0.8446468988048261,
+      "q1": 0.7354940657030837,
+      "q3": 0.8812843380013275,
+      "mean": 0.8079993055105874,
+      "n": 72
+     },
+     "nearest_pool_entry_is_the_top1_measured_candidate": 0.0
+    },
+    "variance_along_the_target": {
+     "definition": "(t' Sigma t) / (trace(Sigma)/d) -- 1.0 == a random direction. The form of the hypothesis that does NOT depend on v1 being a well-estimated axis.",
+     "target": {
+      "median": 5.7290198296329145,
+      "lo": 5.3509476897253165,
+      "hi": 7.072182928958845,
+      "q1": 4.140341078565113,
+      "q3": 9.467484065653798,
+      "mean": 7.543451049747593,
+      "n": 72
+     },
+     "v1_its_own_ceiling": {
+      "median": 41.786923084459055,
+      "lo": 40.17674148373847,
+      "hi": 46.957604850556955,
+      "q1": 35.85240087004714,
+      "q3": 55.378065471975134,
+      "mean": 48.95156768178683,
+      "n": 72
+     },
+     "paired_target_minus_one": {
+      "median_diff": 4.7290198296329145,
+      "mean_diff": 6.543451049747594,
+      "lo": 4.3509476897253165,
+      "hi": 6.072182928958845,
+      "excludes_zero": true,
+      "n_states_positive": 72,
+      "n": 72
+     }
+    },
+    "selector": {
+     "arms": "v1 = |cos(e_q, v1)| | quad = e_q' Sigma e_q (the full quadratic form, no top-axis assumption) | quad_x_answerrate = quad * P(answer) | mu = |cos(e_q, cohort mean direction)| | pop = answer-rate / popularity prior | rand",
+     "spearman_vs_measured_gain": {
+      "v1": {
+       "median": -0.01945115715784053,
+       "lo": -0.06513447337705769,
+       "hi": 0.014473763904650671,
+       "q1": -0.14414438239246538,
+       "q3": 0.08955448963227883,
+       "mean": -0.003096637139777661,
+       "n": 72
+      },
+      "quad": {
+       "median": 0.16877958697103201,
+       "lo": 0.11137681396163301,
+       "hi": 0.2471349448235728,
+       "q1": -0.0020914494390690333,
+       "q3": 0.3125964202583832,
+       "mean": 0.16166151528507428,
+       "n": 72
+      },
+      "quad_x_answerrate": {
+       "median": 0.25055256902295,
+       "lo": 0.16171210912313644,
+       "hi": 0.3461847683942213,
+       "q1": 0.04177374598661916,
+       "q3": 0.4669646933770937,
+       "mean": 0.2358545961590504,
+       "n": 72
+      },
+      "mu": {
+       "median": 0.006811243198627789,
+       "lo": -0.05011210904615523,
+       "hi": 0.04647301394247209,
+       "q1": -0.11438090423588756,
+       "q3": 0.12159374558879907,
+       "mean": -0.002778597809342668,
+       "n": 71
+      },
+      "pop": {
+       "median": 0.2279621316640581,
+       "lo": 0.12072194736481462,
+       "hi": 0.31788516768946273,
+       "q1": 0.033906288022230856,
+       "q3": 0.44203159971447376,
+       "mean": 0.2114877129933285,
+       "n": 72
+      },
+      "rand": {
+       "median": -0.0033370490867106633,
+       "lo": -0.015362824233193826,
+       "hi": 0.005805879804768603,
+       "q1": -0.027042111002043904,
+       "q3": 0.019478708300298492,
+       "mean": -0.004033012248164056,
+       "n": 72
+      }
+     },
+     "ndcg_at_5_gain_as_relevance": {
+      "v1": {
+       "median": 0.0997293169542276,
+       "lo": 0.050804507628871995,
+       "hi": 0.14177116689291774,
+       "q1": 0.002606035840371815,
+       "q3": 0.21559699535604632,
+       "mean": 0.16137389029334612,
+       "n": 72
+      },
+      "quad": {
+       "median": 0.15121622648602812,
+       "lo": 0.09647707707651113,
+       "hi": 0.20795843308042905,
+       "q1": 0.03210220537577262,
+       "q3": 0.29041126566854664,
+       "mean": 0.20680208188611818,
+       "n": 72
+      },
+      "quad_x_answerrate": {
+       "median": 0.11375735692911446,
+       "lo": 0.05946958431469239,
+       "hi": 0.16452890342286,
+       "q1": 0.02439064587241401,
+       "q3": 0.24384992591741927,
+       "mean": 0.15378602503989494,
+       "n": 72
+      },
+      "mu": {
+       "median": 0.03013126085396317,
+       "lo": 0.012044991248991995,
+       "hi": 0.08144302792482952,
+       "q1": 0.0,
+       "q3": 0.21452857008921655,
+       "mean": 0.1192910847829107,
+       "n": 72
+      },
+      "pop": {
+       "median": 0.04666913092818173,
+       "lo": 0.021151529744056763,
+       "hi": 0.06543589931332744,
+       "q1": 0.011459848658749331,
+       "q3": 0.10982406581860511,
+       "mean": 0.07556350075272524,
+       "n": 72
+      },
+      "rand": {
+       "median": 0.08948535626388124,
+       "lo": 0.06467047142227447,
+       "hi": 0.12685235725769667,
+       "q1": 0.04005585603949918,
+       "q3": 0.14576477779870647,
+       "mean": 0.10146711477698041,
+       "n": 72
+      }
+     },
+     "paired_v1_minus_popularity_spearman": {
+      "median_diff": -0.2054218167202464,
+      "mean_diff": -0.2145843501331062,
+      "lo": -0.27224930542453585,
+      "hi": -0.14502259913515744,
+      "excludes_zero": true,
+      "n_states_positive": 17,
+      "n": 72
+     },
+     "paired_quadXans_minus_popularity_spearman": {
+      "median_diff": 0.0270196619278366,
+      "mean_diff": 0.02436688316572187,
+      "lo": 0.01593774028053986,
+      "hi": 0.03898012512519769,
+      "excludes_zero": true,
+      "n_states_positive": 50,
+      "n": 72
+     }
+    },
+    "spectrum": {
+     "lambda1_share_of_total_variance": {
+      "median": 0.20893461542229524,
+      "lo": 0.20088370741869233,
+      "hi": 0.23478802425278478,
+      "q1": 0.17926200435023565,
+      "q3": 0.2768903273598757,
+      "mean": 0.24475783840893406,
+      "n": 72
+     },
+     "effective_rank_exp_entropy": {
+      "median": 35.66060084006418,
+      "lo": 32.71842904337348,
+      "hi": 37.97234140937218,
+      "q1": 30.286030755086593,
+      "q3": 42.38253351898365,
+      "mean": 35.0823364587961,
+      "n": 72
+     },
+     "v1_split_half_abs_cos": {
+      "median": 0.9771444586935132,
+      "lo": 0.9723847328333509,
+      "hi": 0.9836491202686488,
+      "q1": 0.948089320831476,
+      "q3": 0.9903006536225976,
+      "mean": 0.9563237497420979,
+      "n": 72
+     }
+    },
+    "label": "all 72 searched node states"
+   },
+   "c1_final_TRAINED_57": {
+    "n_states": 57,
+    "HEADLINE_abs_cos_v1_target": {
+     "median": 0.15473660089028723,
+     "lo": 0.09347805157581512,
+     "hi": 0.18236114574040285,
+     "q1": 0.05479434208378492,
+     "q3": 0.26482605243789387,
+     "mean": 0.17566720397109817,
+     "n": 57
+    },
+    "signed_cos_v1_target_declared_convention": {
+     "median": -0.0022689965124792627,
+     "lo": -0.04586666621772515,
+     "hi": 0.06650941579255297,
+     "q1": -0.14223387728377404,
+     "q3": 0.15473660089028723,
+     "mean": 0.02453154228266421,
+     "n": 57
+    },
+    "null_random_direction": {
+     "median": 0.03910095452600225,
+     "lo": 0.02997956659532838,
+     "hi": 0.05200370099742779,
+     "q1": 0.02282928460833881,
+     "q3": 0.07909304017016441,
+     "mean": 0.05289392400992146,
+     "n": 57
+    },
+    "null_cohort_mean_direction_minus_root_mean": {
+     "median": 0.14449214605463195,
+     "lo": 0.10315154127748155,
+     "hi": 0.19316239308992622,
+     "q1": 0.08513775725841871,
+     "q3": 0.2700735467885732,
+     "mean": 0.19169072440536825,
+     "n": 57
+    },
+    "null_cohort_mean_direction_raw": {
+     "median": 0.2751371714903833,
+     "lo": 0.19059568196475202,
+     "hi": 0.3424303406045912,
+     "q1": 0.1329474612576993,
+     "q3": 0.4194052529579523,
+     "mean": 0.28990213076697247,
+     "n": 57
+    },
+    "null_leave_one_out_mean_of_other_targets": {
+     "median": 0.40626511705764673,
+     "lo": 0.36855074399503107,
+     "hi": 0.4978124303757257,
+     "q1": 0.309550147378941,
+     "q3": 0.5545811907346148,
+     "mean": 0.4135785231935292,
+     "n": 57
+    },
+    "null_v1_vs_a_random_OTHER_states_target": {
+     "median": 0.1506335638135508,
+     "lo": 0.13577421809796264,
+     "hi": 0.18683088566147205,
+     "q1": 0.07283771088140334,
+     "q3": 0.22431743413227156,
+     "mean": 0.1815504357734382,
+     "n": 57
+    },
+    "paired_v1_minus_random": {
+     "median_diff": 0.10316989454860676,
+     "mean_diff": 0.12277327996117672,
+     "lo": 0.05490840483261399,
+     "hi": 0.13398430555648813,
+     "excludes_zero": true,
+     "n_states_positive": 41,
+     "n": 57
+    },
+    "paired_v1_minus_cohort_mean": {
+     "median_diff": -0.03582016777822039,
+     "mean_diff": -0.016023520434270085,
+     "lo": -0.06657448988569549,
+     "hi": 0.00482166697149683,
+     "excludes_zero": false,
+     "n_states_positive": 22,
+     "n": 57
+    },
+    "paired_v1_minus_leave_one_out": {
+     "median_diff": -0.23513810013668274,
+     "mean_diff": -0.237911319222431,
+     "lo": -0.3348348917085198,
+     "hi": -0.17247315368659327,
+     "excludes_zero": true,
+     "n_states_positive": 11,
+     "n": 57
+    },
+    "paired_v1_own_minus_other_state": {
+     "median_diff": 0.007057481048831665,
+     "mean_diff": -0.005883231802340035,
+     "lo": -0.04762563540739631,
+     "hi": 0.06073817218439548,
+     "excludes_zero": false,
+     "n_states_positive": 29,
+     "n": 57
+    },
+    "COMMON_vs_SPECIFIC_decomposition": {
+     "definition": "the state's target is split into the state-BLIND direction (the leave-one-out mean of the other 71 unit targets) and the orthogonal state-SPECIFIC residual. If v1 tracks only the common half it is a static prior axis, not an adaptive probe.",
+     "abs_cos_v1_STATE_BLIND_common_direction": {
+      "median": 0.04629256975185258,
+      "lo": 0.027406310682610818,
+      "hi": 0.07357526942740783,
+      "q1": 0.015610228699778031,
+      "q3": 0.12002923825954873,
+      "mean": 0.10676052269833881,
+      "n": 57
+     },
+     "abs_cos_v1_STATE_SPECIFIC_residual": {
+      "median": 0.13213531049994745,
+      "lo": 0.06884151433201477,
+      "hi": 0.17295447422727644,
+      "q1": 0.0557975204478274,
+      "q3": 0.24927421196998797,
+      "mean": 0.17278983417228802,
+      "n": 57
+     },
+     "target_norm_fraction_that_is_state_specific": {
+      "median": 0.9137552487740559,
+      "lo": 0.8672847192032229,
+      "hi": 0.9296076317999488,
+      "q1": 0.8321296190398327,
+      "q3": 0.9508831191359303,
+      "mean": 0.8904604307907983,
+      "n": 57
+     },
+     "paired_common_minus_specific": {
+      "median_diff": -0.08428448359006821,
+      "mean_diff": -0.06602931147394922,
+      "lo": -0.14210800117144345,
+      "hi": 0.0022085532481834064,
+      "excludes_zero": false,
+      "n_states_positive": 22,
+      "n": 57
+     }
+    },
+    "span3_capture_fraction_of_target_norm2": {
+     "median": 0.08744738338251622,
+     "lo": 0.0581697479809712,
+     "hi": 0.1532641683498974,
+     "q1": 0.04173522323921544,
+     "q3": 0.2230982389090799,
+     "mean": 0.13841770170449377,
+     "n": 57
+    },
+    "span3_capture_random_3_directions": {
+     "median": 0.012038923726365707,
+     "lo": 0.009579853950556768,
+     "hi": 0.014377075690038547,
+     "q1": 0.00602580719437576,
+     "q3": 0.01705018946282133,
+     "mean": 0.01268184718230552,
+     "n": 57
+    },
+    "paired_span3_minus_random3": {
+     "median_diff": 0.07512419956738023,
+     "mean_diff": 0.12573585452218825,
+     "lo": 0.04579602379089042,
+     "hi": 0.14358807737316912,
+     "excludes_zero": true,
+     "n_states_positive": 52,
+     "n": 57
+    },
+    "answerability": {
+     "abs_cos_v1_nearest_ANSWERABLE_pool_entry": {
+      "median": 0.40010146120484524,
+      "lo": 0.38625796667275314,
+      "hi": 0.4102475493987731,
+      "q1": 0.37834373781536057,
+      "q3": 0.4355286856838201,
+      "mean": 0.4316173267312421,
+      "n": 57
+     },
+     "abs_cos_v1_nearest_entry_in_the_FULL_19390_bank": {
+      "median": 0.4927533550568787,
+      "lo": 0.47230136355247365,
+      "hi": 0.5027139397851215,
+      "q1": 0.45875163988385553,
+      "q3": 0.5074976231746136,
+      "mean": 0.5068368018857139,
+      "n": 57
+     },
+     "abs_cos_v1_top1_MEASURED_candidate": {
+      "median": 0.14460088870685242,
+      "lo": 0.11092284710374913,
+      "hi": 0.17622539128266793,
+      "q1": 0.054369258704605815,
+      "q3": 0.28034395703978277,
+      "mean": 0.16180635074133068,
+      "n": 57
+     },
+     "GAP_target_minus_top1_measured": {
+      "median": 0.018874277883128385,
+      "lo": -0.004039752409172287,
+      "hi": 0.037985038588624565,
+      "q1": -0.03279188986959733,
+      "q3": 0.07269987449320911,
+      "mean": 0.013860853229767484,
+      "n": 57
+     },
+     "reference_abs_cos_TARGET_top1_measured": {
+      "median": 0.6986337593008891,
+      "lo": 0.6603589855756536,
+      "hi": 0.7409136803673846,
+      "q1": 0.566692349581515,
+      "q3": 0.803598519289318,
+      "mean": 0.6892861186681917,
+      "n": 57
+     },
+     "reference_abs_cos_TARGET_nearest_pool_entry": {
+      "median": 0.8174513331872915,
+      "lo": 0.7543434529853242,
+      "hi": 0.8329836076909476,
+      "q1": 0.7213160399444571,
+      "q3": 0.8640485080421589,
+      "mean": 0.7916090156124223,
+      "n": 57
+     },
+     "nearest_pool_entry_is_the_top1_measured_candidate": 0.0
+    },
+    "variance_along_the_target": {
+     "definition": "(t' Sigma t) / (trace(Sigma)/d) -- 1.0 == a random direction. The form of the hypothesis that does NOT depend on v1 being a well-estimated axis.",
+     "target": {
+      "median": 5.35580286165498,
+      "lo": 4.6900583957917545,
+      "hi": 5.908032901928739,
+      "q1": 3.873969533541743,
+      "q3": 9.067546682316697,
+      "mean": 7.17916784687052,
+      "n": 57
+     },
+     "v1_its_own_ceiling": {
+      "median": 45.306747752099334,
+      "lo": 41.2695702965108,
+      "hi": 53.4366959632699,
+      "q1": 40.027754943862305,
+      "q3": 56.76893320442083,
+      "mean": 52.81915110754817,
+      "n": 57
+     },
+     "paired_target_minus_one": {
+      "median_diff": 4.35580286165498,
+      "mean_diff": 6.17916784687052,
+      "lo": 3.6900583957917545,
+      "hi": 4.908032901928739,
+      "excludes_zero": true,
+      "n_states_positive": 57,
+      "n": 57
+     }
+    },
+    "selector": {
+     "arms": "v1 = |cos(e_q, v1)| | quad = e_q' Sigma e_q (the full quadratic form, no top-axis assumption) | quad_x_answerrate = quad * P(answer) | mu = |cos(e_q, cohort mean direction)| | pop = answer-rate / popularity prior | rand",
+     "spearman_vs_measured_gain": {
+      "v1": {
+       "median": -0.028766082712629013,
+       "lo": -0.0658452198637445,
+       "hi": 0.00459239315087601,
+       "q1": -0.12682587015706884,
+       "q3": 0.06275336489467137,
+       "mean": -0.018489383680962427,
+       "n": 57
+      },
+      "quad": {
+       "median": 0.15789997588576102,
+       "lo": 0.12130237378743614,
+       "hi": 0.2220673072764857,
+       "q1": 0.01167385428064784,
+       "q3": 0.2822241623459711,
+       "mean": 0.1517051651532892,
+       "n": 57
+      },
+      "quad_x_answerrate": {
+       "median": 0.24403079068287986,
+       "lo": 0.1735321028048911,
+       "hi": 0.3432360342353205,
+       "q1": 0.08985416690701134,
+       "q3": 0.39569774286229753,
+       "mean": 0.23615534651769196,
+       "n": 57
+      },
+      "mu": {
+       "median": -0.01223383617369363,
+       "lo": -0.07786130140888115,
+       "hi": 0.04755889593479361,
+       "q1": -0.12890642061037255,
+       "q3": 0.1300232358643298,
+       "mean": -0.010259897092892033,
+       "n": 56
+      },
+      "pop": {
+       "median": 0.2259103765247436,
+       "lo": 0.12188637899780012,
+       "hi": 0.27337034480763184,
+       "q1": 0.057216023423398994,
+       "q3": 0.3779476122261434,
+       "mean": 0.21157412649507096,
+       "n": 57
+      },
+      "rand": {
+       "median": -0.005201188244368165,
+       "lo": -0.01564245925401074,
+       "hi": 0.00785196298467358,
+       "q1": -0.026973695138023793,
+       "q3": 0.020234597356275398,
+       "mean": -0.003700144295737425,
+       "n": 57
+      }
+     },
+     "ndcg_at_5_gain_as_relevance": {
+      "v1": {
+       "median": 0.1134649968145931,
+       "lo": 0.07306880165491055,
+       "hi": 0.17948709773151048,
+       "q1": 0.020420102084558682,
+       "q3": 0.24187744800339037,
+       "mean": 0.18228506615838805,
+       "n": 57
+      },
+      "quad": {
+       "median": 0.18354315338174146,
+       "lo": 0.11891094528348167,
+       "hi": 0.2448626325789702,
+       "q1": 0.03838414247479241,
+       "q3": 0.3274917775801113,
+       "mean": 0.23106682995231823,
+       "n": 57
+      },
+      "quad_x_answerrate": {
+       "median": 0.15375029366530057,
+       "lo": 0.059167838369447695,
+       "hi": 0.19824842678419644,
+       "q1": 0.027047359288973262,
+       "q3": 0.24940305179244807,
+       "mean": 0.1694241551619673,
+       "n": 57
+      },
+      "mu": {
+       "median": 0.07381948302990093,
+       "lo": 0.01234289102328923,
+       "hi": 0.15836085422510054,
+       "q1": 0.0,
+       "q3": 0.25412774275898664,
+       "mean": 0.14391575552318786,
+       "n": 57
+      },
+      "pop": {
+       "median": 0.057369394624229006,
+       "lo": 0.04146522232377383,
+       "hi": 0.09030589537021713,
+       "q1": 0.01829429487188372,
+       "q3": 0.11748665703896873,
+       "mean": 0.08828701349172441,
+       "n": 57
+      },
+      "rand": {
+       "median": 0.09147495311054307,
+       "lo": 0.06755655202880992,
+       "hi": 0.12862531264550803,
+       "q1": 0.043214747164860894,
+       "q3": 0.14561082480159543,
+       "mean": 0.10511961252248313,
+       "n": 57
+      }
+     },
+     "paired_v1_minus_popularity_spearman": {
+      "median_diff": -0.23809566874931173,
+      "mean_diff": -0.2300635101760334,
+      "lo": -0.33524143605944773,
+      "hi": -0.18489609407199759,
+      "excludes_zero": true,
+      "n_states_positive": 13,
+      "n": 57
+     },
+     "paired_quadXans_minus_popularity_spearman": {
+      "median_diff": 0.02703270615075959,
+      "mean_diff": 0.02458122002262105,
+      "lo": 0.01764708540965973,
+      "hi": 0.0390099649302288,
+      "excludes_zero": true,
+      "n_states_positive": 42,
+      "n": 57
+     }
+    },
+    "spectrum": {
+     "lambda1_share_of_total_variance": {
+      "median": 0.22653373876049634,
+      "lo": 0.2063478514825539,
+      "hi": 0.26718347981634977,
+      "q1": 0.2001387747193112,
+      "q3": 0.2838446660221041,
+      "mean": 0.26409575553774084,
+      "n": 57
+     },
+     "effective_rank_exp_entropy": {
+      "median": 32.84236348044609,
+      "lo": 31.52272471726978,
+      "hi": 36.45849893911895,
+      "q1": 27.382574479489506,
+      "q3": 38.79384496641752,
+      "mean": 32.33747203843601,
+      "n": 57
+     },
+     "v1_split_half_abs_cos": {
+      "median": 0.9806713323711379,
+      "lo": 0.9742298388958776,
+      "hi": 0.9870663896688414,
+      "q1": 0.961149715053991,
+      "q3": 0.9910493562251682,
+      "mean": 0.9609797374865554,
+      "n": 57
+     }
+    },
+    "label": "the 57 states C1-final was trained on"
+   },
+   "c1_final_HELD_OUT_15_root_like": {
+    "n_states": 15,
+    "HEADLINE_abs_cos_v1_target": {
+     "median": 0.2824053529288489,
+     "lo": 0.18206518211802725,
+     "hi": 0.36008212687218843,
+     "q1": 0.2046183714754346,
+     "q3": 0.37722210666722106,
+     "mean": 0.3080931618258379,
+     "n": 15
+    },
+    "signed_cos_v1_target_declared_convention": {
+     "median": -0.2824053529288489,
+     "lo": -0.36008212687218843,
+     "hi": -0.18206518211802725,
+     "q1": -0.37722210666722106,
+     "q3": -0.2046183714754346,
+     "mean": -0.29170756045317864,
+     "n": 15
+    },
+    "null_random_direction": {
+     "median": 0.017584471933135695,
+     "lo": 0.016240055124343025,
+     "hi": 0.06098020393339844,
+     "q1": 0.01633315358544603,
+     "q3": 0.061088481366293565,
+     "mean": 0.03529374918651266,
+     "n": 15
+    },
+    "null_cohort_mean_direction_minus_root_mean": {
+     "median": 0.3370037680130227,
+     "lo": 0.21941062940337758,
+     "hi": 0.395894527489628,
+     "q1": 0.19559124010625545,
+     "q3": 0.40298571245660775,
+     "mean": 0.31320868211207736,
+     "n": 15
+    },
+    "null_cohort_mean_direction_raw": {
+     "median": 0.4723580252025684,
+     "lo": 0.3637298520850189,
+     "hi": 0.5192031012114793,
+     "q1": 0.3118839500655748,
+     "q3": 0.530368070260116,
+     "mean": 0.4199178443659653,
+     "n": 15
+    },
+    "null_leave_one_out_mean_of_other_targets": {
+     "median": 0.42191207974944805,
+     "lo": 0.3872218527726676,
+     "hi": 0.5410640307087995,
+     "q1": 0.39357488459667356,
+     "q3": 0.5281964023694659,
+     "mean": 0.4686435197243187,
+     "n": 15
+    },
+    "null_v1_vs_a_random_OTHER_states_target": {
+     "median": 0.20622931011480436,
+     "lo": 0.17815699821990283,
+     "hi": 0.37227911152122717,
+     "q1": 0.16027813267169158,
+     "q3": 0.4155270977169743,
+     "mean": 0.2536194297987383,
+     "n": 15
+    },
+    "paired_v1_minus_random": {
+     "median_diff": 0.26597910088229987,
+     "mean_diff": 0.2727994126393252,
+     "lo": 0.12086842331883857,
+     "hi": 0.3432711130276254,
+     "excludes_zero": true,
+     "n_states_positive": 15,
+     "n": 15
+    },
+    "paired_v1_minus_cohort_mean": {
+     "median_diff": 0.010293331308893927,
+     "mean_diff": -0.0051155202862394515,
+     "lo": -0.11797028658501132,
+     "hi": 0.09323233346365578,
+     "excludes_zero": false,
+     "n_states_positive": 8,
+     "n": 15
+    },
+    "paired_v1_minus_leave_one_out": {
+     "median_diff": -0.12536156488171624,
+     "mean_diff": -0.1605503578984809,
+     "lo": -0.22130231908918319,
+     "hi": -0.04786928539869717,
+     "excludes_zero": true,
+     "n_states_positive": 2,
+     "n": 15
+    },
+    "paired_v1_own_minus_other_state": {
+     "median_diff": 0.04901456261293913,
+     "mean_diff": 0.0544737320270996,
+     "lo": -0.0644129974504678,
+     "hi": 0.19733450227336063,
+     "excludes_zero": false,
+     "n_states_positive": 8,
+     "n": 15
+    },
+    "COMMON_vs_SPECIFIC_decomposition": {
+     "definition": "the state's target is split into the state-BLIND direction (the leave-one-out mean of the other 71 unit targets) and the orthogonal state-SPECIFIC residual. If v1 tracks only the common half it is a static prior axis, not an adaptive probe.",
+     "abs_cos_v1_STATE_BLIND_common_direction": {
+      "median": 0.5097023673628049,
+      "lo": 0.49259955986869375,
+      "hi": 0.5240710658582864,
+      "q1": 0.49657483758188853,
+      "q3": 0.5234120738697102,
+      "mean": 0.4846724656139105,
+      "n": 15
+     },
+     "abs_cos_v1_STATE_SPECIFIC_residual": {
+      "median": 0.16476912006372918,
+      "lo": 0.061008451939268446,
+      "hi": 0.24852203259674185,
+      "q1": 0.07818404880189989,
+      "q3": 0.2350498159895441,
+      "mean": 0.16703590966654644,
+      "n": 15
+     },
+     "target_norm_fraction_that_is_state_specific": {
+      "median": 0.9066367502817737,
+      "lo": 0.8409813997188922,
+      "hi": 0.9219865707998693,
+      "q1": 0.8489869818318224,
+      "q3": 0.9192665831348709,
+      "mean": 0.8745534835281333,
+      "n": 15
+     },
+     "paired_common_minus_specific": {
+      "median_diff": 0.3484186486279721,
+      "mean_diff": 0.31763655594736406,
+      "lo": 0.2643169358492732,
+      "hi": 0.4068977523550386,
+      "excludes_zero": true,
+      "n_states_positive": 15,
+      "n": 15
+     }
+    },
+    "span3_capture_fraction_of_target_norm2": {
+     "median": 0.2619754076727567,
+     "lo": 0.1389284001728138,
+     "hi": 0.47125935322363827,
+     "q1": 0.14571392130103894,
+     "q3": 0.41551916545192613,
+     "mean": 0.2891830397016505,
+     "n": 15
+    },
+    "span3_capture_random_3_directions": {
+     "median": 0.00923843258661353,
+     "lo": 0.006093093985437209,
+     "hi": 0.02825763493589651,
+     "q1": 0.006276759491506769,
+     "q3": 0.020506861578808596,
+     "mean": 0.017461162298163583,
+     "n": 15
+    },
+    "paired_span3_minus_random3": {
+     "median_diff": 0.2604499359575212,
+     "mean_diff": 0.27172187740348697,
+     "lo": 0.1261723119510931,
+     "hi": 0.38939439812342325,
+     "excludes_zero": true,
+     "n_states_positive": 15,
+     "n": 15
+    },
+    "answerability": {
+     "abs_cos_v1_nearest_ANSWERABLE_pool_entry": {
+      "median": 0.6892056879437412,
+      "lo": 0.6719060417933439,
+      "hi": 0.7045426737868342,
+      "q1": 0.6711996804276112,
+      "q3": 0.7032545614418729,
+      "mean": 0.6705519158256366,
+      "n": 15
+     },
+     "abs_cos_v1_nearest_entry_in_the_FULL_19390_bank": {
+      "median": 0.6892056879437412,
+      "lo": 0.6719060417933439,
+      "hi": 0.7045426737868342,
+      "q1": 0.6711996804276112,
+      "q3": 0.7032545614418729,
+      "mean": 0.6733073270699771,
+      "n": 15
+     },
+     "abs_cos_v1_top1_MEASURED_candidate": {
+      "median": 0.2295790158869529,
+      "lo": 0.15755034077704783,
+      "hi": 0.27910542732619625,
+      "q1": 0.1608625918690978,
+      "q3": 0.28201966093054287,
+      "mean": 0.216125579485789,
+      "n": 15
+     },
+     "GAP_target_minus_top1_measured": {
+      "median": 0.04607000970032471,
+      "lo": -0.028238113716262614,
+      "hi": 0.30176344167286956,
+      "q1": -0.013133164574541834,
+      "q3": 0.22265894065669184,
+      "mean": 0.09196758234004893,
+      "n": 15
+     },
+     "reference_abs_cos_TARGET_top1_measured": {
+      "median": 0.7949585812033464,
+      "lo": 0.7273840467787834,
+      "hi": 0.9209872244586177,
+      "q1": 0.7465658758564078,
+      "q3": 0.9158372486912207,
+      "mean": 0.8071815569954433,
+      "n": 15
+     },
+     "reference_abs_cos_TARGET_nearest_pool_entry": {
+      "median": 0.9125876990928181,
+      "lo": 0.8036474856296603,
+      "hi": 0.9314727474087701,
+      "q1": 0.8017810081163327,
+      "q3": 0.9305938422792444,
+      "mean": 0.8702824071236157,
+      "n": 15
+     },
+     "nearest_pool_entry_is_the_top1_measured_candidate": 0.0
+    },
+    "variance_along_the_target": {
+     "definition": "(t' Sigma t) / (trace(Sigma)/d) -- 1.0 == a random direction. The form of the hypothesis that does NOT depend on v1 being a well-estimated axis.",
+     "target": {
+      "median": 8.101552044290813,
+      "lo": 6.1343815207679695,
+      "hi": 11.482970936393217,
+      "q1": 6.361506476811754,
+      "q3": 10.886998237261636,
+      "mean": 8.92772722068047,
+      "n": 15
+     },
+     "v1_its_own_ceiling": {
+      "median": 32.049238971672516,
+      "lo": 31.022951750811064,
+      "hi": 34.72188169530702,
+      "q1": 30.871726146417803,
+      "q3": 34.330884966684394,
+      "mean": 34.25475066389368,
+      "n": 15
+     },
+     "paired_target_minus_one": {
+      "median_diff": 7.101552044290813,
+      "mean_diff": 7.927727220680469,
+      "lo": 5.1343815207679695,
+      "hi": 10.482970936393217,
+      "excludes_zero": true,
+      "n_states_positive": 15,
+      "n": 15
+     }
+    },
+    "selector": {
+     "arms": "v1 = |cos(e_q, v1)| | quad = e_q' Sigma e_q (the full quadratic form, no top-axis assumption) | quad_x_answerrate = quad * P(answer) | mu = |cos(e_q, cohort mean direction)| | pop = answer-rate / popularity prior | rand",
+     "spearman_vs_measured_gain": {
+      "v1": {
+       "median": 0.031523621738044134,
+       "lo": -0.19121175709541025,
+       "hi": 0.2367992179370201,
+       "q1": -0.18819631161048844,
+       "q3": 0.22972404065784405,
+       "mean": 0.05539579971672445,
+       "n": 15
+      },
+      "quad": {
+       "median": 0.34746008322236177,
+       "lo": -0.07264728131236353,
+       "hi": 0.49632948780443764,
+       "q1": -0.12376296766229104,
+       "q3": 0.4947846188127774,
+       "mean": 0.1994956457858574,
+       "n": 15
+      },
+      "quad_x_answerrate": {
+       "median": 0.4524256667920075,
+       "lo": -0.02109713532436019,
+       "hi": 0.5668076886481599,
+       "q1": -0.0943693652783044,
+       "q3": 0.5825940995578163,
+       "mean": 0.23471174479621232,
+       "n": 15
+      },
+      "mu": {
+       "median": 0.020648445664978227,
+       "lo": -0.06961196044879962,
+       "hi": 0.09179178165154372,
+       "q1": -0.05617500688055275,
+       "q3": 0.0908619739675042,
+       "mean": 0.025151586182574952,
+       "n": 15
+      },
+      "pop": {
+       "median": 0.3584635489149442,
+       "lo": -0.0073196914560403545,
+       "hi": 0.5082709040958807,
+       "q1": -0.07442027557613412,
+       "q3": 0.515941450923309,
+       "mean": 0.2111593416867073,
+       "n": 15
+      },
+      "rand": {
+       "median": -0.0014126342751496772,
+       "lo": -0.026729843191251466,
+       "hi": 0.015763240120769035,
+       "q1": -0.029802936579127484,
+       "q3": 0.014436636565976851,
+       "mean": -0.00529791046738525,
+       "n": 15
+      }
+     },
+     "ndcg_at_5_gain_as_relevance": {
+      "v1": {
+       "median": 0.04837960923447254,
+       "lo": 0.0018431327083244626,
+       "hi": 0.12328788770021135,
+       "q1": 0.0009215663541622313,
+       "q3": 0.11320657441994124,
+       "mean": 0.08191142200618678,
+       "n": 15
+      },
+      "quad": {
+       "median": 0.09647707707651113,
+       "lo": 0.0,
+       "hi": 0.14434495031595637,
+       "q1": 0.014115576512904139,
+       "q3": 0.1690982689120496,
+       "mean": 0.11459603923455795,
+       "n": 15
+      },
+      "quad_x_answerrate": {
+       "median": 0.09752520702977696,
+       "lo": 0.0,
+       "hi": 0.1379559610615067,
+       "q1": 0.008747109477127478,
+       "q3": 0.13981247457448875,
+       "mean": 0.09436113057601994,
+       "n": 15
+      },
+      "mu": {
+       "median": 0.0181400903132859,
+       "lo": 0.0,
+       "hi": 0.025982925533250167,
+       "q1": 0.0,
+       "q3": 0.026735046780166104,
+       "mean": 0.025717335969857556,
+       "n": 15
+      },
+      "pop": {
+       "median": 0.009679846508535919,
+       "lo": 0.0,
+       "hi": 0.021151529744056763,
+       "q1": 0.0,
+       "q3": 0.01985840481767375,
+       "mean": 0.0272141523445283,
+       "n": 15
+      },
+      "rand": {
+       "median": 0.07158154234580658,
+       "lo": 0.02277583293871025,
+       "hi": 0.10548835611607231,
+       "q1": 0.02169520629307038,
+       "q3": 0.13547667272481626,
+       "mean": 0.08758762334407008,
+       "n": 15
+      }
+     },
+     "paired_v1_minus_popularity_spearman": {
+      "median_diff": -0.07995983042140586,
+      "mean_diff": -0.15576354196998288,
+      "lo": -0.27147168615886064,
+      "hi": -0.02343632658106659,
+      "excludes_zero": true,
+      "n_states_positive": 4,
+      "n": 15
+     },
+     "paired_quadXans_minus_popularity_spearman": {
+      "median_diff": 0.018975337580662287,
+      "mean_diff": 0.023552403109504978,
+      "lo": -0.009973454994219533,
+      "hi": 0.058536784552279175,
+      "excludes_zero": false,
+      "n_states_positive": 8,
+      "n": 15
+     }
+    },
+    "spectrum": {
+     "lambda1_share_of_total_variance": {
+      "median": 0.16024619485836275,
+      "lo": 0.1551147587540553,
+      "hi": 0.1736094084765352,
+      "q1": 0.15435863073208891,
+      "q3": 0.17165442483342186,
+      "mean": 0.17127375331946834,
+      "n": 15
+     },
+     "effective_rank_exp_entropy": {
+      "median": 48.301712282639656,
+      "lo": 41.9611795421254,
+      "hi": 50.53293334902647,
+      "q1": 43.168501096198646,
+      "q3": 50.00838040652305,
+      "mean": 45.51282125616439,
+      "n": 15
+     },
+     "v1_split_half_abs_cos": {
+      "median": 0.9530376509966562,
+      "lo": 0.9017669468520139,
+      "hi": 0.9786584479694792,
+      "q1": 0.9094486886182551,
+      "q3": 0.9774294408594044,
+      "mean": 0.9386309963131595,
+      "n": 15
+     }
+    },
+    "label": "the 15 root.like.* states C1-final held out",
+    "c1_final_heldout_cos_for_comparison": -0.11948,
+    "comparison_caveat": "NOT the same space. C1-final's -0.11948 is cos(z_hat, target) in the 129-d homogeneous [k(phi), b(phi)] head space; this row is |cos(v1, R_s)| in the 200-d tower space. The comparable statement is directional only: the closed-form construction needs no training, so whatever it scores at trained states it scores at held-out states."
+   }
+  },
+  "belief": {
+   "all_72_states": {
+    "n_states": 72,
+    "HEADLINE_abs_cos_v1_target": {
+     "median": 0.1799217489383405,
+     "lo": 0.14065139971972263,
+     "hi": 0.20593086241658903,
+     "q1": 0.08573804370073655,
+     "q3": 0.26952805852344897,
+     "mean": 0.18319718005163269,
+     "n": 72
+    },
+    "signed_cos_v1_target_declared_convention": {
+     "median": -0.16411670372437062,
+     "lo": -0.19485362200953066,
+     "hi": -0.0768724631627872,
+     "q1": -0.26233699940401145,
+     "q3": -0.0009368001542886337,
+     "mean": -0.12892292959362997,
+     "n": 72
+    },
+    "null_random_direction": {
+     "median": 0.03855203337652198,
+     "lo": 0.02801205527284465,
+     "hi": 0.050828903900473676,
+     "q1": 0.018100538085941816,
+     "q3": 0.07011942797457846,
+     "mean": 0.04922722092171129,
+     "n": 72
+    },
+    "null_cohort_mean_direction_minus_root_mean": {
+     "median": 0.1508398401310879,
+     "lo": 0.11448663393429484,
+     "hi": 0.20159328303623184,
+     "q1": 0.057623284834566434,
+     "q3": 0.2534369232815451,
+     "mean": 0.17464126169424393,
+     "n": 72
+    },
+    "null_cohort_mean_direction_raw": {
+     "median": 0.29677221238777274,
+     "lo": 0.25722583102278807,
+     "hi": 0.33461273482746523,
+     "q1": 0.14938465420624167,
+     "q3": 0.40206258585825305,
+     "mean": 0.28951035797097485,
+     "n": 72
+    },
+    "null_leave_one_out_mean_of_other_targets": {
+     "median": 0.4141754282622697,
+     "lo": 0.38216866968272034,
+     "hi": 0.5016898621075109,
+     "q1": 0.3230025742441157,
+     "q3": 0.552785411032565,
+     "mean": 0.42505039747077705,
+     "n": 72
+    },
+    "null_v1_vs_a_random_OTHER_states_target": {
+     "median": 0.193837398550159,
+     "lo": 0.13575030004847022,
+     "hi": 0.2503254163735756,
+     "q1": 0.10190761636850354,
+     "q3": 0.3672427592740669,
+     "mean": 0.23569181316990337,
+     "n": 72
+    },
+    "paired_v1_minus_random": {
+     "median_diff": 0.11382147857717716,
+     "mean_diff": 0.1339699591299214,
+     "lo": 0.08595849242472833,
+     "hi": 0.17444617148498293,
+     "excludes_zero": true,
+     "n_states_positive": 60,
+     "n": 72
+    },
+    "paired_v1_minus_cohort_mean": {
+     "median_diff": 0.006453369372871068,
+     "mean_diff": 0.008555918357388769,
+     "lo": -0.026784921277367917,
+     "hi": 0.029386198020354765,
+     "excludes_zero": false,
+     "n_states_positive": 37,
+     "n": 72
+    },
+    "paired_v1_minus_leave_one_out": {
+     "median_diff": -0.23550195765350052,
+     "mean_diff": -0.24185321741914434,
+     "lo": -0.30909229077561295,
+     "hi": -0.20036903773921083,
+     "excludes_zero": true,
+     "n_states_positive": 4,
+     "n": 72
+    },
+    "paired_v1_own_minus_other_state": {
+     "median_diff": -0.046382201453334965,
+     "mean_diff": -0.05249463311827069,
+     "lo": -0.09121072515174597,
+     "hi": 0.0007261718203196502,
+     "excludes_zero": false,
+     "n_states_positive": 28,
+     "n": 72
+    },
+    "COMMON_vs_SPECIFIC_decomposition": {
+     "definition": "the state's target is split into the state-BLIND direction (the leave-one-out mean of the other 71 unit targets) and the orthogonal state-SPECIFIC residual. If v1 tracks only the common half it is a static prior axis, not an adaptive probe.",
+     "abs_cos_v1_STATE_BLIND_common_direction": {
+      "median": 0.36894344370675175,
+      "lo": 0.3000791214330126,
+      "hi": 0.3972878224665068,
+      "q1": 0.1645353343626335,
+      "q3": 0.43913191062362367,
+      "mean": 0.3145061948770837,
+      "n": 72
+     },
+     "abs_cos_v1_STATE_SPECIFIC_residual": {
+      "median": 0.12867320691127931,
+      "lo": 0.08561650501177717,
+      "hi": 0.16012290473166796,
+      "q1": 0.05729851478650777,
+      "q3": 0.1784521355711816,
+      "mean": 0.13228571623765362,
+      "n": 72
+     },
+     "target_norm_fraction_that_is_state_specific": {
+      "median": 0.9101573841838886,
+      "lo": 0.865035947697219,
+      "hi": 0.9240764069267011,
+      "q1": 0.8333227105502775,
+      "q3": 0.9463980665379474,
+      "mean": 0.8871464834444098,
+      "n": 72
+     },
+     "paired_common_minus_specific": {
+      "median_diff": 0.19069558718605922,
+      "mean_diff": 0.18222047863943006,
+      "lo": 0.10054043787375685,
+      "hi": 0.2505184191155271,
+      "excludes_zero": true,
+      "n_states_positive": 59,
+      "n": 72
+     }
+    },
+    "span3_capture_fraction_of_target_norm2": {
+     "median": 0.12515091221897678,
+     "lo": 0.09727716460497207,
+     "hi": 0.16016286766251894,
+     "q1": 0.06811768813871157,
+     "q3": 0.21719734995226062,
+     "mean": 0.15891958334349437,
+     "n": 72
+    },
+    "span3_capture_random_3_directions": {
+     "median": 0.010928293376413514,
+     "lo": 0.008329689973997169,
+     "hi": 0.01380195964953405,
+     "q1": 0.006076272287671847,
+     "q3": 0.017377002096293687,
+     "mean": 0.013677537831442614,
+     "n": 72
+    },
+    "paired_span3_minus_random3": {
+     "median_diff": 0.11275266298094003,
+     "mean_diff": 0.14524204551205178,
+     "lo": 0.07782702929264632,
+     "hi": 0.15035089146990355,
+     "excludes_zero": true,
+     "n_states_positive": 67,
+     "n": 72
+    },
+    "answerability": {
+     "abs_cos_v1_nearest_ANSWERABLE_pool_entry": {
+      "median": 0.6871738953868064,
+      "lo": 0.668981324059116,
+      "hi": 0.7133563852458925,
+      "q1": 0.6207717675317903,
+      "q3": 0.7250296478496241,
+      "mean": 0.62439398543659,
+      "n": 72
+     },
+     "abs_cos_v1_nearest_entry_in_the_FULL_19390_bank": {
+      "median": 0.6871738953868064,
+      "lo": 0.668981324059116,
+      "hi": 0.7133563852458925,
+      "q1": 0.6207717675317903,
+      "q3": 0.7250296478496241,
+      "mean": 0.6339595265590712,
+      "n": 72
+     },
+     "abs_cos_v1_top1_MEASURED_candidate": {
+      "median": 0.15281759771393816,
+      "lo": 0.11902908801426915,
+      "hi": 0.18410501528177883,
+      "q1": 0.060164347748412186,
+      "q3": 0.2249710651177999,
+      "mean": 0.15990462027154304,
+      "n": 72
+     },
+     "GAP_target_minus_top1_measured": {
+      "median": 0.023085925829489345,
+      "lo": -0.004032956260799962,
+      "hi": 0.04081321262606355,
+      "q1": -0.04807042158958319,
+      "q3": 0.08019448659051581,
+      "mean": 0.02329255978008966,
+      "n": 72
+     },
+     "reference_abs_cos_TARGET_top1_measured": {
+      "median": 0.7296695912177282,
+      "lo": 0.6838082761105414,
+      "hi": 0.7659297939268672,
+      "q1": 0.615763207840512,
+      "q3": 0.8213198876554852,
+      "mean": 0.7138476683197024,
+      "n": 72
+     },
+     "reference_abs_cos_TARGET_nearest_pool_entry": {
+      "median": 0.8190256038792114,
+      "lo": 0.7798277711864956,
+      "hi": 0.8446468988048261,
+      "q1": 0.7354940657030837,
+      "q3": 0.8812843380013275,
+      "mean": 0.8079993055105874,
+      "n": 72
+     },
+     "nearest_pool_entry_is_the_top1_measured_candidate": 0.013888888888888888
+    },
+    "variance_along_the_target": {
+     "definition": "(t' Sigma t) / (trace(Sigma)/d) -- 1.0 == a random direction. The form of the hypothesis that does NOT depend on v1 being a well-estimated axis.",
+     "target": {
+      "median": 7.7042391455063175,
+      "lo": 6.41386705480874,
+      "hi": 9.310914396094308,
+      "q1": 4.617741591973868,
+      "q3": 14.046687662727939,
+      "mean": 9.885548175291794,
+      "n": 72
+     },
+     "v1_its_own_ceiling": {
+      "median": 133.93957690798845,
+      "lo": 120.84070402529656,
+      "hi": 146.14851897338667,
+      "q1": 109.66410235799763,
+      "q3": 178.85415843410874,
+      "mean": 139.86530380240944,
+      "n": 72
+     },
+     "paired_target_minus_one": {
+      "median_diff": 6.7042391455063175,
+      "mean_diff": 8.885548175291794,
+      "lo": 5.41386705480874,
+      "hi": 8.310914396094308,
+      "excludes_zero": true,
+      "n_states_positive": 61,
+      "n": 72
+     }
+    },
+    "selector": {
+     "arms": "v1 = |cos(e_q, v1)| | quad = e_q' Sigma e_q (the full quadratic form, no top-axis assumption) | quad_x_answerrate = quad * P(answer) | mu = |cos(e_q, cohort mean direction)| | pop = answer-rate / popularity prior | rand",
+     "spearman_vs_measured_gain": {
+      "v1": {
+       "median": 0.02376023075506357,
+       "lo": -0.008820367461650025,
+       "hi": 0.04854410158220149,
+       "q1": -0.06630450723927342,
+       "q3": 0.09439747381384661,
+       "mean": 0.01785713178235926,
+       "n": 72
+      },
+      "quad": {
+       "median": 0.1048978352223651,
+       "lo": 0.048059079082740874,
+       "hi": 0.1459496129634691,
+       "q1": -0.006414159939694174,
+       "q3": 0.1909551760315464,
+       "mean": 0.08381244290367881,
+       "n": 72
+      },
+      "quad_x_answerrate": {
+       "median": 0.18720260103860295,
+       "lo": 0.12545346036419133,
+       "hi": 0.2617533589674763,
+       "q1": 0.040906511193294484,
+       "q3": 0.38505003157406864,
+       "mean": 0.19344867803129415,
+       "n": 72
+      },
+      "mu": {
+       "median": 0.04344335746783121,
+       "lo": -0.017398756861646585,
+       "hi": 0.07885911155975593,
+       "q1": -0.06772820732585841,
+       "q3": 0.12457341886531394,
+       "mean": 0.04299787170305587,
+       "n": 71
+      },
+      "pop": {
+       "median": 0.2279621316640581,
+       "lo": 0.12072194736481462,
+       "hi": 0.31788516768946273,
+       "q1": 0.033906288022230856,
+       "q3": 0.44203159971447376,
+       "mean": 0.2114877129933285,
+       "n": 72
+      },
+      "rand": {
+       "median": -0.0033370490867106633,
+       "lo": -0.015362824233193826,
+       "hi": 0.005805879804768603,
+       "q1": -0.027042111002043904,
+       "q3": 0.019478708300298492,
+       "mean": -0.004033012248164056,
+       "n": 72
+      }
+     },
+     "ndcg_at_5_gain_as_relevance": {
+      "v1": {
+       "median": 0.05581366521806237,
+       "lo": 0.026200762407139786,
+       "hi": 0.07495318015535635,
+       "q1": 0.0,
+       "q3": 0.10816005267549098,
+       "mean": 0.0873998293225545,
+       "n": 72
+      },
+      "quad": {
+       "median": 0.0558142499249729,
+       "lo": 0.0273102527991812,
+       "hi": 0.07854130299039186,
+       "q1": 0.003098854482236172,
+       "q3": 0.1223797894421321,
+       "mean": 0.0891243779428193,
+       "n": 72
+      },
+      "quad_x_answerrate": {
+       "median": 0.0536948976313449,
+       "lo": 0.04380364892316481,
+       "hi": 0.08136924586543517,
+       "q1": 0.006273873112393695,
+       "q3": 0.1389560910780864,
+       "mean": 0.09595550474478129,
+       "n": 72
+      },
+      "mu": {
+       "median": 0.027662306322722145,
+       "lo": 0.020902472007243968,
+       "hi": 0.06571766837806657,
+       "q1": 0.004218284417045297,
+       "q3": 0.1167166171102789,
+       "mean": 0.08060880234191839,
+       "n": 72
+      },
+      "pop": {
+       "median": 0.04666913092818173,
+       "lo": 0.021151529744056763,
+       "hi": 0.06543589931332744,
+       "q1": 0.011459848658749331,
+       "q3": 0.10982406581860511,
+       "mean": 0.07556350075272524,
+       "n": 72
+      },
+      "rand": {
+       "median": 0.08948535626388124,
+       "lo": 0.06467047142227447,
+       "hi": 0.12685235725769667,
+       "q1": 0.04005585603949918,
+       "q3": 0.14576477779870647,
+       "mean": 0.10146711477698041,
+       "n": 72
+      }
+     },
+     "paired_v1_minus_popularity_spearman": {
+      "median_diff": -0.16983042544296356,
+      "mean_diff": -0.19363058121096924,
+      "lo": -0.31163974098508196,
+      "hi": -0.0933425280082339,
+      "excludes_zero": true,
+      "n_states_positive": 18,
+      "n": 72
+     },
+     "paired_quadXans_minus_popularity_spearman": {
+      "median_diff": -0.019516320487783595,
+      "mean_diff": -0.018039034962034364,
+      "lo": -0.03652336108210076,
+      "hi": 2.737861697542229e-05,
+      "excludes_zero": false,
+      "n_states_positive": 28,
+      "n": 72
+     }
+    },
+    "spectrum": {
+     "lambda1_share_of_total_variance": {
+      "median": 0.6696978845399437,
+      "lo": 0.6042035201264826,
+      "hi": 0.7307425948669348,
+      "q1": 0.5483205117899885,
+      "q3": 0.8942707921705447,
+      "mean": 0.6993265190120486,
+      "n": 72
+     },
+     "effective_rank_exp_entropy": {
+      "median": 2.403245153360384,
+      "lo": 1.9998829621445278,
+      "hi": 2.837756547084566,
+      "q1": 1.4020372796138063,
+      "q3": 3.1150448619887836,
+      "mean": 2.5008394682290307,
+      "n": 72
+     },
+     "v1_split_half_abs_cos": {
+      "median": 0.9962315035175002,
+      "lo": 0.9953333912957196,
+      "hi": 0.9986521469291753,
+      "q1": 0.9921289241737262,
+      "q3": 0.9996256710236125,
+      "mean": 0.9713986003164483,
+      "n": 72
+     }
+    },
+    "label": "all 72 searched node states"
+   },
+   "c1_final_TRAINED_57": {
+    "n_states": 57,
+    "HEADLINE_abs_cos_v1_target": {
+     "median": 0.17495308887755856,
+     "lo": 0.12734830489871585,
+     "hi": 0.1905526157231292,
+     "q1": 0.059631936131187405,
+     "q3": 0.22078441319180522,
+     "mean": 0.16751002709040372,
+     "n": 57
+    },
+    "signed_cos_v1_target_declared_convention": {
+     "median": -0.13453926212081585,
+     "lo": -0.18462017505607248,
+     "hi": -0.05741334111807356,
+     "q1": -0.209514831224051,
+     "q3": 0.016384982491208296,
+     "mean": -0.11053451529018407,
+     "n": 57
+    },
+    "null_random_direction": {
+     "median": 0.03910095452600225,
+     "lo": 0.02997956659532838,
+     "hi": 0.05200370099742779,
+     "q1": 0.02282928460833881,
+     "q3": 0.07909304017016441,
+     "mean": 0.05289392400992146,
+     "n": 57
+    },
+    "null_cohort_mean_direction_minus_root_mean": {
+     "median": 0.13650398519333273,
+     "lo": 0.10983934638282261,
+     "hi": 0.1636727174042743,
+     "q1": 0.054575890128638366,
+     "q3": 0.22060587215916644,
+     "mean": 0.15723474555042033,
+     "n": 57
+    },
+    "null_cohort_mean_direction_raw": {
+     "median": 0.27982340834412633,
+     "lo": 0.24460232464837817,
+     "hi": 0.3105007418519826,
+     "q1": 0.15165871687229748,
+     "q3": 0.34200438631478797,
+     "mean": 0.268331865059934,
+     "n": 57
+    },
+    "null_leave_one_out_mean_of_other_targets": {
+     "median": 0.40626511705764673,
+     "lo": 0.36855074399503107,
+     "hi": 0.4978124303757257,
+     "q1": 0.309550147378941,
+     "q3": 0.5545811907346148,
+     "mean": 0.4135785231935292,
+     "n": 57
+    },
+    "null_v1_vs_a_random_OTHER_states_target": {
+     "median": 0.19352893399264331,
+     "lo": 0.13196809346171118,
+     "hi": 0.2553085203040703,
+     "q1": 0.10845556727006267,
+     "q3": 0.348899487216632,
+     "mean": 0.23666855088489272,
+     "n": 57
+    },
+    "paired_v1_minus_random": {
+     "median_diff": 0.10125857187677793,
+     "mean_diff": 0.11461610308048228,
+     "lo": 0.08329372585487903,
+     "hi": 0.1265199052479384,
+     "excludes_zero": true,
+     "n_states_positive": 45,
+     "n": 57
+    },
+    "paired_v1_minus_cohort_mean": {
+     "median_diff": 0.008423917085687294,
+     "mean_diff": 0.010275281539983406,
+     "lo": -0.030614271888786165,
+     "hi": 0.0357743523903489,
+     "excludes_zero": false,
+     "n_states_positive": 30,
+     "n": 57
+    },
+    "paired_v1_minus_leave_one_out": {
+     "median_diff": -0.22997484165804383,
+     "mean_diff": -0.24606849610312545,
+     "lo": -0.31993609746771995,
+     "hi": -0.19949182805640425,
+     "excludes_zero": true,
+     "n_states_positive": 4,
+     "n": 57
+    },
+    "paired_v1_own_minus_other_state": {
+     "median_diff": -0.0653299537425126,
+     "mean_diff": -0.06915852379448903,
+     "lo": -0.10713807380193235,
+     "hi": -0.003494694337515536,
+     "excludes_zero": true,
+     "n_states_positive": 20,
+     "n": 57
+    },
+    "COMMON_vs_SPECIFIC_decomposition": {
+     "definition": "the state's target is split into the state-BLIND direction (the leave-one-out mean of the other 71 unit targets) and the orthogonal state-SPECIFIC residual. If v1 tracks only the common half it is a static prior axis, not an adaptive probe.",
+     "abs_cos_v1_STATE_BLIND_common_direction": {
+      "median": 0.3927169442667819,
+      "lo": 0.35723681159409987,
+      "hi": 0.43149683409887113,
+      "q1": 0.10115943971130378,
+      "q3": 0.4503755621804588,
+      "mean": 0.3222352531639133,
+      "n": 57
+     },
+     "abs_cos_v1_STATE_SPECIFIC_residual": {
+      "median": 0.09753390367086259,
+      "lo": 0.06331995298167825,
+      "hi": 0.1482946343799914,
+      "q1": 0.04746589755536988,
+      "q3": 0.1763218314158918,
+      "mean": 0.12073092062285333,
+      "n": 57
+     },
+     "target_norm_fraction_that_is_state_specific": {
+      "median": 0.9137552487740559,
+      "lo": 0.8672847192032229,
+      "hi": 0.9296076317999488,
+      "q1": 0.8321296190398327,
+      "q3": 0.9508831191359303,
+      "mean": 0.8904604307907983,
+      "n": 57
+     },
+     "paired_common_minus_specific": {
+      "median_diff": 0.23427742934107426,
+      "mean_diff": 0.20150433254105998,
+      "lo": 0.1434934313448754,
+      "hi": 0.29775382255378063,
+      "excludes_zero": true,
+      "n_states_positive": 46,
+      "n": 57
+     }
+    },
+    "span3_capture_fraction_of_target_norm2": {
+     "median": 0.14022571288079205,
+     "lo": 0.09615405044543951,
+     "hi": 0.1852502010459885,
+     "q1": 0.06251374071110087,
+     "q3": 0.21890159513280583,
+     "mean": 0.16401570696352835,
+     "n": 57
+    },
+    "span3_capture_random_3_directions": {
+     "median": 0.012038923726365707,
+     "lo": 0.009579853950556768,
+     "hi": 0.014377075690038547,
+     "q1": 0.00602580719437576,
+     "q3": 0.01705018946282133,
+     "mean": 0.01268184718230552,
+     "n": 57
+    },
+    "paired_span3_minus_random3": {
+     "median_diff": 0.13208778816258593,
+     "mean_diff": 0.1513338597812228,
+     "lo": 0.07336872599161758,
+     "hi": 0.17084458757908794,
+     "excludes_zero": true,
+     "n_states_positive": 53,
+     "n": 57
+    },
+    "answerability": {
+     "abs_cos_v1_nearest_ANSWERABLE_pool_entry": {
+      "median": 0.7015114831402173,
+      "lo": 0.6456767270311006,
+      "hi": 0.7157418152675991,
+      "q1": 0.5325329912918494,
+      "q3": 0.7298463612612451,
+      "mean": 0.6109987293021235,
+      "n": 57
+     },
+     "abs_cos_v1_nearest_entry_in_the_FULL_19390_bank": {
+      "median": 0.7015114831402173,
+      "lo": 0.6456767270311006,
+      "hi": 0.7157418152675991,
+      "q1": 0.5435899470435875,
+      "q3": 0.7298463612612451,
+      "mean": 0.6230815180884154,
+      "n": 57
+     },
+     "abs_cos_v1_top1_MEASURED_candidate": {
+      "median": 0.14273841126765108,
+      "lo": 0.0795105496717346,
+      "hi": 0.16871720050230182,
+      "q1": 0.05437555859203608,
+      "q3": 0.1894389566476558,
+      "mean": 0.14687054854684953,
+      "n": 57
+     },
+     "GAP_target_minus_top1_measured": {
+      "median": 0.0166370269483464,
+      "lo": -0.006183108382954258,
+      "hi": 0.04081321262606355,
+      "q1": -0.038886834909238936,
+      "q3": 0.07869874875277297,
+      "mean": 0.020639478543554187,
+      "n": 57
+     },
+     "reference_abs_cos_TARGET_top1_measured": {
+      "median": 0.6986337593008891,
+      "lo": 0.6603589855756536,
+      "hi": 0.7409136803673846,
+      "q1": 0.566692349581515,
+      "q3": 0.803598519289318,
+      "mean": 0.6892861186681917,
+      "n": 57
+     },
+     "reference_abs_cos_TARGET_nearest_pool_entry": {
+      "median": 0.8174513331872915,
+      "lo": 0.7543434529853242,
+      "hi": 0.8329836076909476,
+      "q1": 0.7213160399444571,
+      "q3": 0.8640485080421589,
+      "mean": 0.7916090156124223,
+      "n": 57
+     },
+     "nearest_pool_entry_is_the_top1_measured_candidate": 0.017543859649122806
+    },
+    "variance_along_the_target": {
+     "definition": "(t' Sigma t) / (trace(Sigma)/d) -- 1.0 == a random direction. The form of the hypothesis that does NOT depend on v1 being a well-estimated axis.",
+     "target": {
+      "median": 7.216232285353798,
+      "lo": 5.844989113930635,
+      "hi": 8.825321783973394,
+      "q1": 3.2927751898433297,
+      "q3": 13.232123788878875,
+      "mean": 9.397738697146115,
+      "n": 57
+     },
+     "v1_its_own_ceiling": {
+      "median": 131.45216156558,
+      "lo": 120.38710717053576,
+      "hi": 146.8425864255964,
+      "q1": 106.0574107455573,
+      "q3": 182.61039793289984,
+      "mean": 139.82521328641207,
+      "n": 57
+     },
+     "paired_target_minus_one": {
+      "median_diff": 6.216232285353798,
+      "mean_diff": 8.397738697146115,
+      "lo": 4.844989113930635,
+      "hi": 7.8253217839733935,
+      "excludes_zero": true,
+      "n_states_positive": 47,
+      "n": 57
+     }
+    },
+    "selector": {
+     "arms": "v1 = |cos(e_q, v1)| | quad = e_q' Sigma e_q (the full quadratic form, no top-axis assumption) | quad_x_answerrate = quad * P(answer) | mu = |cos(e_q, cohort mean direction)| | pop = answer-rate / popularity prior | rand",
+     "spearman_vs_measured_gain": {
+      "v1": {
+       "median": 0.013191337369737557,
+       "lo": -0.01737070727006466,
+       "hi": 0.04493767716183887,
+       "q1": -0.06090941364726717,
+       "q3": 0.07041282140000273,
+       "mean": 0.004782145740428433,
+       "n": 57
+      },
+      "quad": {
+       "median": 0.10214115131007842,
+       "lo": 0.03515486067149072,
+       "hi": 0.14111299753476358,
+       "q1": -0.002801016857001563,
+       "q3": 0.17765713441406913,
+       "mean": 0.08314259249114933,
+       "n": 57
+      },
+      "quad_x_answerrate": {
+       "median": 0.18492887213684905,
+       "lo": 0.12537990276801408,
+       "hi": 0.2472933301985189,
+       "q1": 0.04887286627489974,
+       "q3": 0.31321522401954255,
+       "mean": 0.1916515398864541,
+       "n": 57
+      },
+      "mu": {
+       "median": 0.04771170101091052,
+       "lo": -0.01380361693786741,
+       "hi": 0.07761574044755445,
+       "q1": -0.06472904212425372,
+       "q3": 0.11385762414269845,
+       "mean": 0.038494686632928155,
+       "n": 56
+      },
+      "pop": {
+       "median": 0.2259103765247436,
+       "lo": 0.12188637899780012,
+       "hi": 0.27337034480763184,
+       "q1": 0.057216023423398994,
+       "q3": 0.3779476122261434,
+       "mean": 0.21157412649507096,
+       "n": 57
+      },
+      "rand": {
+       "median": -0.005201188244368165,
+       "lo": -0.01564245925401074,
+       "hi": 0.00785196298467358,
+       "q1": -0.026973695138023793,
+       "q3": 0.020234597356275398,
+       "mean": -0.003700144295737425,
+       "n": 57
+      }
+     },
+     "ndcg_at_5_gain_as_relevance": {
+      "v1": {
+       "median": 0.052848009952457954,
+       "lo": 0.024372818545532356,
+       "hi": 0.08081619187679862,
+       "q1": 0.0,
+       "q3": 0.11050595212305221,
+       "mean": 0.09111220335892618,
+       "n": 57
+      },
+      "quad": {
+       "median": 0.047556833800489966,
+       "lo": 0.024840742715511527,
+       "hi": 0.08385133069869384,
+       "q1": 0.010263551673503003,
+       "q3": 0.11937198605681812,
+       "mean": 0.09223185149740715,
+       "n": 57
+      },
+      "quad_x_answerrate": {
+       "median": 0.07472408685633737,
+       "lo": 0.046631443183238815,
+       "hi": 0.08826019419219681,
+       "q1": 0.024840742715511527,
+       "q3": 0.14695419661050543,
+       "mean": 0.10713165685071496,
+       "n": 57
+      },
+      "mu": {
+       "median": 0.04318856626635164,
+       "lo": 0.020752635278204173,
+       "hi": 0.09938718425129187,
+       "q1": 0.005881792087811489,
+       "q3": 0.15505891253093218,
+       "mean": 0.0925904406561823,
+       "n": 57
+      },
+      "pop": {
+       "median": 0.057369394624229006,
+       "lo": 0.04146522232377383,
+       "hi": 0.09030589537021713,
+       "q1": 0.01829429487188372,
+       "q3": 0.11748665703896873,
+       "mean": 0.08828701349172441,
+       "n": 57
+      },
+      "rand": {
+       "median": 0.09147495311054307,
+       "lo": 0.06755655202880992,
+       "hi": 0.12862531264550803,
+       "q1": 0.043214747164860894,
+       "q3": 0.14561082480159543,
+       "mean": 0.10511961252248313,
+       "n": 57
+      }
+     },
+     "paired_v1_minus_popularity_spearman": {
+      "median_diff": -0.2088445696358403,
+      "mean_diff": -0.20679198075464253,
+      "lo": -0.31993136784417303,
+      "hi": -0.09450112672347777,
+      "excludes_zero": true,
+      "n_states_positive": 12,
+      "n": 57
+     },
+     "paired_quadXans_minus_popularity_spearman": {
+      "median_diff": -0.0257081581896072,
+      "mean_diff": -0.01992258660861684,
+      "lo": -0.04125124846207684,
+      "hi": 0.002843042928801942,
+      "excludes_zero": false,
+      "n_states_positive": 22,
+      "n": 57
+     }
+    },
+    "spectrum": {
+     "lambda1_share_of_total_variance": {
+      "median": 0.6572608078278999,
+      "lo": 0.6019355358526781,
+      "hi": 0.7342129321279829,
+      "q1": 0.5302870537277871,
+      "q3": 0.9130519896645046,
+      "mean": 0.6991260664320612,
+      "n": 57
+     },
+     "effective_rank_exp_entropy": {
+      "median": 2.4422884806047067,
+      "lo": 1.9354916851099442,
+      "hi": 2.8507053605205726,
+      "q1": 1.354344972635801,
+      "q3": 3.1937881983073915,
+      "mean": 2.524958501098895,
+      "n": 57
+     },
+     "v1_split_half_abs_cos": {
+      "median": 0.996300616782504,
+      "lo": 0.9940203440284957,
+      "hi": 0.9987824847301418,
+      "q1": 0.9911160222128833,
+      "q3": 0.9996218944148162,
+      "mean": 0.9652346353126188,
+      "n": 57
+     }
+    },
+    "label": "the 57 states C1-final was trained on"
+   },
+   "c1_final_HELD_OUT_15_root_like": {
+    "n_states": 15,
+    "HEADLINE_abs_cos_v1_target": {
+     "median": 0.26838220508522037,
+     "lo": 0.19352707349171888,
+     "hi": 0.30957988354948834,
+     "q1": 0.1844932927607988,
+     "q3": 0.32003520650351436,
+     "mean": 0.24280836130430275,
+     "n": 15
+    },
+    "signed_cos_v1_target_declared_convention": {
+     "median": -0.26838220508522037,
+     "lo": -0.30957988354948834,
+     "hi": -0.1754595120298787,
+     "q1": -0.32003520650351436,
+     "q3": -0.11853567837979764,
+     "mean": -0.19879890394672436,
+     "n": 15
+    },
+    "null_random_direction": {
+     "median": 0.017584471933135695,
+     "lo": 0.016240055124343025,
+     "hi": 0.06098020393339844,
+     "q1": 0.01633315358544603,
+     "q3": 0.061088481366293565,
+     "mean": 0.03529374918651266,
+     "n": 15
+    },
+    "null_cohort_mean_direction_minus_root_mean": {
+     "median": 0.26611842244442174,
+     "lo": 0.21003165414202957,
+     "hi": 0.3586963404929807,
+     "q1": 0.16461424112489026,
+     "q3": 0.3440504173440607,
+     "mean": 0.24078602304077362,
+     "n": 15
+    },
+    "null_cohort_mean_direction_raw": {
+     "median": 0.4352081193748175,
+     "lo": 0.3678435311208992,
+     "hi": 0.47098902214453564,
+     "q1": 0.24080118836706021,
+     "q3": 0.5027316780310636,
+     "mean": 0.36998863103293,
+     "n": 15
+    },
+    "null_leave_one_out_mean_of_other_targets": {
+     "median": 0.42191207974944805,
+     "lo": 0.3872218527726676,
+     "hi": 0.5410640307087995,
+     "q1": 0.39357488459667356,
+     "q3": 0.5281964023694659,
+     "mean": 0.4686435197243187,
+     "n": 15
+    },
+    "null_v1_vs_a_random_OTHER_states_target": {
+     "median": 0.198844034396441,
+     "lo": 0.04159751672126587,
+     "hi": 0.37857863164548733,
+     "q1": 0.05124402820354815,
+     "q3": 0.3964208884546717,
+     "mean": 0.2319802098529438,
+     "n": 15
+    },
+    "paired_v1_minus_random": {
+     "median_diff": 0.21562907334685444,
+     "mean_diff": 0.2075146121177901,
+     "lo": 0.1767160596471559,
+     "hi": 0.25529295286484144,
+     "excludes_zero": true,
+     "n_states_positive": 15,
+     "n": 15
+    },
+    "paired_v1_minus_cohort_mean": {
+     "median_diff": -0.005150661055005973,
+     "mean_diff": 0.0020223382635291423,
+     "lo": -0.05092493413367488,
+     "hi": 0.05330317990873335,
+     "excludes_zero": false,
+     "n_states_positive": 7,
+     "n": 15
+    },
+    "paired_v1_minus_leave_one_out": {
+     "median_diff": -0.2410290736489572,
+     "mean_diff": -0.22583515842001609,
+     "lo": -0.2785355988415984,
+     "hi": -0.11233219619995971,
+     "excludes_zero": true,
+     "n_states_positive": 0,
+     "n": 15
+    },
+    "paired_v1_own_minus_other_state": {
+     "median_diff": 0.020014328008450738,
+     "mean_diff": 0.010828151451358962,
+     "lo": -0.1249853585389798,
+     "hi": 0.19104633114899994,
+     "excludes_zero": false,
+     "n_states_positive": 8,
+     "n": 15
+    },
+    "COMMON_vs_SPECIFIC_decomposition": {
+     "definition": "the state's target is split into the state-BLIND direction (the leave-one-out mean of the other 71 unit targets) and the orthogonal state-SPECIFIC residual. If v1 tracks only the common half it is a static prior axis, not an adaptive probe.",
+     "abs_cos_v1_STATE_BLIND_common_direction": {
+      "median": 0.28371721120140375,
+      "lo": 0.2565363380468289,
+      "hi": 0.34710626009721157,
+      "q1": 0.25650184868316517,
+      "q3": 0.3458067182006915,
+      "mean": 0.2851357733871312,
+      "n": 15
+     },
+     "abs_cos_v1_STATE_SPECIFIC_residual": {
+      "median": 0.16326898987960908,
+      "lo": 0.13332336109622459,
+      "hi": 0.22207803022574096,
+      "q1": 0.13675078546362346,
+      "q3": 0.22298484046425104,
+      "mean": 0.1761939395738947,
+      "n": 15
+     },
+     "target_norm_fraction_that_is_state_specific": {
+      "median": 0.9066367502817737,
+      "lo": 0.8409813997188922,
+      "hi": 0.9219865707998693,
+      "q1": 0.8489869818318224,
+      "q3": 0.9192665831348709,
+      "mean": 0.8745534835281333,
+      "n": 15
+     },
+     "paired_common_minus_specific": {
+      "median_diff": 0.12829433448178845,
+      "mean_diff": 0.10894183381323645,
+      "lo": 0.032075323730110405,
+      "hi": 0.19094196882701125,
+      "excludes_zero": true,
+      "n_states_positive": 13,
+      "n": 15
+     }
+    },
+    "span3_capture_fraction_of_target_norm2": {
+     "median": 0.10715148637496441,
+     "lo": 0.08217026853096537,
+     "hi": 0.14518412408274864,
+     "q1": 0.08491525838013855,
+     "q3": 0.16001154141121549,
+     "mean": 0.13955431358736542,
+     "n": 15
+    },
+    "span3_capture_random_3_directions": {
+     "median": 0.00923843258661353,
+     "lo": 0.006093093985437209,
+     "hi": 0.02825763493589651,
+     "q1": 0.006276759491506769,
+     "q3": 0.020506861578808596,
+     "mean": 0.017461162298163583,
+     "n": 15
+    },
+    "paired_span3_minus_random3": {
+     "median_diff": 0.09898684334770304,
+     "mean_diff": 0.12209315128920184,
+     "lo": 0.06229966058711306,
+     "hi": 0.13872369908517232,
+     "excludes_zero": true,
+     "n_states_positive": 14,
+     "n": 15
+    },
+    "answerability": {
+     "abs_cos_v1_nearest_ANSWERABLE_pool_entry": {
+      "median": 0.6760391314137968,
+      "lo": 0.668412547745063,
+      "hi": 0.6931894158942513,
+      "q1": 0.6657591997853014,
+      "q3": 0.7054687121700982,
+      "mean": 0.6752959587475627,
+      "n": 15
+     },
+     "abs_cos_v1_nearest_entry_in_the_FULL_19390_bank": {
+      "median": 0.6760391314137968,
+      "lo": 0.668412547745063,
+      "hi": 0.6931894158942513,
+      "q1": 0.6657591997853014,
+      "q3": 0.7054687121700982,
+      "mean": 0.6752959587475627,
+      "n": 15
+     },
+     "abs_cos_v1_top1_MEASURED_candidate": {
+      "median": 0.2210298729087425,
+      "lo": 0.14850574863347837,
+      "hi": 0.23520594634199388,
+      "q1": 0.1569397556181273,
+      "q3": 0.23541947237477742,
+      "mean": 0.20943409282537834,
+      "n": 15
+     },
+     "GAP_target_minus_top1_measured": {
+      "median": 0.032749206677659404,
+      "lo": -0.0659178427777255,
+      "hi": 0.07437393720749447,
+      "q1": -0.07465024568253101,
+      "q3": 0.09499779556864502,
+      "mean": 0.03337426847892444,
+      "n": 15
+     },
+     "reference_abs_cos_TARGET_top1_measured": {
+      "median": 0.7949585812033464,
+      "lo": 0.7273840467787834,
+      "hi": 0.9209872244586177,
+      "q1": 0.7465658758564078,
+      "q3": 0.9158372486912207,
+      "mean": 0.8071815569954433,
+      "n": 15
+     },
+     "reference_abs_cos_TARGET_nearest_pool_entry": {
+      "median": 0.9125876990928181,
+      "lo": 0.8036474856296603,
+      "hi": 0.9314727474087701,
+      "q1": 0.8017810081163327,
+      "q3": 0.9305938422792444,
+      "mean": 0.8702824071236157,
+      "n": 15
+     },
+     "nearest_pool_entry_is_the_top1_measured_candidate": 0.0
+    },
+    "variance_along_the_target": {
+     "definition": "(t' Sigma t) / (trace(Sigma)/d) -- 1.0 == a random direction. The form of the hypothesis that does NOT depend on v1 being a well-estimated axis.",
+     "target": {
+      "median": 9.99771063485491,
+      "lo": 7.285484845127897,
+      "hi": 15.617742286278009,
+      "q1": 6.890096759247449,
+      "q3": 16.043151390411715,
+      "mean": 11.739224192245366,
+      "n": 15
+     },
+     "v1_its_own_ceiling": {
+      "median": 140.28225557095962,
+      "lo": 116.2259560789714,
+      "hi": 158.55160201233352,
+      "q1": 114.5783868637254,
+      "q3": 153.5618971262587,
+      "mean": 140.01764776319956,
+      "n": 15
+     },
+     "paired_target_minus_one": {
+      "median_diff": 8.99771063485491,
+      "mean_diff": 10.739224192245368,
+      "lo": 6.285484845127897,
+      "hi": 14.617742286278009,
+      "excludes_zero": true,
+      "n_states_positive": 14,
+      "n": 15
+     }
+    },
+    "selector": {
+     "arms": "v1 = |cos(e_q, v1)| | quad = e_q' Sigma e_q (the full quadratic form, no top-axis assumption) | quad_x_answerrate = quad * P(answer) | mu = |cos(e_q, cohort mean direction)| | pop = answer-rate / popularity prior | rand",
+     "spearman_vs_measured_gain": {
+      "v1": {
+       "median": 0.09722300154925508,
+       "lo": -0.09950362074903038,
+       "hi": 0.2376168312601178,
+       "q1": -0.1000472501439668,
+       "q3": 0.21911184904884146,
+       "mean": 0.06754207874169639,
+       "n": 15
+      },
+      "quad": {
+       "median": 0.1587171637817126,
+       "lo": -0.10506623096267063,
+       "hi": 0.2915909298758434,
+       "q1": -0.14431201147255385,
+       "q3": 0.27492927008575485,
+       "mean": 0.08635787447129085,
+       "n": 15
+      },
+      "quad_x_answerrate": {
+       "median": 0.4105693359062474,
+       "lo": -0.06901059174374852,
+       "hi": 0.4768082736115089,
+       "q1": -0.11399251103935322,
+       "q3": 0.49408810663516667,
+       "mean": 0.20027780298168632,
+       "n": 15
+      },
+      "mu": {
+       "median": 0.019926875134090284,
+       "lo": -0.06081550756375755,
+       "hi": 0.19527047806475265,
+       "q1": -0.06782807647407806,
+       "q3": 0.18125079705686145,
+       "mean": 0.05980976263153272,
+       "n": 15
+      },
+      "pop": {
+       "median": 0.3584635489149442,
+       "lo": -0.0073196914560403545,
+       "hi": 0.5082709040958807,
+       "q1": -0.07442027557613412,
+       "q3": 0.515941450923309,
+       "mean": 0.2111593416867073,
+       "n": 15
+      },
+      "rand": {
+       "median": -0.0014126342751496772,
+       "lo": -0.026729843191251466,
+       "hi": 0.015763240120769035,
+       "q1": -0.029802936579127484,
+       "q3": 0.014436636565976851,
+       "mean": -0.00529791046738525,
+       "n": 15
+      }
+     },
+     "ndcg_at_5_gain_as_relevance": {
+      "v1": {
+       "median": 0.06522273955013111,
+       "lo": 0.0,
+       "hi": 0.09848603670482954,
+       "q1": 0.0,
+       "q3": 0.09895323070271896,
+       "mean": 0.07329280798434207,
+       "n": 15
+      },
+      "quad": {
+       "median": 0.06716488816248192,
+       "lo": 0.0,
+       "hi": 0.14439427211107042,
+       "q1": 0.0,
+       "q3": 0.12191964298473104,
+       "mean": 0.07731597843538549,
+       "n": 15
+      },
+      "quad_x_answerrate": {
+       "median": 0.047963534335392924,
+       "lo": 0.0,
+       "hi": 0.0733698867216511,
+       "q1": 0.0,
+       "q3": 0.06810033126756794,
+       "mean": 0.053486126742233395,
+       "n": 15
+      },
+      "mu": {
+       "median": 0.022368211647380017,
+       "lo": 0.0,
+       "hi": 0.029586717352846844,
+       "q1": 0.0,
+       "q3": 0.02871208098560455,
+       "mean": 0.035078576747715494,
+       "n": 15
+      },
+      "pop": {
+       "median": 0.009679846508535919,
+       "lo": 0.0,
+       "hi": 0.021151529744056763,
+       "q1": 0.0,
+       "q3": 0.01985840481767375,
+       "mean": 0.0272141523445283,
+       "n": 15
+      },
+      "rand": {
+       "median": 0.07158154234580658,
+       "lo": 0.02277583293871025,
+       "hi": 0.10548835611607231,
+       "q1": 0.02169520629307038,
+       "q3": 0.13547667272481626,
+       "mean": 0.08758762334407008,
+       "n": 15
+      }
+     },
+     "paired_v1_minus_popularity_spearman": {
+      "median_diff": -0.11877572866350003,
+      "mean_diff": -0.1436172629450109,
+      "lo": -0.39147926662325083,
+      "hi": 0.14568808901510164,
+      "excludes_zero": false,
+      "n_states_positive": 6,
+      "n": 15
+     },
+     "paired_quadXans_minus_popularity_spearman": {
+      "median_diff": -0.012244058091912868,
+      "mean_diff": -0.010881538705020974,
+      "lo": -0.06002601772095406,
+      "hi": 0.03229016486747038,
+      "excludes_zero": false,
+      "n_states_positive": 6,
+      "n": 15
+     }
+    },
+    "spectrum": {
+     "lambda1_share_of_total_variance": {
+      "median": 0.701411277854801,
+      "lo": 0.5811297803948582,
+      "hi": 0.7927580100616708,
+      "q1": 0.5728919343186283,
+      "q3": 0.7678094856312969,
+      "mean": 0.7000882388160002,
+      "n": 15
+     },
+     "effective_rank_exp_entropy": {
+      "median": 2.3642018261160618,
+      "lo": 2.041149504386077,
+      "hi": 3.052760996584809,
+      "q1": 2.0986286984749123,
+      "q3": 3.0632932683994367,
+      "mean": 2.409187143323548,
+      "n": 15
+     },
+     "v1_split_half_abs_cos": {
+      "median": 0.9961623902524964,
+      "lo": 0.9951137071198257,
+      "hi": 0.9992121488512307,
+      "q1": 0.9954115491438196,
+      "q3": 0.9994245748506162,
+      "mean": 0.9948216673309997,
+      "n": 15
+     }
+    },
+    "label": "the 15 root.like.* states C1-final held out",
+    "c1_final_heldout_cos_for_comparison": -0.11948,
+    "comparison_caveat": "NOT the same space. C1-final's -0.11948 is cos(z_hat, target) in the 129-d homogeneous [k(phi), b(phi)] head space; this row is |cos(v1, R_s)| in the 200-d tower space. The comparable statement is directional only: the closed-form construction needs no training, so whatever it scores at trained states it scores at held-out states."
+   }
+  }
+ },
+ "minutes": 37.58,
+ "VERDICT": {
+  "headline_abs_cos_v1_target_profile_arm": 0.16717535359688535,
+  "vs_random_direction": {
+   "median_diff": 0.11466304663592218,
+   "ci": [
+    0.08469696931757502,
+    0.15974438424069634
+   ],
+   "excludes_zero": true,
+   "v1_WINS": true,
+   "v1_LOSES": false,
+   "n_states_v1_higher": 56,
+   "n": 72
+  },
+  "vs_cohort_mean_direction": {
+   "median_diff": -0.021740644694784463,
+   "ci": [
+    -0.058539232562375705,
+    0.010293331308893927
+   ],
+   "excludes_zero": false,
+   "v1_WINS": false,
+   "v1_LOSES": false,
+   "n_states_v1_higher": 30,
+   "n": 72
+  },
+  "vs_state_blind_leave_one_out": {
+   "median_diff": -0.20214782985579857,
+   "ci": [
+    -0.27043810433889615,
+    -0.16696100338124295
+   ],
+   "excludes_zero": true,
+   "v1_WINS": false,
+   "v1_LOSES": true,
+   "n_states_v1_higher": 13,
+   "n": 72
+  },
+  "selector_v1_vs_popularity": {
+   "median_diff": -0.2054218167202464,
+   "ci": [
+    -0.27224930542453585,
+    -0.14502259913515744
+   ],
+   "excludes_zero": true,
+   "v1_WINS": false,
+   "v1_LOSES": true,
+   "n_states_v1_higher": 17,
+   "n": 72
+  },
+  "selector_quadXanswerrate_vs_popularity": {
+   "median_diff": 0.0270196619278366,
+   "ci": [
+    0.01593774028053986,
+    0.03898012512519769
+   ],
+   "excludes_zero": true,
+   "v1_WINS": true,
+   "v1_LOSES": false,
+   "n_states_v1_higher": 50,
+   "n": 72
+  },
+  "variance_ratio_along_target_median": 5.7290198296329145,
+  "target_lies_in_an_above_isotropic_variance_direction": true,
+  "note": "the conclusion is the author's; this block only states which contrasts fired"
+ }
+}
