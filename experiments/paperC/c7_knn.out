@@ -1,0 +1,97 @@
+[21:52:03] ####################################################################################################
+[21:52:03] # PAPER C / C7 -- LOCAL kNN profile transfer at held-out states. Nothing is trained; TRAIN-side banked artifacts only; the 10,000 canonical TEST users are not touched.
+[21:52:03] ####################################################################################################
+[21:52:03] [hardrule10] src/instrument clean=False rev=f8f14b21
+[21:52:03] [banked] 72 states | 957 shared candidates | reusing C5's cohort latents and tree metric verbatim
+[21:52:03] === building paperC/c7 env (split=train, users 0..10000) ===
+[21:52:17] [train-split] cache hit (train_foldin_split_98765.npz): 2,114,192 target-half rows over 140,768 train users
+[21:52:30] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[21:54:11] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[21:54:14] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[21:54:16] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[21:54:16] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[21:54:16] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[21:54:16] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[21:54:16] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[21:54:36] [ctx] all-bands reconstruction: 1389288 tokens; 7562 users with >=3 dislikes
+[21:54:40] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[21:55:01] [g5] 1031 concepts with >= 30 members
+[21:55:48] [ledger] SIGNED valuation arrays built (prereg cache found)
+[21:56:02] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[21:56:06] [policy-B] pool nnz=1389288 = 138.9 items/user (binary fold-in 61.5/user); target leak 0
+[21:56:07] [paperC/c7] pool contract (DERIVED): policy=B nnz=1389288 per_user=138.9288 fp=d00089f4b4ec132fd9d296a2cd543537
+[21:56:07] [paperC/c7] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.504; tower latent d=200
+[21:56:07] [selftest] vectorised cap == signed_answers.cap_negatives over the REVEALED set
+[21:56:41] [gate G5] canonical TRAIN m=0 snap full=0.15830706760250668 tail=0.026610752564918336
+[21:56:41] [selftest] branch_of_per_user == branch_of on 3 questions x 2000 users
+[21:56:42] [gate G6] (19390, 129) descriptors; ||mu|| 46.063151; map err 0
+[21:56:43] [sweeps] 72/72 full exact tables; argmax==splitter at 72/72, max |max(gain) - splitter_gain| = 0
+[21:56:43] [gate G0] targets rebuilt from the SAME code; max|diff| vs C1-final banked 4.76837e-07; gain profiles vs C5 banked 1.84338e-09
+[21:56:44] [common/residual] common energy 0.4085 [0.3725, 0.4436] | residual energy 0.5915 | norm fraction (=|cos|) 0.6264
+[21:56:44] === primary_root_like_subtree: 57 training states, 15 held out ===
+[21:56:44]   [primary_root_like_subtree/knn__latent__k1] LOO-within-train spearman +0.6246 | h=None
+[21:56:47]   [primary_root_like_subtree/knn__latent__k3] LOO-within-train spearman +0.6567 | h=0.07787901642605555
+[21:56:49]   [primary_root_like_subtree/knn__latent__k5] LOO-within-train spearman +0.6605 | h=0.07787901642605555
+[21:56:51]   [primary_root_like_subtree/knn__latent__k10] LOO-within-train spearman +0.6616 | h=0.07787901642605555
+[21:56:51]   [primary_root_like_subtree/knn__tree__k1] LOO-within-train spearman +0.5853 | h=None
+[21:56:54]   [primary_root_like_subtree/knn__tree__k3] LOO-within-train spearman +0.6891 | h=0.5249259465327191
+[21:56:58]   [primary_root_like_subtree/knn__tree__k5] LOO-within-train spearman +0.6902 | h=0.3936389276332444
+[21:57:03]   [primary_root_like_subtree/knn__tree__k10] LOO-within-train spearman +0.6910 | h=0.3936389276332444
+[21:57:03]   [primary_root_like_subtree/knn__both__k1] LOO-within-train spearman +0.6494 | h=None
+[21:57:06]   [primary_root_like_subtree/knn__both__k3] LOO-within-train spearman +0.6904 | h=0.23270608529823847
+[21:57:10]   [primary_root_like_subtree/knn__both__k5] LOO-within-train spearman +0.6937 | h=0.31031855214002757
+[21:57:14]   [primary_root_like_subtree/knn__both__k10] LOO-within-train spearman +0.6945 | h=0.31031855214002757
+[21:57:14]   [gates G1/G2/G4] rebuilt Epool/mu reproduce C5's banked baselines to 0
+[21:57:14]   [primary_root_like_subtree/knn__latent__k1] spearman -0.0357 | ndcg@5 0.1762 | emission cos raw +0.9110 mr +0.3730
+[21:57:14]   [primary_root_like_subtree/knn__latent__k3] spearman +0.0145 | ndcg@5 0.2766 | emission cos raw +0.9119 mr +0.5098
+[21:57:15]   [primary_root_like_subtree/knn__latent__k5] spearman +0.0611 | ndcg@5 0.2643 | emission cos raw +0.9091 mr +0.5045
+[21:57:15]   [primary_root_like_subtree/knn__latent__k10] spearman +0.0843 | ndcg@5 0.2535 | emission cos raw +0.9076 mr +0.5013
+[21:57:15]   [primary_root_like_subtree/knn__tree__k1] spearman +0.1571 | ndcg@5 0.0992 | emission cos raw +0.9130 mr +0.4241
+[21:57:15]   [primary_root_like_subtree/knn__tree__k3] spearman +0.1506 | ndcg@5 0.1181 | emission cos raw +0.9254 mr +0.4636
+[21:57:16]   [primary_root_like_subtree/knn__tree__k5] spearman +0.1550 | ndcg@5 0.1233 | emission cos raw +0.9198 mr +0.4452
+[21:57:16]   [primary_root_like_subtree/knn__tree__k10] spearman +0.1550 | ndcg@5 0.1233 | emission cos raw +0.9198 mr +0.4452
+[21:57:16]   [primary_root_like_subtree/knn__both__k1] spearman +0.1571 | ndcg@5 0.0992 | emission cos raw +0.9130 mr +0.4241
+[21:57:16]   [primary_root_like_subtree/knn__both__k3] spearman +0.1286 | ndcg@5 0.1054 | emission cos raw +0.9088 mr +0.3802
+[21:57:16]   [primary_root_like_subtree/knn__both__k5] spearman +0.1194 | ndcg@5 0.0873 | emission cos raw +0.9132 mr +0.3059
+[21:57:17]   [primary_root_like_subtree/knn__both__k10] spearman +0.1218 | ndcg@5 0.0951 | emission cos raw +0.9172 mr +0.3186
+[21:57:17]   [primary_root_like_subtree/floor__global_mean_train_profile] spearman +0.3103 | ndcg@5 0.3405 | emission cos raw +0.9288 mr +0.4788
+[21:57:17]   [primary_root_like_subtree/floor__popularity_prior] spearman +0.2058 | ndcg@5 0.0446 | emission cos raw +0.9346 mr +0.5252
+[21:57:17]   [primary_root_like_subtree/floor__chance_random_permuted_profile] spearman +0.0093 | ndcg@5 0.1369 | emission cos raw +0.9368 mr +0.4840
+[21:57:17]   [primary_root_like_subtree/floor__state_blind_constant_target_TRAIN_MEAN] spearman +nan | ndcg@5 nan | emission cos raw +0.9489 mr +0.6043
+[21:57:17]   [primary_root_like_subtree/floor__state_blind_constant_target_D3_LOO_mean_of_other_71] spearman +nan | ndcg@5 nan | emission cos raw +0.9502 mr +0.6192
+[21:57:17]   [primary_root_like_subtree/floor__chance_random_direction] spearman +nan | ndcg@5 nan | emission cos raw +0.8722 mr -0.0047
+[21:57:18]   [primary_root_like_subtree/ceiling__oracle_TRUE_profile_on_shared_set] spearman +1.0000 | ndcg@5 1.0000 | emission cos raw +0.9917 mr +0.9436
+[22:00:55] === secondary_depth_ge_5: 42 training states, 30 held out ===
+[22:00:56]   [secondary_depth_ge_5/knn__latent__k1] LOO-within-train spearman +0.5119 | h=None
+[22:01:00]   [secondary_depth_ge_5/knn__latent__k3] LOO-within-train spearman +0.5454 | h=0.05936618296683631
+[22:01:04]   [secondary_depth_ge_5/knn__latent__k5] LOO-within-train spearman +0.5593 | h=0.14077940529305444
+[22:01:09]   [secondary_depth_ge_5/knn__latent__k10] LOO-within-train spearman +0.5609 | h=0.10556966082252842
+[22:01:09]   [secondary_depth_ge_5/knn__tree__k1] LOO-within-train spearman +0.5237 | h=None
+[22:01:13]   [secondary_depth_ge_5/knn__tree__k3] LOO-within-train spearman +0.5987 | h=0.5
+[22:01:18]   [secondary_depth_ge_5/knn__tree__k5] LOO-within-train spearman +0.6015 | h=0.3749471046662279
+[22:01:22]   [secondary_depth_ge_5/knn__tree__k10] LOO-within-train spearman +0.6023 | h=0.3749471046662279
+[22:01:22]   [secondary_depth_ge_5/knn__both__k1] LOO-within-train spearman +0.5631 | h=None
+[22:01:28]   [secondary_depth_ge_5/knn__both__k3] LOO-within-train spearman +0.6041 | h=0.31780924677353595
+[22:01:33]   [secondary_depth_ge_5/knn__both__k5] LOO-within-train spearman +0.6083 | h=0.31780924677353595
+[22:01:37]   [secondary_depth_ge_5/knn__both__k10] LOO-within-train spearman +0.6094 | h=0.31780924677353595
+[22:01:39]   [gates G1/G2/G4] rebuilt Epool/mu reproduce C5's banked baselines to 0
+[22:01:39]   [secondary_depth_ge_5/knn__latent__k1] spearman +0.4906 | ndcg@5 0.3324 | emission cos raw +0.9351 mr +0.4613
+[22:01:40]   [secondary_depth_ge_5/knn__latent__k3] spearman +0.5031 | ndcg@5 0.3839 | emission cos raw +0.9320 mr +0.4888
+[22:01:41]   [secondary_depth_ge_5/knn__latent__k5] spearman +0.4639 | ndcg@5 0.3887 | emission cos raw +0.9370 mr +0.5301
+[22:01:41]   [secondary_depth_ge_5/knn__latent__k10] spearman +0.4699 | ndcg@5 0.3914 | emission cos raw +0.9371 mr +0.5198
+[22:01:42]   [secondary_depth_ge_5/knn__tree__k1] spearman +0.4878 | ndcg@5 0.3243 | emission cos raw +0.9302 mr +0.4656
+[22:01:42]   [secondary_depth_ge_5/knn__tree__k3] spearman +0.4949 | ndcg@5 0.3274 | emission cos raw +0.9274 mr +0.4435
+[22:01:43]   [secondary_depth_ge_5/knn__tree__k5] spearman +0.4925 | ndcg@5 0.3323 | emission cos raw +0.9287 mr +0.4510
+[22:01:44]   [secondary_depth_ge_5/knn__tree__k10] spearman +0.4926 | ndcg@5 0.3323 | emission cos raw +0.9287 mr +0.4510
+[22:01:44]   [secondary_depth_ge_5/knn__both__k1] spearman +0.4878 | ndcg@5 0.3243 | emission cos raw +0.9302 mr +0.4656
+[22:01:45]   [secondary_depth_ge_5/knn__both__k3] spearman +0.4984 | ndcg@5 0.3354 | emission cos raw +0.9299 mr +0.4621
+[22:01:45]   [secondary_depth_ge_5/knn__both__k5] spearman +0.4985 | ndcg@5 0.3354 | emission cos raw +0.9299 mr +0.4621
+[22:01:46]   [secondary_depth_ge_5/knn__both__k10] spearman +0.4985 | ndcg@5 0.3391 | emission cos raw +0.9298 mr +0.4610
+[22:01:46]   [secondary_depth_ge_5/floor__global_mean_train_profile] spearman +0.2598 | ndcg@5 0.2512 | emission cos raw +0.9370 mr +0.4978
+[22:01:46]   [secondary_depth_ge_5/floor__popularity_prior] spearman +0.0691 | ndcg@5 0.0602 | emission cos raw +0.9384 mr +0.4674
+[22:01:47]   [secondary_depth_ge_5/floor__chance_random_permuted_profile] spearman -0.0086 | ndcg@5 0.0718 | emission cos raw +0.9508 mr +0.4921
+[22:01:47]   [secondary_depth_ge_5/floor__state_blind_constant_target_TRAIN_MEAN] spearman +nan | ndcg@5 nan | emission cos raw +0.9602 mr +0.6032
+[22:01:47]   [secondary_depth_ge_5/floor__state_blind_constant_target_D3_LOO_mean_of_other_71] spearman +nan | ndcg@5 nan | emission cos raw +0.9623 mr +0.6200
+[22:01:48]   [secondary_depth_ge_5/floor__chance_random_direction] spearman +nan | ndcg@5 nan | emission cos raw +0.8947 mr -0.0225
+[22:01:48]   [secondary_depth_ge_5/ceiling__oracle_TRUE_profile_on_shared_set] spearman +1.0000 | ndcg@5 1.0000 | emission cos raw +0.9898 mr +0.9144
+[22:04:09] [done] wrote C:\dev\phd\casper\experiments\paperC\c7_knn.json in 12.1 min

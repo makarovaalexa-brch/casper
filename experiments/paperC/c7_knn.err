@@ -1,0 +1,4 @@
+C:\dev\phd\casper\src\instrument\c7_knn_profile.py:570: RuntimeWarning: Mean of empty slice
+  log(f"  [{cell}/{an}] spearman {np.nanmean(v['sp']):+.4f} "
+C:\dev\phd\casper\src\instrument\c7_knn_profile.py:571: RuntimeWarning: Mean of empty slice
+  f"| ndcg@5 {np.nanmean(v['nd']):.4f} | emission cos raw "
