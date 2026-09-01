@@ -196,7 +196,8 @@ Cold tree (done), anchor teachers, split-criterion ablation, Acts 1–4. All fro
 | **W4** | State the protocol flat: fitted on train, evaluated on validation. **One sentence. No narrative.** | — |
 | **W5** | One clause noting group trees used 2,000 fitting users against the incumbent's 10,000 (conservative) | — |
 | **W6** | Elevate the ablation to **prescription** in abstract + intro: optimise the reported metric, and only that | — |
-| **W7** | **Run GreedyExtend** (`golbandi2010bootstrapping`) — the missing external *static* anchor | few h |
+| **W7** | **Run GreedyExtend** (`golbandi2010bootstrapping`) — the missing external *static* anchor. **Author ruling 2026-08-29: "run it just for the sake of it" — completeness, not a headline arm.** ⚠ Its objective is **RMSE**, items-only; ours is greedy on **NDCG@10** over 500 items + 500 concepts. Same algorithm, different objective/action space, so **do NOT rename our static to GreedyExtend** — ours optimises the reported metric and is therefore the HARDER static baseline; W7 should widen the adaptive margin, not threaten it. ⚠ CIKM'10 full text unobtainable — any implementation is a reconstruction from WSDM'11 §3.1.1 + patent US8510248B2 and must be labelled as one. ⚠ **If it is ever to appear on TEST it must run BEFORE the confirmatory look** | few h |
+| **W13** | **MovieLens user-segmentation literature** — never searched (`INDEX.md` has zero hits for segment/user cluster/taste group). Author asked on 2026-08-28 and it was skipped; the clustering was built from scratch instead. Needed for related work and for "why these six groups", NOT for the result. Commit to `external_literature/` per hard rule 4 | ~1 h |
 | **W8** | Adopt the "the objective is the bug" spine | — |
 | **W9** | Distillation = infrastructure, never a contribution (§1.1) | — |
 | **W10** | Rewrite the Act 5 scope paragraph — the *upper bound* caveat dies once both arms are fitted off-cohort | 3.7 |

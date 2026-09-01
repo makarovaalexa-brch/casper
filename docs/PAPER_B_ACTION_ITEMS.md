@@ -16,9 +16,12 @@ validation-keyed table, 597/2,000 matched silently). See
 `memory/cross-population-index-match-is-silent.md`. Guards added; artifacts quarantined.
 
 **STILL TRUE and unaffected** (validation-fitted trees, correct centroids throughout):
-M6l in-sample (vs static 6/6, vs anchor 5/6, vs cold 4/6) and M6m held-out on train users
-(vs cold 3/6, vs anchor 4/6, pooled +0.00278) — **the stop rule tripped on that evidence**, and the
-running refit is the attempt to clear it with more data and depth.
+M6l in-sample (vs static 6/6, vs anchor 5/6, vs cold 4/6).
+⛔ **RETRACTED 2026-08-21 — the M6m train-user held-out figures, INCLUDING pooled `+0.00278`, are
+NOT still true.** Holding out on train users does not cancel the inflation: the tree is still at
+home on the population it memorised, which inflated tree−cold by +0.023. See memory
+`train-user-contrast-does-not-cancel-inflation`. The M6m train-user programme is demoted; what
+survives is that the tree beats STATIC, not that it beats the cold tree.
 
 **OPEN CHECK, cheap, do when the box is free:** is concept-side centroid lift genuinely
 group-specific? The corrupted and correct centroids produced the same six genres and six tones.

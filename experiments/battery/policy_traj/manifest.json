@@ -1,6 +1,7 @@
 {
  "sig": {
-  "v": 1,
+  "v": 2,
+  "outcome_labels": "three-way branch_of over the full catalogue",
   "split": "train",
   "n_train": 140768,
   "total_L": 16,
@@ -27,7 +28,7 @@
  "done": {
   "0_10000": {
    "n_users": 10000,
-   "minutes": 0.99,
+   "minutes": 0.51,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1861,
     "root.noanswer.dislike": 469,
@@ -117,7 +118,7 @@
   },
   "10000_20000": {
    "n_users": 10000,
-   "minutes": 1.14,
+   "minutes": 0.49,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1788,
     "root.noanswer.dislike": 417,
@@ -207,7 +208,7 @@
   },
   "20000_30000": {
    "n_users": 10000,
-   "minutes": 1.03,
+   "minutes": 0.48,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1762,
     "root.noanswer.dislike": 458,
@@ -297,7 +298,7 @@
   },
   "30000_40000": {
    "n_users": 10000,
-   "minutes": 1.04,
+   "minutes": 0.62,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1721,
     "root.noanswer.dislike": 425,
@@ -387,7 +388,7 @@
   },
   "40000_50000": {
    "n_users": 10000,
-   "minutes": 1.16,
+   "minutes": 0.56,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1784,
     "root.noanswer.dislike": 428,
@@ -477,7 +478,7 @@
   },
   "50000_60000": {
    "n_users": 10000,
-   "minutes": 1.26,
+   "minutes": 0.5,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1755,
     "root.noanswer.dislike": 429,
@@ -567,7 +568,7 @@
   },
   "60000_70000": {
    "n_users": 10000,
-   "minutes": 1.35,
+   "minutes": 0.48,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1775,
     "root.noanswer.dislike": 453,
@@ -657,7 +658,7 @@
   },
   "70000_80000": {
    "n_users": 10000,
-   "minutes": 1.27,
+   "minutes": 0.5,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1735,
     "root.noanswer.dislike": 422,
@@ -747,7 +748,7 @@
   },
   "80000_90000": {
    "n_users": 10000,
-   "minutes": 1.29,
+   "minutes": 0.42,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1765,
     "root.noanswer.dislike": 442,
@@ -837,7 +838,7 @@
   },
   "90000_100000": {
    "n_users": 10000,
-   "minutes": 1.11,
+   "minutes": 0.43,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1744,
     "root.noanswer.dislike": 431,
@@ -927,7 +928,7 @@
   },
   "100000_110000": {
    "n_users": 10000,
-   "minutes": 1.46,
+   "minutes": 0.43,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1785,
     "root.noanswer.dislike": 441,
@@ -1017,7 +1018,7 @@
   },
   "110000_120000": {
    "n_users": 10000,
-   "minutes": 1.28,
+   "minutes": 0.45,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1739,
     "root.noanswer.dislike": 454,
@@ -1107,7 +1108,7 @@
   },
   "120000_130000": {
    "n_users": 10000,
-   "minutes": 1.36,
+   "minutes": 0.43,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1799,
     "root.noanswer.dislike": 432,
@@ -1197,7 +1198,7 @@
   },
   "130000_140000": {
    "n_users": 10000,
-   "minutes": 1.3,
+   "minutes": 0.43,
    "leaf_sizes": {
     "root.noanswer.noanswer": 1747,
     "root.noanswer.dislike": 464,
@@ -1287,7 +1288,7 @@
   },
   "140000_140768": {
    "n_users": 768,
-   "minutes": 0.08,
+   "minutes": 0.06,
    "leaf_sizes": {
     "root.noanswer.noanswer": 116,
     "root.noanswer.dislike": 47,
@@ -1376,7 +1377,7 @@
    }
   }
  },
- "started": "2026-08-13 13:08:31",
+ "started": "2026-08-13 18:23:19",
  "leaf_ids": [
   "root.dislike.dislike.dislike.dislike",
   "root.dislike.dislike.dislike.like",

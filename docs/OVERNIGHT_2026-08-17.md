@@ -23,9 +23,10 @@ the author's own insight, which is Part L. The closure stands unless L overturns
 **K.6, the resolution of the whole arc:** the tree's label is computed FROM THE STATE (a true function
 of the policy's input — E1 learned it exactly, 1e-9); the per-user optimal question is computed FROM
 THE HELD-OUT TARGETS, so the mapping is not a function of the input and no data supplies it. Infinite
-per-user data converges back to the greedy criterion — the tree we already hold. Measured: oracle
-**+0.229** · best cohort-wide question **+0.0115** · trained cold arm **+0.0153** (null vs both
-controls). **~95% of the per-user prize is information the interview has not yet revealed** — which is
+per-user data converges back to the greedy criterion — the tree we already hold. Measured (⚠ **CORRECTED**; the original +0.229 / +0.0115 / +0.0153 were audited WRONG —
+never quote them): oracle **+0.19366** all-user · best cohort-wide question **+0.009664** ·
+the "trained cold arm +0.0153" **does not exist in `experiments/`** (real cells k=2 +0.00422 null,
+k=4 +0.00074 null, k=8 +0.00771). **~95% of the per-user prize is information the interview has not yet revealed** — which is
 why interviews exist, not a modelling failure. *This is June's clairvoyant-teacher lesson in a new
 costume, and I designed Part K without recognising it.*
 

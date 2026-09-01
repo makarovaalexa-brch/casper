@@ -81,9 +81,27 @@ def main():
     ap.add_argument("--disjoint", default="",
                     help="m7b_disjoint.npz: disjoint validation groups and exclusive opener "
                          "material; teachers read from m6k_dj<group>.")
+    ap.add_argument("--scramble_openers", action="store_true",
+                    help="CONTROL: hand each user ANOTHER user's real opener. Breaks the "
+                         "correspondence, preserves the distribution. If routing survives "
+                         "this, the opener is not what the router reads.")
+    ap.add_argument("--split", default="validation", choices=["validation", "test"],
+                    help="THE CONFIRMATORY SPLIT. With --split test you MUST also pass --load_tabs; "
+                         "recomputing the opener material on test fits the opener generator on the "
+                         "confirmatory set and silently invalidates the run.")
+    ap.add_argument("--bank_tabs", default="",
+                    help="write the per-group opener material (lift_item, lift_conc, pool) so a "
+                         "later run can REUSE it instead of refitting.")
+    ap.add_argument("--load_tabs", default="",
+                    help="read banked opener material instead of computing it. REQUIRED for "
+                         "--split test.")
     ap.add_argument("--i_have_author_goahead", action="store_true")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
+    assert not (a.split == "test" and not a.load_tabs), (
+        "--split test REQUIRES --load_tabs. The opener material (each group's centroid lift and "
+        "diagnostic film pool) is a FITTED quantity; recomputing it on test users would fit the "
+        "opener generator on the confirmatory split and produce plausible, meaningless numbers.")
     torch.set_num_threads(a.threads)
     np.random.seed(SEED)
 
@@ -98,19 +116,32 @@ def main():
     cname, _iname = build_names()
 
     log("#" * 100)
-    log(f"# M6 {a.mode.upper()} -- VALIDATION ONLY, half {a.half!r} openers")
+    log(f"# M6 {a.mode.upper()} -- SPLIT={a.split.upper()}, half {a.half!r} openers")
+    if a.split == "test":
+        log("# " + "!" * 96)
+        log("# CONFIRMATORY TEST LOOK. Material is REUSED from banked validation artefacts, never")
+        log("# refitted. Only the users and their own-data group assignment come from test.")
+        log("# " + "!" * 96)
     log("#" * 100)
     ck = torch.load(a.ckpt, map_location="cpu", weights_only=False)
     log(f"[ckpt] epoch {ck['epoch']} arch={ck['arch']} encoding={ck.get('anchor_encoding')}")
     assert ck.get("anchor_encoding") == "none", \
         "M6 policies are STATE-ONLY by necessity -- there is no token to announce"
 
-    E = build_greedy_env(CERT_TOWER, "validation", CERT_CONC, f"m6{a.mode}")
+    E = build_greedy_env(CERT_TOWER, a.split, CERT_CONC, f"m6{a.mode}")
     leak_assert(E, E["rows"], f"m6{a.mode}")
     rows_all = np.asarray(E["rows"], np.int64)
     f0, _ = genv_mean(E, [], rows_all)
-    assert round(f0, 8) == round(VAL_M0_FULL, 8), f"CANONICAL SNAP FAILED: {f0!r}"
-    log(f"[gate] canonical m=0 snap full={f0!r} -- exact")
+    if a.split == "validation":
+        assert round(f0, 8) == round(VAL_M0_FULL, 8), f"CANONICAL SNAP FAILED: {f0!r}"
+        log(f"[gate] canonical m=0 snap full={f0!r} -- exact")
+    else:
+        # No banked m=0 exists for test, so this cannot be an equality gate. It is still recorded:
+        # a value far from the validation snap means a broken environment, not a real effect.
+        log(f"[gate] test m=0 snap full={f0!r} (validation reference {VAL_M0_FULL!r})")
+        assert 0.5 * VAL_M0_FULL < f0 < 2.0 * VAL_M0_FULL, (
+            f"test m=0 {f0!r} is implausible against the validation reference "
+            f"{VAL_M0_FULL!r} -- the environment is broken, do not read these numbers")
 
     pool, _i, _c = build_pool(E, 500, 500)
     assert [list(q) for q in pool] == ck["pool"], "the pool is not the pool the policy was trained on"
@@ -149,11 +180,27 @@ def main():
         d = json.load(open(p, encoding="utf-8"))
         nd = d["nodes"]
         trees[g] = {r["nid"]: r for r in nd} if isinstance(nd, list) else nd
-        coh = rows_all[endorse[rows_all, ANCHORS[g]]]
-        tabs[g] = centroid_lift(E, coh, ZF, ZR)
+        if a.load_tabs:
+            _bk = np.load(a.load_tabs, allow_pickle=True)
+            tabs[g] = {"lift_item": _bk[f"{g}__lift_item"], "lift_conc": _bk[f"{g}__lift_conc"],
+                       "pool": set(int(x) for x in _bk[f"{g}__pool"])}
+        else:
+            coh = rows_all[endorse[rows_all, ANCHORS[g]]]
+            tabs[g] = centroid_lift(E, coh, ZF, ZR)
         groups.append(g)
     assert groups, "no opener-fitted trees found"
     log(f"[groups] {groups}")
+    if a.load_tabs:
+        log(f"[material] REUSED from {os.path.basename(a.load_tabs)} -- not refitted on {a.split}. "
+            + " ".join(f"{g}:pool={len(tabs[g]['pool'])}" for g in groups))
+    if a.bank_tabs:
+        _out = {}
+        for g in groups:
+            _out[f"{g}__lift_item"] = np.asarray(tabs[g]["lift_item"])
+            _out[f"{g}__lift_conc"] = np.asarray(tabs[g]["lift_conc"])
+            _out[f"{g}__pool"] = np.asarray(sorted(int(x) for x in tabs[g]["pool"]), np.int64)
+        np.savez_compressed(a.bank_tabs, **_out)
+        log(f"[material] banked {len(groups)} groups -> {a.bank_tabs}")
 
     # ---- assign every user to at most ONE group, by nearest centroid (declared rule) ----------
     cent = {g: ZF[[zpos[int(r)] for r in rows_all[endorse[rows_all, ANCHORS[g]]]
@@ -163,11 +210,30 @@ def main():
         # Use the BANKED assignment, not nearest-centroid. The teachers were fitted on exactly
         # these groups; re-deriving membership by a different rule here would score each tree on a
         # population it was not fitted for, which is the confound this whole redesign removed.
-        _vr, _vg, _vh = _Dd["val_rows"], _Dd["val_group"], _Dd["val_has"]
-        for r, gi, ok in zip(_vr, _vg, _vh):
-            if ok and _DJN[int(gi)] in groups:
-                assign[int(r)] = _DJN[int(gi)]
-        log(f"[assign] banked disjoint assignment: {len(assign)} warm users, one group each")
+        # The RULE (m7b_disjoint.assign_users): each user -> the group they endorse most strongly.
+        # It reads only the user's OWN signed values, so it fits nothing and is applied identically
+        # on any split. On validation we additionally assert it reproduces the banked assignment
+        # exactly, which is what licenses using it on test.
+        _cids = np.array([ANCHORS[g] for g in _DJN], np.int64)
+        _Vs = V[:, _cids].astype(np.float64).copy()
+        _Es = endorse[:, _cids]
+        _Vs[~_Es] = -np.inf
+        _best, _has = _Vs.argmax(1).astype(np.int32), _Es.any(1)
+        for r in rows_all:
+            if _has[int(r)] and _DJN[int(_best[int(r)])] in groups:
+                assign[int(r)] = _DJN[int(_best[int(r)])]
+        if a.split == "validation":
+            _bank = {int(r): _DJN[int(gi)] for r, gi, ok in
+                     zip(_Dd["val_rows"], _Dd["val_group"], _Dd["val_has"])
+                     if ok and _DJN[int(gi)] in groups}
+            assert _bank == assign, (
+                f"the assignment RULE does not reproduce the banked validation assignment "
+                f"({len(_bank)} banked vs {len(assign)} derived) -- it may not be used on test")
+            log(f"[assign] rule reproduces the banked validation assignment EXACTLY "
+                f"({len(assign)} warm users)")
+        else:
+            log(f"[assign] rule applied to {a.split}: {len(assign)} warm users, one group each "
+                f"(own-data argmax; nothing fitted)")
     else:
         for r in rows_all:
             mine = [g for g in groups if endorse[int(r), ANCHORS[g]]]
@@ -196,7 +262,30 @@ def main():
         log(f"  [{g}] {len(rows_g)} users · pool(half {a.half}) {meta['pool_size']} · "
             f"film {meta['n_film'] / max(meta['n'], 1):.3f} unserved {meta['unserved']}")
 
-    results = {"mode": a.mode, "half": a.half, "split": "validation", "test_touched": False,
+    if a.scramble_openers:
+        # ⚠ Scramble the CORRESPONDENCE, never the distribution. Each user is handed ANOTHER user's
+        # REAL opener, drawn from the whole warm set -- never within-group, which would leave the
+        # group signal intact and prove nothing. Film popularity, length, coherence and the
+        # group-marginal mix survive exactly; only the link between this user and this opener dies.
+        # If routing survives this, the router is not reading the opener and the claim that the
+        # volunteered request carries the routing signal is DEAD.
+        ks = sorted(openers)
+        rng = np.random.default_rng(SEED)
+        src = np.asarray(ks, np.int64)[rng.permutation(len(ks))]
+        fixed = sum(1 for u, v in zip(ks, src) if int(u) == int(v))
+        for _ in range(20):
+            if fixed == 0:
+                break
+            src = np.asarray(ks, np.int64)[rng.permutation(len(ks))]
+            fixed = sum(1 for u, v in zip(ks, src) if int(u) == int(v))
+        assert fixed <= 1, f"{fixed} users kept their own opener -- that is not a scramble"
+        openers = {int(u): openers[int(v)] for u, v in zip(ks, src)}
+        log(f"[SCRAMBLE] openers permuted ACROSS {len(ks)} warm users, {fixed} fixed points -- "
+            f"correspondence broken, distribution identical")
+
+    results = {"mode": a.mode, "half": a.half, "split": a.split,
+               "test_touched": (a.split == "test"),
+               "material_reused_from": os.path.basename(a.load_tabs) if a.load_tabs else None,
                "n_warm": int(len(warm)), "n_cold": int(len(cold)), "cells": {}}
 
     def score(rows, ops, arms, tag):
@@ -285,7 +374,12 @@ def main():
             log(f"[{label:<18}] n={cell['n']:<6} K=15 policy {c['policy']:.5f} cold {c['cold']:.5f} "
                 f"static {c['static']:.5f} | vs cold {c['policy_minus_cold']:+.5f}{st} "
                 f"vs static {c['policy_minus_static']:+.5f}")
-    json.dump(results, open(os.path.join(M6, f"m6{a.mode}_{a.half}.json"), "w"), indent=1)
+    # ⚠ The split is IN THE FILENAME. Before 2026-08-29 both splits wrote to the same path with a
+    # hardcoded "split": "validation", so a test run silently overwrote the validation results and
+    # labelled itself test_touched=False. A filename is not provenance, but a shared filename is a
+    # provenance HAZARD: two populations must never contend for one path.
+    _sfx = "" if a.split == "validation" else f"_{a.split}"
+    json.dump(results, open(os.path.join(M6, f"m6{a.mode}_{a.half}{_sfx}.json"), "w"), indent=1)
     log("[done]")
 
 

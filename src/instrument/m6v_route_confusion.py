@@ -52,6 +52,10 @@ def main():
     ap.add_argument("--ckpt", default=os.path.join(B, "m4", "m6forest_policy.pt"))
     ap.add_argument("--cold_tree", default="coldtree_v2_train10000.json")
     ap.add_argument("--tree_suffix", default="_train2000")
+    ap.add_argument("--disjoint", default="",
+                    help="m7b_disjoint.npz: banked disjoint groups + exclusive opener "
+                         "material. MUST be passed when scoring a policy distilled from "
+                         "the m6k_dj* teachers.")
     ap.add_argument("--half", default="B", choices=["A", "B"])
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--i_have_author_goahead", action="store_true")
@@ -59,6 +63,11 @@ def main():
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
     torch.set_num_threads(a.threads)
     np.random.seed(SEED)
+    _DJN = ["arthouse", "dialogue", "marvel", "gore", "teenagers", "inspiring"]
+    if a.disjoint:
+        _d = np.load(a.disjoint)
+        _DJI, _DJC = _d["own_item"], _d["own_concept"]
+        _DJR, _DJG, _DJH = _d["val_rows"], _d["val_group"], _d["val_has"]
 
     from strategy_channel_suite import build_greedy_env, CERT_TOWER, CERT_CONC
     from ndcg_tree import build_pool, LIKE_MIN_LEVEL
@@ -77,7 +86,8 @@ def main():
     roots["cold"] = tuple(cold_nodes["root"]["splitter"])
     trees = {"cold": cold_nodes}
     for g in CONCEPTS:
-        p = os.path.join(M6, f"m6k_{g}{a.tree_suffix}.json")
+        p = os.path.join(M6, (f"m6k_dj{g}{a.tree_suffix}.json" if a.disjoint
+                              else f"m6k_{g}{a.tree_suffix}.json"))
         if not os.path.exists(p):
             continue
         d = json.load(open(p, encoding="utf-8"))
@@ -119,10 +129,12 @@ def main():
         if g not in trees:
             continue
         cid = CONCEPTS[g]
-        rows = vrows[((F > 0) & (V > 0))[vrows, cid]]
-        tab = centroid_lift(E, rows, ZF, ZR)
+        coh = vrows[((F > 0) & (V > 0))[vrows, cid]]   # centroid: overlapping, as m7b/m6d
+        rows = (_DJR[(_DJG == _DJN.index(g)) & _DJH] if a.disjoint else coh)
+        tab = centroid_lift(E, coh, ZF, ZR)
+        _dj = None if not a.disjoint else (_DJI, _DJC, _DJN.index(g))
         ops_l, _m = make_openers(E, rows, tab, cname, LIKE_MIN_LEVEL, seed=SEED,
-                                 half=a.half, group_key=g)
+                                 half=a.half, group_key=g, disjoint=_dj)
         ops = {int(r): list(o) for r, o in zip(rows, ops_l)}
         seqs = rollout_with_openers(E, pol, phi_ext, pool, rows, ops, TOTAL_L)
         first = [tuple(s[0]) for s in seqs]
@@ -150,6 +162,13 @@ def main():
     log("[where the mistakes go] share of ALL warm users routed to each tree:")
     for x in names:
         log(f"    {x:<11} {tot[x] / max(N,1):.3f}")
+    _oth = sum(r["other"] * r["n"] for r in out["rows"].values()) / max(N, 1)
+    assert _oth < 0.5, (
+        f"ROUTING GUARD FAILED: {_oth:.3f} of warm users opened with a question that is NO "
+        f"tree's root. A policy distilled from these teachers cannot do that, so the trees "
+        f"loaded here are NOT the trees it was distilled from. Check --disjoint/--tree_suffix. "
+        f"Seen 2026-08-29: m6v loaded the overlapping m6k_<g> trees against a policy distilled "
+        f"from m6k_dj<g> and reported routing 0.000 for five of six groups.")
     log("[reading] one dominant wrong column => class imbalance / default attractor (cheap fix);")
     log("          spread => the folded opener does not separate the cohorts (expensive fix).")
     log("[done]")

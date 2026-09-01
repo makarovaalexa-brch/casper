@@ -1,3 +1,20 @@
+> ⚠ **SUPERSEDED 2026-08-28 by the M7b DISJOINT design** (`src/instrument/m7b_disjoint.py`,
+> results in `PAPER_B_FINAL_AUDIT_2026-08-25.md`). The plan below — group-free openers, clustering
+> opener STATES, one tree at k=1 — was built and then rejected by the author:
+>
+> > *"please go back to our original clusters, original approach, and think how to fix it to make
+> > routing work. why we couldn't just keep the clusters, but switch to clusters from endorsement
+> > cohort?"*
+>
+> The endorsement cohorts were KEPT and made a **partition** instead, via two argmaxes: each user →
+> the group they endorse most strongly; each film and concept → the group whose centroid lift for it
+> is highest. Measured outcome: routing separability **0.371 → 0.959** with teacher value preserved
+> (`opener−cold +0.00688 [+0.00250,+0.01128]`, against +0.00760 under the overlapping cohorts).
+>
+> **The diagnosis in "WHY THE PREVIOUS DESIGN COULD NOT DELIVER IT" below is still correct and is
+> still the reason the redesign happened — only the FIX changed.** `make_openers_free()` in
+> `opener_gen.py` was built for this plan and is NOT used by the shipped arm.
+
 # M7 — one universal policy, conditioned on state
 
 **Design recorded 2026-08-28, author's ruling.** Supersedes the cohort/cluster routing work in

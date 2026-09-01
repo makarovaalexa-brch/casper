@@ -1,5 +1,107 @@
 # STATE — where the project is now
 
+## ★★★ 2026-08-29 (late) — THE TEST LOOK IS SPENT AND IT REPLICATES
+
+**AUTHOR SAID:** *"continue with todos, inclusing test look"* · *"just no preregistration of anything,
+just go ahead and run. and yes, no refitting, as you suggested"*.
+
+### The confirmatory result — ONE pass, 10,000 test users, K=15
+
+| | TEST | VALIDATION |
+|---|---|---|
+| ALL n=10,000 | **+0.00343\*** (policy 0.26842 / cold 0.26499 / static 0.25691) | +0.00333\* |
+| warm n=3,877 | **+0.00946\*** | +0.00892\* |
+| cold n=6,123 (do-no-harm) | **−0.00038** | −0.00037 |
+
+`vs static +0.01151` on ALL. Three contrasts, three near-exact reproductions on unseen users.
+
+### How contamination was avoided
+- **Material REUSED, never refitted.** `own_item`, `own_concept`, group centroids and half-B pools all
+  come from the banked validation artefacts (`m7_tabs_val.npz`). Verified: per-group half-B pools on
+  test are **473/58/444/191/242/74**, byte-identical to validation. `--split test` REFUSES to run
+  without `--load_tabs`, because `m6d_eval.py:156` would otherwise refit the opener generator on the
+  confirmatory split and print plausible, meaningless numbers.
+- **Assignment by RULE, verified first.** The own-data argmax was asserted to reproduce the banked
+  validation assignment EXACTLY (3,980 warm users) before being applied to test.
+- Leak assert `0/10000`; test m=0 `0.15855` vs validation reference `0.15687`.
+
+### Per group on test (route root · policy · tree · cold · vs cold)
+```
+arthouse   464  0.843  .29621 .30046 .27964  +0.01657*
+dialogue   395  0.792  .23299 .22940 .21894  +0.01404*
+inspiring 1526  0.855  .25195 .25534 .24338  +0.00857*
+gore       391  0.816  .33406 .33208 .32595  +0.00811
+teenagers  502  0.741  .24405 .24179 .23712  +0.00692
+marvel     599  0.957  .42555 .42534 .41933  +0.00622
+```
+
+⚠ **The per-group pattern is NOT stable across splits.** `dialogue` and `inspiring` were flat on
+validation and both clear zero on test; `arthouse` fell +0.03077\* → +0.01657\*. At 391–1,526 users
+per group this is expected. **Quote the pooled contrast, not the per-group ranking**, and the chapter
+claim that the two film-poor groups gain nothing is a VALIDATION-SPECIFIC pattern that must be
+corrected.
+
+### Framing (author, 2026-08-29)
+The contribution is that the policy is **one extendable artefact**, not that it beats every tree.
+★ The tree arm is HANDED its group (`m6d_eval.py:257`); the policy gets no label and must route
+itself — so `policy − tree` understates the policy. A deployable forest+router comparator was
+considered and **ruled out by the author**.
+
+### NEXT
+Chapter: swap test numbers into `sec:onepolicy`, correct the film-poor-groups claim, then W6/W8,
+`\PLAN{}` triage, abstract/intro. GreedyExtend analogue (`greedy_static_policyB_items_train10000.json`,
+125 min) is a validation-only reference row.
+
+
+## ★★★ 2026-08-29 — THE POLICY BEATS COLD ON THE DEPLOYMENT MIX. Disjointing the cohorts did it.
+
+**AUTHOR SAID:** *"please go back to our original clusters, original approach, and think how to fix
+it to make routing work. why we couldn't just keep the clusters, but switch to clusters from
+endorsement cohort?"* · *"ok, do it. and if i don't come back, proceed to tree building, as long as
+all looks ok"* · *"continue with this please, proceed to distillation etc"*.
+
+### The fix (`src/instrument/m7b_disjoint.py`)
+Two argmaxes make the six endorsement cohorts a **partition**: each user → the group they endorse
+most strongly; each film and concept → the group whose centroid lift is highest. Centroids stay on
+the OVERLAPPING cohort (as m7b/m6d do) — only the *material* and the *user assignment* are disjoint.
+This keeps the author's original cohorts and fixes only what made them unroutable: marvel/inspiring
+shared 10 of 12 characteristic words and 31% of opener films sat in more than one pool.
+
+### Results — all trees fitted on TRAIN, all numbers on VALIDATION, K=15. **Test look unspent.**
+| | before | after |
+|---|---|---|
+| probe separability | 0.371 | **0.959** |
+| routing, n-weighted | 0.553 (marvel 0.364) | **0.858** (marvel **0.958**) |
+| teacher opener−cold, pooled | +0.00760* | **+0.00688 [+0.00250,+0.01128]\*** |
+| policy−cold, deployment mix | +0.00085 n.s. | **+0.00333\*** |
+
+- pooled order holds: `static 0.27365 < cold 0.27859 < opener 0.28547`
+- one policy, SEVEN teachers, ep5 mean dev top-1 **0.9910**, every bank ≥ 0.982
+- mix n=10,000 **+0.00333\*** · warm n=3,980 **+0.00892\*** · cold n=6,020 **−0.00037** (do-no-harm
+  holds but is nominally negative — report as measured, do not round to zero)
+- half-B, films excluded from every training opener: arthouse **+0.03077\***, gore **+0.01980\***,
+  teenagers **+0.01313\***, marvel +0.00643, dialogue +0.00155, inspiring +0.00074
+- ★ capture: teachers' weighted warm advantage +0.00877 vs policy +0.00892 ⇒ **~100% inherited**,
+  against 30% before. The policy did not get better at recommending — it got better at knowing which
+  teacher to consult. **The entire previous shortfall was routing, not fidelity.**
+
+⚠ `dialogue` and `inspiring` are flat; they kept only 58 and 74 half-B films and lean on generic
+vocabulary. Predicted in writing before the fit.
+
+### ⛔ A harness bug that printed a plausible catastrophe
+`m6v_route_confusion.py` had no `--disjoint` branch (unlike `m6d_eval.py:144`), so it scored the new
+policy against the OLD `m6k_<g>` trees and reported routing **0.000 for five of six groups**. It
+contradicted 0.9910 dev fidelity an hour earlier, which is what flagged it. Fixed (tree path + banked
+assignment + disjoint opener material) and given a **guard asserting the "other" share < 0.5**. The
+corrected matrix reproduces m6d's route-root figures exactly.
+
+### NEXT
+Writing to-dos W1–W12 in `docs/design/PAPER_B_FINAL_AUDIT_2026-08-25.md`; **W7 (GreedyExtend, the
+missing external static anchor) is the only unrun experiment**. Literature gap: MovieLens user
+segmentation is essentially absent from `external_literature/`. `docs/design/M7_STATE_CONDITIONED_DESIGN.md`
+is SUPERSEDED (banner added) — it records the plan the author rejected.
+
+
 ## ★★★ 2026-08-19 (evening) — FIT THE TREE WHERE YOU MEAN TO SERVE. It works.
 
 **AUTHOR SAID:** *"try building the tree teacher on just one cluster for now, and then compare its
