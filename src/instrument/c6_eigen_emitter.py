@@ -281,7 +281,7 @@ def eig_top(Z, k=3):
         sk = float(((p / max(sd, 1e-30)) ** 3).mean()) if sd > 0 else 0.0
         if sk < 0:
             V[:, j] = -V[:, j]
-    return w, V[:, :k], Zc
+    return w, V[:, :k], Cv
 
 
 def unit(x, axis=-1):
@@ -496,6 +496,7 @@ def run(args):
         MU = np.zeros((N_SEARCHED, D_TOWER))          # cohort mean MINUS the root mean
         MUraw = np.zeros((N_SEARCHED, D_TOWER))       # the cohort mean itself
         halfcos = np.zeros(N_SEARCHED)
+        COV = np.zeros((N_SEARCHED, D_TOWER, D_TOWER))
         # the arm's own reference point for the "cohort mean direction" null, computed ONCE
         base = (root_mean_prof if arm == "profile" else
                 br.strip(genv_latent(E, [], list(rows)).numpy().astype(np.float64)).mean(0))
@@ -506,7 +507,8 @@ def run(args):
                 Z = Zprof_all_s[np.asarray([pos_of[int(r)] for r in idx], np.int64)]
             else:
                 Z = br.strip(genv_latent(E, s["prefix"], list(idx)).numpy().astype(np.float64))
-            w, V, Zc = eig_top(Z, 3)
+            w, V, Cv = eig_top(Z, 3)
+            COV[i] = Cv
             LAM[i] = w[:10]
             lam1_frac[i] = float(w[0] / max(w.sum(), 1e-30))
             p = w / max(w.sum(), 1e-30)
@@ -525,7 +527,7 @@ def run(args):
             halfcos[i] = abs(float(Va[:, 0] @ Vb[:, 0]))
             if (i + 1) % 12 == 0 or i == N_SEARCHED - 1:
                 log(f"  [{arm}] {i + 1}/{N_SEARCHED} states ({(time.time() - t0) / 60:.1f}m)")
-        arms[arm] = {"V1": V1, "V3": V3, "LAM": LAM, "lam1_frac": lam1_frac,
+        arms[arm] = {"V1": V1, "V3": V3, "LAM": LAM, "lam1_frac": lam1_frac, "COV": COV,
                      "eff_rank": eff_rank, "MU": MU, "MUraw": MUraw, "halfcos": halfcos}
         npz[f"{arm}_v1"] = V1
         npz[f"{arm}_eigvals10"] = LAM
@@ -564,6 +566,18 @@ def run(args):
                         for i in range(N_SEARCHED)])
         cos_other = np.abs((V1 * Ru[oth]).sum(1))
 
+        # -- the softer, better-posed form of the hypothesis ----------------------------------
+        # v1 is one direction of a 200-d covariance estimated from 200-10,000 users, so it can be
+        # noisy even if the CLAIM is true. The claim's robust form is "the target lies in a
+        # HIGH-VARIANCE direction of the cohort", which does not depend on picking the top axis:
+        #     variance ratio = (t' Sigma t) / (trace(Sigma) / d)   -- 1.0 means "no better than a
+        # random direction", and the same quantity for v1 is its own ceiling.
+        var_t = np.asarray([float(Ru[i] @ A["COV"][i] @ Ru[i]) for i in range(N_SEARCHED)])
+        var_iso = np.asarray([float(np.trace(A["COV"][i]) / D_TOWER) for i in range(N_SEARCHED)])
+        var_v1 = np.asarray([float(V1[i] @ A["COV"][i] @ V1[i]) for i in range(N_SEARCHED)])
+        vr_target = var_t / np.maximum(var_iso, 1e-300)
+        vr_v1 = var_v1 / np.maximum(var_iso, 1e-300)
+
         # -- span capture ---------------------------------------------------------------------
         span3 = np.zeros(N_SEARCHED)
         span3_rand = np.zeros(N_SEARCHED)
@@ -587,22 +601,27 @@ def run(args):
         tgt_best_pool = np.abs(Ru @ Qpool_u.T).max(1)
 
         # -- the selector ---------------------------------------------------------------------
-        sp_v1, sp_mu, sp_pop, sp_rand = ([] for _ in range(4))
-        nd_v1, nd_mu, nd_pop, nd_rand = ([] for _ in range(4))
+        SEL_ARMS = ("v1", "quad", "quad_x_answerrate", "mu", "pop", "rand")
+        sp = {k: [] for k in SEL_ARMS}
+        nd = {k: [] for k in SEL_ARMS}
         for i, s in enumerate(states):
             asked = {pool_index[q] for q in s["prefix"]}
             cand = np.asarray([q for q in sorted(s["gains"]) if q not in asked], np.int64)
             g = np.asarray([s["gains"][int(q)] for q in cand], np.float64)
             Q = Qpool_u[cand]
+            quad = np.einsum("ij,jk,ik->i", Q, A["COV"][i], Q)   # e_q' Sigma e_q, the full form
             sc = {"v1": np.abs(Q @ V1[i]),
+                  "quad": quad,
+                  "quad_x_answerrate": quad * ans_rate[cand],
                   "mu": np.abs(Q @ unit(MU[i])),
                   "pop": ans_rate[cand],
                   "rand": np.random.default_rng(SEED + 101 * i).standard_normal(len(cand))}
-            for k, acc_s, acc_n in (("v1", sp_v1, nd_v1), ("mu", sp_mu, nd_mu),
-                                    ("pop", sp_pop, nd_pop), ("rand", sp_rand, nd_rand)):
+            for k in SEL_ARMS:
                 r, _p = spearman(sc[k], g)
-                acc_s.append(r)
-                acc_n.append(ndcg_at_k(np.argsort(-sc[k]), g, 5))
+                sp[k].append(r)
+                nd[k].append(ndcg_at_k(np.argsort(-sc[k]), g, 5))
+        sp = {k: np.asarray(v) for k, v in sp.items()}
+        nd = {k: np.asarray(v) for k, v in nd.items()}
 
         def blk(sel, label):
             return {
@@ -630,19 +649,25 @@ def run(args):
                     "reference_abs_cos_TARGET_nearest_pool_entry": boot_median(tgt_best_pool[sel]),
                     "nearest_pool_entry_is_the_top1_measured_candidate": float(
                         np.mean(best_pool_j[sel] == top1_idx[sel]))},
+                "variance_along_the_target": {
+                    "definition": ("(t' Sigma t) / (trace(Sigma)/d) -- 1.0 == a random direction. "
+                                   "The form of the hypothesis that does NOT depend on v1 being a "
+                                   "well-estimated axis."),
+                    "target": boot_median(vr_target[sel]),
+                    "v1_its_own_ceiling": boot_median(vr_v1[sel]),
+                    "paired_target_minus_one": boot_paired(vr_target[sel],
+                                                           np.ones_like(vr_target[sel]))},
                 "selector": {
-                    "spearman_vs_measured_gain": {
-                        "v1": boot_median(np.asarray(sp_v1)[sel]),
-                        "cohort_mean_direction": boot_median(np.asarray(sp_mu)[sel]),
-                        "answer_rate_popularity_prior": boot_median(np.asarray(sp_pop)[sel]),
-                        "random": boot_median(np.asarray(sp_rand)[sel])},
-                    "ndcg_at_5_gain_as_relevance": {
-                        "v1": boot_median(np.asarray(nd_v1)[sel]),
-                        "cohort_mean_direction": boot_median(np.asarray(nd_mu)[sel]),
-                        "answer_rate_popularity_prior": boot_median(np.asarray(nd_pop)[sel]),
-                        "random": boot_median(np.asarray(nd_rand)[sel])},
-                    "paired_v1_minus_popularity_spearman": boot_paired(
-                        np.asarray(sp_v1)[sel], np.asarray(sp_pop)[sel])},
+                    "arms": ("v1 = |cos(e_q, v1)| | quad = e_q' Sigma e_q (the full quadratic "
+                             "form, no top-axis assumption) | quad_x_answerrate = quad * P(answer) "
+                             "| mu = |cos(e_q, cohort mean direction)| | pop = answer-rate / "
+                             "popularity prior | rand"),
+                    "spearman_vs_measured_gain": {k: boot_median(sp[k][sel]) for k in SEL_ARMS},
+                    "ndcg_at_5_gain_as_relevance": {k: boot_median(nd[k][sel]) for k in SEL_ARMS},
+                    "paired_v1_minus_popularity_spearman": boot_paired(sp["v1"][sel],
+                                                                       sp["pop"][sel]),
+                    "paired_quadXans_minus_popularity_spearman": boot_paired(
+                        sp["quad_x_answerrate"][sel], sp["pop"][sel])},
                 "spectrum": {"lambda1_share_of_total_variance": boot_median(A["lam1_frac"][sel]),
                              "effective_rank_exp_entropy": boot_median(A["eff_rank"][sel]),
                              "v1_split_half_abs_cos": boot_median(A["halfcos"][sel])},
@@ -669,11 +694,11 @@ def run(args):
         npz[f"{arm}_span3_rand"] = span3_rand
         npz[f"{arm}_best_pool"] = best_pool
         npz[f"{arm}_cos_top1_meas"] = cos_top1_meas
-        npz[f"{arm}_spearman_v1"] = np.asarray(sp_v1)
-        npz[f"{arm}_spearman_pop"] = np.asarray(sp_pop)
-        npz[f"{arm}_spearman_mu"] = np.asarray(sp_mu)
-        npz[f"{arm}_ndcg5_v1"] = np.asarray(nd_v1)
-        npz[f"{arm}_ndcg5_pop"] = np.asarray(nd_pop)
+        npz[f"{arm}_var_ratio_target"] = vr_target
+        npz[f"{arm}_var_ratio_v1"] = vr_v1
+        for k in SEL_ARMS:
+            npz[f"{arm}_spearman_{k}"] = sp[k]
+            npz[f"{arm}_ndcg5_{k}"] = nd[k]
         flush()
 
         a = out["readings"][arm]["all_72_states"]
@@ -693,17 +718,16 @@ def run(args):
             f"{a['answerability']['abs_cos_v1_nearest_ANSWERABLE_pool_entry']['median']:.5f}, "
             f"top-1 measured {a['answerability']['abs_cos_v1_top1_MEASURED_candidate']['median']:.5f}"
             f", GAP {a['answerability']['GAP_target_minus_top1_measured']['median']:+.5f}")
-        log(f"[{arm}] selector Spearman v1 "
-            f"{a['selector']['spearman_vs_measured_gain']['v1']['median']:+.5f} | popularity "
-            f"{a['selector']['spearman_vs_measured_gain']['answer_rate_popularity_prior']['median']:+.5f}"
-            f" | cohort mean "
-            f"{a['selector']['spearman_vs_measured_gain']['cohort_mean_direction']['median']:+.5f}"
-            f" | random "
-            f"{a['selector']['spearman_vs_measured_gain']['random']['median']:+.5f}")
-        log(f"[{arm}] NDCG@5 v1 {a['selector']['ndcg_at_5_gain_as_relevance']['v1']['median']:.5f} "
-            f"| popularity "
-            f"{a['selector']['ndcg_at_5_gain_as_relevance']['answer_rate_popularity_prior']['median']:.5f}"
-            f" | random {a['selector']['ndcg_at_5_gain_as_relevance']['random']['median']:.5f}")
+        log(f"[{arm}] variance ratio along the TARGET "
+            f"{a['variance_along_the_target']['target']['median']:.4f} "
+            f"(v1's own ceiling {a['variance_along_the_target']['v1_its_own_ceiling']['median']:.4f}"
+            f", 1.0 == a random direction)")
+        sps = a["selector"]["spearman_vs_measured_gain"]
+        nds = a["selector"]["ndcg_at_5_gain_as_relevance"]
+        log(f"[{arm}] selector Spearman  " +
+            " | ".join(f"{k} {sps[k]['median']:+.4f}" for k in SEL_ARMS))
+        log(f"[{arm}] selector NDCG@5    " +
+            " | ".join(f"{k} {nds[k]['median']:.4f}" for k in SEL_ARMS))
         h = out["readings"][arm]["c1_final_HELD_OUT_15_root_like"]
         log(f"[{arm}] HELD-OUT 15: |cos| {h['HEADLINE_abs_cos_v1_target']['median']:.5f} "
             f"[{h['HEADLINE_abs_cos_v1_target']['lo']:.5f}, "
@@ -716,8 +740,13 @@ def run(args):
         "beats_random_direction": p["paired_v1_minus_random"]["excludes_zero"],
         "beats_cohort_mean_direction": p["paired_v1_minus_cohort_mean"]["excludes_zero"],
         "beats_state_blind_leave_one_out": p["paired_v1_minus_leave_one_out"]["excludes_zero"],
-        "selector_beats_popularity": p["selector"]["paired_v1_minus_popularity_spearman"][
+        "selector_v1_beats_popularity": p["selector"]["paired_v1_minus_popularity_spearman"][
             "excludes_zero"],
+        "selector_quadXanswerrate_beats_popularity": p["selector"][
+            "paired_quadXans_minus_popularity_spearman"]["excludes_zero"],
+        "variance_ratio_along_target_median": p["variance_along_the_target"]["target"]["median"],
+        "target_lies_in_an_above_isotropic_variance_direction": p["variance_along_the_target"][
+            "paired_target_minus_one"]["excludes_zero"],
         "note": "the conclusion is the author's; this block only states which contrasts fired"}
     flush()
     log(f"[done] wrote {OUT_JSON} in {out['minutes']:.1f} minutes")
