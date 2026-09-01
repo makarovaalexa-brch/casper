@@ -1,0 +1,506 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{pifont}
+
+% --- notation macros (carried from Chapters A/B v2 for consistency) ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\zz}{\mathbf{z}}
+\newcommand{\zhat}{\hat{\zz}}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+% short-paper float budget: tables are dense and must sit near their text
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.85}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+
+\title{\textbf{A Question the Catalogue Does Not Contain:\\
+Emitting, Rendering and Auditing Off-Catalogue Elicitation Questions}}
+\author{}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent A cold-start recommender that interviews its user can only ask what is in its question
+catalogue. We show that the catalogue is the binding constraint, and that it can be removed. At the
+interview states we study, the nearest catalogue question is close to the policy's emitted direction
+in the policy's own head space (cosine $0.93$) --- and yet that question's \emph{own text} is
+anti-aligned with the direction the measured gains point to, at $-0.158$ $[-0.224,\,-0.089]$, while
+an off-catalogue word rendered on the spot carries it at $+0.204$ $[+0.117,\,+0.291]$. We then build
+the missing renderer. A two-layer adapter into a frozen language model says such a direction in
+English, and the vector genuinely conditions the text: against a correspondence-scrambled twin,
+$+0.111$ $[+0.105,\,+0.117]$ through an independently fitted bridge, with the true arm at $107\%$ of
+the gold phrase's own ceiling and source identification $0.678$ (chance $0.5$). Retrained on
+question-shaped targets it emits well-formed questions $94.7\%$ of the time and the conditioning
+survives; templating costs $23\%$ of the instrument's ceiling, a price the verbalisation literature
+has not reported because it does not measure against a same-instrument ceiling. Closing the loop, a
+synthesised direction is rendered, folded back, and costs $+0.018$ NDCG@10 in transport under a
+declared-circular answer model shared by both arms. The claim is capability: a collaborative latent,
+rendered as language, left unsnapped.
+\end{abstract}
+
+% =====================================================================
+\section{Introduction}
+\label{sec:intro}
+
+A cold-start recommender that interviews its user has to ask something, and everything it can ask is
+on a list. In this system the list has $19{,}390$ entries --- $18{,}359$ films and $1{,}031$
+concepts --- and the interview problem reduces to an argmax over it: which entry splits this cohort,
+which one a person can answer, which order pays. The list is the action space, and an action space is
+a comfortable thing to have.
+
+This paper is about the moment that comfort breaks. Three questions in --- no answer to \emph{do you
+like better-than-expected films?}, no answer on \emph{True Lies}, a dislike for \emph{Apollo 13} ---
+the policy's own machinery computes a direction it would like to probe, and then does the only thing
+it can: it snaps that direction to the closest thing on the list and asks that instead. How much is
+lost in the snap turns out to be measurable. At the interview states we study, the nearest catalogue entry is close to the
+emitted direction in the policy's own head space --- cosine $0.93$, as close as the catalogue gets.
+Pushed through a bridge fitted independently of everything else here, \textbf{that entry's own gold
+phrase is anti-aligned with the direction the measured gains point to, at $-0.158$
+$[-0.224,\,-0.089]$, while a word invented on the spot by a small language model reading that same
+direction carries it at $+0.204$ $[+0.117,\,+0.291]$} --- a gap of $+0.362$ with the interval
+excluding zero (\S\ref{sec:loop}; two caveats are attached there). The direction is expressible in
+English. The catalogue does not contain the sentence that expresses it.
+
+The rest of the paper earns the right to show that contrast and audits what the renderer produces.
+\S\ref{sec:point} takes the emitted point: a policy trained on gain-weighted blends of the candidates
+whose value was \emph{measured} at each state emits off-catalogue directions while still running the
+tree's ordinary interview. \S\ref{sec:english} trains an adapter into a frozen \texttt{distilgpt2}
+and tests the only thing that matters about it --- whether the text depends on the vector --- against
+a twin trained identically on \emph{scrambled} vector--text pairs, first on bare phrases and then on
+question-shaped targets. \S\ref{sec:loop} closes the loop and prices it; \S\ref{sec:demo} runs a full
+synthesised interview.
+
+\paragraph{What is claimed, as a conjunction.} Every leg has prior art and we claim no leg alone.
+Every prior method that uses belief geometry to choose an elicitation question reduces the covariance
+to a \emph{scalar} and uses it to \emph{score a finite pool}; we take the argmax \emph{direction
+itself} as the emitted object, render it as language, and audit what comes out. The unoccupied
+conjunction is a \textbf{collaborative} latent, rendered as \textbf{language}, left
+\textbf{unsnapped} --- the decoded point chosen by an interview policy at an interview state, the
+renderer audited against a correspondence-scrambled latent, and faithfulness scored causally by
+substituting the text where the latent was. The claim is \textbf{capability, not value}: a direction
+outside the bank can be emitted, said and audited; we never claim that asking it improves a
+recommendation.
+
+% =====================================================================
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Choosing a question from belief geometry --- not ours.} The principal-axis rule (probe along
+the leading eigenvector of the posterior covariance) is old and overdetermined: Ji, Xue and Carin
+state it verbatim, \emph{and} state the synthesise-or-snap fork itself --- if such flexibility is not
+feasible, design a library of possible next projections~\cite{ji2008bcs}. Info-Synth reaches the same
+direction from mutual information under an ideal-point probit~\cite{nadagouda2026infosynth}; Zhang et
+al.\ adaptively minimise the trace of the posterior covariance of a respondent's own latent
+factor~\cite{zhang2020activemf}; Eigentaste elicits on principal components of the rating
+matrix~\cite{goldberg2001eigentaste}; Fonarev et al.\ pick elicitation items by maximal
+volume~\cite{fonarev2016rectangular}; the blend target we use as supervision is DGRL's
+construction~\cite{hoppe2026dgrl}. What is left is what happens \emph{after} the argmax direction is
+computed.\footnote{Loepp, Hussein and Ziegler (CHI 2014) reportedly elicits preferences by presenting
+item sets at the extremes of each latent factor in turn. We could not obtain the paper through three
+routes and therefore make no novelty claim about interrogating along a latent direction.}
+
+\paragraph{Answerability: a thirty-four-year-old failure, and its two fixes.} Baum and Lang showed in
+1992 that a learner which synthesises the maximally informative input and asks a human to label it
+can work poorly for a reason better optimisation does not fix: the informative point is a fusion of
+two classes, a person cannot label it, and the query returns noise~\cite{baum1992query}. Zhu and
+Bento reproduced it with GANs, reporting that labellers failed to confidently identify most generated
+images~\cite{zhu2017gaal}. The two standard responses are exactly our two options: \textbf{snap to a
+real neighbour}, or \textbf{verbalise}. Snapping is the majority answer, and inside recommendation
+Vendrov et al.\ do precisely it --- optimise continuous hypothetical item vectors, then project back
+to the nearest real items~\cite{vendrov2020gradient}; removing the snap is the risk we take, not a
+shortcut we decline. Where a design can be \emph{physically executed} the synthesised query does reach
+people, because there the world renders it: LineCoSpar proposes a gait from no pool and has an
+exoskeleton walk it for six real subjects~\cite{tucker2020linecospar}, and adaptive design
+optimisation does the same in psychophysics~\cite{ahn2020ado}. Recommendation has no such renderer,
+which is why the field snapped to a catalogue --- and why we propose that \emph{language is the
+missing one}.
+
+\paragraph{Verbalising latents, and the validation gap.} ELM maps vectors from a frozen
+recommendation model into a language model's token-embedding space and describes them, including
+synthesised interpolations~\cite{tennenholtz2023elm}; we take that mechanism rather than invent one.
+EAGLE steers a frozen LLM toward high-utility regions of a MovieLens-25M behavioural embedding and
+has \emph{no decoder} --- it edits text and encodes the result, so no latent point is ever mapped to
+language, and its authors name the price: coverage is limited by the action
+space~\cite{tennenholtz2024eagle}. GeneRec claims off-corpus generation in the \emph{item}
+channel~\cite{wang2023generec}, ours is the question channel; GenMQD generates a textual description
+of a wanted instance in vision active learning~\cite{genmqd2024}. DeCap gives the measured argument
+for a soft snap over a hard one --- CIDEr $8.1$ for a raw off-manifold vector, $27.1$ for a hard
+nearest-neighbour snap, $42.1$ for a softmax-weighted blend~\cite{li2023decap} --- and round-trip
+cosine alone is not evidence, since zero-shot inverters reach cosine above $90$ at F1 only above
+$50$~\cite{zhang2025zsinvert}. The validation gap is one control, stated narrowly: \textbf{we are
+aware of no embedding-verbalisation system that reports what its renderer produces from a
+correspondence-scrambled latent.} The construction is not ours to claim --- Heap et al.\ found
+automated interpretability scores \emph{higher} for randomly initialised transformers ($0.87$ against
+a trained $0.79$) while the only null that separated, at chance $0.50$, scrambled the token-embedding
+correspondence~\cite{heap2026autointerp}, and Tang et al.\ permute voxel responses to destroy
+response-to-stimulus correspondence while preserving response statistics~\cite{tang2023semantic}. Its
+\emph{application} to a rendered elicitation question, where no paired reference text exists, is
+ours. The metric we import is Hewitt et al.'s causal one: substitute the text back where the latent
+was and measure how much of the latent's effect it reproduces~\cite{hewitt2025neologism}.
+
+% =====================================================================
+\section{Setup}
+\label{sec:setup}
+
+Nothing in the instrument is refitted. The recommender checkpoint, the fold-in operator and the
+question bank are frozen certified artifacts; the bank holds $19{,}390$ questions in two channels
+($18{,}359$ items, $1{,}031$ concepts); the ruler is full and tail NDCG@10 on the canonical split's
+$10{,}000$ validation users, and the $10{,}000$ canonical test users were not touched. The base policy
+reads the interview state, emits a continuous query vector $\zhat$, and asks whichever bank question
+scores highest against it under $s(q\mid\text{state}) = \langle u(h),k(\varphi_q)\rangle +
+b(\varphi_q)$; we measure in homogeneous coordinates so that $\langle\zhat,e_q\rangle$ reproduces
+$s$ exactly. Faithfulness is measured through a \textbf{tower bridge}, a text-to-collaborative map
+fitted independently of both the emitter and the renderer, so no reading is closed over the system's
+own components. Three conventions bind every number below: every statistic carries an interval and
+declares its aggregation unit; every headline number is printed beside its trivial floor (state-blind
+constant, random direction, prior-only, or chance); and every registered reading rule was applied to
+its own null at design time.
+
+\paragraph{The circularity contract.} The simulated answerer puts the policy at interview states and
+does nothing else, with one declared exception: the translation-cost measurement of \S\ref{sec:cost}
+needs an answer model by construction. There we follow the field's practice --- Info-Synth's
+geometry-dependent response model~\cite{nadagouda2026infosynth}, PEBOL's simulated
+respondents~\cite{austin2024bayesian} --- declare the circularity in our own voice, put both arms
+under the \emph{same} simulator, and read only the difference. Absolute rows are printed and
+labelled; no version of ``asking the synthesised question improves recommendations'' appears here.
+
+% =====================================================================
+\section{The emitted point}
+\label{sec:point}
+
+The deployed policy's emitted vector never lies on the question it selects: over all $160{,}000$
+validation states the \emph{maximum} cosine to the snapped entry is $0.1203$. That falsification is
+unconditional, but the raw geometry is dominated by a common mode --- cross-entropy constrains only
+score \emph{differences}, so the head is free to place a large shared offset in $k(\varphi)$, and it
+did (median top score $-82.7$; the bank's mean pairwise cosine is $0.964$ raw against $0.0018$
+centred). Mean-removed, the picture becomes informative: the emission's cosine to the entry it selects
+has median $+0.488$ against $+0.170$ for a norm-matched random direction. \textbf{The trained emission
+is a large common-mode offset plus a genuine bank-aligned direction} --- but it is a scoring
+functional, not a target in question space. To give it one, we retrain: we replace the one-hot
+distillation target with a \textbf{gain-weighted blend of the top-$m$ candidates whose value was
+measured at that state}, so the target is off-catalogue by construction while every gradient still
+comes from a question we actually measured, trained jointly with a replay cross-entropy toward the
+tree's ordinary picks so the object remains a policy. It works, and as one object: the retrained
+policy runs the tree's ordinary interview essentially unchanged (Table~\ref{tab:point}) \emph{and}
+emits blends whose median top-1 ingredient weight is $0.2254$, with $0$ of $72$ states above $0.5$,
+against a random floor of $0.121$.
+
+\begin{table}[htbp]
+\centering\footnotesize\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lccl@{}}
+\toprule
+\textbf{Quantity} & \textbf{Value} & \textbf{Floor} & \textbf{Reading} \\
+\midrule
+distinct questions preserved (no-collapse gate) & $245/245$ & --- & one object, two behaviours \\
+snap agreement with the banked policy & $0.9950$ & bar $0.90$ & \cmark \\
+emission/target norm ratio, trained states & $1.0449$ & bar $[0.5,2.0]$ & renderable \\
+\midrule
+$\cos(\zhat,\text{own target})$, trained states & $0.96958$ & \textbf{$0.9531$} & policy $+0.015$ \\
+median top-1 blend weight & $0.2254$ & $0.121$ (random) & genuinely off-grid \\
+$\max\cos_1$ to the snapped entry, $160$k states & $0.1203$ & --- & nothing sits on the grid \\
+mean-removed $\cos_1$ to the snapped entry & $+0.488$ & $+0.170$ (random) & directionally real \\
+\midrule
+$\cos(\zhat,\text{own target})$, \emph{withheld} states & $-0.11948$ & $0.9502$ & \xmark\ see caption \\
+state-specific share of mean-removed target energy & \multicolumn{2}{c}{$0.5915$ $[0.5558,\,0.6270]$}
+& substantial, unpredicted \\
+\bottomrule
+\end{tabular}
+\caption{The emitted point. The floor column is the trivial baseline a reviewer would compute: for
+the cosine rows a \textbf{state-blind constant}, the mean of the other $71$ blend targets, which
+ignores the state entirely. It is high because the targets form a tight cone (median raw pairwise
+cosine $0.920$), so the fit of $0.970$ buys $+0.015$ over ignoring the state, and at withheld states
+the constant beats the trained policy by $+0.8893$ $[+0.6555,\,+1.0905]$, winning $14/15$.
+\textbf{We therefore scope every emission claim to the states where the question landscape was
+measured} --- a large connected region rather than a scatter: $72$ of $144$ tree nodes, with
+fully-emitting paths running to depth $12$. The state-specific component is substantial ($59\%$ of
+mean-removed energy) and no method we tried (global linear probe, profile parameterisation, local
+$k$NN transfer) recovers it from the state.}
+\label{tab:point}
+\end{table}
+
+% =====================================================================
+\section{Saying it in English}
+\label{sec:english}
+
+The renderer is a two-layer MLP producing eight soft prefix tokens into a \textbf{frozen}
+\texttt{distilgpt2}, trained on the $19{,}390$ bank entries with a $20\%$ identity-held-out split
+stratified by channel and popularity decile. The load-bearing control is a \textbf{twin trained
+identically on correspondence-scrambled pairs}: same architecture, data and optimiser, with a
+channel-preserving permutation of which vector goes with which text. This is the only renderer
+variant under which ``the vector conditions what is said'' is literally true, and therefore the only
+one in which scrambling tests \emph{rendering} rather than \emph{retrieval}. The arms separate by
+epoch~2 in both runs.
+
+\paragraph{The mechanism, on bare phrases.} On $3{,}670$ held-out item questions, through the
+independent bridge, the true adapter's text re-encodes toward its own held-out vector at
+$\mathbf{+0.1114}$ $[+0.1054,\,+0.1173]$ above the scrambled twin, with the true arm at
+$\mathbf{107\%}$ of what the \emph{gold phrase itself} earns through the same instrument, and it
+identifies its source vector against a same-channel decoy at $\mathbf{0.6778}$
+$[0.6631,\,0.6931]$ --- above the gold phrase's own $0.6624$. The answer to the question the design
+asked is yes: the text generated from a vector depends on that vector, on held-out questions, through
+an independently fitted bridge, per channel, with intervals.
+
+\paragraph{It survives being made askable.} An interview asks \emph{questions}, so we retrain the
+same adapter on question-shaped targets built from the same bank entries with a small per-channel
+template family, one template sampled per example per epoch. Everything else is held fixed, including
+the scrambled twin. \textbf{$94.7\%$ $[0.9398,\,0.9542]$ of held-out generations are well-formed
+questions} under a rule fixed in advance, and every registered reading passes under \emph{both}
+decodings and on both channels (Table~\ref{tab:english}).
+
+\paragraph{Naturalness costs verifiability, and we can price it.} The gate is calibrated against what
+the true text earns through the same instrument, so a change of output format is a change of
+instrument and the ceiling must be re-measured. It moves a long way. \textbf{Wrapping a phrase in
+question boilerplate lowers what a \emph{perfect} rendering can score by $23\%$ on items
+($0.08920\to0.06828$) and $17\%$ on concepts}: the words that make a question askable are the same
+words for every question in the channel, so they add surface carrying no information about the
+direction. This is why the bare-phrase adapter's $107\%$ of ceiling and the question adapter's $71\%$
+are not two readings of one number. Reporting a figure of this kind requires a same-instrument
+ceiling --- a measurement of what the ground-truth text itself earns through the identical chain ---
+which is exactly the calibration the verbalisation literature does not run. Hence the rule:
+\textbf{re-measure the ceiling before reading any gate under a changed output format}.
+
+\begin{table}[htbp]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccl@{}}
+\toprule
+& \textbf{best-of-8} & \textbf{greedy} & \textbf{floor / bar} \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{(a) bare-phrase adapter, items, $n=3{,}670$ --- the mechanism at its
+cleanest}} \\
+$A - A'$ (true $-$ scrambled twin) & \multicolumn{2}{c}{$+0.1114$ $[+0.1054,\,+0.1173]$} &
+CI excl.\ $0$ \cmark \\
+$A$ level & \multicolumn{2}{c}{$+0.0953$ $[+0.0903,\,+0.1003]$} & prior $-0.0028$; $A'$ $-0.0161$ \\
+$A$ \% of gold-phrase ceiling ($0.0892$) & \multicolumn{2}{c}{$\mathbf{107\%}$} & bar $40\%$
+\cmark \\
+source identification & \multicolumn{2}{c}{$\mathbf{0.6778}$ $[0.6631,\,0.6931]$} & chance $0.500$;
+bar $0.5974$ \cmark \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{(b) question adapter, items, $n=3{,}670$ --- the renderer of record}} \\
+$A - A'$ & $\mathbf{+0.05169}$ & $+0.05855$ & CI excl.\ $0$ \cmark \\
+\quad $95\%$ CI & \scriptsize$[+0.04595,+0.05750]$ & \scriptsize$[+0.05321,+0.06383]$ & \\
+$A$ (\% of re-measured ceiling $0.06828$) & $0.04869$ ($71\%$) & $0.07177$ ($105\%$) &
+bar $\ge0.02731$ \cmark \\
+source identification & $0.6099$ & $0.6392$ & chance $0.500$; bar $0.5790$ \cmark \\
+question-form rate & \multicolumn{2}{c}{$\mathbf{0.9471}$ $[0.9398,\,0.9542]$} & bar $0.90$
+\cmark \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{(c) question adapter, concepts --- reported, not gated}} \\
+$A - A'$ & \multicolumn{2}{c}{$+0.28625$ $[+0.24014,\,+0.33307]$} & CI excl.\ $0$ \cmark \\
+$A$ (\% of ceiling) & \multicolumn{2}{c}{$0.2795$ ($67\%$)} & bar $\ge0.1663$ \cmark \\
+source identification & \multicolumn{2}{c}{$0.7810$} & floor $0.7343$ \cmark \\
+\bottomrule
+\end{tabular}
+\caption{Rendering, both runs. Every interval is a $10$k paired bootstrap; $A'$ is the
+correspondence-scrambled twin and \emph{prior} the same adapter with the latent withheld. Panel~(b)'s
+ceiling is re-measured under the question format ($0.06828$ against panel~(a)'s $0.08920$) --- the
+$23\%$ finding in the text --- so the two panels' percentages are not comparable without it.
+\emph{Footnotes.} $5.3\%$ of question-adapter generations are not well-formed and fail by repetition;
+content preservation is near zero (token-F1 $0.055$, exact content match $0.0003$); the item channel
+is an instrument limit downstream (its generic-title prior folds above its own signal), so
+\S\ref{sec:loop} runs on concepts; one training seed per adapter arm.}
+\label{tab:english}
+\end{table}
+
+\paragraph{Machine-only synonyms, and why a plausibility panel cannot adjudicate this.} Content
+preservation is effectively zero --- exact content match $0.0003$, token-F1 $0.055$ --- and the vector
+is carried anyway, at $61\%$ identification against chance $50\%$ and a ceiling of $0.6316$. The
+failures are legible: \emph{The Shawshank Redemption} renders as \textbf{``Have you seen Pulp Fiction
+(1995)?''}; \emph{Ghost Story (1981)} as \textbf{``Have you seen Battlestar Galactica (1980)?''};
+\emph{Desperate Hours (1955)} as \textbf{``What did you think of Bunted, The (1941)?''}. Neighbouring
+era, neighbouring register, wrong film --- Hewitt et al.'s machine-only
+synonyms~\cite{hewitt2025neologism} appearing unprompted, now in fully askable form.
+
+These strings are our argument against grading rendered questions by human plausibility, and the
+argument is \textbf{symmetric}. A rater shown ``Have you seen Pulp Fiction (1995)?'' without the
+source vector has one verdict available: fluent, natural, perfectly answerable, and about the wrong
+film. The panel marks it wrong; the instrument records that it reproduces the vector's effect. The
+other direction is the one that should worry the field: \textbf{a renderer that ignored its input
+entirely and emitted ``Have you seen The Godfather (1972)?'' at every state would delight raters and
+score at chance with the instrument.} A plausibility panel --- the field's standard instrument, a
+hundred raters for ELM~\cite{tennenholtz2023elm}, a hundred and twenty-four for
+EAGLE~\cite{tennenholtz2024eagle}, an expert discrimination test for ctELM~\cite{ondov2026ctelm} ---
+therefore cannot separate our renderer from a confabulator in \emph{either} direction, and adding
+raters does not fix it. What a human study \emph{could} decide is Baum and Lang's actual question:
+can a person answer this at all.
+
+% =====================================================================
+\section{Closing the loop, and what it costs}
+\label{sec:loop}
+
+At each of the $42$ states with a full exact gain table we take the blend target, render it, and push
+the rendered word back through the independent bridge to ask whether it carries the direction the
+point was built from. The reference $R_s$ is the state's own measured ingredient direction, so
+nothing here is an answer to a question.
+
+\paragraph{The words are right.} A render of \emph{this} point aligns with \emph{this} point's
+reference better than a render of some other point does, at $\mathbf{+0.28593}$
+$[+0.17820,\,+0.39777]$, with the prior floor at zero ($-0.013$ $[-0.074,\,+0.053]$). A second,
+independent view asks whether the rendered word is one of the point's own nearest concepts: where the
+decoder says something distinctive ($18$ of $42$ states) it lands at \textbf{median rank $91$ of
+$1{,}031$} in the point's own neighbourhood, with genuine bullseyes --- \texttt{action} rank
+$\mathbf{1}$, \texttt{art} $4$, \texttt{indictment} $5$ (a courtroom blend of \emph{Primal Fear} and
+\emph{A Time to Kill}), \texttt{animals} $7$ (the Pixar branch), \texttt{military} $21$,
+\texttt{adventure} $28$ (a Harry Potter blend), \texttt{science} $31$, \texttt{noir} $54$. Where
+greedy falls back on one of three stock words the median rank is $362.5$, no better than the
+random-tag floor of $340$ --- a generation-diversity limit that \S\ref{sec:cost} removes by changing
+the decoder alone.
+
+\paragraph{The catalogue cannot say it.} At each state we take the bank entry nearest the emitted
+point in the emitter's own head space --- cosine $0.93$. Its own gold phrase, through the same bridge,
+is \textbf{anti-aligned with the point's measured direction at $-0.158$ $[-0.224,\,-0.089]$}, while
+the rendered off-catalogue word carries it at $\mathbf{+0.204}$ $[+0.117,\,+0.291]$: a gap of
+$+0.362$, interval excluding zero. Two caveats travel with the magnitude wherever it is quoted. The
+$k(\varphi)$-nearest entry is itself a common-mode artefact of an anisotropic space --- it is
+frequently the \emph{same} entry, \texttt{divorce} --- and the bridge favours concept-flavoured text,
+a thumb on the scale for a one-word render against a bank phrase. The sign survives both; the
+magnitude is not to be quoted without them.
+
+\subsection{What the translation costs}
+\label{sec:cost}
+
+Two arms under the \emph{same} declared-circular simulator and the same certified fold operator,
+differing only in what is folded: arm~$L$ folds the direction's own top concepts, arm~$T$ folds the
+concepts recovered from the rendered text. The circular component is common to both and the
+difference is the transport cost. \textbf{Translating the direction into English and reading it back
+costs $+0.01802$ full $[+0.01668,\,+0.01940]$ and $+0.00672$ tail $[+0.00541,\,+0.00805]$ NDCG@10}
+over $36{,}197$ user-rows across $42$ nested states. It is a genuine semantic-transport measure
+rather than the two arms folding the same thing: $|L\cap T|$ is zero at $38$ of $42$ states. It is
+non-uniform --- $21$ states have an interval above zero and \textbf{$5$ have one below it}, states
+where the English beats the direction, the best being \texttt{theatrical} at $-0.079$
+$[-0.119,\,-0.040]$. And it is largely removable by decoding alone (Table~\ref{tab:loop}).
+
+\begin{table}[htbp]
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccll@{}}
+\toprule
+\textbf{decoding} & \textbf{distinct/42} & $\cos(u_{\text{text}},R_s)$ &
+\textbf{med.\ rank} & \textbf{$\Delta$ vs.\ greedy} & \textbf{cost $L-T$, full} \\
+\midrule
+greedy (banked) & $23$ & $\mathbf{+0.2039}$ & $313$ & --- &
+$+0.01802$ \scriptsize$[+0.01668,+0.01940]$ \\
+sample $T{=}0.7$ & $38$ & $+0.1034$ & $441$ & $-0.1005$ \scriptsize$[-0.197,-0.004]$ &
+$\mathbf{+0.00520}$ \scriptsize$[+0.00397,+0.00638]$ \\
+sample $T{=}1.0$ & $\mathbf{41}$ & $+0.0942$ & $464$ & $-0.1097$ \scriptsize$[-0.220,-0.002]$ &
+$+0.00746$ \\
+\textbf{best-of-8 (LM)} & $37$ & $\mathbf{+0.1846}$ & $395$ & $-0.0193$
+\scriptsize$[-0.097,+0.058]$ n.s. & $\mathbf{+0.00884}$ \scriptsize$[+0.00747,+0.01025]$ \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{absolute NDCG@10, \textbf{under a declared-circular answer model} ---
+printed, never headlined}} \\
+\multicolumn{6}{@{}l}{base (fold nothing) $0.16571$ \quad$\cdot$\quad $L$ $0.17443$
+\quad$\cdot$\quad $T$ greedy $0.15641$ \quad$\cdot$\quad $T$ sampled $0.16924$} \\
+\bottomrule
+\end{tabular}
+\caption{Decoding is the whole lever, and best-of-8 by the LM's own length-normalised likelihood ---
+a rule blind to the evaluation metric by construction --- is the only Pareto point. The greedy row was
+regenerated rather than read and reproduced the banked run exactly ($42$ renders bit-identical).
+\emph{The mechanism is not the one we predicted.} Sampled renders are \emph{less} faithful and land
+\emph{further} from the point's neighbours, yet cost less --- because greedy's stock words fold to
+\emph{below} the no-fold baseline ($0.15641$ against $0.16571$; asking ``horror'' of a
+Harry-Potter-ish cohort is worse than asking nothing) while vaguer words merely damage less. The
+translation cost is therefore substantially a measure of \textbf{harm from confidently committing to
+the wrong concept}, not purely of meaning lost in translation. Only $L-T$ is read; both arms share
+the simulator.}
+\label{tab:loop}
+\end{table}
+
+% =====================================================================
+\section{A synthesised interview}
+\label{sec:demo}
+
+Table~\ref{tab:demo} is the loop assembled: the emitting policy walks the neutral largest-child path
+over all $10{,}000$ validation users, and at each state the renderer of record says the emitted
+direction in English. Six turns, six distinct synthesised questions.
+
+\begin{table}[htbp]
+\centering\footnotesize\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}clp{0.40\textwidth}p{0.28\textwidth}@{}}
+\toprule
+\textbf{turn} & \textbf{cohort} & \textbf{the synthesised question} & \textbf{what the catalogue
+would ask} \\
+\midrule
+1 & $10{,}000$ & Are you in the mood for something action films? & Do you like better than expected
+films? \\
+2 & $4{,}814$ & Do you like it when a film is suspense? & Do you like dark humor films? \\
+3 & $3{,}815$ & \textbf{How do you feel about sci-fi movies?} & Do you like alien films? \\
+4 & $2{,}409$ & Do you like it when a film is movie? & Have you seen \emph{Star Wars: Episode V}? \\
+5 & $1{,}335$ & \textbf{Do you like it when a film is detective drama?} & Have you seen
+\emph{Crimson Tide (1995)}? \\
+6 & $1{,}108$ & \textbf{How do you feel about children films?} & Have you seen \emph{Star Wars:
+Episode VI}? \\
+\bottomrule
+\end{tabular}
+\caption{One synthesised interview, end to end: emitted direction $\to$ English $\to$ answer $\to$
+next state, on the neutral largest-child path over all $10{,}000$ validation users. Turns~3, 5 and~6
+are the argument --- same neighbourhood as the tree, different and more askable object.
+\emph{Footnotes, and they matter.} Turns~2 and~4 show the templating failure of \S\ref{sec:english},
+boilerplate wrapped round a bare phrase with no agreement; turn~4's blend is a diffuse \emph{movie
+business / cinematography} direction. Two of six is far worse than the $5.3\%$ malformed rate
+measured on bank questions, and the gap is structural: that rate was measured on single clean
+entities, while the deployed object is a \emph{blend} (median top-1 weight $0.225$), and a template
+family fitted to single phrases degrades on mixtures. Six turns cannot estimate the blend-side rate
+--- this is a warning, not a number. No turn falls outside the fitted region, because the held-out
+subtree begins \texttt{root.like} and the majority cohort turns \texttt{dislike} at the root, so the
+figure cannot show the method's boundary. Answers and folds are under the declared-circular answer
+model and \textbf{no NDCG comparison from this walk is reported}.}
+\label{tab:demo}
+\end{table}
+
+% =====================================================================
+\section{Limitations}
+\label{sec:limitations}
+
+Emission is licensed only where the question landscape was measured ($72$ of $144$ nodes): at
+withheld states the trained emission is beaten by a state-blind constant, and the state-specific
+component --- substantial at $59\%$ $[55.6\%,\,62.7\%]$ of mean-removed target energy --- was not
+recoverable from the state by any method we tried. Every adapter is a single training seed, so we do
+not use the word robust. $5.3\%$ of held-out generations are malformed, and the transcript shows
+templating degrading further on blends. The translation cost is measured under a declared-circular
+answer model with both arms sharing it; only the difference is read, and no absolute row is
+headlined. The bridge that scores faithfulness is concept-routed, which makes the item channel an
+instrument limit rather than a finding about items. There is no human study: a plausibility panel
+would penalise exactly the machine-only synonyms that carry the vector and reward a fluent
+confabulator that carries none, so the human study worth running is Baum and Lang's answerability
+question, not quality grading.
+
+% =====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+A cold-start interview can only ask what is in its catalogue, and we measured what that costs: at the
+states we study the nearest catalogue question's own text points away from the direction the data
+says to probe, while a word invented on the spot carries it. The missing piece was a renderer, and
+language is one. A small adapter into a frozen language model says a synthesised collaborative
+direction in English, the vector demonstrably conditions what it says, the result survives being made
+askable at $94.7\%$, and a six-turn interview runs end to end asking about sci-fi where the catalogue
+would ask about alien films. What makes this an audit rather than a demo is the apparatus: a
+correspondence-scrambled twin, a same-instrument ceiling that prices naturalness at $23\%$ of
+verifiability, a trivial floor beside every headline, and a plug-in causal measure of whether the
+text does what the vector did. That last is what we would most like the field to take up --- because
+a panel judging a rendered latent by how it reads cannot tell our renderer from a confabulator.
+
+% ---------------------------------------------------------------------
+% plainnn.bst is stock plain.bst with the `note' field suppressed: the shared
+% references.bib carries long internal verification notes that are provenance
+% records, not bibliography content.
+{\footnotesize
+\bibliographystyle{plainnn}
+\bibliography{../references}}
+
+\end{document}
