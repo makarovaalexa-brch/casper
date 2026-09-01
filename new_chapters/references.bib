@@ -1457,3 +1457,238 @@
         robotics (Driver, Tosser, Fetch) with user studies of n=15 and n=12. See the
         `biyik2019asking' row of `external\_literature/INDEX.md'.}
 }
+
+@inproceedings{shams2021clusterbandits,
+  author    = {Shams, Sulthana and Anderson, Daron and Leith, Douglas},
+  title     = {Cluster-Based Bandits: Fast Cold-Start for Recommender System New Users},
+  booktitle = {Proceedings of the 44th International ACM SIGIR Conference on Research and
+               Development in Information Retrieval},
+  year      = {2021},
+  doi       = {10.1145/3404835.3463033},
+  note      = {[A/S -- abstract and publisher page only, read 2026-08-29.] Uses the SAME framing as
+        golbandi2011adaptive: users group into clusters, so cold-start becomes identifying which
+        cluster a new user belongs to, via "distinguisher items" chosen by the system. Cited here as
+        evidence that routing-to-a-group is the STANDARD motivation of this line and therefore NOT a
+        contribution of ours; what differs is that their distinguisher items are asked, whereas we
+        read what the user volunteered unprompted. See
+        external-literature/findings/user-segmentation-for-elicitation-2026-08.md.}
+}
+
+@article{pairwise2025attribute,
+  author    = {{Anonymous (KU Leuven)}},
+  title     = {Pairwise and Attribute-Aware Decision Tree-Based Preference Elicitation for
+               Cold-Start Recommendation},
+  journal   = {arXiv preprint arXiv:2510.27342},
+  year      = {2025},
+  note      = {[V -- full text read 2026-08-29.] Closest current work to our concept channel: extends
+        decision-tree elicitation by asking about attributes (genres) "to better cluster users" and
+        by using item PAIRS at each node. Yahoo! Music only, final cohort 1,701 users; RMSE is the
+        sole metric; ONE global tree retrained each round, not per-group interviews. Verbatim: "the
+        system always chooses what to ask; users do not volunteer preferences." Corroborates our
+        spine twice -- the newest paper in the line still reports RMSE only, and it confirms by
+        contrast that this literature never lets the user speak first. AUTHOR LIST NOT YET VERIFIED
+        -- fill from the arXiv listing before submission.}
+}
+
+% ---------------------------------------------------------------------------
+% Added 2026-09-01 -- PRINCIPAL-AXIS EMITTER prior-art pass.
+% Question: is "the best off-catalogue question direction at an interview state
+% is the top eigenvector of the cohort's residual/posterior covariance" already
+% published? Findings ->
+% external\_literature/findings/continuous\_elicitation\_2026-08.md, section
+% "PRINCIPAL-AXIS EMITTER PRIOR-ART PASS -- 2026-09-01".
+% ---------------------------------------------------------------------------
+
+@article{ji2008bcs,
+  author  = {Ji, Shihao and Xue, Ya and Carin, Lawrence},
+  title   = {Bayesian Compressive Sensing},
+  journal = {IEEE Transactions on Signal Processing},
+  volume  = {56},
+  number  = {6},
+  pages   = {2346--2356},
+  year    = {2008},
+  doi     = {10.1109/TSP.2007.914345},
+  note    = {[V -- Sec. IV.A read verbatim from the authors' preprint PDF, 2026-09-01;
+        journal, volume, number, pages and DOI verified against DBLP.] THE CANONICAL STATEMENT
+        that the most informative next query under a linear-Gaussian belief is the TOP
+        EIGENVECTOR OF THE POSTERIOR COVARIANCE. Eqs. (16)--(18): the posterior differential
+        entropy is $\frac{1}{2}\log|\Sigma|$ plus a constant; adding a design row $r$ gives
+        $h_{new} = h - \frac{1}{2}\log(1 + \alpha_0 r^{T}\Sigma r)$, so verbatim "the next
+        projection $r_{K+1}$ should hence be designed to maximize $r_{K+1}^{T}\Sigma r_{K+1}$",
+        which "is equivalent to maximizing the variance of the expected measurement". And then,
+        verbatim: "one might perform an eigen-decomposition of the matrix $\Sigma$, and select
+        for representation of $r_{K+1}$ the eigenvector with largest eigenvalue. Alternatively,
+        if from a hardware standpoint such flexibility in design of $r_{K+1}$ is not feasible,
+        then one might a priori design a library L of possible next projections." ** That
+        sentence is the SYNTHESISE-OR-SNAP dichotomy, in 2008, eighteen years before Info-Synth.
+        ** Cite it before any sentence that calls a principal-axis emitter new. Note also that
+        its adaptivity enters ONLY through type-II ML re-estimation of the sparsity
+        hyperparameters; the Gaussian covariance update itself is answer-independent.}
+}
+
+@article{lindley1956information,
+  author  = {Lindley, D. V.},
+  title   = {On a Measure of the Information Provided by an Experiment},
+  journal = {The Annals of Mathematical Statistics},
+  volume  = {27},
+  number  = {4},
+  pages   = {986--1005},
+  year    = {1956},
+  doi     = {10.1214/aoms/1177728069},
+  note    = {[A -- bibliographic fields verified against the Project Euclid landing page,
+        2026-09-01; body NOT read.] The origin of expected-information-gain experimental design,
+        and the ancestor of every criterion in this family including the one a principal-axis
+        emitter would instantiate. Citation-only.}
+}
+
+@article{chaloner1995bayesian,
+  author  = {Chaloner, Kathryn and Verdinelli, Isabella},
+  title   = {Bayesian Experimental Design: A Review},
+  journal = {Statistical Science},
+  volume  = {10},
+  number  = {3},
+  pages   = {273--304},
+  year    = {1995},
+  doi     = {10.1214/ss/1177009939},
+  note    = {[A -- bibliography and abstract read from the Project Euclid page, 2026-09-01; the
+        full text is paywalled and was NOT read.] The standard review that places Bayesian D-,
+        A- and E-optimality in one decision-theoretic frame and separates the LINEAR from the
+        NONLINEAR design problem. Cite for the criterion taxonomy and for the fact that the
+        closed forms are a property of the normal linear model. DO NOT quote a formula or a page
+        from it until the full text is read.}
+}
+
+@article{goldberg2001eigentaste,
+  author  = {Goldberg, Ken and Roeder, Theresa and Gupta, Dhruv and Perkins, Chris},
+  title   = {Eigentaste: A Constant Time Collaborative Filtering Algorithm},
+  journal = {Information Retrieval},
+  volume  = {4},
+  number  = {2},
+  pages   = {133--151},
+  year    = {2001},
+  doi     = {10.1023/A:1011419012209},
+  note    = {[V -- full text read 2026-09-01 from the authors' PDF; journal, volume and pages
+        taken from the article's own header line "Information Retrieval, 4, 133-151, 2001".]
+        THE PRINCIPAL-COMPONENT BASIS IN RECSYS ELICITATION, twenty-five years old. Every new
+        user answers the SAME "gauge set" of universal queries; PCA is then run on the resulting
+        DENSE gauge submatrix (their $E$ is the matrix of eigenvectors of the gauge-item
+        correlation matrix $C$) to project and cluster users. ** The eigenstructure is the
+        ANALYSIS basis, never the question-selection rule, and the interview is deliberately
+        FIXED and identical for all users. ** This is the precedent that makes "principal
+        directions of a rating covariance" unclaimable as an idea in recommendation, while
+        leaving "use the leading eigen-direction as the CONTENT of a synthesised, rendered
+        question" untouched. Their motivation for universal queries also contains an
+        answerability argument worth quoting against ourselves: they explicitly contest that
+        "users who have not seen a film are not able to rate it effectively".}
+}
+
+@article{hoppe2026dgrl,
+  author  = {Hoppe, Heiko and Akkerman, Fabian and van Heeswijk, Wouter and Schiffer, Maximilian},
+  title   = {Breaking the Grid: Distance-Guided Reinforcement Learning in Large Discrete
+             Action Spaces},
+  journal = {arXiv preprint arXiv:2602.08616},
+  year    = {2026},
+  doi     = {10.48550/arXiv.2602.08616},
+  note    = {[V -- abs page and HTML full text read 2026-09-01.] ** NAME CORRECTION, BINDING:
+        the method is DGRL (Distance-Guided Reinforcement Learning). "DBU" is only its update
+        rule (Distance-Based Updates); "SDN" (Sampled Dynamic Neighborhoods) is the other half.
+        Every CASPER design sheet that calls the method "DBU / Breaking the Grid" carries a
+        second-hand transmission error: PAPER\_C\_DESIGN.md C1, PAPER\_C\_TODO.md,
+        FABLE\_BRIEF\_PAPERC.md, PAPER\_B\_POLICY\_DESIGN.md, PLAN\_NEXT\_2026-07-14.md. ** The
+        target IS the softmax-weighted centroid we planned: a value-softmax over sampled
+        candidate actions with temperature $\tau_b$, and the actor minimising the squared
+        distance from its proto-action to that weighted mean. Theorem 4.2 bounds the per-sample
+        gradient noise by $G^{2}$ times the trace of the covariance of the weighted target, and
+        states "Both sides are independent of $|\mathcal{A}|$" -- a BOUND whose two sides do not
+        scale with the action count, NOT a measured variance claim; do not overquote it. TWO
+        CORRECTIONS TO OUR RECORD: (i) the candidates are NOT retrieved kNN neighbours --
+        Algorithm 2 draws them by Gaussian perturbation of the proto-action, rounded onto a
+        metric lattice, which does not transfer to an enumerated question bank; (ii)
+        RECOMMENDATION IS ONE OF ITS EVALUATION DOMAINS (MovieLens, recommend N of 343 movies,
+        choose-or-terminate), so we may not present the blend target as untried in recsys.
+        Preprint; no venue stated on the page.}
+}
+
+@inproceedings{abdolmaleki2018mpo,
+  author    = {Abdolmaleki, Abbas and Springenberg, Jost Tobias and Tassa, Yuval and
+               Munos, R{\'e}mi and Heess, Nicolas and Riedmiller, Martin},
+  title     = {Maximum a Posteriori Policy Optimisation},
+  booktitle = {International Conference on Learning Representations (ICLR 2018)},
+  year      = {2018},
+  note      = {[V -- arXiv:1806.06920 read 2026-09-01.] The CANONICAL RL ANCESTOR of the
+        softmax-weighted-centroid action. Its E-step forms a non-parametric action distribution
+        proportional to the policy times $\exp(Q/\eta^{*})$, so with actions sampled from the
+        policy the self-normalised weights ARE a softmax over candidate values; the M-step
+        projects that back onto the parametric policy, and for a Gaussian policy the weighted
+        maximum-likelihood fit of the mean is exactly the softmax-weighted average of the
+        sampled actions. MPO therefore CONTAINS our operator as a special case without naming
+        it a centroid, and hoppe2026dgrl cites MPO as its own lineage for the weighted target.
+        Cite MPO -- not AWR or AWAC, which never form a blended action (see peng2019awr).}
+}
+
+@article{peng2019awr,
+  author  = {Peng, Xue Bin and Kumar, Aviral and Zhang, Grace and Levine, Sergey},
+  title   = {Advantage-Weighted Regression: Simple and Scalable Off-Policy Reinforcement Learning},
+  journal = {arXiv preprint arXiv:1910.00177},
+  year    = {2019},
+  note    = {[V -- abs page read 2026-09-01.] Recorded as a NEGATIVE result for our positioning:
+        AWR, and AWAC (Nair et al., arXiv:2006.09359), maximise a per-sample
+        exponentiated-advantage-weighted log-likelihood and NEVER average candidate actions into
+        a blended target. Do not cite either as precedent for a softmax-weighted centroid; cite
+        abdolmaleki2018mpo instead.}
+}
+
+@article{levine2016visuomotor,
+  author  = {Levine, Sergey and Finn, Chelsea and Darrell, Trevor and Abbeel, Pieter},
+  title   = {End-to-End Training of Deep Visuomotor Policies},
+  journal = {Journal of Machine Learning Research},
+  volume  = {17},
+  number  = {39},
+  pages   = {1--40},
+  year    = {2016},
+  note    = {[V -- arXiv:1504.00702 read 2026-09-01.] The OPERATOR citation for a
+        softmax-weighted centroid: the expected pixel coordinate under a spatial softmax over a
+        feature map. The paper's own term is "spatial softmax" / expected-position layer;
+        "soft-argmax" appears exactly once ("a kind of soft-argmax"), and it is over image pixel
+        coordinates, not over candidate actions. So it names the OPERATOR, not the pattern. An
+        open-vocabulary search found NO established RL name for "predict a utility profile over
+        candidates, emit the softmax-weighted centroid".}
+}
+
+@article{wang2015qsnn,
+  author  = {Wang, Liantao and Hu, Xuelei and Yuan, Bo and Lu, Jianfeng},
+  title   = {Active Learning via Query Synthesis and Nearest Neighbour Search},
+  journal = {Neurocomputing},
+  volume  = {147},
+  pages   = {426--434},
+  year    = {2015},
+  doi     = {10.1016/j.neucom.2014.06.042},
+  note    = {[A -- author list, journal, volume and pages recovered 2026-09-01 from indexing
+        summaries; ScienceDirect returned HTTP 403 and the BODY WAS NOT READ.] Closes the
+        "authors unverified" debt this source has carried in
+        external\_literature/findings/continuous\_elicitation\_2026-08.md since 2026-08-18.
+        Synthesise the optimal query, then label its NEAREST REAL NEIGHBOUR, explicitly so that
+        the query stays recognisable to a human oracle -- Wolpertinger's snap inside active
+        learning, ten years before Info-Synth. ** Quote no number from it, and do not assert
+        whether it quantifies the loss incurred by snapping: that is precisely the fact we
+        wanted and could not reach. **}
+}
+
+@article{yang2020poptimal,
+  author  = {Yang, Lihong and Reckase, Mark D.},
+  title   = {The Optimal Item Pool Design in Multistage Computerized Adaptive Tests with the
+             p-Optimality Method},
+  journal = {Educational and Psychological Measurement},
+  year    = {2020},
+  doi     = {10.1177/0013164419901292},
+  note    = {[A/S -- landing page only, 2026-09-01; SAGE returned HTTP 403 and the PMC mirror a
+        captcha, so the figures below come from indexing quotations, NOT from the article.] The
+        one place any field NAMES the ratio we would want to report: a pool is p-OPTIMAL if at
+        every ability estimate some AVAILABLE item supplies at least a p-fraction of the MAXIMUM
+        POSSIBLE information there; the operational value is p = 0.95, said to correspond under
+        Rasch to about 0.35 logit of mismatch. ** Borrow the SHAPE (best-available information
+        divided by the theoretical maximum), never the numbers; and note the disanalogy -- their
+        unavailable optimum has the wrong DIFFICULTY, ours would be UNASKABLE. Verify the 0.95
+        and 0.35-logit figures against the article before any sentence uses them. ** The
+        originating Reckase p-optimality source could not be resolved to a full citation.}
+}

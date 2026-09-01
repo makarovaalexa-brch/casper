@@ -455,3 +455,690 @@ Each stated narrowly enough to survive a hostile reviewer.
 > render-consistency, and a scrambled control — rather than with a simulated answer.*
 
 Every clause is now backed by a citation, and the last clause is the part nobody else has done.
+
+**⚠ AMENDED by the 2026-08-21 verification pass below — the last clause must now be narrowed
+(Tang et al. 2023 hold the scrambled-correspondence control for a latent→language decoder), and the
+"snap" list gains Vendrov et al. 2020, which is *inside recsys*.**
+
+---
+
+# VERIFICATION PASS — 2026-08-21
+
+*Clears the eight verification debts opened by the 2026-08-18 pass (§(d)7 above, plus the `Tang et
+al.` debt recorded in `docs/design/PAPER_C_DESIGN.md`). Method: WebSearch + WebFetch against arXiv,
+publisher pages, Semantic Scholar and the papers' own text. Provenance flags carry the same meaning
+as at the top of this file; every `[S]` below is still a lead, not a citable fact.*
+
+**Headline: 5 VERIFIED, 2 VERIFIED-WITH-CORRECTION, 1 PARTIAL. Nothing was refuted outright, but
+three of the eight were wrong in a way that would have surfaced in review — one mis-attributed
+number, one wrong conference city, and one mechanism read backwards.**
+
+| # | Debt | Verdict |
+|---|---|---|
+| 1 | Baum & Lang 1992 bibliography + finding | **VERIFIED with correction** (city wrong; there are no page numbers) |
+| 2 | Zhu & Bento 2017 reproduces the failure | **VERIFIED — upgraded `[S]`→`[V]`; stronger than we recorded** |
+| 3 | LineCoSpar 6 params / 6 subjects / 30 trials | **VERIFIED exactly, from the paper's own text** |
+| 4 | ADO precision claims | **VERIFIED but MIS-ATTRIBUTED — wrong paper, and "fewer than 20 trials" is wrong** |
+| 5 | LOL-BO's "20×" | **VERIFIED — optimisation performance vs prior LSBO, NOT decoding validity** |
+| 6 | GenMQD — what it actually is | **VERIFIED in mechanism, UNRESOLVED in bibliography** |
+| 7 | Vendrov et al.'s query object | **VERIFIED — and our fallback reading was WRONG. Genuine synthesis-then-snap** |
+| 8 | Tang et al., Nature Neuroscience 2023 | **VERIFIED — and it is the scrambled-correspondence control, in a top journal** |
+
+---
+
+## 1. Baum & Lang 1992 — **VERIFIED, with two corrections** `[S, corroborated across four independent bibliographies]`
+
+- **Author order is Baum then Lang.** (One citing paper writes "Lang & Baum"; the majority form, and
+  the one printed in the local-membership-query line's own bibliography, is Baum, E. B. and Lang, K.)
+- **Canonical entry:** *Baum, E. B. and Lang, K. (1992). Query learning can work poorly when a human
+  oracle is used. In International Joint Conference on Neural Networks, volume 8.*
+- **⚠ There is NO page range.** The `pages={8}` circulating in BibTeX copies is a mis-parse of
+  `volume 8`. **Do not emit a page field.** Compile with the entry as banked in `references.bib`
+  (`baum1992query`).
+- **⚠ The city in the 2026-08-18 entry was WRONG.** We wrote "IJCNN 1992 (Baltimore)". Sources that
+  state a location say **Beijing, China** (IJCNN ran twice in 1992: Baltimore in June, Beijing in
+  November). If a venue string is needed, write only "IJCNN 1992".
+- **Finding CONFIRMED, qualitatively and consistently:** membership-query synthesis on handwritten
+  digits produced query images that "often had no structure and looked meaningless to the human eye";
+  the canonical restatement is that an informative query is a **fusion of two similar digits (a 3/5
+  hybrid) that a user cannot label because it is not a recognisable digit**. One citing source adds
+  that the consequence is **noisy labels**, not merely refusals — keep that, because our answer model
+  has the same exposure.
+- **The 1992 proceedings text was NOT obtained** (no digital copy located). **Cite the CLAIM; never
+  quote a number from this paper.** Rating stays `[S]` — but `[S]` from four bibliographies that agree.
+
+## 2. Zhu & Bento 2017, GAAL — **VERIFIED, and our record was too weak** `[V — paper's own text]`
+
+Abstract read verbatim from arXiv:1702.07956 (v1 25 Feb 2017 … v5 15 Nov 2017; **no venue** — cite as
+arXiv-only). The abstract does **not** mention the failure; the body does, and it is more usable than
+the second-hand version we banked:
+
+- The algorithm explicitly labels synthesised instances **by human oracles**
+  ("Label {G(z₁), G(z₂), …} by human oracles").
+- > "In the CIFAR-10 dataset, our human labeler noticed higher chances of bad generated samples,
+  > e.g., instances fail to represent either of the categories."
+- > "our human labelers failed to confidently identify most of the generated cat and dog images"
+- **The consequence is the citable part:** the experiments were **restricted to easy binary pairs**
+  (automobile vs horse, digit 5 vs 7) *because* humans could not label the harder generated classes.
+  That is Baum–Lang recurring under a modern generative renderer, **with the authors narrowing their
+  own experimental scope to route around it**.
+- ⇒ **Upgrade the §(b) entry to `[V]` and quote the two sentences.** This is now the strongest single
+  piece of evidence that a fluent generative renderer does not buy answerability, and the direct
+  argument for the scrambled control.
+
+## 3. LineCoSpar 6 / 6 / 30 — **VERIFIED EXACTLY** `[V — paper text via ar5iv]`
+
+*Tucker, Cheng, Novoseller, Cheng, Yue, Burdick & Ames, "Human Preference-Based Learning for
+High-dimensional Optimization of Exoskeleton Walking Gaits", IROS 2020,
+doi 10.1109/IROS45743.2020.9341416, arXiv:2003.06495.*
+
+- **6 gait parameters**, named: step length, step duration, step width, maximum step height, pelvis
+  roll, pelvis pitch.
+- **6 able-bodied human subjects**, on the **Atalante** lower-body exoskeleton.
+- **30 trials per subject** in the learning phase, **plus 6 validation trials** (we did not have the
+  validation trials).
+- Feedback per subject: > "at most 29 pairwise preferences and 30 pieces of coactive feedback".
+- ⇒ The `[S]` numbers were right. **Quote them.** The existence proof stands: a synthesised continuous
+  query, off any pool, answered by a real person — because the exoskeleton *walks it*. Companion
+  CoSpar (ICRA 2020, arXiv:1909.12316) is the same group and setup.
+
+## 4. ADO precision claims — **VERIFIED BUT MIS-ATTRIBUTED; one number was wrong** `[A — abstract verbatim]`
+
+**The numbers are not in ADOpy.** They come from:
+
+*Ahn, Gu, Shen, Haines, Hahn, Teater, Myung & Pitt, "Rapid, precise, and reliable measurement of
+delay discounting using a Bayesian learning algorithm", **Scientific Reports 10, 12091 (2020)**,
+doi 10.1038/s41598-020-68587-x* (bib key `ahn2020ado`). Abstract, verbatim:
+
+> "In three populations (college students, patients with a substance use disorder, and Amazon
+> Mechanical Turk workers) … ADO led to 0.95 or higher test–retest reliability of the discounting
+> rate **within 10–20 trials** (under 1–2 min of testing), captured approximately 10% more variance
+> in test–retest reliability, was **3–5 times more precise**, and was **3–8 times more efficient**
+> than the staircase method."
+
+- **"3–5× more precise" is CORRECT.** ✔ (And there is a bonus: **3–8× more efficient**.)
+- **"fewer than 20 trials" is WRONG** — the paper says **10–20 trials**, and attaches it to a
+  *reliability* threshold (≥0.95 test–retest), not to the precision claim. Write "10–20 trials".
+- **Real human participants, three populations.** ✔ The structural claim ("continuous design space,
+  directly perceivable design, real participants ⇒ answerability is free") survives intact.
+- **ADOpy** (*Yang, Pitt, Ahn & Myung, Behavior Research Methods 53:874–897, 2021,
+  doi 10.3758/s13428-020-01386-4*, `yang2021adopy`) is the **software/tutorial paper only** —
+  psychometric functions, delay discounting, risky choice. Cite it for the method and its
+  availability; cite `ahn2020ado` for any number. ADO's design space is a **grid over continuous
+  design variables** — that is what "design grid" meant on 08-18; do not upgrade it to "continuum".
+
+## 5. LOL-BO's "20×" — **VERIFIED; it means less than it looks** `[A — abstract verbatim]`
+
+*Maus, Jones, Moore, Kusner, Bradshaw & Gardner, "Local Latent Space Bayesian Optimization over
+Structured Inputs", NeurIPS 2022, arXiv:2201.11872* (`maus2022lolbo`). Abstract, verbatim:
+
+> "LOL-BO achieves as much as 20 times improvement over state-of-the-art latent space Bayesian
+> optimization methods across six real-world benchmarks"
+
+- It is a **best-case ("as much as") optimisation-performance / sample-efficiency improvement over
+  prior LSBO methods**, over six benchmarks. It says **nothing** about decode validity,
+  on-manifold-ness, or how often a latent point yields a real object.
+- ⇒ **Quotable only in that exact form, with "as much as", and only as an optimisation result.** Do
+  not use it to argue that the emitted point is *meaningful* — that is precisely what it does not
+  measure. The citable content for Paper C stays the **mechanism** (trust regions in latent space +
+  retraining the generative model toward the promising region).
+
+## 6. GenMQD — **MECHANISM VERIFIED; BIBLIOGRAPHY UNRESOLVED** `[S — OpenReview abstract via search indexing; the forum, API and PDF endpoints all serve a bot-check]`
+
+Two independent search retrievals of the OpenReview abstract (id `CZvbXXgjrn`, posted 4 Oct 2024)
+agree, and the mechanism the 08-18 pass reported second-hand is **correct**:
+
+- **GenMQD = Generative Membership Query Descriptor.** > "generate textual descriptions of the desired
+  data, instead of the data samples themselves"; a pre-trained **multi-modal alignment model (e.g.
+  CLIP)** transforms the synthesised features into **natural-language text used to gather matching
+  real data**.
+- Explicitly motivated by our problem: existing membership-query synthesis "often generate[s]
+  instances lacking semantic meaning, thereby increasing the difficulty of labeling".
+- **★ NEW, and better for us than what we banked:** it reports a **large-scale user study in which
+  human oracles PREFER GenMQD's generated TEXT queries over generated IMAGE queries**, and **+2.43%
+  average accuracy when gathering and labelling 500 examples**.
+- ⇒ **It is the nearest published instance of "verbalise the synthesised query so a human can act on
+  it", and it comes with human-preference evidence.** It is vision-AL, not elicitation: the human acts
+  by *fetching matching real data*, not by *answering a question about themselves* — so it does not
+  take our cell, but it **does** take "rendering a synthesised query as text is a new idea".
+- **STILL UNRESOLVED: author list and publication status.** It is an **ICLR 2025 submission** (the
+  submission acknowledges the ICLR Code of Ethics); **no accepted/published version was located**.
+  **Cite as an OpenReview preprint with the forum id, or not at all — do not attribute authors.**
+
+## 7. Vendrov et al. 2020 — **VERIFIED, and our fallback reading was WRONG** `[V — ar5iv full text]`
+
+*Vendrov, Lu, Huang & Boutilier, "Gradient-based Optimization for Bayesian Preference Elicitation",
+AAAI 2020, 34(06):10292–10301, arXiv:1911.09153* — already in the bib as `vendrov2020gradient`.
+
+The 08-18 pass flagged a secondary reading that the relaxation was over **item-selection weights**,
+i.e. *soft selection* rather than synthesis. **That is refuted.** The paper's own framing:
+
+> "relaxing the set of items from which recommendations and queries are generated by allowing
+> attributes to vary continuously without requiring they correspond to available items"
+
+- The optimisation variables are matrices **X** (query slate) and **Y** (recommendation slate) whose
+  columns are **d-dimensional item vectors in continuous attribute space** — **hypothetical items**.
+- Query types: **slate / pairwise comparison** (focus k=2, extended to larger slates) and **partial
+  comparison queries** where only a subset of attributes is specified — explicitly to reduce the
+  user's cognitive burden. *That is an answerability move, in 2020, by Boutilier's group.*
+- The mapping back is a **snap**: > "Once optimized in this relaxed fashion, any hypotheticals are
+  projected back into the nearest actual items to generate suitable recommendations or queries." —
+  via a **deep retrieval** step selecting the real items that maximise expected utility given the
+  optimised slate.
+- ⇒ **Vendrov is genuine synthesis-then-snap, in recsys, at AAAI 2020, by a likely reviewer.** Three
+  consequences, none of them small:
+  1. **Add it to the "everyone snaps" list** — now a **four-field** claim (learning theory, active
+     learning, preference BO/elicitation, marketing) and one of the four is **our own field**.
+  2. **"Optimise the query continuously over hypothetical items" is PRE-EMPTED in recsys.** Paper C's
+     novelty cannot rest on it. What Vendrov does *not* do: (a) work in a **collaborative** latent
+     rather than an attribute space, (b) **render** the hypothetical as language, (c) leave the point
+     **unsnapped**. State our claim against exactly those three.
+  3. **The partial-comparison query is prior art for "ask about a subset of the direction"** — check
+     it before presenting any partial/sparse rendering as new.
+
+## 8. Tang, LeBel, Jain & Huth — **VERIFIED, and a better fit than expected** `[A — abstract verbatim + null-model description recovered from the bioRxiv full text]`
+
+*Nature Neuroscience **26(5):858–866**, May 2023, doi 10.1038/s41593-023-01304-9; preprint bioRxiv
+2022.09.29.509744* (`tang2023semantic`). The preprint is 403/429-walled to our fetcher, but the
+abstract and the null-model description were both recovered.
+
+- **What it shows** (abstract, verbatim in part): a **non-invasive fMRI decoder that reconstructs
+  continuous language** — "Given novel brain recordings, this decoder generates intelligible word
+  sequences that recover the meaning of **perceived speech, imagined speech and even silent videos**";
+  language can be **separately decoded from multiple cortical regions**; and "**subject cooperation is
+  required both to train and to apply the decoder**".
+- **★ The part Paper C needs is the EVALUATION protocol, and it is exactly the control we want:**
+  - A **null distribution** is built from **null sequences that carry no information about the
+    stimulus**, scored against the reference transcript; observed decoding scores are compared to it
+    with a **one-sided nonparametric test**.
+  - An **alternative null** is built by **permuting the actual voxel responses** before decoding,
+    which **preserves the statistics of the brain responses** while destroying the response→stimulus
+    **correspondence**; repeated **10 times** to give 10 alternative null sequences.
+  - Test stimulus: a ~10-minute story ("Where There's Smoke").
+- ⇒ **This is the scrambled-CORRESPONDENCE control, published in Nature Neuroscience, on a
+  latent→language decoder.** Second independent instance of the Heap et al. lesson
+  (`llm_verbalisation_2026-08.md`): *permute the mapping, keep the distribution*. **Cite both.** It
+  also answers "who validates a rendered latent without asking a human whether it sounds plausible":
+  they score the rendering against a reference and a matched null, never against a plausibility
+  judgement.
+- ⚠ **Do not import their headline as a claim about verbalisation quality.** They decode brain data to
+  language against a *paired reference transcript*; we have no reference text for a synthesised CF
+  direction. **The transferable object is the NULL CONSTRUCTION, not the metric.**
+
+---
+
+## What this pass CHANGES in the sections above
+
+1. **§(b) Zhu & Bento:** `[S]` → `[V]`; replace "described in the survey literature as producing
+   low-quality, class-ambiguous samples" with the two quoted sentences plus the fact that the authors
+   **restricted their experiments to easy binary pairs** because of it.
+2. **§(b) Baum & Lang:** delete "(Baltimore)"; record that there is **no page range**.
+3. **§(b) ADO:** the precision/trial numbers move to **`ahn2020ado` (Sci. Rep. 10:12091, 2020)**;
+   "fewer than 20 trials" becomes **"10–20 trials"**, attached to reliability, not precision.
+4. **§(a) Q4 item 9 (Vendrov):** the "soft selection, not synthesis" caveat is **removed**. Vendrov
+   joins the "everyone snaps" list and **pre-empts continuous query optimisation in recsys**.
+5. **§(a) Q4 item 10 (LOL-BO):** the 20× is now quotable, in the exact form "as much as 20 times
+   improvement over state-of-the-art latent space Bayesian optimization methods across six real-world
+   benchmarks", **and only as an optimisation result**.
+6. **§(a) Q4 item 5 / §(b) GenMQD:** mechanism confirmed and strengthened (human oracles *prefer* the
+   text queries; +2.43% at 500 labels); **bibliography still unresolved** — OpenReview preprint only,
+   no author attribution.
+7. **§(c) empty cell 3 (scrambled control) — NARROW IT.** A scrambled-correspondence control is **not**
+   novel in general: Heap et al. hold it for SAE explanations and **Tang et al. 2023 hold it for a
+   latent→language decoder in Nature Neuroscience**. What remains unclaimed is a scrambled control
+   **for a rendered elicitation QUESTION**, where the validated object is a question a user must
+   answer rather than a reconstruction scored against a reference. Write that, not "our scrambled
+   control appears genuinely novel as an experimental design".
+8. **§(d)7 (the debt list) is DISCHARGED** — superseded by this section.
+
+---
+
+# PRINCIPAL-AXIS EMITTER PRIOR-ART PASS — 2026-09-01
+
+*Brief: before building an emitter whose output is (approximately) the **principal axis of the
+cohort's residual covariance** at an interview state — a closed-form, training-free rule — establish
+exactly what is already published, so we cite rather than reinvent. Five questions, answered against
+primary sources. Provenance flags carry the same meaning as at the top of this file.*
+
+**Method note.** This pass re-read our own `rank_targeted_acquisition.md`,
+`active_learning_elicitation.md`, `adaptive_elicitation_baselines.md` and `infosynth_baseline_2026-08.md`
+first, per HARD RULE 4. **A large fraction of the answer was already in this repository** — see §Q1
+and §Q2 — and one of the two decisive facts (our own measured Σ-greedy null) is an in-house number,
+not a literature finding.
+
+---
+
+## ★ THE ONE-PARAGRAPH ANSWER — read this before designing anything
+
+**The emitter rule is published, twice, in closed form, and one of the two is eighteen years old.**
+For a linear-Gaussian belief the most informative query direction is the top eigenvector of the
+posterior covariance; **Ji, Xue & Carin (IEEE TSP 2008) write exactly that sentence and even offer
+the synthesise-or-snap choice we thought we were introducing** `[V]`. Info-Synth (2026) re-derives
+the same direction under a different (ideal-point, heteroscedastic-probit) model and lands on
+`ã = 4r̃v₁` `[V]`. So *nothing about "the principal axis is the best direction" is ours to claim* —
+it is a textbook design result with a recent preference-learning restatement. Worse for an
+adaptivity story: **a pure Σ-functional emitter provably falls inside the linear-Gaussian
+static-optimality null** that `rank_targeted_acquisition.md` §"The null" already documents, and
+CASPER has **already measured that class**: Σ-greedy beat random order by **+0.0036**. What remains
+genuinely open is not the direction but everything around it — the *space* (a collaborative latent,
+not an attribute or ideal-point space), the *renderer* (language), and the *answerability* accounting
+that no one in this lineage performs.
+
+---
+
+# Q1 — The canonical OED statement, its exact conditions, and where it fails
+
+## The citable statement (VERIFIED VERBATIM)
+
+**Ji, Shihao; Xue, Ya; Carin, Lawrence. "Bayesian Compressive Sensing." *IEEE Transactions on Signal
+Processing* 56(6):2346–2356, 2008, doi 10.1109/TSP.2007.914345** (`ji2008bcs`). `[V — Sec. IV.A of
+the authors' preprint PDF; bibliography confirmed against DBLP]`
+
+Their Eqs. (16)–(18), in their own words:
+
+> "h(f) = … = ½ log |Σ| + const"
+>
+> "hnew(f) = h(f) − ½ log(1 + α₀ rᵀ_{K+1} Σ r_{K+1}), (17) … To minimize hnew, the next projection
+> r_{K+1} should hence be designed to maximize rᵀ_{K+1} Σ r_{K+1}."
+>
+> "this is equivalent to maximizing the variance of the expected measurement g_{K+1}. In other words,
+> the next projection r_{K+1} should be selected to constitute the measurement g_{K+1} for which the
+> data is most uncertain, and hence access to the associated measurement would be most informative."
+>
+> **"If it is possible to design new projection r_{K+1} adaptively 'on the fly', then one might
+> perform an eigen-decomposition of the matrix Σ, and select for representation of r_{K+1} the
+> eigenvector with largest eigenvalue. Alternatively, if from a hardware standpoint such flexibility
+> in design of r_{K+1} is not feasible, then one might a priori design a library L of possible next
+> projections, with r_{K+1} selected from L with the goal of maximizing (18)."**
+
+★ **That last paragraph is the synthesise-or-snap dichotomy, in 2008.** It is the same fork as
+Baum & Lang → local membership queries → Wolpertinger → NN query synthesis → Vendrov → Info-Synth's
+Pair-Opt-dist, stated inside Bayesian experimental design and settled the same way. **Add it to the
+"everyone snaps" list**, which is now a five-field claim.
+
+**Lineage citations** (bibliographic detail verified, bodies NOT read — cite for provenance only):
+- **Lindley, D. V. (1956), *Ann. Math. Statist.* 27(4):986–1005**, doi 10.1214/aoms/1177728069
+  (`lindley1956information`) `[A]` — the expected-information-gain criterion itself.
+- **Chaloner & Verdinelli (1995), *Statistical Science* 10(3):273–304**, doi 10.1214/ss/1177009939
+  (`chaloner1995bayesian`) `[A — abstract + bibliography from Project Euclid; full text paywalled]` —
+  the review that puts Bayesian D-/A-/E-optimality in one decision-theoretic frame and *separates the
+  linear from the nonlinear design problem*. Cite for the taxonomy; **quote no formula from it until
+  someone reads it.**
+- **Houlsby, Huszár, Ghahramani & Lengyel (2011), BALD, arXiv:1112.5745** (`houlsby2011bald`, already
+  in the bib) `[A — abstract verbatim]`, whose own framing is the failure condition: *"For simple
+  regression an optimal myopic policy is easily tractable. However, for other tasks and with more
+  complex models, such as classification with nonparametric models, the optimal solution is harder to
+  compute."*
+
+## The exact conditions under which it holds
+
+All six must hold together. The result is fragile in a way that is easy to forget once it is written
+as "just take the top eigenvector".
+
+1. **Linear response.** The measurement is `y = rᵀθ + ε`.
+2. **Gaussian belief and Gaussian noise**, `θ ~ N(µ, Σ)`, `ε ~ N(0, σ²)` with `σ²` known.
+3. **A norm/energy constraint on the design.** Without one the objective `rᵀΣr` is unbounded — scale
+   `r` up and the information grows without limit. **The "top eigenvector" answer is the answer to a
+   constrained problem; the constraint is doing real work and must be stated.**
+4. **A continuous, unconstrained design space** (the whole sphere). Restrict to a pool and you are
+   back to Ji et al.'s "library L".
+5. **A Σ-only criterion.** Information gain / Bayesian D-optimality gives `½log(1 + rᵀΣr/σ²)` ⇒ `v₁`.
+   For a *single* rank-one measurement A- and E-optimality select `v₁` too, because the achievable
+   trace reduction `λᵢ²/(σ² + λᵢ)` and the max-eigenvalue reduction are both monotone in `λᵢ`
+   `[A — one-line derivation, not a citation; do not attribute it to Chaloner & Verdinelli
+   without reading them]`. **The three criteria coincide for one query and diverge for a batch.**
+6. **Myopia.** Ji et al. call their own criterion "(myopic)" and "one-look-ahead" explicitly `[V]`.
+
+## Where it FAILS — the four that matter for us
+
+**(a) ★ SEQUENTIAL vs BATCH — and this is the one that bites CASPER hardest.**
+Under exactly conditions 1–2 the posterior update
+`Σ ← Σ − Σr rᵀΣ / (σ² + rᵀΣr)` **does not involve the observed answer `y`**. Therefore the entire
+greedy sequence is computable before any answer arrives: the queries are just the leading eigenvectors
+of the prior covariance, in order. **A pure principal-axis emitter is not adaptive — it cannot be.**
+This is not new to us: `rank_targeted_acquisition.md` §"The null" already records it, with
+Jedynak, Frazier & Sznitman's Bayes-optimal policy that *"asks a deterministic set of questions"*
+`[V]` and Krause & Guestrin's a-priori designs `[S]`, and with our own measured consequence —
+**Σ-greedy over random order = +0.0036**. That file's verdict applies verbatim to this hypothesis:
+*it is evidence that we ran an objective inside the theorem's hypothesis.*
+⚠ Note what re-introduces adaptivity in Ji et al.: **not** the Gaussian update, but the type-II ML
+re-estimation of the sparsity hyperparameters `α` from the data `[V]`. Adaptivity has to come from
+somewhere the covariance does not already know.
+
+**(b) Discrete / comparative answers.** With a probit or logistic link the posterior is no longer
+Gaussian, the covariance update *does* depend on the answer, and — decisively — **a direction is no
+longer a query**. Info-Synth's own optimum has **two** conditions, not one: the query midpoint must
+sit at the posterior mean (so the answer is equiprobable) *and* the separation must lie along `v₁`
+`[V, §Info-Synth read]`. The direction is half the object. BALD is the reference for the general
+intractability `[A]`.
+
+**(c) Nonlinear response.** The posterior covariance becomes data-dependent and the closed form is
+gone; this is the linear/nonlinear split Chaloner & Verdinelli organise their review around `[A]`.
+For us the mismatch is concrete: **our recommender scores by inner product against a decoder plus a
+learned decoder bias, not by a linear-Gaussian measurement of a latent user vector**, and
+`infosynth_baseline_2026-08.md` §2.1 already flags that porting an ideal-point posterior onto that
+space is *"a substantive assumption we would be making on their behalf"* `[V]`.
+
+**(d) Heteroscedastic noise / answerability.** If `σ²` depends on the design — Info-Synth's entire
+contribution — the optimal magnitude is no longer "as large as the constraint allows"; there is a
+finite optimal radius found numerically `[V]`. And if the design must additionally be *askable*, the
+continuum relaxation is void and you snap (Ji's library L; Vendrov; Pair-Opt-dist) or render.
+
+---
+
+---
+# Q2 — Posterior-covariance geometry to choose interview questions, INSIDE recommender systems
+
+**VERDICT: classical optimal design is ALREADY in recsys elicitation — it arrived in 2015 and was
+re-derived from a ranking-flavoured loss in 2018 — but it is the TRACE criterion over a POOL, never
+the top eigenvector, and never a synthesised direction. "Emit the principal residual direction" is
+NOT a named method in RS. The idea is unnamed; the ingredients are all taken.**
+
+Most of this was already in the repository and is restated here so the answer is in one place.
+
+## What IS in recsys, ranked by closeness
+
+1. **★ A-optimality is the recsys elicitation rule, twice.**
+   - **Anava, Golan, Golbandi, Karnin, Lempel, Rokhlenko & Somekh, "Budget-constrained item cold-start
+     handling in collaborative filtering recommenders via optimal design", WWW 2015**
+     (`anava2015budget`, arXiv:1406.2431) `[V — abstract, prior pass]`: elicitation formalised as
+     **optimal design** under squared prediction error, objective proved monotone-supermodular.
+     ⚠ It is **item** cold-start (which users to ask about a new item), so it is the formalism's
+     source, not a comparator.
+   - **Sepliarskaia, Kiseleva, Radlinski & de Rijke, "Preference Elicitation as an Optimization
+     Problem", RecSys 2018** (`sepliarskaia2018spq`, doi 10.1145/3240323.3240352) `[V — full PDF,
+     prior pass]`: the selection rule is **`argmin_B tr[(V_B V_Bᵀ + εE)⁻¹]`** — literally
+     **A-optimality over the selected items' factor vectors**, greedy with a Sherman–Morrison
+     reduction, derived from a *flat pairwise* loss via Anava et al.
+   ⇒ **Posterior-covariance geometry for interview-question selection in RS is settled prior art.**
+   Anything we say about "design criteria in elicitation" must cite these two.
+   ★ The load-bearing distinction our own files already established: the collapse "task loss ⇒
+   A-optimal design" happens **because the loss is untruncated and undiscounted**; NDCG@10 does not
+   collapse to a trace criterion.
+
+2. **`goldberg2001eigentaste` — the eigen-basis, 25 years ago.** `[V, this pass]` Every new user
+   answers the same universal **gauge set**; PCA on the dense gauge submatrix (eigenvectors of the
+   gauge-item correlation matrix) projects and clusters them. **The eigenstructure is the analysis
+   basis, not the question-selection rule, and the interview is deliberately fixed.** This is the
+   paper that makes "principal directions of a rating covariance" unclaimable as an *idea* in
+   recommendation.
+
+3. **`nguyen2024pere` — PERE, Nguyen, Nguyen, Doan & Nguyen, UAI 2024 (PMLR v244:2766–2786,
+   arXiv:2406.00973)** `[V-html, prior pass]`. The closest *belief-geometry* elicitation method in
+   modern recsys: the user is a **region** in a frozen embedding space, and adaptive information-gain
+   queries **cut the region by halfspaces**, weighted by an estimated experience probability;
+   recommendation comes from the region's **Chebyshev centre**. Geometry of the belief drives the
+   questions — but the questions are **real items**, the geometry is a polytope rather than a
+   covariance, and nothing is synthesised.
+   ⚠ Standing debt: PERE's experience-probability formula is still `[S]`.
+
+4. **`fonarev2016rectangular` (RMVA) and the representative-based line** (`liu2011wisdom`,
+   `shi2017local`) `[prior passes]`: **maximal-volume** selection of seed items in the MF latent — a
+   determinant/volume criterion on the item factor matrix, i.e. D-optimality's cousin, applied to a
+   **static** seed set chosen from the catalogue.
+
+5. **`rubens2007influence` — Rubens & Sugiyama, RecSys 2007** `[S]`: selects items by the **influence
+   of a rating on other items' predictions**. `rank_targeted_acquisition.md` already identifies this
+   as the closest pre-existing recsys relative of a `Qᵀ Σ φ` influence term — un-Bayesian and
+   untargeted.
+
+6. **The Bayesian-AL-for-CF line, for completeness** `[S/A, prior passes]`: Jin & Si (UAI 2004,
+   arXiv:1207.4146) minimise **expected loss over the model posterior** rather than a point estimate;
+   Sutherland, Póczos & Schneider (KDD 2013) query the **highest-posterior-variance matrix element**
+   — the max-variance baseline that is, per §Q1(a), static-equivalent by construction; Harpale & Yang
+   (SIGIR 2008), Zhao et al. (CIKM 2013, `zhao2013interactive`) and Christakopoulou et al.
+   (KDD 2016, `christakopoulou2016towards`) run bandit/Thompson-style selection over items.
+   **None of these uses an eigen-direction, and none synthesises a query.**
+
+7. **The classic interview-tree line does NOT use covariance geometry at all** `[V, prior passes]`.
+   Rashid et al. (IUI 2002 / SIGKDD Expl. 2008) use popularity, entropy, HELF; Golbandi, Koren &
+   Lempel (WSDM 2011) explicitly **deviate** from entropy/Gini to a **squared-loss** split
+   (verbatim in `golbandi2011adaptive`); Zhou, Yang & Zha (SIGIR 2011) fit latent vectors at tree
+   leaves. Elahi, Ricci & Rubens (Computer Science Review 2016) taxonomise these as heuristic /
+   personalised / multi-criterion strategies — **the survey does not carry a "variance- or
+   covariance-optimal" family name**, which is why the design vocabulary has to be imported from OED.
+
+8. **Synthesis inside recsys is Vendrov's** (`vendrov2020gradient`, AAAI 2020) `[V, 2026-08-21 pass]`:
+   continuous **hypothetical item vectors** optimised for **EVOI**, then **projected back to the
+   nearest actual items**. ⚠ **Its objective is expected value of information, not covariance
+   eigen-structure** — so it pre-empts "optimise the query continuously in recsys", not "use the
+   principal axis".
+
+## The blunt answer to "is it already a named method in RS?"
+
+**No. There is no named RS method called anything like "principal residual direction elicitation".**
+But every ingredient is held by someone: the **criterion family** by Anava/Sepliarskaia, the
+**eigen-basis** by Eigentaste, the **belief-geometry-drives-the-question** move by PERE, the
+**synthesise-then-snap** move by Vendrov, and the **eigenvector rule itself** by Ji et al. (outside
+recsys) and Info-Synth (outside recsys). **An unnamed combination of fully-owned parts is a weak
+novelty claim, and we should not build a headline on it.**
+
+---
+
+# Q3 — Info-Synth: does our proposal COINCIDE with it?
+
+## Bluntly: on the emitter rule, YES.
+
+Confirmed from our own full-PDF read (`infosynth_baseline_2026-08.md` §1.3, `[V]`), and the arXiv abs
+page re-checked 2026-09-01 `[A]` (title *Active Query Synthesis for Preference Learning*; Nadagouda,
+Ahad, Tucker, Davenport; 25 May 2026; the abstract mentions mutual-information maximisation and the
+confidence-aware response model but **not** the eigenvector — the eigenvector is Proposition 1 in the
+body). Their synthesis rule, exactly:
+
+- **Term 1** of the MI objective forces the query **midpoint to the posterior mean**: `b̃ = µ`.
+- **Term 2** is maximised by `x̃ = r̃ v₁`, with **`v₁` the principal eigenvector of the posterior
+  covariance `Σ`**; the magnitude `r̃` is a 1-D numerical entropy minimisation.
+- Final: **`ã = 4 r̃ v₁`**, i.e. the pair straddling `µ` along the top principal axis.
+
+**Our proposed emitter and theirs pick the same direction.** If the "cohort's residual covariance at
+an interview state" is (as it would be under any Gaussian belief) the posterior covariance over the
+user's latent given the answers so far, then `v₁` of that matrix **is** their `v₁`. The two
+derivations differ — theirs is MI under an ideal-point/heteroscedastic-probit model, Ji et al.'s is
+entropy under linear-Gaussian — and *that they agree is the point*: the rule is overdetermined, and
+therefore not a contribution.
+
+## What differs, precisely — and it is not nothing
+
+| Axis | Info-Synth | Ji et al. 2008 | Ours, if built |
+|---|---|---|---|
+| Direction rule | `v₁` of posterior Σ | `v₁` of posterior Σ | `v₁` of cohort residual Σ — **same object** |
+| Query object | ordered **pair** `(p̃, q̃)` straddling `µ` | a **projection row** `r` | a single **direction** to be rendered |
+| Space | ideal-point embedding (uniform synthetic; OPT-350M summaries; robot gains) | sparse signal basis | **collaborative-filtering latent** |
+| Presented to a person? | **never** — no human answers any query in the paper `[V]` | no | that is the whole point |
+| Rendered as language? | no renderer anywhere in the paper `[V]` | no | **yes** |
+| Answerability | modelled as **response noise from geometry**; askability never raised `[V]` | "library L" if the hardware cannot do it | the object of study |
+| Left unsnapped? | only where the point is itself instantiable (random vectors, controller gains) `[V]` | either, explicitly | yes |
+
+**⇒ The honest position, and the one to write:** *we are the rendered, catalogue-free variant of a
+known emitter, and the contribution is the answerability analysis and the causal-faithfulness audit
+that the emitter's own literature has never run.* This is materially narrower than "a closed-form
+training-free emitter" as a headline, and the design sheet should say so in its own voice.
+
+⚠ **Do not present the closed form as an efficiency contribution either.** Ji et al. is
+training-free, closed-form and 2008; Info-Synth's cost is *"just the covariance estimate"*, `O(S·d²)`
+`[V]`. "No network needed" is not a claim, it is the default in this family.
+
+---
+
+# Q4 — Answerability bending the ideal direction: is the GAP measured anywhere?
+
+**VERDICT: the cell is unoccupied — but it is one paper away from being taken, and the near-miss is
+Info-Synth again.**
+
+1. **★ Info-Synth writes the object down and never reports it.** Their §5.1 Taylor-expands the MI at
+   the synthesised optimum, where the gradient vanishes, giving the loss of moving to a realisable
+   pair as a Mahalanobis norm **`ΔI(z) = ½‖Δz‖²_M`, `M = −H(z*)`** `[V]`. **Pair M-dist** filters on
+   it; **Pair Opt-dist** is the cheap high-dimensional surrogate
+   `η(p,q,λ) = Σᵢ(bᵢ−µᵢ)²/Σᵢᵢ + λ‖(p−q) − 2r̃v₁‖²` `[V]`. **They never report ΔI as a number** — no
+   table, no plot; the results are downstream MSE / Kendall-tau / accuracy / selection time `[V]`.
+   ⇒ **The machinery for "information cost of snapping" exists and is named. Reporting the number
+   closes the cell. We should cite it explicitly and stake our claim on the axis they do not touch:
+   their constraint is POOL MEMBERSHIP, ours would be HUMAN ANSWERABILITY.**
+   ⚠ **Technical caution before we use their ΔI:** it is a *second-order* expansion around `z*`,
+   valid for small `Δz`. The interesting case — the nearest askable question is *far* from the
+   emitted direction — is exactly where the quadratic understates the loss. **Report the true MI
+   difference, not the Mahalanobis surrogate, whenever the gap is large.**
+
+2. **Bıyık et al. 2019 (`biyik2019asking`, already in our bib) is the strongest answerability work
+   and it deliberately argues there is NO gap to measure.** `[V — ar5iv full text]` Verified detail
+   beyond what we held: their answerability model is a noisily-rational choice model plus an
+   explicit **"About Equal" option Υ** governed by a minimum-perceivable-difference `δ ≥ 0`, with
+   **`δ = 1` in the experiments**; **Theorem 1** shows the *trivial* query (identical trajectories)
+   is a **global optimum of volume removal** and the global *minimum* of information gain. Human
+   study: **15 participants** (Driver, Tosser) + **12** (Fetch), 30 randomised blinded queries each,
+   7-point Likert; info-gain queries rated easier at **p < 0.005**, fewer indistinguishable queries at
+   **p < 0.05 / p < 0.005**, trajectory preference at **p < 0.05**.
+   ⚠ **Quote the p-values, never a Likert mean** — the means live only in Figure 6 and were not read.
+   Their argument is that information gain *aligns* informativeness with answerability, so the
+   trade-off need not be paid. **That is a claim we can test in our setting and they cannot in
+   theirs**, because their queries are always physically renderable.
+
+3. **The metric SHAPE already exists, in psychometrics: *p*-optimality** (`yang2020poptimal`)
+   `[A/S — landing page only; SAGE 403, PMC captcha; figures from indexing quotations]`. A pool is
+   ***p*-optimal** if at every ability estimate some *available* item supplies at least a `p`-fraction
+   of the **maximum possible information** there; operational `p = 0.95`, reportedly ≈ 0.35 logit of
+   mismatch under Rasch. **Borrow the ratio (best-available ÷ theoretical maximum); do not borrow the
+   numbers, and name the disanalogy — their unavailable optimum has the wrong DIFFICULTY, ours would
+   be UNASKABLE.** ⚠ Verify both figures against the article before any sentence uses them; the
+   originating Reckase source could not be resolved to a full citation.
+
+4. **SEL-BALD** (`gao2024selbald`, in the bib) `[A — NeurIPS proceedings abstract]`: models human
+   *discretion to decline*, and argues you must also acquire information about the discretion model.
+   **No quantified discretion cost visible at abstract level.** Title varies between listings
+   (*"Deep Bayesian Active Learning for Selective Labeling with Instance Rejection"* on the virtual
+   site); **no arXiv id found** — check before citing a preprint number.
+
+5. **`wang2015qsnn` — the standing "authors unverified" debt is now CLOSED** at `[A]`:
+   **Wang, Liantao; Hu, Xuelei; Yuan, Bo; Lu, Jianfeng, "Active learning via query synthesis and
+   nearest neighbour search", *Neurocomputing* 147:426–434 (2015)**, doi 10.1016/j.neucom.2014.06.042.
+   Synthesise, then label the **nearest real instance**, explicitly to keep the query recognisable to
+   a human oracle. ⚠ **ScienceDirect 403 — the body was NOT read; we still do not know whether they
+   quantify the snap's cost.** New verification debt.
+
+6. **Reached-and-rejected / unreachable, recorded so nobody re-runs them:** Canal, Massimino,
+   Davenport & Rozell, *Active embedding search via noisy paired comparisons*, ICML 2019
+   (arXiv:1905.04363) — **note the author list includes Massimino; our earlier "Canal, Fenu & Rozell"
+   was wrong** `[A]`; Chumbalov, Maystre & Grossglauser, ICML 2020 (arXiv:1905.05049) — derives an
+   optimal query form but over a discrete object set from the start `[A]`; Schumann & Rehbein,
+   CoNLL 2019 (K19-1044), VAE membership-query synthesis for sentences, **PDF extraction failed** —
+   a likely source of unlabelable-rate numbers, worth one more attempt `[A]`. Constrained-CAT
+   relative-efficiency numbers and van der Linden's shadow-test approach: `[S]`, **paywalled or
+   captcha-walled, no figure verified.** GenMQD remains `[S]` and unverifiable.
+
+---
+
+# Q5 — The softmax-weighted centroid as a policy parameterisation
+
+**VERDICT: the operator is published, the exact object is published, and — the correction that
+matters — our design sheets have been calling it by the wrong name and asserting it is untried in
+recsys when it is not.**
+
+## ★ NAME CORRECTION, BINDING
+
+arXiv:2602.08616 is **DGRL — "Breaking the Grid: Distance-Guided Reinforcement Learning in Large
+Discrete Action Spaces", Hoppe, Akkerman, van Heeswijk & Schiffer**, preprint (v1 9 Feb 2026), no
+venue `[V — abs page + HTML full text]`. **"DBU" is only its update rule (Distance-Based Updates);
+"SDN" (Sampled Dynamic Neighborhoods) is the other half.** Every CASPER sheet that names the method
+"DBU / Breaking the Grid" — `PAPER_C_DESIGN.md` §C1, `PAPER_C_TODO.md`, `FABLE_BRIEF_PAPERC.md`,
+`PAPER_B_POLICY_DESIGN.md`, `docs/archive/PLAN_NEXT_2026-07-14.md` — is carrying a second-hand
+transmission error. **Fix it before it reaches a draft.**
+
+## What DGRL actually does, and two corrections to our record
+
+- **The target IS our object** `[V]`: a value-softmax over sampled candidate actions at temperature
+  `τ_b`, with the actor minimising the squared distance from its proto-action to that weighted mean.
+- **Theorem 4.2** bounds the per-sample gradient noise by `G² Tr(Cov[ā])` and states *"Both sides are
+  independent of |𝒜|"* `[V]`. **That is a bound whose two sides do not scale with the action count —
+  not a measured variance-independence claim. Do not overquote it.**
+- ⚠ **Correction 1: the candidates are NOT retrieved kNN neighbours.** Algorithm 2 draws them by
+  Gaussian perturbation of the proto-action, **rounded onto a metric lattice** `[V]`. DGRL presumes
+  an action space with coordinate structure it can perturb inside — that is what "breaking the grid"
+  means. **Our candidates are an enumerated question bank with no such geometry, so SDN does not
+  transfer and we must say what replaces it.**
+- ⚠ **Correction 2: recommendation is one of its evaluation domains** — MovieLens, recommend N of
+  343 movies, choose-or-terminate `[V]`. **We may not write that the blend target is untried in
+  recsys.** (343 items with a choose-or-terminate simulator is a long way from an interview policy;
+  that distance is a sentence we can write, "untried" is not.)
+
+## Is it a NAMED pattern? — the per-source verdict
+
+| Source | Is it literally a utility-softmax-weighted average of candidate embeddings? |
+|---|---|
+| **DGRL**, `hoppe2026dgrl` `[V]` | **YES** — the exact object, as an explicit regression target |
+| **MPO**, Abdolmaleki et al., ICLR 2018 (`abdolmaleki2018mpo`) `[V]` | **NEARLY — the true ancestor.** The E-step's self-normalised weights *are* a softmax over candidate values; for a Gaussian policy the M-step's weighted-ML mean *is* the softmax-weighted centroid. It **contains** the object without naming it. DGRL cites MPO as its own lineage. |
+| **AWR** (`peng2019awr`) / **AWAC** (arXiv:2006.09359) `[V]` | **NO** — per-sample exponentiated-advantage-weighted log-likelihood; **no averaged action is ever formed.** ⚠ Citing these as precedent for a blend would be a factual error. |
+| **Wolpertinger** (`dulacarnold2015deep`) `[V]` | **NO — confirmed argmax** over the kNN set under the critic. Our record was right. |
+| **SAVO**, arXiv:2410.11833 `[A]` | **NO** — samples candidates and **selects the highest-valued**; argmax family. |
+| **DeCap** (`li2023decap`) `[V]` | **YES mechanically, but it is not a policy** — softmax over *similarity*, not utility, applied training-free at decoding time over a support memory. |
+| **Spatial softmax / soft-argmax**, Levine, Finn, Darrell & Abbeel, JMLR 17(39) 2016 (`levine2016visuomotor`) `[V]` | **The operator, yes; the name, weakly.** Their own term is "spatial softmax"; "soft-argmax" appears **once**, and it is over image pixel coordinates. |
+
+Open-vocabulary searches for "expected embedding action selection", "soft action selection over
+candidate embeddings", "Boltzmann-weighted action embedding average" returned **no established term**
+`[A — search-level absence, so this is [A] not [V]]`.
+
+**⇒ The correct citation chain is: operator → `levine2016visuomotor`; RL ancestor →
+`abdolmaleki2018mpo`; exact statement of our object → `hoppe2026dgrl`; text-bank analogue →
+`li2023decap`.** What is *not* covered by DGRL, and is therefore where any novelty must live:
+(i) where the candidates come from (an enumerated question bank, not a perturbable lattice);
+(ii) where the weights come from (a predicted one-step gain profile, not a bootstrapped critic — which
+also voids DGRL's local-improvement guarantee); (iii) that the centroid is left **unsnapped** and
+handed to a renderer.
+
+---
+
+# WHAT THIS PASS CHANGES — sentences we may and may not write
+
+## ⛔ DEAD — do not write these
+
+1. **"The best off-catalogue question direction is the principal axis of the residual covariance"
+   presented as our finding, insight, or design contribution.** `ji2008bcs` (2008, verbatim) and
+   `nadagouda2026infosynth` (2026, Prop. 1) both state it. It may appear only as *"the standard
+   design result, which we instantiate"*.
+2. **"A closed-form, training-free emitter" as a novelty or efficiency claim.** Both prior instances
+   are closed-form and training-free; that is the family's default, not a delta.
+3. **"Our emitter adapts to the answers"** — for a *pure* Σ-functional rule this is provably false
+   under linear-Gaussian belief; the whole query sequence is precomputable. Anything we claim about
+   adaptivity must come from the objective's dependence on the posterior **mean** (the escape already
+   documented in `rank_targeted_acquisition.md`), not from the covariance.
+4. **"Principal-component structure is new to recommender elicitation."** `goldberg2001eigentaste`
+   (Information Retrieval 4:133–151, 2001) built the whole algorithm on eigenvectors of the gauge-item
+   correlation matrix, twenty-five years ago.
+5. **"DBU / Breaking the Grid"** as a method name — it is **DGRL**; DBU is the update rule.
+6. **"The softmax-weighted-blend target is untested in recommendation."** DGRL evaluates on MovieLens.
+7. **"Nobody prices answerability against informativeness."** Already dead five times over per
+   `active_learning_elicitation.md` §0.5; this pass adds nothing that revives it.
+
+## ✅ SAFE — these survive, stated exactly this way
+
+1. *"The direction our emitter produces is the classical design answer — the leading eigenvector of
+   the belief covariance (Lindley 1956; Ji et al. 2008), re-derived for pairwise preference queries by
+   Nadagouda et al. (2026). We adopt it rather than propose it."*
+2. *"What has never been done with that direction is to **render it as language and put it to a
+   person**: Ji et al. offer only 'design it on the fly, or pick from a library L'; Info-Synth poses
+   its synthesised pair only where a latent point is itself instantiable — uniform random vectors and
+   robot controller gains — and in its one semantic space it snaps to real summaries before any
+   response is collected."* `[V, all clauses]`
+3. *"Info-Synth derives the Mahalanobis information loss of snapping a synthesised query onto a pool
+   (ΔI = ½‖Δz‖²_M) and never reports it as a number. We report the analogous quantity, and against a
+   constraint they do not consider: not pool membership but human answerability."* — **the strongest
+   single sentence available to us from this pass**, provided we use the true MI difference where the
+   gap is large.
+4. *"Principal-component structure in recommender elicitation is old (Eigentaste, 2001), but there it
+   is the analysis basis over a fixed universal gauge set; nobody uses a leading eigen-direction as
+   the **content** of a question."*
+5. *"A design criterion that is a functional of the posterior covariance alone is realisable as a
+   fixed, answer-independent question sequence; we therefore do not claim adaptivity for it, and we
+   report it as the static arm."* — this converts a weakness into a correctly-labelled control.
+6. *"We use an MPO-style exponentiated-value reweighting as a soft-argmax over a candidate question
+   bank, as in DGRL's distance-based update."* — cite, do not christen.
+
+## New verification debts opened by this pass
+
+| # | Debt | Why it matters |
+|---|---|---|
+| 1 | **`wang2015qsnn` body** (ScienceDirect 403) — does it quantify the cost of snapping? | If it does, our Q4 cell narrows further |
+| 2 | **`yang2020poptimal`'s p = 0.95 ↔ 0.35 logit ↔ 5% information** (SAGE 403 / PMC captcha) | We would be importing the metric's shape and its threshold |
+| 3 | **`chaloner1995bayesian` full text** (paywalled) | We currently cite the taxonomy from an abstract |
+| 4 | **SEL-BALD's discretion-cost quantity** and its correct title / arXiv id | Cited in our bib with no id |
+| 5 | **Schumann & Rehbein CoNLL 2019** (PDF extraction failed) | Possible unlabelable-rate numbers for membership-query synthesis in text |
+| 6 | The Bıyık Likert **means** live only in Figure 6 — never quoted here | Guard against a figure-read creeping into prose |
