@@ -881,6 +881,16 @@ def markdown(out):
          f"value claim",
          ""]
     sp = out["space"]["probe"].get(out["space"]["chosen"])
+    if sp and "top5_neighbourhood_overlap_mean" not in sp:
+        # an artifact banked before the neighbourhood arm existed: print the arm it does carry
+        L += [f"> ⚠ SPACE PROBE: exact top-1 agreement between the fed point's nearest bank entry "
+              f"and the emission's own nearest entry in m7dj's space is "
+              f"**{sp['snap_agreement_with_the_emission_in_its_own_space']:.3f}**, and it is 0.000 "
+              f"for all three constructions -- including `target`, which is the right direction in "
+              f"the adapter's own bank by construction -- so exact-index equality over a "
+              f"{N_BANK:,}-entry bank is too strict to separate them. Re-run to bank the "
+              f"neighbourhood arm that does.", ""]
+        sp = None
     if sp:
         pr = out["space"]["probe"]
         L += [f"> ⚠ SPACE PROBE (why this row is rendered in the `{out['space']['chosen']}` "
@@ -952,13 +962,25 @@ def latex(out):
         L.append(f"{r['turn']} & \\texttt{{{_tex(r['sid'])}}} & {syn} & "
                  f"{_tex(r['catalogue']['question'])} & "
                  f"{_f(c['full'] if c else None, 4)} & {_f(c['tail'] if c else None, 4)} \\\\")
+    # ★ the caption must name what the CHOSEN space actually renders. Under `target` the row is the
+    # state's measured-gain blend rebuilt in the renderer's own bank, NOT the policy's emission, and
+    # writing "the policy's own direction" there would be the space mismatch smuggled into the
+    # caption (DS_C3B_V2_QUESTIONS.md amendment 2026-08-30).
+    ch = out["space"]["chosen"]
+    what = ("the direction the measured gains point to at that state, rebuilt in the renderer's own "
+            "bank and rendered by the adapter under " if ch == "target" else
+            "the policy's own off-catalogue direction, rendered by the adapter under ")
+    extra = ("" if ch != "target" else
+             " The policy's ability to emit that direction is the separate, already-banked C1-final "
+             "result: cos(emission, target) = 0.970 at exactly these trained states. It is rendered "
+             "in the target construction because the two policies' k(phi) read-outs do not share a "
+             "basis (see the space probe).")
     L += [r"\bottomrule", r"\end{tabular}",
           r"\caption{" + _tex(
               f"One cold-start interview. At every state where the C1-final policy was trained to "
-              f"emit ({out['n_turns_emitting']} of {out['n_turns']} turns) the question is the "
-              f"policy's own off-catalogue direction, rendered by the adapter under "
-              f"{out['renderer']['decoding_primary']}; where it was not, no question is invented and "
-              f"the row says so. Answers, folds and both NDCG columns are "
+              f"emit ({out['n_turns_emitting']} of {out['n_turns']} turns) the question is "
+              f"{what}{out['renderer']['decoding_primary']}; where it was not, no question is "
+              f"invented and the row says so.{extra} Answers, folds and both NDCG columns are "
               f"{out['answer_model']['label']} and carry no value claim.") + r"}",
           r"\label{tab:c4d-transcript}", r"\end{table*}"]
     return "\n".join(L) + "\n"
