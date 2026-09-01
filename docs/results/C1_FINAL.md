@@ -105,3 +105,56 @@ and never swept — **accepted and declared** (`hyperparameters_not_tuned`); the
 The cheapest lever is more emission states, not more epochs: the scoping prices an inheritor sweep
 at **4.4 h** to roughly double the 72. Whether that buys extrapolation is untested and, under the
 2026-08-30 author steer (capstone, not exhaustive), optional.
+
+---
+
+## ★★★ CORRECTION 2026-09-01 — THE FIT NUMBER IS MOSTLY CONE MEMBERSHIP
+
+`experiments/paperC/c5_diagnostics.json` (D1/D3/D4, commits `cf49372`/`7f9b420`) supplies the
+trivial-baseline floor this document never reported, and it changes how every cosine here reads.
+
+**The state-blind baseline.** Take the mean of the OTHER 71 blend targets — a single constant vector
+that ignores the state entirely — and score it against each state's own target:
+
+| | state-blind constant | this policy | paired difference |
+|---|---|---|---|
+| **trained** states (raw cos) | **0.9531** | 0.9696 / 0.9745 | policy **+0.015** |
+| held-out, primary split (raw) | **0.9502** | **0.0609** (median −0.1195) | **constant +0.8893 [+0.6555, +1.0905]**, wins **14/15** |
+| held-out, secondary split (raw) | **0.9623** | 0.0351 | **constant +0.9271 [+0.8254, +1.0194]**, wins **30/30** |
+
+**Three things follow, and they are not softened.**
+
+1. **"Fit 0.970" bought about +0.015 of raw cosine over a constant.** The registered metric had a
+   ~0.95 floor because the targets are a tight cone (D1: median raw pairwise cosine 0.920), and no
+   floor was computed before the result was read. The fit is real but nearly all of it is the cone.
+2. **At held-out states the trained policy is far WORSE than doing nothing.** A constant scores 0.95;
+   the policy scores 0.06. Training pushed it off the cone precisely where it had no supervision.
+   The original wording — "does not extrapolate" — was too kind: it is *actively worse than the
+   state-blind guess* there.
+3. **The state-specific residual is not recoverable from these inputs.** Ridge probes over the latent,
+   the warm-start emission, and structural features all fail to beat the state-blind baseline on
+   either split (best +0.016, CI includes zero), and a two-feature `size+depth` probe matches the
+   200-d latent. So this is *both* "model at fault" (a constant beats a 526k-parameter fine-tune) and
+   "inputs insufficient" (nothing here recovers the residual).
+
+**What SURVIVES unchanged.** The two blocking gates — no-collapse (245/245 distinct, agreement 0.995)
+and renderability at trained states — are behavioural, not cosine-based, and stand. The claim *"one
+object runs the ordinary interview and emits an off-catalogue point at measured states"* stands. What
+does not stand is any reading of 0.970 as evidence that the policy learned the state→direction map.
+
+**What must change downstream:** every cosine in the C-series needs its trivial floor printed beside
+it (the C4 pilot's +0.286 point-specificity and C3B's ceiling-relative numbers already have proper
+nulls; C1's did not). The chapter's C1 section must carry the +0.015-over-constant number, not the
+0.970 alone.
+
+## ★ The finding underneath, which is worth more than the number it cost
+
+The measured-best directions at different interview states **share a dominant common component**:
+raw cosine 0.95 to a state-blind constant, 0.63 mean-removed, while the top-1 candidates they are
+built from differ at 0.247. In plain terms — *there is largely one direction worth asking about, and
+conditioning on the interview state moves a modest residual off it.*
+
+That is **Paper B's "the bank beats conditioning" (`policyB-rebuild-shrinks-conditioning-bank-wins`,
+`concept-bank-does-not-rescue-adaptive-pv`), arrived at independently, in the geometry of the
+question space rather than in an NDCG table.** Two chapters, two methods, one fact. It is a better
+thing for the thesis to be able to say than a larger fit would have been, and Paper C should say it.
