@@ -45,7 +45,7 @@ Absorbs old Paper E (LLM-rendered dialogue). Old Paper D is absorbed into B.
 - **Wolpertinger structure** — actor emits a query point, kNN retrieves candidates, the existing
   scorer ranks them; reduces exactly to discrete when k = full pool. The near-lossless bridge.
 - **Learning to predict embeddings** + **snap variants** (author: "important and necessary part").
-- **DBU / "Breaking the Grid"** (arXiv:2602.08616) — regress the actor onto a Q-softmax-weighted
+- **DGRL [was mis-cited as "DBU"; DBU is only its update rule] / "Breaking the Grid"** (arXiv:2602.08616) — regress the actor onto a Q-softmax-weighted
   BLEND of retrieved candidates. The one training signal that teaches landing BETWEEN phrases while
   every gradient still comes from executed, measured candidates.
 - `new_chapters/paper4_casper/ASKABLE_QUESTIONS.md` — taxonomy of open vs closed question types with
@@ -58,7 +58,7 @@ Absorbs old Paper E (LLM-rendered dialogue). Old Paper D is absorbed into B.
 ## Citations to route
 
 **→ Paper C:** ELM (2310.04475, the rendering precedent + the consistency-metric idea) · HyAR (Li
-ICLR 2022) · Wolpertinger · DBU 2602.08616 · Gumbel-softmax (Jang 2017) · CLARINET (2405.15784) ·
+ICLR 2022) · Wolpertinger · DGRL [was mis-cited as "DBU"; DBU is only its update rule] 2602.08616 · Gumbel-softmax (Jang 2017) · CLARINET (2405.15784) ·
 ACING (2411.12736) · VDLM (2602.15870, RL in embedding space + vec2text renderer) · Vec2Text /
 ZSInvert / vec2vec (inverters — and the reason the snap must be justified on ANSWERABILITY, not on
 "no decoder exists") · Blair 2605.08360 (text embeddings capture preference only via a

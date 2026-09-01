@@ -230,7 +230,7 @@ essentially *on* `e₍₁₎` and carries no off-catalogue content. Minutes on t
 If it sits between candidates, C1 has a head start.
 
 ### C1 — teach in-between emission (cheap)
-Replace the one-hot target with the **DBU / "Breaking the Grid" blend**: regress `ẑ` onto a
+Replace the one-hot target with the **DGRL [was mis-cited as "DBU"; DBU is only its update rule] / "Breaking the Grid" blend**: regress `ẑ` onto a
 gain-weighted blend of the top-m *measured* candidates at each state. The target is off-catalogue by
 construction and every gradient still comes from a question whose value we actually measured — no
 simulation, no clairvoyance. Per-state measured gains already exist (`policy_labels.py`).

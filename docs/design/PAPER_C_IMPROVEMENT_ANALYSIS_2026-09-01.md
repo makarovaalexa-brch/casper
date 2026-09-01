@@ -262,3 +262,57 @@ This is Paper B's **"the bank beats conditioning"** measured a second way, in th
 question space. Two chapters, two independent methods, one fact. **It should be stated as a result,
 not hidden as a limitation** — and it is a far more interesting sentence than "our policy fit its
 targets at 0.97".
+
+---
+
+## 7. THE POSITIONING VERDICT (lit check, 2026-09-01) — the principal axis is NOT ours
+
+Checked before we built on it, which is the only reason this is a correction and not a retraction.
+
+### Dead as a contribution
+
+- **Ji, Xue & Carin, IEEE TSP 56(6), 2008, §IV.A** states the rule verbatim — maximise `rᵀΣr`, take
+  the **largest-eigenvalue eigenvector** — *and states the synthesise-or-snap fork itself*
+  ("if such flexibility is not feasible, design a library L of possible next projections"). Our
+  "everyone snaps" line is now a **five-field** claim including this one.
+- **Info-Synth Prop. 1**: `ã = 4r̃v₁`. Same direction, reached from MI under an ideal-point probit
+  rather than Gaussian entropy — the rule is *overdetermined*, which is precisely why it is not a
+  contribution.
+- **Zhang, Taylor, Cobb & Sekhon, Ann. Appl. Stat. 14(3), 2020** minimises the trace of the posterior
+  covariance of *the respondent's own latent factor*, adaptively, per respondent, in eigenvalue
+  language. It kills "no one selects interview questions using the posterior covariance of a latent
+  user vector". **A reviewer will find it.**
+- Also dead: "closed-form / training-free" as novelty (both priors are); "PC structure is new to
+  recsys elicitation" (Eigentaste 2001); "the blend target is untried in recsys" (DGRL evaluates on
+  MovieLens). **And a naming error propagated across six of our sheets is now fixed: what we called
+  "DBU" is DGRL — DBU is only its update rule.**
+
+### ★ The theoretical point that re-scopes item B entirely
+
+Under linear-Gaussian, **the covariance update does not depend on the answer** — so a pure
+Σ-functional emitter **cannot be adaptive**; its question sequence is the prior's leading
+eigenvectors, precomputable before the interview begins. This project has already priced that class:
+Σ-greedy over random order = **+0.0036**.
+
+⇒ **The eigenvector emitter is the STATIC CONTROL for our adaptivity claim, not a candidate method.**
+Combined with D3, it yields the decomposition the paper actually needs: *the dominant component of
+the measured-best direction is the static principal axis; the small residual is the genuinely
+adaptive part.* That is a real result, and it is the same shape as everything else we found today.
+
+### What remains genuinely ours, and it is the better contribution
+
+1. **The MI cost of snapping, measured.** Info-Synth *derives* the object — `ΔI = ½‖Δz‖²_M`, the
+   information lost when a synthesised query is snapped to the nearest real one — and **never reports
+   it as a number**. We have the answerable bank, the measured gains and the renderer to report it,
+   and our axis is **answerability** where theirs is pool membership. One number closes an open cell.
+2. **Rendering the direction as language and auditing what comes out** — unchanged, and untouched by
+   any of today's corrections.
+3. The sharpest safe positioning sentence, stated against Zhang and Fonarev **by name**:
+   *"every prior method that uses belief geometry to choose an elicitation question reduces the
+   covariance to a **scalar** and uses it to **score a finite pool**; we take the argmax **direction
+   itself** as the emitted object."*
+
+⚠ **One blocking read before any novelty sentence about asking along a latent direction:** Loepp,
+Hussein & Ziegler, **CHI 2014**, reportedly elicits by presenting item sets at the extremes of each
+latent factor in turn. Unreachable through three routes so far. If it holds, "interrogate along a
+latent direction" exists in recsys since 2014.

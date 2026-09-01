@@ -37,7 +37,7 @@ Replace the one-hot target with a **gain-weighted blend of the top-m measured ca
 state: `target = Σ_j w_j · e_{q_j}`, with `w_j` from the measured gains of those candidates.
 The target is genuinely off-catalogue by construction, and **every gradient still comes from
 questions whose value we actually measured** — no simulation, no clairvoyance. This is the
-"Breaking the Grid" / DBU pattern already summarised in `external_literature/`.
+"Breaking the Grid" / DGRL [was mis-cited as "DBU"; DBU is only its update rule] pattern already summarised in `external_literature/`.
 
 Cost: cheap. The per-state measured candidate gains are exactly what the labelling harness already
 produces (`policy_labels.py`); this is a change of target, not of data.

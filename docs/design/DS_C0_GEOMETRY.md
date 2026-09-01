@@ -16,7 +16,7 @@ near 1, margin ratio near 1 — and carries no off-catalogue content.
 
 ## What the answer changes (why this runs at all)
 
-- It does **not** gate C1 — C1 (the DBU blend target) runs on either outcome. C0 fixes the
+- It does **not** gate C1 — C1 (the DGRL [was mis-cited as "DBU"; DBU is only its update rule] blend target) runs on either outcome. C0 fixes the
   **pre-C1 baseline geometry** that C1's "the emissions moved off the grid" claim is measured
   against, and it is the harness check for every later geometry number.
 - If `ẑ` already sits between candidates with small margins, C1 has a head start and the chapter

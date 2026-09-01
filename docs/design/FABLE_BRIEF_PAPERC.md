@@ -81,7 +81,7 @@ say it in English, and show that what we said is not noise.** Explicitly NOT: th
 - **C0 — geometry check (free).** Emit `ẑ` for validation states; report cosine to nearest bank
   question and margin `(s₁−s₂)/(s₁−s₁₀)`. Prediction to falsify: trained on one-hot targets, `ẑ` sits
   *on* the nearest question and carries no off-catalogue content.
-- **C1 — teach in-between emission.** DBU / "Breaking the Grid" (arXiv:2602.08616): regress `ẑ` onto a
+- **C1 — teach in-between emission.** DGRL [was mis-cited as "DBU"; DBU is only its update rule] / "Breaking the Grid" (arXiv:2602.08616): regress `ẑ` onto a
   gain-weighted blend of the top-m **measured** candidates. Off-catalogue by construction; every
   gradient still comes from a question whose value we measured.
 - **C2 — is the point MEANINGFUL? (answer-free, the heart).** Three properties: off-catalogue

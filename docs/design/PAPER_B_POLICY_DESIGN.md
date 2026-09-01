@@ -711,7 +711,7 @@ every other vocab question as a negative, so the decision boundary is shaped exa
 near-neighbours that aliased the old regressor, and the "snap error" is zero **by construction** —
 the executed action is the argmax of the trained objective, not a post-hoc projection of an
 unconstrained point. L2-regression to the label's `e_q` is admissible only as an auxiliary term.
-DBU-style blend targets (arXiv:2602.08616) become relevant only if a pure regression head is ever
+DGRL [was mis-cited as "DBU"; DBU is only its update rule]-style blend targets (arXiv:2602.08616) become relevant only if a pure regression head is ever
 run; it is not planned.
 
 **Why Wolpertinger's REJECT in B.7 stands anyway:** Wolpertinger = proto-action + **approximate**
@@ -1804,8 +1804,12 @@ data supplies a function that is not there.**
 **What "enough combinations" converges to:** the best state-conditioned answer — the question best *on
 average* for users at that state. **That object is the greedy criterion; at coarse states it IS the
 tree.** The per-user route, taken to its limit, converges back to the thing distillation already gives
-exactly. Measured: per-user oracle **+0.229**; best cohort-wide question **+0.0115**; the trained cold
-arm **+0.0153** (null vs the static pick). **~95% of the per-user prize is carried by information the
+exactly. Measured (⚠ **CORRECTED — the K.6 figures +0.229 / +0.0115 / +0.0153 were audited WRONG and must
+never be quoted; see the correction table above**): per-user oracle **+0.19366** (all users; +0.229
+was the mean over only the 845 users with a positive gain), best cohort-wide question **+0.009664**,
+and the "trained cold arm +0.0153" **does not exist anywhere in `experiments/`** — the real per-k
+cells are k=2 **+0.00422** (null), k=4 **+0.00074** (null), k=8 **+0.00771** (separates), with the
+same arm failing the spanning gate at **−0.06798**. **~95% of the per-user prize is carried by information the
 interview has not yet revealed — which is not a modelling failure but the reason interviews exist.**
 
 **This is the June clairvoyant lesson in a new costume** ([[clairvoyant-imitation-breakthrough]],
