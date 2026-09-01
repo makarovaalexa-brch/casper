@@ -15,6 +15,6 @@
 6 & \texttt{root.dislike.dislike.dislike.noanswer.noanswer} & \emph{How do you feel about children films?} & Have you seen Star Wars: Episode VI - Return of the Jedi (1983), and did you like it? & 0.1531 & 0.0506 \\
 \bottomrule
 \end{tabular}
-\caption{One cold-start interview. At every state where the C1-final policy was trained to emit (6 of 6 turns) the question is the policy's own off-catalogue direction, rendered by the adapter under bestofk\_lm; where it was not, no question is invented and the row says so. Answers, folds and both NDCG columns are under a declared-circular answer model and carry no value claim.}
+\caption{One cold-start interview. At every state where the C1-final policy was trained to emit (6 of 6 turns) the question is the direction the measured gains point to at that state, rebuilt in the renderer's own bank and rendered by the adapter under bestofk\_lm; where it was not, no question is invented and the row says so. The policy's ability to emit that direction is the separate, already-banked C1-final result: cos(emission, target) = 0.970 at exactly these trained states. It is rendered in the target construction because the two policies' k(phi) read-outs do not share a basis (see the space probe). Answers, folds and both NDCG columns are under a declared-circular answer model and carry no value claim.}
 \label{tab:c4d-transcript}
 \end{table*}

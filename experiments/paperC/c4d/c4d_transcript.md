@@ -7,7 +7,7 @@
 - cohort: 10,000 validation users, path mode `majority`; stop: --max_turns 6 reached
 - answers, folds and every NDCG below are **under a declared-circular answer model** and carry no value claim
 
-> ⚠ SPACE PROBE: the fed point's nearest bank entry agrees with the emission's own nearest entry in m7dj's space for **0.000** of the rendered states (secondary arm, vs C1-final's banked `emit_snap`: **0.000**). Near zero means the two policies' k(phi) read-outs do not share a basis and a `direct` row would render a DIFFERENT direction.
+> ⚠ SPACE PROBE: exact top-1 agreement between the fed point's nearest bank entry and the emission's own nearest entry in m7dj's space is **0.000**, and it is 0.000 for all three constructions -- including `target`, which is the right direction in the adapter's own bank by construction -- so exact-index equality over a 19,390-entry bank is too strict to separate them. Re-run to bank the neighbourhood arm that does.
 
 | turn | state | n | synthesised question (policy's own direction, in English) | the catalogue question the tree would ask | folded | full@10 | tail@10 | top-5 after this turn |
 |---|---|---|---|---|---|---|---|---|
