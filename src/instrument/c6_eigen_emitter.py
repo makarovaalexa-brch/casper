@@ -379,12 +379,49 @@ def run(args):
     Tt, TKt, meta = C1.build_targets(states, m7["Epool"], m7["Kpool"], pool_index, M)
     zf = np.load(C1F_NPZ, allow_pickle=True)
     assert [str(x) for x in zf["state_sid"]] == sids, "not c1_final's banked states"
-    d_tgt = float(np.abs(Tt - np.asarray(zf[f"target_m{M}"], np.float32)).max())
-    assert d_tgt == 0.0, (
-        f"★ GATE FAILED: the m={M} blend rebuilt here is not the one c1_final banked "
-        f"(max|diff| {d_tgt:g}). The ingredients/weights this run reads are not C1-final's. STOP.")
-    log(f"[gate] the {N_SEARCHED} blend targets rebuilt here are BIT-IDENTICAL to c1_final's "
-        f"(max|diff| {d_tgt:g})")
+    # ★ THE PROVENANCE GATE, IN TWO PARTS -- EXACT where exactness is attainable, TOLERANT where it
+    # is not, and the observed number BANKED either way.
+    #
+    # Bit-identity on the ASSEMBLED 129-d vector is not attainable and asking for it is a bug in the
+    # gate, not a finding: `bank_vectors`' matmul reassociates under a different thread count / batch
+    # width, and the repair campaign already recorded the same 4.77e-07 constant for
+    # |Ebank[pool2full] - Epool|.max(). So:
+    #
+    #   PART A (EXACT). The things this run actually consumes are the top-m ingredient POOL INDICES
+    #   and their gain-derived WEIGHTS -- integers and float64 arithmetic on the sweep gains, which
+    #   cannot move. Checked against two independently banked quantities: the tree's own `splitter`
+    #   (the top-1 ingredient must BE it, at 72/72) and c1_final.json's banked `top1_weight_w1`
+    #   distribution, which must reproduce key-for-key with zero tolerance.
+    #   PART B (TOLERANCE). The assembled vector: max|diff| < 1e-5 AND worst 1-cos < 1e-9.
+    Tb = np.asarray(zf[f"target_m{M}"], np.float32)
+    d_tgt = float(np.abs(Tt - Tb).max())
+    d_cos = float((1.0 - (unit(Tt.astype(np.float64)) * unit(Tb.astype(np.float64))).sum(1)).max())
+    with open(C1F_JSON, encoding="utf-8") as fh:
+        c1f = json.load(fh)
+    assert c1f["analysis"] == "paperC_C1_final" and c1f["test_touched"] is False
+    n_top1_is_splitter = 0
+    for i, s in enumerate(states):
+        w = np.asarray(meta[i]["weights"], np.float64)
+        assert len(w) == M and abs(float(w.sum()) - 1.0) < 1e-12
+        assert (np.diff(np.asarray(meta[i]["top_m_gain"], np.float64)) <= 0).all()
+        sp = (int(nodes[s["sid"]]["splitter"][0]), int(nodes[s["sid"]]["splitter"][1]))
+        n_top1_is_splitter += int(int(meta[i]["top_m_pool_idx"][0]) == pool_index[sp])
+    assert n_top1_is_splitter == N_SEARCHED, (
+        f"★ GATE FAILED (exact): the top-1 blend ingredient is the tree's own splitter at only "
+        f"{n_top1_is_splitter}/{N_SEARCHED} states")
+    w1_here = dist([m["w1"] for m in meta])
+    w1_banked = c1f["stage0_premise"]["top1_weight_w1"]
+    w1_bad = {k: (w1_here[k], w1_banked[k]) for k in w1_banked if w1_here.get(k) != w1_banked[k]}
+    assert not w1_bad, (
+        f"★ GATE FAILED (exact): the rebuilt top-1 blend WEIGHTS do not reproduce c1_final's banked "
+        f"distribution key-for-key: {w1_bad}")
+    assert d_tgt < 1e-5 and d_cos < 1e-9, (
+        f"★ GATE FAILED (tolerance): the assembled m={M} blend is not c1_final's "
+        f"(max|diff| {d_tgt:g}, worst 1-cos {d_cos:g}). STOP.")
+    log(f"[gate] blend provenance -- EXACT: top-1 ingredient == the tree's splitter at "
+        f"{n_top1_is_splitter}/{N_SEARCHED}, and the top-1 weight distribution reproduces "
+        f"c1_final.json key-for-key with zero tolerance. TOLERANCE: assembled vector max|diff| "
+        f"{d_tgt:g}, worst 1-cos {d_cos:g} (float32 BLAS reassociation, banked)")
 
     # the blend target expressed in the TOWER space (C4's own object, imported)
     R, r_disc = C4.reference_directions(br, meta, pool, pool2full, n_states=N_SEARCHED)
@@ -458,7 +495,16 @@ def run(args):
                                                       "pass": True},
                      "canonical_snap_train_m0_tail": t0_,
                      "sweep_argmax_equals_splitter_max_abs_gain_err": gain_chk,
-                     "blend_target_bit_identical_to_c1_final": d_tgt,
+                     "blend_provenance": {
+                         "exact_top1_ingredient_equals_tree_splitter": f"{n_top1_is_splitter}/72",
+                         "exact_top1_weight_distribution_matches_c1_final_json": True,
+                         "tolerance_assembled_vector_max_abs_diff": d_tgt,
+                         "tolerance_assembled_vector_worst_1_minus_cos": d_cos,
+                         "note": ("bit-identity on the assembled 129-d vector is NOT attainable -- "
+                                  "bank_vectors' matmul reassociates under a different thread count "
+                                  "/ batch width, the same 4.77e-07 constant the repair campaign "
+                                  "recorded for |Ebank[pool2full] - Epool|.max(). The exact half of "
+                                  "the gate covers everything this run actually consumes.")},
                      "tower_dc_reproduction_worst_1_minus_abscos": br.dc_reproduction_worst,
                      "cohort_descent": coh_checks},
            "target_tower_disclosure": r_disc,
