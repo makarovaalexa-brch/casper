@@ -43,7 +43,7 @@
 
 \title{\textbf{The Interview-Compatible Recommender:\\A Measuring Instrument for Cold-Start Conversational Recommendation}\\[4pt]\large Thesis Chapter A (v2)}
 \author{}
-\date{August 2026}
+\date{September 2026}
 
 \begin{document}
 \maketitle
@@ -161,7 +161,7 @@ An instrument fit for measuring conversational elicitation must simultaneously s
         satisfy R1 while being separably behind the bar, and ours is---the requirement is that the shortfall be
         small, stated, and bounded, not that it be statistically absent.
   \item[R2 --- an open set-valued input interface.] It must ingest an evidence set of \emph{any} cardinality, from
-        $0$ (fully cold) upward, without per-user retraining---and, the part that bites, the members of that set
+        $0$ (fully cold) upward, without per-user retraining---and, critically, the members of that set
         must be \emph{arbitrary embeddings rather than pre-committed ones}. Any-length input alone is undemanding: every
         recommender folds an arbitrary number of \emph{its own} columns. The requirement is that a vector the model
         never saw when it was fitted---an out-of-catalogue concept, an entity, a phrase, a direction a policy
@@ -226,11 +226,11 @@ method chapter); it claims the \emph{recommender that makes policy measurement p
         interview-compatible recommender should pass (\S\ref{sec:reqs},~\S\ref{sec:expdesign}).
 \end{enumerate}
 
-We are careful throughout to distinguish what is \emph{new} (the conjunction; the frozen-certified-tower wedge; the
+We are careful throughout to distinguish what is \emph{new} (the conjunction; the frozen-certified-tower design; the
 acceptance battery on a frontier tower) from what is \emph{pre-empted} and must be cited (attributes-as-directions plus a
 Bayesian fold~\cite{biyik2023soft}; unified item$+$attribute belief~\cite{li2021seamlessly}; conjugate folds over a
 frozen factorisation~\cite{toroghi2023bcie}; permutation-invariant set-encoders with information-gain
-acquisition~\cite{ma2019eddi}; value-carrying set-input cold-start recommenders~\cite{lin2021tanp}; the
+acquisition~\cite{ma2019eddi}; cold-start recommenders with value-carrying set input~\cite{lin2021tanp}; the
 non-degradation-of-information principle~\cite{good1967principle,blackwell1953equivalent}). ``Uncertainty-native recommender'' alone is a
 crowded 2024--25 area~\cite{wang2025bdecf} and is \emph{not} claimed as novel.
 
@@ -250,7 +250,7 @@ can be built on top, which is the companion chapter's subject.
 
 \paragraph{Requirements (formal).}
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
-  \item[R1.] With $\mathcal E$ equal to a user's full history, $\mathrm{NDCG}@10\bigl(s(\bmu(\mathcal E))\bigr)$ is at
+  \item[R1.] With $\mathcal E$ equal to a user's full history, $\mathrm{NDCG}@10\bigl(s(\bmu(\mathcal E))\bigr)$ is
         indistinguishable from the strongest shallow baseline on a shared harness (Def.~\ref{def:tie}), or within a stated
         and separated margin of it.
   \item[R2.] $f(\mathcal E_t)$ is defined and computable for every $t\ge 0$ with no gradient step at inference
@@ -287,11 +287,11 @@ controls apply across all four and exist because the per-requirement checks admi
 of our measuring apparatus, not of the instrument, and it is reported there.
 
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
-  \item[R1 --- full strength and identity (R1).] Evaluating the fold on the full profile reproduces the
+  \item[R1 --- full strength and identity.] Evaluating the fold on the full profile reproduces the
         frozen tower's full-profile NDCG@10 (full \emph{and} tail) to within a stated, paired-bootstrapped margin---and with an
         \emph{empty} evidence set the ranking is the frozen decoder's exactly, not approximately. The identity half
         is what licenses reading every later curve as evidence about ingestion rather than about a shifted baseline.
-  \item[R2 --- an open set-valued input interface (R2).] Two halves, and only the second can fail. The set half is
+  \item[R2 --- an open set-valued input interface.] Two halves, and only the second can fail. The set half is
         structural: the fold is defined for every $t\ge0$ with no gradient step, because it is a running sum
         over observations. The \emph{open} half is measured: a concept must be a specific direction rather than a
         popularity proxy---ranking its member items above matched non-members in the latent, and lifting the cold
@@ -307,11 +307,11 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         require instead is that the movement be \emph{specific}: folding a like on a concept must move that
         concept's members differently from folding a dislike on it, and differently again from folding some other
         answerable concept.
-  \item[R3 --- monotonicity (R3).] Starting cold, per-question full and tail NDCG@10 \emph{increase} to budget on a
+  \item[R3 --- monotonicity.] Starting cold, per-question full and tail NDCG@10 \emph{increase} to budget on a
         question set fixed in advance, so the rise comes from answer content rather than from adaptive selection.
         Judged by the curve at budget rather than every-step significance, with a canary that a single answer from
         cold already clears the no-answer intercept on both channels.
-  \item[R4 --- expressive answers (R4).] \emph{Sign}: negating every answer lowers NDCG with a CI excluding zero.
+  \item[R4 --- expressive answers.] \emph{Sign}: negating every answer lowers NDCG with a CI excluding zero.
         \emph{Intensity}: neutralising values to ``indifferent'' while freezing membership costs NDCG, quality is
         monotone in the stated level. Graded input then beats a fair binarising ablation on two distinct
         comparisons, and we name what each varies: holding the fold-in support \emph{identical} and
@@ -326,10 +326,10 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         pipeline \emph{gain nothing} relative to the true-answer arm (a control may legitimately fall \emph{below}
         the no-answer intercept---a stranger's taste is worse than no information, not equivalent to it), and
         duplicating an answer changes nothing (the fold responds to information, not cardinality).
-  \item[Answers carry no recommender geometry.] Every answer is computed from observed behaviour alone: an
-        item answer is the user's own rating, and a concept answer is a log watch-lift,
-        $\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, formed from the user's watched members $n_c$ and the
-        count $e_c$ expected from their volume and the concept's catalogue popularity. Both are read from the
+  \item[No recommender geometry in answers.] Every answer is computed from observed behaviour alone: an
+        item answer is the user's own rating; a concept answer is the log watch-lift
+        $\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$ formed from the user's watched members
+        $n_c$ and from the count $e_c$ expected under their volume and the concept's catalogue popularity. Both are read from the
         user's \emph{fold-in} history; the held-out target half is excluded by construction, so an answer cannot
         encode its own target. No latent, no factor, no score and no quantity derived from the recommender enters
         an answer at any point, and the absence is asserted in code rather than assumed. The gain therefore cannot
@@ -476,7 +476,7 @@ worse on its own ratings, RBMF is within half a point either way, and the one sy
 clearly, iALS, is not an elicitation method at all. Nor are we entitled to present graded input as something only the instrument
 turns to account---iALS is a second system that gains from values, and it is a plain matrix factorisation.
 
-Against the honest baseline---a positive-only system, which \emph{drops} sub-threshold answers rather than
+Against the appropriate baseline---a positive-only system, which \emph{drops} sub-threshold answers rather than
 mislabelling them---iALS gains more from ratings at full profile than the instrument does: $+0.0194$
 against $+0.0022$ (CI $[+0.0008,+0.0036]$). Our full-profile standing does not rest on graded input, and
 the tower is initialised from a binary-trained recommender. What the levels buy the instrument is
@@ -577,14 +577,14 @@ a contract we have not run are not comparable to either column in either directi
 report only on-ruler values and do not claim that a row would be higher or lower under its original task.
 The same caution applies to ICF, whose ceiling we take from the measured iALS row: ICF is Bayesian
 probabilistic MF over ratings, while iALS is implicit-with-confidence, so that substitution crosses an
-input regime as well as a model family. For B\i y\i k and ConTS we print a dash rather than a number, because the honest statement is that neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the \emph{rejected alternative} against which our learned fold is justified---ranking on a closed-form accumulator's accumulated mean scores $0.2267/0.1300$ where the learned fold reaches $0.3496/0.2491$, so uniformity costs roughly $0.12$ full NDCG. We do not maintain such an accumulator; we measured one to establish what forgoing it is worth. The elicitation corner is blank in this column because full-catalogue top-$N$ accuracy is not what these papers report---and that is a defect in the record rather than a neutral choice of emphasis, for the reason set out in \S\ref{sec:gap:why}. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2703$).
+input regime as well as a model family. For B\i y\i k and ConTS we print a dash rather than a number, because neither reports full-catalogue accuracy at all---B\i y\i k's NDCG is agreement between a user's true and estimated top-$|S|$ items over 16 sampled users on slates of 5---and measuring our own reconstruction of a mechanism they share would produce a number that is ours, not theirs. That mechanism is measured in \S\ref{sec:method}, where it belongs: as the \emph{rejected alternative} against which our learned fold is justified---ranking on a closed-form accumulator's accumulated mean scores $0.2267/0.1300$ where the learned fold reaches $0.3496/0.2491$, so uniformity costs roughly $0.12$ full NDCG. We do not maintain such an accumulator; we measured one to establish what forgoing it is worth. The elicitation corner is blank in this column because full-catalogue top-$N$ accuracy is not what these papers report---and that is a defect in the record rather than a neutral choice of emphasis, for the reason set out in \S\ref{sec:gap:why}. \emph{Not runnable by construction}: PEBOL maintains per-item Beta posteriors over an LLM-scored shortlist of $\sim$100 items and contains no full-catalogue ranker to run; GATE elicits but does not rank; zero-shot LLM ranking of an 18k catalogue is neither computationally nor methodologically meaningful at full-profile scale (and its collaborative weakness is already documented~\cite{he2023large}); BCIE requires its authors' knowledge graph, and a port would substitute so much that the number would no longer be theirs---its conjugate-fold core is covered by the B\i y\i k-style best-effort arm. ICF is the one row whose full-profile core is \emph{already} measured: its underlying model is Bayesian probabilistic MF, so its full-profile ceiling is the measured iALS row ($0.2703$).
 
 \paragraph{The measured-accuracy column falls across the elicitation corner.}
-Read Table~\ref{tab:master} down its measured-accuracy column. Every \emph{competitive} number---a full/tail
+Table~\ref{tab:master}, read down its measured-accuracy column, divides cleanly. Every \emph{competitive} number---a full/tail
 NDCG@10 at or near the frontier on our shared ML-25M ruler---sits in block (a) or (b): the item-only linear and
 amortised recommenders (RecVAE $0.3540$, EASE $0.3476$, EDLAE $0.3433$). The elicitation corner, block (c), is either
 \emph{blank} or \emph{measurably weak}. Both of its runnable cores land well below the frontier---the Golbandi node
-recommender at $0.3065/0.1895$ and the RBMF/Functional-MF seed at $0.2534/0.1764$---and both carry an \xmark\ on R1.
+recommender at $0.3065/0.1895$ and the RBMF/Functional-MF seed at $0.2915/0.2071$---and both carry an \xmark\ on R1.
 The rest of the corner---EDDI, BCIE, UNICORN, PEBOL, GATE, the LLM-zero-shot CRS---has a blank accuracy column
 entirely. This is not an accident of our harness. Most CRS and elicitation papers never report full-catalogue
 top-N accuracy at all (they report elicitation RMSE, cold-start MRR/MAP on a shortlist, or critique metrics), and
@@ -595,7 +595,7 @@ item-only on a one-hot basis---\xmark\ on R2 and R4. The two blocks are disjoint
 accuracy number with \cmark s across R2--R4. The top-right cell of the
 gap map---all four requirements met \emph{and} a competitive full-profile number---is empty across the published
 literature, and is occupied by the instrument this chapter builds. That is the chapter's thesis, and the master
-table is where it is impossible to miss.
+table is where it is most visible.
 
 \paragraph{The accuracy corner (families ii--iii).}
 On the canonical ML-20M strong-generalisation split (10k validation / 10k test held-out users, NDCG@100), the
@@ -723,8 +723,8 @@ conjunction.
         EASE/RecVAE bar. \emph{Fails R2} in the sense that decides it: the directions are \emph{per-attribute supervised
         probes} over an enumerated tag list---each a logistic regressor fitted from labelled positive/negative items,
         trained for the 164 most-frequent tags---so the vocabulary is fixed before the user arrives, which is exactly
-        what R2 forbids. R4 is approximate (sampled EVOI over a non-Gaussian posterior). This is the central threat, and
-        our wedge is exactly (a) an \emph{open} vocabulary through one global adapter with no per-concept supervision,
+        what R2 forbids. R4 is approximate (sampled EVOI over a non-Gaussian posterior). This is the closest prior system, and
+        the separation is exactly (a) an \emph{open} vocabulary through one global adapter with no per-concept supervision,
         (b) the R1 accuracy bar on a shared full-catalogue ruler, (c) exact conjugacy vs.\ approximate posterior.
   \item \textbf{ConTS}~\cite{li2021seamlessly} --- R3 $+$ a unified item/attribute action space.
         \emph{Fails R2} (a fixed categorical attribute schema; no arbitrary embedding, no continuous or open token) and
@@ -827,10 +827,11 @@ NDCG@10 for every arm of our own work, including the arms where it is unflatteri
 
 \paragraph{Prior art, cited and not claimed.}
 We must credit, and do not claim priority over: attribute-answers-as-directions plus a Bayesian
-fold~\cite{biyik2023soft}; unified item$+$attribute belief and value-of-information~\cite{biyik2023soft,li2021seamlessly};
+fold~\cite{biyik2023soft}; unified item$+$attribute belief and value of information~\cite{biyik2023soft,li2021seamlessly};
 conjugate-Gaussian folds over a frozen factorisation~\cite{toroghi2023bcie}; permutation-invariant set-encoders with
-information-gain acquisition~\cite{ma2019eddi}; value-carrying set-input cold-start recommenders~\cite{lin2021tanp};
-the non-degradation-of-information principle~\cite{good1967principle,blackwell1953equivalent}; and the now-crowded ``uncertainty-native
+information-gain acquisition~\cite{ma2019eddi}; cold-start recommenders with value-carrying set input~\cite{lin2021tanp};
+the principle that added information does not degrade optimal
+decisions~\cite{good1967principle,blackwell1953equivalent}; and the now-crowded ``uncertainty-native
 recommender'' area~\cite{wang2025bdecf}. Our defensible novelty is only the \emph{conjunction} of all four requirements
 in one frozen certified tower, plus the three unencodable legs and the acceptance battery that certifies them.
 
@@ -871,7 +872,7 @@ Two folds consume those pairs in the system we
 report: the tower's own set encoder for item evidence, and a trained gated operator for concept evidence
 (\S\ref{sec:concept:fold}). We are explicit that these are distinct operators rather than one code path, because the
 unification that matters is of the representation: any entity with an embedding is expressible as an observation,
-which is what no item-indicator model can say.
+which is what no item-indicator model can say. Figure~\ref{fig:architecture} summarises the interface.
 
 \paragraph{Why a learned fold rather than a closed-form one.} A closed-form conjugate accumulator over the frozen
 factorisation is itself a legal ranker---score item $i$ by $\Q_i^\top\bmu_t+\beta_i$---and it would make one
@@ -879,6 +880,41 @@ uniform fold serve every channel. We measured that option rather than assuming i
 it reaches full/tail NDCG@10 $0.2267/0.1300$ on our ruler, against $0.3496/0.2491$ for the learned fold
 (Table~\ref{tab:master}). Uniformity therefore costs roughly $0.12$ full NDCG---it forfeits R1---which is why the
 instrument folds with a learned set encoder and pays for the extra operator.
+
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  chan/.style={draw, rounded corners=1.5pt, align=left, font=\scriptsize, inner sep=4pt, minimum width=44mm},
+  box/.style={draw, rounded corners=1.5pt, align=center, font=\small, inner sep=5pt},
+  lab/.style={font=\scriptsize, align=center},
+  >=Stealth]
+  \node[chan] (it) {item: $\bphi=\Q_i$ (frozen factor),\\ $y=$ graded, signed rating};
+  \node[chan, below=2.5mm of it] (co) {concept: $\bphi=$ whitened centroid,\\ $y=$ signed affinity (Eqs.~\ref{eq:sel}--\ref{eq:val})};
+  \node[chan, below=2.5mm of co] (tx) {free text: $\bphi=$ adapter image\\ of the phrase};
+  \node[chan, below=2.5mm of tx] (po) {policy token: any $\bphi\in\R^{d}$,\\ emitted directly};
+  \node[box, right=13mm of co.east, yshift=-6mm] (obs) {observation\\ $(\bphi,y)\in\R^{d}\times\R$};
+  \draw[->] (it.east) -- (obs);
+  \draw[->] (co.east) -- (obs);
+  \draw[->] (tx.east) -- (obs);
+  \draw[->] (po.east) -- (obs);
+  \node[box, right=11mm of obs] (fold) {permutation-\\invariant fold $f$};
+  \draw[->] (obs) -- (fold);
+  \node[box, right=11mm of fold] (mu) {$\bmu_t$};
+  \draw[->] (fold) -- (mu);
+  \node[box, below=9mm of mu] (dec) {frozen decoder\\ $s_i=\Q_i^{\top}\bmu_t+\beta_i$};
+  \draw[->] (mu) -- (dec);
+  \node[box, left=11mm of dec] (rank) {ranking over the\\ full catalogue};
+  \draw[->] (dec) -- (rank);
+\end{tikzpicture}
+\caption{The channel-agnostic interface. Every channel reduces to the same form of observation, a
+direction in the frozen latent paired with a value; the permutation-invariant fold maps the evidence
+set to a point $\bmu_t$, and the frozen decoder ranks the catalogue. The item factors and the decoder
+belong to the certified tower and are never updated, which is what makes R1 a property of the
+substrate; the three lower channels are the legs an item-indicator basis cannot carry
+(\S\ref{sec:gap}).}
+\label{fig:architecture}
+\end{figure}
 
 The channels, then, are:
 \begin{itemize}[leftmargin=1.4em,itemsep=1.5pt]
@@ -1011,7 +1047,7 @@ number \emph{expected} under the user's volume times the concept's popularity $\
 which is precisely the \emph{pointwise mutual information} between the user and the concept: the denominator's $\pi_c$
 divides out concept popularity, and forming $e_c$ from the user's own volume divides out user activity, so SEL is
 positive for genuine affinity, near zero for popularity-explained co-occurrence, and \emph{negative for avoidance}.
-Its normalised form is the NPMI, $\mathrm{NPMI}=\mathrm{PMI}/(-\log_2 \hat p_{uc})\in[-1,1]$, which tames PMI's
+Its normalised form, $\mathrm{NPMI}=\mathrm{PMI}/(-\log_2 \hat p_{uc})\in[-1,1]$, tames PMI's
 small-count inflation and yields a bounded, comparable score. The explicit \emph{value} estimator is a support-shrunk
 signed rating residual,
 \begin{equation}\label{eq:val}
@@ -1189,7 +1225,7 @@ item channel wins full accuracy decisively: at $m{=}16$ under \textsc{pop} the g
 
 The mechanism is structural rather than a property of our fold, and it is measurable directly. A
 maximally divisive \emph{item} is, by construction, one that few people have seen: the \textsc{polar}
-item bank is answered $4.8\%$ of the time, so it burns almost every question and the item arm collapses
+item bank is answered $4.8\%$ of the time, so it forfeits almost every question and the item arm collapses
 to $0.1352/0.0409$ at sixteen questions, barely above the $0.1277/0.0267$ no-answer intercept, while the
 concept arm reaches $0.1498/0.0673$. A
 maximally divisive \emph{concept} aggregates hundreds of films and stays answerable $97.2\%$ of the time
@@ -1303,7 +1339,7 @@ Mult-VAE~\cite{liang2018variational} as the canonical amortised anchor, EDLAE~\c
 confirm the frontier is flat, plus the graph-filter and sequence families
 (Turbo-CF~\cite{park2024turbocf}, SASRec~\cite{kang2018sasrec}). \emph{Elicitation-compatible rivals}, which
 decide R3 and R4: EDDI~\cite{ma2019eddi} for the set-encoder-plus-info-gain architecture,
-B\i y\i k~\cite{biyik2023soft} as the central threat, ConTS~\cite{li2021seamlessly} and
+B\i y\i k~\cite{biyik2023soft} as the closest prior system, ConTS~\cite{li2021seamlessly} and
 BCIE~\cite{toroghi2023bcie} for the conjugate-belief lineage, PEBOL~\cite{austin2024bayesian} as the
 load-bearing preference-elicitation baseline, and Golbandi~\cite{golbandi2011adaptive} and
 RBMF~\cite{liu2011wisdom,zhou2011functional} as the interview comparators.
@@ -1489,7 +1525,7 @@ lesson is that once a bank is restricted to answerable questions, \emph{which} o
 less than that they are answerable---which is precisely why the selection problem is deferred to the
 companion chapter and why we decline to claim a selection result here.
 
-\paragraph{(iii) R4 --- per-question curves.}
+\paragraph{(iii) R3 and R4 --- per-question curves.}
 Cold-start per-question NDCG@10 curves (full and tail) versus a random-question control. Items are foldable by all
 baselines; mixed channels (concepts, signed values, continuous tokens) are foldable only by our instrument, which is
 the point of the comparison---the rivals cap out at what an item-only interview can carry. Symmetric access is
