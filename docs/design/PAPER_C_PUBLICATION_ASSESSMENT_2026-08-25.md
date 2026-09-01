@@ -43,7 +43,12 @@ design of record); this is the publication-strategy read of the banked evidence.
 4. **The price of language, relative and declared:** C4B under the author-ruled declared-circular
    simulator: translation costs +0.018 full / +0.007 tail [CIs excl. 0], decomposing 4.2× onto the
    mode-collapsed renders (+0.006 unique vs +0.026 stock; 5 states where English beats the
-   direction) ⇒ the noise is decoding diversity, not verbalisation.
+   direction). **[CORRECTED 2026-09-01 — the original clause "⇒ the noise is decoding diversity,
+   not verbalisation" was RETRACTED by C4C and this doc was not updated.]** C4C removed the collapse
+   by decoding alone and cut the cost 2–3.5×, but the sampled renders are LESS faithful, so what
+   sampling removes is **harm from confidently committing to the wrong concept** (greedy's stock
+   words fold BELOW the no-fold baseline), not confusion. The loss is removable by decoding; the
+   mechanism is not "diversity".
 5. **The audit (the durable methodological half):** no embedding-verbalisation system reports a
    correspondence-scrambled control (PDF-verified narrow wording); ELM self-grades and its
    faithfulness metric rises off-manifold; we document THREE ways naive controls fail (variant-(a)

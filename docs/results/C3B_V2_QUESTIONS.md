@@ -27,6 +27,24 @@ synonym behaviour, now in question form.**
 Concept channel (not the gate, reported): A−A′ **+0.28625** [+0.24014, +0.33307], A 0.2795 vs
 required 0.1663; identification 0.7810 vs floor 0.7343; question-form 0.9429 — all pass.
 
+## ★ RULINGS on three inconsistencies the chapter pass caught (Fable, 2026-09-01)
+
+1. **"Decoding of record" vs the gate numbers — resolved, and the resolution is substantive.**
+   C4C made best-of-8 the decoding of record; on THIS gate greedy wins every reading (A−A′ +0.0586
+   vs +0.0517; A 0.0718 vs 0.0487; identification 0.639 vs 0.610). Not a contradiction once the
+   populations are named: **C4C measured 42 nearby directions at nearby interview states**, where
+   greedy mode-collapses to three stock words and sampling is what buys coverage; **C3B-v2 measures
+   3,880 distinct bank questions**, each with its own vector, where there is no collapse to escape
+   and sampling only adds noise. ⇒ **Best-of-8 remains the decoding of record for the DEMO (many
+   states, few distinct directions); greedy is at least as good for the per-question GATE, and the
+   verdict is decoder-independent — which is the point.** Both are always reported.
+2. **The above-ceiling result must be stated symmetrically with C3B's.** Greedy's item-channel A
+   (0.07177) is **105% of the templated ceiling (0.06828)**, exactly the phenomenon the bare-phrase
+   doc headlined at 107%. The "71%" figure below is best-of-8's. Both are stated; neither is the
+   headline on its own, and the machine-only-synonym caveat attaches to both.
+3. **Identification ceiling**: the prose "ceiling 63%" is rounded; the registered bar 0.5790 derives
+   from the unrounded **0.6316**. Quote 0.6316 wherever the bar is quoted.
+
 ## What this establishes, and what it costs
 
 1. **The mechanism survives reformatting.** The bare-phrase adapter gave A−A′ = +0.111 at 107% of
@@ -39,8 +57,11 @@ required 0.1663; identification 0.7810 vs floor 0.7343; question-form 0.9429 —
    17% on concepts. The boilerplate dilutes the signal the bridge reads. Nobody in the
    verbalisation literature reports this because nobody measures against a same-instrument ceiling;
    it is a small, honest methodological contribution of this chapter.
-3. **Machine-only synonyms, in question form.** Content token-F1 **0.055**, exact content match
-   **0.0003** — the adapter essentially never reproduces the gold title, yet its text identifies
+3. **Machine-only synonyms, in question form.** ⚠ These content figures are **not comparable to
+   C3B's** (0.111 / 0.0000): v2 measures *content words only* against a *templated* gold, C3B
+   measured the whole string against a bare phrase. Different definitions, so the pair must never be
+   read as a regression on one and an improvement on the other. Content token-F1 **0.055**, exact
+   content match **0.0003** — the adapter essentially never reproduces the gold title, yet its text identifies
    the right vector 61% of the time (chance 50%, ceiling 63%). Examples (held-out, best-of-8):
    *Shawshank Redemption* → **"Have you seen Pulp Fiction (1995)?"**; *Ghost Story (1981)* →
    **"Have you seen Battlestar Galactica (1980)?"**; *Time Traveler's Wife (2009)* → **"Did you

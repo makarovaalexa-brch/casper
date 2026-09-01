@@ -20,7 +20,13 @@ warm start. The policy emits where it is taught to emit; the gain geometry does 
 | gate | primary (`root.like.*` out, 15/57) | secondary (depth ≥5, 30/42) |
 |---|---|---|
 | **3 no-collapse** (≥0.75× distinct, ≥0.90 agreement) | distinct **245/245** (1.000) · agreement **0.9950** | 244/245 (0.996) · **0.9960** |
-| **4 renderability** (median norm ratio ∈ [0.5, 2.0]) | **1.0629** | **1.1056** |
+| **4 renderability** (median norm ratio ∈ [0.5, 2.0]) | **1.0629** all-72 · **1.0449** trained · 3.4798 held-out | **1.1056** all-72 · **1.0541** trained · 3.4213 held-out |
+
+**[Aggregation clarified 2026-09-01]** Three medians circulate and the artifact labels all three;
+the docs did not. The registered gate is the **all-72** median (1.0629 / 1.1056). The number the
+demo relies on — because rendering happens only at trained states — is the **trained-state** median
+(1.0449 / 1.0541). The held-out median (≈3.42–3.48) is unchanged from the warm start's 3.4798,
+which is the finding: the scale term does not transfer.
 
 **The pilot's fatal defect is gone.** It fell to 4–6 distinct questions at 0.0000 agreement; here
 the warm start's full behaviour survives, and the replay CE (ending 0.0062 / 0.0040 per example) is
