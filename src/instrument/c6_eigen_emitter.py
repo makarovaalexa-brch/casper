@@ -391,6 +391,8 @@ def run(args):
     Ru = unit(R)
     log(f"[target] tower-space blend targets R {R.shape}; {r_disc['n_item_ingredients']} item / "
         f"{r_disc['n_concept_ingredients']} concept ingredients over {N_SEARCHED} states")
+    iu = np.triu_indices(N_SEARCHED, 1)
+    tgt_pair = np.abs((Ru @ Ru.T)[iu])
 
     # the answerable question bank, in tower space
     Qbank = br.bank()                                   # (19390, 200)
@@ -460,6 +462,11 @@ def run(args):
                      "tower_dc_reproduction_worst_1_minus_abscos": br.dc_reproduction_worst,
                      "cohort_descent": coh_checks},
            "target_tower_disclosure": r_disc,
+           "target_diversity_tower_space": {
+               "unit": "the 2,556 unordered pairs of the 72 tower-space blend targets",
+               "abs_pairwise_cos": dist(tgt_pair),
+               "note": ("the tower analogue of C5's D1. It is what makes the state-blind "
+                        "leave-one-out null strong, and it must be read beside the headline.")},
            "states": {"n": N_SEARCHED, "fit_cohort_size": dist(csize),
                       "n_below_500_users": int((csize < 500).sum())},
            "readings": {}}
@@ -575,6 +582,9 @@ def run(args):
         top1_idx = np.asarray([int(meta[i]["top_m_pool_idx"][0]) for i in range(N_SEARCHED)])
         cos_top1_meas = np.abs((V1 * Qpool_u[top1_idx]).sum(1))
         gap = cos_abs - cos_top1_meas
+        # instrument references: how much of the TARGET one answerable question already carries
+        tgt_top1 = np.abs((Ru * Qpool_u[top1_idx]).sum(1))
+        tgt_best_pool = np.abs(Ru @ Qpool_u.T).max(1)
 
         # -- the selector ---------------------------------------------------------------------
         sp_v1, sp_mu, sp_pop, sp_rand = ([] for _ in range(4))
@@ -616,6 +626,8 @@ def run(args):
                     "abs_cos_v1_nearest_entry_in_the_FULL_19390_bank": boot_median(best_bank[sel]),
                     "abs_cos_v1_top1_MEASURED_candidate": boot_median(cos_top1_meas[sel]),
                     "GAP_target_minus_top1_measured": boot_median(gap[sel]),
+                    "reference_abs_cos_TARGET_top1_measured": boot_median(tgt_top1[sel]),
+                    "reference_abs_cos_TARGET_nearest_pool_entry": boot_median(tgt_best_pool[sel]),
                     "nearest_pool_entry_is_the_top1_measured_candidate": float(
                         np.mean(best_pool_j[sel] == top1_idx[sel]))},
                 "selector": {
