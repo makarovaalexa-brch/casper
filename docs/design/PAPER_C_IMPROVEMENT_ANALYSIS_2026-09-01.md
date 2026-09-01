@@ -316,3 +316,36 @@ adaptive part.* That is a real result, and it is the same shape as everything el
 Hussein & Ziegler, **CHI 2014**, reportedly elicits by presenting item sets at the extremes of each
 latent factor in turn. Unreachable through three routes so far. If it holds, "interrogate along a
 latent direction" exists in recsys since 2014.
+
+---
+
+## 8. CLOSING THE GENERALISATION QUESTION (C7, 2026-09-01) — and correcting §6 and §5
+
+`docs/results/C7_KNN_TRANSFER.md`. Two corrections to what I wrote earlier today, both mine:
+
+1. **§6 promoted local transfer to the top of the menu on the strength of D2's +0.617. That was
+   wrong.** D2's "nearest of all 71 others" is usually the state's own **parent or sibling** (median
+   tree distance 1). Under a withheld contiguous subtree that neighbour does not exist (median
+   distance 3.80), accuracy tracks distance at **r = −0.90**, and kNN lands at +0.122 against a
+   state-blind floor of +0.310 — significantly worse than ignoring the state. **D2 measured
+   interpolation; I read it as generalisation.** LOO-within-train overstates held-out by 5.7×.
+2. **§5 and §6 called the state-specific residual "small". It is not.** Of a target's mean-removed
+   energy the residual carries **0.59 [0.556, 0.627]** against the common component's 0.41. Raw
+   cosines read 0.95 because of the **bank's** common mode, not because targets share a direction.
+
+**The corrected statement, which is the one the chapter should carry:**
+
+> The state-specific component of the measured-best direction is **substantial** (59% of mean-removed
+> energy) and is **not predictable from the interview state** by any method tested — global linear
+> probes, a profile parameterisation, or local neighbour transfer — none of which beats a state-blind
+> constant at the emission level on the registered split.
+
+⚠ This also **weakens the analogy to Paper B** I drew in §5/§6: Paper B found conditioning *did not
+pay*; C-series finds the conditioning information *exists and resists extraction*. Related, not the
+same, and the chapter must say the second. Cross-chapter sentences drafted on the first reading must
+be revised.
+
+**Menu status after C7:** items A (profile net), B (eigen, now a static control) and the new C7 are
+all answered or re-scoped; **no further architecture work is indicated** under the capstone steer.
+What remains worth doing is §7's list — the MI cost of snapping, a boundary-showing second
+transcript, and stating the decomposition as a result.
