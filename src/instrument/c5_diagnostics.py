@@ -614,6 +614,16 @@ def run(args):
     def cos_score(a, b):
         return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-300))
 
+    # the state-blind LOO baseline, per state, in both spaces -- the comparator D4 is scored against
+    LOO = {}
+    for tag, Tm in (("MEAN_REMOVED_bank_mu", Tmr), ("RAW", Tt.astype(np.float64))):
+        v = np.empty(ns)
+        for i in range(ns):
+            k = np.ones(ns, bool); k[i] = False
+            m_ = Tm[k].mean(0)
+            v[i] = float(m_ @ Tm[i] / (np.linalg.norm(m_) * np.linalg.norm(Tm[i]) + 1e-300))
+        LOO[tag] = v
+
     d4 = {"design": "ridge from the state's input vector to the 129-d blend target; alpha chosen by "
                     "LEAVE-ONE-OUT INSIDE THE TRAINING STATES ONLY; evaluated at the held-out states",
           "cells": {}}
@@ -638,7 +648,14 @@ def run(args):
                     "held_out_cos": dist(ch), "held_out_cos_boot": boot_ci(ch, N_BOOT, SEED),
                     "train_fit_cos": dist(ct),
                     "loo_cos_within_train": max(v for _, v in curve),
-                    "chance_random_direction_cos": dist(cosrows(rr, Tm[held]))}
+                    "chance_random_direction_cos": dist(cosrows(rr, Tm[held])),
+                    # ★ the two contrasts the verdict turns on, PAIRED over held-out states
+                    "vs_state_blind_LOO_baseline_same_space": paired_bootstrap(
+                        ch - LOO[space][held], N_BOOT, SEED),
+                    "vs_trained_policy_RAW": (paired_bootstrap(ch - pol_cos[held], N_BOOT, SEED)
+                                              if space == "RAW" else
+                                              "not like-for-like: the policy's cos is RAW")}
+                npz[f"d4_{cell}_{space}_{xn}_heldout_cos"] = ch
                 log(f"  [D4 {cell}/{space}/{xn}] alpha {a:.3g} | held-out cos "
                     f"{np.mean(ch):+.4f} [{boot_ci(ch, 2000, SEED)['lo']:+.4f}, "
                     f"{boot_ci(ch, 2000, SEED)['hi']:+.4f}] | train {np.mean(ct):+.4f}")
@@ -698,6 +715,7 @@ def run(args):
             "cos_to_true_target_MEAN_REMOVED": dist(cosrows(oracle - mu[None, :], Tmr[held])),
             "note": "the ceiling any D5 reconstruction can reach, given the shared-candidate "
                     "restriction; a gap to 1.0 is the restriction's cost, not a model failure"}
+        per_arm = {}
         for an, (Pm, a, loo) in arms.items():
             sp = np.array([sp_score(Pm[k], G[i]) for k, i in enumerate(held)])
             nd = np.array([ndcg_at(Pm[k], G[i], 5) for k, i in enumerate(held)])
@@ -714,8 +732,21 @@ def run(args):
                 "reconstructed_blend_cos_to_true_target_MEAN_REMOVED": dist(cm),
                 "reconstructed_blend_cos_MEAN_REMOVED_boot": boot_ci(cm, N_BOOT, SEED),
                 "n_states_with_a_constructible_blend": int(ok.sum())}
+            assert ok.all(), f"{cell}/{an}: a held-out state had no constructible blend"
+            per_arm[an] = {"sp": sp, "nd": nd, "cr": cr, "cm": cm}
+            npz[f"d5_{cell}_{an}_spearman"] = sp
+            npz[f"d5_{cell}_{an}_blend_cos_mr"] = cm
             log(f"  [D5 {cell}/{an}] spearman {np.mean(sp):+.4f} | ndcg@5 {np.nanmean(nd):.4f} | "
                 f"blend cos raw {np.nanmean(cr):+.4f} mr {np.nanmean(cm):+.4f}")
+        # ★ PAIRED contrasts -- an arm only "works" if it beats the state-blind global-mean profile
+        gmn = per_arm["baseline__global_mean_train_profile"]
+        for an, v in per_arm.items():
+            rec["arms"][an]["vs_global_mean_profile_baseline_PAIRED"] = {
+                "spearman": paired_bootstrap(v["sp"] - gmn["sp"], N_BOOT, SEED),
+                "ndcg5": paired_bootstrap(v["nd"] - gmn["nd"], N_BOOT, SEED),
+                "blend_cos_MEAN_REMOVED": paired_bootstrap(v["cm"] - gmn["cm"], N_BOOT, SEED)}
+            rec["arms"][an]["blend_cos_RAW_vs_trained_policy_PAIRED"] = paired_bootstrap(
+                v["cr"] - pol_cos[held], N_BOOT, SEED)
         d5["cells"][cell] = rec
         out["D5_profile_parameterised_alternative"] = d5
         flush()
@@ -766,11 +797,18 @@ def run(args):
         best5 = max((v["held_out_spearman"]["mean"], k) for k, v in r5["arms"].items()
                     if k.startswith("ridge__"))
         gmean = r5["arms"]["baseline__global_mean_train_profile"]["held_out_spearman"]["mean"]
+        c4 = r4["arms"][best4[1]]["vs_state_blind_LOO_baseline_same_space"]
+        c5 = r5["arms"][best5[1]]["vs_global_mean_profile_baseline_PAIRED"]["spearman"]
         return {"D4_best_meanremoved_heldout_cos": best4[0], "D4_best_arm": best4[1],
+                "D4_best_arm_minus_state_blind_LOO_PAIRED": c4,
+                "D4_ridge_beats_the_state_blind_baseline": bool(c4["lo"] > 0),
                 "D4_trained_policy_heldout_cos_RAW": r4["trained_policy_cos_held_out_RAW"]["mean"],
+                "D4_ridge_RAW_minus_trained_policy_PAIRED":
+                    r4["arms"]["RAW__" + best4[1].split("__", 1)[1]]["vs_trained_policy_RAW"],
                 "D5_best_ridge_heldout_spearman": best5[0], "D5_best_arm": best5[1],
                 "D5_global_mean_baseline_spearman": gmean,
-                "D5_ridge_beats_global_mean": bool(best5[0] > gmean)}
+                "D5_best_ridge_minus_global_mean_PAIRED": c5,
+                "D5_ridge_beats_global_mean_with_CI": bool(c5["lo"] > 0)}
     out["verdict_inputs"] = {c: _v(c) for c in SPLITS}
     flush()
     log(f"[done] wrote {p_json} in {out['minutes']:.1f} min")
