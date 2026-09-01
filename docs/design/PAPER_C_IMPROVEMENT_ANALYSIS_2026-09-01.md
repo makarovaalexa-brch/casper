@@ -216,3 +216,49 @@ independently. That is a better result than a bigger margin would have been.
 **Implementation note:** residualisation is a one-line change to the target in either C1-final's or
 C5's loss (`t ← t − t̄`, with `t̄` computed on TRAINING states only and banked in the manifest), and
 it composes with the profile parameterisation rather than competing with it.
+
+---
+
+## 6. THE FULL DIAGNOSTIC VERDICT (D1–D6 complete, 2026-09-01)
+
+### The answer to the author's question: **both, and the model is worse than they feared**
+
+| | verdict | evidence |
+|---|---|---|
+| **model at fault?** | **YES, severely** | a state-blind CONSTANT beats the trained 526k-param policy at held-out states by **+0.89 cosine, 14/15 states** (D3). At trained states the celebrated 0.970 is **+0.015 over that constant**. |
+| **inputs insufficient?** | **YES, for the residual** | no ridge probe over latent / warm-emission / structural features beats the state-blind baseline on the primary split; a 2-feature `size+depth` probe matches the 200-d latent (D4) |
+| **is there ANY state signal?** | **YES, and it is LOCAL** | the nearest measured state predicts a profile at Spearman **+0.617** vs **+0.150** for a random other — margin +0.467, better at **71/72** states (D2) |
+| **is the policy's own representation aligned with it?** | **NO** | correlation between the policy's emission-space state representation and profile similarity: **r = −0.04 [−0.19, +0.11]**, a clean null (D2) |
+
+### What this reorders on the menu
+
+- **A (profile parameterisation) — DEMOTED from ★★★ to ★★.** D5 ran a closed-form version: it wins
+  on the depth split (Spearman +0.119 over the state-blind profile, CI excludes zero) and **fails on
+  the disjoint-subtree split**, which is the one C1-final registered as primary. Worth running for
+  its structural properties (no scale drift, nests the discrete policy, right shape for the story) —
+  **not** as the fix for generalisation. Hold until C7 reports.
+- **★★★ NEW — C7, local (kNN) profile transfer. Now the top item, and it is what D2 actually
+  licenses.** Every failing probe was a *global linear* map; the signal is local. Predict a held-out
+  state's profile as a distance-weighted average of its nearest TRAINING states' profiles, construct
+  the blend from that. Closed-form, interpretable ("the best question here is roughly the best
+  question at the most similar state we measured"), needs no training, and applies at unmeasured
+  states. **Launched.** Its honest bound is also pre-registered: if it only works where a near
+  neighbour exists, that bounds deployability and gets said.
+- **B (eigenvector emitter) — unchanged at ★★★**, re-running after its own gate was mis-specified.
+- **D (dispersion features) — DEMOTED.** D6 shows depth, not cohort size, is the predictive
+  structural variable, and depth is already available. Dispersion is unlikely to be the missing input.
+- **The residualisation proposal (§5) — PROMOTED to mandatory** for any future emitter, because D3
+  proves the common component is ~0.95 of the raw cosine. Training on the raw target is training on
+  the cone.
+
+### The finding the paper should actually carry
+
+The measured-best directions across interview states are **one dominant direction plus a small
+state-specific residual**: a state-blind constant reaches 0.95 raw / 0.63 mean-removed to every
+state's own target. That residual is real (D2's locality proves it carries information) but it is
+*small*, *local*, and *not linearly recoverable* from the state.
+
+This is Paper B's **"the bank beats conditioning"** measured a second way, in the geometry of the
+question space. Two chapters, two independent methods, one fact. **It should be stated as a result,
+not hidden as a limitation** — and it is a far more interesting sentence than "our policy fit its
+targets at 0.97".
