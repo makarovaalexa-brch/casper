@@ -573,13 +573,33 @@ def run(args):
         Z7 = Zemit[ei, :-1] - m7["muK"]
         snap_m7 = np.argmax((Z7 / np.linalg.norm(Z7, axis=1, keepdims=True)) @ Kc_7u.T, axis=1)
         snap_banked = np.asarray(zf[f"emit_snap_{CELL}"], np.int64)[ei]
+        # The top-1 arm is EXACT-INDEX equality over a 19,390-entry bank and is therefore brutally
+        # strict: two constructions can point into the same small neighbourhood and still never name
+        # the identical row. So a NEIGHBOURHOOD arm is banked beside it -- how many of the emission's
+        # own five nearest bank entries (in m7dj's space) the fed point also names among its five
+        # (in the adapter's space). Chance is 5/19390 = 0.00026 per slot, so anything above ~0 is
+        # signal. Neither arm is asserted; both are reported.
+        TOPN = 5
+        em_top = np.argsort(-((Z7 / np.linalg.norm(Z7, axis=1, keepdims=True)) @ Kc_7u.T),
+                            axis=1)[:, :TOPN]
         for sp in SPACES:
             P, mu_s, _sc = points[sp]
             Pc = P - mu_s
             Pu = Pc / np.linalg.norm(Pc, axis=1, keepdims=True)
-            snap_fed = np.argmax(Pu @ Kc_E1u.T, axis=1)
+            Sfed = Pu @ Kc_E1u.T
+            snap_fed = np.argmax(Sfed, axis=1)
+            fed_top = np.argsort(-Sfed, axis=1)[:, :TOPN]
+            ov = np.asarray([len(set(fed_top[j].tolist()) & set(em_top[j].tolist()))
+                             for j in range(n_em)], np.int64)
             space_probe[sp] = {
                 "n_states": int(n_em),
+                "top5_neighbourhood_overlap_mean": float(ov.mean()),
+                "top5_neighbourhood_overlap_per_state": [int(x) for x in ov],
+                "top5_neighbourhood_overlap_chance": float(TOPN * TOPN / N_BANK),
+                "fed_point_top5_bank_phrases":
+                    [[POC.phrase(br.names, ni, int(x)) for x in r] for r in fed_top],
+                "emission_top5_bank_phrases_in_m7dj_space":
+                    [[POC.phrase(br.names, ni, int(x)) for x in r] for r in em_top],
                 "snap_agreement_with_the_emission_in_its_own_space":
                     float((snap_fed == snap_m7).mean()),
                 "snap_agreement_with_c1_final_banked_emit_snap":
@@ -597,7 +617,10 @@ def run(args):
             log(f"  [space probe] {sp:<7} nearest-bank agreement with the emission in its own "
                 f"space {space_probe[sp]['snap_agreement_with_the_emission_in_its_own_space']:.3f} "
                 f"(vs banked emit_snap "
-                f"{space_probe[sp]['snap_agreement_with_c1_final_banked_emit_snap']:.3f})")
+                f"{space_probe[sp]['snap_agreement_with_c1_final_banked_emit_snap']:.3f}); "
+                f"top-5 neighbourhood overlap "
+                f"{space_probe[sp]['top5_neighbourhood_overlap_mean']:.2f}/5 "
+                f"(chance {space_probe[sp]['top5_neighbourhood_overlap_chance']:.5f})")
 
     # ============================================================ THE ANSWER MODEL (declared circular)
     sgn, _U, ans_diag = C4B.geometric_answers(br, rows_all)
@@ -859,13 +882,23 @@ def markdown(out):
          ""]
     sp = out["space"]["probe"].get(out["space"]["chosen"])
     if sp:
-        L += [f"> ⚠ SPACE PROBE: the fed point's nearest bank entry agrees with the emission's own "
-              f"nearest entry in m7dj's space for "
-              f"**{sp['snap_agreement_with_the_emission_in_its_own_space']:.3f}** of the rendered "
-              f"states (secondary arm, vs C1-final's banked `emit_snap`: "
-              f"**{sp['snap_agreement_with_c1_final_banked_emit_snap']:.3f}**). Near zero means the "
-              f"two policies' k(phi) read-outs do not share a basis and a `direct` row would render "
-              f"a DIFFERENT direction.", ""]
+        pr = out["space"]["probe"]
+        L += [f"> ⚠ SPACE PROBE (why this row is rendered in the `{out['space']['chosen']}` "
+              f"construction). EXACT top-1 agreement between the fed point's nearest bank entry and "
+              f"the emission's own nearest entry in m7dj's space is "
+              f"**{sp['snap_agreement_with_the_emission_in_its_own_space']:.3f}** — and it is "
+              f"0.000 for ALL THREE constructions, including `target`, which is the right direction "
+              f"in the adapter's own bank by construction. Exact-index equality over a "
+              f"{N_BANK:,}-entry bank is therefore too strict to separate them; the arm that does "
+              f"is the NEIGHBOURHOOD overlap (how many of the emission's five nearest bank entries "
+              f"the fed point also names among its five, chance "
+              f"{sp['top5_neighbourhood_overlap_chance']:.5f}): "
+              + ", ".join(f"**{k} {pr[k]['top5_neighbourhood_overlap_mean']:.2f}/5**"
+                          for k in out["space"]["all_built"] if k in pr)
+              + ". The two policies' k(phi) read-outs do not share a basis, so a `direct` render "
+                "would be a render of a DIFFERENT direction; the `target` construction renders the "
+                "state's measured-gain blend rebuilt in the renderer's own bank, and C1-final "
+                "reports cos(emission, target) = 0.970 at exactly these trained states.", ""]
     L += ["| turn | state | n | synthesised question (policy's own direction, in English) | "
           "the catalogue question the tree would ask | folded | full@10 | tail@10 | top-5 after "
           "this turn |",
