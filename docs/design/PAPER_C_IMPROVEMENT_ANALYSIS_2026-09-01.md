@@ -167,3 +167,52 @@ channel's instrument limit. None of these block the claim; all are cheap; none c
 untouched — the mechanism result, the loop, the catalogue-anti-alignment hook and the translation
 cost are banked and do not depend on the emitter improving. Everything on this menu is upside on top
 of a paper that already has enough to be written.
+
+---
+
+## 5. FIRST DIAGNOSTIC RESULT (D1, banked `experiments/paperC/c5_diagnostics.json`, 2026-09-01)
+
+**Pairwise cosine among the 72 blend targets** (2,556 pairs), and the comparison that matters:
+
+| set | raw | mean-removed |
+|---|---|---|
+| the 72 **blend targets** | median **0.920** | median **0.425** [IQR 0.247, 0.562] |
+| their own **top-1 candidates** | — | median **0.247** [IQR 0.083, 0.407] |
+| random bank entries | — | mean **0.002** |
+
+### ★ Blending itself destroys state-specificity — and that is a design defect, not a curiosity
+
+The top-1 measured candidates at different states differ from each other at 0.247. **The 5-blends of
+those same candidates differ at 0.425** — averaging five vectors pulls every state toward the pool's
+common direction, so inter-state similarity nearly doubles. *The operation that buys us an
+off-catalogue point costs us the thing that makes the point state-specific.*
+
+### It also EXPLAINS C1-final's null
+
+C1-final's reading 1a — "the emission is closer to its own target than to a random other state's" —
+cleared zero (+0.059) but was matched by the **untrained** warm start (+0.084), and I recorded that
+as "neighbouring states carry correlated targets". D1 quantifies it: the targets sit in a cone with
+median pairwise cosine 0.425, so **any** vector pointing into that cone earns a positive own-vs-other
+margin without knowing anything about the state. The null was not a fluke of the pairing; it is a
+direct consequence of the target construction.
+
+### The fix, and it is cheap: RESIDUALISE THE TARGET
+
+Train the emitter on `target − mean(targets over training states)` — the state-specific deviation —
+and add the common component back at inference. Consequences:
+- the learner spends its capacity on the part that actually varies, instead of re-deriving a shared
+  cone 72 times;
+- identification becomes a meaningful test rather than a cone-membership test;
+- the reported quantity gains an interpretation we currently lack: **what fraction of the
+  measured-best direction is common to all states, and what fraction is state-specific?** That number
+  belongs in the paper whatever it turns out to be.
+
+⚠ Registered honestly in advance: if the state-specific part is small, the correct sentence is *"the
+measured-best directions share a dominant common component; conditioning moves a modest residual"* —
+which is **the same fact Paper B reports as "the bank beats conditioning"**, now visible in the
+geometry of the question space rather than in an NDCG table. Two chapters, one finding, arrived at
+independently. That is a better result than a bigger margin would have been.
+
+**Implementation note:** residualisation is a one-line change to the target in either C1-final's or
+C5's loss (`t ← t − t̄`, with `t̄` computed on TRAINING states only and banked in the manifest), and
+it composes with the profile parameterisation rather than competing with it.
