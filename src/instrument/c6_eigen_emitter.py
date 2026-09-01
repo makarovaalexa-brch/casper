@@ -14,6 +14,21 @@ onto measured-gain blends that exists at 72 states and does not extrapolate (`C1
 
 This file MEASURES that. It trains nothing.
 
+★ WHAT THE RESULT MAY AND MAY NOT BE CALLED (coordinator ruling, 2026-09-01, after the parallel
+literature check). The principal-axis rule is PUBLISHED, twice: Ji, Xue & Carin (IEEE TSP 2008,
+Sec. IV.A) states it verbatim -- maximise r'Sigma r, take the top eigenvector of Sigma -- including
+the synthesise-or-snap fork; Info-Synth's Prop. 1 gives the same direction as `a~ = 4 r~ v1`. It is
+therefore NEVER this project's finding. And the decisive theoretical point: under linear-Gaussian
+the covariance update carries NO dependence on the answer, so a pure Sigma-functional emitter cannot
+be adaptive -- its sequence is the leading eigenvectors of the PRIOR, precomputable before the
+interview starts. This project has already measured that class (Sigma-greedy over random order,
++0.0036). ⇒ **v1 here is the STATIC CONTROL for the adaptivity claim, not a candidate method.**
+What is genuinely ours is (i) the COMMON-vs-SPECIFIC decomposition below -- how much of the
+measured-best direction is the static prior axis and how much is the adaptive residual -- and
+(ii) the ANSWERABILITY GAP, the empirical size of the object Info-Synth derives as the MI cost of
+snapping (Delta I = 1/2 ||Delta z||^2_M) and never reports as a number. Where that gap is large the
+second-order surrogate is not the right quantity and the true MI difference is.
+
 WHAT IS IMPORTED, NEVER REIMPLEMENTED
 -------------------------------------
   `c1_final.load_sweeps`         the 72 FULL exact whole-pool gain tables + their contract check
@@ -469,6 +484,22 @@ def run(args):
            "hypothesis": ("the measured-best probe direction at a state is approximately the "
                           "principal axis of the cohort's residual covariance"),
            "git": GB, "seed": SEED, "n_boot": N_BOOT,
+           "framing": {
+               "the_rule_is_published": ("Ji, Xue & Carin, IEEE TSP 2008 Sec. IV.A states the "
+                                         "principal-axis rule verbatim, including the "
+                                         "synthesise-or-snap fork; Info-Synth Prop. 1 gives the "
+                                         "same direction. NOT this project's finding."),
+               "v1_is_a_static_control": ("under linear-Gaussian the covariance update does not "
+                                          "depend on the answer, so a pure Sigma-functional "
+                                          "emitter cannot be adaptive: its sequence is the leading "
+                                          "eigenvectors of the PRIOR, precomputable before the "
+                                          "interview. This run is the STATIC CONTROL for the "
+                                          "adaptivity claim, not a candidate method."),
+               "what_is_ours": ("(i) the COMMON-vs-SPECIFIC decomposition of the measured-best "
+                                "direction; (ii) the ANSWERABILITY GAP -- the empirical size of "
+                                "Info-Synth's MI cost of snapping, which that work derives and "
+                                "never reports as a number. Where the gap is large the "
+                                "second-order surrogate is not the right quantity.")},
            "conventions": {
                "space": ("200-d TOWER latent space, popularity-stripped exactly as "
                          "c3b_adapter.TowerBridge: item = (Wd - mean(Wd)) - <.,u1>u1, concept = d_c, "
@@ -611,6 +642,15 @@ def run(args):
         oth = np.array([rng.choice([j for j in range(N_SEARCHED) if j != i])
                         for i in range(N_SEARCHED)])
         cos_other = np.abs((V1 * Ru[oth]).sum(1))
+        # ★ THE DECOMPOSITION THE FRAMING NEEDS (coordinator, 2026-09-01). The 72 targets are
+        # dominated by a COMMON component (C5's D3: raw cos 0.95 to a state-blind constant, 0.64
+        # mean-removed). So "v1 is near the target" is ambiguous until we know WHICH half of the
+        # target v1 is tracking. Split the state's target into the state-blind direction and the
+        # orthogonal state-SPECIFIC residual, and score v1 against each.
+        cos_v1_common = np.abs((V1 * LOO).sum(1))
+        resid = Ru - (Ru * LOO).sum(1)[:, None] * LOO
+        cos_v1_specific = np.abs((V1 * unit(resid)).sum(1))
+        frac_specific = np.linalg.norm(resid, axis=1)          # sin(angle) of target to the common
 
         # -- the softer, better-posed form of the hypothesis ----------------------------------
         # v1 is one direction of a 200-d covariance estimated from 200-10,000 users, so it can be
@@ -683,6 +723,16 @@ def run(args):
                 "paired_v1_minus_cohort_mean": boot_paired(cos_abs[sel], cos_mu[sel]),
                 "paired_v1_minus_leave_one_out": boot_paired(cos_abs[sel], cos_loo[sel]),
                 "paired_v1_own_minus_other_state": boot_paired(cos_abs[sel], cos_other[sel]),
+                "COMMON_vs_SPECIFIC_decomposition": {
+                    "definition": ("the state's target is split into the state-BLIND direction "
+                                   "(the leave-one-out mean of the other 71 unit targets) and the "
+                                   "orthogonal state-SPECIFIC residual. If v1 tracks only the "
+                                   "common half it is a static prior axis, not an adaptive probe."),
+                    "abs_cos_v1_STATE_BLIND_common_direction": boot_median(cos_v1_common[sel]),
+                    "abs_cos_v1_STATE_SPECIFIC_residual": boot_median(cos_v1_specific[sel]),
+                    "target_norm_fraction_that_is_state_specific": boot_median(frac_specific[sel]),
+                    "paired_common_minus_specific": boot_paired(cos_v1_common[sel],
+                                                                cos_v1_specific[sel])},
                 "span3_capture_fraction_of_target_norm2": boot_median(span3[sel]),
                 "span3_capture_random_3_directions": boot_median(span3_rand[sel]),
                 "paired_span3_minus_random3": boot_paired(span3[sel], span3_rand[sel]),
@@ -740,6 +790,9 @@ def run(args):
         npz[f"{arm}_span3_rand"] = span3_rand
         npz[f"{arm}_best_pool"] = best_pool
         npz[f"{arm}_cos_top1_meas"] = cos_top1_meas
+        npz[f"{arm}_abscos_v1_common"] = cos_v1_common
+        npz[f"{arm}_abscos_v1_specific"] = cos_v1_specific
+        npz[f"{arm}_target_frac_state_specific"] = frac_specific
         npz[f"{arm}_var_ratio_target"] = vr_target
         npz[f"{arm}_var_ratio_v1"] = vr_v1
         for k in SEL_ARMS:
@@ -764,6 +817,13 @@ def run(args):
             f"{a['answerability']['abs_cos_v1_nearest_ANSWERABLE_pool_entry']['median']:.5f}, "
             f"top-1 measured {a['answerability']['abs_cos_v1_top1_MEASURED_candidate']['median']:.5f}"
             f", GAP {a['answerability']['GAP_target_minus_top1_measured']['median']:+.5f}")
+        dcp = a["COMMON_vs_SPECIFIC_decomposition"]
+        log(f"[{arm}] DECOMPOSITION -- |cos(v1, state-BLIND common)| "
+            f"{dcp['abs_cos_v1_STATE_BLIND_common_direction']['median']:.5f} vs "
+            f"|cos(v1, state-SPECIFIC residual)| "
+            f"{dcp['abs_cos_v1_STATE_SPECIFIC_residual']['median']:.5f}; the target's own "
+            f"state-specific norm fraction "
+            f"{dcp['target_norm_fraction_that_is_state_specific']['median']:.5f}")
         log(f"[{arm}] variance ratio along the TARGET "
             f"{a['variance_along_the_target']['target']['median']:.4f} "
             f"(v1's own ceiling {a['variance_along_the_target']['v1_its_own_ceiling']['median']:.4f}"
