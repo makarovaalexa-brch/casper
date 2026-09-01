@@ -6,6 +6,50 @@
 `docs/design/C1_FINAL_SCOPING.md`. **Every population caveat and every claim restriction in
 DS_C1_FINAL carries over verbatim** — C5 changes the parameterisation, not the data.
 
+> ⚠ **NAMING COLLISION, flagged not silently resolved.** The label "C5" is already taken by
+> `src/instrument/c5_diagnostics.py` (commit `cf49372`, "decide whether C1-final's generalisation
+> failure is the MODEL or the INPUTS"), and "C6" by `3787ad6` (the closed-form eigen-emitter). This
+> file is named `c5_profile_policy.py` because the brief named it so; **the stage should probably be
+> renumbered C7 before anything is written up.**
+
+## 0. ★ WHAT THE C5 DIAGNOSTICS ALREADY MEASURED ABOUT THIS DESIGN'S PREMISE — READ BEFORE LAUNCHING
+
+`experiments/paperC/c5_diagnostics.json` (finished 2026-09-01 21:26, 4.4 min) ran **D5**, which is a
+closed-form ridge version of this sheet's reading 6: predict the measured gain profile at held-out
+states from the state, then score Spearman and NDCG@5 against the same two baselines this sheet
+registers. **On the primary split it already says the premise does not hold.**
+
+| primary split (`root.like.*` held out) | Spearman | NDCG@5 |
+|---|---|---|
+| ridge on the cohort-mean latent (200-d) | −0.0413 | 0.0749 |
+| ridge on the warm-start emission (129-d) | +0.1460 | 0.2120 |
+| ridge on structure only | +0.2872 | 0.2432 |
+| ridge on size + depth only | +0.3239 | 0.3273 |
+| **baseline: global mean TRAIN profile (state-blind)** | **+0.3103** | **+0.3405** |
+| baseline: popularity prior | +0.2058 | 0.0446 |
+
+| secondary split (depth ≥ 5) | Spearman | NDCG@5 |
+|---|---|---|
+| ridge on the cohort-mean latent | **+0.3747** | +0.3128 |
+| ridge, latent + warm + structural | +0.3783 | **+0.3539** |
+| baseline: global mean TRAIN profile | +0.2598 | +0.2512 |
+
+**Plain reading: on the primary split no state-conditioned probe beats the state-blind global mean —
+the one that knows nothing about which state it is scoring. Only the secondary (depth ≥ 5) split
+shows a modest edge**, and depth is confounded with cohort size, so a target-noise explanation is
+live there. D2 separately shows profiles *are* predictable from a NEIGHBOURING trained state
+(kNN +0.4666 over mean-other), i.e. **locality, not extrapolation** — exactly the C1-final shape one
+level down.
+
+**What this does and does not settle for C5.** A ridge on 72 state-mean rows is not the policy: the
+policy carries the head's inductive bias, sees ~510,000 user-rows rather than 72 means, and is fit
+end to end. So D5 is a strong prior, not a ceiling. But it means **C5 is now a test of a hypothesis
+the cheap probe already leans against**, and it must be launched with that expectation on the record:
+the honest pre-registration is *"D5 says the state-blind mean is hard to beat on the primary split;
+C5 asks whether a trained profile head, on user-rows rather than state means, can beat it."* If
+reading 6 lands on top of the global-mean baseline, that is a **replication of D5 at the policy
+level**, not a new disappointment — and it is a clean, publishable statement of where the ceiling is.
+
 ## 1. Why this run exists
 
 C1-final regressed the policy onto a 128-d blend **direction**: one supervised vector per state, 72
