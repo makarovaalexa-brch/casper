@@ -45,19 +45,19 @@ Off-Catalogue Elicitation Directions}\\[4pt]\large Thesis Chapter C (v2) --- wor
 \begin{abstract}
 \noindent A cold-start interview can only ask what is in its question catalogue; this chapter takes
 seriously the case where the direction the data says to ask about is not in it. A policy trained on
-gain-weighted blends of the candidate questions whose value was \emph{measured} at each interview
-state emits directions that lie on no catalogue entry, while still running the tree's ordinary
-interview (fit cosine $0.970$; $245$ of $245$ distinct questions preserved) --- at the states where
-the question landscape was measured, and not beyond them. A small adapter into a frozen language
-model says such a direction in English, and the vector genuinely conditions the text: against a
-correspondence-scrambled twin trained identically, $+0.111$ $[+0.105,\,+0.117]$ through an
-independently fitted bridge, at $107\%$ of the true phrase's own ceiling. Where the decoder is
-distinctive the rendered word lands at median rank $91$ of $1{,}031$ among the direction's own
-nearest concepts --- while the \emph{nearest catalogue question's} own text is anti-aligned with that
-direction ($-0.158$) where the invented word carries it ($+0.204$). Translating a direction into
-English and reading it back costs $+0.018$ NDCG@10 under an answer model whose circularity we
-declare and from which we read only the difference between arms, and most of that cost is the
-decoder repeating itself rather than language. The claim is capability, not value: what is
+gain-weighted blends of the candidates whose value was \emph{measured} at each interview state emits
+directions that lie on no catalogue entry while still running the tree's ordinary interview (fit
+cosine $0.970$; $245$ of $245$ distinct questions preserved) --- at the states where the question
+landscape was measured, and not beyond them. Adapters into a frozen language model say such a
+direction in English, and the vector genuinely conditions the text. Trained on \textbf{bare-phrase}
+targets, where the mechanism is cleanest, the true adapter beats a correspondence-scrambled twin by
+$+0.111$ $[+0.105,\,+0.117]$ through an independently fitted bridge, at $107\%$ of the true phrase's
+own ceiling. Retrained on \textbf{question-shaped} targets --- the deployable form --- it emits
+well-formed questions $94.7\%$ of the time and the conditioning survives at $+0.052$
+$[+0.046,\,+0.058]$, at $71\%$ of a ceiling that the templating itself lowers by $23\%$: naturalness
+costs verifiability, and against a same-instrument ceiling we can price it. Meanwhile the
+\emph{nearest catalogue question's} own text is anti-aligned with the emitted direction ($-0.158$)
+where the invented word carries it ($+0.204$). The claim is capability, not value: what is
 unoccupied is the conjunction --- a \emph{collaborative} latent, rendered as \emph{language}, left
 \emph{unsnapped}.
 \end{abstract}
@@ -99,19 +99,33 @@ emission is taught rather than hoped for; one object then does both jobs, runnin
 interview with $245$ of $245$ distinct questions intact while fitting its blend targets at cosine
 $0.970$. Third (\S\ref{sec:c3}), we train a two-layer adapter to say a direction in English through a
 frozen \texttt{distilgpt2}, and test the only thing that matters about it --- whether the text depends
-on the vector --- against a twin trained identically on scrambled vector--text pairs
-($+0.111$ $[+0.105,\,+0.117]$, with the true arm at $107\%$ of what the ground-truth phrase itself
-earns through the same instrument, and source identification at $0.678$). Fourth
+on the vector --- against a twin trained identically on scrambled vector--text pairs. That test is
+run twice, on two adapters trained by the same recipe, and the pair is the story: on
+\textbf{bare-phrase} targets, which isolate the mechanism, $+0.111$ $[+0.105,\,+0.117]$ with the true
+arm at $107\%$ of what the ground-truth phrase itself earns through the same instrument and source
+identification at $0.678$; then again on \textbf{question-shaped} targets, which are what an
+interview can actually put to a person. Fourth
 (\S\ref{sec:c4}), we close the loop: the rendered word lands at median rank $91$ of $1{,}031$ in the
 direction's own neighbourhood where the decoder says something distinctive --- \texttt{action} at rank
 $1$, \texttt{indictment} at $5$ for a courtroom blend, \texttt{animals} at $7$ for the Pixar branch
 --- and we measure what the round trip through language costs.
 
-\todo{PLACEHOLDER --- the one deliberate gap in this chapter's framing. The adapter above emits a bare
-phrase. The registered question-shaped rendering run (C3B-v2) retrains it on question-form targets;
-when it reports, its result and the deployment-trajectory transcript of Figure~\ref{fig:transcript}
---- a whole cold-start interview every question of which is synthesised --- belong here, as the last
-step of the arc. No number exists yet and none is implied.}
+\paragraph{Two adapters, and why we report both.} The first adapter emits a bare phrase ---
+\texttt{science fiction}, \texttt{animals}, \texttt{Rocky (2005)} --- and an interview asks
+\emph{questions}. The second is the same architecture, the same pairs, the same split and the same
+scrambled twin, retrained on question-shaped targets built from the same bank entries
+(\S\ref{sec:c3b2}). It is the renderer of record for anything a person would be shown, and its
+result is that the mechanism survives the reformatting: $94.7\%$ $[0.9398,\,0.9542]$ of held-out
+generations are well-formed questions, and the true arm still beats its scrambled twin by
+$+0.05169$ $[+0.04595,\,+0.05750]$ on the item gate channel and $+0.28625$
+$[+0.24014,\,+0.33307]$ on concepts. We keep both runs in the chapter rather than quoting one,
+because they answer different questions and their difference is itself a result. The bare-phrase
+adapter establishes the mechanism at its cleanest; the question adapter shows it survives
+deployment, and prices what deployment costs. \textbf{Wrapping a phrase in question boilerplate
+lowers what a \emph{perfect} rendering can score through the same instrument by $23\%$ on items
+($0.0892 \to 0.0683$) and $17\%$ on concepts} --- so the question adapter's $71\%$ of ceiling and the
+bare-phrase adapter's $107\%$ are not two readings of one number, and neither is comparable to the
+other without re-measuring the ceiling under the format that produced it.
 
 \paragraph{What is claimed, as a conjunction.} Every leg of this has prior art or a near-miss, and we
 claim no leg on its own. Generating objects the catalogue does not contain is GeneRec's
@@ -795,6 +809,13 @@ time. Artifact: a three-property table with the scrambled arm alongside every ce
 \section{C3: saying it in English}
 \label{sec:c3}
 
+This section runs the same experiment twice. One recipe, two target formats: a \textbf{bare phrase},
+which is the cleanest possible test of whether a vector conditions text, and a \textbf{question},
+which is the only format an interview can use. The bare-phrase run (\S\ref{sec:c3b1}) is where the
+mechanism is established; the question run (\S\ref{sec:c3b2}) is the renderer of record and is where
+we find out what asking for naturalness costs the audit. Every number below belongs to exactly one
+of the two, and the two ceilings are different objects by construction.
+
 \subsection{The variant-(a) proof of concept, and why it reports no comparison}
 
 Before the claim-bearing renderer was built we ran the retrieval-anchored variant end to end, on
@@ -838,7 +859,8 @@ blinding protocol, a re-encode bridge with asserted alignment, an anchor-referen
 measured demonstration that variant (a)'s correspondence control cannot be built. Both feed the build
 below, and neither is a result about rendering.
 
-\subsection{The claim-bearing renderer, and the mechanism test}
+\subsection{The claim-bearing renderer, and the mechanism test (bare phrases)}
+\label{sec:c3b1}
 
 The claim-bearing renderer is a trained adapter that maps a vector into the language model's
 token-embedding space, because it is the only variant under which ``the vector conditions what is
@@ -887,25 +909,132 @@ generic-title prior folds to $+0.245$ against the reference, a floor above the s
 number in \S\ref{sec:c4} runs on concepts. One training seed per arm; our own checklist forbids the
 word ``robust'' until there are at least two, and we do not use it.
 
-\subsection{From phrases to questions}
+\subsection{From phrases to questions: the renderer of record}
+\label{sec:c3b2}
 
-\todo{stub --- work in flight (C3B-v2, pre-registered 2026-08-30; no number exists yet).} The
-adapter above emits a bare phrase: \texttt{science fiction}, \texttt{animals},
-\texttt{Rocky (2005)}. An interview asks \emph{questions}, and a demo of a synthesised interview
-needs text a person could answer. The registered fix retrains the same adapter on question-shaped
-targets built from the same bank entries, sampling one template per example per epoch so the model
-learns question form plus this content rather than one memorised string, with everything else ---
-pairs, split, architecture, optimiser, scrambled twin --- held fixed from the run above. The
+The adapter above emits a bare phrase, and an interview asks \emph{questions}. The registered fix
+retrains the same adapter on question-shaped targets built from the same bank entries: a small
+template family per channel --- \emph{``Have you seen \{title\}?''}, \emph{``Did you enjoy
+\{title\}?''}, \emph{``What did you think of \{title\}?''} for items; \emph{``Do you enjoy \{tag\}
+films?''}, \emph{``Are you in the mood for something \{tag\}?''}, \emph{``How do you feel about
+\{tag\} movies?''}, \emph{``Do you like it when a film is \{tag\}?''} for concepts --- with one
+template sampled per example \emph{per epoch}, so the model learns question form plus this content
+rather than one memorised string, and without multiplying the data. The templates are fixed in code,
+listed in the run manifest, and identical across both arms. Some genome tags are adjectival and some
+nominal, so no single template is clean for all of them; that is why there is a family, and the
+awkward cases are a declared property of the vocabulary rather than a defect of the run. Everything
+else is held fixed from \S\ref{sec:c3b1}: the same $19{,}390$ pairs, the same identity-held-out
+$20\%$ split, the same two-layer MLP into eight soft prefix tokens over a frozen
+\texttt{distilgpt2}, the same optimiser, and the same channel-preserving scrambled twin. The
 registered reading is that the conditioning claim must \textbf{survive} the reformatting, not
-improve under it.
+improve under it. The arms separate early again, by epoch~2 ($+0.177$ validation cross-entropy in
+the true arm's favour; best epoch~5 for both, val CE $2.2620$ against the twin's $2.4634$).
+
+\paragraph{The ceiling is re-measured, and that is not bookkeeping.} The gate is calibrated against
+what the \emph{true} text earns through the same instrument, so when the format of the true text
+changes the calibration has to be recomputed: the gold object is no longer the phrase
+\texttt{Rocky (2005)} but the sentence \emph{``Have you seen Rocky (2005)?''}, and the bridge's input
+distribution has changed with it. Reusing \S\ref{sec:c3b1}'s ceiling would have compared a templated
+generation against an untemplated reference and made the drop below look like a failure of the
+adapter. It is not. \textbf{The templated ceiling on items is $0.06828$ against the bare-phrase
+$0.08920$ --- $23\%$ lower --- and on concepts $17\%$ lower}, because the boilerplate dilutes the
+signal the bridge reads. Every bar in Table~\ref{tab:c3bv2} is derived from the re-measured value.
+
+\begin{table}[h]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Reading (item gate channel, $n = 3{,}670$)} & \textbf{best-of-8 (primary)} &
+\textbf{greedy} & \textbf{bar} \\
+\midrule
+1. $A - A'$, tower cosine & $\mathbf{+0.05169}$ & $\mathbf{+0.05855}$ & CI excl.\ $0$ \\
+\quad $95\%$ CI & $[+0.04595,\,+0.05750]$ & $[+0.05321,\,+0.06383]$ & \cmark \\
+1. $A$ level vs.\ required & $0.04869$ ($71\%$ of ceiling) & $0.07177$ & $\ge 0.02731$ \cmark \\
+2. identification & $0.6099$ & $0.6392$ & $\ge 0.5790$ \cmark \\
+3. question-form rate & $\mathbf{0.9471}$ $[0.9398,\,0.9542]$ & --- & $\ge 0.90$ \cmark \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{concept channel, reported and not gated}} \\
+$A - A'$ & $+0.28625$ $[+0.24014,\,+0.33307]$ & --- & CI excl.\ $0$ \cmark \\
+$A$ level vs.\ required & $0.2795$ ($67\%$ of ceiling) & --- & $\ge 0.1663$ \cmark \\
+identification & $0.7810$ & --- & $\ge 0.7343$ \cmark \\
+question-form rate & $0.9429$ & --- & $\ge 0.90$ \cmark \\
+\bottomrule
+\end{tabular}
+\caption{C3B-v2. Every reading passes, under both decodings, on both channels. Best-of-8 by the
+frozen language model's own length-normalised likelihood is the decoding of record
+(Table~\ref{tab:c4c}); greedy is printed beside it because a reader is entitled to see that the
+verdict does not depend on the decoder. Every interval is a $10$k paired bootstrap. The bars are
+ceiling-relative and were fixed before the run: $40\%$ of the re-measured true-question ceiling for
+reading~1, chance plus $60\%$ of that ceiling's headroom for reading~2 (item chance $0.50$, item
+ceiling $0.63$). Note that greedy's $A$ level, $0.07177$, sits \emph{above} the templated ceiling of
+$0.06828$ --- the same above-ceiling behaviour \S\ref{sec:c3b1} found on bare phrases, and it carries
+the same caveat.}
+\label{tab:c3bv2}
+\end{table}
+
+\paragraph{The questions are askable, and $5.3\%$ of them are not.} The question-form rule was fixed
+in advance --- ends in a question mark, at least four tokens, and contains a content word that is not
+template boilerplate --- and $94.7\%$ of held-out generations satisfy it against a pre-registered
+target of $0.90$. The complement is reported rather than trimmed: $5.3\%$ are degenerate, and they
+degenerate by repetition, \emph{``Did you enjoy Til, Til, Til, \ldots''} being the characteristic
+shape. Two prior conditions bracket the behaviour and are worth stating because they show the
+question mark is learned rather than a decoding reflex: the strict all-zero-prefix prior emits a
+question mark at rate $0.00$, and the channel-matched prior at rate $1.00$.
+
+\paragraph{The content is almost never right, and the vector is carried anyway.} Token-F1 between the
+generated question's content words and the gold phrase is $\mathbf{0.055}$, and exact content match
+is $\mathbf{0.0003}$: the adapter essentially never reproduces the title it was trained on for that
+vector. Its text nonetheless identifies the right vector against a same-channel decoy $61\%$ of the
+time, where chance is $50\%$ and the true question itself reaches $63\%$. The failures are legible:
+\emph{The Shawshank Redemption} renders as \textbf{``Have you seen Pulp Fiction (1995)?''};
+\emph{Ghost Story (1981)} as \textbf{``Have you seen Battlestar Galactica (1980)?''};
+\emph{The Time Traveler's Wife (2009)} as \textbf{``Did you enjoy My Little Pony: Friendship is
+Magic, The (2009)?''}; \emph{Desperate Hours (1955)} as \textbf{``What did you think of Bunted, The
+(1941)?''}. Neighbouring era, neighbouring register, wrong film --- \S\ref{sec:c3b1}'s machine-only
+synonyms, now in question form and now fully askable.
+
+\textbf{Those four strings are this chapter's argument against grading rendered questions by human
+plausibility, and we want the argument stated rather than implied.} A rater shown ``Have you seen
+Pulp Fiction (1995)?'' with no access to the source vector has exactly one verdict available: it is
+a fluent, natural, perfectly answerable question, and it is about the wrong film. The panel marks it
+wrong. The instrument, which does see the source vector, records that this text reproduces that
+vector's effect at $61\%$ identification against a decoy. Both are correct, and they are measuring
+different things: the panel measures whether the surface form matches a reference, and the audit
+measures whether the text carries the direction. The asymmetry runs the other way too, which is the
+part that should worry the field --- a renderer that ignored its input entirely and emitted
+\emph{``Have you seen The Godfather (1972)?''} at every state would score well with raters and at
+chance with the instrument. So a plausibility panel cannot separate the renderer we built from a
+confabulator, in either direction, and adding raters does not fix it; the rater would have to be
+shown the latent, at which point they are running our bridge by hand and worse. This is why the
+load-bearing evidence in this chapter is a control and a ceiling rather than a human score, and it
+is our own measured reason rather than a budget.
+
+\paragraph{Naturalness costs verifiability, and we can price it.} The $23\%$ is the finding here, not
+an inconvenience of the protocol. The words that make a question askable --- \emph{have you seen},
+\emph{what did you think of} --- are the same words for every question in the channel, so they add
+surface that carries no information about the direction, and the bridge that reads the direction
+back gets a weaker signal from the same underlying content. Concretely: the best a
+\emph{perfect} renderer can score through this instrument falls from $0.08920$ to $0.06828$ on items
+and by $17\%$ on concepts, purely by templating the gold text. Nobody in the verbalisation literature
+reports a number of this kind, and the reason is structural rather than negligent --- reporting it
+requires a same-instrument ceiling, a measurement of what the ground-truth text itself earns through
+the identical chain, which is exactly the calibration the field does not run (\S\ref{sec:positioning}).
+Without it, the honest comparison between a bare-phrase renderer at $107\%$ and a question renderer
+at $71\%$ is unavailable, and the second looks like a regression when it is a format change. We
+therefore state the rule we followed as a rule: \textbf{a change to the output format is a change to
+the instrument, and the ceiling must be re-measured before any gate is read.} It is a small
+contribution and it is ours.
 
 \begin{figure}[h]
 \centering
 \fbox{\parbox{0.92\textwidth}{\vspace{2ex}\centering
-\todo{FIGURE STUB --- the capstone artifact, in flight.} A whole cold-start interview along one
-deployment trajectory, every question of which is synthesised: the state after each answer, the
-direction the policy emits there, the rendered question, and the answer that moves the state on.
-Blocked on C3B-v2 above.
+\todo{FIGURE STUB --- run in flight; the renderer, the policy and the states it draws from are all
+banked, and what is missing is only the assembled transcript: for one cold-start trajectory, the
+state after each answer, the direction C1-final emits there, the question this section's adapter
+renders from it, and the answer that moves the state on. Per the design sheet's 2026-08-30
+amendment, the vector fed to the renderer is the blend rebuilt in the adapter's own read-out unless
+the banked snap-agreement diagnostic licenses rendering the emission directly, and the caption must
+say which.}
 \vspace{2ex}}}
 \caption{Placeholder for the deployment-trajectory transcript.}
 \label{fig:transcript}
@@ -1124,8 +1253,24 @@ generic-title prior folds to $+0.245$ against the reference --- and the tower br
 concept-flavoured text. That is a property of the measuring apparatus. It means we can say nothing
 about whether an off-catalogue \emph{item}-shaped direction renders faithfully, in either direction.
 
-\paragraph{One training seed per adapter arm.} Our own checklist forbids the word ``robust'' until
-there are at least two, and we do not use it anywhere in this chapter.
+\paragraph{One training seed per adapter arm, in both runs.} Four adapters were trained for this
+chapter --- true and scrambled, bare-phrase and question-shaped --- and each is a single seed. Our own
+checklist forbids the word ``robust'' until there are at least two, and we do not use it anywhere in
+this chapter.
+
+\paragraph{What the question renderer is not.} Three things are true of \S\ref{sec:c3b2} at the same
+time and none of them is softened elsewhere. \textbf{$5.3\%$ of its held-out generations are not
+well-formed questions}, and they fail by repetition; we report the rate rather than filtering it, and
+a deployed system would need a rejection rule we have not designed. \textbf{Content preservation is
+effectively zero} --- token-F1 $0.055$, exact content match $0.0003$ --- so no sentence in this
+chapter says the renderer says the right thing; what is measured is that the text carries the
+direction, which is a weaker and different claim. And \textbf{the bridge that measures it is
+concept-routed}: it favours concept-flavoured text, which is why the item channel is an instrument
+limit here exactly as it is in \S\ref{sec:c4}, why invented titles are freer to score well than real
+ones, and why greedy's above-ceiling item level is reported with that caveat attached rather than as
+a strength. The question-form rate is also a structural rule applied to strings, not a judgement that
+a person could answer any particular one of these questions; that remains the open Baum-and-Lang
+question below.
 
 \paragraph{The translation cost is measured under a declared-circular answer model.} The simulated
 answerer is geometric, and both arms consume it identically, which is exactly why only the difference
@@ -1138,7 +1283,9 @@ triangulation readings of \S\ref{sec:c4} never simulate an answer at all.
 instrument here is a plausibility panel, and \S\ref{sec:c3} measured why it would mislead us:
 exact-phrase recovery of $0.0000$ and token-F1 $0.111$ on items, while the same text re-encodes above
 the gold phrase's own ceiling. \emph{Rocky Balboa (2006)} rendered as ``Rocky (2005)'' is text a
-rater grades wrong and the instrument grades right. A panel scoring plausibility would therefore
+rater grades wrong and the instrument grades right, and \S\ref{sec:c3b2} shows the same thing in
+fully askable form --- \emph{The Shawshank Redemption} rendered as ``Have you seen Pulp Fiction
+(1995)?'', a question a panel would mark wrong and score as perfectly natural. A panel scoring plausibility would therefore
 penalise exactly the machine-only synonyms that carry the vector's effect, and reward a fluent
 confabulator that carries none, because the rater never sees the source vector. What a human study
 \emph{could} decide is the question Baum and Lang actually posed --- can a real person answer this at
