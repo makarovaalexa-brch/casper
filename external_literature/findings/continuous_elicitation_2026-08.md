@@ -915,6 +915,125 @@ novelty claim, and we should not build a headline on it.**
 
 ---
 
+## ⚠ AMENDMENT TO §Q2 — 2026-09-01, same day, after the RS-specific sweep returned
+
+The §Q2 above was written from this repository's own verified records while the delegated
+recommender-side sweep was still running. **The sweep has since returned, and it found one paper that
+changes the answer.** Per the standing rule that a subagent's verdict is a draft, every bibliographic
+fact below was re-verified directly against the primary source; mechanism detail that was NOT
+re-read here is flagged `[V-delegated]` and must be treated as one level weaker than `[V]`.
+
+### ★ THE DANGEROUS NEIGHBOUR — adaptive A-optimality over a latent user posterior, in a survey
+
+**Zhang, Chelsea; Taylor, Sean J.; Cobb, Curtiss; Sekhon, Jasjeet. "Active matrix factorization for
+surveys." *Annals of Applied Statistics* 14(3):1182–1206, 2020, doi 10.1214/20-AOAS1322,
+arXiv:1902.07634** (`zhang2020activemf`).
+
+`[A — title, full author list, venue, volume, issue, pages, DOI and the verbatim abstract confirmed
+directly against the arXiv abs page and the Project Euclid listing, 2026-09-01. The criterion's
+algebra below is [V-delegated]: read from ar5iv full text by the sweep, NOT re-read here.]`
+
+- Abstract, verbatim: *"We propose to ask fewer questions of respondents and impute missing responses
+  via probabilistic matrix factorization. **A variance-minimizing active learning criterion chooses
+  the most informative questions per respondent.**"* — plus a Facebook survey experiment.
+- Criterion `[V-delegated]`: `min_j tr[(Λ_i^{(t+1)})⁻¹]` — **minimise the trace of the posterior
+  covariance of the RESPONDENT'S OWN latent factor** after asking question *j*. Adaptive,
+  per-respondent, sequential. Reportedly rewritten by the authors in eigen terms as
+  `min Σ_ℓ [λ_ℓ(Λ_i^{(t+1)})]⁻¹`, which *"penalizes small eigenvalues of the precision matrix,
+  corresponding to directions in latent space with least information."*
+- **But it SELECTS among existing survey questions** by their question-factor vectors. It never forms
+  an eigenvector and never emits a direction; and it is survey methodology, not recommendation.
+
+**Why it matters anyway:** it is adaptive + latent + posterior-covariance + *written in eigenvalue
+language*. A reviewer will find it. **Cite it as nearest prior art.**
+
+### ★ THE UNRESOLVED QUESTION IT OPENS — and it is exactly our question
+
+§Q1(a) above says a criterion that is a functional of `Σ` alone is realisable as a fixed,
+answer-independent sequence. **Zhang et al. look like a counterexample and probably are not one:**
+under a Gaussian PMF likelihood the update `Λ ← Λ + β v_j v_jᵀ` does not involve the answer, so their
+"per-respondent adaptive" sequence would still be precomputable from the respondent's prior. What
+would break that is their own listed extension — the abstract says the procedure *"can benefit from …
+modelling responses as **ordered logit** rather than Gaussian"*, and under an ordered-logit likelihood
+the posterior covariance **does** depend on the answer.
+
+⇒ **NEW DEBT, HIGH, and it is a design lead rather than a citation chore:** read Zhang et al. §§3–4
+and determine whether their reported adaptive gains survive under the Gaussian likelihood or arrive
+only with the non-Gaussian one. **If the latter, that is the published evidence for where our own
+adaptivity has to come from, and it is worth more to us than the citation.** Until it is read, do not
+write either "their adaptivity is illusory" or "covariance criteria can be adaptive".
+
+⚠ **Do NOT let this overwrite §Q1(a).** The theorem is about the objective class, not about whether
+people run such criteria sequentially. Both of these are true and must be written together: *people
+do run covariance criteria adaptively (Zhang et al.), and under a linear-Gaussian belief such a
+criterion is still realisable as a fixed sequence.*
+
+### Other additions to §Q2
+
+- **`fonarev2016rectangular` gains its arXiv id (1610.04850) and a gap sentence in the authors' own
+  voice** `[V-delegated, ar5iv]`: *"Another interesting direction for future work is to join
+  approaches from two classes: based on the maximal-volume concept and based on optimal design
+  criteria."* ⇒ **The maximal-volume line and the optimal-design line were still separate as of 2016,
+  said so by the maximal-volume authors.** Useful, and cheap to cite.
+- **Rubens, Kaplan & Sugiyama, "Active Learning in Recommender Systems" (RecSys Handbook; 2015 ed.
+  with Elahi, doi 10.1007/978-1-4899-7637-6\_24)** `[A-partial/S — extraction unreliable across three
+  attempts]`. Reported family names: **Uncertainty Reduction · Error Reduction · Variance Reduction ·
+  Attention-Based**, with A-optimality under the variance branch. ⇒ **RS's own survey already names a
+  variance-reduction family containing A-optimality** — this independently confirms §Q2's verdict.
+  ⚠ **Do not quote the chapter's wording.**
+- **★ NEW LEAD, and the one most worth chasing: Loepp, Hussein & Ziegler, "Choice-based preference
+  elicitation for collaborative filtering recommender systems", CHI 2014,
+  doi 10.1145/2556288.2557069** `[S ONLY — ACM 403, two open PDFs would not text-extract]`. Reported
+  to build the dialogue by presenting item sets at the **low and high extremes of each latent factor
+  in turn**, positioning the user in latent space. **That is "interrogate along a latent direction",
+  in a recommender, in 2014** — but along a *fixed factor axis*, not a state-conditional one, and
+  **whether the factors are taken in eigenvalue/variance order is UNVERIFIED**. ⚠ **This is the
+  single highest-value verification debt from this pass: it is the nearest thing anyone found to
+  asking a user about a direction rather than an item. Do not write any novelty sentence about
+  "asking along a direction" until it is read.**
+- **Boutilier, Zemel & Marlin, "Active Collaborative Filtering", UAI 2003** `[A]` — EVOI with offline
+  prototyping and EVOI bounds; the Vendrov family, seventeen years earlier.
+- **AUTHOR CORRECTION:** the KDD 2012 online-Bayesian-MF active-learning paper is **Silva & CARIN**
+  (Duke), not "Silva & Carvalho" — the name in the brief and in earlier notes was wrong. KDD 2012,
+  pp. 325–333, doi 10.1145/2339530.2339584. Criterion: greedy **submodular mutual-information**
+  maximisation, with a cheap **trace-of-posterior-covariance** surrogate `[S — the trace detail comes
+  from Zhang et al.'s description of it, not from Silva & Carin's own equations; paywalled]`.
+- **CORRECTION to how IGCN is described:** Rashid, Karypis & Riedl (SIGKDD Explor. 10(2):90–100,
+  2008) score items by **information gain against bisecting-k-means user-cluster labels** (c = 300),
+  personalised to the 150 nearest neighbours after 5 ratings — and the paper states outright that a
+  direct decision-tree application *"is not practically feasible in our problem domain"*
+  `[V-delegated, via a mirror whose printed venue line was absent — page numbers unverified]`.
+  **⛔ Never write "IGCN builds a decision tree over user clusters."**
+
+### Sources the sweep could NOT reach — nothing about these may be written from this pass
+
+**Zhao, Zhang & Wang, CIKM 2013** (`zhao2013interactive`) — PDF would not extract. ⚠ A linear-UCB /
+Thompson variant would carry a `sqrt(vᵀΣv)` term, which would make it *another* covariance-geometry
+instance in recsys; **assume nothing until someone reads it.** Also unreached:
+**Christakopoulou et al. KDD 2016**; **Vanchinathan et al. RecSys 2014**; **Sutherland, Póczos &
+Schneider KDD 2013** (our `[S]` record stands unrefreshed); **Elahi, Ricci & Rubens, Computer Science
+Review 20:29–50, 2016** (ScienceDirect 403) — so §Q2's sentence about what that survey does *not*
+contain rests on our own earlier `[S]` reading, not on this pass. **Zhou, Yang & Zha SIGIR 2011** is
+`[S]` only (three routes dead); the squared-loss split is our prior record, not re-verified.
+
+⚠ **On Vendrov:** the sweep could not verify the snap step and one of its PDF extractions
+*hallucinated* an "optimal design criteria" claim. **Our own 2026-08-21 pass verified the snap at
+`[V]` from ar5iv full text, with the quotation banked in that section. Our `[V]` stands; the sweep's
+failure to reproduce it is not a refutation** — but it is a reminder that this paper's PDF extracts
+badly and that the ar5iv HTML is the route that works.
+
+### What this amendment does NOT change
+
+The §Q2 verdict is unchanged and is if anything strengthened: **every RS-side source anyone reached
+reduces the covariance to a SCALAR (trace or determinant) and uses it to SCORE A FINITE POOL. Nobody
+takes the argmax-direction, and nobody emits it.** What was already dead stays dead — optimal design
+is not new to RS, and covariance-based question *selection* is not new to latent-factor elicitation.
+**The narrow live cell is the DIRECTION AS THE EMITTED OBJECT**, and now it must be stated against
+`zhang2020activemf` and `fonarev2016rectangular` explicitly, or a reviewer will supply them.
+
+
+---
+
 # Q3 — Info-Synth: does our proposal COINCIDE with it?
 
 ## Bluntly: on the emitter rule, YES.
@@ -1107,6 +1226,29 @@ handed to a renderer.
 6. **"The softmax-weighted-blend target is untested in recommendation."** DGRL evaluates on MovieLens.
 7. **"Nobody prices answerability against informativeness."** Already dead five times over per
    `active_learning_elicitation.md` §0.5; this pass adds nothing that revives it.
+8. **"No one selects interview questions using the posterior covariance of a latent USER vector."**
+   Dead — `zhang2020activemf` (AOAS 14(3):1182–1206, 2020) minimises the trace of exactly that
+   covariance, adaptively, per respondent, and words it in eigenvalues.
+9. **"Optimal experimental design has not been applied to preference elicitation in recommender
+   systems."** Dead four times: `anava2015budget`, `fonarev2016rectangular`, `sepliarskaia2018spq`,
+   and RS's own handbook chapter, which already names a **Variance Reduction** family containing
+   A-optimality.
+10. **"Existing interview trees use variance criteria."** Misleading and it will read as sloppy:
+    Golbandi and Zhou minimise **squared prediction error on ratings**; Rashid uses **discrete
+    entropy**. Squared-error-on-ratings is not covariance-in-latent-space.
+11. **"IGCN builds a decision tree over user clusters."** False — Rashid et al. state that a direct
+    decision-tree application *"is not practically feasible in our problem domain"* and score items
+    by information gain against k-means cluster labels instead.
+12. **"Silva & Carvalho"** — wrong author. It is **Silva & Carin** (Duke), KDD 2012.
+13. **Anything about Zhao et al. CIKM 2013's UCB term, or about Loepp et al. CHI 2014's factor
+    ordering.** Neither was read; see the debt table.
+
+⚠ **Guard against a mis-application of item 3 and safe-sentence 5.** `CLAUDE.md` forbids arguing
+"static is optimal", and rightly — that theorem assumes linear-Gaussian **and** variance-only, and we
+have neither. Nothing in this pass licenses a general static-is-optimal claim. What it licenses is
+much narrower: **if we build an emitter whose rule is a functional of Σ alone, then *that arm* is
+static-equivalent and must be labelled as such.** The escape remains the objective's dependence on
+the posterior mean, exactly as `rank_targeted_acquisition.md` sets out.
 
 ## ✅ SAFE — these survive, stated exactly this way
 
@@ -1131,6 +1273,15 @@ handed to a renderer.
    report it as the static arm."* — this converts a weakness into a correctly-labelled control.
 6. *"We use an MPO-style exponentiated-value reweighting as a soft-argmax over a candidate question
    bank, as in DGRL's distance-based update."* — cite, do not christen.
+7. ★ *"Every prior method that uses belief geometry to choose an elicitation question reduces the
+   covariance to a **scalar** — a trace or a determinant — and uses it to **score a finite pool**
+   (Anava et al. 2015; Fonarev et al. 2016; Sepliarskaia et al. 2018; Zhang et al. 2020). We take the
+   **argmax direction itself** as the emitted object."* — this is the sharpest surviving form of the
+   claim after the RS sweep, and it must be stated **against `zhang2020activemf` and
+   `fonarev2016rectangular` by name**, or a reviewer will supply them for us.
+8. *"The maximal-volume and optimal-design families were still unjoined as of 2016, in the words of
+   the maximal-volume authors themselves."* `[V-delegated — Fonarev et al.'s own future-work
+   sentence; re-read before it goes into prose]`
 
 ## New verification debts opened by this pass
 
@@ -1142,3 +1293,9 @@ handed to a renderer.
 | 4 | **SEL-BALD's discretion-cost quantity** and its correct title / arXiv id | Cited in our bib with no id |
 | 5 | **Schumann & Rehbein CoNLL 2019** (PDF extraction failed) | Possible unlabelable-rate numbers for membership-query synthesis in text |
 | 6 | The Bıyık Likert **means** live only in Figure 6 — never quoted here | Guard against a figure-read creeping into prose |
+| **7 ★ HIGH** | **`zhang2020activemf` §§3–4** — do their adaptive gains survive under the **Gaussian** likelihood, or arrive only with the **ordered-logit** one? | This is a DESIGN LEAD, not a citation chore: under Gaussian the covariance update is answer-free and their "adaptive" sequence is precomputable; under ordered logit it is not. **If the gains need the non-Gaussian likelihood, that is published evidence for where our own adaptivity has to come from.** |
+| **8 ★ HIGH** | **Loepp, Hussein & Ziegler, CHI 2014** (doi 10.1145/2556288.2557069) — ACM 403, two open PDFs would not extract | Reported to elicit by presenting item sets at the **low and high extremes of each latent factor in turn**. If true, "interrogate along a latent direction" exists in recsys since 2014. **Write no novelty sentence about asking along a direction until this is read.** |
+| 9 | **`zhao2013interactive` (CIKM 2013)** — PDF would not extract | A linear-UCB / Thompson variant would carry a `sqrt(vᵀΣv)` term, i.e. another covariance-geometry instance inside recsys. **Assume nothing.** |
+| 10 | **`elahi2016survey` (Comput. Sci. Rev. 20:29–50)** — ScienceDirect 403 | §Q2's statement about what that survey does NOT contain rests on our own earlier `[S]`, not on this pass |
+| 11 | **Christakopoulou KDD 2016 · Vanchinathan RecSys 2014 · Sutherland KDD 2013** — never reached | That corner of the literature is **unchecked, not clear** |
+| 12 | **Silva & Carin KDD 2012's trace surrogate** — the detail comes from Zhang et al.'s *description* of it, not their own equations | Do not attribute a criterion to a paper through a third party |
