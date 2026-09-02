@@ -1673,12 +1673,12 @@ textbox(s, rx, Inches(4.45), rw, Inches(1.9),
          ("A single reserved look, spent once, on a policy that must route as well as ask. "
           "Non-monotone in budget: K=1 +0.00161 ★, K=4 +0.00119 (contains zero), K=15 +0.00343 ★.",
           {"size": 10.5, "bold": False, "color": INK}),
-         ("[TODO: confirm] no numeric CI for +0.00343 / +0.00946 is printed in the chapter — pull "
-          "it from the run artefact before quoting an interval.",
+         ("Intervals (paired bootstrap, from the run artefact): ALL K=15 +0.00343 "
+          "[+0.00173, +0.00509]; warm users +0.00946 [+0.00524, +0.01376]; "
+          "do-no-harm cell −0.00038 [−0.00098, +0.00012], i.e. a clean null.",
           {"size": 10, "bold": False, "color": ACCENT_C})],
         size=11, bold=True, color=ACCENT_B, space_after=4, line_spacing=1.14)
-footer(s, "Sources: chapterB_v2.tex tab:volunteered (:1946-1967), tab:policy (:2042-2073), "
-          ":1991-2010 · M4B_FOREST_POLICY.md · M6L_OPENER_FITTED_TEACHER.md")
+footer(s, "Sources: chapterB_v2.tex tab:volunteered, tab:policy · M4B_FOREST_POLICY.md · M6L_OPENER_FITTED_TEACHER.md · CIs: experiments/battery/m6/m6mix_B_test.json cells.ALL/warm/COLD K=15")
 notes(s, """WHAT TO SAY
 Act 5's result, and it is a two-step chain. First: if you fit the interview tree at the state the user
 is ACTUALLY in — after they have volunteered something — rather than at a cold state, you gain. Cold
