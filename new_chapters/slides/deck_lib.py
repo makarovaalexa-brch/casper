@@ -251,6 +251,41 @@ def chip(slide, left, top, width, height, text, fill, color=RGBColor(0xFF, 0xFF,
     return sh
 
 
+IMG_DIR = None          # set by the caller; defaults to ./img
+
+
+def figure(slide, name, left, top, width=None, height=None, caption=None,
+           caption_size=10.5, align=PP_ALIGN.LEFT):
+    """Place a PNG from the img/ directory, with a plain caption underneath.
+
+    Exactly one of width/height is honoured; the other follows the image's own
+    aspect ratio.  Returns the y coordinate just below the caption.
+    """
+    import os
+    from PIL import Image
+    d = IMG_DIR or os.path.join(os.path.dirname(os.path.abspath(__file__)), "img")
+    path = os.path.join(d, name)
+    if not os.path.exists(path):
+        raise FileNotFoundError(path)
+    iw, ih = Image.open(path).size
+    if width is not None:
+        height = int(width * ih / iw)
+    elif height is not None:
+        width = int(height * iw / ih)
+    else:
+        raise ValueError("figure() needs width or height")
+    pic = slide.shapes.add_picture(path, left, top, width, height)
+    y = top + height
+    if caption:
+        tb = textbox(slide, left, y + Inches(0.07), width, Inches(0.3), caption,
+                     size=caption_size, color=MUTED, italic=True,
+                     line_spacing=1.1, align=align)
+        n = 1 + len(caption) // max(1, int(width / Inches(1) * 17))
+        y = y + Inches(0.07 + caption_size / 72 * 1.1 * n)
+    pic.name = "FIGURE"
+    return y
+
+
 def _bounds(sh):
     if sh.top is None or sh.left is None:
         return None
@@ -302,14 +337,15 @@ def relayout(prs, gap=Inches(0.14), footer_top=SLIDE_H - Inches(0.52), min_row=I
                         continue
                     if t > gt + Inches(0.05):
                         group.append(sh)
-                # only shapes that actually start inside the table are moved;
-                # anything already clear of it stays put
-                hit = [sh for sh in group if sh.top < gb + gap]
-                if not hit:
+                if not group:
                     continue
-                need = gb + gap - min(sh.top for sh in hit)
+                # Move the WHOLE group by one offset so relative spacing inside
+                # it is preserved. Moving only the shapes that start inside the
+                # table collapses the gap between a section label and the
+                # content beneath it, and repeats of this pass compound it.
+                need = gb + gap - min(sh.top for sh in group)
                 if need > Inches(0.02):
-                    for sh in hit:
+                    for sh in group:
                         sh.top = int(sh.top + need)
                     moved = True
             if not moved:

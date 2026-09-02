@@ -8,19 +8,19 @@ deck stays fully editable after a Google Slides import.
 
 EVERY number below traces to a source named in that slide's speaker notes.
 Sources of record:
-  Paper A  new_chapters/chapterA_v2/chapterA_v2.tex
+  Chapter 1  new_chapters/chapterA_v2/chapterA_v2.tex
            docs/design/GATE_BATTERY_INSTRUMENT.md
            docs/results/{CONCEPT_CHANNEL_RESULT,ANSWER_DECOMPOSITION_RESULT,
                          PAPER_A_NUMBER_AUDIT,G1C_CONTROL_RESULT}.md
            CLAUDE.md (canonical ruler / split sizes)
-  Paper B  new_chapters/chapterB_v2/chapterB_v2.tex   (definitive)
+  Chapter 2  new_chapters/chapterB_v2/chapterB_v2.tex   (definitive)
            docs/design/PAPER_B_MASTER_TODO.md
            docs/results/{ACT1_PAIRED_CI,CONDITIONED_ARMS_ON_TEST,
                          HU_YU_2013_REPLICATION_AND_ABLATION,M4B_FOREST_POLICY,
                          M6L_OPENER_FITTED_TEACHER,REDDIT_LINKER_AUDITION,
                          P1_HELDOUT_ACTIONS,P1B_NEVER_TAUGHT,
                          BASELINE_OBJECTIVE_AUDIT}.md
-  Paper C  new_chapters/paperC_lbr/paperC_lbr.tex, new_chapters/chapterC_v2/chapterC_v2.tex
+  Chapter 3  new_chapters/paperC_lbr/paperC_lbr.tex, new_chapters/chapterC_v2/chapterC_v2.tex
            docs/results/{C0_GEOMETRY,C1_FINAL,C3B_ADAPTER,C3B_V2_QUESTIONS,
                          C4_PILOT,C4B_NOISE,C4C_DECODING,C4D_TRANSCRIPT}.md
   Venues   docs/PUBLICATION_PLAN.md
@@ -35,7 +35,7 @@ import deck_lib as D
 from deck_lib import (MARGIN_L, CONTENT_W, SLIDE_W, SLIDE_H,
                       INK, MUTED, RULE, BG, ACCENT, ACCENT_B, ACCENT_C,
                       BAND, textbox, notes, slide, table, box, arrow, chip,
-                      bullets, footer)
+                      bullets, footer, figure)
 
 L = PP_ALIGN.LEFT
 C = PP_ALIGN.CENTER
@@ -58,45 +58,21 @@ def num(n):
 
 # --- 1. title -------------------------------------------------------
 s = prs.slides.add_slide(prs.slide_layouts[6])
-bar = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(0.22), SLIDE_H)
-bar.fill.solid(); bar.fill.fore_color.rgb = ACCENT
-bar.line.fill.background(); bar.shadow.inherit = False
-textbox(s, Inches(1.0), Inches(1.55), Inches(11.4), Inches(0.4),
-        "CASPER  ·  PhD PROGRESS WALKTHROUGH", size=13, bold=True, color=ACCENT)
-textbox(s, Inches(1.0), Inches(2.05), Inches(11.4), Inches(1.25),
+textbox(s, Inches(1.0), Inches(2.55), Inches(11.4), Inches(1.4),
         ["Cold-start conversational recommendation:",
          "the instrument, the interview, and the question that is not in the catalogue"],
-        size=32, bold=True, color=INK, line_spacing=1.12, space_after=2)
-textbox(s, Inches(1.0), Inches(3.40), Inches(11.4), Inches(0.4),
-        "CASPER — Cold-start Adaptive Selection for Preference Elicitation in Recommendation",
-        size=14, color=MUTED)
-D._rule(s, Inches(4.05), ACCENT)
-textbox(s, Inches(1.0), Inches(4.35), Inches(11.4), Inches(1.4),
-        [("Paper A — the measuring instrument   ·   Paper B — what a cold interview "
-          "should optimise   ·   Paper C — off-catalogue questions", {"size": 15}),
-         ("", {"size": 6}),
-         ("MovieLens-25M  ·  18,359-item vocabulary  ·  full and tail NDCG@10  ·  "
-          "three papers, one fixed ruler", {"size": 13, "color": MUTED})],
-        size=15, color=INK, space_after=3)
-textbox(s, Inches(1.0), Inches(6.4), Inches(11.4), Inches(0.5),
-        "September 2026", size=13, color=MUTED)
-notes(s, """WHAT TO SAY
-Opening frame. Three papers, one shared measurement stack, built in order: A makes the measurement
-trustworthy, B uses it to answer a question about interviews, C asks what happens when the right
-question does not exist in the catalogue. Roughly 50 minutes of material; if we run out of time we
-stop wherever we are and continue later. There is a ~14-slide appendix behind this with the detailed
-tables, so if you want to push on any number I can go straight to it.
-
-SOURCES
-Positioning and roster: docs/PUBLICATION_PLAN.md (roster reset 2026-08-18).
-Ruler and vocabulary: CLAUDE.md 'Metric & reporting'; chapterA_v2.tex.""")
+        size=32, bold=True, color=INK, line_spacing=1.14, space_after=2)
+textbox(s, Inches(1.0), Inches(4.35), Inches(11.4), Inches(0.4),
+        "Aleksandra Makarova", size=17, color=INK)
+textbox(s, Inches(1.0), Inches(4.90), Inches(11.4), Inches(0.4),
+        "September 2026", size=15, color=MUTED)
 
 
 # --- 2. the thesis in one diagram ------------------------------------
-s, y = slide(prs, "The thesis in one arc",
-             "Three papers, one system — CASPER. Each hands the next a licensed capability, and "
-             "nothing downstream is measured on a ruler the upstream paper did not certify.",
-             kicker="orientation")
+s, y = slide(prs, "Thesis structure",
+             "CASPER — Cold-start Adaptive Selection for Preference Elicitation in Recommendation. "
+             "Three chapters on one measurement stack: each hands the next a licensed capability, and "
+             "nothing downstream is measured on a ruler the upstream chapter did not certify.")
 
 bw, bh = Inches(3.55), Inches(1.55)
 gap = Inches(0.62)
@@ -104,22 +80,22 @@ x0 = MARGIN_L + Inches(0.25)
 ytop = y + Inches(0.45)
 
 box(s, x0, ytop, bw, bh,
-    [("PAPER A", {"size": 12, "color": ACCENT}),
+    [("CHAPTER 1", {"size": 12, "color": ACCENT}),
      ("The instrument", {"size": 17}),
      ("A certified cold-start recommender,", {"size": 11, "bold": False, "color": MUTED}),
      ("a fold-in operator, and one ruler", {"size": 11, "bold": False, "color": MUTED})],
     line=ACCENT)
 box(s, x0 + bw + gap, ytop, bw, bh,
-    [("PAPER B", {"size": 12, "color": ACCENT_B}),
+    [("CHAPTER 2", {"size": 12, "color": ACCENT_B}),
      ("The interview", {"size": 17}),
-     ("What should a cold interview", {"size": 11, "bold": False, "color": MUTED}),
-     ("actually optimise?", {"size": 11, "bold": False, "color": MUTED})],
+     ("What a cold interview", {"size": 11, "bold": False, "color": MUTED}),
+     ("should optimise", {"size": 11, "bold": False, "color": MUTED})],
     line=ACCENT_B)
 box(s, x0 + 2 * (bw + gap), ytop, bw, bh,
-    [("PAPER C", {"size": 12, "color": ACCENT_C}),
-     ("The unasked question", {"size": 17}),
-     ("What if the right question is not", {"size": 11, "bold": False, "color": MUTED}),
-     ("in the catalogue at all?", {"size": 11, "bold": False, "color": MUTED})],
+    [("CHAPTER 3", {"size": 12, "color": ACCENT_C}),
+     ("Questions outside the catalogue", {"size": 15}),
+     ("Emitting and rendering a direction", {"size": 11, "bold": False, "color": MUTED}),
+     ("that is not in the question bank", {"size": 11, "bold": False, "color": MUTED})],
     line=ACCENT_C)
 
 ymid = ytop + bh // 2
@@ -138,37 +114,18 @@ for i, (t, col) in enumerate([
             size=10.5, color=col, line_spacing=1.14)
 
 textbox(s, MARGIN_L, Inches(6.15), CONTENT_W, Inches(0.9),
-        ["Common thread — a pre-registered control has overturned the headline three times:",
+        ["A pre-registered control has overturned the headline three times:",
          ("C0's random-direction floor  ·  C3B's equivalence twin  ·  C1's untrained warm "
           "start.  Everything here is read against its own null.",
           {"size": 13, "bold": False, "color": MUTED})],
         size=14.5, bold=True, color=INK, space_after=3)
 footer(s, "Sources: chapterA_v2.tex · chapterB_v2.tex · chapterC_v2.tex")
-notes(s, """WHAT TO SAY
-The whole of CASPER on one slide. A builds and certifies the measuring instrument, because without that
-any elicitation result is unattributable — a null could be the policy or could be the recommender.
-B takes that instrument and asks the real research question: what should a cold interview optimise?
-C asks the capability question that falls out of B: what happens when the best direction to ask
-about is not one of the questions you own.
-
-Flag the common thread early: in this project a pre-registered control has overturned the headline
-three separate times. That is the methodological character of the work and it is what I would most
-like credit for.
-
-SOURCES
-Hand-offs and scope statements: chapterA_v2.tex :76, :249, :929, :1306-1307;
-GATE_BATTERY_INSTRUMENT.md :86-88 (G10 certifies the ruler for every Chapter-B comparison).
-E1 = Chapter B's distilled policy; bank 19,390 = 18,359 items + 1,031 concepts: chapterC_v2.tex Setup.
-The three overturned headlines: C0_GEOMETRY.md (random direction lands in the same cell),
-C3B_ADAPTER.md (criterion 2 fails on a favourable direction), C1_FINAL.md (untrained warm start
-matches the own-beats-other margin).""")
 
 
 # --- 3. the problem ---------------------------------------------------
-s, y = slide(prs, "The problem: a cold user, a handful of questions, one shot",
-             "A new user has no history. The system may ask a few questions. "
-             "Which ones — and how much does the choice actually matter?",
-             kicker="problem statement")
+s, y = slide(prs, "The cold-start elicitation problem",
+             "A new user has no history. The system may ask a few questions before it recommends. "
+             "Which questions to ask, and how much the choice matters.")
 
 bw2, bh2 = Inches(2.20), Inches(0.92)
 gy = y + Inches(0.35)
@@ -186,7 +143,7 @@ for i, ((h, sub), col) in enumerate(zip(labels, cols)):
         arrow(s, xs[i] + bw2, gy + bh2 // 2, xs[i + 1], gy + bh2 // 2, color=MUTED)
 arrow(s, xs[3] + bw2 // 2, gy + bh2, xs[1] + bw2 // 2, gy + bh2, color=ACCENT_B, width=1.5)
 textbox(s, xs[1], gy + bh2 + Inches(0.05), Inches(4.7), Inches(0.3),
-        "the belief chooses the next question — this loop is Paper B",
+        "the belief chooses the next question — this loop is Chapter 2",
         size=10, color=ACCENT_B, align=C)
 
 table(s, [
@@ -196,27 +153,11 @@ table(s, [
     ["Item vocabulary", "18,359 train vocabulary (arena catalogue 18,430 = films with ≥20 ratings)"],
     ["Question bank", "19,390 = 18,359 item questions + 1,031 concept questions"],
     ["Metric", "full AND tail NDCG@10, scored with the recommender's learned decoder bias"],
-    ["Asking nothing", "0.15855 full / 0.02819 tail — the popularity prior, the floor"],
+    ["Asking nothing", "0.15855 full / 0.02819 tail — the popularity prior"],
     ["Whole profile", "0.3496 full / 0.2491 tail — the same recommender given everything"],
 ], MARGIN_L, gy + bh2 + Inches(0.50), CONTENT_W, col_w=[24, 76],
     font_size=12, row_h=0.315, first_col_bold=True)
 footer(s, "Sources: CLAUDE.md 'Metric & reporting' · chapterA_v2.tex :861 · chapterB_v2.tex tab:tree")
-notes(s, """WHAT TO SAY
-The loop: a cold user arrives with nothing, the system asks a question, gets an answer, folds it into
-a latent belief, ranks the catalogue. The belief then chooses the next question — that feedback edge
-is what Paper B is about.
-
-Two numbers to hold on to from the table. Asking nothing scores 0.1586 full NDCG@10 — that is just
-popularity, the floor. Handing the same recommender the user's entire history scores 0.3496. The
-whole interview game is played inside that gap, and a good sixteen-question interview recovers
-roughly a third of it. Every delta I show today should be read against that scale.
-
-SOURCES
-Split / vocabulary / metric: CLAUDE.md 'Metric & reporting (domain)'; PAPER_A_NUMBER_AUDIT.md:119
-(18,359 train vocabulary vs 18,430 arena catalogue).
-Bank composition: chapterC_v2.tex Setup.
-Cold intercept 0.15855 / 0.02819: chapterB_v2.tex tab:tree ('no questions' row).
-Full-profile 0.3496 / 0.2491: chapterA_v2.tex :861, :1426-1427.""")
 
 # =====================================================================
 # PAPER A — THE INSTRUMENT
@@ -236,25 +177,16 @@ def divider(title, sub, accent, meta):
     return sd
 
 
-sd = divider("Paper A — the instrument",
-             "Before you can measure an elicitation strategy you have to certify the thing that "
-             "does the measuring.",
-             ACCENT, "8 slides  ·  ~12 minutes  ·  status: closed, 41pp, unsubmitted → TORS")
-notes(sd, """WHAT TO SAY
-Section break. Paper A is the least glamorous of the three and the one everything else stands on.
-The argument is that in this literature strategy rankings invert depending on which recommender you
-plug in, so a strategy comparison is only meaningful relative to a certified instrument.
-
-SOURCES
-Status: docs/PUBLICATION_PLAN.md roster table (author, 2026-08-18) — 'closed, 41pp, not yet
-submitted' → TORS.""")
+sd = divider("Chapter 1 — the measurement instrument",
+             "Before an elicitation strategy can be measured, the recommender that consumes the "
+             "answers has to be certified.",
+             ACCENT, "9 slides  ·  ~12 minutes  ·  status: closed, 41 pp, unsubmitted, target TORS")
 
 
 # --- A1: what A is ----------------------------------------------------
-s, y = slide(prs, "What Paper A is, and why it has to exist",
-             "Strategy rankings invert when you change the recommender. So the recommender is not "
-             "background — it is the instrument, and it needs certifying first.",
-             kicker="paper a · motivation", accent=ACCENT)
+s, y = slide(prs, "Why Chapter 1 exists",
+             "Strategy rankings invert when the recommender changes. The recommender is therefore "
+             "part of the measurement, and has to be certified first.", accent=ACCENT)
 
 lw = Inches(6.35)
 textbox(s, MARGIN_L, y + Inches(0.05), lw, Inches(0.3),
@@ -266,7 +198,7 @@ bullets(s, MARGIN_L, y + Inches(0.42), lw, [
      "sampling flips from losing to static to beating it at every budget."),
     ("The response.", "One frozen tower, one fold-in operator, one ruler, and a "
      "battery of acceptance gates read before any result."),
-    ("The consequence.", "A null in Paper B becomes attributable to the policy "
+    ("The consequence.", "A null in Chapter 2 becomes attributable to the policy "
      "rather than to the instrument."),
 ], size=13)
 
@@ -286,37 +218,18 @@ table(s, [
 ], rx, y + Inches(0.42), rw, col_w=[33, 67], font_size=11, row_h=0.30, first_col_bold=True)
 
 textbox(s, rx, Inches(5.55), rw, Inches(1.2),
-        ["THE FLIP, MEASURED", ("Fifth consumer (Golbandi leaf model): Thompson beats the "
+        ["THE INVERSION, MEASURED", ("Fifth consumer (Golbandi leaf model): Thompson beats the "
          "static order by +0.0100 / +0.0171 / +0.0148 / +0.0281 full at k=1,2,4,8, every "
          "interval excluding zero — the exact reverse of its ordering on the certified tower.",
          {"size": 11.5, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT, space_after=3, line_spacing=1.12)
 footer(s, "Sources: chapterA_v2.tex §intro, §method · chapterB_v2.tex :932-945 (the flip)")
-notes(s, """WHAT TO SAY
-Why this paper exists at all. In this literature every elicitation paper brings its own recommender,
-so when two strategies are compared you cannot tell whether you compared strategies or models. We can
-show that concretely: on our certified tower Thompson sampling loses to a simple static order at
-every budget; swap the consumer to a Golbandi-style leaf model and Thompson wins at every budget,
-with intervals excluding zero. Same strategies, same answers, opposite verdict.
-
-So Paper A's job is to fix the instrument and certify it, and then Paper B's nulls mean something.
-
-Note the design detail on the right that pays off repeatedly: the concept fold operator is
-zero-initialised, so an empty interview is bit-identical to the bare tower. That means the identity
-gate is inherited for free rather than being re-argued.
-
-SOURCES
-Instrument components: chapterA_v2.tex §method (:839-930), fold operator :243-249, :865-882,
-:1109-1116; zero-init / bit-identical :1309-1315.
-The consumer flip: chapterB_v2.tex :932-945 (Golbandi leaf-model consumer).
-'Strategy rankings invert with the recommender': chapterA_v2.tex §sec:instrdep (:1596).""")
 
 
 # --- A2: the ruler ----------------------------------------------------
 s, y = slide(prs, "The canonical ruler",
-             "One split, one metric, one scoring convention — stated once in 2026-07 and never "
-             "changed since. Every number in all three papers is on it.",
-             kicker="paper a · the ruler", accent=ACCENT)
+             "One split, one metric, one scoring convention, fixed in July 2026 and unchanged "
+             "since. Every number in the three chapters is measured on it.", accent=ACCENT)
 
 table(s, [
     ["", "Decision", "Why it is the decision"],
@@ -335,8 +248,7 @@ table(s, [
     font_size=11.5, row_h=0.40, first_col_bold=True)
 
 table(s, [
-    ["The published-number bridge (ML-20M, NDCG@100) — the ruler is validated against print, "
-     "not asserted", "ours", "published", "Δ", "verdict"],
+    ["Published-number bridge (ML-20M, NDCG@100)", "ours", "published", "Δ", "verdict"],
     ["EASE (Steck)", "0.4203", "0.420", "+0.0003", "PASS"],
     ["RecVAE (Shenbin)", "0.4425", "0.442", "+0.0005", "PASS"],
     ["Mult-VAE (Liang)", "0.4223", "0.426", "−0.0037", "near-snap"],
@@ -345,33 +257,12 @@ table(s, [
     font_size=11, row_h=0.285, align=num(5), first_col_bold=True)
 footer(s, "Sources: CLAUDE.md 'Metric & reporting' · chapterA_v2.tex :1368-1392 · "
           "PAPER_A_NUMBER_AUDIT.md :46-56")
-notes(s, """WHAT TO SAY
-The ruler. Nothing exotic — the point is that it was fixed once and never moved, and everything in
-all three papers is on it.
-
-Two things worth pausing on. First, tail NDCG. Full NDCG@10 on MovieLens is dominated by popularity;
-you can score respectably by recommending the same 190 films to everybody. So we always report tail
-as well, with the head mass masked out, and several results in this thesis are tail results only.
-
-Second, the bottom table is the reproducibility bridge, and it is the bit an external reviewer liked
-most. We re-ran four published systems on their own published protocol and matched their printed
-numbers: EASE to three ten-thousandths, RecVAE to five. Mult-DAE we could not match — off by 0.022 —
-so we dropped it from the baseline bank rather than carry an unvalidated row. That is the discipline:
-if we cannot reproduce it, it does not get to be a baseline.
-
-SOURCES
-Split, vocabulary, metric definition, decoder-bias rule: CLAUDE.md 'Metric & reporting (domain)';
-190 head items and tail definition ibid.; chapterA_v2.tex :1590-1593.
-Bridge table: chapterA_v2.tex :1368-1392; PAPER_A_NUMBER_AUDIT.md :46-56 (ML-20M, NDCG@100;
-RecVAE also R@20 .4144 vs .414 and R@50 .5525 vs .553).
-popb vs learned decoder bias: CLAUDE.md; memory note popb-vs-decoder-bias-full-ndcg-bug.""")
 
 
 # --- A3: the gate battery ---------------------------------------------
 s, y = slide(prs, "The certification battery",
-             "Eleven per-build gates and three one-time bridges, every threshold written down "
-             "before the run. No gate, no progress.",
-             kicker="paper a · gates", accent=ACCENT)
+             "Eleven per-build gates and three one-time bridges. Every threshold was written down "
+             "before the run.", accent=ACCENT)
 
 table(s, [
     ["Gate", "What it demands", "Threshold / result"],
@@ -392,7 +283,7 @@ table(s, [
     ["G8  Σ load-bearing", "collapsing the covariance to cI must degrade the number", "PASS"],
     ["G9  ingestion isolation", "a fixed user-independent bank must still improve with t", "PASS"],
     ["G10 strategy discrimination", "oracle > random > adversarial-worst, each interval clean, "
-     "full and tail", "PASS — this is the gate that licenses every Paper B comparison"],
+     "full and tail", "PASS — the gate that licenses every Chapter 2 comparison"],
     ["C1  published-number bridge", "match printed numbers on a published protocol",
      "DONE — EASE +0.0003, RecVAE +0.0005"],
     ["C2  answer-model transfer", "the gain survives held-out behavioural answers and label noise",
@@ -402,35 +293,12 @@ table(s, [
     font_size=9.8, row_h=0.315, first_col_bold=True)
 footer(s, "Sources: docs/design/GATE_BATTERY_INSTRUMENT.md · chapterA_v2.tex tab:batteryresults · "
           "G1C_CONTROL_RESULT.md · CONCEPT_CHANNEL_RESULT.md")
-notes(s, """WHAT TO SAY
-This is the battery. Every per-build gate has been run and passes; the chapter's own summary table
-reports R1–R4 plus two integrity items all PASS.
-
-I want to be straight about three of these rather than let you find them. G4's confidence-ORDERING
-sub-test is unmeasurable by design on MovieLens — there is no ground truth for how confident a user
-is — so it is declared out of scope rather than passed. G1's calibration sub-gate was dropped: it
-measured 0.239 against a 0.25 bar, but we then found that the popularity of the held-out targets
-predicts the same quantity three times better, at −0.696, which makes the gate ill-posed rather than
-failed. And C3, the human round-trip, has never been run. It is the single thing that blocks the
-strongest claims across all three papers and I would like to talk about whether it is worth doing.
-
-G10 is the one that matters for the rest of the talk: it certifies that the ruler can tell an oracle
-from a random selector from an adversary, which is what makes a Paper B null attributable.
-
-SOURCES
-Gate definitions and thresholds: docs/design/GATE_BATTERY_INSTRUMENT.md (G0 :15, G1 :20, G2 :25,
-G3 :32, G4 :36, G5 :45, G6 :73, G8 :77, G9 :80, G10 :84, C1 :94, C2 :96, C3 :106).
-PASS/FAIL summary: chapterA_v2.tex tab:batteryresults (:1472-1478), :355.
-G1 numbers: G1C_CONTROL_RESULT.md :12-45. G5 pop-projection +0.0087: CONCEPT_CHANNEL_RESULT.md
-:164-167. Graded − binarised: chapterA_v2.tex :1438-1441. Sign flip −0.2012: :1160.
-Behavioural-vs-stated ~21 %: GATE_BATTERY_INSTRUMENT.md :96.""")
 
 
 # --- A4: the baseline bank -------------------------------------------
-s, y = slide(prs, "Fifteen recommenders on one ruler",
-             "The baseline bank, all rebuilt in-house and scored under identical conditions. "
-             "The tower sits inside the frontier band, not above it.",
-             kicker="paper a · replication", accent=ACCENT)
+s, y = slide(prs, "Recommender comparison on the canonical split",
+             "Fifteen systems, all rebuilt in-house and scored under identical conditions. "
+             "The CASPER tower sits inside the frontier band.", accent=ACCENT)
 
 rows = [["System", "LIANG full", "LIANG tail", "NATIVE full", "NATIVE tail", "NDCG@100"]]
 for r in [
@@ -454,41 +322,60 @@ for r in [
 table(s, rows, MARGIN_L, y + Inches(0.02), CONTENT_W, col_w=[38, 12, 12, 12, 12, 14],
       font_size=10, row_h=0.275, align=num(6), first_col_bold=True)
 
-textbox(s, MARGIN_L, Inches(6.42), CONTENT_W, Inches(0.7),
-        ["The frontier is a band, not a ranking.",
-         ("RecVAE − EASE is +0.0064 full ≈ 1.8 unpaired SE. The uniformity cost is the real "
-          "result: the closed-form conjugate belief accumulator — the thing most elicitation "
-          "papers actually use as their consumer — forfeits ~0.12 full NDCG against a learned "
-          "fold.", {"size": 12, "bold": False, "color": MUTED})],
+textbox(s, MARGIN_L, Inches(6.05), CONTENT_W, Inches(0.9),
+        ["Reading the table.",
+         ("RecVAE − EASE is +0.0064 full, about 1.8 unpaired SE, so the top four are within "
+          "measurement of each other. The closed-form conjugate belief accumulator — the "
+          "consumer most elicitation work uses — forfeits about 0.12 full NDCG against a "
+          "learned fold.", {"size": 12, "bold": False, "color": MUTED})],
         size=13.5, bold=True, color=INK, space_after=3, line_spacing=1.12)
 footer(s, "Sources: chapterA_v2.tex :514-545 (master table), :1400-1404 (@100), :880-882, :1414-1415")
-notes(s, """WHAT TO SAY
-This is the work-volume slide for Paper A: fifteen recommenders, every one rebuilt here and scored
-under identical conditions, on two evaluation protocols plus NDCG@100.
 
-Read it as a band, not a league table. RecVAE to EASE spans 0.0064 full, about 1.8 unpaired standard
-errors — the top four are the same system as far as this measurement is concerned. Our tower sits
-second and is statistically tied with RecVAE on tail.
 
-The row I care about is fourth from the bottom: the conjugate belief accumulator at 0.2267. That is
-the closed-form Gaussian updater that most elicitation papers use as their consumer, and it forfeits
-about 0.12 full NDCG against a learned fold-in on identical evidence. So a paper that reports an
-elicitation gain on a conjugate consumer is measuring in a regime where the consumer is throwing away
-more than any interview can add back.
+# --- A4b: the gap map -------------------------------------------------
+s, y = slide(prs, "Ranking quality against interview compatibility",
+             "The same fifteen systems placed on two axes: measured full-profile NDCG@10 on our "
+             "ruler, and how many of the three interview requirements a system meets.",
+             accent=ACCENT)
 
-SOURCES
-Master table both protocol columns: chapterA_v2.tex :514-545. NDCG@100 column: :1400-1404.
-RecVAE − EASE band: :1414-1415. Uniformity cost: :880-882 (note :803 says 0.15 — an internal
-inconsistency in the chapter worth resolving; quote 'roughly 0.12' from the results section).""")
+fw = Inches(6.55)
+figure(s, "a_gap_map.png", MARGIN_L + Inches(0.15), y + Inches(0.10), width=fw,
+       caption="Figure from Chapter 1 (chapterA_v2.tex, fig:gapmap). Systems in the grey band "
+               "have no full-profile ranker at all and are placed on the x axis only.")
+
+rx = MARGIN_L + fw + Inches(0.55)
+rw = CONTENT_W - fw - Inches(0.55)
+textbox(s, rx, y + Inches(0.10), rw, Inches(0.3),
+        "THE THREE REQUIREMENTS", size=11, bold=True, color=ACCENT)
+table(s, [
+    ["", ""],
+    ["R2", "ranks the whole catalogue from an evidence set, with no refit at inference"],
+    ["R3", "accepts item, concept and free-text evidence through one interface"],
+    ["R4", "is defined at every turn t ≥ 0, including the empty interview"],
+], rx, y + Inches(0.45), rw, col_w=[10, 90], font_size=11, row_h=0.44,
+    first_col_bold=True, header_rows=0)
+
+textbox(s, rx, Inches(4.05), rw, Inches(2.4),
+        ["The two axes are close to independent.",
+         ("The strongest full-profile rankers — RecVAE, EASE, EDLAE — meet none of the three, "
+          "because they were built to score a fixed profile rather than to be interviewed. The "
+          "systems built for interviews sit low on the y axis. The gap in the top-right corner "
+          "is what Chapter 1 fills.",
+          {"size": 11.5, "bold": False, "color": MUTED}),
+         ("", {"size": 5}),
+         ("The grey band holds systems for which no full-profile NDCG can be computed at all: "
+          "ConTS, UNICORN, Bıyık's soft attributes, ICF, BCIE, PEBOL, GATE and LLM-CRS.",
+          {"size": 11, "bold": False, "color": MUTED})],
+        size=13, bold=True, color=INK, space_after=4, line_spacing=1.15)
+footer(s, "Source: chapterA_v2.tex fig:gapmap (p. 14 of the compiled chapter), tab:master")
 
 
 # --- A5: the certified pair -------------------------------------------
-s, y = slide(prs, "The certified pair, and what grading buys",
-             "The tower ties RecVAE on tail and gives up 1.2 % relative on full — and the gap is "
-             "paid back by using rating levels rather than binary likes.",
-             kicker="paper a · tower results", accent=ACCENT)
+s, y = slide(prs, "The certified tower against RecVAE, and the effect of graded input",
+             "The tower ties RecVAE on tail and gives up 1.2 % relative on full. Using rating "
+             "levels rather than binary likes recovers about half of that.", accent=ACCENT)
 
-lw = Inches(7.0)
+lw = Inches(6.3)
 table(s, [
     ["Comparison (10,000 TEST users, paired bootstrap)", "full", "tail"],
     ["RecVAE, our run, same ruler", "0.3540", "0.2497"],
@@ -508,48 +395,31 @@ table(s, [
 ], MARGIN_L, Inches(3.35), lw, col_w=[46, 27, 27],
     font_size=11.5, row_h=0.315, align=num(3), first_col_bold=True)
 
+textbox(s, MARGIN_L, Inches(4.90), lw, Inches(0.3),
+        "WHAT THIS LICENSES", size=11, bold=True, color=ACCENT)
+bullets(s, MARGIN_L, Inches(5.25), lw, [
+    ("The instrument is at the frontier,", "so a Chapter 2 null cannot be "
+     "dismissed as a weak recommender."),
+    ("Signed, graded evidence is load-bearing.", "on binary information this tower "
+     "would score 0.3457, i.e. 0.0083 behind RecVAE."),
+    ("Checkpoint selection.", "epoch 23 scores higher on TEST (0.3505); epoch 31 "
+     "is kept because it wins the pre-registered validation rule."),
+], size=12)
+
 rx = MARGIN_L + lw + Inches(0.40)
 rw = CONTENT_W - lw - Inches(0.40)
-textbox(s, rx, y + Inches(0.05), rw, Inches(0.3), "WHAT THIS BUYS", size=11, bold=True, color=ACCENT)
-bullets(s, rx, y + Inches(0.42), rw, [
-    ("Parity is the point.", "the instrument is at the frontier, so a Paper B "
-     "null cannot be dismissed as a weak recommender."),
-    ("Signed, graded evidence is load-bearing.", "on binary information this tower "
-     "would score 0.3457, i.e. 0.0083 behind RecVAE. Levels recover about half of that."),
-    ("Checkpoint discipline.", "epoch 23 actually scores higher on TEST (0.3505) — "
-     "we keep epoch 31 because it wins the pre-registered validation rule. Selecting "
-     "on TEST is how instruments stop being instruments."),
-], size=12.5)
-footer(s, "Sources: chapterA_v2.tex :861, :1411-1413, :1426-1443 · "
+figure(s, "a_graded_curve.png", rx, y + Inches(0.10), width=Inches(5.20),
+       caption="Figure from Chapter 1 (chapterA_v2.tex, fig:gradedcurve): full NDCG@10 against "
+               "interview length under graded and binarised input. The two encodings converge "
+               "as the interview lengthens; the premium is largest on the short interview.")
+footer(s, "Sources: chapterA_v2.tex :861, :1411-1413, :1426-1443, fig:gradedcurve · "
           "docs/results/PAPER_A_STATE_2026-08-04.md :18-37")
-notes(s, """WHAT TO SAY
-The certified pair: tower i26c epoch 31 plus concept operator cv3 epoch 8, both frozen from here on.
-
-Against RecVAE on the same ruler we tie on tail — the interval contains zero — and give up 0.0043 on
-full, 1.2 % relative, with the interval excluding zero. I report the shortfall rather than rounding
-it away, because the whole argument of the paper is that a certified instrument states its own
-imperfections.
-
-The second table is the reason the shortfall is acceptable. Our fold-in uses signed, graded ratings;
-RecVAE's protocol uses binary likes. If we binarise our own input, holding the support identical, we
-score 0.3457 — which would put us 0.0083 behind. Using the levels recovers about half of that.
-So the tower is not a worse RecVAE; it is a recommender that reads a richer observation, and the
-richer observation is exactly what an interview produces.
-
-Last bullet is a discipline point I would defend: epoch 23 scores higher on TEST. We do not use it,
-because the checkpoint was selected on validation under a rule written in advance.
-
-SOURCES
-Tower and RecVAE numbers, paired diffs and CIs: chapterA_v2.tex :861, :1411-1413, :1426-1430.
-Intensity premium: :1438-1441; binary-information comparison :1441-1443.
-Certified artefacts and epoch-23 note: docs/results/PAPER_A_STATE_2026-08-04.md :14-31.""")
 
 
 # --- A6: the concept channel -------------------------------------------
-s, y = slide(prs, "The concept channel: behaviour beats what an LLM says",
-             "Asking about a tag needs an affinity estimate. Implicit watch behaviour carries "
-             "roughly 22× the signal of an LLM's stated judgement.",
-             kicker="paper a · concepts", accent=ACCENT)
+s, y = slide(prs, "Concept affinity: behavioural signal against LLM judgement",
+             "Asking about a tag requires a per-user affinity estimate. Implicit watch behaviour "
+             "carries roughly 22× the signal of an LLM's stated judgement.", accent=ACCENT)
 
 lw = Inches(6.6)
 table(s, [
@@ -591,52 +461,45 @@ textbox(s, rx, Inches(3.05), rw, Inches(2.4),
         size=11, bold=True, color=ACCENT, space_after=4, line_spacing=1.15)
 footer(s, "Sources: chapterA_v2.tex :1080-1084, :1181-1190, :1218-1231, :1288-1291 · "
           "CONCEPT_CHANNEL_RESULT.md :20-22, :84-101")
-notes(s, """WHAT TO SAY
-Two results here, and the second is the one that propagates all the way to Paper C.
-
-First: to ask 'do you like noir films?' you need a per-user affinity for the tag. We decomposed where
-that signal lives. Implicit watch behaviour — a signed, exposure-corrected PMI we call SEL — explains
-0.376 of the variance in the oracle affinity. Adding the rating residual gets you to 0.398. Asking an
-LLM to rate the user's affinity on an ordinal scale explains 0.017. That is roughly twenty-two times
-worse, and it is why the LLM-derived answer apparatus was retired from this project in July.
-
-Second, and this is the load-bearing one: concepts beat items as interview questions, by +0.0146 full
-and +0.0265 tail at sixteen questions. The mechanism is not that concepts are more informative — they
-are less informative per answer. It is that they get answered. A polarising item bank is answered
-4.8 % of the time; a polarising concept bank 97.2 %. That single asymmetry drives Paper B's Act 4.
-
-SOURCES
-Decomposition R²: chapterA_v2.tex :1080-1084; CONCEPT_CHANNEL_RESULT.md :20-22.
-Signed triple gate: CONCEPT_CHANNEL_RESULT.md :84-101; chapterA_v2.tex :1181-1190.
-POLAR concept − item: chapterA_v2.tex :1218-1224. Answer rates 4.8 % / 97.2 %: :1228-1231.
-Protocol-free answerability 25.2 / 13.1 / 53.0 %: :1288-1291. Sign flip: :1160.
-LLM apparatus retirement: CLAUDE.md 'Settled'; memory answerability-audit-2026-07-22.""")
 
 
 # --- A7: the fold-in machinery ----------------------------------------
-s, y = slide(prs, "The fold-in machinery",
-             "Evidence in, latent point out — one operator per channel, no gradient step at "
-             "inference, defined from the very first question.",
-             kicker="paper a · fold-in", accent=ACCENT)
+s, y = slide(prs, "The fold-in operator",
+             "Evidence in, latent point out. One operator per channel, no gradient step at "
+             "inference, defined from the first question onwards.", accent=ACCENT)
 
-bwf, bhf = Inches(2.7), Inches(1.05)
-gyf = y + Inches(0.30)
-xf = [MARGIN_L + Inches(0.25) + i * Inches(3.15) for i in range(4)]
-for i, (h, sub, col) in enumerate([
-        ("EVIDENCE SET", "{(φⱼ, yⱼ)} — a direction and a signed, graded value", MUTED),
-        ("SET ENCODER", "permutation-invariant; items use the tower's own encoder", ACCENT),
-        ("LATENT POINT μₜ", "one point in the recommender's own space", ACCENT),
-        ("FROZEN DECODER", "sᵢ = Qᵢᵀμₜ + βᵢ over all 18,359 items", ACCENT_C)]):
-    box(s, xf[i], gyf, bwf, bhf,
-        [(h, {"size": 11.5}), (sub, {"size": 9.5, "bold": False, "color": MUTED})], line=col)
-    if i < 3:
-        arrow(s, xf[i] + bwf, gyf + bhf // 2, xf[i + 1], gyf + bhf // 2, color=MUTED)
+fw = Inches(6.55)
+gyf = figure(s, "a_architecture.png", MARGIN_L, y + Inches(0.06), width=fw,
+             caption="Figure from Chapter 1 (chapterA_v2.tex, fig:architecture): four evidence "
+                     "channels enter one observation slot; a permutation-invariant fold returns "
+                     "one latent point, which the frozen decoder scores.")
+
+rx = MARGIN_L + fw + Inches(0.45)
+rw = CONTENT_W - fw - Inches(0.45)
+textbox(s, rx, y + Inches(0.06), rw, Inches(0.3),
+        "THE FREE-TEXT CHANNEL, WORKED THROUGH", size=11, bold=True, color=ACCENT)
+table(s, [
+    ["phrase typed by the user", "nearest concept", "cos", "top films returned"],
+    ["“the quiet dignity of losing”", "redemption", "0.47", "Umberto D. · Tyson · Red Army"],
+    ["“people trapped by a decision\nthey made years ago”", "history", "0.39",
+     "Music Box · Judgment at Nuremberg"],
+    ["“two people talking for the\nwhole film”", "dialogue", "0.54",
+     "Sweet Smell of Success · Trouble in Paradise"],
+    ["“movies about grief”", "feel good movie", "0.54",
+     "Rachel, Rachel · Mean Creek · The Woodsman"],
+], rx, y + Inches(0.41), rw, col_w=[30, 18, 8, 44], font_size=9.6, row_h=0.40,
+    align=[L, L, R, L], first_col_bold=True)
+
+textbox(s, rx, Inches(3.82), rw, Inches(0.55),
+        "A held-out concept direction predicted from its name alone reaches top-10 overlap "
+        "0.167 against a random baseline of 0.0005, and cosine 0.638 to the true direction.",
+        size=10.5, color=MUTED, line_spacing=1.15)
 
 table(s, [
     ["Design decision", "Consequence, measured"],
     ["φ is channel-agnostic: an item factor, a whitened concept centroid, a text-adapter "
      "image, or a raw policy direction all enter the same slot",
-     "one code path serves items, concepts, free text and Paper C's synthesised directions"],
+     "one code path serves items, concepts, free text and Chapter 3's synthesised directions"],
     ["Concepts get their own trained gated fold-to-point, zero-initialised",
      "empty interview is bit-identical to the bare tower ⇒ the identity gate is inherited free"],
     ["Concept directions are whitened before folding",
@@ -649,35 +512,20 @@ table(s, [
      "additive operator failed exactly here"],
     ["No gradient step at inference; defined for every t ≥ 0",
      "a policy can be scored at turn 0, 1 and 16 on the same object"],
-], MARGIN_L, gyf + bhf + Inches(0.35), CONTENT_W, col_w=[44, 56],
-    font_size=10.8, row_h=0.44, first_col_bold=True)
-footer(s, "Sources: chapterA_v2.tex :243-249, :865-882, :1094-1116, :305-308")
-notes(s, """WHAT TO SAY
-The fold-in operator is the piece both later papers actually consume, so it is worth two minutes.
-
-The contract: an evidence set of direction–value pairs goes in, a single latent point comes out, and
-the frozen decoder scores the whole catalogue from it. No gradient step at inference — that matters
-because it means we can evaluate at turn zero and turn sixteen on the same object, and because an
-interview at serving time must be cheap.
-
-The two rows I would defend hardest. Whitening: a raw concept centroid has member-AUC 0.44 — below
-chance — because the space is dominated by one shared component. Whitened, it is 0.94. Same data,
-different geometry. And the gate: the obvious operator, additively unioning the concept directions,
-actually scores below the no-question intercept after eight answers. It is worse than asking nothing.
-That failure is why there is a learned gate rather than a formula, and it is the reason the
-redundancy-robustness clause is a gate rather than a nice-to-have.
-
-SOURCES
-Operator definition: chapterA_v2.tex :243-249, :865-882 (Eq. eq:obs).
-Gated fold and zero-init: :1109-1116, :1309-1315. Whitening 0.44 → 0.94: :1094-1097.
-Additive-union 0.0991 vs 0.1279 intercept, gated 0.1759/0.0841, redundancy rows: :305-308, :1104-1116.
-Redundancy clause as gate G5-E(e): docs/design/GATE_BATTERY_INSTRUMENT.md :51.""")
+], MARGIN_L, Inches(4.55), CONTENT_W, col_w=[44, 56],
+    font_size=10.0, row_h=0.32, first_col_bold=True)
+footer(s, "Sources: chapterA_v2.tex :243-249, :865-882, :1094-1116, :305-308, "
+          "fig:architecture, tab:freetext (:959-977)")
+notes(s, "NOTE TO AUTHOR: Chapter 1 contains no worked fold-in example — no sample user, no "
+         "answer sequence, no before/after top-N. The nearest concrete artefact is tab:freetext "
+         "(a phrase to ranking demo), which is what this slide uses. If you want a genuine "
+         "answer-sequence walkthrough on this slide, it has to be produced; nothing in the "
+         "chapter can be quoted for it.")
 
 
 # --- A8: what A licenses + status ---------------------------------------
-s, y = slide(prs, "What Paper A licenses — and where it stands",
-             "A's job is to make the gap measurable. Closing it belongs to B and C.",
-             kicker="paper a · hand-off and status", accent=ACCENT)
+s, y = slide(prs, "What Chapter 1 hands forward, and its status",
+             "Chapter 1 makes the gap measurable. Closing it is the work of Chapters 2 and 3.", accent=ACCENT)
 
 lw = Inches(7.3)
 table(s, [
@@ -689,9 +537,9 @@ table(s, [
     ["Concept questions as first-class actions",
      "G5 + G5-E; concepts beat items by +0.0146 full / +0.0265 tail at q16"],
     ["A continuous direction interface",
-     "raw directions enter the same slot — this is exactly what Paper C emits"],
+     "raw directions enter the same slot — what Chapter 3 emits"],
     ["Attributable nulls",
-     "a Paper B null is a statement about the policy, not about the recommender"],
+     "a Chapter 2 null is a statement about the policy, not about the recommender"],
 ], MARGIN_L, y + Inches(0.05), lw, col_w=[42, 58],
     font_size=11.2, row_h=0.42, first_col_bold=True)
 
@@ -708,7 +556,7 @@ table(s, [
     first_col_bold=True, header_rows=0)
 
 textbox(s, rx, Inches(4.05), rw, Inches(2.3),
-        ["THE BLIND CALIBRATION PANEL (2026-07-29)",
+        ["BLIND CALIBRATION PANEL (2026-07-29)",
          ("Three anonymised drafts, one hostile reviewer, identical rubric: PEBOL, Bıyık's soft "
           "attributes, and ours. All three: weak reject overall, reject at SIGIR/RecSys, "
           "ACCEPT at TORS.", {"size": 11, "bold": False, "color": INK}),
@@ -719,116 +567,73 @@ textbox(s, rx, Inches(4.05), rw, Inches(2.3),
         size=11, bold=True, color=ACCENT, space_after=4, line_spacing=1.14)
 footer(s, "Sources: docs/PUBLICATION_PLAN.md :12-55, :74 · GATE_BATTERY_INSTRUMENT.md :86-88 · "
           "chapterA_v2.tex :1306-1307")
-notes(s, """WHAT TO SAY
-What A hands forward, and where it stands.
-
-The hand-off list on the left is the practical answer to 'why did you spend a year on a recommender
-in an elicitation thesis'. Every row is something B or C would otherwise have had to assume.
-
-On status: the paper is closed at 41 pages and unsubmitted. Target is TORS, chosen for three
-reasons — rolling submission so nothing forces the timeline, no travel, and length is unremarkable
-there whereas ECIR rejected it partly for being 30 pages.
-
-The panel at the bottom is worth a minute because it calibrated my expectations. I anonymised three
-drafts — PEBOL, Bıyık's soft-attributes paper, and mine — gave a hostile reviewer one rubric, and
-had it grade all three blind. Identical verdicts to two peer-reviewed papers: weak reject overall,
-reject at the top conferences, accept at TORS. So we are at the field's level, not below it. The one
-place we uniquely win is reproducibility. The one place we uniquely lose is ECIR, on length. And all
-three papers' top objection was the same thing: simulator circularity. That is the field-wide attack,
-and it is what C3 — the unrun human study — would answer.
-
-SOURCES
-Licensing statements: chapterA_v2.tex :76, :249, :929, :1306-1307, :1517-1518;
-GATE_BATTERY_INSTRUMENT.md :86-88.
-Concept − item at q16: chapterA_v2.tex :1218-1222.
-Status, TORS rationale, panel table: docs/PUBLICATION_PLAN.md :12-34, :36-55, :74.""")
 
 # =====================================================================
 # PAPER B — WHAT SHOULD A COLD INTERVIEW OPTIMISE
 # =====================================================================
 
-sd = divider("Paper B — the interview",
-             "Twenty-one selection rules from thirteen published methods, all rebuilt on one "
-             "ruler — and then one variable changed.",
-             ACCENT_B, "14 slides  ·  ~20 minutes  ·  status: chapter closed → ECIR 2027, 2 Oct 2026")
-notes(sd, """WHAT TO SAY
-Section break. This is the substantial workstream and the one going to a conference. The structure
-is: audit the field on one ruler, diagnose why the field's methods underperform, then change exactly
-one variable and show it was the diagnosis.
-
-SOURCES
-docs/design/PAPER_B_MASTER_TODO.md ('CHAPTER CLOSED 2026-08-30'); docs/PUBLICATION_PLAN.md roster.""")
+sd = divider("Chapter 2 — the cold interview",
+             "Twenty-one selection rules from thirteen published methods, rebuilt on one ruler; "
+             "then one variable changed.",
+             ACCENT_B, "16 slides  ·  ~20 minutes  ·  status: closed, target ECIR 2027, 2 October 2026")
 
 
 # --- B1: the question -------------------------------------------------
-s, y = slide(prs, "Paper B's question",
-             "Every published selector optimises a surrogate — variance, entropy, information gain, "
-             "a pairwise loss. Almost none optimises the number the field reports.",
-             kicker="paper b · the question", accent=ACCENT_B)
+s, y = slide(prs, "The question Chapter 2 asks",
+             "Published selectors optimise a surrogate: variance, entropy, information gain, a "
+             "pairwise loss. Almost none optimises the quantity the field reports.", accent=ACCENT_B)
 
 lw = Inches(6.5)
 textbox(s, MARGIN_L, y + Inches(0.05), lw, Inches(0.3),
-        "THE OBSERVATION THAT STARTED IT", size=11, bold=True, color=ACCENT_B)
+        "THE CENSUS OF SELECTION RULES", size=11, bold=True, color=ACCENT_B)
 bullets(s, MARGIN_L, y + Inches(0.42), lw, [
     ("1 of 21 distinct selection rules", "optimises the quantity the field actually "
      "reports — ranking quality on the recommender that consumes the answers."),
     ("12 of 23 battery rows are value-free", "— they choose a question without "
      "reference to how much better the recommendations get."),
-    ("So the question is:", "if you build the selector that optimises the reported "
-     "metric directly, what changes — and by how much?"),
-    ("And the harder question:", "is the shortfall the criterion, or the action "
-     "space, or answerability?"),
+    ("The experiment this suggests:", "build the selector that optimises the "
+     "reported metric directly, and measure what changes."),
+    ("The diagnostic question:", "whether the shortfall is the criterion, the action "
+     "space, or answerability."),
 ], size=13)
 
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, y + Inches(0.05), rw, Inches(0.3),
-        "THE FIVE ACTS", size=11, bold=True, color=ACCENT_B)
+        "THE FIVE SECTIONS OF THE CHAPTER", size=11, bold=True, color=ACCENT_B)
 table(s, [
-    ["Act", "What it establishes"],
-    ["1  the audit", "adaptive selectors lose to a good static order — 30/30 comparisons, "
+    ["Section", "What it establishes"],
+    ["the audit", "adaptive selectors lose to a good static order — 30 of 30 comparisons, "
      "and 138 cells when widened"],
-    ["2  the diagnosis", "the surrogates do not track the metric; and cold users are "
+    ["the diagnosis", "the surrogates do not track the metric, and cold users are "
      "nearly identical, so there is little to adapt to"],
-    ["3  the demonstration", "change one variable — the split criterion — and the "
-     "tree beats the static order on TEST"],
-    ["4  answerability", "which channel wins is decided by who can answer, not by "
+    ["the demonstration", "changing one variable, the split criterion, makes the tree "
+     "beat the static order on TEST"],
+    ["answerability", "which channel wins is decided by who can answer, not by "
      "who is informative"],
-    ["5  the ecological arm", "what real users volunteer unprompted, and one policy "
-     "that uses it"],
+    ["unprompted requests", "what real users volunteer without being asked, and one "
+     "policy that uses it"],
 ], rx, y + Inches(0.42), rw, col_w=[24, 76], font_size=11, row_h=0.50, first_col_bold=True)
 
-textbox(s, MARGIN_L, Inches(5.65), lw, Inches(1.3),
+figure(s, "b_contract.png", MARGIN_L, Inches(4.28), width=Inches(5.45),
+       caption="Figure from Chapter 2 (chapterB_v2.tex, fig:contract): the measurement contract "
+               "every row in the battery runs under.")
+
+textbox(s, rx, Inches(4.45), rw, Inches(2.1),
         ["THE CONTRACT, FIXED THROUGHOUT",
          ("Consumer = the certified tower i26c ep31. Protocol candidate pool: every rated "
           "fold-in item removed. Behavioural answers. All 10,000 TEST users. Nothing sampled. "
           "Answer-free reference 0.1626 / 0.0262.",
           {"size": 11.5, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_B, space_after=4, line_spacing=1.14)
-footer(s, "Sources: chapterB_v2.tex :63, :93, :396, :424 · docs/results/BASELINE_OBJECTIVE_AUDIT.md")
-notes(s, """WHAT TO SAY
-Paper B's question in one observation. We went through the field's selection rules and asked what
-each one actually optimises. Of twenty-one distinct rules, exactly one optimises the quantity the
-papers report — ranking quality on the recommender that will consume the answers. Twelve of the
-twenty-three battery rows are value-free: they pick a question without any reference to whether the
-recommendations get better.
-
-That is not a criticism of anyone's execution, it is a structural observation, and it suggests an
-obvious experiment: build the selector that optimises the reported metric directly and see what
-happens. That is Act 3. Acts 1 and 2 exist so that when Act 3 works we know why.
-
-SOURCES
-Census: chapterB_v2.tex :63, :93, :403, :1040 ('twenty-one distinct selection rules'), :396
-('twelve of twenty-three rows are value-free'), :424 ('thirteen published methods');
-docs/results/BASELINE_OBJECTIVE_AUDIT.md corroborates all three counts.
-Contract and answer-free reference 0.1626/0.0262: chapterB_v2.tex tab:battery caption.""")
+footer(s, "Sources: chapterB_v2.tex :63, :93, :396, :424, fig:contract · "
+          "docs/results/BASELINE_OBJECTIVE_AUDIT.md")
 
 
 # --- B2: the battery roster --------------------------------------------
-s, y = slide(prs, "The replication battery — what was rebuilt",
+s, y = slide(prs, "The replication battery",
              "Twenty-three selector rows, twenty-one distinct rules, thirteen published methods. "
-             "Every one re-implemented here and run on the same ruler, same users, same pool.",
-             kicker="paper b · the work", accent=ACCENT_B)
+             "Every one re-implemented here and run on the same ruler, users and candidate pool.", accent=ACCENT_B)
 
 table(s, [
     ["Family", "Rules rebuilt", "n"],
@@ -854,39 +659,21 @@ table(s, [
     font_size=11, row_h=0.475, align=[L, L, C], first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(5.75), CONTENT_W, Inches(1.3),
-        ["Two things this table is doing at once.",
-         ("(1) It is the audit — one ruler, so the comparison is real. "
-          "(2) It is the honesty ledger: the chapter also prints a coverage table of what was "
+        ["The table has two jobs.",
+         ("It is the audit — one ruler, so the comparison is like-for-like. "
+          "It is also the coverage ledger: the chapter prints a second table of what was "
           "NOT built — ICF's four policies, SEL-BALD, PEBOL's acquisition, fMF, PERE, Greedy "
           "SLIM/QBandit, RBMF/RMVA, GreedyExtend, FacT-CRS, UpsRec, MeLU, a-stratification — "
           "each marked ✗ built, ✗ ours.",
           {"size": 12, "bold": False, "color": MUTED})],
         size=13.5, bold=True, color=INK, space_after=3, line_spacing=1.14)
 footer(s, "Sources: chapterB_v2.tex tab:battery (:601-656), tab:coverage (:724-769)")
-notes(s, """WHAT TO SAY
-This is the slide I most want you to look at, because it is the volume of work. Twenty-three selector
-rows covering twenty-one distinct rules from thirteen published methods, spanning 2002 to 2025 —
-Rashid's entropy heuristics through to CLiME at KDD this year. Every one re-implemented here, not
-cited, and run on identical users, an identical candidate pool, and an identical consumer.
-
-Where a method had a native protocol we also validated it natively before porting — Golbandi, IGCN,
-DRE, DPE, Hu and Yu — so a port that underperforms is a port we can defend.
-
-And I want to flag the second table in the chapter, which is the list of what we did NOT build:
-twelve more systems, each marked not-built and not-ours. I would rather print that than let a
-reviewer discover it.
-
-SOURCES
-Roster and citations: chapterB_v2.tex tab:battery :601-656.
-Coverage / not-built table: tab:coverage :724-769.
-Counts: :63, :396, :424; BASELINE_OBJECTIVE_AUDIT.md.""")
 
 
 # --- B3: battery measured, part 1 ---------------------------------------
-s, y = slide(prs, "The battery measured (1/2): static orders and the classics",
-             "Full / tail NDCG@10, 10,000 TEST users, protocol pool, no sampling. "
-             "The optimised static order leads everything.",
-             kicker="paper b · results", accent=ACCENT_B)
+s, y = slide(prs, "Battery results, 1 of 2: static orders and heuristics",
+             "Full / tail NDCG@10, 10,000 TEST users, protocol candidate pool, no sampling. "
+             "The optimised static order leads every row.", accent=ACCENT_B)
 
 rows = [["selector", "type", "k=1", "k=2", "k=4", "k=8", "k=16", "ans@16"]]
 for r in [
@@ -929,32 +716,12 @@ textbox(s, MARGIN_L, Inches(6.42), CONTENT_W, Inches(0.7),
           "questions.", {"size": 10, "bold": False, "color": MUTED})],
         size=13, bold=True, color=INK, space_after=3, line_spacing=1.12)
 footer(s, "Source: chapterB_v2.tex tab:battery (:601-656), :310-322")
-notes(s, """WHAT TO SAY
-First half of the battery. Read the top three rows as the comparator we built — a greedy static
-order optimised directly against measured NDCG — and everything below as the field.
-
-The headline is uncomfortable for the field and I will not soften it: at sixteen questions a fixed,
-non-adaptive item order beats the best adaptive selector by 0.0281 full, interval clear of zero. The
-adaptive machinery is not buying anything here.
-
-Look at the ans@16 column, because it is the whole explanation and it is Act 4's setup. Pure entropy
-collects 0.08 answers in sixteen questions — it asks about films nobody has seen. Random collects
-0.12. Concepts-only collects 12.36. The selectors that look clever are asking unanswerable questions.
-
-SOURCES
-chapterB_v2.tex tab:battery :601-656 (contract in the caption: certified tower, protocol pool,
-NO-FLOOR, behavioural answers, all 10,000 TEST users, no sampling).
-Headline gap +0.0281 / +0.0178: :310-322.
-Caveat to keep in mind if pushed: ACT1_PAIRED_CI.md records that glm_ucb and thompson cells are not
-seed-stable (iALS basis re-drawn without random_state, drift up to ±0.0026) — quote those two rows
-to three decimals, not four.""")
 
 
 # --- B4: battery measured, part 2 ---------------------------------------
-s, y = slide(prs, "The battery measured (2/2): published methods, natively validated then ported",
-             "Every one of these was reproduced on its own protocol first, then ported onto our "
-             "ruler. None reaches the optimised static order.",
-             kicker="paper b · results", accent=ACCENT_B)
+s, y = slide(prs, "Battery results, 2 of 2: published methods, validated natively then ported",
+             "Each method was reproduced on its own protocol first, then ported onto our ruler. "
+             "None reaches the optimised static order.", accent=ACCENT_B)
 
 rows = [["selector", "type", "k=1", "k=2", "k=4", "k=8", "k=16", "ans@16"]]
 for r in [
@@ -998,33 +765,48 @@ table(s, [
 ], MARGIN_L, Inches(5.6), CONTENT_W, col_w=[52, 48], font_size=10, row_h=0.30)
 footer(s, "Sources: chapterB_v2.tex tab:battery, :658-667, :674-677 · § = value-free rule · "
           "Golbandi has no k=16 row (leaf fragmentation caps depth)")
-notes(s, """WHAT TO SAY
-Second half: the published methods, ported. Each was validated natively on its own protocol before
-being ported, so when a port underperforms we can say it is the method and not our implementation.
-
-Two rows to point at. DPE-ILD and ConLinUCB-BS flatline or collect almost no answers — ConLinUCB
-collects exactly zero answers in sixteen questions under our answer model. And DRE, a learned
-selector from WWW 2020, loses to Rashid's 2008 entropy heuristic by 0.0118 with the interval clear.
-
-The separation block at the bottom is the audit's actual result. We widened the comparison to every
-adaptive arm at every budget on both axes — 138 cells — and the optimised static order leads and
-separates in all 138 for two of three orders, and 134 of 138 for the third, with the four exceptions
-being tail cells that separate in neither direction. That is about as clean as this gets.
-
-And the oracle row is the ceiling: 0.3292 at sixteen questions if you may read the user's own ratings
-while choosing. That is not a baseline, it is the headroom.
-
-SOURCES
-chapterB_v2.tex tab:battery :601-656; separation counts :658-667; DRE vs entropy₀ :674-677.
-Golbandi's missing k=16: capped by MAX_DEPTH / 3^k leaf fragmentation (chapter, and confirmed in
-docs/results/GOLBANDI_PORT_ON_OUR_RULER.md).""")
 
 
-# --- B5: Act 1 on TEST ---------------------------------------------------
-s, y = slide(prs, "Act 1 on TEST: adaptivity does not pay here",
-             "Thirty comparisons against one static order. All thirty separate, and all thirty run "
-             "the same way. The ordering then repeats on four other consumers.",
-             kicker="paper b · act 1", accent=ACCENT_B)
+# --- B4b: the budget curves --------------------------------------------------
+s, y = slide(prs, "Full NDCG@10 against question budget",
+             "The same battery drawn as curves. Ten thousand TEST users, one contract, "
+             "logarithmic budget axis.", accent=ACCENT_B)
+
+fw = Inches(6.60)
+figure(s, "b_budget_curves.png", MARGIN_L, y + Inches(0.08), width=fw,
+       caption="Figure from Chapter 2 (chapterB_v2.tex, fig:budgetcurves). Black lines are the "
+               "three optimised static orders; coloured lines are the literature; the dashed "
+               "grey line is the clairvoyant oracle ceiling.")
+
+rx = MARGIN_L + fw + Inches(0.50)
+rw = CONTENT_W - fw - Inches(0.50)
+textbox(s, rx, y + Inches(0.08), rw, Inches(0.3),
+        "THREE THINGS THE CURVES SHOW", size=11, bold=True, color=ACCENT_B)
+bullets(s, rx, y + Inches(0.44), rw, [
+    ("The three static orders are the top three lines at every budget.",
+     "No adaptive arm crosses them anywhere on the range."),
+    ("The gap to the oracle does not close.",
+     "At K=16 the ceiling is 0.3292 against the best measured arm's 0.2590, so about "
+     "70 % of the available headroom is still unclaimed."),
+    ("The ordering is stable in K.",
+     "Golbandi's tree is the one line that changes rank with budget, and it stops at "
+     "K=8 because leaf fragmentation caps its depth."),
+], size=11.5)
+
+textbox(s, rx, Inches(4.70), rw, Inches(1.9),
+        ["The curves are the audit result in one picture.",
+         ("A fixed, non-adaptive question order beats every adaptive selector in the "
+          "literature at every budget measured, under one consumer, one candidate pool "
+          "and one answer model.",
+          {"size": 11.5, "bold": False, "color": MUTED})],
+        size=13, bold=True, color=INK, space_after=4, line_spacing=1.15)
+footer(s, "Source: chapterB_v2.tex fig:budgetcurves (p. 12 of the compiled chapter), tab:battery")
+
+
+# --- B5: the audit on TEST ---------------------------------------------------
+s, y = slide(prs, "Adaptive selectors against a static order, on the test users",
+             "Thirty comparisons against one static order. All thirty separate, and all thirty in "
+             "the same direction. The ordering repeats on four other consumers.", accent=ACCENT_B)
 
 lw = Inches(7.6)
 rows = [["selector (10,000 TEST users)", "k=1", "k=2", "k=4", "k=8", "k=16", "ans@16"]]
@@ -1061,34 +843,15 @@ bullets(s, rx, y + Inches(0.42), rw, [
     ("But it is consumer-dependent.", "On a fifth consumer (a Golbandi leaf model) "
      "Thompson beats static at every budget: +0.0100, +0.0171, +0.0148, +0.0281 full, "
      "intervals excluding zero."),
-    ("Which is the point of Paper A.", "The verdict is a property of a "
-     "(strategy, instrument) pair, and we say which instrument."),
+    ("This is what Chapter 1 is for.", "The verdict is a property of a "
+     "strategy-and-instrument pair, and the instrument is stated."),
 ], size=12)
 footer(s, "Sources: chapterB_v2.tex tab:act1 (:548-578), :569-572, :932-945 · ACT1_PAIRED_CI.md")
-notes(s, """WHAT TO SAY
-Act 1 in detail. One static order — Rashid's 2008 entropy heuristic, which is a fair and generous
-representative of the field — against three adaptive selectors, at five budgets, on both axes. Thirty
-comparisons. All thirty separate in the static order's favour, and the deficit grows with budget:
-GLM-UCB goes from −0.0029 at one question to −0.0137 at sixteen.
 
-I then checked it is not an artefact of our consumer: the same ordering appears on RecVAE, on TaNP,
-and on EDDI's own Partial-VAE — including the self-consistent cell where EDDI both selects and
-consumes, which is the version most favourable to them.
-
-And then the honest part, bottom right. On a fifth consumer, a Golbandi-style leaf model, Thompson
-beats the static order at every budget with clean intervals. The verdict flips. That is not a problem
-for the paper, it IS the paper's methodological claim, and it is why Paper A exists: an elicitation
-result is a property of a strategy–instrument pair, and you have to say which instrument.
-
-SOURCES
-tab:act1 and deltas: chapterB_v2.tex :548-578. Four-consumer replication and the EDDI self-consistent
-cell: :569-572. The flip: :932-945. Per-cell CIs: docs/results/ACT1_PAIRED_CI.md.""")
-
-# --- B6: Act 2 — the criterion diagnosis --------------------------------
-s, y = slide(prs, "Act 2 (i): the surrogates do not track the metric",
-             "At all 22 nodes of the grown tree we measured every candidate's true NDCG gain, "
-             "then asked what each published criterion would have picked.",
-             kicker="paper b · act 2 · diagnosis", accent=ACCENT_B)
+# --- B6: diagnosis — the split criteria --------------------------------
+s, y = slide(prs, "Split criteria compared with measured NDCG gain",
+             "At all 22 nodes of the grown tree, every candidate's true NDCG gain was measured, "
+             "then each published criterion's own pick was recorded.", accent=ACCENT_B)
 
 table(s, [
     ["split criterion", "mean ρ with measured gain", "nodes ρ>0", "argmax hit",
@@ -1120,7 +883,7 @@ bullets(s, MARGIN_L, Inches(5.0), lw, [
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(4.65), rw, Inches(0.3),
-        "IS IT THE CRITERION OR THE APPROXIMATION?", size=11, bold=True, color=ACCENT_B)
+        "THE CRITERION AGAINST ITS APPROXIMATION", size=11, bold=True, color=ACCENT_B)
 bullets(s, rx, Inches(5.0), rw, [
     ("Measured properly, the pairwise loss is fine:", "at the root it tracks measured "
      "NDCG@10 at Spearman +0.784 and forgoes only +0.00459."),
@@ -1128,35 +891,12 @@ bullets(s, rx, Inches(5.0), rw, [
      "forgoes +0.01473. The approximation, not the idea, is what fails."),
 ], size=12)
 footer(s, "Sources: chapterB_v2.tex tab:criterionregret (:1056-1086), :1283-1292")
-notes(s, """WHAT TO SAY
-Act 2 is the diagnosis, and it has two halves. This is the first: are the surrogate criteria any good?
-
-We took all twenty-two nodes of the grown tree, and at each node we measured the true held-out NDCG
-gain of every one of about a thousand candidate questions — that is the expensive object nobody
-usually has. Then we asked what each published criterion would have picked.
-
-Two of the three have a negative rank correlation with the quantity they are standing in for.
-Top-10 recall is 0.01 to 0.03 against a random pick's 0.10. And the regret column says following any
-of them forgoes two-thirds to nine-tenths of what random forgoes — so they are better than random,
-but barely, and not in the way their derivations suggest.
-
-The right-hand box is the fair version, and I want it on the slide because it is a defence of Hu and
-Yu rather than an attack. If you measure the pairwise rank loss properly on held-out data it tracks
-NDCG at +0.784 — it is a good criterion. It is their Taylor-approximated training-loss version that
-correlates at −0.149. So the failure is the approximation, not the idea.
-
-SOURCES
-tab:criterionregret and the root example: chapterB_v2.tex :1056-1086.
-Measured-vs-approximated pairwise loss: :1283-1292.
-NOTE: docs/results/ACT2_SURROGATE_RANK_CORRELATION.md is a design sheet with 'NO RESULT IN THIS FILE
-YET' — quote the chapter table, not that file.""")
 
 
-# --- B7: Act 2 (ii) dispersion -------------------------------------------
-s, y = slide(prs, "Act 2 (ii): cold users are nearly identical, so there is little to adapt to",
-             "How many genuinely different best-next-questions does a population contain? "
-             "At cold start: about one.",
-             kicker="paper b · act 2 · diagnosis", accent=ACCENT_B)
+# --- B7: diagnosis — dispersion -------------------------------------------
+s, y = slide(prs, "Question dispersion across cold users",
+             "The number of genuinely different best-next-questions a population contains. "
+             "At cold start it is about one.", accent=ACCENT_B)
 
 table(s, [
     ["population state", "n", "distinct best question q★", "effective # questions"],
@@ -1171,7 +911,7 @@ table(s, [
 
 lw = Inches(6.5)
 textbox(s, MARGIN_L, Inches(3.60), lw, Inches(0.3),
-        "THE READING", size=11, bold=True, color=ACCENT_B)
+        "READING THE TABLE", size=11, bold=True, color=ACCENT_B)
 bullets(s, MARGIN_L, Inches(3.95), lw, [
     ("An adaptive selector has almost nothing to be adaptive about.", "After two "
      "openers the whole population occupies 112 distinct states and 41 % of users share "
@@ -1185,7 +925,7 @@ bullets(s, MARGIN_L, Inches(3.95), lw, [
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(3.60), rw, Inches(0.3),
-        "BUT THE HEADROOM RUNS THE OTHER WAY", size=11, bold=True, color=ACCENT_B)
+        "HEADROOM RUNS THE OTHER WAY", size=11, bold=True, color=ACCENT_B)
 table(s, [
     ["state", "best question available", "gain"],
     ["cold, after two openers", "a concept", "+0.0283"],
@@ -1194,39 +934,16 @@ table(s, [
 ], rx, Inches(3.95), rw, col_w=[38, 38, 24], font_size=11, row_h=0.32, align=num(3))
 textbox(s, rx, Inches(5.45), rw, Inches(1.3),
         "Dispersion and headroom are different quantities. A placed user is more "
-        "distinguishable but has less left to gain — which is exactly why Act 5's opener "
-        "arm is worth less than the dispersion table suggests.",
+        "distinguishable but has less left to gain, which is why the opener arm is worth "
+        "less than the dispersion table suggests.",
         size=11.5, color=MUTED, line_spacing=1.15)
 footer(s, "Sources: chapterB_v2.tex tab:dispersion (:1103-1129), :1107-1108, :1149-1154")
-notes(s, """WHAT TO SAY
-Second half of the diagnosis, and this is the one that actually explains Act 1.
-
-The question: how many genuinely different best-next-questions does a cold population contain? We
-computed, for each user, which question in the bank has the highest measured gain, and then counted
-distinct answers and an entropy-based effective count.
-
-At cold start the answer is one. Every user's best first question is the same question. After one
-opener, 2.88 effective questions. After two, about five, and 41 % of users still share a single
-argmax. So an adaptive selector at a cold state is being clever about a population that is, from the
-question bank's point of view, almost homogeneous. That is why Act 1 comes out the way it does — not
-because adaptivity is a bad idea, but because there is nothing to adapt to yet.
-
-The contrast row is the reason Act 5 exists: a real free-text request from Reddit places users at
-about 95 effective questions of dispersion — nineteen times what two closed openers buy.
-
-But the box on the right stops me overselling that: a placed user is more distinguishable and has
-LESS headroom left, +0.0138 against +0.0283. Dispersion is not value.
-
-SOURCES
-tab:dispersion: chapterB_v2.tex :1103-1123; 112 states / 41 % argmax share :1127-1129;
-item and unified bank rows :1107-1108; headroom comparison :1149-1154.""")
 
 
-# --- B8: Act 3 — the NDCG tree -------------------------------------------
-s, y = slide(prs, "Act 3: change one variable — split on measured NDCG",
+# --- B8: the NDCG tree -------------------------------------------
+s, y = slide(prs, "Splitting the interview tree on measured NDCG",
              "Same tree learner, same candidates, same stopping rule. The only change is what the "
-             "split criterion optimises.",
-             kicker="paper b · act 3 · the demonstration", accent=ACCENT_B)
+             "split criterion optimises.", accent=ACCENT_B)
 
 lw = Inches(6.35)
 textbox(s, MARGIN_L, y + Inches(0.03), lw, Inches(0.3),
@@ -1268,7 +985,7 @@ textbox(s, rx, Inches(3.75), rw, Inches(1.5),
         size=11.5, bold=True, color=INK, space_after=4, line_spacing=1.14)
 
 textbox(s, MARGIN_L, Inches(5.75), CONTENT_W, Inches(1.2),
-        ["What it cost, and the correction that halved it.",
+        ["Cost, and the comparator correction.",
          ("Validation gain +0.02794 full / +0.01055 tail became +0.01035 / +0.00705 on TEST — "
           "2.70× and 1.50× optimism. And when the static comparator was rebuilt under the "
           "correct mask the tail advantage fell from +0.02092 to +0.00705: two thirds of the "
@@ -1277,34 +994,12 @@ textbox(s, MARGIN_L, Inches(5.75), CONTENT_W, Inches(1.2),
         size=13.5, bold=True, color=INK, space_after=3, line_spacing=1.14)
 footer(s, "Sources: chapterB_v2.tex tab:tree (:1195-1215), :1166-1185, :1366-1393 · "
           "docs/results/CONDITIONED_ARMS_ON_TEST.md")
-notes(s, """WHAT TO SAY
-Act 3 is the demonstration and it is deliberately boring in design: same tree learner, same candidate
-pool, same stopping rule, same budget. The only thing changed is what the split criterion optimises —
-measured held-out NDCG@10 instead of a surrogate.
-
-On ten thousand held-out test users the tree beats the strong static order by +0.01035 full and
-+0.00705 tail at sixteen questions, intervals clear of zero. Seven of the eight budgets separate in
-the tree's favour. The eighth separates against it — tail at two questions — and it is printed in the
-paper rather than dropped.
-
-Two honesty notes I would rather say than be asked. Validation overstated the effect by 2.7× on full
-and 1.5× on tail; that gap is normal and it is why the test look was reserved. And more importantly:
-an earlier draft reported a much bigger tail advantage, +0.02092. When we rebuilt the static
-comparator under the correct candidate mask, two thirds of that evaporated. The tree's own numbers
-did not move at all — the comparator moved. The rebuilt order shares four of sixteen questions and
-zero of sixteen positions with the one it replaced. That is a lesson I keep re-learning: when a
-contrast moves, check whether the arm moved or the comparator did.
-
-SOURCES
-Construction: chapterB_v2.tex :1166-1185. tab:tree: :1195-1215. Costs and optimism: :1366-1393.
-Comparator swap +0.01371→+0.01035 and +0.02092→+0.00705: docs/results/CONDITIONED_ARMS_ON_TEST.md.""")
 
 
 # --- B9: the six-criterion ablation ---------------------------------------
-s, y = slide(prs, "The six-criterion ablation: 56 intervals, one variable",
+s, y = slide(prs, "The six-criterion split ablation",
              "Six split criteria, everything else held identical. All 56 non-nested intervals in "
-             "the matrix exclude zero.",
-             kicker="paper b · act 3 · ablation", accent=ACCENT_B)
+             "the matrix exclude zero.", accent=ACCENT_B)
 
 table(s, [
     ["split criterion (K=16, 10,000 TEST users)", "full@10", "gain vs static", "tail@10",
@@ -1320,7 +1015,7 @@ table(s, [
 
 lw = Inches(6.5)
 textbox(s, MARGIN_L, Inches(3.55), lw, Inches(0.3),
-        "WHAT THE MATRIX SAYS", size=11, bold=True, color=ACCENT_B)
+        "WHAT THE MATRIX SHOWS", size=11, bold=True, color=ACCENT_B)
 bullets(s, MARGIN_L, Inches(3.90), lw, [
     ("The result is (measured) ≫ (pairwise) ≈ (variance)", "— not the pre-registered "
      "ordering. Pairwise vs variance is the ONLY null in the matrix: +0.00020 "
@@ -1334,7 +1029,7 @@ bullets(s, MARGIN_L, Inches(3.90), lw, [
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(3.55), rw, Inches(0.3),
-        "WHAT IT COST, AND WHY NOBODY DOES IT", size=11, bold=True, color=ACCENT_B)
+        "COMPUTE COST OF THE EXACT OBJECTIVE", size=11, bold=True, color=ACCENT_B)
 table(s, [
     ["", ""],
     ["Taylor construction", "scores all 1,000 candidates in ~11 s"],
@@ -1344,43 +1039,17 @@ table(s, [
 ], rx, Inches(3.90), rw, col_w=[30, 70], font_size=11, row_h=0.40,
     first_col_bold=True, header_rows=0)
 textbox(s, rx, Inches(5.85), rw, Inches(0.8),
-        "This is the answer to “why has nobody done this?” — the surrogates exist because "
-        "the exact objective is four orders of magnitude more expensive.",
+        "The surrogates exist because the exact objective is three to four orders of "
+        "magnitude more expensive per node.",
         size=11.5, color=MUTED, line_spacing=1.15)
 footer(s, "Sources: chapterB_v2.tex tab:splitcrit (:1250-1313), :1328-1335 · "
           "docs/results/HU_YU_2013_REPLICATION_AND_ABLATION.md")
-notes(s, """WHAT TO SAY
-This is the cleanest experiment in the thesis and the one I would put in a conference talk. Six split
-criteria; the tree learner, the candidate pool, the stopping rule, the budget, the consumer and the
-users are all identical. Only the criterion changes. Fifty-six non-nested intervals in the matrix,
-every one excluding zero.
-
-Two findings I did not predict. First, the ordering: measured NDCG is far ahead, and then pairwise
-rank loss and rating variance are statistically indistinguishable from each other — the only null in
-the whole matrix. I had pre-registered that pairwise would beat variance. It does not.
-
-Second, the shuffle control is instructive. If you grow the tree with random splits but keep the
-minimum-leaf rule, you get a DEEPER, WIDER, more varied tree — seven levels, twenty-seven leaves,
-286 distinct questions against our 159 — and it loses by 0.048. So the thing that helps is not
-structure, variety, or personalisation. It is the criterion.
-
-The right-hand box is the honest answer to why the field uses surrogates: our exact objective takes
-about ten hours to grow one tree against eleven seconds for the Taylor construction. Three orders of
-magnitude per node. The surrogates are not lazy, they are a rational response to cost — and the
-contribution here is showing what the cost buys.
-
-SOURCES
-tab:splitcrit and readings: chapterB_v2.tex :1250-1313. Pairwise-vs-variance null: :1271-1275.
-Cost and reproduction tolerance: :1300-1313. Hu & Yu native replication (their protocol, MAP, ML-1M,
-depths 3 and 5, figure-only so pixel-matched): :1328-1335 and
-docs/results/HU_YU_2013_REPLICATION_AND_ABLATION.md (finalised 2026-08-13, citable).""")
 
 
 # --- B10: bank vs conditioning ---------------------------------------------
-s, y = slide(prs, "Bank beats conditioning",
-             "If you can change one thing about a cold interview, change WHAT it asks about — "
-             "not how it decides what to ask.",
-             kicker="paper b · the practical result", accent=ACCENT_B)
+s, y = slide(prs, "Changing the question bank compared with conditioning",
+             "Three changes to a cold interview, measured on the same test users against the "
+             "same comparator.", accent=ACCENT_B)
 
 table(s, [
     ["change made (10,000 TEST users)", "full gain [95 % CI]", "tail gain",
@@ -1395,19 +1064,19 @@ table(s, [
     font_size=12, row_h=0.42, align=num(4), first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(3.35), CONTENT_W, Inches(1.0),
-        ["On the tail the asymmetry is 3×:  +0.02199 for changing the bank against +0.00705 "
-         "for conditioning.",
-         ("Both changes are real and both intervals are clean. The point is the ordering, and it "
-          "is the opposite of where the field's effort goes.",
+        ["On the tail the ratio is about 3×:  +0.02199 for changing the bank against "
+         "+0.00705 for conditioning.",
+         ("Both changes are real and both intervals exclude zero. The ordering is the opposite "
+          "of where the field's effort goes.",
           {"size": 12.5, "bold": False, "color": MUTED})],
         size=15, bold=True, color=INK, space_after=4, line_spacing=1.14)
 
 lw = Inches(6.5)
 textbox(s, MARGIN_L, Inches(4.55), lw, Inches(0.3),
-        "AND YET — THE ACTION SPACE IS NOT A FREE LUNCH", size=11, bold=True, color=ACCENT_B)
+        "TWO QUALIFICATIONS", size=11, bold=True, color=ACCENT_B)
 bullets(s, MARGIN_L, Inches(4.90), lw, [
-    ("Enlarging the question bank further made the selectors that consume it perform WORSE.",
-     "That result is why Paper C claims capability and never value."),
+    ("Enlarging the question bank further made the selectors that consume it perform worse.",
+     "This is why Chapter 3 claims capability and not value."),
     ("The gain is answerability, not information.", "Concepts are less informative "
      "per answer and win anyway, because they get answered."),
 ], size=12.5)
@@ -1415,7 +1084,7 @@ bullets(s, MARGIN_L, Inches(4.90), lw, [
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(4.55), rw, Inches(1.9),
-        ["FOR SCALE",
+        ["FOR SCALE, A SEEDED USER",
          ("Seed a cold user with 8 items from their own history, then run the identical 16 "
           "questions:", {"size": 11, "bold": False, "color": INK}),
          ("+0.0206 full   ·   +0.0353 tail", {"size": 14, "bold": True, "color": ACCENT_B}),
@@ -1424,33 +1093,11 @@ textbox(s, rx, Inches(4.55), rw, Inches(1.9),
         size=11, bold=True, color=ACCENT_B, space_after=5, line_spacing=1.15)
 footer(s, "Sources: chapterB_v2.tex tab:bankdecomp (:1344-1361), :1935-1938 · "
           "memory: concept-bank-does-not-rescue-adaptive-pv")
-notes(s, """WHAT TO SAY
-This is the slide with the practical takeaway, and it is the one I would lead a talk with.
 
-Three changes you can make to a cold interview, all measured on the same test users against the same
-comparator. Adding a concept channel to the question bank buys +0.0143 full and +0.0220 tail.
-Conditioning the question order on the answers — which is what the entire adaptive-elicitation
-literature is about — buys +0.0104 full and +0.0071 tail. On the tail the bank change is three times
-larger.
-
-So: if you can change one thing, change what the system asks about, not how it decides what to ask.
-
-Two caveats that keep me honest. Enlarging the bank further did not keep helping — beyond a point it
-made the selectors consuming it worse, which is why Paper C is careful to claim capability and not
-value. And for scale, the bottom-right box: giving the recommender eight of the user's real ratings
-and then running the identical sixteen questions is worth +0.0206 full and +0.0353 tail. The
-recommender's own knowledge dwarfs every interview-design choice on this slide.
-
-SOURCES
-tab:bankdecomp: chapterB_v2.tex :1344-1361. Seeded-user comparison: :1935-1938.
-'The action space was not the constraint': memory note concept-bank-does-not-rescue-adaptive-pv;
-restated in chapterC_v2.tex Positioning.""")
-
-# --- B11: Act 4 answerability ----------------------------------------------
-s, y = slide(prs, "Act 4: answerability orders the channels",
-             "Three independent measurements say the same thing. What decides which channel wins "
-             "is not how informative a question is — it is whether anyone can answer it.",
-             kicker="paper b · act 4", accent=ACCENT_B)
+# --- B11: answerability ----------------------------------------------
+s, y = slide(prs, "Answerability and the ordering of channels",
+             "Three independent measurements agree: which channel wins is decided by whether the "
+             "question can be answered, not by how informative it is.", accent=ACCENT_B)
 
 table(s, [
     ["Independent measurement", "What it shows"],
@@ -1463,9 +1110,9 @@ table(s, [
     ["3.  The tree's own root",
      "the chosen concept is answered by 74.2 %; the best item split sends 70 % of the cohort into "
      "did-not-answer"],
-    ["The mechanism, in one line",
-     "sixteen item questions collect 3.11 answers.  Sixteen concept questions collect 12.36.  "
-     "A factor of four."],
+    ["The mechanism",
+     "sixteen item questions collect 3.11 answers; sixteen concept questions collect 12.36, "
+     "a factor of four"],
 ], MARGIN_L, y + Inches(0.05), CONTENT_W, col_w=[26, 74],
     font_size=11.2, row_h=0.475, first_col_bold=True)
 
@@ -1479,15 +1126,15 @@ table(s, [
     ["combined − concepts", "+0.01434", "+0.00763"],
 ], MARGIN_L, Inches(4.50), lw, col_w=[30, 36, 34], font_size=10.5, row_h=0.32, align=num(3))
 textbox(s, MARGIN_L, Inches(5.90), lw, Inches(1.0),
-        "A dead heat on full, a rout on tail — and concepts lead on full at every budget below "
-        "16 (+0.0048, +0.0078, +0.0104, +0.0112 at k=1,2,4,8, every interval clean). Items catch "
-        "up only at sixteen questions.",
+        "A null on full and a clear concept win on tail. Concepts also lead on full at every "
+        "budget below 16 (+0.0048, +0.0078, +0.0104, +0.0112 at k=1,2,4,8, every interval "
+        "excluding zero); items catch up only at sixteen questions.",
         size=11.5, color=MUTED, line_spacing=1.15)
 
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(4.15), rw, Inches(0.3),
-        "THE PART THAT SHOULD WORRY US", size=11, bold=True, color=ACCENT_B)
+        "REACH AGAINST QUESTION CHOICE", size=11, bold=True, color=ACCENT_B)
 bullets(s, rx, Inches(4.50), rw, [
     ("Answering AT ALL is worth ~+0.25.", "The largest question-CHOICE effect anywhere "
      "in the tree is +0.048."),
@@ -1495,37 +1142,12 @@ bullets(s, rx, Inches(4.50), rw, [
      "answer the third. ~14 % of the cohort is untouched, sitting at 0.087."),
 ], size=12)
 footer(s, "Sources: chapterB_v2.tex :1469-1521, :834-930, :1385-1393")
-notes(s, """WHAT TO SAY
-Act 4 is the mechanism, and it ties back to Paper A's concept-channel result.
-
-Three independent measurements, listed on the slide, all say the same thing: the channel that wins is
-the one that gets answered. The optimised order puts concepts in ten of sixteen slots and both of the
-first two. Per-state, the best cold question is a concept by more than twelve times. And the tree's
-own root chooses a concept answered by three quarters of the cohort over an item that would send
-seventy percent into 'did not answer'.
-
-The one-line mechanism: sixteen item questions collect 3.11 answers; sixteen concept questions
-collect 12.36.
-
-The box bottom right is the finding that I think is genuinely important and slightly deflating for
-the whole field. The difference between answering at all and answering nothing is worth about +0.25
-NDCG. The largest effect of choosing a BETTER question, anywhere in our tree, is +0.048. So question
-selection is a five-times-smaller lever than getting an answer out of the user. And about fourteen
-percent of the cohort answers nothing in the first three questions and sits at 0.087 — they never
-enter the game at all.
-
-SOURCES
-Three measurements and the 3.11/12.36 mechanism: chapterB_v2.tex :1469-1521.
-Channel contrasts at K=16 and the per-budget concept lead: :1469-1521.
-Policy-side answer counts (static 5.52, Thompson 3.39, three-outcome 2.86): :834-930.
-Reach numbers (+0.25 vs +0.048, 1,785/1,438, 0.087): :1385-1393.""")
 
 
-# --- B12: Act 5 the Reddit corpus --------------------------------------------
-s, y = slide(prs, "Act 5: what people actually volunteer",
-             "A corpus of real, unprompted film requests — because the whole thesis so far assumes "
-             "a closed question bank, and real users do not wait to be asked.",
-             kicker="paper b · act 5 · the ecological arm", accent=ACCENT_B)
+# --- B12: the request corpus --------------------------------------------
+s, y = slide(prs, "A corpus of unprompted film requests",
+             "Everything above assumes a closed question bank and a user who waits to be asked. "
+             "This section measures what users volunteer without being asked.", accent=ACCENT_B)
 
 lw = Inches(6.05)
 textbox(s, MARGIN_L, y + Inches(0.03), lw, Inches(0.3),
@@ -1541,18 +1163,21 @@ table(s, [
 ], MARGIN_L, y + Inches(0.38), lw, col_w=[32, 68], font_size=11, row_h=0.375,
     first_col_bold=True, header_rows=0)
 
-textbox(s, MARGIN_L, Inches(4.10), lw, Inches(0.3),
-        "ENTITY LINKING IS THE RISK, SO WE MEASURED IT", size=11, bold=True, color=ACCENT_B)
+textbox(s, MARGIN_L, Inches(4.30), lw, Inches(0.3),
+        "FIVE REQUESTS FROM THE CORPUS, VERBATIM", size=11, bold=True, color=ACCENT_B)
 table(s, [
-    ["linking precision vs a 500-mention hand-labelled gold standard", "precision"],
-    ["the corpus's own links", "0.572"],
-    ["our two-tier pipeline (deterministic rules + LM adjudication)", "0.960"],
-], MARGIN_L, Inches(4.45), lw, col_w=[74, 26], font_size=10.8, row_h=0.315, align=num(2))
-textbox(s, MARGIN_L, Inches(5.60), lw, Inches(0.9),
-        "The pre-registered gate was ≥0.95. Attribute mapping succeeds for 95.1 % of genres, "
-        "70.2 % of eras, 66.1 % of tones — the era and tone shortfalls bound Act 5 from above "
-        "and are stated as such.",
-        size=11, color=MUTED, line_spacing=1.15)
+    ["the request as posted", "slots found"],
+    ["“[Request] I'm looking for thrillers like 10 Cloverfield Lane "
+     "(I really loved that film).”", "film + genre"],
+    ["“[REQUEST] good horror/suspense movie on Netflix. i can't find "
+     "anything good please help”", "genre + constraint"],
+    ["“Films like; 12 Angry Men. Whether it's films told on one set, or films "
+     "heavy dialogue. Cheers!”", "film + 2 constraints"],
+    ["“Looking for a Horror movie with a similar tone to Evil Dead 2… a super gory "
+     "horror movie with a slightly tongue-and-cheek tone.”", "film + genre + 2 tone"],
+    ["“[Request] I need something that's gonna punch me in the face. Something with "
+     "unexpected plot twist…”", "2 tone, no film"],
+], MARGIN_L, Inches(4.65), lw, col_w=[70, 30], font_size=9.4, row_h=0.40)
 
 rx = MARGIN_L + lw + Inches(0.40)
 rw = CONTENT_W - lw - Inches(0.40)
@@ -1571,49 +1196,38 @@ table(s, [
 ], rx, y + Inches(0.38), rw, col_w=[52, 24, 24], font_size=10.8, row_h=0.315, align=num(3))
 
 textbox(s, rx, Inches(4.10), rw, Inches(2.4),
-        ["WHAT PEOPLE REQUEST ≠ WHAT PEOPLE WATCH",
+        ["REQUEST DISTRIBUTION AGAINST CONSUMPTION DISTRIBUTION",
          ("Horror is 27.5 % of mapped genre mentions and Thriller 15.8 %. In ML-25M validation, "
           "Horror is the favourite genre of 51 users out of 10,000; Drama is the favourite of "
           "5,481.", {"size": 11.5, "bold": False, "color": INK}),
-         ("", {"size": 5}),
-         ("The request distribution is inverted relative to the consumption distribution — so a "
-          "system tuned on watch logs is tuned on the wrong prior for what gets asked.",
+         ("", {"size": 4}),
+         ("The request distribution is inverted relative to the consumption distribution, so a "
+          "system tuned on watch logs holds the wrong prior for what gets asked.",
           {"size": 11, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_B, space_after=4, line_spacing=1.15)
-footer(s, "Sources: chapterB_v2.tex :1542-1588 · docs/results/REDDIT_LINKER_AUDITION.md · "
-          "REDDIT_HE_GOLD_LABELS.md · docs/design/DS_REDDIT_LINKING.md")
-notes(s, """WHAT TO SAY
-Act 5 is the ecological arm and it exists because everything so far assumes a closed bank of
-questions and a user who waits to be asked. Real users do not do that.
 
-Four thousand four hundred and thirty-one threads, each a genuine unprompted request with
-ground-truth recommendations attached. Ninety-four percent are real requests. The median request
-carries five distinct pieces of preference information before anyone asks anything.
-
-The linking is the methodological risk, so we measured it against a five-hundred-mention hand-labelled
-gold standard: the corpus's own links are 0.572 precise; our two-tier pipeline is 0.960, against a
-pre-registered 0.95 gate. And every one of the 7,572 named films falls inside our item vocabulary,
-which is lucky and worth saying.
-
-The finding I like most is bottom right. Horror is twenty-seven percent of what people ASK for. In
-our validation cohort Horror is the favourite genre of fifty-one users out of ten thousand; Drama is
-the favourite of five and a half thousand. The request distribution is inverted relative to the
-consumption distribution. A system tuned on watch logs is holding the wrong prior for what people
-will actually say to it.
-
-SOURCES
-Corpus, linking, census: chapterB_v2.tex :1542-1588 (tab:opener_census).
-Linking audition and the ≥0.95 gate: docs/results/REDDIT_LINKER_AUDITION.md (rules→LM 0.960,
-LM-solo 0.972); docs/design/DS_REDDIT_LINKING.md; REDDIT_HE_GOLD_LABELS.md (0.572 combined).
-NOTE the chapter intro at :133-134 says '3,078 recommendation requests, 63 %' — 63.0 % belongs to
-the 4,431 census; 3,078 is the foldable subset. Quote 4,431.""")
+textbox(s, rx, Inches(5.75), rw, Inches(1.1),
+        ["ENTITY LINKING, MEASURED AGAINST A HAND-LABELLED STANDARD",
+         ("Against 500 hand-labelled mentions the corpus's own links are 0.572 precise; the "
+          "two-tier pipeline (deterministic rules + LM adjudication) is 0.960, against a "
+          "pre-registered ≥0.95 gate. Attribute mapping succeeds for 95.1 % of genres, "
+          "70.2 % of eras and 66.1 % of tones; the era and tone shortfalls bound this "
+          "section from above and are stated as such.",
+          {"size": 10, "bold": False, "color": MUTED})],
+        size=10.5, bold=True, color=ACCENT_B, space_after=3, line_spacing=1.12)
+footer(s, "Sources: chapterB_v2.tex :1542-1588 · experiments/battery/m1b_census.json · "
+          "data/reddit_he/slots/full_input.jsonl (verbatim requests) · REDDIT_LINKER_AUDITION.md")
+notes(s, "NOTE TO AUTHOR: the five requests are quoted verbatim from "
+         "data/reddit_he/slots/full_input.jsonl (lines 16, 102, 126, 157, 65), including their "
+         "original spelling and the [Request] tags. Two are shortened at an ellipsis. Confirm "
+         "you are content to show public forum text verbatim in a supervisor deck; the "
+         "alternative is to paraphrase, which costs the point that these are real.")
 
 
 # --- B13: openers + the one policy -------------------------------------------
-s, y = slide(prs, "Act 5: opener-fitted interviews, and one policy that holds the whole forest",
-             "Fit a tree where you mean to serve — then distil every tree into a single policy "
-             "that has to find the group itself.",
-             kicker="paper b · act 5 · the policy", accent=ACCENT_B)
+s, y = slide(prs, "Opener-fitted interviews and the distilled policy",
+             "Each tree is fitted at the state the user is actually in; the six trees are then "
+             "distilled into a single policy that has to identify the group itself.", accent=ACCENT_B)
 
 lw = Inches(6.7)
 textbox(s, MARGIN_L, y + Inches(0.02), lw, Inches(0.3),
@@ -1631,27 +1245,20 @@ table(s, [
     font_size=10.5, row_h=0.30, align=num(6), first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(3.65), lw, Inches(0.9),
-        ["The chain:  cold − static = +.00495 ★   then   opener − cold = +.00688 ★",
-         ("★ = paired bootstrap interval excludes zero. Fitting the tree where you mean to serve "
-          "beats an anchor teacher; then fitting it to the opener-conditioned state beats that.",
+        ["The two steps:  cold − static = +.00495 ★   then   opener − cold = +.00688 ★",
+         ("★ = paired bootstrap interval excludes zero. A tree fitted at the serving state beats "
+          "an anchor teacher; fitting it to the opener-conditioned state beats that in turn.",
           {"size": 11, "bold": False, "color": MUTED})],
         size=12.5, bold=True, color=INK, space_after=4, line_spacing=1.14)
 
-textbox(s, MARGIN_L, Inches(4.70), lw, Inches(0.3),
-        "THE CONTROL THAT MATTERS", size=11, bold=True, color=ACCENT_B)
-textbox(s, MARGIN_L, Inches(5.05), lw, Inches(1.6),
-        ["Scramble the routing and it collapses on every group — .888→.148, .834→.040, "
-         ".857→.038, .852→.121, .958→.094, .757→.111, against a chance floor of .167 — and the "
-         "VALUE goes negative on marvel (−.01190) and inspiring (−.00572), both separating.",
-         ("Honest limit: Act 5's openers are group-stamped, so routing is partly circular. The "
-          "opener−cold contrast survives because the STATE is held fixed. Claim adaptivity beyond "
-          "the closed tree — not routing.", {"size": 11, "bold": False, "color": ACCENT_C})],
-        size=11.5, color=MUTED, space_after=5, line_spacing=1.15)
+figure(s, "b_act5_pipeline.png", MARGIN_L, Inches(4.82), width=Inches(5.20),
+       caption="Figure from Chapter 2 (chapterB_v2.tex, fig:act5pipeline): how a synthesised "
+               "opener state is built and what is run from it.")
 
 rx = MARGIN_L + lw + Inches(0.40)
 rw = CONTENT_W - lw - Inches(0.40)
 textbox(s, rx, y + Inches(0.02), rw, Inches(0.3),
-        "★ THE SPENT TEST LOOK  —  one distilled policy, reserved TEST cohort, K=15",
+        "TEST-SET RESULTS  —  one distilled policy, reserved TEST cohort, K=15",
         size=11, bold=True, color=ACCENT_B)
 table(s, [
     ["population", "n", "policy", "cold", "policy − cold"],
@@ -1672,7 +1279,7 @@ textbox(s, rx, Inches(2.35), rw, Inches(1.9),
         size=11, bold=True, color=ACCENT_B, space_after=4, line_spacing=1.14)
 
 textbox(s, rx, Inches(4.45), rw, Inches(1.9),
-        ["WHAT THE TEST LOOK ACTUALLY BOUGHT",
+        ["THE TEST-SET CONTRAST IN DETAIL",
          ("A single reserved look, spent once, on a policy that must route as well as ask. "
           "Non-monotone in budget: K=1 +0.00161 ★, K=4 +0.00119 (contains zero), K=15 +0.00343 ★.",
           {"size": 10.5, "bold": False, "color": INK}),
@@ -1681,124 +1288,135 @@ textbox(s, rx, Inches(4.45), rw, Inches(1.9),
           "do-no-harm cell −0.00038 [−0.00098, +0.00012], i.e. a clean null.",
           {"size": 10, "bold": False, "color": ACCENT_C})],
         size=11, bold=True, color=ACCENT_B, space_after=4, line_spacing=1.14)
-footer(s, "Sources: chapterB_v2.tex tab:volunteered, tab:policy · M4B_FOREST_POLICY.md · M6L_OPENER_FITTED_TEACHER.md · CIs: experiments/battery/m6/m6mix_B_test.json cells.ALL/warm/COLD K=15")
-notes(s, """WHAT TO SAY
-Act 5's result, and it is a two-step chain. First: if you fit the interview tree at the state the user
-is ACTUALLY in — after they have volunteered something — rather than at a cold state, you gain. Cold
-tree beats the anchor teacher by +0.00495; the opener-fitted tree beats the cold tree by +0.00688,
-pooled over 3,980 users, both intervals clean. Per group it ranges from +0.0247 on art-house down to a
-small negative on dialogue-driven.
+footer(s, "Sources: chapterB_v2.tex tab:volunteered, tab:policy, fig:act5pipeline · "
+          "M4B_FOREST_POLICY.md · M6L_OPENER_FITTED_TEACHER.md · CIs: "
+          "experiments/battery/m6/m6mix_B_test.json cells.ALL/warm/COLD K=15")
 
-Then: rather than ship six trees plus a router, we distil the whole forest into one policy of about
-half a million parameters. It agrees with the interviews it imitates 99.1 % of the time at top-1, and
-it has to find the group itself — routing accuracy .74 to .96. It lands within four ten-thousandths
-of the correct group's own interview in every group.
 
-On the reserved test cohort, spent once, the policy beats the cold interview by +0.00343 pooled, and
-by +0.00946 on the 39 % of users who volunteer something. On users who volunteer nothing it is a null,
-which is exactly right — there is nothing for it to route on.
+# --- B13b: the routing space + example question paths -------------------------
+s, y = slide(prs, "The routing space, and three example question paths",
+             "What the router reads, what happens when it is scrambled, and what the six group "
+             "interviews actually ask.", accent=ACCENT_B)
 
-Two honesty notes. The openers are group-stamped, so the ROUTING claim is partly circular; the
-opener-minus-cold comparison survives because the state is held fixed, so the claim is adaptivity
-beyond the closed tree, not routing. And the scramble control on the left is what makes the routing
-non-vacuous: scramble it and it collapses to chance and the value goes negative.
+lw = Inches(7.45)
+figure(s, "b_route_atlas.png", MARGIN_L, y + Inches(0.06), width=Inches(7.00),
+       caption="Figure from Chapter 2 (chapterB_v2.tex, fig:atlas): the same 3,980 users in two "
+               "spaces. Left, the full rating profile, where the six groups are not separable. "
+               "Right, the folded opener state, where a discriminant fitted on a disjoint half "
+               "assigns 0.907 of held-out users correctly against a chance floor of 0.167.")
 
-SOURCES
-tab:volunteered: chapterB_v2.tex :1946-1967. Scramble control: :1991-2010. tab:policy: :2042-2073.
-Distillation fidelity and 526,542 parameters: docs/results/M4B_FOREST_POLICY.md.
-Opener-fitted run detail: docs/results/M6L_OPENER_FITTED_TEACHER.md (which flags cluster-vs-cold as
-an upper bound and cluster-vs-anchor as the clean cell).
-Group-stamped openers: memory note opener-synthesis-is-group-stamped.
-NO printed numeric CI exists for +0.00343 / +0.00946 — the chapter marks them with ★ only.""")
+textbox(s, MARGIN_L, Inches(5.52), lw, Inches(0.3),
+        "THE SCRAMBLE CONTROL", size=11, bold=True, color=ACCENT_B)
+textbox(s, MARGIN_L, Inches(5.85), lw, Inches(1.1),
+        ["Scrambling the routing collapses it on every group — .888→.148, .834→.040, .857→.038, "
+         ".852→.121, .958→.094, .757→.111, against a chance floor of .167 — and the value goes "
+         "negative on marvel (−.01190) and inspiring (−.00572), both separating.",
+         ("Stated limit: the synthesised openers are group-stamped, so the routing is partly "
+          "circular and this control cannot detect that. The opener-minus-cold contrast survives "
+          "because the state is held fixed. The claim is adaptivity beyond the closed tree, not "
+          "routing.", {"size": 10, "bold": False, "color": ACCENT_C})],
+        size=10.3, color=MUTED, space_after=4, line_spacing=1.13)
+
+rx = MARGIN_L + lw + Inches(0.45)
+rw = CONTENT_W - lw - Inches(0.45)
+textbox(s, rx, y + Inches(0.10), rw, Inches(0.3),
+        "THREE QUESTION PATHS, AS THE TREES ASK THEM", size=11, bold=True, color=ACCENT_B)
+textbox(s, rx, y + Inches(0.48), rw, Inches(3.6),
+        [("art house   n = 587, depth 2", {"size": 11, "bold": True, "color": ACCENT_B}),
+         ("“black and white” → no → “fight scenes” → no → “disturbing”",
+          {"size": 11, "color": INK}),
+         ("", {"size": 6}),
+         ("teenagers   n = 786, depth 3", {"size": 11, "bold": True, "color": ACCENT_B}),
+         ("“fantasy world” → yes → Harry Potter: Deathly Hallows Pt 2;   no → “80s”",
+          {"size": 11, "color": INK}),
+         ("", {"size": 6}),
+         ("gore   n = 747, depth 3", {"size": 11, "bold": True, "color": ACCENT_B}),
+         ("“shallow” → yes → Batman Begins;   no → “fun movie” → no → “based on a true story”",
+          {"size": 11, "color": INK})],
+        size=11, color=INK, space_after=3, line_spacing=1.16)
+
+textbox(s, rx, Inches(4.55), rw, Inches(2.4),
+        ["The first two paths read as thematic; the third does not.",
+         ("The chapter states this plainly: an earlier reading called all six coherent, and that "
+          "was an over-read. The tree optimises separation, not meaning.",
+          {"size": 10.5, "bold": False, "color": MUTED}),
+         ("", {"size": 5}),
+         ("For contrast, the genre-conditioned static orders ask Drama users about Clear and "
+          "Present Danger first, Comedy users about Return of the Jedi, and Romance users about "
+          "Speed — the same question of everyone in the group, whatever they answer.",
+          {"size": 10.5, "bold": False, "color": MUTED})],
+        size=11.5, bold=True, color=INK, space_after=4, line_spacing=1.15)
+footer(s, "Sources: chapterB_v2.tex fig:atlas, :1991-2010 · docs/results/M3_FOREST_TREES.md "
+          ":87-92 (paths), :60-65 (cohorts) · experiments/battery/m3v2_*.json")
+notes(s, "NOTE TO AUTHOR: two provenance points on this slide. (1) The question paths are from "
+         "M3_FOREST_TREES.md, which is the ANCHOR-teacher forest, whereas the table on the "
+         "previous slide is the OPENER-FITTED forest — the opener-fitted teenagers root is the "
+         "item 'Harry Potter and the Deathly Hallows: Part 1' (answer rate 0.299), not the "
+         "concept 'fantasy world'. Check you are happy showing the anchor-teacher paths here, or "
+         "tell me to regenerate them from the opener-fitted trees. (2) The cohort sizes on this "
+         "slide (587 / 786 / 747) are the M3 cohorts and differ from the previous slide's "
+         "validation ns (473 / 540 / 419); they are different populations, not a typo.")
 
 
 # --- B14: B status ------------------------------------------------------------
-s, y = slide(prs, "Paper B: where it stands",
-             "Chapter closed 30 August 2026. Acts 1–4 are on TEST and frozen; the test look is "
-             "spent and replicates.",
-             kicker="paper b · status", accent=ACCENT_B)
+s, y = slide(prs, "Chapter 2 status",
+             "Closed 30 August 2026. Sections 1–4 are on TEST and frozen; the test look is "
+             "spent and replicates.", accent=ACCENT_B)
 
 lw = Inches(7.1)
 table(s, [
     ["", ""],
-    ["Chapter state", "CLOSED 2026-08-30. Compiles; test look spent 2026-08-12 (Acts 1–4) and "
-     "2026-08-29 (Act 5), and replicates."],
-    ["Frozen scope", "Acts 1–4 are on TEST and frozen. Only Act 5 was rebuilt."],
+    ["Chapter state", "CLOSED 2026-08-30. Compiles; test look spent 2026-08-12 (sections 1–4) "
+     "and 2026-08-29 (the unprompted-request section), and replicates."],
+    ["Frozen scope", "the audit, diagnosis, demonstration and answerability sections are on "
+     "TEST and frozen. Only the unprompted-request section was rebuilt."],
     ["Target", "ECIR 2027 full paper — deadline 2 October 2026"],
     ["The cut", "Sections 1–3 (audit · diagnosis · one-variable demonstration) compressed to "
      "~12 pp. Estimated 40–55 % acceptance."],
     ["Second choice", "RecSys, or its reproducibility track"],
-    ["Act 5", "held back as a SECOND paper (RecSys / CIKM) rather than cut"],
-    ["Absorbed", "Paper D is absorbed into B — the Reddit arc and the opener census cover its "
-     "substance, and its own numbers were on the retired pre-July ruler"],
+    ["Unprompted requests", "held back as a second submission (RecSys / CIKM) rather than cut"],
+    ["Absorbed", "the free-recall workstream is absorbed into B — the request corpus and the "
+     "opener census cover its substance, and its own numbers were on the retired pre-July ruler"],
 ], MARGIN_L, y + Inches(0.05), lw, col_w=[22, 78], font_size=11.5, row_h=0.44,
     first_col_bold=True, header_rows=0)
 
 rx = MARGIN_L + lw + Inches(0.40)
 rw = CONTENT_W - lw - Inches(0.40)
 textbox(s, rx, y + Inches(0.05), rw, Inches(0.3),
-        "THE MOST DANGEROUS OPEN OBJECTION", size=11, bold=True, color=ACCENT_C)
+        "THE STRONGEST OPEN OBJECTION", size=11, bold=True, color=ACCENT_C)
 textbox(s, rx, y + Inches(0.42), rw, Inches(1.9),
-        ["“Act 3 rests on ONE consumer.”",
-         ("And our own §flip demonstrates consumer-dependence. It is the objection I would raise. "
-          "It is fixable by SCORING — not refitting — the frozen tree through RecVAE, which is a "
-          "box-night, not a redesign.", {"size": 11.5, "bold": False, "color": MUTED})],
+        ["The demonstration rests on one consumer.",
+         ("The chapter's own inversion section demonstrates consumer-dependence. It is fixable by "
+          "scoring — not refitting — the frozen tree through RecVAE: one machine-night, not a "
+          "redesign.", {"size": 11.5, "bold": False, "color": MUTED})],
         size=13, bold=True, color=INK, space_after=4, line_spacing=1.15)
 
 textbox(s, rx, Inches(3.55), rw, Inches(0.3),
-        "CLAIM DISCIPLINE — WHAT WE DO NOT SAY", size=11, bold=True, color=ACCENT_B)
+        "CLAIMS NOT MADE", size=11, bold=True, color=ACCENT_B)
 bullets(s, rx, Inches(3.90), rw, [
     "Routing users to a group interview is not a contribution — Golbandi WSDM'11 and "
     "Cluster-Based Bandits SIGIR'21 both do it.",
     "No claim that our grouping beats k-means on NDCG.",
     "Never “reproduces the optimal question order”.",
     "Never “parity” or “tie” as a headline.",
-    "No fitting-population reasoning in the paper — one flat protocol sentence.",
+    "No fitting-population reasoning — one flat protocol sentence.",
 ], size=11.5)
 footer(s, "Sources: docs/design/PAPER_B_MASTER_TODO.md · docs/PUBLICATION_PLAN.md roster (2026-08-18)")
-notes(s, """WHAT TO SAY
-Where B stands. The chapter closed at the end of August. Acts 1 through 4 are on test and frozen —
-that test look was spent in mid-August and I have not touched it since. Act 5's look was spent at the
-end of August and replicated.
-
-The plan is ECIR 2027, deadline the second of October, and the conference cut is sections one to three
-only — the audit, the diagnosis, and the one-variable demonstration — compressed to about twelve pages.
-Act 5 is held back as a second paper rather than crushed into this one.
-
-The right-hand box is the objection I would raise if I were reviewing it, and I would rather raise it
-myself: Act 3 rests on one consumer, and our own flip result shows that consumer choice can invert a
-verdict. The fix is to SCORE the already-frozen tree through RecVAE — not refit it — which is one
-box-night, and I think it should be done before submission.
-
-The claim-discipline list at the bottom is what I have committed to NOT saying, mostly because earlier
-drafts said them and they were wrong.
-
-SOURCES
-docs/design/PAPER_B_MASTER_TODO.md (chapter closed, frozen scope, the conference cut, the
-one-consumer objection, the claim-discipline list); docs/PUBLICATION_PLAN.md roster table.""")
 
 # =====================================================================
 # PAPER C — THE QUESTION THAT ISN'T IN THE CATALOGUE
 # =====================================================================
 
-sd = divider("Paper C — the unasked question",
-             "The policy wants to ask about a direction. The catalogue's nearest question points "
-             "the other way. So: say the direction in English, and audit what comes out.",
-             ACCENT_C, "10 slides  ·  ~15 minutes  ·  status: LBR draft written → opportunistic")
-notes(sd, """WHAT TO SAY
-Section break, and a change of register. C is the capability paper — the fun one. No benchmark to
-beat; the deliverable is a mechanism plus an audit that the field does not currently run.
-
-SOURCES
-Framing and status: docs/PUBLICATION_PLAN.md roster (Paper C 'REDEFINED: absorbs old E. A CAPABILITY
-paper … publishable is a bonus, not a requirement'); author steer 2026-08-30.""")
+sd = divider("Chapter 3 — questions outside the catalogue",
+             "The policy emits a direction; the nearest catalogue question points elsewhere. "
+             "The direction is rendered into English and the result is audited.",
+             ACCENT_C, "10 slides  ·  ~15 minutes  ·  status: short-form draft written, venue opportunistic")
 
 
 # --- C1: the question ---------------------------------------------------
-s, y = slide(prs, "Paper C's question",
-             "Every elicitation system in the literature picks from a list. What if the best thing "
-             "to ask is not on the list?",
-             kicker="paper c · the question", accent=ACCENT_C)
+s, y = slide(prs, "The question Chapter 3 asks",
+             "Every elicitation system in the literature picks a question from a list. This "
+             "chapter asks what happens when the best thing to ask is not on the list.", accent=ACCENT_C)
 
 # loop diagram
 bwc, bhc = Inches(2.45), Inches(1.0)
@@ -1820,7 +1438,7 @@ textbox(s, xc[1], gyc + bhc + Inches(0.05), Inches(6.1), Inches(0.3),
 
 lw = Inches(6.5)
 textbox(s, MARGIN_L, Inches(3.30), lw, Inches(0.3),
-        "THE CLAIM, AS A CONJUNCTION", size=11, bold=True, color=ACCENT_C)
+        "THE CLAIM, STATED AS A CONJUNCTION", size=11, bold=True, color=ACCENT_C)
 bullets(s, MARGIN_L, Inches(3.65), lw, [
     ("The decoded point is chosen by an interview policy at an interview state",
      "— not sampled, not retrieved."),
@@ -1833,7 +1451,7 @@ bullets(s, MARGIN_L, Inches(3.65), lw, [
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(3.30), rw, Inches(0.3),
-        "EVERY LEG HAS PRIOR ART — WE CLAIM NO LEG ALONE", size=11, bold=True, color=ACCENT_C)
+        "PRIOR ART FOR EACH LEG SEPARATELY", size=11, bold=True, color=ACCENT_C)
 table(s, [
     ["prior work", "what it already does / lacks"],
     ["GeneRec (Wang 2023)", "generates objects the catalogue does not contain — but items, "
@@ -1847,47 +1465,19 @@ table(s, [
      "limited by the action space, with no remedy they can see."],
 ], rx, Inches(3.65), rw, col_w=[30, 70], font_size=10.5, row_h=0.50)
 
-textbox(s, MARGIN_L, Inches(6.35), lw, Inches(0.9),
-        ["⛔ CAPABILITY, NOT VALUE.",
-         ("No claim anywhere that asking a synthesised question improves recommendations. "
-          "Paper B is the reason: there, enlarging the bank made things worse.",
+textbox(s, MARGIN_L, Inches(6.10), lw, Inches(0.9),
+        ["CAPABILITY, NOT VALUE.",
+         ("There is no claim anywhere that asking a synthesised question improves "
+          "recommendations. Chapter 2 is the reason: there, enlarging the bank made things worse.",
           {"size": 11.5, "bold": False, "color": MUTED})],
         size=12.5, bold=True, color=ACCENT_C, space_after=3, line_spacing=1.14)
 footer(s, "Sources: paperC_lbr.tex §1 · chapterC_v2.tex :108-190 (positioning)")
-notes(s, """WHAT TO SAY
-Paper C's question. Every elicitation system in the literature, including everything in Paper B,
-picks a question from a list. The question here is what happens when the best thing to ask is not on
-the list.
-
-The loop at the top is the whole paper: take the interview state, emit a direction that is not any
-bank question, render it into English, and then push the English back through an independently fitted
-map to ask whether the text actually carries the direction.
-
-I want to be careful about novelty, so the right-hand table is deliberately deflating. Generating
-off-catalogue objects is GeneRec's territory. Verbalising a latent is ELM's mechanism and we borrow
-it. Synthesising a query and snapping it to real items was done inside recommendation in 2020. What is
-unoccupied is the conjunction on the left: the point is chosen by a policy at an interview state, the
-renderer is audited against a scrambled latent rather than a plausibility panel, and faithfulness is
-scored causally.
-
-The nearest relative sharpens rather than blunts it: EAGLE steers a language model over an ML-25M
-behavioural embedding and has no decoder at all. Its authors say themselves that coverage is limited
-by the action space and they see no remedy. They looked at decoding an off-manifold point and routed
-around it. We decode, and then audit what comes out.
-
-And the red line at the bottom holds everywhere: capability, not value. Paper B is why.
-
-SOURCES
-Claim conjunction and the neighbour analysis: chapterC_v2.tex :108-190, §positioning;
-paperC_lbr.tex §1. Capability-not-value ruling: chapterC_v2.tex 'Two things we say here rather than
-in a limitations paragraph'.""")
 
 
-# --- C2: the arc as a map -------------------------------------------------
-s, y = slide(prs, "Six experiments, in order",
-             "Each one is gated, pre-registered, and read against its own null. Three of them were "
-             "decided by a control rather than by the effect.",
-             kicker="paper c · the arc", accent=ACCENT_C)
+# --- C2: the experiment map -------------------------------------------------
+s, y = slide(prs, "Experiments in Chapter 3",
+             "Each is gated, pre-registered, and read against its own null. Three of the six "
+             "verdicts were decided by a control rather than by the effect.", accent=ACCENT_C)
 
 table(s, [
     ["", "the question it asks", "headline", "verdict"],
@@ -1925,31 +1515,19 @@ table(s, [
     font_size=9.3, row_h=0.79, first_col_bold=True)
 footer(s, "Sources: docs/results/{C0_GEOMETRY, C1_FINAL, C3B_ADAPTER, C3B_V2_QUESTIONS, C4_PILOT, "
           "C4B_NOISE, C4C_DECODING}.md · paperC_lbr.tex")
-notes(s, """WHAT TO SAY
-The arc, and this is C's work-volume slide. Six pre-registered experiments run between 21 August and
-30 August, each with a design sheet written before the run, each with gates read before any effect.
-
-Walk it left to right. C0 asks where the deployed policy's vector actually sits — and finds it never
-sits on the question it picks. C1 asks whether one object can both run the ordinary interview and
-emit off-catalogue directions; it can. C3B asks the mechanism question — does the text depend on the
-vector — and that is the one I would defend hardest. C3B-v2 asks whether it survives being turned
-into real askable questions. C4 closes the loop. C4B and C4C price the round trip.
-
-The right-hand column is the honest column. Note that three of the six verdicts were decided by a
-control rather than by the effect: C0's registered rule turned out to have no power because a random
-direction lands in the same cell; C3B's equivalence control fired in a direction that was actually
-favourable to us and we kept the FAILURE label anyway, because a pre-registration does not get
-reinterpreted after the data; and C1's generalisation reading was matched by the untrained network.
-
-SOURCES
-Per-experiment result docs as footed; arc summary in paperC_lbr.tex.""")
+notes(s, "NOTE TO AUTHOR: Chapter 3 contributes no figures to this deck because neither "
+         "chapterC_v2.tex nor paperC_lbr.tex contains a single plot or diagram — the only "
+         "figure environment in either file is fig:transcript, which is an empty placeholder "
+         "reading 'Placeholder for the deployment-trajectory transcript'. Chapter 3's slides "
+         "are therefore tables, generated text and the native loop diagram. If you want a "
+         "figure here, the obvious candidates are the decoding Pareto plot (C4C) and the "
+         "triangulation rank distribution; both would have to be drawn.")
 
 
 # --- C3: C0 + C1 off-catalogue emission ------------------------------------
-s, y = slide(prs, "Off-catalogue emission: one object, two behaviours",
-             "The policy runs the tree's ordinary interview essentially unchanged AND emits "
-             "gain-weighted blends that are not any bank question.",
-             kicker="paper c · c0 and c1", accent=ACCENT_C)
+s, y = slide(prs, "Where the emitted vector sits, and the emission gates",
+             "One object runs the tree's ordinary interview essentially unchanged and emits "
+             "gain-weighted blends that are not any bank question.", accent=ACCENT_C)
 
 lw = Inches(6.35)
 textbox(s, MARGIN_L, y + Inches(0.02), lw, Inches(0.3),
@@ -1964,7 +1542,7 @@ table(s, [
     align=num(3), first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(3.35), lw, Inches(1.4),
-        ["The mechanism, corrected.",
+        ["The mechanism, after correction.",
          ("The whole score vector sits far below zero — median top score −82.7 — because "
           "cross-entropy constrains only score DIFFERENCES. So the emission is a large shared "
           "common-mode offset PLUS a genuine bank-aligned direction that raw cosine hides. "
@@ -1994,8 +1572,8 @@ textbox(s, rx, Inches(3.05), rw, Inches(2.0),
           "chosen once and never swept.", {"size": 10.5, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_C, space_after=4, line_spacing=1.15)
 
-textbox(s, MARGIN_L, Inches(5.15), CONTENT_W, Inches(1.5),
-        ["⚠ THE HONEST BOUND, AND IT IS THE SAME SHAPE AS PAPER B's",
+textbox(s, MARGIN_L, Inches(4.88), CONTENT_W, Inches(1.5),
+        ["THE SCOPE BOUND — THE SAME SHAPE AS CHAPTER 2's HELD-OUT-ACTION RESULT",
          ("At withheld states cos to the own target is −0.11948, and a STATE-BLIND CONSTANT beats "
           "the policy there by +0.8893 [+0.6555, +1.0905], winning 14 of 15. The registered "
           "generalisation statistic looked positive (+0.05926) until the UNTRAINED warm start "
@@ -2006,41 +1584,11 @@ textbox(s, MARGIN_L, Inches(5.15), CONTENT_W, Inches(1.5),
         size=12.5, bold=True, color=ACCENT_C, space_after=4, line_spacing=1.15)
 footer(s, "Sources: docs/results/C0_GEOMETRY.md · C1_FINAL.md (corrected 2026-09-01) · "
           "chapterC_v2.tex §C0, §C1")
-notes(s, """WHAT TO SAY
-Two experiments on one slide. C0 first: we took the deployed policy — Paper B's distilled E1 — and
-captured the continuous vector it emits BEFORE it snaps to a bank question, at every one of 160,000
-validation states. It never sits on the question it picks. The maximum cosine over all 160,000 rows is
-0.12; not one row is above 0.98.
-
-The mechanism box matters because it is a correction to our own first reading. The raw cosine is
-NEGATIVE, and a random direction looks closer, which initially looked damning. The explanation is that
-cross-entropy only ever constrains score differences, so the head parked a huge common-mode offset in
-the vector — median top score minus eighty-three. Remove the shared component and the emission's cosine
-to the entry it selects is +0.488 against a random direction's +0.170. So it is a genuine bank-aligned
-direction hiding under an offset.
-
-C1 then trains one object to do two things: run the ordinary tree interview, and emit gain-weighted
-blends at its node states. Both blocking gates pass — all 245 distinct questions preserved, 99.5 %
-snap agreement, and a 0.97 fit to the blend targets it was taught.
-
-And then the bound at the bottom, which I would rather state than have found. At states it was NOT
-taught, it fails — and worse, a state-blind constant beats it there by a mile. The registered
-generalisation statistic looked positive until we ran it on the UNTRAINED network and got a bigger
-number. Neighbouring states carry correlated targets, so 'own beats a random other' is positive before
-any training at all. Same shape as Paper B's P1 and P1b results: first-rate exactly where supervised,
-no better than the baseline outside. I think that is a thesis-level regularity, not an isolated
-disappointment.
-
-SOURCES
-C0: docs/results/C0_GEOMETRY.md; chapterC_v2.tex §C0 (tab:c0main, tab:c0gates, §mechanism).
-C1: docs/results/C1_FINAL.md (corrected 2026-09-01, state-blind-constant floor); chapterC_v2.tex §C1
-(tab:c1gates, tab:c1final).""")
 
 # --- C4: the mechanism -------------------------------------------------
-s, y = slide(prs, "The mechanism: the vector conditions the text",
-             "A two-layer adapter maps the direction into eight soft prefix tokens of a FROZEN "
-             "distilgpt2. Its twin is trained identically on scrambled pairs.",
-             kicker="paper c · c3b · the load-bearing experiment", accent=ACCENT_C)
+s, y = slide(prs, "Testing whether the vector conditions the generated text",
+             "A two-layer adapter maps the direction into eight soft prefix tokens of a frozen "
+             "distilgpt2. Its control twin is trained identically on scrambled pairs.", accent=ACCENT_C)
 
 table(s, [
     ["reading  (item channel, n = 3,670 held-out questions, 10k paired bootstrap)",
@@ -2061,28 +1609,28 @@ table(s, [
 
 lw = Inches(6.5)
 textbox(s, MARGIN_L, Inches(3.95), lw, Inches(0.3),
-        "WHY THE FAILURE IS NOT WHAT IT LOOKS LIKE", size=11, bold=True, color=ACCENT_C)
+        "WHAT THE FAILING CRITERION MEASURED", size=11, bold=True, color=ACCENT_C)
 bullets(s, MARGIN_L, Inches(4.30), lw, [
     ("The control guarded against the twin smuggling signal.", "It fired because the "
      "twin sits BELOW knowing nothing — the opposite threat."),
     ("The twin collapsed to 61 distinct texts over 3,880 vectors;", "the true arm "
      "produced 2,280."),
-    ("The lesson we take, and state:", "write an equivalence control WITH a direction. "
-     "A pre-registration does not get reinterpreted after the data — so the composite "
-     "stays FAILURE and the two mechanism criteria are reported as passing on their own terms."),
+    ("The rule adopted:", "write an equivalence control with a direction. A "
+     "pre-registration is not reinterpreted after the data, so the composite stays FAILURE and "
+     "the two mechanism criteria are reported as passing on their own terms."),
 ], size=12)
 
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(3.95), rw, Inches(0.3),
-        "ABOVE CEILING — AND THE CAVEAT THAT TRAVELS WITH IT", size=11, bold=True, color=ACCENT_C)
+        "SCORING ABOVE THE GOLD-PHRASE CEILING, AND ITS CAVEAT", size=11, bold=True, color=ACCENT_C)
 textbox(s, rx, Inches(4.30), rw, Inches(2.2),
         ["The adapter's text re-encodes BETTER than the true title does, at 107 % of the gold "
          "phrase's own ceiling — while exact-phrase recovery is 0.0000 and token-F1 is 0.111. "
          "It essentially never emits the right title and carries the vector anyway.",
-         ("Caveat, ours not a reviewer's: the bridge prefers concept-flavoured text, and invented "
-          "titles are freer to be concept-flavoured than real ones — which is the same reason the "
-          "exact-phrase floor is zero. “Above ceiling” never travels without this sentence.",
+         ("Caveat: the bridge prefers concept-flavoured text, and invented titles are freer to "
+          "be concept-flavoured than real ones, which is also why the exact-phrase floor is zero. "
+          "The 107 % figure is not quoted without this sentence.",
           {"size": 10.5, "bold": False, "color": ACCENT_C}),
          ("Concept channel, printed not gated: A = +0.3533 against a required +0.2002; "
           "identification 0.8476 [0.8000, 0.8952] against a 0.7714 floor.",
@@ -2090,41 +1638,12 @@ textbox(s, rx, Inches(4.30), rw, Inches(2.2),
         size=11.5, color=INK, space_after=6, line_spacing=1.15)
 footer(s, "Sources: docs/results/C3B_ADAPTER.md · paperC_lbr.tex tab:english panel (a) · "
           "chapterC_v2.tex :862-905")
-notes(s, """WHAT TO SAY
-This is the load-bearing experiment of Paper C and the one I would defend in a viva.
-
-The setup: a two-layer MLP maps a latent direction into eight soft prefix tokens of a frozen
-distilgpt2, trained on the 19,390 bank entries with a twenty-percent identity-held-out split. The
-control is a twin trained identically but on channel-preserving PERMUTED pairs — so it sees the same
-vectors and the same texts, just wrongly matched. If the renderer were ignoring its input, the twin
-would do just as well.
-
-It does not. The true arm beats the twin by +0.1114 with a tight interval, and — this is the part I
-still find surprising — the generated text re-encodes at 107 % of what the TRUE gold phrase earns
-through the same bridge. It identifies its own source vector against a decoy 68 % of the time, above
-the gold phrase's own 66 %. And it does that while exact-phrase recovery is zero. It essentially never
-emits the right title.
-
-The FAILURE row: criterion two was an equivalence test — the twin should sit within noise of a prior
-that knows nothing. It does not; it sits BELOW knowing nothing. That is the opposite of the threat we
-wrote the control against, and it means the control fired in a direction favourable to us. We keep the
-composite FAILURE label anyway, because a pre-registration you reinterpret after seeing the data is
-not a pre-registration. The lesson we write down is: write equivalence controls with a direction.
-
-Last thing — the caveat box, top right. The 'above ceiling' number needs its caveat every time it is
-quoted: the bridge prefers concept-flavoured text, and invented titles are freer to be
-concept-flavoured than real ones.
-
-SOURCES
-docs/results/C3B_ADAPTER.md (gate table, arm levels, twin collapse to 61 texts, exact-phrase 0.0000,
-token-F1 0.111); paperC_lbr.tex tab:english panel (a); chapterC_v2.tex :862-905.""")
 
 
 # --- C5: askable questions ------------------------------------------------
-s, y = slide(prs, "Making them askable — and what naturalness costs",
-             "Retrain the same adapter on question-shaped targets. The mechanism survives. "
-             "The instrument's ceiling drops 23 %.",
-             kicker="paper c · c3b-v2 · the renderer of record", accent=ACCENT_C)
+s, y = slide(prs, "Question-shaped output, and its effect on the measured ceiling",
+             "The same adapter retrained on question-shaped targets. The mechanism survives, and "
+             "the instrument's own ceiling drops by 23 %.", accent=ACCENT_C)
 
 lw = Inches(7.3)
 table(s, [
@@ -2144,7 +1663,7 @@ table(s, [
 rx = MARGIN_L + lw + Inches(0.35)
 rw = CONTENT_W - lw - Inches(0.35)
 textbox(s, rx, y + Inches(0.05), rw, Inches(0.3),
-        "★ NATURALNESS COSTS VERIFIABILITY", size=11, bold=True, color=ACCENT_C)
+        "QUESTION BOILERPLATE LOWERS THE CEILING", size=11, bold=True, color=ACCENT_C)
 textbox(s, rx, y + Inches(0.42), rw, Inches(2.6),
         ["Wrapping a phrase in question boilerplate lowers what a PERFECT renderer can score "
          "through the same instrument.",
@@ -2157,15 +1676,15 @@ textbox(s, rx, y + Inches(0.42), rw, Inches(2.6),
           {"size": 11, "bold": False, "color": MUTED})],
         size=11.5, color=INK, space_after=6, line_spacing=1.15)
 
-textbox(s, rx, Inches(3.55), rw, Inches(2.2),
-        ["THE RULE WE NOW FOLLOW",
+textbox(s, rx, Inches(4.20), rw, Inches(2.2),
+        ["THE RULE ADOPTED",
          ("A change to the output format is a change to the instrument, and the ceiling must be "
           "RE-MEASURED before any gate is read.", {"size": 11.5, "bold": True, "color": INK}),
          ("", {"size": 4}),
-         ("Without it, the bare-phrase adapter's 107 % and the question adapter's 71 % look like a "
-          "regression. They are not two readings of one number. Nobody in the verbalisation "
-          "literature reports a figure of this kind, and the reason is structural: it requires a "
-          "same-instrument ceiling, which the field does not measure.",
+         ("Without it, the bare-phrase adapter's 107 % and the question adapter's 71 % read as a "
+          "regression. They are readings against two different ceilings. No figure of this kind "
+          "appears in the verbalisation literature, because it requires a same-instrument ceiling "
+          "that the field does not measure.",
           {"size": 10.5, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_C, space_after=5, line_spacing=1.15)
 
@@ -2181,39 +1700,12 @@ textbox(s, MARGIN_L, Inches(4.30), lw, Inches(2.3),
         size=12.5, bold=True, color=INK, space_after=5, line_spacing=1.15)
 footer(s, "Sources: docs/results/C3B_V2_QUESTIONS.md · paperC_lbr.tex tab:english panel (b) · "
           "chapterC_v2.tex :912-1010")
-notes(s, """WHAT TO SAY
-The bare-phrase adapter emits things like 'science fiction' or 'Rocky (2005)'. An interview asks
-QUESTIONS. So we retrained the identical architecture on question-shaped targets — a small fixed
-template family per channel, one template sampled per example per epoch so the model learns question
-FORM plus this content rather than memorising one string.
-
-Everything survives. The true arm still beats its scrambled twin, identification still clears its bar,
-and 94.7 % of held-out generations are well-formed askable questions against a pre-registered 90 %
-target. The 5.3 % that fail are printed rather than trimmed, and they fail by repetition.
-
-But the finding on this slide is the box top-right, and it is my favourite small contribution.
-Templating the GOLD text — not our generation, the ground truth — lowers what a perfect renderer can
-possibly score through this instrument by 23 % on items and 17 % on concepts. The boilerplate is the
-same words for every question in the channel, so it adds surface carrying no information about the
-direction, and the bridge reading it back gets a weaker signal.
-
-Concretely: reusing the old ceiling would have made the question adapter's 71 % look like a regression
-from the bare adapter's 107 %. It is not a regression, it is a format change. So the rule we now
-follow, and state as a rule: a change to the output format is a change to the instrument, and the
-ceiling must be re-measured before any gate is read. Nobody in the verbalisation literature reports a
-number like this, and the reason is structural — it needs a same-instrument ceiling, which is exactly
-the calibration the field does not run.
-
-SOURCES
-docs/results/C3B_V2_QUESTIONS.md (gate table, 0.9471 [0.9398,0.9542], 0.08920→0.06828, the two
-prior question-mark rates); paperC_lbr.tex tab:english panel (b); chapterC_v2.tex :912-1010.""")
 
 
 # --- C6: triangulation -----------------------------------------------------
-s, y = slide(prs, "Triangulation: where the render is distinctive, it lands among the right neighbours",
-             "An independent second view — is the rendered word one of the point's own nearest "
-             "concepts? Under greedy decoding the answer splits cleanly, and the split is diagnostic.",
-             kicker="paper c · c4", accent=ACCENT_C)
+s, y = slide(prs, "Rank of the rendered word among the point's nearest concepts",
+             "An independent second view: whether the rendered word is one of the point's own "
+             "nearest concepts. Under greedy decoding the states split into two groups.", accent=ACCENT_C)
 
 lw = Inches(6.2)
 table(s, [
@@ -2226,7 +1718,7 @@ table(s, [
     align=num(3), first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(3.15), lw, Inches(1.6),
-        ["The reading is a generation-DIVERSITY limit, not a geometry failure.",
+        ["The limit is generation diversity, not geometry.",
          ("Where greedy falls back it falls back on three stock words — horror ×9, religion ×7, "
           "movies ×4. Strict top-ten membership is 4/42 against 0/42 for random points, with "
           "overlapping Wilson intervals: a harsher bar that does not separate at this n, and we "
@@ -2236,7 +1728,7 @@ textbox(s, MARGIN_L, Inches(3.15), lw, Inches(1.6),
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, y + Inches(0.05), rw, Inches(0.3),
-        "THE BULLSEYES — rank of the rendered word in its own point's ranking over 1,031 concepts",
+        "RENDERED WORD, AND ITS RANK IN ITS OWN POINT'S 1,031-CONCEPT RANKING",
         size=11, bold=True, color=ACCENT_C)
 table(s, [
     ["rendered word", "rank", "what the point was built from"],
@@ -2252,7 +1744,7 @@ table(s, [
     align=[L, C, L], first_col_bold=True)
 
 textbox(s, rx, Inches(4.25), rw, Inches(2.2),
-        ["DECODING IS THE WHOLE LEVER",
+        ["DECODING IS THE LEVER",
          ("Best-of-8 by the frozen LM's own length-normalised likelihood — a rule blind to the "
           "evaluation metric by construction — takes distinct renders from 23 to 37 of 42 and cuts "
           "the translation cost roughly in half, with the faithfulness change not significant "
@@ -2261,80 +1753,56 @@ textbox(s, rx, Inches(4.25), rw, Inches(2.2),
         size=11, bold=True, color=ACCENT_C, space_after=5, line_spacing=1.15)
 footer(s, "Sources: docs/results/C4_PILOT.md · C4C_DECODING.md · chapterC_v2.tex :1086-1100 · "
           "paperC_lbr.tex tab:loop")
-notes(s, """WHAT TO SAY
-An independent second view of the same question. Forget the bridge for a moment: is the rendered word
-literally one of that point's own nearest concepts?
-
-Under greedy decoding it splits cleanly, and the split is diagnostic rather than noise. Where the
-adapter emits a distinctive word — eighteen of forty-two states — the render lands at median rank 91
-out of 1,031, with genuine bullseyes: 'action' at rank one, 'indictment' at five for a courtroom blend
-built from Primal Fear and A Time to Kill, 'animals' at seven for the Pixar branch. Where it falls back
-on one of three stock words, the median is 362, which is no better than the random-tag floor of 340.
-
-So the failure mode is generation diversity, not geometry. And we can prove that, because changing
-ONLY the decoding — same adapter, same bridge, same reference — takes distinct renders from 23 to 37
-and halves the translation cost, with the faithfulness change not significant.
-
-Note the harsher bar honestly: strict top-ten membership is 4 of 42 against 0 of 42 for random points,
-and the Wilson intervals overlap. That test does not separate at this n and I say so.
-
-SOURCES
-Triangulation split and bullseyes: docs/results/C4_PILOT.md; chapterC_v2.tex :1086-1100.
-Decoding table: docs/results/C4C_DECODING.md; paperC_lbr.tex tab:loop.
-NOTE the label to be careful with: 362.5 is the REPEATED-render group (n=24), not the stock-word group
-(n=20); both C4_PILOT.md and C4B_NOISE.md carry a 2026-08-30 correction on exactly this, and the .tex
-reproduces the corrected-away wording. This deck uses the corrected label.""")
 
 
-# --- C7: the hook ------------------------------------------------------------
-s, y = slide(prs, "The hook: the nearest catalogue question's own text points the wrong way",
-             "This is the motivating sentence turned into a number — and the single most striking "
-             "measurement in the paper.",
-             kicker="paper c · c4 · the result", accent=ACCENT_C)
+# --- C7: catalogue text vs rendered word ------------------------------------------------------------
+s, y = slide(prs, "Nearest catalogue question compared with the emitted direction",
+             "At each interview state, whether the nearest bank entry's own gold phrase carries "
+             "the direction the point was built from.", accent=ACCENT_C)
 
-bwh, bhh = Inches(3.6), Inches(1.55)
-gyh = y + Inches(0.25)
+bwh, bhh = Inches(3.6), Inches(1.38)
+gyh = y + Inches(0.72)
 xh0 = MARGIN_L + Inches(0.55)
 box(s, xh0, gyh, bwh, bhh,
     [("THE EMITTED POINT", {"size": 12, "color": ACCENT_C}),
      ("the direction the policy wants", {"size": 10.5, "bold": False, "color": MUTED}),
      ("to ask about at this state", {"size": 10.5, "bold": False, "color": MUTED})],
     line=ACCENT_C)
-box(s, xh0 + bwh + Inches(1.1), gyh - Inches(0.85), bwh, bhh,
+box(s, xh0 + bwh + Inches(1.1), gyh - Inches(0.70), bwh, bhh,
     [("THE NEAREST CATALOGUE QUESTION", {"size": 11.5}),
      ("cos 0.93 in the emitter's own head space", {"size": 10, "bold": False, "color": MUTED}),
      ("its own gold phrase carries the direction at", {"size": 10, "bold": False, "color": MUTED}),
      ("−0.158   [−0.224, −0.089]", {"size": 15, "color": ACCENT_C})],
     line=MUTED)
-box(s, xh0 + bwh + Inches(1.1), gyh + Inches(0.95), bwh, bhh,
+box(s, xh0 + bwh + Inches(1.1), gyh + Inches(0.70), bwh, bhh,
     [("THE RENDERED OFF-CATALOGUE WORD", {"size": 11.5}),
      ("not in the bank at all", {"size": 10, "bold": False, "color": MUTED}),
      ("carries that same direction at", {"size": 10, "bold": False, "color": MUTED}),
      ("+0.204   [+0.117, +0.291]", {"size": 15, "color": ACCENT})],
     line=ACCENT)
-arrow(s, xh0 + bwh, gyh + bhh // 2, xh0 + bwh + Inches(1.1), gyh - Inches(0.85) + bhh // 2,
+arrow(s, xh0 + bwh, gyh + bhh // 2, xh0 + bwh + Inches(1.1), gyh - Inches(0.70) + bhh // 2,
       color=MUTED)
-arrow(s, xh0 + bwh, gyh + bhh // 2, xh0 + bwh + Inches(1.1), gyh + Inches(0.95) + bhh // 2,
+arrow(s, xh0 + bwh, gyh + bhh // 2, xh0 + bwh + Inches(1.1), gyh + Inches(0.70) + bhh // 2,
       color=ACCENT)
 
-textbox(s, xh0 + 2 * bwh + Inches(1.5), gyh - Inches(0.2), Inches(3.4), Inches(2.4),
+textbox(s, xh0 + 2 * bwh + Inches(1.5), gyh - Inches(0.15), Inches(3.4), Inches(2.0),
         ["A GAP OF", ("+0.362", {"size": 40, "color": ACCENT_C}),
          ("interval excluding zero", {"size": 11, "bold": False, "color": MUTED})],
         size=12, bold=True, color=INK, align=C, space_after=4)
 
-textbox(s, MARGIN_L, Inches(4.35), CONTENT_W, Inches(0.6),
-        "The direction the policy wants to ask about is expressible — and the text of the "
-        "nearest catalogue question does not express it.",
+textbox(s, MARGIN_L, Inches(4.55), CONTENT_W, Inches(0.6),
+        "The direction is expressible in English; the text of the nearest catalogue "
+        "question does not express it.",
         size=17, bold=True, color=INK, line_spacing=1.12)
 
 lw = Inches(6.5)
 textbox(s, MARGIN_L, Inches(5.20), lw, Inches(1.5),
-        ["TWO CAVEATS TRAVEL WITH THIS NUMBER, AND THEY ARE OURS",
-         ("The k(φ)-nearest entry is itself a common-mode artefact of an anisotropic space — it is "
-          "frequently the SAME entry, “divorce” — so “nearest” does less work than it sounds. And "
-          "the bridge favours concept-flavoured text, which is a thumb on the scale for a one-word "
-          "render against a bank phrase.", {"size": 10.5, "bold": False, "color": MUTED}),
-         ("The SIGN survives both. The magnitude is not to be quoted without them.",
+        ["TWO CAVEATS ATTACHED TO THIS NUMBER",
+         ("The nearest entry is partly a common-mode artefact of an anisotropic space — it is "
+          "frequently the same entry, the concept “divorce” — so “nearest” does less work than "
+          "it sounds. The bridge also favours concept-flavoured text, which advantages a one-word "
+          "render over a bank phrase.", {"size": 10.5, "bold": False, "color": MUTED}),
+         ("The sign survives both. The magnitude is not quoted without them.",
           {"size": 10.5, "bold": True, "color": ACCENT_C})],
         size=11, bold=True, color=ACCENT_C, space_after=4, line_spacing=1.15)
 
@@ -2348,36 +1816,11 @@ textbox(s, rx, Inches(5.20), rw, Inches(1.5),
           {"size": 10.5, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_C, space_after=4, line_spacing=1.15)
 footer(s, "Sources: docs/results/C4_PILOT.md · chapterC_v2.tex :1068-1085 · paperC_lbr.tex §loop")
-notes(s, """WHAT TO SAY
-This is the slide the paper exists for.
 
-At each interview state we take the bank entry NEAREST the emitted point — cosine 0.93, as close as the
-catalogue ever gets. Then we take that entry's OWN gold phrase, the actual words a user would be shown,
-and push it through the same independently fitted bridge to ask whether it carries the direction the
-point was built from.
-
-It is ANTI-aligned. Minus 0.158, interval clear of zero. The closest question in the catalogue, in
-words, points away from what the policy wants to know.
-
-The off-catalogue word our renderer produces carries that same direction at plus 0.204. A gap of 0.362.
-
-So: the direction is expressible in English. It is just not expressible by anything in the bank. That
-is the entire motivation for the paper turned into a measurement.
-
-Two caveats I attach here rather than in limitations, because they are ours and not a reviewer's. The
-'nearest' entry is partly a common-mode artefact — it is frequently the same entry, the concept
-'divorce'. And the bridge prefers concept-flavoured text, which favours a one-word render over a bank
-phrase. The SIGN survives both comfortably; the magnitude should never be quoted without them.
-
-SOURCES
-docs/results/C4_PILOT.md; chapterC_v2.tex :1068-1085 (including both caveats verbatim);
-point-specificity +0.28593 and the prior floor: chapterC_v2.tex :1055-1067.""")
-
-# --- C8: THE TRANSCRIPT (centrepiece) ---------------------------------------
-s, y = slide(prs, "The deployment transcript",
+# --- C8: the example interview ---------------------------------------
+s, y = slide(prs, "Example interview",
              "One cold-start trajectory, six turns. Left: the question the frozen tree would ask. "
-             "Right: the question synthesised from the direction the policy emits at that state.",
-             kicker="paper c · c4d · the centrepiece", accent=ACCENT_C)
+             "Right: the question synthesised from the direction the policy emits at that state.", accent=ACCENT_C)
 
 table(s, [
     ["turn", "interview state", "n", "the tree's own question",
@@ -2398,75 +1841,44 @@ table(s, [
     font_size=11.5, row_h=0.435, align=[C, L, R, L, L], first_col_bold=True)
 
 lw = Inches(6.5)
-textbox(s, MARGIN_L, Inches(3.95), lw, Inches(0.3),
-        "TURNS 3, 5 AND 6 CARRY THE ARGUMENT", size=11, bold=True, color=ACCENT)
-bullets(s, MARGIN_L, Inches(4.30), lw, [
+textbox(s, MARGIN_L, Inches(4.40), lw, Inches(0.3),
+        "TURNS 3, 5 AND 6", size=11, bold=True, color=ACCENT)
+bullets(s, MARGIN_L, Inches(4.78), lw, [
     ("sci-fi movies", "against the tree's “alien films”"),
     ("detective drama", "against the tree's “have you seen Crimson Tide (1995)?”"),
     ("children films", "against the tree's “have you seen Star Wars: Episode VI?”"),
 ], size=13)
-textbox(s, MARGIN_L, Inches(5.85), lw, Inches(0.9),
-        "Same neighbourhood, different — and more askable — object. That is the whole "
-        "capability claim, in six lines.",
+textbox(s, MARGIN_L, Inches(5.95), lw, Inches(0.7),
+        "The same neighbourhood, but a more askable object. That is the capability claim, "
+        "in six lines.",
         size=12.5, bold=True, color=INK, line_spacing=1.15)
 
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
-textbox(s, rx, Inches(3.95), rw, Inches(0.3),
-        "TURNS 2 AND 4 ARE THE TEMPLATING FAILURE", size=11, bold=True, color=ACCENT_C)
-textbox(s, rx, Inches(4.30), rw, Inches(2.4),
+textbox(s, rx, Inches(4.40), rw, Inches(0.3),
+        "TURNS 2 AND 4: THE TEMPLATING FAILURE", size=11, bold=True, color=ACCENT_C)
+textbox(s, rx, Inches(4.78), rw, Inches(2.0),
         ["“Do you like it when a film is movie?” — boilerplate round a nearly contentless phrase; "
          "turn 4's blend is a diffuse movie-business / best-cinematography direction.",
          ("2 of 6 = 33 %, against C3B-v2's measured 5.3 %. Structural, not a contradiction: 5.3 % "
           "was measured on single clean bank entities and the transcript renders BLENDS (median "
           "top-1 weight 0.225).", {"size": 11, "bold": False, "color": MUTED}),
-         ("Six turns is a warning, not a number.",
+         ("Six turns is an indication, not a measurement.",
           {"size": 11.5, "bold": True, "color": ACCENT_C})],
         size=11.5, color=INK, space_after=5, line_spacing=1.14)
 
-textbox(s, MARGIN_L, Inches(6.85), CONTENT_W, Inches(0.4),
-        "⛔ The artifact's NDCG column — in which the synthesised arm wins 5 of 6 turns — is "
-        "declared-circular, unregistered, n=6 on one path. Not a result, never reported as one.",
+textbox(s, MARGIN_L, Inches(6.58), CONTENT_W, Inches(0.4),
+        "The run artefact's NDCG column, in which the synthesised arm wins 5 of 6 turns, is "
+        "declared-circular, unregistered, and n=6 on one path. It is not reported as a result.",
         size=10.5, bold=True, color=ACCENT_C, line_spacing=1.1)
 footer(s, "Source: docs/results/C4D_TRANSCRIPT.md (renderer: v2 question adapter, best-of-8 by LM "
           "likelihood; cohort = all 10,000 validation users, majority path) · paperC_lbr.tex tab:demo")
-notes(s, """WHAT TO SAY
-This is the centrepiece. Everything before it was a measurement; this is the thing itself.
-
-One cold-start trajectory walked down the majority branch of the frozen tree, all ten thousand
-validation users at the root, narrowing to eleven hundred by turn six. Left column: the question the
-tree would actually ask. Right column: the question synthesised from the direction the policy emits at
-that same state, rendered by the question adapter under best-of-8 decoding.
-
-Turn three is my favourite. The tree asks 'do you like alien films?' — because 'alien' happens to be a
-tag in the bank. The synthesised question asks 'how do you feel about sci-fi movies?'. Same
-neighbourhood, more askable object. Turn five: the tree asks whether you have seen Crimson Tide, a 1995
-submarine thriller most people have not seen. The synthesised question asks about detective drama. Turn
-six: Star Wars Episode VI against 'children films'.
-
-And then turns two and four, which I am showing you rather than cropping. 'Do you like it when a film
-is movie?' is boilerplate wrapped round a nearly contentless phrase. Two of six is thirty-three
-percent, against the 5.3 % malformation rate we measured. That is not a contradiction — the 5.3 % was
-measured on single clean bank entities, and the transcript renders BLENDS, where the median top-1
-weight is 0.225. A template family fitted to single phrases degrades on mixtures. Six turns is a
-warning, not a number, and it is the top of my fix list.
-
-Last line, and I want to be explicit: the artifact does contain an NDCG column where the synthesised
-arm wins five of six turns. It is circular, unregistered, n equals six on one path. It is not a result
-and I will not report it as one.
-
-SOURCES
-docs/results/C4D_TRANSCRIPT.md — all six turns and cohort sizes verbatim; the 33 %-vs-5.3 % analysis;
-the ⛔ ruling on the NDCG column; gates (m7dj rebuild bit-identical, 72/72 sweeps, tree_route match
-1.0000 on all 1,108 users, leak check 0/10,000, TEST untouched, no LLM API).
-Also printed as paperC_lbr.tex tab:demo.""")
 
 
 # --- C9: machine-only synonyms ------------------------------------------------
-s, y = slide(prs, "Machine-only synonyms — and why a plausibility panel cannot grade this",
-             "The adapter almost never emits the right title. Its text reproduces the vector's "
-             "effect anyway. Both facts are true at once.",
-             kicker="paper c · the methodological finding", accent=ACCENT_C)
+s, y = slide(prs, "Generated text that does not match the source phrase",
+             "The adapter almost never emits the right title, and its text reproduces the "
+             "vector's effect anyway. Both measurements hold at once.", accent=ACCENT_C)
 
 table(s, [
     ["the source vector's true question is about…", "…and the adapter renders"],
@@ -2477,8 +1889,8 @@ table(s, [
     first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(3.15), CONTENT_W, Inches(0.6),
-        "Neighbouring era, neighbouring register, wrong film — fully fluent, fully askable, "
-        "and wrong.",
+        "Neighbouring era, neighbouring register, wrong film: fluent, askable, and incorrect "
+        "as a surface form.",
         size=14, bold=True, color=INK)
 
 lw = Inches(6.5)
@@ -2495,15 +1907,15 @@ table(s, [
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(3.85), rw, Inches(0.3),
-        "WHY THE LOAD-BEARING EVIDENCE IS A CONTROL AND A CEILING, NOT A HUMAN SCORE",
+        "WHY THE EVIDENCE IS A CONTROL AND A CEILING RATHER THAN A HUMAN SCORE",
         size=11, bold=True, color=ACCENT_C)
 textbox(s, rx, Inches(4.25), rw, Inches(2.5),
         ["A rater with no access to the source vector has one verdict available: fluent, natural, "
          "answerable — and about the wrong film. They mark it wrong. The instrument, which sees the "
          "vector, records that the text reproduces its effect at 61 %. Both are correct.",
-         ("The asymmetry runs the other way too, and that is what should worry the field: a renderer "
-          "that ignored its input entirely and asked “Have you seen The Godfather (1972)?” every "
-          "time would score WELL with raters and at CHANCE with the instrument.",
+         ("The asymmetry runs the other way as well: a renderer that ignored its input entirely "
+          "and asked “Have you seen The Godfather (1972)?” every time would score well with "
+          "raters and at chance with the instrument.",
           {"size": 11, "bold": False, "color": ACCENT_C}),
          ("So a plausibility panel cannot separate our renderer from a confabulator in either "
           "direction, and adding raters does not fix it — they would have to be shown the latent.",
@@ -2511,66 +1923,31 @@ textbox(s, rx, Inches(4.25), rw, Inches(2.5),
         size=11, color=INK, space_after=5, line_spacing=1.14)
 
 textbox(s, MARGIN_L, Inches(6.35), lw, Inches(0.7),
-        "These are Hewitt et al.'s machine-only synonyms appearing unprompted: text a person "
-        "would grade wrong that reproduces the vector's semantic effect better than the true "
+        "These are Hewitt et al.'s machine-only synonyms, appearing unprompted: text a person "
+        "would grade as wrong that reproduces the vector's semantic effect better than the true "
         "surface form does.",
         size=11.5, color=MUTED, line_spacing=1.15)
 footer(s, "Sources: docs/results/C3B_V2_QUESTIONS.md · C3B_ADAPTER.md · chapterC_v2.tex :1015-1042")
-notes(s, """WHAT TO SAY
-This is the methodological finding, and it is the one I would most like to argue about with a reviewer.
-
-Three held-out examples. The source vector's true question is about The Shawshank Redemption; the
-adapter renders 'Have you seen Pulp Fiction?'. Ghost Story from 1981 becomes Battlestar Galactica from
-1980. Desperate Hours from 1955 becomes an invented title from 1941. Neighbouring era, neighbouring
-register, wrong film — and completely fluent and askable.
-
-The numbers: token overlap with the gold phrase is 0.055, exact content match is three ten-thousandths.
-It essentially never says the right thing. And yet its text identifies its own source vector against a
-decoy 61 % of the time, where the TRUE question manages 63 %.
-
-Now the argument I want to make. A human rater shown 'Have you seen Pulp Fiction?' with no access to
-the source vector has exactly one verdict available: it is a good question about the wrong film. They
-mark it wrong. The instrument, which does see the vector, records that the text carries the vector's
-effect. Both are right; they are measuring different things.
-
-And here is the part that should worry the field: the asymmetry runs the other way too. A renderer that
-ignored its input completely and asked 'have you seen The Godfather?' every single time would score
-beautifully with raters and at chance with the instrument. So a plausibility panel cannot separate our
-renderer from a confabulator in EITHER direction, and hiring more raters does not fix it — you would
-have to show them the latent, at which point they are running our bridge by hand and worse.
-
-That is why the load-bearing evidence in this paper is a control and a ceiling rather than a human
-score. It is a measured reason, not a budget excuse. It is also, to be fair, the strongest argument
-FOR the one human study I do want: on answerability, not on quality.
-
-SOURCES
-Three examples and the numbers: docs/results/C3B_V2_QUESTIONS.md (held-out, best-of-8; a fourth
-example exists — Time Traveler's Wife → My Little Pony — the paper prints three).
-Bare-phrase precursors (Rocky Balboa → 'Rocky (2005)', Zelig → 'Theatrical Man (1962)'):
-C3B_ADAPTER.md. The panel argument verbatim: chapterC_v2.tex :1015-1042.
-Machine-only synonyms concept: Hewitt et al. 2025 (neologism), cited in the chapter.""")
 
 
 # --- C10: C status ------------------------------------------------------------
-s, y = slide(prs, "Paper C: where it stands",
-             "A capability paper with no benchmark to beat. The LBR draft is written; publication "
-             "is a bonus, not a requirement.",
-             kicker="paper c · status", accent=ACCENT_C)
+s, y = slide(prs, "Chapter 3 status",
+             "A capability result with no benchmark to beat. The short-form draft is written; "
+             "publication is optional.", accent=ACCENT_C)
 
 lw = Inches(7.1)
 table(s, [
     ["", ""],
     ["State", "Six experiments run and banked; the short-form draft is written "
      "(new_chapters/paperC_lbr/, dated September 2026)"],
-    ["Role", "REDEFINED 2026-08-18: absorbs old Paper E. A capability paper — fun techniques, "
-     "no benchmark to beat, ideally truly original. PEBOL-shaped."],
-    ["Author's steer", "“a sexy LLM piece to top off the thesis… not load-bearing… interesting "
-     "stuff and less lengthy field audits.” The spine is the DEMO; the 12-system audit shrinks "
-     "to one related-work paragraph plus one control."],
+    ["Role", "redefined 2026-08-18: absorbs the former LLM-dialogue workstream. A capability "
+     "result rather than a benchmark result."],
+    ["Author's direction", "the spine is the worked example; the 12-system audit shrinks to one "
+     "related-work paragraph plus one control."],
     ["Venue", "opportunistic — no deadline pressure"],
     ["Cost to a submittable draft", "~3–4 focused days of work plus 2–3 machine-nights, "
      "plus an author pass"],
-    ["Also lands as", "the thesis capstone chapter (chapterC_v2), which is longer and keeps "
+    ["Also serves as", "the final thesis chapter (chapterC_v2), which is longer and keeps "
      "the audit"],
 ], MARGIN_L, y + Inches(0.05), lw, col_w=[24, 76], font_size=11.2, row_h=0.52,
     first_col_bold=True, header_rows=0)
@@ -2578,7 +1955,7 @@ table(s, [
 rx = MARGIN_L + lw + Inches(0.40)
 rw = CONTENT_W - lw - Inches(0.40)
 textbox(s, rx, y + Inches(0.05), rw, Inches(0.3),
-        "WHAT IS ESTABLISHED", size=11, bold=True, color=ACCENT_C)
+        "ESTABLISHED", size=11, bold=True, color=ACCENT_C)
 bullets(s, rx, y + Inches(0.42), rw, [
     "The policy emits off-catalogue directions where the question landscape was measured.",
     "A trained renderer says them in English, and 94.7 % are well-formed questions.",
@@ -2588,46 +1965,25 @@ bullets(s, rx, y + Inches(0.42), rw, [
 ], size=11.5, marker_color=ACCENT)
 
 textbox(s, rx, Inches(4.15), rw, Inches(2.5),
-        ["WHAT MAY NOT BE CLAIMED",
+        ["NOT CLAIMED",
          ("· that the policy emits sensibly at ARBITRARY interview states — C1's withheld-subtree "
           "test says it does not, and a state-blind constant beats it there;",
           {"size": 10.5, "bold": False, "color": MUTED}),
          ("· that the blend's five ingredients are the right five — they are unstable draws from a "
           "near-flat gain profile;", {"size": 10.5, "bold": False, "color": MUTED}),
-         ("· ⛔ that asking a synthesised question improves anyone's recommendations. No version of "
+         ("· that asking a synthesised question improves anyone's recommendations. No version of "
           "that sentence appears anywhere.", {"size": 10.5, "bold": True, "color": ACCENT_C})],
         size=11, bold=True, color=ACCENT_C, space_after=5, line_spacing=1.15)
 footer(s, "Sources: docs/PUBLICATION_PLAN.md roster · "
           "docs/design/PAPER_C_PUBLICATION_ASSESSMENT_2026-08-25.md · author steer 2026-08-30")
-notes(s, """WHAT TO SAY
-Where C stands. Six experiments run, all banked, and the short-form draft is written.
-
-The role changed in August: C absorbs the old Paper E, and it is explicitly a capability paper rather
-than a benchmark paper. My own steer was that this should be the fun piece that tops off the thesis —
-interesting techniques rather than another lengthy field audit — so the spine is the demo and the
-twelve-system audit shrinks to a related-work paragraph plus one control.
-
-Venue is opportunistic. There is no deadline pressure on it, and publishable is a bonus rather than a
-requirement — but the assessment says a submittable draft is about three or four days of work plus a
-couple of machine-nights, which is cheap.
-
-The two lists on the right are the scope. What is established is the four-part conjunction. What may
-not be claimed is the three-part list underneath, and the red one is absolute: no version of 'asking a
-synthesised question improves recommendations' appears anywhere in this work.
-
-SOURCES
-docs/PUBLICATION_PLAN.md roster table (Paper C redefined, opportunistic);
-docs/design/PAPER_C_PUBLICATION_ASSESSMENT_2026-08-25.md (cost estimate, venue thought);
-author steer 2026-08-30 (memory: paperC-is-the-fun-capstone-not-an-audit-paper);
-scope clauses: chapterC_v2.tex §C1 'What is established, and what may not be claimed'.""")
 
 # =====================================================================
 # CLOSE
 # =====================================================================
 
 # --- Z1: the thesis claim ------------------------------------------------
-s, y = slide(prs, "The thesis, in one claim",
-             "", kicker="close")
+s, y = slide(prs, "Summary of the three chapters",
+             "")
 
 textbox(s, MARGIN_L, y + Inches(0.05), CONTENT_W, Inches(1.5),
         ["A cold interview is limited by what the user can answer and by what the system "
@@ -2658,62 +2014,43 @@ table(s, [
     first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(6.65), CONTENT_W, Inches(0.5),
-        "And the method that produced all of it: pre-register the reading rule, then run the "
-        "rule against its own null before reading the effect.",
+        "Method used throughout: pre-register the reading rule, then run the rule against its "
+        "own null before reading the effect.",
         size=13, bold=True, color=ACCENT, line_spacing=1.1)
 footer(s, "Sources: as per each paper's section")
-notes(s, """WHAT TO SAY
-If you take one sentence away, take the top one. A cold interview is limited by what the user can
-answer and by what the system is able to ask — not by how cleverly it picks from a fixed list. Every
-result in the three papers is a version of that.
-
-A says you cannot measure any of this without certifying the instrument, and demonstrates the point by
-showing the verdict flip when the consumer changes. B says the binding constraints are the criterion
-and the channel: a static order beats every adaptive arm in 138 of 138 cells; changing only the split
-criterion buys about a point of NDCG; and changing what you ask about buys three times more tail than
-changing how you decide. C says the action space itself can be opened — a direction that is not any
-question in the bank can be emitted, said, and audited.
-
-And the last line is the methodological thread I would want on my viva record: pre-register the
-reading rule, and then run that rule against its own null before you look at the effect. Doing that
-cost me three headlines and it is the reason I trust what is left.
-
-SOURCES
-Each claim traces to its own section; see the per-slide notes for A, B and C.""")
 
 
 # --- Z2: publication plan as options ------------------------------------
-s, y = slide(prs, "Publication plan — as options",
-             "Roster reset 2026-08-18. One deadline binds; nothing else does.",
-             kicker="close · decisions I would like your view on")
+s, y = slide(prs, "Publication options",
+             "Roster reset 2026-08-18. One deadline binds; nothing else does.")
 
 table(s, [
     ["", "state", "OPTION 1 (preferred)", "OPTION 2", "OPTION 3"],
     ["A  instrument", "closed, 41 pp, unsubmitted",
-     "TORS — rolling, no deadline, no travel; length is an asset; the one venue every "
-     "draft in the blind panel cleared",
+     "TORS — rolling, no deadline, no travel; length is not a penalty there; the one venue "
+     "every draft in the blind panel cleared",
      "RecSys or ECIR reproducibility track — our unique win in the panel",
      "hold until the human round-trip study exists, then submit stronger"],
-    ["B  interview", "chapter CLOSED 2026-08-30; test look spent and replicates",
-     "★ ECIR 2027 full paper, deadline 2 Oct 2026 — sections 1–3 cut to ~12 pp "
+    ["B  interview", "closed 2026-08-30; test look spent and replicates",
+     "ECIR 2027 full paper, deadline 2 Oct 2026 — sections 1–3 cut to ~12 pp "
      "(audit · diagnosis · one-variable demonstration)",
      "RecSys, or its reproducibility track",
      "add the RecVAE re-scoring of the frozen tree first, to kill the "
      "one-consumer objection"],
-    ["B′  Act 5", "held back, not cut",
-     "a SECOND paper — RecSys or CIKM — on the Reddit arc, the opener-fitted trees "
-     "and the one distilled policy", "fold into the thesis chapter only", "—"],
-    ["C  off-catalogue", "six experiments banked; LBR draft written; no deadline pressure",
-     "RecSys LBR — the demo-led short form the draft is already written as",
-     "IntRS or KaRS workshop", "arXiv + thesis capstone chapter, and stop there"],
-    ["D  free-recall", "ABSORBED INTO B — the Reddit arc and opener census cover its "
+    ["B′  unprompted requests", "held back, not cut",
+     "a second submission — RecSys or CIKM — on the request corpus, the opener-fitted trees "
+     "and the distilled policy", "fold into the thesis chapter only", "—"],
+    ["C  off-catalogue", "six experiments banked; short-form draft written; no deadline",
+     "RecSys LBR — the short form the draft is already written as",
+     "IntRS or KaRS workshop", "arXiv plus the thesis chapter, and stop there"],
+    ["D  free-recall", "absorbed into B — the request corpus and opener census cover its "
      "substance; its own numbers were on the retired pre-July ruler", "—", "—", "—"],
-    ["E  LLM dialogue", "MERGED INTO C", "—", "—", "—"],
+    ["E  LLM dialogue", "merged into C", "—", "—", "—"],
 ], MARGIN_L, y + Inches(0.02), CONTENT_W, col_w=[11, 19, 28, 22, 20],
     font_size=9.6, row_h=0.72, first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(6.15), CONTENT_W, Inches(1.0),
-        ["The only hard date on this slide is 2 October 2026, and it is Paper B's.",
+        ["The only hard date on this slide is 2 October 2026, and it belongs to Chapter 2.",
          ("Standing constraints: solo, roughly a year left, NO TRAVEL — which is most of why TORS "
           "and short/workshop tracks dominate the options. Bibliography completeness (~8 "
           "load-bearing works still missing) blocks any submission.",
@@ -2721,58 +2058,27 @@ textbox(s, MARGIN_L, Inches(6.15), CONTENT_W, Inches(1.0),
         size=14, bold=True, color=INK, space_after=4, line_spacing=1.14)
 footer(s, "Sources: docs/PUBLICATION_PLAN.md (roster reset 2026-08-18, TORS rationale, blind panel) · "
           "docs/design/PAPER_B_MASTER_TODO.md · PAPER_C_PUBLICATION_ASSESSMENT_2026-08-25.md")
-notes(s, """WHAT TO SAY
-This is the slide I would most like your view on, and I have written it as options rather than a plan.
-
-Paper A: my preference is TORS. Rolling submission so nothing forces the timeline, no travel, and the
-length that got it rejected from ECIR is unremarkable there. It was also the one venue that all three
-drafts in my blind calibration panel cleared. Option two is a reproducibility track, which is the one
-place we uniquely won. Option three is to hold it until the human study exists — I do not favour that,
-because 'under review at TORS' is citable now.
-
-Paper B is the one with a date: ECIR 2027, second of October. The cut is sections one to three only.
-The thing I would like to do first is option three — score the already-frozen tree through RecVAE, one
-machine-night, which removes the strongest objection I can see.
-
-Act 5 I want to hold back as a second paper rather than crush into B. That is a judgement call and I
-would like a second opinion on it.
-
-Paper C has no deadline and is explicitly a bonus. The draft is already written in short form, so
-RecSys LBR is the natural home, with workshops or just arXiv-plus-chapter as fallbacks.
-
-D and E are gone as separate papers — D absorbed into B, E merged into C.
-
-Two standing constraints frame all of this: no travel, and the bibliography is incomplete — about
-eight load-bearing works are still missing and that blocks any submission.
-
-SOURCES
-docs/PUBLICATION_PLAN.md :11-19 (venue targets), :21-34 (TORS rationale), :36-55 (blind panel),
-:66-92 (roster reset and what survives from D), :96-99 (blockers).
-docs/design/PAPER_B_MASTER_TODO.md (the conference cut, Act 5 as a second paper, the one-consumer
-objection). docs/design/PAPER_C_PUBLICATION_ASSESSMENT_2026-08-25.md (venue thought, cost).""")
 
 
 # --- Z3: what's next ------------------------------------------------------
-s, y = slide(prs, "What's next",
-             "Ordered by what unblocks the most, not by what is most interesting.",
-             kicker="close")
+s, y = slide(prs, "Next steps",
+             "Ordered by what unblocks the most.")
 
 table(s, [
     ["", "the work", "why", "cost"],
-    ["1", "Score — not refit — Paper B's frozen NDCG tree through RecVAE",
-     "kills the strongest objection to Act 3 (“it rests on one consumer”), which our own flip "
-     "result makes fair", "one machine-night"],
-    ["2", "The ECIR cut: sections 1–3 of Chapter B to ~12 pp",
+    ["1", "Score — not refit — Chapter 2's frozen NDCG tree through RecVAE",
+     "answers the strongest objection to the demonstration, that it rests on one consumer, "
+     "which the chapter's own inversion result makes fair", "one machine-night"],
+    ["2", "The ECIR cut: sections 1–3 of Chapter 2 to ~12 pp",
      "the only hard deadline on the roster — 2 October 2026", "the binding task"],
     ["3", "Close the bibliography (~8 load-bearing works)",
      "blocks every submission, A included", "days"],
-    ["4", "Paper C short-form finish: shrink the audit, lead with the transcript",
+    ["4", "Chapter 3 short form: shrink the audit, lead with the example interview",
      "the draft exists; the assessment costs it at 3–4 days plus 2–3 machine-nights",
      "cheap, no deadline"],
-    ["5", "Fix the transcript's templating failure (2 of 6 malformed on blends)",
-     "the template family was fitted to single phrases and degrades on mixtures — the only "
-     "visible defect in C's centrepiece", "small"],
-    ["6", "★ The human round-trip study (gate C3)",
+    ["5", "Fix the example interview's templating failure (2 of 6 malformed on blends)",
+     "the template family was fitted to single phrases and degrades on mixtures", "small"],
+    ["6", "The human round-trip study (gate C3)",
      "never run; owed project-wide; it is the one thing blocking the strongest claims across "
      "A, B and C — and all three top objections in the blind panel were simulator circularity. "
      "C argues for a study on ANSWERABILITY rather than on quality.",
@@ -2781,65 +2087,28 @@ table(s, [
     first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(5.55), CONTENT_W, Inches(1.4),
-        ["Two things I would like to decide today.",
-         ("(1) Is Act 5 a second paper or a chapter section?   "
+        ["Two decisions to take.",
+         ("(1) Is the unprompted-request work a second submission or a chapter section?   "
           "(2) Is the human round-trip study worth the time it costs, and if so, is "
           "answerability the right thing to test — or does it need to be quality?",
           {"size": 13, "bold": False, "color": MUTED})],
         size=15, bold=True, color=INK, space_after=5, line_spacing=1.16)
 footer(s, "Sources: docs/design/PAPER_B_MASTER_TODO.md · docs/PUBLICATION_PLAN.md :96-99 · "
           "GATE_BATTERY_INSTRUMENT.md :106 · docs/HARSH_REVIEW_POINTS.md")
-notes(s, """WHAT TO SAY
-What's next, ordered by what unblocks the most rather than by what I most want to do.
-
-One and two are the ECIR path: re-score the frozen tree through RecVAE to kill the one-consumer
-objection, then do the twelve-page cut. Three is the bibliography, which blocks everything including
-Paper A. Four and five are Paper C, which is cheap and has no deadline.
-
-Six is the real question, and it is the one I would like your judgement on. The human round-trip study
-has never been run. It is a standing gate — C3 in the battery — it is owed project-wide, and it is the
-single thing blocking the strongest claims in all three papers. In the blind reviewer panel, all three
-papers' top objection was simulator circularity, which is exactly what it answers.
-
-Paper C actually gives an argument about what shape it should take: a plausibility panel cannot grade
-a rendered question, for the reasons on the machine-only-synonyms slide. So the study I would argue for
-is on ANSWERABILITY — can a real person answer this question at all — rather than on quality. That is
-cheaper and it is the thing our simulator is actually assuming.
-
-So the two decisions I would like today: is Act 5 a second paper or a chapter section, and is the human
-study worth the time — and if so, answerability or quality?
-
-SOURCES
-Item 1 (the one-consumer objection and its fix): docs/design/PAPER_B_MASTER_TODO.md.
-Item 3 (~8 missing works): docs/PUBLICATION_PLAN.md :96-99.
-Item 5: docs/results/C4D_TRANSCRIPT.md (33 % vs 5.3 %).
-Item 6: GATE_BATTERY_INSTRUMENT.md :106 (C3 owed, holdout design mandatory, satisfaction survey
-explicitly not acceptable); PUBLICATION_PLAN.md :36-55 (all three top objections were circularity);
-chapterC_v2.tex limitations (the one human study we argue FOR, on answerability).""")
 
 # =====================================================================
 # APPENDIX
 # =====================================================================
 
 sd = divider("Appendix",
-             "Detailed per-experiment tables, methods detail, and the honest bounds. "
-             "Not shown by default — these exist so a probing question gets an instant answer.",
+             "Per-experiment tables, methods detail, and the stated bounds. Not presented by "
+             "default; here so that a question about a specific number can be answered.",
              MUTED, "13 slides  ·  not part of the ~50 minutes")
-notes(sd, """WHAT TO SAY
-Section break — do not present. Jump here if a specific number is queried. A1-A2 cover Paper A's
-gate ledger and concept channel; B1-B4 cover Paper B's diagnostics, the group arm, the routing null
-and the distilled policy; C1-C3 cover Paper C's geometry, emission and translation cost; M1-M4 cover
-methods, the honest bounds, the not-built ledger and a one-page number index.
-
-SOURCES
-Each appendix slide names its own source docs in its footer and notes.""")
 
 
 # --- APP 1: A gate battery, the open items ---------------------------------
-s, y = slide(prs, "Appendix A1 — Paper A: gates that are open, dropped, or unmeasurable",
-             "The battery's own failure ledger. Every per-build gate passes; these are the "
-             "qualifications.",
-             kicker="appendix · paper a", accent=MUTED)
+s, y = slide(prs, "Appendix 1.1 — Chapter 1: gates that are open, dropped, or unmeasurable",
+             "Every per-build gate passes. These are the qualifications.", accent=MUTED)
 table(s, [
     ["item", "status", "detail"],
     ["G4 confidence ORDERING sub-test", "unmeasurable by design",
@@ -2866,22 +2135,12 @@ table(s, [
 ], MARGIN_L, y + Inches(0.02), CONTENT_W, col_w=[19, 15, 66], font_size=9.6, row_h=0.75)
 footer(s, "Sources: GATE_BATTERY_INSTRUMENT.md · G1C_CONTROL_RESULT.md · CONCEPT_CHANNEL_RESULT.md "
           ":103-108, :164-167 · docs/EXPERIMENTS.md :17 · chapterA_v2.tex :803, :881")
-notes(s, """WHAT TO SAY (only if asked)
-The failure ledger for Paper A's battery. Every per-build gate passes; these six items are the
-qualifications I would volunteer rather than let a reviewer find.
-
-The one that is genuinely open is the volume-leak gate: the fold latent at eight questions predicts
-the log of the user's rating volume at R² 0.249 against a pre-registered 0.05 bar. It means the
-latent is partly encoding 'how much this person rates' rather than 'what they like'. It is awaiting a
-ruling and it is on the honest-bounds list.
-
-SOURCES as footed.""")
 
 
 # --- APP 2: A concept-channel ledger ---------------------------------------
-s, y = slide(prs, "Appendix A2 — Paper A: concept channel, fold operator, and the ledgers "
-                  "that must not be mixed",
-             "", kicker="appendix · paper a", accent=MUTED)
+s, y = slide(prs, "Appendix 1.2 — Chapter 1: concept channel, fold operator, and three "
+                  "ledgers that must not be mixed",
+             "", accent=MUTED)
 table(s, [
     ["quantity", "value"],
     ["Fold-operator ablation (old tower): additive union — member AUC / full@8 answers",
@@ -2900,7 +2159,7 @@ table(s, [
     ["Answer-model decomposition: selection oracle over the polarisation bank at q8",
      "+0.0691 [0.0656, 0.0726]; the utility oracle sits +0.1381 above behavioural SEL; "
      "answers collected per q8 — concept 7.93 vs item 3.03; no imputer beats SEL"],
-    ["⚠ THREE LEDGERS THAT MUST NOT BE MIXED ON A SLIDE",
+    ["THREE LEDGERS THAT MUST NOT BE MIXED",
      "(1) CONCEPT_CHANNEL_RESULT.md's strategy×channel suite is on the SUPERSEDED i25 fold and "
      "its 'items win the long interview' conclusion was RETRACTED. "
      "(2) GREEDY_BEST_STATIC_I26C.md is policy A (intercept .1314/.0234). "
@@ -2908,18 +2167,12 @@ table(s, [
 ], MARGIN_L, y + Inches(0.02), CONTENT_W, col_w=[38, 62], font_size=9.8, row_h=0.66)
 footer(s, "Sources: chapterA_v2.tex :305-308, :941-947, :1094-1116, :1473-1499 · "
           "ANSWER_DECOMPOSITION_RESULT.md :85-90 · MASK_POLICY_B_MIGRATION.md :108-127")
-notes(s, """WHAT TO SAY (only if asked)
-Detail behind the concept-channel and fold-in slides. The last row is a note to myself as much as
-anything: there are three different ledgers of strategy-by-channel numbers in this project, on three
-different folds, and the first one's headline conclusion was retracted. The deck uses policy B
-throughout, which is why the cold intercept reads 0.15855.
-
-SOURCES as footed.""")
 
 
-# --- APP 3: B Act 1 branching + the flip -----------------------------------
-s, y = slide(prs, "Appendix B1 — Paper B: how adaptive were the adaptive selectors, and the flip",
-             "", kicker="appendix · paper b", accent=MUTED)
+# --- APP 3: B branching + the inversion -----------------------------------
+s, y = slide(prs, "Appendix 2.1 — Chapter 2: branching of the adaptive selectors, and the "
+                  "consumer inversion",
+             "", accent=MUTED)
 lw = Inches(6.6)
 textbox(s, MARGIN_L, y + Inches(0.02), lw, Inches(0.3),
         "DISTINCT ASK-PREFIXES OVER 10,000 USERS", size=11, bold=True, color=ACCENT_B)
@@ -2933,7 +2186,7 @@ table(s, [
 ], MARGIN_L, y + Inches(0.37), lw, col_w=[30, 14, 14, 14, 14, 14], font_size=11, row_h=0.315,
     align=num(6), first_col_bold=True)
 textbox(s, MARGIN_L, Inches(3.05), lw, Inches(1.2),
-        "Thompson is fully personalised from the first question and still loses. So the Act 1 "
+        "Thompson is fully personalised from the first question and still loses. So the audit's "
         "result is not 'the adaptive arms failed to be adaptive' — they were adaptive, and it "
         "did not help.",
         size=12, color=MUTED, line_spacing=1.15)
@@ -2955,7 +2208,7 @@ textbox(s, MARGIN_L, Inches(5.30), lw, Inches(1.3),
 rx = MARGIN_L + lw + Inches(0.40)
 rw = CONTENT_W - lw - Inches(0.40)
 textbox(s, rx, y + Inches(0.02), rw, Inches(0.3),
-        "THE FIFTH CONSUMER — WHERE THE VERDICT FLIPS", size=11, bold=True, color=ACCENT_C)
+        "THE FIFTH CONSUMER — WHERE THE VERDICT INVERTS", size=11, bold=True, color=ACCENT_C)
 table(s, [
     ["Golbandi leaf model as consumer", "k=1", "k=2", "k=4", "k=8"],
     ["Thompson − static, full", "+.0100", "+.0171", "+.0148", "+.0281"],
@@ -2966,11 +2219,11 @@ textbox(s, rx, Inches(2.30), rw, Inches(2.3),
          "(−.0064 [−.0095,−.0033]) and for it at 1, 2 and 8. Latent-only info-gain at k=8: "
          "+.0131 full / −.0034 tail, both separating. GLM-UCB does not participate — +.0007 full, "
          "+.0008 tail, neither separating.",
-         ("This is the single most important methodological result in the thesis and it is why "
-          "Paper A exists.", {"size": 11, "bold": True, "color": ACCENT_C})],
+         ("This is the methodological result that Chapter 1 is built to address.",
+          {"size": 11, "bold": True, "color": ACCENT_C})],
         size=11, color=MUTED, space_after=6, line_spacing=1.15)
 textbox(s, rx, Inches(4.85), rw, Inches(1.8),
-        ["THE PREPRINT ARTEFACT, REBUILT",
+        ["A PUBLISHED EFFECT, REBUILT",
          ("A published adaptive-degradation effect: switching their candidate rule off makes the "
           "decline STEEPER (−46 % vs −14 %), and under an arm-independent held-out split the "
           "adaptive arm rises monotonically .1637 → .1761 → .1857 → .1936. Their popularity "
@@ -2978,25 +2231,12 @@ textbox(s, rx, Inches(4.85), rw, Inches(1.8),
           {"size": 10.5, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_B, space_after=5, line_spacing=1.15)
 footer(s, "Sources: chapterB_v2.tex tab:prefixes (:810-826), :834-930, :932-945, :517-539")
-notes(s, """WHAT TO SAY (only if asked)
-Three things. First, the branching table is the pre-emptive answer to 'maybe your adaptive selectors
-were not actually adaptive' — Thompson emits a distinct prefix for 759 of 10,000 users at the FIRST
-question and is fully personalised by the fourth. They were adaptive. It did not help.
-
-Second, the three-outcome response model. Letting the selector model 'did not answer' as a real
-outcome rather than a missing value is worth about +0.012 full at sixteen questions, closes a quarter
-of the deficit, and is nowhere near enough to change the verdict. Worth noting EDDI's native
-validation failed on its own protocol.
-
-Third, the flip. On a Golbandi leaf-model consumer the entire Act 1 ordering reverses.
-
-SOURCES as footed.""")
 
 
 # --- APP 4: B group-conditioned greedy --------------------------------------
-s, y = slide(prs, "Appendix B2 — Paper B: the group-conditioned greedy arm, and what "
+s, y = slide(prs, "Appendix 2.2 — Chapter 2: the group-conditioned greedy arm, and what "
                   "validation overstated",
-             "", kicker="appendix · paper b", accent=MUTED)
+             "", accent=MUTED)
 lw = Inches(6.9)
 table(s, [
     ["genre-conditioned greedy, K=15, TEST", "full", "tail"],
@@ -3009,7 +2249,7 @@ table(s, [
 ], MARGIN_L, y + Inches(0.05), lw, col_w=[38, 32, 30], font_size=10.8, row_h=0.36,
     align=num(3), first_col_bold=True)
 textbox(s, MARGIN_L, Inches(3.30), lw, Inches(1.9),
-        ["The shape of the result matters more than the headline.",
+        ["Where the pooled gain comes from.",
          ("Sci-Fi, Adventure, Thriller and Action gain +0.017 to +0.090. Drama — the majority "
           "group at 5,481 of 10,000 — is a null. Fantasy, at n=11, is −0.116 on test. So the "
           "pooled gain is carried entirely by the minority groups, and a system that only served "
@@ -3043,21 +2283,12 @@ textbox(s, rx, Inches(4.55), rw, Inches(2.1),
           {"size": 10.5, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_B, space_after=5, line_spacing=1.15)
 footer(s, "Sources: chapterB_v2.tex :956-1001, :1366-1432 · docs/results/CONDITIONED_ARMS_ON_TEST.md")
-notes(s, """WHAT TO SAY (only if asked)
-Two things. The group-conditioned arm was the first to beat the strong static comparator, but its gain
-is carried entirely by minority genres — Drama, which is more than half the cohort, is a flat null.
-That is a real limitation on deployment value.
-
-And the depth analysis: the tree is depth five because MIN_LEAF is 200, not because the data ran out.
-Zero of the fifteen stopped nodes stopped for want of a positive-gain split; every one had between
-0.007 and 0.043 of gain sitting there unclaimed. The depth is measuring our stopping rule.
-
-SOURCES as footed.""")
 
 
 # --- APP 5: B routing null + Reddit groups ----------------------------------
-s, y = slide(prs, "Appendix B3 — Paper B: routing is a null, and the Reddit groups",
-             "", kicker="appendix · paper b", accent=MUTED)
+s, y = slide(prs, "Appendix 2.3 — Chapter 2: leaf specialisation is a null, and the six "
+                  "request groups",
+             "", accent=MUTED)
 lw = Inches(6.3)
 textbox(s, MARGIN_L, y + Inches(0.02), lw, Inches(0.3),
         "ROUTING SPECIALISATION IS A NULL", size=11, bold=True, color=ACCENT_C)
@@ -3108,32 +2339,19 @@ textbox(s, rx, Inches(3.55), rw, Inches(3.1),
          ("Separability rises 0.371 → 0.956 once grouped by the STATE. Route atlas: a "
           "discriminant fitted on a disjoint half assigns 0.907 of held-out users correctly "
           "against a chance floor of 0.167.", {"size": 10.5, "bold": False, "color": MUTED}),
-         ("⛔ Raw-latent k-means gives RELEASE-YEAR buckets — 14 of 20 clusters span under 2.5 "
+         ("Raw-latent k-means gives release-year buckets — 14 of 20 clusters span under 2.5 "
           "years. Concept-decoding halves that to 6 of 12.",
           {"size": 10.5, "bold": True, "color": ACCENT_C})],
         size=11.5, bold=True, color=INK, space_after=5, line_spacing=1.14)
 footer(s, "Sources: chapterB_v2.tex :1434-1467, tab:clusters (:1692-1716), :1627-1677")
-notes(s, """WHAT TO SAY (only if asked)
-Two negative results I keep in the paper.
-
-Routing specialisation is a null. Leaves ask almost entirely different questions — 80 of 105 pairs
-share nothing — but we cannot show that the differences track taste. The congruence test comes back
-at p = 0.82. One secondary cell separates and is reported as a hypothesis with the multiplicity
-problem stated.
-
-And the grouping: 28 % of users generate 76 % of the requests, so the request population is wildly
-unrepresentative of the watching population. The groups are not disjoint. And the warning at the
-bottom is one I paid for: naive k-means on the raw latent gives you release-year buckets, not taste
-groups.
-
-SOURCES as footed.""")
 
 # --- APP 6: B opener synthesis + policy per-group ---------------------------
-s, y = slide(prs, "Appendix B4 — Paper B: opener synthesis, and the distilled policy by group",
-             "", kicker="appendix · paper b", accent=MUTED)
+s, y = slide(prs, "Appendix 2.4 — Chapter 2: opener synthesis, and the distilled policy "
+                  "by group",
+             "", accent=MUTED)
 lw = Inches(6.4)
 textbox(s, MARGIN_L, y + Inches(0.02), lw, Inches(0.3),
-        "DO SYNTHESISED OPENERS LOOK LIKE REAL ONES?", size=11, bold=True, color=ACCENT_B)
+        "SYNTHESISED OPENERS AGAINST REAL ONES", size=11, bold=True, color=ACCENT_B)
 table(s, [
     ["property", "real requests", "synthesised"],
     ["names a film", "0.630", "0.580"],
@@ -3170,7 +2388,7 @@ table(s, [
     align=num(7), first_col_bold=True)
 
 textbox(s, rx, Inches(2.75), rw, Inches(3.9),
-        ["THREE THINGS THIS TABLE SAYS",
+        ["THREE READINGS OF THIS TABLE",
          ("1. The single policy lands within ±.004 of the correct group's OWN interview in every "
           "group — while also having to find the group itself.",
           {"size": 10.8, "bold": False, "color": MUTED}),
@@ -3186,21 +2404,11 @@ textbox(s, rx, Inches(2.75), rw, Inches(3.9),
           {"size": 10.8, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_B, space_after=6, line_spacing=1.15)
 footer(s, "Sources: chapterB_v2.tex tab:opener_match (:1838-1860), tab:policy (:2042-2073)")
-notes(s, """WHAT TO SAY (only if asked)
-Two things. The opener-synthesis check: our synthesised openers match real ones closely on structure —
-how often they name a film, a genre, a tone — but are too popular and too coherent. And it is a lower
-bound, because eras and affect words are largely unsayable through our bank.
-
-And the per-group policy table, whose main lesson is the third bullet: the per-group ranking moves
-between validation and test in both directions. Art house halves; dialogue driven goes from negative
-to the second-best group. Only the pooled contrast is quotable.
-
-SOURCES as footed.""")
 
 
 # --- APP 7: C0 geometry detail ----------------------------------------------
-s, y = slide(prs, "Appendix C1 — Paper C: C0 geometry in full",
-             "", kicker="appendix · paper c", accent=MUTED)
+s, y = slide(prs, "Appendix 3.1 — Chapter 3: C0 geometry in full",
+             "", accent=MUTED)
 lw = Inches(7.2)
 table(s, [
     ["statistic, median over all 160,000 validation rows", "emitted ẑ", "IQR", "random direction"],
@@ -3217,7 +2425,7 @@ table(s, [
     align=num(4), first_col_bold=True)
 
 textbox(s, MARGIN_L, Inches(3.90), lw, Inches(2.6),
-        ["THE REGISTERED READING HAD NO POWER, AND WE SAY SO IN THE PAPER",
+        ["THE REGISTERED READING RULE HAD NO POWER, AND IS REPORTED AS SUCH",
          ("The confirmation cell was a conjunction of two strict thresholds and the falsification "
           "cell a disjunction of two lax ones — so the norm-matched RANDOM direction lands in "
           "'between candidates' too. The cell is a property of the rule, not a characterisation "
@@ -3256,21 +2464,11 @@ textbox(s, rx, Inches(3.35), rw, Inches(3.3),
           {"size": 10.5, "bold": False, "color": MUTED})],
         size=11, bold=True, color=ACCENT_C, space_after=6, line_spacing=1.15)
 footer(s, "Sources: docs/results/C0_GEOMETRY.md · chapterC_v2.tex :456-648")
-notes(s, """WHAT TO SAY (only if asked)
-The full C0 table. The reason this slide exists is the red box: the registered reading rule turned out
-to have no power, because a random direction satisfies it too. We retracted the sentence that depended
-on it and kept only the maximum-statistic claim, which needs no reading rule at all.
-
-The mechanism box is the correction that makes C0 usable: raw cosine is negative because the head
-parked a huge common mode in the vector, which cross-entropy never penalises. Mean-remove it and there
-is a genuine bank-aligned direction underneath — +0.488 against a random +0.170.
-
-SOURCES as footed.""")
 
 
 # --- APP 8: C1 detail --------------------------------------------------------
-s, y = slide(prs, "Appendix C2 — Paper C: C1 in full, and the state-blind floor",
-             "", kicker="appendix · paper c", accent=MUTED)
+s, y = slide(prs, "Appendix 3.2 — Chapter 3: C1 in full, and the state-blind floor",
+             "", accent=MUTED)
 lw = Inches(7.4)
 table(s, [
     ["", "primary cell (root.like.* withheld; 57 trained, 15 held out)",
@@ -3330,27 +2528,11 @@ textbox(s, rx, y + Inches(0.38), rw, Inches(6.2),
           {"size": 10.5, "bold": True, "color": ACCENT_C})],
         size=11, color=INK, space_after=6, line_spacing=1.15)
 footer(s, "Sources: docs/results/C1_FINAL.md (corrected 2026-09-01) · chapterC_v2.tex :649-786")
-notes(s, """WHAT TO SAY (only if asked)
-The full C1 ledger, including the correction that landed on 1 September.
-
-The row that matters is (a′). The registered generalisation statistic, (a), was positive — own target
-beats a random other held-out target by +0.059. Then the executing agent added a null we had not
-registered: run the identical statistic on the UNTRAINED warm start. It comes back LARGER, at +0.084.
-Neighbouring states in one tree carry correlated targets, so 'own beats a random other' is positive
-before any training at all. Reported as registered, (a) would have read as evidence of extrapolation.
-
-The state-blind constant table is the sharper version of the same point: at held-out states a single
-fixed vector, ignoring the state entirely, beats the trained policy by almost 0.9 cosine and wins
-14 of 15 and 30 of 30.
-
-The scope box on the right is the population caveat: the 42 downstream states are structurally
-selected, not a sample, and we never describe them as a population.
-
-SOURCES as footed.""")
 
 # --- APP 9: C4B / C4C -------------------------------------------------------
-s, y = slide(prs, "Appendix C3 — Paper C: what the round trip costs, and that decoding removes it",
-             "", kicker="appendix · paper c", accent=MUTED)
+s, y = slide(prs, "Appendix 3.3 — Chapter 3: the cost of the round trip, and the effect "
+                  "of decoding",
+             "", accent=MUTED)
 
 table(s, [
     ["decoding  (42 nested states, 36,197 user-rows)", "distinct / 42", "cos(u_text, R_s)",
@@ -3383,7 +2565,7 @@ bullets(s, MARGIN_L, Inches(3.50), lw, [
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, Inches(3.15), rw, Inches(0.3),
-        "THE PREDICTION WAS CONFIRMED AND THE MECHANISM REFUTED",
+        "PREDICTION CONFIRMED, MECHANISM REFUTED",
         size=11, bold=True, color=ACCENT_C)
 textbox(s, rx, Inches(3.50), rw, Inches(3.1),
         ["We predicted the cost was concentrated on mode-collapsed renders — it is. We attached "
@@ -3408,31 +2590,12 @@ textbox(s, MARGIN_L, Inches(6.30), lw, Inches(0.8),
         "triangulation split and translation cost identical.",
         size=10.5, color=MUTED, line_spacing=1.15)
 footer(s, "Sources: docs/results/C4B_NOISE.md · C4C_DECODING.md · paperC_lbr.tex tab:loop")
-notes(s, """WHAT TO SAY (only if asked)
-The translation cost, and the experiment that reinterpreted it.
-
-Two arms under the same simulator and the same certified fold operator, differing only in what gets
-folded: arm L folds the direction's own top concepts, arm T folds the concepts recovered from the
-rendered text. The circular component is common to both, so only the difference is read. The cost is
-+0.018 full and +0.007 tail.
-
-We predicted it was concentrated on the mode-collapsed renders, and it is — a factor of four. We
-attached the mechanism 'the English loses meaning'. Testing that by changing ONLY the decoding
-confirmed the number and refuted the mechanism: greedy's stock words fold BELOW the no-fold baseline
-of 0.16571. That means they are not losing information, they are actively harming — a confidently
-wrong concept is worse than no concept. Sampling removes harm, not confusion.
-
-Best-of-8 by the language model's own likelihood is the decoding of record: it is the only Pareto
-point, and critically its selection rule is blind to our evaluation metric by construction, so it
-cannot be accused of selecting on the outcome.
-
-SOURCES as footed.""")
 
 
 # --- APP 10: methods -----------------------------------------------------------
 s, y = slide(prs, "Appendix M1 — Methods: the answer model, circularity, and the "
                   "statistical conventions",
-             "", kicker="appendix · methods", accent=MUTED)
+             "", accent=MUTED)
 lw = Inches(7.1)
 table(s, [
     ["", ""],
@@ -3443,15 +2606,15 @@ table(s, [
      "value ≈ EASE. No model may train on, gate on, or cite them."],
     ["Answerability", "a transparent STRUCTURAL rule — rated ∨ popularity > τ for items; "
      "≥ k rated members for concepts. Not a learned model."],
-    ["The firewall (Paper A's I2)", "answers are recorded behaviour and fold-in only. This is the "
+    ["The firewall (Chapter 1's I2)", "answers are recorded behaviour and fold-in only. This is the "
      "project's defence against the field-wide circularity attack, and the blind panel says we "
      "under-sell it."],
-    ["Where circularity IS declared", "exactly one place: Paper C's translation-cost measurement, "
+    ["Where circularity is declared", "exactly one place: Chapter 3's translation-cost measurement, "
      "which needs an answer model by construction. Both arms run under the SAME simulator, only "
      "the DIFFERENCE is read, absolute rows are printed and never headlined, and the declaration "
      "is in the paper's own voice."],
-    ["Paper C's contract", "the simulated answerer is used to put the policy at interview states "
-     "and for nothing else. No other quantity in Paper C comes from simulating an answer and "
+    ["Chapter 3's contract", "the simulated answerer is used to put the policy at interview "
+     "states and for nothing else. No other quantity in Chapter 3 comes from simulating an answer and "
      "observing that the belief improved."],
 ], MARGIN_L, y + Inches(0.05), lw, col_w=[24, 76], font_size=10.5, row_h=0.62,
     first_col_bold=True, header_rows=0)
@@ -3477,30 +2640,14 @@ bullets(s, rx, y + Inches(0.42), rw, [
 ], size=10.8, marker_color=ACCENT)
 footer(s, "Sources: CLAUDE.md 'Settled' + HARD RULES · chapterA_v2.tex §firewall (:1552-1595) · "
           "chapterC_v2.tex Setup · chapterB_v2.tex table captions")
-notes(s, """WHAT TO SAY (only if asked)
-The methods contract. The single most important row is 'what may not enter an answer'. In July we
-audited the LLM-derived answer and answerability artifacts and found them popularity-dominated, with
-three of four gates passing on a null and the distilled value function essentially equal to EASE. They
-were retired, and no model since may train on, gate on, or cite them. Answers are recorded behaviour;
-answerability is a transparent structural rule.
-
-That firewall is our defence against the circularity attack, which the blind panel says was the top
-objection to all three papers it graded — and which it says we under-sell.
-
-There is exactly one place circularity is declared rather than avoided: Paper C's translation cost,
-which needs an answer model by construction. Both arms run under the same simulator, only the
-difference is read, and the absolute rows are printed but never headlined.
-
-SOURCES as footed.""")
 
 
 # --- APP 11: honest bounds ------------------------------------------------------
-s, y = slide(prs, "Appendix M2 — The honest bounds, in one place",
-             "Everything I would want a hostile reviewer to have found already.",
-             kicker="appendix · limitations", accent=MUTED)
+s, y = slide(prs, "Appendix M2 — The stated bounds, in one place",
+             "The consolidated limitations list. Every item was found by an internal control.", accent=MUTED)
 table(s, [
     ["", "the bound", "what it costs the claim"],
-    ["P1 / P1b  (Paper B, validation only)",
+    ["P1 / P1b  (Chapter 2, validation only)",
      "The pre-registered falsifier FIRED. At 38,336 states whose true label was a held-out "
      "question the retrained policy emits it 0.0000 at top-1 and top-5; a fixed popularity "
      "ranking beats it at 1.45 % top-5. On the undamaged policy, off-manifold, E1 ranks the "
@@ -3508,57 +2655,42 @@ table(s, [
      "'the policy emits questions it was never taught' is NOT available and is reported failed. "
      "Neither test isolates the vocabulary axis: P1b's cells are at unseen STATES, and P1 damages "
      "the policy to create the test."],
-    ["C1 emission scope  (Paper C)",
+    ["C1 emission scope  (Chapter 3)",
      "At withheld states cos to the own target is −0.11948 and a state-blind constant beats the "
      "policy by +0.8893, winning 14/15. The registered generalisation statistic is matched by the "
      "UNTRAINED warm start.",
      "the licensed sentence is 'the policy emits where the question landscape was measured'. No "
      "number is quoted from a held-out-state emission."],
-    ["One consumer  (Paper B Act 3)",
+    ["One consumer  (Chapter 2 demonstration)",
      "The tree result rests on one consumer, and our own flip section shows consumer-dependence.",
      "the strongest open objection. Fixable by SCORING the frozen tree through RecVAE."],
-    ["Act 5 openers are group-stamped",
+    ["The synthesised openers are group-stamped",
      "routing is partly circular and the scramble control cannot detect it; opener−cold survives "
      "because the STATE is held fixed.",
-     "claim adaptivity beyond the closed tree, NOT routing."],
+     "the claim is adaptivity beyond the closed tree, not routing."],
     ["The answer model is inferred, not observed",
-     "answerability is a structural rule, and it is load-bearing for Act 4's entire result. "
+     "answerability is a structural rule, and it is load-bearing for the entire "
+     "answerability result. "
      "The written-request corpus bounds open-answer richness from above.",
      "gate C3, the human round-trip, has never been run — it is what would close this."],
-    ["Reproducibility caveat  (Paper B)",
+    ["Reproducibility caveat  (Chapter 2)",
      "the GLM-UCB and Thompson cells are not seed-stable (iALS basis re-drawn without a "
      "random_state); drift up to ±0.0026, comparable to the CI half-widths.",
      "quote those two rows to three decimals, not four."],
-    ["Single seed  (Paper C adapters)",
+    ["Single seed  (Chapter 3 adapters)",
      "one training seed per adapter arm.",
-     "our own checklist forbids the word 'robust' until there are two, and we do not use it."],
+     "the word 'robust' is not used anywhere in this work for a single-seed result."],
 ], MARGIN_L, y + Inches(0.02), CONTENT_W, col_w=[16, 47, 37], font_size=9.2, row_h=0.66)
 footer(s, "Sources: P1_HELDOUT_ACTIONS.md · P1B_NEVER_TAUGHT.md · C1_FINAL.md · "
           "PAPER_B_MASTER_TODO.md · ACT1_PAIRED_CI.md · C3B_ADAPTER.md · docs/HARSH_REVIEW_POINTS.md")
-notes(s, """WHAT TO SAY (only if asked, or volunteer if the meeting is going well)
-This is the slide I would put up if you asked 'what is wrong with all this'. It is the consolidated
-list, and every item on it was found by our own control rather than by a reviewer.
-
-The first two rows are the same finding at two levels. In Paper B, a policy trained with questions
-held out does not emit those questions — the falsifier fired and the claim is reported as failed. In
-Paper C, a policy trained at some interview states does not emit sensibly at others, and a state-blind
-constant beats it there. Both are the same regularity: these systems are excellent exactly where they
-were supervised and no better than baseline outside it. I think that is a thesis-level finding rather
-than two disappointments, and it is worth writing up as one.
-
-The row I would act on first is 'one consumer'. It is cheap to fix and it is the objection I would
-raise myself.
-
-SOURCES as footed.""")
 
 
 # --- APP 12: what was NOT built / not run -----------------------------------
 s, y = slide(prs, "Appendix M3 — What was not built, and what is retracted",
-             "The ledger of absences, so nothing looks like an oversight.",
-             kicker="appendix · scope", accent=MUTED)
+             "The ledger of absences and of withdrawn claims.", accent=MUTED)
 lw = Inches(6.5)
 textbox(s, MARGIN_L, y + Inches(0.02), lw, Inches(0.3),
-        "SELECTORS NOT BUILT  (Paper B prints this table itself)", size=11, bold=True, color=ACCENT_B)
+        "SELECTORS NOT BUILT  (Chapter 2 prints this table itself)", size=11, bold=True, color=ACCENT_B)
 textbox(s, MARGIN_L, y + Inches(0.38), lw, Inches(1.5),
         "ICF (4 policies) · SEL-BALD · PEBOL acquisition · fMF · PERE · Greedy SLIM / QBandit · "
         "RBMF / RMVA · GreedyExtend · The FacT / FacT-CRS · UpsRec · MeLU · a-stratification "
@@ -3571,22 +2703,23 @@ bullets(s, MARGIN_L, Inches(3.40), lw, [
      "claims across A, B and C."),
     ("Hu & Yu replication at depths 8 and 10,", "the Part-A pairwise arm, the fMF RMSE "
      "panel, and Netflix / Yahoo — unrun, and stated as unrun."),
-    ("Act 5's 15-minute routing probe", "— required before Act 5 ships standalone."),
-    ("Paper B Act 3 through a second consumer", "— the recommended next action."),
+    ("The 15-minute routing probe", "— required before the unprompted-request section "
+     "is submitted on its own."),
+    ("Chapter 2's demonstration through a second consumer", "— the recommended next action."),
 ], size=11.5)
 
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 textbox(s, rx, y + Inches(0.02), rw, Inches(0.3),
-        "RETRACTED, AND WHY THE RETRACTION IS THE POINT", size=11, bold=True, color=ACCENT_C)
+        "RETRACTED CLAIMS", size=11, bold=True, color=ACCENT_C)
 table(s, [
     ["retracted claim", "what killed it"],
-    ["'items win the long interview' (Paper A)",
+    ["'items win the long interview' (Chapter 1)",
      "it ran on the superseded i25 fold; retracted at the G0 audit"],
-    ["the tree takes the tail at K=8, +0.0068 (Paper B)",
+    ["the tree takes the tail at K=8, +0.0068 (Chapter 2)",
      "the COMPARATOR was selected under a narrower mask. Re-differenced: −0.0016, does not "
      "separate. The tree's own numbers never moved."],
-    ["+0.02092 tail advantage (Paper B Act 3)",
+    ["+0.02092 tail advantage (Chapter 2 demonstration)",
      "two thirds of it was comparator weakness; the rebuilt order shares 4 of 16 questions and "
      "0 of 16 positions with the one it replaced"],
     ["'the prediction is falsified, and not narrowly' (C0)",
@@ -3603,26 +2736,14 @@ table(s, [
 ], rx, y + Inches(0.38), rw, col_w=[42, 58], font_size=9.5, row_h=0.62)
 footer(s, "Sources: chapterB_v2.tex tab:coverage, :352-361 · CONDITIONED_ARMS_ON_TEST.md · "
           "C0_GEOMETRY.md · C4_PILOT.md · C3_POC.md · CLAUDE.md 'Settled'")
-notes(s, """WHAT TO SAY (only if asked)
-Two ledgers. What was not built — Paper B prints this itself, twelve more systems each marked not-built
-and not-ours, because I would rather print it than have it discovered. And what was retracted.
-
-I keep the retraction list deliberately, because the pattern in it is the argument for the method.
-Look at the second and third rows: in both cases a headline moved and the cause was the COMPARATOR
-moving, not the arm. The tree's own numbers never changed. That is a failure mode I have now hit three
-times and it is the reason the deck's rule is: when a contrast moves, check whether the arm or the
-comparator moved.
-
-SOURCES as footed.""")
 
 
 # --- APP 13: one-page number index ------------------------------------------
 s, y = slide(prs, "Appendix M4 — The numbers, on one page",
-             "For fast lookup during questions.",
-             kicker="appendix · index", accent=MUTED)
+             "For lookup during questions.", accent=MUTED)
 lw = Inches(6.5)
 table(s, [
-    ["PAPER A", ""],
+    ["CHAPTER 1", ""],
     ["tower TEST full / tail NDCG@10", "0.3496 / 0.2491"],
     ["RecVAE, same ruler", "0.3540 / 0.2497   (paired: −0.0043 full, −0.0006 tail)"],
     ["graded − binarised", "+0.0039 [+0.0025,+0.0053] / +0.0020 [+0.0007,+0.0031]"],
@@ -3633,7 +2754,7 @@ table(s, [
 ], MARGIN_L, y + Inches(0.02), lw, col_w=[52, 48], font_size=9.6, row_h=0.265,
     align=num(2), first_col_bold=True)
 table(s, [
-    ["PAPER B", ""],
+    ["CHAPTER 2", ""],
     ["battery", "23 rows · 21 distinct rules · 13 published methods"],
     ["static beats every adaptive arm", "138 of 138 cells (combined and concepts-only orders)"],
     ["greedy items-only − best adaptive, k=16", "+0.0281 [+0.0247,+0.0314] full"],
@@ -3650,7 +2771,7 @@ table(s, [
 rx = MARGIN_L + lw + Inches(0.45)
 rw = CONTENT_W - lw - Inches(0.45)
 table(s, [
-    ["PAPER C", ""],
+    ["CHAPTER 3", ""],
     ["C0 max cos₁ over 160,000 states", "0.1203  (mean-removed +0.488 vs +0.170 random)"],
     ["C1 gates", "245/245 distinct · snap agreement 0.9950 · fit 0.96958"],
     ["C1 held-out states", "−0.11948; state-blind constant wins by +0.8893"],
@@ -3664,15 +2785,10 @@ table(s, [
     ["C4 point-specificity", "+0.28593 [+0.17820,+0.39777]  (prior floor at zero)"],
     ["C4B translation cost", "+0.01802 [+0.01668,+0.01940] full · +0.00672 tail"],
     ["C4C decoding: distinct renders / cost", "23 → 41 · cost cut 2.0–3.5×"],
-    ["C4D transcript", "6 turns · 4 of 6 well-formed · NDCG column unquotable"],
+    ["C4D example interview", "6 turns · 4 of 6 well-formed · NDCG column unquotable"],
 ], rx, y + Inches(0.02), rw, col_w=[46, 54], font_size=9.6, row_h=0.265,
     align=num(2), first_col_bold=True)
 footer(s, "★ = paired interval excludes zero.  Full provenance in each slide's speaker notes.")
-notes(s, """WHAT TO SAY (only if asked)
-Lookup page. Every number here appears on an earlier slide with its source named in that slide's
-notes.
-
-SOURCES: see the per-slide notes for A, B and C sections.""")
 
 # >>>SLIDES<<<
 
