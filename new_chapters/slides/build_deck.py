@@ -63,15 +63,15 @@ bar.fill.solid(); bar.fill.fore_color.rgb = ACCENT
 bar.line.fill.background(); bar.shadow.inherit = False
 textbox(s, Inches(1.0), Inches(1.55), Inches(11.4), Inches(0.4),
         "CASPER  ·  PhD PROGRESS WALKTHROUGH", size=13, bold=True, color=ACCENT)
-textbox(s, Inches(1.0), Inches(2.05), Inches(11.4), Inches(1.6),
+textbox(s, Inches(1.0), Inches(2.05), Inches(11.4), Inches(1.25),
         ["Cold-start conversational recommendation:",
          "the instrument, the interview, and the question that is not in the catalogue"],
         size=32, bold=True, color=INK, line_spacing=1.12, space_after=2)
-textbox(s, Inches(1.0), Inches(3.32), Inches(11.4), Inches(0.4),
+textbox(s, Inches(1.0), Inches(3.40), Inches(11.4), Inches(0.4),
         "CASPER — Cold-start Adaptive Selection for Preference Elicitation in Recommendation",
         size=14, color=MUTED)
-D._rule(s, Inches(3.95), ACCENT)
-textbox(s, Inches(1.0), Inches(4.25), Inches(11.4), Inches(1.4),
+D._rule(s, Inches(4.05), ACCENT)
+textbox(s, Inches(1.0), Inches(4.35), Inches(11.4), Inches(1.4),
         [("Paper A — the measuring instrument   ·   Paper B — what a cold interview "
           "should optimise   ·   Paper C — off-catalogue questions", {"size": 15}),
          ("", {"size": 6}),
