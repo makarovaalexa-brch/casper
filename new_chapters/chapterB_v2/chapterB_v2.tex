@@ -144,12 +144,14 @@ routing to chance, which is how we know the opening is what it reads. The contri
 \emph{form}: one artefact that holds every interview and extends by adding a teacher, not a router
 plus an index.
 
-\paragraph{Relationship to Chapter A.} Chapter A built and certified the \emph{instrument}: a
+\paragraph{Relationship to Chapter A.} Chapter A built and certified the \emph{instrument} of CASPER
+(Cold-start Adaptive Selection for Preference Elicitation in Recommendation), the system this thesis
+builds: a
 recommender that ingests an arbitrary-length, mixed-channel set of answers without per-user
 retraining and without conceding full-profile accuracy (four requirements R1--R4). It explicitly
 deferred policy: ``it does not claim a new elicitation policy (that is the companion method
 chapter); it claims the recommender that makes policy measurement possible.'' This chapter is that
-companion. Everything below runs on the certified pair --- tower \texttt{i26c ep31} (test full/tail
+companion, and the selection side of CASPER is its subject. Everything below runs on the certified pair --- tower \texttt{i26c ep31} (test full/tail
 NDCG@10 $0.3496/0.2491$) and concept channel \texttt{cv3 ep08} ($464$k parameters) --- both frozen
 and read-only throughout. No \emph{recommender} is trained in this chapter. The one model that is
 trained is the distilled interview policy of Section~\ref{sec:onepolicy}, which learns to imitate
@@ -949,8 +951,8 @@ rewarded by \emph{spread}: its estimate improves when users are spread across di
 signatures, so a per-user randomised selector helps it by construction, while a single global order
 concentrates most users in a few cells. It is also the one consumer whose input contract includes
 the unknowns, so a question the user cannot answer is still informative to it. Which selector wins
-therefore depends on which recommender one assumes --- the selection-side appearance of Chapter A's
-instrument-dependence result, and a caution that applies to every published comparison in this
+therefore depends on which recommender one assumes --- the selection-side appearance of the
+instrument-dependence result Chapter A establishes for CASPER, and a caution that applies to every published comparison in this
 literature, including ours.
 
 \subsection{The one arm that clears the bar: the same greedy search, run inside groups}
@@ -2116,7 +2118,7 @@ throughout (Section~\ref{sec:setup}); it is the answer\emph{ability} judgement t
 assumption. It is the standard protocol in this literature, and since answerability is load-bearing
 for two of this chapter's mechanisms it is stated here rather than left implicit.
 \textbf{The adaptive selectors maintain their own posteriors}, because the certified tower is
-deterministic and has none --- so no selector here can use the instrument's own uncertainty. That
+deterministic and has none --- so no selector here can use CASPER's own uncertainty. That
 is a real gap in the interface and it is where a continuous-action policy would live; it is out of
 scope for this chapter by design.
 \textbf{One free constant} (the UCB exploration weight) was fixed at one posterior standard
@@ -2309,7 +2311,7 @@ Section~\ref{sec:act3}. They are the size of the effect, and the tables carry th
 
 \section*{Reproducibility}
 
-Every measurement in this chapter runs on frozen artefacts --- the certified tower \texttt{i26c
+Every measurement in this chapter runs on frozen CASPER artefacts --- the certified tower \texttt{i26c
 ep31} and concept channel \texttt{cv3 ep08} --- under the canonical split, the NO-FLOOR contract,
 and behavioural answers; no recommender is trained here. Three scope statements belong with that sentence
 rather than after it. \emph{Cohorts:} the ML-25M results use all $10{,}000$ test users with no

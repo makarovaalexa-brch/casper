@@ -58,8 +58,9 @@ latent, rendered as language, left unsnapped.
 \section{Introduction}
 \label{sec:intro}
 
-A cold-start recommender that interviews its user must select each question from a fixed list. In the
-system studied here the list holds $19{,}390$ entries, comprising $18{,}359$ films and $1{,}031$
+A cold-start recommender that interviews its user must select each question from a fixed list. In CASPER
+(Cold-start Adaptive Selection for Preference Elicitation in Recommendation), the cold-start
+conversational recommender studied here, the list holds $19{,}390$ entries, comprising $18{,}359$ films and $1{,}031$
 concepts, and the interview problem reduces to an argmax over it: which entry separates the current
 cohort, which entry a person can answer, and in which order to ask. That list is the action space.
 
@@ -157,7 +158,7 @@ reproduces~\cite{hewitt2025neologism}.
 \section{Setup}
 \label{sec:setup}
 
-Nothing in the instrument is refitted. The recommender checkpoint, the fold-in operator and the
+Nothing in CASPER is refitted. The recommender checkpoint, the fold-in operator and the
 question bank are frozen certified artifacts; the bank holds $19{,}390$ questions in two channels
 ($18{,}359$ items, $1{,}031$ concepts); the ruler is full and tail NDCG@10 on the canonical split's
 $10{,}000$ validation users, and the $10{,}000$ canonical test users were not touched. The base policy
@@ -165,7 +166,7 @@ reads the interview state, emits a continuous query vector $\zhat$, and asks whi
 scores highest against it under $s(q\mid\text{state}) = \langle u(h),k(\varphi_q)\rangle +
 b(\varphi_q)$; we measure in homogeneous coordinates so that $\langle\zhat,e_q\rangle$ reproduces $s$
 exactly. Faithfulness is measured through a \emph{tower bridge}, a text-to-collaborative map fitted
-independently of both the emitter and the renderer, so that no reading is closed over the system's own
+independently of both the emitter and the renderer, so that no reading is closed over CASPER's own
 components. Three conventions bind every number below: every statistic carries an interval and
 declares its aggregation unit; every headline number is printed beside its trivial floor (state-blind
 constant, random direction, prior-only, or chance); and every registered reading rule was applied to

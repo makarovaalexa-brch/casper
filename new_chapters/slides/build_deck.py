@@ -67,6 +67,9 @@ textbox(s, Inches(1.0), Inches(2.05), Inches(11.4), Inches(1.6),
         ["Cold-start conversational recommendation:",
          "the instrument, the interview, and the question that is not in the catalogue"],
         size=32, bold=True, color=INK, line_spacing=1.12, space_after=2)
+textbox(s, Inches(1.0), Inches(3.32), Inches(11.4), Inches(0.4),
+        "CASPER — Cold-start Adaptive Selection for Preference Elicitation in Recommendation",
+        size=14, color=MUTED)
 D._rule(s, Inches(3.95), ACCENT)
 textbox(s, Inches(1.0), Inches(4.25), Inches(11.4), Inches(1.4),
         [("Paper A — the measuring instrument   ·   Paper B — what a cold interview "
@@ -91,8 +94,8 @@ Ruler and vocabulary: CLAUDE.md 'Metric & reporting'; chapterA_v2.tex.""")
 
 # --- 2. the thesis in one diagram ------------------------------------
 s, y = slide(prs, "The thesis in one arc",
-             "Each paper hands the next a licensed capability. Nothing downstream is measured on a "
-             "ruler the upstream paper did not certify.",
+             "Three papers, one system — CASPER. Each hands the next a licensed capability, and "
+             "nothing downstream is measured on a ruler the upstream paper did not certify.",
              kicker="orientation")
 
 bw, bh = Inches(3.55), Inches(1.55)
@@ -142,7 +145,7 @@ textbox(s, MARGIN_L, Inches(6.15), CONTENT_W, Inches(0.9),
         size=14.5, bold=True, color=INK, space_after=3)
 footer(s, "Sources: chapterA_v2.tex · chapterB_v2.tex · chapterC_v2.tex")
 notes(s, """WHAT TO SAY
-The whole thesis on one slide. A builds and certifies the measuring instrument, because without that
+The whole of CASPER on one slide. A builds and certifies the measuring instrument, because without that
 any elicitation result is unattributable — a null could be the policy or could be the recommender.
 B takes that instrument and asks the real research question: what should a cold interview optimise?
 C asks the capability question that falls out of B: what happens when the best direction to ask

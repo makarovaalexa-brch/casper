@@ -80,7 +80,9 @@ belief (soft-attribute Gaussian elicitation~\cite{biyik2023soft}, unified item$+
 conjugate critique folds~\cite{toroghi2023bcie}) do not report full-profile accuracy at the R1 bar. We are aware of no
 published system that occupies the conjunction of all four.
 
-The instrument that closes this gap is a \emph{frozen} certified
+The instrument that closes this gap is the recommender side of CASPER
+(Cold-start Adaptive Selection for Preference Elicitation in Recommendation), the system this thesis
+builds: a \emph{frozen} certified
 shallow frontier tower over whose latent every channel is folded as a direction paired with a value by a
 permutation-invariant set encoder; three of its input legs---signed/graded values, concepts
 whose vocabulary is not fixed when the model is fitted, and continuous direction tokens---have no faithful encoding in the item-indicator basis of the R1-bar
@@ -144,7 +146,7 @@ that layer; conflating the two is how a simulator comes to flatter the system it
 \paragraph{Accuracy at full profile does not imply accuracy after an interview.} One number makes the point
 concretely, and it concerns a baseline rather than our instrument, so it can be stated before the instrument is
 described. The strongest full-profile model on our ruler, RecVAE~\cite{ren2020recvae}, when restricted to the
-likes among the asked items---the only encoding an item-indicator input admits---scores below our instrument by
+likes among the asked items---the only encoding an item-indicator input admits---scores below CASPER by
 $0.029$ full NDCG@10 after eight questions, each system on its own best question-selection strategy, on
 $10{,}000$ held-out users with a paired confidence interval excluding zero (\S\ref{sec:instrdep}). The same model
 is \emph{above} ours at full profile. Whatever else separates the two systems, a strong full-profile score is not
@@ -196,7 +198,7 @@ folds over a frozen factorisation~\cite{toroghi2023bcie}, and per-item Bayesian 
 \emph{elicitation corner}. No published system we are aware of occupies both (\S\ref{sec:gap}).
 
 \paragraph{Contributions.}
-This chapter is the instrument paper of the thesis. It does not claim a new elicitation policy (that is the companion
+This chapter is the instrument paper of the thesis, and it builds the recommender side of CASPER. It does not claim a new elicitation policy (that is the companion
 method chapter); it claims the \emph{recommender that makes policy measurement possible}. Concretely:
 \begin{enumerate}[leftmargin=1.5em,itemsep=1.5pt]
   \item \textbf{One latent, many channels, at the accuracy frontier.} A frozen tower that comes within $1.2\%$ of the strongest
@@ -1452,7 +1454,7 @@ baseline. The cold intercept of the interview curves in this chapter, $0.1279/0.
 non-personalised read-out; the zero-item concept curves of \S\ref{sec:concept:results} are scored under
 their own protocol and carry their own intercept, $0.1277/0.0267$, which is why the two are never
 compared across.
-Accuracy is therefore settled for this instrument: R1 is evaluated through the same fold that every later
+Accuracy is therefore settled for CASPER: R1 is evaluated through the same fold that every later
 curve uses, so the full-profile standing reported here is a property of the ingestion path itself rather
 than of a separate scoring route (\S\ref{sec:batteryresults}). Ranking here reads the folded point directly; whether an uncertainty estimate over
 that point would help a policy \emph{choose} questions is the companion chapter's subject, not a claim of this one.
@@ -1527,7 +1529,7 @@ companion chapter and why we decline to claim a selection result here.
 
 \paragraph{(iii) R3 and R4 --- per-question curves.}
 Cold-start per-question NDCG@10 curves (full and tail) versus a random-question control. Items are foldable by all
-baselines; mixed channels (concepts, signed values, continuous tokens) are foldable only by our instrument, which is
+baselines; mixed channels (concepts, signed values, continuous tokens) are foldable only by CASPER, which is
 the point of the comparison---the rivals cap out at what an item-only interview can carry. Symmetric access is
 enforced where a baseline \emph{can} fold a channel; where it structurally cannot, that is reported as an architecture
 limit, not hidden. The items-only R3 curves and the R4 sign and intensity arms are measured
@@ -1652,7 +1654,7 @@ here depends on that choice.}
 
 Five readings, and we are careful about which we claim.
 
-\emph{The ranking is not a property of the heuristic alone.} Under our instrument \textsc{entropy0} leads on both
+\emph{The ranking is not a property of the heuristic alone.} Under CASPER \textsc{entropy0} leads on both
 metrics; under the Golbandi node model \textsc{helf} leads on both; under a likes-only RecVAE
 \textsc{popularity} leads on the full profile. Asked which heuristic is best, the three consumers give three
 different answers, and each answer is separated. A paper reporting any one of them in isolation, with its own
