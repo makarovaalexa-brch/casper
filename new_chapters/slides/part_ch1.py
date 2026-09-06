@@ -284,6 +284,28 @@ def build_ch1(prs):
              "The gate replaced additive union, which at eight answers scored below asking nothing.\n"
              "Redundancy check: eight correlated concepts must not lose to four; the additive operator failed exactly there.")
 
+    # 13b what the fold is --------------------------------------------------
+    s, y = slide(prs, "Fold-in operator: two learned models")
+    table(s, [
+        ["", "item fold", "concept fold"],
+        ["what", "the tower's own set encoder (T2′)", "gated fold-to-point, eq. 5"],
+        ["form", "token per answer (factor, graded rating) → pooled → MLP → point",
+         "μ ← μ + σ(g([μ; φ; y])) × h([μ; φ; y]); g, h small MLPs"],
+        ["trained on", "140,768 train users, full histories, once", "real users' concept affinities, once"],
+        ["init / guard", "certified: G0 identity at t = 0", "g, h zero-initialised; shift norm-capped"],
+        ["frozen after", "certification (i26c ep31); never refitted", "training; never refitted"],
+    ], MARGIN_L, y, CONTENT_W, col_w=[16, 42, 42], font_size=11, row_h=0.34, first_col_bold=True)
+    bullets(s, MARGIN_L, y + I(2.25), CONTENT_W, [
+        "Neural, trained once, frozen; nothing fitted per user or per interview",
+        "Closed-form alternative measured: conjugate accumulator 0.2267 full vs learned 0.3496",
+        "Additive concept operator declines with answers; gated fold monotone to eight",
+    ], size=15)
+    notes(s, "Two learned operators sit behind the one interface, and the chapter says so explicitly.\n"
+             "The item fold is the recommender's own encoder: Deep-Sets style, one token per rated film, trained once on the training users.\n"
+             "The concept fold is a separate small gated network, zero-initialised so the empty interview is exactly the tower, then trained on real affinities.\n"
+             "Everything is frozen afterwards; an interview is a forward pass, no gradient step.\n"
+             "Why learned: the closed-form conjugate accumulator is a legal ranker and scores 0.2267 full on the full profile; the learned encoder reaches 0.3496.")
+
     # 14 free-text example --------------------------------------------------
     s, y = slide(prs, "Free-text channel: example")
     table(s, [
