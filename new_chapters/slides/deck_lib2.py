@@ -110,9 +110,7 @@ def section_slide(prs, title, line=None):
     t = s.placeholders[0]
     t.text_frame.text = ""
     _set_runs(t.text_frame.paragraphs[0], title, 34, bold=True)
-    if line:
-        p = t.text_frame.add_paragraph()
-        _set_runs(p, line, 18, color=GREY)
+    # sub-lines deliberately not rendered: the author's decks carry bare section titles
     return s
 
 
