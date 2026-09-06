@@ -10,7 +10,7 @@
 
 ## Venue targets
 - **★ TORS (ACM Trans. on Recommender Systems) — the primary target for Paper A.** See below.
-- **ECIR 2027** — deadline **~2 Oct 2026** — anchor for Paper **C**; for A, only a cut-down version.
+- **ECIR 2027** — **VERIFIED 2026-09-06 on ecir2027.co.uk: full-paper ABSTRACT 21 Sep 2026, paper 5 Oct 2026, notify 7 Dec; 12 pp + refs, double-blind, LNCS; Southampton 21–25 Mar 2027.** Short papers: abstract 5 Oct / paper 12 Oct, 6 pp. Reproducibility: 12 Oct / 19 Oct, 12 pp. Resource: 2 Nov. Anchor for Paper **B** (full).
 - **RecSys / ECIR reproducibility tracks** — strong fit for Paper A's certification bridge.
 - **RecSys 2026** — short or resource track (Paper A as testbed/resource).
 - **CIKM 2026** — resource track.
