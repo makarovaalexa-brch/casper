@@ -96,6 +96,13 @@ def main():
                     help="read banked opener material instead of computing it. REQUIRED for "
                          "--split test.")
     ap.add_argument("--i_have_author_goahead", action="store_true")
+    ap.add_argument("--static_train", default="",
+                    help="DS-A9 (2026-09-08): path (relative to experiments/battery) of the TRAIN-fitted "
+                         "static order, e.g. greedy_static_policyB_combined_train10000.json. In "
+                         "generalise mode adds the arm `static_train` per group plus the contrasts "
+                         "tree-cold, cold-static_train, tree-static_train, policy-static_train and a "
+                         "pooled block, and banks every per-user score vector to a .npz. The existing "
+                         "policy/tree/cold numbers are unchanged (the gate).")
     a = ap.parse_args()
     assert a.i_have_author_goahead, "REFUSING TO RUN without --i_have_author_goahead"
     assert not (a.split == "test" and not a.load_tabs), (
@@ -308,6 +315,15 @@ def main():
         return out
 
     if a.mode == "generalise":
+        st_tr = None
+        if a.static_train:
+            _sp = os.path.join(B, a.static_train)
+            st_tr = [(int(x), int(y)) for x, y in json.load(open(_sp))["sequence"]][:TOTAL_L]
+            log(f"[static_train] {a.static_train}: {len(st_tr)} questions (DS-A9 extra arm)")
+            results["static_train"] = a.static_train
+        peruser = {}                      # DS-A9: banked per-user score vectors, one look
+        pooled = {}                       # arm -> K -> list of per-user arrays, concatenated below
+        pooled_rows = []
         for g in groups:
             rows_g = np.asarray([r for r in warm if assign[int(r)] == g], np.int64)
             if len(rows_g) < 150:
@@ -326,7 +342,13 @@ def main():
                                         for p, t in zip(s_pol, s_tree)]))
             agree_all = float(np.mean([[tuple(q) for q in p] == [tuple(q) for q in t]
                                        for p, t in zip(s_pol, s_tree)]))
-            sc = score(rows_g, ops, {"policy": s_pol, "tree": s_tree, "cold": s_cold}, g)
+            arms = {"policy": s_pol, "tree": s_tree, "cold": s_cold}
+            if st_tr is not None:
+                # the static order asked after the user's own opener, opener questions skipped,
+                # exactly as m6t_order_check scores `static_train` on validation
+                arms["static_train"] = [[q for q in st_tr if q not in set(ops[int(r)])][:TOTAL_L]
+                                        for r in rows_g]
+            sc = score(rows_g, ops, arms, g)
             cell = {"n": int(len(rows_g)), "route_root": agree_root, "route_whole": agree_all,
                     "budgets": {}}
             for K in BUDGETS:
@@ -338,6 +360,22 @@ def main():
                     "cold": float(np.nanmean(cf)),
                     "policy_minus_cold": m1, "ci_cold": [l1, h1],
                     "policy_minus_tree": m2, "ci_tree": [l2, h2]}
+                if st_tr is not None:
+                    sf = sc["static_train"][K][0]
+                    row = cell["budgets"][str(K)]
+                    row["static_train"] = float(np.nanmean(sf))
+                    for name, diff in (("tree_minus_cold", tf - cf),
+                                       ("cold_minus_static_train", cf - sf),
+                                       ("tree_minus_static_train", tf - sf),
+                                       ("policy_minus_static_train", pf - sf)):
+                        m, l, h = paired_boot(diff)
+                        row[name] = m; row[f"ci_{name}"] = [l, h]
+                for arm in sc:
+                    peruser[f"{g}__{arm}__K{K}__full"] = sc[arm][K][0]
+                    peruser[f"{g}__{arm}__K{K}__tail"] = sc[arm][K][1]
+                    pooled.setdefault(arm, {}).setdefault(K, []).append(sc[arm][K][0])
+            peruser[f"{g}__rows"] = rows_g
+            pooled_rows.append(rows_g)
             results["cells"][g] = cell
             c = cell["budgets"]["15"]
             st = "*" if c["ci_cold"][0] > 0 else ("-" if c["ci_cold"][1] < 0 else " ")
@@ -345,6 +383,40 @@ def main():
                 f"K=15 policy {c['policy']:.5f} tree {c['tree']:.5f} cold {c['cold']:.5f} | "
                 f"VALUE vs cold {c['policy_minus_cold']:+.5f}{st} vs tree "
                 f"{c['policy_minus_tree']:+.5f}")
+            if st_tr is not None:
+                for name in ("tree_minus_cold", "cold_minus_static_train", "tree_minus_static_train"):
+                    l, h = c[f"ci_{name}"]
+                    s_ = "*" if l > 0 else ("-" if h < 0 else " ")
+                    log(f"        {name:<26} {c[name]:+.5f} [{l:+.5f},{h:+.5f}]{s_}  "
+                        f"(static_train {c['static_train']:.5f})")
+        # ---- DS-A9: pooled over groups (each user in at most one group under --disjoint) ----
+        if pooled:
+            uid = np.concatenate(pooled_rows)
+            assert len(uid) == len(np.unique(uid)) or not a.disjoint, "a user appears in two groups"
+            prec = {"n_rows": int(len(uid)), "n_users": int(len(np.unique(uid))), "budgets": {}}
+            for K in BUDGETS:
+                P = {arm: np.concatenate(pooled[arm][K]) for arm in pooled}
+                row = {arm: float(np.nanmean(P[arm])) for arm in P}
+                pairs = [("policy", "cold"), ("policy", "tree"), ("tree", "cold")]
+                if st_tr is not None:
+                    pairs += [("cold", "static_train"), ("tree", "static_train"),
+                              ("policy", "static_train")]
+                for hi, lo in pairs:
+                    m, l, h = paired_boot(P[hi] - P[lo])
+                    row[f"{hi}_minus_{lo}"] = m; row[f"ci_{hi}_minus_{lo}"] = [l, h]
+                prec["budgets"][str(K)] = row
+            results["pooled"] = prec
+            c = prec["budgets"]["15"]
+            log(f"[POOLED] {prec['n_rows']} rows, {prec['n_users']} users | K=15 " +
+                " ".join(f"{arm} {c[arm]:.5f}" for arm in sorted(pooled)))
+            for hi, lo in pairs:
+                l, h = c[f"ci_{hi}_minus_{lo}"]
+                s_ = "*" if l > 0 else ("-" if h < 0 else " ")
+                log(f"        {hi} - {lo:<13} {c[f'{hi}_minus_{lo}']:+.5f} [{l:+.5f},{h:+.5f}]{s_}")
+            _sfx = "" if a.split == "validation" else f"_{a.split}"
+            _pp = os.path.join(M6, f"m6generalise_{a.half}{_sfx}_peruser.npz")
+            np.savez_compressed(_pp, **{k: np.asarray(v) for k, v in peruser.items()})
+            log(f"[peruser] banked {len(peruser)} arrays -> {_pp}")
     else:
         allrows = np.concatenate([warm, cold])
         ops = {int(r): openers.get(int(r), []) for r in allrows}
