@@ -139,7 +139,78 @@ def asks_concepts(spec):
     if spec.startswith("fixedorder:"):
         which = spec.split(":", 1)[1]
         return which in GREEDY_FIXED_ORDERS and GREEDY_FIXED_ORDERS[which] != "items-only"
+    if spec.startswith("fixedorder_json:") or spec.startswith("replay:"):
+        return any(int(ch) == 1 for ch, _i in _stored_pairs(spec))
     return False
+
+
+# ---------------------------------------------------------- DS-A11: stored POLICY-B orders and the tree
+_BATTERY_DIR = os.path.join(_ROOT, "experiments", "battery")
+FIXEDORDER_JSON = {                     # name -> file with a channel-tagged "sequence" [[ch, id], ...]
+    "policyB_combined": "greedy_static_policyB_combined.json",
+    "policyB_items": "greedy_static_policyB_items.json",
+    "policyB_concepts": "greedy_static_policyB_concepts.json",
+}
+REPLAY = {                               # name -> (tree json with leaf_table.own_sequence, per-user npz)
+    "ndcgtree16test": ("ndcgtree16test.json", "ndcgtree16test_policyB_per_user.npz"),
+}
+
+
+def _stored_pairs(spec):
+    """Every (channel, id) pair a stored-order spec can ask, for the concept-space predicate."""
+    kind, which = spec.split(":", 1)
+    if kind == "fixedorder_json":
+        return [(int(c), int(i)) for c, i in
+                json.load(open(os.path.join(_BATTERY_DIR, FIXEDORDER_JSON[which])))["sequence"]]
+    tj, _npz = REPLAY[which]
+    d = json.load(open(os.path.join(_BATTERY_DIR, tj)))
+    return [(int(c), int(i)) for leaf in d["leaf_table"] for c, i in leaf["own_sequence"]]
+
+
+def _pairs_to_actions(pairs, n_items):
+    """Channel-tagged pairs -> harness action ids (items as-is, concepts offset by n_items)."""
+    return [int(i) if int(c) == 0 else n_items + int(i) for c, i in pairs]
+
+
+class ReplaySelector:
+    """A banked interview replayed verbatim, per user (DS-A11, 2026-09-08). Duck-typed to the Selector
+    contract (reset / select / stats / name); defined before `Selector` in this module, so no base.
+
+    The measured-metric tree was grown on validation and scored once on test; its per-user TEST
+    question sequence is the leaf's own 16-question sequence (path + greedy tail), and the leaf each
+    test user fell in is banked in the per-user npz. Replaying it through THIS harness lets the same
+    interview be consumed by every recommender in RECS, which is the transfer check the tree never
+    had. Nothing is selected here: `select` reads `orders[u][turn]`. Users are the harness's own
+    0..n-1 index, which is the proc test order the tree's `rows` were written in (asserted below by
+    coverage: every user must appear in exactly one leaf)."""
+    def __init__(self, which, n_items, log=logln):
+        tj, npz = REPLAY[which]
+        d = json.load(open(os.path.join(_BATTERY_DIR, tj)))
+        z = np.load(os.path.join(_BATTERY_DIR, npz))
+        seq_of = {leaf["nid"]: _pairs_to_actions(leaf["own_sequence"], n_items)
+                  for leaf in d["leaf_table"]}
+        self._orders = {}
+        for nid, seq in seq_of.items():
+            for r in z[f"test|{nid}|rows"].tolist():
+                assert int(r) not in self._orders, f"user {r} appears in two leaves"
+                self._orders[int(r)] = seq
+        self.name = f"replay:{which}"
+        self.n_items = int(n_items)
+        self.log = log
+        log(f"[replay] {which}: {len(seq_of)} leaves, {len(self._orders)} users, "
+            f"sequence length {min(len(s) for s in seq_of.values())}")
+
+    def reset(self, ctx):
+        n = int(ctx["n_users"])
+        missing = [u for u in range(n) if u not in self._orders]
+        assert not missing, f"replay covers {n - len(missing)} of {n} users; first missing {missing[:5]}"
+        assert min(len(s) for s in self._orders.values()) >= int(ctx["q_max"]), "banked sequence shorter than budget"
+
+    def select(self, turn, users, asked, answered):
+        return np.asarray([int(self._orders[int(u)][turn]) for u in users.tolist()], dtype=np.int64)
+
+    def stats(self):
+        return {}
 
 
 # ===================================================================== selector interface
@@ -568,6 +639,19 @@ def validate_specs(specs, glob, budgets, log=logln):
             elif glob is not None and which not in glob:
                 bad.append(f"{spec}: unknown stored order '{which}'; have "
                            f"{sorted(set(glob) | set(GREEDY_FIXED_ORDERS))}")
+        elif spec.startswith("fixedorder_json:") or spec.startswith("replay:"):
+            kind, which = spec.split(":", 1)
+            reg = FIXEDORDER_JSON if kind == "fixedorder_json" else REPLAY
+            if which not in reg:
+                bad.append(f"{spec}: unknown name; have {sorted(reg)}")
+                continue
+            files = [reg[which]] if kind == "fixedorder_json" else list(reg[which])
+            miss = [f for f in files if not os.path.exists(os.path.join(_BATTERY_DIR, f))]
+            if miss:
+                bad.append(f"{spec}: missing {miss}")
+                continue
+            if kind == "fixedorder_json" and len(_stored_pairs(spec)) < max(budgets):
+                bad.append(f"{spec}: {len(_stored_pairs(spec))} stored steps < largest budget {max(budgets)}")
         elif spec.endswith(STATIC_SUFFIX):
             if spec[:-len(STATIC_SUFFIX)] not in known_static:
                 bad.append(f"{spec}: unknown static arm; have {sorted(known_static)}")
@@ -632,7 +716,8 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
             return B.BALDSelector(cache["belief"], max_states=ms)
         if spec == "aopt":
             return B.AOptimalSelector(cache["belief"], max_states=ms)
-        return B.ThompsonSelector(cache["belief"], seed=args.ts_seed, max_states=ms)
+        return B.ThompsonSelector(cache["belief"], seed=args.ts_seed, max_states=ms,
+                                  scale=float(getattr(args, "ts_scale", 1.0) or 1.0))
     if spec == "golbandi_tree":
         # WSDM'11 SPLIT SEARCH (golbandi_tree_selector.py). Grown ONCE per process on the TRAIN
         # users, to the LARGEST budget in the run, and shared across budgets: a depth-d prefix of the
@@ -722,6 +807,26 @@ def build_selector(spec, D, glob, bank, k, args, cache, log=logln):
         s = GT.StaticOrderTreeSelector(order, log=log)
         s.name = spec
         log(f"[fixedorder] {which}: first {k} questions {list(order[:k])}")
+        return s
+    if spec.startswith("fixedorder_json:") or spec.startswith("replay:"):
+        # DS-A11: policy-B stored orders (channel-tagged "sequence" schema) and the banked tree replay.
+        import golbandi_tree_selector as GT
+        ni = int(D["n_items"])
+        kind, which = spec.split(":", 1)
+        if kind == "fixedorder_json":
+            order = _pairs_to_actions(_stored_pairs(spec), ni)
+            assert len(order) >= k, f"{spec}: {len(order)} stored steps < budget {k}"
+            s = GT.StaticOrderTreeSelector(order, log=log)
+        else:
+            s = ReplaySelector(which, ni, log=log)
+        s.name = spec
+        if asks_concepts(spec):
+            s.stack = _concept_stack(D, args, cache, log=log)
+            nc = int(s.stack["n_concepts"])
+            top = max(a for a in _pairs_to_actions(_stored_pairs(spec), ni))
+            assert top < ni + nc, f"{spec}: concept id beyond the {nc}-concept action space"
+        log(f"[{kind}] {which}: answer convention comes from THIS cell (--concept_neg_cap), "
+            f"not the stored order")
         return s
     if spec.startswith("treestatic:"):
         # THE SYMMETRIC COMPARATOR, through golbandi_tree_selector's OWN class rather than through
@@ -835,7 +940,7 @@ def _smoke_slice(D, n_smoke, log=logln):
 # Every CLI argument that can change WHICH QUESTIONS get asked. A banked interview may be reused only
 # if all of these agree; anything outside this list (consumers, the tower snapshot, --per_user) affects
 # only the SCORING half and cannot invalidate an interview.
-_ASK_ARGS = ("sel_batch", "ucb_alpha", "ts_seed", "eddi_topm", "eddi_beta",
+_ASK_ARGS = ("sel_batch", "ucb_alpha", "ts_seed", "ts_scale", "cohort", "eddi_topm", "eddi_beta",
              "golbandi_depth", "golbandi_xi", "golbandi_min_child", "golbandi_tree_cache",
              "dre_tag", "dre_dup_policy",
              "igcn_clusters", "igcn_nbr", "igcn_switch", "igcn_recompute", "igcn_kmeans_iter",
@@ -928,6 +1033,13 @@ def main():
     ap.add_argument("--ucb_alpha", type=float, default=1.0,
                     help="GLM-UCB exploration constant. NOT fitted on test; see bandit_selectors.")
     ap.add_argument("--ts_seed", type=int, default=98765)
+    ap.add_argument("--ts_scale", type=float, default=1.0,
+                    help="DS-A10: Thompson posterior temperature (1.0 = exact posterior draw, the "
+                         "published rule). Chosen on --cohort validation, never on test.")
+    ap.add_argument("--cohort", default="test", choices=["test", "validation"],
+                    help="DS-A10: which 10,000-user cohort the whole harness runs on. 'validation' is "
+                         "for choosing selector constants; results are written under a VAL_ label "
+                         "and are never citable as test numbers.")
     ap.add_argument("--eddi_topm", type=int, default=0,
                     help="0 = score the FULL 18,359-item candidate pool (the default and the only "
                          "citable setting). >0 truncates the candidate pool and requires sign-off.")
@@ -1093,7 +1205,11 @@ def main():
     # data load and certainly not four hours (the `fixedorder:greedy_concepts` scar).
     validate_specs(specs, None, budgets, log=logln)
     validate_paths(a, log=logln)
-    D = load_arm_n(log=logln)
+    D = load_arm_n(log=logln, cohort=a.cohort)
+    if a.cohort != "test":
+        logln(f"[adaptive] *** COHORT = {a.cohort.upper()}: selection run, NOT citable as test ***")
+        for spec in [s.strip() for s in a.selectors.split(",")]:
+            assert not spec.startswith("replay:"), "replay: specs index TEST users; refuse on validation"
     if a.regression:
         regression_check(D, budgets=budgets, log=logln)
         return
@@ -1126,6 +1242,8 @@ def main():
     pop_row, prior = mostpop_row(D, log=logln)
 
     lbl = a.label or a.arch
+    if a.cohort != "test" and not lbl.startswith("VAL_"):
+        lbl = "VAL_" + lbl              # a validation table must never be mistaken for a test one
     outp = os.path.join(OUT, f"{'SMOKE_' if smoke else ''}adaptive_table_{lbl}.json")
     vecp = outp.replace(".json", "_per_user.npz")
     ckdir = outp.replace(".json", "_interviews")
@@ -1136,7 +1254,8 @@ def main():
     results = {"mostpop": {"_prior": prior}}
     meta = {"selectors": specs, "budgets": budgets, "consumers": recs, "arch": a.arch,
             "snapshot": os.path.basename(a.snapshot), "no_floor": bool(a.no_floor),
-            "n_test_users": n, "ucb_alpha": a.ucb_alpha, "ts_seed": a.ts_seed,
+            "n_test_users": n, "cohort": a.cohort, "ucb_alpha": a.ucb_alpha, "ts_seed": a.ts_seed,
+            "ts_scale": a.ts_scale,
             "eddi_cand_topm": a.eddi_topm, "conv_max_states": max_states,
             # 2026-08-12 audit: `adaptive_table_i26c_ep31.json`'s meta records NOTHING about masking,
             # so its policy had to be established from git history instead of from the artifact. This

@@ -575,10 +575,15 @@ class ThompsonSelector(_PosteriorSelector):
     u~ = mu + L^-T z with z ~ N(0, I) has exactly covariance A^-1. No 200x200 inverse is formed."""
     name = "thompson"
 
-    def __init__(self, belief, seed=98765, pool=None, chunk=512, max_states=DEFAULT_MAX_STATES):
+    def __init__(self, belief, seed=98765, pool=None, chunk=512, max_states=DEFAULT_MAX_STATES,
+                 scale=1.0):
         super().__init__(belief, pool=pool, max_states=max_states)
         self.seed = int(seed)
         self.chunk = int(chunk)
+        # DS-A10 (2026-09-08): posterior TEMPERATURE on the draw, u~ = mu + scale * L^-T z. scale=1 is
+        # the published rule (exact posterior sample) and every banked number; other values exist only
+        # so the constant can be CHOSEN ON VALIDATION like GLM-UCB's alpha. Never fitted on test.
+        self.scale = float(scale)
         self._chol = LRUCache(self.max_states, "chol")
 
     def reset(self, ctx):
@@ -605,7 +610,7 @@ class ThompsonSelector(_PosteriorSelector):
         mu, _A = self._posterior(key)
         L = self._cholesky(key)
         z = np.random.default_rng([self.seed, int(turn), int(u)]).standard_normal(self.Y.shape[1])
-        return self.Y @ (mu + sla.solve_triangular(L.T, z, lower=False))
+        return self.Y @ (mu + self.scale * sla.solve_triangular(L.T, z, lower=False))
 
     def select(self, turn, users, asked, answered):
         groups = _group_by_state(users, answered)
@@ -622,7 +627,7 @@ class ThompsonSelector(_PosteriorSelector):
                 # to be, which a single shared stream would not be.
                 Z = np.stack([np.random.default_rng([self.seed, int(turn), int(u)])
                               .standard_normal(f) for u in blk], axis=0)          # (b x f)
-                U = mu[None, :] + sla.solve_triangular(L.T, Z.T, lower=False).T   # (b x f)
+                U = mu[None, :] + self.scale * sla.solve_triangular(L.T, Z.T, lower=False).T  # (b x f)
                 S = U @ self.Y.T                                                  # (b x n_items)
                 for r, u in enumerate(blk):
                     self._pick(S[r], [u], asked, out, idx_of)

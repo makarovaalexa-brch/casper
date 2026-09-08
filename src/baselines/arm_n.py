@@ -116,19 +116,40 @@ def build_pool(te_tr, g_te_tr, log=_log):
     return pool
 
 
-def load_arm_n(log=_log):
-    """Everything arm N needs, with the invariants checked once, here, rather than per baseline."""
+def load_arm_n(log=_log, cohort="test"):
+    """Everything arm N needs, with the invariants checked once, here, rather than per baseline.
+
+    `cohort="validation"` (DS-A10, 2026-09-08) serves the 10,000 VALIDATION users through the identical
+    contract, so a selector's free constants can be chosen there and only the chosen value is run on
+    test. The dict keys keep their historical `te_*` names; `cohort` is stamped alongside."""
+    assert cohort in ("test", "validation"), cohort
     n_items = len(open(os.path.join(PROC, "unique_sid.txt")).read().split())
     train = M.load_train(n_items, PROC)
-    te_tr, te_te = M.load_test(n_items, PROC)
+    if cohort == "test":
+        te_tr, te_te = M.load_test(n_items, PROC)
+    else:
+        te_tr, te_te = M._load_tr_te_data(os.path.join(PROC, "validation_tr.csv"),
+                                          os.path.join(PROC, "validation_te.csv"), n_items)
     head_mask, _cnt = compute_head_mask(train, n_items)   # from the BINARY train matrix, always
-    g_train, g_te_tr = load_graded_cached(te_te, log=log)
+    if cohort == "test":
+        g_train, g_te_tr = load_graded_cached(te_te, log=log)
+    else:
+        g_train, _g_test = load_graded_cached(M.load_test(n_items, PROC)[1], log=log)
+        vcache = CACHE.replace(".npz", "_validation.npz")
+        if os.path.exists(vcache):
+            g_te_tr = _load_npz(vcache, ["g_va_tr"])["g_va_tr"]
+            log(f"[arm_n] graded VALIDATION fold-in from cache: nnz={g_te_tr.nnz}")
+        else:
+            from graded_data import load_graded_val
+            g_te_tr = load_graded_val(te_te, log=log)
+            _save_npz(vcache, {"g_va_tr": g_te_tr})
+            log(f"[arm_n] graded VALIDATION fold-in cached -> {vcache}")
     pool = build_pool(te_tr, g_te_tr, log=log)
 
     # Invariants. Any of these firing means the arm is not comparable to arm A and must not be run.
     assert te_tr.shape == te_te.shape == g_te_tr.shape == pool.shape, "test-side shape mismatch"
     assert train.shape[1] == n_items == 18359, f"catalogue drift: {train.shape[1]} vs 18359"
-    assert te_tr.shape[0] == 10000, f"test cohort size {te_tr.shape[0]}"
+    assert te_tr.shape[0] == 10000, f"{cohort} cohort size {te_tr.shape[0]}"
     assert g_train.shape[0] == 140768, f"train cohort size {g_train.shape[0]}"
     leak = pool.multiply(te_te).nnz
     assert leak == 0, f"POOL/TARGET LEAK: {leak} held-out targets are inside the exclusion mask"
@@ -141,7 +162,8 @@ def load_arm_n(log=_log):
     pc = pool_contract(pool, policy="B (arm_n.build_pool)")
     log(f"[arm_n] pool contract (DERIVED): nnz={pc['nnz']} per_user={pc['per_user']} fp={pc['fp']}")
     return {"n_items": n_items, "train": train, "g_train": g_train, "te_tr": te_tr, "te_te": te_te,
-            "g_te_tr": g_te_tr, "pool": pool, "head_mask": head_mask, "pool_contract": pc}
+            "g_te_tr": g_te_tr, "pool": pool, "head_mask": head_mask, "pool_contract": pc,
+            "cohort": cohort}
 
 
 if __name__ == "__main__":
