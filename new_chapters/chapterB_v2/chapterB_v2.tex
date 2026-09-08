@@ -78,7 +78,7 @@ not touch \emph{reach}: $\sim\!14\%$ of cold users answer nothing across sixteen
 and users who answer sit roughly $+0.25$ above users who do not, against $+0.048$ for the best
 question \emph{choice}. A closing section addresses reach with volunteered openings: interviews
 fitted at the states of users who volunteer an opening request beat the cold interview there
-($+0.00688$ pooled), and a single policy distilled from all seven interviews, choosing each question
+($+0.01041$ pooled, test), and a single policy distilled from all seven interviews, choosing each question
 from the folded state alone, retains the advantage on the reserved test cohort ($+0.00343$) while
 leaving the majority who volunteer nothing unharmed.
 \end{abstract}
@@ -135,7 +135,7 @@ answers. Real requesters do not wait to be asked --- in a corpus of $3{,}078$ re
 requests, $63\%$ name a film unprompted. Section~\ref{sec:act5} asks what that volunteered opening is
 worth. It is worth enough to route on: six taste groups, made disjoint so that membership is
 recoverable from what a person says, support interviews that beat the unconditioned tree
-($+0.00688^\star$ pooled). A single policy distilled from all six group interviews and the cold
+($+0.01041^\star$ pooled, on the reserved test cohort). A single policy distilled from all six group interviews and the cold
 interview reproduces whichever it routes to with $0.991$ mean agreement, decides between them from
 the folded opening alone, and on the reserved test cohort is worth $+0.00343^\star$ over the cold
 tree across all $10{,}000$ users while leaving the majority who volunteer nothing where they were
@@ -1929,7 +1929,7 @@ Everything so far establishes that people volunteer, that what they volunteer pl
 the places are nameable. This section asks the operational question: \emph{what is it worth?}
 
 Every interview compared here --- the static order, the cold tree and the six group trees --- is
-fitted on the training split and evaluated on validation users. The cold tree is
+fitted on the training split and scored once on the reserved test cohort. The cold tree is
 \texttt{coldtree\_v2}, grown to fifteen questions for this section and distinct from the sixteen-question
 \texttt{ndcgtree16} of Section~\ref{sec:act3}; each group tree is fitted on $2{,}000$ users against
 the cold tree's $10{,}000$, which runs against the group arms.
@@ -1947,47 +1947,48 @@ which questions follow.
 
 \begin{table}[t]
 \centering
-\caption{Interviews at opener states. Each user volunteers an opening request; the arms differ only in
-what is asked next. Full NDCG@10 at $K{=}15$; $\star$ marks a paired bootstrap interval excluding zero
-($10{,}000$ resamples, clustered over users). All arms fitted on train, evaluated on validation.}
+\caption{Interviews at opener states, reserved test cohort. Each user volunteers an opening request; the
+arms differ only in what is asked next. Full NDCG@10 at $K{=}15$; $\star$ marks a paired bootstrap interval
+excluding zero ($10{,}000$ resamples, clustered over users). All arms fitted on train, scored once on test.}
 \label{tab:volunteered}
 \footnotesize
 \begin{tabular}{lr rrr r}
 \toprule
 group & $n$ & static & cold & opener & opener $-$ cold \\
 \midrule
-\texttt{art house} & $473$ & $.26867$ & $.26508$ & $\mathbf{.28978}$ & $+.02470^\star$ $[+.0114,+.0378]$ \\
-\texttt{gore} & $419$ & $.30394$ & $.30206$ & $\mathbf{.31450}$ & $+.01244$ $[-.0016,+.0263]$ \\
-\texttt{teenagers} & $540$ & $.24542$ & $.25026$ & $\mathbf{.26192}$ & $+.01166$ $[-.0024,+.0254]$ \\
-\texttt{marvel} & $593$ & $.40549$ & $.41570$ & $\mathbf{.42406}$ & $+.00836$ $[-.0030,+.0199]$ \\
-\texttt{inspiring} & $1{,}557$ & $.24040$ & $.24626$ & $\mathbf{.24644}$ & $+.00018$ $[-.0068,+.0071]$ \\
-\texttt{dialogue driven} & $398$ & $.21959$ & $\mathbf{.23058}$ & $.22793$ & $-.00266$ $[-.0153,+.0101]$ \\
+\texttt{art house} & $464$ & $.27251$ & $.27964$ & $\mathbf{.30046}$ & $+.02082^\star$ $[+.0068,+.0350]$ \\
+\texttt{inspiring} & $1{,}526$ & $.24274$ & $.24338$ & $\mathbf{.25534}$ & $+.01196^\star$ $[+.0046,+.0193]$ \\
+\texttt{dialogue driven} & $395$ & $.21750$ & $.21894$ & $\mathbf{.22940}$ & $+.01045$ $[-.0018,+.0230]$ \\
+\texttt{gore} & $391$ & $.32950$ & $.32595$ & $\mathbf{.33208}$ & $+.00613$ $[-.0085,+.0204]$ \\
+\texttt{marvel} & $599$ & $.40369$ & $.41933$ & $\mathbf{.42534}$ & $+.00601$ $[-.0052,+.0172]$ \\
+\texttt{teenagers} & $502$ & $.24170$ & $.23712$ & $\mathbf{.24179}$ & $+.00466$ $[-.0099,+.0193]$ \\
 \midrule
-\textbf{pooled} & $\mathbf{3{,}980}$ & $.27365$ & $.27859$ & $\mathbf{.28547}$ & $\mathbf{+.00688^\star}$ $[+.0025,+.0113]$ \\
+\textbf{pooled} & $\mathbf{3{,}877}$ & $.27721$ & $.27993$ & $\mathbf{.29035}$ & $\mathbf{+.01041^\star}$ $[+.0058,+.0152]$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Pooled, the ordering is strict: the static order is beaten by the cold tree, and the cold tree by the
-group interviews, with both steps separating from zero
-($\text{cold}-\text{static}=+.00495^\star$, $\text{opener}-\text{cold}=+.00688^\star$).
+Pooled, the ordering is static $<$ cold $<$ opener. The second step is the one that separates:
+$\text{opener}-\text{cold}=+.01041^\star$ $[+.0058,+.0152]$ and
+$\text{opener}-\text{static}=+.01313^\star$ $[+.0083,+.0179]$, whereas
+$\text{cold}-\text{static}=+.00272$ $[-.0016,+.0071]$ does not. At these opener states the cold tree is
+not reliably better than a fixed order; the interview fitted at the state is.
 
 That ordering does \emph{not} hold inside every group, and the exceptions are worth stating. In
-\texttt{art house} and \texttt{gore} the cold tree falls slightly \emph{below} the static order, so
-the chain is broken at its first link even though the group interview wins clearly. In
-\texttt{dialogue driven} the group interview is the arm that fails, coming in marginally below the
-cold tree. Only one group's advantage separates from zero on its own; the pooled result is carried
-by the aggregate, and at $398$--$593$ users per group the individual intervals are wide.
+\texttt{gore} and \texttt{teenagers} the cold tree falls slightly \emph{below} the static order, so the
+chain is broken at its first link even though the group interview still comes first. Two groups'
+advantages separate from zero on their own, \texttt{art house} and \texttt{inspiring}; the pooled result
+is carried by the aggregate, and at $391$--$599$ users per group the individual intervals are wide.
 
 \paragraph{The per-group ordering does not survive a change of cohort.}
-On validation the two groups gaining nothing are the two left with almost no exclusive films ---
-\texttt{dialogue driven} keeps $113$ and \texttt{inspiring} $152$, against $916$ for \texttt{art
-house} --- which is a coherent account --- and it does not replicate. On the test cohort both of those groups
-separate from zero ($+0.01404^\star$ and $+0.00857^\star$) while \texttt{art house} falls from
-$+0.02470^\star$ to $+0.01657^\star$. With $391$ to $1{,}526$ users in a group, a paired interval is
-roughly four times wider than at cohort scale, and the ranking moves accordingly. We report this
-rather than the validation-only pattern because the difference between them is exactly the kind of
-finding a single split invites. \textbf{The measurement that holds is the pooled one; no claim in
+On the validation cohort the same arms gave a pooled $\text{opener}-\text{cold}$ of $+.00688^\star$ and a
+different per-group ranking: \texttt{inspiring} gained nothing there ($+.00018$) and gains
+$+.01196^\star$ on test, \texttt{dialogue driven} was the one group where the opener tree lost
+($-.00266$) and gains $+.01045$ on test, while \texttt{gore} and \texttt{teenagers} move the other way.
+The validation pattern had a coherent account (the two flat groups were the two left with almost no
+exclusive films, $113$ and $152$ against $916$ for \texttt{art house}) and it did not replicate. With
+$391$ to $1{,}526$ users in a group, a paired interval is roughly four times wider than at cohort scale,
+and the ranking moves accordingly. \textbf{The measurement that holds is the pooled one; no claim in
 this chapter rests on which group gains most.}
 
 \subsection{The routing signal is the opening request itself}

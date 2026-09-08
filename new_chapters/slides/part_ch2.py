@@ -441,20 +441,20 @@ def build_ch2(prs):
     s, y = slide(prs, "Opener-fitted interviews")
     table(s, [
         ["group", "n", "static", "cold", "opener", "opener − cold"],
-        ["art house", "473", ".26867", ".26508", ".28978", "+.02470 *"],
-        ["gore", "419", ".30394", ".30206", ".31450", "+.01244"],
-        ["teenagers", "540", ".24542", ".25026", ".26192", "+.01166"],
-        ["marvel", "593", ".40549", ".41570", ".42406", "+.00836"],
-        ["inspiring", "1,557", ".24040", ".24626", ".24644", "+.00018"],
-        ["dialogue driven", "398", ".21959", ".23058", ".22793", "−.00266"],
-        ["pooled", "3,980", ".27365", ".27859", ".28547", "+.00688 *"],
+        ["art house", "464", ".27251", ".27964", ".30046", "+.02082 *"],
+        ["inspiring", "1,526", ".24274", ".24338", ".25534", "+.01196 *"],
+        ["dialogue driven", "395", ".21750", ".21894", ".22940", "+.01045"],
+        ["gore", "391", ".32950", ".32595", ".33208", "+.00613"],
+        ["marvel", "599", ".40369", ".41933", ".42534", "+.00601"],
+        ["teenagers", "502", ".24170", ".23712", ".24179", "+.00466"],
+        ["pooled", "3,877", ".27721", ".27993", ".29035", "+.01041 *"],
     ], MARGIN_L, I(1.25), I(5.4), col_w=[26, 11, 15, 15, 15, 18], font_size=10, row_h=0.27,
         align=num(6), first_col_bold=True)
     bullets(s, I(6.0), I(1.25), I(3.66), [
-        "VALIDATION, K=15, full NDCG@10",
+        "Reserved TEST users, K=15, full NDCG@10",
         "each tree fitted at the state the user is in",
-        "cold − static = +.00495 *",
-        "opener − cold = +.00688 *",
+        "cold − static = +.00272 (interval includes zero)",
+        "opener − cold = +.01041 *",
         "* = paired bootstrap interval excludes zero",
     ], size=12)
     figure(s, "b_act5_pipeline.png", MARGIN_L, I(3.55), width=I(5.2))
@@ -462,7 +462,7 @@ def build_ch2(prs):
     notes(s, "Section 5 proper: fit the interview tree at the state the user is actually in.\n"
              "Six request groups mined from the corpus; a synthesised opener puts each MovieLens user into a group state.\n"
              "A tree fitted at the cold state already beats the anchor teacher; fitting at the opener state beats that again.\n"
-             "Pooled gain 0.0069, interval excludes zero. Art house gains most; dialogue driven does not gain.\n"
+             "Pooled gain 0.0104 on test, interval excludes zero; validation gave 0.0069 with a different per-group ranking, so only the pooled figure is claimed.\n"
              "The pipeline figure shows the synthesis and the four arms run from the folded state.")
 
     # -- distilled policy -----------------------------------------------------------------------------------
