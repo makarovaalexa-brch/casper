@@ -2,7 +2,7 @@
 
 Deadlines: **abstract 21 Sep 2026**, **paper 5 Oct 2026** (11:59pm GMT), EasyChair. Body ≤ 12 pp.
 
-## 1. Requests-section arms on TEST (author ruling: "we must do it now")
+## 1. Requests-section arms on TEST — DONE 2026-09-08 (`docs/results/A9_OPENER_ARMS_ON_TEST.md`; pooled opener − cold +0.01041 [+0.00583, +0.01520]* on test; gate reproduced the 29 Aug file to 0). Chapter `tab:volunteered` still to be moved to test on the author's instruction.
 State of the artifacts, checked against `chapterB_v2.tex`:
 - **Already on test** (`tab:policy`, one look, 29 Aug): policy, cold tree, static order for the whole mix
   and the volunteered / not-volunteered splits, K=15; and per group (b): routing, policy, **own opener tree**,

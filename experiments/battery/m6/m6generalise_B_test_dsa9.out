@@ -1,0 +1,73 @@
+[vocab] 1031 concepts with >= 30 members (expected 1031); 18359 items
+[21:55:00] ####################################################################################################
+[21:55:00] # M6 GENERALISE -- SPLIT=TEST, half 'B' openers
+[21:55:00] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[21:55:00] # CONFIRMATORY TEST LOOK. Material is REUSED from banked validation artefacts, never
+[21:55:00] # refitted. Only the users and their own-data group assignment come from test.
+[21:55:00] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[21:55:00] ####################################################################################################
+[21:55:00] [ckpt] epoch 5 arch=equivariant encoding=none
+[21:55:00] === building m6generalise env (split=test) ===
+[21:55:03] [data] reading raw ratings C:\dev\phd\casper\data\movielens\ratings.csv
+[21:55:19] [data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, train likes=10851052==train.csv nnz, vocab-set matches unique_sid.txt
+[21:55:19] [teacher] RecVAE loaded from state.best_state: ep25 best_val=0.3512 (hidden=600 latent=200) -- FROZEN
+[21:55:20] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[21:55:20] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[21:55:20] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[21:55:20] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[21:55:20] [ctx] snapshot loaded: t2i26c_ep31.pt ep=31 val_full=0.3466
+[21:55:24] [ctx] all-bands reconstruction: 1411761 tokens; 7622 users with >=3 dislikes
+[21:55:38] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[21:55:43] [g5] 1031 concepts with >= 30 members
+[21:55:53] [ledger] SIGNED valuation arrays built (prereg cache found)
+[21:55:57] [cert] concept channel concept_cv3_ep08.pt ep8 hidden=256 use_refusal=True keep_meh=False params=464,194 (trained on t2i26c_ep31.pt) | G0 item-tie PASS
+[21:55:57] [policy-B] pool nnz=1411761 = 141.2 items/user (binary fold-in 62.6/user); target leak 0
+[21:55:57] [m6generalise] pool contract (DERIVED): policy=B nnz=1411761 per_user=141.1761 fp=cc002b4eb984ed9880346c98fc0a2970
+[21:55:57] [m6generalise] 10000 cohort users; 1031 concepts; concept answer rate over the whole bank = 0.507; tower latent d=200
+[21:55:58] [leak/m6generalise] 0/10000 users have any held-out target inside the routing lookup -- every branch is decided from FOLD-IN evidence only
+[21:56:06] [gate] test m=0 snap full=0.15855464334646144 (validation reference 0.15686538118354684)
+[21:56:06] [cold] teacher = coldtree_v2_train10000.json (144 nodes)
+[21:56:06] [groups] ['arthouse', 'dialogue', 'marvel', 'gore', 'teenagers', 'inspiring']
+[21:56:06] [material] REUSED from m7_tabs_val.npz -- not refitted on test. arthouse:pool=917 dialogue:pool=917 marvel:pool=917 gore:pool=917 teenagers:pool=917 inspiring:pool=917
+[21:56:06] [assign] rule applied to test: 3877 warm users, one group each (own-data argmax; nothing fitted)
+[21:56:06] [mix] 3877 in a group (38.8%), 6123 cold
+[21:56:06]   [arthouse] 464 users · pool(half B) 473 · film 0.543 unserved 56
+[21:56:06]   [dialogue] 395 users · pool(half B) 58 · film 0.549 unserved 45
+[21:56:06]   [marvel] 599 users · pool(half B) 444 · film 0.656 unserved 2
+[21:56:06]   [gore] 391 users · pool(half B) 191 · film 0.637 unserved 47
+[21:56:07]   [teenagers] 502 users · pool(half B) 242 · film 0.436 unserved 114
+[21:56:07]   [inspiring] 1526 users · pool(half B) 74 · film 0.531 unserved 219
+[21:56:07] [static_train] greedy_static_policyB_combined_train10000.json: 15 questions (DS-A9 extra arm)
+[21:56:18] [arthouse] n=464   route root 0.843 whole 0.821 | K=15 policy 0.29621 tree 0.30046 cold 0.27964 | VALUE vs cold +0.01657* vs tree -0.00425
+[21:56:18]         tree_minus_cold            +0.02082 [+0.00676,+0.03504]*  (static_train 0.27251)
+[21:56:18]         cold_minus_static_train    +0.00713 [-0.00657,+0.02065]   (static_train 0.27251)
+[21:56:18]         tree_minus_static_train    +0.02795 [+0.01417,+0.04225]*  (static_train 0.27251)
+[21:56:27] [dialogue] n=395   route root 0.792 whole 0.724 | K=15 policy 0.23299 tree 0.22940 cold 0.21894 | VALUE vs cold +0.01404* vs tree +0.00359
+[21:56:27]         tree_minus_cold            +0.01045 [-0.00176,+0.02301]   (static_train 0.21750)
+[21:56:27]         cold_minus_static_train    +0.00145 [-0.00957,+0.01264]   (static_train 0.21750)
+[21:56:27]         tree_minus_static_train    +0.01190 [-0.00056,+0.02472]   (static_train 0.21750)
+[21:56:41] [marvel] n=599   route root 0.957 whole 0.900 | K=15 policy 0.42555 tree 0.42534 cold 0.41933 | VALUE vs cold +0.00622  vs tree +0.00021
+[21:56:41]         tree_minus_cold            +0.00601 [-0.00515,+0.01722]   (static_train 0.40369)
+[21:56:41]         cold_minus_static_train    +0.01564 [+0.00452,+0.02699]*  (static_train 0.40369)
+[21:56:41]         tree_minus_static_train    +0.02165 [+0.00929,+0.03374]*  (static_train 0.40369)
+[21:56:51] [gore] n=391   route root 0.816 whole 0.726 | K=15 policy 0.33406 tree 0.33208 cold 0.32595 | VALUE vs cold +0.00811  vs tree +0.00198
+[21:56:51]         tree_minus_cold            +0.00613 [-0.00848,+0.02042]   (static_train 0.32950)
+[21:56:51]         cold_minus_static_train    -0.00355 [-0.01611,+0.00875]   (static_train 0.32950)
+[21:56:51]         tree_minus_static_train    +0.00257 [-0.01116,+0.01658]   (static_train 0.32950)
+[21:57:02] [teenagers] n=502   route root 0.741 whole 0.602 | K=15 policy 0.24405 tree 0.24179 cold 0.23712 | VALUE vs cold +0.00692  vs tree +0.00226
+[21:57:02]         tree_minus_cold            +0.00466 [-0.00990,+0.01931]   (static_train 0.24170)
+[21:57:02]         cold_minus_static_train    -0.00458 [-0.01643,+0.00724]   (static_train 0.24170)
+[21:57:02]         tree_minus_static_train    +0.00008 [-0.01427,+0.01439]   (static_train 0.24170)
+[21:57:30] [inspiring] n=1526  route root 0.855 whole 0.824 | K=15 policy 0.25195 tree 0.25534 cold 0.24338 | VALUE vs cold +0.00857* vs tree -0.00338
+[21:57:30]         tree_minus_cold            +0.01196 [+0.00455,+0.01930]*  (static_train 0.24274)
+[21:57:30]         cold_minus_static_train    +0.00064 [-0.00659,+0.00779]   (static_train 0.24274)
+[21:57:30]         tree_minus_static_train    +0.01260 [+0.00476,+0.02025]*  (static_train 0.24274)
+[21:57:36] [POOLED] 3877 rows, 3877 users | K=15 cold 0.27993 policy 0.28939 static_train 0.27721 tree 0.29035
+[21:57:36]         policy - cold          +0.00946 [+0.00520,+0.01373]*
+[21:57:36]         policy - tree          -0.00095 [-0.00301,+0.00115] 
+[21:57:36]         tree - cold          +0.01041 [+0.00583,+0.01520]*
+[21:57:36]         cold - static_train  +0.00272 [-0.00162,+0.00707] 
+[21:57:36]         tree - static_train  +0.01313 [+0.00831,+0.01794]*
+[21:57:36]         policy - static_train  +0.01218 [+0.00751,+0.01686]*
+[21:57:36] [peruser] banked 150 arrays -> C:\dev\phd\casper\experiments\battery\m6\m6generalise_B_test_peruser.npz
+[21:57:36] [done]
