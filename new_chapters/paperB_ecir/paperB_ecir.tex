@@ -35,17 +35,17 @@
 \begin{abstract}
 A cold-start recommender asks a new user a few questions before it recommends, and published
 question-selection methods choose those questions adaptively, conditioning each on the answers so
-far. We re-implement twenty-one published selection rules under one measurement contract on one
-frontier recommender, with answers read from users' own recorded ratings and unanswerable questions
-charged. Every published rule loses, at every budget from one to sixteen questions on 10{,}000
-held-out users, to a fixed question order chosen by greedily maximising the reported metric, full
-NDCG@10. The cause is an objective mismatch: none of the published rules optimises the metric it is
+far. We re-implement thirteen published selection methods, alongside the classic heuristics and a fixed
+order of our own construction, under one measurement contract on one frontier recommender, with answers read from users' own recorded ratings and unanswerable questions
+charged. Every published method loses, at every budget from one to sixteen questions on 10{,}000
+held-out users, to that fixed order, which is chosen by greedily maximising the reported metric,
+full NDCG@10. The cause is an objective mismatch: none of the published rules optimises the metric it is
 judged on, and against exact measured NDCG@10 gains at the states an interview tree visits, the three
-published split criteria forgo 66--89\% of what a random choice forgoes. We introduce CASPER
-(Cold-start Adaptive Selection for Preference Elicitation in Recommendation), which puts the measured
-metric itself into the split criterion of the field's own interview tree. That single change reverses
-the comparison: CASPER beats the static order by $+0.01035$ full NDCG@10 at sixteen questions.
-Enlarging the question bank with concept questions, tag-level generalisations a user can answer
+published split criteria recover only 11--34\% of the gain that a uniformly random choice leaves
+unrealised. Two fixes follow, each priced on the same contract. CASPER (Cold-start Adaptive Selection for
+Preference Elicitation in Recommendation) puts the measured metric itself into the split criterion of
+the field's own interview tree, and that single change reverses the comparison: $+0.01035$ full
+NDCG@10 over the static order at sixteen questions. Enlarging the question bank with concept questions, tag-level generalisations a user can answer
 without having seen any particular film, is worth more still ($+0.01430$), because sixteen concept
 questions collect twelve answers where sixteen film questions collect three.
 \keywords{Preference elicitation \and Cold start \and Conversational recommendation \and
@@ -92,15 +92,15 @@ changing the question bank buy relative to conditioning?
 \noindent Our contributions are threefold.
 \begin{itemize}
 \item We present the first replication of published cold-start elicitation selectors under a single
-contract against a static order built by maximising the reported metric, covering twenty-one rules on
-10{,}000 held-out users, every one of which loses at every budget.
+contract against a static order built by maximising the reported metric: thirteen published methods,
+twenty-three arms in all, on 10{,}000 held-out users, every published one of which loses at every budget.
 \item We measure the mismatch rather than assert it: against exact measured NDCG@10 gains at the 22
 states an adaptive tree visits, three published split criteria correlate at $+0.010$, $-0.060$ and
-$-0.104$ and forgo 66--89\% of what a uniform random pick forgoes.
-\item We introduce CASPER, an interview tree whose split criterion is the measured cold-start
-metric itself; with everything else held fixed it reverses the comparison ($+0.01035$ full, $+0.00705$
-tail at sixteen questions), and adding answerable concept questions to the bank is worth more than
-conditioning ($+0.01430$ full).
+$-0.104$ and recover only 11--34\% of the gain a uniformly random pick leaves unrealised.
+\item We price two fixes on the same contract. CASPER, an interview tree whose split criterion is
+the measured cold-start metric itself, reverses the comparison with everything else held fixed
+($+0.01035$ full, $+0.00705$ tail at sixteen questions); adding answerable concept questions to the
+bank, with no conditioning at all, is worth more ($+0.01430$ full, $+0.02199$ tail).
 \end{itemize}
 
 The finding is an objective mismatch, not a verdict on adaptivity: a fixed order is an adaptive
@@ -120,9 +120,8 @@ question budget and a held-out metric afterwards. All optimise a surrogate objec
 the system is judged on and prove the answer is A-optimality, because their loss is a flat pairwise
 squared error and therefore a quadratic form in the parameter error; that equivalence breaks for a
 truncated, rank-discounted loss, and the positional discount is what makes the objective irreducible
-to a variance criterion. Their paper also contains, in 2018, static questionnaires beating a dynamic
-one, explained by the dynamic method optimising a function different from the loss, so our RQ1 is a
-replication of that rather than a discovery. Greedy SLIM~\cite{proissl2024greedyslim} is the closest
+to a variance criterion. Their 2018 paper already shows static questionnaires beating a dynamic one that optimises a
+function other than the loss, so RQ1 replicates that observation. Greedy SLIM~\cite{proissl2024greedyslim} is the closest
 protocol sibling, on ML-25M with NDCG@10 and the same tail definition, and misses on the axis we
 test: its selection objective is a SLIM squared loss. One qualification is due: Golbandi's tree did beat
 a metric-optimised static seed set in 2011~\cite{golbandi2010bootstrapping}, when the split criterion
@@ -131,11 +130,10 @@ top-$k$ ranking, no adaptive selector has been tested against a static order max
 
 \paragraph{Ranking objectives inside selection.}
 Hu and Yu~\cite{hu2013interview} state a general split loss admitting a pairwise rank loss, and The
-FacT~\cite{tao2019fact} instantiates a BPR term in one, carried into a conversational tree by its
-successor~\cite{haque2022factcrs}; both compute the ranking term on observed training interactions,
-undiscounted and untruncated. Bilgic and Bennett~\cite{bilgic2012activequery} instantiate DCG@10 inside an
-acquisition function, and ELO-DCG~\cite{long2010elodcg} has the discount without the truncation.
-Unoccupied is the conjunction: an interview whose split criterion is the measured
+FacT~\cite{tao2019fact,haque2022factcrs} instantiates a BPR term in one; both compute the ranking
+term on observed training interactions, undiscounted and untruncated. Bilgic and
+Bennett~\cite{bilgic2012activequery} put DCG@10 inside an acquisition function, and
+ELO-DCG~\cite{long2010elodcg} has the discount without the truncation. Unoccupied is the conjunction: an interview whose split criterion is the measured
 value of asking a cold user, as cohort-mean held-out NDCG@10 over the full unsampled catalogue with
 unanswerable questions charged, grown on one cohort, reported on a disjoint one, and tested against a
 static order maximising that same quantity.
@@ -143,14 +141,14 @@ static order maximising that same quantity.
 \paragraph{Conversational bandits and attribute-asking systems.}
 ConUCB and its successors~\cite{zhang2020conucb,wang2023conlinucb,liu2025clisk} ask about a key-term
 or an item in one algorithm, which is our item-versus-concept channel formalised in 2020, and CLiME
-runs on ML-25M. What separates the family is the quantity, cumulative regret over $T$ rounds against
-post-interview held-out ranking here, so a ported policy is gated on reproducing the selection rule as
-written and beating random and popularity on our metric rather than a published number. The
+runs on ML-25M. The family reports cumulative regret over $T$ rounds, not post-interview held-out ranking, so a
+ported policy is gated on reproducing the selection rule as written and beating random and popularity
+on our metric rather than on matching a published number. The
 reinforcement-learning
 line~\cite{sun2018conversational,lei2020estimation,lei2020interactive,deng2021unicorn,li2021seamlessly}
-optimises the metric it reports, but its simulator answers from the target item's attributes, so
-every question is answerable by construction, and no paper in the line reports post-interview
-held-out ranking over a full catalogue with no known target item~\cite{kim2024targetfree,zhang2022minicorn}. Meta-learning cold-start
+optimises the metric it reports, but its simulator answers from a known target item, so every
+question is answerable by construction and no post-interview held-out ranking over a full catalogue
+is reported~\cite{kim2024targetfree,zhang2022minicorn}. Meta-learning cold-start
 models~\cite{lee2019melu,lin2021tanp} are answer consumers rather than selectors, and language-model
 elicitation keeps the model outside the loop~\cite{austin2024bayesian} but on catalogues of order 100
 items, against 18{,}359 here.
@@ -169,7 +167,10 @@ al.~\cite{cremonesi2010performance}, scored with the recommender's learned decod
 catalogue is ranked with no negative sampling, since sampled ranking metrics do not preserve the
 ordering of methods~\cite{krichene2020sampled}, and a model that received no answer is scored on what
 it predicts rather than overwritten by a popularity row. Separation is a paired percentile bootstrap
-over the per-user difference, 10{,}000 resamples clustered over users.
+over the per-user difference, 10{,}000 resamples clustered over users. No family-wise correction is
+applied: the battery claims rest on directional consistency across whole tables rather than on any
+single interval, and the three cells where one interval carries a claim (Tables~\ref{tab:tree}
+and~\ref{tab:splitcrit}) were specified before the test cohort was constructed.
 
 \paragraph{The instrument.}
 The frozen recommender every arm is scored with is a two-tower set encoder that ingests an
@@ -187,15 +188,15 @@ where film questions are not. Both channels are frozen throughout.
 
 \paragraph{Answers and interface.}
 A question is answered from the user's own held-out ratings: an item question by their half-star level
-if they rated it, a concept question by the signed implicit-watch statistic over their profile. An
+if they rated it, a concept question by a signed implicit-watch statistic over their profile,
+$\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, where $n_c$ is the number of the tag's films the
+user watched and $e_c$ the number expected from their volume and the tag's popularity; a user with
+$e_c<1.5$ has had no exposure and refuses rather than dislikes. An
 asked question the user cannot answer forfeits its turn, folding as the encoder's unseen-exposure or
-refusal token, so unanswerable questions are charged rather than free, and no answer value is
-generated by a model. What is inferred rather than observed is whether a user could have answered at
+refusal token, so unanswerable questions are charged rather than free. What is inferred rather than observed is whether a user could have answered at
 all, for which we take having rated the item (Section~\ref{sec:limits}). A selector sees the questions
 asked so far and the answers obtained and returns the next question; a consumer folds the final answer
-set and ranks the catalogue (Fig.~\ref{fig:contract}). The two are varied independently, and all six
-static arms driven through the sequential loop reproduce the batch implementation exactly over 30
-cells on all 10{,}000 users.
+set and ranks the catalogue (Fig.~\ref{fig:contract}). The two are varied independently.
 
 \begin{figure}[tbp]
 \centering
@@ -220,13 +221,24 @@ held-out target half.}
 \label{fig:contract}
 \end{figure}
 
+\paragraph{Ports and tuning.}
+Each published method is re-implemented from its paper with its published hyper-parameters and
+gated on reproducing its published construction on the method's own recommender and protocol before
+it is scored under ours; five of the thirteen (Golbandi's tree, Hu and Yu's criteria, IGCN, DRE and
+the reduced EDDI acquisition) have such a native check, the heuristics and the bandits do not, and gate
+failures are reported rather than scored: EDDI's published criterion could not be validated natively
+(pooled average rank $3.402$ against $3.236$ for a random ordering on the original benchmark), so its
+rows carry a reduced latent-only acquisition marked $^\dagger$, and Greedy SLIM passed only in part
+and is not run. No hyper-parameter of any ported arm is searched on our data; the one free constant,
+the bandit exploration weight, is fixed at one posterior standard deviation. The comparator, by
+contrast, is searched on our metric on the scoring recommender (below), an asymmetry that favours it
+and that Section~\ref{sec:limits} prices.
+
 \paragraph{The comparator.}
 An adaptivity null is only interesting if the static bar is strong. Ours is the greedy
 prefix-optimal sequence over a bank of 500 popularity-ranked items and 500 answerability-ranked
 concepts, computed by lazy greedy maximisation of held-out NDCG@10 on the same recommender it is
-scored on. Every order maximises full NDCG@10; tail NDCG@10 never enters a search. On the validation
-users the empty-interview row reproduces the recommender's certified cold number to five decimal
-places ($0.12987$ against a recorded $0.12987$). Candidate formation is held fixed: every sequence is
+scored on. Every order maximises full NDCG@10; tail NDCG@10 never enters a search. Candidate formation is held fixed: every sequence is
 selected and scored under the protocol pool, which removes every rated fold-in item (141.2 per user),
 under which the empty interview on the test cohort reads $0.1586/0.0282$ and the rebuilt greedy
 items-only order beats the strongest heuristic by $+0.0144$ $[+0.0112,+0.0175]$ full at sixteen
@@ -242,14 +254,16 @@ sequence, the combined sequence being a bound on what both channels can buy.
 
 \begin{table}[tbp]
 \centering
-\caption{Every selector measured to date, one contract: the frozen certified recommender, protocol
-candidate pool, behavioural answers, all 10{,}000 test users, no sampling, full/tail NDCG@10.
+\caption{The battery, one contract: the frozen certified recommender, protocol candidate pool,
+behavioural answers, all 10{,}000 test users, no sampling, full/tail NDCG@10. Twenty-three arms were
+measured; the five omitted for space (pure entropy, random order, ConLinUCB-BS-static, DPE-ILD, EDDI
+three-outcome) are degenerate or duplicate and the separation counts in the text are over all
+twenty-three.
 Answer-free popularity reference $.1626/.0262$. Bold is best per column, excluding the clairvoyant
 oracle, a ceiling that reads the user's own ratings at selection time. Separation throughout the paper
 is a paired percentile bootstrap, 10{,}000 resamples clustered over users; $^\star$ marks an interval
 excluding zero. $^\S$ = value-free rule, responding only to which questions were answerable;
-$^\dagger$ = a reduced latent-only acquisition failing native validation, not the published EDDI
-criterion. Five further degenerate or duplicate arms are omitted for space.}
+$^\dagger$ = a reduced latent-only acquisition, not the published EDDI criterion.}
 \label{tab:battery}
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
@@ -334,9 +348,7 @@ and $.2161/.0833$ for GLM-UCB. The strongest items-only static order leads the b
 by $.0281^\star$ $[.0247,.0314]$ full and $.0178^\star$ $[.0145,.0210]$ tail, twice that selector's deficit
 against the heuristic. Widened to every adaptive arm under this contract, 138 cells in all, the
 combined and concepts-only orders lead and separate in all 138, and the items-only order leads in 136
-and separates in 134, the four exceptions being tail cells that separate neither way. That the
-strongest published learned-static method is beaten on full accuracy by a 2008 entropy heuristic
-($-.0118^\star$, $[-.0153,-.0083]$) is the clearest single case.
+and separates in 134, the four exceptions being tail cells that separate neither way.
 
 \paragraph{The loss is not a failure to branch.}
 Counting distinct question prefixes over the 10{,}000 users, Thompson sampling conducts a distinct
@@ -352,37 +364,26 @@ linear-Gaussian likelihood, and A-optimal design contains the questions and not 
 construction. Twelve of the twenty-three arms are value-free in that sense.
 
 \paragraph{Exactly one rule optimises the reported metric.}
-Auditing what each rule maximises gives the plainest explanation. Exactly one of the twenty-one
-distinct selection rules optimises held-out ranking quality, and it is the static greedy order. The
+Auditing what each rule maximises gives the plainest explanation. The twenty-three arms implement
+twenty-one distinct selection rules, and exactly one of them optimises held-out ranking quality: our
+static greedy order. Every published rule optimises something else. The
 rest maximise information gain about a latent variable~\cite{ma2019eddi} or a cluster
 label~\cite{rashid2008learning}, minimise posterior variance~\cite{houlsby2011bald} or an
 A-optimality trace~\cite{anava2015budget,sepliarskaia2018spq}, reduce squared error of rating
 prediction~\cite{golbandi2011adaptive,zhou2011functional} or profile
 reconstruction~\cite{kweon2020deep,proissl2024greedyslim}, or maximise a bandit
 index~\cite{zhao2013interactive,zhang2020conucb,wang2023conlinucb,liu2025clisk,parapar2021dpe}.
-Optimising a surrogate is not a defect, since expected NDCG@10 under a neural fold is not tractable
-inside a bandit index or a tree split; but six of the thirteen published methods claimed a ranking
-improvement on a held-out ranking metric, so holding them to NDCG@10 holds them to their own headline.
+Optimising a surrogate is not a defect in itself; but six of the thirteen published methods claimed
+a ranking improvement on a held-out ranking metric, so holding them to NDCG@10 holds them to their
+own headline.
 
 \paragraph{Robustness, and the one reversal we found.}
 The ordering repeats when the consumer is changed to RecVAE~\cite{ren2020recvae},
-TaNP~\cite{lin2021tanp} or EDDI's Partial-VAE~\cite{ma2019eddi}, including the self-consistent cell in
-which EDDI selects and EDDI consumes ($.1493/.0488$ against $.1769/.0480$ at sixteen questions). On a
+TaNP~\cite{lin2021tanp} or EDDI's Partial-VAE~\cite{ma2019eddi}, including the cell in which EDDI both selects and consumes. On a
 fifth consumer it reverses: with Golbandi's leaf model, Thompson sampling beats the static order on
 full accuracy at every budget it can be run at ($+.0100^\star$, $+.0171^\star$, $+.0148^\star$,
 $+.0281^\star$), though not on the tail at four questions, and GLM-UCB does not participate. That
 consumer rewards spread, so which selector wins depends on which recommender one assumes.
-
-\paragraph{One arm clears the bar, by changing only what the search conditions on.}
-Every comparison so far confounds conditioning on answers with choice of objective, since the only
-arm optimising the reported metric is also the only static one. Holding objective, optimiser, bank,
-scoring contract and cohort discipline fixed, we partition users by favourite genre from their own
-fold-in ratings and rerun the identical greedy search inside each group, a construction in which
-static is nested. At $K{=}15$, routing users from groups with fewer than 200 validation users back to
-the global order gains $+0.00862^\star$ $[+0.00595,+0.01131]$ full and $+0.00591^\star$
-$[+0.00326,+0.00862]$ tail against a rebuilt global baseline of $0.24295$, although Drama, $54.8\%$ of
-the cohort, is a null ($+0.00150$, $[-0.00187,+0.00486]$). The genre answer costs no turn, so this is
-an upper bound.
 
 \paragraph{Answer to RQ1.}
 Under one contract, no published selector of any kind beats a fixed order chosen by greedy
@@ -419,15 +420,14 @@ logistic loss~\cite{hu2013interview} & $-0.104$ & 9/22 & \textbf{1/22} & \textbf
 \end{tabular}
 \end{table}
 
-Following any of these criteria forgoes between $66\%$ and $89\%$ of the NDCG@10 a uniform random pick
-would forgo. The rank correlations are approximately zero and two of three are negative, so these are
-not weak but aligned surrogates: at the states this tree visits they are close to uninformative about
-the quantity the field reports, and the pairwise loss selects the measured argmax at no node. The
-root
-is an instructive exception: there the logistic criterion's argmax is the metric's argmax, with regret
-identically zero, while the variance criterion ranks that question 250th of 1{,}000 and the pairwise
-loss 75th, and one level down its regret is no better than the others'. These criteria agree with the
-metric where the cohort is largest, and stop agreeing where an adaptive method must earn its keep.
+Following any of these criteria recovers only $11$--$34\%$ of the NDCG@10 that a uniformly random
+pick leaves unrealised. The rank correlations are approximately zero and two of three are negative,
+so these surrogates are not merely weak, two of them point the wrong way: at the states this tree visits they are close to uninformative about
+the quantity the field reports, and the pairwise loss selects the measured argmax at no node. At the
+root the logistic criterion's argmax is the metric's argmax, while variance ranks that question 250th
+of 1{,}000 and the pairwise loss 75th; one level down, no criterion does better than the others. They
+agree with the metric where the cohort is largest and stop agreeing where an adaptive method must
+earn its keep.
 
 \paragraph{How much is there to adapt to.}
 If adaptive selection is to confer a benefit, users must occupy states in which different questions
@@ -440,10 +440,8 @@ questions. Over the 1{,}031-concept bank the 10{,}000 cold users share a single 
 (effective count $1.00$); after one standard opener five are optimal (effective $2.88$) and after two,
 nine (effective $5.04$), with the population occupying 112 distinct states and $41\%$ of users sharing
 one argmax. Placing 4{,}431 users by a real free-text request instead spreads the optimum to 442
-questions, an effective $95.13$. Dispersion is
-not payoff, since a policy can manufacture ten thousand distinct interviews and still lose, and
-headroom runs the other way: the best concept question is worth $+0.0283$ at the cold states after two
-openers and $+0.0076$ at the request-placed states.
+questions, an effective $95.13$; dispersion is not payoff, since a policy can manufacture ten thousand
+distinct interviews and still lose.
 
 \paragraph{Answer to RQ2.}
 The published criteria are close to uninformative about the reported metric at the states an adaptive
@@ -457,9 +455,8 @@ RQ1's null and RQ2's diagnosis together specify one experiment. Take the field's
 machinery, Golbandi's ternary interview tree~\cite{golbandi2011adaptive}, which asks a question at
 each node and routes users down a like, dislike or did-not-answer branch, and change exactly one
 thing: the scalar by which a candidate question is scored. We call the resulting selector CASPER,
-Cold-start Adaptive Selection for Preference Elicitation in Recommendation. The name states what is
-kept and what is changed: selection stays adaptive, as in the tree it inherits, and what it selects
-for is the cold-start metric that will be reported, rather than a surrogate of it. Each of the 1{,}000 candidates, 500
+Cold-start Adaptive Selection for Preference Elicitation in Recommendation. The name marks what is kept, adaptive
+selection, and what is changed: what it selects for is the cold-start metric that will be reported. Each of the 1{,}000 candidates, 500
 popularity-ranked items and 500 answerability-ranked concepts in one argmax, is scored by the
 node-size-weighted mean of its three children's cohort-mean measured held-out full NDCG@10, obtained
 by folding that child's answers through the frozen recommender and ranking the catalogue. Nothing is
@@ -495,18 +492,15 @@ $K$ & full gain [95\% CI] & tail gain [95\% CI] \\
 
 \paragraph{The result, with its qualifier attached.}
 Conditioning on cold, closed, charged questions beats a strong static order on held-out users from
-four questions onward, on both axes (Table~\ref{tab:tree}). Seven of the eight $K\ge2$ intervals
-exclude zero in the tree's favour; the eighth excludes zero against it, since at two questions the
-tree is worse on the tail. Conditioning needs a few answers before its benefit appears, and that is
-part of the finding.
+four questions onward, on both axes (Table~\ref{tab:tree}); seven of the eight $K\ge2$ intervals
+exclude zero in the tree's favour and the eighth, tail at two questions, excludes zero against it.
 
 \paragraph{One variable changed.}
 The mechanism claim is a claim about one variable, so we vary that one variable
 (Table~\ref{tab:splitcrit}): the same tree code, branch rule, minimum leaf size, charged answers,
 recommender, candidate mask, pool, cohorts and budget, with the split criterion replaced by each
-published alternative in turn. All three are scored through their own second-order split gain, with
-gradients and diagonal Hessians checked against central finite differences, and nothing is sampled:
-the pairwise loss sums over all $137{,}591{,}707$ fold-in pairs. Two shuffle controls complete the
+published alternative in turn. All three are scored through their own second-order split gain and nothing is sampled: the
+pairwise loss sums over all $137{,}591{,}707$ fold-in pairs. Two shuffle controls complete the
 set, a uniform draw over the pool and one restricted to candidates whose split clears the minimum
 leaf size, the latter being the fair control since it destroys only the choice of question.
 
@@ -558,24 +552,21 @@ Measured on the same cohort at the same budget, with every order selected under 
 enlarging the bank from films to films plus concept questions (tag-level generalisations a user
 can answer without having seen any particular film) with no conditioning of any kind is worth
 $+0.01430^\star$ $[+0.01124,+0.01739]$ full, $16.6\%$ of the static order's own lift over asking
-nothing, against $+0.01035^\star$ for tree conditioning ($10.3\%$) and $+0.00862^\star$ for genre
-conditioning ($10.2\%$). On the tail the ordering is not close, $+0.02199$ against $+0.00705$. If one
+nothing, against $+0.01035^\star$ for tree conditioning ($10.3\%$). On the tail the ordering is not close, $+0.02199$ against $+0.00705$. If one
 thing can be changed, change what the system asks about rather than how it decides what to ask; this
-is the strongest qualification of the conditioning result, and it is measured under the same contract. Three measurements explain why the coarse channel comes first: the prefix-optimal
-joint sequence gives concepts ten of sixteen slots and both of the first two; the loss-coupled
-criterion makes the best question at cold states a concept by more than a factor of twelve in expected
-gain ($+0.0238$ against $+0.0019$), flipping to an item at request-placed states ($+0.0138$ against
-$+0.0076$); and the tree opens on a concept. The mechanism is answerability: sixteen item questions
-collect 3.11 answers where sixteen concept questions collect 12.36, and at sixteen questions concepts
-win the tail and tie on full ($-0.00003$ $[-0.00315,+0.00310]$ full, $+0.01436^\star$
-$[+0.01093,+0.01776]$ tail).
+is the strongest qualification of the conditioning result, and it is measured under the same contract. The mechanism is answerability: the prefix-optimal joint sequence gives concepts ten of sixteen
+slots and both of the first two, the tree opens on a concept, and sixteen item questions collect 3.11
+answers where sixteen concept questions collect 12.36; at sixteen questions concepts win the tail and
+tie on full ($-0.00003$ $[-0.00315,+0.00310]$ full, $+0.01436^\star$ $[+0.01093,+0.01776]$ tail).
 
 \paragraph{What it costs.}
 Three qualifiers travel with the conditioning result. Validation overstates it: the tree's gain at
 sixteen questions is $+0.02794$ full and $+0.01055$ tail on the selection cohort against $+0.01035$
 and $+0.00705$ on test. Six of the fifteen leaves lose on test, covering $39.3\%$ of the cohort
 (3{,}933 users) against none on validation, because a leaf inherits questions chosen for its parent's
-cohort. And the tree diverges without being shown to route: leaves share no free picks (median overlap
+cohort. Conditioning does not touch reach: 1{,}785 users answer neither of the first two questions
+and 1{,}438 of them cannot answer the third either, so about $14\%$ of the cohort is left at the
+no-answer level while everyone else moves. And the tree diverges without being shown to route: leaves share no free picks (median overlap
 $0$ over 105 leaf pairs), but a pre-registered test of whether the questions below a branch are about
 the answer that created it is a null (like-branch congruence $0.7705$ against a matched control of
 $0.7691$ $[0.7572,0.7821]$). No routing claim is made.
@@ -593,13 +584,14 @@ $+0.02199$ tail).
 Whether a question is answerable is inferred from the same history that scores the user, since we
 treat having rated an item as having been able to answer about it. Answer values are behavioural
 throughout, and it is the answerability judgement that is a modelling assumption; it is standard in
-this literature, and because answerability is load-bearing for two of the mechanisms above we state
-it rather than leave it implicit. A behavioural answer is also a real answer the user once gave
-rather than the answer they would give in conversation, and that gap is not measured here. The
-dispersion criterion scores against the recommender's own predictive distribution, so a divergence in
-what the model thinks is worth asking is necessary but not sufficient for a divergence in realised
-gain, and one free constant, the exploration weight, was never tuned. Finally, no published number
-validates our comparator, since no prior work has published a static order built by greedily
+this literature and load-bearing for two mechanisms above, so we state it. A behavioural answer is
+one the user once gave, not one they would give in conversation; that gap is not measured here. The comparison of Section~\ref{sec:rq1} is asymmetric: the comparator is searched on the
+reported metric on the scoring recommender while every ported arm runs as published, so part of the
+$.0281$ gap may be tuning rather than objective; the ablation of Table~\ref{tab:splitcrit}, where
+every criterion is fitted by the same search on the same data, is the comparison that does not carry
+that asymmetry. CASPER's own transfer to a second consumer is not measured here, although the RQ1
+ordering was checked on four; re-scoring its banked interviews through RecVAE is the first item of
+future work. Finally, no published number validates our comparator, since no prior work has published a static order built by greedily
 maximising cohort-mean held-out NDCG@10; the mitigations are that it beats every published selector we
 ran, that the recipe is deterministic, and that we measured what comparator weakness costs, since
 rebuilding it under the scoring contract cut the conditioning gain from $+0.01371$ to $+0.01035$ full
@@ -608,13 +600,12 @@ and from $+0.02092$ to $+0.00705$ tail.
 \section{Conclusion}
 \label{sec:conclusion}
 
-We re-implemented twenty-one cold-start question-selection rules under one measurement contract on one
-frontier recommender, with behavioural answers and unanswerable questions charged. Every published
-selector we could replicate loses to a fixed order built by greedily maximising the reported metric,
-at every budget from one to sixteen questions on 10{,}000 held-out users, and not for want of
-branching. Exactly one of the twenty-one rules optimises held-out ranking quality, and three
-published criteria correlate at $+0.010$, $-0.060$ and $-0.104$ with exact measured NDCG@10 gains
-while forgoing 66--89\% of what a random pick forgoes. CASPER, which puts the reported metric in the split of the
+We re-implemented thirteen published cold-start question-selection methods, twenty-three arms in
+all, under one measurement contract on one frontier recommender, with behavioural answers and
+unanswerable questions charged. Every published method loses to a fixed order built by greedily
+maximising the reported metric, at every budget from one to sixteen questions on 10{,}000 held-out
+users. None of the published rules optimises the metric it is judged on, and three published split
+criteria correlate at $+0.010$, $-0.060$ and $-0.104$ with exact measured NDCG@10 gains. CASPER, which puts the reported metric in the split of the
 field's own interview tree, reverses the comparison ($+0.01035$ full and $+0.00705$ tail at sixteen
 questions) where the surrogates lose by three times that margin, and adding answerable concept questions to the bank with
 no conditioning is worth $+0.01430$ full. Build the selector around the quantity that will be
