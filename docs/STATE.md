@@ -1350,3 +1350,10 @@ ordered. Nothing from this goes in the paper. → memory `surprise-means-debug-t
 - **The polish sentence** — author deferred: we hold the numbers that pre-empt "you only tried a myopic
   optimiser" (+0.002 at q16 for −0.029 at q2) and are keeping them out until all results are in.
   Revisit before submission; it is evidence FOR our criterion, so A0 argues for it, not against.
+
+## ECIR 2027 submission (added 2026-09-08)
+- Draft v2 at `new_chapters/paperB_ecir/` (12 body pages, LNCS). Review panel + summary in `reviews/`, `REVIEW_SUMMARY.md`;
+  ordered to-do in `TODO.md`. Abstract due **21 Sep 2026**, paper **5 Oct 2026**.
+- WARNING: the paper's code footnote points at https://github.com/makarovaalexa-brch/casper . Before submission replace it
+  with an anonymised mirror (double-blind). Before publication clean the repository: remove `.bak_*`, stray `.out/.err`
+  logs and untracked experiment dumps, add a README that maps the paper's tables to scripts and artifacts.
