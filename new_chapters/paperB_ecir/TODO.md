@@ -59,8 +59,18 @@ present and complete, so reproducibility was scored on the paper's own descripti
 - Both asked for the same two things, done in v6: reframe the abstract so CASPER is the claim, and
   restore Figure 1.
 
-### Still open, and both are runs rather than edits
-1. **Answerability versus breadth.** Re-run the bank comparison with item questions scored under the
+### Done since
+**1. Answerability versus breadth — DONE 2026-09-09** (`docs/results/A12_ANSWERABILITY_VS_BREADTH.md`).
+The control as the reviewers described it is **not constructible**: ML-25M ships no watch log, so
+"watched" and "rated" are the same event for a film and the item predicate is already the widest
+available. Run in its place: lift factorises into answers x lift-per-answer. A film answer is worth
+3.98x a concept answer and concepts collect 3.98x as many, which is why the single channels tie at
+K=16. At matched answers the film channel wins every comparison (+0.02734* at 1.79 vs 1.75). So
+breadth runs the WRONG way and the gain is the answer rate. In the paper as v7; the v5 concession
+that contradicted it is withdrawn.
+
+### Still open
+1. ~~**Answerability versus breadth.**~~ DONE, see above. Original brief kept for the record: Re-run the bank comparison with item questions scored under the
    concept channel's implicit-watch answerability predicate instead of "rated", and report how much of
    the $+0.01430$ survives. One predicate changed, existing pipeline, no new model, no regrown tree.
    The chair would ask for this before camera-ready; the strict reviewer names it as one of two
