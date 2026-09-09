@@ -18,14 +18,14 @@ State of the artifacts, checked against `chapterB_v2.tex`:
 - Not on the ECIR paper's critical path (the requests section is excluded from this paper), but it is on
   the chapter's.
 
-## 2. Exploration-weight sweep for the ported bandits (closes the strict reviewer's "asymmetry" point)
+## 2. Bandit constants — DONE 2026-09-09 (`docs/results/A10_BANDIT_TUNING.md`; chosen on validation, interior optima at alpha 4.0 and scale 0.5; worth +0.0058/+0.0018 against a 0.037-0.044 deficit; in the paper's ports paragraph, RQ1 and Limitations)
 - GLM-UCB / Thompson / ConUCB exploration weight: 3–5 values, chosen on **validation** full NDCG@10,
   best value re-run on test under the contract. Everything else as published.
 - Half a day of compute per arm at 10,000 users; one afternoon total if run sequentially. Check free RAM;
   never beside another heavy job.
 - Paper: one sentence in "Ports and tuning" and one row-note in Table 1.
 
-## 3. The measured-metric tree on other consumers (closes "CASPER never tested for transfer")
+## 3. Tree on other consumers — DONE 2026-09-09 (`docs/results/A11_TREE_ACROSS_CONSUMERS.md`; holds on 3 of 4, reverses on Golbandi's leaf model; absolutes now in the chapter as tab:consumers and in the paper as Table 5)
 - Re-score the tree's **banked test interviews** through the RQ1 robustness consumers: RecVAE (likes only,
   concept answers dropped, conservative), TaNP, Golbandi leaf model. No refitting.
 - Cost: one machine-night; the RQ1 consumer-sweep harness exists.
