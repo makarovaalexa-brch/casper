@@ -1,0 +1,191 @@
+{
+  "label": "a12b_burn_value",
+  "citable": true,
+  "split": "test",
+  "n_users": 10000,
+  "design_sheet": "docs/design/DS_A12_ANSWERABILITY_VS_BREADTH.md",
+  "purpose": "price the burn so A12's answer-matched reading is not confounded by it",
+  "inference": "paired percentile bootstrap, 10000 resamples clustered over users, seed 98765",
+  "burn_only": {
+    "items|K1": {
+      "n_zero_answer_users": 7017,
+      "share_of_cohort": 0.7017,
+      "burn_lift_full": 0.0029843084697830755,
+      "burn_lift_tail": NaN,
+      "arm_lift_full": 0.017430080575495957,
+      "burn_share_of_arm_lift": 0.1712159881795704,
+      "ci_full": {
+        "mean": 0.0029843084697830755,
+        "lo": 0.0018951804275870391,
+        "hi": 0.004061865433360396,
+        "n": 7017,
+        "excludes_zero": true
+      }
+    },
+    "items|K2": {
+      "n_zero_answer_users": 5779,
+      "share_of_cohort": 0.5779,
+      "burn_lift_full": -0.0007291303170471997,
+      "burn_lift_tail": NaN,
+      "arm_lift_full": 0.02982250708118081,
+      "burn_share_of_arm_lift": -0.024448994682519834,
+      "ci_full": {
+        "mean": -0.0007291303170471997,
+        "lo": -0.0016271792385720077,
+        "hi": 0.0001675324156418825,
+        "n": 5779,
+        "excludes_zero": false
+      }
+    },
+    "items|K4": {
+      "n_zero_answer_users": 3616,
+      "share_of_cohort": 0.3616,
+      "burn_lift_full": 0.0009448169256700615,
+      "burn_lift_tail": NaN,
+      "arm_lift_full": 0.04520624782219529,
+      "burn_share_of_arm_lift": 0.020900140382944517,
+      "ci_full": {
+        "mean": 0.0009448169256700615,
+        "lo": -0.0005864030772210222,
+        "hi": 0.002500950876083553,
+        "n": 3616,
+        "excludes_zero": false
+      }
+    },
+    "items|K8": {
+      "n_zero_answer_users": 2627,
+      "share_of_cohort": 0.2627,
+      "burn_lift_full": 0.0006348209566928426,
+      "burn_lift_tail": NaN,
+      "arm_lift_full": 0.0649661914743483,
+      "burn_share_of_arm_lift": 0.009771558749037946,
+      "ci_full": {
+        "mean": 0.0006348209566928426,
+        "lo": -0.0009938728142292908,
+        "hi": 0.0022220661588577568,
+        "n": 2627,
+        "excludes_zero": false
+      }
+    },
+    "items|K16": {
+      "n_zero_answer_users": 1754,
+      "share_of_cohort": 0.1754,
+      "burn_lift_full": 0.0011607825271827737,
+      "burn_lift_tail": NaN,
+      "arm_lift_full": 0.08614635652378201,
+      "burn_share_of_arm_lift": 0.013474540004049063,
+      "ci_full": {
+        "mean": 0.0011607825271827737,
+        "lo": -0.0007520894970247859,
+        "hi": 0.0031217863353154044,
+        "n": 1754,
+        "excludes_zero": false
+      }
+    },
+    "concepts|K1": {
+      "n_zero_answer_users": 2475,
+      "share_of_cohort": 0.2475,
+      "burn_lift_full": 0.004990659563830405,
+      "burn_lift_tail": NaN,
+      "arm_lift_full": 0.022235182198137044,
+      "burn_share_of_arm_lift": 0.2244487820859207,
+      "ci_full": {
+        "mean": 0.004990659563830405,
+        "lo": 0.0035777222916032326,
+        "hi": 0.006436574008955497,
+        "n": 2475,
+        "excludes_zero": true
+      }
+    },
+    "combined|K1": {
+      "n_zero_answer_users": 2475,
+      "share_of_cohort": 0.2475,
+      "burn_lift_full": 0.004990659563830405,
+      "burn_lift_tail": NaN,
+      "arm_lift_full": 0.022235182198137044,
+      "burn_share_of_arm_lift": 0.2244487820859207,
+      "ci_full": {
+        "mean": 0.004990659563830405,
+        "lo": 0.0035777222916032326,
+        "hi": 0.006436574008955497,
+        "n": 2475,
+        "excludes_zero": true
+      }
+    }
+  },
+  "answer_attributable": {
+    "items|K1": {
+      "arm_lift_full": 0.017430080575495957,
+      "burn_lift_full": 0.0029843084697830755,
+      "net_full": 0.014445772105712882,
+      "answers": 0.29829999804496765,
+      "net_per_answer_full": 0.048426993631878044
+    },
+    "items|K2": {
+      "arm_lift_full": 0.02982250708118081,
+      "burn_lift_full": -0.0007291303170471997,
+      "net_full": 0.03055163739822801,
+      "answers": 0.4537000060081482,
+      "net_per_answer_full": 0.06733885165009083
+    },
+    "items|K4": {
+      "arm_lift_full": 0.04520624782219529,
+      "burn_lift_full": 0.0009448169256700615,
+      "net_full": 0.044261430896525226,
+      "answers": 1.1119999885559082,
+      "net_per_answer_full": 0.039803445460467185
+    },
+    "items|K8": {
+      "arm_lift_full": 0.0649661914743483,
+      "burn_lift_full": 0.0006348209566928426,
+      "net_full": 0.06433137051765546,
+      "answers": 1.7903000116348267,
+      "net_per_answer_full": 0.03593329056559116
+    },
+    "items|K16": {
+      "arm_lift_full": 0.08614635652378201,
+      "burn_lift_full": 0.0011607825271827737,
+      "net_full": 0.08498557399659924,
+      "answers": 3.1085000038146973,
+      "net_per_answer_full": 0.02733973745932328
+    },
+    "concepts|K1": {
+      "arm_lift_full": 0.022235182198137044,
+      "burn_lift_full": 0.004990659563830405,
+      "net_full": 0.01724452263430664,
+      "answers": 0.7524999976158142,
+      "net_per_answer_full": 0.022916309221187214
+    },
+    "combined|K1": {
+      "arm_lift_full": 0.022235182198137044,
+      "burn_lift_full": 0.004990659563830405,
+      "net_full": 0.01724452263430664,
+      "answers": 0.7524999976158142,
+      "net_per_answer_full": 0.022916309221187214
+    }
+  },
+  "answer_matched_net": {
+    "items@K4_minus_concepts@K1": {
+      "arm_a": "items@K4",
+      "answers_a": 1.1119999885559082,
+      "arm_b": "concepts@K1",
+      "answers_b": 0.7524999976158142,
+      "burn_a_full": 0.0009448169256700615,
+      "burn_b_full": 0.004990659563830405,
+      "full": {
+        "mean": 0.027016908262218583,
+        "lo": 0.0239359949872226,
+        "hi": 0.030189415525938616,
+        "n": 10000,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": NaN,
+        "lo": NaN,
+        "hi": NaN,
+        "n": 0,
+        "excludes_zero": false
+      }
+    }
+  }
+}

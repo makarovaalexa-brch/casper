@@ -179,7 +179,11 @@ def main():
             for ch, key in (("items", "items_answered"), ("concepts", "concepts_answered")):
                 got = float(ans[(arm, K)][ch].mean())
                 want = float(src["test_curves"][arm][str(K)][key])
-                if abs(got - want) > 1e-6:
+                # The banked field is written as round(x, 3) (channel_orders_on_test.py:126), so
+                # the tightest honest tolerance is half of that last stored decimal. This is a
+                # property of the stored artifact, NOT a loosened gate: every recomputed value must
+                # still agree with the banked one to the full precision the artifact retained.
+                if abs(got - want) > 5.001e-4:
                     fails.append(f"{arm}|K{K}|{key}: {got:.4f} vs banked {want:.4f}")
     if fails:
         raise SystemExit("ANSWER-COUNT GATE FAILED:\n  " + "\n  ".join(fails))

@@ -1,0 +1,347 @@
+{
+  "label": "a12_answerability_vs_breadth",
+  "citable": true,
+  "split": "test",
+  "n_users": 10000,
+  "design_sheet": "docs/design/DS_A12_ANSWERABILITY_VS_BREADTH.md",
+  "source_artifact": "channel_orders_policyB_test.json",
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "mask_policy": "B",
+  "budgets": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "inference": "paired percentile bootstrap, 10000 resamples clustered over users, seed 98765",
+  "gate": "PASSED: published cells and cohort answer means both reproduced",
+  "not_constructible": "A watch-based item answerability predicate does not exist in this pipeline: in ML-25M as processed here a rating is the only evidence of a watch, so 'watched' and 'rated' are the same event for a film (signed_answers.py:6). The item predicate is already the widest available (all-bands rated). The reviewers' proposed control is therefore not implementable, and this decomposition is run in its place.",
+  "rate_vs_worth": {
+    "items|K1": {
+      "full": 0.175984725356102,
+      "tail": NaN,
+      "lift_full": 0.017430080100893974,
+      "lift_tail": NaN,
+      "answers": 0.2983,
+      "worth_per_answer_full": 0.058431378145806144,
+      "worth_per_answer_tail": NaN
+    },
+    "items|K2": {
+      "full": 0.18837714195251465,
+      "tail": NaN,
+      "lift_full": 0.02982250601053238,
+      "lift_tail": NaN,
+      "answers": 0.4537,
+      "worth_per_answer_full": 0.06573177432341279,
+      "worth_per_answer_tail": NaN
+    },
+    "items|K4": {
+      "full": 0.20376089215278625,
+      "tail": NaN,
+      "lift_full": 0.04520624503493309,
+      "lift_tail": NaN,
+      "answers": 1.112,
+      "worth_per_answer_full": 0.04065309805299738,
+      "worth_per_answer_tail": NaN
+    },
+    "items|K8": {
+      "full": 0.22352084517478943,
+      "tail": NaN,
+      "lift_full": 0.06496618688106537,
+      "lift_tail": NaN,
+      "answers": 1.7903,
+      "worth_per_answer_full": 0.03628787738427379,
+      "worth_per_answer_tail": NaN
+    },
+    "items|K16": {
+      "full": 0.24470099806785583,
+      "tail": NaN,
+      "lift_full": 0.08614634722471237,
+      "lift_tail": NaN,
+      "answers": 3.1085,
+      "worth_per_answer_full": 0.027713156578643195,
+      "worth_per_answer_tail": NaN
+    },
+    "concepts|K1": {
+      "full": 0.18078981339931488,
+      "tail": NaN,
+      "lift_full": 0.02223518304526806,
+      "lift_tail": NaN,
+      "answers": 0.7525,
+      "worth_per_answer_full": 0.029548416007000745,
+      "worth_per_answer_tail": NaN
+    },
+    "concepts|K2": {
+      "full": 0.19618335366249084,
+      "tail": NaN,
+      "lift_full": 0.03762871026992798,
+      "lift_tail": NaN,
+      "answers": 1.7512,
+      "worth_per_answer_full": 0.021487385946738224,
+      "worth_per_answer_tail": NaN
+    },
+    "concepts|K4": {
+      "full": 0.21411415934562683,
+      "tail": NaN,
+      "lift_full": 0.05555952712893486,
+      "lift_tail": NaN,
+      "answers": 3.5683,
+      "worth_per_answer_full": 0.015570307185195994,
+      "worth_per_answer_tail": NaN
+    },
+    "concepts|K8": {
+      "full": 0.23468391597270966,
+      "tail": NaN,
+      "lift_full": 0.07612928003072739,
+      "lift_tail": NaN,
+      "answers": 6.8468,
+      "worth_per_answer_full": 0.011118957765777792,
+      "worth_per_answer_tail": NaN
+    },
+    "concepts|K16": {
+      "full": 0.24466775357723236,
+      "tail": NaN,
+      "lift_full": 0.0861130952835083,
+      "lift_tail": NaN,
+      "answers": 12.36,
+      "worth_per_answer_full": 0.006967078906432711,
+      "worth_per_answer_tail": NaN
+    },
+    "combined|K1": {
+      "full": 0.18078981339931488,
+      "tail": NaN,
+      "lift_full": 0.02223518304526806,
+      "lift_tail": NaN,
+      "answers": 0.7525,
+      "worth_per_answer_full": 0.029548416007000745,
+      "worth_per_answer_tail": NaN
+    },
+    "combined|K2": {
+      "full": 0.19618335366249084,
+      "tail": NaN,
+      "lift_full": 0.03762871026992798,
+      "lift_tail": NaN,
+      "answers": 1.7512,
+      "worth_per_answer_full": 0.021487385946738224,
+      "worth_per_answer_tail": NaN
+    },
+    "combined|K4": {
+      "full": 0.2178267538547516,
+      "tail": NaN,
+      "lift_full": 0.05927211791276932,
+      "lift_tail": NaN,
+      "answers": 2.962,
+      "worth_per_answer_full": 0.020010843319638524,
+      "worth_per_answer_tail": NaN
+    },
+    "combined|K8": {
+      "full": 0.2386227548122406,
+      "tail": NaN,
+      "lift_full": 0.08006812632083893,
+      "lift_tail": NaN,
+      "answers": 5.3807,
+      "worth_per_answer_full": 0.014880615221223805,
+      "worth_per_answer_tail": NaN
+    },
+    "combined|K16": {
+      "full": 0.25900331139564514,
+      "tail": NaN,
+      "lift_full": 0.10044866800308228,
+      "lift_tail": NaN,
+      "answers": 10.7569,
+      "worth_per_answer_full": 0.009338068402893238,
+      "worth_per_answer_tail": NaN
+    }
+  },
+  "answer_matched": {
+    "items@K16_minus_concepts@K4": {
+      "arm_a": "items@K16",
+      "answers_a": 3.1085,
+      "arm_b": "concepts@K4",
+      "answers_b": 3.5683,
+      "full": {
+        "mean": 0.030586826775223015,
+        "lo": 0.027355765951909125,
+        "hi": 0.033769233799148354,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.015936699406383443,
+        "lo": 0.01274402450497998,
+        "hi": 0.019222034260433125,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "items@K16_minus_concepts@K2": {
+      "arm_a": "items@K16",
+      "answers_a": 3.1085,
+      "arm_b": "concepts@K2",
+      "answers_b": 1.7512,
+      "full": {
+        "mean": 0.04851764589399099,
+        "lo": 0.04529964876510203,
+        "hi": 0.05175610078122467,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.03158903451488522,
+        "lo": 0.02845317484962874,
+        "hi": 0.0347390881567662,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "items@K8_minus_concepts@K2": {
+      "arm_a": "items@K8",
+      "answers_a": 1.7903,
+      "arm_b": "concepts@K2",
+      "answers_b": 1.7512,
+      "full": {
+        "mean": 0.027337480844557286,
+        "lo": 0.02429835045622662,
+        "hi": 0.030366494721248746,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.015859864429787384,
+        "lo": 0.012893245475644272,
+        "hi": 0.018823255402747572,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "items@K4_minus_concepts@K1": {
+      "arm_a": "items@K4",
+      "answers_a": 1.112,
+      "arm_b": "concepts@K1",
+      "answers_b": 0.7525,
+      "full": {
+        "mean": 0.022971065624058245,
+        "lo": 0.019890152349062263,
+        "hi": 0.026143572887778282,
+        "n": 10000,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.013937911365729905,
+        "lo": 0.01088566407420816,
+        "hi": 0.017045476351705183,
+        "n": 9281,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    },
+    "per_user_matched_band": {
+      "n": 1430,
+      "definition": "users whose concept answers at K=4 are within 0.5 of their item answers at K=16, i.e. matched per user rather than on the cohort mean",
+      "full": {
+        "mean": 0.049558123690890264,
+        "lo": 0.040408317415186995,
+        "hi": 0.05874928579815513,
+        "n": 1430,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      },
+      "tail": {
+        "mean": 0.02431341847477033,
+        "lo": 0.01548860177931975,
+        "hi": 0.033286509120966805,
+        "n": 1290,
+        "n_boot": 10000,
+        "seed": 98765,
+        "excludes_zero": true
+      }
+    }
+  },
+  "curves": {
+    "items": {
+      "1": {
+        "answers_items": 0.2983,
+        "answers_concepts": 0.0
+      },
+      "2": {
+        "answers_items": 0.4537,
+        "answers_concepts": 0.0
+      },
+      "4": {
+        "answers_items": 1.112,
+        "answers_concepts": 0.0
+      },
+      "8": {
+        "answers_items": 1.7903,
+        "answers_concepts": 0.0
+      },
+      "16": {
+        "answers_items": 3.1085,
+        "answers_concepts": 0.0
+      }
+    },
+    "concepts": {
+      "1": {
+        "answers_items": 0.0,
+        "answers_concepts": 0.7525
+      },
+      "2": {
+        "answers_items": 0.0,
+        "answers_concepts": 1.7512
+      },
+      "4": {
+        "answers_items": 0.0,
+        "answers_concepts": 3.5683
+      },
+      "8": {
+        "answers_items": 0.0,
+        "answers_concepts": 6.8468
+      },
+      "16": {
+        "answers_items": 0.0,
+        "answers_concepts": 12.36
+      }
+    },
+    "combined": {
+      "1": {
+        "answers_items": 0.0,
+        "answers_concepts": 0.7525
+      },
+      "2": {
+        "answers_items": 0.0,
+        "answers_concepts": 1.7512
+      },
+      "4": {
+        "answers_items": 0.3007,
+        "answers_concepts": 2.6613
+      },
+      "8": {
+        "answers_items": 0.8575,
+        "answers_concepts": 4.5232
+      },
+      "16": {
+        "answers_items": 1.5117,
+        "answers_concepts": 9.2452
+      }
+    }
+  },
+  "seconds": 56.45986795425415
+}
