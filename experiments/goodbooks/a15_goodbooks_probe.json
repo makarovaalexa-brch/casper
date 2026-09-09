@@ -1,0 +1,76 @@
+{
+  "label": "a15_goodbooks_probe",
+  "dataset": "goodbooks-10k",
+  "seed": 98765,
+  "design_sheet": "docs/design/DS_A15_GOODBOOKS_PROBE.md",
+  "ml25m_reference": {
+    "item_answers_at_16": 3.11,
+    "concept_answers_at_16": 12.36,
+    "concepts": 1031,
+    "foldin_items_per_user": 141.2
+  },
+  "split": {
+    "train_users": 43424,
+    "val_users": 5000,
+    "test_users": 5000,
+    "items": 10000,
+    "ratings": 5976479
+  },
+  "foldin_items_per_user": {
+    "mean": 89.6842,
+    "median": 89.0,
+    "p10": 66.0
+  },
+  "concept_bank": {
+    "n_concepts": 1763,
+    "floor": 30,
+    "top_k_tags_per_book": 50,
+    "concepts_per_book_median": 40.5,
+    "concepts_per_book_mean": 39.6879,
+    "ml25m_concepts_per_item": {
+      "median": 37,
+      "mean": 44.5
+    },
+    "median_members": 79.0,
+    "example_names": [
+      "02-fantasy",
+      "100-best-novels",
+      "100-books",
+      "1001-before-you-die",
+      "1001-books",
+      "1001-import",
+      "1001books",
+      "16th-century",
+      "17th-century",
+      "1800s",
+      "18th-century",
+      "1st-grade",
+      "1st-in-series",
+      "21st-century",
+      "33-keepers",
+      "3rd-grade",
+      "4th-grade",
+      "5th-grade",
+      "6th-grade",
+      "7th-grade",
+      "8th-grade",
+      "abuse",
+      "academia",
+      "academic",
+      "action"
+    ]
+  },
+  "concept_answerability_train": {
+    "max": 1.0,
+    "mean": 0.1868694271128758,
+    "pool_mean": 0.6312904
+  },
+  "go_no_go": {
+    "item_answers_at_16": 3.8636,
+    "concept_answers_at_16": 15.8196,
+    "ratio": 4.094523242571695,
+    "item_zero_share": 0.1644,
+    "concept_zero_share": 0.0
+  },
+  "seconds": 9.847609996795654
+}
