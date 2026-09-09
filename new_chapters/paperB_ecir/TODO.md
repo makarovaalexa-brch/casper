@@ -81,3 +81,24 @@ that contradicted it is withdrawn.
    families, since refitting their objective on validation NDCG@10 produces CASPER rather than a
    fairer port — so this is a judgement call, not an obligation.
 3. Second dataset: both agree it is a follow-up paper, not a revision.
+
+## 8. Criterion-regret DIAGONAL — PARKED, design sheet `docs/design/DS_A13_CRITERION_REGRET_DIAGONAL.md`
+The v7 panel's most-shared objection and the area chair's first **required** change. Table 2 scores
+the published surrogates only at the 22 nodes of the tree grown by our own criterion, so they are
+judged at states they did not choose. The diagonal grows each criterion its own tree (**already
+banked from the Table 4 ablation**) and computes the exact measured gains at *its* nodes.
+
+- **v8 already carries the fallback the chair explicitly permits**: the table and caption now say the
+  numbers are off-trajectory and point at Table 4. Disclosure closed; objection not.
+- **Cost unbenched.** Naive extrapolation from the 37,191 s tree build gives ~31 h for three
+  criteria, but that figure includes the search and CELF heap this job does not need. **Bench one
+  node first**, then decide between three criteria and two.
+- ⚠ Nothing to do with anchor or cluster teachers. Cold Golbandi ternary interview trees on the
+  certified tower, the same primitives the Table 4 ablation imports.
+- **Not a blocker for submission.** Improvement only, and must not delay 21 Sep / 5 Oct.
+
+## 9. Second dataset — follow-up paper, NOT a camera-ready fix
+The area chair's answer to "what would make this an unambiguous accept" was Tables 2--4 replicated on
+a second dataset with a second certified recommender. That is a new instrument: split, concept bank,
+teacher, two-tower training, re-certification, regrown trees, rerun battery. The chair called it a
+follow-up paper themselves. Costing is in progress; see `docs/design/DS_A14_SECOND_DATASET_COST.md`.
