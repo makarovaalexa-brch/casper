@@ -8,50 +8,72 @@ Every wall-clock figure below marked **[R]** is a value literally recorded in an
 this box. Figures marked **[E]** are my arithmetic on those. Nothing else is guessed, and the stages
 with no recorded number are listed as such rather than filled in.
 
-## The blocker is not compute. It is the Tag Genome.
+## CORRECTION, 2026-09-10. My first version of this sheet was wrong.
 
-ML-25M is unusual in shipping a dense, machine-learned **item-by-attribute relevance matrix** (the Tag
-Genome, 1,031 concepts at relevance >= 0.5 with >= 30 members). The concept channel is built directly
-on it (`src/instrument/belief_layer.py:616`,
-`src/baselines/conversational_bandit_selectors.py:409`), and **it has no substitute**: no other
-public recommender dataset ships an equivalent.
+It claimed the Tag Genome "has no substitute" and that half the paper therefore cannot port. **Both
+claims are false, and the repository already contained the refutation.** The author's instinct that
+"attributes can prob be mined on most things" is correct, for a reason that is visible in our own
+code.
 
-This matters because the concept bank is the *larger* of the paper's two results (+0.01430 against the
-tree's +0.01035, and not close on the tail). **On any dataset without an attribute-relevance matrix,
-half the paper cannot be ported at all** — not expensively, but at all. Building a Tag-Genome
-equivalent is a published research contribution in its own right (Vig et al.), not a porting step.
+**The concept channel does not consume graded relevance. It consumes a BINARY membership matrix.**
+`belief_layer.py:632` thresholds the genome at `relevance >= 0.5` and discards the score; the matrix
+is then built with `np.ones(...)` (`strategy_channel_suite.py:1422`). The only other thing derived
+from it is an exposure prior `pexp` from train counts (`:455`). So what the pipeline actually needs
+is: *which items belong to which concept*, plus a >= 30-member floor. **Any mined folksonomy of that
+shape is a drop-in.** The Tag Genome's density and its learned relevance scores are thrown away
+before the concept channel ever sees them.
 
-So the choice is really three options, and they are not the same experiment.
+**And we already mined one.** `scripts/_archive/paper2_old/gr_books.py` parses Goodreads
+`popular_shelves` into exactly this object: a junk filter for process shelves ("to-read", "i-own",
+"arc", "netgalley"), membership at shelf count >= 5, a **>= 30-item floor explicitly mirroring
+ML-25M**, the top ~1,500 content shelves by document frequency, plus concept centroid directions.
+Its own docstring says "like ML-25M".
 
-## Option A — ML-20M. Cheap, already half-prepared, and probably does not satisfy the reviewer.
+**A Goodreads recommender already exists too.** `scripts/instrument2/gr_recvae.py` ports RecVAE to a
+Goodreads arena of 188,867 items / 768,746 users / 46.1M ratings, and the results are still on disk:
+`.cache/instrument2/gr_recvae_d512_TEST.json` reads **full/tail NDCG@10 of 0.4340 / 0.2507** against a
+most-popular floor of 0.2045 / 0.0090. That is the parity bar a re-certified instrument would have to
+clear, and it is already measured.
 
-`data/ml-20m/` is already on the box **with `genome-scores.csv`**, and `data/ml-20m/proc/` already
-holds a finished Liang split built bit-faithfully to Liang's own notebook (20,108 items, 116,677
-train / 10,000 val / 10,000 test, seed 98765). The split step is done.
+So the second dataset is **not blocked on a missing artifact**. The recipe exists for Goodreads. What
+does not exist is any of it on the current stack.
 
-**What it buys:** a test of sensitivity to split, seed, vintage and catalogue. Published baselines
-exist on exactly this benchmark, so HARD RULE 2 is satisfiable.
-**What it does not buy:** domain generalisation. Same platform, same item universe, largely the same
-users; ML-20M is essentially an earlier cut of ML-25M. A reviewer asking for a second dataset will
-very likely say so.
+## What genuinely remains, having corrected the above
 
-## Option B — Netflix Prize. Already this project's declared plan, and it ports only half the paper.
+These are real and none of them is research risk; they are work.
 
-`docs/design/PAPER_B_DESIGN.md:91` and `PAPER_B_EVIDENCE_POLICY.md:26` already name Netflix Prize
-under a Liang-style protocol, with the claim scope pre-declared as **"orderings and interactions, not
-magnitudes"**. That ruling stands and should be honoured rather than reopened.
+- **The data is gone from this box.** `.cache/goodreads/base_comp.npz` is absent and `data/` holds
+  only MovieLens and the Reddit corpus. The Goodreads book graph must be re-downloaded, and the
+  metadata dump carrying `popular_shelves` is large.
+- **Everything Goodreads is on the retired stack.** The scripts sit in `scripts/_archive/paper2_old/`
+  and predate 2026-07-22, so their numbers are demoted under
+  [[pre-jul22-interview-results-demoted]] and the code speaks the old SVD-arena contract, not the
+  i26 tower / cv3 concept channel contract. Porting is mechanical but it is not free.
+- **The old Goodreads arena was truncated to make it run**, and this matters more than the rest.
+  `gr_recvae.py` restricts to "top-N=20,000 items by train-like count" of 188,867, and evaluates on
+  **418 test users**, not 10,000. Both were stated compute deviations at the time. Under HARD RULE 1
+  neither may simply be inherited: a 20k-of-189k universe is exactly the kind of reduction that needs
+  sign-off, and the paper's catalogue-scale claim is one of its selling points.
+- **Shelf membership is coarser and dirtier than genome membership.** Shelves are user-authored,
+  popularity-skewed and full of process labels, which is why `gr_books.py` needs an explicit junk
+  list. The junk filter is a judgement call that would have to be defensible in print.
 
-Graded ratings, a comparable protocol, and published baselines (Liang's VAE-CF reports on it). **No
-attribute vocabulary**, so the concept bank, the answerability mechanism and the +0.01430 result
-cannot travel. RQ1, RQ2 and the tree can.
+## What this does to the options
 
-## Option C — a genuinely different domain (Goodreads shelves, Last.fm tags, Yelp categories).
+**Goodreads is now the strongest candidate, not the most expensive one.** It is a different domain,
+different users and a different catalogue, with a mined attribute vocabulary we have already built
+once and a strong recommender we have already trained once. It is the option that answers the
+reviewer's actual question, and the earlier version of this sheet wrongly ruled it out.
 
-Requires constructing and validating an attribute-relevance matrix from a folksonomy before any of
-the pipeline can run. That is a research step with its own failure modes and its own evaluation.
-**Months, and a different paper.** Not costed further here.
+**Netflix Prize** remains the pre-declared plan (`PAPER_B_DESIGN.md:91`,
+`PAPER_B_EVIDENCE_POLICY.md:26`, scope fixed to "orderings and interactions, not magnitudes") but is
+now clearly the *weaker* choice: it carries no attribute vocabulary at all and no folksonomy to mine,
+so the concept-bank result genuinely cannot travel there.
 
-## Recorded cost of one full port (Option A or C; Option B drops the concept rows)
+**ML-20M** stays what it was: cheapest, already split, already genomed, and almost certainly not what
+a reviewer means by a second dataset.
+
+## Recorded cost of one full port (Goodreads or ML-20M; Netflix drops the concept rows)
 
 | stage | recorded wall-clock | source |
 |---|---|---|
@@ -69,8 +91,9 @@ the pipeline can run. That is a research step with its own failure modes and its
 | Re-score pass over banked interviews | 26.2 min **[R]** | `a9_battery_policyB.json` |
 
 **Pure compute, one clean pass, nothing failing: about 62 h [E], call it two and a half days of
-uninterrupted machine time.** Option B removes the concept channel and the concept order, landing
-nearer 50 h.
+uninterrupted machine time.** Netflix removes the concept channel and the concept order, landing
+nearer 50 h. Goodreads adds a re-download and the shelf-mining port on top of the 62 h, and its
+catalogue is ten times ML-25M's, so the greedy and tree stages would not simply inherit these times.
 
 ## Why 62 h of compute is not 62 h of calendar on this box
 
@@ -100,11 +123,11 @@ framing is correct and should simply be accepted: this is a follow-up paper, not
 
 ## If it is ever done, the order to do it in
 
-1. **ML-20M first (Option A)**, because the split is already built and the genome is already on disk,
-   so it isolates "does the pipeline reproduce itself" from "does the finding generalise". It is also
-   the cheapest way to discover that the recipe does not transfer.
-2. **Netflix second (Option B)**, honouring the pre-declared "orderings and interactions, not
-   magnitudes" scope, and stating plainly that the bank result does not travel because the dataset
-   carries no attribute vocabulary.
-3. **Option C only as its own paper**, with the attribute-relevance construction as a contribution
-   rather than a preliminary.
+1. **Goodreads**, because it is a genuine second domain and the attribute vocabulary and the
+   recommender have both been built here before. Re-download, port `gr_books.py`'s shelf mining to the
+   current concept contract, retrain the tower, re-certify against the recorded 0.4340/0.2507 bar,
+   then rerun. **Resolve the 20k-item universe and the 418-user cohort before anything else**, since
+   inheriting either would breach HARD RULE 1 and would weaken the catalogue-scale claim.
+2. **ML-20M** only as a cheap self-replication check, and never described as a second dataset.
+3. **Netflix** only if an item-channel-only result is wanted, with the bank result explicitly stated
+   as not portable there.
