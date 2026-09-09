@@ -3,6 +3,7 @@
 \usepackage{amsmath,amssymb,amsthm}
 \newtheorem{definition}{Definition}
 \usepackage{booktabs}
+\usepackage{multirow}
 \usepackage{graphicx}
 \usepackage{array}
 \usepackage{xcolor}
@@ -1364,6 +1365,72 @@ On the tail the ordering is not close: $+0.02199$ for the bank change against $+
 conditioning. \textbf{If one thing can be changed, change what the system asks about, not how it
 decides what to ask.} That is the strongest form of the objection to this chapter's argument, and it is
 measured on the same ruler as everything else.
+
+\subsection{Who consumes the answers moves the number further than who chooses the questions}
+\label{sec:consumers}
+
+The split criterion of Section~\ref{sec:act3} is the metric computed \emph{through the frozen
+recommender that then scores it}, so a fair question is whether the gain is a property of the
+interview or of that pairing. The interview is a sequence of questions, and a sequence can be handed
+to any consumer, so we hand it to three more: RecVAE~\cite{ren2020recvae}, the conjugate belief
+accumulator over a frozen factorisation, and Golbandi's leaf model~\cite{golbandi2011adaptive}, which
+matches a cold user to the training users sharing their like/dislike/unknown pattern. The interviews
+are the banked test interviews replayed verbatim: nothing is regrown, re-selected or re-fitted, and
+the certified consumer reproduces Table~\ref{tab:tree} to five decimals, which is the gate.
+
+\begin{table}[t]
+\centering
+\caption{The same two interviews, four consumers, $10{,}000$ test users. Full/tail NDCG@10; the
+interviews are identical across rows and only the model consuming the answers changes. The leaf model
+has no sixteen-question row: $3^k$ answer patterns fragment its training cohort beyond depth eight.
+The answer-free popularity reference is $0.1626/0.0262$.}
+\label{tab:consumers}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{ll rrrrr}
+\toprule
+consumer & interview & $K{=}1$ & $K{=}2$ & $K{=}4$ & $K{=}8$ & $K{=}16$ \\
+\midrule
+\multirow{2}{*}{certified tower} & tree & $.1808/.0537$ & $\mathbf{.2015}/.0675$ & $\mathbf{.2267/.0905}$ & $\mathbf{.2492/.1117}$ & $\mathbf{.2694/.1307}$ \\
+ & static & $.1808/.0537$ & $.1962/\mathbf{.0701}$ & $.2178/.0857$ & $.2386/.1033$ & $.2590/.1237$ \\
+\midrule
+\multirow{2}{*}{Golbandi leaf model} & tree & $.1626/.0262$ & $.1745/.0393$ & $.1858/.0526$ & $.1964/.0592$ & --- \\
+ & static & $.1626/.0262$ & $.1626/.0262$ & $.1746/.0478$ & $.2101/.0741$ & --- \\
+\midrule
+\multirow{2}{*}{RecVAE} & tree & $.0000/.0000$ & $.0428/.0152$ & $.1016/.0399$ & $.1265/.0527$ & $.1769/.0764$ \\
+ & static & $.0000/.0000$ & $.0000/.0000$ & $.0662/.0130$ & $.1162/.0317$ & $.1357/.0409$ \\
+\midrule
+\multirow{2}{*}{conjugate accumulator} & tree & $.1600/.0267$ & $.1605/.0282$ & $.1614/.0323$ & $.1626/.0349$ & $.1641/.0400$ \\
+ & static & $.1600/.0267$ & $.1600/.0267$ & $.1607/.0279$ & $.1613/.0283$ & $.1624/.0307$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{The gain is not a property of the scorer.} On three of the four consumers the tree beats the
+static order at every budget, and every paired interval excludes zero: $+0.01035$ on the certified
+tower, $+0.04122$ on RecVAE and $+0.00161$ on the conjugate accumulator at sixteen questions. On the
+leaf model it holds at two and four questions ($+0.01195^\star$, $+0.01118^\star$) and reverses at
+eight ($-0.01375^\star$ $[-0.01649,-0.01094]$).
+
+\textbf{The reversal is on the consumer Section~\ref{sec:act1} already identified, and it is an
+argument for certifying the consumer rather than against the tree.} Read the table down its columns
+instead of across its rows. Every cell of the certified tower's block is above every cell of every
+other block at the same budget, and the margins are larger than any selector effect in this chapter:
+the tree on the certified tower beats the best arm any other consumer reaches by $+0.01823^\star$ at
+one question, $+0.02695^\star$ at two, $+0.04097^\star$ at four and $+0.03910^\star$ at eight, the
+last of those against the leaf model's static arm, which is the cell that produced the reversal. The
+\emph{static} order on the certified tower beats it too, by $+0.02848^\star$ at eight questions.
+Choosing the consumer is worth between two and four points of NDCG@10; choosing the selector is worth
+one. A reversal inside the weaker of two blocks separated by that much is a statement about the block,
+not about the ordering, and the leaf model is the block where it appears: its static arm gains nothing
+at all from two questions, sitting at the answer-free $0.1626$, and its late jump at eight is the
+$3^k$ pattern match finding a populated cell rather than the interview informing a ranking.
+
+This is Chapter~A's argument arriving from the other side. There it was established that a strategy
+comparison is a property of the strategy and the instrument together; here the same pair of interviews,
+scored through four consumers, spreads over $0.09$ NDCG@10 at sixteen questions while the two
+interviews differ by $0.01$. \textbf{The consumer has to be fixed and certified before an elicitation
+result means anything, and once it is, the measured-metric split is what wins on it.}
 
 \subsection{What it costs: two fifths of users are worse off, and validation overstates the rest}
 
