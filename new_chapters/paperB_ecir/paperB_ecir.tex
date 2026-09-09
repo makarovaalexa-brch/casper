@@ -11,11 +11,11 @@
 \pgfplotsset{compat=1.17}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
-\setlength{\textfloatsep}{10pt plus 2pt minus 3pt}
-\setlength{\intextsep}{10pt plus 2pt minus 3pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 4pt}
+\setlength{\intextsep}{8pt plus 2pt minus 4pt}
 \setlength{\abovecaptionskip}{4pt}
 \setlength{\belowcaptionskip}{2pt}
-\renewcommand{\arraystretch}{0.96}
+\renewcommand{\arraystretch}{0.92}
 
 \newcommand{\zz}{\mathbf{z}}
 
@@ -70,7 +70,7 @@ A recommender that knows nothing about a user can ask. Which questions it asks, 
 is the preference-elicitation problem, and the field's dominant answer is adaptive: each question
 conditions on the answers already obtained. Interview
 trees~\cite{golbandi2011adaptive,hu2013interview}, functional matrix
-factorisation~\cite{zhou2011functional}, information-theoretic acquisition
+factorisation~\cite{zhou2011functional}, acquisition
 functions~\cite{ma2019eddi,houlsby2011bald} and collaborative-filtering
 bandits~\cite{zhao2013interactive,zhang2020conucb,wang2023conlinucb,liu2025clisk} instantiate it.
 
@@ -80,12 +80,12 @@ variable~\cite{ma2019eddi}, posterior variance~\cite{houlsby2011bald}, an A-opti
 trace~\cite{anava2015budget,sepliarskaia2018spq}, a bandit index over a predicted
 rating~\cite{zhao2013interactive,zhang2020conucb}. The reported metric has since moved to truncated,
 position-discounted top-$k$ ranking and the criteria did not move with it; a recent ML-25M NDCG@10
-benchmark that set out to include the rating-era interview methods~\cite{proissl2024greedyslim} could
-not obtain working results for them, so their transfer is assumed rather than measured. We measure
-it, under one contract governing every arm: behavioural answers read from each user's own held-out
-ratings, no simulator or language model in the measurement path, the full catalogue ranked with no
-sampling, and unanswerable questions charged. The comparator is not a heuristic but the greedy
-prefix-optimal question order under the reported metric (Section~\ref{sec:contract}).
+benchmark that set out to include them~\cite{proissl2024greedyslim} could not obtain working results,
+so their transfer is assumed rather than measured. We measure it, under one contract governing every
+arm: behavioural answers from each user's own held-out ratings, no simulator or language model in the
+measurement path, the full catalogue ranked with no sampling, and unanswerable questions charged. The
+comparator is the greedy prefix-optimal question order under the reported metric
+(Section~\ref{sec:contract}), not a heuristic.
 
 \medskip
 \noindent
@@ -254,15 +254,14 @@ both channels can buy.
 \caption{The battery, one contract: the frozen certified recommender, protocol candidate pool,
 behavioural answers, all 10{,}000 test users, no sampling, full/tail NDCG@10. Twenty-three arms were
 measured; the five omitted for space (pure entropy, random order, ConLinUCB-BS-static, DPE-ILD, EDDI
-three-outcome) are degenerate or duplicate and the separation counts in the text are over all
-twenty-three.
-Answer-free popularity reference $.1626/.0262$. The last column, ans@16, is the mean number of the
-sixteen questions a user could answer. Bold is best per column, excluding the clairvoyant
-oracle, a ceiling that reads the user's own ratings at selection time. Separation throughout the paper
-is a paired percentile bootstrap, 10{,}000 resamples clustered over users; $^\star$ marks an interval
+three-outcome) are degenerate or duplicate, and the separation counts in the text are over all
+twenty-three. Answer-free popularity reference $.1626/.0262$; ans@16 is the mean number of the
+sixteen questions a user could answer. Bold is best per column, excluding the clairvoyant oracle, a
+ceiling that reads the user's own ratings at selection time. Separation throughout the paper is a
+paired percentile bootstrap, 10{,}000 resamples clustered over users; $^\star$ marks an interval
 excluding zero. $^\S$ = value-free rule, responding only to which questions were answerable;
-$^\dagger$ = a reduced latent-only acquisition, not the published EDDI criterion. Golbandi's tree
-has no $k{=}16$ row: $3^k$ answer patterns fragment its training cohort beyond depth eight.}
+$^\dagger$ = a reduced latent-only acquisition, not the published EDDI criterion. Golbandi's tree has
+no $k{=}16$ row: $3^k$ answer patterns fragment its training cohort beyond depth eight.}
 \label{tab:battery}
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
@@ -305,7 +304,7 @@ clairvoyant oracle & --- & .1893/.0680 & .2194/.0965 & .2544/.1281 & .2930/.1597
 \resizebox{\textwidth}{!}{
 \begin{tikzpicture}
 \begin{axis}[
-  width=0.86\textwidth, height=3.3cm,
+  width=0.86\textwidth, height=2.6cm,
   xmode=log, log basis x=2,
   xtick={1,2,4,8,16}, xticklabels={1,2,4,8,16},
   xlabel={questions asked ($K$), doubling}, ylabel={full NDCG@10},
@@ -411,7 +410,7 @@ mean fraction of the metric's ten best questions that the criterion also ranks i
 Regret is the user-weighted NDCG@10 forgone by following that criterion instead of the metric;
 the last row is the control a criterion must beat. Bold is best of the three criteria.}
 \label{tab:criterion}
-\small
+\footnotesize
 \begin{tabular}{lrrrrr}
 \toprule
 criterion & mean $\rho$ & nodes $\rho{>}0$ & argmax hit & top-10 recall & regret \\
@@ -479,7 +478,7 @@ questions $0.15855/0.02819$. Beyond $K{=}5$ the tree's depth is exhausted and th
 questions are chosen inside the reached leaf by the same measured-NDCG search, so the $K{=}16$
 gain is five conditioned questions plus a leaf-conditioned tail. Bold is best per column.}
 \label{tab:tree}
-\small
+\footnotesize
 \begin{tabular}{lcc}
 \toprule
 $K$ & full gain [95\% CI] & tail gain [95\% CI] \\
@@ -513,7 +512,7 @@ the minimum leaf size, the latter the fair control since it destroys only the ch
 56 non-nested intervals in the six-arm matrix exclude zero except the pairwise-versus-variance
 contrast reported in the text. Bold is best per column.}
 \label{tab:splitcrit}
-\small
+\footnotesize
 \begin{tabular}{lrrrr}
 \toprule
 split criterion & full@10 & full gain & tail@10 & tail gain \\
@@ -535,31 +534,39 @@ readings follow, and two were not what we pre-registered. First, \emph{the separ
 versus surrogate, not ranking versus rating}. Hu and Yu's pairwise rank loss and Golbandi's rating
 variance are indistinguishable on our metric, $+0.00020$ $[-0.00331,+0.00371]$ full and $-0.00092$
 $[-0.00448,+0.00277]$ tail, the only null in the matrix, so upgrading a rating surrogate to a ranking
-surrogate bought nothing. Second, \emph{the failure is in the approximation, not in the shape of the
-loss}. At the root the measured held-out pairwise rank loss tracks measured NDCG@10 at Spearman
-$+0.784$ and forgoes only $+0.00459$, about $29\%$ of what a random pick forgoes, whereas the
-Taylor-approximated training-loss version of the same objective correlates at $-0.149$, ranks the
-metric's best question 75th of 1{,}000 and forgoes $+0.01473$.
-What does the work is measuring the value of asking rather than a training loss over the tree fit.
-Third, \emph{depth alone does not indicate conditioning}: the min-leaf-respecting shuffle grows deeper
-(7 against 5), wider (27 leaves against 15) and more varied (286 distinct questions against 159) than
-the criterion that wins, and still loses by $-0.04817$. The logistic arm is the sharpest single row:
-it opens on exactly our question, then degrades monotonically ($-0.00896$, $-0.02777$, $-0.05605$,
-$-0.08627$) until its absolute full NDCG@10 falls below its own one-question value, so a criterion can
+surrogate bought nothing. Second, \emph{the failure is in the approximation, not in the shape of the loss}. At the root the
+measured held-out pairwise rank loss tracks measured NDCG@10 at Spearman $+0.784$ and forgoes only
+$+0.00459$, about $29\%$ of what a random pick forgoes, whereas the Taylor-approximated
+training-loss version of the same objective correlates at $-0.149$, ranks the metric's best question
+75th of 1{,}000 and forgoes $+0.01473$. What does the work is measuring the value of asking, not a
+training loss over the tree fit.
+Third, \emph{depth alone does not indicate conditioning}: the min-leaf-respecting shuffle grows
+deeper (7 against 5), wider (27 leaves against 15) and more varied (286 distinct questions against
+159) than the criterion that wins, and still loses by $-0.04817$. The logistic arm is the sharpest
+row: it opens on exactly our question, then degrades monotonically ($-0.00896$, $-0.02777$,
+$-0.05605$, $-0.08627$) until its NDCG@10 falls below its own one-question value, so a criterion can
 agree with the metric on the easiest decision and still walk the interview downhill. The ablation is not a
 refutation of the published results on their own protocols.
 
 \paragraph{Changing the bank yields more than conditioning does.}
-Measured on the same cohort at the same budget, with every order selected under the scoring contract,
-enlarging the bank from films to films plus concept questions (tag-level generalisations a user
-can answer without having seen any particular film) with no conditioning of any kind is worth
-$+0.01430^\star$ $[+0.01124,+0.01739]$ full, $16.6\%$ of the static order's own lift over asking
-nothing, against $+0.01035^\star$ for tree conditioning ($10.3\%$). On the tail the ordering is not close, $+0.02199$ against $+0.00705$. If one
-thing can be changed, change what the system asks about rather than how it decides what to ask; this
-is the strongest qualification of the conditioning result, and it is measured under the same contract. Answerability carries most of the mechanism, though not all of it: the prefix-optimal joint sequence gives concepts ten of sixteen
-slots and both of the first two, the tree opens on a concept, and sixteen item questions collect 3.11
-answers where sixteen concept questions collect 12.36; at sixteen questions concepts win the tail and
-tie on full ($-0.00003$ $[-0.00315,+0.00310]$ full, $+0.01436^\star$ $[+0.01093,+0.01776]$ tail).
+On the same cohort at the same budget, every order selected under the scoring contract, enlarging the
+bank from films to films plus concept questions (tag-level generalisations answerable without having
+seen any particular film) with no conditioning of any kind is worth $+0.01430^\star$
+$[+0.01124,+0.01739]$ full, $16.6\%$ of the static order's own lift over asking nothing, against
+$+0.01035^\star$ for tree conditioning ($10.3\%$); on the tail it is not close, $+0.02199$ against
+$+0.00705$. If one thing can be changed, change what the system asks about rather than how it decides
+what to ask; this
+is the strongest qualification of the conditioning result, and it is measured under the same
+contract. \emph{The mechanism is the answer rate, and it is not breadth.} The prefix-optimal joint
+sequence gives concepts ten of sixteen slots and both of the first two, the tree opens on a concept,
+and at sixteen questions the two single channels tie on full ($-0.00003$ $[-0.00315,+0.00310]$) while
+concepts win the tail ($+0.01436^\star$). That tie is two effects cancelling: lift over the
+answer-free reference factorises into answers collected and lift per answer, and a film answer is
+worth $3.98\times$ a concept answer ($0.02771$ against $0.00697$) while the concept channel collects
+$3.98\times$ as many. Held to a matched number of answers the film channel wins, $+0.02734^\star$
+$[+0.02430,+0.03037]$ at $1.79$ against $1.75$ answers. Aggregating hundreds of films into one
+question \emph{dilutes} what its answer says; the channel wins anyway because two concept questions
+leave $11$ of $10{,}000$ users with nothing to say, where two film questions leave $5{,}779$.
 
 \paragraph{What it costs.}
 Five qualifiers travel with $+0.01035$. Validation overstates it ($+0.02794$ full on the selection
@@ -589,13 +596,12 @@ two to four points where choosing the selector is worth one.
 \begin{table}[tbp]
 \centering
 \caption{The same two interviews, three consumers, 10{,}000 test users, full/tail NDCG@10. Only the
-model consuming the answers changes; a fourth, a conjugate accumulator, is omitted for space and
-gives $+0.00161^\star$ at $K{=}16$. The leaf model has no sixteen-question row: $3^k$ answer patterns
-fragment its training cohort beyond depth eight. $K{=}1$ is omitted: both arms ask the same first
-question by construction. Consumers are scored with no popularity floor, so one receiving no usable
-input scores near zero: RecVAE ingests liked items only, and its low-budget cells are a property of
-that input contract rather than of the interview. The answer-free reference $.1626/.0262$ is the
-certified tower's.}
+consumer changes; a fourth, a conjugate accumulator, is omitted for space and gives
+$+0.00161^\star$ at $K{=}16$. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its
+cohort); $K{=}1$ is omitted, both arms asking the same first question by construction. Consumers are
+scored with no popularity floor, so one receiving no usable input scores near zero: RecVAE ingests
+liked items only, and its low-budget cells are a property of that input contract, not of the
+interview. The answer-free reference $.1626/.0262$ is the certified tower's.}
 \label{tab:consumers}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -618,36 +624,31 @@ RecVAE & CASPER & $.0428/.0152$ & $.1016/.0399$ & $.1265/.0527$ & $.1769/.0764$ 
 \paragraph{Answer to RQ3.}
 Substituting the reported metric for the published criterion inside the field's own interview tree,
 everything else held fixed, reverses the RQ1 comparison from four questions onward on both axes
-($+0.01035$ full, $+0.00705$ tail at sixteen) where the published surrogates lose by three times that
-margin; changing the question bank with no conditioning is worth more still ($+0.01430$ full,
-$+0.02199$ tail).
+($+0.01035$ full, $+0.00705$ tail at sixteen), where the published surrogates lose by three times
+that margin; changing the bank with no conditioning is worth more still ($+0.01430$, $+0.02199$).
 
 \section{Limitations and Conclusion}
 \label{sec:limits}
 
-Whether a question is answerable is inferred from the same history that scores the user: answer
-values are behavioural throughout, and it is the answerability judgement that is a modelling
-assumption, standard here and load-bearing for two mechanisms above. A behavioural answer is also one
-the user once gave, not one they would give in conversation, and that gap is not measured. Nor are
-the channels commensurable per question: a concept answer summarises many films where an item answer
-carries one, so that channel's advantage is answerability together with breadth, not answerability
-alone. Everything here is one dataset, one split and one seed, on one instrument; the criterion-regret
-table in particular would need a second certified recommender to travel. And no published number
-validates our comparator, since no prior work has published a static order built by greedily
-maximising cohort-mean held-out NDCG@10; the recipe is deterministic, it beats every published
-selector we ran, and rebuilding it under the scoring contract cut the conditioning gain from
-$+0.01371$ to $+0.01035$, so we have measured what its weakness costs. The fitting asymmetry it
-carries is stated and bounded in Section~\ref{sec:contract}.
+Answerability is inferred from the same history that scores the user: answer values are behavioural
+throughout, and it is the answerability judgement that is a modelling assumption, standard here and
+load-bearing for two mechanisms above. A behavioural answer is one the user once gave, not one they
+would give in conversation, and that gap is not measured. Nor is it measured whether a bank of
+narrower concepts would beat this one, though the channels' per-question asymmetry runs against the
+concept channel rather than for it. Everything here is one dataset, one split and one seed, on one
+instrument, and the criterion-regret table would need a second certified recommender to travel. And
+no published number validates our comparator, since no prior work has published a static order built
+by greedily maximising cohort-mean held-out NDCG@10; the recipe is deterministic, it beats every
+published selector we ran, and rebuilding it under the scoring contract cut the conditioning gain
+from $+0.01371$ to $+0.01035$. Its fitting asymmetry is bounded in Section~\ref{sec:contract}.
 
 \medskip\noindent
 Put the reported metric into the split criterion and the field's own interview tree rises above a
 strong static order ($+0.01035$ at sixteen questions), where five published criteria fitted by the
-same search on the same data do not; change what the system asks about rather than how it chooses,
-and the gain is larger still ($+0.01430$) with no conditioning at all. The setting is the audit:
-thirteen published methods, twenty-three arms, one contract, every one losing to a fixed order built
-by greedily maximising the reported metric, none optimising the metric it is judged on. That order
-carries a fitting advantage no ported method has, so the audit is a diagnosis, not a ranking. Build the selector around the quantity that will be reported, and
-certify its consumer.
+same search do not; change what the system asks about rather than how it chooses, and the gain is
+larger still ($+0.01430$) with no conditioning at all. Behind both is an audit in which thirteen
+published methods lose to that order. Build the selector around the quantity that will be reported,
+and certify its consumer.
 
 \bibliographystyle{splncs04}
 \bibliography{refs}
