@@ -1,0 +1,267 @@
+{
+  "meta": {
+    "selectors": [
+      "thompson"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "consumers": [
+      "ours"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 10000,
+    "cohort": "test",
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "ts_scale": 0.5,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "pool_contract": {
+      "v": 1,
+      "policy": "B (arm_n.build_pool)",
+      "n_rows": 10000,
+      "n_items": 18359,
+      "nnz": 1411761,
+      "per_user": 141.1761,
+      "fp": "cc002b4eb984ed9880346c98fc0a2970"
+    },
+    "golbandi": {
+      "depth": 0,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": null
+    },
+    "_contract": {
+      "n_users": 10000,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "ts_scale": 0.5,
+      "cohort": "test",
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 0,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": null,
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "igcn_clusters": 300,
+      "igcn_nbr": 150,
+      "igcn_switch": 5,
+      "igcn_recompute": 1,
+      "igcn_kmeans_iter": 10,
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 0,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 0,
+      "specs": [
+        "thompson"
+      ],
+      "budgets": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "consumers": [
+        "ours"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    }
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "thompson": {
+        "k1": {
+          "full": 0.16164948352208403,
+          "tail": 0.038684032945222005,
+          "answered": 0.3296,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.24,
+          "interview_minutes": 0.03,
+          "distinct_prefixes": 293,
+          "cache": {
+            "_chol": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 0,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.0
+            },
+            "_mu": {
+              "size": 1,
+              "cap": 4096,
+              "hits": 1,
+              "misses": 1,
+              "evictions": 0,
+              "hit_rate": 0.5
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k2": {
+          "full": 0.16759801590867177,
+          "tail": 0.047124506296646135,
+          "answered": 0.6544,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.24,
+          "interview_minutes": 0.1,
+          "distinct_prefixes": 2783,
+          "cache": {
+            "_chol": {
+              "size": 392,
+              "cap": 4096,
+              "hits": 1,
+              "misses": 392,
+              "evictions": 0,
+              "hit_rate": 0.0025
+            },
+            "_mu": {
+              "size": 392,
+              "cap": 4096,
+              "hits": 393,
+              "misses": 392,
+              "evictions": 0,
+              "hit_rate": 0.5006
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k4": {
+          "full": 0.1778874240208948,
+          "tail": 0.057616483511562566,
+          "answered": 1.3031,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.25,
+          "interview_minutes": 0.53,
+          "distinct_prefixes": 9624,
+          "cache": {
+            "_chol": {
+              "size": 3465,
+              "cap": 4096,
+              "hits": 1344,
+              "misses": 3465,
+              "evictions": 0,
+              "hit_rate": 0.2795
+            },
+            "_mu": {
+              "size": 3465,
+              "cap": 4096,
+              "hits": 4809,
+              "misses": 3465,
+              "evictions": 0,
+              "hit_rate": 0.5812
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k8": {
+          "full": 0.19311025983819646,
+          "tail": 0.07063007908594517,
+          "answered": 2.5486,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.26,
+          "interview_minutes": 2.47,
+          "distinct_prefixes": 10000,
+          "cache": {
+            "_chol": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 4251,
+              "misses": 19930,
+              "evictions": 15834,
+              "hit_rate": 0.1758
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 24181,
+              "misses": 19930,
+              "evictions": 15834,
+              "hit_rate": 0.5482
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        },
+        "k16": {
+          "full": 0.2158206891200163,
+          "tail": 0.0881202768227959,
+          "answered": 4.8304,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.28,
+          "interview_minutes": 8.93,
+          "distinct_prefixes": 10000,
+          "cache": {
+            "_chol": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 4333,
+              "misses": 77925,
+              "evictions": 73829,
+              "hit_rate": 0.0527
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 82258,
+              "misses": 77925,
+              "evictions": 73829,
+              "hit_rate": 0.5135
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        }
+      }
+    }
+  }
+}

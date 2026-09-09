@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "selectors": [
+      "fixedorder_json:policyB_combined"
+    ],
+    "budgets": [
+      16
+    ],
+    "consumers": [
+      "ours"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 10000,
+    "cohort": "validation",
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "ts_scale": 1.0,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "pool_contract": {
+      "v": 1,
+      "policy": "B (arm_n.build_pool)",
+      "n_rows": 10000,
+      "n_items": 18359,
+      "nnz": 1356475,
+      "per_user": 135.6475,
+      "fp": "c282962b49a2d67ef47ff07544519f20"
+    },
+    "golbandi": {
+      "depth": 0,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": null
+    },
+    "_contract": {
+      "n_users": 10000,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "ts_scale": 1.0,
+      "cohort": "validation",
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 0,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": null,
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "igcn_clusters": 300,
+      "igcn_nbr": 150,
+      "igcn_switch": 5,
+      "igcn_recompute": 1,
+      "igcn_kmeans_iter": 10,
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 0,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 0,
+      "specs": [
+        "fixedorder_json:policyB_combined"
+      ],
+      "budgets": [
+        16
+      ],
+      "consumers": [
+        "ours"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    },
+    "keyterm_repr_by_selector": {
+      "fixedorder_json:policyB_combined": "uniform_member_mean"
+    },
+    "n_concepts": 1031,
+    "concept_answer_convention": "CERTIFIED-ERA (apply_neg_cap=False + cap_negatives over revealed)"
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.1597035575716669,
+        "tail": 0.02573352665718018
+      }
+    },
+    "ours": {
+      "fixedorder_json:policyB_combined": {
+        "k16": {
+          "full": 0.25561016113602253,
+          "tail": 0.12366492106552922,
+          "answered": 1.4785,
+          "floored": 0,
+          "concept_tokens": 100000,
+          "concept_consumer": true,
+          "score_minutes": 0.28,
+          "interview_minutes": 0.23,
+          "distinct_prefixes": 1
+        }
+      }
+    }
+  }
+}

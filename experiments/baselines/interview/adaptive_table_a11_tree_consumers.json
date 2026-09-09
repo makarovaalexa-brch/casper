@@ -1,0 +1,564 @@
+{
+  "meta": {
+    "selectors": [
+      "replay:ndcgtree16test",
+      "fixedorder_json:policyB_combined"
+    ],
+    "budgets": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "consumers": [
+      "ours",
+      "recvae_likes",
+      "golbandi_leaf",
+      "belief_mf"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 10000,
+    "cohort": "test",
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "ts_scale": 1.0,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "pool_contract": {
+      "v": 1,
+      "policy": "B (arm_n.build_pool)",
+      "n_rows": 10000,
+      "n_items": 18359,
+      "nnz": 1411761,
+      "per_user": 141.1761,
+      "fp": "cc002b4eb984ed9880346c98fc0a2970"
+    },
+    "golbandi": {
+      "depth": 0,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": null
+    },
+    "_contract": {
+      "n_users": 10000,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "ts_scale": 1.0,
+      "cohort": "test",
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 0,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": null,
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "igcn_clusters": 300,
+      "igcn_nbr": 150,
+      "igcn_switch": 5,
+      "igcn_recompute": 1,
+      "igcn_kmeans_iter": 10,
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 0,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 0,
+      "specs": [
+        "replay:ndcgtree16test",
+        "fixedorder_json:policyB_combined"
+      ],
+      "budgets": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "consumers": [
+        "ours",
+        "recvae_likes",
+        "golbandi_leaf",
+        "belief_mf"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    },
+    "keyterm_repr_by_selector": {
+      "replay:ndcgtree16test": "uniform_member_mean",
+      "fixedorder_json:policyB_combined": "uniform_member_mean"
+    },
+    "n_concepts": 1031,
+    "concept_answer_convention": "CERTIFIED-ERA (apply_neg_cap=False + cap_negatives over revealed)"
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.16255947303941118,
+        "tail": 0.026243274849789923
+      }
+    },
+    "ours": {
+      "replay:ndcgtree16test": {
+        "k1": {
+          "full": 0.1807898256302669,
+          "tail": 0.053734311019292665,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": true,
+          "score_minutes": 0.61,
+          "interview_minutes": 0.08,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.2014653525814659,
+          "tail": 0.06749307402046432,
+          "answered": 0.2118,
+          "floored": 0,
+          "concept_tokens": 14951,
+          "concept_consumer": true,
+          "score_minutes": 0.91,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 3
+        },
+        "k4": {
+          "full": 0.22673573924171778,
+          "tail": 0.09048177538079293,
+          "answered": 0.525,
+          "floored": 0,
+          "concept_tokens": 25496,
+          "concept_consumer": true,
+          "score_minutes": 0.27,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 11
+        },
+        "k8": {
+          "full": 0.24924224174794796,
+          "tail": 0.11168231426455726,
+          "answered": 0.9244,
+          "floored": 0,
+          "concept_tokens": 51221,
+          "concept_consumer": true,
+          "score_minutes": 0.28,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 15
+        },
+        "k16": {
+          "full": 0.26935595377032845,
+          "tail": 0.1307423756451896,
+          "answered": 1.7708,
+          "floored": 0,
+          "concept_tokens": 87583,
+          "concept_consumer": true,
+          "score_minutes": 0.3,
+          "interview_minutes": 0.17,
+          "distinct_prefixes": 15
+        }
+      },
+      "fixedorder_json:policyB_combined": {
+        "k1": {
+          "full": 0.1807898256302669,
+          "tail": 0.053734311019292665,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": true,
+          "score_minutes": 0.23,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.19618335412261423,
+          "tail": 0.07011725155573771,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": true,
+          "score_minutes": 0.23,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.21782675893005848,
+          "tail": 0.08566393780006332,
+          "answered": 0.3007,
+          "floored": 0,
+          "concept_tokens": 30000,
+          "concept_consumer": true,
+          "score_minutes": 0.25,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.23862276611065592,
+          "tail": 0.10333591865490685,
+          "answered": 0.8575,
+          "floored": 0,
+          "concept_tokens": 50000,
+          "concept_consumer": true,
+          "score_minutes": 0.27,
+          "interview_minutes": 0.06,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.259003306957361,
+          "tail": 0.12369686411443184,
+          "answered": 1.5117,
+          "floored": 0,
+          "concept_tokens": 100000,
+          "concept_consumer": true,
+          "score_minutes": 0.29,
+          "interview_minutes": 0.18,
+          "distinct_prefixes": 1
+        }
+      }
+    },
+    "recvae_likes": {
+      "replay:ndcgtree16test": {
+        "k1": {
+          "full": 0.0,
+          "tail": 0.0,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": false,
+          "score_minutes": 0.52,
+          "interview_minutes": 0.08,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.04280539415686473,
+          "tail": 0.015152389759623896,
+          "answered": 0.2118,
+          "floored": 0,
+          "concept_tokens": 14951,
+          "concept_consumer": false,
+          "score_minutes": 0.5,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 3
+        },
+        "k4": {
+          "full": 0.10156919866781469,
+          "tail": 0.03986097034839345,
+          "answered": 0.525,
+          "floored": 0,
+          "concept_tokens": 25496,
+          "concept_consumer": false,
+          "score_minutes": 0.22,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 11
+        },
+        "k8": {
+          "full": 0.12649702700175539,
+          "tail": 0.05266231297085718,
+          "answered": 0.9244,
+          "floored": 0,
+          "concept_tokens": 51221,
+          "concept_consumer": false,
+          "score_minutes": 0.22,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 15
+        },
+        "k16": {
+          "full": 0.1769227700333405,
+          "tail": 0.07644133883430493,
+          "answered": 1.7708,
+          "floored": 0,
+          "concept_tokens": 87583,
+          "concept_consumer": false,
+          "score_minutes": 0.23,
+          "interview_minutes": 0.17,
+          "distinct_prefixes": 15
+        }
+      },
+      "fixedorder_json:policyB_combined": {
+        "k1": {
+          "full": 0.0,
+          "tail": 0.0,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": false,
+          "score_minutes": 0.2,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.0,
+          "tail": 0.0,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": false,
+          "score_minutes": 0.2,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.06622879907119218,
+          "tail": 0.013003774239219864,
+          "answered": 0.3007,
+          "floored": 0,
+          "concept_tokens": 30000,
+          "concept_consumer": false,
+          "score_minutes": 0.21,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.11615446960219897,
+          "tail": 0.03167054837300589,
+          "answered": 0.8575,
+          "floored": 0,
+          "concept_tokens": 50000,
+          "concept_consumer": false,
+          "score_minutes": 0.22,
+          "interview_minutes": 0.06,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.13570429123963507,
+          "tail": 0.04090627048851842,
+          "answered": 1.5117,
+          "floored": 0,
+          "concept_tokens": 100000,
+          "concept_consumer": false,
+          "score_minutes": 0.22,
+          "interview_minutes": 0.18,
+          "distinct_prefixes": 1
+        }
+      }
+    },
+    "golbandi_leaf": {
+      "replay:ndcgtree16test": {
+        "k1": {
+          "full": 0.16255947303941118,
+          "tail": 0.026243274849789923,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": false,
+          "score_minutes": 0.29,
+          "interview_minutes": 0.08,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.17451214993942996,
+          "tail": 0.03933522222670592,
+          "answered": 0.2118,
+          "floored": 0,
+          "concept_tokens": 14951,
+          "concept_consumer": false,
+          "score_minutes": 2.73,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 3
+        },
+        "k4": {
+          "full": 0.18576730653283238,
+          "tail": 0.0525998542434752,
+          "answered": 0.525,
+          "floored": 0,
+          "concept_tokens": 25496,
+          "concept_consumer": false,
+          "score_minutes": 2.94,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 11
+        },
+        "k8": {
+          "full": 0.19639613742437317,
+          "tail": 0.059193008675109966,
+          "answered": 0.9244,
+          "floored": 0,
+          "concept_tokens": 51221,
+          "concept_consumer": false,
+          "score_minutes": 2.22,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 15
+        }
+      },
+      "fixedorder_json:policyB_combined": {
+        "k1": {
+          "full": 0.16255947303941118,
+          "tail": 0.026243274849789923,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": false,
+          "score_minutes": 0.2,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.16255947303941118,
+          "tail": 0.026243274849789923,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": false,
+          "score_minutes": 0.2,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.17458353072728233,
+          "tail": 0.04784678497086284,
+          "answered": 0.3007,
+          "floored": 0,
+          "concept_tokens": 30000,
+          "concept_consumer": false,
+          "score_minutes": 0.2,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.21014116112164602,
+          "tail": 0.07406271366936296,
+          "answered": 0.8575,
+          "floored": 0,
+          "concept_tokens": 50000,
+          "concept_consumer": false,
+          "score_minutes": 0.2,
+          "interview_minutes": 0.06,
+          "distinct_prefixes": 1
+        }
+      }
+    },
+    "belief_mf": {
+      "replay:ndcgtree16test": {
+        "k1": {
+          "full": 0.15999059102728358,
+          "tail": 0.026719196500360035,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": false,
+          "score_minutes": 0.54,
+          "interview_minutes": 0.08,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.16048055759831945,
+          "tail": 0.028164176171326768,
+          "answered": 0.2118,
+          "floored": 0,
+          "concept_tokens": 14951,
+          "concept_consumer": false,
+          "score_minutes": 4.33,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 3
+        },
+        "k4": {
+          "full": 0.16136085806423067,
+          "tail": 0.03233475746790952,
+          "answered": 0.525,
+          "floored": 0,
+          "concept_tokens": 25496,
+          "concept_consumer": false,
+          "score_minutes": 0.71,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 11
+        },
+        "k8": {
+          "full": 0.1625600720752189,
+          "tail": 0.03492157665251173,
+          "answered": 0.9244,
+          "floored": 0,
+          "concept_tokens": 51221,
+          "concept_consumer": false,
+          "score_minutes": 0.77,
+          "interview_minutes": 0.05,
+          "distinct_prefixes": 15
+        },
+        "k16": {
+          "full": 0.1640549933031572,
+          "tail": 0.04004035023404516,
+          "answered": 1.7708,
+          "floored": 0,
+          "concept_tokens": 87583,
+          "concept_consumer": false,
+          "score_minutes": 0.87,
+          "interview_minutes": 0.17,
+          "distinct_prefixes": 15
+        }
+      },
+      "fixedorder_json:policyB_combined": {
+        "k1": {
+          "full": 0.15999059102728358,
+          "tail": 0.026719196500360035,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 10000,
+          "concept_consumer": false,
+          "score_minutes": 0.37,
+          "interview_minutes": 0.0,
+          "distinct_prefixes": 1
+        },
+        "k2": {
+          "full": 0.15999059102728358,
+          "tail": 0.026719196500360035,
+          "answered": 0.0,
+          "floored": 0,
+          "concept_tokens": 20000,
+          "concept_consumer": false,
+          "score_minutes": 0.37,
+          "interview_minutes": 0.01,
+          "distinct_prefixes": 1
+        },
+        "k4": {
+          "full": 0.16065327639752378,
+          "tail": 0.027948704662953634,
+          "answered": 0.3007,
+          "floored": 0,
+          "concept_tokens": 30000,
+          "concept_consumer": false,
+          "score_minutes": 0.62,
+          "interview_minutes": 0.02,
+          "distinct_prefixes": 1
+        },
+        "k8": {
+          "full": 0.16128276574376843,
+          "tail": 0.028348482380615568,
+          "answered": 0.8575,
+          "floored": 0,
+          "concept_tokens": 50000,
+          "concept_consumer": false,
+          "score_minutes": 0.79,
+          "interview_minutes": 0.06,
+          "distinct_prefixes": 1
+        },
+        "k16": {
+          "full": 0.16244375383403295,
+          "tail": 0.030660516921424102,
+          "answered": 1.5117,
+          "floored": 0,
+          "concept_tokens": 100000,
+          "concept_consumer": false,
+          "score_minutes": 0.86,
+          "interview_minutes": 0.18,
+          "distinct_prefixes": 1
+        }
+      }
+    }
+  }
+}

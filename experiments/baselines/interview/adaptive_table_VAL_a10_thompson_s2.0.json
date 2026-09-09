@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "selectors": [
+      "thompson"
+    ],
+    "budgets": [
+      16
+    ],
+    "consumers": [
+      "ours"
+    ],
+    "arch": "i26",
+    "snapshot": "t2i26c_ep31.pt",
+    "no_floor": true,
+    "n_test_users": 10000,
+    "cohort": "validation",
+    "ucb_alpha": 1.0,
+    "ts_seed": 98765,
+    "ts_scale": 2.0,
+    "eddi_cand_topm": 0,
+    "conv_max_states": null,
+    "pool_contract": {
+      "v": 1,
+      "policy": "B (arm_n.build_pool)",
+      "n_rows": 10000,
+      "n_items": 18359,
+      "nnz": 1356475,
+      "per_user": 135.6475,
+      "fp": "c282962b49a2d67ef47ff07544519f20"
+    },
+    "golbandi": {
+      "depth": 0,
+      "xi": null,
+      "min_child": 0,
+      "leaf_lam": null,
+      "tree_cache": null
+    },
+    "_contract": {
+      "n_users": 10000,
+      "n_items": 0,
+      "sel_batch": 0,
+      "ucb_alpha": 1.0,
+      "ts_seed": 98765,
+      "ts_scale": 2.0,
+      "cohort": "validation",
+      "eddi_topm": 0,
+      "eddi_beta": 1.0,
+      "golbandi_depth": 0,
+      "golbandi_xi": null,
+      "golbandi_min_child": 0,
+      "golbandi_tree_cache": null,
+      "dre_tag": "",
+      "dre_dup_policy": "waste",
+      "igcn_clusters": 300,
+      "igcn_nbr": 150,
+      "igcn_switch": 5,
+      "igcn_recompute": 1,
+      "igcn_kmeans_iter": 10,
+      "keyterm_repr": "uniform_member_mean",
+      "keyterm_repr_conucb": false,
+      "keyterm_n_rep": 20,
+      "keyterm_norm_match": 1,
+      "conv_beta": null,
+      "conv_turn_rule": null,
+      "conv_b_schedule": "5logt",
+      "conucb_lam": 0.5,
+      "conucb_lam_til": 1.0,
+      "clime_n_eig": 1,
+      "clisk_sigma": 0.0,
+      "smoke_users": 0,
+      "dpe_topics": "genres",
+      "dpe_burn": "none",
+      "dpe_update": "paper",
+      "concept_neg_cap": 0,
+      "specs": [
+        "thompson"
+      ],
+      "budgets": [
+        16
+      ],
+      "consumers": [
+        "ours"
+      ],
+      "arch": "i26",
+      "snapshot": "t2i26c_ep31.pt",
+      "no_floor": true,
+      "concept_ckpt": "concept_cv3_ep08.pt",
+      "no_concept_consumer": false,
+      "golbandi_lam": null
+    }
+  },
+  "results": {
+    "mostpop": {
+      "_prior": {
+        "full": 0.1597035575716669,
+        "tail": 0.02573352665718018
+      }
+    },
+    "ours": {
+      "thompson": {
+        "k16": {
+          "full": 0.20250871251586655,
+          "tail": 0.08175036607657334,
+          "answered": 2.4682,
+          "floored": 0,
+          "concept_tokens": 0,
+          "concept_consumer": false,
+          "score_minutes": 0.27,
+          "interview_minutes": 6.05,
+          "distinct_prefixes": 10000,
+          "cache": {
+            "_chol": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 12325,
+              "misses": 48848,
+              "evictions": 44752,
+              "hit_rate": 0.2015
+            },
+            "_mu": {
+              "size": 4096,
+              "cap": 4096,
+              "hits": 61173,
+              "misses": 48848,
+              "evictions": 44752,
+              "hit_rate": 0.556
+            }
+          },
+          "max_states": 4096,
+          "width_dtype": "float32"
+        }
+      }
+    }
+  }
+}
