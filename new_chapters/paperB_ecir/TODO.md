@@ -99,6 +99,19 @@ banked from the Table 4 ablation**) and computes the exact measured gains at *it
 
 ## 9. Second dataset — follow-up paper, NOT a camera-ready fix
 The area chair's answer to "what would make this an unambiguous accept" was Tables 2--4 replicated on
-a second dataset with a second certified recommender. That is a new instrument: split, concept bank,
-teacher, two-tower training, re-certification, regrown trees, rerun battery. The chair called it a
-follow-up paper themselves. Costing is in progress; see `docs/design/DS_A14_SECOND_DATASET_COST.md`.
+a second dataset with a second certified recommender. Costing in
+`docs/design/DS_A14_SECOND_DATASET_COST.md`: **~62 h of recorded compute, two to four weeks elapsed**
+on this box, and the chair called it a follow-up paper themselves.
+
+**Goodreads is the candidate.** The first version of that costing wrongly said the Tag Genome has no
+substitute. It does. The concept channel consumes a **binary membership matrix**, not graded
+relevance (`belief_layer.py:632` thresholds at 0.5; `strategy_channel_suite.py:1422` builds with
+`np.ones`), so any mined folksonomy is a drop-in. `scripts/_archive/paper2_old/gr_books.py` already
+mines Goodreads `popular_shelves` into exactly that shape, with a >=30-item floor mirroring ML-25M,
+and `scripts/instrument2/gr_recvae.py` already trained a Goodreads RecVAE reading **0.4340/0.2507**
+full/tail against a 0.2045/0.0090 most-popular floor -- the certification bar, already measured.
+
+⚠ Before anything else: the old Goodreads arena was truncated to **20,000 of 188,867 items and 418
+test users**. Neither may be inherited under HARD RULE 1, and inheriting them would undercut the
+catalogue-scale claim that is one of the paper's selling points. The data is also no longer on the
+box and the code speaks the retired pre-Jul-22 contract.
