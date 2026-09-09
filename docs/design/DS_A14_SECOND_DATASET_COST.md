@@ -131,3 +131,78 @@ framing is correct and should simply be accepted: this is a follow-up paper, not
 2. **ML-20M** only as a cheap self-replication check, and never described as a second dataset.
 3. **Netflix** only if an item-channel-only result is wanted, with the bank result explicitly stated
    as not portable there.
+
+## ADDENDUM, 2026-09-10 — "is there a smaller dataset, so we can train quicker?"
+
+### The cost model, from recorded fields
+
+The greedy and tree stages dominate, and both are driven by one operation: fold the cohort's answers
+and rank the whole catalogue for every cohort user. The artifacts record its unit cost directly:
+
+| build | `n_cohort` | `n_evals` | `sec_per_eval` **[R]** |
+|---|---|---|---|
+| `greedy_static_policyB_items` | 10,000 | 839 | **9.272** |
+| `greedy_static_policyB_concepts` | 10,000 | 1,546 | **7.691** |
+| `greedy_static_i26c` (combined) | 10,000 | 3,173 | **13.543** |
+
+At 10,000 users over an 18,359-item catalogue that is **~5.0e-8 s per user-item** **[E]**, and the
+number of evals is set by the 1,000-candidate pool and the budget, not by the data. So for the
+eval-bound stages, **cost scales as (eval users x catalogue size)** and the candidates rank like this:
+
+| dataset | eval users | catalogue | relative cost **[E]** |
+|---|---|---|---|
+| ML-25M, as run | 10,000 | 18,359 | 1.00 |
+| ML-20M | 10,000 | 20,108 | 1.10 — *not smaller* |
+| Goodreads, 20k universe as previously run | 10,000 | 20,000 | 1.09 — *the truncation was chosen to match* |
+| Goodreads, full catalogue | 10,000 | 188,867 | **10.3** |
+| goodbooks-10k | 5,000 | 10,000 | **0.27** |
+| ML-1M | 1,000 | 3,706 | 0.02 |
+
+Training scales with *train* users x catalogue instead: ML-25M is 140,768 x 18,359; goodbooks-10k
+would be roughly an order of magnitude less. **Overall a goodbooks-10k port looks like 4--6x faster
+[E], i.e. the ~62 h becomes low tens of hours.**
+
+### The two candidates that are genuinely smaller
+
+**goodbooks-10k** ([github.com/zygmuntz/goodbooks-10k](https://github.com/zygmuntz/goodbooks-10k)):
+10,000 books, **53,424 users, ~6M ratings on a 1--5 scale**, and critically it ships
+`book_tags.csv` (user-applied tags and shelves per book, with counts) plus `tags.csv` mapping ids to
+names. That is a folksonomy of exactly the shape the concept channel needs, and `gr_books.py`'s
+shelf-mining logic should transfer more or less directly.
+
+⚠ **But its users are shallow: the median user has 8 ratings.** ML-25M gives us 141 fold-in items per
+user. After an 80/20 fold-in/target split a median goodbooks user leaves about six fold-in items and
+two targets. Profile density is what drives answerability, and answerability is the paper's whole
+mechanism, so this is the number that decides whether the dataset can carry the experiment at all.
+It cannot be assumed either way from the raw size.
+
+**ML-1M** is already on this box (`data/ml-1m/`) and an arena was built for it once
+(`scripts/instrument2/ml1m_arena.py`). It is ~50x cheaper, and **it is not usable here**: 6,040 users
+cannot support anything like a 10,000/10,000 held-out split, and `movies.dat` carries only 18 genres,
+against the 1,031-concept bank the paper's whole concept channel is built on. Too small in both the
+ways that matter.
+
+### The pre-flight probe, which is the actual recommendation
+
+Do not commit any training to a candidate dataset before running a probe that needs **no tower, no
+teacher and no gates** — only the split, the tag mining and some counting:
+
+1. Build the split; count users surviving `min_uc` and report the fold-in items per user distribution
+   against ML-25M's 141.
+2. Mine the tag/shelf vocabulary; count concepts clearing the **>= 30 member** floor against ML-25M's
+   1,031.
+3. Take a popularity-ranked top-500 item pool and the answerability-ranked concept pool, and compute
+   the **answer rate at sixteen questions** for both channels.
+
+The go/no-go is step 3. ML-25M reads **3.11 item answers and 12.36 concept answers per sixteen
+questions**, and the entire finding is the ratio between those. A candidate that does not land in the
+same regime is not a cheaper instance of this experiment, it is a different one, and its result would
+not replicate anything. **The probe is hours; the port is weeks. Never run them in that order.**
+
+### The lever that is not a dataset
+
+The eval cohort size is a free parameter and every eval-bound stage is linear in it. Halving the
+scored cohort halves the greedy and tree stages on *any* dataset. The recorded per-cohort trees are
+consistent with that but sublinear in practice — 1,822 users cost 10,210 s against 10,000 users at
+37,191 s, so a 5.5x cut in users bought only 3.6x in time **[R]** — so there is real fixed overhead
+and the saving should not be assumed proportional.
