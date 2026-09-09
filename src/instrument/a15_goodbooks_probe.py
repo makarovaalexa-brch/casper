@@ -47,7 +47,13 @@ TAU_REF = 1.5          # e_c refusal threshold, signed_answers.py:29
 NC_MIN = 2             # n_c >= 2, signed_answers.py:138
 POOL_N = 500
 BUDGET = 16
-SHELF_MINCOUNT_FRAC = 0.02   # a tag counts as membership if it is >=2% of that book's tag mass
+# Membership rule: a book's TOP-K tags by application count. K is CALIBRATED, not chosen: at K=50
+# the per-item concept density is median 40 / mean 39.7, against ML-25M's median 37 / mean 44.5 at
+# genome relevance >= 0.5. Calibrating the density rather than the bank size is what makes the two
+# datasets comparable; the bank size then falls out at 1,763 concepts against ML-25M's 1,031.
+# (A first attempt used a 2%-of-tag-mass threshold and yielded only 103 concepts: popular books carry
+# enormous tag mass, so a fractional rule is a popularity filter in disguise. Recorded, not hidden.)
+TOP_K_TAGS_PER_BOOK = 50
 
 # Process / non-content shelves. Extends gr_books.py's list, which was written for the same job.
 JUNK_EXACT = set("""
@@ -148,19 +154,25 @@ def main():
     bt["book"] = bt.goodreads_book_id.map(g2b)
     bt = bt.dropna(subset=["book"])
     bt = bt[bt.book.isin(b2i.keys())]
-    tot = bt.groupby("book")["count"].transform("sum")
-    bt = bt[bt["count"] >= SHELF_MINCOUNT_FRAC * tot]          # membership rule
     bt["name"] = bt.tag_id.map(id2name)
     bt = bt[~bt.name.map(is_junk)]
-    log(f"[tags] {bt.tag_id.nunique()} distinct content tags after junk filter and the "
-        f"{SHELF_MINCOUNT_FRAC:.0%} membership rule")
+    bt = bt.sort_values("count", ascending=False).groupby("book").head(TOP_K_TAGS_PER_BOOK)
+    log(f"[tags] {bt.tag_id.nunique()} distinct content tags after the junk filter and the "
+        f"top-{TOP_K_TAGS_PER_BOOK}-per-book membership rule")
 
     memb = bt.groupby("tag_id")["book"].apply(lambda s: np.array([b2i[x] for x in s.unique()]))
     memb = {int(t): v for t, v in memb.items() if len(v) >= CONC_FLOOR}
     tags = sorted(memb)
     nc = len(tags)
     log(f"[bank] {nc} concepts with >= {CONC_FLOOR} members (ML-25M: 1031)")
+    dens = bt[bt.tag_id.isin(set(tags))].groupby("book").size()
+    log(f"[bank] concepts per book: median {dens.median():.0f} mean {dens.mean():.1f} "
+        f"(ML-25M: median 37 mean 44.5)")
     rep["concept_bank"] = {"n_concepts": nc, "floor": CONC_FLOOR,
+                           "top_k_tags_per_book": TOP_K_TAGS_PER_BOOK,
+                           "concepts_per_book_median": float(dens.median()),
+                           "concepts_per_book_mean": float(dens.mean()),
+                           "ml25m_concepts_per_item": {"median": 37, "mean": 44.5},
                            "median_members": float(np.median([len(memb[t]) for t in tags])) if nc else 0,
                            "example_names": [str(id2name[t]) for t in tags[:25]]}
     if nc < 100:
@@ -210,7 +222,6 @@ def main():
     log(f"item answers per 16 questions   : {ia.mean():.2f}   (ML-25M 3.11)")
     log(f"concept answers per 16 questions: {ca.mean():.2f}   (ML-25M 12.36)")
     log(f"ratio concept/item              : {ca.mean()/max(ia.mean(),1e-9):.2f}   (ML-25M 3.98)")
-    log(f"users answering NOTHING in 2 item questions   : {(ia[:]>=0).sum() and int((np.array([1 for _ in ia])*0).sum())}")
     rep["go_no_go"] = {"item_answers_at_16": float(ia.mean()),
                        "concept_answers_at_16": float(ca.mean()),
                        "ratio": float(ca.mean() / max(ia.mean(), 1e-9)),
